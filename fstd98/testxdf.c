@@ -73,20 +73,20 @@ static long rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, ftnword_2 *pri, int npri,
                           ftnword_2 *aux, int naux, char *appl);
 ftnword f77name(xdfopn)(ftnword *fiun,char *mode,ftnword_2 *pri,ftnword *fnpri,
-             ftnword_2 *aux,ftnword *fnaux,char *appl,int l1,int l2);
+             ftnword_2 *aux,ftnword *fnaux,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfopn(int iun,char *mode,ftnword_2 *pri,int npri,
              ftnword_2 *aux,int naux,char *appl);
 ftnword f77name(xdfcls)(ftnword *fiun);
 int c_xdfcls(int iun);
 ftnword f77name(xdfsta)(int *fiun,ftnword *stat,int *fnstat,
                     ftnword_2 *pri,int *fnpri,ftnword_2 *aux,int *fnaux,
-                    char *vers,char *appl,int l1,int l2);
+                    char *vers,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfsta(int iun,ftnword *stat,int nstat,
                     ftnword_2 *pri,int npri,ftnword_2 *aux,int naux,
                     char *vers,char *appl);
 ftnword f77name(xdfimp)(int *fiun,ftnword *stat,int *fnstat,
                     ftnword_2 *pri,ftnword_2 *aux,
-                    char *vers,char *appl,int l1,int l2);
+                    char *vers,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfimp(int iun,ftnword *stat,int nstat,ftnword_2 *pri,ftnword_2 *aux,
                     char *vers,char *appl);
 ftnword f77name(xdfini)(int *fiun,buffer_interface_ptr buf,int *fidtyp,
@@ -118,10 +118,10 @@ ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
 			buffer_interface_ptr buf);
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf);
 ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
-			int l1, int l2);
+			F2Cl l1, F2Cl l2);
 int c_xdfopt(char *optname, char *optc, int optv);
 ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
-			int l1, int l2);
+			F2Cl l1, F2Cl l2);
 int c_xdfgop(char *optname, char *optc, int *optv);
 ftnword f77name(xdfins)(buffer_interface_ptr buf,ftnword *donnees,
                         ftnword *fbitpos, ftnword *fnelm,

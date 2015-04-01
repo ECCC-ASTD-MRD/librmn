@@ -310,7 +310,7 @@ return(0);
 wordint f77name(cmcwlog)(fclstr,msgno,fidstr,ftxtstr,lclstr,lidstr,ltxtstr)
 char *fidstr, *ftxtstr, *fclstr;
 ftnword *msgno;
-int lidstr,ltxtstr,lclstr;
+F2Cl lidstr,ltxtstr,lclstr;
 {
 char msgcl[30];
 char msgid[MAXID];

@@ -12,7 +12,7 @@ CFLAGS =
 
 OPTIMIZ = -O 1
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librtools.a
 
@@ -24,7 +24,7 @@ UPDATEX =
 
 default: $(BASE_ARCH)_time_base.c obj
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 OBJECTS= \
         tmg.o rtools_wtime.o fort_hpm.o $(BASE_ARCH)_time_base.o

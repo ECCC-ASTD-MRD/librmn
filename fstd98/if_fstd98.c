@@ -1847,7 +1847,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
         sprintf(c_level,"%12d   ",iip1);
       }
       else
-        f77name(convip)(&iip1,&level,&kind,&mode,c_level,&flag,15);
+        f77name(convip)(&iip1,&level,&kind,&mode,c_level,&flag,(F2Cl) 15);
       c_level[15] = '\0';
       sprintf(v_level,"%s","               ");        /* blank initialisation */
       posc=14;

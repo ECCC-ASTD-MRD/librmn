@@ -120,7 +120,7 @@ char stnid[];
   int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
   int ldx, ldy;
   int lrunn,lnsup,lnxaux;
-  int l1;
+  F2Cl l1;
   ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
   ldx = dx; ldy = dy;
   lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
@@ -232,7 +232,7 @@ char stnid[];
   int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
   int ldx, ldy;
   int lrunn,lnsup,lnxaux;
-  int l1;
+  F2Cl l1;
   ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
   ldx = dx; ldy = dy;
   lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
@@ -264,7 +264,7 @@ c_mrfgoc(optnom,opvalc)
 char optnom[],opvalc[9];
 
   {
-  int l1,l2;
+  F2Cl l1,l2;
   int iii;
   l1 = strlen(optnom);
   l2 = strlen(opvalc);
@@ -282,7 +282,7 @@ char optnom[];
 float *opvalr;
 
   {
-  int l1;
+  F2Cl l1;
   l1 = strlen(optnom);
   return(f77name(mrfgor)(optnom,opvalr,l1));
   }
@@ -297,7 +297,7 @@ char stnid[];
 
   {
   int liun,lhandle,lidtyp,llat,llon,ldate,ltemps,lnsup;
-  int l1;
+  F2Cl l1;
   l1 = strlen(stnid);
   liun = iun; lhandle = handle; lidtyp = idtyp; llat = lat; llon = lon;
   ldate = date; ltemps = temps; lnsup = nsup;
@@ -340,7 +340,8 @@ int iun;
 char mode[];
 
   {
-  int liun,l1;
+  int liun;
+  F2Cl l1;
   liun = iun;
   l1 = strlen(mode);
   return(f77name(mrfopn)(&liun,mode,l1));
@@ -354,7 +355,7 @@ c_mrfopc(optnom,opvalc)
 char optnom[],opvalc[];
 
   {
-  int l1,l2;
+  F2Cl l1,l2;
   l1 = strlen(optnom);
   l2 = strlen(opvalc);
   return(f77name(mrfopc)(optnom,opvalc,l1,l2));
@@ -369,7 +370,7 @@ char optnom[];
 float opvalr;
 
   {
-  int l1;
+  F2Cl l1;
   float lopvalr;
   l1 = strlen(optnom);
   lopvalr = opvalr;
@@ -386,7 +387,8 @@ int *dx, *dy;
 char stnid[10];
 
   {
-  int lhandle,lnsup,l1,iii;
+  int lhandle,lnsup,iii;
+  F2Cl l1;
   lhandle = handle; lnsup = nsup;
   l1 = strlen(stnid);
   iii = f77name(mrfprm)(&lhandle,stnid,idtyp,lat,lon,dx,dy,date,temps,flgs,

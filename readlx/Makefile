@@ -14,7 +14,7 @@ OPTIMIZ = 2
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
@@ -57,12 +57,12 @@ FILES = readlx.f
 default: obj
 
 .dck.rat:
-	cat *.dck | r.ftnpp - -P $(CPPFLAGS) -I$(ARMNLIB)/include $(DEFINE) > $*.rat
+	cat *.dck | r.ftnpp - -P $(CPPFLAGS) -I$(RPN_TEMPLATE_LIBS)/include $(DEFINE) > $*.rat
 
 .rat.f:
 	rat77 -f $< -l $*.of -o $*.f
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 #readlx.rat: $(FICHIERS)
 #readlx.f: readlx.rat

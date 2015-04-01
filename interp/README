@@ -9,5 +9,9 @@
 . r.ssmuse.dot rmnlib-dev 
 . s.ssmuse.dot devtools
 
+. ssmuse-sh -d hpcs/13b/03/base -d hpcs/13b/03/intel1302
+
 make obj
 mv *.o /users/dor/armn/viv/cnfs/UGRIDTEST
+For individual compilations to check syntax errors:
+mycomp filename

@@ -6,7 +6,8 @@ workdir=`pwd`
 for package in base burp98_f cmc_log compresseur fstd98 interp interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
 do 
   cd ${package}
-  $mmake OPTIMIZ="2 -debug" locallib
   $mmake clean
+  $mmake OPTIMIZ="2 -debug" locallib
+  rm *.o 
   cd $workdir
 done

@@ -50,7 +50,7 @@ typedef struct {
   int nelm;
   float delta;
   union {
-    long tab_elem[MAX_Nlist];
+    int tab_elem[MAX_Nlist];
     float tab_rval[MAX_Nlist];
   } data;
 } DE_int_float;
@@ -604,7 +604,7 @@ int c_fst_match_req(int handle)
   int mode=-1,flag=0;
   int ip_kind, amatch=0;
   char string[30], *stripblanks;
-  long debut, fin;
+  int debut, fin;
   float err_tolerance = 1.0/pow(2.0,17);
   float p1,r_debut,r_fin;
   double diff_deb, diff_fin, delta8, date8, remainder;

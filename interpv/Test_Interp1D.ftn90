@@ -28,7 +28,7 @@ program Test_Interp1D
 !!
 
 ! number of points, horizontally
-# define hNumPts 6
+  integer :: hNumPts=2
 # define hDim    6
 
 ! number of points, vertically, in target
@@ -55,7 +55,7 @@ program Test_Interp1D
   integer :: i, v
 
   ! definition of the horizontal grid
-  real, parameter, dimension(hDim) :: pSurf=(/100000., 100000./)
+  real, parameter, dimension(hDim) :: pSurf=(/100000., 100000., 100000., 100000., 100000., 100000./)
 
   ! definition of the initial grid:  the actual vertical levels
   real, dimension(nPtsSrc) :: levelsSrc=(/0.64, 1.25, 2.44, 2.97/)
@@ -161,7 +161,7 @@ program Test_Interp1D
                                 )
 
   call TestReportClear(levelsSrc, stateAscending, derivAscending, levelsTgt, &
-                      stateOut, derivOut, &
+                      stateOut, derivOut, hnumpts, &
                       'Cubic with Derivatives - DEscending source levels', pass)
 
 
@@ -193,7 +193,7 @@ program Test_Interp1D
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, derivOut, &
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, &
                       'extrapolation by lapse rate - DEscending source levels')
 
 
@@ -236,7 +236,7 @@ program Test_Interp1D
                                 )
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
-                       derivOut, &
+                       derivOut, hnumpts, &
                        'Cubic with Derivatives - AScending source levels', pass)
 
 
@@ -270,7 +270,7 @@ program Test_Interp1D
     endif
   end do
 
-  call ReportAndClear(unitPass, stateOut, derivOut,'nearest neighbour')
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, 'nearest neighbour')
 
 
 
@@ -291,7 +291,7 @@ program Test_Interp1D
                                  )
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
-                       derivOut, &
+                       derivOut, hnumpts, &
                        'linear', pass)
 
 
@@ -313,7 +313,7 @@ program Test_Interp1D
                                  )
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
-                      derivOut, &
+                      derivOut, hnumpts, &
                       'cubic Lagrange', pass)
 
 
@@ -345,7 +345,7 @@ program Test_Interp1D
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, derivOut,'extrapolation by lapse rate')
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, 'extrapolation by lapse rate')
 
 
 
@@ -375,8 +375,57 @@ program Test_Interp1D
                                  )
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
-                      derivOut, &
+                      derivOut, hnumpts, &
                       'cubic Lagrange_X', pass)
+
+
+
+
+
+
+
+! TO TEST Extrap1D_Abort, UNCOMMENT THESE LINES:
+! TO TEST Extrap1D_Abort, UNCOMMENT THESE LINES:
+!!$  write(6,*)" "
+!!$  write(6,*)"Testing Extrap1D_LapseRate.  With these data it should abort ..."
+!!$  call Extrap1D_Abort (hNumPts, nPtsSrc, nPtsTgt, &
+!!$                                  hDim, hDim, &
+!!$
+!!$                                  levelsIn, stateIn, derivIn, &
+!!$
+!!$                                  interpIndex, levelsOut, stateOut, derivOut, &
+!!$
+!!$                                  .true., .true., &
+!!$                                  lapseRateDown, lapseRateUp &
+!!$                                 )
+!!$  write(6,*)"... Oops!:   Extrap1D_LapseRate did not abort"
+!!$  write(6,*)" "
+!!$  call exit(13)
+
+
+
+
+
+
+
+
+  write(6,*)" "
+  write(6,*)"Testing Extrap1D_LapseRate. With these data it should NOT abort ..."
+  do i=1,hNumPts
+    levelsOut(i,4) = 0.65
+    levelsOut(i,5) = 2.9
+  end do
+  call Extrap1D_Abort (hNumPts, nPtsSrc, nPtsTgt, &
+                                  hDim, hDim, &
+
+                                  levelsIn, stateIn, derivIn, &
+
+                                  interpIndex, levelsOut, stateOut, derivOut, &
+
+                                  .true., .true., &
+                                  lapseRateDown, lapseRateUp &
+                                 )
+  write(6,*)"... it didn't"
 
 
 
@@ -391,6 +440,9 @@ program Test_Interp1D
   ! (z0), inverse of Monin-Obukhov length (ilmo) and height of the boundary layer
   ! (hBound).  Set the height (in m) of the lowest source level above the surface
   ! (levelsIn(i,2)) and of the surface itself (levelsIn(i,1)).
+
+  hNumPts=6
+
   do i=1,hNumPts
      stateIn(i,1) = 0.
      stateIn(i,2) = 100.
@@ -429,6 +481,8 @@ program Test_Interp1D
   ExtArraysIn(:,3) = hBound
   ExtArraysIn(:,4) = ft
 
+  derivOut=0.0
+
 
   call Interp1D_FindPos(hNumPts, 2, nPtsTgt, &
                         hDim, hDim, &
@@ -456,14 +510,14 @@ program Test_Interp1D
   unitPass = .true.
   if(     abs(stateOut(1,4) - 60.0761986)  > 1e-7 &
      .or. abs(stateOut(1,5) - 65.9684296)  > 1e-7 &
-     .or. abs(stateOut(2,2) - 23.9199448)  > 1e-7 &
-     .or. abs(stateOut(2,3) - 33.9498825)  > 1e-7 &
+     .or. abs(stateOut(2,2) - 23.9199448)  > 2e-6 &
+     .or. abs(stateOut(2,3) - 33.9498825)  > 4e-6 &
     ) then
     unitPass = .false.
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, derivOut,'extrapolation near surface')
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, 'extrapolation near surface')
 
 
 
@@ -549,16 +603,16 @@ program Test_Interp1D
      .or. abs(ExtArraysOut(1,4) - 0.0000000)  > 2e-6 &
      .or. abs(stateOut    (1,5) - 9.3546963)  > 2e-6 &
      .or. abs(ExtArraysOut(1,5) - 0.0000000)  > 2e-6 &
-     .or. abs(stateOut    (2,2) - 5.4435577)  > 2e-6 &
+     .or. abs(stateOut    (2,2) - 5.4435577)  > 5e-6 &
      .or. abs(ExtArraysOut(2,2) - 0.1090328)  > 2e-6 &
-     .or. abs(stateOut    (2,3) - 6.7105956)  > 2e-6 &
+     .or. abs(stateOut    (2,3) - 6.7105956)  > 5e-6 &
      .or. abs(ExtArraysOut(2,3) - 0.1056033)  > 2e-6 &
     ) then
     unitPass = .false.
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, ExtArraysOut,'wind extrapolation near surface')
+  call ReportAndClear(unitPass, stateOut, ExtArraysOut, hnumpts, 'wind extrapolation near surface')
 
 
 
@@ -568,6 +622,7 @@ program Test_Interp1D
 
   ! Report the overall test status
   if(pass) then
+    write(6,*)' '
     write(6,*)'*  T E S T   P A S S E D  *'
   else
     write(6,*)'* * * * * * * * * * * * * *'
@@ -589,7 +644,7 @@ end program Test_Interp1D
 !!s/r TestReportClear - test and report the results, and clear them for the next
 !                       trial
 subroutine TestReportClear(levelIn, stateIn, derivIn, level, state, deriv, &
-                           title, passOverall)
+                           hnumpts, title, passOverall)
 !
 !AUTHOR
 !     J.W. Blezius JULY 2002
@@ -606,6 +661,7 @@ subroutine TestReportClear(levelIn, stateIn, derivIn, level, state, deriv, &
   real, dimension(hDim, nPtsSrc), intent(in) :: stateIn, derivIn
   real, dimension(nPtsTgt), intent(in) :: level
   real, dimension(hDim, nPtsTgt), intent(inout) :: state, deriv
+  integer, intent(in) :: hnumpts
   character(*), intent(in) :: title
   logical, intent(inout) :: passOverall
 !
@@ -670,7 +726,7 @@ subroutine TestReportClear(levelIn, stateIn, derivIn, level, state, deriv, &
 
   passOverall = passOverall .and. pass
 
-  call ReportAndClear(pass, state, deriv, title)
+  call ReportAndClear(pass, state, deriv, hnumpts, title)
   
 end subroutine TestReportClear
 
@@ -681,7 +737,7 @@ end subroutine TestReportClear
 
 
 !!s/r Report - report the results, and clear them for the next trial
-subroutine ReportAndClear(pass, state, deriv, title)
+subroutine ReportAndClear(pass, state, deriv, hnumpts, title)
 !
 !AUTHOR
 !     J.W. Blezius JULY 2002
@@ -696,6 +752,7 @@ subroutine ReportAndClear(pass, state, deriv, title)
   implicit none
   logical, intent(in) :: pass
   real, dimension(hDim, nPtsTgt), intent(inout) :: state, deriv
+  integer, intent(in) :: hnumpts
   character(*), intent(in) :: title
 !
 !!

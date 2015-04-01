@@ -23,7 +23,7 @@ SUPP_OPT = -openmp
 OPTIMIZ = 3
 #OPTIMIZ = -debug
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 TARRLS = beta
 
@@ -31,7 +31,7 @@ TARRLS = beta
 
 default: obj
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 
 OBJECTS= \

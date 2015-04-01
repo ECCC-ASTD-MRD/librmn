@@ -27,7 +27,7 @@
       INTEGER EXDBPLUS
       EXTERNAL EXDBPLUS
 
-      CHARACTER *80 UNUSEDSTRING
+      CHARACTER *90 UNUSEDSTRING
       EXDB=EXDBPLUS(in_TITRE,REVIS,FLAG,UNUSEDSTRING,0)
       RETURN
       END
@@ -104,14 +104,14 @@
 
 
       CHARACTER *24 CDATIM
-      CHARACTER *80 VERSION,titre,tempstring
+      CHARACTER *90 VERSION,titre,tempstring
       INTEGER EXFIN,IOPDATM,I,IDATIM(14)
       REAL T1,SECOND
-      external memoirc, flush_stdout
+      external flush_stdout
       SAVE T1
 
       titre = ' '
-      titre(1:min(len(in_titre),80)) = in_titre(1:min(len(in_titre),80))
+      titre(1:min(len(in_titre),90)) = in_titre(1:min(len(in_titre),90))
       IDATIM(14) = IOPDATM(FLAG)
       CALL DATMGP2(IDATIM)
       CALL FDATE(CDATIM)
@@ -127,30 +127,30 @@
          WRITE(6,700) (IDATIM(I),I=7,14)
       ENDIF
       WRITE(6,800) 'BEGIN  EXECUTION     '
- 450  format(3X,'*',90X,'*',/3x,'*',8x,a8,t95,'*')
- 460  format(3x,'*',90X,'*',/3x,'*',10x,a80,'*')
+ 450  format(3X,'*',100X,'*',/3x,'*',8x,a8,t95,'*')
+ 460  format(3x,'*',100X,'*',/3x,'*',10x,a90,'*')
  500  FORMAT(1H1,
-     %     /,3X,'*',90('*'),'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A57,3X,A10,10X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',8X,A80,2X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A24,46X,10X,'*')
+     %     /,3X,'*',100('*'),'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A57,3X,A10,20X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',8X,A90,2X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A24,46X,20X,'*')
  600  FORMAT(1H1,
-     %     /,3X,'*',90('*'),'*',
-     %     /,3X,'*',90X,'*',
+     %     /,3X,'*',100('*'),'*',
+     %     /,3X,'*',100X,'*',
      %     /,3X,'*',10X,A7,53X,A10,10X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',90X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',100X,'*',
      %     /,3X,'*',10X,A10,50X,A10,10X,'*')
- 700  FORMAT(3X,'*',90X,'*',
+ 700  FORMAT(3X,'*',100X,'*',
      %     /,3X,'*',9X,7A4,I12,41X,'*')
- 800  FORMAT(3X,'*',90X,'*',
-     %     /,3X,'*',10X,A20,60X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',90('*'),'*')
+ 800  FORMAT(3X,'*',100X,'*',
+     %     /,3X,'*',10X,A20,70X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',100('*'),'*')
 
       T1 = SECOND( )
       EXDBPLUS = IDATIM(14)
@@ -162,36 +162,36 @@
 
       call flush_stdout()
       titre = ' '
-      titre(1:min(len(in_titre),80)) = in_titre(1:min(len(in_titre),80))
+      titre(1:min(len(in_titre),90)) = in_titre(1:min(len(in_titre),90))
       CALL FDATE(CDATIM)
       WRITE(6,501) TITRE,REVIS,CDATIM,'END EXECUTION       ',
      %     SECOND( )-T1
  501  FORMAT(
-     %     /,3X,'*',90('*'),'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A57,3X,A10,10X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A24,46X,10X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A20,60X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,'CP SECS = ',F10.3,60X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',90('*'),'*')
+     %     /,3X,'*',100('*'),'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A57,3X,A10,20X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A24,46X,20X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A20,70X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,'CP SECS = ',F10.3,70X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',100('*'),'*')
  601  FORMAT(
-     %     /,3X,'*',90('*'),'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A7,53X,A10,10X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A10,50X,A10,10X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,A20,60X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',10X,'CP SECS = ',F10.3,60X,'*',
-     %     /,3X,'*',90X,'*',
-     %     /,3X,'*',90('*'),'*')
+     %     /,3X,'*',100('*'),'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A7,53X,A10,20X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A10,50X,A10,20X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,A20,70X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',10X,'CP SECS = ',F10.3,70X,'*',
+     %     /,3X,'*',100X,'*',
+     %     /,3X,'*',100('*'),'*')
 
-      call memoirc(0)
+*      call memoirc(0)
 
       EXFIN = 0
       

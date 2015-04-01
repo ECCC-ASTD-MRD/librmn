@@ -19,7 +19,7 @@ int c_xdfsta(int iun,word *stat,int nstat,
                     char *vers,char *appl);
 ftnword f77name(xdfimp)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
                     ftnword_2 *pri,ftnword_2 *aux,
-                    char *vers,char *appl,int l1,int l2);
+                    char *vers,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfimp(int iun,word *stat,int nstat,word_2 *pri,word_2 *aux,
                     char *vers,char *appl);
 ftnword f77name(xdfini)(ftnword *fiun,word *buf,ftnword *fidtyp,

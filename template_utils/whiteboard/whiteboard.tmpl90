@@ -5,7 +5,7 @@
 !!!TYPEWBFORT WB_FORTRAN_BOOL TYPELEN 1 TYPE2CHAR l1 TYPEFORTRAN logical
 !!!TYPEWBFORT WB_FORTRAN_CHAR TYPELEN len(value) TYPE2CHAR cc TYPEFORTRAN character(len=*)
 
-!* Code revision: $Id: whiteboard.tmpl90 582 2008-10-29 18:57:41Z armnlib $
+!* Code revision: $Id: whiteboard.tmpl90 955 2014-05-30 18:13:33Z armnlib $
 
 !/* RMNLIB - Library of useful routines for C and FORTRAN programming
 ! * Copyright (C) 1975-2005  Environnement Canada
@@ -211,6 +211,10 @@ integer function CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)(key,value,options0,wb) resu
      return 
   endif
 #endif
+  if (size(value) .eq. 0) then
+     status = WB_ERROR 
+     return 
+  endif
   options = WB_REWRITE_NONE
   if (present(options0)) options = options0
   my_wb = WHITEBOARD_GLOBAL_INT

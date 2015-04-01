@@ -347,13 +347,13 @@ ftnword f77name(xdfhdr)(word *buf,ftnword *addr,ftnword *lng,
 
 ftnword f77name(xdfimp)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
                     ftnword_2 *pri,ftnword_2 *aux,
-                    char *vers,char *appl,int l1,int l2)
+                    char *vers,char *appl,F2Cl l1,F2Cl l2)
 {
    int iun = *fiun, nstat = *fnstat,lng, ier, i, nkeys, ninfo;
    char c_vers[257], c_appl[257];
    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
    word lstat[12];
-
+   
    lng = (l1 <= 256) ? l1 : 256;
    strncpy(c_vers,vers,lng);
    c_vers[lng] = '\0';
@@ -624,7 +624,7 @@ ftnword f77name(xdfrep)(word *buf,word *donnees,
 ftnword f77name(xdfsta)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
 			ftnword_2 *pri,ftnword *fnpri,
 			ftnword_2 *aux,ftnword *fnaux,
-			char *vers,char *appl,int l1,int l2)
+			char *vers,char *appl,F2Cl l1,F2Cl l2)
 {
    int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat,lng, ier;
    char c_vers[257], c_appl[257];

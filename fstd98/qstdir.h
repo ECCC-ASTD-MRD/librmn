@@ -61,6 +61,7 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define MAX_DIR_PAGES 1024
 #define MAX_RECORD_LENGTH 33554400
 /* maximum of 128MB per record */   
+/* maximum of 8G per file (wa) */
 
 #define MAX_STAT 12             /* maximum number of statistics for xdfsta */
 #define MAX_KEYS 100            /* maximum number of primary or info keys */

@@ -1,5 +1,5 @@
 #!/bin/ksh
-r.compile -O 2 -src bmf*.cdk90 bmf*.f90 bmf*.c -mpi -openmp
+s.compile -O 2 -src bmf*.cdk90 bmf*.f90 bmf*.c -mpi -openmp
 if [[ ${1:-local} = beta ]]
 then
   ar rcv ${EC_ARCH}/librpn_commbeta.a *.o

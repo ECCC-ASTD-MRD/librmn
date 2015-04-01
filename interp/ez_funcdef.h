@@ -76,13 +76,13 @@ wordint c_ezdefset(wordint gdout, wordint gdin);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgdef)(wordint *ni, wordint *nj, char *grtyp, char *grref,
                     wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
-                    ftnfloat *ax, ftnfloat *ay, wordint lengrtyp, wordint lengrref);
+                    ftnfloat *ax, ftnfloat *ay, F2Cl lengrtyp, F2Cl lengrref);
 wordint c_ezgdef(wordint ni, wordint nj, char *grtyp, char *grref,
              wordint ig1, wordint ig2, wordint ig3, wordint ig4, ftnfloat *ax, ftnfloat *ay);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgdef_ffile)(wordint *ni, wordint *nj, char *grtyp,
             wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
-            wordint *iunit, wordint lengrtyp);
+            wordint *iunit, F2Cl lengrtyp);
 wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
            wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -91,13 +91,13 @@ wordint c_ezgdef_fll(wordint ni, wordint nj,ftnfloat *lat, ftnfloat *lon);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgdef_fmem)(wordint *ni, wordint *nj, char *grtyp, char *grref,
                     wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
-                    ftnfloat *ax, ftnfloat *ay, wordint lengrtyp, wordint lengrref);
+                    ftnfloat *ax, ftnfloat *ay, F2Cl lengrtyp, F2Cl lengrref);
 wordint c_ezgdef_fmem(wordint ni, wordint nj, char *grtyp, char *grref,
              wordint ig1, wordint ig2, wordint ig3, wordint ig4, ftnfloat *ax, ftnfloat *ay);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint f77name(ezgdef_supergrid)(wordint *ni, wordint *nj, char *grtyp, char *grref, wordint *vercode, wordint *nsubgrids, wordint *subgrid, wordint lengrtyp, wordint lengrref);
+wordint f77name(ezgdef_supergrid)(wordint *ni, wordint *nj, char *grtyp, char *grref, wordint *vercode, wordint *nsubgrids, wordint *subgrid, F2Cl lengrtyp, F2Cl lengrref);
 
 wordint c_ezgdef_supergrid(wordint ni, wordint nj, char *grtyp, char *grref, wordint vercode, wordint nsubgrids, wordint *subgrid);
 wordint c_ezgdef_yymask(_Grille *gr);
@@ -105,18 +105,18 @@ wordint c_ezgdef_yymask(_Grille *gr);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgenpole)(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
                            wordint *ni, wordint *nj, wordint *vecteur,
-                           char *grtyp, wordint *hem, wordint lengrtyp);
+                           char *grtyp, wordint *hem, F2Cl lengrtyp);
 wordint c_ezgenpole(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
                            wordint ni, wordint nj, wordint vecteur,
                            char *grtyp, wordint hem);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgetopt)(char *option, char *value, wordint lenoption, wordint lenvalue);
+wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue);
 wordint c_ezgetopt(char *option, char *value);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgetival)(char *option, ftnword *value, wordint lenoption);
+wordint f77name(ezgetival)(char *option, ftnword *value, F2Cl lenoption);
 wordint c_ezgetival(char *option, ftnword *value);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgetval)(char *option, ftnfloat *value, wordint lenoption);
+wordint f77name(ezgetval)(char *option, ftnfloat *value, F2Cl lenoption);
 wordint c_ezgetval(char *option, ftnfloat *value);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgfstp)(wordint *gdid,
@@ -124,21 +124,21 @@ wordint f77name(ezgfstp)(wordint *gdid,
          char *nomvary, char *typvary, char *etikety,
          wordint *ip1, wordint *ip2, wordint *ip3, wordint *dateo,
                      wordint *deet, wordint *npas, wordint *nbits,
-         wordint lennomvarx, wordint lentypvarx, wordint lenetiketx,
-         wordint lennomvary, wordint lentypvary, wordint lenetikety);
+         F2Cl lennomvarx, F2Cl lentypvarx, F2Cl lenetiketx,
+         F2Cl lennomvary, F2Cl lentypvary, F2Cl lenetikety);
 wordint c_ezgfstp(wordint gdid, char *nomvarx, char *typvarx, char *etiketx,
               char *nomvary, char *typvary, char *etikety,
               wordint *ip1, wordint *ip2, wordint *ip3, wordint *dateo, wordint *deet, wordint *npas, wordint *nbits);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgprm)(wordint *gdid, char *grtyp, wordint *ni, wordint *nj,
-             wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint lengrtyp);
+             wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, F2Cl lengrtyp);
 wordint   c_ezgprm(wordint gdid, char *grtyp, wordint *ni, wordint *nj, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgxprm)(wordint *gdid, wordint *ni, wordint *nj, char *grtyp,
                      wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
                      char *grref, wordint *ig1ref, wordint *ig2ref,
                      wordint *ig3ref, wordint *ig4ref,
-                     wordint lengrtyp, wordint lengrref);
+                     F2Cl lengrtyp, F2Cl lengrref);
 wordint c_ezgxprm(wordint gdid, wordint *ni, wordint *nj,
               char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
               char *grref, wordint *ig1ref, wordint *ig2ref, wordint *ig3ref, wordint *ig4ref);
@@ -147,12 +147,12 @@ wordint f77name(gdll)(wordint *gdid, ftnfloat *lat, ftnfloat *lon);
 wordint c_gdll(wordint gdid, ftnfloat *lat, ftnfloat *lon);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezqkdef)(wordint *ni, wordint *nj, char *grtyp,
-                    wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint *iunit, wordint lengrtyp);
+                    wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint *iunit, F2Cl lengrtyp);
 wordint c_ezqkdef(wordint ni, wordint nj, char *grtyp,
              wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezquickdef)(wordint *ni, wordint *nj, char *grtyp,
-          wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint *iunit, wordint lengrtyp);
+          wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint *iunit, F2Cl lengrtyp);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint c_ezquickdef(wordint ni, wordint nj, char *grtyp,
          wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit);
@@ -160,13 +160,13 @@ wordint c_ezquickdef(wordint ni, wordint nj, char *grtyp,
 wordint f77name(gdrls)(wordint *gdin);
 wordint c_gdrls(wordint gdin);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetopt)(char *option, char *value, wordint lenoption, wordint lenvalue);
+wordint f77name(ezsetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue);
 wordint c_ezsetopt(char *option, char *value);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetival)(char *option, wordint *ivalue, wordint lenoption);
+wordint f77name(ezsetival)(char *option, wordint *ivalue, F2Cl lenoption);
 wordint c_ezsetival(char *option, wordint ivalue);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, wordint lenoption);
+wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, F2Cl lenoption);
 wordint c_ezsetval(char *option, ftnfloat fvalue);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezsint)(ftnfloat *zout, ftnfloat *zin);

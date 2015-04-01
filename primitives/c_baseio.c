@@ -340,6 +340,10 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
      /* a pointer has been passed to c_fnom as iun */
      if (*iun == 0)
         *iun = c_qqqfscr(type);
+        if (*iun == -1) {
+	  fprintf(stderr,"C_FNOM ERROR: no more units available\n");
+	  return(-1);
+	}
      liun = *iun;
      }
 
@@ -577,7 +581,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
      }
 
   if ((FGFDT[i].attr.old || FGFDT[i].attr.read_only) && ! FGFDT[i].attr.remote)
-     if (!f77name(existe)(FGFDT[i].file_name,strlen(FGFDT[i].file_name))) {
+     if (!f77name(existe)(FGFDT[i].file_name,(F2Cl) strlen(FGFDT[i].file_name))) {
         fprintf(stderr,"c_fnom error: file %s should exist and does not\n",FGFDT[i].file_name);
         junk=c_fclos(liun);
         return(-1);
@@ -604,7 +608,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
         FGFDT[i].eff_file_size = dimm / sizeof(word);
         close(ier);
         }
-     ier = f77name(qqqf7op)(&iun77,FGFDT[i].file_name,&lrec77,&rndflag77,&unfflag77,&lmult,lng);
+     ier = f77name(qqqf7op)(&iun77,FGFDT[i].file_name,&lrec77,&rndflag77,&unfflag77,&lmult,(F2Cl) lng);
   }
   else if (FGFDT[i].attr.stream || FGFDT[i].attr.std || FGFDT[i].attr.burp || FGFDT[i].attr.wa ||
           (FGFDT[i].attr.rnd && !FGFDT[i].attr.ftn) ) {

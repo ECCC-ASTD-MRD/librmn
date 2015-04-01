@@ -73,5 +73,7 @@ __DEB_DECL int ConvertIPtoPK(float *p1, int *kind1, float *p2, int *kind2, float
 __DEB_DECL int ConvertPKtoIP_v(int ip[3],float p[3],int kind[3]); __FIN_DECL
 __DEB_DECL int ConvertIPtoPK_v(float p[3],int kind[3],int ip[3]); __FIN_DECL
 
+__DEB_DECL void KindToString(int code, char *s1, char *s2) ; __FIN_DECL
+
 #endif
 

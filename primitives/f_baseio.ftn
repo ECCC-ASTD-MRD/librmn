@@ -31,12 +31,12 @@
         if (rndflag.eq.1) then
           if (unfflag.eq.1) then
 *            print *,'ACCESS=DIRECT,RECL=',lrec
-            OPEN(iun,FILE=name(1:lng),ACCESS='DIRECT',RECL=lrec*lmult)
+            OPEN(iun,FILE=name(1:lng),ACCESS='DIRECT',RECL=lrec*lmult,ERR=77)
 
           else
 *            print *,'ACCESS=DIRECT,RECL=',lrec*4
             OPEN(iun,FILE=name(1:lng),ACCESS='DIRECT',
-     %           FORM='FORMATTED',RECL=lrec*4)
+     %           FORM='FORMATTED',RECL=lrec*4,ERR=77)
           endif
         else
          if ((name(1:lng).EQ.'input') .OR. (name(1:lng).EQ.'$input')
@@ -48,17 +48,20 @@
           else
             if (unfflag.eq.1) then
 *              print *,'UNFORMATTED open'
-              OPEN(iun,FILE=name(1:lng),FORM='UNFORMATTED')
+              OPEN(iun,FILE=name(1:lng),FORM='UNFORMATTED',ERR=77)
             else
 *              print *,'FORMATTED open'
 #if !defined (HP)
-              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',DELIM='QUOTE')        
+              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',DELIM='QUOTE',ERR=77)        
 #else
-              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED')        
+              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',ERR=77)        
 #endif
             endif
           endif
         endif
+        return
+ 77     continue
+        qqqf7op = -1
         return
         end
 

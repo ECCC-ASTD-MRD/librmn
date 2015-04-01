@@ -312,9 +312,7 @@ int lng;
 /********************************************/
 
 wordint
-f77name(wkoffit)(nom,l1) 
-char nom[];
-int l1;	  
+c_wkoffit(char *nom,int l1) 
 {
    FILE *pf;
    char nom2[4096], nom3[4096], *pn2, *pn3;
@@ -441,6 +439,13 @@ int l1;
 	     return(retour(pf,test_fichier (nom2) ));
       }
    }
+}
+
+wordint f77name(wkoffit)(char *nom, F2Cl fl1)
+{
+  int l1=fl1;
+  
+  return(c_wkoffit(nom,l1));
 }
 
 /****************************************************/

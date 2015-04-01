@@ -20,7 +20,7 @@ SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
@@ -34,7 +34,7 @@ TARRLS = beta
 
 default: obj
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 FTNDECKS= \
          dgauss.ftn       grgg.ftn       idxes.ftn       llfxy.ftn \
@@ -104,7 +104,7 @@ grgg.o:		grgg.ftn 	kases.cdk 	pi.cdk
 idxes.o:	idxes.ftn 	kases.cdk 
 llfxy.o:	llfxy.ftn 	pi.cdk 
 mxma.o:         mxma.ftn
-	r.compile -arch $(EC_ARCH) -abi $(ABI) -O 1 -defines "=$(DEFINE)" -optf "=$(FFLAGS)" $(SUPP_OPT) $(FTN_SUPP_OPT) -src $<
+	s.compile -arch $(EC_ARCH) -abi $(ABI) -O 1 -defines "=$(DEFINE)" -optf "=$(FFLAGS)" $(SUPP_OPT) $(FTN_SUPP_OPT) -src $<
 
 mzonxst.o:	mzonxst.ftn 
 npspin.o:       npspin.ftn 	kases.cdk 	pi.cdk 

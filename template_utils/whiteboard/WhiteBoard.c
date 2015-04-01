@@ -630,7 +630,7 @@ int c_wb_get(WhiteBoard *WB, unsigned char *name, char Type, int Ltype,unsigned 
    return(Result);  /* dimension of whiteboard array if array, 0 if scalar, <0 if error */
 }
 /* FORTRAN callable version of above routine */
-wordint f77_name(f_wb_get)(WhiteBoard **WB, unsigned char *name,wordint *type, wordint *ltype,unsigned char *value, wordint *nval, F2Cl lname){
+wordint f77_name(f_wb_get)(WhiteBoard **WB, unsigned char *name,wordint *type, wordint *ltype,void *value, wordint *nval, F2Cl lname){
    int Lname=lname;
    int Ltype=*ltype;
    int Nval=*nval;
@@ -773,7 +773,7 @@ int c_wb_put(WhiteBoard *WB, unsigned char *name,char Type,int Ltype,unsigned ch
    return (Result);
 }
 /* FORTRAN version of c_wb_put */
-wordint f77_name(f_wb_put)(WhiteBoard **WB, unsigned char *name,wordint *type, wordint *ltype,unsigned char *value, wordint *nval, wordint *options, F2Cl lname){
+wordint f77_name(f_wb_put)(WhiteBoard **WB, unsigned char *name,wordint *type, wordint *ltype,void *value, wordint *nval, wordint *options, F2Cl lname){
    char Type=*type;
    int Lname=lname;
    int Ltype=*ltype;
@@ -1442,7 +1442,7 @@ error_syntax:
 
 /* read a dictionary or user directive file */
 
-int c_wb_read(WhiteBoard *WB, char *filename, char *package, char *section, int Options, int Lpackage, int Lfilename, int Lsection){
+int c_wb_read(WhiteBoard *WB, char *filename, char *package, char *section, int Options, int Lfilename, int Lpackage, int Lsection){
    DEFTBL mytable[MISC_BUFSZ];
    char localbuffer[MISC_BUFSZ];
    char localfname[MISC_BUFSZ];
@@ -1572,7 +1572,7 @@ int c_wb_read(WhiteBoard *WB, char *filename, char *package, char *section, int 
 }
 
 /* read a dictionary or user directive file (FORTRAN version) */
-wordint f77_name(f_wb_read)(WhiteBoard **WB, char *package, char *filename, char *section, wordint *options, F2Cl lfilename, F2Cl lpackage, F2Cl lsection){
+wordint f77_name(f_wb_read)(WhiteBoard **WB, char *package, char *filename, char *section, wordint *options, F2Cl lpackage, F2Cl lfilename,  F2Cl lsection){
    int Lfilename=lfilename;
    int Lpackage=lpackage;
    int Lsection=lsection;

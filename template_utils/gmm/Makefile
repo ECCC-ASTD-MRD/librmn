@@ -20,7 +20,7 @@ FICHIERS =  gmm_internals.cdk90 gmm_checkpoint.tmpl90 gmm_create.tmpl90 gmm_dire
             gmm_updatemeta.ftn90 gmm_update_pti.tmpl90 gmm_verbosity.ftn90 gmm_dumpinfo.ftn90 \
             gmm_definitions.inc gmm_internal_constants.inc gmm_nulls.inc
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 pass_pointers.o: pass_pointers.c
 

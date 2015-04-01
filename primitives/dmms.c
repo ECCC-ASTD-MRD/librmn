@@ -574,7 +574,8 @@ int **addr;
    ptr = *addr - sizeof(addr);
    *errcode = bloc_dealloc(*ptr,HEAP);
    }
-
+   
+#if defined (OLD_32BIT_CODE)
 /************************************************************************
  *                          m e m o i r h                               *
  ************************************************************************/
@@ -586,6 +587,17 @@ wordint buf[], *ind, *nw;
    struct blocmem *ptbloc;
    wordint *adr1;
 
+#if !defined (OLD_32BIT_CODE)
+	fprintf(stderr, "****************************************************\n");
+	fprintf(stderr, "* ERROR: MEMOIRH                                   *\n");
+	fprintf(stderr, "* This code is obsolete, will not work on a 64     *\n");
+	fprintf(stderr, "* bit architecture and should not be used.         *\n");
+	fprintf(stderr, "* allocate shoud be used instead                   *\n");
+	fprintf(stderr, "* EXITING                                          *\n");
+	fprintf(stderr, "****************************************************\n");
+	exit(33);
+#else
+	
    if (*nw > 0) {
       ptbloc = bloc_alloc(8 + *nw * sizeof(wordint),HEAP);
       adr1 = (wordint *) &(ptbloc->data[2]);
@@ -595,6 +607,7 @@ wordint buf[], *ind, *nw;
       ptr = (int **) &buf[*ind - 1];
       errcode = bloc_dealloc(ptr-4,HEAP);
       }
+#endif
    }
 
 /************************************************************************
@@ -629,6 +642,7 @@ wordint buf[], *ind, *nw;
       }
 #endif
 }
+#endif
 
 /************************************************************************
  *                          b k c h e c k                               *

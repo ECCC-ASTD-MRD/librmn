@@ -40,7 +40,7 @@ OPTIMIZ = 2
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
 
@@ -58,7 +58,7 @@ TARRLS = beta
 
 default: obj
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 OBJECT = write_slab.o
 

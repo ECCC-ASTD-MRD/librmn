@@ -101,10 +101,10 @@ static void removepidfile ();
 static void strcopy (char *s, char *t, int charlen);
 static int validchan (int chan);
 static int bwrite (int chan, void *buffer, int nelem, char *dtype);
-ftnword f77name (mgi_init) (char *channel_name, int lname);
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode);
-ftnword f77name (mgi_read) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, int ltype);
-ftnword f77name (mgi_write) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, int ltype);
+ftnword f77name (mgi_init) (char *channel_name, F2Cl lname);
+ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, F2Cl lmode);
+ftnword f77name (mgi_read) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, F2Cl ltype);
+ftnword f77name (mgi_write) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, F2Cl ltype);
 ftnword f77name (mgi_clos) (ftnword *f_chan);
 ftnword f77name (mgi_term) ();
 void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout);
@@ -370,7 +370,7 @@ ftnword f77name (mgi_term) ()
   return ier;
 }
 
-ftnword f77name (mgi_init) (char *channel_name, int lname)
+ftnword f77name (mgi_init) (char *channel_name, F2Cl lname)
      /* To initialize a channel given a channel_name.
 	It will return a number to represent this channel (1 to MAX_CHANNELS-1 */
 {
@@ -436,7 +436,7 @@ ftnword f77name (mgi_init) (char *channel_name, int lname)
   return(chan);
 }
 
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode)
+ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, F2Cl lmode)
      /* to open a channel in mode "mode"; where mode can be:
 	'R' for reading
 	'W' for writing
@@ -521,7 +521,7 @@ int retry_connect( int chan )
   return chn[chan].gchannel; 
   
 }
-ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, int ltype)
+ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, F2Cl ltype)
      /* to write elements from "buffer" into the specified channel
 	opened for WRITEMODE. It actually writes
 	
@@ -634,7 +634,7 @@ void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout)
 
 }
 
-ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, int ltype)
+ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, F2Cl ltype)
 
      /* to read elements directly from the data file related to the 
 	specified channel into "buffer". The channel must be opened for 

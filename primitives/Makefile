@@ -20,7 +20,7 @@ FTN_SUPP_OPT = -ignorempty
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
@@ -41,7 +41,7 @@ rmnlib_v:
 	./rmnlib_version
 
 rmnlib_v_sed: 
-	sed "s@EC_ARCH_VAR Date_of_Build@$(EC_ARCH) `date +%c`@" rmnlib_version.f > rmnlib_version_new.f
+	sed "s@EC_ARCH_VAR Date_of_Build@$(EC_ARCH) `date +%c| cut -d' ' -f1-6`@" rmnlib_version.f > rmnlib_version_new.f
 	mv rmnlib_version_new.f rmnlib_version.f
 
 rmnlib_version.o: rmnlib_v_sed
@@ -50,14 +50,15 @@ $(TEMPLIB)(rmnlib_version.o): rmnlib_v_sed rmnlib_version.o
 #	./rmnlib_version
 #	r.compile -arch $(EC_ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $*.f
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
+#include $(RPN_TEMPLATE_LIBS)/include/new_makefile_suffix_rules.inc
 
 FTNDECKS= \
          ieeepak.ftn \
-         memoir8.ftn     second.ftn      stkmem.ftn       tracebck.ftn\
+         second.ftn      stkmem.ftn       tracebck.ftn\
          ccard.ftn       sx_timing_stubs.ftn              f_baseio.ftn \
          vpow_ibm.ftn    ftn2c_helper_f.ftn90             ftn_prog_args.f90\
-         small_alloc.ftn
+         dlfcn.f90       msg.ftn90
 
 CDECKS= \
          c_baseio.c      c_ccard.c       dmms.c           fread32.c \
@@ -73,7 +74,8 @@ CDECKS= \
          c_env_var_cracker.c array_file.c logical_smt_cpus.c  pointers_and_addresses.c \
          mkdir_c.c       client_timeout.c ftn2c_helper_c.c clib_interface.c \
          arc4.c		 md5.c            fool_optimizer.c\
-         crc16_.c         crc24_.c         crc32_.c        crc_16_24_32.c
+         crc16_.c         crc24_.c         crc32_.c        crc_16_24_32.c \
+         register_dl_routines.c           DlInterface.c    new_second.c
 
 FDECKS= \
          constnt.f       exdb.f \
@@ -87,10 +89,10 @@ OBJECTS= \
          c_baseio.o        c_ccard.o        constnt.o         dmms.o \
          exdb.o            fread32.o \
          getenvc.o        ieeepak.o         iopdatm.o \
-         loc_sub.o         memoir8.o        mgilib2.o          nice19.o \
+         loc_sub.o         mgilib2.o          nice19.o \
          peek.o            poke.o           qqexit.o          qqqmima.o \
          read_direct.o     resetenv.o       rmnlib_version.o  rmtcall.o \
-         second.o          set_run_dir.o    small_alloc.o     stkmem.o \
+         second.o          set_run_dir.o    stkmem.o \
          sx_timing_stubs.o tracebck.o       up2low.o          vmm.o \
          wkoffit.o         f_baseio.o       qqqcall.o         qqqr8sz.o\
          ccard.o           qvmcks.o         rah2char.o        fmain2cmain.o\
@@ -105,7 +107,8 @@ OBJECTS= \
          ftn2c_helper_c.o  clib_interface.o  ftn2c_helper_f.o \
          arc4.o		 md5.o               f_logical2int.o  fool_optimizer.o\
          ftn_prog_args.o  crc16_.o           crc24_.o         crc32_.o\
-         crc_16_24_32.o
+         crc_16_24_32.o    dlfcn.o   register_dl_routines.o    DlInterface.o\
+         msg.o             new_second.o
          
 COMDECKS = xxpakc.cdk mgi.h  wafile.h
          
@@ -117,7 +120,6 @@ dmms.o:     	dmms.c
 f_baseio.o:     f_baseio.ftn
 getenvc.o: 	getenvc.c
 ieeepak.o: 	ieeepak.ftn   xxpakc.cdk 
-memoir8.o: 	memoir8.ftn 
 mgilib.o:	mgilib.c  mgi.h 
 peek.o: 	peek.c  
 poke.o: 	poke.c  
@@ -145,10 +147,10 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(c_baseio.o)        $(TEMPLIB)(c_ccard.o)        $(TEMPLIB)(constnt.o)         $(TEMPLIB)(dmms.o) \
          $(TEMPLIB)(exdb.o)            $(TEMPLIB)(fread32.o) \
          $(TEMPLIB)(getenvc.o)         $(TEMPLIB)(ieeepak.o)        $(TEMPLIB)(iopdatm.o) \
-         $(TEMPLIB)(loc_sub.o)         $(TEMPLIB)(memoir8.o)        $(TEMPLIB)(mgilib2.o)         $(TEMPLIB)(nice19.o) \
+         $(TEMPLIB)(loc_sub.o)         $(TEMPLIB)(mgilib2.o)         $(TEMPLIB)(nice19.o) \
          $(TEMPLIB)(peek.o)            $(TEMPLIB)(poke.o)           $(TEMPLIB)(qqexit.o)          $(TEMPLIB)(qqqmima.o) \
          $(TEMPLIB)(read_direct.o)     $(TEMPLIB)(resetenv.o)       $(TEMPLIB)(rmnlib_version.o)  $(TEMPLIB)(rmtcall.o) \
-         $(TEMPLIB)(second.o)          $(TEMPLIB)(set_run_dir.o)    $(TEMPLIB)(small_alloc.o)     $(TEMPLIB)(stkmem.o) \
+         $(TEMPLIB)(second.o)          $(TEMPLIB)(set_run_dir.o)    $(TEMPLIB)(stkmem.o) \
          $(TEMPLIB)(sx_timing_stubs.o) $(TEMPLIB)(tracebck.o)       $(TEMPLIB)(up2low.o)          $(TEMPLIB)(vmm.o) \
          $(TEMPLIB)(wkoffit.o)         $(TEMPLIB)(f_baseio.o)       $(TEMPLIB)(qqqcall.o)         $(TEMPLIB)(qqqr8sz.o)\
          $(TEMPLIB)(ccard.o)           $(TEMPLIB)(qvmcks.o)         $(TEMPLIB)(rah2char.o)        $(TEMPLIB)(fmain2cmain.o)\
@@ -163,7 +165,8 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(ftn2c_helper_c.o)  $(TEMPLIB)(clib_interface.o) $(TEMPLIB)(ftn2c_helper_f.o)\
          $(TEMPLIB)(arc4.o)            $(TEMPLIB)(md5.o)            $(TEMPLIB)(f_logical2int.o)\
          $(TEMPLIB)(fool_optimizer.o)  $(TEMPLIB)(ftn_prog_args.o)  $(TEMPLIB)(crc16_.o)          $(TEMPLIB)(crc24_.o)\
-         $(TEMPLIB)(crc32_.o)          $(TEMPLIB)(crc_16_24_32.o)
+         $(TEMPLIB)(crc32_.o)          $(TEMPLIB)(crc_16_24_32.o)   $(TEMPLIB)(dlfcn.o)           $(TEMPLIB)(DlInterface.o)\
+         $(TEMPLIB)(register_dl_routines.o) $(TEMPLIB)(msg.o)       $(TEMPLIB)(new_second.o)
 
 genlib: rmnlib_v $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

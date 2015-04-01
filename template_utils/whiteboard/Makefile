@@ -2,9 +2,9 @@
 
 .SUFFIXES : .ftn .f .c .o .a .ftn90 .f90 .tmpl90
 
-SUPP_OPT = -openmp
+SUPP_OPT = 
 
-RMNLIB = rmn_012
+RMNLIB = rmn_014
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
 
@@ -19,14 +19,14 @@ FICHIERS = whiteboard_interface_st.cdk whiteboard_interface_omp.cdk whiteboard.t
 
 OBJECTS = whiteboard_omp.o whiteboard_st.o WhiteBoard.o
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 all:	whiteboard_st.o whiteboard_omp.o WhiteBoard.o whiteboard_interface_st.cdk whiteboard_interface_omp.cdk
 
 dist:	whiteboard_interface_st.cdk whiteboard_interface_omp.cdk
 
 WhiteBoard.o: WhiteBoard.c
-	r.compile -src WhiteBoard.c -O
+	s.compile -src WhiteBoard.c -O
 
 whiteboard.ftn90: whiteboard.tmpl90
 	r.tmpl90.ftn90 whiteboard
@@ -35,29 +35,31 @@ whiteboard_interface.cdk90: whiteboard.tmpl90
 	r.tmpl90.ftn90 whiteboard
 
 whiteboard_st.f90: whiteboard.ftn90
-	r.compile -src whiteboard.ftn90 -O -defines =-DWITHOUT_OpenMP -P
+	s.compile -src whiteboard.ftn90 -O -defines =-DWITHOUT_OpenMP -P
 	mv whiteboard.f90 whiteboard_st.f90
 
 whiteboard_st.o: whiteboard_st.f90
+	s.compile -src whiteboard_st.f90 -O
 
 whiteboard_interface_st.cdk: whiteboard_interface.cdk90
-	r.compile -P -src whiteboard_interface.cdk90 -defines =-DWITHOUT_OpenMP
+	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITHOUT_OpenMP
 	mv whiteboard_interface.f90 whiteboard_interface_st.cdk
 
 whiteboard_omp.f90: whiteboard.ftn90
-	r.compile -src whiteboard.ftn90 -O -defines =-DWITH_OpenMP -openmp -P
+	s.compile -src whiteboard.ftn90 -O -defines =-DWITH_OpenMP -openmp -P
 	mv whiteboard.f90 whiteboard_omp.f90
 
 whiteboard_omp.o : whiteboard_omp.f90
+	s.compile -src whiteboard_omp.f90 -O -openmp
 
 whiteboard_interface_omp.cdk: whiteboard_interface.cdk90
-	r.compile -P -src whiteboard_interface.cdk90 -defines =-DWITH_OpenMP
+	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITH_OpenMP -openmp
 	mv whiteboard_interface.f90 whiteboard_interface_omp.cdk
 
 check: whiteboard_interface_st.cdk whiteboard_interface_omp.cdk WhiteBoard.h
-	-diff whiteboard_interface_st.cdk $(ARMNLIB)/include/whiteboard_interface_st.cdk
-	-diff whiteboard_interface_omp.cdk $(ARMNLIB)/include/whiteboard_interface_omp.cdk
-	-diff WhiteBoard.h $(ARMNLIB)/include/WhiteBoard.h
+	-diff whiteboard_interface_st.cdk $(RPN_TEMPLATE_LIBS)/include/whiteboard_interface_st.cdk
+	-diff whiteboard_interface_omp.cdk $(RPN_TEMPLATE_LIBS)/include/whiteboard_interface_omp.cdk
+	-diff WhiteBoard.h $(RPN_TEMPLATE_LIBS)/include/WhiteBoard.h
 
 dist: $(FICHIERS)
 	ls -al $(FICHIERS) Makefile
@@ -91,37 +93,37 @@ genlib: $(OBJECTS)
 tests: test1 test2 test3 test4 test5
 
 test1:  whiteboard_st.f90 WhiteBoard.c tests/f_logical_move.ftn90
-	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/f_logical_move.ftn90 -o tests/a.out
+	s.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/f_logical_move.ftn90 -o tests/a.out
 	rm -f f_logical_move.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out
 
 test2:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test.ftn90
-	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test.ftn90 -o tests/a.out
+	s.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test.ftn90 -o tests/a.out
 	rm -f whiteboard_test.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out
 
 test3:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test2.ftn90
-	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test2.ftn90 -o tests/a.out
+	s.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test2.ftn90 -o tests/a.out
 	rm -f whiteboard_test2.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out
 
 test4:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test4.ftn90
-	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test4.ftn90 -o tests/a.out
+	s.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test4.ftn90 -o tests/a.out
 	rm -f whiteboard_test4.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out
 
 test5:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test5.ftn90
-	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test5.ftn90 -o tests/a.out
+	s.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test5.ftn90 -o tests/a.out
 	rm -f whiteboard_test5.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out
 
 test6:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test6.ftn90
-	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test6.ftn90 -o tests/a.out
+	s.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test6.ftn90 -o tests/a.out
 	rm -f whiteboard_test6.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out

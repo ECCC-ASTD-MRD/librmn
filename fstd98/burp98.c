@@ -1187,12 +1187,12 @@ int c_mrfget(int handle, void *buffer)
    int err;
 
    err = c_xdfget(handle,buf);
+   if (err < 0) {
+     return(error_msg("c_mrfget",err,ERROR));
+   }
    if (msg_level <= INFORM) {
-      if (err < 0) 
-	 fprintf(stdout,"RECORD NOT FOUND\n");
-      else
-	 fprintf(stdout,"RECORD READ\n");
-      }
+     fprintf(stdout,"RECORD READ\n");
+   }
 
    burprec = (burp_record *) buf->data;
    buf->buf78.buf8 =  burprec->info.nblks;

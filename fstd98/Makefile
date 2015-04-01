@@ -20,7 +20,7 @@ SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
@@ -34,7 +34,7 @@ TARRLS = beta
 
 default: obj
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 CDECKS= \
          burp98.c   fstd98.c   xdf98.c   c_burp.c excdes.c \
@@ -54,7 +54,7 @@ OBJECTS= \
          fstcvt2.o  c_burp.o   strgr4a.o  r4astrg.o \
          hybref.o   FC_string.o excdes.o  memcpy_8_16.o \
          memcpy_16_32.o c_fstgrib_helper.o fst_missing.o \
-         convert_ip123.o
+         convert_ip123.o convip_plus.o
 
 
 FICHIERS = $(FDECKS) $(CDECKS) $(FTNDECKS) $(COMDECKS)
@@ -67,6 +67,7 @@ xdf98.o:	xdf98.c if_xdf98.c qstdir.h proto.h
 fstdtst2.o:	fstdtst2.f
 tstxdf.o:	tstxdf.f
 hybref.o:	hybref.ftn
+convip_plus.o:  convip_plus.f90 convert_ip123.o
 
 tarball:  $(FICHIERS) Makefile
 	tar cfzv /data/armnraid1/www/ssm/sources/fstd98_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
@@ -83,7 +84,7 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(fstcvt2.o)  $(TEMPLIB)(c_burp.o)   $(TEMPLIB)(strgr4a.o)  $(TEMPLIB)(r4astrg.o) \
          $(TEMPLIB)(hybref.o)   $(TEMPLIB)(FC_string.o) $(TEMPLIB)(excdes.o)  $(TEMPLIB)(memcpy_8_16.o) \
          $(TEMPLIB)(memcpy_16_32.o) $(TEMPLIB)(c_fstgrib_helper.o) $(TEMPLIB)(fst_missing.o) \
-         $(TEMPLIB)(convert_ip123.o)
+         $(TEMPLIB)(convert_ip123.o) $(TEMPLIB)(convip_plus.o)
 
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

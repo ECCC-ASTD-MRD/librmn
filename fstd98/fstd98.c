@@ -2327,7 +2327,7 @@ int c_fstouv(int iun, char *options)
     else
       ier = c_xdfopn(iun,"R-W",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
   else      
-    if (((iwko=f77name(wkoffit)(FGFDT[i].file_name,strlen(FGFDT[i].file_name))) == -2) &&
+    if (((iwko=c_wkoffit(FGFDT[i].file_name,strlen(FGFDT[i].file_name))) == -2) &&
        (! FGFDT[i].attr.old)) {
       ier = c_xdfopn(iun,"CREATE",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl); 
       }
@@ -3018,7 +3018,7 @@ int c_ip1_all(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
+  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   ips_tab[0][ip_nb[0]] = ip_new;
   ip_nb[0]++;
   if (ip_nb[0] >= Max_Ipvals) {
@@ -3028,7 +3028,7 @@ int c_ip1_all(float level, int kind)
 
   mode = 3;
   if (kind < 4) 
-    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag);
+    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   else
     ip_old = -9999;     /* no valid value for oldtype */
   ips_tab[0][ip_nb[0]] = ip_old;
@@ -3066,7 +3066,7 @@ int c_ip2_all(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
+  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
@@ -3076,7 +3076,7 @@ int c_ip2_all(float level, int kind)
 
   mode = 3;
   if (kind < 4) 
-    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag);
+    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   else
     ip_old = -9999;     /* no valid value for oldtype */
   ips_tab[1][ip_nb[1]] = ip_old;
@@ -3113,7 +3113,7 @@ int c_ip3_all(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
+  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
@@ -3123,7 +3123,7 @@ int c_ip3_all(float level, int kind)
 
   mode = 3;
   if (kind < 4) 
-    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag);
+    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   else
     ip_old = -9999;     /* no valid value for oldtype */
   ips_tab[2][ip_nb[2]] = ip_old;
@@ -3159,7 +3159,7 @@ int c_ip1_val(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
+  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   ips_tab[0][ip_nb[0]] = ip_new;
   ip_nb[0]++;
   if (ip_nb[0] >= Max_Ipvals) {
@@ -3192,7 +3192,7 @@ int c_ip2_val(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
+  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
@@ -3225,7 +3225,7 @@ int c_ip3_val(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
+  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
   ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {

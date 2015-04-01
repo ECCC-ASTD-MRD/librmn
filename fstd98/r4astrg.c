@@ -1,6 +1,6 @@
 /* M.valin 2007 */
 #include <rpnmacros.h>
-void f77name(r4astrg)(char *strg, char *r4a, wordint *posdeb, wordint *posfin, int lstrg)
+void f77name(r4astrg)(char *strg, char *r4a, wordint *posdeb, wordint *posfin, F2Cl lstrg)
 {
   int itrois=3;
   char *trois=(char *)&itrois;

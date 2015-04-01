@@ -31,7 +31,7 @@
 
 void
 f77name(getenvc) ( name, value, len1, len2 )
-wordint  len1, len2;
+F2Cl  len1, len2;
 char name[1], value[1];
 
 {

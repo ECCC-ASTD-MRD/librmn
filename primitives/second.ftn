@@ -17,18 +17,7 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-#if defined (NEC)
-        FUNCTION SECOND()
-        REAL *8 SECOND
-        REAL *8 TEMPS
-
-        CALL CLOCK(TEMPS)
-        SECOND = TEMPS
-
-        RETURN
-        END
-#else
-  #if defined(WIN32)
+#if defined(WIN32)
         FUNCTION SECOND()
                 USE DFPORT
                 REAL(4) SECOND, TA(2)
@@ -37,28 +26,4 @@
 
         RETURN
         END
-  #else
-   #if defined(SUN)
-        FUNCTION SECOND()
-        REAL(4) SECOND, TA(2)
-
-        SECOND = ETIME(TA)
-
-        RETURN
-        END
-
-    #else
-      #if !defined (HP) && !defined(Alpha)
-        FUNCTION SECOND()
-        REAL SECOND
-        INTEGER TEMPS
-
-        TEMPS = MCLOCK()
-        SECOND = TEMPS/100.0
-
-        RETURN
-        END
-      #endif
-    #endif
-  #endif
 #endif

@@ -22,7 +22,7 @@ SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
@@ -34,7 +34,7 @@ TARRLS = beta
 
 default: burp98_f.o
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 FTNDECKS= \
          bufrchr.ftn       mrbcol.ftn       mrbcov.ftn       mrbcvt.ftn \

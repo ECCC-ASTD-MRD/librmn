@@ -14,7 +14,7 @@ SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 
-CPPFLAGS = -I$(ARMNLIB)/include
+CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
 TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
@@ -30,7 +30,7 @@ TARRLS = beta
 
 default: obj
 
-include $(ARMNLIB)/include/makefile_suffix_rules.inc
+include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 OBJECTS= armn_compress_32.o zfstlib.o c_zfstlib.o
 
