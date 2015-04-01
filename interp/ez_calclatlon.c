@@ -267,12 +267,12 @@ wordint ez_calclatlon(wordint gdid)
 
    if (groptions.verbose == 2)
      {
-     fprintf(stderr, "gdid: %ld\n", gdid);
+     fprintf(stderr, "gdid: %d\n", gdid);
      for (j=0; j < nj; j++)
        {
        for (i=0; i < ni; i++)
 	 {
-	 fprintf(stderr, "%ld %ld %f %f\n", i,j,Grille[gdrow][gdcol].lat[i], Grille[gdrow][gdcol].lon[i]);
+	 fprintf(stderr, "%d %d %f %f\n", i,j,Grille[gdrow][gdcol].lat[i], Grille[gdrow][gdcol].lon[i]);
 	 }
        }
      }

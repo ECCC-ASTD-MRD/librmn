@@ -128,7 +128,7 @@
   lat   = ExtArraysIn(:, iLATITUDE)     ! latitude (in radians)
 
                                         ! v-component of the wind result
-  v     = ExtArraysOut(:, iY_DESTINATION:iY_DESTINATION+destnumlevels)
+  v     = ExtArraysOut(:, iY_DESTINATION:iY_DESTINATION+destnumlevels-1)
 
                                         ! maximum wind direction change between
   angleMax = extrapGuideDown            ! surface and hBound (in radians)
@@ -173,6 +173,6 @@
   end do ! vt
 
                                         ! copy result to return parameter
-  ExtArraysOut(:, iY_DESTINATION:iY_DESTINATION+destnumlevels) = v
+  ExtArraysOut(:, iY_DESTINATION:iY_DESTINATION+destnumlevels-1) = v
 
 end subroutine ! Extrap1D_Surface_X

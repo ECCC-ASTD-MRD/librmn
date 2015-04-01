@@ -52,7 +52,7 @@ wordint c_ezfreegridset(wordint gdid, wordint index)
       free(Grille[gdrow][gdcol].gset[index].gemin.coslat_true);
       free(Grille[gdrow][gdcol].gset[index].gemin.sinlon_true);
       free(Grille[gdrow][gdcol].gset[index].gemin.coslon_true);
-      memset(&Grille[gdrow][gdcol].gset[index].gemin, (int) NULL, sizeof(_gemgrid));
+      memset(&Grille[gdrow][gdcol].gset[index].gemin, (int) 0, sizeof(_gemgrid));
       }
 
    if (Grille[gdrow][gdcol].gset[index].gemout.lat_rot)
@@ -67,7 +67,7 @@ wordint c_ezfreegridset(wordint gdid, wordint index)
       free(Grille[gdrow][gdcol].gset[index].gemout.coslat_true);
       free(Grille[gdrow][gdcol].gset[index].gemout.sinlon_true);
       free(Grille[gdrow][gdcol].gset[index].gemout.coslon_true);
-      memset(&Grille[gdrow][gdcol].gset[index].gemout, (int) NULL, sizeof(_gemgrid));
+      memset(&Grille[gdrow][gdcol].gset[index].gemout, (int) 0, sizeof(_gemgrid));
       }
 
   for (i=0; i < NZONES; i++)

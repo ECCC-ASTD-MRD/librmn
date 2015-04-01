@@ -8,6 +8,8 @@ FFLAGS =
 
 CFLAGS =
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 
 RMNLIB_BASE_PATH=$(ARMNLIB)

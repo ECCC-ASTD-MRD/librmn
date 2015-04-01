@@ -34,6 +34,9 @@
 *REVISION 003   M. Lepine, B. Dugas - Aout 2009
 *               Dates etendues, + tenir compte ou non des annees
 *                           bissextiles dans les calculs de dates
+*REVISION 004   B. Dugas - Novembre 2010
+*               Correction au mode non-bissextile pour les
+*               calculs mettant en cause de grands intervals
 *
 *LANGUAGE - fortran
 *
@@ -91,8 +94,9 @@
       external Get_LeapYear_Status
       integer newdate,result,LeapYear_Adjust
 
-      logical :: no_leap_years
+      logical :: no_leap_years,goextend
 
+      integer(8) addit
       integer tdate1,tdate2,runnum,ndays,pdate1,pdate2
       integer td1900, td2235
       data td1900 /-504904320/, td2235 /1615714548/
@@ -166,7 +170,7 @@
         if (adding) then
           tdate1=tdate2+nint(nhours)
           if (no_leap_years) then
-            ndays = LeapYear_Adjust(tdate1,tdate2,'E')
+            ndays = LeapYear_Adjust(tdate1,tdate2,'E',adding)
             tdate1 = tdate1 + (ndays*24)
           endif
           result=newdate(tdate1,idate1,runnum,-6)
@@ -177,7 +181,7 @@
         else
           nhours=(tdate1-tdate2)
           if (no_leap_years) then
-            ndays = LeapYear_Adjust(tdate1,tdate2,'E')
+            ndays = LeapYear_Adjust(tdate1,tdate2,'E',adding)
             nhours = nhours - (ndays*24)
           endif
         endif
@@ -188,18 +192,27 @@
            goto 2
         endif
         if (adding) then
+           goextend=.false.
            rounding=rounding.or.(tdate2.lt.0)
            if (rounding) then
               tdate2=(tdate2+sign(360,tdate2))/720*720
-              tdate1=tdate2+720*nint(nhours)
+              addit = 720*nint(nhours,8)
            else
-              tdate1=tdate2+nint(720*nhours)
+              addit = nint(720*nhours,8)
            endif
-           if (no_leap_years) then
-             ndays = LeapYear_Adjust(tdate1,tdate2,'B')
-             tdate1 = tdate1 + (ndays*24*720)
+           if ((td1900-tdate2)*1_8 <= addit .and.  ! tdate2 + addit >= td1900  and 
+     #         (td2235-tdate2)*1_8 >= addit) then  ! tdate2 + addit <= td2235, where
+              tdate1=tdate2+addit                  ! addit can be a very large
+              if (no_leap_years) then              ! integer*8 number 
+                 ndays = LeapYear_Adjust(tdate1,tdate2,'B',adding)
+                 tdate1 = tdate1 + (ndays*24*720)
+              endif
+              if ((tdate1 > td2235)
+     #       .or. (tdate1 < td1900)) goextend = .true.
+           else
+              goextend = .true.
            endif
-           if ((tdate1 > td2235) .or. (tdate1 < td1900)) then   ! exiting regular date range for extended range
+           if (goextend) then  ! exiting regular date range for extended range
              result=newdate(idate2,pdate1,pdate2,-3)
              if(result.ne.0) then 
                print *,'label 7,idate2:',idate2
@@ -212,7 +225,7 @@
              endif          
              tdate1=tdate2+nint(nhours)
              if (no_leap_years) then
-               ndays = LeapYear_Adjust(tdate1,tdate2,'E')
+               ndays = LeapYear_Adjust(tdate1,tdate2,'E',adding)
                tdate1 = tdate1 + (ndays*24)
              endif
              result=newdate(tdate1,idate1,runnum,-6)
@@ -233,7 +246,7 @@
               nhours=nhours/720.0
            endif
            if (no_leap_years) then
-             ndays = LeapYear_Adjust(tdate1,tdate2,'B')
+             ndays = LeapYear_Adjust(tdate1,tdate2,'B',adding)
              nhours = nhours - (ndays*24)
            endif
         endif
@@ -401,29 +414,109 @@
 
       subroutine Ignore_LeapYear()
       implicit none
-      logical, save :: no_leap_years=.false.
-      logical       :: no_leap_year_status
 
-      no_leap_years = .true.
+      character(len=512) :: value 
+      logical :: no_leap_year_status
+
+      call NewDate_Options( 'year=365_day','set' )
       return
 
       entry Accept_LeapYear()
-      no_leap_years = .false.
+
+      call NewDate_Options( 'year=gregorian','set' )
       return
 
       entry Get_LeapYear_Status( no_leap_year_status )
-      no_leap_year_status = no_leap_years
+
+      value='year' ; call NewDate_Options( value,'get' )
+
+      if (value == '365_day' .or. value == '360_day') then
+         no_leap_year_status = .true.
+      else
+         no_leap_year_status = .false.
+      endif
+
+      return
+
+      end
+
+      subroutine NewDate_Options( value,command )
+
+      implicit none
+      character*(*) value,command
+
+      integer   ii
+      logical,  save :: called_newdate_options=.false.
+      logical,  save :: no_newdate_env_options=.true.
+      logical,  save :: no_leap_years=.false.
+      logical,  save :: cccvx_day=.false.
+      character(512) :: evalue,string
+
+      if (.not.called_newdate_options) then ! check environment once
+         call getenvc( 'NEWDATE_OPTIONS',evalue )
+         called_newdate_options = .true.
+         if (evalue /= ' ') then ! variable was set
+            call up2low( evalue,evalue )
+            ii = index( evalue,'year=' )
+            if (ii > 0) then ! found known option. check its value
+               if (evalue(ii+5:ii+12)      == '365_day'  .or.
+     .             evalue(ii+5:ii+12)      == '360_day') then
+                  no_newdate_env_options   =  .false.
+                  no_leap_years            =  .true.
+                  if (evalue(ii+5:ii+12)   == '360_day')
+     .               cccvx_day             =  .true. 
+               else if (evalue(ii+5:ii+13) == 'gregorian') then
+                  no_newdate_env_options   =  .false.
+                  no_leap_years            =  .false.
+                  cccvx_day                =  .false. 
+               endif
+            endif
+         endif
+      endif
+
+      evalue = value   ; call up2low( evalue,evalue )
+      string = command ; call up2low( string,string )
+
+      if (string == 'get') then ! check for value of defined options
+         if (evalue == 'year') then
+            if (cccvx_day) then
+               value = '360_day'
+            else if (no_leap_years) then
+               value = '365_day'
+            else
+               value = 'gregorian'
+            endif
+         endif
+      else if (string == 'set' .and.        ! try to set known options, but
+     .         no_newdate_env_options) then ! environment has precedence
+         ii = index( evalue,'year=' )
+         if (ii > 0) then
+            if (evalue(ii+5:ii+12)      == '365_day'  .or.
+     .          evalue(ii+5:ii+12)      == '360_day') then
+               no_leap_years            =  .true.
+               cccvx_day                =  .false. 
+               if (evalue(ii+5:ii+12)   == '360_day')
+     .            cccvx_day             =  .true. 
+            else if (evalue(ii+5:ii+13) == 'gregorian') then
+               no_leap_years            =  .false.
+               cccvx_day                =  .false. 
+            endif
+         endif
+      endif
+
       return
       end
 
-      integer function LeapYear_Adjust(tdate1,tdate2,true_date_mode)
+      integer function LeapYear_Adjust(tdate1,tdate2,
+     #                                 true_date_mode,adding)
       implicit none
+      logical :: adding
       character(len=1) true_date_mode ! (B)asic or (E)xtended true dates
       integer, parameter :: limite = 23595500
       integer :: true2print,print2true
-      integer :: ier,tdate1,tdate2
-      integer :: year,annee,y1,y2,p1a,p1b,p2a,p2b,tdate28f,tdate29f
-      integer :: ndays
+      integer :: ier,tdate1,tdate2,inc,m1,m2
+      integer :: year,annee,y1,y1L,y2,p1a,p1b,p2a,p2b
+      integer :: ndays,tdate1L,tdate28f,tdate29f,addit
       integer, dimension(14) :: cdate1,cdate2
       logical :: bissextile
       integer :: newdate
@@ -433,34 +526,75 @@
      +                   .and.(MOD(year,100) /= 0) )
      +                   .or. (MOD(year,400) == 0) )
 
+      addit=0 ! If adding, will hold a day in units of True Dates
+
       if (true_date_mode == 'B') then     ! Basic true date mode
          true2print=-2
          print2true=+2
+         if (adding) addit=17280
       elseif (true_date_mode == 'E') then ! Extended true date mode
          true2print=-7
          print2true=+7
+         if (adding) addit=24
       endif
 
-      ier = newdate(tdate1,p1a,p1b,true2print) ! true date to printable
-      y1 = p1a / 10000
+      tdate1L = tdate1 ! Local value of tdat1; if adding, it will gradually
+                       ! evolve to its real value as leap days are found
+
+      ier = newdate(tdate1,p1a,p1b,true2print) ! true date to printable, but this
+      y1 =      p1a / 10000                    ! may still accounts for leap days
+      m1 = mod( p1a / 100 , 100 )
       ier = newdate(tdate2,p2a,p2b,true2print)
-      y2 = p2a / 10000
-CCC   print *,'Debut=',mod(p2a,100),mod(p2a/100,100),y2
-CCC   print *,'Fin  =',mod(p1a,100),mod(p1a/100,100),y1
-      ndays = 0
-      do annee = y2,y1
+      y2 =      p2a / 10000
+      m2 = mod( p2a / 100 , 100 )
+!!!   print *,'Dans LeapYear_Adjust...'
+CCC   print *,'Debut=',mod(p2a,100),m2,y2
+CCC   print *,'Fin  =',mod(p1a,100),m1,y1
+      ndays = 0 ; inc = 1
+      if (y2 > y1 .or. (y1 == y2 .and. m2 > m1)) inc=-1
+      do annee = y2,y1,inc
         if (bissextile(annee)) then
           ier = newdate(tdate28f,annee*10000+0228,limite,print2true)
           ier = newdate(tdate29f,annee*10000+0229,0,print2true)
           if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
-          if ((tdate2 <= tdate28f) .and. (tdate1 >= tdate29f)) then
-            ndays = ndays+1
-CCC         write(6,*) annee, ' ndays=',ndays
+          if (inc > 0) then
+            if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
+              ndays = ndays+inc
+              tdate1L = tdate1L+addit*inc
+CCC           write(6,*) annee, ' ndays=',ndays
+            else
+CCC           print *,annee,' exclue'
+            endif
           else
-CCC         print *,annee,' exclue'
+            if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
+              ndays = ndays+inc
+              tdate1L = tdate1L+addit*inc
+            endif
           endif
         endif
       enddo
+      ier = newdate(tdate1L,p1a,p1b,true2print)
+      y1L = p1a / 10000
+!!!   print *,'FinL =',mod(p1a,100),mod(p1a/100,100),y1L
+      do annee = y1+inc,y1L,inc
+        if (bissextile(annee)) then
+          ier = newdate(tdate28f,annee*10000+0228,limite,print2true)
+          ier = newdate(tdate29f,annee*10000+0229,0,print2true)
+          if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+          if (inc > 0) then
+            if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
+              ndays = ndays+inc
+              tdate1L = tdate1L+addit*inc
+            endif
+          else
+            if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
+              ndays = ndays+inc
+              tdate1L = tdate1L+addit*inc
+            endif
+          endif
+        endif
+      enddo
+
       LeapYear_Adjust = ndays
       return
       end
@@ -477,6 +611,7 @@ CCC         print *,annee,' exclue'
 *REVISION 001   M. Lepine, B.dugas - automne 2009/janvier 2010 -
 *               Ajouter le support des dates etendues (annees 0
 *               a 10000) via les nouveaux modes +- 5, 6 et 7.
+*REVISION 002   B.dugas - novembre 2010 - Correction au mode -7.
 *
 *LANGUAGE - fortran
 *
@@ -587,11 +722,9 @@ CCC         print *,annee,' exclue'
 *WARNING  - IF NEWDATE RETURNS 1, OUTPUTS CAN TAKE ANY VALUE
 *
 **     
-      logical validtm,validtme,validtd
-      logical :: bissextile
       integer tdate,runnb,stamp,tmpr,dtpr,td1900,td2000
       integer year,month,day,zulu,second,minute, max_offset
-      integer jd,tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
+      integer tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
       integer , dimension(12) :: mdays
       integer*8 date_unsigned,troisg,stamp8
       equivalence (stamp,stamp8)
@@ -604,6 +737,9 @@ CCC         print *,annee,' exclue'
       data troisg /Z'B2D05E00'/
       data mdays /31,29,31,30,31,30,31,31,30,31,30,31/ 
 *
+      integer :: jd
+      logical :: bissextile,validtd,validtm,validtme
+*
 *     big endian when w16(1) is zero
       integer       w32
       integer*2     w16(2)
@@ -611,7 +747,7 @@ CCC         print *,annee,' exclue'
       data          w32/1/
 *
 *     calculates julian calendar day
-*     see cacm letter to editor by fliegel and flandern 1968
+*     see CACM letter to editor by Fliegel and Flandern 1968
 *     page 657
 *
       jd(year,month,day)=day-32075+1461*(year+4800+(month-14)/12)/4
@@ -924,11 +1060,11 @@ CCC         print *,annee,' exclue'
 106   tdate=dat1
       if (.not.validtd(tdate)) goto 4
       call datec(jd0+tdate/24,year,month,day)
+      zulu=mod(tdate,24)
       if (.not.validtme(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
          if (.not. bissextile(year)) goto 4
       endif
-      zulu=mod(tdate,24)
       minute=0
       dat2(1)=year*10000+month*100+day
       dat3=zulu*1000000+minute*10000

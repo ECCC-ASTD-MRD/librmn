@@ -34,6 +34,10 @@
 ! 2008/03, Michel Valin
 !    added clib_readlink
 !    added clib_stat, clib_size, clib_mtime functions to return more stat() information
+! 2011/04, Stephane Chamberland
+!    added clib_mkdir_r
+! 2011/04, Mario Lepine
+!    replace 0777 by 0755 for clib_mkdir and clib_mkdir_r function calls
 !-------------------------------------------------------------------
 ! Dependencies:
 ! This 'package' make use of RPN' FTN2C package
@@ -134,6 +138,7 @@
 #include <alloca.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <rmnlib.h>
 
@@ -553,7 +558,7 @@ F77_INTEGER CLIB_F77NAME(clib_mkdir)(F77_CHARACTER *path HIDDENLEN(path) ) {
   }
 
   /* Call C function */
-  if (mkdir(path_c,(mode_t)0777)) {
+  if (mkdir(path_c,(mode_t)0755)) {
     status = CLIB_ERROR;
   } else {
     status = CLIB_OK;
@@ -884,4 +889,67 @@ F77_INTEGER CLIB_F77NAME(clib_isupper)(F77_CHARACTER *mystr HIDDENLEN(mystr) ) {
 
 F77_INTEGER CLIB_F77NAME(clib_isxdigit)(F77_CHARACTER *mystr HIDDENLEN(mystr) ) {
   return (isxdigit((int)mystr[0]))? CLIB_OK : CLIB_ERROR;
+}
+
+/* Function with behaviour like `mkdir -p' 
+Source: http://niallohiggins.com/2009/01/08/mkpath-mkdir-p-alike-in-c-for-unix/
+*/
+int mkpath(char *s, mode_t mode){
+        char *q, *r = NULL, *path = NULL, *up = NULL;
+        int rv;
+
+        rv = -1;
+        if (strcmp(s, ".") == 0 || strcmp(s, "/") == 0)
+                return (0);
+
+        if ((path = strdup(s)) == NULL)
+                exit(1);
+     
+        if ((q = strdup(s)) == NULL)
+                exit(1);
+
+        if ((r = dirname(q)) == NULL)
+                goto out;
+        
+        if ((up = strdup(r)) == NULL)
+                exit(1);
+
+        if ((mkpath(up, mode) == -1) && (errno != EEXIST))
+                goto out;
+
+        if ((mkdir(path, mode) == -1) && (errno != EEXIST))
+                rv = -1;
+        else
+                rv = 0;
+
+out:
+        if (up != NULL)
+                free(up);
+        free(q);
+        free(path);
+
+        return (rv);
+}
+
+/* ================================================================
+ * Make a directory, recursively
+ * Return CLIB_OK if success, CLIB_ERROR if not
+ * ================================================================*/
+F77_INTEGER CLIB_F77NAME(clib_mkdir_r)(F77_CHARACTER *path HIDDENLEN(path) ) {
+  char path_c[MAXPATHLEN];
+  /* mode_t mode; */
+  F77_INTEGER status;
+  /*--------------------------------------------------------------*/
+  /* Translate to C strings */
+  if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
+    return(CLIB_ERROR);
+  }
+
+  /* Call C function */
+  if (mkpath(&path_c,(mode_t)0755)) {
+    status = CLIB_ERROR;
+  } else {
+    status = CLIB_OK;
+  }
+  return(status);
 }

@@ -1302,7 +1302,7 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
   FD_ZERO(&rfds);
   FD_SET(fd, &rfds);
 
-  tv.tv_sec = 1;
+  tv.tv_sec = get_stream_timeout(fd);
   tv.tv_usec = 0;
 #ifdef DEBUG
   clk1 = time_base();

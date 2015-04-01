@@ -1,21 +1,30 @@
- <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
-<html>
-  <head>
-    <title>Untitled Document</title>
-    <link rel="stylesheet" href="http://iweb.cmc.ec.gc.ca/rpn/css/goc.css" type="text/css">
-  </head>
-  <body>
-<pre class=text>
-<b> EZINTERPV: EXAMPLE IN F90:</b>
-<span  style="margin-left: 2em">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+	<TITLE>Untitled Document</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Jeff Blezius">
+	<META NAME="CHANGED" CONTENT="20100219;16015300">
+	<STYLE TYPE="text/css">
+	<!--
+		P { color: #000000; font-family: "arial", sans-serif; font-size: 12pt; font-weight: normal }
+		PRE { color: #000000; font-family: "courier", sans-serif; font-weight: normal }
+		PRE.text { font-family: "arial", sans-serif; font-size: 14pt; font-weight: normal }
+		A:link { color: #0000ff; font-family: "arial", sans-serif }
+		A:visited { font-family: "arial", sans-serif }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" TEXT="#000000" LINK="#0000ff" BGCOLOR="#ffffff" DIR="LTR">
+<PRE CLASS="text"> <B>EZINTERPV: EXAMPLE IN F90:</B>
 
-! To create ViTypes.mod, include this file somewhere, outside the program, once:
-#include "ViTypes2_f90.h"
 
 program main
 
-include "ViConstants_f90.h" 
-include "VertInterp_f90.h" 
+include &quot;ViConstants_f90.h&quot; 
+include &quot;VertInterp_f90.h&quot; 
  
 integer :: n_gridIndexInit, n_gridIndexTarget
 character(len=25) :: s_option, s_value 
@@ -24,19 +33,19 @@ character(len=25) :: s_option, s_value
 integer, parameter :: n_N_PTS_INIT=4 
 real, dimension(n_N_PTS_INIT) :: r_levelsInit 
 integer :: n_gridTypeInit 
-real, parameter :: r_PTOP_INIT=10., &   ! These 3 are used only for hybrid type
-                   r_PREF_INIT=800., & 
+real, parameter :: r_PTOP_INIT=10., &amp;   ! These 3 are used only for hybrid type
+                   r_PREF_INIT=800., &amp; 
                    r_RCOEF_INIT=1. 
  
                                         ! Target-grid parameters 
 integer, parameter :: n_N_PTS_TARGET=5 
 real, dimension(n_N_PTS_TARGET) :: r_levelsTarget 
 integer :: n_gridTypeTarget 
-real, parameter :: r_PTOP_TARGET=10., & ! These 3 are used only for hybrid type 
-                   r_PREF_TARGET=800., & 
+real, parameter :: r_PTOP_TARGET=10., &amp; ! These 3 are used only for hybrid type 
+                   r_PREF_TARGET=800., &amp; 
                    r_RCOEF_TARGET=1. 
  
-integer, parameter :: n_NI=2, & 
+integer, parameter :: n_NI=2, &amp; 
                       n_NJ=1 
 real, dimension(n_NI, n_NJ), parameter :: r_PSURF = 100000. 
 real, dimension(n_NI, n_NJ), parameter :: r_PTOP = 10. 
@@ -44,13 +53,13 @@ real, dimension(n_NI, n_NJ), parameter :: r_PTOP = 10.
 integer :: n_error 
  
 ! input state and derivative 
-real, dimension(n_NI, n_NJ, n_N_PTS_INIT) :: r_stateIn, & 
+real, dimension(n_NI, n_NJ, n_N_PTS_INIT) :: r_stateIn, &amp; 
                                              r_derivIn 
  
 ! output state and derivative 
-real, dimension(n_NI, n_NJ, n_N_PTS_TARGET) :: r_stateOut, & 
+real, dimension(n_NI, n_NJ, n_N_PTS_TARGET) :: r_stateOut, &amp; 
                                                r_derivOut 
-real, parameter :: r_EXTRAP_GUIDE_DOWN=0.4, & 
+real, parameter :: r_EXTRAP_GUIDE_DOWN=0.4, &amp; 
                    r_EXTRAP_GUIDE_UP=-0.5 
 
 integer :: i, j, k
@@ -80,9 +89,9 @@ r_levelsInit=(/0.64, 1.25, 2.44, 2.97/)
 n_gridTypeTarget = n_gridTypeInit 
 r_levelsTarget=(/1.13, 2.62, 2.79, 0.5, 3.1/) 
  
-n_error=N_ViqkdefIfc_X(n_gridIndexInit, n_N_PTS_INIT, n_gridTypeInit, r_levelsInit, & 
+n_error=N_ViqkdefIfc_X(n_gridIndexInit, n_N_PTS_INIT, n_gridTypeInit, r_levelsInit, &amp; 
                      r_PTOP_INIT, r_PREF_INIT, r_RCOEF_INIT) 
-n_error=N_ViqkdefIfc_X(n_gridIndexTarget, n_N_PTS_TARGET, n_gridTypeTarget, r_levelsTarget, & 
+n_error=N_ViqkdefIfc_X(n_gridIndexTarget, n_N_PTS_TARGET, n_gridTypeTarget, r_levelsTarget, &amp; 
                      r_PTOP_TARGET, r_PREF_TARGET, r_RCOEF_TARGET)
 
                                         ! Fill in physical constants on that horizontal grid
@@ -97,9 +106,9 @@ r_ExtArraysIn(:,:,4) = r_lat
 numExtArraysIn = 4
 numExtArraysOut = 0
  
-n_error=N_VidefsetIfc_X(n_NI, n_NJ, n_gridIndexTarget, n_gridIndexInit, &
-                        r_PSURF, r_PTOP, &
-                        n_numExtArraysIn, n_numExtArraysOut, &
+n_error=N_VidefsetIfc_X(n_NI, n_NJ, n_gridIndexTarget, n_gridIndexInit, &amp;
+                        r_PSURF, r_PTOP, &amp;
+                        n_numExtArraysIn, n_numExtArraysOut, &amp;
                         r_ExtArraysIn, r_ExtArraysOut) 
  
 r_stateIn(1,1,1) = 0.5971954 
@@ -150,22 +159,22 @@ r_ExtArraysIn(:,:,n_N_PTS_TARGET+1 : n_N_PTS_TARGET+n_N_PTS_INIT) = r_zSrc
 numExtArraysIn = n_N_PTS_TARGET+n_N_PTS_INIT
 numExtArraysOut = 0
  
-n_error = N_VisintIfc_X(r_stateOut, r_stateIn, r_derivOut, r_derivIn, & 
-                        r_EXTRAP_GUIDE_DOWN, r_EXTRAP_GUIDE_UP, &
-                        slfun_tq, sltop_tq, &
-                        n_numExtArraysIn, n_numExtArraysOut, &
+n_error = N_VisintIfc_X(r_stateOut, r_stateIn, r_derivOut, r_derivIn, &amp; 
+                        r_EXTRAP_GUIDE_DOWN, r_EXTRAP_GUIDE_UP, &amp;
+                        slfun_tq, sltop_tq, &amp;
+                        n_numExtArraysIn, n_numExtArraysOut, &amp;
                         r_ExtArraysIn, r_ExtArraysOut) 
 
 n_error = N_VigdrlsIfc(n_gridIndexInit)
 n_error = N_VigdrlsIfc(n_gridIndexTarget)
 
 end program
-</span>
-</pre>
-<br>
-<hr WIDTH="100%">
-<br><a href="../../../../index.html">Return to RPN home page</a>
-<br><a href="index.html">Return to product index</a>
-<br>			Last updated: <csobj w=200 h=16 t=DateTime locale=00000409 format=LongDate region=0>November 12, 2008</csobj></p>
-  </body>
-</html>
+</PRE><P STYLE="margin-bottom: 0in">
+<BR>
+</P>
+<HR>
+<P><BR><A HREF="../../../../index.html">Return to RPN home page</A>
+<BR><A HREF="index.html">Return to product index</A> <BR>Last
+updated: November 12, 2008</P>
+</BODY>
+</HTML>

@@ -47,6 +47,7 @@
       if (gmm_verbose_level <= GMM_MSG_WARN) then
         print *,'(GMM_CHECKPOINT_ALL) Warning: restart file already read'
       endif
+      gmm_checkpoint_all = GMM_OK
       return
     endif
     if (file_unit .eq. 0) then
@@ -76,8 +77,6 @@
         call qqexit(1)
       endif
     end do
-999 call fclos(file_unit)
-    file_unit=0
   else       ! write all tables to checkpoint file
     if (file_unit .eq. 0) then
       istat=fnom(file_unit,'gmm_restart','SEQ+UNF+FTN',0)  ! open checkpoint file
@@ -96,6 +95,8 @@
 #undef EXTENSION
 !!@END
   endif
+999 call fclos(file_unit)
+    file_unit=0
   gmm_checkpoint_all = GMM_OK
   end function gmm_checkpoint_all
 #endif

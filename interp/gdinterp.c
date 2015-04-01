@@ -121,12 +121,16 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
          break;
 
          case 4:
+         gdout = c_ezgetgdout();
+         c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
          f77name(ez_avg)(zout, x, y, &Grille[gdrow_out][gdcol_out].ni, &Grille[gdrow_out][gdcol_out].nj,
-            zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
-            &Grille[gdrow_in][gdcol_in].extension);
+         zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
+         &Grille[gdrow_in][gdcol_in].extension);
          break;
 
          case 5:
+         gdout = c_ezgetgdout();
+         c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
          gdst_lats = (float *) malloc(sizeof(ftnfloat)*lnpts);
          real_un = 1.0;
          for (j=0; j < Grille[gdrow_out][gdcol_out].nj; j++)
@@ -219,6 +223,8 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
 	      break;
 
          case 4:
+         gdout = c_ezgetgdout();
+         c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
          f77name(ez_avg)(zout, x, y, &Grille[gdrow_out][gdcol_out].ni,
            &Grille[gdrow_out][gdcol_out].nj,
            zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
@@ -226,6 +232,8 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
          break;
 
          case 5:
+         gdout = c_ezgetgdout();
+         c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
          gdst_lats = (float *) malloc(sizeof(ftnfloat)*lnpts);
          real_un = 1.0;
          for (j=0; j < Grille[gdrow_out][gdcol_out].nj; j++)
@@ -252,10 +260,17 @@ int c_gdcompatible_grids(int gdin, int gdout)
    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
    c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
 
-   if (Grille[gdrow_out][gdcol_out].grtyp[0] != 'L')
-      {
-      return -1;
-      }
+   switch(Grille[gdrow_out][gdcol_out].grtyp[0])
+   	{
+	case 'L':
+	case 'A':
+	case 'B':
+	case 'G':
+	return 0;
+
+	default:
+	return -1;
+	}
 
    switch (Grille[gdrow_in][gdcol_in].grtyp[0])
       {

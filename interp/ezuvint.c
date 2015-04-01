@@ -45,7 +45,6 @@ wordint c_ezuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vv
   
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-  idx_gdin = c_find_gdin(gdin, gdout);
   
   npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
   ier = ez_calclatlon(gdout);

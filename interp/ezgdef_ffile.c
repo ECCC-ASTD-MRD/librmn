@@ -62,7 +62,7 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
 
   if (nGrilles == 0)
     {
-    gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(wordint));
+    gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));
     Grille = (_Grille **) calloc(chunks[cur_log_chunk],sizeof(_Grille *));
     Grille[0] = (_Grille *) calloc(chunks[cur_log_chunk], sizeof(_Grille));
     for (i=0; i < chunks[cur_log_chunk]; i++)
@@ -71,20 +71,21 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
       }
     }
 
-  memset(&newgr, (int)NULL, sizeof(_Grille));
-  newgr.grtyp[0] = grtyp[0];
+  memset(&newgr, (int)0, sizeof(_Grille));
+  strcpy(newgr.grtyp, grtyp);
   newgr.ni = ni;
   newgr.nj = nj;
   newgr.fst.ig[IG1] = ig1;
   newgr.fst.ig[IG2] = ig2;
   newgr.fst.ig[IG3] = ig3;
   newgr.fst.ig[IG4] = ig4;
+  newgr.idx_last_gdin = -1;
 
   LirePrmEnrPositionnels(&newgr, iunit, ig1, ig2, ig3, ig4);
   newgrsize = sizeof(_Grille);
   fseed = 0;
   grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, newgr.ax, newgr.ay, newgr.ni, newgr.nj);
-  grid_index = grid_crc % primes[cur_log_chunk];
+  grid_index = grid_crc % primes_sq[cur_log_chunk];
   if (gr_list[grid_index] == NULL)
     {
     gdid = c_ez_addgrid(grid_index, &newgr);
@@ -106,7 +107,8 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
     switch(newgr.grtyp[0])
       {
       case '#':
-      LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, ig4);
+      gr = &Grille[gdrow_in][gdcol_in];
+      LireEnrPositionnels(gr,iunit, ig1, ig2, ig3, ig4);
       break;
 
       default:

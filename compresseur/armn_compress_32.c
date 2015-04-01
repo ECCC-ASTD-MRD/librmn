@@ -81,10 +81,7 @@ int c_armn_compress32(unsigned char *zstream, float *fld, int ni, int nj, int nk
 
   _fstzip zfstzip; 
   _floatint r_exp_max;
-
-  /* M. Lepine: Desactivation temporaire de la compression IEEE 32 */
-  return(-1);  
-
+  
   if (ni < 16 || nj < 16)
     {
     zlng = -1;
@@ -231,8 +228,12 @@ int c_armn_compress32(unsigned char *zstream, float *fld, int ni, int nj, int nk
     packTokensParallelogram_8((unsigned int *)le_pointeur, &lng_exposant, exposant2, ni, nj, nbits_needed, 3);
     if (lng_exposant > ni*nj)
       {
-      pack_stream_nbits_8((unsigned int *)le_pointeur, &lng_exposant, exposant2, npts, nbits_needed);
-      code_exposant = DIFF_EXPOSANT_STREAM;
+         zlng = -1;
+         fprintf(stderr, "*** <armn_compress32> : Exponent range too large\n");
+         fprintf(stderr, "*** <armn_compress32> : Original field left uncompressed\n");
+         return zlng;
+         /*pack_stream_nbits_8((unsigned int *)le_pointeur, &lng_exposant, exposant2, npts, nbits_needed);
+      code_exposant = DIFF_EXPOSANT_STREAM;*/
       }
     
      if (0 != (lng_exposant%4))

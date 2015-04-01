@@ -1,0 +1,6 @@
+version=100
+
+@sample6_sec
+define(a[i4,2]))
+a = 2,5
+@

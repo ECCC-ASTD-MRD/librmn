@@ -23,7 +23,9 @@
  *WKOFFIT                                                                    *
  *                                                                           *
  *AUTEUR  M. LEPINE  -  NOV 1994                                             *
- *MODIFICATION : ERIC MICHAUD - JANV 1995
+ *MODIFICATION : ERIC MICHAUD - JANV 1995                                    *
+ *Modification : M. Lepine - Juil 2011 (reconnaissance fichiers NetCDF)      *
+ *Modification : M. Lepine - Juil 2011 (bug fix get_mode)                    *
  *                                                                           *
  *OBJET                                                                      *
  *     DETERMINER QUEL EST LE TYPE D'UN FICHIER                              *
@@ -69,7 +71,8 @@
  *        31     FICHIER ASCII                                               *
  *        32     FICHIER BMP                                                 *
  *        33     FICHIER STANDARD RANDOM 98                                  *
- *        34     FICHIER STANDARD SEQUENTIEL 98                              * 
+ *        34     FICHIER STANDARD SEQUENTIEL 98                              *
+ *        35     FICHIER NETCDF                                              * 
  *                                                                           *
  *****************************************************************************/
 
@@ -113,6 +116,7 @@
 #define WKF_BMP                   32
 #define WKF_RANDOM98              33
 #define WKF_SEQUENTIEL98          34
+#define WKF_NETCDF                35
 
 #define SIGN_STD89_RND  012525252525   
 #define SIGN_STD89_SEQ  025252525252
@@ -150,7 +154,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <unistd.h>
 #include <assert.h>
 #include <sys/types.h>
 #ifdef should_never_be_true
@@ -160,6 +163,7 @@
     typedef unsigned long CARD32;
     #define rindex(a,b) strrchr((a),(b))
   #else
+    #include <unistd.h>
     #define CARD32 unsigned int
   #endif
 #define B32 :32
@@ -413,6 +417,16 @@ int l1;
          return(retour(pf,WKF_BUFR));
       else
 
+    /* NetCDF classic format */
+      if (*(ptbuf) == 'CDF\001')
+         return(retour(pf,WKF_NETCDF));
+      else
+	
+    /* NetCDF 64-bit offset format */
+      if (*(ptbuf) == 'CDF\002')
+         return(retour(pf,WKF_NETCDF));
+      else
+
     /* BLOK */
       if (*(ptbuf) == 0x424c4f4b)   
          return(retour(pf,WKF_BLOK));
@@ -659,7 +673,7 @@ char *path;
      int cpt = 0;
      int kmwndx = 0 ;
      int mode = 0;
-     char buf[350];
+     char buf[351];
      static char sigkmw[] = "PLOT$Z";
 
      register char *data = buf;
@@ -671,16 +685,24 @@ char *path;
  */
      while( (*data = getc(fp)) != EOF && cpt++ < 350)
           {
-          if( *data == sigkmw[kmwndx] )
+/*	  printf("Debug cpt=%d \n",cpt); */
+          if( *data == sigkmw[kmwndx] ) {
+/*            printf("Debug kmwndx=%d\n",kmwndx); */
             if( kmwndx == strlen(sigkmw) - 1)
               {
               mode = 1;
               break;
               }
-          else
+            else 
+	      {
               kmwndx++;
+	      }
+	  }
+	  else
+	    kmwndx=0;
           data++;
           }
+if (mode == 0) return(mode);
 
 *depth = 1;
 /*

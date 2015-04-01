@@ -106,6 +106,8 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
       }
     else
       {
+      gr->ni_ax = nix;
+      gr->nj_ay = njy;
       ay = (ftnfloat *) malloc(niy*njy*sizeof(ftnfloat));
       ier = f77name(fstluk)(ay, &ier1, &niy, &njy, &nky);
 
@@ -155,22 +157,6 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
           grref, &ig1ref, &ig2ref, &ig3ref, &ig4ref, &bidon, &bidon, &bidon,
           &bidon, &bidon, &bidon, &bidon,2,4,12,2);
 
-      switch (gr->grtyp[0])
-        {
-        case 'Y':
-        case 'Z':
-          gr->fst.ip1     = ig1ref;
-          gr->fst.ip2     = ig2ref;
-          gr->fst.ip3     = ig3ref;
-         break;
-
-        case '#':
-          gr->fst.ip1     = ig1ref;
-          gr->fst.ip2     = ig2ref;
-          gr->fst.ip3     = -1;
-          break;
-        }
-
       gr->fst.ig[IG1]    =  intip1;
       gr->fst.ig[IG2]    =  intip2;
       gr->fst.ig[IG3]    =  intip3;
@@ -181,6 +167,24 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
       gr->fst.xg[IG3]    =  0.0;
       gr->fst.xg[IG4]    =  0.0;
 
+      switch (gr->grtyp[0])
+      {
+         case 'Y':
+         case 'Z':
+            gr->fst.ip1     = ig1ref;
+            gr->fst.ip2     = ig2ref;
+            gr->fst.ip3     = ig3ref;
+            break;
+            
+         case '#':
+            gr->fst.ip1     = ig1ref;
+            gr->fst.ip2     = ig2ref;
+            gr->fst.ip3     = -1;
+            gr->fst.ig[IG3]    =  ip3;
+            gr->fst.ig[IG4]    =  ip4;
+            break;
+      }
+      
       gr->grref[0]   = grref[0];
       if (gr->grref[0] == 'N') gr->fst.hemisphere = 1;
       if (gr->grref[0] == 'S') gr->fst.hemisphere = 2;
@@ -321,15 +325,20 @@ wordint LirePrmEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint 
     }
   else
     {
-   gr->ni          = nix;
-   gr->nj          = njy;
-    if (niy == nix && njy == njx)
+    gr->ni_ax        = nix;
+    gr->nj_ay        = njy;
+/*    gr->ni          = ni;
+    gr->nj          = nj;*/
+  if (niy == nix && njy == njx)
       {
       gr->grtyp[0] = 'Y';
       }
     else
       {
-      gr->grtyp[0] = 'Z';
+      if (gr->grtyp[0] != '#')
+         {
+         gr->grtyp[0] = 'Z';
+         }
       }
 
     if (grref[0] != 'N' && grref[0] != 'S' &&  grref[0] != 'L' && grref[0] != 'E' && grref[0] != 'O')
@@ -343,22 +352,6 @@ wordint LirePrmEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint 
           grref, &ig1ref, &ig2ref, &ig3ref, &ig4ref, &bidon, &bidon, &bidon,
           &bidon, &bidon, &bidon, &bidon,2,4,12,2);
 
-      switch (gr->grtyp[0])
-        {
-        case 'Y':
-        case 'Z':
-          gr->fst.ip1     = ig1ref;
-          gr->fst.ip2     = ig2ref;
-          gr->fst.ip3     = ig3ref;
-         break;
-
-        case '#':
-          gr->fst.ip1     = ig1ref;
-          gr->fst.ip2     = ig2ref;
-          gr->fst.ip3     = -1;
-          break;
-        }
-
       gr->fst.ig[IG1]    =  intip1;
       gr->fst.ig[IG2]    =  intip2;
       gr->fst.ig[IG3]    =  intip3;
@@ -368,6 +361,24 @@ wordint LirePrmEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint 
       gr->fst.xg[IG2]    =  0.0;
       gr->fst.xg[IG3]    =  0.0;
       gr->fst.xg[IG4]    =  0.0;
+
+      switch (gr->grtyp[0])
+      {
+         case 'Y':
+         case 'Z':
+            gr->fst.ip1     = ig1ref;
+            gr->fst.ip2     = ig2ref;
+            gr->fst.ip3     = ig3ref;
+            break;
+            
+         case '#':
+            gr->fst.ip1     = ig1ref;
+            gr->fst.ip2     = ig2ref;
+            gr->fst.ip3     = -1;
+            gr->fst.ig[IG3]    =  ip3;
+            gr->fst.ig[IG4]    =  ip4;
+         break;
+      }
 
       gr->grref[0]   = grref[0];
       if (gr->grref[0] == 'N') gr->fst.hemisphere = 1;

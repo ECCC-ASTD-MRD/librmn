@@ -29,6 +29,8 @@
 !     2008/03, Michel Valin
 !       added clib_readlink
 !       added clib_stat, clib_size, clib_mtime functions to return more stat() information
+!     2011/04, Stephane Chamberland
+!       added clib_mkdir_r
 !-------------------------------------------------------------------
 !     Dependencies:
 !     clib-interface.c
@@ -361,6 +363,13 @@
       integer function CLIB_F77NAME(clib_isxdigit)(mychar)
       implicit none
       character,intent(IN) :: mychar
+      end function
+      end interface
+
+      interface clib_mkdir_r
+      integer function CLIB_F77NAME(clib_mkdir_r)(path)
+      implicit none
+      character(len=*),intent(IN) :: path
       end function
       end interface
 

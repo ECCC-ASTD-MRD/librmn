@@ -1354,11 +1354,11 @@ static int wb_key(WhiteBoard *WB, FILE *infile,unsigned char *Token, char *packa
    if( status<0 ) goto error_syntax;               /* other source of error : key already assigned a value in this file */
 
    if(elements == 0) elements = 1;           /* scalar, 1 item */
-   while(elements--){                        /* get values for up to max items for key */
       if(line->m.flags.array)                /* array data */
          dataptr = &((line+1)->d.data[0]);
       else                                   /* scalar data */
          dataptr = &(line->m.data.c[0]);
+   while(elements--){                        /* get values for up to max items for key */
       ntoken=wb_get_token(buffer,infile,sizeof(buffer)-1,0);
       if( ntoken <= 0 ) goto error_syntax ;
 

@@ -12,9 +12,11 @@ RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
 
 TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
-FFLAGS =
+FFLAGS = 
 
 CFLAGS =
+
+SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 
@@ -175,4 +177,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *.o
+	rm -f *.o

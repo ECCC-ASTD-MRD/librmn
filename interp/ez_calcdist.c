@@ -251,7 +251,7 @@ void c_ez_calcarea(float *area, float lats[], float lons[])
       {
       printf("a:%f b:%f c:%f area:%f\n", a, b, c, area1);
       printf("d:%f e:%f c:%f area:%f\n", d, e, c, area2);
-      printf("area:%f\n", area);
+      printf("area:%f\n", *area);
       }
 
 }

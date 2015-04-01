@@ -114,24 +114,10 @@ wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfl
 
 
     case 'Y':
-      switch (gr.grref[0])
-         {
-         case 'O':
-         for (i=0; i < n; i++)
-            {
-            lat[i] = (tmpy[i])*gr.fst.xgref[DLAT]+gr.fst.xgref[SWLAT];
-            lon[i] = (tmpx[i])*gr.fst.xgref[DLON]+gr.fst.xgref[SWLON];
-            lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
-            }
-         break;
-
-         default:
-         fprintf(stderr, "********************************************************\n");
-         fprintf(stderr, "<gdllfxy>: This operation is not supported for 'Y' grids\n");
-         fprintf(stderr, "********************************************************\n");
-         break;
-         }
-      break;
+       fprintf(stderr, "********************************************************\n");
+       fprintf(stderr, "<gdllfxy>: This operation is not supported for 'Y' grids\n");
+       fprintf(stderr, "********************************************************\n");
+       break;
 
     case '#':
     case 'Z':

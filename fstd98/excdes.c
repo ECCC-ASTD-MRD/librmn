@@ -16,7 +16,7 @@
  *****************************************************************************/
 #include <rpnmacros.h>
 #include "qstdir.h"
-#include <ip_kind.h>
+#include "ip_kind.h"		/*CHC/NRC*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -535,6 +535,7 @@ int c_select_groupset(int first_set_nb, int last_set_nb)
   }
   first_R = first_set_nb;
   last_R = last_set_nb;
+return 0; /*CHC/NRC*/
 }
 
 /*****************************************************************************
@@ -554,7 +555,7 @@ int c_filtre_desire()
     return(-1);
   }
   printf("desire bundle_nb = %d, desire_exclure = %d\n",bundle_nb,desire_exclure);
-
+return 0; /*CHC/NRC*/
 }
 
 /*****************************************************************************
@@ -574,7 +575,7 @@ int c_filtre_exclure()
     return(-1);
   }
   printf("exclure bundle_nb = %d, desire_exclure = %d\n",bundle_nb,desire_exclure);
-
+return 0; /*CHC/NRC*/
 }
 
 /*****************************************************************************
@@ -990,37 +991,44 @@ int c_fst_match_req(int handle)
 
 int c_select_ip1(void *iplist, int nelm, int kind)
 {
-  xc_select_ip1(bundle_nb, desire_exclure, iplist, nelm, kind);
+/*CHC/NRC*/
+	return xc_select_ip1(bundle_nb, desire_exclure, iplist, nelm, kind);
 }
 
 int c_select_ip2(void *iplist, int nelm, int kind)
 {
-  xc_select_ip2(bundle_nb, desire_exclure, iplist, nelm, kind);
+/*CHC/NRC*/
+	return xc_select_ip2(bundle_nb, desire_exclure, iplist, nelm, kind);
 }
 
 int c_select_ip3(void *iplist, int nelm, int kind)
 {
-  xc_select_ip3(bundle_nb, desire_exclure, iplist, nelm, kind);
+/*CHC/NRC*/
+	return xc_select_ip3(bundle_nb, desire_exclure, iplist, nelm, kind);
 }
 
 int c_select_date(int set_nb, int des_exc, int *date_list, int nelm, float delta)
 {
-  xc_select_date(bundle_nb, desire_exclure, date_list, nelm, delta);
+/*CHC/NRC*/
+	return xc_select_date(bundle_nb, desire_exclure, date_list, nelm, delta);
 }
 
 int c_select_etiquette(char *etiq_list[], int nelm)
 {
-  xc_select_etiquette(bundle_nb, desire_exclure, etiq_list, nelm);
+/*CHC/NRC*/
+	return xc_select_etiquette(bundle_nb, desire_exclure, etiq_list, nelm);
 }
 
 int c_select_nomvar(char *nomv_list[], int nelm)
 {
-  xc_select_nomvar(bundle_nb, desire_exclure, nomv_list, nelm);
+/*CHC/NRC*/
+	return xc_select_nomvar(bundle_nb, desire_exclure, nomv_list, nelm);
 }
 
 int c_select_typvar(char *typv_list[], int nelm)
 {
-  xc_select_typvar(bundle_nb, desire_exclure, typv_list, nelm);
+/*CHC/NRC*/
+	return xc_select_typvar(bundle_nb, desire_exclure, typv_list, nelm);
 }
 
 int f77name(select_ip1)(void *iplist, int *nelm, int *kind)
@@ -1084,12 +1092,14 @@ int f77name(select_typvar)(char *typv_list[], int *nelm, F2Cl flng)
 
 int f77name(filtre_desire)()
 {
-  c_filtre_desire();
+/*CHC/NRC*/
+	return c_filtre_desire();
 }
 
 int f77name(filtre_exclure)()
 {
-  c_filtre_exclure();
+/*CHC/NRC*/
+	return c_filtre_exclure();
 }
   
 int f77name(fst_match_req)(int *handle)
@@ -1470,7 +1480,9 @@ int directive_charvar(int argc , char **argv,char cmd_strt,  int *func(), char *
  *****************************************************************************/
 int directive_desire(int argc , char **argv,char cmd_strt,  int *func(), char *Private_Data_2)
 {
-  func();
+	func();
+/*CHC/NRC*/
+	return 0;
 }
 
 /*****************************************************************************
@@ -1482,7 +1494,9 @@ int directive_desire(int argc , char **argv,char cmd_strt,  int *func(), char *P
  *****************************************************************************/
 int directive_exclure(int argc , char **argv,char cmd_strt,  int *func(), char *Private_Data_2)
 {
-  func();
+	func();
+/*CHC/NRC*/
+	return 0;
 }
 
 /*****************************************************************************
@@ -1495,7 +1509,7 @@ int directive_exclure(int argc , char **argv,char cmd_strt,  int *func(), char *
 int c_requetes_read_file(char *requetes_file)
 {
   FILE *fp;
-  int *pv2;
+  int *pv2 = 0;
 
   fp = fopen(requetes_file,"r");
   if (fp == (FILE *) NULL) {
@@ -1518,6 +1532,7 @@ int c_requetes_read_file(char *requetes_file)
   rpn_c_callback("exclure",directive_exclure,"",c_filtre_exclure,pv2);
   process_c_callback(requetes_file);
 
+	return 0; /*CHC/NRC*/
 }
 #if defined (TEST)
 void f77name(c_main)(int *handle)

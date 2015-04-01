@@ -474,6 +474,7 @@ int c_qdfdiag(int iun)
    while (! eofile) {
      c_waread(iun,&header,readpos,W64TOwd(1));
      addr = W64TOwd(header.addr-1) + 1;
+/*     printf("Debug+ qdfdiag, readpos=%d, addr=%d \n",readpos,addr); */
      if (addr == readpos) {
        if (header.lng < W64TOwd(1)) {
          sprintf(errmsg,"Invalid record length=%d, addr=%d\n",header.lng,addr);
@@ -522,7 +523,7 @@ int c_qdfdiag(int iun)
       fprintf(stdout,"\t number of valid records         %d\n",nrec_act); 
    }
    else
-      fprintf(stdout,"\n **** This file is in OK ****\n");
+      fprintf(stdout,"\n **** This file is OK ****\n");
 
    if (! wasopen) c_waclos(iun);
    free(fh);

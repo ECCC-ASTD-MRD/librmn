@@ -3,7 +3,7 @@ mmake=make
 which gmake >/dev/null  && mmake=gmake
 echo mmake = $mmake
 workdir=`pwd`
-for package in base burp98_f cmc_log compresseur ez_interpv fstd98 interp interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
+for package in base burp98_f cmc_log compresseur fstd98 interp interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
 do 
   cd ${package}
   $mmake OPTIMIZ="2 -debug" locallib

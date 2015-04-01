@@ -18,6 +18,8 @@ FFLAGS =
 
 CFLAGS =
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 3
 #OPTIMIZ = -debug
 
@@ -89,4 +91,4 @@ test_I: $(OBJECTS) $(OBJ_Test2) $(LIB)
 	r.build -o $@ -obj $(OBJECTS) $(OBJ_Test2) -arch $(EC_ARCH) -abi $(ABI) -librmn rmnbeta -debug
 
 clean:
-	rm *.o mytest
+	rm -f *.o mytest

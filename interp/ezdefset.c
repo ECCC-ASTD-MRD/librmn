@@ -56,7 +56,7 @@ wordint c_ezdefset(wordint gdout, wordint gdin)
     {
     iset_gdin = gdin;
     iset_gdout = gdout;
-    return 1;
+/*    return 1;*/
     }
   
 
@@ -126,6 +126,7 @@ wordint c_ezdefset(wordint gdout, wordint gdin)
       Ceci sera utile si le vecteur de grilles deborde */
 
    gr->gset[i].gdin = gdin;
+   cur_gdin = gdin;
    gr->n_gdin++;
     
    npts = gr->ni * gr->nj; 
@@ -207,8 +208,9 @@ void reallocate_gridset_table(int gdid)
         {
         newIndex++;
         inserted = -1;
-        while (inserted == -1 && curIndex != (newIndex-1))
-          {
+        while (inserted == -1) /** && curIndex != (newIndex-1)) (a reverifier-- Yves-20120228)**/
+           {
+           fprintf(stderr, "reallocate_gridset_table -- should not be here\n "); 
           if (newTable[newIndex].gdin == -1)
             {
             memcpy(&(newTable[newIndex]), &(gr->gset[i]), sizeof(_gridset));

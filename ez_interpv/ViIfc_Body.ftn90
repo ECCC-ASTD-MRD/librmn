@@ -9,6 +9,8 @@ module RememberDimensions
 !REVISION
 ! v1_3    Blezius J.W.          - initial version
 ! v1_4    Blezius J.W. AUG 2009 - split this file off ViIfc.ftn90
+!    ?    Blezius J.W. FEB 2010 - delete the non-extended interface routines
+!                                 (they required user access to a module)
 !
 !OBJECT
 !        To remember the dimensions that are set by N_Videfset because they must
@@ -257,52 +259,6 @@ end module VerticalGridRepository
 
 
 
-#if real48==single
-!!!func N_ViqkdefIfc - module-independent interface to 
-!                      VerticalGrid_class%N_Viqkdef
-integer function N_ViqkdefIfc(thatIfc, n_numVLevelsIn, n_gridTypeIn, r_vLevelIn,&
-                              r_pTopAvgIn, r_pRefIn, r_rCoefIn)
-!
-!AUTHOR
-!     J.W. Blezius Nov 2003
-!
-!REVISION
-! v1_3    Blezius J.W. NOV 2003 - initial version
-!
-!OBJECT
-!        To support the original interface that has been extended by
-!        N_ViqkdefIfc_X.  It is available only with single precision reals.
-!
-!ARGUMENTS
-    use VerticalGrid_class
-    use ViTypes
-    implicit none
-
-    type(T_VerticalGridIfc), intent(inout) :: thatIfc
-    integer, intent(in)::n_numVLevelsIn ! number of vertical levels in r_vLevelIn
-    integer, intent(in) :: n_gridTypeIn ! the type of grid -- see values above
-
-                                        ! the levels, see n_gridTypeIn for units
-    real(real48), dimension(n_numVLevelsIn), intent(in) :: r_vLevelIn
-
-    real, intent(in)::r_pTopAvgIn       ! average pressure (mb) at model top
-    real, intent(in)::r_pRefIn          ! reference pressure (mb)
-    real, intent(in)::r_rCoefIn         ! known as 'expansion co-efficient'
-!
-!!
-    type(T_VerticalGrid), target :: that
-    type(T_VerticalGridPtr):: thatPtr
-    thatPtr%Ptr => that
-
-    call M_CopyGridFromIfc(that, thatIfc)
-    N_ViqkdefIfc = N_Viqkdef(thatPtr, n_numVLevelsIn, n_gridTypeIn, r_vLevelIn, &
-                             r_pTopAvgIn, r_pRefIn, r_rCoefIn)
-    call M_CopyGridToIfc(thatIfc, that)
-end function N_ViqkdefIfc
-#endif
-
-
-
 !!!func N_ViqkdefIfc_X - module-independent interface to 
 !                      VerticalGrid_class%N_Viqkdef
 #if real48==double
@@ -363,94 +319,6 @@ integer function N_ViqkdefIfc_X &
 end function N_ViqkdefIfc_X8
 #else
 end function N_ViqkdefIfc_X
-#endif
- 
-
-
-
-
-
-
-#if real48==single
-!!!func N_VidefsetIfc - module-dependent interface to 
-!                       VerticalInterpolation_class%N_Videfset
-integer function N_VidefsetIfc(n_niIn, n_njIn, o_vGridDestnIfc, &
-                               o_vGridSourceIfc, r_pSurf, r_pTopIn)
-!
-!AUTHOR
-!     J.W. Blezius Oct 2003
-!
-!REVISION
-! v1_3    Blezius J.W. OCT 2003 - initial version
-!
-!OBJECT
-!        To support the original interface that has been extended by
-!        N_VidefsetIfc_X.  It is available only with single precision reals.
-!
-!ARGUMENTS
-    use VerticalGrid_class
-    use VerticalInterpolation_class
-    use RememberDimensions
-    use ViTypes
-    implicit none
-
-    integer, intent(in)::n_niIn, n_njIn ! size of h grid in the interpolation
-
-                                        ! the two grids requested
-    type(T_VerticalGridIfc), intent(in) :: o_vGridDestnIfc, &
-                                           o_vGridSourceIfc
-
-                                        ! surface pressure at each horiz location
-    real(real48), dimension(n_niIn, n_njIn), intent(in) :: r_pSurf
-
-                                        ! ceiling pressure for each horiz point
-                                        ! required only for eta units
-    real(real48), dimension(n_niIn, n_njIn), intent(in) :: r_pTopIn
-!
-!!
-    external flush
-    integer :: n_error
-                                        ! These two are located on the heap
-                                        ! because N_Visint keeps only a pointer
-                                        ! to these data
-    type(T_VerticalGrid), pointer :: o_vGridDestn_p, &
-                                     o_vGridSource_p
-    type(T_VerticalGridPtr) :: o_vGridDestnPtr, &
-                               o_vGridSourcePtr
-
-    allocate(o_vGridDestn_p, STAT=n_error)
-    if( n_error /= 0) then
-      N_VidefsetIfc = N_VI_VIERR_FAILED_ALLOCATION
-      write(6,*) 'N_VidefsetIfc failed allocating o_vGridDestn:  error=', &
-                  n_error
-      call flush(6)
-      return
-    endif
-
-    allocate(o_vGridSource_p, STAT=n_error)
-    if( n_error /= 0) then
-      N_VidefsetIfc = N_VI_VIERR_FAILED_ALLOCATION
-      write(6,*) 'N_VidefsetIfc failed allocating o_vGridSource:  error=', &
-                  n_error
-      call flush(6)
-      return
-    endif
-
-    o_vGridDestnPtr%Ptr => o_vGridDestn_p
-    o_vGridSourcePtr%Ptr => o_vGridSource_p
-
-    call M_CopyGridFromIfc(o_vGridDestn_p, o_vGridDestnIfc)
-    call M_CopyGridFromIfc(o_vGridSource_p, o_vGridSourceIfc)
-
-                                        ! Keep these data for future reference
-    N_iDim     = n_niIn
-    N_jDim     = n_njIn
-    N_kSrcDim  = o_vGridSource_p%N_numVLevels
-    N_kDestDim = o_vGridDestn_p%N_numVLevels
-
-    N_VidefsetIfc = N_Videfset(n_niIn, n_njIn, o_vGridDestnPtr, &
-                               o_vGridSourcePtr, r_pSurf, r_pTopIn)
-end function N_VidefsetIfc
 #endif
 
 
@@ -859,72 +727,4 @@ integer function N_VigdrlsIfc &
 end function N_VigdrlsIfc8
 #else
 end function N_VigdrlsIfc
-#endif
-
-
-
-#if real48==single
-!!!s/r M_CopyGridFromIfc - utility to convert from class to implicit interface
-subroutine M_CopyGridFromIfc(o_Grid, o_GridIfc)
-!
-!AUTHOR
-!     J.W. Blezius DEC 2002
-!
-!REVISION
-! v1_0    Blezius J.W.          - initial version
-!
-!OBJECT
-!        To provide an interface to the class which does not require use'ing the
-!        class.
-!
-!ARGUMENTS
-  use VerticalGrid_class
-  use ViTypes
-  implicit none
-  type(T_VerticalGrid),    intent(inout) :: o_Grid
-  type(T_VerticalGridIfc), intent(in)  :: o_GridIfc
-!
-!!
-
-  o_Grid%N_gridType   =  o_GridIfc%N_gridType
-  o_Grid%N_numVLevels =  o_GridIfc%N_numVLevels
-  o_Grid%R_vLevel_p   => o_GridIfc%R_vLevel_p
-  o_Grid%R_pTopAvg    =  o_GridIfc%R_pTopAvg
-  o_Grid%R_pRef       =  o_GridIfc%R_pRef
-  o_Grid%R_rCoef      =  o_GridIfc%R_rCoef
-end subroutine M_CopyGridFromIfc
-#endif
-
-
-
-#if real48==single
-!!!s/r M_CopyGridToIfc - utility to convert from class to implicit interface
-subroutine M_CopyGridToIfc(o_GridIfc, o_Grid)
-!
-!AUTHOR
-!     J.W. Blezius DEC 2002
-!
-!REVISION
-! v1_0    Blezius J.W.          - initial version
-!
-!OBJECT
-!        To provide an interface to the class which does not require use'ing the
-!        class.
-!
-!ARGUMENTS
-  use VerticalGrid_class
-  use ViTypes
-  implicit none
-  type(T_VerticalGridIfc), intent(inout)  :: o_GridIfc
-  type(T_VerticalGrid),    intent(in) :: o_Grid
-!
-!!
-
-  o_GridIfc%N_gridType   =  o_Grid%N_gridType
-  o_GridIfc%N_numVLevels =  o_Grid%N_numVLevels
-  o_GridIfc%R_vLevel_p   => o_Grid%R_vLevel_p
-  o_GridIfc%R_pTopAvg    =  o_Grid%R_pTopAvg
-  o_GridIfc%R_pRef       =  o_Grid%R_pRef
-  o_GridIfc%R_rCoef      =  o_Grid%R_rCoef
-end subroutine M_CopyGridToIfc
 #endif

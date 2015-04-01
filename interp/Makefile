@@ -18,8 +18,11 @@ CFLAGS =
 
 DEFINE = -DFICHSTD98
 
-OPTIMIZ = 2
-#OPTIMIZ = 0 -debug
+SUPP_OPT = -openmp
+
+OPTIMIZ = -O 2
+#OPTIMIZ = -O 3 -fast
+#OPTIMIZ = -O 0 -debug
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
@@ -64,6 +67,7 @@ ez_cartauv.ftn90\
 ez_cherche.ftn90\
 ez_corrbgd.ftn90\
 ez_crot.ftn90\
+ez_crot_2010.ftn90\
 ez_uvfllc2d.ftn90\
 ez_fillaxzx.ftn90\
 ez_fillayzs.ftn90\
@@ -86,6 +90,7 @@ ez_irgdint_3_nw.ftn90\
 ez_irgdint_3_w.ftn90\
 ez_irgdint_3_wnnc.ftn90\
 ez_lac.ftn90\
+ez_lac_8.ftn90\
 ez_lamb_gdwfllw.ftn90\
 ez_lamb_llwfgdw.ftn90\
 ez_lambfll.ftn90\
@@ -264,7 +269,7 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *~ *.o c_ezscint.c f_ezscint.ftn90
+	rm -f *~ *.o c_ezscint.c f_ezscint.ftn90
 
 fastclean:
 	rm *.o c_ezscint.c

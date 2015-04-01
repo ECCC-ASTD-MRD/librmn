@@ -37,9 +37,10 @@ int c_ez_addgrid(int grid_index, _Grille *newgr)
   nGrilles++;
   if (nGrilles >= chunks_sq[cur_log_chunk])
     {
-    fprintf(stderr, "<c_ez_addgrid> : Maximum number of definable grids attained\n");
+    fprintf(stderr, "<c_ez_addgrid> : Message from the EZSCINT package\n");
+    fprintf(stderr, "<c_ez_addgrid> : Maximum number of definable grids attained : %d\n", nGrilles);
     fprintf(stderr, "               : Please contact RPN support to increase the maximum number\n");
-    return -1;
+    exit(13);
     }
   
   if (0 == (nGrilles % chunks[cur_log_chunk]))

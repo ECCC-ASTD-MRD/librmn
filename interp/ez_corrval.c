@@ -25,6 +25,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 {
   wordint i;
   ftnfloat valmax, valmin,fudgeval;
+  wordint fudgeval_set;
   wordint degIntCourant;
   wordint npts,nj;
   ftnfloat vpolnor, vpolsud;
@@ -36,6 +37,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 
   gdin = iset_gdin;
   gdout= iset_gdout;
+  fudgeval_set = 0;
 
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
@@ -58,6 +60,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
       if (groptions.vecteur == VECTEUR)
 	      {
 	      fudgeval = 0.0;
+              fudgeval_set = 1;
 	      }
       else
 	{
@@ -65,6 +68,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 	  {
 	  case MAXIMUM:
 	    fudgeval = valmax + 0.05 * (valmax - valmin);
+            fudgeval_set = 1;
 	    if (groptions.verbose > 0)
 	      {
 	      fprintf(stderr, "<ez_corrval>: maximum: %f \n", fudgeval);
@@ -73,6 +77,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 
 	  case MINIMUM:
 	    fudgeval = valmin - 0.05 * (valmax - valmin);
+            fudgeval_set = 1;
 	    if (groptions.verbose > 0)
 	      {
 	      fprintf(stderr, "<ez_corrval>: minimum: %f \n", fudgeval);
@@ -81,6 +86,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 
 	  case VALEUR:
 	    fudgeval = groptions.valeur_extrap;
+            fudgeval_set = 1;
 	    if (groptions.verbose > 0)
 	      {
 	      fprintf(stderr, "<ez_corrval>: valeur: %f \n", fudgeval);
@@ -89,6 +95,10 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 	  }
 	}
 
+      if (fudgeval_set == 0) 
+	{
+        fprintf(stderr, "Error : ezcorrval : fudgeval not set \n");
+	}
       for (i=0; i < Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].npts; i++)
 	      {
 	      zout[Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].idx[i]] = fudgeval;

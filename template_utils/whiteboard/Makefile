@@ -2,7 +2,9 @@
 
 .SUFFIXES : .ftn .f .c .o .a .ftn90 .f90 .tmpl90
 
-RMNLIB = rmn_010
+SUPP_OPT = -openmp
+
+RMNLIB = rmn_012
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
 
@@ -115,6 +117,12 @@ test4:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test4.ftn90
 test5:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test5.ftn90
 	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test5.ftn90 -o tests/a.out
 	rm -f whiteboard_test5.f90 *.o
+	(cd tests ; ./a.out)
+	rm -f tests/a.out
+
+test6:  whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test6.ftn90
+	r.compile -librmn $(RMNLIB) -src whiteboard_st.f90 WhiteBoard.c tests/whiteboard_test6.ftn90 -o tests/a.out
+	rm -f whiteboard_test6.f90 *.o
 	(cd tests ; ./a.out)
 	rm -f tests/a.out
 

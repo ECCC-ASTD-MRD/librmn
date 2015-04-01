@@ -43,6 +43,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef WIN32
+#	define snprintf _snprintf
+#endif
 /*
  * 32-bit integer manipulation macros (little endian)
  */

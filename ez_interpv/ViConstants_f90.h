@@ -5,6 +5,8 @@
 !
 !REVISION
 ! v1_0    Blezius J.W.          - initial version
+!    ?    Blezius J.W.          - support UNnormalized hybrid grid
+!         Blezius J.W. DEC 2010 - add support for the staggered grid type
 !
 !OBJECT
 !        To avoid maintaining *.mod files for each architecture for each revision
@@ -50,9 +52,16 @@
 
 
 
+  ! Possible values of the gridType.
+  ! These values are the same as those used in CONVIP (except for eta) at the
+  ! time of writing.  (However, future compatibility with CONVIP is not
+  ! guaranteed.)
   integer, parameter :: N_GRID_TYPE_SIGMA    = 1, & ! P/Ps
                         N_GRID_TYPE_PRESSURE = 2, & ! in mb
                         N_GRID_TYPE_GENERIC  = 3, & ! units are user defined; 
-                                                 ! (software will not convert it)
-                        N_GRID_TYPE_HYBRID   = 5, &
-                        N_GRID_TYPE_ETA      = 7 !(Pt-P)/(Pt-Ps) -not in convip
+                                                    ! (software won't convert it)
+                        N_GRID_TYPE_HYBRID   = 5, & ! NORMALIZED hybrid (i.e. hybrid type 1)
+                        N_GRID_TYPE_ETA      = 7, & !(Pt-P)/(Pt-Ps) -not in convip
+                                                    ! UNnormalized hybrid (i.e. hybrid type 5, version 1)
+                        N_GRID_TYPE_HYBRID_NOTNORM = 8, &
+                        N_GRID_TYPE_STAGGERED = 9   ! Staggered (i.e. hybrid type 5, version 2)

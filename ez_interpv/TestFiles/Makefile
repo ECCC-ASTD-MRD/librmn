@@ -12,8 +12,8 @@ CFLAGS =
 
 #OPTIMIZ = -O 2
 #OPTIMIZ = -O 1
-#OPTIMIZ = -O 0
-OPTIMIZ = -O 0 -debug
+OPTIMIZ = -O 0
+#OPTIMIZ = -O 0 -debug
 
 default: test
 
@@ -48,28 +48,31 @@ SPEED_OBJECTS=\
 copyHlocal:
 	cp ../*.h .
 
-testWithInterpv: copyHlocal TestVI.o
+removeH:
+	rm `cd ..; ls *.h`
+
+testWithInterpv: copyHlocal TestVI.o removeH
 	cp ../*.o .
 	cp ../../interpv/*.o .
-	r.build -o TestVInterp_$(ARCH).Abs -obj $(INTERPV_OBJECTS) $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_009
+	r.build -o TestVInterp_$(BASE_ARCH).Abs -obj $(INTERPV_OBJECTS) $(TEST_OBJECTS) -arch $(ARCH) \
+	-abi$(ABI) -librmn rmn_012
 
-test:	TestVI.o
+test:	copyHlocal TestVI.o removeH
 	cp ../*.o .
-	r.build -o TestVInterp_$(ARCH).Abs -obj $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmnbeta
+	r.build -o TestVInterp_$(BASE_ARCH).Abs -obj $(TEST_OBJECTS) -arch $(ARCH) \
+	-abi$(ABI) -librmn rmn_012
 
 testlib:TestVI.o
-	r.build -o TestVInterp_$(ARCH).Abs -obj TestVI.o -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_009
+	r.build -libpath /users/dor/armn/rmt/data/public/vgrid_descriptors/1.0.9/${EC_ARCH} -libappl descrip -o TestVInterp_$(BASE_ARCH).Abs -obj TestVI.o -arch $(ARCH) \
+	-abi$(ABI) -librmn rmn_012
 
 copielocale:
 	cp ../*.o . 
 	cp ../*.mod .
 
 SpeedConvert: copielocale SpeedConvertP.o
-	r.build -o SpeedConvertP_$(ARCH).Abs -obj $(SPEED_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_009
+	r.build -o SpeedConvertP_$(BASE_ARCH).Abs -obj $(SPEED_OBJECTS) -arch $(ARCH) \
+	-abi$(ABI) -librmn rmn_012
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 

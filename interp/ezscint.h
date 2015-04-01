@@ -105,12 +105,9 @@
 #define XLON1           1
 #define XLAT2           2
 #define XLON2           3
-/*
-#define CHUNK           512
-#define LOG2_CHUNK      9
-*/
-#define CHUNK           32
-#define LOG2_CHUNK      5
+
+#define CHUNK           128
+#define LOG2_CHUNK      7
 #define MAX_LOG_CHUNK   12
 
 typedef struct
@@ -178,6 +175,7 @@ typedef struct
   wordint i1, i2, j1, j2;
   wordint ni,nj;
   wordint nig, nxg;
+  wordint ni_ax, nj_ay;
   wordint extension;
   wordint needs_expansion;
   wordint access_count;

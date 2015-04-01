@@ -16,6 +16,8 @@ FFLAGS =
 
 CFLAGS =
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
@@ -120,4 +122,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *.o 
+	rm -f *.o 

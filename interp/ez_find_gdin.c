@@ -9,6 +9,14 @@ int c_find_gdin(int gdin, int gdout)
     
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
    idx_gdin = Grille[gdrow_out][gdcol_out].idx_last_gdin;
+   if (idx_gdin == -1)
+      {
+      c_ezdefset(gdout, gdin);
+      idx_gdin = gdin % primes[Grille[gdrow_out][gdcol_out].log_chunk_gdin];
+   
+/*   idx_gdin = Grille[gdrow_out][gdcol_out].idx_last_gdin;*/
+      }
+     
    gset = Grille[gdrow_out][gdcol_out].gset;
    if (gset[idx_gdin].gdin == gdin) 
       {

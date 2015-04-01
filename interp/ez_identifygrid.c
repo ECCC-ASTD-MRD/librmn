@@ -41,7 +41,7 @@ wordint c_ezidentify_reg_grid(wordint ni, wordint nj, char *grtyp, wordint ig1, 
 {
   wordint i;
   wordint gdid, gdrow, gdcol, nchunks, newGrid;
-  wordint res1, res2, newgrsize, fseed, un, grid_index;
+  wordint res1, res2, newgrsize, un, grid_index;
   unsigned int grid_crc;
   char typeGrille;
   _Grille *gr, newgr;
@@ -53,7 +53,7 @@ wordint c_ezidentify_reg_grid(wordint ni, wordint nj, char *grtyp, wordint ig1, 
 
   if (nGrilles == 0)
     {
-    gr_list = calloc(chunks[cur_log_chunk], sizeof(_Grille *));
+    gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));
     Grille = (_Grille **) calloc(chunks[cur_log_chunk],sizeof(_Grille *));
     Grille[0] = (_Grille *) calloc(chunks[cur_log_chunk], sizeof(_Grille));
     for (i=0; i < chunks[cur_log_chunk]; i++)
@@ -62,9 +62,9 @@ wordint c_ezidentify_reg_grid(wordint ni, wordint nj, char *grtyp, wordint ig1, 
       }
     }
 
-  memset(&newgr, (int)NULL, sizeof(_Grille));
+  memset((void *)&newgr, (int)0, (size_t)sizeof(_Grille));
   newgr.grtyp[0] = grtyp[0];
-  newgr.grref[0] = (char) NULL;
+  newgr.grref[0] = (char) 0;
   newgr.ni = ni;
   newgr.nj = nj;
   newgr.fst.ig[IG1] = ig1;
@@ -76,10 +76,10 @@ wordint c_ezidentify_reg_grid(wordint ni, wordint nj, char *grtyp, wordint ig1, 
   newgr.fst.igref[IG3] = 0;
   newgr.fst.igref[IG4] = 0;
 
+
   newgrsize = sizeof(_Grille);
-  fseed = 0;
   grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, NULL, NULL, 0, 0);
-  grid_index = grid_crc % primes[cur_log_chunk];
+  grid_index = grid_crc % primes_sq[cur_log_chunk];
   if (gr_list[grid_index] == NULL)
     {
     gdid = c_ez_addgrid(grid_index, &newgr);
@@ -106,7 +106,7 @@ ftnfloat *ay)
 {
   wordint i;
   wordint gdid, gdrow, gdcol, nchunks, newGrid;
-  wordint res1, res2, newgrsize, fseed, un, grid_index;
+  wordint res1, res2, newgrsize, npts, un, grid_index;
   unsigned int grid_crc;
   char typeGrille;
   _Grille *gr, newgr;
@@ -118,7 +118,7 @@ ftnfloat *ay)
 
   if (nGrilles == 0)
     {
-    gr_list = calloc(chunks[cur_log_chunk], sizeof(_Grille *));
+    gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));
     Grille = (_Grille **) calloc(chunks[cur_log_chunk],sizeof(_Grille *));
     Grille[0] = (_Grille *) calloc(chunks[cur_log_chunk], sizeof(_Grille));
     for (i=0; i < chunks[cur_log_chunk]; i++)
@@ -127,7 +127,7 @@ ftnfloat *ay)
       }
     }
 
-  memset(&newgr, (int)NULL, sizeof(_Grille));
+  memset((void *)&newgr, (int)0, sizeof(_Grille));
   newgr.grtyp[0] = grtyp[0];
   newgr.grref[0] = grref[0];
   newgr.ni = ni;
@@ -140,11 +140,37 @@ ftnfloat *ay)
   newgr.fst.ig[IG2] = ig2;
   newgr.fst.ig[IG3] = ig3;
   newgr.fst.ig[IG4] = ig4;
+  newgr.ax = ax;
+  newgr.ay = ay;
 
   newgrsize = sizeof(_Grille);
-  fseed = 0;
-  grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, ni, nj);
-  grid_index = grid_crc % primes[cur_log_chunk];
+  switch(typeGrille)
+     {
+     case '#':
+     grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, &(ax[ig3-1]), &(ay[ig4-1]), ni, nj);
+     break;
+
+     case 'Y':
+     npts = ni*nj;
+     grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, npts, npts);
+     break;
+
+     case 'Z':
+     grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, ni, nj);
+     break;
+
+     case 'G':
+     grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, NULL, NULL, 0, 0);
+     break;
+
+     default :
+     fprintf(stderr, "c_ezidentify_irreg_grid : undefined grid type : %c\n", typeGrille);
+     exit(13);
+     break;
+     }
+
+  grid_index = grid_crc % primes_sq[cur_log_chunk];
+/*  fprintf(stderr, "%d (irreg_grid) : grid_crc: %u, grid_index:%d\n", grid_index,grid_crc, grid_index);*/
   if (gr_list[grid_index] == NULL)
     {
     gdid = c_ez_addgrid(grid_index, &newgr);

@@ -21,14 +21,15 @@
 #include <stdio.h>
 #ifdef WIN32    /*CHC/NRC*/
 #include <string.h>
+#include <malloc.h>
 #else
 #include <unistd.h>
+#include <alloca.h>
 #endif
 #include <stdlib.h>
 #include "qstdir.h"
 #include "proto.h"
 #include <rmnlib.h>
-#include <alloca.h>
 #include <string.h>
 #include <math.h>
 
@@ -252,6 +253,9 @@ return(0);
  *Object                                                                     * 
  *   Writes record to file.                                                  *
  *                                                                           * 
+ *Revision                                                                   *
+ *   Sept 2011 - Deltat, becomes a long long (deet*npas > 32bit)             *
+ *                                                                           *
  *Arguments                                                                  * 
  *                                                                           * 
  *  IN  field   field to write to the file                                   * 
@@ -302,7 +306,8 @@ int c_fstecr(word *field, void * work, int npak,
                         int in_datyp, int rewrit)
 {
   int ier,l1,l2,l3,l4;
-  int index, index_fnom, nbits, deltat, record, handle;
+  int index, index_fnom, nbits, record, handle;
+  long long deltat;
   unsigned int datev;
   int p1out,p2out,header_size,stream_size;
   int nw, keys_len, one=1, zero=0, njnk;
@@ -407,8 +412,8 @@ int c_fstecr(word *field, void * work, int npak,
 
   datev = date;
   f_datev = (ftnword) datev;
-  if ((deet * npas) > 0) {
-    deltat = deet * npas;
+  if (( (long long) deet * npas) > 0) {
+    deltat = (long long) deet * npas;
     nhours = (double) deltat;
     nhours = nhours / 3600.;
     f77name(incdatr)(&f_datev,&f_datev,&nhours);
@@ -799,7 +804,7 @@ int c_fstecr(word *field, void * work, int npak,
  *****************************************************************************/
 
 int c_fst_edit_dir(int handle,
-                   int date, int deet, int npas,
+                   unsigned int date, int deet, int npas,
                    int ni, int nj, int nk,
                    int ip1, int ip2, int ip3,
                    char *in_typvar, char *in_nomvar, char *in_etiket,
@@ -877,7 +882,7 @@ int c_fst_edit_dir(int handle,
   }
   if (ig3 != -1) stdf_entry->ig3 = ig3;
   if (ig4 != -1) stdf_entry->ig4 = ig4;
-  if (strcmp(etiket,"             ") !=0 ) {
+  if (strcmp(etiket,"            ") !=0 ) {
     stdf_entry->etik15 = 
       (ascii6(etiket[0]) << 24) |
       (ascii6(etiket[1]) << 18) |
@@ -1084,7 +1089,9 @@ int c_fstinf(int iun, int *ni, int *nj, int *nk, int datev,char *in_etiket,
  *  OUT ni      dimension 1 of the data field                                * 
  *  OUT nj      dimension 2 of the data field                                * 
  *  OUT nk      dimension 3 of the data field                                * 
- *  IN  datev   valid date                                                   * 
+ *  IN  datev   valid date stamp                                             *
+ *              last 3 bits ignored, used to be run number                   * 
+ *              search resolution drops to 40s                               *
  *  IN  etiket  label                                                        * 
  *  IN  ip1     vertical level                                               * 
  *  IN  ip2     forecast hour                                                * 
@@ -3183,7 +3190,7 @@ static void crack_std_parms(stdf_dir_keys *stdf_entry,
    */
   run = stdf_entry->date_stamp & 0x7;
   datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
-  r8_diff = -(((stdf_entry->deet) * (stdf_entry->npas))/3600.0);
+  r8_diff = -((((double)stdf_entry->deet) * ((double)stdf_entry->npas))/3600.0);
   diff = -(((stdf_entry->deet) * (stdf_entry->npas) + 1800)/3600);
   cracked_parms->date_valid = datexx;
   cracked_parms->date_stamp = datexx;

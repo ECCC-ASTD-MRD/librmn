@@ -88,7 +88,8 @@
       fa3(c1,c2,c3,a1,a2,a3)=c2*(c3*(a3-a2)-c1*(a2-a1))
       fa4(c1,c2,c3,c4,c5,c6,a1,a2,a3,a4)=c4*(c5*(c6*(a4-a3)-      c3*(a3-a2)) - c2*(c3*(a3-a2)-c1*(a2-a1)))
       
-
+!zzzzzz$OMP PARALLEL
+!zzzzzz$OMP DO PRIVATE(n)
       do n=1,npts
          i = min(ni-2+wrap,max(1,max(2-wrap,ifix(px(n)))))
          j = min(j2-2,max(j1+1,ifix(py(n))))
@@ -226,6 +227,8 @@
          b14 = fa4(dble(cy(j,1)),dble(cy(j,2)),dble(cy(j,3)),         dble(cy(j,4)),dble(cy(j,5)),dble(cy(j,6)),b1,b2,b3,b4)
          zo(n) = fa(b11,b12,b13,b14,y,y1,y2,y3)
       enddo
+!zzzzzz$OMP END DO
+!zzzzzz$OMP END PARALLEL
       
       
       return

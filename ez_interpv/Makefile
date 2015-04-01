@@ -8,7 +8,11 @@ COMPILE = compile
 
 FFLAGS =
 
+FTN90_SUPP_OPT = -includes /users/dor/armn/rmt/data/public/vgrid_descriptors/1.0.9/$(EC_ARCH)/xlf10/mod
+
 CFLAGS =
+
+SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 #OPTIMIZ =  1
@@ -33,14 +37,9 @@ default: obj
 
 include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
-vitypes.o: CreateViTypesMod.ftn90 ViTypes2_f90.h  ViTypes_f90.h
-	r.compile -arch $(EC_ARCH) -abi $(ABI) -O $(OPTIMIZ) -opt "=$(FFLAGS)" -src CreateViTypesMod.ftn90
-	mv CreateViTypesMod.o vitypes.o
+VertInterpConstants.o: VertInterpConstants.cdk90 ViConstants_f90.h
 
-VertInterpConstants.o: VertInterpConstants.cdk90
-
-#ViIfc.o: VertInterpConstants.cdk90 vitypes.o ViIfc.ftn90 VerticalInterpolation.ftn90 VerticalGrid.cdk90
-ViIfc.o: ViIfc.ftn90 ViIfc_Body.ftn90 vitypes.o VertInterpConstants.o VerticalGrid.o VerticalInterpolation.o
+ViIfc.o: ViIfc.ftn90 ViIfc_Body.ftn90 VertInterpConstants.o VerticalGrid.o VerticalInterpolation.o
 
 VerticalGrid.o: VerticalGrid.cdk90 VerticalGrid_Body.cdk90 VertInterpConstants.o
 
@@ -55,25 +54,21 @@ tarball:  *.ftn90 *.cdk90 *.h  Makefile
 	tar cfzv /data/armnraid1/www/ssm/sources/ez_interpv_$(TARRLS)_all.tgz *.ftn90 *.cdk90 *.h Makefile 
 
 obj:	$(OBJECTS)
-	rm -f vitypes.o
 
 gen_ec_arch_dir:
 #Creer le repertoire $EC_ARCH 
 	mkdir -p ./$(EC_ARCH)
 
-locallib: gen_ec_arch_dir vitypes.o \
+locallib: gen_ec_arch_dir \
         $(TEMPLIB)(VertInterpConstants.o)   $(TEMPLIB)(VerticalGrid.o) \
         $(TEMPLIB)(VerticalInterpolation.o)  $(TEMPLIB)(ViIfc.o)
-	rm -f vitypes.o
 
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
-	rm -f vitypes.o
 	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS)
 
 updlib: 
 #mettre a jour la programmatheque 
-	rm -f vitypes.o
 	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \

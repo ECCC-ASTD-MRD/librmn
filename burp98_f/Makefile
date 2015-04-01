@@ -18,6 +18,8 @@ FFLAGS =
 
 CFLAGS = 
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
@@ -159,4 +161,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *.o burp98_f.f
+	rm -f *.o burp98_f.f

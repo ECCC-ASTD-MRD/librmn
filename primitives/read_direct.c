@@ -25,6 +25,7 @@ author: Michel Valin    August 2001
 revisions: 
       V.Lee  July 2002   -increased value of MAXARGS (256 to 51200)
                          -increased value of MAXARGLEN (8192 to 1638400)
+      S. Chamberland - Dec 2011 - add option to suppress informative messages
 */
 
 #include <stdio.h>
@@ -83,6 +84,10 @@ static int ARGLEN;
 
 static char abort_on_error=0;
 
+#define RPNCB_VERBOSE 1
+#define RPNCB_QUIET   0
+static int rpnCBverbose=RPNCB_VERBOSE;
+
 /* macro used to skip blanks, tabs, newlines, control characters from input file */
 /* will not skip beyond a NEWLINE */
 #define Skip_Blanks(some_dummy) { while( (cur_char_typ = char_type[cur_char = *buffer_out]) == 0 ) buffer_out++; }
@@ -107,6 +112,18 @@ int rpn_c_callback(char *VERB, void *callback, char *OPTIONS,
  if(callbacks<MAXKEYS-1)callbacks++;
 
  return (callbacks);
+}
+
+/*  set verbose status */
+void rpn_c_callback_setverbose(int verbose) {
+  if(verbose>0) 
+	 rpnCBverbose=RPNCB_VERBOSE;
+  else 
+	 rpnCBverbose=RPNCB_QUIET;
+}
+
+void f77name(rpn_f_callback_setverbose)(wordint *verbose) {
+  rpn_c_callback_setverbose((int) *verbose);
 }
 
 /*  register a FORTRAN callback function */
@@ -154,7 +171,7 @@ redo:
 
  if(nc>0) {
    buffer_in+=nc;
-   fprintf(stderr,"%s",buffer_out);
+   if(rpnCBverbose==RPNCB_VERBOSE) fprintf(stderr,"%s",buffer_out);
  }
  cur_char = *buffer_out ;
  cur_char_typ = char_type[cur_char] ;
@@ -257,7 +274,7 @@ static int Verb(char *token){
  token[0]=Current_Char();  /* get first character of verb */
 
  if((token[0]&0xFF)==0xFF){         /* EOF ? */
-  fprintf(stderr,"END of directives\n");
+  if(rpnCBverbose==RPNCB_VERBOSE) fprintf(stderr,"END of directives\n");
   fclose(streamd);
   return (-1);
   }

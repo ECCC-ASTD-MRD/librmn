@@ -10,6 +10,8 @@ FFLAGS =
 
 CFLAGS =
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
@@ -103,4 +105,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *.o
+	rm -f *.o

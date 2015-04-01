@@ -387,7 +387,7 @@ contains
 
                                         ! height (z) above surface, in m of
                                         ! source and destination cubes
-    real(real48), dimension(n_ni, n_nj, o_vGridSource_p%N_numVLevels), &
+    real(real48), dimension(n_ni, n_nj, o_vGridDestn_p%N_numVLevels), &
                                                   optional, intent(in) :: r_zDest
     real(real48), dimension(n_ni, n_nj, o_vGridSource_p%N_numVLevels), &
                                                    optional, intent(in) :: r_zSrc

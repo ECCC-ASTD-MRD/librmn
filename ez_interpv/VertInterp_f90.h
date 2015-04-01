@@ -6,6 +6,7 @@
 !REVISION
 ! v1_0    Blezius J.W.          - initial version
 ! v1_3    Blezius J.W. OCT 2003 - add functions with the extended the interface
+!    ?    Blezius J.W. FEB 2010 - remove functions without the extended interface
 !
 !OBJECT
 !        To provide the user with the advantages of an explicit interface, this
@@ -30,23 +31,6 @@
 
 
 interface
-  integer function N_ViqkdefIfc(thatIfc, n_numVLevelsIn, n_gridTypeIn,&
-                                r_vLevelIn, r_pTopAvgIn, r_pRefIn, r_rCoefIn)
-    use ViTypes
-    implicit none
-
-    type(T_VerticalGridIfc), intent(inout) :: thatIfc
-    integer, intent(in)::n_numVLevelsIn
-    integer, intent(in) :: n_gridTypeIn
-
-    real, dimension(n_numVLevelsIn), intent(in) :: r_vLevelIn
-
-    real, intent(in)::r_pTopAvgIn
-    real, intent(in)::r_pRefIn
-    real, intent(in)::r_rCoefIn
-  end function N_ViqkdefIfc
-
-
   integer function N_ViqkdefIfc_X(n_VertGridIndex, n_numVLevelsIn, n_gridTypeIn,&
                                 r_vLevelIn, r_pTopAvgIn, r_pRefIn, r_rCoefIn)
     implicit none
@@ -60,21 +44,6 @@ interface
     real, intent(in)::r_pRefIn
     real, intent(in)::r_rCoefIn
   end function N_ViqkdefIfc_X
-
-
-  integer function N_VidefsetIfc(n_niIn, n_njIn, o_vGridDestnIfc, &
-                                 o_vGridSourceIfc, r_pSurf, r_pTopIn)
-    use ViTypes
-    implicit none
-
-    integer, intent(in)::n_niIn, n_njIn
-
-    type(T_VerticalGridIfc), intent(in) :: o_vGridDestnIfc, &
-                                           o_vGridSourceIfc
-
-    real, dimension(n_niIn, n_njIn), intent(in) :: r_pSurf
-    real, dimension(n_niIn, n_njIn), intent(in) :: r_pTopIn
-  end function N_VidefsetIfc
 
 
 

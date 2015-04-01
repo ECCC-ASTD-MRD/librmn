@@ -1692,7 +1692,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
   float level, xg1, xg2, xg3, xg4;
   char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
   char h_dims[18], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
-  char v_dims[18], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
+  char v_dims[20], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
   char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[13], h_deet[9], h_npas[9], h_dty[4]; 
   char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[13], v_deet[9], v_npas[9], v_dty[4]; 
   int posc, posv;

@@ -34,6 +34,8 @@ FFLAGS =
 
 CFLAGS =
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
@@ -123,4 +125,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *.o slabtest delamineur*
+	rm -f *.o slabtest delamineur*

@@ -58,7 +58,7 @@ void EliminerGrille(wordint gdid)
         Grille[gdrow_id][gdcol_id].ncx = NULL;
         Grille[gdrow_id][gdcol_id].ncy = NULL;
         }
-    Grille[gdrow_id][gdcol_id].flags = (int)NULL;
+    Grille[gdrow_id][gdcol_id].flags = (int)0;
     }
    
 

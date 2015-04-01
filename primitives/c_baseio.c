@@ -27,11 +27,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/time.h> 
 
 #ifdef WIN32    /*CHC/NRC*/
 #include <stdio.h>
 #include <sys/stat.h>
+#include <Winsock2.h>
 #define L_SET SEEK_SET
 #define L_INCR SEEK_CUR
 #define L_XTND SEEK_END
@@ -41,12 +41,15 @@
 #define S_IWGRP _S_IWRITE
 #define S_IROTH _S_IREAD
 #define S_IWOTH _S_IWRITE
+#define WIN32_O_BINARY O_BINARY
 #else
+#include <sys/time.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/signal.h>
+#define WIN32_O_BINARY 0
 #endif
 
 #include <fcntl.h>
@@ -264,10 +267,10 @@ static int find_file_entry(char *caller, int iun)
    for (i=0; i<MAXFILES; i++)
       if (FGFDT[i].iun == iun)
          return(i);
-   if (i == MAXFILES) {
+/*   if (i == MAXFILES) { */
    fprintf(stderr,"%s error: unit %d is not associated with any file\n",caller,iun);
    return(-1);
-   }
+/*   } */
 }
 
 /****************************************************************************
@@ -299,8 +302,8 @@ static int find_file_entry(char *caller, int iun)
 */
 int c_fnom(int *iun,char *nom,char *type,int lrec)
 {
-  int liun,ier=0,minus=0,majus=0,lng,i,j,pid,rndflag,unfflag,lngt,junk,mode;
-  char *c,*c2,*tmpdir,*cmcarc,*pos2p;
+  int liun,ier = 0, minus = 0, majus = 0, lng, i, j, pid, rndflag, unfflag, lngt, junk, mode;
+  char *c, *c2, *tmpdir, *cmcarc, *pos2p;
   char remote_mach[256];
   char nom2[1024];
   unsigned INT_32 hid;
@@ -310,11 +313,13 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
     /* Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file */
     /* This is a workaround for a particular case on Linux in batch mode with PBS */
     mode = O_RDONLY;
-    junk = open("/dev/null",mode);
+#ifndef WIN32
+    junk = open("/dev/null", mode);
     if (junk != 0)
       close(junk);
     /*    else
           printf("Debug junk associe a /dev/null\n"); */
+#endif
      ARMNLIB=getenv("ARMNLIB");
      armnlibpath=ARMNLIB;
      if (armnlibpath == NULL) armnlibpath = usrlocalenv;
@@ -352,8 +357,8 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
   if ((liun == 6) || (liun == -2)) {
     c = nom;
     c2 = nom2;
-    nom2[strlen(nom)]='\0';
-    for (j=0; (j<strlen(nom) && j < 1024); j++,c++,c2++) {
+    nom2[strlen(nom)] = '\0';
+    for (j = 0; (j < strlen(nom) && j < 1024); j++, c++, c2++) {
        if (islower(*c)) {
          minus=1;
          *c2 = *c;
@@ -386,7 +391,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
   }
   for (i=0; i<MAXFILES; i++)
      if (FGFDT[i].iun == liun) {
-        fprintf(stderr,"c_fnom error: unit %d is already in use\n",liun);
+        fprintf(stderr,"c_fnom error: unit %d is already in use\n", liun);
         return(-1);
         }
   for (i=0; i<MAXFILES; i++)
@@ -469,7 +474,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
        perror("c_fnom");
        exit(1);
      }
-     sprintf(FGFDT[i].file_name,"%s/%d_%s",tmpdir,pid,nom);
+     sprintf(FGFDT[i].file_name, "%s/%d_%s", tmpdir, pid, nom);
   }
   else {
 /*
@@ -478,50 +483,49 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
  */
      lng = strlen(nom);
      FGFDT[i].file_name = malloc(lng+1);
-     if ((FGFDT[i].attr.remote) && (strchr(nom,':'))) {
+     if ((FGFDT[i].attr.remote) && (strchr(nom, ':'))) {
        if (FGFDT[i].attr.rnd) {
 /*          remote_mach = strtok(nom,":"); */
-          pos2p = strchr(nom,':');
+          pos2p = strchr(nom, ':');
           if (pos2p != NULL) {
-            strncpy(remote_mach,nom,pos2p-nom);
+            strncpy(remote_mach, nom, pos2p-nom);
             remote_mach[pos2p-nom]='\0';
             nom = ++pos2p;
-            printf("Debug+ remote_mach=%s file name=%s\n",remote_mach,nom);
+            printf("Debug+ remote_mach=%s file name=%s\n", remote_mach, nom);
             lng = strlen(nom);
-            printf("Debug+ FGFDT[i].attr.remote=%d\n",FGFDT[i].attr.remote);
           }
        }  
        else {
           /* code to remote copy the file on local machine and change file name */
           FGFDT[i].attr.remote=0;
-          FGFDT[i].attr.read_only=0;     /* file becomes read only */
+          FGFDT[i].attr.read_only = 0;     /* file becomes read only */
        }
      }
      else 
         FGFDT[i].attr.remote=0;
      c = nom;
-     if (nom[0]=='@') {  /* name is of the form @some_file_name */
+     if (nom[0] == '@') {  /* name is of the form @some_file_name */
        c++;              /* skip the @, scan later under        */
        lng--;            /* AFSISIO & ARMNLIB if not local file */
        }
-     if (nom[0]=='%') {  /* name is of the form %[%@]some_pipe_ file */
+     if (nom[0] == '%') {  /* name is of the form %[%@]some_pipe_ file */
        c++;              /* skip the %  */
        lng--;
        FGFDT[i].attr.pipe = 1;
        }
-     if (nom[0]=='+') {  /* name is of the form +some_file_name */
+     if (nom[0] == '+') {  /* name is of the form +some_file_name */
        c++;              /* skip the +, do not convert to lowercase */
        lng--;            
-       strncpy(FGFDT[i].file_name,nom+1,lng);
-       c2 =FGFDT[i].file_name ;
-       *(c2+lng) ='\0';
+       strncpy(FGFDT[i].file_name, nom+1, lng);
+       c2 = FGFDT[i].file_name ;
+       *(c2+lng)  = '\0';
        }
      else {
-       c2 =FGFDT[i].file_name ;
-       *(c2+lng) ='\0';
-       for (j=0; j<lng; j++,c++,c2++) {
+       c2 = FGFDT[i].file_name ;
+       *(c2 + lng) = '\0';
+       for (j = 0; j < lng; j++, c++, c2++) {
          if (islower(*c)) {
-           minus=1;
+           minus = 1;
            *c2 = *c;
          }
          else if (isupper(*c)) {
@@ -588,7 +592,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
      ftnword rndflag77 = FGFDT[i].attr.rnd;
      ftnword unfflag77 = FGFDT[i].attr.unf;
      ftnword lmult = D77MULT;
-     ier = open64(FGFDT[i].file_name,O_RDONLY);
+     ier = open64(FGFDT[i].file_name,O_RDONLY | WIN32_O_BINARY);
      if (ier <=0) {
         FGFDT[i].file_size = -1;
         FGFDT[i].eff_file_size = -1;
@@ -639,6 +643,7 @@ ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F
       lng--;
       filetype[lng] = '\0';
       }
+
    tmp=(c_fnom(&liun,filename,filetype,lrec));
    if(*iun==0) *iun = liun;
    return (tmp);
@@ -2079,7 +2084,7 @@ if (FGFDT[indf].subname) {    /* fichier de type cmcarc */
   }
   FGFDT[indf].attr.read_only = 1;
   mode = O_RDONLY;
-  if ((fd = open64(FGFDT[indf].file_name,mode)) == -1) {
+  if ((fd = open64(FGFDT[indf].file_name,mode | WIN32_O_BINARY)) == -1) {
     fprintf(stderr,"qqcopen error: cannot open file %s\n",FGFDT[indf].file_name);
     return(-1);
   }
@@ -2101,7 +2106,7 @@ else {  /* not a CMCARC type file */
     {
       if (errno == ENOENT)     /* nouveau fichier, creation */
         {
-          fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT,
+          fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT | WIN32_O_BINARY,
                     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
           FGFDT[indf].attr.read_only = 0;
           errmsg="cannot create file";
@@ -2111,13 +2116,13 @@ else {  /* not a CMCARC type file */
     if (! FGFDT[indf].attr.read_only)      /* tentative d'ouverture en mode R/W */
       {
         mode = O_RDWR;
-        fd = open64(FGFDT[indf].file_name, mode);
+        fd = open64(FGFDT[indf].file_name, mode | WIN32_O_BINARY);
         if (fd == -1) {
           if (!FGFDT[indf].attr.write_mode)
             {
               mode = O_RDONLY;
               FGFDT[indf].attr.read_only = 1;
-              fd = open64(FGFDT[indf].file_name, mode);
+              fd = open64(FGFDT[indf].file_name, mode | WIN32_O_BINARY);
               errmsg="cannot open file";
             }
           else                  /* ouverture demande en mode R/W */
@@ -2127,7 +2132,7 @@ else {  /* not a CMCARC type file */
     else if (FGFDT[indf].attr.read_only)  /* ouverture en mode R/O */
       {
         mode = O_RDONLY;
-        fd = open64(FGFDT[indf].file_name, mode);
+        fd = open64(FGFDT[indf].file_name, mode | WIN32_O_BINARY);
         errmsg="cannot open file";
       }
   if (fd == -1)
@@ -2755,6 +2760,7 @@ else {
 *           
 *Revisions
 *           nov 2009 - Utilisation de ssh dans tous les cas pour demarrer wa_server
+*           fev 2011 - Utilisation de system(r.remote_wa_server) au lieu de popen
 *
 */
 int fnom_rem_connect(int ind, char* remote_host)
@@ -2762,6 +2768,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   char buf[1024];
   char cbuf[1024];
   char pbuf[1024];
+  char remote_command[1024];
   int wa_buf_lu[10];
   int fserver;
   int fclient=-1;
@@ -2771,14 +2778,14 @@ int fnom_rem_connect(int ind, char* remote_host)
   fd_set wfds;
   fd_set efds;
   struct timeval tv;
-  int nc, i, indx;
+  int nc, i, indx, isel, ier;
   int *s_ID, *addr, *nw, *RW_mode, *checksum, new_checksum;
   int sock_comm_ID=0xBABE;
   int demande[5];
   
   fserver = bind_to_localport(&server_port, cbuf, sizeof(cbuf)-1);
   listen(fserver,5);
-  printf("bound to #%s#\n",cbuf);
+  printf("bound to #%s#\n", cbuf);
   fflush(stdout);
 
 /*
@@ -2801,30 +2808,40 @@ int fnom_rem_connect(int ind, char* remote_host)
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);
 */
                             /*  rsh host -n commande fichier mode socket */
-  snprintf(pbuf,sizeof(pbuf)-1,"echo wa_server %s %s @%s | ssh %s bash --login",
+  snprintf(pbuf,sizeof(pbuf)-1,"echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'",
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
-  printf("Debug+ commande passee =\n%s\n",pbuf);
 
-  comm=popen(pbuf,"r");
+/*  comm = popen(pbuf,"r"); */
+/*  ier = system(pbuf); */
+  
+  snprintf(remote_command,sizeof(remote_command)-1,"r.remote_wa_server %s %s %s %s",
+	  FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
+  printf("Debug+ commande passee =\n%s\n",remote_command);
+  ier = system(remote_command);
+/*  
   if(comm == NULL) {
     printf("fnom_rem_connect error: popen error !!\n");
     return(-1);
   }else{
     int nelm;
-    buf[0]='\0';
-    nelm=fread(buf,1,sizeof(buf)-1,comm);
-    if(nelm>0) buf[nelm]='\0';
+    buf[0] = '\0';
+    nelm = fread(buf, 1, sizeof(buf)-1, comm);
+    if(nelm > 0) buf[nelm] ='\0';
     pclose(comm);
-    printf("read %d bytes, ::%s::\n",nelm,buf);
+    printf("read %d bytes, ::%s::\n", nelm, buf);
   }
+*/
+
   fflush(stdout);
   FD_ZERO(&rfds);
   FD_SET(fserver, &rfds);
   tv.tv_sec = 5;
   tv.tv_usec = 0;
-  if (select(fserver+1, &rfds, NULL, NULL, &tv))
+  isel = select(fserver+1, &rfds, NULL, NULL, &tv);
+  /* if (select(fserver+1, &rfds, NULL, NULL, &tv)) */
+  if (isel)
   {
-    fclient=accept_from_sock(fserver);
+    fclient = accept_from_sock(fserver);
     printf("connected to server\n");
     fflush(stdout);
     FGFDT[ind].fd = -1;
@@ -2832,12 +2849,9 @@ int fnom_rem_connect(int ind, char* remote_host)
     while ((wafile[indx].file_desc != -1) && (indx < MAXWAFILES))
       indx++;
     if (indx == MAXWAFILES) {
-      fprintf(stderr,"fnom_rem_connect error: too many open files\n");
+      fprintf(stderr, "fnom_rem_connect error: too many open files\n");
       return(-1);
     }
-    wafile[indx].file_desc = fclient;
-    FGFDT[ind].fd = fclient;
-    FGFDT[ind].open_flag = 1;
    
     s_ID = &(demande[0]);
     addr = &(demande[1]);
@@ -2849,20 +2863,30 @@ int fnom_rem_connect(int ind, char* remote_host)
     *nw = 0;
     *RW_mode = 4;  /* wasize request */
     *checksum = *s_ID ^ *addr ^ *RW_mode;
-    check_swap_records(demande,5,sizeof(int));
-    nc=write_stream(FGFDT[ind].fd,demande,5*sizeof(int));
+    check_swap_records(demande, 5, sizeof(int));
+    nc = write_stream(fclient, demande, 5*sizeof(int));
+
     if (nc == 0) {
       printf("fnom_rem_connect wrote to server OK\n");
       fflush(stdout);
       }
     else {
-      fprintf(stderr,"fnom_rem_connect error: wrote only %b bytes to server\n",nc);
+      fprintf(stderr, "fnom_rem_connect error: wrote only %d bytes to server\n", nc);
       fflush(stderr);
+      close(fclient);
       return(-1);
       }
-    demande[0]=0; demande[1]=0; demande[2]=0; demande[3]=0; demande[4]=0;
-    nc=read_stream(FGFDT[ind].fd,demande,5*sizeof(int));
-    check_swap_records(demande,5,sizeof(int));
+
+    demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
+    nc = read_stream(fclient, demande, 5*sizeof(int));
+    if (nc !=  5*sizeof(int)) {
+      fprintf(stderr, "fnom_rem_connect error: read only %d bytes from server\n", nc);
+      fflush(stderr);
+      close(fclient);
+      return(-1);
+      }
+
+    check_swap_records(demande, 5, sizeof(int));
     new_checksum = *s_ID ^ *addr ^ *RW_mode;
     if (new_checksum != *checksum) {
       fprintf(stderr,"fnom_rem_connect error: invalid checksum=%X not %X\n",new_checksum,checksum);
@@ -2875,6 +2899,14 @@ int fnom_rem_connect(int ind, char* remote_host)
     FGFDT[ind].file_size = *nw;
     FGFDT[ind].eff_file_size = *nw;
   }
+  else {
+    fprintf(stderr,"fnom_rem_connect error: cannot connect to server\n");
+    return(-1);
+  }
+
+  wafile[indx].file_desc = fclient;
+  FGFDT[ind].fd = fclient;
+  FGFDT[ind].open_flag = 1;
   return(0);
 }
 

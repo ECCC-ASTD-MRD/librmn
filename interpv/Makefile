@@ -30,6 +30,8 @@ FFLAGS =
 
 CFLAGS =
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 #OPTIMIZ = 0 -debug
 

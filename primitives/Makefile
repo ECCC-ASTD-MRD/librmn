@@ -10,6 +10,8 @@ FFLAGS =
 
 CFLAGS = 
 
+SUPP_OPT = -openmp
+
 OPTIMIZ = 2
 
 C_SUPP_OPT = -options_comp
@@ -180,4 +182,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm *.o
+	rm -f *.o

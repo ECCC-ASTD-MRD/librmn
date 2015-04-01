@@ -537,7 +537,7 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 
   chan = (int) *f_chan;
   nelem = (int) *f_nelem;
-  
+  char *tmpstr;
   
   if( nelem <= 0 )
     {
@@ -553,16 +553,35 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
       return WRITE_ERROR;
     }
 
-  if ( *dtype == 'C')
+  if ( *dtype == 'C' )
     {
-      ((char *)buffer)[nelem] = '\0';
+      nelem = ( *f_nelem < ltype ) ? (int) *f_nelem:ltype;
+
+      tmpstr = (char *)malloc(nelem + 1);
+
+#ifdef DEBUG
+      fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n", dtype[0], nelem, ltype, chn[chan].name);
+#endif
+
+      strncpy( tmpstr, (char *)buffer, nelem);
+      tmpstr[nelem] = '\0';
+
+      if ((nb = bwrite(chan, (unsigned char *)tmpstr, nelem, dtype)) > 0)
+	{
+	  fprintf(stderr,"MGI_WRITE: ERROR on %s: %d bytes written (character) \n", chn[chan].name, nb);
+	  free( tmpstr );
+	  /* return number of bytes not sent */
+	  return WRITE_ERROR;
+	}
+      free( tmpstr );
+
     }
 
-  if (*dtype == 'I' || *dtype == 'R' || *dtype == 'D' || *dtype == 'C') 
+
+  else if (*dtype == 'I' || *dtype == 'R' || *dtype == 'D' ) 
     {
       chn[chan].nblks++;
       
-
 #ifdef DEBUG
       fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
       fprintf(stderr,"MGI_WRITE: data type = %s\n", dtype);
@@ -575,28 +594,7 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 	  /* return number of bytes not sent */
 	  return WRITE_ERROR;
 	}
-
-      /* if(nb == -5) */
-      if(nb == TIMEOUT)
-	{
-	  if(get_timeout_signal(chn[chan].gchannel))
-	    {
-	      if (*dtype == 'C')
-		fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Character data\" \n", nelem);
-
-	      else if(*dtype == 'I')
-		fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Integer data\", nb = %d \n", nelem, nb);
-
-	      else if(*dtype == 'R')
-		fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Real data\" \n", nelem);
-
-	      else if(*dtype == 'D')
-		fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Double data\" \n", nelem);
-
-	      return signal_timeout(chn[chan].gchannel);
-	    }
-	}
-
+     
     }
 
   else 
@@ -605,7 +603,28 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
       /* return -1; */
       return WRITE_TYPE_ERROR;
     }
-  
+
+
+  if(nb == TIMEOUT)
+    {
+      if(get_timeout_signal(chn[chan].gchannel))
+	{
+	  if (*dtype == 'C')
+	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Character data\" \n", nelem);
+
+	  else if(*dtype == 'I')
+	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Integer data\", nb = %d \n", nelem, nb);
+
+	  else if(*dtype == 'R')
+	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Real data\" \n", nelem);
+
+	  else if(*dtype == 'D')
+	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Double data\" \n", nelem);
+
+	  return signal_timeout(chn[chan].gchannel);
+	}
+    }
+
   return nb;
 }
 

@@ -19,22 +19,21 @@
  */
 
 #include "rpnmacros.h"
-
 unsigned int ez_calc_crc(int *p, int *flen,  float *ax, float *ay, int ni, int nj)
 {
-	int len;
-	register unsigned int hold;		/* crc computed so far */
-	register int i;			/* index into data */
+   int len;
+   register unsigned int hold;		/* crc computed so far */
+   register int i;			/* index into data */
    unsigned int *p2;
 
-	len = *flen / 4;
+   len = *flen / 4;
 
    hold = 0;
 
-	for (i = 0; i < len; i++, p++)
+   for (i = 0; i < len; i++, p++)
       {
       hold ^= *p;
-	   }
+      }
 
    p2 = (unsigned int *) ax;
    if (p2 != NULL)
@@ -52,8 +51,7 @@ unsigned int ez_calc_crc(int *p, int *flen,  float *ax, float *ay, int ni, int n
          {
          hold ^= *p2;
          }
-	return (hold);
-   }
-}				/* calc_crc() */
-
+      }
+   return (hold);
+} /* calc_crc() */
 
