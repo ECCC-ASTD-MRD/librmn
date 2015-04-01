@@ -21,16 +21,16 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void f77name(ez_gfwfllw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
+wordint f77name(ez_gfwfllw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
 			 ftnfloat *xlatingf, ftnfloat *xloningf, 
 			 wordint *ni, wordint *nj,
 			 char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)
 {
-  c_ezgfwfllw(uullout, vvllout, latin, lonin, xlatingf, xloningf, 
+  return c_ezgfwfllw(uullout, vvllout, latin, lonin, xlatingf, xloningf, 
 	      ni, nj, grtyp, ig1, ig2, ig3, ig4);
     }
 
-void c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
+wordint c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
                   ftnfloat *xlatingf, ftnfloat *xloningf, 
                   wordint *ni, wordint *nj,
                   char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)
@@ -67,6 +67,7 @@ void c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat
 
   free(uvcart);
   free(xyz);
+  return 0;
 }
 
 

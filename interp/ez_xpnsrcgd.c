@@ -24,7 +24,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void ez_xpnsrcgd(wordint gdid, ftnfloat *zout, ftnfloat *zin)
+wordint ez_xpnsrcgd(wordint gdid, ftnfloat *zout, ftnfloat *zin)
 {
    _Grille gr;
    
@@ -44,4 +44,5 @@ void ez_xpnsrcgd(wordint gdid, ftnfloat *zout, ftnfloat *zin)
      default:
        break;
      }
+return 0;
 }

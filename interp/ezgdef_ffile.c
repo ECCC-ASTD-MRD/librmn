@@ -45,7 +45,7 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
   char typeGrille;
   char grref[2];
   ftnfloat *bidon = NULL;
-  int ok;
+  int ok, ier, n, newsize;
 
   _Grille *gr;
 
@@ -60,7 +60,7 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
 
   if (Grille == NULL)
     {
-    Grille = (_Grille *) malloc(sizeof(_Grille)*NMAXGRIDS);
+    Grille = (_Grille *) calloc(sizeof(_Grille),NMAXGRIDS);
     }
   
   ok = 0;
@@ -104,7 +104,13 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
 
   if (0 == (nGrilles % (NMAXGRIDS-1)))
     {
-    Grille = (_Grille *) realloc(Grille, sizeof(_Grille)*(nGrilles+32));
+    newsize = sizeof(_Grille)*(nGrilles+NMAXGRIDS+4);
+    Grille = (_Grille *) realloc((void *)Grille, newsize);
+    for (n=nGrilles-1;n<(nGrilles+NMAXGRIDS+4);n++)
+      {
+      memset(&Grille[n], (int) NULL, sizeof(_Grille));
+      }
+    fprintf(stderr, "<ezgdef_ffile> : Reallocating ngrids to %d\n", (nGrilles+NMAXGRIDS+4));
 /*    fprintf(stderr, "<ezgdef_ffile> : Too many defined grids. \n");
     fprintf(stderr, "<ezgdef_ffile> : No way but to abort. \n");
     exit(13);*/
@@ -126,11 +132,13 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
   switch(grtyp[0])
     {
     case '#':
-      LireEnrPositionnels(&(Grille[found]),iunit, ig1, ig2, ig3, ig4);
+      ier = LireEnrPositionnels(&(Grille[found]),iunit, ig1, ig2, ig3, ig4);
+      if (ier < 0) return -1;
       break;
 
     default:
-      LireEnrPositionnels(&(Grille[found]),iunit, ig1, ig2, ig3, 0);
+      ier = LireEnrPositionnels(&(Grille[found]),iunit, ig1, ig2, ig3, 0);
+      if (ier < 0) return -1;
       break;
     }
 
@@ -141,7 +149,8 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
   Grille[found].j2 = nj;
   if (*grtyp != 'Y')
     {
-   ez_calcntncof(found);
+    ier = ez_calcntncof(found);
+    if (ier < 0) return -1;
     }
 
   if (groptions.verbose > 0)

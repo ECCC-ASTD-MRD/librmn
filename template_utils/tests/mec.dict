@@ -1,0 +1,35 @@
+version=100
+
+@mec_topo
+#mandatory(desc)
+options(WB_REWRITE_UNTIL)
+define(npx[i4,0])
+define(npy[i4,0])
+define(nblocx[i4,0])
+define(nblocy[i4,0])
+npx = 1
+npy = 1
+nblocx = -1
+nblocy = -1
+
+@mec_grid
+#mandatory(desc)
+options(WB_REWRITE_UNTIL)
+define(Grd_ni[i4,0])
+define(Grd_nila[i4,0])
+define(Grd_nj[i4,0])
+define(Grd_njla[i4,0])
+define(Grd_typ_S[c2,0])
+define(grd_dx[r4,0])
+define(grd_dy[r4,0])
+define(Grd_dxmax[r4,0])
+define(Grd_dymax[r4,0])
+Grd_ni    = 0
+Grd_nila  = 0
+Grd_nj    = 0
+Grd_njla  = 0
+Grd_typ_S = "GU"
+grd_dx    = 0.
+grd_dy    = 0.
+Grd_dxmax = 0.
+Grd_dymax = 0.

@@ -34,7 +34,7 @@ wordint ez_calcxpncof(wordint gdid)
 }
       
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *extension,
+wordint ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *extension,
             wordint ni,wordint nj,char grtyp, char grref,
             wordint ig1,wordint ig2,wordint ig3,wordint ig4,wordint sym, ftnfloat *ax, ftnfloat *ay)
 {
@@ -134,4 +134,5 @@ void ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *exte
 	break;
       }
   
+return 0;
 }

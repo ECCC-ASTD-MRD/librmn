@@ -20,12 +20,14 @@
 
 /*CoMpIlAtIoN_OpTiOnS ::SX4=-Onooverlap::SX5=-Onooverlap::*/
 #define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
 
 #include <rpnmacros.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/time.h> 
 
 #ifdef WIN32    /*CHC/NRC*/
 #include <stdio.h>
@@ -61,6 +63,16 @@
 #include "wafile.h"
 
 #if defined (NEC)
+#define tell(fd) lseek(fd,0,1)
+#endif
+
+#if defined(__linux__) || defined(__AIX__)
+#define tell64(fd) lseek64(fd,0,1)
+#endif
+
+#ifdef __CYGWIN__
+#define lseek64 lseek
+#define open64 open
 #define tell(fd) lseek(fd,0,1)
 #endif
 
@@ -105,11 +117,15 @@ static int debug_mode = 0;
 static int subfile_length=0;
 static int fnom_initialized=0;
 static int endian_int=1;
+static int stdoutflag=0;
+static int stdinflag=0;
 static char *little_endian=(char *)&endian_int;
 
 static char *AFSISIO=NULL;
 static char *ARMNLIB=NULL;
 static char *LOCALDIR="./";
+static char *usrlocalenv="/usr/local/env/armnlib";
+static char *armnlibpath=NULL;
 
 /****************************************************************************
 *                   C _ F R E T O U R ,   F R E T O U R                     *
@@ -277,12 +293,16 @@ static int find_file_entry(char *caller, int iun)
 *AUTHOR: Mario Lepine - RPN - nov 1995
 * 
 *Revision - mars 1999 - Bug fix allocation pour filename
+*           avril 2008 - Correction pour reconnaissance de iun=6,output iun=5,input
+*           sept 2008 - Correction du nom de fichier passe pour fichier cmcarc remote 
 *
 */
 int c_fnom(int *iun,char *nom,char *type,int lrec)
 {
   int liun,ier=0,minus=0,majus=0,lng,i,j,pid,rndflag,unfflag,lngt,junk,mode;
-  char *c,*c2,*tmpdir,*cmcarc,*remote_mach;
+  char *c,*c2,*tmpdir,*cmcarc,*pos2p;
+  char remote_mach[256];
+  char nom2[1024];
   unsigned INT_32 hid;
   PTR_AS_INT ptr_as_int;
 
@@ -296,6 +316,8 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
     /*    else
           printf("Debug junk associe a /dev/null\n"); */
      ARMNLIB=getenv("ARMNLIB");
+     armnlibpath=ARMNLIB;
+     if (armnlibpath == NULL) armnlibpath = usrlocalenv;
      if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
      AFSISIO=getenv("AFSISIO");
      if( AFSISIO == NULL ) AFSISIO = LOCALDIR;
@@ -315,14 +337,51 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
         *iun = c_qqqfscr(type);
      liun = *iun;
      }
-  if ((liun == 6) && (strcmp(nom,"$OUT") !=0) && (strcmp(nom,"$OUTPUT") != 0)){
+
+  if ((liun ==6) && ((strcmp(nom,"$OUT") == 0) || (strcmp(nom,"$OUTPUT") == 0) || (strcmp(nom,"OUTPUT") == 0) ||                     (strcmp(nom,"output") == 0))) {
+    stdoutflag=1;
+/*    fprintf(stderr,"C_FNOM DEBUG already connected: iun=%d filename=%s\n",liun,nom);   */
+    return(0);
+  }
+  if ((liun ==5) && ((strcmp(nom,"$IN") == 0) || (strcmp(nom,"$INPUT") == 0) || (strcmp(nom,"INPUT") == 0) ||                     (strcmp(nom,"input") == 0))) {
+    stdinflag=1;
+/*    fprintf(stderr,"C_FNOM DEBUG already connected: iun=%d filename=%s\n",liun,nom);   */
+    return(0);
+  }
+
+  if ((liun == 6) || (liun == -2)) {
+    c = nom;
+    c2 = nom2;
+    nom2[strlen(nom)]='\0';
+    for (j=0; (j<strlen(nom) && j < 1024); j++,c++,c2++) {
+       if (islower(*c)) {
+         minus=1;
+         *c2 = *c;
+       }
+       else if (isupper(*c)) {
+         majus=1;
+         *c2 = tolower(*c);
+       }
+       else
+         *c2 = *c;
+    }
+  }
+  if (liun == 6) {
     close(1);
-    freopen(nom,"a",stdout);
+    if (minus && majus)
+      freopen(nom,"a",stdout);
+    else
+      freopen(nom2,"a",stdout);
+    fprintf(stderr,"C_FNOM DEBUG: freopen %s pour stdout\n",nom2) ;
+    stdoutflag=1;
     return(0);
   }
   else if (liun == -2) {
     close(2);
-    freopen(nom,"a",stderr);
+    if (minus && majus)
+      freopen(nom,"a",stderr);
+    else
+      freopen(nom2,"a",stderr);
     return(0);
   }
   for (i=0; i<MAXFILES; i++)
@@ -421,9 +480,12 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
      FGFDT[i].file_name = malloc(lng+1);
      if ((FGFDT[i].attr.remote) && (strchr(nom,':'))) {
        if (FGFDT[i].attr.rnd) {
-          remote_mach = strtok(nom,":");
-          if (remote_mach != NULL) {
-            nom = strtok(NULL,":");
+/*          remote_mach = strtok(nom,":"); */
+          pos2p = strchr(nom,':');
+          if (pos2p != NULL) {
+            strncpy(remote_mach,nom,pos2p-nom);
+            remote_mach[pos2p-nom]='\0';
+            nom = ++pos2p;
             printf("Debug+ remote_mach=%s file name=%s\n",remote_mach,nom);
             lng = strlen(nom);
             printf("Debug+ FGFDT[i].attr.remote=%d\n",FGFDT[i].attr.remote);
@@ -476,7 +538,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
 /*
  *   verify for a cmcarc type of file (filename@subfilename)
  */
-  if (cmcarc = strchr(FGFDT[i].file_name,'@')) {
+  if ((cmcarc = strchr(FGFDT[i].file_name,'@')) && !(FGFDT[i].attr.remote)) {
      FGFDT[i].subname = malloc(lng+1);
      strcpy(FGFDT[i].subname,cmcarc+1);
      *cmcarc = '\0';
@@ -556,11 +618,11 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
 ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F2Cl l2)
 {
    int lrec,lng,tmp,liun=*iun;
-   char filename[257],filetype[257];
+   char filename[1025],filetype[257];
 
    lrec = *flrec;
 
-   lng = (l1 <= 256) ? l1 : 256;
+   lng = (l1 <= 1024) ? l1 : 1024;
    strncpy(filename,nom,lng);        /*  copy filename into a C string  */
    filename[lng] = '\0';
 
@@ -613,6 +675,10 @@ int c_fclos(int iun)
    return(-2);
    }
 */
+
+   if ((iun == 6) && (stdoutflag)) return(0);
+   if ((iun == 5) && (stdinflag)) return(0);
+
    if ((i=find_file_entry("c_fclos",iun)) < 0) return(i);
    iun77 = iun;
    ier=0;
@@ -1810,7 +1876,8 @@ static int filepos(int indf)
   HEADER_CMCARC *cmcarc_file;
   int nblu,lng,found=0,version=0,tail_offset;
   unsigned int nt,nd;
-  INT_64 nt64, nd64, lng64, nblu64;
+  INT_64 nt64, nd64, lng64, nblu64, pos64;
+  int retour;
   
   
   lseek(FGFDT[indf].fd,(off_t) 0,L_SET);
@@ -1912,7 +1979,10 @@ static int filepos(int indf)
     }
   } while(!found);
   subfile_length = (nd*8)/sizeof(word);
-  return((tell(FGFDT[indf].fd))/sizeof(word));
+  pos64=tell64(FGFDT[indf].fd);
+  retour = pos64/sizeof(word);
+  return(retour);
+/*  return((tell(FGFDT[indf].fd))/sizeof(word)); */
 }
 
 
@@ -2123,7 +2193,7 @@ int i;
 fprintf(stderr,"\n   DUMP OF WA CONTROL TABLE \n");
 for (i=0;i<MAXWAFILES;i++){
    if(wafile[i].file_desc != -1)
-   fprintf(stderr,"waindex=%d, fd=%d, npages=%d, offset=%d\n",
+   fprintf(stderr,"waindex=%d, fd=%d, npages=%d, offset=%Ld\n",
     i,wafile[i].file_desc,wafile[i].nb_page_in_use,wafile[i].offset);
    }
 }
@@ -2447,18 +2517,19 @@ static void wa_page_write(int fd,word *buf,unsigned int adr,int nmots,int indf)
 *
 *ARGUMENTS: in lfd    file descriptor
 *           in buf    contains data to write
-*           in ladr   file address 
+*           in wadr   file address in words 
 *           in nmots  number of words to write
 *           in indf   index in the master file table
 *
 */
 
-static void qqcwawr(word *buf,unsigned int ladr,int lnmots,int indf)
+static void qqcwawr(word *buf,unsigned int wadr,int lnmots,int indf)
 {
 
 int offset,i,adr0,nwritten,togo;
 int lng, l, lastadr, ind, statut;
 int lfd=FGFDT[indf].fd;
+long long ladr=wadr;
 char *cbuf;
 
 ind = 0;
@@ -2588,16 +2659,17 @@ else {
 *
 *ARGUMENTS: in  lfd     file descriptor
 *           out buf     will contain data read
-*           in  ladr    file address
+*           in  wadr    file address in words
 *           in  lnmots  number of words to read
 *           in  indf    index of file in the master file table
 *
 */
-static void qqcward(word *buf,unsigned int ladr,int  lnmots,int indf)
+static void qqcward(word *buf,unsigned int wadr,int  lnmots,int indf)
 {
 int offset,i,wa0,adr0,lng,l,lastadr;
 int npages,reste,ind;
 int lfd=FGFDT[indf].fd;
+long long ladr=wadr;
 
 ind = 0;
 while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES))
@@ -2643,6 +2715,8 @@ else {
     if(reste != sizeof(word)*lnmots) {
         fprintf(stderr,"qqcward error: tried to read %d words, only read %d\n",
                       sizeof(word)*lnmots,reste);
+        fprintf(stderr,"qqcward: wafile[ind].offset=%d ladr=%Ld\n",wafile[ind].offset,ladr);
+        f77name(tracebck)();
         exit(1);
     }
     }
@@ -2690,7 +2764,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   int fserver;
   int fclient=-1;
   int server_port = -1;
-  FILE *comm = NULL;
+  FILE *comm = NULL, *file_ptr=NULL;
   fd_set rfds;
   fd_set wfds;
   fd_set efds;
@@ -2705,8 +2779,18 @@ int fnom_rem_connect(int ind, char* remote_host)
   printf("bound to #%s#\n",cbuf);
   fflush(stdout);
 
-  snprintf(pbuf,sizeof(pbuf)-1,"rsh %s -n %s %s %s @%s ",remote_host,"/usr/local/env/armnlib/bin/wa_server",
+  file_ptr = fopen("ECssm/all/bin/remote_exec.sh","r");
+  if (file_ptr != NULL) {
+    printf("Debug+ passe par remote_exec\n");
+    snprintf(pbuf,sizeof(pbuf)-1,"ssh %s -n %s %s %s @%s ",remote_host,"ECssm/all/bin/remote_exec.sh wa_server",
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);
+/*    printf("Debug+ commande passee =\n%s\n",pbuf);  */
+    }
+  else {
+    snprintf(pbuf,sizeof(pbuf)-1,"ssh %s -n %s/bin/%s %s %s @%s ",remote_host,armnlibpath,"wa_server",
+           FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);
+/*    printf("Debug+ commande passee =\n%s\n",pbuf); */
+    }
 /*
   snprintf(pbuf,sizeof(pbuf)-1,"rsh %s -n %s %s %s @%s ",remote_host,"/users/dor/armn/mlp/tests/SOCKETS/wa_server",
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);

@@ -20,7 +20,7 @@
       PROGRAM YOYO
       COMMON /XXX/TAB1(10),TAB2(10),TAB3(10)
       COMMON /YYY/ NTAB1,NTAB2,NTAB3,NSUB1,NSUB2
-      INTEGER TAB1,TAB2,TAB3
+      INTEGER TAB1,TAB2,TAB3,dummy
 
       EXTERNAL SUB1,SUB2, YOUPI
       integer*8 loc_sub
@@ -31,6 +31,8 @@ c      IER = FNOM(6,'$OUTPUT','SEQ',0)
       CALL qlxins(INDICE,'IND',NNN,1,1)
       CALL qlxins(TAB2,'TAB2',NTAB2,4,1)
       CALL qlxins(TAB3,'TAB3',NTAB3,7,1)
+      CALL qlxins(22,'CONST22',dummy,1,0)
+      CALL qlxins(55,'CONST55',dummy,1,0)
 
       CALL qlxinx(SUB1,'SUB1',NSUB1,0104,2)
       CALL qlxinx(SUB2,'SUB2',NSUB2,0305,2)

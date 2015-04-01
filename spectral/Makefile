@@ -24,6 +24,8 @@ TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(MYLIB)
 
 default: obj
@@ -54,7 +56,7 @@ OBJECTS= \
 FICHIERS = $(FTNDECKS)
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/spectral_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/spectral_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers

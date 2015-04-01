@@ -54,48 +54,68 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
     switch (groptions.degre_interp)
       {
       case CUBIQUE:
-	switch (Grille[gdin].grtyp)
-	  {
-	  case 'Z':
-	  case 'E':
-	  case 'G':
-	    ay[0] = Grille[gdin].ay[Grille[gdin].j2-3];
-	    ay[1] = Grille[gdin].ay[Grille[gdin].j2-2];
-	    ay[2] = Grille[gdin].ay[Grille[gdin].j2-1];
-	    ay[3] = 90.0;
-	    f77name(ez_irgdint_3_wnnc)(vals,gdset->zones[AU_NORD].x,
-				       gdset->zones[AU_NORD].y,&npts,
-				       Grille[gdin].ax, ay, temp,
-				       &ni, &j1, &j2, &Grille[gdin].extension);
-	    break;
-
-	  default:
-	    f77name(ez_rgdint_3_wnnc)(vals,gdset->zones[AU_NORD].x,
-				      gdset->zones[AU_NORD].y,&npts,
-				      temp,&ni, &j1, &j2, &Grille[gdin].extension);
-	    break;
-	  }
-	break;
-	
+      switch (Grille[gdin].grtyp)
+        {
+        case 'Z':
+        case 'E':
+        case 'G':
+          ay[0] = Grille[gdin].ay[Grille[gdin].j2-3];
+          ay[1] = Grille[gdin].ay[Grille[gdin].j2-2];
+          ay[2] = Grille[gdin].ay[Grille[gdin].j2-1];
+          ay[3] = 90.0;
+          f77name(ez_irgdint_3_wnnc)(vals,gdset->zones[AU_NORD].x,
+                      gdset->zones[AU_NORD].y,&npts,
+                      Grille[gdin].ax, ay, temp,
+                      &ni, &j1, &j2, &Grille[gdin].extension);
+          break;
+    
+        default:
+          f77name(ez_rgdint_3_wnnc)(vals,gdset->zones[AU_NORD].x,
+                      gdset->zones[AU_NORD].y,&npts,
+                      temp,&ni, &j1, &j2, &Grille[gdin].extension);
+          break;
+        }
+      break;
+      
       case LINEAIRE:	
-	temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-	for (i=0; i < npts; i++)
-	  {
-	  temp_y[i] = gdset->zones[AU_NORD].y[i] - (1.0 * (nj-3));
-	  }
-	f77name(ez_rgdint_1_nw)(vals,gdset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre);
-	free(temp_y);
-	break;
+      temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+      for (i=0; i < npts; i++)
+        {
+        temp_y[i] = gdset->zones[AU_NORD].y[i] - (1.0 * (nj-3));
+        }
+      switch (Grille[gdin].grtyp)
+        {
+        case 'G':
+        case 'B':
+        case 'A':
+        f77name(ez_rgdint_1_w)(vals,gdset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre, &Grille[gdin].extension);
+        break;
+
+        default:
+        f77name(ez_rgdint_1_nw)(vals,gdset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre);
+        break;
+        }
+      free(temp_y);
+      break;
 	
       case VOISIN:
-	temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-	for (i=0; i < npts; i++)
-	  {
-	  temp_y[i] = gdset->zones[AU_NORD].y[i] - (1.0 * (nj-3));
-	  }
-	f77name(ez_rgdint_0)(vals,gdset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre);
-	free(temp_y);
-	break;
+      temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+      for (i=0; i < npts; i++)
+        {
+        temp_y[i] = gdset->zones[AU_NORD].y[i] - (1.0 * (nj-3));
+        }
+      switch(Grille[gdin].extension)
+        {
+        case 2:
+        f77name(ez_rgdint_0_w)(vals,gdset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre, &Grille[gdin].extension);
+        break;
+
+        default:
+        f77name(ez_rgdint_0)(vals,gdset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre);
+        break;
+        }
+      free(temp_y);
+      break;
       }
 
       

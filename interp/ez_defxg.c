@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void c_ezdefxg(wordint gdid)
+wordint c_ezdefxg(wordint gdid)
 {
   
   _Grille *gr;
@@ -153,14 +153,14 @@ void c_ezdefxg(wordint gdid)
       
     case 'X':
       fprintf(stderr,"<c_ezgdef> There is no support for grid type 'X'\n");
-      return;
+      return -1 ;
 
     default:
       fprintf(stderr,"<c_ezgdef> Grid type not supported\n");
-      return;
+      return -1;
     }
   
-  return;
+  return 0;
 
 }
 

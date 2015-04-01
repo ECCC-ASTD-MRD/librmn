@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void EliminerGrille(wordint gridid)
+wordint EliminerGrille(wordint gridid)
 {
    wordint i;
    if (Grille[gridid].count > 0)
@@ -69,5 +69,5 @@ void EliminerGrille(wordint gridid)
             }
          }
       }
-   
+return 0;   
 }

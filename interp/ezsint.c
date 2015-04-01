@@ -44,7 +44,7 @@ wordint c_ezsint(ftnfloat *zout, ftnfloat *zin)
    if (iset == UNDEFINED)
       {
       fprintf(stderr,"<c_ezsint> Source and target grid undefined! Aborting...\n");
-      exit(333);
+      return -1;
       }
 
    

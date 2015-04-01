@@ -1,0 +1,280 @@
+!copyright (C) 2007  MSC-RPN COMM  %%%MEC%%%
+!**s/r 
+!APIBEGIN
+program wb_test
+  implicit none
+!APIEND
+!
+!object
+!  test fn for the whiteboard and its fortran interface
+!author
+!  Stephane Chamberland, 2007-08
+!revision
+!  v0_00 -       - initial version, 
+!
+!implicits
+#include "rmnlib.hf"
+!externals
+!** end of rpn-doc sections
+  integer,parameter :: NMAXITEM = 9
+  integer :: val,val2,istat,i,nkeys
+  character(len=WB_MAXNAMELENGTH) :: key,keys(999)
+  character(len=7),parameter :: OK='OK',FAIL='FAILED'
+  character(len=WB_MAXSTRINGLENGTH) :: fnname,mystr,mystr2,mystrresult,package,myfile,mysect
+  character(len=1024) :: mystrlong
+  character(len=WB_MAXSTRINGLENGTH),dimension(NMAXITEM) :: mystra,mystra2,mystrresulta
+  integer,dimension(NMAXITEM) :: vala,vala2
+  logical :: flag
+  
+
+  integer, external :: f_wb_get
+  !---------------------------------------------------------------------
+
+!!$istat = wb_put(key,value[,options])
+!!$istat = wb_get(key,value)
+  fnname = 'wb_put_get_i4'
+  key    = 'i4'
+  val    = 2
+  val2   = val
+  istat = wb_put(key,val)
+  if (WB_IS_OK(istat)) then
+     istat = wb_get(key,val)
+     if (val == val2) then
+        print *,OK,trim(fnname)
+     else
+        print *,FAIL,trim(fnname),' :: ',val,' != ',val2
+     endif
+  else
+     print *,FAIL,trim(fnname),' :: put failed'
+  endif
+
+  fnname = 'wb_put_i4_fail'
+  key    = 'i4'
+  val    = 2
+  val2   = 3
+  istat = wb_put(key,val2)
+  if (WB_IS_OK(istat)) then
+     print *,FAIL,trim(fnname)
+  else
+     print *,OK,trim(fnname)
+  endif
+
+  fnname = 'wb_put_i4_fail2'
+  istat = wb_get(key,val)
+  if (WB_IS_OK(istat)) then
+     if (val == val2) then
+        print *,FAIL,trim(fnname),' :: value was modified'
+     else
+        print *,OK,trim(fnname)
+     endif
+  else
+     print *,FAIL,trim(fnname),' :: problem getting value'
+  endif
+  
+  fnname = 'wb_get_i4_fail'
+  key    = 'i5'
+  istat = wb_get(key,val)
+  if (WB_IS_OK(istat)) then
+     print *,FAIL,trim(fnname),' :: got inexistant value'
+  else
+     print *,OK,trim(fnname)
+  endif
+
+  fnname = 'wb_put_get_i4a'
+  key    = 'i4a'
+  do i = 1,NMAXITEM
+     vala    = i*2+1
+  enddo
+  vala2   = vala
+  istat = wb_put(key,vala)
+  if (WB_IS_OK(istat)) then
+     istat = wb_get(key,vala2,i)
+     if (i.ne.NMAXITEM) then
+        print *,FAIL,trim(fnname),' :: too few values ',i,' != ',NMAXITEM
+     else
+        flag = .true.
+        do i = 1,NMAXITEM
+           if (vala(i) .ne. vala2(i)) then
+              flag = .false.
+              exit
+           endif
+        enddo
+        if (flag) then
+           print *,OK,trim(fnname)
+        else
+           print *,FAIL,trim(fnname),' :: ',vala(i),' != ',vala2(i)
+        endif
+     endif
+  else
+     print *,FAIL,trim(fnname),' :: put failed'
+  endif
+
+  fnname = 'wb_put_get_c'
+  key    = 'c'
+  mystr    = 'some str'
+  istat = wb_put(key,mystr)
+  if (WB_IS_OK(istat)) then
+     istat = wb_get(key,mystr2)
+     if (mystr2 == mystr) then
+        print *,OK,trim(fnname)
+     else
+        print *,FAIL,trim(fnname),' :: ',trim(mystr),' != ',trim(mystr2)
+     endif
+  else
+     print *,FAIL,trim(fnname),' :: put failed'
+  endif
+
+  istat = wb_verbosity(WB_MSG_DEBUG)
+
+  fnname = 'wb_get_c_long'
+  key    = 'c2'
+  mystr    = 'some str'
+  istat = wb_put(key,mystr)
+  if (WB_IS_OK(istat)) then
+     istat = wb_get(key,mystrlong)
+     if (WB_IS_OK(istat)) then
+        if (trim(mystrlong) == trim(mystr)) then
+           print *,OK,trim(fnname)
+        else
+           print *,FAIL,trim(fnname),' :: ',trim(mystr),' != ',trim(mystrlong)
+        endif
+     else
+        print *,FAIL,trim(fnname),' :: get failed'
+     endif
+  else
+     print *,FAIL,trim(fnname),' :: put failed'
+  endif
+
+  istat = wb_verbosity(WB_MSG_ERROR)
+
+  fnname = 'wb_put_get_ca'
+  key    = 'ca'
+  do i = 1,NMAXITEM
+     write(mystra(i),'(a10,i6)') 'some text ',i
+  enddo
+  istat = wb_put(key,mystra)
+  if (WB_IS_OK(istat)) then
+     istat = wb_get(key,mystra2,i)
+     if (i.ne.NMAXITEM) then
+        print *,FAIL,trim(fnname),' :: too few values ',i,' != ',NMAXITEM
+     else
+        flag = .true.
+        do i = 1,NMAXITEM
+           if (mystra(i) .ne. mystra2(i)) then
+              flag = .false.
+              exit
+           endif
+        enddo
+        if (flag) then
+           print *,OK,trim(fnname)
+        else
+           print *,FAIL,trim(fnname),' :: ',trim(mystra(i)),' != ',trim(mystra2(i))
+        endif
+     endif
+  else
+     print *,FAIL,trim(fnname),' :: put failed'
+  endif
+
+
+!!$istat = wb_read(prefix_name,file,section,mode)
+  fnname = 'wb_read_dict'
+  package = 'mec/'
+  myfile  = 'mec.dict'
+  mysect  = 'mec_topo'
+  istat = wb_read(package,myfile,mysect,WB_STRICT_DICTIONARY)
+  if (WB_IS_OK(istat)) then
+     print *,OK,trim(fnname)
+  else
+     print *,FAIL,trim(fnname)
+  endif
+
+  fnname = 'wb_read_cfg'
+  package = 'mec/'
+  myfile  = 'mec.cfg'
+  mysect  = 'mec_topo'
+  istat = wb_read(package,myfile,mysect,WB_FORBID_DEFINE)
+  if (WB_IS_OK(istat)) then
+     print *,OK,trim(fnname)
+  else
+     print *,FAIL,trim(fnname)
+  endif
+
+!!$istat = wb_keys(keys,nkeys,key_pattern)
+  fnname = 'wb_keys'
+  istat = wb_keys(keys,nkeys,'')
+  if (WB_IS_OK(istat)) then
+     print *,OK,trim(fnname)
+     do i = 1,nkeys
+        print *,keys(i)
+     enddo
+  else
+     print *,FAIL,trim(fnname)
+  endif
+
+!!$istat = wb_verbosity(level)
+  !istat = wb_verbosity(WB_MSG_INFO)
+  istat = wb_verbosity(WB_MSG_DEBUG)
+
+!!$istat = wb_check(prefix_match,instatus)
+  fnname = 'wb_check'
+  istat = wb_check('',-1)
+  if (WB_IS_OK(istat)) then
+     print *,OK,trim(fnname)
+  else
+     print *,FAIL,trim(fnname)
+  endif
+
+!!$istat = wb_lock(prefix_match)
+  fnname = 'wb_lock'
+  package = 'mec/'
+  istat = wb_lock(package)
+  if (WB_IS_OK(istat)) then
+     if (istat .ne. 4) then
+        print *,FAIL,trim(fnname),' locked less than 4 items: ',istat
+        istat = wb_check('',-1)
+     else
+        istat = wb_check('',-1)
+        if (WB_IS_OK(istat)) then
+           print *,OK,trim(fnname)
+        else
+           print *,FAIL,trim(fnname),' on check'
+        endif
+     endif
+  else
+     print *,FAIL,trim(fnname)
+  endif
+
+!!$istat = wb_read(prefix_name,file,section,mode)
+  fnname = 'wb_read_dict2'
+  package = 'mec/'
+  myfile  = 'mec.dict'
+  mysect  = 'mec_grid'
+  istat = wb_read(package,myfile,mysect,WB_STRICT_DICTIONARY)
+  if (WB_IS_OK(istat)) then
+     print *,OK,trim(fnname)
+  else
+     print *,FAIL,trim(fnname)
+  endif
+  istat = wb_check('grd',-1)
+
+!!$istat = wb_read(prefix_name,file,section,mode)
+  fnname = 'wb_read_fail'
+  package = 'mec/'
+  myfile  = 'mec2.cfg'
+  mysect  = 'mec_grid2'
+  istat = wb_read(package,myfile,mysect,WB_FORBID_DEFINE)
+  if (WB_IS_OK(istat)) then
+     print *,FAIL,trim(fnname)
+  else
+     print *,OK,trim(fnname)
+  endif
+  istat = wb_check('grd',-1)
+
+!!$istat = wb_get_meta(key,type1,typelen,array_size,options)
+!!$istat = wb_checkpoint()
+!!$istat = wb_reload()
+!!$istat = wb_error_handler(handler_function)
+!!$istat = wb_broadcast_init(pe_root,pe_me,domain,bcst_function,allreduce_function)
+!!$istat = wb_broadcast(key,ispattern)
+
+end program wb_test

@@ -40,6 +40,13 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define ascii64(car) ( (car > 95) ? car-32 : car)
 #define ascii6(car) ((upper_case(car)-32) & 0x3f)
 #define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
+#define str_cp_init(strc,lc,strf,lf)                               \
+   {                                                               \
+     int i;                                                        \
+     for (i=0; i < lc-1; i++) strc[i] = (i < lf) ? strf[i] : ' ';  \
+     strc[lc-1] = '\0';                                            \
+   }                                                               \
+
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
 #define MRBCOV(a,b,c) ((a << 14) | (b << 8) | c)

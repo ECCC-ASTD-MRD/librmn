@@ -227,6 +227,7 @@
 *     Vivian Lee/Michel Valin    Dec.19, 2001
 *
 *revision
+*     Vivian Lee BUG in return code Dec 03 2007
 *
 *object
 *     To derive hybrid reference values given a selected FSTD record
@@ -245,7 +246,7 @@
 * pref          O       reference pressure (normally = 800mb)
 * rcoef         O       coefficient (1.0 to 2.0)
 * ----------------------------------------------------------------
-* the function will return KEY of FSTD record upon success, -1 if there is an error
+* the function will return KEY of FSTD record upon success, a negative error code if there is an error
 *
       integer  fstinf,fstprm,ig_to_hybref
       external fstinf,fstprm,ig_to_hybref
@@ -260,6 +261,7 @@
       character*(12) labanl
 
       l = fstinf(iun, i, j, k, date, etik, -1, ip2, ip3, 'X', nom)
+      read_decode_hyb = l   !!! BUG FIX read_decode_hyb now properly set
       if (l.ge.0) then
           ierr= fstprm ( l, idayo, deet, npas, nia, nja, k, bit, dty,
      x                 ip1a, ip2a, ip3a, typ, var, labanl,grda,
@@ -274,10 +276,10 @@
               print *, 'ERROR in read_decode_hyb: Decoding of ig?? in ',nom
               read_decode_hyb = -1
           endif
-          read_decode_hyb = l
+*         read_decode_hyb = l   !!! BUG , misplaced statement
       else
           print *,'ERROR in read_decode_hyb:Record ',nom,' is not found'
-          read_decode_hyb = l
+          read_decode_hyb = -2  !!! SPECIFIC error code if record not found
       endif
       return
       end

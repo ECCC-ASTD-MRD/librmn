@@ -53,7 +53,7 @@ wordint c_ezgdef(wordint ni, wordint nj, char *grtyp, char *grref,
   if (grtyp[0] == '#') 
     {
     fprintf(stderr, "The '#' grid type is not supported with ezgdef.\nPlease use ezgdef_ffile or ezgdef_fmem\n");
-    exit(13);
+    return -1;
     }
 
   switch(typeGrille)

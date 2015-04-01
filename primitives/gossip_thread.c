@@ -147,8 +147,9 @@ void start_client_thread_2(void (*client_address)(EXTENDED_CLIENT_SLOT *), int c
   
   pthread_mutex_lock(&mutex);
   client_no++;
-  pthread_mutex_unlock(&mutex);
   client_ord++;
+  pthread_mutex_unlock(&mutex);
+  
   
   slot = find_client_slot();
   clients[slot].uid = client_uid;

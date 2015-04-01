@@ -22,17 +22,17 @@
 #include "ez_funcdef.h"
 
 
-void f77name(ezgfllfxy)(ftnfloat *lonp, ftnfloat *latp,
+wordint f77name(ezgfllfxy)(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
 		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
 		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
 {
-  c_ezgfllfxy(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
+  return c_ezgfllfxy(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
 }
 
 
 
-void  c_ezgfllfxy(ftnfloat *lonp, ftnfloat *latp,
+wordint  c_ezgfllfxy(ftnfloat *lonp, ftnfloat *latp,
                  ftnfloat *lon, ftnfloat *lat, 
                  ftnfloat *r, ftnfloat *ri, wordint *npts, 
                  ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
@@ -50,5 +50,5 @@ void  c_ezgfllfxy(ftnfloat *lonp, ftnfloat *latp,
 
    free(cart);
    free(carot);
-
+   return 0;
 }

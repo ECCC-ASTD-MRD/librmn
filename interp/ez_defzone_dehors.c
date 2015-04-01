@@ -32,6 +32,9 @@ wordint ez_defzone_dehors(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, 
   
   wordint offsetleft, offsetright, ix, iy;
   
+
+
+
   tmpx =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpy =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpidx = (wordint   *) malloc(npts*sizeof(wordint));

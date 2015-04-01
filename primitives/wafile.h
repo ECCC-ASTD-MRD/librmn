@@ -38,7 +38,7 @@ typedef struct {
    int file_desc;
    int nb_page_in_use;
    PAGEINFO page[MAXPAGES];
-   long offset;
+   long long offset;
    } FILEINFO;
 
 typedef struct {

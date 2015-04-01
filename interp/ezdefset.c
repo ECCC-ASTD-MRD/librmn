@@ -42,13 +42,13 @@ wordint c_ezdefset(wordint gdout, wordint gdin)
    if (gdin >= nGrilles)
       {
       fprintf(stderr,"<ezgset>: source grid number non existent\n");
-      exit(333);
+      return -1;
       }
    
    if (gdout >= nGrilles)
       {
       fprintf(stderr,"<ezgset>: target grid number non existent\n");
-      exit(333);
+      return -1;
       }
    
    if (gridset == NULL)

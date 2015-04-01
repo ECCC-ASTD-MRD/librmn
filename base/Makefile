@@ -26,6 +26,8 @@ LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(RMNLIB) $(MALIB)
 
 default: obj
@@ -49,7 +51,7 @@ FDECKS= \
          coupe.f          cvt_base40.f   d1.f            d1int1.f \
          d1int2.f         d1intr.f       datec.f         datmgp.f \
          defvec.f         fconw.f \
-         fd1.f            fdm.f                          gdadcn.f \
+         fd1.f            fdm.f          fft_m8.f        gdadcn.f \
          gdadgd.f         gdmpgd.f       gdsqrt.f        \
          grlcc.f          grll.f         grps.f          idatmg.f \
          igaxg.f          incdat.f        int1d1.f \
@@ -72,7 +74,7 @@ OBJECTS= \
          coriol.o         coupe.o        cvt_base40.o    d1.o \
          d1int1.o         d1int2.o       d1intr.o        datec.o \
          datmgp.o         defvec.o       dgauss.o        \
-         fconw.o          fd1.o          fdm.o           \
+         fconw.o          fd1.o          fdm.o           fft_m8.o\
          gdadcn.o         gdadgd.o       gdmpgd.o        gdsqrt.o \
          grgg.o           grlcc.o        grll.o          grps.o \
          idatmg.o         idxes.o        igaxg.o         incdat.o \
@@ -119,7 +121,7 @@ legvar.o:       legvar.ftn
 grid_to_grid.o: grid_to_grid.ftn
 
 tarball: $(FICHIERS)
-	tar cfzv /data/armnraid1/www/ssm/sources/base_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/base_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS) $(OBJ_FRONT)
 #Produire les fichiers objets (.o) pour tous les fichiers
@@ -134,7 +136,7 @@ locallib: \
          $(TEMPLIB)(coriol.o)         $(TEMPLIB)(coupe.o)        $(TEMPLIB)(cvt_base40.o)    $(TEMPLIB)(d1.o) \
          $(TEMPLIB)(d1int1.o)         $(TEMPLIB)(d1int2.o)       $(TEMPLIB)(d1intr.o)        $(TEMPLIB)(datec.o) \
          $(TEMPLIB)(datmgp.o)         $(TEMPLIB)(defvec.o)       $(TEMPLIB)(dgauss.o)        \
-         $(TEMPLIB)(fconw.o)          $(TEMPLIB)(fd1.o)          $(TEMPLIB)(fdm.o)           \
+         $(TEMPLIB)(fconw.o)          $(TEMPLIB)(fd1.o)          $(TEMPLIB)(fdm.o)           $(TEMPLIB)(fft_m8.o)\
          $(TEMPLIB)(gdadcn.o)         $(TEMPLIB)(gdadgd.o)       $(TEMPLIB)(gdmpgd.o)        $(TEMPLIB)(gdsqrt.o) \
          $(TEMPLIB)(grgg.o)           $(TEMPLIB)(grlcc.o)        $(TEMPLIB)(grll.o)          $(TEMPLIB)(grps.o) \
          $(TEMPLIB)(idatmg.o)         $(TEMPLIB)(idxes.o)        $(TEMPLIB)(igaxg.o)         $(TEMPLIB)(incdat.o) \

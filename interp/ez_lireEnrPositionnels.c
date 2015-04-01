@@ -1,7 +1,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void RemplirDeBlancs(char str[],wordint longueur);
+wordint RemplirDeBlancs(char str[],wordint longueur);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2, wordint ip3, wordint ip4)
@@ -89,8 +89,8 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
 
   if (trouve_x == 0 || trouve_y == 0)
     {
-    fprintf(stderr,"<LireEnrPositionnels>: Positional records ^^ and >> not found. Exiting...\n\n");
-    exit(333);
+    fprintf(stderr,"<LireEnrPositionnels>: Positional records ^^ and >> not found... Impossible to define grid...\n\n");
+    return -1;
     }
   else
     {
@@ -101,8 +101,8 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
 
     if (grref[0] != 'N' && grref[0] != 'S' &&  grref[0] != 'L' && grref[0] != 'E')
       {
-      fprintf(stderr,"<LireEnrPositionnels>: Unknown reference grid. Exiting...\n");
-      exit(333);
+      fprintf(stderr,"<LireEnrPositionnels>: Unknown reference grid. Impossible to define grid...\n");
+      return -1;
       }
     else
       {
@@ -220,7 +220,7 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
   return 0;
 }
 
-void RemplirDeBlancs(char str[],wordint longueur)
+wordint RemplirDeBlancs(char str[],wordint longueur)
 {
   wordint i;
 
@@ -229,4 +229,5 @@ void RemplirDeBlancs(char str[],wordint longueur)
     str[i] = ' ';
     }
   str[longueur - 1] = '\0';
+  return 0;
 }

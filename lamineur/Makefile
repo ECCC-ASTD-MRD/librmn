@@ -50,6 +50,8 @@ TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(RMNLIB) $(MYLIB)
 
 default: obj
@@ -71,7 +73,7 @@ OBJTEST2000 = slabtest2000.o
 FICHIERS = write_slab2000.c read_slab.c routines.f slab.h
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/lamineur_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/lamineur_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECT2000) 
 #Produire les fichiers objets (.o) pour tous les fichiers

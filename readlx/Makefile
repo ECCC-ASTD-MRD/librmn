@@ -26,6 +26,8 @@ OBJET = readlx.o
 
 OBJET2 = tstrdlx.o 
 
+TARRLS = beta
+
 #CFLAGS = -I$(ARMNLIB)/include/macros -DC910=c910 -g
 #FFLAGS = -g
 
@@ -70,7 +72,7 @@ tstrdlx.o: tstrdlx.f
 #	cat *.dck | /lib/cpp -P $(CPPFLAGS) -I$(ARMNLIB)/include $(DEFINE) > readlx.rat
 
 tarball:  $(FILES) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/readlx_1.0_all.tgz $(FILES) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/readlx_$(TARRLS)_all.tgz $(FILES) Makefile 
 
 obj: $(OBJET) 
 #Produire les fichiers objets (.o) pour tous les fichiers

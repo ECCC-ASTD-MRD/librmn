@@ -29,6 +29,8 @@ LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(RMNLIB) $(MALIB)
 
 default: obj
@@ -140,7 +142,6 @@ ez_defzones.c \
 ez_eliminer_grille.c \
 ez_freegridset.c \
 ez_ftnstrclean.c \
-ez_gdgxpndaxes.c \
 ez_gduvfwd_turbo.c \
 ez_gdwdfuv_turbo.c \
 ez_generate_gem_cache.c \
@@ -221,7 +222,7 @@ c_ezscint.c: $(FICHIERS_C) $(FICHIERS_H)
 	cat $(FICHIERS_C) > c_ezscint.c
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/interp_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/interp_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
         
 obj: $(OBJET)
 #Produire les fichiers objets (.o) pour tous les fichiers

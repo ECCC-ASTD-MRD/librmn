@@ -60,7 +60,7 @@ wordint c_gdll(wordint gdid, ftnfloat *lat, ftnfloat *lon)
    else
       {
       fprintf(stderr, "Erreur! A l'aide! Descripteurs manquants!\n");
-      exit(999);
+      return -1;
       }
    return 0;
 }

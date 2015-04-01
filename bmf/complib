@@ -1,0 +1,18 @@
+#!/bin/ksh
+r.compile -O 2 -src bmf*.cdk90 bmf*.f90 bmf*.c -mpi -openmp
+if [[ ${1:-local} = beta ]]
+then
+  ar rcv ${EC_ARCH}/librpn_commbeta.a *.o
+else
+  ar rcv ../rpn_comm/librpn_commbeta_${EC_ARCH}.a *.o
+fi
+\rm *.o
+rm *.mod
+rm -rf rii_files
+#for arch in Linux ; do
+#  echo $arch
+#  make clean; make ARCH=$arch
+#  mv RPN*.o $arch;cd $arch ;r.ar -arch $arch cvr librpn_comm.a RPN*.o ; cd ..
+#
+#done
+

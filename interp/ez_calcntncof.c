@@ -23,9 +23,9 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void ez_calcntncof(wordint gdid)
+wordint ez_calcntncof(wordint gdid)
 {
-  wordint nni, nnj;
+  wordint nni, nnj, ier;
   
   if (Grille[gdid].flags & NEWTON)
     return;
@@ -36,14 +36,15 @@ void ez_calcntncof(wordint gdid)
   if (Grille[gdid].grtyp == (char)'Y') return;
   Grille[gdid].ncx = (ftnfloat *) malloc(nni*6*sizeof(ftnfloat));
   Grille[gdid].ncy = (ftnfloat *) malloc(nnj*6*sizeof(ftnfloat));
-  f77name(ez_nwtncof)(Grille[gdid].ncx,Grille[gdid].ncy,
+  ier = f77name(ez_nwtncof)(Grille[gdid].ncx,Grille[gdid].ncy,
 		      Grille[gdid].ax,Grille[gdid].ay,
 		      &Grille[gdid].ni, &Grille[gdid].nj,
 		      &Grille[gdid].i1, &Grille[gdid].i2, 
 		      &Grille[gdid].j1, &Grille[gdid].j2,
 		      &Grille[gdid].extension);
-  
+  if (ier < 0) return -1;
   Grille[gdid].flags |= NEWTON;
+  return 0;
   
   
 }

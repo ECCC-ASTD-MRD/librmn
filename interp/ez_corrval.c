@@ -48,7 +48,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
       {
       fprintf(stderr, "<ez_corrval> There are points on the source grid that lie outside the source grid\n");
       fprintf(stderr, "<ez_corrval> aborting at your request!\n\n\n");
-      exit(13);
+      return -1;
       }
     
     f77name(ez_aminmax)(&valmin,&valmax,zin,&grEntree.ni, &nj);

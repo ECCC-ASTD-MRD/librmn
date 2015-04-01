@@ -24,6 +24,8 @@ TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: (MYLIB)
 
 default: obj
@@ -37,7 +39,7 @@ OBJECT2 = test.o
 FICHIERS = I_O_2Buffer.c 
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/twinbuffer_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/twinbuffer_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECT) 
 #Produire les fichiers objets (.o) pour tous les fichiers

@@ -23,6 +23,8 @@ OPTIMIZ = 3
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
+TARRLS = beta
+
 .PRECIOUS: $(MYLIB)
 
 default: obj
@@ -51,7 +53,7 @@ FICHIERS = pak.c compact.c compact_h.c compact_integer.c compact_rle.c \
            f_pow.f float_packer.c
           
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/packers_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/packers_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
           
 obj: $(OBJECTS) $(OBJ_NEC)
 #Produire les fichiers objets (.o) pour tous les fichiers

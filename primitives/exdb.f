@@ -17,15 +17,33 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-***FONCTION EXDB    IMPRESSION DE BOITE DE DEBUT D'EXECUTION
+****FONCTION EXDB    IMPRESSION DE BOITE DE DEBUT D'EXECUTION
 *
 *
       INTEGER FUNCTION EXDB(in_TITRE,REVIS,FLAG)
       IMPLICIT NONE
       CHARACTER*(*) in_TITRE,REVIS,FLAG
 *
+      INTEGER EXDBPLUS
+      EXTERNAL EXDBPLUS
+
+      CHARACTER *80 UNUSEDSTRING
+      EXDB=EXDBPLUS(in_TITRE,REVIS,FLAG,UNUSEDSTRING,0)
+      RETURN
+      END
+
+**FONCTION EXDBPLUS    IMPRESSION DE BOITE DE DEBUT D'EXECUTION
+*
+*
+      INTEGER FUNCTION EXDBPLUS(in_TITRE,REVIS,FLAG,SUPP,NSUP)
+      IMPLICIT NONE
+      INTEGER NSUP
+      CHARACTER*(*) in_TITRE,REVIS,FLAG,SUPP(NSUP)
+*
 *AUTEUR  M.VALIN RPN MARS 1983
 *Revision 002 M. Lepine Octobre 1998 - Ajout de la signature RMNLIB
+*Revision 003 M. Lepine Octobre 2008 - Anciennement exdb, ajout de lignes d'impression
+*                                      supplementaires en option
 *
 *LANGAGE RATFOR
 *        IL Y A DES DEPENDANCES CDC NOS/SCOPE 2
@@ -60,6 +78,8 @@
 *                    FICHIER EN LE CONSIDERANT COMME UN DATE TIME STAMP.
 *                    SI IOPDATM RENCONTRE UNE ERREUR, LE "STAMP" RENVOYE
 *                    SERA 1010101011.
+*  E     SUPP      LIGNES D'INFORMATION SUPPLEMENTAIRE A IMPRIMER
+*  E     NSUP      NOMBRE DE LIGNE SUPPLEMENTAIRES A IMPRIMER
 *
 *MESSAGES
 *        EXDB ET EXFIN ECRIVENT SUR L'UNITE FORTRAN 6. L'USAGER
@@ -84,7 +104,7 @@
 
 
       CHARACTER *24 CDATIM
-      CHARACTER *80 VERSION,titre
+      CHARACTER *80 VERSION,titre,tempstring
       INTEGER EXFIN,IOPDATM,I,IDATIM(14)
       REAL T1,SECOND
       external memoirc, flush_stdout
@@ -98,12 +118,17 @@
 * Obtenir la version de rmnlib utilisee
       CALL RMNLIB_version(VERSION,.false.)
       WRITE(6,500) TITRE,REVIS,VERSION,CDATIM
+      DO I=1,NSUP
+        tempstring=SUPP(I)
+        WRITE(6,460) tempstring
+      ENDDO
       IF (FLAG.NE.'NON') THEN
          write(6,450) flag
          WRITE(6,700) (IDATIM(I),I=7,14)
       ENDIF
       WRITE(6,800) 'BEGIN  EXECUTION     '
  450  format(3X,'*',90X,'*',/3x,'*',8x,a8,t95,'*')
+ 460  format(3x,'*',90X,'*',/3x,'*',10x,a80,'*')
  500  FORMAT(1H1,
      %     /,3X,'*',90('*'),'*',
      %     /,3X,'*',90X,'*',
@@ -128,7 +153,7 @@
      %     /,3X,'*',90('*'),'*')
 
       T1 = SECOND( )
-      EXDB = IDATIM(14)
+      EXDBPLUS = IDATIM(14)
 
 
       RETURN

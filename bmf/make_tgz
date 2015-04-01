@@ -1,0 +1,3 @@
+#!/bin/ksh
+set -x
+tar zcf /data/armnraid1/www/ssm/sources/bmf_1.0_all.tgz bmf*.cdk90 bmf*.f90 bmf*.c complib update_lib.sh make_tgz

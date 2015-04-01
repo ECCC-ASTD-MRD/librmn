@@ -26,6 +26,8 @@ LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(MYLIB)
 
 default: burp98_f.o
@@ -107,7 +109,7 @@ burp98_f.f: $(FDECKS)
 	cat $(FDECKS) > burp98_f.f
 
 tarball: $(FTNDECKS) $(COMDECKS)
-	tar cfzv /data/armnraid1/www/ssm/sources/burp98_f_1.0_all.tgz $(FTNDECKS) $(COMDECKS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/burp98_f_$(TARRLS)_all.tgz $(FTNDECKS) $(COMDECKS) Makefile 
 
 obj: $(OBJET) 
 #Produire les fichiers objets (.o) pour tous les fichiers

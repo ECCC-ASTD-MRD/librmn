@@ -21,20 +21,20 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
+wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
 		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
 		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2);
 
-void f77name(ezgfxyfll)(ftnfloat *lonp, ftnfloat *latp,
+wordint f77name(ezgfxyfll)(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
 		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
 		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
 {
-  c_ezgfxyfll(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
+  return c_ezgfxyfll(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
 }
 
-void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
+wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
 		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
 		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
@@ -51,4 +51,5 @@ void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
   
   free(cart);
   free(carot);
+  return 0;
 }

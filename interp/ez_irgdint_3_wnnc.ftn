@@ -25,6 +25,7 @@
 *     
 *     Objet:  Interpolation bi-cubique de points a partir 
 *     d'une grille source irreguliere.
+*     wnnc : Wrap but No Newton Coefficients
 ********
       
       integer npts,ni,nj,j1,j2,wrap,limite

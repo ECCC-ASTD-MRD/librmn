@@ -5,8 +5,10 @@
 #define MAX_STR 1024
 #define BUFSIZE 40960
 
+#ifndef FALSE
 #define FALSE            0
 #define TRUE        !FALSE
+#endif
 
 typedef struct 
 {

@@ -23,6 +23,8 @@
 /* manipulate timeout for read/write requests */
 /* on the client side for each data exchange channel */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "mgi.h"
 
 typedef struct 
@@ -45,7 +47,7 @@ void init_client_table( int channel )
 
  if ( ichan >= MAX_CHANNELS )
     {
-      printf( "ERROR: Too many channels assigned; MAX = %d\n", MAX_CHANNELS );
+      fprintf( stderr, "ERROR: Too many channels assigned; MAX = %d\n", MAX_CHANNELS );
       exit(1);
     }
   else

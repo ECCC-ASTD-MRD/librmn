@@ -570,8 +570,10 @@ int c_fstecr(word *field, void * work, int npak,
         buffer->data[keys_len+i] = field[i];
      }
     else {
-      if (datyp == 6) 
-        lngw = ni*nj*nk*16;
+      if (datyp == 6) {
+        c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,ni*nj*nk);
+        lngw = (header_size+stream_size) * 8 ;
+        }
       else
         lngw = ni*nj*nk*nbits;
       if (datyp == 1) lngw += 120;
@@ -645,12 +647,19 @@ int c_fstecr(word *field, void * work, int npak,
         c_armn_compress_setswap(0);
         compressed_lng = armn_compress(&(buffer->data[keys_len+offset]),ni,nj,nk,nbits,1);
         c_armn_compress_setswap(1);
-        nbytes = 4 + compressed_lng;
-     /*   fprintf(stderr,"Debug+ fstecr armn_compress compressed_lng=%d\n",compressed_lng); */
-        nw = (nbytes * 8 + 63) / 64;
-        nw = W64TOWD(nw); 
-        buffer->data[keys_len] = nw;
-        buffer->nbits = (keys_len + nw) * bitmot;                      
+        if (compressed_lng < 0) {
+            stdf_entry->datyp = 2;
+            ier = compact_integer(field,(void *) NULL,&(buffer->data[keys_len+offset]),
+                                  ni*nj*nk,nbits,0,xdf_stride,1);
+          }
+        else {
+          nbytes = 4 + compressed_lng;
+       /*   fprintf(stderr,"Debug+ fstecr armn_compress compressed_lng=%d\n",compressed_lng); */
+          nw = (nbytes * 8 + 63) / 64;
+          nw = W64TOWD(nw); 
+          buffer->data[keys_len] = nw;
+          buffer->nbits = (keys_len + nw) * bitmot;                      
+        }
       }
       else {
         if (xdf_short) {
@@ -1509,7 +1518,10 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
       lngw = nelm * stdf_entry->nbits;
       if (stdf_entry->datyp == 1) lngw += 120;
       if (stdf_entry->datyp == 3) lngw = *ni * *nj * 8;
-      if (stdf_entry->datyp == 6) lngw = nelm * 16;
+      if (stdf_entry->datyp == 6) {
+        c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,nelm);
+        lngw = (header_size+stream_size) * 8 ;
+        }
       lngw = (lngw + bitmot - 1) / bitmot;
       for (i=0; i < lngw; i++) {
         field[i] =  buf->data[i];
@@ -2004,7 +2016,7 @@ int c_fstopr(char *option, float value, int getmode)
 
 int c_fstouv(int iun, char *options)
 {
-  int ier,nrec,i;
+  int ier,nrec,i,iwko;
   static int premiere_fois=1;
   char *turbo_compression;
   char appl[5];
@@ -2033,11 +2045,13 @@ int c_fstouv(int iun, char *options)
     else
       ier = c_xdfopn(iun,"R-W",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
   else      
-    if (((ier=f77name(wkoffit)(FGFDT[i].file_name,strlen(FGFDT[i].file_name))) == -2) &&
-       (! FGFDT[i].attr.old))
+    if (((iwko=f77name(wkoffit)(FGFDT[i].file_name,strlen(FGFDT[i].file_name))) == -2) &&
+       (! FGFDT[i].attr.old)) {
       ier = c_xdfopn(iun,"CREATE",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl); 
-    else
+      }
+    else {
       ier = c_xdfopn(iun,"R-W",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
+      }
       
   if (ier < 0) return(ier);
   nrec = c_fstnbr(iun);

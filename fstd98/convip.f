@@ -43,6 +43,8 @@
 *     Revision 006  M. Lepine - Juin 2002 kind = 6 (Theta)
 *     Revision 007  M. Lepine - Oct 2003 kind = 10 (temps en heure)
 *     Revision 008  M. Lepine - Dec 2005 kind = 17 (indice de matrice de niveaux)
+*     Revision 009  M. Valin  - Mars 2008 kind = 21 (metres pression remplacant GalChen)
+*                               introduction de zero_val2 pour la conversion ip->p
 *
 *     Input:    MODE = -1, de IP -->  P
 *               MODE =  0, forcer conversion pour ip a 31 bits
@@ -66,8 +68,8 @@
 *               KIND =10, p represente le temps en heure                      (0.0 -> 200,000.0)
 *               KIND =15, reserve (entiers)                                   
 *               KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
-*               KIND =21, p est en GalChen  (partage avec kind=5 a cause du range exclusif)
-*                                                                             (0 -> 100,000) fact=1e5
+*               KIND =21, p est en metres-pression  (partage avec kind=5 a cause du range exclusif)
+*                                                                             (0 -> 1,000,000) fact=1e4
 *               STRING = valeur de P formattee
 **********************************************************************
       real *8 TEN
@@ -95,13 +97,16 @@
       REAL, PARAMETER :: hi_val(0:Max_Kind) =
      %   (/  100 000., 1., 1100., 1.0e+10, 100 000., 1.,
      %       200 000., (0.0,i=7,9), 1.0e+10, (0.0,i=11,16),
-     %       1.0e+10, (0.0,i=18,20), 100 000., (0.0,i=22,31) /)
+     %       1.0e+10, (0.0,i=18,20), 1000000., (0.0,i=22,31) /)
       REAL, PARAMETER :: zero_val(0:Max_Kind) =
      %   (/ 0., 0., 0., 0., 0., 0., 1., (0.0,i=7,16),
-     %      1.0, (0.0,i=18,20), 1.001e-5, (0.0,i=22,31) /)
+     %      1.0, (0.0,i=18,20), 1.001e-4, (0.0,i=22,31) /)
+      REAL, PARAMETER :: zero_val2(0:Max_Kind) =
+     %   (/ 0., 0., 0., 0., 0., 0., 1., (0.0,i=7,16),
+     %      1.0, (0.0,i=18,20), 0.0, (0.0,i=22,31) /)
       REAL, PARAMETER :: fact_val(0:Max_Kind) =
      %   (/ 1., 1., 1., 1., 1., 1., 1., (1.0,i=7,16),
-     %      -1.0, (1.0,i=18,20), 1.0e+5, (1.0,i=22,31) /)
+     %      -1.0, (1.0,i=18,20), 1.0e+4, (1.0,i=22,31) /)
 
       save NEWSTYLE, exptab, kinds, maxkind
 
@@ -301,7 +306,7 @@ c     %         goto 101
             endif
             if (p .lt. low_val(kind)) p = low_val(kind)     ! clipping a la valeur minimale
             if (p .gt. hi_val(kind)) p = hi_val(kind)       ! clipping a la valeur maximale
-            if (abs(p) .lt. 1.001*zero_val(kind)) p = zero_val(kind)
+            if (abs(p) .lt. 1.001*zero_val(kind)) p = zero_val2(kind)
             abs_p = abs(p)
             if (flag) then
                if (len(string) .ge. 15) then

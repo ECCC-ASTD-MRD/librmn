@@ -34,7 +34,21 @@ wordint ez_defzone_nord(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _z
   tmpidx = (wordint  *) malloc(npts*sizeof(wordint));
   
   nhits = 0;
-  jmax = Grille[gdin].j2-2;
+  switch (groptions.degre_interp)
+    {
+    case CUBIQUE:
+    jmax = Grille[gdin].j2-2;
+    break;
+
+    case LINEAIRE:
+    jmax = Grille[gdin].j2-1;
+    break;
+
+    case VOISIN:
+    jmax = Grille[gdin].j2;
+    break;
+    }
+
   for (i=0; i < npts; i++)
     {
     if ((int)y[i] > jmax)
@@ -45,8 +59,10 @@ wordint ez_defzone_nord(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _z
       nhits++;
       }
     }
-  
-  zone->npts = nhits;
+    
+    zone->npts = nhits;
+      
+    
   if (nhits > 0)
     {
     zone->x = (ftnfloat *) malloc(nhits*sizeof(ftnfloat));

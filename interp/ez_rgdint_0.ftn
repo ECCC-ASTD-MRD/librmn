@@ -34,3 +34,36 @@
       return
       end
       
+      subroutine ez_rgdint_0_w(zo,px,py,npts,z,ni,j1,j2, wrap)
+      implicit none
+      
+      integer npts,ni,j1,j2,degree,wrap,i,j,n
+      real zo(npts),px(npts),py(npts)
+      real z(ni,j1:j2)
+      
+      if (wrap == 2) then
+        do n=1,npts
+          i = nint(px(n))
+          if (i > ni) then
+             if (i > (ni + 1)) then
+              i = ni
+             else
+              i = 1
+             endif
+          endif
+          j = min(j2,max(j1,nint(py(n))))
+          
+          zo(n)=z(i,j)
+        enddo
+      else
+        do n=1,npts
+          i = min(ni,max(1,nint(px(n))))
+          j = min(j2,max(j1,nint(py(n))))
+          
+          zo(n)=z(i,j)
+        enddo
+      endif
+      
+      return
+      end
+! 

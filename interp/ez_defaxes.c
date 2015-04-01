@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
+wordint c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
 {
   wordint i,j;
   ftnfloat *temp, dlon;
@@ -105,5 +105,5 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
   
   
   Grille[gdid].flags |= AX;
-  
+  return 0;
 }

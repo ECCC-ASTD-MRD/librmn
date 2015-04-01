@@ -25,6 +25,8 @@ TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(RMNLIB) $(MALIB)
 
 default: obj
@@ -48,7 +50,7 @@ OBJECTS= \
 	VertInterpConstants.o VerticalGrid.o VerticalInterpolation.o ViIfc.o
 
 tarball:  *.ftn90 *.cdk90 *.h  Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/ez_interpv_1.0_all.tgz *.ftn90 *.cdk90 *.h Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/ez_interpv_$(TARRLS)_all.tgz *.ftn90 *.cdk90 *.h Makefile 
 
 obj:	$(OBJECTS)
 	rm -f vitypes.o

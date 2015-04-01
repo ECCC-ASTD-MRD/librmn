@@ -55,7 +55,7 @@ wordint c_gdgaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
    else
       {
       fprintf(stderr, "(gdgaxes) Erreur! A l'aide! Descripteurs manquants!\n");
-      exit(999);
+      return -1;
       }
    return 0;
 }

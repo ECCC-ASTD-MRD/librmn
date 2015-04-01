@@ -37,12 +37,21 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
     case '#':
     case 'Z':
     case 'G':
-      switch (groptions.degre_interp)
+       switch (groptions.degre_interp)
         {
         case VOISIN:
+          if (Grille[gdin].grtyp == 'G') 
+            {
+          f77name(ez_rgdint_0_w)(zout,x,y,
+                  &lnpts, zin, &Grille[gdin].ni, 
+                  &Grille[gdin].j1, &Grille[gdin].j2, &Grille[gdin].extension);
+            }
+          else
+            {
           f77name(ez_rgdint_0)(zout,x,y,
                   &lnpts, zin, &Grille[gdin].ni, 
                   &Grille[gdin].j1, &Grille[gdin].j2);
+            }
           break;
           
         case LINEAIRE:
@@ -87,14 +96,21 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
           }
       
       break;
-      
+
     default:
       switch (groptions.degre_interp)
         {
         case VOISIN:
-          f77name(ez_rgdint_0)(zout,x,y,
-                  &lnpts, zin, &Grille[gdin].ni, 
-                  &Grille[gdin].j1, &Grille[gdin].j2);
+          switch(Grille[gdin].extension)
+            {
+            case 2:
+            f77name(ez_rgdint_0_w)(zout,x,y,&lnpts, zin, &Grille[gdin].ni, &Grille[gdin].j1, &Grille[gdin].j2, &Grille[gdin].extension);
+            break;
+
+            default:  
+            f77name(ez_rgdint_0)(zout,x,y,&lnpts, zin, &Grille[gdin].ni, &Grille[gdin].j1, &Grille[gdin].j2);
+            break;
+            }
           
           break;
           

@@ -22,6 +22,8 @@ LIB_X = $(ARMNLIB)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(MYLIB)
 
 default: obj
@@ -31,7 +33,7 @@ include $(ARMNLIB)/include/makefile_suffix_rules.inc
 OBJECTS= armn_compress_32.o zfstlib.o c_zfstlib.o
 
 tarball:  armn_compress_32.c c_zfstlib.c  zfstlib.f90  zfstlib.h  Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/compresseur_1.0_all.tgz armn_compress_32.c c_zfstlib.c  zfstlib.f90  zfstlib.h Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/compresseur_$(TARRLS)_all.tgz armn_compress_32.c c_zfstlib.c  zfstlib.f90  zfstlib.h Makefile 
 
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers

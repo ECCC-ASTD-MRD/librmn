@@ -74,12 +74,17 @@
 #include <rpnmacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/time.h> 
 #include <string.h>
 #include <ctype.h>
 #include "mgi.h"
 #include <gossip.h>
 
-#define CLOSE -5
+/* error codes header file */
+#include "cgossip.h"
+
+#define  CLOSE      -5
+#define  TIMEOUT    -5
 
 static channel chn[MAX_CHANNELS];
 
@@ -90,12 +95,12 @@ static char PID_file[MAX_STR];
 static char *mgidir;
 static int *intBuffer; 
 
-static void getmgidir();
-static int makepidfile();
-static void removepidfile();
-static void strcopy(char *s, char *t, int charlen);
-static int validchan(int chan);
-static int bwrite(int chan, void *buffer, int nelem, char *dtype);
+static void getmgidir ();
+static int makepidfile ();
+static void removepidfile ();
+static void strcopy (char *s, char *t, int charlen);
+static int validchan (int chan);
+static int bwrite (int chan, void *buffer, int nelem, char *dtype);
 ftnword f77name (mgi_init) (char *channel_name, int lname);
 ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode);
 ftnword f77name (mgi_read) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, int ltype);
@@ -104,16 +109,16 @@ ftnword f77name (mgi_clos) (ftnword *f_chan);
 ftnword f77name (mgi_term) ();
 void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout);
 
-extern int connect_to_subchannel_by_name(char *channel, char *subchannel, char *mode);
-extern int GET_ack_nack(int socket, char *message);
-extern int write_record(int fclient, void *buf, int longueur, int tokensize);
-extern void *read_record(int fclient, void *buf, int *longueur, int maxlongueur, int tokensize);
-extern char *get_gossip_dir(int display);
+extern int connect_to_subchannel_by_name (char *channel, char *subchannel, char *mode);
+extern int GET_ack_nack (int socket, char *message);
+extern int write_record (int fclient, void *buf, int longueur, int tokensize);
+extern void *read_record (int fclient, void *buf, int *longueur, int maxlongueur, int tokensize);
+extern char *get_gossip_dir (int display);
 
-extern void init_client_table();
-extern void set_client_timeout(int fclient, int timeout);
-extern int get_client_timeout(int fclient);
-extern int close_channel(int fclient, char *channel);
+extern void init_client_table ();
+extern void set_client_timeout (int fclient, int timeout);
+extern int get_client_timeout (int fclient);
+extern int close_channel (int fclient, char *channel);
 
 ftnword f77name (mgi_read_oob) ();
 ftnword f77name (mgi_write_oob) ();
@@ -127,13 +132,13 @@ void f77name (mgi_nosig) ()
      /* to disable the signals between filepipes */
 {
   /* SIG_ACTIVE = 0; */
-  printf("MGI_NOSIG: deprecated call\n");
+  fprintf(stderr,"MGI_NOSIG: deprecated call\n");
 }
 
 /* to copy a string given by a fortran routine, 
    the space character is ignored, it is taken 
    here as the end of the string */
-static void strcopy_(char *s1, char *s2, int lengths1, int lengths2)    
+static void strcopy_( char *s1, char *s2, int lengths1, int lengths2 )    
 {
   int i = 0;
 
@@ -144,7 +149,7 @@ static void strcopy_(char *s1, char *s2, int lengths1, int lengths2)
 
 /* to compare two strings given by a fortran routine, considering 
    the space character as the end of the string*/
-static int f_strcmp(unsigned char *s1, unsigned char *s2, int s1length, int s2length)
+static int f_strcmp( unsigned char *s1, unsigned char *s2, int s1length, int s2length )
 {
   int i = 0;	 
   int length;
@@ -178,7 +183,7 @@ static int f_strcmp(unsigned char *s1, unsigned char *s2, int s1length, int s2le
 
 }
 
-int check_ends(char *s1, char *s2, int s1length, int s2length, int i)
+int check_ends( char *s1, char *s2, int s1length, int s2length, int i )
 {
   if(*s2 == ' ' )
     {
@@ -195,7 +200,7 @@ int check_ends(char *s1, char *s2, int s1length, int s2length, int i)
 /***********************************************************************************************/
 
 
-static void strcopy(char *s, char *t, int charlen)
+static void strcopy( char *s, char *t, int charlen )
      /* to copy a string given by a fortran routine and place the NULL 
 	character at the end of the true (charlen) length of the string */
 {
@@ -207,11 +212,11 @@ static void strcopy(char *s, char *t, int charlen)
   else *s++ = '\0';
 }
 
-static int validchan(int chan)
+static int validchan( int chan )
      /* to validate the channel number; it must be greater than
 	zero and less than or equal to ICHAN*/
 {
-  if (chn[chan].buffer == NULL)
+  if ( chn[chan].buffer == NULL )
     return (-1);
   return(0);
 }
@@ -221,7 +226,7 @@ static void getmgidir()
 {
   if ( (mgidir = getenv("MGI_DIR")) == NULL)
     {
-      printf("Environment variable \"MGI_DIR\" undefined --\n");
+      fprintf(stderr,"Environment variable \"MGI_DIR\" undefined --\n");
       /* exit(1); */
     }
 }
@@ -230,20 +235,20 @@ static int makepidfile()
      /* to make the PID file */
 {
   char stuff[MAX_STR];
-  sprintf(PID_file, "%s/%d", mgidir, getpid());
-  sprintf(stuff, "%s/%s", mgidir, "PROCS");
-  printf("linking :%s: to :%s:\n", PID_file, stuff);
-  return(link(stuff, PID_file));
+  sprintf( PID_file, "%s/%d", mgidir, getpid() );
+  sprintf( stuff, "%s/%s", mgidir, "PROCS" );
+  fprintf(stderr, "linking :%s: to :%s:\n", PID_file, stuff );
+  return ( link ( stuff, PID_file ) );
 }
 
 static void removepidfile()
      /* to remove the PID file */
 {
-  printf("removing %s\n", PID_file);
-  unlink(PID_file);
+  fprintf(stderr, "removing %s\n", PID_file );
+  unlink( PID_file );
 }
 
-static int bwrite (int chan, void *buffer, int nelem, char *dtype)
+static int bwrite ( int chan, void *buffer, int nelem, char *dtype )
      /* To fill the write buffer of initialized channel "chan" on the server */
 {
   int nb, ier;
@@ -264,18 +269,20 @@ static int bwrite (int chan, void *buffer, int nelem, char *dtype)
     }
   else
     {
-      return ier = signal_timeout(chn[chan].gchannel);
+      /* return ier = signal_timeout(chn[chan].gchannel); */
+      return ier = WRITE_TIMEOUT;
     }
   
  
   if(ier < 0 )
     {
-      printf("MGI_WRITE, unable to send write command\n");
-      return - 1;
+      fprintf(stderr,"bwrite, unable to send write command\n");
+      /* return -1; */
+      return WRITE_ERROR;
     }
 
 #ifdef DEBUG
-  printf("mgilib2::bwrite(), ==\n");
+  fprintf(stderr,"mgilib2::bwrite(), ==\n");
 #endif
 
   if(*dtype == 'I' || *dtype == 'R')
@@ -309,7 +316,8 @@ static int bwrite (int chan, void *buffer, int nelem, char *dtype)
   else
     {
       fprintf(stderr, "bwrite, timeout = %d, get_ack_nack(), else\n", tv.tv_sec);
-      return ier = signal_timeout(chn[chan].gchannel);
+      /* return ier = signal_timeout(chn[chan].gchannel); */
+      return ier = WRITE_TIMEOUT;
     }
 
 
@@ -327,7 +335,7 @@ ftnword f77name (mgi_clos) (ftnword *f_chan)
     {
       snprintf(buf, 1023, "%s %s", "END", chn[chan].name);
       ier = send_command(buf);
-      printf("MGI_CLOS: subchannel \"%s\" is closed \n", chn[chan].name);
+      fprintf(stderr,"MGI_CLOS: subchannel \"%s\" is closed \n", chn[chan].name);
     }
   
    if(chn[chan].buffer)
@@ -349,7 +357,7 @@ ftnword f77name (mgi_term) ()
       if(chn[chan].name && strcmp((char *)chn[chan].name, "") && chn[chan].gchannel > 0)
 	{
 	  ier = send_command("END");
-	  printf("MGI_TERM: subchannel \"%s\" has been closed!\n", chn[chan].name);
+	  fprintf(stderr,"MGI_TERM: subchannel \"%s\" has been closed!\n", chn[chan].name);
 	  
 	  if(chn[chan].buffer)
 	    {
@@ -374,13 +382,14 @@ ftnword f77name (mgi_init) (char *channel_name, int lname)
     }
 
 #ifdef DEBUG
-  printf("MGI_INIT ** \n"); 
+  fprintf(stderr,"MGI_INIT ** \n"); 
 #endif
   ichan++;
   if (ichan >= MAX_CHANNELS)
     {
-      printf("MGI_INIT: ERROR, Too many channels assigned; MAX = %d\n", MAX_CHANNELS);
-      return -1;
+      fprintf(stderr,"MGI_INIT: ERROR, Too many channels assigned; MAX = %d\n", MAX_CHANNELS);
+      /* return -1; */
+      return INIT_ERROR;
     }
   else
     {
@@ -391,14 +400,15 @@ ftnword f77name (mgi_init) (char *channel_name, int lname)
       }
       else 
       {
-	printf("MGI_INIT: ERROR, Length of channel name > %d chars.\n",
+	fprintf(stderr,"MGI_INIT: ERROR, Length of channel name > %d chars.\n",
 	       MAX_NAME-1);
-	return -1;
+	/* return -1; */
+	return INIT_ERROR;
       }
       chn[chan].fd_data = -1;
       if (SIG_ACTIVE)
 	{
-	  printf("MGI_INIT: Opening channel: \"%s\" \n", chn[chan].name);
+	  fprintf(stderr,"MGI_INIT: Opening channel: \"%s\" \n", chn[chan].name);
 	}
     
       /* initialize channel */
@@ -414,9 +424,10 @@ ftnword f77name (mgi_init) (char *channel_name, int lname)
 
     if ((intBuffer = (int *) malloc(BUFSIZE * sizeof(int))) == NULL)
       {
-	printf("MGI_INIT: ERROR on channel %s: Cannot allocate memory for intBuffer\n",
+	fprintf(stderr,"MGI_INIT: ERROR on channel %s: Cannot allocate memory for intBuffer\n",
 	       chn[chan].name);
-	return -1;
+	/* return -1; */
+	return INIT_ERROR;
       }
 
     chn[chan].buffer = intBuffer;
@@ -437,12 +448,18 @@ ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode)
 
   if (*mode == 'W') 
     {
-      chn[chan].gchannel = connect_to_subchannel_by_name(get_gossip_dir(0), chn[chan].name, "write");
+      chn[chan].gchannel = connect_to_subchannel_by_name( get_gossip_dir(0), chn[chan].name, "write" );
+
+      if( chn[chan].gchannel < 0 )
+	chn[chan].gchannel = retry_connect( chan );
+
     }
   else if (*mode == 'R') 
     {
-      chn[chan].gchannel = connect_to_subchannel_by_name(get_gossip_dir(0), chn[chan].name, "read");
+      chn[chan].gchannel = connect_to_subchannel_by_name( get_gossip_dir(0), chn[chan].name, "read" );
 
+      if( chn[chan].gchannel < 0 )
+	chn[chan].gchannel = retry_connect( chan );
     }
   else if (*mode == 'S') 
     { /* store mode (for restart files)*/
@@ -451,21 +468,39 @@ ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode)
       chn[chan].msgno_W++;
       chn[chan].pos = 0;
     }
+
   if(chn[chan].gchannel < 0)
     {
-      printf("MGI_OPEN, Connection Failed, the Server is may be down !!\n");
-      /* return -1; */
-      exit(-1);
+      fprintf(stderr, "MGI_OPEN, Connection Failed, the Server may be down !!\n" );
+      /* exit(-1); */
+      return CONNECTION_ERROR; 
     }
 
   /* initialize timeout table */
-  init_client_table(chn[chan].gchannel);
+  init_client_table( chn[chan].gchannel );
 
   return chan;
 }
 
+/* if connection to server fails */
+/* retry 10 times after a sleep  */
+/* interval of 10 secs           */
+int retry_connect( int chan )
+{
+  int PING_INTERVAL = 10;
+  int ping_ord0 = 100 / PING_INTERVAL;
+  int ping_ord = 100 / PING_INTERVAL;
 
-
+  while( chn[chan].gchannel < 0 && ping_ord > 0 )
+    {
+      sleep( PING_INTERVAL );
+      fprintf(stderr, "MGI_OPEN, Connection to Server Failed,  retry to connect: \"%d/%d\" \n", ping_ord0 - ping_ord + 1, ping_ord0 );
+	  chn[chan].gchannel = connect_to_subchannel_by_name( get_gossip_dir(0), chn[chan].name, "write" );
+	  ping_ord--;
+    }
+  return chn[chan].gchannel; 
+  
+}
 ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, int ltype)
      /* to write elements from "buffer" into the specified channel
 	opened for WRITEMODE. It actually writes
@@ -477,24 +512,25 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 	'D': real*8 ; note that only the precision of a real would be kept
      */
 {
-  int nb, chan, ier, nelem;
+  int nb, chan, nelem;
   int lnblnk_();
 
   chan = (int) *f_chan;
   nelem = (int) *f_nelem;
-  ier = 1;
-
+  
   
   if( nelem <= 0 )
     {
-      printf("MGI_WRITE, Error, cannot write data with length = %d\n", nelem);
-      return -1;
+      fprintf(stderr,"MGI_WRITE, Error, cannot write data with length = %d\n", nelem);
+      /* return -1; */
+      return WRITE_ERROR;
     }
 
   if( chn[chan].gchannel < 0 )
     {
-      printf("MGI_WRITE, Error, cannot connect to server using descriptor: \"%d\"!!!\n", chn[chan].gchannel);
-      return -1;
+      fprintf(stderr,"MGI_WRITE, Error, cannot connect to server using descriptor: \"%d\"!!!\n", chn[chan].gchannel);
+      /* return -1; */
+      return WRITE_ERROR;
     }
 
   if ( *dtype == 'C')
@@ -505,18 +541,22 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
   if (*dtype == 'I' || *dtype == 'R' || *dtype == 'D' || *dtype == 'C') 
     {
       chn[chan].nblks++;
-      printf("MGI_WRITE: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
+      fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
 
 #ifdef DEBUG
-      printf("MGI_WRITE: data type = %s\n", dtype);
-      printf("MGI_WRITE: elts Nbr = %d\n", nelem);
+      fprintf(stderr,"MGI_WRITE: data type = %s\n", dtype);
+      fprintf(stderr,"MGI_WRITE: elts Nbr = %d\n", nelem);
 #endif
 
       if ((nb = bwrite(chan, (unsigned char *)buffer, nelem, dtype)) > 0)
-	printf("MGI_WRITE: ERROR on %s: %d bytes written\n", chn[chan].name, nb);
-     
+	{
+	  fprintf(stderr,"MGI_WRITE: ERROR on %s: %d bytes written\n", chn[chan].name, nb);
+	  /* return number of bytes not sent */
+	  return WRITE_ERROR;
+	}
 
-      if(nb == -5)
+      /* if(nb == -5) */
+      if(nb == TIMEOUT)
 	{
 	  if(get_timeout_signal(chn[chan].gchannel))
 	    {
@@ -532,7 +572,7 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 	      else if(*dtype == 'D')
 		fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Double data\" \n", nelem);
 
-	      return ier = signal_timeout(chn[chan].gchannel);
+	      return signal_timeout(chn[chan].gchannel);
 	    }
 	}
 
@@ -540,11 +580,12 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 
   else 
     {
-      printf("MGI_WRITE: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
-      return -1;
+      fprintf(stderr,"MGI_WRITE: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
+      /* return -1; */
+      return WRITE_TYPE_ERROR;
     }
-  ier = nb;
-  return ier;
+  
+  return nb;
 }
 
 void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout)
@@ -572,8 +613,9 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 
   if(nelem <= 0)
     {
-      printf("MGI_READ, Error: cannot read data with length = %d\n", nelem);
-      return -1;
+      fprintf(stderr,"MGI_READ, Error: cannot read data with length = %d\n", nelem);
+      /* return -1; */
+      return DATA_LENGTH_ERROR;
     }
 
 
@@ -581,8 +623,9 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 
   if(ier < 0)
     {
-      printf("MGI_READ, Error: unable to send write command for channel: \"%s\"\n", chn[chan].name);
-      return -1;
+      fprintf(stderr,"MGI_READ, Error: unable to send write command for channel: \"%s\"\n", chn[chan].name);
+      /* return -1; */
+      return SEND_COMMAND_ERROR;
     }
   
   if (*dtype == 'I')
@@ -590,27 +633,28 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
   
       fprintf(stderr, "MGI_READ: \"Integer\", elts Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name);
   
-      buffer = (int *)read_record(chn[chan].gchannel, (int *)buffer, &nelem, nelem, sizeof(int));
+      buffer = (int *)read_record( chn[chan].gchannel, (int *)buffer, &nelem, nelem, sizeof(int) );
 
   
       if(buffer != NULL)
 	{
-	  get_ack_nack(chn[chan].gchannel);
+	  get_ack_nack( chn[chan].gchannel );
 	
 	  return ier = nelem;
 	}
       else
 	{
-	  if(get_timeout_signal(chn[chan].gchannel))
+	  if( get_timeout_signal(chn[chan].gchannel) )
 	    {
-	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Integer\" \n");
-	      
-	      ier = signal_timeout(chn[chan].gchannel);
+	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Integer\" \n" );
+	      /* ier = signal_timeout( chn[chan].gchannel ); */
+	      ier = READ_TIMEOUT;
 	    }
 	  else
 	    {
-	      fprintf(stderr, "MGI_READ: read Integer problem\n");
-	      return ier = -1; 
+	      fprintf( stderr, "MGI_READ: Problem read Integer\n" );
+	      /* return ier = -1; */
+	      return READ_ERROR;
 	    }
 	}
 
@@ -633,11 +677,19 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	}
       else
 	{
-	  fprintf(stderr, "MGI_READ:  TIMEOUT for read \"Real\" \n");
-	  if(get_timeout_signal(chn[chan].gchannel))
-	     ier = signal_timeout(chn[chan].gchannel);
+	  
+	  if( get_timeout_signal( chn[chan].gchannel ) )
+	    {
+	      fprintf(stderr, "MGI_READ:  TIMEOUT for read \"Real\" \n");
+	     /* ier = signal_timeout( chn[chan].gchannel ); */
+	      ier = READ_TIMEOUT;
+	    }
 	  else
-	    return ier = -1;
+	    {
+	      fprintf( stderr, "MGI_READ: problem read Real data\n" );
+	      /* return ier = -1; */
+	      return READ_ERROR;
+	    }
 	}
       
     }
@@ -656,44 +708,67 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	}
       else
 	{
-	  fprintf(stderr, "MGI_READ: TIMEOUT for read \"Double\"\n");
-	  if(get_timeout_signal(chn[chan].gchannel))
-	     ier = signal_timeout(chn[chan].gchannel);
+	  
+	  if( get_timeout_signal( chn[chan].gchannel ) )
+	    {
+	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Double\"\n");
+	      /* ier = signal_timeout( chn[chan].gchannel ); */
+	      ier = READ_TIMEOUT;
+	    }
 	  else
-	    return ier = -1;
-	 
+	    {
+	      fprintf( stderr, "MGI_READ: Problem read Double data\n" );
+	      /* return ier = -1; */
+	      return READ_ERROR;
+	    }
  	}
      }
   
   else if (*dtype == 'C')
     { /* character */
+      int i;
+      char *temp = (char *)buffer;
      
-      fprintf(stderr, "MGI_READ: \"Character\", elts Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name);
-
-      buffer = (char *)read_record(chn[chan].gchannel, (char *)buffer, &nelem, nelem, sizeof(char));
+/*      fprintf(stderr, "MGI_READ: \"Character\", elts Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name); */
       
-	if(buffer != NULL)
+      buffer = (char *)read_record(chn[chan].gchannel, (char *)buffer, &nelem, nelem, sizeof(char));
+
+      for(i = nelem+1 ; i < ltype ; i++ ) 
+	{
+	 /* fprintf(stderr, "MGI_READ: \"Character\", i = %d\n", i); */
+	  temp[i] = ' ';
+	}
+      
+      if(buffer != NULL)
 	{
 	  get_ack_nack(chn[chan].gchannel);
 	  
 	  return ier = nelem;
-	}
+	} 
       else
 	{
-	  fprintf(stderr, "MGI_READ: TIMEOUT for read \"Character\"\n");
-	  if(get_timeout_signal(chn[chan].gchannel))
-	    ier = signal_timeout(chn[chan].gchannel);
-	  else
-	    return ier = -1;
 	  
+	  if( get_timeout_signal( chn[chan].gchannel ) )
+	    {
+	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Character\"\n");
+	      /* ier = signal_timeout( chn[chan].gchannel ); */
+	      ier = READ_TIMEOUT;
+	    }
+	  else
+	    {
+	      fprintf( stderr, "MGI_READ: Problem read Character data\n" );
+	      /* return ier = -1; */
+	      return READ_ERROR;
+	    }
 	}
 
     }
   
   else
     {
-      printf("MGI_READ: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
-      return -1;
+      fprintf(stderr,"MGI_READ: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
+      /* return -1; */
+      return READ_TYPE_ERROR;
     }
   
   if(ier == CLOSE)

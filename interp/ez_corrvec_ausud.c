@@ -98,8 +98,18 @@ wordint ez_corrvec_ausud(ftnfloat *uuout, ftnfloat *vvout,
 	{
 	temp_y[i] = gdset->zones[AU_SUD].y[i] +  1.0;
 	}
-      f77name(ez_rgdint_0)(corr_uus,gdset->zones[AU_SUD].x,temp_y,&npts,polar_uu_in,&ni, &un, &quatre);
-      f77name(ez_rgdint_0)(corr_vvs,gdset->zones[AU_SUD].x,temp_y,&npts,polar_vv_in,&ni, &un, &quatre);
+      switch(Grille[gdin].extension)
+        {
+        case 2:
+        f77name(ez_rgdint_0_w)(corr_uus,gdset->zones[AU_SUD].x,temp_y,&npts,polar_uu_in,&ni, &un, &quatre, &Grille[gdin].extension);
+        f77name(ez_rgdint_0_w)(corr_vvs,gdset->zones[AU_SUD].x,temp_y,&npts,polar_vv_in,&ni, &un, &quatre, &Grille[gdin].extension);
+        break;
+
+        default:
+        f77name(ez_rgdint_0)(corr_uus,gdset->zones[AU_SUD].x,temp_y,&npts,polar_uu_in,&ni, &un, &quatre);
+        f77name(ez_rgdint_0)(corr_vvs,gdset->zones[AU_SUD].x,temp_y,&npts,polar_vv_in,&ni, &un, &quatre);
+        break;
+        }
       free(temp_y);
       break;
     }

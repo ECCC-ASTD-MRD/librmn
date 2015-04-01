@@ -11,16 +11,16 @@ static wordint iset     = -1;
 /* static ftnfloat r[9],ri[9]; */
 
 /*****************************************************************************/
-void EliminerGrille(wordint gridid);
+wordint EliminerGrille(wordint gridid);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2, wordint ip3, wordint ip4);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void c_llfgr(ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint npts,
+wordint c_llfgr(ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint npts,
         ftnfloat latOrigine, ftnfloat lonOrigine, ftnfloat deltaLat, ftnfloat deltaLon);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint ez_calclatlon(wordint gdid);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void ez_calcntncof(wordint gdid);
+wordint ez_calcntncof(wordint gdid);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint ez_calcxpncof(wordint gdid);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -46,12 +46,12 @@ wordint ez_interp(ftnfloat *zout, ftnfloat *zin, wordint iset);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint ez_poleovrw(ftnfloat *zout, wordint gdid);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void ez_xpncof(wordint *i1,wordint *i2,wordint *j1,wordint *j2,wordint *couverture,
+wordint ez_xpncof(wordint *i1,wordint *i2,wordint *j1,wordint *j2,wordint *couverture,
             wordint ni,wordint nj,char grtyp, char grref,
             wordint ig1,wordint ig2,wordint ig3,wordint ig4,wordint sym,
             ftnfloat *ax, ftnfloat *ay);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void ez_xpnsrcgd(wordint gdid, ftnfloat *zout, ftnfloat *zin);
+wordint ez_xpnsrcgd(wordint gdid, ftnfloat *zout, ftnfloat *zin);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint c_ezfreegridset(wordint selectedset);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -150,9 +150,6 @@ wordint ftnstrclean(char *str, wordint lenstr);
 wordint f77name(gdgaxes)(wordint *gdid, ftnfloat *ax, ftnfloat *ay);
 wordint c_gdgaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdgxpndaxes)(wordint *gdid, ftnfloat *ax, ftnfloat *ay);
-wordint c_gdgxpndaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay);
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(gdllfxy)(wordint *gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint *n);
 wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -211,22 +208,22 @@ wordint f77name(guval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat
                    ftnfloat *x, ftnfloat *y, wordint *n);
 wordint c_guval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin,  ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint n);
 /*****************************************************************************/
-void c_ezgfllfxy(ftnfloat *lonp, ftnfloat *latp,
+wordint c_ezgfllfxy(ftnfloat *lonp, ftnfloat *latp,
                  ftnfloat *lon, ftnfloat *lat, 
                  ftnfloat *r, ftnfloat *ri, wordint *npts, 
                  ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2);
 /*****************************************************************************/
-void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
+wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
                  ftnfloat *lon, ftnfloat *lat, 
                  ftnfloat *r, ftnfloat *ri, wordint *npts, 
                  ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2);
 /*****************************************************************************/
-void c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
+wordint c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
                   ftnfloat *xlatingf, ftnfloat *xloningf, 
                   wordint *ni, wordint *nj,
                   char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4);
 /*****************************************************************************/
-void  c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
+wordint  c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
                   ftnfloat *xlatingf, ftnfloat *xloningf, 
                  wordint *ni,wordint *nj,
                   char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4);
@@ -234,8 +231,8 @@ void  c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloa
 wordint c_ezgenerate_gem_cache();
 /*****************************************************************************/
 
-void c_ezdefxg(wordint gdid);
-void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay);
+wordint c_ezdefxg(wordint gdid);
+wordint c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay);
 wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts);
 #endif 
 #define _ezfuncdef

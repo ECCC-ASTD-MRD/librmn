@@ -24,7 +24,7 @@
 wordint c_ezidentifygrid(wordint ni, wordint nj, char *grtyp, char *grref,
 	     wordint ig1, wordint ig2, wordint ig3, wordint ig4, ftnfloat *ax, ftnfloat *ay)
 {
-  wordint i;
+  wordint i,n;
   wordint gdid;
   wordint res1, res2;
   char typeGrille;
@@ -104,11 +104,16 @@ wordint c_ezidentifygrid(wordint ni, wordint nj, char *grtyp, char *grref,
     return gdid;
     }
 
-  if (0 == (nGrilles % NMAXGRIDS))
+  if (0 == (nGrilles % (NMAXGRIDS-1)))
     {
-    Grille = (_Grille *) realloc(Grille, sizeof(_Grille)*(nGrilles+32));
+    Grille = (_Grille *) realloc(Grille, sizeof(_Grille)*(nGrilles+NMAXGRIDS+4));
     memset(&Grille[gdid],(int)NULL, sizeof(_Grille));
+    for (n=nGrilles-1;n<(nGrilles+NMAXGRIDS+4);n++)
+      {
+      memset(&Grille[n], (int) NULL, sizeof(_Grille));
+      }
     gr = &Grille[gdid];
+    fprintf(stderr, "<ez_identifygrid> : Reallocating ngrids to %d\n", (nGrilles+NMAXGRIDS+4));
 /*    fprintf(stderr, "<ezgdef_ffile> : Too many defined grids. \n");
     fprintf(stderr, "<ezgdef_ffile> : No way but to abort. \n");
     exit(13);*/

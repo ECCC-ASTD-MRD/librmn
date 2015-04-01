@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 
-void f77name(ez_llwfgfw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
+wordint f77name(ez_llwfgfw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
                   ftnfloat *xlatingf, ftnfloat *xloningf, wordint *ni,wordint *nj,
                   char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4)
 {
@@ -31,7 +31,7 @@ void f77name(ez_llwfgfw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, 
 }
 
 
-void c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
+wordint c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
                   ftnfloat *xlatingf, ftnfloat *xloningf, wordint *ni,wordint *nj,
                   char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4)
 {
@@ -67,6 +67,7 @@ void c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat
 
   free(uvcart);
   free(xyz); 
+  return 0;
 }
 /*  for (i=0; i < npts; i++)
     {

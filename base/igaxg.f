@@ -125,15 +125,15 @@
         LG4 = ISHFT(IG4,-2)
         LG2 = IOR(ISHFT(IG2,2),I2B)
         if (lg2.gt.3600) then lg2=lg2-7201
-        XG1 = LG1 / 40.0 - 90.0
+        XG1 = (LG1 -3600.0D0) / 40.0
 C
 C       bug de code, le +90 est de trop, ce qui peut causer un debordement
 C       pour ig3
 C
         if(lg3 .lt. 3559) lg3=lg3+16384
-        XG2 = LG3 / 40.0 - 90.0
-        XG3 = LG2 / 40.0
-        XG4 = LG4 / 40.0
+        XG2 = (LG3 -3600.0D0) / 40.0
+        XG3 = LG2 / 40.0D0
+        XG4 = LG4 / 40.0D0
 *                                 !  GRILLE LAT,LON (GEF)
       ELSE
         WRITE(6,600)

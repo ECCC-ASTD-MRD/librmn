@@ -92,7 +92,9 @@ fp=fdopen(fd,"r+");
 /* 
  Lock the log file since more than one process may be writing to it
 */
+#ifndef __CYGWIN__
 lockf(fileno(fp),F_LOCK,0L); 
+#endif
 
 /*
   set up the write pointer and check that the log file is not full
@@ -100,7 +102,9 @@ lockf(fileno(fp),F_LOCK,0L);
 */
 if( setfp(fp) == -1){
   fprintf(stderr,"log file %s is full\n",filen);
+#ifndef __CYGWIN__
   lockf(fileno(fp),F_ULOCK,0L);
+#endif
   fclose(fp);
   return(3);
 }
@@ -143,7 +147,9 @@ fprintf(fp,"%s%04i%s%s%s\n",msgcl,msgno,msgid,tstamp,msgtxt);
 /*
   clean up
 */
+#ifndef __CYGWIN__
 lockf(fileno(fp),F_ULOCK,0L);
+#endif
 fclose(fp);
 return(0);  /* SUCCESS, return 0 */
 }

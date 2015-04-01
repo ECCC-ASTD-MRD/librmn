@@ -41,6 +41,8 @@ LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(RMNLIB) $(MALIB)
 
 default: obj
@@ -89,7 +91,7 @@ Test_Interp1D:	Test_Interp1D.o $(OBJECTS)
 	-abi$(ABI) -librmn rmn_005
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/interpv_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/interpv_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS)
 #Produire les fichiers objets (.o) pour tous les fichiers

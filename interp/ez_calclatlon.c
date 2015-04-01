@@ -125,7 +125,7 @@ wordint ez_calclatlon(wordint gdid)
 	     case 'N':
 	     case 'S':
 	       fprintf(stderr, "<ez_calclatlon> Operation not supported - Y grid on PS Grid\n");
-	       exit(13);
+	       return -1;
 	       break;
 	       
 	     case 'L':
@@ -142,7 +142,7 @@ wordint ez_calclatlon(wordint gdid)
 	       
 	     case 'E':
 	       fprintf(stderr, "<ez_calclatlon> Operation not supported - Y grid on E Grid\n");
-	       exit(13);
+	       return -1;
                 break;
 		
 	     }

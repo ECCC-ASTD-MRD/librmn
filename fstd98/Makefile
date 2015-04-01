@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn .f .c .o .a
+.SUFFIXES : .c .ftn .f .o .a
 
 SHELL = /bin/sh
 
@@ -25,6 +25,8 @@ MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
+
+TARRLS = beta
 
 .PRECIOUS: $(RMNLIB) $(MALIB)
 
@@ -54,6 +56,8 @@ OBJECTS= \
 
 FICHIERS = $(FDECKS) $(CDECKS) $(FTNDECKS) $(COMDECKS)
 
+strgr4a.o:	strgr4a.c
+r4astrg.o:	r4astrg.c
 burp98.o: 	burp98.c if_xdf98.c qstdir.h proto.h
 fstd98.o:	fstd98.c if_fstd98.c qstdir.h proto.h
 xdf98.o:	xdf98.c if_xdf98.c qstdir.h proto.h
@@ -62,7 +66,7 @@ tstxdf.o:	tstxdf.f
 hybref.o:	hybref.ftn
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/sources/fstd98_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/fstd98_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers

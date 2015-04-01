@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .f90 .ftn .f .c .o .a
+.SUFFIXES : .ftn90 .f90 .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -28,6 +28,8 @@ TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
+TARRLS = beta
+
 .PRECIOUS: $(MYLIB)
 
 default: obj
@@ -48,7 +50,7 @@ FTNDECKS= \
          ieeepak.ftn \
          memoir8.ftn     second.ftn      stkmem.ftn       tracebck.ftn\
          ccard.ftn       sx_timing_stubs.ftn              f_baseio.ftn \
-         vpow_ibm.ftn
+         vpow_ibm.ftn    ftn2c_helper_f.ftn90
 
 CDECKS= \
          c_baseio.c      c_ccard.c       dmms.c           fread32.c \
@@ -62,7 +64,8 @@ CDECKS= \
          get_max_rss.c   appl_var.c       get_ccard_arg.c crc32.c\
          f_gettimeofday.c f_bit_slicer.c  gossip_thread.c flush_stdout.c \
          c_env_var_cracker.c array_file.c logical_smt_cpus.c  pointers_and_addresses.c \
-         mkdir_c.c       client_timeout.c
+         mkdir_c.c       client_timeout.c ftn2c_helper_c.c clib_interface.c \
+         arc4.c		 md5.c
 
 FDECKS= \
          constnt.f       exdb.f \
@@ -70,7 +73,7 @@ FDECKS= \
          qqqmima.f       small_alloc.f \
          up2low.f\
          qqqcall.f       qqqr8sz.f          qvmcks.f      gnthread.f  ccard_arg_m.f90 \
-         non_preempt_clock.f 
+         non_preempt_clock.f  f_logical2int.f90
 
 OBJECTS= \
          c_baseio.o        c_ccard.o        constnt.o         dmms.o \
@@ -90,7 +93,9 @@ OBJECTS= \
          appl_var.o        get_ccard_arg.o  ccard_arg_m.o     crc32.o\
          f_gettimeofday.o  f_bit_slicer.o   gossip_thread.o   flush_stdout.o\
          array_file.o      logical_smt_cpus.o  pointers_and_addresses.o \
-         mkdir_c.o         non_preempt_clock.o client_timeout.o vpow_ibm.o
+         mkdir_c.o         non_preempt_clock.o client_timeout.o vpow_ibm.o\
+         ftn2c_helper_c.o  clib_interface.o  ftn2c_helper_f.o \
+         arc4.o		 md5.o               f_logical2int.o
          
 COMDECKS = xxpakc.cdk mgi.h  wafile.h
          
@@ -113,9 +118,11 @@ stkmem.o: 	stkmem.ftn
 tracebck.o: 	tracebck.ftn 
 ccard.o:        ccard.ftn
 sx_timing_stubs.o:sx_timing_stubs.ftn
+ftn2c_helper_f.f90: ftn2c_helper_f.ftn90
+ftn2c_helper_f.o: ftn2c_helper_f.ftn90
 
 tarball: $(FICHIERS) rmnlib_v
-	tar cfzv /data/armnraid1/www/ssm/sources/primitives_1.0_all.tgz $(FICHIERS) rmnlib_version.f Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/primitives_$(TARRLS)_all.tgz $(FICHIERS) rmnlib_version.f Makefile 
   
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
@@ -138,7 +145,9 @@ locallib: \
          $(TEMPLIB)(appl_var.o)        $(TEMPLIB)(get_ccard_arg.o)  $(TEMPLIB)(ccard_arg_m.o)     $(TEMPLIB)(crc32.o)\
          $(TEMPLIB)(f_gettimeofday.o)  $(TEMPLIB)(f_bit_slicer.o)   $(TEMPLIB)(gossip_thread.o)   $(TEMPLIB)(flush_stdout.o)\
          $(TEMPLIB)(array_file.o)      $(TEMPLIB)(logical_smt_cpus.o)  $(TEMPLIB)(pointers_and_addresses.o)\
-         $(TEMPLIB)(mkdir_c.o)         $(TEMPLIB)(non_preempt_clock.o) $(TEMPLIB)(client_timeout.o) $(TEMPLIB)(vpow_ibm.o)
+         $(TEMPLIB)(mkdir_c.o)         $(TEMPLIB)(non_preempt_clock.o) $(TEMPLIB)(client_timeout.o) $(TEMPLIB)(vpow_ibm.o)\
+         $(TEMPLIB)(ftn2c_helper_c.o)  $(TEMPLIB)(clib_interface.o) $(TEMPLIB)(ftn2c_helper_f.o)\
+         $(TEMPLIB)(arc4.o)            $(TEMPLIB)(md5.o)            $(TEMPLIB)(f_logical2int.o)
 
 genlib: rmnlib_v $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

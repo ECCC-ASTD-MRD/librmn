@@ -4,7 +4,7 @@
       integer ig1,ig2,ig3,ig4,swa,lng,dltf,ubc
       integer extra1,extra2,extra3,datev
       integer fstinf,fstprm,fstinl,fstecr,fstouv,fnom,fstluk
-      integer force_datyp
+      integer force_datyp, force_nbits
       logical rewrit_flag
       integer ip_list(2)
       parameter (NMAX=1500)
@@ -19,21 +19,21 @@
       character *2 typvar
       character *12 etik_list(3)
 
-      character*128 cle(3)
-      character*128 def(3),val(3)
+      character*128 cle(4)
+      character*128 def(4),val(4)
 
       data ip_list / -1,750 /
-      data cle /'fstin.', 'fstout.', 'datyp'/
-      data def /'void',    'void', '-1' /
-      data val /'void',    'void', '-1' /
+      data cle /'fstin.', 'fstout.', 'datyp', 'nbits'/
+      data def /'void',    'void', '-1', '-1' /
+      data val /'void',    'void', '-1', '-1' /
       data etik_list /'PASLA','R2428V4N','Label003'/
       data nom_list /'ES','UU','VV','HU'/
 
       rewrit_flag = .false.
       ipos = 0
-      call ccard(cle,def,val, 2, ipos)
+      call ccard(cle,def,val, 4, ipos)
       read(val(3),'(I)') force_datyp
-      print *,'Debug force_datyp =',force_datyp
+      read(val(4),'(I)') force_nbits
       iun_in = 10
       iun_out = 11
       iun_out2 = 12
@@ -75,7 +75,14 @@
           print *,'Debug fstluk errno',ier
           exit
         endif
-        if (force_datyp .ne. -1) datyp = force_datyp
+        if (force_datyp .ne. -1) then
+          datyp = force_datyp
+          print *,'Debug datyp force a =',force_datyp
+        endif
+        if (force_nbits .ne. -1) then
+          nbits = force_nbits
+          print *,'Debug nbits force a ',force_nbits
+        endif
         ier = FSTECR(buf, buf, -nbits, iun_out, dateo, deet, npas, ni, nj,&
                      nk, ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2,&
                      ig3, ig4, datyp, rewrite_flag)

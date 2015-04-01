@@ -18,7 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
 ***S/P  MZONXST
-#     if defined AUTO_DOC
+#     if defined(AUTO_DOC)
 *
 *     Routine names  -  MZONOPR (1), MVZNXST (3), MZONFIL (5)
 *                       MZONXST (2), MZONIV  (4)
@@ -181,7 +181,7 @@
 *                                          calculations of SOMX and SOMX2
 *
 #     endif
-#     if !defined NO_SOURCE
+#     if !defined(NO_SOURCE)
       Subroutine mzonopr ( OPR,VAL )
 
 ***
@@ -1327,7 +1327,7 @@
 
                       listej(KK) = LocVAL
                       KAJ(KK)    = KA
-#if defined NEC
+#if defined(NEC)
 *vdir novector
 #endif
                       Do  JJ=1,SOMNK

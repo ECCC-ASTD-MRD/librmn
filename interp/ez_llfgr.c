@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void c_llfgr(ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint npts,
+wordint c_llfgr(ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint npts,
 	     ftnfloat latOrigine, ftnfloat lonOrigine, ftnfloat deltaLat, ftnfloat deltaLon)
 {
   wordint i;
@@ -34,4 +34,5 @@ void c_llfgr(ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint npt
       lon[i]=  fmod(fmod(lon[i],360.0)+360.0,360.0);
       lat[i] = latOrigine + deltaLat * (y[i]-1.0);
     }
+  return 0;
 }

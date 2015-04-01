@@ -34,7 +34,9 @@ int i;
 
 nullstr[0] = '\0';
 
+#ifndef __CYGWIN__
 lockf(fileno(fp),F_LOCK,0L);
+#endif
 fscanf(fp,"%ld\n",&frptr);
 fseek(fp,WRIT_PTR,SEEK_SET);
 fscanf(fp,"%ld\n",&fwptr);
@@ -44,7 +46,9 @@ fscanf(fp,"%ld\n",&flptr);
 if ( fwptr == frptr)
 	{
          fseek(fp,0L,SEEK_SET);
+#ifndef __CYGWIN__
          lockf(fileno(fp),F_ULOCK,0L);
+#endif
 	 return(nullstr);
 	}
 
@@ -60,7 +64,9 @@ if ((frptr <= fwptr)&& (update)) {
 }
 
 fseek(fp,0L,SEEK_SET);
+#ifndef __CYGWIN__
 lockf(fileno(fp),F_ULOCK,0L);
+#endif
 
 return (ch);
 }

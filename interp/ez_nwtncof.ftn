@@ -17,7 +17,7 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-      subroutine ez_nwtncof(cx,cy,ax,ay,ni,nj,i1,i2,j1,j2,extension)
+      integer function ez_nwtncof(cx,cy,ax,ay,ni,nj,i1,i2,j1,j2,extension)
 ********
 *     Auteur: Y. Chartier, drpn
 *     Fevrier 1991
@@ -197,6 +197,7 @@
          cx(ni,5) = 1. / (x4-x2)
          cx(ni,6) = 1. / (x4-x3)
       endif
+      ez_nwtncof = 0
       return
       
  999  print *, 'Probleme detecte dans EZ_NWTNCOF code 999'
@@ -204,20 +205,21 @@
          print *, '(EZ_NWTNCOF)', i,  ax(i)
       enddo
       print *, 'EZ_NWTNCOF CALL EXIT'
-      call exit(13)
+      ez_nwtncof = -1
 
  998  print *, 'Probleme detecte dans EZ_NWTNCOF code 998'
       do j=1,nj
          print *, '(EZ_NWTNCOF)', j,  ay(j)
       enddo
       print *, 'EZ_NWTNCOF CALL EXIT'
-      call exit(13)
+      ez_nwtncof = -1
       
  997  print *, 'Probleme detecte dans EZ_NWTNCOF code 998'
       print *, '(EZ_NWTNCOF) Probleme : x1..x4  : ', x1, x2, x3, x4
       print *, 'EZ_NWTNCOF CALL EXIT'
-      call exit(13)
+      ez_nwtncof = -1
       
+      return 
       end
       
 *********************************************************************

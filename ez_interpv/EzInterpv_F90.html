@@ -8,6 +8,12 @@
 <pre class=text>
 <b> EZINTERPV: EXAMPLE IN F90:</b>
 <span  style="margin-left: 2em">
+
+! To create ViTypes.mod, include this file somewhere, outside the program, once:
+#include "ViTypes2_f90.h"
+
+program main
+
 include "ViConstants_f90.h" 
 include "VertInterp_f90.h" 
  
@@ -152,6 +158,8 @@ n_error = N_VisintIfc_X(r_stateOut, r_stateIn, r_derivOut, r_derivIn, &
 
 n_error = N_VigdrlsIfc(n_gridIndexInit)
 n_error = N_VigdrlsIfc(n_gridIndexTarget)
+
+end program
 </span>
 </pre>
 <br>

@@ -22,6 +22,8 @@ TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 RMNLIB = rmn
 
+TARRLS = beta
+
 .PRECIOUS: $(MYLIB)
 
 default: obj
@@ -38,7 +40,7 @@ default:	cmc_p_log cmc_r_log net_w_log cmc_w_log
 	make clean
 
 tarball: *.c *.h
-	tar cfzv /data/armnraid1/www/ssm/sources/cmc_log_1.0_all.tgz *.c *.h Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/cmc_log_$(TARRLS)_all.tgz *.c *.h Makefile 
         
 obj: $(OBJECT) $(OBJ2)
 #Produire les fichiers objets (.o) pour tous les fichiers
