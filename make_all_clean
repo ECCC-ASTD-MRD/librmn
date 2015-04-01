@@ -1,0 +1,7 @@
+workdir=`pwd`
+for package in base burp98_f cmc_log compresseur ez_interpv fstd98 interp interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
+do 
+  cd ${package}
+  make clean
+  cd $workdir
+done

@@ -1,4 +1,0 @@
-ln -s /home/dormrb02/env/armnlib/data/SAMPLES/min_1_2.txt min_1_2.txt
-ln -s /home/dormrb02/env/armnlib/data/SAMPLES/min_2_4.txt min_2_4.txt
-ln -s /home/dormrb02/env/armnlib/data/SAMPLES/min_4_8.txt min_4_8.txt
-ln -s /home/dormrb02/env/armnlib/data/SAMPLES/min_8_16.txt min_8_16.txt

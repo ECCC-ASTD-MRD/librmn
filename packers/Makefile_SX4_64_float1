@@ -1,3 +1,0 @@
-DEFINE = -DNEC -DNEC64 -DALL64 -D_FLOAT1
-AR = sxar
-OBJ_NEC = pak_helpers.o

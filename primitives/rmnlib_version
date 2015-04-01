@@ -1,4 +1,4 @@
-LATESTREV=`svnlook youngest /home/dormrb02/SVN-depots/pub`
+#LATESTREV=`svnlook youngest /home/dormrb02/SVN-depots/pub`
 cat <<EOT >rmnlib_version.f
 ***s/p rmnlib_version
 *
@@ -16,8 +16,8 @@ cat <<EOT >rmnlib_version.f
 *
         version = 
      %  "  RMNLIB  -  Release:"//
-     %  " ${RMNRLS} (Rev ${SVNREV:-${LATESTREV}})"//
-     %  " EC_ARCH_VAR Date_of_Build"
+     %  " ${1:-unknown}"//
+     %  " ${EC_ARCH} $(date)"
 	if (prnt) print *,version
 	return
 	end

@@ -1,12 +1,13 @@
+#!/bin/bash
 # set -x
 mmake=make
 which gmake >/dev/null  && mmake=gmake
 echo mmake = $mmake
-workdir=`pwd`
+#workdir=`pwd`
 for package in base burp98_f cmc_log compresseur fstd98 interp interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
 do 
-  cd ${package}
+  pushd ${package}
   $mmake locallib
   $mmake clean
-  cd $workdir
+  popd
 done

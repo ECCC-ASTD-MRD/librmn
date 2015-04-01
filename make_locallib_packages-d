@@ -8,6 +8,6 @@ do
   cd ${package}
   $mmake clean
   $mmake OPTIMIZ="2 -debug" locallib
-  rm *.o 
+  $mmake clean
   cd $workdir
 done

@@ -1,6 +1,8 @@
 SHELL = /bin/sh
 
-LIBNAME = librmnbeta
+include rmnlib_version.inc
+
+LIBNAME = librmn_$(RMNLIB_VERSION)
 
 WORKDIR = ./WorkDir
 
@@ -18,8 +20,17 @@ genlib:
 	echo 'Compiling with DEBUG option' ; \
 	sleep 2 ; \
 	./make_locallib_packages-d ; \
+	rm -f $(LIBDIR)/$(EC_ARCH)/$(LIBNAME)_d.a ; \
 	./merge_rmnlib_packages $(WORKDIR) $(LIBDIR) $(LIBNAME)_d ; \
 	else \
 	./make_locallib_packages ; \
+	rm -f $(LIBDIR)/$(EC_ARCH)/$(LIBNAME).a ; \
 	./merge_rmnlib_packages $(WORKDIR) $(LIBDIR) $(LIBNAME) ; \
 	fi
+
+clean:
+	cd template_utils/gmm ; make veryclean
+	find . -name '*.o' -exec rm {} \;
+
+distclean: clean
+	find . -name lib_local.a -exec rm {} \;
