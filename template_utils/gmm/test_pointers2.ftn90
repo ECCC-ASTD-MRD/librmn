@@ -1,0 +1,285 @@
+    
+    program test_pointers
+    implicit none
+
+    include 'gmm.cdk'
+
+    integer, parameter :: NUMBER_OF=2
+
+
+    real*4,dimension(:,:),pointer:: ptri42dx
+
+    integer*4,dimension(:,:),pointer:: ptri42d
+    integer*4,dimension(:,:,:),pointer:: ptri43d
+
+    real*4, dimension(:,:), pointer :: c3po_a, c3po_b, c3po_c, c3po_d
+
+    integer *4 intarray(2805)
+    integer*8 myaddress
+    integer*8 get_address_from
+
+    real*4, pointer :: myarray(:,:), myarray2(:,:), myarray3(:,:)
+    character *5, myname
+
+    character(len=GMM_MAXNAMELENGTH) cles(32), varname
+
+    type(gmm_layout) :: lx = gmm_layout(-1,15,1,2,13)
+    type(gmm_layout) :: ly = gmm_layout(-2,13,1,2,11)
+    type(gmm_layout) :: lz = gmm_layout( 1, 7,0,0, 7)
+    type(gmm_layout) :: lxy(2), lyx(2)
+
+    type(gmm_attributes) :: attribs = gmm_attributes(0,0,0,0,0,'toto')
+    type(gmm_metadata) :: mon_meta, mon_meta_xyz, nouveau_meta
+
+    character(len=32) :: taglist(10), shuffle_list(10)
+    integer :: ntags = 10
+    character(len=4) :: pattern
+    
+    integer *8 :: mykey
+    integer :: reqid = 0
+    integer i, ier, nbcles
+
+    lxy(1)=lx
+    lxy(2)=ly
+
+    lyx=(/ ly, lx /)
+    attribs%flags=FLAG_RSTR
+
+
+   call gmm_checkpoint_all(.true.)
+
+  print *, 'Tentative de gmm_get'
+  nullify(myarray)
+  mon_meta = null_metadata
+  ier = gmm_get('R2D2',myarray,mon_meta)
+  print *, 'ier apres 1e gmm_get', ier
+  if (ier < 0) then
+    nullify(myarray)
+    mon_meta%l(1:2)=lxy
+    mon_meta%a=attribs
+    varname = 'R2D2'
+    ier = gmm_create(varname,myarray,mon_meta)
+  endif
+    print *,'size of R2D2 is ',size(myarray)
+    print *,'shape of R2D2 is ',shape(myarray)
+    print *,'lbound of R2D2 is ',lbound(myarray)
+    print *,'ubound of R2D2 is ',ubound(myarray)
+    print *, '================================================'
+    print *
+   
+   allocate(myarray2(lx%low:lx%high,ly%low:ly%high))
+   ier = gmm_create('R2D2a',myarray2,mon_meta)
+   print *,'size of R2D2a is ',size(myarray2)
+   print *,'shape of R2D2a is ',shape(myarray2)
+   print *,'lbound of R2D2a is ',lbound(myarray2)
+   print *,'ubound of R2D2a is ',ubound(myarray2)
+   print *, '================================================'
+   print *
+   
+   mon_meta_xyz%l(1)=lx
+   mon_meta_xyz%l(2)=ly
+   mon_meta_xyz%l(3)=lz
+   mon_meta_xyz%a=attribs
+   nullify(ptri42d)
+   ier = gmm_create('R2D2b',ptri42d,mon_meta_xyz)
+   print *,'size of R2D2b is ',size(ptri42d)
+   print *,'shape of R2D2b is ',shape(ptri42d)
+   print *,'lbound of R2D2b is ',lbound(ptri42d)
+   print *,'ubound of R2D2b is ',ubound(ptri42d)
+   print *, '================================================'
+   print *
+
+   nullify(ptri43d)
+   ier = gmm_create('R2D2c',ptri43d,mon_meta_xyz)
+   print *,'size of R2D2c is ',size(ptri43d)
+   print *,'shape of R2D2c is ',shape(ptri43d)
+   print *,'lbound of R2D2c is ',lbound(ptri43d)
+   print *,'ubound of R2D2c is ',ubound(ptri43d)
+   print *, '================================================'
+   print *
+
+   print *, 'Tentative de gmm_get'
+   nullify(myarray3)
+   mon_meta = null_metadata
+   ier = gmm_get('R2D2',myarray3,mon_meta)
+   print *,'size of R2D2 is ',size(myarray)
+   print *,'shape of R2D2 is ',shape(myarray)
+   print *,'lbound of R2D2 is ',lbound(myarray)
+   print *,'ubound of R2D2 is ',ubound(myarray)
+   print *, '================================================'
+   print *
+
+   print *,'gmm_layout of R2D2 is ',mon_meta%l
+   print *,'gmm_attributes of R2D2 are ',mon_meta%a
+
+!   call schacid
+!   call schacid2
+
+   print *, 'Tentative de gmm_get'
+   nullify(myarray)
+   mon_meta = null_metadata
+   ier = gmm_get('R2D2',myarray,mon_meta)
+   print *,'size of R2D2 is ',size(myarray)
+   print *,'shape of R2D2 is ',shape(myarray)
+   print *,'lbound of R2D2 is ',lbound(myarray)
+   print *,'ubound of R2D2 is ',ubound(myarray)
+   print *, '================================================'
+   print *
+
+   print *,'gmm_layout of R2D2 is ',mon_meta%l
+   print *,'gmm_attributes of R2D2 are ',mon_meta%a
+
+   print *, 'Tentative de gmm_keys'
+
+   
+   pattern = 'RD'
+   ier = gmm_keys(taglist, pattern)
+
+   print *, ntags, ' satisfy the pattern ', pattern 
+   do i=1,ntags
+     print *, 'Pattern', pattern, 'is found in var', taglist(i)
+   enddo
+
+   ntags = 10
+   pattern = 'R2'
+   ier = gmm_keys(taglist, pattern)
+
+   print *, ntags, ' satisfy the pattern ', pattern 
+   do i=1,ier
+     print *, 'Pattern', pattern, 'is found in var', taglist(i)
+   enddo
+ 
+   nullify(c3po_a)
+   nullify(c3po_b)
+   nullify(c3po_c)
+   nullify(c3po_d)
+
+   mon_meta%l(1)=lx
+   mon_meta%l(2)=ly
+   mon_meta%a=attribs
+
+   nbcles = gmm_keys(cles)
+
+   ier = gmm_create('c3po_a', c3po_a, mon_meta)   
+   ier = gmm_create('c3po_b', c3po_b, mon_meta)   
+   ier = gmm_create('c3po_c', c3po_c, mon_meta)   
+   ier = gmm_create('c3po_d', c3po_d, mon_meta)
+    
+   ier = gmm_keys(taglist)
+   print *, 'gmm_keys-----------'
+   do i=1,ier
+     print *, i,taglist(i)
+   enddo
+   print *, 'gmm_keys-----------'
+
+    
+    nouveau_meta = null_metadata
+    ier = gmm_rename('c3po_d', 'c3po_e')
+    ier = gmm_getmeta('c3po_e', nouveau_meta)
+    print *, nouveau_meta
+
+    nouveau_meta = null_metadata
+    ier = gmm_getmeta('c3po_d', nouveau_meta)
+    print *, nouveau_meta
+   
+   ier = gmm_keys(taglist)
+   print *, 'gmm_keys apres rename -----------'
+   do i=1,ier
+     print *, i,taglist(i)
+   enddo
+   print *, 'gmm_keys-----------'
+   c3po_a = 1
+   c3po_b = 2
+   c3po_c = 3
+   c3po_d = 4
+   print *, c3po_a(1,1), c3po_b(1,1), c3po_c(1,1), c3po_d(1,1)
+   shuffle_list    = ' '
+   shuffle_list(1) = 'c3po_a'
+   shuffle_list(2) = 'c3po_b'
+   shuffle_list(3) = 'c3po_c'
+   shuffle_list(4) = 'c3po_e'
+   nbcles = gmm_shuffle(shuffle_list)
+
+   ier = gmm_get('c3po_a', c3po_a, mon_meta)
+   ier = gmm_get('c3po_b', c3po_b, mon_meta)
+   ier = gmm_get('c3po_c', c3po_c, mon_meta)
+   ier = gmm_get('c3po_e', c3po_d, mon_meta)
+   print *, c3po_a(1,1), c3po_b(1,1), c3po_c(1,1), c3po_d(1,1)
+   nbcles = gmm_shuffle(shuffle_list)
+   ier = gmm_get('c3po_a', c3po_a, mon_meta)
+   ier = gmm_get('c3po_b', c3po_b, mon_meta)
+   ier = gmm_get('c3po_c', c3po_c, mon_meta)
+   ier = gmm_get('c3po_e', c3po_d, mon_meta)
+   print *, c3po_a(1,1), c3po_b(1,1), c3po_c(1,1), c3po_d(1,1)
+   call gmm_checkpoint_all(.false.)
+
+111 format(a,x,z16,x,i20)
+    stop
+    end
+
+  subroutine schacid
+    include 'gmm.cdk'
+    integer, parameter :: NUMBER_OF=2
+    integer i,j
+    real*4,dimension(:,:),pointer:: ptri42dx
+
+
+    integer *4 intarray(2805)
+    integer*8 myaddress
+    integer*8 get_address_from
+
+    real*4, pointer :: myarray(:,:)
+    real*4, pointer :: myarray2(:,:)
+    character *5, myname
+
+    type(gmm_layout) :: lx = gmm_layout(-1,15,1,2,13)
+    type(gmm_layout) :: ly = gmm_layout(-2,13,1,2,11)
+    type(gmm_layout) :: lz = gmm_layout( 1, 7,0,0, 7)
+    type(gmm_layout) :: lxy(2), lyx(2)
+
+    type(gmm_attributes) :: attribs = gmm_attributes(0,0,0,0,0,'toto')
+    type(gmm_metadata) :: mon_meta
+    integer *8 :: mykey
+    integer :: reqid = 0
+  
+    allocate(ptri42dx(-2:13,-1:15))
+
+    do j=ly%low,ly%high
+      do i=lx%low,lx%high
+      ptri42dx(i,j) = 1000.0*j + 1.0*i
+      enddo
+    enddo
+
+  print *, ptri42dx(1,1)
+  print *, ptri42dx(2,2)
+  print *, ptri42dx(3,3)
+
+!    call gmm_create(ptri42dx,mykey,'SCH002',(/ ly, lx /),attribs)
+    return
+
+  end subroutine schacid
+
+    subroutine schacid2
+    include 'gmm.cdk'
+    integer, parameter :: NUMBER_OF=2
+
+
+    real*4, pointer :: myarray(:,:)
+    character *5, myname
+
+    integer *8 :: mykey
+    integer :: reqid = 0
+   print *,'===============testing sch_acid_test ======================'
+   mykey = 0
+   nullify(myarray)
+!   call gmm_getp(myarray,mykey,'SCH002',reqid)
+   print *,'size of myarray is ',size(myarray)
+   print *,'shape of myarray is ',shape(myarray)
+   print *,'lbound of myarray is ',lbound(myarray)
+   print *,'ubound of myarray is ',ubound(myarray)
+
+  print *, myarray(1,1)
+  print *, myarray(2,2)
+  print *, myarray(3,3)
+
+  end subroutine schacid2

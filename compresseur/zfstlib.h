@@ -13,7 +13,7 @@
 #define BEST    1
 #define FAST    0
 
-#define FTN2C(i,j,ni)  (int)((ni) * (j-1) + i-1)
+#define FTN2C(i,j,ni)  (unsigned int)((ni) * (j-1) + i-1)
 #define  ROUND(x)               (int)(x + 0.5)
 
 #define min(x,y) (x < y ? x : y)

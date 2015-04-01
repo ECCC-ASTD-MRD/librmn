@@ -10,7 +10,7 @@ RMNLIB_BASE_PATH=$(ARMNLIB)
 
 MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 COMPILE = compile
 
@@ -131,7 +131,11 @@ ctest: testc.o $(OBJET)
 #Produire un executable pour tester l'interface C de burp
 	r.build -o $@ -obj testc.o -arch $(EC_ARCH) -abi $(ABI) -librmn
 
-locallib: $(TEMPLIB)(burp98_f.o)
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir $(TEMPLIB)(burp98_f.o)
         
 genlib: $(OBJET)
 #Creer ou mettre a jour la programmatheque 

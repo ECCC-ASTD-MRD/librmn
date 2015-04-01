@@ -1,0 +1,38 @@
+  program bidule
+
+#include "gmm.hf"
+#include "rmnlib.hf"
+
+   call a
+   call b
+   call c
+
+   stop
+   end program bidule
+
+   subroutine a
+#include "gmm.hf"
+#include "rmnlib.hf"
+   print *, 'I am in subroutine A'
+
+   return
+   end subroutine a
+
+   subroutine b
+#include "gmm.hf"
+#include "rmnlib.hf"
+   print *, 'I am in subroutine B'
+
+   return
+   end subroutine b
+
+   subroutine c
+#include "gmm.hf"
+#include "rmnlib.hf"
+   print *, 'I am in subroutine C'
+
+   return
+   end subroutine c
+
+
+

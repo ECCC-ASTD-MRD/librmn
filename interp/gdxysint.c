@@ -27,7 +27,7 @@ wordint c_gdxysint(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
 wordint f77name(gdxysint)(ftnfloat *zout, ftnfloat *zin, wordint *gdin, ftnfloat *x, ftnfloat *y, wordint *npts)
 {
    wordint icode;
-   
+
    icode = c_gdxysint(zout, zin, *gdin, x, y, *npts);
    return icode;
 }
@@ -39,24 +39,28 @@ wordint c_gdxysint(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
   _zone zones[NZONES];
   wordint gdout;
   _gridset tmpset;
+  wordint gdrow_in, gdcol_in;
 
    lzin  = NULL;
    lxzin = NULL;
 
-   if (Grille[gdin].axe_y_inverse == 1)
+
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+
+   if (Grille[gdrow_in][gdcol_in].fst.axe_y_inverse == 1)
       {
-      lzin = (ftnfloat *) malloc(Grille[gdin].ni*Grille[gdin].nj*sizeof(ftnfloat));
-      memcpy(lzin, zin, Grille[gdin].ni*Grille[gdin].nj*sizeof(ftnfloat));
-      f77name(permut)(lzin, &Grille[gdin].ni, &Grille[gdin].nj);
+      lzin = (ftnfloat *) malloc(Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+      memcpy(lzin, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+      f77name(permut)(lzin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
       }
    else
      {
      lzin = zin;
      }
 
-   if (Grille[gdin].needs_expansion == OUI)
+   if (Grille[gdrow_in][gdcol_in].needs_expansion == OUI)
      {
-     lxzin = (ftnfloat *) malloc(2*Grille[gdin].ni*Grille[gdin].nj*sizeof(ftnfloat));
+     lxzin = (ftnfloat *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
      ez_xpnsrcgd(gdin, lxzin, lzin);
      }
    else
@@ -67,24 +71,24 @@ wordint c_gdxysint(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
    ier = c_gdinterp(zout, lxzin, gdin, x, y, npts);
 
    gdout = NMAXGRIDS-1;
-   tmpset.gdin = gdin;
-   tmpset.gdout = gdout;
+/*   tmpset.gdin = gdin;
+   tmpset.gdout = gdout;*/
    tmpset.x = x;
    tmpset.y = y;
-
+/*
    Grille[gdout].ni = npts;
    Grille[gdout].nj = 1;
    Grille[gdout].grtyp = 'L';
-
+*/
 
 /*   if (groptions.polar_correction == OUI && groptions.vecteur != VECTEUR)
      {
      ier = ez_defzones(&tmpset);
      ier = ez_corrval(zout, lxzin, &tmpset);
      }*/
-   
-   
-   if (lzin != zin && lzin != NULL)
+
+
+/*   if (lzin != zin && lzin != NULL)
       {
       free(lzin);
       }
@@ -92,7 +96,7 @@ wordint c_gdxysint(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
    if (lxzin != lzin && lxzin != zin && lxzin != NULL)
       {
       free(lxzin);
-      }
-   
+      }*/
+
    return 0;
 }

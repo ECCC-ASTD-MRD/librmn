@@ -21,43 +21,44 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
+wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 {
-  
   wordint i;
   ftnfloat valmax, valmin,fudgeval;
-  wordint gdin;
-  _Grille grEntree, grSortie;
   wordint degIntCourant;
   wordint npts,nj;
   ftnfloat vpolnor, vpolsud;
   ftnfloat *temp;
-  
+  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+
   extern ftnfloat f77name(amax)();
   extern ftnfloat f77name(amin)();
-  
-  grEntree = Grille[gdset->gdin];
-  grSortie = Grille[gdset->gdout];
-  nj = grEntree.j2 - grEntree.j1 +1;
 
-  if (gdset->zones[DEHORS].npts > 0)
+  gdin = iset_gdin;
+  gdout= iset_gdout;
+
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+  idx_gdin = c_find_gdin(gdin, gdout);
+
+  nj = Grille[gdrow_in][gdcol_in].j2 - Grille[gdrow_in][gdcol_in].j1 +1;
+
+  if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].npts > 0)
     {
-    gdin = gdset->gdin;
-    
     if (groptions.degre_extrap == ABORT)
       {
       fprintf(stderr, "<ez_corrval> There are points on the source grid that lie outside the source grid\n");
       fprintf(stderr, "<ez_corrval> aborting at your request!\n\n\n");
       return -1;
       }
-    
-    f77name(ez_aminmax)(&valmin,&valmax,zin,&grEntree.ni, &nj);
+
+    f77name(ez_aminmax)(&valmin,&valmax,zin,&(Grille[gdrow_in][gdcol_in].ni), &nj);
     if (groptions.degre_extrap >= MAXIMUM)
       {
       if (groptions.vecteur == VECTEUR)
-	{
-	fudgeval = 0.0;
-	}
+	      {
+	      fudgeval = 0.0;
+	      }
       else
 	{
 	switch (groptions.degre_extrap)
@@ -69,7 +70,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
 	      fprintf(stderr, "<ez_corrval>: maximum: %f \n", fudgeval);
 	      }
 	    break;
-	    
+
 	  case MINIMUM:
 	    fudgeval = valmin - 0.05 * (valmax - valmin);
 	    if (groptions.verbose > 0)
@@ -77,7 +78,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
 	      fprintf(stderr, "<ez_corrval>: minimum: %f \n", fudgeval);
 	      }
 	    break;
-	    
+
 	  case VALEUR:
 	    fudgeval = groptions.valeur_extrap;
 	    if (groptions.verbose > 0)
@@ -87,68 +88,68 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
 	    break;
 	  }
 	}
-      
-      for (i=0; i < gdset->zones[DEHORS].npts; i++)
-	{
-	zout[gdset->zones[DEHORS].idx[i]] = fudgeval;
-	}
+
+      for (i=0; i < Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].npts; i++)
+	      {
+	      zout[Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].idx[i]] = fudgeval;
+	      }
       }
     else
       {
       degIntCourant = groptions.degre_interp;
       groptions.degre_interp = groptions.degre_extrap;
-      temp = (ftnfloat *) malloc(gdset->zones[DEHORS].npts*sizeof(ftnfloat));
-      
-      c_gdinterp(temp, zin, gdset->gdin, gdset->zones[DEHORS].x, 
-		 gdset->zones[DEHORS].y, gdset->zones[DEHORS].npts);
+      temp = (ftnfloat *) malloc(Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].npts*sizeof(ftnfloat));
 
-     for (i=0; i < gdset->zones[DEHORS].npts; i++)
+      c_gdinterp(temp, zin, gdin, Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].x,
+		 Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].y, Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].npts);
+
+     for (i=0; i < Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].npts; i++)
 	{
-	zout[gdset->zones[DEHORS].idx[i]] = temp[i];
+	zout[Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[DEHORS].idx[i]] = temp[i];
 	}
       free(temp);
       groptions.degre_interp = degIntCourant;
       }
     }
-  
+
   if (groptions.vecteur == VECTEUR)
     {
     return 0;
     }
-  
-  
-  if (gdset->zones[AU_NORD].npts > 0)
+
+
+  if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[AU_NORD].npts > 0)
     {
-    ez_corrval_aunord(zout, zin, gdset);
+    ez_corrval_aunord(zout, zin, gdin, gdout);
     }
-  
-  if (gdset->zones[AU_SUD].npts > 0)
+
+  if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[AU_SUD].npts > 0)
     {
-    ez_corrval_ausud(zout, zin, gdset);
+    ez_corrval_ausud(zout, zin, gdin, gdout);
     }
-  
-  
-  if (gdset->zones[POLE_NORD].npts > 0 || gdset->zones[POLE_SUD].npts > 0)
+
+
+  if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[POLE_NORD].npts > 0 || Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[POLE_SUD].npts > 0)
     {
-    if (grEntree.grtyp != 'E')
+    if (Grille[gdrow_in][gdcol_in].grtyp[0] != 'E')
       {
-      npts = grEntree.ni * grEntree.j2;
-      f77name(ez_calcpoleval)(&vpolnor, &zin[(nj-1)*grEntree.ni], &grEntree.ni, grEntree.ax, &grEntree.grtyp, &grEntree.grref);
-      for (i=0; i < gdset->zones[POLE_NORD].npts; i++)
-	{
-	zout[gdset->zones[POLE_NORD].idx[i]] = vpolnor;
-	}
-      
-      f77name(ez_calcpoleval)(&vpolsud, zin, &grEntree.ni, grEntree.ax, &grEntree.grtyp, &grEntree.grref);
-      for (i=0; i < gdset->zones[POLE_SUD].npts; i++)
-	{
-	zout[gdset->zones[POLE_SUD].idx[i]] = vpolsud;
-	}
+      npts = Grille[gdrow_in][gdcol_in].ni * Grille[gdrow_in][gdcol_in].j2;
+      f77name(ez_calcpoleval)(&vpolnor, &(zin[(nj-1)*Grille[gdrow_in][gdcol_in].ni]), &(Grille[gdrow_in][gdcol_in].ni), Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].grtyp, Grille[gdrow_in][gdcol_in].grref);
+      for (i=0; i < Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[POLE_NORD].npts; i++)
+	      {
+	      zout[Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[POLE_NORD].idx[i]] = vpolnor;
+	      }
+
+      f77name(ez_calcpoleval)(&vpolsud, zin, &(Grille[gdrow_in][gdcol_in].ni), Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].grtyp, Grille[gdrow_in][gdcol_in].grref);
+      for (i=0; i < Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[POLE_SUD].npts; i++)
+	      {
+	      zout[Grille[gdrow_out][gdcol_out].gset[idx_gdin].zones[POLE_SUD].idx[i]] = vpolsud;
+	      }
       }
     }
-  if ((grEntree.grtyp == 'Z' || grEntree.grtyp == '#') && grEntree.grref == 'E' && grSortie.grtyp == 'B')
+  if ((Grille[gdrow_in][gdcol_in].grtyp[0] == 'Z' || Grille[gdrow_in][gdcol_in].grtyp[0] == '#') && Grille[gdrow_in][gdcol_in].grref[0] == 'E' && Grille[gdrow_out][gdcol_out].grtyp[0] == 'B')
     {
-    f77name(ez_corrbgd)(zout, &grSortie.ni, &grSortie.nj, &grSortie.ig[IG1]);
+    f77name(ez_corrbgd)(zout, &(Grille[gdrow_out][gdcol_out].ni), &(Grille[gdrow_out][gdcol_out].nj), &(Grille[gdrow_out][gdcol_out].fst.ig[IG1]));
     }
 
   return 0;

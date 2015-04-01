@@ -88,4 +88,38 @@ calc_crc(p, flen, fseed, stride)
 	return (hold);
 }				/* calc_crc() */
 
+int f_calc_crc(p, f_flen, f_fseed, f_stride)
+	unsigned char *p;
+        int *f_flen, *f_fseed, *f_stride;
+{
+        int stride = *f_stride;
+        int crc, flen;
 
+        flen = *f_flen * sizeof(int);
+        crc = calc_crc(p, &flen, f_fseed, stride);
+        return(crc);
+}
+
+int f_calc_crc_(p, f_flen, f_fseed, f_stride)
+	unsigned char *p;
+        int *f_flen, *f_fseed, *f_stride;
+{
+        int stride = *f_stride;
+        int crc, flen;
+
+        flen = *f_flen * sizeof(int);
+        crc = calc_crc(p, &flen, f_fseed, stride);
+        return(crc);
+}
+
+int f_calc_crc__(p, f_flen, f_fseed, f_stride)
+	unsigned char *p;
+        int *f_flen, *f_fseed, *f_stride;
+{
+        int stride = *f_stride;
+        int crc, flen;
+
+        flen = *f_flen * sizeof(int);
+        crc = calc_crc(p, &flen, f_fseed, stride);
+        return(crc);
+}

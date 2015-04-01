@@ -30,15 +30,20 @@ wordint ez_defzone_polesud(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts,
   wordint nhits, i;
   wordint *tmpidx;
 
+
+  wordint gdrow_in, gdcol_in;
+    
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  
   tmpx =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpy =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpidx = (wordint   *) malloc(npts*sizeof(wordint));
   
   nhits = 0;
   
-  if (Grille[gdin].grtyp == 'Z' && Grille[gdin].grref == 'E')
+  if (Grille[gdrow_in][gdcol_in].grtyp[0] == 'Z' && Grille[gdrow_in][gdcol_in].grref[0] == 'E')
     {
-    xpolesud = 0.5 * Grille[gdin].ni;
+    xpolesud = 0.5 * Grille[gdrow_in][gdcol_in].ni;
     ypolesud = 0.5;
     }
   else

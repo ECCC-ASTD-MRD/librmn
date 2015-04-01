@@ -33,43 +33,50 @@ wordint f77name(ezuvint)(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfl
 
 wordint c_ezuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
 {
-   wordint gdidin,gdidout;
-   wordint npts, ier,i;
-   ftnfloat *uullout = NULL;
-   ftnfloat *vvllout = NULL;
+  wordint gdin,gdout;
+  wordint npts, ier;
+  ftnfloat *uullout = NULL;
+  ftnfloat *vvllout = NULL;
    
-   gdidin = gridset[iset].gdin;
-   gdidout= gridset[iset].gdout;
-   npts = Grille[gdidout].ni*Grille[gdidout].nj;
-   ier = ez_calclatlon(gdidout);
-
-   groptions.vecteur = VECTEUR;
-
-   groptions.symmetrie = SYM;
-   c_ezsint(uuout,uuin);
-   groptions.symmetrie = ANTISYM;
-   c_ezsint(vvout,vvin);
-   groptions.symmetrie = SYM;
-
-   if (groptions.polar_correction == OUI)
-     {
-     ez_corrvec(uuout, vvout, uuin, vvin, &gridset[iset]);
-     }
-
-   uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-   vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-
-   c_ezgenerate_gem_cache();
+  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
    
-   c_gdwdfuv(gdidin, uullout, vvllout, uuout, vvout,
-             Grille[gdidout].lat, Grille[gdidout].lon, npts);
-   c_gduvfwd(gdidout, uuout, vvout, uullout, vvllout,
-             Grille[gdidout].lat, Grille[gdidout].lon, npts);
-
-   groptions.vecteur = SCALAIRE;
-   free(uullout);
-   free(vvllout);
-
-   return 0;
+  gdin = iset_gdin;
+  gdout= iset_gdout;
+  
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+  idx_gdin = c_find_gdin(gdin, gdout);
+  
+  npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
+  ier = ez_calclatlon(gdout);
+  
+  groptions.vecteur = VECTEUR;
+  
+  groptions.symmetrie = SYM;
+  c_ezsint(uuout,uuin);
+  groptions.symmetrie = ANTISYM;
+  c_ezsint(vvout,vvin);
+  groptions.symmetrie = SYM;
+  
+  if (groptions.polar_correction == OUI)
+    {
+    ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
+    }
+  
+  uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+  vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+  
+  c_ezgenerate_gem_cache();
+  
+  c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
+            Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
+  c_gduvfwd(gdout, uuout, vvout, uullout, vvllout,
+            Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
+  
+  groptions.vecteur = SCALAIRE;
+  free(uullout);
+  free(vvllout);
+  
+  return 0;
 }
 

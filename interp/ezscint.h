@@ -19,6 +19,12 @@
 #define SINLATLON_OK             1024
 #define ZONES                    2048
 
+#define GRID_GRAPE               1024
+#define GRID_CHUNK               1024
+
+#define GRID                      0
+#define CLOUD                     1
+
 #define SCALAIRE                  0
 #define VECTEUR                   1
 
@@ -29,8 +35,13 @@
 #define OUI                       1
 
 #define VOISIN                    0
+#define NEAREST                   0
 #define LINEAIRE                  1
+#define LINEAR                    1
 #define CUBIQUE                   3
+#define DISTANCE                  4
+#define TRIANGLE                  5
+#define LINEAR_AND_NEAREST        6
 
 #define EZ_EXTRAP                    1
 #define EZ_NO_EXTRAP                 0
@@ -94,6 +105,13 @@
 #define XLON1           1
 #define XLAT2           2
 #define XLON2           3
+/*
+#define CHUNK           512
+#define LOG2_CHUNK      9
+*/
+#define CHUNK           32
+#define LOG2_CHUNK      5
+#define MAX_LOG_CHUNK   12
 
 typedef struct
 {
@@ -105,29 +123,12 @@ typedef struct
 
 typedef struct
 {
-  wordint flags;
-  wordint i1, i2, j1, j2;
-  wordint ni,nj;
-  wordint nig, nxg;
-  wordint extension;
-  wordint needs_expansion;
-  wordint  ip1, ip2, ip3;
-  wordint date;
-  wordint npas, deet, nbits;
-  wordint hemisphere,axe_y_inverse,count;
-  ftnfloat xg[16], xgref[16];
-  wordint  ig[16], igref[16];
-  char nomvarx[8];
-  char nomvary[8];
-  char typvarx[4];
-  char typvary[4];
-  char etiketx[16];
-  char etikety[16];
-  char grtyp,grref;
+  wordint n_wts;          /* nombre de poids */
+  ftnfloat *xx, *yy;
   ftnfloat *lat, *lon;
-  ftnfloat *ax, *ay;
-  ftnfloat *ncx, *ncy;
-} _Grille;
+  ftnfloat *wts;              /* tableau de poids */
+  wordint *mask, *idx;               /* indice du point dans le champ de destination */
+} _ygrid;                     /* Grille Y */
 
 typedef struct
 {
@@ -136,29 +137,80 @@ typedef struct
   ftnfloat *sinlat_rot, *coslat_rot, *sinlon_rot, *coslon_rot;
   ftnfloat *sinlat_true, *coslat_true, *sinlon_true, *coslon_true;
   ftnfloat r[9], ri[9];
-} _geminfo;
+} _gemgrid;
 
 typedef struct
 {
   wordint flags;
-  wordint gdin, gdout;
   wordint use_sincos_cache;
-  ftnfloat *x, *y;
+  wordint gdin;
+  wordint next_gdin;
   ftnfloat valpolesud, valpolenord;
-  _geminfo gemin, gemout;
+  ftnfloat *x, *y;
+  wordint *mask_in, *mask_out;
+  _gemgrid gemin, gemout;
+  _ygrid ygrid;
   _zone zones[NZONES];
 }_gridset;
 
 typedef struct
+  {
+  wordint  ip1, ip2, ip3;
+  wordint date;
+  wordint npas, deet, nbits;
+  wordint hemisphere,axe_y_inverse;
+  ftnfloat xg[16], xgref[16];
+  wordint  ig[16], igref[16];
+  char fst_grtyp[4],fst_grref[4];
+  wordint key_ax, key_ay;
+  char nomvarx[8];
+  char nomvary[8];
+  char typvarx[4];
+  char typvary[4];
+  char etiketx[16];
+  char etikety[16];
+  } _fstinfo;
+
+typedef struct
 {
-  wordint damage_control;
-  wordint degre_interp;
-  wordint degre_extrap;
-  wordint symmetrie;
-  wordint vecteur;
-  wordint verbose;
-  wordint memory_use;
-  wordint polar_correction;
+  wordint index;
+  wordint flags;
+  wordint i1, i2, j1, j2;
+  wordint ni,nj;
+  wordint nig, nxg;
+  wordint extension;
+  wordint needs_expansion;
+  wordint access_count;
+  wordint structured;
+  wordint next_gd;
+  wordint n_gdin, next_gdin, idx_last_gdin, n_gdin_for;
+  wordint log_chunk_gdin, log_chunk_gdin_for;
+  char grtyp[4], grref[4];
+  _fstinfo fst;
+  ftnfloat *lat, *lon;
+  ftnfloat *ax, *ay;
+  ftnfloat *ncx, *ncy;
+  wordint *gdin_for, *mask;
+  _gridset *gset;
+} _Grille;
+
+
+typedef struct
+{
+  wordint  damage_control;
+  wordint  degre_interp;
+  wordint  degre_extrap;
+  wordint  symmetrie;
+  wordint  vecteur;
+  wordint  verbose;
+  wordint  memory_use;
+  wordint  polar_correction;
+  wordint  wgt_num;
+  wordint  msg_pt_tol;
+  wordint  cld_interp_alg;
+  wordint  msg_interp_alg;
+  ftnfloat msg_gridpt_dist;
+  ftnfloat msg_dist_thresh;
   ftnfloat valeur_extrap;
 }_groptions;
 

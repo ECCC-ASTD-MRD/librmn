@@ -24,11 +24,14 @@
 
 wordint c_ezgenerate_gem_cache()
 {
-
-  /* Cette routine accelere la rotation des vents lorsque une des grilles d'une
+return 0;
+}
+/*
+   Cette routine accelere la rotation des vents lorsque une des grilles d'une
      paire "gdin-gdout" est de type GEM
-   */
+*/
 
+/*
    wordint gdidin, gdidout,npts;
    ftnfloat xlat1, xlon1, xlat2, xlon2;
 
@@ -40,18 +43,19 @@ wordint c_ezgenerate_gem_cache()
    gdidin = gridset[iset].gdin;
    gdidout= gridset[iset].gdout;
    npts = Grille[gdidout].ni*Grille[gdidout].nj;
-   
+
    ez_calclatlon(gdidin);
    ez_calclatlon(gdidout);
 
-   /* latp, lon_true : latlon sur la terre (coordonnees naturelles)
+    latp, lon_true : latlon sur la terre (coordonnees naturelles)
       lat, lon   : latlon TOURNEES
-   */
-
+*/
+/*
    if ((((Grille[gdidout].grtyp == 'Z' || Grille[gdidout].grtyp == '#') && Grille[gdidout].grref == 'E') || (Grille[gdidout].grtyp == 'E'))
        && !(gridset[iset].gemout.flags & SINLATLON_OK))
       {
-      /*      fprintf(stderr,"%d %d %d\n", gridset[iset].gemout.flags, SINLATLON_OK, !(gridset[iset].gemout.flags & SINLATLON_OK));*/
+            fprintf(stderr,"%d %d %d\n", gridset[iset].gemout.flags, SINLATLON_OK, !(gridset[iset].gemout.flags & SINLATLON_OK));
+
       gridset[iset].gemout.lat_true = Grille[gdidout].lat;
       gridset[iset].gemout.lon_true = Grille[gdidout].lon;
       gridset[iset].gemout.lat_rot = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
@@ -64,8 +68,8 @@ wordint c_ezgenerate_gem_cache()
       gridset[iset].gemout.coslon_rot  = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
       gridset[iset].gemout.sinlon_true = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
       gridset[iset].gemout.coslon_true = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      
-      if (Grille[gdidout].grtyp == 'Z' || Grille[gdidout].grtyp == '#') 
+
+      if (Grille[gdidout].grtyp == 'Z' || Grille[gdidout].grtyp == '#')
          {
 	 c_ezgfxyfll(gridset[iset].gemout.lon_true,gridset[iset].gemout.lat_true,
 		     gridset[iset].gemout.lon_rot,gridset[iset].gemout.lat_rot,
@@ -82,7 +86,7 @@ wordint c_ezgenerate_gem_cache()
 		     &Grille[gdidout].xg[XLAT2], &Grille[gdidout].xg[XLON2]);
          }
 
-      f77name(ezsincoslatlon)(gridset[iset].gemout.lat_rot, gridset[iset].gemout.lon_rot, 
+      f77name(ezsincoslatlon)(gridset[iset].gemout.lat_rot, gridset[iset].gemout.lon_rot,
                               gridset[iset].gemout.sinlat_rot, gridset[iset].gemout.sinlon_rot,
                               gridset[iset].gemout.coslat_rot,gridset[iset].gemout.coslon_rot, &npts);
       f77name(ezsincoslatlon)(gridset[iset].gemout.lat_true, gridset[iset].gemout.lon_true,
@@ -90,10 +94,10 @@ wordint c_ezgenerate_gem_cache()
                               gridset[iset].gemout.coslat_true,gridset[iset].gemout.coslon_true, &npts);
       gridset[iset].gemout.flags |= LATLON_PRIME_OK;
       gridset[iset].gemout.flags |= SINLATLON_OK;
-      /*      fprintf(stderr,"%d %d %d\n", gridset[iset].gemout.flags, SINLATLON_OK, !(gridset[iset].gemout.flags & SINLATLON_OK)); */
+            fprintf(stderr,"%d %d %d\n", gridset[iset].gemout.flags, SINLATLON_OK, !(gridset[iset].gemout.flags & SINLATLON_OK));
       }
-   
-   if ((((Grille[gdidin].grtyp == 'Z' || Grille[gdidin].grtyp == '#') && Grille[gdidin].grref == 'E') || Grille[gdidin].grtyp == 'E')
+*/
+/*   if ((((Grille[gdidin].grtyp == 'Z' || Grille[gdidin].grtyp == '#') && Grille[gdidin].grref == 'E') || Grille[gdidin].grtyp == 'E')
        && !(gridset[iset].gemin.flags & SINLATLON_OK))
       {
       gridset[iset].gemin.lat_true = Grille[gdidout].lat;
@@ -108,9 +112,9 @@ wordint c_ezgenerate_gem_cache()
       gridset[iset].gemin.coslon_rot  = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
       gridset[iset].gemin.sinlon_true = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
       gridset[iset].gemin.coslon_true = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      
 
-      if (Grille[gdidin].grtyp == 'Z' || Grille[gdidin].grtyp == '#') 
+
+      if (Grille[gdidin].grtyp == 'Z' || Grille[gdidin].grtyp == '#')
          {
 	 c_ezgfxyfll(gridset[iset].gemin.lon_true,gridset[iset].gemin.lat_true,
 		     gridset[iset].gemin.lon_rot,gridset[iset].gemin.lat_rot,
@@ -127,7 +131,7 @@ wordint c_ezgenerate_gem_cache()
 		     &Grille[gdidin].xg[XLAT2], &Grille[gdidin].xg[XLON2]);
          }
 
-      f77name(ezsincoslatlon)(gridset[iset].gemin.lat_rot, gridset[iset].gemin.lon_rot, 
+      f77name(ezsincoslatlon)(gridset[iset].gemin.lat_rot, gridset[iset].gemin.lon_rot,
                        gridset[iset].gemin.sinlat_rot, gridset[iset].gemin.sinlon_rot,
                        gridset[iset].gemin.coslat_rot,gridset[iset].gemin.coslon_rot, &npts);
       f77name(ezsincoslatlon)(gridset[iset].gemin.lat_true, gridset[iset].gemin.lon_rot,
@@ -136,6 +140,8 @@ wordint c_ezgenerate_gem_cache()
       gridset[iset].gemin.flags |= LATLON_PRIME_OK;
       gridset[iset].gemin.flags |= SINLATLON_OK;
       }
-
-  return 0;
+*/
+/*  return 0;*/
+/*
 }
+*/

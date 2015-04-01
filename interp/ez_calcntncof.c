@@ -23,28 +23,28 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcntncof(wordint gdid)
+void ez_calcntncof(wordint gdid)
 {
-  wordint nni, nnj, ier;
+  wordint nni, nnj, gdcol, gdrow;
   
-  if (Grille[gdid].flags & NEWTON)
+  c_gdkey2rowcol(gdid, &gdrow, &gdcol);
+  if (Grille[gdrow][gdcol].flags & NEWTON)
     return;
 
-  nni = Grille[gdid].ni;
-  nnj = Grille[gdid].j2 - Grille[gdid].j1 + 1;
+  nni = Grille[gdrow][gdcol].ni;
+  nnj = Grille[gdrow][gdcol].j2 - Grille[gdrow][gdcol].j1 + 1;
 
-  if (Grille[gdid].grtyp == (char)'Y') return;
-  Grille[gdid].ncx = (ftnfloat *) malloc(nni*6*sizeof(ftnfloat));
-  Grille[gdid].ncy = (ftnfloat *) malloc(nnj*6*sizeof(ftnfloat));
-  ier = f77name(ez_nwtncof)(Grille[gdid].ncx,Grille[gdid].ncy,
-		      Grille[gdid].ax,Grille[gdid].ay,
-		      &Grille[gdid].ni, &Grille[gdid].nj,
-		      &Grille[gdid].i1, &Grille[gdid].i2, 
-		      &Grille[gdid].j1, &Grille[gdid].j2,
-		      &Grille[gdid].extension);
-  if (ier < 0) return -1;
-  Grille[gdid].flags |= NEWTON;
-  return 0;
+  if (Grille[gdrow][gdcol].grtyp[0] == (char)'Y') return;
+  Grille[gdrow][gdcol].ncx = (ftnfloat *) malloc(nni*6*sizeof(ftnfloat));
+  Grille[gdrow][gdcol].ncy = (ftnfloat *) malloc(nnj*6*sizeof(ftnfloat));
+  f77name(ez_nwtncof)(Grille[gdrow][gdcol].ncx,Grille[gdrow][gdcol].ncy,
+		      Grille[gdrow][gdcol].ax,Grille[gdrow][gdcol].ay,
+		      &Grille[gdrow][gdcol].ni, &Grille[gdrow][gdcol].nj,
+		      &Grille[gdrow][gdcol].i1, &Grille[gdrow][gdcol].i2, 
+		      &Grille[gdrow][gdcol].j1, &Grille[gdrow][gdcol].j2,
+		      &Grille[gdrow][gdcol].extension);
+  
+  Grille[gdrow][gdcol].flags |= NEWTON;
   
   
 }

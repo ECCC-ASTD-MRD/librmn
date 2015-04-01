@@ -72,22 +72,26 @@ wordint c_ezgfstp(wordint gdid, char *nomvarx, char *typvarx, char *etiketx,
               char *nomvary, char *typvary, char *etikety,
               wordint *ip1, wordint *ip2, wordint *ip3, wordint *dateo, wordint *deet, wordint *npas, wordint *nbits)
 {
-   strcpy(nomvarx, Grille[gdid].nomvarx);
-   strcpy(typvarx, Grille[gdid].typvarx);
-   strcpy(etiketx, Grille[gdid].etiketx);
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   
+   strcpy(nomvarx, Grille[gdrow_id][gdcol_id].fst.nomvarx);
+   strcpy(typvarx, Grille[gdrow_id][gdcol_id].fst.typvarx);
+   strcpy(etiketx, Grille[gdrow_id][gdcol_id].fst.etiketx);
 
-   strcpy(nomvary, Grille[gdid].nomvary);
-   strcpy(typvary, Grille[gdid].typvary);
-   strcpy(etikety, Grille[gdid].etikety);
+   strcpy(nomvary, Grille[gdrow_id][gdcol_id].fst.nomvary);
+   strcpy(typvary, Grille[gdrow_id][gdcol_id].fst.typvary);
+   strcpy(etikety, Grille[gdrow_id][gdcol_id].fst.etikety);
 
-   *ip1 = Grille[gdid].ip1;
-   *ip2 = Grille[gdid].ip2;
-   *ip3 = Grille[gdid].ip3;
+   *ip1 = Grille[gdrow_id][gdcol_id].fst.ip1;
+   *ip2 = Grille[gdrow_id][gdcol_id].fst.ip2;
+   *ip3 = Grille[gdrow_id][gdcol_id].fst.ip3;
 
-   *dateo = Grille[gdid].date;
-   *deet = Grille[gdid].deet;
-   *npas = Grille[gdid].npas;
-   *nbits = Grille[gdid].nbits;
+   *dateo = Grille[gdrow_id][gdcol_id].fst.date;
+   *deet = Grille[gdrow_id][gdcol_id].fst.deet;
+   *npas = Grille[gdrow_id][gdcol_id].fst.npas;
+   *nbits = Grille[gdrow_id][gdcol_id].fst.nbits;
 
    return 0;
 }

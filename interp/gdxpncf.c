@@ -32,12 +32,15 @@ wordint f77name(gdxpncf)(wordint *gdin, wordint *i1, wordint *i2, wordint *j1, w
 
 wordint c_gdxpncf(wordint gdin, wordint *i1, wordint *i2, wordint *j1, wordint *j2)
 {
+  wordint gdrow_in, gdcol_in;
+    
   if (gdin < 0 || gdin >= nGrilles) return -1;
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
   
-  *i1 = Grille[gdin].i1;
-  *i2 = Grille[gdin].i2;
-  *j1 = Grille[gdin].j1;
-  *j2 = Grille[gdin].j2;
+  *i1 = Grille[gdrow_in][gdcol_in].i1;
+  *i2 = Grille[gdrow_in][gdcol_in].i2;
+  *j1 = Grille[gdrow_in][gdcol_in].j1;
+  *j2 = Grille[gdrow_in][gdcol_in].j2;
   return 0;
 }
     

@@ -23,19 +23,19 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef_fmem)(wordint *ni, wordint *nj, char *grtyp, char *grref, 
-			      wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, 
+wordint f77name(ezgdef_fmem)(wordint *ni, wordint *nj, char *grtyp, char *grref,
+			      wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
 			      ftnfloat *ax, ftnfloat *ay, wordint lengrtyp, wordint lengrref)
 {
   wordint icode;
   char lgrtyp[2],lgrref[2];
-  
+
   lgrtyp[0] = grtyp[0];
   lgrtyp[1] = '\0';
-  
+
   lgrref[0] = grref[0];
   lgrref[1] = '\0';
-  
+
   icode = c_ezgdef_fmem(*ni, *nj, lgrtyp, lgrref, *ig1, *ig2, *ig3, *ig4, ax, ay);
   return icode;
 }
@@ -44,30 +44,43 @@ wordint c_ezgdef_fmem(wordint ni, wordint nj, char *grtyp, char *grref,
 		      wordint ig1, wordint ig2, wordint ig3, wordint ig4, ftnfloat *ax, ftnfloat *ay)
 {
   wordint gdid;
-  
+  wordint gdrow_id, gdcol_id;
 
-  gdid = c_ezidentifygrid(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, ax, ay);
-  c_ezdefxg(gdid);
-  c_ezdefaxes(gdid, ax, ay);
 
- 
+   if (grtyp[0] == '#' || grtyp[0] == 'Y' || grtyp[0] == 'Z' || grtyp[0] == 'G')
+      {
+      gdid = c_ezidentify_irreg_grid(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, ax, ay);
+      c_ezdefxg(gdid);
+      c_ezdefaxes(gdid, ax, ay);
+      }
+   else
+      {
+      gdid = c_ezidentify_reg_grid(ni, nj, grtyp, ig1, ig2, ig3, ig4);
+      c_ezdefxg(gdid);
+      }
+
+  ez_calcxpncof(gdid);
+
+
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
   if (groptions.verbose > 0)
     {
     printf("Gdid = %02d\n", gdid);
-    printf("Grille[%02d].grtyp = '%c'\n", gdid, Grille[gdid].grtyp);
-    printf("Grille[%02d].ni    = %d\n",   gdid, Grille[gdid].ni);
-    printf("Grille[%02d].nj    = %d\n",   gdid, Grille[gdid].nj);
-    printf("Grille[%02d].ig[IG1]   = %d\n",   gdid, Grille[gdid].ig[IG1]);
-    printf("Grille[%02d].ig[IG2]   = %d\n",   gdid, Grille[gdid].ig[IG2]);
-    printf("Grille[%02d].ig[IG3]   = %d\n",   gdid, Grille[gdid].ig[IG3]);
-    printf("Grille[%02d].ig[IG4]   = %d\n",   gdid, Grille[gdid].ig[IG4]);
-    printf("Grille[%02d].grref = '%c'\n", gdid, Grille[gdid].grref);
-    printf("Grille[%02d].igref[IG1]= %d\n",   gdid, Grille[gdid].igref[IG1]);
-    printf("Grille[%02d].igref[IG2]= %d\n",   gdid, Grille[gdid].igref[IG2]);
-    printf("Grille[%02d].igref[IG3]= %d\n",   gdid, Grille[gdid].igref[IG3]);
-    printf("Grille[%02d].igref[IG4]= %d\n",   gdid, Grille[gdid].igref[IG4]);
+    printf("Grille[%02d].grtyp = '%c'\n", gdid, Grille[gdrow_id][gdcol_id].grtyp[0]);
+    printf("Grille[%02d].ni    = %d\n",   gdid, Grille[gdrow_id][gdcol_id].ni);
+    printf("Grille[%02d].nj    = %d\n",   gdid, Grille[gdrow_id][gdcol_id].nj);
+    printf("Grille[%02d].ig[IG1]   = %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.ig[IG1]);
+    printf("Grille[%02d].ig[IG2]   = %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.ig[IG2]);
+    printf("Grille[%02d].ig[IG3]   = %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.ig[IG3]);
+    printf("Grille[%02d].ig[IG4]   = %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.ig[IG4]);
+    printf("Grille[%02d].grref = '%c'\n", gdid, Grille[gdrow_id][gdcol_id].grref);
+    printf("Grille[%02d].igref[IG1]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG1]);
+    printf("Grille[%02d].igref[IG2]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG2]);
+    printf("Grille[%02d].igref[IG3]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG3]);
+    printf("Grille[%02d].igref[IG4]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
     }
-  
+
   return gdid;
 }
 

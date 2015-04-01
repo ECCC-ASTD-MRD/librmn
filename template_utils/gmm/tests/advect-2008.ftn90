@@ -1,0 +1,190 @@
+
+      program advect
+!
+!     andre robert.     octobre 1984.
+!
+!     translation en une dimension. etude de
+!     l'instabilite numerique et des problemes
+!     associes aux frontieres laterales.
+!
+!     c=u*dt/dx   nombre de courant.
+!     ni=nombre de points de grille.
+!     nc=0 courbe plate f(i)=50.0
+!     nc=1 courbe gaussienne.
+!     ns=0 point de sortie fixe f(ni)=0
+!     ns=1 point de sortie variable en fonction du temps.
+!     nr=run number.
+!
+   integer lni
+
+   call initwindow
+   c=1.2
+   ni=241
+   nc=1
+   ns=0
+   nr=1
+   nsteps=101
+!
+!     cas #1  integration instable.
+!  call runadv (c,ni,nc,ns,nr,nsteps)
+!
+!     cas #2  integration stable.
+!     call runadv (0.5,ni,nc,ns,2,nsteps)
+!
+!     cas #3  probleme a la frontiere de sortie.
+!
+   lni = 101
+   call runadv (0.5,lni,nc,ns,3,nsteps)
+!
+!     cas #4  probleme avec courbe plate.
+!     lni = 101
+!     call runadv (0.5,lni,0,ns,4,nsteps)
+!
+!     cas #5  frontiere de sortie variable.
+!     lni = 101
+!     call runadv (0.5,lni,1,1,5,nsteps)
+!
+   stop
+   end
+
+   subroutine runadv (c,ni,nc,ns,nr,nsteps)
+   dimension f(ni, nsteps),x(nsteps)
+!
+!     andre robert.     octobre 1984.
+!
+   call data1 (f,ni,nsteps,nc,nr)
+!
+   call model (f,ni,nsteps,c,ns)
+!
+   do n=1,ni
+     x(n)=n
+   enddo
+!
+   do i=1,nsteps
+      call courbe (x,f(1,i),ni,i)
+   enddo
+!
+   return
+   end
+
+   subroutine data1 (f,ni,nt,nc,nr)
+   dimension f(ni,nt)
+!
+!     andre robert.     octobre 1984.
+!
+   a=8.0
+   if (nr.ge.3) a=20.0
+   i0=81
+   if (nr.ge.3) i0=51
+   nim=ni-1
+!
+   do n=1,nt
+      f(1,n)=0.0
+      f(ni,n)=0.0
+   enddo
+!
+   do i=2,nim
+      f(i,1)=100*exp(-(i-i0)**2/(a*a))
+      if (nc.eq.0) f(i,1)=50.0
+   enddo
+!
+   return
+   end
+
+   subroutine model (f,ni,nt,c,ns)
+   dimension f(ni,nt)
+!
+!     andre robert.     octobre 1984.
+!
+   nim=ni-1
+!
+   do i=2,nim
+      f(i,2)=f(i,1)-c/2.0*(f(i+1,1)-f(i-1,1))
+   enddo
+!
+!
+    do n=2,nt-1
+      do i=2,nim
+         f(i,n+1)=f(i,n-1)-c*(f(i+1,n)-f(i-1,n))
+      enddo
+    enddo
+!
+   return
+   end
+
+
+   subroutine initwindow
+
+   integer blanc, noir, rouge, cyan, jaune, magnta
+   integer vert, bleu, gris
+   integer bgauch, bmlieu, bdroit, btous, nil
+
+
+   parameter ( blanc   =  0)
+   parameter ( noir    =  1)
+   parameter ( rouge   =  2)
+   parameter ( cyan    =  3)
+   parameter ( jaune   =  4)
+   parameter ( magnta  =  5)
+   parameter ( vert    =  6)
+   parameter ( bleu    =  7)
+   parameter ( gris    =  8)
+
+   integer wglopw,winid
+   external wglopw
+
+!===== GRAPHIC INITIALIZE =========
+!
+   call wglscon('x')
+   call wglpsz(800, 400)
+   winid = wglopw('cip_1D')
+   call wglias(.false.)
+   call wglssp(0.,-125.0,250.,125.0,0,0,0,0,0)
+   call wglias(.false.)
+   call wglcol(BLANC)
+   call wglclr
+   call wgldbf
+   call wglbbf
+   call wglfsh
+
+   end subroutine initwindow
+
+!  ************************
+   subroutine courbe(x,fx,nx,istep)
+!   ************************
+!
+   integer nx,istep
+   integer wglbtn
+   integer bgauch
+   real, dimension(:) :: x(nx), fx(nx)
+   dimension f1(nx)
+   dimension xx(nx),yy(nx)
+   dimension xa(nx),ya(nx)
+
+   character(len=14) :: nom_fichier
+   character(len=4) :: cstep
+!
+!     call gsmksc(0.03)
+
+   call wglcol(0)
+   call wglclr
+
+   call wglcol(1)
+!
+
+  call wglmvx(x(1),fx(1))
+  call wgldrx(x(2),fx(2))
+   call wglrlx(0.0,-110.0,250.0,110.0)
+   do i=2,nx
+     call wglmvx(x(i-1),fx(i-1))
+     call wgldrx(x(i),fx(i))
+   enddo
+
+   call wglfsh
+   call wglswb
+
+   write(nom_fichier,'(a5,i4.4,a4)') 'image',istep,'.png'
+   print *, nom_fichier
+   call create_image(nom_fichier)
+   return
+   end

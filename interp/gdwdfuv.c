@@ -39,31 +39,37 @@ wordint c_gdwdfuv(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnfloat *u
    wordint ni, nj, use_sincos_cache;
    ftnfloat *lat_rot, *lon_rot;
 
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   
+   
    ni = npts;
    nj = 1;
 
    memcpy(spd_out, uuin, npts*sizeof(ftnfloat));
    memcpy(wd_out, vvin, npts*sizeof(ftnfloat));
 
-   if (iset == -1)
-     {
-     use_sincos_cache = NON;
-     }
-   else
-     {
-     if (gridset[iset].gemin.lat_true == NULL || gridset[iset].use_sincos_cache == NON)
-       {
-       use_sincos_cache = NON;
-       }
-     else
-       {
-       use_sincos_cache = OUI;
-       }
-     }
+/*   
+    if (iset == -1)
+      {
+      use_sincos_cache = NON;
+      }
+    else
+      {
+      if ([gdrow_id][gdcol_id].gset[idx_gdin].gemin.lat_true == NULL || [gdrow_id][gdcol_id].gset[idx_gdin].use_sincos_cache == NON)
+        {
+        use_sincos_cache = NON;
+        }
+      else
+        {
+        use_sincos_cache = OUI;
+        }
+      }
+*/
 
-
-   use_sincos_cache = NON;
-   switch (Grille[gdid].grtyp)
+  use_sincos_cache = NON;
+   switch (Grille[gdrow_id][gdcol_id].grtyp[0])
      {
      case 'E':
        if (use_sincos_cache == NON)
@@ -71,100 +77,57 @@ wordint c_gdwdfuv(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnfloat *u
         lat_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
         lon_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
         f77name(ez_gfxyfll)(lonin, latin, lon_rot,lat_rot, &ni,
-                &Grille[gdid].xg[XLAT1],&Grille[gdid].xg[XLON1],
-                &Grille[gdid].xg[XLAT2],&Grille[gdid].xg[XLON2]);
+                            &Grille[gdrow_id][gdcol_id].fst.xg[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xg[XLON1],
+                            &Grille[gdrow_id][gdcol_id].fst.xg[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xg[XLON2]);
         
         c_ezllwfgfw(spd_out,wd_out, latin,lonin, lat_rot,lon_rot,
-              &ni,&nj,&Grille[gdid].grtyp,
-              &Grille[gdid].ig[IG1],&Grille[gdid].ig[IG2],
-              &Grille[gdid].ig[IG3],&Grille[gdid].ig[IG4]);
+                    &ni,&nj,Grille[gdrow_id][gdcol_id].grtyp,
+                    &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
+                    &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4]);
         free(lat_rot);
         free(lon_rot);
         return 0;
-        }
-       else
-        {
-        /* uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-        xyz    = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-          c_ezllwfgfw(spd_out,wd_out, latin, lonin,
-          gridset[iset].gemin.lat_rot, gridset[iset].gemin.lon_rot, 
-          &ni,&nj,&Grille[gdid].grtyp,
-          &Grille[gdid].ig[IG1],&Grille[gdid].ig[IG2],
-          &Grille[gdid].ig[IG3],&Grille[gdid].ig[IG4]);
-        */
-        uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-        xyz    = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-        c_llwfgfw_turbo(spd_out,wd_out, latin, lonin,
-            gridset[iset].gemin.lat_rot, gridset[iset].gemin.lon_rot, uvcart, xyz,
-            gridset[iset].gemin.sinlat_true, gridset[iset].gemin.sinlon_true, gridset[iset].gemin.coslat_true, gridset[iset].gemin.coslon_true,
-            gridset[iset].gemin.sinlat_rot, gridset[iset].gemin.sinlon_rot, gridset[iset].gemin.coslat_rot, gridset[iset].gemin.coslon_rot,
-            gridset[iset].gemin.r, gridset[iset].gemin.ri, &ni,&nj,
-            &Grille[gdid].grref, &Grille[gdid].igref[IG1],&Grille[gdid].igref[IG2], &Grille[gdid].igref[IG3],&Grille[gdid].igref[IG4]);
-        free(uvcart);
-        free(xyz);
         }
        break;
        
      case '#':
      case 'Y':
      case 'Z':
-       switch(Grille[gdid].grref)
-        {
-        case 'E':
-          if (use_sincos_cache == NON)
-            {
-            lat_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
-            lon_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
-            f77name(ez_gfxyfll)(lonin,latin,lon_rot, lat_rot, &ni,
-              &Grille[gdid].xgref[XLAT1],&Grille[gdid].xgref[XLON1],
-              &Grille[gdid].xgref[XLAT2],&Grille[gdid].xgref[XLON2]);
-            
-            c_ezllwfgfw(spd_out,wd_out,latin,lonin,lat_rot, lon_rot, 
-                &ni,&nj,&Grille[gdid].grref,
-                &Grille[gdid].igref[IG1],&Grille[gdid].igref[IG2],
-                &Grille[gdid].igref[IG3],&Grille[gdid].igref[IG4]);
-            free(lat_rot);
-            free(lon_rot);
-            return 0;
-            }
-          else
-            {
-            uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-            xyz    = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-            c_llwfgfw_turbo(spd_out,wd_out, latin, lonin,
-                gridset[iset].gemin.lat_rot, gridset[iset].gemin.lon_rot, uvcart, xyz,
-                gridset[iset].gemin.sinlat_rot, gridset[iset].gemin.sinlon_rot, gridset[iset].gemin.coslat_rot, gridset[iset].gemin.coslon_rot,
-                gridset[iset].gemin.sinlat_true, gridset[iset].gemin.sinlon_true, gridset[iset].gemin.coslat_true, gridset[iset].gemin.coslon_true,
-                gridset[iset].gemin.r, gridset[iset].gemin.ri, &ni,&nj,
-                &Grille[gdid].grref, &Grille[gdid].igref[IG1],&Grille[gdid].igref[IG2], &Grille[gdid].igref[IG3],&Grille[gdid].igref[IG4]);
-            free(uvcart);
-            free(xyz);
-            /*       c_ezllwfgfw(spd_out,wd_out, latin, lonin,
-              gridset[iset].gemin.lat_rot, gridset[iset].gemin.lon_rot, 
-              &ni,&nj,&Grille[gdid].grref,
-              &Grille[gdid].igref[IG1],&Grille[gdid].igref[IG2],
-              &Grille[gdid].igref[IG3],&Grille[gdid].igref[IG4]);
-            */
-            }
-          break;
-     
+       switch(Grille[gdrow_id][gdcol_id].grref[0])
+	 {
+	 case 'E':
+	     lat_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
+	     lon_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
+	     f77name(ez_gfxyfll)(lonin,latin,lon_rot, lat_rot, &ni,
+				 &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON1],
+				 &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON2]);
+	     
+	     c_ezllwfgfw(spd_out,wd_out,latin,lonin,lat_rot, lon_rot, 
+			 &ni,&nj,Grille[gdrow_id][gdcol_id].grref,
+			 &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
+			 &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
+	     free(lat_rot);
+	     free(lon_rot);
+	     return 0;
+	   break;
+	   
 
-          default:
-            f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
-                    &ni,&nj,
-                    &Grille[gdid].grref,
-                    &Grille[gdid].igref[IG1],&Grille[gdid].igref[IG2],
-                    &Grille[gdid].igref[IG3],&Grille[gdid].igref[IG4]);
-            break;
-          }
+	 default:
+	   f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
+			       &ni,&nj,
+			       &Grille[gdrow_id][gdcol_id].grref,
+			       &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
+			       &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
+	   break;
+	 }
        break;
        
      default:
        f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
-        &ni,&nj,
-        &Grille[gdid].grtyp,
-        &Grille[gdid].ig[IG1],&Grille[gdid].ig[IG2],
-        &Grille[gdid].ig[IG3],&Grille[gdid].ig[IG4]);
+			   &ni,&nj,
+			   &Grille[gdrow_id][gdcol_id].grtyp,
+			   &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
+			   &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4]);
        break;
      }
    

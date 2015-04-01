@@ -58,7 +58,7 @@ c
         external RPN_COMM_group
 
         RPN_COMM_ngrank=.false.
-        if(group.lt.0) return
+c!!!!!!!if(group.lt.0) return
         call MPI_Group_rank(group,rank,ierr)
 	if(rank /= MPI_UNDEFINED) then
            RPN_COMM_ngrank=.true.

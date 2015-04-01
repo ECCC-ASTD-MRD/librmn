@@ -1,0 +1,1465 @@
+#define INTERFACEONLY
+#define DEBUG_MODE
+
+#include <LICENSE_RMNLIB_f90>
+
+!!===================== gmm modules =====================
+#ifndef INTERFACEONLY
+         module gmm_internals_yrc
+          integer :: file_unit=0
+          logical :: restart_mode=.false.
+          integer :: ordinal=0             ! total number of array creations
+         end module gmm_internals_yrc
+#include "gmm_definitions_interface.cdk"
+#endif
+!
+!!===================== gmm_create_yrc =====================
+#ifdef INTERFACEONLY
+!
+         interface gmm_create_yrc
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  end function Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+  end interface
+#endif
+
+#ifndef INTERFACEONLY
+         interface gmm_create_yrc
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+         module procedure Cat(gmm_create_yrc,EXTENSION,)
+#undef EXTENSION
+#undef EXTENSIONT
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+         end interface
+#endif
+#ifndef INTERFACEONLY           
+           type directory_page_yrc
+             type(metadata_yrc), dimension(:), pointer :: entry_yrc
+           end type
+           type(directory_page_yrc), dimension(MAX_PAGES) :: directory_yrc
+
+           integer :: used=0                ! total number of entries in directory
+           integer :: table_size=0          ! number of pages in directory
+           integer :: cur_page=0            ! temporary, set by add_directory_entry
+           integer :: cur_entry=0           ! temporary, set by add_directory_entry
+           integer :: last_entry=PAGE_SIZE  ! last entry in last page
+
+!
+! QUICK entry locator (by name)
+! check if key points to name, upon exit cur_page and cur_entry are nonzero if this is true
+! name is a character string
+! key is a 64 bit opaque number assigned at field creation time
+! key = (1+pagenumber)<<PAGE_NB_SHFT + ((1+entrynumber)<<NTRY_NB_SHFT + other information
+! ==========================================================================================
+           subroutine check_directory_entry_yrc(name,key)
+           implicit none
+           character(len=*) :: name
+           integer*8, intent(in) :: key
+!
+           integer temp
+           logical found
+!
+           temp = ishft(key,-PAGE_NB_SHFT)
+           cur_page = iand(PAGE_NB_MASK,temp)
+           cur_page = min(cur_page+1,table_size)    ! keep page number below number of pages in directory
+           temp = ishft(key,-NTRY_NB_SHFT)
+           cur_entry = iand(NTRY_NB_MASK,temp)
+           cur_entry = min(cur_entry+1,PAGE_SIZE)   ! keep entry number <= directory page size
+           found = key .eq. directory_yrc(cur_page)%entry_yrc(cur_entry)%a%key
+           found = found .and. ( directory_yrc(cur_page)%entry_yrc(cur_entry)%a%name .eq. name )
+           if(.not. found) then
+             cur_page = 0      ! NOT FOUND, return zeroes
+             cur_entry = 0
+           endif
+           return
+           end subroutine check_directory_entry_yrc
+!!
+! find entry called name in directory starting from beginning of directory (the hard way)
+! upon exit cur_page and cur_entry are nonzero if desired entry found
+! ==============================================================================================
+           subroutine find_directory_entry_yrc(name)
+           implicit none
+           character(len=*) :: name
+           integer :: i
+!
+#ifdef DEBUG_MODE
+  print *,'looking for name=',name,'='
+#endif
+           cur_page = 1
+           cur_entry = 1
+           do i=1,used
+#ifdef DEBUG_MODE
+!  print *,'name in table=',directory(cur_page)%entry(cur_entry)%m%a%name,'='
+#endif
+             if(directory_yrc(cur_page)%entry_yrc(cur_entry)%a%name .eq. name) return
+             cur_entry = cur_entry + 1
+             if(cur_entry .gt. PAGE_SIZE) then
+               cur_page = cur_page + 1
+               cur_entry = 1
+             endif
+           enddo
+           cur_page = 0      ! NOT FOUND, return zeroes
+           cur_entry = 0
+           return
+           end subroutine find_directory_entry_yrc
+!
+! locate/create a new properly initialized entry in directory
+! ==============================================================================================
+           subroutine add_directory_entry_yrc
+           implicit none
+           integer :: i
+!
+           if( table_size .eq. 0 ) then  ! first time around, nullify all pointers
+             do i=1,MAX_PAGES
+               nullify(directory_yrc(i)%entry_yrc)
+             enddo
+           endif
+!
+           used = used + 1
+           last_entry = last_entry +1
+           if( last_entry .gt. PAGE_SIZE ) then  ! need new directory page ?
+             table_size = table_size + 1         ! YES add page and initialize entries
+             last_entry = 1
+             if(table_size .le. MAX_PAGES) then  ! directory overflow ?
+               allocate(directory_yrc(table_size)%entry_yrc(PAGE_SIZE))
+             else                                ! OOPS, yes
+!               print *,'ERROR: too many entries in directory for type=',EXTENSION
+               call qqexit(1)
+             endif
+             do i=1,PAGE_SIZE                    ! initialize directory entries
+!               nullify( directory_yrc(table_size)%entry_yrc(i)%f )      ! invalid array pointer
+               directory_yrc(table_size)%entry_yrc(i)%l = NULL_LAYOUT ! invalid layout
+               directory_yrc(table_size)%entry_yrc(i)%a = NULL_ATTRIB ! null attributes
+             enddo
+             cur_entry = 1
+           else
+             cur_entry = last_entry
+           endif
+           cur_page = table_size
+           return
+           end subroutine add_directory_entry_yrc
+!
+#endif
+
+#ifndef INTERFACEONLY
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3,#4
+#define CODE #1;#2;#3;#4
+#define DIM 4
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2,#3
+#define CODE #1;#2;#3
+#define DIM 3
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1,#2
+#define CODE #1;#2
+#define DIM 2
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE integer
+#define DATACODE 1
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 8
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#define Cat #1#2#3#4#5#6
+#define DIMS #1
+#define CODE #1
+#define DIM 1
+#define DATATYPE real
+#define DATACODE 2
+#define DATALENGTH 4
+#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
+#define EXTENSIONT Cat(DATATYPE,_,DATALENGTH,_,DIM,D)
+  integer function Cat(gmm_create_yrc,EXTENSION,)(iname,p,field_meta)
+  use gmm_internals_yrc
+  implicit none
+  DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+  type(metadata_yrc), intent(in) :: field_meta               ! attributes (name in attributes is not used)
+  character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
+  type(attributes) :: localattr, attrs
+  type (attributes) lcl_attr
+  type(layout), dimension(4) :: lcl_layout, dims
+  integer lcl_datatype
+  integer*8 :: key                      ! fast lookup key
+  logical consistent
+  integer i
+    
+  lcl_layout = field_meta%l
+  dims = lcl_layout
+  lcl_attr   = field_meta%a
+  attrs = lcl_attr
+  lcl_datatype = EXTENSION
+  end function Cat(gmm_create_yrc,EXTENSION,)
+    
+#undef EXTENSION
+#undef EXTENSIONT
+!
+#undef  Cat
+#undef  DIMS
+#undef  CODE
+#undef  DIM
+#undef  DATATYPE
+#undef  DATACODE
+#undef  DATALENGTH
+#endif

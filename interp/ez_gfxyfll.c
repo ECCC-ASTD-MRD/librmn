@@ -21,20 +21,16 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
-		    ftnfloat *lon, ftnfloat *lat, 
-		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
-		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2);
 
-wordint f77name(ezgfxyfll)(ftnfloat *lonp, ftnfloat *latp,
+void f77name(ezgfxyfll)(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
 		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
 		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
 {
-  return c_ezgfxyfll(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
+  c_ezgfxyfll(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
 }
 
-wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
+void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
 		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
 		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
@@ -44,6 +40,7 @@ wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
   
   cart = (ftnfloat *) malloc(3* *npts*sizeof(ftnfloat));
   carot = (ftnfloat *) malloc(3* *npts*sizeof(ftnfloat));
+  
   f77name(ez_crot)( r, ri, xlon1, xlat1, xlon2, xlat2);
   f77name(ez_lac) (cart,lonp,latp, npts);
   f77name(mxm)(r,&trois,cart,&trois,carot,npts);
@@ -51,5 +48,4 @@ wordint c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
   
   free(cart);
   free(carot);
-  return 0;
 }

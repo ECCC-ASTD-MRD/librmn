@@ -302,7 +302,8 @@ int c_fstecr(word *field, void * work, int npak,
                         int in_datyp, int rewrit)
 {
   int ier,l1,l2,l3,l4;
-  int index, index_fnom, nbits, deltat, datev, record, handle;
+  int index, index_fnom, nbits, deltat, record, handle;
+  unsigned int datev;
   int p1out,p2out,header_size,stream_size;
   int nw, keys_len, one=1, zero=0, njnk;
   int bitmot=32;
@@ -316,7 +317,7 @@ int c_fstecr(word *field, void * work, int npak,
   PackFunctionPointer packfunc;
   ftnword f_datev;
   double nhours, tempfloat=99999.0;
-  char string[10];
+  char string[12];
 
   char etiket[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
                    ,'\0'};
@@ -411,7 +412,7 @@ int c_fstecr(word *field, void * work, int npak,
     nhours = (double) deltat;
     nhours = nhours / 3600.;
     f77name(incdatr)(&f_datev,&f_datev,&nhours);
-    datev = (int) f_datev;
+    datev = (unsigned int) f_datev;
   }
 
   if ((npak == 0) || (npak == 1)) 
@@ -420,10 +421,13 @@ int c_fstecr(word *field, void * work, int npak,
   /* allocate and initialize a buffer interface for xdfput */
   /* an extra 512 bytes are allocated for cluster alignment purpose (seq) */
   
-  for (i=0; i < nb_remap; i++)
-    if (datyp == remap_table[0][i]) {
-      datyp = remap_table[1][i];
-      }
+  if (! image_mode_copy)
+    for (i=0; i < nb_remap; i++)
+      if (datyp == remap_table[0][i]) {
+        datyp = remap_table[1][i];
+/*        printf("Debug+ remapping %d to %d\n",remap_table[0][i],datyp); */
+        }
+
   if ((nbits > 16) && (datyp != 133)) datyp &= 0x7F;    /* no extra compression if nbits > 16 */
 /*  if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression; */
   if ((datyp == 6) && (nbits > 24)) {
@@ -780,6 +784,141 @@ int c_fstecr(word *field, void * work, int npak,
   xdf_byte = 0;
   return(ier);
 }
+
+/*splitpoint c_fst_edit_dir */
+/*****************************************************************************
+ *                     C _ F S T _ E D I T _ D I R                           *
+ *                                                                           *
+ *Object                                                                     * 
+ *   Edits the directory content of a RPN standard file.                     *
+ *                                                                           * 
+ *Arguments                                                                  * 
+ *                                                                           * 
+ *  IN  handle     handle to the directory entry to edit                     * 
+ *                                                                           * 
+ *****************************************************************************/
+
+int c_fst_edit_dir(int handle,
+                   int date, int deet, int npas,
+                   int ni, int nj, int nk,
+                   int ip1, int ip2, int ip3,
+                   char *in_typvar, char *in_nomvar, char *in_etiket,
+                   char *in_grtyp, int ig1, int ig2,
+                   int ig3, int ig4, int datyp)
+{
+  int index,width,pageno,recno;
+  int l1,l2,l3,l4;
+  file_table_entry *f;
+  word *entry;
+  stdf_dir_keys *stdf_entry;
+  stdf_special_parms cracked;
+  char string[20];
+  char etiket[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+                   ,'\0'};
+  char typvar[3]={' ',' ','\0'};
+  char nomvar[5]={' ',' ',' ',' ','\0'};
+  char grtyp[2]={' ','\0'};
+
+ 
+  index = INDEX_FROM_HANDLE(handle);
+   
+  if ((index < 0) || (index >= MAX_XDF_FILES)) {
+    sprintf(errmsg,"invalid handle=%d",handle);
+    return(error_msg("c_fst_edit_dir",ERR_BAD_HNDL,ERROR));
+  }
+
+  f = file_table[index];
+
+  if (! f->cur_info->attr.std) {
+    sprintf(errmsg,"file (unit=%d) is not a RPN standard file",f->iun);
+    return(error_msg("c_fst_edit_dir",ERR_NO_FILE,ERROR));
+  }
+   
+  if (f->xdf_seq) {
+    sprintf(errmsg,"file (unit=%d) is not a RPN standard file",f->iun);
+    return(error_msg("c_fst_edit_dir",ERR_NO_FILE,ERROR));
+  }
+
+  l1 = strlen(in_typvar);
+  l2 = strlen(in_nomvar);
+  l3 = strlen(in_etiket);
+  l4 = strlen(in_grtyp);
+
+  string_copy(typvar,in_typvar,l1);
+  string_copy(nomvar,in_nomvar,l2);
+  string_copy(etiket,in_etiket,l3);
+  string_copy(grtyp,in_grtyp,l4);
+
+  pageno = PAGENO_FROM_HANDLE(handle);
+  if (pageno > f->npages) {   /* page is not in current file */
+    sprintf(errmsg,"invalid handle, invalid page number\n");
+    return(error_msg("c_fst_edit_dir",ERR_BAD_PAGENO,ERROR));
+  }
+
+  recno = RECORD_FROM_HANDLE(handle);
+/*  printf("Debug+ c_fst_edit_dir pageno=%d recno=%d\n",pageno,recno); */
+  width = W64TOWD(f->primary_len);
+  entry = (f->dir_page[pageno])->dir.entry + recno * width;
+  stdf_entry = (stdf_dir_keys *) entry;
+
+/*  stdf_entry->ni = ni; */
+/*  stdf_entry->nj = nj; */
+/*  stdf_entry->nk = nk; */
+/*  stdf_entry->gtyp = grtyp[0]; */
+/*  stdf_entry->datyp = datyp; */
+
+  if (deet != -1) stdf_entry->deet = deet;
+  if (npas != -1) stdf_entry->npas = npas;
+  if (ig1 != -1) stdf_entry->ig1 = ig1;
+  if (ig2 != -1) {
+    stdf_entry->ig2a = ig2 >> 16;
+    stdf_entry->ig2b = ig2 >> 8;
+    stdf_entry->ig2c = ig2 & 0xff;
+  }
+  if (ig3 != -1) stdf_entry->ig3 = ig3;
+  if (ig4 != -1) stdf_entry->ig4 = ig4;
+  if (strcmp(etiket,"             ") !=0 ) {
+    stdf_entry->etik15 = 
+      (ascii6(etiket[0]) << 24) |
+      (ascii6(etiket[1]) << 18) |
+      (ascii6(etiket[2]) << 12) |
+      (ascii6(etiket[3]) <<  6) |
+      (ascii6(etiket[4]));
+    stdf_entry->etik6a = 
+      (ascii6(etiket[5]) << 24) |
+      (ascii6(etiket[6]) << 18) |
+      (ascii6(etiket[7]) << 12) |
+      (ascii6(etiket[8])<<  6) |
+      (ascii6(etiket[9]));
+    stdf_entry->etikbc = 
+      (ascii6(etiket[10]) <<  6) |
+      (ascii6(etiket[11]));
+  }
+  if (strcmp(typvar,"  ") != 0) {
+    stdf_entry->typvar = 
+      (ascii6(typvar[0]) <<  6) |
+      (ascii6(typvar[1]));
+  }
+  if (strcmp(nomvar,"    ") != 0) {
+    stdf_entry->nomvar = 
+      (ascii6(nomvar[0]) << 18) |
+      (ascii6(nomvar[1]) << 12) |
+      (ascii6(nomvar[2]) <<  6) |
+      (ascii6(nomvar[3]));
+  }
+/*  stdf_entry->levtyp = 0; */
+  if (ip1 != -1) stdf_entry->ip1 = ip1;
+  if (ip2 != -1) stdf_entry->ip2 = ip2;
+  if (ip3 != -1) stdf_entry->ip3 = ip3;
+  if (date != -1) stdf_entry->date_stamp = 8 * (date/10) + (date % 10);
+
+  crack_std_parms(stdf_entry,&cracked);
+  sprintf(string,"%5d-",recno);
+  print_std_parms(stdf_entry,string,"NINJNK+DATEO+IP1+IG1234",1);
+  f->dir_page[pageno]->modified = 1;
+  f->modified = 1;
+  return(0);
+}
 
 /*splitpoint c_fsteff */
 /***************************************************************************** 
@@ -964,6 +1103,7 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
   file_table_entry *f;
   int i, index_fnom, index, index_h;
   int addr, lng, idtyp, ier, l1, l2, l3;
+  unsigned int u_datev=datev;
 
   char etiket[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
                    ,'\0'};
@@ -1030,7 +1170,7 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
   search_mask->ig2c = 0;
   search_mask->levtyp = 0;
 
-  stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+  stdf_entry->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
   search_mask->date_stamp &= ~(0x7);
   if (datev == -1) search_mask->date_stamp = 0;
 
@@ -1435,7 +1575,7 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
   int nbytes, header_size, stream_size, p1out, p2out;
   int bitmot=32;
   int lngw, stdf_aux_keys[2];
-  char string[10];
+  char string[11];
   PackFunctionPointer packfunc;
   double tempfloat=99999.0;
 
@@ -1806,6 +1946,45 @@ int c_fstnbr(int iun)
   return(f->nrecords);
 
 }
+
+/*splitpoint c_fstnbrv */
+/*****************************************************************************
+ *                          C _ F S T N B R V                                *
+ *                                                                           *
+ *Object                                                                     *
+ *   Returns the number of valid records (excluding deleted records) of the  *
+ *   file associated with unit number.                                       *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  iun     unit number associated to the file                           *
+ *                                                                           *
+ *****************************************************************************/
+
+int c_fstnbrv(int iun)
+{
+  int index, index_fnom, ier, nrec;
+  file_table_entry *f;
+
+  index_fnom = fnom_index(iun);
+  if (index_fnom == -1) {
+    sprintf(errmsg,"file (unit=%d) is not connected with fnom",iun);
+    return(error_msg("c_fstnbrv",ERR_NO_FNOM,ERROR));
+  }
+
+  if ((index = file_index(iun)) == ERR_NO_FILE) {
+    ier = c_fstouv(iun,"RND");
+    index = file_index(iun);
+    f = file_table[index];
+    nrec = f->header->nrec;
+    ier = c_fstfrm(iun);
+    return(nrec);
+  }
+
+  f = file_table[index];
+  return(f->header->nrec);
+
+}
   
 /*splitpoint c_fstopc */
 /*****************************************************************************
@@ -2023,6 +2202,7 @@ int c_fstouv(int iun, char *options)
 
   if (premiere_fois) {
     premiere_fois = 0;
+/*    printf("DEBUG++ fstouv appel a c_env_var_cracker\n"); */
     c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");    /* obtain options from environment variable */ 
     c_requetes_init(requetes_filename,debug_filename);
     ier = init_ip_vals();  
@@ -2413,7 +2593,8 @@ int c_fstvoi(int iun,char *options)
    char cdt[6]={'X','R','I','C','S','E'};
    ftnword f_datev;
    double nhours;
-   int deet,npas,i_nhours,run,datexx;
+   int deet,npas,i_nhours,run;
+   unsigned int datexx;
  
    index_fnom = fnom_index(iun);
    if (index_fnom == -1) {
@@ -2541,7 +2722,7 @@ int c_fstvoi(int iun,char *options)
            i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
            nhours = (double) (i_nhours / 3600.0);
            f77name(incdatr)(&f_datev,&f_datev,&nhours);
-           datexx = (int) f_datev;
+           datexx = (unsigned int) f_datev;
            /*
             *  re-octalise the date_stamp
             */
@@ -2967,7 +3148,8 @@ int c_ip3_val(float level, int kind)
 static void crack_std_parms(stdf_dir_keys *stdf_entry, 
                     stdf_special_parms *cracked_parms)
 {
-  int i, run, datexx;
+  int i, run;
+  unsigned int datexx;
   double r8_diff;
   ftnword ftn_date;
   int diff;

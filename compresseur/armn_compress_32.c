@@ -81,7 +81,10 @@ int c_armn_compress32(unsigned char *zstream, float *fld, int ni, int nj, int nk
 
   _fstzip zfstzip; 
   _floatint r_exp_max;
-  
+
+  /* M. Lepine: Desactivation temporaire de la compression IEEE 32 */
+  return(-1);  
+
   if (ni < 16 || nj < 16)
     {
     zlng = -1;

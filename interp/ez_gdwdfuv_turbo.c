@@ -51,7 +51,7 @@ wordint c_gdwdfuv_turbo(wordint gdid, ftnfloat *uullout, ftnfloat *vvllout, ftnf
            {
            fprintf(stderr, "Erreur fatale routine c_gdwdfuv\n");
            fprintf(stderr, "Contactez la SI de RPN le plus tôt possible\n");
-           exit(13);
+           return -1;
            }
 	/*
         uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
@@ -80,7 +80,7 @@ wordint c_gdwdfuv_turbo(wordint gdid, ftnfloat *uullout, ftnfloat *vvllout, ftnf
                 {
                 fprintf(stderr, "Erreur fatale routine c_gdwdfuv\n");
                 fprintf(stderr, "Contactez Y. Chartier au plus sacrant\n");
-                exit(13);
+                return -1;
                 }
 	     /*
              uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));

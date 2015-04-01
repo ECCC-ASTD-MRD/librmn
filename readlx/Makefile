@@ -18,7 +18,7 @@ MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 UPDATEX =
 
@@ -86,7 +86,11 @@ tstrdlx12: $(OBJET2) $(OBJET)
 tstc: tstc.o c_readlx.o readln.o
 	r.build -o $@ -obj tstc.o c_readlx.o readln.o -arch $(EC_ARCH) -abi $(ABI) -librmn
 
-locallib: $(TEMPLIB)(readlx.o)        
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir $(TEMPLIB)(readlx.o)        
         
 genlib: $(OBJET)
 #Creer ou mettre a jour la programmatheque 
@@ -101,5 +105,5 @@ updlib:
 	fi
 
 clean:
-	-rm -f *.o *.rat *.of tstrdlx
+	-rm -f *.o *.of tstrdlx
 

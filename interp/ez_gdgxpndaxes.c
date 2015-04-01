@@ -35,51 +35,55 @@ wordint c_gdgxpndaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
   wordint nix, njy;
   wordint istart, jstart;
   
-  if (!Grille[gdid].flags & AX)
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  
+  if (!Grille[gdrow_id][gdcol_id].flags & AX)
     {
     fprintf(stderr, "(gdgxpndaxes) Erreur! A l'aide! Descripteurs manquants!\n");
-    exit(999);
+    return -1;
     }
 
-  switch(Grille[gdid].grtyp)
+  switch(Grille[gdrow_id][gdcol_id].grtyp[0])
     {
     case 'Y':
-      nix = Grille[gdid].ni * Grille[gdid].nj;
-      memcpy(ax, Grille[gdid].ax, nix*sizeof(ftnfloat));
-      memcpy(ay, Grille[gdid].ay, nix*sizeof(ftnfloat));
+      nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
+      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(ftnfloat));
+      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, nix*sizeof(ftnfloat));
       break;
       
     default:
-      nix = Grille[gdid].ni;
-      njy = Grille[gdid].nj;
-      if (Grille[gdid].i2 == (nix+1)) istart = 1;
-      if (Grille[gdid].i2 == (nix+2)) istart = 2;
-      if (Grille[gdid].i2 == (nix)) istart = 0;
+      nix = Grille[gdrow_id][gdcol_id].ni;
+      njy = Grille[gdrow_id][gdcol_id].nj;
+      if (Grille[gdrow_id][gdcol_id].i2 == (nix+1)) istart = 1;
+      if (Grille[gdrow_id][gdcol_id].i2 == (nix+2)) istart = 2;
+      if (Grille[gdrow_id][gdcol_id].i2 == (nix)) istart = 0;
 
-      if (Grille[gdid].j2 == (njy+1)) jstart = 1;
-      if (Grille[gdid].j2 == (njy+2)) jstart = 2;
-      if (Grille[gdid].j2 == (njy))   jstart = 0;
-      memcpy(&ax[istart],Grille[gdid].ax, nix*sizeof(ftnfloat));
-      memcpy(&ay[jstart],Grille[gdid].ay, njy*sizeof(ftnfloat));
+      if (Grille[gdrow_id][gdcol_id].j2 == (njy+1)) jstart = 1;
+      if (Grille[gdrow_id][gdcol_id].j2 == (njy+2)) jstart = 2;
+      if (Grille[gdrow_id][gdcol_id].j2 == (njy))   jstart = 0;
+      memcpy(&ax[istart],Grille[gdrow_id][gdcol_id].ax, nix*sizeof(ftnfloat));
+      memcpy(&ay[jstart],Grille[gdrow_id][gdcol_id].ay, njy*sizeof(ftnfloat));
       
-      if (Grille[gdid].i2 == (Grille[gdid].ni+1))
+      if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+1))
 	{
-	ax[0] = Grille[gdid].ax[nix-2] - 360.0; 
+	ax[0] = Grille[gdrow_id][gdcol_id].ax[nix-2] - 360.0; 
 	ax[nix] = ax[2];
 	}
       
-      if (Grille[gdid].i2 == (Grille[gdid].ni+2))
+      if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+2))
 	{
-	ax[0] = Grille[gdid].ax[nix-1] - 360.0; 
-	ax[nix] = Grille[gdid].ax[1]+360.0;
-	ax[nix+1] = Grille[gdid].ax[2]+360.0;
+	ax[0] = Grille[gdrow_id][gdcol_id].ax[nix-1] - 360.0; 
+	ax[nix] = Grille[gdrow_id][gdcol_id].ax[1]+360.0;
+	ax[nix+1] = Grille[gdrow_id][gdcol_id].ax[2]+360.0;
 	}
 
-      if (Grille[gdid].j2 == (Grille[gdid].nj+1))
+      if (Grille[gdrow_id][gdcol_id].j2 == (Grille[gdrow_id][gdcol_id].nj+1))
 	{
 	}
 
-      if (Grille[gdid].j2 == (Grille[gdid].nj+2))
+      if (Grille[gdrow_id][gdcol_id].j2 == (Grille[gdrow_id][gdcol_id].nj+2))
 	{
 	}
 

@@ -482,14 +482,34 @@ ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode)
   return chan;
 }
 
-/* if connection to server fails */
-/* retry 10 times after a sleep  */
-/* interval of 10 secs           */
+
+/* if connection to server fails          */
+/* default:  retry 10 times after a sleep */
+/* else use user value                    */
+
+int USER_TRY_CONNECT = 10;
+void f77name (mgi_set_retry_connect) (ftnword *try_nbr)
+{
+  printf( "MGI_OPEN, setting try to connect USER_TRY_CONNECT: \"%d\" times\n", (int) *try_nbr );  
+  if((int) *try_nbr > 0 && (int) *try_nbr < 10)
+    USER_TRY_CONNECT = (int) *try_nbr;
+}
+
+int mgi_get_retry_connect(int chan)
+{
+  
+  return USER_TRY_CONNECT;
+
+}
+
+/* if connection to server fails          */
+/* default: retry 10 times after a sleep  */
+/* interval of 10 secs                    */
 int retry_connect( int chan )
 {
   int PING_INTERVAL = 10;
-  int ping_ord0 = 100 / PING_INTERVAL;
-  int ping_ord = 100 / PING_INTERVAL;
+  int ping_ord0 = mgi_get_retry_connect(chan);
+  int ping_ord =  mgi_get_retry_connect(chan);
 
   while( chn[chan].gchannel < 0 && ping_ord > 0 )
     {
@@ -522,28 +542,29 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
   if( nelem <= 0 )
     {
       fprintf(stderr,"MGI_WRITE, Error, cannot write data with length = %d\n", nelem);
-      /* return -1; */
+      
       return WRITE_ERROR;
     }
 
   if( chn[chan].gchannel < 0 )
     {
       fprintf(stderr,"MGI_WRITE, Error, cannot connect to server using descriptor: \"%d\"!!!\n", chn[chan].gchannel);
-      /* return -1; */
+      
       return WRITE_ERROR;
     }
 
   if ( *dtype == 'C')
     {
-
       ((char *)buffer)[nelem] = '\0';
     }
+
   if (*dtype == 'I' || *dtype == 'R' || *dtype == 'D' || *dtype == 'C') 
     {
       chn[chan].nblks++;
-      fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
+      
 
 #ifdef DEBUG
+      fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
       fprintf(stderr,"MGI_WRITE: data type = %s\n", dtype);
       fprintf(stderr,"MGI_WRITE: elts Nbr = %d\n", nelem);
 #endif
@@ -618,13 +639,14 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
       return DATA_LENGTH_ERROR;
     }
 
+  bzero(buffer, nelem);
 
   ier = send_command_to_server(chn[chan].gchannel, "READ");
 
   if(ier < 0)
     {
       fprintf(stderr,"MGI_READ, Error: unable to send write command for channel: \"%s\"\n", chn[chan].name);
-      /* return -1; */
+     
       return SEND_COMMAND_ERROR;
     }
   
@@ -647,13 +669,13 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	  if( get_timeout_signal(chn[chan].gchannel) )
 	    {
 	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Integer\" \n" );
-	      /* ier = signal_timeout( chn[chan].gchannel ); */
+	   
 	      ier = READ_TIMEOUT;
 	    }
 	  else
 	    {
 	      fprintf( stderr, "MGI_READ: Problem read Integer\n" );
-	      /* return ier = -1; */
+	   
 	      return READ_ERROR;
 	    }
 	}
@@ -681,13 +703,13 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	  if( get_timeout_signal( chn[chan].gchannel ) )
 	    {
 	      fprintf(stderr, "MGI_READ:  TIMEOUT for read \"Real\" \n");
-	     /* ier = signal_timeout( chn[chan].gchannel ); */
+
 	      ier = READ_TIMEOUT;
 	    }
 	  else
 	    {
 	      fprintf( stderr, "MGI_READ: problem read Real data\n" );
-	      /* return ier = -1; */
+
 	      return READ_ERROR;
 	    }
 	}
@@ -712,13 +734,13 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	  if( get_timeout_signal( chn[chan].gchannel ) )
 	    {
 	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Double\"\n");
-	      /* ier = signal_timeout( chn[chan].gchannel ); */
+
 	      ier = READ_TIMEOUT;
 	    }
 	  else
 	    {
 	      fprintf( stderr, "MGI_READ: Problem read Double data\n" );
-	      /* return ier = -1; */
+
 	      return READ_ERROR;
 	    }
  	}
@@ -728,14 +750,17 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
     { /* character */
       int i;
       char *temp = (char *)buffer;
+
+      for(i = 0; i < ltype ; i++ ) 
+	{
+	  temp[i] = ' ';
+	}
+
      
-/*      fprintf(stderr, "MGI_READ: \"Character\", elts Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name); */
-      
       buffer = (char *)read_record(chn[chan].gchannel, (char *)buffer, &nelem, nelem, sizeof(char));
 
       for(i = nelem+1 ; i < ltype ; i++ ) 
 	{
-	 /* fprintf(stderr, "MGI_READ: \"Character\", i = %d\n", i); */
 	  temp[i] = ' ';
 	}
       
@@ -751,13 +776,13 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	  if( get_timeout_signal( chn[chan].gchannel ) )
 	    {
 	      fprintf(stderr, "MGI_READ: TIMEOUT for read \"Character\"\n");
-	      /* ier = signal_timeout( chn[chan].gchannel ); */
+	      
 	      ier = READ_TIMEOUT;
 	    }
 	  else
 	    {
 	      fprintf( stderr, "MGI_READ: Problem read Character data\n" );
-	      /* return ier = -1; */
+	      
 	      return READ_ERROR;
 	    }
 	}
@@ -767,7 +792,7 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
   else
     {
       fprintf(stderr,"MGI_READ: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
-      /* return -1; */
+      
       return READ_TYPE_ERROR;
     }
   

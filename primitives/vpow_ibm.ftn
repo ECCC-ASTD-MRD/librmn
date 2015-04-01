@@ -1,3 +1,4 @@
+#if defined (AIX)
       subroutine vpownn(r,x,y,n)
       real*8 x(*),y(*),r(*)
       real*8 t(n)
@@ -78,3 +79,47 @@
       enddo
       return
       end
+#else
+      subroutine vpow1n(r,x,y,n)
+      real*8 x,y(*),r(*)
+      do 10 j=1,n
+      r(j)=x**y(j)
+   10 continue
+      return
+      end
+      subroutine vpown1(r,x,y,n)
+      real*8 x(*),y,r(*)
+      do 10 j=1,n
+      r(j)=x(j)**y
+   10 continue
+      return
+      end
+      subroutine vpownn(r,x,y,n)
+      real*8 x(*),y(*),r(*)
+      do 10 j=1,n
+      r(j)=x(j)**y(j)
+   10 continue
+      return
+      end
+      subroutine vspow1n(r,x,y,n)
+      real*4 x,y(*),r(*)
+      do 10 j=1,n
+      r(j)=x**y(j)
+   10 continue
+      return
+      end
+      subroutine vspown1(r,x,y,n)
+      real*4 x(*),y,r(*)
+      do 10 j=1,n
+      r(j)=x(j)**y
+   10 continue
+      return
+      end
+      subroutine vspownn(r,x,y,n)
+      real*4 x(*),y(*),r(*)
+      do 10 j=1,n
+      r(j)=x(j)**y(j)
+   10 continue
+      return
+      end
+#endif

@@ -21,19 +21,24 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+wordint f77name(ezsetfval)(char *option, ftnfloat *fvalue, wordint lenoption);
+wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, wordint lenoption);
+wordint f77name(ezsetival)(char *option, wordint *ivalue, wordint lenoption);
+wordint c_ezsetfval(char *option, ftnfloat fvalue);
+wordint c_ezsetval(char *option, ftnfloat fvalue);
+wordint c_ezsetival(char *option, wordint ivalue);
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, F2Cl lenoption)
-{
+wordint f77name(ezsetfval)(char *option, ftnfloat *fvalue, wordint lenoption)
+   {
    wordint i, icode;
    wordint longueur_option, longueur_value;
 
    char local_opt[32];
-   wordint l_lenoption;
 
-   l_lenoption = (wordint) lenoption;
    memset(local_opt, (unsigned char)'\0', 32);
-   longueur_option = f77name(longueur)(option, l_lenoption);
+   longueur_option = f77name(longueur)(option, lenoption);
    longueur_option = longueur_option < 32 ? longueur_option : 31;
 
    for (i=0; i < longueur_option; i++)
@@ -41,43 +46,109 @@ wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, F2Cl lenoption)
      local_opt[i] = option[i];
      }
 
-   icode = c_ezsetval(local_opt, *fvalue);
+   icode = c_ezsetfval(local_opt, *fvalue);
    return icode;
-
 }
 
-wordint c_ezsetval(char *option, ftnfloat fvalue)
+wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, wordint lenoption)
+   {
+   return f77name(ezsetfval)(option, fvalue, lenoption);
+   }
+
+wordint f77name(ezsetival)(char *option, wordint *ivalue, wordint lenoption)
 {
+   wordint i, icode;
+   wordint longueur_option, longueur_value;
+
+   char local_opt[32];
+
+   memset(local_opt, (unsigned char)'\0', 32);
+   longueur_option = f77name(longueur)(option, lenoption);
+   longueur_option = longueur_option < 32 ? longueur_option : 31;
+
+   for (i=0; i < longueur_option; i++)
+     {
+     local_opt[i] = option[i];
+     }
+
+   icode = c_ezsetival(local_opt, *ivalue);
+   return icode;
+}
+
+
+wordint c_ezsetfval(char *option, ftnfloat fvalue)
+   {
    char local_opt[32];
    wordint i;
-   
+   int *ibidon;
+
    strcpy(local_opt, option);
-   
+
    for (i=0; i < strlen(local_opt); i++)
-     local_opt[i] = (char) tolower((int)local_opt[i]);
-   
+      {
+      local_opt[i] = (char) tolower((int)local_opt[i]);
+      }
+
    if (0 == strcmp(local_opt, "extrap_value"))
       {
       groptions.valeur_extrap = fvalue;
       }
-   
+
+   if (0 == strcmp(local_opt, "missing_gridpt_distance"))
+      {
+      groptions.msg_gridpt_dist = fvalue;
+      }
+
+   if (0 == strcmp(local_opt, "missing_distance_threshold"))
+      {
+      groptions.msg_dist_thresh = fvalue;
+      }
+
    return 0;
-}
+   }
+
+wordint c_ezsetval(char *option, ftnfloat fvalue)
+   {
+   return c_ezsetfval(option, fvalue);
+   }
+
+
+wordint c_ezsetival(char *option, wordint ivalue)
+   {
+   char local_opt[32];
+   wordint i;
+
+   strcpy(local_opt, option);
+
+   for (i=0; i < strlen(local_opt); i++)
+     local_opt[i] = (char) tolower((int)local_opt[i]);
+
+   if (0 == strcmp(local_opt, "weight_number"))
+      {
+      groptions.wgt_num = ivalue;
+      }
+
+    if (0 == strcmp(local_opt, "missing_points_tolerance"))
+      {
+      groptions.msg_pt_tol = ivalue;
+      }
+   return 0;
+   }
 
 wordint c_ezsetval2(char *option, ftnfloat *fvalue)
 {
    char local_opt[32];
    wordint i;
-   
+
    strcpy(local_opt, option);
-   
+
    for (i=0; i < strlen(local_opt); i++)
      local_opt[i] = (char) tolower((int)local_opt[i]);
-   
+
    if (0 == strcmp(local_opt, "extrap_value"))
       {
       groptions.valeur_extrap = *fvalue;
       }
-   
+
    return 0;
 }

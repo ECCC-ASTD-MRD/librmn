@@ -1,0 +1,137 @@
+[phillips:~/src/gmm]$ make gmm.o
+r.tmpl90.ftn90 gmm_definitions
+r.tmpl90.ftn90 gmm_code
+r.compile -P -src gmm_definitions_interface.cdk90  gmm_code_interface.cdk90
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+setting f90 mode
+setting chop_bang mode
+setting f90 mode
+setting chop_bang mode
+pre-processing termine, exit
+cat gmm_definitions_interface.f90  gmm_code_interface.f90 >gmm.fh
+echo "module gmm" >>gmm.fh
+echo "use gmm_definitions_interface" >>gmm.fh
+echo "use gmm_code_interface" >>gmm.fh
+echo "end module gmm" >>gmm.fh
+#rm -f gmm_definitions_interface.f90  gmm_code_interface.f90
+#rm -f gmm_definitions_interface.o gmm_code_interface.o gmm_definitions_interface.mod gmm_code_interface.mod gmm_definitions_interface.cdk90  gmm_code_interface.cdk90
+cp gmm.fh gmm.cdk90
+#r.compile -src gmm.cdk90 -optf =-g
+r.compile -src gmm.cdk90
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+setting f90 mode
+setting chop_bang mode
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+./gmm.f90:
+
+Commande effectuee
+r.pgf90 -c -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -O1     ./gmm.f90
+[phillips:~/src/gmm]$ make a.out
+#r.compile -src gmm_definitions_interface.cdk90 -optf =-g
+r.compile -src gmm_definitions_interface.cdk90
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+setting f90 mode
+setting chop_bang mode
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+./gmm_definitions_interface.f90:
+
+Commande effectuee
+r.pgf90 -c -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -O1     ./gmm_definitions_interface.f90
+r.compile -src gmm_code.ftn90
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+setting f90 mode
+setting chop_bang mode
+r.gppf -lang-f90+ -chop_bang -gpp -F -I/usr/local/env/armnlib/include -D__FILE__="#file" -D__LINE__=#line -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include  -DLittle_Endian -Di386=i386 -DWITHOUT_OpenMP gmm_code.ftn90 > ./gmm_code.f90
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+./gmm_code.f90:
+
+Commande effectuee
+r.pgf90 -c -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -O1     ./gmm_code.f90
+r.compile -src gmm_code.ftn90
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+setting f90 mode
+setting chop_bang mode
+r.gppf -lang-f90+ -chop_bang -gpp -F -I/usr/local/env/armnlib/include -D__FILE__="#file" -D__LINE__=#line -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include  -DLittle_Endian -Di386=i386 -DWITHOUT_OpenMP gmm_code.ftn90 > ./gmm_code.f90
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+./gmm_code.f90:
+
+Commande effectuee
+r.pgf90 -c -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -O1     ./gmm_code.f90
+#r.compile -src gmm_code.ftn90 -optf =-g
+#r.compile -src gmm_code.ftn90 -debug -O 0
+r.compile -src pass_pointers.c
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+<command line>:1:1: warning: "i386" redefined
+<built-in>: warning: this is the location of the previous definition
+In file included from /usr/local/env/armnlib/include/rpnmacros.h:4,
+                 from pass_pointers.c:21:
+/usr/local/env/armnlib/include/Linux_pgi611/rpn_macros_arch.h:3:1: warning: "Little_Endian" redefined
+<command line>:1:1: warning: this is the location of the previous definition
+cc: --allow-shlib-undefined: linker input file unused because linking not done
+cc: -rpath: linker input file unused because linking not done
+cc: /usr/local/env/armnlib/lib/Linux_pgi611: linker input file unused because linking not done
+Commande effectuee
+cc -c -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -Wl,--allow-shlib-undefined -Wtrigraphs -fpic -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -I. -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -O1      -DLittle_Endian -Di386=i386 -DWITHOUT_OpenMP  pass_pointers.c
+#r.compile -src pass_pointers.c -debug -O 0
+ar rcv libgmm_Linux_pgi611.a gmm_code.o pass_pointers.o
+a - gmm_code.o
+a - pass_pointers.o
+#rm -f gmm_code.o pass_pointers.o gmm_definitions_interface.o gmm_code_interface.o *.mod
+#rm -f gmm_code.f90
+#r.compile -src gmm_code_interface.cdk90 -optf =-g
+r.compile -src gmm_code_interface.cdk90
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+setting f90 mode
+setting chop_bang mode
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+./gmm_code_interface.f90:
+
+Commande effectuee
+r.pgf90 -c -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -O1     ./gmm_code_interface.f90
+r.compile -o a.out -src tests/test_pointers.f90 -includes . -libpath . -libappl gmm_Linux_pgi611 -librmn
+r.compile version 024
+Changing multi-value argument delimiter from : to
+Options prises dans:
+/usr/local/env/armnlib/include/Linux_pgi611/Compiler_rules
+Compiler Rules applied for Linux_pgi611
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+tests/test_pointers.f90:
+
+Commande effectuee
+r.pgf90 -c -I. -I./Sources. -I/data/dormrb04/ssm-pgi-611/linux24-i386/include -I/opt/ssm/multi/include -I/usr/include -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -O1     tests/test_pointers.f90
+USING /data/dormrb04/ssm-pgi-611/linux24-i386/bin/r.pgf90
+
+Commande effectuee:
+r.pgf90 -L/users/dor/armn/yrc/userlibs/Linux_pgi611 -L. -L/data/dormrb04/ssm-pgi-611/linux24-i386/lib -L/opt/ssm/gridengine_6.0u7-1_multi/lib/lx26-x86 -L/usr/local/env/armnlib/lib/Linux_pgi611 -tp px -fpic -byteswapio -I. -I/usr/local/env/armnlib/include -I/usr/local/env/armnlib/include/Linux_pgi611 -Wl,-rpath,/usr/local/env/armnlib/lib/Linux_pgi611 -Wl,--allow-shlib-undefined -o a.out test_pointers.o -lgmm_Linux_pgi611 -lrmn
+
+#rm -f test_pointers.o pass_pointers.o gmm_definitions_interface.o gmm_code_interface.o gmm.o
+[phillips:~/src/gmm]$
+

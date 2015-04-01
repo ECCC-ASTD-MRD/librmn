@@ -182,6 +182,28 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
      return(error_msg(caller,ERR_OUT_RANGE,ERROR));\
      }
 
+#define MOREFILES 
+
+#ifdef MOREFILES
+/* how to make ordinary handles for random and sequential files */
+/* handle is limited to 128 MB for a sequential file */
+/*       HANDLE RANDOM */
+/*       sign #page #record index */
+/*         1    12     9     10   */
+#define MAKE_RND_HANDLE(pageno,recno,file_index) ((file_index &0x3FF) | ((recno & 0x1FF)<<10) | ((pageno & 0xFFF)<<19))   
+/*       HANDLE SEQ */
+/*       sign cluster addr index */
+/*         1    2      22    7   */
+#define MAKE_SEQ_HANDLE(cluster,address,file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))   
+/* how to extract the file index, record number and page number from a handle */
+#define INDEX_FROM_HANDLE(handle) ( 0x3FF & handle)
+#define RECORD_FROM_HANDLE(handle) ( 0x1FF & (handle>>10))
+#define PAGENO_FROM_HANDLE(handle) ( 0xFFF & (handle>>19))
+/* how to extract the record address from a sequential handle */
+#define ADDRESS_FROM_HNDL(handle) ( 0x3FFFFF & (handle>>7))
+#define CLUSTER_FROM_HANDLE(handle) ( 0x3 & (handle>>29))
+#define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 *CLUSTER_FROM_HANDLE(handle)) )
+#else
 /* how to make ordinary handles for random and sequential files */
 /* handle is limited to 128 MB for a sequential file */
 /*       HANDLE RANDOM */
@@ -200,6 +222,7 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define ADDRESS_FROM_HNDL(handle) ( 0x3FFFFF & (handle>>7))
 #define CLUSTER_FROM_HANDLE(handle) ( 0x3 & (handle>>29))
 #define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 *CLUSTER_FROM_HANDLE(handle)) )
+#endif
 
 /*****************************************************************************/
 /*                        generic description                                */

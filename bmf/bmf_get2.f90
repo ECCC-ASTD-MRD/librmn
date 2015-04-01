@@ -22,6 +22,7 @@ function bmf_get2(nom,time1,time2,hgrid,vgrid,r4,imin,imax,jmin,jmax,kmin,kmax) 
 !AUTEUR       Luc Corbeil (bmf_get)
 !
 !REVISION
+! v208a V. Lee real*8 allocation corrected:NI*dtyp/10/4 -> NI*(dtyp/10/4)
 !
 !ARGUMENTS
 !
@@ -119,9 +120,9 @@ function bmf_get2(nom,time1,time2,hgrid,vgrid,r4,imin,imax,jmin,jmax,kmin,kmax) 
            endif
            indice=0
            if(dtyp.ne.bmf_character) then
-              call bmf_copie(ni*dtyp/10/4,nj,nk, &
+              call bmf_copie(ni*(dtyp/10/4),nj,nk, &
                    champ_courant%bmf_champ%tableau,r4,&
-                   (imin-1)*dtyp/10/4+1,imax*dtyp/10/4,jmin,jmax,kmin,kmax)
+                   (imin-1)*(dtyp/10/4)+1,imax*(dtyp/10/4),jmin,jmax,kmin,kmax)
            else
               allocate(cdata(2+(ndata-1)/sizeofint))
               call bmf_copie(2+(ndata-1)/sizeofint,1,1, &

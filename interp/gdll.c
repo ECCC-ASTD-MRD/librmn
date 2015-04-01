@@ -42,19 +42,23 @@ wordint f77name(gdll)(wordint *gdid, ftnfloat *lat, ftnfloat *lon)
 
 wordint c_gdll(wordint gdid, ftnfloat *lat, ftnfloat *lon)
 {
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   
    ez_calclatlon(gdid);
-   if (Grille[gdid].flags & LAT)
+   if (Grille[gdrow_id][gdcol_id].flags & LAT)
       {
-      memcpy(lon, Grille[gdid].lon, Grille[gdid].ni*Grille[gdid].nj*sizeof(ftnfloat));
-      if (Grille[gdid].axe_y_inverse == 0)
+      memcpy(lon, Grille[gdrow_id][gdcol_id].lon, Grille[gdrow_id][gdcol_id].ni*Grille[gdrow_id][gdcol_id].nj*sizeof(ftnfloat));
+      if (Grille[gdrow_id][gdcol_id].fst.axe_y_inverse == 0)
          {
-         memcpy(lat, Grille[gdid].lat, Grille[gdid].ni*Grille[gdid].nj*sizeof(ftnfloat));
+         memcpy(lat, Grille[gdrow_id][gdcol_id].lat, Grille[gdrow_id][gdcol_id].ni*Grille[gdrow_id][gdcol_id].nj*sizeof(ftnfloat));
          }
       else
          {
-         f77name(permut)(Grille[gdid].lat, &Grille[gdid].ni, &Grille[gdid].nj);
-         memcpy(lat, Grille[gdid].lat, Grille[gdid].ni*Grille[gdid].nj*sizeof(ftnfloat));
-         f77name(permut)(Grille[gdid].lat, &Grille[gdid].ni, &Grille[gdid].nj);
+         f77name(permut)(Grille[gdrow_id][gdcol_id].lat, &Grille[gdrow_id][gdcol_id].ni, &Grille[gdrow_id][gdcol_id].nj);
+         memcpy(lat, Grille[gdrow_id][gdcol_id].lat, Grille[gdrow_id][gdcol_id].ni*Grille[gdrow_id][gdcol_id].nj*sizeof(ftnfloat));
+         f77name(permut)(Grille[gdrow_id][gdcol_id].lat, &Grille[gdrow_id][gdcol_id].ni, &Grille[gdrow_id][gdcol_id].nj);
          }
       }
    else

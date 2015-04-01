@@ -8,7 +8,7 @@ MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 UPDATEX =
 
@@ -58,7 +58,11 @@ tarball:  $(FICHIERS) Makefile
 obj: $(OBJECTS) $(OBJ_NEC)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: \
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir \
          $(TEMPLIB)(pak.o) $(TEMPLIB)(compact.o)   $(TEMPLIB)(compact_integer.o)     $(TEMPLIB)(compact_rle.o)\
          $(TEMPLIB)(unpackWrapper.o)   $(TEMPLIB)(compact_IEEEblock.o)   $(TEMPLIB)(f_pow.o)\
          $(TEMPLIB)(float_packer.o)

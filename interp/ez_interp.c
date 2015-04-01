@@ -23,24 +23,26 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_interp(ftnfloat *zout, ftnfloat *zin, wordint iset)
-{
-   wordint ni_in, nj_in, ni_out, nj_out, ninj_out ,gdin, gdout;
-   
-   if (gridset[iset].flags & XXX)
-      {
-      gdin  = gridset[iset].gdin;
-      gdout = gridset[iset].gdout;
-      
-      ni_in =  Grille[gdin].ni;
-      nj_in =  Grille[gdin].nj;
-      
-      ni_out = Grille[gdout].ni;
-      nj_out = Grille[gdout].nj;
-      ninj_out = ni_out * nj_out;
-      
-      c_gdinterp(zout, zin, gdin, gridset[iset].x,gridset[iset].y, ninj_out);
-      }
-   return 0;   
-}
+wordint ez_interp(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
+  {
+  wordint ni_in, nj_in, ni_out, nj_out, ninj_out;
+  
+  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin, idx_gdin;
+  int lcl_ngdin;
+  
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+  idx_gdin = c_find_gdin(gdin, gdout);
+  
+  if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].flags & XXX)
+    {
+    ni_out = Grille[gdrow_out][gdcol_out].ni;
+    nj_out = Grille[gdrow_out][gdcol_out].nj;
+    ninj_out = ni_out * nj_out;
+    
+    c_gdinterp(zout, zin, gdin, Grille[gdrow_out][gdcol_out].gset[idx_gdin].x,
+      Grille[gdrow_out][gdcol_out].gset[idx_gdin].y, ninj_out);
+    }
+  return 0;   
+  }
 

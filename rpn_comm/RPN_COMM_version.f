@@ -19,6 +19,6 @@
 * */
 
 	integer function RPN_COMM_version()
-	RPN_COMM_version=21100
+	RPN_COMM_version=23000
 	return
 	end

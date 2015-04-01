@@ -22,29 +22,40 @@
 #include "ez_funcdef.h"
 
 
+wordint f77name(ezsetgdout)(int *gdout)
+  {
+  return c_ezsetgdout(*gdout);
+  }
+
 wordint f77name(ezgetgdout)()
-{
-   return c_ezgetgdout();
-}
+  {
+  return c_ezgetgdout();
+  }
+
 wordint c_ezgetgdin()
-{
-   if (iset >= 0)
-     return gridset[iset].gdin;
-   else
-     return iset;
-}
+  {
+  return iset_gdin; 
+  }
 
 wordint c_ezgetgdout()
-{
-   if (iset >= 0)
-     return gridset[iset].gdout;
-   else
-     return iset;
-}
+  {
+  if (iset_gdout == UNDEFINED)
+     {
+     if (iset_gdin != UNDEFINED)
+        {
+	iset_gdout = iset_gdin;
+	}
+     else
+       {
+       iset_gdout = UNDEFINED;
+       }
+     }
+  return iset_gdout;
+  }
 
 wordint c_ezsetgdout(gdout)
 wordint gdout;
-{
-   gridset[iset].gdout = gdout;
-   return 0;
-}
+  {
+  iset_gdout = gdout;
+  return 0;
+  }

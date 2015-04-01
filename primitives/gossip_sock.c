@@ -29,6 +29,10 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+/******* to disable Nagle algorithm ***/
+#include <netinet/tcp.h>
+/******* to disable Nagle algorithm ***/
+
 #include <netdb.h>
 #include <time.h>
 #include <signal.h>
@@ -72,6 +76,10 @@ int get_timeout_signal( int channel );
 int connect_with_timeout(char *ipaddress, int portno, int timeout);
 
 static int maxsize = 1024;
+
+extern long long time_base();
+
+void check_data(char *record, int size);
 
 char *get_gossip_dir( int display )
      /* to get the value of the environment variable "GSSIPDIR" */
@@ -421,9 +429,28 @@ int get_sock_net()  /*   %ENTRY%   */
       signal(SIGPIPE, SIG_IGN);
       must_init_signal = 0;
     }
-  
+
   return socket(AF_INET, SOCK_STREAM, 0);
 }
+
+/**** Disable the Nagle (TCP No Delay) algorithm ******/
+void disable_nagle( int socket )
+{
+  int flag, ret;
+ 
+  flag = 1;
+
+  ret = setsockopt( socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag) );
+
+  if (ret == -1)
+    {
+
+      printf("Couldn't setsockopt(TCP_NODELAY)\n");
+
+      exit( EXIT_FAILURE );
+    }
+}
+
 
 /* set buffer sizes (recv and send) for a newly */
 /* created socket (always returns 0)            */
@@ -431,7 +458,9 @@ int set_sock_opt(int s)  /*   %ENTRY%   */
 {
   socklen_t optval, optsize;
   int b0 = 0;
-  
+
+
+
   optval = SOCK_BUF_SIZE*1024;
   
   b0 = setsockopt(s, SOL_SOCKET, SO_SNDBUF,(char *)&optval, sizeof(optval));
@@ -444,6 +473,14 @@ int set_sock_opt(int s)  /*   %ENTRY%   */
   optval = 0;
   optsize = 4;
   getsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&optval, &optsize);
+  fprintf(stderr,"SO_SNDBUF=%d, optsize = %d\n", optval, optsize);
+
+  if( s > 0)
+    {
+      /**** Disable the Nagle (TCP No Delay) algorithm ******/
+      disable_nagle( s );
+      /**** Disable the Nagle (TCP No Delay) algorithm ******/
+    }
 
 #ifdef DEBUG
   fprintf(stderr,"SO_SNDBUF=%d, optsize = %d\n", optval, optsize);
@@ -460,7 +497,7 @@ int set_sock_opt(int s)  /*   %ENTRY%   */
   optval = 0;
   optsize = 4;
   getsockopt(s, SOL_SOCKET, SO_RCVBUF, (char *)&optval, &optsize);
-
+  fprintf(stderr, "SO_RCVBUF = %d, optsize = %d\n", optval, optsize);
 #ifdef DEBUG
   fprintf(stderr, "SO_RCVBUF = %d, optsize = %d\n", optval, optsize);
 #endif
@@ -598,7 +635,7 @@ int connect_to_hostport(char *target2)  /*   %ENTRY%   */
 #endif
 
      /* fserver = socket(AF_INET, SOCK_STREAM, 0); */
-     while ((fserver = connect_with_timeout(buf, atoi(portno), 1)) < 0)   /* 3 second timeout for connection */
+     while ((fserver = connect_with_timeout(buf, atoi(portno), 1)) < 0)   /* 1 second timeout for connection */
        {
 	 fprintf(stderr, "IP = %s not working, will check using alias", buf);
 	 fserver = get_server_alias( buf2, buf, 1024 );
@@ -721,9 +758,12 @@ int connect_with_timeout(char *ipaddress, int portno, int timeout)
       return(-1); 
     } 
   /* I hope that is all  */
-  /* if(soc > 0) */
-  
-
+  if(soc > 0)
+    {
+      /**** Disable the Nagle (TCP No Delay) algorithm ******/
+      disable_nagle( soc );
+      /**** Disable the Nagle (TCP No Delay) algorithm ******/
+    }
   return(soc);
 }
 
@@ -759,16 +799,18 @@ int get_server_alias(char *path, const char *filename, int maxlen)
 	  return(0); 
 	}
     }
+
   temp = getenv("ARMNLIB");
   if(temp) 
     {
-    snprintf(fpath, 1023, "%s/data/GossipAliases/%s",temp,filename);
-    nchars = readlink(fpath, path, maxlen-1);
-    if(nchars>0) 
-      { 
-	path[nchars] = '\0'; 
-	return(0); 
-      }
+      snprintf(fpath, 1023, "%s/data/GossipAliases/%s", temp, filename);
+      nchars = readlink(fpath, path, maxlen-1);
+
+      if(nchars>0) 
+	{ 
+	  path[nchars] = '\0'; 
+	  return(0); 
+	}
     }
   return(-1) ; /* everything failed */
 }
@@ -841,10 +883,13 @@ int bind_to_localport(int *port, char *buf, int maxbuf)  /*   %ENTRY%   */
 /* send reply to command, ACK if status=0, NACK if status nonzero */
 void send_ack_nack(int fclient, int status)  /*   %ENTRY%   */
 {
-  
+#ifdef DEBUG
+  fprintf(stderr, "gossip_sock::sen_ack_nack(): STATUS = %d\n", status);
+#endif
+
   if(status)
      {
-         write(fclient, "NACK\0", 5);
+       write(fclient, "NACK\0", 5);
      }
    else
      {
@@ -852,7 +897,7 @@ void send_ack_nack(int fclient, int status)  /*   %ENTRY%   */
      }
 }
 
-/* get reply to command from server 0=ACK, nonzero=NACK*/
+/* get reply to command from server 0=ACK, nonzero=NACK */
 int get_ack_nack(int fserver)  /*   %ENTRY%   */
 {
    char reply[5];
@@ -864,7 +909,7 @@ int get_ack_nack(int fserver)  /*   %ENTRY%   */
    fprintf(stderr, "gossip_sock::get_ack_nack(): n = read() = %d\n", n);
 #endif
  
-   if (n < 3) 
+   if (n < 3)
      {
        fprintf(stderr, "Error: Bad reply\n");
        return(1) ; /* NACK */
@@ -878,7 +923,7 @@ int send_command_to_server(int fserver, char *buf)  /*   %ENTRY%   */
 {
   /* send command to server */
   write(fserver, buf, strlen(buf));
-  
+    
 #ifdef DEBUG
    fprintf(stderr, "gossip_sock::send_command_to_server(fserver), command sent: \"%s\"\n", buf); 
 #endif
@@ -970,7 +1015,7 @@ static get_request(int channel, char *request)
   len = len > sizeof(reply)-1 ? sizeof(reply) - 1 : len ;
   n = read_stream(channel, reply, len);
   reply[n > 0 ? n : 0] = '\0';
-  
+
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::get_send_request(), nbre of bytes read =>: %d\n", n);
   fprintf(stderr, "gossip_sock::get_send_request(), reply =>: %s\n", reply);
@@ -1180,7 +1225,14 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
   int  res;
   fd_set wfds;
   struct timeval tv;
- 
+
+#ifdef DEBUG 
+  /****************end timing******************/
+  unsigned long long tt1,tt2,clk1,clk2;
+  tt1 = time_base();
+  /****************end timing******************/
+#endif
+
 #ifdef DEBUG    
   fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes a envoyer = %d\n", n);
   fflush(stderr);
@@ -1188,15 +1240,18 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
 
   FD_ZERO(&wfds);
   FD_SET(fd, &wfds);
+
+  tv.tv_sec = get_stream_timeout(fd);
+  tv.tv_usec = 0;
  
   while (n > 0) 
     {
-      tv.tv_sec = get_stream_timeout(fd);
-      tv.tv_usec = 0;
-      
       if (select(fd+1, NULL, &wfds, NULL, &tv))
       	{
 	  res = write(fd, ptr, n);
+#ifdef DEBUG
+	  printf("\nwrite_stream: sent \"%d\" bytes", res);
+#endif
 	}
       else
         return(-n);
@@ -1208,13 +1263,19 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
     }
   
 #ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_stream: res = %d Wall Clock = %llu bigticks,", res, tt2);
+  /****************end timing******************/
+#endif
+
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes envoyes = %d\n", res);
   fflush(stderr);
 #endif
 
   return n;
 } 
-
 
 /* Read "n" bytes from a stream socket,     */
 /* return bytes_read (number of bytes read) */
@@ -1223,10 +1284,15 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
   int  n, res, bytes_read; 
   fd_set rfds;
   struct timeval tv;
-  
+
+#ifdef DEBUG  
+  /****************start timing******************/
+  unsigned long long tt1,tt2,clk1,clk2;
+  /****************start timing******************/
+#endif
+
   n = nbytes;
   bytes_read = 0;
-
 
 #ifdef DEBUG 
   fprintf(stderr, "gossip_sock::read_stream(), bytes to be read = %d\n", n);
@@ -1236,14 +1302,21 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
   FD_ZERO(&rfds);
   FD_SET(fd, &rfds);
 
+  tv.tv_sec = 1;
+  tv.tv_usec = 0;
+#ifdef DEBUG
+  clk1 = time_base();
+#endif
+
   while (n > 0)
     {  
-      tv.tv_sec = get_stream_timeout(fd);
-      tv.tv_usec = 0;
-
       if (select(fd+1, &rfds, NULL, NULL, &tv))
 	{
 	  res = read(fd, ptr, n);
+#ifdef DEBUG
+	  printf("\nread_stream: bytes read = %d of nbytes = %d", res, nbytes);
+#endif
+
 	}
       else
 	{
@@ -1260,11 +1333,21 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
     }
 
 #ifdef DEBUG 
+  /****************end timing******************/
+  clk2 = time_base() - clk1;
+  printf("\nread_stream: bytes read = %d, Total Wall Clock = %llu bigticks,", nbytes, clk2);
+  /*****************end timing******************/
+#endif
+
+#ifdef DEBUG 
   fprintf(stderr, "gossip_sock::read_stream(), after while(), bytes read = %d\n", res);
 #endif   
   
   return bytes_read;
 } 
+
+
+
 
 /* swap elements of size tokensize bytes if little endian */
 void check_swap_records(void *record, int size, int tokensize) /*   %ENTRY%   */
@@ -1332,7 +1415,14 @@ void check_swap_records(void *record, int size, int tokensize) /*   %ENTRY%   */
 int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTRY%   */
 {
   int nbytes;
-  
+
+#ifdef DEBUG
+  /****************start timing******************/
+  unsigned long long tt1,tt2,clk1,clk2;
+  tt1 = time_base();
+  /**************** timing******************/
+#endif
+
   /* wait for send request */ 
   if(!get_request(fclient, "SEND"))
     {
@@ -1340,17 +1430,84 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
       return -1;
     }
 
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): get SEND request Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /**************** timing******************/
+#endif
+
   set_timeout_signal(fclient, FALSE);
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): set_timeout_signal Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
   /* data delivery protocol: nbytes | data | nbytes */
 
   /* send data length */
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
+
   put_int32_to_channel(fclient, size * tokensize); /* send the 1st length tag = size */
-  
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): put 1st int into channel Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
+
   /* send data */
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
+
   check_swap_records(record, size, tokensize); /* check for data swaping */
 
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): check_swap_records Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
+
   /* send data length */
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
+
   nbytes = write_stream(fclient, record, size * tokensize);
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): write_stream data to scket, size = %d, Wall Clock = %llu bigticks,", size, tt2);
+  /****************end timing******************/
+#endif
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
 
   if(nbytes != 0)
     {
@@ -1358,17 +1515,65 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
       set_timeout_signal(fclient, TRUE);
       return nbytes;
     }
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): set_timeout_signal, Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
   
 #ifdef DEBUG 
   fprintf(stderr, "gossip_sock::write_record(),  nombre de bytes non envoyes = %d\n", nbytes);
 #endif
-  
+
+#ifdef DEBUG 
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/ 
+#endif
+ 
   check_swap_records(record, size, tokensize); /* swap back if necessary */
- 
+
+#ifdef DEBUG  
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): check data swapping, Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
+
   put_int32_to_channel(fclient, size * tokensize); /* send the 2nd length tag = size */
-  
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): put 2nd int into channel Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
+
+  /****************write: get ACK_NACK******************/
   get_ack_nack(fclient);
- 
+  /****************write: get ACK_NACK******************/
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nwrite_record(): get ack_nak Wall Clock = %llu bigticks,", tt2);
+  /****************end timing******************/
+#endif
+
   return nbytes;
 }
 
@@ -1398,7 +1603,13 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   char *records2 = NULL;
   
   int length1, length2, length3;
-  
+
+#ifdef DEBUG  
+  /****************start timing*************/
+  unsigned long long tt1,tt2,clk1,clk2;
+  /**************** timing******************/
+#endif
+
   set_timeout_signal(fclient, FALSE);
   
   tokensize = ( tokensize > 1 )?tokensize:1;
@@ -1413,8 +1624,23 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   /**** data delivery protocol: | length | data | length | ****/
 
   /* read 1st length */
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
   length1 = get_int32_from_channel(fclient);
-  
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nread_record(): get 1st int = %d from socket Wall Clock = %llu bigticks,", length1, tt2);
+  /****************end timing******************/
+#endif
+
+
+  fprintf(stderr, "gossip_sock::read_record(), 1st length tag = %d \n", length1);
+
 #ifdef DEBUG 
   fprintf(stderr, "gossip_sock::read_record(), 1st length tag = %d \n", length1);
 #endif
@@ -1455,8 +1681,21 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
    
   
   /* read data, and get received stream length */
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif
+
   length2 = read_stream(fclient, records2, length1);
-   
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nread_record(): read_stream data from socket, size = %d, Wall Clock = %llu bigticks,", length1, tt2);
+  /****************end timing******************/
+#endif 
+ 
   /* If length2 == 0 => there was a timeout for reading data */
   if(length2 == 0)
     {
@@ -1470,8 +1709,22 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
     }
 
   /* read 2nd length  */
+
+#ifdef DEBUG
+  /****************start timing******************/
+  tt1 = time_base();
+  /****************start timing******************/
+#endif 
+
   length3 = get_int32_from_channel(fclient);
- 
+
+#ifdef DEBUG
+  /****************end timing******************/
+  tt2 = time_base() - tt1;
+  printf("\nread_record(): get 2nd int = %d from socket Wall Clock = %llu bigticks,", length3, tt2);
+  /****************end timing******************/
+#endif 
+
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_record(), 2nd length tag = %d \n", length3);
 #endif
@@ -1516,13 +1769,16 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   /* check swap records */
   check_swap_records(records2, length1/tokensize, tokensize);
   
-  /********************************/
-  
-  send_ack_nack(fclient, IS_OK);
-  
+  /************read: SEND ACK_NACK********************/
+   send_ack_nack(fclient, IS_OK);
+  /************SEND ACK_NACK********************/
   /* return total number of bytes read */
   
   *length = length2/tokensize;
+
+  /*****************************/
+  /* check_data(records2, length2); */
+  /*****************************/
 
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_record(), *length = %d\n", *length);
@@ -1851,7 +2107,8 @@ int send_command_to_server2( int fclient, char *buffer )
     }
 
   pack_cmd( buffer, tmpbuf );
-  nbytes = write_stream( fclient, tmpbuf, strlen(buffer) + sizeof(int) );
+  /* nbytes = write_stream( fclient, tmpbuf, strlen(buffer) + sizeof(int) ); */
+  nbytes = write( fclient, tmpbuf, strlen(buffer) + sizeof(int) );
   
   reply = get_ack_nack(fclient);
 
@@ -1899,3 +2156,24 @@ void cmd_close(int fclient)
 
 }
 
+void check_data(char *record, int size)
+{
+  int i;
+  float element;
+
+  fprintf(stderr, "check_data( ):  size = %d\n", size);
+
+  if( record && size > 1000)
+    {
+      for(i = 0; i<(size/4); i++)
+	{
+	  memcpy( &element, record, sizeof( int ) ); 
+
+	  /* swap_4(*element); */
+	  fprintf(stderr, "check_data( ):  element[%d] = %f\n", i, element);
+	  record += sizeof( int );
+	
+	}
+      record -= (size/4 - 1) * sizeof( int );
+    }
+}

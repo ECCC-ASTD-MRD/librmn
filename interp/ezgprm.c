@@ -31,13 +31,17 @@ wordint f77name(ezgprm)(wordint *gdid, char *grtyp, wordint *ni, wordint *nj,
 
 wordint   c_ezgprm(wordint gdid, char *grtyp, wordint *ni, wordint *nj, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)
 {
-   *grtyp = Grille[gdid].grtyp;
-   *ni    = Grille[gdid].ni;
-   *nj    = Grille[gdid].nj;
-   *ig1   = Grille[gdid].ig[IG1];
-   *ig2   = Grille[gdid].ig[IG2];
-   *ig3   = Grille[gdid].ig[IG3];
-   *ig4   = Grille[gdid].ig[IG4];
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   
+   *grtyp = Grille[gdrow_id][gdcol_id].grtyp[0];
+   *ni    = Grille[gdrow_id][gdcol_id].ni;
+   *nj    = Grille[gdrow_id][gdcol_id].nj;
+   *ig1   = Grille[gdrow_id][gdcol_id].fst.ig[IG1];
+   *ig2   = Grille[gdrow_id][gdcol_id].fst.ig[IG2];
+   *ig3   = Grille[gdrow_id][gdcol_id].fst.ig[IG3];
+   *ig4   = Grille[gdrow_id][gdcol_id].fst.ig[IG4];
 
    return 0;
 }

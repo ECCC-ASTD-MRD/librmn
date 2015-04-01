@@ -71,6 +71,10 @@ c
            RPN_COMM_comm=pe_bloc
            return
         endif
+        if (comm(1:4).eq.'PEER') then
+           RPN_COMM_comm=pe_mypeer
+           return
+        endif
 
 
         write(rpn_u,*) 'Unknown communicator ',comm,', aborting'

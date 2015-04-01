@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint ez_freezones(_gridset *gdset);
+void ez_freezones(_gridset *gdset);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(gdxysval)(wordint *gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x, ftnfloat *y, wordint *n)
@@ -46,7 +46,7 @@ wordint c_gdxysval(wordint gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x, ftn
 }
 
 
-wordint ez_freezones(_gridset *gdset)
+void ez_freezones(_gridset *gdset)
 {
   wordint i;
 
@@ -63,5 +63,5 @@ wordint ez_freezones(_gridset *gdset)
       gdset->zones[i].y = NULL;
       }
     }
- return 0;
+
 }

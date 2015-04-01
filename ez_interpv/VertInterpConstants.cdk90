@@ -19,6 +19,17 @@ module VerticalInterpolationConstants
 
   !!!!!
   !
+  ! Globally define the kinds of real variables
+  !
+  !!!!!
+  integer, parameter :: single=4
+  integer, parameter :: double=8
+
+
+
+
+  !!!!!
+  !
   ! The set of possible errors that can be reported by the vertical interpolation
   ! package
   !

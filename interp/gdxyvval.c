@@ -26,7 +26,7 @@
 wordint f77name(gdxyvval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint *n)
 {
    wordint icode;
-   
+
    icode = c_gdxyvval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
    return icode;
 }
@@ -37,26 +37,30 @@ wordint c_gdxyvval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
   wordint local_gdout,local_iset, ier;
   wordint gdout;
   _gridset tmpset;
-  
+
   groptions.vecteur = VECTEUR;
-  
+
+/*
   memset(&tmpset, (int) NULL, sizeof(_gridset));
   gdout = NMAXGRIDS-1;
   tmpset.gdin = gdin;
   tmpset.gdout = gdout;
   tmpset.x = x;
   tmpset.y = y;
-  
+
+
   Grille[gdout].ni = n;
   Grille[gdout].nj = 1;
   Grille[gdout].grtyp = 'L';
-  
+*/
+
   groptions.symmetrie = SYM;
   c_gdxysint(uuout,uuin, gdin, x, y, n);
   groptions.symmetrie = ANTISYM;
   c_gdxysint(vvout,vvin, gdin, x, y, n);
   groptions.symmetrie = SYM;
-  
+
+/*
  if (groptions.polar_correction == OUI)
       {
       tmpset.gdin = gdin;
@@ -64,9 +68,9 @@ wordint c_gdxyvval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
       ez_corrvec(uuout, vvout, uuin, vvin, &tmpset);
       ez_freezones(&tmpset);
       }
-
+*/
  groptions.vecteur = SCALAIRE;
-  
+
   return 0;
-  
+
 }

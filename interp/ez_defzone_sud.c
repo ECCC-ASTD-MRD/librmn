@@ -29,23 +29,17 @@ wordint ez_defzone_sud(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _zo
   wordint nhits, i;
   wordint jmin;
 
+
+  wordint gdrow_in, gdcol_in;
+    
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  
   tmpx =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpy =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpidx = (wordint  *) malloc(npts*sizeof(wordint));
   
   nhits = 0;
-  switch (groptions.degre_interp)
-    {
-    case CUBIQUE:
-    case LINEAIRE:
-    jmin = Grille[gdin].j1+1;
-    break;
-
-    case VOISIN:
-    jmin = Grille[gdin].j1;
-    break;
-    }
-
+  jmin = Grille[gdrow_in][gdcol_in].j1+1;
   for (i=0; i < npts; i++)
     {
     if ((int)y[i] < jmin)
@@ -55,8 +49,8 @@ wordint ez_defzone_sud(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _zo
       tmpidx[nhits]=i;
       nhits++;
       }
-     }
-      
+    }
+  
   zone->npts = nhits;
   if (nhits > 0)
     {

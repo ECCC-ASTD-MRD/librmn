@@ -36,14 +36,17 @@ wordint c_gdxyzfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnflo
    _Grille grEntree;
    wordint npts;
 
-   grEntree =  Grille[gdid];
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   grEntree =  Grille[gdrow_id][gdcol_id];
    npts = n;
               
    ni_in =  grEntree.ni;
    nj_in =  grEntree.nj;
 
    
-   switch(grEntree.grtyp)
+   switch(grEntree.grtyp[0])
       {
       case 'A':
       case 'B':
@@ -68,8 +71,8 @@ wordint c_gdxyzfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnflo
 	coordonnee = ABSOLU;
         f77name(ez_ll2igd)(x, y, lat, lon, &npts,
 			    &ni_in,&nj_in,&grEntree.grtyp, &grEntree.grref,
-			    &grEntree.igref[IG1], &grEntree.igref[IG2], 
-			    &grEntree.igref[IG3], &grEntree.igref[IG4],
+			    &grEntree.fst.igref[IG1], &grEntree.fst.igref[IG2], 
+			    &grEntree.fst.igref[IG3], &grEntree.fst.igref[IG4],
 			    grEntree.ax, grEntree.ay, &coordonnee);
         break;
         

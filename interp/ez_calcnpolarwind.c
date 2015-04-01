@@ -25,17 +25,18 @@ wordint ez_calcnpolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
 			  wordint ni, wordint nj, wordint gdin)
 {
   wordint k1, k2;
-  ftnfloat *polar_wd, *polar_spd,*polar_lat,*polar_lon,*polar_lat_gem,
-    *polar_lon_gem,*polar_x,*polar_y,*polar_uu,*polar_vv;
+  ftnfloat *polar_wd, *polar_spd,*polar_lat,*polar_lon,*polar_lat_gem, *polar_lon_gem, *polar_x, *polar_y, *polar_uu, *polar_vv;
   char  grtyp[2],grref[2],grtypn[2],grtypa[2];
   wordint ig1in,ig2in,ig3in,ig4in,ig1in_ref,ig2in_ref,ig3in_ref,ig4in_ref;
   ftnfloat xlat1, xlat2, xlon1, xlon2;
   wordint ig1n, ig2n, ig3n, ig4n;
   ftnfloat pi, pj, d60, dgrw;
-  wordint i,j,ier,gdps,gda;
+  wordint i,j,ier,gdps,gda,gdrow,gdcol;
   ftnfloat uupole, vvpole;
   ftnfloat quatrevingtdix, zero;
 
+  
+  c_gdkey2rowcol(gdin, &gdrow, &gdcol);
   polar_uu  = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
   polar_vv  = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
   polar_wd  = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
@@ -83,8 +84,8 @@ wordint ez_calcnpolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
   gdps = c_ezqkdef(ni, 1, grtypn, ig1n, ig2n, ig3n, ig4n, 0);
   c_gduvfwd(gdps, polar_uu, polar_vv, polar_spd,  polar_wd, polar_lat, polar_lon, ni);
 
-  f77name(ez_calcpoleval)(&uupole, polar_uu, &ni, Grille[gdin].ax, &Grille[gdin].grtyp, &Grille[gdin].grref);
-  f77name(ez_calcpoleval)(&vvpole, polar_vv, &ni, Grille[gdin].ax, &Grille[gdin].grtyp, &Grille[gdin].grref);
+  f77name(ez_calcpoleval)(&uupole, polar_uu, &ni, Grille[gdrow][gdcol].ax, &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref);
+  f77name(ez_calcpoleval)(&vvpole, polar_vv, &ni, Grille[gdrow][gdcol].ax, &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref);
 
   quatrevingtdix = 90.0;
   zero = 0.0;

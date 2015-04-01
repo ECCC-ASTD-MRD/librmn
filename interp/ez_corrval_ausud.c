@@ -21,10 +21,9 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
+wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
 {
   wordint i;
-  wordint gdin;
   wordint npts;
   ftnfloat vpolesud;
   ftnfloat *temp, *temp_y, *vals;
@@ -32,98 +31,86 @@ wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, _gridset *gdset)
   wordint ni, nj, i1, i2, j1, j2;
   wordint un = 1;
   wordint quatre = 4;
-  
-  npts = gdset->zones[AU_SUD].npts;
+  wordint zero = 0;
+  wordint trois = 3;
+
+  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+  _gridset *gset;
+
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+  idx_gdin = c_find_gdin(gdin, gdout);
+
+  gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
+  npts = gset->zones[AU_SUD].npts;
   if (npts > 0)
     {
-    gdin = gdset->gdin;
-    ni = Grille[gdin].ni;
-    
+    ni = Grille[gdrow_in][gdcol_in].ni;
+
     i1 = 1;
     i2 = ni;
-    j1 = 0;
-    j2 = 3;
-    
+    j1 = Grille[gdrow_in][gdcol_in].j1 - 1;
+    j2 = j1 + 3;
+
     temp = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
     vals = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
-    f77name(ez_calcpoleval)(&vpolesud, zin, &ni, Grille[gdin].ax, &Grille[gdin].extension, 
-			    &Grille[gdin].grtyp, &Grille[gdin].grref);
-    f77name(ez_fillspole)(temp, zin, &ni, &Grille[gdin].j1, &Grille[gdin].j2, &vpolesud);
+    f77name(ez_calcpoleval)(&vpolesud, zin, &ni, Grille[gdrow_in][gdcol_in].ax,
+			    &Grille[gdrow_in][gdcol_in].grtyp, &Grille[gdrow_in][gdcol_in].grref);
+    f77name(ez_fillspole)(temp, zin, &ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2, &vpolesud);
 
     switch (groptions.degre_interp)
       {
       case CUBIQUE:
-      switch (Grille[gdin].grtyp)
-        {
-        case 'Z':
-        case 'E':
-        case 'G':
-          ay[0] = -90.0;
-          ay[1] = Grille[gdin].ay[0];
-          ay[2] = Grille[gdin].ay[1];
-          ay[3] = Grille[gdin].ay[2];
-          f77name(ez_irgdint_3_wnnc)(vals,gdset->zones[AU_SUD].x,
-                      gdset->zones[AU_SUD].y,&npts,
-                      Grille[gdin].ax, ay, temp,
-                      &ni, &j1, &j2, &Grille[gdin].extension);
-          break;
-          
-        default:
-          f77name(ez_rgdint_3_wnnc)(vals,gdset->zones[AU_SUD].x,
-                      gdset->zones[AU_SUD].y,&npts,
-                      temp,&ni, &j1, &j2, &Grille[gdin].extension);
-          break;
-        }
-      break;
-	
-      case LINEAIRE:	
-      temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      for (i=0; i < npts; i++)
-        {
-        temp_y[i] = gdset->zones[AU_SUD].y[i] + 1.0;
-        }
-      switch (Grille[gdin].grtyp)
-        {
-        case 'G':
-        case 'B':
-        case 'A':
-        f77name(ez_rgdint_1_w)(vals,gdset->zones[AU_SUD].x,temp_y,&npts,temp,&ni, &un, &quatre, &Grille[gdin].extension);
-        break;
+	   switch (Grille[gdrow_in][gdcol_in].grtyp[0])
+	     {
+	     case 'Z':
+	     case 'E':
+	     case 'G':
+	       ay[0] = -90.0;
+	       ay[1] = Grille[gdrow_in][gdcol_in].ay[0];
+	       ay[2] = Grille[gdrow_in][gdcol_in].ay[1];
+	       ay[3] = Grille[gdrow_in][gdcol_in].ay[2];
+	       f77name(ez_irgdint_3_wnnc)(vals,gset->zones[AU_SUD].x,
+				          gset->zones[AU_SUD].y,&npts,
+				          Grille[gdrow_in][gdcol_in].ax, ay, temp,
+				          &ni, &j1, &j2, &Grille[gdrow_in][gdcol_in].extension);
+	       break;
 
-        default:
-        f77name(ez_rgdint_1_nw)(vals,gdset->zones[AU_SUD].x,temp_y,&npts,temp,&ni, &un, &quatre);
-        break;
-        }
-      free(temp_y);
-      break;
-	
+	     default:
+	       f77name(ez_rgdint_3_wnnc)(vals,gset->zones[AU_SUD].x,
+				         gset->zones[AU_SUD].y,&npts,
+				         temp,&ni, &j1, &j2, &Grille[gdrow_in][gdcol_in].extension);
+	       break;
+	     }
+	break;
+
+      case LINEAIRE:
+	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+/*	   for (i=0; i < npts; i++)
+	     {
+	     temp_y[i] = gset->zones[AU_SUD].y[i] - (1.0*j1);
+	     }
+	   f77name(ez_rgdint_1_nw)(vals,gset->zones[AU_SUD].x,temp_y,&npts,temp,&ni, &un, &quatre);*/
+   	   f77name(ez_rgdint_1_w)(vals,gset->zones[AU_SUD].x,gset->zones[AU_SUD].y,&npts,temp,&ni, &j1, &j2, &Grille[gdrow_in][gdcol_in].extension);
+	   free(temp_y);
+	   break;
+
       case VOISIN:
-      temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      for (i=0; i < npts; i++)
-        {
-        temp_y[i] = gdset->zones[AU_SUD].y[i] + 1.0;
-        }
-      
-      switch(Grille[gdin].extension)
-        {
-        case 2:
-        f77name(ez_rgdint_0_w)(vals,gdset->zones[AU_SUD].x,temp_y,&npts,temp,&ni, &un, &quatre, &Grille[gdin].extension);
-        break;
-
-        default:
-        f77name(ez_rgdint_0)(vals,gdset->zones[AU_SUD].x,temp_y,&npts,temp,&ni, &un, &quatre);
-        break;
-        }
-
-      free(temp_y);
-      break;
+  	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+/*	   for (i=0; i < npts; i++)
+	     {
+	     temp_y[i] = gset->zones[AU_SUD].y[i] - (1.0*j1);
+	     }*/
+	   f77name(ez_rgdint_0)(vals,gset->zones[AU_SUD].x,gset->zones[AU_SUD].y,&npts,temp,&ni, &j1, &j2);
+	   free(temp_y);
+	   break;
       }
 
-    for (i=0; i < gdset->zones[AU_SUD].npts; i++)
+    for (i=0; i < gset->zones[AU_SUD].npts; i++)
       {
-      zout[gdset->zones[AU_SUD].idx[i]] = vals[i];
+      zout[gset->zones[AU_SUD].idx[i]] = vals[i];
       }
-    
+
     free(vals);
     free(temp);
     }

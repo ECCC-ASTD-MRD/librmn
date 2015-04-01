@@ -31,7 +31,7 @@ wordint c_gdxyfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloa
 {
   ftnfloat *tmplons;
   
-  wordint ni_in, nj_in;
+  wordint j,ni_in, nj_in;
   wordint sym=groptions.symmetrie;
   
   
@@ -39,13 +39,17 @@ wordint c_gdxyfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloa
   wordint npts;
   wordint coordonnee;
   
-  gr =  Grille[gdid];
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  
+  gr =  Grille[gdrow_id][gdcol_id];
   npts = n;
   
   ni_in =  gr.ni;
   nj_in =  gr.nj;
 
-  switch(gr.grtyp)
+  switch(gr.grtyp[0])
     {
     case 'A':
     case 'B':
@@ -61,7 +65,7 @@ wordint c_gdxyfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloa
       f77name(ez_ll2rgd)(x, y,
 			 lat, tmplons, &npts,
 			 &ni_in, &nj_in, &gr.grtyp,
-			 &gr.ig[IG1], &gr.ig[IG2], &gr.ig[IG3], &gr.ig[IG4],
+			 &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],
 			 &sym, gr.ay);
       free(tmplons);
       break;
@@ -73,9 +77,16 @@ wordint c_gdxyfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloa
       nj_in =  gr.j2;
       f77name(ez_ll2igd)(x, y, lat, lon, &npts,
 			 &ni_in,&nj_in,&gr.grtyp, &gr.grref,
-			 &gr.igref[IG1], &gr.igref[IG2], 
-			 &gr.igref[IG3], &gr.igref[IG4],
+			 &gr.fst.igref[IG1], &gr.fst.igref[IG2], 
+			 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
 			 gr.ax, gr.ay,&coordonnee);
+      if (gr.grtyp[0] == 'G' && gr.fst.ig[IG1] == 1) 
+         {
+	 for  (j=0; j < npts; j++)
+            {
+	    y[j] = y[j] - nj_in;
+	    }
+	 }
       break;
       
       

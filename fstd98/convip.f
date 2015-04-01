@@ -45,6 +45,8 @@
 *     Revision 008  M. Lepine - Dec 2005 kind = 17 (indice de matrice de niveaux)
 *     Revision 009  M. Valin  - Mars 2008 kind = 21 (metres pression remplacant GalChen)
 *                               introduction de zero_val2 pour la conversion ip->p
+*     Revision 010  M. Lepine - Mai 2010 traitement des valeurs en dehors des intervals connus
+*                               comme valeurs arbitraires
 *
 *     Input:    MODE = -1, de IP -->  P
 *               MODE =  0, forcer conversion pour ip a 31 bits
@@ -93,11 +95,12 @@
 
       REAL, PARAMETER, DIMENSION(0:Max_Kind) :: low_val =
      %   (/ -20 000., 0., 0.,    -4.8e+8, -20 000., 0.,
-     %      1.0, (0.0,i=7,16), 1.0, (0.0,i=18,20), 0., (0.0,i=22,31) /)
+     %      1.0, (-4.8e+8,i=7,9), 0.0, (-4.8e+8,i=11,16), 
+     %      1.0, (-4.8e+8,i=18,20), 0., (-4.8e+8,i=22,31) /)
       REAL, PARAMETER :: hi_val(0:Max_Kind) =
      %   (/  100 000., 1., 1100., 1.0e+10, 100 000., 1.,
-     %       200 000., (0.0,i=7,9), 1.0e+10, (0.0,i=11,16),
-     %       1.0e+10, (0.0,i=18,20), 1000000., (0.0,i=22,31) /)
+     %       200 000., (1.0e+10,i=7,9), 1.0e+10, (1.0e+10,i=11,16),
+     %       1.0e+10, (1.0e+10,i=18,20), 1000000., (1.0e+10,i=22,31) /)
       REAL, PARAMETER :: zero_val(0:Max_Kind) =
      %   (/ 0., 0., 0., 0., 0., 0., 1., (0.0,i=7,16),
      %      1.0, (0.0,i=18,20), 1.001e-4, (0.0,i=22,31) /)
@@ -121,7 +124,8 @@
 !      CHARACTER(len=2), PARAMETER :: kinds(0:Max_Kind) =
 !     %     (/ 'm ', 'sg', 'mb', '  ', 'M ', 'hy', 'th', 25*'??' /)
       data kinds
-     %     / 'm ', 'sg', 'mb', '  ', 'M ', 'hy', 'th', 25*'??' /
+     %     / 'm ', 'sg', 'mb', '  ', 'M ', 'hy', 'th', 14*'??',
+     %       'mp', 10*'??' /
 
       if (mode .eq.0) then
          NEWSTYLE = .true.
@@ -141,10 +145,12 @@
 *
 *        Conversion P a IP
 *
-       if ( kind.lt.0 .or. kind.gt.maxkind .or.
-     %     ( .not. validkind(kind)) )then
-            write(6,6004) kind
-            call qqexit(4)
+       if ( kind.lt.0 .or. kind.gt.maxkind ) then
+	  write(6,6004) kind
+	  call qqexit(1)
+	  return
+       elseif ( .not. validkind(kind) ) then
+*          write(6,6007) kind
        endif
        if (kind .eq. 2 .and. p .eq. 0.) then
           ip = 0
@@ -153,7 +159,8 @@
        if(NEWENCODING)then
          if (p .lt. low_val(kind) .or. p .gt. hi_val(kind)) then
             write(6,6006) p,low_val(kind),hi_val(kind)
-            call qqexit(5)
+            ip = -999999
+            return
          endif
          iexp = 4
          temp = p
@@ -206,7 +213,8 @@ c     %         goto 101
 
             if ( .not. (  0.0 .le. p .and. p .le. 1.0 ) ) then
                write(6,6001) p
-               call qqexit(1)
+               ip = -999999
+               return
             endif
 
             ip = nint( p * 10000. ) + 2000
@@ -217,7 +225,8 @@ c     %         goto 101
 
             if (  .not. (0.0 .le. p .and. p .lt. 1100. ) ) then
                write(6,6002) p
-               call qqexit(2)
+               ip = -999999
+               return
             endif
 
             if (0.999999e+1 .le. p .and. p .lt. 1100. ) then
@@ -240,30 +249,32 @@ c     %         goto 101
 
 *           ... ou de code arbitraire
 
-            if ( .not.
-     +         (( 0.0 .le. p .and. p .le.   100. ) .or.
-     +                             p .eq. 32767. )
-     +         ) then
+	    ip = nint( p )
+            if ( 0 .le. ip .and. ip .le. 100 ) then
+               ip = 1200 - ip
+            else
                write(6,6003) p
-               call qqexit(3)
+               ip = -999999
+               return
             endif
-
-            ip = nint( p )
-            if ( ip .ne. 32767 ) ip = 1200 - ip
 
          elseif (kind.eq.10) then
 
 *           ... temps en heure
-
             ip = nint( p )
-
+            if (ip > 32767) then
+               write(6,6005) p
+               ip = -999999
+               return
+            endif
+ 
          else
 
 *           Valeur illegale de kind.
 
             write(6,6004) kind
-            call qqexit(4)
-
+            ip = -999999
+	    return
          endif
 
        endif
@@ -277,10 +288,12 @@ c     %         goto 101
 *           nouveau codage
 
             kind = iand(15,ishft(ip,-24))
-            if ( (kind.lt.0 .or. kind.gt.maxkind) .or.
-     %           ( .not. validkind(kind)) ) then
+            if ( kind.lt.0 .or. kind.gt.maxkind ) then
                write(6,6004) kind
-               call qqexit(4)
+               p = -999999.0
+               return
+            elseif ( .not. validkind(kind) ) then
+*              write(6,6007) kind
             endif
             iexp = iand (15,ishft(ip,-20))
             itemp = iand (1048575, ip)
@@ -395,22 +408,20 @@ c     %         goto 101
                   if (flag) write(string,'(f6.2,1x,a2)') p,'mb'
             endif
 
-         elseif (( 1100 .le. ip .and. ip .le. 1200)  .or.
-     +                                ip .eq. 32767) then
+         elseif ( 1100 .le. ip .and. ip .le. 1200) then
 
 *           ... ou a code arbitraire.
 
             kind = 3
             p = float( ip )
-            if (ip .ne. 32767) p = 1200. - p
+            p = 1200. - p
             if (flag) write(string,'(i6,3x)') nint(p)
 
          else
 
-*           Valeur illegale de ip.
-
-            write(6,6005) ip
-            call qqexit(5)
+*           Valeur inderminee de ip.
+            kind = 3
+            p = float( ip )
 
          endif
 
@@ -419,13 +430,18 @@ c     %         goto 101
       return
 
 **********************************************************************
- 6001 format(' Dans convip: sigma initial =',e10.5)
- 6002 format(' Dans convip: pression initiale =',e10.5)
- 6003 format(' Dans convip: code arbitraire initial =',e10.5)
- 6004 format(' Dans convip: kind invalide =',I10)
- 6005 format(' Dans convip: ip initial =',I10)
- 6006 format(' Dans convip: p hors limite =',e10.5,' min=',e10.5,
-     %       ' max=',e10.5)
+ 6001 format(' Error in convip: sigma value =',e10.5,
+     %       ' returned ip is -999999')
+ 6002 format(' Error in convip: pressure value =',e10.5,
+     %       ' returned ip is -999999')
+ 6003 format(' Error in convip: arbitrairy value=',e10.5,
+     %       ' returned ip is -999999')
+ 6004 format(' Error in convip: invalid kind =',I10)
+ 6005 format(' Error in convip: kind=10 (oldstyle) value out of range='
+     %       ,e10.5,' returned ip is -999999')
+ 6006 format(' Error in convip: p is out of bounds =',e10.5,' min=',
+     %       e10.5,' max=',e10.5,' returned ip is -999999')
+ 6007 format(' Warning in convip: undetermined kind used =',I10)
 
       end
       

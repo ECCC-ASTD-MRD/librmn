@@ -26,21 +26,29 @@
 wordint f77name(ezwdint)(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
 {
    wordint icode;
-   
+
    icode = c_ezwdint(uuout, vvout, uuin, vvin);
    return icode;
 }
 
 wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
 {
-   wordint gdidin,gdidout;
+   wordint gdin,gdout;
    ftnfloat *uullout = NULL;
    ftnfloat *vvllout = NULL;
    wordint npts;
-   
-   gdidin = gridset[iset].gdin;
-   gdidout= gridset[iset].gdout;
-   npts = Grille[gdidout].ni*Grille[gdidout].nj;
+
+   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin;
+   int lcl_ngdin, idx_gdin;
+
+   gdin = iset_gdin;
+   gdout= iset_gdout;
+
+   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+   idx_gdin = c_find_gdin(gdin, gdout);
+
+   npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
 
    groptions.vecteur = VECTEUR;
 
@@ -54,20 +62,16 @@ wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vv
 
    if (groptions.polar_correction == OUI)
      {
-     ez_corrvec(uuout, vvout, uuin, vvin, &gridset[iset]);
+     ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
      }
 
    uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
    vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-   
+
    c_ezgenerate_gem_cache();
 
-   if (NULL==Grille[gdidout].lat)
-    {
-    ez_calclatlon(gdidout);
-    }
-   c_gdwdfuv(gdidin, uullout, vvllout, uuout, vvout,
-             Grille[gdidout].lat, Grille[gdidout].lon, npts);
+   c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
+             Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
 
    memcpy(uuout, uullout, npts*sizeof(ftnfloat));
    memcpy(vvout, vvllout, npts*sizeof(ftnfloat));

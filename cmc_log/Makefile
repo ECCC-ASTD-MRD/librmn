@@ -18,7 +18,7 @@ CPPFLAGS = -I$(ARMNLIB)/include
 
 MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 RMNLIB = rmn
 
@@ -45,7 +45,11 @@ tarball: *.c *.h
 obj: $(OBJECT) $(OBJ2)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: $(TEMPLIB)(cmcwlog.o)
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir $(TEMPLIB)(cmcwlog.o)
 
 genlib: $(OBJECT) $(OBJ2)
 #Creer ou mettre a jour la programmatheque 

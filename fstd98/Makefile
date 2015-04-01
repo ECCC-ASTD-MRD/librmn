@@ -10,7 +10,7 @@ RMNLIB_BASE_PATH=$(ARMNLIB)
 
 RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 FFLAGS =
 
@@ -71,7 +71,11 @@ tarball:  $(FICHIERS) Makefile
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: \
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir \
          $(TEMPLIB)(burp98.o)   $(TEMPLIB)(fstd98.o)   $(TEMPLIB)(xdf98.o)    $(TEMPLIB)(convip.o) \
          $(TEMPLIB)(fstcvt2.o)  $(TEMPLIB)(c_burp.o)   $(TEMPLIB)(strgr4a.o)  $(TEMPLIB)(r4astrg.o) \
          $(TEMPLIB)(hybref.o)   $(TEMPLIB)(FC_string.o) $(TEMPLIB)(excdes.o)  $(TEMPLIB)(memcpy_8_16.o) \

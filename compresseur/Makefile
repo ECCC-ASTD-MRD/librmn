@@ -14,7 +14,7 @@ OPTIMIZ = 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 MYLIB = $(ARMNLIB)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
@@ -41,7 +41,11 @@ obj: $(OBJECTS)
 obj2: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: $(TEMPLIB)(armn_compress_32.o) $(TEMPLIB)(zfstlib.o) $(TEMPLIB)(c_zfstlib.o)
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir $(TEMPLIB)(armn_compress_32.o) $(TEMPLIB)(zfstlib.o) $(TEMPLIB)(c_zfstlib.o)
 
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

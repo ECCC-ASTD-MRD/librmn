@@ -21,53 +21,50 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint EliminerGrille(wordint gridid)
+void EliminerGrille(wordint gdid)
 {
-   wordint i;
-   if (Grille[gridid].count > 0)
+  wordint i, index;
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  
+   if (Grille[gdrow_id][gdcol_id].access_count > 0)
     {
-    Grille[gridid].count--;
+    Grille[gdrow_id][gdcol_id].access_count--;
     }
    
-   if (Grille[gridid].count == 0)
+   if (Grille[gdrow_id][gdcol_id].access_count == 0)
     {
-    if (Grille[gridid].flags & LAT)
+    if (Grille[gdrow_id][gdcol_id].flags & LAT)
         {
-        free(Grille[gridid].lat);
-        free(Grille[gridid].lon);
-        Grille[gridid].lat = NULL;
-        Grille[gridid].lon = NULL;
+        free(Grille[gdrow_id][gdcol_id].lat);
+        free(Grille[gdrow_id][gdcol_id].lon);
+        Grille[gdrow_id][gdcol_id].lat = NULL;
+        Grille[gdrow_id][gdcol_id].lon = NULL;
         }
 
-    if (Grille[gridid].flags & AX)
+    if (Grille[gdrow_id][gdcol_id].flags & AX)
         {
-        free(Grille[gridid].ax);
-        free(Grille[gridid].ay);
-        Grille[gridid].ax = NULL;
-        Grille[gridid].ay = NULL;
+        free(Grille[gdrow_id][gdcol_id].ax);
+        free(Grille[gdrow_id][gdcol_id].ay);
+        Grille[gdrow_id][gdcol_id].ax = NULL;
+        Grille[gdrow_id][gdcol_id].ay = NULL;
         }
 
-    if (Grille[gridid].ncx != NULL)
+    if (Grille[gdrow_id][gdcol_id].ncx != NULL)
         {
-        free(Grille[gridid].ncx);
-        free(Grille[gridid].ncy);
-        Grille[gridid].ncx = NULL;
-        Grille[gridid].ncy = NULL;
+        free(Grille[gdrow_id][gdcol_id].ncx);
+        free(Grille[gdrow_id][gdcol_id].ncy);
+        Grille[gdrow_id][gdcol_id].ncx = NULL;
+        Grille[gdrow_id][gdcol_id].ncy = NULL;
         }
-    Grille[gridid].flags = (int)NULL;
+    Grille[gdrow_id][gdcol_id].flags = (int)NULL;
     }
    
 
-   for (i=0; i < nsets; i++)
+   for (i=0; i < Grille[gdrow_id][gdcol_id].n_gdin_for; i++)
       {
-      if (gridset[i].gdin == gridid || gridset[i].gdout == gridid)
-         {
-         if (gridset[i].flags & XXX)
-            {
-            c_ezfreegridset(i);
-            gridset[i].flags = (int)NULL;
-            }
-         }
+      index = ez_find_gdin_in_gset(gdid, Grille[gdrow_id][gdcol_id].gdin_for[i]);
+      c_ezfreegridset(Grille[gdrow_id][gdcol_id].gdin_for[i], index);
       }
-return 0;   
-}
+   }

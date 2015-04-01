@@ -15,11 +15,13 @@ module rpn_comm
 !	plus some PE grid topology information
 !	normally set by routine rpn_comm_init
 !
-!	pe_me	PE number of this PE
+!  pe_me_world PE number of this PE in MPI_COMM_WORLD
+!  pe_me PE number of this PE
 !	pe_mex	 x coordinate of this PE in domain (origin 0)
 !	pe_mey	 y coordinate of this PE in domain (origin 0)
 !	pe_myrow communicator for PEs in same ROW(same pe_mey)
-!	pe_mycol communicator for PEs in same COLUMN(same pe_mex)
+!  pe_mycol communicator for PEs in same COLUMN(same pe_mex)
+!  pe_mypeer communicator for PEs with same value of pe_me
 !	pe_tot	 total number of PEs involved
 !	pe_nx	 number of PEs along x axis
 !	pe_ny	 number of PEs along y axis
@@ -37,9 +39,9 @@ module rpn_comm
 !	pe_oprv  values of real options
 !	pe_opcv  values of character options
 !
-  integer pe_me,pe_mex,pe_mey,pe_myrow,pe_mycol
+  integer pe_me,pe_mex,pe_mey,pe_myrow,pe_mycol,pe_mypeer,pe_me_world
   integer pe_tot,pe_nx,pe_ny,pe_pe0,pe_extra
-  integer pe_gr_extra,pe_gr_myrow,pe_gr_mycol
+  integer pe_gr_extra,pe_gr_myrow,pe_gr_mycol,pe_gr_mypeer
   integer pe_bloc, pe_blocmaster, pe_defgroup
   integer pe_gr_bloc, pe_gr_blocmaster, pe_defcomm
   integer pe_gr_indomm, pe_gr_outdomm, pe_indomm, pe_outdomm

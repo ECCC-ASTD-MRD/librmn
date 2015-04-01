@@ -22,6 +22,7 @@
 !AUTEUR       Luc Corbeil (bmf_get)
 !
 !REVISION
+! v208a V. Lee real*8 allocation corrected:NI*dtyp/10/4 -> NI*(dtyp/10/4)
 !
 !ARGUMENTS
 !
@@ -124,44 +125,18 @@
               call bmf_copie(ni,nj,nk, &
                    champ_courant%bmf_champ%tableau,r4,imin,imax,&
                    jmin,jmax,kmin,kmax)
-
-!             do k=1,nk
-!             do j=1,nj
-!             do i=1,ni
-!               r4(i,j,k)=champ_courant%bmf_champ%tableau(i,j,k)
-!             enddo
-!             enddo
-!             enddo
            else if (dtyp.eq.bmf_real8) then
-              call bmf_copie(ni*dtyp/10/4,nj,nk, &
+              call bmf_copie(ni*(dtyp/10/4),nj,nk, &
                    champ_courant%bmf_champ%tableau,r8, &
-                   (imin-1)*dtyp/10/4+1,imax*dtyp/10/4,jmin,jmax,kmin,kmax)
+                   (imin-1)*(dtyp/10/4)+1,imax*(dtyp/10/4),jmin,jmax,kmin,kmax)
            else if (dtyp.eq.bmf_integer4) then
-              call bmf_copie(ni*dtyp/10/4,nj,nk,&
+              call bmf_copie(ni*(dtyp/10/4),nj,nk,&
                    champ_courant%bmf_champ%tableau,i4,&
                    imin,imax,jmin,jmax,kmin,kmax)
            else
               write(*,*) 'WARNING BMF_GET: Type dtyp ',dtyp,' non reconnu'
               error=1              
            endif
-!           if(dtyp.eq.bmf_real8) then
-!             do k=1,nk
-!             do j=1,nj
-!             do i=1,2*ni
-!               r8i(i,j,k)=champ_courant%bmf_champ%tableau(i,j,k)
-!             enddo
-!             enddo
-!             enddo
-!           endif
-!           if(dtyp.eq.bmf_integer4) then
-!             do k=1,nk
-!             do j=1,nj
-!             do i=1,ni
-!               i4(i,j,k)=champ_courant%bmf_champ%tableau(i,j,k)
-!             enddo
-!             enddo
-!             enddo
-!           endif
       endif
       champ_courant=>champ_courant%champ_suivant
    enddo

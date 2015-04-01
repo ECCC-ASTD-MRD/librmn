@@ -29,17 +29,18 @@ wordint f77name(gdllfxyz)(wordint *gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat 
 
 wordint c_gdllfxyz(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
 {
-  ftnfloat xlat00, xlon00, dlat, dlon;
-  ftnfloat xlat1, xlon1, xlat2, xlon2;
-  ftnfloat pi, pj, d60, dgrw;
-  wordint i,j,ni, nj, npts, hem, un;
+  wordint i,npts, hem, un;
   
   _Grille grEntree;
   
-  grEntree = Grille[gdid];
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  
+  grEntree = Grille[gdrow_id][gdcol_id];
   npts = n;
   
-  switch(grEntree.grtyp)
+  switch(grEntree.grtyp[0])
     {
     case 'A':
     case 'B':
@@ -60,30 +61,30 @@ wordint c_gdllfxyz(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnf
       
     case '#':
     case 'Z':
-      switch (grEntree.grref)
+      switch (grEntree.grref[0])
   {
   case 'E':
-    f77name(ez_gfllfxy)(lon,lat,x,y,&npts,&grEntree.xgref[XLAT1],&grEntree.xgref[XLON1],
-            &grEntree.xgref[XLAT2],&grEntree.xgref[XLON2]);
+    f77name(ez_gfllfxy)(lon,lat,x,y,&npts,&grEntree.fst.xgref[XLAT1],&grEntree.fst.xgref[XLON1],
+            &grEntree.fst.xgref[XLAT2],&grEntree.fst.xgref[XLON2]);
     break;
     
   case 'S':
   case 'N':
-    if (grEntree.grref == 'N') 
+    if (grEntree.grref[0] == 'N') 
       hem = 1;
     else
       hem = 2;
 
     un = 1;
-    f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&grEntree.xgref[D60],
-        &grEntree.xgref[DGRW], &grEntree.xgref[PI], &grEntree.xgref[PJ],&grEntree.hemisphere);
+    f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&grEntree.fst.xgref[D60],
+        &grEntree.fst.xgref[DGRW], &grEntree.fst.xgref[PI], &grEntree.fst.xgref[PJ],&grEntree.fst.hemisphere);
     break;
     
   case 'L':
     for (i=0; i < n; i++)
       {
-        lat[i] = (y[i])*grEntree.xgref[DLAT]+ grEntree.xgref[SWLAT];
-        lon[i] = (x[i])*grEntree.xgref[DLON]+ grEntree.xgref[SWLON];
+        lat[i] = (y[i])*grEntree.fst.xgref[DLAT]+ grEntree.fst.xgref[SWLAT];
+        lon[i] = (x[i])*grEntree.fst.xgref[DLON]+ grEntree.fst.xgref[SWLON];
         lon[i] = lon[i] < 0.0 ? lon[i] + 360.0 : lon[i];
       }
     break;

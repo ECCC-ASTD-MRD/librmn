@@ -34,23 +34,27 @@ wordint c_gdgaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
 
    wordint nix, njy;
 
-   switch(Grille[gdid].grtyp)
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   
+   switch(Grille[gdrow_id][gdcol_id].grtyp[0])
       {
       case 'Y':
-        nix = Grille[gdid].ni * Grille[gdid].nj;
+        nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
         njy = nix;
         break;
 
       default:
-        nix = Grille[gdid].ni;
-        njy = Grille[gdid].nj;
+        nix = Grille[gdrow_id][gdcol_id].ni;
+        njy = Grille[gdrow_id][gdcol_id].nj;
         break;
       }
    
-   if (Grille[gdid].flags & AX)
+   if (Grille[gdrow_id][gdcol_id].flags & AX)
       {
-      memcpy(ax, Grille[gdid].ax, nix*sizeof(ftnfloat));
-      memcpy(ay, Grille[gdid].ay, njy*sizeof(ftnfloat));
+      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(ftnfloat));
+      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, njy*sizeof(ftnfloat));
       }
    else
       {

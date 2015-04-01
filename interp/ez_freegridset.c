@@ -22,50 +22,65 @@
 #include "ez_funcdef.h"
 
 
-wordint c_ezfreegridset(wordint selectedset)
+wordint c_ezfreegridset(wordint gdid, wordint index)
 {
-   if (gridset[selectedset].x)
+  wordint i, gdrow, gdcol;
+
+  c_gdkey2rowcol(gdid,  &gdrow,  &gdcol);
+
+   if (Grille[gdrow][gdcol].gset[index].x != NULL)
       {
-      free(gridset[selectedset].x);
-      gridset[selectedset].x  = NULL;
+      free(Grille[gdrow][gdcol].gset[index].x);
+      Grille[gdrow][gdcol].gset[index].x  = NULL;
       }
 
-   if (gridset[selectedset].y)
+   if (Grille[gdrow][gdcol].gset[index].y)
       {
-      free(gridset[selectedset].y);
-      gridset[selectedset].y  = NULL;
+      free(Grille[gdrow][gdcol].gset[index].y);
+      Grille[gdrow][gdcol].gset[index].y  = NULL;
       }
 
-   if (gridset[selectedset].gemin.lat_rot)
+   if (Grille[gdrow][gdcol].gset[index].gemin.lat_rot)
       {
-      free(gridset[selectedset].gemin.lat_rot);
-      free(gridset[selectedset].gemin.lon_rot);
-      free(gridset[selectedset].gemin.sinlat_rot);
-      free(gridset[selectedset].gemin.coslat_rot);
-      free(gridset[selectedset].gemin.sinlon_rot);
-      free(gridset[selectedset].gemin.coslon_rot);
-      free(gridset[selectedset].gemin.sinlat_true);
-      free(gridset[selectedset].gemin.coslat_true);
-      free(gridset[selectedset].gemin.sinlon_true);
-      free(gridset[selectedset].gemin.coslon_true);
-      memset(&gridset[selectedset].gemin, (int) NULL, sizeof(_geminfo));
+      free(Grille[gdrow][gdcol].gset[index].gemin.lat_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemin.lon_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemin.sinlat_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemin.coslat_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemin.sinlon_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemin.coslon_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemin.sinlat_true);
+      free(Grille[gdrow][gdcol].gset[index].gemin.coslat_true);
+      free(Grille[gdrow][gdcol].gset[index].gemin.sinlon_true);
+      free(Grille[gdrow][gdcol].gset[index].gemin.coslon_true);
+      memset(&Grille[gdrow][gdcol].gset[index].gemin, (int) NULL, sizeof(_gemgrid));
       }
 
-   if (gridset[selectedset].gemout.lat_rot)
+   if (Grille[gdrow][gdcol].gset[index].gemout.lat_rot)
       {
-      free(gridset[selectedset].gemout.lat_rot);
-      free(gridset[selectedset].gemout.lon_rot);
-      free(gridset[selectedset].gemout.sinlat_rot);
-      free(gridset[selectedset].gemout.coslat_rot);
-      free(gridset[selectedset].gemout.sinlon_rot);
-      free(gridset[selectedset].gemout.coslon_rot);
-      free(gridset[selectedset].gemout.sinlat_true);
-      free(gridset[selectedset].gemout.coslat_true);
-      free(gridset[selectedset].gemout.sinlon_true);
-      free(gridset[selectedset].gemout.coslon_true);
-      memset(&gridset[selectedset].gemout, (int) NULL, sizeof(_geminfo));
+      free(Grille[gdrow][gdcol].gset[index].gemout.lat_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemout.lon_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemout.sinlat_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemout.coslat_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemout.sinlon_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemout.coslon_rot);
+      free(Grille[gdrow][gdcol].gset[index].gemout.sinlat_true);
+      free(Grille[gdrow][gdcol].gset[index].gemout.coslat_true);
+      free(Grille[gdrow][gdcol].gset[index].gemout.sinlon_true);
+      free(Grille[gdrow][gdcol].gset[index].gemout.coslon_true);
+      memset(&Grille[gdrow][gdcol].gset[index].gemout, (int) NULL, sizeof(_gemgrid));
       }
 
-
+  for (i=0; i < NZONES; i++)
+    {
+    if (Grille[gdrow][gdcol].gset[index].zones[i].npts > 0)
+      {
+      free(Grille[gdrow][gdcol].gset[index].zones[i].x);
+      free(Grille[gdrow][gdcol].gset[index].zones[i].y);
+      free(Grille[gdrow][gdcol].gset[index].zones[i].idx);
+      Grille[gdrow][gdcol].gset[index].zones[i].x = NULL;
+      Grille[gdrow][gdcol].gset[index].zones[i].y = NULL;
+      Grille[gdrow][gdcol].gset[index].zones[i].idx = NULL;
+      }
+    }
   return 0;
 }

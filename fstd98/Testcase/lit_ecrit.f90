@@ -35,7 +35,7 @@
       read(val(3),'(I)') force_datyp
       read(val(4),'(I)') force_nbits
       iun_in = 10
-      iun_out = 11
+      iun_out = 998
       iun_out2 = 12
 !      ier=fnom(unf,
 !     %'/usr/local/env/armnlib/data/SAMPLES/fstd_files/sample_fstd98',
@@ -52,7 +52,7 @@
 !      call desire_etiquette(1,1,etik_list,3)
 !      call desire_ip1(0,1,ip_list,3,-1)
 !      call desire_etiquette(0,1,etik_list,3)
-      ier = fstopc('MSGLVL','WARNIN',.false.)
+      ier = fstopc('MSGLVL','INFORM',.false.)
       key1 = fstinl (iun_in,ni1,nj1,nk1,-1,' ',-1,-1,-1,' ',' ',&
                      liste,infon,NMAX)
       print *,'Debug infon=',infon

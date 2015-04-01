@@ -29,16 +29,21 @@ wordint ez_defzone_polenord(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts
   wordint nhits, i;
   wordint *tmpidx;
   
+
+  wordint gdrow_in, gdcol_in;
+    
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  
   /* On commence par trouver les points au pole nord */
   tmpx =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpy =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   tmpidx = (wordint  *) malloc(npts*sizeof(wordint));
   
   nhits = 0;
-  if (Grille[gdin].grtyp == 'Z' && Grille[gdin].grref == 'E')
+  if (Grille[gdrow_in][gdcol_in].grtyp[0] == 'Z' && Grille[gdrow_in][gdcol_in].grref[0] == 'E')
     {
-    xpolenord = 0.5 * Grille[gdin].ni;
-    ypolenord = Grille[gdin].nj+0.5;
+    xpolenord = 0.5 * Grille[gdrow_in][gdcol_in].ni;
+    ypolenord = Grille[gdrow_in][gdcol_in].nj+0.5;
     }
   else
     {

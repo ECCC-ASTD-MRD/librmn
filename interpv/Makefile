@@ -24,7 +24,7 @@ RMNLIB_BASE_PATH=$(ARMNLIB)
 
 RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 FFLAGS =
 
@@ -53,6 +53,8 @@ Interp1D_Arguments_X.cdk : Interp1D_Arguments.cdk
 Interp1D_Constants.o : Interp1D_Constants.ftn90 Interp1D_Arguments_X.cdk
 Extrap1D_LapseRate.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_LapseRate.ftn90 \
 	Extrap1D_LapseRate_Body.ftn90 Interp1D_PreX_Shell.ftn90
+Extrap1D_Fixed.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Fixed.ftn90 \
+	Extrap1D_Fixed_Body.ftn90 Interp1D_PreX_Shell.ftn90
 Extrap1D_Surface.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Surface.ftn90 \
 	Extrap1D_Surface_Body.ftn90
 Extrap1D_SurfaceWind.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_SurfaceWind.ftn90 \
@@ -68,9 +70,9 @@ Interp1D_NearestNeighbour.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Inte
 	Interp1D_NearestNeighbour_Body.ftn90 Interp1D_PreX_Shell.ftn90
 
 OBJECTS= \
-        Interp1D_Constants.o Extrap1D_LapseRate.o Extrap1D_Surface.o Extrap1D_SurfaceWind.o\
-        Interp1D_CubicLagrange.o Interp1D_CubicWithDerivs.o Interp1D_FindPos.o \
-        Interp1D_Linear.o Interp1D_NearestNeighbour.o
+        Interp1D_Constants.o Extrap1D_LapseRate.o Extrap1D_Fixed.o Extrap1D_Surface.o \
+        Extrap1D_SurfaceWind.o Interp1D_CubicLagrange.o Interp1D_CubicWithDerivs.o \
+        Interp1D_FindPos.o Interp1D_Linear.o Interp1D_NearestNeighbour.o
 
 FICHIERS = *.ftn90 *.cdk
         
@@ -96,9 +98,14 @@ tarball:  $(FICHIERS) Makefile
 obj: $(OBJECTS)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: \
-        $(TEMPLIB)(Interp1D_Constants.o) $(TEMPLIB)(Extrap1D_LapseRate.o) $(TEMPLIB)(Extrap1D_Surface.o) \
-        $(TEMPLIB)(Extrap1D_SurfaceWind.o)\
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir \
+        $(TEMPLIB)(Interp1D_Constants.o) $(TEMPLIB)(Extrap1D_LapseRate.o) \
+        $(TEMPLIB)(Extrap1D_Fixed.o) \
+        $(TEMPLIB)(Extrap1D_Surface.o) $(TEMPLIB)(Extrap1D_SurfaceWind.o) \
         $(TEMPLIB)(Interp1D_CubicLagrange.o) $(TEMPLIB)(Interp1D_CubicWithDerivs.o) $(TEMPLIB)(Interp1D_FindPos.o) \
         $(TEMPLIB)(Interp1D_Linear.o) $(TEMPLIB)(Interp1D_NearestNeighbour.o)
 

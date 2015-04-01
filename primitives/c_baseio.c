@@ -372,7 +372,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
       freopen(nom,"a",stdout);
     else
       freopen(nom2,"a",stdout);
-    fprintf(stderr,"C_FNOM DEBUG: freopen %s pour stdout\n",nom2) ;
+/*    fprintf(stderr,"C_FNOM DEBUG: freopen %s pour stdout\n",nom2) ; */
     stdoutflag=1;
     return(0);
   }
@@ -2753,6 +2753,8 @@ else {
 *ARGUMENTS: in remote_host remote host server name
 *           in ind         file index in fnom general file table index
 *           
+*Revisions
+*           nov 2009 - Utilisation de ssh dans tous les cas pour demarrer wa_server
 *
 */
 int fnom_rem_connect(int ind, char* remote_host)
@@ -2779,23 +2781,30 @@ int fnom_rem_connect(int ind, char* remote_host)
   printf("bound to #%s#\n",cbuf);
   fflush(stdout);
 
+/*
   file_ptr = fopen("ECssm/all/bin/remote_exec.sh","r");
+
   if (file_ptr != NULL) {
     printf("Debug+ passe par remote_exec\n");
     snprintf(pbuf,sizeof(pbuf)-1,"ssh %s -n %s %s %s @%s ",remote_host,"ECssm/all/bin/remote_exec.sh wa_server",
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);
-/*    printf("Debug+ commande passee =\n%s\n",pbuf);  */
+    printf("Debug+ commande passee =\n%s\n",pbuf);
     }
   else {
     snprintf(pbuf,sizeof(pbuf)-1,"ssh %s -n %s/bin/%s %s %s @%s ",remote_host,armnlibpath,"wa_server",
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);
-/*    printf("Debug+ commande passee =\n%s\n",pbuf); */
+    printf("Debug+ ancienne commande passee =\n%s\n",pbuf);
     }
+*/
 /*
   snprintf(pbuf,sizeof(pbuf)-1,"rsh %s -n %s %s %s @%s ",remote_host,"/users/dor/armn/mlp/tests/SOCKETS/wa_server",
            FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf);
 */
                             /*  rsh host -n commande fichier mode socket */
+  snprintf(pbuf,sizeof(pbuf)-1,"echo wa_server %s %s @%s | ssh %s bash --login",
+           FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
+  printf("Debug+ commande passee =\n%s\n",pbuf);
+
   comm=popen(pbuf,"r");
   if(comm == NULL) {
     printf("fnom_rem_connect error: popen error !!\n");

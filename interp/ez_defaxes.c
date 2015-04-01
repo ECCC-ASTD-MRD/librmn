@@ -21,89 +21,93 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
+void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
 {
   wordint i,j;
   ftnfloat *temp, dlon;
   wordint zero, deuxnj;
-  
+
   _Grille *gr;
-  
-  gr = &Grille[gdid];
-  switch (gr->grtyp)
+
+  wordint gdrow_id, gdcol_id;
+
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
+  gr = &Grille[gdrow_id][gdcol_id];
+  switch (gr->grtyp[0])
     {
     case '#':
     case 'Z':
-      f77name(cigaxg)(&gr->grref,&gr->xgref[XLAT1], &gr->xgref[XLON1], &gr->xgref[XLAT2], &gr->xgref[XLON2],
-		      &gr->igref[IG1], &gr->igref[IG2], &gr->igref[IG3], &gr->igref[IG4]);
-      
-      Grille[gdid].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
-      Grille[gdid].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
-      
-      memcpy(Grille[gdid].ax,ax,gr->ni*sizeof(ftnfloat));
-      memcpy(Grille[gdid].ay,ay,gr->nj*sizeof(ftnfloat));
+      f77name(cigaxg)(&gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
+		      &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4]);
+
+      Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
+      Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
+
+      memcpy(Grille[gdrow_id][gdcol_id].ax,ax,gr->ni*sizeof(ftnfloat));
+      memcpy(Grille[gdrow_id][gdcol_id].ay,ay,gr->nj*sizeof(ftnfloat));
       ez_calcxpncof(gdid);
       ez_calcntncof(gdid);
       break;
-      
+
     case 'Y':
-      Grille[gdid].ax = (ftnfloat *) malloc(gr->ni*gr->nj*sizeof(ftnfloat));
-      Grille[gdid].ay = (ftnfloat *) malloc(gr->ni*gr->nj*sizeof(ftnfloat));
-      memcpy(Grille[gdid].ax,ax,gr->ni*gr->nj*sizeof(ftnfloat));
-      memcpy(Grille[gdid].ay,ay,gr->ni*gr->nj*sizeof(ftnfloat));
-      
+      Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*gr->nj*sizeof(ftnfloat));
+      Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->ni*gr->nj*sizeof(ftnfloat));
+      memcpy(Grille[gdrow_id][gdcol_id].ax,ax,gr->ni*gr->nj*sizeof(ftnfloat));
+      memcpy(Grille[gdrow_id][gdcol_id].ay,ay,gr->ni*gr->nj*sizeof(ftnfloat));
+
       ez_calcxpncof(gdid);
       break;
-      
+
     case 'G':
-      gr->grref = 'L';
-      gr->xgref[SWLAT] = 0.0;
-      gr->xgref[SWLON] = 0.0;
-      gr->xgref[DLAT] = 1.0;
-      gr->xgref[DLON] = 1.0;
-      f77name(cxgaig)(&gr->grref,&gr->igref[IG1], &gr->igref[IG2], &gr->igref[IG3], &gr->igref[IG4],
-		      &gr->xgref[SWLAT], &gr->xgref[SWLON], &gr->xgref[DLAT], &gr->xgref[DLON]);
-      
-      Grille[gdid].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
+      gr->grref[0] = 'L';
+      gr->fst.xgref[SWLAT] = 0.0;
+      gr->fst.xgref[SWLON] = 0.0;
+      gr->fst.xgref[DLAT] = 1.0;
+      gr->fst.xgref[DLON] = 1.0;
+      f77name(cxgaig)(&gr->grref,&gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],
+		      &gr->fst.xgref[SWLAT], &gr->fst.xgref[SWLON], &gr->fst.xgref[DLAT], &gr->fst.xgref[DLON]);
+
+      Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
       dlon = 360. / (ftnfloat) gr->ni;
       for (i=0; i < gr->ni; i++)
-	{
-	Grille[gdid].ax[i] = (ftnfloat)i * dlon;
-	}
-      
+	      {
+	      Grille[gdrow_id][gdcol_id].ax[i] = (ftnfloat)i * dlon;
+	      }
+
       zero = 0;
       ez_calcxpncof(gdid);
 
-      switch (Grille[gdid].ig[IG1])
-	{
-	case GLOBAL:
-	  Grille[gdid].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
-	  temp    = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
-	  f77name(ez_glat)(Grille[gdid].ay,temp,&gr->nj,&zero);
-	  free(temp);
-	  break;
-	  
-	case NORD:
-	case SUD:
-	  deuxnj = 2 * gr->nj;
-	  Grille[gdid].ay = (ftnfloat *) malloc(deuxnj*sizeof(ftnfloat));
-	  temp    = (ftnfloat *) malloc(deuxnj*sizeof(ftnfloat));
-	  f77name(ez_glat)(Grille[gdid].ay,temp,&deuxnj,&zero);
-	  free(temp);
-	  break;
-	}
-      
-      
+      switch (Grille[gdrow_id][gdcol_id].fst.ig[IG1])
+	      {
+	      case GLOBAL:
+	        Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
+	        temp    = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
+	        f77name(ez_glat)(Grille[gdrow_id][gdcol_id].ay,temp,&gr->nj,&zero);
+	        free(temp);
+	        break;
+
+	      case NORD:
+	      case SUD:
+	        deuxnj = 2 * gr->nj;
+	        Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(deuxnj*sizeof(ftnfloat));
+	        temp    = (ftnfloat *) malloc(deuxnj*sizeof(ftnfloat));
+	        f77name(ez_glat)(Grille[gdrow_id][gdcol_id].ay,temp,&deuxnj,&zero);
+	        free(temp);
+	        break;
+	      }
+
+
       ez_calcntncof(gdid);
-      Grille[gdid].flags |= AX;
+      Grille[gdrow_id][gdcol_id].flags |= AX;
       break;
-      
+
     default:
       ez_calcxpncof(gdid);
       break;
     }
-  
-  
-  Grille[gdid].flags |= AX;
-  return 0;
+
+
+  Grille[gdrow_id][gdcol_id].flags |= AX;
+
 }

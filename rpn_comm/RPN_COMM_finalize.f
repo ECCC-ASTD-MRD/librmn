@@ -36,7 +36,7 @@ c	mpi finalize
         if(allocated(ord_tab))    deallocate(ord_tab)
 
 
-
+        call rpn_comm_softbarrier(MPI_COMM_WORLD)
         call mpi_finalize(ierr)
 
 	return

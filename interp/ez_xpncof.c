@@ -24,24 +24,36 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint ez_calcxpncof(wordint gdid)
 {
-  ez_xpncof(&Grille[gdid].i1,&Grille[gdid].i2,&Grille[gdid].j1,&Grille[gdid].j2,&Grille[gdid].extension,
-	    Grille[gdid].ni,Grille[gdid].nj,Grille[gdid].grtyp,Grille[gdid].grref,
-	    Grille[gdid].ig[IG1], Grille[gdid].ig[IG2], Grille[gdid].ig[IG3], Grille[gdid].ig[IG4],
-	    groptions.symmetrie, Grille[gdid].ax, Grille[gdid].ay);
-  
+  wordint gdrow_id, gdcol_id;
+
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
+  ez_xpncof(&Grille[gdrow_id][gdcol_id].i1,
+            &Grille[gdrow_id][gdcol_id].i2,
+            &Grille[gdrow_id][gdcol_id].j1,
+            &Grille[gdrow_id][gdcol_id].j2,
+            &Grille[gdrow_id][gdcol_id].extension,
+	    Grille[gdrow_id][gdcol_id].ni,
+            Grille[gdrow_id][gdcol_id].nj,
+            Grille[gdrow_id][gdcol_id].grtyp[0],
+            Grille[gdrow_id][gdcol_id].grref[0],
+	    Grille[gdrow_id][gdcol_id].fst.ig[IG1], Grille[gdrow_id][gdcol_id].fst.ig[IG2],
+            Grille[gdrow_id][gdcol_id].fst.ig[IG3], Grille[gdrow_id][gdcol_id].fst.ig[IG4],
+	    groptions.symmetrie, Grille[gdrow_id][gdcol_id].ax, Grille[gdrow_id][gdcol_id].ay);
+
    return 0;
-   
+
 }
-      
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *extension,
+void ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *extension,
             wordint ni,wordint nj,char grtyp, char grref,
             wordint ig1,wordint ig2,wordint ig3,wordint ig4,wordint sym, ftnfloat *ax, ftnfloat *ay)
-{
-  
-  *i1 = 1;
-  *i2 = ni;
-  switch (grtyp)
+   {
+
+   *i1 = 1;
+   *i2 = ni;
+   switch (grtyp)
       {
       case '!':
       case 'L':
@@ -50,89 +62,88 @@ wordint ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *e
       case 'T':
         *j1 = 1;
         *j2 = nj;
-	*extension = 0;
+      	*extension = 0;
         break;
-	
+
       case 'A':
       case 'G':
-	*extension = 2;
-        switch (ig1)
-	  {
-	  case GLOBAL:
-	    *j1 = 1;
-	    *j2 = nj;
-	    break;
-	    
-	  case NORD:
-	    *j1 = -nj+1;
-	    *j2 =  nj;
-	    break;
+	   *extension = 2;
+      switch (ig1)
+	     {
+	     case GLOBAL:
+	       *j1 = 1;
+	       *j2 = nj;
+	       break;
 
-	  case SUD:
-	    *j1 = 1;
-	    *j2 =  2 * nj;
-	    break;
-	  }
-        break;
-	
+	     case NORD:
+	       *j1 = -nj+1;
+	       *j2 =  nj;
+	       break;
+
+	     case SUD:
+	       *j1 = 1;
+	       *j2 =  2 * nj;
+	       break;
+	     }
+      break;
+
       case 'B':
-	*extension = 1;
-        switch (ig1)
-	  {
-	  case GLOBAL:
-	    *j1 = 1;
-	    *j2 = nj;
-	    break;
-	    
-	  case NORD:
-	    *j1 = -nj+2;
-	    *j2 = nj;
-	    break;
+	   *extension = 1;
+      switch (ig1)
+	     {
+	     case GLOBAL:
+	     *j1 = 1;
+	     *j2 = nj;
+	     break;
+
+	     case NORD:
+	     *j1 = -nj+2;
+	     *j2 = nj;
+	     break;
 
 
-	  case SUD:
-	    *j1 = 1;
-	    *j2 = 2 * nj - 1;
-	    break;
-	  }
-        break;
-	
+	     case SUD:
+	     *j1 = 1;
+	     *j2 = 2 * nj - 1;
+	     break;
+	     }
+      break;
+
       case 'E':
-        *j1 = 1;
-        *j2 = nj;
-        break;
-	
+      *j1 = 1;
+      *j2 = nj;
+      break;
+
       case '#':
       case 'Z':
-        switch (grref)
-	  {
-	  case 'E':
-	    *j1 = 1;
-	    *j2 = nj;
-	    if ((ax[ni-1]-ax[0]) < 359.0)
-	      {
+      switch (grref)
+         {
+	      case 'E':
+	      *j1 = 1;
+	      *j2 = nj;
+	      if ((ax[ni-1]-ax[0]) < 359.0)
+	        {
+	        *extension = 0;
+	        }
+         else
+	        {
+	        *extension = 1;
+	        }
+         break;
+
+	      default:
+	      *j1 = 1;
+	      *j2 = nj;
 	      *extension = 0;
-	      }
-	    else
-	      {
-	      *extension = 1;
-	      }
-	    break;
-	    
-	  default:
-	    *j1 = 1;
-	    *j2 = nj;
-	    *extension = 0;
-	    break;
-	  }
-	break;
-	
-      default:
+	      break;
+         }
+	  break;
+
+   default:
 	*j1 = 1;
 	*j2 = nj;
 	*extension = 0;
 	break;
-      }
-  
-return 0;
+   }
+
 }

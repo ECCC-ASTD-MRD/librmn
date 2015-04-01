@@ -10,7 +10,7 @@ RMNLIB_BASE_PATH=$(ARMNLIB)
 
 RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 FFLAGS =
 
@@ -66,7 +66,7 @@ FDECKS= \
          windv.f        xgaig.f \
          system_time.f  mxm.f\
 	 cvmgm.f          cvmgn.f        cvmgp.f         cvmgt.f\
-         cvmgz.f          nr_rand.f
+         cvmgz.f          nr_rand.f      fft_m4.f
 
 OBJECTS= \
          afix.o           afix8.o        amax.o          amean.o \
@@ -89,7 +89,7 @@ OBJECTS= \
                           vpolagr.o      vps.o           windv.o \
          xgaig.o          xyflcc.o       xyfll.o         system_time.o\
          mxma.o           mxm.o          igaxg95.o       legvar.o\
-         movr8r4.o        nr_rand.o      grid_to_grid.o
+         movr8r4.o        nr_rand.o      grid_to_grid.o  fft_m4.o
 
 COMDECKS= \
          cubic.cdk       kases.cdk       lagrange.cdk       ordr.cdk \
@@ -130,7 +130,11 @@ genlib: $(OBJECTS) $(OBJ_FRONT)
 #Creer ou mettre a jour la programmatheque 
 	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS) $(OBJ_FRONT)
 
-locallib: \
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir \
          $(TEMPLIB)(afix.o)           $(TEMPLIB)(afix8.o)        $(TEMPLIB)(amax.o)          $(TEMPLIB)(amean.o) \
          $(TEMPLIB)(amin.o)           $(TEMPLIB)(bilin.o)        $(TEMPLIB)(c_time.o)        $(TEMPLIB)(corcof.o) \
          $(TEMPLIB)(coriol.o)         $(TEMPLIB)(coupe.o)        $(TEMPLIB)(cvt_base40.o)    $(TEMPLIB)(d1.o) \
@@ -151,7 +155,7 @@ locallib: \
          $(TEMPLIB)(vpolagr.o)        $(TEMPLIB)(vps.o)          $(TEMPLIB)(windv.o) \
          $(TEMPLIB)(xgaig.o)          $(TEMPLIB)(xyflcc.o)       $(TEMPLIB)(xyfll.o)         $(TEMPLIB)(system_time.o)\
          $(TEMPLIB)(mxma.o)           $(TEMPLIB)(mxm.o)          $(TEMPLIB)(igaxg95.o)       $(TEMPLIB)(legvar.o)\
-         $(TEMPLIB)(movr8r4.o)        $(TEMPLIB)(nr_rand.o)      $(TEMPLIB)(grid_to_grid.o)
+         $(TEMPLIB)(movr8r4.o)        $(TEMPLIB)(nr_rand.o)      $(TEMPLIB)(grid_to_grid.o)  $(TEMPLIB)(fft_m4.o)\
        
 updlib: 
 #mettre a jour la programmatheque 

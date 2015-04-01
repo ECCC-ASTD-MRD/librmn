@@ -1,0 +1,42 @@
+   module rmn_includes
+#include "gmm.hf"
+#include "rmnlib.hf"
+   end module rmn_includes
+
+   program bidule
+
+   use rmn_includes
+
+   call a
+   call b
+   call c
+
+   stop
+   end program bidule
+
+   subroutine a
+   use rmn_includes
+
+   print *, 'I am in subroutine A'
+
+   return
+   end subroutine a
+
+   subroutine b
+   use rmn_includes
+
+   print *, 'I am in subroutine B'
+
+   return
+   end subroutine b
+
+   subroutine c
+   use rmn_includes
+
+   print *, 'I am in subroutine C'
+
+   return
+   end subroutine c
+
+
+

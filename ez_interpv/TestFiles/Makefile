@@ -38,9 +38,9 @@ TEST_OBJECTS=\
 	VertInterpConstants.o  VerticalGrid.o  VerticalInterpolation.o ViIfc.o TestVI.o
 
 INTERPV_OBJECTS=\
-	Interp1D_Constants.o Extrap1D_LapseRate.o Extrap1D_Surface.o Extrap1D_SurfaceWind.o \
-	Interp1D_CubicLagrange.o Interp1D_CubicWithDerivs.o Interp1D_FindPos.o \
-	Interp1D_Linear.o Interp1D_NearestNeighbour.o
+	Interp1D_Constants.o Extrap1D_LapseRate.o Extrap1D_Fixed.o Extrap1D_Surface.o \
+	Extrap1D_SurfaceWind.o Interp1D_CubicLagrange.o Interp1D_CubicWithDerivs.o \
+	Interp1D_FindPos.o Interp1D_Linear.o Interp1D_NearestNeighbour.o
 
 SPEED_OBJECTS=\
 	VertInterpConstants.o  VerticalGrid.o  VerticalInterpolation.o SpeedConvertP.o
@@ -52,16 +52,16 @@ testWithInterpv: copyHlocal TestVI.o
 	cp ../*.o .
 	cp ../../interpv/*.o .
 	r.build -o TestVInterp_$(ARCH).Abs -obj $(INTERPV_OBJECTS) $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_008
+	-abi$(ABI) -librmn rmn_009
 
 test:	TestVI.o
 	cp ../*.o .
 	r.build -o TestVInterp_$(ARCH).Abs -obj $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_008
+	-abi$(ABI) -librmn rmnbeta
 
 testlib:TestVI.o
 	r.build -o TestVInterp_$(ARCH).Abs -obj TestVI.o -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_008
+	-abi$(ABI) -librmn rmn_009
 
 copielocale:
 	cp ../*.o . 
@@ -69,7 +69,7 @@ copielocale:
 
 SpeedConvert: copielocale SpeedConvertP.o
 	r.build -o SpeedConvertP_$(ARCH).Abs -obj $(SPEED_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_008
+	-abi$(ABI) -librmn rmn_009
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 

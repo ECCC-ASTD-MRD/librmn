@@ -35,6 +35,15 @@
 *
 #include "parmadr.cdk"
 *
+*      REPRESENTATION DE DOPES
+*      ---------------------------
+*     |  6 bit   |  8 bit | 8bit  |
+*      ---------------------------
+*      Start pos | Length | Type 
+*                                Type = 1, entier
+*                                Type = 2, reel
+*                                Type = 3, caractere
+*
 **
       INTEGER I,BASE
   

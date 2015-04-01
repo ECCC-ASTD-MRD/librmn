@@ -24,7 +24,7 @@ MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 UPDATEX =
 
@@ -38,8 +38,12 @@ rmnlib_v:
 	-rm rmnlib_version.f
 	./rmnlib_version
 
+rmnlib_v_sed: 
+	sed "s@EC_ARCH_VAR Date_of_Build@$(EC_ARCH) `date +%c`@" rmnlib_version.f > rmnlib_version_new.f
+	mv rmnlib_version_new.f rmnlib_version.f
 
-#rmnlib_version.o:
+rmnlib_version.o: rmnlib_v_sed
+$(TEMPLIB)(rmnlib_version.o): rmnlib_v_sed rmnlib_version.o
 #	-rm rmnlib_version.f
 #	./rmnlib_version
 #	r.compile -arch $(EC_ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $*.f
@@ -65,7 +69,7 @@ CDECKS= \
          f_gettimeofday.c f_bit_slicer.c  gossip_thread.c flush_stdout.c \
          c_env_var_cracker.c array_file.c logical_smt_cpus.c  pointers_and_addresses.c \
          mkdir_c.c       client_timeout.c ftn2c_helper_c.c clib_interface.c \
-         arc4.c		 md5.c
+         arc4.c		 md5.c            fool_optimizer.c
 
 FDECKS= \
          constnt.f       exdb.f \
@@ -95,7 +99,7 @@ OBJECTS= \
          array_file.o      logical_smt_cpus.o  pointers_and_addresses.o \
          mkdir_c.o         non_preempt_clock.o client_timeout.o vpow_ibm.o\
          ftn2c_helper_c.o  clib_interface.o  ftn2c_helper_f.o \
-         arc4.o		 md5.o               f_logical2int.o
+         arc4.o		 md5.o               f_logical2int.o  fool_optimizer.o
          
 COMDECKS = xxpakc.cdk mgi.h  wafile.h
          
@@ -127,7 +131,11 @@ tarball: $(FICHIERS) rmnlib_v
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: \
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir \
          $(TEMPLIB)(c_baseio.o)        $(TEMPLIB)(c_ccard.o)        $(TEMPLIB)(constnt.o)         $(TEMPLIB)(dmms.o) \
          $(TEMPLIB)(exdb.o)            $(TEMPLIB)(fread32.o) \
          $(TEMPLIB)(getenvc.o)         $(TEMPLIB)(ieeepak.o)        $(TEMPLIB)(iopdatm.o) \
@@ -147,7 +155,8 @@ locallib: \
          $(TEMPLIB)(array_file.o)      $(TEMPLIB)(logical_smt_cpus.o)  $(TEMPLIB)(pointers_and_addresses.o)\
          $(TEMPLIB)(mkdir_c.o)         $(TEMPLIB)(non_preempt_clock.o) $(TEMPLIB)(client_timeout.o) $(TEMPLIB)(vpow_ibm.o)\
          $(TEMPLIB)(ftn2c_helper_c.o)  $(TEMPLIB)(clib_interface.o) $(TEMPLIB)(ftn2c_helper_f.o)\
-         $(TEMPLIB)(arc4.o)            $(TEMPLIB)(md5.o)            $(TEMPLIB)(f_logical2int.o)
+         $(TEMPLIB)(arc4.o)            $(TEMPLIB)(md5.o)            $(TEMPLIB)(f_logical2int.o)\
+         $(TEMPLIB)(fool_optimizer.o)
 
 genlib: rmnlib_v $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

@@ -24,7 +24,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgdef_ffile)(wordint *ni, wordint *nj, char *grtyp,
-            wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, 
+            wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
             wordint *iunit, wordint lengrtyp)
 {
   wordint icode;
@@ -41,130 +41,108 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
           wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit)
 {
   wordint i;
-  wordint found;
+  wordint found, gdrow_in, gdcol_in, nchunks;
   char typeGrille;
   char grref[2];
   ftnfloat *bidon = NULL;
-  int ok, ier, n, newsize;
-
-  _Grille *gr;
+  int ok;
+  int old_ngrilles, gdid;
+  wordint res1, res2, newgrsize, fseed, un, grid_index;
+  unsigned int grid_crc;
+  _Grille *gr, newgr;
 
   found = -1;
+  un = 1;
   typeGrille = (char)grtyp[0];
-
-  if (typeGrille != '#' && typeGrille != 'Y' && typeGrille != 'Z')
+  if (typeGrille != '#' && typeGrille != 'Y' && typeGrille != 'Z' && typeGrille != ' ')
     {
     strcpy(grref, " ");
     return c_ezgdef_fmem(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, bidon, bidon);
     }
 
-  if (Grille == NULL)
+  if (nGrilles == 0)
     {
-    Grille = (_Grille *) calloc(sizeof(_Grille),NMAXGRIDS);
-    }
-  
-  ok = 0;
-  i= 0;
-  while (ok == 0 && i < nGrilles)
-    {
-    gr = (_Grille *) &(Grille[i]);
-    if (ni  == gr->ni   && nj  == gr->nj   && ig1 == gr->ig[IG1]  && ig2 == gr->ig[IG2]  && ig3 == gr->ig[IG3]  && ig4 == gr->ig[IG4])
+    gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(wordint));
+    Grille = (_Grille **) calloc(chunks[cur_log_chunk],sizeof(_Grille *));
+    Grille[0] = (_Grille *) calloc(chunks[cur_log_chunk], sizeof(_Grille));
+    for (i=0; i < chunks[cur_log_chunk]; i++)
       {
-      ok = 1;
+      Grille[0][i].index = -1;
       }
-
-    if (ok)
-      {
-      switch (typeGrille)
-        {
-        case '#':
-          if (typeGrille == gr->grtyp || typeGrille == 'Z') found = i;
-          break;
-
-        default:
-          if (typeGrille == gr->grtyp) found = i;
-          break;
-        }
-      }
-    i++;
     }
 
+  memset(&newgr, (int)NULL, sizeof(_Grille));
+  newgr.grtyp[0] = grtyp[0];
+  newgr.ni = ni;
+  newgr.nj = nj;
+  newgr.fst.ig[IG1] = ig1;
+  newgr.fst.ig[IG2] = ig2;
+  newgr.fst.ig[IG3] = ig3;
+  newgr.fst.ig[IG4] = ig4;
 
-  if (found == -1)
+  LirePrmEnrPositionnels(&newgr, iunit, ig1, ig2, ig3, ig4);
+  newgrsize = sizeof(_Grille);
+  fseed = 0;
+  grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, newgr.ax, newgr.ay, newgr.ni, newgr.nj);
+  grid_index = grid_crc % primes[cur_log_chunk];
+  if (gr_list[grid_index] == NULL)
     {
-    found = i;
-    Grille[found].count = 1;
-    nGrilles++;
+    gdid = c_ez_addgrid(grid_index, &newgr);
     }
   else
     {
-    Grille[found].count++;
-    return found;
-    }
-
-  if (0 == (nGrilles % (NMAXGRIDS-1)))
-    {
-    newsize = sizeof(_Grille)*(nGrilles+NMAXGRIDS+4);
-    Grille = (_Grille *) realloc((void *)Grille, newsize);
-    for (n=nGrilles-1;n<(nGrilles+NMAXGRIDS+4);n++)
+    gdid = c_ez_findgrid(grid_index, &newgr);
+    if (gdid == -1)
       {
-      memset(&Grille[n], (int) NULL, sizeof(_Grille));
+      gdid = c_ez_addgrid(grid_index, &newgr);
       }
-    fprintf(stderr, "<ezgdef_ffile> : Reallocating ngrids to %d\n", (nGrilles+NMAXGRIDS+4));
-/*    fprintf(stderr, "<ezgdef_ffile> : Too many defined grids. \n");
-    fprintf(stderr, "<ezgdef_ffile> : No way but to abort. \n");
-    exit(13);*/
-    }
-  else
-    {
-    Grille[found].flags = 0;
+    else
+      {
+      return gdid;
+      }
     }
 
-  Grille[found].grtyp = typeGrille;
-  Grille[found].ni  = ni;
-  Grille[found].nj  = nj;
-  Grille[found].ig[IG1] = ig1;
-  Grille[found].ig[IG2] = ig2;
-  Grille[found].ig[IG3] = ig3;
-  Grille[found].ig[IG4] = ig4;
-  Grille[found].axe_y_inverse = 0;
-
-  switch(grtyp[0])
-    {
-    case '#':
-      ier = LireEnrPositionnels(&(Grille[found]),iunit, ig1, ig2, ig3, ig4);
-      if (ier < 0) return -1;
+    c_gdkey2rowcol(gdid, &gdrow_in, &gdcol_in);
+    switch(newgr.grtyp[0])
+      {
+      case '#':
+      LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, ig4);
       break;
 
-    default:
-      ier = LireEnrPositionnels(&(Grille[found]),iunit, ig1, ig2, ig3, 0);
-      if (ier < 0) return -1;
+      default:
+      LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, 0);
       break;
-    }
+      }
 
-  ez_calcxpncof(found);
-  Grille[found].i1 = 1;
-  Grille[found].i2 = ni;
-  Grille[found].j1 = 1;
-  Grille[found].j2 = nj;
+  c_gdkey2rowcol(gdid, &gdrow_in, &gdcol_in);
+  ez_calcxpncof(gdid);
+  Grille[gdrow_in][gdcol_in].i1 = 1;
+  Grille[gdrow_in][gdcol_in].i2 = newgr.ni;
+  Grille[gdrow_in][gdcol_in].j1 = 1;
+  Grille[gdrow_in][gdcol_in].j2 = newgr.nj;
   if (*grtyp != 'Y')
     {
-    ier = ez_calcntncof(found);
-    if (ier < 0) return -1;
+    c_ezdefxg(gdid);
+    ez_calcntncof(gdid);
     }
+  else
+   {
+   ez_calclatlon(gdid);
+   }
 
   if (groptions.verbose > 0)
     {
-    printf("Found = %02d\n", found);
-    printf("Grille[%02d].grtyp = '%c'\n", found, Grille[found].grtyp);
-    printf("Grille[%02d].ni    = %d\n",   found, Grille[found].ni);
-    printf("Grille[%02d].nj    = %d\n",   found, Grille[found].nj);
-    printf("Grille[%02d].ig1   = %d\n",   found, Grille[found].ig[IG1]);
-    printf("Grille[%02d].ig2   = %d\n",   found, Grille[found].ig[IG2]);
-    printf("Grille[%02d].ig3   = %d\n",   found, Grille[found].ig[IG3]);
-    printf("Grille[%02d].ig4   = %d\n",   found, Grille[found].ig[IG4]);
+    printf("gdid = %02d\n", gdid);
+    printf("Grille[%02d].grtyp = '%c'\n", gdid, Grille[gdrow_in][gdcol_in].grtyp[0]);
+    printf("Grille[%02d].ni    = %d\n",   gdid, Grille[gdrow_in][gdcol_in].ni);
+    printf("Grille[%02d].nj    = %d\n",   gdid, Grille[gdrow_in][gdcol_in].nj);
+    printf("Grille[%02d].ig1   = %d\n",   gdid, Grille[gdrow_in][gdcol_in].fst.ig[IG1]);
+    printf("Grille[%02d].ig2   = %d\n",   gdid, Grille[gdrow_in][gdcol_in].fst.ig[IG2]);
+    printf("Grille[%02d].ig3   = %d\n",   gdid, Grille[gdrow_in][gdcol_in].fst.ig[IG3]);
+    printf("Grille[%02d].ig4   = %d\n",   gdid, Grille[gdrow_in][gdcol_in].fst.ig[IG4]);
     }
 
-  return found;
+  return gdid;
+
 }
 

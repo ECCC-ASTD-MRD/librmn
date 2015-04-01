@@ -20,7 +20,7 @@ MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
-TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
+TEMPLIB = ./$(EC_ARCH)/lib_local.a
 
 UPDATEX =
 
@@ -61,7 +61,11 @@ tarball:  $(FICHIERS) Makefile
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
-locallib: \
+gen_ec_arch_dir:
+#Creer le repertoire $EC_ARCH 
+	mkdir -p ./$(EC_ARCH)
+
+locallib: gen_ec_arch_dir \
          $(TEMPLIB)(alpas2.o)       $(TEMPLIB)(alpas8.o)       $(TEMPLIB)(alpdl2.o)       $(TEMPLIB)(alpdl8.o) \
          $(TEMPLIB)(alpdr2.o)       $(TEMPLIB)(alpdr8.o)       $(TEMPLIB)(alpnm2.o)       $(TEMPLIB)(alpnm8.o) \
          $(TEMPLIB)(dimcal.o)       $(TEMPLIB)(epsil2.o)       $(TEMPLIB)(epsil8.o)       $(TEMPLIB)(fasp8.o) \

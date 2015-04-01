@@ -36,16 +36,15 @@ typedef struct
 
 static client_timeout ctimeout[MAX_CHANNELS];
 static int ichan = 0;
-static int default_timeout = 100000;
+static int default_timeout = 180;
 
 /* initialize client timeout table */
 /* entry: socket descriptor, value: default timeout */
 
 void init_client_table( int channel )
 {
-  ichan++;
-
- if ( ichan >= MAX_CHANNELS )
+  
+  if ( ichan >= MAX_CHANNELS )
     {
       fprintf( stderr, "ERROR: Too many channels assigned; MAX = %d\n", MAX_CHANNELS );
       exit(1);
@@ -54,7 +53,10 @@ void init_client_table( int channel )
     {
       ctimeout[ichan].client_chan = channel;
       ctimeout[ichan].timeout = default_timeout;
+      ichan++;
     }
+ 
+
 }
 
 /* set client timeout using channel descriptor fclient */
@@ -79,9 +81,9 @@ void set_client_timeout( int fclient, int timeout )
       ctimeout[ichan].client_chan = fclient;
       ctimeout[ichan].timeout = timeout > default_timeout ? default_timeout : timeout;
       found = -1;
+      
     }
-  
-}
+  }
 
 /* get client timeout using channel descriptor fclient        */
 /* return positive value if setted by the user to a negative  */
@@ -89,14 +91,18 @@ void set_client_timeout( int fclient, int timeout )
 int get_client_timeout( int fclient )
 {
   int i;
+  int new_timeout;
+  
   for( i = 0; i < MAX_CHANNELS; i++ )
     {
       if( fclient == ctimeout[i].client_chan )
 	{
-	  return ctimeout[i].timeout > 0 ? ctimeout[i].timeout : -ctimeout[i].timeout;
+	  new_timeout = ctimeout[i].timeout > 3 ? ctimeout[i].timeout : -ctimeout[i].timeout;
+	  
+	  return new_timeout;
 	}
     }
-  
+ 
   return default_timeout;
 }
 /* get client timeout using channel descriptor fclient   */

@@ -24,20 +24,16 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
+wordint f77name(ezgetopt)(char *option, char *value, wordint lenoption, wordint lenvalue)
 {
    wordint icode;
-   wordint l_lenoption, l_lenvalue;
    char local_opt[32], local_val[32];
 
-   l_lenoption = (wordint) lenoption;
-   l_lenvalue = (wordint) lenvalue;
-   
-   ftnstrclean(option,l_lenoption);
-   ftnstrclean(value,l_lenvalue);
-   strncpy(local_opt, option, l_lenoption);
-   local_opt[l_lenoption] = '\0';
-   
+   ftnstrclean(option,lenoption);
+   ftnstrclean(value,lenvalue);
+   strncpy(local_opt, option, lenoption);
+   local_opt[lenoption] = '\0';
+
    icode = c_ezgetopt(local_opt, value);
 
    return icode;
@@ -47,164 +43,184 @@ wordint c_ezgetopt(char *option, char *value)
 {
   char local_opt[32], local_val[32];
   wordint i;
-  
+
   strcpy(local_opt, option);
-  
+
   for (i=0; i < strlen(local_opt); i++)
     local_opt[i] = (char) tolower((int)local_opt[i]);
-  
+
   if (0 == strcmp(local_opt, "verbose"))
     {
     switch (groptions.verbose)
       {
       case 1:
-	strcpy(value, "yes");
-	break;
-	
+	   strcpy(value, "yes");
+	   break;
+
       case 2:
-	strcpy(value, "yesyesyes");
-	break;
-	
+	   strcpy(value, "yesyesyes");
+	   break;
+
       default:
-	strcpy(value, "no");
-	break;
+	   strcpy(value, "no");
+	   break;
       }
     }
-  
+
   if (0 == strcmp(local_opt, "polar_correction"))
     {
     switch (groptions.polar_correction)
       {
       case 1:
-	strcpy(value, "yes");
-	break;
-	
+	   strcpy(value, "yes");
+	   break;
+
       default:
-	strcpy(value, "no");
-	break;
+	   strcpy(value, "no");
+	   break;
       }
     }
-  
+
   if (0 == strcmp(local_opt, "interp_degree"))
     {
     switch (groptions.degre_interp)
       {
       case 0:
-	strcpy(value, "nearest");
-	break;
-	
+	   strcpy(value, "nearest");
+	   break;
+
       case 1:
-	strcpy(value, "linear");
-	break;
-	
+	   strcpy(value, "linear");
+	   break;
+
       case 3:
-	strcpy(value, "cubic");
-	  break;
-	  
+	   strcpy(value, "cubic");
+	     break;
+
       default:
-	strcpy(value, "error");
-	break;
+	   strcpy(value, "error");
+	   break;
       }
     }
-  
+
   if (0 == strcmp(local_opt, "degre_interp"))
     {
     switch (groptions.degre_interp)
       {
       case 0:
-	strcpy(value, "voisin");
-	break;
-	
+	   strcpy(value, "voisin");
+	   break;
+
       case 1:
-	strcpy(value, "lineaire");
-	break;
-	
+	   strcpy(value, "lineaire");
+	   break;
+
       case 3:
-	strcpy(value, "cubique");
-	  break;
-	  
+	   strcpy(value, "cubique");
+      break;
+
       default:
-	strcpy(value, "erreur");
-	break;
+	   strcpy(value, "erreur");
+	   break;
       }
     }
-  
+
   if (0 == strcmp(local_opt, "extrap_degree"))
     {
     switch (groptions.degre_extrap)
       {
       case 0:
-	strcpy(value, "nearest");
-	break;
-	
+	   strcpy(value, "nearest");
+	   break;
+
       case 1:
-	strcpy(value, "linear");
-	break;
-	
+	   strcpy(value, "linear");
+	   break;
+
       case 3:
-	strcpy(value, "cubic");
-	break;
-	
+	   strcpy(value, "cubic");
+	   break;
+
       case MAXIMUM:
-	strcpy(value, "maximum");
-	break;
-	
+	   strcpy(value, "maximum");
+	   break;
+
       case MINIMUM:
-	strcpy(value, "minimum");
-	break;
-	
+	   strcpy(value, "minimum");
+	   break;
+
       case VALEUR:
-	strcpy(value, "value");
-	break;
-	
+	   strcpy(value, "value");
+	   break;
+
       case ABORT:
-	strcpy(value, "abort");
-	break;
-	
+	   strcpy(value, "abort");
+	   break;
+
       default:
-	strcpy(value, "error");
-	break;
+	   strcpy(value, "error");
+	   break;
       }
     }
-   
+
   if (0 == strcmp(local_opt, "degre_extrap"))
     {
     switch (groptions.degre_extrap)
       {
       case 0:
-	strcpy(value, "voisin");
-	break;
-	
+	   strcpy(value, "voisin");
+	   break;
+
       case 1:
-	strcpy(value, "lineaire");
-	break;
-	
+	   strcpy(value, "lineaire");
+	   break;
+
       case 3:
-	strcpy(value, "cubique");
-	break;
-	
+	   strcpy(value, "cubique");
+	   break;
+
       case MAXIMUM:
-	strcpy(value, "maximum");
-	break;
-	
+	   strcpy(value, "maximum");
+	   break;
+
       case MINIMUM:
-	strcpy(value, "minimum");
-	break;
-	
+	   strcpy(value, "minimum");
+	   break;
+
       case VALEUR:
-	strcpy(value, "valeur");
-	break;
-	
+	   strcpy(value, "valeur");
+	   break;
+
       case ABORT:
-	strcpy(value, "abort");
-	break;
-	
+	   strcpy(value, "abort");
+	   break;
+
       default:
-	strcpy(value, "erreur");
-	break;
+	   strcpy(value, "erreur");
+	   break;
       }
     }
-   
+
+    if (0 == strcmp(local_opt, "cloud_interp_alg"))
+      {
+      switch (groptions.cld_interp_alg)
+         {
+         case LINEAIRE:
+         strcpy(value, "linear");
+         break;
+
+         case DISTANCE:
+         strcpy(value, "distance");
+         break;
+
+         default:
+         strcpy(value, "distance");
+         break;
+         }
+      }
+
+
+
   return 0;
 }
-      
+

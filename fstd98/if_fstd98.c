@@ -305,7 +305,7 @@ int ninjnk;
 ftnword ier=0;
 
 ninjnk = Max(1,*f_ni) * Max(1,*f_nj) * Max(1,*f_nk);
-if (ninjnk > lng_string) {
+if (ninjnk > lng_string * *f_nj) {
   sprintf(errmsg,"ni*nj*nk (%d) > string length (%d)",ninjnk,lng_string);
   return(error_msg("FSTECR_S",ERR_BAD_DIM,ERROR));
   }
@@ -426,7 +426,51 @@ ftnword ier=0;
   return(ier);
 }                        
 
-
+/*splitpoint c_fst_edit_dir */
+/*****************************************************************************
+ *                     C _ F S T _ E D I T _ D I R                           *
+ *                                                                           *
+ *Object                                                                     * 
+ *   Edits the directory content of a RPN standard file.                     *
+ *                                                                           * 
+ *Arguments                                                                  * 
+ *                                                                           * 
+ *  IN  handle     handle to the directory entry to edit                     * 
+ *                                                                           * 
+ *****************************************************************************/
+
+ftnword f77_name(fst_edit_dir)(ftnword *f_handle,
+                               ftnword *f_date, ftnword *f_deet, ftnword *f_npas,
+                               ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
+                               ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+                               char *f_typvar, char *f_nomvar, char *f_etiket,
+                               char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
+                               ftnword *f_ig3, ftnword *f_ig4, ftnword *f_datyp,
+                               F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
+{
+  int ier;
+  int handle=*f_handle;
+  int date=*f_date, deet=*f_deet;
+  int npas=*f_npas, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
+  int ni=*f_ni, nj=*f_nj, nk=*f_nk;
+  int ig1=*f_ig1, ig2=*f_ig2, ig3=*f_ig3, ig4=*f_ig4;
+  int datyp=*f_datyp;
+
+  char etiket[13];
+  char typvar[3];
+  char nomvar[5];
+  char grtyp[2];
+
+  str_cp_init(typvar,3,f_typvar,l1);
+  str_cp_init(nomvar,5,f_nomvar,l2);
+  str_cp_init(etiket,13,f_etiket,l3);
+  str_cp_init(grtyp,2,f_grtyp,l4);
+
+  ier = c_fst_edit_dir(handle,date,deet,npas,ni,nj,nk,ip1,ip2,ip3,typvar,nomvar,etiket,grtyp,
+                       ig1,ig2,ig3,ig4,datyp);
+  return((ftnword) ier);
+}
+
 /*splitpoint fsteff */
 /***************************************************************************** 
  *                             F S T E F F                                   *
@@ -1120,6 +1164,26 @@ ftnword f77name(fstnbr)(ftnword *f_iun)
   return ((ftnword) c_fstnbr(iun));
 }  
 
+/*splitpoint fstnbrv */
+/***************************************************************************** 
+ *                              F S T N B R V                                *
+ *                                                                           * 
+ *Object                                                                     * 
+ *   Returns the number of valid records (excluding deleted records) of the  *
+ *   file associated with unit number.                                       *
+ *                                                                           * 
+ *Arguments                                                                  * 
+ *                                                                           * 
+ *  IN  iun     unit number associated to the file                           * 
+ *                                                                           * 
+ *****************************************************************************/
+
+ftnword f77name(fstnbrv)(ftnword *f_iun)
+{
+  int iun = *f_iun;
+  return ((ftnword) c_fstnbrv(iun));
+}  
+
 /*splitpoint fstopc */
 /*****************************************************************************
  *                              F S T O P C                                  *
@@ -1756,7 +1820,10 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
 
   if (strstr(option,"DATEV")) {
     f77name(newdate)(&cracked.date_valid,&dat2,&dat3,&minus3);
-    sprintf(v_datev,"%08d %06d %09d",dat2,dat3/100,cracked.date_valid);
+    if (cracked.date_valid < -1)
+      sprintf(v_datev,"%08d %06d %10d",dat2,dat3/100,cracked.date_valid);
+    else
+      sprintf(v_datev,"%08d %06d %09d",dat2,dat3/100,cracked.date_valid);
   }
   else
     v_datev[0]='\0';

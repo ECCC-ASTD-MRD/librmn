@@ -73,6 +73,9 @@
  *                                                                           *
  *****************************************************************************/
 
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
+
 #define WKF_INEXISTANT            -3
 #define WKF_VIDE                  -2
 #define WKF_INCONNU               -1

@@ -25,14 +25,14 @@
         integer junk, RPN_COMM_init_multigrid
         external RPN_COMM_init_multigrid
 	junk = RPN_COMM_init_multigrid
-     %      (Userinit,Pelocal,Petotal,Pex,Pey,1)
+     &      (Userinit,Pelocal,Petotal,Pex,Pey,1)
 	return
 	end
 	INTEGER FUNCTION RPN_COMM_init_multigrid
-     %      (Userinit,Pelocal,Petotal,Pex,Pey,Ngrids)
+     &      (Userinit,Pelocal,Petotal,Pex,Pey,NgridsP)
 	use rpn_comm
 	implicit none
-	integer Pelocal,Petotal,Pex,Pey,Ngrids
+	integer Pelocal,Petotal,Pex,Pey,NgridsP
 	external Userinit
 *arguments
 *  I	Userinit	User routine that will be called by PE 0 to
@@ -44,7 +44,7 @@
 *		it will be set to the proper value upon exit
 *  I/O	Pey	Number of PEs along the Y axis. If Pey=0 upon entry
 *		it will be set to the proper value upon exit
-*  I    Ngrids  number of simultaneous grids
+*  I    NgridsP  number of simultaneous grids
 *
 *notes
 *	processor topology common /pe/ will be filled here
@@ -66,29 +66,63 @@
 	integer RPN_COMM_petopo
 	character *256 SYSTEM_COMMAND
 	character *4096 , dimension(:), allocatable :: directories
-	integer ncolors,my_color
+	integer ncolors,my_color,Ngrids
 	integer,dimension(:,:),allocatable::colors
 	integer,dimension(:),allocatable::colortab
+      integer diag_mode, version_marker, version_max, version_min
+      integer, external :: RPN_COMM_version
 *
-        RPN_COMM_init_multigrid = 0
+      version_marker=RPN_COMM_version()
+      Ngrids=NgridsP
+      RPN_COMM_init_multigrid = 0
 	unit = 5
 	ok = .true.
 	call MPI_INITIALIZED(mpi_started,ierr)
 	if (.not. mpi_started ) call MPI_init(ierr)
-	call resetenv
+!     check that all participants use the same version of rpn_comm
+      call mpi_allreduce(version_marker, version_max, 1, MPI_INTEGER,
+     &                   MPI_MAX, MPI_COMM_WORLD, ierr)
+      call mpi_allreduce(version_marker, version_min, 1, MPI_INTEGER,
+     &                   MPI_MIN, MPI_COMM_WORLD, ierr)
+      if(version_max .ne. version_marker .or. 
+     &   version_min .ne. version_marker      )then
+        print *,'ERROR: RPN_COMM version mismatch , STOPPING'
+        call mpi_finalize(ierr)
+        stop
+      endif
+!     initialize soft barrier setup in case we need a null task
+      call rpn_comm_softbarrier_init_all
+*	call resetenv   ! mpich1 will no longer work
 	pe_wcomm = MPI_COMM_WORLD
 	call MPI_COMM_RANK(pe_wcomm,pe_me,ierr)
+      pe_me_world=pe_me
 	call MPI_COMM_SIZE(pe_wcomm,pe_tot,ierr)
+	call getenvc("RPN_COMM_DIAG",SYSTEM_COMMAND)
+        if( SYSTEM_COMMAND .ne. " " ) then
+          read(SYSTEM_COMMAND,*) diag_mode
+        else
+          diag_mode=2
+        endif
 *
 * if multiple grid environment, split domain
 *
-        if(ngrids .gt. 1) then
+        my_color=-1
+        if(Ngrids .eq. 0) then  ! get number of grids from environment variable, set to 1 if not present
+          SYSTEM_COMMAND=""
+          call getenvc("RPN_COMM_GRIDS",SYSTEM_COMMAND)
+          if( SYSTEM_COMMAND .ne. " " ) then
+            read(SYSTEM_COMMAND,*) Ngrids
+          else
+            Ngrids=1
+          endif
+        endif
+        if(Ngrids .gt. 1) then
           allocate(colortab(0:pe_tot-1))
           colortab=0
           my_color=pe_me/(pe_tot/Ngrids)
 !          print *,"My color is:",my_color
 	  call MPI_COMM_SPLIT(MPI_COMM_WORLD,my_color,
-     %                        pe_me,pe_wcomm,ierr)
+     &                        pe_me,pe_wcomm,ierr)
           RPN_COMM_init_multigrid = my_color
 	  call MPI_COMM_RANK(pe_wcomm,pe_me,ierr)
 	  call MPI_COMM_SIZE(pe_wcomm,pe_tot,ierr)
@@ -112,12 +146,13 @@
 	  enddo
 	  my_color=colortab(pe_me)
 	  call MPI_COMM_SPLIT(MPI_COMM_WORLD,my_color,
-     %                        pe_me,pe_wcomm,ierr)
+     &                        pe_me,pe_wcomm,ierr)
           RPN_COMM_init_multigrid = my_color
 	  SYSTEM_COMMAND=""
 	  call getenvc("RPN_COMM_DIRS",SYSTEM_COMMAND)
 	  read(SYSTEM_COMMAND,*)directories
-	  print *,"my directory is:",trim(directories(my_color))
+	  if(diag_mode.ge.2)
+     &       print *,"my directory is:",trim(directories(my_color))
 	  call RPN_COMM_chdir(trim(directories(my_color)))
 !	  open(unit,file='rpn_comm_explicit_map.cfg',
 !     %         status='OLD',err=50)
@@ -138,6 +173,9 @@
 	Pelocal = pe_me   ! me in my domain
 	Petotal = pe_tot  ! number of pes in my domain
 	call MPI_COMM_GROUP(pe_wcomm,pe_gr_wcomm,ierr)
+      call MPI_COMM_SPLIT(MPI_COMM_WORLD,pe_me,
+     &                        pe_me_world,pe_mypeer,ierr)
+      call MPI_COMM_GROUP(pe_mypeer,pe_gr_mypeer,ierr)
 *
 *       Domain initialization
 *
@@ -145,10 +183,12 @@
 	if(.not.allocated(locdom)) allocate(locdom(64))
 	domm_size=loc(locdom(2))-loc(locdom(1))
 	if(pe_me.eq.0) then
-           print *,'TRYING TO OPEN CONFIGURATION FILE rpn_comm.cfg'
+           if(diag_mode.ge.3)
+     &        print *,'TRYING TO OPEN CONFIGURATION FILE rpn_comm.cfg'
 	   open(unit,file='rpn_comm.cfg',status='OLD',err=100)
 ! 111	   format(A12,2I3,A1024)
-           print *,'READING DOMAIN CONFIGURATION FILE',' rpn_comm.cfg'
+           if(diag_mode.ge.2)
+     &       print *,'READING DOMAIN CONFIGURATION FILE',' rpn_comm.cfg'
 	   do while(.true.)
 	      lndom=ndom+1
 	      read(unit,*,end=100) locdom(lndom)%nom ,
@@ -167,7 +207,7 @@
 	endif
 	if(allocated(locdom)) deallocate(locdom)
 	call MPI_BCAST(pe_domains,domm_size*ndom,MPI_CHARACTER,0,
-     %        pe_wcomm,ierr)
+     &        pe_wcomm,ierr)
 	if(ndom.eq.0) then
 	   pe_domains(1)%nom='DOM1'
 	   pe_domains(1)%npex=pe_tot
@@ -216,13 +256,18 @@
      &         'ALL',ierr)
           write(SYSTEM_COMMAND,*)trim(pe_domains(domm_num)%path),
      &                           pe_me-pe_pe0,pe_me
-          print *,'DUMMY DOMAIN, executing:',trim(SYSTEM_COMMAND)
+          if(diag_mode.ge.1)
+     &      print *,'DUMMY DOMAIN, executing:',trim(SYSTEM_COMMAND)
           call system(trim(SYSTEM_COMMAND))
           call RPN_COMM_finalize(ierr)
           stop
         else
-          print *,'DOMAIN=',pe_domains(domm_num)%nom
-          print *,'executing at:',trim(pe_domains(domm_num)%path)
+          if(ndom.gt.1) then
+            if(diag_mode.ge.2) then
+              print *,'DOMAIN=',pe_domains(domm_num)%nom
+              print *,'executing at:',trim(pe_domains(domm_num)%path)
+            endif
+          endif
 	  call RPN_COMM_chdir(pe_domains(domm_num)%path)
         endif
 	if(pe_me .eq. pe_pe0)then
@@ -237,9 +282,9 @@
 	     write(rpn_u,*) 'userinit Subroutine and total number'
              write(rpn_u,*) 'of PE: please check'
 	    endif
-	   write(rpn_u,*)'Requested topology = ',
+	   if(diag_mode.ge.1) write(rpn_u,*)'Requested topology = ',
      &               WORLD_pe(1),' by ',WORLD_pe(2)
-	   write(rpn_u,*)'Domain set for '
+	   if(diag_mode.ge.1) write(rpn_u,*)'Domain set for '
      &               ,pe_dommtot,' processes'
           else
             write(rpn_u,*) 'RPN_COMM_init: Forced topology'
@@ -251,14 +296,15 @@
 	     write(rpn_u,*) 'and Pey args and total number of PE: '
 	     write(rpn_u,*) 'please check'
 	    endif
-	   write(rpn_u,*)'Requested topology = ',WORLD_pe(1),' by '
+	   if(diag_mode.ge.1)
+     &       write(rpn_u,*)'Requested topology = ',WORLD_pe(1),' by '
      &             ,WORLD_pe(2)
 	  endif
 *
 	  if(WORLD_pe(1)*WORLD_pe(2) .gt. pe_dommtot) then
 	    write(rpn_u,*)' ERROR: not enough PEs for decomposition '
 	    write(rpn_u,*)' REQUESTED=',WORLD_pe(1)*WORLD_pe(2),
-     %              ' AVAILABLE=',pe_dommtot
+     &              ' AVAILABLE=',pe_dommtot
 	    ok = .false.
 	  endif
 	endif
@@ -281,12 +327,12 @@
 	do j=1,ndom
 	   if(domm_num.eq.j) then
 	      allocate(proc_indomm( pe_domains(domm_num)%npex*
-     %	           pe_domains(domm_num)%npey))
+     &	           pe_domains(domm_num)%npey))
 	      do i=1,pe_dommtot
 		 proc_indomm(i)=pe_pe0+i-1
 	      enddo
 	      call MPI_Group_incl(pe_gr_wcomm, pe_dommtot,proc_indomm,
-     %   	   pe_gr_indomm,ierr)
+     &   	   pe_gr_indomm,ierr)
 !	      call MPI_Comm_create(pe_wcomm,pe_gr_indomm, pe_indomm, ierr)
 	     
 *
@@ -299,7 +345,7 @@
 	pe_defgroup = pe_gr_indomm
 	
 	call MPI_BCAST(WORLD_pe,2,MPI_INTEGER,0,
-     %	               pe_indomm,ierr)
+     &	               pe_indomm,ierr)
 	
 	if ( Pex.eq.0 .or. Pey.eq.0  ) then ! return processor topology
 	  Pex = WORLD_pe(1)

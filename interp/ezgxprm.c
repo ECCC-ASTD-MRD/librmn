@@ -51,18 +51,22 @@ wordint c_ezgxprm(wordint gdid, wordint *ni, wordint *nj,
               char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
               char *grref, wordint *ig1ref, wordint *ig2ref, wordint *ig3ref, wordint *ig4ref)
 {
-   *ni     = Grille[gdid].ni;
-   *nj     = Grille[gdid].nj;
-   grtyp[0]  = Grille[gdid].grtyp;
-   grref[0]  = Grille[gdid].grref;
-   *ig1    = Grille[gdid].ig[IG1];
-   *ig2    = Grille[gdid].ig[IG2];
-   *ig3    = Grille[gdid].ig[IG3];
-   *ig4    = Grille[gdid].ig[IG4];
-   *ig1ref = Grille[gdid].igref[IG1];
-   *ig2ref = Grille[gdid].igref[IG2];
-   *ig3ref = Grille[gdid].igref[IG3];
-   *ig4ref = Grille[gdid].igref[IG4];
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+   
+   *ni     = Grille[gdrow_id][gdcol_id].ni;
+   *nj     = Grille[gdrow_id][gdcol_id].nj;
+   grtyp[0]  = Grille[gdrow_id][gdcol_id].grtyp[0];
+   grref[0]  = Grille[gdrow_id][gdcol_id].grref[0];
+   *ig1    = Grille[gdrow_id][gdcol_id].fst.ig[IG1];
+   *ig2    = Grille[gdrow_id][gdcol_id].fst.ig[IG2];
+   *ig3    = Grille[gdrow_id][gdcol_id].fst.ig[IG3];
+   *ig4    = Grille[gdrow_id][gdcol_id].fst.ig[IG4];
+   *ig1ref = Grille[gdrow_id][gdcol_id].fst.igref[IG1];
+   *ig2ref = Grille[gdrow_id][gdcol_id].fst.igref[IG2];
+   *ig3ref = Grille[gdrow_id][gdcol_id].fst.igref[IG3];
+   *ig4ref = Grille[gdrow_id][gdcol_id].fst.igref[IG4];
 
    return 0;
 }
