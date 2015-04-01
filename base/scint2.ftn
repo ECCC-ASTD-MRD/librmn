@@ -1,0 +1,102 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+***FONCTION SCINT2 FAIT L'INTERPOLATION APRES QUE SCINT1 EUT FAIT LE SET-UP
+*
+      FUNCTION SCINT2(XLAT,XLON,ZI,NI,NJ)
+      REAL ZI(NI,NJ),XLAT,XLON
+*
+*AUTEUR   - M. VALIN  -  AOU 84
+*REVISION 001  M. LEPINE     -  NOV  94   TRADUCTION RATFOR A FORTRAN
+*
+*OBJET(SCINT2)
+*         - INTERPOLATION D'UNE GRILLE A UNE AUTRE HORIZONTALEMENT
+*
+*LIBRAIRIES
+*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SCINT2
+*         - OBJET   RMNLIB,ID=RMNP
+*
+*APPEL    - HINTV = SCINT2(XLAT,XLON,ZI,NI,NJ)
+*
+*ARGUMENTS
+*   IN    - XLAT  - LATITUDE SUR LA GRILLE DE SORTIE
+*   IN    - XLON  - LONGITUDE SUR LA GRILLE DE SORTIE
+*   IN    - ZI    - CHAMP D'ENTREE (NI,NJ)
+*   IN    - NI    - NOMBRE DE POINTS DANS DIRECTION EST - OUEST
+*   IN    - NJ    - NOMBRE DE POINTS DANS DIRECTION NORD - SUD
+*
+*LANGAGE  - RATFOR
+*
+*MODULES  - SGLO, SSNH, SANH, SGLOGG, SSNHGG, SANHGG, SPS, SLL
+*
+*NOTES    - LE CHAMP D'ENTREE ZI PEUT ETRE DETRUIT AU COURS
+*           DE L'INTERPOLATION
+*
+*----------------------------------------------------------------
+*
+
+
+      REAL PI,PJ,D60,DGRW
+#include "root.cdk"
+#include "kases.cdk"
+#include "sct12.cdk"
+*
+      YLON = XLON
+*                                    ! CO-LATITUDE SI XFAC = -1.
+      CLAT=90. + XLAT*XFAC      ! 90. + LAT SI HEMISPHERE SUD
+      GO TO (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) IKOD
+ 1    SCINT2 = SGLO(YLON,CLAT, ZI, NI, NJ)
+      RETURN
+
+
+ 2    SCINT2 = SSNH(YLON, CLAT, ZI, NI, NJ)
+      RETURN
+
+
+ 3    SCINT2 = SANH(YLON, CLAT, ZI, NI, NJ)
+      RETURN
+
+
+ 4    SCINT2 = SGLOGG(ZI, NI, NJ, ROOTS, YLON, CLAT)
+      RETURN
+
+
+ 5    SCINT2 = SSNHGG(ZI, NI, NJ, ROOTS, YLON, CLAT)
+      RETURN
+
+
+ 6    SCINT2 = SANHGG(ZI, NI, NJ, ROOTS, YLON, CLAT)
+      RETURN
+
+
+ 7    SCINT2 = SPS(YLON, CLAT, ZI, NI, NJ, PI, PJ, D60, DGRW,IHMPS)
+      RETURN
+
+
+ 8    SCINT2 = (J - 1)*LI + I   !  GRILLE INCONNUE
+      RETURN
+
+
+ 9    SCINT2 = SLL(YLON,CLAT,ZI,NI,NJ,XLA0,XLO0,DLAT,DLON)
+      RETURN
+ 10   SCINT2 = SLCC(YLON,CLAT,ZI,NI,NJ,PI,PJ,DS,LAMDA0,1,PHI1,PHI2)
+      
+      
+      RETURN
+      END

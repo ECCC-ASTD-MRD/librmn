@@ -1,0 +1,1260 @@
+1                              TESTPAK 1.0
+
+ POUR CONFIRMER REUSSITE DU TEST,
+ VOIR MESSAGE *TESTPAK REUSSI* A LA FIN
+ ET VERIFIER VISUELLEMENT TESTS PRECEDES DE ---
+
+
+ ---TEST 15.0A (IIPAK) PAQUETER DE 1 A  32  BITS, WITHOUT HEADER
+ NBITS=01      PACK: 0.10E-03 S  UNPACK: 0.00E+00 S                           
+ NBITS=02      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=03      PACK: 0.10E-03 S  UNPACK: 0.00E+00 S                           
+ NBITS=04      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=05      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=06      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=07      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=08      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=09      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=10      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=11      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=12      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=13      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=14      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=15      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=16      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=17      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=18      PACK: 0.10E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=19      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=20      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=21      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=22      PACK: 0.10E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=23      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=24      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=25      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=26      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=27      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=28      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=29      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=30      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=31      PACK: 0.00E+00 S  UNPACK: 0.10E-03 S                           
+ NBITS=32      PACK: 0.10E-03 S  UNPACK: 0.10E-03 S                           
+ ---REUSSI
+
+ 
+ ---TEST 15.0B (IIPAK) PAQUETER DE 1 A  32  BITS, with header
+ NBITS=01      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=02      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=03      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=04      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=05      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=06      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=07      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=08      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=09      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=10      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=11      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=12      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=13      PACK: 0.30E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=14      PACK: 0.20E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=15      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=16      PACK: 0.30E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=17      PACK: 0.20E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=18      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=19      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=20      PACK: 0.20E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=21      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=22      PACK: 0.30E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=23      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=24      PACK: 0.30E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=25      PACK: 0.20E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=26      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=27      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=28      PACK: 0.30E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=29      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=30      PACK: 0.20E-03 S  UNPACK: 0.20E-03 S                           
+ NBITS=31      PACK: 0.20E-03 S  UNPACK: 0.10E-03 S                           
+ NBITS=32      PACK: 0.10E-03 S  UNPACK: 0.20E-03 S                           
+ ---REUSSI
+
+ ---TEST 15.1A (IIPAK( + ET - )) PAQUETER DE 2 A  31  BITS (SUR PLACE, WITHOUT HEADER)
+ ---REUSSI
+
+ ---TEST 15.1B (IIPAK( + ET - )) PAQUETER DE 2 A  31  BITS (SUR PLACE, with header)
+ ---REUSSI
+
+ ---TEST 15.2 IIPAK (OFFSET ET STRIDE) PAQUETER DE 1 A  32  BITS
+  OFFSET =  0
+  OFFSET =  1
+  OFFSET =  2
+  OFFSET =  3
+  OFFSET =  4
+  OFFSET =  5
+  OFFSET =  6
+  OFFSET =  7
+  OFFSET =  8
+  OFFSET =  9
+  OFFSET =  10
+  OFFSET =  11
+  OFFSET =  12
+  OFFSET =  13
+  OFFSET =  14
+  OFFSET =  15
+  OFFSET =  16
+  OFFSET =  17
+  OFFSET =  18
+  OFFSET =  19
+  OFFSET =  20
+  OFFSET =  21
+  OFFSET =  22
+  OFFSET =  23
+  OFFSET =  24
+  OFFSET =  25
+  OFFSET =  26
+  OFFSET =  27
+  OFFSET =  28
+  OFFSET =  29
+  OFFSET =  30
+  OFFSET =  31
+ ---REUSSI
+
+ ---TEST 15.3
+
+ ===================================================== 
+
+ unsigned test with header and varying SHIFT and STRIDE starts 
+ requiredBitSize: 2 	 givenBitSiz: 1 	 shiftRequired : 1 	 stride: 1 
+ requiredBitSize: 3 	 givenBitSiz: 2 	 shiftRequired : 1 	 stride: 2 
+ requiredBitSize: 4 	 givenBitSiz: 3 	 shiftRequired : 1 	 stride: 3 
+ requiredBitSize: 5 	 givenBitSiz: 3 	 shiftRequired : 2 	 stride: 1 
+ requiredBitSize: 6 	 givenBitSiz: 4 	 shiftRequired : 2 	 stride: 2 
+ requiredBitSize: 7 	 givenBitSiz: 5 	 shiftRequired : 2 	 stride: 3 
+ requiredBitSize: 8 	 givenBitSiz: 6 	 shiftRequired : 2 	 stride: 1 
+ requiredBitSize: 9 	 givenBitSiz: 7 	 shiftRequired : 2 	 stride: 2 
+ requiredBitSize: 10 	 givenBitSiz: 7 	 shiftRequired : 3 	 stride: 3 
+ requiredBitSize: 11 	 givenBitSiz: 8 	 shiftRequired : 3 	 stride: 1 
+ requiredBitSize: 12 	 givenBitSiz: 9 	 shiftRequired : 3 	 stride: 2 
+ requiredBitSize: 13 	 givenBitSiz: 10 	 shiftRequired : 3 	 stride: 3 
+ requiredBitSize: 14 	 givenBitSiz: 11 	 shiftRequired : 3 	 stride: 1 
+ requiredBitSize: 15 	 givenBitSiz: 7 	 shiftRequired : 8 	 stride: 2 
+ requiredBitSize: 16 	 givenBitSiz: 8 	 shiftRequired : 8 	 stride: 3 
+ requiredBitSize: 17 	 givenBitSiz: 9 	 shiftRequired : 8 	 stride: 1 
+ requiredBitSize: 18 	 givenBitSiz: 10 	 shiftRequired : 8 	 stride: 2 
+ requiredBitSize: 19 	 givenBitSiz: 11 	 shiftRequired : 8 	 stride: 3 
+ requiredBitSize: 20 	 givenBitSiz: 8 	 shiftRequired : 12 	 stride: 1 
+ requiredBitSize: 21 	 givenBitSiz: 9 	 shiftRequired : 12 	 stride: 2 
+ requiredBitSize: 22 	 givenBitSiz: 10 	 shiftRequired : 12 	 stride: 3 
+ requiredBitSize: 23 	 givenBitSiz: 11 	 shiftRequired : 12 	 stride: 1 
+ requiredBitSize: 24 	 givenBitSiz: 12 	 shiftRequired : 12 	 stride: 2 
+ requiredBitSize: 25 	 givenBitSiz: 7 	 shiftRequired : 18 	 stride: 3 
+ requiredBitSize: 26 	 givenBitSiz: 8 	 shiftRequired : 18 	 stride: 1 
+ requiredBitSize: 27 	 givenBitSiz: 9 	 shiftRequired : 18 	 stride: 2 
+ requiredBitSize: 28 	 givenBitSiz: 10 	 shiftRequired : 18 	 stride: 3 
+ requiredBitSize: 29 	 givenBitSiz: 11 	 shiftRequired : 18 	 stride: 1 
+ requiredBitSize: 30 	 givenBitSiz: 12 	 shiftRequired : 18 	 stride: 2 
+ requiredBitSize: 31 	 givenBitSiz: 13 	 shiftRequired : 18 	 stride: 3 
+ requiredBitSize: 32 	 givenBitSiz: 14 	 shiftRequired : 18 	 stride: 1 
+
+ ===================================================== 
+
+ Signed test with header and varying SHIFT and STRIDE starts 
+ requiredBitSize: 2 	 givenBitSiz: 1 	 shiftRequired : 1 	 stride: 1 
+ requiredBitSize: 3 	 givenBitSiz: 2 	 shiftRequired : 0 	 stride: 2 
+ requiredBitSize: 4 	 givenBitSiz: 3 	 shiftRequired : 0 	 stride: 3 
+ requiredBitSize: 5 	 givenBitSiz: 3 	 shiftRequired : 1 	 stride: 1 
+ requiredBitSize: 6 	 givenBitSiz: 4 	 shiftRequired : 1 	 stride: 2 
+ requiredBitSize: 7 	 givenBitSiz: 5 	 shiftRequired : 1 	 stride: 3 
+ requiredBitSize: 8 	 givenBitSiz: 6 	 shiftRequired : 1 	 stride: 1 
+ requiredBitSize: 9 	 givenBitSiz: 7 	 shiftRequired : 1 	 stride: 2 
+ requiredBitSize: 10 	 givenBitSiz: 7 	 shiftRequired : 2 	 stride: 3 
+ requiredBitSize: 11 	 givenBitSiz: 8 	 shiftRequired : 2 	 stride: 1 
+ requiredBitSize: 12 	 givenBitSiz: 9 	 shiftRequired : 2 	 stride: 2 
+ requiredBitSize: 13 	 givenBitSiz: 10 	 shiftRequired : 2 	 stride: 3 
+ requiredBitSize: 14 	 givenBitSiz: 11 	 shiftRequired : 2 	 stride: 1 
+ requiredBitSize: 15 	 givenBitSiz: 7 	 shiftRequired : 7 	 stride: 2 
+ requiredBitSize: 16 	 givenBitSiz: 8 	 shiftRequired : 7 	 stride: 3 
+ requiredBitSize: 17 	 givenBitSiz: 9 	 shiftRequired : 7 	 stride: 1 
+ requiredBitSize: 18 	 givenBitSiz: 10 	 shiftRequired : 7 	 stride: 2 
+ requiredBitSize: 19 	 givenBitSiz: 11 	 shiftRequired : 7 	 stride: 3 
+ requiredBitSize: 20 	 givenBitSiz: 8 	 shiftRequired : 11 	 stride: 1 
+ requiredBitSize: 21 	 givenBitSiz: 9 	 shiftRequired : 11 	 stride: 2 
+ requiredBitSize: 22 	 givenBitSiz: 10 	 shiftRequired : 11 	 stride: 3 
+ requiredBitSize: 23 	 givenBitSiz: 11 	 shiftRequired : 11 	 stride: 1 
+ requiredBitSize: 24 	 givenBitSiz: 12 	 shiftRequired : 11 	 stride: 2 
+ requiredBitSize: 25 	 givenBitSiz: 7 	 shiftRequired : 17 	 stride: 3 
+ requiredBitSize: 26 	 givenBitSiz: 8 	 shiftRequired : 17 	 stride: 1 
+ requiredBitSize: 27 	 givenBitSiz: 9 	 shiftRequired : 17 	 stride: 2 
+ requiredBitSize: 28 	 givenBitSiz: 10 	 shiftRequired : 17 	 stride: 3 
+ requiredBitSize: 29 	 givenBitSiz: 11 	 shiftRequired : 17 	 stride: 1 
+ requiredBitSize: 30 	 givenBitSiz: 12 	 shiftRequired : 17 	 stride: 2 
+ requiredBitSize: 31 	 givenBitSiz: 13 	 shiftRequired : 17 	 stride: 3 
+ requiredBitSize: 32 	 givenBitSiz: 14 	 shiftRequired : 17 	 stride: 1 
+
+ ===================================================== 
+
+ unsigned test specific to using bit mask starts 
+
+ i, originalArray[i], packedArray[i], unpackedArray[i]
+0 		 8500 	 84d0799f 	 8500 
+1 		 1945 	 ffffff04 	 1945 
+2 		 -1 	 38028000 	 16383 
+3 		 -1 	 00000000 	 16383 
+4 		 270 	 00000000 	 270 
+5 		 40 	 00000000 	 40 
+
+		 ********** Passed ********** 
+
+ test ends  
+
+ ===================================================== 
+
+ signed test specific to using bit mask starts 
+
+ i, originalArray[i], packedArray[i], unpackedArray[i]
+0 		 8100 	 fe927997 	 8100 
+1 		 1945 	 ffdfff84 	 1945 
+2 		 -1 	 3a028000 	 -1 
+3 		 -1 	 00000000 	 -1 
+4 		 270 	 00000000 	 270 
+5 		 40 	 00000000 	 40 
+
+		 ********** Passed ********** 
+
+ test ends  
+
+ ===================================================== 
+
+ unsigned test starts 
+
+ i, originalArray[i], packedArray[i], unpackedArray[i]
+0 		 0 	 01234568 	 0 
+1 		 1 	 00000000 	 1 
+2 		 2 	 00000000 	 2 
+3 		 3 	 00000000 	 3 
+4 		 4 	 00000000 	 4 
+5 		 5 	 00000000 	 5 
+6 		 6 	 00000000 	 6 
+7 		 8 	 00000000 	 8 
+
+		 ********** Passed ********** 
+
+ unsigned test ends  
+
+ ===================================================== 
+
+ unsigned test ( plus autodetection ) starts 
+
+ i, originalArray[i], packedArray[i], unpackedArray[i]
+0 		 0 	 01234568 	 0 
+1 		 1 	 00000000 	 1 
+2 		 2 	 00000000 	 2 
+3 		 3 	 00000000 	 3 
+4 		 4 	 00000000 	 4 
+5 		 5 	 00000000 	 5 
+6 		 6 	 00000000 	 6 
+7 		 8 	 00000000 	 8 
+
+		 ********** Passed ********** 
+
+ unsigned test ends  
+
+ ===================================================== 
+
+ signed test ( + / - & autodetection )starts 
+
+ i, originalArray[i], packedArray[i], unpackedArray[i]
+0 		 0 	 89a5cdef 	 0 
+1 		 1 	 00000000 	 1 
+2 		 2 	 00000000 	 2 
+3 		 -3 	 00000000 	 -3 
+4 		 4 	 00000000 	 4 
+5 		 5 	 00000000 	 5 
+6 		 6 	 00000000 	 6 
+7 		 7 	 00000000 	 7 
+
+		 ********** Passed ********** 
+
+ signed test end 
+
+ ===================================================== 
+
+ over_under indexing test starts 
+
+ i, originalArray[i], packedArray[i], unpackedArray[i]
+0 		 0 	 123456ff 	 0 
+1 		 1 	 ffffffff 	 1 
+2 		 2 	 ffffffff 	 2 
+3 		 3 	 ffffffff 	 3 
+4 		 4 	 ffffffff 	 4 
+5 		 5 	 ffffffff 	 5 
+6 		 6 	 ffffffff 	 6 
+7 		 7 	 ffffffff 	 7 
+
+		 ********** Passed ********** 
+
+ over_under indexing test end   
+
+ ===================================================== 
+
+ stride test ( offset == 4, stride == 3) starts 
+
+ i, originalArray[i], unpackedArray[i]
+ 0 	 0 		 0 
+ 3 	 1 		 1 
+ 6 	 2 		 2 
+ 9 	 3 		 3 
+ 12 	 4 		 4 
+ 15 	 5 		 5 
+ 18 	 6 		 6 
+ 21 	 7 		 7 
+ 24 	 8 		 8 
+ 27 	 9 		 9 
+ 30 	 10 		 10 
+ 33 	 11 		 11 
+ 36 	 12 		 12 
+ 39 	 13 		 13 
+ 42 	 14 		 14 
+ 45 	 15 		 15 
+
+		 ********** Passed ********** 
+
+ stride test ends  
+
+ ===================================================== 
+
+ boundary signed test with Header starts 
+
+ i, originalArray[i] 		 packedArray[i] 	 unpackedArray[i]
+0 		 0 	 fd000020 	 0 
+1 		 1 	 00000008 	 1 
+2 		 2 	 80000001 	 2 
+3 		 2147483647 	 7fffffff 	 2147483647 
+4 		 -2147483647 	 7fffffff 	 -2147483647 
+5 		 5 	 80000000 	 5 
+6 		 6 	 80000001 	 6 
+7 		 7 	 fffffffe 	 7 
+8 		 0 	 00000000 	 0 
+9 		 3 	 80000004 	 3 
+10 		 0 	 80000005 	 0 
+11 		 0 	 80000006 	 0 
+12 		 4 	 00000000 	 4 
+13 		 0 	 00000000 	 0 
+14 		 0 	 00000000 	 0 
+15 		 5 	 00000000 	 5 
+
+		 ********** Passed ********** 
+
+ boundary signed test with Header ends 
+
+ ============================================
+
+
+
+ 
+ ---TEST 15.4
+ ---TEST of over/under indexing with XXPAK
+ NBITS=16 WK1(  1)=100.000000 WK2(  1)=100.000000 IWK3=FFFFFFFF
+ NBITS=16 WK1(  2)=  1.000000 WK2(  2)=  0.999997 IWK3=7FF00007
+ NBITS=16 WK1(  3)= -0.498507 WK2(  3)= -0.498507 IWK3= FF13CE1
+ NBITS=16 WK1(  4)= -0.498010 WK2(  4)= -0.498019 IWK3=FF3C5F00
+ NBITS=16 WK1(  5)= -0.497512 WK2(  5)= -0.497531 IWK3=    10BF
+ NBITS=16 WK1(  6)= -0.497015 WK2(  6)= -0.497043 IWK3=CF000000
+ NBITS=16 WK1(  7)= -0.496517 WK2(  7)= -0.496524 IWK3=10002000
+ NBITS=16 WK1(  8)= -0.496020 WK2(  8)= -0.496036 IWK3=30004100
+ NBITS=16 WK1(  9)=100.000000 WK2(  9)=100.000000 IWK3=51FFFFFF
+ NBITS=16 WK1( 10)=100.000000 WK2( 10)=100.000000 IWK3=FFFFFFFF
+ 
+ ************* Passed ************
+ 
+ 
+ ==================================================
+ 
+ ---TEST 15.5 (XXPAK) champ constant (0)
+ ---REUSSI
+
+ ==================================================
+ 
+ 
+ 
+ ---TEST 16.0_A (XXPAK) on **float** PAQUETER DE 1 A  BITS
+ NBITS=01 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.105E+01 ERR MAX= 0.994E+00                      
+ NBITS=02 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.525E+00 ERR MAX= 0.500E+00                      
+ NBITS=03 PACK: 0.10E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.262E+00 ERR MAX= 0.250E+00                      
+ NBITS=04 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.131E+00 ERR MAX= 0.125E+00                      
+ NBITS=05 PACK: 0.10E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.656E-01 ERR MAX= 0.624E-01                      
+ NBITS=06 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.328E-01 ERR MAX= 0.312E-01                      
+ NBITS=07 PACK: 0.20E-03 S  UNPACK: 0.10E-03 S  ERR OK=  0.164E-01 ERR MAX= 0.156E-01                      
+ NBITS=08 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.820E-02 ERR MAX= 0.780E-02                      
+ NBITS=09 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.410E-02 ERR MAX= 0.390E-02                      
+ NBITS=10 PACK: 0.10E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.205E-02 ERR MAX= 0.195E-02                      
+ NBITS=11 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.103E-02 ERR MAX= 0.976E-03                      
+ NBITS=12 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.513E-03 ERR MAX= 0.488E-03                      
+ NBITS=13 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.256E-03 ERR MAX= 0.244E-03                      
+ NBITS=14 PACK: 0.10E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.128E-03 ERR MAX= 0.122E-03                      
+ NBITS=15 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.641E-04 ERR MAX= 0.610E-04                      
+ NBITS=16 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.320E-04 ERR MAX= 0.305E-04                      
+ NBITS=17 PACK: 0.20E-03 S  UNPACK: 0.30E-03 S  ERR OK=  0.160E-04 ERR MAX= 0.152E-04                      
+ NBITS=18 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.801E-05 ERR MAX= 0.760E-05                      
+ NBITS=19 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.401E-05 ERR MAX= 0.378E-05                      
+ NBITS=20 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.200E-05 ERR MAX= 0.188E-05                      
+ NBITS=21 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.100E-05 ERR MAX= 0.924E-06                      
+ NBITS=22 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.501E-06 ERR MAX= 0.447E-06                      
+ NBITS=23 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.250E-06 ERR MAX= 0.209E-06                      
+ NBITS=24 PACK: 0.20E-03 S  UNPACK: 0.30E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.894E-07                      
+ NBITS=25 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.298E-07                      
+ NBITS=26 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ NBITS=27 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ NBITS=28 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ NBITS=29 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ NBITS=30 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ NBITS=31 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ NBITS=32 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.498E-13                      
+ ---REUSSI
+
+ ---TEST 16.0_B (XXPAK) on *double* PAQUETER DE 1 A  32  BITS
+ NBITS=01 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.105E+01 ERR MAX= 0.994E+00                      
+ NBITS=02 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.525E+00 ERR MAX= 0.500E+00                      
+ NBITS=03 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.262E+00 ERR MAX= 0.250E+00                      
+ NBITS=04 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.131E+00 ERR MAX= 0.125E+00                      
+ NBITS=05 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.656E-01 ERR MAX= 0.624E-01                      
+ NBITS=06 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.328E-01 ERR MAX= 0.312E-01                      
+ NBITS=07 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.164E-01 ERR MAX= 0.156E-01                      
+ NBITS=08 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.820E-02 ERR MAX= 0.780E-02                      
+ NBITS=09 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.410E-02 ERR MAX= 0.390E-02                      
+ NBITS=10 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.205E-02 ERR MAX= 0.195E-02                      
+ NBITS=11 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.103E-02 ERR MAX= 0.976E-03                      
+ NBITS=12 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.513E-03 ERR MAX= 0.488E-03                      
+ NBITS=13 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.256E-03 ERR MAX= 0.244E-03                      
+ NBITS=14 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.128E-03 ERR MAX= 0.122E-03                      
+ NBITS=15 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.641E-04 ERR MAX= 0.610E-04                      
+ NBITS=16 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.320E-04 ERR MAX= 0.305E-04                      
+ NBITS=17 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.160E-04 ERR MAX= 0.152E-04                      
+ NBITS=18 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.801E-05 ERR MAX= 0.760E-05                      
+ NBITS=19 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.401E-05 ERR MAX= 0.378E-05                      
+ NBITS=20 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.200E-05 ERR MAX= 0.188E-05                      
+ NBITS=21 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.100E-05 ERR MAX= 0.924E-06                      
+ NBITS=22 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.501E-06 ERR MAX= 0.447E-06                      
+ NBITS=23 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.250E-06 ERR MAX= 0.209E-06                      
+ NBITS=24 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.894E-07                      
+ NBITS=25 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.298E-07                      
+ NBITS=26 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ NBITS=27 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ NBITS=28 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ NBITS=29 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ NBITS=30 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ NBITS=31 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ NBITS=32 PACK: 0.20E-03 S  UNPACK: 0.20E-03 S  ERR OK=  0.125E-06 ERR MAX= 0.150E-12                      
+ ---REUSSI
+
+ ---TEST 16.1_A (XXPAK) **float** on PAQUETER DE 1 A  32  BITS SUR PLACE
+ NBITS=01 ERR OK=  0.105E+01 ERR MAX= 0.994E+00                    
+ NBITS=02 ERR OK=  0.525E+00 ERR MAX= 0.500E+00                    
+ NBITS=03 ERR OK=  0.262E+00 ERR MAX= 0.250E+00                    
+ NBITS=04 ERR OK=  0.131E+00 ERR MAX= 0.125E+00                    
+ NBITS=05 ERR OK=  0.656E-01 ERR MAX= 0.624E-01                    
+ NBITS=06 ERR OK=  0.328E-01 ERR MAX= 0.312E-01                    
+ NBITS=07 ERR OK=  0.164E-01 ERR MAX= 0.156E-01                    
+ NBITS=08 ERR OK=  0.820E-02 ERR MAX= 0.780E-02                    
+ NBITS=09 ERR OK=  0.410E-02 ERR MAX= 0.390E-02                    
+ NBITS=10 ERR OK=  0.205E-02 ERR MAX= 0.195E-02                    
+ NBITS=11 ERR OK=  0.103E-02 ERR MAX= 0.976E-03                    
+ NBITS=12 ERR OK=  0.513E-03 ERR MAX= 0.488E-03                    
+ NBITS=13 ERR OK=  0.256E-03 ERR MAX= 0.244E-03                    
+ NBITS=14 ERR OK=  0.128E-03 ERR MAX= 0.122E-03                    
+ NBITS=15 ERR OK=  0.641E-04 ERR MAX= 0.610E-04                    
+ NBITS=16 ERR OK=  0.320E-04 ERR MAX= 0.305E-04                    
+ NBITS=17 ERR OK=  0.160E-04 ERR MAX= 0.152E-04                    
+ NBITS=18 ERR OK=  0.801E-05 ERR MAX= 0.760E-05                    
+ NBITS=19 ERR OK=  0.401E-05 ERR MAX= 0.378E-05                    
+ NBITS=20 ERR OK=  0.200E-05 ERR MAX= 0.188E-05                    
+ NBITS=21 ERR OK=  0.100E-05 ERR MAX= 0.924E-06                    
+ NBITS=22 ERR OK=  0.501E-06 ERR MAX= 0.447E-06                    
+ NBITS=23 ERR OK=  0.250E-06 ERR MAX= 0.209E-06                    
+ NBITS=24 ERR OK=  0.125E-06 ERR MAX= 0.894E-07                    
+ NBITS=25 ERR OK=  0.125E-06 ERR MAX= 0.298E-07                    
+ NBITS=26 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ NBITS=27 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ NBITS=28 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ NBITS=29 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ NBITS=30 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ NBITS=31 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ NBITS=32 ERR OK=  0.125E-06 ERR MAX= 0.498E-13                    
+ ---REUSSI
+
+ ---TEST 16.1_B (XXPAK) *double* on PAQUETER DE 1 A  32  BITS SUR PLACE
+ NBITS=01 ERR OK=  0.105E+01 ERR MAX= 0.994E+00                    
+ NBITS=02 ERR OK=  0.525E+00 ERR MAX= 0.500E+00                    
+ NBITS=03 ERR OK=  0.262E+00 ERR MAX= 0.250E+00                    
+ NBITS=04 ERR OK=  0.131E+00 ERR MAX= 0.125E+00                    
+ NBITS=05 ERR OK=  0.656E-01 ERR MAX= 0.624E-01                    
+ NBITS=06 ERR OK=  0.328E-01 ERR MAX= 0.312E-01                    
+ NBITS=07 ERR OK=  0.164E-01 ERR MAX= 0.156E-01                    
+ NBITS=08 ERR OK=  0.820E-02 ERR MAX= 0.780E-02                    
+ NBITS=09 ERR OK=  0.410E-02 ERR MAX= 0.390E-02                    
+ NBITS=10 ERR OK=  0.205E-02 ERR MAX= 0.195E-02                    
+ NBITS=11 ERR OK=  0.103E-02 ERR MAX= 0.976E-03                    
+ NBITS=12 ERR OK=  0.513E-03 ERR MAX= 0.488E-03                    
+ NBITS=13 ERR OK=  0.256E-03 ERR MAX= 0.244E-03                    
+ NBITS=14 ERR OK=  0.128E-03 ERR MAX= 0.122E-03                    
+ NBITS=15 ERR OK=  0.641E-04 ERR MAX= 0.610E-04                    
+ NBITS=16 ERR OK=  0.320E-04 ERR MAX= 0.305E-04                    
+ NBITS=17 ERR OK=  0.160E-04 ERR MAX= 0.152E-04                    
+ NBITS=18 ERR OK=  0.801E-05 ERR MAX= 0.760E-05                    
+ NBITS=19 ERR OK=  0.401E-05 ERR MAX= 0.378E-05                    
+ NBITS=20 ERR OK=  0.200E-05 ERR MAX= 0.188E-05                    
+ NBITS=21 ERR OK=  0.100E-05 ERR MAX= 0.924E-06                    
+ NBITS=22 ERR OK=  0.501E-06 ERR MAX= 0.447E-06                    
+ NBITS=23 ERR OK=  0.250E-06 ERR MAX= 0.209E-06                    
+ NBITS=24 ERR OK=  0.125E-06 ERR MAX= 0.894E-07                    
+ NBITS=25 ERR OK=  0.125E-06 ERR MAX= 0.298E-07                    
+ NBITS=26 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ NBITS=27 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ NBITS=28 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ NBITS=29 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ NBITS=30 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ NBITS=31 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ NBITS=32 ERR OK=  0.125E-06 ERR MAX= 0.150E-12                    
+ ---REUSSI
+
+ ---TEST 16.2 (cmain)
+
+ ===================================================== 
+
+ genetic test starts at token size: 32  
+Debug avant la boucle mySeed=1.000000 	 1.0=1.000000
+
+ i, originalFloat, 	 packedInt, 	 unpackedFloat
+0  	 -8796234579968.000000 	 47802b00 	 1111.000000 
+1  	 -134219920.000000 	 47821f80 	 2112.000000 
+2  	 -16.000265 	 47841780 	 3113.000000 
+3  	 -0.000002 	 47860c00 	 4121.000000 
+4  	 5122.000000 	 47880080 	 5122.000000 
+5  	 6123.000000 	 4789f880 	 6123.000000 
+6  	 7131.000000 	 478bed00 	 7131.000000 
+7  	 8132.000000 	 478de180 	 8132.000000 
+8  	 9133.000000 	 d5800009 	 9133.000000 
+9  	 10141.000000 	 ca00000b 	 10141.000000 
+10  	 11142.000000 	 c200000d 	 11142.000000 
+11  	 12143.000000 	 b680000f 	 12143.000000 
+12  	 13211.000000 	 ab000011 	 13211.000000 
+13  	 14212.000000 	 a3000013 	 14212.000000 
+14  	 15213.000000 	 97800015 	 15213.000000 
+15  	 16221.000000 	 8c000017 	 16221.000000 
+16  	 17222.000000 	 a2000019 	 17222.000000 
+17  	 18223.000000 	 9680001b 	 18223.000000 
+18  	 19231.000000 	 8b00001d 	 19231.000000 
+19  	 20232.000000 	 8300001f 	 20232.000000 
+20  	 21233.000000 	 77800021 	 21233.000000 
+21  	 22241.000000 	 6c000023 	 22241.000000 
+22  	 23242.000000 	 64000025 	 23242.000000 
+23  	 24243.000000 	 58800027 	 24243.000000 
+24  	 25311.000000 	 4d000029 	 25311.000000 
+25  	 26312.000000 	 4500002b 	 26312.000000 
+26  	 27313.000000 	 3980002d 	 27313.000000 
+27  	 28321.000000 	 2e00002f 	 28321.000000 
+28  	 29322.000000 	 44000031 	 29322.000000 
+29  	 30323.000000 	 38800033 	 30323.000000 
+30  	 31331.000000 	 2d000035 	 31331.000000 
+31  	 32332.000000 	 25000037 	 32332.000000 
+32  	 33333.000000 	 19800039 	 33333.000000 
+33  	 34341.000000 	 0e00003b 	 34341.000000 
+34  	 35342.000000 	 0600003c 	 35342.000000 
+35  	 36343.000000 	 fa80003e 	 36343.000000 
+36  	 37411.000000 	 ef000040 	 37411.000000 
+37  	 38412.000000 	 e7000042 	 38412.000000 
+38  	 39413.000000 	 db800044 	 39413.000000 
+39  	 40421.000000 	 d0000046 	 40421.000000 
+40  	 41422.000000 	 e6000048 	 41422.000000 
+41  	 42423.000000 	 da80004a 	 42423.000000 
+42  	 43431.000000 	 cf00004c 	 43431.000000 
+43  	 44432.000000 	 c700004e 	 44432.000000 
+44  	 45433.000000 	 bb800050 	 45433.000000 
+45  	 46441.000000 	 b0000052 	 46441.000000 
+46  	 47442.000000 	 a8000054 	 47442.000000 
+47  	 48443.000000 	 9c800056 	 48443.000000 
+48  	 49511.000000 	 91000058 	 49511.000000 
+49  	 50512.000000 	 8900005a 	 50512.000000 
+50  	 51513.000000 	 7d80005c 	 51513.000000 
+51  	 52521.000000 	 7200005e 	 52521.000000 
+52  	 53522.000000 	 88000060 	 53522.000000 
+53  	 54523.000000 	 7c800062 	 54523.000000 
+54  	 55531.000000 	 71000064 	 55531.000000 
+55  	 56532.000000 	 69000066 	 56532.000000 
+56  	 57533.000000 	 5d800068 	 57533.000000 
+57  	 58541.000000 	 5200006a 	 58541.000000 
+58  	 59542.000000 	 4a00006c 	 59542.000000 
+59  	 60543.000000 	 3e80006e 	 60543.000000 
+60  	 61611.000000 	 33000070 	 61611.000000 
+61  	 62612.000000 	 2b000072 	 62612.000000 
+62  	 63613.000000 	 1f800074 	 63613.000000 
+63  	 64621.000000 	 14000076 	 64621.000000 
+64  	 65622.000000 	 2a000078 	 65622.000000 
+65  	 66623.000000 	 1e80007a 	 66623.000000 
+66  	 67631.000000 	 1300007c 	 67631.000000 
+67  	 68632.000000 	 0b00007d 	 68632.000000 
+68  	 69633.000000 	 ff80007f 	 69633.000000 
+69  	 70641.000000 	 f4000081 	 70641.000000 
+70  	 71642.000000 	 ec000083 	 71642.000000 
+71  	 72643.000000 	 e0800085 	 72643.000000 
+
+ ********** for visual verification purpose only ************* 
+
+ end of genetic test  
+
+ ===================================================== 
+
+
+
+ ===================================================== 
+
+ test starts at token size: 16  and elementCount: 4 stride: 2
+
+ i, originalFloat, 	 packedInt, 	 unpackedFloat
+0  	 0.000000 	 7ff00004 	 -0.000005 
+1  	 0.999999 	 0fef3ce1 	 -1.000000 
+2  	 -0.403226 	 ce739d00 	 -0.403226 
+3  	 -0.370968 	 000010ce 	 -1.000000 
+4  	 -0.338710 	 73000021 	 -0.338712 
+5  	 -0.306452 	 084210ff 	 -1.000000 
+6  	 -0.274194 	 ffffffff 	 -0.274197 
+7  	 1000.000000 	 ffffffff 	 1000.000000 
+8  	 1000.000000 	 ffffffff 	 1000.000000 
+
+ ****************** Passed ****************
+
+ end of test  
+
+ ===================================================== 
+
+
+
+
+
+
+
+ ===================================================== 
+
+
+
+
+
+ stability test starts
+
+		 ********** Passed ********** 
+
+ stability test on float end 
+
+
+
+
+
+ ================================================================== 
+
+
+
+
+
+ ================================================================== 
+
+ stride test on float starts
+
+		 ********** Passed ********** 
+
+ stride test on float end
+
+
+
+
+
+ ========================================================  
+
+
+
+
+
+ error test starts on float with bitSizeOfInt : 4
+
+0.000000 	 -0.403226 	 -0.403226 
+0.999999 	 0.596774 	 0.596774 
+-0.403226 	 -0.403226 	 -0.403226 
+-0.370968 	 -0.403226 	 -0.403226 
+-0.338710 	 -0.403226 	 -0.403226 
+-0.306452 	 -0.403226 	 -0.403226 
+-0.274194 	 -0.403226 	 -0.403226 
+-0.241935 	 -0.403226 	 -0.403226 
+-0.209677 	 -0.403226 	 -0.403226 
+-0.177419 	 -0.403226 	 -0.403226 
+-0.145161 	 -0.403226 	 -0.403226 
+-0.112903 	 -0.403226 	 -0.403226 
+-0.080645 	 -0.403226 	 -0.403226 
+-0.048387 	 -0.403226 	 -0.403226 
+-0.016129 	 -0.403226 	 -0.403226 
+6.000000 	 6.596774 	 5.596774 
+0.048387 	 -0.403226 	 -0.403226 
+0.080645 	 -0.403226 	 -0.403226 
+0.112903 	 -0.403226 	 0.096774 
+9999.000000 	 9999.000000 	 9999.000000 
+0.177419 	 -0.403226 	 0.096774 
+
+		 ********** Passed ********** 
+
+ end of error test on float 
+
+
+
+
+
+ =============================================================== 
+
+
+
+
+
+ over indexing test starts on floats with 4 bit packed token 
+
+ i, originalFloat, 	 packedInt, 	 unpackedFloat
+0  	 1000.000000 	 ffffffff 	 1000.000000 
+1  	 0.999999 	 7ff00008 	 0.900000 
+2  	 -0.350000 	 0ffd3ce1 	 -0.350000 
+3  	 -0.300000 	 b3333300 	 -0.350000 
+4  	 -0.250000 	 000004a0 	 -0.350000 
+5  	 -0.200000 	 001112ff 	 -0.225000 
+6  	 -0.150000 	 ffffffff 	 -0.225000 
+7  	 -0.100000 	 ffffffff 	 -0.225000 
+8  	 -0.050000 	 ffffffff 	 -0.100000 
+9  	 1000.000000 	 ffffffff 	 1000.000000 
+
+		 ********** Passed ********** 
+
+ over indexing test on float end 
+
+ ===================================================== 
+
+
+
+ over indexing test starts on floats with 16 bits packed token 
+
+ i, originalFloat, 	 packedInt, 	 unpackedFloat
+0  	 1000.000000 	 ffffffff 	 1000.000000 
+1  	 0.999999 	 7ff00008 	 0.999976 
+2  	 -0.350000 	 0ff13ce1 	 -0.350000 
+3  	 -0.300000 	 b3333300 	 -0.300012 
+4  	 -0.250000 	 000010ac 	 -0.250024 
+5  	 -0.200000 	 cc000006 	 -0.200006 
+6  	 -0.150000 	 660ccc13 	 -0.150018 
+7  	 -0.100000 	 3319991f 	 -0.100031 
+8  	 -0.050000 	 ff2666ff 	 -0.050012 
+9  	 1000.000000 	 ffffffff 	 1000.000000 
+10  	 1000.000000 	 ffffffff 	 1000.000000 
+
+		 ********** Passed ********** 
+
+ over indexing test on float with 16 bits packed token end 
+
+ ===================================================== 
+
+
+
+ test of using the High, low field in the header at token size: 27 	 elementCount : 194305
+
+ i, originalFloat, 	 packedInt, 	 unpackedFloat
+72869  	 -1.249904e-01 	 a069c715 	 -1.249904e-01 7.450581e-09 
+85012  	 -6.249904e-02 	 975e9a12 	 -6.249905e-02 1.117587e-08 
+91089  	 -3.122507e-02 	 f9e8e384 	 -3.122509e-02 1.303852e-08 
+94129  	 -1.558037e-02 	 c7f497bb 	 -1.558039e-02 1.396984e-08 
+95649  	 -7.758022e-03 	 9556e112 	 -7.758036e-03 1.443550e-08 
+96546  	 -3.141806e-03 	 b5eb2696 	 -3.141820e-03 1.466833e-08 
+96917  	 -1.232535e-03 	 14ba8e54 	 -1.232550e-03 1.478475e-08 
+96989  	 -8.620024e-04 	 76e7592e 	 -8.620173e-04 1.484295e-08 
+MaxDifference= 1.484295e-08 pour i=96989 
+
+		 ********** Passed ********** 
+
+ test on using the High and Low bit field in the header ends 
+
+ ===================================================== 
+
+
+
+ stability test on double starts
+ 5 	 739bd800 	 739be000 	 739be000  
+
+		 ********** Passed ********** 
+
+ stability test end
+
+
+
+
+
+ ================================================================== 
+
+
+
+
+
+ stride test on double starts
+
+		 ********** Passed ********** 
+
+ stride test on double end
+
+
+
+
+
+ ========================================================  
+
+
+
+
+
+ error test starts on double with bitSizeOfInt : 4
+0.000000 	 -0.403226 	 -0.403226 
+0.999999 	 0.596774 	 0.596774 
+-0.403226 	 -0.403226 	 -0.403226 
+-0.370968 	 -0.403226 	 -0.403226 
+-0.338710 	 -0.403226 	 -0.403226 
+-0.306452 	 -0.403226 	 -0.403226 
+-0.274194 	 -0.403226 	 -0.403226 
+-0.241935 	 -0.403226 	 -0.403226 
+-0.209677 	 -0.403226 	 -0.403226 
+-0.177419 	 -0.403226 	 -0.403226 
+-0.145161 	 -0.403226 	 -0.403226 
+-0.112903 	 -0.403226 	 -0.403226 
+-0.080645 	 -0.403226 	 -0.403226 
+-0.048387 	 -0.403226 	 -0.403226 
+-0.016129 	 -0.403226 	 -0.403226 
+6.000000 	 6.596774 	 5.596774 
+0.048387 	 -0.403226 	 -0.403226 
+0.080645 	 -0.403226 	 -0.403226 
+0.112903 	 -0.403226 	 0.096774 
+9999.000000 	 9999.000000 	 9999.000000 
+0.177419 	 -0.403226 	 0.096774 
+
+		 ********** Passed ********** 
+
+ error test on double end 
+
+
+
+
+
+ =============================================================== 
+
+
+
+
+
+ over indexing test starts on double 
+
+ i, originaldouble, 	 packedInt, 	 unpackeddouble
+0  	 1000.000000 	 ffffffff 	 1000.000000 
+1  	 0.999999 	 7ff00008 	 0.900000 
+2  	 -0.350000 	 0ffd3ce1 	 -0.350000 
+3  	 -0.300000 	 b3333300 	 -0.350000 
+4  	 -0.250000 	 000004a0 	 -0.350000 
+5  	 -0.200000 	 001122ff 	 -0.225000 
+6  	 -0.150000 	 ffffffff 	 -0.225000 
+7  	 -0.100000 	 ffffffff 	 -0.100000 
+8  	 -0.050000 	 ffffffff 	 -0.100000 
+9  	 1000.000000 	 ffffffff 	 1000.000000 
+
+		 ********** Passed ********** 
+
+ end of over indexing test on double 
+
+ ===================================================== 
+
+
+ ---TEST 16.3 (rlemain)
+
+
+ ============== 
+
+ stride is : 1 
+
+ ============== 
+
+
+ NBITS: 3 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999990e-05 
+ NBITS: 4 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999990e-05 
+ NBITS: 5 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 6 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999990e-05 
+ NBITS: 7 	 RLE_PACK : 2.000022e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 8 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999990e-05 
+ NBITS: 9 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 10 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 2.000022e-04 
+ NBITS: 11 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 12 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 13 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 14 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 15 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 16 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 17 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 2.000046e-04 
+ NBITS: 18 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 19 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 20 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 21 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 22 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+ NBITS: 23 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 24 	 RLE_PACK : 2.000046e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 25 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 26 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+ NBITS: 27 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 28 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 29 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 30 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 31 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+
+ ============== 
+
+ stride is : 2 
+
+ ============== 
+
+
+ NBITS: 3 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 4 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 5 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 6 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 7 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 8 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 9 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 10 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 11 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 12 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 13 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 14 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 15 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 16 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 17 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 18 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 19 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 20 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 21 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 22 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 23 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 24 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 25 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 26 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 27 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 28 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 29 	 RLE_PACK : 2.000046e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 30 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 31 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+
+ ============== 
+
+ stride is : 3 
+
+ ============== 
+
+
+ NBITS: 3 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 4 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 5 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 6 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 7 	 RLE_PACK : 2.000046e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 8 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 9 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 10 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 11 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 12 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 13 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 14 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 15 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 16 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 17 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 18 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 19 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 20 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 21 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 22 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 23 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 24 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 25 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 26 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 27 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 28 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 29 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 30 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 31 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+
+ ============== 
+
+ stride is : 4 
+
+ ============== 
+
+
+ NBITS: 3 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 4 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.000023e-04 
+ NBITS: 5 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+ NBITS: 6 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 7 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 8 	 RLE_PACK : 1.000023e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 9 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 10 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+ NBITS: 11 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 2.000046e-04 
+ NBITS: 12 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 13 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 14 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 15 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+ NBITS: 16 	 RLE_PACK : 9.999752e-05 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 17 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 18 	 RLE_PACK : 2.000046e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 19 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 20 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 21 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 22 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 23 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 9.999752e-05 
+ NBITS: 24 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 2.000046e-04 
+ NBITS: 25 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 26 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 27 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 28 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 29 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 30 	 RLE_PACK : 1.999998e-04 		 RLE_UNPACK : 1.999998e-04 
+ NBITS: 31 	 RLE_PACK : 2.000046e-04 		 RLE_UNPACK : 1.999950e-04 
+ 
+ =====================================================================
+ 
+ ---TEST 17.1 (cmainIEEEBlock)
+
+ IEEE block test starts(float) 
+ bitSizeOfToken: 16 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 17 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 18 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 19 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 20 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 21 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 22 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 23 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 24 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 25 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 26 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 27 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 28 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 29 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 30 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 31 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 32 	 bitSizeOfExpo: 8 	 test pased 
+
+ IEEE block test finishes(float)  
+
+ ===================================================== 
+
+
+
+ IEEE block test starts(double)  
+ bitSizeOfToken: 16 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 17 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 18 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 19 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 20 	 bitSizeOfExpo: 5 	 test pased 
+ bitSizeOfToken: 21 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 22 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 23 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 24 	 bitSizeOfExpo: 6 	 test pased 
+ bitSizeOfToken: 25 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 26 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 27 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 28 	 bitSizeOfExpo: 7 	 test pased 
+ bitSizeOfToken: 29 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 30 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 31 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 32 	 bitSizeOfExpo: 8 	 test pased 
+ bitSizeOfToken: 64 	 bitSizeOfExpo: 8 	 test pased 
+
+ IEEE block test finishes(double)  
+
+ ===================================================== 
+
+
+ 
+ =====================================================================
+ 
+ ---TEST 18.1 (min_1_2)
+ Debug array = 
+ MMMEAN   min=      1.1116     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D00
+  8E48E900
+  00001600
+  00029874
+  1A63A029
+  95C2A673
+  0E9A3C0A
+  6AC0A9B2
+  02A6E40A
+  9C000A71
+  B0A9CDC2
+  A752069D
+  B40A7880
+  A9E8C1A7
+  BD069F5C
+  2A7F0FEA
+  02C0A824
+  0AA0F41A
+  85606A1B
+ Debug unpacked array  = 
+ MMMEAN   min=      1.1116     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D00
+  8E48E900
+  00001600
+  00029874
+  1A63A029
+  95C2A673
+  0E9A3C0A
+  6AC0A9B2
+  02A6E40A
+  9C000A71
+  B0A9CDC2
+  A752069D
+  B40A7880
+  A9E8C1A7
+  BD069F5C
+  2A7F0FEA
+  02C0A824
+  0AA0F41A
+  85606A1B
+ 
+ ---TEST 18.2 (min_2_4)
+ Debug array = 
+ MMMEAN   min=      3.1116     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D10
+  C7247400
+  00001600
+  00028874
+  1A23A028
+  95C2A273
+  0E8A3C0A
+  2AC0A8B2
+  02A2E40A
+  8C000A31
+  B0A8CDC2
+  A352068D
+  B40A3880
+  A8E8C1A3
+  BD068F5C
+  2A3F0FE9
+  02C0A424
+  0A90F41A
+  4560691B
+ Debug unpacked array  = 
+ MMMEAN   min=      3.1116     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D10
+  C7247400
+  00001600
+  00028874
+  1A23A028
+  95C2A273
+  0E8A3C0A
+  2AC0A8B2
+  02A2E40A
+  8C000A31
+  B0A8CDC2
+  A352068D
+  B40A3880
+  A8E8C1A3
+  BD068F5C
+  2A3F0FE9
+  02C0A424
+  0A90F41A
+  4560691B
+ 
+ ---TEST 18.3 (min_4_8)
+ Debug array = 
+ MMMEAN   min=      6.1116     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D20
+  C3923A00
+  00001600
+  00027074
+  19C3A027
+  15C29C73
+  0E723C09
+  CAC0A732
+  029CE40A
+  740009D1
+  B0A74DC2
+  9D520675
+  B409D880
+  A768C19D
+  BD06775C
+  29DF0FE7
+  82C09E24
+  0A78F419
+  E560679B
+ Debug unpacked array  = 
+ MMMEAN   min=      6.1116     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D20
+  C3923A00
+  00001600
+  00027074
+  19C3A027
+  15C29C73
+  0E723C09
+  CAC0A732
+  029CE40A
+  740009D1
+  B0A74DC2
+  9D520675
+  B409D880
+  A768C19D
+  BD06775C
+  29DF0FE7
+  82C09E24
+  0A78F419
+  E560679B
+ 
+ ---TEST 18.4 (min_8_16)
+ Debug array = 
+ MMMEAN   min=      10.112     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D30
+  A1C91D00
+  00001600
+  00025074
+  1943A025
+  15C29473
+  0E523C09
+  4AC0A532
+  0294E40A
+  54000951
+  B0A54DC2
+  95520655
+  B4095880
+  A568C195
+  BD06575C
+  295F0FE5
+  82C09624
+  0A58F419
+  6560659B
+ Debug unpacked array  = 
+ MMMEAN   min=      10.112     max=      101.24       mean=      73.075    
+  7FF13880
+  0FF13D30
+  A1C91D00
+  00001600
+  00025074
+  1943A025
+  15C29473
+  0E523C09
+  4AC0A532
+  0294E40A
+  54000951
+  B0A54DC2
+  95520655
+  B4095880
+  A568C195
+  BD06575C
+  295F0FE5
+  82C09624
+  0A58F419
+  6560659B
+  *TESTPAK REUSSI*

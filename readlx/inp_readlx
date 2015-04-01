@@ -1,0 +1,6 @@
+IND=5
+* Voici un commentaire !@##%
+SUB2(1,2,3,4,6)
+TAB1[2]=1,2,3,4,5,6
+TAB2=4,5,6
+TAB2="ABCEDFGHIJKLMNOPQRSTUVWXYZ"

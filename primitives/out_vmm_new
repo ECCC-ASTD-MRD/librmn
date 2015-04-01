@@ -1,0 +1,5881 @@
+  VMM test 1.0 vmmallc 
+  *********  REUSSI ********
+  VMM test 1.1 vmmcre VAR #1 a VAR #4
+  cle =  0
+  *********  REUSSI ********
+  cle =  20480
+  *********  REUSSI ********
+  cle =  36864
+  *********  REUSSI ********
+  cle =  61440
+  *********  REUSSI ********
+  cle10 =  94208
+  *********  REUSSI ********
+  cle =  0,  20480,  36864,  61440,  94208
+  VMM test 1.2 vmmdbg TRACE 
+  *********  REUSSI ********
+  VMM test 1.3 vmmdbg CHECKSUM 
+  *********  REUSSI ********
+  VMM test 2.1 vmmdmp dump des 3 structures 
+
+Contenu de blocks
+  Indice du bloc: 0
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : 0
+     memadr             : 1008c7c8
+     size               : 350
+     prev_fb            : -1
+     next_fb            : -1
+
+Contenu de slices
+  Indice de la slice: 0
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : -2061192012
+  Indice de la slice: 1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 2
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : -2052803404
+  Indice de la slice: 3
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : -237676882
+  Indice de la slice: 4
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 5
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 6
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 7
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 8
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 9
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 0
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : 0
+  Indice de la slice: 10
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : -1480344
+  Indice de la slice: 11
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : -740172
+  Indice de la slice: 12
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : -1480344
+  Indice de la slice: 13
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : 137875407
+  Indice de la slice: 14
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : -775224572
+  Indice de la slice: 15
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 17
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 18
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 19
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 1557653483
+  Indice de la slice: 20
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 21
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 22
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 23
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 1
+     must_exist         : 0
+     class              : 9
+     weight             : 6
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 4
+     checksum           : 0
+  Indice de la slice: 24
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 5
+     checksum           : 0
+  Indice de la slice: 25
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 6
+     checksum           : 0
+
+Contenu de names
+  Indice de la variable: 0
+     nom          : VAR #1  
+     base_file_adr: 2
+     lslice       : 12
+     nslice       : 5
+     major_key    : 0
+     class        : 1
+  Indice de la variable: 1
+     nom          : VAR #2  
+     base_file_adr: -1
+     lslice       : 18
+     nslice       : 4
+     major_key    : 5
+     class        : 2
+  Indice de la variable: 2
+     nom          : VAR #3  
+     base_file_adr: -1
+     lslice       : 22
+     nslice       : 6
+     major_key    : 9
+     class        : 2
+  Indice de la variable: 3
+     nom          : VAR #4  
+     base_file_adr: 2
+     lslice       : 28
+     nslice       : 8
+     major_key    : 15
+     class        : 6
+  Indice de la variable: 4
+     nom          : VAR R8  
+     base_file_adr: 2
+     lslice       : 18
+     nslice       : 1
+     major_key    : 23
+     class        : 9
+  Indice de la variable: 5
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 24
+     class        : 3
+  Indice de la variable: 6
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 25
+     class        : 4
+  VMM test 2.0 vmmlod 190 mots / 200 
+VMM trace: chargement memoire  de variable VAR #1   tranche 1 en position 0
+VMM trace: lecture dans le fichier Vmm_01 de la variable VAR #1   tranche 1
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: chargement memoire  de variable VAR #1   tranche 3 en position 1
+VMM trace: lecture dans le fichier Vmm_01 de la variable VAR #1   tranche 3
+Checksum block numero 1, variable VAR #1  , tranche 3 = -2052803404
+VMM trace: chargement memoire  de variable VAR #1   tranche 4 en position 2
+Checksum block numero 2, variable VAR #1  , tranche 4 = -237676882
+VMM trace: chargement memoire  de variable VAR #2   tranche 1 en position 3
+Checksum block numero 3, variable VAR #2  , tranche 1 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 2 en position 4
+Checksum block numero 4, variable VAR #2  , tranche 2 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 3 en position 5
+Checksum block numero 5, variable VAR #2  , tranche 3 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 4 en position 6
+Checksum block numero 6, variable VAR #2  , tranche 4 = -740172
+VMM trace: chargement memoire  de variable VAR #3   tranche 2 en position 7
+Checksum block numero 7, variable VAR #3  , tranche 2 = -885725874
+VMM trace: chargement memoire  de variable VAR #3   tranche 3 en position 8
+Checksum block numero 8, variable VAR #3  , tranche 3 = 256938128
+VMM trace: chargement memoire  de variable VAR #3   tranche 4 en position 9
+Checksum block numero 9, variable VAR #3  , tranche 4 = 1081295820
+VMM trace: chargement memoire  de variable VAR #3   tranche 5 en position 10
+Checksum block numero 10, variable VAR #3  , tranche 5 = -1110258
+VMM trace: chargement memoire  de variable VAR #3   tranche 6 en position 11
+Checksum block numero 11, variable VAR #3  , tranche 6 = -1976997528
+  *********  REUSSI ********
+  VMM test 2.1 vmmdmp dump des 3 structures 
+
+Contenu de blocks
+  Indice du bloc: 0
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 0
+     file_adr           : 2
+     memadr             : 1008c7c8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 1
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 2
+     file_adr           : 26
+     memadr             : 1008c7f8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 2
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 3
+     file_adr           : 38
+     memadr             : 1008c828
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 3
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 5
+     file_adr           : -1
+     memadr             : 1008c858
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 4
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 6
+     file_adr           : -1
+     memadr             : 1008c8a0
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 5
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 7
+     file_adr           : -1
+     memadr             : 1008c8e8
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 6
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 8
+     file_adr           : -1
+     memadr             : 1008c930
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 7
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 10
+     file_adr           : -1
+     memadr             : 1008c978
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 8
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 11
+     file_adr           : -1
+     memadr             : 1008c9d0
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 9
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 12
+     file_adr           : -1
+     memadr             : 1008ca28
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 10
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 13
+     file_adr           : -1
+     memadr             : 1008ca80
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 11
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 14
+     file_adr           : -1
+     memadr             : 1008cad8
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 12
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008cb30
+     size               : 132
+     prev_fb            : -1
+     next_fb            : -1
+
+Contenu de slices
+  Indice de la slice: 0
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 0
+     name_table_index   : 0
+     checksum           : -2061192012
+  Indice de la slice: 1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 2
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 1
+     name_table_index   : 0
+     checksum           : -2052803404
+  Indice de la slice: 3
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 2
+     name_table_index   : 0
+     checksum           : -237676882
+  Indice de la slice: 4
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 5
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 3
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 6
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 4
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 7
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 5
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 8
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 6
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 9
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 0
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : 0
+  Indice de la slice: 10
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 7
+     name_table_index   : 2
+     checksum           : -885725874
+  Indice de la slice: 11
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 8
+     name_table_index   : 2
+     checksum           : 256938128
+  Indice de la slice: 12
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 9
+     name_table_index   : 2
+     checksum           : 1081295820
+  Indice de la slice: 13
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 10
+     name_table_index   : 2
+     checksum           : -1110258
+  Indice de la slice: 14
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 11
+     name_table_index   : 2
+     checksum           : -1976997528
+  Indice de la slice: 15
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 17
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 18
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 19
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 1557653483
+  Indice de la slice: 20
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 21
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 22
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 23
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 1
+     must_exist         : 0
+     class              : 9
+     weight             : 6
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 4
+     checksum           : 0
+  Indice de la slice: 24
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 5
+     checksum           : 0
+  Indice de la slice: 25
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 6
+     checksum           : 0
+
+Contenu de names
+  Indice de la variable: 0
+     nom          : VAR #1  
+     base_file_adr: 2
+     lslice       : 12
+     nslice       : 5
+     major_key    : 0
+     class        : 1
+  Indice de la variable: 1
+     nom          : VAR #2  
+     base_file_adr: -1
+     lslice       : 18
+     nslice       : 4
+     major_key    : 5
+     class        : 2
+  Indice de la variable: 2
+     nom          : VAR #3  
+     base_file_adr: -1
+     lslice       : 22
+     nslice       : 6
+     major_key    : 9
+     class        : 2
+  Indice de la variable: 3
+     nom          : VAR #4  
+     base_file_adr: 2
+     lslice       : 28
+     nslice       : 8
+     major_key    : 15
+     class        : 6
+  Indice de la variable: 4
+     nom          : VAR R8  
+     base_file_adr: 2
+     lslice       : 18
+     nslice       : 1
+     major_key    : 23
+     class        : 9
+  Indice de la variable: 5
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 24
+     class        : 3
+  Indice de la variable: 6
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 25
+     class        : 4
+  *********  REUSSI ********
+  VMM test 2.2 vmmlse 
+  Debug vmmlse =  132
+  *********  REUSSI ********
+  VMM test 3.0 vmmget clefs(01),cle1+3,cle2+2
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+  *********  REUSSI ********
+Checksum block numero 1, variable VAR #1  , tranche 3 = -2052803404
+  *********  REUSSI ********
+Checksum block numero 4, variable VAR #2  , tranche 2 = -740172
+  ptr1 ptr2 ptr3 =  269010888,  269010936,  269011104
+  *********  REUSSI ********
+  VMM test 3.1 vmmcks clefs(01) avant initialisation
+  check sum =  -2061192012
+ Debug array1 =  1.,  2.,  3.,  2.,  5.,  6.,  7.,  8.,  9.,  10.
+ Debug array2 =  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  10.
+ Debug array3 =  15*0.E+0
+  VMM test 3.2 vmmcks clefs(01) apres initialisation
+  check sum =  -2052803404
+  VMM test 3.2 vmmcks clefs(01) apres modification
+  check sum =  -2061192012
+  *********  REUSSI ********
+  VMM test 4.0 vmmdbg MEMDMP de 20 clefs 
+  Variable VAR #1   , tranche 1 slice_table_index 0 block_table_index 0
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+  Variable VAR #1   , tranche 3 slice_table_index 2 block_table_index 1
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+  Variable VAR #1   , tranche 4 slice_table_index 3 block_table_index 2
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+  Variable VAR #2   , tranche 1 slice_table_index 5 block_table_index 3
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #2   , tranche 2 slice_table_index 6 block_table_index 4
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #2   , tranche 3 slice_table_index 7 block_table_index 5
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #2   , tranche 4 slice_table_index 8 block_table_index 6
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #3   , tranche 2 slice_table_index 10 block_table_index 7
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 3 slice_table_index 11 block_table_index 8
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 4 slice_table_index 12 block_table_index 9
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 5 slice_table_index 13 block_table_index 10
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 6 slice_table_index 14 block_table_index 11
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #4   , tranche 8 slice_table_index 22 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 7 slice_table_index 21 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 6 slice_table_index 20 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 5 slice_table_index 19 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 4 slice_table_index 18 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 3 slice_table_index 17 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 2 slice_table_index 16 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 1 slice_table_index 15 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  *********  REUSSI ********
+  VMM test 5.0 vmmuld pour faire de la place au prochain vmmlod et forcer l ejection de blocs
+Checksum block numero 6, variable VAR #2  , tranche 4 = -740172
+VMM trace: ejection du bloc 6 variable VAR #2   tranche 4
+Checksum block numero 7, variable VAR #3  , tranche 2 = -885725874
+VMM trace: vmmuld du bloc 7 variable VAR #3   tranche 2
+Checksum block numero 8, variable VAR #3  , tranche 3 = 256938128
+VMM trace: vmmuld du bloc 8 variable VAR #3   tranche 3
+Checksum block numero 9, variable VAR #3  , tranche 4 = 1081295820
+VMM trace: vmmuld du bloc 9 variable VAR #3   tranche 4
+Checksum block numero 10, variable VAR #3  , tranche 5 = -1110258
+VMM trace: vmmuld du bloc 10 variable VAR #3   tranche 5
+Checksum block numero 11, variable VAR #3  , tranche 6 = -1976997528
+VMM trace: vmmuld du bloc 11 variable VAR #3   tranche 6
+  *********  REUSSI ********
+  VMM test 5.1 vmmdbg MEMDMP
+Debug apres vmmuld
+  Variable VAR #2   , tranche 4 slice_table_index 8 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #3   , tranche 2 slice_table_index 10 block_table_index 7
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 3 slice_table_index 11 block_table_index 8
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 4 slice_table_index 12 block_table_index 9
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 5 slice_table_index 13 block_table_index 10
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 6 slice_table_index 14 block_table_index 11
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  VMM test 5.2 vmmlod((clefs(13),4)
+  force ejection des blocs 6 a 11
+VMM trace: chargement memoire  de variable VAR #4   tranche 8 en position 12
+Checksum block numero 12, variable VAR #4  , tranche 8 = -740172
+VMM trace: chargement memoire  de variable VAR #4   tranche 7 en position 13
+Checksum block numero 13, variable VAR #4  , tranche 7 = -740172
+VMM trace: chargement memoire  de variable VAR #4   tranche 6 en position 14
+Checksum block numero 14, variable VAR #4  , tranche 6 = -740172
+VMM trace: chargement memoire  de variable VAR #4   tranche 5 en position 15
+Checksum block numero 15, variable VAR #4  , tranche 5 = -740172
+  *********  REUSSI ********
+  VMM test 5.3 vmmget cle4+7
+Checksum block numero 13, variable VAR #4  , tranche 7 = -740172
+  *********  REUSSI ********
+  VMM test 5.4 vmmget cle4+5
+Checksum block numero 15, variable VAR #4  , tranche 5 = -740172
+  *********  REUSSI ********
+  VMM test 5.5 vmmuld cle4+5 et get du champ
+Checksum block numero 15, variable VAR #4  , tranche 5 = -740172
+VMM trace: vmmuld du bloc 15 variable VAR #4   tranche 5
+Checksum block numero 15, variable VAR #4  , tranche 5 = -740172
+  *********  REUSSI ********
+  VMM test 5.6 vmmlod cle4+5 et get du champ
+  *********  REUSSI ********
+  VMM test 6.0 vmmulk(cle4+5,1)
+Checksum block numero 15, variable VAR #4  , tranche 5 = 1557653483
+VMM trace: deblocage de VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test 6.1 vmmcre de AAAAAA
+  *********  REUSSI ********
+  VMM test 6.2 vmmuld clefs(15)
+Checksum block numero 14, variable VAR #4  , tranche 6 = -740172
+VMM trace: vmmuld du bloc 14 variable VAR #4   tranche 6
+  *********  REUSSI ********
+  VMM test 7.0 vmmlod test de deplacement de blocs
+Checksum block numero 14, variable VAR #4  , tranche 6 = -740172
+VMM trace: ejection du bloc 14 variable VAR #4   tranche 6
+VMM trace: deplacement du bloc 15 variable VAR #4   tranche 5 en position 14
+  *********  REUSSI ********
+  VMM test 7.1 vmmget de cle4+5 - check contenu
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+  Variable VAR #1   , tranche 1 slice_table_index 0 block_table_index 0
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+  Variable VAR #1   , tranche 3 slice_table_index 2 block_table_index 1
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+  Variable VAR #1   , tranche 4 slice_table_index 3 block_table_index 2
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+  Variable VAR #2   , tranche 1 slice_table_index 5 block_table_index 3
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #2   , tranche 2 slice_table_index 6 block_table_index 4
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #2   , tranche 3 slice_table_index 7 block_table_index 5
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #2   , tranche 4 slice_table_index 8 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #3   , tranche 2 slice_table_index 10 block_table_index 7
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 3 slice_table_index 11 block_table_index 8
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 4 slice_table_index 12 block_table_index 9
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 5 slice_table_index 13 block_table_index 10
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #3   , tranche 6 slice_table_index 14 block_table_index 11
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+  Variable VAR #4   , tranche 8 slice_table_index 22 block_table_index 12
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 7 slice_table_index 21 block_table_index 13
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 6 slice_table_index 20 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 5 slice_table_index 19 block_table_index 14
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 1
+     save               : 1
+     altered            : 1
+     was_altered        : 1
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 4 slice_table_index 18 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 3 slice_table_index 17 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 2 slice_table_index 16 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  Variable VAR #4   , tranche 1 slice_table_index 15 block_table_index -1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+  VMM test 8.0 vmmrls + vmmlod du meme bloc
+VMM trace: ejection du bloc 4 variable VAR #2   tranche 2
+VMM trace: chargement memoire  de variable VAR #2   tranche 2 en position 4
+Checksum block numero 4, variable VAR #2  , tranche 2 = -740172
+  *********  REUSSI ********
+  VMM test  8.1 vmmrls de cle4+5
+WARNING - VMMRLS - RELEASING A POSSIBLY MODIFIED FIELD
+VMM trace: ejection du bloc 14 variable VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test  9.0 vmmfgt de cle4+5
+  *********  REUSSI ********
+  Vmm test 9.1 vmmlod de cle4+5
+VMM trace: chargement memoire  de variable VAR #4   tranche 5 en position 14
+Checksum block numero 14, variable VAR #4  , tranche 5 = -740172
+  *********  REUSSI ********
+  VMM test 9.2 vmmget de cle4+5 -check contenu
+Checksum block numero 14, variable VAR #4  , tranche 5 = -740172
+  *********  REUSSI ********
+  VMM test 10.0 vmmsav de cle4+5
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+VMM trace: ecriture dans le fichier Vmm_06 de la variable VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test 10.1 vmmrls de cle4+5
+VMM trace: ejection du bloc 14 variable VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test 10.2 vmmlod de cle4+5
+VMM trace: chargement memoire  de variable VAR #4   tranche 5 en position 14
+VMM trace: lecture dans le fichier Vmm_06 de la variable VAR #4   tranche 5
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+  VMM test  10.3 vmmget de cle4+5 - check contenu
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+  VMM test 11.0 vmmrls de cle4+5
+VMM trace: ejection du bloc 14 variable VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test 11.1 vmmlck cle4+5 
+  champ pas en memoire - erreur
+ERROR - VMMLCK - SLICE NOT IN CORE
+ ier =  -102
+  *********  REUSSI ********
+  VMM test 11.2 vmmget cle4+5 
+  champ pas en memoire - erreur
+ERROR - VMMGET - SLICE NOT IN CORE
+  *********  REUSSI ********
+  VMM test 11.3 vmmlod cle4+5 extrait sur disque
+VMM trace: chargement memoire  de variable VAR #4   tranche 5 en position 14
+VMM trace: lecture dans le fichier Vmm_06 de la variable VAR #4   tranche 5
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+  VMM test 11.4 deux vmmlck cle4+5 consecutifs
+  champ en memoire no lock 
+VMM trace: blocage de VAR #4   tranche 5
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  Debug - ier =  0
+  *********  REUSSI ********
+  VMM test 11.5 vmmlck cle4+5 
+  champ en memoire daja bloque
+ERROR - VMMLCK - SLICE ALREADY LOCKED
+  *********  REUSSI ********
+  VMM test 11.6 vmmget cle4+5 
+  champ en memoire 
+  *********  REUSSI ********
+  VMM test 12.0 vmmuln de cle4+5
+Checksum block numero 14, variable VAR #4  , tranche 5 = -659124044
+VMM trace: vmmuln du bloc 14 variable VAR #4   tranche 5
+           Block will not be saved upon ejection
+  *********  REUSSI ********
+  VMM test 12.1 vmmget cle4+5 
+  champ en memoire 
+Checksum block numero 14, variable VAR #4  , tranche 5 = -659124044
+  VMM test 12.2 vmmget cle4+5 
+  champ en memoire 
+  VMM test 12.3 vmmuln de cle4+5
+Checksum block numero 14, variable VAR #4  , tranche 5 = -659124044
+VMM trace: vmmuln du bloc 14 variable VAR #4   tranche 5
+           Block will be saved upon ejection
+  *********  REUSSI ********
+  VMM test 12.4 vmmrls de cle4+5
+WARNING - VMMRLS - RELEASING A POSSIBLY MODIFIED FIELD
+VMM trace: ejection du bloc 14 variable VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test 12.5 vmmlod de cle4+5 -sur disque
+VMM trace: chargement memoire  de variable VAR #4   tranche 5 en position 14
+VMM trace: lecture dans le fichier Vmm_06 de la variable VAR #4   tranche 5
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+  VMM test 12.6 vmmget cle4+5 - check contenu
+Checksum block numero 14, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+  VMM test 13.0 vmmrls de 4 champs a partir de clef(03)
+VMM trace: ejection du bloc 2 variable VAR #1   tranche 4
+VMM trace: ejection du bloc 3 variable VAR #2   tranche 1
+VMM trace: ejection du bloc 4 variable VAR #2   tranche 2
+VMM trace: ejection du bloc 5 variable VAR #2   tranche 3
+  *********  REUSSI ********
+  VMM test 13.1 vmmlse avant vmmpak
+  Debug ier =  18
+  *********  REUSSI ********
+  VMM test 13.2 vmmpak
+VMM trace: deplacement du bloc 3 variable VAR #3   tranche 2 en position 2
+VMM trace: deplacement du bloc 4 variable VAR #3   tranche 3 en position 3
+VMM trace: deplacement du bloc 5 variable VAR #3   tranche 4 en position 4
+VMM trace: deplacement du bloc 6 variable VAR #3   tranche 5 en position 5
+VMM trace: deplacement du bloc 7 variable VAR #3   tranche 6 en position 6
+VMM trace: deplacement du bloc 8 variable VAR #4   tranche 8 en position 7
+  *********  REUSSI ********
+  VMM test 13.3 vmmlse apres vmmpak
+  Debug ier =  84
+  *********  REUSSI ********
+  VMM test 13.4 MEMDMP de 20 clefs
+  VMM test 14.0 VMMRNM de 'AAAAAA' a 'BBBBBB'
+  *********  REUSSI ********
+  VMM test 14.1 VMMATT de 'BBBBBB'
+  lpiece =  30 npiece= 1
+  attributs = SAVE=Y,CL=3,W=5,INIT=0,SIZE=0                               
+ devrait etre: SAVE=Y,CL=3,W=5,INIT=0
+  cle =  98304
+  *********  REUSSI ********
+  VMM test 15.0 VMMHPA de 100 mots
+  *********  REUSSI ********
+  VMM test 15.1 VMMHPD de 100 mots
+  *********  REUSSI ********
+  VMM test 15.2 VMMHPA de 100 mots real*8
+  *********  REUSSI ********
+  VMM test 15.3 VMMHPD de 100 mots real*8
+  *********  REUSSI ********
+  VMM test 16.0 VMMPWD
+  *********  REUSSI ********
+  Quelques appels avec systemen barre
+  VMM test 16.1 VMMLOD 
+ERROR - VMMLOD - PASSWORD IS SET
+  *********  REUSSI ********
+  VMM test 16.2 VMMLCK 
+ERROR - VMMLCK - PASSWORD IS SET
+  *********  REUSSI ********
+  VMM test 16.3 VMMULN 
+ERROR - VMMULN - PASSWORD IS SET
+  *********  REUSSI ********
+  VMM test 16.4 VMMGET 
+  ier =  0
+  *********  REUSSI ********
+  VMM test 16.5 VMMPWD avec bon password
+  *********  REUSSI ********
+  VMM test 17.0 vmmcre CCCCCC mustexist
+  *********  REUSSI ********
+  VMM test 17.1 vmmrnm CCCCCC pour DDD
+  *********  REUSSI ********
+  VMM test 18.0 vmmlod VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  *********  REUSSI ********
+  VMM test 18.1 vmmget VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  ptr10 =  269011536
+  *********  REUSSI ********
+ Debug array10 =  15*3.64237768712088792E+38
+  VMM test 18.2 vmmsav VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  *********  REUSSI ********
+  VMM test 18.3 vmmrls VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  *********  REUSSI ********
+  VMM test 18.4 vmmlod du disque VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  *********  REUSSI ********
+  VMM test 18.5 vmmget VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  ptr10 =  269011536
+  *********  REUSSI ********
+ Debug array10 =  15*3.64237768712088792E+38
+  VMM test debordement VAR R8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  *********  REUSSI ********
+  VMM test 19.0 vmmint
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+  *********  REUSSI ********
+  VMM test 20.0 vmmcpk sans vmmuld - erreur
+ERROR - VMMCPK - CALL TO VMMCPK WITH KEEP IN CORE FIELDS
+  *********  REUSSI ********
+  VMM test 21.0 vmmuld de tous les blocks
+VMM trace: vmmuld du bloc 0 variable VAR #1   tranche 1
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: vmmuld du bloc 1 variable VAR #1   tranche 3
+Checksum block numero 1, variable VAR #1  , tranche 3 = -2052803404
+VMM trace: vmmuld du bloc 2 variable VAR #3   tranche 2
+Checksum block numero 2, variable VAR #3  , tranche 2 = -885725874
+VMM trace: vmmuld du bloc 3 variable VAR #3   tranche 3
+Checksum block numero 3, variable VAR #3  , tranche 3 = 256938128
+VMM trace: vmmuld du bloc 4 variable VAR #3   tranche 4
+Checksum block numero 4, variable VAR #3  , tranche 4 = 1081295820
+VMM trace: vmmuld du bloc 5 variable VAR #3   tranche 5
+Checksum block numero 5, variable VAR #3  , tranche 5 = -1110258
+VMM trace: vmmuld du bloc 6 variable VAR #3   tranche 6
+Checksum block numero 6, variable VAR #3  , tranche 6 = -1976997528
+VMM trace: vmmuld du bloc 7 variable VAR #4   tranche 8
+Checksum block numero 7, variable VAR #4  , tranche 8 = -740172
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+VMM trace: vmmuld du bloc 10 variable VAR #4   tranche 7
+Checksum block numero 10, variable VAR #4  , tranche 7 = -740172
+VMM trace: vmmuld du bloc 11 variable VAR #4   tranche 5
+Checksum block numero 11, variable VAR #4  , tranche 5 = 1557653483
+  *********  REUSSI ********
+
+Contenu de blocks
+  Indice du bloc: 0
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 1
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 0
+     file_adr           : 2
+     memadr             : 1008c7c8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 1
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 2
+     file_adr           : 26
+     memadr             : 1008c7f8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 2
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 10
+     file_adr           : -1
+     memadr             : 1008c828
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 3
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 11
+     file_adr           : -1
+     memadr             : 1008c880
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 4
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 12
+     file_adr           : -1
+     memadr             : 1008c8d8
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 5
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 13
+     file_adr           : -1
+     memadr             : 1008c930
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 6
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 14
+     file_adr           : -1
+     memadr             : 1008c988
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 7
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 22
+     file_adr           : 198
+     memadr             : 1008c9e0
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 8
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 1
+     must_exist         : 0
+     class              : 9
+     weight             : 6
+     do_checksum        : 0
+     init               : 2
+     slice_table_index  : 23
+     file_adr           : 2
+     memadr             : 1008ca50
+     size               : 36
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 9
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008cae0
+     size               : 48
+     prev_fb            : -1
+     next_fb            : 13
+  Indice du bloc: 10
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 21
+     file_adr           : 170
+     memadr             : 1008cba0
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 11
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 19
+     file_adr           : 114
+     memadr             : 1008cc10
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 12
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     slice_table_index  : 26
+     file_adr           : -1
+     memadr             : 1008cc80
+     size               : 32
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 13
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008cd00
+     size               : 16
+     prev_fb            : 9
+     next_fb            : -1
+
+Contenu de slices
+  Indice de la slice: 0
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 1
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 0
+     name_table_index   : 0
+     checksum           : -2061192012
+  Indice de la slice: 1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 2
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 1
+     name_table_index   : 0
+     checksum           : -2052803404
+  Indice de la slice: 3
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 4
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 5
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : 0
+  Indice de la slice: 6
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : 0
+  Indice de la slice: 7
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : 0
+  Indice de la slice: 8
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 9
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 0
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : 0
+  Indice de la slice: 10
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 2
+     name_table_index   : 2
+     checksum           : -885725874
+  Indice de la slice: 11
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 3
+     name_table_index   : 2
+     checksum           : 256938128
+  Indice de la slice: 12
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 4
+     name_table_index   : 2
+     checksum           : 1081295820
+  Indice de la slice: 13
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 5
+     name_table_index   : 2
+     checksum           : -1110258
+  Indice de la slice: 14
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 6
+     name_table_index   : 2
+     checksum           : -1976997528
+  Indice de la slice: 15
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 17
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 18
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 19
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 11
+     name_table_index   : 3
+     checksum           : 1557653483
+  Indice de la slice: 20
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 21
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 10
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 22
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 7
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 23
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 1
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 1
+     must_exist         : 0
+     class              : 9
+     weight             : 6
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : 8
+     name_table_index   : 4
+     checksum           : 0
+  Indice de la slice: 24
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 5
+     checksum           : 0
+  Indice de la slice: 25
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 6
+     checksum           : 0
+  Indice de la slice: 26
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : 12
+     name_table_index   : 7
+     checksum           : 0
+  Indice de la slice: 27
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 8
+     checksum           : 0
+
+Contenu de names
+  Indice de la variable: 0
+     nom          : VAR #1  
+     base_file_adr: 2
+     lslice       : 12
+     nslice       : 5
+     major_key    : 0
+     class        : 1
+  Indice de la variable: 1
+     nom          : VAR #2  
+     base_file_adr: -1
+     lslice       : 18
+     nslice       : 4
+     major_key    : 5
+     class        : 2
+  Indice de la variable: 2
+     nom          : VAR #3  
+     base_file_adr: -1
+     lslice       : 22
+     nslice       : 6
+     major_key    : 9
+     class        : 2
+  Indice de la variable: 3
+     nom          : VAR #4  
+     base_file_adr: 2
+     lslice       : 28
+     nslice       : 8
+     major_key    : 15
+     class        : 6
+  Indice de la variable: 4
+     nom          : VAR R8  
+     base_file_adr: 2
+     lslice       : 18
+     nslice       : 1
+     major_key    : 23
+     class        : 9
+  Indice de la variable: 5
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 24
+     class        : 3
+  Indice de la variable: 6
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 25
+     class        : 4
+  Indice de la variable: 7
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 26
+     class        : 3
+  Indice de la variable: 8
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 27
+     class        : 4
+  VMM test 21.1 vmmcpk apres vmmuld
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: ecriture dans le fichier Vmm_01 de la variable VAR #1   tranche 1
+Checksum block numero 1, variable VAR #1  , tranche 3 = -2052803404
+VMM trace: ecriture dans le fichier Vmm_01 de la variable VAR #1   tranche 3
+VMM trace: ejection du bloc 2 variable VAR #3   tranche 2
+VMM trace: ejection du bloc 3 variable VAR #3   tranche 3
+VMM trace: ejection du bloc 4 variable VAR #3   tranche 4
+VMM trace: ejection du bloc 5 variable VAR #3   tranche 5
+VMM trace: ejection du bloc 6 variable VAR #3   tranche 6
+VMM trace: ejection du bloc 7 variable VAR #4   tranche 8
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+Checksum block numero 10, variable VAR #4  , tranche 7 = -740172
+VMM trace: ecriture dans le fichier Vmm_06 de la variable VAR #4   tranche 7
+Checksum block numero 11, variable VAR #4  , tranche 5 = 1557653483
+VMM trace: ecriture dans le fichier Vmm_06 de la variable VAR #4   tranche 5
+  *********  REUSSI ********
+  VMM test 22.0 vmmlod 190 mots / 200 
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 8 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 7 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 7 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 6 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 6 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 5 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 5 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 4 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 4 IS DAMAGED
+       - POSSIBLE ADDRESSING ERROR: VARIABLE VAR R8  , SLICE 1
+BLOCK DELIMITOR ADDRESS - 4 WORDS
+123456.703125 123456.703125 123456.703125 123456.703125 123456.703125 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+VMM trace: deplacement du bloc 4 variable VAR #4   tranche 7 en position 3
+VMM trace: deplacement du bloc 5 variable VAR #4   tranche 5 en position 4
+VMM trace: chargement memoire  de variable VAR #1   tranche 4 en position 5
+Checksum block numero 5, variable VAR #1  , tranche 4 = -237676882
+VMM trace: chargement memoire  de variable VAR #2   tranche 1 en position 6
+Checksum block numero 6, variable VAR #2  , tranche 1 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 2 en position 7
+Checksum block numero 7, variable VAR #2  , tranche 2 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 3 en position 8
+Checksum block numero 8, variable VAR #2  , tranche 3 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 4 en position 9
+Checksum block numero 9, variable VAR #2  , tranche 4 = -740172
+VMM trace: chargement memoire  de variable VAR #3   tranche 2 en position 10
+Checksum block numero 10, variable VAR #3  , tranche 2 = -1992417764
+VMM trace: chargement memoire  de variable VAR #3   tranche 3 en position 11
+Checksum block numero 11, variable VAR #3  , tranche 3 = -740172
+VMM trace: chargement memoire  de variable VAR #3   tranche 4 en position 12
+Checksum block numero 12, variable VAR #3  , tranche 4 = -1480344
+VMM trace: chargement memoire  de variable VAR #3   tranche 5 en position 13
+Checksum block numero 13, variable VAR #3  , tranche 5 = 137875407
+VMM trace: chargement memoire  de variable VAR #3   tranche 6 en position 14
+Checksum block numero 14, variable VAR #3  , tranche 6 = -775224572
+  *********  REUSSI ********
+  VMM test 22.1 vmmuld de tous les blocks
+VMM trace: vmmuld du bloc 0 variable VAR #1   tranche 1
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: vmmuld du bloc 1 variable VAR #1   tranche 3
+Checksum block numero 1, variable VAR #1  , tranche 3 = -2052803404
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 2 IS DAMAGED
+       - POSSIBLE MEMORY OVERLAP: VARIABLE VAR R8  , SLICE 1
+         AND VARIABLE VAR #4  , SLICE 7
+BLOCK DELIMITOR ADDRESS +- 2 WORDS
+123456.703125 123456.703125 0.000000 0.000000 0.000000 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+VMM trace: vmmuld du bloc 3 variable VAR #4   tranche 7
+Checksum block numero 3, variable VAR #4  , tranche 7 = -740172
+ ERROR - BEGINNING BLOCK DELIMITOR FOR BLOCK 3 IS DAMAGED
+       - POSSIBLE MEMORY OVERLAP: VARIABLE VAR R8  , SLICE 1
+                              AND VARIABLE VAR #4  , SLICE 7
+BLOCK DELIMITOR ADDRESS +- 2 WORDS
+123456.703125 123456.703125 0.000000 0.000000 0.000000 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+VMM trace: vmmuld du bloc 4 variable VAR #4   tranche 5
+Checksum block numero 4, variable VAR #4  , tranche 5 = 1557653483
+VMM trace: vmmuld du bloc 5 variable VAR #1   tranche 4
+Checksum block numero 5, variable VAR #1  , tranche 4 = -237676882
+VMM trace: vmmuld du bloc 6 variable VAR #2   tranche 1
+Checksum block numero 6, variable VAR #2  , tranche 1 = -740172
+VMM trace: ejection du bloc 6 variable VAR #2   tranche 1
+VMM trace: vmmuld du bloc 7 variable VAR #2   tranche 2
+Checksum block numero 7, variable VAR #2  , tranche 2 = -740172
+VMM trace: ejection du bloc 7 variable VAR #2   tranche 2
+VMM trace: vmmuld du bloc 8 variable VAR #2   tranche 3
+Checksum block numero 8, variable VAR #2  , tranche 3 = -740172
+VMM trace: ejection du bloc 8 variable VAR #2   tranche 3
+VMM trace: vmmuld du bloc 9 variable VAR #2   tranche 4
+Checksum block numero 9, variable VAR #2  , tranche 4 = -740172
+VMM trace: ejection du bloc 9 variable VAR #2   tranche 4
+VMM trace: vmmuld du bloc 10 variable VAR #3   tranche 2
+Checksum block numero 10, variable VAR #3  , tranche 2 = -1992417764
+VMM trace: vmmuld du bloc 11 variable VAR #3   tranche 3
+Checksum block numero 11, variable VAR #3  , tranche 3 = -740172
+VMM trace: vmmuld du bloc 12 variable VAR #3   tranche 4
+Checksum block numero 12, variable VAR #3  , tranche 4 = -1480344
+VMM trace: vmmuld du bloc 13 variable VAR #3   tranche 5
+Checksum block numero 13, variable VAR #3  , tranche 5 = 137875407
+VMM trace: vmmuld du bloc 14 variable VAR #3   tranche 6
+Checksum block numero 14, variable VAR #3  , tranche 6 = -775224572
+  *********  REUSSI ********
+  VMM test 22.2 vmmlod des memes 12 clefs
+VMM trace: deplacement du bloc 7 variable VAR #3   tranche 2 en position 6
+VMM trace: deplacement du bloc 8 variable VAR #3   tranche 3 en position 7
+VMM trace: deplacement du bloc 9 variable VAR #3   tranche 4 en position 8
+VMM trace: deplacement du bloc 10 variable VAR #3   tranche 5 en position 9
+VMM trace: deplacement du bloc 11 variable VAR #3   tranche 6 en position 10
+VMM trace: chargement memoire  de variable VAR #2   tranche 1 en position 11
+Checksum block numero 11, variable VAR #2  , tranche 1 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 2 en position 12
+Checksum block numero 12, variable VAR #2  , tranche 2 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 3 en position 13
+Checksum block numero 13, variable VAR #2  , tranche 3 = -740172
+VMM trace: chargement memoire  de variable VAR #2   tranche 4 en position 14
+Checksum block numero 14, variable VAR #2  , tranche 4 = -740172
+  *********  REUSSI ********
+  VMM test 22.3 vmmlod de 15 clefs ejecte tout
+ ERROR - END BLOCK DELIMITOR FOR BLOCK 2 IS DAMAGED
+       - POSSIBLE MEMORY OVERLAP: VARIABLE VAR R8  , SLICE 1
+         AND VARIABLE VAR #4  , SLICE 7
+BLOCK DELIMITOR ADDRESS +- 2 WORDS
+123456.703125 123456.703125 0.000000 0.000000 0.000000 
+TRUE FLOAT VALUE OF BLOCK DELIMITOR: nan0x7fffffff
+ERROR - VERBAR - MEMORY BLOCK DAMAGE
+VMM trace: deplacement du bloc 3 variable VAR #4   tranche 7 en position 2
+VMM trace: deplacement du bloc 4 variable VAR #4   tranche 5 en position 3
+VMM trace: deplacement du bloc 5 variable VAR #1   tranche 4 en position 4
+VMM trace: deplacement du bloc 6 variable VAR #3   tranche 2 en position 5
+VMM trace: deplacement du bloc 7 variable VAR #3   tranche 3 en position 6
+VMM trace: deplacement du bloc 8 variable VAR #3   tranche 4 en position 7
+VMM trace: deplacement du bloc 9 variable VAR #3   tranche 5 en position 8
+VMM trace: deplacement du bloc 10 variable VAR #3   tranche 6 en position 9
+VMM trace: deplacement du bloc 11 variable VAR #2   tranche 1 en position 10
+VMM trace: deplacement du bloc 12 variable VAR #2   tranche 2 en position 11
+VMM trace: deplacement du bloc 13 variable VAR #2   tranche 3 en position 12
+VMM trace: deplacement du bloc 14 variable VAR #2   tranche 4 en position 13
+VMM trace: chargement memoire  de variable VAR #4   tranche 8 en position 14
+Checksum block numero 14, variable VAR #4  , tranche 8 = -740172
+VMM trace: chargement memoire  de variable VAR #4   tranche 6 en position 15
+Checksum block numero 15, variable VAR #4  , tranche 6 = -740172
+  *********  REUSSI ********
+  VMM test 22.4 vmmlod de 1001 clefs
+ERROR - VMMLOD - NKEYS > 1000, LIMIT EXCEEDED
+  *********  REUSSI ********
+  VMM test 23.0 chargement d'une clef negative
+ERROR - VMMLOD - BAD KEY
+  *********  REUSSI ********
+  VMM test 23.1 chargement d'une clef enorme
+ERROR - VMMLOD - BAD KEY
+  *********  REUSSI ********
+  VMM test 24.0 vmmload-get clef1 mustexist 
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: vmmuld du bloc 0 variable VAR #1   tranche 1
+  VMM test 25.0 vmmckmx sans vmmuld - erreur
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: ecriture dans le fichier Vmm_01 de la variable VAR #1   tranche 1
+  *********  REUSSI ********
+
+Contenu de blocks
+  Indice du bloc: 0
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 0
+     file_adr           : 2
+     memadr             : 1008c7c8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 1
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 2
+     file_adr           : 26
+     memadr             : 1008c7f8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 2
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 21
+     file_adr           : 170
+     memadr             : 1008c828
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 3
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 19
+     file_adr           : 114
+     memadr             : 1008c898
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 4
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 3
+     file_adr           : 38
+     memadr             : 1008c908
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 5
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 10
+     file_adr           : -1
+     memadr             : 1008c938
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 6
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 11
+     file_adr           : -1
+     memadr             : 1008c990
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 7
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 12
+     file_adr           : -1
+     memadr             : 1008c9e8
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 8
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 13
+     file_adr           : -1
+     memadr             : 1008ca40
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 9
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 14
+     file_adr           : -1
+     memadr             : 1008ca98
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 10
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 5
+     file_adr           : -1
+     memadr             : 1008caf0
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 11
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 6
+     file_adr           : -1
+     memadr             : 1008cb38
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 12
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 7
+     file_adr           : -1
+     memadr             : 1008cb80
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 13
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 8
+     file_adr           : -1
+     memadr             : 1008cbc8
+     size               : 18
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 14
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 22
+     file_adr           : 198
+     memadr             : 1008cc10
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 15
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 20
+     file_adr           : 142
+     memadr             : 1008cc80
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008ccf0
+     size               : 20
+     prev_fb            : -1
+     next_fb            : -1
+
+Contenu de slices
+  Indice de la slice: 0
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 0
+     name_table_index   : 0
+     checksum           : -2061192012
+  Indice de la slice: 1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 2
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 1
+     name_table_index   : 0
+     checksum           : -2052803404
+  Indice de la slice: 3
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 4
+     name_table_index   : 0
+     checksum           : -237676882
+  Indice de la slice: 4
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 5
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 10
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 6
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 11
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 7
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 12
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 8
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 13
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 9
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 0
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : 0
+  Indice de la slice: 10
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 5
+     name_table_index   : 2
+     checksum           : -1992417764
+  Indice de la slice: 11
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 6
+     name_table_index   : 2
+     checksum           : -740172
+  Indice de la slice: 12
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 7
+     name_table_index   : 2
+     checksum           : -1480344
+  Indice de la slice: 13
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 8
+     name_table_index   : 2
+     checksum           : 137875407
+  Indice de la slice: 14
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 9
+     name_table_index   : 2
+     checksum           : -775224572
+  Indice de la slice: 15
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 17
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 18
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 19
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 3
+     name_table_index   : 3
+     checksum           : 1557653483
+  Indice de la slice: 20
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 15
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 21
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 2
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 22
+     keep_in_core       : 1
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 14
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 23
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 1
+     must_exist         : 0
+     class              : 9
+     weight             : 6
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 4
+     checksum           : 0
+  Indice de la slice: 24
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 5
+     checksum           : 0
+  Indice de la slice: 25
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 6
+     checksum           : 0
+  Indice de la slice: 26
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 7
+     checksum           : 0
+  Indice de la slice: 27
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 8
+     checksum           : 0
+
+Contenu de names
+  Indice de la variable: 0
+     nom          : VAR #1  
+     base_file_adr: 2
+     lslice       : 12
+     nslice       : 5
+     major_key    : 0
+     class        : 1
+  Indice de la variable: 1
+     nom          : VAR #2  
+     base_file_adr: -1
+     lslice       : 18
+     nslice       : 4
+     major_key    : 5
+     class        : 2
+  Indice de la variable: 2
+     nom          : VAR #3  
+     base_file_adr: -1
+     lslice       : 22
+     nslice       : 6
+     major_key    : 9
+     class        : 2
+  Indice de la variable: 3
+     nom          : VAR #4  
+     base_file_adr: 2
+     lslice       : 28
+     nslice       : 8
+     major_key    : 15
+     class        : 6
+  Indice de la variable: 4
+     nom          : VAR R8  
+     base_file_adr: 2
+     lslice       : 18
+     nslice       : 1
+     major_key    : 23
+     class        : 9
+  Indice de la variable: 5
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 24
+     class        : 3
+  Indice de la variable: 6
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 25
+     class        : 4
+  Indice de la variable: 7
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 26
+     class        : 3
+  Indice de la variable: 8
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 27
+     class        : 4
+VMM trace: vmmuld du bloc 0 variable VAR #1   tranche 1
+Checksum block numero 0, variable VAR #1  , tranche 1 = -2061192012
+VMM trace: vmmuld du bloc 1 variable VAR #1   tranche 3
+Checksum block numero 1, variable VAR #1  , tranche 3 = -2052803404
+VMM trace: vmmuld du bloc 2 variable VAR #4   tranche 7
+Checksum block numero 2, variable VAR #4  , tranche 7 = -740172
+VMM trace: vmmuld du bloc 3 variable VAR #4   tranche 5
+Checksum block numero 3, variable VAR #4  , tranche 5 = 1557653483
+VMM trace: vmmuld du bloc 4 variable VAR #1   tranche 4
+Checksum block numero 4, variable VAR #1  , tranche 4 = -237676882
+VMM trace: vmmuld du bloc 5 variable VAR #3   tranche 2
+Checksum block numero 5, variable VAR #3  , tranche 2 = -1992417764
+VMM trace: vmmuld du bloc 6 variable VAR #3   tranche 3
+Checksum block numero 6, variable VAR #3  , tranche 3 = -740172
+VMM trace: vmmuld du bloc 7 variable VAR #3   tranche 4
+Checksum block numero 7, variable VAR #3  , tranche 4 = -1480344
+VMM trace: vmmuld du bloc 8 variable VAR #3   tranche 5
+Checksum block numero 8, variable VAR #3  , tranche 5 = 137875407
+VMM trace: vmmuld du bloc 9 variable VAR #3   tranche 6
+Checksum block numero 9, variable VAR #3  , tranche 6 = -775224572
+VMM trace: vmmuld du bloc 10 variable VAR #2   tranche 1
+Checksum block numero 10, variable VAR #2  , tranche 1 = -740172
+VMM trace: ejection du bloc 10 variable VAR #2   tranche 1
+VMM trace: vmmuld du bloc 11 variable VAR #2   tranche 2
+Checksum block numero 11, variable VAR #2  , tranche 2 = -740172
+VMM trace: ejection du bloc 11 variable VAR #2   tranche 2
+VMM trace: vmmuld du bloc 12 variable VAR #2   tranche 3
+Checksum block numero 12, variable VAR #2  , tranche 3 = -740172
+VMM trace: ejection du bloc 12 variable VAR #2   tranche 3
+VMM trace: vmmuld du bloc 13 variable VAR #2   tranche 4
+Checksum block numero 13, variable VAR #2  , tranche 4 = -740172
+VMM trace: ejection du bloc 13 variable VAR #2   tranche 4
+VMM trace: vmmuld du bloc 14 variable VAR #4   tranche 8
+Checksum block numero 14, variable VAR #4  , tranche 8 = -740172
+VMM trace: vmmuld du bloc 15 variable VAR #4   tranche 6
+Checksum block numero 15, variable VAR #4  , tranche 6 = -740172
+  VMM test 25.1 vmmckmx apres vmmuld
+  *********  REUSSI ********
+
+Contenu de blocks
+  Indice du bloc: 0
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 0
+     file_adr           : 2
+     memadr             : 1008c7c8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 1
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 2
+     file_adr           : 26
+     memadr             : 1008c7f8
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 2
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 21
+     file_adr           : 170
+     memadr             : 1008c828
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 3
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 19
+     file_adr           : 114
+     memadr             : 1008c898
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 4
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     slice_table_index  : 3
+     file_adr           : 38
+     memadr             : 1008c908
+     size               : 12
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 5
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 10
+     file_adr           : -1
+     memadr             : 1008c938
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 6
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 11
+     file_adr           : -1
+     memadr             : 1008c990
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 7
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 12
+     file_adr           : -1
+     memadr             : 1008c9e8
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 8
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 13
+     file_adr           : -1
+     memadr             : 1008ca40
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 9
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     slice_table_index  : 14
+     file_adr           : -1
+     memadr             : 1008ca98
+     size               : 22
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 10
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008caf0
+     size               : 18
+     prev_fb            : -1
+     next_fb            : 11
+  Indice du bloc: 11
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008cb38
+     size               : 18
+     prev_fb            : 10
+     next_fb            : 12
+  Indice du bloc: 12
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008cb80
+     size               : 18
+     prev_fb            : 11
+     next_fb            : 13
+  Indice du bloc: 13
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008cbc8
+     size               : 18
+     prev_fb            : 12
+     next_fb            : 16
+  Indice du bloc: 14
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 22
+     file_adr           : 198
+     memadr             : 1008cc10
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 15
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     slice_table_index  : 20
+     file_adr           : 142
+     memadr             : 1008cc80
+     size               : 28
+     prev_fb            : -1
+     next_fb            : -1
+  Indice du bloc: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 0
+     weight             : 0
+     do_checksum        : 0
+     init               : 0
+     slice_table_index  : -1
+     file_adr           : -1
+     memadr             : 1008ccf0
+     size               : 20
+     prev_fb            : 13
+     next_fb            : -1
+
+Contenu de slices
+  Indice de la slice: 0
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 0
+     name_table_index   : 0
+     checksum           : -2061192012
+  Indice de la slice: 1
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 2
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 1
+     name_table_index   : 0
+     checksum           : -2052803404
+  Indice de la slice: 3
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 1
+     init               : 2
+     block_table_index  : 4
+     name_table_index   : 0
+     checksum           : -237676882
+  Indice de la slice: 4
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 1
+     weight             : 9
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 0
+     checksum           : 0
+  Indice de la slice: 5
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 6
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 7
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 8
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 0
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 8
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 1
+     checksum           : -740172
+  Indice de la slice: 9
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 0
+     init               : 0
+     block_table_index  : -1
+     name_table_index   : 2
+     checksum           : 0
+  Indice de la slice: 10
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 5
+     name_table_index   : 2
+     checksum           : -1992417764
+  Indice de la slice: 11
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 6
+     name_table_index   : 2
+     checksum           : -740172
+  Indice de la slice: 12
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 7
+     name_table_index   : 2
+     checksum           : -1480344
+  Indice de la slice: 13
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 8
+     name_table_index   : 2
+     checksum           : 137875407
+  Indice de la slice: 14
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 2
+     weight             : 7
+     do_checksum        : 1
+     init               : 0
+     block_table_index  : 9
+     name_table_index   : 2
+     checksum           : -775224572
+  Indice de la slice: 15
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 16
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 17
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 18
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 3
+     checksum           : 0
+  Indice de la slice: 19
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 3
+     name_table_index   : 3
+     checksum           : 1557653483
+  Indice de la slice: 20
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 15
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 21
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 2
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 22
+     keep_in_core       : 0
+     is_in_core         : 1
+     in_used            : 1
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 1
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 6
+     weight             : 6
+     do_checksum        : 1
+     init               : 1
+     block_table_index  : 14
+     name_table_index   : 3
+     checksum           : -740172
+  Indice de la slice: 23
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 1
+     size8              : 1
+     must_exist         : 0
+     class              : 9
+     weight             : 6
+     do_checksum        : 0
+     init               : 2
+     block_table_index  : -1
+     name_table_index   : 4
+     checksum           : 0
+  Indice de la slice: 24
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 5
+     checksum           : 0
+  Indice de la slice: 25
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 6
+     checksum           : 0
+  Indice de la slice: 26
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 0
+     class              : 3
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 7
+     checksum           : 0
+  Indice de la slice: 27
+     keep_in_core       : 0
+     is_in_core         : 0
+     in_used            : 0
+     locked             : 0
+     save               : 1
+     altered            : 0
+     was_altered        : 0
+     traced             : 0
+     hpa_alloc          : 0
+     disk_image         : 0
+     size8              : 0
+     must_exist         : 1
+     class              : 4
+     weight             : 5
+     do_checksum        : 0
+     init               : 1
+     block_table_index  : -1
+     name_table_index   : 8
+     checksum           : 0
+
+Contenu de names
+  Indice de la variable: 0
+     nom          : VAR #1  
+     base_file_adr: 2
+     lslice       : 12
+     nslice       : 5
+     major_key    : 0
+     class        : 1
+  Indice de la variable: 1
+     nom          : VAR #2  
+     base_file_adr: -1
+     lslice       : 18
+     nslice       : 4
+     major_key    : 5
+     class        : 2
+  Indice de la variable: 2
+     nom          : VAR #3  
+     base_file_adr: -1
+     lslice       : 22
+     nslice       : 6
+     major_key    : 9
+     class        : 2
+  Indice de la variable: 3
+     nom          : VAR #4  
+     base_file_adr: 2
+     lslice       : 28
+     nslice       : 8
+     major_key    : 15
+     class        : 6
+  Indice de la variable: 4
+     nom          : VAR R8  
+     base_file_adr: 2
+     lslice       : 18
+     nslice       : 1
+     major_key    : 23
+     class        : 9
+  Indice de la variable: 5
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 24
+     class        : 3
+  Indice de la variable: 6
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 25
+     class        : 4
+  Indice de la variable: 7
+     nom          : BBBBBB  
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 26
+     class        : 3
+  Indice de la variable: 8
+     nom          : DDD     
+     base_file_adr: -1
+     lslice       : 32
+     nslice       : 1
+     major_key    : 27
+     class        : 4
+  VMM test 25.0 vmmdiag
+ VMMDIAG-MINIMUM MEMORY REQUIRED : 302 WORDS
+ VMMDIAG-MAXIMUM NUMBER OF MEMORY BLOCKS : 17
+ VMMDIAG-MAXIMUM NUMBER OF SIMULTANEOUSLY LOCKED FIELDS : 5
+ VMMDIAG-NUMBER OF CALLS TO VMMLOD WITH NO LOCKED FIELDS : 8
+ VMMDIAG-NUMBER OF CALLS TO VMMLOD WITH LOCKED FIELDS : 11
+ VMMDIAG-NUMBER OF DISK READS : 7
+ VMMDIAG-NUMBER OF DISK WRITES : 8
+  *********  REUSSI ********
+  ******* FIN DES TESTS ******* 

@@ -1,0 +1,88 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+***S/P QLXERR     IMPRIME DES MESSAGES D'ERREUR
+      SUBROUTINE QLXERR(CODE,MODULE)
+      INTEGER CODE
+      CHARACTER *(*) MODULE
+*
+*
+*AUTEUR  M.VALIN  RPN  JUIN 1983
+*
+*OBJET
+*        IMPRIME LE NOM DU MODULE DANS LEQUEL UNE ERREUR EST DETECTEE,
+*        LE TYPE D'ERREUR, ET LE MESSAGE D'ERREUR APPROPRIE. SI L'ERREUR
+*        EST FATALE, IL FAIT UN ABORT.
+*ARGUMENTS
+*        CODE
+*        MODULE    DE TYPE CARACTERE. DESIGNE LE MODULE DANS LEQUEL L'ERREUR  ES
+*
+#include "qlxbuff.cdk"
+**
+      INTEGER DESTI,MT,ME
+      CHARACTER *80 ERMSG
+      CHARACTER *7 TYPE(9)
+      CHARACTER *40 MSG(50)
+      DATA MSG(  1) /'REPETITION NEGATIF'/
+      DATA MSG(  2) /'NB DE FOIS DEJA VU OU NON ENTIER'/
+      DATA MSG(  3) /'LA LIMITE EST DEPASSEE'/
+      DATA MSG(  4) /'OPERATEUR MAL PLACE'/
+      DATA MSG(  5) /'TOKEN MAL PLACE'/
+      DATA MSG(  6) /'IL MANQUE LE SIGNE EGAL'/
+      DATA MSG(  7) /'DEBORDEMENT DU TAMPON D ENTREE'/
+      DATA MSG(  8) /'FIN DU FICHIER DEPASSEE'/
+      DATA MSG(  9) /'INDICE NEGATIF, NUL OU NON ENTIER'/
+      DATA MSG( 10) /'MANQUE LE CROCHET DROIT'/
+      DATA MSG( 11) /'TABLE DES SYMBOLES PLEINE'/
+      DATA MSG( 12) /'LIMITE > 99999'/
+      DATA MSG( 13) /'MAUVAIS CODE DE TYPE'/
+      DATA MSG( 14) /'TOKEN DOUTEUX'/
+      DATA MSG( 15) /'CLE MAL UTILISEE'/
+      DATA MSG( 16) /'PAS TROUVE LA CLE'/
+      DATA MSG( 17) /'INDICE HORS LIMITE OU MAUVAISE CLE'/
+      DATA MSG( 18) /'( ATTENDU'/
+      DATA MSG( 19) /'OPERANDE DEMANDEE'/
+      DATA MSG( 20) /', OU ) ATTENDU'/
+      DATA MSG( 21) /'LA PILE D ARGUMENTS DEBORDE'/
+      DATA MSG( 22) /'TROP OU PAS ASSEZ D''ARGUMENTS'/
+*
+      DATA TYPE( 1) /'INFO'/
+      DATA TYPE( 2) /'TRIVIAL'/
+      DATA TYPE( 3) /'       '/
+      DATA TYPE( 4) /'       '/
+      DATA TYPE( 5) /'       '/
+      DATA TYPE( 6) /'       '/
+      DATA TYPE( 7) /'       '/
+      DATA TYPE( 8) /'FATAL'/
+      DATA TYPE( 9) /'SYSTEME'/
+*
+      MT = CODE / 10000
+      NERR = NERR + 1
+      ME = MOD(CODE,1000)
+      DESTI = MOD(CODE/1000,10)
+*
+      WRITE(ERMSG,600) ME,MODULE,TYPE(MT),MSG(ME)
+  600 FORMAT(' RLX',I3.3,'-',A7,'-',A7,'-',A40)
+*
+      WRITE(6,*) ERMSG
+      WRITE(6,'(1X,A)') INLINE(21:LAST)
+      WRITE(6,'(1X,101A1)') (' ',I=1,NC-22),'^'
+*
+      RETURN
+      END

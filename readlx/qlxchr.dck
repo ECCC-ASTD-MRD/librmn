@@ -1,0 +1,108 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+***FONCTION QLXCHR     RETOURNE UN CARACTERE A LA FOIS D'UNE LIGNE
+      FUNCTION QLXCHR()
+      CHARACTER *1 QLXCHR
+*
+*
+*AUTEUR M.VALIN  RPN  JUIN 1983
+*
+*OBJET(QLXCHR)
+*        RETOURNE UN CARACTERE D'UNE LIGNE DE TEXTE,
+*        ET AVANCE LE POINTEUR D'UNE POSITION.
+*ARGUMENT
+*        QLXCHR    CARACTERE RENVOYE(1 CARACTERE HOLLERITH)
+*      S
+*
+#include "qlxbuff.cdk"
+*
+      CHARACTER *8 SKIPMSG(0:3)
+      LOGICAL COMMENT
+      INTEGER PRTFLAG
+
+
+      DATA SKIPMSG/'<<    >>','<<SKIP>>','<<SKIP>>','<< ** >>'/
+      DATA NC,LAST/1,0/
+      DATA INPFILE/5/
+      DATA EOFL/.FALSE./
+      DATA INLINE/' '/
+*
+      IF(NC.LE.LAST)  $(
+         QLXCHR=INLINE(NC:NC)
+         NC=NC+1
+         $)
+*
+      ELSE IF (.NOT. EOFL)   $(
+1        CONTINUE
+         IF(READREC.GT.CURREC) READREC=0
+         IF(READREC.EQ.0) $(
+            READ(INPFILE,'(A80)',END=10)INLINE(21:100)
+            CURREC = CURREC + 1
+            WRITE(TMPFILE,'(A80)',REC=CURREC)INLINE(21:100)
+            $)
+         ELSE $(
+            READ(TMPFILE,'(A80)',REC=READREC)INLINE(21:100)
+            READREC = READREC + 1
+            $)
+
+
+         INLINE(1:20) = ' '
+         COMMENT = .FALSE.
+         PRTFLAG = SKIPFLG
+         IF (INLINE(21:21).EQ.LETC .OR. INLINE(21:21).EQ.STAR .OR.
+             INLINE(21:21) .EQ. SHARP)
+           IF (PRTFLAG == 0)
+             $(
+               COMMENT = .TRUE.
+               PRTFLAG=3
+             $)
+           ELSE
+             COMMENT = .TRUE.
+         WRITE(6,'(1X,A8,1X,A80)') _
+              SKIPMSG(PRTFLAG),INLINE(21:100)
+         IF ((INLINE.EQ.BLANK) .OR. (COMMENT)) GOTO 1  # LIGNE BLANCHE
+         LAST=100
+         WHILE(LAST.GT.21 .AND.INLINE(LAST:LAST).EQ.BLANK) $(
+            LAST=LAST-1
+            $)
+         IF (INLINE(LAST:LAST) .EQ. UNDER) # CONTINUATION
+            LAST = LAST-1
+         ELSE IF (INLINE(LAST:LAST) .NE. COMMA)  $(
+            LAST = LAST+1
+            INLINE(LAST:LAST) = DOLLAR    # LIGNE COMPLETE, AJOUTE DOLLAR
+            $)
+         QLXCHR=INLINE(21:21)
+         NC=22
+         $)
+*
+      ELSE $(
+         CALL QLXERR(81008,'QLXCHR')
+         CALL ABORT
+         $)
+*
+      RETURN
+10    INLINE = ' END$'
+      QLXCHR=' '
+      EOFL=.TRUE.
+      LAST=5
+      NC=2
+*
+      RETURN
+      END

@@ -1,0 +1,625 @@
+!!!mod VerticalGrid_class - Class that represents one vertical grid
+module VerticalGrid_class
+use VerticalInterpolationConstants
+!
+!AUTHOR
+!     J.W. Blezius MAY 2002 helper on top of the Interp1D library
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        A vertical grid is defined by the specific set of vertical levels in the
+!        grid, along with an indication of the representation that is used for
+!        the vertical levels, as well as all the parameters, except for surface
+!        pressure, that are necessary to convert from that representation to a
+!        representation by pressure.
+!
+!        Naturally, there is a constructor to define the grid and a destructor to
+!        release memory that is associated with the grid.  Together, these are
+!        the VerticalGrid_class that is defined in this module.
+!       
+!
+!NOTES
+!        In the case of N_GRID_TYPE_HYBRID, the first vertical level of the
+!        grid must be ceiling level.  This constraint is imposed by the function,
+!        hybrid_to_pres, which is used to make the conversion to pressure.
+!
+!        Throughout, the object of the class on which the functions are to
+!        operate is passed to each function as its first argument.
+!
+!        Ideally, the class member that defines what kind of vertical
+!        representation is used would not be necessary.  Instead, each kind of
+!        representation would be contained in a different sub-class of the
+!        VerticalGrid_class.  Because fortran 90 does not explicitly support
+!        inheritance, the older methods used here are easier.
+!
+!        The constructor and destructor do not deallocate the class object itself
+!        because it is not necessarily on the heap.
+!
+!!
+  implicit none
+  public
+  save
+
+  ! Possible values of the gridType.
+  ! These values are the same as those used in CONVIP (except for eta) at the
+  ! time of writing.  (However, future compatibility with CONVIP is not
+  ! guaranteed.)
+  integer, parameter :: N_GRID_TYPE_SIGMA    = 1, & ! P/Ps
+                        N_GRID_TYPE_PRESSURE = 2, & ! in mb
+                        N_GRID_TYPE_GENERIC  = 3, & ! units are user defined; 
+                                                 ! (software will not convert it)
+                        N_GRID_TYPE_HYBRID   = 5, &
+                        N_GRID_TYPE_ETA      = 7 !(Pt-P)/(Pt-Ps) -not in convip
+
+
+  type T_VerticalGrid
+    ! information capable of specifying particular grid types is placed in
+    !  variables here:
+    integer N_gridType                  ! representation used for vertical levels
+    integer N_numVLevels                ! number of vertical points in this grid
+
+                                        ! vertical levels defined for this grid,
+                                        ! in units that are implied by gridType
+                                        ! (IP1 values, decoded from FSTD format)
+    real, pointer, dimension(:) :: R_vLevel_p
+
+    ! Other parameters that may be necessary, depending on gridType
+    ! (surface pressure is not explicitly a part of the vertical grid)
+
+    ! hybrid parameters
+    real :: R_pTopAvg                  ! pressure (mb) at the model top(ceiling)
+    real :: R_pRef                     ! reference pressure (mb)
+    real :: R_rCoef                    ! known as 'expansion co-efficient'
+  end type T_VerticalGrid
+
+  type T_VerticalGridPtr
+    type(T_VerticalGrid), pointer :: Ptr
+  end type T_VerticalGridPtr
+
+  interface assignment(=)
+    module procedure M_AssignVerticalGrid
+  end interface
+
+  interface operator(/=)
+    module procedure M_NotEqualVerticalGrid
+    module procedure M_NotEqualVerticalGridPtr
+  end interface
+
+
+
+contains
+
+!!!func M_NotEqualVerticalGridPtr - non-equality comparison operator
+  logical function M_NotEqualVerticalGridPtr(o_gridAPtr, o_gridBPtr)
+!
+!AUTHOR
+!     J.W. Blezius OCT 2002
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        To compare (that means a deep comparison) the value of one vertical
+!        grid object to another.
+!
+!ARGUMENTS
+    type (T_VerticalGridPtr), intent(in) :: o_gridAPtr, &
+                                            o_gridBPtr
+!
+!NOTES
+!
+!!
+
+  real, parameter :: r_ZERO = 1.0e-8
+  integer :: k                          ! index of the vertical levels
+
+  type (T_VerticalGrid), pointer :: o_gridA_p, &
+                                    o_gridB_p
+
+  o_gridA_p => o_gridAPtr%Ptr
+  o_gridB_p => o_gridBPtr%Ptr
+
+
+  M_NotEqualVerticalGridPtr = .false.   ! assume equal until proven otherwise
+
+  if(     o_gridA_p%N_gridType   /= o_gridB_p%N_gridType &
+     .or. o_gridA_p%N_numVLevels /= o_gridB_p%N_numVLevels &
+    ) then
+    M_NotEqualVerticalGridPtr = .true.
+  else if(o_gridA_p%N_gridType == N_GRID_TYPE_HYBRID &
+             .and.(     r_ZERO > abs(o_gridA_p%R_pTopAvg - o_gridB_p%R_pTopAvg) &
+                   .or. r_ZERO > abs(o_gridA_p%R_pRef    - o_gridB_p%R_pRef) &
+                   .or. r_ZERO > abs(o_gridA_p%R_rCoef   - o_gridB_p%R_rCoef) &
+                  ) &
+         ) then
+      M_NotEqualVerticalGridPtr = .true.
+  else
+    do k=1, o_gridA_p%N_numVLevels
+      if( r_ZERO < abs(o_gridA_p%R_vLevel_p(k) - o_gridB_p%R_vLevel_p(k)) )then
+        M_NotEqualVerticalGridPtr = .true.
+        exit                            ! no need to check any further
+      end if
+    end do
+  end if
+
+  end function M_NotEqualVerticalGridPtr
+
+
+!!!func M_NotEqualVerticalGrid - non-equality comparison operator
+  logical function M_NotEqualVerticalGrid(o_gridA, o_gridB)
+!
+!AUTHOR
+!     J.W. Blezius SEPT 2002
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        To compare (that means a deep comparison) the value of one vertical
+!        grid object to another.
+!
+!ARGUMENTS
+    type (T_VerticalGrid), target, intent(in) :: o_gridA, &
+                                                 o_gridB
+!
+!NOTES
+!
+!!
+    type (T_VerticalGridPtr) :: o_gridAPtr, &
+                                o_gridBPtr
+
+    o_gridAPtr%Ptr => o_gridA
+    o_gridBPtr%Ptr => o_gridB
+
+    M_NotEqualVerticalGrid = (o_gridAPtr /= o_gridBPtr)
+
+  end function M_NotEqualVerticalGrid
+
+
+
+!!!s/r M_AssignVerticalGrid - assigment operator
+  subroutine M_AssignVerticalGrid(o_gridOut, o_gridIn)
+!
+!AUTHOR
+!     J.W. Blezius SEPT 2002
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        To assign (that means a deep copy) the value of one vertical grid
+!        object to another.
+!
+!ARGUMENTS
+    type (T_VerticalGrid), intent(out) :: o_gridOut
+    type (T_VerticalGrid), intent(in)  :: o_gridIn
+!
+!NOTES
+!        This assumes that the destination vLevel array has been allocated, and
+!        that the two vLevels have the same dimensions.
+!
+!!
+    integer :: n_error
+
+    o_gridOut%N_gridType   = o_gridIn%N_gridType
+    o_gridOut%N_numVLevels = o_gridIn%N_numVLevels
+                                                      ! deep copy
+    if(.not. associated(o_gridOut%R_vLevel_p)) then
+        allocate(o_gridOut%R_vLevel_p(o_gridIn%N_numVLevels), STAT=n_error)
+        if(n_error /= 0) then
+          write(6, *)'Error allocating vLevel in M_AssignVerticalGrid:  error=',&
+                     n_error
+          call flush(6)
+          return
+        endif
+    end if
+
+    o_gridOut%R_vLevel_p   = o_gridIn%R_vLevel_p 
+    o_gridOut%R_pTopAvg    = o_gridIn%R_pTopAvg
+    o_gridOut%R_pRef       = o_gridIn%R_pRef
+    o_gridOut%R_rCoef      = o_gridIn%R_rCoef
+  end subroutine M_AssignVerticalGrid
+
+
+
+!!!func N_ConstructNull - constructor:  Put the object in a valid state
+  integer function N_ConstructNull(that, n_numVLevelsIn)
+                                        ! returns error indication:  0='no error'
+!
+!AUTHOR
+!     J.W. Blezius DEC 2003
+!
+!REVISION
+! v1_3    Blezius J.W. DEC 2003 - initial version
+!
+!OBJECT
+!        The null VerticalGrid constructor.  This constructor simply puts the
+!        object in a valid state, but containing no data.  In particular, the
+!        pointer, R_vLevel_p, contained by the object is made to actually point
+!        to some memory.
+!
+!ARGUMENTS
+    type(T_VerticalGridPtr), intent(inout) :: that
+    integer, intent(in)::n_numVLevelsIn ! number of vertical levels in the object
+!
+!NOTES
+!        The array to which R_vLevel_p points will be the right size only if the
+!        user uses a consistent number of vertical levels.
+!
+!!
+    integer :: n_error
+    type(T_VerticalGrid), pointer :: this
+
+    this => that%Ptr
+    N_ConstructNull = 0                 ! no error yet
+
+    if(n_numVLevelsIn == 0) then
+        ! The size is not known yet; just nullify the pointer
+        nullify(this%R_vLevel_p)
+    else
+        ! Allocate the array of vertical levels
+        allocate(this%R_vLevel_p(n_numVLevelsIn), STAT=n_error)
+        if(n_error /= 0) then
+          write(6, *) 'Error allocating vLevel in N_ConstructNull:  error=', &
+                      n_error
+          call flush(6)
+          N_ConstructNull = N_VI_VIERR_FAILED_ALLOCATION
+          return
+        endif ! n_error /= 0
+        this%R_vLevel_p = 0.
+    end if ! n_numVLevelsIn == 0
+    
+    ! Array of vertical levels was successfully allocated.
+    this%N_numVLevels = n_numVLevelsIn
+    ! Initialize all other values to zero
+    this%N_gridType = 0
+    this%R_pTopAvg = 0.
+    this%R_pRef = 0.
+    this%R_rCoef = 0.
+
+end function N_ConstructNull
+
+
+
+!!!func N_Viqkdef - constructor:  Quick definition of the grid for vertical
+!                                 integration
+  integer function N_Viqkdef(that, n_numVLevelsIn, n_gridTypeIn, r_vLevelIn, &
+                             r_pTopAvgIn, r_pRefIn, r_rCoefIn)
+                                        ! returns error indication:  0='no error'
+!
+!AUTHOR
+!     J.W. Blezius MAY 2002 helper on top of the Interp1D library
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        The VerticalGrid constructor.  The attributes of the VerticalGrid_class
+!        are initialized.
+!
+!ARGUMENTS
+    type(T_VerticalGridPtr), intent(inout) :: that
+    integer, intent(in)::n_numVLevelsIn ! number of vertical levels in r_vLevelIn
+    integer, intent(in) :: n_gridTypeIn ! the type of grid -- see values above
+
+                                        ! the levels, see n_gridTypeIn for units
+    real, dimension(n_numVLevelsIn), intent(in) :: r_vLevelIn
+
+    ! These three arguments are optional as a group (for N_GRID_TYPE_HYBRID)
+    real, optional,intent(in)::r_pTopAvgIn ! average pressure (mb) at model top
+    real, optional,intent(in)::r_pRefIn ! reference pressure (mb)
+    real, optional,intent(in)::r_rCoefIn! known as 'expansion co-efficient'
+!
+!!
+    integer :: n_error
+    type(T_VerticalGrid), pointer :: this
+
+    this => that%Ptr
+    N_Viqkdef = 0                       ! no error yet
+
+    ! Allocate the array of vertical levels
+    allocate(this%R_vLevel_p(n_numVLevelsIn), STAT=n_error)
+    if(n_error /= 0) then
+      write(6, *) 'Error allocating vLevel in N_Viqkdef:  error=', n_error
+      call flush(6)
+      N_Viqkdef = N_VI_VIERR_FAILED_ALLOCATION
+      return
+    endif
+    
+    ! Array of vertical levels was successfully allocated.
+    ! Assign these and other values
+    this%R_vLevel_p = r_vLevelIn
+    this%N_gridType = n_gridTypeIn
+    this%N_numVLevels = n_numVLevelsIn
+
+    if(n_gridTypeIn == N_GRID_TYPE_HYBRID) then
+      ! The hybrid parameters must be supplied
+      this%R_pTopAvg = r_pTopAvgIn
+      this%R_pRef    = r_pRefIn
+      this%R_rCoef   = r_rCoefIn
+!   else if(n_gridTypeIn == N_GRID_TYPE_ETA) then
+!     ! One parameter must be supplied LATER (in ConvertToLnP)
+!     this%R_pTopAvg = 0.
+!     this%R_pRef = 0.
+!     this%R_rCoef = 0.
+    else
+      ! Set the hybrid parameters to 0
+      this%R_pTopAvg = 0.
+      this%R_pRef = 0.
+      this%R_rCoef = 0.
+    endif
+
+
+  end function N_Viqkdef
+
+
+
+!!!func L_ValueIncreasesWithHeight - Indicate whether the vLevel values increase
+!                                    with height
+  logical function L_ValueIncreasesWithHeight(n_gridTypeIn)
+!
+!AUTHOR
+!     J.W. Blezius SEPTEMBER 2002 helper on top of the Interp1D library
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        For the purposes of ordering the vertical levels, it is necessary to
+!        know which way is up.  This function gives that information.
+!
+!ARGUMENTS
+    integer :: n_gridTypeIn
+!
+!NOTES
+!        While it would be cleaner if the argument were a pointer to the
+!        particular vertical grid in question, this is inconvenient because the
+!        routine that calls this function holds the vertical grid as an element
+!        of another user-defined type.  Unfortunately, fortran90 doesn't allow a
+!        component of a user-defined type to be the object of a pointer.
+!
+!!
+    L_ValueIncreasesWithHeight = (n_gridTypeIn == N_GRID_TYPE_GENERIC)
+  end function L_ValueIncreasesWithHeight
+
+
+
+!!!func N_VertGridGetP - Create 'cube' of vertical levels in units of P (mb)
+  integer function N_VertGridGetP(that, r_P, n_ni, n_nj, r_pSurf, r_pTop)
+                                        ! returns error indication:  0='no error'
+!
+!AUTHOR
+!     J.W. Blezius JULY 2002 helper on top of the Interp1D library
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        The vertical grid is a 1-D object.  The product is taken with the
+!        horizontal surface pressure, r_pSurf, to produce a cube of vertical
+!        levels, in pressure units.
+!
+!        The exception is the 'generic' grid type.  In this case, the vertical
+!        levels are simply multiplied horizontally, and no attempt is made to
+!        obtain a pressure.
+!
+!NOTES
+!        In the case of N_GRID_TYPE_HYBRID, the first vertical level of the
+!        grid must be the ceiling.  This constraint is imposed by the function,
+!        hybrid_to_pres, which is used to make the conversion to pressure.
+!
+!ARGUMENTS
+
+                                        ! parameter cannot be a pointer to a
+                                        ! user type:  replace 'this' with 'that'
+    type(T_VerticalGridPtr), intent(inout) :: that
+
+    integer, intent(in) :: n_ni, n_nj   ! horizontal dimensions
+
+                                        ! vertical levels as pressure
+    real, dimension(:,:,:), intent(out) :: r_P
+
+                                        ! surface pressure for each horiz point,
+                                        ! in units of mb
+    real, dimension(:,:), intent(in) :: r_pSurf
+
+                                        ! ceiling pressure for each horiz point
+                                        ! required only for eta units,
+                                        ! in units of mb
+    real, dimension(:,:), optional, intent(in) :: r_pTop
+!
+!!
+
+    integer, external :: hybrid_to_pres
+
+                                        ! vertical levels as model-hybrid units
+    real, dimension(that%Ptr%N_numVLevels) :: r_hybridModel
+
+    integer i, j                        ! indices of the horizontal locations
+    integer k                           ! index of the vertical levels
+    type(T_VerticalGrid), pointer :: this
+
+
+    this => that%Ptr
+    N_VertGridGetP = 0                  ! no error yet
+
+    !
+    ! Create the 'cube' of source vertical levels
+    !
+    select case (this%N_gridType)
+    case(N_GRID_TYPE_SIGMA)
+      do k=1,this%N_numVLevels
+        do j=1,n_nj
+          do i=1,n_ni
+            r_P(i,j,k) = r_pSurf(i,j) * this%R_vLevel_p(k)
+          end do
+        end do
+      end do
+
+    case(N_GRID_TYPE_PRESSURE, N_GRID_TYPE_GENERIC)
+      do k=1,this%N_numVLevels
+        ! N_GRID_TYPE_PRESSURE:  Independent of Po; same P used for all (i,j)
+        ! N_GRID_TYPE_GENERIC:  don't try to convert the vertical levels
+        r_P(:,:,k) = this%R_vLevel_p(k)
+      end do
+
+    case(N_GRID_TYPE_HYBRID)
+      ! The conversion is more robust to changes by using a supported
+      ! routine, hybrid_to_pres (r_P and r_hybridModel are outputs):
+      ! N.B.: hybrid_to_pres assumes that the first vLevel is at the ceiling, and
+      ! automatically sets it to pTopAvg
+      if(0 /= hybrid_to_pres(r_P, r_hybridModel, this%R_pTopAvg, r_pSurf, &
+                             n_ni*n_nj, 1, this%R_rCoef, this%R_pRef, &
+                             this%R_vLevel_p, this%N_numVLevels) &
+                            ) then
+        write(6,*)'In ConvertToLnP:  hybrid_to_pres FAILED'
+        call flush(6)
+        N_VertGridGetP = N_VI_VGERR_HYBRID_TO_PRES_CONVN
+      end if
+
+    case(N_GRID_TYPE_ETA)
+      if(.not. present(r_pTop)) then
+        write(6,*)'ERROR in ConvertToLnP:  pTop required for eta units'
+        call flush(6)
+        N_VertGridGetP = N_VI_VGERR_PTOP_MISSING
+      else
+        do k=1,this%N_numVLevels
+          do j=1,n_nj
+            do i=1,n_ni
+              r_P(i,j,k) =   r_pTop(i,j) &
+                           + (r_pSurf(i,j) - r_pTop(i,j)) * this%R_vLevel_p(k)
+            end do
+          end do
+        end do
+      end if
+
+    case default
+      ! If execution leads here, it is because a new gridType has been added.
+      write(6,*)'WARNING:  in N_VertGridGetP, grid type not recognized.'
+      write(6,*)'          Copying vLevel directly to P.'
+      do k=1,this%N_numVLevels
+        r_P(:,:,k) = this%R_vLevel_p(k)
+      end do
+
+    end select
+
+  end function N_VertGridGetP
+
+
+
+!!!func N_VertGridGetLnP - Create 'cube' of vertical levels in units of ln P
+  integer function N_VertGridGetLnP(that, r_lnP, n_ni, n_nj, r_pSurf, r_pTop)
+                                        ! returns error indication:  0='no error'
+!
+!AUTHOR
+!     J.W. Blezius JULY 2002 helper on top of the Interp1D library
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        Converts each pressure in the cube of vertical levels to ln P.
+!
+!        The exception is the 'generic' grid type.  In this case, the 'pressure'
+!        is copied directly as 'ln P', and no conversion is performed.
+!
+!NOTES
+!        The conversion from P to ln P cannot be left up to the user and must be
+!        performed here because there is one case (generic) where the conversion
+!        has no sense.  This routine automatically does no conversion in this
+!        case.
+!
+!        In the case of N_GRID_TYPE_HYBRID, the first vertical level of the
+!        grid must be ground level.  This constraint is imposed by the function,
+!        hybrid_to_pres, which is used to make the conversion to pressure.
+!
+!ARGUMENTS
+
+                                        ! parameter cannot be a pointer to a
+                                        ! user type:  replace 'this' with 'that'
+    type(T_VerticalGridPtr), intent(inout) :: that
+
+    integer, intent(in) :: n_ni, n_nj   ! horizontal dimensions
+
+                                        ! ln pressure, referenced to 1 mb
+    real, dimension(:,:,:), intent(out) :: r_lnP
+
+                                        ! surface pressure for each horiz point,
+                                        ! in units of mb
+    real, dimension(:,:), intent(in) :: r_pSurf
+
+                                        ! ceiling pressure for each horiz point
+                                        ! required only for eta units,
+                                        ! in units of mb
+    real, dimension(:,:), optional, intent(in) :: r_pTop
+!
+!!
+    type(T_VerticalGrid), pointer :: this
+integer :: i, vt
+
+
+    this => that%Ptr
+    
+
+    if(this%N_gridType /= N_GRID_TYPE_GENERIC) &
+            write(6,*) 'Converting the vertical levels to ln P (1 mb ref level).'
+
+                                        ! Obtain the cube of pressures
+                                        ! After this call, lnP is really just P
+    N_VertGridGetLnP = N_VertGridGetP(that, r_lnP, n_ni, n_nj, r_pSurf, r_pTop)
+
+    select case (this%N_gridType)
+    case(N_GRID_TYPE_SIGMA, N_GRID_TYPE_PRESSURE, N_GRID_TYPE_HYBRID, &
+         N_GRID_TYPE_ETA)
+                                        ! Convert the 'cube' of source vertical
+                                        ! levels from P to ln P
+      r_lnP = log(r_lnP)
+
+    case(N_GRID_TYPE_GENERIC)
+      ! Do nothing
+
+    case default
+      ! If execution leads here, it is because a new gridType has been added.
+      write(6,*)'WARNING:  in N_VertGridGetLnP, grid type not recognized.'
+      write(6,*)'          Copying P directly to ln P.'
+      ! Do nothing
+    end select
+      
+  end function N_VertGridGetLnP
+
+
+
+!!!s/r M_ReleaseVerticalGrid - VerticalGrid destructor
+  subroutine M_ReleaseVerticalGrid(that)
+!
+!AUTHOR
+!     J.W. Blezius MAY 2002 helper on top of the Interp1D library
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        The memory associated with the attributes is released.
+!
+!ARGUMENTS
+    implicit none
+    type(T_VerticalGridPtr), intent(inout) :: that
+!
+!!
+    integer :: n_error
+
+    ! Release the memory associated with the array of vertical levels.
+    if( associated(that%Ptr%R_vLevel_p) ) then
+      deallocate (that%Ptr%R_vLevel_p, STAT=n_error)
+      if(n_error /= 0) then
+        write(6, *)'Error deallocating vLevel in M_ReleaseVerticalGrid:  ', &
+                   'error=', n_error
+        call flush(6)
+      end if
+    end if
+
+  end subroutine M_ReleaseVerticalGrid
+
+end module VerticalGrid_class

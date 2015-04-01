@@ -1,0 +1,50 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+      SUBROUTINE QLXNVAR(KEY,NW)
+      INTEGER NW
+      INTEGER KEY(*)
+
+
+      EXTERNAL ARGDIMS
+      INTEGER  ARGDIMS
+      INTEGER SC(MAXSCR),NSC
+#include "qlxfmt.cdk"
+      SAVE SC, NSC
+
+
+      INTEGER DUMMY
+      CHARACTER *8 IKEY
+      SAVE DUMMY
+      DATA NSC /1/
+      DATA DUMMY /0/
+
+
+      WRITE(IKEY,LINEFMT) (KEY(J),J=1,ARGDIMS(1))
+101   FORMAT(2 A CARMOT)
+      CALL QLXLOOK(IVAR,IKEY,ICOUNT,LIMITS,ITYP)
+      IF(ITYP.NE.-1) RETURN
+      IF(NSC+NW .GT. MAXSCR+1) $(
+         CALL QLXERR(21011,'DEFINE')
+         RETURN
+         $)
+      CALL QLXINS(SC(NSC),IKEY,DUMMY,NW,1)
+      NSC = NSC + NW
+      RETURN
+      END

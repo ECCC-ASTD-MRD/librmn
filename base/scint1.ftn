@@ -1,0 +1,201 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+#if defined (CRAY)
+***S/P SCINT1  VERIFIER LA SORTE DE GRILLE POUR INTERPOLATEUR
+*
+      SUBROUTINE SCINT1(ZI,NI,NJ,IGTYP,IG1,IG2,IG3,IG4,SYM)
+      REAL ZI(NI,NJ)
+*
+*AUTEUR   - M. VALIN  -  AOU 84
+*
+*OBJET(SCINT1)
+*         - INTERPOLATION D'UNE GRILLE A UNE AUTRE HORIZONTALEMENT
+*           VERIFIER LA SORTE DE GRILLE, RENVERSER LE CHAMP AU BESOIN.
+*
+*LIBRAIRIES
+*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SCINT1
+*         - OBJET   RMNLIB,ID=RMNP
+*
+*APPEL    - CALL SCINT1(ZO,LI,LJ,XLAT,XLON,ZI,NI,NJ,IGTYP,
+*                      IG1,IG2,IG3,IG4,SYM)
+*
+*ARGUMENTS
+*   IN    - ZI    - CHAMP D'ENTREE (NI,NJ)
+*   IN    - NI    - NOMBRE DE POINTS DANS DIRECTION EST - OUEST
+*   IN    - NJ    - NOMBRE DE POINTS DANS DIRECTION NORD - SUD
+*   IN    - IGTYP  - TYPE DE GRILLE(ZI)
+*   IN    - IG1   - VOIR OUVRIR DESCRIPTEUR DE GRILLE (GRILLE D'ENTREE)
+*   IN    - IG2   - ''      ''      ''           ''        ''       ''
+*   IN    - IG3   - ''      ''      ''           ''        ''       ''
+*   IN    - IG4   - ''      ''      ''           ''        ''       ''
+*   IN    - SYM   - INDICATEUR DE SYMETRIE (VRAI SI VARIABLE EST SYMETRIQUE)
+*
+*LANGAGE  - RATFOR
+*
+*MODULES  - IGAXG, PERMUT
+*
+*NOTES    - LE CHAMP D'ENTREE ZI PEUT ETRE DETRUIT AU COURS
+*           DE L'INTERPOLATION
+*
+*----------------------------------------------------------------
+*
+
+
+      LOGICAL SYM,VALIDE,OK
+      REAL PI,PJ,D60,DGRW
+#include "root.cdk"
+#include "kases.cdk"
+#include "sct12.cdk"
+#include "llc.cdk"
+
+
+
+
+   OK = .TRUE.
+   ITYP = LLC(IGTYP)
+   XFAC = -1.0   # HEMISPHERE NORD OU GLOBALE
+
+
+   IF(ITYP==LLC("N") .OR. ITYP==LLC("S") .OR. ITYP==LLC("F"))  $(
+      IKOD = 7
+      CALL IGAXG(ITYP,PI,PJ,D60,DGRW,IG1,IG2,IG3,IG4)
+      IF(ITYP.NE.LLC("S")) IHMPS=1
+      ELSE IHMPS=2
+      $)
+   ELSE IF (ITYP==LLC("A"))  $(  # GRILLE LAT LON
+
+
+      OK=OK.AND.VALIDE("IG1",IG1,0,2)  # VERIFIER SI IG1=0,1,OU 2
+      OK=OK.AND.VALIDE("IG2",IG2,0,1)  # VERIFIER SI IG2=0 OU 1
+
+
+      IF(IG1==SOUTH)  $(
+         XFAC=1.0
+         IF(IG2==1) $(
+            CALL PERMUT(ZI,NI,NJ)
+            $)
+         $)
+      ELSE IF(IG2==0)  $(
+         CALL PERMUT(ZI,NI,NJ)
+         $)
+      IF(IG1==GLOBAL)
+         IKOD=1
+      ELSE IF(SYM)   # HEMISPHERIQUE SYMETRIQUE
+         IKOD=2
+      ELSE           # HEMISPHERIQUE ANTISYMETRIQUE
+         IKOD=3
+      $)
+
+
+   ELSE IF(ITYP==LLC("H"))  $(  # GRILLE LAMBERT CENTREE
+      IKOD = 10
+      CALL IGAXG(ITYP,XG1,PHI0,DS,LAMDA0,IG1,IG2,IG3,IG4)
+      PHI2= .5*MOD(IG3,200)
+      PHI1 = .5*(IG3/200)
+      CALL XYFLCC(PI,PJ,PHI0,LAMDA0,PHI2,PHI2,LAMDA0,DS,1)
+      PI = .5*(NI+1) - PI
+      PJ = .5*(NJ+1) - PJ
+      $)
+
+
+   ELSE IF(ITYP==LLC("G"))  $(  # GRILLE GAUSSIENNE
+
+
+      OK=OK.AND.VALIDE("IG1",IG1,0,2)  # VERIFIER SI IG1=0,1,OU 2
+      OK=OK.AND.VALIDE("IG2",IG2,0,1)  # VERIFIER SI IG2=0 OU 1
+
+
+      IF(IG1==SOUTH)  $(
+         XFAC=1.0
+         IF(IG2==1) $(
+            CALL PERMUT(ZI,NI,NJ)
+            $)
+         $)
+      ELSE IF(IG2==0)  $(
+         CALL PERMUT(ZI,NI,NJ)
+         $)
+      IF(IG1==GLOBAL)
+         IKOD=4
+      ELSE IF(SYM)   # HEMISPHERIQUE SYMETRIQUE
+         IKOD=5
+      ELSE           # HEMISPHERIQUE ANTISYMETRIQUE
+         IKOD=6
+      $)
+
+
+   ELSE IF(ITYP==LLC("L") .OR. ITYP==LLC("C"))  $(  # GRILLE LAT-LON
+     IKOD = 9
+     CALL IGAXG(ITYP,XLA0,XLO0,DLAT,DLON,IG1,IG2,IG3,IG4)
+     $)
+
+
+   ELSE IF(ITYP==LLC("B"))  $(  # GRILLE LAT-LON INCLUANT LES POLES
+                            # ET LES LONGITUDES 0 ET 360.
+     IKOD = 9
+     DLON = 360./FLOAT(NI-1)
+     XLO0 = 0.0
+     IF (IG1==GLOBAL)  $(  # GLOBAL
+       DLAT = 180./FLOAT(NJ-1)
+       XLA0 = -90.
+       $)
+
+
+     ELSE IF (IG1==NORD)  $(  # NORD
+       DLAT = 90.0/FLOAT(NJ-1)
+       XLA0 = 0.0
+       $)
+
+
+     ELSE IF (IG1==SUD)  $(  # SUD
+       DLAT = 90.0/FLOAT(NJ-1)
+       XLA0 = -90.0
+       $)
+
+
+     IF (IG2==1)  # GRILLE DU NORD VERS LE SUD
+       CALL PERMUT(ZI,NI,NJ)
+     $)
+
+
+   ELSE $(
+
+
+      WRITE(6,600)
+  600 FORMAT(" LA GRILLE SOURCE N EST PAS POLAIRE STEREOGRAPHIQUE,")
+      WRITE(6,601)
+  601 FORMAT(" GAUSSIENNE OU LATLON STANDARD (SCINT)")
+      IKOD=8
+      $)
+   IF(.NOT.OK) IKOD=8
+
+
+   ROOTS(1) = 100.0  # FORCE APPEL A DGAUSS DANS SGLOGG,SANHGG,SSNHGG
+   IF(ITYP==LLC("G") .AND. NJ.GT.MAXROOT)  $(
+      IKOD=8
+      WRITE(6,602)
+  602 FORMAT(" TROP DE LATITUDES DANS LA GRILLE GAUSSIENNE")
+      WRITE(6,603) NJ
+  603 FORMAT(" SOURCE  NLATS=",I10," (SCINT)")
+      $)
+
+
+      RETURN
+      END
+#endif

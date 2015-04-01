@@ -1,0 +1,4 @@
+DEFINE = -DNEC
+AR = sxar
+
+OBJ_NEC = pak_helpers.o

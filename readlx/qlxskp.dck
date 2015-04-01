@@ -1,0 +1,45 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+***FONCTION QLXSKP     RETOURNE UN CARACTERE AUTRE QUE ICAR
+      FUNCTION QLXSKP(ICAR)
+      CHARACTER * 1 QLXSKP
+      CHARACTER *1 ICAR
+*
+*
+*AUTEUR M.VALIN  RPN  JUIN 1983
+*
+*OBJET
+*        RETOURNE LE PREMIER CARACTERE D'UNE LIGNE DE TEXTE,
+*        QUI NE SOIT PAS EGAL A L'ARGUMENT.
+*ARGUMENT
+*        ICAR      ENTIER SERVANT D'ARGUMENT D'ENTREE.IL DESIGNE
+*                  LE CARACTERE A ETRE IGNORE DANS LA LIGNE DE TEXTE.
+**
+      EXTERNAL QLXCHR
+      CHARACTER *1 CTMP, QLXCHR
+*
+      REPEAT $(
+         CTMP = QLXCHR()
+         $)
+      UNTIL(CTMP <> ICAR)
+      QLXSKP = CTMP
+*
+      RETURN
+      END

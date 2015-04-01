@@ -1,0 +1,53 @@
+        f90 -c readlx.f
+
+      FUNCTION QLXMAD(LOCVAR,IND)
+               ^                  
+f90-287 mfef90: WARNING QLXMAD, File = readlx.f, Line = 221, Column = 16 
+  The result of function name "QLXMAD" in the function subprogram is not defined.
+
+      DATA ADR  /41*0/
+           ^           
+f90-1542 mfef90: WARNING QLXCALL, File = readlx.f, Line = 455, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+      DATA PARM /101*0/
+           ^            
+f90-1542 mfef90: WARNING QLXCALL, File = readlx.f, Line = 456, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+      DATA NC,LAST/1,0/
+           ^            
+f90-1542 mfef90: WARNING QLXCHR, File = readlx.f, Line = 651, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+              ^         
+f90-1542 mfef90: WARNING QLXCHR, File = readlx.f, Line = 651, Column = 15 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+      DATA INPFILE/5/
+           ^          
+f90-1542 mfef90: WARNING QLXCHR, File = readlx.f, Line = 652, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+      DATA EOFL/.FALSE./
+           ^             
+f90-1542 mfef90: WARNING QLXCHR, File = readlx.f, Line = 653, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+      DATA INLINE/' '/
+           ^           
+f90-1542 mfef90: WARNING QLXCHR, File = readlx.f, Line = 654, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+      GOTO (10,20,30,40,50,60,70,80,90,100,110,120,130) POS+1
+                                                           ^  
+f90-369 mfef90: ERROR QLXFND, File = readlx.f, Line = 897, Column = 60 
+  This expression must be an integer scalar expression.
+
+      DATA KARMOT /04/
+           ^           
+f90-1542 mfef90: WARNING READLX, File = readlx.f, Line = 2178, Column = 12 
+  Initializing a named common block member in a program unit other than a block data is not legal for this architecture.
+
+f90: MIPSpro Fortran 90 Version 7.2.1  (f39) Fri Jan 28, 2000  15:34:07
+f90: 2368 source lines
+f90: 1 Error(s), 9 Warning(s), 0 Other message(s), 0 ANSI(s)

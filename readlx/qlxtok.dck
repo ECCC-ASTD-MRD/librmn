@@ -1,0 +1,173 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+***S/P QLXTOK
+      SUBROUTINE QLXTOK
+*
+*
+*AUTEUR   M.VALIN   RPN   JUIN 1983
+*
+*OBJET(QLXTOK)
+*        DECOMPOSE UNE LIGNE DE TEXTE EN TOKENS DE DIFFERENTS
+*        TYPES,IDENTIFIE LA LONGUEUR DU TOKEN ET SON TYPE.
+*ARGUMENTS
+*        TOKEN
+*        (S)
+*
+*        LEN       NOMBRE DE CARACTERE DANS UN TOKEN
+*        (S)
+*
+*        TYPE      TYPE DU TOKEN(CLE ALPHANUMERIQUE,NOMBRE
+*        (S)       ENTIER OU REEL,CHAINE DE CARACTERE OU SYMBOLE).
+*
+*        JVAL,ZVAL LES VALEURS D'UN NOMBRE ENTIER OU REEL,
+*        (S)       CONTENU DANS UN TOKEN.
+*
+      INTEGER DELIM,ISIGN,ITYP
+#include "bufftok.cdk"
+#include "qlxfmt.cdk"
+**
+      INTPOINT LOCVAR,LOCCNT
+      EXTERNAL QLXCHR, QLXNUM
+      CHARACTER *1 IC, QLXCHR
+      INTEGER  QLXNUM
+
+
+      IVAL=-1
+      TOKEN = ' '
+*
+      REPEAT $(
+         IC = QLXCHR()
+         $)
+      UNTIL(IC<>BLANK)  # CHERCHE UN CARACTERE AUTRE QU'UN BLANC
+      LENG=1
+      TOKEN(1:1)=IC
+      IF((IC.GE.LETA.AND.IC.LE.LETZ).OR.IC.EQ.ATSIGN.OR.IC.EQ.UNDER
+          .OR. (IC >= 'a' .AND. IC <= 'z'))$(
+         IC=QLXCHR()
+         WHILE((IC.GE.LETA .AND.IC .LE. LETZ).OR. _
+            (IC.GE.DIG0 .AND. IC.LE.DIG9) _
+            .OR. (IC >= 'a' .AND. IC <= 'z'))  $(
+            LENG=MIN(81,LENG+1)
+            TOKEN(LENG:LENG)=IC
+            IC=QLXCHR()
+            $)
+         IF(LENG.GT.8)  $(
+            TYPE=STRING
+            $)
+         ELSE $(
+            TYPE=CLE
+            $)
+         CALL QLXBAK(IC)
+         $)
+*
+      ELSE IF(IC.EQ.SQUOTE .OR. IC.EQ.DQUOTE)  $(
+         LENG=0
+         REPEAT $(
+            LENG=MIN(80,LENG+1)
+            TOKEN(LENG:LENG)=QLXCHR()
+            $)
+         UNTIL(TOKEN(LENG:LENG) == IC)    # LOOP UNTIL DELIMITER
+         TOKEN(LENG:LENG) = ' '
+         LENG = LENG -1
+         IF (IC .EQ. DQUOTE) LENG = MIN(LENG,KARMOT)
+         TYPE=STRING
+         $)
+*
+      ELSE IF((IC.GE.DIG0 .AND. IC.LE.DIG9) _
+             .OR.(IC.EQ.PERIOD)) $(
+         TYPE=QLXNUM(TOKEN,LENG)
+         ISIGN=1
+         $)
+*
+      ELSE IF((IC.EQ.PLUS .OR. IC.EQ.MINUS).AND.(.NOT.INEXPR) ) $(
+         IF(IC.EQ.PLUS)  $(
+            ISIGN=1
+            $)
+         ELSE  $(
+            ISIGN=-1
+            $)
+         IC=QLXCHR()
+         IF((IC.GE.DIG0 .AND. IC.LE.DIG9).OR. IC.EQ. PERIOD)  $(
+            TOKEN(1:1)=IC
+            TYPE=QLXNUM(TOKEN,LENG)
+            $)
+         ELSE  $(
+            CALL QLXBAK(IC)
+            TYPE=OPER
+            $)
+         $)
+      ELSE IF(IC.EQ.STAR) $(
+         TYPE = OPER
+         IC=QLXCHR()
+         IF(IC.EQ.STAR) $(
+            LENG = 2
+            TOKEN = '**'
+            $)
+         ELSE
+            CALL QLXBAK(IC)
+         $)
+      ELSE IF(IC.EQ.'<' .OR. IC.EQ.'>' .OR. IC.EQ.'=' .OR. IC.EQ.':') $(
+         TYPE = OPER
+         IC=QLXCHR()
+         IF(IC.EQ.'<' .OR. IC.EQ.'>' .OR. IC.EQ.'=') $(
+            LENG = 2
+            TOKEN(2:2) = IC
+            $)
+         ELSE
+            CALL QLXBAK(IC)
+         $)
+      ELSE  $(
+         TYPE=OPER
+         $)
+*
+      IF((LENG.GT.80) .OR. (TYPE.EQ.PASBON)) $(
+         TOKEN = 'SCRAP'
+         TYPE=PASBON
+         CALL QLXERR(21014,'QLXTOK')
+         $)
+      IF(TYPE.EQ.ENTIER)  $(
+         READ(TOKEN,'(I20)')JVAL
+         JVAL=SIGN(JVAL,ISIGN)
+         $)
+      ELSE IF(TYPE.EQ.REEL) $(
+         READ(TOKEN,'(G20.3)')ZVAL
+         ZVAL=SIGN(ZVAL,FLOAT(ISIGN))
+         $)
+      ELSE IF(TYPE.EQ.OCTAL) $(
+         READ(TOKEN,'(O20)')JVAL
+         TYPE=ENTIER
+         JVAL=SIGN(JVAL,ISIGN)
+         $)
+      IF(TYPE.EQ.CLE)  $(
+         CALL QLXFND(TOKEN(1:8),LOCVAR,LOCCNT,LIMITS,ITYP)
+         IF (ITYP .EQ. -1)
+           $(
+             TYPE = STRING
+             LENG = MIN(LENG,KARMOT)
+           $)
+         ELSE IF ((ITYP .EQ. 0) .OR. (ITYP .EQ. 1))
+            PEEK(LOCVAR,1,JVAL)
+         ELSE
+            JVAL = -1
+         $)
+      LEN=LENG
+*
+      RETURN
+      END

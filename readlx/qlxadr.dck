@@ -1,0 +1,51 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+**S/P GET SUBSCRIPT THEN BUILD MACHINE ADDRESS
+      INTPOINT FUNCTION QLXADR(KLE,ERR)
+*
+      CHARACTER *(*) KLE
+      LOGICAL ERR
+      INTEGER LIMITS,INF,ITYP
+      INTPOINT LOCCNT
+      POINTER (LOCVAR,VARI(*))
+**
+      CALL QLXIND(IND,ERR)
+*
+      IF(.NOT. ERR)  $(
+         CALL QLXFND(KLE,LOCVAR,LOCCNT,LIMITS,ITYP)
+         IF(IND.LE.LIMITS .AND. ITYP.GE.0 .AND. ITYP.LE.1) $(
+*            QLXADR = QLXMAD(LOCVAR,IND)
+	     QLXADR = LOC(VARI(IND))
+            $)
+         ELSE  $(
+            ERR=.TRUE.
+            CALL QLXERR(21017,'QLXADR')
+            QLXADR=0
+            $)
+         $)
+*
+      ELSE  $(
+         QLXADR=0
+         $)
+*
+      RETURN
+      END
+
+

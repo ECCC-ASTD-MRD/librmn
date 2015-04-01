@@ -1,0 +1,2 @@
+DEFINE = -DSGI=SGI
+OBJ_FRONT = cvmgm.o cvmgn.o cvmgp.o cvmgt.o cvmgz.o

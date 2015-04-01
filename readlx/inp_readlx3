@@ -1,0 +1,5 @@
+* commentaire
+# un autre
+sub1(1,[2,3,4,5],3,4)
+sub1(1,'aaaaaaaa',3,4)
+sub1(1,['aaaaaaaa','bbbb','c123456789','ddd'],3,4)

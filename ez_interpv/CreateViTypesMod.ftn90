@@ -1,0 +1,18 @@
+!!!mod ViTypes - type definitions for the Vertical Interpolation package
+!
+!AUTHOR
+!     J.W. Blezius Nov 2003
+!
+!REVISION
+! v1_3    Blezius J.W.          - initial version
+!
+!OBJECT
+!        To put the .h file content in a compilable location.
+!
+!NOTES
+!        It should be noted that the purpose of this file in only to produce the
+!        .mod file; the .o file is not to be used.  The .o contents are linked
+!        when the USER includes ViTypes2_f90.h.
+!
+!!
+#include "ViTypes2_f90.h"

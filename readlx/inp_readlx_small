@@ -1,0 +1,40 @@
+* commentaire
+# un autre
+c test du if ...
+tab1=99,2,3,4,5,6
+if (tab1[1] <> 99)
+c egal zero
+c devrait passer par ici
+commentaires
+else
+  if (tab1[2] == 2)
+    sub1(12,34)
+    sub1(1,[2,3,4,5],3,4)
+  endif
+  sub2(1,2,3,4,5,6)
+ sub2(1,2,3,4,5)
+tab1=1,2,3,4,5,6
+tab2=4,5,6
+tab2="abcedfghijklmnopqrstuvwxyz"
+ sub1(tab2[1],tab2[2],tab2[3],tab2[3])
+tab3=1,2,3,"1","2","3"
+tab3=,,,,,,10,11,12
+ sub1(tab3,tab2,tab1)
+ sub2(tab1[5],tab1[4],tab1[3],tab1[2])
+cendcase
+c ommentaires
+c autres commentaires
+ sub1(12,34)
+ sub1(1,2,3,4)
+  sub2(1,2,3,4,5,6)
+ sub2(1,2,3,4,5)
+tab1=1,2,3,4,5,6
+tab2="abcedfghijklmnopqrstuvwxyz"
+tab3=1,2,3,"1","2","3"
+tab3=,,,,,,10,11,12
+ sub1(tab3,tab2,tab1)
+ sub2(tab1[5],tab1[4],tab1[3],tab1[2])
+sub1("aaa","bbb",ccc)
+sub3(123)
+sub3()
+endif

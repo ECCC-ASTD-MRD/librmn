@@ -1,0 +1,11 @@
+if [ "$MYLIB" == "" ]
+then
+  echo "SVP specifier un nom et chemin complet de librairie avec la variable d'environnement MYLIB"
+  exit 1
+fi
+echo ""
+echo "********************************************************"
+echo "  Generation de $MYLIB"
+echo "********************************************************"
+echo ""
+find . -name Makefile -exec ./Lib_Gen_cmd {} \;

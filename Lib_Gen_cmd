@@ -1,0 +1,6 @@
+ARCH=${ARCH:-`uname -s`}
+rep=`dirname $1`
+cd $rep
+set -x
+make ARCH=$ARCH ABI=$ABI clean
+make ARCH=$ARCH ABI=$ABI MYLIB=$MYLIB genlib

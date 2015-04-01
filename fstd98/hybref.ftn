@@ -1,0 +1,349 @@
+*/* RMNLIB - Library of useful routines for C and FORTRAN programming
+* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+* *                          Environnement Canada
+* *
+* * This library is free software; you can redistribute it and/or
+* * modify it under the terms of the GNU Lesser General Public
+* * License as published by the Free Software Foundation,
+* * version 2.1 of the License.
+* *
+* * This library is distributed in the hope that it will be useful,
+* * but WITHOUT ANY WARRANTY; without even the implied warranty of
+* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* * Lesser General Public License for more details.
+* *
+* * You should have received a copy of the GNU Lesser General Public
+* * License along with this library; if not, write to the
+* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+* * Boston, MA 02111-1307, USA.
+* */
+*
+***function hybrid_to_pres  - function to convert from hybrid to pressure
+
+      integer function hybrid_to_pres(pressure,hybm,ptop,ps,NI,NJ,rcoef,
+     %                                                 pref,hyb,NK)
+
+      implicit none
+      integer NI,NJ,NK
+      real pressure(NI*NJ,NK),ptop,ps(NI*NJ),rcoef,pref,hyb(NK),hybm(NK)
+*
+*author
+*     Vivian Lee/Michel Valin    Nov.28, 2001
+*
+*revision
+*
+*object
+*     To derive pressure fields and model hybrid levels (levels used by
+*     the model) from user-defined hybrid levels and the hybrid reference 
+*     parameters(ptop,rcoef,pref)
+*arguments
+* ________________________________________________________________
+*  Name        I/O      Description
+* ----------------------------------------------------------------
+* pressure      O       array of pressure levels (same units as ps)
+* hybm          O       array of model hybrid levels (0.0 to 1.0)
+*                       - calculated using ptop,rcoef and pref
+* ptop          I       average pressure at the top (mb)
+* ps            I       pressure at the surface (mb or pascals)
+* rcoef         I       coefficient (1.0 to 2.0)
+* pref          I       reference pressure in mb (normally = 800mb)
+* hyb           I       array of user-defined hybrid levels (0.0 to 1.0)
+* ----------------------------------------------------------------
+* the function will return 0 upon success, -1 if there is an error
+**
+
+      integer i,k
+      real*8 hybm_8(nk),prpref,pr1,pibb(nk),pia(nk)
+      real*8 conv,fact
+
+      hybrid_to_pres=-1
+      if (rcoef.lt.1.0.or.rcoef.gt.2.0) then
+          print *,'ERROR in hybrid_to_pres: rcoef must be between 1.0 and 2.0'
+          return
+      endif
+      if (pref .lt.400 .or. pref .gt.1050) then
+          print *,'ERROR in hybrid_to_pres: pref must be a value between 400 and 1050'
+          return
+      endif
+      if (ptop .lt.0 .or. ptop .gt.1200) then
+          print *,'ERROR in hybrid_to_pres: ptop  must be a value between 0 and 1200'
+          return
+      endif
+      if (abs(rcoef-1.0).lt.1.0e-5) rcoef = 1.0
+
+      fact = 1.0
+*     detect if ps is in millibars or pascals
+      if (ps(1).lt.40000.0) then
+          conv = 100.0
+          fact = fact/100.0
+      else
+          conv = 1.0
+      endif
+
+
+      do k=1,nk
+         if (hyb(k).lt.0 .or. hyb(k).gt. 1.0) then
+           print *,'ERROR in hybrid_to_pres: invalid value(s) in hybrid coordinate array'
+           return
+         endif
+         hybm_8(k)= hyb(k) + (1-hyb(k)) * ptop/pref
+      enddo
+
+      prpref = 100.*ptop/hybm_8(1)
+
+      pr1 = 1./(1. - hybm_8(1))
+      do k = 1,nk
+         pibb(k)  = ((hybm_8(k) - hybm_8(1))*pr1 ) ** rcoef
+         pia(k)  = prpref * ( hybm_8(k) - pibb(k) )
+      enddo
+
+      do k=1,nk
+         pibb(k) = pibb(k)*conv
+         do i=1,ni*nj
+            pressure(i,k) = (pia(k)+pibb(k)*ps(i)) * fact
+         enddo
+         hybm(k) = hybm_8(k)
+      enddo 
+      hybrid_to_pres=0
+      return
+      end
+
+***function hybref_to_ig hybrid coordinate markers coding
+      integer function hybref_to_ig(ig1,ig2,ig3,ig4,rcoef,pref,x1,x2)
+
+      implicit none
+      integer ig1,ig2,ig3,ig4
+      real rcoef,pref,x1,x2
+*
+*author
+*     Vivian Lee/Michel Valin    Nov.28, 2001
+*
+*revision
+*
+*object
+*     To derive ig? values given hybrid reference values
+*
+*arguments
+* ________________________________________________________________
+*  Name        I/O      Description
+* ----------------------------------------------------------------
+* ig1           O       ig1 value
+* ig2           O       ig2 value
+* ig3           O       ig3 value
+* ig4           O       ig4 value
+* pref          I       reference pressure (normally = 800mb)
+* rcoef         I       coefficient (1.0 to 2.0)
+* x1            I       not used
+* x2            I       not used
+* ----------------------------------------------------------------
+* the function will return 0 upon success, -1 if there is an error
+**
+      hybref_to_ig=-1
+      if (pref.lt.400.0.or.pref.gt.1050.0) then
+          print *,
+     %    'ERROR in hybref_to_ig: pref must be between 400.0 and 1050.0'
+          return
+      endif
+      if (rcoef.lt.1.0.or.rcoef.gt.2.0) then
+          print *,
+     %    'ERROR in hybref_to_ig: rcoef must be between 1.0 and 2.0'
+          return
+      endif
+      ig1 = pref
+      ig2 = rcoef*1000.0
+      ig3 = 0
+      ig4 = 0
+      hybref_to_ig=0
+      return
+      end
+
+***function ig_to_hybref hybrid coordinate markers decoding
+      integer function ig_to_hybref(ig1,ig2,ig3,ig4,rcoef,pref,x1,x2)
+
+      implicit none
+      integer ig1,ig2,ig3,ig4
+      real ptop,rcoef,pref,x1,x2
+*
+*author
+*     Vivian Lee/Michel Valin    Nov.28, 2001
+*
+*revision
+*
+*object
+*     To derive hybrid reference values given ig? values
+*
+*arguments
+* ________________________________________________________________
+*  Name        I/O      Description
+* ----------------------------------------------------------------
+* ig1           I       ig1 value
+* ig2           I       ig2 value
+* ig3           I       ig3 value
+* ig4           I       ig4 value
+* pref          O       reference pressure (normally = 800mb)
+* rcoef         O       coefficient (1.0 to 2.0)
+* x1            I       not used
+* x2            I       not used
+* ----------------------------------------------------------------
+* the function will return 0 upon success, -1 if there is an error
+**
+      ig_to_hybref=-1
+      pref = ig1
+      rcoef = ig2/1000.0
+      if (pref.lt.400.0.or.pref.gt.1050.0) then
+          print *,
+     %    'ERROR in ig_to_hybref: ig1 must be between 400 and 1050'
+          return
+      endif
+      if (rcoef.lt.1.0.or.rcoef.gt.2.0) then
+          print *,
+     %    'ERROR in ig_to_hybref: rcoef(ig2/1000) must be between 1.0 and 2.0'
+          return
+      endif
+      if (ig3.ne.0) then
+          print *,'ERROR in ig_to_hybref: ig3 must be 0'
+          return
+      endif
+      if (ig4.ne.0) then
+          print *,'ERROR in ig_to_hybref: ig4 must be 0'
+          return
+      endif
+      ig_to_hybref=0
+      return
+      end
+*
+***function read_decode_hyb - to read a FSTD record and then decode the
+*                                reference values for a hybrid coordinate
+      integer function read_decode_hyb(iun,nom,ip2,ip3,etik,
+     %                                            date,ptop,pref,rcoef)
+
+      implicit none
+      integer iun,ip2,ip3,date
+      real rcoef,pref,ptop
+      character*(*) nom
+      character*(*) etik
+*
+*author
+*     Vivian Lee/Michel Valin    Dec.19, 2001
+*
+*revision
+*
+*object
+*     To derive hybrid reference values given a selected FSTD record
+*
+*arguments
+* ________________________________________________________________
+*  Name        I/O      Description
+* ----------------------------------------------------------------
+* iun           I       unit number for input file to read from
+* nom           I       variable name for search
+* ip2           I       ip2 value for search reference
+* ip3           I       ip3 value for search reference
+* etik          I       label for search reference
+* datev         I       date of validity for search reference
+* ptop          O       surface pressure at the top
+* pref          O       reference pressure (normally = 800mb)
+* rcoef         O       coefficient (1.0 to 2.0)
+* ----------------------------------------------------------------
+* the function will return KEY of FSTD record upon success, -1 if there is an error
+*
+      integer  fstinf,fstprm,ig_to_hybref
+      external fstinf,fstprm,ig_to_hybref
+
+
+      integer  l,deet,ip1a, ip2a, ip3a, ig1a, ig2a, ig3a, ig4a, bit
+      integer  idayo, dty,  swa,  lng,  dlf,  ubc,  ex1,  ex2, ex3
+      integer  npas, nia, nja, i, j, k,ierr,kind
+      real     x1,x2
+      character*1 typ,grda,blk_S
+      character*(4) var
+      character*(12) labanl
+
+      l = fstinf(iun, i, j, k, date, etik, -1, ip2, ip3, 'X', nom)
+      if (l.ge.0) then
+          ierr= fstprm ( l, idayo, deet, npas, nia, nja, k, bit, dty,
+     x                 ip1a, ip2a, ip3a, typ, var, labanl,grda,
+     $                 ig1a,ig2a,ig3a,ig4a,swa,lng,dlf,ubc,ex1,ex2,ex3 )
+          call convip(ip1a,ptop,kind,-1,blk_S,.false.)
+          if (ptop.lt.0.0.or.ptop.gt.1200..or. kind.ne.2) then
+              print *, 'ERROR in read_decode_hyb: Decoding of ip1 in ',nom
+              read_decode_hyb = -1
+          endif
+          ierr=ig_to_hybref(ig1a,ig2a,ig3a,ig4a,rcoef,pref,x1,x2)
+          if (ierr.lt.0) then
+              print *, 'ERROR in read_decode_hyb: Decoding of ig?? in ',nom
+              read_decode_hyb = -1
+          endif
+          read_decode_hyb = l
+      else
+          print *,'ERROR in read_decode_hyb:Record ',nom,' is not found'
+          read_decode_hyb = l
+      endif
+      return
+      end
+*
+***function write_encode_hyb - to encode hybrid reference values into the
+*                          IG* parameters and then write out the FSTD record
+*
+      integer function write_encode_hyb(iun,nom,ip2,ip3,etik,date,
+     %                                               ptop,pref,rcoef)
+
+      implicit none
+      integer iun,ip2,ip3,date
+      real rcoef,pref,ptop
+      character*(*) nom
+      character*(*) etik
+*
+*author
+*     Vivian Lee/Michel Valin    Dec.19, 2001
+*
+*revision
+*
+*object
+*     To encode the given hybrid reference values into IG* parameters
+*                and write out the FSTD record with given IP*,etik,datev
+*
+*arguments
+* ________________________________________________________________
+*  Name        I/O      Description
+* ----------------------------------------------------------------
+* iun           I       unit number for output file to write to
+* nom           I       variable name to be used
+* ip2           I       ip2 value to be used
+* ip3           I       ip3 value to be used
+* etik          I       label to be used
+* datev         I       date of validity to be used
+* ptop          I       surface pressure at the top
+* pref          I       reference pressure (normally = 800mb)
+* rcoef         I       coefficient (1.0 to 2.0)
+* ----------------------------------------------------------------
+* the function will return 0 upon success, -1 if there is an error
+*
+      integer  fstecr,hybref_to_ig
+      external fstecr,hybref_to_ig
+
+
+      integer  l,deet,ip1, ig1, ig2, ig3, ig4, bit
+      integer  idayo, dty,  swa,  lng,  dlf,  ubc,  ex1,  ex2, ex3
+      integer  npas, nia, nja, i, j, k,ierr
+      real     x1,x2
+      character*1 blk_S
+
+      if (ptop.lt.0.0.or.ptop.gt.1200.) then
+          print *, 'ERROR in write_encode_hyb: Encoding of ip1 in ',nom
+          write_encode_hyb = -1
+          return
+      endif
+      call convip(ip1,ptop,2,+1,blk_S,.false.)
+      ierr = hybref_to_ig(ig1,ig2,ig3,ig4,rcoef,pref,x1,x2)
+      if (ierr.lt.0) then
+          print *, 'ERROR in write_encode_hyb: Encoding of ig?? in ',nom
+          write_encode_hyb = -1
+          return
+      endif
+      x1=ptop
+      ierr = fstecr(x1,x2,-32,iun,date,0,0,1,1,1,ip1,ip2,ip3,
+     x              'X',nom,etik,'X',ig1,ig2,ig3,ig4,5,.true.)
+      write_encode_hyb=ierr
+      return
+      end

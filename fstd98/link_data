@@ -1,0 +1,2 @@
+ln -s $ARMNLIB/data/SAMPLES/fstd_files/sample_fstd89 sample_fstd89
+ln -s $ARMNLIB/data/SAMPLES/fstd_files/sample_fstd98 sample_fstd98

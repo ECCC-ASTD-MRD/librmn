@@ -1,0 +1,47 @@
+!!!mod VerticalInterpolationConstants - Constants for vertical interpolation
+!                                       package
+module VerticalInterpolationConstants
+!
+!AUTHOR
+!     J.W. Blezius MAY 2002 first library to replace duplicate interpolation
+!                           routines
+!
+!REVISION
+! v1_0    Blezius J.W.          - initial version
+!
+!OBJECT
+!        This file gathers together into one place the constants that control
+!        the vertical interpolation package.
+!
+!!
+
+  public
+
+  !!!!!
+  !
+  ! The set of possible errors that can be reported by the vertical interpolation
+  ! package
+  !
+  !!!!!
+
+  ! errors from the VerticalInterpolation class
+  integer, parameter :: N_VI_VIERR_FAILED_ALLOCATION    =100, &
+                        N_VI_VIERR_UNDEFINED_GRID_REQD  =101, &
+                        N_VI_VIERR_GRIDS_NOT_SELECTED   =102, &
+                        N_VI_VIERR_BAD_INTERPTYP_4_DATA =103, &
+                        N_VI_VIERR_UNRECOGNIZED_OPTION  =104, &
+                        N_VI_VIERR_UNRECOGNIZED_VALUE   =105, &
+                        N_VI_VIERR_LN_PRESS_CONVERSION  =106, &
+                        N_VI_VIERR_MISSING_SURFACE_DATA =108, &
+
+  ! errors from VerticalGrid class
+                        N_VI_VGERR_HYBRID_TO_PRES_CONVN =200, &
+                        N_VI_VGERR_FAILED_ALLOCATION    =201, &
+                        N_VI_VGERR_PTOP_MISSING         =202, &
+
+  ! errors from the Interface routines
+                        N_IFC_VGRID_REPOSITORY_OVERFLOW =300, &
+                        N_IFC_REPOSITORY_INVALID_INDEX  =301, &
+                        N_IFC_INVALID_DIMENSION         =302
+
+end module VerticalInterpolationConstants 
