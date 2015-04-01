@@ -87,11 +87,11 @@ char **fill_string_array(char **string_array, char *farray, int nc, int ns, int 
   return(string_array);
 }
 
-void f77name(fs_to_cs)(char *fstring, int *rmblanks, int *ns, int nc)
+void f77name(fs_to_cs)(char *fstring, int *rmblanks, int *ns, F2Cl fnc)
 {
   char *cstring, *cmpstring;
   char **string_array;
-  int i;
+  int i, nc=fnc;
 
   cmpstring = malloc(13);
 

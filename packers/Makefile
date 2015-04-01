@@ -1,13 +1,14 @@
-#include Makefile_$(ARCH)$(ABI)
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
-
 SHELL = /bin/sh
 
 CPP = /lib/cpp
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+RMNLIB_BASE_PATH=$(ARMNLIB)
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
+
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
@@ -17,7 +18,7 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 3
+OPTIMIZ = 3
 #OPTIMIZ = -debug
 
 CPPFLAGS = -I$(ARMNLIB)/include
@@ -26,11 +27,7 @@ CPPFLAGS = -I$(ARMNLIB)/include
 
 default: obj
 
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -options_comp -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 
 OBJECTS= \
@@ -54,28 +51,36 @@ FICHIERS = pak.c compact.c compact_h.c compact_integer.c compact_rle.c \
            f_pow.f float_packer.c
           
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/packers_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/packers_1.0_all.tgz $(FICHIERS) Makefile 
           
 obj: $(OBJECTS) $(OBJ_NEC)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: \
+         $(TEMPLIB)(pak.o) $(TEMPLIB)(compact.o)   $(TEMPLIB)(compact_integer.o)     $(TEMPLIB)(compact_rle.o)\
+         $(TEMPLIB)(unpackWrapper.o)   $(TEMPLIB)(compact_IEEEblock.o)   $(TEMPLIB)(f_pow.o)\
+         $(TEMPLIB)(float_packer.o)
+
 genlib: $(OBJECTS) $(OBJ_NEC)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECTS) $(OBJ_NEC)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS) $(OBJ_NEC)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 mytest: $(OBJECTS) $(OBJ_Test) $(LIB)
-	r.build -o $@ -obj $(OBJECTS) $(OBJ_Test) -arch $(ARCH) -abi $(ABI) -librmn rmnbeta -debug
+	r.build -o $@ -obj $(OBJECTS) $(OBJ_Test) -arch $(EC_ARCH) -abi $(ABI) -librmn rmnbeta -debug
+
+libtest: $(OBJ_Test)$(LIB)
+	r.build -o $@ -obj $(OBJ_Test) -arch $(EC_ARCH) -abi $(ABI) -librmn rmn_rc008 -debug
 
 test_I: $(OBJECTS) $(OBJ_Test2) $(LIB)
-	r.build -o $@ -obj $(OBJECTS) $(OBJ_Test2) -arch $(ARCH) -abi $(ABI) -librmn rmnbeta -debug
+	r.build -o $@ -obj $(OBJECTS) $(OBJ_Test2) -arch $(EC_ARCH) -abi $(ABI) -librmn rmnbeta -debug
 
 clean:
 	rm *.o mytest

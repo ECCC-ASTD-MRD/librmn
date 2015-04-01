@@ -27,6 +27,7 @@
 *
 *REVISION 001   C. THIBEAULT  -  NOV 79  DOCUMENTATION
 *REVISION 002   M. LEPINE  -  VERSION SORT POUR UN TABLEAU D'ENTIERS
+*Revision 003   M. Lepine - Avril 2007 - traitement du cas (ridicule) avec n <= 1
 *
 *LANGUAGE - fortran
 *
@@ -61,7 +62,7 @@
       INTEGER ASAVE,N,II,NN,IRETRN,I,J
 *-----------------------------------------------------------------------------
 
-
+      IF (n .le. 1) RETURN
 *
 * INITIALIZATION FOR FIRST LOOP (IF  N/2.GE.2 ONLY).
 *

@@ -41,6 +41,7 @@
             lon(i) =atan2( xyz(2,i),xyz(1,i) ) * rad
             lon(i) =amod( lon(i) , 360.0 )
             if(lon(i).lt.0.0) lon(i)=lon(i)+360.0
+!           print *, 'EZ_CAL', lat(i), lon(i)
  30      continue
 *
       return

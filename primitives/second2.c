@@ -19,7 +19,7 @@
  */
 
 #if defined (HP) || defined(Alpha)
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 
 
 #include <sys/times.h>

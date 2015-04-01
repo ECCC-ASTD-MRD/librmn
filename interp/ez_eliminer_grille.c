@@ -54,7 +54,7 @@ void EliminerGrille(wordint gridid)
         Grille[gridid].ncx = NULL;
         Grille[gridid].ncy = NULL;
         }
-    Grille[gridid].flags = NULL;
+    Grille[gridid].flags = (int)NULL;
     }
    
 
@@ -65,7 +65,7 @@ void EliminerGrille(wordint gridid)
          if (gridset[i].flags & XXX)
             {
             c_ezfreegridset(i);
-            gridset[i].flags = NULL;
+            gridset[i].flags = (int)NULL;
             }
          }
       }

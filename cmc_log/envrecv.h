@@ -6,7 +6,7 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 
 /* ENTRY = ID + TEXT + NewLine
    ID = 8 chars, TEXT = 55 chars */

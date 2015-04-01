@@ -58,7 +58,7 @@
 #include "defi.cdk"
 #include "bpl.cdk"
 #include "codes.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 *
 *MODULES 
       EXTERNAL XDFXTR, QDFERR, getbuf8

@@ -13,28 +13,31 @@
 #!        inclusion in a library
 #!
 #!!
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
 
 .SUFFIXES:
 
-.SUFFIXES : .o .ftn90 .cdk
+.SUFFIXES : .o .ftn90 .cdk .a
 
 SHELL = /bin/sh
 
-RMNLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn.a
+RMNLIB_BASE_PATH=$(ARMNLIB)
+
+RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
-#OPTIMIZ = -O 0 -debug
+OPTIMIZ = 2
+#OPTIMIZ = 0 -debug
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
@@ -42,14 +45,7 @@ UPDATEX =
 
 default: obj
 
-.ftn90.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 Interp1D_Arguments_X.cdk : Interp1D_Arguments.cdk
 Interp1D_Constants.o : Interp1D_Constants.ftn90 Interp1D_Arguments_X.cdk
@@ -77,37 +73,43 @@ OBJECTS= \
 FICHIERS = *.ftn90 *.cdk
         
 SpeedFindPos:	SpeedFindPos.o $(OBJECTS)
-	r.build -o SpeedFindPos_$(ARCH).Abs -obj SpeedFindPos.o $(OBJECTS) \
-	-arch $(ARCH) -abi$(ABI) -librmn rmn_005
+	r.build -o SpeedFindPos_$(EC_ARCH).Abs -obj SpeedFindPos.o $(OBJECTS) \
+	-arch $(EC_ARCH) -abi$(ABI) -librmn rmn_005
 
 SpeedInterp:	SpeedInterp.o $(OBJECTS)
-	r.build -o SpeedInterp_$(ARCH).Abs -obj SpeedInterp.o $(OBJECTS) -arch $(ARCH) \
+	r.build -o SpeedInterp_$(EC_ARCH).Abs -obj SpeedInterp.o $(OBJECTS) -arch $(EC_ARCH) \
 	-abi$(ABI) -librmn rmn_005
 
 SpeedExtrap:	SpeedExtrap.o $(OBJECTS)
-	r.build -o SpeedExtrap_$(ARCH).Abs -obj SpeedExtrap.o $(OBJECTS) -arch $(ARCH) \
+	r.build -o SpeedExtrap_$(EC_ARCH).Abs -obj SpeedExtrap.o $(OBJECTS) -arch $(EC_ARCH) \
 	-abi$(ABI) -librmn rmn_005
 
 Test_Interp1D:	Test_Interp1D.o $(OBJECTS)
-	r.build -o Test_Interp1D_$(ARCH).Abs -obj Test_Interp1D.o $(OBJECTS) -arch $(ARCH) \
+	r.build -o Test_Interp1D_$(EC_ARCH).Abs -obj Test_Interp1D.o $(OBJECTS) -arch $(EC_ARCH) \
 	-abi$(ABI) -librmn rmn_005
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/interpv_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/interpv_1.0_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: \
+        $(TEMPLIB)(Interp1D_Constants.o) $(TEMPLIB)(Extrap1D_LapseRate.o) $(TEMPLIB)(Extrap1D_Surface.o) \
+        $(TEMPLIB)(Extrap1D_SurfaceWind.o)\
+        $(TEMPLIB)(Interp1D_CubicLagrange.o) $(TEMPLIB)(Interp1D_CubicWithDerivs.o) $(TEMPLIB)(Interp1D_FindPos.o) \
+        $(TEMPLIB)(Interp1D_Linear.o) $(TEMPLIB)(Interp1D_NearestNeighbour.o)
+
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECTS)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:
@@ -120,4 +122,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm -f *.o *.f90 *.mod *.stb  *.Abs
+	rm -f *.o *.f90 *.mod *.MOD *.stb  *.Abs

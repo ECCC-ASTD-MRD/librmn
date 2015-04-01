@@ -79,7 +79,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#ifdef WIN32	/*CHC/NRC*/
+#else
 #include <unistd.h>
+#endif
+
 #include <ctype.h>
 
 #define FNAME_LEN 50
@@ -87,7 +92,7 @@
 ftnword f77name(prog_filename)(char *f_nom, unsigned char *f_prefix, 
        ftnword *f_date, ftnword *f_hour, ftnword *f_min, ftnword *f_sec, 
        ftnword *f_npex, ftnword *f_npey, ftnword *f_num, ftnword *f_numlen, 
-       char *f_unit, int l1, int l2, int l3)
+       char *f_unit, F2Cl l1, F2Cl l2, F2Cl l3)
 
 {                                               
 

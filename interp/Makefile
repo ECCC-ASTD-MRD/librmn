@@ -1,28 +1,31 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
 .SUFFIXES :
 
-.SUFFIXES : .ftn .c .o
+.SUFFIXES : .ftn .c .o .a
 
 SHELL = /bin/sh
 
 CPP = /lib/cpp
 
-RMNLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn.a
+RMNLIB_BASE_PATH=$(ARMNLIB)
+
+RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 FFLAGS = 
 
 CFLAGS = 
 
-DEFINE = -defines =-DFICHSTD98
+DEFINE = -DFICHSTD98
 
-OPTIMIZ = -O 2
-#OPTIMIZ = -O 0 -debug
+OPTIMIZ = 2
+#OPTIMIZ = 0 -debug
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
@@ -33,18 +36,7 @@ default: obj
 .DEFAULT:
 	co $@
 
-
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(DEFINE) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
-
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.f90.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 OBJET = f_ezscint.o c_ezscint.o
 
@@ -229,21 +221,24 @@ c_ezscint.c: $(FICHIERS_C) $(FICHIERS_H)
 	cat $(FICHIERS_C) > c_ezscint.c
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/interp_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/interp_1.0_all.tgz $(FICHIERS) Makefile 
         
 obj: $(OBJET)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: \
+        $(TEMPLIB)(f_ezscint.o)   $(TEMPLIB)(c_ezscint.o)
+
 genlib: $(OBJET)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJET)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJET)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:

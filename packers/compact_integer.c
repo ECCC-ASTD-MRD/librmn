@@ -568,7 +568,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
        return 0;
      };/* if */
  
-
+  return intCount;  /* unused, function must return something */
  
 
 } /* end compact_integer */
@@ -811,7 +811,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
        return 0;
      };/* if */
  
-
+  return intCount;  /* unused, function must return something */
  
 
 } /* end compact_short */
@@ -1052,16 +1052,8 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
        return 0;
      };/* if */
  
-
+  return intCount;  /* unused, function must return something */
  
 
 } /* end compact_char */
-
-
-
-
-
-
-
-
 

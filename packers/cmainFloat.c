@@ -82,6 +82,7 @@ void f77name(cmain)()
 
 
 
+  setvbuf( stdout, NULL, _IONBF, 0 );
   bitSizeOfInt  = okBit;
   mBitSizeOfInt = -okBit;
 

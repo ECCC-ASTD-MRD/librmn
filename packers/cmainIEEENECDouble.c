@@ -235,7 +235,7 @@ if ( geneticOn == 1 )
         }
       else
         {
-          printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test pased \n", 
+          printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test passed \n", 
                  bitSizeOfInt, bitSizeOfExpo);
         };
     };
@@ -266,7 +266,7 @@ if ( geneticOn == 1 )
     }
   else
     {
-      printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test pased \n", 
+      printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test passed \n", 
              bitSizeOfInt, bitSizeOfExpo);
     };
   printf("\n IEEE block test finishes(double)  \n");

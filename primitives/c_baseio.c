@@ -26,11 +26,27 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+
+#ifdef WIN32    /*CHC/NRC*/
+#include <stdio.h>
+#include <sys/stat.h>
+#define L_SET SEEK_SET
+#define L_INCR SEEK_CUR
+#define L_XTND SEEK_END
+#define S_IRUSR _S_IREAD
+#define S_IWUSR _S_IWRITE
+#define S_IRGRP _S_IREAD
+#define S_IWGRP _S_IWRITE
+#define S_IROTH _S_IREAD
+#define S_IWOTH _S_IWRITE
+#else
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/signal.h>
+#endif
+
 #include <fcntl.h>
 #include <errno.h>
 
@@ -70,6 +86,7 @@ static int fnom_rem_connect(int ind, char* remote_host);
 
 
 static ENTETE_CMCARC cmcarc;
+static ENTETE_CMCARC_V5 cmcarc64;
 
 static FILEINFO wafile[MAXWAFILES];
 static word *free_list[MAXWAFILES*MAXPAGES];
@@ -536,7 +553,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
   return(ier<0?-1:0);
 }  
 
-ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,int l1,int l2)
+ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F2Cl l2)
 {
    int lrec,lng,tmp,liun=*iun;
    char filename[257],filetype[257];
@@ -673,7 +690,7 @@ static int c_qqqfscr(char *type)
 *          in  l2      length of type 
 *
 */
-ftnword f77name(qqqfnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,int l1,int l2)
+ftnword f77name(qqqfnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F2Cl l2)
 {
    int i,j;
 
@@ -1115,10 +1132,10 @@ ftnword f77name(numblks)(ftnword *fiun)     /* return file size in KiloBytes */
 *         
 *
 */
-ftnword f77name(existe)(char *nom,int lng) 
+ftnword f77name(existe)(char *nom,F2Cl llng) 
 {
    struct stat etat;
-   int l2;
+   int l2, lng=llng;
    char filename[257];
 
    l2 = (lng <= 256) ? lng : 256;
@@ -1538,7 +1555,8 @@ int c_sqgets(int iun, char *bufptr, int nchar) {
    nlu = read(fd,bufptr,nchar);
    return( (nlu > 0) ? nlu : -1);
 }
-ftnword f77name(sqgets)(ftnword *iun, char  *bufptr, ftnword *nchar, int lbuf) {
+ftnword f77name(sqgets)(ftnword *iun, char  *bufptr, ftnword *nchar, F2Cl llbuf) {
+   int lbuf=llbuf;
    if (lbuf >= *nchar)
       return( c_sqgets(*iun, bufptr , *nchar));
    else
@@ -1568,7 +1586,8 @@ int c_sqputs(int iun, char *bufptr, int nchar) {
    nlu = write(fd,bufptr,nchar);
    return( (nlu > 0) ? nlu : -1);
 }
-ftnword f77name(sqputs)(ftnword *iun, char  *bufptr, ftnword *nchar, int lbuf) {
+ftnword f77name(sqputs)(ftnword *iun, char  *bufptr, ftnword *nchar, F2Cl llbuf) {
+   int lbuf=llbuf;
    if (lbuf >= *nchar)
       return( c_sqputs(*iun, bufptr , *nchar));
    else
@@ -1780,40 +1799,60 @@ static int filepos(int indf)
     char code;
     char header[MAX_NAME];
   } HEADER_CMCARC;
+  
+  typedef struct {
+    unsigned char ntotal[8];
+    unsigned char ndata[8];
+    char code;
+    char header[MAX_NAME];
+  } HEADER_CMCARC_V5;
 
   HEADER_CMCARC *cmcarc_file;
-  int nt,nd,nblu,lng,found=0;
+  int nblu,lng,found=0,version=0,tail_offset;
+  unsigned int nt,nd;
+  INT_64 nt64, nd64, lng64, nblu64;
   
   
   lseek(FGFDT[indf].fd,(off_t) 0,L_SET);
   nblu = read(FGFDT[indf].fd,sign,8);
   if (strncmp(sign,CMCARC_SIGN,8) != 0) {
     nblu = read(FGFDT[indf].fd,&sign[8],17);
-    if (strncmp(&sign[9],CMCARC_SIGN,8) != 0) {
-      fprintf(stderr,"%s is not a CMCARC type file\n",FGFDT[indf].file_name);
-      return(-1);
+    if (strncmp(&sign[9],CMCARC_SIGN,8) == 0) {                   /* skip to beginning of next file */
+      version=4;
+/*      printf("Debug+ signature version 4 trouvee\n"); */
+      }
+    else {
+      if (strncmp(&sign[17],CMCARC_SIGN_V5,8) == 0) {
+        version=5;
+/*        printf("Debug+ signature version 5 trouvee\n"); */
+        }
+      else {
+        fprintf(stderr,"%s is not a CMCARC type file\n",FGFDT[indf].file_name);
+        return(-1);
+        }
     }
-    else {                    /* skip to beginning of next file */
-      cmcarc_file = (HEADER_CMCARC *) &sign[0];
-      nt = (cmcarc_file->ntotal[0] << 24) |
-      (cmcarc_file->ntotal[1] << 16) |
-      (cmcarc_file->ntotal[2] <<  8) |
-      (cmcarc_file->ntotal[3]);
+    cmcarc_file = (HEADER_CMCARC *) &sign[0];
+    nt = (cmcarc_file->ntotal[0] << 24) |
+    (cmcarc_file->ntotal[1] << 16) |
+    (cmcarc_file->ntotal[2] <<  8) |
+    (cmcarc_file->ntotal[3]);
     
-      nd = (cmcarc_file->ndata[0] << 24) |
-      (cmcarc_file->ndata[1] << 16) |
-      (cmcarc_file->ndata[2] <<  8) |
-      (cmcarc_file->ndata[3]);
+    nd = (cmcarc_file->ndata[0] << 24) |
+    (cmcarc_file->ndata[1] << 16) |
+    (cmcarc_file->ndata[2] <<  8) |
+    (cmcarc_file->ndata[3]);
     
+    if (version == 5)
+      nt = nd;
+    else
       if (nd != 0) {
         fprintf(stderr,
                 "%s is a CMCARC file but nd=%d\n",FGFDT[indf].file_name,nd);
         return(-1);
       }
-      lng = (nt *8) - 25;
-      if (lseek(FGFDT[indf].fd,(off_t)lng,L_INCR) == (off_t)(-1)) {
-        return (-1);
-      }
+    lng = (nt *8) - 25;
+    if (lseek(FGFDT[indf].fd,(off_t)lng,L_INCR) == (off_t)(-1)) {
+      return (-1);
     }
   }
   subfile_length = 0;
@@ -1832,16 +1871,42 @@ static int filepos(int indf)
       (cmcarc.ndc[2] <<  8) |
       (cmcarc.ndc[3]);
     
-    lng = (nt - nd - 2) * 8;
-    
-    nblu = read(FGFDT[indf].fd,cmcarc.cmcarc_name,lng);
-    if (nblu != lng) return -3;
+    if (nt >= nd+4) {
+      nt64 = nt;
+      nd64 = nd;
+      lng64 = (nt64 - nd64 - 2) * 8;
+      tail_offset = 1;
+      }
+    else {
+      tail_offset = 2;
+      nt64 = nt;
+      nt64 = (nt64 << 32) | nd;
+      nblu = read(FGFDT[indf].fd,&cmcarc,8);
+      nd64 = cmcarc.ntc[0];
+      nd64 = (nd64 << 8) | cmcarc.ntc[1];
+      nd64 = (nd64 << 8) | cmcarc.ntc[2];
+      nd64 = (nd64 << 8) | cmcarc.ntc[3];
+      nd64 = (nd64 << 8) | cmcarc.ndc[0];
+      nd64 = (nd64 << 8) | cmcarc.ndc[1];
+      nd64 = (nd64 << 8) | cmcarc.ndc[2];
+      nd64 = (nd64 << 8) | cmcarc.ndc[3];
+      lng64 = (nt64 - nd64 - 4) * 8;
+      if (nt64 < nd64+6) {
+        fprintf(stderr,
+                "%s is a CMCARC file but nt=%d nd=%d\n",FGFDT[indf].file_name,nt64,nd64);
+        return(-1);
+        }
+      }
+/*    printf("Debug+ nt64=%Ld nd64=%Ld lng64=%Ld\n",nt64,nd64,lng64); */
+    nblu64 = read(FGFDT[indf].fd,cmcarc.cmcarc_name,lng64);
+/*    printf("Debug cmcarc.cmcarc_name=%s\n",&cmcarc.cmcarc_name[1]); */
+    if (nblu64 != lng64) return -3;
     if (strcmp(FGFDT[indf].subname,&cmcarc.cmcarc_name[1]) == 0) {
       found = 1;
     }
     else {              /* sauter les donnees */
-      lng = (nd+1) * 8;
-      if (lseek(FGFDT[indf].fd,(off_t)lng,L_INCR) == (off_t)(-1)) {
+      lng64 = (nd64+tail_offset) * 8;
+      if (lseek64(FGFDT[indf].fd,(off_t)lng64,L_INCR) == (off_t)(-1)) {
         return (-1);
       }
     }

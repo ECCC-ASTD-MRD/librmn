@@ -50,7 +50,8 @@
 
       POINTER ( IP,EPSI(1) )
 
-      COMMON   /ALPNRT/ LRLM,IC,ID,IE,IP
+      COMMON   /COMLRLM/ LRLM
+      COMMON   /ALPNRT/ IC,ID,IE,IP
 
       EXTERNAL  EPSIL8
 

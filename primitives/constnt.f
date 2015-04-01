@@ -46,6 +46,9 @@
 *             present localement  AVRIL 93
 *         003 M.VALIN janvier 2000 ajout d'un mode MPI avec
 *             broadcast + quelques corrections
+*         004 M. DESGAGNE - Decembre 2006 - Introduce BLOCK DATA 
+*             DATA_CONSTNT_X and return a valid flag for section
+*             (NAME(1).EQ.' ')
 * 
 *OBJET(CONSTNT) 
 *     LIT LE FICHIER DE CONSTANTES COMMUNES CMC-RPN.
@@ -112,10 +115,7 @@
       CHARACTER *8 NAME(MAXCNS), TNAME
       CHARACTER *42 TEXT
 * 
-
       COMMON/CONSTNT_PDATA/ istrt, NAME, VAL, NCNS, iend
-* 
-      DATA NAME /MAXCNS * ' '/
 * 
 *-----------------------------------------------------------------
       MODE=mod(mode0,100)
@@ -128,16 +128,16 @@
       ENDIF
       IF(NAME(1).EQ.' ')THEN
 
-
+         FLAG=0
          IUNREAD=0
          INQUIRE(FILE='./constantes',EXIST=FEXIST)
          IF(FEXIST)THEN
          IER=FNOM(IUNREAD,'constantes','FTN+SEQ+FMT',0)
          ELSE
-         I=FNOM(IUNREAD,'@thermoconsts','FTN+SEQ+FMT',0)
+         IER=FNOM(IUNREAD,'@thermoconsts','FTN+SEQ+FMT',0)
          ENDIF
+         if (IER.ne.0) return
 * 
-
          IF(MODE.EQ.1)THEN
             WRITE(6,600)
 600         FORMAT(1H1,10X,'LISTE DES CONSTANTES COMMUNES CMC-RPN', 
@@ -149,17 +149,18 @@
          DO 1 I=1,MAXCNS
 
 
-            READ(IUNREAD,'(2X,A8,2X,E20.13,2X,A42)',END=2)
+            READ(IUNREAD,'(2X,A8,2X,E20.13,2X,A42)',END=2,err=3)
 
      $      NAME(I),VAL(I),TEXT 
             IF(MODE.EQ.1)WRITE(6,605)NAME(I),VAL(I),TEXT
 605         FORMAT(2X,A8,2X,E20.13,2X,A42)
             NCNS = I
 1        CONTINUE 
+ 2       FLAG=1
 
 
 C2        CLOSE(IUNREAD) 
-2        IER=FCLOS(IUNREAD)
+ 3       IER=FCLOS(IUNREAD)
 * 
 
          IF(MODE.EQ.1)RETURN
@@ -243,3 +244,19 @@ C2        CLOSE(IUNREAD)
 * 
       RETURN
       END 
+      BLOCK DATA DATA_CONSTNT_X
+
+      INTEGER MAXCNS
+      PARAMETER(MAXCNS=200) 
+
+      INTEGER NCNS, istrt(2), iend(2)
+* 
+      REAL*8       VAL(MAXCNS)
+      CHARACTER *8 NAME(MAXCNS)
+* 
+
+      COMMON/CONSTNT_PDATA/ istrt, NAME, VAL, NCNS, iend
+* 
+      DATA NAME /MAXCNS * ' '/
+* 
+      END BLOCK DATA DATA_CONSTNT_X

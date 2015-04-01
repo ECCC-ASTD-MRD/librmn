@@ -87,7 +87,6 @@
       CHARACTER *80 VERSION,titre
       INTEGER EXFIN,IOPDATM,I,IDATIM(14)
       REAL T1,SECOND
-      EXTERNAL FDATE
       external memoirc, flush_stdout
       SAVE T1
 

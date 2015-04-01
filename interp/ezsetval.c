@@ -23,15 +23,17 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, wordint lenoption)
+wordint f77name(ezsetval)(char *option, ftnfloat *fvalue, F2Cl lenoption)
 {
    wordint i, icode;
    wordint longueur_option, longueur_value;
 
    char local_opt[32];
+   wordint l_lenoption;
 
+   l_lenoption = (wordint) lenoption;
    memset(local_opt, (unsigned char)'\0', 32);
-   longueur_option = f77name(longueur)(option, lenoption);
+   longueur_option = f77name(longueur)(option, l_lenoption);
    longueur_option = longueur_option < 32 ? longueur_option : 31;
 
    for (i=0; i < longueur_option; i++)

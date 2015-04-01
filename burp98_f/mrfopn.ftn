@@ -165,13 +165,17 @@
 *     S'ASSURER QUE LE FICHIER A ETE CREE EN UTILISANT LA BONNE 
 *     TABLE BURP
       IF(INDEX(APPL,'bRp0') .NE. 0) THEN
-         WRITE(IOUT, 700)
-         WRITE(IOUT, 703)
+         IF (MESSNIV .LE. WARNIN) THEN
+           WRITE(0, 700)
+           WRITE(0, 703)
+         ENDIF
          MRFOPN = QDFERR('MRFOPN',
      X                   'FICHIER CREE AVEC TABLEBURP NON-OFFICIELLE',
      X                    WARNIN, NONOFTB)
-         WRITE(IOUT, 703)
-         WRITE(IOUT, 702)
+         IF (MESSNIV .LE. WARNIN) THEN
+           WRITE(0, 703)
+           WRITE(0, 702)
+         ENDIF
       ENDIF
 
       IF(MESSNIV .LE. INFORM) THEN
@@ -182,7 +186,7 @@
         
  300  FORMAT(/' UNITE = ',I3,' FICHIER RAPPORT EST CREE')
  400  FORMAT(/' UNITE = ',I3,' FICHIER RAPPORT EST OUVERT')
- 700  FORMAT('0***********************ATTENTION***********************')
+ 700  FORMAT(' ***********************ATTENTION***********************')
  702  FORMAT(' *******************************************************')
  703  FORMAT(' *')
 

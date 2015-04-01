@@ -19,8 +19,11 @@
 * */
       subroutine min_1_2
       real array(400,200), work(400*200+10), unpacked(400,200)
+      character *1024 ARMNLIBREP
 
-      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_1_2.txt',
+      call getenv('ARMNLIB',ARMNLIBREP)
+C      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_1_2.txt',
+      open(11,file=trim(ARMNLIBREP)//'/data/SAMPLES/min_1_2.txt',
      %form='formatted',access='sequential')
       read(11,*) array
       print *,'Debug array = '
@@ -111,8 +114,12 @@
       END
       subroutine min_2_4
       real array(400,200), work(400*200+10), unpacked(400,200)
+      character *1024 ARMNLIBREP
 
-      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_2_4.txt',
+      call getenv('ARMNLIB',ARMNLIBREP)
+
+C      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_2_4.txt',
+      open(11,file=trim(ARMNLIBREP)//'/data/SAMPLES/min_2_4.txt',
      %form='formatted',access='sequential')
       read(11,*) array
       print *,'Debug array = '
@@ -140,8 +147,12 @@
       end
       subroutine min_4_8
       real array(400,200), work(400*200+10), unpacked(400,200)
+      character *1024 ARMNLIBREP
 
-      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_4_8.txt',
+      call getenv('ARMNLIB',ARMNLIBREP)
+
+C      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_4_8.txt',
+      open(11,file=trim(ARMNLIBREP)//'/data/SAMPLES/min_4_8.txt',
      %form='formatted',access='sequential')
       read(11,*) array
       print *,'Debug array = '
@@ -169,8 +180,12 @@
       end
       subroutine min_8_16
       real array(400,200), work(400*200+10), unpacked(400,200)
+      character *1024 ARMNLIBREP
 
-      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_8_16.txt',
+      call getenv('ARMNLIB',ARMNLIBREP)
+
+C      open(11,file='/usr/local/env/armnlib/data/SAMPLES/min_8_16.txt',
+      open(11,file=trim(ARMNLIBREP)//'/data/SAMPLES/min_8_16.txt',
      %form='formatted',access='sequential')
       read(11,*) array
       print *,'Debug array = '

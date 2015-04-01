@@ -1,8 +1,6 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
-
 .SUFFIXES :
 
-.SUFFIXES : .f .o .rat .dck
+.SUFFIXES : .f .o .a
 
 SHELL = /bin/sh
 
@@ -10,13 +8,17 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
+
+RMNLIB_BASE_PATH=$(ARMNLIB)
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
@@ -46,7 +48,7 @@ FICHIERS = \
  qlxtok.dck    qlxundf.dck   qlxval.dck    qlxxpr.dck\
  readlx.dck
 
-FILES = readlx.f readlx.f_AIX
+FILES = readlx.f
 
 default: obj
 
@@ -56,11 +58,7 @@ default: obj
 .rat.f:
 	rat77 -f $< -l $*.of -o $*.f
 
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 #readlx.rat: $(FICHIERS)
 #readlx.f: readlx.rat
@@ -72,29 +70,34 @@ tstrdlx.o: tstrdlx.f
 #	cat *.dck | /lib/cpp -P $(CPPFLAGS) -I$(ARMNLIB)/include $(DEFINE) > readlx.rat
 
 tarball:  $(FILES) Makefile
-	tar cfzv /data/armnraid1/www/ssm/readlx_1.0_all.tgz $(FILES) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/readlx_1.0_all.tgz $(FILES) Makefile 
 
 obj: $(OBJET) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
 tstrdlx: $(OBJET2) $(OBJET)
-	r.build -o $@ -obj $(OBJET2) $(OBJET) -arch $(ARCH) -abi $(ABI) -librmn rmnbeta
+	r.build -o $@ -obj $(OBJET2) $(OBJET) -arch $(EC_ARCH) -abi $(ABI) -librmn rmnbeta
+
+tstrdlx12: $(OBJET2) $(OBJET)
+	r.build -o $@ -obj $(OBJET2) $(OBJET) /users/dor/armn/lib/obj/node12/*.o -arch $(EC_ARCH) -abi $(ABI) -librmn rmnbeta -mpi
 
 tstc: tstc.o c_readlx.o readln.o
-	r.build -o $@ -obj tstc.o c_readlx.o readln.o -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj tstc.o c_readlx.o readln.o -arch $(EC_ARCH) -abi $(ABI) -librmn
 
+locallib: $(TEMPLIB)(readlx.o)        
+        
 genlib: $(OBJET)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJET)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJET)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:
-	-rm readlx.f *.o *.rat *.of tstrdlx
+	-rm -f *.o *.rat *.of tstrdlx
 

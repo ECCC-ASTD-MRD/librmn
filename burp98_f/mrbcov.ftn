@@ -34,7 +34,7 @@
 *     ET CCC SUR HUIT BITS
 *
 *IMPLICITES
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 #include "defi.cdk"
 #include "masques.cdk"
 *

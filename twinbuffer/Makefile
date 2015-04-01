@@ -1,6 +1,6 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
+.SUFFIXES :
 
-.SUFFIXES : .ftn .f .c .o
+.SUFFIXES : .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -10,13 +10,17 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
+
+RMNLIB_BASE_PATH=$(ARMNLIB)
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
@@ -24,14 +28,7 @@ UPDATEX =
 
 default: obj
 
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
-
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 OBJECT = I_O_2Buffer.o
 
@@ -40,25 +37,27 @@ OBJECT2 = test.o
 FICHIERS = I_O_2Buffer.c 
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/twinbuffer_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/twinbuffer_1.0_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECT) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: $(TEMPLIB)(I_O_2Buffer.o)
+
 genlib: $(OBJECT)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECT)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECT)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 test: $(OBJECT2)
-	r.build -o $@ -obj $(OBJECT2) $(OBJECT) -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj $(OBJECT2) $(OBJECT) -arch $(EC_ARCH) -abi $(ABI) -librmn
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources inutiles et les .o 

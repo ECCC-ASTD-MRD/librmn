@@ -23,7 +23,7 @@
 #include <rpnmacros.h>
 #define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
 
-ftnword f77name(rename_c)(char *oldname, char *newname, int lng1, int lng2)
+ftnword f77name(rename_c)(char *oldname, char *newname, F2Cl lng1, F2Cl lng2)
 {
   int rcode;
   char old[256], new[256];

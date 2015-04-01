@@ -1,10 +1,12 @@
 /* mgi.h */
 
-/* #define MAX_CHANNELS 10 */
-#define MAX_CHANNELS 1000
-#define MAX_NAME 41
+#define MAX_CHANNELS 24
+#define MAX_NAME 125
 #define MAX_STR 1024
 #define BUFSIZE 40960
+
+#define FALSE            0
+#define TRUE        !FALSE
 
 typedef struct 
 {
@@ -19,4 +21,3 @@ typedef struct
   int pos;
   int gchannel;
 } channel;
-

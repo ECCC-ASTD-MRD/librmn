@@ -88,7 +88,7 @@
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
       INTEGER NARG,NPRM,DOPE,NDOPE,DOPEA,DOPES,PARM
-      Integer*4 ADR
+      Integer*8 ADR
 **
 
       IF((N .LE. NARG))THEN
@@ -120,7 +120,7 @@
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
       INTEGER NARG,NPRM,DOPE,NDOPE,DOPEA,DOPES,PARM
-      Integer*4 ADR
+      Integer*8 ADR
 *
 **
 
@@ -168,7 +168,7 @@
 
       INTEGER  QLXDTYP
       EXTERNAL QLXDTYP
-      Integer*4 LOCVAR,LOCCNT
+      Integer*8 LOCVAR,LOCCNT
       INTEGER LIMITE,ITYP,IZ,INDX
       REAL Z
       EQUIVALENCE(Z,IZ)
@@ -193,13 +193,15 @@
 
 *
 **S/P GET SUBSCRIPT THEN BUILD MACHINE ADDRESS
-      Integer*4 FUNCTION QLXADR(KLE,ERR)
+      Integer*8 FUNCTION QLXADR(KLE,ERR)
 *
 
       CHARACTER *(*) KLE
       LOGICAL ERR
       INTEGER LIMITS,INF,ITYP
-      Integer*4 LOCCNT
+      Integer*8 LOCCNT, locvar8
+      Integer*8 get_address_from
+      EXTERNAL get_address_from
       POINTER (LOCVAR,VARI(*))
 **
 
@@ -207,12 +209,13 @@
 *
 
       IF((.NOT. ERR))THEN
-         CALL QLXFND(KLE,LOCVAR,LOCCNT,LIMITS,ITYP)
+         CALL QLXFND(KLE,LOCVAR8,LOCCNT,LIMITS,ITYP)
+         call make_cray_pointer(LOCVAR,locvar8)
          IF((IND.LE.LIMITS .AND. ITYP.GE.0 .AND. ITYP.LE.1)
      %   )THEN
 
 *            QLXADR = QLXMAD(LOCVAR,IND)
-            QLXADR = LOC(VARI(IND))
+            QLXADR = get_address_from(VARI(IND))
          ELSE 
             ERR=.TRUE.
             CALL QLXERR(21017,'QLXADR')
@@ -231,7 +234,8 @@
 *
 ***S/P QLXASG ASSIGNATION D'UNE OU PLUSIEURS VALEURS
       SUBROUTINE QLXASG(VAL,ICOUNT,LIMIT,ERR)
-      INTEGER ICOUNT,LIMIT,VAL
+      integer*8 VAL
+      INTEGER ICOUNT,LIMIT
       LOGICAL ERR
 *
 *OBJET(QLXASG)
@@ -292,7 +296,7 @@
                ENDIF 
             ENDIF 
             IF((TYPE.EQ.8))THEN
-               CALLPEEK(JVAL,1,JVAL)
+               call get_content_of_location(JVAL,1,JVAL)
             ELSE 
                IF((TYPE.EQ.1 .AND. OLDTYP.EQ.4))THEN
                   ITEMP(1)=JVAL
@@ -341,8 +345,8 @@
                                  ELSE 
                                     DO 23030  I=1,IREPCN
                                        DO 23032  J=1,JLEN
-                                          CALLPOKE(VAL,IND+J-1,ITEMP
-     %                                    (J))
+                                          call set_content_of_location
+     %                                    (VAL,IND+J-1,ITEMP(J))
 23032                                  CONTINUE 
                                        IND=IND+MAX(JLEN,1)
 23030                               CONTINUE 
@@ -426,8 +430,11 @@
 
 *
       SUBROUTINE QLXCALL(SUB,ICOUNT,LIMITS,ERR)
-      Integer*4 SUB,ICOUNT
+      Integer*8 SUB,ICOUNT
 *
+      Integer*8 get_address_from
+      EXTERNAL get_address_from
+
 
       COMMON/QLXTOK1/LEN,TYPE,ZVAL,INEXPR
       LOGICAL INEXPR
@@ -444,7 +451,7 @@
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
       INTEGER NARG,NPRM,DOPE,NDOPE,DOPEA,DOPES,PARM
-      Integer*4 ADR
+      Integer*8 ADR
       CHARACTER * 20 LINEFMT
       INTEGER KARMOT
       COMMON /QLXFMT/ LINEFMT
@@ -454,7 +461,7 @@
       EXTERNAL RMTCALL, QLXADR, QLXVAL
       INTEGER  RMTCALL, QLXVAL
       INTEGER LIM1,LIM2,JLEN,PREVI
-      Integer*4 LOCDUM, QLXADR
+      Integer*8 LOCDUM, QLXADR
       CHARACTER *8 KLE
 *
 
@@ -467,7 +474,7 @@
 
       FIN  = .FALSE.
       INLIST = .FALSE.
-      LOCDUM =LOC(PARM(1))
+      LOCDUM =get_address_from(PARM(1))
       NDOPES = 0
       DO 23000 I = 1,41
          DOPE(I) = 0
@@ -515,7 +522,7 @@
                   PREVI =7
                   IF((.NOT. INLIST))THEN
                      NARG = MIN(NARG+1,41)
-                     ADR(NARG) =LOC(PARM(NPRM))
+                     ADR(NARG) =get_address_from(PARM(NPRM))
                      DOPEA(NARG) = NDOPES + 1
                      NPRM0 = NPRM - 1
                   ENDIF 
@@ -531,7 +538,7 @@
      %               )
                      IF((.NOT. INLIST))THEN
                         NARG = MIN(NARG+1,41)
-                        ADR(NARG) =LOC(PARM(NPRM+1))
+                        ADR(NARG) =get_address_from(PARM(NPRM+1))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM
                      ENDIF 
@@ -553,7 +560,7 @@
                         INLIST = .TRUE.
                         PREVI =4
                         NARG = MIN(NARG+1,41)
-                        ADR(NARG) =LOC(PARM(NPRM+1))
+                        ADR(NARG) =get_address_from(PARM(NPRM+1))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM
                      ELSE 
@@ -616,9 +623,9 @@
 
 *
             ELSE 
-               CALLPOKE(ICOUNT,1,NARG)
+               call set_content_of_location(ICOUNT,1,NARG)
                JUNK=RMTCALL(SUB,ADR)
-               CALLPOKE(ICOUNT,1,0)
+               call set_content_of_location(ICOUNT,1,0)
                CALL QLXFLSH('$')
 
 *
@@ -876,7 +883,8 @@
 
 *
       SUBROUTINE QLXFND(KEY,LOCVAR,LOCCNT,LIMITS,ITYP)
-      Integer*4 LOCVAR,LOCCNT,loc_sub
+      Integer*8 LOCVAR,LOCCNT,get_address_from
+      EXTERNAL get_address_from
       INTEGER LIMITS,ITYP
       CHARACTER *(*) KEY
 *
@@ -940,20 +948,20 @@
       GOTO 200
 110   CONTINUE
       ITYP = 2
-      LOCVAR = LOC_SUB(QLXPRNT)
-      LOCCNT =LOC(DUMMY)
+      LOCVAR = get_address_from(QLXPRNT)
+      LOCCNT =get_address_from(DUMMY)
       LIMITS = 202
       GOTO 200
 120   CONTINUE
       ITYP = 2
-      LOCVAR = LOC_SUB(QLXNVAR)
-      LOCCNT =LOC(DUMMY)
+      LOCVAR = get_address_from(QLXNVAR)
+      LOCCNT =get_address_from(DUMMY)
       LIMITS = 202
       GOTO 200
 130   CONTINUE
       ITYP = 2
-      LOCVAR = LOC_SUB(QLXUNDF)
-      LOCCNT =LOC(DUMMY)
+      LOCVAR = get_address_from(QLXUNDF)
+      LOCCNT =get_address_from(DUMMY)
       LIMITS = 101
 200   CONTINUE
       RETURN
@@ -1017,7 +1025,7 @@
       SUBROUTINE QLXINX(XTERN,KEY,ICOUNT,LIMITS,ITYP)
       EXTERNAL XTERN
       INTEGER ITYP,LIMITS
-      Integer*4 ICOUNT
+      Integer ICOUNT
       CHARACTER *(*) KEY
 *
 
@@ -1036,7 +1044,7 @@
 ***S/P QLXINS DECLARATION DES CLES
 *
       SUBROUTINE QLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP)
-      Integer*4 IVAR,ICOUNT
+      Integer IVAR,ICOUNT
       INTEGER ITYP,LIMITS
       CHARACTER *(*) KEY
 *
@@ -1063,7 +1071,7 @@
 ***S/P QQLXINS DECLARATION DES CLES ET DE LEUR TYPE
 *
       SUBROUTINE QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,XTERN)
-      Integer*4 IVAR,ICOUNT
+      Integer IVAR,ICOUNT
       EXTERNAL XTERN
       INTEGER ITYP,LIMITS
       CHARACTER *(*) KEY
@@ -1079,9 +1087,12 @@
 
       CHARACTER *8 IKEY
       INTEGER ITAB(3:3,256),NENTRY,IPNT
-      Integer*4 IPTADR(2,256),loc_sub
+      Integer*8 IPTADR(2,256),get_address_from
+      EXTERNAL get_address_from
       CHARACTER *8 NAMES(256)
-      SAVE NAMES, ITAB, NENTRY, IPTADR
+      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
+      COMMON /qqq_nrdlx2/ IPTADR
+      
       DATA ITAB /256 * 0/
       DATA IPTADR /256 * 0,256 * 0/
       DATA NAMES /256 * ' '/
@@ -1122,16 +1133,29 @@
       ICOUNT=0
       NAMES(IPNT)=IKEY
       IF( (ITYP.EQ. 2))THEN
-         IPTADR(1,IPNT)=loc_sub(XTERN)
+         IPTADR(1,IPNT)=get_address_from(XTERN)
       ELSE 
-         IPTADR(1,IPNT)=LOC(IVAR)
+         IPTADR(1,IPNT)=get_address_from(IVAR)
       ENDIF 
       ITAB(3,IPNT)=IOR(LIMITS,ishft(ITYP,24))
-      IPTADR(2,IPNT)=LOC(ICOUNT)
+      IPTADR(2,IPNT)=get_address_from(ICOUNT)
       RETURN
+      END
 *
 
-      ENTRY QLXLOOK(IVAR,KEY,ICOUNT,LIMITS,ITYP)
+      SUBROUTINE QLXLOOK(IVAR,KEY,ICOUNT,LIMITS,ITYP)
+      Integer*8 ivar,icount
+      INTEGER ITYP,LIMITS
+      CHARACTER *(*) KEY
+      
+      INTEGER ITAB(3:3,256),NENTRY,IPNT
+      Integer*8 IPTADR(2,256)
+      CHARACTER *8 NAMES(256)
+      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
+      COMMON /qqq_nrdlx2/ IPTADR
+
+      character *8 ikey
+      
 *
 *     TROUVER LA CLE
 *
@@ -1359,6 +1383,9 @@
       LOGICAL ERR
 *      EXTERNAL QLXMAD
 *      INTEGER  QLXMAD
+      Integer*8 get_address_from
+      EXTERNAL get_address_from
+
 
       INTEGER IZ1, IZ2, IR1
       REAL   Z1,  Z2,  R1
@@ -1378,13 +1405,14 @@
          RETURN
       ENDIF 
       IF((TOKTYPE(NTOKEN).GT.0))THEN
-         CALLPEEK(TOKENS(NTOKEN),1,TOKENS(NTOKEN))
+         call get_content_of_location(TOKENS(NTOKEN),1,TOKENS(NTOKEN))
          TOKTYPE(NTOKEN) = 0
       ENDIF 
       IF((OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND.
      % OPRTR.NE.4))THEN
          IF((TOKTYPE(NTOKEN-1).GT.0))THEN
-            CALLPEEK(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN-1))
+            call get_content_of_location(TOKENS(NTOKEN-1),1,
+     %      TOKENS(NTOKEN-1))
             TOKTYPE(NTOKEN-1) = 0
          ENDIF 
       ENDIF 
@@ -1419,7 +1447,7 @@
 
 *temporaire      TOKENS(NTOKEN-1)=QLXMAD(TOKENS(NTOKEN-1),TOKENS(NTOKEN))
       ENDIF 
-      PTOK = LOC(TOKENS(NTOKEN-1))
+      PTOK = get_address_from(TOKENS(NTOKEN-1))
       TOKENS(NTOKEN-1) = TOK(TOKENS(NTOKEN))
       NTOKEN = NTOKEN - 1
       TOKTYPE(NTOKEN) = 1
@@ -1577,7 +1605,7 @@
          ERR = .TRUE.
          RETURN
       ENDIF 
-      CALLPOKE(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN))
+      call set_content_of_location(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN))
       NTOKEN = NTOKEN - 1
       RETURN
 1000  NTOKEN = NTOKEN + 1 - MINOPER
@@ -1824,7 +1852,7 @@
       COMMON /QLXFMT2/ KARMOT
 **
 
-      Integer*4 LOCVAR,LOCCNT
+      Integer*8 LOCVAR,LOCCNT
       EXTERNAL QLXCHR, QLXNUM
       CHARACTER *1 IC, QLXCHR
       INTEGER  QLXNUM
@@ -1959,7 +1987,7 @@
             LENG = MIN(LENG,KARMOT)
          ELSE 
             IF( ((ITYP .EQ. 0) .OR. (ITYP .EQ. 1)))THEN
-               CALLPEEK(LOCVAR,1,JVAL)
+               call get_content_of_location(LOCVAR,1,JVAL)
             ELSE 
                JVAL = -1
             ENDIF 
@@ -2199,9 +2227,10 @@
       COMMON /QLXFMT2/ KARMOT
 **
 
-      EXTERNAL QLXNVAR,QLXPRNT,QLXUNDF
-      INTEGER UNIT,KEND,IVAR,ICOUNT
-      Integer*4 LOCCNT,LOCVAR,IICNT
+      EXTERNAL QLXNVAR,QLXPRNT,QLXUNDF,fnom
+      INTEGER UNIT,KEND,IVAR,ICOUNT,fnom
+      Integer*8 LOCCNT,LOCVAR
+      Integer IICNT
       INTEGER LIMITS,ITYP
       LOGICAL FIN,ERR
       PARAMETER (MAXSTRU=20)
@@ -2251,9 +2280,9 @@
          IF((TYPE.EQ.0))THEN
             CALL QLXFND(TOKEN,LOCVAR,LOCCNT,LIMITS,ITYP)
             IF((ITYP.EQ.1 .AND. SKIPF(NSTRUC).EQ.0))THEN
-               CALLPEEK(LOCCNT,1,IICNT)
+               call get_content_of_location(LOCCNT,1,IICNT)
                CALL QLXASG(LOCVAR,IICNT,LIMITS,ERR)
-               CALLPOKE(LOCCNT,1,IICNT)
+               call set_content_of_location(LOCCNT,1,IICNT)
             ELSE 
                IF((ITYP.EQ.2 .AND. SKIPF(NSTRUC).EQ.0))THEN
                   CALL QLXCALL(LOCVAR,LOCCNT,LIMITS,ERR)
@@ -2270,7 +2299,7 @@
                               GOTO 23003
                            ENDIF 
                            IF((TYPE.EQ.8))THEN
-                              CALLPEEK(JVAL,1,JVAL)
+                              call get_content_of_location(JVAL,1,JVAL)
                            ENDIF 
                            IF((IAND(JVAL,ishft(-1,32-(16))).EQ.0)
      %                     )THEN
@@ -2317,7 +2346,7 @@
                                        GOTO 23003
                                     ENDIF 
                                     IF((TYPE.EQ.8))THEN
-                                       CALLPEEK(JVAL,1,JVAL)
+                             call get_content_of_location(JVAL,1,JVAL)
                                     ENDIF 
                                     IF((IAND(JVAL,ishft(-1,32-(16)))
      %                              .EQ.0))THEN

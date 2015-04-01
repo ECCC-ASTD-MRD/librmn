@@ -102,7 +102,7 @@ static int get_file_index(int fd);
 static int write_buf(int fd, void *buffer, int nitems);
 
 ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
-		     ftnword *f_deet, char *f_etiket, int l1, int l2);
+		     ftnword *f_deet, char *f_etiket, F2Cl l1, F2Cl l2);
 ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc );
 ftnword f77name(slabig34)(unsigned ftnword *f_ig3, unsigned ftnword *f_ig4,
                           ftnword *f_xmin, ftnword *f_xmax, 
@@ -118,11 +118,11 @@ ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
 		     char *f_typvar,char *f_nomvar,ftnword *f_ip1,
 		     ftnword *f_ip2, ftnword *f_ip3,
 		     ftnword *f_datyp,ftnword *f_nbits,ftnword *iflt,
-		     ftnfloat *f_xp, int l1, int l2, int l3, int l4);
+		     ftnfloat *f_xp, F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4);
 ftnword f77name(slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
 		      ftnword *f_xnio,ftnword *f_mt,ftnword *f_mtas,
 		      ftnfloat *f_mtadd, ftnfloat *f_mtmult, ftnfloat *f_mtval);
-ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, int l1);
+ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, F2Cl l1);
 
 
 /*****************************************************************************
@@ -296,7 +296,7 @@ ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc)
  *****************************************************************************/
 
 ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
-			ftnword *f_deet, char *f_etiket, int l1, int l2)
+			ftnword *f_deet, char *f_etiket, F2Cl l1, F2Cl l2)
 {                                               
  int fd, ix, i, j, taille, npas;
  char name[MAX_LEN], etiket[MAX_ETIKET];
@@ -497,7 +497,7 @@ ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
                      char *f_typvar, char *f_nomvar,ftnword *f_ip1,
 		     ftnword *f_ip2, ftnword *f_ip3,
                      ftnword *f_datyp,ftnword *f_nbits,ftnword *f_iflt,
-		     ftnfloat *f_xp, int l1, int l2, int l3, int l4)
+		     ftnfloat *f_xp, F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
  int nrows, nio, njo, nxtra, 
      taille, i, x, MAX_GRTYP;
@@ -1064,7 +1064,7 @@ ftnword f77name (slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, int l1)
+ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, F2Cl l1)
  {
   int end, taille, i, ix, fd; 
   int nBytes;

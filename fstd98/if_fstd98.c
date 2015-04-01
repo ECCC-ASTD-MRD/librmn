@@ -18,6 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+
 /*splitpoint backto64 */
 /***************************************************************************** 
  *                          B A C K T O 6 4                                  *
@@ -66,15 +67,15 @@ void backto64(ftnword *field, word *temp, int nelm)
  *Arguments                                                                  * 
  *                                                                           * 
  *  IN  iun     unit number associated to the file                           * 
- *  IN  option  kept for backward compatibility                              * 
+ *  IN  option  kept for backward compatibility (not used)                   * 
  *                                                                           * 
  *****************************************************************************/
 
-ftnword f77name(fstapp)(ftnword *f_iun, char *option)
+ftnword f77name(fstapp)(ftnword *f_iun, char *option, F2Cl lng)
 {
   int ier, iun = *f_iun;
   
-  ier = c_fstapp(iun,option);
+  ier = c_fstapp(iun,option);    /* option not used anymore by c_fstapp */
   return((ftnword) ier);
 }
 
@@ -123,7 +124,7 @@ ftnword f77name(fstckp)(ftnword *f_iun)
  *****************************************************************************/
 ftnword f77name(fstcvt)(ftnword *name, ftnword *type, ftnword *etik, ftnword *grtyp,
                         char *cname, char *ctype, char *cetik, char *cgrtyp, ftnword *holocar,
-                        int l1, int l2, int l3, int l4)
+                        F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
   int ier;
 
@@ -1142,7 +1143,7 @@ ftnword f77name(fstnbr)(ftnword *f_iun)
  *                                                                           *
  *****************************************************************************/
 ftnword f77name(fstopc)(char *f_option, char *f_value, ftnword *f_getmode,
-                        int ll1, int ll2)
+                        F2Cl ll1, F2Cl ll2)
 {
   int getmode = *f_getmode, ier;
   char option[17];
@@ -1165,7 +1166,7 @@ ftnword f77name(fstopc)(char *f_option, char *f_value, ftnword *f_getmode,
     value[l2]='\0';
     l2--;
   }
-
+  
   ier = c_fstopc(option,value,getmode);
   return((ftnword) ier);
 }
@@ -1185,7 +1186,7 @@ ftnword f77name(fstopc)(char *f_option, char *f_value, ftnword *f_getmode,
  *                                                                           * 
  *****************************************************************************/
 ftnword f77name(fstopi)(char *f_option, ftnword *f_value, ftnword * f_getmode,
-                        int ll1)
+                        F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
   int l1=ll1;
@@ -1213,7 +1214,7 @@ ftnword f77name(fstopi)(char *f_option, ftnword *f_value, ftnword * f_getmode,
  *                                                                           * 
  *****************************************************************************/
 ftnword f77name(fstopl)(char *f_option, ftnword *f_value, ftnword * f_getmode,
-                        int ll1)
+                        F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
   int l1=ll1;
@@ -1242,7 +1243,7 @@ ftnword f77name(fstopl)(char *f_option, ftnword *f_value, ftnword * f_getmode,
  *                                                                           * 
  *****************************************************************************/
 ftnword f77name(fstopr)(char *f_option, ftnfloat *f_value, ftnword * f_getmode,
-                        int ll1)
+                        F2Cl ll1)
 {
   int getmode = *f_getmode, ier;
   float value = *f_value;
@@ -1271,7 +1272,7 @@ ftnword f77name(fstopr)(char *f_option, ftnfloat *f_value, ftnword * f_getmode,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstouv)(ftnword *f_iun, char *options)
+ftnword f77name(fstouv)(ftnword *f_iun, char *options, F2Cl lng)
 {
   int iun = *f_iun, ier;
   ier = c_fstouv(iun,options);
@@ -1497,9 +1498,9 @@ wordint f77name(fst_version)()
  *                                                                           * 
  *****************************************************************************/
 
-ftnword f77name(fstvoi)(ftnword *f_iun,char *f_options, int l1)
+ftnword f77name(fstvoi)(ftnword *f_iun,char *f_options, F2Cl ll1)
 {
-  int iun = *f_iun;
+  int iun = *f_iun, l1=ll1;
   char options[80] = 
   {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
    ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
@@ -1645,7 +1646,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
   static char exception_vars[256]="^^  >>  ";
   FILE *fileref;
   
-  /*  printf("Debug+ print_std_parms option=%s\n",option); */
+  /* printf("Debug+ print_std_parms option=%s\n",option); */
   crack_std_parms(stdf_entry,&cracked);
 
   if (header) {                      /* build and print header line */
@@ -1830,10 +1831,12 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
       sprintf(v_dty,"%1c%2d",cdt[stdf_entry->datyp],stdf_entry->nbits);
   
   if (strstr(option,"GRIDINFO")) {
+    F2Cl lc1=1,lc2=7,lc3=7,lc4=8,lc5=8;
     ig1=stdf_entry->ig1; ig2=cracked.ig2;
     ig3=stdf_entry->ig3; ig4=stdf_entry->ig4;
     f77name(igapg)(cracked.gtyp,pg1,pg2,pg3,pg4,&ig1,&ig2,&ig3,&ig4,
-                   1,7,7,8,8);
+                   lc1,lc2,lc3,lc4,lc5);
+            /*     1,7,7,8,8);       */
     pg1[6]='\0'; pg2[6]='\0'; pg3[7]='\0'; pg4[7]='\0';
     sprintf(v_grid,"%1s %#6s %#6s %#7s %#7s",cracked.gtyp,pg1,pg2,pg3,pg4);
   }

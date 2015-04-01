@@ -22,18 +22,22 @@
 #include "ez_funcdef.h"
 #include <ctype.h>
 
-extern int f77name(longueur)(char *string, int stringlength);
+extern int f77name(longueur)(char *string, wordint stringlength);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetopt)(char *option, char *value, wordint lenoption, wordint lenvalue)
+wordint f77name(ezsetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {
    wordint i, icode;
    wordint longueur_option, longueur_value;
+   wordint l_lenoption, l_lenvalue;
 
    char local_opt[32], local_val[32];
-   longueur_option = f77name(longueur)(option, lenoption);
-   longueur_value = f77name(longueur)(value, lenvalue);
+   l_lenoption = (wordint) lenoption;
+   l_lenvalue  = (wordint) lenvalue;
+   
+   longueur_option = f77name(longueur)(option, l_lenoption);
+   longueur_value = f77name(longueur)(value, l_lenvalue);
    
    longueur_option = longueur_option < 32 ? longueur_option : 31;
    longueur_value  = longueur_value  < 32 ? longueur_value  : 31;

@@ -297,7 +297,8 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
        *************************/
       {
         
-        arrayOfTempFloat = (double *)arrayOfInt; 
+/* CHC/NRC       arrayOfTempFloat = (double *)arrayOfInt; */
+        arrayOfTempFloat = (FLOAT_4_8 *)arrayOfInt; 
         for ( i = 0; i < floatCount*stride; i+=stride)
          {
            arrayOfTempFloat[i] = arrayOfFloat[i];
@@ -482,7 +483,8 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
        *****************************************/
       {
            
-        arrayOfTempFloat = (double *)arrayOfInt;
+/* CHC/NRC        arrayOfTempFloat = (double *)arrayOfInt; */
+        arrayOfTempFloat = (FLOAT_4_8 *)arrayOfInt;
         for ( i = 0; i < intCount*stride; i+=stride)
           {
             arrayOfFloat[i] = arrayOfTempFloat[i];

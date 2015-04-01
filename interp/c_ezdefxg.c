@@ -43,56 +43,56 @@ wordint c_ezdefxg(wordint gdid)
       gr->xg[DLON]  = 360. /gr->ni;
       gr->xg[SWLON] = 0.0; 
       switch (gr->ig[IG1])
-	{
-	case 0:
-	  gr->xg[DLAT] = 180./gr->nj;
-	  gr->xg[SWLAT] = -90. + 0.5*gr->xg[DLAT];
-	  break;
-	  
-	case 1:
-	  gr->xg[DLAT] = 90./gr->nj;
-	  gr->xg[SWLAT] = 0.5*gr->xg[DLAT];
-	  gr->needs_expansion = OUI;
-	  break;
-	  
-	case 2:
-	  gr->xg[DLAT] = 90./gr->nj;
-	  gr->xg[SWLAT] = -90. + 0.5*gr->xg[DLAT];
-	  gr->needs_expansion = OUI;
-	  break;
-	  
-	default:
-	  fprintf(stderr, "<ez_gdef_fmem> 'A' grid has to be Global/North/South\n");
-	  break;
-	}
+		{
+		case 0:
+		  gr->xg[DLAT] = 180./gr->nj;
+		  gr->xg[SWLAT] = -90. + 0.5*gr->xg[DLAT];
+		  break;
+		  
+		case 1:
+		  gr->xg[DLAT] = 90./gr->nj;
+		  gr->xg[SWLAT] = 0.5*gr->xg[DLAT];
+		  gr->needs_expansion = OUI;
+		  break;
+		  
+		case 2:
+		  gr->xg[DLAT] = 90./gr->nj;
+		  gr->xg[SWLAT] = -90. + 0.5*gr->xg[DLAT];
+		  gr->needs_expansion = OUI;
+		  break;
+		  
+		default:
+		  fprintf(stderr, "<ez_gdef_fmem> 'A' grid has to be Global/North/South\n");
+		  break;
+		}
       break;
       
     case 'B':
       gr->xg[DLON] = 360. /(gr->ni-1);
       gr->xg[SWLON] = 0.0;
       switch (gr->ig[IG1])
-	{
-	case 0:
-	  gr->xg[DLAT] = 180./(gr->nj-1);
-	  gr->xg[SWLAT] = -90.;
-	  break;
-	  
-	case 1:
-	  gr->xg[DLAT] = 90./(gr->nj-1);
-	  gr->xg[SWLAT] = 0.;
-	  gr->needs_expansion = OUI;
-	  break;
-	  
-	case 2:
-	  gr->xg[DLAT] = 90./(gr->nj-1);
-	  gr->xg[SWLAT] = -90.;
-	  gr->needs_expansion = OUI;
-	  break;
-	  
-	default:
-	  fprintf(stderr, "<ezgdef_fmem> 'B' grid has to be Global/North/South\n");
-	  break;
-	}
+		{
+		case 0:
+		  gr->xg[DLAT] = 180./(gr->nj-1);
+		  gr->xg[SWLAT] = -90.;
+		  break;
+		  
+		case 1:
+		  gr->xg[DLAT] = 90./(gr->nj-1);
+		  gr->xg[SWLAT] = 0.;
+		  gr->needs_expansion = OUI;
+		  break;
+		  
+		case 2:
+		  gr->xg[DLAT] = 90./(gr->nj-1);
+		  gr->xg[SWLAT] = -90.;
+		  gr->needs_expansion = OUI;
+		  break;
+		  
+		default:
+		  fprintf(stderr, "<ezgdef_fmem> 'B' grid has to be Global/North/South\n");
+		  break;
+		}
       break;
       
     case 'E':
@@ -145,4 +145,3 @@ wordint c_ezdefxg(wordint gdid)
   return gdid;
 
 }
-

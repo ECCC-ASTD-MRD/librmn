@@ -150,8 +150,20 @@
 #include <unistd.h>
 #include <assert.h>
 #include <sys/types.h>
+#ifdef should_never_be_true
 #include <X11/Xmd.h>
+#else
+  #ifdef WIN32    /*CHC/NRC*/
+    typedef unsigned long CARD32;
+    #define rindex(a,b) strrchr((a),(b))
+  #else
+    #define CARD32 unsigned int
+  #endif
+#define B32 :32
+#endif
+
 #include <rpnmacros.h>
+
 
 
 /*  RRBX stuff */
@@ -246,8 +258,8 @@ static float    Get_Frac();
 static int mutant_kmw=FALSE;
 
 static int ReadFileType(char *fname);
-static Flush_Bytes(unsigned int num, FILE *fp );
-static Flush_To_Term(FILE *fp);
+static void Flush_Bytes(unsigned int num, FILE *fp );
+static void Flush_To_Term(FILE *fp);
 static int ispcl(char *path );
 static int isppm(char *path );
 static int issun(char *path );
@@ -298,12 +310,12 @@ char nom[];
 int l1;	  
 {
    FILE *pf;
-   char nom2[257], nom3[257], *pn2, *pn3;
+   char nom2[4096], nom3[4096], *pn2, *pn3;
    int buffer[1024], *ptbuf, lowc=0;
    INT_32 pos,lngf;
    int longnom;
 
-   longnom = ( ( l1 <= 256 ) ? l1 : 256 );
+   longnom = ( ( l1 <= 4095 ) ? l1 : 4095 );
    pos = 0;
    ptbuf = &buffer[0];
    if (nom[0] == '+') {     /* garder le nom de fichier tel quel */
@@ -333,7 +345,7 @@ int l1;
      if (lowc == 0)
        strcpy(nom2,nom3);
    }
-   pf = fopen(nom2,"r");
+   pf = fopen(nom2,"rb");
    if (pf == (FILE *) NULL)
       return(-3);
    else {
@@ -488,7 +500,7 @@ char *path;
    char buffer[256];
    int  i, j, ps_i;
 
-   if( (fp = fopen( path, "r")) == NULL ) return(FALSE);
+   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
 
    i = 0;
    while ( fgets( buffer, 256, fp ) != NULL ) {
@@ -556,7 +568,7 @@ char *path;
    XWDFileHeader xwd;
    int   flen, len;
 
-   if( (fp = fopen( path, "r")) == NULL ) return(FALSE);
+   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
 
    if (fread32 ((char *) &xwd, sizeof(XWDFileHeader), 1, fp) != 1)
    {
@@ -607,7 +619,7 @@ char *path;
    char    magic[6];
    int     status = FALSE;
 
-   if( (fp = fopen( path, "r")) == NULL ) return(FALSE);
+   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
 
    if (fread(magic, 6, 1, fp) != 1) return(FALSE);
    if (strncmp( magic, IDGIF87, 6 )==0)
@@ -727,7 +739,7 @@ char *path;
    int ierr=0;
    INT_32 length;
 
-   if( (fp = fopen( path, "r")) == NULL ) return(ierr);
+   if( (fp = fopen( path, "rb")) == NULL ) return(ierr);
 
 /*
  *  verifie si c'est un fichier KMW
@@ -767,7 +779,7 @@ static  int isrrbx( path )
  *  open file
  */
 
-    if( (fp = fopen( path, "r")) == NULL ) return(FALSE);
+    if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
 
 /*
  *  read header
@@ -816,7 +828,7 @@ static  int isrrbx( path )
  *  open file
  */
 
-    if( (fp = fopen( path, "r")) == NULL ) return(FALSE);
+    if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
 
 /*
  *  read sunraster header
@@ -885,7 +897,7 @@ char *path;
  *  open file
  */
 
-   if( (fp = fopen( path, "r")) == NULL ) return(FALSE);
+   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
 
    c0 = getc(fp);
    if ( c0 == EOF ) {
@@ -944,7 +956,7 @@ char    buffer[256];
  *  open file
  */
 
-  if( (fp = fopen( path, "r")) == NULL )
+  if( (fp = fopen( path, "rb")) == NULL )
       return(FALSE);
 
   if (fseek( fp, 0L, SEEK_END ))  {
@@ -1193,7 +1205,7 @@ char    buffer[256];
 **  character is found.  This is for unwanted escape sequences.
 */
 
-static Flush_To_Term(fp)
+static void Flush_To_Term(fp)
 FILE *fp;
 {
         int     c;
@@ -1216,7 +1228,7 @@ t.
 at
 **  it will not confuse the parser.  I.e. downloads.
 */
-static Flush_Bytes( num, fp )
+static void Flush_Bytes( num, fp )
 unsigned int    num;
 FILE *fp;
 {
@@ -1284,7 +1296,7 @@ static int ReadFileType(fname)
   rv = WKF_INCONNU;
   if (!fname) return rv;   /* shouldn't happen */
 
-  fp = fopen(fname, "r");
+  fp = fopen(fname, "rb");
 
   if (!fp) return rv;
 

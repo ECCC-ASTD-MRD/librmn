@@ -1,8 +1,6 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
-
 .SUFFIXES :
 
-.SUFFIXES : .f90 .ftn .f .c .o
+.SUFFIXES : .f90 .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -12,13 +10,15 @@ FFLAGS =
 
 CFLAGS = 
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+MYLIB = $(ARMNLIB)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
+
+LIB_X = $(ARMNLIB)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
@@ -26,22 +26,12 @@ UPDATEX =
 
 default: obj
 
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $< -ignorempty
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -options_comp -src $<
+OBJECTS= armn_compress_32.o zfstlib.o c_zfstlib.o
 
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.f90.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-OBJECTS= zfstlib.o c_zfstlib.o
-
-tarball:  c_zfstlib.c  zfstlib.f90  zfstlib.h Makefile
-	tar cfzv /data/armnraid1/www/ssm/compresseur_1.0_all.tgz c_zfstlib.c  zfstlib.f90  zfstlib.h Makefile 
+tarball:  armn_compress_32.c c_zfstlib.c  zfstlib.f90  zfstlib.h  Makefile
+	tar cfzv /data/armnraid1/www/ssm/sources/compresseur_1.0_all.tgz armn_compress_32.c c_zfstlib.c  zfstlib.f90  zfstlib.h Makefile 
 
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
@@ -49,16 +39,18 @@ obj: $(OBJECTS)
 obj2: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: $(TEMPLIB)(armn_compress_32.o) $(TEMPLIB)(zfstlib.o) $(TEMPLIB)(c_zfstlib.o)
+
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECTS)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:

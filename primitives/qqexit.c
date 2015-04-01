@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 /*
 
    La routine qqexit retourne un code EXIT au process parent.

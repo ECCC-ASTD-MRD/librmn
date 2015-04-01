@@ -54,6 +54,7 @@ void c_armn_compress_setlevel(int level);
 int  c_armn_compress_getlevel();
 void c_armn_compress_setswap(int swapState);
 int  c_armn_compress_getswap();
+void c_armn_compress_option(char *option, char *value);
 void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);    
 void c_fstunzip_minimum(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header);
 void c_fstunzip_parallelogram(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header);
@@ -72,6 +73,7 @@ static int fstcompression_level = -1;
 static int swapStream           =  1;
 static unsigned char fastlog[256];
 static int once = 0;
+int zfst_msglevel = 2;
         
 /*-------------------------------------------------------------------------------------------------------------------- */
 
@@ -117,15 +119,19 @@ if (once == 0)
 
 switch (op_code)
   {
-  case 1:
+  case COMPRESS:
   if (nbits > 16 || ni == 1 || nj == 1)
     {
-    return lng_origin;
+    if (zfst_msglevel <= 2)
+      {
+      fprintf(stderr, "Can not compress if nbits>16 or ni=1 or nj=1 ... Returning original field\n\n");
+      }
+    return -1;
     }
       
   us_fld = (unsigned int *) fld;
-  zfld_minimum = (unsigned int *) calloc(sizeof(unsigned int),ni*nj*nk);
-  zfld_lle     = (unsigned int *) calloc(sizeof(unsigned int),ni*nj*nk);
+  zfld_minimum = (unsigned int *) malloc(sizeof(unsigned int)*ni*nj*nk);
+  zfld_lle     = (unsigned int *) malloc(sizeof(unsigned int)*ni*nj*nk);
   
 #if defined (Little_Endian)
   if (swapStream == 1)
@@ -157,8 +163,10 @@ switch (op_code)
             }
          }
 #endif
-
-         fprintf(stderr, "Compressed field is larger than original... Returning the original field\n\n");
+         if (zfst_msglevel <= 2)
+          {
+          fprintf(stderr, "Compressed field is larger than original... Returning original\n\n");
+          }
          free(zfld_minimum);
          free(zfld_lle);
          return -1;
@@ -192,7 +200,10 @@ switch (op_code)
             }
          }
 #endif
-      fprintf(stderr, "Compressed field is larger than original... Returning the original field\n\n");
+     if (zfst_msglevel <= 2)
+       {
+       fprintf(stderr, "Compressed field is larger than original... Returning original\n\n");
+       }
       free(zfld_minimum);
       free(zfld_lle);
       return -1;
@@ -205,7 +216,7 @@ switch (op_code)
     return zlng_lle;
   break;
     
-  case 2:
+  case UNCOMPRESS:
   if (nbits > 16 || ni == 1 || nj == 1)
     {
     return (1+ni*nj*nk*nbits/8);
@@ -214,7 +225,7 @@ switch (op_code)
   us_fld = (unsigned int *) fld;
 
   
-  unzfld = (unsigned short *)calloc(sizeof(unsigned int),(ni*nj)); 
+  unzfld = (unsigned short *)malloc(sizeof(unsigned int)*ni*nj); 
   c_fstunzip((unsigned int *)unzfld, (unsigned int *)fld, ni, nj, nbits);
   memcpy(fld, unzfld, (1+ni*nj/2)*sizeof(unsigned int));
 #if defined (Little_Endian)
@@ -306,6 +317,14 @@ void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits
       break;
       
     default:
+      fprintf(stderr, "**************************************************************************\n");
+      fprintf(stderr, "****                                                                  ****\n");
+      fprintf(stderr, "****  Unknown compression algorithm...                                ****\n");
+      fprintf(stderr, "****  Contact MRB computer support for advice... service.rpn@ec.gc.ca ****\n");
+      fprintf(stderr, "****  Exiting now...                                                  ****\n");
+      fprintf(stderr, "****                                                                  ****\n");
+      fprintf(stderr, "**************************************************************************\n");
+      exit(13);
       break;
     }
 
@@ -812,7 +831,7 @@ void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[],
   unsigned int lastWordShifted, spaceInLastWord, lastSlot;
   int lcl_m, lcl_n;
 
-  float entropie;
+  float entropie, rlog2;
   unsigned int *cur;
   int local_min, local_max, local_var;
   unsigned int local_bins[24];
@@ -820,8 +839,8 @@ void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[],
   unsigned char debug;
   int k11, k12, k21, k22, nbits2;
   unsigned int nbits_req_container, gt16, token;
-  int *ufld_dst;
-
+  int *ufld_dst, *ufld4;
+  
   debug = 0;
   lastSlot = 0;
   cur = z;
@@ -831,6 +850,16 @@ void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[],
       {
       local_bins[i] = 0;
       }
+   }
+  
+if (once == 0)
+   {
+   rlog2 = 1.0/log(2.0);
+   for (i=0; i < 256; i++)
+      {
+      fastlog[i] = (int)(1+log(i+0.5)*rlog2);
+      }
+   once = 1;
    }
   
   ufld_dst=(int *) malloc(ni*nj*sizeof(int));
@@ -855,6 +884,14 @@ void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[],
       ufld_dst[k22] = ufld[k22] - (ufld[k22-ni]+ufld[k22-1]-ufld[k22-1-ni]);
       }
    }  
+  
+/*  ufld4=(int *)malloc(ni*nj*sizeof(int));
+  for (i=0; i < ni*nj; i++)
+    {
+    ufld4[i] = ufld[i];
+    }
+  f77name(lorenzo2)(ufld_dst, ufld4, &ni, &nj);
+  free(ufld4);*/
    
   nbits_req_container = 4;
 
@@ -1012,7 +1049,7 @@ void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, 
   memcpy(header, cur, sizeof(unsigned int));
   cur++;
   curword = *cur;
-  ufld_tmp = (int *) calloc(ni*nj,sizeof(int));
+  ufld_tmp = (int *) malloc(ni*nj*sizeof(int));
   
   extract(nbits_req_container, cur, 32, 3, curword, bitPackInWord); 
   
@@ -1478,6 +1515,28 @@ else
   }
 
 }
+
+/**********************************************************************************************************************/
+
+void c_armn_compress_option(char *option, char *value)
+{
+  int i;
+  static char *msgtab[7] =
+  {"DEBUG","INFORM","WARNIN","ERRORS","FATALE","SYSTEM","CATAST"};
+  static int nivmsg[7] = {0,2,4,6,8,10,10};
+  
+   if (strcmp(option,"MSGLVL") == 0) 
+    {
+      for (i = 0; i < 7; i++) {
+        if (strcmp(msgtab[i],value) == 0) 
+        {
+        zfst_msglevel = i;
+        break;
+        }
+      }
+    }
+ 
+  }
 
 /**********************************************************************************************************************/
 

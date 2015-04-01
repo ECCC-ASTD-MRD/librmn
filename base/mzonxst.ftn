@@ -86,6 +86,7 @@
 *                                 ( If  EQ     6 ) Reset NDELTAT (when MOD=1)
 *                                 ( If  EQ     7 ) Reset StartI  (when MOD=0)
 *                                 ( If  EQ     8 ) Reset StartJ  (when MOD=0)
+*                                 ( If  EQ     9 ) Toggle on/off messages (when MOD=0)
 *                          VAL  :   Input value associated with OPR transition
 *                                 ( If |OPR| = 1 ) I/O Unit Number IUN
 *                                 ( If |OPR| = 2 ) Time Step KOUNT
@@ -95,6 +96,7 @@
 *                                 ( If  OPR  = 6 ) Saving interval in timesteps
 *                                 ( If  OPR  = 7 ) Starting longitude index
 *                                 ( If  OPR  = 8 ) Starting latitude index
+*                                 ( If  OPR  = 9 ) Ignored value
 *
 *                          b) Informative oprating mode
 *                          OPR  :   Requested Information
@@ -108,7 +110,7 @@
 *
 *                    - (2) Z    :   Source Model Array
 *                          NOM  :   Variable Name of Data ( NOTE: only the
-*                                   first two characters are significant )
+*                                   first four characters are significant )
 *                          J    :   Latitude Ordinal of Data
 *                          NDIM :   First dimension of Z
 *                          hhhh :   Ignored parameter (backward compatibility)
@@ -126,9 +128,9 @@
 *                    - (3) X    :   First Vector Component Source Model Array
 *                          Y    :   Second Vector Component Source Model Array
 *                          XNOM :   First Variable Name ( NOTE: only the first
-*                                   two characters are significant )
+*                                   four characters are significant )
 *                          YNOM :   Second Variable Name ( NOTE: only the first
-*                                   two characters are significant )
+*                                   four characters are significant )
 *                          J    :   Latitude Ordinal of Data
 *                          NDIM :   First dimension of X and Y
 *                          FACF :   Multiplicative factor applied at transfer
@@ -233,6 +235,9 @@
 *                                  calculs de SOMX et SOMX2
 *         033 B.Dugas    (sep01) modifier mzonopr pour changer StartI,StartJ.
 *                                MZONXST/MVZNXST tiennent compte de ces modifs
+*         034 K. Winger  (nov06) - Read variable names as characters
+*                                - Allow 4 character variables
+*         035 B.Dugas    (jan07) eliminer les message d'erreur (en option)
 ***
 
       IMPLICIT NONE
@@ -257,11 +262,11 @@
 ***    Declaration des parametres specifiques a mzonxst.
 
       Real          Z(NDIM,*)
-      Character*2   NOM 
+      Character *(*) NOM
 
 ***    Declaration des parametres specifiques a mvznxst.
 
-      Character*2   XNOM, YNOM
+      Character *(*) XNOM, YNOM
       Real          X(NDIM,*),Y(NDIM,*)
 
 ***    Declaration des parametres d'appel de mzonopr.
@@ -275,8 +280,7 @@
 ***    Nom/propiete/position des variables a traiter.
 
       Integer       var(MaxVarP3),NVAR
-
-      Character*4   listvar(MaxVar)
+      Character*8   listvar(MaxVarP3)
       Integer       propvar(MaxVar), posvar(0:MaxVar)
 
       Save          listvar,propvar,posvar,NVAR
@@ -286,6 +290,8 @@
       Integer       NombreC
       Parameter   ( NombreC = 14)
 
+      Logical       IOPrint
+      Save          IOPrint
       Character*256 NOUTZON
       Save          NOUTZON
       Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
@@ -309,7 +315,7 @@
 
 ***    Declaration de la variable d'etat.
 
-      Integer       ETAT, transit(5,0:3)
+      Integer       ETAT, transit(6,0:3)
       Save          ETAT, transit
 
 ***    Parametres servant a l'allocation de memoire dynamique.
@@ -354,7 +360,7 @@
       Integer       errcod
       External      hpalloc,hpdeallc
 
-      Character     typvar*1,                nomvar*2,
+      Character     typvar*1,                nomvar*4,
      +              etiket*12,               grtyp*1
 
       Integer       dateo,deet,npas,         kount,
@@ -370,12 +376,12 @@
 
 ***    Variables de travail non statiques.
 
-      Character     variab*2
+      Character     variab*4
       Real          echant,echantX,echantY,poids
       Integer       NIC,NJC,NKC, bini, deb,fin,lo,DIFP, 
      +              II,JJ,J0,JJ0,KK,numero,numeroX,numeroY,
      +              place,placeX,placeY,tranche,LocVAL,
-     +              val11,val11X,val11Y
+     +              val11,val11X,val11Y, v
 
 ***    Declaration des valeurs initiales 
 
@@ -383,16 +389,17 @@
      +              Faux     /     .false.    /,
      +              Hard     /     .false.    /,
      +              Debug    /     .false.    /
+      Data          IOPrint  /     .true.     /
       Data          listej   /  MaxTask * -1  /
       Data          IUN,ETAT / -1  ,  0  /
       Data          NCPU     /  1  /
       Data          NDIMS    /  0  /
       Data          StartI   /  0  /
       Data          StartJ   /  0  /
-      Data          transit  /  4  ,  1  ,  5  ,  7  ,  8  ,
-     +                          3  ,  2  , -1  ,  6  , 999 ,
-     +                          3  ,  3  , -2  ,  4  , 999 ,
-     +                          2  ,  3  , -3  , 999 , 999 /
+      Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  , 
+     +                          3  ,  2  , -1  ,  6  , 999 , 999 ,
+     +                          3  ,  3  , -2  ,  4  , 999 , 999 ,
+     +                          2  ,  3  , -3  , 999 , 999 , 999 /
       Data          NOUTZON  / 'noutzon' /
 *---------------------------------------------------------------------
 *=====================================================================
@@ -436,9 +443,9 @@
 
       If (Debug)                                               Then
           If (abs( OPR ).eq.3)                                 Then
-              write(6,6201) OPR,VAL+StartJ,STartI+1
+              Write(6,6201) OPR,VAL+StartJ,STartI+1
           Else
-              write(6,6202) OPR,VAL
+              Write(6,6202) OPR,VAL
           End IF
       End IF
 
@@ -452,8 +459,11 @@
 
   100 If (NOTOK .or. OPR.eq.999)                               Then
 
-          Write(6,6001) OPR,ETAT
-          nil = exfin( 'Mzonopr', 'Erreur 1', 'NON' )
+          If (IOPrint)                                         Then
+              Write(6,6001) OPR,ETAT
+              nil = exfin( 'Mzonopr', 'Erreur 1', 'NON' )
+          End If
+
           Call qqexit( 1 )
 
       End If
@@ -476,8 +486,10 @@
 
               If (ierr.ne.1 .and. ierr.ne.33)                  Then
                   If (Hard .or. ierr.ge.-1)                    Then
-                      Write(6,6006)
-                      nil = exfin( 'Mzonopr', 'Erreur 6', 'NON' )
+                      If (IOPrint)                             Then
+                          Write(6,6006)
+                          nil = exfin( 'Mzonopr', 'Erreur 6', 'NON' )
+                      End If
                       Call qqexit( 6 )
                   Else
                       Return
@@ -496,8 +508,10 @@
 ***      selon la valeur du drapeau Hard.
 
                   If (Hard)                                    Then
-                      Write(6,6007)
-                      nil = exfin( 'Mzonopr','Erreur 7','NON' )
+                      If (IOPrint)                             Then
+                          Write(6,6007)
+                          nil = exfin( 'Mzonopr','Erreur 7','NON' )
+                      End If
                       Call qqexit( 7 )
                   Else
                       return
@@ -542,8 +556,11 @@
               if (NIC*NJC*NKC .ne. NombreC .or.
      +            iluk        .lt. 0       )                   Then
 
-                  Write(6,6008) NIC,NJC,NKC
-                  nil = exfin( 'Mzonopr','Erreur 8','NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6008) NIC,NJC,NKC
+                      nil = exfin( 'Mzonopr','Erreur 8','NON' )
+                  End If
+
                   Call qqexit( 8 )
 
               End If
@@ -579,8 +596,11 @@
      +            NJC.NE.NJ .or.
      +            NKC.NE. 1 .or. iluk.lt.0)                    Then
 
-                  Write(6,6009)
-                  nil = exfin( 'Mzonopr','Erreur 9','NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6009)
+                      nil = exfin( 'Mzonopr','Erreur 9','NON' )
+                  End If
+
                   Call qqexit( 9 )
 
               End If
@@ -597,8 +617,11 @@
      +            NJC.NE.NJ .or.
      +            NKC.NE. 1 .or. iluk.lt.0)                    Then
 
-                  Write(6,6010)
-                  nil = exfin( 'Mzonopr','Erreur 10','NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6010)
+                      nil = exfin( 'Mzonopr','Erreur 10','NON' )
+                  End If
+
                   Call qqexit( 10 )
 
               End If
@@ -615,8 +638,11 @@
      +            NJC.NE.NJ .or.
      +            NKC.NE. 1 .or. iluk.lt.0)                    Then
 
-                  Write(6,6011)
-                  nil = exfin( 'Mzonopr','Erreur 11','NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6011)
+                      nil = exfin( 'Mzonopr','Erreur 11','NON' )
+                  End If
+
                   Call qqexit( 11 )
 
               End If
@@ -633,29 +659,88 @@
      +            NJC.NE.NJ .or.
      +            NKC.NE. 1 .or. iluk.lt.0)                    Then
 
-                  Write(6,6012)
-                  nil = exfin( 'Mzonopr','Erreur 12','NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6012)
+                      nil = exfin( 'Mzonopr','Erreur 12','NON' )
+                  End If
+
                   Call qqexit( 12 )
 
               End If
 
-***      Lire LISTVAR/POSVAR/PROPVAR. 
+***      Lire LISTVAR.
+
+              nomvar = 'VC/'
 
               inf  = fstinf( IUN, NIC,NJC,NKC,
      +                            -1,'CONTROLE ',
      +                            ip1,ip20,ip3,
-     +                            '+','V/' )
-              iluk = fstluk( var, inf, NIC,NJC,NKC )
+     +                            '+',nomvar )
+              If (inf.lt.0)                                    Then
 
-              If (NIC.gt.MaxVarP3*4 .or. iluk.lt.0)           Then
+                  nomvar = 'V/'
 
-                  Write(6,6013)
-                  nil = exfin( 'Mzonopr','Erreur 13','NON' )
+                  inf  = fstinf( IUN, NIC,NJC,NKC,
+     +                                -1,'CONTROLE ',
+     +                                ip1,ip20,ip3,
+     +                                '+',nomvar )
+
+              End If
+
+              If (inf.lt.0 
+     +       .or.(nomvar.eq.'VC/' .and. NIC.gt.MaxVarP3*8)
+     +       .or.(nomvar.eq.'V/'  .and. NIC.gt.MaxVarP3*4))    Then
+
+                  If (IOPrint)                                 Then
+                      Write(6,6013)
+                      nil = exfin( 'Mzonopr','Erreur 13','NON' )
+                  End If
+
                   Call qqexit( 13 )
 
               End If
 
-***       posvar(0) = 1 par definition.
+              If (nomvar.eq.'VC/')                             Then
+
+                  NVAR = (NIC/8)-2
+
+                  iluk = fstluk( listvar, inf, NIC,NJC,NKC )
+
+              Else If (nomvar.eq.'V/')                         Then
+
+                  NVAR = (NIC/4)-3
+
+                  iluk = fstluk( var, inf, NIC,NJC,NKC )
+
+              End If
+
+              If (iluk.lt.0)                                   Then
+
+                  If (IOPrint)                                 Then
+                      Write(6,6013)
+                      nil = exfin( 'Mzonopr','Erreur 13','NON' )
+                  End If
+
+                  Call qqexit( 13 )
+
+              End If
+
+              If (nomvar.eq.'V/')                              Then
+
+                  do  II=1,NVAR
+                      call r4astrg (listvar(ii),var(ii),0,3)
+                  enddo
+
+              End If
+
+***      Definir PROPVAR avec LISTVAR.
+
+              Do  II=1,NVAR
+                  propvar(ii) = 0
+                  If (listvar(ii)(1:1) .eq. '.') propvar(ii) = 1
+              End Do
+
+***      Lire POSVAR.
 
               inf  = fstinf( IUN, NIC,NJC,NKC,
      +                            -1,'CONTROLE ',
@@ -665,23 +750,19 @@
        
               If (NIC.gt.MaxVar .or. iluk.lt.0)                Then
 
-                  Write(6,6033)
-                  nil = exfin( 'Mzonopr','Erreur 33','NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6033)
+                      nil = exfin( 'Mzonopr','Erreur 33','NON' )
+                  End If
+
                   Call qqexit( 33 )
 
               End If
 
-***       NV+3 est contenu dans NIC; posvar(0) = 1 par definition.
-                              
-              NVAR      = NIC -1
+***       posvar(0) = 1 par definition.
+
               posvar(0) = 1
        
-              Do  II=1,NVAR
-                  call r4astrg (listvar(II),var(II),0,3)
-                  propvar(ii) = 0
-                  if(listvar(ii)(1:1) .eq. '.') propvar(ii) = 1
-              End Do
-
               SOMNK = posvar(NVAR)-1
                   
 ***       Allouer la deuxieme serie de grilles. 
@@ -720,8 +801,11 @@
                       If (inf .lt.0 .or. 
      +                    iluk.lt.0    )                       Then
 
-                          Write(6,6014) COMPLET
-                          nil = exfin( 'Mzonopr','Erreur 14','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6014) COMPLET
+                              nil = exfin( 'Mzonopr','Erreur 14','NON' )
+                          End If
+
                           Call qqexit( 14 )
 
                       End If
@@ -752,8 +836,11 @@
                       If (inf .lt.0 .or. 
      +                    iluk.lt.0    )                       Then
 
-                          Write(6,6015) COMPLET
-                          nil = exfin( 'Mzonopr','Erreur 15','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6015) COMPLET
+                              nil = exfin( 'Mzonopr','Erreur 15','NON' )
+                          End If
+
                           Call qqexit( 15 )
 
                       End If
@@ -792,8 +879,11 @@
 
               If (IUN.ne.VAL)                                  Then
 
-                  Write(6,6002) IUN,VAL
-                  nil = exfin( 'Mzonopr', 'Erreur 2', 'NON' )
+                  If (IOPrint)                                 Then
+                      Write(6,6002) IUN,VAL
+                      nil = exfin( 'Mzonopr', 'Erreur 2', 'NON' )
+                  End If
+
                   Call qqexit( 2 )
 
               End If
@@ -830,8 +920,11 @@
 
                       If (iecr.lt.0)                           Then
 
-                          Write(6,6003) 
-                          nil = exfin( 'Mzonopr','Erreur 3','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6003) 
+                              nil = exfin( 'Mzonopr','Erreur 3','NON' )
+                          End If
+
                           Call qqexit( 3 )
 
                       End If
@@ -860,8 +953,11 @@
 
                       If (iecr.lt.0)                           Then
 
-                          Write(6,6004) 
-                          nil = exfin( 'Mzonopr','Erreur 4','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6004) 
+                              nil = exfin( 'Mzonopr','Erreur 4','NON' )
+                          End If
+
                           Call qqexit( 4 )
 
                       End If
@@ -890,8 +986,11 @@
 
                   If (iecr.lt.0)                               Then
 
-                      Write(6,6005) 
-                      nil = exfin( 'Mzonopr','Erreur 5','NON' )
+                      If (IOPrint)                             Then
+                          Write(6,6005) 
+                          nil = exfin( 'Mzonopr','Erreur 5','NON' )
+                      End If
+
                       Call qqexit( 5 )
 
                   End If
@@ -995,8 +1094,11 @@
                       If (inf .lt.0 .or. 
      +                    iluk.lt.0    )                       Then
 
-                          Write(6,6020) ip2
-                          nil = exfin( 'Mzonopr','Erreur 20','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6020) ip2
+                              nil = exfin( 'Mzonopr','Erreur 20','NON' )
+                          End If
+
                           Call qqexit( 20 )
 
                       End If
@@ -1027,8 +1129,11 @@
                       If (inf .lt.0 .or. 
      +                    iluk.lt.0    )                       Then
 
-                          Write(6,6021) ip2
-                          nil = exfin( 'Mzonopr','Erreur 21','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6021) ip2
+                              nil = exfin( 'Mzonopr','Erreur 21','NON' )
+                          End If
+
                           Call qqexit( 21 )
 
                       End If
@@ -1070,10 +1175,12 @@
 *          
               If (KOUNT.ne.npas)                               Then
 
-                        Write(6,6016) KOUNT,npas
-                        nil = exfin( 'Mzonopr','Erreur 16','NON' )
-                        Call qqexit( 16 )
+                  If (IOPrint)                                 Then
+                      Write(6,6016) KOUNT,npas
+                      nil = exfin( 'Mzonopr','Erreur 16','NON' )
+                  End If
 
+                  Call qqexit( 16 )
  
               End If   
          
@@ -1109,8 +1216,11 @@
 
                       If (iecr.lt.0)                           Then
 
-                          Write(6,6017) ip2
-                          nil = exfin( 'Mzonopr','Erreur 17','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6017) ip2
+                              nil = exfin( 'Mzonopr','Erreur 17','NON' )
+                          End If
+
                           Call qqexit( 17 )
 
                       End If
@@ -1138,8 +1248,11 @@
 
                       If (iecr.lt.0)                           Then
 
-                          Write(6,6018) ip2
-                          nil = exfin( 'Mzonopr','Erreur 18','NON' )
+                          If (IOPrint)                         Then
+                              Write(6,6018) ip2
+                              nil = exfin( 'Mzonopr','Erreur 18','NON' )
+                          End If
+
                           Call qqexit( 18 )
 
                       End If
@@ -1169,8 +1282,11 @@
 
                   If (iecr.lt.0)                           Then
 
-                      Write(6,6019) ip2
-                      nil = exfin( 'Mzonopr','Erreur 19','NON' )
+                      If (IOPrint)                         Then
+                          Write(6,6019) ip2
+                          nil = exfin( 'Mzonopr','Erreur 19','NON' )
+                      End If
+
                       Call qqexit( 19 )
 
                   End If
@@ -1235,8 +1351,11 @@
 
 ***      Aucune tranche disponible.
 
-              Write(6,6023)
-              nil = exfin( 'Mzonopr','Erreur 23','NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6023)
+                  nil = exfin( 'Mzonopr','Erreur 23','NON' )
+              End If
+
               Call qqexit( 23 )
 
 ************************************************************************
@@ -1327,8 +1446,11 @@
 
 ***      Cette tranche ne fait pas partie de listej.
 
-              Write(6,6022) LocVAL
-              nil = exfin( 'Mzonopr','Erreur 22','NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6022) LocVAL
+                  nil = exfin( 'Mzonopr','Erreur 22','NON' )
+              End If
+
               Call qqexit( 22 )
 
 ************************************************************************
@@ -1348,8 +1470,10 @@
           NCPU = VAL
 
           If (NCPU.gt.MaxTask)                                 Then
-              Write(6,6024) NCPU,MaxTask
-              nil = exfin( 'Mzonopr','Erreur 24','NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6024) NCPU,MaxTask
+                  nil = exfin( 'Mzonopr','Erreur 24','NON' )
+              End If
               Call qqexit( 24 )
           End If
 
@@ -1378,6 +1502,14 @@
           StartJ    = VAL-1
 
 ************************************************************************
+      Else If (OPR.eq.9)                                       Then
+
+
+***      Basculer la valeur de IOPrint.
+
+          IOPrint   = .NOT.IOPrint
+
+************************************************************************
       End If
 
       Return
@@ -1394,8 +1526,12 @@
       If (ETAT.eq.0) Return
       
       If (ETAT.ne.3)                                           Then
-          Write(6,6101) ETAT
-          nil = exfin( 'Mzonxst', 'Erreur 1', 'NON' )
+
+          If (IOPrint)                                         Then
+              Write(6,6101) ETAT
+              nil = exfin( 'Mzonxst', 'Erreur 1', 'NON' )
+          End If
+
           Call qqexit( 1 )
 
       End If
@@ -1404,8 +1540,20 @@
 
       JJ = 1
       Do  II=1,NVAR
-          variab = listvar(II)(2:3)
-          If (variab .eq. NOM) GoTo 1000
+          variab = '    '
+          variab(1:2) = listvar(II)(2:3)
+          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9' ) .or.
+     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z' ) .or.
+     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z' )) then
+            variab(3:3) = listvar(II)(4:4)
+            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '9' ) .or.
+     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. 'Z' ) .or.
+     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. 'z' )) then
+              variab(4:4) = listvar(II)(5:5)
+            endif
+          endif
+
+          If (trim(variab) .eq. NOM) GoTo 1000
           JJ     = JJ+1
       End Do
 
@@ -1442,8 +1590,11 @@
 
 ***     Mauvaise latitude.
 
-              Write(6,6102) J0
-              nil = exfin( 'Mzonxst', 'Erreur 2', 'NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6102) J0
+                  nil = exfin( 'Mzonxst', 'Erreur 2', 'NON' )
+              End If
+
               Call qqexit( 2 )
 
           End If
@@ -1455,8 +1606,11 @@
 
           If (DIFP .eq. 0)                                     Then
 
-              Write(6,6103) NOM
-              nil = exfin( 'Mzonxst', 'Erreur 3', 'NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6103) NOM
+                  nil = exfin( 'Mzonxst', 'Erreur 3', 'NON' )
+              End If
+
               Call qqexit( 3 )
 
           End If
@@ -1494,8 +1648,11 @@
 
           If (NIC+StartI .gt. NI)                              Then
 
-              Write(6,6104) StartI+1,NDIM,NI
-              nil = exfin( 'Mzonxst','Erreur 4','NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6104) StartI+1,NDIM,NI
+                  nil = exfin( 'Mzonxst','Erreur 4','NON' )
+              End If
+
               Call qqexit( 4 )
 
           End If
@@ -1593,8 +1750,11 @@
 
 ***    Valeur non-reconnue pour ORD.
 
-              Write(6,6105) ORD,NIV
-              nil = exfin( 'Mzonxst', 'Erreur 5', 'NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6105) ORD,NIV
+                  nil = exfin( 'Mzonxst', 'Erreur 5', 'NON' )
+              End If
+
               Call qqexit( 5 )
 
           End If
@@ -1622,8 +1782,11 @@
       
       If (ETAT.ne.3)                                           Then
 
-          Write(6,6101) ETAT
-          nil = exfin( 'Mvznxst', 'Erreur 1', 'NON' )
+          If (IOPrint)                                         Then
+              Write(6,6101) ETAT
+              nil = exfin( 'Mvznxst', 'Erreur 1', 'NON' )
+          End If
+
           Call qqexit( 1 )
 
       End If
@@ -1632,8 +1795,20 @@
 
       JJ = 1
       Do  II=1,NVAR
-          variab = listvar(II)(2:3)
-          If (variab .eq. XNOM) GoTo 2000
+          variab = '    '
+          variab(1:2) = listvar(II)(2:3)
+          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9' ) .or.
+     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z' ) .or.
+     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z' )) then
+            variab(3:3) = listvar(II)(4:4)
+            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '9' ) .or.
+     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. 'Z' ) .or.
+     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. 'z' )) then
+              variab(4:4) = listvar(II)(5:5)
+            endif
+          endif   
+
+          If (trim(variab) .eq. XNOM) GoTo 2000
           JJ     = JJ+1
       End Do
 
@@ -1641,8 +1816,20 @@
 
       JJ = 1
       Do  II=1,NVAR
-          variab = listvar(II)(2:3)
-          If (variab .eq. YNOM) GoTo 2050
+          variab = '    '
+          variab(1:2) = listvar(II)(2:3)
+          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9' ) .or.
+     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z' ) .or.
+     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z' )) then
+            variab(3:3) = listvar(II)(4:4)
+            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '9' ) .or.
+     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. 'Z' ) .or.
+     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. 'z' )) then
+              variab(4:4) = listvar(II)(5:5)
+            endif
+          endif   
+
+          If (trim(variab) .eq. YNOM) GoTo 2050
           JJ     = JJ+1
       End Do
 
@@ -1652,8 +1839,10 @@
 
 ***    Au moins une de ces variables n'est pas dans notre liste.
 
-*         Write(6,6122) XNOM,YNOM
-*         nil = exfin( 'Mvznxst', 'Erreur 2', 'NON' )
+*         If (IOPrint)                                         Then
+*             Write(6,6122) XNOM,YNOM
+*             nil = exfin( 'Mvznxst', 'Erreur 2', 'NON' )
+*         End If 
 *         Call qqexit( 2 )
 
           Return
@@ -1684,8 +1873,11 @@
 
 ***     Mauvaise latitude.
 
-              Write(6,6102) J0
-              nil = exfin( 'Mvznxst', 'Erreur 2', 'NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6102) J0
+                  nil = exfin( 'Mvznxst', 'Erreur 2', 'NON' )
+              End If
+
               Call qqexit( 2 )
 
           End If
@@ -1750,8 +1942,11 @@
 
           If (NIC+StartI .gt. NI)                              Then
 
-              Write(6,6104) StartI+1,NDIM,NI
-              nil = exfin( 'Mvznxst','Erreur 4','NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6104) StartI+1,NDIM,NI
+                  nil = exfin( 'Mvznxst','Erreur 4','NON' )
+              End If
+
               Call qqexit( 4 )
 
           End If
@@ -1883,8 +2078,11 @@
 
 ***     Valeur non-reconnue pour ORD.
 
-              Write(6,6105) ORD,KA
-              nil = exfin( 'Mvznxst', 'Erreur 5', 'NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6105) ORD,KA
+                  nil = exfin( 'Mvznxst', 'Erreur 5', 'NON' )
+              End If
+
               Call qqexit( 5 )
 
           End If
@@ -1915,8 +2113,11 @@
 
       If (ETAT.ne.3)                                           Then
 
-          Write(6,6101) ETAT
-          nil = exfin( 'Mzoniv', 'Erreur 1', 'NON' )
+          If (IOPrint)                                         Then
+              Write(6,6101) ETAT
+              nil = exfin( 'Mzoniv', 'Erreur 1', 'NON' )
+          End If
+
           Call qqexit( 1 )
 
       Else
@@ -1935,8 +2136,11 @@
 
 ***     Mauvaise latitude.
 
-              Write(6,6102) J+StartJ
-              nil = exfin( 'Mzoniv', 'Erreur 2', 'NON' )
+              If (IOPrint)                                     Then
+                  Write(6,6102) J+StartJ
+                  nil = exfin( 'Mzoniv', 'Erreur 2', 'NON' )
+              End If
+
               Call qqexit( 2 )
 
           End If
@@ -1989,7 +2193,7 @@
      +       ' mismatch between expected and real dimensions.')
  6012 Format(' Unable to read "W/" weights array or',
      +       ' mismatch between expected and real dimensions.')
- 6013 Format(' Unable to read "V/" variable list or',
+ 6013 Format(' Unable to read "VC/" variable list or',
      +       ' mismatch between expected and real dimensions.')
  6033 Format(' Unable to read "P/" position list or',
      +       ' mismatch between expected and real dimensions.')
@@ -2007,7 +2211,7 @@
 
  6101 Format(' Not in a state to execute command, STATE=',I1)
  6102 Format(' Latitude ',I3,' is not being currently processed.')
- 6103 Format(' Nothing to save, NOM=',A2)
+ 6103 Format(' Nothing to save, NOM=',A)
  6104 Format(' StartI+NDIM-1 > NI, as StartI,NDIM,NI =',3I5)
  6105 Format(' Non-recognized value: ORD =',I5,', while KA =',I5)
 

@@ -1,8 +1,6 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
-
 .SUFFIXES :
 
-.SUFFIXES : .ftn .f .c .o
+.SUFFIXES : .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -12,13 +10,17 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
+
+RMNLIB_BASE_PATH=$(ARMNLIB)
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
@@ -26,19 +28,7 @@ UPDATEX =
 
 default: obj
 
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.ftn.f:
-	rm -f $*.f
-	r.ftntof -P $(DEFINE) $< > $*.f
-	chmod 444 $*.f
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
-
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 FTNDECKS= \
          alpas2.ftn       alpas8.ftn       alpdl2.ftn       alpdl8.ftn \
@@ -64,21 +54,31 @@ OBJECTS= \
 FICHIERS = $(FTNDECKS)
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/spectral_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/spectral_1.0_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: \
+         $(TEMPLIB)(alpas2.o)       $(TEMPLIB)(alpas8.o)       $(TEMPLIB)(alpdl2.o)       $(TEMPLIB)(alpdl8.o) \
+         $(TEMPLIB)(alpdr2.o)       $(TEMPLIB)(alpdr8.o)       $(TEMPLIB)(alpnm2.o)       $(TEMPLIB)(alpnm8.o) \
+         $(TEMPLIB)(dimcal.o)       $(TEMPLIB)(epsil2.o)       $(TEMPLIB)(epsil8.o)       $(TEMPLIB)(fasp8.o) \
+         $(TEMPLIB)(gauss.o)        $(TEMPLIB)(gauss8.o)       $(TEMPLIB)(ggasp0.o) \
+         $(TEMPLIB)(ggasp8.o)       $(TEMPLIB)(gwaqd0.o)       $(TEMPLIB)(gwaqd8.o)       $(TEMPLIB)(ordleg8.o) \
+         $(TEMPLIB)(perm.o)         $(TEMPLIB)(qqqfasp.o)      $(TEMPLIB)(scof2.o)        $(TEMPLIB)(spagg0.o) \
+         $(TEMPLIB)(spagg8.o)       $(TEMPLIB)(fasp2.o)        $(TEMPLIB)(ewfdr2.o)       $(TEMPLIB)(spaf2.o) \
+         $(TEMPLIB)(spaf8.o)
+
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECTS)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 copie:

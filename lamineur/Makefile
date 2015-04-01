@@ -21,9 +21,10 @@
 #slabtest2000.f- Test program to "create" diese slabfiles for Delamineur_98
 #
 # include Makefile_$(ARCH)$(ABI)
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
 
-.SUFFIXES : .ftn .f .c .o
+.SUFFIXES :
+
+.SUFFIXES : .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -33,15 +34,19 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
+
+RMNLIB_BASE_PATH=$(ARMNLIB)
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-RMNLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn.a
+RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
@@ -49,14 +54,7 @@ UPDATEX =
 
 default: obj
 
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
-
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 OBJECT = write_slab.o
 
@@ -73,39 +71,41 @@ OBJTEST2000 = slabtest2000.o
 FICHIERS = write_slab2000.c read_slab.c routines.f slab.h
 
 tarball:  $(FICHIERS) Makefile
-	tar cfzv /data/armnraid1/www/ssm/lamineur_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/lamineur_1.0_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECT2000) 
 #Produire les fichiers objets (.o) pour tous les fichiers
 
+locallib: $(TEMPLIB)(write_slab2000.o)
+
 genlib: $(OBJECT2000)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECT2000)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECT2000)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 slabtest: ${OBJTEST}
-	r.build -o $@ -obj $(OBJTEST) $(OBJECT) -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj $(OBJTEST) $(OBJECT) -arch $(EC_ARCH) -abi $(ABI) -librmn
 slabtest98: ${OBJTEST}
-	r.build -o $@ -obj $(OBJTEST2000) $(OBJECT2000) -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj $(OBJTEST2000) $(OBJECT2000) -arch $(EC_ARCH) -abi $(ABI) -librmn
 
 #
 #	if creating for LINUX, compile on GALOIS!
 
 delamineur_98: ${OBJ2}
-	r.build -bidon c -main delamineur -o $@ -obj ${OBJ2} -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -bidon c -main delamineur -o $@ -obj ${OBJ2} -arch $(EC_ARCH) -abi $(ABI) -librmn
 
 delamineur_xx: ${OBJ3}
-	r.build -o $@ -obj $(OBJ3) -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj $(OBJ3) -arch $(EC_ARCH) -abi $(ABI) -librmn
 
 delamineur: ${OBJ3}
-	r.build -o $@ -obj ${OBJ3} -arch $(ARCH) -abi $(ABI) -librmn -fstd89
+	r.build -o $@ -obj ${OBJ3} -arch $(EC_ARCH) -abi $(ABI) -librmn -fstd89
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 

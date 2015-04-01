@@ -24,6 +24,10 @@
 #include<stdlib.h>
 #include<fcntl.h>
 
+#ifdef WIN32	/*CHC/NRC*/
+#include <io.h>
+#endif
+
 #define Max_File 10
 
 

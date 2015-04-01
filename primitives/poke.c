@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 #if !defined (_FLOAT1)
 void f77name(poke)(wordint **adr,wordint *indx, wordint *val)
 {

@@ -111,7 +111,7 @@ int rpn_c_callback(char *VERB, void *callback, char *OPTIONS,
 
 /*  register a FORTRAN callback function */
 wordint f77name(rpn_fortran_callback)(char *VERB, void *callback, char *OPTIONS,
-		void *Private_data,void *Private_data_2,  int l_VERB, int l_OPTIONS) {
+		void *Private_data,void *Private_data_2,  F2Cl l_VERB, F2Cl l_OPTIONS) {
 
  strncpy(callback_table[callbacks].command_name,VERB,l_VERB<MAX_CMD_LEN-1?l_VERB:MAX_CMD_LEN-1);
  callback_table[callbacks].command_name[MAX_CMD_LEN-1]='\0';
@@ -460,7 +460,7 @@ return (errors);
 }
 
 /* equivalent of process_c_callback but FORTRAN callable */
-wordint f77name(process_f_callback)(char *filename, int l_filename){
+wordint f77name(process_f_callback)(char *filename, F2Cl l_filename){
 char the_name[1024];
 strncpy(the_name, filename, l_filename<1023 ? l_filename : 1023);
 the_name[l_filename<1023 ? l_filename : 1023]='\0';

@@ -26,12 +26,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef WIN32    /*CHC/NRC*/
+#include <fcntl.h>
+#define S_IRUSR _S_IREAD
+#define S_IWUSR _S_IWRITE
+#define S_IRGRP _S_IREAD
+#define S_IWGRP _S_IWRITE
+#define S_IROTH _S_IREAD
+#define S_IWOTH _S_IWRITE
+typedef long int pid_t;
+#else
 #include <unistd.h>
 #include <sys/types.h>
 #if defined (__AIX__)
 #include <fcntl.h>
 #else
 #include <sys/fcntl.h>
+#endif
 #endif
 #include <sys/stat.h>
 
@@ -2407,7 +2418,7 @@ PRIVATE int
 *
 **/
 wordint
-f77name(vmmallc2)(wordint *memry, char *cd_rep, int lng)
+f77name(vmmallc2)(wordint *memry, char *cd_rep, F2Cl lng)
 {
    int vmmerr();
    void  lit_vmm_controle();
@@ -2421,7 +2432,7 @@ f77name(vmmallc2)(wordint *memry, char *cd_rep, int lng)
    void *f77name(malloc2)();
    long long noctets; 
 #else
-   int noctets;
+   size_t noctets;
 #endif
 /*
  * s'assurer que c'est bien le premier appel a vmmallc
@@ -2558,7 +2569,7 @@ f77name(vmmallc)(wordint *memry)
 *
 **/
 wordint
-f77name(vmmatt)(char *namevar,wordint *lpiece,wordint *npiece,char *attr,int l1,int l2)
+f77name(vmmatt)(char *namevar,wordint *lpiece,wordint *npiece,char *attr,F2Cl l1,F2Cl l2)
 {
    int vmmerr();
 
@@ -2802,7 +2813,7 @@ wordint f77name(vmmcpk)()
 **/
 wordint
 f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
-                char *inattr,int l1,int l2)
+                char *inattr,F2Cl l1,F2Cl l2)
 {
    int vmmerr();
 
@@ -3069,7 +3080,7 @@ f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
 *
 **/
 wordint
-f77name(vmmdbg)(char command[],complete_key inlkey[], wordint *nkey,int l1)
+f77name(vmmdbg)(char command[],complete_key inlkey[], wordint *nkey,F2Cl l1)
 {
 
   char cmd[NCARATTR], junk[20], diag_file[80], msg[80];
@@ -4072,7 +4083,7 @@ f77name(vmmrls)(complete_key inlkey[], wordint *nkey)
 *
 **/
 wordint
-f77name(vmmrnm)(complete_key *oldkey,char *newname, int l1)
+f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 {
      int vmmerr();
      int qvmindex_from_key();
@@ -4582,6 +4593,7 @@ f77name(vmmwho)(wordint *adr)
 	return(0);
 	}
       }
+  return 0; /*CHC/NRC*/
 }
 
 /***s/p vmmckmx

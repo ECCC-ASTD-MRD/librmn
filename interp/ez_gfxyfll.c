@@ -21,6 +21,10 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
+		    ftnfloat *lon, ftnfloat *lat, 
+		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
+		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2);
 
 void f77name(ezgfxyfll)(ftnfloat *lonp, ftnfloat *latp,
 		    ftnfloat *lon, ftnfloat *lat, 
@@ -40,7 +44,6 @@ void c_ezgfxyfll(ftnfloat *lonp, ftnfloat *latp,
   
   cart = (ftnfloat *) malloc(3* *npts*sizeof(ftnfloat));
   carot = (ftnfloat *) malloc(3* *npts*sizeof(ftnfloat));
-  
   f77name(ez_crot)( r, ri, xlon1, xlat1, xlon2, xlat2);
   f77name(ez_lac) (cart,lonp,latp, npts);
   f77name(mxm)(r,&trois,cart,&trois,carot,npts);

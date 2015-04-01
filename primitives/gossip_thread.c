@@ -32,9 +32,8 @@
 #include <time.h>
 #include <rpnmacros.h>
 
-#include "gossip.h"
+#include <gossip.h>
 
-/* =================================================================== */
 
 static int exit_requested = 0;   /* flag to indicate pending SHUTDOWN request */
 
@@ -47,7 +46,6 @@ int is_exit_requested()     /*   %ENTRY%   */
   return(exit_requested);
 }
 
-/* =================================================================== */
 
 static EXTENDED_CLIENT_SLOT clients[MAX_EXTENDED_CLIENTS];
 static int client_table_initialized = 0 ;  /* initialization flag */
@@ -64,8 +62,8 @@ static void initialize_client_table()
 static int find_client_slot() 
 {
   int i;
-  for(i=0;  clients[i].client_id != 0 && i<MAX_EXTENDED_CLIENTS ; i++);
-  return( i<MAX_EXTENDED_CLIENTS ? i : -1 );
+  for(i = 0;  clients[i].client_id != 0 && i<MAX_EXTENDED_CLIENTS ; i++);
+  return( i < MAX_EXTENDED_CLIENTS ? i : -1 );
 }
 
 /* =================================================================== */
@@ -77,8 +75,6 @@ static pthread_mutex_t mutex ;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 #define MAX_LOCKS 256
-
-/*64*/
 
 static pthread_mutex_t locks[MAX_LOCKS] ;
 static int locks_initialized = 0;
@@ -115,9 +111,11 @@ static void initialize_locks()
 /* exit from a client serving thread, reinitialize client structure */
 void exit_from_client_thread(EXTENDED_CLIENT_SLOT *client)  /*   %ENTRY%   */
 {
-  free(client->command);
+  if(client->command)
+    free(client->command);
   memset(client, 0, sizeof(EXTENDED_CLIENT_SLOT));
   pthread_exit(0);
+
 }
 
 static int client_ord = 0;       /* total number of clients served */
@@ -165,6 +163,8 @@ void start_client_thread_2(void (*client_address)(EXTENDED_CLIENT_SLOT *), int c
   
   clients[slot].user_function = user_server;
   
+  /* get_client(); */
+
 #ifdef HP
    
   pthread_create(&client_thread[0],
@@ -202,6 +202,7 @@ void decrement_client_count()  /*   %ENTRY%   */
 {
      pthread_mutex_lock(&mutex);
      client_no-- ;
+     client_ord--;
      pthread_mutex_unlock(&mutex);
 }
 
@@ -211,3 +212,20 @@ int get_client_count()  /*   %ENTRY%   */
   return(client_no > MAX_EXTENDED_CLIENTS ? -1 : client_no);
 }
 
+/* EXTENDED_CLIENT_SLOT get_client(int fclient) */
+int exit_from_client(int fclient)
+{
+  int i;
+
+  for (i = 0; i < get_client_count(); i++)
+    {
+      if(clients[i].socket == fclient)
+	{
+	  exit_from_client_thread((void *)&clients[i]);
+	  return 0;
+	}
+    }
+  
+  
+  return -1;
+}

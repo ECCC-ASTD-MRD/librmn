@@ -42,7 +42,7 @@
 *
 *IMPLICITES
 *#include "codes.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 #include "defi.cdk"
 #include "masques.cdk"
 *

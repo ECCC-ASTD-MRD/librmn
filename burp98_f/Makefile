@@ -1,13 +1,16 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
-#include Makefile_$(ARCH)$(ABI)
+.SUFFIXES :
 
-.SUFFIXES : .ftn .f .o
+.SUFFIXES : .ftn .f .o .a
 
 SHELL = /bin/sh
 
 CPP = /lib/cpp
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+RMNLIB_BASE_PATH=$(ARMNLIB)
+
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 COMPILE = compile
 
@@ -15,11 +18,11 @@ FFLAGS =
 
 CFLAGS = 
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
@@ -27,16 +30,7 @@ UPDATEX =
 
 default: burp98_f.o
 
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.ftn.f:
-	rm -f $*.f
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $< -P
-	chmod 444 $*.f
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 FTNDECKS= \
          bufrchr.ftn       mrbcol.ftn       mrbcov.ftn       mrbcvt.ftn \
@@ -113,7 +107,7 @@ burp98_f.f: $(FDECKS)
 	cat $(FDECKS) > burp98_f.f
 
 tarball: $(FTNDECKS) $(COMDECKS)
-	tar cfzv /data/armnraid1/www/ssm/burp98_f_1.0_all.tgz $(FTNDECKS) $(COMDECKS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/burp98_f_1.0_all.tgz $(FTNDECKS) $(COMDECKS) Makefile 
 
 obj: $(OBJET) 
 #Produire les fichiers objets (.o) pour tous les fichiers
@@ -127,24 +121,26 @@ burptest.o: burptest.f
 
 burptest: burptest.o $(OBJET) 
 #creer un executable burptest
-	r.build -o $@ -obj burptest.o -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj burptest.o -arch $(EC_ARCH) -abi $(ABI) -librmn
 
 testc.o: testc.c
 
 ctest: testc.o $(OBJET)
 #Produire un executable pour tester l'interface C de burp
-	r.build -o $@ -obj testc.o -arch $(ARCH) -abi $(ABI) -librmn
+	r.build -o $@ -obj testc.o -arch $(EC_ARCH) -abi $(ABI) -librmn
 
+locallib: $(TEMPLIB)(burp98_f.o)
+        
 genlib: $(OBJET)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJET)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJET)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:

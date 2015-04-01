@@ -20,7 +20,7 @@
 
 #include <rpnmacros.h>
 #include <stdio.h>
-void f77name(rah2char)(char *chaine, ftnword *f_entier, ftnword *f_nc, int lng)
+void f77name(rah2char)(char *chaine, ftnword *f_entier, ftnword *f_nc, F2Cl lng)
 {
   int nc=*f_nc;
   int entier=*f_entier;
@@ -39,7 +39,7 @@ void f77name(rah2char)(char *chaine, ftnword *f_entier, ftnword *f_nc, int lng)
   }
 }
 
-void f77name(char2rah)(char *chaine, ftnword *entier, ftnword *f_nc, int lng)
+void f77name(char2rah)(char *chaine, ftnword *entier, ftnword *f_nc, F2Cl lng)
 {
   int nc=*f_nc;
   int i; 

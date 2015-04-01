@@ -19,7 +19,7 @@
  */
 
 #if !defined (_FLOAT1)
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 /*                                                                   */
 /*  RMTCALL: effectuer un appel a une fonction FORTRAN dont on a     */
 /*           obtenu l'adresse au moyen de LOCF en passant une        */
@@ -40,13 +40,29 @@
 /*  notes: toutes ces fonctions travaillent avec des MOTS.           */
 /*         Pour FORTRAN, un INTEGER ou un REAL occupent un mot.      */
 /*         NE PAS UTILISER pour une variable de type CHARACTER.      */
-wordint f77name(rmtcall)(wordint (** entry)(),wordint **args)
+wordint f77name(rmtcall)(unsigned long long *entry_in,unsigned long long *args_in)
 {
-  /*  printf("Debug rmtcall *entry=%ld \n",*entry);
-  printf("Debug rmtcall *args[0-4]=%d %d %d %d %d\n",
-          *args[ 0],*args[ 1],*args[ 2],*args[ 3],*args[ 4]);
-  */
-   return((*entry)(
+  typedef wordint *W_ptr;
+  W_ptr args[41];
+  int i;
+  union {
+    long long ptr_sub;
+    wordint (* entry)();
+    } callee;
+  union {
+    long long ptr;
+    wordint * entry;
+    } arg_temp;
+ 
+  callee.ptr_sub = *entry_in;  
+  for (i=0; i<41; i++) {
+    arg_temp.ptr = args_in[i];
+    args[i] = arg_temp.entry;
+    }
+
+    
+   /* printca(args[0]); */
+   return((*callee.entry)(
                  args[ 0],args[ 1],args[ 2],args[ 3],args[ 4],
                  args[ 5],args[ 6],args[ 7],args[ 8],args[ 9],
                  args[10],args[11],args[12],args[13],args[14],

@@ -419,7 +419,11 @@ end function N_ConstructNull
     integer, intent(in) :: n_ni, n_nj   ! horizontal dimensions
 
                                         ! vertical levels as pressure
-    real, dimension(:,:,:), intent(out) :: r_P
+                                        ! (These dimensions must be explicit
+                                        !  because r_P is used to call
+                                        !  hybrid_to_pres which has a fortran77
+                                        !  interface.)
+    real, dimension(n_ni,n_nj,that%Ptr%N_numVLevels), intent(out) :: r_P
 
                                         ! surface pressure for each horiz point,
                                         ! in units of mb
@@ -586,7 +590,7 @@ integer :: i, vt
       write(6,*)'          Copying P directly to ln P.'
       ! Do nothing
     end select
-      
+
   end function N_VertGridGetLnP
 
 

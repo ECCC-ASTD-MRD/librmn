@@ -50,7 +50,7 @@
 #include "bpl.cdk"
 #include "burpopt.cdk"
 #include "codes.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 *
 *MODULE
       EXTERNAL MRBLOC

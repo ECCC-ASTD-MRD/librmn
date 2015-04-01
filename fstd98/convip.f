@@ -306,7 +306,7 @@ c     %         goto 101
             if (flag) then
                if (len(string) .ge. 15) then
                   if(abs_p .eq. int(abs_p) .and. abs_p.lt.1000000.) then
-                     write(var_fmt,'(i12,1x,a2)')int(abs_p),kinds(kind)
+                     write(var_fmt,'(i12,1x,a2)')int(p),kinds(kind)
                   elseif (abs_p.ge. 1000000.) then
                      write(var_fmt,'(e12.6,1x,a2)')p,kinds(kind)
                   elseif (abs_p.ge. 100000.) then
@@ -470,8 +470,3 @@ c     %         goto 101
       endif
       return
       end
-
-
-
-
-

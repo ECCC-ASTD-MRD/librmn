@@ -38,7 +38,7 @@
 *        CCC      "    DES BITS 0 A 7  DE L'ELEMENT
 *
 *IMPLICITES
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 #include "defi.cdk"
 #include "masques.cdk"
 *

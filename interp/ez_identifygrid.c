@@ -94,7 +94,7 @@ wordint c_ezidentifygrid(wordint ni, wordint nj, char *grtyp, char *grref,
   if (gdid == -1)
     {
     gdid = i;
-    memset(&Grille[gdid],NULL, sizeof(_Grille));
+    memset(&Grille[gdid],(int)NULL, sizeof(_Grille));
     Grille[gdid].count++;
     nGrilles++;
     }
@@ -107,7 +107,7 @@ wordint c_ezidentifygrid(wordint ni, wordint nj, char *grtyp, char *grref,
   if (0 == (nGrilles % NMAXGRIDS))
     {
     Grille = (_Grille *) realloc(Grille, sizeof(_Grille)*(nGrilles+32));
-    memset(&Grille[gdid],NULL, sizeof(_Grille));
+    memset(&Grille[gdid],(int)NULL, sizeof(_Grille));
     gr = &Grille[gdid];
 /*    fprintf(stderr, "<ezgdef_ffile> : Too many defined grids. \n");
     fprintf(stderr, "<ezgdef_ffile> : No way but to abort. \n");

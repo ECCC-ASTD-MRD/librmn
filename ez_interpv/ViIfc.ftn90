@@ -67,15 +67,15 @@ module VerticalGridRepository
     private
     public N_DepositGrid, N_ObtainGrid, N_UndepositGrid
 
-    integer, save      :: n_next = 7680        ! 0x1E00
+    integer            :: n_next = 7680        ! 0x1E00
     integer, parameter :: n_INDEX_MASK = 63    ! 0x003F
     integer, parameter :: n_MAX = n_INDEX_MASK
-    integer, save      :: n_gridsAvailable = n_MAX
+    integer            :: n_gridsAvailable = n_MAX
 
     ! This would be written as an array of an object, if fortran made it easier:
     type(T_VerticalGrid), dimension(0:n_MAX), target :: o_repository
     integer,dimension(0:n_MAX) :: n_keyy ! index, including higher order bits
-    logical, save, dimension(0:n_MAX) :: l_available = .true.
+    logical, dimension(0:n_MAX) :: l_available = .true.
 
 contains
 
@@ -92,11 +92,14 @@ contains
 !
 !OBJECT
 !        To deposit a vertical grid object in the repository.  It should be noted
-!        that a copy of the grid is kept in the repository and not just a pointer
-!        to it; the caller is not required to keep the original
+!        that the grid is copy-deleted into the repository rather than taking
+!        just a pointer to it.  The caller relinques its ownership of the
+!        original; it is deleted here to reduce the chances of creating a memory
+!        leak.
 !
 !ARGUMENTS
-    type(T_VerticalGridPtr), intent(in) :: o_verticalGridPtr
+                                        ! This is inout because it will be erased
+    type(T_VerticalGridPtr), intent(inout) :: o_verticalGridPtr
     integer, intent(out) :: n_indexOut
 !
 !!
@@ -148,14 +151,15 @@ contains
                                     o_verticalGridPtr%Ptr%N_numVLevels)
     if (N_DepositGrid /= 0) return
 
-                                        ! deposit the grid
+                                        ! Copy the grid and release the original
     o_nextInRepositoryPtr%Ptr = o_verticalGridPtr%Ptr
+    call M_ReleaseVerticalGrid(o_verticalGridPtr)
 
     end function N_DepositGrid
 
 
 
-!!!func N_ObtainGrid - obtain a copy of a grid from the repository
+!!!func N_ObtainGrid - obtain a pointer to a grid in the repository
     integer function N_ObtainGrid(n_indexIn, o_verticalGridPtr)
 !
 !AUTHOR
@@ -166,7 +170,7 @@ contains
 !
 !OBJECT
 !        To obtain a vertical grid object from the repository.  It should be
-!        noted that a copy of the grid is returned and not just a pointer to it.
+!        noted that a pointer to the grid is returned and not a copy of it.
 !
 !ARGUMENTS
     integer, intent(in) :: n_indexIn
@@ -189,7 +193,7 @@ contains
     end if
 
                                         ! return the grid
-    o_verticalGridPtr%Ptr = o_repository(n_indexBare)
+    o_verticalGridPtr%Ptr => o_repository(n_indexBare)
 
     end function N_ObtainGrid
 
@@ -504,40 +508,10 @@ integer function N_VidefsetIfc_X(n_niIn, n_njIn, n_vGridDestnIndex, &
 
     real, dimension(n_niIn, n_njIn) :: r_z0, r_ilmo, r_hBound, r_lat
 
-                                        ! These two are located on the heap
-                                        ! because N_Visint keeps only a pointer
-                                        ! to these data
-    type(T_VerticalGrid), pointer :: o_vGridDestn_p, &
-                                     o_vGridSource_p
     type(T_VerticalGridPtr) :: o_vGridDestnPtr, &
                                o_vGridSourcePtr
 
-    allocate(o_vGridDestn_p, STAT=n_error)
-    if( n_error /= 0) then
-      N_VidefsetIfc_X = N_VI_VIERR_FAILED_ALLOCATION
-      write(6,*) 'N_VidefsetIfc_X failed allocating o_vGridDestnIn:  error=', &
-                  n_error
-      call flush(6)
-      return
-    endif
-
-    allocate(o_vGridSource_p, STAT=n_error)
-    if( n_error /= 0) then
-      N_VidefsetIfc_X = N_VI_VIERR_FAILED_ALLOCATION
-      write(6,*) 'N_VidefsetIfc_X failed allocating o_vGridSourceIn:  error=', &
-                  n_error
-      call flush(6)
-      return
-    endif
-
-    o_vGridDestnPtr%Ptr => o_vGridDestn_p
-    o_vGridSourcePtr%Ptr => o_vGridSource_p
-
-                                        ! Ensure valid objects
-    n_error = N_ConstructNull(o_vGridDestnPtr, 0)
-    n_error = N_ConstructNull(o_vGridSourcePtr, 0)
-
-                                        ! Obtain the grids from the repository
+                                        ! Get pointers to grids from repository
     N_VidefsetIfc_X = N_ObtainGrid(n_vGridDestnIndex, o_vGridDestnPtr)
     if(N_VidefsetIfc_X /= 0) return
     N_VidefsetIfc_X = N_ObtainGrid(n_vGridSourceIndex, o_vGridSourcePtr)
@@ -546,8 +520,8 @@ integer function N_VidefsetIfc_X(n_niIn, n_njIn, n_vGridDestnIndex, &
                                         ! Keep these data for future reference
     N_iDim     = n_niIn
     N_jDim     = n_njIn
-    N_kSrcDim  = o_vGridSource_p%N_numVLevels
-    N_kDestDim = o_vGridDestn_p%N_numVLevels
+    N_kSrcDim  = o_vGridSourcePtr%Ptr%N_numVLevels
+    N_kDestDim = o_vGridDestnPtr%Ptr%N_numVLevels
 
 
                                         ! Validate the extension arrays

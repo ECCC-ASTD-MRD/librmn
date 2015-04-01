@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 
 /* An array useful for CRC calculations that use 0x1021 as the "seed" */
 static unsigned int  magic[] = {

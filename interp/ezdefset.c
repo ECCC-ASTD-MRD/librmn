@@ -85,7 +85,7 @@ wordint c_ezdefset(wordint gdout, wordint gdin)
     }
    
    
-   memset(&gridset[found], NULL, sizeof(_gridset));   
+   memset(&gridset[found], (int)NULL, sizeof(_gridset));   
    gridset[found].gdin = gdin;
    gridset[found].gdout = gdout;
    gridset[found].use_sincos_cache = NON;

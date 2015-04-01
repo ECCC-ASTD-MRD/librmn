@@ -23,11 +23,14 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgetval)(char *option, ftnfloat *fvalue, wordint lenoption)
+wordint f77name(ezgetval)(char *option, ftnfloat *fvalue, F2Cl lenoption)
 {
    wordint icode;
+   wordint l_lenoption;
    
-   ftnstrclean(option,lenoption);
+   l_lenoption = (wordint) lenoption;
+   
+   ftnstrclean(option,l_lenoption);
    icode = c_ezgetval(option, fvalue);
    
    return icode;

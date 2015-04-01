@@ -20,6 +20,15 @@
 
 #include <stdio.h>
 #include <rpnmacros.h>
+
+#ifdef WIN32	/*CHC/NRC*/
+#include <Windows.h>
+void f77name(micro_sleep) (double *secs)
+{
+	DWORD dwMilliseconds = 1000 * (*secs);
+	Sleep(dwMilliseconds);
+}
+#else
 #include <sys/types.h>
 #include <sys/time.h>
 #if !defined (HP)
@@ -37,3 +46,5 @@ void f77name(micro_sleep) (double *secs)
   timeout.tv_usec=fmod(*secs,1.0) * 1000000;
   select(0,NULL,NULL,NULL,&timeout);
 }
+#endif
+

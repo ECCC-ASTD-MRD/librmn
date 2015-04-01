@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
-static char line[8192];
+static char line[32768];
 
 void f77name(resetenv)()
 {
@@ -30,24 +30,28 @@ void f77name(resetenv)()
   char *var = line;
   char *newvar;
   int lng;
+  int lng_in=0;  /* number of characters already in buffer */
 
-  stream = fopen(".resetenv","r");
+  stream = fopen(".resetenv","r");   /* open file containing environment to restore */
   if (stream == NULL) {
     fprintf(stdout,"Debug resetenv: fichier .resetenv inexistant\n");
     return;
   }
-  while (fgets(var,2048,stream)) {
+  while (fgets(var,32768-lng_in,stream)) {
     lng = strlen(var);
-    if (lng > 8192) {
+    lng_in += lng;  /* update number of characters already in buffer */
+    if (lng_in >= 32768) {    /* OOPS */
       fprintf(stderr,
 	      "*** ERREUR: resetenv, debordement du buffer lng=%d\n",lng);
+      fclose(stream);
       exit(22);
     }
-    var[lng-1]='\0';
-    if (putenv(var) < 0)
+    var[lng-1]='\0';  /* replace newline/EOF with NULL */
+    if (putenv(var) < 0)  /* modify environment variables */
       perror("resetenv");
     var += lng;
   }
+  fclose(stream);
   /*   newvar = getenv("ARMNLIB");
   fprintf(stdout,"Debug ARMNLIB=%s\n",newvar); */
 }

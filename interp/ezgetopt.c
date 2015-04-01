@@ -24,15 +24,19 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint f77name(ezgetopt)(char *option, char *value, wordint lenoption, wordint lenvalue)
+wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {
    wordint icode;
+   wordint l_lenoption, l_lenvalue;
    char local_opt[32], local_val[32];
 
-   ftnstrclean(option,lenoption);
-   ftnstrclean(value,lenvalue);
-   strncpy(local_opt, option, lenoption);
-   local_opt[lenoption] = '\0';
+   l_lenoption = (wordint) lenoption;
+   l_lenvalue = (wordint) lenvalue;
+   
+   ftnstrclean(option,l_lenoption);
+   ftnstrclean(value,l_lenvalue);
+   strncpy(local_opt, option, l_lenoption);
+   local_opt[l_lenoption] = '\0';
    
    icode = c_ezgetopt(local_opt, value);
 

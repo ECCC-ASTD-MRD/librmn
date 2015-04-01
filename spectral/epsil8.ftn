@@ -45,7 +45,8 @@
 
       POINTER ( IP,EPSI(1) )
 
-      COMMON   /ALPNRT/ LRLM,IC,ID,IE,IP
+      COMMON   /COMLRLM/ LRLM
+      COMMON   /ALPNRT/ IC,ID,IE,IP
 
       c(m,n) = sqrt( dble( (2*n+1)*(n+m-1)*(n+m-3) )/
      +               dble( (2*n-3)*(n+m  )*(n+m-2) ))

@@ -1,6 +1,6 @@
 .SUFFIXES:
 
-.SUFFIXES : .o .ftn90 .cdk .cdk90 .c
+.SUFFIXES : .o .ftn90 .cdk .cdk90 .c .a
 
 SHELL = /bin/sh
 
@@ -10,14 +10,18 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
-#OPTIMIZ = -O 1
-#OPTIMIZ = -O 0
-#OPTIMIZ = -O 0 -debug
+OPTIMIZ = 2
+#OPTIMIZ =  1
+#OPTIMIZ =  0
+#OPTIMIZ =  0 -debug
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+RMNLIB_BASE_PATH=$(ARMNLIB)
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
+
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 UPDATEX =
 
@@ -25,28 +29,14 @@ UPDATEX =
 
 default: obj
 
-.ftn90.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
-.cdk90.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
+vitypes.o: CreateViTypesMod.ftn90 ViTypes2_f90.h  ViTypes_f90.h
+	r.compile -arch $(EC_ARCH) -abi $(ABI) -O $(OPTIMIZ) -opt "=$(FFLAGS)" -src CreateViTypesMod.ftn90
+	mv CreateViTypesMod.o vitypes.o
 
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
-
-#.f.o:
-#	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-
-
-vitypes.mod: CreateViTypesMod.ftn90 ViTypes2_f90.h  ViTypes_f90.h
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src CreateViTypesMod.ftn90
-	rm CreateViTypesMod.o
-
-ViIfc.o: VertInterpConstants.cdk90 vitypes.mod ViIfc.ftn90 VerticalInterpolation.ftn90 VerticalGrid.cdk90
+#ViIfc.o: VertInterpConstants.cdk90 vitypes.o ViIfc.ftn90 VerticalInterpolation.ftn90 VerticalGrid.cdk90
+ViIfc.o: ViIfc.ftn90 vitypes.o VertInterpConstants.o VerticalGrid.o VerticalInterpolation.o
 
 VerticalGrid.o: VerticalGrid.cdk90 VertInterpConstants.cdk90
 
@@ -58,20 +48,28 @@ OBJECTS= \
 	VertInterpConstants.o VerticalGrid.o VerticalInterpolation.o ViIfc.o
 
 tarball:  *.ftn90 *.cdk90 *.h  Makefile
-	tar cfzv /data/armnraid1/www/ssm/ez_interpv_1.0_all.tgz *.ftn90 *.cdk90 *.h Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/ez_interpv_1.0_all.tgz *.ftn90 *.cdk90 *.h Makefile 
 
 obj:	$(OBJECTS)
+	rm -f vitypes.o
+
+locallib: vitypes.o \
+        $(TEMPLIB)(VertInterpConstants.o)   $(TEMPLIB)(VerticalGrid.o) \
+        $(TEMPLIB)(VerticalInterpolation.o)  $(TEMPLIB)(ViIfc.o)
+	rm -f vitypes.o
 
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECTS)
+	rm -f vitypes.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS)
 
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	rm -f vitypes.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:

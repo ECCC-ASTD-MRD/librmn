@@ -1,26 +1,28 @@
-include /usr/local/env/armnlib/include/$(ARCH)$(ABI)/Makefile_addons
-
 .SUFFIXES :
 
-.SUFFIXES : .ftn .f .c .o
+.SUFFIXES : .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
 CPP = /lib/cpp
 
-RMNLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn.a
+RMNLIB_BASE_PATH=$(ARMNLIB)
+
+RMNLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn.a
+
+TEMPLIB = ./templib_$(EC_ARCH)$(ABI).a
 
 FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
-MYLIB = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmnbeta.a
+MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 
-LIB_X = $(ARMNLIB)/lib/$(ARCH)$(ABI)/librmn_x.a
+LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 UPDATEX =
 
@@ -28,15 +30,7 @@ UPDATEX =
 
 default: obj
 
-.ftn.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
-.c.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(CFLAGS)" -src $<
-
-.f.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" -src $<
-
+include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 FTNDECKS= \
          dgauss.ftn       grgg.ftn       idxes.ftn       llfxy.ftn \
@@ -125,21 +119,44 @@ legvar.o:       legvar.ftn
 grid_to_grid.o: grid_to_grid.ftn
 
 tarball: $(FICHIERS)
-	tar cfzv /data/armnraid1/www/ssm/base_1.0_all.tgz $(FICHIERS) Makefile 
+	tar cfzv /data/armnraid1/www/ssm/sources/base_1.0_all.tgz $(FICHIERS) Makefile 
 
 obj: $(OBJECTS) $(OBJ_FRONT)
 #Produire les fichiers objets (.o) pour tous les fichiers
 
 genlib: $(OBJECTS) $(OBJ_FRONT)
 #Creer ou mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) $(OBJECTS) $(OBJ_FRONT)
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) $(OBJECTS) $(OBJ_FRONT)
 
+locallib: \
+         $(TEMPLIB)(afix.o)           $(TEMPLIB)(afix8.o)        $(TEMPLIB)(amax.o)          $(TEMPLIB)(amean.o) \
+         $(TEMPLIB)(amin.o)           $(TEMPLIB)(bilin.o)        $(TEMPLIB)(c_time.o)        $(TEMPLIB)(corcof.o) \
+         $(TEMPLIB)(coriol.o)         $(TEMPLIB)(coupe.o)        $(TEMPLIB)(cvt_base40.o)    $(TEMPLIB)(d1.o) \
+         $(TEMPLIB)(d1int1.o)         $(TEMPLIB)(d1int2.o)       $(TEMPLIB)(d1intr.o)        $(TEMPLIB)(datec.o) \
+         $(TEMPLIB)(datmgp.o)         $(TEMPLIB)(defvec.o)       $(TEMPLIB)(dgauss.o)        \
+         $(TEMPLIB)(fconw.o)          $(TEMPLIB)(fd1.o)          $(TEMPLIB)(fdm.o)           \
+         $(TEMPLIB)(gdadcn.o)         $(TEMPLIB)(gdadgd.o)       $(TEMPLIB)(gdmpgd.o)        $(TEMPLIB)(gdsqrt.o) \
+         $(TEMPLIB)(grgg.o)           $(TEMPLIB)(grlcc.o)        $(TEMPLIB)(grll.o)          $(TEMPLIB)(grps.o) \
+         $(TEMPLIB)(idatmg.o)         $(TEMPLIB)(idxes.o)        $(TEMPLIB)(igaxg.o)         $(TEMPLIB)(incdat.o) \
+         $(TEMPLIB)(int1d1.o)         $(TEMPLIB)(inzono.o)       $(TEMPLIB)(ipsort.o)        $(TEMPLIB)(isort.o) \
+         $(TEMPLIB)(jdatec.o)         $(TEMPLIB)(jjulien.o)      $(TEMPLIB)(llfxy.o)         $(TEMPLIB)(moduledate.o) \
+         $(TEMPLIB)(movlev.o)         $(TEMPLIB)(movlev8.o)      $(TEMPLIB)(mscale.o)        $(TEMPLIB)(mwerms.o) \
+         $(TEMPLIB)(mzonxst.o)        $(TEMPLIB)(npspin.o)       $(TEMPLIB)(ordleg.o)        $(TEMPLIB)(permut.o) \
+         $(TEMPLIB)(polagr.o)         $(TEMPLIB)(rossr3.o)       $(TEMPLIB)(s1scor.o)        $(TEMPLIB)(sglo.o) \
+         $(TEMPLIB)(sglogg.o)         $(TEMPLIB)(sll.o)          $(TEMPLIB)(sort.o)          $(TEMPLIB)(spd.o) \
+         $(TEMPLIB)(splat.o)          $(TEMPLIB)(sps.o)          $(TEMPLIB)(sqadsq.o)        $(TEMPLIB)(valide.o) \
+         $(TEMPLIB)(vglo.o)           $(TEMPLIB)(vglogg.o)       $(TEMPLIB)(vll.o)           \
+         $(TEMPLIB)(vpolagr.o)        $(TEMPLIB)(vps.o)          $(TEMPLIB)(windv.o) \
+         $(TEMPLIB)(xgaig.o)          $(TEMPLIB)(xyflcc.o)       $(TEMPLIB)(xyfll.o)         $(TEMPLIB)(system_time.o)\
+         $(TEMPLIB)(mxma.o)           $(TEMPLIB)(mxm.o)          $(TEMPLIB)(igaxg95.o)       $(TEMPLIB)(legvar.o)\
+         $(TEMPLIB)(movr8r4.o)        $(TEMPLIB)(nr_rand.o)      $(TEMPLIB)(grid_to_grid.o)
+       
 updlib: 
 #mettre a jour la programmatheque 
-	r.ar -arch $(ARCH) rcv $(MYLIB) *.o
+	r.ar -arch $(EC_ARCH) rcv $(MYLIB) *.o
 	if [ "$(UPDATEX)" = "1" ] ; \
 	then \
-	r.ar -arch $(ARCH) rcv $(LIB_X) *.o ; \
+	r.ar -arch $(EC_ARCH) rcv $(LIB_X) *.o ; \
 	fi
 
 clean:

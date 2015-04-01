@@ -51,7 +51,7 @@
 #include "codes.cdk"
 #include "bpl.cdk"
 #include "masques.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 *
 **
       IF(BTYP .LT. -1) THEN

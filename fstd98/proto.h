@@ -1,8 +1,11 @@
+#if !defined(F2Cl)
+#define F2Cl int
+#endif
 int fnom_index(int iun);
 int error_msg(char *function_name, int errcode, int errlevel);
 int file_index(int iun);
 ftnword f77name(xdfopn)(ftnword *fiun,char *mode,ftnword_2 *pri,ftnword *fnpri,
-             ftnword_2 *aux,ftnword *fnaux,char *appl,int l1,int l2);
+             ftnword_2 *aux,ftnword *fnaux,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
              word_2 *aux,int naux,char *appl);
 ftnword f77name(xdfcls)(ftnword *fiun);
@@ -54,10 +57,10 @@ ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
 			word *buf);
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf);
 ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
-			int l1, int l2);
+			F2Cl l1, F2Cl l2);
 int c_xdfopt(char *optname, char *optc, int optv);
 ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
-			int l1, int l2);
+			F2Cl l1, F2Cl l2);
 int c_xdfgop(char *optname, char *optc, int *optv);
 ftnword f77name(xdfins)(word *buf,word *donnees,
                         ftnword *fbitpos, ftnword *fnelm,
@@ -87,18 +90,18 @@ int c_xdfupd(int iun,buffer_interface_ptr buf,int idtyp,
 ftnword f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit);
 int c_xdfuse(int src_unit, int dest_unit);
 ftnword f77name(xdfcle)(char *fkeyname,ftnword *fbit1,ftnword *flkey,
-			ftnword *ftkey,ftnword *fdesc1,ftnword *fdesc2,int l1);
+			ftnword *ftkey,ftnword *fdesc1,ftnword *fdesc2,F2Cl l1);
 int c_xdfcle(char *keyname,int bit1,int lkey,int tkey,int *desc1,int *desc2);
 int c_qdfmsig(int iun, char* newappl);
-ftnword f77name(qdfmsig)(ftnword *fiun,char *appl,int l1);
+ftnword f77name(qdfmsig)(ftnword *fiun,char *appl,F2Cl l1);
 ftnword f77name(mrbdel)(word *buf, ftnword *f_number);
 int c_mrbdel(void *buffer, int number);
 ftnword f77name(xdflnk)(ftnword *liste, ftnword *fn);
 int c_xdflnk(word *liste, int n);
 int c_xdfunl(word *liste, int n);
-ftnword f77name(fstvoi)(ftnword *f_iun,char *options,int l1);
+ftnword f77name(fstvoi)(ftnword *f_iun,char *options,F2Cl l1);
 int c_fstvoi(int iun,char *options);
-ftnword f77name(fstouv)(ftnword *f_iun, char *options);
+ftnword f77name(fstouv)(ftnword *f_iun, char *options, F2Cl l1);
 int c_fstouv(int iun, char *options);
-ftnword f77name(secateur)(char *filename, ftnword *f_where);
+ftnword f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1);
 void c_fst_env_var(char *cles, int index, char *content);

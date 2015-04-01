@@ -38,6 +38,7 @@ static int ip_nb[3] = {0,0,0};
 static int ip1s_flag = 0; 
 static int ip2s_flag = 0;
 static int ip3s_flag = 0;
+static int dejafait_1=0, dejafait_2=0;
 
 static int ips_tab[3][Max_Ipvals];
 
@@ -52,7 +53,7 @@ static int remap_table[2][10];    /* used for datatype remapping */
 static int nb_remap=0;            /* number of datatype remapping,  0 = no remapping */
 static char prnt_options[128]="NINJNK+DATESTAMPO+IP1+IG1234";   /* what is printed with fstecr */
 static void crack_std_parms(stdf_dir_keys *stdf_entry, 
-		    stdf_special_parms *cracked_parms);
+        stdf_special_parms *cracked_parms);
 static void print_std_parms(stdf_dir_keys *stdf_entry,
                             char *pre, char *option,int header);
 /*splitpoint aaaa_comment */
@@ -285,6 +286,7 @@ return(0);
  *          7: character string                                              *
  *          8: complex IEEE                                                  *
  *        130: compressed short integer                                      *
+ *        133: compressed IEEE                                               *
  *        134: compressed floating point                                     *
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           * 
@@ -307,6 +309,7 @@ int c_fstecr(word *field, void * work, int npak,
   int minus_nbits, i, lngw, compressed_lng;
   int datyp, nbytes;
   int niout, njout, nkout;
+  
   file_table_entry *f;
   stdf_dir_keys *stdf_entry;
   buffer_interface_ptr buffer;
@@ -378,6 +381,12 @@ int c_fstecr(word *field, void * work, int npak,
   minus_nbits = -nbits;
   njnk = nj * nk;
 
+  if ((in_datyp == 1) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    datyp = 5;              /* R32 to E32 automatic conversion */
+    nbits = 32;
+    minus_nbits = -32;
+    }
+    
   /* validate range of arguments */
   VALID(ni,1,NI_MAX,"ni","c_fstecr")
   VALID(nj,1,NJ_MAX,"nj","c_fstecr")
@@ -392,7 +401,7 @@ int c_fstecr(word *field, void * work, int npak,
   VALID(ip1,0,IP1_MAX,"ip1","c_fstecr")
   VALID(ip2,0,IP2_MAX,"ip2","c_fstecr")
   VALID(ip3,0,IP3_MAX,"ip3","c_fstecr")
-  VALID(ni*nj*nk*nbits/FTN_Bitmot,1,MAX_RECORD_LENGTH,"record length > 128MB","c_fstecr")
+  VALID(ni*nj*nk*nbits/FTN_Bitmot,0,MAX_RECORD_LENGTH,"record length > 128MB","c_fstecr")
   ;
 
   datev = date;
@@ -415,15 +424,23 @@ int c_fstecr(word *field, void * work, int npak,
     if (datyp == remap_table[0][i]) {
       datyp = remap_table[1][i];
       }
-  if (nbits > 16) datyp &= 0x7F;    /* no extra compression if nbits > 16 */
+  if ((nbits > 16) && (datyp != 133)) datyp &= 0x7F;    /* no extra compression if nbits > 16 */
 /*  if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression; */
   if ((datyp == 6) && (nbits > 24)) {
-    fprintf(stderr,"c_fstecr WARNING: nbits > 16, writing E32 instead of F%2d\n",nbits);
+    if (! dejafait_1) {
+      WARNPRINT fprintf(stderr,"c_fstecr WARNING: nbits > 16, writing E32 instead of F%2d\n",nbits);
+      dejafait_1 = 1;
+      }
     datyp = 5;
     nbits = 32;
+    minus_nbits = -32;
     }
   if ((datyp == 6) && (nbits > 16)) {
-    fprintf(stderr,"c_fstecr WARNING: nbits > 16, writing R%2d instead of F%2d\n",nbits,nbits);
+    if (! dejafait_2) {
+/*      printf("msg_level=%d dejafait_2=%d !dejafait_2=%d\n",msg_level,dejafait_2,!dejafait_2); */
+      WARNPRINT fprintf(stderr,"c_fstecr WARNING: nbits > 16, writing R%2d instead of F%2d\n",nbits,nbits);
+      dejafait_2 = 1;
+      }
     datyp = 1;
     }
   switch (datyp) {
@@ -670,16 +687,35 @@ int c_fstecr(word *field, void * work, int npak,
                             nbits,0,xdf_stride,3);
       break;
       
-    case 5: case 8:             /* IEEE and IEEE complex representation */
+    case 5: case 8: case 133:             /* IEEE and IEEE complex representation */
       {
         ftnword f_ni = (ftnword) ni;
         ftnword f_njnk = (ftnword) njnk;
         ftnword f_zero = (ftnword) zero;
         ftnword f_one = (ftnword) one;
         ftnword f_minus_nbits = (ftnword) minus_nbits;
-        if (datyp == 8) f_ni = f_ni * 2;
-        f77name(ieeepak)(field,&(buffer->data[keys_len]),&f_ni,&f_njnk,&f_minus_nbits,
-                         &f_zero,&f_one);
+        if (datyp == 133) {
+          /* use an additionnal compression scheme */    
+          compressed_lng = c_armn_compress32(&(buffer->data[keys_len+1]), field, ni,nj,nk,nbits);
+          if (compressed_lng < 0)
+           {
+             stdf_entry->datyp = 5;
+             f77name(ieeepak)(field,&(buffer->data[keys_len]),&f_ni,&f_njnk,&f_minus_nbits,
+                              &f_zero,&f_one);
+           }
+          else {           
+            nbytes = 16 + compressed_lng;
+            nw = (nbytes * 8 + 63) / 64;
+            nw = W64TOWD(nw); 
+            buffer->data[keys_len] = nw;
+            buffer->nbits = (keys_len + nw) * bitmot;
+            }
+          }
+        else {
+          if (datyp == 8) f_ni = f_ni * 2;
+          f77name(ieeepak)(field,&(buffer->data[keys_len]),&f_ni,&f_njnk,&f_minus_nbits,
+                           &f_zero,&f_one);
+          }
         break;
       }
 
@@ -1414,10 +1450,14 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
   if ((xdf_datatyp == 1) || (xdf_datatyp == 5))
     lng = (xdf_double) ? 2*lng : lng;
 
+    
   if ((xdf_datatyp == 6) || (xdf_datatyp == 134)) {       /* new packer */
     c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,(*ni)*(*nj)*(*nk));
     header_size /= sizeof(INT_32);
     lng2 = 1 + ((*ni * *nj * *nk* 16 + 32 + 31) / 32) + header_size + 20;
+    }
+  else if (xdf_datatyp == 133) {  /* compressed ieee */
+    lng2 = 1 + lng;
     }
   else if (xdf_datatyp > 128) {
     lng2 = 4 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + 20;          /* 16 for 16 bits armn_compress */
@@ -1609,8 +1649,12 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
           break;
         }
         
+      case 133:  /* floating point, new packers */
+          nbytes = c_armn_uncompress32(field, buf->data+1, *ni,*nj,*nk,stdf_entry->nbits);
+          break;
+      
       case 7: mode=10;  /* character string */
-        printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n",xdf_stride,nelm);
+/*        printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n",xdf_stride,nelm); */
         ier = compact_char(field,(void *) NULL,buf->data,nelm,
                               8,0,xdf_stride,mode);
         break;
@@ -1778,13 +1822,15 @@ int c_fstopc(char *option, char *value, int getmode)
     if (getmode)
       fprintf(stdout,"c_fstopc option %s, MSGLVL=%d\n",msgtab[msg_level],
               nivmsg[msg_level]);
-    else
+    else {
       for (i = 0; i < 7; i++) {
         if (strcmp(msgtab[i],value) == 0) {
           msg_level = i;
           break;
         }
       }
+      c_armn_compress_option(option,value);  /* pass msglvl option to compressor */
+    }
   }
   else
     if (strcmp(option,"TOLRNC") == 0) {

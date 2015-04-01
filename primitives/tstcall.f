@@ -19,7 +19,7 @@
 * */
       program tstcall
       integer a(10)
-      integer *8 argum(40)
+      integer *8 argum(41)
       data a /10,20,30,40,50,60,70,80,90,100/
 
       external subr
@@ -29,7 +29,7 @@
       write(*,99) 'Debug tstcall adrsub=',adrsub
  99   format(a,z16.16)
 
-      do i = 1,40
+      do i = 1,41
          argum(i) = loc(a(mod(i,10)))
       enddo
 

@@ -10,10 +10,10 @@ FFLAGS =
 
 CFLAGS =
 
-OPTIMIZ = -O 2
+#OPTIMIZ = -O 2
 #OPTIMIZ = -O 1
 #OPTIMIZ = -O 0
-#OPTIMIZ = -O 0 -debug
+OPTIMIZ = -O 0 -debug
 
 default: test
 
@@ -52,16 +52,16 @@ testWithInterpv: copyHlocal TestVI.o
 	cp ../*.o .
 	cp ../../interpv/*.o .
 	r.build -o TestVInterp_$(ARCH).Abs -obj $(INTERPV_OBJECTS) $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_007
+	-abi$(ABI) -librmn rmn_008
 
 test:	TestVI.o
 	cp ../*.o .
 	r.build -o TestVInterp_$(ARCH).Abs -obj $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_007
+	-abi$(ABI) -librmn rmn_008
 
 testlib:TestVI.o
 	r.build -o TestVInterp_$(ARCH).Abs -obj TestVI.o -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_007
+	-abi$(ABI) -librmn rmn_008
 
 copielocale:
 	cp ../*.o . 
@@ -69,7 +69,7 @@ copielocale:
 
 SpeedConvert: copielocale SpeedConvertP.o
 	r.build -o SpeedConvertP_$(ARCH).Abs -obj $(SPEED_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmnbeta
+	-abi$(ABI) -librmn rmn_008
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 

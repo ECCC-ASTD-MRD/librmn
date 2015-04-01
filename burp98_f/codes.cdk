@@ -27,8 +27,8 @@
      +         ERBDOM, ERELEM, ERBTYP, ERRCELL, ERNPRM,  ERCMPR, ERROR,
      +         EREBDSC,EREIVC, ERRDAT
       PARAMETER(
-     +         TRIVIA = 1, INFORM = 2, WARNIN= 3, ERROR  = 4,
-     +         ERFATAL= 5, SYSTEM = 6, KAPUT = 7, EREDAT =16,
+     +         TRIVIA = 0, INFORM = 1, WARNIN= 2, ERROR  = 3,
+     +         ERFATAL= 4, SYSTEM = 5, KAPUT = 6, EREDAT =16,
      +         ERFRAP =30, ERFMOD =31, ERCLEF=32, ERBNUM =33,
      +         EROPTN =34, ERBTAB =35, ERBDOM=36, ERELEM =37,
      +         ERBTYP =38, ERRCELL=39, ERNPRM=40, ERCMPR =41,

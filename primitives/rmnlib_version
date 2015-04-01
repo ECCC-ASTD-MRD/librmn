@@ -15,7 +15,8 @@ cat <<EOT >rmnlib_version.f
 *
         version = 
      %  "  RMNLIB  -  Release:"//
-     %  " ${RMNRLS} ($ARCH$ABI)    `date`"
+     %  " ${RMNRLS} (Rev $SVNREV)"//
+     %  " ($ARCH$ABI) `date`"
 	if (prnt) print *,version
 	return
 	end

@@ -1043,10 +1043,10 @@ int f77name(select_date)(int *date_list, int *nelm, float *delta)
   return(xc_select_date(bundle_nb, desire_exclure,date_list,*nelm,*delta));
 }
 
-int f77name(select_etiquette)(char *etiq_list[], int *nelm, int lng)
+int f77name(select_etiquette)(char *etiq_list[], int *nelm, F2Cl flng)
 {
   char **string_array;
-  int i,ier;
+  int i,ier,lng=flng;
   dbprint(stddebug,"Debug desire_etiquette lng=%d nelm=%d\n",lng,*nelm);
   string_array = fill_string_array(allocate_string_array(*nelm),etiq_list,lng,*nelm,0);
   for (i=0; i < *nelm; i++)
@@ -1056,10 +1056,10 @@ int f77name(select_etiquette)(char *etiq_list[], int *nelm, int lng)
   return(ier);
 }
 
-int f77name(select_nomvar)(char *nomv_list[], int *nelm, int lng)
+int f77name(select_nomvar)(char *nomv_list[], int *nelm, F2Cl flng)
 {
   char **string_array;
-  int i,ier;
+  int i,ier,lng=flng;
   dbprint(stddebug,"Debug desire_nomvar lng=%d nelm=%d\n",lng,*nelm);
   string_array = fill_string_array(allocate_string_array(*nelm),nomv_list,lng,*nelm,0);
   for (i=0; i < *nelm; i++)
@@ -1069,10 +1069,10 @@ int f77name(select_nomvar)(char *nomv_list[], int *nelm, int lng)
   return(ier);
 }
 
-int f77name(select_typvar)(char *typv_list[], int *nelm, int lng)
+int f77name(select_typvar)(char *typv_list[], int *nelm, F2Cl flng)
 {
   char **string_array;
-  int i,ier;
+  int i,ier,lng=flng;
   dbprint(stddebug,"Debug desire_typvar lng=%d nelm=%d\n",lng,*nelm);
   string_array = fill_string_array(allocate_string_array(*nelm),typv_list,lng,*nelm,0);
   for (i=0; i < *nelm; i++)

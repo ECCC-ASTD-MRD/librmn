@@ -62,6 +62,10 @@ wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vv
    
    c_ezgenerate_gem_cache();
 
+   if (NULL==Grille[gdidout].lat)
+    {
+    ez_calclatlon(gdidout);
+    }
    c_gdwdfuv(gdidin, uullout, vvllout, uuout, vvout,
              Grille[gdidout].lat, Grille[gdidout].lon, npts);
 

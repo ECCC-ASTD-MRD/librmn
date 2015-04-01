@@ -18,9 +18,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 #if !defined (NEC)
 #include <malloc.h>
+
+#ifdef WIN32    /*CHC/NRC*/
+void f77name(stkmem2)(_int64 *f_nbytes,void **ptr)
+{
+  _int64 nbytes=*f_nbytes;
+  *ptr = (void *) malloc((int)nbytes);
+}
+#else
 void f77name(stkmem2)(long long *f_nbytes,void **ptr)
 {
 
@@ -28,6 +36,7 @@ void f77name(stkmem2)(long long *f_nbytes,void **ptr)
 
   *ptr = (void *) malloc(nbytes);
 }
+#endif
 
 void f77name(unstak2)(void **ptr)
 {

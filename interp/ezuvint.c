@@ -34,7 +34,7 @@ wordint f77name(ezuvint)(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfl
 wordint c_ezuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
 {
    wordint gdidin,gdidout;
-   wordint npts, ier;
+   wordint npts, ier,i;
    ftnfloat *uullout = NULL;
    ftnfloat *vvllout = NULL;
    

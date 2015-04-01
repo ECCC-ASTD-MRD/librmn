@@ -26,6 +26,7 @@
 *AUTHOR   - D. ROBERTSON
 *
 *REVISION 001   C. THIBEAULT  -  NOV 79  DOCUMENTATION
+*Revision 002   M. Lepine - Avril 2007 - traitement du cas (ridicule) avec n <= 1
 *
 *LANGUAGE - fortran
 *
@@ -57,6 +58,8 @@
 *
 *
 *-----------------------------------------------------------------------------
+      
+      IF (n .le. 1) RETURN
 *
 * INITIALIZATION FOR FIRST LOOP (IF  N/2.GE.2 ONLY).
 *

@@ -28,7 +28,17 @@
         RETURN
         END
 #else
-#if !defined (HP) && !defined(Alpha)
+  #ifdef WIN32	/*CHC/NRC*/
+        FUNCTION SECOND()
+		USE DFPORT
+		REAL(4) SECOND, TA(2)
+
+		SECOND = ETIME(TA)
+
+        RETURN
+        END
+  #else
+    #if !defined (HP) && !defined(Alpha)
         FUNCTION SECOND()
         REAL SECOND
         INTEGER TEMPS
@@ -38,5 +48,6 @@
 
         RETURN
         END
-#endif
+    #endif
+  #endif
 #endif

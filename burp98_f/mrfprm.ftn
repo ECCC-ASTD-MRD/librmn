@@ -55,7 +55,7 @@
 *IMPLICITES
 #include "codes.cdk"
 #include "defi.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 #include "enforc8.cdk"
 *
 *MODULES 

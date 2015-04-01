@@ -20,7 +20,11 @@
 
 /* auteur: M. valin */
 #include <stdio.h>
+
+#ifndef WIN32	/*CHC/NRC*/
 #include <unistd.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -33,8 +37,12 @@ void f77name(open_status_file)(){
    exit(1);
  }
 }
-void f77name(write_status_file)(char *msg, int lmsg){
+void f77name(write_status_file)(char *msg, F2Cl lmsg){
+#ifdef WIN32
+  write(fd,msg,strlen(msg));
+#else
  write(fd,msg,lmsg);
+#endif
 }
 void f77name(close_status_file)(){
  close(fd);

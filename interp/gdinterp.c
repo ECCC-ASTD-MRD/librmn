@@ -23,9 +23,14 @@
 
 wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts)
 {
-  wordint lnpts;
+  wordint lnpts,i;
 
   lnpts = npts;
+  
+/*  for (i=0; i < npts; i++)
+    {
+    printf("gdinterp: %d %f %f\n", i, x[i], y[i]);
+    } */
 
   switch(Grille[gdin].grtyp)
     {
@@ -33,103 +38,103 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
     case 'Z':
     case 'G':
       switch (groptions.degre_interp)
-	{
-	case VOISIN:
-	  f77name(ez_rgdint_0)(zout,x,y,
-			       &lnpts, zin, &Grille[gdin].ni, 
-			       &Grille[gdin].j1, &Grille[gdin].j2);
-	  break;
-	  
-	case LINEAIRE:
-	  switch(Grille[gdin].extension)
-	    {
-	    case 0:
-	      f77name(ez_irgdint_1_nw)(zout,x, y,
-				       &lnpts, Grille[gdin].ax, Grille[gdin].ay,
-				       zin,&Grille[gdin].ni, &Grille[gdin].nj);
-	      break;
-	      
-	    case 1:
-	    case 2:
-	      f77name(ez_irgdint_1_w)(zout,x, y,
-				      &lnpts, Grille[gdin].ax, Grille[gdin].ay,
-				      zin,&Grille[gdin].ni, &Grille[gdin].j1, &Grille[gdin].j2, &Grille[gdin].extension);
-	      break;
-	    }
-	  break;
-	  
-	case CUBIQUE:
-	  switch(Grille[gdin].extension)
-	    {
-	    case 0:
-	      f77name(ez_irgdint_3_nw)(zout, x, y,
-				       &lnpts, Grille[gdin].ax, Grille[gdin].ay,
-				       Grille[gdin].ncx, Grille[gdin].ncy, zin,
-				       &Grille[gdin].i1, &Grille[gdin].i2,
-				       &Grille[gdin].j1, &Grille[gdin].j2);
-	      break;
-	      
-	    case 1:
-	    case 2:
-	      f77name(ez_irgdint_3_w)(zout, x, y,
-				      &lnpts, Grille[gdin].ax, Grille[gdin].ay,
-				      Grille[gdin].ncx, Grille[gdin].ncy, zin,
-				      &Grille[gdin].ni, &Grille[gdin].j1, &Grille[gdin].j2, 
-				      &Grille[gdin].extension);
-	      break;
-	    }
-	  break;
-	}
+        {
+        case VOISIN:
+          f77name(ez_rgdint_0)(zout,x,y,
+                  &lnpts, zin, &Grille[gdin].ni, 
+                  &Grille[gdin].j1, &Grille[gdin].j2);
+          break;
+          
+        case LINEAIRE:
+          switch(Grille[gdin].extension)
+            {
+            case 0:
+              f77name(ez_irgdint_1_nw)(zout,x, y,
+                    &lnpts, Grille[gdin].ax, Grille[gdin].ay,
+                    zin,&Grille[gdin].ni, &Grille[gdin].nj);
+              break;
+              
+            case 1:
+            case 2:
+              f77name(ez_irgdint_1_w)(zout,x, y,
+                    &lnpts, Grille[gdin].ax, Grille[gdin].ay,
+                    zin,&Grille[gdin].ni, &Grille[gdin].j1, &Grille[gdin].j2, &Grille[gdin].extension);
+              break;
+            }
+          break;
+    
+          case CUBIQUE:
+            switch(Grille[gdin].extension)
+              {
+              case 0:
+                f77name(ez_irgdint_3_nw)(zout, x, y,
+                      &lnpts, Grille[gdin].ax, Grille[gdin].ay,
+                      Grille[gdin].ncx, Grille[gdin].ncy, zin,
+                      &Grille[gdin].i1, &Grille[gdin].i2,
+                      &Grille[gdin].j1, &Grille[gdin].j2);
+                break;
+                
+              case 1:
+              case 2:
+                f77name(ez_irgdint_3_w)(zout, x, y,
+                      &lnpts, Grille[gdin].ax, Grille[gdin].ay,
+                      Grille[gdin].ncx, Grille[gdin].ncy, zin,
+                      &Grille[gdin].ni, &Grille[gdin].j1, &Grille[gdin].j2, 
+                      &Grille[gdin].extension);
+                break;
+              }
+            break;
+          }
       
       break;
       
     default:
       switch (groptions.degre_interp)
-	{
-	case VOISIN:
-	  f77name(ez_rgdint_0)(zout,x,y,
-			       &lnpts, zin, &Grille[gdin].ni, 
-			       &Grille[gdin].j1, &Grille[gdin].j2);
-	  
-	  break;
-	  
-	case LINEAIRE:
-	  switch(Grille[gdin].extension)
-	    {
-	    case 0:
-	    case 1:
-	      f77name(ez_rgdint_1_nw)(zout,x,y,
-				      &lnpts, zin, &Grille[gdin].ni, 
-				      &Grille[gdin].j1, &Grille[gdin].j2);
-	      break;
-	      
-	    case 2:
-	      f77name(ez_rgdint_1_w)(zout,x,y,
-				     &lnpts, zin, &Grille[gdin].ni, 
-				     &Grille[gdin].j1, &Grille[gdin].j2,
-				     &Grille[gdin].extension);
-	    }
-	  break;
-	  
-	case CUBIQUE:
-	  switch(Grille[gdin].extension)
-	    {
-	    case 0:
-	      f77name(ez_rgdint_3_nw)(zout, x, y,
-				      &lnpts, zin, &Grille[gdin].ni, 
-				      &Grille[gdin].j1, &Grille[gdin].j2); 
-	      break;
-	      
-	    case 1:
-	    case 2:
-	      f77name(ez_rgdint_3_w)(zout, x, y,
-				     &lnpts, zin,  &Grille[gdin].ni, 
-				     &Grille[gdin].j1, &Grille[gdin].j2,
-				     &Grille[gdin].extension);
-	      break;
-	    }
-	  break;
-	}
+        {
+        case VOISIN:
+          f77name(ez_rgdint_0)(zout,x,y,
+                  &lnpts, zin, &Grille[gdin].ni, 
+                  &Grille[gdin].j1, &Grille[gdin].j2);
+          
+          break;
+          
+        case LINEAIRE:
+          switch(Grille[gdin].extension)
+            {
+            case 0:
+            case 1:
+              f77name(ez_rgdint_1_nw)(zout,x,y,
+                    &lnpts, zin, &Grille[gdin].ni, 
+                    &Grille[gdin].j1, &Grille[gdin].j2);
+              break;
+              
+            case 2:
+              f77name(ez_rgdint_1_w)(zout,x,y,
+                  &lnpts, zin, &Grille[gdin].ni, 
+                  &Grille[gdin].j1, &Grille[gdin].j2,
+                  &Grille[gdin].extension);
+            }
+          break;
+   
+          case CUBIQUE:
+            switch(Grille[gdin].extension)
+              {
+              case 0:
+                f77name(ez_rgdint_3_nw)(zout, x, y,
+                      &lnpts, zin, &Grille[gdin].ni, 
+                      &Grille[gdin].j1, &Grille[gdin].j2); 
+                break;
+                
+              case 1:
+              case 2:
+                f77name(ez_rgdint_3_w)(zout, x, y,
+                    &lnpts, zin,  &Grille[gdin].ni, 
+                    &Grille[gdin].j1, &Grille[gdin].j2,
+                    &Grille[gdin].extension);
+                break;
+              }
+            break;
+          }
       break;
     }
   

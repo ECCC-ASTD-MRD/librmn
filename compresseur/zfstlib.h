@@ -1,10 +1,14 @@
 #include <rpnmacros.h>
 
-#define NIL           0
-#define SAMPLE        1
-#define MOYENNE       2
-#define MINIMUM       3
-#define PARALLELOGRAM 4
+#define   COMPRESS    1
+#define UNCOMPRESS    2
+
+#define NIL               0
+#define SAMPLE            1
+#define MOYENNE           2
+#define MINIMUM           3
+#define PARALLELOGRAM     4
+#define PARALLELOGRAM32   5
 
 #define BEST    1
 #define FAST    0
@@ -42,6 +46,13 @@ typedef struct
   word reserved3:8, version:6, levels:3, nbits:5, step:3, degree:3, predictor_type:4;
 #endif
 } _fstzip;
+
+typedef union 
+  {
+  INT_32 i;
+  float f;
+  } _floatint;
+
 
 #define stuffmore(token, availableWordPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord)  \
 {                                                                                                             \

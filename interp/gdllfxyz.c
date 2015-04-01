@@ -61,37 +61,37 @@ wordint c_gdllfxyz(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnf
     case '#':
     case 'Z':
       switch (grEntree.grref)
-	{
-	case 'E':
-	  f77name(ez_gfllfxy)(lon,lat,x,y,&npts,&grEntree.xgref[XLAT1],&grEntree.xgref[XLON1],
-			      &grEntree.xgref[XLAT2],&grEntree.xgref[XLON2]);
-	  break;
-	  
-	case 'S':
-	case 'N':
-	  if (grEntree.grref == 'N') 
-	    hem = 1;
-	  else
-	    hem = 2;
+  {
+  case 'E':
+    f77name(ez_gfllfxy)(lon,lat,x,y,&npts,&grEntree.xgref[XLAT1],&grEntree.xgref[XLON1],
+            &grEntree.xgref[XLAT2],&grEntree.xgref[XLON2]);
+    break;
+    
+  case 'S':
+  case 'N':
+    if (grEntree.grref == 'N') 
+      hem = 1;
+    else
+      hem = 2;
 
-	  un = 1;
-	  f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&grEntree.xgref[D60],
-			  &grEntree.xgref[DGRW], &grEntree.xgref[PI], &grEntree.xgref[PJ],&grEntree.hemisphere);
-	  break;
-	  
-	case 'L':
-	  for (i=0; i < n; i++)
-	    {
-	      lat[i] = (x[i])*grEntree.xgref[DLAT]+ grEntree.xgref[SWLAT];
-	      lon[i] = (y[i])*grEntree.xgref[DLON]+ grEntree.xgref[SWLON];
-	      lon[i] = lon[i] < 0.0 ? lon[i] + 360.0 : lon[i];
-	    }
-	  break;
-	  
-	default:
-	  fprintf(stderr,"<gdllfxy> Errrrrrrrrrrreur!\n");
-	  break;
-	}
+    un = 1;
+    f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&grEntree.xgref[D60],
+        &grEntree.xgref[DGRW], &grEntree.xgref[PI], &grEntree.xgref[PJ],&grEntree.hemisphere);
+    break;
+    
+  case 'L':
+    for (i=0; i < n; i++)
+      {
+        lat[i] = (y[i])*grEntree.xgref[DLAT]+ grEntree.xgref[SWLAT];
+        lon[i] = (x[i])*grEntree.xgref[DLON]+ grEntree.xgref[SWLON];
+        lon[i] = lon[i] < 0.0 ? lon[i] + 360.0 : lon[i];
+      }
+    break;
+    
+  default:
+    fprintf(stderr,"<gdllfxy> Errrrrrrrrrrreur!\n");
+    break;
+  }
       break;
     }
   

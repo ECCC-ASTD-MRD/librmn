@@ -36,7 +36,7 @@ ftnword  f77name(qdfdiag)(ftnword *f_iun)
  *****************************************************************************/
 
 ftnword f77name(qdferr)(char *subname,char *msg,ftnword *ferrlevl,
-			ftnword *ferrcode,int l1,int l2)
+			ftnword *ferrcode,F2Cl l1,F2Cl l2)
 {
    int errlevl = *ferrlevl, errcode = *ferrcode, lng;
    char c_subname[128];
@@ -71,7 +71,7 @@ ftnword f77name(qdfind)(ftnword *iun)
  *                            Q D F M S I G                                  * 
  *****************************************************************************/
 
-ftnword f77name(qdfmsig)(ftnword *fiun,char *appl,int l1)
+ftnword f77name(qdfmsig)(ftnword *fiun,char *appl,F2Cl l1)
 {
    int iun = *fiun, lng;
    char c_appl[257];
@@ -192,7 +192,7 @@ ftnword f77name(xdfadd)(word *buf,word *donnees,
  *                                X D F C L E                                *
  *****************************************************************************/
 ftnword f77name(xdfcle)(char *fkeyname,ftnword *fbit1,ftnword *flkey,
-			ftnword *ftkey,ftnword *fdesc1,ftnword *fdesc2,int l1)
+			ftnword *ftkey,ftnword *fdesc1,ftnword *fdesc2,F2Cl l1)
 {
    char keyname[5]={' ',' ',' ',' ','\0'};
    int lkey = *flkey, tkey = *ftkey, bit1 = *fbit1;
@@ -270,7 +270,7 @@ ftnword f77name(xdfget)(ftnword *fhandle, word *buf)
    ier = c_xdfget(handle,buf+1);
    BUF_F;
 #else
-   ier = c_xdfget(handle,buf);
+   ier = c_xdfget(handle,(buffer_interface_ptr) buf);
 #endif
    return((ftnword) ier);
 }
@@ -281,9 +281,9 @@ ftnword f77name(xdfget)(ftnword *fhandle, word *buf)
  *****************************************************************************/
 
 ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
-			int l1, int l2)
+			F2Cl ll1, F2Cl ll2)
 {
-   int optv, err;
+   int optv, err, l1=ll1, l2=ll2;
    char optname[257], optc[257];
 
    l1 = (l1 <= 256) ? l1 : 256; 
@@ -319,7 +319,7 @@ ftnword f77name(xdfhdr)(word *buf,ftnword *addr,ftnword *lng,
    ier = c_xdfhdr(buf+1,&l_addr,&l_lng,&l_idtyp,l_primk,nprim,l_info,ninfo);
    BUF_F;
 #else
-   ier = c_xdfhdr(buf,&l_addr,&l_lng,&l_idtyp,l_primk,nprim,l_info,ninfo);
+   ier = c_xdfhdr((buffer_interface_ptr)buf,&l_addr,&l_lng,&l_idtyp,l_primk,nprim,l_info,ninfo);
 #endif
 
    *addr =  (ftnword) l_addr;
@@ -412,7 +412,7 @@ ftnword f77name(xdfini)(ftnword *fiun,word *buf,ftnword *fidtyp,
    ier = c_xdfini(iun,buf+1,idtyp,primk,nkeys,infok,ninfo);
    BUF_F;
 #else
-   ier = c_xdfini(iun,buf,idtyp,keys,nkeys,info,ninfo);
+   ier = c_xdfini(iun,(buffer_interface_ptr)buf,idtyp,keys,nkeys,info,ninfo);
 #endif
    return((ftnword) ier);
 }
@@ -490,7 +490,7 @@ ftnword f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
 ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
 			ftnword_2 *pri, ftnword *fnpri,
 			ftnword_2 *aux, ftnword *fnaux,
-			char *appl, int l1, int l2)
+			char *appl, F2Cl l1, F2Cl l2)
 {
    int iun = *fiun, npri = *fnpri, naux = *fnaux, lng, i, ier;
    char c_mode[257], c_appl[257];
@@ -527,9 +527,9 @@ ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
  *****************************************************************************/
 
 ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
-			int l1, int l2)
+			F2Cl ll1, F2Cl ll2)
 {
-   int optv = *foptv;
+   int optv = *foptv, l1=ll1, l2=ll2;
    char optname[257], optc[257];
 
    l1 = (l1 <= 256) ? l1 : 256; 
@@ -583,7 +583,7 @@ ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
    ier = c_xdfput(iun,handle,buf+1);
    BUF_F;
 #else
-   ier = c_xdfput(iun,handle,buf);
+   ier = c_xdfput(iun,handle,(buffer_interface_ptr)buf);
 #endif
    return((ftnword) ier);
 }
@@ -688,7 +688,7 @@ ftnword f77name(xdfupd)(ftnword *fiun,word *buf,ftnword *fidtyp,
    ier = c_xdfupd(iun,buf+1,idtyp,l_keys,nkeys,l_info,ninfo);
    BUF_F;
 #else
-   ier = c_xdfupd(iun,buf,idtyp,keys,nkeys,info,ninfo);
+   ier = c_xdfupd(iun,(buffer_interface_ptr)buf,idtyp,keys,nkeys,info,ninfo);
 #endif
    return((ftnword) ier);
 }
@@ -749,7 +749,7 @@ ftnword f77name(xdfxtr)(word *buf,word *donnees,
  *                                                                           * 
  *****************************************************************************/
 
-ftnword f77name(secateur)(char *filename, ftnword *f_where)
+ftnword f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1)
 {
   int ier, where = *f_where;
   

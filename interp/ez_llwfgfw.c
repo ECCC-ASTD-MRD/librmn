@@ -27,7 +27,7 @@ void f77name(ez_llwfgfw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, 
                   char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4)
 {
   c_ezllwfgfw(uullout, vvllout, latin, lonin, xlatingf, xloningf, ni,nj,
-	      grtyp,ig1,ig2,ig3,ig4);
+        grtyp,ig1,ig2,ig3,ig4);
 }
 
 
@@ -49,6 +49,7 @@ void c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat
   ftnfloat r[9], ri[9], xlon1, xlat1, xlon2, xlat2;
   ftnfloat *uvcart, *xyz;
   char grtypl[2];
+  wordint i;
 
  
   uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
@@ -67,3 +68,7 @@ void c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat
   free(uvcart);
   free(xyz); 
 }
+/*  for (i=0; i < npts; i++)
+    {
+    printf("%d %f %f %f %f %f %f\n", i, latin[i], lonin[i], xlatingf[i], xloningf[i], uullout[i], vvllout[i]);
+    }*/

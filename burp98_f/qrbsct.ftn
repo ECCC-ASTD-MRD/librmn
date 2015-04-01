@@ -51,7 +51,7 @@
 #include "codes.cdk"
 #include "defi.cdk"
 #include "burpopt.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 *
 *MODULES
       EXTERNAL LONGUEUR, QDFERR, MRBCOV, FNOM, GETENV, FCLOS
@@ -100,12 +100,12 @@ C         PATH1   = PATH(1:PATHLNG)//'/datafiles/constants/tableburp'
 *     A CONVERTIR DANS LE FICHIER BUFR_B
       READ(IUN, *) MAXELM, NELELU
         
-      IF(NELELU .GT. TABDIM) THEN
-         QRBSCT = QDFERR('QRBSCT',
-     $ ' TABLEAU POUR LA LECTURE EST TROP PETIT CONSULTER SPECIALISTE',
-     $        ERROR, ERBTAB)
-         RETURN
-      ENDIF
+C      IF(NELELU .GT. TABDIM) THEN
+C         QRBSCT = QDFERR('QRBSCT',
+C     $ ' TABLEAU POUR LA LECTURE EST TROP PETIT CONSULTER SPECIALISTE',
+C     $        ERROR, ERBTAB)
+C         RETURN
+C      ENDIF
 
 *     LECTURE DE TOUTES LES ENTREES DE LA TABLE BUFRB
       I = 0
@@ -124,6 +124,12 @@ C         PATH1   = PATH(1:PATHLNG)//'/datafiles/constants/tableburp'
         
       IF(LIGNE(51:51) .NE. '*') THEN
          I = I+1
+         IF (I .GT. TABDIM) THEN
+           QRBSCT = QDFERR('QRBSCT',
+     $ ' TABLEAU POUR LA LECTURE EST TROP PETIT CONSULTER SPECIALISTE',
+     $        ERROR, ERBTAB)
+           RETURN
+         ENDIF
          TABLEAU(1,I) = TRAVAIL
          READ(LIGNE(64:66),'(I3)') TABLEAU(2,I)
          READ(LIGNE(67:77),'(I11)') TABLEAU(3,I)
@@ -133,8 +139,8 @@ C         PATH1   = PATH(1:PATHLNG)//'/datafiles/constants/tableburp'
  300  CONTINUE
 
       IF(NELELU .NE. I) THEN
-         QRBSCT = QDFERR('QRBSCT','ERREUR-FICHIER TABLEBURP ENDOMMAGE',
-     X                   KAPUT, ERBDOM)
+         QRBSCT = QDFERR('QRBSCT','AVERTISSEMENT- NELELU <> NOMBRE D ENTREE DANS TABLEBURP',
+     X                   INFORM, ERELEM)
          NELELU = I
       ENDIF
 

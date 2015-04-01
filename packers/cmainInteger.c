@@ -21,6 +21,7 @@
 
 #include "rmnlib.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #define myElementCount 2100
 #define myElementCount2 6300
@@ -76,6 +77,7 @@ void f77name(cmainii)()
   int missingValueTag = -9999;
 
 
+  setvbuf( stdout, NULL, _IONBF, 0 );
   /******************************************
    *                                        *
    *  generate number pool                  *

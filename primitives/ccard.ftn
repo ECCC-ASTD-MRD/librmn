@@ -83,9 +83,9 @@
         INTEGER I,POS,J,POSC,INDEX,CLLNG,POSMOIN,POSMOINC
 * TYPE DE CLE -1=MINUS, 1=MAJUS, 0=PAREIL
         INTEGER CLTYPE(NKLEMAX) 
-        CHARACTER * 9 CLEUP, CLE(NKLEMAX)
+        CHARACTER * 50 CLEUP, CLE(NKLEMAX), cletemp
         CHARACTER * 8192 ARGUP, ARG, CCARD_ARGS, ARGtemp
-        CHARACTER * 30 Keyname
+        CHARACTER * 60 Keyname
         LOGICAL PASFINI, PLANTE
         INTEGER STATUS, INTERNE
 	Integer L_argenv
@@ -108,8 +108,14 @@
 *       INITIALISER LE VECTEUR DE TYPE DE CLEFS
 *
         DO 20 I = 1, N
+            cletemp = incle(i)
+            IF (TRIM(incle(i)) .ne. TRIM(cletemp)) THEN
+              write(*,777) 'CCARD erreur: nom de la cle #',i,' > limite de 50 caracteres'
+ 777          format(a,i4,a)
+              if (plante) call qqexit(21)
+            ENDIF
             CALL LOW2UP(INCLE(I),CLEUP)
-            DO 10 J =9,1,-1
+            DO 10 J =50,1,-1
                 IF(CLEUP(J:J) .NE. ' ') THEN
                     INDEX = J
                     GOTO 11
@@ -161,7 +167,7 @@
             CALL LOW2UP(ARG,ARGUP)
             DO 110 J = 1,N
               CLEUP = CLE(J)
-              IF (ARGUP(1:8) .EQ. CLEUP(1:8)) THEN
+              IF (trim(ARGUP) .EQ. trim(CLEUP)) THEN
                 POSC = J
                 POS = J
                 CALL QQQTRNS(VAL(POS), DEF(POS),CLTYPE(POS))
@@ -523,7 +529,7 @@
 *
 *
         INTEGER LONGUEUR
-        EXTERNAL GETARG,LONGUEUR
+        EXTERNAL LONGUEUR
 
         CHARACTER*8192 LENOM
         INTEGER I,NOMLNG,CLELNG,DEFLNG,VALLNG

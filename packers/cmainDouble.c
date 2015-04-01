@@ -67,6 +67,7 @@ void f77name(dcmain)()
   int strideNotWorking;
 
 
+  setvbuf( stdout, NULL, _IONBF, 0 );
   bitSizeOfInt  = okBit;
   mBitSizeOfInt = -okBit;
 

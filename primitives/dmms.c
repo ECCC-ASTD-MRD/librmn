@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 #define ERROR 0
 #define STACK 0
 #define HEAP  1

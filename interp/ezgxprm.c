@@ -30,11 +30,20 @@ wordint f77name(ezgxprm)(wordint *gdid, wordint *ni, wordint *nj, char *grtyp,
                      wordint lengrtyp, wordint lengrref)
 {
    wordint icode;
+   int i;
    
    ftnstrclean(grtyp,lengrtyp);
-   ftnstrclean(grref,lengrtyp);
+   ftnstrclean(grref,lengrref);
    icode = c_ezgxprm(*gdid, ni, nj, grtyp, ig1, ig2, ig3, ig4, 
                      grref, ig1ref, ig2ref, ig3ref, ig4ref);
+   for (i=1; i < lengrtyp; i++)
+      {
+      grtyp[i] = ' ';
+      grref[i] = ' ';
+      }
+   grtyp[lengrtyp] = '\0';
+   grref[lengrref] = '\0';
+
    return icode;
 }
 
@@ -44,8 +53,8 @@ wordint c_ezgxprm(wordint gdid, wordint *ni, wordint *nj,
 {
    *ni     = Grille[gdid].ni;
    *nj     = Grille[gdid].nj;
-   *grtyp  = Grille[gdid].grtyp;
-   *grref  = Grille[gdid].grref;
+   grtyp[0]  = Grille[gdid].grtyp;
+   grref[0]  = Grille[gdid].grref;
    *ig1    = Grille[gdid].ig[IG1];
    *ig2    = Grille[gdid].ig[IG2];
    *ig3    = Grille[gdid].ig[IG3];

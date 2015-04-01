@@ -1,5 +1,5 @@
-#include "rpnmacros.h"
-#include "fnom.h"
+#include <rpnmacros.h>
+#include <fnom.h>
 #define WRITE_PAGE(a,b,c)
 
 #define MODE3232
@@ -43,9 +43,10 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
 #define MRBCOV(a,b,c) ((a << 14) | (b << 8) | c)
+#define WARNPRINT if (2 >= msg_level) 
 /* end macro definitions */
 
-#define MAX_XDF_FILES 128
+#define MAX_XDF_FILES 1024
 /* size of a directory pages in an XDF file */
 #define ENTRIES_PER_PAGE 256
 /* maximum of 256K records in a random access XDF file */

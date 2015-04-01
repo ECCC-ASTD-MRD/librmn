@@ -1900,17 +1900,17 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
   if (strstr(appl,"STD"))  f->cur_info->attr.std = 1;
 
   if (f->cur_info->attr.burp) {
-     f->build_primary = (fn_ptr *) build_burp_prim_keys;
+     f->build_primary = (fn_b_p *) build_burp_prim_keys;
      f->build_info = (fn_ptr *) build_burp_info_keys;
      }
   else {
     if (f->cur_info->attr.std) {
-      f->build_primary = (fn_ptr *) build_fstd_prim_keys;
+      f->build_primary = (fn_b_p *) build_fstd_prim_keys;
       f->build_info = (fn_ptr *) build_fstd_info_keys;
       f->file_filter = (fn_ptr *) c_fst_match_req;
     }
     else {
-    f->build_primary = (fn_ptr *) build_gen_prim_keys;
+    f->build_primary = (fn_b_p *) build_gen_prim_keys;
     f->build_info = (fn_ptr *) build_gen_info_keys;
     }
   }
@@ -2328,7 +2328,7 @@ int c_xdfprm(int handle,int *addr,int *lng,int *idtyp,word *primk,int nprim)
    *addr = record->addr;
    *lng = record->lng;
 
-   f->build_primary(record,primk,argument_not_used,mskkeys,index,RDMODE);
+   f->build_primary((word *) record,primk,argument_not_used,mskkeys,index,RDMODE);
 
    return(0);
 

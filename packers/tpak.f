@@ -812,10 +812,10 @@ C              WRITE(*,3901) NBITS, ERRMAX, I, WK1(I), I, WK2(I)
 
       CALL dcmain
 
-      WRITE(*,*) '---TEST 16.3 (rlemain)'
-      IF ( theMode .EQ.2) THEN
-      CALL mainrle
-      ENDIF
+C      WRITE(*,*) '---TEST 16.3 (rlemain)'
+C      IF ( theMode .EQ.2) THEN
+C      CALL mainrle
+C      ENDIF
 
 
 *     

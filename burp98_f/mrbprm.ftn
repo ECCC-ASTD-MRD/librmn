@@ -50,7 +50,7 @@
 *IMPLICITES
 #include "defi.cdk"
 #include "bpl.cdk"
-#include "ftnmacros.hf"
+#include <ftnmacros.hf>
 *
 *MODULE 
       EXTERNAL XDFXTR
