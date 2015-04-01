@@ -190,7 +190,8 @@ c     %                     f4(i,j,k)
       write(6,*) 'TEST 7.0 - FSTLIR - fichier 10 champ #2'
       handle = fstlir(F2LU,10,ni,nj,nk,datev,etiket,
      %              ip1+1,ip2,ip3,typvar,nomvar)
-      call testerr(handle,129)
+c      call testerr(handle,129)
+      call testerr(handle,1025)
       write(6,*) 'TEST 7.1 - verification FSTLIR - (r24)'
  8888 CONTINUE
       err2 = 0
@@ -210,7 +211,8 @@ c     %                     f4(i,j,k)
       write(6,*) 'TEST 8.0 - FSTLIR - fichier 10 champ #3'
       handle = fstlir(F3LU,10,ni,nj,nk,datev,etiket,
      %              ip1+2,ip2,ip3,typvar,nomvar)
-      call testerr(handle,257)
+c      call testerr(handle,257)
+      call testerr(handle,2049)
       write(6,*) 'TEST 8.1 - verification FSTLIR - (r32)'
       err2 = 0
       do i =1,DI
@@ -229,7 +231,8 @@ c     %                     f4(i,j,k)
       write(6,*) 'TEST 9.0 - FSTLIR - fichier 10 champ #4'
       handle = fstlir(F4LU,10,ni,nj,nk,datev,etiket,
      %              ip1+3,ip2,ip3,typvar,nomvar)
-      call testerr(handle,385)
+c      call testerr(handle,385)
+      call testerr(handle,3073)
       write(6,*) 'TEST 9.1 - verification FSTLIR - (x32)'
       err2 = 0
       do i =1,DI
@@ -248,6 +251,47 @@ c     %                     f4(i,j,k)
       write(6,*) 'TEST 10.0 - FSTFRM - fichier 10'
       err1 = fstfrm(10)
       call testerr(err1,0)
+      write(6,*) 'TEST 11.0 - FSTOUV - fichier 20 (SEQ)'
+      ier = fnom(20,'fic_seq_fstd98','STD+SEQ',0)
+      err1 = fstouv(20,'SEQ')
+      call testerr(err1,0)
+      write(6,*) 'TEST 12.0 - FSTECR SEQ - iun=20 (i24, r24, r32, x32)'
+      err1 = fstecr(F1,work,-24,20,dateo,deet,npas,MI,MJ,MK,ip1,
+     %              ip2,ip3,typvar,nomvar,etiket,grtyp,
+     %              ig1,ig2,ig3,ig4,datyp,.true.)
+      datyp = 1
+      err2 = fstecr(F2,work,-24,20,dateo,deet,npas,DI,DJ,DK,ip1+1,
+     %              ip2,ip3,typvar,nomvar,etiket,grtyp,
+     %              ig1,ig2,ig3,ig4,datyp,.false.)
+      err3 = fstecr(F3,work,-32,20,dateo,deet,npas,DI,DJ,DK,ip1+2,
+     %              ip2,ip3,typvar,nomvar,etiket,grtyp,
+     %              ig1,ig2,ig3,ig4,datyp,.false.)
+      datyp = 0
+      err4 = fstecr(F4,work,-32,20,dateo,deet,npas,DI,DJ,DK,ip1+3,
+     %              ip2,ip3,typvar,nomvar,etiket,grtyp,
+     %              ig1,ig2,ig3,ig4,datyp,.false.)
+      call testerr(err1+err2+err3+err4,0)
+      write(6,*) 'TEST 12.1 - FSTRWD - sur fichier seq'
+      err2 = fstrwd(20)
+      call testerr(err2,0)
+      write(6,*) 'TEST 13.0 - FSTLIR SEQ - fichier 20 champ #2'
+      F2LU=0.0
+      handle = fstlir(F2LU,20,ni,nj,nk,datev,etiket,
+     %              ip1+1,ip2,ip3,typvar,nomvar)
+      call testerr(handle,7425)
+      write(6,*) 'TEST 14.0 - verification FSTLIR SEQ - (r24)'
+      err2 = 0
+      do i =1,DI
+         do j=1,DJ
+            do k=1,DK
+               if(F2(i,j,k) .ne. F2LU(i,j,k)) then
+                  write(6,790) i,j,k,F2LU(i,j,k),i,j,k,F2(i,j,k)
+                  err2=err2+1
+               endif
+            enddo
+         enddo
+      enddo
+      call testerr(err2,0)
       stop
       end
 

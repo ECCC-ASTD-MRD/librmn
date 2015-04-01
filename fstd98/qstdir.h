@@ -196,7 +196,8 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 /*         1    2      22    7   */
 #define MAKE_SEQ_HANDLE(cluster,address,file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))   
 /* how to extract the file index, record number and page number from a handle */
-#define INDEX_FROM_HANDLE(handle) ( 0x3FF & handle)
+#define INDEX_FROM_HANDLE(handle) ((STDSEQ_opened==1) ? ( 0x7F & handle) : ( 0x3FF & handle))
+/* #define INDEX_FROM_HANDLE(handle) ( 0x3FF & handle) */
 #define RECORD_FROM_HANDLE(handle) ( 0x1FF & (handle>>10))
 #define PAGENO_FROM_HANDLE(handle) ( 0xFFF & (handle>>19))
 /* how to extract the record address from a sequential handle */
@@ -734,6 +735,7 @@ int xdf_nsplit=1;      /* number of splited output files in xdfuse */
 int FTN_Bitmot=8*bytesperword; /* number of bits per FORTRAN word */
 int image_mode_copy=0; /* no pack/unpack, used by editfst */
 int xdf_checkpoint=0;  /* chekcpoint mode, no closing of the file */
+int STDSEQ_opened=0;   /* if one std seq file is opened, the limit of opened files becomes 128 */
 key_descriptor stdfkeys[] = {
 #if !defined(Little_Endian)
   { 'SF01', 31,31, 0,0},
@@ -795,6 +797,7 @@ extern int xdf_enforc8;       /* enforce 8 char for date specifications */
 extern int FTN_Bitmot;        /* number of bits per FORTRAN word */
 extern int image_mode_copy;   /* no pack/unpack, used by editfst */
 extern int xdf_checkpoint;    /* chekcpoint mode, no closing of the file */
+extern int STDSEQ_opened;     /* if one std seq file is opened, the limit of opened files becomes 128 */
 extern key_descriptor stdfkeys[];
 extern key_descriptor stdf_info_keys[];
 #endif

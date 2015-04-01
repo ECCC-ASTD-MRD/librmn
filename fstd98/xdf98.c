@@ -1915,8 +1915,15 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
     }
   }
 
-  if ((strstr(f->cur_info->file_type,"SEQ")) || (strstr(f->cur_info->file_type,"seq")))
+  if ((strstr(f->cur_info->file_type,"SEQ")) || (strstr(f->cur_info->file_type,"seq"))) {
     f->xdf_seq = 1;
+    STDSEQ_opened = 1;             /* at least one seq file is opened, limit number of xdf files is now 128 */
+    if (index > 127) {
+      sprintf(errmsg,"while opening std/seq file, limit of 128 opened file reached");
+      return(error_msg("c_xdfopn",-1,ERROR));
+    }
+  }
+
 
   if (msg_level <= TRIVIAL)
     fprintf(stdout,"Debug c_xdfopn f->xdf_seq=%d\n",f->xdf_seq);
@@ -2273,6 +2280,7 @@ int c_xdfprm(int handle,int *addr,int *lng,int *idtyp,word *primk,int nprim)
    page_number =   PAGENO_FROM_HANDLE(handle);
    record_number = RECORD_FROM_HANDLE(handle);
 
+/*   printf("Debug+ c_xdfprm index=%d page_number=%d record_number=%d\n",index,page_number,record_number); */
    /* validate index, page number and record number */
 
    if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
@@ -3372,8 +3380,13 @@ int fnom_index(int iun)
 
 static int get_free_index()
 {
-   int i;
-   for (i=0; i < MAX_XDF_FILES; i++) {
+   int i, nlimite;
+   
+   if (STDSEQ_opened == 1) 
+     nlimite = 128;
+   else
+     nlimite = MAX_XDF_FILES;
+   for (i=0; i < nlimite; i++) {
       if (file_table[i] == NULL) {
          if ((file_table[i] = (file_table_entry_ptr) calloc(1,sizeof(file_table_entry))) == NULL) {
             sprintf(errmsg,"can't alocate file_table_entry\n");

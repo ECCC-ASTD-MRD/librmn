@@ -588,9 +588,11 @@ CCC         print *,annee,' exclue'
 *
 **     
       logical validtm,validtme,validtd
+      logical :: bissextile
       integer tdate,runnb,stamp,tmpr,dtpr,td1900,td2000
       integer year,month,day,zulu,second,minute, max_offset
       integer jd,tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
+      integer , dimension(12) :: mdays
       integer*8 date_unsigned,troisg,stamp8
       equivalence (stamp,stamp8)
       external idatmg2, datmgp2
@@ -600,6 +602,7 @@ CCC         print *,annee,' exclue'
       data jd2236 /2537742/, exception /16663825/
       data td2000 /126230400/, td1900 /-504904320/
       data troisg /Z'B2D05E00'/
+      data mdays /31,29,31,30,31,30,31,31,30,31,30,31/ 
 *
 *     big endian when w16(1) is zero
       integer       w32
@@ -624,14 +627,19 @@ CCC         print *,annee,' exclue'
 *
       validtm(year,month,day,zulu)=(
      #     (year.ge.1900) .and. (year.lt.2236) .and.
-     #     (month.le.12) .and. (day.le.31) .and. (zulu.le.23) .and.
+     #     (month.le.12) .and. (day.le.mdays(month))
+     #     .and. (zulu.le.23) .and.
      #     (month.gt.0) .and. (day.gt.0) .and. (zulu.ge.0))
 *
       validtme(year,month,day,zulu)=(
      #     (year  >= 0) .and. (year  <  10000) .and.
      #     (month >  0) .and. (month <= 12)    .and.
-     #     (day   >  0) .and. (day   <= 31)    .and.
+     #     (day   >  0) .and. (day   <= mdays(month))    .and.
      #     (zulu  >= 0) .and. (zulu  <= 23) )
+*
+      bissextile(year) =  ( ( (MOD(year,4)   == 0)
+     +                   .and.(MOD(year,100) /= 0) )
+     +                   .or. (MOD(year,400) == 0) )
 *
       if (abs(mode).gt.7 .or. mode.eq.0) goto 4 
       newdate=0 ; stamp8 = 0
@@ -662,6 +670,9 @@ CCC         print *,annee,' exclue'
          tmpr=zulu*1000000
       endif
       if (.not.validtm(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       dat2(1)=dtpr
       dat3=tmpr
       return
@@ -684,6 +695,9 @@ CCC         print *,annee,' exclue'
       zulu=mod(tmpr/1000000,100)
       second=mod(tmpr/10000,100)*60+mod(tmpr/100,100)
       if (.not.validtm(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       tdate=(jd(year,month,day)-jd1980)*17280+zulu*720+second/5
       if (year.ge.2000 .or. (year.ge.1980 .and. second.ne.0)) then
 *        encode it in a new date-time stamp
@@ -725,6 +739,9 @@ CCC         print *,annee,' exclue'
       zulu=mod(tmpr/1000000,100)
       second=mod(tmpr/10000,100)*60+mod(tmpr/100,100)
       if (.not.validtm(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       dat1=(jd(year,month,day)-jd1980)*17280+zulu*720+second/5
       return
       
@@ -797,6 +814,10 @@ CCC         print *,annee,' exclue'
       day=mod(dtpr,100)
       zulu=mod(tmpr/1000000,100)
       minute=mod(tmpr/10000,100)
+      if (.not.validtme(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       tdate=jd(year,month,day)
       if (tdate < jd0 .or. tdate >= jd10k) then
          print *,'newdate error: date outside of supported range, ',
@@ -827,6 +848,10 @@ CCC         print *,annee,' exclue'
       call datec(jd0+tdate/24,year,month,day)
       zulu=mod(tdate,24)
       minute=0
+      if (.not.validtme(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       dat2(1)=year*10000+month*100+day
       dat3=zulu*1000000+minute*10000
       return
@@ -900,6 +925,9 @@ CCC         print *,annee,' exclue'
       if (.not.validtd(tdate)) goto 4
       call datec(jd0+tdate/24,year,month,day)
       if (.not.validtme(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       zulu=mod(tdate,24)
       minute=0
       dat2(1)=year*10000+month*100+day
@@ -921,6 +949,9 @@ CCC         print *,annee,' exclue'
       zulu=mod(tmpr/1000000,100)
       second=mod(tmpr/10000,100)*60+mod(tmpr/100,100)
       if (.not.validtme(year,month,day,zulu)) goto 4
+      if ((month .eq. 2) .and. (day .eq. 29)) then
+         if (.not. bissextile(year)) goto 4
+      endif
       dat1=(jd(year,month,day)-jd0)*24+zulu
       return
 *     
