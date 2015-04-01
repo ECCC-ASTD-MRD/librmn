@@ -30,10 +30,10 @@
       integer hem,ordint
       real x(2,ni),y(2,ni),z(2,ni),lat(2,ni),lon(2,ni),glat(*)
 
-#include "pi.cdk90"
-#include "qqqpar.cdk90"
-#include "ez_qqqxtrp.cdk90"
-#include "ez_gaussgd.cdk90"
+#include "pi.cdk"
+#include "qqqpar.cdk"
+#include "ez_qqqxtrp.cdk"
+#include "ez_gaussgd.cdk"
 
       integer i,j
       real*8 x2,y2,xy,x3,y3,x2y,xy2

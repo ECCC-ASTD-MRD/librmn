@@ -21,14 +21,17 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgetval)(char *option, ftnfloat *fvalue, wordint lenoption)
 {
    wordint icode;
+   char local_opt[32];
 
    ftnstrclean(option,lenoption);
-   icode = c_ezgetval(option, fvalue);
+   strncpy(local_opt, option, lenoption);
+   local_opt[lenoption] = '\0';
+
+   icode = c_ezgetval(local_opt, fvalue);
 
    return icode;
 }
@@ -36,19 +39,20 @@ wordint f77name(ezgetval)(char *option, ftnfloat *fvalue, wordint lenoption)
 wordint f77name(ezgetival)(char *option, wordint *ivalue, wordint lenoption)
 {
    wordint icode;
+   char local_opt[32];
 
    ftnstrclean(option,lenoption);
-   icode = c_ezgetival(option, ivalue);
+   strncpy(local_opt, option, lenoption);
+   local_opt[lenoption] = '\0';
 
-   return icode;
+   return c_ezgetival(local_opt, ivalue);
 }
 
 wordint c_ezgetval(char *option, ftnfloat *fvalue)
 {
    char local_opt[32];
-   wordint i, lenoption;
+   wordint i;
 
-   lenoption = strlen(option);
    strcpy(local_opt, option);
 
    for (i=0; i < strlen(local_opt); i++)
@@ -56,22 +60,22 @@ wordint c_ezgetval(char *option, ftnfloat *fvalue)
       local_opt[i] = (char) tolower((int)local_opt[i]);
       }
 
-   if (0 == strncmp(local_opt, "extrap_value", lenoption))
+   if (0 == strcmp(local_opt, "extrap_value" ))
       {
       *fvalue = groptions.valeur_extrap;
       }
 
-   if (0 == strncmp(local_opt, "missing_distance_threshold", lenoption))
+   if (0 == strcmp(local_opt, "missing_distance_threshold" ))
       {
       *fvalue = groptions.msg_dist_thresh;
       }
 
-   if (0 == strncmp(local_opt, "weight_number", lenoption))
+   if (0 == strcmp(local_opt, "weight_number" ))
       {
       *fvalue = (float) groptions.wgt_num;
       }
 
-    if (0 == strncmp(local_opt, "missing_points_tolerance", lenoption))
+    if (0 == strcmp(local_opt, "missing_points_tolerance" ))
       {
       *fvalue = (float) groptions.msg_pt_tol;
       }
@@ -81,9 +85,8 @@ wordint c_ezgetval(char *option, ftnfloat *fvalue)
 wordint c_ezgetival(char *option, wordint *ivalue)
 {
    char local_opt[32];
-   wordint i, lenoption;
+   wordint i;
 
-   lenoption = strlen(option);
    strcpy(local_opt, option);
 
    for (i=0; i < strlen(local_opt); i++)
@@ -91,14 +94,20 @@ wordint c_ezgetival(char *option, wordint *ivalue)
       local_opt[i] = (char) tolower((int)local_opt[i]);
       }
 
-   if (0 == strncmp(local_opt, "weight_number", lenoption))
+   if (0 == strcmp(local_opt, "subgridid" ))
+      {
+      *ivalue = groptions.valeur_1subgrid;
+      }
+
+   if (0 == strcmp(local_opt, "weight_number" ))
       {
       *ivalue = groptions.wgt_num;
       }
 
-    if (0 == strncmp(local_opt, "missing_points_tolerance", lenoption))
+   if (0 == strcmp(local_opt, "missing_points_tolerance" ))
       {
       *ivalue = groptions.msg_pt_tol;
       }
    return 0;
+
 }

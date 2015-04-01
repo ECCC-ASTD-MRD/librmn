@@ -28,7 +28,7 @@
       integer n, i, j, i1, j1, offl, offr
       real rmin, rmax, tempmin, tempmax, valxtrap
       
-#include "ez_qqqxtrp.cdk90"
+#include "ez_qqqxtrp.cdk"
 
       if (ordint .eq. cubique) then
          offr = 2

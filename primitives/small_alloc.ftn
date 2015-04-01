@@ -20,6 +20,7 @@
 	subroutine small_alloc(iptr,nitems,ierr,icode)
 	implicit none
 	integer iptr,nitems,ierr,icode
+	external qqexit
 	integer very_big
 	parameter (very_big=1000000)
 	integer mg_token
@@ -29,7 +30,17 @@
 	integer nw,icur,last_nw
 	save icur, last_nw
 	data icur /1/
-
+	
+#if !defined (OLD_32BIT_CODE)
+	print *,'****************************************************'
+	print *,'* ERROR: SMALL_ALLOC                               *'
+	print *,'* This code is obsolete, will not work on a 64     *'
+	print *,'* bit architecture and should not be used.         *'
+	print *,'* allocate shoud be used instead                   *'
+	print *,'* EXITING                                          *'
+	print *,'****************************************************'
+	call qqexit(44)
+#else
 	if (icur .ne. 1) then
 	   if (isc(icur-1) .ne. mg_token) then
 	      print *,
@@ -57,4 +68,5 @@
 	   stop
 	endif
 	return
+#endif
 	end

@@ -45,6 +45,8 @@ wordint ez_calcspolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
   polar_lon = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
   polar_x   = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
   polar_y   = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
+  polar_lat_gem = NULL;
+  polar_lon_gem = NULL;
 
   for (i=0; i < ni; i++)
     {
@@ -67,7 +69,7 @@ wordint ez_calcspolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
       polar_lon_gem[i] = polar_lon[i];
       }
     
-    f77name(cigaxg)(grref, &xlat1, &xlon1, &xlat2, &xlon2, &ig1in_ref, &ig2in_ref, &ig3in_ref, &ig4in_ref);
+    f77name(cigaxg)(grref, &xlat1, &xlon1, &xlat2, &xlon2, &ig1in_ref, &ig2in_ref, &ig3in_ref, &ig4in_ref,1);
     f77name(ez_gfxyfll)(polar_lon_gem, polar_lat_gem, polar_lon, polar_lat, &ni, &xlat1, &xlon1, &xlat2, &xlon2);
     }
 
@@ -80,15 +82,15 @@ wordint ez_calcspolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
   d60  = 1000.0;
   dgrw = 0.0;
   grtyps[0] = 'S';
-  f77name(cxgaig)(grtyps, &ig1n, &ig2n, &ig3n, &ig4n, &pi, &pj, &d60, &dgrw);
+  f77name(cxgaig)(grtyps, &ig1n, &ig2n, &ig3n, &ig4n, &pi, &pj, &d60, &dgrw,1);
   gdps = c_ezqkdef(ni, 1, grtyps, ig1n, ig2n, ig3n, ig4n, 0);
   c_gduvfwd(gdps, polar_uu, polar_vv, polar_spd,  polar_wd, polar_lat, polar_lon, ni);
 
   f77name(ez_calcpoleval)(&uupole, polar_uu, &ni, Grille[gdrow][gdcol].ax, 
-			  &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref);
+			  &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref,1,1);
 
   f77name(ez_calcpoleval)(&vvpole, polar_vv, &ni, Grille[gdrow][gdcol].ax, 
-			  &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref);
+			  &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref,1,1);
 
   quatrevingtdix = -90.0;
   zero = 0.0;
@@ -131,7 +133,7 @@ wordint ez_calcspolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
   free(polar_vv);
   free(polar_uu);
 
-  if (grtyp[0] == 'Z' && grref[0] == 'E')
+  if (grtyp[0] == 'Z' && grref[0] == 'E' && polar_lat_gem != NULL)
     {
     free(polar_lat_gem);
     free(polar_lon_gem);

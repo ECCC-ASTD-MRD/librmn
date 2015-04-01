@@ -24,7 +24,7 @@
 
 wordint f77name(ezgenpole)(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
                            wordint *ni, wordint *nj, wordint *vecteur, 
-                           char *grtyp, wordint *hem)
+                           char *grtyp, wordint *hem, wordint lengrtyp)
 {
    return c_ezgenpole(vpolnor, vpolsud, fld, *ni, *nj, *vecteur, grtyp, *hem);
 
@@ -50,7 +50,7 @@ wordint c_ezgenpole(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
    gausslat = (ftnfloat *) malloc(2*lnj*sizeof(ftnfloat));
    
    f77name(ez_genpole)(vpolnor, vpolsud, fld, &lni, &lnj, &lvecteur, grtyp, &lhem,
-                       x,y,z,lat,lon,gausslat, &groptions.degre_interp);
+                       x,y,z,lat,lon,gausslat, &groptions.degre_interp,1);
 
    free(x);
    free(y);

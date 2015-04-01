@@ -8,8 +8,6 @@ COMPILE = compile
 
 FFLAGS =
 
-FTN90_SUPP_OPT = -includes /users/dor/armn/rmt/data/public/vgrid_descriptors/1.0.9/$(EC_ARCH)/xlf10/mod
-
 CFLAGS =
 
 SUPP_OPT = -openmp
@@ -26,6 +24,9 @@ MYLIB = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmnbeta.a
 LIB_X = $(RMNLIB_BASE_PATH)/lib/$(EC_ARCH)$(ABI)/librmn_x.a
 
 TEMPLIB = ./$(EC_ARCH)/lib_local.a
+SSMLIB = ./$(EC_ARCH)/lib/libezinterpv.a
+SSMLIBDIR = ./$(EC_ARCH)/lib
+SSMINC = ./$(EC_ARCH)/include
 
 UPDATEX =
 
@@ -62,6 +63,37 @@ gen_ec_arch_dir:
 locallib: gen_ec_arch_dir \
         $(TEMPLIB)(VertInterpConstants.o)   $(TEMPLIB)(VerticalGrid.o) \
         $(TEMPLIB)(VerticalInterpolation.o)  $(TEMPLIB)(ViIfc.o)
+
+make_lib_dir:
+	mkdir -p $(SSMINC)
+	mkdir -p $(SSMLIBDIR)
+
+ssm_pkg: make_lib_dir gen_ec_arch_dir \
+        $(SSMLIB)(VertInterpConstants.o)   $(SSMLIB)(VerticalGrid.o) \
+        $(SSMLIB)(VerticalInterpolation.o)  $(SSMLIB)(ViIfc.o)
+	cp *.mod VertInterp_f90.h ViConstants_f90.h $(SSMINC)
+	 # IDENTIFY THE VGRID PATH (i.e. REVISION)
+	                                      # sed removes colons from PATH
+	                                      # The length lost gives the no. of paths
+	                                      # Scan each path for 'vgrid'
+	path=$$LIBPATH;\
+	short_path=`echo $$path | sed -n 's/://g;p'`;\
+	num_paths=$$(($${#path}-$${#short_path}));\
+	let num_paths=$$num_paths+1;\
+	let n=1;\
+	while [ $$n -le $$num_paths ]; do\
+	  vgrid_path=`echo $$LIBPATH | cut -d ':' -f $$n `;\
+	  let found=`echo $$vgrid_path | grep -c vgrid`;\
+	  if [ $$found -eq 1 ]; then\
+	    break;\
+	  fi;\
+	  let n=$$n+1;\
+	done;\
+	if [ $$n -gt $$num_paths ]; then\
+	  vgrid_path=' ';\
+	fi;\
+	echo "vgrid_path="$$vgrid_path;\
+	echo "This library was created with vgrid_descriptor revision "$$vgrid_path > $(SSMLIBDIR)/ReadMe.txt
 
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

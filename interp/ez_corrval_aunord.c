@@ -32,6 +32,7 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
   wordint quatre = 4;
   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
   _gridset *gset;
+  _Grille *lgd;
 
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
@@ -39,44 +40,58 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
 
   gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
   npts = gset->zones[AU_NORD].npts;
+  lgd = (_Grille *) &(Grille[gdrow_in][gdcol_in]);
   if (npts > 0)
     {
-    ni = Grille[gdrow_in][gdcol_in].ni;
-    nj = Grille[gdrow_in][gdcol_in].j2 - Grille[gdrow_in][gdcol_in].j1 + 1;
+    ni = lgd->ni;
+    nj = lgd->j2 - lgd->j1 + 1;
 
     i1 = 1;
     i2 = ni;
 
-    j1 = Grille[gdrow_in][gdcol_in].j2-2;
+    j1 = lgd->j2-2;
     j2 = j1 + 3;
 
     temp = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
     vals = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
-    f77name(ez_calcpoleval)(&poleval, &zin[(nj-1)*ni], &ni, Grille[gdrow_in][gdcol_in].ax, &Grille[gdrow_in][gdcol_in].grtyp, &Grille[gdrow_in][gdcol_in].grref);
-    f77name(ez_fillnpole)(temp, zin, &ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2, &poleval);
+    f77name(ez_calcpoleval)(&poleval, &zin[(nj-1)*ni], &ni, lgd->ax, &(lgd->grtyp),
+&(lgd->grref),1,1);
+    f77name(ez_fillnpole)(temp, zin, &ni, &(lgd->j1), &(lgd->j2), &poleval);
 
     switch (groptions.degre_interp)
       {
       case CUBIQUE:
-	   switch (Grille[gdrow_in][gdcol_in].grtyp[0])
+	   switch (lgd->grtyp[0])
 	     {
 	     case 'Z':
 	     case 'E':
 	     case 'G':
-	       ay[0] = Grille[gdrow_in][gdcol_in].ay[Grille[gdrow_in][gdcol_in].j2-3];
-	       ay[1] = Grille[gdrow_in][gdcol_in].ay[Grille[gdrow_in][gdcol_in].j2-2];
-	       ay[2] = Grille[gdrow_in][gdcol_in].ay[Grille[gdrow_in][gdcol_in].j2-1];
-	       ay[3] = 90.0;
-	       f77name(ez_irgdint_3_wnnc)(vals,gset->zones[AU_NORD].x,
-				          gset->zones[AU_NORD].y,&npts,
-				          Grille[gdrow_in][gdcol_in].ax, ay, temp,
-				          &ni, &j1, &j2, &Grille[gdrow_in][gdcol_in].extension);
+    if  (lgd->ay[lgd->j2-1] == 90.0)
+       {
+          ay[0] = lgd->ay[lgd->j2-4];
+          ay[1] = lgd->ay[lgd->j2-3];
+          ay[2] = lgd->ay[lgd->j2-2];
+          ay[3] = lgd->ay[lgd->j2-1];
+          f77name(ez_irgdint_3_wnnc)(vals,gset->zones[AU_NORD].x, gset->zones[AU_NORD].y,&npts,
+                      lgd->ax, ay, temp,&ni, &j1, &j2, &(lgd->extension));
+       }
+    else
+       {
+          ay[0] = lgd->ay[lgd->j2-3];
+          ay[1] = lgd->ay[lgd->j2-2];
+          ay[2] = lgd->ay[lgd->j2-1];
+          ay[3] = 90.0;
+          f77name(ez_irgdint_3_wnnc)(vals,gset->zones[AU_NORD].x,
+                      gset->zones[AU_NORD].y,&npts,
+                      lgd->ax, ay, temp,
+                      &ni, &j1, &j2, &(lgd->extension));
+       }
 	       break;
 
 	     default:
 	       f77name(ez_rgdint_3_wnnc)(vals,gset->zones[AU_NORD].x,
 				         gset->zones[AU_NORD].y,&npts,
-				         temp,&ni, &j1, &j2, &Grille[gdrow_in][gdcol_in].extension);
+				         temp,&ni, &j1, &j2, &(lgd->extension));
 	       break;
 	     }
    	break;
@@ -85,9 +100,9 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
 	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
 	   for (i=0; i < npts; i++)
 	     {
-        temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (Grille[gdrow_in][gdcol_in].j2-3));
+        temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (lgd->j2-3));
 	     }
-	   f77name(ez_rgdint_1_w)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre, &Grille[gdrow_in][gdcol_in].extension);
+	   f77name(ez_rgdint_1_w)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre, &(lgd->extension));
 	   free(temp_y);
 	   break;
 
@@ -95,7 +110,7 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
 	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
 	   for (i=0; i < npts; i++)
 	     {
-	     temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (Grille[gdrow_in][gdcol_in].j2-3));
+	     temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (lgd->j2-3));
 	     }
 	   f77name(ez_rgdint_0)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre);
 	   free(temp_y);

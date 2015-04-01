@@ -57,6 +57,10 @@ static void crack_std_parms(stdf_dir_keys *stdf_entry,
         stdf_special_parms *cracked_parms);
 static void print_std_parms(stdf_dir_keys *stdf_entry,
                             char *pre, char *option,int header);
+
+int EncodeMissingValue(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double);
+void DecodeMissingValue(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
+
 /*splitpoint aaaa_comment */
 /*****************************************************************************
  *                                                                           * 
@@ -246,6 +250,10 @@ return(0);
 }
 
 
+/*
+void *fst_encode_missing_value(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double);
+void fst_decode_missing_value(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
+*/
 /*splitpoint c_fstecr */
 /***************************************************************************** 
  *                           C _ F S T E C R                                 *
@@ -255,6 +263,7 @@ return(0);
  *                                                                           * 
  *Revision                                                                   *
  *   Sept 2011 - Deltat, becomes a long long (deet*npas > 32bit)             *
+ *   Mar  2013 - M.Valin  missing values, turbo compression, byte/short mods *
  *                                                                           *
  *Arguments                                                                  * 
  *                                                                           * 
@@ -289,13 +298,15 @@ return(0);
  *          6: floating point (16 bit, made for compressor)                  *
  *          7: character string                                              *
  *          8: complex IEEE                                                  *
- *        130: compressed short integer                                      *
- *        133: compressed IEEE                                               *
- *        134: compressed floating point                                     *
+ *        130: compressed short integer  (128+2)                             *
+ *        133: compressed IEEE           (128+5)                             *
+ *        134: compressed floating point (128+6)                             *
+ *      +128 : second stage packer active                                    *
+ *      +64  : missing value convention used                                 *
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           * 
  *****************************************************************************/
-int c_fstecr(word *field, void * work, int npak,
+int c_fstecr(word *field_in, void * work, int npak,
                         int iun, int date,
                         int deet, int npas,
                         int ni, int nj, int nk,
@@ -303,8 +314,12 @@ int c_fstecr(word *field, void * work, int npak,
                         char *in_typvar, char *in_nomvar, char *in_etiket,
                         char *in_grtyp, int ig1, int ig2,
                         int ig3, int ig4,
-                        int in_datyp, int rewrit)
+                        int in_datyp_ori, int rewrit)
 {
+  word *field = field_in ; /* use field internally in case we have to allocate new array beacause of missing values */
+  word *field3;
+  short *s_field;
+  signed char *b_field;
   int ier,l1,l2,l3,l4;
   int index, index_fnom, nbits, record, handle;
   long long deltat;
@@ -315,6 +330,10 @@ int c_fstecr(word *field, void * work, int npak,
   int minus_nbits, i, lngw, compressed_lng;
   int datyp, nbytes;
   int niout, njout, nkout;
+  int is_missing ; /*  missing value feature used flag */
+  int in_datyp = in_datyp_ori & 0xFFBF ; /* suppress missing value flag (64) */
+  int sizefactor ; /* number of bytes per data item */
+  int IEEE_64=0  ; /* flag 64 bit IEEE (type 5) */
   
   file_table_entry *f;
   stdf_dir_keys *stdf_entry;
@@ -330,6 +349,9 @@ int c_fstecr(word *field, void * work, int npak,
   char nomvar[5]={' ',' ',' ',' ','\0'};
   char grtyp[2]={' ','\0'};
 
+
+  is_missing = in_datyp_ori & 64 ; /* will be cancelled later if not supported or no missing values detected */
+  
   l1 = strlen(in_typvar);
   l2 = strlen(in_nomvar);
   l3 = strlen(in_etiket);
@@ -340,10 +362,10 @@ int c_fstecr(word *field, void * work, int npak,
   string_copy(etiket,in_etiket,l3);
   string_copy(grtyp,in_grtyp,l4);
 
-  if (in_datyp == 801)
-    datyp = 1;
+  if (in_datyp == 801)  /* 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags */
+  { datyp = 1; /* xdf_double=1 ; */ }
   else
-    datyp = in_datyp;
+  { datyp = in_datyp; }
 
   if ((xdf_double) || (in_datyp == 801))
     packfunc = &compact_double;
@@ -392,6 +414,8 @@ int c_fstecr(word *field, void * work, int npak,
     nbits = 32;
     minus_nbits = -32;
     }
+
+  if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) IEEE_64=1;  /* 64 bits IEEE */
     
   /* validate range of arguments */
   VALID(ni,1,NI_MAX,"ni","c_fstecr")
@@ -492,7 +516,7 @@ int c_fstecr(word *field, void * work, int npak,
   if (buffer) 
     memset(buffer,0,(10+keys_len+nw+128)*sizeof(word));
   else {
-    sprintf(errmsg,"memory is full, was trying to allocate %d bytes",
+    sprintf(errmsg,"memory is full, was trying to allocate %ld bytes",
             (10+keys_len+nw+128)*sizeof(word));
     return(error_msg("c_fstecr",ERR_MEM_FULL,ERRFATAL));    
   }
@@ -517,7 +541,8 @@ int c_fstecr(word *field, void * work, int npak,
   stdf_entry->ni = ni;
   stdf_entry->gtyp = grtyp[0];
   stdf_entry->nj = nj;
-  stdf_entry->datyp = datyp;
+  stdf_entry->datyp = datyp | is_missing;  /* propagate missing values flag        */ 
+         /* this value may be changed later in the code to eliminate improper flags */
   stdf_entry->nk = nk;
   stdf_entry->ubc = 0;
   stdf_entry->npas = npas;
@@ -592,10 +617,29 @@ int c_fstecr(word *field, void * work, int npak,
         buffer->data[keys_len+i] = field[i];
     }
   }
-  else {
+  else {   /* not image mode copy */
+    /* time to fudge field if missing value feature is used */
+    sizefactor=4 ;
+    if(xdf_byte)  sizefactor=1 ;
+    if(xdf_short) sizefactor=2 ;
+    if(xdf_double | IEEE_64)sizefactor=8 ;
+    if(is_missing){    /* put appropriate values into field after allocating it */
+      field= (word *) alloca(ni*nj*nk*sizefactor); /* allocate self deallocating scratch field */
+      if( 0 == EncodeMissingValue(field,field_in,ni*nj*nk,in_datyp,nbits,xdf_byte,xdf_short,xdf_double) ) {
+	field=field_in ;
+	INFOPRINT fprintf(stderr,"NO missing value, data type %d reset to %d\n",stdf_entry->datyp,datyp);
+	stdf_entry->datyp = datyp;  /* cancel missing data flag in data type */
+	is_missing = 0;
+      }
+    }
     switch (datyp) {
 
-    case 0:              /* transparent mode */
+    case 0: case 128:              /* transparent mode */
+      if(datyp==128) {
+        WARNPRINT fprintf(stderr,"WARNING: extra compression not available, data type %d reset to %d\n",stdf_entry->datyp,0);
+        datyp = 0;
+        stdf_entry->datyp = 0;
+      }
       lngw = ((ni*nj*nk*nbits) + bitmot-1) / bitmot;
       for (i=0; i < lngw; i++)
         buffer->data[keys_len+i] = field[i];
@@ -691,27 +735,49 @@ int c_fstecr(word *field, void * work, int npak,
       break;
       }
     
-    case 3:              /* character */
+    case 3: case 131:              /* character */
       {
         int nc = (ni*nj+3)/4;
+        if(datyp==131) {
+          WARNPRINT fprintf(stderr,"WARNING: extra compression not available, data type %d reset to %d\n",stdf_entry->datyp,3);
+          datyp = 3;
+          stdf_entry->datyp = 3;
+        }
         ier = compact_integer(field,(void *) NULL,&(buffer->data[keys_len]),nc,
                               32,0,xdf_stride,1);
         stdf_entry->nbits = 8;
         break;
       }
       
-    case 4:              /* signed integer */
-      ier = compact_integer(field,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
+    case 4: case 132:              /* signed integer */
+      if(datyp==132) {
+        WARNPRINT fprintf(stderr,"WARNING: extra compression not supported, data type %d reset to %d\n",stdf_entry->datyp,is_missing | 4);
+        datyp = 4;
+      }
+      stdf_entry->datyp = is_missing | 4;  /* turbo compression not supported for this type, revert to normal mode */
+      field3 = field;
+      if(xdf_short || xdf_byte){
+        field3=(word *)alloca(ni*nj*nk*sizeof(word));
+        s_field = (short *)field; b_field = (signed char *)field;
+        if(xdf_short) for (i=0;i<ni*nj*nk;i++) { field3[i]=s_field[i]; } ;
+        if(xdf_byte)  for (i=0;i<ni*nj*nk;i++) { field3[i]=b_field[i]; } ;
+      }
+      ier = compact_integer(field3,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
                             nbits,0,xdf_stride,3);
       break;
       
-    case 5: case 8: case 133:             /* IEEE and IEEE complex representation */
+    case 5: case 8: case 133:  case 136:            /* IEEE and IEEE complex representation */
       {
         ftnword f_ni = (ftnword) ni;
         ftnword f_njnk = (ftnword) njnk;
         ftnword f_zero = (ftnword) zero;
         ftnword f_one = (ftnword) one;
         ftnword f_minus_nbits = (ftnword) minus_nbits;
+        if(datyp==136) {
+          WARNPRINT fprintf(stderr,"WARNING: extra compression not available, data type %d reset to %d\n",stdf_entry->datyp,8);
+          datyp = 8;
+          stdf_entry->datyp = 8;
+        }
         if (datyp == 133) {
           /* use an additionnal compression scheme */    
           compressed_lng = c_armn_compress32(&(buffer->data[keys_len+1]), field, ni,nj,nk,nbits);
@@ -765,7 +831,12 @@ int c_fstecr(word *field, void * work, int npak,
         break;
       }
        
-    case 7:              /* character string */
+    case 7: case 135:              /* character string */
+      if(datyp==135) {
+        WARNPRINT fprintf(stderr,"WARNING: extra compression not available, data type %d reset to %d\n",stdf_entry->datyp,7);
+        datyp = 7;
+        stdf_entry->datyp = 7;
+      }
       ier = compact_char(field,(void *) NULL,&(buffer->data[keys_len]),
                             ni*nj*nk,8,0,xdf_stride,9);
       break;
@@ -774,7 +845,7 @@ int c_fstecr(word *field, void * work, int npak,
       return(error_msg("c_fstecr",ERR_BAD_DATYP,ERROR));
       
     } /* end switch */
-  }
+  }   /* end if image mode copy */
 
    
   /* write record to file and add entry to directory */
@@ -1560,6 +1631,8 @@ int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
  *                                                                           *
  *Object                                                                     *
  *   Read the record at position given by handle.                            *
+ *Revision                                                                   *
+ *   Mar  2013 - M.Valin  missing values, byte/short mods                    *
  *                                                                           *
  *Arguments                                                                  *
  *                                                                           *
@@ -1585,6 +1658,10 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
   char string[11];
   PackFunctionPointer packfunc;
   double tempfloat=99999.0;
+  int has_missing = 0;    /* missing data flag (bit with value 64 in datatype) */
+  int *field_out;
+  short *s_field_out;
+  signed char *b_field_out;
 
   stdf_entry = (stdf_dir_keys *) calloc(1,sizeof(stdf_dir_keys));
   pkeys = (word *) stdf_entry;
@@ -1595,7 +1672,9 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
   *ni = stdf_entry->ni;
   *nj = stdf_entry->nj;
   *nk = stdf_entry->nk;
-  xdf_datatyp = stdf_entry->datyp;
+  has_missing = stdf_entry->datyp & 64 ;          /* get missing data flag */
+  stdf_entry->datyp = stdf_entry->datyp & 0xBF ;  /* suppress missing data flag */
+  xdf_datatyp = stdf_entry->datyp ;
 
   if (xdf_double)
     packfunc = &compact_double;
@@ -1625,7 +1704,7 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
 /*  printf("Debug+ fstluk lng2 = %d\n",lng2); */
   /* allocate 8 more bytes in case of realingment for 64 bit data */
   if ((work_field = alloca(8+(lng2+10)*sizeof(word))) == NULL) {
-    sprintf(errmsg,"memory is full, was trying to allocate %d bytes",
+    sprintf(errmsg,"memory is full, was trying to allocate %ld bytes",
             lng*sizeof(word));
     return(error_msg("c_fstluk",ERR_MEM_FULL,ERRFATAL));
   }
@@ -1758,8 +1837,17 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
         }
         
       case 4: mode=4;  /* signed integer */
-        ier = compact_integer(field,(void *) NULL,buf->data,nelm,
+        if(xdf_short || xdf_byte){
+          field_out=alloca(nelm*sizeof(int));
+          s_field_out=(short *)field;
+          b_field_out=(signed char *)field;
+        }else{
+          field_out=field;
+        }
+        ier = compact_integer(field_out,(void *) NULL,buf->data,nelm,
                               stdf_entry->nbits,0,xdf_stride,mode);
+        if(xdf_short){ for (i=0;i<nelm;i++) s_field_out[i]=field_out[i]; } ;
+        if(xdf_byte) { for (i=0;i<nelm;i++) b_field_out[i]=field_out[i]; } ;
         break;
         
       case 5: case 8: mode=2;  /* IEEE representation */
@@ -1826,7 +1914,14 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
 
   if (msg_level <= INFORM) {
     sprintf(string,"Read(%d)",buf->iun);
+    stdf_entry->datyp = stdf_entry->datyp | has_missing;
     print_std_parms(stdf_entry,string,prnt_options,0);
+  }
+  if(has_missing) {
+    /* replace "missing" data points with the appropriate values given the type of data (int/float) */
+    /* if nbits = 64 and IEEE , set xdf_double */
+    if((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) xdf_double=1;
+    DecodeMissingValue( field , (*ni)*(*nj)*(*nk) , xdf_datatyp&0x3F,xdf_byte,xdf_short,xdf_double ); /* */
   }
   free(stdf_entry);
 /* free(work_field);        replaced by alloca */
@@ -2600,8 +2695,9 @@ int c_fstvoi(int iun,char *options)
    char cdt[6]={'X','R','I','C','S','E'};
    ftnword f_datev;
    double nhours;
-   int deet,npas,i_nhours,run;
+   int deet,npas,run;
    unsigned int datexx;
+   long long deetnpas,i_nhours;
  
    index_fnom = fnom_index(iun);
    if (index_fnom == -1) {
@@ -2717,7 +2813,8 @@ int c_fstvoi(int iun,char *options)
          stdf_entry->date_stamp = seq_entry->date;
          deet = stdf_entry->deet;
          npas = stdf_entry->npas;
-         if (((deet*npas) % 3600) != 0) {
+         deetnpas = npas ; deetnpas = deetnpas * deet ;
+         if ((deetnpas % 3600) != 0) {
            /*
             *  recompute datev to take care of rounding used with 1989 version
             *  de-octalise the date_stamp
@@ -2726,8 +2823,9 @@ int c_fstvoi(int iun,char *options)
            datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
            
            f_datev = (ftnword) datexx;
-           i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
-           nhours = (double) (i_nhours / 3600.0);
+           i_nhours = (deetnpas - ((deetnpas+1800)/3600)*3600);
+           nhours = i_nhours;
+           nhours = (nhours / 3600.0);
            f77name(incdatr)(&f_datev,&f_datev,&nhours);
            datexx = (unsigned int) f_datev;
            /*
@@ -2969,7 +3067,7 @@ int c_ip2_all(float level, int kind)
   
   mode = 2;
   f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
-  ips_tab[0][ip_nb[1]] = ip_new;
+  ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
     fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[1]);
@@ -2981,7 +3079,7 @@ int c_ip2_all(float level, int kind)
     f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag);
   else
     ip_old = -9999;     /* no valid value for oldtype */
-  ips_tab[0][ip_nb[1]] = ip_old;
+  ips_tab[1][ip_nb[1]] = ip_old;
   ip_nb[1]++;
  
   if (ip_nb[1] > Max_Ipvals) {
@@ -3016,7 +3114,7 @@ int c_ip3_all(float level, int kind)
   
   mode = 2;
   f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
-  ips_tab[0][ip_nb[2]] = ip_new;
+  ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
     fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[2]);
@@ -3028,7 +3126,7 @@ int c_ip3_all(float level, int kind)
     f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag);
   else
     ip_old = -9999;     /* no valid value for oldtype */
-  ips_tab[0][ip_nb[2]] = ip_old;
+  ips_tab[2][ip_nb[2]] = ip_old;
   ip_nb[2]++;
  
   if (ip_nb[2] > Max_Ipvals) {
@@ -3095,7 +3193,7 @@ int c_ip2_val(float level, int kind)
   
   mode = 2;
   f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
-  ips_tab[0][ip_nb[1]] = ip_new;
+  ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
     fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[1]);
@@ -3128,7 +3226,7 @@ int c_ip3_val(float level, int kind)
   
   mode = 2;
   f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag);
-  ips_tab[0][ip_nb[2]] = ip_new;
+  ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
     fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[2]);

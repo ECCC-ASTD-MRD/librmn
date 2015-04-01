@@ -59,7 +59,7 @@ wordint ez_calclatlon(wordint gdid)
 
          f77name(cigaxg)(&Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.xg[XLAT1], &Grille[gdrow][gdcol].fst.xg[XLON1],
 			&Grille[gdrow][gdcol].fst.xg[XLAT2], &Grille[gdrow][gdcol].fst.xg[XLON2],
-         &Grille[gdrow][gdcol].fst.ig[IG1],  &Grille[gdrow][gdcol].fst.ig[IG2], &Grille[gdrow][gdcol].fst.ig[IG3], &Grille[gdrow][gdcol].fst.ig[IG4]);
+         &Grille[gdrow][gdcol].fst.ig[IG1],  &Grille[gdrow][gdcol].fst.ig[IG2], &Grille[gdrow][gdcol].fst.ig[IG3], &Grille[gdrow][gdcol].fst.ig[IG4],1);
          latp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
          lonp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
          f77name(ez_gfllfxy)(lonp,latp,Grille[gdrow][gdcol].lon,Grille[gdrow][gdcol].lat,&npts,
@@ -236,7 +236,7 @@ wordint ez_calclatlon(wordint gdid)
 	     }
 	   f77name(ez_llflamb)(Grille[gdrow][gdcol].lat,Grille[gdrow][gdcol].lon,x,y,&npts,
 			       &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.ig[IG1],&Grille[gdrow][gdcol].fst.ig[IG2],
-			       &Grille[gdrow][gdcol].fst.ig[IG3],&Grille[gdrow][gdcol].fst.ig[IG4]);
+			       &Grille[gdrow][gdcol].fst.ig[IG3],&Grille[gdrow][gdcol].fst.ig[IG4],1);
 	   for (i=0; i < npts; i++)
 	     {
 	     if (Grille[gdrow][gdcol].lon[i] < 0.0)

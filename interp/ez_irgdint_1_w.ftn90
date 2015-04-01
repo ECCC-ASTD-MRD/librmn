@@ -27,7 +27,7 @@
       
       real*8 x, y, x1, x2, y1,y2,dx,dy
 
-#include "zlin8.cdk90"
+#include "zlin8.cdk"
       do n=1,npts
          limite = ni+2-wrap
          i = min(ni-2+wrap,max(1,ifix(px(n))))

@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .c .ftn .f .o .a
+.SUFFIXES : .c .ftn .f .o .a .f90
 
 SHELL = /bin/sh
 
@@ -39,7 +39,7 @@ include $(ARMNLIB)/include/makefile_suffix_rules.inc
 CDECKS= \
          burp98.c   fstd98.c   xdf98.c   c_burp.c excdes.c \
          memcpy_16_32.c  memcpy_8_16.c if_fstd98.c if_xdf98.c if_burp98.c FC_string.c c_fstgrib_helper.c \
-         strgr4a.c r4astrg.c
+         strgr4a.c r4astrg.c fst_missing.c
 
 FDECKS= \
          convip.f   fstcvt2.f
@@ -53,7 +53,8 @@ OBJECTS= \
 	 burp98.o   fstd98.o   xdf98.o    convip.o \
          fstcvt2.o  c_burp.o   strgr4a.o  r4astrg.o \
          hybref.o   FC_string.o excdes.o  memcpy_8_16.o \
-         memcpy_16_32.o c_fstgrib_helper.o
+         memcpy_16_32.o c_fstgrib_helper.o fst_missing.o \
+         convert_ip123.o
 
 
 FICHIERS = $(FDECKS) $(CDECKS) $(FTNDECKS) $(COMDECKS)
@@ -81,7 +82,8 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(burp98.o)   $(TEMPLIB)(fstd98.o)   $(TEMPLIB)(xdf98.o)    $(TEMPLIB)(convip.o) \
          $(TEMPLIB)(fstcvt2.o)  $(TEMPLIB)(c_burp.o)   $(TEMPLIB)(strgr4a.o)  $(TEMPLIB)(r4astrg.o) \
          $(TEMPLIB)(hybref.o)   $(TEMPLIB)(FC_string.o) $(TEMPLIB)(excdes.o)  $(TEMPLIB)(memcpy_8_16.o) \
-         $(TEMPLIB)(memcpy_16_32.o) $(TEMPLIB)(c_fstgrib_helper.o)
+         $(TEMPLIB)(memcpy_16_32.o) $(TEMPLIB)(c_fstgrib_helper.o) $(TEMPLIB)(fst_missing.o) \
+         $(TEMPLIB)(convert_ip123.o)
 
 genlib: $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
@@ -122,4 +124,4 @@ clean:
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm -f *.o 
+	rm -f *.o *.mod

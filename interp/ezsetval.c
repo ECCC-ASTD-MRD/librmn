@@ -132,6 +132,12 @@ wordint c_ezsetival(char *option, wordint ivalue)
       {
       groptions.msg_pt_tol = ivalue;
       }
+
+   if (0 == strcmp(local_opt, "subgridid"))
+      {
+      groptions.valeur_1subgrid = ivalue;
+      }
+
    return 0;
    }
 

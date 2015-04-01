@@ -64,8 +64,8 @@
       integer m,n,i,j,stride
       integer imoins1, iplus1, iplus2, limite
 
-#include "ez_qqqxtrp.cdk90"
-#include "cubic8.cdk90"
+#include "ez_qqqxtrp.cdk"
+#include "cubic8.cdk"
 
       limite = ni+2-wrap
       

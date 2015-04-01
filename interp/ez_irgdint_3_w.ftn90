@@ -78,7 +78,7 @@
       real*8 fa, fa2, fa3, fa4
       real*8 a1,a2,a3,a4,x,y,c1,c2,c3,c4,c5,c6
       
-#include "ez_qqqxtrp.cdk90"
+#include "ez_qqqxtrp.cdk"
 
 !     definition des fonctions in-line
 

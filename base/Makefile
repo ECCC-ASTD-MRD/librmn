@@ -104,6 +104,8 @@ grgg.o:		grgg.ftn 	kases.cdk 	pi.cdk
 idxes.o:	idxes.ftn 	kases.cdk 
 llfxy.o:	llfxy.ftn 	pi.cdk 
 mxma.o:         mxma.ftn
+	r.compile -arch $(EC_ARCH) -abi $(ABI) -O 1 -defines "=$(DEFINE)" -optf "=$(FFLAGS)" $(SUPP_OPT) $(FTN_SUPP_OPT) -src $<
+
 mzonxst.o:	mzonxst.ftn 
 npspin.o:       npspin.ftn 	kases.cdk 	pi.cdk 
 ordleg.o:       ordleg.ftn 	pi.cdk 
@@ -134,6 +136,7 @@ genlib: $(OBJECTS) $(OBJ_FRONT)
 
 gen_ec_arch_dir:
 #Creer le repertoire $EC_ARCH 
+
 	mkdir -p ./$(EC_ARCH)
 
 locallib: gen_ec_arch_dir \

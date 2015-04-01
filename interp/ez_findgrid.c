@@ -28,10 +28,39 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
      
   while (found == -1 && end_reached == -1)
     {
-    if (gr->grtyp[0] == refgd->grtyp[0] &&
-       gr->ni == refgd->ni &&  gr->nj == refgd->nj &&
-       gr->fst.ig[IG1] == refgd->fst.ig[IG1] && gr->fst.ig[IG2] == refgd->fst.ig[IG2] &&
-       gr->fst.ig[IG3] == refgd->fst.ig[IG3] && gr->fst.ig[IG4] == refgd->fst.ig[IG4])
+    if (gr->grtyp[0] == 'U')
+        {
+          if (gr->grtyp[0] == refgd->grtyp[0] &&
+              gr->grref[0] == refgd->grref[0] &&
+              gr->ni_ax == refgd->ni_ax &&  gr->nj_ay == refgd->nj_ay &&
+       gr->fst.ig[IG1] == refgd->fst.ig[IG1] &&
+       gr->fst.ig[IG2] == refgd->fst.ig[IG2] &&
+       gr->fst.ig[IG3] == refgd->fst.ig[IG3] &&
+       gr->fst.ig[IG4] == refgd->fst.ig[IG4])
+              {
+               found = 1;
+               index_found = refgd->index;
+               break;
+              }
+        }
+     /*  printf("gr->grtyp=%c  ni=%d nj= %d\n",gr->grtyp[0],gr->ni,gr->nj);
+         printf("refgd->grtyp=%c  ni=%d nj= %d\n",refgd->grtyp[0],refgd->ni,refgd->nj);
+     */
+  if (gr->grtyp[0] == refgd->grtyp[0] &&
+      gr->ni == refgd->ni &&  gr->nj == refgd->nj &&
+      gr->fst.ig[IG1] == refgd->fst.ig[IG1] && gr->fst.ig[IG2] == refgd->fst.ig[IG2] &&
+      gr->fst.ig[IG3] == refgd->fst.ig[IG3] && gr->fst.ig[IG4] == refgd->fst.ig[IG4])
+      {
+      if (gr->grtyp[0] == 'G')
+          {
+           found = 1;
+           index_found = refgd->index;
+           break;
+           }
+      if (gr->fst.igref[IG1] == refgd->fst.igref[IG1] && 
+         gr->fst.igref[IG2] == refgd->fst.igref[IG2] &&
+         gr->fst.igref[IG3] == refgd->fst.igref[IG3] && 
+         gr->fst.igref[IG4] == refgd->fst.igref[IG4])
       {
       if (refgd->ax != NULL && refgd->ay != NULL && gr->ax != NULL && gr->ay != NULL)
          {
@@ -110,6 +139,7 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
          found = 1;
          index_found = refgd->index;
          }
+      }
       }
     else
       {

@@ -48,12 +48,13 @@
   use gmm_internals
   use Cat(pointer_table_data_,EXTENSION,)
   implicit none
-   integer :: i
+   integer :: i, array_rank
   character(len=*), intent(in) :: iname               ! name (partially redundant with attributes)
   DATATYPE*DATALENGTH, pointer  :: p(DIMS(:,:,:,:))
   type(gmm_metadata), optional, intent(out) :: m               ! attributes (name in attributes is not used)
 !  integer,intent(inout) :: reqid
   include 'gmm_directory_interface.inc'
+  type(gmm_metadata) :: m2
   integer*8 :: key
       integer *8 get_address_from
       external get_address_from 
@@ -72,13 +73,24 @@
     key= GMM_KEY_NOT_FOUND
     Cat(gmm_get,EXTENSION,) = GMM_VAR_NOT_FOUND
   else
-    if (present(m)) then                           ! return a copy of the proper entry
-       m%l=directory(cur_page)%entry(cur_entry)%l
-       m%a=directory(cur_page)%entry(cur_entry)%a
-    endif
+    m2%l=directory(cur_page)%entry(cur_entry)%l
+    m2%a=directory(cur_page)%entry(cur_entry)%a
+    if (present(m)) m=m2                           ! return a copy of the proper entry
     p=>Cat(gmm_ptrs, EXTENSION,)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
+    do i=1,4
+!      print *,'DEBUG gmm_get m%l(',i,')%n=',m2%l(i)%n
+      if (m2%l(i)%n /= 0) array_rank=i
+    enddo
+!    write(6,'(a,a,a,i2,a,i2)') 'DEBUG gmm_get iname=',iname,' DIM=',DIM,' array_rank=',array_rank
+    if (array_rank /= DIM) then
+       nullify(p)
+       if (present(m)) m = GMM_NULL_METADATA
+       Cat(gmm_get,EXTENSION,) = GMM_INCONSISTENT_DIMS
+!       print *,'DEBUG gmm_get *** GMM_INCONSISTENT_DIMS ***'
+    else
+       Cat(gmm_get,EXTENSION,) = GMM_OK
+    endif
 !    write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') 'Debug+++ gmm_get name=',iname,' cur_page=',cur_page,' cur_entry=',cur_entry,' index=',directory(cur_page)%entry(cur_entry)%pointer_table_index,' addr=',get_address_from(p) 
-    Cat(gmm_get,EXTENSION,) = GMM_OK
    endif
   end function Cat(gmm_get,EXTENSION,)
 !

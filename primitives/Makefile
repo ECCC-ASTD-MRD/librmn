@@ -56,7 +56,8 @@ FTNDECKS= \
          ieeepak.ftn \
          memoir8.ftn     second.ftn      stkmem.ftn       tracebck.ftn\
          ccard.ftn       sx_timing_stubs.ftn              f_baseio.ftn \
-         vpow_ibm.ftn    ftn2c_helper_f.ftn90
+         vpow_ibm.ftn    ftn2c_helper_f.ftn90             ftn_prog_args.f90\
+         small_alloc.ftn
 
 CDECKS= \
          c_baseio.c      c_ccard.c       dmms.c           fread32.c \
@@ -71,12 +72,13 @@ CDECKS= \
          f_gettimeofday.c f_bit_slicer.c  gossip_thread.c flush_stdout.c \
          c_env_var_cracker.c array_file.c logical_smt_cpus.c  pointers_and_addresses.c \
          mkdir_c.c       client_timeout.c ftn2c_helper_c.c clib_interface.c \
-         arc4.c		 md5.c            fool_optimizer.c
+         arc4.c		 md5.c            fool_optimizer.c\
+         crc16_.c         crc24_.c         crc32_.c        crc_16_24_32.c
 
 FDECKS= \
          constnt.f       exdb.f \
          iopdatm.f \
-         qqqmima.f       small_alloc.f \
+         qqqmima.f \
          up2low.f\
          qqqcall.f       qqqr8sz.f          qvmcks.f      gnthread.f  ccard_arg_m.f90 \
          non_preempt_clock.f  f_logical2int.f90
@@ -101,7 +103,9 @@ OBJECTS= \
          array_file.o      logical_smt_cpus.o  pointers_and_addresses.o \
          mkdir_c.o         non_preempt_clock.o client_timeout.o vpow_ibm.o\
          ftn2c_helper_c.o  clib_interface.o  ftn2c_helper_f.o \
-         arc4.o		 md5.o               f_logical2int.o  fool_optimizer.o
+         arc4.o		 md5.o               f_logical2int.o  fool_optimizer.o\
+         ftn_prog_args.o  crc16_.o           crc24_.o         crc32_.o\
+         crc_16_24_32.o
          
 COMDECKS = xxpakc.cdk mgi.h  wafile.h
          
@@ -158,7 +162,8 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(mkdir_c.o)         $(TEMPLIB)(non_preempt_clock.o) $(TEMPLIB)(client_timeout.o) $(TEMPLIB)(vpow_ibm.o)\
          $(TEMPLIB)(ftn2c_helper_c.o)  $(TEMPLIB)(clib_interface.o) $(TEMPLIB)(ftn2c_helper_f.o)\
          $(TEMPLIB)(arc4.o)            $(TEMPLIB)(md5.o)            $(TEMPLIB)(f_logical2int.o)\
-         $(TEMPLIB)(fool_optimizer.o)
+         $(TEMPLIB)(fool_optimizer.o)  $(TEMPLIB)(ftn_prog_args.o)  $(TEMPLIB)(crc16_.o)          $(TEMPLIB)(crc24_.o)\
+         $(TEMPLIB)(crc32_.o)          $(TEMPLIB)(crc_16_24_32.o)
 
 genlib: rmnlib_v $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 

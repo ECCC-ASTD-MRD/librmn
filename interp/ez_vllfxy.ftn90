@@ -42,8 +42,8 @@
 !                                                                       
 !-----------------------------------------------------------------------
 !                                                                       
-#include "pi.cdk90"
-#include "qqqpar.cdk90"
+#include "pi.cdk"
+#include "qqqpar.cdk"
       
       integer ni,nj, nhem
       real x(ni,nj), y(ni,nj), dlat(ni,nj), dlon(ni,nj)

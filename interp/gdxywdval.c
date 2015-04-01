@@ -31,23 +31,55 @@ wordint f77name(gdxywdval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnf
    return icode;
 
 }
-
 wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint n)
 {
-  wordint ier;
+  wordint ier,j, icode, yin_gdid, yan_gdid;
 
-  ftnfloat *tmplat, *tmplon;
+  wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
+  ftnfloat *tmplat, *tmplon, *uuyin, *vvyin, *uuyan, *vvyan;
   
   tmplat = (ftnfloat *) malloc(n * sizeof(ftnfloat));
   tmplon = (ftnfloat *) malloc(n * sizeof(ftnfloat));
   
   ier = c_gdxyvval(gdin, uuout, vvout, uuin, vvin, x, y, n);
   ier = c_gdllfxy(gdin, tmplat, tmplon, x, y, n);
-  ier = c_gdwdfuv(gdin, uuout, vvout, uuout, vvout, tmplat, tmplon, n);
-  
+  c_gdkey2rowcol(gdin,  &gdrow_id,  &gdcol_id);
+  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0)
+      {
+      yin_gdid=Grille[gdrow_id][gdcol_id].subgrid[0];
+      yan_gdid=Grille[gdrow_id][gdcol_id].subgrid[1];
+      c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
+      uuyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      vvyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      uuyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      vvyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      icode = c_gdwdfuv_orig(yin_gdid,uuyin,vvyin,uuout,vvout,tmplat,tmplon,n);
+      icode = c_gdwdfuv_orig(yan_gdid,uuyan,vvyan,uuout,vvout,tmplat,tmplon,n);
+      for (j=0; j< n; j++)
+        {
+          if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)
+             {
+             uuout[j]=uuyan[j];
+             vvout[j]=vvyan[j];
+             }
+          else
+             {
+             uuout[j]=uuyin[j];
+             vvout[j]=vvyin[j];
+             }
+        }
+      free(uuyin); free(vvyin);
+      free(uuyan); free(vvyan);
+
+      }
+  else
+      {
+      ier = c_gdwdfuv(gdin, uuout, vvout, uuout, vvout, tmplat, tmplon, n);
+      }
+
   free(tmplat);
   free(tmplon);
 
-
   return 0;
 }
+

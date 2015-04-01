@@ -32,7 +32,7 @@ libgmm_$(EC_ARCH).a: gmm_checkpoint.o gmm_create.o gmm_directory.o gmm_internals
 gmm_internals.cdk90: gmm_internal_constants.inc gmm_directory_interface.inc
 
 gmm_internals.o: gmm_internals.cdk90
-	r.compile -openmp -src gmm_internals.cdk90
+	s.compile -openmp -src gmm_internals.cdk90
 
 gmm.hf: 	gmm_constants.hf gmm_definitions.inc gmm_nulls.inc \
 			gmm_checkpoint_interface.inc gmm_create_interface.inc \
@@ -55,8 +55,8 @@ gmm.hf: 	gmm_constants.hf gmm_definitions.inc gmm_nulls.inc \
 gmm.ftn90: gmm.hf gmm_checkpoint.o gmm_create.o gmm_directory.o  gmm_encodemeta.o gmm_keys.o gmm_get.o \
        gmm_rename.o gmm_getmeta.o gmm_pointer_table.o gmm_shuffle.o gmm_updatemeta.o gmm_update_pti.o gmm_verbosity.o pass_pointers.o gmm_dumpinfo.o
 	rm -f gmm.f90
-	cat gmm_internals.cdk90 gmm_checkpoint.f90 gmm_create.f90 gmm_directory.f90  gmm_encodemeta.f90 gmm_get.f90 gmm_keys.f90 \
-	gmm_pointer_table.f90 gmm_shuffle.f90 gmm_rename.f90 gmm_getmeta.f90 gmm_updatemeta.f90 gmm_update_pti.f90 gmm_verbosity.f90 gmm_dumpinfo.f90 > gmm.ftn90
+	cat gmm_internals.cdk90 gmm_pointer_table.f90 gmm_checkpoint.f90 gmm_create.f90 gmm_directory.f90  gmm_encodemeta.f90 gmm_get.f90 gmm_keys.f90 \
+	gmm_shuffle.f90 gmm_rename.f90 gmm_getmeta.f90 gmm_updatemeta.f90 gmm_update_pti.f90 gmm_verbosity.f90 gmm_dumpinfo.f90 > gmm.ftn90
 
 
 gmm.o: gmm.ftn90
@@ -67,19 +67,19 @@ test: a.out
 	a.out
 
 gmm_checkpoint.o: gmm_checkpoint_interface.inc gmm_pointer_table.o
-	r.compile -openmp -src gmm_checkpoint.ftn90
+	s.compile -openmp -src gmm_checkpoint.ftn90
 
 gmm_checkpoint_interface.inc: gmm_checkpoint.tmpl90
 	r.tmpl90.ftn90 gmm_checkpoint
-	r.compile -openmp -P -src gmm_checkpoint_interface.cdk90
+	s.compile -openmp -P -src gmm_checkpoint_interface.cdk90
 	mv -f gmm_checkpoint_interface.f90 gmm_checkpoint_interface.inc
 
 gmm_create.o: gmm_create_interface.inc gmm_pointer_table.o
-	r.compile -openmp -src gmm_create.ftn90
+	s.compile -openmp -src gmm_create.ftn90
 
 gmm_create_interface.inc: gmm_create.tmpl90
 	r.tmpl90.ftn90 gmm_create
-	r.compile -openmp -P -src gmm_create_interface.cdk90
+	s.compile -openmp -P -src gmm_create_interface.cdk90
 	mv -f gmm_create_interface.f90 gmm_create_interface.inc
 
 gmm_directory_interface.inc: gmm_directory.ftn90
@@ -92,11 +92,11 @@ gmm_directory.o: gmm_directory.ftn90
 
 gmm_get_interface.inc: gmm_get.tmpl90
 	r.tmpl90.ftn90 gmm_get
-	r.compile -openmp -P -src gmm_get_interface.cdk90
+	s.compile -openmp -P -src gmm_get_interface.cdk90
 	mv -f gmm_get_interface.f90 gmm_get_interface.inc
 
 gmm_get.o: gmm_get_interface.inc gmm_pointer_table.o
-	r.compile -openmp -src gmm_get.ftn90
+	s.compile -openmp -src gmm_get.ftn90
 
 gmm_getmeta_interface.inc: gmm_getmeta.ftn90
 	r.gppf -f90 -gpp -DINTERFACEONLY < gmm_getmeta.ftn90 > gmm_getmeta_interface.inc
@@ -127,11 +127,11 @@ gmm_shuffle.o: gmm_shuffle.ftn90
 
 gmm_pointer_table_interface.inc: gmm_pointer_table.tmpl90
 	r.tmpl90.ftn90 gmm_pointer_table
-	r.compile -openmp -P -src gmm_pointer_table_interface.cdk90
+	s.compile -openmp -P -src gmm_pointer_table_interface.cdk90
 	mv -f gmm_pointer_table_interface.f90 gmm_pointer_table_interface.inc
 
 gmm_pointer_table.o: gmm_internals.o gmm_pointer_table_interface.inc
-	r.compile -openmp -src gmm_pointer_table.ftn90
+	s.compile -openmp -src gmm_pointer_table.ftn90
 
 gmm_updatemeta_interface.inc: gmm_updatemeta.ftn90
 	r.gppf -f90 -gpp -DINTERFACEONLY < gmm_updatemeta.ftn90 > gmm_updatemeta_interface.inc
@@ -140,11 +140,11 @@ gmm_updatemeta.o: gmm_updatemeta.ftn90
 
 gmm_update_pti_interface.inc: gmm_update_pti.tmpl90
 	r.tmpl90.ftn90 gmm_update_pti
-	r.compile -openmp -P -src gmm_update_pti_interface.cdk90
+	s.compile -openmp -P -src gmm_update_pti_interface.cdk90
 	mv -f gmm_update_pti_interface.f90 gmm_update_pti_interface.inc
 
 gmm_update_pti.o: gmm_update_pti_interface.inc gmm_pointer_table.o
-	r.compile -openmp -src gmm_update_pti.ftn90
+	s.compile -openmp -src gmm_update_pti.ftn90
 
 gmm_verbosity_interface.inc: gmm_verbosity.ftn90
 	r.gppf -f90 -gpp -DINTERFACEONLY < gmm_verbosity.ftn90 > gmm_verbosity_interface.inc

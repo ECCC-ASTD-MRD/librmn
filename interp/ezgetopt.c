@@ -26,15 +26,26 @@
 
 wordint f77name(ezgetopt)(char *option, char *value, wordint lenoption, wordint lenvalue)
 {
-   wordint icode;
+   int i;
+   wordint icode,len;
+   wordint longueur_option, longueur_value;
    char local_opt[32], local_val[32];
 
-   ftnstrclean(option,lenoption);
-   ftnstrclean(value,lenvalue);
-   strncpy(local_opt, option, lenoption);
-   local_opt[lenoption] = '\0';
+   longueur_option = f77name(longueur)(option, lenoption);
+   longueur_option = longueur_option < 32 ? longueur_option : 31;
 
-   icode = c_ezgetopt(local_opt, value);
+   for (i=0; i < longueur_option; i++)
+     {
+     local_opt[i] = option[i];
+     }
+
+   local_opt[longueur_option] = '\0';
+
+   icode = c_ezgetopt(local_opt, local_val);
+   len=strlen(local_val);
+   len = len > lenvalue ? lenvalue : len;
+   strncpy(value,local_val,len);
+   value[len]= '\0';
 
    return icode;
 }
@@ -44,6 +55,8 @@ wordint c_ezgetopt(char *option, char *value)
   char local_opt[32], local_val[32];
   wordint i;
 
+  memset(local_opt, (int) '\0', 32);
+  memset(local_val, (int) '\0', 32);
   strcpy(local_opt, option);
 
   for (i=0; i < strlen(local_opt); i++)
@@ -59,6 +72,20 @@ wordint c_ezgetopt(char *option, char *value)
 
       case 2:
 	   strcpy(value, "yesyesyes");
+	   break;
+
+      default:
+	   strcpy(value, "no");
+	   break;
+      }
+    }
+
+  if (0 == strcmp(local_opt, "use_1subgrid"))
+    {
+    switch (groptions.use_1subgrid)
+      {
+      case 1:
+	   strcpy(value, "yes");
 	   break;
 
       default:

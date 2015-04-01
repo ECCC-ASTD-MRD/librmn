@@ -42,6 +42,35 @@ wordint f77name(gdll)(wordint *gdid, ftnfloat *lat, ftnfloat *lon)
 
 wordint c_gdll(wordint gdid, ftnfloat *lat, ftnfloat *lon)
 {
+   wordint icode;
+  wordint gdrow_id, gdcol_id, ni, nj;
+  wordint yin_gdid,yan_gdid;
+  wordint yin_gdrow_id, yin_gdcol_id;
+  wordint yan_gdrow_id, yan_gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
+    {
+    yin_gdid = Grille[gdrow_id][gdcol_id].subgrid[0];
+    yan_gdid = Grille[gdrow_id][gdcol_id].subgrid[1];
+/*    printf("gdll: gdid for yin=%d,gdid for yan=%d\n",yin_gdid,yan_gdid); */
+    c_gdkey2rowcol(yin_gdid, &yin_gdrow_id, &yin_gdcol_id);
+    c_gdkey2rowcol(yan_gdid, &yan_gdrow_id, &yan_gdcol_id);
+    ni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
+    nj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
+/*  printf("gdll: ni=%d, nj=%d\n",ni,nj); */
+    icode=c_gdll_orig(yin_gdid,lat,lon);
+    icode=c_gdll_orig(yan_gdid,&lat[ni*nj],&lon[ni*nj]);
+    }
+  else
+    {
+    icode=c_gdll_orig(gdid,lat,lon);
+    }
+  return icode;
+}
+
+wordint c_gdll_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon)
+{
   wordint gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);

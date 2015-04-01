@@ -1146,7 +1146,28 @@ int c_mrfapp(int iun)
   return(0);
 }
 
-/*splitpoint c_mrfget */
+/*splitpoint c_mrfapp */
+/***************************************************************************** 
+ *                            C _ M R F B F L                                *
+ *                                                                           * 
+ *Object                                                                     * 
+ *   Return the length of the longer report in the file                      *
+ *                                                                           * 
+ *Arguments                                                                  * 
+ *                                                                           * 
+ *  IN  iun     unit number associated to the file                           * 
+ *                                                                           * 
+ *****************************************************************************/
+
+int c_mrfbfl(int iun)
+{
+  int bfl;
+  
+  bfl = f77name(mrfbfl)(&iun);
+  return(bfl);
+}
+
+  /*splitpoint c_mrfget */
 /***************************************************************************** 
  *                             C _ M R F G E T                               *
  *                                                                           * 

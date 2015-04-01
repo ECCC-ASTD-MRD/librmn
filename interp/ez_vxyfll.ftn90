@@ -58,8 +58,8 @@
 !         - and longitude given the grid-coordinates, 
 !         - is also available.
 !*--------------------------------------------------------------------
-#include "pi.cdk90"
-#include "qqqpar.cdk90"
+#include "pi.cdk"
+#include "qqqpar.cdk"
 
       integer npts, nhem
       real x(npts), y(npts), dlat(npts), dlon(npts)

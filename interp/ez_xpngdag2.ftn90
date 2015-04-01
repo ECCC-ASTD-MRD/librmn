@@ -20,7 +20,7 @@
       subroutine ez_xpngdag2(zout,zi,ni,nj,j1,j2,hem,symetrie)
       
       implicit none
-#include "qqqpar.cdk90"
+#include "qqqpar.cdk"
 
       external permut
       

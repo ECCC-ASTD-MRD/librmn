@@ -58,6 +58,7 @@
 
 
    #include "gmm_directory_interface.inc"
+
    type(gmm_attributes) :: localattr, attrs
    type (gmm_attributes) lcl_attr
    type(gmm_layout), dimension(4) :: lcl_layout, dims
@@ -205,7 +206,11 @@
       allocate(p(DIMS(dims(1)%low:dims(1)%high,&
                 &dims(2)%low:dims(2)%high,&
                 &dims(3)%low:dims(3)%high,&
-                &dims(4)%low:dims(4)%high)))
+                &dims(4)%low:dims(4)%high)),stat=ier)
+      if (ier /= 0) then
+         Cat(gmm_create,EXTENSION,) = GMM_ERROR
+         return
+      endif
 !    write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') 'Debug+++ gmm_create creation name=',lcl_name,' cur_page=',cur_page,' cur_entry=',cur_entry,' index=',directory(cur_page)%entry(cur_entry)%pointer_table_index,' addr=',get_address_from(p) 
       directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(p)
       ier = add_table_entry(p, key)

@@ -38,7 +38,7 @@ main()
   grid_crc = calc_crc(&gridinfo, &gridinfosize, &fseed, un);
   grid_index = grid_crc % 262111;
   grid_subindex = grid_index % 463;
-  printf("crc: %u %x, index: %d\ subindex: %d\n", grid_crc, grid_crc, grid_index, grid_subindex);
+ /* printf("crc: %u %x, index: %d\ subindex: %d\n", grid_crc, grid_crc, grid_index, grid_subindex); */
   
   memset(&gridinfo, (int)NULL, sizeof(gridinfo));
   
@@ -54,6 +54,6 @@ main()
   grid_crc = calc_crc(&gridinfo, &gridinfosize, &fseed, un);
   grid_index = grid_crc % 262111;
   grid_subindex = grid_index % 463;
-  printf("crc: %u %x, index: %d\ subindex: %d\n", grid_crc, grid_crc, grid_index, grid_subindex);
+/*  printf("crc: %u %x, index: %d\ subindex: %d\n", grid_crc, grid_crc, grid_index, grid_subindex); */
 
   }

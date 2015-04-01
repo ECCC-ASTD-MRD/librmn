@@ -26,8 +26,8 @@
   #define IARGC iargc_
   #define GETARG getarg_
 #else
-  #define IARGC f77name(iargc)
-  #define GETARG f77name(getarg)
+  #define IARGC f77_name(f_iargc)
+  #define GETARG f77_name(f_getarg)
 #endif
 
 #ifdef SELFTEST

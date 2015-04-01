@@ -33,20 +33,41 @@ wordint f77name(ezwdint)(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfl
 
 wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
 {
-   wordint gdin,gdout;
-   ftnfloat *uullout = NULL;
-   ftnfloat *vvllout = NULL;
-   wordint npts;
-
-   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin;
-   int lcl_ngdin, idx_gdin;
+   wordint icode,gdin,gdout;
+   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out;
 
    gdin = iset_gdin;
    gdout= iset_gdout;
 
    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-   idx_gdin = c_find_gdin(gdin, gdout);
+
+   if (Grille[gdrow_in][gdcol_in].nsubgrids > 0 || Grille[gdrow_out][gdcol_out].nsubgrids > 0)
+      {
+      icode = c_ezyywdint(uuout,vvout,uuin,vvin,gdout,gdin);
+      iset_gdin=gdin;
+      iset_gdout=gdout;
+      return icode;
+      }
+   icode = c_ezwdint_orig(uuout, vvout, uuin, vvin);
+   return icode;
+}
+
+wordint c_ezwdint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+{
+   wordint gdin,gdout;
+   ftnfloat *uullout = NULL;
+   ftnfloat *vvllout = NULL;
+   wordint npts;
+
+   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin;
+   int lcl_ngdin;
+
+   gdin = iset_gdin;
+   gdout= iset_gdout;
+
+   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
 
    npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
 

@@ -78,6 +78,7 @@ wordint c_ezsetopt(char *option, char *value)
    if (0 == strcmp(local_opt, "correction_polaire")) strcpy(local_opt, "polar_correction");
    if (0 == strcmp(local_opt, "degre_interp")) strcpy(local_opt, "interp_degree");
    if (0 == strcmp(local_opt, "degre_extrap")) strcpy(local_opt, "extrap_degree");
+   if (0 == strcmp(local_opt, "use_1sousgrille")) strcpy(local_opt, "use_1subgrid");
 
    if (0 == strcmp(local_val, "oui")) strcpy(local_val, "yes");
    if (0 == strcmp(local_val, "ouiouioui")) strcpy(local_val, "yesyesyes");
@@ -89,6 +90,25 @@ wordint c_ezsetopt(char *option, char *value)
    if (0 == strcmp(local_val, "neutre")) strcpy(local_val, "neutral");
    if (0 == strcmp(local_val, "valeur")) strcpy(local_val, "value");
 
+   if (0 == strcmp(local_opt, "use_1subgrid"))
+      {
+      option_ok = 1;
+      value_ok = 1;
+      if (0 == strcmp(local_val, "yes"))
+         {
+         groptions.use_1subgrid= 1;
+         }
+      else if (0 == strcmp(local_val, "no"))
+         {
+         groptions.use_1subgrid= 0;
+         }
+      else
+	      {
+	      value_ok = 0;
+	      }
+      }
+
+ 
    if (0 == strcmp(local_opt, "verbose"))
       {
       option_ok = 1;

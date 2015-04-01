@@ -29,6 +29,7 @@
 *     002  M. Lepine     -  fev  94  bug fix nint pour grille L
 *     003  M. Lepine     -  fev  94  introduction du type de grille E
 *     004  M. Lepine     -  nov  94  traduction de ratfor a fortran
+*     005  M. Valin      -  fev 2013 permutation de 2 enonces (ig2<0)
 *     
 *LANGAGE- RATFOR
 *     
@@ -178,8 +179,8 @@ C
         I2B = IAND(IG1,3)
         IG1 = ISHFT(IG1,-2)
         IG3 = IOR(ISHFT(IG3,2),I2B)
-        I2B = IAND(IG2,3)
         if (ig2.lt.0) ig2 = ig2 + 7201
+        I2B = IAND(IG2,3)
         IG2 = ISHFT(IG2,-2)
         IG4 = IOR(ISHFT(IG4,2),I2B)
 

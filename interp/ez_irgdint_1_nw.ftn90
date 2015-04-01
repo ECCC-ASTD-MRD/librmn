@@ -26,7 +26,7 @@
       real z(ni,nj)
       real*8 x, y, x1, x2, y1,y2,dx,dy
 
-#include "zlin8.cdk90"
+#include "zlin8.cdk"
       
       do n=1,npts
          i = min(ni-1,max(1,ifix(px(n))))

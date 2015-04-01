@@ -1122,7 +1122,7 @@ int c_xdfget(int handle, buffer_interface_ptr buf)
 int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
 {
    int index, record_number, page_number, i, idtyp, addr, lng, lngw;
-   int offset, nw;
+   int offset, nw, nread;
    file_table_entry *f;
    file_record *record;
    word *rec;
@@ -1236,9 +1236,13 @@ int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
    for(i=0; i < lngw; i++)
       buf->data[i] = 0;
 
-   c_waread(buf->iun,&(buf->data),W64TOWD(addr-1)+1+offset,lngw-offset);
-
-   return(0);
+   nread = c_waread2(buf->iun,&(buf->data),W64TOWD(addr-1)+1+offset,lngw-offset);
+   if (nread != lngw-offset) {
+       sprintf(errmsg,"short read, truncated record, asking for %d, got %d\n",lngw-offset,nread);
+       return(error_msg("c_xdfget",ERR_SHORT_READ,ERROR));
+   }
+   else
+     return(0);
 
 }
 

@@ -31,7 +31,7 @@
       real vpolnor, vpolsud, sum
 
       
-#include "qqqpar.cdk90"
+#include "qqqpar.cdk"
 
 !
 !Definition des variables locales

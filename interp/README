@@ -1,0 +1,13 @@
+
+. r.ssmuse.dot profile
+. r.ssmuse.dot pgi9xx
+. r.ssmuse.dot rmnlib-dev 
+. s.ssmuse.dot devtools
+
+. r.ssmuse.dot profile
+. r.ssmuse.dot Xlf13 
+. r.ssmuse.dot rmnlib-dev 
+. s.ssmuse.dot devtools
+
+make obj
+mv *.o /users/dor/armn/viv/cnfs/UGRIDTEST

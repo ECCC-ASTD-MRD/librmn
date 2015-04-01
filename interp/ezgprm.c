@@ -24,9 +24,16 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 wordint f77name(ezgprm)(wordint *gdid, char *grtyp, wordint *ni, wordint *nj,
-             wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)
+             wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint lengrtyp)
 {
-  return c_ezgprm(*gdid, grtyp, ni, nj, ig1, ig2, ig3, ig4);
+  int i;
+  wordint icode;
+  char lgrtyp[2];
+  lgrtyp[0]= ' ';
+  lgrtyp[1]= '\0';
+  icode = c_ezgprm(*gdid, lgrtyp, ni, nj, ig1, ig2, ig3, ig4);
+  grtyp[0]=lgrtyp[0];
+  return icode;
 }
 
 wordint   c_ezgprm(wordint gdid, char *grtyp, wordint *ni, wordint *nj, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)

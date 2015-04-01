@@ -8,6 +8,7 @@
 
 #define NMAXGRIDS 32
 #define NMAXSETS  NMAXGRIDS * (NMAXGRIDS - 1)
+#define NMAXSUBGRIDS 20
 
 #define LAT                         1
 #define AX                          2
@@ -43,8 +44,8 @@
 #define TRIANGLE                  5
 #define LINEAR_AND_NEAREST        6
 
-#define EZ_EXTRAP                    1
-#define EZ_NO_EXTRAP                 0
+#define EZ_EXTRAP                 1
+#define EZ_NO_EXTRAP              0
 #define RIEN                     -1
 
 #define MAXIMUM                   4
@@ -110,6 +111,12 @@
 #define LOG2_CHUNK      7
 #define MAX_LOG_CHUNK   12
 
+#define JOINT           1
+#define DISJOINT        0
+
+#define YES             1
+#define NO              0
+
 typedef struct
 {
   wordint npts;               /* nombre de points */
@@ -138,17 +145,36 @@ typedef struct
 
 typedef struct
 {
-  wordint flags;
+  wordint flags,yyflags;
   wordint use_sincos_cache;
   wordint gdin;
   wordint next_gdin;
   ftnfloat valpolesud, valpolenord;
   ftnfloat *x, *y;
   wordint *mask_in, *mask_out;
+  ftnfloat *yin_maskout,*yan_maskout;
+  ftnfloat *yinlat,*yinlon,*yanlat,*yanlon;
+  ftnfloat *yin2yin_lat,*yin2yin_lon,*yan2yin_lat,*yan2yin_lon;
+  ftnfloat *yin2yan_lat,*yin2yan_lon,*yan2yan_lat,*yan2yan_lon;
+  ftnfloat *yin2yin_x,*yin2yin_y,*yan2yin_x,*yan2yin_y;
+  ftnfloat *yin2yan_x,*yin2yan_y,*yan2yan_x,*yan2yan_y;
+  wordint yincount_yin,yancount_yin,yincount_yan,yancount_yan;
   _gemgrid gemin, gemout;
   _ygrid ygrid;
   _zone zones[NZONES];
 }_gridset;
+
+typedef struct
+   {
+   int child;
+   int childOf;
+   int parent;
+   int niOffset, njOffset;
+   int sister;
+   int assembly;
+   int *parentOf;
+   int *sisterOf;
+   }_sousgrille;
 
 typedef struct
   {
@@ -183,12 +209,16 @@ typedef struct
   wordint next_gd;
   wordint n_gdin, next_gdin, idx_last_gdin, n_gdin_for;
   wordint log_chunk_gdin, log_chunk_gdin_for;
-  char grtyp[4], grref[4];
-  _fstinfo fst;
+  wordint *gdin_for, *mask;
+  wordint nsubgrids,mymaskgrid;
+  wordint mymaskgridi0,mymaskgridi1;
+  wordint mymaskgridj0,mymaskgridj1;
+  wordint *subgrid;
   ftnfloat *lat, *lon;
   ftnfloat *ax, *ay;
   ftnfloat *ncx, *ncy;
-  wordint *gdin_for, *mask;
+  char grtyp[4], grref[4];
+  _fstinfo fst;
   _gridset *gset;
 } _Grille;
 
@@ -198,6 +228,8 @@ typedef struct
   wordint  damage_control;
   wordint  degre_interp;
   wordint  degre_extrap;
+  wordint  use_1subgrid;
+  wordint  valeur_1subgrid;
   wordint  symmetrie;
   wordint  vecteur;
   wordint  verbose;

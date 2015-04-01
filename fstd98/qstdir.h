@@ -50,6 +50,7 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
 #define MRBCOV(a,b,c) ((a << 14) | (b << 8) | c)
+#define INFOPRINT if (1 >= msg_level) 
 #define WARNPRINT if (2 >= msg_level) 
 /* end macro definitions */
 
@@ -78,7 +79,8 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define ERR_OK 0
 #define ERR_NO_FILE -1                /* file is not open or does not exist */
 #define ERR_FTAB_FULL -3        /* file table is full */
-#define ERR_BAD_UNIT -5         /* invalid unit number */
+#define ERR_SHORT_READ -4       /* short read, truncated record */
+#define ERR_BAD_UNIT -5         /* invalid unit number */ 
 #define ERR_NOT_COMP -6         /* src and dest files not compatible */
 #define ERR_NO_WRITE -7         /* no write permission */
 #define ERR_BAD_PAGENO -8       /* invalid page number */

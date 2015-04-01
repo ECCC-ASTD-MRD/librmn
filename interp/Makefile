@@ -2,7 +2,7 @@
 
 .SUFFIXES : .ftn90 .c .o .a
 
-SHELL = /bin/sh
+SHELL = /bin/bash
 
 CPP = /lib/cpp
 
@@ -20,9 +20,10 @@ DEFINE = -DFICHSTD98
 
 SUPP_OPT = -openmp
 
-OPTIMIZ = -O 2
+#OPTIMIZ = -O 2
 #OPTIMIZ = -O 3 -fast
-#OPTIMIZ = -O 0 -debug
+C_OPTIMIZ = -O 2
+F_OPTIMIZ = -O 2
 
 CPPFLAGS = -I$(ARMNLIB)/include
 
@@ -45,12 +46,12 @@ include $(ARMNLIB)/include/makefile_suffix_rules.inc
 
 OBJET = f_ezscint.o c_ezscint.o
 
-FICHIERS_CDK90 = \
-cubic.cdk90   ez_gaussgd.cdk90  ez_qqqxtrp.cdk90   gaussgd.cdk90  pi.cdk90       qqqpar.cdk90   zlin.cdk90 \
-cubic8.cdk90  ez_qqqmrot.cdk90  ez_qqqxtrp0.cdk90  inline.cdk90   qqqmrot.cdk90  qqqxtrp.cdk90  zlin8.cdk90
+FICHIERS_CDK = \
+cubic.cdk   ez_gaussgd.cdk  ez_qqqxtrp.cdk   gaussgd.cdk  pi.cdk       qqqpar.cdk   zlin.cdk \
+cubic8.cdk  ez_qqqmrot.cdk  ez_qqqxtrp0.cdk  inline.cdk   qqqmrot.cdk  qqqxtrp.cdk  zlin8.cdk
 
 #FICHIERS_FTN90 = \
-#isi4.cdk90 \
+#isi4.cdk \
 #f_isi_gd_def_fst_gnl.ftn90
 
 FICHIERS_FTN90 = \
@@ -185,6 +186,11 @@ ezgdef.c \
 ezgdef_ffile.c \
 ezgdef_fll.c \
 ezgdef_fmem.c \
+ezgdef_supergrid.c \
+ezgdef_yymask.c \
+ezget_nsubgrids.c \
+ezget_subgridids.c \
+ezget_subgridmem.c \
 ezgetopt.c \
 ezgetval.c \
 ezgfstp.c \
@@ -196,6 +202,12 @@ ezsetval.c \
 ezsint.c \
 ezuvint.c \
 ezwdint.c \
+ezyy_use1subgrid.c \
+ezyy_calcxy.c \
+ezyymint.c \
+ezyysint.c \
+ezyyuvint.c \
+ezyywdint.c \
 gd_key2rowcol.c \
 gdgaxes.c \
 gdinterp.c \
@@ -225,11 +237,13 @@ libezscint: f_ezscint.o c_ezscint.o
 	ar rv libezscint-590.a.fl c_ezscint.o f_ezscint.o
 
 f_ezscint.o: f_ezscint.ftn90
+	s.compile -src f_ezscint.ftn90 $(F_OPTIMIZ)
 
 f_ezscint.ftn90: $(FICHIERS_FTN90) $(FICHIERS_CDK)
 	cat $(FICHIERS_FTN90) > f_ezscint.ftn90
 
 c_ezscint.o: c_ezscint.c
+	s.compile -src c_ezscint.c $(C_OPTIMIZ)
 
 c_ezscint.c: $(FICHIERS_C) $(FICHIERS_H)
 	cat $(FICHIERS_C) > c_ezscint.c
@@ -239,6 +253,7 @@ tarball:  $(FICHIERS) Makefile
 
 obj: $(OBJET)
 #Produire les fichiers objets (.o) pour tous les fichiers
+	rm -f c_ezscint.c f_ezscint.f90 f_ezscint.ftn90
 
 gen_ec_arch_dir:
 #Creer le repertoire $EC_ARCH 

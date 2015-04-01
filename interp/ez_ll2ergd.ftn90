@@ -21,8 +21,8 @@
 
       subroutine ez_ll2ergd(px,py,xlat,xlon,npts,ni,nj,grtyp,      ig1,ig2,ig3,ig4)
       implicit none
-#include "qqqpar.cdk90"
-#include "pi.cdk90"
+#include "qqqpar.cdk"
+#include "pi.cdk"
 
       external cigaxg,ez_llll2gd,permut
 

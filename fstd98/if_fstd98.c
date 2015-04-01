@@ -1672,6 +1672,10 @@ ftnword f77name(ip3_val)(ftnfloat *f_level, ftnword *f_kind)
  *Object                                                                     * 
  *   Prints out the standard file record descriptors                         *
  *                                                                           * 
+ *Revision                                                                   * 
+ * 002   B. Dugas -   Oct 2012, ip23 buffer overflow correction              * 
+ * 003   M. Valin -   Feb 2013, introduction of missing data flag            * 
+ *                                                                           * 
  *Arguments                                                                  * 
  *                                                                           * 
  *  IN  stdf_entry     directory entry that contains the descriptors         * 
@@ -1686,6 +1690,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
 
   stdf_special_parms cracked;
   char cdt[9]={'X','R','I','C','S','E','F','A','Z'};
+  char cmsgp=' ';
   int dat1,dat2,dat3,minus3=-3;
   int iip1,kind, mode=-1, flag=1;
   int ig1, ig2, ig3, ig4;
@@ -1693,8 +1698,8 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
   char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
   char h_dims[18], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
   char v_dims[20], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
-  char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[13], h_deet[9], h_npas[9], h_dty[4]; 
-  char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[13], v_deet[9], v_npas[9], v_dty[4]; 
+  char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[14], h_deet[9], h_npas[9], h_dty[5]; 
+  char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[14], v_deet[9], v_npas[9], v_dty[5]; 
   int posc, posv;
   static char *ARMNLIB=NULL;                        /* ARMNLIB environment variable */
   static int read_done=0;
@@ -1757,7 +1762,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
     if (strstr(option,"NOIP23"))
       h_ip23[0]='\0';
     else
-      sprintf(h_ip23,"%s","   IP2   IP3");
+      sprintf(h_ip23,"%s","    IP2   IP3");
 
     if (strstr(option,"NODEET"))
       h_deet[0]='\0';
@@ -1772,7 +1777,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
     if (strstr(option,"NODTY"))
       h_dty[0]='\0';
     else
-      sprintf(h_dty,"%s","DTY");
+      sprintf(h_dty,"%s","DTY ");
 
     if (strstr(option,"GRIDINFO"))
       sprintf(h_grid,"%s","G    XG1    XG2     XG3     XG4");
@@ -1789,17 +1794,17 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
   if (strstr(option,"NONOMV"))
     v_nomv[0]='\0';
   else
-    sprintf(v_nomv,"%#4s",cracked.nomvar);
+    sprintf(v_nomv,"%4s",cracked.nomvar);
   
   if (strstr(option,"NOTYPV"))
     v_typv[0]='\0';
   else
-    sprintf(v_typv,"%#2s",cracked.typvar);
+    sprintf(v_typv,"%2s",cracked.typvar);
   
   if (strstr(option,"NOETIQ"))
     v_etiq[0]='\0';
   else
-    sprintf(v_etiq,"%#12s",cracked.etiket);
+    sprintf(v_etiq,"%12s",cracked.etiket);
 
   if (strstr(option,"NINJNK"))
     sprintf(v_dims,"%5d %5d %5d",stdf_entry->ni,stdf_entry->nj,stdf_entry->nk);
@@ -1869,7 +1874,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
   if (strstr(option,"NOIP23"))
     v_ip23[0]='\0';
   else
-    sprintf(v_ip23,"%6d %5d",stdf_entry->ip2,stdf_entry->ip3);
+    sprintf(v_ip23,"%7d %5d",stdf_entry->ip2,stdf_entry->ip3);
   
   if (strstr(option,"NODEET"))
     v_deet[0]='\0';
@@ -1881,13 +1886,14 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
   else
     sprintf(v_npas,"%8d",stdf_entry->npas);
   
+  if(stdf_entry->datyp & 64)cmsgp='m';
   if (strstr(option,"NODTY"))
     v_dty[0]='\0';
   else 
     if (stdf_entry->datyp > 128)
-      sprintf(v_dty,"%1c%2d",tolower(cdt[stdf_entry->datyp-128]),stdf_entry->nbits);
+      sprintf(v_dty,"%1c%1c%2d",tolower(cdt[stdf_entry->datyp&0x3F]),cmsgp,stdf_entry->nbits);  /* suppress bits for 64 and 128 */
     else
-      sprintf(v_dty,"%1c%2d",cdt[stdf_entry->datyp],stdf_entry->nbits);
+      sprintf(v_dty,"%1c%1c%2d",cdt[stdf_entry->datyp&0x3F],cmsgp,stdf_entry->nbits);  /* suppress bits for 64 and 128 */
   
   if (strstr(option,"GRIDINFO")) {
     F2Cl lc1=1,lc2=7,lc3=7,lc4=8,lc5=8;
@@ -1897,7 +1903,7 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
                    lc1,lc2,lc3,lc4,lc5);
             /*     1,7,7,8,8);       */
     pg1[6]='\0'; pg2[6]='\0'; pg3[7]='\0'; pg4[7]='\0';
-    sprintf(v_grid,"%1s %#6s %#6s %#7s %#7s",cracked.gtyp,pg1,pg2,pg3,pg4);
+    sprintf(v_grid,"%1s %6s %6s %7s %7s",cracked.gtyp,pg1,pg2,pg3,pg4);
   }
   else
     if (strstr(option,"IG1234"))

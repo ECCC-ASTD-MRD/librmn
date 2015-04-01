@@ -34,8 +34,10 @@ wordint f77name(gdllsval)(wordint *gdid, ftnfloat *zout, ftnfloat *zin, ftnfloat
 wordint c_gdllsval(wordint gdid, ftnfloat *zout, ftnfloat *zin, ftnfloat *lat, ftnfloat *lon, wordint n)
 {
    ftnfloat *x, *y;
-   wordint ier;
+   wordint ier,gdrow_id,gdcol_id;
    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
    x = (ftnfloat *)malloc(n * sizeof(float));
    y = (ftnfloat *)malloc(n * sizeof(float));
    

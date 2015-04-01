@@ -25,7 +25,7 @@
 
 !*--------------------------------------------------------------------
 
-#include "qqqpar.cdk90"
+#include "qqqpar.cdk"
 
       integer npts, ni, nj
       real x(npts), y(npts), xlat(npts), xlon(npts)

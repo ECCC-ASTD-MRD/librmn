@@ -31,6 +31,7 @@
 *                            COMPATIBILITE AVEC LES FICHIERS STD 89
 *         003  M. LEPINE  -  FEVRIER 94 AJOUT DU GRTYP E
 *         004  M. LEPINE  -  NOVEMBRE 94 TRADUCTION DE RATFOR A FORTRAN
+*         005  M. Valin   -  Fev 2013 Bug fix, enlever le then de trop
 *
 *LANGAGE  - FORTRAN
 *
@@ -124,7 +125,7 @@
         I2B = IAND(IG4,3)
         LG4 = ISHFT(IG4,-2)
         LG2 = IOR(ISHFT(IG2,2),I2B)
-        if (lg2.gt.3600) then lg2=lg2-7201
+        if (lg2.gt.3600)  lg2=lg2-7201
         XG1 = (LG1 -3600.0D0) / 40.0
 C
 C       bug de code, le +90 est de trop, ce qui peut causer un debordement

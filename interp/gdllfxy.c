@@ -30,8 +30,71 @@ wordint f77name(gdllfxy)(wordint *gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *
 
 wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
 {
+  wordint j, icode, yin_gdid, yan_gdid;
+  ftnfloat *latyin, *lonyin, *latyan, *lonyan;
+  ftnfloat *tmpy;
+
+  wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
+
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
+  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
+    {
+      yin_gdid=Grille[gdrow_id][gdcol_id].subgrid[0];
+      yan_gdid=Grille[gdrow_id][gdcol_id].subgrid[1];
+      c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
+      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      latyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      lonyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      latyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      lonyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      for (j=0; j< n; j++)
+        {
+          if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)
+             {
+             tmpy[j]=y[j]-Grille[yin_gdrow_id][yin_gdcol_id].nj;
+             }
+          else
+             {
+             tmpy[j]=y[j];
+             }
+        }
+      icode = c_gdllfxy_orig(yin_gdid,latyin,lonyin,x,tmpy,n);
+/*
+      for (j=0; j < n; j++)
+        {
+           printf("gdllfxy yin x %f y %f : lat %f, lon %f \n",x[j],y[j],lat[j],lon[j]);
+        }
+*/
+      icode = c_gdllfxy_orig(yan_gdid,latyan,lonyan,x,tmpy,n);
+      for (j=0; j < n; j++)
+        {
+           if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)
+              {
+              lat[j]=latyan[j];
+              lon[j]=lonyan[j];
+/* printf("gdllfxy yan x %f y %f : lat %f, lon %f \n",x[j],y[j],lat[j],lon[j]); */
+              }
+           else
+              {
+              lat[j]=latyin[j];
+              lon[j]=lonyin[j];
+/* printf("gdllfxy yin x %f y %f : lat %f, lon %f \n",x[j],y[j],lat[j],lon[j]); */
+              }
+        }
+        free(tmpy); free(latyin); free(lonyin); free(latyan); free(lonyan);
+    }
+  else
+    {
+      icode = c_gdllfxy_orig(gdid,lat,lon,x,y,n);
+    }
+  return icode;
+}
+
+wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
+{
   ftnfloat xlat1, xlon1, xlat2, xlon2;
-  wordint i,j, npts, un;
+  wordint i, npts, un;
   ftnfloat *tmpx, *tmpy;
   ftnfloat delxx, delyy;
   ftnfloat dlat, dlon, swlat, swlon;
@@ -109,7 +172,7 @@ wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfl
       break;
 
     case '!':
-      f77name(ez_llflamb)(lat,lon,x,y,&npts,&gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4]);
+      f77name(ez_llflamb)(lat,lon,x,y,&npts,&gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
       break;
 
 
@@ -144,7 +207,7 @@ wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfl
 	      {
 	      case 'E':
 	        f77name(cigaxg)(&gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
-			        &gr.fst.igref[IG1],&gr.fst.igref[IG2],&gr.fst.igref[IG3],&gr.fst.igref[IG4]);
+			        &gr.fst.igref[IG1],&gr.fst.igref[IG2],&gr.fst.igref[IG3],&gr.fst.igref[IG4],1);
 	        f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &npts, &gr.fst.xgref[XLAT1], &gr.fst.xgref[XLON1],
 			            &gr.fst.xgref[XLAT2], &gr.fst.xgref[XLON2]);
 	        break;

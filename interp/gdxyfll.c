@@ -26,8 +26,92 @@ wordint f77name(gdxyfll)(wordint *gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat,
 {
   return c_gdxyfll(*gdid, x, y, lat, lon, *n);
 }
+wordint f77name(gdxyfll_s)(wordint *gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint *n)
+{
+  return c_gdxyfll_s(*gdid, x, y, lat, lon, *n);
+}
+
+wordint c_gdxyfll_s(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
+{
+  wordint j, k, icode, sub_gdid;
+  wordint gdrow_id, gdcol_id;
+    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  
+  for (j=0; j < Grille[gdrow_id][gdcol_id].nsubgrids; j++ )
+    {
+      k=n*j; /* increment along x and y */
+      sub_gdid=Grille[gdrow_id][gdcol_id].subgrid[j];
+      icode = c_gdxyfll_orig(sub_gdid,&x[k],&y[k],lat,lon,n);
+    }
+  return icode;
+}
 
 wordint c_gdxyfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
+{
+  wordint j, icode, yin_gdid, yan_gdid,maxni,maxnj ;
+  ftnfloat *xyin, *xyan, *yyin, *yyan;
+  wordint gdrow_id, gdcol_id;
+  wordint yin_gdrow_id, yin_gdcol_id;
+  wordint yan_gdrow_id, yan_gdcol_id;
+
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
+  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
+    {
+      yin_gdid=Grille[gdrow_id][gdcol_id].subgrid[0];
+      yan_gdid=Grille[gdrow_id][gdcol_id].subgrid[1];
+      c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
+      c_gdkey2rowcol(yan_gdid,  &yan_gdrow_id,  &yan_gdcol_id);
+      maxni= Grille[yin_gdrow_id][yin_gdcol_id].ni;
+      maxnj= Grille[yin_gdrow_id][yin_gdcol_id].nj;
+      xyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      xyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      yyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      yyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      icode = c_gdxyfll_orig(yin_gdid,xyin,yyin,lat,lon,n);
+      icode = c_gdxyfll_orig(yan_gdid,xyan,yyan,lat,lon,n);
+      for (j=0; j < n; j++)
+        {
+        if (xyin[j] > maxni || xyin[j] < 1 || yyin[j] > maxnj || yyin[j] < 1)
+         {
+         /* point is no good, take from YAN eventhough it may not be good*/
+         x[j]=xyan[j];
+         y[j]=yyan[j]+maxnj;
+         }
+        else
+         {
+         x[j]=xyin[j];
+         y[j]=yyin[j];
+         }
+        if (xyan[j] >= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridi0 &&
+            xyan[j] <= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridi1 &&
+            yyan[j] >= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridj0 &&
+            yyan[j] <= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridj1)
+            {
+             x[j]=xyan[j];
+             y[j]=yyan[j]+maxnj;
+            }
+        if (xyin[j] >= Grille[yin_gdrow_id][yin_gdcol_id].mymaskgridi0 &&
+            xyin[j] <= Grille[yin_gdrow_id][yin_gdcol_id].mymaskgridi1 &&
+            yyin[j] >= Grille[yin_gdrow_id][yin_gdcol_id].mymaskgridj0 &&
+            yyin[j] <= Grille[yin_gdrow_id][yin_gdcol_id].mymaskgridj1)
+            {
+             x[j]=xyin[j];
+             y[j]=yyin[j];
+            }
+        }
+      free(xyin);free(xyan);free(yyin);free(yyan);
+    }
+  else
+    {
+      icode = c_gdxyfll_orig(gdid,x,y,lat,lon,n);
+    }
+  return icode;
+
+}
+  
+wordint c_gdxyfll_orig(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
 {
   ftnfloat *tmplons;
   

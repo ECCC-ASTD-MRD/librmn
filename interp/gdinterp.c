@@ -295,7 +295,7 @@ int c_gdcompatible_grids(int gdin, int gdout)
       return -1;
       }
 
-
+   return 0;
    }
 
 int c_gd_isgridrotated(int gdid)
@@ -324,4 +324,5 @@ int c_gd_isgridrotated(int gdid)
       {
       return 0;
       }
+   return 0;
    }

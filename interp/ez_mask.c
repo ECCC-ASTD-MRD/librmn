@@ -68,6 +68,11 @@ int c_gdsetmask(int gdid, int *mask)
    int gdrow, gdcol;
    int ni, nj;
    c_gdkey2rowcol(gdid, &gdrow, &gdcol);
+   if (Grille[gdrow][gdcol].nsubgrids > 0)
+      {
+       fprintf(stderr, "<gdsetmask> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
    ni = Grille[gdrow][gdcol].ni;
    nj = Grille[gdrow][gdcol].nj;
 
@@ -89,6 +94,11 @@ int c_gdgetmask(int gdid, int *mask)
    int ni, nj;
 
    c_gdkey2rowcol(gdid, &gdrow, &gdcol);
+   if (Grille[gdrow][gdcol].nsubgrids > 0)
+      {
+       fprintf(stderr, "<gdgetmask> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
    ni = Grille[gdrow][gdcol].ni;
    nj = Grille[gdrow][gdcol].nj;
 
@@ -124,6 +134,7 @@ int c_ezuvint_m(float *uuout, float *vvout, float *uuin, float *vvin)
 int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
    {
    wordint gdin, gdout, gdrow_out, gdcol_out;
+   wordint              gdrow_in,  gdcol_in;
    wordint methode = 2;
    wordint ni_out, nj_out;
 
@@ -133,6 +144,13 @@ int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
    c_ezdefset(gdout, gdin);
 
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
+      {
+       fprintf(stderr, "<ezsint_mdm> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
    ni_out = Grille[gdrow_out][gdcol_out].ni;
    nj_out = Grille[gdrow_out][gdcol_out].nj;
    c_ezsint(zout, zin);
@@ -148,6 +166,7 @@ int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
 int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in)
    {
    wordint gdin, gdout, gdrow_out, gdcol_out;
+   wordint              gdrow_in,  gdcol_in;
    wordint methode = 2;
    wordint ni_out, nj_out;
 
@@ -157,6 +176,13 @@ int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float 
    c_ezdefset(gdout, gdin);
 
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
+      {
+       fprintf(stderr, "<ezuvint_mdm> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
    ni_out = Grille[gdrow_out][gdcol_out].ni;
    nj_out = Grille[gdrow_out][gdcol_out].nj;
    c_ezsint_mask(mask_out, mask_in);
@@ -174,6 +200,7 @@ int c_ezsint_mask(int *mask_out, int *mask_in)
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
    int i, j, k, ier,npts_in, npts_out, idx_gdin, gdrow_out, gdcol_out;
+   wordint              gdrow_in,  gdcol_in;
    unsigned int bitpos;
    float *fmask_in, *fmask_out, *x, *y;
    char current_option[32], interp_degree[32];
@@ -184,6 +211,13 @@ int c_ezsint_mask(int *mask_out, int *mask_in)
    gdin = c_ezgetgdin();
    gdout = c_ezgetgdout();
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
+      {
+       fprintf(stderr, "<ezsint_mask> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
 
    c_ezdefset(gdout, gdin);
    idx_gdin = c_find_gdin(gdin, gdout);
@@ -224,6 +258,7 @@ int c_ezget_mask_zones(int *mask_out, int *mask_in)
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
    int i, j, k, ier,npts_in, npts_out, idx_gdin, gdrow_out, gdcol_out;
+   wordint              gdrow_in,  gdcol_in;
    unsigned int bitpos;
    float *x, *y;
    char current_option[32], interp_degree[32];
@@ -234,6 +269,13 @@ int c_ezget_mask_zones(int *mask_out, int *mask_in)
    gdin = c_ezgetgdin();
    gdout = c_ezgetgdout();
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
+      {
+       fprintf(stderr, "<ezget_mask_zones> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
 
    c_ezdefset(gdout, gdin);
    idx_gdin = c_find_gdin(gdin, gdout);

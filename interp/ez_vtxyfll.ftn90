@@ -68,7 +68,7 @@
       subroutine ez_vtxyfll(x, y, lat, lon, clat, clon, d60, dgrw, ni, nj, n)
 
       implicit none
-#include "pi.cdk90"
+#include "pi.cdk"
       
       integer i, n, ni, nj
       real x(n), y(n), lat(n), lon(n), clat, clon, d60, dgrw
@@ -98,7 +98,7 @@
       subroutine ez_vtllfxy(lat, lon, x, y, clat, clon, d60, dgrw, ni, nj, n)
 
       implicit none
-#include "pi.cdk90"
+#include "pi.cdk"
       
       integer i, n, ni, nj
       real x(n), y(n), lat(n), lon(n), clat, clon, d60, dgrw

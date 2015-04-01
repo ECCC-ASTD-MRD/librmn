@@ -43,7 +43,7 @@ wordint f77name(ezgdef)(wordint *ni, wordint *nj, char *grtyp, char *grref,
 wordint c_ezgdef(wordint ni, wordint nj, char *grtyp, char *grref,
 		 wordint ig1, wordint ig2, wordint ig3, wordint ig4, ftnfloat *ax, ftnfloat *ay)
 {
-  wordint found,source,iunit;
+  wordint found,source;
   char typeGrille;
   
 

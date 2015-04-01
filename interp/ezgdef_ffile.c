@@ -28,7 +28,7 @@ wordint f77name(ezgdef_ffile)(wordint *ni, wordint *nj, char *grtyp,
             wordint *iunit, wordint lengrtyp)
 {
   wordint icode;
-  char lgrtyp[2],lgrref[2];
+  char lgrtyp[2];
 
   lgrtyp[0] = grtyp[0];
   lgrtyp[1] = '\0';
@@ -41,20 +41,21 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
           wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit)
 {
   wordint i;
-  wordint found, gdrow_in, gdcol_in, nchunks;
+  wordint found, gdrow_in, gdcol_in;
   char typeGrille;
   char grref[2];
   ftnfloat *bidon = NULL;
-  int ok;
   int old_ngrilles, gdid;
-  wordint res1, res2, newgrsize, fseed, un, grid_index;
+  wordint newgrsize, fseed, un, grid_index;
   unsigned int grid_crc;
   _Grille *gr, newgr;
+  wordint *subgrid;
+  wordint nsubgrids, vercode,read;
 
   found = -1;
   un = 1;
   typeGrille = (char)grtyp[0];
-  if (typeGrille != '#' && typeGrille != 'Y' && typeGrille != 'Z' && typeGrille != ' ')
+  if (typeGrille != '#' && typeGrille != 'Y' && typeGrille != 'Z' && typeGrille != 'U' && typeGrille != ' ')
     {
     strcpy(grref, " ");
     return c_ezgdef_fmem(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, bidon, bidon);
@@ -73,6 +74,7 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
 
   memset(&newgr, (int)0, sizeof(_Grille));
   strcpy(newgr.grtyp, grtyp);
+  /* incoming ni,nj specified by the user */
   newgr.ni = ni;
   newgr.nj = nj;
   newgr.fst.ig[IG1] = ig1;
@@ -80,12 +82,13 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
   newgr.fst.ig[IG3] = ig3;
   newgr.fst.ig[IG4] = ig4;
   newgr.idx_last_gdin = -1;
-
-  LirePrmEnrPositionnels(&newgr, iunit, ig1, ig2, ig3, ig4);
+  read=0;
+  LireEnrPositionnels(&newgr, iunit, ig1, ig2, ig3, ig4, read);
   newgrsize = sizeof(_Grille);
   fseed = 0;
   grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, newgr.ax, newgr.ay, newgr.ni, newgr.nj);
   grid_index = grid_crc % primes_sq[cur_log_chunk];
+
   if (gr_list[grid_index] == NULL)
     {
     gdid = c_ez_addgrid(grid_index, &newgr);
@@ -104,19 +107,25 @@ wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
     }
 
     c_gdkey2rowcol(gdid, &gdrow_in, &gdcol_in);
+    read=1;
     switch(newgr.grtyp[0])
       {
       case '#':
+      case 'U':
       gr = &Grille[gdrow_in][gdcol_in];
-      LireEnrPositionnels(gr,iunit, ig1, ig2, ig3, ig4);
+      LireEnrPositionnels(gr, iunit, ig1, ig2, ig3, ig4, read);
       break;
 
       default:
-      LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, 0);
+      LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, 0,read);
       break;
       }
 
   c_gdkey2rowcol(gdid, &gdrow_in, &gdcol_in);
+  if (*grtyp == 'U')
+    {
+     return gdid;
+    }
   ez_calcxpncof(gdid);
   Grille[gdrow_in][gdcol_in].i1 = 1;
   Grille[gdrow_in][gdcol_in].i2 = newgr.ni;

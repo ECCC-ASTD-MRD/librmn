@@ -39,7 +39,7 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
     case '#':
     case 'Z':
       f77name(cigaxg)(&gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
-		      &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4]);
+		      &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
 
       Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
       Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
@@ -66,7 +66,7 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
       gr->fst.xgref[DLAT] = 1.0;
       gr->fst.xgref[DLON] = 1.0;
       f77name(cxgaig)(&gr->grref,&gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],
-		      &gr->fst.xgref[SWLAT], &gr->fst.xgref[SWLON], &gr->fst.xgref[DLAT], &gr->fst.xgref[DLON]);
+		      &gr->fst.xgref[SWLAT], &gr->fst.xgref[SWLON], &gr->fst.xgref[DLAT], &gr->fst.xgref[DLON],1);
 
       Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
       dlon = 360. / (ftnfloat) gr->ni;

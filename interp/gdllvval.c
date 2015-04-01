@@ -36,8 +36,10 @@ wordint c_gdllvval(wordint gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
                ftnfloat *lat, ftnfloat *lon, wordint n)
 {
    ftnfloat *x, *y;
-   wordint ier;
+   wordint ier,gdrow_id,gdcol_id;
    
+  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
    x = (ftnfloat *) malloc(n * sizeof(float));
    y = (ftnfloat *) malloc(n * sizeof(float));
    

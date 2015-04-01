@@ -1,10 +1,12 @@
       program tstip
       integer :: ip, kind
-      real :: p,p2
+      real :: p,p2,seconde,annee,longtemps
       character(len=30) :: string
 
       external convip
-!      goto 111
+      seconde = 1.0/3600.0         ! une seconde en heure
+      annee = 8760.0               ! une annee en heure
+      goto 333
 !
 !      SUBROUTINE CONVIP( ip, p, kind, mode, string, flag )
 !
@@ -106,7 +108,49 @@
       call convip(ip,0.0,2,2,string,.false.)
       write(6,*) 'pour p = 0.0 Mbar ip=',ip
       write(6,*)
-      stop 'ici pour le moment'
+ 
+ 333  continue
+      call convip(ip,seconde,10,2,string,.false.)
+      write(6,*) 'pour temps = 1.0 seconde ip=',ip
+      call convip(ip,p,kind,-1,string,.false.)
+      write(6,*) 'au retour pour temps = 1.0 seconde p=',p,' kind=',kind
+      write(6,*)
+!
+      call convip(ip,seconde*1.0e-3,10,2,string,.false.)
+      write(6,*) 'pour temps = 1.0 milliseconde ip=',ip
+      call convip(ip,p,kind,-1,string,.false.)
+      write(6,*) 'au retour pour temps = 1.0 milliseconde p=',p,' kind=',kind
+      write(6,*)
+!
+      call convip(ip,1.0,10,2,string,.false.)
+      write(6,*) 'pour temps = 1.0 heure ip=',ip
+      call convip(ip,p,kind,-1,string,.false.)
+      write(6,*) 'au retour pour temps = 1.0 heure p=',p,' kind=',kind
+      write(6,*)
+!
+      call convip(ip,annee,10,2,string,.false.)
+      write(6,*) 'pour temps = 1.0 annee ip=',ip
+      call convip(ip,p,kind,-1,string,.false.)
+      write(6,*) 'au retour pour temps = 1.0 annee p=',p,' kind=',kind
+      write(6,*)
+!
+      step=0.8
+      do i = 1,6
+      longtemps = step*annee*10e5
+      write(6,*) 'annee=',annee
+      write(6,*) 'longtemps=',longtemps
+      write(6,*) 'longtemps/8760.0=',longtemps/8760.0
+      call convip(ip,longtemps,10,2,string,.false.)
+      write(6,*) 'pour temps = ',longtemps/annee,' annees ip=',ip
+      call convip(ip,p,kind,-1,string,.false.)
+      write(6,*) 'au retour pour temps = ',longtemps/annee,
+     % ' annees p=',p,' kind=',kind
+      write(6,*)
+      step = step + 0.1
+      enddo
+!
+   
+      stop 'On termine ici pour le moment'
 
 !
       write(6,*) 'pour sigma hors limite = 1.5 ip=',ip

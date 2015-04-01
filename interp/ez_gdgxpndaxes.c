@@ -38,6 +38,11 @@ wordint c_gdgxpndaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
   wordint gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0)
+      {
+       fprintf(stderr, "<gdgxpndaxes> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
   
   if (!Grille[gdrow_id][gdcol_id].flags & AX)
     {

@@ -68,7 +68,7 @@
 !
 !       rdtodg = 180/pie, dgtord = pie/180
 !
-#include "pi.cdk90"
+#include "pi.cdk"
 
    real xg1, xg2, xg3, xg4, dgrw
    character*1 gtypout

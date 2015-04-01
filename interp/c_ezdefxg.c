@@ -97,7 +97,7 @@ wordint c_ezdefxg(wordint gdid)
       
     case 'E':
       f77name(cigaxg)(&gr->grtyp,&gr->xg[XLAT1],&gr->xg[XLON1],&gr->xg[XLAT2],&gr->xg[XLON2],
-		      &gr->ig[IG1],&gr->ig[IG2],&gr->ig[IG3],&gr->ig[IG4]);
+		      &gr->ig[IG1],&gr->ig[IG2],&gr->ig[IG3],&gr->ig[IG4],1);
       gr->xg[DLAT] = 180./gr->nj;
       gr->xg[DLON] = 360./(gr->ni-1);
       gr->xg[SWLON] = 0.0;
@@ -113,24 +113,24 @@ wordint c_ezdefxg(wordint gdid)
 
     case 'L':
       f77name(cigaxg)(&gr->grtyp,&gr->xg[SWLAT], &gr->xg[SWLON], &gr->xg[DLAT], &gr->xg[DLON],
-		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4]);
+		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4],1);
       break;
 
     case 'N':
       f77name(cigaxg)(&gr->grtyp,&gr->xg[PI], &gr->xg[PJ], &gr->xg[D60], &gr->xg[DGRW],
-		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4]);
+		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4],1);
       gr->hemisphere = 1;
       break;
 
     case 'S':
       f77name(cigaxg)(&gr->grtyp,&gr->xg[PI], &gr->xg[PJ], &gr->xg[D60], &gr->xg[DGRW],
-		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4]);
+		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4],1);
       gr->hemisphere = 2;
       break;
       
     case 'T':
       f77name(cigaxg)(&gr->grtyp,&gr->xg[TD60], &gr->xg[TDGRW], &gr->xg[CLAT], &gr->xg[CLON],
-		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4]);
+		      &gr->ig[IG1], &gr->ig[IG2], &gr->ig[IG3], &gr->ig[IG4],1);
       break;
       
     case 'X':

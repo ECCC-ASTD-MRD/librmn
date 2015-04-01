@@ -40,6 +40,7 @@ unsigned int ez_calc_crc(int *p, int *flen,  float *ax, float *ay, int ni, int n
       {
       for (i = 0; i < ni; i++, p2++)
          {
+         /* if (i<10){ printf("ez_calc_crc on ax[%d]=%u\n",i,*p2); } */
          hold ^= *p2;
          }
       }

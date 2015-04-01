@@ -15,10 +15,13 @@ CFLAGS =
 OPTIMIZ = -O 0
 #OPTIMIZ = -O 0 -debug
 
+LIBRMN = rmn_013
+TEMPLIB = ../$(EC_ARCH)/lib/libezinterpv.a
+
 default: test
 
 .ftn90.o:
-	r.compile -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" \
+	r.compile -includes ../$(EC_ARCH)/include -arch $(ARCH) -abi $(ABI) $(OPTIMIZ) -opt "=$(FFLAGS)" \
 	-src $<
 
 .cdk90.o:
@@ -55,16 +58,16 @@ testWithInterpv: copyHlocal TestVI.o removeH
 	cp ../*.o .
 	cp ../../interpv/*.o .
 	r.build -o TestVInterp_$(BASE_ARCH).Abs -obj $(INTERPV_OBJECTS) $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_012
+	-abi$(ABI) -librmn $(LIBRMN)
 
 test:	copyHlocal TestVI.o removeH
 	cp ../*.o .
 	r.build -o TestVInterp_$(BASE_ARCH).Abs -obj $(TEST_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_012
+	-abi$(ABI) -librmn $(LIBRMN)
 
-testlib:TestVI.o
-	r.build -libpath /users/dor/armn/rmt/data/public/vgrid_descriptors/1.0.9/${EC_ARCH} -libappl descrip -o TestVInterp_$(BASE_ARCH).Abs -obj TestVI.o -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_012
+testlib: TestVI.o
+	r.build -includes ../$(EC_ARCH)/include -libpath . ../$(EC_ARCH)/lib -libappl ezinterpv descrip -o TestVInterp_$(BASE_ARCH).Abs -obj TestVI.o -arch $(ARCH) \
+	-abi$(ABI) -librmn $(LIBRMN)
 
 copielocale:
 	cp ../*.o . 
@@ -72,7 +75,7 @@ copielocale:
 
 SpeedConvert: copielocale SpeedConvertP.o
 	r.build -o SpeedConvertP_$(BASE_ARCH).Abs -obj $(SPEED_OBJECTS) -arch $(ARCH) \
-	-abi$(ABI) -librmn rmn_012
+	-abi$(ABI) -librmn $(LIBRMN)
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 

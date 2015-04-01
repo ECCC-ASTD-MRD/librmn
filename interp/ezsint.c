@@ -30,8 +30,44 @@ wordint f77name(ezsint)(ftnfloat *zout, ftnfloat *zin)
    icode = c_ezsint(zout, zin);
    return icode;
 }
-
 wordint c_ezsint(ftnfloat *zout, ftnfloat *zin)
+{
+  wordint icode,gdin,gdout;
+  wordint gdrow_in,gdcol_in, gdrow_out,gdcol_out;
+   
+  if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED)
+    {
+    fprintf(stderr,"<c_ezsint> Source or target grid undefined! Aborting...\n");
+    return -1;
+    }
+  
+  
+  gdin = iset_gdin;
+  gdout= iset_gdout;
+  
+  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+   
+  if (iset_gdin == iset_gdout)
+    {
+    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+    return 1;
+    }
+
+
+  if (Grille[gdrow_in][gdcol_in].nsubgrids > 0 || Grille[gdrow_out][gdcol_out].nsubgrids > 0)
+      {
+/* get the subgrids and interpolate accordingly */
+      icode = c_ezyysint(zout,zin,gdout,gdin);
+      iset_gdin=gdin;
+      iset_gdout=gdout;
+      return icode;
+      }
+  icode = c_ezsint_orig(zout, zin);
+  return icode;
+}
+
+wordint c_ezsint_orig(ftnfloat *zout, ftnfloat *zin)
 {
   wordint gdin, gdout;
   wordint ier;
@@ -42,9 +78,9 @@ wordint c_ezsint(ftnfloat *zout, ftnfloat *zin)
   lzin  = NULL;
   lxzin = NULL;
   
-  if (iset_gdin == UNDEFINED && iset_gdout == UNDEFINED)
+  if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED)
     {
-    fprintf(stderr,"<c_ezsint> Source and target grid undefined! Aborting...\n");
+    fprintf(stderr,"<c_ezsint_orig> Source or target grid undefined! Aborting...\n");
     return -1;
     }
   

@@ -21,7 +21,7 @@
 
       subroutine ez_ll2igd(px,py,xlat,xlon,npts,ni,nj,grtyp,grref,      ig1,ig2,ig3,ig4,ax,ay,coordflag)
       implicit none
-#include "qqqpar.cdk90"
+#include "qqqpar.cdk"
 
       integer coordflag
 

@@ -82,8 +82,11 @@ N_VidefsetIfc_X() need not be repeated.
 <P CLASS="text"><B>USE OF THE SOFTWARE:</B> 
 </P>
 <P CLASS="text">1. While it is not mandatory, your life will be
-easier if your code 'include's two files (r.compile will find
-them):<BR>#include &lt; ViConstants_f90.h &gt;, which defines some
+easier if your code 'include's two files (As of library rmn_013, 
+they will be found in
+/data/ssm/rpn/libraries/ezinterpv/*/include.
+Previously, r.compile would find them):
+<BR>#include &lt; ViConstants_f90.h &gt;, which defines some
 handy constants<BR>#include &lt; VertInterp_f90.h &gt;, which
 declares the functions and defines their interfaces<BR>2. Define the
 vertical grid (co-ordinates) of the input data. Use N_ViqkdefIfc_X,
@@ -94,7 +97,12 @@ including some physical parameters on that grid. Use N_VidefsetIfc_X
 and the indices returned in steps 2 and 3. <BR>5. Tell the
 interpolator which interpolation algorithm you want to use. Use
 N_VisetoptIfc. <BR>6. To perform the interpolation, use
-N_VisintIfc_X. 
+N_VisintIfc_X. <BR>7. If you need the *.mod files for compiling,
+they will be found in /data/ssm/rpn/libraries/ezinterpv/*/include
+<BR>8. As of library rmn_013, you will need to link with the library,
+/data/ssm/rpn/libraries/ezinterpv/*/lib/libezinterpv.a.  That means,
+in the call to r.build, use "-libpath /data/ssm/rpn/libraries/ezinterpv/
+&ltchoose your revision&gt/lib" and "-libappl ezinterpv".
 </P>
 <P CLASS="text"><B>CAVEATS:</B></P>
 <P CLASS="text">- The grid that contains the known observable values

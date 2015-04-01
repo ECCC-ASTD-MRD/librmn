@@ -36,6 +36,11 @@ wordint c_gdxpncf(wordint gdin, wordint *i1, wordint *i2, wordint *j1, wordint *
     
   if (gdin < 0 || gdin >= nGrilles) return -1;
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+   if (Grille[gdrow_in][gdcol_in].nsubgrids > 0)
+      {
+       fprintf(stderr, "<gdxpncf> This operation is not supported for 'U' grids.\n");
+       return -1;
+      }
   
   *i1 = Grille[gdrow_in][gdcol_in].i1;
   *i2 = Grille[gdrow_in][gdcol_in].i2;

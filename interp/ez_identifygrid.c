@@ -129,9 +129,14 @@ ftnfloat *ay)
 
   memset((void *)&newgr, (int)0, sizeof(_Grille));
   newgr.grtyp[0] = grtyp[0];
+  newgr.grtyp[1] = '\0';
   newgr.grref[0] = grref[0];
+  newgr.grref[1] = '\0';
   newgr.ni = ni;
   newgr.nj = nj;
+  newgr.fst.ip1      = 0;
+  newgr.fst.ip2      = 0;
+  newgr.fst.ip3      = 0;
   newgr.fst.igref[IG1] = ig1;
   newgr.fst.igref[IG2] = ig2;
   newgr.fst.igref[IG3] = ig3;
@@ -140,23 +145,52 @@ ftnfloat *ay)
   newgr.fst.ig[IG2] = ig2;
   newgr.fst.ig[IG3] = ig3;
   newgr.fst.ig[IG4] = ig4;
-  newgr.ax = ax;
-  newgr.ay = ay;
+  newgr.fst.xg[IG1]  = 0.0;
+  newgr.fst.xg[IG2]  = 0.0;
+  newgr.fst.xg[IG3]  = 0.0;
+  newgr.fst.xg[IG4]  = 0.0;
+  /* newgr.ax = ax;
+  newgr.ay = ay; */
+  newgr.nsubgrids=0;
+  strcpy(newgr.fst.nomvarx, "    ");
+  strcpy(newgr.fst.nomvary, "    ");
+  strcpy(newgr.fst.etiketx, "            ");
+  strcpy(newgr.fst.etikety, "            ");
+  strcpy(newgr.fst.typvarx, "  ");
+  strcpy(newgr.fst.typvary, "  ");
+  newgr.fst.deet    = 0;
+  newgr.fst.npas    = 0;
+  newgr.fst.nbits   = 0;
+  newgr.fst.date    = 0;
+  newgr.i1=1;
+  newgr.i2=ni;
+  newgr.j1=1;
+  newgr.j2=nj;
+  newgr.idx_last_gdin = -1;
 
   newgrsize = sizeof(_Grille);
   switch(typeGrille)
      {
      case '#':
      grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, &(ax[ig3-1]), &(ay[ig4-1]), ni, nj);
+     newgr.ax = ax;
+     newgr.ay = ay; 
      break;
 
      case 'Y':
      npts = ni*nj;
      grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, npts, npts);
+     newgr.ax = ax;
+     newgr.ay = ay; 
      break;
 
      case 'Z':
+     f77name(cigaxg)(&(newgr.grref),
+ &newgr.fst.xgref[XLAT1], &newgr.fst.xgref[XLON1], &newgr.fst.xgref[XLAT2], &newgr.fst.xgref[XLON2],
+       &newgr.fst.igref[IG1],   &newgr.fst.igref[IG2],   &newgr.fst.igref[IG3],   &newgr.fst.igref[IG4],1);
      grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, ni, nj);
+     newgr.ax = ax;
+     newgr.ay = ay; 
      break;
 
      case 'G':

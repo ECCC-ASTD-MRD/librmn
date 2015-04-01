@@ -43,7 +43,7 @@ FTNDECKS= \
          mrfcls.ftn       mrfdel.ftn       mrfgoc.ftn       mrfgor.ftn \
          mrfloc.ftn       mrfmxl.ftn       mrfnbr.ftn       mrfopc.ftn \
          mrfopn.ftn       mrfopr.ftn       mrfprm.ftn       mrfvoi.ftn \
-         qbrptri.ftn       qrbnbdt.ftn       qrbsct.ftn
+         qbrptri.ftn       qrbnbdt.ftn       qrbsct.ftn     mrfbfl.ftn
 
 FDECKS= \
          bufrchr.f       mrbcol.f       mrbcov.f       mrbcvt.f \
@@ -52,7 +52,7 @@ FDECKS= \
          mrfcls.f       mrfdel.f       mrfgoc.f       mrfgor.f \
          mrfloc.f       mrfmxl.f       mrfnbr.f       mrfopc.f \
          mrfopn.f       mrfopr.f       mrfprm.f       mrfvoi.f \
-         qbrptri.f       qrbnbdt.f       qrbsct.f
+         qbrptri.f       qrbnbdt.f       qrbsct.f     mrfbfl.f
 
 OBJECTS= \
          bufrchr.o       mrbcol.o       mrbcov.o       mrbcvt.o \
@@ -61,7 +61,7 @@ OBJECTS= \
          mrfcls.o       mrfdel.o       mrfgoc.o       mrfgor.o \
          mrfloc.o       mrfmxl.o       mrfnbr.o       mrfopc.o \
          mrfopn.o       mrfopr.o       mrfprm.o       mrfvoi.o \
-         qbrptri.o       qrbnbdt.o       qrbsct.o
+         qbrptri.o       qrbnbdt.o       qrbsct.o     mrfbfl.o
 
 
 COMDECKS= \
@@ -95,6 +95,7 @@ mrfgor.f: mrfgor.ftn 	burpopt.cdk 	codes.cdk 	defi.cdk
 mrfloc.f: mrfloc.ftn 	burpopt.cdk 	codes.cdk 	defi.cdk \
 	enforc8.cdk 
 mrfmxl.f: mrfmxl.ftn 	defi.cdk
+mrfbfl.f: mrfbfl.ftn
 mrfnbr.f: mrfnbr.ftn 	defi.cdk 
 mrfopc.f: mrfopc.ftn 	burpopt.cdk 	codes.cdk 	defi.cdk 
 mrfopn.f: mrfopn.ftn 	bpl.cdk 	burpopt.cdk 	codes.cdk \

@@ -27,7 +27,7 @@
 !flag = .true.  mode set
 !flag = .false. mode get
 
-#include "ez_qqqxtrp0.cdk90"
+#include "ez_qqqxtrp0.cdk"
 
       character*3 localop,localval
 
@@ -106,7 +106,7 @@
 !     flag = .true.  mode set
 !     flag = .false. mode get
       
-#include "ez_qqqxtrp0.cdk90"
+#include "ez_qqqxtrp0.cdk"
       
       data codxtrap / oui /
       data flgxtrap / .false. /
@@ -174,7 +174,7 @@
 !     flag = .false. mode get
       
       
-#include "ez_qqqxtrp0.cdk90"
+#include "ez_qqqxtrp0.cdk"
       
       character*3 localop
       

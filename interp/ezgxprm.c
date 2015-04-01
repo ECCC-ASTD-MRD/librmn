@@ -31,20 +31,29 @@ wordint f77name(ezgxprm)(wordint *gdid, wordint *ni, wordint *nj, char *grtyp,
 {
    wordint icode;
    int i;
-   
+   char lgrtyp[2],lgrref[2];
+
+/*   
+   NO GOOD
    ftnstrclean(grtyp,lengrtyp);
    ftnstrclean(grref,lengrref);
-   icode = c_ezgxprm(*gdid, ni, nj, grtyp, ig1, ig2, ig3, ig4, 
-                     grref, ig1ref, ig2ref, ig3ref, ig4ref);
-   for (i=1; i < lengrtyp; i++)
-      {
-      grtyp[i] = ' ';
-      grref[i] = ' ';
-      }
-   grtyp[lengrtyp] = '\0';
-   grref[lengrref] = '\0';
+   grtyp[0] = 'U';
+   grref[0] = 'U';
+   printf("lengrtyp=%d\n",lengrtyp);
+   printf("lengrref=%d\n",lengrref);
+   icode = 0;
+*/
 
-   return icode;
+   lgrtyp[0] = ' ';
+   lgrref[0] = ' ';
+   lgrtyp[1] = '\0';
+   lgrref[1] = '\0';
+   icode = c_ezgxprm(*gdid, ni, nj, lgrtyp, ig1, ig2, ig3, ig4, 
+                     lgrref, ig1ref, ig2ref, ig3ref, ig4ref);
+  grtyp[0] = lgrtyp[0];
+  grref[0] = lgrref[0];
+
+  return icode;
 }
 
 wordint c_ezgxprm(wordint gdid, wordint *ni, wordint *nj, 
@@ -58,7 +67,10 @@ wordint c_ezgxprm(wordint gdid, wordint *ni, wordint *nj,
    *ni     = Grille[gdrow_id][gdcol_id].ni;
    *nj     = Grille[gdrow_id][gdcol_id].nj;
    grtyp[0]  = Grille[gdrow_id][gdcol_id].grtyp[0];
+   grtyp[1]  = '\0';
    grref[0]  = Grille[gdrow_id][gdcol_id].grref[0];
+   grref[1]  = '\0';
+  
    *ig1    = Grille[gdrow_id][gdcol_id].fst.ig[IG1];
    *ig2    = Grille[gdrow_id][gdcol_id].fst.ig[IG2];
    *ig3    = Grille[gdrow_id][gdcol_id].fst.ig[IG3];

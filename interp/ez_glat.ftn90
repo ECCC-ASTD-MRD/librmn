@@ -28,8 +28,8 @@
 
       integer nj, hem,ier
 
-#include "qqqpar.cdk90"
-#include "pi.cdk90"
+#include "qqqpar.cdk"
+#include "pi.cdk"
       
       external dgauss
       real latroots(*), groots(*)

@@ -79,7 +79,7 @@ wordint c_ezgdef_fmem(wordint ni, wordint nj, char *grtyp, char *grref,
     printf("Grille[%02d].igref[IG2]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG2]);
     printf("Grille[%02d].igref[IG3]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG3]);
     printf("Grille[%02d].igref[IG4]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
-    }
+      }   
 
   return gdid;
 }
