@@ -1,15 +1,9 @@
 
-. r.ssmuse.dot profile
-. r.ssmuse.dot pgi9xx
-. r.ssmuse.dot rmnlib-dev 
-. s.ssmuse.dot devtools
-
-. r.ssmuse.dot profile
-. r.ssmuse.dot Xlf13 
-. r.ssmuse.dot rmnlib-dev 
-. s.ssmuse.dot devtools
-
-. ssmuse-sh -d hpcs/13b/03/base -d hpcs/13b/03/intel1302
+ . ssmuse-sh -d hpcs/201402/01/base -d hpcs/ext/xlf_13.1.0.10
+. ssmuse-sh -d hpcs/201402/01/base -d hpcs/201402/01/intel13sp1u2
+. s.ssmuse.dot /ssm/net/rpn/libs/15.0 /ssm/net/rpn/utils/15.0
+. s.ssmuse.dot /ssm/net/cmdn/vgrid/5.0.3/intel13sp1u2
+. s.ssmuse.dot /ssm/net/hpcs/exp/aspgjdm/perftools
 
 make obj
 mv *.o /users/dor/armn/viv/cnfs/UGRIDTEST

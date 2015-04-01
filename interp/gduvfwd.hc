@@ -35,61 +35,14 @@ wordint f77name(gduvfwd)(wordint *gdid, ftnfloat *uugdout, ftnfloat *vvgdout,
 wordint c_gduvfwd(wordint gdid,  ftnfloat *uugdout, ftnfloat *vvgdout, ftnfloat *uullin, ftnfloat *vvllin,
               ftnfloat *latin, ftnfloat *lonin, wordint npts)
   {
-  wordint j, icode, yin_gdid, yan_gdid,maxni,maxnj ;
-  ftnfloat *xyin, *xyan, *yyin, *yyan, *uu_gdout,*vv_gdout;
+  wordint j, icode;
   wordint gdrow_id, gdcol_id;
-  wordint yin_gdrow_id, yin_gdcol_id;
-  wordint yan_gdrow_id, yan_gdcol_id;
   
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
     {
-      yin_gdid=Grille[gdrow_id][gdcol_id].subgrid[0];
-      yan_gdid=Grille[gdrow_id][gdcol_id].subgrid[1];
-      c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
-      c_gdkey2rowcol(yan_gdid,  &yan_gdrow_id,  &yan_gdcol_id);
-      maxni= Grille[yin_gdrow_id][yin_gdcol_id].ni;
-      maxnj= Grille[yin_gdrow_id][yin_gdcol_id].nj;
-      xyin = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      xyan = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      yyin = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      yyan = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      uu_gdout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      vv_gdout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-      icode = c_gdxyfll_orig(yin_gdid,xyin,yyin,latin,lonin,npts);
-      icode = c_gdxyfll_orig(yan_gdid,xyan,yyan,latin,lonin,npts);
-      for (j=0; j < npts; j++)
-        {
-        if (xyin[j] > maxni || xyin[j] < 0 || yyin[j] > maxnj || yyin[j] < 0)
-         {
-         /* point is no good, take from YAN eventhough it may not be good*/
-         icode=c_gduvfwd_orig(yan_gdid,&uu_gdout[j],&vv_gdout[j],
-             &uullin[j], &vvllin[j], &latin[j],&lonin[j],1);
-         }
-        else
-         {
-          /* check if it is inside core of YAN */
-          if (xyan[j] >= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridi0 &&
-              xyan[j] <= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridi1 &&
-              yyan[j] >= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridj0 &&
-              yyan[j] <= Grille[yan_gdrow_id][yan_gdcol_id].mymaskgridj1)
-              {
-              icode=c_gduvfwd_orig(yan_gdid,&uu_gdout[j],&vv_gdout[j],
-             &uullin[j], &vvllin[j], &latin[j],&lonin[j],1);
-              }
-          else
-              /* take from YIN */
-              {
-              icode=c_gduvfwd_orig(yin_gdid,&uu_gdout[j],&vv_gdout[j],
-                                 &uullin[j], &vvllin[j], &latin[j],&lonin[j],1);
-              }
-         }
-         uugdout[j]=uu_gdout[j];
-         vvgdout[j]=vv_gdout[j];
-/*      printf("gduvfwd %d lat %f lon %f : xyin %f, yyin %f xyan %f yyan %f uugdout %f vvgdout %f uullin %f vvllin %f\n",j,latin[j],lonin[j],xyin[j],yyin[j],xyan[j],yyan[j],uugdout[j],vvgdout[j],uullin[j],vvllin[j]); */
-        }
-      free(xyin);free(xyan);free(yyin);free(yyan);free(uu_gdout); free(vv_gdout);
-     return icode;
+     fprintf(stderr, "<gduvfwd>: This operation is not supported for 'U' grids\n");
+     return -1;
     }
   else
     {

@@ -39,14 +39,22 @@ wordint c_gdllvval(wordint gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
    wordint ier,gdrow_id,gdcol_id;
    
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
+    {
+     fprintf(stderr, "<gdllvval>: This operation is not supported for 'U' grids\n");
+     return -1;
+    }
+  else
+    {
 
-   x = (ftnfloat *) malloc(n * sizeof(float));
-   y = (ftnfloat *) malloc(n * sizeof(float));
+     x = (ftnfloat *) malloc(n * sizeof(float));
+     y = (ftnfloat *) malloc(n * sizeof(float));
    
-   ier = c_gdxyfll(gdid, x, y, lat, lon, n);
-   ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
+     ier = c_gdxyfll(gdid, x, y, lat, lon, n);
+     ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
    
-   free(x);
-   free(y);
-   return 0;
+     free(x);
+     free(y);
+     return 0;
+    }
 }

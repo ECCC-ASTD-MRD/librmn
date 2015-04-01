@@ -783,7 +783,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     * since 1,2,3,4 without header all needs it  *
     *                                            *
     *********************************************/
-   positiveMask = ( opCode < 3 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
+   positiveMask = ( opCode < 7 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
 
 
    /***********************************************
@@ -1024,7 +1024,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     * since 1,2,3,4 without header all needs it  *
     *                                            *
     *********************************************/
-   positiveMask = ( opCode < 3 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
+   positiveMask = ( opCode < 11 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
 
 
    /***********************************************

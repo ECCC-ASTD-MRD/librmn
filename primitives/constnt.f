@@ -25,6 +25,10 @@
       INTEGER FLAG,MODE0
       CHARACTER *(*) NOM
       INTEGER IERROR
+      IF (MODE0 .EQ. 4) THEN
+        PRINT *,'ERROR: CONSTNT CALLED WITH MODE0=4 NOT ALLOWED'
+        RETURN
+      ENDIF
       CALL CONSTNT_X(VALEUR,FLAG,NOM,MODE0,
      %               -1,-1,-1,-1,IERROR)
       RETURN
@@ -107,7 +111,7 @@
 *-------------------------------------------------------------------
       real *8 valeur8
       pointer (pv8,valeur8)
-      INTEGER I, NCNS, IER, IUNREAD, istrt(2), iend(2),COUNT
+      INTEGER I, NCNS, IER, IUNREAD, istrt(2), iend(2),COUNT,dsize
       LOGICAL FEXIST
 * 
       REAL*8 VAL(MAXCNS)
@@ -121,9 +125,9 @@
       MODE=mod(mode0,100)
       pv8=loc(valeur)
       IF(MODE .EQ. 4) THEN
-        COUNT = ( loc(iend(1)) - loc(istrt(1)) ) /
-     %          ( loc(istrt(2)) - loc(istrt(1)) )
-        CALL MPI_BCAST(istrt,COUNT,DATATYPE,ROOT,COMM,IERROR)
+        dsize = ( loc(istrt(2)) - loc(istrt(1)) )        ! taille d'un "integer"
+        COUNT = ( loc(iend(1)) - loc(istrt(1)) ) / dsize ! nombre d' "integers" dans /CONSTNT_PDATA/
+        CALL MPI_BCAST(istrt,COUNT,dsize,ROOT,COMM,IERROR)
         RETURN
       ENDIF
       IF(NAME(1).EQ.' ')THEN

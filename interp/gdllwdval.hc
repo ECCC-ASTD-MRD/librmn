@@ -54,9 +54,9 @@ wordint c_gdllwdval(wordint gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uu
       ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
       yin_gdid=Grille[gdrow_id][gdcol_id].subgrid[0];
       yan_gdid=Grille[gdrow_id][gdcol_id].subgrid[1];
-      c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
       ier = c_gdwdfuv_orig(yin_gdid,uuyin,vvyin,uuout,vvout,lat,lon,n);
       ier = c_gdwdfuv_orig(yan_gdid,uuyan,vvyan,uuout,vvout,lat,lon,n);
+      c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
       for (j=0; j< n; j++)
         {
           if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)

@@ -127,8 +127,6 @@ static char *little_endian=(char *)&endian_int;
 static char *AFSISIO=NULL;
 static char *ARMNLIB=NULL;
 static char *LOCALDIR="./";
-static char *usrlocalenv="/usr/local/env/armnlib";
-static char *armnlibpath=NULL;
 
 /****************************************************************************
 *                   C _ F R E T O U R ,   F R E T O U R                     *
@@ -321,8 +319,6 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
           printf("Debug junk associe a /dev/null\n"); */
 #endif
      ARMNLIB=getenv("ARMNLIB");
-     armnlibpath=ARMNLIB;
-     if (armnlibpath == NULL) armnlibpath = usrlocalenv;
      if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
      AFSISIO=getenv("AFSISIO");
      if( AFSISIO == NULL ) AFSISIO = LOCALDIR;
@@ -376,7 +372,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
     }
   }
   if (liun == 6) {
-    close(1);
+    fclose(stdout);
     if (minus && majus)
       freopen(nom,"a",stdout);
     else
@@ -386,7 +382,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
     return(0);
   }
   else if (liun == -2) {
-    close(2);
+    fclose(stderr);
     if (minus && majus)
       freopen(nom,"a",stderr);
     else
@@ -2822,6 +2818,7 @@ int fnom_rem_connect(int ind, char* remote_host)
 	  FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
   printf("Debug+ commande passee =\n%s\n",remote_command);
   ier = system(remote_command);
+/*  printf("Debug+ ier de remote_command =%d\n",ier); */
 /*  
   if(comm == NULL) {
     printf("fnom_rem_connect error: popen error !!\n");
@@ -2843,6 +2840,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   tv.tv_usec = 0;
   isel = select(fserver+1, &rfds, NULL, NULL, &tv);
   /* if (select(fserver+1, &rfds, NULL, NULL, &tv)) */
+/*  printf("Debug+ retour de select=%d\n",isel); */
   if (isel)
   {
     fclient = accept_from_sock(fserver);
