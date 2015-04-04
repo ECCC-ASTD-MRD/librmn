@@ -122,7 +122,7 @@ static void build_gen_prim_keys(word *buf, word *keys, word *mask,
                                 word *mskkeys, int index, int mode);
 static void build_gen_info_keys(word *buf, word *keys, int index,
                                 int mode);
-int c_fst_match_req(int set_nb, int handle);
+int C_fst_match_req(int set_nb, int handle);
 #include "proto.h"
 
 /*splitpoint add_dir_page */
@@ -527,7 +527,10 @@ int c_qdfdiag(int iun)
 
    if (! wasopen) c_waclos(iun);
    free(fh);
-   return(0);
+   if (! thesame)
+     return(ERR_DAMAGED);
+   else 
+     return(0);
 }
 
 /*splitpoint c_qdfmsig */
@@ -1912,7 +1915,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
     if (f->cur_info->attr.std) {
       f->build_primary = (fn_b_p *) build_fstd_prim_keys;
       f->build_info = (fn_ptr *) build_fstd_info_keys;
-      f->file_filter = (fn_ptr *) c_fst_match_req;
+      f->file_filter = (fn_ptr *) C_fst_match_req;
     }
     else {
     f->build_primary = (fn_b_p *) build_gen_prim_keys;
