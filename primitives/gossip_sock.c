@@ -1,5 +1,5 @@
 /* RMNLIB - Library of useful routines for C and FORTRAN programming
- * Copyright (C) 1975-2000  Division de Recherche en Prevision Numerique
+ * Copyright (C) 1975-2014  Division de Recherche en Prevision Numerique
  *                          Environnement Canada
  *
  * This library is free software; you can redistribute it and/or
@@ -1174,7 +1174,7 @@ int connect_to_channel_by_name_2(char *name, char * msg)  /*   %ENTRY%   */
      	 fprintf(stderr,"md5_ssh FAILED\n");
      	 return(-1);
        }
-     fprintf(stderr,"SSH Digest: %x\n", buffer);
+     fprintf(stderr,"SSH Digest: %p\n", buffer);
 
      snprintf(buf, 1023, "%s %d %d %u:%s:%s", "LOGIN", getuid(), getpid(), Bauth_token, host_name, msg);
      
@@ -1966,7 +1966,7 @@ int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
     fprintf(stderr, "Can't rename data file\n");
 
 #ifdef DEBUG      
-  fprintf(stderr, "Data file < %s > renamed succefully, return result = %d\n", nbuf ,c);
+  fprintf(stderr, "Data file < %s > renamed succefully\n", nbuf);
   fprintf(stderr, "gossip_sock::read_data_file(), number of bytes read i = %d\n", i);
 #endif
   
