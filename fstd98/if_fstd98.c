@@ -362,7 +362,7 @@ ftnword f77name(fstecr_h)(void *haft_w, ftnword *work, ftnword *f_npak,
                         ftnword *f_datyp, ftnword *f_rewrit,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
-int ninjnk;
+// int ninjnk;
 ftnword ier=0;
   xdf_short = 1;
   ier = f77name(fstecr)(haft_w,work,f_npak,f_iun,f_date,f_deet,f_npas,f_ni,f_nj,f_nk,f_ip1,f_ip2,f_ip3,
@@ -416,7 +416,7 @@ ftnword f77name(fstecr_b)(void *bytes, ftnword *work, ftnword *f_npak,
                         ftnword *f_datyp, ftnword *f_rewrit,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
-int ninjnk;
+//int ninjnk;
 ftnword ier=0;
   xdf_byte = 1;
   ier = f77name(fstecr)(bytes,work,f_npak,f_iun,f_date,f_deet,f_npas,f_ni,f_nj,f_nk,f_ip1,f_ip2,f_ip3,
@@ -684,11 +684,6 @@ ftnword f77name(fstinl)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
 
   ier = c_fstinl(iun,&ni,&nj,&nk,datev,etiket,ip1,ip2,ip3,typvar,nomvar,
                  (word *)liste,&infon,nmax);
-#if defined (NEC64)
-  plong = (INT_32 *) liste;
-  for (i=infon; i>=0; i--)
-    liste[i] = plong[i];
-#endif
   *f_ni = (ftnword) ni;
   *f_nj = (ftnword) nj;
   *f_nk = (ftnword) nk;
@@ -753,16 +748,8 @@ ftnword f77name(fstlic)(word *field, ftnword *f_iun,
   str_cp_init(nomvar,5,f_nomvar,l3);
   str_cp_init(grtyp,2,f_grtyp,l4);
 
-#if defined(NEC64)
-  xdf_double = 1;
   ier = c_fstlic(field,iun,ni,nj,nk,date,etiket,ip1,ip2,ip3,
                      typvar,nomvar,ig1,ig2,ig3,ig4,grtyp);
-  backto64(field,(word *) field,ni*nj*nk);
-  xdf_double = 0;
-#else
-  ier = c_fstlic(field,iun,ni,nj,nk,date,etiket,ip1,ip2,ip3,
-                     typvar,nomvar,ig1,ig2,ig3,ig4,grtyp);
-#endif
   return((ftnword) ier);
 }
 
@@ -1665,6 +1652,56 @@ ftnword f77name(ip3_val)(ftnfloat *f_level, ftnword *f_kind)
 }
 
 
+/*splitpoint fst_can_translate_name */
+static char exception_vars[256]="~^[<>!^]";  /* by default ignore names starting with >!^ */
+static int read_done=0;
+static regex_t pattern;
+
+int FstCanTranslateName(char *varname)  /* is this name NOT FOUND in do no translate table */
+{
+  FILE *fileref;
+  static char filename[256];
+  char *FST_NOIP_NAME, *BASENAME;
+  int result, i;
+  regmatch_t match_table;
+
+  if (! read_done) {  /* first call, get do not translate table */
+    read_done=1;
+    FST_NOIP_NAME=getenv("FST_NOIP_NAME");
+    ARMNLIB=getenv("ARMNLIB");
+    BASENAME=ARMNLIB;
+    if(FST_NOIP_NAME)  /* environment variable contains the table */
+    {
+      strncpy( exception_vars , FST_NOIP_NAME , sizeof(exception_vars) );
+      BASENAME=NULL;
+      if(exception_vars[0]=='|') BASENAME=exception_vars+1; /* FST_NOIP_NAME contains a file name */
+    }
+    if(BASENAME){ /* get table from $ARMNLIB/data/exception_vars file if it exists */
+      if(BASENAME==ARMNLIB)
+        snprintf(filename,sizeof(filename),"%s/data/exception_regex_var",ARMNLIB);
+      else
+        snprintf(filename,sizeof(filename),"%s",BASENAME);
+      if ((fileref = fopen(filename,"r")) != NULL) {
+        if(NULL == fgets(exception_vars,sizeof(exception_vars),fileref) ) exception_vars[0]='\0' ;
+        fprintf(stderr,"OPENING exception file: %s\n",filename);
+        fclose(fileref) ;
+      }
+    }
+    if(exception_vars[0]=='~') 
+    {
+      for (i=0 ; exception_vars[i]!='\0' && exception_vars[i]!='\n' ; i++) ; exception_vars[i]='\0';
+      result = regcomp(&pattern,exception_vars+1,REG_EXTENDED|REG_NOSUB);
+      fprintf(stderr,"exception pattern: '%s'\n",exception_vars+1);
+    }
+  }
+  if(exception_vars[0]=='~')  /* this is a regex pattern */
+  {
+    result = regexec(&pattern,varname,(size_t) 0,NULL,0)!=0;  /* name not in pattern, it can be translated */
+  }else{  /* this is a straight list of 4 char tokens */
+    result = strstr(exception_vars,varname)==NULL ; /* name not in list, it can be translated */
+  }
+  return result;
+}
 /*splitpoint print_std_parms */
 /***************************************************************************** 
  *                      P R I N T _ S T D _ P A R M S                        *
@@ -1690,21 +1727,20 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
 
   stdf_special_parms cracked;
   char cdt[9]={'X','R','I','C','S','E','F','A','Z'};
-  char cmsgp=' ';
-  int dat1,dat2,dat3,minus3=-3;
+  char cmsgp=' '; /* initialize for case where there are no missing value(s) in record */
+  int dat2,dat3,minus3=-3;
   int iip1,kind, mode=-1, flag=1;
   int ig1, ig2, ig3, ig4;
-  float level, xg1, xg2, xg3, xg4;
+  float level;
   char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
-  char h_dims[18], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
-  char v_dims[20], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
-  char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[14], h_deet[9], h_npas[9], h_dty[5]; 
-  char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[14], v_deet[9], v_npas[9], v_dty[5]; 
+  char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
+  char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
+  char h_decoded[39], v_decoded[39];
+  char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5]; 
+  char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5]; 
   int posc, posv;
   static char *ARMNLIB=NULL;                        /* ARMNLIB environment variable */
-  static int read_done=0;
   static char filename[256];
-  static char exception_vars[256]="^^  >>  !!  ";
   FILE *fileref;
   
   /* printf("Debug+ print_std_parms option=%s\n",option); */
@@ -1715,186 +1751,215 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
     if (strstr(option,"NONOMV"))
       h_nomv[0]='\0';
     else
-      sprintf(h_nomv,"%s","NOMV");
+      snprintf(h_nomv,sizeof(h_nomv),"%s","NOMV");
 
     if (strstr(option,"NOTYPV"))
       h_typv[0]='\0';
     else
-      sprintf(h_typv,"%s","TV");
+      snprintf(h_typv,sizeof(h_typv),"%s","TV");
 
     if (strstr(option,"NOETIQ"))
       h_etiq[0]='\0';
     else
-      sprintf(h_etiq,"%s","ETIQUETTE   ");
+      snprintf(h_etiq,sizeof(h_etiq),"%s","  ETIQUETTE ");
 
     if (strstr(option,"NINJNK"))
-      sprintf(h_dims,"%s","   NI    NJ    NK");
+      snprintf(h_dims,sizeof(h_dims),"%s","      NI      NJ    NK");
     else
       h_dims[0]='\0';
 
     if (strstr(option,"DATEO"))
-      /*      sprintf(h_dateo,"%s","YYYYMMDD HHMMSS"); */
-      sprintf(h_dateo,"%s","(DATE-O  h m s)");
+      /*      snprintf(h_dateo,"%s","YYYYMMDD HHMMSS"); */
+      snprintf(h_dateo,sizeof(h_dateo),"%s","(DATE-O  h m s)");
     else
       h_dateo[0]='\0';
 
     if (strstr(option,"DATESTAMPO"))
-      sprintf(h_stampo,"%s","  STAMP-O");
+      snprintf(h_stampo,sizeof(h_stampo),"%s","  STAMP-O");
     else
       h_stampo[0]='\0';
 
     if (strstr(option,"DATEV"))
-      /*      sprintf(h_datev,"%s","YYYYMMDD HHMMSS     DATEV"); */
-      sprintf(h_datev,"%s","(DATE-V  h m s)   STAMP-V");
+      /*      snprintf(h_datev,"%s","YYYYMMDD HHMMSS     DATEV"); */
+      snprintf(h_datev,sizeof(h_datev),"%s","(DATE-V  h m s)   STAMP-V");
     else
       h_datev[0]='\0';
 
     if (strstr(option,"LEVEL"))
-      sprintf(h_level,"%s","       LEVEL   ");
+      snprintf(h_level,sizeof(h_level),"%s","       LEVEL   ");
     else
       h_level[0]='\0';
+
+    if (strstr(option,"IPALL"))
+      snprintf(h_decoded,sizeof(h_decoded),"%s","          DECODED IP1/IP2/IP3         ");
+    else
+      h_decoded[0]='\0';
     
     if (strstr(option,"IP1"))
-      sprintf(h_ip1,"%s","      IP1");
+      snprintf(h_ip1,sizeof(h_ip1),"%s","      IP1");
     else
       h_ip1[0]='\0';
 
     if (strstr(option,"NOIP23"))
       h_ip23[0]='\0';
     else
-      sprintf(h_ip23,"%s","    IP2   IP3");
+      snprintf(h_ip23,sizeof(h_ip23),"%s","      IP2       IP3");
 
     if (strstr(option,"NODEET"))
       h_deet[0]='\0';
     else
-      sprintf(h_deet,"%s","    DEET");
+      snprintf(h_deet,sizeof(h_deet),"%s","    DEET");
 
     if (strstr(option,"NONPAS"))
       h_npas[0]='\0';
     else
-      sprintf(h_npas,"%s","    NPAS");
+      snprintf(h_npas,sizeof(h_npas),"%s","    NPAS");
 
     if (strstr(option,"NODTY"))
       h_dty[0]='\0';
     else
-      sprintf(h_dty,"%s","DTY ");
+      snprintf(h_dty,sizeof(h_dty),"%s","DTY ");
 
     if (strstr(option,"GRIDINFO"))
-      sprintf(h_grid,"%s","G    XG1    XG2     XG3     XG4");
+      snprintf(h_grid,sizeof(h_grid),"%s","G    XG1    XG2     XG3     XG4");
     else
       if (strstr(option,"IG1234"))
-        sprintf(h_grid,"%s","G   IG1   IG2   IG3   IG4");
+        snprintf(h_grid,sizeof(h_grid),"%s","G   IG1   IG2   IG3   IG4");
       else
         h_grid[0]='\0';
 
-    fprintf(stdout,"\n       %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n",h_nomv,h_typv,h_etiq,h_dims,h_dateo,h_stampo,h_datev,h_level,h_ip1,h_ip23,h_deet,h_npas,h_dty,h_grid);
+    fprintf(stdout,"\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n",h_nomv,h_typv,h_etiq,h_dims,h_dateo,h_stampo,h_datev,h_level,h_decoded,h_ip1,h_ip23,h_deet,h_npas,h_dty,h_grid);
     /*    fprintf(stdout,"\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n",h_dateo,h_stampo,h_datev,h_level,h_ip1,h_grid); */
   }
 
   if (strstr(option,"NONOMV"))
     v_nomv[0]='\0';
   else
-    sprintf(v_nomv,"%4s",cracked.nomvar);
+    snprintf(v_nomv,sizeof(v_nomv),"%4s",cracked.nomvar);
   
   if (strstr(option,"NOTYPV"))
     v_typv[0]='\0';
   else
-    sprintf(v_typv,"%2s",cracked.typvar);
-  
+    snprintf(v_typv,sizeof(v_typv),"%2s",cracked.typvar);
+
   if (strstr(option,"NOETIQ"))
     v_etiq[0]='\0';
   else
-    sprintf(v_etiq,"%12s",cracked.etiket);
+    snprintf(v_etiq,sizeof(v_etiq),"%12s",cracked.etiket);
 
   if (strstr(option,"NINJNK"))
-    sprintf(v_dims,"%5d %5d %5d",stdf_entry->ni,stdf_entry->nj,stdf_entry->nk);
+    snprintf(v_dims,sizeof(v_dims)," %7d %7d %5d",stdf_entry->ni,stdf_entry->nj,stdf_entry->nk);
   else
     v_dims[0]='\0';
 
   if (strstr(option,"DATEO")) {
     f77name(newdate)(&cracked.date_stamp,&dat2,&dat3,&minus3);
-    sprintf(v_dateo,"%08d %06d",dat2,dat3/100);
+    snprintf(v_dateo,sizeof(v_dateo),"%08d %06d",dat2,dat3/100);
   }
   else
     v_dateo[0]='\0';
 
   if (strstr(option,"DATESTAMPO"))
-    sprintf(v_stampo,"%09d",cracked.date_stamp);
+    snprintf(v_stampo,sizeof(v_stampo),"%09d",cracked.date_stamp);
   else
     v_stampo[0]='\0';
 
   if (strstr(option,"DATEV")) {
     f77name(newdate)(&cracked.date_valid,&dat2,&dat3,&minus3);
     if (cracked.date_valid < -1)
-      sprintf(v_datev,"%08d %06d %10d",dat2,dat3/100,cracked.date_valid);
+      snprintf(v_datev,sizeof(v_datev),"%08d %06d %10d",dat2,dat3/100,cracked.date_valid);
     else
-      sprintf(v_datev,"%08d %06d %09d",dat2,dat3/100,cracked.date_valid);
+      snprintf(v_datev,sizeof(v_datev),"%08d %06d %09d",dat2,dat3/100,cracked.date_valid);
   }
   else
     v_datev[0]='\0';
 
-  if (strstr(option,"LEVEL"))
+  v_level[0]='\0';
+  v_decoded[0]='\0';
+  if ( strstr(option,"LEVEL") || strstr(option,"IPALL") )
     {
+/*
       if (! read_done) {
         ARMNLIB=getenv("ARMNLIB");
         sprintf(filename,"%s/data/exception_vars",ARMNLIB);
-        if ((fileref = fopen(filename,"r")) != NULL)
-          fgets(exception_vars,256,fileref);
+        if ((fileref = fopen(filename,"r")) != NULL) {
+          if(NULL == fgets(exception_vars,sizeof(exception_vars),fileref) ) exception_vars[0]='\0' ;
+          fclose(fileref) ;
+        }
         read_done=1;
       }
+*/
       iip1 = stdf_entry->ip1;
-      if (strstr(exception_vars,cracked.nomvar)) {     /* special variable, no decoding */
-        sprintf(c_level,"%12d   ",iip1);
+//      if (strstr(exception_vars,cracked.nomvar)) {     /* special variable, no decoding */
+      if(! FstCanTranslateName(cracked.nomvar)) {
+        snprintf(c_level,sizeof(c_level),"%12d   ",iip1);
+        if (strstr(option,"LEVEL")) snprintf(v_level,sizeof(v_level),"%15s","     -----     ");
+//        if (strstr(option,"IPALL")) snprintf(v_decoded,sizeof(v_decoded),"%16s------%16s","","");
+        if (strstr(option,"IPALL")) snprintf(v_decoded,sizeof(v_decoded),"[%10d] [%10d] [%10d]",stdf_entry->ip1,stdf_entry->ip2,stdf_entry->ip3);
       }
-      else
-        f77name(convip)(&iip1,&level,&kind,&mode,c_level,&flag,(F2Cl) 15);
-      c_level[15] = '\0';
-      sprintf(v_level,"%s","               ");        /* blank initialisation */
-      posc=14;
-      posv=14;
-      while ((posc >= 0) && (isspace(c_level[posc])))  /* skip blanks and right justify string */
-        posc--;
-      if (isdigit(c_level[posc]))
-        posv -= 3;
-      while ((posv >=0) && (posc >=0)) {
-        v_level[posv] = c_level[posc];
-        posv--;
-        posc--;
-      }
-      /*      sprintf(v_level,"%#15s",c_level); */
+      else     /* not a special variable  */
+      {
+        if (strstr(option,"LEVEL")) /* good old level option */
+        {
+          f77name(convip)(&iip1,&level,&kind,&mode,c_level,&flag,(F2Cl) 15);
+          c_level[15] = '\0';
+          snprintf(v_level,sizeof(v_level),"%s","               ");        /* blank initialisation */
+          posc=14;
+          posv=14;
+          while ((posc >= 0) && (isspace(c_level[posc])))  /* skip blanks and right justify string */
+            posc--;
+          if (isdigit(c_level[posc]))
+            posv -= 3;
+          while ((posv >=0) && (posc >=0)) {
+            v_level[posv] = c_level[posc];
+            posv--;
+            posc--;
+          }
+        }
+        if (strstr(option,"IPALL")) /* full IP1/IP2/IP3 triplet decoding */
+        {
+          float p1,p2,p3;
+          int kind1,kind2,kind3, StatusIP;
+          StatusIP=ConvertIPtoPK(&p1,&kind1,&p2,&kind2,&p3,&kind3,stdf_entry->ip1,stdf_entry->ip2,stdf_entry->ip3);
+          if(kind1<0 || kind2<0 || kind3<0 || (StatusIP&CONVERT_ERROR) ) { /* decode error somewhere */
+            kind1 = 15; kind2 = 15 ; kind3 = 15;  /* integer code P=IP */
+            p1 = stdf_entry->ip1 ; p2 = stdf_entry->ip2 ; p3 = stdf_entry->ip3;
+          }
+          kind1 &= 0x1F ; kind2 &= 0x1F ; kind3 &= 0x1F ;   /* force modulo 32 */
+          snprintf(v_decoded,sizeof(v_decoded),"%10g%s %10g%s %10g%s",p1,kinds(kind1),p2,kinds(kind2),p3,kinds(kind3));
+        }
+      }     /* special variable, no decoding */
     }
-  else
-    v_level[0]='\0';
 
   if (strstr(option,"IP1"))
-    sprintf(v_ip1,"%9d",stdf_entry->ip1);
+    snprintf(v_ip1,sizeof(v_ip1),"%9d",stdf_entry->ip1);
   else
     v_ip1[0]='\0';
 
   if (strstr(option,"NOIP23"))
     v_ip23[0]='\0';
   else
-    sprintf(v_ip23,"%7d %5d",stdf_entry->ip2,stdf_entry->ip3);
-  
+    snprintf(v_ip23,sizeof(v_ip23),"%9d %9d",stdf_entry->ip2,stdf_entry->ip3);
+
   if (strstr(option,"NODEET"))
     v_deet[0]='\0';
   else
-    sprintf(v_deet,"%8d",stdf_entry->deet);
+    snprintf(v_deet,sizeof(v_deet),"%8d",stdf_entry->deet);
   
   if (strstr(option,"NONPAS"))
     v_npas[0]='\0';
   else
-    sprintf(v_npas,"%8d",stdf_entry->npas);
+    snprintf(v_npas,sizeof(v_npas),"%8d",stdf_entry->npas);
   
-  if(stdf_entry->datyp & 64)cmsgp='m';
+  if(stdf_entry->datyp & 64)cmsgp='m';  /* m will be added to data type if there are missing values in record */
   if (strstr(option,"NODTY"))
     v_dty[0]='\0';
   else 
-    if (stdf_entry->datyp > 128)
-      sprintf(v_dty,"%1c%1c%2d",tolower(cdt[stdf_entry->datyp&0x3F]),cmsgp,stdf_entry->nbits);  /* suppress bits for 64 and 128 */
+    if (stdf_entry->datyp > 128)  /* force lower case data type code if compressed */
+      snprintf(v_dty,sizeof(v_dty),"%1c%1c%2d",tolower(cdt[stdf_entry->datyp&0x3F]),cmsgp,stdf_entry->nbits);  /* suppress bits for 64 and 128 */
     else
-      sprintf(v_dty,"%1c%1c%2d",cdt[stdf_entry->datyp&0x3F],cmsgp,stdf_entry->nbits);  /* suppress bits for 64 and 128 */
-  
+      snprintf(v_dty,sizeof(v_dty),"%1c%1c%2d",cdt[stdf_entry->datyp&0x3F],cmsgp,stdf_entry->nbits);  /* suppress bits for 64 and 128 */
+
   if (strstr(option,"GRIDINFO")) {
     F2Cl lc1=1,lc2=7,lc3=7,lc4=8,lc5=8;
     ig1=stdf_entry->ig1; ig2=cracked.ig2;
@@ -1903,18 +1968,18 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
                    lc1,lc2,lc3,lc4,lc5);
             /*     1,7,7,8,8);       */
     pg1[6]='\0'; pg2[6]='\0'; pg3[7]='\0'; pg4[7]='\0';
-    sprintf(v_grid,"%1s %6s %6s %7s %7s",cracked.gtyp,pg1,pg2,pg3,pg4);
+    snprintf(v_grid,sizeof(v_grid),"%1s %6s %6s %7s %7s",cracked.gtyp,pg1,pg2,pg3,pg4);
   }
   else
     if (strstr(option,"IG1234"))
-      sprintf(v_grid,"%1s %5d %5d %5d %5d",cracked.gtyp,stdf_entry->ig1,cracked.ig2,stdf_entry->ig3,stdf_entry->ig4);
+      snprintf(v_grid,sizeof(v_grid),"%1s %5d %5d %5d %5d",cracked.gtyp,stdf_entry->ig1,cracked.ig2,stdf_entry->ig3,stdf_entry->ig4);
     else
       v_grid[0]='\0';
   
-  fprintf(stdout,"%s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
+  fprintf(stdout,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
           pre,v_nomv,v_typv,v_etiq,
           v_dims,v_dateo,v_stampo,v_datev,
-          v_level,v_ip1,v_ip23,
+          v_level,v_decoded,v_ip1,v_ip23,
           v_deet,v_npas,v_dty,
           v_grid);
 }

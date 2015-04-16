@@ -28,10 +28,13 @@
 #endif
 #include <stdlib.h>
 #include "qstdir.h"
+#include "convert_ip.h"
 #include "proto.h"
 #include <rmnlib.h>
 #include <string.h>
 #include <math.h>
+#include <sys/types.h>
+#include <regex.h>
 
 #define Max_Ipvals 50
 
@@ -58,6 +61,19 @@ static void crack_std_parms(stdf_dir_keys *stdf_entry,
 static void print_std_parms(stdf_dir_keys *stdf_entry,
                             char *pre, char *option,int header);
 
+static int kinds_table_init = 1;
+static char kind_chars[96];
+
+static char *kinds_table[] = 
+{ 
+  "??", "??", "??", "??", "??", "??", "??", "??",
+  "??", "??", "??", "??", "??", "??", "??", "??",
+  "??", "??", "??", "??", "??", "??", "??", "??",
+  "??", "??", "??", "??", "??", "??", "??", "??"
+} ;
+
+
+void KindToString(int kind, char *s1, char *s2);  /* fortran routine from comvertip_123 */
 int EncodeMissingValue(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double);
 void DecodeMissingValue(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
 
@@ -71,9 +87,56 @@ void DecodeMissingValue(void *field,int nvalues,int datatype,int is_byte,int is_
  *Authors                                                                    *
  *  M. Lepine - M. Valin                                                     *
  *  Revised version based on XDF internal file structure.                    *
+ *  Revised feb 2014, revisited ip translation and IP printing.              *
+ *        print_std_parms, ConvipPlus, kinds                                 *
  *                                                                           *
  *                                                                           *
  *****************************************************************************/
+
+/*****************************************************************************
+ *                        C O N V I P _ P L U S                              *
+ *                                                                           *
+ *Object                                                                     *
+ *   Interface to IP conversion package                   .                  *
+ *   ignore s and flag from old convip                    .                  *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN/OUT ip_new, kind, level, mode   (see ConvertIp)                       *
+ *                                                                           *
+ *****************************************************************************/
+
+static void ConvipPlus(int *ip_new,float *level, int *kind, int *mode)
+{
+  ConvertIp(ip_new,level,kind,*mode);  /* ignore s and flag that are not used anyway */
+}
+
+/*****************************************************************************
+ *                            K I N D S                                      *
+ *                                                                           *
+ *Object                                                                     *
+ *   translate kind code to 2 char string                   .                *
+ *   private function                                       .                *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  kind                                                                 *
+ *                                                                           *
+ *****************************************************************************/
+
+static char *kinds(int kind){
+static char *dummy="??";
+  int i;
+  if(kinds_table_init){       /* initialize table if first call */
+    for(i=0 ; i<=31 ; i++) {
+      KindToString(i,&kind_chars[3*i],&kind_chars[3*i+1]);
+      kind_chars[3*i+2] = '\0' ;
+    }
+    kinds_table_init=0;
+  }
+  return &kind_chars[3*kind];
+}
+
 
 
 /*splitpoint c_fstapp */
@@ -321,7 +384,7 @@ int c_fstecr(word *field_in, void * work, int npak,
   short *s_field;
   signed char *b_field;
   int ier,l1,l2,l3,l4;
-  int index, index_fnom, nbits, record, handle;
+  int index, index_fnom, nbits, handle;
   long long deltat;
   unsigned int datev;
   int p1out,p2out,header_size,stream_size;
@@ -333,7 +396,7 @@ int c_fstecr(word *field_in, void * work, int npak,
   int is_missing ; /*  missing value feature used flag */
   int in_datyp = in_datyp_ori & 0xFFBF ; /* suppress missing value flag (64) */
   int sizefactor ; /* number of bytes per data item */
-  int IEEE_64=0  ; /* flag 64 bit IEEE (type 5) */
+  int IEEE_64=0  ; /* flag 64 bit IEEE (type 5 or 8) */
   
   file_table_entry *f;
   stdf_dir_keys *stdf_entry;
@@ -351,6 +414,14 @@ int c_fstecr(word *field_in, void * work, int npak,
 
 
   is_missing = in_datyp_ori & 64 ; /* will be cancelled later if not supported or no missing values detected */
+  if ( (in_datyp&0xF) == 8) {
+    if(in_datyp_ori!=8) {
+      WARNPRINT fprintf(stderr,"WARNING: compression and/or missing values not supported, data type %d reset to %d (complex)\n",in_datyp_ori,8);
+    }
+    is_missing = 0;   /* missing values not supported for complex type */
+    in_datyp_ori = 8; /* extra compression not supported for complex type */
+    in_datyp = 8;
+  }
   
   l1 = strlen(in_typvar);
   l2 = strlen(in_nomvar);
@@ -415,8 +486,9 @@ int c_fstecr(word *field_in, void * work, int npak,
     minus_nbits = -32;
     }
 
-  if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) IEEE_64=1;  /* 64 bits IEEE */
-    
+    if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) IEEE_64=1;  /* 64 bits real IEEE */
+    if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) IEEE_64=1;  /* 64 bits complex IEEE */
+        
   /* validate range of arguments */
   VALID(ni,1,NI_MAX,"ni","c_fstecr")
   VALID(nj,1,NJ_MAX,"nj","c_fstecr")
@@ -511,7 +583,7 @@ int c_fstecr(word *field_in, void * work, int npak,
     
   nw = W64TOWD(nw);
   
-  keys_len = W64TOWD(f->primary_len + f->info_len);
+  keys_len = W64TOWD((f->primary_len + f->info_len));
   buffer = (buffer_interface_ptr) alloca((10+keys_len+nw+128)*sizeof(word));
   if (buffer) 
     memset(buffer,0,(10+keys_len+nw+128)*sizeof(word));
@@ -524,7 +596,7 @@ int c_fstecr(word *field_in, void * work, int npak,
   buffer->nbits = (keys_len + nw) * bitmot;
   buffer->record_index = RECADDR;
   buffer->data_index = buffer->record_index + 
-                       W64TOWD(f->primary_len + f->info_len);
+                       W64TOWD((f->primary_len + f->info_len));
   buffer->iun = iun;
   buffer->aux_index = buffer->record_index + W64TOWD(f->primary_len);
   buffer->data[buffer->aux_index] = 0;
@@ -626,10 +698,10 @@ int c_fstecr(word *field_in, void * work, int npak,
     if(is_missing){    /* put appropriate values into field after allocating it */
       field= (word *) alloca(ni*nj*nk*sizefactor); /* allocate self deallocating scratch field */
       if( 0 == EncodeMissingValue(field,field_in,ni*nj*nk,in_datyp,nbits,xdf_byte,xdf_short,xdf_double) ) {
-	field=field_in ;
-	INFOPRINT fprintf(stderr,"NO missing value, data type %d reset to %d\n",stdf_entry->datyp,datyp);
-	stdf_entry->datyp = datyp;  /* cancel missing data flag in data type */
-	is_missing = 0;
+        field=field_in ;
+        INFOPRINT fprintf(stderr,"NO missing value, data type %d reset to %d\n",stdf_entry->datyp,datyp);
+        stdf_entry->datyp = datyp;  /* cancel missing data flag in data type */
+        is_missing = 0;
       }
     }
     switch (datyp) {
@@ -677,7 +749,7 @@ int c_fstecr(word *field_in, void * work, int npak,
     case 2: case 130:              /* integer, short integer or byte stream */
       {
       int offset;
-      short *p16;
+//      short *p16;
       offset = (datyp > 128) ? 1 :0;
       if (datyp > 128) {
         if (xdf_short) {
@@ -755,6 +827,8 @@ int c_fstecr(word *field_in, void * work, int npak,
         datyp = 4;
       }
       stdf_entry->datyp = is_missing | 4;  /* turbo compression not supported for this type, revert to normal mode */
+#ifdef use_old_code
+fprintf(stderr,"OLD PACK CODE======================================\n");
       field3 = field;
       if(xdf_short || xdf_byte){
         field3=(word *)alloca(ni*nj*nk*sizeof(word));
@@ -764,6 +838,19 @@ int c_fstecr(word *field_in, void * work, int npak,
       }
       ier = compact_integer(field3,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
                             nbits,0,xdf_stride,3);
+#else
+fprintf(stderr,"NEW PACK CODE======================================\n");
+      if(xdf_short){
+        ier = compact_short(field,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
+                            nbits,0,xdf_stride,7);
+      } else if(xdf_byte){
+        ier = compact_char(field,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
+                            nbits,0,xdf_stride,11);
+      }else{
+        ier = compact_integer(field,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
+                            nbits,0,xdf_stride,3);
+      }
+#endif
       break;
       
     case 5: case 8: case 133:  case 136:            /* IEEE and IEEE complex representation */
@@ -1358,6 +1445,7 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
 
 /*splitpoint c_fstinl */
 /***************************************************************************** 
+ *                        C _ F S T I N L _ X                                *
  *                        C _ F S T I N L                                    *
  *                                                                           * 
  *Object                                                                     * 
@@ -1379,7 +1467,7 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
  *  OUT liste   list of handle to the records                                *
  *  OUT infon   number of elements for the list (number of records found)    *
  *  OUT nmax    dimension of list as given by caller                         *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
@@ -1396,7 +1484,7 @@ int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
   nimax = *ni;
   njmax = *nj;
   nkmax = *nk;
-  
+
   while ((handle >= 0) && (nfound < nmax)) {
     liste[nfound] = handle;
     nfound++;
@@ -1406,6 +1494,7 @@ int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
       nimax = *ni;
       njmax = *nj;
       nkmax = *nk;
+      nijkmax = (*ni) * (*nj) * (*nk);
     }
   }
   *ni = nimax;
@@ -1414,9 +1503,16 @@ int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
   *infon = nfound;
   if (msg_level < INFORM)
     fprintf(stdout,"Debug fstinl nombre trouve=%d nmax=%d\n",nfound,nmax);
-  return(0);
+
+  while ( (handle = c_fstsui(iun,ni,nj,nk)) >= 0) nfound++;
+  if (nfound > nmax) {
+     sprintf(errmsg,"number of records found (%d) > nmax specified (%d)",nfound,nmax);
+     return(error_msg("FSTINL",-nfound,ERROR));
+  }
+  else
+    return(0);
 }
-
+
 /*splitpoint c_fstlic */
 /***************************************************************************** 
  *                        C _ F S T L I C                                    *
@@ -1837,17 +1933,32 @@ int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
         }
         
       case 4: mode=4;  /* signed integer */
+#ifdef use_old_code
+fprintf(stderr,"OLD UNPACK CODE ======================================\n");
         if(xdf_short || xdf_byte){
           field_out=alloca(nelm*sizeof(int));
           s_field_out=(short *)field;
           b_field_out=(signed char *)field;
         }else{
-          field_out=field;
+          field_out=(int *)field;
         }
         ier = compact_integer(field_out,(void *) NULL,buf->data,nelm,
                               stdf_entry->nbits,0,xdf_stride,mode);
         if(xdf_short){ for (i=0;i<nelm;i++) s_field_out[i]=field_out[i]; } ;
         if(xdf_byte) { for (i=0;i<nelm;i++) b_field_out[i]=field_out[i]; } ;
+#else
+fprintf(stderr,"NEW UNPACK CODE ======================================\n");
+        if(xdf_short){
+          ier = compact_short(field,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,8);
+        }else if(xdf_byte){
+          ier = compact_char(field,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,12);
+        }else{
+          ier = compact_integer(field,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,mode);
+        }
+#endif
         break;
         
       case 5: case 8: mode=2;  /* IEEE representation */
@@ -1977,12 +2088,12 @@ int c_fstmsq(int iun, int *mip1, int *mip2, int *mip3, char *metiket,
     *mip2 = ~(search_mask->ip2) & 0xfffffff;
     *mip3 = ~(search_mask->ip3) & 0xfffffff;
     for (i=0; i <= 4; i++)
-      metiket[i] = inv_isignore((search_mask->etik15 >> ((4-i)*6)) & 0x3f);
+      metiket[i] = inv_isignore( ((search_mask->etik15 >> ((4-i)*6)) & 0x3f) );
 
     for (i=5; i <=9; i++)
-      metiket[i] = inv_isignore((search_mask->etik6a >> ((9-i)*6)) & 0x3f);
+      metiket[i] = inv_isignore( ((search_mask->etik6a >> ((9-i)*6)) & 0x3f) );
 
-    metiket[10] = inv_isignore((search_mask->etikbc >> 6) & 0x3f);
+    metiket[10] = inv_isignore( ((search_mask->etikbc >> 6) & 0x3f) );
     metiket[11] = inv_isignore((search_mask->etikbc  & 0x3f));
     metiket[12] = '\0';
   }
@@ -2231,7 +2342,7 @@ int c_fstopi(char *option, int value, int getmode)
  *****************************************************************************/
 int c_fstopl(char *option, int value, int getmode)
 {
-  int i;
+//  int i;
 
   if (strcmp(option,"FASTIO") == 0) {
     if (getmode) 
@@ -2299,14 +2410,14 @@ int c_fstouv(int iun, char *options)
 {
   int ier,nrec,i,iwko;
   static int premiere_fois=1;
-  char *turbo_compression;
+//  char *turbo_compression;
   char appl[5];
 
   if (premiere_fois) {
     premiere_fois = 0;
 /*    printf("DEBUG++ fstouv appel a c_env_var_cracker\n"); */
-    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");    /* obtain options from environment variable */ 
-    c_requetes_init(requetes_filename,debug_filename);
+    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");    /* obtain options from environment variable */
+    C_requetes_init(requetes_filename,debug_filename);
     ier = init_ip_vals();  
   }
   i = fnom_index(iun);
@@ -2561,15 +2672,15 @@ int c_fstskp(int iun, int nrec)
           c_waread(iun,&postfix,(f->cur_addr - W64TOWD(2)),W64TOWD(2));
           if ((postfix.idtyp == 0) && (postfix.lng == 2) && 
               (postfix.addr == -1))
-            f->cur_addr = W64TOWD(postfix.prev_addr-1)+1;
+            f->cur_addr = W64TOWD( (postfix.prev_addr-1) )+1;
           else {
             sprintf(errmsg,"file (unit=%d) has no record postfix",iun);
             return(error_msg("c_fstskp",ERR_NO_POSTFIX,ERRFATAL));
           }
           c_waread(iun,&header64,f->cur_addr,W64TOWD(1));
-          if (header64.addr != (WDTO64(f->cur_addr -1)+1)) {
+          if (header64.addr != (WDTO64( (f->cur_addr -1) )+1)) {
             sprintf(errmsg,
-                    "file (unit=%d), postfix address (%d) not equal to record address (%d) ",iun,(WDTO64(f->cur_addr -1)+1),header64.addr);
+                    "file (unit=%d), postfix address (%d) not equal to record address (%d) ",iun,(WDTO64( (f->cur_addr -1) )+1),header64.addr);
             return(error_msg("c_fstskp",ERR_NO_POSTFIX,ERRFATAL));
           }
         }
@@ -2586,7 +2697,7 @@ int c_fstskp(int iun, int nrec)
             fprintf(stderr,"c_fstskp: (unit %d) skip to end of file\n",iun);
           break;
         }
-        f->cur_addr += W64TOWD(((seq_entry.lng + 3) >> 2) + 15);
+        f->cur_addr += W64TOWD( (((seq_entry.lng + 3) >> 2) + 15) );
       }
     }
     else {             /* skip backward */
@@ -2691,8 +2802,8 @@ int c_fstvoi(int iun,char *options)
    stdf_special_parms cracked;
    xdf_record_header *header;
    char string[20];
-   char etiket[13], nomvar[5], typvar[3];
-   char cdt[6]={'X','R','I','C','S','E'};
+//   char nomvar[5], typvar[3];
+//   char cdt[6]={'X','R','I','C','S','E'};
    ftnword f_datev;
    double nhours;
    int deet,npas,run;
@@ -2755,7 +2866,7 @@ int c_fstvoi(int iun,char *options)
          }
          seq_entry = (seq_dir_keys *) f->head_keys;
          if (seq_entry->dltf) {
-           f->cur_addr += W64TOWD(((seq_entry->lng + 3) >> 2)+15);
+           f->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
            continue;
          }
          if (seq_entry->eof > 0) {
@@ -2836,7 +2947,7 @@ int c_fstvoi(int iun,char *options)
          sprintf(string,"%5d-",nrec);
          print_std_parms(stdf_entry,string,options,((nrec % 70) == 0));
          nrec++;
-         f->cur_addr += W64TOWD(((seq_entry->lng + 3) >> 2)+15);
+         f->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
          free(stdf_entry);
        } /* end if fstd_vintage_89 */
        else {
@@ -2894,7 +3005,7 @@ int c_fstvoi(int iun,char *options)
 
 int c_fstweo(int iun, int level)
 {
-  int index_fnom, index, width, nw, end_of_file;
+  int index_fnom, index;
   file_table_entry *f;
   xdf_record_header header64;
 
@@ -2951,7 +3062,7 @@ int c_fstweo(int iun, int level)
 
 void c_fst_env_var(char *cle, int index, char *content)
 {
-  int i;
+//  int i;
   char *carac;
   
 /*
@@ -3018,7 +3129,7 @@ int c_ip1_all(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+  ConvipPlus(&ip_new,&level,&kind,&mode);
   ips_tab[0][ip_nb[0]] = ip_new;
   ip_nb[0]++;
   if (ip_nb[0] >= Max_Ipvals) {
@@ -3028,7 +3139,7 @@ int c_ip1_all(float level, int kind)
 
   mode = 3;
   if (kind < 4) 
-    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+    ConvipPlus(&ip_old,&level,&kind,&mode);
   else
     ip_old = -9999;     /* no valid value for oldtype */
   ips_tab[0][ip_nb[0]] = ip_old;
@@ -3066,7 +3177,7 @@ int c_ip2_all(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+  ConvipPlus(&ip_new,&level,&kind,&mode);
   ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
@@ -3076,7 +3187,7 @@ int c_ip2_all(float level, int kind)
 
   mode = 3;
   if (kind < 4) 
-    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+    ConvipPlus(&ip_old,&level,&kind,&mode);
   else
     ip_old = -9999;     /* no valid value for oldtype */
   ips_tab[1][ip_nb[1]] = ip_old;
@@ -3113,7 +3224,7 @@ int c_ip3_all(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+  ConvipPlus(&ip_new,&level,&kind,&mode);
   ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
@@ -3123,7 +3234,7 @@ int c_ip3_all(float level, int kind)
 
   mode = 3;
   if (kind < 4) 
-    f77name(convip)(&ip_old,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+    ConvipPlus(&ip_old,&level,&kind,&mode);
   else
     ip_old = -9999;     /* no valid value for oldtype */
   ips_tab[2][ip_nb[2]] = ip_old;
@@ -3159,7 +3270,7 @@ int c_ip1_val(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+  ConvipPlus(&ip_new,&level,&kind,&mode);
   ips_tab[0][ip_nb[0]] = ip_new;
   ip_nb[0]++;
   if (ip_nb[0] >= Max_Ipvals) {
@@ -3192,7 +3303,7 @@ int c_ip2_val(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+  ConvipPlus(&ip_new,&level,&kind,&mode);
   ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
@@ -3225,7 +3336,7 @@ int c_ip3_val(float level, int kind)
   flag = 0;
   
   mode = 2;
-  f77name(convip)(&ip_new,&level,&kind,&mode,s,&flag,(F2Cl) sizeof(s));
+  ConvipPlus(&ip_new,&level,&kind,&mode);
   ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
@@ -3351,12 +3462,13 @@ int ip_is_equal(int target, int ip, int ind)
 {
   int kind1, kind2, exp1, exp2, nb, j;
   long long mantis1, mantis2;
-  double level, target_level;
-  double tolr = .0000001;
+//  double level, target_level;
+//  double tolr = .0000001;
+/*
   double exptab[] = {0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0,
                      1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0,
                      100000000.0, 1000000000.0, 10000000000.0, 100000000000.0};
-
+*/
   /* ipold_0_9: table of old ip1 0-9 (mb) values encoded oldstyle with convip */            
   int ipold_0_9[10] = {0,1820,1840,1860,1880,1900,1920,1940,1960,1980};                   
 
