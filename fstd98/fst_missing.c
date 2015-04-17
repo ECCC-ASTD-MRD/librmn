@@ -49,7 +49,7 @@
  * There are C and FORTRAN callable routines/functions
  * 
  * =================================================================================
- *   missing_value_used
+ *   missing_value_used, ForceMissingValueUsage
  * =================================================================================
  * 
  *   get the state of the package
@@ -59,6 +59,14 @@
  *   int missing_value_used()
  * FORTRAN interface:
  *   integer, external :: missing_value_used
+ * 
+ *   forcibly set the state of the package
+ * 
+ * C interface:
+ *   oldmode = ForceMissingValueUsage(flag)
+ * 
+ * FORTRAN interface:
+ *   oldmode = Force_Missing_ValueUsage(flag)
  * =================================================================================
  *   get_missing_value_flags
  * =================================================================================
@@ -72,11 +80,11 @@
  *                               signed char *b, unsigned char *ub)
  * FORTRAN interface:
  *   integer function get_missing_value_flags(f,i,ui,d,s,us,b,ub)
- *   real, intent(IN) :: f
- *   integer, intent(IN) :: i, ui
- *   real *8, intent(IN) :: d
- *   integer *2, intent(IN) :: s, us
- *   integer *1, intent(IN) :: b, ub
+ *   real, intent(OUT) :: f
+ *   integer, intent(OUT) :: i, ui
+ *   real *8, intent(OUT) :: d
+ *   integer *2, intent(OUT) :: s, us
+ *   integer *1, intent(OUT) :: b, ub
  *   NOTE: us, ui, us are unsigned numbers, which can be confusing in FORTRAN
  * 
  * =================================================================================
@@ -92,11 +100,11 @@
  *                               signed char *b, unsigned char *ub)
  * FORTRAN interface:
  *   subroutine set_missing_value_flags(f,i,ui,d,s,us,b,ub)
- *   real, intent(OUT) :: f
- *   integer, intent(OUT) :: i, ui
- *   real *8, intent(OUT) :: d
- *   integer *2, intent(OUT) :: s, us
- *   integer *1, intent(OUT) :: b, ub
+ *   real, intent(IN) :: f
+ *   integer, intent(IN) :: i, ui
+ *   real *8, intent(IN) :: d
+ *   integer *2, intent(IN) :: s, us
+ *   integer *1, intent(IN) :: b, ub
  *   NOTE: us, ui, us are unsigned numbers, which can be confusing in FORTRAN
  * 
  * =================================================================================
@@ -131,6 +139,23 @@
  * large enough not to create an after packing collision with the value of the actual largest
  * useful value in field2 (nbits is needed for this calculation)
  * =================================================================================
+ * SetMissingValueMapping (set_missing_value_mapping from Fortran)
+ * set the functions used for encoding missing values and/or decoding encoded fields
+ * 
+ * C interface:
+ *   SetMissingValueMapping(int what, int datatype, void *processor, int is_byte, int is_short, int is_double)
+ * 
+ * FORTRAN interface:
+ *   call set_missing_value_mapping(what, datatype, processor, is_byte, is_short, is_double)
+ *   integer, intent(IN) :: what, datatype, is_byte, is_short, is_double
+ * 
+ * processor is the address of the processing function called as 
+ *   decode_function(void *data, int npoints)
+ *   n_missing_points = encode_function(void *dest, void *src, int npoints)
+ * NOTE:
+ *   the npoints argument is passed BY VALUE (Fortran beware, iso_c_binding necessary)
+ * =================================================================================
+ * =================================================================================
  * DecodeMissingValue / decode_missing_value
  * =================================================================================
  * 
@@ -140,6 +165,7 @@
  * 
  * C interface:
  *   void DecodeMissingValue(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
+ * 
  * FORTRAN interface:
  *   subroutine decode_missing_value(field,nvalues,datatype,is_byte,is_short,is_double)
  *   "any_type", intent(INOUT) :: field
@@ -151,9 +177,15 @@
  * NOTE: this set of routines does not implement full defensive coding. SAFE calls from the
  *       standard file package are expected. USE WITH CARE.
 */
-
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <dlfcn.h>
+void *DlOpen(const char *filename, int flag);
+void *DlSym(void *handle, const char *symbol);
+
+int msg_level;
+
 #include "qstdir.h"
 
 static int plugmode=-1;                             /* -1 not initialized, 1 active, 0 not active */
@@ -167,8 +199,13 @@ static unsigned int uint_missing_val=0xFFFFFFFF;    /* largest 32 bit unsigned i
 static unsigned short ushort_missing_val=0xFFFF;    /* largest 16 bit unsigned integer */
 static unsigned char ubyte_missing_val=0xFF;       /* largest  8 bit unsigned integer */
 
-/* get magic values used to flag missing data points from environment variable FST_MISSING_VALUE */
-/* format is "real int unsigne_dint double */
+void SetMissingValueMapping(int what, int datatype, void *processor_, int is_byte, int is_short, int is_double);
+
+static void (*set_plugin_missing_value_flags)() = NULL ;
+
+/* Fortran and C callable versions get get "magic values" used flag */
+/* set magic values used to flag missing data points from environment variable FST_MISSING_VALUE if it exists */
+/* returns 1 if mode active, 0 otherwise */
 #pragma weak missing_value_used_ = missing_value_used
 #pragma weak missing_value_used__ = missing_value_used
 int missing_value_used_();
@@ -176,6 +213,7 @@ int missing_value_used__();
 int missing_value_used()  /* return 1 if missing value detected, 0 otherwise */
 {
   char *text;
+  void *handle;
   if(plugmode==-1){
     text=getenv("MISSING_VALUE_FLAGS");
     if(text==NULL){
@@ -193,13 +231,92 @@ int missing_value_used()  /* return 1 if missing value detected, 0 otherwise */
 	     &ubyte_missing_val
 	    );
     }
+    /* process dynamic plugins here to get encoding/decoding functions from dynamic library */
+	/* environment variable MISSING_VALUE_PLUGINS gives the name of the library */
+	/* 
+	   functions must have the following names in the shared library :
+	   
+       float_encode
+       double_encode
+       int_encode
+       short_encode
+       byte_encode
+       uint_encode
+       ushort_encode
+       ubyte_encode
+  
+       float_decode
+       double_decode
+       int_decode
+       short_decode
+       byte_decode
+       uint_decode
+       ushort_decode
+       ubyte_decode
+       
+       set_plugin_missing_value_flags
+	 */
+	text=getenv("MISSING_VALUE_PLUGINS");
+	if(text != NULL ){
+	  fprintf(stderr,"INFO: opening plugin library '%s'\n",text);
+	  handle = DlOpen(text,RTLD_NOW);
+	  if(handle != NULL){
+		SetMissingValueMapping(1,1,DlSym(handle,"float_decode"),0,0,0);
+		SetMissingValueMapping(1,1,DlSym(handle,"double_decode"),0,0,1);
+		SetMissingValueMapping(1,2,DlSym(handle,"uint_decode"),0,0,0);
+		SetMissingValueMapping(1,2,DlSym(handle,"ubyte_decode"),1,0,0);
+		SetMissingValueMapping(1,2,DlSym(handle,"ushort_decode"),0,1,0);
+		SetMissingValueMapping(1,4,DlSym(handle,"int_decode"),0,0,0);
+		SetMissingValueMapping(1,4,DlSym(handle,"byte_decode"),1,0,0);
+		SetMissingValueMapping(1,4,DlSym(handle,"short_decode"),0,1,0);
+
+		SetMissingValueMapping(2,1,DlSym(handle,"float_encode"),0,0,0);
+		SetMissingValueMapping(2,1,DlSym(handle,"double_encode"),0,0,1);
+		SetMissingValueMapping(2,2,DlSym(handle,"uint_encode"),0,0,0);
+		SetMissingValueMapping(2,2,DlSym(handle,"ubyte_encode"),1,0,0);
+		SetMissingValueMapping(2,2,DlSym(handle,"ushort_encode"),0,1,0);
+		SetMissingValueMapping(2,4,DlSym(handle,"int_encode"),0,0,0);
+		SetMissingValueMapping(2,4,DlSym(handle,"byte_encode"),1,0,0);
+		SetMissingValueMapping(2,4,DlSym(handle,"short_encode"),0,1,0);
+                set_plugin_missing_value_flags = (void(*)()) DlSym(handle,"set_plugin_missing_value_flags");
+	  }
+	  else {
+		fprintf(stderr,"WARNING: plugin library '%s' not found\n",text);
+	  }
+	}
+    if(set_plugin_missing_value_flags != NULL ) (*set_plugin_missing_value_flags)(
+	     &float_missing_val,
+	     &int_missing_val,
+	     &uint_missing_val,
+	     &double_missing_val,
+	     &short_missing_val,
+	     &ushort_missing_val,
+	     &byte_missing_val,
+	     &ubyte_missing_val
+												  );
   }
   return(plugmode);
 }
 
+/* C entry point */
+/* forcibly set(activate) or reset(deactivate) the missing value mode flag */
+int ForceMissingValueUsage(int flag) {
+  plugmode = (flag!=0) ? 1 : 0;
+  return(plugmode);
+}
 
-/* fortran and C callable versions, get magic values used to flag missing data points */
-/* return value of function tells whether the values have been initialized (1) or not(0) */
+/* Fortran entry points below (calling C entry point ForceMissingValueUsage) */
+/* forcibly set(activate) (flag !=0) or reset(deactivate) (flag=0) the "magic value" mode */
+#pragma weak force_missing_value_used_ = force_missing_value_used
+#pragma weak force_missing_value_used__ = force_missing_value_used
+int force_missing_value_used_(int *flag);
+int force_missing_value_used__(int *flag);
+int force_missing_value_used(int *flag) { return(ForceMissingValueUsage(*flag)) ; }
+
+/* Fortran and C callable versions */
+/* get magic values used to flag missing data points from environment variable FST_MISSING_VALUE */
+/* format is "real int unsigne_dint double */
+/* return value of function tells whether the the "magic value" mode is active (1) or not(0) */
 #pragma weak get_missing_value_flags_  = get_missing_value_flags
 #pragma weak get_missing_value_flags__ = get_missing_value_flags
 int get_missing_value_flags_(float *f, int *i, unsigned int *ui, double *d, short *s, unsigned short *us,
@@ -221,7 +338,7 @@ int get_missing_value_flags(float *f, int *i, unsigned int *ui, double *d, short
   return(status);
 }
 
-/* fortran and C callable versions, set magic values used to flag missing data points */
+/* Fortran and C callable versions, set magic values used to flag missing data points */
 #pragma weak set_missing_value_flags_  = set_missing_value_flags
 #pragma weak set_missing_value_flags__ = set_missing_value_flags
 void set_missing_value_flags_(float *f, int *i, unsigned int *ui, double *d, short *s, unsigned short *us,
@@ -240,12 +357,68 @@ void set_missing_value_flags(float *f, int *i, unsigned int *ui, double *d, shor
   byte_missing_val   = *b ;
   ubyte_missing_val  = *ub ;
   plugmode = 1 ;  /* values have been set, activate plug mode */
+  if(set_plugin_missing_value_flags != NULL ) (*set_plugin_missing_value_flags)(f, i, ui, d, s, us,b, ub);
 }
 
-/* 
+#ifdef USE_MACROS
+/*
  * functions to find minimum and maximum values of a field while ignoring the missing value code
- * these functions return the humber of missing values detected
+ * these functions return the number of missing values detected
 */
+
+#define FLD_TYPE_ANAL(name,kind,flag)                          \
+static int name(kind *z, int n , kind *zmax, kind *zmin)  {    \
+  kind zma, zmi;                                               \
+  int i, missing;                                              \
+  i = 0; missing = 0;                                          \
+  while( i<n && z[i]==flag ) {i++ ; missing++ ; }              \
+  zma = zmi = z[i];                                            \
+  while(++i < n) {                                             \
+    if( z[i] == flag ) {                                       \
+      missing++;                                               \
+    }else{                                                     \
+      zmi = z[i] < zmi ? z[i] : zmi;                           \
+      zma = z[i] > zma ? z[i] : zma;                           \
+    }                                                          \
+  }                                                            \
+  *zmax = zma ; *zmin = zmi ;                                  \
+  return(missing);                                             \
+}
+
+FLD_TYPE_ANAL(fld_float_anal,  float,          float_missing_val)
+FLD_TYPE_ANAL(fld_double_anal, double,         double_missing_val)
+FLD_TYPE_ANAL(fld_int_anal,    int,            int_missing_val)
+FLD_TYPE_ANAL(fld_uint_anal,   unsigned int,   uint_missing_val)
+FLD_TYPE_ANAL(fld_short_anal,  short,          short_missing_val)
+FLD_TYPE_ANAL(fld_ushort_anal, unsigned short, ushort_missing_val)
+FLD_TYPE_ANAL(fld_byte_anal,   char,           byte_missing_val)
+FLD_TYPE_ANAL(fld_ubyte_anal,  unsigned char,  ubyte_missing_val)
+
+/*
+ * routines to replace maximum value of field with missing value code
+ */
+
+#define FLD_TYPE_DECODE(name,kind,kind_anal,flag)               \
+static void name(kind *z, int n) {                              \
+  kind zma, zmi;                                                \
+  int notused;                                                  \
+  if(missing_value_used()==0) return;                           \
+  notused = kind_anal(z,n,&zma,&zmi);                           \
+  while(n--) { if(*z==zma) *z=flag ; z++ ; }                    \
+  return;                                                       \
+}
+
+FLD_TYPE_DECODE(fst_double_decode_missing, double,         fld_double_anal, double_missing_val)
+FLD_TYPE_DECODE(fst_float_decode_missing,  float,          fld_float_anal,  float_missing_val)
+FLD_TYPE_DECODE(fst_int_decode_missing,    int,            fld_int_anal,    int_missing_val)
+FLD_TYPE_DECODE(fst_uint_decode_missing,   unsigned int,   fld_uint_anal,   uint_missing_val)
+FLD_TYPE_DECODE(fst_short_decode_missing,  short,          fld_short_anal,  short_missing_val)
+FLD_TYPE_DECODE(fst_ushort_decode_missing, unsigned short, fld_ushort_anal, ushort_missing_val)
+FLD_TYPE_DECODE(fst_byte_decode_missing,   char,           fld_byte_anal,   byte_missing_val)
+FLD_TYPE_DECODE(fst_ubyte_decode_missing,  unsigned char,  fld_ubyte_anal,  ubyte_missing_val)
+
+#else
+
 static int fld_float_anal(float *z, int n , float *zmax, float *zmin)  /* float values */
 {
   float zma, zmi;
@@ -264,6 +437,7 @@ static int fld_float_anal(float *z, int n , float *zmax, float *zmin)  /* float 
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -287,6 +461,7 @@ static int fld_double_anal(double *z, int n , double *zmax, double *zmin)  /* do
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -310,6 +485,7 @@ static int fld_int_anal(int *z, int n , int *zmax, int *zmin) /* integer values 
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -333,6 +509,7 @@ static int fld_short_anal(short *z, int n , short *zmax, short *zmin) /* short s
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -356,6 +533,7 @@ static int fld_byte_anal(signed char *z, int n , signed char *zmax, signed char 
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -379,6 +557,7 @@ static int fld_uint_anal(unsigned int *z, int n , unsigned int *zmax, unsigned i
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -402,6 +581,7 @@ static int fld_ushort_anal(unsigned short *z, int n , unsigned short *zmax, unsi
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
@@ -425,11 +605,100 @@ static int fld_ubyte_anal(unsigned char *z, int n , unsigned char *zmax, unsigne
     if(*z < zmi) zmi = *z ;
     if(*z > zma) zma = *z ;
   }
+//  if(zma == 0 && zmi == 0 ) zma = 1 ;
   *zmax = zma ;
   *zmin = zmi ;
   return(missing);
 }
+/* routines to replace maximum value of field with missing value code */
+static void fst_double_decode_missing(double *z, int n)  /* float values */
+{
+  double zma, zmi;
+  int notused;
 
+  if(missing_value_used()==0) return;
+  notused = fld_double_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=double_missing_val ; z++ ; } /* float values */
+  return;
+}
+
+static void fst_float_decode_missing(float *z, int n)  /* float values */
+{
+  float zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_float_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=float_missing_val ; z++ ; } /* float values */
+  return;
+}
+
+static void fst_int_decode_missing(int *z, int n)  /* signed ints */
+{
+  int zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_int_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=int_missing_val ; z++ ; }
+  return;
+}
+
+static void fst_short_decode_missing(short *z, int n) /* signed shorts */
+{
+  short zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_short_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=short_missing_val ; z++ ; } /* signed shorts */
+  return;
+}
+
+static void fst_byte_decode_missing(signed char *z, int n) /* signed bytes */
+{
+  signed char zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_byte_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=byte_missing_val ; z++ ; } /* signed bytes */
+  return;
+}
+
+static void fst_uint_decode_missing(unsigned int *z, int n) /* unsigned integers */
+{
+  unsigned int zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_uint_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=uint_missing_val ; z++ ; } /* unsigned integers */
+  return;
+}
+
+static void fst_ushort_decode_missing(unsigned short *z, int n) /* unsigned shorts */
+{
+  unsigned short zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_ushort_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=ushort_missing_val ; z++ ;  } /* unsigned shorts */
+  return;
+}
+
+static void fst_ubyte_decode_missing(unsigned char *z, int n) /* unsigned bytes */
+{
+  unsigned char zma, zmi;
+  int notused;
+
+  if(missing_value_used()==0) return;
+  notused = fld_ubyte_anal(z,n,&zma,&zmi);
+  while(n--) { if(*z==zma) *z=ubyte_missing_val ; z++ ;  } /* unsigned bytes */
+  return;
+}
+#endif
 /* functions te replace missing value code with value suitable for packers */
 static int fst_double_encode_missing(double *z, double *z2, int n, int nbits)  /* double values */
 {
@@ -446,6 +715,10 @@ static int fst_double_encode_missing(double *z, double *z2, int n, int nbits)  /
     plug = zma + (zma-zmi)*.01;
   else         /* <=8 bits, add appropriate fraction of max-min to max */
     plug = zma + (zma-zmi)*factor[nbits] ;
+
+  if(plug == zma){   /* field is constant, zma == zmi */
+    plug = (zma == 0.0) ? 1.0 : zma*2.0 ;
+  }
   while(n--) { if(*z2==double_missing_val) *z=plug ; else *z=*z2 ; z++ ; z2++ ; }
   return(missing);
 }
@@ -465,6 +738,10 @@ static int fst_float_encode_missing(float *z, float *z2, int n, int nbits)  /* f
     plug = zma + (zma-zmi)*.01;
   else         /* <=8 bits, add appropriate fraction of max-min to max */
     plug = zma + (zma-zmi)*factor[nbits] ;
+
+  if(plug == zma){   /* field is constant, zma == zmi */
+    plug = (zma == 0.0) ? 1.0 : zma*2.0 ;
+  }
   while(n--) { if(*z2==float_missing_val) *z=plug ; else *z=*z2 ; z++ ; z2++ ; }
   return(missing);
 }
@@ -626,141 +903,190 @@ static int fst_ubyte_encode_missing(unsigned char *z, unsigned char *z2, int n, 
   return(missing);
 }
 
-/* routines to replace maximum value of field with missing value code */
-static void fst_double_decode_missing(double *z, int n)  /* float values */
+#ifdef USE_MACROS
+#else
+#endif
+static void fst_null_decode_missing(void *z, int n) /* null decoder */
 {
-  double zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_double_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=double_missing_val ; z++ ; } /* float values */
+/*  fprintf(stderr,"using null decoder\n"); */
   return;
 }
 
-static void fst_float_decode_missing(float *z, int n)  /* float values */
+static int (*__fst_float_encode_missing)() = fst_float_encode_missing;
+static int (*__fst_double_encode_missing)() = fst_double_encode_missing;
+static int (*__fst_int_encode_missing)() = fst_int_encode_missing;
+static int (*__fst_short_encode_missing)() = fst_short_encode_missing;
+static int (*__fst_byte_encode_missing)() = fst_byte_encode_missing;
+static int (*__fst_uint_encode_missing)() = fst_uint_encode_missing;
+static int (*__fst_ushort_encode_missing)() = fst_ushort_encode_missing;
+static int (*__fst_ubyte_encode_missing)() = fst_ubyte_encode_missing;
+
+static void (*__fst_float_decode_missing)() = fst_float_decode_missing;
+static void (*__fst_double_decode_missing)() = fst_double_decode_missing;
+static void (*__fst_int_decode_missing)() = fst_int_decode_missing;
+static void (*__fst_short_decode_missing)() = fst_short_decode_missing;
+static void (*__fst_byte_decode_missing)() = fst_byte_decode_missing;
+static void (*__fst_uint_decode_missing)() = fst_uint_decode_missing;
+static void (*__fst_ushort_decode_missing)() = fst_ushort_decode_missing;
+static void (*__fst_ubyte_decode_missing)() = fst_ubyte_decode_missing;
+
+/* C entry point , restore mapping functions to their default value */
+void RestoreMissingValueMapping(void)
 {
-  float zma, zmi;
-  int notused;
+__fst_float_encode_missing = fst_float_encode_missing;
+__fst_double_encode_missing = fst_double_encode_missing;
+__fst_int_encode_missing = fst_int_encode_missing;
+__fst_short_encode_missing = fst_short_encode_missing;
+__fst_byte_encode_missing = fst_byte_encode_missing;
+__fst_uint_encode_missing = fst_uint_encode_missing;
+__fst_ushort_encode_missing = fst_ushort_encode_missing;
+__fst_ubyte_encode_missing = fst_ubyte_encode_missing;
   
-  if(missing_value_used()==0) return;
-  notused = fld_float_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=float_missing_val ; z++ ; } /* float values */
-  return;
+__fst_float_decode_missing = fst_float_decode_missing;
+__fst_double_decode_missing = fst_double_decode_missing;
+__fst_int_decode_missing = fst_int_decode_missing;
+__fst_short_decode_missing = fst_short_decode_missing;
+__fst_byte_decode_missing = fst_byte_decode_missing;
+__fst_uint_decode_missing = fst_uint_decode_missing;
+__fst_ushort_decode_missing = fst_ushort_decode_missing;
+__fst_ubyte_decode_missing = fst_ubyte_decode_missing;
 }
 
-static void fst_int_decode_missing(int *z, int n)  /* signed ints */
+/* Fortran entry points (calling C entry point RestoreMissingValueMapping) */
+void restore_missing_value_mapping(void) { RestoreMissingValueMapping() ; }
+void restore_missing_value_mapping_(void) { RestoreMissingValueMapping() ; }
+void restore_missing_value_mapping__(void) { RestoreMissingValueMapping() ; }
+
+/* C entry point */
+/* change the missing value mapping function */
+/* mode >0, set function to processor */
+/* mode <0, set function to original value, ignore processor */
+/* abs(mode)==11 selectively deactivate the selected decoding function (uses fst_null_decode_missing), ignore processor */
+/* abs(mode)==1 decoding functions */
+/* abs(mode)==2 encoding functions */
+/* datatype, is_byte, is_short, is_double , same as elsewhere in this code */
+void SetMissingValueMapping(int what, int datatype, void *processor_, int is_byte, int is_short, int is_double)
 {
-  int zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_int_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=int_missing_val ; z++ ; }
-  return;
+    void *processor = processor_;
+    int mode;
+    if(what > 0 && processor == NULL) return ; /* null pointer to function, return */
+    mode = (what>0) ? what : -what;
+    if(mode == 11) {  /* mode 11 : deactivate decoder for specified type */
+      mode = 1 ;  /* reduce mode to 1  */
+      processor = (void *)fst_null_decode_missing ;
+    }
+    if(mode==1){  /* replace a decoding routine */
+      if(datatype==1 || datatype==5 || datatype==6) { /* float or IEEE */
+        if(is_double) {
+          __fst_double_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_double_decode_missing ; /* real or IEEE */
+        }else{
+          __fst_float_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_float_decode_missing ; /* real or IEEE */
+        }
+      }
+      if(datatype==4) {  /* signed */
+        if(is_short) {
+          __fst_short_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_short_decode_missing ;   /* signed shorts */
+        }else if(is_byte){
+          __fst_byte_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_byte_decode_missing ;   /* signed bytes */
+        }else{
+          __fst_int_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_int_decode_missing ;   /* signed integers */
+        }
+      }
+      if(datatype==2) {  /* unsigned */
+        if(is_short) {
+          __fst_ushort_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_ushort_decode_missing ;   /* uns  SetMissingValueMapping(1,4,NULL,0,0,0);
+          igned shorts */
+        }else if(is_byte){
+          __fst_ubyte_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_ubyte_decode_missing ;   /* unsigned bytes */
+        }else{
+          __fst_uint_decode_missing = (what>0) ? (void(*)()) processor : (void(*)()) fst_uint_decode_missing ;   /* unsigned integers */
+        }
+      }
+    }
+    if(mode==2){           /* replace an encoding routine */
+      if(datatype==1 || datatype==5 || datatype==6) { /* float or IEEE */
+         if(is_double) {
+           __fst_double_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_double_encode_missing ; /* real or IEEE */
+         }else{
+           __fst_float_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_float_encode_missing ; /* real or IEEE */
+         }
+      }
+      if(datatype==4) {  /* signed */
+        if(is_short) {
+          __fst_short_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_short_encode_missing ;   /* signed shorts */
+        }else if(is_byte){
+          __fst_byte_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_byte_encode_missing ;   /* signed bytes */
+        }else{
+          __fst_int_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_int_encode_missing ;   /* signed integers */
+        }
+      }
+      if(datatype==2) {  /* unsigned */
+        if(is_short) {
+          __fst_ushort_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_ushort_encode_missing ;   /* unsigned shorts */
+        }else if(is_byte){
+          __fst_ubyte_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_ubyte_encode_missing ;   /* unsigned bytes */
+        }else{
+          __fst_uint_encode_missing = (what>0) ? (int(*)()) processor : (int(*)()) fst_uint_encode_missing ;   /* unsigned integers */
+        }
+      }
+    }
 }
 
-static void fst_short_decode_missing(short *z, int n) /* signed shorts */
-{
-  short zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_short_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=short_missing_val ; z++ ; } /* signed shorts */
-  return;
+/* Fortran entry points (calling C entry point SetMissingValueMapping) */
+#pragma weak set_missing_value_mapping_ = set_missing_value_mapping
+#pragma weak set_missing_value_mapping__ = set_missing_value_mapping
+void set_missing_value_mapping_(int *what, int *datatype, void *processor_, int *is_byte, int *is_short, int *is_double);
+void set_missing_value_mapping__(int *what, int *datatype, void *processor_, int *is_byte, int *is_short, int *is_double);
+void set_missing_value_mapping(int *what, int *datatype, void *processor_, int *is_byte, int *is_short, int *is_double) {
+  SetMissingValueMapping(*what, *datatype, processor_, *is_byte, *is_short, *is_double);
 }
 
-static void fst_byte_decode_missing(signed char *z, int n) /* signed bytes */
-{
-  signed char zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_byte_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=byte_missing_val ; z++ ; } /* signed bytes */
-  return;
-}
-
-static void fst_uint_decode_missing(unsigned int *z, int n) /* unsigned integers */
-{
-  unsigned int zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_uint_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=uint_missing_val ; z++ ; } /* unsigned integers */
-  return;
-}
-
-static void fst_ushort_decode_missing(unsigned short *z, int n) /* unsigned shorts */
-{
-  unsigned short zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_ushort_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=ushort_missing_val ; z++ ;  } /* unsigned shorts */
-  return;
-}
-
-static void fst_ubyte_decode_missing(unsigned char *z, int n) /* unsigned bytes */
-{
-  unsigned char zma, zmi;
-  int notused;
-  
-  if(missing_value_used()==0) return;
-  notused = fld_ubyte_anal(z,n,&zma,&zmi);
-  while(n--) { if(*z==zma) *z=ubyte_missing_val ; z++ ;  } /* unsigned bytes */
-  return;
-}
-
+/*
 int EncodeMissingValue(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double);
 void DecodeMissingValue(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
+*/
 
+/* C entry point */
 int EncodeMissingValue(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double){
   int missing = 0;
 
-  if(missing_value_used()==0) return(0);
+  if(missing_value_used()==0) return(0);  /* "magic value" mode off, return zero missing value found */
   datatype &= 0xF ;
   if(datatype==0 || datatype==3 || datatype==7 || datatype==8) return(0) ; /* not valid for transparent or character types */
-//  if(is_byte)   return(0) ; /* for now byte type not supported */
-  /* if(is_short)  return(0) ; */ /* for now short type not supported */
-  /* if(is_double) return(0) ; */ /* for now double type not supported */
   if(datatype==1 || datatype==5 || datatype==6) { /* float or IEEE */
     if(datatype==5 && nbits==64) is_double=1;
     if(is_double) {
-      missing = fst_double_encode_missing(field,field2,nvalues,nbits); /* real or IEEE */
+      missing = (*__fst_double_encode_missing)(field,field2,nvalues,nbits); /* real or IEEE */
     }else{
       if(nbits>32)  return(0) ; /* datalength > 32 not supported */
-      missing = fst_float_encode_missing(field,field2,nvalues,nbits); /* real or IEEE */
+        missing = (*__fst_float_encode_missing)(field,field2,nvalues,nbits); /* real or IEEE */
     }
   }
   if(datatype==4) {  /* signed */
     if(is_short) {
-//      return(0); /* short signed missing not supported */
-      missing = fst_short_encode_missing(field,field2,nvalues,nbits);   /* signed shorts */
-//fprintf(stderr,"encoding shorts\n");
-//{ int i ; for (i=0 ; i<nvalues ; i++) fprintf(stderr,"%hd ",((short *)field)[i]) ; fprintf(stderr,"\n"); }
+      missing = (*__fst_short_encode_missing)(field,field2,nvalues,nbits);   /* signed shorts */
     }else if(is_byte){
-      missing = fst_byte_encode_missing(field,field2,nvalues,nbits);   /* signed bytes */
+      missing = (*__fst_byte_encode_missing)(field,field2,nvalues,nbits);   /* signed bytes */
     }else{
-      missing = fst_int_encode_missing(field,field2,nvalues,nbits);   /* signed integers */
+      missing = (*__fst_int_encode_missing)(field,field2,nvalues,nbits);   /* signed integers */
     }
   }
   if(datatype==2) {  /* unsigned */
     if(is_short) {
-      missing = fst_ushort_encode_missing(field,field2,nvalues,nbits);  /* unsigned shorts */
-//fprintf(stderr,"encoding unsigned shorts\n");
-//{ int i ; for (i=0 ; i<nvalues ; i++) fprintf(stderr,"%hu ",((unsigned short *)field)[i]) ; fprintf(stderr,"\n"); }
+      missing = (*__fst_ushort_encode_missing)(field,field2,nvalues,nbits);  /* unsigned shorts */
     }else if(is_byte){
-      missing = fst_ubyte_encode_missing(field,field2,nvalues,nbits);  /* unsigned shorts */
+      missing = (*__fst_ubyte_encode_missing)(field,field2,nvalues,nbits);  /* unsigned shorts */
     }else{
-      missing = fst_uint_encode_missing(field,field2,nvalues,nbits);  /* unsigned integers */
+      missing = (*__fst_uint_encode_missing)(field,field2,nvalues,nbits);  /* unsigned integers */
     }
   }
-  return missing;
+  if (0 >= msg_level) {
+    fprintf(stderr,"DEBUG: %d missing values in %d data values replaced, base datatype=%d\n",missing,nvalues,datatype);
+  }
+  return missing; /* number of missing values found */
 }
+
+/* Fortran entry points (calling C entry point EncodeMissingValue) */
 #pragma weak encode_missing_value__ = encode_missing_value
 #pragma weak encode_missing_value_  = encode_missing_value
 int encode_missing_value_(void *field,void *field2,int *nvalues,int *datatype,int *nbits,int *is_byte,int *is_short,int *is_double);
@@ -769,45 +1095,39 @@ int encode_missing_value(void *field,void *field2,int *nvalues,int *datatype,int
   return( EncodeMissingValue(field,field2,*nvalues,*datatype,*nbits,*is_byte,*is_short,*is_double) );
 }
 
+/* C entry point */
 void DecodeMissingValue(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double){
-  if(missing_value_used()==0) return ;
+  if(missing_value_used()==0) return ;  /* "magic value" mode off, do nothing  */
   datatype &= 0xF ;
   if(datatype==0 || datatype==3 || datatype==7 || datatype==8) return ; /* not valid for complex, transparent or character types */
-//  if(is_byte)   return ; /* for now byte types will not be processed */
-  /* if(is_short)  return ; */
-  /* if(is_double) return ; */
   if(datatype==1 || datatype==5 || datatype==6) { /* real or IEEE */
     if(is_double) {
-      fst_double_decode_missing(field,nvalues);
+      (*__fst_double_decode_missing)(field,nvalues);
     }else{
-      fst_float_decode_missing(field,nvalues);
+      (*__fst_float_decode_missing)(field,nvalues);
     }
   }
   if(datatype==4) {
     if(is_short) {
-//fprintf(stderr,"decoding shorts\n");
-//{ int i ; for (i=0 ; i<nvalues ; i++) fprintf(stderr,"%hd ",((short *)field)[i]) ; fprintf(stderr,"\n"); }
-      fst_short_decode_missing(field,nvalues);   /* signed shorts */
-//{ int i ; for (i=0 ; i<nvalues ; i++) fprintf(stderr,"%hd ",((short *)field)[i]) ; fprintf(stderr,"\n"); }
+      (*__fst_short_decode_missing)(field,nvalues);   /* signed shorts */
     }else if(is_byte){
-      fst_byte_decode_missing(field,nvalues);   /* signed shorts */
+      (*__fst_byte_decode_missing)(field,nvalues);   /* signed shorts */
     }else{
-      fst_int_decode_missing(field,nvalues);     /* signed integers */
+      (*__fst_int_decode_missing)(field,nvalues);     /* signed integers */
     }
   }
   if(datatype==2) {
     if(is_short) {
-//fprintf(stderr,"decoding unsigned shorts\n");
-//{ int i ; for (i=0 ; i<nvalues ; i++) fprintf(stderr,"%hu ",((unsigned short *)field)[i]) ; fprintf(stderr,"\n"); }
-      fst_ushort_decode_missing(field,nvalues);  /* unsigned shorts */
-//{ int i ; for (i=0 ; i<nvalues ; i++) fprintf(stderr,"%hu ",((unsigned short *)field)[i]) ; fprintf(stderr,"\n"); }
+      (*__fst_ushort_decode_missing)(field,nvalues);  /* unsigned shorts */
     }else if(is_byte){
-      fst_ubyte_decode_missing(field,nvalues);  /* unsigned shorts */
+      (*__fst_ubyte_decode_missing)(field,nvalues);  /* unsigned shorts */
     }else{
-      fst_uint_decode_missing(field,nvalues);    /* unsigned integers */
+      (*__fst_uint_decode_missing)(field,nvalues);    /* unsigned integers */
     }
   }
 }
+
+/* Fortran entry points (calling C entry point DecodeMissingValue) */
 #pragma weak decode_missing_value__ = decode_missing_value
 #pragma weak decode_missing_value_  = decode_missing_value
 void decode_missing_value_(void *field,int *nvalues,int *datatype,int *is_byte,int *is_short,int *is_double);
@@ -818,8 +1138,8 @@ void decode_missing_value(void *field,int *nvalues,int *datatype,int *is_byte,in
 
 #ifdef SELFTEST
 #define ASIZE 16
-/* test program , the 6 basic types are encoded/decoded 
- * float, int, unsigned int, double, short, unsigned short 
+/* test program , the 8 basic types are encoded/decoded
+ * float, int, unsigned int, double, short, unsigned short, char, unsigned char
  * both the C and the FORTRAN interface are used in the test
 */
 int main()
@@ -841,6 +1161,20 @@ int main()
   int sixteen=16;
   int fstat,istat,uistat,dstat,sstat,usstat,bstat,ubstat;
 
+  RestoreMissingValueMapping();
+#ifdef NODECODE
+  SetMissingValueMapping(1,1,fst_null_decode_missing,0,0,0);
+  SetMissingValueMapping(1,1,fst_null_decode_missing,0,0,1);
+  SetMissingValueMapping(1,2,fst_null_decode_missing,0,0,0);
+  SetMissingValueMapping(1,2,fst_null_decode_missing,1,0,0);
+  SetMissingValueMapping(1,2,fst_null_decode_missing,0,1,0);
+  SetMissingValueMapping(1,4,fst_null_decode_missing,0,0,0);
+  SetMissingValueMapping(1,4,fst_null_decode_missing,1,0,0);
+  SetMissingValueMapping(1,4,fst_null_decode_missing,0,1,0);
+#endif
+  SetMissingValueMapping(-1,2,NULL,0,0,0);  /* restore uint decoder */
+  SetMissingValueMapping(-1,2,NULL,1,0,0);  /* restore ubyte decoder */
+  SetMissingValueMapping(-1,2,NULL,0,1,0);  /* restore ushort decoder */
   for (i=0 ; i<ASIZE ; i++) {
     fa[i]= i*1.0+.5;
     da[i]=fa[i]+1.2345;
@@ -854,6 +1188,7 @@ int main()
     ubp[i]=i+22;
   }
   junk=get_missing_value_flags(&f,&i,&ui,&d,&s,&us,&b,&ub);
+  f = -1.0E+37; d = -1.0E+37;
   set_missing_value_flags(&f,&i,&ui,&d,&s,&us,&b,&ub);
   fprintf(stderr,"%d float=%g, int=%d, uint=%u, double=%lg, short=%hd, ushort=%hu, byte=%hhd, ubyte=%hhu\n",junk, f,i,ui,d,s,us,b,ub);
   junk = missing_value_used();
@@ -880,7 +1215,7 @@ int main()
   uba[4]=ub ; uba[ASIZE-5]=ub;
   ubstat=EncodeMissingValue(ubp,uba,ASIZE,2,8,1,0,0);
   fprintf(stderr,"status values: %d %d %d %d %d %d %d %d\n",fstat,dstat,istat,sstat,bstat,uistat,usstat,ubstat);
-  for (ii=0 ; ii<ASIZE ; ii++) {
+  for (ii=-1 ; ++ii<ASIZE ; ) {
     fprintf(stderr,"%2d float=%12g, int=%12d, short=%8hd, byte=%8hhd, uint=%12u, ushort=%8hu, ubyte=%8hhu,  double=%12lg\n",ii,fp[ii],ip[ii],sp[ii],bp[ii],uip[ii],usp[ii],ubp[ii],dp[ii]);
   }
   fprintf(stderr,"================================================================\n");
@@ -898,4 +1233,3 @@ int main()
   return(0);
 }
 #endif
-

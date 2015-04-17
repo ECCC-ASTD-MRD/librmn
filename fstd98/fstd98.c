@@ -1445,7 +1445,6 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
 
 /*splitpoint c_fstinl */
 /***************************************************************************** 
- *                        C _ F S T I N L _ X                                *
  *                        C _ F S T I N L                                    *
  *                                                                           * 
  *Object                                                                     * 
