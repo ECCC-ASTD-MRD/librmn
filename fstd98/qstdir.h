@@ -116,7 +116,7 @@ typedef unsigned INT_32 word32; /* unsigned 32 bit word */
 #define ERR_NO_POSTFIX -39      /* invalid or no sequential record postfix */
 #define ERR_STDF_VERSION -40    /* wrong version of standard file software */
 #define ERR_WRONG_FTYPE -41     /* wrong file type, BURP instead of STDF or vice versa */
-#define ERR_DAMAGED -45        /* file probably dammaged */
+#define ERR_DAMAGED -45         /* file probably damaged */
 
 #define BURP_ERR_CLEF -32       /* too many supplementary keys */
 #define BURP_ERR_BNUM -33       /* incorect block number */

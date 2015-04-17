@@ -514,7 +514,7 @@ int c_qdfdiag(int iun)
    fprintf(stdout,"\t application signature           %s\n",appl);
 
    if (! thesame) {
-      fprintf(stdout,"\n **** This file has been dammaged ****\n"); 
+      fprintf(stdout,"\n **** This file has been damaged ****\n"); 
       fprintf(stdout,"\nStatistics from file scan\n");
       fprintf(stdout,"\t number of extensions            %d\n",nrec_tot); 
       fprintf(stdout,"\t number of directory pages       %d\n",ndirect); 
@@ -2013,7 +2013,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
 
       if (f->header->nbd ==0) {
         if ( (f->cur_info->attr.std) && (header64.data[1] == 'STDR' || header64.data[1] == 'stdr') ) {
-          sprintf(errmsg,"File probably dammaged\n file in error: %s\n",FGFDT[index_fnom].file_name);
+          sprintf(errmsg,"File probably damaged\n file in error: %s\n",FGFDT[index_fnom].file_name);
           return(error_msg("c_xdfopn",ERR_BAD_DIR,ERROR));
           }
         else
@@ -2041,7 +2041,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
           for (j=4; j < W64TOWD(lng64); j++)
             checksum ^= check32[j];
           if (checksum != 0) {
-            sprintf(errmsg,"incorrect checksum in page %d, directory is probably dammaged\n file in error: %s\n",i,FGFDT[index_fnom].file_name);
+            sprintf(errmsg,"incorrect checksum in page %d, directory is probably damaged\n file in error: %s\n",i,FGFDT[index_fnom].file_name);
           /*          return(error_msg("c_xdfopn",ERR_BAD_CHKS,ERROR)); */
             error_msg("c_xdfopn",ERR_BAD_CHKS,ERROR);
           }
