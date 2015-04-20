@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn .f .c .o .a
+.SUFFIXES : .f90 .ftn .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -58,7 +58,7 @@ FDECKS= \
          grlcc.f          grll.f         grps.f          idatmg.f \
          igaxg.f          incdat.f        int1d1.f \
          inzono.f         isort.f        jdatec.f        jjulien.f \
-         moduledate.f     movlev.f        movlev8.f \
+         movlev.f         movlev8.f \
          mscale.f         mwerms.f       \
          permut.f       polagr.f        rossr3.f \
          s1scor.f         \
