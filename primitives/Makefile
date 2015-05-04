@@ -16,7 +16,7 @@ SUPP_OPT = -openmp
 
 OPTIMIZ = 2
 
-C_SUPP_OPT = -options_comp
+C_SUPP_OPT =
 
 FTN_SUPP_OPT = -ignorempty
 
