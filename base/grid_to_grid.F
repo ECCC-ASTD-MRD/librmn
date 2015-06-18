@@ -353,7 +353,8 @@
 * * Boston, MA 02111-1307, USA.
 * */
 ***S/R grid_to_grid_coef pre-calculate constants for 2D interpolator
-      subroutine grid_to_grid_coef(xi,ifi,x,if,index,cxa,cxb,cxc,cxd,interp)
+      subroutine grid_to_grid_coef(xi,ifi,x,if,index,cxa,cxb,cxc,cxd,
+     %                             interp)
       implicit none
       character* (*) interp
       integer if,ifi,index(ifi)

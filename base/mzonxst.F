@@ -1542,13 +1542,19 @@
       Do  II=1,NVAR
           variab = '    '
           variab(1:2) = listvar(II)(2:3)
-          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9' ) .or.
-     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z' ) .or.
-     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z' )) then
+          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9'
+     % ) .or.
+     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z'
+     % ) .or.
+     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z'
+     % )) then
             variab(3:3) = listvar(II)(4:4)
-            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '9' ) .or.
-     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. 'Z' ) .or.
-     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. 'z' )) then
+            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '
+     %9' ) .or.
+     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. '
+     %Z' ) .or.
+     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. '
+     %z' )) then
               variab(4:4) = listvar(II)(5:5)
             endif
           endif
@@ -1797,13 +1803,19 @@
       Do  II=1,NVAR
           variab = '    '
           variab(1:2) = listvar(II)(2:3)
-          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9' ) .or.
-     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z' ) .or.
-     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z' )) then
+          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9'
+     % ) .or.
+     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z'
+     % ) .or.
+     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z'
+     % )) then
             variab(3:3) = listvar(II)(4:4)
-            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '9' ) .or.
-     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. 'Z' ) .or.
-     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. 'z' )) then
+            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '
+     %9' ) .or.
+     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. '
+     %Z' ) .or.
+     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. '
+     %z' )) then
               variab(4:4) = listvar(II)(5:5)
             endif
           endif   
@@ -1818,13 +1830,19 @@
       Do  II=1,NVAR
           variab = '    '
           variab(1:2) = listvar(II)(2:3)
-          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9' ) .or.
-     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z' ) .or.
-     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z' )) then
+          if ((listvar(II)(4:4) .ge. '0' .and. listvar(II)(4:4) .le. '9'
+     % ) .or.
+     +        (listvar(II)(4:4) .ge. 'A' .and. listvar(II)(4:4) .le. 'Z'
+     % ) .or.
+     +        (listvar(II)(4:4) .ge. 'a' .and. listvar(II)(4:4) .le. 'z'
+     % )) then
             variab(3:3) = listvar(II)(4:4)
-            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '9' ) .or.
-     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. 'Z' ) .or.
-     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. 'z' )) then
+            if ((listvar(II)(5:5) .ge. '0' .and. listvar(II)(5:5) .le. '
+     %9' ) .or.
+     +          (listvar(II)(5:5) .ge. 'A' .and. listvar(II)(5:5) .le. '
+     %Z' ) .or.
+     +          (listvar(II)(5:5) .ge. 'a' .and. listvar(II)(5:5) .le. '
+     %z' )) then
               variab(4:4) = listvar(II)(5:5)
             endif
           endif   
