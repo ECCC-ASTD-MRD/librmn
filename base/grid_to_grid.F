@@ -300,10 +300,14 @@
           jy=indxy(j)
           do i=1,ifi
             ix=indxx(i)
-            ta=f(ix,jy  )*cxa(i)+f(ix+1,jy  )*cxb(i)+f(ix+2,jy  )*cxc(i)+f(ix+3,jy  )*cxd(i)
-            tb=f(ix,jy+1)*cxa(i)+f(ix+1,jy+1)*cxb(i)+f(ix+2,jy+1)*cxc(i)+f(ix+3,jy+1)*cxd(i)
-            tc=f(ix,jy+2)*cxa(i)+f(ix+1,jy+2)*cxb(i)+f(ix+2,jy+2)*cxc(i)+f(ix+3,jy+2)*cxd(i)
-            td=f(ix,jy+3)*cxa(i)+f(ix+1,jy+3)*cxb(i)+f(ix+2,jy+3)*cxc(i)+f(ix+3,jy+3)*cxd(i)
+            ta=f(ix,jy  )*cxa(i)+f(ix+1,jy  )*cxb(i)+f(ix+2,jy  )
+     $                   *cxc(i)+f(ix+3,jy  )*cxd(i)
+            tb=f(ix,jy+1)*cxa(i)+f(ix+1,jy+1)*cxb(i)+f(ix+2,jy+1)
+     $                   *cxc(i)+f(ix+3,jy+1)*cxd(i)
+            tc=f(ix,jy+2)*cxa(i)+f(ix+1,jy+2)*cxb(i)+f(ix+2,jy+2)
+     $                   *cxc(i)+f(ix+3,jy+2)*cxd(i)
+            td=f(ix,jy+3)*cxa(i)+f(ix+1,jy+3)*cxb(i)+f(ix+2,jy+3)
+     $                   *cxc(i)+f(ix+3,jy+3)*cxd(i)
             fi(i,j)=cya(j)*ta+cyb(j)*tb+cyc(j)*tc+cyd(j)*td
           enddo
         enddo
