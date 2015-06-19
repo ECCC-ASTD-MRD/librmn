@@ -85,12 +85,13 @@
          hyb(1)=lev
       endif
       do k=2,NK
-         hyb2pres = fstprm (fstkeys(k), dateo, deet, ipas, ni1, nj1, nk1, 
+         hyb2pres = fstprm(fstkeys(k), dateo, deet, ipas, ni1, nj1, nk1, 
      $     bit, datyp, ip1a,ip2a,ip3a, tva, var, etik_S, grda, 
      $     ig1a,ig2a,ig3a,ig4a, swa,lng, dlf, ubc, ex1, ex2, ex3 )
            if (ni1.ne.nia.and.nj1.ne.nja.and.nk1.ne.nka.or.
      $                                               hyb2pres.lt.0) then
-             print *,'hyb2pres error: fstprm on key',fstkeys(k),'dim mismatch'
+             print *,'hyb2pres error: fstprm on key',fstkeys(k),
+     $               'dim mismatch'
              return
          endif
          call convip (ip1a, lev, kind,-1, blk_S, .false.)
@@ -109,7 +110,7 @@
       call incdatr(datev,dateo,ipas*deet/3600.0d0)
 
       if (kind.eq.1) then
-          p0_key=fstinf (iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,' ','P0')
+          p0_key=fstinf(iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,' ','P0')
           if (p0_key.lt.0) then
               print *,'hyb2pres error: No p0 found, kind = 1'
               hyb2pres = -1
@@ -132,7 +133,8 @@
                       return
                   endif
                   etatop = work(1,1)
-                  hyb2pres=etasef_to_pres(PX,hyb,ptop,etatop,p0,NI,NJ,NK)
+                  hyb2pres=etasef_to_pres(PX,hyb,ptop,etatop,p0,
+     $                                    NI,NJ,NK)
                   if (logPX_L) PX(:,:,:)=log( 100.0*PX(:,:,:))
                   return
               else
@@ -149,7 +151,8 @@
                   print *,'hyb2pres error: in read_decode_hyb'
                   return
               endif
-              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,NJ,NK)
+              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,NJ,
+     $                             NK)
               if (logPX_L) PX(:,:,:)=log( 100.0*PX(:,:,:))
               return
           else 
@@ -185,15 +188,17 @@
                   print *,'hyb2pres error: in read_decode_hyb'
                   return
               endif
-              p0_key=fstinf (iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,' ','P0')
+              p0_key=fstinf (iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,' ',
+     $                       'P0')
               if (p0_key.lt.0) then
-                 print *,'hyb2pres error: HY found,No p0 found, kind = 5'
+                 print *,'hyb2pres error: HY found,No p0 found, kind=5'
                  hyb2pres = -1
                  return
               else
                  hyb2pres = fstluk(p0,p0_key,ni,nj,nk)
               endif
-              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,NJ,NK)
+              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,NJ,
+     $                             NK)
               return
          else
              print *,'hyb2pres error: kind=5 but !! nor  HY NOT FOUND'
@@ -255,15 +260,18 @@
       print *,'!!RECOMMEND using hyb_to_pres function!!'
 
       if (rcoef.lt.1.0.or.rcoef.gt.2.0) then
-          print *,'ERROR in hybrid_to_pres: rcoef must be between 1.0 and 2.0'
+          print *,
+     $      'ERROR in hybrid_to_pres: rcoef must be between 1.0 and 2.0'
           return
       endif
       if (pref .lt.400 .or. pref .gt.1050) then
-          print *,'ERROR in hybrid_to_pres: pref must be a value between 400 and 1050'
+          print *,'ERROR in hybrid_to_pres: pref must be a value',
+     $            ' between 400 and 1050'
           return
       endif
       if (ptop .lt.0 .or. ptop .gt.1200) then
-          print *,'ERROR in hybrid_to_pres: ptop  must be a value between 0 and 1200'
+          print *,'ERROR in hybrid_to_pres: ptop  must be a value',
+     $            ' between 0 and 1200'
           return
       endif
       if (abs(rcoef-1.0).lt.1.0e-5) rcoef = 1.0
@@ -280,7 +288,8 @@
 
       do k=1,nk
          if (hyb(k).lt.0 .or. hyb(k).gt. 1.0) then
-           print *,'ERROR in hybrid_to_pres: invalid value(s) in hybrid coordinate array'
+           print *,'ERROR in hybrid_to_pres: invalid value(s) in',
+     $             ' hybrid coordinate array'
            return
          endif
          hybm_8(k)= hyb(k) + (1-hyb(k)) * ptop/pref
@@ -401,7 +410,8 @@
       endif
       if (rcoef.lt.1.0.or.rcoef.gt.2.0) then
           print *,
-     %    'ERROR in ig_to_hybref: rcoef(ig2/1000) must be between 1.0 and 2.0'
+     %    'ERROR in ig_to_hybref: rcoef(ig2/1000) must be',
+     %    ' between 1.0 and 2.0'
           return
       endif
       if (ig3.ne.0) then
@@ -476,17 +486,20 @@
      $                 ig1a,ig2a,ig3a,ig4a,swa,lng,dlf,ubc,ex1,ex2,ex3 )
           call convip(ip1a,ptop,kind,-1,blk_S,.false.)
           if (ptop.lt.0.0.or.ptop.gt.1200..or. kind.ne.2) then
-              print *, 'ERROR in read_decode_hyb: Decoding of ip1 in ',nom
+              print *, 'ERROR in read_decode_hyb: Decoding of ip1 in ',
+     $                  nom
               read_decode_hyb = -1
           endif
           ierr=ig_to_hybref(ig1a,ig2a,ig3a,ig4a,rcoef,pref,x1,x2)
           if (ierr.lt.0) then
-              print *, 'ERROR in read_decode_hyb: Decoding of ig?? in ',nom
+              print *, 'ERROR in read_decode_hyb: Decoding of ig?? in ',
+     $                  nom
               read_decode_hyb = -1
           endif
 *         read_decode_hyb = l   !!! BUG , misplaced statement
       else
-          print *,'ERROR in read_decode_hyb:Record ',nom,' of typvar X is not found'
+          print *,'ERROR in read_decode_hyb:Record ',nom,
+     $            ' of typvar X is not found'
           read_decode_hyb = -2  !!! SPECIFIC error code if record not found
       endif
       return
@@ -606,7 +619,7 @@
       endif
       if (pref.lt.400.0.or.pref.gt.1050.0) then
           print *,
-     %    'ERROR in write_bin_hyb: pref must be between 400.0 and 1050.0'
+     %   'ERROR in write_bin_hyb: pref must be between 400.0 and 1050.0'
           write_bin_hyb = -1
           return
       endif
@@ -814,7 +827,8 @@
 *                             model SEF to pressure(mb)
 **********************************************************************
 *
-      integer function etasef_to_pres(pressure,hybm,ptop,etatop,ps,NI,NJ,NK)
+      integer function etasef_to_pres(pressure,hybm,ptop,etatop,ps,
+     $                                NI,NJ,NK)
 
       implicit none
       integer NI,NJ,NK
