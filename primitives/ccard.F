@@ -110,7 +110,8 @@
         DO 20 I = 1, N
             cletemp = incle(i)
             IF (TRIM(incle(i)) .ne. TRIM(cletemp)) THEN
-              write(*,777) 'CCARD erreur: nom de la cle #',i,' > limite de 50 caracteres'
+              write(*,777) 'CCARD erreur: nom de la cle #',i,
+     $                     ' > limite de 50 caracteres'
  777          format(a,i4,a)
               if (plante) call qqexit(21)
             ENDIF
@@ -171,7 +172,7 @@
                 POSC = J
                 POS = J
                 CALL QQQTRNS(VAL(POS), DEF(POS),CLTYPE(POS))
-*                print *,'Debug+ ccard cleup=',cleup,' val(pos)=',val(pos)
+*              print *,'Debug+ ccard cleup=',cleup,' val(pos)=',val(pos)
                 write(keyname,109) '%%'//trim(cle(posc)),posc-pos,'%%'
  109            format(a,i4.4,a)
                 call c_set_appl_var(Keyname,val(pos))
@@ -206,7 +207,8 @@
      %        THEN
               CALL QQQTRNS(ARGtemp,ARG,CLTYPE(POSMOINC))
               VAL(POSMOINC) = ARGtemp
-              write(keyname,109) '%%'//trim(cle(posmoinc)),posmoinc-pos,'%%'
+              write(keyname,109) 
+     $             '%%'//trim(cle(posmoinc)),posmoinc-pos,'%%'
               call c_set_appl_var(Keyname,ARGtemp)
             ELSE
               PRINT *,' *** ERREUR: debordement de liste'

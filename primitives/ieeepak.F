@@ -97,7 +97,8 @@
            ELSEIF (NBITS .EQ. 64) THEN
               CALL MOVE6432(IFLD,IPK,NINJ)
            ELSE
-              print *,'IEEEPAK ERROR: NBITS MUST BE <= 32 OR 64, NBITS=',nbits
+              print *,'IEEEPAK ERROR: NBITS MUST BE <= 32 OR 64, NBITS='
+     %         ,nbits
               stop 'IEEEPAK' 
            ENDIF
         ELSE
@@ -111,7 +112,8 @@
               LEFT = LEFT - NBITS
             ELSE
               INDX = INDX+1
-              IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT) , RSHIFT(ITEM,NBITS-LEFT))
+              IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT) ,
+     %                        RSHIFT(ITEM,NBITS-LEFT))
               ITEMP = IAND(ITEM , RMASK(NBITS-LEFT))
               LEFT = LEFT - NBITS + BITMOT
             ENDIF
@@ -119,7 +121,8 @@
 
           IF (LEFT .LT. BITMOT) THEN
             INDX = INDX + 1
-            IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT),IAND(IPK(INDX),RMASK(LEFT)))
+            IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT),
+     %                  IAND(IPK(INDX),RMASK(LEFT)))
           ENDIF
         ENDIF
 
@@ -133,7 +136,8 @@
            ELSEIF (NBITS .EQ. 64) THEN
               CALL MOVE6432(IPK,IFLD,NINJ)
            ELSE
-              print *,'IEEEPAK ERROR: NBITS MUST BE <= 32 OR 64, NBITS=',nbits
+              print *,'IEEEPAK ERROR: NBITS MUST BE <= 32 OR 64, NBITS='
+     %               ,nbits
               stop 'IEEEPAK' 
            ENDIF
         ELSE
@@ -154,9 +158,9 @@
               LEFT = LEFT - NBITS
             ELSE
               RLEFT = RMASK(NBITS-LEFT)
-              IFLD(I) = IOR(IAND(IAND(RYSHIFT(ITEMP,BITMOT-NBITS),RBITS),
-     %                  COMPL(RLEFT)),IAND(RYSHIFT(INEXT,BITMOT-(NBITS-LEFT)),
-     %                  RLEFT))
+              IFLD(I)=IOR(IAND(IAND(RYSHIFT(ITEMP,BITMOT-NBITS),RBITS),
+     %            COMPL(RLEFT)),IAND(RYSHIFT(INEXT,BITMOT-(NBITS-LEFT)),
+     %            RLEFT))
               INDX = INDX+1
               ITEMP = LYSHIFT(INEXT,NBITS-LEFT)
               INEXT = IFLD(INDX)
@@ -242,7 +246,8 @@
 #if defined (ALL64)
              IFLD(I) = RSHIFT(IAND(IFF(I),MASK(1)),32)
              IMANT = IAND(RSHIFT(IFF(I),32),RMASK(24))
-             IEXP = LSHIFT(IAND(RXSHIFT(RSHIFT(IFF(I),32),24),127)-64,2) + 126
+             IEXP = LSHIFT(IAND(RXSHIFT(RSHIFT(IFF(I),32),24),127)-64,2)
+     %              + 126
 #else
              IFLD(I) = IAND(IFF(I),MASK(1))
              IMANT = IAND(IFF(I),RMASK(24))
@@ -280,7 +285,8 @@
               LEFT = LEFT - NBITS
             ELSE
               INDX = INDX+1
-              IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT) , RSHIFT(ITEM,NBITS-LEFT))
+              IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT) ,
+     %                        RSHIFT(ITEM,NBITS-LEFT))
               ITEMP = IAND(ITEM , RMASK(NBITS-LEFT))
               LEFT = LEFT - NBITS + BITMOT
             ENDIF
@@ -288,7 +294,8 @@
 
           IF (LEFT .LT. BITMOT) THEN
             INDX = INDX + 1
-            IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT),IAND(IPK(INDX),RMASK(LEFT)))
+            IPK(INDX) = IOR(LYSHIFT(ITEMP,LEFT),
+     %                      IAND(IPK(INDX),RMASK(LEFT)))
           ENDIF
         ENDIF
 

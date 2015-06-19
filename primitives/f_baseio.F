@@ -31,7 +31,8 @@
         if (rndflag.eq.1) then
           if (unfflag.eq.1) then
 *            print *,'ACCESS=DIRECT,RECL=',lrec
-            OPEN(iun,FILE=name(1:lng),ACCESS='DIRECT',RECL=lrec*lmult,ERR=77)
+            OPEN(iun,FILE=name(1:lng),ACCESS='DIRECT',RECL=lrec*lmult,
+     %           ERR=77)
 
           else
 *            print *,'ACCESS=DIRECT,RECL=',lrec*4
@@ -52,7 +53,8 @@
             else
 *              print *,'FORMATTED open'
 #if !defined (HP)
-              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',DELIM='QUOTE',ERR=77)        
+              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',DELIM='QUOTE',
+     %             ERR=77)        
 #else
               OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',ERR=77)        
 #endif
