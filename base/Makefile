@@ -172,12 +172,4 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	-if [ "*.F" != "`echo *.F`" ] ; \
-	then \
-	for i in *.F ; \
-	do \
-	fn=`r.basename $$i '.F'`; \
-	rm -f $$fn.f; \
-	done \
-	fi
 	rm -f *.o
