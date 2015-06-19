@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .f90 .ftn .f .c .o .a
+.SUFFIXES : .f90 .F .f .c .o .a
 
 SHELL = /bin/sh
 
@@ -36,18 +36,18 @@ default: obj
 
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
-FTNDECKS= \
-         dgauss.ftn       grgg.ftn       idxes.ftn       llfxy.ftn \
-         mzonxst.ftn      npspin.ftn     ordleg.ftn      sglo.ftn \
-         sglogg.ftn       sll.ftn        sps.ftn         vglo.ftn \
-         vglogg.ftn       vll.ftn        vps.ftn         xyflcc.ftn \
-         xyfll.ftn        igaxg95.ftn    legvar.ftn      mxma.ftn \
-         grid_to_grid.ftn
+FDECKS= \
+         dgauss.F       grgg.F       idxes.F       llfxy.F \
+         mzonxst.F      npspin.F     ordleg.F      sglo.F \
+         sglogg.F       sll.F        sps.F         vglo.F \
+         vglogg.F       vll.F        vps.F         xyflcc.F \
+         xyfll.F        igaxg95.F    legvar.F      mxma.F \
+         grid_to_grid.F
 
 CDECKS= \
          c_time.c         ipsort.c       movr8r4.c
 
-FDECKS= \
+fDECKS= \
          afix.f           afix8.f        amax.f          amean.f \
          amin.f           bilin.f        corcof.f        coriol.f \
          coupe.f          cvt_base40.f   d1.f            d1int1.f \
@@ -97,32 +97,32 @@ COMDECKS= \
          cubic.cdk       kases.cdk       lagrange.cdk       ordr.cdk \
          pi.cdk       piprm.cdk  qqqcgb1.cdk  qqqgb2.cdk
 
-FICHIERS = $(FDECKS) $(FTNDECKS) $(CDECKS) $(COMDECKS)
+FICHIERS = $(fDECKS) $(FDECKS) $(CDECKS) $(COMDECKS)
 
-dgauss.o:	dgauss.ftn 	kases.cdk 	pi.cdk 
-grgg.o:		grgg.ftn 	kases.cdk 	pi.cdk 
-idxes.o:	idxes.ftn 	kases.cdk 
-llfxy.o:	llfxy.ftn 	pi.cdk 
-mxma.o:         mxma.ftn
-	s.compile -arch $(EC_ARCH) -abi $(ABI) -O 1 -defines "=$(DEFINE)" -optf "=$(FFLAGS)" $(SUPP_OPT) $(FTN_SUPP_OPT) -src $<
+dgauss.o:	dgauss.F 	kases.cdk 	pi.cdk 
+grgg.o:		grgg.F 	kases.cdk 	pi.cdk 
+idxes.o:	idxes.F 	kases.cdk 
+llfxy.o:	llfxy.F 	pi.cdk 
+mxma.o:         mxma.F
+	s.compile -O 1 -defines "=$(DEFINE)" -optf "=$(FFLAGS)" $(SUPP_OPT) $(FTN_SUPP_OPT) -src $<
 
-mzonxst.o:	mzonxst.ftn 
-npspin.o:       npspin.ftn 	kases.cdk 	pi.cdk 
-ordleg.o:       ordleg.ftn 	pi.cdk 
-sglo.o:		sglo.ftn 	cubic.cdk 	kases.cdk 	ordr.cdk 
-sglogg.o:	sglogg.ftn 	cubic.cdk 	kases.cdk 	lagrange.cdk \
+mzonxst.o:	mzonxst.F 
+npspin.o:       npspin.F 	kases.cdk 	pi.cdk 
+ordleg.o:       ordleg.F 	pi.cdk 
+sglo.o:		sglo.F 	cubic.cdk 	kases.cdk 	ordr.cdk 
+sglogg.o:	sglogg.F 	cubic.cdk 	kases.cdk 	lagrange.cdk \
 		ordr.cdk 	pi.cdk 
-sll.o:		sll.ftn 	cubic.cdk 	lagrange.cdk 	ordr.cdk 
-sps.o: 		sps.ftn 	cubic.cdk 	lagrange.cdk 	ordr.cdk 
-vglo.o:		vglo.ftn 	cubic.cdk 	kases.cdk 	pi.cdk 
-vglogg.o:	vglogg.ftn 	cubic.cdk 	kases.cdk 	lagrange.cdk \
+sll.o:		sll.F 	cubic.cdk 	lagrange.cdk 	ordr.cdk 
+sps.o: 		sps.F 	cubic.cdk 	lagrange.cdk 	ordr.cdk 
+vglo.o:		vglo.F 	cubic.cdk 	kases.cdk 	pi.cdk 
+vglogg.o:	vglogg.F 	cubic.cdk 	kases.cdk 	lagrange.cdk \
 		pi.cdk 
-vll.o:		vll.ftn 	pi.cdk 
-vps.o:		vps.ftn 	pi.cdk 
-xyflcc.o: 	xyflcc.ftn 	piprm.cdk 
-xyfll.o: 	xyfll.ftn 	pi.cdk 
-legvar.o:       legvar.ftn
-grid_to_grid.o: grid_to_grid.ftn
+vll.o:		vll.F 	pi.cdk 
+vps.o:		vps.F 	pi.cdk 
+xyflcc.o: 	xyflcc.F 	piprm.cdk 
+xyfll.o: 	xyfll.F 	pi.cdk 
+legvar.o:       legvar.F
+grid_to_grid.o: grid_to_grid.F
 
 tarball: $(FICHIERS)
 	tar cfzv /data/armnraid1/www/ssm/sources/base_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
@@ -172,11 +172,11 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	-if [ "*.ftn" != "`echo *.ftn`" ] ; \
+	-if [ "*.F" != "`echo *.F`" ] ; \
 	then \
-	for i in *.ftn ; \
+	for i in *.F ; \
 	do \
-	fn=`r.basename $$i '.ftn'`; \
+	fn=`r.basename $$i '.F'`; \
 	rm -f $$fn.f; \
 	done \
 	fi
