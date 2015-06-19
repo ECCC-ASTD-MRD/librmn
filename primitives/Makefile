@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn90 .f90 .ftn .f .c .o .a
+.SUFFIXES : .ftn90 .f90 .F .f .c .o .a
 
 include ../rmnlib_version.inc
 
@@ -62,10 +62,10 @@ include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 #include $(RPN_TEMPLATE_LIBS)/include/new_makefile_suffix_rules.inc
 
 FTNDECKS= \
-         ieeepak.ftn \
-         second.ftn      stkmem.ftn       tracebck.ftn\
-         ccard.ftn       sx_timing_stubs.ftn              f_baseio.ftn \
-         vpow_ibm.ftn    ftn2c_helper_f.ftn90             ftn_prog_args.f90\
+         ieeepak.F \
+         second.F      stkmem.F       tracebck.F\
+         ccard.F       sx_timing_stubs.F              f_baseio.F \
+         vpow_ibm.F    ftn2c_helper_f.ftn90             ftn_prog_args.f90\
          dlfcn.f90       msg.ftn90
 
 CDECKS= \
@@ -125,19 +125,19 @@ FICHIERS = $(FTNDECKS) $(FDECKS) $(CDECKS) $(COMDECKS)
 
 c_baseio.o:     c_baseio.c  wafile.h  wafile.h 
 dmms.o:     	dmms.c
-f_baseio.o:     f_baseio.ftn
+f_baseio.o:     f_baseio.F
 getenvc.o: 	getenvc.c
-ieeepak.o: 	ieeepak.ftn   xxpakc.cdk 
+ieeepak.o: 	ieeepak.F   xxpakc.cdk 
 mgilib.o:	mgilib.c  mgi.h 
 peek.o: 	peek.c  
 poke.o: 	poke.c  
 qqexit.o: 	qqexit.c
 rmtcall.o: 	rmtcall.c
-second.o: 	second.ftn 
-stkmem.o: 	stkmem.ftn 
-tracebck.o: 	tracebck.ftn 
-ccard.o:        ccard.ftn
-sx_timing_stubs.o:sx_timing_stubs.ftn
+second.o: 	second.F 
+stkmem.o: 	stkmem.F 
+tracebck.o: 	tracebck.F 
+ccard.o:        ccard.F
+sx_timing_stubs.o:sx_timing_stubs.F
 ftn2c_helper_f.f90: ftn2c_helper_f.ftn90
 ftn2c_helper_f.o: ftn2c_helper_f.ftn90
 
@@ -190,12 +190,4 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	-if [ "*.ftn" != "`echo *.ftn`" ] ; \
-	then \
-	for i in *.ftn ; \
-	do \
-	fn=`r.basename $$i '.ftn'`; \
-	rm -f $$fn.f; \
-	done \
-	fi
 	rm -f *.o rmnlib_version.f
