@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .c .ftn .f .o .a .f90
+.SUFFIXES : .c .F .f .o .a .f90
 
 SHELL = /bin/sh
 
@@ -45,7 +45,7 @@ FDECKS= \
          convip.f   fstcvt2.f
 
 FTNDECKS= \
-          hybref.ftn
+          hybref.F
 
 COMDECKS =  proto.h  qstdir.h ip_kind.h
 
@@ -66,7 +66,7 @@ fstd98.o:	fstd98.c if_fstd98.c qstdir.h proto.h
 xdf98.o:	xdf98.c if_xdf98.c qstdir.h proto.h
 fstdtst2.o:	fstdtst2.f
 tstxdf.o:	tstxdf.f
-hybref.o:	hybref.ftn
+hybref.o:	hybref.F
 convip_plus.o:  convip_plus.f90 convert_ip123.o
 
 tarball:  $(FICHIERS) Makefile
@@ -117,12 +117,4 @@ tstxdf: $(OBJECTS) tstxdf.o
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	-if [ "*.ftn" != "`echo *.ftn`" ] ; \
-	then \
-	for i in *.ftn ; \
-	do \
-	fn=`r.basename $$i '.ftn'`; \
-	rm -f $$fn.f; \
-	done \
-	fi
 	rm -f *.o *.mod
