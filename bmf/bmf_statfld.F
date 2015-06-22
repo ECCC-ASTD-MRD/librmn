@@ -49,7 +49,7 @@
 *----------------------------------------------------------------
 *
 *implicits
-#
+*
       integer i,j,k,imin,jmin,kmin,imax,jmax,kmax
       real*8 sum,sumd2,moy,var,mind,maxd,fijk,npt_8
       integer Lun_out
