@@ -145,8 +145,8 @@
       RETURN
 
  400  FORMAT('1  MRFVOI  UNITE  ',I3,'  NOM ',A,T86,'  PAGE ',I3)
- 500  FORMAT('0  STATION   LATI   LONG     DX     DY   FLGS(HEX)   DATE',
-     X       '   TEMPS   IDTYP   LONGUEUR  ADRESSE '/)
+ 500  FORMAT('0  STATION   LATI   LONG     DX     DY   FLGS(HEX)   DATE'
+     X       ,'   TEMPS   IDTYP   LONGUEUR  ADRESSE '/)
 #if defined (NEC)
  600  FORMAT(' ',A9,1X,4(I6,1X),4X,Z6,1X,I8,3X,I4,3X,I3,3X,I8,1X,I10)
 #else
