@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .f90 .ftn .cdk90 .c .o .a
+.SUFFIXES : .f90 .F .cdk90 .c .o .a
 
 SHELL = /bin/sh
 
@@ -38,8 +38,8 @@ default: obj
 
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
-FTNDECKS= \
-         bmf_statfld.ftn
+FDECKS= \
+         bmf_statfld.F
 
 F90DECKS= \
                               bmf_catalog.f90     bmf_gobe.f90       bmf_splitend.f90 \
@@ -75,7 +75,7 @@ OBJECTS= \
          bmf_splitwrite2.o  bmf_splitwriteh2.o  bmf_splitwritex2.o  bmf_splitwritexy2.o \
          bmf_splitwritey2.o
 
-FICHIERS = $(FTNDECKS) $(F90DECKS) $(CDECKS) $(CDK90DECKS)
+FICHIERS = $(FDECKS) $(F90DECKS) $(CDECKS) $(CDK90DECKS)
 
 tarball: $(FICHIERS)
 	tar cfzv /data/armnraid1/www/ssm/sources/bmf_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
@@ -121,12 +121,4 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	-if [ "*.ftn" != "`echo *.ftn`" ] ; \
-	then \
-	for i in *.ftn ; \
-	do \
-	fn=`r.basename $$i '.ftn'`; \
-	rm -f $$fn.f; \
-	done \
-	fi
 	rm -f *.o *.mod
