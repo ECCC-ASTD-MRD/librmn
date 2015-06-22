@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn .f .c .o .a
+.SUFFIXES : .F .c .o .a
 
 SHELL = /bin/sh
 
@@ -34,15 +34,15 @@ default: obj
 
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
-FTNDECKS= \
-         alpas2.ftn       alpas8.ftn       alpdl2.ftn       alpdl8.ftn \
-         alpdr2.ftn       alpdr8.ftn       alpnm2.ftn       alpnm8.ftn \
-         dimcal.ftn       epsil2.ftn       epsil8.ftn       fasp8.ftn \
-         gauss.ftn        gauss8.ftn       ggasp0.ftn \
-         ggasp8.ftn       gwaqd0.ftn       gwaqd8.ftn       ordleg8.ftn \
-         perm.ftn         qqqfasp.ftn      scof2.ftn        spagg0.ftn \
-         spagg8.ftn       fasp2.ftn        ewfdr2.ftn       spaf2.ftn \
-         spaf8.ftn
+FDECKS= \
+         alpas2.F       alpas8.F       alpdl2.F       alpdl8.F \
+         alpdr2.F       alpdr8.F       alpnm2.F       alpnm8.F \
+         dimcal.F       epsil2.F       epsil8.F       fasp8.F \
+         gauss.F        gauss8.F       ggasp0.F \
+         ggasp8.F       gwaqd0.F       gwaqd8.F       ordleg8.F \
+         perm.F         qqqfasp.F      scof2.F        spagg0.F \
+         spagg8.F       fasp2.F        ewfdr2.F       spaf2.F \
+         spaf8.F
 
 OBJECTS= \
          alpas2.o       alpas8.o       alpdl2.o       alpdl8.o \
@@ -55,7 +55,7 @@ OBJECTS= \
          spaf8.o
 
 
-FICHIERS = $(FTNDECKS)
+FICHIERS = $(FDECKS)
 
 tarball:  $(FICHIERS) Makefile
 	tar cfzv /data/armnraid1/www/ssm/sources/spectral_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
@@ -90,19 +90,11 @@ updlib:
 	fi
 
 copie:
-	for i in $(FTNDECKS) ;\
+	for i in $(FDECKS) ;\
 	do \
 	cp /users/dor/armn/lib/rmnlib/spmo/$$i $$i;\
 	done
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	-if [ "*.ftn" != "`echo *.ftn`" ] ; \
-	then \
-	for i in *.ftn ; \
-	do \
-	fn=`r.basename $$i '.ftn'`; \
-	rm -f $$fn.f; \
-	done \
-	fi
 	rm -f *.o
