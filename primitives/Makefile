@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn90 .f90 .F .f .c .o .a
+.SUFFIXES : .F90 .f90 .F .f .c .o .a
 
 include ../rmnlib_version.inc
 
@@ -65,8 +65,8 @@ FTNDECKS= \
          ieeepak.F \
          second.F      stkmem.F       tracebck.F\
          ccard.F       sx_timing_stubs.F              f_baseio.F \
-         vpow_ibm.F    ftn2c_helper_f.ftn90             ftn_prog_args.f90\
-         dlfcn.f90       msg.ftn90
+         vpow_ibm.F    ftn2c_helper_f.F90             ftn_prog_args.f90\
+         dlfcn.f90       msg.F90
 
 CDECKS= \
          c_baseio.c      c_ccard.c       dmms.c           fread32.c \
@@ -138,8 +138,6 @@ stkmem.o: 	stkmem.F
 tracebck.o: 	tracebck.F 
 ccard.o:        ccard.F
 sx_timing_stubs.o:sx_timing_stubs.F
-ftn2c_helper_f.f90: ftn2c_helper_f.ftn90
-ftn2c_helper_f.o: ftn2c_helper_f.ftn90
 
 tarball: $(FICHIERS) rmnlib_v
 	tar cfzv /data/armnraid1/www/ssm/sources/primitives_$(TARRLS)_all.tgz $(FICHIERS) rmnlib_version.f Makefile 
