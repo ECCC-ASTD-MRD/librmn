@@ -94,6 +94,6 @@
     end do ! i
   end do ! vt
 
-  #undef levelBelow
-  #undef levelAbove
+#undef levelBelow
+#undef levelAbove
 end subroutine ! Interp1D_NearestNeighbour_X

@@ -1,10 +1,12 @@
-!!!s/r Extrap1D_Fixed Interfaces
+!!!s/r Interp1D_CubicLagrange Interfaces
 !
 !AUTHOR
-!     J.W. Blezius NOV 2008 First revision for this file
+!     J.W. Blezius MAY 2002 first library to replace duplicate interpolation
+!                           routines
 !
 !REVISION
-! v1_4    Blezius J.W. NOV 2008 - add fixed extrapolation (this file)
+! v1_0    Blezius J.W.          - new code
+! v1_3    Blezius J.W. OCT 2003 - add the extended interface
 !
 !OBJECT
 !        To provide a means to easily compile the contained routine twice, once
@@ -16,32 +18,32 @@
 !!
 
 !version that accepts real(single) arguments, with the extended interface
-subroutine Extrap1D_Fixed_X  &
+subroutine Interp1D_CubicLagrange_X  &
 #define real48 single
-#include "Extrap1D_Fixed_Body.ftn90"
+#include "Interp1D_CubicLagrange_Body.F90"
 #undef real48
 
 !version that accepts real(double) arguments, with the extended interface
-subroutine Extrap1D_Fixed_X8  &
+subroutine Interp1D_CubicLagrange_X8  &
 #define real48 double
-#include "Extrap1D_Fixed_Body.ftn90"
+#include "Interp1D_CubicLagrange_Body.F90"
 #undef real48
 
 
 
 
 !version that accepts real(single) arguments
-subroutine Extrap1D_Fixed  &
+subroutine Interp1D_CubicLagrange  &
 #define real48 single
-#define DestnFunc Extrap1D_Fixed_X
-#include "Interp1D_PreX_Shell.ftn90"
+#define DestnFunc Interp1D_CubicLagrange_X
+#include "Interp1D_PreX_Shell.F90"
 #undef DestnFunc
 #undef real48
 
 !version that accepts real(double) arguments
-subroutine Extrap1D_Fixed8  &
+subroutine Interp1D_CubicLagrange8  &
 #define real48 double
-#define DestnFunc Extrap1D_Fixed_X8
-#include "Interp1D_PreX_Shell.ftn90"
+#define DestnFunc Interp1D_CubicLagrange_X8
+#include "Interp1D_PreX_Shell.F90"
 #undef DestnFunc
 #undef real48

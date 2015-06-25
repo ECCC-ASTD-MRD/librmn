@@ -1,12 +1,10 @@
-!!!s/r Interp1D_Linear Interfaces
+!!!s/r Extrap1D_Fixed Interfaces
 !
 !AUTHOR
-!     J.W. Blezius MAY 2002 first library to replace duplicate interpolation
-!                           routines
+!     J.W. Blezius NOV 2008 First revision for this file
 !
 !REVISION
-! v1_0    Blezius J.W.          - new code
-! v1_3    Blezius J.W. OCT 2003 - add the extended interface
+! v1_4    Blezius J.W. NOV 2008 - add fixed extrapolation (this file)
 !
 !OBJECT
 !        To provide a means to easily compile the contained routine twice, once
@@ -18,32 +16,32 @@
 !!
 
 !version that accepts real(single) arguments, with the extended interface
-subroutine Interp1D_Linear_X  &
+subroutine Extrap1D_Fixed_X  &
 #define real48 single
-#include "Interp1D_Linear_Body.ftn90"
+#include "Extrap1D_Fixed_Body.F90"
 #undef real48
 
 !version that accepts real(double) arguments, with the extended interface
-subroutine Interp1D_Linear_X8  &
+subroutine Extrap1D_Fixed_X8  &
 #define real48 double
-#include "Interp1D_Linear_Body.ftn90"
+#include "Extrap1D_Fixed_Body.F90"
 #undef real48
 
 
 
 
 !version that accepts real(single) arguments
-subroutine Interp1D_Linear  &
+subroutine Extrap1D_Fixed  &
 #define real48 single
-#define DestnFunc Interp1D_Linear_X
-#include "Interp1D_PreX_Shell.ftn90"
+#define DestnFunc Extrap1D_Fixed_X
+#include "Interp1D_PreX_Shell.F90"
 #undef DestnFunc
 #undef real48
 
 !version that accepts real(double) arguments
-subroutine Interp1D_Linear8  &
+subroutine Extrap1D_Fixed8  &
 #define real48 double
-#define DestnFunc Interp1D_Linear_X8
-#include "Interp1D_PreX_Shell.ftn90"
+#define DestnFunc Extrap1D_Fixed_X8
+#include "Interp1D_PreX_Shell.F90"
 #undef DestnFunc
 #undef real48

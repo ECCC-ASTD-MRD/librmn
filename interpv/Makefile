@@ -17,7 +17,7 @@
 
 .SUFFIXES:
 
-.SUFFIXES : .o .ftn90 .cdk .a
+.SUFFIXES : .o .F90 .cdk .a
 
 SHELL = /bin/sh
 
@@ -53,33 +53,33 @@ default: obj
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 Interp1D_Arguments_X.cdk : Interp1D_Arguments.cdk
-Interp1D_Constants.o : Interp1D_Constants.ftn90 Interp1D_Arguments_X.cdk
-Extrap1D_LapseRate.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_LapseRate.ftn90 \
-	Extrap1D_LapseRate_Body.ftn90 Interp1D_PreX_Shell.ftn90
-Extrap1D_Fixed.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Fixed.ftn90 \
-	Extrap1D_Fixed_Body.ftn90 Interp1D_PreX_Shell.ftn90
-Extrap1D_Abort.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Abort.ftn90 \
-	Extrap1D_Abort_Body.ftn90 Interp1D_PreX_Shell.ftn90
-Extrap1D_Surface.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Surface.ftn90 \
-	Extrap1D_Surface_Body.ftn90
-Extrap1D_SurfaceWind.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_SurfaceWind.ftn90 \
-	Extrap1D_SurfaceWind_Body.ftn90
-Interp1D_CubicLagrange.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_CubicLagrange.ftn90 \
-	Interp1D_CubicLagrange_Body.ftn90 Interp1D_PreX_Shell.ftn90
-Interp1D_CubicWithDerivs.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_CubicWithDerivs.ftn90 \
-	Interp1D_CubicWithDerivs_Body.ftn90 Interp1D_PreX_Shell.ftn90
-Interp1D_FindPos.o : Interp1D_Constants.o Interp1D_FindPos.ftn90 Interp1D_FindPos_Body.ftn90
-Interp1D_Linear.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_Linear.ftn90 Interp1D_Linear_Body.ftn90 \
-	Interp1D_PreX_Shell.ftn90
-Interp1D_NearestNeighbour.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_NearestNeighbour.ftn90 \
-	Interp1D_NearestNeighbour_Body.ftn90 Interp1D_PreX_Shell.ftn90
+Interp1D_Constants.o : Interp1D_Constants.F90 Interp1D_Arguments_X.cdk
+Extrap1D_LapseRate.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_LapseRate.F90 \
+	Extrap1D_LapseRate_Body.F90 Interp1D_PreX_Shell.F90
+Extrap1D_Fixed.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Fixed.F90 \
+	Extrap1D_Fixed_Body.F90 Interp1D_PreX_Shell.F90
+Extrap1D_Abort.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Abort.F90 \
+	Extrap1D_Abort_Body.F90 Interp1D_PreX_Shell.F90
+Extrap1D_Surface.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_Surface.F90 \
+	Extrap1D_Surface_Body.F90
+Extrap1D_SurfaceWind.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Extrap1D_SurfaceWind.F90 \
+	Extrap1D_SurfaceWind_Body.F90
+Interp1D_CubicLagrange.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_CubicLagrange.F90 \
+	Interp1D_CubicLagrange_Body.F90 Interp1D_PreX_Shell.F90
+Interp1D_CubicWithDerivs.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_CubicWithDerivs.F90 \
+	Interp1D_CubicWithDerivs_Body.F90 Interp1D_PreX_Shell.F90
+Interp1D_FindPos.o : Interp1D_Constants.o Interp1D_FindPos.F90 Interp1D_FindPos_Body.F90
+Interp1D_Linear.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_Linear.F90 Interp1D_Linear_Body.F90 \
+	Interp1D_PreX_Shell.F90
+Interp1D_NearestNeighbour.o : Interp1D_Constants.o Interp1D_Arguments_X.cdk Interp1D_NearestNeighbour.F90 \
+	Interp1D_NearestNeighbour_Body.F90 Interp1D_PreX_Shell.F90
 
 OBJECTS= \
         Interp1D_Constants.o Extrap1D_LapseRate.o Extrap1D_Fixed.o Extrap1D_Abort.o Extrap1D_Surface.o \
         Extrap1D_SurfaceWind.o Interp1D_CubicLagrange.o Interp1D_CubicWithDerivs.o \
         Interp1D_FindPos.o Interp1D_Linear.o Interp1D_NearestNeighbour.o
 
-FICHIERS = *.ftn90 *.cdk
+FICHIERS = *.F90 *.cdk
         
 SpeedFindPos:	SpeedFindPos.o $(OBJECTS)
 	s.compile -o SpeedFindPos_$(COMP_ARCH).Abs -obj SpeedFindPos.o $(OBJECTS) \

@@ -1,4 +1,4 @@
-!!!s/r Extrap1D_Surface Interfaces
+!!!s/r Extrap1D_SurfaceWind Interfaces
 !
 !AUTHOR
 !     J.W. Blezius OCT 2003 new kind of extrapolation
@@ -20,13 +20,13 @@
 !!
 
 !version that accepts real(single) arguments, with the extended interface
-subroutine Extrap1D_Surface_X  &
+subroutine Extrap1D_SurfaceWind_X  &
 #define real48 single
-#include "Extrap1D_Surface_Body.ftn90"
+#include "Extrap1D_SurfaceWind_Body.F90"
 #undef real48
 
 !version that accepts real(double) arguments, with the extended interface
-subroutine Extrap1D_Surface_X8  &
+subroutine Extrap1D_SurfaceWind_X8  &
 #define real48 double
-#include "Extrap1D_Surface_Body.ftn90"
+#include "Extrap1D_SurfaceWind_Body.F90"
 #undef real48
