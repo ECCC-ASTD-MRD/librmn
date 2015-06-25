@@ -188,4 +188,4 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	rm -f *.o rmnlib_version.f
+	rm -f *.o *.mod rmnlib_version.f
