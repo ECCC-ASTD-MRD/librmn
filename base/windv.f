@@ -20,13 +20,17 @@
 ***S/R WINDV - COMPUTES WEIGHT R.M.S. ERROR
 *
       SUBROUTINE WINDV(RMS,FU,FV,VU,VV,W,NI,NJ,IW1,IW2,NW1,NW2)
+      implicit none
+      integer :: NI,NJ,IW1,IW2,NW1,NW2
       REAL FU(NI,NJ),FV(NI,NJ),VU(NI,NJ),VV(NI,NJ),W(NI,NJ)
+      REAL :: RMS
 
 *
 *AUTHOR   - Y.R. BOURASSA  -  APR 75
 *
 *REVISION 001   C. THIBEAULT  -  NOV 79  DOCUMENTATION
 *REVISION 002   C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*REVISION 003   M. Valin      -  JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
 *
 *LANGUAGE - fortran
 *
@@ -62,6 +66,8 @@
 *------------------------------------------------------------------------------
 *
 *
+      real *8 :: FUMVU, FVMVV, WIJ, Y, FTW
+      integer :: I, J
       RMS  = 99999.
 *
 *  TEST TO SEE IF THE WINDOW CO-ORDINATES ARE INSIDE THE

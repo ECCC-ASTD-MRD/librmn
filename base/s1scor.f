@@ -20,13 +20,17 @@
 ***S/R S1SCOR - COMPUTES THE S1 (GRADIENT) SCORE
 *
       SUBROUTINE S1SCOR(S1,F,V,NI,NJ,IW1,IW2,NW1,NW2,IGL)
+      implicit none
       REAL F(NI,NJ), V(NI,NJ)
+      integer :: NI,NJ,IW1,IW2,NW1,NW2,IGL
+      REAL :: S1
 
 *
 *AUTHOR   - Y.R. BOURASSA  -  APR 75
 *
 *REVISION 001   C. THIBEAULT  -  NOV 79  DOCUMENTATION
 *REVISION 002   C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*REVISION 003   M. Valin      -  JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
 *
 *LANGUAGE - fortran
 *
@@ -61,6 +65,8 @@
 *
 *------------------------------------------------------------------------
 *
+      REAL*8 A, B, VIJ, FIJ, FI1J, VI1J, FIJ1, VIJ1
+      integer :: I, J, I2, J2
       S1 = 99999.
 *
       IF (IGL.NE.1.AND.IGL.NE.2) RETURN
@@ -88,8 +94,8 @@
       VIJ1 = V(I,J+1)
       A = A + ABS(FIJ-FI1J-VIJ+VI1J)
      1      + ABS(FIJ-FIJ1-VIJ+VIJ1)
-      B = B + AMAX1( ABS(FIJ-FI1J), ABS(VIJ-VI1J))
-     1      + AMAX1( ABS(FIJ-FIJ1), ABS(VIJ-VIJ1))
+      B = B + MAX( ABS(FIJ-FI1J), ABS(VIJ-VI1J))
+     1      + MAX( ABS(FIJ-FIJ1), ABS(VIJ-VIJ1))
    10 CONTINUE
 *
       IF (B.NE.0.) S1 = (A/B) * 100.

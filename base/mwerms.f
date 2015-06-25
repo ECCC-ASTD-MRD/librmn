@@ -21,13 +21,17 @@
 *               R.M.S. DEVIATION FROM THE MEAN
 *
       SUBROUTINE MWERMS(BIAS,STD,F,V,W,NI,NJ,IW1,IW2,NW1,NW2)
+      implicit none
+      integer :: NI,NJ,IW1,IW2,NW1,NW2
       REAL F(NI,NJ), V(NI,NJ), W(NI,NJ)
+      REAL :: BIAS, STD
 
 *
 *AUTHOR   - Y.R. BOURASSA  -  MAR 75
 *
 *REVISION 001   C. THIBEAULT  NOV 79  DOCUMENTATION
 *REVISION 002   C. THIBEAULT  MAR 83  CONVERSION AU CODE CRAY
+*REVISION 003   M. Valin      JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
 *
 *LANGUAGE - fortran
 *
@@ -64,6 +68,9 @@
 *
 *--------------------------------------------------------------------------
 *
+      REAL *8 BIAS2, x, y, FTW, FMV, WIJ
+      integer :: I, J
+
       BIAS = 99999.
       STD = 99999.
 *
@@ -81,16 +88,18 @@
         DO 10 J=IW2,NW2
         DO 10 I=IW1,NW1
         WIJ = W(I,J)
-        FMV = F(I,J)-V(I,J)
+        FMV = F(I,J)
+        FMV = FMV-V(I,J)
         X = X + FMV*WIJ
         Y = Y + FMV*FMV*WIJ
         FTW = FTW + WIJ
    10   CONTINUE
 *
       IF (FTW.EQ.0.) RETURN
-      BIAS = X / FTW
+      BIAS2 = X / FTW
       Y = Y / FTW
-      STD = SQRT(Y-BIAS*BIAS)
+      STD = SQRT(max(0.0,Y-BIAS2*BIAS2))
+      BIAS = BIAS2
 *
 *---------------------------------------------------------------------------
 *

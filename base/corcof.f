@@ -20,13 +20,17 @@
 ***S/R CORCOF - FINDS THE CORRELATION COEFFICIENT
 *
       SUBROUTINE CORCOF(CC,FI,FF,FV,W,NI,NJ,IW1,IW2,NW1,NW2)
-      REAL FI(NI,NJ),FF(NI,NJ),FV(NI,NJ),W(NI,NJ),R(5)
+      implicit none
+      integer :: NI,NJ,IW1,IW2,NW1,NW2
+      REAL FI(NI,NJ),FF(NI,NJ),FV(NI,NJ),W(NI,NJ)
+      REAL :: CC
 
 *
 *AUTHOR   - Y. BOURASSA  -  APR 75
 *
 *REVISION 001  C. THIBEAULT  -  SEP 79  DOCUMENTATION
 *REVISION 002  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*REVISION 003  M. Valin      -  JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
 *
 *OBJECT(CORCOF)
 *         _ GIVEN AN INITIAL FIELD, A FORECAST AND A VERIFYING FIELD,
@@ -66,6 +70,8 @@
 *
 *-------------------------------------------------------------------------------
 *
+      REAL *8 R(5), FFI, DA, DF, DW, FTW, X, Y, A, B, C
+      integer :: I, J
       CC = 99999.
       DO 10 I=1,5
       R(I) = 0.0
