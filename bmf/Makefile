@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .f90 .F .cdk90 .c .o .a
+.SUFFIXES : .f90 .F .c .o .a
 
 SHELL = /bin/sh
 
@@ -50,10 +50,7 @@ F90DECKS= \
          bmf_write2.f90       bmf_errorlvl.f90    bmf_geth.f90        bmf_perturb.f90 \
          bmf_splitinit.f90    bmf_splitwrall.f90  bmf_splitwritexy.f90 \
          bmf_splitwrite2.f90  bmf_splitwriteh2.f90  bmf_splitwritex2.f90  bmf_splitwritexy2.f90 \
-         bmf_splitwritey2.f90
-
-CDK90DECKS= \
-         bmf_mod.cdk90       bmf_modsplit.cdk90
+         bmf_splitwritey2.f90 bmf_mod.f90         bmf_modsplit.f90
 
 CDECKS= \
          bmf_char2i.c   
@@ -75,8 +72,7 @@ OBJECTS= \
          bmf_splitwrite2.o  bmf_splitwriteh2.o  bmf_splitwritex2.o  bmf_splitwritexy2.o \
          bmf_splitwritey2.o
 
-FICHIERS = $(FDECKS) $(F90DECKS) $(CDECKS) $(CDK90DECKS)
-
+FICHIERS = $(FDECKS) $(F90DECKS) $(CDECKS)
 tarball: $(FICHIERS)
 	tar cfzv /data/armnraid1/www/ssm/sources/bmf_$(TARRLS)_all.tgz $(FICHIERS) Makefile 
 
