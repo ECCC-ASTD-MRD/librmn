@@ -13,7 +13,7 @@ int c_xdfcls(int iun);
 ftnword f77name(xdfsta)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
 			ftnword_2 *pri,ftnword *fnpri,
 			ftnword_2 *aux,ftnword *fnaux,
-			char *vers,char *appl,int l1,int l2);
+			char *vers,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfsta(int iun,word *stat,int nstat,
                     word_2 *pri,int npri,word_2 *aux,int naux,
                     char *vers,char *appl);
