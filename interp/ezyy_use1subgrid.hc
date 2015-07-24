@@ -78,7 +78,7 @@ wordint c_ezyy_use1subgrid(wordint gdout,wordint gdin,wordint *yin2yin,wordint *
      inyin= 1;
      inyan= 0;
      icode = c_gdll(yin_gdout,dlat,dlon);
-     icode = c_gdxyfll(yin_gdin,xpx,ypx,dlat,dlon,ninj);
+     icode = c_gdxyfll_orig(yin_gdin,xpx,ypx,dlat,dlon,ninj);
      for (j=0; j< nj; j++)
          {
          for (i=0; i<ni; i++)
@@ -94,7 +94,7 @@ wordint c_ezyy_use1subgrid(wordint gdout,wordint gdin,wordint *yin2yin,wordint *
          }
      if (inyin == 0) /* check with YANG grid */
          {
-         icode = c_gdxyfll(yan_gdin,xpx,ypx,dlat,dlon,ninj);
+         icode = c_gdxyfll_orig(yan_gdin,xpx,ypx,dlat,dlon,ninj);
          for (j=0; j< nj; j++)
              {
              for (i=0; i<ni; i++)
@@ -129,7 +129,7 @@ wordint c_ezyy_use1subgrid(wordint gdout,wordint gdin,wordint *yin2yin,wordint *
      inyin= 1;
      inyan= 0;
      icode = c_gdll(yan_gdout,dlat,dlon);
-     icode = c_gdxyfll(yin_gdin,xpx,ypx,dlat,dlon,ninj);
+     icode = c_gdxyfll_orig(yin_gdin,xpx,ypx,dlat,dlon,ninj);
      for (j=0; j< nj; j++)
          {
          for (i=0; i<ni; i++)
@@ -145,7 +145,7 @@ wordint c_ezyy_use1subgrid(wordint gdout,wordint gdin,wordint *yin2yin,wordint *
          }
      if (inyin == 0) /* check other grid */
          {
-         icode = c_gdxyfll(yan_gdin,xpx,ypx,dlat,dlon,ninj);
+         icode = c_gdxyfll_orig(yan_gdin,xpx,ypx,dlat,dlon,ninj);
          for (j=0; j< nj; j++)
              {
              for (i=0; i<ni; i++)

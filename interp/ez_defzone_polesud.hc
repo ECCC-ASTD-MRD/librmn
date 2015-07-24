@@ -50,7 +50,7 @@ wordint ez_defzone_polesud(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts,
     {
     latpolesud = -90.0;
     lonpolesud = 0.0;
-    c_gdxyfll(gdin, &xpolesud, &ypolesud,  &latpolesud, &lonpolesud, 1);
+    c_gdxyfll_orig(gdin, &xpolesud, &ypolesud,  &latpolesud, &lonpolesud, 1);
     }
 
 

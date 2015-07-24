@@ -85,9 +85,7 @@ wordint c_gdll_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon)
          }
       else
          {
-         f77name(permut)(Grille[gdrow_id][gdcol_id].lat, &Grille[gdrow_id][gdcol_id].ni, &Grille[gdrow_id][gdcol_id].nj);
          memcpy(lat, Grille[gdrow_id][gdcol_id].lat, Grille[gdrow_id][gdcol_id].ni*Grille[gdrow_id][gdcol_id].nj*sizeof(ftnfloat));
-         f77name(permut)(Grille[gdrow_id][gdcol_id].lat, &Grille[gdrow_id][gdcol_id].ni, &Grille[gdrow_id][gdcol_id].nj);
          }
       }
    else

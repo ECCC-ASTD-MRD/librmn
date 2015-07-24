@@ -41,7 +41,14 @@ wordint c_gdllsval(wordint gdid, ftnfloat *zout, ftnfloat *zin, ftnfloat *lat, f
    x = (ftnfloat *)malloc(n * sizeof(float));
    y = (ftnfloat *)malloc(n * sizeof(float));
    
-   ier = c_gdxyfll(gdid, x, y, lat, lon, n);
+   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
+      {
+         ier = c_gdxyfll(gdid, x, y, lat, lon, n);
+      }
+   else
+      {
+         ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
+      }
    ier = c_gdxysval(gdid, zout, zin, x, y, n);
    
    free(x);

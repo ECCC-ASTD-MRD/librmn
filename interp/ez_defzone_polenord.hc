@@ -49,7 +49,7 @@ wordint ez_defzone_polenord(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts
     {
     latpolenord = 90.0;
     lonpolenord = 0.0;
-    c_gdxyfll(gdin, &xpolenord, &ypolenord,  &latpolenord, &lonpolenord, 1);
+    c_gdxyfll_orig(gdin, &xpolenord, &ypolenord,  &latpolenord, &lonpolenord, 1);
     }
   
   for (i=0; i < npts; i++)

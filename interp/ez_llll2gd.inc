@@ -18,7 +18,7 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
 !**s/r ez_llll2gd - computes the grid co-ordinates of a point
-!     
+!
       subroutine ez_llll2gd(x,y,dlat,dlon,npts,xlat0,xlon0, dellat, dellon, lonref)
       implicit none
 
@@ -28,11 +28,18 @@
       real x(npts), y(npts), dlat(npts), dlon(npts)
       real xlat0, xlon0, dellat, dellon, lonref
       integer i
-      
+
       if (lonref.eq.-180.0) then
          do i=1,npts
             if (dlon(i).gt.180.0) then
                dlon(i) = dlon(i) - 360.0
+            endif
+         enddo
+      else
+!    mai 2015 -correction by JP Gauthier
+         do i=1,npts
+            if (dlon(i).lt.0.0) then
+               dlon(i) = dlon(i) + 360.0
             endif
          enddo
       endif
@@ -45,4 +52,4 @@
       return
       end
 !-----------------------------------------------------------------
-      
+

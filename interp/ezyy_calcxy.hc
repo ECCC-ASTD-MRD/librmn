@@ -124,8 +124,8 @@ wordint c_ezyy_calcxy(wordint gdout,wordint gdin)
     lgdout->gset[idx_gdin].yin2yin_y = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
     lgdout->gset[idx_gdin].yan2yin_x = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
     lgdout->gset[idx_gdin].yan2yin_y = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    icode = c_gdxyfll(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
-    icode = c_gdxyfll(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
+    icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
+    icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
     }
 
   if (yyout == 1)
@@ -151,8 +151,8 @@ wordint c_ezyy_calcxy(wordint gdout,wordint gdin)
     lgdout->gset[idx_gdin].yin2yin_y = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
     lgdout->gset[idx_gdin].yan2yin_x = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
     lgdout->gset[idx_gdin].yan2yin_y = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    icode = c_gdxyfll(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
-    icode = c_gdxyfll(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
+    icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
+    icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
     
     /* create mask (Yin priority)with src Yin,src Yang onto dest Yang and 
                                                           store x,y pos */
@@ -176,8 +176,8 @@ wordint c_ezyy_calcxy(wordint gdout,wordint gdin)
     lgdout->gset[idx_gdin].yin2yan_y = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
     lgdout->gset[idx_gdin].yan2yan_x = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
     lgdout->gset[idx_gdin].yan2yan_y = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    icode = c_gdxyfll(yin_gdin,lgdout->gset[idx_gdin].yin2yan_x,lgdout->gset[idx_gdin].yin2yan_y,yin2yan_lat,yin2yan_lon,yincount_yan);
-    icode = c_gdxyfll(yan_gdin,lgdout->gset[idx_gdin].yan2yan_x,lgdout->gset[idx_gdin].yan2yan_y,yan2yan_lat,yan2yan_lon,yancount_yan);
+    icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yan_x,lgdout->gset[idx_gdin].yin2yan_y,yin2yan_lat,yin2yan_lon,yincount_yan);
+    icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yan_x,lgdout->gset[idx_gdin].yan2yan_y,yan2yan_lat,yan2yan_lon,yancount_yan);
     }
 
    free(yin2yin_lat);

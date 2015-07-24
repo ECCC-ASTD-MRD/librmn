@@ -54,7 +54,7 @@ wordint ez_calcspolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
     polar_y[i] = 1.0;
     }
   
-  c_gdllfxy(gdin, polar_lat, polar_lon, polar_x, polar_y, ni);
+  c_gdllfxy_orig(gdin, polar_lat, polar_lon, polar_x, polar_y, ni);
   ier = c_ezgxprm(gdin, &ni, &nj, grtyp, &ig1in, &ig2in, &ig3in, &ig4in,
 		  grref, &ig1in_ref, &ig2in_ref, &ig3in_ref, &ig4in_ref);
 

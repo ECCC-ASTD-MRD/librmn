@@ -94,7 +94,7 @@ wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uu
   else
       {
       ier = c_gdxyvval(gdin, uuout, vvout, uuin, vvin, x, y, n);
-      ier = c_gdllfxy(gdin, tmplat, tmplon, x, y, n);
+      ier = c_gdllfxy_orig(gdin, tmplat, tmplon, x, y, n);
       ier = c_gdwdfuv(gdin, uuout, vvout, uuout, vvout, tmplat, tmplon, n);
       }
 
