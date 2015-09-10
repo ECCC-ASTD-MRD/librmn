@@ -22,7 +22,7 @@
 #include <rpnmacros.h>
 
 f77name(ez_rgll2gd)(ftnfloat *z1, ftnfloat *z2, ftnfloat *xlon, wordint *ni, wordint *nj, 
-                    char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,wordint lengrtyp)
+                    char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,F2Cl lengrtyp)
 {
   ftnfloat *tmplat;
   wordint gdid, npts,n;
