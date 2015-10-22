@@ -88,7 +88,7 @@ static void scrap_page(int ind0,int ind1);
 static void process_decay();
 static void get_new_page(int ind);
 static void wa_pages_flush(int ind);
-static int filepos(int indf);
+static long long filepos(int indf);
 static int qqcopen(int indf);
 static void wa_page_read(int fd,word *buf,unsigned int adr,int nmots,int indf);
 static void wa_page_write(int fd,word *buf,unsigned int adr,int nmots,int indf);
@@ -1860,7 +1860,7 @@ static void wa_pages_flush(int ind)
 *         in a CMCARC file.
 *
 */
-static int filepos(int indf)
+static long long filepos(int indf)
 {
   char sign[25];
 
@@ -1881,8 +1881,7 @@ static int filepos(int indf)
   HEADER_CMCARC *cmcarc_file;
   int nblu,lng,found=0,version=0,tail_offset;
   unsigned int nt,nd;
-  INT_64 nt64, nd64, lng64, nblu64, pos64;
-  int retour;
+  INT_64 nt64, nd64, lng64, nblu64, pos64, retour;
   
   
   lseek(FGFDT[indf].fd,(off_t) 0,L_SET);
