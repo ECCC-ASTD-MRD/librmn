@@ -48,15 +48,37 @@ implicit none
 !   type(FLOAT_IP) :: RP1,RP2,RP3
 !   type(FLOAT_IP), dimension(3) :: VRP123
 !
-!   stat = encode_ip(ip1,ip2,ip3,v1,k1,v2,k2,v3,k3)  ! everything explicit (encode_ip_0)
-!   stat = encode_ip(vip123,v123,vk123)              ! vector version of above (encode_ip_1)
-!   stat = encode_ip(ip1,ip2,ip3,RP1,RP2,RP3)        ! ip <- multiple FLOAT_IP  (encode_ip_2)
-!   stat = encode_ip(vip123,VRP123)                  ! vector version of above (encode_ip_3)
+!   stat = encode_ip(ip1,ip2,ip3,v1,k1,v2,k2,v3,k3)  ! everything explicit (encode_ip_2)
+!   stat = encode_ip(vip123,v123,vk123)              ! vector version of above (encode_ip_3)
+!   stat = encode_ip(ip1,ip2,ip3,RP1,RP2,RP3)        ! ip <- multiple FLOAT_IP  (encode_ip_0)
+!   stat = encode_ip(vip123,VRP123)                  ! vector version of above (encode_ip_1)
 !
-!   stat = decode_ip(v1,k1,v2,k2,v3,k3,ip1,ip2,ip3)  ! everything explicit (decode_ip_0)
-!   stat = decode_ip(v123,vk123,vip123)              ! vector version of above (decode_ip_1)
-!   stat = decode_ip(RP1,RP2,RP3,ip1,ip2,ip3)        ! ip -> multiple FLOAT_IP  (decode_ip_2)
-!   stat = decode_ip(VRP123,vip123)                  ! vector version of above (decode_ip_3)
+!   stat = decode_ip(v1,k1,v2,k2,v3,k3,ip1,ip2,ip3)  ! everything explicit (decode_ip_2)
+!   stat = decode_ip(v123,vk123,vip123)              ! vector version of above (decode_ip_3)
+!   stat = decode_ip(RP1,RP2,RP3,ip1,ip2,ip3)        ! ip -> multiple FLOAT_IP  (decode_ip_0)
+!   stat = decode_ip(VRP123,vip123)                  ! vector version of above (decode_ip_1)
+!
+! program testip   ! very simple example of time range coding
+!   use ISO_C_BINDING
+!   implicit none
+!   include 'convert_ip123.inc'
+!   integer err
+!   type(FLOAT_IP) :: RP1,RP2,RP3
+!   integer :: ip1, ip2, ip3
+!   RP1%lo=10.   ! 10 mb
+!   RP1%hi=10.   ! 10 mb  hi == lo , no range
+!   RP1%kind=KIND_PRESSURE
+!   RP2%lo=6.    ! 6 hours
+!   RP2%hi=16.   ! 16 hours
+!   RP2%kind=KIND_HOURS
+!   RP3%lo=0.    ! there is a range so an invalid RP3 is OK
+!   RP3%hi=0.
+!   RP3%kind=-1
+!   err= encode_ip(IP1,IP2,IP3,RP1,RP2,RP3)
+!   print*, err,IP1,IP2,IP3
+!   stop
+! end
+
 ! NOTES
 !  the FORTRAN user must include
 !    use ISO_C_BINDING
