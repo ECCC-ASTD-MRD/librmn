@@ -80,23 +80,36 @@ OBJECTS= \
         Interp1D_FindPos.o Interp1D_Linear.o Interp1D_NearestNeighbour.o
 
 FICHIERS = *.F90 *.cdk
-        
+
 SpeedFindPos:	SpeedFindPos.o $(OBJECTS)
 	s.compile -o SpeedFindPos_$(COMP_ARCH).Abs -obj SpeedFindPos.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_005
+	-abi$(ABI) -librmn rmn_015.2
 
 SpeedInterp:	SpeedInterp.o $(OBJECTS)
 	s.compile -o SpeedInterp_$(COMP_ARCH).Abs -obj SpeedInterp.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_005
+	-abi$(ABI) -librmn rmn_015.2
+
+SpeedInterp_TestLib:	SpeedInterp.o
+	. s.ssmuse.dot /users/dor/arma/jbl/home1/armnlib_sandbox/sandbox_armnlib/sandbox_1/test_interpv; \
+	s.compile -O $(OPTIMIZ) $(SUPP_OPT) -o SpeedInterp_TestLib_$(COMP_ARCH).Abs -obj SpeedInterp.o \
+	-abi$(ABI) -librmn rmn_015.2 \
+	-libpath /users/dor/arma/jbl/home1/armnlib_sandbox/sandbox_armnlib/sandbox_1 \
+	-libappl rmn_Alpha_015.3
 
 SpeedExtrap:	SpeedExtrap.o $(OBJECTS)
 	s.compile -o SpeedExtrap_$(COMP_ARCH).Abs -obj SpeedExtrap.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_005
+	-abi$(ABI) -librmn rmn_015.2
 
 Test_Interp1D:	Test_Interp1D.o $(OBJECTS)
-	(. s.ssmuse.dot /ssm/net/rpn/libs/4.0; \
 	s.compile -o Test_Interp1D_$(COMP_ARCH).Abs -obj Test_Interp1D.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_014)
+	-abi$(ABI) -librmn rmn_015.2
+
+Test_Interp1D_TestLib:	Test_Interp1D.o
+	. s.ssmuse.dot /users/dor/arma/jbl/home1/armnlib_sandbox/sandbox_armnlib/sandbox_1/test_interpv; \
+	s.compile -O $(OPTIMIZ) $(SUPP_OPT) -o Test_Interp1D_TestLib_$(COMP_ARCH).Abs -obj Test_Interp1D.o \
+	-abi$(ABI) -librmn rmn_015.2 \
+	-libpath /users/dor/arma/jbl/home1/armnlib_sandbox/sandbox_armnlib/sandbox_1 \
+	-libappl rmn_Alpha_015.3
 
 tarball:  $(FICHIERS) Makefile
 	tar cfzv /data/armnraid1/www/ssm/sources/interpv_$(TARRLS)_all.tgz $(FICHIERS) Makefile 

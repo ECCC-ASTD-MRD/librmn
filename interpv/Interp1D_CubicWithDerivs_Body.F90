@@ -25,6 +25,7 @@
 ! v1_0    Blezius J.W.          - this routine was copied from vterp2, and
 !                                 the comments were added
 ! v1_1    Blezius J.W. SEP 2002 - make all input dim's the same; ditto for output! v1_3    Blezius J.W. OCT 2003 - extend the interface, but ignore the extra data
+!         Blezius J.W. DEC 2015 - take advantage of OpenMP
 !
 !OBJECT
 !        Given the state, S, and its derivative, S', at a set of
@@ -144,6 +145,7 @@
   ! duplication of calculation.  Such extrapolated estimates can be overwritten
   ! by calling an extrapolation routine.
   !
+!$OMP parallel do private(i,levelBelow,levelAbove,levelCentre,sb0,sa0,sb1,sa1,deltaLIn2,over2DeltaLIn,deltaLTar,diffDeltaLSquares,sc0,sc1,sc2,sc3,st2,st1,st0)
   do vt=1,destNumLevels                 ! for each target vertical point
     do i=1,numInterpSets                ! for each horizontal point
 
@@ -198,5 +200,6 @@
 
     end do ! i
   end do ! vt
+!$OMP END parallel do
 
 end subroutine ! Interp1D_CubicWithDerivs_X

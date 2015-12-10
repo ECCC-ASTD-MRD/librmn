@@ -23,6 +23,7 @@
 !
 !REVISION
 ! v1_3    Blezius J.W. OCT 2003 - new code
+!         Blezius J.W. DEC 2015 - take advantage of OpenMP
 !
 !OBJECT
 !        Extrapolate values at vertical levels below the lowest vertical level,
@@ -118,6 +119,7 @@
   ! Each destination point must be checked because no particular order has been
   ! assumed for these points.
   !
+!$OMP parallel do private(i,f)
   do vt=1,destNumLevels                 ! for each target vertical point
     call flux(f, vLevelDestn(:,vt), z0, ilmo,hBound,numInterpSets)!calculate f(i)
     do i=1,numInterpSets                ! for each horizontal point
@@ -131,5 +133,6 @@
       end if ! extrapEnableDown
     end do ! i
   end do ! vt
+!$OMP END parallel do
 
 end subroutine ! Extrap1D_Surface_X

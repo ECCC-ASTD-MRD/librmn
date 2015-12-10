@@ -27,6 +27,7 @@
 !                                 and adapted for a single dimension
 ! v1_1    Blezius J.W. SEP 2002 - make all input dim's the same; ditto for output
 ! v1_3    Blezius J.W. OCT 2003 - extend the interface, but ignore the extra data
+!         Blezius J.W. DEC 2015 - take advantage of OpenMP
 !
 !OBJECT
 !        Given the state at a set of srcNumLevels unevenly spaced levels,
@@ -105,6 +106,7 @@
   ! duplication of calculation.  Such extrapolated estimates can be overwritten
   ! by calling an extrapolation routine.
   !
+!$OMP parallel do private(i,x1,x2,x3,x4,z1,z2,z3,z4,cx1,cx2,cx3,cx4,cx5,cx6,a1,a2,a3,a4,xt)
   do vt=1,destNumLevels                 ! for each target vertical point
     do i=1,numInterpSets                ! for each horizontal point
 
@@ -153,5 +155,6 @@
 
     end do ! i
   end do ! vt
+!$OMP END parallel do
 
 end subroutine ! Interp1D_CubicLagrange_X

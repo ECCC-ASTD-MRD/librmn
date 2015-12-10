@@ -1,7 +1,7 @@
 program SpeedTest
   implicit none 
 
-  integer, parameter :: NNI=500         ! scales the arrays involved
+  integer, parameter :: NNI=5000         ! scales the arrays involved
   real,    dimension(NNI,50) :: vLevelSource, vLevelDestn, &
                                 stateIn, derivIn, &
                                 stateOut, derivOut
@@ -42,7 +42,7 @@ program SpeedTest
 
   call system_clock(clock_count_start, count_rate)
 
-  do h=1,200000/NNI
+  do h=1,4000000/NNI
 !    call Interp1D_CubicWithDerivs(NNI, 50, 50, &
 !    call Interp1D_CubicLagrange(NNI, 50, 50, &
     call Interp1D_Linear(NNI, 50, 50, &

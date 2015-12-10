@@ -27,6 +27,7 @@
 ! v1_0    Blezius J.W.          - new code
 ! v1_1    Blezius J.W. SEP 2002 - make all input dim's the same; ditto for output
 ! v1_3    Blezius J.W. OCT 2003 - extend the interface, but ignore the extra data
+!         Blezius J.W. DEC 2015 - take advantage of OpenMP
 !
 !OBJECT
 !        Given the state at a set of srcNumLevels unevenly spaced levels,
@@ -67,6 +68,7 @@
   ! duplication of calculation.  Such extrapolated estimates can be overwritten
   ! by calling an extrapolation routine.
   !
+!$OMP parallel do private(i,levelBelow,levelAbove,stateSourceAbove,stateSourceBelow)
   do vt=1,destNumLevels                 ! for each target vertical point
     do i=1,numInterpSets                ! for each horizontal point
 
@@ -93,6 +95,7 @@
 
     end do ! i
   end do ! vt
+!$OMP END parallel do
 
 #undef levelBelow
 #undef levelAbove

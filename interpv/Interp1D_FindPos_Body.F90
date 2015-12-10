@@ -15,6 +15,7 @@
 !REVISION
 ! v1_0    Blezius J.W.          - this routine was copied from find_pos1
 ! v1_1    Blezius J.W. SEP 2002 - make all input dim's the same; ditto for output
+!         Blezius J.W. DEC 2015 - take advantage of OpenMP
 !
 !OBJECT
 !        A part of the 1-D interpolation package, this function compares an array
@@ -71,6 +72,7 @@
   integer s                             ! index of the interpolation set
 
 
+!$OMP parallel do private(s,indexReal,uncertainty,indexInt)
   do t=1,destNumLevels                  ! for each (vertical) target level
 
     ! initial guess is in the middle of the field, with an uncertainty of half
@@ -139,5 +141,6 @@
     ! (horizontal) point in the set.  Record them.
     posnDestInSrc(1:numInterpSets, t)=indexReal
   end do ! t
+!$OMP END parallel do
 
 end subroutine ! Interp1D_FindPos

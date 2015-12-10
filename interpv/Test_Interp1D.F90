@@ -52,6 +52,7 @@ program Test_Interp1D
 
   logical :: pass = .true., &
              unitPass
+  integer :: testCount = 0
   integer :: i, v
 
   ! definition of the horizontal grid
@@ -162,7 +163,8 @@ program Test_Interp1D
 
   call TestReportClear(levelsSrc, stateAscending, derivAscending, levelsTgt, &
                       stateOut, derivOut, hnumpts, &
-                      'Cubic with Derivatives - DEscending source levels', pass)
+                      'Cubic with Derivatives - DEscending source levels', pass,&
+                      testCount)
 
 
 
@@ -194,7 +196,8 @@ program Test_Interp1D
   endif
 
   call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, &
-                      'extrapolation by lapse rate - DEscending source levels')
+                      'extrapolation by lapse rate - DEscending source levels', &
+                      testCount)
 
 
 
@@ -237,7 +240,8 @@ program Test_Interp1D
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
                        derivOut, hnumpts, &
-                       'Cubic with Derivatives - AScending source levels', pass)
+                       'Cubic with Derivatives - AScending source levels', pass,&
+                       testCount)
 
 
 
@@ -270,7 +274,8 @@ program Test_Interp1D
     endif
   end do
 
-  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, 'nearest neighbour')
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts,'nearest neighbour',&
+                      testCount)
 
 
 
@@ -292,7 +297,7 @@ program Test_Interp1D
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
                        derivOut, hnumpts, &
-                       'linear', pass)
+                       'linear', pass, testCount)
 
 
 
@@ -314,7 +319,7 @@ program Test_Interp1D
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
                       derivOut, hnumpts, &
-                      'cubic Lagrange', pass)
+                      'cubic Lagrange', pass, testCount)
 
 
 
@@ -345,7 +350,8 @@ program Test_Interp1D
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, 'extrapolation by lapse rate')
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, &
+                      'extrapolation by lapse rate', testCount)
 
 
 
@@ -376,7 +382,7 @@ program Test_Interp1D
 
   call TestReportClear(levelsSrc, stateIn, derivIn, levelsTgt, stateOut, &
                       derivOut, hnumpts, &
-                      'cubic Lagrange_X', pass)
+                      'cubic Lagrange_X', pass, testCount)
 
 
 
@@ -387,7 +393,7 @@ program Test_Interp1D
 ! TO TEST Extrap1D_Abort, UNCOMMENT THESE LINES:
 ! TO TEST Extrap1D_Abort, UNCOMMENT THESE LINES:
 !!$  write(6,*)" "
-!!$  write(6,*)"Testing Extrap1D_LapseRate.  With these data it should abort ..."
+!!$  write(6,*)"Testing Extrap1D_Abort.  With these data it should abort ..."
 !!$  call Extrap1D_Abort (hNumPts, nPtsSrc, nPtsTgt, &
 !!$                                  hDim, hDim, &
 !!$
@@ -410,7 +416,7 @@ program Test_Interp1D
 
 
   write(6,*)" "
-  write(6,*)"Testing Extrap1D_LapseRate. With these data it should NOT abort ..."
+  write(6,*)"Testing Extrap1D_Abort. With these data it should NOT abort ..."
   do i=1,hNumPts
     levelsOut(i,4) = 0.65
     levelsOut(i,5) = 2.9
@@ -517,7 +523,8 @@ program Test_Interp1D
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, 'extrapolation near surface')
+  call ReportAndClear(unitPass, stateOut, derivOut, hnumpts, &
+                      'extrapolation near surface', testCount)
 
 
 
@@ -612,7 +619,8 @@ program Test_Interp1D
     pass = .false.
   endif
 
-  call ReportAndClear(unitPass, stateOut, ExtArraysOut, hnumpts, 'wind extrapolation near surface')
+  call ReportAndClear(unitPass, stateOut, ExtArraysOut, hnumpts, &
+                      'wind extrapolation near surface', testCount)
 
 
 
@@ -631,6 +639,7 @@ program Test_Interp1D
     write(6,*)'*                         *'
     write(6,*)'* * * * * * * * * * * * * *'
   end if
+  write(6,*)'   number of tests completed:  ', testCount
 
 end program Test_Interp1D
 
@@ -644,7 +653,7 @@ end program Test_Interp1D
 !!s/r TestReportClear - test and report the results, and clear them for the next
 !                       trial
 subroutine TestReportClear(levelIn, stateIn, derivIn, level, state, deriv, &
-                           hnumpts, title, passOverall)
+                           hnumpts, title, passOverall, testCount)
 !
 !AUTHOR
 !     J.W. Blezius JULY 2002
@@ -664,6 +673,7 @@ subroutine TestReportClear(levelIn, stateIn, derivIn, level, state, deriv, &
   integer, intent(in) :: hnumpts
   character(*), intent(in) :: title
   logical, intent(inout) :: passOverall
+  integer, intent(inout) :: testCount
 !
 !NOTES
 !  This routine assumes that the levelIn, stateIn, and derivIn arrays are in
@@ -726,7 +736,7 @@ subroutine TestReportClear(levelIn, stateIn, derivIn, level, state, deriv, &
 
   passOverall = passOverall .and. pass
 
-  call ReportAndClear(pass, state, deriv, hnumpts, title)
+  call ReportAndClear(pass, state, deriv, hnumpts, title, testCount)
   
 end subroutine TestReportClear
 
@@ -737,7 +747,7 @@ end subroutine TestReportClear
 
 
 !!s/r Report - report the results, and clear them for the next trial
-subroutine ReportAndClear(pass, state, deriv, hnumpts, title)
+subroutine ReportAndClear(pass, state, deriv, hnumpts, title, testCount)
 !
 !AUTHOR
 !     J.W. Blezius JULY 2002
@@ -754,14 +764,16 @@ subroutine ReportAndClear(pass, state, deriv, hnumpts, title)
   real, dimension(hDim, nPtsTgt), intent(inout) :: state, deriv
   integer, intent(in) :: hnumpts
   character(*), intent(in) :: title
+  integer, intent(inout) :: testCount
 !
 !!
   integer :: i, v
 
-  character(len=19) :: spass  = '  PASS', &
-                       sfail  = '  **** F A I L ****', &
-                       string = '  **** T E M P ****'
+  character(len=19), parameter :: spass  = '  PASS             ', &
+                                  sfail  = '  **** F A I L ****'
+  character(len=19) :: string
 
+  testCount = testCount + 1
   if(pass) then
     string = spass
   else
@@ -769,7 +781,8 @@ subroutine ReportAndClear(pass, state, deriv, hnumpts, title)
   endif
 
 
-  write(6,*) '\n', title, string
+  write(6,*)
+  write(6,*) title, string
   write(6,*)'stateOut='
   do i=1,hNumPts
     write(6,'((10f12.7))')(state(i,v), v=1,nPtsTgt)
@@ -819,10 +832,10 @@ subroutine FluxStub(f,zz,z0,ilmo,h,n)
       INTEGER J
       REAL BETA,CI,AS,ASX,FACTN,HH
 
-      PARAMETER ( BETA = 1.0 , \
-                  CI   = 40. , \
-                  AS   = 12. , \
-                  ASX  = 5.0 , \
+      PARAMETER ( BETA = 1.0 , &
+                  CI   = 40. , &
+                  AS   = 12. , &
+                  ASX  = 5.0 , &
                   FACTN= 1.2  )
 
       real LZZ0,Y,Y0,RAC3
@@ -837,7 +850,7 @@ subroutine FluxStub(f,zz,z0,ilmo,h,n)
       c  (hi)   = d(unsl)*hi - hi**2
       b  (hi)   = d(unsl) - 2*hi
       a  (z,hi) = sqrt(1 + b(hi)*z - c(hi)*z**2)
-      psi(z,hi) = 0.5 * (a(z,hi)-z*hi-log(1+b(hi)*z*0.5+a(z,hi))- \
+      psi(z,hi) = 0.5 * (a(z,hi)-z*hi-log(1+b(hi)*z*0.5+a(z,hi))- &
                   b(hi)/(2*sqrt(c(hi)))*asin((b(hi)-2*c(hi)*z)/d(unsl)))
 
 !   Limites de validite: unsl >= 0 (cas stable ou neutre)
@@ -856,7 +869,7 @@ subroutine FluxStub(f,zz,z0,ilmo,h,n)
 !                      UNSTABLE CASE
            Y=(1-BETA*CI*(ZZ(J)+Z0(J))*ILMO(J))**(1./3)
            Y0=(1-BETA*CI*Z0(J)*ILMO(J))**(1./3)
-           F(J)=BETA*(LZZ0+1.5*ALOG((Y0**2+Y0+1)/(Y**2+Y+1))+RAC3* \
+           F(J)=BETA*(LZZ0+1.5*ALOG((Y0**2+Y0+1)/(Y**2+Y+1))+RAC3* &
               ATAN(RAC3*2*(Y-Y0)/((2*Y0+1)*(2*Y+1)+3)))
       ELSE
 !---------------------------------------------------------------------
@@ -864,9 +877,9 @@ subroutine FluxStub(f,zz,z0,ilmo,h,n)
            unsl=ilmo(j)
         hi=1/MAX(H(J),factn/d(ILMO(J)))
            !write(6,*)'j=',j,'lzz0=',lzz0
-           !write(6,*)'     min(psi...)=',min(psi(ZZ(J)+Z0(J),hi)-psi(Z0(J),hi),\
+           !write(6,*)'     min(psi...)=',min(psi(ZZ(J)+Z0(J),hi)-psi(Z0(J),hi),&
            !                ASX*BETA*ILMO(J)*ZZ(J))
-           f(j)=BETA*(LZZ0+min(psi(ZZ(J)+Z0(J),hi)-psi(Z0(J),hi), \
+           f(j)=BETA*(LZZ0+min(psi(ZZ(J)+Z0(J),hi)-psi(Z0(J),hi), &
                            ASX*BETA*ILMO(J)*ZZ(J)))
       ENDIF
 !---------------------------------------------------------------------
