@@ -89,8 +89,6 @@ wordint c_ezuvint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloa
   uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
   
-  c_ezgenerate_gem_cache();
-  
   c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
             Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
   c_gduvfwd(gdout, uuout, vvout, uullout, vvllout,

@@ -17,13 +17,13 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-!**s/r ezgfxyfll - compute a latitude and longitude on the true earth from a 
+!**s/r ez_gfxyfll - compute a latitude and longitude on the true earth from a 
 !		 x and y coordinate on a rotated latitude/longitude frame
 !		 of reference.
 !
       subroutine ez_gfxyfll(lonp,latp,lon,lat,n,xlat1,xlon1,xlat2,xlon2)
       implicit none
-      integer n
+      integer i,n
       real xlon1,xlat2,xlat1,xlon2
       real lonp(n),latp(n),lon(n),lat(n)
 !     

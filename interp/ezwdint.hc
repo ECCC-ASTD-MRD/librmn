@@ -55,7 +55,7 @@ wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vv
 
 wordint c_ezwdint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
 {
-   wordint gdin,gdout;
+   wordint gdin,gdout,ier;
    ftnfloat *uullout = NULL;
    ftnfloat *vvllout = NULL;
    wordint npts;
@@ -89,7 +89,8 @@ wordint c_ezwdint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloa
    uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
    vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
 
-   c_ezgenerate_gem_cache();
+   /*ezsint does not allocate lat,lon if gdin=gdout*/
+   ier = ez_calclatlon(gdout);
 
    c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
              Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
