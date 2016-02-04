@@ -76,7 +76,9 @@
 #ifdef __CYGWIN__
 #define lseek64 lseek
 #define open64 open
+#define off64_t off_t
 #define tell(fd) lseek(fd,0,1)
+#define tell64(fd) lseek(fd,0,1)
 #endif
 
 void static dump_file_entry(int i);
