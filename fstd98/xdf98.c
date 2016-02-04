@@ -465,8 +465,25 @@ int c_qdfdiag(int iun)
       fh = file_table[index]->header;
       }
    nw = c_wasize(iun);
-   strncpy(vers,(char *)&(fh->vrsn),4);
-   strncpy(appl,(char *)&(fh->sign),4);
+   if(*little_endian) {  
+     int  ct=fh->vrsn ;
+     vers[0]=(ct>>24)&&0xFF ;
+     vers[1]=(ct>>16)&&0xFF ;
+     vers[2]=(ct>>8)&&0xFF ;
+     vers[3]=ct&&0xFF ;
+     
+   }
+   else strncpy(vers,(char *)&(fh->vrsn),4);
+   if(*little_endian)
+   {
+     int  ct=fh->sign ;
+     appl[0]=(ct>>24)&&0xFF ;
+     appl[1]=(ct>>16)&&0xFF ;
+     appl[2]=(ct>>8)&&0xFF ;
+     appl[3]=ct&&0xFF ;
+   }
+   else strncpy(appl,(char *)&(fh->sign),4);
+
    vers[4] = '\0';
    appl[4] = '\0';
    readpos = 1 + W64TOwd(header64.lng);
