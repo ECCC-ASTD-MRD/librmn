@@ -122,7 +122,7 @@ int  compact_rle( void *unpackedArrayOfInt, void *packedHeader, void *packedArra
     /* token size is 0 */
     if ( bitSizeOfPackedToken < 3 )
       { 
-        return NULL;
+        return 0;
       };  
    
 
