@@ -90,7 +90,7 @@ int c_armn_compress32(unsigned char *zstream, float *fld, int ni, int nj, int nk
     }
   
   nbits = znbits - 9;
-  memset(&zfstzip, (int)NULL, sizeof(_fstzip));
+  memset(&zfstzip, 0, sizeof(_fstzip));
   
   zfstzip.predictor_type = PARALLELOGRAM32;
   zfstzip.step           = 3;

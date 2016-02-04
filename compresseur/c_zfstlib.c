@@ -251,7 +251,7 @@ void c_fstzip(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, 
 {
   _fstzip zfstzip;
 
-  memset(&zfstzip, (int)NULL, sizeof(_fstzip));
+  memset(&zfstzip, 0, sizeof(_fstzip));
   
   zfstzip.predictor_type = code_methode;
   zfstzip.step           = step;
@@ -299,7 +299,7 @@ void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits
 {
   _fstzip zfstzip;
 
-  memset(&zfstzip, (int)NULL, sizeof(_fstzip));
+  memset(&zfstzip, 0, sizeof(_fstzip));
   memcpy(&zfstzip, &zfld[0], sizeof(float));
   
   switch (zfstzip.predictor_type)
@@ -1256,7 +1256,7 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
     {
     lastSlot = 0;
     cur = z;
-    memset(z, (int)NULL, ni*nj*sizeof(unsigned int));
+    memset(z, 0, ni*nj*sizeof(unsigned int));
     for (i=0; i <= 20; i++)
       {
       local_bins[i] = 0;
@@ -1414,13 +1414,13 @@ void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int ni
     {
     bitPackInWord = 32;
 
-    memset(zc, (int )NULL, nicoarse*njcoarse*sizeof(int));
+    memset(zc, 0, nicoarse*njcoarse*sizeof(int));
     cur = z;
     memcpy(header, cur, sizeof(unsigned int));
     cur++;
     curword = *cur;
     }
-  memset(diffs, (int) NULL, ni*nj*sizeof(int));
+  memset(diffs, 0, ni*nj*sizeof(int));
   
   if (start == 1)
     {
