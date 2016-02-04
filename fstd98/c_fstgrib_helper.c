@@ -118,7 +118,7 @@ void c_84bits_ig_put(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftn
   ftnword ig_slices[4];
   ftnword nslices = 4;
    
-  memset(the_84bit_token, NULL, 3*sizeof(ftnword));
+  memset(the_84bit_token, 0, 3*sizeof(ftnword));
   ig_slices[0] = *ig1;
   ig_slices[1] = *ig2;
   ig_slices[2] = *ig3;
@@ -144,7 +144,7 @@ void c_84bits_ip_put(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bi
   ftnword ip_slices[3];
   ftnword nslices = 3;
    
-  memset(the_84bit_token, NULL, 3*sizeof(ftnword));
+  memset(the_84bit_token, 0, 3*sizeof(ftnword));
   ip_slices[0] = *ip1;
   ip_slices[1] = *ip2;
   ip_slices[2] = *ip3;
