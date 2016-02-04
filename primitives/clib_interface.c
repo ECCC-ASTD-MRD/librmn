@@ -946,7 +946,7 @@ F77_INTEGER CLIB_F77NAME(clib_mkdir_r)(F77_CHARACTER *path HIDDENLEN(path) ) {
   }
 
   /* Call C function */
-  if (mkpath(&path_c,(mode_t)0755)) {
+  if (mkpath((char *) &path_c,(mode_t)0755)) {
     status = CLIB_ERROR;
   } else {
     status = CLIB_OK;

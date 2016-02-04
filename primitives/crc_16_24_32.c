@@ -58,6 +58,8 @@ uint32_t update_crc_ne(uint32_t old_crc, int crclen, void *data, int datasiz, in
 
 #pragma weak f_update_crc_ne_  = f_update_crc_ne
 #pragma weak f_update_crc_ne__ = f_update_crc_ne
+uint32_t f_update_crc_ne_(uint32_t *old_crc, int *crclen, void *data, int *datasiz, int *datalen, int *mode);
+uint32_t f_update_crc_ne__(uint32_t *old_crc, int *crclen, void *data, int *datasiz, int *datalen, int *mode);
 uint32_t f_update_crc_ne(uint32_t *old_crc, int *crclen, void *data, int *datasiz, int *datalen, int *mode)
 {
   return update_crc_ne(*old_crc, *crclen, data, *datasiz, *datalen, *mode);
