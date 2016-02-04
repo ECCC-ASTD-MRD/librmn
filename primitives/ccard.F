@@ -19,9 +19,23 @@
 * */
 #define NKLEMAX 1024
 
+        SUBROUTINE CCARD_callback(p)
+        external p
+        PROCEDURE(), pointer :: callback
+        logical :: there_is_callback
+        common /qqqcbk1/ callback
+        common /qqqcbk2/ there_is_callback
+        data there_is_callback / .false. /
+
+        there_is_callback = .true.
+        callback => p
+        return
+        end
+
 ***S/P CCARD - RECUPERATION DES PARAMETRES D'APPEL A UN PROGRAMME
 
         SUBROUTINE CCARD(INCLE,DEF,VAL,N,II)
+        use ISO_C_BINDING
         INTEGER N,II
         CHARACTER * (*) INCLE(N), DEF(N), VAL(N)
 *
@@ -77,6 +91,11 @@
 *                               CONTINUE MALGRE LES ERREURS
 *
 **
+        PROCEDURE(), pointer :: callback
+        logical :: there_is_callback
+        common /qqqcbk1/ callback
+        common /qqqcbk2/ there_is_callback
+*
         INTEGER QQQOBM,LONGUEUR, QQQOENV
         EXTERNAL QQQOBM, QQQSAP, LOW2UP, QQQTRNS,LONGUEUR
 	EXTERNAL QQQOENV, qqexit
@@ -222,6 +241,10 @@
             INTERNE = INTERNE + 1
           ELSE IF(STATUS .EQ. 5) THEN
               CALL QQQSAP(CLE,DEF,VAL,N)
+              if(there_is_callback) then
+                print *,''
+                call callback
+              endif
               CALL QQEXIT(0)
           ELSE
              PASFINI = .FALSE.
@@ -535,6 +558,8 @@
 
         CHARACTER*8192 LENOM
         INTEGER I,NOMLNG,CLELNG,DEFLNG,VALLNG
+        character*128 clepre
+        integer repcle
 
 *       ON OBTIENT LE NOM DU PROGRAMME APPELANT
         CALL GETARG(0,LENOM)
@@ -543,17 +568,32 @@
 
         NOMLNG = LONGUEUR(LENOM)
         WRITE(6,*)LENOM(1:NOMLNG)
+        clepre = ' '
+        repcle = 0
 
         DO 50 I =1,N
-           CLELNG = LONGUEUR(CLE(I))
-           DEFLNG = LONGUEUR(DEF(I))
-           VALLNG = LONGUEUR(VAL(I))
-           WRITE(6,200) CLE(I)(1:CLELNG),VAL(I)(1:VALLNG),
+           if(trim(clepre) == trim(CLE(I))) then
+             repcle = repcle + 1
+           else
+             if(repcle > 0) then
+               print 300,'     [repeated',repcle,' time(s)]'
+             endif
+             repcle = 0
+             clepre = trim(CLE(I))
+             CLELNG = LONGUEUR(CLE(I))
+             DEFLNG = LONGUEUR(DEF(I))
+             VALLNG = LONGUEUR(VAL(I))
+             WRITE(6,200) CLE(I)(1:CLELNG),VAL(I)(1:VALLNG),
      %                  DEF(I)(1:DEFLNG)
+           endif
  50     CONTINUE
+        if(repcle > 0) then
+          print 300,'     [repeated',repcle,' more time(s)]'
+        endif
 
  100    FORMAT(' *** SEQUENCE D''APPEL ***'//)
  200    FORMAT('     -',A,' [',A,':',A,']')
+ 300    FORMAT(A,I4,A)
         RETURN
         END
 
