@@ -34,7 +34,7 @@ wordint f77name(ezsetfval)(char *option, ftnfloat *fvalue, F2Cl llenoption)
    {
    wordint i, icode;
    wordint longueur_option, longueur_value;
-   wordint lenoption=llenoption;
+   F2Cl lenoption=llenoption;
 
    char local_opt[32];
 
@@ -60,7 +60,7 @@ wordint f77name(ezsetival)(char *option, wordint *ivalue, F2Cl llenoption)
 {
    wordint i, icode;
    wordint longueur_option, longueur_value;
-   wordint lenoption=llenoption;
+   F2Cl lenoption=llenoption;
 
    char local_opt[32];
 

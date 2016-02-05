@@ -50,7 +50,7 @@ wordint c_gdllfxyz(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnf
     case 'S':
     case 'T':
     case '!':
-      c_gdllfxy(gdid, lat, lon, x, y, n);
+      c_gdllfxy_orig(gdid, lat, lon, x, y, n);
       break;
       
     case 'Y':

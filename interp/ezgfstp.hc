@@ -28,8 +28,8 @@ wordint f77name(ezgfstp)(wordint *gdid,
                          char *nomvary, char *typvary, char *etikety,
                          wordint *ip1, wordint *ip2, wordint *ip3, wordint *dateo, 
                          wordint *deet, wordint *npas, wordint *nbits,
-                         wordint lennomvarx, wordint lentypvarx, wordint lenetiketx,
-                         wordint lennomvary, wordint lentypvary, wordint lenetikety)
+                         F2Cl lennomvarx, F2Cl lentypvarx, F2Cl lenetiketx,
+                         F2Cl lennomvary, F2Cl lentypvary, F2Cl lenetikety)
 {
    wordint i;
    wordint icode;

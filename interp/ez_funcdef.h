@@ -269,7 +269,6 @@ void  c_ezllwfgfw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloa
                  wordint *ni,wordint *nj,
                   char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4);
 /*****************************************************************************/
-wordint c_ezgenerate_gem_cache();
 void c_ez_manageGrillesMemory();
 
 /*****************************************************************************/

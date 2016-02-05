@@ -27,7 +27,7 @@ static ftnfloat *eziglon = NULL;
 f77name(ez_igscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
                     ftnfloat *zi, wordint *ni, wordint *nj, 
                     char* grtyp, char *grref, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, 
-                    ftnfloat *sym, ftnfloat *ax, ftnfloat *ay, wordint lengrtyp, wordint lengrref)
+                    ftnfloat *sym, ftnfloat *ax, ftnfloat *ay, F2Cl lengrtyp, F2Cl lengrref)
 {
   wordint gdin, gdout, npts, i, ier;
   char ogrtyp[2], ogrref[2];
@@ -54,7 +54,7 @@ f77name(ez_igscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnf
 f77name(ez_rgscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
                     ftnfloat *zi, wordint *ni, wordint *nj, 
                     char* grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, ftnfloat *sym,
-                    wordint lengrtyp)
+                    F2Cl lengrtyp)
 {
   wordint gdin, gdout;
   char ogrtyp[2], ogrref[2], igrtyp[2],igrref[2];
@@ -78,7 +78,7 @@ f77name(ez_rgscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnf
 f77name(ez_iguvint)(ftnfloat *spdo, ftnfloat *psio, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
                     ftnfloat *ui, ftnfloat *vi, wordint *ni, wordint *nj, 
                     char* grtyp, char *grref, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, 
-                    ftnfloat *sws, ftnfloat *ax, ftnfloat *ay, wordint lengrtyp, wordint lengrref)
+                    ftnfloat *sws, ftnfloat *ax, ftnfloat *ay, F2Cl lengrtyp, F2Cl lengrref)
 {
   ftnfloat *tmplon;
   wordint gdin, gdout, i, ier;
@@ -102,7 +102,7 @@ f77name(ez_iguvint)(ftnfloat *spdo, ftnfloat *psio, wordint *li, wordint *lj, ft
 
 f77name(ez_rguvint)(ftnfloat *spdo, ftnfloat *psio, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
                     ftnfloat *ui, ftnfloat *vi, wordint *ni, wordint *nj, 
-                    char* grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, ftnfloat *sws, wordint lengrtyp)
+                    char* grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, ftnfloat *sws, F2Cl lengrtyp)
 {
   ftnfloat *tmplon;
   wordint gdin, gdout, i, ier;

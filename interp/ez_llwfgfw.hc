@@ -24,7 +24,7 @@
 
 void f77name(ez_llwfgfw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
                   ftnfloat *xlatingf, ftnfloat *xloningf, wordint *ni,wordint *nj,
-                  char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4, wordint lengrtyp)
+                  char *grtyp,wordint *ig1,wordint *ig2,wordint *ig3,wordint *ig4, F2Cl lengrtyp)
 {
   c_ezllwfgfw(uullout, vvllout, latin, lonin, xlatingf, xloningf, ni,nj,
 	      grtyp,ig1,ig2,ig3,ig4);

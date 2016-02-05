@@ -50,7 +50,7 @@ wordint c_gdllvval(wordint gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
      x = (ftnfloat *) malloc(n * sizeof(float));
      y = (ftnfloat *) malloc(n * sizeof(float));
    
-     ier = c_gdxyfll(gdid, x, y, lat, lon, n);
+     ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
      ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
    
      free(x);

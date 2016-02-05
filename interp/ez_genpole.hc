@@ -24,7 +24,7 @@
 
 wordint f77name(ezgenpole)(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
                            wordint *ni, wordint *nj, wordint *vecteur, 
-                           char *grtyp, wordint *hem, wordint lengrtyp)
+                           char *grtyp, wordint *hem, F2Cl lengrtyp)
 {
    return c_ezgenpole(vpolnor, vpolsud, fld, *ni, *nj, *vecteur, grtyp, *hem);
 

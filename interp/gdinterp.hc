@@ -136,7 +136,7 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
          for (j=0; j < Grille[gdrow_out][gdcol_out].nj; j++)
             {
             real_j = 1.0 * (j+1);
-            ier = c_gdllfxy(gdout, &gdst_lats[j], &tmp, &real_un, &real_j, 1);
+            ier = c_gdllfxy_orig(gdout, &gdst_lats[j], &tmp, &real_un, &real_j, 1);
             }
          f77name(ez_avg_sph)(zout, x, y, gdst_lats, &Grille[gdrow_out][gdcol_out].ni, &Grille[gdrow_out][gdcol_out].nj,
             zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
@@ -239,7 +239,7 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
          for (j=0; j < Grille[gdrow_out][gdcol_out].nj; j++)
             {
             real_j = 1.0 * (j+1);
-            ier = c_gdllfxy(gdout, &gdst_lats[j], &tmp, &real_un, &real_j, 1);
+            ier = c_gdllfxy_orig(gdout, &gdst_lats[j], &tmp, &real_un, &real_j, 1);
             }
          f77name(ez_avg_sph)(zout, x, y, gdst_lats, &Grille[gdrow_out][gdcol_out].ni, &Grille[gdrow_out][gdcol_out].nj,
             zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,

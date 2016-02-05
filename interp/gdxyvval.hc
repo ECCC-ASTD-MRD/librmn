@@ -96,19 +96,6 @@ wordint c_gdxyvval_orig(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat
 {
   groptions.vecteur = VECTEUR;
 
-/*
-  memset(&tmpset, (int) NULL, sizeof(_gridset));
-  gdout = NMAXGRIDS-1;
-  tmpset.gdin = gdin;
-  tmpset.gdout = gdout;
-  tmpset.x = x;
-  tmpset.y = y;
-
-
-  Grille[gdout].ni = n;
-  Grille[gdout].nj = 1;
-  Grille[gdout].grtyp = 'L';
-*/
 
   groptions.symmetrie = SYM;
   c_gdxysint(uuout,uuin, gdin, x, y, n);
@@ -116,15 +103,6 @@ wordint c_gdxyvval_orig(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat
   c_gdxysint(vvout,vvin, gdin, x, y, n);
   groptions.symmetrie = SYM;
 
-/*
- if (groptions.polar_correction == OUI)
-      {
-      tmpset.gdin = gdin;
-      ier = ez_defzones(&tmpset);
-      ez_corrvec(uuout, vvout, uuin, vvin, &tmpset);
-      ez_freezones(&tmpset);
-      }
-*/
  groptions.vecteur = SCALAIRE;
 
   return 0;

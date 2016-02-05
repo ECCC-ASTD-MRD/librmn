@@ -55,7 +55,6 @@
 #include "ezgdef_yymask.hc"
 #include "ezget_nsubgrids.hc"
 #include "ezget_subgridids.hc"
-#include "ezget_subgridmem.hc"
 #include "ezgetopt.hc"
 #include "ezgetval.hc"
 #include "ezgfstp.hc"
