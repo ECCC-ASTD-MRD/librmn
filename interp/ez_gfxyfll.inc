@@ -23,7 +23,7 @@
 !
       subroutine ez_gfxyfll(lonp,latp,lon,lat,n,xlat1,xlon1,xlat2,xlon2)
       implicit none
-      integer i,n
+      integer n
       real xlon1,xlat2,xlat1,xlon2
       real lonp(n),latp(n),lon(n),lat(n)
 !     
