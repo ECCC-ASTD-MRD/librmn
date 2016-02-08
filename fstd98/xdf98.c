@@ -425,6 +425,9 @@ static void build_gen_prim_keys(word *buf, word *keys,
 
 int c_qdfdiag(int iun)
 {
+#define swap_4(mot) { register unsigned INT_32 tmp =(unsigned INT_32)mot; \
+   mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
+
    int index, index_fnom, ier, wasopen=0, addr, nw;
    int nrec_tot=0, nrec_act=0, nrec_eff=0, ndirect=0, leplusgros=0;
    int readpos, eofile=0, thesame;
@@ -467,20 +470,15 @@ int c_qdfdiag(int iun)
    nw = c_wasize(iun);
    if(*little_endian) {  
      int  ct=fh->vrsn ;
-     vers[0]=(ct>>24)&&0xFF ;
-     vers[1]=(ct>>16)&&0xFF ;
-     vers[2]=(ct>>8)&&0xFF ;
-     vers[3]=ct&&0xFF ;
-     
+     swap_4(ct);
+     strncpy(vers,(char *)&(ct),4);
    }
    else strncpy(vers,(char *)&(fh->vrsn),4);
    if(*little_endian)
    {
      int  ct=fh->sign ;
-     appl[0]=(ct>>24)&&0xFF ;
-     appl[1]=(ct>>16)&&0xFF ;
-     appl[2]=(ct>>8)&&0xFF ;
-     appl[3]=ct&&0xFF ;
+     swap_4(ct);
+     strncpy(appl,(char *)&(ct),4);
    }
    else strncpy(appl,(char *)&(fh->sign),4);
 
