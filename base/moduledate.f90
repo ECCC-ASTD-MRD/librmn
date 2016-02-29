@@ -113,7 +113,7 @@
 !           1980/01/01 00H00. NEGATIVE VALUES ARISE AS
 !           THIS CONCEPT APPLIES FROM 1900/01/01.
 !         - AN EXTENDED TRUE DATE IS AN INTEGER THAT CONTAINS
-!           THE NUMBER OF HOURS SINCE YEAR 00/01/01
+!           THE NUMBER OF 3 HOURLY INTERVALS SINCE YEAR 00/01/01
 !         - SEE INCDATR FOR DETAIL ON CMC DATE-TIME STAMP
 !**S/R INCDATR - INCREASE IDATE2 BY NHOURS
 !
@@ -139,6 +139,14 @@
 !               Utiliser Get_calendar_Status et Calendar_Adjust
 !               pour supporter les calculs effectues avec des
 !               calendriers alternatifs (i.e. 360 ou 365 jours)
+!REVISION 006   B. Dugas - Fevrier 2016
+!               1) Correction a la routine LeapYear_Adjust,
+!                  laquelle est appellee par Calendar_Adjust
+!               2) Correction aux appels internes a NEWDATE
+!                  pour lesquels DAT2 doit etre un vecteur.
+!                  Ceci elimine plusieurs avertissements a
+!                  la compilation (GFORTRAN).
+!
 !LANGUAGE - fortran
 !
 !OBJECT   - INCDATR COMPUTES IDATE1=IDATE2+NHOURS
@@ -198,7 +206,8 @@
       logical :: no_leap_years,ccclx_days,goextend
 
       integer(8) addit
-      integer tdate1,tdate2,runnum,ndays,pdate1,pdate2
+      integer tdate1,tdate2,runnum,ndays,pdate2
+      integer idate(2),pdate1(2)
       integer td1900, td2235
       data td1900 /-504904320/, td2235 /1615714548/
 
@@ -232,14 +241,14 @@
           endif
           result=newdate(tdate1,pdate1,pdate2,+7)
           if(result.ne.0) then
-             print *,'label 2,pdate1,pdate2:',pdate1,pdate2
+             print *,'label 2,pdate1,pdate2:',pdate1(1),pdate2
              goto 2
           endif
         else
-          result=newdate(tdate1,idate1,runnum,6)
+          idate(1)=idate1 ; result=newdate(tdate1,idate,runnum,6)
         endif
       else
-        result=newdate(tdate1,idate1,runnum,1)
+        idate(1)=idate1 ; result=newdate(tdate1,idate,runnum,1)
       endif
       if(result.ne.0) then
          print *,'label 3,idate1:',idate1
@@ -258,11 +267,11 @@
            endif
            result=newdate(tdate2,pdate1,pdate2,+7)
            if(result.ne.0) then
-              print *,'label 5,pdate1,pdate2:',pdate1,pdate2
+              print *,'label 5,pdate1,pdate2:',pdate1(1),pdate2
               goto 2
            endif
         else
-           result=newdate(tdate2,idate2,runnum,6)
+           idate(1)=idate2 ; result=newdate(tdate2,idate,runnum,6)
         endif
         if(result.ne.0) then
            print *,'label 6,idate2:',idate2
@@ -274,7 +283,7 @@
             ndays = Calendar_Adjust(tdate1,tdate2,'E',adding)
             tdate1 = tdate1 + (ndays*24)
           endif
-          result=newdate(tdate1,idate1,runnum,-6)
+          result=newdate(tdate1,idate,runnum,-6) ; idate1=idate(1)
           if (result.ne.0)  then
              print *,'after if adding,if rounding',tdate1
              goto 2
@@ -287,7 +296,7 @@
           endif
         endif
       else
-        result=newdate(tdate2,idate2,runnum,1)
+        idate(1)=idate2 ; result=newdate(tdate2,idate,runnum,1)
         if(result.ne.0) then
            print *,'label 1,idate2:',idate2
            goto 2
@@ -321,7 +330,7 @@
              endif
              result=newdate(tdate2,pdate1,pdate2,+7)
              if(result.ne.0) then
-                print *,'label 8,pdate1,pdate2:',pdate1,pdate2
+                print *,'label 8,pdate1,pdate2:',pdate1(1),pdate2
                 goto 2
              endif
              tdate1=tdate2+nint(nhours)
@@ -329,9 +338,9 @@
                ndays = Calendar_Adjust(tdate1,tdate2,'E',adding)
                tdate1 = tdate1 + (ndays*24)
              endif
-             result=newdate(tdate1,idate1,runnum,-6)
+             result=newdate(tdate1,idate,runnum,-6) ; idate1=idate(1)
            else
-             result=newdate(tdate1,idate1,runnum,-1)
+             result=newdate(tdate1,idate,runnum,-1) ; idate1=idate(1)
            endif
            if (result.ne.0)  then
               print *,'after if adding,if rounding',tdate1
@@ -365,7 +374,7 @@
 !                    TIME STAMP USING THE OPERATIONAL CMC DATE-TIME
 !                    GROUP.
 !
-      FUNCTION IDATMG2(IDATE)
+      INTEGER FUNCTION IDATMG2(IDATE)
       IMPLICIT NONE
 !
 !AUTHOR   - M. VALIN  -  MAR 79
@@ -400,8 +409,8 @@
 !
 !---------------------------------------------------------------------
 !
-      integer idate(14),idatmg2,newdate
-      external newdate
+      integer idate(14)
+      integer, external :: newdate
       integer dtpr,tmpr,year,result
       year=idate(4)
       if ((year.ge.0) .and. (year.le.99)) then
@@ -420,12 +429,14 @@
 !**S/R DATMGP2 - CREATES A DATE TIME GROUP.
 !
       SUBROUTINE DATMGP2 (IDATE)
+      IMPLICIT NONE
 !
 !AUTHOR   - D. SHANTZ
 !
 !REVISION 001   C. THIBEAULT  -  NOV 79   DOCUMENTATION
 !         002   E. BEAUCHESNE  -  JUN 96  NEW DATE-TIME STAMP
 !         003   M. Lepine - Avril 98 - Retourner l'annee a 4 chiffres
+!         004   B. Dugas - fevrier 2016 - Supprimer constantes holorith
 !
 !LANGUAGE - fortran
 !
@@ -465,12 +476,14 @@
 !--------------------------------------------------------------------
 !
       integer idate(14),dtpr,tmpr,result
-      real xmonth(12),xday(7)
+      integer i,j,k,iday,idt,mon,jd
+      character * 3   xmonth(12),xday(7), amonth,aday
       character * 128 wrk
-      data xmonth / 4HJAN ,4HFEB ,4HMAR ,4HAPR ,4HMAY ,4HJUN , &
-                    4HJUL ,4HAUG ,4HSEP ,4HOCT ,4HNOV ,4HDEC /
-      data xday   / 4HSUN ,4HMON ,4HTUE ,4HWED ,4HTHU , &
-                    4HFRI ,4HSAT /
+      integer, external :: newdate
+      data xmonth / 'JAN','FEB','MAR','APR','MAY','JUN', &
+                    'JUL','AUG','SEP','OCT','NOV','DEC' /
+      data xday   / 'SUN','MON','TUE','WED','THU', &
+                    'FRI','SAT' /
 !
 !---------------------------------------------------------------------
 !
@@ -504,7 +517,7 @@
            mod(idate(6)/100,60),mod(idate(6),100)
       read (wrk,501) (idate(i),i=7,13)
   501 format (7a4)
-  601 format (1x,a3,1x,a3,i3.2,1x,i4.2,i3.2,'Z',i2.2,':',i2.2,'.',i2.2)
+  601 format (1x,a,1x,a,i3.2,1x,i4.2,i3.2,'Z',i2.2,':',i2.2,'.',i2.2)
 !
 !---------------------------------------------------------------------
 !
@@ -582,7 +595,7 @@
                   ccclx_days               =  .false.
                endif
                if (debug) &
-               write(6,"(/' Debug no_leap_years,ccclx_days=',L,1x,L/)") &
+               write(6,"(/' Debug no_leap_years,ccclx_days=',L1,1x,L1/)") &
                         no_leap_years,ccclx_days
             endif
          endif
@@ -655,7 +668,7 @@
                   ccclx_days               =  .false.
                endif
                if (debug) &
-               write(6,"(/' Debug no_leap_years,ccclx_days=',L,1x,L/)") &
+               write(6,"(/' Debug no_leap_years,ccclx_days=',L1,1x,L1/)") &
                         no_leap_years,ccclx_days
             endif
          endif
@@ -706,10 +719,10 @@
       implicit none
       logical :: adding
       character(len=1) true_date_mode ! (B)asic or (E)xtended true dates
-      integer, parameter :: limite = 23595500
+      integer, parameter :: limite = 23595500 ! 23h 59m 55s 
       integer :: true2print,print2true
-      integer :: ier,tdate1,tdate2,inc,m1,m2
-      integer :: year,annee,y1,y1L,y2,p1a,p1b,p2a,p2b
+      integer :: ier,tdate1,tdate2,inc,m1,m2,dat(2)
+      integer :: year,annee,y1,y1L,y2,p1a(2),p1b,p2a(2),p2b
       integer :: ndays,tdate1L,tdate28f,tdate29f,addit
       logical :: bissextile
       integer :: newdate
@@ -735,11 +748,11 @@
                        ! evolve to its real value as leap days are found
 
       ier = newdate(tdate1,p1a,p1b,true2print) ! true date to printable, but this
-      y1 =      p1a / 10000                    ! may still accounts for leap days
-      m1 = mod( p1a / 100 , 100 )
+      y1 =      p1a(1) / 10000                 ! may still accounts for leap days
+      m1 = mod( p1a(1) / 100 , 100 )
       ier = newdate(tdate2,p2a,p2b,true2print)
-      y2 =      p2a / 10000
-      m2 = mod( p2a / 100 , 100 )
+      y2 =      p2a(1) / 10000
+      m2 = mod( p2a(1) / 100 , 100 )
 !!!   print *,'Dans LeapYear_Adjust...'
 !CC   print *,'Debut=',mod(p2a,100),mod(p2a/100,100),y2
 !CC   print *,'Fin  =',mod(p1a,100),mod(p1a/100,100),y1
@@ -747,10 +760,11 @@
       if (y2 > y1 .or. (y1 == y2 .and. m2 > m1)) inc=-1
       do annee = y2,y1,inc
         if (bissextile(annee)) then
-          ier = newdate(tdate28f,annee*10000+0228,limite,print2true)
-          ier = newdate(tdate29f,annee*10000+0229,0,print2true)
-          if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+          dat(1) = annee*10000+0228 ; ier = newdate(tdate28f,dat,limite,print2true)
+          dat(1) = annee*10000+0229
           if (inc > 0) then
+            ier = newdate(tdate29f,dat,0,print2true)
+            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
@@ -759,6 +773,8 @@
 !CC           print *,annee,' exclue'
             endif
           else
+            ier = newdate(tdate29f,dat,limite,print2true)
+            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
@@ -767,19 +783,22 @@
         endif
       enddo
       ier = newdate(tdate1L,p1a,p1b,true2print)
-      y1L = p1a / 10000
+      y1L = p1a(1) / 10000
 !!!   print *,'FinL =',mod(p1a,100),mod(p1a/100,100),y1L
       do annee = y1+inc,y1L,inc
         if (bissextile(annee)) then
-          ier = newdate(tdate28f,annee*10000+0228,limite,print2true)
-          ier = newdate(tdate29f,annee*10000+0229,0,print2true)
-          if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+          dat(1) = annee*10000+0228 ; ier = newdate(tdate28f,dat,limite,print2true)
+          dat(1) = annee*10000+0229
           if (inc > 0) then
+            ier = newdate(tdate29f,dat,0,print2true)
+            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
             endif
           else
+            ier = newdate(tdate29f,dat,limite,print2true)
+            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
@@ -792,7 +811,7 @@
       return
       end
 
-      function CcclxDays_Adjust(tdate1,tdate2, &
+      integer function CcclxDays_Adjust(tdate1,tdate2, &
                                 true_date_mode,adding)
 
 !     Calculate correction (in days) to account for "360-day
@@ -800,7 +819,6 @@
 !     are by default always done with the gregorian calendar.
 
       implicit none
-      integer CcclxDays_Adjust
 
       ! arguments
 
@@ -812,8 +830,8 @@
 
       real(8) :: nhours,nhoursi,td2h
       integer :: true2print,print2true,ier
-      integer :: ye1,mo1,da1,ho1,mi1,se1,p1a,p1b
-      integer :: ye2,mo2,da2,ho2,mi2,se2,p2a,p2b
+      integer :: ye1,mo1,da1,ho1,mi1,se1,p1a(2),p1b
+      integer :: ye2,mo2,da2,ho2,mi2,se2,p2a(2),p2b
       integer :: addit,tdateL
       integer, external :: newdate
 
@@ -836,14 +854,14 @@
 
 !     decode p2a and p2b
 
-      ye2 =      p2a / 10000
-      mo2 = mod( p2a / 100     , 100 )
-      da2 = mod( p2a           , 100 )
+      ye2 =      p2a(1) / 10000
+      mo2 = mod( p2a(1) / 100     , 100 )
+      da2 = mod( p2a(1)           , 100 )
 
       if ((da2 > 28 .and. mo2 == 2) .or. &  ! sanity check: make sure that
           (da2 > 30 .and. mo2 >  4)) then   ! tdate2 conforms to a 360-day
          print *,'Illegal date for 360-day calendar ', & ! calendar
-                  p2a,' in CcclxDays_Adjust'
+                  p2a(1),' in CcclxDays_Adjust'
          CcclxDays_Adjust = 89478485 ! * 24 = 2^31 - 8, a LARGE number
          if (.not.adding) CcclxDays_Adjust = -CcclxDays_Adjust
          return                      ! and should cause a quick abort
@@ -951,8 +969,8 @@
 
          ! calculate the real TrueDate
 
-         p1a =  (ye1*100+mo1)*100+da1
-         p1b = ((ho1*100+mi1)*100+se1)*100
+         p1a(1) =  (ye1*100+mo1)*100+da1
+         p1b    = ((ho1*100+mi1)*100+se1)*100
 
          ier = newdate( tdateL, p1a,p1b, print2true )
 
@@ -968,14 +986,14 @@
 
          ! decode p1a and p1b
 
-         ye1 =      p1a / 10000
-         mo1 = mod( p1a / 100     , 100 )
-         da1 = mod( p1a           , 100 )
+         ye1 =      p1a(1) / 10000
+         mo1 = mod( p1a(1) / 100     , 100 )
+         da1 = mod( p1a(1)           , 100 )
 
          if ((da1 > 28 .and. mo1 == 2) .or.  & ! sanity check: make sure that
              (da1 > 30 .and. mo1 >  4)) then   ! tdate1 conforms to a 360-day
             print *,'Illegal date for 360-day calendar ', & ! calendar
-                     p1a,' in CcclxDays_Adjust'
+                     p1a(1),' in CcclxDays_Adjust'
             CcclxDays_Adjust = 89478485 ! * 24 = 2^31 - 8, a LARGE number
             return                      ! and should cause a quick abort
          endif
@@ -1024,9 +1042,9 @@
 !**FUNCTION NEWDATE : CONVERTS DATES BETWEEN TWO OF THE FOLLOWING
 !FORMATS: PRINTABLE DATE, CMC DATE-TIME STAMP, TRUE DATE
 !
-      FUNCTION NEWDATE(DAT1,DAT2,DAT3,MODE)
+      INTEGER FUNCTION NEWDATE(DAT1,DAT2,DAT3,MODE)
       IMPLICIT NONE
-      INTEGER NEWDATE,DAT1,DAT2(*),DAT3,MODE
+      INTEGER DAT1,DAT2(*),DAT3,MODE
 !
 !AUTHOR   - E. BEAUCHESNE  -  JUN 96
 !
@@ -1034,6 +1052,8 @@
 !               Ajouter le support des dates etendues (annees 0
 !               a 10000) via les nouveaux modes +- 5, 6 et 7.
 !REVISION 002   B.dugas - novembre 2010 - Correction au mode -7.
+!REVISION 003   B.Dugas, M.Valin - fevrier 2016 -
+!               Supprimer les usages d'enonces EQUIVALENCE
 !
 !LANGUAGE - fortran
 !
@@ -1056,7 +1076,7 @@
 !         tdstart = base for newdates ( jan 1, 1980, 00Z)
 !         max_offset = (((jd10k-jd0)*24)/8)*10      (109572750)
 !         exception = extended truedate for jan 1, 1901, 01Z
-!         troisg = 3 000 000 000
+!         troisg = 3 000 000 000 (Integer*8, Z'B2D05E00') 
 !WARNING  - IF NEWDATE RETURNS 1, OUTPUTS CAN TAKE ANY VALUE
 !
 !*
@@ -1064,25 +1084,25 @@
       integer year,month,day,zulu,second,minute, max_offset
       integer tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
       integer , dimension(12) :: mdays
-      integer*8 date_unsigned,troisg,stamp8
-      equivalence (stamp,stamp8)
+      integer(8) date_unsigned,stamp8,masque32
+      integer(8), save :: troisg=3000000000_8
+!!!   integer(8), save :: troisg=transfer(Z'B2D05E00',1_8)
+!!!   equivalence (stamp,stamp8)
       external idatmg2, datmgp2
       integer idatmg2
       data tdstart /123200000/,jd1980 /2444240/,jd1900 /2415021/
       data jd0 /1721060/,jd10k /5373485/, max_offset /109572750/
       data jd2236 /2537742/, exception /16663825/
       data td2000 /126230400/, td1900 /-504904320/
-      data troisg /Z'B2D05E00'/
       data mdays /31,29,31,30,31,30,31,31,30,31,30,31/
 !
       integer :: jd
       logical :: bissextile,validtd,validtm,validtme
 !
-!     big endian when w16(1) is zero
-      integer       w32
-      integer*2     w16(2)
-      equivalence ( w16(1) , w32 )
-      data          w32/1/
+!!!   integer(4), save :: w32=1
+!!!   integer(2)    w16(2)
+!!!   equivalence ( w16(1) , w32 )
+!!!   data          w32/1/
 !
 !     calculates julian calendar day
 !     see CACM letter to editor by Fliegel and Flandern 1968
@@ -1115,8 +1135,10 @@
                          .and.(MOD(year,100) /= 0) ) &
                          .or. (MOD(year,400) == 0) )
 !
+      masque32=ishft(-1_8,-32) ! = Z'00000000FFFFFFFF'
+!
       if (abs(mode).gt.7 .or. mode.eq.0) goto 4
-      newdate=0 ; stamp8 = 0
+      newdate=0 ; stamp8 = 0 ; stamp = 0
       goto (106,104,103,101,1,2,3,4,5,6,7,100,102,105,107),(mode+8)
 !
 !     mode=-3 : from stamp(old or new) to printable
@@ -1302,16 +1324,17 @@
 !        encode it in a new date-time stamp
       stamp=(tdate/8)*10+mod(tdate,8)
       date_unsigned=stamp + troisg
+      ! implicit INTEGER(8) to INTEGER(4) transfer
       dat1=date_unsigned
       return
 !
 !     mode=-5 : from extended stamp to printable
 !
 103   continue
-      stamp = dat1
+      stamp8=dat1 ; stamp8=and(masque32,stamp8)
       dat2(1)= 0 ; dat3=0
       date_unsigned = stamp8
-      if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
+!!!   if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
       if (date_unsigned <  troisg .or. &
           date_unsigned >= troisg + max_offset) then
         print *,'newdate error: invalid stamp for mode -5, stamp=',stamp
@@ -1339,6 +1362,7 @@
          (tdate/24+jd0) >= jd2236) then ! extended stamp
          stamp=(tdate/8)*10+mod(tdate,8)
          date_unsigned=stamp + troisg
+         ! implicit INTEGER(8) to INTEGER(4) transfer
          dat2(1)=date_unsigned
       else                               ! (new or old) stamp
          runnb=0
@@ -1353,10 +1377,11 @@
 105   continue
       stamp=dat2(1)
       if (stamp .lt. -1) then
+        stamp8=stamp ; stamp8=and(masque32,stamp8)
         dat1=0
         dat3=0
         date_unsigned = stamp8
-        if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
+!!!     if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
         if (date_unsigned < troisg .or. &
            date_unsigned > troisg + max_offset) then
            print *,'newdate error: invalid stamp for mode -6, ', &
