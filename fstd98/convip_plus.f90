@@ -252,6 +252,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
           if(kind == 15) then  ! type 15 et associes traite a part
             if(conv_kind_15(p,kind,ip,mode) /= 0) goto 777  ! il y a une erreur de decodage pour ip
             if (flag) goto 666  ! impression dans string
+            return   ! decodage termine, return
           endif
           if ( .not. validkind(kind) ) goto 777
 !
@@ -350,7 +351,7 @@ function conv_kind_15(p,mykind,ip,mode) result(status) ! convert kind = 15 and s
   end type
   type(e15), dimension(2), save :: t15 = & 
          (/ &
-         e15(       0, 20000000,      0), &     ! values between 0 and 1 999 999    (kind 15)
+         e15(       0,  2000000,      0), &     ! values between 0 and 1 999 999    (kind 15)
          e15(16000000, 15000001,  -1000)  &     ! values between -1000 and 998 999 (kind 31) ! entries swapped to deactivate
          /)
   integer :: i, subt, ipv
