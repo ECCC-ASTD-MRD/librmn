@@ -83,7 +83,7 @@ CDECKS= \
          mkdir_c.c       client_timeout.c ftn2c_helper_c.c clib_interface.c \
          arc4.c		 md5.c            fool_optimizer.c\
          crc16_.c         crc24_.c         crc32_.c        crc_16_24_32.c \
-         register_dl_routines.c           DlInterface.c    new_second.c
+         register_dl_routines.c           DlInterface.c    new_second.c cpu_type.c get_endian.c
 
 FDECKS= \
          constnt.f       exdb.f \
@@ -116,7 +116,7 @@ OBJECTS= \
          arc4.o		 md5.o               f_logical2int.o  fool_optimizer.o\
          ftn_prog_args.o  crc16_.o           crc24_.o         crc32_.o\
          crc_16_24_32.o    dlfcn.o   register_dl_routines.o    DlInterface.o\
-         msg.o             new_second.o
+         msg.o             new_second.o cpu_type.o get_endian.o
          
 COMDECKS = xxpakc.cdk mgi.h  wafile.h
          
@@ -172,7 +172,8 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(arc4.o)            $(TEMPLIB)(md5.o)            $(TEMPLIB)(f_logical2int.o)\
          $(TEMPLIB)(fool_optimizer.o)  $(TEMPLIB)(ftn_prog_args.o)  $(TEMPLIB)(crc16_.o)          $(TEMPLIB)(crc24_.o)\
          $(TEMPLIB)(crc32_.o)          $(TEMPLIB)(crc_16_24_32.o)   $(TEMPLIB)(dlfcn.o)           $(TEMPLIB)(DlInterface.o)\
-         $(TEMPLIB)(register_dl_routines.o) $(TEMPLIB)(msg.o)       $(TEMPLIB)(new_second.o)
+         $(TEMPLIB)(register_dl_routines.o) $(TEMPLIB)(msg.o)       $(TEMPLIB)(new_second.o)      $(TEMPLIB)(cpu_type.o)\
+         $(TEMPLIB)(get_endian.o)
 
 genlib: rmnlib_v $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
