@@ -38,6 +38,12 @@
  *        if(cpu_has_feature(FLAG_SSE4) .ne. 0) print *,'SSE4'
  *        if(cpu_has_feature(FLAG_SSE3) .ne. 0) print *,'SSE3'
  *        if(cpu_has_feature(FLAG_SSE2) .ne. 0) print *,'SSE2'
+ *        status = get_fp_status_ctl()
+ *        print 100,'FP status = ',status
+ *        if(iand(FP_STATUS_PE,status) .ne. 0) print *,"Precision ON"
+ *        if(iand(FP_STATUS_UE,status) .ne. 0) print *,"Underflow ON"
+ *        if(iand(FP_STATUS_OE,status) .ne. 0) print *,"Overflow ON"
+ *        if(iand(FP_STATUS_ZE,status) .ne. 0) print *,"Zero divide ON"
  *        print *,'CPU apicid =',get_cpu_id()
  *        s1 = rdtsc_seconds()
  *        s2 = rdtsc_seconds()
@@ -73,6 +79,12 @@
  *       if(cpu_has_feature(FLAG_FMA))  printf(" FMA");
  *       if(cpu_has_feature(FLAG_AVX2)) printf(" AVX2");
  *       printf("\n");
+ *       status = get_fp_status_ctl();
+ *       printf("FPU status = %8.8x\n",status);
+ *       printf("Precision status %s\n",status & FP_STATUS_PE ? "ON" : "OFF");
+ *       printf("Underflow status %s\n",status & FP_STATUS_UE ? "ON" : "OFF");
+ *       printf("Overflow status %s\n",status & FP_STATUS_OE ? "ON" : "OFF");
+ *       printf("Zero divide status %s\n",status & FP_STATUS_ZE ? "ON" : "OFF");
  *       t1 = rdtsc();
  *       t2 = rdtsc();
  *       printf("rdtsc overhead = %lu %E\n",t2-t1,wall_clock_seconds(t2-t1));
@@ -463,6 +475,74 @@ double rdtsc_seconds(void) {
   return(t*cycle);
 }
 
+/****f* X86/get_fp_status_ctl
+ * FUNCTION
+ *   get floating point status word
+ *  SYNOPSIS
+   C:
+     int get_fp_status_ctl();
+
+   Fortran:
+     interface
+       function get_fp_status_ctl() result(id)
+         import C_INT
+         integer(C_INT) :: id
+       end function get_fp_status_ctl
+     end interface
+ * AUTHOR
+ *  M.Valin Recherche en Prevision Numerique 2016
+ * ARGUMENTS
+    none
+ * RESULT
+ *  the floating point status word (nozero on X86 family cpus only)
+*****
+*/
+#pragma weak get_fp_status_ctl__= get_fp_status_ctl
+#pragma weak get_fp_status_ctl_= get_fp_status_ctl
+int get_fp_status_ctl__(void);
+int get_fp_status_ctl_(void);
+int get_fp_status_ctl(void) {
+  int fpstat = 0;
+#if defined(__i386__) || defined(__x86_64__)
+  __asm__ volatile ("stmxcsr %0" : "=m" (fpstat));
+#endif
+  return (fpstat);
+}
+
+/****f* X86/set_fp_status_ctl
+ * FUNCTION
+ *   set the floating point status and control word
+ *  SYNOPSIS
+   C:
+     void set_fp_status_ctl(int id);
+
+   Fortran:
+     interface
+       subroutine set_fp_status_ctl(id)
+         import C_INT
+         integer(C_INT), intent(IN), value :: id
+       end subroutine set_fp_status_ctl
+     end interface
+ * AUTHOR
+ *  M.Valin Recherche en Prevision Numerique 2016
+ * ARGUMENTS
+    id : integer value to store into the floating point status and control word
+ * NOTES
+ *  (on X86 family cpus only)
+*****
+*/
+#pragma weak set_fp_status_ctl__=set_fp_status_ctl
+#pragma weak set_fp_status_ctl_=set_fp_status_ctl
+void set_fp_status_ctl__(int fpstat_in);
+void set_fp_status_ctl_(int fpstat_in);
+void set_fp_status_ctl(int fpstat_in) {
+  int fpstat = fpstat_in;
+#if defined(__i386__) || defined(__x86_64__)
+  __asm__ volatile ("ldmxcsr %0" : "=m" (fpstat));
+#endif
+  return ;
+}
+
 #if defined(TEST_CPUID)
 int get_cpu_core_thread()  /* Intel CPUs only and even in this case not always reliable */
 {
@@ -484,7 +564,7 @@ int get_cpu_core_thread()  /* Intel CPUs only and even in this case not always r
      interface
        function get_cpu_id() result(id)
          import C_INT
-         real(C_INT) :: id
+         integer(C_INT) :: id
        end function get_cpu_id
      end interface
  * AUTHOR
@@ -512,9 +592,12 @@ int get_cpu_id()  /* Intel CPUs only */
 int main_cpuid(int argc, char** argv)
 {
   int core_and_thread;
+  int status;
+  float r;
 #if defined(DEBUG)
   uint32_t regs[4];
 #endif
+  printf("FPU status = %8.8x\n",get_fp_status_ctl());
   core_and_thread = get_cpu_core_thread();
   printf("core = %d, thread = %d\n",core_and_thread>>8,core_and_thread&0xFF);
 #if defined(DEBUG)
@@ -534,6 +617,22 @@ int main_cpuid(int argc, char** argv)
   if(cpu_has_feature(FLAG_AVX2)) printf(" AVX2");
   printf("\n");
   printf("CPU Version string: '%s'\n",cstring);
+  status = get_fp_status_ctl();
+  printf("FPU status = %8.8x\n",status);
+  printf("Precision status %s\n",status & FP_STATUS_PE ? "ON" : "OFF");
+  printf("Underflow status %s\n",status & FP_STATUS_UE ? "ON" : "OFF");
+  printf("Overflow status %s\n",status & FP_STATUS_OE ? "ON" : "OFF");
+  printf("Zero divide status %s\n",status & FP_STATUS_ZE ? "ON" : "OFF");
+  printf("forcing underflow, zero divide, overflow\n");
+  r = 1.0E-30; r = r*r; /* underflow */
+  r = 1.0/r;            /* zero divide */
+  r = 1.0E30; r = r*r;  /* overflow */
+  status = get_fp_status_ctl();
+  printf("FPU status = %8.8x\n",status);
+  printf("Precision status %s\n",status & FP_STATUS_PE ? "ON" : "OFF");
+  printf("Underflow status %s\n",status & FP_STATUS_UE ? "ON" : "OFF");
+  printf("Overflow status %s\n",status & FP_STATUS_OE ? "ON" : "OFF");
+  printf("Zero divide status %s\n",status & FP_STATUS_ZE ? "ON" : "OFF");
   return (0);
 }
 #endif

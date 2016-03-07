@@ -8,6 +8,25 @@
 #define FLAG_FMA   64
 #define FLAG_BMI  128
 
+#define FP_STATUS_RSHFT 13  
+#define FP_STATUS_RNR    0
+#define FP_STATUS_RDN    1
+#define FP_STATUS_RUP    2
+#define FP_STATUS_RZR    3
+
+#define FP_STATUS_PM  4096
+#define FP_STATUS_UM  2048
+#define FP_STATUS_OM  1024
+#define FP_STATUS_ZM   512
+#define FP_STATUS_DM   256
+#define FP_STATUS_IM   128
+#define FP_STATUS_PE    32
+#define FP_STATUS_UE    16
+#define FP_STATUS_OE     8
+#define FP_STATUS_ZE     4
+#define FP_STATUS_DE     2
+#define FP_STATUS_IE     1
+
 #if defined(IN_FORTRAN_CODE)
   interface
     function cpu_has_feature(feature) result(status)
@@ -51,6 +70,16 @@
       import C_DOUBLE
       real(C_DOUBLE) :: seconds
     end function rdtsc_seconds
+
+    function get_fp_status_ctl() result(id)
+      import C_INT
+      integer(C_INT) :: id
+    end function get_fp_status_ctl
+
+    subroutine set_fp_status_ctl(id)
+      import C_INT
+      integer(C_INT), intent(IN), value :: id
+    end subroutine set_fp_status_ctl
   end interface
 #else
   int cpu_has_feature(int feature);
@@ -61,4 +90,6 @@
   double wall_clock_seconds(uint64_t ticks);
   double rdtsc_seconds(void);
   double rdtscp_seconds(void);
+  void set_fp_status_ctl(int fpstat);
+  int get_fp_status_ctl(void);
 #endif
