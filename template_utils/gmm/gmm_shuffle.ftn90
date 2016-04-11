@@ -22,8 +22,8 @@
   external gmm_update_tpi_key2, gmm_rename
   logical ok, valide
 
-  maxkeys = nkeys
   nkeys = 0
+  maxkeys = nkeys
   gmm_shuffle = GMM_ERROR
 !
 ! Epuration de la liste... On elimine les chaines de caracteres vides
@@ -40,7 +40,7 @@
   nkeys = size(taglist)
   i = 0
   ok = .true.
-  do while (ok .and. i <= nkeys)
+  do while (ok .and. i < nkeys)
     i = i+1
     if (0 == len_trim(taglist(i))) then
       ok = .false.

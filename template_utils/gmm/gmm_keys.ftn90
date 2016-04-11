@@ -15,8 +15,8 @@
   character(len=*), intent(in), optional :: pattern
   integer :: i,strlen_pattern,nkeys,maxkeys
 
-  maxkeys = nkeys
   nkeys = 0
+  maxkeys = nkeys
   gmm_keys = -1
 !
   maxkeys = size(taglist)
