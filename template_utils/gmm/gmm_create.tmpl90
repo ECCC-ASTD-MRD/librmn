@@ -192,7 +192,8 @@
    directory(cur_page)%entry(cur_entry)%data_type = EXTENSION ! establish dimensions and allocate array
 
    if (associated(p)) then  ! the user gave a non null pointer
-      print *,'GMM_CREATE: using user supplied array'
+      if (gmm_verbose_level == GMM_MSG_DEBUG) &
+        print *,'GMM_CREATE: using user supplied array'
       lcl_pti = lgmm_get_nxt_avail_ptr()
       directory(cur_page)%entry(cur_entry)%pointer_table_index = lcl_pti
       ier = add_table_entry(p, key)
