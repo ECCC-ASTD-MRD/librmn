@@ -40,11 +40,13 @@
   nkeys = size(taglist)
   i = 0
   ok = .true.
-  do while (ok .and. i < nkeys)
+  do while (ok .and. i <= nkeys)
     i = i+1
-    if (0 == len_trim(taglist(i))) then
-      ok = .false.
-      i = i-1
+    if (i <= nkeys) then
+       if (0 == len_trim(taglist(i))) then
+         ok = .false.
+         i = i-1
+       endif
     endif
   enddo
 
