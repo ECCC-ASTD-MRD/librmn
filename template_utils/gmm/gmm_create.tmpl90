@@ -71,6 +71,19 @@
    integer u_bound, l_bound
 
    DATATYPE*DATALENGTH, pointer :: pp(DIMS(:,:,:,:))
+   
+    real      :: NaN
+    integer   :: inan
+    real*8    :: NaN8
+    integer*8 :: inan8
+                                            
+    equivalence (inan,NaN)
+    equivalence (inan8,NaN8)
+
+    data inan  /Z'7F800001'/
+    data inan8 /Z'7FF0000000000001'/
+
+   
 
    if (present(flags_arg)) then
     field_meta%a%flags = flags_arg
@@ -222,10 +235,25 @@
 !         if (iand(directory(cur_page)%entry(cur_entry)%a%flags,FLAG_IZER) .ne. 0) then
 !           directory(cur_page)%entry(cur_entry)%f = 0        ! ZERO fill requested
 !         endif
-! CODE MISSING HERE FOR INITIALIZATION
    if (iand(field_meta%a%flags, GMM_FLAG_IZER) /= 0) THEN
 !     print *,'Debug+ gmm_create init to zero for variable ',lcl_name
      p = 0
+   endif
+
+   if (iand(field_meta%a%flags, GMM_FLAG_INAN) /= 0) THEN
+#if ((DATATYPE == real) & (DATALENGTH == 4))
+     if (gmm_verbose_level == GMM_MSG_DEBUG)  print *,iname,' Debug DATATYPE=real init to NaN'
+     p = NaN
+#else
+#if ((DATATYPE == real) & (DATALENGTH == 8))
+       if (gmm_verbose_level == GMM_MSG_DEBUG)  print *,iname,' Debug DATATYPE=real*8 init to NaN8'
+       p = NaN8
+#else
+         print *,'GMM_CREATE ERROR, name=',iname,' : init to NaN is not available for this data type'
+         Cat(gmm_create,EXTENSION,) = GMM_ERROR
+         return
+#endif
+#endif
    endif
 
    Cat(gmm_create,EXTENSION,) = 0
