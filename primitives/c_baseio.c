@@ -62,7 +62,7 @@
 #endif
 
 #define FNOM_OWNER
-#include <fnom.h>
+#include "../INTRALIB_INCLUDES/fnom.h"
 #include "wafile.h"
 
 #if defined (NEC)
