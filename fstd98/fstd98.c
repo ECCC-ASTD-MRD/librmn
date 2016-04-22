@@ -961,7 +961,7 @@ fprintf(stderr,"NEW PACK CODE======================================\n");
  *                                                                           * 
  *****************************************************************************/
 
-int c_fst_edit_dir(int handle,
+int c_fst_edit_dir_plus(int handle,
                    unsigned int date, int deet, int npas,
                    int ni, int nj, int nk,
                    int ip1, int ip2, int ip3,
@@ -1027,7 +1027,7 @@ int c_fst_edit_dir(int handle,
 /*  stdf_entry->ni = ni; */
 /*  stdf_entry->nj = nj; */
 /*  stdf_entry->nk = nk; */
-/*  stdf_entry->gtyp = grtyp[0]; */
+  if(grtyp[0] != ' ') stdf_entry->gtyp = grtyp[0];
 /*  stdf_entry->datyp = datyp; */
 
   if (deet != -1) stdf_entry->deet = deet;
@@ -1081,6 +1081,16 @@ int c_fst_edit_dir(int handle,
   f->dir_page[pageno]->modified = 1;
   f->modified = 1;
   return(0);
+}
+int c_fst_edit_dir(int handle,
+                   unsigned int date, int deet, int npas,
+                   int ni, int nj, int nk,
+                   int ip1, int ip2, int ip3,
+                   char *in_typvar, char *in_nomvar, char *in_etiket,
+                   char *in_grtyp, int ig1, int ig2,
+                   int ig3, int ig4, int datyp)
+{
+  return c_fst_edit_dir_plus(handle,date,deet,npas,-1,-1,-1,ip1,ip2,ip3,in_typvar,in_nomvar,in_etiket," ",ig1,ig2,ig3,ig4,-1);
 }
 
 /*splitpoint c_fsteff */

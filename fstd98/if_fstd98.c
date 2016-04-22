@@ -439,6 +439,38 @@ ftnword ier=0;
  *                                                                           * 
  *****************************************************************************/
 
+ftnword f77_name(fst_edit_dir_plus)(ftnword *f_handle,
+                               ftnword *f_date, ftnword *f_deet, ftnword *f_npas,
+                               ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
+                               ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+                               char *f_typvar, char *f_nomvar, char *f_etiket,
+                               char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
+                               ftnword *f_ig3, ftnword *f_ig4, ftnword *f_datyp,
+                               F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
+{
+  int ier;
+  int handle=*f_handle;
+  int date=*f_date, deet=*f_deet;
+  int npas=*f_npas, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
+  int ni=*f_ni, nj=*f_nj, nk=*f_nk;
+  int ig1=*f_ig1, ig2=*f_ig2, ig3=*f_ig3, ig4=*f_ig4;
+  int datyp=*f_datyp;
+
+  char etiket[13];
+  char typvar[3];
+  char nomvar[5];
+  char grtyp[2];
+
+  str_cp_init(typvar,3,f_typvar,l1);
+  str_cp_init(nomvar,5,f_nomvar,l2);
+  str_cp_init(etiket,13,f_etiket,l3);
+  str_cp_init(grtyp,2,f_grtyp,l4);
+
+  ier = c_fst_edit_dir_plus(handle,date,deet,npas,ni,nj,nk,ip1,ip2,ip3,typvar,nomvar,etiket,grtyp,
+                       ig1,ig2,ig3,ig4,datyp);
+  return((ftnword) ier);
+}
+
 ftnword f77_name(fst_edit_dir)(ftnword *f_handle,
                                ftnword *f_date, ftnword *f_deet, ftnword *f_npas,
                                ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
