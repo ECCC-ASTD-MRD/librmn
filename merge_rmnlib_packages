@@ -1,4 +1,5 @@
 # set -x
+set -e
 srcd=`pwd`
 workdir=$1
 libdir=$2

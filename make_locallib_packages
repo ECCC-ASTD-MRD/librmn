@@ -1,5 +1,6 @@
 #!/bin/bash
 # set -x
+set -e
 mmake=make
 which gmake >/dev/null  && mmake=gmake
 echo mmake = $mmake

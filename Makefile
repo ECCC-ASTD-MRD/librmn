@@ -15,6 +15,7 @@ default: genlib
 genlib: 
 	mkdir -p $(WORKDIR)
 	mkdir -p $(LIBDIR)/$(EC_ARCH)
+	set -e; \
 	if [ $(DEBUG) == "yes" ] ; \
 	then \
 	echo 'Compiling with DEBUG option' ; \
