@@ -19,6 +19,8 @@ FICHIERS = whiteboard_interface_st.cdk whiteboard_interface_omp.cdk whiteboard.t
 
 OBJECTS = whiteboard_omp.o whiteboard_st.o WhiteBoard.o
 
+Iprefix="-I"
+
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
 all:	whiteboard_st.o whiteboard_omp.o WhiteBoard.o whiteboard_interface_st.cdk whiteboard_interface_omp.cdk
@@ -26,7 +28,8 @@ all:	whiteboard_st.o whiteboard_omp.o WhiteBoard.o whiteboard_interface_st.cdk w
 dist:	whiteboard_interface_st.cdk whiteboard_interface_omp.cdk
 
 WhiteBoard.o: WhiteBoard.c
-	s.compile -src WhiteBoard.c -O
+#	s.compile -src WhiteBoard.c -O
+	s.cc -c WhiteBoard.c -O
 
 whiteboard.ftn90: whiteboard.tmpl90
 	r.tmpl90.ftn90 whiteboard
@@ -35,25 +38,31 @@ whiteboard_interface.cdk90: whiteboard.tmpl90
 	r.tmpl90.ftn90 whiteboard
 
 whiteboard_st.f90: whiteboard.ftn90
-	s.compile -src whiteboard.ftn90 -O -defines =-DWITHOUT_OpenMP -P
+#s.compile -src whiteboard.ftn90 -O -defines =-DWITHOUT_OpenMP -P
+	s.GPPF90 -DWITHOUT_OpenMP whiteboard.ftn90 > whiteboard.f90
 	mv whiteboard.f90 whiteboard_st.f90
 
 whiteboard_st.o: whiteboard_st.f90
-	s.compile -src whiteboard_st.f90 -O
+#	s.compile -src whiteboard_st.f90 -O
+	s.f90 -c whiteboard_st.f90 -O
 
 whiteboard_interface_st.cdk: whiteboard_interface.cdk90
-	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITHOUT_OpenMP
+#	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITHOUT_OpenMP
+	s.GPPF90 -DWITHOUT_OpenMP whiteboard_interface.cdk90 > whiteboard_interface.f90
 	mv whiteboard_interface.f90 whiteboard_interface_st.cdk
 
 whiteboard_omp.f90: whiteboard.ftn90
-	s.compile -src whiteboard.ftn90 -O -defines =-DWITH_OpenMP -openmp -P
+#	s.compile -src whiteboard.ftn90 -O -defines =-DWITH_OpenMP -openmp -P
+	s.GPPF90 -DWITH_OpenMP whiteboard.ftn90 > whiteboard.f90 
 	mv whiteboard.f90 whiteboard_omp.f90
 
 whiteboard_omp.o : whiteboard_omp.f90
-	s.compile -src whiteboard_omp.f90 -O -openmp
+#	s.compile -src whiteboard_omp.f90 -O -openmp
+	s.f90 -c whiteboard_omp.f90 -O -openmp
 
 whiteboard_interface_omp.cdk: whiteboard_interface.cdk90
-	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITH_OpenMP -openmp
+#	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITH_OpenMP -openmp
+	s.GPPF90 -DWITH_OpenMP whiteboard_interface.cdk90 > whiteboard_interface.f90
 	mv whiteboard_interface.f90 whiteboard_interface_omp.cdk
 
 check: whiteboard_interface_st.cdk whiteboard_interface_omp.cdk WhiteBoard.h
@@ -67,6 +76,16 @@ dist: $(FICHIERS)
 tarball: $(FICHIERS) Makefile
 	ls -al $(FICHIERS) Makefile tests
 	tar cfzv /data/armnraid1/www/ssm/sources/whiteboard_$(TARRLS)_all.tgz $(FICHIERS) Makefile
+
+gen_includes:
+	declare -a vincludes="${EC_INCLUDE_PATH} /usr/include" ; \
+	echo  on debute avec vincludes = ${vincludes} ; \
+	compteur=0 ; \
+	for item in ${vincludes[@]}; do ;\
+	vincludes[((compteur))]=${Iprefix}${vincludes[((compteur))]} ;\
+	((compteur=compteur+1)) ; \
+	done ; \
+	echo vincludes = $vincludes
 
 obj: $(OBJECTS)
 
