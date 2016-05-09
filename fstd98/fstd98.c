@@ -419,10 +419,9 @@ int c_fstecr(word *field_in, void * work, int npak,
       WARNPRINT fprintf(stderr,"WARNING: compression and/or missing values not supported, data type %d reset to %d (complex)\n",in_datyp_ori,8);
     }
     is_missing = 0;   /* missing values not supported for complex type */
-    in_datyp_ori = 8; /* extra compression not supported for complex type */
-    in_datyp = 8;
+    in_datyp = 8; /* extra compression not supported for complex type */
   }
-  
+ 
   l1 = strlen(in_typvar);
   l2 = strlen(in_nomvar);
   l3 = strlen(in_etiket);
@@ -479,6 +478,12 @@ int c_fstecr(word *field_in, void * work, int npak,
   nk = Max(1,nk);
   minus_nbits = -nbits;
   njnk = nj * nk;
+
+  if ( (in_datyp_ori == 133) && (nbits > 32) ) {
+      WARNPRINT fprintf(stderr,"WARNING: extra compression not supported for IEEE when nbits > 32, data type 133 reset to 5 (IEEE)\n");
+      in_datyp = 5; /* extra compression not supported */
+      datyp = 5;
+  }
 
   if ((in_datyp == 1) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
     datyp = 5;              /* R32 to E32 automatic conversion */
