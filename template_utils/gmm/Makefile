@@ -22,12 +22,10 @@ FICHIERS =  gmm_internals.cdk90 gmm_checkpoint.tmpl90 gmm_create.tmpl90 gmm_dire
 
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
-pass_pointers.o: pass_pointers.c
-
 gmm_code.o: gmm_code.f90
 
-libgmm_$(EC_ARCH).a: gmm_checkpoint.o gmm_create.o gmm_directory.o gmm_internals.o  gmm_get.o gmm_keys.o gmm_pointer_table.o pass_pointers.o gmm_code.tmpl90
-	ar rcv libgmm_$(EC_ARCH).a gmm_checkpoint.o gmm_create.o gmm_directory.o gmm_internals.o  gmm_get.o gmm_keys.o gmm_pointer_table.o pass_pointers.o
+libgmm_$(EC_ARCH).a: gmm_checkpoint.o gmm_create.o gmm_directory.o gmm_internals.o  gmm_get.o gmm_keys.o gmm_pointer_table.o gmm_code.tmpl90
+	ar rcv libgmm_$(EC_ARCH).a gmm_checkpoint.o gmm_create.o gmm_directory.o gmm_internals.o  gmm_get.o gmm_keys.o gmm_pointer_table.o
 
 gmm_internals.cdk90: gmm_internal_constants.inc gmm_directory_interface.inc
 
@@ -54,7 +52,7 @@ gmm.hf: 	gmm_constants.hf gmm_definitions.inc gmm_nulls.inc \
 # 	gmm_rename_interface.inc gmm_shuffle_interface.inc  > gmm.inc
 
 gmm.ftn90: gmm.hf gmm_checkpoint.o gmm_create.o gmm_directory.o  gmm_encodemeta.o gmm_keys.o gmm_get.o \
-       gmm_rename.o gmm_getmeta.o gmm_pointer_table.o gmm_shuffle.o gmm_updatemeta.o gmm_update_pti.o gmm_verbosity.o pass_pointers.o gmm_dumpinfo.o
+       gmm_rename.o gmm_getmeta.o gmm_pointer_table.o gmm_shuffle.o gmm_updatemeta.o gmm_update_pti.o gmm_verbosity.o gmm_dumpinfo.o
 	rm -f gmm.f90
 	cat gmm_internals.cdk90 gmm_pointer_table.f90 gmm_checkpoint.f90 gmm_create.f90 gmm_directory.f90  gmm_encodemeta.f90 gmm_get.f90 gmm_keys.f90 \
 	gmm_shuffle.f90 gmm_rename.f90 gmm_getmeta.f90 gmm_updatemeta.f90 gmm_update_pti.f90 gmm_verbosity.f90 gmm_dumpinfo.f90 > gmm.ftn90
