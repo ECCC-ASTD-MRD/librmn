@@ -66,7 +66,7 @@ FTNDECKS= \
          second.F      stkmem.F       tracebck.F\
          ccard.F       sx_timing_stubs.F              f_baseio.F \
          vpow_ibm.F    ftn2c_helper_f.F90             ftn_prog_args.f90\
-         dlfcn.f90       msg.F90      f_main_to_cmain.F90
+         dlfcn.f90       msg.F90      
 
 CDECKS= \
          c_baseio.c      c_ccard.c       dmms.c           fread32.c \
@@ -118,7 +118,7 @@ OBJECTS= \
          ftn_prog_args.o  crc16_.o           crc24_.o         crc32_.o\
          crc_16_24_32.o    dlfcn.o   register_dl_routines.o    DlInterface.o\
          msg.o             new_second.o cpu_type.o get_endian.o \
-	 f_main_to_cmain.o plugin_code.o
+	 plugin_code.o
          
 COMDECKS = xxpakc.cdk mgi.h  wafile.h
          
@@ -175,7 +175,7 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(fool_optimizer.o)  $(TEMPLIB)(ftn_prog_args.o)  $(TEMPLIB)(crc16_.o)          $(TEMPLIB)(crc24_.o)\
          $(TEMPLIB)(crc32_.o)          $(TEMPLIB)(crc_16_24_32.o)   $(TEMPLIB)(dlfcn.o)           $(TEMPLIB)(DlInterface.o)\
          $(TEMPLIB)(register_dl_routines.o) $(TEMPLIB)(msg.o)       $(TEMPLIB)(new_second.o)      $(TEMPLIB)(cpu_type.o)\
-         $(TEMPLIB)(get_endian.o)      $(TEMPLIB)(f_main_to_cmain.o)                              $(TEMPLIB)(plugin_code.o)
+         $(TEMPLIB)(get_endian.o)      $(TEMPLIB)(plugin_code.o)
 
 genlib: rmnlib_v $(OBJECTS)
 #Creer ou mettre a jour la programmatheque 
