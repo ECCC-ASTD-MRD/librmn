@@ -1455,6 +1455,21 @@ ftnword f77name(fstprm)(ftnword *f_handle,
 
 /*splitpoint fstrwd */
 /***************************************************************************** 
+ *                   F S T R E S E T _ I P _ F L A G S                       *
+ *                                                                           * 
+ *Object                                                                     * 
+ *   Reset all the flags previously set by ip(1-3)_val                       *
+ *                                                                           * 
+ *****************************************************************************/
+void f77name(fstreset_ip_flags)()
+{
+  int ier;
+  ier = init_ip_vals();
+}
+
+
+/*splitpoint fstrwd */
+/***************************************************************************** 
  *                               F S T R W D                                 *
  *                                                                           * 
  *Object                                                                     * 

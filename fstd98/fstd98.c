@@ -1428,14 +1428,14 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
     int nomatch = 1;
     while ((handle >=  0) && (nomatch)) {
       nomatch = 0;
-      if (ip1s_flag)
+      if ((ip1s_flag) && (ip1 >= 0))
         if (ip_is_equal(ip1,stdf_entry->ip1,1) == 0)
           nomatch = 1;
-        else if (ip2s_flag)
-           if (ip_is_equal(ip1,stdf_entry->ip2,2) == 0) 
+        else if ((ip2s_flag) && (ip2 >= 0))
+           if (ip_is_equal(ip2,stdf_entry->ip2,2) == 0) 
              nomatch = 1;
-           else if (ip3s_flag)
-             if (ip_is_equal(ip1,stdf_entry->ip3,3) == 0)
+           else if ((ip3s_flag) && (ip3 >= 0))
+             if (ip_is_equal(ip3,stdf_entry->ip3,3) == 0)
               nomatch = 1;
       if (nomatch) {
         handle = c_xdfloc2(iun,-1,pkeys,16,pmask);
@@ -2570,6 +2570,21 @@ int c_fstprm(int handle,
   string_copy(grtyp,cracked.gtyp,l4);
   free(stdf_entry);
   return(ier);
+}
+
+/*splitpoint c_fstreset_ip_flags */
+/***************************************************************************** 
+ *                 C _ F S T R E S E T _ I P _ F L A G S                     *
+ *                                                                           * 
+ *Object                                                                     * 
+ *   Reset all the flags previously set by ip(1-3)_val                       *
+ *                                                                           * 
+ *                                                                           * 
+ *****************************************************************************/
+void c_fstreset_ip_flags()
+{
+  int ier;
+  ier = init_ip_vals();
 }
 
 /*splitpoint c_fstrwd */
