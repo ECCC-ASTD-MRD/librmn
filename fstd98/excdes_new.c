@@ -430,7 +430,7 @@ int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
   Requests[set_nb].in_use = USED;          /* set is in use */
   Requests[set_nb].dates.in_use = VALUE;    /* item in set is in use */
   Requests[set_nb].dates.delta = 0;         /* delta not supported */
-  Requests[set_nb].exdes = (des_exc) ? DESIRE : EXCLURE;
+  Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
   Requests[set_nb].dates.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
   Requests[set_nb].dates.data[0] = date_list[0];  /* first value from list */
 
