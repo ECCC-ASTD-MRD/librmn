@@ -1,5 +1,9 @@
 #ifdef INTERFACEONLY
       interface
+      integer function gmm_nkeys()
+      end function gmm_nkeys
+      end interface 
+      interface
       integer function gmm_keys(taglist,pattern)
       character(len=*), intent(out) :: taglist(:)
       character(len=*), intent(in), optional :: pattern
@@ -8,6 +12,13 @@
 #endif
 
 #ifndef INTERFACEONLY
+  integer function gmm_nkeys()
+  use gmm_internals
+  implicit none
+  gmm_nkeys = used
+  return
+  end function gmm_nkeys
+
   integer function gmm_keys(taglist,pattern)
   use gmm_internals
   implicit none
