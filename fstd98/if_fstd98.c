@@ -1738,7 +1738,7 @@ int FstCanTranslateName(char *varname)  /* is this name NOT FOUND in do no trans
     {
       for (i=0 ; exception_vars[i]!='\0' && exception_vars[i]!='\n' ; i++) ; exception_vars[i]='\0';
       result = regcomp(&pattern,exception_vars+1,REG_EXTENDED|REG_NOSUB);
-      fprintf(stderr,"exception pattern: '%s'\n",exception_vars+1);
+      if (msg_level < INFORM) fprintf(stderr,"exception pattern: '%s'\n",exception_vars+1);
     }
   }
   if(exception_vars[0]=='~')  /* this is a regex pattern */
