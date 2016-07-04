@@ -121,10 +121,12 @@
 
 static int ProcessorCapabilities = 0 ;  /* by default, no capabilities are indicated as available */
 static uint32_t vstring[12];            /* version string */
-static unsigned char *cstring = (char *)vstring;  /* pointer to version string */
+static unsigned char *cstring = (unsigned char *)vstring;  /* pointer to version string */
 static uint64_t hz=0;
 static double cycle=0.0;
 static uint64_t last_time=0;
+static int ncores=0;
+static int threadpercore=1;
 
 static void X86_cpuid(uint32_t eax, uint32_t ecx, uint32_t* regs)  /* interface to x86 cpuid instruction */
 {
@@ -184,11 +186,20 @@ static void get_cpu_capabilities()
   j = j - 3;
   while(cstring[j] != ' ') j--;
   j++;
-  sscanf(cstring+j,"%f",&freq);
+  sscanf((const char *__restrict__)(cstring+j),"%f",&freq);
   hz = freq*1000.0 + .5;  // MHz
   hz = hz * 1000000;      // Hz
   cycle = hz;
   cycle = 1.0 / cycle;    // seconds
+
+  X86_cpuid( 0x0B, 0, regs ); threadpercore = regs[1] & 0xFFFF;
+  if(threadpercore < 1) threadpercore = 1;
+//   printf("0x0B, 0,EBX=%8.8x, ECX=%8.8x, eDX=%8.8x \n",regs[1],regs[2],regs[3]);
+  X86_cpuid( 0x0B, 1, regs ); ncores = regs[1] & 0xFFFF; ncores /= threadpercore;
+  if(ncores < 1) ncores = 1;
+//   printf("0x0B, 1,EBX=%8.8x, ECX=%8.8x, eDX=%8.8x \n",regs[1],regs[2],regs[3]);
+  X86_cpuid( 0x0B, 2, regs );
+//   printf("0x0B, 2,EBX=%8.8x, ECX=%8.8x, eDX=%8.8x \n",regs[1],regs[2],regs[3]);
 
   if((ProcessorCapabilities & FLAG_FMA) == 0) return ; /* if FMA flag not present, AVX2 will not be */
 
@@ -219,7 +230,8 @@ static void get_cpu_capabilities()
  * ARGUMENTS
     none
  * RESULT
- *  the CPU nominal frequency in Hertz (64 bit unsigned integer)
+ *  the CPU nominal frequency in Hertz (64 bit unsigned integer) 
+ *  (nonzero on X86 family cpus only)
  * 
 *****
 */
@@ -296,6 +308,7 @@ int cpu_has_feature(int flag)
  *  the 64 bit unsigned integer value of the time stamp counter
  * NOTES
  *  slower than rdtsc but serializing is used to minimize impact of out of order execution
+ *  (always 0 on non X86 family cpus)
  *
 *****
 */
@@ -340,6 +353,7 @@ uint64_t rdtscp(void) {   // version "in order" avec "serialization"
  *  the 64 bit unsigned integer value of the time stamp counter
  * NOTES
  *  faster than rdtscp but out of order execution might affect result as no serializing is done
+ *  (always 0 on non X86 family cpus)
  *
 *****
 */
@@ -363,7 +377,7 @@ uint64_t rdtsc(void) {   // version rapide "out of order"
 
 /****f* X86/wall_clock_seconds
  * FUNCTION
- *   conbert CPU clock ticks into seconds
+ *   convert CPU clock ticks into seconds
  *  SYNOPSIS
    C:
      double wall_clock_seconds(uint64_t ticks);
@@ -553,6 +567,70 @@ int get_cpu_core_thread()  /* Intel CPUs only and even in this case not always r
 }
 #endif
 
+/****f* X86/get_cpu_hyperthreads
+ * FUNCTION
+ *   get the number of hyperthreads of this CPU
+ *  SYNOPSIS
+   C:
+     int get_cpu_hyperthreads();
+
+   Fortran:
+     interface
+       function get_cpu_hyperthreads() result(nhyperthreads)
+         import C_INT
+         integer(C_INT) :: nhyperthreads
+       end function get_cpu_hyperthreads
+     end interface
+ * AUTHOR
+ *  M.Valin Recherche en Prevision Numerique 2016
+ * ARGUMENTS
+    none
+ * RESULT
+ *  the number of hyperthreads of this CPU (not 1 on X86 family cpus only)
+*****
+*/
+#pragma weak get_cpu_hyperthreads__=get_cpu_hyperthreads
+#pragma weak get_cpu_hyperthreads_=get_cpu_hyperthreads
+int get_cpu_hyperthreads__();
+int get_cpu_hyperthreads_();
+int get_cpu_hyperthreads()  /* Intel CPUs only */
+{
+  if(ProcessorCapabilities == 0) get_cpu_capabilities();
+  return( threadpercore );
+}
+
+/****f* X86/get_cpu_cores
+ * FUNCTION
+ *   get the number of cores of this CPU
+ *  SYNOPSIS
+   C:
+     int get_cpu_cores();
+
+   Fortran:
+     interface
+       function get_cpu_cores() result(ncores)
+         import C_INT
+         integer(C_INT) :: ncores
+       end function get_cpu_cores
+     end interface
+ * AUTHOR
+ *  M.Valin Recherche en Prevision Numerique 2016
+ * ARGUMENTS
+    none
+ * RESULT
+ *  the number of cores of this CPU (not one on X86 family cpus only)
+*****
+*/
+#pragma weak get_cpu_cores__=get_cpu_cores
+#pragma weak get_cpu_cores_=get_cpu_cores
+int get_cpu_cores__();
+int get_cpu_cores_();
+int get_cpu_cores()  /* Intel CPUs only */
+{
+  if(ProcessorCapabilities == 0) get_cpu_capabilities();
+  return( ncores );
+}
+
 /****f* X86/get_cpu_id
  * FUNCTION
  *   get the unique ID of this CPU in the node
@@ -594,16 +672,14 @@ int main_cpuid(int argc, char** argv)
   int core_and_thread;
   int status;
   float r;
-#if defined(DEBUG)
   uint32_t regs[4];
+#if defined(DEBUG)
 #endif
+  printf("CPU with %d cores and %d threads/core \n",get_cpu_cores(),get_cpu_hyperthreads());
   printf("FPU status = %8.8x\n",get_fp_status_ctl());
   core_and_thread = get_cpu_core_thread();
   printf("core = %d, thread = %d\n",core_and_thread>>8,core_and_thread&0xFF);
 #if defined(DEBUG)
-  X86_cpuid( 0x0B, 0, regs );
-  X86_cpuid( 0x0B, 1, regs );
-  X86_cpuid( 0x0B, 2, regs );
 #endif
   printf("CPU speed: %lu Hz\n",get_cpu_freq());
   printf("CPU cycle = %g sec\n",cycle);

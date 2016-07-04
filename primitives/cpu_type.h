@@ -45,6 +45,16 @@
       integer(C_INT64_T) :: freq
     end function get_cpu_freq
 
+    function get_cpu_cores() result(ncores)
+      import C_INT
+      integer(C_INT) :: ncores
+    end function get_cpu_cores
+
+    function get_cpu_hyperthreads() result(nhyperthreads)
+      import C_INT
+      integer(C_INT) :: nhyperthreads
+    end function get_cpu_hyperthreads
+
     function rdtsc() result(tsc)
       import C_INT64_T
       integer(C_INT64_T) :: tsc
@@ -83,6 +93,8 @@
   end interface
 #else
   int cpu_has_feature(int feature);
+  int get_cpu_cores();
+  int get_cpu_hyperthreads();
   int get_cpu_id(void);
   uint64_t get_cpu_freq(void);
   uint64_t rdtsc(void);
