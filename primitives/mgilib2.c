@@ -79,6 +79,8 @@
 #include <ctype.h>
 #include "mgi.h"
 #include <gossip.h>
+//JMB
+#include <sys/resource.h>
 
 /* error codes header file */
 #include "cgossip.h"
@@ -110,7 +112,7 @@ ftnword f77name (mgi_term) ();
 void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout);
 
 extern int connect_to_subchannel_by_name (char *channel, char *subchannel, char *mode);
-extern int GET_ack_nack (int socket, char *message);
+extern int get_ack_nack (int socket);
 extern int write_record (int fclient, void *buf, int longueur, int tokensize);
 extern void *read_record (int fclient, void *buf, int *longueur, int maxlongueur, int tokensize);
 extern char *get_gossip_dir (int display);
@@ -251,77 +253,61 @@ static void removepidfile()
 static int bwrite ( int chan, void *buffer, int nelem, char *dtype )
      /* To fill the write buffer of initialized channel "chan" on the server */
 {
-  int nb, ier;
+  int ier;
 
-  fd_set wfds, rfds;
-  struct timeval tv;
-
-  FD_ZERO(&wfds);
-  FD_SET(chn[chan].gchannel, &wfds);
-  
-  tv.tv_sec = get_stream_timeout(chn[chan].gchannel);
-  tv.tv_usec = 0;
-    
-  if (select(chn[chan].gchannel + 1, NULL, &wfds, NULL, &tv))
-    {
-      ier = send_command_to_server(chn[chan].gchannel, "WRITE");
-      
-    }
-  else
-    {
-      /* return ier = signal_timeout(chn[chan].gchannel); */
-      return ier = WRITE_TIMEOUT;
-    }
-  
- 
-  if(ier < 0 )
-    {
-      fprintf(stderr,"bwrite, unable to send write command\n");
-      /* return -1; */
-      return WRITE_ERROR;
-    }
-
-#ifdef DEBUG
-  fprintf(stderr,"mgilib2::bwrite(), ==\n");
+#ifdef TRACE_LEVEL1
+  fprintf(stderr, "\n bwrite: COMM1-W send_command_to_server() channel: %d",chn[chan].gchannel); 
+  fflush(stderr);
 #endif
+
+   ier = send_command_to_server(chn[chan].gchannel, "WRITE");
+
+   if (ier < 0)
+    { 
+#ifdef DEBUG
+        fprintf(stderr, "\n bwrite send_command_to_server returns ier= %d\n",ier);
+	fprintf(stderr, "\n bwrite: COMM1-W send_command_to_server() error on channel: %d",chn[chan].gchannel); 
+        fprintf(stderr,"\n bwrite, unable to send write command\n");
+        fflush(stderr);
+#endif
+	return(-1);
+    }
+
 
   if(*dtype == 'I' || *dtype == 'R')
     {
-      nb = write_record(chn[chan].gchannel, (unsigned char *)buffer, nelem, sizeof(int));
+      ier = write_record(chn[chan].gchannel, (unsigned char *)buffer, nelem, sizeof(int));
     }
 
   else if(*dtype == 'D')
     {
-      nb = write_record(chn[chan].gchannel, (char *)buffer, nelem, sizeof(double));
+      ier = write_record(chn[chan].gchannel, (char *)buffer, nelem, sizeof(double));
     }
   
   else if(*dtype == 'C')
     {
-      nb = write_record(chn[chan].gchannel, buffer, nelem, 1);
-    }
-  
-  /* get_ack_nack(chn[chan].gchannel); */
-    
-  FD_ZERO(&rfds);
-  FD_SET(chn[chan].gchannel, &rfds);
-  
-  tv.tv_sec = get_stream_timeout(chn[chan].gchannel);
-  tv.tv_usec = 0;
-  
-  if (select(chn[chan].gchannel + 1, &rfds, NULL, NULL, &tv))
-    {
-      get_ack_nack(chn[chan].gchannel);
-      
-    }
-  else
-    {
-      fprintf(stderr, "bwrite, timeout = %d, get_ack_nack(), else\n", tv.tv_sec);
-      /* return ier = signal_timeout(chn[chan].gchannel); */
-      return ier = WRITE_TIMEOUT;
+      ier = write_record(chn[chan].gchannel, buffer, nelem, 1);
     }
 
+#ifdef TRACE_LEVEL1  
+    fprintf(stderr, "\n bwrite: COMM8-R get_ack_nack() \n");
+    fflush(stderr);
+#endif
 
-  return nb;
+    if (get_ack_nack(chn[chan].gchannel)) 
+      { 
+#ifdef DEBUG
+	fprintf(stderr, "\n bwrite: COMM8-R get_ack_nack() error on channel: %d",chn[chan].gchannel); 
+        fflush(stderr);
+#endif
+	return(-1);
+      }
+    else 
+      { 
+	return(0);
+      }
+
+  return ier;
 }
 
 ftnword f77name (mgi_clos) (ftnword *f_chan)
@@ -532,23 +518,27 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 	'D': real*8 ; note that only the precision of a real would be kept
      */
 {
-  int nb, chan, nelem;
+  int ier, chan, nelem;
   int lnblnk_();
 
   chan = (int) *f_chan;
   nelem = (int) *f_nelem;
   char *tmpstr;
+
+#ifdef DEBUG
+      fprintf(stderr,"\nMGI_WRITE JMB: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
+#endif
   
   if( nelem <= 0 )
     {
-      fprintf(stderr,"MGI_WRITE, Error, cannot write data with length = %d\n", nelem);
+      fprintf(stderr,"\nMGI_WRITE, Error, cannot write data with length = %d\n", nelem);
       
       return WRITE_ERROR;
     }
 
   if( chn[chan].gchannel < 0 )
     {
-      fprintf(stderr,"MGI_WRITE, Error, cannot connect to server using descriptor: \"%d\"!!!\n", chn[chan].gchannel);
+      fprintf(stderr,"\nMGI_WRITE, Error, cannot connect to server using descriptor: \"%d\"!!!\n", chn[chan].gchannel);
       
       return WRITE_ERROR;
     }
@@ -559,16 +549,16 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 
       tmpstr = (char *)malloc(nelem + 1);
 
-#ifdef DEBUG
-      fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n", dtype[0], nelem, ltype, chn[chan].name);
-#endif
-
       strncpy( tmpstr, (char *)buffer, nelem);
       tmpstr[nelem] = '\0';
 
-      if ((nb = bwrite(chan, (unsigned char *)tmpstr, nelem, dtype)) > 0)
+#ifdef DEBUG
+      fprintf(stderr,"\nMGI_WRITE CHARACTER JMB: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n", dtype[0], nelem, ltype, chn[chan].name);
+#endif
+
+      if ((ier = bwrite(chan, (unsigned char *)tmpstr, nelem, dtype)) < 0)
 	{
-	  fprintf(stderr,"MGI_WRITE: ERROR on %s: %d bytes written (character) \n", chn[chan].name, nb);
+	  fprintf(stderr,"\nMGI_WRITE (C): ERROR on %s\n", chn[chan].name);
 	  free( tmpstr );
 	  /* return number of bytes not sent */
 	  return WRITE_ERROR;
@@ -581,16 +571,10 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
   else if (*dtype == 'I' || *dtype == 'R' || *dtype == 'D' ) 
     {
       chn[chan].nblks++;
-      
-#ifdef DEBUG
-      fprintf(stderr,"MGI_WRITE: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
-      fprintf(stderr,"MGI_WRITE: data type = %s\n", dtype);
-      fprintf(stderr,"MGI_WRITE: elts Nbr = %d\n", nelem);
-#endif
 
-      if ((nb = bwrite(chan, (unsigned char *)buffer, nelem, dtype)) > 0)
+      if ((ier = bwrite(chan, (unsigned char *)buffer, nelem, dtype)) < 0)
 	{
-	  fprintf(stderr,"MGI_WRITE: ERROR on %s: %d bytes written\n", chn[chan].name, nb);
+	  fprintf(stderr,"\nMGI_WRITE(I || R || D) : ERROR on %s\n", chn[chan].name);
 	  /* return number of bytes not sent */
 	  return WRITE_ERROR;
 	}
@@ -599,33 +583,33 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
 
   else 
     {
-      fprintf(stderr,"MGI_WRITE: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
+      fprintf(stderr,"\nMGI_WRITE: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
       /* return -1; */
       return WRITE_TYPE_ERROR;
     }
 
 
-  if(nb == TIMEOUT)
+  if(ier < 0)
     {
       if(get_timeout_signal(chn[chan].gchannel))
 	{
 	  if (*dtype == 'C')
-	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Character data\" \n", nelem);
+	    fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Character data\" \n", nelem);
 
 	  else if(*dtype == 'I')
-	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Integer data\", nb = %d \n", nelem, nb);
+	    fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Integer data\" \n", nelem);
 
 	  else if(*dtype == 'R')
-	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Real data\" \n", nelem);
+	    fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Real data\" \n", nelem);
 
 	  else if(*dtype == 'D')
-	    fprintf(stderr, "MGI_WRITE: TIMEOUT for write \"%d of Double data\" \n", nelem);
+	    fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Double data\" \n", nelem);
 
 	  return signal_timeout(chn[chan].gchannel);
 	}
     }
 
-  return nb;
+  return ier;
 }
 
 void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout)
@@ -651,9 +635,15 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
   chan = (int) *f_chan;
   nelem = (int) *f_nelem;
 
+#ifdef DEBUG
+  fprintf(stderr,"MGI_READ JMB: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n", dtype[0], nelem, ltype, chn[chan].name);
+#endif
+
   if(nelem <= 0)
     {
+#ifdef DEBUG
       fprintf(stderr,"MGI_READ, Error: cannot read data with length = %d\n", nelem);
+#endif
       /* return -1; */
       return DATA_LENGTH_ERROR;
     }
@@ -664,19 +654,17 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 
   if(ier < 0)
     {
+#ifdef DEBUG   
       fprintf(stderr,"MGI_READ, Error: unable to send write command for channel: \"%s\"\n", chn[chan].name);
-     
+#endif    
       return SEND_COMMAND_ERROR;
     }
   
   if (*dtype == 'I')
     { /* integer */
   
-      fprintf(stderr, "MGI_READ: \"Integer\", elts Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name);
-  
       buffer = (int *)read_record( chn[chan].gchannel, (int *)buffer, &nelem, nelem, sizeof(int) );
 
-  
       if(buffer != NULL)
 	{
 	  get_ack_nack( chn[chan].gchannel );
@@ -703,10 +691,17 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 
   else if (*dtype == 'R')
     { /* float */
-      
-      fprintf(stderr, "MGI_READ: \"Real\", elts Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name);
+
+      //JMB      
+      struct rusage mydata;
+
+      //      getrusage(RUSAGE_SELF,&mydata);
+      //      printf(" MGI_READ: before read_record 'R', maxrss=%d\n",mydata.ru_maxrss);
 
       buffer = (float *)read_record(chn[chan].gchannel, (float *)buffer, &nelem, nelem, sizeof(int));
+
+      //      getrusage(RUSAGE_SELF,&mydata);
+      //printf(" MGI_READ: after read_record 'R', maxrss=%d\n",mydata.ru_maxrss);
 
       
       if(buffer != NULL)
@@ -737,7 +732,6 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
   else if (*dtype == 'D')
     { /* double */
 
-      fprintf(stderr, "MGI_READ: \"Double\", Element's Nbr = %d, channel = \"%s\"\n", nelem, chn[chan].name);
 
       buffer = (double *)read_record(chn[chan].gchannel, (double *)buffer, &nelem, nelem, sizeof(double));
 
@@ -775,7 +769,6 @@ ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, cha
 	  temp[i] = ' ';
 	}
 
-     
       buffer = (char *)read_record(chn[chan].gchannel, (char *)buffer, &nelem, nelem, sizeof(char));
 
       for(i = nelem+1 ; i < ltype ; i++ ) 
