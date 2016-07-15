@@ -62,7 +62,7 @@ wordint c_gdxyzfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnflo
         
       case 'Y':
 	fprintf(stderr, "********************************************************\n");
-	fprintf(stderr, "<gdllfxy>: This operation is not supported for 'Y' grids\n");
+	fprintf(stderr, "<gdxyzfll>: This operation is not supported for 'Y' grids\n");
 	fprintf(stderr, "********************************************************\n");
 	break;
 	
