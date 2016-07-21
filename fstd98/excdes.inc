@@ -1,8 +1,23 @@
         integer, parameter :: EXCDES_DESIRE = 1
         integer, parameter :: EXCDES_EXCLURE = -1
+        integer, parameter :: EXCDES_RANGE = -2
+        integer, parameter :: EXCDES_DELTA = -3
         integer, parameter :: MAX_REQUETES = 20
 
       interface
+
+!       int fst_deactivate_filters()
+        function fst_deactivate_filters() result (old_status)
+          import :: C_INT
+          integer(C_INT) :: old_status
+        end function fst_deactivate_filters
+
+!       int fst_reactivate_filters()
+        function fst_reactivate_filters() result (old_status)
+          import :: C_INT
+          integer(C_INT) :: old_status
+        end function fst_reactivate_filters
+
 !       int Xc_Select_ip1/2/3(int set_nb, int des_exc, void *iplist, int nelm)
         function Select_ip1(set_nb, des_exc, iplist, nelm)                     &
      &           result (status) BIND(C,name='Xc_Select_ip1')

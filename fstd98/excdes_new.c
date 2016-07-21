@@ -127,6 +127,27 @@ typedef struct {
 
 static DesireExclure  Requests[MAX_requetes];
 static int package_not_initialized = 1;
+static int DeactivateAllFilters = 0;
+
+#pragma weak fst_deactivate_filters__=fst_deactivate_filters
+#pragma weak fst_deactivate_filters_=fst_deactivate_filters
+int fst_deactivate_filters__();
+int fst_deactivate_filters_();
+int fst_deactivate_filters(){
+  int old=DeactivateAllFilters;
+  DeactivateAllFilters = 1;
+  return(old);
+}
+
+#pragma weak fst_reactivate_filters__=fst_reactivate_filters
+#pragma weak fst_reactivate_filters_=fst_reactivate_filters
+int fst_reactivate_filters__();
+int fst_reactivate_filters_();
+int fst_reactivate_filters(){
+  int old=DeactivateAllFilters;
+  DeactivateAllFilters = 0;
+  return(old);
+}
 
 /* put the contents of the request table in text format
  * 
@@ -406,12 +427,12 @@ error:
  *  IN  set_nb     numero associe a un groupe d'elements desire/exclure      *
  *  IN  des_exc    0=exclure 1=desire                                        *
  *  IN  date_list  liste de 1 ou plusieurs DATE a rechercher ou exclure      *
+ *      date_list = [-1]                 (nelm = 1)  toute valeur de x       *
+ *      date_list = [-2, v2]             (nelm = 2)  x  <= v2                *
+ *      date_list = [v1, -2]             (nelm = 2)  v1 <= x                 *
+ *      date_list = [v1, -2, v2]         (nelm = 3)  v1 <= x <= v2           *
+ *      date_list = [v1, -2, v2, -3, v3] (nelm = 5)  v1 <= x <= v2 every v3  *
  *  IN  nelm       nombre d'elements de la liste                             *
- *                 -2=interval [debut, fin] ou [debut, fin] avec delta       *
- *                              debut=-1, indique valeur min du fichier      *
- *                              fin=-1, indique valeur max du fichier        *
- *  IN  delta      delta en heure ou fraction d'heure                        *
- *                 0=aucun delta desire                                      *
  *                                                                           *
  *****************************************************************************/
 int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
@@ -1168,6 +1189,7 @@ int C_fstmatch_req(int handle)
   char grtyp[2]={' ','\0'};
   int status;
 //  return(1);
+  if(DeactivateAllFilters) return(1);  /* filtering deactivated */
   if(package_not_initialized) RequetesInit();
   ier = c_fstprm(handle,&dateo,&deet,&npas,&ni,&nj,&nk,
                      &nbits,&datyp,&ip1,&ip2,&ip3,typvar,
@@ -1191,7 +1213,8 @@ int C_fst_match_req(int handle)
   char nomvar[5]={' ',' ',' ',' ','\0'};
   char grtyp[2]={' ','\0'};
   int status;
-  
+
+  if(DeactivateAllFilters) return(1);  /* filtering deactivated */
   if(package_not_initialized) RequetesInit();
   ier = c_fstprm(handle,&dateo,&deet,&npas,&ni,&nj,&nk,
                      &nbits,&datyp,&ip1,&ip2,&ip3,typvar,

@@ -3628,7 +3628,7 @@ static word next_match(int file_index)
              for (i = 0; i < width; i++, mask++, search++, entry++)
                match |= (((*entry) ^ (*search)) & (*mask));
              found = (match == 0);
-             if (f->file_filter != NULL) {
+             if ( (f->file_filter != NULL) && found ) {   /* no need to call filter if not 'found' */
                handle= MAKE_RND_HANDLE( f->cur_pageno, f->page_record, f->file_index );
                found = found && f->file_filter(handle);
 /*               if (found) printf("Debug+ found handle=%d\n",handle);*/
