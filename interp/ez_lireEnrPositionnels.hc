@@ -96,9 +96,8 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
   char nomvarx[8], typvarx[4], etikx[16];
   char nomvary[8], typvary[4], etiky[16];
   wordint i,j;
-  int listeCles_ax[32], listeCles_ay[32];
-  int nbMaxCles = 32;
-  int nbCles, trouve_x, trouve_y;
+  int Cles_ax, Cles_ay;
+  int trouve_x, trouve_y;
 
   wordint dateo, deet, npas, nbits;
   wordint intip1, intip2, intip3,intip4, tmpip3, intiunit,offsetx,offsety;
@@ -134,41 +133,46 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
     strcpy(nomvarx, ">>  ");
     }
 
-  ier = c_fstinl(intiunit, &nix, &njx, &nkx,moins1, etikx, ip1, ip2, tmpip3, typvarx, nomvarx,listeCles_ax, &nbCles, nbMaxCles);
   trouve_x = 0;
-  i = 0;
   if (gr->ni == 0 || gr->ni == -1)
    {
    gr->ni = nix;
    }
+  Cles_ax = c_fstinf(intiunit, &nix, &njx, &nkx,moins1, etikx, ip1, ip2, tmpip3, typvarx, nomvarx);
 
-  while (trouve_x == 0 && i < nbCles)
+  while (trouve_x == 0 && Cles_ax > 0)
     {
-    ier = c_fstprm(listeCles_ax[i], &dateo, &deet, &npas, &nix, &njx, &nkx, &nbits,
+     if (Cles_ax > 0) {
+
+        ier = c_fstprm(Cles_ax, &dateo, &deet, &npas, &nix, &njx, &nkx, &nbits,
         &bidon, &intip1, &intip2, &intip3, typvarx, nomvarx, etikx,
         grref, &ig1ref, &ig2ref, &ig3ref, &ig4ref, &bidon, &bidon, &bidon,
         &bidon, &bidon, &bidon, &bidon);
-    if (gr->grtyp[0] == 'U')
-       {
-       if (nix > 0 && njx == 1 && ier >= 0)
+
+        if (gr->grtyp[0] == 'U')
+           {
+           if (nix > 0 && njx == 1 && ier >= 0)
+              {
+              gr->ni = nix;
+              gr->nj = njx;
+              trouve_x = 1;
+              trouve_y = 1;
+              ier2 = Cles_ax;
+              }
+           }
+        else if (nix == gr->ni || gr->grtyp[0] == '#')
           {
-          gr->ni = nix;
-          gr->nj = njx;
           trouve_x = 1;
-          trouve_y = 1;
-          ier2 = listeCles_ax[i];
+          ier2 = Cles_ax;
           }
-       }
-    else if (nix == gr->ni || gr->grtyp[0] == '#')
-      {
-      trouve_x = 1;
-      ier2 = listeCles_ax[i];
-      }
-    else
-      {
-      i++;
-      }
+        else
+          {
+          /* not found, look for next one */
+          Cles_ax = c_fstsui(intiunit, &nix, &njx, &nkx);
+          }
     }
+  }
+
   if (gr->grtyp[0] == 'U')
   {
      if (trouve_x != 1)
@@ -205,27 +209,26 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
 
   if (gr->grtyp[0] != 'U') /* not a U grid */
   { /* search for the second grid descriptor */
-     ier = c_fstinl(intiunit, &niy, &njy, &nky,moins1, etiky, ip1, ip2, tmpip3, typvary, nomvary,listeCles_ay, &nbCles, nbMaxCles);
      if (gr->nj == 0 || gr->nj == -1)
         {
         gr->nj = njy;
         }
      trouve_y = 0;
-     i = 0;
-     while (trouve_y == 0 && i < nbCles)
+     Cles_ay = c_fstinf(intiunit, &niy, &njy, &nky,moins1, etiky, ip1, ip2, tmpip3, typvary, nomvary);
+     while (trouve_y == 0 && Cles_ay > 0)
        {
-       ier = c_fstprm(listeCles_ay[i], &dateo, &deet, &npas, &niy, &njy, &nky, &nbits,
+       ier = c_fstprm(Cles_ay, &dateo, &deet, &npas, &niy, &njy, &nky, &nbits,
            &bidon, &intip1, &intip2, &intip3, typvary, nomvary, etiky,
            grref, &ig1ref, &ig2ref, &ig3ref, &ig4ref, &bidon, &bidon, &bidon,
            &bidon, &bidon, &bidon, &bidon);
        if (njy == gr->nj || gr->grtyp[0] == '#')
          {
          trouve_y = 1;
-         ier1 = listeCles_ay[i];
+         ier1 = Cles_ay;
          }
        else
          {
-         i++;
+          Cles_ay = c_fstsui(intiunit, &nix, &njx, &nkx);
          }
        }
      if (trouve_x == 0 || trouve_y == 0)
