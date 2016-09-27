@@ -1522,7 +1522,7 @@ void C_requetes_init(char *requetes_filename, char *debug_filename)
   if (requetes_filename != NULL)
     ier = C_requetes_read_file(requetes_filename);
 #endif
-  fprintf(stderr,"INFO: (C_requetes_init) request table initialized \n");
+  dbprint(stderr,"INFO: (C_requetes_init) request table initialized \n");
   package_not_initialized = 0;
 }
 
