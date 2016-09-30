@@ -960,6 +960,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
   char *desire_exclure;
   int translatable;
   int supp_ok;       /* supplementary parameters match */
+  int nb_desire=0;
 
   if(package_not_initialized) {
     fprintf(stderr,"INFO: C_fstmatch_parm, initializing request tables \n");
@@ -980,6 +981,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
 
     /* process supplementary parameters if any right here */
     amatch = 0;
+    if (Requests[set_nb].exdes == DESIRE) nb_desire++;
     desire_exclure = (Requests[set_nb].exdes == DESIRE)  ? "desire" : "exclure";
 //fprintf(stderr,"matching request set %d\n",set_nb);
     Supplements:
@@ -1159,7 +1161,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
   if ((Requests[last_in_use].exdes == DESIRE) && (Requests[last_in_use].in_use))
     return(0);  /* ne satisfait pas la requete desire */
   else
-    return(1);  /* rien a exclure */
+    return(nb_desire==0 ? 1:0);  /* rien a exclure */
 
 } /* end fst_match_req */
 
