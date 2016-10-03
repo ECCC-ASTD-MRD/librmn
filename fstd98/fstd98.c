@@ -3210,7 +3210,7 @@ int c_ip2_all(float level, int kind)
   ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
-    fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[1]);
+    fprintf(stderr,"ip2 table full (ip_nb=%d)\n",ip_nb[1]);
     return(-1);
     }
 
@@ -3257,7 +3257,7 @@ int c_ip3_all(float level, int kind)
   ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
-    fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[2]);
+    fprintf(stderr,"ip3 table full (ip_nb=%d)\n",ip_nb[2]);
     return(-1);
     }
 
@@ -3336,7 +3336,7 @@ int c_ip2_val(float level, int kind)
   ips_tab[1][ip_nb[1]] = ip_new;
   ip_nb[1]++;
   if (ip_nb[1] >= Max_Ipvals) {
-    fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[1]);
+    fprintf(stderr,"ip2 table full (ip_nb=%d)\n",ip_nb[1]);
     return(-1);
     }
   return(ip_new);
@@ -3369,7 +3369,7 @@ int c_ip3_val(float level, int kind)
   ips_tab[2][ip_nb[2]] = ip_new;
   ip_nb[2]++;
   if (ip_nb[2] >= Max_Ipvals) {
-    fprintf(stderr,"ip1 table full (ip_nb=%d)\n",ip_nb[2]);
+    fprintf(stderr,"ip3 table full (ip_nb=%d)\n",ip_nb[2]);
     return(-1);
     }
   return(ip_new);
