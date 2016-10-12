@@ -14,12 +14,12 @@
 !---------------------------------- LICENCE END ---------------------------------
 #include <msg.h>
 
-!/**
+!/@*
 module mod_msg
    implicit none
    public
    !@author  Stephane Chamberland, 2009-11
-!**/
+!@*/
    logical,save :: isInit_L = .false.
    logical,save :: canWrite_L = .true.
    integer,save :: msgLevelMin = MSG_INFO
@@ -28,12 +28,12 @@ module mod_msg
 end module mod_msg
 
 
-!/**
+!/@*
 subroutine msg_init()
    use mod_msg
    implicit none
    !@author  Stephane Chamberland, 2009-11
-   !**/
+   !@*/
    !---------------------------------------------------------------------
    if (.not.isInit_L) then
       isInit_L = .true.
@@ -62,14 +62,14 @@ subroutine msg_init()
 end subroutine msg_init
 
 
-!/**
+!/@*
 subroutine msg_set_p0only(F_myPE)
    use mod_msg, only: isInit_L,canWrite_L
    implicit none
    !@arguments
    integer,intent(in) :: F_myPE
    !@author  Stephane Chamberland, 2009-11
-   !**/
+   !@*/
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
    canWrite_L = .false.
@@ -79,12 +79,12 @@ subroutine msg_set_p0only(F_myPE)
 end subroutine msg_set_p0only
 
 
-!/**
+!/@*
 subroutine msg_set_can_write(F_canWrite_L)
    use mod_msg, only: isInit_L,canWrite_L
    implicit none
    logical,intent(in) :: F_canWrite_L
-   !**/
+   !@*/
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
    canWrite_L = F_canWrite_L
@@ -93,12 +93,12 @@ subroutine msg_set_can_write(F_canWrite_L)
 end subroutine msg_set_can_write
 
 
-!/**
+!/@*
 subroutine msg_verbosity(F_msgLevel)
    implicit none
    !@arguments
    integer,intent(in) :: F_msgLevel
-   !**/
+   !@*/
    !---------------------------------------------------------------------
    call msg_set_minMessageLevel(F_msgLevel)
    !---------------------------------------------------------------------
@@ -106,13 +106,13 @@ subroutine msg_verbosity(F_msgLevel)
 end subroutine msg_verbosity
 
 
-!/**
+!/@*
 subroutine msg_verbosity_get(F_msgLevel)
    use mod_msg
    implicit none
    !@arguments
    integer,intent(out) :: F_msgLevel
-   !**/
+   !@*/
    !---------------------------------------------------------------------
    F_msgLevel = msgLevelMin
    !---------------------------------------------------------------------
@@ -120,13 +120,13 @@ subroutine msg_verbosity_get(F_msgLevel)
 end subroutine msg_verbosity_get
 
 
-!/**
+!/@*
 subroutine msg_set_minMessageLevel(F_msgLevel)
    use mod_msg, only: isInit_L,msgLevelMin
    implicit none
    !@arguments
    integer,intent(in) :: F_msgLevel
-   !**/
+   !@*/
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
    msgLevelMin = max(MSG_NBLEVELS0,min(F_msgLevel,MSG_NBLEVELS))
@@ -135,14 +135,14 @@ subroutine msg_set_minMessageLevel(F_msgLevel)
 end subroutine msg_set_minMessageLevel
 
 
-!/**
+!/@*
 subroutine msg_set_redirect2fileUnit(F_out_or_err,F_fileUnit)
    use mod_msg, only: isInit_L,msgUnit
    implicit none
    !@arguments
    integer,intent(in) :: F_out_or_err
    integer,intent(in) :: F_fileUnit
-   !**/
+   !@*/
    integer :: i, i0=1, i1=MSG_NBLEVELS
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
@@ -162,7 +162,7 @@ subroutine msg_set_redirect2fileUnit(F_out_or_err,F_fileUnit)
 end subroutine msg_set_redirect2fileUnit
 
 
-!/**
+!/@*
 subroutine msg_toall(F_msgLevel,F_Message)
    use mod_msg, only: isInit_L,canWrite_L,msgUnit,msgFormat,msgLevelMin
    implicit none
@@ -170,7 +170,7 @@ subroutine msg_toall(F_msgLevel,F_Message)
    integer,intent(in) :: F_msgLevel
    character(len=*),intent(in) :: F_Message
    !@author  Stephane Chamberland, 2009-11
-   !**/
+   !@*/
    integer :: msgLevel
    logical :: canWrite_L_bk
    !---------------------------------------------------------------------
@@ -184,7 +184,7 @@ subroutine msg_toall(F_msgLevel,F_Message)
 end subroutine msg_toall
 
 
-!/**
+!/@*
 subroutine msg(F_msgLevel,F_Message)
    use mod_msg, only: isInit_L,canWrite_L,msgUnit,msgFormat,msgLevelMin
    implicit none
@@ -192,7 +192,7 @@ subroutine msg(F_msgLevel,F_Message)
    integer,intent(in) :: F_msgLevel
    character(len=*),intent(in) :: F_Message
    !@author  Stephane Chamberland, 2009-11
-   !**/
+   !@*/
    integer :: msgLevel
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
@@ -207,7 +207,7 @@ subroutine msg(F_msgLevel,F_Message)
 end subroutine msg
 
 
-!/**
+!/@*
 function msg_getUnit(F_msgLevel) result(F_msgUnit)
    use mod_msg, only: isInit_L,canWrite_L,msgUnit,msgLevelMin
    implicit none
@@ -216,7 +216,7 @@ function msg_getUnit(F_msgLevel) result(F_msgUnit)
    !@returns
    integer :: F_msgUnit
    !@author  Stephane Chamberland, 2009-11
-   !**/
+   !@*/
    integer :: msgLevel
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
@@ -230,7 +230,7 @@ function msg_getUnit(F_msgLevel) result(F_msgUnit)
 end function msg_getUnit
 
 
-!/**
+!/@*
 subroutine msg_getInfo(F_canWrite_L,F_msgLevelMin,F_msgUnit,F_msgFormat_S)
    use mod_msg
    implicit none
@@ -239,7 +239,7 @@ subroutine msg_getInfo(F_canWrite_L,F_msgLevelMin,F_msgUnit,F_msgFormat_S)
    integer,intent(out) :: F_msgLevelMin,F_msgUnit
    character(len=*),intent(out) :: F_msgFormat_S
    !@author  Stephane Chamberland, 2012-02
-   !**/
+   !@*/
    integer,external :: msg_getUnit
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
