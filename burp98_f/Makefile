@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .F .f .o .a
+.SUFFIXES : .ftn .F .f .o .a
 
 SHELL = /bin/sh
 
@@ -53,9 +53,9 @@ FICHIERS = $(FDECKS)
 
 OBJET = burp98_f.o
 
-burp98_f.F: $(FDECKS) $(COMDECKS)
+burp98_f.ftn: $(FDECKS) $(COMDECKS)
 #Produire le source du progiciel burp et le regrouper\ndans le fichier burp98_f.f
-	cat $(FDECKS) > burp98_f.F
+	cat $(FDECKS) > burp98_f.ftn
 
 tarball: $(FDECKS) $(COMDECKS)
 	tar cfzv /data/armnraid1/www/ssm/sources/burp98_f_$(TARRLS)_all.tgz $(FDECKS) $(COMDECKS) Makefile 
@@ -96,4 +96,4 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	rm -f *.o burp98_f.F
+	rm -f *.o burp98_f.ftn
