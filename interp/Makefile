@@ -20,7 +20,8 @@ DEFINE = -DFICHSTD98
 
 SUPP_OPT = -openmp
 
-OPTIMIZ = -O 2
+OPTIMIZ = 2 
+
 #OPTIMIZ = -O 3 -fast
 #C_OPTIMIZ = -O 2
 #F_OPTIMIZ = -O 2
