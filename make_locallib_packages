@@ -4,6 +4,8 @@ mmake=make
 which gmake >/dev/null  && mmake=gmake
 echo mmake = $mmake
 #workdir=`pwd`
+if [[  ${CRAYOS_VERSION} == "" ]]; then
+echo "================== Normal mode ======="
 for package in base burp98_f cmc_log compresseur fstd98 interp interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
 do 
   pushd ${package}
@@ -11,3 +13,23 @@ do
   $mmake clean
   popd
 done
+
+else
+   echo "================== CRAY OS defini ==================="
+
+for package in base burp98_f cmc_log compresseur fstd98 interpv lamineur packers primitives readlx bmf spectral twinbuffer template_utils/gmm template_utils/whiteboard
+
+do
+  pushd ${package}
+  $mmake locallib
+  $mmake clean
+  popd
+done
+  pushd interp
+  $mmake OPTIMIZ=3 CFLAGS="-fast-transcendentals -no-prec-div -ip -no-prec-sqrt" locallib
+  $mmake clean
+  popd
+fi
+
+
+
