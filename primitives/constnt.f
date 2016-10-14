@@ -25,13 +25,15 @@
       INTEGER FLAG,MODE0
       CHARACTER *(*) NOM
       INTEGER IERROR
-      CALL CONSTNT_X(VALEUR,FLAG,NOM,MODE0,dummy,-1,-1,-1,IERROR)
+      external dummy_do_nothing_routine
+      CALL CONSTNT_X(VALEUR,FLAG,NOM,MODE0,
+     %               dummy_do_nothing_routine,-1,-1,-1,IERROR)
       RETURN
-      contains
-      subroutine dummy()  ! to support a mode 4 call
-      return
-      end subroutine dummy
       END
+      subroutine dummy_do_nothing_routine()  ! to support a mode 4 call
+      return
+      end subroutine dummy_do_nothing_routine
+
       SUBROUTINE CONSTNT_X(VALEUR,FLAG,NOM,MODE0,
      %                     BCAST_MPI,DATATYPE,ROOT,COMM,IERROR)
 *
