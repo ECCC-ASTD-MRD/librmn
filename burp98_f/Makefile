@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn .F .f .o .a
+.SUFFIXES : .F90 .f .o .a
 
 SHELL = /bin/sh
 
@@ -36,29 +36,29 @@ default: burp98_f.o
 
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
-FDECKS= \
-         bufrchr.F       mrbcol.F       mrbcov.F       mrbcvt.F \
-         mrbdcv.F       mrbini.F       mrblocx.F       mrbprm.F \
-         mrbprml.F       mrbrpt.F       mrbtyp.F       mrbupd.F \
-         mrfcls.F       mrfdel.F       mrfgoc.F       mrfgor.F \
-         mrfloc.F       mrfmxl.F       mrfnbr.F       mrfopc.F \
-         mrfopn.F       mrfopr.F       mrfprm.F       mrfvoi.F \
-         qbrptri.F       qrbnbdt.F       qrbsct.F     mrfbfl.F
+F90DECKS= \
+         bufrchr.F90       mrbcol.F90       mrbcov.F90       mrbcvt.F90 \
+         mrbdcv.F90       mrbini.F90       mrblocx.F90       mrbprm.F90 \
+         mrbprml.F90       mrbrpt.F90       mrbtyp.F90       mrbupd.F90 \
+         mrfcls.F90       mrfdel.F90       mrfgoc.F90       mrfgor.F90 \
+         mrfloc.F90       mrfmxl.F90       mrfnbr.F90       mrfopc.F90 \
+         mrfopn.F90       mrfopr.F90       mrfprm.F90       mrfvoi.F90 \
+         qbrptri.F90       qrbnbdt.F90       qrbsct.F90     mrfbfl.F90
 
 COMDECKS= \
          bpl.cdk       burpopt.cdk       codes.cdk       defi.cdk \
          enforc8.cdk   masques.cdk
 
-FICHIERS = $(FDECKS)
+FICHIERS = $(F90DECKS)
 
 OBJET = burp98_f.o
 
-burp98_f.ftn: $(FDECKS) $(COMDECKS)
+burp98_f.F90: $(F90DECKS) $(COMDECKS)
 #Produire le source du progiciel burp et le regrouper\ndans le fichier burp98_f.f
-	cat $(FDECKS) > burp98_f.ftn
+	cat $(F90DECKS) > burp98_f.F90
 
-tarball: $(FDECKS) $(COMDECKS)
-	tar cfzv /data/armnraid1/www/ssm/sources/burp98_f_$(TARRLS)_all.tgz $(FDECKS) $(COMDECKS) Makefile 
+tarball: $(F90DECKS) $(COMDECKS)
+	tar cfzv /data/armnraid1/www/ssm/sources/burp98_f_$(TARRLS)_all.tgz $(F90DECKS) $(COMDECKS) Makefile 
 
 obj: $(OBJET) 
 #Produire les fichiers objets (.o) pour tous les fichiers
@@ -96,4 +96,4 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o 
-	rm -f *.o burp98_f.ftn
+	rm -f *.o burp98_f.F90
