@@ -303,6 +303,13 @@ int Xc_Select_ip1(int set_nb, int des_exc, void *iplist, int nelm)
 
   if (nelm == 1 ) return(0);               /* one value, cannot be a range */
 
+  if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
+    Requests[set_nb].ip1s.data[1] = ip_entier[2];
+    Requests[set_nb].ip1s.data[2] = ip_entier[4];
+    Requests[set_nb].ip1s.in_use = DELTA;
+// printf("RANGE+DELTA detected %d %d %d\n",Requests[set_nb].ip1s.data[0],Requests[set_nb].ip1s.data[1],Requests[set_nb].ip1s.data[2]);
+    return(0);
+  }
   Requests[set_nb].ip1s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
   for (i=1; i<nelm; i++) {                       /* rest of values */
     Requests[set_nb].ip1s.data[i] = ip_entier[i];
@@ -353,6 +360,13 @@ int Xc_Select_ip2(int set_nb, int des_exc, void *iplist, int nelm)
 
   if (nelm == 1 ) return(0);               /* one value, cannot be a range */
 
+  if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
+    Requests[set_nb].ip2s.data[1] = ip_entier[2];
+    Requests[set_nb].ip2s.data[2] = ip_entier[4];
+    Requests[set_nb].ip2s.in_use = DELTA;
+// printf("RANGE+DELTA detected %d %d %d\n",Requests[set_nb].ip2s.data[0],Requests[set_nb].ip2s.data[1],Requests[set_nb].ip2s.data[2]);
+    return(0);
+  }
   Requests[set_nb].ip2s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
   for (i=1; i<nelm; i++) {                       /* rest of values */
     Requests[set_nb].ip2s.data[i] = ip_entier[i];
@@ -403,6 +417,13 @@ int Xc_Select_ip3(int set_nb, int des_exc, void *iplist, int nelm)
 
   if (nelm == 1 ) return(0);               /* one value, cannot be a range */
 
+  if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
+    Requests[set_nb].ip3s.data[1] = ip_entier[2];
+    Requests[set_nb].ip3s.data[2] = ip_entier[4];
+    Requests[set_nb].ip3s.in_use = DELTA;
+// printf("RANGE+DELTA detected %d %d %d\n",Requests[set_nb].ip3s.data[0],Requests[set_nb].ip3s.data[1],Requests[set_nb].ip3s.data[2]);
+    return(0);
+  }
   Requests[set_nb].ip3s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
   for (i=1; i<nelm; i++) {                       /* rest of values */
     Requests[set_nb].ip3s.data[i] = ip_entier[i];
@@ -883,10 +904,11 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
   int amatch=0;
   int mode = -1;   /* IP to P,KIND conversion */
   int i, ip, kind1, kind2, kind3;
-  float p1, p2, p3, delta;
+  float p1, p2, p3, delta, modulo, error;
+  float *fdata = (float *)data;
 
   if( ! in_use ) return 0;
-  if( in_use == RANGE ) {
+  if( in_use == RANGE || in_use == DELTA ) {
 //fprintf(stderr,"range matching %d\n",ip1);
     if(! translatable) return(0) ;      /* name is not translatable we are done */
     ip = ip1;
@@ -906,29 +928,48 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
       kind3 = kind1;
     }
     if(kind1 != kind2 || kind1 != kind3) return 0 ;  /* not same kind, no match */
-    if(p2<=p1 && p1<=p3) return 1 ;     /* we have a match */
-    return 0;   /* if we fell through, we have no match */
+    if(p1 < p2 || p1 > p3) return 0;       /* out of value range, no match */
+    if(in_use == RANGE) return 1 ;         /* we have a match if RANGE */
+    if(in_use == DELTA) {                  /* we are in range, check delta if there is one */
+      if(data[2] <= 0) return 0 ;          /* delta <= 0 not acceptable */
+      if(p1 == p2) return 1 ;              /* we have a match, modulo will be zero */
+      if(data[2] < 0xFFFFF){               /* max 18 bits for integer values */
+        delta = data[2];                   /* integer interval */
+      }else{
+        delta = fdata[2];                  /* float interval */
+      }
+      if(delta <= 0) return 0 ; /* delta <= 0 not acceptable */
+      modulo = fmodf( (p1 -p2) , delta ) ;
+      if(modulo < 0) modulo = -modulo;    /* abs(modulo)  */
+// printf("p1=%f p2=%f p3=%f delta=%f modulo=%f ratio=%f\n",p1,p2,p3,delta,modulo,modulo/delta);
+      error = modulo/delta;
+      if( error < 0.00001 || error > 0.99999 ) return 1 ; /* we have a match */
+    }
+    return 0;   /* we fell through, we have no match */
   }
-  if( in_use != VALUE ) return 1 ; /* delta not supported */
 
 //fprintf(stderr,"value matching %d, list of %d elements\n",ip1,nelm);
-  for (i=0 ; i<nelm ; i++) {
+  if(in_use == VALUE){
+    for (i=0 ; i<nelm ; i++) {
 //fprintf(stderr,"list[%d]=%d\n",i,data[i]);
-    if(ip1 == data[i] || data[i] == -1) return 1;  /* we have a match */
+      if(ip1 == data[i] || data[i] == -1) return 1;  /* we have a match with raw ip values */
+    }
+    if(! translatable) return(0) ;/* name is not translatable we are done */
+    ip = ip1;
+    ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
+    for (i=0 ; i<nelm ; i++) {
+      ip = data[i];
+      ConvertIp(&ip, &p2, &kind2, mode); /* convert match reference */
+      if(kind1 != kind2) continue;       /* not same kind, no match */
+      if(p2 == 0 && p1 != p2) continue ; /* if one is 0, both must be, no match */
+      delta = 1.0 - p1/p2 ;
+      if(delta < 0) delta = -delta;    /* abs(relative error)  */
+      if( delta < 0.000001) return 1 ; /* we have a match */
+    }
+    return 0 ;   /* if we fell through, we have no match */
+  }else{
+    return 0 ;   /* not a value, no match */
   }
-  if(! translatable) return(0) ;/* name is not translatable we are done */
-  ip = ip1;
-  ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
-  for (i=0 ; i<nelm ; i++) {
-    ip = data[i];
-    ConvertIp(&ip, &p2, &kind2, mode); /* convert match reference */
-    if(kind1 != kind2) continue;       /* not same kind, no match */
-    if(p2 == 0 && p1 != p2) continue ; /* if one is 0, both must be, no match */
-    delta = 1.0- p1/p2 ;
-    if(delta < 0) delta = -delta;    /* abs(relative error)  */
-    if( delta < 0.000001) return 1 ; /* we have a match */
-  }
-  return 0 ;   /* if we fell through, we have no match */
 }
 
 /*****************************************************************************
@@ -1116,7 +1157,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
     Ip1s:
       if (Requests[set_nb].ip1s.in_use) {
         amatch = (Requests[set_nb].ip1s.data[0] == -1) ? 1 : 0 ;
-        dbprint(stddebug,"Debug C_fst_match_req verifie ip2s set_nb=%d\n",set_nb);
+        dbprint(stddebug,"Debug C_fst_match_req verifie ip1s set_nb=%d\n",set_nb);
         if( amatch == 0)
           amatch = match_ip(Requests[set_nb].ip1s.in_use, Requests[set_nb].ip1s.nelm, Requests[set_nb].ip1s.data, ip1, translatable);
 //fprintf(stderr,"%s matching ip1=%d, amatch=%d\n",in_use[Requests[set_nb].ip1s.in_use],ip1,amatch);
