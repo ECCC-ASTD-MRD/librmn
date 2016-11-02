@@ -158,7 +158,7 @@ distclean:
 	rm -rf .fo
 
 clean:
-	rm -f WhiteBoard.o whiteboard_st.o whiteboard_omp.o whiteboard_interface_st.cdk whiteboard_interface_omp.cdk
+	rm -f WhiteBoard.o whiteboard_st.o whiteboard_omp.o
 	rm -f whiteboard.ftn90 whiteboard.f90 whiteboard_interface.cdk90 whiteboard_interface.f90
 	rm -f whiteboard_st.f90 whiteboard_omp.f90
 	rm -rf .fo
