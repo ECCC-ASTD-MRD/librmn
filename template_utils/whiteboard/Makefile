@@ -93,7 +93,7 @@ gen_ec_arch_dir:
 #Creer le repertoire $EC_ARCH
 	mkdir -p ./$(EC_ARCH)
 
-locallib: gen_ec_arch_dir \
+locallib: gen_ec_arch_dir whiteboard_interface_st.cdk whiteboard_interface_omp.cdk \
 	$(TEMPLIB)(whiteboard_st.o)	$(TEMPLIB)(whiteboard_omp.o)	$(TEMPLIB)(WhiteBoard.o)
 	rm -f $(OBJECTS)
 
