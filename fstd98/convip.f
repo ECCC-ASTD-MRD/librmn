@@ -151,6 +151,8 @@
 	  return
        elseif ( .not. validkind(kind) ) then
 *          write(6,6007) kind
+          ip = -999999
+          return
        endif
        if (kind .eq. 2 .and. p .eq. 0.) then
           ip = 0
@@ -291,9 +293,14 @@ c     %         goto 101
             if ( kind.lt.0 .or. kind.gt.maxkind ) then
                write(6,6004) kind
                p = -999999.0
+               kind = -1
+               if(flag) string = 'Invalid'
                return
             elseif ( .not. validkind(kind) ) then
 *              write(6,6007) kind
+               p = -999999.0
+               kind = -1
+               if(flag) string = 'Invalid'
             endif
             iexp = iand (15,ishft(ip,-20))
             itemp = iand (1048575, ip)
@@ -422,6 +429,7 @@ c     %         goto 101
 *           Valeur inderminee de ip.
             kind = 3
             p = float( ip )
+            if (flag) write(string,'(i6,3x)') nint(p)
 
          endif
 

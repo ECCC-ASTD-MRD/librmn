@@ -138,7 +138,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
       if ( is_invalid_kind(kind) ) then
           write(6,6004) kind
 !           call qqexit(1)    !  force excessive ?
-          ip = -1 
+          ip = -999999 
           return  ! erreur si kind pas valide
       endif
       if (kind .eq. 2 .and. p .eq. 0.) then  ! ou ajouter .and. .not. NEWENCODING
@@ -324,7 +324,9 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   return
 
 777  continue  ! invalid ip, return kind = -1
+  p = -999999
   kind = -1
+  if(flagv) string = 'Invalid'
   return
 
   6001 format(' Error in convip: sigma value =',e12.5,' returned ip is -999999')
