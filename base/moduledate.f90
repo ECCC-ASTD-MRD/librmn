@@ -17,6 +17,160 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+!============================================================================
+!                       THREAD SAFE ROUTINES 
+!     (they call the original ones inside a OpenMP critical region)
+!     the original routine names have been deliberately mangled
+!============================================================================
+!     M.Valin 2016/12/08  initial release of the thread safe cover routines
+!
+      subroutine date_thread_lock(lock)  ! .true. attempt to acquire lock, .false. release lock
+      IMPLICIT NONE
+      logical, intent(IN) :: lock
+      integer, save :: owner_thread = 0
+      call set_user_lock(owner_thread,lock)
+      return
+      end subroutine date_thread_lock
+
+      subroutine INCDATi(idate1,idate2,nhours)
+      IMPLICIT NONE
+      integer :: idate1,idate2
+      real *8 :: nhours
+      call date_thread_lock(.true.)
+      call IDNACTi(idate1,idate2,nhours)
+      call date_thread_lock(.false.)
+      end subroutine INCDATi
+
+      subroutine INCDATr(idate1,idate2,nhours)
+      IMPLICIT NONE
+      integer :: idate1,idate2
+      real *8 :: nhours
+      call date_thread_lock(.true.)
+      call IDNACTr(idate1,idate2,nhours)
+      call date_thread_lock(.false.)
+      end subroutine INCDATr
+
+      subroutine DIFDATi(idate1,idate2,nhours)
+      IMPLICIT NONE
+      integer :: idate1,idate2
+      real *8 :: nhours
+      call date_thread_lock(.true.)
+      call DDIAFTi(idate1,idate2,nhours)
+      call date_thread_lock(.false.)
+      end subroutine DIFDATi
+
+      subroutine DIFDATr(idate1,idate2,nhours)
+      IMPLICIT NONE
+      integer :: idate1,idate2
+      real *8 :: nhours
+      call date_thread_lock(.true.)
+      call DDIAFTr(idate1,idate2,nhours)
+      call date_thread_lock(.false.)
+      end subroutine DIFDATr
+
+      INTEGER FUNCTION newdate(DAT1,DAT2,DAT3,MODE)
+      IMPLICIT NONE
+      integer :: DAT1,DAT2(*),DAT3,MODE
+      integer, external :: naetwed
+      call date_thread_lock(.true.)
+      newdate = naetwed(DAT1,DAT2,DAT3,MODE)
+      call date_thread_lock(.false.)
+      end FUNCTION newdate
+
+      INTEGER FUNCTION IDATMG2(IDATE)
+      IMPLICIT NONE
+      integer idate(14)
+      integer, external :: itdmag2
+      call date_thread_lock(.true.)
+      IDATMG2 = itdmag2(IDATE)
+      call date_thread_lock(.false.)
+      end function IDATMG2
+
+      subroutine DATMGP2(IDATE)
+      IMPLICIT NONE
+      integer idate(14)
+      call date_thread_lock(.true.)
+      call dmagtp2(IDATE)
+      call date_thread_lock(.false.)
+      end subroutine DATMGP2
+
+      subroutine NewDate_Options( value,command )
+      IMPLICIT NONE
+      character*(*) value,command
+      call date_thread_lock(.true.)
+      call NewDate_Options_int( value,command )
+      call date_thread_lock(.false.)
+      end subroutine NewDate_Options
+
+      subroutine Get_Calendar_Status( NoLeapYears,CcclxDays )
+      IMPLICIT NONE
+      logical ::  NoLeapYears,CcclxDays
+      call date_thread_lock(.true.)
+      call Get_Calendar_Status_int( NoLeapYears,CcclxDays )
+      call date_thread_lock(.false.)
+      end subroutine Get_Calendar_Status
+
+      integer function Calendar_Adjust(tdate1,tdate2,true_date_mode,adding)
+      IMPLICIT NONE
+      integer, external :: Calendar_Adjust_int
+      integer :: tdate1,tdate2
+      character(len=1) true_date_mode
+      logical :: adding
+      call date_thread_lock(.true.)
+      Calendar_Adjust = Calendar_Adjust_int(tdate1,tdate2,true_date_mode,adding)
+      call date_thread_lock(.false.)
+      end function Calendar_Adjust
+                                       
+      integer function CcclxDays_Adjust(tdate1,tdate2,true_date_mode,adding)
+      IMPLICIT NONE
+      integer, external :: CcclxDays_Adjust_int
+      integer :: tdate1,tdate2 ! input TrueDates
+      character(len=1) true_date_mode ! (B)asic or (E)xtended TrueDates
+      logical :: adding ! operating mode (T=incadtr, F=difdatr)
+      call date_thread_lock(.true.)
+      CcclxDays_Adjust = CcclxDays_Adjust_int(tdate1,tdate2,true_date_mode,adding)
+      call date_thread_lock(.false.)
+      end function CcclxDays_Adjust
+
+      integer function LeapYear_Adjust(tdate1,tdate2,true_date_mode,adding)
+      IMPLICIT NONE
+      integer, external :: LeapYear_Adjust_int
+      logical :: adding
+      character(len=1) true_date_mode ! (B)asic or (E)xtended true dates
+      integer :: tdate1,tdate2
+      call date_thread_lock(.true.)
+      LeapYear_Adjust = LeapYear_Adjust_int(tdate1,tdate2,true_date_mode,adding)
+      call date_thread_lock(.false.)
+      end function LeapYear_Adjust
+
+      subroutine Ignore_LeapYear()
+      IMPLICIT NONE
+      call date_thread_lock(.true.)
+      call Ignore_LeapYear_int
+      call date_thread_lock(.false.)
+      end subroutine Ignore_LeapYear
+
+      subroutine Accept_LeapYear()
+      IMPLICIT NONE
+      call date_thread_lock(.true.)
+      call Accept_LeapYear_int
+      call date_thread_lock(.false.)
+      end subroutine Accept_LeapYear
+
+      subroutine Get_LeapYear_Status(no_leap_year_status)
+      IMPLICIT NONE
+      logical :: no_leap_year_status
+      call date_thread_lock(.true.)
+      call Get_LeapYear_Status_int(no_leap_year_status)
+      call date_thread_lock(.false.)
+      end subroutine Get_LeapYear_Status
+!============================================================================
+!     END OF THREAD SAFE ROUTINES
+!============================================================================
+!   the original names of the following routines have been altered because of
+!   the above mentioned thread safe routines
+!   internal calls use the mangled internal names
+!============================================================================
 !    environment variable NEWDATE_OPTIONS usage syntax
 !
 !   export NEWDATE_OPTIONS="[debug][,][year=360_day|365_day|gregorian][,][debug]"
@@ -117,7 +271,7 @@
 !         - SEE INCDATR FOR DETAIL ON CMC DATE-TIME STAMP
 !**S/R INCDATR - INCREASE IDATE2 BY NHOURS
 !
-      SUBROUTINE INCDATR (IDATE1,IDATE2,NHOURS)
+      SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
       IMPLICIT NONE
 !
 ! ENTRY INCDATI - SAME AS INCDATR BUT IDATE2 AND NHOURS ARE ROUNDED
@@ -199,8 +353,8 @@
       integer idate1,idate2
       real*8 nhours
       logical  adding,rounding
-      integer, external :: newdate, Calendar_Adjust
-      external Get_Calendar_Status
+      integer, external :: Calendar_Adjust_int, naetwed
+      external Get_Calendar_Status_int
       integer  result
 
       logical :: no_leap_years,ccclx_days,goextend
@@ -214,7 +368,7 @@
       rounding=.false.
       goto 4
 
-      entry incdati(idate1,idate2,nhours)
+      entry IDNACTi(idate1,idate2,nhours) ! INCDATI
       rounding=.true.
 
  4    adding=.true.
@@ -223,32 +377,32 @@
 !
 !  difdat computes nhours = idate1 - idate2
 !
-      entry difdati(idate1,idate2,nhours)
+      entry DDIAFTi(idate1,idate2,nhours) ! DIFDATI
       rounding=.true.
       goto 3
 
-      entry difdatr(idate1,idate2,nhours)
+      entry DDIAFTr(idate1,idate2,nhours) ! DIFDATR
       rounding=.false.
 
  3    adding=.false.
 !      print *,'Debug+ difdat ',idate1,idate2
       if (idate2 .lt. -1 .or. idate1 .lt. -1) then
         if (idate1 .gt. -1) then
-          result=newdate(idate1,pdate1,pdate2,-3)
+          result=naetwed(idate1,pdate1,pdate2,-3)
           if(result.ne.0) then
              print *,'label 1,idate1:',idate1
              goto 2
           endif
-          result=newdate(tdate1,pdate1,pdate2,+7)
+          result=naetwed(tdate1,pdate1,pdate2,+7)
           if(result.ne.0) then
              print *,'label 2,pdate1,pdate2:',pdate1(1),pdate2
              goto 2
           endif
         else
-          idate(1)=idate1 ; result=newdate(tdate1,idate,runnum,6)
+          idate(1)=idate1 ; result=naetwed(tdate1,idate,runnum,6)
         endif
       else
-        idate(1)=idate1 ; result=newdate(tdate1,idate,runnum,1)
+        idate(1)=idate1 ; result=naetwed(tdate1,idate,runnum,1)
       endif
       if(result.ne.0) then
          print *,'label 3,idate1:',idate1
@@ -256,22 +410,22 @@
       endif
 
  1    continue
-      call Get_calendar_Status( no_leap_years,ccclx_days )
+      call Get_calendar_Status_int( no_leap_years,ccclx_days )
       if (idate2 .lt. -1 .or. &
          (idate1 .lt. -1 .and. .not.adding)) then
         if (idate2 .gt.-1) then
-           result=newdate(idate2,pdate1,pdate2,-3)
+           result=naetwed(idate2,pdate1,pdate2,-3)
            if(result.ne.0) then
               print *,'label 4,idate2:',idate2
               goto 2
            endif
-           result=newdate(tdate2,pdate1,pdate2,+7)
+           result=naetwed(tdate2,pdate1,pdate2,+7)
            if(result.ne.0) then
               print *,'label 5,pdate1,pdate2:',pdate1(1),pdate2
               goto 2
            endif
         else
-           idate(1)=idate2 ; result=newdate(tdate2,idate,runnum,6)
+           idate(1)=idate2 ; result=naetwed(tdate2,idate,runnum,6)
         endif
         if(result.ne.0) then
            print *,'label 6,idate2:',idate2
@@ -280,10 +434,10 @@
         if (adding) then
           tdate1=tdate2+nint(nhours)
           if (no_leap_years .or. ccclx_days) then
-            ndays = Calendar_Adjust(tdate1,tdate2,'E',adding)
+            ndays = Calendar_Adjust_int(tdate1,tdate2,'E',adding)
             tdate1 = tdate1 + (ndays*24)
           endif
-          result=newdate(tdate1,idate,runnum,-6) ; idate1=idate(1)
+          result=naetwed(tdate1,idate,runnum,-6) ; idate1=idate(1)
           if (result.ne.0)  then
              print *,'after if adding,if rounding',tdate1
              goto 2
@@ -291,12 +445,12 @@
         else
           nhours=(tdate1-tdate2)
           if (no_leap_years .or. ccclx_days) then
-            ndays = Calendar_Adjust(tdate1,tdate2,'E',adding)
+            ndays = Calendar_Adjust_int(tdate1,tdate2,'E',adding)
             nhours = nhours - (ndays*24)
           endif
         endif
       else
-        idate(1)=idate2 ; result=newdate(tdate2,idate,runnum,1)
+        idate(1)=idate2 ; result=naetwed(tdate2,idate,runnum,1)
         if(result.ne.0) then
            print *,'label 1,idate2:',idate2
            goto 2
@@ -314,7 +468,7 @@
                (td2235-tdate2)*1_8 >= addit) then   ! tdate2 + addit <= td2235, where
               tdate1=tdate2+addit                   ! addit can be a very large
               if (no_leap_years.or.ccclx_days) then ! integer*8 number
-                 ndays = Calendar_Adjust(tdate1,tdate2,'B',adding)
+                 ndays = Calendar_Adjust_int(tdate1,tdate2,'B',adding)
                  tdate1 = tdate1 + (ndays*24*720)
                endif
               if ((tdate1 > td2235) &
@@ -323,24 +477,24 @@
               goextend = .true.
            endif
            if (goextend) then  ! exiting regular date range for extended range
-             result=newdate(idate2,pdate1,pdate2,-3)
+             result=naetwed(idate2,pdate1,pdate2,-3)
              if(result.ne.0) then
                print *,'label 7,idate2:',idate2
                goto 2
              endif
-             result=newdate(tdate2,pdate1,pdate2,+7)
+             result=naetwed(tdate2,pdate1,pdate2,+7)
              if(result.ne.0) then
                 print *,'label 8,pdate1,pdate2:',pdate1(1),pdate2
                 goto 2
              endif
              tdate1=tdate2+nint(nhours)
              if (no_leap_years .or. ccclx_days) then
-               ndays = Calendar_Adjust(tdate1,tdate2,'E',adding)
+               ndays = Calendar_Adjust_int(tdate1,tdate2,'E',adding)
                tdate1 = tdate1 + (ndays*24)
              endif
-             result=newdate(tdate1,idate,runnum,-6) ; idate1=idate(1)
+             result=naetwed(tdate1,idate,runnum,-6) ; idate1=idate(1)
            else
-             result=newdate(tdate1,idate,runnum,-1) ; idate1=idate(1)
+             result=naetwed(tdate1,idate,runnum,-1) ; idate1=idate(1)
            endif
            if (result.ne.0)  then
               print *,'after if adding,if rounding',tdate1
@@ -356,7 +510,7 @@
               nhours=nhours/720.0
            endif
            if (no_leap_years .or. ccclx_days) then
-             ndays = Calendar_Adjust(tdate1,tdate2,'B',adding)
+             ndays = Calendar_Adjust_int(tdate1,tdate2,'B',adding)
              nhours = nhours - (ndays*24)
            endif
         endif
@@ -374,7 +528,7 @@
 !                    TIME STAMP USING THE OPERATIONAL CMC DATE-TIME
 !                    GROUP.
 !
-      INTEGER FUNCTION IDATMG2(IDATE)
+      INTEGER FUNCTION itdmag2(IDATE)  ! IDATMG2
       IMPLICIT NONE
 !
 !AUTHOR   - M. VALIN  -  MAR 79
@@ -410,25 +564,25 @@
 !---------------------------------------------------------------------
 !
       integer idate(14)
-      integer, external :: newdate
-      integer dtpr,tmpr,year,result
+      integer, external :: naetwed
+      integer dtpr(2),tmpr,year,result
       year=idate(4)
       if ((year.ge.0) .and. (year.le.99)) then
          year=year+1900
       endif
-      dtpr=year*10000+idate(2)*100+idate(3)
+      dtpr(1)=year*10000+idate(2)*100+idate(3)
       tmpr=idate(5)*1000000+(idate(6)/6000)*10000+ &
            mod(idate(6)/100,60)*100
-      result=newdate(idate(14),dtpr,tmpr,3)
+      result=naetwed(idate(14),dtpr,tmpr,3)
       if(result.ne.0) idate(14)=101010101
 
-      idatmg2 = idate(14)
+      itdmag2 = idate(14)
 
       return
       end
 !**S/R DATMGP2 - CREATES A DATE TIME GROUP.
 !
-      SUBROUTINE DATMGP2 (IDATE)
+      SUBROUTINE dmagtp2 (IDATE)  ! DATMGP2
       IMPLICIT NONE
 !
 !AUTHOR   - D. SHANTZ
@@ -475,11 +629,11 @@
 !
 !--------------------------------------------------------------------
 !
-      integer idate(14),dtpr,tmpr,result
+      integer idate(14),dtpr,tmpr,result,tpr(2)
       integer i,j,k,iday,idt,mon,jd
       character * 3   xmonth(12),xday(7), amonth,aday
       character * 128 wrk
-      integer, external :: newdate
+      integer, external :: naetwed
       data xmonth / 'JAN','FEB','MAR','APR','MAY','JUN', &
                     'JUL','AUG','SEP','OCT','NOV','DEC' /
       data xday   / 'SUN','MON','TUE','WED','THU', &
@@ -493,7 +647,9 @@
 !
       idt = idate(14)
 !
-      result=newdate(idt,dtpr,tmpr,-3)
+      tpr(1) = dtpr
+      result=naetwed(idt,tpr,tmpr,-3)
+      dtpr = tpr(1)
       if (result.ne.0) then
          idt=101010101
          dtpr=19101010
@@ -524,22 +680,22 @@
       return
       end
 
-      subroutine Ignore_LeapYear()
+      subroutine Ignore_LeapYear_int()
 
       character(len=512) :: value
       logical :: no_leap_year_status
 
-      call NewDate_Options( 'year=365_day','set' )
+      call NewDate_Options_int( 'year=365_day','set' )
       return
 
-      entry Accept_LeapYear()
+      entry Accept_LeapYear_int()
 
-      call NewDate_Options( 'year=gregorian','set' )
+      call NewDate_Options_int( 'year=gregorian','set' )
       return
 
-      entry Get_LeapYear_Status( no_leap_year_status )
+      entry Get_LeapYear_Status_int( no_leap_year_status )
 
-      value='year' ; call NewDate_Options( value,'get' )
+      value='year' ; call NewDate_Options_int( value,'get' )
 
       if (value == '365_day' .or. value == '360_day') then
          no_leap_year_status = .true.
@@ -551,7 +707,7 @@
 
       end
 
-      subroutine NewDate_Options( value,command )
+      subroutine NewDate_Options_int( value,command )  ! NewDate_Options
 
 !     A) Permits alternative calendar options, via either
 !        the NEWDATE_OPTIONS environment variable (which
@@ -645,7 +801,7 @@
 
       return
 
-      entry Get_Calendar_Status( NoLeapYears,CcclxDays )
+      entry Get_Calendar_Status_int( NoLeapYears,CcclxDays )
 
       if (.not.called_newdate_options) then ! check environment once
          call getenvc( 'NEWDATE_OPTIONS',evalue )
@@ -680,7 +836,7 @@
 
       end
 
-      integer function Calendar_Adjust(tdate1,tdate2, &
+      integer function Calendar_Adjust_int(tdate1,tdate2, &
                                        true_date_mode,adding)
 
 !     Calls CcclxDays_Adjust or LeapYear_Adjust if the
@@ -693,27 +849,27 @@
 
       integer Adjust
       logical NoLeapYears,CcclxDays
-      integer, external :: LeapYear_Adjust,CcclxDays_Adjust
+      integer, external :: LeapYear_Adjust_int,CcclxDays_Adjust_int
 
-      call Get_Calendar_Status( NoLeapYears,CcclxDays )
+      call Get_Calendar_Status_int( NoLeapYears,CcclxDays )
 
       Adjust = 0
 
       if (CcclxDays) then
-         Adjust = CcclxDays_Adjust(tdate1,tdate2, &
+         Adjust = CcclxDays_Adjust_int(tdate1,tdate2, &
                                    true_date_mode,adding)
       else if (NoLeapYears) then
-         Adjust = LeapYear_Adjust(tdate1,tdate2, &
+         Adjust = LeapYear_Adjust_int(tdate1,tdate2, &
                                   true_date_mode,adding)
       endif
 
-      Calendar_Adjust = Adjust
+      Calendar_Adjust_int = Adjust
 
       return
 
       end
 
-      integer function LeapYear_Adjust(tdate1,tdate2, &
+      integer function LeapYear_Adjust_int(tdate1,tdate2, &
                                        true_date_mode,adding)
 
       implicit none
@@ -725,8 +881,8 @@
       integer :: year,annee,y1,y1L,y2,p1a(2),p1b,p2a(2),p2b
       integer :: ndays,tdate1L,tdate28f,tdate29f,addit
       logical :: bissextile
-      integer :: newdate
-      external newdate
+      integer :: naetwed
+      external naetwed
 
       bissextile(year) =  ( ( (MOD(year,4)   == 0)   &
                          .and.(MOD(year,100) /= 0) ) &
@@ -747,10 +903,10 @@
       tdate1L = tdate1 ! Local value of tdat1; if adding, it will gradually
                        ! evolve to its real value as leap days are found
 
-      ier = newdate(tdate1,p1a,p1b,true2print) ! true date to printable, but this
+      ier = naetwed(tdate1,p1a,p1b,true2print) ! true date to printable, but this
       y1 =      p1a(1) / 10000                 ! may still accounts for leap days
       m1 = mod( p1a(1) / 100 , 100 )
-      ier = newdate(tdate2,p2a,p2b,true2print)
+      ier = naetwed(tdate2,p2a,p2b,true2print)
       y2 =      p2a(1) / 10000
       m2 = mod( p2a(1) / 100 , 100 )
 !!!   print *,'Dans LeapYear_Adjust...'
@@ -760,10 +916,10 @@
       if (y2 > y1 .or. (y1 == y2 .and. m2 > m1)) inc=-1
       do annee = y2,y1,inc
         if (bissextile(annee)) then
-          dat(1) = annee*10000+0228 ; ier = newdate(tdate28f,dat,limite,print2true)
+          dat(1) = annee*10000+0228 ; ier = naetwed(tdate28f,dat,limite,print2true)
           dat(1) = annee*10000+0229
           if (inc > 0) then
-            ier = newdate(tdate29f,dat,0,print2true)
+            ier = naetwed(tdate29f,dat,0,print2true)
             if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
               ndays = ndays+inc
@@ -773,7 +929,7 @@
 !CC           print *,annee,' exclue'
             endif
           else
-            ier = newdate(tdate29f,dat,limite,print2true)
+            ier = naetwed(tdate29f,dat,limite,print2true)
             if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
               ndays = ndays+inc
@@ -782,22 +938,22 @@
           endif
         endif
       enddo
-      ier = newdate(tdate1L,p1a,p1b,true2print)
+      ier = naetwed(tdate1L,p1a,p1b,true2print)
       y1L = p1a(1) / 10000
 !!!   print *,'FinL =',mod(p1a,100),mod(p1a/100,100),y1L
       do annee = y1+inc,y1L,inc
         if (bissextile(annee)) then
-          dat(1) = annee*10000+0228 ; ier = newdate(tdate28f,dat,limite,print2true)
+          dat(1) = annee*10000+0228 ; ier = naetwed(tdate28f,dat,limite,print2true)
           dat(1) = annee*10000+0229
           if (inc > 0) then
-            ier = newdate(tdate29f,dat,0,print2true)
+            ier = naetwed(tdate29f,dat,0,print2true)
             if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
             endif
           else
-            ier = newdate(tdate29f,dat,limite,print2true)
+            ier = naetwed(tdate29f,dat,limite,print2true)
             if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
             if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
               ndays = ndays+inc
@@ -807,11 +963,11 @@
         endif
       enddo
 
-      LeapYear_Adjust = ndays
+      LeapYear_Adjust_int = ndays
       return
       end
 
-      integer function CcclxDays_Adjust(tdate1,tdate2, &
+      integer function CcclxDays_Adjust_int(tdate1,tdate2, &
                                 true_date_mode,adding)
 
 !     Calculate correction (in days) to account for "360-day
@@ -833,7 +989,7 @@
       integer :: ye1,mo1,da1,ho1,mi1,se1,p1a(2),p1b
       integer :: ye2,mo2,da2,ho2,mi2,se2,p2a(2),p2b
       integer :: addit,tdateL
-      integer, external :: newdate
+      integer, external :: naetwed
 
       addit=0 ! Holds a day in units of TrueDates
       td2h=0 ! Holds the True Dates to hours conversion factor
@@ -850,7 +1006,7 @@
          td2h=1.
       endif
 
-      ier = newdate( tdate2, p2a,p2b, true2print )
+      ier = naetwed( tdate2, p2a,p2b, true2print )
 
 !     decode p2a and p2b
 
@@ -862,8 +1018,8 @@
           (da2 > 30 .and. mo2 >  4)) then   ! tdate2 conforms to a 360-day
          print *,'Illegal date for 360-day calendar ', & ! calendar
                   p2a(1),' in CcclxDays_Adjust'
-         CcclxDays_Adjust = 89478485 ! * 24 = 2^31 - 8, a LARGE number
-         if (.not.adding) CcclxDays_Adjust = -CcclxDays_Adjust
+         CcclxDays_Adjust_int = 89478485 ! * 24 = 2^31 - 8, a LARGE number
+         if (.not.adding) CcclxDays_Adjust_int = -CcclxDays_Adjust_int
          return                      ! and should cause a quick abort
       endif
 
@@ -972,17 +1128,17 @@
          p1a(1) =  (ye1*100+mo1)*100+da1
          p1b    = ((ho1*100+mi1)*100+se1)*100
 
-         ier = newdate( tdateL, p1a,p1b, print2true )
+         ier = naetwed( tdateL, p1a,p1b, print2true )
 
          ! ensure that tdate1 + CcclxDays_Adjust = tdateL
-         CcclxDays_Adjust = ( tdateL - tdate1 ) / addit
+         CcclxDays_Adjust_int = ( tdateL - tdate1 ) / addit
 
          ier = mod( tdateL - tdate1 , addit )
          if (ier /= 0) print *,'probleme 1 dans CcclxDays_Adjust'
 
       else ! difdatr mode
 
-         ier = newdate( tdate1, p1a,p1b, true2print )
+         ier = naetwed( tdate1, p1a,p1b, true2print )
 
          ! decode p1a and p1b
 
@@ -994,7 +1150,7 @@
              (da1 > 30 .and. mo1 >  4)) then   ! tdate1 conforms to a 360-day
             print *,'Illegal date for 360-day calendar ', & ! calendar
                      p1a(1),' in CcclxDays_Adjust'
-            CcclxDays_Adjust = 89478485 ! * 24 = 2^31 - 8, a LARGE number
+            CcclxDays_Adjust_int = 89478485 ! * 24 = 2^31 - 8, a LARGE number
             return                      ! and should cause a quick abort
          endif
 
@@ -1028,7 +1184,7 @@
          ! ensure that nhours = nhours(I) - ( correction * 24 )
 
          nhoursi = ( tdate1 - tdate2 ) / td2h
-         CcclxDays_Adjust = nint( (nhoursi - nhours) / 24.0 )
+         CcclxDays_Adjust_int = nint( (nhoursi - nhours) / 24.0 )
 
          ier = mod( nint( (nhoursi - nhours)*10000.0, 8 ),240000_8 )
          if (ier /= 0) print *,'probleme 2 dans CcclxDays_Adjust'
@@ -1042,7 +1198,7 @@
 !**FUNCTION NEWDATE : CONVERTS DATES BETWEEN TWO OF THE FOLLOWING
 !FORMATS: PRINTABLE DATE, CMC DATE-TIME STAMP, TRUE DATE
 !
-      INTEGER FUNCTION NEWDATE(DAT1,DAT2,DAT3,MODE)
+      INTEGER FUNCTION naetwed(DAT1,DAT2,DAT3,MODE)  ! NEWDATE
       IMPLICIT NONE
       INTEGER DAT1,DAT2(*),DAT3,MODE
 !
@@ -1088,8 +1244,8 @@
       integer(8), save :: troisg=3000000000_8
 !!!   integer(8), save :: troisg=transfer(Z'B2D05E00',1_8)
 !!!   equivalence (stamp,stamp8)
-      external idatmg2, datmgp2
-      integer idatmg2
+      external itdmag2, dmagtp2
+      integer itdmag2
       data tdstart /123200000/,jd1980 /2444240/,jd1900 /2415021/
       data jd0 /1721060/,jd10k /5373485/, max_offset /109572750/
       data jd2236 /2537742/, exception /16663825/
@@ -1138,7 +1294,7 @@
       masque32=ishft(-1_8,-32) ! = Z'00000000FFFFFFFF'
 !
       if (abs(mode).gt.7 .or. mode.eq.0) goto 4
-      newdate=0 ; stamp8 = 0 ; stamp = 0
+      naetwed=0 ; stamp8 = 0 ; stamp = 0
       goto (106,104,103,101,1,2,3,4,5,6,7,100,102,105,107),(mode+8)
 !
 !     mode=-3 : from stamp(old or new) to printable
@@ -1290,13 +1446,13 @@
 !
 !     mode=4 : from 14 word old style DATE array TO STAMP and array(14)
 !
-100   dat1=idatmg2(dat2)
+100   dat1=itdmag2(dat2)
       return
 !
 !     mode=-4 : from STAMP TO 14 word old style DATE array
 !
 101   dat2(14)=dat1
-      call datmgp2(dat2)
+      call dmagtp2(dat2)
       return
 !
 !     mode=5 : from printable to extended stamp
@@ -1456,7 +1612,7 @@
 !
 !     error: bad mode or bad arguments
 !
- 4    newdate=1
+ 4    naetwed=1
       return
       end
 

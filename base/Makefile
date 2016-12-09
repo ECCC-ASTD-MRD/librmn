@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .f90 .F .f .c .o .a
+.SUFFIXES : .f90 .F .f .c .o .a .F90
 
 SHELL = /bin/sh
 
@@ -45,7 +45,7 @@ FDECKS= \
          grid_to_grid.F
 
 CDECKS= \
-         c_time.c         ipsort.c       movr8r4.c
+         c_time.c         ipsort.c       movr8r4.c  c_get_thread_id.c
 
 fDECKS= \
          afix.f           afix8.f        amax.f          amean.f \
@@ -91,7 +91,8 @@ OBJECTS= \
                           vpolagr.o      vps.o           windv.o \
          xgaig.o          xyflcc.o       xyfll.o         system_time.o\
          mxma.o           mxm.o          igaxg95.o       legvar.o\
-         movr8r4.o        nr_rand.o      grid_to_grid.o  fft_m4.o
+         movr8r4.o        nr_rand.o      grid_to_grid.o  fft_m4.o\
+	 c_get_thread_id.o               set_user_lock.o
 
 COMDECKS= \
          cubic.cdk       kases.cdk       lagrange.cdk       ordr.cdk \
@@ -161,6 +162,7 @@ locallib: gen_ec_arch_dir \
          $(TEMPLIB)(xgaig.o)          $(TEMPLIB)(xyflcc.o)       $(TEMPLIB)(xyfll.o)         $(TEMPLIB)(system_time.o)\
          $(TEMPLIB)(mxma.o)           $(TEMPLIB)(mxm.o)          $(TEMPLIB)(igaxg95.o)       $(TEMPLIB)(legvar.o)\
          $(TEMPLIB)(movr8r4.o)        $(TEMPLIB)(nr_rand.o)      $(TEMPLIB)(grid_to_grid.o)  $(TEMPLIB)(fft_m4.o)\
+         $(TEMPLIB)(c_get_thread_id.o) $(TEMPLIB)(set_user_lock.o)
        
 updlib: 
 #mettre a jour la programmatheque 
