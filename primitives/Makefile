@@ -12,7 +12,7 @@ FFLAGS =
 
 CFLAGS = 
 
-SUPP_OPT = -openmp
+SUPP_OPT =
 
 OPTIMIZ = 2
 

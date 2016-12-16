@@ -44,8 +44,7 @@ whiteboard_st.f90: whiteboard.ftn90
 
 whiteboard_st.o: whiteboard_st.f90
 #	s.compile -src whiteboard_st.f90 -O
-	s.f90 -c whiteboard_st.f90 -O
-
+	s.f90 -c whiteboard_st.f90 -O 2 $(SUPP_OPT) 
 whiteboard_interface_st.cdk: whiteboard_interface.cdk90
 #	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITHOUT_OpenMP
 	s.GPPF90 -DWITHOUT_OpenMP whiteboard_interface.cdk90 > whiteboard_interface.f90
@@ -58,7 +57,7 @@ whiteboard_omp.f90: whiteboard.ftn90
 
 whiteboard_omp.o : whiteboard_omp.f90
 #	s.compile -src whiteboard_omp.f90 -O -openmp
-	s.f90 -c whiteboard_omp.f90 -O -openmp
+	s.f90 -c whiteboard_omp.f90 -O 2 -openmp
 
 whiteboard_interface_omp.cdk: whiteboard_interface.cdk90
 #	s.compile -P -src whiteboard_interface.cdk90 -defines =-DWITH_OpenMP -openmp

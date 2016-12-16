@@ -2,7 +2,7 @@
 
 .SUFFIXES : .tmpl90 .inc .ftn .ftn90 .hf .ptn .f .f90 .c .s .o
 
-SUPP_OPT = -openmp
+SUPP_OPT =
 
 RMNLIB_BASE_PATH=$(ARMNLIB)
 

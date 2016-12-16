@@ -18,7 +18,7 @@ CFLAGS =
 
 DEFINE = -DFICHSTD98
 
-SUPP_OPT = -openmp
+SUPP_OPT =
 
 OPTIMIZ = 2 
 
