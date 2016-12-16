@@ -10,12 +10,13 @@
       IMPLICIT NONE
       logical, intent(IN) :: lock
       integer, intent(INOUT) :: owner_thread
-      integer, external :: c_get_thread_id
+#if defined(_OPENMP)
+      integer, external :: omp_get_thread_num
       integer :: current_pid, owner_pid, owner_count
       logical :: ok
 
 !     if (owner_thread < 0) owner_thread = 0
-      current_pid = c_get_thread_id()
+      current_pid = omp_get_thread_num()
       current_pid = iand(current_pid,x"FFFFFF")   ! keep lower 24 bits (8-31)
 
 !     print *,'thread=',current_pid,' lock=',lock,' owner_pid=',owner_pid,' count=',owner_count
@@ -48,5 +49,6 @@
       enddo
 !     if(lock)      print *,'locked by thread',current_pid,' count=',owner_count
 !     if(.not. lock)print *,'unlocked by thread',current_pid,' count=',owner_count
+#endif
       return
       end subroutine set_user_lock
