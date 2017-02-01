@@ -38,9 +38,12 @@ wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uu
   wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
   ftnfloat *tmplat, *tmplon, *tmpy;
   ftnfloat *uuyin, *vvyin, *uuyan, *vvyan;
+  ftnfloat *tmpuu, *tmpvv;
   
   tmplat = (ftnfloat *) malloc(n * sizeof(ftnfloat));
   tmplon = (ftnfloat *) malloc(n * sizeof(ftnfloat));
+  tmpuu = (ftnfloat *) malloc(n * sizeof(ftnfloat));
+  tmpvv = (ftnfloat *) malloc(n * sizeof(ftnfloat));
   
   c_gdkey2rowcol(gdin,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0)
@@ -66,13 +69,13 @@ wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uu
              tmpy[j]=y[j];
              }
         }
-      icode = c_gdxyvval_orig(yin_gdid, uuyin, vvyin, uuin, vvin, x, tmpy, n);
+      icode = c_gdxyvval_orig(yin_gdid, tmpuu, tmpvv, uuin, vvin, x, tmpy, n);
       icode = c_gdllfxy_orig (yin_gdid, tmplat, tmplon, x, tmpy, n);
-      icode = c_gdwdfuv_orig (yin_gdid, uuyin,vvyin,uuyin,vvyin,tmplat,tmplon,n);
+      icode = c_gdwdfuv_orig (yin_gdid, uuyin,vvyin,tmpuu,tmpvv,tmplat,tmplon,n);
 
-      icode = c_gdxyvval_orig(yan_gdid, uuyan, vvyan, &uuin[(lni*lnj)], &vvin[(lni*lnj)], x, tmpy, n);
+      icode = c_gdxyvval_orig(yan_gdid, tmpuu, tmpvv, &uuin[(lni*lnj)], &vvin[(lni*lnj)], x, tmpy, n);
       icode = c_gdllfxy_orig (yan_gdid, tmplat, tmplon, x, tmpy, n);
-      icode = c_gdwdfuv_orig (yan_gdid, uuyan,vvyan,uuyan,vvyan,tmplat,tmplon,n);
+      icode = c_gdwdfuv_orig (yan_gdid, uuyan,vvyan,tmpuu,tmpvv,tmplat,tmplon,n);
       for (j=0; j< n; j++)
         {
           if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)
@@ -93,13 +96,15 @@ wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uu
       }
   else
       {
-      ier = c_gdxyvval(gdin, uuout, vvout, uuin, vvin, x, y, n);
+      ier = c_gdxyvval(gdin, tmpuu, tmpvv, uuin, vvin, x, y, n);
       ier = c_gdllfxy_orig(gdin, tmplat, tmplon, x, y, n);
-      ier = c_gdwdfuv(gdin, uuout, vvout, uuout, vvout, tmplat, tmplon, n);
+      ier = c_gdwdfuv(gdin, uuout, vvout, tmpuu, tmpvv, tmplat, tmplon, n);
       }
 
   free(tmplat);
   free(tmplon);
+  free(tmpuu);
+  free(tmpvv);
 
   return 0;
 }

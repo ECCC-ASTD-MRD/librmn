@@ -94,7 +94,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
 {
   ftnfloat xlat1, xlon1, xlat2, xlon2;
   wordint i, npts, un;
-  ftnfloat *tmpx, *tmpy, *ytmp;
+  ftnfloat *tmpx, *tmpy, *ytmp=NULL;
   ftnfloat delxx, delyy;
   ftnfloat dlat, dlon, swlat, swlon;
   wordint indx, indy;
@@ -242,6 +242,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
       	}
       free(tmpx);
       free(tmpy);
+      free(ytmp);
       break;
     }
 

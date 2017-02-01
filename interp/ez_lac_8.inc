@@ -40,14 +40,16 @@
 !*
       
       integer i,k 
-      real dar
+      real dar, cosdar
       dar = acos(-1.)/180.
 !     
       k=0 
       do 30 i=1,n
          k=k+1
-         xyz(1,k)=cos(dar*lat(i))*cos(dar*lon(i))
-         xyz(2,k)=cos(dar*lat(i))*sin(dar*lon(i))
+!!!!JP
+         cosdar=cos(dar*lat(i))
+         xyz(1,k)=cosdar*cos(dar*lon(i))
+         xyz(2,k)=cosdar*sin(dar*lon(i))
          xyz(3,k)=sin(dar*lat(i))
  30   continue
 !     

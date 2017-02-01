@@ -57,7 +57,8 @@
 !
 !
 !implicits
-#include "ez_qqqmrot.cdk"
+
+      real r(3,3), ri(3,3)
 
       call ezgfxyfll(lonp, latp, lon, lat, r, ri, n, xlat1, xlon1, xlat2, xlon2)
 

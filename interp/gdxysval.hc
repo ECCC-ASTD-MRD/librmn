@@ -90,15 +90,11 @@ wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
 
 wordint c_gdxysval_orig(wordint gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x, ftnfloat *y, wordint n)
 {
-   wordint ninj_out;
    wordint ier;
-   wordint local_gdout,local_iset;
-   
-   ninj_out = n;
 
    ier = c_gdxysint(zout, zin, gdin, x, y, n);
 
-   return 0;
+   return ier;
 }
 
 
