@@ -5,6 +5,7 @@ Modifications from Valin to replace wordint with F2CL
 Correct bug in ezwdint to allocate latlon vectors Jan 2016
 Replace fstinl with fstinf and fstsui in ez_lireEnrPositionnels Sept 2016
 Correct bug in gdxywdval-memory overlap, gdllfxy-memory leak (Vanh S. ) Jan 2017
+Modify ezgdef_ffile to return error code for ezqkdef (Lee V.) Apr 2017
 
 IBM (AIX):
 . ssmuse-sh -d hpcs/201402/02/base -d hpcs/ext/xlf_13.1.0.10
