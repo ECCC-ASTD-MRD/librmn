@@ -67,4 +67,5 @@ void EliminerGrille(wordint gdid)
       index = ez_find_gdin_in_gset(gdid, Grille[gdrow_id][gdcol_id].gdin_for[i]);
       c_ezfreegridset(Grille[gdrow_id][gdcol_id].gdin_for[i], index);
       }
+      nGrilles--;
    }

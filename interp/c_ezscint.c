@@ -65,7 +65,6 @@
 #include "ezsint.hc"
 #include "ezuvint.hc"
 #include "ezwdint.hc"
-#include "ezyy_use1subgrid.hc"
 #include "ezyy_calcxy.hc"
 #include "ezyymint.hc"
 #include "ezyysint.hc"
