@@ -20,6 +20,7 @@
 #define NKLEMAX 1024
 
         SUBROUTINE CCARD_callback(p)
+        USE ISO_C_BINDING
         external p
         PROCEDURE(), pointer :: callback
         logical :: there_is_callback
@@ -28,7 +29,7 @@
         data there_is_callback / .false. /
 
         there_is_callback = .true.
-        callback => p
+        call C_F_PPROCPOINTER(C_FUNLOC(p),callback)
         return
         end
 
