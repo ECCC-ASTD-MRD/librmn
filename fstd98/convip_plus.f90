@@ -480,7 +480,7 @@ integer function value_to_string(val,string,maxlen)
   !print *,'=',trim(fstring)
   write(string,fstring)val            ! F format
   i=len(trim(string))
-  do while(i>4 .and. string(i-1:i-1)=='0')
+  do while(i>4 .and. string(i:i)=='0')
     string(i:i)=' '
     i=i-1
   enddo
