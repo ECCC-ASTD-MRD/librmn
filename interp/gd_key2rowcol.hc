@@ -21,13 +21,13 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void c_gdkey2rowcol(wordint key, wordint *row, wordint *col)
+static inline void c_gdkey2rowcol(wordint key, wordint *row, wordint *col)
   {
   *row = key >> LOG2_CHUNK;
   *col = key % CHUNK;
   }
   
-void c_gdrowcol2key(wordint *key, wordint row, wordint col)
+static inline void c_gdrowcol2key(wordint *key, wordint row, wordint col)
   {
   *key = row * CHUNK + col;
   }

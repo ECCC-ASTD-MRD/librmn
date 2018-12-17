@@ -10,6 +10,10 @@ Correct bug in ez_eliminer_grille (Samuel Gilbert) Dec 2017
 Modify ez_corrval to return "2" for extrapolation and arranged 
 ezsint,ezuvint,ezwdint and ezyy*int to forward this value (Lee V.) Jan 2018
 Eliminate ezyy_use1subgrid.hc (Lee V.) Feb 2018
+Add JP Gauthier thread safe (Gauthier J.) Dec 2018
+Renamed f_ezscint.ftn90 to f_ezscint.F90 (Lee V)Dec 2018
+Option for CRAY O3 is applied to f_ezscint.F90 as well in make_locallib_packages (Bouhemhem D) Dec 2018
+Modify to eliminate warnings and add return 0 for int functions not returning anything (Lee V) Dec 2018
 
 Science:
   . r.load.dot /fs/ssm/hpco/tmp/eccc/201402/06/base

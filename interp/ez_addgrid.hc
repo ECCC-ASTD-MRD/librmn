@@ -2,10 +2,34 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+// JP
+static pthread_mutex_t EZ_MTX=PTHREAD_MUTEX_INITIALIZER;
+
+int c_ez_refgrid(int grid_index)
+   {
+  int gdrow, gdcol, gdindex;
+
+  c_gdkey2rowcol(gdindex, &gdrow, &gdcol);
+
+// JP
+   pthread_mutex_lock(&EZ_MTX);
+// JP
+  Grille[gdrow][gdcol].access_count++;
+// JP
+   pthread_mutex_unlock(&EZ_MTX);
+
+   return(Grille[gdrow][gdcol].access_count);
+   }
+
 int c_ez_addgrid(int grid_index, _Grille *newgr)
   {
   int i, gdrow, gdcol, gdindex, next_index, nxt_row, nxt_col, cur_gdid;
   _Grille *cur_gr;
+
+// JP
+   pthread_mutex_lock(&EZ_MTX);
+// JP
+  newgr->access_count++;
   
   cur_gr = gr_list[grid_index];
   if (cur_gr == NULL)
@@ -52,5 +76,7 @@ int c_ez_addgrid(int grid_index, _Grille *newgr)
       Grille[gdrow][i].index = -1;
       }
     }
+// JP
+   pthread_mutex_unlock(&EZ_MTX);
   return (nGrilles-1);    
   }

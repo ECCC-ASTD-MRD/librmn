@@ -1,6 +1,6 @@
 .SUFFIXES :
 
-.SUFFIXES : .ftn90 .c .o .a
+.SUFFIXES : .F90 .c .o .a
 
 SHELL = /bin/bash
 
@@ -51,8 +51,8 @@ FICHIERS_CDK = \
 cubic.cdk   ez_gaussgd.cdk  ez_qqqxtrp.cdk   gaussgd.cdk  pi.cdk       qqqpar.cdk   zlin.cdk \
 cubic8.cdk  ez_qqqmrot.cdk  ez_qqqxtrp0.cdk  inline.cdk   qqqmrot.cdk  qqqxtrp.cdk  zlin8.cdk
 
-FICHIERS_FTN90 = \
-f_ezscint.ftn90
+FICHIERS_F90 = \
+f_ezscint.F90
 
 FICHIERS_C = \
 c_ezscint.c
@@ -60,20 +60,19 @@ c_ezscint.c
 FICHIERS_H = \
 ez_funcdef.h   ezscint.h
 
-FICHIERS = $(FICHIERS_FTN90) $(FICHIERS_C)
+FICHIERS = $(FICHIERS_F90) $(FICHIERS_C)
 
 #libezscint: f_ezscint.o c_ezscint.o
 #	ar rv libezscint-590.a.fl c_ezscint.o f_ezscint.o
 
-#f_ezscint.o: f_ezscint.ftn90
-##	s.compile -src f_ezscint.ftn90 $(F_OPTIMIZ)
+#f_ezscint.o: f_ezscint.F90
+##	s.compile -src f_ezscint.F90 $(F_OPTIMIZ)
 
 #c_ezscint.o: c_ezscint.c
 #	s.compile -src c_ezscint.c $(C_OPTIMIZ)
 
 obj: $(OBJET)
 #Produire les fichiers objets (.o) pour tous les fichiers
-	rm -f f_ezscint.f90
 
 gen_ec_arch_dir:
 #Creer le repertoire $EC_ARCH 
@@ -96,17 +95,16 @@ updlib:
 
 clean:
 #Faire le grand menage. On enleve tous les fichiers sources\ninutiles et les .o
-	-if [ "*.ftn90" != "`echo *.ftn90`" ] ; \
+	-if [ "*.F90" != "`echo *.F90`" ] ; \
 	then \
-	for i in *.ftn90 ; \
+	for i in *.F90 ; \
 	do \
-	fn=`r.basename $$i '.ftn90'`; \
+	fn=`r.basename $$i '.F90'`; \
 	rm -f $$fn.f; \
 	done \
 	fi
-	rm -f *~ *.o f_ezscint.f90
 
 fastclean:
-	rm *.o f_ezscint.f90
+	rm *.o
 
 

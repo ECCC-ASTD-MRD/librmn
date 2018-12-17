@@ -2,6 +2,9 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+//JP
+extern pthread_mutex_t EZ_MTX;
+
 int c_ez_findgrid(int grid_index, _Grille *gr)
   {
   wordint gdrow, gdcol, index_found, gr_size, resax, resay;
@@ -25,6 +28,9 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
      found = -1;
      return -1;
      }
+
+// JP
+   pthread_mutex_lock(&EZ_MTX);
      
   while (found == -1 && end_reached == -1)
     {
@@ -154,6 +160,11 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
         }
       }
     }  
+
+// JP
+  refgd->access_count++;
+// JP
+   pthread_mutex_unlock(&EZ_MTX);
   
   if (found == -1)
     {
