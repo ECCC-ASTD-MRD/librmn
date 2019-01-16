@@ -22,11 +22,11 @@
 !version that accepts real(single) arguments, with the extended interface
 subroutine Extrap1D_Surface_X  &
 #define real48 single
-#include "Extrap1D_Surface_Body.F90"
+#include "Extrap1D_Surface_Body.inc"
 #undef real48
 
 !version that accepts real(double) arguments, with the extended interface
 subroutine Extrap1D_Surface_X8  &
 #define real48 double
-#include "Extrap1D_Surface_Body.F90"
+#include "Extrap1D_Surface_Body.inc"
 #undef real48

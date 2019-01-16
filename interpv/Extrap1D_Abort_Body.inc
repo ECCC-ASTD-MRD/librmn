@@ -1,6 +1,6 @@
-!!!s/r Extrap1D_LapseRate - Extrapolate, based on lapse rates
-!subroutine Extrap1D_LapseRate_X  &
-!subroutine Extrap1D_LapseRate_X8 &
+!!!s/r Extrap1D_Abort - Abort if an extrapolation is required
+!subroutine Extrap1D_Abort_X  &
+!subroutine Extrap1D_Abort_X8 &
                       (numInterpSets, srcNumLevels, destNumLevels, &
                        src_ijDim, dst_ijDim, &
 
@@ -19,45 +19,21 @@
   ! ExtArraysOut
 !
 !AUTHOR
-!     J.W. Blezius MAY 2002 first library to replace duplicate interpolation
-!                           routines
+!     J.W. Blezius MAY 2014 First revision for this file
 !
 !REVISION
-! v1_0    Blezius J.W.          - new code
-! v1_1    Blezius J.W. SEP 2002 - make all input dim's the same; ditto for output
-! v1_2    Blezius J.W. OCT 2002 - extrapolation failed miserably in the case
-!                                 where the vertical levels are in DEcreasing
-!                                 order
-! v1_3    Blezius J.W. OCT 2003 - extend the interface, but ignore the extra data
+!         Blezius J.W. MAY 2014 - add abortion on extrapolation (this file)
 !         Blezius J.W. DEC 2015 - take advantage of OpenMP
 !
 !OBJECT
-!        Extrapolate values at vertical levels above (below) the highest (lowest)
-!        vertical level.  This algorithm is simple.  The extrapolated value
-!        of the state observable is calculated from that at the vertical level
-!        that is closest to the one sought, plus the difference that is
-!        determined by the product of the lapse rate and the difference in
-!        vertical levels. The extrapolated derivative of the state observable is
-!        equal to the supplied lapse rate (by definition of lapse rate).
+!        Test for the need to extrapolate values at vertical levels above (below)
+!        the highest (lowest) vertical level.  If extrapolation is required, do
+!        not extrapolate.  Abort execution instead.
 !
 !ARGUMENTS
   use Interp1D_Constants
   implicit none
-#include "Interp1D_Arguments_X.cdk"
-!
-!NOTES
-!        In the context of this routine the parameters, extrapGuideDown and
-!        extrapGuideUp, are the lapse rates below and above (respectively) the
-!        vLevelSource values.  The units of the lapse rates are:  state units /
-!        vLevel units.
-!
-!        It is assumed that stateDerivSource and particularly stateDerivDestn are
-!        real arrays.  The values need not make any sense since they are not used
-!        beyond copying them.  However, stateDerivDestn is intended for output,
-!        and as such it had better be legal to write to it.
-!
-!        Derivatives are simply not extrapolated.  The estimates of their values
-!        would be too poor to be of use anyway.
+#include "Interp1D_Arguments_X.inc"
 !
 !!
 
@@ -96,21 +72,29 @@
                                         ! This test gives faster code
       if( extrapEnableDown .and. posnDestInSrc(i,vt) == lowestPossiblePosn) then
         if( vLevelDestn(i,vt) < vLevelSource(i,indexLowestLevel) ) then
-          ! extrapolate below the lowest source vertical level
-          stateDestn(i,vt) =   stateSource(i,indexLowestLevel) &
-                         + extrapGuideDown * (  vLevelDestn (i,vt) &
-                                              - vLevelSource(i,indexLowestLevel)&
-                                             )
+          ! extrapolation is required:  abort execution
+          write(*,*)
+          write(*,*)"ERROR:  Attempting extrapolation to level ", &
+                    vLevelDestn(i,vt)
+          write(*,*)"        This is below the lowest level ", &
+                    vLevelSource(i,indexLowestLevel)
+          write(*,*)"        Abortion on extrapolation has been selected ... ", &
+                             "ABORTING"
+          call exit(2)
         endif
 
       else if(      extrapEnableUp &
               .and. posnDestInSrc(i,vt) == highestPossiblePosn) then
         if( vLevelDestn(i,vt) > vLevelSource(i,indexHighestLevel) ) then
-          ! extrapolate above the highest source vertical lavel
-          stateDestn(i,vt) = stateSource(i,indexHighestLevel) &
-                          + extrapGuideUp * (  vLevelDestn(i,vt) &
-                                             - vLevelSource(i,indexHighestLevel)&
-                                            )
+          ! extrapolation is required:  abort execution
+          write(*,*)
+          write(*,*)"ERROR:  Attempting extrapolation to level ", &
+                    vLevelDestn(i,vt)
+          write(*,*)"        This is above the highest level ", &
+                    vLevelSource(i,indexHighestLevel)
+          write(*,*)"        Abortion on extrapolation has been selected ... ", &
+                             "ABORTING"
+          call exit(2)
         end if
       end if ! extrapEnableDown
     end do ! i
@@ -118,4 +102,4 @@
 !$OMP END parallel do
 
 
-end subroutine ! Extrap1D_LapseRate_X
+end subroutine ! Extrap1D_Abort_X

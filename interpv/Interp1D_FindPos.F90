@@ -22,11 +22,11 @@
 !version that accepts real(single) arguments
 subroutine Interp1D_FindPos  &
 #define real48 single
-#include "Interp1D_FindPos_Body.F90"
+#include "Interp1D_FindPos_Body.inc"
 #undef real48
 
 !version that accepts real(double) arguments
 subroutine Interp1D_FindPos8  &
 #define real48 double
-#include "Interp1D_FindPos_Body.F90"
+#include "Interp1D_FindPos_Body.inc"
 #undef real48

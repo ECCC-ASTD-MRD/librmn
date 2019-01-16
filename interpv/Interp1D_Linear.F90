@@ -20,13 +20,13 @@
 !version that accepts real(single) arguments, with the extended interface
 subroutine Interp1D_Linear_X  &
 #define real48 single
-#include "Interp1D_Linear_Body.F90"
+#include "Interp1D_Linear_Body.inc"
 #undef real48
 
 !version that accepts real(double) arguments, with the extended interface
 subroutine Interp1D_Linear_X8  &
 #define real48 double
-#include "Interp1D_Linear_Body.F90"
+#include "Interp1D_Linear_Body.inc"
 #undef real48
 
 
@@ -36,7 +36,7 @@ subroutine Interp1D_Linear_X8  &
 subroutine Interp1D_Linear  &
 #define real48 single
 #define DestnFunc Interp1D_Linear_X
-#include "Interp1D_PreX_Shell.F90"
+#include "Interp1D_PreX_Shell.inc"
 #undef DestnFunc
 #undef real48
 
@@ -44,6 +44,6 @@ subroutine Interp1D_Linear  &
 subroutine Interp1D_Linear8  &
 #define real48 double
 #define DestnFunc Interp1D_Linear_X8
-#include "Interp1D_PreX_Shell.F90"
+#include "Interp1D_PreX_Shell.inc"
 #undef DestnFunc
 #undef real48

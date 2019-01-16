@@ -20,13 +20,13 @@
 !version that accepts real(single) arguments, with the extended interface
 subroutine Interp1D_NearestNeighbour_X  &
 #define real48 single
-#include "Interp1D_NearestNeighbour_Body.F90"
+#include "Interp1D_NearestNeighbour_Body.inc"
 #undef real48
 
 !version that accepts real(double) arguments, with the extended interface
 subroutine Interp1D_NearestNeighbour_X8  &
 #define real48 double
-#include "Interp1D_NearestNeighbour_Body.F90"
+#include "Interp1D_NearestNeighbour_Body.inc"
 #undef real48
 
 
@@ -36,7 +36,7 @@ subroutine Interp1D_NearestNeighbour_X8  &
 subroutine Interp1D_NearestNeighbour  &
 #define real48 single
 #define DestnFunc Interp1D_NearestNeighbour_X
-#include "Interp1D_PreX_Shell.F90"
+#include "Interp1D_PreX_Shell.inc"
 #undef DestnFunc
 #undef real48
 
@@ -44,6 +44,6 @@ subroutine Interp1D_NearestNeighbour  &
 subroutine Interp1D_NearestNeighbour8  &
 #define real48 double
 #define DestnFunc Interp1D_NearestNeighbour_X8
-#include "Interp1D_PreX_Shell.F90"
+#include "Interp1D_PreX_Shell.inc"
 #undef DestnFunc
 #undef real48
