@@ -81,13 +81,25 @@ OBJECTS= \
 
 FICHIERS = *.F90 *.f90 *.inc
 
+Test_Interp1D.F90:
+	cp test/Test_Interp1D.F90 .
+
+SpeedExtrap.F90:
+	cp test/SpeedExtrap.F90 .
+
+SpeedFindPos.F90:
+	cp test/SpeedFindPos.F90 .
+
+SpeedInterp.F90:
+	cp test/SpeedInterp.F90 .
+
 SpeedFindPos:	SpeedFindPos.o $(OBJECTS)
 	s.compile -o SpeedFindPos_$(COMP_ARCH).Abs -obj SpeedFindPos.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_015.2
+	-abi$(ABI) -librmn rmn_016.2
 
 SpeedInterp:	SpeedInterp.o $(OBJECTS)
 	s.compile -o SpeedInterp_$(COMP_ARCH).Abs -obj SpeedInterp.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_015.2
+	-abi$(ABI) -librmn rmn_016.2
 
 SpeedInterp_TestLib:	SpeedInterp.o
 	. s.ssmuse.dot /users/dor/arma/jbl/home1/armnlib_sandbox/sandbox_armnlib/sandbox_1/test_interpv; \
@@ -98,7 +110,7 @@ SpeedInterp_TestLib:	SpeedInterp.o
 
 SpeedExtrap:	SpeedExtrap.o $(OBJECTS)
 	s.compile -o SpeedExtrap_$(COMP_ARCH).Abs -obj SpeedExtrap.o $(OBJECTS) \
-	-abi$(ABI) -librmn rmn_015.2
+	-abi$(ABI) -librmn rmn_016.2
 
 Test_Interp1D:	Test_Interp1D.o $(OBJECTS)
 	s.compile -o Test_Interp1D_$(COMP_ARCH).Abs -obj Test_Interp1D.o $(OBJECTS) \
@@ -151,3 +163,4 @@ clean:
 	done \
 	fi
 	rm -f *.o *.f90 *.mod *.MOD *.stb  *.Abs
+	rm -f Test_Interp1D.F90 SpeedExtrap.F90 SpeedFindPos.F90 SpeedInterp.F90
