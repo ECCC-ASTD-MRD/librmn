@@ -2,7 +2,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-#ifndef NOMUTEX
+#ifdef MUTEX
 //JP
 extern pthread_mutex_t EZ_MTX;
 #endif
@@ -32,7 +32,7 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
      return -1;
      }
 
-#ifndef NOMUTEX
+#ifdef MUTEX
 // JP
    pthread_mutex_lock(&EZ_MTX);
 #endif
@@ -168,7 +168,7 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
 
 // JP
   refgd->access_count++;
-#ifndef NOMUTEX
+#ifdef MUTEX
 // JP
    pthread_mutex_unlock(&EZ_MTX);
 #endif
