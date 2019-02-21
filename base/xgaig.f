@@ -69,7 +69,9 @@
       REAL XXG2,XXG4,XLON
       REAL*8 :: XLON8, XLAT8
       INTEGER I2B
-      
+      LOGICAL, EXTERNAL :: VALIDE
+      LOGICAL STATUS
+
       IF (CGTYP .EQ. 'N' .OR. CGTYP.EQ.'S') THEN
          IG1 = NINT(XG2 * 10.)
          IG2 = NINT(XG1 * 10.)
@@ -117,8 +119,8 @@
          IG2 = XG2
          IG3 = 0
          IG4 = 0
-         CALL VALIDE("IG1",IG1,0,2) ! VERIFIER SI IG1=0,1,OU 2
-         CALL VALIDE("IG2",IG2,0,1) ! VERIFIER SI IG2=0 OU 1
+         STATUS = VALIDE("IG1",IG1,0,2) ! VERIFIER SI IG1=0,1,OU 2
+         STATUS = VALIDE("IG2",IG2,0,1) ! VERIFIER SI IG2=0 OU 1
          
       ELSE IF(CGTYP .EQ. 'C') THEN   ! C TYPE LAT LON GRID
         IG1 = NINT(180. / XG3)
@@ -156,8 +158,8 @@
         IF (IG3 .LT. 0) WRITE(6,601)
 
       ELSE IF (CGTYP .EQ. 'E')  THEN          !  GRILLE LAT,LON (GEF)
-        CALL VALIDE("XG1",NINT(XG1),-90,90)
-        CALL VALIDE("XG3",NINT(XG3),-90,90)
+        STATUS = VALIDE("XG1",NINT(XG1),-90,90)
+        STATUS = VALIDE("XG3",NINT(XG3),-90,90)
         XXG2 = XG2
         XXG4 = XG4
  500    CONTINUE
@@ -189,10 +191,10 @@ C
 
       ELSE IF (CGTYP .EQ. '+')  THEN            !  point LAT,LON
         XLAT8 = XG1
-        CALL VALIDE("XG1",NINT(XLAT8),-90,90)   ! -90, +90
+        STATUS = VALIDE("XG1",NINT(XLAT8),-90,90)   ! -90, +90
         XLON8 = XG2
         if(XLON8 < 0) XLON8 = XLON8 + 360.0     ! -180, +180 -> 0, 360
-        CALL VALIDE("XG2",NINT(XLON8),0,360)    ! 0, 360
+        STATUS = VALIDE("XG2",NINT(XLON8),0,360)    ! 0, 360
         IG3  = nint( (XLAT8+100.)*100. )        ! compatibilite arriere, centidegres (10 -> 19000)
         IG4  = nint( XLON8*100. )               ! compatibilite arriere, centidegres (0 -> 36000)
         IG1  = nint( (XLAT8+100.)*100000. ) - IG3*1000  ! en 1/100000 de degre

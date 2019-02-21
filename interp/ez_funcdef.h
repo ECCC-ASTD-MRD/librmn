@@ -279,8 +279,8 @@ int c_ez_refgrid(int grid_index);
 void c_ezdefxg(wordint gdid);
 void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay);
 wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts);
-void c_gdkey2rowcol(wordint key, wordint *row, wordint *col);
-void c_gdrowcol2key(wordint *key, wordint row, wordint col);
+//void c_gdkey2rowcol(wordint key, wordint *row, wordint *col);
+//void c_gdrowcol2key(wordint *key, wordint row, wordint col);
 
 int f77name(gdsetmask)(int *gdid, int *mask);
 int f77name(gdgetmask)(int *gdid, int *mask);
