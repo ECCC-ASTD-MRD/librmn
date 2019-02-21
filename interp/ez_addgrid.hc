@@ -2,8 +2,11 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+
+#ifndef NOMUTEX
 // JP
 static pthread_mutex_t EZ_MTX=PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 int c_ez_refgrid(int grid_index)
    {
@@ -11,12 +14,18 @@ int c_ez_refgrid(int grid_index)
 
   c_gdkey2rowcol(gdindex, &gdrow, &gdcol);
 
+
+
+#ifndef NOMUTEX
 // JP
    pthread_mutex_lock(&EZ_MTX);
+#endif
 // JP
   Grille[gdrow][gdcol].access_count++;
+#ifndef NOMUTEX
 // JP
    pthread_mutex_unlock(&EZ_MTX);
+#endif
 
    return(Grille[gdrow][gdcol].access_count);
    }
@@ -26,8 +35,10 @@ int c_ez_addgrid(int grid_index, _Grille *newgr)
   int i, gdrow, gdcol, gdindex, next_index, nxt_row, nxt_col, cur_gdid;
   _Grille *cur_gr;
 
+#ifndef NOMUTEX
 // JP
    pthread_mutex_lock(&EZ_MTX);
+#endif
 // JP
   newgr->access_count++;
   
@@ -76,7 +87,10 @@ int c_ez_addgrid(int grid_index, _Grille *newgr)
       Grille[gdrow][i].index = -1;
       }
     }
+#ifndef NOMUTEX
 // JP
+
    pthread_mutex_unlock(&EZ_MTX);
+#endif
   return (nGrilles-1);    
   }

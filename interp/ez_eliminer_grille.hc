@@ -21,16 +21,20 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+#ifndef NOMUTEX
 //JP
 extern pthread_mutex_t EZ_MTX;
+#endif
 
 void EliminerGrille(wordint gdid)
 {
   wordint i, index;
   wordint gdrow_id, gdcol_id;
     
+#ifndef NOMUTEX
 // JP
    pthread_mutex_lock(&EZ_MTX);
+#endif
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   
@@ -74,6 +78,9 @@ void EliminerGrille(wordint gdid)
       c_ezfreegridset(Grille[gdrow_id][gdcol_id].gdin_for[i], index);
       }
       nGrilles--;
+#ifndef NOMUTEX
 // JP
    pthread_mutex_unlock(&EZ_MTX);
+#endif
+
    }
