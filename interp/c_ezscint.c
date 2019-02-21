@@ -70,7 +70,7 @@
 #include "ezyysint.hc"
 #include "ezyyuvint.hc"
 #include "ezyywdint.hc"
-#include "gd_key2rowcol.hc"
+//#include "gd_key2rowcol.hc"
 #include "gdgaxes.hc"
 #include "gdinterp.hc"
 #include "gdll.hc"

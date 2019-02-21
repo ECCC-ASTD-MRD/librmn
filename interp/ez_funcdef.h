@@ -1,6 +1,7 @@
 #include "ezscint.h"
 
 #ifndef _ezfuncdef
+#include "gd_key2rowcol.hc"
 
 static _Grille **Grille  = NULL;
 /*static wordint  **gr_list = NULL;*/

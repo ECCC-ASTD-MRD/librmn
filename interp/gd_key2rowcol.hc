@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
-#include "ez_funcdef.h"
+//#include "ezscint.h"
+//#include "ez_funcdef.h"
 
 static inline void c_gdkey2rowcol(wordint key, wordint *row, wordint *col)
   {
