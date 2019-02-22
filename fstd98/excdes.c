@@ -90,9 +90,9 @@ Desire_Exclure Requetes[MAX_requetes];
  *              -2=interval [debut, fin]                                     *
  *                           debut=-1, indique valeur min du fichier         *
  *                           fin=-1, indique valeur max du fichier           *
- *  IN  kind    code kind de convip,                                         *
+ *  IN  kind    code kind de convip_plus,                                    *
  *              -1=IP1 entier deja encode                                    *
- *              -2=IP1 entier a garder tel quel (pas de convip)              *
+ *              -2=IP1 entier a garder tel quel (pas de convip_plus)         *
  *                                                                           *
  *****************************************************************************/
 int xc_select_ip1(int set_nb, int des_exc, void *iplist, int nelm, int kind)
@@ -139,7 +139,7 @@ int xc_select_ip1(int set_nb, int des_exc, void *iplist, int nelm, int kind)
       if (ip_entier[i] == -1)
         p1 = -1.0;
       else
-        f77name(convip)(&ip_entier[i],&p1,&Requetes[set_nb].ip1s.ip_kind,&mode,string,&flag);
+        f77name(convip_plus)(&ip_entier[i],&p1,&Requetes[set_nb].ip1s.ip_kind,&mode,string,&flag);
       Requetes[set_nb].ip1s.data.tab_rval[i] = p1;
       dbprint(stddebug,"Debug ip_entier=%d Requetes[%d].ip1s.data.tab_rval[%d] = %f\n",ip_entier[i],set_nb,i,
               Requetes[set_nb].ip1s.data.tab_rval[i]);
@@ -179,7 +179,7 @@ int xc_select_ip1(int set_nb, int des_exc, void *iplist, int nelm, int kind)
  *              -2=interval [debut, fin]                                     *
  *                           debut=-1, indique valeur min du fichier         *
  *                           fin=-1, indique valeur max du fichier           *
- *  IN  kind    code kind de convip, (ex: kind=10, temp en heure)            *
+ *  IN  kind    code kind de convip_plus, (ex: kind=10, temp en heure)       *
  *              -1=IP2 entier deja encode (valeur classique standard)        *
  *                                                                           *
  *****************************************************************************/
@@ -252,7 +252,7 @@ int xc_select_ip2(int set_nb, int des_exc, void *iplist, int nelm, int kind)
  *              -2=interval [debut, fin] (pour expansion future)             *
  *                           debut=-1, indique valeur min du fichier         *
  *                           fin=-1, indique valeur max du fichier           *
- *  IN  kind    code kind de convip, (pour expansion future, ignore)         *
+ *  IN  kind    code kind de convip_plus, (pour expansion future, ignore)    *
  *              -1=IP3 entier (valeur classique standard)                    *
  *                                                                           *
  *****************************************************************************/
@@ -801,7 +801,7 @@ int c_fst_match_req(int handle)
         switch (Requetes[set_nb].ip1s.arg_type) {
 
         case reel:
-          f77name(convip)(&ip1,&p1,&ip_kind,&mode,string,&flag);
+          f77name(convip_plus)(&ip1,&p1,&ip_kind,&mode,string,&flag);
           dbprint(stddebug,"Debug c_fst_match_req verifie ip1s du fichier=%d reel=%f set_nb=%d\n",ip1,p1,set_nb);
           if (Requetes[set_nb].exdes == desire) {
             for (i=0; i < Requetes[set_nb].ip1s.nelm; i++)
@@ -841,7 +841,7 @@ int c_fst_match_req(int handle)
           break;
 
         case deb_fin_reel:
-          f77name(convip)(&ip1,&p1,&ip_kind,&mode,string,&flag);
+          f77name(convip_plus)(&ip1,&p1,&ip_kind,&mode,string,&flag);
           if (Requetes[set_nb].ip1s.data.tab_rval[0] == -1.0)
             r_debut = p1;
           else
