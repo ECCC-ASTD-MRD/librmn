@@ -49,7 +49,7 @@ C     de commentaires (desactivation de code).
       Integer     jdebut,jfin,datim(14),is1,is2
       Real*8      heures
 *
-      External    datmgp,incdatr,jidatec
+      External    datmgp,incdatr,jdatec
       integer, external :: newdate
       integer status
 *
