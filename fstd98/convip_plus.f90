@@ -631,7 +631,7 @@ FUNCTION kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 chara
   character(len=2) :: string
   integer, parameter :: Max_Kind=31
   character(len=2), save, dimension(0:Max_Kind) :: kinds = &
-    (/    ' m', 'sg', 'mb', '##', ' M', 'hy', 'th', '??',                       &
+    (/    ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', '??',                       &
           '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
           '??', '[]', '??', '??', '??', 'mp', '??', '??',                       &
           '??', '??', '??', '??', '??', '??', '??', '_1' /)
