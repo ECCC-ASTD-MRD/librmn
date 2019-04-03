@@ -24,8 +24,119 @@ module mod_msg
    logical,save :: canWrite_L = .true.
    integer,save :: msgLevelMin = MSG_INFO
    integer,save :: msgUnit(MSG_NBLEVELS0:MSG_NBLEVELS)
-   character(len=MSG_MAXLEN),save :: msgFormat(MSG_NBLEVELS0:MSG_NBLEVELS) 
+   character(len=MSG_MAXLEN),save :: msgFormat(MSG_NBLEVELS0:MSG_NBLEVELS)
 end module mod_msg
+
+
+!/@*
+module mod_msg_buffer
+   !@author  Stephane Chamberland, 2018-06
+   use mod_msg, only: msgUnit, msgFormat
+   implicit none
+   private
+   public :: buffer_verbosity, buffer_add, buffer_reset, buffer_flush
+!@*/
+   integer, parameter :: MSG_NMAXBUFFER = 256
+   integer,save :: buffer_min_level = MSG_ERROR
+   integer,save :: nBuffer = 0
+   integer,save :: levelBuffer(MSG_NMAXBUFFER)
+   character(len=MSG_MAXLEN),save :: msgBuffer(MSG_NMAXBUFFER)
+   !#TODO: offer option to turn off buffering if it's too slooow
+
+contains
+
+   !/@*
+   function buffer_verbosity(F_msgLevel) result(F_msgLevel0)
+      implicit none
+      !@arguments
+      integer,intent(in),optional :: F_msgLevel
+      !@returns
+      integer :: F_msgLevel0
+      !@*/
+      F_msgLevel0 = buffer_min_level
+      if (present(F_msgLevel)) then
+!$omp single
+         buffer_min_level = max(MSG_NBLEVELS0,min(F_msgLevel,MSG_NBLEVELS))
+!$omp end single
+      endif
+      return
+   end function buffer_verbosity
+
+
+   !/@*
+   subroutine buffer_add(F_msgLevel,F_Message)
+      implicit none
+      !@arguments
+      integer,intent(in) :: F_msgLevel
+      character(len=*),intent(in) :: F_Message
+      !@*/
+      integer :: n
+      if (F_msgLevel < buffer_min_level) return
+!$omp critical
+      if (nBuffer == 0 .or. .not.( &
+           F_msgLevel == levelBuffer(max(1,nBuffer)) .and. &
+           F_Message == msgBuffer(max(1,nBuffer))) &
+           ) then
+         nBuffer = nBuffer + 1
+         if (nBuffer > MSG_NMAXBUFFER) then
+            do n = 2,MSG_NMAXBUFFER
+               levelBuffer(n-1) = levelBuffer(n)
+               msgBuffer(n-1) = msgBuffer(n)
+            enddo
+            nBuffer = MSG_NMAXBUFFER
+         endif
+         levelBuffer(nBuffer) = F_msgLevel
+         msgBuffer(nBuffer) = F_Message
+      endif
+!$omp end critical
+      return
+   end subroutine buffer_add
+
+
+   !/@*
+   subroutine buffer_reset()
+      implicit none
+      !@*/
+      !#TODO: does single sync threads or should we use something else
+!$omp single
+      nBuffer = 0
+!$omp end single
+      return
+   end subroutine buffer_reset
+
+
+   !/@*
+   subroutine buffer_flush()
+      implicit none
+      !@*/
+      integer :: n, nunits, m
+      integer :: units(MSG_NBLEVELS-MSG_NBLEVELS0+1)
+!$omp single
+      nunits = MSG_NBLEVELS - buffer_min_level + 1
+      units(1:nunits) = msgUnit(buffer_min_level:MSG_NBLEVELS)
+      call isort(units,nunits)
+      ! unique values only
+      m=1
+      do n=2,nunits
+         if (units(n) /= units(n-1)) m = m + 1
+         units(m) = units(n)
+      enddo
+      nunits = m
+      do n = 1, nunits
+         write(units(n),*) '==== Msg Buffer traceback [BEGIN] =============================='
+      enddo
+      do n = nBuffer,1,-1
+         write(msgUnit(levelBuffer(n)),trim(msgFormat(levelBuffer(n)))) trim(msgBuffer(n))
+      enddo
+      do n = 1, nunits
+         write(units(n),*) '==== Msg Buffer traceback [END] ================================'
+      enddo
+      nBuffer = 0
+!$omp end single
+      return
+   end subroutine buffer_flush
+
+end module mod_msg_buffer
 
 
 !/@*
@@ -36,6 +147,7 @@ subroutine msg_init()
    !@*/
    !---------------------------------------------------------------------
    if (.not.isInit_L) then
+!$omp single
       isInit_L = .true.
       msgUnit(MSG_QUIET)   = MSG_STDOUT
       msgUnit(MSG_DEBUG)   = MSG_STDERR
@@ -56,11 +168,14 @@ subroutine msg_init()
       msgFormat(MSG_ERROR)   = '("ERROR: ",a)'
       msgFormat(MSG_CRITICAL)= '("CRITICAL ERROR: ",a)'
       msgFormat(MSG_VERBATIM)= '(a)'
+!$omp end single
    endif
    !---------------------------------------------------------------------
    return
 end subroutine msg_init
 
+
+!#TODO: review OMP thread safety of code below
 
 !/@*
 subroutine msg_set_p0only(F_myPE)
@@ -187,6 +302,7 @@ end subroutine msg_toall
 !/@*
 subroutine msg(F_msgLevel,F_Message)
    use mod_msg, only: isInit_L,canWrite_L,msgUnit,msgFormat,msgLevelMin
+   use mod_msg_buffer, only: buffer_add
    implicit none
    !@arguments
    integer,intent(in) :: F_msgLevel
@@ -196,6 +312,7 @@ subroutine msg(F_msgLevel,F_Message)
    integer :: msgLevel
    !---------------------------------------------------------------------
    if (.not.isInit_L) call msg_init()
+   call buffer_add(F_msgLevel,F_Message)
    if (canWrite_L .and. F_msgLevel>=msgLevelMin) then
       msgLevel = max(MSG_NBLEVELS0,min(F_msgLevel,MSG_NBLEVELS))
       !TODO: use C's fprintf so that it can be called from C
@@ -251,3 +368,60 @@ subroutine msg_getInfo(F_canWrite_L,F_msgLevelMin,F_msgUnit,F_msgFormat_S)
    !---------------------------------------------------------------------
    return
 end subroutine msg_getInfo
+ 
+
+!/@*
+subroutine msg_buffer_verbosity(F_msgLevel)
+   use mod_msg_buffer, only: buffer_verbosity
+   implicit none
+   !@objective Set minimal level of messages to be buffered
+   !@arguments
+   integer,intent(in) :: F_msgLevel
+   !@*/
+   integer :: itmp
+   !---------------------------------------------------------------------
+   itmp = buffer_verbosity(F_msgLevel)
+   !---------------------------------------------------------------------
+   return
+end subroutine msg_buffer_verbosity
+
+
+!/@*
+subroutine msg_buffer_verbosity_get(F_msgLevel)
+   use mod_msg_buffer, only: buffer_verbosity
+   implicit none
+   !@objective Get minimal level of messages to be buffered
+   !@arguments
+   integer,intent(out) :: F_msgLevel
+   !@*/
+   !---------------------------------------------------------------------
+   F_msgLevel = buffer_verbosity()
+   !---------------------------------------------------------------------
+   return
+end subroutine msg_buffer_verbosity_get
+
+
+!/@*
+subroutine msg_buffer_reset()
+   use mod_msg_buffer, only: buffer_reset
+   implicit none
+   !@objective Reset msg buffer (empty stack)
+   !@*/
+   !---------------------------------------------------------------------
+   call buffer_reset()
+   !---------------------------------------------------------------------
+   return
+end subroutine msg_buffer_reset
+
+
+!/@*
+subroutine msg_buffer_flush()
+   use mod_msg_buffer, only: buffer_flush
+   implicit none
+   !@objective Flush (print and reset) msg buffer
+   !@*/
+   !---------------------------------------------------------------------
+   call buffer_flush()
+   !---------------------------------------------------------------------
+   return
+end subroutine msg_buffer_flush
