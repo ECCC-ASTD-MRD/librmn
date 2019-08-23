@@ -20,7 +20,7 @@ DEFINE = -DFICHSTD98
 
 SUPP_OPT =
 
-OPTIMIZ = 2 
+OPTIMIZ = -O 0 -debug
 
 #OPTIMIZ = -O 3 -fast
 #C_OPTIMIZ = -O 2
@@ -39,9 +39,6 @@ TARRLS = beta
 .PRECIOUS: $(RMNLIB) $(MALIB)
 
 default: obj
-
-.DEFAULT:
-	co $@
 
 include $(RPN_TEMPLATE_LIBS)/include/makefile_suffix_rules.inc
 
