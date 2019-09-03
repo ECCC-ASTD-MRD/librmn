@@ -20,11 +20,9 @@ DEFINE = -DFICHSTD98
 
 SUPP_OPT =
 
-OPTIMIZ = -O 0 -debug -opt='-fpe0 -traceback'
+OPTIMIZ = 2 
+#OPTIMIZ = -O 0 -debug -opt='-fpe0 -traceback'
 
-#OPTIMIZ = -O 3 -fast
-#C_OPTIMIZ = -O 2
-#F_OPTIMIZ = -O 2
 
 CPPFLAGS = -I$(RPN_TEMPLATE_LIBS)/include
 
