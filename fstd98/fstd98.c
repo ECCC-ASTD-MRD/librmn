@@ -835,7 +835,7 @@ int c_fstecr(word *field_in, void * work, int npak,
       }
       stdf_entry->datyp = is_missing | 4;  /* turbo compression not supported for this type, revert to normal mode */
 #ifdef use_old_signed_pack_unpack_code
-!! fprintf(stderr,"OLD PACK CODE======================================\n");
+// fprintf(stderr,"OLD PACK CODE======================================\n");
       field3 = field;
       if(xdf_short || xdf_byte){
         field3=(word *)alloca(ni*nj*nk*sizeof(word));
@@ -846,7 +846,7 @@ int c_fstecr(word *field_in, void * work, int npak,
       ier = compact_integer(field3,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
                             nbits,0,xdf_stride,3);
 #else
-!! fprintf(stderr,"NEW PACK CODE======================================\n");
+// fprintf(stderr,"NEW PACK CODE======================================\n");
       if(xdf_short){
         ier = compact_short(field,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
                             nbits,0,xdf_stride,7);
