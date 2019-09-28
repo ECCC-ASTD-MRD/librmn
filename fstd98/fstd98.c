@@ -262,7 +262,7 @@ int c_fstckp(int iun)
  *                  C _ F S T _ D A T A _ L E N G T H                        *
  *                                                                           * 
  *Object                                                                     * 
- *   Gives information on data lenght of the elements passed to fstecr       *
+ *   Gives information on data length of the elements passed to fstecr       *
  *   and fstlir (double, short integer, byte ...)                            *
  *                                                                           * 
  *Arguments                                                                  * 
@@ -381,7 +381,7 @@ int c_fstecr(word *field_in, void * work, int npak,
                         int ig3, int ig4,
                         int in_datyp_ori, int rewrit)
 {
-  word *field = field_in ; /* use field internally in case we have to allocate new array beacause of missing values */
+  word *field = field_in ; /* use field internally in case we have to allocate new array because of missing values */
   word *field3;
   short *s_field;
   signed char *b_field;
@@ -725,7 +725,7 @@ int c_fstecr(word *field_in, void * work, int npak,
       break;
 
     case 1: case 129:             /* floating point */
-      if ((datyp > 128) && (nbits <= 16)) {      /* use an additionnal compression scheme */    
+      if ((datyp > 128) && (nbits <= 16)) {      /* use an additional compression scheme */
         packfunc(field,&(buffer->data[keys_len+1]),&(buffer->data[keys_len+5]),
                 ni*nj*nk,nbits+64*Max(16,nbits),0,xdf_stride,1,0,&tempfloat);     /* nbits>64 flags a different packing */
         compressed_lng = armn_compress(&(buffer->data[keys_len+5]),ni,nj,nk,nbits,1);
@@ -873,7 +873,7 @@ int c_fstecr(word *field_in, void * work, int npak,
           stdf_entry->datyp = 8;
         }
         if (datyp == 133) {
-          /* use an additionnal compression scheme */    
+          /* use an additional compression scheme */
           compressed_lng = c_armn_compress32(&(buffer->data[keys_len+1]), field, ni,nj,nk,nbits);
           if (compressed_lng < 0)
            {
@@ -899,7 +899,7 @@ int c_fstecr(word *field_in, void * work, int npak,
 
     case 6: case 134:             /* floating point, new packers */
       {
-        if ((datyp > 128) && (nbits <= 16)) {      /* use an additionnal compression scheme */    
+        if ((datyp > 128) && (nbits <= 16)) {      /* use an additional compression scheme */
           c_float_packer(field,nbits,&(buffer->data[keys_len+1]),&(buffer->data[keys_len+1+header_size]),ni*nj*nk);
           compressed_lng = armn_compress(&(buffer->data[keys_len+1+header_size]),ni,nj,nk,nbits,1);
           if (compressed_lng < 0)
@@ -948,7 +948,7 @@ int c_fstecr(word *field_in, void * work, int npak,
     sprintf(string,"Write(%d)",iun);
     print_std_parms(stdf_entry,string,prnt_options,0);
   }
-/*  free(buffer);        remplaced by alloca */
+/*  free(buffer);        replaced by alloca */
   xdf_double = 0;
   xdf_short = 0;
   xdf_byte = 0;
@@ -1535,7 +1535,7 @@ int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
  *                                                                           * 
  *Object                                                                     * 
  *   Search for a record that matches the research keys and check that the   *
- *   remaining parmeters match the record descriptors                        *
+ *   remaining parameters match the record descriptors                       *
  *                                                                           *
  *Arguments                                                                  * 
  *                                                                           * 
@@ -3515,7 +3515,7 @@ int init_ip_vals()
  *                     compare with                                          *
  *  IN  ip             current ip record value to compare                    *
  *  IN  ind            index (1,2 or 3) representing ip1, ip2 or ip3         *
- *                     comparaisons                                          * 
+ *                     comparisons                                           *
  *                                                                           * 
  *****************************************************************************/
  
