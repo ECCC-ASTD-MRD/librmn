@@ -66,10 +66,21 @@ switch (groptions.degre_interp)
          case 'Z':
          case 'E':
          case 'G':
-         ay[0] = laGrille.ay[j1-1];
-         ay[1] = laGrille.ay[j1];
-         ay[2] = laGrille.ay[j1+1];
-         ay[3] = 90.0;
+         if (laGrille.ay[j1+1] == 90.0)
+            {
+            ay[0] = laGrille.ay[j1-2];
+            ay[1] = laGrille.ay[j1-1];
+            ay[2] = laGrille.ay[j1];
+            ay[3] = laGrille.ay[j1+1];
+            }
+         else
+            {
+            ay[0] = laGrille.ay[j1-1];
+            ay[1] = laGrille.ay[j1];
+            ay[2] = laGrille.ay[j1+1];
+            ay[3] = 90.0;
+            }
+
          f77name(ez_irgdint_3_wnnc)(corr_uus,gset->zones[AU_NORD].x, gset->zones[AU_NORD].y,&npts,
                      laGrille.ax, ay, polar_uu_in,
                      &ni, &j1, &j2, &laGrille.extension);
