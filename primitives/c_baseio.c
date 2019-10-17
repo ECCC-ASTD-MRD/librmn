@@ -535,7 +535,7 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
            *c2 = *c;
          }
        }
-       if (majus && minus){
+       if (minus){
          strncpy(FGFDT[i].file_name,nom,lng);
        }else{
          fprintf(stderr,"INFO (fnom) : '%s'\nremapped as   '%s'\n",nom,FGFDT[i].file_name);
