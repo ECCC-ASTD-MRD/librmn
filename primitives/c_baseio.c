@@ -526,20 +526,19 @@ int c_fnom(int *iun,char *nom,char *type,int lrec)
        c2 = FGFDT[i].file_name ;
        *(c2 + lng) = '\0';
        for (j = 0; j < lng; j++, c++, c2++) {
-         if (isupper(*c) || isdigit(*c)) {    // upper alphanumeric
-           majus = 1;
-           *c2 = tolower(*c);
-         }
-         else {                               // anything else
-           minus=1;
+         if (islower(*c)) {
+           minus = 1;
            *c2 = *c;
          }
+         else if (isupper(*c)) {
+           majus=1;
+           *c2 = tolower(*c);
+         }
+         else
+           *c2 = *c;
        }
-       if (minus){
+       if (majus && minus)
          strncpy(FGFDT[i].file_name,nom,lng);
-       }else{
-         fprintf(stderr,"INFO (fnom) : '%s'\nremapped as   '%s'\n",nom,FGFDT[i].file_name);
-       }
      }
   }
 /*
