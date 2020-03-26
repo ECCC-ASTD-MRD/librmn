@@ -249,7 +249,7 @@ typedef struct {
         word reserved1:32, reserved2:32;
         word nxt_addr:32,  nent:32;
         word chksum:32, reserved3:32;
-        word entry[2];
+        word entry[];
 /*
  * idtyp:     id type (usualy 0)
  * lng:       header length (in 64 bit units)
@@ -424,11 +424,6 @@ typedef struct {
 
 } stdf_adr_parms;
 
-typedef struct {
-  stdf_dir_keys keys;
-  word data[2];
-} stdf_record;
-
 typedef struct
   {
 #if !defined(Little_Endian)
@@ -555,7 +550,7 @@ typedef struct {
 typedef struct {
         burp_dir_keys keys;
         burp_dir_info info;
-        word data[2];
+        word data[];
 } burp_record;
 
 
@@ -719,7 +714,7 @@ typedef struct{
                 word dummy[2];
                 }buf78;
         word buf9;
-        word data[1];          /* record data */
+        word data[];          /* record data */
         }buffer_interface;
 typedef buffer_interface *buffer_interface_ptr;
 
