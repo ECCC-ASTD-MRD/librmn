@@ -52,7 +52,7 @@ typedef struct {
 
 static Twin_Buffer TB[Max_File];
 
-
+
 /***************************************************************************** 
  *                            F N O M _ I N D E X                            *
  *                                                                           * 
@@ -68,11 +68,11 @@ static Twin_Buffer TB[Max_File];
 static int fnom_index(int iun)
 {
    int i;
-
+   
    for (i=0; i < MAXFILES; i++)           /* find file index in file table */
       if (FGFDT[i].iun == iun) return(i);
    return(-1);
-
+   
    }
 
 /****************************************************************************
@@ -107,7 +107,7 @@ static void init_TB_package(int inutile)
   done = 1;
 }
 
-
+
 /****************************************************************************
  *                          O P E N _ D B _ F I L E                         *
  *                                                                          *
@@ -119,7 +119,7 @@ static void init_TB_package(int inutile)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(open_db_file)(ftnword *iun)
+ftnword f77name(open_db_file)(ftnword *iun)                                    
 {
   int indx, f, i;
 
@@ -151,24 +151,24 @@ ftnword f77name(open_db_file)(ftnword *iun)
 
   TB[f].fd = FGFDT[indx].fd;
   TB[f].iun = *iun;
-
+  
   if((TB[f].pBuf_IN = malloc (BUF_SIZE)) == NULL)
     {
       fprintf(stderr,"CAN'T ALLOCATE MEMORY FOR BUFFER IN\n");
       exit(1);
     }
-
+  
   if((TB[f].pBuf_OUT = malloc (BUF_SIZE)) == NULL)
     {
       fprintf(stderr,"CAN'T ALLOCATE MEMORY FOR BUFFER OUT\n");
       exit(1);
     }
-
+   
   return(TB[f].fd);
-
+  
 } /* end open_db_file */
 
-
+
 /****************************************************************************
  *                       R E A D _ D B _ F I L E                            *
  *                                                                          *
@@ -187,7 +187,7 @@ ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB)
    int i, nbytes,  data_a_lire;
    int fd, f;
    ftnword *p_bucket, *p_bufin;
-
+ 
    f = -1;
    for (i=0; i < Max_File; i++)
      if (TB[i].iun == *iun) {
@@ -214,7 +214,7 @@ ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB)
        TB[f].nb_elmt_Buf_IN -= data_a_lire;
        data_a_lire = 0;
      }
-
+     
      else {
        for (i=0; i < TB[f].nb_elmt_Buf_IN; i++)
 	 p_bucket[i] = p_bufin[i];
@@ -233,13 +233,13 @@ ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB)
      }
 
    }
-
+   
    return (TB[f].nb_elmt_lu) ;
 
 }/* end read_db_file */
 
 
-
+
 /****************************************************************************
  *                        W R I T E _ D B _ F I L E                         *
  *                                                                          *
@@ -252,7 +252,7 @@ ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB)
  *       IN-OUT/ fd       : file descriptor.                                *
  *                                                                          *
  ****************************************************************************/
-
+ 
 ftnword f77name(write_db_file)(ftnword *iun,ftnword *bucket,ftnword *NB)
 {
    int data_a_ecrire = *NB;
@@ -282,9 +282,9 @@ ftnword f77name(write_db_file)(ftnword *iun,ftnword *bucket,ftnword *NB)
    p_bucket = &(bucket[0]);            /* position into bucket */
 
    while (data_a_ecrire) {
-
+     
      p_bufout = &(TB[f].pBuf_OUT[TB[f].pos_out]);
-
+     
      if (data_a_ecrire <= room_left) {
        for (i=0; i < data_a_ecrire; i++)
 	 p_bufout[i] = p_bucket[i];
@@ -316,7 +316,7 @@ ftnword f77name(write_db_file)(ftnword *iun,ftnword *bucket,ftnword *NB)
    return (TB[f].nb_elmt_ecrit);
 }
 
-
+
 /****************************************************************************
  *                     R E W I N D _ D B _ F I L E                          *
  *                                                                          *
@@ -356,7 +356,7 @@ ftnword f77name(rewind_db_file)(ftnword *iun)
      }
    }
    lseek(fd,0L,SEEK_SET);                   /* rewind the file.              */
-
+   
    for(i=0; i < BUF_SIZE_W; i++)/* Initialiser les buffer a zero.*/
      {
        TB[f].pBuf_IN[i] = 0;
@@ -368,7 +368,7 @@ ftnword f77name(rewind_db_file)(ftnword *iun)
    TB[f].pos_in = 0;
    return(0);
 }
-
+
 /****************************************************************************
  *                        C L O S E _ D B _ F I L E                         *
  *                                                                          *
@@ -383,7 +383,7 @@ ftnword f77name(rewind_db_file)(ftnword *iun)
 ftnword f77name(close_db_file)(ftnword *iun)                                    
 {
   int ier, f, i;
-
+ 
   f = -1;
   for (i=0; i < Max_File; i++)
     if (TB[i].iun == *iun) {
