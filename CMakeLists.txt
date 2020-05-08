@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
 #----- Append EC specific module path
-#export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${EC_ARCH}"
 foreach(PATH $ENV{EC_CMAKE_MODULE_PATH})
    list(APPEND CMAKE_MODULE_PATH ${PATH})
 endforeach()
@@ -21,9 +20,6 @@ enable_language(Fortran)
 set(COMPILER gfortran CACHE INTERNAL compiler)
 #- set(COMPILER intel CACHE INTERNAL compiler)
 #- set(COMPILER pgi CACHE INTERNAL compiler)
-#- which will set the compiler and you can just type:
-#- cmake ..
-#- make -j
 
 set(CMAKE_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
