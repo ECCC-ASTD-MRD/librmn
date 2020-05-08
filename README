@@ -1,0 +1,11 @@
+# Before doing the cmake, make sure that the compiler is loaded
+# Export the following 
+export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${EC_ARCH}"
+# To compile/build/run for librmn
+cd build
+# Remove everything in build before doing cmake
+\rm -r *
+cmake .. [-DOPENMP=yes -DSHARED=yes]
+make -j
+make install
+ls ../../libs
