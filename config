@@ -13,7 +13,7 @@ version=CMAKE_VERSION
 usage()
 {
     cat <<EOF
-Usage: libgeoref-config [OPTION]
+Usage: CMAKE_NAME-config [OPTION]
 
 Available values for OPTION include:
 
