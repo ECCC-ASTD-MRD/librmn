@@ -1,6 +1,9 @@
-rmnlib est une programmathèque pour la prévision numérique du temps.
+rmnlib est une bibliothèque de fonctions pour la prévision numérique du temps
+utilisée principalement par Environnement et Changement climatique Canada.
+
 Ses principaux composants sont les fichiers Standard RPN et
 l'interpolateur EZ.
 
-La documentation pour rmnlib est diponible ici :
-[https://collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/).
+# Documentation
+  * [Référence des fonction accessible à partir d’Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
+  * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
