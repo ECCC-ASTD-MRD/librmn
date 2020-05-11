@@ -15,8 +15,8 @@ endforeach()
 
 include(ec_utils)   # Include EC specific cmake utils
 ec_parse_version()  # Parse VERSION file
-ec_build_info()     # Generate build include file
 ec_getvar()         # Get EC specific var
+ec_build_info()     # Generate build include file
 
 project(${NAME} VERSION ${VERSION} DESCRIPTION "${DESCRIPTION}")
 set(CMAKE_INSTALL_PREFIX "" CACHE PATH "..." FORCE)
