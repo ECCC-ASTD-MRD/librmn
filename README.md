@@ -1,0 +1,35 @@
+rmnlib est une bibliothèque de fonctions pour la prévision numérique du temps
+utilisée principalement par Environnement et Changement climatique Canada.
+
+Ses principaux composants sont les fichiers Standard RPN et
+l'interpolateur EZ.
+
+# Documentation
+  * [Référence des fonction accessible à partir d\u2019Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
+  * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
+  
+# Installation
+## Avant tout, assurez-vous de sourcer le bon [Compilateur](https://wiki.cmc.ec.gc.ca/wiki/RPN-SI/HPC_Upgrade_1#Platforms_And_Compiler)
+## Dans l'immédiat, définissez la variable suivante pour inclure les répertoires de modules 
+```
+export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${EC_ARCH}"
+```
+## Déplacez vous dans un répertoire de build
+```
+mkdir build
+cd build
+```
+## Supprimez le build précédent si il y en a éja un 
+```
+\rm -r *
+```
+## Lancez cmake avec les options désirée et la commande make par la suite
+```
+cmake .. [-DWITH_OPENMP=yes -DSHARED=yes -DEC_COMPILER=[gnu,intel,pgi,...]]
+make -j
+make install
+```
+## Les installations se feront sous le répertoire libs
+```
+ls ../../libs
+```
