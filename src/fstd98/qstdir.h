@@ -1,5 +1,5 @@
 #include <rpnmacros.h>
-#include "../INTRALIB_INCLUDES/fnom.h"
+#include "fnom.h"
 #define WRITE_PAGE(a,b,c)
 
 #define MODE3232

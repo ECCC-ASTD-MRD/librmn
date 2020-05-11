@@ -7,8 +7,6 @@ file(GLOB PROJECT_C_FILES  */*.c template_utils/whiteboard/*.c)
 file(GLOB PROJECT_F_FILES  */*.F90 */*.F */*.f */*.f90 template_utils/gmm/gmm.f90 template_utils/whiteboard/whiteboard_omp.f90 template_utils/whiteboard/whiteboard_st.f90)
 file(GLOB PROJECT_INCLUDE_FILES PUBLIC_INCLUDES/*.*)
 
-include_directories(INTRALIB_INCLUDES)
-
 if (SHARED)
    add_library (rmn SHARED ${PROJECT_F_FILES} ${PROJECT_C_FILES})
 else()

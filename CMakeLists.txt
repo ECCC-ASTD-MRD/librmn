@@ -7,8 +7,8 @@ endforeach()
  
 # Set the compiler by either
 #    - Uncommenting one of the following 3 lines
-#    - using the flag -DEC_COMPILER=...
-#    - Specifying the EC_COMPILER: ... in the VERSION file
+#    - Using the flag -DEC_COMPILER=...
+#    - Specifying the "EC_COMPILER: ..." in the VERSION file
 #set(EC_COMPILER gnu CACHE INTERNAL compiler)
 #set(EC_COMPILER intel CACHE INTERNAL compiler)
 #set(EC_COMPILER pgi CACHE INTERNAL compiler)
