@@ -1,1 +1,0 @@
-RMNLIB_VERSION=019.6-beta
