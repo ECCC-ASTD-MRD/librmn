@@ -28,7 +28,7 @@ enable_language(Fortran)
 set(CMAKE_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${CMAKE_ARCH}")
 
-add_compile_options(${OPTIMIZ_FLAG} )
+add_compile_options(${OPTIMIZ_FLAG})
 
 option(WITH_OPENMP "Build with OpenMP support" no)
 if (WITH_OPENMP)
@@ -44,11 +44,13 @@ endif()
 #find_package(MPI) (rpncomm has its own)
 
 # Include an architecture dependent file that contains settings for a
-# particular architecture and compiler, using the default value of the
-# compiler defined above or the argument given to cmake command.
-#include("${CMAKE_ARCH}-${CMAKE_C_COMPILER_ID}")
-message(STATUS "Compiler rules: ${CMAKE_ARCH}-${EC_COMPILER}")
-include("${CMAKE_ARCH}-${EC_COMPILER}")
+# particular architecture and compiler.
+message(STATUS "Compiler rules: ${EC_COMPILER}-${EC_COMPILER_VERSION}")
+include("${EC_COMPILER}-${EC_COMPILER_VERSION}" OPTIONAL RESULT_VARIABLE EC_RULES)
+if(NOT EC_RULES)
+   message(STATUS "Optimized rules not found, using generic rules: ${EC_COMPILER}")
+   include("${EC_COMPILER}")
+endif()
 
 set(FTNSRC "" CACHE INTERNAL "" FORCE)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BUILD}/modules CACHE STRING "Where Fortran modules go")

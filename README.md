@@ -12,7 +12,7 @@ l'interpolateur EZ.
 ## Avant tout, assurez-vous de sourcez le bon [Compilateur](https://wiki.cmc.ec.gc.ca/wiki/RPN-SI/HPC_Upgrade_1#Platforms_And_Compiler)
 ## Dans l'immédiat, définissez la variable suivante pour inclure les répertoires de modules 
 ```
-export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${EC_ARCH}"
+export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${BASE_ARCH}"
 ```
 ## Déplacez vous dans un répertoire de build
 ```
