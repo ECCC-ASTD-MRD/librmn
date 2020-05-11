@@ -5,7 +5,7 @@ export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules
 cd build
 # Remove everything in build before doing cmake
 \rm -r *
-cmake .. [-DOPENMP=yes -DSHARED=yes]
+cmake .. [-DWITH_OPENMP=yes -DSHARED=yes -DEC_COMPILER=[gnu,intel,pgi,...]]
 make -j
 make install
 ls ../../libs
