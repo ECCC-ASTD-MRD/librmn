@@ -9,7 +9,7 @@ l'interpolateur EZ.
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
   
 # Installation
-## Avant tout, assurez-vous de sourcez le bon [Compilateur](https://wiki.cmc.ec.gc.ca/wiki/RPN-SI/HPC_Upgrade_1#Platforms_And_Compiler)
+## Avant tout, assurez-vous de sourcer le bon [Compilateur](https://wiki.cmc.ec.gc.ca/wiki/RPN-SI/HPC_Upgrade_1#Platforms_And_Compiler)
 ## Dans l'immédiat, utilisez code_tools 3.2.0 sous sidr000 
 ```
 . r.load.dot /fs/homeu1/eccc/mrd/ords/rpnsi/sidr000/ssm_test_dom/code-tools_3.2.0_all
