@@ -10,10 +10,16 @@ l'interpolateur EZ.
   
 # Installation
 ## Avant tout, assurez-vous de sourcez le bon [Compilateur](https://wiki.cmc.ec.gc.ca/wiki/RPN-SI/HPC_Upgrade_1#Platforms_And_Compiler)
-## Dans l'immédiat, définissez la variable suivante pour inclure les répertoires de modules 
+## Dans l'immédiat, utilisez code_tools 3.2.0 sous sidr000 
+```
+. r.load.dot /fs/homeu1/eccc/mrd/ords/rpnsi/sidr000/ssm_test_dom/code-tools_3.2.0_all
+```
+
+## ou sous ECCC
 ```
 export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${BASE_ARCH}"
 ```
+
 ## Déplacez vous dans un répertoire de build
 ```
 mkdir build
