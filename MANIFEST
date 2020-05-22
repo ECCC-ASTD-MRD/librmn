@@ -1,6 +1,0 @@
-NAME       : librmn
-VERSION    : 19.6.0-b1
-BUILD      : Release
-DESCRIPTION: MRD Utility librairie package
-SUMMARY    : Library of common functions related to meteorological modeling
-MAINTAINER : armnlib 

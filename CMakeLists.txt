@@ -1,82 +1,21 @@
-cmake_minimum_required(VERSION 3.16)
+include("${CMAKE_SOURCE_DIR}/cmake_shared/base.cmake")
 
-# Append EC specific module path
-foreach(PATH $ENV{EC_CMAKE_MODULE_PATH})
-   list(APPEND CMAKE_MODULE_PATH ${PATH})
-endforeach()
- 
-# Set the compiler by either
-#    - Uncommenting one of the following 3 lines
-#    - Using the flag -DEC_COMPILER=...
-#    - Specifying the "EC_COMPILER: ..." in the VERSION file
-#set(EC_COMPILER gnu CACHE INTERNAL compiler)
-#set(EC_COMPILER intel CACHE INTERNAL compiler)
-#set(EC_COMPILER pgi CACHE INTERNAL compiler)
+# Given our wacky compiler setups, languages must be activated after the
+# compieler has been configured
+project(librmn VERSION ${VERSION} DESCRIPTION "Library of functions for numerical weather forecasting" LANGUAGES NONE)
 
-include(ec_utils)   # Include EC specific cmake utils
-ec_parse_version()  # Parse VERSION file
-ec_getvar()         # Get EC specific var
-ec_build_info()     # Generate build include file
+option(COMPILER "Compiler collection to use for the build.  Can be one of the following: gnu, intel" "gnu")
 
-project(${NAME} VERSION ${VERSION} DESCRIPTION "${DESCRIPTION}")
-set(CMAKE_INSTALL_PREFIX "" CACHE PATH "..." FORCE)
+# TODO: Configure the compiler
+include("${CMAKE_SOURCE_DIR}/cmake_shared/compiler.cmake")
 
-# Enable the two languages that are used
 enable_language(C)
 enable_language(Fortran)
 
-set(CMAKE_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-message(STATUS "Build architecture: ${CMAKE_ARCH}")
+# TODO: Set compiler flags based on the OS/Distro and requested compiler
 
-add_compile_options(${OPTIMIZ_FLAG})
+# CMAKE_BUILD_TYPE can be one of Debug, Release, RelWithDebInfo, MinSizeRel
+set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
+message(STATUS "Configuring for ${CMAKE_BUILD_TYPE}")
 
-option(WITH_OPENMP "Build with OpenMP support" no)
-if (WITH_OPENMP)
-   find_package(OpenMP REQUIRED)
-      if (OPENMP_FOUND)
-         add_definitions(-DWITH_OpenMP)
-         add_compile_options(${OpenMP_C_FLAGS})
-      else() 
-         add_definitions(-DWITHOUT_OpenMP)
-  endif()
-endif()
-
-#find_package(MPI) (rpncomm has its own)
-
-# Include an architecture dependent file that contains settings for a
-# particular architecture and compiler.
-message(STATUS "Compiler rules: ${EC_COMPILER}-${EC_COMPILER_VERSION}")
-include("${EC_COMPILER}-${EC_COMPILER_VERSION}" OPTIONAL RESULT_VARIABLE EC_RULES)
-if(NOT EC_RULES)
-   message(STATUS "Optimized rules not found, using generic rules: ${EC_COMPILER}")
-   include("${EC_COMPILER}")
-endif()
-
-set(FTNSRC "" CACHE INTERNAL "" FORCE)
-set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BUILD}/modules CACHE STRING "Where Fortran modules go")
-set(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS f;f90;F90 CACHE STRING "Fortran extension files")
-
-include_directories(include
-                    include/${CMAKE_ARCH}-${CMAKE_C_COMPILER_ID}
-                    src/PUBLIC_INCLUDES
-                    ${CMAKE_CURRENT_BINARY_DIR}/${BUILD}/modules
-                    ${MPI_Fortran_INCLUDE_PATH}
-                    )
-
-# Uncomment to link to the local libraries already installed
-#link_directories(libs/${ARCH}-${EC_COMPILER})
-
-# The following is to install the library in a location librmn/libs/*
-if (WITH_OPENMP)
-   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/libs/${EC_OS}-${EC_COMPILER}-${EC_COMPILER_VERSION}-OpenMP)
-else()
-   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/libs/${EC_OS}-${EC_COMPILER}-${EC_COMPILER_VERSION})
-endif()
-
-add_subdirectory(src)
-
-#----- Build config information script
-install(CODE "execute_process(COMMAND sed -e \"s/CMAKE_CC/\\\"${EC_COMPILER} ${EC_COMPILER_VERSION}\\\"/\" -e \"s/CMAKE_FTN/\\\"${EC_COMPILER} ${EC_COMPILER_VERSION}\\\"/\" 
-   -e \"s/CMAKE_NAME/${NAME}/\" -e \"s/CMAKE_VERSION/${VERSION}${STATE}/\"
-   ../config OUTPUT_FILE ${NAME}-config)")
-install(PROGRAMS ${CMAKE_BINARY_DIR}/${NAME}-config DESTINATION bin)
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
