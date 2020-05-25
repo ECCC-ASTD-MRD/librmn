@@ -14,4 +14,7 @@
 #define wordfloat float
 #define bytesperword 4
 #define D77MULT             4
+// F2Cl is an hidden parameter of Fortran compilers for string length.
+// The type of the argument is implementation specific and can be different
+// according to the compiler
 #define F2Cl INT_32
