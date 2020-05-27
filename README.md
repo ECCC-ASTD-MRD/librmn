@@ -7,35 +7,36 @@ l'interpolateur EZ.
 # Documentation
   * [Référence des fonction accessible à partir d\u2019Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
-  
-# Installation
-## Avant tout, assurez-vous de sourcer le bon [Compilateur](https://wiki.cmc.ec.gc.ca/wiki/RPN-SI/HPC_Upgrade_1#Platforms_And_Compiler)
-## Dans l'immédiat, utilisez code_tools 3.2.0 sous sidr000 
-```
-. r.load.dot /fs/homeu1/eccc/mrd/ords/rpnsi/sidr000/ssm_test_dom/code-tools_3.2.0_all
-```
 
-## ou sous ECCC
-```
-export EC_CMAKE_MODULE_PATH="/users/dor/afsr/005/Projects/RPN/stage_2020/modules/;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules;/users/dor/afsr/005/Projects/RPN/stage_2020/modules/compiler_rules/${BASE_ARCH}"
-```
+# Instruction d'installation
 
-## Déplacez vous dans un répertoire de build
+## Créer un répertoire pour la compilation
 ```
 mkdir build
 cd build
 ```
-## Supprimez le build précédent si il y en a éja un 
+
+## Configuration de la compilation
+
+Les options pour configurer la compilation doivent être ajoutées lors de
+l'appel de la commande `cmake` avec le préfix `-D`.
+
+CMAKE_INSTALL_PREFIX
+: Chemin d'accès du répertoire pour l'installation (make install)
+BUILD_SHARED_LIBS
+: `(yes|no)` Indique si les bibliothèques de fonctions dynamiques doivent être produites.
+COMPILER
+: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Défaut: `GNU`
+
+
+Par exenple:
 ```
-\rm -r *
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=yes
 ```
+
 ## Lancez cmake avec les options désirée, suivit de la commande make
 ```
-cmake .. [-DWITH_OPENMP=[yes|no] -DSHARED=[yes|no] -DEC_COMPILER=[gnu|intel|pgi|...]]
+cmake .. <options>
 make -j
 make install
-```
-## Les installations se feront sous le répertoire libs
-```
-ls ../../libs
 ```
