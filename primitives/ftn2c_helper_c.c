@@ -31,13 +31,12 @@
 int ftn2c_string_copy(unsigned char* src, unsigned char* dest, int lsrc, int ldest, unsigned char pad)
 {
    int i;
-   if(lsrc > ldest) return(-1);  /* OOPS, source longer than destination */
-
    /* if there is a null before lsrc characters in the source string, act as if it was terminated at null */
    for (i = 0 ; src[i] != 0 && i < lsrc; i++);
    lsrc = i;
    while (src[lsrc - 1] == ' ') lsrc--;  /* ignore trailing blanks in source string */
    if (dest == NULL) return(lsrc);     /* no destination, just return trimmed source length */
+   if(lsrc > ldest) return(-1);  /* OOPS, trimmed source longer than destination */
    if (pad == 0 && lsrc == ldest) return(-1);  /* OOPS, not enough space for padding */
    for (i = 0; i < lsrc; i++) dest[i] = src[i] ;  /* copy src to dest */
    if (pad)
