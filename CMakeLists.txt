@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.16)
 
 include("${CMAKE_SOURCE_DIR}/cmake_shared/git_version.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake_shared/dump_cmake_variables.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake_shared/doxygen.cmake")
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
