@@ -1,0 +1,81 @@
+subroutine FNCNAME(gmm_checkpoint)(read_or_write)
+    use gmm_internals
+    use FNCNAME(pointer_table_data)
+    implicit none
+    logical read_or_write
+    integer istat, fnom, i, j, ier, lcl_pti
+    type(gmm_layout), dimension(1:DIM) :: siz
+    type(gmm_attributes) :: attrib
+    integer *8 :: key
+    external fnom
+    integer *8 get_address_from
+    external get_address_from
+
+    ! Read one  record from checkpoint file
+    if (read_or_write) then
+        ! Into next directory entry
+        call add_directory_entry
+        read(file_unit)directory(cur_page)%entry(cur_entry)%name
+        ! Read layout
+        read(file_unit)siz(1:DIM)
+        ! Set layout in table
+        directory(cur_page)%entry(cur_entry)%l(1:DIM) = siz(1:DIM)
+        ! Read attributes
+        read(file_unit)attrib
+        attrib%flags = ior(attrib%flags,GMM_FLAG_READ)
+        ! Set attributes in table
+        directory(cur_page)%entry(cur_entry)%a = attrib
+        read(file_unit)directory(cur_page)%entry(cur_entry)%data_type
+        lcl_pti = lgmm_get_nxt_avail_ptr()
+        directory(cur_page)%entry(cur_entry)%pointer_table_index = lcl_pti
+        ordinal = ordinal + 1
+        key = ishft((cur_page-1),PAGE_NB_SHFT) + ishft((cur_entry-1),NTRY_NB_SHFT)
+        key = key + ishft(EXTENSION,EXTN_NB_SHFT) + ishft(ordinal,MAGC_NB_SHFT)
+        ! Set creation ordinal
+        directory(cur_page)%entry(cur_entry)%a%key = key
+        ! CODE POSSIBLY MISSING HERE FOR FLAGS SETTINGS
+        allocate(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p(&
+                                                            &siz(1)%low:siz(1)%high&
+#if DIM > 1
+                                                            &,siz(2)%low:siz(2)%high,&
+#endif
+#if DIM > 2
+                                                            &,siz(3)%low:siz(3)%high,&
+#endif
+#if DIM > 3
+                                                            &,siz(4)%low:siz(4)%high&
+#endif
+                                                        ))
+        ! Read array
+        read(file_unit)FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
+        directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(&
+            FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+
+        if (gmm_verbose_level == GMM_MSG_DEBUG) then
+            write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') 'name=',directory(cur_page)%entry(cur_entry)%name,' cur_page=',cur_page,' cur_entry=',cur_entry,' index=',directory(cur_page)%entry(cur_entry)%pointer_table_index,' addr=',get_address_from(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+        endif
+        ier = add_table_entry(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p,key)
+    else
+        ! Write to checkpoint file (records with FLAG_RSTR property)
+        if (gmm_verbose_level == GMM_MSG_DEBUG) then
+            print *, 'checkpointing type ', EXTENSION
+        endif
+        do i = 1, table_size
+            do j = 1, PAGE_SIZE
+                if (iand(GMM_FLAG_RSTR,directory(i)%entry(j)%a%flags) .ne. 0 .and. directory(i)%entry(j)%data_type == EXTENSION) then
+                    if (gmm_verbose_level == GMM_MSG_DEBUG) then
+                        print *, 'writing field ', directory(i)%entry(j)%name
+                    endif
+                    write(file_unit)EXTENSION
+                    write(file_unit)directory(i)%entry(j)%name
+                    write(file_unit)directory(i)%entry(j)%l(1:DIM)
+                    attrib = directory(i)%entry(j)%a
+                    attrib%flags = iand(attrib%flags,FLAGS_KEPT_IN_RESTART)
+                    write(file_unit)attrib
+                    write(file_unit)directory(i)%entry(j)%data_type
+                    write(file_unit)FNCNAME(gmm_ptrs)(directory(i)%entry(j)%pointer_table_index)%p
+                endif
+            enddo
+        enddo
+    endif
+end subroutine FNCNAME(gmm_checkpoint)

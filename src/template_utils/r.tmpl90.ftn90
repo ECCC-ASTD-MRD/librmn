@@ -1,0 +1,166 @@
+#!/usr/bin/env python2
+
+"""It is intended that this file be called from a makefile, with a call of the
+form, "MAKE-CODE FileNameBase".  The result is that the file,
+"FileNameBase.tmpl90", has its first lines starting with "!!!" replaced by #def's
+around the subsequent code, duplicating that code once for each "!!!" line.  The
+result is written to the file, "FileNameBase.tmpl.f90"."""
+
+# Dec 7 2007  JWB  add the possibility of a null first argument, & a second argument
+
+from sys    import argv,stdin,stdout
+from string import split, join
+
+
+
+def M_Usage():
+    """Print instructions for using this utility."""
+    print "Provide 1 or 2 arguments:"
+    print "       arg 1:  The name of the template file.  (The .tmpl90 extension is assumed.)"
+    print "               Value '-' means to read from the standard input"
+    print "       arg 2:  The base name of the output files"
+    print "               Optional unless arg1 = '-'"
+    print "Example:  cat input.tmpl90 | r.tmpl90.ftn90 - outname"
+
+
+def L_NotSpace(s_String):
+    """Indicate whether the given string is a space or a null.  Intended for use
+    by a filter()."""
+    return s_String != ' ' and s_String != ''
+
+
+
+def M_MakeFortranCode():
+    #
+    # IDENTIFY AND OPEN THE INPUT FILE
+    #
+    n_NumArgs = len(argv) - 1           # The zeroth argument is the script name
+
+    if (n_NumArgs != 1) & (n_NumArgs != 2):
+        M_Usage()
+        return
+
+    else:
+        if n_NumArgs == 1:
+            if argv[1] == '-':
+                M_Usage()
+                return
+            try:
+                o_FileIn = open(argv[1] + '.tmpl90', 'r')
+            except Exception, details:
+                print "Exception occurred while opening file:"
+                print details
+                M_Usage()
+                return
+            s_FileNameBase = argv[1]
+
+        else:
+            #n_NumArgs == 2
+            if argv[1] == '-':
+                o_FileIn = stdin
+            else:
+                try:
+                    o_FileIn = open(argv[1] + '.tmpl90', 'r')
+                except Exception, details:
+                    print "Exception occurred while opening file:"
+                    print details
+                    M_Usage()
+                    return
+            s_FileNameBase = argv[2]
+
+        o_FileOut  = open(s_FileNameBase+'.ftn90', 'w+')
+        o_File2Out = open(s_FileNameBase+'_interface.cdk90', 'w+')
+        o_File2Out.write('#define INTERFACEONLY\n')
+
+
+
+    #
+    # TREAT THE '#DEFINE' DIRECTIVES, ONE SET AT A TIME
+    #
+    o_DefSetStrings = []
+    o_UndefSetStrings = []
+    while 1:
+        s_Line = o_FileIn.readline()    # Read in the line
+
+        if len(s_Line) == 1:
+            continue                    # Ignore blank lines
+
+        if not s_Line[:3] == '!!!':
+            break                       # The directives are finished
+
+                                        # Split the line into words,
+                                        # omitting the terminating \n
+        o_Words = split(s_Line[3:-1], ' ')
+                                        # Remove spaces and nulls
+        o_Words = filter(L_NotSpace, o_Words)
+
+
+        o_DefSet = []                   # List of strings to be concatenated
+        o_UndefSet = []
+        while o_Words:
+                                        # Re-arrange each directive into the next
+                                        # #define and #undef in the set
+            s_Variable = o_Words.pop(0)
+            s_Value    = o_Words.pop(0)
+            o_DefSet  .extend(['#define ', s_Variable, ' ', s_Value, '\n'])
+            o_UndefSet.extend(['#undef  ', s_Variable,               '\n'])
+
+                                        # Add this set of #def's to the list
+        o_DefSetStrings  .append(join(o_DefSet, ''))
+        o_UndefSetStrings.append(join(o_UndefSet, ''))
+
+
+
+
+
+    #
+    # TRANSCRIBE INPUT TO OUTPUT, LOOPING AS DIRECTED
+    #
+
+    while len(s_Line)>0:
+        #
+        # TRANSCRIBE SINGLE-PASS LINES TO THE OUTPUT
+        #
+        while len(s_Line)>0 and not s_Line[:7] == '!!@LOOP':
+            o_FileOut.write(s_Line)
+            o_File2Out.write(s_Line)
+            s_Line = o_FileIn.readline()
+
+
+
+        if s_Line[:7] == '!!@LOOP':
+            #
+            # READ IN THE MULTIPLE-PASS CODE BLOCK
+            #
+            o_CodeBlock = []            # List of strings to be concatenated
+            s_Line = o_FileIn.readline()
+            while not s_Line[:6] == '!!@END':
+                o_CodeBlock.append(s_Line)
+                s_Line = o_FileIn.readline()
+            s_Line = o_FileIn.readline()#Discard the !!@END directive
+            s_CodeBlock = join(o_CodeBlock, '')
+
+
+
+            #
+            # PRINT OUT THE CODE BLOCK ONCE FOR EACH SET OF '#DEFINE' DIRECTIVES
+            #
+            for n_Index in range(len(o_DefSetStrings)):
+                s_DefSet       =   o_DefSetStrings[n_Index]
+                s_UndefSetIter = o_UndefSetStrings[n_Index]
+
+                o_FileOut.write(s_DefSet)
+                o_FileOut.write(s_CodeBlock)
+                o_FileOut.write(s_UndefSetIter)
+                o_File2Out.write(s_DefSet)
+                o_File2Out.write(s_CodeBlock)
+                o_File2Out.write(s_UndefSetIter)
+
+
+    o_FileIn.close()
+    o_FileOut.close()
+    o_File2Out.close()
+
+
+# Execution starts here
+M_MakeFortranCode()

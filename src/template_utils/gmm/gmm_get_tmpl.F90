@@ -1,0 +1,74 @@
+integer function FNCNAME(gmm_get)(iname, p, m)
+    use gmm_internals
+    use FNCNAME(pointer_table_data_)
+    implicit none
+    integer :: i, array_rank
+    ! name (partially redundant with attributes)
+    character(len=*), intent(in) :: iname
+#if DIM == 1
+    DATATYPE*DATALENGTH, pointer  :: p(:)
+#elif DIM == 2
+    DATATYPE*DATALENGTH, pointer  :: p(:,:)
+#elif DIM == 3
+    DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
+#elif DIM == 4
+    DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
+#endif
+    ! attributes (name in attributes is not used)
+    type(gmm_metadata), optional, intent(out) :: m
+    !  integer,intent(inout) :: reqid
+    include 'gmm_directory_interface.inc'
+    type(gmm_metadata) :: m2
+    integer*8 :: key
+    integer *8 get_address_from
+    external get_address_from
+
+    key = 0
+    call check_directory_entry(iname, key)
+    if (cur_page .eq. 0 .or. cur_entry .eq. 0) then
+        ! quick check using key was not successful
+        call find_directory_entry(iname,key)
+    endif
+    if(cur_page .eq. 0 .or. cur_entry .eq. 0) then
+        ! return null entry
+        if (present(m)) then
+            m%a = GMM_NULL_ATTRIB
+            m%l = GMM_NULL_LAYOUT
+        endif
+        nullify(p)
+        key = GMM_KEY_NOT_FOUND
+        FNCNAME(gmm_get) = GMM_VAR_NOT_FOUND
+    else
+        m2%l = directory(cur_page)%entry(cur_entry)%l
+        m2%a = directory(cur_page)%entry(cur_entry)%a
+        if (present(m)) then
+            ! return a copy of the proper entry
+            m = m2
+        endif
+        p => FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
+        do i = 1, 4
+            if (m2%l(i)%n /= 0) then
+                array_rank = i
+            endif
+        enddo
+        if (array_rank /= DIM) then
+            nullify(p)
+            if (present(m)) then
+                m = GMM_NULL_METADATA
+            endif
+            FNCNAME(gmm_get) = GMM_INCONSISTENT_DIMS
+        else
+            FNCNAME(gmm_get) = GMM_OK
+        endif
+    endif
+end function FNCNAME(gmm_get)
+
+
+subroutine FNCNAME(gmm_dealloc_ptr)()
+    use gmm_internals
+    use FNCNAME(pointer_table_data_)
+    implicit none
+
+    deallocate (FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+    nullify    (FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+end subroutine FNCNAME(gmm_dealloc_ptr)

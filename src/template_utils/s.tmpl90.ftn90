@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+
+"""It is intended that this file be called from a makefile, with a call of the
+form, "MAKE-CODE FileNameBase".  The result is that the file,
+"FileNameBase.tmpl90", has its first lines starting with "!!!" replaced by #def's
+around the subsequent code, duplicating that code once for each "!!!" line.  The
+result is written to the file, "FileNameBase.tmpl.f90"."""
+
+# Dec 7 2007  JWB  add the possibility of a null first argument, & a second argument
+# May 2010 MV got rid of second output file
+
+from sys import argv, stdin, stdout
+
+def L_NotSpace(s_String):
+    """Indicate whether the given string is a space or a null.  Intended for use
+    by a filter()."""
+    return s_String != ' ' and s_String != ''
+
+# Open the input file
+o_FileIn = stdin
+o_FileOut = stdout
+
+# Treat the '#define' directives, one set at a time
+o_DefSetStrings = []
+o_UndefSetStrings = []
+
+s_Line = o_FileIn.readline()
+while s_Line[:3] == '!!!':
+    # Ignore blank lines
+    if len(s_Line) > 1:
+        # Split the line into words, omitting the terminating \n
+        o_Words = s_Line[3:-1].split(' ')
+
+        # Remove spaces and nulls
+        o_Words = [x for x in o_Words if x != '' and x != ' ']
+
+        # List of strings to be concatenated
+        o_DefSet = []
+        o_UndefSet = []
+        while o_Words:
+            # Re-arrange each directive into the next #define and #undef in the set
+            s_Variable = o_Words.pop(0)
+            s_Value = o_Words.pop(0)
+            o_DefSet.extend(['#define ', s_Variable, ' ', s_Value, '\n'])
+            o_UndefSet.extend(['#undef  ', s_Variable, '\n'])
+
+        # Add this set of #def's to the list
+        o_DefSetStrings.append(''.join(o_DefSet))
+        o_UndefSetStrings.append(''.join(o_UndefSet))
+
+    # Read the next line
+    s_Line = o_FileIn.readline()
+
+# Transcribe input to output, looping as directed
+while len(s_Line)>0:
+    # Transcribe single-pass lines to the output
+    while len(s_Line)>0 and not s_Line[:7] == '!!@LOOP':
+        o_FileOut.write(s_Line)
+        s_Line = o_FileIn.readline()
+
+    if s_Line[:7] == '!!@LOOP':
+        # Read in the multiple-pass code block
+
+        # List of strings to be concatenated
+        o_CodeBlock = []
+        s_Line = o_FileIn.readline()
+        while not s_Line[:6] == '!!@END':
+            o_CodeBlock.append(s_Line)
+            s_Line = o_FileIn.readline()
+        s_Line = o_FileIn.readline()#Discard the !!@END directive
+        s_CodeBlock = ''.join(o_CodeBlock)
+
+        # Print out the code block once for each set of '#define' directives
+        for n_Index in range(len(o_DefSetStrings)):
+            s_DefSet = o_DefSetStrings[n_Index]
+            s_UndefSetIter = o_UndefSetStrings[n_Index]
+
+            o_FileOut.write(s_DefSet)
+            o_FileOut.write(s_CodeBlock)
+            o_FileOut.write(s_UndefSetIter)
+
+o_FileIn.close()
+o_FileOut.close()

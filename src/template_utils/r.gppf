@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#r.gppf -lang-f90+ -chop_bang -gpp -F -I/fs/ssm/eccc/mrd/rpn/utils/19.5/ubuntu-18.04-skylake-64/include -I/fs/ssm/eccc/mrd/rpn/utils/19.5/ubuntu-18.04-amd64-64/include -I/fs/ssm/eccc/mrd/rpn/code-tools/01.3/all/include/ubuntu-18.04-skylake-64 -I/fs/ssm/eccc/mrd/rpn/code-tools/01.3/all/include/ubuntu-18.04-skylake-64 -I/fs/ssm/eccc/mrd/rpn/code-tools/01.3/all/include -I/fs/ssm/eccc/mrd/rpn/code-tools/01.3/all/include/Linux_x86-64 -I/fs/ssm/eccc/mrd/rpn/utils/19.5/all/share/include  -D__FILE__="#file" -D__LINE__=#line -DWITHOUT_OpenMP gmm_checkpoint.ftn90 > ./gmm_checkpoint.f90
+
+# There are no includes outside the current dir; include paths can go
+# __FILE__ and __LINE__ aren't used; the can go
+# OpenMP doesn't show up anywhere in the code, it can also go
+
+# We are left with:
+r.gppf -lang-f90+ -chop_bang -gpp -F $1
