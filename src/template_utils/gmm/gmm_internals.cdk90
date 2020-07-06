@@ -20,19 +20,19 @@ module gmm_internals
 
     type(directory_page), dimension(MAX_PAGES) :: directory
 
-    ! Total number of entries in directory
+    !> Total number of entries in directory
     integer :: used = 0
-    ! Number of pages in directory
+    !> Number of pages in directory
     integer :: table_size = 0
-    ! Temporary, set by add_directory_entry
+    !> Temporary, set by add_directory_entry
     integer :: cur_page = 0
-    ! Temporary, set by add_directory_entry
+    !> Temporary, set by add_directory_entry
     integer :: cur_entry = 0
-    ! Last entry in last page
+    !> Last entry in last page
     integer :: last_entry = PAGE_SIZE
     integer :: file_unit = 0
     logical :: restart_mode = .false.
-    ! Total number of array creations
+    !> Total number of array creations
     integer :: ordinal = 0
     integer :: gmm_verbose_level = 0
 end module gmm_internals

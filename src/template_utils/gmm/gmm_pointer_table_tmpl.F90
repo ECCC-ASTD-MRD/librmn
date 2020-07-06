@@ -15,19 +15,19 @@ module FNCNAME(pointer_table_data)
         integer*8 key
     end type
     type (FNCNAME(gmm_p) , dimension(MAX_PAGES * PAGE_SIZE) :: FNCNAME(gmm_ptrs)
-    ! total number of entries in directory
+    !> Total number of entries in directory
     integer :: gmm_p_used = 0
-    ! number of pages in directory
+    !> Number of pages in directory
     integer :: gmm_p_table_size = 0
-    ! temporary, set by add_directory_entry
+    !> Temporary, set by add_directory_entry
     integer :: gmm_p_cur_page = 0
-    ! temporary, set by add_directory_entry
+    !> Temporary, set by add_directory_entry
     integer :: gmm_p_cur_entry = 0
-    ! last entry in last page
+    !> Last entry in last page
     integer :: gmm_p_last_entry = MAX_PAGES * PAGE_SIZE
     integer :: gmm_p_file_unit = 0
     logical :: gmm_p_restart_mode = .false.
-    ! total number of array creations
+    !> Total number of array creations
     integer :: gmm_p_ordinal = 0
 
     contains
