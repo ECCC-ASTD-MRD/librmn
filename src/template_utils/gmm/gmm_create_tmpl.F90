@@ -1,53 +1,18 @@
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3,#4 CODE #1;#2;#3;#4 DIM 4 DATATYPE integer DATACODE 1 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3,#4 CODE #1;#2;#3;#4 DIM 4 DATATYPE integer DATACODE 1 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3,#4 CODE #1;#2;#3;#4 DIM 4 DATATYPE real    DATACODE 2 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3,#4 CODE #1;#2;#3;#4 DIM 4 DATATYPE real    DATACODE 2 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3,#4 CODE #1;#2;#3;#4 DIM 4 DATATYPE complex DATACODE 3 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3    CODE #1;#2;#3    DIM 3 DATATYPE integer DATACODE 1 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3    CODE #1;#2;#3    DIM 3 DATATYPE integer DATACODE 1 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3    CODE #1;#2;#3    DIM 3 DATATYPE real    DATACODE 2 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3    CODE #1;#2;#3    DIM 3 DATATYPE real    DATACODE 2 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2,#3    CODE #1;#2;#3    DIM 3 DATATYPE complex DATACODE 3 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2       CODE #1;#2       DIM 2 DATATYPE integer DATACODE 1 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2       CODE #1;#2       DIM 2 DATATYPE integer DATACODE 1 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2       CODE #1;#2       DIM 2 DATATYPE real    DATACODE 2 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2       CODE #1;#2       DIM 2 DATATYPE real    DATACODE 2 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1,#2       CODE #1;#2       DIM 2 DATATYPE complex DATACODE 3 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1          CODE #1          DIM 1 DATATYPE integer DATACODE 1 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1          CODE #1          DIM 1 DATATYPE integer DATACODE 1 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1          CODE #1          DIM 1 DATATYPE real    DATACODE 2 DATALENGTH 8
-!!!Cat #1#2#3#4#5#6 DIMS #1          CODE #1          DIM 1 DATATYPE real    DATACODE 2 DATALENGTH 4
-!!!Cat #1#2#3#4#5#6 DIMS #1          CODE #1          DIM 1 DATATYPE complex DATACODE 3 DATALENGTH 8
-
-#ifdef INTERFACEONLY
-interface gmm_create
-!!@LOOP
-#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
-    integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
-        include "gmm_definitions.inc"
-        ! name (partially redundant with attributes)
-        character(len=*), intent(in) :: iname
-        DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
-        ! attributes (name in attributes is not used)
-        type(gmm_metadata), intent(inout) :: field_meta
-        integer, intent(in), optional :: flags_arg
-    end function Cat(gmm_create,EXTENSION,)
-#undef EXTENSION
-!!@END
-end interface
-#endif
-
-
-!!@LOOP
-#define EXTENSION Cat(DATACODE,DATALENGTH,DIM)
-#ifndef INTERFACEONLY
-integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
+integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use gmm_internals
-    use Cat(pointer_table_data_,EXTENSION,)
+    use FNCNAME(pointer_table_data)
     implicit none
     ! name (partially redundant with attributes)
     character(len=*), intent(in) :: iname
-    DATATYPE*DATALENGTH, pointer :: p(DIMS(:,:,:,:))
+#if DIM == 1
+    DATATYPE*DATALENGTH, pointer  :: p(:)
+#elif DIM == 2
+    DATATYPE*DATALENGTH, pointer  :: p(:,:)
+#elif DIM == 3
+    DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
+#elif DIM == 4
+    DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
+#endif
     ! attributes (name in attributes is not used)
     type(gmm_metadata), intent(inout) :: field_meta
     integer, intent(in), optional :: flags_arg
@@ -71,15 +36,22 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
     character(len=GMM_MAXNAMELENGTH) :: lcl_name
     integer u_bound, l_bound
 
-    DATATYPE*DATALENGTH, pointer :: pp(DIMS(:,:,:,:))
-
+#if DIM == 1
+    DATATYPE*DATALENGTH, pointer  :: pp(:)
+#elif DIM == 2
+    DATATYPE*DATALENGTH, pointer  :: pp(:,:)
+#elif DIM == 3
+    DATATYPE*DATALENGTH, pointer  :: pp(:,:,:)
+#elif DIM == 4
+    DATATYPE*DATALENGTH, pointer  :: pp(:,:,:,:)
+#endif
     real      :: NaN
     integer   :: inan
     real*8    :: NaN8
     integer*8 :: inan8
 
-    equivalence (inan,NaN)
-    equivalence (inan8,NaN8)
+    equivalence (inan, NaN)
+    equivalence (inan8, NaN8)
 
     data inan  /Z'7F800001'/
     data inan8 /Z'7FF0000000000001'/
@@ -99,14 +71,14 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
         consistent = .true.
         ! check that all dimensions are identical
         do i = 1, DIM
-            consistent = consistent .and. size(p,i) .eq. (dims(i)%high-dims(i)%low+1)
+            consistent = consistent .and. size(p, i) .eq. (dims(i)%high - dims(i)%low + 1)
         enddo
         if (.not. consistent ) then
             if (gmm_verbose_level == GMM_MSG_DEBUG) then
                 print *,'ERROR: gmm_create, p has dimensions that are not consistent with dims'
             endif
             key = 0
-            Cat(gmm_create,EXTENSION,) = GMM_INCONSISTENT_DIMS
+            FNCNAME(gmm_create) = GMM_INCONSISTENT_DIMS
             ! HOW SERIOUS AN ERROR IS THIS ?
             return
         endif
@@ -119,14 +91,15 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
     ! keep only a subset of user specified flags
     localattr%flags = iand(localattr%flags, FLAGS_KEPT_ON_CREATE)
 #ifdef DEBUG_MODE
-    print *,'lcl_name="', lcl_name, '" has ', DIM, ' dimensions'
+    print *, 'lcl_name="', lcl_name, '" has ', DIM, ' dimensions'
     do i = 1, DIM
         print *, i, dims(i)
     enddo
 #endif
-    call find_directory_entry(lcl_name,key)     ! is there a field with this name that exists ?
+    ! is there a field with this name that exists ?
+    call find_directory_entry(lcl_name, key)     
 #ifdef DEBUG_MODE
-    print *,'after find_directory: cur_page, cur_entry=',cur_page,cur_entry
+    print *, 'after find_directory: cur_page, cur_entry=', cur_page,cur_entry
 #endif
 
     ! 2- Verify if the field has already been created
@@ -135,62 +108,62 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
         if (associated(p)) then
             print *,'ERROR: gmm_create called with existing p and array has already been created'
             key = 0
-            Cat(gmm_create,EXTENSION,) = GMM_ARRAY_ALREADY_EXISTS
+            FNCNAME(gmm_create) = GMM_ARRAY_ALREADY_EXISTS
             ! HOW SERIOUS AN ERROR IS THIS ?
             return
             endif
-        pp => Cat(gmm_ptrs, EXTENSION,)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
+        pp => FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
         consistent = .true.
         ! check that all dimensions are identical
         do i = 1, DIM
             ! work around to prevent the corruption of size(pp) by the pgi9xx optimizer (bug)
             call fool_optimizer(size(pp,i))
-            consistent = consistent .and. (size(pp,i) .eq. (dims(i)%high-dims(i)%low+1))
+            consistent = consistent .and. (size(pp, i) .eq. (dims(i)%high - dims(i)%low + 1))
             if (.not. consistent ) then
-                print *,'size(pp,',i,')=',size(pp,i),' high=',dims(i)%high,' low=',dims(i)%low
+                print *, 'size(pp,', i, ')=', size(pp, i), ' high=', dims(i)%high, ' low=', dims(i)%low
             endif
         enddo
         if (.not. consistent ) then
-            print *,'ERROR: gmm_create, requested dimensions differ from previous specification (restart/create)'
-            print *,'ERROR: gmm_create, variable name ="',lcl_name,'"'
+            print *, 'ERROR: gmm_create, requested dimensions differ from previous specification (restart/create)'
+            print *, 'ERROR: gmm_create, variable name ="', lcl_name,'"'
             key = 0
             nullify(p)
-            Cat(gmm_create,EXTENSION,) = GMM_INCONSISTENT_DIMS
+            FNCNAME(gmm_create) = GMM_INCONSISTENT_DIMS
             ! HOW SERIOUS AN ERROR IS THIS ?
             return
         else
             if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                print *,'INFO: gmm_create, variable name =',lcl_name,' exists and is consistent'
+                print *, 'INFO: gmm_create, variable name =', lcl_name, ' exists and is consistent'
             endif
         endif
 
         if (iand(GMM_FLAG_CRTD, directory(cur_page)%entry(cur_entry)%a%flags) .ne. 0) then
             ! OOPS really a double create
-            print *,'ERROR: gmm_create, field ', lcl_name, ' has already been created'
+            print *, 'ERROR: gmm_create, field ', lcl_name, ' has already been created'
             key = 0
             nullify(p)
-            Cat(gmm_create,EXTENSION,) = GMM_VARIABLE_ALREADY_CREATED
+            FNCNAME(gmm_create) = GMM_VARIABLE_ALREADY_CREATED
             return
         else
             ! no, this array must then have been read from a restart file
             ! keep flags from restart file
-            localattr%flags = ior(localattr%flags,directory(cur_page)%entry(cur_entry)%a%flags)
+            localattr%flags = ior(localattr%flags, directory(cur_page)%entry(cur_entry)%a%flags)
             ! get proper key value from directory
             key = directory(cur_page)%entry(cur_entry)%a%key
             ! turn on created flag
             directory(cur_page)%entry(cur_entry)%a%flags = ior(localattr%flags, GMM_FLAG_CRTD)
             ! point to array
-            p => Cat(gmm_ptrs, EXTENSION,)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
+            p => FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
             directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(p)
-            Cat(gmm_create,EXTENSION,) = 0
+            FNCNAME(gmm_create) = 0
             ! no need to go any further, the array is created
             return
         endif
     else
         ! array not found in table, we may need to create an entry in directory
-        if (iand(GMM_FLAG_RSTR,localattr%flags).ne.0 .and. restart_mode) then
+        if (iand(GMM_FLAG_RSTR, localattr%flags) .ne. 0 .and. restart_mode) then
             ! we are in restart mode and array should exist
-            print *,'ERROR: gmm_create field ',lcl_name, 'should have been read from restart file but was not'
+            print *, 'ERROR: gmm_create field ', lcl_name, 'should have been read from restart file but was not'
             ! HOW SERIOUS AN ERROR IS THIS ?
         endif
         call add_directory_entry
@@ -202,9 +175,9 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
     ! bump creation ordinal
     ordinal = ordinal + 1
 #ifdef DEBUG_MODE
-    print *,'creation ordinal=', ordinal, ' cur_page, cur_entry=', cur_page,cur_entry
+    print *, 'creation ordinal=', ordinal, ' cur_page, cur_entry=', cur_page,cur_entry
 #endif
-    key = ishft((cur_page-1), PAGE_NB_SHFT) + ishft((cur_entry-1), NTRY_NB_SHFT)
+    key = ishft((cur_page - 1), PAGE_NB_SHFT) + ishft((cur_entry - 1), NTRY_NB_SHFT)
     key = key + ishft(EXTENSION, EXTN_NB_SHFT) + ishft(ordinal, MAGC_NB_SHFT)
     ! name, units, initmode, some flags
     directory(cur_page)%entry(cur_entry)%a = localattr
@@ -212,7 +185,7 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
     directory(cur_page)%entry(cur_entry)%name = lcl_name
     directory(cur_page)%entry(cur_entry)%a%key = key
     ! turn on created flag
-    directory(cur_page)%entry(cur_entry)%a%flags = ior(localattr%flags,GMM_FLAG_CRTD)
+    directory(cur_page)%entry(cur_entry)%a%flags = ior(localattr%flags, GMM_FLAG_CRTD)
     ! establish dimensions and allocate array
     directory(cur_page)%entry(cur_entry)%l(1:DIM) = dims(1:DIM)
     ! establish dimensions and allocate array
@@ -233,12 +206,19 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
 #endif
         lcl_pti = lgmm_get_nxt_avail_ptr()
         directory(cur_page)%entry(cur_entry)%pointer_table_index = lcl_pti
-        allocate(p(DIMS(dims(1)%low:dims(1)%high,&
-                       &dims(2)%low:dims(2)%high,&
-                       &dims(3)%low:dims(3)%high,&
-                       &dims(4)%low:dims(4)%high)), stat = ier)
+        allocate(p(dims(1)%low:dims(1)%high &
+#if DIM > 1
+                  ,dims(2)%low:dims(2)%high &
+#endif
+#if DIM > 2
+                  ,dims(3)%low:dims(3)%high &
+#endif
+#if DIM > 3
+                  ,dims(4)%low:dims(4)%high &
+#endif
+                  ), stat = ier)
         if (ier /= 0) then
-            Cat(gmm_create,EXTENSION,) = GMM_ERROR
+            FNCNAME(gmm_create) = GMM_ERROR
             return
         endif
         directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(p)
@@ -247,11 +227,11 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
     field_meta%l = directory(cur_page)%entry(cur_entry)%l
     field_meta%a = directory(cur_page)%entry(cur_entry)%a
 
-    if (iand(field_meta%a%flags, GMM_FLAG_IZER) /= 0) THEN
+    if (iand(field_meta%a%flags, GMM_FLAG_IZER) /= 0) then
         p = 0
     endif
 
-    if (iand(field_meta%a%flags, GMM_FLAG_INAN) /= 0) THEN
+    if (iand(field_meta%a%flags, GMM_FLAG_INAN) /= 0) then
 #if ((DATATYPE == real) & (DATALENGTH == 4))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             print *,iname,' Debug DATATYPE=real init to NaN'
@@ -264,16 +244,11 @@ integer function Cat(gmm_create,EXTENSION,)(iname, p, field_meta, flags_arg)
         p = NaN8
 #else
         print *,'GMM_CREATE ERROR, name=',iname,' : init to NaN is not available for this data type'
-        Cat(gmm_create,EXTENSION,) = GMM_ERROR
+        FNCNAME(gmm_create) = GMM_ERROR
         return
 #endif
 #endif
     endif
 
-    Cat(gmm_create,EXTENSION,) = 0
-end function Cat(gmm_create,EXTENSION,)
-
-#endif
-#undef EXTENSION
-
-!!@END
+    FNCNAME(gmm_create) = 0
+end function FNCNAME(gmm_create)

@@ -28,6 +28,7 @@
 #define FNCNAME(name) name/**/_/**/141
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 142
@@ -36,6 +37,7 @@
 #define FNCNAME(name) name/**/_/**/142
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 143
@@ -44,6 +46,7 @@
 #define FNCNAME(name) name/**/_/**/143
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 144
@@ -52,6 +55,7 @@
 #define FNCNAME(name) name/**/_/**/144
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -63,6 +67,7 @@
 #define FNCNAME(name) name/**/_/**/181
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 182
@@ -71,6 +76,7 @@
 #define FNCNAME(name) name/**/_/**/182
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 183
@@ -79,6 +85,7 @@
 #define FNCNAME(name) name/**/_/**/183
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 184
@@ -87,6 +94,7 @@
 #define FNCNAME(name) name/**/_/**/184
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -103,6 +111,7 @@
 #define FNCNAME(name) name/**/_/**/241
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 242
@@ -111,6 +120,7 @@
 #define FNCNAME(name) name/**/_/**/242
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 243
@@ -119,6 +129,7 @@
 #define FNCNAME(name) name/**/_/**/243
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 244
@@ -127,6 +138,7 @@
 #define FNCNAME(name) name/**/_/**/244
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -138,6 +150,7 @@
 #define FNCNAME(name) name/**/_/**/281
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 282
@@ -146,6 +159,7 @@
 #define FNCNAME(name) name/**/_/**/282
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 283
@@ -154,6 +168,7 @@
 #define FNCNAME(name) name/**/_/**/283
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 284
@@ -162,6 +177,7 @@
 #define FNCNAME(name) name/**/_/**/284
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -178,6 +194,7 @@
 #define FNCNAME(name) name/**/_/**/381
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 382
@@ -186,6 +203,7 @@
 #define FNCNAME(name) name/**/_/**/382
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 383
@@ -194,6 +212,7 @@
 #define FNCNAME(name) name/**/_/**/383
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 ! 384
@@ -202,6 +221,7 @@
 #define FNCNAME(name) name/**/_/**/384
 #include "gmm_checkpoint_tmpl.F90"
 #include "gmm_get_tmpl.F90"
+#include "gmm_create_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
