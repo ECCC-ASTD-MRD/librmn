@@ -30,6 +30,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 142
@@ -40,6 +41,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 143
@@ -50,6 +52,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 144
@@ -60,6 +63,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -73,6 +77,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 182
@@ -83,6 +88,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 183
@@ -93,6 +99,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 184
@@ -103,6 +110,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -121,6 +129,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 242
@@ -131,6 +140,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 243
@@ -141,6 +151,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 244
@@ -151,6 +162,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -164,6 +176,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 282
@@ -174,6 +187,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 283
@@ -184,6 +198,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 284
@@ -194,6 +209,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH
@@ -212,6 +228,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 382
@@ -222,6 +239,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 383
@@ -232,6 +250,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 ! 384
@@ -242,6 +261,7 @@
 #include "gmm_get_tmpl.F90"
 #include "gmm_create_tmpl.F90"
 #include "gmm_pointer_table_tmpl.F90"
+#include "gmm_update_tpi_key_tmpl.F90"
 #include "undefiner.hf"
 
 #undef DATALENGTH

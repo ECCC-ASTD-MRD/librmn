@@ -1,0 +1,24 @@
+integer function FNCNAME(gmm_update_tpi_key)(indx, key)
+    use gmm_internals
+    use FNCNAME(pointer_table_data)
+    implicit none
+    integer, intent(in) :: indx
+    integer*8, intent(in) :: key
+
+    type(gmm_attributes) :: localattr, attrs
+    type (gmm_attributes) lcl_attr
+    type(gmm_layout), dimension(4) :: lcl_layout, dims
+    integer lcl_datatype
+    logical consistent
+    integer i, ier
+    integer lcl_pti
+
+    if (indx > gmm_p_table_size) then
+        print *, 'update_table_entry : wrong index', indx, 'in table type ', EXTENSION, 'of size', gmm_p_table_size
+        FNCNAME(gmm_update_tpi_key) = GMM_POINTER_TABLE_OVERFLOW
+    endif
+
+    FNCNAME(gmm_ptrs)(indx)%key = key
+    print *, 'update_table_entry', 'of', indx, 'in table type ', EXTENSION, 'of size', gmm_p_table_size
+    FNCNAME(gmm_update_tpi_key) = 0
+end function FNCNAME(gmm_update_tpi_key)
