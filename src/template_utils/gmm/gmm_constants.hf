@@ -52,5 +52,8 @@
         integer, parameter :: GMM_MSG_SEVERE =  3
         integer, parameter :: GMM_MSG_FATAL  =  4
 
-#define GMM_IS_OK(errcode) (errcode >= 0)
-#define GMM_IS_ERROR(errcode) (errcode < 0)
+! gfortran 10.1.0 says the following about these:
+! Warning: Illegal preprocessor directive
+! #define GMM_IS_OK(errcode) (errcode >= 0)
+! #define GMM_IS_ERROR(errcode) (errcode < 0)
+! Implemented as functions in gmm_status.F90

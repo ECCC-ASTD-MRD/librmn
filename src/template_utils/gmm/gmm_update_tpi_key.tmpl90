@@ -1,6 +1,6 @@
 integer function FNCNAME(gmm_update_tpi_key)(indx, key)
     use gmm_internals
-    use FNCNAME(pointer_table_data)
+    use FNCNAME(pointer_table_data_)
     implicit none
     integer, intent(in) :: indx
     integer*8, intent(in) :: key

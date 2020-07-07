@@ -1,6 +1,7 @@
 #include "gmm_constants.hf"
 #include "gmm_definitions.inc"
 #include "gmm_nulls.inc"
+#include "gmm_status_interface.inc"
 #include "gmm_checkpoint_interface.inc"
 #include "gmm_create_interface.inc"
 #include "gmm_encodemeta_interface.inc"

@@ -1,8 +1,8 @@
 module gmm_internals
-#include "gmm_constants.hf"
-#include "gmm_internal_constants.inc"
-#include "gmm_definitions.inc"
-#include "gmm_nulls.inc"
+    include "gmm_constants.hf"
+    include "gmm_internal_constants.inc"
+    include "gmm_definitions.inc"
+    include "gmm_nulls.inc"
     type p_gmm_metadata
         SEQUENCE
         type(gmm_layout), dimension(4) :: l

@@ -1,6 +1,6 @@
 subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
     use gmm_internals
-    use FNCNAME(pointer_table_data)
+    use FNCNAME(pointer_table_data_)
     implicit none
     logical read_or_write
     integer istat, fnom, i, j, ier, lcl_pti
@@ -34,18 +34,18 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
         ! Set creation ordinal
         directory(cur_page)%entry(cur_entry)%a%key = key
         ! CODE POSSIBLY MISSING HERE FOR FLAGS SETTINGS
-        allocate(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p(&
-                                                            &siz(1)%low:siz(1)%high&
+        allocate(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p( &
+                                                              siz(1)%low:siz(1)%high &
 #if DIM > 1
-                                                            &,siz(2)%low:siz(2)%high,&
+                                                            , siz(2)%low:siz(2)%high &
 #endif
 #if DIM > 2
-                                                            &,siz(3)%low:siz(3)%high,&
+                                                            , siz(3)%low:siz(3)%high &
 #endif
 #if DIM > 3
-                                                            &,siz(4)%low:siz(4)%high&
+                                                            , siz(4)%low:siz(4)%high &
 #endif
-                                                        ))
+                                                            ))
         ! Read array
         read(file_unit)FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
         directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(&

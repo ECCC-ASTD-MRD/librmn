@@ -14,7 +14,7 @@ module FNCNAME(pointer_table_data_)
 #endif
         integer*8 key
     end type
-    type (FNCNAME(gmm_p_) , dimension(MAX_PAGES * PAGE_SIZE) :: FNCNAME(gmm_ptrs)
+    type (FNCNAME(gmm_p_)), dimension(MAX_PAGES * PAGE_SIZE) :: FNCNAME(gmm_ptrs)
     !> Total number of entries in directory
     integer :: gmm_p_used = 0
     !> Number of pages in directory
@@ -46,7 +46,7 @@ module FNCNAME(pointer_table_data_)
         FNCNAME(gmm_ptrs)(gmm_p_table_size)%p => p
         FNCNAME(gmm_ptrs)(gmm_p_table_size)%key = key
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, 'add_table_entry', ' of', \' FNCNAME(gmm_ptrs) \' , gmm_p_table_size
+            print *, 'add_table_entry of FNCNAME(gmm_ptrs)', gmm_p_table_size
         endif
         add_table_entry = 0
         return
