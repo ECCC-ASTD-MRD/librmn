@@ -5,83 +5,83 @@ interface
         logical read_or_write
     end function gmm_checkpoint_all
 
-    integer function gmm_checkpoint184(read_or_write)
+    integer function gmm_checkpoint_184(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint184
+    end function gmm_checkpoint_184
 
-    integer function gmm_checkpoint144(read_or_write)
+    integer function gmm_checkpoint_144(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint144
+    end function gmm_checkpoint_144
 
-    integer function gmm_checkpoint284(read_or_write)
+    integer function gmm_checkpoint_284(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint284
+    end function gmm_checkpoint_284
 
-    integer function gmm_checkpoint244(read_or_write)
+    integer function gmm_checkpoint_244(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint244
+    end function gmm_checkpoint_244
 
-    integer function gmm_checkpoint384(read_or_write)
+    integer function gmm_checkpoint_384(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint384
+    end function gmm_checkpoint_384
 
-    integer function gmm_checkpoint183(read_or_write)
+    integer function gmm_checkpoint_183(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint183
+    end function gmm_checkpoint_183
 
-    integer function gmm_checkpoint143(read_or_write)
+    integer function gmm_checkpoint_143(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint143
+    end function gmm_checkpoint_143
 
-    integer function gmm_checkpoint283(read_or_write)
+    integer function gmm_checkpoint_283(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint283
+    end function gmm_checkpoint_283
 
-    integer function gmm_checkpoint243(read_or_write)
+    integer function gmm_checkpoint_243(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint243
+    end function gmm_checkpoint_243
 
-    integer function gmm_checkpoint383(read_or_write)
+    integer function gmm_checkpoint_383(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint383
+    end function gmm_checkpoint_383
 
-    integer function gmm_checkpoint182(read_or_write)
+    integer function gmm_checkpoint_182(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint182
+    end function gmm_checkpoint_182
 
-    integer function gmm_checkpoint142(read_or_write)
+    integer function gmm_checkpoint_142(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint142
+    end function gmm_checkpoint_142
 
-    integer function gmm_checkpoint282(read_or_write)
+    integer function gmm_checkpoint_282(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint282
+    end function gmm_checkpoint_282
 
-    integer function gmm_checkpoint242(read_or_write)
+    integer function gmm_checkpoint_242(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint242
+    end function gmm_checkpoint_242
 
-    integer function gmm_checkpoint382(read_or_write)
+    integer function gmm_checkpoint_382(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint382
+    end function gmm_checkpoint_382
 
-    integer function gmm_checkpoint181(read_or_write)
+    integer function gmm_checkpoint_181(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint181
+    end function gmm_checkpoint_181
 
-    integer function gmm_checkpoint141(read_or_write)
+    integer function gmm_checkpoint_141(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint141
+    end function gmm_checkpoint_141
 
-    integer function gmm_checkpoint281(read_or_write)
+    integer function gmm_checkpoint_281(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint281
+    end function gmm_checkpoint_281
 
-    integer function gmm_checkpoint241(read_or_write)
+    integer function gmm_checkpoint_241(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint241
+    end function gmm_checkpoint_241
 
-    integer function gmm_checkpoint381(read_or_write)
+    integer function gmm_checkpoint_381(read_or_write)
         logical read_or_write
-    end function gmm_checkpoint381
+    end function gmm_checkpoint_381
 end interface

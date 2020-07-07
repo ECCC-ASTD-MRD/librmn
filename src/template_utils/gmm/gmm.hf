@@ -15,4 +15,4 @@
 
 ! Le vieux Makefile n'ajoutait pas ce fichier dans gmm.hf
 ! Est-ce volontaire ou est-ce un oubli?
-#include "gmm_directory_interface.inc"
+! #include "gmm_directory_interface.inc"

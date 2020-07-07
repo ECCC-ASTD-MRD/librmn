@@ -1,6 +1,6 @@
 integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use gmm_internals
-    use FNCNAME(pointer_table_data)
+    use FNCNAME(pointer_table_data_)
     implicit none
     ! name (partially redundant with attributes)
     character(len=*), intent(in) :: iname

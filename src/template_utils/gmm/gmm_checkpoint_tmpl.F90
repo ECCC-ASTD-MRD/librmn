@@ -1,4 +1,4 @@
-subroutine FNCNAME(gmm_checkpoint)(read_or_write)
+subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
     use gmm_internals
     use FNCNAME(pointer_table_data)
     implicit none
@@ -78,4 +78,4 @@ subroutine FNCNAME(gmm_checkpoint)(read_or_write)
             enddo
         enddo
     endif
-end subroutine FNCNAME(gmm_checkpoint)
+end subroutine FNCNAME(gmm_checkpoint_)

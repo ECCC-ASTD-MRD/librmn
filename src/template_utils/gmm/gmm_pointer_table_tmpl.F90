@@ -1,8 +1,8 @@
-module FNCNAME(pointer_table_data)
+module FNCNAME(pointer_table_data_)
     use gmm_internals
     implicit none
     save
-    type FNCNAME(gmm_p)
+    type FNCNAME(gmm_p_)
 #if DIM == 1
         DATATYPE*DATALENGTH, pointer  :: p(:)
 #elif DIM == 2
@@ -14,7 +14,7 @@ module FNCNAME(pointer_table_data)
 #endif
         integer*8 key
     end type
-    type (FNCNAME(gmm_p) , dimension(MAX_PAGES * PAGE_SIZE) :: FNCNAME(gmm_ptrs)
+    type (FNCNAME(gmm_p_) , dimension(MAX_PAGES * PAGE_SIZE) :: FNCNAME(gmm_ptrs)
     !> Total number of entries in directory
     integer :: gmm_p_used = 0
     !> Number of pages in directory
@@ -84,4 +84,4 @@ module FNCNAME(pointer_table_data)
         update_table_entry = 0
         return
     end function update_table_entry
-end module FNCNAME(pointer_table_data)
+end module FNCNAME(pointer_table_data_)
