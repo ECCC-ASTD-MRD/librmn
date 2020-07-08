@@ -19,13 +19,11 @@
  */
 
 #include <rpnmacros.h>
-/*
- union allowing to store an address and return it to caller using a 64 bit integer
- this should work on any platform
-*/
+//! Union allowing to store an address and return it to caller using a 64 bit
+//! integer. This should work on any platform.
 typedef union {
- long long address_in_64bit;
- void *ptr;
+    long long address_in_64bit;
+    void *ptr;
 } fakeptr;
 
 /*
@@ -59,62 +57,67 @@ typedef union {
  end
 */
 
-long long f77name(get_address_from)(void *addr) /* similar to the FORTRAN LOC() intrinsic */
+//! similar to the FORTRAN LOC() intrinsic
+long long f77name(get_address_from)(void *addr)
 {
- fakeptr myptr;
+    fakeptr myptr;
 
- myptr.address_in_64bit=0;
- myptr.ptr=addr;                     /* put address into union */
- return(myptr.address_in_64bit);     /* return 64 bit long long to caller */
+    myptr.address_in_64bit = 0;
+    // Put address into union
+    myptr.ptr = addr;
+    // return 64 bit long long to caller
+    return(myptr.address_in_64bit);
 }
 
 void f77name(make_cray_pointer)(void **addr, long long *c)
 {
- fakeptr myptr;
-
- myptr.address_in_64bit=*c;       /* get 64 bit long long containing address from caller 
-                                       and store it into union */
- *addr = myptr.ptr;               /* return address to caller (addr is a Cray style pointer) */
+    fakeptr myptr;
+    // get 64 bit long long containing address from caller and store it into union
+    myptr.address_in_64bit = *c;
+    // Return address to caller (addr is a Cray style pointer)
+    *addr = myptr.ptr;
 }
 
 void f77name(pass_address_to)(long long *c, int *funct())
 {
- fakeptr myptr;
+    fakeptr myptr;
 
- myptr.address_in_64bit=*c;       /* get long long containing address in union from caller */
- (void) *funct(myptr.ptr);        /* call call_back specified by user with address as only argument */
+    // get long long containing address in union from caller
+    myptr.address_in_64bit = *c;
+    // Call call_back specified by user with address as only argument
+    (void) *funct(myptr.ptr);
 }
 
 void f77name(set_content_of_location)(long long *location, wordint *indx, wordint *value)
-/* 
- *  indexing of location is done in base 1 (Fortran like)
- */
+// Indexing of location is done in base 1 (Fortran like)
 {
-typedef union {
- long long address_in_64bit;
- wordint *ptr;
-} U_ptr;
+    typedef union {
+        long long address_in_64bit;
+        wordint *ptr;
+    } U_ptr;
 
- U_ptr myptr;
+    U_ptr myptr;
 
- myptr.address_in_64bit=0;
- myptr.address_in_64bit=*location;             /* put long long contaning address into union */
- myptr.ptr[(*indx)-1] = *value;                /* set content of index address to value */
+    myptr.address_in_64bit = 0;
+    // Put long long contaning address into union
+    myptr.address_in_64bit = *location;
+    // set content of index address to value
+    myptr.ptr[(*indx)-1] = *value;
 }
 
 void f77name(get_content_of_location)(long long *location, wordint *indx, wordint *value)
-/* 
- *  indexing of location is done in base 1 (Fortran like)
- */
+// Indexing of location is done in base 1 (Fortran like)
 {
-typedef union {
- long long address_in_64bit;
- wordint *ptr;
-} U_ptr;
+    typedef union {
+    long long address_in_64bit;
+    wordint *ptr;
+    } U_ptr;
 
- U_ptr myptr;
+    U_ptr myptr;
 
- myptr.address_in_64bit=0;
- myptr.address_in_64bit=*location;             /* put long long contaning address into union */
- *value = myptr.ptr[(*indx)-1];                /* get content of index address into value */
+    myptr.address_in_64bit = 0;
+    // Put long long contaning address into union
+    myptr.address_in_64bit = *location;
+    // get content of index address into value
+    *value = myptr.ptr[(*indx)-1];
 }
