@@ -52,9 +52,13 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
             FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
 
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') 'name=',directory(cur_page)%entry(cur_entry)%name,' cur_page=',cur_page,' cur_entry=',cur_entry,' index=',directory(cur_page)%entry(cur_entry)%pointer_table_index,' addr=',get_address_from(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+            write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') &
+                'name=', directory(cur_page)%entry(cur_entry)%name, &
+                ' cur_page=', cur_page, ' cur_entry=', cur_entry, &
+                ' index=', directory(cur_page)%entry(cur_entry)%pointer_table_index, &
+                ' addr=', get_address_from(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
         endif
-        ier = add_table_entry(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p,key)
+        ier = add_table_entry(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p, key)
     else
         ! Write to checkpoint file (records with FLAG_RSTR property)
         if (gmm_verbose_level == GMM_MSG_DEBUG) then

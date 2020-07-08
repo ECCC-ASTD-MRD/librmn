@@ -31,7 +31,9 @@ module FNCNAME(pointer_table_data_)
     integer :: gmm_p_ordinal = 0
 
     contains
-        integer function add_table_entry(p, key)
+
+
+    integer function add_table_entry(p, key)
 #if DIM == 1
             DATATYPE*DATALENGTH, pointer  :: p(:)
 #elif DIM == 2
@@ -52,11 +54,13 @@ module FNCNAME(pointer_table_data_)
         return
     end function add_table_entry
 
+
     integer function lgmm_get_nxt_avail_ptr()
         lgmm_get_nxt_avail_ptr = gmm_p_table_size + 1
         gmm_p_table_size = gmm_p_table_size + 1
         return
     end function lgmm_get_nxt_avail_ptr
+
 
     integer function update_table_entry(indx, key)
 #if DIM == 1
