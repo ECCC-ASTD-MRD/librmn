@@ -3,20 +3,20 @@
 #ifndef _ezfuncdef
 #include "gd_key2rowcol.hc"
 
-static _Grille** Grille  = NULL;
-static _Grille** gr_list = NULL;
+static _Grille **Grille  = NULL;
+/*static wordint  **gr_list = NULL;*/
+static _Grille **gr_list = NULL;
 static wordint nGrilles = 0;
 static wordint nGrillesMax = CHUNK*CHUNK;
 static wordint cur_log_chunk = 7;
+/*static wordint cur_log_chunk = 3;*/
 
-// These declarations used to have the __thread storage class, but threads
-// aren't actually used.  Furthemore, the PGI compiler does not support that
-// storage class
-static wordint iset     = -1;
-static wordint iset_gdin = -1;
-static wordint iset_gdout = -1;
-static _gridset* gridset = NULL;
-static _groptions groptions = { OUI, CUBIQUE,  MAXIMUM, NON, -1, SYM, SCALAIRE, NON, NON, OUI, 16, 0, DISTANCE, NEAREST, 0.5, 3.0, 0.0  };
+static __thread wordint nsets    = 0;
+static __thread wordint iset     = -1;
+static __thread wordint iset_gdin = -1;
+static __thread wordint iset_gdout = -1;
+static __thread _gridset *gridset = NULL;
+static  __thread _groptions groptions = { OUI, CUBIQUE,  MAXIMUM, NON, -1, SYM, SCALAIRE, NON, NON, OUI, 16, 0, DISTANCE, NEAREST, 0.5, 3.0, 0.0  };
 
 static wordint log_chunks[]= {0, 1,  2, 3,    4,    5,    6,      7,     8,      9,      10,     11,        12};
 static wordint primes[]    = {0, 0,  3, 7,   13,   31,   61,    127,   251,    509,    1021,   2039,      4093};
