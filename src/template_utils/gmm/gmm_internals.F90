@@ -1,17 +1,19 @@
 module gmm_internals
+    use, intrinsic :: iso_c_binding
     include "gmm_constants.hf"
     include "gmm_internal_constants.inc"
     include "gmm_definitions.inc"
     include "gmm_nulls.inc"
     type p_gmm_metadata
-        SEQUENCE
+        ! Try to remove the SEQUENCE statement to see if it matters
+        ! SEQUENCE
         type(gmm_layout), dimension(4) :: l
         type(gmm_attributes) :: a
-        integer data_type
-        integer pointer_table_index
-        integer *8 array_addr
+        integer :: data_type
+        integer :: pointer_table_index
+        type(c_ptr) :: array_addr
         ! Name of the field
-        character(len=GMM_MAXNAMELENGTH)  :: name
+        character(len = GMM_MAXNAMELENGTH) :: name
     end type
 
     type directory_page

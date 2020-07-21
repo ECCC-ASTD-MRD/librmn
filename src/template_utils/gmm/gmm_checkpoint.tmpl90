@@ -1,4 +1,5 @@
 subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
+    use, intrinsic :: iso_c_binding
     use gmm_internals
     use FNCNAME(pointer_table_data_)
     implicit none
@@ -8,8 +9,6 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
     type(gmm_attributes) :: attrib
     integer *8 :: key
     external fnom
-    integer *8 get_address_from
-    external get_address_from
 
     ! Read one  record from checkpoint file
     if (read_or_write) then
@@ -48,15 +47,15 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
                                                             ))
         ! Read array
         read(file_unit)FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
-        directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(&
-            FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+        directory(cur_page)%entry(cur_entry)%array_addr = &
+            c_loc(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
 
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') &
                 'name=', directory(cur_page)%entry(cur_entry)%name, &
                 ' cur_page=', cur_page, ' cur_entry=', cur_entry, &
                 ' index=', directory(cur_page)%entry(cur_entry)%pointer_table_index, &
-                ' addr=', get_address_from(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+                ' addr=', c_loc(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
         endif
         ier = add_table_entry(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p, key)
     else

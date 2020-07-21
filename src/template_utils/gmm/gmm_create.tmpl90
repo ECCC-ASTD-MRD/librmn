@@ -1,4 +1,5 @@
 integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
+    use, intrinsic :: iso_c_binding
     use gmm_internals
     use FNCNAME(pointer_table_data_)
     implicit none
@@ -16,8 +17,6 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     ! attributes (name in attributes is not used)
     type(gmm_metadata), intent(inout) :: field_meta
     integer, intent(in), optional :: flags_arg
-    integer *8 get_address_from
-    external get_address_from
     external fool_optimizer
 
 
@@ -117,7 +116,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         ! check that all dimensions are identical
         do i = 1, DIM
             ! work around to prevent the corruption of size(pp) by the pgi9xx optimizer (bug)
-            call fool_optimizer(size(pp,i))
+            call fool_optimizer(size(pp, i))
             consistent = consistent .and. (size(pp, i) .eq. (dims(i)%high - dims(i)%low + 1))
             if (.not. consistent ) then
                 print *, 'size(pp,', i, ')=', size(pp, i), ' high=', dims(i)%high, ' low=', dims(i)%low
@@ -154,7 +153,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             directory(cur_page)%entry(cur_entry)%a%flags = ior(localattr%flags, GMM_FLAG_CRTD)
             ! point to array
             p => FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p
-            directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(p)
+            directory(cur_page)%entry(cur_entry)%array_addr = c_loc(p)
             FNCNAME(gmm_create) = 0
             ! no need to go any further, the array is created
             return
@@ -221,7 +220,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             FNCNAME(gmm_create) = GMM_ERROR
             return
         endif
-        directory(cur_page)%entry(cur_entry)%array_addr = get_address_from(p)
+        directory(cur_page)%entry(cur_entry)%array_addr = c_loc(p)
         ier = add_table_entry(p, key)
     endif
     field_meta%l = directory(cur_page)%entry(cur_entry)%l

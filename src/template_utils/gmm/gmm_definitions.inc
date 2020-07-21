@@ -2,7 +2,11 @@
         type gmm_layout
             SEQUENCE
             !> Dimension is low:high, useful contents 1..n
-            integer :: low, high, halo, halomax, n
+            integer :: low
+            integer :: high
+            integer :: halo
+            integer :: halomax
+            integer :: n
         end type
 
         type gmm_attributes
