@@ -80,7 +80,7 @@ subroutine add_directory_entry
 
     ! first time around, nullify all pointers
     if ( table_size .eq. 0 ) then
-        do i = 1 ,MAX_PAGES
+        do i = 1, MAX_PAGES
             nullify(directory(i)%entry)
         enddo
     endif
