@@ -4,11 +4,12 @@ cmake_minimum_required(VERSION 3.16)
 
 include("${CMAKE_SOURCE_DIR}/cmake_shared/git_version.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake_shared/dump_cmake_variables.cmake")
-include("${CMAKE_SOURCE_DIR}/cmake_shared/doxygen.cmake")
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
 project(librmn VERSION ${VERSION} DESCRIPTION "Library of functions for numerical weather forecasting" LANGUAGES NONE)
+
+include("${CMAKE_SOURCE_DIR}/cmake_shared/doxygen.cmake")
 
 # TODO: Move the compiler suite option to an include file?
 set(COMPILER_SUITE "GNU" CACHE STRING "Compiler suite to use for the build.  Can be one of the following: GNU, Intel, XL")
