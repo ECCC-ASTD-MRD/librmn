@@ -20,8 +20,6 @@ integer function FNCNAME(gmm_get)(iname, p, m)
     include 'gmm_directory_interface.inc'
     type(gmm_metadata) :: m2
     integer*8 :: key
-    integer *8 get_address_from
-    external get_address_from
 
     key = 0
     call check_directory_entry(iname, key)
