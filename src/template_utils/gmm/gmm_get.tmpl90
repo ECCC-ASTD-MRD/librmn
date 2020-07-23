@@ -2,8 +2,7 @@ integer function FNCNAME(gmm_get)(iname, p, m)
     use gmm_internals
     use FNCNAME(pointer_table_data_)
     implicit none
-    integer :: i, array_rank
-    ! name (partially redundant with attributes)
+
     character(len=*), intent(in) :: iname
 #if DIM == 1
     DATATYPE*DATALENGTH, pointer  :: p(:)
@@ -14,10 +13,14 @@ integer function FNCNAME(gmm_get)(iname, p, m)
 #elif DIM == 4
     DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
 #endif
-    ! attributes (name in attributes is not used)
     type(gmm_metadata), optional, intent(out) :: m
-    !  integer,intent(inout) :: reqid
+
     include 'gmm_directory_interface.inc'
+
+    integer :: i, array_rank
+    ! name (partially redundant with attributes)
+    ! attributes (name in attributes is not used)
+    !  integer,intent(inout) :: reqid
     type(gmm_metadata) :: m2
     integer*8 :: key
 

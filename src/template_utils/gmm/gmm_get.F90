@@ -1,10 +1,12 @@
 integer function gmm_delete(iname)
     use gmm_internals
     implicit none
-    character(len=*), intent(in) :: iname
+
+    character(len = *), intent(in) :: iname
     include 'gmm_directory_interface.inc'
     integer*8 :: key
     integer :: datatype
+
     key = 0
     call check_directory_entry(iname, key)
     if (cur_page .eq. 0 .or. cur_entry .eq. 0) then
@@ -68,12 +70,14 @@ end function gmm_delete
 
 
 integer function gmm_getmeta2(iname, m)
-#include "gmm_definitions.inc"
+    include "gmm_definitions.inc"
     ! name (partially redundant with attributes)
     character(len=*), intent(in) :: iname
     ! attributes (name in attributes is not used)
     type(gmm_metadata), intent(out) :: m
+
     integer gmm_getmeta
     external gmm_getmeta
+
     gmm_getmeta2 = gmm_getmeta(iname, m)
 end function gmm_getmeta2

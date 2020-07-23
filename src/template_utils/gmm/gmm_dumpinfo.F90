@@ -3,15 +3,18 @@ subroutine gmm_dumpinfo(fldstat)
     use gmm_internals
     implicit none
     logical, intent(in), optional :: fldstat
-    integer :: i, l_page, l_entry, nelm, crc, f_calc_crc
+    integer :: i, l_page, l_entry, nelm, crc
     real :: xx
     pointer(px, xx(*))
     type(gmm_layout), dimension(4) :: dims
+
+    ! FIXME undefined external
+    integer :: f_calc_crc
     external f_calc_crc
 
     l_page = 1
     l_entry = 1
-    print *,'GMM dumpinfo, number of variables in use is',used
+    print *, 'GMM dumpinfo, number of variables in use is', used
     do i = 1, used
         dims = directory(l_page)%entry(l_entry)%l
         nelm = ( (dims(1)%high - dims(1)%low +1) * &
@@ -20,13 +23,13 @@ subroutine gmm_dumpinfo(fldstat)
                  (dims(4)%high - dims(4)%low +1) )
         if (present(fldstat)) then
             print *, 'Appel a statfld a ecrire, fldstat=', fldstat
-            write (6,77) &
+            print 'format(a,a,a,i10)' &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
                 ' addr=', directory(l_page)%entry(l_entry)%array_addr
         else
             call make_cray_pointer(px,directory(l_page)%entry(l_entry)%array_addr)
             crc = f_calc_crc(xx, nelm, 0, 1)
-            write (6,88) &
+            print 'format(a,a,a,i10,a,i10)' &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
                 ' addr=', directory(l_page)%entry(l_entry)%array_addr, &
                 ' checksum=', crc
@@ -37,7 +40,4 @@ subroutine gmm_dumpinfo(fldstat)
             l_entry = 1
         endif
     enddo
-77  format(a,a,a,i10)
-88  format(a,a,a,i10,a,i10)
-    return
 end subroutine gmm_dumpinfo

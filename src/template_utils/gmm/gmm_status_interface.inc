@@ -1,9 +1,9 @@
 interface gmm_status
-    logical function GMM_IS_OK(errcode)
+    logical function gmm_is_ok(errcode)
         integer, intent(in) :: errcode
     end function
 
-    logical function GMM_IS_ERROR(errcode)
+    logical function gmm_is_error(errcode)
         integer, intent(in) :: errcode
     end function
 end interface gmm_status

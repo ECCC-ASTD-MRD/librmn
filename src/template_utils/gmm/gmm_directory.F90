@@ -1,12 +1,12 @@
 subroutine check_directory_entry(name, key)
     use gmm_internals
     implicit none
-    character(len=*) :: name
+    character(len = *) :: name
     integer*8, intent(in) :: key
 
-    character(len=GMM_MAXNAMELENGTH) :: l_name
-    integer temp
-    logical found
+    character(len = GMM_MAXNAMELENGTH) :: l_name
+    integer :: temp
+    logical :: found
 
     found = .false.
     if (cur_page == 0 .and. cur_entry == 0) then
@@ -38,11 +38,11 @@ end subroutine check_directory_entry
 subroutine find_directory_entry(name, key)
     use gmm_internals
     implicit none
-    character(len=*) :: name
+    character(len = *) :: name
     integer*8, optional :: key
     integer :: i
 
-    character(len=GMM_MAXNAMELENGTH) :: l_name
+    character(len = GMM_MAXNAMELENGTH) :: l_name
 
     l_name = trim(name)
 #ifdef DEBUG_MODE
@@ -63,7 +63,8 @@ subroutine find_directory_entry(name, key)
             cur_entry = 1
         endif
     enddo
-    cur_page = 0      ! NOT FOUND, return zeroes
+    ! NOT FOUND, return zeroes
+    cur_page = 0
     cur_entry = 0
 
     key = GMM_KEY_NOT_FOUND
@@ -101,9 +102,9 @@ subroutine add_directory_entry
         endif
         ! initialize directory entries
         do i = 1, PAGE_SIZE
-            ! invalid layout
+            ! Invalid layout
             directory(table_size)%entry(i)%l = GMM_NULL_LAYOUT
-            ! null attributes
+            ! Null attributes
             directory(table_size)%entry(i)%a = GMM_NULL_ATTRIB
         enddo
         cur_entry = 1

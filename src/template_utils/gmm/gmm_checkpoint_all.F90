@@ -2,8 +2,11 @@
 integer function gmm_checkpoint_all(read_or_write)
     use gmm_internals
     implicit none
-    logical read_or_write
-    integer code, istat, fnom
+    logical :: read_or_write
+    integer :: code, istat
+
+    ! FIXME include a proper prototype for this unknown external
+    integer :: fnom
     external fnom
 
     ! Read checkpoint file one record at a time
