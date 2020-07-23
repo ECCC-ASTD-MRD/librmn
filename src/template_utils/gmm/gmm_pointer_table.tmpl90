@@ -39,14 +39,12 @@ module FNCNAME(pointer_table_data_)
             print *, 'add_table_entry of FNCNAME(gmm_ptrs)', gmm_p_table_size
         endif
         add_table_entry = 0
-        return
     end function add_table_entry
 
 
     integer function lgmm_get_nxt_avail_ptr()
         lgmm_get_nxt_avail_ptr = gmm_p_table_size + 1
         gmm_p_table_size = gmm_p_table_size + 1
-        return
     end function lgmm_get_nxt_avail_ptr
 
 
@@ -74,6 +72,5 @@ module FNCNAME(pointer_table_data_)
             print *, 'update_table_entry', 'of', indx
         endif
         update_table_entry = 0
-        return
     end function update_table_entry
 end module FNCNAME(pointer_table_data_)
