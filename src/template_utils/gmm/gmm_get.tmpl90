@@ -1,6 +1,6 @@
 integer function FNCNAME(gmm_get)(iname, p, m)
     use gmm_internals
-    use FNCNAME(pointer_table_data_)
+    use gmm_pointer_table_data
     implicit none
 
     character(len=*), intent(in) :: iname
@@ -67,7 +67,7 @@ end function FNCNAME(gmm_get)
 
 subroutine FNCNAME(gmm_dealloc_ptr)()
     use gmm_internals
-    use FNCNAME(pointer_table_data_)
+    use gmm_pointer_table_data
     implicit none
 
     deallocate (FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)

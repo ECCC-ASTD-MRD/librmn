@@ -1,17 +1,12 @@
+!> @deprecated This function should no longer be used; it's now just a wrapper for gmm_update_table_entry
 integer function FNCNAME(gmm_update_tpi_key)(indx, key)
     use gmm_internals
-    use FNCNAME(pointer_table_data_)
     implicit none
+
+    include "gmm_pointer_table_interface.inc"
 
     integer, intent(in) :: indx
     integer*8, intent(in) :: key
 
-    if (indx > gmm_p_table_size) then
-        print *, 'update_table_entry : wrong index', indx, 'in table type ', EXTENSION, 'of size', gmm_p_table_size
-        FNCNAME(gmm_update_tpi_key) = GMM_POINTER_TABLE_OVERFLOW
-    endif
-
-    FNCNAME(gmm_ptrs)(indx)%key = key
-    print *, 'update_table_entry', 'of', indx, 'in table type ', EXTENSION, 'of size', gmm_p_table_size
-    FNCNAME(gmm_update_tpi_key) = 0
+    FNCNAME(gmm_update_tpi_key) = FNCNAME(gmm_update_table_entry)(indx, key)
 end function FNCNAME(gmm_update_tpi_key)

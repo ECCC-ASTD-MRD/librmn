@@ -24,3 +24,17 @@ integer function gmm_getmeta(varname, meta)
     meta%l = directory(cur_page)%entry(cur_entry)%l
     gmm_getmeta = 0
 end function gmm_getmeta
+
+
+integer function gmm_getmeta2(iname, m)
+    implicit none
+
+    include "gmm_definitions.inc"
+
+    ! name (partially redundant with attributes)
+    character(len=*), intent(in) :: iname
+    ! attributes (name in attributes is not used)
+    type(gmm_metadata), intent(out) :: m
+
+    gmm_getmeta2 = gmm_getmeta(iname, m)
+end function gmm_getmeta2

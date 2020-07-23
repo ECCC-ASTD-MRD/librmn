@@ -67,17 +67,3 @@ integer function gmm_delete(iname)
         gmm_delete = GMM_OK
     endif
 end function gmm_delete
-
-
-integer function gmm_getmeta2(iname, m)
-    include "gmm_definitions.inc"
-    ! name (partially redundant with attributes)
-    character(len=*), intent(in) :: iname
-    ! attributes (name in attributes is not used)
-    type(gmm_metadata), intent(out) :: m
-
-    integer gmm_getmeta
-    external gmm_getmeta
-
-    gmm_getmeta2 = gmm_getmeta(iname, m)
-end function gmm_getmeta2

@@ -1,8 +1,9 @@
 integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use, intrinsic :: iso_c_binding
     use gmm_internals
-    use FNCNAME(pointer_table_data_)
+    use gmm_pointer_table_data
     implicit none
+
     ! name (partially redundant with attributes)
     character(len = *), intent(in) :: iname
 #if DIM == 1
@@ -17,17 +18,18 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     ! attributes (name in attributes is not used)
     type(gmm_metadata), intent(inout) :: field_meta
     integer, intent(in), optional :: flags_arg
-    external fool_optimizer
 
+    ! Disabled since it might non longer be required
+    ! external fool_optimizer
 
     include "gmm_directory_interface.inc"
+    include "gmm_pointer_table_interface.inc"
 
     type(gmm_attributes) :: localattr, attrs
     type(gmm_layout), dimension(4) :: dims
     integer*8 :: key
-    logical consistent
-    integer i, ier
-    integer lcl_pti
+    logical :: consistent
+    integer :: i, ier
     ! name (partially redundant with attributes)
     character(len = GMM_MAXNAMELENGTH) :: lcl_name
 
@@ -108,8 +110,9 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         consistent = .true.
         ! check that all dimensions are identical
         do i = 1, DIM
-            ! work around to prevent the corruption of size(pp) by the pgi9xx optimizer (bug)
-            call fool_optimizer(size(pp, i))
+            ! Disabled this compiler bug workaround to find out if it's still an issue and removed an undefined external
+            ! Work around to prevent the corruption of size(pp) by the pgi9xx optimizer (bug)
+            ! call fool_optimizer(size(pp, i))
             consistent = consistent .and. (size(pp, i) .eq. (dims(i)%high - dims(i)%low + 1))
             if (.not. consistent ) then
                 print *, 'size(pp,', i, ')=', size(pp, i), ' high=', dims(i)%high, ' low=', dims(i)%low
@@ -183,21 +186,17 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     ! Establish dimensions and allocate array
     directory(cur_page)%entry(cur_entry)%data_type = EXTENSION
 
+    directory(cur_page)%entry(cur_entry)%pointer_table_index = FNCNAME(gmm_get_nxt_avail_ptr)()
     if (associated(p)) then
         ! the user gave a non null pointer
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             print *,'GMM_CREATE: using user supplied array'
         endif
-        lcl_pti = lgmm_get_nxt_avail_ptr()
-        directory(cur_page)%entry(cur_entry)%pointer_table_index = lcl_pti
-        ier = add_table_entry(p, key)
         ! must check that certain attributes are not requested (e.g. FLAG_RSTR) and that size is consistent
     else
 #ifdef DEBUG_MODE
         print *,'allocating array with number of dimensions=',DIM
 #endif
-        lcl_pti = lgmm_get_nxt_avail_ptr()
-        directory(cur_page)%entry(cur_entry)%pointer_table_index = lcl_pti
         allocate(p(dims(1)%low:dims(1)%high &
 #if DIM > 1
                   ,dims(2)%low:dims(2)%high &
@@ -214,8 +213,8 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             return
         endif
         directory(cur_page)%entry(cur_entry)%array_addr = c_loc(p)
-        ier = add_table_entry(p, key)
     endif
+    ier = FNCNAME(gmm_add_table_entry)(p, key)
     field_meta%l = directory(cur_page)%entry(cur_entry)%l
     field_meta%a = directory(cur_page)%entry(cur_entry)%a
 

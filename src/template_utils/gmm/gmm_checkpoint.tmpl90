@@ -1,10 +1,12 @@
 subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
     use, intrinsic :: iso_c_binding
     use gmm_internals
-    use FNCNAME(pointer_table_data_)
+    use gmm_pointer_table_data
     implicit none
 
     logical, intent(in) :: read_or_write
+
+    include "gmm_pointer_table_interface.inc"
 
     integer :: i, j, ier
     type(gmm_layout), dimension(1:DIM) :: siz
@@ -26,7 +28,7 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
         ! Set attributes in table
         directory(cur_page)%entry(cur_entry)%a = attrib
         read(file_unit)directory(cur_page)%entry(cur_entry)%data_type
-        directory(cur_page)%entry(cur_entry)%pointer_table_index = lgmm_get_nxt_avail_ptr()
+        directory(cur_page)%entry(cur_entry)%pointer_table_index = FNCNAME(gmm_get_nxt_avail_ptr)()
         ordinal = ordinal + 1
         key = ishft((cur_page - 1), PAGE_NB_SHFT) + ishft((cur_entry - 1), NTRY_NB_SHFT)
         key = key + ishft(EXTENSION, EXTN_NB_SHFT) + ishft(ordinal, MAGC_NB_SHFT)
@@ -58,7 +60,7 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
                 ' index=', directory(cur_page)%entry(cur_entry)%pointer_table_index, &
                 ' addr=', c_loc(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
         endif
-        ier = add_table_entry(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p, key)
+        ier = FNCNAME(gmm_add_table_entry)(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p, key)
     else
         ! Write to checkpoint file (records with FLAG_RSTR property)
         if (gmm_verbose_level == GMM_MSG_DEBUG) then

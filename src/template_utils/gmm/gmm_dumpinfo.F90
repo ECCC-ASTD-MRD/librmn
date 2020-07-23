@@ -23,13 +23,13 @@ subroutine gmm_dumpinfo(fldstat)
                  (dims(4)%high - dims(4)%low +1) )
         if (present(fldstat)) then
             print *, 'Appel a statfld a ecrire, fldstat=', fldstat
-            print 'format(a,a,a,i10)' &
+            print '(a,a,a,i10)', &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
                 ' addr=', directory(l_page)%entry(l_entry)%array_addr
         else
             call make_cray_pointer(px,directory(l_page)%entry(l_entry)%array_addr)
             crc = f_calc_crc(xx, nelm, 0, 1)
-            print 'format(a,a,a,i10,a,i10)' &
+            print '(a,a,a,i10,a,i10)', &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
                 ' addr=', directory(l_page)%entry(l_entry)%array_addr, &
                 ' checksum=', crc

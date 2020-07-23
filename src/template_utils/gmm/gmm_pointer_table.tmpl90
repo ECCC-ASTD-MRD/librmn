@@ -1,76 +1,53 @@
-module FNCNAME(pointer_table_data_)
-    use gmm_internals
+integer function FNCNAME(gmm_add_table_entry)(p, key)
+    use gmm_pointer_table_data
     implicit none
-    save
-    type FNCNAME(gmm_p_)
+
 #if DIM == 1
-        DATATYPE*DATALENGTH, pointer  :: p(:)
+        DATATYPE*DATALENGTH, pointer :: p(:)
 #elif DIM == 2
-        DATATYPE*DATALENGTH, pointer  :: p(:,:)
+        DATATYPE*DATALENGTH, pointer :: p(:,:)
 #elif DIM == 3
-        DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
+        DATATYPE*DATALENGTH, pointer :: p(:,:,:)
 #elif DIM == 4
-        DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
+        DATATYPE*DATALENGTH, pointer :: p(:,:,:,:)
 #endif
-        integer*8 key
-    end type
-    type (FNCNAME(gmm_p_)), dimension(MAX_PAGES * PAGE_SIZE) :: FNCNAME(gmm_ptrs)
-    !> Number of pages in directory
-    integer :: gmm_p_table_size = 0
+    integer*8, intent(in) :: key
 
-    contains
+    FNCNAME(gmm_ptrs)(FNCNAME(gmm_p_table_size_))%p => p
+    FNCNAME(gmm_ptrs)(FNCNAME(gmm_p_table_size_))%key = key
+    if (gmm_verbose_level == GMM_MSG_DEBUG) then
+        print *, 'gmm_add_table_entry of FNCNAME(gmm_ptrs)', FNCNAME(gmm_p_table_size_)
+    endif
+    FNCNAME(gmm_add_table_entry) = 0
+end function FNCNAME(gmm_add_table_entry)
 
 
-    integer function add_table_entry(p, key)
-#if DIM == 1
-            DATATYPE*DATALENGTH, pointer  :: p(:)
-#elif DIM == 2
-            DATATYPE*DATALENGTH, pointer  :: p(:,:)
-#elif DIM == 3
-            DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
-#elif DIM == 4
-            DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
-#endif
-        integer*8, intent(in) :: key
+integer function FNCNAME(gmm_get_nxt_avail_ptr)()
+    use gmm_pointer_table_data
+    implicit none
 
-        FNCNAME(gmm_ptrs)(gmm_p_table_size)%p => p
-        FNCNAME(gmm_ptrs)(gmm_p_table_size)%key = key
+    FNCNAME(gmm_p_table_size_) = FNCNAME(gmm_p_table_size_) + 1
+    FNCNAME(gmm_get_nxt_avail_ptr) = FNCNAME(gmm_p_table_size_)
+end function FNCNAME(gmm_get_nxt_avail_ptr)
+
+
+integer function FNCNAME(gmm_update_table_entry)(indx, key)
+    use gmm_pointer_table_data
+    implicit none
+
+    integer, intent(in) :: indx
+    integer*8, intent(in) :: key
+
+    if (indx > FNCNAME(gmm_p_table_size_)) then
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, 'add_table_entry of FNCNAME(gmm_ptrs)', gmm_p_table_size
+            print *, 'gmm_update_table_entry : wrong index', indx, FNCNAME(gmm_p_table_size_)
         endif
-        add_table_entry = 0
-    end function add_table_entry
+        FNCNAME(gmm_update_table_entry) = GMM_POINTER_TABLE_OVERFLOW
+    endif
 
-
-    integer function lgmm_get_nxt_avail_ptr()
-        lgmm_get_nxt_avail_ptr = gmm_p_table_size + 1
-        gmm_p_table_size = gmm_p_table_size + 1
-    end function lgmm_get_nxt_avail_ptr
-
-
-    integer function update_table_entry(indx, key)
-#if DIM == 1
-            DATATYPE*DATALENGTH, pointer  :: p(:)
-#elif DIM == 2
-            DATATYPE*DATALENGTH, pointer  :: p(:,:)
-#elif DIM == 3
-            DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
-#elif DIM == 4
-            DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
-#endif
-        integer, intent(in) :: indx
-        integer*8, intent(in) :: key
-        if (indx > gmm_p_table_size) then
-            if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                print *, 'update_table_entry : wrong index', indx, gmm_p_table_size
-            endif
-            update_table_entry = GMM_POINTER_TABLE_OVERFLOW
-        endif
-
-        FNCNAME(gmm_ptrs)(indx)%key = key
-        if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, 'update_table_entry', 'of', indx
-        endif
-        update_table_entry = 0
-    end function update_table_entry
-end module FNCNAME(pointer_table_data_)
+    FNCNAME(gmm_ptrs)(indx)%key = key
+    if (gmm_verbose_level == GMM_MSG_DEBUG) then
+        print *, 'gmm_update_table_entry', 'of', indx
+    endif
+    FNCNAME(gmm_update_table_entry) = 0
+end function FNCNAME(gmm_update_table_entry)
