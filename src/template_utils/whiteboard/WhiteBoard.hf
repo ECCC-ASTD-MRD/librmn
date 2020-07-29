@@ -1,8 +1,14 @@
-#include <WhiteBoard.h>
+#include <WhiteBoard_constants.h>
 
-#ifdef WITH_OpenMP
+use iso_fortran_env, only: int64
+
+type :: whiteboard
+    sequence
+    integer(kind = int64) :: wb
+end type whiteboard
+
+#ifdef _OPENMP
 #include <whiteboard_interface_omp.cdk>
-#endif
-#ifdef WITHOUT_OpenMP
+#else
 #include <whiteboard_interface_st.cdk>
 #endif

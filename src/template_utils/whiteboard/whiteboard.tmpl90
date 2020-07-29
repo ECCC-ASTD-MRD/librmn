@@ -26,23 +26,10 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
 
-!copyright (C) 2007  LGPLv2
-!**s/r whiteboard.ftn90
-!object
-!  Fortran Interface to the C implementation of the whiteboard
-!  To compile FILENAME.tmpl90:
-!     r.tmpl90.ftn90 FILENAME
-!     r.compile -src FILENAME.ftn90
-!  Interface is avail in FILENAME_interface.cdk90
-!author
-!  Stephane Chamberland, August 2007
-!revision
-!  v0_00 -       - initial version
-!implicits
-!** end of rpn-doc sections
 
+!> @file Fortran Interface to the C implementation of the whiteboard
 
-#ifdef WITH_OpenMP
+#ifdef _OPENMP
 #define OMPSUFFIX _omp
 #else
 #define OMPSUFFIX _st
@@ -59,75 +46,70 @@ interface wb_get
 
 !!@LOOP
 
+!> Retrieve a copy of the value associated with key stored in the whiteboard saclar form
+!
+!> @param[in]  key   Key identifying the whiteboard entry to get
+!> @param[out] value Returned value associated with key
+!> @param[in]  wb    Instance of a whiteboard [global WB if not provided]
+!
+!> @return WB_OK on success or error code on failure.  Use WB_IS_OK() to check.
+integer function CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)(key, value, wb) result(status)
+    implicit none
 
-!**s/r CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)
-integer function CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)(key,value,wb) result(status)
-  implicit none
-!arguments
-#include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
-  TYPEFORTRAN, intent(OUT) :: value
-  character (len=*), intent(IN) :: key
-!  wb    : instance of a whiteboard [global WB if not provided]
-!  key   : key identifying the whiteboard entry to get
-!  value : returned value associated with key
-!  status: returned error code: ; use WB_IS_OK(status) to check
-!object
-!  retrieve a copy of the value associated with key stored in the whiteboard
-!  saclar form
-!** end of rpn-doc sections
+    include "WhiteBoard.hf"
+
+    character (len = *), intent(in) :: key
+    TYPEFORTRAN, intent(out) :: value
+    type(whiteboard), intent(in), optional :: wb
+
 #ifndef INTERFACEONLY
-  integer*8 :: my_wb
-  integer,external :: f_wb_get
+    integer*8 :: my_wb
+    integer,external :: f_wb_get
 !$omp critical
-  my_wb = WHITEBOARD_GLOBAL_INT
-  if(present(wb)) my_wb = wb%wb
-  status = f_wb_get(my_wb, key, TYPEWBFORT , TYPELEN ,value,TYPELEN_SCALAR)
+    my_wb = WHITEBOARD_GLOBAL_INT
+    if (present(wb)) my_wb = wb%wb
+    status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, value, TYPELEN_SCALAR)
 !$omp end critical
-  return
+
 #endif
 end function
 
 
-!TODO:
-!!$integer function CAT(wb_get_,TYPE2CHAR,_a)(key,value,nbval,status,mode)
-!!$  logical, intent(IN),optional :: mode
-!**s/r CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)_a
-integer function  CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)_a(key,value,nbval,wb) result(status)
-  implicit none
-!arguments
-#include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
-  integer, intent(OUT) :: nbval
-  TYPEFORTRAN, dimension(:), intent(OUT) :: value
-  character (len=*), intent(IN) :: key
-!  wb    : instance of a whiteboard [global WB if not provided]
-!  key   : key identifying the whiteboard entry to get
-!  value : returned value associated with key
-!  nbval : number of returned values in the array
-!  status: returned error code; use WB_IS_OK(status) to check
-!object
-!  retrieve a copy of the value associated with key stored in the whiteboard
-!  array form
-!** end of rpn-doc sections
+!> Retrieve a copy of the value associated with key stored in the whiteboard array form
+!
+!> @paran[in]  key   Key identifying the whiteboard entry to get
+!> @paran[out] value Returned value associated with key
+!> @paran[out] nbval Number of returned values in the array
+!> @paran[in]  wb    Instance of a whiteboard [global WB if not provided]
+!
+!> @return WB_OK on success or error code on failure.  Use WB_IS_OK() to check.
+integer function CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)_a(key, value, nbval, wb) result(status)
+    implicit none
+
+    include "WhiteBoard.hf"
+
+    character (len = *), intent(in) :: key
+    TYPEFORTRAN, dimension(:), intent(out) :: value
+    integer, intent(out) :: nbval
+    type(whiteboard), intent(in), optional :: wb
+
 #ifndef INTERFACEONLY
-  integer*8 :: my_wb
-  integer,external :: f_wb_get
+    integer*8 :: my_wb
+    integer, external :: f_wb_get
 !$omp critical
-  my_wb = WHITEBOARD_GLOBAL_INT
-  if(present(wb)) my_wb = wb%wb
-  nbval  = 0
-  status = f_wb_get(my_wb, key,TYPEWBFORT,TYPELEN,value,size(value))
-  if (WB_IS_OK(status)) nbval = status
+    my_wb = WHITEBOARD_GLOBAL_INT
+    if (present(wb)) my_wb = wb%wb
+    nbval  = 0
+    status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, value, size(value))
+    if (WB_IS_OK(status)) nbval = status
 !$omp end critical
 !TODO: error when not enough room to get all WB values [not the default]
 !!$  if present(mode0) then
 !!$     if (status > size(value) .and. mode == ERR_ON_SUB_ARRAY) status = WB_ERR_WRONGDIMENSION
 !!$  endif
-  return
+    return
 #endif
 end function
-
 
 !!@END
 
@@ -143,15 +125,15 @@ interface wb_put
 !!@LOOP
 
 
-!**s/r CAT(wb_put_,TYPE2CHAR,OMPSUFFIX)
+
 integer function CAT(wb_put_,TYPE2CHAR,OMPSUFFIX)(key,value,options0,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
-  integer, intent(IN),optional  :: options0
-  TYPEFORTRAN, intent(IN) :: value
-  character (len=*), intent(IN) :: key
+  type(whiteboard),intent(in),optional :: wb
+  integer, intent(in),optional  :: options0
+  TYPEFORTRAN, intent(in) :: value
+  character (len=*), intent(in) :: key
 !  wb     : instance of a whiteboard [global WB if not provided]
 !  key    : key identifying the whiteboard entry to set
 !  value  : value associated with key
@@ -160,7 +142,7 @@ integer function CAT(wb_put_,TYPE2CHAR,OMPSUFFIX)(key,value,options0,wb) result(
 !object
 !  save a copy of the value in the whiteboard associated with a key name
 !  scalar form
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer :: options
@@ -182,15 +164,15 @@ integer function CAT(wb_put_,TYPE2CHAR,OMPSUFFIX)(key,value,options0,wb) result(
 end function
 
 
-!**s/r CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)
+
 integer function CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)(key,value,options0,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
-  integer, intent(IN),optional :: options0
-  TYPEFORTRAN, dimension(:), intent(IN) :: value
-  character(len=*), intent(IN) :: key
+  type(whiteboard),intent(in),optional :: wb
+  integer, intent(in),optional :: options0
+  TYPEFORTRAN, dimension(:), intent(in) :: value
+  character(len=*), intent(in) :: key
 !  wb     : instance of a whiteboard [global WB if not provided]
 !  key    : key identifying the whiteboard entry to set
 !  value  : value associated with key
@@ -199,7 +181,7 @@ integer function CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)(key,value,options0,wb) resu
 !object
 !  save a copy of the values in the whiteboard associated with a key name
 !  array form
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer :: options
@@ -236,12 +218,12 @@ interface wb_read
 #endif
 
 
-!**s/r wb_read -- Read a dictionary or namelist into the whiteboard
+
 integer function CAT(wb_read,OMPSUFFIX)(prefix_name,file,section,mode,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
   character(len=*), intent(in) :: prefix_name
   character(len=*), intent(in) :: file
   character(len=*), intent(in) :: section
@@ -253,7 +235,7 @@ integer function CAT(wb_read,OMPSUFFIX)(prefix_name,file,section,mode,wb) result
 !  mode    : parsing mode of the config file [WB_ALLOW_DEFINE...]
 !object
 !  Read a dictionary or namelist into the whiteboard
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_read
@@ -280,12 +262,12 @@ interface wb_keys
 #endif
 
 
-!**s/r wb_keys -- 
+
 integer function CAT(wb_keys,OMPSUFFIX)(keys,nkeys,key_pattern,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
   character(len=*), intent(in) :: key_pattern
   integer, intent(out) :: nkeys
   character(len=*), intent(out) :: keys(:)
@@ -295,7 +277,7 @@ integer function CAT(wb_keys,OMPSUFFIX)(keys,nkeys,key_pattern,wb) result(status
 !  key_pattern : key prefix to match against
 !object
 !  retreive all key names in the wahitboard starting with key_pattern
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_get_keys
@@ -317,12 +299,12 @@ interface wb_get_meta
 #endif
 
 
-!**s/r wb_get_meta -- 
+
 integer function CAT(wb_get_meta,OMPSUFFIX)(key,type1,typelen,array_size,options,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
   character(len=*), intent(in) :: key
   integer, intent(out) :: type1,typelen,array_size,options
 !  wb     : instance of a whiteboard [global WB if not provided]
@@ -334,7 +316,7 @@ integer function CAT(wb_get_meta,OMPSUFFIX)(key,type1,typelen,array_size,options
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Retreive meta data of WB entry conresponding to provided key name
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_get_meta
@@ -353,16 +335,16 @@ end interface wb_get_meta
 interface wb_checkpoint_setname
 #endif
 
-!**s/r wb_checkpoint -- 
+
 integer function CAT(wb_checkpoint_setname,OMPSUFFIX)(filename) result(status)
   implicit none
-!arguments
+
   character(len=*),intent(in) :: filename
 !  filename : name of the wb checkpoint file
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Set the name of the checkpoint file
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer,external :: f_wb_checkpoint_name
   status = f_wb_checkpoint_name(filename)
@@ -376,16 +358,16 @@ end interface wb_checkpoint_setname
 interface wb_checkpoint_getname
 #endif
 
-!**s/r wb_checkpoint -- 
+
 integer function CAT(wb_checkpoint_getname,OMPSUFFIX)(filename) result(status)
   implicit none
-!arguments
+
   character(len=*),intent(out) :: filename
 !  filename : name of the wb checkpoint file
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Get the name of the checkpoint file
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer,external :: f_wb_checkpoint_get_name
   status = f_wb_checkpoint_get_name(filename)
@@ -401,17 +383,17 @@ interface wb_checkpoint
 #endif
 
 
-!**s/r wb_checkpoint -- 
+
 integer function CAT(wb_checkpoint,OMPSUFFIX)(wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
 !  wb     : instance of a whiteboard [global WB if not provided]
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Save a copy of the whiteboard to disk for re-start purpose
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_checkpoint
@@ -438,18 +420,18 @@ interface wb_reload
 
 
 !TODO: may want to remove this and do an auto reload on 1st WB fn call
-!**s/r wb_reload -- 
+
 integer function CAT(wb_reload,OMPSUFFIX)(wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
 !  wb     : instance of a whiteboard [global WB if not provided]
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Force a reload of the saved copy of the whiteboard, if ant,
 !  as written by wb_checkpoint; normally done first thing on re-start
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_reload
@@ -475,12 +457,12 @@ interface wb_check
 #endif
 
 
-!**s/r wb_check -- 
+
 integer function CAT(wb_check,OMPSUFFIX)(prefix_match,instatus,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
   character(len=*),intent(in) :: prefix_match
   integer, intent(in) :: instatus
 !  wb     : instance of a whiteboard [global WB if not provided]
@@ -490,7 +472,7 @@ integer function CAT(wb_check,OMPSUFFIX)(prefix_match,instatus,wb) result(status
 !object
 !  Check all whiteboard entry for the gien instatus, 
 !  return number of entries that match
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_check
@@ -511,12 +493,12 @@ interface wb_lock
 #endif
 
 
-!**s/r wb_lock -- 
+
 integer function CAT(wb_lock,OMPSUFFIX)(prefix_match,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
   character(len=*), intent(in) :: prefix_match
 !  wb     : instance of a whiteboard [global WB if not provided]
 !  prefix_match : prefix string to match to WB entry key name
@@ -526,7 +508,7 @@ integer function CAT(wb_lock,OMPSUFFIX)(prefix_match,wb) result(status)
 !  - key name start with prefix_match
 !  - status is WB_REWRITE_UNTIL
 !  normally done after a wb_read of a config file
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer,external :: f_wb_lock
@@ -552,10 +534,10 @@ interface wb_error_handler
 #endif
 
 
-!**s/r wb_error_handler
+
 integer function CAT(wb_error_handler,OMPSUFFIX)(handler_function) result(status)
   implicit none
-!arguments
+
   external :: handler_function
 !  handler_function : "pointer" to an external subroutine
 !  status : returned error code; use WB_IS_OK(status) to check
@@ -564,7 +546,7 @@ integer function CAT(wb_error_handler,OMPSUFFIX)(handler_function) result(status
 !  the handler_function should have the following form:
 !     subtroutine handler_function(error_severity,error_code)
 !       integer, intent(in) :: error_severity,error_code
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
 #ifdef WITH_OpenMP
   integer,external :: omp_get_num_threads
@@ -587,10 +569,10 @@ interface wb_broadcast_init
 #endif
 
 
-!**s/r wb_broadcast_init
+
 integer function CAT(wb_broadcast_init,OMPSUFFIX)(pe_root,pe_me,domain,bcst_function,allreduce_function) result(status)
   implicit none
-!arguments
+
   integer, intent(in) :: pe_root,pe_me
   character(len=*) :: domain
   external :: bcst_function, allreduce_function
@@ -602,7 +584,7 @@ integer function CAT(wb_broadcast_init,OMPSUFFIX)(pe_root,pe_me,domain,bcst_func
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  broadcast
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
 #ifdef WITH_OpenMP
   integer,external :: omp_get_num_threads
@@ -625,12 +607,12 @@ interface wb_broadcast
 #endif
 
 
-!**s/r wb_broadcast
+
 integer function CAT(wb_broadcast,OMPSUFFIX)(key,ispattern,wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(IN),optional :: wb
+  type(whiteboard),intent(in),optional :: wb
   character(len=*),intent(in)   :: key
   integer, intent(in), optional :: ispattern
 !  wb     : instance of a whiteboard [global WB if not provided]
@@ -639,7 +621,7 @@ integer function CAT(wb_broadcast,OMPSUFFIX)(key,ispattern,wb) result(status)
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  broadcast
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer*8 :: my_wb
   integer :: ispattern0
@@ -668,16 +650,16 @@ interface wb_verbosity
 #endif
 
 
-!**s/r wb_verbosity
+
 integer function CAT(wb_verbosity,OMPSUFFIX)(level) result(status)
   implicit none
-!arguments
+
   integer, intent(in) :: level
 !  level  : verbosity level
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Set the wb verbosity level
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer,external :: f_wb_verbosity
 #ifdef WITH_OpenMP
@@ -699,17 +681,17 @@ interface wb_new
 #endif
 
 
-!**s/r wb_new
+
 integer function CAT(wb_new,OMPSUFFIX)(wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
-  type(whiteboard),intent(OUT) :: wb
+  type(whiteboard),intent(out) :: wb
 !  wb     : instance of a whiteboard
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Create a new whiteboard instance
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer,external :: f_wb_new
 #ifdef WITH_OpenMP
@@ -731,17 +713,17 @@ interface wb_free
 #endif
 
 
-!**s/r wb_free
+
 integer function CAT(wb_free,OMPSUFFIX)(wb) result(status)
   implicit none
-!arguments
+
 #include <WhiteBoard.h>
   type(whiteboard),intent(INOUT) :: wb
 !  wb     : instance of a whiteboard
 !  status : returned error code; use WB_IS_OK(status) to check
 !object
 !  Delete a whiteboard instance
-!** end of rpn-doc sections
+
 #ifndef INTERFACEONLY
   integer,external :: f_wb_free
 #ifdef WITH_OpenMP
@@ -758,6 +740,6 @@ end function
 
 #ifdef INTERFACEONLY
 end interface wb_free
-!=========================================================================
+
 
 #endif
