@@ -1,0 +1,7 @@
+- Fixed capitalization of idenntifiers.
+- Prefixed public definitions with "wb_" since there are no namespaces in C
+- Tried make namming consistent; use line everywhere instead of entry in some places
+- Fixed a memory corruption bug in c_wb_read: definition_table pointed to a local automatic variable
+- Replaced idenntifiers that were less than 3 characters
+- Deleted unused variables
+- Fixed a memory leak in c_wb_new that happened if new_page failed

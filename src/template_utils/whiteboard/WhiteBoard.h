@@ -1,3 +1,5 @@
+//! @todo Should these really be macros?  Wouldn't it be better to call functions that the compiler can inline?
+
 #define WB_PUT_C(WB,name,value,strglen,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,options,strlen(name))
 #define WB_GET_C(WB,name,value,strglen) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,strlen(name))
 #define WB_PUT_CV(WB,name,value,strglen,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,size,options,strlen(name))
@@ -28,10 +30,11 @@
 #define WB_PUT_R8V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,options,strlen(name))
 #define WB_GET_R8V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,strlen(name))
 
+
 typedef struct {
     int code;
     char *text;
-} SYMTAB;
+} wb_symbol;
 
 typedef struct {
     //! real/int/logical/char 0 means invalid entry
@@ -58,69 +61,70 @@ typedef struct {
     unsigned int initialized:1,
     //! number of datalines occupied by variable. if 0 it means entire page
     unsigned int lines:10;
-} FLAGS;
+} wb_flags;
 
 //! Large token, full name, integers
 typedef union {
-   unsigned char c[WB_MAXNAMELENGTH + 1];
-   unsigned int  i[(WB_MAXNAMELENGTH + 1) / sizeof(int)];
-} NAMETOKEN;
+    //! Name as a character array
+    unsigned char carr[WB_MAXNAMELENGTH + 1];
+    //! Name as a int array
+    unsigned int  iarr[(WB_MAXNAMELENGTH + 1) / sizeof(int)];
+} wb_name;
 
 //! Array metadata container
 typedef struct {
-    int UsedElements;
-    int MaxElements;
-} ARRAYDESC;
+    int usedElements;
+    int maxElements;
+} wb_arraydesc;
 
 //! 64 bit token, chars,  ints, long long, array metadata
 typedef union {
-   unsigned char      c[8];
-   unsigned int       i[2];
-   unsigned long long l;
-   ARRAYDESC          a;
-} BIGTOKEN;
+   unsigned char      carr[8];
+   unsigned int       iarr[2];
+   unsigned long long llarr;
+   wb_arraydesc       desc;
+} wb_metaarray;
 
 //! Whiteboard data line, one line per scalar item <= 8 bytes
 // THE SIZE OF THIS STRUCTURE SHOULD BE A MULTIPLE OF 8 BYTES
 typedef struct {
     //! WB_MAXNAMELENGTH characters name
-    NAMETOKEN name;
+    wb_name name;
     //! Type, unused bytes, size of element, number of lines
-    FLAGS     flags;
+    wb_flags flags;
     //! Value or array descriptor (this token is 8 byte aligned)
-    BIGTOKEN  data;
-} METALINE;
+    wb_metaarray data;
+} wb_linemeta;
 
 // THE SIZE OF THIS STRUCTURE SHOULD BE A MULTIPLE OF 8 BYTES
 typedef struct {
-    unsigned char data[sizeof(METALINE)];
-} DATALINE;
+    unsigned char data[sizeof(wb_linemeta)];
+} wb_linedata;
 
 //! A page line is either a metadata + short data or a long data
 typedef union {
     //! Metadata + data for a simple real integer logical or <=8 characters string
-    METALINE m;
+    wb_linemeta meta;
     //! Long data container (strings > 8 characters or arrays )
-    DATALINE d;
-} LINE;
+    wb_linedata data;
+} wb_line;
 
 //! Used by wb_read to check declaration/assignation consistency
 typedef struct {
-    LINE *line;
+    wb_line *line;
     int defined;
     int assigned;
-} DEFTBL;
-
-#define WB_MAXLINESPERPAGE 32
-#define WB_MAXLINESPERPAGESHIFT 8
+} wb_definition;
 
 //! Whiteboard page , size is 16 or 24 bytes + space needed by line
-typedef struct WB_page {
+typedef struct wb_page {
     //! Really an address only but an 8 byte item should be forced for alignment reasons
-    struct WB_page *next;
+    struct wb_page *next;
     //! This garantees a multiple of 8 bytes before line (that needs 8 byte alignment
-    struct WB_page *not_used;
-    int   NextFreeEntry;
-    int   LinesInPage;
-    LINE  line[WB_MAXLINESPERPAGE];
-} PAGE;
+    struct wb_page *not_used;
+    //! Index of the first free entry
+    int firstFreeLine;
+    //! Number of entries
+    int nbLines;
+    wb_line line[WB_MAXLINESPERPAGE];
+} wb_page;

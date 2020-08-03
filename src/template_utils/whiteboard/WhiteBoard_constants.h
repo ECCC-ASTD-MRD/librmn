@@ -1,8 +1,9 @@
 #ifndef WHITEBOARD_VERSION
+//! @todo Code version MUST NOT be a literal in the code; that's versionning system's responsability
 #define WHITEBOARD_VERSION "1.00"
 
 #define WB_FORTRAN_REAL 1
-#define WB_FORTRAN_INT 2
+#define WB_FORTRAN_INT  2
 #define WB_FORTRAN_CHAR 3
 #define WB_FORTRAN_BOOL 4
 #define WB_OPTION_SET(options,option) (0 .ne. iand(options,option))
@@ -12,6 +13,7 @@
 #define WB_REWRITE_MANY 1024
 #define WB_REWRITE_UNTIL 512
 #define WB_REWRITE_NONE 256
+//! @todo Check what was the deal with macros referencing other macros
 #define WB_DEFAULT WB_REWRITE_NONE
 #define WB_READ_ONLY_ON_RESTART 128
 #define WB_INITIALIZED 64
@@ -53,11 +55,15 @@
 #define WB_ERR_OPTION -1015
 #define WB_ERR_READ -1016
 
-#define WB_IS_OK(errcode) (WB_OK >= 0)
-#define WB_IS_ERROR(errcode) (WB_ERROR <= 0)
+//! @todo Check what was the deal with macros referencing other macros
+#define WB_IS_OK(errcode) (errcode >= WB_OK)
+#define WB_IS_ERROR(errcode) (errcode <= WB_ERROR)
 
 #define WB_MAXSTRINGLENGTH 520
 #define WB_MAXNAMELENGTH 27
 #define WB_MAX_ETRA_ERROR_LEN 256
+
+#define WB_MAXLINESPERPAGE 32
+#define WB_MAXLINESPERPAGESHIFT 8
 
 #endif

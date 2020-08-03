@@ -28,7 +28,6 @@
 
 #include <rpnmacros.h>
 
-#define C_SOURCE_CODE
 #include <WhiteBoard.h>
 
 //! Find trimmed (non blank) length of a Fortran string
@@ -36,6 +35,11 @@
 //! @param[in]     string String of which we want to find the trimmed length
 //! @param[in,out] length Must be set to the maximum possible length on call and will be updated to the trimmed length
 #define TRIM(string,length) { while( length > 0 && string[length - 1] == ' ' ) length-- ; }
+
+
+//! Pointer to a function that operates on a line and receives extra data with it's second argument
+//! This allows the "map" functionnal programming technique
+typedef int (*LineWorker)(wb_line *, void *);
 
 
 //! Verbosity level
@@ -59,16 +63,17 @@ wordint f77_name(f_wb_verbosity)(wordint *level)
 {
    wordint old_level = message_level;
    message_level = *level;
-   return(old_level);
+   return old_level;
 }
 
 //! Line buffer used to process directive files
+//! @todo Figure out if this needs to have file scope!
 static char *linebuffer = NULL;
 //! Pointer to current character in directive file
 static char *current_char = NULL;
 
-//! pointer to defionition table
-static DEFTBL *definition_table = NULL;
+//! Pointer to defionition table
+static wb_definition *definition_table = NULL;
 //! Number of valid entries in definition table
 static int definition_table_entries = 0;
 static int max_definition_table_entries = 0;
@@ -80,7 +85,7 @@ static int max_definition_table_entries = 0;
 //! @param[in] define_mode Processing mode for the line: 0 for a simple define, 1 key = value in strict dictionary mode, 2 key = value in normal mode
 //
 //! @return Position in the defintion table
-static int wb_define_check(LINE *line, int define_mode)
+static int wb_define_check(wb_line *line, int define_mode)
 {
     int i;
 
@@ -125,7 +130,7 @@ static int wb_define_check(LINE *line, int define_mode)
     // key=...
     definition_table[definition_table_entries].assigned = define_mode != 1 ? 1 : 0;
     // Return position
-    return(definition_table_entries++);
+    return definition_table_entries++;
 }
 
 
@@ -133,7 +138,7 @@ static int wb_define_check(LINE *line, int define_mode)
 static int default_dict_option = 0;
 
 //! Table of variable creation options (used by Whiteboard read)
-static SYMTAB dict_options[] = {
+static wb_symbol dict_options[] = {
     {WB_IS_LOCAL, "WB_IS_LOCAL"},
     {WB_REWRITE_AT_RESTART, "WB_REWRITE_AT_RESTART"},
     {WB_REWRITE_NONE, "WB_REWRITE_NONE"},
@@ -144,7 +149,7 @@ static SYMTAB dict_options[] = {
 } ;
 
 //! Table for verbosity options (used by Whiteboard read)
-static SYMTAB verb_options[] = {
+static wb_symbol verb_options[] = {
     {WB_MSG_DEBUG, "WB_MSG_DEBUG"},
     {WB_MSG_INFO, "WB_MSG_INFO"},
     {WB_MSG_WARN, "WB_MSG_WARN"},
@@ -154,12 +159,11 @@ static SYMTAB verb_options[] = {
     {0, NULL}
 } ;
 
-typedef PAGE *PAGEPTR;
-
 //! Type for whiteboard instances
-typedef struct{
-   PAGE *PageChain;
-   int validpages;
+typedef struct {
+    //! First page of the page linked list
+    wb_page *firstpage;
+    int validpages;
 } WhiteBoard;
 typedef WhiteBoard *WhiteBoardPtr;
 
@@ -177,42 +181,50 @@ static int new_page(WhiteBoard *WB, int nlines);
 //! @return Pointer to the new WhiteBoard
 WhiteBoard *c_wb_new() {
     int status;
-    WhiteBoard *New_WhiteBoard = (WhiteBoard *)malloc(sizeof(WhiteBoard));
+    WhiteBoard *newWb = (WhiteBoard *)malloc(sizeof(WhiteBoard));
 
-    if (New_WhiteBoard == NULL) {
+    if (newWb == NULL) {
         // Memory allocation failed
-        return(NULL);
+        return NULL;
     }
 
-    New_WhiteBoard->PageChain = NULL;
-    New_WhiteBoard->validpages = 0;
-    status = new_page(New_WhiteBoard, WB_MAXLINESPERPAGE);
-    if (status < 0) return(NULL);
-    return New_WhiteBoard;
+    newWb->firstpage = NULL;
+    newWb->validpages = 0;
+    status = new_page(newWb, WB_MAXLINESPERPAGE);
+    if (status < 0) {
+        free(newWb);
+        return NULL;
+    }
+    return newWb;
 }
 
-wordint f77_name(f_wb_new)(WhiteBoard **WB){
-   WhiteBoard *New_WhiteBoard = c_wb_new();
-   *WB = New_WhiteBoard;
-   return New_WhiteBoard == NULL ? WB_ERROR : WB_OK;
+
+//! Create a new WhiteBoard instance
+//
+//! @param[out] wb New WhiteBoard instance
+//
+//! @return WB_OK on scuccess or WB_ERROR if the creation failed
+wordint f77_name(f_wb_new)(WhiteBoard **wb){
+    *wb = c_wb_new();
+    return *wb == NULL ? WB_ERROR : WB_OK;
 }
 
 
 //! Delte a whiteboard instance
-int c_wb_free(WhiteBoard *WB) {
-    PAGE *temp, *temp2;
+int c_wb_free(WhiteBoard *wb) {
+    wb_page *temp, *temp2;
 
-    if (WB == NULL) {
+    if (wb == NULL) {
         // Global whiteboard page chain is never freed
-        return(WB_OK);
+        return WB_OK;
     }
 
-    if (WB-> validpages <= 0) {
+    if (wb-> validpages <= 0) {
         // Invalid whiteboard, negative or zero number of valid pages
-        return(WB_ERROR);
+        return WB_ERROR;
     }
-    WB->validpages = 0;
-    temp = WB->PageChain;
+    wb->validpages = 0;
+    temp = wb->firstpage;
     // Free all pages for this whiteboard
     while (temp != NULL) {
         // Keep copy of pointer to current page
@@ -222,20 +234,20 @@ int c_wb_free(WhiteBoard *WB) {
         // Free current page
         free(temp2);
     }
-    free(WB);
-    return(WB_OK);
+    free(wb);
+    return WB_OK;
 }
 
-wordint f77_name(f_wb_free)(WhiteBoard **WB) {
-    wordint status = c_wb_free(*WB);
+wordint f77_name(f_wb_free)(WhiteBoard **wb) {
+    wordint status = c_wb_free(*wb);
     // Set whiteboard address to address of dummy whiteboard, so that we can trap it
-    *WB = DummyWhiteboardPtr;
+    *wb = DummyWhiteboardPtr;
     return status;
 }
 
 
 //! Error message table
-static SYMTAB errors[] = {
+static wb_symbol errors[] = {
     {WB_ERR_NAMETOOLONG , "key name is too long"},
     {WB_ERR_NOTFOUND, "requested item not found"},
     {WB_ERR_READONLY, "key value cannot be redefined"},
@@ -255,7 +267,7 @@ static SYMTAB errors[] = {
     {WB_ERR_READ, "open/read error in file"},
     {WB_ERROR, ""},
     {0, NULL}
-} ;
+};
 
 // THIS MUST REMAIN CONSISTENT WITH Whiteboard.h
 static char *datatypes[] = {
@@ -273,7 +285,7 @@ static char *datatypes[] = {
 //! @param[in] table  Table pointer
 //
 //! @return Value of the symbol if found, 0 otherwise
-static int wb_value(char *symbol, SYMTAB *table)
+static int wb_value(char *symbol, wb_symbol *table)
 {
     if (message_level <= WB_MSG_DEBUG) {
         fprintf(stderr, "looking for value of '%s', ", symbol);
@@ -343,7 +355,7 @@ static void set_extra_error_message(char *name, int length) {
 //
 //! @return The error code specified when calling the function
 static int wb_error(int severity, int code) {
-    SYMTAB *message = &errors[0];
+    wb_symbol *message = &errors[0];
     wordint Severity = severity;
     wordint Code = code;
 
@@ -471,12 +483,13 @@ wordint f77_name(fortran_string_copy)(unsigned char *src, unsigned char *dst, F2
 }
 #endif
 
+
 //! Initialize a line with a name coming from a WB_FORTRAN string
 //
 //! @param[out] line   Line instance pointer
 //! @param[in]  name   Name
 //! @param[in]  length Length of name
-static void fill_line(LINE *line, unsigned char *name, int length)
+static void fill_line(wb_line *line, unsigned char *name, int length)
 {
     int pos;
     unsigned char c;
@@ -485,10 +498,10 @@ static void fill_line(LINE *line, unsigned char *name, int length)
     for (pos = 0; pos < WB_MAXNAMELENGTH; pos++) {
         c = (pos < length) ? name[pos] : ' ';
         // Force uppercase
-        line->m.name.c[pos] = toupper(c);
+        line->meta.name.carr[pos] = toupper(c);
     }
     // Force NULL terminator
-    line->m.name.c[WB_MAXNAMELENGTH] = 0;
+    line->meta.name.carr[WB_MAXNAMELENGTH] = 0;
 }
 
 
@@ -528,30 +541,30 @@ static int wb_match_name(unsigned char *str1, unsigned char *str2, int length) {
 //! @param[in] err_not_found If this is not null, throw an error if the line is not found
 //
 //! @return Line number if found, error otherwise
-static int lookup_line(LINE *line, PAGE *page, int err_not_found) 
+static int lookup_line(wb_line *line, wb_page *page, int err_not_found) 
 {
 
     if (page != NULL) {
-        LINE *pageline;
-        unsigned char *str1 = &(line->m.name.c[0]);
+        wb_line *pageline;
+        unsigned char *str1 = &(line->meta.name.carr[0]);
         unsigned char *str2
         int i = 0;
 
-        int linelimit = page->NextFreeEntry - 1;
+        int linelimit = page->firstFreeLine - 1;
 
         while (i <= linelimit) {
             pageline = &(page->line[i]);
-            str1 = &(pageline->m.name.c[0]);
+            str1 = &(pageline->meta.name.carr[0]);
             if (wb_match_name(str1, str2, WB_MAXNAMELENGTH)) {
                 // Found, return it's position in page
                 return i;
             }
 
-            if (pageline->m.flags.lines == 0) {
+            if (pageline->meta.flags.lines == 0) {
                 // Only one entry in this page in this case
                 break;
             }
-            i += pageline->m.flags.lines;
+            i += pageline->meta.flags.lines;
         }
     }
     if (err_not_found) {
@@ -569,7 +582,7 @@ static int lookup_line(LINE *line, PAGE *page, int err_not_found)
 //! @return 0 on success
 static int new_page(WhiteBoard *wb, int nlines)
 {
-    PAGE *page;
+    wb_page *page;
     int pagesize;
 
     if (wb == NULL) {
@@ -578,10 +591,10 @@ static int new_page(WhiteBoard *wb, int nlines)
     if (message_level <= wb_MSG_DEBUG) {
         fprintf(stderr, "allocating new page for %d lines \n", nlines);
     }
-    // note: sizeof(PAGE) gives the size of a page containing WB_MAXLINESPERPAGE lines
+    // note: sizeof(wb_page) gives the size of a page containing WB_MAXLINESPERPAGE lines
     // adjustment for actual number of lines in page has to be done to allocate correct size
-    pagesize = sizeof(PAGE) + sizeof(LINE) * (nlines - WB_MAXLINESPERPAGE);
-    page = (PAGE *)malloc(pagesize);
+    pagesize = sizeof(wb_page) + sizeof(wb_line) * (nlines - WB_MAXLINESPERPAGE);
+    page = (wb_page *)malloc(pagesize);
     if (page == NULL) {
         // malloc failed!
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
@@ -590,14 +603,14 @@ static int new_page(WhiteBoard *wb, int nlines)
     memset(page, 0, pagesize);
 
     // Next free entry is first entry in page
-    page->NextFreeEntry = 0;
+    page->firstFreeLine = 0;
 
     // Set the number of data/metadata lines that the page can contain
-    page->LinesInPage = nlines;
+    page->nbLines = nlines;
     // Update the page chain
-    page->next = wb->PageChain;
+    page->next = wb->firstpage;
     // Insert the new page at the beginning of the chain
-    wb->PageChain = page;
+    wb->firstpage = page;
     wb->validpages++;
     return 0;
 }
@@ -614,7 +627,7 @@ static int wb_init()
 {
     int status;
 
-    if (BaseWhiteboardPtr->PageChain == NULL) {
+    if (BaseWhiteboardPtr->firstpage == NULL) {
         int fd = open(WhiteBoardCheckpointFile, O_RDONLY);
         if (fd >= 0) {
             close(fd);
@@ -712,16 +725,16 @@ wordint f77_name(f_wb_checkpoint_get_name)(char *filename, F2Cl lfilename)
 //! @param[in,out] wb     Whiteboard to use.  If this is null, the WhiteBoard pointed by BaseWhiteboardPtr wil be used
 //! @param[out]    page   Pointer to the page pointer to set the page containing the new lines
 //! @param[in]     nlines Number of lines to add
-static LINE *new_line(WhiteBoard *wb, PAGE **page, int nlines)
+static wb_line *new_line(WhiteBoard *wb, wb_page **page, int nlines)
 {
-    PAGE *lookuppage;
-    LINE *result;
+    wb_page *lookuppage;
+    wb_line *result;
     int status;
 
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
     }
-    if (BaseWhiteboardPtr->PageChain == NULL) {
+    if (BaseWhiteboardPtr->firstpage == NULL) {
         // First time through
         status = wb_init();
         if (status < 0) {
@@ -730,10 +743,10 @@ static LINE *new_line(WhiteBoard *wb, PAGE **page, int nlines)
         }
     }
     // Start at beginning of pagechain
-    lookuppage = wb->PageChain;
+    lookuppage = wb->firstpage;
 
     // While page is not full
-    while (lookuppage->NextFreeEntry + nlines > lookuppage->LinesInPage) {
+    while (lookuppage->firstFreeLine + nlines > lookuppage->nbLines) {
         if (lookuppage->next == NULL) {
             // Already last page, allocate a new page
             // Make sure allocated page is big enough
@@ -743,14 +756,14 @@ static LINE *new_line(WhiteBoard *wb, PAGE **page, int nlines)
                 return(NULL);
             }
             // Potential target is new allocated page
-            lookuppage = wb->PageChain;
+            lookuppage = wb->firstpage;
             break;
         } else {
             // Look into next page
             lookuppage = lookuppage->next;
         }
     }
-    result = &(lookuppage->line[lookuppage->NextFreeEntry]);
+    result = &(lookuppage->line[lookuppage->firstFreeLine]);
     *page = lookuppage;
     return result;
 }
@@ -762,21 +775,21 @@ static LINE *new_line(WhiteBoard *wb, PAGE **page, int nlines)
 //! @param[in]  options Numeric value representing the active flags
 //
 //! @return WB_OK on success, error code otherwise
-static int options_to_flags(LINE *line, int options)
+static int options_to_flags(wb_line *line, int options)
 {
-    line->m.flags.array = (options & WB_IS_ARRAY) ? 1 : 0;
+    line->meta.flags.array = (options & WB_IS_ARRAY) ? 1 : 0;
     // Not created by a restart
-    line->m.flags.fromrestart = (options & WB_CREATED_BY_RESTART) ? 1 : 0;
-    line->m.flags.readonly = (options & WB_REWRITE_NONE) ? 1 : 0;
+    line->meta.flags.fromrestart = (options & WB_CREATED_BY_RESTART) ? 1 : 0;
+    line->meta.flags.readonly = (options & WB_REWRITE_NONE) ? 1 : 0;
     // Mark as bad value in case it fails unless it is a create only call
-    line->m.flags.badval = (options & WB_BADVAL) ? 1 : 0;
+    line->meta.flags.badval = (options & WB_BADVAL) ? 1 : 0;
     // Variable has the local attribute, this will be used when checkpointing
-    line->m.flags.islocal = (options & WB_IS_LOCAL) ? 1 : 0;
-    line->m.flags.resetuntil = (options & WB_REWRITE_UNTIL) ? 1 : 0;
-    line->m.flags.resetmany = (options & WB_REWRITE_MANY) ? 1 : 0;
-    line->m.flags.noresetafterrestart = (options & WB_READ_ONLY_ON_RESTART) ? 1 : 0;
-    line->m.flags.initialized = (options & WB_INITIALIZED) ? 1 : 0;
-    if (line->m.flags.readonly + line->m.flags.resetmany + line->m.flags.resetuntil > 1) {
+    line->meta.flags.islocal = (options & WB_IS_LOCAL) ? 1 : 0;
+    line->meta.flags.resetuntil = (options & WB_REWRITE_UNTIL) ? 1 : 0;
+    line->meta.flags.resetmany = (options & WB_REWRITE_MANY) ? 1 : 0;
+    line->meta.flags.noresetafterrestart = (options & WB_READ_ONLY_ON_RESTART) ? 1 : 0;
+    line->meta.flags.initialized = (options & WB_INITIALIZED) ? 1 : 0;
+    if (line->meta.flags.readonly + line->meta.flags.resetmany + line->meta.flags.resetuntil > 1) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_OPTION);
     }
     return WB_OK;
@@ -788,18 +801,18 @@ static int options_to_flags(LINE *line, int options)
 //! @param[in] line Line from which to get the flags
 //
 //! @return Numeric representation of the active flags
-static int flags_to_options(LINE *line)
+static int flags_to_options(wb_line *line)
 {
     int options = 0;
-    if (line->m.flags.array) options += WB_IS_ARRAY;
-    if (line->m.flags.fromrestart) options += WB_CREATED_BY_RESTART;
-    if (line->m.flags.readonly) options += WB_REWRITE_NONE;
-    if (line->m.flags.badval) options += WB_BADVAL;
-    if (line->m.flags.islocal) options += WB_IS_LOCAL;
-    if (line->m.flags.resetuntil) options += WB_REWRITE_UNTIL;
-    if (line->m.flags.resetmany) options += WB_REWRITE_MANY;
-    if (line->m.flags.noresetafterrestart) options += WB_READ_ONLY_ON_RESTART;
-    if (line->m.flags.initialized) {
+    if (line->meta.flags.array) options += WB_IS_ARRAY;
+    if (line->meta.flags.fromrestart) options += WB_CREATED_BY_RESTART;
+    if (line->meta.flags.readonly) options += WB_REWRITE_NONE;
+    if (line->meta.flags.badval) options += WB_BADVAL;
+    if (line->meta.flags.islocal) options += WB_IS_LOCAL;
+    if (line->meta.flags.resetuntil) options += WB_REWRITE_UNTIL;
+    if (line->meta.flags.resetmany) options += WB_REWRITE_MANY;
+    if (line->meta.flags.noresetafterrestart) options += WB_READ_ONLY_ON_RESTART;
+    if (line->meta.flags.initialized) {
         options += WB_INITIALIZED;
     } else {
         options += WB_NOTINITIALIZED;
@@ -820,12 +833,12 @@ static int flags_to_options(LINE *line)
 //! @param[in]  err_not_found If not 0, throw an error if the line is not found
 //! @param[in]  name_length   Length of the name
 static int c_wb_lookup(WhiteBoard *wb, unsigned char *name, int *elementtype, int *elementsize, int *elements,
-                        LINE **result_line, PAGE **result_page, int err_not_found, int name_length)
+                        wb_line **result_line, wb_page **result_page, int err_not_found, int name_length)
 {
-    LINE line;
+    wb_line line;
     int target_page = 0;
     int target_line = -1;
-    PAGE *lookuppage = NULL;
+    wb_page *lookuppage = NULL;
 
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
@@ -836,21 +849,21 @@ static int c_wb_lookup(WhiteBoard *wb, unsigned char *name, int *elementtype, in
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NAMETOOLONG);
     }
 
-    lookuppage = wb->PageChain;
+    lookuppage = wb->firstpage;
     // Put key name into local line
     fill_line(&line, name, name_length);
 #ifdef DEBUG
-    printf("target name = :%s:\n", &(line.m.name.c[0]));
+    printf("target name = :%s:\n", &(line.meta.name.carr[0]));
 #endif
     while (lookuppage != NULL) {
         // No screaming if not found, full length match
         target_line = lookup_line(&line, lookuppage, 0);
         if (target_line >= 0) {
             // A matching key has been found in this page
-            *elementtype = lookuppage->line[target_line].m.flags.type;
-            *elementsize = lookuppage->line[target_line].m.flags.elementsize;
-            if (lookuppage->line[target_line].m.flags.array == 1) {
-                *elements = lookuppage->line[target_line].m.data.a.MaxElements;
+            *elementtype = lookuppage->line[target_line].meta.flags.type;
+            *elementsize = lookuppage->line[target_line].meta.flags.elementsize;
+            if (lookuppage->line[target_line].meta.flags.array == 1) {
+                *elements = lookuppage->line[target_line].meta.data.desc.maxElements;
             } else {
                 *elements = 0;
             }
@@ -879,8 +892,8 @@ static int c_wb_lookup(WhiteBoard *wb, unsigned char *name, int *elementtype, in
 wordint f77_name(f_wb_get_meta)(WhiteBoard **wb, unsigned char *name, wordint *elementtype, wordint *elementsize,
                                        wordint *elements, wordint *options, F2Cl name_length)
 {
-    LINE *line;
-    PAGE *page;
+    wb_line *line;
+    wb_page *page;
     int length = name_length;
     int status;
 
@@ -901,7 +914,7 @@ void f77_name(f_logical2int)(void *, void *, wordint *);
 void f77_name(f_int2logical)(void *, void *, wordint *);
 
 
-//! get the data associated with a whiteboard entry
+//! Get the data associated with a whiteboard entry
 //
 //! @param[in]  wb          WhiteBoard in which to search.
 //! @param[in]  name        Name of key (length MUST be supplied in name_length)
@@ -913,8 +926,8 @@ void f77_name(f_int2logical)(void *, void *, wordint *);
 //
 //! @return Dimension of whiteboard array if array, 0 if scalar, < 0 if error
 int c_wb_get(WhiteBoard *WB, unsigned char *name, char type, int size, unsigned char *dest, int nbelem, int name_length){
-    LINE *line;
-    PAGE *page;
+    wb_line *line;
+    wb_page *page;
     int element_type, element_size, nb_elements;
     int status, typecode, array, result;
     int i;
@@ -957,10 +970,10 @@ int c_wb_get(WhiteBoard *WB, unsigned char *name, char type, int size, unsigned 
     if (status < 0) {
         WB_ERR_EXIT(WB_MSG_INFO, WB_ERR_NOTFOUND);
     }
-    if (line->m.flags.badval == 1) {
+    if (line->meta.flags.badval == 1) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BADVAL);
     }
-    if (line->m.flags.initialized != 1) {
+    if (line->meta.flags.initialized != 1) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOVAL);
     }
 
@@ -975,25 +988,25 @@ int c_wb_get(WhiteBoard *WB, unsigned char *name, char type, int size, unsigned 
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
     }
 
-    if (array && line->m.flags.array != 1) {
+    if (array && line->meta.flags.array != 1) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
     }
 
     // we can now proceed to copy the value(s) from whiteboard entry
     if (array) {
-        if (nbelem > line->m.data.a.MaxElements) {
+        if (nbelem > line->meta.data.desc.maxElements) {
             // Will do a short get
-            nbelem = line->m.data.a.MaxElements;
+            nbelem = line->meta.data.desc.maxElements;
         }
         // if successful return max dimension of array
-        result = line->m.data.a.MaxElements;
+        result = line->meta.data.desc.maxElements;
         // Array data is always stored in lines following metadata
-        csrc = &((line + 1)->d.data[0]);
+        csrc = &((line + 1)->data.data[0]);
     } else {
         // Scalar
         result = 0;
         // Scalar data is stored starting in metadata line
-        csrc = &(line->m.data.c[0]);
+        csrc = &(line->meta.data.carr[0]);
     }
     if (element_type != WB_FORTRAN_CHAR) {
         // Not a character string
@@ -1037,12 +1050,12 @@ wordint f77_name(f_wb_get)(WhiteBoard **wb, unsigned char *name, wordint *type, 
 
 
 //! Address of the line that was the target of the last put/create operation. Used by wb_read to avoid a costly lookup
-static LINE *LastPutLine = NULL;
+static wb_line *wb_lastputline = NULL;
 
 
 //! Store entry in a WhiteBoard
 //
-//! @param[in,out] wb          WhiteBoard in which to store.
+//! @param[in,out] wb          WhiteBoard in which to store.  If this is null, the WhiteBoard refrenced by DummyWhiteboardPtr is used.
 //! @param[in]     name        Name of key (length MUST be supplied in name_length)
 //! @param[in]     type        Type represented by one character: R/I/L/C , key type real/inetger/logical/character
 //! @param[in]     size        Size in bytes of each element 4/8 for R/I/L, 1->WB_MAXSTRINGLENGTH for character strings
@@ -1055,8 +1068,8 @@ static LINE *LastPutLine = NULL;
 int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned char *src, int nbelem, int options,
              int name_length)
 {
-    LINE *line;
-    PAGE *page;
+    wb_line *line;
+    wb_page *page;
     int stored_type, stored_size, stored_nbelem;
     int lookup_result;
     int typecode, array, result;
@@ -1074,7 +1087,7 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
 
     TRIM(name, name_length)
     set_extra_error_message(name, name_length);
-    LastPutLine = NULL;
+    wb_lastputline = NULL;
 
     if (Type == WB_FORTRAN_BOOL && size == 1) {
         // Special case, force 4 byte container for FORTRAN logical type
@@ -1110,13 +1123,13 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_REDEFINE);
         }
         // Above error has to be ignored if it was coming from a restart and create from restart flag then has to be erased
-        if (line->m.flags.readonly && line->m.flags.initialized ) {
+        if (line->meta.flags.readonly && line->meta.flags.initialized ) {
             // Entry is READONLY
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_READONLY);
         }
         // Mark as bad value in case it fails
-        line->m.flags.badval = 1;
-        if (line->m.flags.array == 1 && array != 1) {
+        line->meta.flags.badval = 1;
+        if (line->meta.flags.array == 1 && array != 1) {
             // Array to scalar or scalar to array is a NO NO
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
         }
@@ -1132,7 +1145,7 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
         }
 
-        if (array &&  line->m.data.a.MaxElements < nbelem) {
+        if (array &&  line->meta.data.desc.maxElements < nbelem) {
             // Array in whiteboard is too small
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
         }
@@ -1146,7 +1159,7 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
         int lines = 1;
         // Arrays and strings need supplementary storage space
         if (array || typecode == WB_FORTRAN_CHAR) {
-            lines += ((nbelem * size) + sizeof(DATALINE) - 1 ) / sizeof(DATALINE);
+            lines += ((nbelem * size) + sizeof(wb_linedata) - 1 ) / sizeof(wb_linedata);
         }
 
         // Create new entry with space for lines
@@ -1160,51 +1173,51 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
         fill_line(line, name, name_length);
         stored_size = size;
         if (typecode == WB_FORTRAN_CHAR && array == 0 ) {
-            // Scalar string, round size up to DATALINE size
-            stored_size = ( (stored_size + sizeof(DATALINE) - 1) / sizeof(DATALINE) ) * sizeof(DATALINE);
+            // Scalar string, round size up to wb_linedata size
+            stored_size = ( (stored_size + sizeof(wb_linedata) - 1) / sizeof(wb_linedata) ) * sizeof(wb_linedata);
         }
-        line->m.flags.type = typecode;
-        line->m.flags.elementsize = stored_size;
+        line->meta.flags.type = typecode;
+        line->meta.flags.elementsize = stored_size;
         // Only one entry in page if lines>WB_MAXLINESPERPAGE
-        line->m.flags.lines = ( lines > WB_MAXLINESPERPAGE ) ? 0 : lines;
-        line->m.flags.readonly = (options & WB_REWRITE_NONE) ? 1 : 0;
-        line->m.flags.resetmany = (options & WB_REWRITE_MANY) ? 1 : 0;
-        line->m.flags.resetuntil = (options & WB_REWRITE_UNTIL) ? 1 : 0;
-        if (line->m.flags.readonly + line->m.flags.resetmany + line->m.flags.resetuntil > 1) {
+        line->meta.flags.lines = ( lines > WB_MAXLINESPERPAGE ) ? 0 : lines;
+        line->meta.flags.readonly = (options & WB_REWRITE_NONE) ? 1 : 0;
+        line->meta.flags.resetmany = (options & WB_REWRITE_MANY) ? 1 : 0;
+        line->meta.flags.resetuntil = (options & WB_REWRITE_UNTIL) ? 1 : 0;
+        if (line->meta.flags.readonly + line->meta.flags.resetmany + line->meta.flags.resetuntil > 1) {
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_OPTION);
         }
-        line->m.flags.initialized = 0;
+        line->meta.flags.initialized = 0;
         // Variable has the local attribute, this will be used when checkpointing
-        line->m.flags.islocal = (options & WB_IS_LOCAL) ? 1 : 0;
+        line->meta.flags.islocal = (options & WB_IS_LOCAL) ? 1 : 0;
         // Mark as bad value in case it fails unless it is a create only call
-        line->m.flags.badval = (options & WB_CREATE_ONLY) ? 0 : 1;
+        line->meta.flags.badval = (options & WB_CREATE_ONLY) ? 0 : 1;
         // Not created by a restart
-        line->m.flags.fromrestart = 0;
-        line->m.flags.noresetafterrestart = (options & WB_READ_ONLY_ON_RESTART) ? 1 : 0;
-        line->m.flags.array = array;
+        line->meta.flags.fromrestart = 0;
+        line->meta.flags.noresetafterrestart = (options & WB_READ_ONLY_ON_RESTART) ? 1 : 0;
+        line->meta.flags.array = array;
         // Arrays are not explicitely initialized for the time being
         if (array) {
-            line->m.data.a.UsedElements = nbelem;
-            line->m.data.a.MaxElements = nbelem;
+            line->meta.data.desc.usedElements = nbelem;
+            line->meta.data.desc.maxElements = nbelem;
         } else {
             // Scalar, set data to 0
-            line->m.data.i[0] = 0;
-            line->m.data.i[1] = 0;
+            line->meta.data.iarr[0] = 0;
+            line->meta.data.iarr[1] = 0;
         }
         // Check if there is enough space in page
-        int lines_available = page->LinesInPage - page->NextFreeEntry;
+        int lines_available = page->nbLines - page->firstFreeLine;
         if (lines_available < lines) {
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOMEM);
         }
         // Allocate space for data, adjust page pointer to next available entry
-        page->NextFreeEntry += lines;
+        page->firstFreeLine += lines;
     }
 
-    LastPutLine = line;
+    wb_lastputline = line;
     if (options & WB_CREATE_ONLY) {
         // Create entry only, do not copy value(s)
         if (array) {
-            result = line->m.data.a.MaxElements;
+            result = line->meta.data.desc.maxElements;
         } else {
             result = 0;
         }
@@ -1212,19 +1225,19 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
         // Copy the value(s) into (old or new) whiteboard entry
         if (array) {
             // One dimensional array
-            if (nbelem > line->m.data.a.MaxElements) {
+            if (nbelem > line->meta.data.desc.maxElements) {
                 // Not enough space to store values
                 WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
             }
             // If successful, return max dimension of array
-            result = line->m.data.a.MaxElements;
+            result = line->meta.data.desc.maxElements;
             // Array data is always stored in lines following metadata
-            dest = &((line + 1)->d.data[0]);
+            dest = &((line + 1)->data.data[0]);
         } else {
             // Scalar
             result = 0;
             // Scalar data is stored starting in metadata line
-            dest = &(line->m.data.c[0]);
+            dest = &(line->meta.data.carr[0]);
         }
         if (typecode != WB_FORTRAN_CHAR) {
             // Not a character string
@@ -1248,9 +1261,9 @@ int c_wb_put(WhiteBoard *wb, unsigned char *name, char type, int size, unsigned 
             }
         }
         // Mark entry as initialized
-        line->m.flags.initialized = 1;
+        line->meta.flags.initialized = 1;
         // Mark entry as good
-        line->m.flags.badval = 0;
+        line->meta.flags.badval = 0;
     }
 
     return result;
@@ -1271,7 +1284,7 @@ wordint f77_name(f_wb_put)(WhiteBoard **wb, unsigned char *name, wordint *type, 
 //! Write checkpoint file of the WhiteBoard referenced by BaseWhiteboardPtr
 int c_wb_checkpoint()
 {
-    PAGE *page;
+    wb_page *page;
     int pageno = 0;
     int zero = 0;
     int status;
@@ -1281,7 +1294,7 @@ int c_wb_checkpoint()
         // Can't open checkpoint file
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_CKPT);
     }
-    page = BaseWhiteboardPtr->PageChain;
+    page = BaseWhiteboardPtr->firstpage;
 
     // Write signature
     status = write(fd, "WBckp100", 8);
@@ -1293,26 +1306,26 @@ int c_wb_checkpoint()
 
     while (page != NULL) {
         // Write number of lines in page
-        status = write(fd, &(page->LinesInPage), 4);
+        status = write(fd, &(page->nbLines), 4);
         if (status < 0) {
             close(fd);
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_CKPT);
         }
         // Write number of next entry
-        status = write(fd, &(page->NextFreeEntry), 4);
+        status = write(fd, &(page->firstFreeLine), 4);
         if (status < 0) {
             close(fd);
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_CKPT);
         }
         // Write page
-        status = write(fd, &(page->line[0]), sizeof(LINE) * page->LinesInPage);
+        status = write(fd, &(page->line[0]), sizeof(wb_line) * page->nbLines);
         if (status < 0) {
             close(fd);
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_CKPT);
         }
         if (message_level <= WB_MSG_DEBUG) {
             fprintf(stderr, "wb_checkpoint: Page %d, length %d lines, Next entry %d \n",
-                    pageno, page->LinesInPage, page->NextFreeEntry);
+                    pageno, page->nbLines, page->firstFreeLine);
         }
         page = page->next;
         pageno++;
@@ -1333,193 +1346,305 @@ wordint f77_name(f_wb_checkpoint)(WhiteBoard **WB){
    return(c_wb_checkpoint());
 }
 
-/*
- basic whiteboard check/action routine, the Whiteboard "swiss knife"
-  name   : pointer to character string containing name of key (length MUST be supplied in Lname)
-  OptionsMask: options mask to be tested, call Action if OptionsMask&options  is non zero
-  Lname  : length of key pointed to by name (FORTRAN style)
-  printflag: print messages if nonzero
-  Action:  routine to be called if name and OptionsMask &options  is non zero
-  blinddata: pointer to be passed to Action routine as a second argument (first argument is matching line)
-*/
 
-typedef int (*ACTION)(LINE *,void *);
-int c_wb_check(WhiteBoard *WB, unsigned char *name, int OptionsMask, int Lname, int printflag, ACTION Action, void *blinddata ){
-   PAGE *lookuppage;
-   int pageno=0;
-   int printcount=0;
-   int status;
+//! Invoke the provided function on mathing lines
+//
+//! @param[in] wb          WhiteBoard in which to search.  If this is null, the WhiteBoard refrenced by DummyWhiteboardPtr is used.
+//! @param[in] name        Entry name (length MUST be supplied in name_length)
+//! @param[in] option_mask Mask for the options to be tested
+//! @param[in] name_length Length of the entry name
+//! @param[in] print       Print messages if nonzero
+//! @param[in] fncptr      Function pointer to use when the options specified option_mask are set.  The referenced function must accept 2 arguments: a Line pointer and a pointer to extra data.
+//! @param[in] extra_data  Pointer to be passed as the second argument of fncptr (first argument is matching line)
+//
+//! @return Number of matches, but as a negative number.  Why!?
+int c_wb_check(WhiteBoard *wb, unsigned char *name, int option_mask, int name_length, int print, LineWorker fncptr, void *extra_data )
+{
+    wb_page *lookuppage;
+    int pageno = 0;
+    int match_count = 0;
+    int status;
 
-   extra_error_message = " invalid whiteboard instance";
-   if(WB == DummyWhiteboardPtr) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_NOTFOUND);
-   if(WB == NULL) WB=BaseWhiteboardPtr;
+    extra_error_message = " invalid whiteboard instance";
+    if (wb == DummyWhiteboardPtr) {
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+    }
+    if (wb == NULL) {
+        wb = BaseWhiteboardPtr;
+    }
 
-   TRIM(name,Lname)
-   lookuppage = WB->PageChain;
+    TRIM(name, name_length)
+    lookuppage = wb->firstpage;
 
-   while( lookuppage != NULL ){
-      int i,linelimit;
-      i=0;
-      linelimit=lookuppage->NextFreeEntry - 1;
-      while( i <= linelimit ){
-         int Options;
-         LINE *line=&(lookuppage->line[i]);
-         unsigned char *c1=&(line->m.name.c[0]);
-         Options = flags_to_options(line);
-         if( (Options & OptionsMask) && wb_match_name(c1,name,Lname) ) {
-            printcount--;
-            if(printflag){
-               fprintf(stderr,"Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
-                     pageno,i,c1,
-                     datatypes[line->m.flags.type],
-                     line->m.flags.elementsize,
-                     (line->m.flags.array) ? line->m.data.a.MaxElements : 0,
-                     (line->m.flags.resetuntil) ? "LOCKABLE" : "        ",
-                     (line->m.flags.initialized) ? "SET  " : "UNSET",
-                     (line->m.flags.badval) ? "BAD " : "GOOD",
-                     (line->m.flags.resetmany) ? "NOTLOCKABLE" : "           ",
-                     (line->m.flags.noresetafterrestart) ? "ROonRst" : "RWonRst",
-                     (line->m.flags.readonly) ? "LOCKED  " : "WRITABLE",
-                     (line->m.flags.islocal) ? "LOCAL " : "GLOBAL",
-                     (line->m.flags.fromrestart) ? "FromRestart" : "FromPut"
-                     );
-               }
-            if(Action != NULL) {
-               status = (*Action)(line,blinddata);
-               if(status < 0) return(status);
-               }
+    while (lookuppage != NULL) {
+        int i = 0;
+        int linelimit = lookuppage->firstFreeLine - 1;
+        while( i <= linelimit ) {
+            wb_line *line = &(lookuppage->line[i]);
+            unsigned char *c1 = &(line->meta.name.carr[0]);
+            int options = flags_to_options(line);
+            if ( (options & option_mask) && wb_match_name(c1, name, name_length) ) {
+                match_count--;
+                if (print) {
+                    fprintf(stderr,
+                            "Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
+                            pageno, i, c1,
+                            datatypes[line->meta.flags.type],
+                            line->meta.flags.elementsize,
+                            (line->meta.flags.array) ? line->meta.data.desc.maxElements : 0,
+                            (line->meta.flags.resetuntil) ? "LOCKABLE" : "        ",
+                            (line->meta.flags.initialized) ? "SET  " : "UNSET",
+                            (line->meta.flags.badval) ? "BAD " : "GOOD",
+                            (line->meta.flags.resetmany) ? "NOTLOCKABLE" : "           ",
+                            (line->meta.flags.noresetafterrestart) ? "ROonRst" : "RWonRst",
+                            (line->meta.flags.readonly) ? "LOCKED  " : "WRITABLE",
+                            (line->meta.flags.islocal) ? "LOCAL " : "GLOBAL",
+                            (line->meta.flags.fromrestart) ? "FromRestart" : "FromPut"
+                    );
+                }
+                if (fncptr != NULL) {
+                    status = (*fncptr)(line, extra_data);
+                    if (status < 0) {
+                        return status;
+                    }
+                }
             }
-         if(line->m.flags.lines == 0) break;   /* only one entry in this page in this case */
-         i += line->m.flags.lines;
-         }
-      lookuppage=lookuppage->next;
-      pageno++;
-      }
-return(-printcount);
-}
-wordint f77_name(f_wb_check)(WhiteBoard **WB, unsigned char *name, wordint *optionsmask, F2Cl lname){
-   int OptionsMask=*optionsmask;
-   int Lname=lname;
-   /* print flag on, no action routine is supplied, no blind data pointer is supplied */
-   return( c_wb_check(*WB, name, OptionsMask, Lname, 1, NULL, NULL) );
+            if (line->meta.flags.lines == 0) {
+                // Only one entry in this page in this case
+                break;
+            }
+            i += line->meta.flags.lines;
+        }
+        lookuppage = lookuppage->next;
+        pageno++;
+    }
+    return -match_count;
 }
 
-/* action routine to make a variable read-only */
-static int MakeReadOnly(LINE *line, void *blinddata){
-   if(line->m.flags.initialized == 0) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_NOVAL); /* making read-only a non initialized variable ???!!! */
-   if( message_level <= WB_MSG_DEBUG ) 
-      fprintf(stderr,"key '%s' is now read-only\n",&(line->m.name.c[0]));
-   line->m.flags.readonly = 1; line->m.flags.resetmany = 0;
-   return(0);
+//! Print flags of lines with the procided name and that match the option mask
+//
+//! @param[in] wb
+//! @param[in] name        Entry name (length MUST be supplied in name_length)
+//! @param[in] option_mask Mask for the options to be tested
+//! @param[in] name_length Length of the entry name
+//
+//! @return Number of matches, but as a negative number.
+wordint f77_name(f_wb_check)(WhiteBoard **wb, unsigned char *name, wordint *option_mask, F2Cl name_length)
+{
+   int _option_mask = *option_mask;
+   int _name_length = name_length;
+   // print flag on, no action routine is supplied, no blind data pointer is supplied
+   return c_wb_check(*wb, name, _option_mask, _name_length, 1, NULL, NULL);
 }
 
-/* action routine to make a variable no longer read-only */
-static int MakeNotReadOnly(LINE *line, void *blinddata){
-   if( message_level <= WB_MSG_DEBUG ) 
-      fprintf(stderr,"key '%s' is now no longer read-only\n",&(line->m.name.c[0]));
-   line->m.flags.readonly = 0;
-   return(0);
+
+//! c_wb_check callback to set the read-only line attribute
+//
+//! @param[in] line      Line to set read-only
+//! @param[in] blinddata Unused
+//
+//! @return 0 on scuccess.  Error code otherwise.
+static int MakeReadOnly(wb_line *line, void *blinddata)
+{
+    if (line->meta.flags.initialized == 0) {
+        // making read-only a non initialized variable ???!!!
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOVAL);
+    }
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "key '%s' is now read-only\n", &(line->meta.name.carr[0]));
+    }
+    line->meta.flags.readonly = 1;
+    line->meta.flags.resetmany = 0;
+    return 0;
 }
 
-/* action routine to make a variable undefined (no longer initialized) */
-static int MakeUndefined(LINE *line, void *blinddata){
-   if( message_level <= WB_MSG_DEBUG ) 
-      fprintf(stderr,"key '%s' is now undefined\n",&(line->m.name.c[0]));
-   line->m.flags.initialized = 0;
-   line->m.flags.badval = 0;
-   return(0);
+
+//! Remove the read-only attribute of the provided line
+//
+//! @param[in] line      Line to set read-only
+//! @param[in] blinddata Unused
+//
+//! @return Always 0
+static int MakeNotReadOnly(wb_line *line, void *blinddata)
+{
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "key '%s' is now no longer read-only\n", &(line->meta.name.carr[0]));
+    }
+    line->meta.flags.readonly = 0;
+    return 0;
 }
 
-/* action routine to make a variable undefined (no longer initialized) */
-static int MakeCreatedByRestart(LINE *line, void *blinddata){
-   if( message_level <= WB_MSG_DEBUG ) 
-      fprintf(stderr,"key '%s' is now marked as created by a restart\n",&(line->m.name.c[0]));
-   line->m.flags.fromrestart = 1;
-   return(0);
+
+//! Make the provided line undefined (no longer initialized)
+//
+//! @param[in] line      Line to set read-only
+//! @param[in] blinddata Unused
+//
+//! @return Always 0
+static int MakeUndefined(wb_line *line, void *blinddata)
+{
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "key '%s' is now undefined\n", &(line->meta.name.carr[0]));
+    }
+    line->meta.flags.initialized = 0;
+    line->meta.flags.badval = 0;
+    return 0;
 }
 
-/* framework for broadcasting values across MPI tiles */
-typedef struct{
-   wordint pe_root;
-   wordint pe_me;
-   char *domain;
-   F2Cl ldomain;
-   void (*broadcast_function)();
-   void (*allreduce_function)();
-   } BROADCAST;
-static BROADCAST broadcast_table;
 
-void f77_name(f_wb_bcst_init)(wordint *pe_root, wordint *pe_me, char *domain, void (*broadcast_function)(), void (*allreduce_function)() ){
-   broadcast_table.pe_root = *pe_root;
-   broadcast_table.pe_me = *pe_me;
-   broadcast_table.domain = domain;
-   broadcast_table.broadcast_function = broadcast_function;
-   broadcast_table.allreduce_function = allreduce_function;
+//! Set the fromtrestart attribute on the provided line
+//
+//! @param[in] line      Line to set read-only
+//! @param[in] blinddata Unused
+//
+//! @return Always 0
+static int MakeUndefined(wb_line *line, void *blinddata)
+static int MakeCreatedByRestart(wb_line *line, void *blinddata)
+{
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "key '%s' is now marked as created by a restart\n", &(line->meta.name.carr[0]));
+    }
+    line->meta.flags.fromrestart = 1;
+    return 0;
 }
 
-static int BroadcastLine(LINE *line, void *blinddata){
-fprintf(stderr,"Broadcasting %s :-)\n",line->m.name.c);
-   return(0);
+
+//! @todo Move type declaration to local header file
+//! MPI broadcast information
+typedef struct {
+    wordint pe_root;
+    wordint pe_me;
+    char *domain;
+    F2Cl ldomain;
+    void (*broadcast_function)();
+    void (*allreduce_function)();
+} wb_mpi_broadcast;
+
+//! @todo Move static data declaration to the top of the file
+static wb_mpi_broadcast wb_broadcast_cfg;
+
+
+//! Configure WhiteBoard MPI broadcasts
+//
+//! @param[in] pe_root
+//! @param[in] pe_me
+//! @param[in] domain
+//! @param[in] broadcast_function
+//! @param[in] allreduce_function
+void f77_name(f_wb_bcst_init)(wordint *pe_root, wordint *pe_me, char *domain, void (*broadcast_function)(), void (*allreduce_function)() )
+{
+    wb_broadcast_cfg.pe_root = *pe_root;
+    wb_broadcast_cfg.pe_me = *pe_me;
+    wb_broadcast_cfg.domain = domain;
+    wb_broadcast_cfg.broadcast_function = broadcast_function;
+    wb_broadcast_cfg.allreduce_function = allreduce_function;
 }
 
-wordint f77_name(f_wb_bcst)(WhiteBoard **WB, unsigned char *name, wordint *wildcard, F2Cl lname){
-   int Lname = lname;
-   LINE line;
-   int i,status;
 
-   fill_line(&line,name,Lname);
-   if(*wildcard != 0) {   /* wildcard match, get rid of trailing blanks */
-      for( i=0 ; i<WB_MAXNAMELENGTH-1 ; i++ ) {
-         if(line.m.name.c[i]==' ') line.m.name.c[i]=0;
-         }
-      }
-   status = c_wb_check(*WB, name, -1, Lname, message_level<=WB_MSG_INFO, BroadcastLine, &broadcast_table) ;
-   return(status);
+//! Callback function for c_wb_check that prints a message saying it's broadcasting the name of the line
+//
+//! @return Always 0
+static int wb_print_bcast_line(wb_line *line, void *blinddata)
+{
+    fprintf(stderr, "Broadcasting %s :-)\n", line->meta.name.carr);
+    return 0;
 }
 
-typedef struct{
-   unsigned char *UserKeyArray;
-   int UserKeyLength;
-   int UserMaxLabels;
-   } KEYS;
 
-/* action routine used to copy keys into user table when collecting a list of keys */
-static int CopyKeyName(LINE *line, void *blinddata){
-   unsigned char *key=&(line->m.name.c[0]);
-   KEYS *keys=(KEYS *)blinddata;
-   if(keys->UserMaxLabels <= 0) return(WB_ERROR);   /* too many keys for user array */
-   c_fortran_string_copy(key, keys->UserKeyArray, WB_MAXNAMELENGTH, keys->UserKeyLength, ' ');
-   (keys->UserMaxLabels)--;
-   keys->UserKeyArray += keys->UserKeyLength;
-   return(0);
+//! Print "Broadcasting %lineName" for each matching line
+//
+//! @param[in] wb         WhiteBoard in which to search
+//! @param[in] name       Name to match
+//! @param[in] wildcard   If this in not null, replace the first blank in the provided name with the string terminaison
+//! @param[in] nameLength Length of the name
+//
+//! @return Number of matches, but as a negative number.
+wordint f77_name(f_wb_bcst)(WhiteBoard **wb, unsigned char *name, wordint *wildcard, F2Cl nameLength)
+{
+    int _nameLength = nameLength;
+    wb_line line;
+
+    fill_line(&line, name, _nameLength);
+    if (*wildcard != 0) {
+        // Wildcard matches, get rid of trailing blanks
+        for (int i = 0; i < WB_MAXNAMELENGTH - 1; i++) {
+            if (line.meta.name.carr[i] == ' ') {
+                line.meta.name.carr[i] = 0;
+            }
+        }
+    }
+
+    return c_wb_check(*wb, name, -1, _nameLength, message_level <= WB_MSG_INFO, wb_print_bcast_line, &wb_broadcast_cfg);
 }
 
-/* get a list of keys matching a name */
-wordint f77_name(f_wb_get_keys)(WhiteBoard **WB, unsigned char *labels, wordint *nlabels, unsigned char *name, F2Cl llabels, F2Cl lname){
-   int Lname = lname;
-   int status;
-   KEYS keys;
 
-   keys.UserKeyArray = labels;
-   keys.UserMaxLabels = *nlabels;
-   keys.UserKeyLength = llabels;
-   status = c_wb_check(*WB, name, -1, Lname, message_level<=WB_MSG_INFO, CopyKeyName, &keys) ;
-   return (status);
+//! @todo Move type declaration to local header file
+typedef struct {
+    unsigned char *name;
+    int nameLength;
+    int userMaxLabels;
+} wb_keys;
+
+
+
+//! Callback function for c_wb_check that copies keys into user table when collecting a list of keys
+//
+//! @param[in] line Line from which to copy the name
+//! @param[in] blinddata A pointer to an instance of wb_keys.
+//
+//! @return Always 0
+static int wb_copy_key_name(wb_line *line, void *blinddata)
+{
+    wb_keys *keys = (wb_keys *)blinddata;
+    if (keys->userMaxLabels <= 0) {
+        // Too many keys for user array
+        return WB_ERROR;
+    }
+    // c_fortran_string_copy does not allocate memory for the destination (keys->name); the user must make sure it's allocated
+    c_fortran_string_copy(line->meta.name.carr, keys->name, WB_MAXNAMELENGTH, keys->nameLength, ' ');
+    (keys->userMaxLabels)--;
+    keys->name += keys->nameLength;
+
+    return 0;
 }
 
-/* make readonly all entries that have the WB_REWRITE_UNTIL attribute */
-int c_wb_lock(WhiteBoard *WB, unsigned char *name, int Lname){
-   unsigned char localname[WB_MAXSTRINGLENGTH];
-   int llname;
-   llname=c_fortran_string_copy(name,localname,Lname,sizeof(localname),'\0');
-   if( message_level <= WB_MSG_DEBUG )
-      fprintf(stderr,"locking variables with name beginning with '%s'\n",localname);
-   return( c_wb_check(WB, localname, WB_REWRITE_UNTIL, llname, 1, MakeReadOnly, NULL) );
+
+//! Get a list of keys matching a name
+//
+//! @param[in] wb
+//! @param[in] labels
+//! @param[in] nlabels
+//! @param[in] name
+//! @param[in] llabels
+//! @param[in] nameLength
+//
+wordint f77_name(f_wb_get_keys)(WhiteBoard **wb, unsigned char *labels, wordint *nlabels, unsigned char *name, F2Cl llabels, F2Cl nameLength)
+{
+   int _nameLength = nameLength;
+   wb_keys keys;
+
+   keys.name = labels;
+   keys.userMaxLabels = *nlabels;
+   keys.nameLength = llabels;
+
+   return c_wb_check(*wb, name, -1, _nameLength, message_level <= WB_MSG_INFO, wb_copy_key_name, &keys);
 }
-wordint f77_name(f_wb_lock)(WhiteBoard **WB, unsigned char *name, F2Cl lname){
-   int Lname=lname;
-   int status = c_wb_lock(*WB, name,Lname);
-   return(status);
+
+
+//! Convert all the lines with the WB_REWRITE_UNTIL attribute to read-only
+int c_wb_lock(WhiteBoard *wb, unsigned char *name, int nameLength){
+    unsigned char localname[WB_MAXSTRINGLENGTH];
+    int llname = c_fortran_string_copy(name, localname, nameLength, sizeof(localname), '\0');
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "locking variables with name beginning with '%s'\n", localname);
+    }
+    return c_wb_check(wb, localname, WB_REWRITE_UNTIL, llname, 1, MakeReadOnly, NULL);
+}
+
+
+wordint f77_name(f_wb_lock)(WhiteBoard **wb, unsigned char *name, F2Cl nameLength){
+   int _nameLength = nameLength;
+   return c_wb_lock(*wb, name, _nameLength);
 }
 
 /* write whiteboard checkpoint file */
@@ -1531,18 +1656,18 @@ int c_wb_reload(){
    int fd=open(WhiteBoardCheckpointFile,O_RDONLY);
 
    if(fd < 0) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_CKPT);  /* OOPS, cannot open checkpoint file */
-   if(BaseWhiteboardPtr->PageChain != NULL) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERROR);
+   if(BaseWhiteboardPtr->firstpage != NULL) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERROR);
    status=read(fd,signature,8) ; signature[8]=0;
    if( status!=8 || 0!=strncmp(signature,"WBckp100",8) ) { close(fd); WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_CKPT); }
 
    status=read(fd,&pagelen,4);     /* page size */
    while(pagelen>0){
       status=new_page(BaseWhiteboardPtr, pagelen);                    /* allocate new page */
-      status=read(fd,&(BaseWhiteboardPtr->PageChain->NextFreeEntry),4);  /* next usable entry in page */
+      status=read(fd,&(BaseWhiteboardPtr->firstpage->firstFreeLine),4);  /* next usable entry in page */
       if( message_level <= WB_MSG_DEBUG )
          fprintf(stderr,"wb_reload: Page %d, length=%d lines, next entry=%d\n",
-                 pageno,BaseWhiteboardPtr->PageChain->LinesInPage,BaseWhiteboardPtr->PageChain->NextFreeEntry);
-      status=read(fd,&(BaseWhiteboardPtr->PageChain->line[0]),sizeof(LINE)*pagelen);  /* read page */
+                 pageno,BaseWhiteboardPtr->firstpage->nbLines,BaseWhiteboardPtr->firstpage->firstFreeLine);
+      status=read(fd,&(BaseWhiteboardPtr->firstpage->line[0]),sizeof(wb_line)*pagelen);  /* read page */
       status=read(fd,&pagelen,4);     /* page size of next page, 0 means no more */
       pageno++;
       }
@@ -1564,52 +1689,76 @@ wordint f77_name(f_wb_reload)(WhiteBoard **WB){
    return(status);
 }
 
-static int Action1(LINE *line, void *blinddata){   /* DUMMY ACTION ROUTINE */
-   fprintf(stderr,"Action1 has been called, key=%s\n",&(line->m.name.c[0]));
-   return(0);
+
+//! Dummy function for c_wb_check
+static int Action1(wb_line *line, void *blinddata) {
+    fprintf(stderr, "Action1 has been called, key=%s\n", &(line->meta.name.carr[0]));
+    return 0;
 }
 
 #define MISC_BUFSZ 1024
 /* get a line from file, reset current character pointer */
-static int wb_get_line(FILE *infile){
-   current_char=fgets(linebuffer, MISC_BUFSZ, infile);
-   if( message_level<=WB_MSG_INFO && current_char )
-      fprintf(stderr,">>%s",linebuffer);
-   if(current_char) return(*current_char);
-   else             return(EOF);
+static int wb_get_line(FILE *infile)
+{
+    current_char = fgets(linebuffer, MISC_BUFSZ, infile);
+    if (message_level <= WB_MSG_INFO && current_char) {
+        fprintf(stderr, ">>%s", linebuffer);
+    }
+    if (current_char) {
+        return *current_char;
+    } else {
+        return EOF;
+    }
 }
 
-/* push character back onto input buffer */
-static int wb_ungetc(int c){
-   if( current_char==NULL || linebuffer==NULL ) return(WB_ERROR);
-   if( current_char > linebuffer ) {
-      current_char--;
-      *current_char = c;
-      }
-   else {
-      return(WB_ERROR);
-      }
-   return(WB_OK);
+//! Push character back onto the input buffer
+//! @todo Figure out why lastchar is an int instead of an unsigned char
+static int wb_ungetc(int lastchar)
+{
+    if (current_char == NULL || linebuffer == NULL) {
+        return WB_ERROR;
+    }
+    if (current_char > linebuffer) {
+        current_char--;
+        *current_char = lastchar;
+    } else {
+        return WB_ERROR;
+    }
+    return WB_OK;
 }
 
-/* get next character from input stream, take care of \newline sequence */
-static int wb_getc(FILE *infile){
-   int c;
+// Get next character from input stream, take care of newline sequence
+static int wb_getc(FILE *infile)
+{
+    //! @todo Get rid of the goto
+    //! @todo Stop using file static variables if there is not a bloody good reason to do so!
+    int cbuff;
 
-   if( current_char==NULL ) {                  /* no buffer pointer, fill buffer */
-      c=wb_get_line(infile);
-      if( current_char==NULL ) return(EOF);    /* End Of File or error */
-      }
-s: if( *current_char==0 ) {
-      c=wb_get_line(infile);           /* try to refill empty buffer */
-      if( current_char==NULL ) return(EOF);    /* End Of File or error */
-      }
-   c=*current_char++ ;                         /* get next character and bump pointer */
-   if( c=='\\' && *current_char=='\n' ) {      /* \newline, get rid of it */
-      current_char++;                          /* point to character after newline */
-      goto s;                                  /* and start all over again */
-      }
-   return(c);
+    // No buffer pointer, fill buffer
+    if (current_char == NULL) {
+        cbuff = wb_get_line(infile);
+        if (current_char == NULL) {
+            // End Of File or error
+            return EOF;
+        }
+    }
+    s: if (*current_char == 0 ) {
+        // Try to refill empty buffer
+        cbuff = wb_get_line(infile);
+        if (current_char == NULL) {
+            return EOF;
+        }
+    }
+    // Gget next character and bump pointer
+    cbuff = *current_char++;
+    // Get rid of newlines
+    if (cbuff == '\\' && *current_char == '\n' ) {
+        // Point to character after newline
+        current_char++;
+        // Start all over again
+        goto s;
+    }
+    return cbuff;
 }
 
 /* flush input until newline or EOF , return what was found */
@@ -1717,7 +1866,7 @@ error_big:    /* token is too big to be stored in supplied array */
 }
 
 /* process options set [option,option,...] or (option,option,...) */
-static int wb_options(FILE *infile,char start_delim,char end_delim,SYMTAB *option_table){
+static int wb_options(FILE *infile,char start_delim,char end_delim, wb_symbol *option_table){
    unsigned char Token[WB_MAXNAMELENGTH+1];
    int options=0;
    int ntoken,newoption;
@@ -1825,7 +1974,7 @@ static int wb_define(WhiteBoard *WB, FILE *infile, char *package){
       }
    status=c_wb_put(WB,name,key_type,len_type,Token,array_length,options|WB_CREATE_ONLY,strlen((char *)name));
    if(status<0) goto error_syntax;                 /* put failed for some reason */
-   status=wb_define_check(LastPutLine,1);  /* must not already be in table */
+   status=wb_define_check(wb_lastputline,1);  /* must not already be in table */
    if(status<0) goto error_syntax;                 /* already defined in table, OOPS */
    wb_flush_line(infile);
    return(status);
@@ -1840,8 +1989,8 @@ static int wb_key(WhiteBoard *WB, FILE *infile,unsigned char *Token, char *packa
    int status=WB_OK;
    int err_not_found=1;
    int elementtype,elementsize,elements,ntoken,nread,items;
-   LINE *line;
-   PAGE *page;
+   wb_line *line;
+   wb_page *page;
    unsigned char name[WB_MAXNAMELENGTH+1];
    unsigned char separator[3];
    unsigned char buffer[WB_MAXSTRINGLENGTH+3];  /* add the two delimiters and the null terminator */
@@ -1870,10 +2019,10 @@ static int wb_key(WhiteBoard *WB, FILE *infile,unsigned char *Token, char *packa
    if( status<0 ) goto error_syntax;               /* other source of error : key already assigned a value in this file */
 
    if(elements == 0) elements = 1;           /* scalar, 1 item */
-      if(line->m.flags.array)                /* array data */
-         dataptr = &((line+1)->d.data[0]);
+      if(line->meta.flags.array)                /* array data */
+         dataptr = &((line+1)->data.data[0]);
       else                                   /* scalar data */
-         dataptr = &(line->m.data.c[0]);
+         dataptr = &(line->meta.data.carr[0]);
    while(elements--){                        /* get values for up to max items for key */
       ntoken=wb_get_token(buffer,infile,sizeof(buffer)-1,0);
       if( ntoken <= 0 ) goto error_syntax ;
@@ -1932,8 +2081,8 @@ static int wb_key(WhiteBoard *WB, FILE *infile,unsigned char *Token, char *packa
       else                      goto error_syntax;
       }
    if( separator[0] != '\n' ) goto error_toomany;
-   line->m.flags.initialized = 1 ;  /* mark entry as initialized */
-   line->m.flags.badval = 0 ;
+   line->meta.flags.initialized = 1 ;  /* mark entry as initialized */
+   line->meta.flags.badval = 0 ;
    return(status);
 error_toomany:
    if(message_level<=WB_MSG_ERROR) {
@@ -1956,102 +2105,154 @@ error_syntax:
    WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_SYNTAX);
 }
 
-/* read a dictionary or user directive file */
 
-int c_wb_read(WhiteBoard *WB, char *filename, char *package, char *section, int Options, int Lfilename, int Lpackage, int Lsection){
-   DEFTBL mytable[MISC_BUFSZ];
-   char localbuffer[MISC_BUFSZ];
-   char localfname[MISC_BUFSZ];
-   unsigned char Token[MISC_BUFSZ];
-   char Package[WB_MAXNAMELENGTH];
-   char Section[WB_MAXNAMELENGTH];
-   int i,status;
-   FILE *infile;
-   int ntoken;
-   int temp;
-   int version=999,items,nread;
-   int errors=0;
+//! Read a dictionary or user directive file
+int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int options, int filename_length,
+              int package_length, int section_length)
+{
+    wb_definition mytable[MISC_BUFSZ];
+    char localbuffer[MISC_BUFSZ];
+    char localfname[MISC_BUFSZ];
+    unsigned char Token[MISC_BUFSZ];
+    char Package[WB_MAXNAMELENGTH];
+    char Section[WB_MAXNAMELENGTH];
+    int i, status;
+    FILE *infile;
+    int ntoken;
+    int temp;
+    int errors = 0;
 
-   extra_error_message = " invalid whiteboard instance";
-   if(WB == DummyWhiteboardPtr) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_NOTFOUND);
-   if(WB == NULL) WB=BaseWhiteboardPtr;
+    extra_error_message = " invalid whiteboard instance";
+    if (wb == DummyWhiteboardPtr) {
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+    }
+    if (wb == NULL) {
+        wb = BaseWhiteboardPtr;
+    }
 
-   TRIM(filename,Lfilename)
-   TRIM(package,Lpackage)
-   TRIM(section,Lsection)
-   linebuffer=localbuffer;
-   definition_table=mytable; definition_table_entries=0; max_definition_table_entries=MISC_BUFSZ;  /* initialize definition table control */
-   for( i=0 ; i<MISC_BUFSZ ; i++) { definition_table[i].line = NULL ; definition_table[i].assigned = 0 ; definition_table[i].defined = 0 ; }
+    TRIM(filename, filename_length)
+    TRIM(package, package_length)
+    TRIM(section, section_length)
+    // @bug External pointer (linebuffer) updated with local variable (localbuffer)!
+    linebuffer = localbuffer;
 
-   for( i=0 ; i<Lfilename && i<MISC_BUFSZ-1 && filename[i]!=0 ; i++) localfname[i] = filename[i];
-   localfname[i] = 0;  /* filename collected */
-   if(message_level<=WB_MSG_DEBUG) fprintf(stderr,"localfname='%s'\n",localfname);
+    // Initialize definition table control
+    // @bug External pointer (definition_table) updated with local variable (mytable)!
+    definition_table = mytable;
+    definition_table_entries = 0;
+    max_definition_table_entries = MISC_BUFSZ;
+    for (i = 0; i < MISC_BUFSZ; i++) {
+        definition_table[i].line = NULL;
+        definition_table[i].assigned = 0;
+        definition_table[i].defined = 0;
+    }
 
-   for( i=0 ; i<Lpackage && i<WB_MAXNAMELENGTH-1 && package[i]!=0 ; i++) Package[i] = toupper(package[i]);
-   Package[i] = 0;     /* package name collected */
-   if(message_level<=WB_MSG_DEBUG) fprintf(stderr,"Package='%s'\n",Package);
+    for (i = 0; i < filename_length && i < MISC_BUFSZ - 1 && filename[i] != 0; i++) {
+        localfname[i] = filename[i];
+    }
+    // Filename collected
+    localfname[i] = 0;
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "localfname='%s'\n", localfname);
+    }
 
-   for( i=0 ; i<Lsection && i<WB_MAXNAMELENGTH-1 && section[i]!=0 ; i++) Section[i] = toupper(section[i]);
-   Section[i] = 0;     /* section_name  collected */
-   if(message_level<=WB_MSG_DEBUG) fprintf(stderr,"Section='%s'\n",Section);
+    for (i = 0; i < package_length && i < WB_MAXNAMELENGTH - 1 && package[i] != 0; i++) {
+        Package[i] = toupper(package[i]);
+    }
+    // Package name collected
+    Package[i] = 0;
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "Package='%s'\n", Package);
+    }
 
-   extra_error_message = localfname;  /* add directive file name to error message */
-   current_char = NULL;               /* make sure that no previous input is left in buffers */
-   infile=fopen(localfname,"r");      /* try to open file */
-   if(infile==NULL) WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_READ);  /* OOPS, cannot open/read file */
+    for (i = 0; i < section_length && i < WB_MAXNAMELENGTH - 1 && section[i] != 0; i++) {
+        Section[i] = toupper(section[i]);
+    }
+    // Section_name collected
+    Section[i] = 0;
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "Section='%s'\n", Section);
+    }
 
-   extra_error_message = NULL;
+    // Add directive file name to error message
+    extra_error_message = localfname;
+    // Make sure that no previous input is left in buffers
+    current_char = NULL;
+    // Try to open file
+    infile = fopen(localfname, "r");
+    if (infile == NULL) {
+        // Can't open/read file!
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_READ);
+    }
 
-   while(1){   /* loop until desired section "@xxxx" is found or end of directive file */
-      temp = wb_get_nonblank(infile);
-      while( temp!= '@' && temp!= EOF ) {   /* look for @ as first nonblank character in line (or End of file) */
-         temp = wb_get_line(infile);
-         temp = wb_get_nonblank(infile);
-         }
-      if(temp==EOF) {                    /* end of file or error , requested section not found */
-         fclose(infile);
-         extra_error_message = Section;  /* add section name to error message */
-         WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_NOTFOUND);
-         }
-      ntoken = wb_get_token(Token,infile,MISC_BUFSZ-1,1);
-      if( strncmp((char *)Token,Section,strlen(Section))==0 ) break;   /* exit loop if requested section is found */
-      }
-   if( message_level<=WB_MSG_INFO )fprintf(stderr,"INFO: directive section %s found\n",Section);
+    extra_error_message = NULL;
 
-   /* we have found our section, let's process it */
-   temp = wb_get_line(infile);     /* get rid of rest of @section line */
-   default_dict_option = 0;                /* default options = none unless there is a directive */
-   ntoken = wb_get_token(Token,infile,MISC_BUFSZ-1,0);
-   while( strncmp((char *)Token,"@",1) && ntoken!=WB_ERROR ) {  /* loop until end of section (beginning of next section or EOF) */
-      if( strncmp((char *)Token,"OPTIONS",7)==0 ) {   /* default options directive */
-         default_dict_option = wb_options(infile,'(',')',dict_options);
-         }
-      else if( strncmp((char *)Token,"MESSAGES",8)==0 ) {   /* verbosity control directive */
-         message_level = wb_options(infile,'(',')',verb_options);
-         }
-      else if( strncmp((char *)Token,"DEFINE",6)==0 && Options!=WB_FORBID_DEFINE ) {  /* define directive (if allowed) */
-         status = wb_define(WB,infile,Package);
-         if(status<0) errors++;
-         }
-      else if( isalpha(Token[0]) ){   /* must be key= */
-         status = wb_key(WB,infile,Token,Package,Options);
-         if(status<0) errors++;
-         }
-      else if( Token[0] == '\n' ) {  /* ignore newlines */
-         temp = '\n';
-         }
-      else{
-         if( message_level<=WB_MSG_ERROR )
-            fprintf(stderr,"Unexpected token found at beginning of directive: '%s'\n",Token);
-         errors++;
-         wb_flush_line(infile);
-         }
-      ntoken = wb_get_token(Token,infile,MISC_BUFSZ-1,0);   /* get next token */
-      }
-   fclose(infile);    /* we are done, close file and return success */
-   if( message_level<=WB_MSG_INFO || ( message_level<=WB_MSG_ERROR && errors>0 ) )
-      fprintf(stderr,"INFO: %d error(s) detected\n",errors);
-   return( errors==0 ? WB_OK : WB_ERROR);
+    // Loop until desired section "@xxxx" is found or end of directive file
+    int notFound = 1;
+    while (notFound) {
+        temp = wb_get_nonblank(infile);
+        // Look for @ as first nonblank character in line (or End of file)
+        while (temp != '@' && temp != EOF) {
+            temp = wb_get_line(infile);
+            temp = wb_get_nonblank(infile);
+        }
+        if (temp == EOF) {
+            // Reached EOF; Requested section not found
+            fclose(infile);
+            // Add searched section name to error message
+            // @bug External pointer (extra_error_message) updated with local variable (Section)!
+            extra_error_message = Section;
+            WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        }
+        ntoken = wb_get_token(Token, infile, MISC_BUFSZ - 1, 1);
+        notFound = (strncmp((char *)Token, Section, strlen(Section)) != 0);
+    }
+    if (message_level <= WB_MSG_INFO) {
+        fprintf(stderr, "INFO: directive section %s found\n", Section);
+    }
+
+    // Section found, process it
+    // Get rid of rest of @section line
+    temp = wb_get_line(infile);
+    // Default options = none unless there is a directive
+    default_dict_option = 0;
+    ntoken = wb_get_token(Token, infile, MISC_BUFSZ - 1, 0);
+    // Loop until end of section (beginning of next section or EOF)
+    while (strncmp((char *)Token, "@", 1) && ntoken != WB_ERROR ) {
+        if (strncmp((char *)Token, "OPTIONS", 7) == 0 ) {
+            // Default options directive
+            default_dict_option = wb_options(infile, '(', ')', dict_options);
+        } else if (strncmp((char *)Token, "MESSAGES", 8) == 0 ) {
+            // Verbosity control directive
+            message_level = wb_options(infile,'(',')',verb_options);
+        } else if (strncmp((char *)Token, "DEFINE", 6) == 0 && options != WB_FORBID_DEFINE ) {
+            // Define directive (if allowed)
+            status = wb_define(wb, infile, Package);
+            if (status < 0) errors++;
+        } else if (isalpha(Token[0])) {
+            // Must be key=
+            status = wb_key(wb, infile, Token, Package, options);
+            if (status < 0) errors++;
+        } else if (Token[0] == '\n') {
+            // Ignore newlines
+            temp = '\n';
+        } else {
+            if (message_level <= WB_MSG_ERROR) {
+                fprintf(stderr, "Unexpected token found at beginning of directive: '%s'\n", Token);
+            }
+            errors++;
+            wb_flush_line(infile);
+        }
+        // Get next token
+        ntoken = wb_get_token(Token, infile, MISC_BUFSZ - 1, 0);
+    }
+
+    // We are done, close file and return success
+    fclose(infile);
+    if (message_level <= WB_MSG_INFO || (message_level <= WB_MSG_ERROR && errors > 0)) {
+        fprintf(stderr, "INFO: %d error(s) detected\n", errors);
+    }
+    return errors == 0 ? WB_OK : WB_ERROR;
 }
 
 /* read a dictionary or user directive file (FORTRAN version) */
@@ -2110,7 +2311,7 @@ printf("========\n");
 
    c_wb_checkpoint();
 
-   BaseWhiteboardPtr->PageChain=NULL;
+   BaseWhiteboardPtr->firstpage=NULL;
    c_wb_reload();
 
    status=WB_GET_C(WB,"string1",string2,32);
@@ -2145,7 +2346,7 @@ printf("========\n");
 
    c_wb_checkpoint();
 
-   BaseWhiteboardPtr->PageChain=NULL;
+   BaseWhiteboardPtr->firstpage=NULL;
    c_wb_reload();
 
 printf("========\n");
