@@ -303,7 +303,7 @@ static int wb_value(char *symbol, wb_symbol *table)
         fprintf(stderr, "found NONE\n");
     }
     // No value found in table
-    return(0);
+    return 0;
 }
 
 //! Default user error handler, do nothing
@@ -1700,6 +1700,7 @@ static int Action1(wb_line *line, void *blinddata) {
 /* get a line from file, reset current character pointer */
 static int wb_get_line(FILE *infile)
 {
+    //! @bug linebuffer has never been allocated; memory corruption is happening here!
     current_char = fgets(linebuffer, MISC_BUFSZ, infile);
     if (message_level <= WB_MSG_INFO && current_char) {
         fprintf(stderr, ">>%s", linebuffer);
@@ -1761,140 +1762,259 @@ static int wb_getc(FILE *infile)
     return cbuff;
 }
 
-/* flush input until newline or EOF , return what was found */
-static int wb_flush_line(FILE *infile){
-   int c=wb_getc(infile);
-   while( c!='\n' && c!=EOF && c!=';' ) c=wb_getc(infile);
-   return (c);
+//! Flush input until newline or EOF , return what was found
+//
+//! @param infile File from which to read
+//
+//! @return The last newline, semicolon or EOF character encountered
+static int wb_flush_line(FILE *infile)
+{
+    int c = wb_getc(infile);
+    while (c != '\n' && c != EOF && c != ';') {
+        c = wb_getc(infile);
+    }
+    return c;
 }
 
-/* skip blanks and tabs from input, return next character, newline, or EOF ,
-    take care of comments, recognize ; as newline    */
-static int wb_get_nonblank(FILE *infile){
-   int c=wb_getc(infile);
-  if( c==EOF ) return(EOF);
-   while( (c==' ' || c=='\t' || c=='#' || c=='!' ) && c!=EOF ) {  /* space, tab, comment character */
-      if( c=='#' || c=='!' ) {             /* comment, get rid of the rest of the line */
-         c=wb_flush_line(infile);
-         if( c==EOF ) return(EOF);
-         }
-      c=wb_getc(infile);           /* get next character */
-      }
-   if( c==';' ) c='\n' ;      /* treat a non quoted ; as a newline */
-   return (c);
-}
 
-/* special error print when reading directives, print directive line up to error, add ^^^^ error marker, print rest of line */
-static void wb_read_error(){
-   int temp;
-   if(current_char==NULL || linebuffer==NULL) return;
-   temp=*current_char;
-   *current_char=0;
-   if( message_level<=WB_MSG_ERROR )
-      fprintf(stderr,"ERROR in directives, offending line:\n%s^^^^",linebuffer);
-   *current_char=temp;
-   if( message_level<=WB_MSG_ERROR )
-      fprintf(stderr,"%s\n",current_char);
-}
-
-/* get next token (alphanum_, number, delimited string, single character, force non quoted tokens to uppercase */
-static int wb_get_token(unsigned char *token,FILE *infile,int maxtoken, int noskip){
-   int ntoken=0;
-   int c;
-
-   if(noskip)  /* do not skip spaces */
-      c=wb_getc(infile);
-   else
-      c=wb_get_nonblank(infile);
-   if( c==EOF ) return(WB_ERROR);
-   token[ntoken++] = toupper(c);  /* first character */
-   maxtoken--; if(maxtoken<0) goto error_big;
-   if(isalpha(c)) {   /* collect alphanum _ token */
-      for( c=wb_getc(infile) ; isalnum(c) || c=='_' ; c=wb_getc(infile) ) {
-         maxtoken--; if(maxtoken<0) goto error_big;
-         token[ntoken++]=toupper(c) ;
-         }
-      if( c==EOF ) return(WB_ERROR);
-      if(wb_ungetc(c)==EOF ) return(WB_ERROR);  /* push back extra input character */
-      }
-   else if( c=='\'' || c=='"' ) {         /* collect ' or " delimited string */
-      int quote=c;
-      c=wb_getc(infile);
-      while( c!=quote && c!='\n' && c!=EOF) {   /* look for matching quote , error end if newline/EOF  ecountered */
-         if(c==EOF || c=='\n') break;
-         maxtoken--; if(maxtoken<0) goto error_big;
-         token[ntoken++]=c;
-         c=wb_getc(infile);
-         }
-      if( c=='\n' ) {
-         if( message_level<=WB_MSG_ERROR ) fprintf(stderr,"ERROR: improperly terminated string\n");
-         if(wb_ungetc(c)==EOF ) return(WB_ERROR); /* push back newline that has been erroneously swallowed */
-         }
-      if(c==EOF || c=='\n') return(WB_ERROR);
-      maxtoken--; if(maxtoken<0) goto error_big;
-      token[ntoken++]=c;                       /* store end delimiter in token */
-      }
-   else if(isdigit(c) || c=='.' || c=='+' || c=='-' ) {  /* digit, point, sign, potential number or boolean */
-      c=wb_getc(infile) ;
-      if( isalpha(c) && token[ntoken-1]=='.' ) {    /* collect .true. , .false. , etc ... */
-         while( isalpha(c) || c=='.' ) {
-            maxtoken--; if(maxtoken<0) goto error_big;
-            token[ntoken++]=toupper(c) ;\
-            c=wb_getc(infile);
+//! Skip blanks and tabs from input, return next character, newline, or EOF, take care of comments, recognize ; as newline
+//
+//! @param infile File from which to read
+//
+//! @return The possibly converted character
+static int wb_get_nonblank(FILE *infile)
+{
+    int c = wb_getc(infile);
+    if (c == EOF) {
+        return EOF;
+    }
+    while( (c == ' ' || c == '\t' || c == '#' || c == '!' ) && c != EOF ) {
+        // space, tab, comment characters
+        if (c == '#' || c == '!') {
+            // Comment -> get rid of the rest of the line
+            c = wb_flush_line(infile);
+            if (c == EOF) {
+                return EOF;
             }
-         }
-      else {    /* collect a potential number */
-         while( isdigit(c) || c=='.' || c=='-' || c=='+' || c=='E' || c=='e' ) {
-            maxtoken--; if(maxtoken<0) goto error_big;
-            token[ntoken++]=toupper(c) ;
-            c=wb_getc(infile);
+        }
+        // Get next character
+        c = wb_getc(infile);
+    }
+    if (c == ';') {
+        // treat a non quoted ; as a newline
+        c = '\n';
+    }
+    return c;
+}
+
+//! Print a special error when reading directives, print directive line up to error, add ^^^^ error marker, print rest of line
+static void wb_read_error()
+{
+    int temp;
+    if (current_char == NULL || linebuffer == NULL) {
+        return;
+    }
+    temp = *current_char;
+    *current_char = 0;
+    if (message_level <= WB_MSG_ERROR) {
+        fprintf(stderr, "ERROR in directives, offending line:\n%s^^^^", linebuffer);
+    }
+    *current_char = temp;
+    if (message_level <= WB_MSG_ERROR) {
+        fprintf(stderr, "%s\n", current_char);
+    }
+}
+
+
+//! Get next token (alphanum_, number, delimited string, single character, force non quoted tokens to uppercase
+//
+//! @param[out] token          Token read from file.  This must be previously allocated
+//! @param[in]  infile         File from which to read
+//! @param[in]  maxTokenLength Maximum size of token
+//! @param[in]  noskip         If non zero, do not skip spaces
+//
+//! @return Length of the token read or error code
+static int wb_get_token(unsigned char *token, FILE *infile, int maxTokenLength, int noskip)
+{
+    int tokenLength = 0;
+    int c;
+
+    if (noskip) {
+            // Do not skip spaces
+            c = wb_getc(infile);
+    } else {
+        c = wb_get_nonblank(infile);
+    }
+    if (c == EOF) return WB_ERROR;
+
+    // First character
+    token[tokenLength++] = toupper(c);
+    maxTokenLength--;
+    if (maxTokenLength < 0) {
+        // Token is too big to be stored in supplied array
+        wb_read_error() ;
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
+    }
+    if (isalpha(c)) {
+        // Collect alphanum _ token
+        for (c = wb_getc(infile); isalnum(c) || c == '_'; c = wb_getc(infile)) {
+            maxTokenLength--;
+            if (maxTokenLength < 0) {
+                // Token is too big to be stored in supplied array
+                wb_read_error();
+                WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
             }
-         }
-      if( c==EOF ) return(WB_ERROR);
-      if(wb_ungetc(c)==EOF ) return(WB_ERROR);  /* push back extra input character */
-      }
-   /* none of the above means single character */
-   maxtoken--; if(maxtoken<0) goto error_big;
-   token[ntoken]=0;  /* null terminate token */
+            token[tokenLength++] = toupper(c) ;
+        }
+        if (c == EOF ) {
+            return WB_ERROR;
+        }
+        // push back extra input character
+        if (wb_ungetc(c) == EOF) {
+            return WB_ERROR;
+        }
+    } else if (c == '\'' || c == '"') {
+        // Collect ' or " delimited string
+        int quote = c;
+        c = wb_getc(infile);
+        // Look for matching quote, error end if newline/EOF  ecountered
+        while (c != quote && c != '\n' && c != EOF) {
+            if (c == EOF || c == '\n') break;
+            maxTokenLength--;
+            if (maxTokenLength < 0) {
+                // Token is too big to be stored in supplied array
+                wb_read_error() ;
+                WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
+            }
+            token[tokenLength++] = c;
+            c = wb_getc(infile);
+        }
+        if (c == '\n') {
+            if (message_level <= WB_MSG_ERROR ) {
+                fprintf(stderr, "ERROR: improperly terminated string\n");
+            }
+            if (wb_ungetc(c) == EOF) {
+                // Push back newline that has been erroneously swallowed
+                return WB_ERROR;
+            }
+        }
+        if (c == EOF || c == '\n') {
+            return WB_ERROR;
+        }
+        maxTokenLength--;
+        if (maxTokenLength < 0) {
+            // Token is too big to be stored in supplied array
+            wb_read_error();
+            WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
+        }
+        // Store end delimiter in token
+        token[tokenLength++] = c;
+    } else if (isdigit(c) || c == '.' || c == '+' || c == '-' ) {
+        /* digit, point, sign, potential number or boolean */
+        c = wb_getc(infile) ;
+        if (isalpha(c) && token[tokenLength - 1] == '.') {
+            // Collect .true. , .false. , etc ...
+            while (isalpha(c) || c == '.') {
+                maxTokenLength--;
+                if (maxTokenLength < 0) {
+                    // Token is too big to be stored in supplied array
+                    wb_read_error();
+                    WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
+                }
+                token[tokenLength++] = toupper(c);\
+                c = wb_getc(infile);
+            }
+        } else {
+            // Collect a potential number
+            while (isdigit(c) || c == '.' || c == '-' || c == '+' || c == 'E' || c == 'e' ) {
+                maxTokenLength--;
+                if (maxTokenLength < 0) {
+                    // Token is too big to be stored in supplied array
+                    wb_read_error();
+                    WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
+                }
+                token[tokenLength++] = toupper(c);
+                c = wb_getc(infile);
+            }
+        }
+        if (c == EOF) {
+            return WB_ERROR;
+        }
+        // Push back extra input character
+        if (wb_ungetc(c) == EOF) {
+            return(WB_ERROR;
+        }
+    }
 
-   if( message_level<=WB_MSG_DEBUG )
-      fprintf(stderr,"GetToken, maxtoken=%d, ntoken=%d, nospkip=%d, token='%s'\n",maxtoken,ntoken,noskip,token);
-   return(ntoken);
-error_big:    /* token is too big to be stored in supplied array */
-   wb_read_error() ;
-   WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_BIG);
+    // None of the above means single character
+    maxTokenLength--;
+    if (maxTokenLength < 0) {
+        // Token is too big to be stored in supplied array
+        wb_read_error() ;
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_BIG);
+    }
+    // Null terminate token
+    token[tokenLength] = 0;
+
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "GetToken, maxTokenLength=%d, tokenLength=%d, nospkip=%d, token='%s'\n", 
+                maxTokenLength, tokenLength, noskip, token);
+    }
+    return tokenLength;
 }
 
-/* process options set [option,option,...] or (option,option,...) */
-static int wb_options(FILE *infile,char start_delim,char end_delim, wb_symbol *option_table){
-   unsigned char Token[WB_MAXNAMELENGTH+1];
-   int options=0;
-   int ntoken,newoption;
 
-   ntoken=wb_get_token(Token,infile,2,0) ; /* get starting delimiter ( or [  */
-   if(Token[0]!=start_delim || ntoken!=1) goto error_syntax ;
+//! Process options set [option,option,...] or (option,option,...)
+//
+//! @param[in] infile       File from which to read
+//! @param[in] start_delim  Option start delimiter
+//! @param[in] end_delim    Option end delimiter
+//! @param[in] option_table Option table
+//
+//! @return Bit field of the active options
+static int wb_options(FILE *infile, char start_delim, char end_delim, wb_symbol *option_table)
+{
+    unsigned char token[WB_MAXNAMELENGTH + 1];
+    int options = 0;
+    int ntoken, newoption;
 
-   while(Token[0] != end_delim ) {
-      ntoken=wb_get_token(Token,infile,sizeof(Token),0) ; /* expect keyname  */
-      if( !isalpha(Token[0]) || ntoken<=0 ) goto error_syntax ;
-      newoption = wb_value((char *)Token,option_table);
-      if( newoption == 0 ) goto error_option;
-      options += newoption;
-      if( message_level<=WB_MSG_DEBUG )
-         fprintf(stderr,"newoption=%d, options=%d\n",newoption,options);
-      ntoken=wb_get_token(Token,infile,2,0) ; /* expect end delimiter ( or ]  or comma ,  */
-      if( (Token[0]!=end_delim && Token[0]!=',') || ntoken!=1) goto error_syntax ;
-      }
-   return(options);
-error_option:
-   wb_read_error() ;
-   wb_flush_line(infile);
-   WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_OPTION);
-error_syntax:
-   wb_read_error() ;
-   wb_flush_line(infile);
-   WB_ERR_EXIT(WB_MSG_ERROR,WB_ERR_SYNTAX);
+    // Get starting delimiter ( or [
+    ntoken = wb_get_token(token, infile, 2 ,0);
+    if (token[0] != start_delim || ntoken != 1) {
+        wb_read_error() ;
+        wb_flush_line(infile);
+        WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_SYNTAX);
+    }
+
+    while (token[0] != end_delim) {
+        // Expect keyname
+        ntoken = wb_get_token(&token, infile, sizeof(token), 0);
+        if (!isalpha(token[0]) || ntoken <= 0) {
+            wb_read_error() ;
+            wb_flush_line(infile);
+            WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_SYNTAX);
+        }
+        newoption = wb_value(&token, option_table);
+        if (newoption == 0) {
+            wb_read_error() ;
+            wb_flush_line(infile);
+            WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_OPTION);
+        }
+        options += newoption;
+        if (message_level <= WB_MSG_DEBUG) {
+            fprintf(stderr, "newoption=%d, options=%d\n", newoption, options);
+        }
+        // expect end delimiter ( or ]  or comma ,
+        ntoken = wb_get_token(token, infile, 2, 0);
+        if ((token[0] != end_delim && token[0] != ',') || ntoken != 1) {
+            wb_read_error() ;
+            wb_flush_line(infile);
+            WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_SYNTAX);
+        }
+    }
+    return options;
 }
+
 
 /* process define directive  define(key_name[TYPE,array_size], ... , ... )  TYPE=R4/R8/I4/I8/L1/Cn  */
 static int wb_define(WhiteBoard *WB, FILE *infile, char *package){
@@ -1954,7 +2074,7 @@ static int wb_define(WhiteBoard *WB, FILE *infile, char *package){
       if( strcmp("OPT",(char *)Token)==0 && opt_cmd==0 ) {   /* OPT= subcommand */
          ntoken=wb_get_token(Token,infile,2,0) ; /* expect =  */
          if(Token[0]!='=' || ntoken!=1) goto error_syntax ;
-         options =  wb_options(infile,'[',']',dict_options);
+         options =  wb_options(infile, '[', ']', dict_options);
          opt_cmd++;
          }
       else if( strcmp("DESC",(char *)Token)==0 && desc_cmd==0 ) {   /*DESC= subcommand */
@@ -1985,19 +2105,22 @@ error_syntax:
 }
 
 /* process key= directive from file Token contains key name, package contains package prefix string */
-static int wb_key(WhiteBoard *WB, FILE *infile,unsigned char *Token, char *package, int Options){
-   int status=WB_OK;
-   int err_not_found=1;
-   int elementtype,elementsize,elements,ntoken,nread,items;
+static int wb_key(WhiteBoard *WB, FILE *infile, unsigned char *Token, char *package, int Options)
+{
+   int status = WB_OK;
+   int err_not_found = 1;
+   int elementtype, elementsize, elements, ntoken, nread, items;
    wb_line *line;
    wb_page *page;
-   unsigned char name[WB_MAXNAMELENGTH+1];
+   unsigned char name[WB_MAXNAMELENGTH + 1];
    unsigned char separator[3];
-   unsigned char buffer[WB_MAXSTRINGLENGTH+3];  /* add the two delimiters and the null terminator */
+   // Add the two delimiters and the null terminator
+   unsigned char buffer[WB_MAXSTRINGLENGTH + 3];
    unsigned char *dataptr;
 
-   strncpy((char *)name,package,strlen(package));   /* concatenate package name with keyname */
-   strncpy((char *)name+strlen(package),(char *)Token,sizeof(name)-strlen(package));
+   // Concatenate package name with keyname
+   strncpy((char *)name, package, strlen(package));
+   strncpy((char *)name + strlen(package), (char *)Token, sizeof(name) - strlen(package));
    name[WB_MAXNAMELENGTH] = 0;
 
    if(message_level<=WB_MSG_INFO) fprintf(stderr,"Assigning to '%s'\n",name);
@@ -2107,7 +2230,7 @@ error_syntax:
 
 
 //! Read a dictionary or user directive file
-int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int options, int filename_length,
+int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int options, int filenameLength,
               int package_length, int section_length)
 {
     wb_definition mytable[MISC_BUFSZ];
@@ -2130,7 +2253,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
         wb = BaseWhiteboardPtr;
     }
 
-    TRIM(filename, filename_length)
+    TRIM(filename, filenameLength)
     TRIM(package, package_length)
     TRIM(section, section_length)
     // @bug External pointer (linebuffer) updated with local variable (localbuffer)!
@@ -2147,7 +2270,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
         definition_table[i].defined = 0;
     }
 
-    for (i = 0; i < filename_length && i < MISC_BUFSZ - 1 && filename[i] != 0; i++) {
+    for (i = 0; i < filenameLength && i < MISC_BUFSZ - 1 && filename[i] != 0; i++) {
         localfname[i] = filename[i];
     }
     // Filename collected
