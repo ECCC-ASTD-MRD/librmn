@@ -1,0 +1,16 @@
+    interface
+        integer function f_wb_get(wb, key, type_name, type_size, val, nbelem)
+            use, intrinsic :: iso_fortran_env
+            include "whiteboard_type.hf"
+            integer(kind = int64), intent(in), optional :: wb
+            character (len = *), intent(in) :: key
+            integer, intent(in) :: type_name
+            integer, intent(in) :: type_size
+#ifdef ARRAY
+            TYPEFORTRAN, dimension(:), intent(out) :: val
+#else
+            TYPEFORTRAN, intent(out) :: val
+#endif
+            integer, intent(in) :: nbelem
+        end function
+    end interface

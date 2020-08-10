@@ -1,0 +1,469 @@
+!> Read a dictionary or namelist into the whiteboard
+!
+!> @param[in] prefix_name Prefix to add to var name found in the config file as WB keyname
+!> @param[in] file        Config filename to read
+!> @param[in] section     Section name to read in the config file
+!> @param[in] mode        Parsing mode of the config file [WB_ALLOW_DEFINE...]
+!> @param[in] wb          WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_read)(prefix_name, file, section, mode, wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    character(len = *), intent(in) :: prefix_name
+    character(len = *), intent(in) :: file
+    character(len = *), intent(in) :: section
+    integer, intent(in) :: mode
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_read
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_read(my_wb, prefix_name, file, section, mode)
+    return
+#endif
+end function
+
+
+!> Retreive all key names in the wahitboard starting with key_pattern
+!
+!> @param[out] keys        List of found WB key names that start with key_pattern
+!> @param[out] nkeys       Number of found key name
+!> @param[in]  key_pattern Key prefix to match against
+!> @param[in]  wb          WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Number of matching keys found
+function OMPFNCNAME(wb_keys)(keys, nkeys, key_pattern, wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    character(len = *), intent(out) :: keys(:)
+    integer, intent(out) :: nkeys
+    character(len = *), intent(in) :: key_pattern
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_get_keys
+!$omp critical
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    nkeys = f_wb_get_keys(my_wb, keys, size(keys), key_pattern)
+    status = nkeys
+!$omp endcritical
+#endif
+end function
+
+
+!> Retreive meta data of WB entry conresponding to provided key name
+!
+!> @param[out] key        String identifying the whiteboard entry to get meta from
+!> @param[out] type1      Fortran type [WB_FORTRAN_*]
+!> @param[out] typelen    Length of the fortran type [4,8,len(string)]
+!> @param[out] array_size Number of elements in the array; 0=scalar
+!> @param[out] options    As they are set in by the put
+!> @param[in]  wb         WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_get_meta)(key, type1, typelen, array_size, options, wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    character(len = *), intent(in) :: key
+    integer, intent(out) :: type1, typelen, array_size, options
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_get_meta
+!$omp critical
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_get_meta(my_wb, key, type1, typelen, array_size, options)
+!$omp end critical
+#endif
+end function
+
+
+!> Set the name of the checkpoint file
+!
+!> @param[in] filename Name of the wb checkpoint file
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_checkpoint_setname)(filename) result(status)
+    implicit none
+
+    character(len = *), intent(in) :: filename
+    integer :: status
+
+#ifndef INTERFACEONLY
+  integer, external :: f_wb_checkpoint_name
+  status = f_wb_checkpoint_name(filename)
+#endif
+end function
+
+
+!> Get the name of the checkpoint file
+!
+!> @param[out] filename Name of the wb checkpoint file
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_checkpoint_getname)(filename) result(status)
+  implicit none
+
+  character(len = *), intent(out) :: filename
+  integer :: status
+
+#ifndef INTERFACEONLY
+  integer, external :: f_wb_checkpoint_get_name
+  status = f_wb_checkpoint_get_name(filename)
+#endif
+end function
+
+
+!> Save a copy of the whiteboard to disk for re-start purpose
+!
+!> @param[in]  wb WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_checkpoint)(wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_checkpoint
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_checkpoint(my_wb)
+#endif
+end function
+
+
+!TODO: may want to remove this and do an auto reload on 1st WB fn call
+
+!> Force a reload of the saved copy of the whiteboard, if ant, as written by wb_checkpoint; normally done first thing on re-start
+!
+!> @param[in] wb WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_reload)(wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_reload
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_reload(my_wb)
+#endif
+end function
+
+
+!> Check all whiteboard entries for the gien instatus, return number of entries that match
+!
+!> @param[in] prefix_match Prefix string to match to WB entry key name
+!> @param[in] instatus     Status code to check for
+!> @param[in] wb           WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Number of entries that match instatus; error if < 0
+function OMPFNCNAME(wb_check)(prefix_match, instatus, wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    character(len = *), intent(in) :: prefix_match
+    integer, intent(in) :: instatus
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_check
+!$omp critical
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_check(my_wb, prefix_match, instatus)
+!$omp end critical
+#endif
+end function
+
+
+!> Set all whiteboard entry to WB_REWRITE_NONE if and only if key name start with prefix_match and status is WB_REWRITE_UNTIL
+!
+!> This is normally done after a wb_read of a config file
+!
+!> @param[in] prefix_match Prefix string to match to WB entry key name
+!> @param[in] wb           WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_lock)(prefix_match, wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    character(len = *), intent(in) :: prefix_match
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer, external :: f_wb_lock
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_lock(my_wb, prefix_match)
+#endif
+end function
+
+
+!> Set error callback function
+!
+!> The handler_function should have the following form:
+!>  subtroutine handler_function(error_severity, error_code)
+!>      integer, intent(in) :: error_severity, error_code
+!
+!> @param[in] handler_function Error handler callback
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_error_handler)(handler_function) result(status)
+    implicit none
+
+    integer :: status
+
+    external :: handler_function
+
+#ifndef INTERFACEONLY
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    status = WB_OK
+    call f_wb_error_handler(handler_function)
+#endif
+end function
+
+
+!> Configure WhiteBoard MPI broadcasts
+!
+!> @return Status; use WB_IS_OK(status) to check
+!
+!> @param[in] pe_root :          Root procesor number to braodcast from
+!> @param[in] pe_me              Actual procesor number
+!> @param[in] domain             Communicator "domain" to broadcast to
+!> @param[in] bcst_function      "pointer" to an mpi-like broadcast function
+!> @param[in] allreduce_function "pointer" to an mpi-like allreduce function
+!
+!> @return Always WB_OK
+function OMPFNCNAME(wb_broadcast_init)(pe_root, pe_me,domain, bcst_function, allreduce_function) result(status)
+    implicit none
+
+    integer, intent(in) :: pe_root, pe_me
+    character(len = *) :: domain
+    external :: bcst_function, allreduce_function
+    integer :: status
+
+#ifndef INTERFACEONLY
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    status = WB_OK
+    call f_wb_bcst_init(bcst_function, allreduce_function)
+#endif
+end function
+
+
+!> Perform an MPI broadcast
+!
+!> @param[in] key       String identifying the whiteboard entry to broadcast
+!> @param[in] ispattern If not 0, key is a pattern to match
+!> @param[in] wb        WhiteBoard instance.  The global instance is used if one ins't provided
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_broadcast)(key, ispattern, wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    character(len = *), intent(in)   :: key
+    integer, intent(in), optional :: ispattern
+    type(whiteboard), intent(in), optional :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer(kind = int64) :: my_wb
+    integer :: ispattern0
+    integer, external :: f_wb_bcst
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    if (present(ispattern)) then
+        ispattern0 = ispattern
+    else
+        ispattern0 = 0
+    endif
+    status = f_wb_bcst(my_wb, key, ispattern0)
+#endif
+end function
+
+
+!> Set the wb verbosity level
+!
+!> @param[in] level Verbosity level
+!
+!> @return The previously set verbosity level
+function OMPFNCNAME(wb_verbosity)(level) result(status)
+    implicit none
+
+    integer, intent(in) :: level
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer, external :: f_wb_verbosity
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    status = f_wb_verbosity(level)
+#endif
+end function
+
+
+!> Create a new whiteboard instance
+!
+!> @param[out] wb New WhiteBoard
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_new)(wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    type(whiteboard), intent(out) :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer, external :: f_wb_new
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    status = f_wb_new(wb%wb)
+#endif
+end function
+
+
+!> Delete a WhiteBoard instance
+!
+!> @param[in] wb The WhiteBoard to delete
+!
+!> @return Status; use WB_IS_OK(status) to check
+function OMPFNCNAME(wb_free)(wb) result(status)
+    use, intrinsic :: iso_fortran_env
+    implicit none
+
+    include "whiteboard_type.hf"
+    type(whiteboard), intent(inout) :: wb
+    integer :: status
+
+#ifndef INTERFACEONLY
+    integer, external :: f_wb_free
+#ifdef _OPENMP
+    integer, external :: omp_get_num_threads
+    if (omp_get_num_threads() > 1) then
+        status = WB_ERROR
+        return
+    endif
+#endif
+    status = f_wb_free(wb%wb)
+#endif
+end function

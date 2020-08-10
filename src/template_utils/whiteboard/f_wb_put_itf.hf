@@ -1,0 +1,17 @@
+    interface
+        integer function f_wb_put(wb, key, type_name, type_size, val, nbelem, options)
+            use, intrinsic :: iso_fortran_env
+            include "whiteboard_type.hf"
+            integer(kind = int64), intent(in), optional :: wb
+            character (len = *), intent(in) :: key
+            integer, intent(in) :: type_name
+            integer, intent(in) :: type_size
+#ifdef ARRAY
+            TYPEFORTRAN, dimension(:), intent(in) :: val
+#else
+            TYPEFORTRAN, intent(in) :: val
+#endif
+            integer, intent(in) :: nbelem
+            integer, intent(in) :: options
+        end function
+    end interface

@@ -1,0 +1,93 @@
+#include "WhiteBoard_constants.h"
+
+#ifdef _OPENMP
+#define OMPFNCNAME(name) name/**/_omp
+#else
+#define OMPFNCNAME(name) name/**/_st
+#endif
+
+#define NAMEA(name) name/**/_a
+
+#define TYPEWBFORT WB_FORTRAN_INT
+
+#define TYPELEN 4
+#define TYPE2CHAR i4
+#define FNCNAME(name) name/**/i4
+#define TYPEFORTRAN integer(kind = int32)
+#include "wb_get.tmpl90"
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#define TYPELEN 8
+#define TYPE2CHAR i8
+#define FNCNAME(name) name/**/i8
+#define TYPEFORTRAN integer(kind = int64)
+#include "wb_get.tmpl90"
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+#define TYPEWBFORT WB_FORTRAN_REAL
+
+#define TYPELEN 4
+#define TYPE2CHAR r4
+#define FNCNAME(name) name/**/r4
+#define TYPEFORTRAN real(kind = real32)
+#include "wb_get.tmpl90"
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#define TYPELEN 8
+#define TYPE2CHAR r8
+#define FNCNAME(name) name/**/r8
+#define TYPEFORTRAN real(kind = real64)
+#include "wb_get.tmpl90"
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+#define TYPEWBFORT WB_FORTRAN_BOOL
+
+#define TYPELEN 1
+#define TYPE2CHAR l1
+#define FNCNAME(name) name/**/l1
+#define TYPEFORTRAN logical
+#include "wb_get.tmpl90"
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+#define TYPEWBFORT WB_FORTRAN_CHAR
+
+#define TYPELEN len(val)
+#define TYPE2CHAR cc
+#define FNCNAME(name) name/**/cc
+#define TYPEFORTRAN character(len = *)
+#include "wb_get.tmpl90"
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#include "wb_omp.tmpl90"
+
+#undef TYPEWBFORT
+
+#undef NAMEA
+#undef OMPFNCNAME

@@ -1,0 +1,4 @@
+type :: whiteboard
+    sequence
+    integer(kind = int64) :: wb
+end type whiteboard

@@ -30,6 +30,15 @@
 #define WB_PUT_R8V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,options,strlen(name))
 #define WB_GET_R8V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,strlen(name))
 
+
+
+//! Dummy callback function for c_wb_check
+static int Action1(wb_line *line, void *blinddata) {
+    fprintf(stderr, "Action1 has been called, key=%s\n", &(line->meta.name.carr));
+    return 0;
+}
+
+
 void f77_name(c_wb_test)() {
    int status, myint, myint2;
    long long myll, myll2;

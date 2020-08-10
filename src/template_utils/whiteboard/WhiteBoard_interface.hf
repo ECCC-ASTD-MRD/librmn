@@ -1,0 +1,5 @@
+#define INTERFACEONLY
+interface
+#include "WhiteBoard.tmpl90"
+end interface
+#undef INTERFACEONLY
