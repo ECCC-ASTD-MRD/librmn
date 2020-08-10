@@ -37,8 +37,6 @@
 
 #define CAT #1#2#3#4#5#6
 #define TYPELEN_SCALAR 0
-#define WHITEBOARD_GLOBAL_INT 0
-#define WHITEBOARD_GLOBAL dict(WHITEBOARD_GLOBAL_INT)
 
 #ifdef INTERFACEONLY
 interface wb_get
@@ -64,13 +62,15 @@ integer function CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)(key, value, wb) result(status)
 
 #ifndef INTERFACEONLY
     integer*8 :: my_wb
-    integer,external :: f_wb_get
+    integer, external :: f_wb_get
 !$omp critical
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, value, TYPELEN_SCALAR)
 !$omp end critical
-
 #endif
 end function
 
@@ -97,8 +97,11 @@ integer function CAT(wb_get_,TYPE2CHAR,OMPSUFFIX)_a(key, value, nbval, wb) resul
     integer*8 :: my_wb
     integer, external :: f_wb_get
 !$omp critical
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     nbval  = 0
     status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, value, size(value))
     if (WB_IS_OK(status)) nbval = status
@@ -115,8 +118,10 @@ end function
 
 #ifdef INTERFACEONLY
 end interface wb_get
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_put
 #endif
 
@@ -132,7 +137,7 @@ interface wb_put
 integer function CAT(wb_put_,TYPE2CHAR,OMPSUFFIX)(key, value, options0, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     type(whiteboard), intent(in), optional :: wb
     integer, intent(in), optional  :: options0
     TYPEFORTRAN, intent(in) :: value
@@ -149,10 +154,17 @@ integer function CAT(wb_put_,TYPE2CHAR,OMPSUFFIX)(key, value, options0, wb) resu
         return
     endif
 #endif
-    options = WB_REWRITE_NONE
-    if (present(options0)) options = options0
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(options0)) then
+        options = options0
+    else
+        options = WB_REWRITE_NONE
+    endif
+
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_put(my_wb, key, TYPEWBFORT, TYPELEN, value, TYPELEN_SCALAR, options)
     return
 #endif
@@ -170,7 +182,7 @@ end function
 integer function CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)(key, value, options0, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     type(whiteboard), intent(in), optional :: wb
     integer, intent(in), optional :: options0
     TYPEFORTRAN, dimension(:), intent(in) :: value
@@ -179,7 +191,7 @@ integer function CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)(key, value, options0, wb) r
 #ifndef INTERFACEONLY
     integer*8 :: my_wb
     integer :: options
-    integer,external :: f_wb_put
+    integer, external :: f_wb_put
 #ifdef _OPENMP
     integer, external :: omp_get_num_threads
     if (omp_get_num_threads() > 1) then
@@ -191,10 +203,17 @@ integer function CAT(wb_put_,TYPE2CHAR,_a,OMPSUFFIX)(key, value, options0, wb) r
         status = WB_ERROR
         return
     endif
-    options = WB_REWRITE_NONE
-    if (present(options0)) options = options0
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(options0)) then
+        options = options0
+    else
+        options = WB_REWRITE_NONE
+    endif
+
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_put(my_wb, key, TYPEWBFORT, TYPELEN, value, size(value), options)
     return
 #endif
@@ -221,7 +240,7 @@ interface wb_read
 integer function CAT(wb_read,OMPSUFFIX)(prefix_name, file, section, mode, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     character(len = *), intent(in) :: prefix_name
     character(len = *), intent(in) :: file
     character(len = *), intent(in) :: section
@@ -238,9 +257,12 @@ integer function CAT(wb_read,OMPSUFFIX)(prefix_name, file, section, mode, wb) re
         return
     endif
 #endif
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
-    status = f_wb_read(my_wb,prefix_name,file,section,mode)
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    status = f_wb_read(my_wb, prefix_name, file, section, mode)
     return
 #endif
 end function
@@ -264,7 +286,7 @@ interface wb_keys
 integer function CAT(wb_keys,OMPSUFFIX)(keys, nkeys, key_pattern, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     character(len = *), intent(out) :: keys(:)
     integer, intent(out) :: nkeys
     character(len = *), intent(in) :: key_pattern
@@ -274,8 +296,11 @@ integer function CAT(wb_keys,OMPSUFFIX)(keys, nkeys, key_pattern, wb) result(sta
     integer*8 :: my_wb
     integer, external :: f_wb_get_keys
 !$omp critical
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     nkeys = f_wb_get_keys(my_wb, keys, size(keys), key_pattern)
     status = nkeys
 !$omp endcritical
@@ -303,7 +328,7 @@ interface wb_get_meta
 integer function CAT(wb_get_meta,OMPSUFFIX)(key, type1, typelen, array_size, options, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     character(len = *), intent(in) :: key
     integer, intent(out) :: type1, typelen, array_size, options
     type(whiteboard), intent(in), optional :: wb
@@ -313,8 +338,11 @@ integer function CAT(wb_get_meta,OMPSUFFIX)(key, type1, typelen, array_size, opt
     integer*8 :: my_wb
     integer, external :: f_wb_get_meta
 !$omp critical
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_get_meta(my_wb, key, type1, typelen, array_size, options)
 !$omp end critical
 #endif
@@ -339,7 +367,7 @@ integer function CAT(wb_checkpoint_setname,OMPSUFFIX)(filename) result(status)
     character(len = *), intent(in) :: filename
 
 #ifndef INTERFACEONLY
-  integer,external :: f_wb_checkpoint_name
+  integer, external :: f_wb_checkpoint_name
   status = f_wb_checkpoint_name(filename)
 #endif
 end function
@@ -385,7 +413,7 @@ interface wb_checkpoint
 integer function CAT(wb_checkpoint,OMPSUFFIX)(wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     type(whiteboard), intent(in), optional :: wb
 
 #ifndef INTERFACEONLY
@@ -398,8 +426,11 @@ integer function CAT(wb_checkpoint,OMPSUFFIX)(wb) result(status)
         return
     endif
 #endif
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_checkpoint(my_wb)
 #endif
 end function
@@ -421,10 +452,10 @@ interface wb_reload
 !
 !> @return Status; use WB_IS_OK(status) to check
 integer function CAT(wb_reload,OMPSUFFIX)(wb) result(status)
-  implicit none
+    implicit none
 
-#include <WhiteBoard.h>
-  type(whiteboard), intent(in), optional :: wb
+    include "WhiteBoard.hf"
+    type(whiteboard), intent(in), optional :: wb
 
 #ifndef INTERFACEONLY
     integer*8 :: my_wb
@@ -436,8 +467,11 @@ integer function CAT(wb_reload,OMPSUFFIX)(wb) result(status)
         return
     endif
 #endif
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_reload(my_wb)
 #endif
 end function
@@ -459,19 +493,22 @@ interface wb_check
 !
 !> @return Number of entries that match instatus; error if < 0
 integer function CAT(wb_check,OMPSUFFIX)(prefix_match, instatus, wb) result(status)
-  implicit none
+    implicit none
 
-#include <WhiteBoard.h>
-  character(len = *), intent(in) :: prefix_match
-  integer, intent(in) :: instatus
-  type(whiteboard), intent(in), optional :: wb
+    include "WhiteBoard.hf"
+    character(len = *), intent(in) :: prefix_match
+    integer, intent(in) :: instatus
+    type(whiteboard), intent(in), optional :: wb
 
 #ifndef INTERFACEONLY
     integer*8 :: my_wb
     integer, external :: f_wb_check
 !$omp critical
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_check(my_wb, prefix_match, instatus)
 !$omp end critical
 #endif
@@ -498,7 +535,7 @@ interface wb_lock
 integer function CAT(wb_lock,OMPSUFFIX)(prefix_match, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     type(whiteboard), intent(in), optional :: wb
     character(len = *), intent(in) :: prefix_match
 
@@ -512,8 +549,11 @@ integer function CAT(wb_lock,OMPSUFFIX)(prefix_match, wb) result(status)
         return
     endif
 #endif
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if(present(wb)) my_wb = wb%wb
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
     status = f_wb_lock(my_wb, prefix_match)
 #endif
 end function
@@ -614,7 +654,7 @@ interface wb_broadcast
 integer function CAT(wb_broadcast,OMPSUFFIX)(key, ispattern, wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     character(len = *), intent(in)   :: key
     integer, intent(in), optional :: ispattern
     type(whiteboard), intent(in), optional :: wb
@@ -630,10 +670,16 @@ integer function CAT(wb_broadcast,OMPSUFFIX)(key, ispattern, wb) result(status)
         return
     endif
 #endif
-    my_wb = WHITEBOARD_GLOBAL_INT
-    if (present(wb)) my_wb = wb%wb
-    ispattern0 = 0
-    if (present(ispattern)) ispattern0 = ispattern
+    if (present(wb)) then
+        my_wb = wb%wb
+    else
+        my_wb = 0
+    endif
+    if (present(ispattern)) then
+        ispattern0 = ispattern
+    else
+        ispattern0 = 0
+    endif
     status = f_wb_bcst(my_wb, key, ispattern0)
 #endif
 end function
@@ -688,7 +734,7 @@ interface wb_new
 integer function CAT(wb_new,OMPSUFFIX)(wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
+    include "WhiteBoard.hf"
     type(whiteboard), intent(out) :: wb
 
 #ifndef INTERFACEONLY
@@ -721,8 +767,8 @@ interface wb_free
 integer function CAT(wb_free,OMPSUFFIX)(wb) result(status)
     implicit none
 
-#include <WhiteBoard.h>
-    type(whiteboard),intent(INOUT) :: wb
+    include "WhiteBoard.hf"
+    type(whiteboard), intent(INOUT) :: wb
 
 #ifndef INTERFACEONLY
     integer, external :: f_wb_free
