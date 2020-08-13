@@ -1,3 +1,5 @@
+#include "../WhiteBoard_c.c"
+
 //! @todo Should these really be macros?  Wouldn't it be better to call functions that the compiler can inline?
 
 #define WB_PUT_C(WB,name,value,strglen,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,options,strlen(name))
