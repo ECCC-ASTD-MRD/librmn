@@ -97,3 +97,10 @@ typedef struct wb_page {
     int nbLines;
     wb_line line[WB_MAXLINESPERPAGE];
 } wb_page;
+
+//! Type for whiteboard instances
+typedef struct {
+    //! First page of the page linked list
+    wb_page *firstpage;
+    int validpages;
+} WhiteBoard;

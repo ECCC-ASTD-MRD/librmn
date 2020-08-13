@@ -55,12 +55,6 @@
 //! This allows the "map" functionnal programming technique
 typedef int (*LineWorker)(wb_line *, void *);
 
-//! Type for whiteboard instances
-typedef struct {
-    //! First page of the page linked list
-    wb_page *firstpage;
-    int validpages;
-} WhiteBoard;
 typedef WhiteBoard *WhiteBoardPtr;
 
 typedef struct {
