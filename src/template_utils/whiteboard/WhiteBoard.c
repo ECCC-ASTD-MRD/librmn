@@ -31,41 +31,126 @@
 
 #include "WhiteBoard.h"
 
+
+//------------------------------------------------------------------------------
+// Function like macros
+//------------------------------------------------------------------------------
+
+
 //! Find trimmed (non blank) length of a Fortran string
 //
 //! @param[in]     string String of which we want to find the trimmed length
 //! @param[in,out] length Must be set to the maximum possible length on call and will be updated to the trimmed length
 #define TRIM(string,length) { while( length > 0 && string[length - 1] == ' ' ) length-- ; }
 
+//! Error exit macro
+#define WB_ERR_EXIT(level,code)  return ( wb_error(level, code) )
+
+//------------------------------------------------------------------------------
+// Types
+//------------------------------------------------------------------------------
+
 
 //! Pointer to a function that operates on a line and receives extra data with it's second argument
 //! This allows the "map" functionnal programming technique
 typedef int (*LineWorker)(wb_line *, void *);
 
+//! Type for whiteboard instances
+typedef struct {
+    //! First page of the page linked list
+    wb_page *firstpage;
+    int validpages;
+} WhiteBoard;
+typedef WhiteBoard *WhiteBoardPtr;
+
+typedef struct {
+    char *name;
+    int nameLength;
+    int userMaxLabels;
+} wb_keys;
+
+//! MPI broadcast information
+typedef struct {
+    wordint pe_root;
+    wordint pe_me;
+    char *domain;
+    F2Cl ldomain;
+    void (*broadcast_function)();
+    void (*allreduce_function)();
+} wb_mpi_broadcast;
+
+
+//------------------------------------------------------------------------------
+// Data
+//------------------------------------------------------------------------------
+
+
+//! Default options when creating variables (used by Whiteboard read)
+static int default_dict_option = 0;
+
+//! Table of variable creation options (used by Whiteboard read)
+static wb_symbol dict_options[] = {
+    {WB_IS_LOCAL, "WB_IS_LOCAL"},
+    {WB_REWRITE_AT_RESTART, "WB_REWRITE_AT_RESTART"},
+    {WB_REWRITE_NONE, "WB_REWRITE_NONE"},
+    {WB_REWRITE_UNTIL, "WB_REWRITE_UNTIL"},
+    {WB_REWRITE_MANY, "WB_REWRITE_MANY"},
+    {WB_READ_ONLY_ON_RESTART, "WB_READ_ONLY_ON_RESTART"},
+    {0, NULL}
+};
+
+//! Table for verbosity options (used by Whiteboard read)
+static wb_symbol verb_options[] = {
+    {WB_MSG_DEBUG, "WB_MSG_DEBUG"},
+    {WB_MSG_INFO, "WB_MSG_INFO"},
+    {WB_MSG_WARN, "WB_MSG_WARN"},
+    {WB_MSG_ERROR, "WB_MSG_ERROR"},
+    {WB_MSG_SEVERE, "WB_MSG_SEVERE"},
+    {WB_MSG_FATAL, "WB_MSG_FATAL"},
+    {0, NULL}
+};
+
+//! Error message table
+static wb_symbol errors[] = {
+    {WB_ERR_NAMETOOLONG , "key name is too long"},
+    {WB_ERR_NOTFOUND, "requested item not found"},
+    {WB_ERR_READONLY, "key value cannot be redefined"},
+    {WB_ERR_WRONGTYPE, "key object and value have different types/length combinations"},
+    {WB_ERR_WRONGDIMENSION, "key object has dimensions smaller than value assigned"},
+    {WB_ERR_WRONGSTRING, "target string element is too short"},
+    {WB_ERR_ALLOC, "could not allocate memory with malloc"},
+    {WB_ERR_NOTYPE, "requested type/length combination is not valid"},
+    {WB_ERR_NOMEM, "not enough space available to allocate value"},
+    {WB_ERR_NOVAL, "key has not been initialized yet"},
+    {WB_ERR_BADVAL, "key value is dubious due to a failed put"},
+    {WB_ERR_CKPT, "problem opening/reading/writing checkpoint file"},
+    {WB_ERR_REDEFINE, "attempt to redefine an entry"},
+    {WB_ERR_BIG, "token too large in directive"},
+    {WB_ERR_SYNTAX, "syntax error in directive"},
+    {WB_ERR_OPTION, "invalid option or combination of options"},
+    {WB_ERR_READ, "open/read error in file"},
+    {WB_ERROR, ""},
+    {0, NULL}
+};
+
+// THIS MUST REMAIN CONSISTENT WITH Whiteboard.h
+static char *datatypes[] = {
+    "    ",
+    "Real",
+    "Int ",
+    "Char",
+    "Bool"
+};
+
+//! dummy whiteboard instance, returned when freeing a whiteboard
+static WhiteBoard DummyWhiteboard;
+static WhiteBoardPtr DummyWhiteboardPtr = &DummyWhiteboard;
+//! Permanent whiteboard instance, the only one that can be checkpointed
+static WhiteBoard BaseWhiteboard;
+static WhiteBoardPtr BaseWhiteboardPtr = &BaseWhiteboard;
 
 //! Verbosity level
 static int message_level = WB_MSG_WARN;
-
-//! Set verbosity level (C callable)
-//
-//! @param[in] level New verbosity level
-//
-//! @return The previously let level
-int c_wb_verbosity(int level)
-{
-    int old_level = message_level;
-    message_level = level;
-    return(old_level);
-}
-
-
-//! Set verbosity level (FORTRAN callable)
-wordint f77_name(f_wb_verbosity)(wordint *level)
-{
-   wordint old_level = message_level;
-   message_level = *level;
-   return old_level;
-}
 
 //! Line buffer used to process directive files
 //! @todo Figure out if this needs to have file scope!
@@ -78,6 +163,57 @@ static wb_definition *definition_table = NULL;
 //! Number of valid entries in definition table
 static int definition_table_entries = 0;
 static int max_definition_table_entries = 0;
+
+static char text_of_last_error[WB_MAX_ETRA_ERROR_LEN];
+static char *extra_error_message = NULL;
+static char extra_error_buffer[WB_MAX_ETRA_ERROR_LEN];
+
+static char *WhiteBoardCheckpointFile = "Whiteboard.ckpt";
+
+//! Address of the line that was the target of the last put/create operation. Used by wb_read to avoid a costly lookup
+static wb_line *wb_lastputline = NULL;
+
+
+//------------------------------------------------------------------------------
+// Prototypes
+//------------------------------------------------------------------------------
+static int new_page(WhiteBoard *WB, int nlines);
+
+int c_wb_reload();
+
+//! @todo Replace these with iso_c_binding
+void f77_name(f_logical_move)(void *, void *, wordint *);
+void f77_name(f_logical2int)(void *, void *, wordint *);
+void f77_name(f_int2logical)(void *, void *, wordint *);
+
+static wb_mpi_broadcast wb_broadcast_cfg;
+
+
+//------------------------------------------------------------------------------
+// Functions
+//------------------------------------------------------------------------------
+
+
+//! Set verbosity level (C callable)
+//
+//! @param[in] level New verbosity level
+//
+//! @return The previously let level
+int c_wb_verbosity(int level)
+{
+    int old_level = message_level;
+    message_level = level;
+    return old_level;
+}
+
+
+//! Set verbosity level (FORTRAN callable)
+wordint f77_name(f_wb_verbosity)(wordint *level)
+{
+   wordint old_level = message_level;
+   message_level = *level;
+   return old_level;
+}
 
 
 //! Manage definition_table (used by whiteboard read routine)
@@ -96,7 +232,7 @@ static int wb_define_check(wb_line *line, int define_mode)
 
             if (define_mode == 1) {
                 // Found when it should not (we are processing a define)
-                return(WB_ERR_REDEFINE);
+                return WB_ERR_REDEFINE;
             }
 
             if ( definition_table[i].assigned ) {
@@ -104,16 +240,16 @@ static int wb_define_check(wb_line *line, int define_mode)
                 if (message_level <= WB_MSG_ERROR) {
                     fprintf(stderr, "ERROR: key value already assigned in this directive file \n");
                 }
-                return(WB_ERR_REDEFINE);
+                return WB_ERR_REDEFINE;
             }
             definition_table[i].assigned = 1 ;    /* flag assignation */
 
-            return(i);
+            return i;
          }
     }
     if (define_mode == 0) {
         // Not in define mode, strict dictionary mode, not found, fail
-        return (WB_ERR_NOTFOUND);
+        return WB_ERR_NOTFOUND;
     }
 
     if (definition_table_entries >= max_definition_table_entries) {
@@ -121,7 +257,7 @@ static int wb_define_check(wb_line *line, int define_mode)
         if (message_level <= WB_MSG_ERROR) {
             fprintf(stderr, "ERROR: too many keys appear in this directive file \n");
         }
-        return (WB_ERROR);
+        return WB_ERROR;
     }
 
     // Create and initialize entry
@@ -134,48 +270,6 @@ static int wb_define_check(wb_line *line, int define_mode)
     return definition_table_entries++;
 }
 
-
-//! Default options when creating variables (used by Whiteboard read)
-static int default_dict_option = 0;
-
-//! Table of variable creation options (used by Whiteboard read)
-static wb_symbol dict_options[] = {
-    {WB_IS_LOCAL, "WB_IS_LOCAL"},
-    {WB_REWRITE_AT_RESTART, "WB_REWRITE_AT_RESTART"},
-    {WB_REWRITE_NONE, "WB_REWRITE_NONE"},
-    {WB_REWRITE_UNTIL, "WB_REWRITE_UNTIL"},
-    {WB_REWRITE_MANY, "WB_REWRITE_MANY"},
-    {WB_READ_ONLY_ON_RESTART, "WB_READ_ONLY_ON_RESTART"},
-    {0, NULL}
-} ;
-
-//! Table for verbosity options (used by Whiteboard read)
-static wb_symbol verb_options[] = {
-    {WB_MSG_DEBUG, "WB_MSG_DEBUG"},
-    {WB_MSG_INFO, "WB_MSG_INFO"},
-    {WB_MSG_WARN, "WB_MSG_WARN"},
-    {WB_MSG_ERROR, "WB_MSG_ERROR"},
-    {WB_MSG_SEVERE, "WB_MSG_SEVERE"},
-    {WB_MSG_FATAL, "WB_MSG_FATAL"},
-    {0, NULL}
-} ;
-
-//! Type for whiteboard instances
-typedef struct {
-    //! First page of the page linked list
-    wb_page *firstpage;
-    int validpages;
-} WhiteBoard;
-typedef WhiteBoard *WhiteBoardPtr;
-
-//! dummy whiteboard instance, returned when freeing a whiteboard
-static WhiteBoard DummyWhiteboard;
-static WhiteBoardPtr DummyWhiteboardPtr = &DummyWhiteboard;
-//! Permanent whiteboard instance, the only one that can be checkpointed
-static WhiteBoard BaseWhiteboard;
-static WhiteBoardPtr BaseWhiteboardPtr = &BaseWhiteboard;
-
-static int new_page(WhiteBoard *WB, int nlines);
 
 //! Create a new whiteboard instance
 //
@@ -239,45 +333,14 @@ int c_wb_free(WhiteBoard *wb) {
     return WB_OK;
 }
 
+
+//! @copydoc c_wb_free
 wordint f77_name(f_wb_free)(WhiteBoard **wb) {
     wordint status = c_wb_free(*wb);
     // Set whiteboard address to address of dummy whiteboard, so that we can trap it
     *wb = DummyWhiteboardPtr;
     return status;
 }
-
-
-//! Error message table
-static wb_symbol errors[] = {
-    {WB_ERR_NAMETOOLONG , "key name is too long"},
-    {WB_ERR_NOTFOUND, "requested item not found"},
-    {WB_ERR_READONLY, "key value cannot be redefined"},
-    {WB_ERR_WRONGTYPE, "key object and value have different types/length combinations"},
-    {WB_ERR_WRONGDIMENSION, "key object has dimensions smaller than value assigned"},
-    {WB_ERR_WRONGSTRING, "target string element is too short"},
-    {WB_ERR_ALLOC, "could not allocate memory with malloc"},
-    {WB_ERR_NOTYPE, "requested type/length combination is not valid"},
-    {WB_ERR_NOMEM, "not enough space available to allocate value"},
-    {WB_ERR_NOVAL, "key has not been initialized yet"},
-    {WB_ERR_BADVAL, "key value is dubious due to a failed put"},
-    {WB_ERR_CKPT, "problem opening/reading/writing checkpoint file"},
-    {WB_ERR_REDEFINE, "attempt to redefine an entry"},
-    {WB_ERR_BIG, "token too large in directive"},
-    {WB_ERR_SYNTAX, "syntax error in directive"},
-    {WB_ERR_OPTION, "invalid option or combination of options"},
-    {WB_ERR_READ, "open/read error in file"},
-    {WB_ERROR, ""},
-    {0, NULL}
-};
-
-// THIS MUST REMAIN CONSISTENT WITH Whiteboard.h
-static char *datatypes[] = {
-    "    ",
-    "Real",
-    "Int ",
-    "Char",
-    "Bool"
-};
 
 
 //! Get integer value associated with a string(symbol) from a symbol table
@@ -296,7 +359,7 @@ static int wb_value(char *symbol, wb_symbol *table)
             if (message_level <= WB_MSG_DEBUG) {
                 fprintf(stderr, "found %d\n", table->code);
             }
-            return(table->code);
+            return table->code;
         }
         table++;
     }
@@ -315,19 +378,17 @@ static void null_error_handler()
 
 //! Pointer to the user's FORTRAN handler routine, defaults to internal null_error_handler
 //! The error handler receives two pointers to wordint variables
-static void (*ErrorHandler)() = &null_error_handler;
+static void (*errorHandler)() = &null_error_handler;
+
 
 //! Set the error handler
 //
-//! @param[in] UserErrorHandler Pointer to the error handler function
-void f77_name(f_wb_error_handler)( void (*UserErrorHandler)() )
+//! @param[in] userErrorHandler Pointer to the error handler function
+void f77_name(f_wb_error_handler)( void (*userErrorHandler)() )
 {
-    ErrorHandler = UserErrorHandler;
+    errorHandler = userErrorHandler;
 }
 
-static char text_of_last_error[WB_MAX_ETRA_ERROR_LEN];
-static char *extra_error_message = NULL;
-static char extra_error_buffer[WB_MAX_ETRA_ERROR_LEN];
 
 //! Copy a possibly non null terminated string to the extra error buffer
 //
@@ -362,7 +423,7 @@ static int wb_error(int severity, int code) {
 
     // Do nothing if there is no error or it's below the severity treshold
     if (code == WB_OK || severity < message_level) {
-        return(code);
+        return code;
     }
     while (message->text != NULL) {
         if (message->code == code) {
@@ -375,13 +436,10 @@ static int wb_error(int severity, int code) {
         message++;
     }
     // Call user's FORTRAN error handler
-    (*ErrorHandler)(&Severity ,&Code);
-    return(code);
+    (*errorHandler)(&Severity ,&Code);
+    return code;
 }
 
-//! Error exit macro
-//! FIXME: Why is this here instead of in a header?
-#define WB_ERR_EXIT(level,code)  return ( wb_error(level, code) )
 
 //! Get the symbolic type code (WB_FORTRAN_...) and validate the type/length combination
 //
@@ -480,7 +538,7 @@ wordint f77_name(fortran_string_copy)(char *src, char *dst, F2Cl src_len, F2Cl d
 {
    int Ldst = dst_len;
    int Lsrc = src_len;
-   return(c_fortran_string_copy(src, dst, Lsrc, Ldst, ' '));
+   return c_fortran_string_copy(src, dst, Lsrc, Ldst, ' ');
 }
 #endif
 
@@ -535,29 +593,22 @@ static int wb_match_name(char *str1, char *str2, int length) {
     return 0;
 }
 
+
 //! Find a line in a page using the key name
 //
-//! @param[in] line          Line to search
-//! @param[in] page          Page in which to search
-//! @param[in] err_not_found If this is not null, throw an error if the line is not found
+//! @param[in] line        Line to search
+//! @param[in] page        Page in which to search
+//! @param[in] errNotFound If this is not null, throw an error if the line is not found
 //
 //! @return Line number if found, error otherwise
-static int lookup_line(wb_line *line, wb_page *page, int err_not_found) 
+static int lookup_line(wb_line *line, wb_page *page, int errNotFound)
 {
-
     if (page != NULL) {
         wb_line *pageline;
-        char *str1 = line->meta.name.carr;
-        char *str2;
         int i = 0;
-
-        int linelimit = page->firstFreeLine - 1;
-
-        while (i <= linelimit) {
+        while (i < page->firstFreeLine) {
             pageline = &(page->line[i]);
-            str1 = &(pageline->meta.name.carr[0]);
-            //! @bug str2 is not initialized when wb_match_name is called
-            if (wb_match_name(str1, str2, WB_MAXNAMELENGTH)) {
+            if (wb_match_name(line->meta.name.carr, pageline->meta.name.carr, WB_MAXNAMELENGTH)) {
                 // Found, return it's position in page
                 return i;
             }
@@ -569,7 +620,7 @@ static int lookup_line(wb_line *line, wb_page *page, int err_not_found)
             i += pageline->meta.flags.lines;
         }
     }
-    if (err_not_found) {
+    if (errNotFound) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     return WB_ERR_NOTFOUND;
@@ -617,10 +668,6 @@ static int new_page(WhiteBoard *wb, int nlines)
     return 0;
 }
 
-static char *WhiteBoardCheckpointFile = "Whiteboard.ckpt";
-
-int c_wb_reload();
-
 
 //! Initialize BaseWhiteboardPtr
 //
@@ -636,7 +683,7 @@ static int wb_init()
             if (message_level <= WB_MSG_INFO) {
                 fprintf(stderr, "whiteboard checkpoint file found, loading it\n");
             }
-            return( c_wb_reload() );
+            return c_wb_reload();
         }
         // first time through, allocate first page
         status = new_page(BaseWhiteboardPtr, WB_MAXLINESPERPAGE );
@@ -662,7 +709,7 @@ int c_wb_checkpoint_name(char *filename)
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     strncpy(WhiteBoardCheckpointFile, filename, strlen(filename));
-    return(wb_init());
+    return wb_init();
 }
 
 
@@ -681,7 +728,7 @@ wordint f77_name(f_wb_checkpoint_name)(char *filename, F2Cl filenameLength)
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     c_fortran_string_copy(filename, WhiteBoardCheckpointFile, Lfilename, Lfilename, '\0');
-    return(wb_init());
+    return wb_init();
 }
 
 
@@ -698,7 +745,7 @@ int c_wb_checkpoint_get_name(char *filename, int Lfilename)
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     strncpy(filename, WhiteBoardCheckpointFile, Lfilename);
-    return(wb_init());
+    return wb_init();
 }
 
 
@@ -716,7 +763,7 @@ wordint f77_name(f_wb_checkpoint_get_name)(char *filename, F2Cl filenameLength)
         WB_ERR_EXIT(WB_MSG_FATAL,WB_ERR_ALLOC);
     }
     c_fortran_string_copy(WhiteBoardCheckpointFile, filename, Lfilename, Lfilename, ' ');
-    return(wb_init());
+    return wb_init();
 }
 
 
@@ -741,7 +788,7 @@ static wb_line *new_line(WhiteBoard *wb, wb_page **page, int nlines)
         status = wb_init();
         if (status < 0) {
             // Init failed!
-            return(NULL);
+            return NULL;
         }
     }
     // Start at beginning of pagechain
@@ -755,7 +802,7 @@ static wb_line *new_line(WhiteBoard *wb, wb_page **page, int nlines)
             status = new_page(wb, ( nlines > WB_MAXLINESPERPAGE ) ? nlines : WB_MAXLINESPERPAGE );
             if (status < 0) {
                 // Allocation of new page failed
-                return(NULL);
+                return NULL;
             }
             // Potential target is new allocated page
             lookuppage = wb->firstpage;
@@ -825,17 +872,17 @@ static int flags_to_options(wb_line *line)
 
 //! Find line in WhiteBoard with it's name
 //
-//! @param[in]  wb            WhiteBoard in which to search.  If this is null, default to BaseWhiteboardPtr
-//! @param[in]  name          Name to search for
-//! @param[out] elementtype   Type of the element(s)
-//! @param[out] elementsize   Size of each element in bytes
-//! @param[out] elements      Number of elements in array, 0 if scalar
-//! @param[out] result_line   Line that bears the given name
-//! @param[out] result_page   Page in which the name was found
-//! @param[in]  err_not_found If not 0, throw an error if the line is not found
-//! @param[in]  name_length   Length of the name
+//! @param[in]  wb          WhiteBoard in which to search.  If this is null, default to BaseWhiteboardPtr
+//! @param[in]  name        Name to search for
+//! @param[out] elementtype Type of the element(s)
+//! @param[out] elementsize Size of each element in bytes
+//! @param[out] elements    Number of elements in array, 0 if scalar
+//! @param[out] result_line Line that bears the given name
+//! @param[out] result_page Page in which the name was found
+//! @param[in]  errNotFound If not 0, throw an error if the line is not found
+//! @param[in]  nameLength   Length of the name
 static int c_wb_lookup(WhiteBoard *wb, char *name, int *elementtype, int *elementsize, int *elements,
-                        wb_line **result_line, wb_page **result_page, int err_not_found, int name_length)
+                        wb_line **result_line, wb_page **result_page, int errNotFound, int nameLength)
 {
     wb_line line;
     int target_page = 0;
@@ -846,14 +893,14 @@ static int c_wb_lookup(WhiteBoard *wb, char *name, int *elementtype, int *elemen
         wb = BaseWhiteboardPtr;
     }
 
-    TRIM(name, name_length)
-    if (name_length > WB_MAXNAMELENGTH) {
+    TRIM(name, nameLength)
+    if (nameLength > WB_MAXNAMELENGTH) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NAMETOOLONG);
     }
 
     lookuppage = wb->firstpage;
     // Put key name into local line
-    fill_line(&line, name, name_length);
+    fill_line(&line, name, nameLength);
 #ifdef DEBUG
     printf("target name = :%s:\n", &(line.meta.name.carr[0]));
 #endif
@@ -876,11 +923,12 @@ static int c_wb_lookup(WhiteBoard *wb, char *name, int *elementtype, int *elemen
         target_page++;
         lookuppage = lookuppage->next;
     }
-    if (err_not_found) {
+    if (errNotFound) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     return WB_ERR_NOTFOUND;
 }
+
 
 //! Get the metadata associated with a WhiteBoard name for Fortran
 //
@@ -890,13 +938,13 @@ static int c_wb_lookup(WhiteBoard *wb, char *name, int *elementtype, int *elemen
 //! @param[out] elementsize   Size of each element in bytes
 //! @param[out] elements      Number of elements in array, 0 if scalar
 //! @param[out] options       Numeric representation of active flags
-//! @param[in]  name_length   Length of the name
+//! @param[in]  nameLength   Length of the name
 wordint f77_name(f_wb_get_meta)(WhiteBoard **wb, char *name, wordint *elementtype, wordint *elementsize,
-                                       wordint *elements, wordint *options, F2Cl name_length)
+                                       wordint *elements, wordint *options, F2Cl nameLength)
 {
     wb_line *line;
     wb_page *page;
-    int length = name_length;
+    int length = nameLength;
     int status;
 
     // No screaming if not found
@@ -910,24 +958,18 @@ wordint f77_name(f_wb_get_meta)(WhiteBoard **wb, char *name, wordint *elementtyp
 }
 
 
-//! FIXME Replace these with iso_c_binding
-void f77_name(f_logical_move)(void *, void *, wordint *);
-void f77_name(f_logical2int)(void *, void *, wordint *);
-void f77_name(f_int2logical)(void *, void *, wordint *);
-
-
 //! Get the data associated with a whiteboard entry
 //
 //! @param[in]  wb          WhiteBoard in which to search.
-//! @param[in]  name        Name of key (length MUST be supplied in name_length)
+//! @param[in]  name        Name of key (length MUST be supplied in nameLength)
 //! @param[in]  type        Type represented by one character: R/I/L/C , key type real/inetger/logical/character
 //! @param[in]  size        Size in bytes of each element 4/8 for R/I/L, 1->WB_MAXSTRINGLENGTH for character strings
 //! @param[out] dest        Pointer to where data is written (everything considered as unsigned bytes)
 //! @param[in]  nbelem      Number of elements that can be stored into value
-//! @param[in]  name_length Length of name
+//! @param[in]  nameLength Length of name
 //
 //! @return Dimension of whiteboard array if array, 0 if scalar, < 0 if error
-int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *dest, int nbelem, int name_length){
+int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *dest, int nbelem, int nameLength){
     wb_line *line;
     wb_page *page;
     int element_type, element_size, nb_elements;
@@ -943,8 +985,8 @@ int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *des
         WB = BaseWhiteboardPtr;
     }
 
-    TRIM(name, name_length)
-    set_extra_error_message(name, name_length);
+    TRIM(name, nameLength)
+    set_extra_error_message(name, nameLength);
 
     if (type == WB_FORTRAN_BOOL && size == 1) {
         // Special case: force 4 byte container for FORTRAN logical type
@@ -955,7 +997,7 @@ int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *des
     typecode = get_typecode(type, size, WB_MAXSTRINGLENGTH);
     if (typecode < 0) {
         // Bad type / ltype combination
-        return(typecode);
+        return typecode;
     }
     if (nbelem < 0) {
         // A negative number of values is a bad idea
@@ -968,7 +1010,7 @@ int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *des
     }
 
     // No screaming if not found
-    status = c_wb_lookup(WB, name, &element_type, &element_size, &nb_elements, &line, &page, 0, name_length);
+    status = c_wb_lookup(WB, name, &element_type, &element_size, &nb_elements, &line, &page, 0, nameLength);
     if (status < 0) {
         WB_ERR_EXIT(WB_MSG_INFO, WB_ERR_NOTFOUND);
     }
@@ -1038,37 +1080,33 @@ int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *des
 
 //! @copydoc c_wb_get
 wordint f77_name(f_wb_get)(WhiteBoard **wb, char *name, wordint *type, wordint *size, void *dest,
-                           wordint *nbelem, F2Cl name_length)
+                           wordint *nbelem, F2Cl nameLength)
 {
     // FIXME Check typing!  The compiler probably throws a buch of warnings for these!
     // FIXME Why copy to local variables prior to the function call for pass-by-value parameters?
     // FIXME Why not replace all of this with a proper iso_c_binding interface?
-    int _name_length = name_length;
+    int _nameLength = nameLength;
     int _type = *type;
     int _nbelem = *nbelem;
     char _size = *size;
-    return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _name_length);
+    return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _nameLength);
 }
-
-
-//! Address of the line that was the target of the last put/create operation. Used by wb_read to avoid a costly lookup
-static wb_line *wb_lastputline = NULL;
 
 
 //! Store entry in a WhiteBoard
 //
 //! @param[in,out] wb          WhiteBoard in which to store.  If this is null, the WhiteBoard refrenced by DummyWhiteboardPtr is used.
-//! @param[in]     name        Name of key (length MUST be supplied in name_length)
+//! @param[in]     name        Name of key (length MUST be supplied in nameLength)
 //! @param[in]     type        Type represented by one character: R/I/L/C , key type real/inetger/logical/character
 //! @param[in]     size        Size in bytes of each element 4/8 for R/I/L, 1->WB_MAXSTRINGLENGTH for character strings
 //! @param[in]     src         Pointer to data asssociated with key (everything considered as unsigned bytes)
 //! @param[in]     nbelem      Number of elements (0 means a scalar) (1 or more means an array)
 //! @param[in]     options     Numeric representation of active flags
-//! @param[in]     name_length Name Length
+//! @param[in]     nameLength Name Length
 //
 //! @return Smaller than 0 in case of error.  0 for non character scalars, string length if string, max size of array if array
 int c_wb_put(WhiteBoard *wb, char *name, char type, int size, unsigned char *src, int nbelem, int options,
-             int name_length)
+             int nameLength)
 {
     wb_line *line;
     wb_page *page;
@@ -1087,8 +1125,8 @@ int c_wb_put(WhiteBoard *wb, char *name, char type, int size, unsigned char *src
     }
     extra_error_message = "";
 
-    TRIM(name, name_length)
-    set_extra_error_message(name, name_length);
+    TRIM(name, nameLength)
+    set_extra_error_message(name, nameLength);
     wb_lastputline = NULL;
 
     if (type == WB_FORTRAN_BOOL && size == 1) {
@@ -1116,7 +1154,7 @@ int c_wb_put(WhiteBoard *wb, char *name, char type, int size, unsigned char *src
     }
 
     // No screaming if not found
-    lookup_result = c_wb_lookup(wb, name, &stored_type, &stored_size, &stored_nbelem, &line, &page, 0, name_length);
+    lookup_result = c_wb_lookup(wb, name, &stored_type, &stored_size, &stored_nbelem, &line, &page, 0, nameLength);
     if (lookup_result >= 0) {
         // Entry has been found, will overwrite it, the options argument is ignored,
         // Flags are checked for consistency and permissions
@@ -1172,7 +1210,7 @@ int c_wb_put(WhiteBoard *wb, char *name, char type, int size, unsigned char *src
         }
 
         // Set line name
-        fill_line(line, name, name_length);
+        fill_line(line, name, nameLength);
         stored_size = size;
         if (typecode == WB_FORTRAN_CHAR && array == 0 ) {
             // Scalar string, round size up to wb_linedata size
@@ -1273,13 +1311,13 @@ int c_wb_put(WhiteBoard *wb, char *name, char type, int size, unsigned char *src
 
 
 //! @copydoc c_wb_put
-wordint f77_name(f_wb_put)(WhiteBoard **wb, char *name, wordint *type, wordint *size, void *src, wordint *nbelem, wordint *options, F2Cl name_length){
+wordint f77_name(f_wb_put)(WhiteBoard **wb, char *name, wordint *type, wordint *size, void *src, wordint *nbelem, wordint *options, F2Cl nameLength){
    char _type = *type;
-   int _name_length = name_length;
+   int _nameLength = nameLength;
    int _size = *size;
    int _nbelem = *nbelem;
    int _options = *options;
-   return(c_wb_put(*wb, name, _type, _size, src, _nbelem, _options, _name_length));
+   return c_wb_put(*wb, name, _type, _size, src, _nbelem, _options, _nameLength);
 }
 
 
@@ -1343,24 +1381,25 @@ int c_wb_checkpoint()
     return 0;
 }
 
+
 //! @copydoc c_wb_checkpoint
 wordint f77_name(f_wb_checkpoint)(WhiteBoard **WB){
-   return(c_wb_checkpoint());
+   return c_wb_checkpoint();
 }
 
 
 //! Invoke the provided function on mathing lines
 //
-//! @param[in] wb          WhiteBoard in which to search.  If this is null, the WhiteBoard refrenced by DummyWhiteboardPtr is used.
-//! @param[in] name        Entry name (length MUST be supplied in name_length)
-//! @param[in] option_mask Mask for the options to be tested
-//! @param[in] name_length Length of the entry name
-//! @param[in] print       Print messages if nonzero
-//! @param[in] fncptr      Function pointer to use when the options specified option_mask are set.  The referenced function must accept 2 arguments: a Line pointer and a pointer to extra data.
-//! @param[in] extra_data  Pointer to be passed as the second argument of fncptr (first argument is matching line)
+//! @param[in] wb         WhiteBoard in which to search.  If this is null, the WhiteBoard refrenced by DummyWhiteboardPtr is used.
+//! @param[in] name       Entry name (length MUST be supplied in nameLength)
+//! @param[in] optionMask Mask for the options to be tested
+//! @param[in] nameLength Length of the entry name
+//! @param[in] print      Print messages if nonzero
+//! @param[in] fncptr     Function pointer to use when the options specified optionMask are set.  The referenced function must accept 2 arguments: a Line pointer and a pointer to extra data.
+//! @param[in] extra_data Pointer to be passed as the second argument of fncptr (first argument is matching line)
 //
 //! @return Number of matches, but as a negative number.  Why!?
-int c_wb_check(WhiteBoard *wb, char *name, int option_mask, int name_length, int print, LineWorker fncptr, void *extra_data )
+int c_wb_check(WhiteBoard *wb, char *name, int optionMask, int nameLength, int print, LineWorker fncptr, void *extra_data )
 {
     wb_page *lookuppage;
     int pageno = 0;
@@ -1375,7 +1414,7 @@ int c_wb_check(WhiteBoard *wb, char *name, int option_mask, int name_length, int
         wb = BaseWhiteboardPtr;
     }
 
-    TRIM(name, name_length)
+    TRIM(name, nameLength)
     lookuppage = wb->firstpage;
 
     while (lookuppage != NULL) {
@@ -1385,7 +1424,7 @@ int c_wb_check(WhiteBoard *wb, char *name, int option_mask, int name_length, int
             wb_line *line = &(lookuppage->line[i]);
             char *c1 = line->meta.name.carr;
             int options = flags_to_options(line);
-            if ( (options & option_mask) && wb_match_name(c1, name, name_length) ) {
+            if ( (options & optionMask) && wb_match_name(c1, name, nameLength) ) {
                 match_count--;
                 if (print) {
                     fprintf(stderr,
@@ -1423,20 +1462,21 @@ int c_wb_check(WhiteBoard *wb, char *name, int option_mask, int name_length, int
     return -match_count;
 }
 
-//! Print flags of lines with the procided name and that match the option mask
+
+//! Print flags of lines with the provided name and that match the option mask
 //
-//! @param[in] wb
-//! @param[in] name        Entry name (length MUST be supplied in name_length)
-//! @param[in] option_mask Mask for the options to be tested
-//! @param[in] name_length Length of the entry name
+//! @param[in] wb         WhiteBoard in which to search the lines
+//! @param[in] name       Entry name (length MUST be supplied in nameLength)
+//! @param[in] optionMask Mask for the options to be tested
+//! @param[in] nameLength Length of the entry name
 //
 //! @return Number of matches, but as a negative number.
-wordint f77_name(f_wb_check)(WhiteBoard **wb, char *name, wordint *option_mask, F2Cl name_length)
+wordint f77_name(f_wb_check)(WhiteBoard **wb, char *name, wordint *optionMask, F2Cl nameLength)
 {
-   int _option_mask = *option_mask;
-   int _name_length = name_length;
+   int _optionMask = *optionMask;
+   int _nameLength = nameLength;
    // print flag on, no action routine is supplied, no blind data pointer is supplied
-   return c_wb_check(*wb, name, _option_mask, _name_length, 1, NULL, NULL);
+   return c_wb_check(*wb, name, _optionMask, _nameLength, 1, NULL, NULL);
 }
 
 
@@ -1510,21 +1550,6 @@ static int wb_cb_from_restart(wb_line *line, void *blinddata)
 }
 
 
-//! @todo Move type declaration to local header file
-//! MPI broadcast information
-typedef struct {
-    wordint pe_root;
-    wordint pe_me;
-    char *domain;
-    F2Cl ldomain;
-    void (*broadcast_function)();
-    void (*allreduce_function)();
-} wb_mpi_broadcast;
-
-//! @todo Move static data declaration to the top of the file
-static wb_mpi_broadcast wb_broadcast_cfg;
-
-
 //! Configure WhiteBoard MPI broadcasts
 //
 //! @param[in] pe_root
@@ -1579,15 +1604,6 @@ wordint f77_name(f_wb_bcst)(WhiteBoard **wb, char *name, wordint *wildcard, F2Cl
 }
 
 
-//! @todo Move type declaration to local header file
-typedef struct {
-    char *name;
-    int nameLength;
-    int userMaxLabels;
-} wb_keys;
-
-
-
 //! Callback function for c_wb_check that copies keys into user table when collecting a list of keys
 //
 //! @param[in] line Line from which to copy the name
@@ -1633,6 +1649,12 @@ wordint f77_name(f_wb_get_keys)(WhiteBoard **wb, char *labels, wordint *nlabels,
 
 
 //! Convert all the lines with the WB_REWRITE_UNTIL attribute to read-only
+//
+//! @param[in] wb         Whiteboard instance
+//! @param[in] name       Name of the lines to lock
+//! @param[in] nameLength Length of name
+//
+//! @return Number of matches, but as a negative number.
 int c_wb_lock(WhiteBoard *wb, char *name, int nameLength){
     char localname[WB_MAXSTRINGLENGTH];
     int llname = c_fortran_string_copy(name, localname, nameLength, sizeof(localname), '\0');
@@ -1643,10 +1665,12 @@ int c_wb_lock(WhiteBoard *wb, char *name, int nameLength){
 }
 
 
+//! @copydoc c_wb_lock
 wordint f77_name(f_wb_lock)(WhiteBoard **wb, char *name, F2Cl nameLength){
    int _nameLength = nameLength;
    return c_wb_lock(*wb, name, _nameLength);
 }
+
 
 //! Write WhiteBoard checkpoint file
 int c_wb_reload()
@@ -1713,10 +1737,16 @@ wordint f77_name(f_wb_reload)(WhiteBoard **wb){
 }
 
 
-/* get a line from file, reset current character pointer */
+//! Get a line from file, reset current character pointer
+//
+//! @param[in] infile File from which to read the line
+//
+//! @return The address of linebuffer on scuccess or EOF otherwise
 static int wb_get_line(FILE *infile)
 {
     //! @bug linebuffer has never been allocated; memory corruption is happening here!
+    //! @bug There is a type missmatch between the return of fget (char *) and this function (int) and current_char (char *)!
+    //! @bug A int is not big enough to hold a char * on x86_64!
     current_char = fgets(linebuffer, WB_MISC_BUFSZ, infile);
     if (message_level <= WB_MSG_INFO && current_char) {
         fprintf(stderr, ">>%s", linebuffer);
@@ -1728,7 +1758,12 @@ static int wb_get_line(FILE *infile)
     }
 }
 
+
 //! Push character back onto the input buffer
+//
+//! @param[in] lastchar Character to push back
+//
+//! @return WB_OK on success, WB_ERROR otherwise
 //! @todo Figure out why lastchar is an int instead of an char
 static int wb_ungetc(int lastchar)
 {
@@ -1744,7 +1779,12 @@ static int wb_ungetc(int lastchar)
     return WB_OK;
 }
 
-// Get next character from input stream, take care of newline sequence
+
+//! Get next character from input stream, take care of newline sequence
+//
+//! @param[in] infile File from whic to read
+//
+//! @return 
 static int wb_getc(FILE *infile)
 {
     //! @todo Get rid of the goto
@@ -1759,24 +1799,26 @@ static int wb_getc(FILE *infile)
             return EOF;
         }
     }
-    s: if (*current_char == 0 ) {
-        // Try to refill empty buffer
+
+    while (*current_char == 0) {
         cbuff = wb_get_line(infile);
         if (current_char == NULL) {
             return EOF;
         }
+        // Gget next character and bump pointer
+        cbuff = *current_char++;
+        // Get rid of newlines
+        if (cbuff == '\\' && *current_char == '\n' ) {
+            // Point to character after newline
+            current_char++;
+        } else {
+            break;
+        }
     }
-    // Gget next character and bump pointer
-    cbuff = *current_char++;
-    // Get rid of newlines
-    if (cbuff == '\\' && *current_char == '\n' ) {
-        // Point to character after newline
-        current_char++;
-        // Start all over again
-        goto s;
-    }
+
     return cbuff;
 }
+
 
 //! Flush input until newline or EOF , return what was found
 //
@@ -1822,6 +1864,7 @@ static int wb_get_nonblank(FILE *infile)
     }
     return c;
 }
+
 
 //! Print a special error when reading directives, print directive line up to error, add ^^^^ error marker, print rest of line
 static void wb_read_error()
@@ -2033,11 +2076,17 @@ static int wb_options(FILE *infile, char start_delim, char end_delim, wb_symbol 
 
 
 //! Process define directive define(key_name[TYPE,array_size], ... , ... )  TYPE=R4/R8/I4/I8/L1/Cn
+//
+//! @param[in] wb      WhiteBoard in which to store the definition read
+//! @param[in] infile  File from which to read
+//! @param[in] package 
+//
+//! @return WB_OK on success, error code otherwise
 static int wb_define(WhiteBoard *wb, FILE *infile, char *package){
     char name[WB_MAXNAMELENGTH + 1];
     char type[WB_MAXNAMELENGTH + 1];
     char length[WB_MAXNAMELENGTH + 1];
-    char Token[WB_MISC_BUFSZ];
+    char token[WB_MISC_BUFSZ];
     int ntoken;
     int key_type, len_type, nread, array_length;
     int options = default_dict_option;
@@ -2047,8 +2096,8 @@ static int wb_define(WhiteBoard *wb, FILE *infile, char *package){
     int status = WB_OK;
 
     // Get (
-    ntoken = wb_get_token(Token, infile, 2, 0);
-    if (Token[0] != '(' || ntoken != 1) goto error_syntax;
+    ntoken = wb_get_token(token, infile, 2, 0);
+    if (token[0] != '(' || ntoken != 1) goto error_syntax;
 
     strncpy((char *)name, package, strlen(package));
     // Expect keyname
@@ -2056,8 +2105,8 @@ static int wb_define(WhiteBoard *wb, FILE *infile, char *package){
     if (!isalpha(name[strlen(package)]) || ntoken <= 0) goto error_syntax;
 
     // expect [
-    ntoken = wb_get_token(Token, infile, 2, 0);
-    if (Token[0] != '[' || ntoken != 1) goto error_syntax;
+    ntoken = wb_get_token(token, infile, 2, 0);
+    if (token[0] != '[' || ntoken != 1) goto error_syntax;
 
     // Expect entry type and length
     ntoken = wb_get_token(type, infile, sizeof(type), 0);
@@ -2077,8 +2126,8 @@ static int wb_define(WhiteBoard *wb, FILE *infile, char *package){
     if ((key_type = get_typecode(key_type, len_type, len_type)) < 0) goto error_syntax;
 
     // Expect ,
-    ntoken = wb_get_token(Token, infile, 2, 0);
-    if (Token[0] != ',' || ntoken != 1) goto error_syntax;
+    ntoken = wb_get_token(token, infile, 2, 0);
+    if (token[0] != ',' || ntoken != 1) goto error_syntax;
 
     // Expect array length
     ntoken = wb_get_token(length, infile, sizeof(length), 0);
@@ -2087,34 +2136,34 @@ static int wb_define(WhiteBoard *wb, FILE *infile, char *package){
     if (nread != ntoken) goto error_syntax;
 
     // Expect ]
-    ntoken = wb_get_token(Token, infile, 2, 0) ;
-    if (Token[0] != ']' || ntoken != 1) goto error_syntax;
+    ntoken = wb_get_token(token, infile, 2, 0) ;
+    if (token[0] != ']' || ntoken != 1) goto error_syntax;
 
     // Expect ) or ,
-    ntoken = wb_get_token(Token, infile, 2, 0);
-    if ((Token[0] != ')' && Token[0] != ',') || ntoken != 1) goto error_syntax;
+    ntoken = wb_get_token(token, infile, 2, 0);
+    if ((token[0] != ')' && token[0] != ',') || ntoken != 1) goto error_syntax;
 
     if (message_level <= WB_MSG_DEBUG) {
         fprintf(stderr, "type=%c,key_type=%d,len=%d,array_length=%d\n", key_c, key_type, len_type, array_length);
     }
-    while (Token[0] != ')') {
+    while (token[0] != ')') {
         // Expect subcommand name OPT or DESC
-        ntoken = wb_get_token(Token, infile, WB_MAXNAMELENGTH, 0);
-        if (strcmp("OPT", (char *)Token) == 0 && opt_cmd == 0 ) {
+        ntoken = wb_get_token(token, infile, WB_MAXNAMELENGTH, 0);
+        if (strcmp("OPT", (char *)token) == 0 && opt_cmd == 0 ) {
             // OPT= subcommand
             // Expect =
-            ntoken = wb_get_token(Token, infile, 2, 0);
-            if (Token[0] != '=' || ntoken != 1) goto error_syntax;
+            ntoken = wb_get_token(token, infile, 2, 0);
+            if (token[0] != '=' || ntoken != 1) goto error_syntax;
             options = wb_options(infile, '[', ']', dict_options);
             opt_cmd++;
-        } else if (strcmp("DESC", (char *)Token) == 0 && desc_cmd == 0) {
+        } else if (strcmp("DESC", (char *)token) == 0 && desc_cmd == 0) {
             // DESC= subcommand
             // Expect =
-            ntoken = wb_get_token(Token, infile, 2, 0);
-            if (Token[0] != '=' || ntoken != 1) goto error_syntax;
+            ntoken = wb_get_token(token, infile, 2, 0);
+            if (token[0] != '=' || ntoken != 1) goto error_syntax;
             // Expect quoted string
-            ntoken = wb_get_token(Token, infile, WB_MISC_BUFSZ, 0);
-            if (Token[0] != '\'' && Token[0] != '"') goto error_syntax;
+            ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ, 0);
+            if (token[0] != '\'' && token[0] != '"') goto error_syntax;
             // DESC is ignored for now, just counted
             desc_cmd++;
         } else {
@@ -2124,10 +2173,10 @@ static int wb_define(WhiteBoard *wb, FILE *infile, char *package){
             goto error_syntax ;
         }
         // expect ) or ,
-        ntoken = wb_get_token(Token, infile, WB_MAXNAMELENGTH, 0);
-        if( (Token[0] != ')' && Token[0] != ',') || ntoken != 1) goto error_syntax;
+        ntoken = wb_get_token(token, infile, WB_MAXNAMELENGTH, 0);
+        if( (token[0] != ')' && token[0] != ',') || ntoken != 1) goto error_syntax;
     }
-    status = c_wb_put(wb, name, key_type, len_type, (unsigned char*)Token, array_length, options | WB_CREATE_ONLY, strlen((char *)name));
+    status = c_wb_put(wb, name, key_type, len_type, (unsigned char*)token, array_length, options | WB_CREATE_ONLY, strlen((char *)name));
     // Put failed for some reason
     if (status < 0) goto error_syntax;
     // Must not already be in table
@@ -2143,10 +2192,10 @@ error_syntax:
 
 
 //! Process key= directive from file Token contains key name, package contains package prefix string
-static int wb_key(WhiteBoard *wb, FILE *infile, char *Token, char *package, int Options)
+static int wb_key(WhiteBoard *wb, FILE *infile, char *token, char *package, int options)
 {
     int status = WB_OK;
-    int err_not_found = 1;
+    int errNotFound = 1;
     int elementtype, elementsize, elements, ntoken, nread, items;
     wb_line *line;
     wb_page *page;
@@ -2158,7 +2207,7 @@ static int wb_key(WhiteBoard *wb, FILE *infile, char *Token, char *package, int 
 
     // Concatenate package name with keyname
     strncpy((char *)name, package, strlen(package));
-    strncpy((char *)name + strlen(package), (char *)Token, sizeof(name) - strlen(package));
+    strncpy((char *)name + strlen(package), (char *)token, sizeof(name) - strlen(package));
     name[WB_MAXNAMELENGTH] = 0;
 
     if (message_level <= WB_MSG_INFO) {
@@ -2166,19 +2215,19 @@ static int wb_key(WhiteBoard *wb, FILE *infile, char *Token, char *package, int 
     }
     extra_error_message=name;
     // Expect =
-    ntoken = wb_get_token(Token, infile, 2, 0);
-    if (Token[0] != '=' || ntoken != 1) {
+    ntoken = wb_get_token(token, infile, 2, 0);
+    if (token[0] != '=' || ntoken != 1) {
         if (message_level <= WB_MSG_ERROR) {
             fprintf(stderr, "= sign not found where expected \n");
         }
         goto error_syntax ;
     }
 
-    status = c_wb_lookup(wb, name, &elementtype, &elementsize, &elements, &line, &page, err_not_found, strlen(name));
+    status = c_wb_lookup(wb, name, &elementtype, &elementsize, &elements, &line, &page, errNotFound, strlen(name));
     // Key MUST be defined
     if (status < 0) goto error_syntax;
 
-    if (Options == WB_STRICT_DICTIONARY) {
+    if (options == WB_STRICT_DICTIONARY) {
         // Must be found in table if in strict dictionary mode
         status = wb_define_check(line, 0);
     } else {
@@ -2301,7 +2350,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     wb_definition mytable[WB_MISC_BUFSZ];
     char localbuffer[WB_MISC_BUFSZ];
     char localfname[WB_MISC_BUFSZ];
-    char Token[WB_MISC_BUFSZ];
+    char token[WB_MISC_BUFSZ];
     char Package[WB_MAXNAMELENGTH];
     char Section[WB_MAXNAMELENGTH];
     int i, status;
@@ -2392,8 +2441,8 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
             extra_error_message = Section;
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
         }
-        ntoken = wb_get_token(Token, infile, WB_MISC_BUFSZ - 1, 1);
-        notFound = (strncmp((char *)Token, Section, strlen(Section)) != 0);
+        ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 1);
+        notFound = (strncmp((char *)token, Section, strlen(Section)) != 0);
     }
     if (message_level <= WB_MSG_INFO) {
         fprintf(stderr, "INFO: directive section %s found\n", Section);
@@ -2404,35 +2453,35 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     temp = wb_get_line(infile);
     // Default options = none unless there is a directive
     default_dict_option = 0;
-    ntoken = wb_get_token(Token, infile, WB_MISC_BUFSZ - 1, 0);
+    ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 0);
     // Loop until end of section (beginning of next section or EOF)
-    while (strncmp((char *)Token, "@", 1) && ntoken != WB_ERROR ) {
-        if (strncmp((char *)Token, "OPTIONS", 7) == 0 ) {
+    while (strncmp((char *)token, "@", 1) && ntoken != WB_ERROR ) {
+        if (strncmp((char *)token, "OPTIONS", 7) == 0 ) {
             // Default options directive
             default_dict_option = wb_options(infile, '(', ')', dict_options);
-        } else if (strncmp((char *)Token, "MESSAGES", 8) == 0 ) {
+        } else if (strncmp((char *)token, "MESSAGES", 8) == 0 ) {
             // Verbosity control directive
             message_level = wb_options(infile,'(',')',verb_options);
-        } else if (strncmp((char *)Token, "DEFINE", 6) == 0 && options != WB_FORBID_DEFINE ) {
+        } else if (strncmp((char *)token, "DEFINE", 6) == 0 && options != WB_FORBID_DEFINE ) {
             // Define directive (if allowed)
             status = wb_define(wb, infile, Package);
             if (status < 0) errors++;
-        } else if (isalpha(Token[0])) {
+        } else if (isalpha(token[0])) {
             // Must be key=
-            status = wb_key(wb, infile, Token, Package, options);
+            status = wb_key(wb, infile, token, Package, options);
             if (status < 0) errors++;
-        } else if (Token[0] == '\n') {
+        } else if (token[0] == '\n') {
             // Ignore newlines
             temp = '\n';
         } else {
             if (message_level <= WB_MSG_ERROR) {
-                fprintf(stderr, "Unexpected token found at beginning of directive: '%s'\n", Token);
+                fprintf(stderr, "Unexpected token found at beginning of directive: '%s'\n", token);
             }
             errors++;
             wb_flush_line(infile);
         }
         // Get next token
-        ntoken = wb_get_token(Token, infile, WB_MISC_BUFSZ - 1, 0);
+        ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 0);
     }
 
     // We are done, close file and return success
@@ -2444,11 +2493,11 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
 }
 
 /* read a dictionary or user directive file (FORTRAN version) */
-wordint f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, wordint *options, F2Cl lpackage, F2Cl filenameLength,  F2Cl lsection){
-   int Lfilename = filenameLength;
-   int Lpackage = lpackage;
-   int Lsection = lsection;
-   int Options = *options;
+wordint f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, wordint *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
+   int _filenameLength = filenameLength;
+   int _packageLength = packageLength;
+   int _sectionLength = sectionLength;
+   int _options = *options;
 
-   return(c_wb_read(*wb, filename, package, section, Options, Lfilename, Lpackage, Lsection));
+   return c_wb_read(*wb, filename, package, section, _options, _filenameLength, _packageLength, _sectionLength);
 }
