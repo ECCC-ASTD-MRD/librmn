@@ -5,7 +5,7 @@
 
 #ifndef WHITEBOARD_VERSION
 /*! @todo Code version MUST NOT be a literal in the code; that's versionning system's responsability */
-#define WHITEBOARD_VERSION "1.1"
+#define WHITEBOARD_VERSION "2.0.0"
 
 #define WB_FORTRAN_REAL 1
 #define WB_FORTRAN_INT  2
