@@ -1,3 +1,5 @@
+#include "WhiteBoard_constants.h"
+
 #define INTERFACEONLY
 interface
 #include "WhiteBoard.tmpl90"
