@@ -318,14 +318,14 @@ end function
 !
 !> @return Status; use WB_IS_OK(status) to check
 !
-!> @param[in] pe_root :          Root procesor number to braodcast from
-!> @param[in] pe_me              Actual procesor number
-!> @param[in] domain             Communicator "domain" to broadcast to
+!> @param[in] pe_root            Root procesor number to braodcast from (unused, kept for compatibility only)
+!> @param[in] pe_me              Actual procesor number (unused, kept for compatibility only)
+!> @param[in] domain             Communicator "domain" to broadcast to (unused, kept for compatibility only)
 !> @param[in] bcst_function      "pointer" to an mpi-like broadcast function
 !> @param[in] allreduce_function "pointer" to an mpi-like allreduce function
 !
 !> @return Always WB_OK
-function OMPFNCNAME(wb_broadcast_init)(pe_root, pe_me,domain, bcst_function, allreduce_function) result(status)
+function OMPFNCNAME(wb_broadcast_init)(pe_root, pe_me, domain, bcst_function, allreduce_function) result(status)
     implicit none
 
     integer, intent(in) :: pe_root, pe_me
