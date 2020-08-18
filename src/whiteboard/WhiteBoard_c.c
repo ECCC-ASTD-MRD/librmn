@@ -148,12 +148,12 @@ static int message_level = WB_MSG_WARN;
 
 //! Line buffer used to process directive files
 //! @todo Figure out if this needs to have file scope!
-static char *linebuffer = NULL;
+static char linebuffer[WB_MISC_BUFSZ];
 //! Pointer to current character in directive file
 static char *current_char = NULL;
 
 //! Pointer to defionition table
-static wb_definition *definition_table = NULL;
+static wb_definition definition_table[WB_MISC_BUFSZ];
 //! Number of valid entries in definition table
 static int definition_table_entries = 0;
 static int max_definition_table_entries = 0;
@@ -367,7 +367,7 @@ static int wb_value(char *symbol, wb_symbol *table)
 //! Default user error handler, do nothing
 static void null_error_handler()
 {
-    return ;
+    return;
 }
 
 //! Pointer to the user's FORTRAN handler routine, defaults to internal null_error_handler
@@ -386,18 +386,28 @@ void f77_name(f_wb_error_handler)( void (*userErrorHandler)() )
 
 //! Copy a possibly non null terminated string to the extra error buffer
 //
-//! @param[in] name String of the extra error message
-//! @param[in] length Length of the extra error message
-static void set_extra_error_message(char *name, int length) {
-    if (length > WB_MAX_ETRA_ERROR_LEN - 1) {
-        length = WB_MAX_ETRA_ERROR_LEN - 1;
+//! @param[in] message String of the extra error message
+//! @param[in] length Length of the extra error message for Fortran style strings.  Provide -1 for null terminated string.
+static void set_extra_error_message(const char const *message, int length) {
+    // Cap the maximum length
+    if (length > WB_MAX_ETRA_ERROR_LEN  || length < 0) {
+        length = WB_MAX_ETRA_ERROR_LEN;
     }
-    extra_error_buffer[length] = '\0';
-    while(length > 0) {
-        extra_error_buffer[length - 1] = name[length - 1];
-        length--;
+
+    int pos = 0;
+    while (pos < length && message[pos] != '\0') {
+        extra_error_buffer[pos] = message[pos];
+        pos++;
     }
-    extra_error_message = &(extra_error_buffer[0]);
+    if (pos > 0) {
+        // A message was provided
+        extra_error_buffer[pos - 1] = '\0';
+        extra_error_message = extra_error_buffer;
+    } else {
+        // The message is empty
+        extra_error_buffer[0] = '\0';
+        extra_error_message = NULL;
+    }
 }
 
 
@@ -697,7 +707,7 @@ static int wb_init()
 //! @return 0 on success or error code otherwise
 int c_wb_checkpoint_name(char *filename)
 {
-    extra_error_message = "Setting chekpoint file name";
+    set_extra_error_message("Setting chekpoint file name", -1);
     WhiteBoardCheckpointFile = (char *)malloc(strlen(filename));
     if (WhiteBoardCheckpointFile == NULL) {
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
@@ -716,7 +726,7 @@ int c_wb_checkpoint_name(char *filename)
 wordint f77_name(f_wb_checkpoint_name)(char *filename, F2Cl filenameLength)
 {
     int Lfilename = filenameLength;
-    extra_error_message = "Setting chekpoint file name";
+    set_extra_error_message("Setting chekpoint file name", -1);
     WhiteBoardCheckpointFile = (char *)malloc(Lfilename + 1);
     if (WhiteBoardCheckpointFile == NULL) {
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
@@ -734,7 +744,7 @@ wordint f77_name(f_wb_checkpoint_name)(char *filename, F2Cl filenameLength)
 //! @return 0 on success or error code otherwise
 int c_wb_checkpoint_get_name(char *filename, int Lfilename)
 {
-    extra_error_message = "NO checkpoint file found while getting chekpoint file name";
+    set_extra_error_message("NO checkpoint file found while getting chekpoint file name", -1);
     if (WhiteBoardCheckpointFile == NULL) {
         WB_ERR_EXIT(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
@@ -752,7 +762,7 @@ int c_wb_checkpoint_get_name(char *filename, int Lfilename)
 wordint f77_name(f_wb_checkpoint_get_name)(char *filename, F2Cl filenameLength)
 {
     int Lfilename = filenameLength;
-    extra_error_message = "NO checkpoint file found while getting chekpoint file name";
+    set_extra_error_message("NO checkpoint file found while getting chekpoint file name", -1);
     if (WhiteBoardCheckpointFile == NULL) {
         WB_ERR_EXIT(WB_MSG_FATAL,WB_ERR_ALLOC);
     }
@@ -971,7 +981,7 @@ int c_wb_get(WhiteBoard *WB, char *name, char type, int size, unsigned char *des
     int i;
     unsigned char *csrc;
 
-    extra_error_message = " invalid whiteboard instance";
+    set_extra_error_message(" invalid whiteboard instance", -1);
     if (WB == DummyWhiteboardPtr) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
@@ -1110,14 +1120,14 @@ int c_wb_put(WhiteBoard *wb, char *name, char type, int size, unsigned char *src
     int i;
     unsigned char *dest;
 
-    extra_error_message = " invalid whiteboard instance";
+    set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
     }
-    extra_error_message = "";
+    extra_error_message = NULL;
 
     TRIM(name, nameLength)
     set_extra_error_message(name, nameLength);
@@ -1400,7 +1410,7 @@ int c_wb_check(WhiteBoard *wb, char *name, int optionMask, int nameLength, int p
     int match_count = 0;
     int status;
 
-    extra_error_message = " invalid whiteboard instance";
+    set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
@@ -1736,11 +1746,8 @@ wordint f77_name(f_wb_reload)(WhiteBoard **wb){
 //! @param[in] infile File from which to read the line
 //
 //! @return The address of linebuffer on scuccess or EOF otherwise
-static int wb_get_line(FILE *infile)
+static char wb_get_line(FILE *infile)
 {
-    //! @bug linebuffer has never been allocated; memory corruption is happening here!
-    //! @bug There is a type missmatch between the return of fget (char *) and this function (int) and current_char (char *)!
-    //! @bug A int is not big enough to hold a char * on x86_64!
     current_char = fgets(linebuffer, WB_MISC_BUFSZ, infile);
     if (message_level <= WB_MSG_INFO && current_char) {
         fprintf(stderr, ">>%s", linebuffer);
@@ -1779,11 +1786,11 @@ static int wb_ungetc(int lastchar)
 //! @param[in] infile File from whic to read
 //
 //! @return 
-static int wb_getc(FILE *infile)
+static char wb_getc(FILE *infile)
 {
     //! @todo Get rid of the goto
     //! @todo Stop using file static variables if there is not a bloody good reason to do so!
-    int cbuff;
+    char cbuff;
 
     // No buffer pointer, fill buffer
     if (current_char == NULL) {
@@ -1819,9 +1826,9 @@ static int wb_getc(FILE *infile)
 //! @param infile File from which to read
 //
 //! @return The last newline, semicolon or EOF character encountered
-static int wb_flush_line(FILE *infile)
+static char wb_flush_line(FILE *infile)
 {
-    int c = wb_getc(infile);
+    char c = wb_getc(infile);
     while (c != '\n' && c != EOF && c != ';') {
         c = wb_getc(infile);
     }
@@ -1834,9 +1841,9 @@ static int wb_flush_line(FILE *infile)
 //! @param infile File from which to read
 //
 //! @return The possibly converted character
-static int wb_get_nonblank(FILE *infile)
+static char wb_get_nonblank(FILE *infile)
 {
-    int c = wb_getc(infile);
+    char c = wb_getc(infile);
     if (c == EOF) {
         return EOF;
     }
@@ -1890,7 +1897,7 @@ static void wb_read_error()
 static int wb_get_token(char *token, FILE *infile, int maxTokenLength, int noskip)
 {
     int tokenLength = 0;
-    int c;
+    char c;
 
     if (noskip) {
             // Do not skip spaces
@@ -1928,7 +1935,7 @@ static int wb_get_token(char *token, FILE *infile, int maxTokenLength, int noski
         }
     } else if (c == '\'' || c == '"') {
         // Collect ' or " delimited string
-        int quote = c;
+        char quote = c;
         c = wb_getc(infile);
         // Look for matching quote, error end if newline/EOF  ecountered
         while (c != quote && c != '\n' && c != EOF) {
@@ -2207,7 +2214,7 @@ static int wb_key(WhiteBoard *wb, FILE *infile, char *token, char *package, int 
     if (message_level <= WB_MSG_INFO) {
         fprintf(stderr, "Assigning to '%s'\n", name);
     }
-    extra_error_message=name;
+    set_extra_error_message(name, -1);
     // Expect =
     ntoken = wb_get_token(token, infile, 2, 0);
     if (token[0] != '=' || ntoken != 1) {
@@ -2339,21 +2346,19 @@ error_syntax:
 
 //! Read a dictionary or user directive file
 int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int options, int filenameLength,
-              int package_length, int section_length)
+              int packageLength, int sectionLength)
 {
-    wb_definition mytable[WB_MISC_BUFSZ];
-    char localbuffer[WB_MISC_BUFSZ];
-    char localfname[WB_MISC_BUFSZ];
+    char _filename[WB_MISC_BUFSZ];
     char token[WB_MISC_BUFSZ];
-    char Package[WB_MAXNAMELENGTH];
-    char Section[WB_MAXNAMELENGTH];
+    char _package[WB_MAXNAMELENGTH];
+    char _section[WB_MAXNAMELENGTH];
     int i, status;
     FILE *infile;
     int ntoken;
-    int temp;
+    char temp;
     int errors = 0;
 
-    extra_error_message = " invalid whiteboard instance";
+    set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
@@ -2362,14 +2367,10 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     }
 
     TRIM(filename, filenameLength)
-    TRIM(package, package_length)
-    TRIM(section, section_length)
-    // @bug External pointer (linebuffer) updated with local variable (localbuffer)!
-    linebuffer = localbuffer;
+    TRIM(package, packageLength)
+    TRIM(section, sectionLength)
 
     // Initialize definition table control
-    // @bug External pointer (definition_table) updated with local variable (mytable)!
-    definition_table = mytable;
     definition_table_entries = 0;
     max_definition_table_entries = WB_MISC_BUFSZ;
     for (i = 0; i < WB_MISC_BUFSZ; i++) {
@@ -2379,38 +2380,38 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     }
 
     for (i = 0; i < filenameLength && i < WB_MISC_BUFSZ - 1 && filename[i] != 0; i++) {
-        localfname[i] = filename[i];
+        _filename[i] = filename[i];
     }
     // Filename collected
-    localfname[i] = 0;
+    _filename[i] = 0;
     if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "localfname='%s'\n", localfname);
+        fprintf(stderr, "localfname='%s'\n", _filename);
     }
 
-    for (i = 0; i < package_length && i < WB_MAXNAMELENGTH - 1 && package[i] != 0; i++) {
-        Package[i] = toupper(package[i]);
+    for (i = 0; i < packageLength && i < WB_MAXNAMELENGTH - 1 && package[i] != 0; i++) {
+        _package[i] = toupper(package[i]);
     }
     // Package name collected
-    Package[i] = 0;
+    _package[i] = 0;
     if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "Package='%s'\n", Package);
+        fprintf(stderr, "Package='%s'\n", _package);
     }
 
-    for (i = 0; i < section_length && i < WB_MAXNAMELENGTH - 1 && section[i] != 0; i++) {
-        Section[i] = toupper(section[i]);
+    for (i = 0; i < sectionLength && i < WB_MAXNAMELENGTH - 1 && section[i] != 0; i++) {
+        _section[i] = toupper(section[i]);
     }
     // Section_name collected
-    Section[i] = 0;
+    _section[i] = 0;
     if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "Section='%s'\n", Section);
+        fprintf(stderr, "Section='%s'\n", _section);
     }
 
     // Add directive file name to error message
-    extra_error_message = localfname;
+    set_extra_error_message(_filename, -1);
     // Make sure that no previous input is left in buffers
     current_char = NULL;
     // Try to open file
-    infile = fopen(localfname, "r");
+    infile = fopen(_filename, "r");
     if (infile == NULL) {
         // Can't open/read file!
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_READ);
@@ -2431,15 +2432,14 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
             // Reached EOF; Requested section not found
             fclose(infile);
             // Add searched section name to error message
-            // @bug External pointer (extra_error_message) updated with local variable (Section)!
-            extra_error_message = Section;
+            set_extra_error_message(_section, -1);
             WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
         }
         ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 1);
-        notFound = (strncmp((char *)token, Section, strlen(Section)) != 0);
+        notFound = (strncmp((char *)token, _section, strlen(_section)) != 0);
     }
     if (message_level <= WB_MSG_INFO) {
-        fprintf(stderr, "INFO: directive section %s found\n", Section);
+        fprintf(stderr, "INFO: directive section %s found\n", _section);
     }
 
     // Section found, process it
@@ -2458,11 +2458,11 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
             message_level = wb_options(infile,'(',')',verb_options);
         } else if (strncmp((char *)token, "DEFINE", 6) == 0 && options != WB_FORBID_DEFINE ) {
             // Define directive (if allowed)
-            status = wb_define(wb, infile, Package);
+            status = wb_define(wb, infile, _package);
             if (status < 0) errors++;
         } else if (isalpha(token[0])) {
             // Must be key=
-            status = wb_key(wb, infile, token, Package, options);
+            status = wb_key(wb, infile, token, _package, options);
             if (status < 0) errors++;
         } else if (token[0] == '\n') {
             // Ignore newlines
