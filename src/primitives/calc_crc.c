@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rpnmacros.h>
-
-/* An array useful for CRC calculations that use 0x1021 as the "seed" */
+//! Useful values for CRC calculations that use 0x1021 as the seed
 static unsigned int  magic[] = {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
     0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
@@ -57,69 +55,68 @@ static unsigned int  magic[] = {
 };
 
 
-/*
- * calc_crc() --
- *   Compute the MacBinary II-style CRC for the data pointed to by p, with the
- *   crc seeded to seed.
- *
- *   Modified by Jim Van Verth to use the magic array for efficiency.
- */
-int
-calc_crc(p, flen, fseed, stride)
-	unsigned char *p;
-        int *flen, *fseed, stride;
-
+//! MacBinary II-style CRC for the data in the provided buffer
+//
+//! \param[in] buffer Pointer to the data for which to compute the CRC
+//! \param[in] len_p  Pointer to the number of elements to process in the buffer
+//! \param[in] seed_p Pointer to the seed
+//! \param[in] stride Step, in bytes, between each element of the buffer
+int calc_crc(unsigned char *buffer, int *len_p, int *seed_p, int stride)
 {
-	register INT_32 len;
-	register int seed;
-	register int hold;		/* crc computed so far */
-	register INT_32 i;			/* index into data */
+    register int len;
+    register int seed;
+    // crc computed so far
+    register int hold;
+    // index into data
+    register int i;
 
-	len = *flen;
-	seed = *fseed;
-	
-	hold = seed & 0xffff;			       /* start with seed */
+    len = *len_p;
+    seed = *seed_p;
 
-	for (i = 0; i < len; i+=stride, p+=stride) {
-		hold ^= (*p << 8);
-		hold = (hold << 8) ^ magic[(unsigned char) (hold >> 8)];
-                hold &= 0xffff;
-	}
-	return (hold);
-}				/* calc_crc() */
+    // Start with seed
+    hold = seed & 0xffff;
 
-int f_calc_crc(p, f_flen, f_fseed, f_stride)
-	unsigned char *p;
-        int *f_flen, *f_fseed, *f_stride;
-{
-        int stride = *f_stride;
-        int crc, flen;
-
-        flen = *f_flen * sizeof(int);
-        crc = calc_crc(p, &flen, f_fseed, stride);
-        return(crc);
+    for (i = 0; i < len; i += stride, buffer += stride) {
+        hold ^= (*buffer << 8);
+        hold = (hold << 8) ^ magic[(unsigned char) (hold >> 8)];
+        hold &= 0xffff;
+    }
+    return hold;
 }
 
-int f_calc_crc_(p, f_flen, f_fseed, f_stride)
-	unsigned char *p;
-        int *f_flen, *f_fseed, *f_stride;
-{
-        int stride = *f_stride;
-        int crc, flen;
 
-        flen = *f_flen * sizeof(int);
-        crc = calc_crc(p, &flen, f_fseed, stride);
-        return(crc);
+int f_calc_crc(unsigned char *buffer, int *f_flen, int *f_fseed, int *f_stride)
+{
+    int stride = *f_stride;
+    int crc;
+    int flen;
+
+    flen = *f_flen * sizeof(int);
+    crc = calc_crc(buffer, &flen, f_fseed, stride);
+    return crc;
 }
 
-int f_calc_crc__(p, f_flen, f_fseed, f_stride)
-	unsigned char *p;
-        int *f_flen, *f_fseed, *f_stride;
+
+//! @deprecated This function is exactly the same as f_calc_crc
+int f_calc_crc_(unsigned char *buffer, int *f_flen, int *f_fseed, int *f_stride)
+{
+
+    int stride = *f_stride;
+    int crc, flen;
+
+    flen = *f_flen * sizeof(int);
+    crc = calc_crc(buffer, &flen, f_fseed, stride);
+    return crc;
+}
+
+
+//! @deprecated This function is exactly the same as f_calc_crc
+int f_calc_crc__(unsigned char *buffer, int *f_flen, int *f_fseed, int *f_stride)
 {
         int stride = *f_stride;
         int crc, flen;
 
         flen = *f_flen * sizeof(int);
-        crc = calc_crc(p, &flen, f_fseed, stride);
-        return(crc);
+        crc = calc_crc(buffer, &flen, f_fseed, stride);
+        return crc;
 }
