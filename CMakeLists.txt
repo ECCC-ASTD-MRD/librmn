@@ -64,18 +64,14 @@ include_directories(
 
 file(GLOB PROJECT_C_FILES
    src/*/*.c
-   src/template_utils/whiteboard/*.c
 )
 file(GLOB PROJECT_F_FILES
    src/*/*.F90
    src/*/*.F
    src/*/*.f
    src/*/*.f90
-   src/template_utils/gmm/gmm.f90
-   src/template_utils/whiteboard/whiteboard_omp.f90
-   src/template_utils/whiteboard/whiteboard_st.f90
 )
-file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*.*)
+file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
 add_library (rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 
