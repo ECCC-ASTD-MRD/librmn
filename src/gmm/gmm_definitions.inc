@@ -12,13 +12,13 @@
         type gmm_attributes
             SEQUENCE
             !> Unique key, used mainly for vmmget interface
-            integer*8 :: key
+            integer(kind = 8) :: key
             !> Extra keys used for lookup in external tables or additional flags
-            integer*8 :: uuid1, uuid2
+            integer(kind = 8) :: uuid1, uuid2
             !> How the field must be initialized (default=-1, no init)
-            integer   :: initmode
+            integer :: initmode
             !> Flags (valid, restart, .... )
-            integer   :: flags
+            integer :: flags
         end type
 
         type gmm_metadata
