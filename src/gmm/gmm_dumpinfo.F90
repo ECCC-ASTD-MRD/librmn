@@ -1,13 +1,19 @@
 subroutine gmm_dumpinfo(fldstat)
-    use, intrinsic :: iso_c_binding
     use gmm_internals
     implicit none
     logical, intent(in), optional :: fldstat
     integer :: i, l_page, l_entry, nelm, crc
     type(gmm_layout), dimension(4) :: dims
 
-    integer :: f_calc_crc
-    external f_calc_crc
+    interface
+        integer function f_calc_crc(obj, nbelem, seed, stride) bind(c, name = "calc_crc")
+            use, intrinsic :: iso_c_binding, only: c_ptr
+            type(c_ptr), value, intent(in) :: obj
+            integer, intent(in) :: nbelem
+            integer, intent(in) :: seed
+            integer, value, intent(in) :: stride
+        end function
+    end interface
 
     integer(kind = 8) :: ptraddr
 
@@ -27,7 +33,6 @@ subroutine gmm_dumpinfo(fldstat)
                 'Name=', directory(l_page)%entry(l_entry)%name, &
                 ' addr=', ptraddr
         else
-            !> @bug The crc computation won't work because it expects a void* not a void**.  We have to make an explicit interface
             crc = f_calc_crc(directory(l_page)%entry(l_entry)%array_addr, nelm, 0, 1)
             print '(a,a,a,i10,a,i10)', &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
