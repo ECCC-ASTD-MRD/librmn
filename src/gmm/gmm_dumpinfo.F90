@@ -4,13 +4,12 @@ subroutine gmm_dumpinfo(fldstat)
     implicit none
     logical, intent(in), optional :: fldstat
     integer :: i, l_page, l_entry, nelm, crc
-    real :: xx
-    pointer(px, xx(*))
     type(gmm_layout), dimension(4) :: dims
 
-    ! FIXME undefined external
     integer :: f_calc_crc
     external f_calc_crc
+
+    integer(kind = 8) :: ptraddr
 
     l_page = 1
     l_entry = 1
@@ -21,17 +20,18 @@ subroutine gmm_dumpinfo(fldstat)
                  (dims(2)%high - dims(2)%low +1) * &
                  (dims(3)%high - dims(3)%low +1) * &
                  (dims(4)%high - dims(4)%low +1) )
+        ptraddr = transfer(directory(l_page)%entry(l_entry)%array_addr, ptraddr)
         if (present(fldstat)) then
             print *, 'Appel a statfld a ecrire, fldstat=', fldstat
             print '(a,a,a,i10)', &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
-                ' addr=', directory(l_page)%entry(l_entry)%array_addr
+                ' addr=', ptraddr
         else
-            call make_cray_pointer(px,directory(l_page)%entry(l_entry)%array_addr)
-            crc = f_calc_crc(xx, nelm, 0, 1)
+            !> @bug The crc computation won't work because it expects a void* not a void**.  We have to make an explicit interface
+            crc = f_calc_crc(directory(l_page)%entry(l_entry)%array_addr, nelm, 0, 1)
             print '(a,a,a,i10,a,i10)', &
                 'Name=', directory(l_page)%entry(l_entry)%name, &
-                ' addr=', directory(l_page)%entry(l_entry)%array_addr, &
+                ' addr=', ptraddr, &
                 ' checksum=', crc
         endif
         l_entry = l_entry + 1

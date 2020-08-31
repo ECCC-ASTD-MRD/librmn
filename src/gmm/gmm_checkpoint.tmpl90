@@ -11,7 +11,8 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
     integer :: i, j, ier
     type(gmm_layout), dimension(1:DIM) :: siz
     type(gmm_attributes) :: attrib
-    integer *8 :: key
+    integer(kind = 8) :: key
+    integer(kind = 8) :: ptraddr
 
     ! Read one  record from checkpoint file
     if (read_or_write) then
@@ -54,11 +55,12 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
             c_loc(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
 
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
+            ptraddr = transfer(directory(cur_page)%entry(cur_entry)%array_addr, ptraddr)
             write(6,'(a,a8,a,i4,a,i4,a,i4,a,i10)') &
                 'name=', directory(cur_page)%entry(cur_entry)%name, &
                 ' cur_page=', cur_page, ' cur_entry=', cur_entry, &
                 ' index=', directory(cur_page)%entry(cur_entry)%pointer_table_index, &
-                ' addr=', c_loc(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
+                ' addr=', ptraddr
         endif
         ier = FNCNAME(gmm_add_table_entry)(FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p, key)
     else

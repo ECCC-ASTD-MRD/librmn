@@ -19,6 +19,10 @@
 ! argument to return the actual function name.
 
 
+#include <template.hf>
+#define FNCNAME(fun) CAT(fun,EXTENSION)
+
+
 ! Integer functions:
 #define DATATYPE integer
 #define DATALENGTH 4
@@ -26,7 +30,6 @@
 ! 141
 #define DIM 1
 #define EXTENSION 141
-#define FNCNAME(name) name/**/141
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -37,7 +40,6 @@
 ! 142
 #define DIM 2
 #define EXTENSION 142
-#define FNCNAME(name) name/**/142
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -48,7 +50,6 @@
 ! 143
 #define DIM 3
 #define EXTENSION 143
-#define FNCNAME(name) name/**/143
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -59,7 +60,6 @@
 ! 144
 #define DIM 4
 #define EXTENSION 144
-#define FNCNAME(name) name/**/144
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -73,7 +73,6 @@
 ! 181
 #define DIM 1
 #define EXTENSION 181
-#define FNCNAME(name) name/**/181
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -84,7 +83,6 @@
 ! 182
 #define DIM 2
 #define EXTENSION 182
-#define FNCNAME(name) name/**/182
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -95,7 +93,6 @@
 ! 183
 #define DIM 3
 #define EXTENSION 183
-#define FNCNAME(name) name/**/183
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -106,7 +103,6 @@
 ! 184
 #define DIM 4
 #define EXTENSION 184
-#define FNCNAME(name) name/**/184
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -125,7 +121,6 @@
 ! 241
 #define DIM 1
 #define EXTENSION 241
-#define FNCNAME(name) name/**/241
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -136,7 +131,6 @@
 ! 242
 #define DIM 2
 #define EXTENSION 242
-#define FNCNAME(name) name/**/242
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -147,7 +141,6 @@
 ! 243
 #define DIM 3
 #define EXTENSION 243
-#define FNCNAME(name) name/**/243
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -158,7 +151,6 @@
 ! 244
 #define DIM 4
 #define EXTENSION 244
-#define FNCNAME(name) name/**/244
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -172,7 +164,6 @@
 ! 281
 #define DIM 1
 #define EXTENSION 281
-#define FNCNAME(name) name/**/281
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -183,7 +174,6 @@
 ! 282
 #define DIM 2
 #define EXTENSION 282
-#define FNCNAME(name) name/**/282
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -194,7 +184,6 @@
 ! 283
 #define DIM 3
 #define EXTENSION 283
-#define FNCNAME(name) name/**/283
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -205,7 +194,6 @@
 ! 284
 #define DIM 4
 #define EXTENSION 284
-#define FNCNAME(name) name/**/284
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -224,7 +212,6 @@
 ! 381
 #define DIM 1
 #define EXTENSION 381
-#define FNCNAME(name) name/**/381
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -235,7 +222,6 @@
 ! 382
 #define DIM 2
 #define EXTENSION 382
-#define FNCNAME(name) name/**/382
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -246,7 +232,6 @@
 ! 383
 #define DIM 3
 #define EXTENSION 383
-#define FNCNAME(name) name/**/383
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -257,7 +242,6 @@
 ! 384
 #define DIM 4
 #define EXTENSION 384
-#define FNCNAME(name) name/**/384
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
 #include "gmm_get.tmpl90"
@@ -267,3 +251,6 @@
 
 #undef DATALENGTH
 #undef DATATYPE
+
+
+#undef FNCNAME

@@ -1,0 +1,22 @@
+!> @file This file is meant to be included only from Fortran source code.
+!> It defines macros used for generic programming in Fortran.  It deal with the
+!> secifics of concatenation for different compilers
+
+! gfortran does not understand the ## concatenation operator
+#ifdef __GFORTRAN__
+#define PASTE(a) a
+#define CAT(a,b) PASTE(a)b
+#else
+#define PASTE(a,b) a##b
+#define CAT(a,b) PASTE(a,b)
+#endif
+! EXT can be defined after FNCNAME
+
+
+#ifdef _OPENMP
+#define OMPFNCNAME(name) CAT(name,_omp)
+#else
+#define OMPFNCNAME(name) CAT(name,_omp)
+#endif
+
+#define NAMEA(name) CAT(name,_a)
