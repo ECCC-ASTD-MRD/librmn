@@ -54,34 +54,34 @@
 
 #if defined(Little_Endian)
     typedef struct {
-      unsigned INT_32 mantis3:29, mantis2:3, mantis1:20, expo:11, sign:1;
-    }IEEE_FLOAT_DOUBLE;
+        unsigned INT_32 mantis3:29, mantis2:3, mantis1:20, expo:11, sign:1;
+    } IEEE_FLOAT_DOUBLE;
     typedef struct {
-      unsigned INT_32 mantis:23, expo:8 , sign:1;
-    }IEEE_FLOAT;
+        unsigned INT_32 mantis:23, expo:8 , sign:1;
+    } IEEE_FLOAT;
 #else
     typedef struct {
-      unsigned INT_32 sign:1, expo:11 , mantis1:20,mantis2:3,mantis3:29;
-    }IEEE_FLOAT_DOUBLE;
+        unsigned INT_32 sign:1, expo:11 , mantis1:20,mantis2:3,mantis3:29;
+    } IEEE_FLOAT_DOUBLE;
     typedef struct {
-      unsigned INT_32 sign:1, expo:8 , mantis:23;
-    }IEEE_FLOAT;
+        unsigned INT_32 sign:1, expo:8 , mantis:23;
+    } IEEE_FLOAT;
 #endif
 typedef struct {
-   unsigned INT_32 sign:1, expo:7 , mantis:24;
-}IBM_FLOAT;
+    unsigned INT_32 sign:1, expo:7 , mantis:24;
+} IBM_FLOAT;
 typedef struct {
-   unsigned INT_32 sign:1, expo:7 , mantis1:24 , mantis2:32;
-}IBM_FLOAT_DOUBLE;
+    unsigned INT_32 sign:1, expo:7 , mantis1:24 , mantis2:32;
+} IBM_FLOAT_DOUBLE;
 typedef union {
-  float X;
-  double XD;
-  unsigned INT_32 U;
-  IEEE_FLOAT_DOUBLE MD;
-  IEEE_FLOAT M;
-  IBM_FLOAT I;
-  IBM_FLOAT_DOUBLE ID;
-}ALL_FLOAT;
+    float X;
+    double XD;
+    unsigned INT_32 U;
+    IEEE_FLOAT_DOUBLE MD;
+    IEEE_FLOAT M;
+    IBM_FLOAT I;
+    IBM_FLOAT_DOUBLE ID;
+} ALL_FLOAT;
 
 
 

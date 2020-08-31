@@ -72,7 +72,7 @@ long long f77name(get_address_from)(void *addr)
 void f77name(make_cray_pointer)(void **addr, long long *c)
 {
     fakeptr myptr;
-    // get 64 bit long long containing address from caller and store it into union
+    // Get 64 bit long long containing address from caller and store it into union
     myptr.address_in_64bit = *c;
     // Return address to caller (addr is a Cray style pointer)
     *addr = myptr.ptr;

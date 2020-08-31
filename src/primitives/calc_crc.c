@@ -102,7 +102,8 @@ int f_calc_crc_(unsigned char *buffer, int *f_flen, int *f_fseed, int *f_stride)
 {
 
     int stride = *f_stride;
-    int crc, flen;
+    int crc;
+    int flen;
 
     flen = *f_flen * sizeof(int);
     crc = calc_crc(buffer, &flen, f_fseed, stride);
@@ -114,7 +115,8 @@ int f_calc_crc_(unsigned char *buffer, int *f_flen, int *f_fseed, int *f_stride)
 int f_calc_crc__(unsigned char *buffer, int *f_flen, int *f_fseed, int *f_stride)
 {
         int stride = *f_stride;
-        int crc, flen;
+        int crc;
+        int flen;
 
         flen = *f_flen * sizeof(int);
         crc = calc_crc(buffer, &flen, f_fseed, stride);
