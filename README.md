@@ -21,13 +21,16 @@ cd build
 Les options pour configurer la compilation doivent être ajoutées lors de
 l'appel de la commande `cmake` avec le préfix `-D`.
 
+CMAKE_BUILD_TYPE
+: `(Release|RelWithDebInfo|Debug)` Type de build.  Défaut: `RelWithDebInfo``
 CMAKE_INSTALL_PREFIX
 : Chemin d'accès du répertoire pour l'installation (make install)
 BUILD_SHARED_LIBS
-: `(yes|no)` Indique si les bibliothèques de fonctions dynamiques doivent être produites.
-COMPILER
+: `(yes|no)` Indique si les bibliothèques de fonctions dynamiques doivent être produites.  Défaut: `no`
+COMPILER_SUITE
 : `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Défaut: `GNU`
-
+WITH_OPENMP
+: `(yes|no)` Indique si le support pour OpenMP doit être activé
 
 Par exenple:
 ```
