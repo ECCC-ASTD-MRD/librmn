@@ -213,6 +213,11 @@ void build_burp_prim_keys(burp_record *brpk, word *keys,
       }
 }
 
+int c_burbcheck(const char* filename)
+{
+   return(c_xdfcheck(filename));
+}
+
 /*splitpoint burp_nbit_datyp */
 /***************************************************************************** 
  *                  B U R P _ N B I T _ D A T Y P                            *

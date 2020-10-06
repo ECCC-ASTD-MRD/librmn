@@ -2438,6 +2438,11 @@ int c_fstopr(char *option, float value, int getmode)
   return(0);
 }
 
+int c_fstcheck(const char* filename)
+{
+   return(c_xdfcheck(filename));
+}
+
 /*splitpoint c_fstouv */
 /*****************************************************************************
  *                         C _ F S T O U V                                   *

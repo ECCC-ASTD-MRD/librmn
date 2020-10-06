@@ -34,8 +34,10 @@
 #ifndef WIN32    /*CHC/NRC*/
 #include <unistd.h>
 #endif
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #define XDF_OWNER
 #include "qstdir.h"
 
@@ -124,6 +126,64 @@ static void build_gen_info_keys(word *buf, word *keys, int index,
                                 int mode);
 int C_fst_match_req(int set_nb, int handle);
 #include "proto.h"
+
+int c_xdfcheck(const char* filename)
+{
+   file_header header;
+   uint32_t t,*buf_ptr = (uint32_t *) &header;
+   FILE *fd = fopen(filename, "r");
+
+   if (!fd) {
+      printf("(ERROR) Cannot open file\n");
+      return(-1);
+   }
+
+   // Get file size
+   fseek(fd, 0L, SEEK_END);
+   size_t file_size = ftell(fd);
+   fseek(fd, 0L, SEEK_SET);
+
+   // Read the header
+   int num_records = fread(buf_ptr, sizeof(header), 1, fd);
+   printf("(DEBUG) Read %d header(s)\n", num_records);
+
+   // Flip bytes in each 32-bit word (16 of them)
+   for(int i = 0 ; i < 16 ; i++) {
+      t = buf_ptr[i] ;
+      buf_ptr[i] = (t << 24) | (t >> 24) | ((t & 0xFF0000) >> 8) | ((t & 0xFF00) << 8) ;
+   }
+
+   if ((size_t)header.fsiz * 8 != file_size) {
+      printf("(ERROR) File size does not match header information\n");
+      return -1;
+   }
+    
+   if (header.idtyp != 0) {
+      printf("(ERROR) Wrong header ID type (%d), should be %d\n", header.idtyp, 0);
+      return -1;
+   }
+
+   // Print info
+   printf("(DEBUG) idtyp = %d\n", header.idtyp);
+   printf("(DEBUG) lng   = %d\n", header.lng);
+   printf("(DEBUG) addr  = %d\n", header.addr);
+   int version = header.vrsn ;
+   int sign = header.sign ;
+   printf("(DEBUG) %c%c%c%c%c%c%c%c\n", version >> 24, (version >> 16) & 0xFF, (version >> 8) & 0xFF, version & 0xFF, sign >> 24, (sign >> 16) & 0xFF, (sign >> 8) & 0xFF, sign & 0xFF);
+   printf("(DEBUG) fsiz  = %d\n", header.fsiz*8);
+   printf("(DEBUG) nrwr  = %d\n", header.nrwr);
+   printf("(DEBUG) nxtn  = %d\n", header.nxtn);
+   printf("(DEBUG) nbd   = %d\n", header.nbd);
+   printf("(DEBUG) plst  = %d\n", header.plst*8);
+   printf("(DEBUG) nbig  = %d\n", header.nbig);
+   printf("(DEBUG) neff  = %d\n", header.neff);
+   printf("(DEBUG) nrec  = %d\n", header.nrec);
+   printf("(DEBUG) rwflg = %d\n", header.rwflg);
+
+   fclose(fd);
+
+   return 0;
+}
 
 /*splitpoint add_dir_page */
 /*****************************************************************************
