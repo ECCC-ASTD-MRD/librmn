@@ -127,11 +127,19 @@ static void build_gen_info_keys(word *buf, word *keys, int index,
 int C_fst_match_req(int set_nb, int handle);
 #include "proto.h"
 
-int c_xdfcheck(const char* filename)
+/**----------------------------------------------------------------------------
+ * @brief  Check XDF file for corruption
+ * @author Vincetn Magnoux
+ * @date   October 2020
+ *    @param[in]  Filename Path to the file
+ *
+ *    @return              Valid(0) or not(-1)
+*/
+int c_xdfcheck(const char* Filename)
 {
    file_header header;
    uint32_t t,*buf_ptr = (uint32_t *) &header;
-   FILE *fd = fopen(filename, "r");
+   FILE *fd = fopen(Filename, "r");
 
    if (!fd) {
       printf("(ERROR) Cannot open file\n");
@@ -145,7 +153,6 @@ int c_xdfcheck(const char* filename)
 
    // Read the header
    int num_records = fread(buf_ptr, sizeof(header), 1, fd);
-   printf("(DEBUG) Read %d header(s)\n", num_records);
 
    // Flip bytes in each 32-bit word (16 of them)
    for(int i = 0 ; i < 16 ; i++) {
@@ -164,21 +171,21 @@ int c_xdfcheck(const char* filename)
    }
 
    // Print info
-   printf("(DEBUG) idtyp = %d\n", header.idtyp);
-   printf("(DEBUG) lng   = %d\n", header.lng);
-   printf("(DEBUG) addr  = %d\n", header.addr);
-   int version = header.vrsn ;
-   int sign = header.sign ;
-   printf("(DEBUG) %c%c%c%c%c%c%c%c\n", version >> 24, (version >> 16) & 0xFF, (version >> 8) & 0xFF, version & 0xFF, sign >> 24, (sign >> 16) & 0xFF, (sign >> 8) & 0xFF, sign & 0xFF);
-   printf("(DEBUG) fsiz  = %d\n", header.fsiz*8);
-   printf("(DEBUG) nrwr  = %d\n", header.nrwr);
-   printf("(DEBUG) nxtn  = %d\n", header.nxtn);
-   printf("(DEBUG) nbd   = %d\n", header.nbd);
-   printf("(DEBUG) plst  = %d\n", header.plst*8);
-   printf("(DEBUG) nbig  = %d\n", header.nbig);
-   printf("(DEBUG) neff  = %d\n", header.neff);
-   printf("(DEBUG) nrec  = %d\n", header.nrec);
-   printf("(DEBUG) rwflg = %d\n", header.rwflg);
+//   printf("(DEBUG) idtyp = %d\n", header.idtyp);
+//   printf("(DEBUG) lng   = %d\n", header.lng);
+//   printf("(DEBUG) addr  = %d\n", header.addr);
+//   int version = header.vrsn ;
+//   int sign = header.sign ;
+//   printf("(DEBUG) %c%c%c%c%c%c%c%c\n", version >> 24, (version >> 16) & 0xFF, (version >> 8) & 0xFF, version & 0xFF, sign >> 24, (sign >> 16) & 0xFF, (sign >> 8) & 0xFF, sign & 0xFF);
+//   printf("(DEBUG) fsiz  = %d\n", header.fsiz*8);
+//   printf("(DEBUG) nrwr  = %d\n", header.nrwr);
+//   printf("(DEBUG) nxtn  = %d\n", header.nxtn);
+//   printf("(DEBUG) nbd   = %d\n", header.nbd);
+//   printf("(DEBUG) plst  = %d\n", header.plst*8);
+//   printf("(DEBUG) nbig  = %d\n", header.nbig);
+//   printf("(DEBUG) neff  = %d\n", header.neff);
+//   printf("(DEBUG) nrec  = %d\n", header.nrec);
+//   printf("(DEBUG) rwflg = %d\n", header.rwflg);
 
    fclose(fd);
 
