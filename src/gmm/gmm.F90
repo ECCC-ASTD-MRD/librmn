@@ -32,6 +32,7 @@
 #define EXTENSION 141
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -42,6 +43,7 @@
 #define EXTENSION 142
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -52,6 +54,7 @@
 #define EXTENSION 143
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -62,6 +65,7 @@
 #define EXTENSION 144
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -75,6 +79,7 @@
 #define EXTENSION 181
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -85,6 +90,7 @@
 #define EXTENSION 182
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -95,6 +101,7 @@
 #define EXTENSION 183
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -105,6 +112,7 @@
 #define EXTENSION 184
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -123,6 +131,7 @@
 #define EXTENSION 241
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -133,6 +142,7 @@
 #define EXTENSION 242
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -143,6 +153,7 @@
 #define EXTENSION 243
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -153,6 +164,7 @@
 #define EXTENSION 244
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -166,6 +178,7 @@
 #define EXTENSION 281
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -176,6 +189,7 @@
 #define EXTENSION 282
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -186,6 +200,7 @@
 #define EXTENSION 283
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -196,6 +211,7 @@
 #define EXTENSION 284
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -214,6 +230,7 @@
 #define EXTENSION 381
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -224,6 +241,7 @@
 #define EXTENSION 382
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -234,6 +252,7 @@
 #define EXTENSION 383
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"
@@ -244,6 +263,7 @@
 #define EXTENSION 384
 #include "gmm_pointer_table.tmpl90"
 #include "gmm_checkpoint.tmpl90"
+#include "gmm_dealloc_ptr.tmpl90"
 #include "gmm_get.tmpl90"
 #include "gmm_create.tmpl90"
 #include "gmm_update_tpi_key.tmpl90"

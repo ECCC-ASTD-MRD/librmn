@@ -63,13 +63,3 @@ integer function FNCNAME(gmm_get)(iname, p, m)
         endif
     endif
 end function FNCNAME(gmm_get)
-
-
-subroutine FNCNAME(gmm_dealloc_ptr)()
-    use gmm_internals
-    use gmm_pointer_table_data
-    implicit none
-
-    deallocate (FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
-    nullify    (FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
-end subroutine FNCNAME(gmm_dealloc_ptr)

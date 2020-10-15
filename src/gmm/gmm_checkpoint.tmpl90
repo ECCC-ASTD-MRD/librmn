@@ -1,10 +1,11 @@
-subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
+subroutine FNCNAME(gmm_checkpoint_)(write)
     use, intrinsic :: iso_c_binding
     use gmm_internals
     use gmm_pointer_table_data
     implicit none
 
-    logical, intent(in) :: read_or_write
+    !> Write to checkpoint file when true.  Otherwise, read.
+    logical, intent(in) :: write
 
     include "gmm_pointer_table_interface.inc"
 
@@ -14,8 +15,8 @@ subroutine FNCNAME(gmm_checkpoint_)(read_or_write)
     integer(kind = 8) :: key
     integer(kind = 8) :: ptraddr
 
-    ! Read one  record from checkpoint file
-    if (read_or_write) then
+    if (write) then
+        ! Read one record from checkpoint file
         ! Into next directory entry
         call add_directory_entry
         read(file_unit)directory(cur_page)%entry(cur_entry)%name
