@@ -195,10 +195,11 @@ static INT_32 add_dir_page(int file_index,int wflag)
    f->npages++;
    return(0);
 }
-
+
+
 /*splitpoint address_from_handle */
-/***************************************************************************** 
- *                 A D D R E S S _ F R O M _ H A N D L E                     * 
+/*****************************************************************************
+ *                 A D D R E S S _ F R O M _ H A N D L E                     *
  *                                                                           *
  *Object                                                                     *
  *  calculates an address from an handle for a sequential file               *
@@ -212,16 +213,17 @@ static INT_32 add_dir_page(int file_index,int wflag)
 static INT_32 address_from_handle(int handle, file_table_entry *f)
 {
   int addr;
-  
+
   addr = (ADDRESS_FROM_HNDL(handle) << (2 * CLUSTER_FROM_HANDLE(handle)));
   if (f->fstd_vintage_89)
     addr = (addr * 15);
   addr = W64TOwd(addr) + 1;
   return(addr);
 }
-
+
+
 /*splitpoint build_fstd_info_keys */
-/***************************************************************************** 
+/*****************************************************************************
  *                  B U I L D _ F S T D _ I N F O _ K E Y S                  *
  *                                                                           *
  *Object                                                                     *
@@ -234,61 +236,53 @@ static INT_32 address_from_handle(int handle, file_table_entry *f)
  *  IN      index   file index in file table                                 *
  *  IN      mode    if mode = WMODE,write to buffer otherwise get keys from  *
  *                  buffer.                                                  *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
-
 void build_fstd_info_keys(word *buf, word *keys, int index, int mode)
 {
 }
-
-/*splitpoint build_fstd_prim_keys */
-/***************************************************************************** 
- *                  B U I L D _ F S T D _ P R I M _ K E Y S                  *
- *                                                                           *
- *Object                                                                     *
- *  Pack fstd primary keys into buffer or get primary keys from buffer       *
- *  depending on mode argument.                                              *
- *                                                                           *
- *Arguments                                                                  *
- *  IN/OUT  buf     buffer to contain the keys                               *
- *  IN/OUT  keys    primary keys                                             *
- *  OUT     mask    search mask                                              *
- *  IN      mskkeys unpacked masks                                           *
- *  IN      index   file index in file table                                 *
- *  IN      mode    if mode = WMODE,write to buffer otherwise get keys from  *
- *                  buffer.                                                  *
- *                                                                           * 
- *****************************************************************************/
 
-void build_fstd_prim_keys(word *buf, word *keys, word *mask, word *mskkeys,
-                                int index, int mode)
-{
-   file_header *fh;
-   int i, wi, sc, rmask, key, wfirst, wlast;
 
-   buf += W64TOWD(1);         /* skip first 64 bit header */
+/** Pack fstd primary keys into buffer or get primary keys from buffer */
+void build_fstd_prim_keys(
+    word *buf /**< [in,out] Buffer to contain the keys */,
+    word *keys /**< [in,out] Primary keys */,
+    word *mask /**< [out] Search mask */,
+    word *mskkeys /**< [in] Unpacked masks */,
+    int index /**< [in] File index in file table */,
+    int mode /**< [in] When WMODE, write to buffer.  Otherwise, get keys from buffer */
+) {
+    file_header *fh;
+    int i, wi, sc, rmask, key, wfirst, wlast;
 
-   mask[0] = 0;              /* first 64 bits not part of the search mask */
-   if (W64TOWD(1) > 1) mask[1] = 0;
+    /* skip first 64 bit header */
+    buf += W64TOWD(1);
 
-   mask += W64TOWD(1);        /* skip first 64 bit header */
+    /* first 64 bits not part of the search mask */
+    mask[0] = 0;
+    if (W64TOWD(1) > 1) mask[1] = 0;
 
-   fh = file_table[index]->header;
+    /* skip first 64 bit header */
+    mask += W64TOWD(1);
 
-   if (mode == WMODE) {        /* write keys to buffer */
+    fh = file_table[index]->header;
 
-     for (i=0; i < W64TOWD(fh->lprm -1); i++) {
-       buf[i] = keys[i];
-       mask[i] = mskkeys[i];
-     }
-   }
-   else
-     for (i=0; i < W64TOWD(fh->lprm -1); i++)
-       keys[i] = buf[i];
+    /* write keys to buffer */
+    if (mode == WMODE) {
+        for (i = 0; i < W64TOWD(fh->lprm -1); i++) {
+            buf[i] = keys[i];
+            mask[i] = mskkeys[i];
+        }
+    } else {
+        for (i = 0; i < W64TOWD(fh->lprm -1); i++) {
+            keys[i] = buf[i];
+        }
+    }
 }
-
+
+
 /*splitpoint build_gen_info_keys */
-/***************************************************************************** 
+/*****************************************************************************
  *                  B U I L D _ G E N _ I N F O _ K E Y S                    *
  *                                                                           *
  *Object                                                                     *
@@ -301,7 +295,7 @@ void build_fstd_prim_keys(word *buf, word *keys, word *mask, word *mskkeys,
  *  IN      index   file index in file table                                 *
  *  IN      mode    if mode = WMODE,write to buffer otherwise get keys from  *
  *                  buffer.                                                  *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 static void build_gen_info_keys(word *buf, word *keys, int index,
@@ -322,7 +316,7 @@ static void build_gen_info_keys(word *buf, word *keys, int index,
             sc = (bitmot-1) - (fh->keys[i+fh->nprm].bit1 % bitmot);
             rmask = -1 << (fh->keys[i+fh->nprm].lcle);
             rmask = ~(rmask << 1);
- /* equivalent of << lcle+1 and covers 32 bit case */   
+ /* equivalent of << lcle+1 and covers 32 bit case */
             key = keys[i];
             if ((fh->keys[i+fh->nprm].tcle /32) > 0)
                key = key & (~((key & 0x40404040) >> 1));
@@ -339,9 +333,10 @@ static void build_gen_info_keys(word *buf, word *keys, int index,
          keys[i] = (buf[wi] >> sc) & rmask;
          }
 }
-
+
+
 /*splitpoint build_gen_prim_keys */
-/***************************************************************************** 
+/*****************************************************************************
  *                  B U I L D _ G E N _ P R I M _ K E Y S                    *
  *                                                                           *
  *Object                                                                     *
@@ -356,7 +351,7 @@ static void build_gen_info_keys(word *buf, word *keys, int index,
  *  IN      index   file index in file table                                 *
  *  IN      mode    if mode = WMODE,write to buffer otherwise get keys from  *
  *                  buffer.                                                  *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 static void build_gen_prim_keys(word *buf, word *keys,
@@ -390,7 +385,7 @@ static void build_gen_prim_keys(word *buf, word *keys,
             sc = (bitmot-1) - (fh->keys[i].bit1 % bitmot);
             rmask = -1 << (fh->keys[i].lcle);
             rmask = ~(rmask << 1);
- /* equivalent of << lcle+1 and covers 32 bit case */   
+ /* equivalent of << lcle+1 and covers 32 bit case */
             key = keys[i];
             if ((fh->keys[i].tcle /32) > 0)
                key = key & (~((key & 0x40404040) >> 1));
@@ -409,18 +404,19 @@ static void build_gen_prim_keys(word *buf, word *keys,
          keys[i] = (buf[wi] >> sc) & rmask;
          }
 }
-
+
+
 /*splitpoint c_qdfdiag */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ Q D F D I A G                             *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Establishes diagnosis and statistics for a xdf file                     *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun      unit number associated to the file                        * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun      unit number associated to the file                        *
+ *                                                                           *
  *****************************************************************************/
 
 int c_qdfdiag(int iun)
@@ -468,7 +464,7 @@ int c_qdfdiag(int iun)
       fh = file_table[index]->header;
       }
    nw = c_wasize(iun);
-   if(*little_endian) {  
+   if(*little_endian) {
      int  ct=fh->vrsn ;
      swap_4(ct);
      strncpy(vers,(char *)&(ct),4);
@@ -517,25 +513,25 @@ int c_qdfdiag(int iun)
               (fh->nbig == leplusgros) && (fh->nbd == ndirect));
    fprintf(stdout,"\nStatistics from file header for %s\n",
            FGFDT[index_fnom].file_name);
-   fprintf(stdout,"\t file size (64 bit units)        %d\n",fh->fsiz); 
-   fprintf(stdout,"\t number of rewrites              %d\n",fh->nrwr); 
-   fprintf(stdout,"\t number of extensions            %d\n",fh->nxtn); 
-   fprintf(stdout,"\t number of directory pages       %d\n",fh->nbd); 
-   fprintf(stdout,"\t last directory page address     %d\n",fh->plst); 
-   fprintf(stdout,"\t size of biggest record          %d\n",fh->nbig); 
-   fprintf(stdout,"\t number erasures                 %d\n",fh->neff); 
-   fprintf(stdout,"\t number of valid records         %d\n",fh->nrec); 
-   fprintf(stdout,"\t XDF version                     %s\n",vers); 
+   fprintf(stdout,"\t file size (64 bit units)        %d\n",fh->fsiz);
+   fprintf(stdout,"\t number of rewrites              %d\n",fh->nrwr);
+   fprintf(stdout,"\t number of extensions            %d\n",fh->nxtn);
+   fprintf(stdout,"\t number of directory pages       %d\n",fh->nbd);
+   fprintf(stdout,"\t last directory page address     %d\n",fh->plst);
+   fprintf(stdout,"\t size of biggest record          %d\n",fh->nbig);
+   fprintf(stdout,"\t number erasures                 %d\n",fh->neff);
+   fprintf(stdout,"\t number of valid records         %d\n",fh->nrec);
+   fprintf(stdout,"\t XDF version                     %s\n",vers);
    fprintf(stdout,"\t application signature           %s\n",appl);
 
    if (! thesame) {
-      fprintf(stdout,"\n **** This file has been damaged ****\n"); 
+      fprintf(stdout,"\n **** This file has been damaged ****\n");
       fprintf(stdout,"\nStatistics from file scan\n");
-      fprintf(stdout,"\t number of extensions            %d\n",nrec_tot); 
-      fprintf(stdout,"\t number of directory pages       %d\n",ndirect); 
-      fprintf(stdout,"\t size of biggest record          %d\n",leplusgros); 
-      fprintf(stdout,"\t number erasures                 %d\n",nrec_eff); 
-      fprintf(stdout,"\t number of valid records         %d\n",nrec_act); 
+      fprintf(stdout,"\t number of extensions            %d\n",nrec_tot);
+      fprintf(stdout,"\t number of directory pages       %d\n",ndirect);
+      fprintf(stdout,"\t size of biggest record          %d\n",leplusgros);
+      fprintf(stdout,"\t number erasures                 %d\n",nrec_eff);
+      fprintf(stdout,"\t number of valid records         %d\n",nrec_act);
    }
    else
       fprintf(stdout,"\n **** This file is OK ****\n");
@@ -544,21 +540,22 @@ int c_qdfdiag(int iun)
    free(fh);
    if (! thesame)
      return(ERR_DAMAGED);
-   else 
+   else
      return(0);
 }
-
+
+
 /*splitpoint c_qdfmsig */
-/***************************************************************************** 
+/*****************************************************************************
  *                           C _ Q D F M S I G                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Change the application signature of a file. This is used for example    *
  *   in conjuncture with burp files when the table used is not the           *
  *   official one.                                                           *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
  *  IN    iun      unit number associated to the file                        *
  *  IN    newappl  new application signature                                 *
  *                                                                           *
@@ -584,17 +581,18 @@ int c_qdfmsig(int iun, char* newappl)
    fh->sign = newappl[0] << 24 | newappl[1] << 16 | newappl[2] << 8 | newappl[3];
    return(0);
 }
-
+
+
 /*splitpoint c_qdfput */
-/***************************************************************************** 
- *                             C _ Q D F P U T                               * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                             C _ Q D F P U T                               *
+ *                                                                           *
+ *Object                                                                     *
  *   Add to the buffer element elem of length nbits ending a bit dernit.     *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN/OUT  buf      buffer to contain the element to add                    * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN/OUT  buf      buffer to contain the element to add                    *
  *  IN      elem     element to add                                          *
  *  IN      derbit   position of last bit in buf                             *
  *  IN      nbits    length in bit of element to add                         *
@@ -612,20 +610,21 @@ int c_qdfput(word *buf,int elem,int derbit,int nbits)
    buf[wi] = buf[wi] | ((elem & msk) << sc);
    return(0);
 }
-
+
+
 /*splitpoint c_qdfrstr */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ Q D F R S T R                             *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Restores a file to its original length (the one before a task that      *
  *   has prematurely terminated while doing appends)                         *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    inp      input unit number associated to the file                  * 
- *  IN    outp     output unit number associated to the file                 * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    inp      input unit number associated to the file                  *
+ *  IN    outp     output unit number associated to the file                 *
+ *                                                                           *
  *****************************************************************************/
 
 int c_qdfrstr(int inp, int outp)
@@ -685,24 +684,25 @@ int c_qdfrstr(int inp, int outp)
      rwpos += alire;
      alire = (lng < Buflen) ? lng : Buflen;
    }
-   
+
    c_waclos(inp);
    c_waclos(outp);
 
    return(0);
 }
-
+
+
 /*splitpoint c_xdfadd */
-/***************************************************************************** 
- *                             C _ X D F A D D                               * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                             C _ X D F A D D                               *
+ *                                                                           *
+ *Object                                                                     *
  *   Add to the end of the record contain into buf, nelm*nbits bits from     *
  *   donnees. The number of bits must be a multiple of 64.                   *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN/OUT  buf      buffer to contain the record                            * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN/OUT  buf      buffer to contain the record                            *
  *  IN      donnees  data bits to add to buffer                              *
  *  IN      nelm     number of elements                                      *
  *  IN      nbits    number of bits per element                              *
@@ -715,7 +715,7 @@ int c_xdfadd(word *buffer, word *donnees, int nelm, int nbits, int datyp)
    int index_word, nbwords, mode, i;
    buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
    int ier;
-   
+
 
    if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
       sprintf(errmsg,"nbits must be 8 for datyp %d",datyp);
@@ -752,7 +752,7 @@ int c_xdfadd(word *buffer, word *donnees, int nelm, int nbits, int datyp)
       case 7:
       case 9:
 
-         if (*little_endian) 
+         if (*little_endian)
            for (i=0; i < nbwords; i+=2) {
              buf->data[index_word+i] = donnees[i+1];
              buf->data[index_word+i+1] = donnees[i];
@@ -762,12 +762,12 @@ int c_xdfadd(word *buffer, word *donnees, int nelm, int nbits, int datyp)
              buf->data[index_word+i] = donnees[i];
          break;
 #endif
-      
+
       case 5:        /* upper char only */
          for (i=0; i < nbwords; i++)
             buf->data[index_word+i] = upper_case_word(donnees[i]);
          break;
-      
+
       case 2: mode = 1;
          ier = compact_integer(donnees,(void *) NULL,&(buf->data[index_word]),nelm,
                                nbits,0,xdf_stride,mode);
@@ -786,17 +786,18 @@ int c_xdfadd(word *buffer, word *donnees, int nelm, int nbits, int datyp)
    buf->nbits += nbwords * sizeof(word) * 8;
    return(0);
 }
-
+
+
 /*splitpoint c_xdfcle */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ X D F C L E                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Pack key descriptors into 2 different 32 bit wide elements.             *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    keyname  name of the key (max 4 char)                              * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    keyname  name of the key (max 4 char)                              *
  *  IN    bit1     last right bit of key in record                           *
  *  IN    lkey     key length in bits                                        *
  *  IN    tkey     type of key                                               *
@@ -813,9 +814,9 @@ int c_xdfcle(char *keyname,int bit1,int lkey,int tkey,int *desc1,int *desc2)
 {
    int i, bitpos, rmask, shift_count;
    int bitmot=32;
-   
+
    *desc1=0; *desc2=0;
-   
+
    for(i=0; (i<4 && *keyname); i++,*keyname++)
      *desc1 = (*desc1 <<8) | (*keyname & 0xff);
 
@@ -839,19 +840,20 @@ int c_xdfcle(char *keyname,int bit1,int lkey,int tkey,int *desc1,int *desc2)
 
    return(0);
 }
-
+
+
 /*splitpoint c_xdfcls */
-/***************************************************************************** 
+/*****************************************************************************
  *                            C _ X D F C L S                                *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Closes the XDF file. Rewrites file header, computes directory checksum  *
  *   and rewrites directory pages if modified.                               *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN  iun     unit number associated to the file                           * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  iun     unit number associated to the file                           *
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfcls(int iun)
@@ -862,7 +864,7 @@ int c_xdfcls(int iun)
    word32 * check32, checksum;
    word *entry;
    xdf_record_header *rec;
- 
+
    index_fnom = fnom_index(iun);
    if (index_fnom == -1) {
       sprintf(errmsg,"file is not connected with fnom");
@@ -878,7 +880,7 @@ int c_xdfcls(int iun)
 
    if ((f->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only))
       /* rewrite file header */
-     c_wawrit(iun,f->header,1,W64TOWD(f->header->lng)); 
+     c_wawrit(iun,f->header,1,W64TOWD(f->header->lng));
 
    if (f->modified) {  /* file has been modified rewrite dir. pages */
       for (i=0; i < f->header->nbd; i++) {
@@ -894,7 +896,7 @@ int c_xdfcls(int iun)
                   rec->idtyp = 255;
                   c_wawrit(iun,rec,W64TOWD(rec->addr-1)+1,W64TOWD(1));
                   }
-               rec->idtyp = 
+               rec->idtyp =
                     ((rec->idtyp | 0x80) == 255) ? 255 : (rec->idtyp & 0x7f);
                entry += width;
                }
@@ -925,7 +927,7 @@ int c_xdfcls(int iun)
      if ((f->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only)) {
       /* rewrite file header */
        f->header->rwflg = 0;
-       c_wawrit(iun,f->header,1,W64TOWD(f->header->lng)); 
+       c_wawrit(iun,f->header,1,W64TOWD(f->header->lng));
      }
 
      c_waclos(iun);
@@ -942,17 +944,18 @@ int c_xdfcls(int iun)
      xdf_checkpoint = 0;
    return(0);
 }
-
+
+
 /*splitpoint c_xdfcut */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ X D F C U T                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Retrieve nelm elements from buf starting at bit position bitpos.        *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    nelm     number of elements to cut from buf                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    nelm     number of elements to cut from buf                        *
  *  IN    bitpos   starting bit position for cutting                         *
  *  IN    nbit     number of bits kept per element                           *
  *  IN    datyp    data type                                                 *
@@ -990,20 +993,21 @@ int c_xdfcut(void *buffer, int bitpos, int nelm, int nbits, int datyp)
    buf->nbits -= nbwords * sizeof(word) * 8;
    return(0);
 }
-
+
+
 /*splitpoint c_xdfdel */
-/***************************************************************************** 
- *                            C _ X D F D E L                                * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                            C _ X D F D E L                                *
+ *                                                                           *
+ *Object                                                                     *
  *   Delete record referenced by handle.                                     *
  *   Deleted record are marked as idtyp = X111111X (X = don't care bits)     *
  *   and will be marked as idtyp=255 upon closing of the file.
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    handle  file index, page number and record number to record        * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    handle  file index, page number and record number to record        *
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfdel(int handle)
@@ -1065,7 +1069,7 @@ int c_xdfdel(int handle)
 
      rec = target_page->dir.entry + record_number * W64TOWD(f->primary_len);
      record = (file_record *) rec;
-   
+
      idtyp = record->idtyp;
    }
    else { /* xdf sequential */
@@ -1083,7 +1087,7 @@ int c_xdfdel(int handle)
       sprintf(errmsg,"record already deleted\n");
       return(error_msg("c_xdfdel",ERR_DELETED,WARNING));
       }
-   
+
    if (! f->xdf_seq) {
      /* update directory entry */
      record->idtyp = 0xFE;               /* 254 */
@@ -1101,19 +1105,20 @@ int c_xdfdel(int handle)
    f->modified = 1;
    return(0);
 }
-
+
+
 /*splitpoint c_xdfget */
-/***************************************************************************** 
- *                            C _ X D F G E T                                * 
- *                                                                           * 
- *Object                                                                     * 
- *   Obtain record referenced by handle in buf                               * 
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    handle  file index, page number and record number to record        * 
- *  OUT   buf     buffer to contain record                                   * 
- *                                                                           * 
+/*****************************************************************************
+ *                            C _ X D F G E T                                *
+ *                                                                           *
+ *Object                                                                     *
+ *   Obtain record referenced by handle in buf                               *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    handle  file index, page number and record number to record        *
+ *  OUT   buf     buffer to contain record                                   *
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfget(int handle, buffer_interface_ptr buf)
@@ -1122,19 +1127,20 @@ int c_xdfget(int handle, buffer_interface_ptr buf)
 
    return(c_xdfget2(handle,buf,aux_keys));
 }
-
+
+
 /*splitpoint c_xdfget2 */
-/***************************************************************************** 
- *                            C _ X D F G E T 2                              * 
- *                                                                           * 
- *Object                                                                     * 
- *   Obtain record referenced by handle in buf                               * 
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    handle  file index, page number and record number to record        * 
- *  OUT   buf     buffer to contain record                                   * 
- *                                                                           * 
+/*****************************************************************************
+ *                            C _ X D F G E T 2                              *
+ *                                                                           *
+ *Object                                                                     *
+ *   Obtain record referenced by handle in buf                               *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    handle  file index, page number and record number to record        *
+ *  OUT   buf     buffer to contain record                                   *
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
@@ -1180,7 +1186,7 @@ int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
        }
        f = file_table[target_page->true_file_index];
      }
-     
+
      if (record_number > target_page->dir.nent) {
        sprintf(errmsg,"invalid handle, invalid record number\n");
        return(error_msg("c_xdfget",ERR_BAD_HNDL,ERROR));
@@ -1201,7 +1207,7 @@ int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
        return(error_msg("c_xdfget",ERR_BAD_HNDL,ERROR));
      }
    }
-   
+
    idtyp = record->idtyp;
    addr = record->addr;
    lng = record->lng;
@@ -1225,8 +1231,8 @@ int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
        return(error_msg("c_xdfget",ERR_BAD_DIM,ERROR));
      }
      nw = -nw;          /* data only, no directory entry in record */
-     if (! f->fstd_vintage_89) 
-       offset = W64TOWD(f->primary_len + f->info_len); 
+     if (! f->fstd_vintage_89)
+       offset = W64TOWD(f->primary_len + f->info_len);
      else
        if (f->xdf_seq)  /* old standard sequential */
          offset = 30;
@@ -1263,20 +1269,21 @@ int c_xdfget2(int handle, buffer_interface_ptr buf, int *aux_ptr)
      return(0);
 
 }
-
+
+
 /*splitpoint c_xdfgop */
-/***************************************************************************** 
- *                            C _ X D F G O P                                * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                            C _ X D F G O P                                *
+ *                                                                           *
+ *Object                                                                     *
  *   Get different options settings values.                                  *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    optname  name of option to get                                     * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    optname  name of option to get                                     *
  *  OUT   optc     value of option if type is character                      *
  *  OUT   optv     value of option if type is integer                        *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfgop(char *optname, char *optc, int *optv)
@@ -1317,17 +1324,18 @@ int c_xdfgop(char *optname, char *optc, int *optv)
       }
    return(0);
 }
-
+
+
 /*splitpoint c_xdfhdr */
-/***************************************************************************** 
+/*****************************************************************************
  *                            C _ X D F H D R                                *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Get the descriptive parameters of the record contain into buf           *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    buf      buffer that contains the record                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    buf      buffer that contains the record                           *
  *  OUT   addr     record starting address                                   *
  *  OUT   lng      length of the record in 64 bit units                      *
  *  OUT   idtyp    record id type                                            *
@@ -1335,7 +1343,7 @@ int c_xdfgop(char *optname, char *optc, int *optv)
  *  IN    nprim    number of primary keys                                    *
  *  OUT   info     info keys                                                 *
  *  IN    ninfo    number of info keys                                       *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfhdr(buffer_interface_ptr buf ,int *addr,int *lng,int *idtyp,
@@ -1348,11 +1356,11 @@ int c_xdfhdr(buffer_interface_ptr buf ,int *addr,int *lng,int *idtyp,
    word *mskkeys = NULL;
 
    record = (file_record *) buf->data;
-  
+
    *idtyp = record->idtyp;
    *addr = record->addr;
    *lng = record->lng;
-   
+
    if ((index = file_index(buf->iun)) == ERR_NO_FILE) {
       sprintf(errmsg,"file is not open");
       return(error_msg("c_xdfhdr",ERR_NO_FILE,WARNING));
@@ -1368,17 +1376,18 @@ int c_xdfhdr(buffer_interface_ptr buf ,int *addr,int *lng,int *idtyp,
    return(0);
 
 }
-
+
+
 /*splitpoint c_xdfimp */
-/***************************************************************************** 
+/*****************************************************************************
  *                            C _ X D F I M P                                *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Prints the statistics associated to a file as given by xdfsta           *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun      unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun      unit number associated to the file                        *
  *  IN    stats    statistics of the file                                    *
  *  IN    nstat    number of statistics to print                             *
  *  IN    pri      primary keys                                              *
@@ -1431,7 +1440,7 @@ int c_xdfimp(int iun,word *stat,int nstat,word_2 *pri,word_2 *aux,
       fprintf(stdout," \t%s \t%d \t%d \t\t%d \n",
                        nomcle,kdp->bit1,kdp->lcle+1,kdp->tcle);
       }
-   
+
    if (stat[8] > 0) {
       fprintf(stdout,"\n  Definition des cles auxiliaires \n\n");
       fprintf(stdout," \tNom \tBit1 \tLongueur \tType \n\n");
@@ -1452,17 +1461,18 @@ int c_xdfimp(int iun,word *stat,int nstat,word_2 *pri,word_2 *aux,
 
    return(0);
 }
-
+
+
 /*splitpoint c_xdfini */
-/***************************************************************************** 
+/*****************************************************************************
  *                          C _ X D F I N I                                  *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Initialize the keys contain in buffer.                                  *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN      iun    unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN      iun    unit number associated to the file                        *
  *  IN/OUT  buf    buffer to contain the record (buf(0) contains dim of buf) *
  *  IN      idtyp  id type                                                   *
  *  IN      keys   primary keys                                              *
@@ -1495,18 +1505,18 @@ int c_xdfini(int iun,buffer_interface_ptr buf,int idtyp,
    lngbuf = buf->nwords;
    for (i=1; i < lngbuf; i++)
       buffer[i] = 0;
-   
+
    if ((idtyp < 1) || (idtyp > 126)) {
       sprintf(errmsg,"invalid idtyp=%d, must be between 1 and 126",idtyp);
       return(error_msg("c_xdfini",ERR_BAD_DATYP,ERROR));
       }
-   
+
    buf->record_index = RECADDR;
    buf->iun = iun;
-   
+
    record = (file_record *) buf->data;
    record->idtyp = idtyp;
-   
+
    f = file_table[index];
    buf->data_index = buf->record_index + W64TOWD(f->primary_len + f->info_len);
    buf->nbits = (f->primary_len + f->info_len) * 64;
@@ -1516,20 +1526,21 @@ int c_xdfini(int iun,buffer_interface_ptr buf,int idtyp,
    if (ninfo > 0) f->build_info(buf->data + W64TOWD(f->primary_len),
                                 info,index,WMODE);
 
-   return(0); 
+   return(0);
 }
-
+
+
 /*splitpoint c_xdfins */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ X D F I N S                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Insert content of donnees into buf. nelm elements are inserted into     *
  *   buf starting at position bitpos.                                        *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    nelm     number of elements to add into buf                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    nelm     number of elements to add into buf                        *
  *  IN    bitpos   bit position of insertion into buf                        *
  *  IN    donnees  data bits to add                                          *
  *  IN    nbit     number of bits kept per element                           *
@@ -1593,7 +1604,7 @@ int c_xdfins(word *buffer, word *donnees, int bitpos,
       case 7:
       case 9:
 
-         if (*little_endian) 
+         if (*little_endian)
            for (i=0; i < nbwords; i+=2) {
              buf->data[index_word+i] = donnees[i+1];
              buf->data[index_word+i+1] = donnees[i];
@@ -1603,12 +1614,12 @@ int c_xdfins(word *buffer, word *donnees, int bitpos,
              buf->data[index_word+i] = donnees[i];
          break;
 #endif
-      
+
       case 5:        /* upper char only */
          for (i=0; i < nbwords; i++)
             buf->data[index_word+i] = upper_case_word(donnees[i]);
          break;
-      
+
       case 2: mode = 1;
          ier = compact_integer(donnees,(void *) NULL,&(buf->data[index_word]),nelm,
                                nbits,0,xdf_stride,mode);
@@ -1627,17 +1638,18 @@ int c_xdfins(word *buffer, word *donnees, int bitpos,
    buf->nbits += nbwords * sizeof(word) * 8;
    return(0);
 }
-
+
+
 /*splitpoint c_xdflnk */
-/***************************************************************************** 
- *                             C _ X D F L N K                               * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                             C _ X D F L N K                               *
+ *                                                                           *
+ *Object                                                                     *
  *   Links the list of random files together for record search purpose.      *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    liste    unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    liste    unit number associated to the file                        *
  *  IN    n        number of files to be linked                              *
  *                                                                           *
  *****************************************************************************/
@@ -1652,7 +1664,7 @@ int c_xdflnk(word *liste, int n)
     sprintf(errmsg,"file is not connected with fnom");
     return(error_msg("c_xdflnk",ERR_NO_FNOM,ERROR));
   }
-  
+
   if ((index = file_index(liste[0])) == ERR_NO_FILE) {
     sprintf(errmsg,"file is not open");
     return(error_msg("c_xdflnk",ERR_NO_FILE,ERROR));
@@ -1676,15 +1688,16 @@ int c_xdflnk(word *liste, int n)
     index = indnext;
     f = file_table[index];
   }
-   
+
   return(0);
 }
-
+
+
 /*splitpoint c_xdfloc */
-/***************************************************************************** 
- *                             C _ X D F L O C                               * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                             C _ X D F L O C                               *
+ *                                                                           *
+ *Object                                                                     *
  *   Find the position of the record as described by the given primary keys. *
  *   The search begins from the record pointed by handle.  If handle is 0,   *
  *   the search is from beginning of file. If handle is -1, the search       *
@@ -1692,10 +1705,10 @@ int c_xdflnk(word *liste, int n)
  *   -1, this key will not used as a selection criteria.                     *
  *   If nprim is -1, the last selection criterias will be used for the       *
  *   search. Upon completion a "pointer" to the record (handle) is returned. *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun      unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun      unit number associated to the file                        *
  *  IN    handle   handle to the starting search position                    *
  *  IN    primk    primary search keys                                       *
  *  IN    nprim    number search primary search keys                         *
@@ -1706,16 +1719,17 @@ int c_xdfloc(int iun, int handle, word *primk,int nprim)
 {
   word *mskkeys = NULL;
   int ier;
-  
+
   ier = c_xdfloc2(iun,handle,primk,nprim,mskkeys);
   return(ier);
 }
-
+
+
 /*splitpoint c_xdfloc2 */
-/***************************************************************************** 
- *                             C _ X D F L O C 2                             * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                             C _ X D F L O C 2                             *
+ *                                                                           *
+ *Object                                                                     *
  *   Find the position of the record as described by the given primary keys. *
  *   The search begins from the record pointed by handle.  If handle is 0,   *
  *   the search is from beginning of file. If handle is -1, the search       *
@@ -1723,10 +1737,10 @@ int c_xdfloc(int iun, int handle, word *primk,int nprim)
  *   -1, this key will not used as a selection criteria.                     *
  *   If nprim is -1, the last selection criterias will be used for the       *
  *   search. Upon completion a "pointer" to the record (handle) is returned. *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun      unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun      unit number associated to the file                        *
  *  IN    handle   handle to the starting search position                    *
  *  IN    primk    primary search keys                                       *
  *  IN    nprim    number search primary search keys                         *
@@ -1773,7 +1787,7 @@ int c_xdfloc2(int iun, int handle, word *primk,int nprim, word *mskkeys)
         f->cur_addr = address_from_handle(handle,f);
         if (f->fstd_vintage_89) {
           c_waread(iun,&seq_entry,f->cur_addr,sizeof(seq_entry)/bytesperword);
-          header.lng = ((seq_entry.lng + 3) >> 2) + 15; 
+          header.lng = ((seq_entry.lng + 3) >> 2) + 15;
          }
         else
           c_waread(iun,&header,f->cur_addr,W64TOWD(1));
@@ -1784,7 +1798,7 @@ int c_xdfloc2(int iun, int handle, word *primk,int nprim, word *mskkeys)
      record = 0;
      pageno = 0;
      f->cur_pageno = -1;
-     if (f->xdf_seq) 
+     if (f->xdf_seq)
        f->cur_addr = f->seq_bof;
    }
    else if (handle == -1) {   /* search from current position */
@@ -1798,7 +1812,7 @@ int c_xdfloc2(int iun, int handle, word *primk,int nprim, word *mskkeys)
      sprintf(errmsg,"invalid handle\n");
      return(error_msg("c_xdfloc",ERR_BAD_HNDL,ERROR));
    }
-   
+
    if (nprim) {       /* if nprim == 0 keep same search target */
      f->build_primary(f->target,primk,f->cur_mask,mskkeys,index,WMODE);
      pmask = (word *) f->cur_mask;
@@ -1836,7 +1850,7 @@ int c_xdfloc2(int iun, int handle, word *primk,int nprim, word *mskkeys)
      }
      else
        f->cur_dir_page = f->dir_page[f->cur_pageno]; /* just to make sure */
-     f->cur_entry = (f->cur_dir_page)->dir.entry + 
+     f->cur_entry = (f->cur_dir_page)->dir.entry +
        record * W64TOWD(f->primary_len);
      f->page_record = record;
    }
@@ -1845,13 +1859,13 @@ int c_xdfloc2(int iun, int handle, word *primk,int nprim, word *mskkeys)
      sprintf(errmsg,"no valid current file position\n");
      return(error_msg("c_xdfloc",ERR_NO_POS,ERROR));
    }
-   
+
    if (! f->valid_target) {
      sprintf(errmsg,"no valid current search target\n");
      return(error_msg("c_xdfloc",ERR_NO_TARGET,ERROR));
    }
-   
-   new_handle = next_match(index);   
+
+   new_handle = next_match(index);
    if (was_allocated) free(mskkeys);
    return(new_handle);
 }
@@ -2075,7 +2089,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
         f->seq_bof = wdaddress;
       }
     }
-    else {                              /* signature != XDF0 */     
+    else {                              /* signature != XDF0 */
       check32 = (word32 *) &header64;
       if (*check32 == STDF_RND_SIGN) {        /* old random standard file */
         f->cur_info->attr.read_only = 1;
@@ -2089,7 +2103,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
           sprintf(errmsg,"memory is full");
           return(error_msg("c_xdfopn",ERR_MEM_FULL,ERRFATAL));
         }
-        lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(word); 
+        lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(word);
         c_waread(iun,directory,wdaddress,lng);
         create_new_xdf(index,iun,(word_2 *)&stdfkeys,16,aux,0,"STDF");
         add_dir_page(index,RDMODE);
@@ -2117,7 +2131,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
             stdf_entry->datyp = directory[i].datyp;
             stdf_entry->nk = directory[i].nk;
             stdf_entry->ubc = 0;
-            stdf_entry->npas = (directory[i].npas2 << 16) | 
+            stdf_entry->npas = (directory[i].npas2 << 16) |
                                directory[i].npas1;
             stdf_entry->pad7 = 0;
             stdf_entry->ig4 = directory[i].ig4;
@@ -2126,14 +2140,14 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
             stdf_entry->ig2b = directory[i].ig2 >> 8;
             stdf_entry->ig3 = directory[i].ig3;
             stdf_entry->ig2c = directory[i].ig2 & 0xff;
-            stdf_entry->etik15 = 
+            stdf_entry->etik15 =
               (ascii6(directory[i].etiq14 >> 24) << 24) |
               (ascii6((directory[i].etiq14 >> 16) & 0xff) << 18) |
               (ascii6((directory[i].etiq14 >>  8) & 0xff) << 12) |
               (ascii6((directory[i].etiq14      ) & 0xff) <<  6) |
                (ascii6((directory[i].etiq56 >>  8) & 0xff));
             stdf_entry->pad1 = 0;
-            stdf_entry->etik6a = 
+            stdf_entry->etik6a =
               (ascii6((directory[i].etiq56      ) & 0xff) << 24) |
               (ascii6((directory[i].etiq78 >>  8) & 0xff) << 18) |
               (ascii6((directory[i].etiq78      ) & 0xff) << 12);
@@ -2141,7 +2155,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
             stdf_entry->etikbc = 0;
             stdf_entry->typvar = ascii6(directory[i].typvar) << 6;
             stdf_entry->pad3 = 0;
-            stdf_entry->nomvar = 
+            stdf_entry->nomvar =
                (ascii6((directory[i].nomvar >>  8) & 0xff) << 18) |
                (ascii6((directory[i].nomvar      ) & 0xff) << 12);
             stdf_entry->pad4 = 0;
@@ -2161,7 +2175,7 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
                */
               run = stdf_entry->date_stamp & 0x7;
               datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
-              
+
               f_datev = (ftnword) datexx;
               i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
               nhours = (double) (i_nhours / 3600.0);
@@ -2202,20 +2216,21 @@ int c_xdfopn(int iun,char *mode,word_2 *pri,int npri,
   return(f->header->nrec);
 }
 
-
+
+
 /*splitpoint c_xdfopt */
-/***************************************************************************** 
- *                            C _ X D F O P T                                * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                            C _ X D F O P T                                *
+ *                                                                           *
+ *Object                                                                     *
  *   Set different options in xdf.                                           *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    optname  name of option to set                                     * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    optname  name of option to set                                     *
  *  IN    optc     value of option if type is character                      *
  *  IN    optv     value of option if type is integer                        *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfopt(char *optname, char *optc, int optv)
@@ -2232,13 +2247,13 @@ int c_xdfopt(char *optname, char *optc, int optv)
          xdf_toler = ERROR;
       else if (strstr(optc,"FATAL") || strstr(optc,"fatal"))
          xdf_toler = ERRFATAL;
-      else if (strstr(optc,"SYSTEM") || strstr(optc,"SYSTEM")) 
+      else if (strstr(optc,"SYSTEM") || strstr(optc,"SYSTEM"))
          xdf_toler = SYSTEM;
       else {
          sprintf(errmsg,"invalid option value: %s",optc);
          return(error_msg("c_xdfopt",ERR_BAD_OPT,ERROR));
          }
-      
+
       }
    else if (strstr(optname,"MSGLVL") || strstr(optname,"msglvl")) {
 
@@ -2271,28 +2286,18 @@ int c_xdfopt(char *optname, char *optc, int optv)
 
 }
 
-/*splitpoint c_xdfprm */
-/*****************************************************************************
- *                            C _ X D F P R M                                *
- *                                                                           *
- *Object                                                                     *
- *   Get the descriptive parameters of the record pointed by handle          *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    handle   buffer that contains the record                           * 
- *  OUT   addr     record starting address                                   *
- *  OUT   lng      length of the record in 64 bit units                      *
- *  OUT   idtyp    record id type                                            *
- *  OUT   primk    primary keys                                              *
- *  IN    nprim    number of primary keys                                    *
- *                                                                           * 
- *****************************************************************************/
 
-int c_xdfprm(int handle,int *addr,int *lng,int *idtyp,word *primk,int nprim)
-{
+/** Get the descriptive parameters of the record pointed by handle */
+int c_xdfprm(
+    int handle /**< [in] Buffer that contains the record */,
+    int *addr /**< [out] Record starting addres */,
+    int *lng /**< [out] Length of the record in 64 bit units */,
+    int *idtyp /**< [out] Record id type */,
+    word *primk /**< [out] Primary keys */,
+    int nprim /**< [in] Number of primary keys */
+) {
    int index, record_number, page_number, i;
-   file_table_entry *f;
+   file_table_entry *fte;
    file_record *record;
    word *rec;
    max_dir_keys argument_not_used;
@@ -2303,84 +2308,83 @@ int c_xdfprm(int handle,int *addr,int *lng,int *idtyp,word *primk,int nprim)
    page_number =   PAGENO_FROM_HANDLE(handle);
    record_number = RECORD_FROM_HANDLE(handle);
 
-/*   printf("Debug+ c_xdfprm index=%d page_number=%d record_number=%d\n",index,page_number,record_number); */
-   /* validate index, page number and record number */
+    printf("Debug+ c_xdfprm index=%d page_number=%d record_number=%d\n", index, page_number, record_number);
 
-   if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-      sprintf(errmsg,"invalid handle, invalid file index\n");
-      return(error_msg("c_xdfprm",ERR_BAD_HNDL,ERROR));
-      }
+    // Validate index, page number and record number
+    if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
+        sprintf(errmsg, "invalid handle, invalid file index\n");
+        return(error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR));
+    }
 
-   f = file_table[index];
+    fte = file_table[index];
 
 
-   if (! f->xdf_seq) {
-     if (page_number < f->npages) {   /* page is in current file */
-       target_page = f->dir_page[page_number];
-     }
-     else {                           /* page is in a link file */
-       if (f->link == -1) {
-         sprintf(errmsg,"page number=%d > last page=%d and file not linked\n",
-                 page_number,f->npages-1);
-           return(error_msg("c_xdfprm",ERR_BAD_PAGENO,ERROR));
-       }
-       target_page = f->dir_page[f->npages-1];
-       for (i=0; (i<= (page_number - f->npages)) && target_page; i++)
-         target_page = (target_page)->next_page;
-       if (target_page == NULL) {
-         sprintf(errmsg,"invalid handle, invalid page number\n");
-         return(error_msg("c_xdfprm",ERR_BAD_PAGENO,ERROR));
-       }
-     }
-     
-     if (record_number > target_page->dir.nent) {
-      sprintf(errmsg,"invalid handle, invalid record number\n");
-      return(error_msg("c_xdfprm",ERR_BAD_HNDL,ERROR));
-     }
-     
-     rec = target_page->dir.entry + record_number * W64TOWD(f->primary_len);
-     record = (file_record *) rec;
-   }
-   else {
-     if (! f->valid_pos) {
-       sprintf(errmsg,"no valid file position for sequential file\n");
-       return(error_msg("c_xdfprm",ERR_NO_POS,ERROR));
-     }
-     record = (file_record *) f->head_keys;
-     if (address_from_handle(handle,f) != W64TOWD(record->addr-1)+1) {
-       sprintf(errmsg,
-               "invalid handle=%d, invalid address=%d record address=%d\n",
-               handle,address_from_handle(handle,f),W64TOWD(record->addr-1)+1);
-       return(error_msg("c_xdfprm",ERR_BAD_HNDL,ERROR));
-     }
-   }
-  
+    if (! fte->xdf_seq) {
+        if (page_number < fte->npages) {
+            /* page is in current file */
+            target_page = fte->dir_page[page_number];
+        } else {
+            /* page is in a link file */
+            if (fte->link == -1) {
+                sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, fte->npages - 1);
+                return error_msg("c_xdfprm",ERR_BAD_PAGENO,ERROR);
+            }
+            target_page = fte->dir_page[fte->npages - 1];
+            for (i = 0; (i<= (page_number - fte->npages)) && target_page; i++) {
+                target_page = (target_page)->next_page;
+            }
+            if (target_page == NULL) {
+                sprintf(errmsg, "invalid handle, invalid page number\n");
+                return error_msg("c_xdfprm", ERR_BAD_PAGENO, ERROR);
+            }
+        }
+
+        if (record_number > target_page->dir.nent) {
+            sprintf(errmsg, "invalid handle, invalid record number\n");
+            return error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR);
+        }
+
+        rec = target_page->dir.entry + record_number * W64TOWD(fte->primary_len);
+        record = (file_record *) rec;
+    } else {
+        if (! fte->valid_pos) {
+            sprintf(errmsg, "no valid file position for sequential file\n");
+            return error_msg("c_xdfprm", ERR_NO_POS, ERROR);
+        }
+        record = (file_record *) fte->head_keys;
+        if (address_from_handle(handle,f) != W64TOWD(record->addr - 1) + 1) {
+            sprintf(errmsg, "invalid handle=%d, invalid address=%d record address=%d\n",
+                    handle, address_from_handle(handle, f), W64TOWD(record->addr - 1) + 1);
+            return error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR);
+        }
+    }
+
    *idtyp = record->idtyp;
    *addr = record->addr;
    *lng = record->lng;
 
-   f->build_primary((word *) record,primk,argument_not_used,mskkeys,index,RDMODE);
+   fte->build_primary((word *) record, primk, argument_not_used, mskkeys, index, RDMODE);
 
-   return(0);
-
+   return 0;
 }
-
+
+
 /*splitpoint c_xdfput */
-/***************************************************************************** 
- *                            C _ X D F P U T                                * 
- *                                                                           * 
- *Object                                                                     * 
- *   Write record (from buf) to xdf file. If handle is not 0, rewrite        * 
+/*****************************************************************************
+ *                            C _ X D F P U T                                *
+ *                                                                           *
+ *Object                                                                     *
+ *   Write record (from buf) to xdf file. If handle is not 0, rewrite        *
  *   record referenced by handle. If handle is negative, the record will be  *
  *   append to end of file.                                                  *
  *   If handle is 0, the record is added at the end of file.                 *
- *                                                                           * 
- *Arguments                                                                  * 
+ *                                                                           *
+ *Arguments                                                                  *
  *                                                                           *
  *  IN    iun     unit number of the file to be written                      *
- *  IN    handle  file index, page number and record number to record        * 
- *  IN    buf     buffer to contain record                                   * 
- *                                                                           * 
+ *  IN    handle  file index, page number and record number to record        *
+ *  IN    buf     buffer to contain record                                   *
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
@@ -2429,7 +2433,7 @@ int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
       write_to_end = 1;
 
    if (handle != 0) {
-      if (handle < 0 ) 
+      if (handle < 0 )
          handle = -handle;
 
       index =         INDEX_FROM_HANDLE(handle);
@@ -2478,10 +2482,10 @@ int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
           sprintf(errmsg,"invalid handle, invalid record number\n");
           return(error_msg("c_xdfput",ERR_BAD_HNDL,ERROR));
         }
-        
+
         f->cur_entry =
           f->cur_dir_page->dir.entry + record_number * W64TOWD(f->primary_len);
-   
+
         record = (file_record *) f->cur_entry;
       }
       else {   /* file is xdf sequential */
@@ -2510,9 +2514,9 @@ int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
          write_to_end = 1;
       else
          write_addr = W64TOWD(addr-1)+1;
-      
+
       } /* end if handle != 0 */
-           
+
    if ((write_to_end) && (! f->xdf_seq)) {
       f->cur_dir_page = f->dir_page[f->npages-1];
       f->cur_pageno = f->npages-1;
@@ -2573,7 +2577,7 @@ int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
      f->build_primary(buf->data,primk,argument_not_used,
                       mskkeys,index,RDMODE);              /* get keys */
      f->build_primary(f->cur_entry,primk,argument_not_used,
-                      mskkeys,index,WMODE); 
+                      mskkeys,index,WMODE);
      record = (file_record *) f->cur_entry;
      record->idtyp = bufrec->idtyp;
      record->addr = WDTO64(write_addr - 1) + 1;
@@ -2586,7 +2590,7 @@ int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
       f->header->nxtn++;
       f->header->fsiz += WDTO64(nwords);
       f->nxtadr = W64TOWD(f->header->fsiz) + 1;  /* nxtadr = fsiz +1 */
-      f->header->nbig = 
+      f->header->nbig =
          (WDTO64(nwords) > f->header->nbig) ? WDTO64(nwords) : f->header->nbig;
       if (f->xdf_seq) {  /* add postfix and eof marker */
         postfix.idtyp = 0;
@@ -2614,18 +2618,19 @@ int c_xdfput(int iun, int handle, buffer_interface_ptr buf)
    return(0);
 
 }
-
+
+
 /*splitpoint c_xdfrep */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ X D F R E P                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Replace in buf the content of data. nelm elements are replaced in       *
  *   buf starting at position bitpos.                                        *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    nelm     number of elements to replace in buf                      * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    nelm     number of elements to replace in buf                      *
  *  IN    bitpos   bit position of replacement in buf                        *
  *  IN    donnees  replacement data bits                                     *
  *  IN    nbit     number of bits kept per element                           *
@@ -2676,7 +2681,7 @@ int c_xdfrep(word *buffer, word *donnees, int bitpos,
          for (i=0; i < nbwords; i++)
             buf->data[index_word+i] = donnees[i];
          break;
-      
+
 #if !defined(NEC)
       case 6:
       case 8:
@@ -2688,7 +2693,7 @@ int c_xdfrep(word *buffer, word *donnees, int bitpos,
       case 7:
       case 9:
 
-         if (*little_endian) 
+         if (*little_endian)
            for (i=0; i < nbwords; i+=2) {
              buf->data[index_word+i] = donnees[i+1];
              buf->data[index_word+i+1] = donnees[i];
@@ -2703,7 +2708,7 @@ int c_xdfrep(word *buffer, word *donnees, int bitpos,
          for (i=0; i < nbwords; i++)
             buf->data[index_word+i] = upper_case_word(donnees[i]);
          break;
-      
+
       case 2: mode = 1;
          ier = compact_integer(donnees,(void *) NULL,&(buf->data[index_word]),nelm,
                                nbits,0,xdf_stride,mode);
@@ -2721,17 +2726,18 @@ int c_xdfrep(word *buffer, word *donnees, int bitpos,
 
    return(0);
 }
-
+
+
 /*splitpoint c_xdfsta */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ X D F S T A                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Get the statistics associated to a file.                                *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun      unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun      unit number associated to the file                        *
  *  OUT   stats    statistics of the file                                    *
  *  IN    nstat    number of statistics to print                             *
  *  OUT   pri      primary keys                                              *
@@ -2740,7 +2746,7 @@ int c_xdfrep(word *buffer, word *donnees, int bitpos,
  *  IN    naux     number of auxiliary keys                                  *
  *  OUT   vers     software version                                          *
  *  OUT   appl     application signature                                     *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfsta(int iun,word *stat,int nstat,
@@ -2782,9 +2788,9 @@ int c_xdfsta(int iun,word *stat,int nstat,
       wasopen = 1;
       fh = file_table[index]->header;
       }
-   
+
    switch (nstat)
-      { 
+      {
       case 12: stat[11] = fh->nrec;
       case 11: stat[10] = fh->neff;
       case 10: stat[9] = fh->laux;
@@ -2812,7 +2818,7 @@ int c_xdfsta(int iun,word *stat,int nstat,
                return(error_msg("c_xdfsta",ERR_BAD_NSTAT,ERROR));
       }
 
-/* 
+/*
  * primary keys description
  */
    nn = 0;
@@ -2835,17 +2841,18 @@ int c_xdfsta(int iun,word *stat,int nstat,
       c_waclos(iun);
    return(0);
 }
-
+
+
 /*splitpoint c_xdfunl */
-/***************************************************************************** 
- *                             C _ X D F U N L                               * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                             C _ X D F U N L                               *
+ *                                                                           *
+ *Object                                                                     *
  *   Unlinks the list of random files previously linked by c_xdflnk.         *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    liste    unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    liste    unit number associated to the file                        *
  *  IN    n        number of files to be unlinked                            *
  *                                                                           *
  *****************************************************************************/
@@ -2868,29 +2875,30 @@ int c_xdfunl(word *liste, int n)
     f->link = -1;
     (f->dir_page[f->npages-1])->next_page = NULL;
   }
-   
+
   return(0);
 }
 
-
+
+
 /*splitpoint c_xdfupd */
-/***************************************************************************** 
+/*****************************************************************************
  *                          C _ X D F U P D                                  *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Update primary keys and info keys in buffer. If a key value is -1,      *
  *   there is no update of this element.                                     *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun      unit number associated to the file                        * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun      unit number associated to the file                        *
  * IN/OUT buf      buffer to contain the modified record                     *
  *  IN    idtyp    record type                                               *
  *  IN    keys     list of primary keys                                      *
  *  IN    nkeys    number of primary keys                                    *
  *  IN    info     list of secondary keys                                    *
  *  IN    ninfo    number of secondary keys                                  *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_xdfupd(int iun,buffer_interface_ptr buf,int idtyp,
@@ -2918,13 +2926,13 @@ int c_xdfupd(int iun,buffer_interface_ptr buf,int idtyp,
               "invalid idtyp=%d, must be between 1 and 126 or -1",idtyp);
       return(error_msg("c_xdfupd",ERR_BAD_DATYP,ERROR));
       }
-   
+
    buf->iun = iun;
-   
+
    record = (file_record *) buf->data;
    if (idtyp > -1)
       record->idtyp = idtyp;
-   
+
    f = file_table[index];
 
    if (nkeys > 0) f->build_primary(buf->data,keys,argument_not_used,
@@ -3133,18 +3141,19 @@ int c_xdfuse(int src_unit, int dest_unit)
 
    return(0);
 }
-
+
+
 /*splitpoint c_xdfxtr */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ X D F X T R                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Extract a portion of the record contained in buf and copy it into       *
  *   vector donnees.                                                         *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    nelm     number of elements to extract into buf                    * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    nelm     number of elements to extract into buf                    *
  *  IN    bitpos   bit position of starting extraction                       *
  *  OUT   donnees  data bits to get                                          *
  *  IN    nbit     number of bits kept per element                           *
@@ -3195,7 +3204,7 @@ int c_xdfxtr(word *buffer, word *donnees, int bitpos,
 
       case 7:
       case 9:
-         if (*little_endian) 
+         if (*little_endian)
            for (i=0; i < nbwords; i+=2) {
              donnees[i+1] = buf->data[index_word+i];
              donnees[i] = buf->data[index_word+i+1];
@@ -3223,24 +3232,25 @@ int c_xdfxtr(word *buffer, word *donnees, int bitpos,
 
    return(0);
 }
-
+
+
 /*splitpoint create_new_xdf */
-/***************************************************************************** 
+/*****************************************************************************
  *                      C R E A T E _ N E W _ X D F                          *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Create a new XDF file.                                                  *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    index    file index in table                                       * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    index    file index in table                                       *
  *  IN    iun      unit number associated to the file                        *
  *  IN    pri      primary keys                                              *
  *  IN    npri     number of primary keys                                    *
  *  IN    aux      auxiliary keys                                            *
  *  IN    naux     number of auxiliary keys                                  *
  *  IN    appl     application signature                                     *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
@@ -3316,18 +3326,19 @@ static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
    }
    return(0);
 }
-
+
+
 /*splitpoint error_msg */
-/***************************************************************************** 
- *                           E R R O R _ M S G                               * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                           E R R O R _ M S G                               *
+ *                                                                           *
+ *Object                                                                     *
  *   Write an error message to stderr and conditionally exit if the level    *
  *   of error is greater than the tolerance level                            *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    function_name name of the calling function                         * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    function_name name of the calling function                         *
  *  IN    errcode       error code                                           *
  *  IN    errlevel      error level                                          *
  *                                                                           *
@@ -3342,21 +3353,22 @@ int error_msg(char *function_name, int errcode, int errlevel)
         if (errlevel >= msg_level)
            fprintf(stderr,"*** %s #%d from module %s: %s\n",
                    errtab[errlevel],-errcode,function_name,errmsg);
-        if (errlevel > xdf_toler) 
+        if (errlevel > xdf_toler)
            exit(-errcode);
         return(errcode);
 }
-
+
+
 /*splitpoint file_index */
-/***************************************************************************** 
- *                            F I L E _ I N D E X                            * 
- *                                                                           * 
- *Object                                                                     * 
+/*****************************************************************************
+ *                            F I L E _ I N D E X                            *
+ *                                                                           *
+ *Object                                                                     *
  *   Find position of file iun in file table.                                *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun   unit number associated to the file                           * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun   unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
 
@@ -3369,18 +3381,19 @@ int i;
             return(i);
    return(ERR_NO_FILE);
 }
-
+
+
 /*splitpoint fnom_index */
-/***************************************************************************** 
+/*****************************************************************************
  *                            F N O M _ I N D E X                            *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Find index position in master file table (fnom file table).             *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    iun   unit number associated to the file                           * 
- *                                                                           * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    iun   unit number associated to the file                           *
+ *                                                                           *
  *****************************************************************************/
 
 int fnom_index(int iun)
@@ -3390,22 +3403,23 @@ int fnom_index(int iun)
       if (FGFDT[i].iun == iun) return(i);
    return(-1);
 }
-
+
+
 /*splitpoint get_free_index */
-/***************************************************************************** 
+/*****************************************************************************
  *                          G E T _ F R E E _ I N D E X                      *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Find a free position in file table and initialize file attributes.      *
  *                                                                           *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 static int get_free_index()
 {
    int i, nlimite;
-   
-   if (STDSEQ_opened == 1) 
+
+   if (STDSEQ_opened == 1)
      nlimite = 128;
    else
      nlimite = MAX_XDF_FILES;
@@ -3427,17 +3441,18 @@ static int get_free_index()
    sprintf(errmsg,"xdf file table is full\n");
    return(error_msg("get_free_index",ERR_FTAB_FULL,ERRFATAL));
 }
-
+
+
 /*splitpoint init_file */
-/***************************************************************************** 
+/*****************************************************************************
  *                            I N I T _ F I L E                              *
- *Object                                                                     * 
+ *Object                                                                     *
  *  Initialize a file table entry.                                           *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    i   index in the file table                                        * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    i   index in the file table                                        *
+ *                                                                           *
  *****************************************************************************/
 
 static void init_file(int i)
@@ -3489,7 +3504,8 @@ static void init_file(int i)
    }
 }
 
-
+
+
 /*splitpoint init_package */
 /*****************************************************************************
  *                         I N I T _ P A C K A G E                           *
@@ -3507,10 +3523,11 @@ static void init_package()
    file_table[ind]->iun = 1234567;
    init_package_done = 1;
 }
-
+
+
 /*splitpoint make_seq_handle */
-/***************************************************************************** 
- *                       M A K E _ S E Q _ H A N D L E                       * 
+/*****************************************************************************
+ *                       M A K E _ S E Q _ H A N D L E                       *
  *                                                                           *
  *Object                                                                     *
  *  calculates an handle for a sequential file from address and index        *
@@ -3527,7 +3544,7 @@ static INT_32 make_seq_handle(int address, int file_index, file_table_entry *f)
   int cluster, addr;
   static int MB512 = 0x4000000, MB128 = 0x1000000, MB32 = 0x400000;
   /* MB512 , MB128 and MB32 are represented in 64 bit unit */
-  
+
   address = (address-1) >> 1;     /* 32 bit word to 64 bit unit address */
   if (f->fstd_vintage_89) {
     cluster = 0;
@@ -3664,7 +3681,7 @@ static word next_match(int file_index)
          if (seq_entry->eof > 0) {
            header->idtyp = 112 + seq_entry->eof;
            header->lng = 1;
-           end_of_file = 1;           
+           end_of_file = 1;
            break;
          }
          stde->deleted = 0;
@@ -3679,7 +3696,7 @@ static word next_match(int file_index)
          stde->datyp = seq_entry->datyp;
          stde->nk = seq_entry->nk;
          stde->ubc = 0;
-         stde->npas = (seq_entry->npas2 << 16) | 
+         stde->npas = (seq_entry->npas2 << 16) |
            seq_entry->npas1;
          stde->pad7 = 0;
          stde->ig4 = seq_entry->ig4;
@@ -3688,14 +3705,14 @@ static word next_match(int file_index)
          stde->ig2b = seq_entry->ig2 >> 8;
          stde->ig3 = seq_entry->ig3;
          stde->ig2c = seq_entry->ig2 & 0xff;
-         stde->etik15 = 
+         stde->etik15 =
            (ascii6(seq_entry->etiq14 >> 24) << 24) |
            (ascii6((seq_entry->etiq14 >> 16) & 0xff) << 18) |
            (ascii6((seq_entry->etiq14 >>  8) & 0xff) << 12) |
            (ascii6((seq_entry->etiq14      ) & 0xff) <<  6) |
            (ascii6((seq_entry->etiq56 >>  8) & 0xff));
          stde->pad1 = 0;
-         stde->etik6a = 
+         stde->etik6a =
            (ascii6((seq_entry->etiq56      ) & 0xff) << 24) |
            (ascii6((seq_entry->etiq78 >>  8) & 0xff) << 18) |
            (ascii6((seq_entry->etiq78      ) & 0xff) << 12);
@@ -3703,7 +3720,7 @@ static word next_match(int file_index)
          stde->etikbc = 0;
          stde->typvar = ascii6(seq_entry->typvar) << 6;
          stde->pad3 = 0;
-         stde->nomvar = 
+         stde->nomvar =
            (ascii6((seq_entry->nomvar >>  8) & 0xff) << 18) |
            (ascii6((seq_entry->nomvar      ) & 0xff) << 12);
          stde->pad4 = 0;
@@ -3723,7 +3740,7 @@ static word next_match(int file_index)
             */
            run = stde->date_stamp & 0x7;
            datexx = (stde->date_stamp >> 3) * 10 + run;
-           
+
            f_datev = (ftnword) datexx;
            i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
            nhours = (double) (i_nhours / 3600.0);
@@ -3734,7 +3751,7 @@ static word next_match(int file_index)
            datexx = (int) f_datev;
            stde->date_stamp = 8 * (datexx/10) + (datexx % 10);
          }
-         
+
          entry = (word *) stde;
          search = (word *) f->head_keys;
          for (i = 0; i < width; i++, entry++, search++)
@@ -3767,7 +3784,7 @@ static word next_match(int file_index)
    if (! found) return(ERR_NOT_FOUND);
 
    if (! f->xdf_seq) {
-     if (msg_level <= TRIVIAL) 
+     if (msg_level <= TRIVIAL)
        fprintf(stdout,"Record found at page# %d, record# %d\n",
                f->cur_pageno,f->page_record-1);
      handle= MAKE_RND_HANDLE( f->cur_pageno, f->page_record-1, f->file_index );
@@ -3775,7 +3792,7 @@ static word next_match(int file_index)
    else {
      if (msg_level <= TRIVIAL)
        fprintf(stdout,"Record found at address %d,\n",addr_match);
-     stde = (stdf_dir_keys *) f->head_keys; 
+     stde = (stdf_dir_keys *) f->head_keys;
      handle = make_seq_handle(addr_match,f->file_index,f);
    }
    return(handle);
