@@ -2352,9 +2352,9 @@ int c_xdfprm(
             return error_msg("c_xdfprm", ERR_NO_POS, ERROR);
         }
         record = (file_record *) fte->head_keys;
-        if (address_from_handle(handle,f) != W64TOWD(record->addr - 1) + 1) {
+        if (address_from_handle(handle,fte) != W64TOWD(record->addr - 1) + 1) {
             sprintf(errmsg, "invalid handle=%d, invalid address=%d record address=%d\n",
-                    handle, address_from_handle(handle, f), W64TOWD(record->addr - 1) + 1);
+                    handle, address_from_handle(handle, fte), W64TOWD(record->addr - 1) + 1);
             return error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR);
         }
     }
