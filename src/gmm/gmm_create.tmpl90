@@ -1,7 +1,10 @@
 integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use, intrinsic :: iso_c_binding
+    use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
+
     use gmm_internals
     use gmm_pointer_table_data
+
     implicit none
 
     ! name (partially redundant with attributes)
@@ -42,16 +45,6 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 #elif DIM == 4
     DATATYPE*DATALENGTH, pointer  :: pp(:,:,:,:)
 #endif
-    real      :: NaN
-    integer   :: inan
-    real*8    :: NaN8
-    integer*8 :: inan8
-
-    equivalence (inan, NaN)
-    equivalence (inan8, NaN8)
-
-    data inan  /Z'7F800001'/
-    data inan8 /Z'7FF0000000000001'/
 
     if (present(flags_arg)) then
         field_meta%a%flags = flags_arg
@@ -227,13 +220,13 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             print *, iname, ' Debug DATATYPE=real init to NaN'
         endif
-        p = NaN
+        p = ieee_value(1.0, ieee_quiet_nan)
 #else
 #if ((DATATYPE == real) & (DATALENGTH == 8))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             print *, iname, ' Debug DATATYPE=real*8 init to NaN8'
         endif
-        p = NaN8
+        p = ieee_value(1d0, ieee_quiet_nan)
 #else
         print *, 'GMM_CREATE ERROR, name=', iname, ' : init to NaN is not available for this data type'
         FNCNAME(gmm_create) = GMM_ERROR
