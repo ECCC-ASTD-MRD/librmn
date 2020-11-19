@@ -129,7 +129,7 @@ int C_fst_match_req(int set_nb, int handle);
 
 /**----------------------------------------------------------------------------
  * @brief  Check XDF file for corruption
- * @author Vincetn Magnoux
+ * @author Vincent Magnoux
  * @date   October 2020
  *    @param[in]  Filename Path to the file
  *
@@ -142,8 +142,8 @@ int c_xdfcheck(const char* Filename)
    FILE *fd = fopen(Filename, "r");
 
    if (!fd) {
-      printf("(ERROR) Cannot open file\n");
-      return(-1);
+      sprintf(errmsg,"Cannot open file");
+      return(error_msg("c_xdfcheck",ERR_NO_FILE,ERROR));
    }
 
    // Get file size
@@ -161,13 +161,13 @@ int c_xdfcheck(const char* Filename)
    }
 
    if ((size_t)header.fsiz * 8 != file_size) {
-      printf("(ERROR) File size does not match header information\n");
-      return -1;
+      sprintf(errmsg,"File size does not match header information");
+      return(error_msg("c_xdfcheck",ERR_DAMAGED,ERROR));
    }
     
    if (header.idtyp != 0) {
-      printf("(ERROR) Wrong header ID type (%d), should be %d\n", header.idtyp, 0);
-      return -1;
+      sprintf(errmsg,"Wrong header ID type (%d), should be %d\n",header.idtyp,0);
+      return(error_msg("c_xdfcheck",ERR_DAMAGED,ERROR));
    }
 
    // Print info
@@ -189,7 +189,7 @@ int c_xdfcheck(const char* Filename)
 
    fclose(fd);
 
-   return 0;
+   return(0);
 }
 
 /*splitpoint add_dir_page */

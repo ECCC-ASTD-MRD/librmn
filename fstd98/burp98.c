@@ -213,7 +213,14 @@ void build_burp_prim_keys(burp_record *brpk, word *keys,
       }
 }
 
-int c_burbcheck(const char* filename)
+/**----------------------------------------------------------------------------
+ * @brief  Check burp file for corruption
+ * @date   October 2020
+ *    @param[in]  Filename Path to the file
+ *
+ *    @return     Valid(0) or not(-1)
+*/
+int c_burpcheck(const char* filename)
 {
    return(c_xdfcheck(filename));
 }
