@@ -1737,326 +1737,341 @@ int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
 }
 
 
-/*splitpoint c_fstluk */
-/*****************************************************************************
- *                         C _ F S T L U K                                   *
- *                                                                           *
- *Object                                                                     *
- *   Read the record at position given by handle.                            *
- *Revision                                                                   *
- *   Mar  2013 - M.Valin  missing values, byte/short mods                    *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field   data field to be read                                        *
- *  IN  handle  positioning information to the record                        *
- *  OUT ni      dimension 1 of the data field                                *
- *  OUT nj      dimension 2 of the data field                                *
- *  OUT nk      dimension 3 of the data field                                *
- *                                                                           *
- *****************************************************************************/
+//! Read the record corresponding to the provided handle
+int c_fstluk(
+    //! [out] Pointer to where the data read will be placed.  Must be allocated!
+    word *field,
+    //! [in] Handle of the record to be read
+    int handle,
+    //! [out] Dimension 1 of the data field
+    int *ni,
+    //! [out] Dimension 2 of the data field
+    int *nj,
+    //! [out] Dimension 3 of the data field
+    int *nk
+) {
+    stdf_dir_keys stdf_entry;
+    word *pkeys;
+    // word *workField;
+    float *ptr_real;
+    double *ptr_double;
+    buffer_interface_ptr buf;
+    int ier, addr, lng, lng2, idtyp, mode, npak, nelm, i, zero = 0, one = 1;
+    int nbytes, header_size, stream_size, p1out, p2out;
+    int bitmot = 32;
+    int lngw, stdf_aux_keys[2];
+    char string[11];
+    PackFunctionPointer packfunc;
+    double tempfloat = 99999.0;
+    // Missing data flag (bit with value 64 in datatype)
+    int has_missing = 0;
+    int *field_out;
+    short *s_field_out;
+    signed char *b_field_out;
 
-int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
-{
-  stdf_dir_keys *stdf_entry;
-  word *pkeys, *work_field;
-  float *ptr_real;
-  double *ptr_double;
-  buffer_interface_ptr buf;
-  int ier, addr, lng, lng2, idtyp, mode, npak, nelm, i, zero=0, one=1;
-  int nbytes, header_size, stream_size, p1out, p2out;
-  int bitmot=32;
-  int lngw, stdf_aux_keys[2];
-  char string[11];
-  PackFunctionPointer packfunc;
-  double tempfloat=99999.0;
-  int has_missing = 0;    /* missing data flag (bit with value 64 in datatype) */
-  int *field_out;
-  short *s_field_out;
-  signed char *b_field_out;
+    fprintf(stderr, "Debug+ c_fstluk(field=%p, handle=%i, ni=%i, nj=%i, nj=%i)\n", field, handle, *ni, *nj, *nk);
 
-    fprintf(stderr,"Debug+ c_fstluk(field=%p, handle=%i, ni=%i, nj=%i, nj=%i)\n", field, handle, *ni, *nj, *nk);
+    printf("sizeof(stdf_dir_keys) = %d\n", sizeof(stdf_dir_keys));
 
-    stdf_entry = (stdf_dir_keys *) malloc(sizeof(stdf_dir_keys));
-  pkeys = (word *) stdf_entry;
-  pkeys += W64TOWD(1);
+    printf("Debug+ c_fstluk - &stdf_entry = %p\n", &stdf_entry);
+    pkeys = (word *) &stdf_entry;
+    printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
+    pkeys += W64TOWD(1);
+    printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
 
-  ier = c_xdfprm(handle,&addr,&lng,&idtyp,pkeys,16);
-  if (ier < 0) return(ier);
-  *ni = stdf_entry->ni;
-  *nj = stdf_entry->nj;
-  *nk = stdf_entry->nk;
-  has_missing = stdf_entry->datyp & 64 ;          /* get missing data flag */
-  stdf_entry->datyp = stdf_entry->datyp & 0xBF ;  /* suppress missing data flag */
-  xdf_datatyp = stdf_entry->datyp ;
+    printf("Debug+ c_fstluk - c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);\n");
+    ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
+    if (ier < 0) return ier;
+    *ni = stdf_entry.ni;
+    *nj = stdf_entry.nj;
+    *nk = stdf_entry.nk;
+    // Get missing data flag
+    has_missing = stdf_entry.datyp & 64;
+    // Suppress missing data flag
+    stdf_entry.datyp = stdf_entry.datyp & 0xBF;
+    xdf_datatyp = stdf_entry.datyp ;
 
-  if (xdf_double)
-    packfunc = &compact_double;
-  else
-    packfunc = &compact_float;
-
-  lng = W64TOWD(lng);
-  if ((xdf_datatyp == 1) || (xdf_datatyp == 5))
-    lng = (xdf_double) ? 2*lng : lng;
-
-
-  if ((xdf_datatyp == 6) || (xdf_datatyp == 134)) {       /* new packer */
-    c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,(*ni)*(*nj)*(*nk));
-    header_size /= sizeof(INT_32);
-    lng2 = 1 + ((*ni * *nj * *nk* 16 + 32 + 31) / 32) + header_size + 20;
+    if (xdf_double) {
+        packfunc = &compact_double;
+    } else {
+        packfunc = &compact_float;
     }
-  else if (xdf_datatyp == 133) {  /* compressed ieee */
-    lng2 = 1 + lng;
+
+    lng = W64TOWD(lng);
+    if ((xdf_datatyp == 1) || (xdf_datatyp == 5)) {
+        lng = (xdf_double) ? 2*lng : lng;
     }
-  else if (xdf_datatyp > 128) {
-    lng2 = 4 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + 20;          /* 16 for 16 bits armn_compress */
-/*   fprintf(stderr,"Debug+ fstluk ni=%d nj=%d nk=%d lng=%d lng2=%d\n",*ni,*nj,*nk,lng,lng2); */
+
+    if ((xdf_datatyp == 6) || (xdf_datatyp == 134)) {
+        // New packer
+        printf("Debug+ fstluk - c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, (*ni) * (*nj) * (*nk))\n");
+        c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, (*ni) * (*nj) * (*nk));
+        header_size /= sizeof(INT_32);
+        lng2 = 1 + ((*ni * *nj * *nk* 16 + 32 + 31) / 32) + header_size + 20;
+    } else if (xdf_datatyp == 133) {
+        // Compressed ieee
+        lng2 = 1 + lng;
+    } else if (xdf_datatyp > 128) {
+        // 16 for 16 bits armn_compress
+        lng2 = 4 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + 20;
+        // fprintf(stderr,"Debug+ fstluk ni=%d nj=%d nk=%d lng=%d lng2=%d\n",*ni,*nj,*nk,lng,lng2);
+    } else {
+        lng2 = lng;
     }
-  else
-    lng2 = lng;
 
-/*  printf("Debug+ fstluk lng2 = %d\n",lng2); */
-  /* allocate 8 more bytes in case of realingment for 64 bit data */
-  if ((work_field = alloca(8+(lng2+10)*sizeof(word))) == NULL) {
-    sprintf(errmsg,"memory is full, was trying to allocate %ld bytes",
-            lng*sizeof(word));
-    return(error_msg("c_fstluk",ERR_MEM_FULL,ERRFATAL));
-  }
-  else
-    memset(work_field,0,8+(lng2+10)*sizeof(word));
+    printf("Debug+ fstluk lng2 = %d\n", lng2);
 
-  buf = (buffer_interface_ptr) work_field;
-  if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(word)) & 0x7) != 0 ) {
-    /* realign buf to make sure that buf->data is 64bit align */
-    buf = (buffer_interface_ptr) (work_field + 1);
-  }
-  buf->nwords = -(lng+10);   /* negative value means get data only */
-  buf->nbits = -1;
-  ier = c_xdfget2(handle,buf,stdf_aux_keys);
-  if (ier < 0) return(ier);
-  if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
-    printf("c_fstluk aux_keys[0]=%d, aux_keys[1]=%d\n",stdf_aux_keys[0],stdf_aux_keys[1]);
-    sprintf(errmsg,"wrong version of fstd98 (%d), recompile with a more recent version",
-            stdf_version);
-    return(error_msg("c_fstluk",ERR_STDF_VERSION,ERRFATAL));
-  }
+    // Allocate 8 more bytes in case of realingment for 64 bit data
+    int workFieldSz = 8 + (lng2 + 10) * sizeof(word);
+    printf("Debug+ fstluk - workFieldSz = %d\n", workFieldSz);
+    char workField[workFieldSz];
+    printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
+    memset(workField, 0, workFieldSz);
 
+    // if ((workField = alloca(workFieldSz)) == NULL) {
+    //     sprintf(errmsg, "memory is full, was trying to allocate %ld bytes", lng * sizeof(word));
+    //     return error_msg("c_fstluk", ERR_MEM_FULL, ERRFATAL);
+    // } else {
+    //     printf("Debug+ fstluk - &\n");
+    //     printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
+    //     memset(workField, 0, workFieldSz);
+    // }
 
-  nelm = stdf_entry->ni * stdf_entry->nj * stdf_entry->nk;
-  if (stdf_entry->datyp == 8) nelm *= 2;
-
-  npak = -(stdf_entry->nbits);
-  if (image_mode_copy) {            /* no pack/unpack, used by editfst */
-    if (stdf_entry->datyp > 128) {
-      lngw = buf->data[0];
-/*      fprintf(stderr,"Debug+ lecture mode image lngw=%d\n",lngw); */
-      for (i=0; i < lngw+1; i++) {
-        field[i] =  buf->data[i];
-      }
+    printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
+    buf = (buffer_interface_ptr) workField;
+    if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(word)) & 0x7) != 0 ) {
+        // Realign buf to make sure that buf->data is 64bit align
+        buf = (buffer_interface_ptr) (workField + 1);
     }
-    else {
-      lngw = nelm * stdf_entry->nbits;
-      if (stdf_entry->datyp == 1) lngw += 120;
-      if (stdf_entry->datyp == 3) lngw = *ni * *nj * 8;
-      if (stdf_entry->datyp == 6) {
-        c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,nelm);
-        lngw = (header_size+stream_size) * 8 ;
-        }
-      lngw = (lngw + bitmot - 1) / bitmot;
-      for (i=0; i < lngw; i++) {
-        field[i] =  buf->data[i];
-      }
+    // negative value means get data only
+    buf->nwords = -(lng + 10);
+    buf->nbits = -1;
+    printf("Debug+ fstluk - c_xdfget2(handle, buf, stdf_aux_keys)\n");
+    ier = c_xdfget2(handle, buf, stdf_aux_keys);
+    if (ier < 0) return ier;
+
+    if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
+        printf("c_fstluk aux_keys[0]=%d, aux_keys[1]=%d\n", stdf_aux_keys[0], stdf_aux_keys[1]);
+        sprintf(errmsg, "wrong version of fstd98 (%d), recompile with a more recent version", stdf_version);
+        return error_msg("c_fstluk", ERR_STDF_VERSION, ERRFATAL);
     }
-  }
-  else {
-    switch (stdf_entry->datyp)
-      {
-      case 0:  /* raw binary */
-        lngw = ((nelm * stdf_entry->nbits) + bitmot - 1) / bitmot;
-        for (i=0; i < lngw; i++)
-          field[i] =  buf->data[i];
-        break;
 
-      case 1: case 129:  /* floating point */
-        if (stdf_entry->datyp > 128) {
-/*          fprintf(stderr,"Debug+ unpack buf->data=%d\n",*(buf->data)); */
-          nbytes = armn_compress(buf->data+5,*ni,*nj,*nk,stdf_entry->nbits,2);
-/*          fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
-              *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4))); */
-          packfunc(field,buf->data+1,buf->data+5,
-                   nelm,stdf_entry->nbits+64*Max(16,stdf_entry->nbits),0,xdf_stride,FLOAT_UNPACK,0,
-                   &tempfloat);
-        }
-        else
-          packfunc(field,buf->data,buf->data+3,
-                   nelm,stdf_entry->nbits,24,xdf_stride,FLOAT_UNPACK,0,
-                   &tempfloat);
-        break;
+    nelm = stdf_entry.ni * stdf_entry.nj * stdf_entry.nk;
+    if (stdf_entry.datyp == 8) nelm *= 2;
 
-      case 2: case 130:          /* integer, short integer or byte stream */
-        {
-        int offset;
-        offset = (stdf_entry->datyp > 128) ? 1 : 0;
-        if (xdf_short) {
-          if (stdf_entry->datyp > 128) {
-            c_armn_compress_setswap(0);
-            nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
-          /*  printf("Debug+ fstluk mode short compress nbytes=%d\n",nbytes); */
-            c_armn_compress_setswap(1);
-            memcpy(field,buf->data+offset,nbytes);
+    npak = -(stdf_entry.nbits);
+    if (image_mode_copy) {
+        // No pack/unpack, used by editfst
+        if (stdf_entry.datyp > 128) {
+            lngw = buf->data[0];
+            // fprintf(stderr,"Debug+ lecture mode image lngw=%d\n",lngw);
+            for (i = 0; i < lngw + 1; i++) {
+                field[i] =  buf->data[i];
             }
-          else {
-            mode = 6;
-            ier = compact_short(field,(void *) NULL,buf->data+offset,nelm,
-                                stdf_entry->nbits,0,xdf_stride,mode);
+        } else {
+            lngw = nelm * stdf_entry.nbits;
+            if (stdf_entry.datyp == 1) lngw += 120;
+            if (stdf_entry.datyp == 3) lngw = *ni * *nj * 8;
+            if (stdf_entry.datyp == 6) {
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
+                lngw = (header_size + stream_size) * 8 ;
             }
-          }
-        else if (xdf_byte) {
-          if (stdf_entry->datyp > 128) {
-            c_armn_compress_setswap(0);
-            nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
-            c_armn_compress_setswap(1);
-        /*    printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n",nbytes,nelm); */
-            memcpy_16_8(field,buf->data+offset,nelm);
-          }
-          else {
-            mode = 10;
-            ier = compact_char(field,(void *) NULL,buf->data,nelm,
-                               8,0,xdf_stride,mode);
-          }
+            lngw = (lngw + bitmot - 1) / bitmot;
+            for (i = 0; i < lngw; i++) {
+                field[i] =  buf->data[i];
+            }
         }
-        else {
-          if (stdf_entry->datyp > 128) {
-            c_armn_compress_setswap(0);
-            nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
-            c_armn_compress_setswap(1);
-          /*  printf("Debug+ fstluk mode int compress nbytes=%d\n",nbytes); */
-            memcpy_16_32(field,buf->data+offset,stdf_entry->nbits,nelm);
-          }
-          else {
-            mode = 2;
-            ier = compact_integer(field,(void *) NULL,buf->data+offset,nelm,
-                                  stdf_entry->nbits,0,xdf_stride,mode);
-          }
-        }
-        break;
-        }
+    } else {
+        switch (stdf_entry.datyp) {
+            case 0:
+                // Raw binary
+                printf("Debug+ fstluk - Raw binary\n");
+                lngw = ((nelm * stdf_entry.nbits) + bitmot - 1) / bitmot;
+                for (i = 0; i < lngw; i++) {
+                    field[i] =  buf->data[i];
+                }
+                break;
 
-      case 3: mode=2;  /* character */
-        {
-        int nc = (nelm+3)/4;
-        ier = compact_integer(field,(void *) NULL,buf->data,nc,
-                              32,0,xdf_stride,mode);
-        break;
-        }
+            case 1: case 129:
+                // Floating Point
+                printf("Debug+ fstluk - Floating Point\n");
+                if (stdf_entry.datyp > 128) {
+                    // fprintf(stderr,"Debug+ unpack buf->data=%d\n",*(buf->data));
+                    nbytes = armn_compress(buf->data + 5, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    // fprintf(stderr,"Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
+                    packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
+                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
+                } else {
+                    packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
+                }
+                break;
 
-      case 4: mode=4;  /* signed integer */
+            case 2: case 130:
+                // Integer, short integer or byte stream
+                printf("Debug+ fstluk - Integer, short integer or byte stream\n");
+                int offset = (stdf_entry.datyp > 128) ? 1 : 0;
+                if (xdf_short) {
+                    if (stdf_entry.datyp > 128) {
+                        c_armn_compress_setswap(0);
+                        nbytes = armn_compress(buf->data + offset, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                        // printf("Debug+ fstluk mode short compress nbytes=%d\n",nbytes);
+                        c_armn_compress_setswap(1);
+                        memcpy(field, buf->data + offset, nbytes);
+                    } else {
+                        mode = 6;
+                        ier = compact_short(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, mode);
+                    }
+                }  else if (xdf_byte) {
+                    if (stdf_entry.datyp > 128) {
+                        c_armn_compress_setswap(0);
+                        nbytes = armn_compress(buf->data + offset, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                        c_armn_compress_setswap(1);
+                        // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n",nbytes,nelm);
+                        memcpy_16_8(field, buf->data + offset, nelm);
+                    } else {
+                        mode = 10;
+                        ier = compact_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride, mode);
+                    }
+                } else {
+                    if (stdf_entry.datyp > 128) {
+                        c_armn_compress_setswap(0);
+                        nbytes = armn_compress(buf->data + offset, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                        c_armn_compress_setswap(1);
+                        // printf("Debug+ fstluk mode int compress nbytes=%d\n",nbytes);
+                        memcpy_16_32(field, buf->data + offset, stdf_entry.nbits, nelm);
+                    } else {
+                        mode = 2;
+                        ier = compact_integer(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, mode);
+                    }
+                }
+                break;
+
+            case 3:
+                // Character
+                printf("Debug+ fstluk - Character\n");
+                mode = 2;
+                int nc = (nelm + 3) / 4;
+                ier = compact_integer(field, (void *) NULL, buf->data, nc, 32, 0, xdf_stride, mode);
+                break;
+
+            case 4:
+                // Signed integer
+                printf("Debug+ fstluk - Signed integer\n");
+                mode = 4;
 #ifdef use_old_signed_pack_unpack_code
-// fprintf(stderr,"OLD UNPACK CODE ======================================\n");
-        if(xdf_short || xdf_byte){
-          field_out=alloca(nelm*sizeof(int));
-          s_field_out=(short *)field;
-          b_field_out=(signed char *)field;
-        }else{
-          field_out=(int *)field;
-        }
-        ier = compact_integer(field_out,(void *) NULL,buf->data,nelm,
-                              stdf_entry->nbits,0,xdf_stride,mode);
-        if(xdf_short){ for (i=0;i<nelm;i++) s_field_out[i]=field_out[i]; } ;
-        if(xdf_byte) { for (i=0;i<nelm;i++) b_field_out[i]=field_out[i]; } ;
+                !! fprintf(stderr,"OLD UNPACK CODE ======================================\n");
+                if (xdf_short || xdf_byte) {
+                    field_out = alloca(nelm * sizeof(int));
+                    s_field_out = (short *)field;
+                    b_field_out = (signed char *)field;
+                } else {
+                    field_out = (int *)field;
+                }
+                ier = compact_integer(field_out, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, mode);
+                if (xdf_short) {
+                    for (i = 0; i < nelm; i++) {
+                        s_field_out[i] = field_out[i];
+                    }
+                }
+                if (xdf_byte) {
+                    for (i = 0; i < nelm; i++) {
+                        b_field_out[i] = field_out[i];
+                    }
+                }
 #else
-// fprintf(stderr,"NEW UNPACK CODE ======================================\n");
-        if(xdf_short){
-          ier = compact_short(field,(void *) NULL,buf->data,nelm,
-                              stdf_entry->nbits,0,xdf_stride,8);
-        }else if(xdf_byte){
-          ier = compact_char(field,(void *) NULL,buf->data,nelm,
-                              stdf_entry->nbits,0,xdf_stride,12);
-        }else{
-          ier = compact_integer(field,(void *) NULL,buf->data,nelm,
-                              stdf_entry->nbits,0,xdf_stride,mode);
-        }
+                !! fprintf(stderr,"NEW UNPACK CODE ======================================\n");
+                if (xdf_short) {
+                    ier = compact_short(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 8);
+                } else if (xdf_byte) {
+                    ier = compact_char(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 12);
+                } else {
+                    ier = compact_integer(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, mode);
+                }
 #endif
-        break;
+                break;
 
-      case 5: case 8: mode=2;  /* IEEE representation */
-        {
-          register INT_32 temp32,*src,*dest;
-          if ((downgrade_32) && (stdf_entry->nbits == 64)) {       /* downgrade 64 bit to 32 bit */
-            ptr_real = (float *) field;
-            ptr_double = (double *) buf->data;
+            case 5: case 8:
+                // IEEE representation
+                printf("Debug+ fstluk - IEEE representation\n");
+                mode = 2;
+                register INT_32 temp32,*src,*dest;
+                if ((downgrade_32) && (stdf_entry.nbits == 64)) {
+                    // Downgrade 64 bit to 32 bit
+                    ptr_real = (float *) field;
+                    ptr_double = (double *) buf->data;
 #if defined(Little_Endian)
-            src = (INT_32 *) buf->data;
-            dest = (INT_32 *) buf->data;
-            for (i=0; i < nelm; i++) {
-              temp32 = *src++;
-              *dest++ = *src++;
-              *dest++ = temp32;
-            }
+                    src = (INT_32 *) buf->data;
+                    dest = (INT_32 *) buf->data;
+                    for (i = 0; i < nelm; i++) {
+                        temp32 = *src++;
+                        *dest++ = *src++;
+                        *dest++ = temp32;
+                    }
 #endif
-            for (i=0; i < nelm; i++) {
-              *ptr_real++ = *ptr_double++ ;
-            }
-          }
-          else {
-            ftnword f_nelm = (ftnword) nelm;
-            ftnword f_one = (ftnword) one;
-            ftnword f_npak = (ftnword) npak;
-            ftnword f_zero = (ftnword) zero;
-            ftnword f_mode = (ftnword) mode;
-            f77name(ieeepak)(field,buf->data,&f_nelm,&f_one,&f_npak,&f_zero,&f_mode);
-          }
-        }
-        break;
+                    for (i = 0; i < nelm; i++) {
+                        *ptr_real++ = *ptr_double++ ;
+                    }
+                } else {
+                    ftnword f_nelm = (ftnword) nelm;
+                    ftnword f_one = (ftnword) one;
+                    ftnword f_npak = (ftnword) npak;
+                    ftnword f_zero = (ftnword) zero;
+                    ftnword f_mode = (ftnword) mode;
+                    f77name(ieeepak)(field, buf->data, &f_nelm, &f_one, &f_npak, &f_zero, &f_mode);
+                }
+                break;
 
-      case 6: case 134:  /* floating point, new packers */
-        {
-          int nbits;
+            case 6: case 134:
+                // Floating point, new packers
+                printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
+                int nbits;
+                if (stdf_entry.datyp > 128) {
+                    nbytes = armn_compress(buf->data + 1 + header_size, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    // fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n", 
+                    //    *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4)));
+                    c_float_unpacker(field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);     
+                } else {
+                    c_float_unpacker(field, buf->data, buf->data + header_size, nelm, &nbits);
+                }
+                break;
 
-          if (stdf_entry->datyp > 128) {
-            nbytes = armn_compress(buf->data+1+header_size,*ni,*nj,*nk,stdf_entry->nbits,2);
-  /*          fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
-                *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4))); */
-            c_float_unpacker(field,buf->data+1,buf->data+1+header_size,nelm,&nbits);
-          }
-          else {
-            c_float_unpacker(field,buf->data,buf->data+header_size,nelm,&nbits);
-            }
-          break;
-        }
+            case 133:
+                // Floating point, new packers
+                printf("Debug+ fstluk - Floating point, new packers (133)\n");
+                nbytes = c_armn_uncompress32(field, buf->data + 1, *ni, *nj, *nk, stdf_entry.nbits);
+            break;
 
-      case 133:  /* floating point, new packers */
-          nbytes = c_armn_uncompress32(field, buf->data+1, *ni,*nj,*nk,stdf_entry->nbits);
-          break;
+            case 7:
+                // Character string
+                printf("Debug+ fstluk - Character string\n");
+                mode = 10;
+                // printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n",xdf_stride,nelm);
+                ier = compact_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride, mode);
+            break;
 
-      case 7: mode=10;  /* character string */
-/*        printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n",xdf_stride,nelm); */
-        ier = compact_char(field,(void *) NULL,buf->data,nelm,
-                              8,0,xdf_stride,mode);
-        break;
+            default:
+                sprintf(errmsg, "invalid datyp=%d", stdf_entry.datyp);
+                return error_msg("c_fstluk", ERR_BAD_DATYP, ERROR);
+        } /* end switch */
+    }
 
-      default: sprintf(errmsg,"invalid datyp=%d",stdf_entry->datyp);
-        return(error_msg("c_fstluk",ERR_BAD_DATYP,ERROR));
+    if (msg_level <= INFORM) {
+        sprintf(string, "Read(%d)", buf->iun);
+        stdf_entry.datyp = stdf_entry.datyp | has_missing;
+        print_std_parms(&stdf_entry, string, prnt_options, 0);
+    }
+    if (has_missing) {
+        // Replace "missing" data points with the appropriate values given the type of data (int/float)
+        // if nbits = 64 and IEEE , set xdf_double
+        if ((stdf_entry.datyp & 0xF) == 5 && stdf_entry.nbits == 64 ) xdf_double = 1;
+        printf("Debug+ fstluk - DecodeMissingValue\n");
+        DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, xdf_byte, xdf_short, xdf_double);
+    }
 
-      } /* end switch */
-  }
+    xdf_double = 0;
+    xdf_short = 0;
+    xdf_byte = 0;
 
-  if (msg_level <= INFORM) {
-    sprintf(string,"Read(%d)",buf->iun);
-    stdf_entry->datyp = stdf_entry->datyp | has_missing;
-    print_std_parms(stdf_entry,string,prnt_options,0);
-  }
-  if(has_missing) {
-    /* replace "missing" data points with the appropriate values given the type of data (int/float) */
-    /* if nbits = 64 and IEEE , set xdf_double */
-    if((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) xdf_double=1;
-    DecodeMissingValue( field , (*ni)*(*nj)*(*nk) , xdf_datatyp&0x3F,xdf_byte,xdf_short,xdf_double ); /* */
-  }
-  free(stdf_entry);
-/* free(work_field);        replaced by alloca */
-  xdf_double = 0;
-  xdf_short = 0;
-  xdf_byte = 0;
     return handle;
 }
 
