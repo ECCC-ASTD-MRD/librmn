@@ -138,6 +138,7 @@ int C_fst_match_req(int set_nb, int handle);
 int c_xdfcheck(const char* Filename)
 {
    file_header header;
+   int i;
    uint32_t t,*buf_ptr = (uint32_t *) &header;
    FILE *fd = fopen(Filename, "r");
 
@@ -155,7 +156,7 @@ int c_xdfcheck(const char* Filename)
    int num_records = fread(buf_ptr, sizeof(header), 1, fd);
 
    // Flip bytes in each 32-bit word (16 of them)
-   for(int i = 0 ; i < 16 ; i++) {
+   for(i = 0 ; i < 16 ; i++) {
       t = buf_ptr[i] ;
       buf_ptr[i] = (t << 24) | (t >> 24) | ((t & 0xFF0000) >> 8) | ((t & 0xFF00) << 8) ;
    }
