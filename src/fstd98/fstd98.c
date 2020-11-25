@@ -141,7 +141,6 @@ static char *dummy="??";
 
 
 
-
 /*splitpoint c_fstapp */
 /*****************************************************************************
  *                            C _ F S T A P P                                *
@@ -226,7 +225,6 @@ int c_fstapp(int iun, char *option)
   return(0);
 }
 
-
 /*splitpoint c_fstckp */
 /*****************************************************************************
  *                            C _ F S T C K P                                *
@@ -258,7 +256,6 @@ int c_fstckp(int iun)
   ier = c_xdfcls(iun);
   return(ier);
 }
-
 
 /*splitpoint c_fst_data_length */
 /*****************************************************************************
@@ -316,7 +313,6 @@ int c_fst_data_length(int length_type)
   }
 return(0);
 }
-
 
 
 /*
@@ -839,7 +835,7 @@ int c_fstecr(word *field_in, void * work, int npak,
       }
       stdf_entry->datyp = is_missing | 4;  /* turbo compression not supported for this type, revert to normal mode */
 #ifdef use_old_signed_pack_unpack_code
-!! fprintf(stderr,"OLD PACK CODE======================================\n");
+// fprintf(stderr,"OLD PACK CODE======================================\n");
       field3 = field;
       if(xdf_short || xdf_byte){
         field3=(word *)alloca(ni*nj*nk*sizeof(word));
@@ -850,7 +846,7 @@ int c_fstecr(word *field_in, void * work, int npak,
       ier = compact_integer(field3,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
                             nbits,0,xdf_stride,3);
 #else
-!! fprintf(stderr,"NEW PACK CODE======================================\n");
+// fprintf(stderr,"NEW PACK CODE======================================\n");
       if(xdf_short){
         ier = compact_short(field,(void *) NULL,&(buffer->data[keys_len]),ni*nj*nk,
                             nbits,0,xdf_stride,7);
@@ -1104,7 +1100,6 @@ int c_fst_edit_dir(int handle,
   return c_fst_edit_dir_plus(handle,date,deet,npas,-1,-1,-1,ip1,ip2,ip3,in_typvar,in_nomvar,in_etiket," ",ig1,ig2,ig3,ig4,-1);
 }
 
-
 /*splitpoint c_fsteff */
 /*****************************************************************************
  *                         C _ F S T E F F                                   *
@@ -1148,7 +1143,6 @@ int c_fsteff(int handle)
   ier = c_xdfdel(handle);
   return(ier);
 }
-
 
 /*splitpoint c_fsteof */
 /*****************************************************************************
@@ -1200,7 +1194,6 @@ int c_fsteof(int iun)
   return(eof);
 }
 
-
 /*splitpoint c_fstfrm */
 /*****************************************************************************
  *                         C _ F S T F R M                                   *
@@ -1221,7 +1214,6 @@ int c_fstfrm(int iun)
   ier = c_xdfcls(iun);
   return(ier);
 }
-
 
 /*splitpoint c_fstinf */
 /*****************************************************************************
@@ -1256,7 +1248,6 @@ int c_fstinf(int iun, int *ni, int *nj, int *nk, int datev,char *in_etiket,
                       in_typvar,in_nomvar);
   return(err);
 }
-
 
 /*splitpoint c_fstinfx */
 /*****************************************************************************
@@ -1469,7 +1460,6 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
   return(handle);
 }
 
-
 /*splitpoint c_fstinl */
 /*****************************************************************************
  *                        C _ F S T I N L                                    *
@@ -1617,7 +1607,6 @@ int c_fstlic(word *field, int iun, int niin, int njin, int nkin,
                  ip3in,typvarin,nomvarin);
   return(ier);
 }
-
 /*splitpoint c_fstlir */
 /*****************************************************************************
  *                        C _ F S T L I R                                    *
@@ -1653,7 +1642,6 @@ int c_fstlir(word *field, int iun, int *ni, int *nj, int *nk,
                       typvar,nomvar);
   return(key);
 }
-
 
 /*splitpoint c_fstlirx */
 /*****************************************************************************
@@ -1767,310 +1755,310 @@ int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
  *  OUT nk      dimension 3 of the data field                                *
  *                                                                           *
  *****************************************************************************/
+
 int c_fstluk(word *field, int handle, int *ni, int *nj, int *nk)
 {
-    stdf_dir_keys *stdf_entry;
-    word *pkeys, *work_field;
-    float *ptr_real;
-    double *ptr_double;
-    buffer_interface_ptr buf;
-    int ier, addr, lng, lng2, idtyp, mode, npak, nelm, i, zero = 0, one = 1;
-    int nbytes, header_size, stream_size, p1out, p2out;
-    int bitmot=32;
-    int lngw, stdf_aux_keys[2];
-    char string[11];
-    PackFunctionPointer packfunc;
-    double tempfloat=99999.0;
-    int has_missing = 0;    /* missing data flag (bit with value 64 in datatype) */
-    int *field_out;
-    short *s_field_out;
-    signed char *b_field_out;
+  stdf_dir_keys *stdf_entry;
+  word *pkeys, *work_field;
+  float *ptr_real;
+  double *ptr_double;
+  buffer_interface_ptr buf;
+  int ier, addr, lng, lng2, idtyp, mode, npak, nelm, i, zero=0, one=1;
+  int nbytes, header_size, stream_size, p1out, p2out;
+  int bitmot=32;
+  int lngw, stdf_aux_keys[2];
+  char string[11];
+  PackFunctionPointer packfunc;
+  double tempfloat=99999.0;
+  int has_missing = 0;    /* missing data flag (bit with value 64 in datatype) */
+  int *field_out;
+  short *s_field_out;
+  signed char *b_field_out;
 
     fprintf(stderr,"Debug+ c_fstluk(field=%p, handle=%i, ni=%i, nj=%i, nj=%i)\n", field, handle, *ni, *nj, *nk);
 
     stdf_entry = (stdf_dir_keys *) malloc(sizeof(stdf_dir_keys));
-    pkeys = (word *) stdf_entry;
-    pkeys += W64TOWD(1);
+  pkeys = (word *) stdf_entry;
+  pkeys += W64TOWD(1);
 
-    ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
-    if (ier < 0) return(ier);
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
-    *nk = stdf_entry->nk;
-    has_missing = stdf_entry->datyp & 64 ;          /* get missing data flag */
-    stdf_entry->datyp = stdf_entry->datyp & 0xBF ;  /* suppress missing data flag */
-    xdf_datatyp = stdf_entry->datyp ;
+  ier = c_xdfprm(handle,&addr,&lng,&idtyp,pkeys,16);
+  if (ier < 0) return(ier);
+  *ni = stdf_entry->ni;
+  *nj = stdf_entry->nj;
+  *nk = stdf_entry->nk;
+  has_missing = stdf_entry->datyp & 64 ;          /* get missing data flag */
+  stdf_entry->datyp = stdf_entry->datyp & 0xBF ;  /* suppress missing data flag */
+  xdf_datatyp = stdf_entry->datyp ;
 
-    if (xdf_double)
-        packfunc = &compact_double;
-    else
-        packfunc = &compact_float;
+  if (xdf_double)
+    packfunc = &compact_double;
+  else
+    packfunc = &compact_float;
 
-    lng = W64TOWD(lng);
-    if ((xdf_datatyp == 1) || (xdf_datatyp == 5))
-        lng = (xdf_double) ? 2*lng : lng;
+  lng = W64TOWD(lng);
+  if ((xdf_datatyp == 1) || (xdf_datatyp == 5))
+    lng = (xdf_double) ? 2*lng : lng;
 
 
-    if ((xdf_datatyp == 6) || (xdf_datatyp == 134)) {       /* new packer */
-        c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,(*ni)*(*nj)*(*nk));
-        header_size /= sizeof(INT_32);
-        lng2 = 1 + ((*ni * *nj * *nk* 16 + 32 + 31) / 32) + header_size + 20;
-        }
-    else if (xdf_datatyp == 133) {  /* compressed ieee */
-        lng2 = 1 + lng;
-        }
-    else if (xdf_datatyp > 128) {
-        lng2 = 4 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + 20;          /* 16 for 16 bits armn_compress */
-    /*   fprintf(stderr,"Debug+ fstluk ni=%d nj=%d nk=%d lng=%d lng2=%d\n",*ni,*nj,*nk,lng,lng2); */
-        }
-    else
-        lng2 = lng;
-
-    /*  printf("Debug+ fstluk lng2 = %d\n",lng2); */
-    /* allocate 8 more bytes in case of realingment for 64 bit data */
-    if ((work_field = alloca(8+(lng2+10)*sizeof(word))) == NULL) {
-        sprintf(errmsg,"memory is full, was trying to allocate %ld bytes",
-                lng*sizeof(word));
-        return(error_msg("c_fstluk",ERR_MEM_FULL,ERRFATAL));
+  if ((xdf_datatyp == 6) || (xdf_datatyp == 134)) {       /* new packer */
+    c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,(*ni)*(*nj)*(*nk));
+    header_size /= sizeof(INT_32);
+    lng2 = 1 + ((*ni * *nj * *nk* 16 + 32 + 31) / 32) + header_size + 20;
     }
-    else
-        memset(work_field,0,8+(lng2+10)*sizeof(word));
-
-    buf = (buffer_interface_ptr) work_field;
-    if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(word)) & 0x7) != 0 ) {
-        /* realign buf to make sure that buf->data is 64bit align */
-        buf = (buffer_interface_ptr) (work_field + 1);
+  else if (xdf_datatyp == 133) {  /* compressed ieee */
+    lng2 = 1 + lng;
     }
-    buf->nwords = -(lng+10);   /* negative value means get data only */
-    buf->nbits = -1;
-    ier = c_xdfget2(handle,buf,stdf_aux_keys);
-    if (ier < 0) return(ier);
-    if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
-        printf("c_fstluk aux_keys[0]=%d, aux_keys[1]=%d\n",stdf_aux_keys[0],stdf_aux_keys[1]);
-        sprintf(errmsg,"wrong version of fstd98 (%d), recompile with a more recent version",
-                stdf_version);
-        return(error_msg("c_fstluk",ERR_STDF_VERSION,ERRFATAL));
+  else if (xdf_datatyp > 128) {
+    lng2 = 4 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + 20;          /* 16 for 16 bits armn_compress */
+/*   fprintf(stderr,"Debug+ fstluk ni=%d nj=%d nk=%d lng=%d lng2=%d\n",*ni,*nj,*nk,lng,lng2); */
     }
+  else
+    lng2 = lng;
+
+/*  printf("Debug+ fstluk lng2 = %d\n",lng2); */
+  /* allocate 8 more bytes in case of realingment for 64 bit data */
+  if ((work_field = alloca(8+(lng2+10)*sizeof(word))) == NULL) {
+    sprintf(errmsg,"memory is full, was trying to allocate %ld bytes",
+            lng*sizeof(word));
+    return(error_msg("c_fstluk",ERR_MEM_FULL,ERRFATAL));
+  }
+  else
+    memset(work_field,0,8+(lng2+10)*sizeof(word));
+
+  buf = (buffer_interface_ptr) work_field;
+  if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(word)) & 0x7) != 0 ) {
+    /* realign buf to make sure that buf->data is 64bit align */
+    buf = (buffer_interface_ptr) (work_field + 1);
+  }
+  buf->nwords = -(lng+10);   /* negative value means get data only */
+  buf->nbits = -1;
+  ier = c_xdfget2(handle,buf,stdf_aux_keys);
+  if (ier < 0) return(ier);
+  if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
+    printf("c_fstluk aux_keys[0]=%d, aux_keys[1]=%d\n",stdf_aux_keys[0],stdf_aux_keys[1]);
+    sprintf(errmsg,"wrong version of fstd98 (%d), recompile with a more recent version",
+            stdf_version);
+    return(error_msg("c_fstluk",ERR_STDF_VERSION,ERRFATAL));
+  }
 
 
-    nelm = stdf_entry->ni * stdf_entry->nj * stdf_entry->nk;
-    if (stdf_entry->datyp == 8) nelm *= 2;
+  nelm = stdf_entry->ni * stdf_entry->nj * stdf_entry->nk;
+  if (stdf_entry->datyp == 8) nelm *= 2;
 
-    npak = -(stdf_entry->nbits);
-    if (image_mode_copy) {            /* no pack/unpack, used by editfst */
-        if (stdf_entry->datyp > 128) {
-        lngw = buf->data[0];
-    /*      fprintf(stderr,"Debug+ lecture mode image lngw=%d\n",lngw); */
-        for (i=0; i < lngw+1; i++) {
-            field[i] =  buf->data[i];
-        }
-        }
-        else {
-        lngw = nelm * stdf_entry->nbits;
-        if (stdf_entry->datyp == 1) lngw += 120;
-        if (stdf_entry->datyp == 3) lngw = *ni * *nj * 8;
-        if (stdf_entry->datyp == 6) {
-            c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,nelm);
-            lngw = (header_size+stream_size) * 8 ;
-            }
-        lngw = (lngw + bitmot - 1) / bitmot;
-        for (i=0; i < lngw; i++) {
-            field[i] =  buf->data[i];
-        }
-        }
+  npak = -(stdf_entry->nbits);
+  if (image_mode_copy) {            /* no pack/unpack, used by editfst */
+    if (stdf_entry->datyp > 128) {
+      lngw = buf->data[0];
+/*      fprintf(stderr,"Debug+ lecture mode image lngw=%d\n",lngw); */
+      for (i=0; i < lngw+1; i++) {
+        field[i] =  buf->data[i];
+      }
     }
     else {
-        switch (stdf_entry->datyp)
+      lngw = nelm * stdf_entry->nbits;
+      if (stdf_entry->datyp == 1) lngw += 120;
+      if (stdf_entry->datyp == 3) lngw = *ni * *nj * 8;
+      if (stdf_entry->datyp == 6) {
+        c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,nelm);
+        lngw = (header_size+stream_size) * 8 ;
+        }
+      lngw = (lngw + bitmot - 1) / bitmot;
+      for (i=0; i < lngw; i++) {
+        field[i] =  buf->data[i];
+      }
+    }
+  }
+  else {
+    switch (stdf_entry->datyp)
+      {
+      case 0:  /* raw binary */
+        lngw = ((nelm * stdf_entry->nbits) + bitmot - 1) / bitmot;
+        for (i=0; i < lngw; i++)
+          field[i] =  buf->data[i];
+        break;
+
+      case 1: case 129:  /* floating point */
+        if (stdf_entry->datyp > 128) {
+/*          fprintf(stderr,"Debug+ unpack buf->data=%d\n",*(buf->data)); */
+          nbytes = armn_compress(buf->data+5,*ni,*nj,*nk,stdf_entry->nbits,2);
+/*          fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
+              *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4))); */
+          packfunc(field,buf->data+1,buf->data+5,
+                   nelm,stdf_entry->nbits+64*Max(16,stdf_entry->nbits),0,xdf_stride,FLOAT_UNPACK,0,
+                   &tempfloat);
+        }
+        else
+          packfunc(field,buf->data,buf->data+3,
+                   nelm,stdf_entry->nbits,24,xdf_stride,FLOAT_UNPACK,0,
+                   &tempfloat);
+        break;
+
+      case 2: case 130:          /* integer, short integer or byte stream */
         {
-        case 0:  /* raw binary */
-            lngw = ((nelm * stdf_entry->nbits) + bitmot - 1) / bitmot;
-            for (i=0; i < lngw; i++)
-            field[i] =  buf->data[i];
-            break;
+        int offset;
+        offset = (stdf_entry->datyp > 128) ? 1 : 0;
+        if (xdf_short) {
+          if (stdf_entry->datyp > 128) {
+            c_armn_compress_setswap(0);
+            nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
+          /*  printf("Debug+ fstluk mode short compress nbytes=%d\n",nbytes); */
+            c_armn_compress_setswap(1);
+            memcpy(field,buf->data+offset,nbytes);
+            }
+          else {
+            mode = 6;
+            ier = compact_short(field,(void *) NULL,buf->data+offset,nelm,
+                                stdf_entry->nbits,0,xdf_stride,mode);
+            }
+          }
+        else if (xdf_byte) {
+          if (stdf_entry->datyp > 128) {
+            c_armn_compress_setswap(0);
+            nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
+            c_armn_compress_setswap(1);
+        /*    printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n",nbytes,nelm); */
+            memcpy_16_8(field,buf->data+offset,nelm);
+          }
+          else {
+            mode = 10;
+            ier = compact_char(field,(void *) NULL,buf->data,nelm,
+                               8,0,xdf_stride,mode);
+          }
+        }
+        else {
+          if (stdf_entry->datyp > 128) {
+            c_armn_compress_setswap(0);
+            nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
+            c_armn_compress_setswap(1);
+          /*  printf("Debug+ fstluk mode int compress nbytes=%d\n",nbytes); */
+            memcpy_16_32(field,buf->data+offset,stdf_entry->nbits,nelm);
+          }
+          else {
+            mode = 2;
+            ier = compact_integer(field,(void *) NULL,buf->data+offset,nelm,
+                                  stdf_entry->nbits,0,xdf_stride,mode);
+          }
+        }
+        break;
+        }
 
-        case 1: case 129:  /* floating point */
-            if (stdf_entry->datyp > 128) {
-    /*          fprintf(stderr,"Debug+ unpack buf->data=%d\n",*(buf->data)); */
-            nbytes = armn_compress(buf->data+5,*ni,*nj,*nk,stdf_entry->nbits,2);
-    /*          fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
-                *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4))); */
-            packfunc(field,buf->data+1,buf->data+5,
-                    nelm,stdf_entry->nbits+64*Max(16,stdf_entry->nbits),0,xdf_stride,FLOAT_UNPACK,0,
-                    &tempfloat);
-            }
-            else
-            packfunc(field,buf->data,buf->data+3,
-                    nelm,stdf_entry->nbits,24,xdf_stride,FLOAT_UNPACK,0,
-                    &tempfloat);
-            break;
+      case 3: mode=2;  /* character */
+        {
+        int nc = (nelm+3)/4;
+        ier = compact_integer(field,(void *) NULL,buf->data,nc,
+                              32,0,xdf_stride,mode);
+        break;
+        }
 
-        case 2: case 130:          /* integer, short integer or byte stream */
-            {
-            int offset;
-            offset = (stdf_entry->datyp > 128) ? 1 : 0;
-            if (xdf_short) {
-            if (stdf_entry->datyp > 128) {
-                c_armn_compress_setswap(0);
-                nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
-            /*  printf("Debug+ fstluk mode short compress nbytes=%d\n",nbytes); */
-                c_armn_compress_setswap(1);
-                memcpy(field,buf->data+offset,nbytes);
-                }
-            else {
-                mode = 6;
-                ier = compact_short(field,(void *) NULL,buf->data+offset,nelm,
-                                    stdf_entry->nbits,0,xdf_stride,mode);
-                }
-            }
-            else if (xdf_byte) {
-            if (stdf_entry->datyp > 128) {
-                c_armn_compress_setswap(0);
-                nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
-                c_armn_compress_setswap(1);
-            /*    printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n",nbytes,nelm); */
-                memcpy_16_8(field,buf->data+offset,nelm);
-            }
-            else {
-                mode = 10;
-                ier = compact_char(field,(void *) NULL,buf->data,nelm,
-                                8,0,xdf_stride,mode);
-            }
-            }
-            else {
-            if (stdf_entry->datyp > 128) {
-                c_armn_compress_setswap(0);
-                nbytes = armn_compress(buf->data+offset,*ni,*nj,*nk,stdf_entry->nbits,2);
-                c_armn_compress_setswap(1);
-            /*  printf("Debug+ fstluk mode int compress nbytes=%d\n",nbytes); */
-                memcpy_16_32(field,buf->data+offset,stdf_entry->nbits,nelm);
-            }
-            else {
-                mode = 2;
-                ier = compact_integer(field,(void *) NULL,buf->data+offset,nelm,
-                                    stdf_entry->nbits,0,xdf_stride,mode);
-            }
-            }
-            break;
-            }
-
-        case 3: mode=2;  /* character */
-            {
-            int nc = (nelm+3)/4;
-            ier = compact_integer(field,(void *) NULL,buf->data,nc,
-                                32,0,xdf_stride,mode);
-            break;
-            }
-
-        case 4: mode=4;  /* signed integer */
+      case 4: mode=4;  /* signed integer */
 #ifdef use_old_signed_pack_unpack_code
-    !! fprintf(stderr,"OLD UNPACK CODE ======================================\n");
-            if(xdf_short || xdf_byte){
-            field_out=alloca(nelm*sizeof(int));
-            s_field_out=(short *)field;
-            b_field_out=(signed char *)field;
-            }else{
-            field_out=(int *)field;
-            }
-            ier = compact_integer(field_out,(void *) NULL,buf->data,nelm,
-                                stdf_entry->nbits,0,xdf_stride,mode);
-            if(xdf_short){ for (i=0;i<nelm;i++) s_field_out[i]=field_out[i]; } ;
-            if(xdf_byte) { for (i=0;i<nelm;i++) b_field_out[i]=field_out[i]; } ;
+// fprintf(stderr,"OLD UNPACK CODE ======================================\n");
+        if(xdf_short || xdf_byte){
+          field_out=alloca(nelm*sizeof(int));
+          s_field_out=(short *)field;
+          b_field_out=(signed char *)field;
+        }else{
+          field_out=(int *)field;
+        }
+        ier = compact_integer(field_out,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,mode);
+        if(xdf_short){ for (i=0;i<nelm;i++) s_field_out[i]=field_out[i]; } ;
+        if(xdf_byte) { for (i=0;i<nelm;i++) b_field_out[i]=field_out[i]; } ;
 #else
-    !! fprintf(stderr,"NEW UNPACK CODE ======================================\n");
-            if(xdf_short){
-            ier = compact_short(field,(void *) NULL,buf->data,nelm,
-                                stdf_entry->nbits,0,xdf_stride,8);
-            }else if(xdf_byte){
-            ier = compact_char(field,(void *) NULL,buf->data,nelm,
-                                stdf_entry->nbits,0,xdf_stride,12);
-            }else{
-            ier = compact_integer(field,(void *) NULL,buf->data,nelm,
-                                stdf_entry->nbits,0,xdf_stride,mode);
-            }
+// fprintf(stderr,"NEW UNPACK CODE ======================================\n");
+        if(xdf_short){
+          ier = compact_short(field,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,8);
+        }else if(xdf_byte){
+          ier = compact_char(field,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,12);
+        }else{
+          ier = compact_integer(field,(void *) NULL,buf->data,nelm,
+                              stdf_entry->nbits,0,xdf_stride,mode);
+        }
 #endif
-            break;
+        break;
 
-        case 5: case 8: mode=2;  /* IEEE representation */
-            {
-            register INT_32 temp32,*src,*dest;
-            if ((downgrade_32) && (stdf_entry->nbits == 64)) {       /* downgrade 64 bit to 32 bit */
-                ptr_real = (float *) field;
-                ptr_double = (double *) buf->data;
+      case 5: case 8: mode=2;  /* IEEE representation */
+        {
+          register INT_32 temp32,*src,*dest;
+          if ((downgrade_32) && (stdf_entry->nbits == 64)) {       /* downgrade 64 bit to 32 bit */
+            ptr_real = (float *) field;
+            ptr_double = (double *) buf->data;
 #if defined(Little_Endian)
-                src = (INT_32 *) buf->data;
-                dest = (INT_32 *) buf->data;
-                for (i=0; i < nelm; i++) {
-                temp32 = *src++;
-                *dest++ = *src++;
-                *dest++ = temp32;
-                }
+            src = (INT_32 *) buf->data;
+            dest = (INT_32 *) buf->data;
+            for (i=0; i < nelm; i++) {
+              temp32 = *src++;
+              *dest++ = *src++;
+              *dest++ = temp32;
+            }
 #endif
-                for (i=0; i < nelm; i++) {
-                *ptr_real++ = *ptr_double++ ;
-                }
+            for (i=0; i < nelm; i++) {
+              *ptr_real++ = *ptr_double++ ;
             }
-            else {
-                ftnword f_nelm = (ftnword) nelm;
-                ftnword f_one = (ftnword) one;
-                ftnword f_npak = (ftnword) npak;
-                ftnword f_zero = (ftnword) zero;
-                ftnword f_mode = (ftnword) mode;
-                f77name(ieeepak)(field,buf->data,&f_nelm,&f_one,&f_npak,&f_zero,&f_mode);
+          }
+          else {
+            ftnword f_nelm = (ftnword) nelm;
+            ftnword f_one = (ftnword) one;
+            ftnword f_npak = (ftnword) npak;
+            ftnword f_zero = (ftnword) zero;
+            ftnword f_mode = (ftnword) mode;
+            f77name(ieeepak)(field,buf->data,&f_nelm,&f_one,&f_npak,&f_zero,&f_mode);
+          }
+        }
+        break;
+
+      case 6: case 134:  /* floating point, new packers */
+        {
+          int nbits;
+
+          if (stdf_entry->datyp > 128) {
+            nbytes = armn_compress(buf->data+1+header_size,*ni,*nj,*nk,stdf_entry->nbits,2);
+  /*          fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
+                *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4))); */
+            c_float_unpacker(field,buf->data+1,buf->data+1+header_size,nelm,&nbits);
+          }
+          else {
+            c_float_unpacker(field,buf->data,buf->data+header_size,nelm,&nbits);
             }
-            }
-            break;
+          break;
+        }
 
-        case 6: case 134:  /* floating point, new packers */
-            {
-            int nbits;
+      case 133:  /* floating point, new packers */
+          nbytes = c_armn_uncompress32(field, buf->data+1, *ni,*nj,*nk,stdf_entry->nbits);
+          break;
 
-            if (stdf_entry->datyp > 128) {
-                nbytes = armn_compress(buf->data+1+header_size,*ni,*nj,*nk,stdf_entry->nbits,2);
-    /*          fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
-                    *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4))); */
-                c_float_unpacker(field,buf->data+1,buf->data+1+header_size,nelm,&nbits);
-            }
-            else {
-                c_float_unpacker(field,buf->data,buf->data+header_size,nelm,&nbits);
-                }
-            break;
-            }
+      case 7: mode=10;  /* character string */
+/*        printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n",xdf_stride,nelm); */
+        ier = compact_char(field,(void *) NULL,buf->data,nelm,
+                              8,0,xdf_stride,mode);
+        break;
 
-        case 133:  /* floating point, new packers */
-            nbytes = c_armn_uncompress32(field, buf->data+1, *ni,*nj,*nk,stdf_entry->nbits);
-            break;
+      default: sprintf(errmsg,"invalid datyp=%d",stdf_entry->datyp);
+        return(error_msg("c_fstluk",ERR_BAD_DATYP,ERROR));
 
-        case 7: mode=10;  /* character string */
-    /*        printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n",xdf_stride,nelm); */
-            ier = compact_char(field,(void *) NULL,buf->data,nelm,
-                                8,0,xdf_stride,mode);
-            break;
+      } /* end switch */
+  }
 
-        default: sprintf(errmsg,"invalid datyp=%d",stdf_entry->datyp);
-            return(error_msg("c_fstluk",ERR_BAD_DATYP,ERROR));
-
-        } /* end switch */
-    }
-
-    if (msg_level <= INFORM) {
-        sprintf(string,"Read(%d)",buf->iun);
-        stdf_entry->datyp = stdf_entry->datyp | has_missing;
-        print_std_parms(stdf_entry,string,prnt_options,0);
-    }
-    if(has_missing) {
-        /* replace "missing" data points with the appropriate values given the type of data (int/float) */
-        /* if nbits = 64 and IEEE , set xdf_double */
-        if((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) xdf_double=1;
-        DecodeMissingValue( field , (*ni)*(*nj)*(*nk) , xdf_datatyp&0x3F,xdf_byte,xdf_short,xdf_double ); /* */
-    }
-    free(stdf_entry);
-    /* free(work_field);        replaced by alloca */
-    xdf_double = 0;
-    xdf_short = 0;
-    xdf_byte = 0;
+  if (msg_level <= INFORM) {
+    sprintf(string,"Read(%d)",buf->iun);
+    stdf_entry->datyp = stdf_entry->datyp | has_missing;
+    print_std_parms(stdf_entry,string,prnt_options,0);
+  }
+  if(has_missing) {
+    /* replace "missing" data points with the appropriate values given the type of data (int/float) */
+    /* if nbits = 64 and IEEE , set xdf_double */
+    if((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) xdf_double=1;
+    DecodeMissingValue( field , (*ni)*(*nj)*(*nk) , xdf_datatyp&0x3F,xdf_byte,xdf_short,xdf_double ); /* */
+  }
+  free(stdf_entry);
+/* free(work_field);        replaced by alloca */
+  xdf_double = 0;
+  xdf_short = 0;
+  xdf_byte = 0;
     return handle;
 }
-
 
 /*splitpoint c_fstmsq */
 /*****************************************************************************
@@ -2150,7 +2138,6 @@ int c_fstmsq(int iun, int *mip1, int *mip2, int *mip3, char *metiket,
   return(0);
 }
 
-
 /*splitpoint c_fstnbr */
 /*****************************************************************************
  *                          C _ F S T N B R                                  *
@@ -2229,7 +2216,6 @@ int c_fstnbrv(int iun)
   return(f->header->nrec);
 
 }
-
 
 /*splitpoint c_fstopc */
 /*****************************************************************************
@@ -2316,7 +2302,6 @@ int c_fstopc(char *option, char *value, int getmode)
   return(val);
 }
 
-
 /*splitpoint c_fstopi */
 /*****************************************************************************
  *                          C _ F S T O P I                                  *
@@ -2383,7 +2368,6 @@ int c_fstopi(char *option, int value, int getmode)
   return(val);
 }
 
-
 /*splitpoint c_fstopl */
 /*****************************************************************************
  *                          C _ F S T O P L                                  *
@@ -2436,7 +2420,6 @@ int c_fstopl(char *option, int value, int getmode)
 }
 
 
-
 /*splitpoint c_fstopr */
 /*****************************************************************************
  *                          C _ F S T O P R                                  *
@@ -2456,7 +2439,6 @@ int c_fstopr(char *option, float value, int getmode)
   /* no current float variable to be set for now */
   return(0);
 }
-
 
 /*splitpoint c_fstouv */
 /*****************************************************************************
@@ -2624,7 +2606,6 @@ int c_fstprm(int handle,
   return(ier);
 }
 
-
 /*splitpoint c_fstreset_ip_flags */
 /*****************************************************************************
  *                 C _ F S T R E S E T _ I P _ F L A G S                     *
@@ -2639,7 +2620,6 @@ void c_fstreset_ip_flags()
   int ier;
   ier = init_ip_vals();
 }
-
 
 /*splitpoint c_fstrwd */
 /*****************************************************************************
@@ -2685,7 +2665,6 @@ int c_fstrwd(int iun)
   f->valid_pos = 0;
   return(0);
 }
-
 
 /*splitpoint c_fstskp */
 /*****************************************************************************
@@ -2804,7 +2783,6 @@ int c_fstskp(int iun, int nrec)
   return(0);
 }
 
-
 /*splitpoint c_fstsui */
 /*****************************************************************************
  *                         C _ F S T S U I                                   *
@@ -2878,47 +2856,45 @@ int c_fst_version()
 
 int c_fstvoi(int iun,char *options)
 {
-   int index,index_fnom,i,j,width,nrec,nw,end_of_file;
-   file_table_entry *f;
-   xdf_dir_page * curpage;
-   word *entry;
-   stdf_dir_keys *stdf_entry;
-   seq_dir_keys *seq_entry;
+   int index, index_fnom, i, j, width, nrec, nw, end_of_file;
+   file_table_entry* file_entry;
+   xdf_dir_page* curpage;
+   word* entry;
+   stdf_dir_keys* stdf_entry;
+   seq_dir_keys* seq_entry;
    stdf_special_parms cracked;
-   xdf_record_header *header;
+   xdf_record_header* header;
    char string[20];
-//   char nomvar[5], typvar[3];
-//   char cdt[6]={'X','R','I','C','S','E'};
    ftnword f_datev;
    double nhours;
-   int deet,npas,run;
+   int deet, npas, run;
    unsigned int datexx;
-   long long deetnpas,i_nhours;
+   long long deetnpas, i_nhours;
 
    index_fnom = fnom_index(iun);
    if (index_fnom == -1) {
-      sprintf(errmsg,"file (unit=%d) is not connected with fnom",iun);
-      return(error_msg("c_fstvoi",ERR_NO_FNOM,ERROR));
-      }
+      sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
+      return(error_msg("c_fstvoi", ERR_NO_FNOM, ERROR));
+   }
 
    if ((index = file_index(iun)) == ERR_NO_FILE) {
-     sprintf(errmsg,"file (unit=%d) is not open",iun);
-     return(error_msg("c_fstvoi",ERR_NO_FILE,ERROR));
-     }
+      sprintf(errmsg, "file (unit=%d) is not open", iun);
+      return(error_msg("c_fstvoi", ERR_NO_FILE, ERROR));
+   }
 
-   f = file_table[index];
+   file_entry = file_table[index];
 
-   if (! f->cur_info->attr.std) {
-     sprintf(errmsg,"file (unit=%d) is not a RPN standard file",iun);
-     return(error_msg("c_fstvoi",ERR_NO_FILE,ERROR));
-     }
+   if (! file_entry->cur_info->attr.std) {
+      sprintf(errmsg, "file (unit=%d) is not a RPN standard file", iun);
+      return(error_msg("c_fstvoi", ERR_NO_FILE, ERROR));
+   }
 
    nrec = 0;
-   width = W64TOWD(f->primary_len);
-   if (! f->xdf_seq) {
-     for (i=0; i < f->npages; i++) {
-       entry = (f->dir_page[i])->dir.entry;
-       for (j=0; j < (f->dir_page[i])->dir.nent; j++) {
+   width = W64TOWD(file_entry->primary_len);
+   if (! file_entry->xdf_seq) {
+     for (i=0; i < file_entry->npages; i++) {
+       entry = (file_entry->dir_page[i])->dir.entry;
+       for (j=0; j < (file_entry->dir_page[i])->dir.nent; j++) {
          header = (xdf_record_header *) entry;
          if (header->idtyp < 112) {
            stdf_entry = (stdf_dir_keys *) entry;
@@ -2929,34 +2905,34 @@ int c_fstvoi(int iun,char *options)
          }
          entry += width;
        }
-       curpage = &((f->dir_page[i])->dir);
+       curpage = &((file_entry->dir_page[i])->dir);
      } /* end for i */
    }
    else { /* xdf sequential */
      end_of_file = 0;
      while (! end_of_file) {
-       nw = c_waread2(iun,f->head_keys,f->cur_addr,width);
-       header = (xdf_record_header *) f->head_keys;
+       nw = c_waread2(iun,file_entry->head_keys,file_entry->cur_addr,width);
+       header = (xdf_record_header *) file_entry->head_keys;
        if ((header->idtyp >= 112) || (nw < W64TOWD(1))) {
          if ((header->idtyp >= 112) && (header->idtyp < 127)) {
-            f->cur_addr += W64TOWD(1);
+            file_entry->cur_addr += W64TOWD(1);
          }
          end_of_file = 1;
          break;
        }
-       if (f->fstd_vintage_89) {   /* old sequential standard */
+       if (file_entry->fstd_vintage_89) {   /* old sequential standard */
          if ((stdf_entry = calloc(1,sizeof(stdf_dir_keys))) == NULL) {
            sprintf(errmsg,"memory is full");
            return(error_msg("c_fstvoi",ERR_MEM_FULL,ERRFATAL));
          }
-         seq_entry = (seq_dir_keys *) f->head_keys;
+         seq_entry = (seq_dir_keys *) file_entry->head_keys;
          if (seq_entry->dltf) {
-           f->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
+           file_entry->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
            continue;
          }
          if (seq_entry->eof > 0) {
            if (seq_entry->eof < 15)
-           f->cur_addr += W64TOWD(1);
+           file_entry->cur_addr += W64TOWD(1);
            end_of_file = 1;
            break;
          }
@@ -3011,69 +2987,64 @@ int c_fstvoi(int iun,char *options)
          npas = stdf_entry->npas;
          deetnpas = npas ; deetnpas = deetnpas * deet ;
          if ((deetnpas % 3600) != 0) {
-           /*
-            *  recompute datev to take care of rounding used with 1989 version
-            *  de-octalise the date_stamp
-            */
-           run = stdf_entry->date_stamp & 0x7;
-           datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
+            /* recompute datev to take care of rounding used with 1989 version
+             * de-octalise the date_stamp */
+            run = stdf_entry->date_stamp & 0x7;
+            datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
 
-           f_datev = (ftnword) datexx;
-           i_nhours = (deetnpas - ((deetnpas+1800)/3600)*3600);
-           nhours = i_nhours;
-           nhours = (nhours / 3600.0);
-           f77name(incdatr)(&f_datev,&f_datev,&nhours);
-           datexx = (unsigned int) f_datev;
-           /*
-            *  re-octalise the date_stamp
-            */
-           stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
+            f_datev = (ftnword) datexx;
+            i_nhours = (deetnpas - ((deetnpas+1800)/3600)*3600);
+            nhours = i_nhours;
+            nhours = (nhours / 3600.0);
+            f77name(incdatr)(&f_datev,&f_datev,&nhours);
+            datexx = (unsigned int) f_datev;
+            /* re-octalise the date_stamp */
+            stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
          }
          sprintf(string,"%5d-",nrec);
          print_std_parms(stdf_entry,string,options,((nrec % 70) == 0));
          nrec++;
-         f->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
+         file_entry->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
          free(stdf_entry);
        } /* end if fstd_vintage_89 */
        else {
          if ((header->idtyp < 1) || (header->idtyp > 127)) {
-           f->cur_addr += W64TOWD(header->lng);
+           file_entry->cur_addr += W64TOWD(header->lng);
            continue;
          }
-         stdf_entry = (stdf_dir_keys *) f->head_keys;
+         stdf_entry = (stdf_dir_keys *) file_entry->head_keys;
          sprintf(string,"%5d-",nrec);
          print_std_parms(stdf_entry,string,options,((nrec % 70) == 0));
          nrec++;
-         f->cur_addr += W64TOWD(header->lng);
+         file_entry->cur_addr += W64TOWD(header->lng);
        }
      } /* end while */
    }
    fprintf(stdout,"\nSTATISTICS for file %s, unit=%d\n\n",
            FGFDT[index_fnom].file_name,iun);
-   if (f->fstd_vintage_89)
+   if (file_entry->fstd_vintage_89)
      sprintf(string,"Version 1989");
    else
      sprintf(string,"Version 1998");
-   if (f->xdf_seq)
+   if (file_entry->xdf_seq)
      fprintf(stdout,"%d records in sequential RPN standard file (%s)\n",
              nrec,string);
    else {
-     if (! f->fstd_vintage_89) {
-       fprintf(stdout,"Number of directory entries \t %d\n",f->header->nrec);
+     if (! file_entry->fstd_vintage_89) {
+       fprintf(stdout,"Number of directory entries \t %d\n",file_entry->header->nrec);
        fprintf(stdout,"Number of valid records     \t %d\n",nrec);
        fprintf(stdout,"File size                   \t %d Words\n",
-               W64TOWD(f->header->fsiz));
-       fprintf(stdout,"Number of writes            \t %d\n",f->header->nxtn);
-       fprintf(stdout,"Number of rewrites          \t %d\n",f->header->nrwr);
+               W64TOWD(file_entry->header->fsiz));
+       fprintf(stdout,"Number of writes            \t %d\n",file_entry->header->nxtn);
+       fprintf(stdout,"Number of rewrites          \t %d\n",file_entry->header->nrwr);
        fprintf(stdout,"Number of erasures          \t %d\n",
-               f->header->neff - f->header->nrwr);
+               file_entry->header->neff - file_entry->header->nrwr);
      }
      fprintf(stdout,"\n%d records in random RPN standard file (%s)\n\n",
              nrec,string);
    }
    return(0);
 }
-
 
 /*splitpoint c_fstweo */
 /*****************************************************************************
@@ -3130,7 +3101,6 @@ int c_fstweo(int iun, int level)
   f->nxtadr = f->cur_addr;
   return(0);
 }
-
 
 /*splitpoint c_fst_env_var */
 /*****************************************************************************
@@ -3193,7 +3163,6 @@ void c_fst_env_var(char *cle, int index, char *content)
 }
 
 
-
 /*splitpoint c_ip1_all */
 /*****************************************************************************
  *                          C _ I P 1 _ A L L                                *
@@ -3240,7 +3209,6 @@ int c_ip1_all(float level, int kind)
 /*  printf("Debug+ c_ip1_all level=%f kind=%d ip_new=%d ip_old=%d\n",level,kind,ip_new,ip_old); */
   return(ip_new);
 }
-
 
 
 /*splitpoint c_ip2_all */
@@ -3290,7 +3258,6 @@ int c_ip2_all(float level, int kind)
 }
 
 
-
 /*splitpoint c_ip3_all */
 /*****************************************************************************
  *                          C _ I P 3 _ A L L                                *
@@ -3337,7 +3304,6 @@ int c_ip3_all(float level, int kind)
   return(ip_new);
 }
 
-
 /*splitpoint c_ip1_val */
 /*****************************************************************************
  *                          C _ I P 1 _ V A L                                *
@@ -3370,7 +3336,6 @@ int c_ip1_val(float level, int kind)
     }
   return(ip_new);
 }
-
 
 /*splitpoint c_ip2_val */
 /*****************************************************************************
@@ -3405,7 +3370,6 @@ int c_ip2_val(float level, int kind)
   return(ip_new);
 }
 
-
 /*splitpoint c_ip3_val */
 /*****************************************************************************
  *                          C _ I P 3 _ V A L                                *
@@ -3438,7 +3402,6 @@ int c_ip3_val(float level, int kind)
     }
   return(ip_new);
 }
-
 
 
 /*splitpoint crack_std_parms */
@@ -3506,7 +3469,6 @@ static void crack_std_parms(stdf_dir_keys *stdf_entry,
   cracked_parms->aammjj = 0;
   cracked_parms->hhmmss = 0;
 }
-
 
 
 /*splitpoint init_ip_vals */
