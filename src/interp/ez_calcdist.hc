@@ -71,7 +71,7 @@ void c_ez_calcdist(float *distance, float lat1, float lon1, float lat2, float lo
    double dist;
    double earth_radius = 6370997.;
 
-   degre_a_radian = M_PI / 180.0;
+   degre_a_radian = PI / 180.0;
 
    radlat1 = lat1 * degre_a_radian;
    radlat2 = lat2 * degre_a_radian;
@@ -89,7 +89,7 @@ void c_ez_calcdist2(double *distance, float lat1, float lon1, float lat2, float 
    double earth_radius = 6370997.;
    double a,c,dlat,dlon,sindlat, sindlon;
 
-   degre_a_radian = M_PI / 180.0;
+   degre_a_radian = PI / 180.0;
 
    radlat1 = lat1 * degre_a_radian;
    radlat2 = lat2 * degre_a_radian;
@@ -157,7 +157,7 @@ void c_ez_calcarea_rect(float *area, float lat1, float lon1, float lat2, float l
    double seg_a, seg_b, seg_c, seg_d, seg_e;
    double area1, area2;
 
-   degre_a_radian = M_PI / 180.0;
+   degre_a_radian = PI / 180.0;
 
    radlat1 = lat1 * degre_a_radian;
    radlat2 = lat2 * degre_a_radian;
@@ -184,14 +184,14 @@ void c_ez_calcarea_rect(float *area, float lat1, float lon1, float lat2, float l
    c = acos((cos(seg_c)-cos(seg_b)*cos(seg_a))/(sin(seg_b)*sin(seg_a)));
    b = asin(sin(seg_b)*sin(c)/sin(seg_c));
    a = asin(sin(seg_a)*sin(c)/sin(seg_c));
-   area1 = ((a + b + c) - M_PI) * earth_radius * earth_radius;
+   area1 = ((a + b + c) - PI) * earth_radius * earth_radius;
 /*   printf("a:%f b:%f c:%f area:%f\n", a, b, c, area1);*/
 
 /*   printf("seg_a:%f seg_b:%f seg_c:%f seg_d:%f seg_e:%f\n", seg_a, seg_b, seg_c, seg_d, seg_e);*/
    c = acos((cos(seg_c)-cos(seg_e)*cos(seg_d))/(sin(seg_e)*sin(seg_d)));
    e = asin(sin(seg_e)*sin(c)/sin(seg_c));
    d = asin(sin(seg_d)*sin(c)/sin(seg_c));
-   area2 = ((d + e + c) - M_PI) * earth_radius * earth_radius;
+   area2 = ((d + e + c) - PI) * earth_radius * earth_radius;
 /*   printf("d:%f e:%f c:%f area:%f\n", d, e, c, area2);*/
    *area = (float)(area1 + area2);
 
@@ -210,7 +210,7 @@ void c_ez_calcarea(float *area, float lats[], float lons[])
    double area1, area2;
    int i;
 
-   degre_a_radian = M_PI / 180.0;
+   degre_a_radian = PI / 180.0;
 
    for (i=0; i < 4; i++)
       {
@@ -239,13 +239,13 @@ void c_ez_calcarea(float *area, float lats[], float lons[])
    c = acos((cos(seg_c)-cos(seg_b)*cos(seg_a))/(sin(seg_b)*sin(seg_a)));
    b = asin(sin(seg_b)*sin(c)/sin(seg_c));
    a = asin(sin(seg_a)*sin(c)/sin(seg_c));
-   area1 = ((a + b + c) - M_PI) * earth_radius * earth_radius;
+   area1 = ((a + b + c) - PI) * earth_radius * earth_radius;
 
 /*   printf("seg_a:%f seg_b:%f seg_c:%f seg_d:%f seg_e:%f\n", seg_a, seg_b, seg_c, seg_d, seg_e);*/
    c = acos((cos(seg_c)-cos(seg_e)*cos(seg_d))/(sin(seg_e)*sin(seg_d)));
    e = asin(sin(seg_e)*sin(c)/sin(seg_c));
    d = asin(sin(seg_d)*sin(c)/sin(seg_c));
-   area2 = ((d + e + c) - M_PI) * earth_radius * earth_radius;
+   area2 = ((d + e + c) - PI) * earth_radius * earth_radius;
    *area = (float)(area1 + area2);
    if (*area < 0.0)
       {
@@ -268,7 +268,7 @@ void c_ez_calcarea2(double *area, float lats[], float lons[])
    double s, excess;
    int i;
 
-   degre_a_radian = M_PI / 180.0;
+   degre_a_radian = PI / 180.0;
 
    for (i=0; i < 4; i++)
       {

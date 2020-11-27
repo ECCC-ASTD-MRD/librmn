@@ -25,16 +25,15 @@
 wordint c_ezsincoslatlon(ftnfloat *lat, ftnfloat *lon,
                          ftnfloat *sinlat, ftnfloat *sinlon, ftnfloat *coslat, ftnfloat *coslon, wordint npts)
 {
-   wordint i,gdidout;
-   ftnfloat dar = M_PI/180.0;
-   
-   for (i=0; i < npts; i++)
-      {
-      sinlat[i]  = sin(dar*lat[i]);
-      coslat[i]  = cos(dar*lat[i]);
-      sinlon[i]  = sin(dar*lon[i]);
-      coslon[i]  = cos(dar*lon[i]);
-      }
+    wordint i,gdidout;
+    ftnfloat dar = PI / 180.0;
 
-   return 0;
+    for (i=0; i < npts; i++) {
+        sinlat[i]  = sin(dar*lat[i]);
+        coslat[i]  = cos(dar*lat[i]);
+        sinlon[i]  = sin(dar*lon[i]);
+        coslon[i]  = cos(dar*lon[i]);
+    }
+
+    return 0;
 }
