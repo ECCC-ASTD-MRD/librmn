@@ -1,3 +1,6 @@
+#include "WhiteBoard_constants.h"
+
+
 !> Save a copy of the value in the whiteboard associated with a key name scalar form
 !
 !> @param[in]  key     Key identifying the whiteboard entry to set

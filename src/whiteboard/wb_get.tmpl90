@@ -1,3 +1,6 @@
+#include "WhiteBoard_constants.h"
+
+
 !> Retrieve a copy of the value associated with key stored in the whiteboard saclar form
 !
 !> @param[in]  key Key identifying the whiteboard entry to get

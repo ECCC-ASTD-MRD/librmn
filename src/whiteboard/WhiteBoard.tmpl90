@@ -1,3 +1,5 @@
+#include <template.hf>
+
 #ifdef INTERFACEONLY
 interface wb_get
 #endif INTERFACEONLY
@@ -76,7 +78,7 @@ interface wb_get
 #undef TYPEWBFORT
 
 #ifdef INTERFACEONLY
-interface wb_get
+end interface wb_get
 #endif INTERFACEONLY
 
 
@@ -158,5 +160,5 @@ interface wb_put
 #undef TYPEWBFORT
 
 #ifdef INTERFACEONLY
-interface wb_put
+end interface wb_put
 #endif INTERFACEONLY
