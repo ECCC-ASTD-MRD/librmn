@@ -56,6 +56,8 @@ set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 #dump_cmake_variables()
 
+add_definitions(-DPROJECT_NAME=${PROJECT_NAME})
+
 include_directories(
    include
    include/${BUILD_ARCH}-${COMPILER_SUITE}
