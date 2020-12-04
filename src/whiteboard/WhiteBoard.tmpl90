@@ -1,6 +1,6 @@
-#include "WhiteBoard_constants.h"
-
-#include <template.hf>
+#ifdef INTERFACEONLY
+interface wb_get
+#endif INTERFACEONLY
 
 #define TYPEWBFORT WB_FORTRAN_INT
 
@@ -9,7 +9,6 @@
 #define FNCNAME(name) CAT(name,TYPE2CHAR)
 #define TYPEFORTRAN integer(kind = int32)
 #include "wb_get.tmpl90"
-#include "wb_put.tmpl90"
 #undef TYPEFORTRAN
 #undef FNCNAME
 #undef TYPE2CHAR
@@ -20,7 +19,6 @@
 #define FNCNAME(name) CAT(name,TYPE2CHAR)
 #define TYPEFORTRAN integer(kind = int64)
 #include "wb_get.tmpl90"
-#include "wb_put.tmpl90"
 #undef TYPEFORTRAN
 #undef FNCNAME
 #undef TYPE2CHAR
@@ -34,7 +32,6 @@
 #define FNCNAME(name) CAT(name,TYPE2CHAR)
 #define TYPEFORTRAN real(kind = real32)
 #include "wb_get.tmpl90"
-#include "wb_put.tmpl90"
 #undef TYPEFORTRAN
 #undef FNCNAME
 #undef TYPE2CHAR
@@ -45,7 +42,6 @@
 #define FNCNAME(name) CAT(name,TYPE2CHAR)
 #define TYPEFORTRAN real(kind = real64)
 #include "wb_get.tmpl90"
-#include "wb_put.tmpl90"
 #undef TYPEFORTRAN
 #undef FNCNAME
 #undef TYPE2CHAR
@@ -59,7 +55,6 @@
 #define FNCNAME(name) CAT(name,TYPE2CHAR)
 #define TYPEFORTRAN logical
 #include "wb_get.tmpl90"
-#include "wb_put.tmpl90"
 #undef TYPEFORTRAN
 #undef FNCNAME
 #undef TYPE2CHAR
@@ -73,12 +68,95 @@
 #define FNCNAME(name) CAT(name,TYPE2CHAR)
 #define TYPEFORTRAN character(len = *)
 #include "wb_get.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+
+#ifdef INTERFACEONLY
+interface wb_get
+#endif INTERFACEONLY
+
+
+#ifdef INTERFACEONLY
+interface wb_put
+#endif INTERFACEONLY
+
+#define TYPEWBFORT WB_FORTRAN_INT
+
+#define TYPELEN 4
+#define TYPE2CHAR i4
+#define FNCNAME(name) CAT(name,TYPE2CHAR)
+#define TYPEFORTRAN integer(kind = int32)
 #include "wb_put.tmpl90"
 #undef TYPEFORTRAN
 #undef FNCNAME
 #undef TYPE2CHAR
 #undef TYPELEN
 
-#include "wb_omp.tmpl90"
+#define TYPELEN 8
+#define TYPE2CHAR i8
+#define FNCNAME(name) CAT(name,TYPE2CHAR)
+#define TYPEFORTRAN integer(kind = int64)
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
 
 #undef TYPEWBFORT
+#define TYPEWBFORT WB_FORTRAN_REAL
+
+#define TYPELEN 4
+#define TYPE2CHAR r4
+#define FNCNAME(name) CAT(name,TYPE2CHAR)
+#define TYPEFORTRAN real(kind = real32)
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#define TYPELEN 8
+#define TYPE2CHAR r8
+#define FNCNAME(name) CAT(name,TYPE2CHAR)
+#define TYPEFORTRAN real(kind = real64)
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+#define TYPEWBFORT WB_FORTRAN_BOOL
+
+#define TYPELEN 1
+#define TYPE2CHAR l1
+#define FNCNAME(name) CAT(name,TYPE2CHAR)
+#define TYPEFORTRAN logical
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+#define TYPEWBFORT WB_FORTRAN_CHAR
+
+#define TYPELEN len(val)
+#define TYPE2CHAR cc
+#define FNCNAME(name) CAT(name,TYPE2CHAR)
+#define TYPEFORTRAN character(len = *)
+#include "wb_put.tmpl90"
+#undef TYPEFORTRAN
+#undef FNCNAME
+#undef TYPE2CHAR
+#undef TYPELEN
+
+#undef TYPEWBFORT
+
+#ifdef INTERFACEONLY
+interface wb_put
+#endif INTERFACEONLY

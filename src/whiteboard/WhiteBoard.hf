@@ -1,7 +1,9 @@
+#include <template.hf>
+
 #include "WhiteBoard_constants.h"
 
 #define INTERFACEONLY
-interface
 #include "WhiteBoard.tmpl90"
-end interface
 #undef INTERFACEONLY
+
+#include "wb_omp.tmpl90"
