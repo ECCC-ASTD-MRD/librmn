@@ -1,0 +1,37 @@
+!
+! purpose:
+!   inform the Fortran compiler that type, kind, and rank checking should not be performed for
+!   one or more formal arguments
+!
+! usage:
+!   #define IgnoreTypeKindRank name1 [, name2] [, name3] ...
+!   #include <IgnoreTypeKindRank.hf>
+!
+! type(*) is known to be supported by gfortran and Intel Fortran compiler
+!
+#if defined(__GFORTRAN__) || defined(__INTEL_COMPILER)
+      type(*), dimension(*) :: IgnoreTypeKindRank
+#else
+      logical, dimension(*) :: IgnoreTypeKindRank  ! Cray compiler, PGI/Nvidia, flang, xlf, SunStudio
+#endif
+!
+! ignore type, kind, and rank through the use of compiler directives (pragmas)
+!
+#if defined(WITH_GNU) || defined(__GFORTRAN__)
+!GCC$ ATTRIBUTES NO_ARG_CHECK :: IgnoreTypeKindRank
+#elif defined(WITH_INTEL) || defined(__INTEL_COMPILER)
+!DIR$ ATTRIBUTES NO_ARG_CHECK :: IgnoreTypeKindRank
+#elif defined(WITH_PGI) || defined(WITH_NVIDIA) || defined(WITH_CRAY) || defined(_CRAYFTN) || defined(__PGI)
+!DIR$ ignore_tkr IgnoreTypeKindRank
+#elif defined(WITH_IBM) || defined(__xlC__)
+!ibm* ignore_tkr IgnoreTypeKindRank
+#else
+!
+! unrecognized compiler, use all known directives hoping that one gets recognized
+!
+!DEC$ ATTRIBUTES NO_ARG_CHECK :: IgnoreTypeKindRank
+!$PRAGMA IGNORE_TKR IgnoreTypeKindRank
+!DIR$ IGNORE_TKR IgnoreTypeKindRank
+!IBM* IGNORE_TKR IgnoreTypeKindRank
+#endif
+#undef IgnoreTypeKindRank
