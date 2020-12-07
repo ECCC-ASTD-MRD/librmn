@@ -1,4 +1,6 @@
+#ifdef INTERFACEONLY
 interface wb_read
+#endif
     !> \brief Read a dictionary or namelist into the whiteboard
     function OMPFNCNAME(wb_read)(prefix_name, file, section, mode, wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -37,10 +39,14 @@ interface wb_read
         return
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_keys
+#endif
     !> \brief Retreive all key names in the wahitboard starting with key_pattern
     function OMPFNCNAME(wb_keys)(keys, nkeys, key_pattern, wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -72,10 +78,14 @@ interface wb_keys
         !$omp endcritical
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_get_meta
+#endif
     !> \brief Retreive meta data of WB entry conresponding to provided key name
     function OMPFNCNAME(wb_get_meta)(key, type1, typelen, array_size, options, wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -110,10 +120,14 @@ interface wb_get_meta
         !$omp end critical
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_checkpoint_setname
+#endif
     !> \brief Set the name of the checkpoint file
     function OMPFNCNAME(wb_checkpoint_setname)(filename) result(status)
         implicit none
@@ -128,10 +142,14 @@ interface wb_checkpoint_setname
         status = f_wb_checkpoint_name(filename)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_checkpoint_getname
+#endif
     !> \brief Get the name of the checkpoint file
     function OMPFNCNAME(wb_checkpoint_getname)(filename) result(status)
         implicit none
@@ -146,10 +164,14 @@ interface wb_checkpoint_getname
         status = f_wb_checkpoint_get_name(filename)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_checkpoint
+#endif
     !> \brief Save a copy of the whiteboard to disk for re-start purpose
     function OMPFNCNAME(wb_checkpoint)(wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -179,10 +201,14 @@ interface wb_checkpoint
         status = f_wb_checkpoint(my_wb)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_reload
+#endif
     !TODO: may want to remove this and do an auto reload on 1st WB fn call
 
     !> \brief Force a reload of the saved copy of the whiteboard
@@ -215,10 +241,14 @@ interface wb_reload
         status = f_wb_reload(my_wb)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_check
+#endif
     !> \brief Check all whiteboard entries for the gien instatus, return number of entries that match
     function OMPFNCNAME(wb_check)(prefix_match, instatus, wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -247,10 +277,14 @@ interface wb_check
         !$omp end critical
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_lock
+#endif
     !> \brief Set all whiteboard entry to WB_REWRITE_NONE 
     !> Each entry will be set to WB_REWRITE_NONE if and only if key name start with prefix_match and status is WB_REWRITE_UNTIL
     !> This is normally done after a wb_read of a config file
@@ -284,10 +318,14 @@ interface wb_lock
         status = f_wb_lock(my_wb, prefix_match)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_error_handler
+#endif
     !> \brief Set error callback function
     !> The handler_function should have the following form:
     !>  subtroutine handler_function(error_severity, error_code)
@@ -313,10 +351,14 @@ interface wb_error_handler
         call f_wb_error_handler(handler_function)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_broadcast_init
+#endif
     !> \brief Configure WhiteBoard MPI broadcasts
     function OMPFNCNAME(wb_broadcast_init)(pe_root, pe_me, domain, bcst_function, allreduce_function) result(status)
         implicit none
@@ -346,10 +388,14 @@ interface wb_broadcast_init
         call f_wb_bcst_init(bcst_function, allreduce_function)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_broadcast
+#endif
     !> \brief Perform an MPI broadcast
     function OMPFNCNAME(wb_broadcast)(key, ispattern, wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -389,10 +435,14 @@ interface wb_broadcast
         status = f_wb_bcst(my_wb, key, ispattern0)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_verbosity
+#endif
     !> \brief Set the wb verbosity level
     function OMPFNCNAME(wb_verbosity)(level) result(status)
         implicit none
@@ -414,10 +464,14 @@ interface wb_verbosity
         status = f_wb_verbosity(level)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_new
+#endif
     !> \brief Create a new whiteboard instance
     function OMPFNCNAME(wb_new)(wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -441,10 +495,14 @@ interface wb_new
         status = f_wb_new(wb%wb)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif
 
 
+#ifdef INTERFACEONLY
 interface wb_free
+#endif
     !> \brief Delete a WhiteBoard instance
     function OMPFNCNAME(wb_free)(wb) result(status)
         use, intrinsic :: iso_fortran_env
@@ -468,4 +526,6 @@ interface wb_free
         status = f_wb_free(wb%wb)
 #endif
     end function
+#ifdef INTERFACEONLY
 end interface
+#endif

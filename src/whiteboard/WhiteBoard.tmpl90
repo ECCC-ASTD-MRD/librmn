@@ -162,3 +162,5 @@ interface wb_put
 #ifdef INTERFACEONLY
 end interface wb_put
 #endif INTERFACEONLY
+
+#include "wb_omp.tmpl90"

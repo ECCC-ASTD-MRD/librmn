@@ -4,5 +4,4 @@
 
 #define INTERFACEONLY
 #include "WhiteBoard.tmpl90"
-#include "wb_omp.tmpl90"
 #undef INTERFACEONLY
