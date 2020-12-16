@@ -422,6 +422,17 @@ interface wb_broadcast
             return
         endif
 #endif
+
+#ifdef DEBUG
+#define STR_VALUE(arg)      #arg
+#define FUNCTION_NAME(name) STR_VALUE(name)
+#define TEST_FUNC_NAME FUNCTION_NAME(OMPFNCNAME(wb_broadcast))
+    print *, TEST_FUNC_NAME, "(", key, ", ...)"
+#undef TEST_FUNC_NAME
+#undef FUNCTION_NAME
+#undef STR_VALUE
+#endif
+
         if (present(wb)) then
             my_wb = wb%wb
         else

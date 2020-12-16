@@ -1,26 +1,34 @@
 #include "WhiteBoard_constants.h"
 
 
-!> Retrieve a copy of the value associated with key stored in the whiteboard saclar form
-!
-!> @param[in]  key Key identifying the whiteboard entry to get
-!> @param[out] val Returned value associated with key
-!> @param[in]  wb  WhiteBoard instance.  The global instance is used if one ins't provided
-!
-!> @return WB_OK on success or error code on failure.  Use WB_IS_OK() to check.
+!> \brief Retrieve a copy of the value associated with key stored in the whiteboard saclar form
 function OMPFNCNAME(FNCNAME(wb_get_))(key, val, wb) result(status)
     use, intrinsic :: iso_fortran_env
     implicit none
     include "whiteboard_type.hf"
 
+    !> Key identifying the whiteboard entry to get
     character (len = *), intent(in) :: key
+    !> Returned value associated with key
     TYPEFORTRAN, intent(out) :: val
+    !> WhiteBoard instance.  The global instance is used if one ins't provided
     type(whiteboard), intent(in), optional :: wb
+    !> WB_OK on success or error code on failure.  Use WB_IS_OK() to check
     integer :: status
 
 #ifndef INTERFACEONLY
     integer(kind = int64) :: my_wb
 #include "f_wb_get_itf.hf"
+
+#ifdef DEBUG
+#define STR_VALUE(arg)      #arg
+#define FUNCTION_NAME(name) STR_VALUE(name)
+#define TEST_FUNC_NAME FUNCTION_NAME(OMPFNCNAME(FNCNAME(wb_get_)))
+    print *, TEST_FUNC_NAME, "(", key, ", ...)"
+#undef TEST_FUNC_NAME
+#undef FUNCTION_NAME
+#undef STR_VALUE
+#endif
 
 !$omp critical
     if (present(wb)) then
@@ -34,23 +42,21 @@ function OMPFNCNAME(FNCNAME(wb_get_))(key, val, wb) result(status)
 end function
 
 
-!> Retrieve a copy of the value associated with key stored in the whiteboard array form
-!
-!> @paran[in]  key   Key identifying the whiteboard entry to get
-!> @paran[out] val   Returned value associated with key
-!> @paran[out] nbval Number of returned values in the array
-!> @paran[in]  wb    WhiteBoard instance.  The global instance is used if one ins't provided
-!
-!> @return WB_OK on success or error code on failure.  Use WB_IS_OK() to check.
+!> \brief Retrieve a copy of the value associated with key stored in the whiteboard array form
 function OMPFNCNAME(NAMEA(FNCNAME(wb_get_)))(key, val, nbval, wb) result(status)
     use, intrinsic :: iso_fortran_env
     implicit none
     include "whiteboard_type.hf"
 
+    !> Key identifying the whiteboard entry to get
     character (len = *), intent(in) :: key
+    !> Returned value associated with key
     TYPEFORTRAN, dimension(:), intent(out) :: val
+    !> Number of returned values in the array
     integer, intent(out) :: nbval
+    !> WhiteBoard instance.  The global instance is used if one ins't provided
     type(whiteboard), intent(in), optional :: wb
+    !> WB_OK on success or error code on failure.  Use WB_IS_OK() to check
     integer :: status
 
 #ifndef INTERFACEONLY
@@ -58,6 +64,17 @@ function OMPFNCNAME(NAMEA(FNCNAME(wb_get_)))(key, val, nbval, wb) result(status)
 #define ARRAY
 #include "f_wb_get_itf.hf"
 #undef ARRAY
+
+#ifdef DEBUG
+#define STR_VALUE(arg)      #arg
+#define FUNCTION_NAME(name) STR_VALUE(name)
+#define TEST_FUNC_NAME FUNCTION_NAME(OMPFNCNAME(NAMEA(FNCNAME(wb_get_))))
+    print *, TEST_FUNC_NAME, "(", key, ", ...)"
+#undef TEST_FUNC_NAME
+#undef FUNCTION_NAME
+#undef STR_VALUE
+#endif
+
 !$omp critical
     if (present(wb)) then
         my_wb = wb%wb
