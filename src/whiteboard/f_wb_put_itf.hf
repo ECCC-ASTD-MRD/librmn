@@ -7,7 +7,7 @@
             integer, intent(in) :: type_name
             integer, intent(in) :: type_size
 #ifdef ARRAY
-            TYPEFORTRAN, dimension(:), intent(in) :: val
+            TYPEFORTRAN, dimension(*), intent(in) :: val
 #else
             TYPEFORTRAN, intent(in) :: val
 #endif
