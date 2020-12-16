@@ -23,46 +23,43 @@
 !** end of rpn-doc sections
 
 
-!**s/r fc2_logical2int
-subroutine ftn2c_logical2int(dest,src,n)
+!> \brief Handler function call in C to store/retreive fortran logical
+!> \deprecated { This function should no longer be used.  f_logical2int should be used instead, or even, better C compatible types from iso_c_binding }
+subroutine ftn2c_logical2int(dest, src, n)
   implicit none
-!arguments
+
   integer :: n
   integer, dimension(n) :: dest
   logical, dimension(n) :: src
-!object
-!  handler function call in C to store/retreive fortran logical
-!** end of rpn-doc sections
+
   dest = 0
   where(src) dest = 1
-  return
 end subroutine ftn2c_logical2int
 
 
-!**s/r f2c_int2logical
-subroutine ftn2c_int2logical(dest,src,n)
+!> \brief Handler function call in C to store/retreive fortran logical
+!> \deprecated { This function should no longer be used.  f_int2logical should be used instead, or even, better C compatible types from iso_c_binding }
+subroutine ftn2c_int2logical(dest, src, n)
   implicit none
-!arguments
+
   integer :: n
   integer, dimension(n) :: src
   logical, dimension(n) :: dest
-!object
-!  handler function call in C to store/retreive fortran logical
-!** end of rpn-doc sections
-  dest = src.ne.0
+
+  dest = src .ne. 0
   return
 end subroutine ftn2c_int2logical
 
 
-!**s/r f_logical_move
-subroutine ftn2c_logical_move(dest,src,n)
+!> \brief andler function call in C to store/retreive fortran logical
+!> \deprecated { This function should no longer be used.  f_logical_move should be used instead, or even, better C compatible types from iso_c_binding }
+subroutine ftn2c_logical_move(dest, src, n)
   implicit none
-!arguments
+
   integer :: n
-  logical, dimension(n) :: dest,src
-!object
-!  handler function call in C to store/retreive fortran logical
-!** end of rpn-doc sections
-  dest=src
+  logical, dimension(n) :: dest
+  logical, dimension(n) :: src
+
+  dest = src
   return
 end subroutine ftn2c_logical_move
