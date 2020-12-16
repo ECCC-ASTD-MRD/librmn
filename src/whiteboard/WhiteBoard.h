@@ -37,7 +37,7 @@ typedef union {
     //! Name as a character array
     char carr[WB_MAXNAMELENGTH + 1];
     //! Name as a int array
-    unsigned int  iarr[(WB_MAXNAMELENGTH + 1) / sizeof(int)];
+    unsigned int iarr[(WB_MAXNAMELENGTH + 1) / sizeof(int)];
 } wb_name;
 
 //! Array metadata container
