@@ -1,0 +1,2 @@
+all:
+	icc -DLittle_Endian -I/local/raid/armn/armnsam/goas_build/build/src/vgrid -I/local/raid/armn/armnsam/goas/src/vgrid -I/local/raid/armn/armnsam/goas/src/archdep/include/Linux-x86_64-intel -I/local/raid/armn/armnsam/goas_build/build/modules -I/local/raid/armn/armnsam/goas/src/rpncomm -I/local/raid/armn/armnsam/goas/src/rmn/src/PUBLIC_INCLUDES -I/local/raid/armn/armnsam/goas/src/rmn/src/whiteboard -I/local/raid/armn/armnsam/goas/src/RPN/compiler_includes  -fp-model precise -mkl -msse3 -traceback -Wtrigraphs -qopenmp -O2 -g -DNDEBUG test.c
