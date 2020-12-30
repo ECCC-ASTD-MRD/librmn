@@ -934,7 +934,7 @@ static int c_wb_lookup(
     // Put key name into local line
     fill_line(&line, name, nameLength);
 #ifdef DEBUG
-    printf("target name = :%s:\n", &(line.meta.name.carr[0]));
+    printf("c_wb_lookup - target name = '%s'\n", &(line.meta.name.carr[0]));
 #endif
     while (lookuppage != NULL) {
         // No screaming if not found, full length match
@@ -1020,6 +1020,12 @@ int c_wb_get(
     int status, typecode, array, result;
     int i;
     unsigned char *csrc;
+
+#ifdef DEBUG
+    printf("c_wb_get(wb = %p, name = %s, type = %d, size = %d, dest = %p, nbelem = %d, nameLength = %d)\n",
+        wb, name, type, size, dest, nbelem, nameLength
+    );
+#endif
 
     set_extra_error_message(" invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
@@ -1109,6 +1115,10 @@ int c_wb_get(
     } else {
         // Character strings,  use trimmed to padded copy
         for (i = 0; i < nbelem; i++) {
+#ifdef DEBUG
+            printf("c_fortran_string_copy((csrc = %p, dest = %p, element_size = %d, size = %d, pad = ' ');\n",
+              csrc, dest, element_size, size);
+#endif
             int tempstat = c_fortran_string_copy((char *)csrc, (char *)dest, element_size, size, ' ');
             if (tempstat < 0) {
                 // Not enough space to store string
@@ -1123,6 +1133,7 @@ int c_wb_get(
 
 
 //! @copydoc c_wb_get
+// f_wb_get(wb, key, type_name, type_size, val, nbelem)
 wordint f77_name(f_wb_get)(WhiteBoard **wb, char *name, wordint *type, wordint *size, void *dest,
                            wordint *nbelem, F2Cl nameLength)
 {
@@ -1131,8 +1142,15 @@ wordint f77_name(f_wb_get)(WhiteBoard **wb, char *name, wordint *type, wordint *
     // FIXME Why not replace all of this with a proper iso_c_binding interface?
     int _nameLength = nameLength;
     int _type = *type;
+    int _size = *size;
     int _nbelem = *nbelem;
-    char _size = *size;
+
+#ifdef DEBUG
+    printf("f_wb_get(wb = %p, name = '%s', type = %d, size = %d, dest = %p, nbelem = %d, nameLength = %d)\n",
+        *wb, name, *type, *size, dest, *nbelem, nameLength
+    );
+#endif
+
     return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _nameLength);
 }
 
@@ -1165,6 +1183,12 @@ int c_wb_put(
     int i;
     unsigned char *dest;
 
+#ifdef DEBUG
+    printf("c_wb_put(wb = %p, name = %s, type = %d, size = %d, src = %p, nbelem = %d, options = 0x%x, nameLength = %d)\n",
+        wb, name, type, size, src, nbelem, options, nameLength
+    );
+#endif
+
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         WB_ERR_EXIT(WB_MSG_ERROR, WB_ERR_NOTFOUND);
@@ -1175,6 +1199,9 @@ int c_wb_put(
     extra_error_message = NULL;
 
     TRIM(name, nameLength)
+#ifdef DEBUG
+    printf("c_wb_put - name = %s, nameLength = %d\n", name, nameLength);
+#endif
     set_extra_error_message(name, nameLength);
     wb_lastputline = NULL;
 
@@ -1260,10 +1287,17 @@ int c_wb_put(
 
         // Set line name
         fill_line(line, name, nameLength);
+#ifdef DEBUG
+        printf("c_wb_put - stored name = '%s'\n", line->meta.name.carr);
+#endif
         stored_size = size;
-        if (typecode == WB_FORTRAN_CHAR && array == 0 ) {
+        if (typecode == WB_FORTRAN_CHAR && array == 0) {
             // Scalar string, round size up to wb_linedata size
             stored_size = ( (stored_size + sizeof(wb_linedata) - 1) / sizeof(wb_linedata) ) * sizeof(wb_linedata);
+#ifdef DEBUG
+            printf("c_wb_put - stored_size = %d\n", stored_size);
+            printf("c_wb_put - src = '%s'\n", src);
+#endif
         }
         line->meta.flags.type = typecode;
         line->meta.flags.elementsize = stored_size;
