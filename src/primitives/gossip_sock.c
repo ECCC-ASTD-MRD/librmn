@@ -80,7 +80,14 @@ int connect_with_timeout_localport(char *ipaddress, int portno, int timeout);
 
 static int maxsize = 1024;
 
-extern long long time_base();
+//! \bug When buiding with -DDEBUG, the time_base() function is called, but it's not defined
+// extern long long time_base();
+// Nasty workaround:
+#ifdef DEBUG
+long long time_base() {
+    return 0;
+}
+#endif
 
 void check_data(char *record, int size);
 
