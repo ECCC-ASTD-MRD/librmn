@@ -2308,7 +2308,7 @@ int c_xdfprm(
    page_number =   PAGENO_FROM_HANDLE(handle);
    record_number = RECORD_FROM_HANDLE(handle);
 
-    printf("Debug+ c_xdfprm index=%d page_number=%d record_number=%d\n", index, page_number, record_number);
+    // printf("Debug+ c_xdfprm index=%d page_number=%d record_number=%d\n", index, page_number, record_number);
 
     // Validate index, page number and record number
     if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
