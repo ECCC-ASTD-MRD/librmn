@@ -21,6 +21,7 @@ function OMPFNCNAME(FNCNAME(wb_get_))(key, val, wb) result(status)
 #include "f_wb_get_itf.hf"
 
 #ifdef DEBUG
+    print *, "TYPELEN = ", TYPELEN
 #define STR_VALUE(arg)      #arg
 #define FUNCTION_NAME(name) STR_VALUE(name)
 #define TEST_FUNC_NAME FUNCTION_NAME(OMPFNCNAME(FNCNAME(wb_get_)))
