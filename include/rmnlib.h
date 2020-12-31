@@ -7,36 +7,36 @@
 
 #include <ftn2c_helper.h>
 
-typedef void *(*PackFunctionPointer)(void *unpackedArrayOfFloat, void *packedHeader, 
-                                void *packedArrayOfInt, int elementCount, 
-                                int bitSizeOfPackedToken, int off_set, int stride, 
+typedef void *(*PackFunctionPointer)(void *unpackedArrayOfFloat, void *packedHeader,
+                                void *packedArrayOfInt, int elementCount,
+                                int bitSizeOfPackedToken, int off_set, int stride,
                                 int opCode, int hasMissing, void *missingTag );
 
-void *compact_float(void *unpackedArrayOfFloat, void *packedHeader, void *packedArrayOfInt, 
-                       int elementCount, int bitSizeOfPackedToken, int off_set, int stride, 
-                       int opCode, int hasMissing, void *missingTag );  
-                  
-void *compact_double(void *unpackedArrayOfFloat, void *packedHeader, void *packedArrayOfInt, 
-                        int elementCount, int bitSizeOfPackedToken, int off_set, int stride, 
+void *compact_float(void *unpackedArrayOfFloat, void *packedHeader, void *packedArrayOfInt,
+                       int elementCount, int bitSizeOfPackedToken, int off_set, int stride,
+                       int opCode, int hasMissing, void *missingTag );
+
+void *compact_double(void *unpackedArrayOfFloat, void *packedHeader, void *packedArrayOfInt,
+                        int elementCount, int bitSizeOfPackedToken, int off_set, int stride,
                         int opCode, int hasMissing, void *missingTag );
-                        
-int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packedArrayOfInt, 
-                        int elementCount, int bitSizeOfPackedToken, int off_set, 
+
+int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packedArrayOfInt,
+                        int elementCount, int bitSizeOfPackedToken, int off_set,
                         int stride, int opCode);
 
-void *compact_IEEEblock_float(void *unpackedArrayOfFloat, void *packedHeader, 
-                              void *packedArrayOfInt, 
+void *compact_IEEEblock_float(void *unpackedArrayOfFloat, void *packedHeader,
+                              void *packedArrayOfInt,
                               int elementCount, int bitSizeOfPackedToken, int bitSizeOfPackedExpo,
-                              int off_set, int stride, 
+                              int off_set, int stride,
                               int opCode, int hasMissing, void *missingTag );
 
-void *compact_IEEEblock_double(void *unpackedArrayOfFloat, void *packedHeader, 
-                               void *packedArrayOfInt, 
+void *compact_IEEEblock_double(void *unpackedArrayOfFloat, void *packedHeader,
+                               void *packedArrayOfInt,
                                int elementCount, int bitSizeOfPackedToken, int bitSizeOfPackedExpo,
-                               int off_set, int stride, 
+                               int off_set, int stride,
                                int opCode, int hasMissing, void *missingTag );
 
-void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, ftnword *nBits, 
+void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, ftnword *nBits,
                  ftnword *NB, ftnword *OP);
 
 void f77name (xxpak) (void *xunpacked, void *xpacked,ftnword *ni, ftnword *nj, ftnword *nBits,
@@ -100,7 +100,7 @@ int c_sqgets(int iun, char *bufptr, int nchar);
 ftnword f77name(sqgets)(ftnword *iun, char  *bufptr, ftnword *nchar, F2Cl lbuf);
 int c_sqputs(int iun, char *bufptr, int nchar);
 ftnword f77name(sqputs)(ftnword *iun, char  *bufptr, ftnword *nchar, F2Cl lbuf);
-void f77name(d_wafdt)();  
+void f77name(d_wafdt)();
 unsigned ftnword f77name(hrjust) (unsigned ftnword *moth, ftnword *ncar);
 unsigned ftnword f77name(hljust) (unsigned ftnword *moth, ftnword *ncar);
 unsigned INT_32 f77name(check_host_id)();
