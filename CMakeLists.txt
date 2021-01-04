@@ -20,6 +20,7 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, 
 # TODO: Check if the build type needs to be defined before the compiler is configured
 message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 message(STATUS "COMPILER_SUITE=${COMPILER_SUITE}")
+message(STATUS "WITH_OPENMP=${WITH_OPENMP}")
 
 string(TOLOWER ${COMPILER_SUITE} COMPILER_SUITE)
 
