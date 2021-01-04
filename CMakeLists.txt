@@ -19,6 +19,7 @@ option(WITH_OPENMP "Compile with OpenMP support" FALSE)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
 # TODO: Check if the build type needs to be defined before the compiler is configured
 message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 message(STATUS "COMPILER_SUITE=${COMPILER_SUITE}")
 message(STATUS "WITH_OPENMP=${WITH_OPENMP}")
 
@@ -46,19 +47,6 @@ endif()
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
-
-# WHAT TO COMPILE
-
-# What does the line below do?
-#set(FTNSRC "" CACHE INTERNAL "" FORCE)
-# IS this necwessary?
-#set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${BUILD}/modules CACHE STRING "Where Fortran modules go")
-#set(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS f;f90;F90 CACHE STRING "Fortran extension files")
-
-#dump_cmake_variables()
-
-add_definitions(-DPROJECT_NAME=${PROJECT_NAME})
-
 include_directories(
    include
    include/${BUILD_ARCH}-${COMPILER_SUITE}
@@ -76,14 +64,12 @@ file(GLOB PROJECT_F_FILES
 )
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
-add_library (rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_executable(librmn_version src/librmn_version.c)
+add_dependencies(librmn_version rmn)
+target_link_libraries(librmn_version rmn)
 
 set_target_properties(rmn PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
 
-install(
-   TARGETS rmn
-   LIBRARY DESTINATION lib
-   ARCHIVE DESTINATION lib
-   PUBLIC_HEADER DESTINATION include
-)
+install(TARGETS rmn librmn_version)
