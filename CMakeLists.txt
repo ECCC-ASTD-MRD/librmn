@@ -19,6 +19,7 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, 
 set(LANGUAGES C Fortran)
 
 include("${CMAKE_SOURCE_DIR}/cmake_shared/compiler_presets.cmake")
+set(WITH_OPENMP TRUE)
 include("${CMAKE_SOURCE_DIR}/cmake_shared/OpenMP.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake_shared/doxygen.cmake")
 
