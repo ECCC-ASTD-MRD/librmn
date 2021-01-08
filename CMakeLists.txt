@@ -56,34 +56,29 @@ target_link_libraries(librmn_version rmn)
 # the definitions and options as if we it was processing a source file
 
 # We need to creat a file here because gfortran won't process a file nammmed *.hf
+file(GLOB GMM_HEADER_DEPS ${CMAKE_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_SOURCE_DIR}/src/gmm/*.hf)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 "#include <gmm.hf>\n")
 add_custom_command(
     OUTPUT gmm.hf
     COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/src/gmm -P -E -o ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/gmm
     COMMENT "Generating gmm.hf"
     MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/gmm/gmm.hf
-    DEPENDS
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_constants.hf
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_definitions.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_nulls.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_status_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_checkpoint_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_create_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_delete_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_encodemeta_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_get_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_getmeta_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_getmeta2_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_keys_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_rename_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_shuffle_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_updatemeta_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_verbosity_interface.inc
-        ${CMAKE_SOURCE_DIR}/src/gmm/gmm_dumpinfo_interface.inc
+    DEPENDS ${GMM_HEADER_DEPS}
 )
-add_custom_target(generated_headers ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf)
-list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf)
+
+file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_SOURCE_DIR}/src/whiteboard/*.hf)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 "#include <WhiteBoard.hf>\n")
+add_custom_command(
+    OUTPUT WhiteBoard.hf
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/src/whiteboard -P -E -o ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
+    COMMENT "Generating WhiteBoard.hf"
+    MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
+    DEPENDS ${WHITEBOARD_HEADER_DEPS}
+)
+
+add_custom_target(generated_headers ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
+
+list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
 set_target_properties(rmn PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
