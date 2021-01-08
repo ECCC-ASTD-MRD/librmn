@@ -10,13 +10,5 @@
 #define PASTE(a,b) a##b
 #define CAT(a,b) PASTE(a,b)
 #endif
-! EXT can be defined after FNCNAME
-
-
-#ifdef _OPENMP
-#define OMPFNCNAME(name) CAT(name,_omp)
-#else
-#define OMPFNCNAME(name) CAT(name,_omp)
-#endif
 
 #define NAMEA(name) CAT(name,_a)

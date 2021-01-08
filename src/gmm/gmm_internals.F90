@@ -1,9 +1,9 @@
 module gmm_internals
     use, intrinsic :: iso_c_binding
-    include "gmm_constants.hf"
-    include "gmm_internal_constants.inc"
-    include "gmm_definitions.inc"
-    include "gmm_nulls.inc"
+#include "gmm_constants.hf"
+#include "gmm_internal_constants.inc"
+#include "gmm_definitions.inc"
+#include "gmm_nulls.inc"
     type p_gmm_metadata
         ! Try to remove the SEQUENCE statement to see if it matters
         ! SEQUENCE
