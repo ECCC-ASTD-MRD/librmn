@@ -18,408 +18,389 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*****************************************************************************
- *                                                                           *
- *INTERFACE C POUR BURP                                                      *
- *                                                                           *
- *AUTEUR  M. LEPINE  -  NOV 1990                                             *
- *                                                                           *
- *OBJET                                                                      *
- *     INTERFACER LES SOUS-PROGRAMMES FORTRAN DU LOGICIEL BURP AVEC LE       *
- *     LANGAGE C EN TENANT COMPTE DES PARTICULARITES DES APPELS              *
- *     INTER-LANGAGES                                                        *
- *                                                                           *
- *         EX:   PASSAGE D'ARGUMENT PAR ADRESSE EN FORTRAN                   *
- *               PASSAGE SUPPLEMENTAIRE DE LA LONGUEUR POUR UN ARGUMENT DE   *
- *               TYPE CARACTERE ...                                          *
- *                                                                           *
- *****************************************************************************/
+//! C interface for burp
+
+
 #include <rpnmacros.h>
 
-/*****************************************************************************
- *                              C _ M R B C O L                              *
- *****************************************************************************/
-int
-c_mrbcol(liste,cliste,nele)
-int liste[], cliste[], nele;
 
-   {
-   int lnele;
-   lnele = nele;
-   return(f77name(mrbcol)(liste,cliste,&lnele));
-   }
-/*****************************************************************************
- *                              C _ M R B C O V                              *
- *****************************************************************************/
-int 
-c_mrbcov(elem)
-int elem;
-
-   {
-   int lelem;
-   lelem = elem;
-   return(f77name(mrbcov)(&lelem));
-   }
+//! Convert a list of of 6 digit decimal BUFR coded element names to 16-bit
+int c_mrbcol(int liste[], int cliste[], int nele)
+{
+    int lnele;
+    lnele = nele;
+    return f77name(mrbcol)(liste, cliste, &lnele);
+}
 
 
+//! Convert a 6-digit decimal BUFR element name to a 16-bit coded (CMC) element name
+int c_mrbcov(int elem)
+{
+    int lelem;
+    lelem = elem;
+    return f77name(mrbcov)(&lelem);
+}
 
 
-/*****************************************************************************
- *                              C _ M R B C V T                              *
- *****************************************************************************/
-int
-c_mrbcvt(liste,tblval,rval,nele,nval,nt,mode)
-int liste[], tblval[], nele, nval, nt, mode;
-float rval[];
-
-   {
-   int lnele, lnval, lnt, lmode;
-   lnele = nele; lnval = nval; lnt = nt; lmode = mode;
-   return(f77name(mrbcvt)(liste,tblval,rval,&lnele,&lnval,&lnt,&lmode));
-   }
-
-/*****************************************************************************
- *                              C _ M R B D C L                              *
- *****************************************************************************/
-int
-c_mrbdcl(cliste,liste,nele)
-int liste[], cliste[], nele;
-
-   {
-   int lnele;
-   lnele = nele;
-   return(f77name(mrbdcl)(cliste,liste,&lnele));
-   }
-
-/*****************************************************************************
- *                              C _ M R B D C V                              *
- *****************************************************************************/
-int 
-c_mrbdcv(elem)
-int elem;
-
-   {
-   int lelem;
-   lelem = elem;
-   return(f77name(mrbdcv)(&lelem));
-   }
+//! Convert value from float to integer or vise-versa
+//
+//! Elements that are codes instead of values are not converted.
+//! Missing values in tblval are encoded by settings all the bits to 1
+int c_mrbcvt(
+    int liste[],
+    //! Integer representation of data (BUFR)
+    int tblval[],
+    //! Float representation of data (CMC)
+    float rval[],
+    //! Number of elements
+    int nele,
+    //! Number of values per element
+    int nval,
+    //! Number of groups
+    int nt,
+    //! When 0, convert from tblval to rval.  When 1, do the opposite.
+    int mode
+) {
+    int lnele, lnval, lnt, lmode;
+    lnele = nele; lnval = nval; lnt = nt; lmode = mode;
+    return f77name(mrbcvt)(liste, tblval, rval, &lnele, &lnval, &lnt, &lmode);
+}
 
 
-/*****************************************************************************
- *                              C _ M R B I N I                              *
- *****************************************************************************/
-int
-c_mrbini(iun,buf,temps,flgs,stnid,idtp,lati,longi,dx,dy,elev,drcv,date,
-         oars,runn,sup,nsup,xaux,nxaux)
-int buf[],temps,flgs,idtp,lati,longi,elev,drcv,date,oars,runn,sup[],nsup;
-int dx, dy;
-int xaux[],nxaux;
-char stnid[];
+//! Convert a list of of CMC coded element names to 6 digit decimal BUFR format
+int c_mrbdcl(
+    //! [in] List of CMC coded element names
+    int cliste[],
+    //! [out] List of 6 decimal digits BUFR element names
+    int liste[],
+    //! [in] Number of names in cliste
+    int nele)
+{
+    int lnele;
+    lnele = nele;
+    return f77name(mrbdcl)(cliste, liste, &lnele);
+}
 
-  {
-  int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
+
+//! Convert a 16-bit coded (CMC) element name to a 6-digit decimal BUFR element name
+int c_mrbdcv(int elem)
+{
+    int lelem;
+    lelem = elem;
+    return f77name(mrbdcv)(&lelem);
+}
+
+
+//! Initialize a report header
+//
+//! This is the first function that must be called to create a report.
+//! This must be done before data blocks are added to the report.
+int c_mrbini(
+    int iun,
+    int buf[],
+    int temps,
+    int flgs,
+    char stnid[],
+    int idtp,
+    int lati,
+    int longi,
+    int dx,
+    int dy,
+    int elev,
+    int drcv,
+    int date,
+    int oars,
+    int runn,
+    int sup[],
+    int nsup,
+    int xaux[],
+    int nxaux
+) {
+  int liun, ltemps, lflgs, lidtp, llati, llongi, lelev, ldrcv, ldate, loars;
   int ldx, ldy;
-  int lrunn,lnsup,lnxaux;
+  int lrunn, lnsup, lnxaux;
   F2Cl l1;
   ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
   ldx = dx; ldy = dy;
   lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
   lnsup = nsup; lnxaux = nxaux; liun = iun;
   l1 = strlen(stnid);
-  return(f77name(mrbini)(&liun,buf,&ltemps,&lflgs,stnid,&lidtp,&llati,&llongi,
-                 &ldx,&ldy,&lelev,&ldrcv,&ldate,&loars,&lrunn,sup,&lnsup,xaux,
-                 &lnxaux,l1));
-  }
+  return f77name(mrbini)(&liun, buf, &ltemps, &lflgs, stnid, &lidtp, &llati, &llongi,
+                 &ldx, &ldy, &lelev, &ldrcv, &ldate, &loars, &lrunn, sup, &lnsup, xaux,
+                 &lnxaux, l1);
+}
 
-/*****************************************************************************
- *                              C _ M R B L O C X                            *
- *****************************************************************************/
-int
-c_mrblocx(buf,bfam,bdesc,bknat,bktyp,bkstp,blk0)
-int buf[],bfam,bdesc,bknat,bktyp,bkstp,blk0;
 
-  {
-  int lbfam,lbdesc,lbknat,lbktyp,lbkstp,lblk0;
-  lbfam = bfam; lbdesc = bdesc; lblk0 = blk0;
-  lbknat = bknat; lbktyp = bktyp; lbkstp = bkstp;
-  return(f77name(mrblocx)(buf,&lbfam,&lbdesc,&lbknat,&lbktyp,&lbkstp,&lblk0));
-  }
+//! Find a block in a report
+int c_mrblocx(int buf[], int bfam, int bdesc, int bknat, int bktyp, int bkstp, int blk0)
+{
+    int lbfam,lbdesc,lbknat,lbktyp,lbkstp,lblk0;
+    lbfam = bfam; lbdesc = bdesc; lblk0 = blk0;
+    lbknat = bknat; lbktyp = bktyp; lbkstp = bkstp;
+    return f77name(mrblocx)(buf, &lbfam, &lbdesc, &lbknat, &lbktyp, &lbkstp, &lblk0);
+}
 
-/*****************************************************************************
- *                              C _ M R B P R M L                            *
- *****************************************************************************/
-int
-c_mrbprml(buf,bkno,tblprm,nprm,inblocs)
-int buf[],tblprm[],bkno,nprm,inblocs;
 
-  {
-    int lbkno,lnprm,linblocs;
+//! Extract the parameter descriptors from all the blocks
+int c_mrbprml(int buf[], int bkno, int tblprm[], int nprm, int inblocs)
+{
+    int lbkno, lnprm, linblocs;
 
     lbkno = bkno; lnprm = nprm; linblocs = inblocs;
 
-    return(f77name(mrbprml)(buf,&lbkno,tblprm,&lnprm,&linblocs));
-
-  }
-
- 
-/*****************************************************************************
- *                              C _ M R B R P T                              *
- *****************************************************************************/
-int 
-c_mrbrpt(elem)
-int elem;
-
-   {
-   int lelem;
-   lelem = elem;
-   return(f77name(mrbrpt)(&lelem));
-   }
-
-
-/*****************************************************************************
- *                              C _ M R B S C T                              *
- *****************************************************************************/
-int
-c_mrbsct(tablusr,neleusr)
-int tablusr[], neleusr;
-
-  {
-  int lneleusr;
-  lneleusr = neleusr;
-  return(f77name(mrbsct)(tablusr,&lneleusr));
-  }
-
-/*****************************************************************************
- *                              C _ M R B T B L                              *
- *****************************************************************************/
-int
-c_mrbtbl(tablusr,nslots,neleusr)
-int tablusr[], neleusr,nslots;
-
-  {
-  int lneleusr, lnslots;
-  lneleusr = neleusr;
-  lnslots  = nslots;
-  return(f77name(mrbtbl)(tablusr,&lnslots,&lneleusr));
-  }
-
-
-/*****************************************************************************
- *                              C _ M R B T Y P                              *
- *****************************************************************************/
-int
-c_mrbtyp(hbknat,hbktyp,hbkstp,hbtyp)
-int hbtyp, *hbknat, *hbktyp, *hbkstp;
-
-{
-      int lbtyp, iii;
-      lbtyp = hbtyp;
-      return(f77name(mrbtyp)(hbknat,hbktyp,hbkstp,&lbtyp));
+    return f77name(mrbprml)(buf, &lbkno, tblprm, &lnprm, &linblocs);
 }
 
-/*****************************************************************************
- *                              C _ M R B U P D                              *
- *****************************************************************************/
-int
-c_mrbupd(iun,buf,temps,flgs,stnid,idtp,lati,longi,dx,dy,elev,drcv,date,
-         oars,runn,sup,nsup,xaux,nxaux)
-int buf[],temps,flgs,idtp,lati,longi,elev,drcv,date,oars,runn,sup[],nsup;
-int dx, dy;
-int xaux[],nxaux;
-char stnid[];
 
-  {
-  int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
-  int ldx, ldy;
-  int lrunn,lnsup,lnxaux;
-  F2Cl l1;
-  ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
-  ldx = dx; ldy = dy;
-  lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
-  lnsup = nsup; lnxaux = nxaux; liun = iun;
-  l1 = strlen(stnid);
-  return(f77name(mrbupd)(&liun,buf,&ltemps,&lflgs,stnid,&lidtp,&llati,&llongi,
-                 &ldx,&ldy,&lelev,&ldrcv,&ldate,&loars,&lrunn,sup,&lnsup,xaux,
-                 &lnxaux,l1));
-  }
-
-/*****************************************************************************
- *                              C _ M R F C L S                              *
- *****************************************************************************/
-int
-c_mrfcls(iun)
-int iun;
-
-  {
-  int liun;
-  liun = iun;
-  return(f77name(mrfcls)(&liun));
-  }
-
-/*****************************************************************************
- *                              C _ M R F G O C                              *
- *****************************************************************************/
-int
-c_mrfgoc(optnom,opvalc)
-char optnom[],opvalc[9];
-
-  {
-  F2Cl l1,l2;
-  int iii;
-  l1 = strlen(optnom);
-  l2 = strlen(opvalc);
-  iii = f77name(mrfgoc)(optnom,opvalc,l1,l2);
-  opvalc[8] = '\0';
-  return (iii);
-  }
-
-/*****************************************************************************
- *                              C _ M R F G O R                              *
- *****************************************************************************/
-int
-c_mrfgor(optnom,opvalr)
-char optnom[];
-float *opvalr;
-
-  {
-  F2Cl l1;
-  l1 = strlen(optnom);
-  return(f77name(mrfgor)(optnom,opvalr,l1));
-  }
-
-/*****************************************************************************
- *                              C _ M R F L O C                              *
- *****************************************************************************/
-int
-c_mrfloc(iun,handle,stnid,idtyp,lat,lon,date,temps,sup,nsup)
-int iun,handle,idtyp,lat,lon,date,temps,sup[],nsup;
-char stnid[];
-
-  {
-  int liun,lhandle,lidtyp,llat,llon,ldate,ltemps,lnsup;
-  F2Cl l1;
-  l1 = strlen(stnid);
-  liun = iun; lhandle = handle; lidtyp = idtyp; llat = lat; llon = lon;
-  ldate = date; ltemps = temps; lnsup = nsup;
-  return(f77name(mrfloc)(&liun,&lhandle,stnid,&lidtyp,&llat,&llon,&ldate,
-                 &ltemps,sup,&lnsup,l1));
-  }
-
-/*****************************************************************************
-*                               C _ M R F M X L                              *
-******************************************************************************/
-int
-c_mrfmxl(iun)
-int iun;
-   {
-   int liun;
-   liun = iun;
-   return(f77name(mrfmxl)(&liun));
-   }
+//! Verify if the element is repeating
+int c_mrbrpt(int elem)
+{
+    int lelem;
+    lelem = elem;
+    return f77name(mrbrpt)(&lelem);
+}
 
 
-/*****************************************************************************
- *                              C _ M R F N B R                              *
- *****************************************************************************/
-int
-c_mrfnbr(iun)
-int iun;
+//! Add and initialize a user-defined array of variables for conversion to the array used by mbrcvt
+//
+//! The uncoded names of elements defined by the user should limit the values
+//! between 63000 and 63255 inclusively and must be in coded (CMC) form before
+//! calling MRBSCT.
+int c_mrbsct(
+    //! Array of user-defined variables
+    int tablusr[],
+    int neleusr
+) {
+    int lneleusr;
+    lneleusr = neleusr;
+    return f77name(mrbsct)(tablusr, &lneleusr);
+}
 
-  {
-  int liun;
-  liun = iun;
-  return(f77name(mrfnbr)(&liun));
-  }
 
-/*****************************************************************************
- *                              C _ M R F O P N                              *
- *****************************************************************************/
-int
-c_mrfopn(iun,mode)
-int iun;
-char mode[];
+//! Fill a table from tableburp
+int c_mrbtbl(int tablusr[], int nslots, int neleusr)
+{
+    int lneleusr, lnslots;
+    lneleusr = neleusr;
+    lnslots  = nslots;
+    return f77name(mrbtbl)(tablusr, &lnslots, &lneleusr);
+}
 
-  {
-  int liun;
-  F2Cl l1;
-  liun = iun;
-  l1 = strlen(mode);
-  return(f77name(mrfopn)(&liun,mode,l1));
-  }
 
-/*****************************************************************************
- *                              C _ M R F O P C                              *
- *****************************************************************************/
-int
-c_mrfopc(optnom,opvalc)
-char optnom[],opvalc[];
+//! \todo Write a short description of what this function actually does!
+//! If btyp = -1, then a search key will be derived from bknat, bktyp and bkstp 
+//! and placed in btyp; the function will also return the value of btyp itself.
+//! If btyp > 0, then it will decode the "btyp" and return values in bknat, 
+//! bktyp, bkstp; the function will return 0. 
+int c_mrbtyp(int *hbknat, int *hbktyp, int *hbkstp, int hbtyp)
+{
+    int lbtyp;
+    lbtyp = hbtyp;
+    return f77name(mrbtyp)(hbknat, hbktyp, hbkstp, &lbtyp);
+}
 
-  {
-  F2Cl l1,l2;
-  l1 = strlen(optnom);
-  l2 = strlen(opvalc);
-  return(f77name(mrfopc)(optnom,opvalc,l1,l2));
-  }
 
-/*****************************************************************************
- *                              C _ M R F O P R                              *
- *****************************************************************************/
-int
-c_mrfopr(optnom,opvalr)
-char optnom[];
-float opvalr;
+//! Update a report header
+//
+//! If the value of a parameter is -1 ('*' for stnid), it will not have an 
+//! up-to-date value of the parameter. If nsup = 0, sup is ignored.
+//! If nxaux = 0, xaux is ignored.
+int c_mrbupd(
+    int iun,
+    int buf[],
+    int temps,
+    int flgs,
+    char stnid[],
+    int idtp,
+    int lati,
+    int longi,
+    int dx,
+    int dy,
+    int elev,
+    int drcv,
+    int date,
+    int oars,
+    int runn,
+    int sup[],
+    int nsup,
+    int xaux[],
+    int nxaux
+) {
+    int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
+    int ldx, ldy;
+    int lrunn,lnsup,lnxaux;
+    F2Cl l1;
+    ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
+    ldx = dx; ldy = dy;
+    lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
+    lnsup = nsup; lnxaux = nxaux; liun = iun;
+    l1 = strlen(stnid);
+    return f77name(mrbupd)(&liun, buf, &ltemps, &lflgs, stnid, &lidtp, &llati, &llongi,
+                    &ldx, &ldy, &lelev, &ldrcv, &ldate, &loars, &lrunn, sup, &lnsup, xaux,
+                    &lnxaux, l1);
+}
 
-  {
-  F2Cl l1;
-  float lopvalr;
-  l1 = strlen(optnom);
-  lopvalr = opvalr;
-  return(f77name(mrfopr)(optnom,&lopvalr,l1));
-  }
 
-/*****************************************************************************
- *                              C _ M R F P R M                              *
- *****************************************************************************/
-int
-c_mrfprm(handle,stnid,idtyp,lat,lon,dx,dy,date,temps,flgs,sup,nsup,lng)
-int handle,*idtyp,*lat,*lon,*date,*temps,*flgs,sup[],nsup,*lng;
-int *dx, *dy;
-char stnid[10];
+//! Close a report file
+//
+//! Files nmust be closed to prevent damage that could be sufficient to render
+//! them useless.
+int c_mrfcls(int iun)
+{
+    int liun;
+    liun = iun;
+    return f77name(mrfcls)(&liun);
+}
 
-  {
-  int lhandle,lnsup,iii;
-  F2Cl l1;
-  lhandle = handle; lnsup = nsup;
-  l1 = strlen(stnid);
-  iii = f77name(mrfprm)(&lhandle,stnid,idtyp,lat,lon,dx,dy,date,temps,flgs,
-                sup,&lnsup,lng,l1);
-  stnid[9] = '\0';
-  return(iii);
-  }
-       
-/*****************************************************************************
- *                              C _ M R F V O I                              *
- *****************************************************************************/
-int 
-c_mrfvoi(iun)
-int iun;
 
-  {
-  int liun;
-  liun = iun;
-  return(f77name(mrfvoi)(&liun));
-  }
+//! Get the value of a character option
+int c_mrfgoc(char optnom[], char opvalc[9])
+{
+    F2Cl l1,l2;
+    int iii;
+    l1 = strlen(optnom);
+    l2 = strlen(opvalc);
+    iii = f77name(mrfgoc)(optnom,opvalc,l1,l2);
+    opvalc[8] = '\0';
+    return iii;
+}
 
-/******************************************************************************
-*                               C _ M R F D E L                               *
-*******************************************************************************/
-int
-c_mrfdel(handle)
-int handle;
 
-    {
+//! Get the value of a float option
+int c_mrfgor(char optnom[], float *opvalr)
+{
+    F2Cl l1;
+    l1 = strlen(optnom);
+    return f77name(mrfgor)(optnom, opvalr, l1);
+}
+
+
+//! Locate the handle of the report that matches the stnid, idtyp, lati, long, date, temps parameters and the contents of array sup.
+//
+//! The search will start at the beginning if "handle" is equal to 0 otherwise,
+//! the search will start on the report that follows the report pointed to by 
+//! "handle". If an element of stnid is equal to an asterik ('*'), this element
+//! will be considered like a "wildcard" and will be ignored during the search.
+//! It is the same for idtyp, lati, long, date, temps and sup if their values
+//! are -1. Note that only the "hour" portion of the argument temps is used
+//! during the search.
+int c_mrfloc(
+    int iun,
+    int handle,
+    char stnid[],
+    int idtyp,
+    int lat,
+    int lon,
+    int date,
+    int temps,
+    int sup[],
+    int nsup
+) {
+    int liun, lhandle, lidtyp, llat, llon, ldate, ltemps, lnsup;
+    F2Cl l1;
+    l1 = strlen(stnid);
+    liun = iun; lhandle = handle; lidtyp = idtyp; llat = lat; llon = lon;
+    ldate = date; ltemps = temps; lnsup = nsup;
+    return f77name(mrfloc)(&liun, &lhandle, stnid, &lidtyp, &llat, &llon, &ldate,
+                    &ltemps, sup, &lnsup, l1);
+}
+
+
+//! Get the length of the longest report in the file corresponding to iun
+int c_mrfmxl(int iun)
+{
+    int liun;
+    liun = iun;
+    return f77name(mrfmxl)(&liun);
+}
+
+
+//! Get the number of active reports in the file corresponding to iun
+//
+//! The file doesn't need to be opened before calling this function.  It will be
+//! left in the same state it as it was before the call.
+int c_mrfnbr(int iun)
+{
+    int liun;
+    liun = iun;
+    return f77name(mrfnbr)(&liun);
+}
+
+
+//! Open a report file
+//
+//! \return Number of active reports in the file
+int c_mrfopn(int iun, char mode[])
+{
+    int liun;
+    F2Cl l1;
+    liun = iun;
+    l1 = strlen(mode);
+    return f77name(mrfopn)(&liun, mode, l1);
+}
+
+
+//! Initialize a character option
+int c_mrfopc(char optnom[], char opvalc[])
+{
+    F2Cl l1, l2;
+    l1 = strlen(optnom);
+    l2 = strlen(opvalc);
+    return f77name(mrfopc)(optnom, opvalc, l1, l2);
+}
+
+
+//! Initialize a float option
+int c_mrfopr(char optnom[], float opvalr)
+{
+    F2Cl l1;
+    float lopvalr;
+    l1 = strlen(optnom);
+    lopvalr = opvalr;
+    return f77name(mrfopr)(optnom, &lopvalr, l1);
+}
+
+
+//! Get the main parameters from the report referenced by handle
+int c_mrfprm(
+    int handle,
+    char stnid[10],
+    int *idtyp,
+    int *lat,
+    int *lon,
+    int *dx,
+    int *dy,
+    int *date,
+    int *temps,
+    int *flgs,
+    int sup[],
+    int nsup,
+    int *lng
+) {
+    int lhandle, lnsup, iii;
+    F2Cl l1;
+    lhandle = handle; lnsup = nsup;
+    l1 = strlen(stnid);
+    iii = f77name(mrfprm)(&lhandle, stnid, idtyp, lat, lon, dx, dy, date, temps, flgs,
+                    sup, &lnsup, lng, l1);
+    stnid[9] = '\0';
+    return iii;
+}
+
+
+//! Print the parameter descriptions from reports contained in the file corresponding to iun
+int  c_mrfvoi(int iun)
+{
+    int liun;
+    liun = iun;
+    return f77name(mrfvoi)(&liun);
+}
+
+
+//! Delete the report designated by handle
+int c_mrfdel(int handle)
+{
     int lhandle;
     lhandle = handle;
-    return(f77name(mrfdel)(&lhandle));
-    }
-
+    return f77name(mrfdel)(&lhandle);
+}
