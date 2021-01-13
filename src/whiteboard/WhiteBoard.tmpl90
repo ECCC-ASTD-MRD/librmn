@@ -2,7 +2,7 @@
 
 #ifdef INTERFACEONLY
 interface wb_get
-#endif INTERFACEONLY
+#endif
 
 #define TYPEWBFORT WB_FORTRAN_INT
 
@@ -79,12 +79,12 @@ interface wb_get
 
 #ifdef INTERFACEONLY
 end interface wb_get
-#endif INTERFACEONLY
+#endif
 
 
 #ifdef INTERFACEONLY
 interface wb_put
-#endif INTERFACEONLY
+#endif
 
 #define TYPEWBFORT WB_FORTRAN_INT
 
@@ -161,6 +161,6 @@ interface wb_put
 
 #ifdef INTERFACEONLY
 end interface wb_put
-#endif INTERFACEONLY
+#endif
 
 #include "wb_omp.tmpl90"
