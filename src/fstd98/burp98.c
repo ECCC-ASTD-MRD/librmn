@@ -30,8 +30,8 @@
 int BurP_nele;
 int BurP_ntot;
 /*splitpoint c_buf89a0 */
-/***************************************************************************** 
- *                            C _ B U F 8 9 A 0                              * 
+/*****************************************************************************
+ *                            C _ B U F 8 9 A 0                              *
  *****************************************************************************/
 
 void c_buf89a0(word *buffer)
@@ -42,20 +42,20 @@ void c_buf89a0(word *buffer)
   buf->buf9 = 0;
 }
 /*splitpoint c_getbuf8 */
-/***************************************************************************** 
- *                            C _ G E T B U F 8                              * 
+/*****************************************************************************
+ *                            C _ G E T B U F 8                              *
  *****************************************************************************/
 
 int c_getbuf8(word *buffer)
 {
   buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
-  return(buf->buf78.buf8);
+  return buf->buf78.buf8;
 }
 
 /*splitpoint build_burp_info_keys */
-/***************************************************************************** 
- *                  B U I L D _ B U R P _ I N F O _ K E Y S                  * 
+/*****************************************************************************
+ *                  B U I L D _ B U R P _ I N F O _ K E Y S                  *
  *                                                                           *
  *Object                                                                     *
  *  Pack burp info keys into buffer or get info keys from buffer depending   *
@@ -73,7 +73,7 @@ int c_getbuf8(word *buffer)
 void build_burp_info_keys(word *buf, word *keys, int index, int mode)
 {
    burp_dir_info *info;
-   
+
    info = (burp_dir_info *) buf;
 
    if (mode == WMODE) {     /* write info keys to burp record */
@@ -93,7 +93,7 @@ void build_burp_info_keys(word *buf, word *keys, int index, int mode)
 }
 
 /*splitpoint build_burp_prim_keys */
-/***************************************************************************** 
+/*****************************************************************************
  *                  B U I L D _ B U R P _ P R I M _ K E Y S                  *
  *                                                                           *
  *Object                                                                     *
@@ -180,7 +180,7 @@ void build_burp_prim_keys(burp_record *brpk, word *keys,
       else
 	 brpk->keys.idtp = keys[14];
       if (keys[15] == -1) mask->keys.dy   = 0;
-      else 
+      else
 	 brpk->keys.dy   = keys[15];
       if (keys[16] == -1) mask->keys.heur = 0;
       else
@@ -190,8 +190,8 @@ void build_burp_prim_keys(burp_record *brpk, word *keys,
 	 brpk->keys.min  = keys[17];
       }
 
-   else {             /* read keys from burp record */ 
-   
+   else {             /* read keys from burp record */
+
       keys[0] = brpk->keys.sti1;
       keys[1] = brpk->keys.sti2;
       keys[2] = brpk->keys.sti3;
@@ -214,7 +214,7 @@ void build_burp_prim_keys(burp_record *brpk, word *keys,
 }
 
 /*splitpoint burp_nbit_datyp */
-/***************************************************************************** 
+/*****************************************************************************
  *                  B U R P _ N B I T _ D A T Y P                            *
  *                                                                           *
  *Object                                                                     *
@@ -240,28 +240,28 @@ static int burp_nbit_datyp(int *nbits, int *datyp, word *tval,int tbldim,
 
   /* if transparent mode, nomodifications */
   if (((*datyp==2) && (*nbits == 32)) || (datyp == 0))
-    return(0);
+    return 0;
 
 #if defined(NEC)
       /* check if datyp is greater than 5 --> not allowed on the NEC */
-  if (*datyp > 5) { 
+  if (*datyp > 5) {
     sprintf(errmsg,"datyp 6,7,8 or 9 is not allowed on the NEC");
-    return(error_msg("burp_nbit_datyp",ERR_BAD_DATYP,ERRFATAL));
+    return error_msg("burp_nbit_datyp",ERR_BAD_DATYP,ERRFATAL);
   }
 #endif
 
   /* if datyp > 5 (real, real*8, complex, complex*8) nbits is set to 32 */
   if (*datyp > 5) {
     *nbits = 32;
-    return(0);
+    return 0;
   }
-  
+
   /* if datyp = character type, nbits is set to 8 */
   if ((*datyp == 3) || (*datyp == 5)) {
     *nbits = 8;
-    return(0);
+    return 0;
   }
-  
+
   /* find min and max */
   tblmin = tblval[0]; tblmax = tblval[0];
   for (i=0; i < tbldim*stride; i+=stride) {
@@ -269,14 +269,14 @@ static int burp_nbit_datyp(int *nbits, int *datyp, word *tval,int tbldim,
     tblmin = Min(tblval[i],tblmin);
   }
 
-  if ((tblmin == tblmax) && (tblmin == -1)) return(0);
+  if ((tblmin == tblmax) && (tblmin == -1)) return 0;
 
   /* check if signed integer is required and set max to ABS value */
   if (tblmin < -1) {
     tblmax = (tblmax > (-tblmin)) ? tblmax : (-tblmin);
     *datyp = 4;
   }
-  
+
   /* determine the number of bits needed to represent the maximum value. */
   /* If there are missing values (-1) one additional bit is needed */
   temp = tblmax;
@@ -286,7 +286,7 @@ static int burp_nbit_datyp(int *nbits, int *datyp, word *tval,int tbldim,
     temp >>=1;
   }
   if (tblmax == (~(-1 << needed))) needed++;
-  
+
   *nbits = needed;
   if (*datyp == 4) {
     (*nbits)++;
@@ -294,49 +294,49 @@ static int burp_nbit_datyp(int *nbits, int *datyp, word *tval,int tbldim,
       *nbits = 32;
       *datyp = 2;
       sprintf(errmsg,"encoding values < 0 with nbit=32 and datyp=2");
-      return(error_msg("burp_nbit_datyp",BURP_ERR_CMPR,WARNING));
+      return error_msg("burp_nbit_datyp",BURP_ERR_CMPR,WARNING);
     }
   }
   *nbits = (*nbits > 32) ? 32 : *nbits;
   *nbits = (inbits > *nbits) ? inbits : *nbits;
 
-  return(0);
+  return 0;
 }
 
 /*splitpoint burp_valid789 */
-/***************************************************************************** 
+/*****************************************************************************
  *                          B U R P _ V A L I D 7 8 9                        *
  *                                                                           *
  *Object                                                                     *
  *  Rewritten version of original fortran QRV7A9 by James Caveen.            *
- *     objet (qrv7a9) 
- *     Traitement de la liste d'elements pour les data de type 
+ *     objet (qrv7a9)
+ *     Traitement de la liste d'elements pour les data de type
  *     7 = real*8
  *     8 = complex
  *     9 = complex*8
- *     
+ *
  *     Selon le datyp, on s'assure que le nombre d'elements est bon
  *     et que la valeur des elements est adequate.  Si la valeur d'un
- *     element est zero, on lui attribut la bonne valeur.  Les elements 
+ *     element est zero, on lui attribut la bonne valeur.  Les elements
  *     verifies sont les suivants:
- *     
- *     055204  32 BITS INFERIEURS D'UN REEL*8 OCTETS      
- *     055205  IMAGINAIRE D'UN COMPLEXE*4 OCTETS          
- *     055206  32 BITS SUPERIEURS, IMAGINAIRE COMPLEXE*8  
- *     055207  32 BITS INFERIEURS, IMAGINAIRE COMPLEXE*8  
- *     
+ *
+ *     055204  32 BITS INFERIEURS D'UN REEL*8 OCTETS
+ *     055205  IMAGINAIRE D'UN COMPLEXE*4 OCTETS
+ *     055206  32 BITS SUPERIEURS, IMAGINAIRE COMPLEXE*8
+ *     055207  32 BITS INFERIEURS, IMAGINAIRE COMPLEXE*8
+ *
  *     Exemple:  temperature du point de rose en reel*8  (datyp = 7)
  *     code burp 012003  = temperature du point de rose
  *     055204  = 32 bits du bas d'un reel*8
- *     
+ *
  *     Si la liste d'elements contient 2 elements soit:
  *     elem1     elem2
  *     012003    055204           --> O.K.
  *     012003         0           --> remplace 0 par 055204
- *     012003    !=055204 | !=0   --> erreur 
- *     
+ *     012003    !=055204 | !=0   --> erreur
+ *
  *     Si mod(nele,2) != 0        --> erreur
- *     
+ *
  *                                                                           *
  *Arguments                                                                  *
  *  IN/OUT  lstele  list of elements                                         *
@@ -348,14 +348,14 @@ static int burp_valid789(word *lstele, int nele, int datyp)
 {
 
   int i, j, codval[3];
-  
+
   switch (datyp) {
 
   case 7:
   case 8:
     if ((nele &1) != 0) {
       sprintf(errmsg,"datyp=%d, nele must be even, nele=%d",datyp,nele);
-      return(error_msg("burp_valid789",ERR_BAD_DATYP,ERRFATAL));
+      return error_msg("burp_valid789",ERR_BAD_DATYP,ERRFATAL);
     }
     if (datyp == 7)
       codval[0] = MRBCOV(0,55,204);
@@ -367,7 +367,7 @@ static int burp_valid789(word *lstele, int nele, int datyp)
 	  lstele[i] = codval[0];
 	else {
 	  sprintf(errmsg,"invalid code for datyp %d",datyp);
-	  return(error_msg("burp_valid789",BURP_ERR_CODE,ERRFATAL));
+	  return error_msg("burp_valid789",BURP_ERR_CODE,ERRFATAL);
 	}
       }
     }
@@ -377,7 +377,7 @@ static int burp_valid789(word *lstele, int nele, int datyp)
     if ((nele & 3) != 0) {
       sprintf(errmsg,"datyp=%d, nele must be a multiple of 4, nele=%d",
               datyp,nele);
-      return(error_msg("burp_valid789",ERR_BAD_DATYP,ERRFATAL));
+      return error_msg("burp_valid789",ERR_BAD_DATYP,ERRFATAL);
     }
     codval[0] = MRBCOV(0,55,204);
     codval[1] = MRBCOV(0,55,206);
@@ -389,27 +389,27 @@ static int burp_valid789(word *lstele, int nele, int datyp)
             lstele[i+j] = codval[j];
           else {
             sprintf(errmsg,"invalid code for datyp %d",datyp);
-            return(error_msg("burp_valid789",BURP_ERR_CODE,ERRFATAL));
+            return error_msg("burp_valid789",BURP_ERR_CODE,ERRFATAL);
           }
         }
       }
     }
     break;
   }
-  return(0);
+  return 0;
 }
-    
+
 
 /*splitpoint c_mrbadd */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B A D D                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Add a data block at the end of the report.                              *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN/OUT buffer vector to contain the report                               * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN/OUT buffer vector to contain the report                               *
  *    OUT  bkno   number of blocks in buf                                    *
  *    IN   nele   number of meteorogical elements in block                   *
  *    IN   nval   number of data per elements                                *
@@ -422,7 +422,7 @@ static int burp_valid789(word *lstele, int nele, int datyp)
  *    IN   datyp  data type for packing                                      *
  *    IN   lstele list of nele meteorogical elements                         *
  *    IN   tblval array of values to write (nele*nval*nt)                    *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrbadd(void *buffer, int *bkno, int nele, int nval, int nt, int bfam,
@@ -445,33 +445,33 @@ int c_mrbadd(void *buffer, int *bkno, int nele, int nval, int nt, int bfam,
 #if defined(NEC)
    if (datyp > 5) {
       sprintf(errmsg,"datyp 6,7,8 or 9 not allowed on the NEC");
-      return(error_msg("c_mrbadd",ERR_BAD_DATYP,ERRFATAL));
+      return error_msg("c_mrbadd",ERR_BAD_DATYP,ERRFATAL);
       }
 #endif
-   
+
    if (((datyp == 3) || (datyp == 5)) && (nbit != 8)) {
       sprintf(errmsg,"nbits must be 8 for datyp 3 or 5");
-      return(error_msg("c_mrbadd",ERR_BAD_DATYP,ERROR));
+      return error_msg("c_mrbadd",ERR_BAD_DATYP,ERROR);
       }
-   
+
    /* validate (possibly modify) nbit and datyp */
    inbit = nbit;
    idatyp = datyp;
    nombre = nele*nval*nt;
    err = burp_nbit_datyp(&inbit,&idatyp,tblval,nombre,xdf_stride);
-   if (err < 0) return(err);
+   if (err < 0) return err;
 
    /* validates lstele for datyp 7,8 or 9 */
    if (datyp >= 7) {
       err = burp_valid789(lstele,nele,datyp);
-      if (err < 0) return(err);
+      if (err < 0) return err;
       }
-      
+
    if (bdesc != 0) {
      bfamho = (bfam >> 6) & 0x3f;
      if ((bfamho != 0) && (bfamho != bdesc)) {
         sprintf(errmsg,"illegal use of bdesc");
-	return(error_msg("c_mrbadd",BURP_ERR_BDESC,ERRFATAL));
+	return error_msg("c_mrbadd",BURP_ERR_BDESC,ERRFATAL);
 	}
      entete.bfamdesc = (bfam & 0x3f) << 6;
      entete.bfamdesc |= (bdesc & 0x3f);
@@ -480,7 +480,7 @@ int c_mrbadd(void *buffer, int *bkno, int nele, int nval, int nt, int bfam,
       entete.bfamdesc = (bfam & 0x3f) << 6;
       entete.bfamdesc |= ((bfam >> 6) & 0x3f);
       }
-   
+
    entete.btyp = btyp;
    entete.nbit = inbit-1;
    entete.datyp = idatyp;
@@ -545,15 +545,15 @@ int c_mrbadd(void *buffer, int *bkno, int nele, int nval, int nt, int bfam,
      *pos <<= 16;
      bits_added += 16;
    }
-  
+
    buf->nbits += (bits_added +63) / 64 * 64;
    err = c_xdfins((word *)buf,(word *)&entete,buf->buf9,DIMENT,
 		  8*sizeof(word),0);
-   if (err < 0) return(err);
-   
+   if (err < 0) return err;
+
    err = c_xdfadd((word *)buf,tblval,nombre,inbit,idatyp);
-   if (err < 0) return(err);
-   
+   if (err < 0) return err;
+
    buf->buf78.buf8++;
    buf->buf9 += NBENTB;
    *bkno = buf->buf78.buf8;
@@ -564,21 +564,21 @@ int c_mrbadd(void *buffer, int *bkno, int nele, int nval, int nt, int bfam,
       fprintf(stdout,"MRBADD - write block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",
 	      *bkno,r_nele,r_nval,r_nt,r_bfam,r_btyp,r_nbit,r_bit0,r_datyp);
       }
-   return(0);
+   return 0;
 }
 
 /*splitpoint c_mrbdel */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B D E L                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Delete a particular block of the report.                                *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN/OUT buffer   vector to contain the report                             * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN/OUT buffer   vector to contain the report                             *
  *    IN   number   block number to be deleted                               *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrbdel(void *buffer, int number)
@@ -592,12 +592,12 @@ int c_mrbdel(void *buffer, int number)
 
    if ((number < 1) || (number > buf->buf78.buf8)) {
       sprintf(errmsg,"invalid block number");
-      return(error_msg("c_mrbdel",BURP_ERR_BNUM,ERROR));
+      return error_msg("c_mrbdel",BURP_ERR_BNUM,ERROR);
       }
 
    bitpos = NBENTB * (number -1);
    err = c_xdfxtr((word *)buf,(word *)&entete,bitpos,DIMENT,8*sizeof(word),0);
-   if (err < 0) return(err);
+   if (err < 0) return err;
 
    if (entete.flag != 0) {
       nele = entete.elem1;
@@ -630,7 +630,7 @@ int c_mrbdel(void *buffer, int number)
 
 /* update number of blocks */
    buf->buf78.buf8--;
-   
+
 /* update bit position of block */
    buf->buf9 -= NBENTB;
 
@@ -643,19 +643,19 @@ int c_mrbdel(void *buffer, int number)
    for (i=number-1; i < buf->buf78.buf8; i++)
       block[i].bit0 -= difbit;
 
-   return(0);
+   return 0;
 }
 
 /*splitpoint c_mrbhdr */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B H D R                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *  Return the description parameters of the data block of order bkno.       *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    buf    vector to contain the report                                * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    buf    vector to contain the report                                *
  *  IN    bkno   block number                                                *
  *  OUT   nele   number of elements                                          *
  *  OUT   nval   number of values per element                                *
@@ -686,7 +686,7 @@ int c_mrbhdr(word *buf, int *temps, int *flgs, char *stnid, int *idtyp,
     sprintf(errmsg,"there is too many supplementary aux keys");
     error_msg("c_mrbhdr",BURP_ERR_CLEF,WARNING);
   }
-  
+
   burprec = (burp_record *) buffer->data;
   stnid[0] = burprec->keys.sti1;
   stnid[1] = burprec->keys.sti2;
@@ -723,22 +723,22 @@ int c_mrbhdr(word *buf, int *temps, int *flgs, char *stnid, int *idtyp,
   }
 
   /* CLES SUPPLEMENTAIRES */
-  return(0);
+  return 0;
 }
 
 /*splitpoint c_mrblen */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B L E N                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Return the number of bits used in buf and the number of bits left.      *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *    IN   buffer   vector that contains the report                          * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *    IN   buffer   vector that contains the report                          *
  *   OUT   lbits    number of bits used                                      *
  *   OUT   left     number of bits left                                      *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrblen(void *buffer, int *lbits, int *left)
@@ -748,25 +748,25 @@ int c_mrblen(void *buffer, int *lbits, int *left)
 
    *lbits = buf->nbits;
    *left = ((buf->nwords - 9) * 8*sizeof(word)) - *lbits;
-   return(0);
+   return 0;
 }
 
 /*splitpoint c_mrbloc */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B L O C                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Search for a specific block in the buffer. Search starts at block       *
  *   blkno. If blkno = 0 search starts from the beginning.                   *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN   buffer vector to contain the report                                 * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN   buffer vector to contain the report                                 *
  *  IN   bfam   block family (12 bits, bdesc no more used)                   *
  *  IN   bdesc  kept for backward compatibility                              *
  *  IN   btyp   block type                                                   *
  *  in   bkno   number of blocks in buf                                      *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrbloc(void *buffer, int bfam, int bdesc, int btyp, int blkno)
@@ -785,14 +785,14 @@ int c_mrbloc(void *buffer, int bfam, int bdesc, int btyp, int blkno)
 	 bfamdesc = -1;
       else {
          sprintf(errmsg,"illegal use of bdesc");
-	 return(error_msg("c_mrbloc",BURP_ERR_BDESC,ERRFATAL));
+	 return error_msg("c_mrbloc",BURP_ERR_BDESC,ERRFATAL);
 	 }
       }
    else if ((bdesc != 0) && (bdesc != -1)) {
      bfamho = (bfam >> 6) & 0x3f;
      if ((bfamho != 0) && (bfamho != bdesc)) {
         sprintf(errmsg,"illegal use of bdesc");
-	return(error_msg("c_mrbloc",BURP_ERR_BDESC,ERRFATAL));
+	return error_msg("c_mrbloc",BURP_ERR_BDESC,ERRFATAL);
 	}
      bfamdesc = (bfam & 0x3f) << 6;
      bfamdesc |= (bdesc & 0x3f);
@@ -831,26 +831,26 @@ int c_mrbloc(void *buffer, int bfam, int bdesc, int btyp, int blkno)
 	    fprintf(stdout,"MRBLOC - find block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",
 		    i+1,r_nele,r_nval,r_nt,r_bfam,r_btyp,r_nbit,r_bit0,r_datyp);
 	    }
-	 return(i+1);
+	 return i+1;
 	 } /* end match */
       } /* end for */
    if (msg_level <= INFORM) {
       fprintf(stdout,"MRBLOC - block not found bfam=%d, bdesc=%d, btyp=%d\n",
 	      bfam,bdesc,btyp);
       }
-   return(-1);
+   return -1;
 }
 
 /*splitpoint c_mrbprm */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B P R M                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *  Return the description parameters of the data block of order bkno.       *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN    buf    vector to contain the report                                * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN    buf    vector to contain the report                                *
  *  IN    bkno   block number                                                *
  *  OUT   nele   number of elements                                          *
  *  OUT   nval   number of values per element                                *
@@ -871,7 +871,7 @@ int c_mrbprm(word *buf,int  bkno, int *nele, int *nval, int *nt, int *bfam,
 
   bitpos = (bkno-1) * NBENTB;
   ier = c_xdfxtr(buf,(word *)&header,bitpos,DIMENT,32,0);
-  
+
   *btyp = header.btyp;
   *nbit = header.nbit +1;
   *bit0 = header.bit0;
@@ -891,23 +891,23 @@ int c_mrbprm(word *buf,int  bkno, int *nele, int *nval, int *nt, int *bfam,
   *bfam = (header.bfamdesc & 0x3f) << 6;
   *bfam |= ((header.bfamdesc >> 6) & 0x3f);
   *bdesc = 0;
-  return(ier);
+  return ier;
 }
 
 /*splitpoint c_mrbrep */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B R E P                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Replace a data block by an other one with the same variables and        *
  *   dimensions.                                                             *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN/OUT buffer vector that contains the report                            * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN/OUT buffer vector that contains the report                            *
  *    IN   bkno   block number to be replaced                                *
  *    IN   tblval array of values to write (nele*nval*nt)                    *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrbrep(void *buffer, int blkno, word *tblval)
@@ -922,7 +922,7 @@ int c_mrbrep(void *buffer, int blkno, word *tblval)
 
    if ((blkno < 1) || (blkno > buf->buf78.buf8)) {
       sprintf(errmsg,"invalid block number");
-      return(error_msg("c_mrbrep",BURP_ERR_BNUM,ERROR));
+      return error_msg("c_mrbrep",BURP_ERR_BNUM,ERROR);
       }
 
    burprec = (burp_record *) buf->data;
@@ -949,7 +949,7 @@ int c_mrbrep(void *buffer, int blkno, word *tblval)
 #if defined(NEC)
    if (datyp > 6) {
       sprintf(errmsg,"datyp 6,7,8 or 9 not allowed on the NEC");
-      return(error_msg("c_mrbrep",ERR_BAD_DATYP,ERRFATAL));
+      return error_msg("c_mrbrep",ERR_BAD_DATYP,ERRFATAL);
       }
 #endif
 
@@ -963,7 +963,7 @@ int c_mrbrep(void *buffer, int blkno, word *tblval)
 
 /* check if precision should be ajusted */
    err = burp_nbit_datyp(&new_nbit,&new_datyp,tblval,nombre,xdf_stride);
-   if (err < 0) return(err);
+   if (err < 0) return err;
 
    if (new_datyp != datyp)
       block[blkno-1].datyp = new_datyp;
@@ -980,11 +980,11 @@ int c_mrbrep(void *buffer, int blkno, word *tblval)
 	    block[i].bit0 += diff_nmots;
 	 }
       }
-   
+
 /* replace block */
    err = c_xdfrep((word *)buf,tblval,bitpos,nombre,new_nbit,new_datyp);
 
-/* set all bits of missing values to 1 
+/* set all bits of missing values to 1
    if ((datyp == 2) || (datyp == 4) || (datyp == 6)) {
       allones = ~(0);
       rmask = ~(-1 << nbit);
@@ -992,23 +992,23 @@ int c_mrbrep(void *buffer, int blkno, word *tblval)
 	 if (tblval[i] == rmask) tblval[i] = allones;
       }
 */
-   return(err);
+   return err;
 }
 
 /*splitpoint c_mrbxtr */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R B X T R                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Extract list of element and values from buffer.                         *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
- *    IN   buffer vector that contains the report                            * 
+ *Arguments                                                                  *
+ *                                                                           *
+ *    IN   buffer vector that contains the report                            *
  *    IN   bkno   number of blocks in buf                                    *
  *   OUT   lstele list of nele meteorogical elements                         *
  *   OUT   tblval array of values to write (nele*nval*nt)                    *
- *                                                                           * 
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrbxtr(void *buffer, int bkno, word *lstele, word *tblval)
@@ -1023,12 +1023,12 @@ int c_mrbxtr(void *buffer, int bkno, word *lstele, word *tblval)
    err = 0;
    if ((bkno < 1) || (bkno > buf->buf78.buf8)) {
       sprintf(errmsg,"invalid block number");
-      return(error_msg("c_mrbxtr",BURP_ERR_BNUM,ERROR));
+      return error_msg("c_mrbxtr",BURP_ERR_BNUM,ERROR);
       }
 
    bitpos = NBENTB * (bkno -1);
    err = c_xdfxtr((word *)buf,(word *)&entete,bitpos,DIMENT,8*sizeof(word),0);
-   if (err < 0) return(err);
+   if (err < 0) return err;
 
    if (entete.flag != 0) {
       nele = entete.elem1;
@@ -1058,14 +1058,14 @@ int c_mrbxtr(void *buffer, int bkno, word *lstele, word *tblval)
 #if defined(NEC)
    if (datyp > 6) {
       sprintf(errmsg,"datyp 6,7,8 or 9 not allowed on the NEC");
-      return(error_msg("c_mrbxtr",ERR_BAD_DATYP,ERRFATAL));
+      return error_msg("c_mrbxtr",ERR_BAD_DATYP,ERRFATAL);
       }
 #endif
 
    bitpos = bit0 * 64 + buf->buf9;
 
 /* extract list of elements */
-   if (nelements > 0) 
+   if (nelements > 0)
       err = c_xdfxtr((word *)buf,lstele,bitpos,nelements,16,2);
 
 /* extract array of values */
@@ -1083,20 +1083,20 @@ int c_mrbxtr(void *buffer, int bkno, word *lstele, word *tblval)
 	 if (tblval[i] == rmask) tblval[i] = allones;
       }
    }
-   return(err);
+   return err;
 }
 
 /*splitpoint c_mrfapp */
-/***************************************************************************** 
+/*****************************************************************************
  *                            C _ M R F A P P                                *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Position at the end of a sequential file for an append.                 *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN  iun     unit number associated to the file                           * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  iun     unit number associated to the file                           *
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrfapp(int iun)
@@ -1109,19 +1109,19 @@ int c_mrfapp(int iun)
   index_fnom = fnom_index(iun);
   if (index_fnom == -1) {
     sprintf(errmsg,"file (unit=%d) is not connected with fnom",iun);
-    return(error_msg("c_mrfapp",ERR_NO_FNOM,ERROR));
+    return error_msg("c_mrfapp",ERR_NO_FNOM,ERROR);
   }
 
   if ((index = file_index(iun)) == ERR_NO_FILE) {
     sprintf(errmsg,"file (unit=%d) is not open",iun);
-    return(error_msg("c_mrfapp",ERR_NO_FILE,ERROR));
+    return error_msg("c_mrfapp",ERR_NO_FILE,ERROR);
   }
 
   f = file_table[index];
 
   if (!f->xdf_seq) {
     sprintf(errmsg,"file (unit=%d) is not sequential",iun);
-    return(error_msg("c_mrfapp",ERR_BAD_FTYPE,WARNING));
+    return error_msg("c_mrfapp",ERR_BAD_FTYPE,WARNING);
   }
 
   end_of_file = 0;
@@ -1143,42 +1143,42 @@ int c_mrfapp(int iun)
     f->cur_addr += W64TOWD(header->lng);
   }
   f->nxtadr = f->cur_addr;
-  return(0);
+  return 0;
 }
 
 /*splitpoint c_mrfapp */
-/***************************************************************************** 
+/*****************************************************************************
  *                            C _ M R F B F L                                *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Return the length of the longer report in the file                      *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN  iun     unit number associated to the file                           * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  iun     unit number associated to the file                           *
+ *                                                                           *
  *****************************************************************************/
 
 int c_mrfbfl(int iun)
 {
   int bfl;
-  
+
   bfl = f77name(mrfbfl)(&iun);
-  return(bfl);
+  return bfl;
 }
 
   /*splitpoint c_mrfget */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R F G E T                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Read the report referenced by handle from the file.                     *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
+ *Arguments                                                                  *
+ *                                                                           *
  *  IN   handle logical pointer to the record                                *
- *  OUT  buffer vector that contains the report                              * 
- *                                                                           * 
+ *  OUT  buffer vector that contains the report                              *
+ *                                                                           *
  *****************************************************************************/
 int c_mrfget(int handle, void *buffer)
 {
@@ -1188,7 +1188,7 @@ int c_mrfget(int handle, void *buffer)
 
    err = c_xdfget(handle,buf);
    if (err < 0) {
-     return(error_msg("c_mrfget",err,ERROR));
+     return error_msg("c_mrfget",err,ERROR);
    }
    if (msg_level <= INFORM) {
      fprintf(stdout,"RECORD READ\n");
@@ -1197,26 +1197,26 @@ int c_mrfget(int handle, void *buffer)
    burprec = (burp_record *) buf->data;
    buf->buf78.buf8 =  burprec->info.nblks;
    buf->buf9 =  burprec->info.nblks * NBENTB;
-   
-   return(0);
+
+   return 0;
 }
 
 /*splitpoint c_mrfput */
-/***************************************************************************** 
+/*****************************************************************************
  *                             C _ M R F P U T                               *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Write a report to the file. If handle is not 0, record referenced by    *
  *   by handle is written at end of file. If handle is 0, a new record is    *
  *   written.  If hanlde is > 0, it will be forced to be negative to write   *
  *   at end of file.                                                         *
  *                                                                           *
- *Arguments                                                                  * 
- *                                                                           * 
+ *Arguments                                                                  *
+ *                                                                           *
  *  IN   iun    unit number associated to the file                           *
  *  IN   handle logical pointer to the record                                *
- *  IN   buffer vector that contains the report                              * 
- *                                                                           * 
+ *  IN   buffer vector that contains the report                              *
+ *                                                                           *
  *****************************************************************************/
 int c_mrfput(int iun, int handle, void *buffer)
 {
@@ -1242,20 +1242,20 @@ int c_mrfput(int iun, int handle, void *buffer)
       fprintf(stdout,"MRFPUT - WRITE - STNID=%s IDTYP=%3d LAT=%5d LON=%5d DX=%4d DY=%4d DATE=%8d TEMPS=%4d, FLGS=%8d\n",
 	      stnid,idtyp,lat,lon,dx,dy,date,temps,flgs);
       }
-   return(0);
+   return 0;
 }
 
 /*splitpoint c_mrfrwd */
-/***************************************************************************** 
+/*****************************************************************************
  *                           C _ M R F R W D                                 *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Rewinds a BURP sequential file.                                         *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN  iun     unit number associated to the file                           * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  iun     unit number associated to the file                           *
+ *                                                                           *
  *****************************************************************************/
 int c_mrfrwd(int iun)
 {
@@ -1265,29 +1265,29 @@ int c_mrfrwd(int iun)
   index_fnom = fnom_index(iun);
   if (index_fnom == -1) {
     sprintf(errmsg,"file (unit=%d) is not connected with fnom",iun);
-    return(error_msg("c_mrfrwd",ERR_NO_FNOM,ERROR));
+    return error_msg("c_mrfrwd",ERR_NO_FNOM,ERROR);
   }
 
   if ((index = file_index(iun)) == ERR_NO_FILE) {
     sprintf(errmsg,"file (unit=%d) is not open",iun);
-    return(error_msg("c_mrfrwd",ERR_NO_FILE,ERROR));
+    return error_msg("c_mrfrwd",ERR_NO_FILE,ERROR);
   }
 
   f = file_table[index];
 
   if (! f->cur_info->attr.burp) {
     sprintf(errmsg,"file (unit=%d) is not a BURP file",iun);
-    return(error_msg("c_fstrwd",ERR_NO_FILE,ERROR));
+    return error_msg("c_fstrwd",ERR_NO_FILE,ERROR);
   }
 
   if (! f->xdf_seq) {
     sprintf(errmsg,"file (unit=%d) is not sequential",iun);
-    return(error_msg("c_mrfrwd",ERR_BAD_FTYPE,WARNING));
+    return error_msg("c_mrfrwd",ERR_BAD_FTYPE,WARNING);
   }
 
   f->cur_addr = f->seq_bof;
   f->valid_pos = 0;
-  return(0);
+  return 0;
 }
 
 #include "if_burp98.hc"
