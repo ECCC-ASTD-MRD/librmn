@@ -336,66 +336,67 @@ typedef word max_info_keys[MAX_SECONDARY_LNG];
 //! Directory page record
 typedef struct {
 #if !defined(Little_Endian)
-        //! Type ID (usualy 0)
-        word idtyp:8;
-        //! Header length (in 64 bit units)
-        word lng:24;
-        //! Address of directory page (origin 1, 64 bit units)
-        addr:32;
+    //! Type ID (usualy 0)
+    word idtyp:8;
+    //! Header length (in 64 bit units)
+    word lng:24;
+    //! Address of directory page (origin 1, 64 bit units)
+    addr:32;
 #else
-        //! Header length (in 64 bit units)
-        word lng:24;
-        //! Type ID (usualy 0)
-        word idtyp:8;
-        //! Address of directory page (origin 1, 64 bit units)
-        word addr:32;
+    //! Header length (in 64 bit units)
+    word lng:24;
+    //! Type ID (usualy 0)
+    word idtyp:8;
+    //! Address of directory page (origin 1, 64 bit units)
+    word addr:32;
 #endif
-        //! idrep (4 ascii char 'DIR0')
-        word reserved1:32;
-        //! Reserved (0)
-        word reserved2:32;
 
-        //! Address of next directory page (origin 1, 64 bit units)
-        word nxt_addr:32;
-        //! Number of entries in page
-        word nent:32;
+    //! idrep (4 ascii char 'DIR0')
+    word reserved1:32;
+    //! Reserved (0)
+    word reserved2:32;
 
-        //! Checksum (not valid when in core)
-        word chksum:32;
-        //! page_no, record_no, file_index: handle templage
-        word reserved3:32;
+    //! Address of next directory page (origin 1, 64 bit units)
+    word nxt_addr:32;
+    //! Number of entries in page
+    word nent:32;
 
-        //! (real allocated dimension will be ENTRIES_PER_PAGE * primary_len)
-        word entry[];
+    //! Checksum (not valid when in core)
+    word chksum:32;
+    //! page_no, record_no, file_index: handle templage
+    word reserved3:32;
+
+    //! (real allocated dimension will be ENTRIES_PER_PAGE * primary_len)
+    word entry[];
 } xdf_dir_page;
 
 
 
 //! Zero size directory page record
 typedef struct {
-        /* each line describes 64 bits */
+    // Each line describes 64 bits
 #if !defined(Little_Endian)
-        word idtyp:8, lng:24,  addr:32;
-        word reserved1:32, reserved2:32;
-        word nxt_addr:32,  nent:32;
-        word chksum:32, page_no:16, record_no:8, file_index:8;
+    word idtyp:8, lng:24,  addr:32;
+    word reserved1:32, reserved2:32;
+    word nxt_addr:32,  nent:32;
+    word chksum:32, page_no:16, record_no:8, file_index:8;
 #else
-        word lng:24, idtyp:8, addr:32;
-        word reserved1:32, reserved2:32;
-        word nxt_addr:32,  nent:32;
-        word chksum:32, file_index:8, record_no:8, page_no:16;
+    word lng:24, idtyp:8, addr:32;
+    word reserved1:32, reserved2:32;
+    word nxt_addr:32,  nent:32;
+    word chksum:32, file_index:8, record_no:8, page_no:16;
 #endif
 } base_dir_page;
 
 
 
-/* Directory page + forward/backward chain ptrs */
+//! Directory page + forward/backward chain ptrs
 typedef struct full_dir_page {
-        struct full_dir_page* next_page;
-        struct full_dir_page* prev_page;
-        int modified;
-        int true_file_index;
-        xdf_dir_page dir;
+    struct full_dir_page* next_page;
+    struct full_dir_page* prev_page;
+    int modified;
+    int true_file_index;
+    xdf_dir_page dir;
 } full_dir_page;
 
 //! Pointer to a chainable directory page
@@ -405,9 +406,9 @@ typedef full_dir_page* page_ptr;
 //! XDF record header
 typedef struct {
 #if !defined(Little_Endian)
-        word idtyp:8, lng:24, addr:32;
+    word idtyp:8, lng:24, addr:32;
 #else
-        word lng:24, idtyp:8, addr:32;
+    word lng:24, idtyp:8, addr:32;
 #endif
 } xdf_record_header;
 
@@ -415,28 +416,31 @@ typedef struct {
 //! XDF data record
 typedef struct {
 #if !defined(Little_Endian)
-        word idtyp:8, lng:24,  addr:32;        /* XDF record header */
+    // XDF record header
+    word idtyp:8, lng:24,  addr:32;
 #else
-        word lng:24, idtyp:8,  addr:32; /* XDF record header */
+    // XDF record header
+    word lng:24, idtyp:8,  addr:32;
 #endif
-        word data[2];                        /* primary keys, info keys, data */
+    // Primary keys, info keys, data
+    word data[2];
 } file_record;
 
 
 typedef struct {
 #if !defined(Little_Endian)
-        word page_no:16, record_no:8, file_index:8;
+    word page_no:16, record_no:8, file_index:8;
 #else
-        word file_index:8, record_no:8, page_no:16;
+    word file_index:8, record_no:8, page_no:16;
 #endif
 } random_record_handle;
 
 
 typedef struct {
 #if !defined(Little_Endian)
-        word address:24, file_index:8;
+    word address:24, file_index:8;
 #else
-        word file_index:8, address:24;
+    word file_index:8, address:24;
 #endif
 } seq_record_handle;
 
@@ -462,72 +466,64 @@ typedef struct {
 
 //! Search tags part of standard file directory entry :  header + 8 x 64 bits
 typedef struct {
-        /* there is one 64 bit group per line */
+    /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-        word deleted:1, select:7, lng:24, addr:32;
-        word deet:24, nbits: 8, ni:   24, gtyp:  8;
-        word nj:24,  datyp: 8, nk:   20, ubc:  12;
-        word npas: 26, pad7: 6, ig4: 24, ig2a:  8;
-        word ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
-        word etik15:30, pad1:2, etik6a:30, pad2:2;
-        word etikbc:12, typvar:12, pad3:8, nomvar:24, pad4:8;
-        word ip1:28, levtyp:4, ip2:28, pad5:4;
-        word ip3:28, pad6:4, date_stamp:32;
+    word deleted:1, select:7, lng:24, addr:32;
+    word deet:24, nbits: 8, ni:   24, gtyp:  8;
+    word nj:24,  datyp: 8, nk:   20, ubc:  12;
+    word npas: 26, pad7: 6, ig4: 24, ig2a:  8;
+    word ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
+    word etik15:30, pad1:2, etik6a:30, pad2:2;
+    word etikbc:12, typvar:12, pad3:8, nomvar:24, pad4:8;
+    word ip1:28, levtyp:4, ip2:28, pad5:4;
+    word ip3:28, pad6:4, date_stamp:32;
 #else
-        word lng:24, select:7, deleted:1, addr:32;
-        word nbits: 8, deet:24, gtyp:  8, ni:   24;
-        word datyp: 8, nj:24, ubc:  12, nk:   20;
-        word pad7: 6, npas: 26, ig2a:  8, ig4: 24;
-        word ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
-        word pad1:2, etik15:30, pad2:2, etik6a:30;
-        word pad3:8, typvar:12, etikbc:12, pad4:8, nomvar:24;
-        word levtyp:4, ip1:28, pad5:4, ip2:28;
-        word pad6:4, ip3:28, date_stamp:32;
+    word lng:24, select:7, deleted:1, addr:32;
+    word nbits: 8, deet:24, gtyp:  8, ni:   24;
+    word datyp: 8, nj:24, ubc:  12, nk:   20;
+    word pad7: 6, npas: 26, ig2a:  8, ig4: 24;
+    word ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
+    word pad1:2, etik15:30, pad2:2, etik6a:30;
+    word pad3:8, typvar:12, etikbc:12, pad4:8, nomvar:24;
+    word levtyp:4, ip1:28, pad5:4, ip2:28;
+    word pad6:4, ip3:28, date_stamp:32;
 #endif
 } stdf_dir_keys;
 
 //! Information part of a standard file record header, 1 x 64 bits
 typedef struct {
-        /* there is one 64 bit group per line */
+    /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-        word nblks: 8, blk1: 24, blk2: 32;
+    word nblks: 8, blk1: 24, blk2: 32;
 #else
-        word blk1: 24, nblks: 8, blk2: 32;
+    word blk1: 24, nblks: 8, blk2: 32;
 #endif
-        /* number of blocks, first 2 block pointers */
+    /* number of blocks, first 2 block pointers */
 } stdf_dir_info;
 
 //! Collection area for cracked record parameter values
 typedef struct {
-        char etiket[13], nomvar[5], typvar[3], gtyp[2], extra;
-        word lng, addr;
-        INT_32 aammjj, hhmmss;
-        INT_32 ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
-
+    char etiket[13], nomvar[5], typvar[3], gtyp[2], extra;
+    word lng, addr;
+    INT_32 aammjj, hhmmss;
+    INT_32 ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_rec_parms;
 
 /*! Collection area for some special cracked record parameters that need to
  * be reassembled */
 typedef struct {
-        char etiket[13], nomvar[5], typvar[3], gtyp[2];
-        INT_32 date_stamp, aammjj, hhmmss;
-        INT_32 ig2, date_valid;
-
+    char etiket[13], nomvar[5], typvar[3], gtyp[2];
+    INT_32 date_stamp, aammjj, hhmmss;
+    INT_32 ig2, date_valid;
 } stdf_special_parms;
 
 //! Collection area for parameter addresses/values
 typedef struct {
-        char *etiket, *nomvar, *typvar, *gtyp, *extra;
-        ftnword *date;
-        int l_etiket, l_nomvar, l_typvar, l_extra;
-        INT_32 lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
-
+    char *etiket, *nomvar, *typvar, *gtyp, *extra;
+    ftnword *date;
+    int l_etiket, l_nomvar, l_typvar, l_extra;
+    INT_32 lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_adr_parms;
-
-typedef struct {
-  stdf_dir_keys keys;
-  word data[2];
-} stdf_record;
 
 typedef struct {
 #if !defined(Little_Endian)
@@ -622,47 +618,47 @@ typedef struct {
 typedef struct {
         /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-        word idtyp:8,  lng:24,   addr:32;  /* standard XDF record header */
-        word sti1:8, sti2:8, sti3:8, sti4:8, sti5:8, sti6:8, sti7:8, sti8:8;
-        word sti9:8, flgs:24, lati:16, lon:16;
-        word date:20, dx:12, idtp:8, dy:12, heur:6, min:6;
+    word idtyp:8,  lng:24,   addr:32;  /* standard XDF record header */
+    word sti1:8, sti2:8, sti3:8, sti4:8, sti5:8, sti6:8, sti7:8, sti8:8;
+    word sti9:8, flgs:24, lati:16, lon:16;
+    word date:20, dx:12, idtp:8, dy:12, heur:6, min:6;
 #else
-        word lng:24, idtyp:8,   addr:32;  /* standard XDF record header */
-        word sti4:8, sti3:8, sti2:8, sti1:8, sti8:8, sti7:8, sti6:8, sti5:8;
-        word flgs:24, sti9:8, lon:16, lati:16;
-        word dx:12, date:20, min:6, heur:6, dy:12, idtp:8;
+    word lng:24, idtyp:8,   addr:32;  /* standard XDF record header */
+    word sti4:8, sti3:8, sti2:8, sti1:8, sti8:8, sti7:8, sti6:8, sti5:8;
+    word flgs:24, sti9:8, lon:16, lati:16;
+    word dx:12, date:20, min:6, heur:6, dy:12, idtp:8;
 #endif
 } burp_dir_keys;
 
 
 //! Information part of a burp file record header, 1 x 64 bits
 typedef struct {
-        /* there is one 64 bit group per line */
+    /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-        word nblks:16, oars:16, elev:13 ,drcv:11, runn:8;
+    word nblks:16, oars:16, elev:13 ,drcv:11, runn:8;
 #else
-        word oars:16, nblks:16, runn:8, drcv:11, elev:13;
+    word oars:16, nblks:16, runn:8, drcv:11, elev:13;
 #endif
 } burp_dir_info;
 
 
 //! Burp file record header + data
 typedef struct {
-        burp_dir_keys keys;
-        burp_dir_info info;
-        word data[2];
+    burp_dir_keys keys;
+    burp_dir_info info;
+    word data[];
 } burp_record;
 
 
 //! Burp block header
 typedef struct {
-        /* there is one 64 bit group per line */
+    /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-        word bfamdesc:12, btyp:15, nbit:5, nt:8, datyp:4, bit0:20;
-        word flag:1, nele:7, nval:8, elem1:16, elem2:16, elem3:16;
+    word bfamdesc:12, btyp:15, nbit:5, nt:8, datyp:4, bit0:20;
+    word flag:1, nele:7, nval:8, elem1:16, elem2:16, elem3:16;
 #else
-        word nbit:5, btyp:15, bfamdesc:12, bit0:20, datyp:4, nt:8;
-        word elem1:16, nval:8, nele:7, flag:1, elem3:16, elem2:16;
+    word nbit:5, btyp:15, bfamdesc:12, bit0:20, datyp:4, nt:8;
+    word elem1:16, nval:8, nele:7, flag:1, elem3:16, elem2:16;
 #endif
 } burp_block_header;
 
@@ -673,46 +669,50 @@ typedef struct {
 //! Key descriptor structure, 64 bits per key description
 typedef struct {
 #if !defined(Little_Endian)
-        word ncle:32, bit1:13, lcle:5, tcle:6, reserved:8;
+    word ncle:32, bit1:13, lcle:5, tcle:6, reserved:8;
 #else
-        word ncle:32, reserved:8, tcle:6, lcle:5, bit1:13;
+    word ncle:32, reserved:8, tcle:6, lcle:5, bit1:13;
 #endif
 } key_descriptor;
 
 
 //! 2xN array interface from FORTRAN for keys
 typedef struct {
-        ftnword wd1;
-        ftnword wd2;
+    ftnword wd1;
+    ftnword wd2;
 } ftnword_2;
 
 typedef struct {
-        word wd1;
-        word wd2;
+    word wd1;
+    word wd2;
 } word_2;
 
 
 //! XDF file header template, provision is made for up to 1024 keys
 typedef struct {
-        /* each line (except last one) describes 64 bits */
+    /* each line (except last one) describes 64 bits */
 #if !defined(Little_Endian)
-        word idtyp:8,  lng:24,   addr:32;  /* standard XDF record header */
-        word vrsn,     sign;               /* char[4] */
-        word fsiz:32,  nrwr:32;
-        word nxtn:32,  nbd:32;
-        word plst:32,  nbig:32;
-        word nprm:16,  lprm:16,  naux:16, laux:16;
+    // Standard XDF record header
+    word idtyp:8,  lng:24,   addr:32;
+    // char[4]
+    word vrsn,     sign;
+    word fsiz:32,  nrwr:32;
+    word nxtn:32,  nbd:32;
+    word plst:32,  nbig:32;
+    word nprm:16,  lprm:16,  naux:16, laux:16;
 #else
-        word lng:24,   idtyp:8,   addr:32; /* standard XDF record header */
-        word vrsn,     sign;               /* char[4] */
-        word fsiz:32,  nrwr:32;
-        word nxtn:32,  nbd:32;
-        word plst:32,  nbig:32;
-        word lprm:16,  nprm:16,  laux:16, naux:16;
+    // Standard XDF record header
+    word lng:24,   idtyp:8,   addr:32;
+    // char[4]
+    word vrsn,     sign;
+    word fsiz:32,  nrwr:32;
+    word nxtn:32,  nbd:32;
+    word plst:32,  nbig:32;
+    word lprm:16,  nprm:16,  laux:16, naux:16;
 #endif
-        word neff:32,  nrec:32;
-        word rwflg:32, reserved:32;
-        key_descriptor keys[1024];
+    word neff:32,  nrec:32;
+    word rwflg:32, reserved:32;
+    key_descriptor keys[1024];
 /*
  * idtyp:     id type (usualy 0)
  * lng:       header length (in 64 bit units)
@@ -750,74 +750,74 @@ typedef word* fn_b_p(word* buf, word* keys, word* mask,
 typedef word* fn_b_i(word* buf, word* keys, int index, int mode);
 
 typedef struct {
-        //! Pointer to directory pages
-        page_ptr dir_page[MAX_DIR_PAGES];
-        //! Pointer to current directory page
-        page_ptr cur_dir_page;
-        //! Pointer to primary key building function
-        fn_b_p* build_primary;
-        //! Pointer to info building function
-        fn_ptr* build_info;
-        //! Pointer to file scan function
-        fn_ptr* scan_file;
-        //! Pointer to record filter function
-        fn_ptr* file_filter;
-        //! Pointer to current directory entry
-        word* cur_entry;
-        //! Pointer to file header
-        file_header* header;
-        //! Next write address (in word units)
-        INT_32 nxtadr;
-        //! Length in 64 bit units of primary keys (including 64 bit header)
-        int primary_len;
-        //! Length in 64 bit units of info keys
-        int info_len;
-        //! File index to next linked file,-1 if none
-        int link;
-        //! Pointer to current general file desc entry
-        general_file_info* cur_info;
-        //! FORTRAN unit number, -1 if not open, 0 if C file
-        int iun;
-        //! Index into file table, -1 if not open
-        int file_index;
-        //! Modified flag
-        int modified;
-        //! Number of allocated directory pages
-        int npages;
-        //! Number of records in file
-        int nrecords;
-        //! Current page number
-        int cur_pageno;
-        //! Record number within current page
-        int page_record;
-        //! Number of records in current page
-        int page_nrecords;
-        //! Version number
-        int file_version;
-        //! Last search target valid flag
-        int valid_target;
-        //! File is sequential xdf
-        int xdf_seq;
-        //! Last position valid flag (seq only)
-        int valid_pos;
-        //! Current address (WA, sequential xdf)
-        int cur_addr;
-        //! Address (WA) of first record (seq xdf)
-        int seq_bof;
-        //! Old standard file flag
-        int fstd_vintage_89;
-        //! Header & primary keys for last record
-        max_dir_keys head_keys;
-        //! Info for last read/written record
-        max_info_keys info_keys;
-        //! Keys for current operation
-        max_dir_keys cur_keys;
-        //! Current search target
-        max_dir_keys target;
-        //! Permanent search mask for this file
-        max_dir_keys srch_mask;
-        //! Current search mask for this file
-        max_dir_keys cur_mask;
+    //! Pointer to directory pages
+    page_ptr dir_page[MAX_DIR_PAGES];
+    //! Pointer to current directory page
+    page_ptr cur_dir_page;
+    //! Pointer to primary key building function
+    fn_b_p* build_primary;
+    //! Pointer to info building function
+    fn_ptr* build_info;
+    //! Pointer to file scan function
+    fn_ptr* scan_file;
+    //! Pointer to record filter function
+    fn_ptr* file_filter;
+    //! Pointer to current directory entry
+    word* cur_entry;
+    //! Pointer to file header
+    file_header* header;
+    //! Next write address (in word units)
+    INT_32 nxtadr;
+    //! Length in 64 bit units of primary keys (including 64 bit header)
+    int primary_len;
+    //! Length in 64 bit units of info keys
+    int info_len;
+    //! File index to next linked file,-1 if none
+    int link;
+    //! Pointer to current general file desc entry
+    general_file_info* cur_info;
+    //! FORTRAN unit number, -1 if not open, 0 if C file
+    int iun;
+    //! Index into file table, -1 if not open
+    int file_index;
+    //! Modified flag
+    int modified;
+    //! Number of allocated directory pages
+    int npages;
+    //! Number of records in file
+    int nrecords;
+    //! Current page number
+    int cur_pageno;
+    //! Record number within current page
+    int page_record;
+    //! Number of records in current page
+    int page_nrecords;
+    //! Version number
+    int file_version;
+    //! Last search target valid flag
+    int valid_target;
+    //! File is sequential xdf
+    int xdf_seq;
+    //! Last position valid flag (seq only)
+    int valid_pos;
+    //! Current address (WA, sequential xdf)
+    int cur_addr;
+    //! Address (WA) of first record (seq xdf)
+    int seq_bof;
+    //! Old standard file flag
+    int fstd_vintage_89;
+    //! Header & primary keys for last record
+    max_dir_keys head_keys;
+    //! Info for last read/written record
+    max_info_keys info_keys;
+    //! Keys for current operation
+    max_dir_keys cur_keys;
+    //! Current search target
+    max_dir_keys target;
+    //! Permanent search mask for this file
+    max_dir_keys srch_mask;
+    //! Current search mask for this file
+    max_dir_keys cur_mask;
 } file_table_entry;
 
 typedef file_table_entry* file_table_entry_ptr;
@@ -825,42 +825,42 @@ typedef file_table_entry* file_table_entry_ptr;
 
 //! XDF buffer interface layout
 typedef struct {
-        //! Pointer to next data block
-        struct data_block* next;
-        //! Pointer to data itself
-        word* data_ptr;
-        //! Data length in word units
-        int data_lng;
+    //! Pointer to next data block
+    struct data_block* next;
+    //! Pointer to data itself
+    word* data_ptr;
+    //! Data length in word units
+    int data_lng;
 } data_block;
 typedef data_block* data_block_ptr;
 
 #define buf7 dummy[0]
 #define buf8 dummy[1]
 typedef struct {
-        //! Dimension of buffer (in words)
-        word nwords;
-        //! Number of bits for entire record
-        word nbits;
-        //! Starting position of data (after the keys)
-        word data_index;
-        //! Starting position of record
-        word record_index;
-        //! Associated unit number
-        word iun;
-        //! Starting position of auxiliary keys
-        word aux_index;
-        /* What the heck!? */
-        /* Why is the member nammed dummy? */
-        /* Why is it only accessed with the buf8 macro? */
-        /* Why is it in a union? */
-        /* What do buf7, buf8, and buf9 mean? */
-        union {
-                data_block_ptr ptr;
-                word dummy[2];
-        } buf78;
-        word buf9;
-        //! Record data
-        word data[];
+    //! Dimension of buffer (in words)
+    word nwords;
+    //! Number of bits for entire record
+    word nbits;
+    //! Starting position of data (after the keys)
+    word data_index;
+    //! Starting position of record
+    word record_index;
+    //! Associated unit number
+    word iun;
+    //! Starting position of auxiliary keys
+    word aux_index;
+    /* What the heck!? */
+    /* Why is the member nammed dummy? */
+    /* Why is it only accessed with the buf8 macro? */
+    /* Why is it in a union? */
+    /* What do buf7, buf8, and buf9 mean? */
+    union {
+        data_block_ptr ptr;
+        word dummy[2];
+    } buf78;
+    word buf9;
+    //! Record data
+    word data[];
 } buffer_interface;
 typedef buffer_interface* buffer_interface_ptr;
 
