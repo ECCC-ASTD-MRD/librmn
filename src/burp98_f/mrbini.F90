@@ -17,148 +17,140 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-!.S MRBINI
-!**S/P MRBINI - INITIALISER L'ENTETE D'UN RAPPORT
-!
-      FUNCTION MRBINI(IUN, BUF, TEMPS, FLGS, STNID, IDTYP, LATI, LONG, DX, DY, ELEV, IDRCV, DATEin, OARS, RUN, SUP, NSUP, XAUX, NXAUX)
-      IMPLICIT NONE
-      INTEGER  FLGS, DX, NXAUX, IDTYP, LONG,   &
-     &         DATEin, RUN, BUF(*), XAUX(*),   &
-     &         ELEV, DY, TEMPS, IDRCV, LATI, OARS, IUN, SUP(*), MRBINI,   &
-     &         NSUP
-      CHARACTER*(*) STNID
-!
-!AUTEUR  J. CAVEEN   OCTOBRE 1990
-!REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
-!REV 002 M. Lepine   sept    1997 nouveau format de date AAAAMMJJ (an 2000)
-!REV 003 M. Lepine   Avr     2000 appel a char2rah au lieu de read et hrjust
-!
-!OBJET( MRBINI )
-!     INITIALISER L'ENTETE D'UN RAPPORT.  AVANT DE METTRE QUOI QUE 
-!     CE SOIT DANS UN RAPPORT, ON INITIALISE LES DIFFERENTES CLEFS
-!     PRIMAIRES ET AUXILIAIRES.
-!
-!ARGUMENTS
-!     IUN     ENTREE   NUMERO D'UNITE ASSOCIE AU FICHIER
-!     TYPREC    "      TYPE D'ENREGISTREMENT
-!     IDELT     "      DIFF DE TEMPS ENTRE T VALIDITE ET T SYNOPTIQUE
-!     FLGS      "      MARQUEURS GLOBAUX
-!     STNID     "      IDENTIFICATEUR DE LA STATION
-!     IDTYP     "      TYPE DE RAPPORT
-!     LATI      "      LATITUDE DE LA STATION EN CENTIDEGRES
-!     LONG      "      LONGITUDE DE LA STATION EN CENTIDEGRES
-!     DX        "      DIMENSION X D'UNE BOITE
-!     DY        "      DIMENSION Y D'UNE BOITE
-!     ELEV      "      ALTITUDE DE LA STATION EN METRES
-!     IDRCV     "      DELAI DE RECEPTION
-!     DATEin    "      DATE SYNOPTIQUE DE VALIDITE (AAMMJJHH)
-!     OARS      "      RESERVE POUR ANALYSE OBJECTIVE
-!     RUN       "      IDENTIFICATEUR DE LA PASSE OPERATIONNELLE
-!     SUP       "      CLEFS PRIMAIRES SUPPLEMENTAIRES 
-!                      (AUCUNE POUR LA VERSION 1990)
-!     NSUP      "      NOMBRE DE CLEFS PRIMAIRES SUPPLEMENTAIRES 
-!                      (DOIT ETRE ZERO POUR LA VERSION 1990)
-!     XAUX      "      CLEFS AUXILIAIRES SUPPLEMENTAIRES (=0 VRSN 1990)
-!     NXAUX     "      NOMBRE DE CLEFS AUXILIAIRES SUPPLEMENTAIRES(=0)
-!     BUF       "      VECTEUR QUI CONTIENDRA LES ENREGISTREMENTS
-!
-!IMPLICITES
+
+!> Intialize report header
+!> This must be done before using the report
+function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, idrcv, datein, oars, run, sup, nsup, xaux, nxaux) result(retval)
+    implicit none
+
+    !> Numéro d'unité associé au fichier
+    integer, intent(in) :: iun
+    integer, intent(in) :: temps
+    !> Marqueures globaux
+    integer, intent(in) :: flgs
+    !> Indentificateur de la station
+    character(len = *), intent(in) :: stnid
+    !> Report type
+    integer, intent(in) :: idtyp
+    !> Station latitude in centidegres
+    integer, intent(in) :: lati
+    !> Station longitude in centidegres
+    integer, intent(in) :: long
+    !> X dimension of a box
+    integer, intent(in) :: dx
+    !> Y dimension of a box
+    integer, intent(in) :: dy
+    !> Station altitude in metres
+    integer, intent(in) :: elev
+    !> Reception delay
+    integer, intent(in) :: idrcv
+    !> Synoptic validity date (AAMMJJHH)
+    integer, intent(in) :: datein
+    !> Reserved for objective analysis
+    integer, intent(in) :: oars
+    !> Operational run identifier
+    integer, intent(in) :: run
+    !> Number of additionnal primary keys.  Must be 0 for verion 1990.
+    integer, intent(inout) :: nsup
+    !> Number of additionnal auxilary keys
+    integer, intent(inout) :: nxaux
+    !> Additionnal primary keys
+    integer, dimension(nsup), intent(in) :: sup
+    !> Data array that will contain the records
+    integer, dimension(*), intent(out) :: buf
+    !> Additionnal auxilary keys
+    integer, dimension(nxaux), intent(in) :: xaux
+
+    integer :: retval
+
 #include "defi.cdk"
 #include "codes.cdk"
 #include "enforc8.cdk"
-!
-!MODULES 
-      EXTERNAL XDFINI, CHAR2RAH, QDFERR
-      INTEGER  XDFINI, QDFERR, KLPRIM(NPRITOT), KLAUX(NAUXTOT), NKLAUX, TYPREC, NKLPRIM, I
-      integer AA, MM, JJ, annee, date
-      CHARACTER*9 ISTNID
-!
-!*
-      date = DATEin
-      MRBINI  = -1
-      NKLPRIM = NPRIDEF
-      NKLAUX  = NAUXDEF
-      TYPREC  = 1
 
-!     POUR LA VERSION 1990, NSUP ET NXAUX DOIVENT ETRE EGAL A ZERO
-      IF(NSUP .GT. NPRISUP) THEN
-         MRBINI = QDFERR('MRBINI', 'IL Y A TROP DE CLEFS PRIMAIRES SUPPLEMENTAIRES', WARNIN, ERCLEF)
-         NSUP = NPRISUP
-      ENDIF
-      IF(NXAUX .GT. NAUXSUP) THEN
-         MRBINI = QDFERR('MRBINI', 'IL Y A TROP DE CLEFS AUXILIAIRES SUPPLEMENTAIRES', WARNIN, ERCLEF)
-         NXAUX = NAUXSUP
-      ENDIF
+    external xdfini, char2rah, qdferr
+    ! Type d'enregistrement
+    integer :: typrec
+    integer :: xdfini, qdferr, nklaux, nklprim, i
+    integer, dimension(npritot) :: klprim
+    integer, dimension(nauxtot) :: klaux
+    integer :: aa, mm, jj, annee, date
+    character(len = 9) :: istnid
 
+    date = datein
+    retval  = -1
+    nklprim = npridef
+    nklaux  = nauxdef
+    typrec  = 1
 
-!     TRANSFORMER CHAQUE CARACTERE DE STNID EN UN ENTIER
-      ISTNID = STNID
-      DO 10 I = 1,9
-!         READ(ISTNID(I:I),'(A1)') KLPRIM(I)
-!         KLPRIM(I) = HRJUST(KLPRIM(I),1)
-         CALL CHAR2RAH(ISTNID(I:I),KLPRIM(I),1)
-10       CONTINUE
+    ! Pour la version 1990, nsup et nxaux doivent etre egal a zero
+    if (nsup > nprisup) then
+        retval = qdferr('MRBINI', 'IL Y A TROP DE CLEFS PRIMAIRES SUPPLEMENTAIRES', warnin, erclef)
+        nsup = nprisup
+    end if
+    if (nxaux > nauxsup) then
+        retval = qdferr('MRBINI', 'IL Y A TROP DE CLEFS AUXILIAIRES SUPPLEMENTAIRES', warnin, erclef)
+        nxaux = nauxsup
+    end if
 
-!     COMPOSER LES AUTRES CLEFS PRIMAIRES
-      KLPRIM(10) = FLGS
-      KLPRIM(11) = LATI
-      KLPRIM(12) = LONG
-      if (enforc8) then
-         if (date .lt. 999999) then
-         MRBINI = QDFERR('MRBINI', 'LA DATE DOIT ETRE EN FORMAT AAAAMMJJ', ERFATAL,ERRDAT)
-         endif
-      endif
-      if (date .gt. 999999) then
-         annee = date/10000
-         AA = mod((date/10000),100)
-         MM = (((annee - 1900) /100) * 12) + mod((date/100),100)
-         JJ = mod(date,100)
-         date = (AA * 10000) + (MM * 100) + JJ
-      endif
-      KLPRIM(13) = DATE
-      KLPRIM(14) = DX
-      KLPRIM(15) = IDTYP
-      KLPRIM(16) = DY
-      IF(TEMPS .EQ. -1) THEN
-         KLPRIM(17) = -1
-         KLPRIM(18) = -1
-      ELSE
-         KLPRIM(17) = TEMPS/100
-         KLPRIM(18) = MOD(TEMPS,100)
-      ENDIF
+    ! Transformer chaque caractere de stnid en un entier
+    istnid = stnid
+    do i = 1, 9
+        call char2rah(istnid(i:i), klprim(i), 1)
+    end do
 
-!     AJOUTER LES CLEFS PRIMAIRES SUPPLEMENTAIRES
-      IF(NSUP .GT. 0) THEN
-         DO 20 I = 1,NSUP
-            KLPRIM(NPRIDEF+I) = SUP(I)
-20          CONTINUE           
-         NKLPRIM = NKLPRIM + NSUP
-      ENDIF
+    ! Composer les autres clefs primaires
+    klprim(10) = flgs
+    klprim(11) = lati
+    klprim(12) = long
+    if (enforc8) then
+        if (date < 999999) then
+            retval = qdferr('MRBINI', 'LA DATE DOIT ETRE EN FORMAT AAAAMMJJ', erfatal, errdat)
+        end if
+    end if
+    if (date > 999999) then
+        annee = date / 10000
+        aa = mod((date / 10000), 100)
+        mm = (((annee - 1900) / 100) * 12) + mod((date / 100), 100)
+        jj = mod(date, 100)
+        date = (aa * 10000) + (mm * 100) + jj
+    end if
+    klprim(13) = date
+    klprim(14) = dx
+    klprim(15) = idtyp
+    klprim(16) = dy
+    if(temps == -1) then
+        klprim(17) = -1
+        klprim(18) = -1
+    else
+        klprim(17) = temps / 100
+        klprim(18) = mod(temps, 100)
+    end if
 
-!     COMPOSER LES CLEFS AUXILIAIRES
-      KLAUX(1) = 0
-      KLAUX(2) = OARS
-      KLAUX(3) = ELEV
-      KLAUX(4) = IDRCV
-      KLAUX(5) = RUN
+    ! Ajouter les clefs primaires supplementaires
+    if (nsup > 0) then
+        do i = 1, nsup
+            klprim(npridef + i) = sup(i)
+        end do
+        nklprim = nklprim + nsup
+    end if
 
-!     AJOUTER LES CLEFS AUXILIAIRES SUPPLEMENTAIRES
-      IF(NXAUX .GT. 0) THEN
-         DO 30 I = 1,NXAUX
-            KLAUX(NAUXDEF+I) = XAUX(I)
-30          CONTINUE           
-         NKLAUX = NKLAUX + NXAUX
-      ENDIF
+    ! Composer les clefs auxiliaires
+    klaux(1) = 0
+    klaux(2) = oars
+    klaux(3) = elev
+    klaux(4) = idrcv
+    klaux(5) = run
 
-!     INITIALISER LE TOUT
-      MRBINI = XDFINI(IUN, BUF, TYPREC, KLPRIM, NKLPRIM, KLAUX, NKLAUX)
+    ! Ajouter les clefs auxiliaires supplementaires
+    if (nxaux > 0) then
+        do i = 1, nxaux
+            klaux(nauxdef + i) = xaux(i)
+        end do
+        nklaux = nklaux + nxaux
+    end if
 
-!     INITIALISER BUF(8) AU NOMBRE DE BLOCS (=0)
-!      BUF(8) = 0
+    ! Initialiser le tout
+    retval = xdfini(iun, buf, typrec, klprim, nklprim, klaux, nklaux)
 
-!     METTRE LE BIT DE DEBUT DES BLOCS DANS BUF(9)
-!      BUF(9) = 0
-      call buf89a0(buf)
-
-      RETURN
-      END
+    call buf89a0(buf)
+end
