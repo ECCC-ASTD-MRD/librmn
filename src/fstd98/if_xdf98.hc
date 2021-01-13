@@ -28,7 +28,7 @@ ftnword  f77name(qdfdiag)(ftnword *f_iun)
   int iun = *f_iun, ier;
 
   ier = c_qdfdiag(iun);
-  return((ftnword) ier);
+  return (ftnword) ier;
 }
 /*splitpoint qdferr */
 /***************************************************************************** 
@@ -49,9 +49,10 @@ ftnword f77name(qdferr)(char *subname,char *msg,ftnword *ferrlevl,
    lng = (l2 < 1024) ? l2 : 1023;
    strncpy(errmsg,msg,lng);
 
-   return((ftnword) error_msg(c_subname,errcode,errlevl));
+   return (ftnword) error_msg(c_subname,errcode,errlevl);
 }
-
+
+
 /*splitpoint qdfind */
 /***************************************************************************** 
  *                              Q D F I N D                                  * 
@@ -63,9 +64,10 @@ ftnword f77name(qdfind)(ftnword *iun)
    ind = file_index(*iun);
    ind = (ind != ERR_NO_FILE) ? ind : 9999;
    
-   return((ftnword) ind);
+   return (ftnword) ind;
 }
-
+
+
 /*splitpoint qdfmsig */
 /***************************************************************************** 
  *                            Q D F M S I G                                  * 
@@ -80,9 +82,10 @@ ftnword f77name(qdfmsig)(ftnword *fiun,char *appl,F2Cl l1)
    strncpy(c_appl,appl,lng);
    c_appl[lng] = '\0';
 
-   return(c_qdfmsig(iun,c_appl));
+   return c_qdfmsig(iun,c_appl);
 }
-
+
+
 /*splitpoint qdfput */
 /***************************************************************************** 
  *                              Q D F P U T                                  * 
@@ -100,7 +103,7 @@ ftnword f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
 #else
    ier = c_qdfput(buf,elem,derbit,nbits);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
 /*splitpoint qdfrstr */
 /***************************************************************************** 
@@ -112,9 +115,10 @@ ftnword  f77name(qdfrstr)(ftnword *f_inp, ftnword *f_outp)
   int inp = *f_inp, outp = *f_outp, ier;
 
   ier = c_qdfrstr(inp,outp);
-  return((ftnword) ier);
+  return (ftnword) ier;
 }
-
+
+
 /*splitpoint rewind_file */
 /***************************************************************************** 
  *                          R E W I N D _ F I L E                            * 
@@ -155,9 +159,10 @@ static INT_32 rewind_file(int file_index, int handle)
       f->page_nrecords = (f->cur_dir_page)->dir.nent;
       f->cur_entry = (f->cur_dir_page)->dir.entry + (f->page_record)*(f->primary_len);
    }
-   return(0);
+   return 0;
 }
-
+
+
 /*splitpoint xdfadd */
 /***************************************************************************** 
  *                              X D F A D D                                  * 
@@ -182,11 +187,12 @@ ftnword f77name(xdfadd)(word *buf,word *donnees,
 #else
    ier = c_xdfadd(buf,donnees,nelm,nbits,datyp);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 
 }
 
-
+
+
 /*splitpoint xdfcle */
 /***************************************************************************** 
  *                                X D F C L E                                *
@@ -207,9 +213,10 @@ ftnword f77name(xdfcle)(char *fkeyname,ftnword *fbit1,ftnword *flkey,
    *fdesc1 = (ftnword) desc1;
    *fdesc2 = (ftnword) desc2;
    
-   return(err);
+   return err;
 }
-
+
+
 /*splitpoint xdfcls */
 /***************************************************************************** 
  *                              X D F C L S                                  * 
@@ -219,9 +226,10 @@ ftnword f77name(xdfcls)(ftnword *fiun)
 {
    int iun = *fiun;
 
-   return(c_xdfcls(iun));
+   return c_xdfcls(iun);
 }
-
+
+
 /*splitpoint xdfcut */
 /***************************************************************************** 
  *                              X D F C U T                                  * 
@@ -241,9 +249,10 @@ ftnword f77name(xdfcut)(word *buf,
 #else
    ier = c_xdfcut(buf,bitpos,nelm,nbits,datyp);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfdel */
 /***************************************************************************** 
  *                              X D F D E L                                  * 
@@ -253,9 +262,10 @@ ftnword f77name(xdfdel)(ftnword *fhandle)
 {
    int handle = *fhandle;
 
-   return((ftnword) c_xdfdel(handle));
+   return (ftnword) c_xdfdel(handle);
 }
-
+
+
 /*splitpoint xdfget */
 /***************************************************************************** 
  *                              X D F G E T                                  * 
@@ -272,9 +282,10 @@ ftnword f77name(xdfget)(ftnword *fhandle, word *buf)
 #else
    ier = c_xdfget(handle,(buffer_interface_ptr) buf);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfgop */
 /***************************************************************************** 
  *                              X D F G O P                                  * 
@@ -296,10 +307,11 @@ ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
    strncpy(foptc,optc,l2);
 
    *foptv = (ftnword) optv;
-   return((ftnword) err);
+   return (ftnword) err;
 
 }
-
+
+
 /*splitpoint xdfhdr */
 /***************************************************************************** 
  *                              X D F H D R                                  * 
@@ -328,7 +340,7 @@ ftnword f77name(xdfhdr)(word *buf,ftnword *addr,ftnword *lng,
 
    if ((nprim > MAX_KEYS) || (ninfo >MAX_KEYS)) {
       sprintf(errmsg,"nprim=%d or ninfo=%d > MAX_KEYS must recompile",nprim,ninfo);
-      return(error_msg("xdfhdr",ERR_OUT_RANGE,SYSTEM));
+      return error_msg("xdfhdr",ERR_OUT_RANGE,SYSTEM);
       }
 
    for (i=0; i < nprim; i++)
@@ -339,7 +351,8 @@ ftnword f77name(xdfhdr)(word *buf,ftnword *addr,ftnword *lng,
 
    return ((ftnword) ier);
 }
-
+
+
 /*splitpoint xdfimp */
 /***************************************************************************** 
  *                              X D F I M P                                  * 
@@ -369,7 +382,7 @@ ftnword f77name(xdfimp)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
    ninfo = lstat[8];
    if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
       sprintf(errmsg,"nkeys=%d or ninfo=%d > MAX_KEYS must recompile",nkeys,ninfo);
-      return(error_msg("xdfimp",ERR_OUT_RANGE,SYSTEM));
+      return error_msg("xdfimp",ERR_OUT_RANGE,SYSTEM);
       }
    for (i=0; i < nkeys; i++) {
      primk[i].wd1 = pri[i].wd1;
@@ -383,9 +396,10 @@ ftnword f77name(xdfimp)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
 #else
    ier = c_xdfimp(iun,stat,nstat,pri,aux,c_vers,c_appl);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfini */
 /***************************************************************************** 
  *                              X D F I N I                                  * 
@@ -402,7 +416,7 @@ ftnword f77name(xdfini)(ftnword *fiun,word *buf,ftnword *fidtyp,
 
    if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
       sprintf(errmsg,"nkeys=%d or ninfo=%d > MAX_KEYS must recompile",nkeys,ninfo);
-      return(error_msg("xdfini",ERR_OUT_RANGE,SYSTEM));
+      return error_msg("xdfini",ERR_OUT_RANGE,SYSTEM);
       }
    for (i=0; i < nkeys; i++) 
      primk[i] = keys[i];
@@ -414,9 +428,10 @@ ftnword f77name(xdfini)(ftnword *fiun,word *buf,ftnword *fidtyp,
 #else
    ier = c_xdfini(iun,(buffer_interface_ptr)buf,idtyp,keys,nkeys,info,ninfo);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfins */
 /***************************************************************************** 
  *                              X D F I N S                                  * 
@@ -442,9 +457,10 @@ ftnword f77name(xdfins)(word *buf,word *donnees,
 #else
    ier = c_xdfins(buf,donnees,bitpos,nelm,nbits,datyp);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdflnk */
 /***************************************************************************** 
  *                              X D F L N K                                  * 
@@ -455,10 +471,11 @@ ftnword f77name(xdflnk)(ftnword *liste, ftnword *fn)
    int n = *fn, ier;
 
    ier = c_xdflnk(liste,n);
-   return((ftnword) ier);
+   return (ftnword) ier;
 
 }
-
+
+
 /*splitpoint xdfloc */
 /***************************************************************************** 
  *                              X D F L O C                                  * 
@@ -473,15 +490,16 @@ ftnword f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
 
    if (nprim > MAX_KEYS) {
       sprintf(errmsg,"nprim=%d > MAX_KEYS must recompile",nprim);
-      return(error_msg("xdfloc",ERR_OUT_RANGE,SYSTEM));
+      return error_msg("xdfloc",ERR_OUT_RANGE,SYSTEM);
       }
    for (i=0; i<nprim; i++)
       l_primk[i] = primk[i];
 
-   return((ftnword) c_xdfloc(iun,handle,l_primk,nprim));
+   return (ftnword) c_xdfloc(iun,handle,l_primk,nprim);
 
 }
-
+
+
 /*splitpoint xdfopn */
 /***************************************************************************** 
  *                              X D F O P N                                  * 
@@ -507,7 +525,7 @@ ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
    if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
       sprintf(errmsg,"npri=%d or naux=%d > MAX_KEYS must recompile",
 	      npri,naux);
-      return(error_msg("xdfopn",ERR_OUT_RANGE,SYSTEM));
+      return error_msg("xdfopn",ERR_OUT_RANGE,SYSTEM);
       }
    for (i=0; i < npri; i++) {
      primk[i].wd1 = pri[i].wd1;
@@ -518,9 +536,10 @@ ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
      infok[i].wd2 = aux[i].wd2;
      }
    ier = c_xdfopn(iun,c_mode,primk,npri,infok,naux,c_appl);
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfopt */
 /***************************************************************************** 
  *                              X D F O P T                                  * 
@@ -540,9 +559,10 @@ ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
    strncpy(optc,foptc,l2);
    optc[l2] = '\0';
 
-   return((ftnword) c_xdfopt(optname,optc,optv));
+   return (ftnword) c_xdfopt(optname,optc,optv);
 }
-
+
+
 /*splitpoint xdfprm */
 /***************************************************************************** 
  *                              X D F P R M                                  * 
@@ -566,7 +586,8 @@ ftnword f77name(xdfprm)(ftnword *fhandle,ftnword *addr,ftnword *lng,
 
    return ((ftnword) ier);
 }
-
+
+
 /*splitpoint xdfput */
 /***************************************************************************** 
  *                              X D F P U T                                  * 
@@ -585,9 +606,10 @@ ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
 #else
    ier = c_xdfput(iun,handle,(buffer_interface_ptr)buf);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfrep */
 /***************************************************************************** 
  *                              X D F R E P                                  * 
@@ -613,9 +635,10 @@ ftnword f77name(xdfrep)(word *buf,word *donnees,
 #else
    ier = c_xdfrep(buf,donnees,bitpos,nelm,nbits,datyp);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfsta */
 /***************************************************************************** 
  *                              X D F S T A                                  * 
@@ -639,7 +662,7 @@ ftnword f77name(xdfsta)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
    if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
       sprintf(errmsg,"npri=%d or naux=%d > MAX_KEYS must recompile",
 	      npri,naux);
-      return(error_msg("xdfsta",ERR_OUT_RANGE,SYSTEM));
+      return error_msg("xdfsta",ERR_OUT_RANGE,SYSTEM);
       }
    for (i=0; i < npri; i++) {
      pri[i].wd1 = primk[i].wd1;
@@ -662,10 +685,11 @@ ftnword f77name(xdfsta)(ftnword *fiun,ftnword *stat,ftnword *fnstat,
    c_appl[lng] = '\0';
    strncpy(appl,c_appl,lng);
 
-   return((ftnword) ier);
+   return (ftnword) ier;
    
 }
-
+
+
 /*splitpoint xdfupd */
 /***************************************************************************** 
  *                              X D F U P D                                  * 
@@ -690,9 +714,10 @@ ftnword f77name(xdfupd)(ftnword *fiun,word *buf,ftnword *fidtyp,
 #else
    ier = c_xdfupd(iun,(buffer_interface_ptr)buf,idtyp,keys,nkeys,info,ninfo);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 /*splitpoint xdfuse */
 /***************************************************************************** 
  *                              X D F U S E                                  * 
@@ -702,10 +727,11 @@ ftnword f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
 {
    int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
 
-   return((ftnword)c_xdfuse(src_unit,dest_unit));
+   return (ftnword)c_xdfuse(src_unit,dest_unit);
 
 }
-
+
+
 /*splitpoint xdfxtr */
 /***************************************************************************** 
  *                              X D F X T R                                  * 
@@ -731,9 +757,10 @@ ftnword f77name(xdfxtr)(word *buf,word *donnees,
 #else
    ier = c_xdfxtr(buf,donnees,bitpos,nelm,nbits,datyp);
 #endif
-   return((ftnword) ier);
+   return (ftnword) ier;
 }
-
+
+
 
 /***************************************************************************** 
  *                            S E C A T E U R                                *
@@ -754,9 +781,10 @@ ftnword f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1)
   int ier, where = *f_where;
   
   ier = c_secateur(filename,where);
-  return((ftnword) ier);
+  return (ftnword) ier;
 }
-
+
+
 
 /***************************************************************************** 
  *                        C _ S E C A T E U R                                *
@@ -781,5 +809,5 @@ int c_secateur(char *filename, int where)
 
   ier = truncate(filename,where);
   if (ier == -1) perror("secateur");
-  return(ier);
+  return ier;
 }
