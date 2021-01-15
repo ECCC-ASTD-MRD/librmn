@@ -59,24 +59,28 @@ target_link_libraries(librmn_version rmn)
 file(GLOB GMM_HEADER_DEPS ${CMAKE_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_SOURCE_DIR}/src/gmm/*.hf)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 "#include <gmm.hf>\n")
 add_custom_command(
-    OUTPUT gmm.hf
-    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/src/gmm -P -E -o ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90
+    TARGET rmn
+    POST_BUILD
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     COMMENT "Generating gmm.hf"
     MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/gmm/gmm.hf
     DEPENDS ${GMM_HEADER_DEPS}
+    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
+    USES_TERMINAL
 )
 
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_SOURCE_DIR}/src/whiteboard/*.hf)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 "#include <WhiteBoard.hf>\n")
 add_custom_command(
-    OUTPUT WhiteBoard.hf
-    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/src/whiteboard -P -E -o ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
+    TARGET rmn
+    POST_BUILD
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/src/whiteboard -P -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     COMMENT "Generating WhiteBoard.hf"
     MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
     DEPENDS ${WHITEBOARD_HEADER_DEPS}
+    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
+    USES_TERMINAL
 )
-
-add_custom_target(generated_headers ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
