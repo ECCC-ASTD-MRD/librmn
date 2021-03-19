@@ -2,7 +2,7 @@
 # sufficient
 cmake_minimum_required(VERSION 3.16)
 
-include("${CMAKE_SOURCE_DIR}/cmake_shared/git_version.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake_rpn/git_version.cmake")
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
@@ -18,10 +18,10 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, 
 # compiler_presets module
 set(LANGUAGES C Fortran)
 
-include("${CMAKE_SOURCE_DIR}/cmake_shared/compiler_presets.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake_rpn/compiler_presets.cmake")
 set(WITH_OPENMP TRUE)
-include("${CMAKE_SOURCE_DIR}/cmake_shared/OpenMP.cmake")
-include("${CMAKE_SOURCE_DIR}/cmake_shared/doxygen.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake_rpn/OpenMP.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake_rpn/doxygen.cmake")
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
