@@ -6,7 +6,8 @@ include("${CMAKE_SOURCE_DIR}/cmake_rpn/git_version.cmake")
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
-project(librmn VERSION ${VERSION} DESCRIPTION "Library of functions for numerical weather forecasting" LANGUAGES NONE)
+project(librmn DESCRIPTION "Library of functions for numerical weather forecasting" LANGUAGES NONE)
+set(PROJECT_VERSION ${GIT_VERSION})
 
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones." FALSE)
 
@@ -84,7 +85,7 @@ add_custom_command(
 
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
-set_target_properties(rmn PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(rmn PROPERTIES VERSION ${GIT_VERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
 
 install(TARGETS rmn librmn_version)
