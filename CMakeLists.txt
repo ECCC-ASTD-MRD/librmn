@@ -2,11 +2,13 @@
 # sufficient
 cmake_minimum_required(VERSION 3.16)
 
-include("${CMAKE_SOURCE_DIR}/cmake_rpn/git_version.cmake")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn)
+include(ec_init)
+ec_git_version()
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
-project(librmn DESCRIPTION "Library of functions for numerical weather forecasting" LANGUAGES NONE)
+project(librmn DESCRIPTION "Library of functions for numerical weather forecasting")
 set(PROJECT_VERSION ${GIT_VERSION})
 
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones." FALSE)
@@ -14,15 +16,12 @@ option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones." FALSE)
 # CMAKE_BUILD_TYPE can be one of Debug, Release, RelWithDebInfo, MinSizeRel
 set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
 
-# enable_language can not be called here since the compiler must be configured
-# first.  We therefore make a list of languages that will be enabled by the
-# compiler_presets module
-set(LANGUAGES C Fortran)
+enable_language(C Fortran)
+include(ec_compiler_presets)
 
-include("${CMAKE_SOURCE_DIR}/cmake_rpn/compiler_presets.cmake")
 set(WITH_OPENMP TRUE)
-include("${CMAKE_SOURCE_DIR}/cmake_rpn/OpenMP.cmake")
-include("${CMAKE_SOURCE_DIR}/cmake_rpn/doxygen.cmake")
+include(OpenMP)
+include(ec_doxygen)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
@@ -47,7 +46,10 @@ file(GLOB PROJECT_F_FILES
 )
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
+ec_build_info()
+
 add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_dependencies(rmn build_info)
 add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn)
 target_link_libraries(librmn_version rmn)

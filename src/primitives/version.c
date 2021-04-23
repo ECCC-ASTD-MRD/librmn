@@ -1,3 +1,5 @@
+#include <librmn_build_info.h>
+
 #define PASTE(a,b) a##b
 #define CAT(a,b) PASTE(a,b)
 
