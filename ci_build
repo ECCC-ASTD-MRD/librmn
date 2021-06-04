@@ -8,13 +8,16 @@ case $ORDENV_TRUEHOST in
 	;;
 esac
 
-. r.load.dot rpn/code-tools/1.5.1 \
-  rpn/libs/19.7.0 \
-  rpn/utils/19.7.0
-
 set -o errexit
 
 CI_PROJECT_DIR="$1"
 
 cd "$CI_PROJECT_DIR"
+
+env | sort
+echo $PWD
+
+mkdir build
+cd $?
+cmake ../librmn -DBUILD_SHARED_LIBS=FALSE
 make
