@@ -30,6 +30,7 @@ cd build
 echo "Current path: $PWD"
 
 echo -e "Starting build ...\n"
+export CLICOLOR_FORCE=YAAAAS
 
 cmake .. -DBUILD_SHARED_LIBS=FALSE
 make
