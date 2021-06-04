@@ -14,10 +14,16 @@ CI_PROJECT_DIR="$1"
 
 cd "$CI_PROJECT_DIR"
 
+echo "======== Star env ========"
 env | sort
-echo $PWD
+echo "======== End env ========"
+
+echo "Current path: $PWD"
+
+
+echo -e "Starting build ...\n"
 
 mkdir build
-cd $?
+cd $_
 cmake ../librmn -DBUILD_SHARED_LIBS=FALSE
 make
