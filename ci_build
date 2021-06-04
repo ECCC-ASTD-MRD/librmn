@@ -4,8 +4,9 @@
 
 case $ORDENV_TRUEHOST in
     eccc-ppp[3,4]|eccc-gpsc1)
-	. r.load.dot comm/eccc/all/opt/intelcomp/intelpsxe-cluster-19.0.3.199
-	;;
+        . ssmuse-sh -d /fs/ssm/main/opt/cmake/cmake-3.16.4/
+        . r.load.dot comm/eccc/all/opt/intelcomp/intelpsxe-cluster-19.0.3.199
+        ;;
 esac
 
 set -o errexit
