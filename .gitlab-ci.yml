@@ -1,3 +1,5 @@
+GIT_SUBMODULE_STRATEGY: recursive
+
 build_gpsc:
   stage: build
   script: ssh eccc-gpsc1.science.gc.ca $CI_PROJECT_DIR/ci_build $CI_PROJECT_DIR
