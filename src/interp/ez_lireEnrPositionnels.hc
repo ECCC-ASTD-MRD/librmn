@@ -44,7 +44,6 @@ void Lire_enrUvercode1(_Grille *gr, ftnfloat *yy, wordint nix)
 void Lire_enrTicTac(_Grille *gr, ftnfloat *ax, wordint nixnjx, ftnfloat *ay, wordint niynjy, wordint ip3, wordint ip4)
 {
   wordint i,j,offsetx,offsety;
-
   switch (gr->grtyp[0])
     {
     case 'Y':
@@ -320,11 +319,11 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
          &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
      }
  
-  gr->fst.deet    = deet;
-  gr->fst.npas    = npas;
-  gr->fst.nbits   = nbits;
-  gr->fst.date    = dateo;
- 
+  gr->fst.deet    = 0;
+  gr->fst.npas    = 0;
+  gr->fst.nbits   = 0;
+  gr->fst.date    = 0;
+
   strcpy(gr->fst.nomvarx, nomvarx);
   strcpy(gr->fst.typvarx, typvarx);
   strcpy(gr->fst.etiketx, etikx);

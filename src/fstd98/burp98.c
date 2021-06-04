@@ -212,7 +212,18 @@ void build_burp_prim_keys(burp_record *brpk, word *keys,
       keys[17] = brpk->keys.min;
       }
 }
-
+
+
+//! Check burp file for corruption
+//! @return 0 when valid; -1 otherwise
+int c_burpcheck(
+    //! Path of the file
+    const char *filePath
+) {
+   return(c_xdfcheck(filePath));
+}
+
+
 /*splitpoint burp_nbit_datyp */
 /*****************************************************************************
  *                  B U R P _ N B I T _ D A T Y P                            *

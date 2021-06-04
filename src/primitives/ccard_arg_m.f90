@@ -1,36 +1,35 @@
-    character *8192 function ccard_arg_m(nom,ord)
-    character *(*) nom
-    integer ord
-    
-    character * 40 keyname
-    character *8192 value
-    integer lng, c_get_appl_var,L
+function ccard_arg_m(nom, ord) result(value)
+    character(len = *), intent(in) :: nom
+    integer, intent(in) :: ord
+
+    character(len = 40) :: keyname
+    character(len = 8192) :: value
+    integer :: lng
+    integer :: c_get_appl_var
+    integer :: lnom
     external c_get_appl_var
-    
-    L = len(trim(nom))
-    if ((nom(L:L) == '.') .or. (nom(L:L) == ':') .or. (nom(L:L) == '_')) L = L-1
-    write(keyname,77) '%%'//nom(1:L),ord,'%%'
- 77 format(a,i4.4,a)
-    lng = c_get_appl_var(keyname,value)
-    ccard_arg_m = value
-    return
-    end
-    
-    character *8192 function ccard_arg(nom)
-    character *(*) nom
-    integer ord
-    
-    character * 40 keyname
-    character *8192 value
-    integer lng, c_get_appl_var
+
+    lnom = len(trim(nom))
+    if ((nom(lnom:lnom) == '.') .or. (nom(lnom:lnom) == ':') .or. (nom(lnom:lnom) == '_')) lnom = lnom-1
+
+    write(keyname, '(a,i4.4,a)') '%%'//nom(1:lnom), ord, '%%'
+    lng = c_get_appl_var(keyname, value)
+end function ccard_arg_m
+
+
+function ccard_arg(nom) result(value)
+    character(len=*), intent(in) :: nom
+
+    character(len = 40) :: keyname
+    character(len = 8192) :: value
+    integer :: lng
+
+    integer :: c_get_appl_var
     external c_get_appl_var
-    
-    L = len(trim(nom))
-    if ((nom(L:L) == '.') .or. (nom(L:L) == ':') .or. (nom(L:L) == '_')) L = L-1
-    write(keyname,77) '%%'//nom(1:L),0,'%%'
- 77 format(a,i4.4,a)
-    lng = c_get_appl_var(keyname,value)
-    ccard_arg = value
-    return
-    end
-    
+
+    lnom = len(trim(nom))
+    if ((nom(lnom:lnom) == '.') .or. (nom(lnom:lnom) == ':') .or. (nom(lnom:lnom) == '_')) lnom = lnom-1
+
+    write(keyname, '(a,i4.4,a)') '%%'//nom(1:lnom), 0, '%%'
+    lng = c_get_appl_var(keyname, value)
+end function ccard_arg

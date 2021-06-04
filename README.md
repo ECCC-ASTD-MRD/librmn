@@ -5,7 +5,7 @@ Ses principaux composants sont les fichiers Standard RPN et
 l'interpolateur EZ.
 
 # Documentation
-  * [Référence des fonction accessible à partir d\u2019Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
+  * [Référence des fonction accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
 # Instruction d'installation
@@ -22,7 +22,7 @@ Les options pour configurer la compilation doivent être ajoutées lors de
 l'appel de la commande `cmake` avec le préfix `-D`.
 
 CMAKE_BUILD_TYPE
-: `(Release|RelWithDebInfo|Debug)` Type de build.  Défaut: `RelWithDebInfo``
+: `(Release|RelWithDebInfo|Debug)` Type de build.  Défaut: `RelWithDebInfo`
 CMAKE_INSTALL_PREFIX
 : Chemin d'accès du répertoire pour l'installation (make install)
 BUILD_SHARED_LIBS

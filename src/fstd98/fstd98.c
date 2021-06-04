@@ -381,7 +381,7 @@ int c_fstecr(word *field_in, void * work, int npak,
                         int ig3, int ig4,
                         int in_datyp_ori, int rewrit)
 {
-  word *field = field_in ; /* use field internally in case we have to allocate new array beacause of missing values */
+  word *field = field_in ; /* use field internally in case we have to allocate new array because of missing values */
   word *field3;
   short *s_field;
   signed char *b_field;
@@ -725,7 +725,7 @@ int c_fstecr(word *field_in, void * work, int npak,
       break;
 
     case 1: case 129:             /* floating point */
-      if ((datyp > 128) && (nbits <= 16)) {      /* use an additionnal compression scheme */
+      if ((datyp > 128) && (nbits <= 16)) {      /* use an additional compression scheme */
         packfunc(field,&(buffer->data[keys_len+1]),&(buffer->data[keys_len+5]),
                 ni*nj*nk,nbits+64*Max(16,nbits),0,xdf_stride,1,0,&tempfloat);     /* nbits>64 flags a different packing */
         compressed_lng = armn_compress(&(buffer->data[keys_len+5]),ni,nj,nk,nbits,1);
@@ -899,7 +899,7 @@ int c_fstecr(word *field_in, void * work, int npak,
 
     case 6: case 134:             /* floating point, new packers */
       {
-        if ((datyp > 128) && (nbits <= 16)) {      /* use an additionnal compression scheme */
+        if ((datyp > 128) && (nbits <= 16)) {      /* use an additional compression scheme */
           c_float_packer(field,nbits,&(buffer->data[keys_len+1]),&(buffer->data[keys_len+1+header_size]),ni*nj*nk);
           compressed_lng = armn_compress(&(buffer->data[keys_len+1+header_size]),ni,nj,nk,nbits,1);
           if (compressed_lng < 0)
@@ -1753,6 +1753,7 @@ int c_fstluk(
     stdf_dir_keys stdf_entry;
     word *pkeys;
     // word *workField;
+
     float *ptr_real;
     double *ptr_double;
     buffer_interface_ptr buf;
@@ -1817,7 +1818,9 @@ int c_fstluk(
         // fprintf(stderr,"Debug+ fstluk ni=%d nj=%d nk=%d lng=%d lng2=%d\n",*ni,*nj,*nk,lng,lng2);
     } else {
         lng2 = lng;
+
     }
+
 
     // printf("Debug+ fstluk lng2 = %d\n", lng2);
 
@@ -1905,6 +1908,7 @@ int c_fstluk(
                 } else {
                     packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
                 }
+
                 break;
 
             case 2:
@@ -1957,6 +1961,7 @@ int c_fstluk(
                 int nc = (nelm + 3) / 4;
                 ier = compact_integer(field, (void *) NULL, buf->data, nc, 32, 0, xdf_stride, mode);
                 break;
+
 
             case 4:
                 // Signed integer
@@ -2024,6 +2029,7 @@ int c_fstluk(
                     ftnword f_mode = (ftnword) mode;
                     f77name(ieeepak)(field, buf->data, &f_nelm, &f_one, &f_npak, &f_zero, &f_mode);
                 }
+
                 break;
 
             case 6:
@@ -2036,6 +2042,7 @@ int c_fstluk(
                         nbytes = armn_compress(buf->data + 1 + header_size, *ni, *nj, *nk, stdf_entry.nbits, 2);
                         // fprintf(stderr,"Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                         //    *(buf->data+4+(nbytes/4)-1),*(buf->data+4+(nbytes/4)));
+
                         c_float_unpacker(field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);
                     } else {
                         c_float_unpacker(field, buf->data, buf->data + header_size, nelm, &nbits);
@@ -2462,6 +2469,17 @@ int c_fstopr(char *option, float value, int getmode)
   /* no current float variable to be set for now */
   return(0);
 }
+
+
+//! Check FSTD file for corruption
+//! @return 0 when valid; -1 otherwise
+int c_fstcheck(
+    //! [in]  Path to the file
+    const char *filePath
+) {
+    return c_xdfcheck(filePath);
+}
+
 
 /*splitpoint c_fstouv */
 /*****************************************************************************

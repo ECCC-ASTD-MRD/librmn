@@ -1333,6 +1333,26 @@ ftnword f77name(fstopr)(char *f_option, ftnfloat *f_value, ftnword * f_getmode,
   return((ftnword) ier);
 }
 
+/*splitpoint fstcheck */
+/*****************************************************************************
+ *                              F S T C H E C K                              *
+ *                                                                           *
+ *Object                                                                     *
+ *   Checks if an RPN standard file is valid.                                *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  filename Path of the file to be checked                              *
+ *                                                                           *
+ *****************************************************************************/
+
+ftnword f77name(fstcheck)(char *filename, F2Cl lng)
+{
+  int ier;
+  ier = c_fstcheck(filename);
+  return ((ftnword) ier);
+}
+
 /*splitpoint fstouv */
 /*****************************************************************************
  *                              F S T O U V                                  *
