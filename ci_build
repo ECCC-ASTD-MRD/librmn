@@ -24,6 +24,6 @@ echo "Current path: $PWD"
 echo -e "Starting build ...\n"
 
 mkdir build
-cd $_
+cd build
 cmake ../librmn -DBUILD_SHARED_LIBS=FALSE
 make
