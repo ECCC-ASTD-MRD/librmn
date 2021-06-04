@@ -19,7 +19,7 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, 
 enable_language(C Fortran)
 include(ec_compiler_presets)
 
-set(WITH_OPENMP TRUE)
+set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(OpenMP)
 include(ec_doxygen)
 
