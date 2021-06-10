@@ -21,6 +21,9 @@
 /*CoMpIlAtIoN_OpTiOnS ::SX4=-Onooverlap::SX5=-Onooverlap::*/
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
+#define MAXPATH 4096
+#define MAXTYPE 256
+#define MAXMACH 256
 
 #include <rpnmacros.h>
 #include <ctype.h>
@@ -256,8 +259,8 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
 {
   int liun,ier = 0, minus = 0, majus = 0, lng, i, j, pid, lngt, junk, mode;
   char *c, *c2, *tmpdir, *cmcarc, *pos2p;
-  char remote_mach[256];
-  char nom2[1024];
+  char remote_mach[MAXMACH];
+  char nom2[MAXPATH];
   PTR_AS_INT ptr_as_int;
 
     if (fnom_initialized == 0) {
@@ -312,7 +315,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         c = nom;
         c2 = nom2;
         nom2[strlen(nom)] = '\0';
-        for (j = 0; j < strlen(nom) && j < 1024; j++, c++, c2++) {
+        for (j = 0; j < strlen(nom) && j < MAXPATH; j++, c++, c2++) {
             if (islower(*c)) {
                 minus = 1;
                 *c2 = *c;
@@ -535,7 +538,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
  *   check for @file (@filename)
  */
   if (nom[0]=='@') {
-     char filename[1024];
+     char filename[MAXPATH];
      strcpy(filename,FGFDT[i].file_name);
 
      if (access(filename,F_OK) == -1) {         /* no local file */
@@ -601,11 +604,11 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
 ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F2Cl l2)
 {
    int lrec,lng,tmp,liun=*iun;
-   char filename[1025],filetype[257];
+   char filename[MAXPATH+1],filetype[257];
 
    lrec = *flrec;
 
-   lng = (l1 <= 1024) ? l1 : 1024;
+   lng = (l1 <= MAXPATH) ? l1 : MAXPATH;
    strncpy(filename,nom,lng);        /*  copy filename into a C string  */
    filename[lng] = '\0';
 
@@ -614,7 +617,7 @@ ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F
       filename[lng] = '\0';
       }
 
-   lng = (l2 <= 256) ? l2 : 256;
+   lng = (l2 <= MAXTYPE) ? l2 : MAXTYPE;
    strncpy(filetype,type,lng);   /*  copy file type into a C string  */
    filetype[lng] = '\0';
 
@@ -1185,9 +1188,9 @@ ftnword f77name(numblks)(ftnword *fiun)     /* return file size in KiloBytes */
 ftnword f77name(existe)(char *nom, F2Cl llng)
 {
    int l2, lng = llng;
-   char filename[257];
+   char filename[MAXPATH+1];
 
-   l2 = (lng <= 256) ? lng : 256;
+   l2 = (lng <= MAXPATH) ? lng : MAXPATH;
    strncpy(filename, nom, l2);
    filename[lng] = '\0';
 
