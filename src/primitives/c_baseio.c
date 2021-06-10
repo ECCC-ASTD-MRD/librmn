@@ -604,7 +604,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
 ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F2Cl l2)
 {
    int lrec,lng,tmp,liun=*iun;
-   char filename[MAXPATH+1],filetype[257];
+   char filename[MAXPATH+1],filetype[MAXTYPE+1];
 
    lrec = *flrec;
 
