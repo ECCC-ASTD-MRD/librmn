@@ -87,7 +87,8 @@ static char *little_endian=(char *)&entier_quelconque;
 void transfert_IBM_IEEE( unsigned INT_32 *source, int nelements); 
 
 
-
+
+
 /*****************************************************************************
  *                              R E A D _ B U F                              *
  *                                                                           *
@@ -506,7 +507,8 @@ int delamineur2(int fd, char *std_file_name, char *slab_file_name){
  return(0);
 }          /*end main*/ 
 
-
+
+
 void transfert_IBM_IEEE (unsigned INT_32 *tab_data_IBM, int nb_data)
 {
    int signbit;

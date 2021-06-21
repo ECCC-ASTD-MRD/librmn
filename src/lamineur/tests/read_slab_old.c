@@ -95,7 +95,8 @@ static int lire(int fd, void *buffer, int nbytes_to_read);
 void transfert_IBM_IEEE( unsigned long *, int); 
 
 
-
+
+
 main(int argc, char *argv[])
  {
  int  fd, taille, taille1,i, 
@@ -513,7 +514,8 @@ main(int argc, char *argv[])
  
  }/*end main*/ 
 
-
+
+
 void transfert_IBM_IEEE (unsigned long *tab_data_IBM, int nb_data)
 {
    int signbit;

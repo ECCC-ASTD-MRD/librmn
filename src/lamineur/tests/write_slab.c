@@ -89,7 +89,8 @@ ftnword f77name(slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
 		      ftnfloat *f_mtadd, ftnfloat *f_mtmult, ftnfloat *f_mtval);
 ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, int l1);
 
-
+
+
 /***************************************************************************** 
  *                            S L A B _ E X I T                              *
  *                                                                           * 
@@ -107,7 +108,8 @@ static int slab_exit(int level)
        return(level);
  }
 
-
+
+
 /***************************************************************************** 
  *                            I N I T _ I N D E X                            *
  *                                                                           * 
@@ -129,7 +131,8 @@ static void init_index()
        f_index[i] = -1;
    init = 1;
  }/* end init_index */
-
+
+
 /***************************************************************************** 
  *                          G E T _ F R E E _ I N D E X                      *
  *                                                                           *
@@ -151,7 +154,8 @@ static int get_free_index(int fd)
    fprintf(stderr,"   MAX_SLAB_FILES = %d\n",MAX_SLAB_FILES);
    return(ERR_TAB_FULL);
    }
-
+
+
 /***************************************************************************** 
  *                          G E T _ F I L E _ I N D E X                      *
  *                                                                           *
@@ -171,7 +175,8 @@ static int get_file_index(int fd)
    fprintf(stderr,"\n***ERROR in GET_FILE_INDEX: slab file not initialized\n");
    return(ERR_NO_FILE);
    }
-
+
+
 ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc)
 {
      numproc = (int) *f_numproc; 
@@ -265,7 +270,8 @@ ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
  file_table[ix].pos = pos;
  return (ftnword) fd;
 }
-
+
+
 /*****************************************************************************
  *                              S L A B D S C                                *
  *Object :                                                                   *
@@ -662,7 +668,8 @@ ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
  typvars_0 = NULL;
  return(0);
  }/* end slabdsc */
-
+
+
 /****************************************************************************
  *                              S L A B X T R                               *
  *                                                                          *
@@ -822,7 +829,8 @@ if ( (ix = get_file_index( (int ) *f_hand)) < 0 ) return(slab_exit(-3));
  file_table[ix].pos = pos;
  return(0);
  }/* end slabxtr */
-
+
+
 /*****************************************************************************
  *                              S L A B E N D                                *
  * Object :                                                                  *

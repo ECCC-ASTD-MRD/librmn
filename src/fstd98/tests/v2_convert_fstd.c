@@ -99,7 +99,8 @@ union base
     float Xmin;
     }Xbase;                                      
 
-
+
+
 static word iexpo, iexpmin, iscal, iXmin, iTemp, result,isign,nBits, 
              nBits1, nBits2, nBytes, ninj,left, iexp_local, 
              *idata, *rawdata, *unpacked, *funpacked,ofset, block,*iidata, offset;  
@@ -181,7 +182,8 @@ main(int argc, char *argv[])
 
  }/*end main*/
  
-
+
+
  /*================================================================================================*/
  /*                       Imprimer l'entete des enregistrements.                                   */
  /*================================================================================================*/
@@ -251,7 +253,8 @@ main(int argc, char *argv[])
  
      }/*end traiter_fichier_seq*/
 
-
+
+
  /*================================================================================================*/
  /* Definition de la fonction pour decompater les fichiers sequentiels.Elle fait appel a           */
  /* recuperer_donnees ainsi qu'a la fonction processus_decompact_float                             */
@@ -333,7 +336,8 @@ main(int argc, char *argv[])
 
  
 
-
+
+
  /*================================================================================================*/
  /* Definition de la fonction pour le traitement des fichiers aleatoires. Elle fait appel a        */
  /* decompact_float et decompact_integer.                                                          */
@@ -382,7 +386,8 @@ main(int argc, char *argv[])
        
     }/*end traiter_fichier_rndm*/
 	
-
+
+
  /*===============================================================================================*/
  /* Definition de la fonction qui affiche, sur l'ecran,de l'information sur les enregistrements du*/
  /* fichier sequentiel.                                                                           */

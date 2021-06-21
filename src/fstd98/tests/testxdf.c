@@ -149,7 +149,8 @@ int c_xdfupd(int iun,buffer_interface_ptr buf,int idtyp,
              ftnword *keys,int nkeys,ftnword *info,int ninfo);
 ftnword f77name(xdfuse)(int *fsrc_unit, int *fdest_unit);
 int c_xdfuse(int src_unit, int dest_unit);
-
+
+
 /*splitpoint aaamain */
 /***************************************************************************** 
  *                              M A I N                                      * 
@@ -279,4 +280,5 @@ ier = c_xdfcls(33);
 ier = c_fclos(12);
 ier = c_fclos(iun);
 }
-
+
+
