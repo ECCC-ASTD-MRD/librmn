@@ -4,16 +4,18 @@ utilisée principalement par Environnement et Changement climatique Canada.
 Ses principaux composants sont les fichiers Standard RPN et
 l'interpolateur EZ.
 
+
 # Documentation
-  * [Référence des fonction accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
+  * [Référence des fonctions accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
-# Instruction d'installation
+
+# Instructions d'installation
 
 ## Créer un répertoire pour la compilation
 ```
-mkdir build
-cd build
+mkdir $build_dir_path
+cd $build_dir_path
 ```
 
 ## Configuration de la compilation
@@ -22,24 +24,41 @@ Les options pour configurer la compilation doivent être ajoutées lors de
 l'appel de la commande `cmake` avec le préfix `-D`.
 
 CMAKE_BUILD_TYPE
-: `(Release|RelWithDebInfo|Debug)` Type de build.  Défaut: `RelWithDebInfo`
+: `(Release|RelWithDebInfo|Debug)` Mode de compilation.  Défaut: `RelWithDebInfo`
+
 CMAKE_INSTALL_PREFIX
-: Chemin d'accès du répertoire pour l'installation (make install)
+: Chemin d'accès du répertoire pour l'installation (`make install`)
+
 BUILD_SHARED_LIBS
 : `(yes|no)` Indique si les bibliothèques de fonctions dynamiques doivent être produites.  Défaut: `no`
+
 COMPILER_SUITE
 : `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Défaut: `GNU`
+
 WITH_OPENMP
-: `(yes|no)` Indique si le support pour OpenMP doit être activé
+: `(yes|no)` Indique si le support pour OpenMP doit être activée.  Défaut: `yes`
 
-Par exenple:
-```
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=yes
-```
 
-## Lancez cmake avec les options désirée, suivit de la commande make
+## Exemple de compilation
 ```
-cmake .. <options>
-make -j
+cmake \
+    -DCMAKE_INSTALL_PREFIX=$install_dir_path \
+    -DBUILD_SHARED_LIBS=no \
+    -DWITH_DOC=no \
+    -DWITH_OPENMP=no \
+    $src_dir_path
+make -j $a_resonable_number
 make install
 ```
+
+## Compilation dans l'environnement d'ECCC
+
+Les scripts CMake de __cmake_rpn__ vont automatiquement détecter le compilateur
+chargé via la variable d'environement __EC_ARCH__.  Il n'est donc pas nécessaire
+de spécifier explicitement la suite de compilateurs à utiliser
+(`-DCOMPILER_SUITE=...`).  Vous devez toutefois charger le compilateur désiré
+avant d'effectuer la configuration de la compilation.
+
+Puisque la version par défaut de CMake disponible sur les systèmes Ubuntu 18.04
+est trop vieille, vous devez charger une version plus récente.  Par exemple:
+`. ssmuse-sh -d /fs/ssm/main/opt/cmake/cmake-3.16.4/`
