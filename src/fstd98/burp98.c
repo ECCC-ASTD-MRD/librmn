@@ -1317,4 +1317,4 @@ int c_mrfrwd(int iun)
 }
 
 
-#include "if_burp98.hc"
+#include "if_burp98.h"

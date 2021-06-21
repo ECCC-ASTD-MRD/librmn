@@ -3592,4 +3592,4 @@ static word next_match(
     }
    return handle;
 }
-#include "if_xdf98.hc"
+#include "if_xdf98.h"

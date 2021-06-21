@@ -3621,4 +3621,4 @@ int ip_is_equal(int target, int ip, int ind)
   return(0);
 }
 
-#include "if_fstd98.hc"
+#include "if_fstd98.h"
