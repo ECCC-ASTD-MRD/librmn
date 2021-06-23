@@ -62,3 +62,13 @@ avant d'effectuer la configuration de la compilation.
 Puisque la version par défaut de CMake disponible sur les systèmes Ubuntu 18.04
 est trop vieille, vous devez charger une version plus récente.  Par exemple:
 `. ssmuse-sh -d /fs/ssm/main/opt/cmake/cmake-3.16.4/`
+
+
+# Exemple de compilation de la branche dev sur un système non-ECCC
+````
+git clone --recurse-submodules -b dev https://github.com/ECCC-ASTD-MRD/librmn.git 
+mkdir librmn_build
+cd librmn_build
+cmake ../librmn -DBUILD_SHARED_LIBS=FALSE -DWITH_DOC=NO -DCMAKE_INSTALL_PREFIX=~/opt/
+make -j4 install
+```
