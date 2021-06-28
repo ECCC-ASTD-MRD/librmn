@@ -104,7 +104,7 @@ static key_descriptor fstcles[] = {
   {'DATE', 511, 31,  0, 0}
 };
 
-   
+
 // prototypes declarations
 static int get_free_index();
 static void init_file(int i);
@@ -123,67 +123,49 @@ int C_fst_match_req(int set_nb, int handle);
 #include "proto.h"
 #include <stdint.h>
 
-
 //! Check XDF file for corruption
 //! @return              Valid(0) or not(-1)
 int c_xdfcheck(
-   //! [in] Filename Path to the file
-   const char* Filename
+   //! [in] filePath Path to the file
+   const char *filePath
 ) {
    file_header header;
-   int i;
-   uint32_t t,*buf_ptr = (uint32_t *) &header;
-   FILE *fd = fopen(Filename, "r");
+   uint32_t tmp;
+   uint32_t *buf_ptr = (uint32_t *) &header;
+   FILE *fd = fopen(filePath, "r");
 
    if (!fd) {
-      sprintf(errmsg,"Cannot open file");
-      return(error_msg("c_xdfcheck",ERR_NO_FILE,ERROR));
+      sprintf(errmsg, "Cannot open file");
+      return(error_msg("c_xdfcheck", ERR_NO_FILE, ERROR));
    }
-
-   // Get file size
-   fseek(fd, 0L, SEEK_END);
-   size_t file_size = ftell(fd);
-   fseek(fd, 0L, SEEK_SET);
 
    // Read the header
    int num_records = fread(buf_ptr, sizeof(header), 1, fd);
 
-   // Flip bytes in each 32-bit word (16 of them)
-   for(i = 0 ; i < 16 ; i++) {
-      t = buf_ptr[i] ;
-      buf_ptr[i] = (t << 24) | (t >> 24) | ((t & 0xFF0000) >> 8) | ((t & 0xFF00) << 8) ;
-   }
-
-   if ((size_t)header.fsiz * 8 != file_size) {
-      sprintf(errmsg,"File size does not match header information");
-      return(error_msg("c_xdfcheck",ERR_DAMAGED,ERROR));
-   }
-    
-   if (header.idtyp != 0) {
-      sprintf(errmsg,"Wrong header ID type (%d), should be %d\n",header.idtyp,0);
-      return(error_msg("c_xdfcheck",ERR_DAMAGED,ERROR));
-   }
-
-   // Print info
-   // printf("(DEBUG) idtyp = %d\n", header.idtyp);
-   // printf("(DEBUG) lng   = %d\n", header.lng);
-   // printf("(DEBUG) addr  = %d\n", header.addr);
-   // int version = header.vrsn ;
-   // int sign = header.sign ;
-   // printf("(DEBUG) %c%c%c%c%c%c%c%c\n", version >> 24, (version >> 16) & 0xFF, (version >> 8) & 0xFF, version & 0xFF, sign >> 24, (sign >> 16) & 0xFF, (sign >> 8) & 0xFF, sign & 0xFF);
-   // printf("(DEBUG) fsiz  = %d\n", header.fsiz*8);
-   // printf("(DEBUG) nrwr  = %d\n", header.nrwr);
-   // printf("(DEBUG) nxtn  = %d\n", header.nxtn);
-   // printf("(DEBUG) nbd   = %d\n", header.nbd);
-   // printf("(DEBUG) plst  = %d\n", header.plst*8);
-   // printf("(DEBUG) nbig  = %d\n", header.nbig);
-   // printf("(DEBUG) neff  = %d\n", header.neff);
-   // printf("(DEBUG) nrec  = %d\n", header.nrec);
-   // printf("(DEBUG) rwflg = %d\n", header.rwflg);
+   // Get file size
+   fseek(fd, 0L, SEEK_END);
+   long file_size = ftell(fd);
+   fseek(fd, 0L, SEEK_SET);
 
    fclose(fd);
 
-   return(0);
+   // Flip bytes in each 32-bit word (16 of them)
+   for(int i = 0 ; i < 16 ; i++) {
+      tmp = buf_ptr[i] ;
+      buf_ptr[i] = (tmp << 24) | (tmp >> 24) | ((tmp & 0xFF0000) >> 8) | ((tmp & 0xFF00) << 8) ;
+   }
+
+   if ((size_t)header.fsiz * 8 != file_size) {
+      sprintf(errmsg, "File size does not match header. Expected size: %d bytes. Actual size: %d", header.fsiz * 8, file_size);
+      return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
+   }
+
+   if (header.idtyp != 0) {
+      sprintf(errmsg, "Wrong header ID type (%d), should be %d\n", header.idtyp, 0);
+      return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
+   }
+
+   return 0;
 }
 
 
