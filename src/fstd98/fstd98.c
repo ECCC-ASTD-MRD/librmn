@@ -2523,17 +2523,16 @@ int c_fstouv(int iun, char *options)
   FGFDT[i].attr.std = 1;  /* force attribute to standard file */
   if (FGFDT[i].attr.remote)
     if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old))
-      ier = c_xdfopn(iun,"CREATE",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
+      ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
     else
-      ier = c_xdfopn(iun,"R-W",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
+      ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
   else
-    if (((iwko=c_wkoffit(FGFDT[i].file_name,strlen(FGFDT[i].file_name))) == -2) &&
-       (! FGFDT[i].attr.old)) {
-      ier = c_xdfopn(iun,"CREATE",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
-      }
-    else {
-      ier = c_xdfopn(iun,"R-W",(word_2 *) &stdfkeys,16,(word_2 *) &stdf_info_keys,2,appl);
-      }
+    if (((iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name))) == -2) &&
+        (! FGFDT[i].attr.old)) {
+      ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+    } else {
+      ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+    }
 
   if (ier < 0) return(ier);
   nrec = c_fstnbr(iun);

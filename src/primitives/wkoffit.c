@@ -78,7 +78,7 @@
  *        32     FICHIER BMP                                                 *
  *        33     FICHIER STANDARD RANDOM 98                                  *
  *        34     FICHIER STANDARD SEQUENTIEL 98                              *
- *        35     FICHIER NETCDF                                              * 
+ *        35     FICHIER NETCDF                                              *
  *        36     FICHIER CMCARC v4                                           *
  *        37     FICHIER CMCARC v5                                           *
  *                                                                           *
@@ -92,7 +92,7 @@
 #define WKF_VIDE                  -2
 #define WKF_INCONNU               -1
 #define WKF_RANDOM89               1
-#define WKF_SEQUENTIEL89           2 
+#define WKF_SEQUENTIEL89           2
 #define WKF_SEQUENTIELFORTRAN89    3
 #define WKF_CCRN                   4
 #define WKF_CCRN_RPN               5
@@ -101,10 +101,10 @@
 #define WKF_BUFR                   8
 #define WKF_BLOK                   9
 #define WKF_FORTRAN               10
-#define WKF_COMPRESS              11 
-#define WKF_GIF89                 12 
-#define WKF_GIF87                 13  
-#define WKF_IRIS                  14 
+#define WKF_COMPRESS              11
+#define WKF_GIF89                 12
+#define WKF_GIF87                 13
+#define WKF_IRIS                  14
 #define WKF_JPG                   15
 #define WKF_KMW                   16
 #define WKF_PBM                   17
@@ -132,7 +132,7 @@
 #define CMCARC_SIGN "CMCARCHS"     /* signature du debut d'un fichier cmcarc */
 #define CMCARC_SIGN_V5 "CMCARCH5"  /* signature du debut d'un fichier cmcarc version 5 */
 
-#define SIGN_STD89_RND  012525252525   
+#define SIGN_STD89_RND  012525252525
 #define SIGN_STD89_SEQ  025252525252
 
 #define  FALSE     (0==1)
@@ -153,15 +153,15 @@
 
 
 /*  Sun registered ras_maptype's */
- 
+
 
 #define  RMT_RAW 2
 
 
 /*  Sun supported ras_maptype's */
- 
-#define  RMT_NONE      0 
-#define  RMT_EQUAL_RGB 1 
+
+#define  RMT_NONE      0
+#define  RMT_EQUAL_RGB 1
 
 
 
@@ -188,20 +188,20 @@
 
 static int endian_int=1;
 static char *little_endian=(char *)&endian_int;
-/***************************************************************************** 
+/*****************************************************************************
  *                            F R E A D 3 2                                  *
- *                                                                           * 
- *Object                                                                     * 
+ *                                                                           *
+ *Object                                                                     *
  *   Reads nitems elements of data, each size bytes long                     *
  *   and swap each bytes for each 4 bytes elements                           *
- *                                                                           * 
- *Arguments                                                                  * 
- *                                                                           * 
- *  IN  ptr     pointer to array to receive  data                            * 
- *  IN  size    size in bytes of elements of data                            * 
- *  IN  nitems  number of items to read                                      * 
- *  IN  stream  file pointer                                                 * 
- *                                                                           * 
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  ptr     pointer to array to receive  data                            *
+ *  IN  size    size in bytes of elements of data                            *
+ *  IN  nitems  number of items to read                                      *
+ *  IN  stream  file pointer                                                 *
+ *                                                                           *
  *****************************************************************************/
 static size_t fread32(void *ptr, size_t size, size_t nitems, FILE *stream)
 {
@@ -214,9 +214,9 @@ static size_t fread32(void *ptr, size_t size, size_t nitems, FILE *stream)
       fprintf(stderr,"fread64 error: size=%d must be a multiple of 4\n",size);
       return(-1);
     }
-    
+
     nr = fread(ptr,size,nitems,stream);
-    
+
     for (i=0; i < n4; i++) {
       *pt4 = (*pt4>>24) | (*pt4<<24) | ((*pt4>>8)&0xFF00) | ((*pt4&0xFF00)<<8);
       pt4++;
@@ -229,7 +229,7 @@ static size_t fread32(void *ptr, size_t size, size_t nitems, FILE *stream)
 }
 
 /*  RRBX stuff */
- 
+
 typedef struct {
                   int ftn1;
                   int nbits;
@@ -258,7 +258,7 @@ typedef struct {
          };
 
 /*  XWDFile  stuff */
- 
+
 #define XWD_FILE_VERSION 7
 
 #ifdef ALL64
@@ -364,11 +364,55 @@ int lng;
    }
 }
 
-/********************************************/
 
-int32_t
-c_wkoffit(char *nom,int l1) 
-{
+//! Return code type of file
+/*
+ @return File type code
+   -3  INEXISTANT
+   -2  VIDE
+   -1  INCONNU
+    1  STANDARD RANDOM 89
+    2  STANDARD SEQUENTIEL 89
+    3  STANDARD SEQUENTIEL FORTRAN 89
+    4  CCRN
+    5  CCRN-RPN
+    6  BURP
+    7  GRIB
+    8  BUFR
+    9  BLOK
+    10 FORTRAN
+    11 COMPRESS
+    12 GIF89
+    13 GIF87
+    14 IRIS
+    15 JPG
+    16 KMW
+    17 PBM
+    18 PCL
+    19 PCX
+    20 PDSVICAR
+    21 PM
+    22 PPM
+    23 PS
+    24 KMW_
+    25 RRBX
+    26 SUNRAS
+    27 TIFF
+    28 UTAHRLE
+    29 XBM
+    30 XWD
+    31 ASCII
+    32 BMP
+    33 STANDARD RANDOM 98
+    34 STANDARD SEQUENTIEL 98
+    35 NETCDF
+ */
+int32_t c_wkoffit(
+    //! Path of the file to examine
+    char *filePath,
+    //! Fall back to legacy fnom mode for filenames if True
+    int l1
+){
    FILE *pf;
    char nom2[4096], nom3[4096], *pn2, *pn3;
    char cbuf[1024];
@@ -379,15 +423,15 @@ c_wkoffit(char *nom,int l1)
    longnom = ( ( l1 <= 4095 ) ? l1 : 4095 );
    pos = 0;
    ptbuf = &buffer[0];
-   if (nom[0] == '+') {     /* garder le nom de fichier tel quel */
+   if (filePath[0] == '+') {     /* garder le nom de fichier tel quel */
      longnom--;
-     strncpy(nom2,nom+1,longnom);
+     strncpy(nom2,filePath+1,longnom);
      nom2[longnom] = '\0';
      while (nom2[--longnom] == ' ')
        nom2[longnom]='\0';
    }
    else {
-     strncpy(nom2,nom,longnom);
+     strncpy(nom2,filePath,longnom);
      nom2[longnom] = '\0';
      pn2 = &nom2[0];
      pn3 = &nom3[0];
@@ -411,14 +455,14 @@ c_wkoffit(char *nom,int l1)
    } else {
 
      /* positionnement a la fin du fichier */
-      fseek(pf,pos,2);       
+      fseek(pf,pos,2);
       lngf=ftell(pf);
       if (lngf == 0) return(retour(pf,WKF_VIDE));
 
      /* positionnement et lecture au debut du fichier */
-      fseek(pf,pos,0); 
+      fseek(pf,pos,0);
       fread(cbuf, 1024, 1, pf);           // suite de caracteres
-      fseek(pf,pos,0);     
+      fseek(pf,pos,0);
       fread32(ptbuf,sizeof(int),1024,pf); // suite d'entiers 32 bits
 
      /* CMCARC v5 */
@@ -451,12 +495,12 @@ c_wkoffit(char *nom,int l1)
          return(retour(pf,WKF_SEQUENTIEL89));
       }
 
-     /* SEQUENTIELFORTRAN89 */ 
+     /* SEQUENTIELFORTRAN89 */
       if (*(ptbuf+29) == SIGN_STD89_SEQ && *(ptbuf+30) == SIGN_STD89_SEQ
                        && isftnbin(pf,*ptbuf)) {
          return(retour(pf,WKF_SEQUENTIELFORTRAN89));
       }
- 
+
     /* STANDARD 98 RANDOM */
       if (*(ptbuf+3) == 'STDR') {
          if (c_fstcheck(nom2)<0) {
@@ -473,10 +517,10 @@ c_wkoffit(char *nom,int l1)
 
     /* BURP */
       if ((*(ptbuf+3) == 'BRP0') || (*(ptbuf+3) == 'bRp0')){
-         if (c_burpcheck(nom2)<0) {
-            return(retour(pf,WKF_CORROMPU));
+         if (c_burpcheck(nom2) < 0) {
+            return(retour(pf, WKF_CORROMPU));
          } else {
-            return(retour(pf,WKF_BURP));
+            return(retour(pf, WKF_BURP));
          }
       }
 
@@ -494,7 +538,7 @@ c_wkoffit(char *nom,int l1)
       if (*(ptbuf) == 'CDF\001'){
          return(retour(pf,WKF_NETCDF));
       }
-	
+
     /* NetCDF 64-bit offset format */
       if (*(ptbuf) == 'CDF\002'){
          return(retour(pf,WKF_NETCDF));
@@ -509,7 +553,7 @@ c_wkoffit(char *nom,int l1)
       if (isftnbin(pf,*ptbuf)){
          return(retour(pf,WKF_FORTRAN));
       }
-   
+
     /* INCONNU  */
       return(retour(pf,test_fichier (nom2) ));
    }
@@ -522,7 +566,7 @@ char *nom;
 {
   int id;
   int repgif;
- 
+
   repgif = isgif (nom);
   if ( repgif != FALSE ) {
      return repgif;
@@ -550,12 +594,12 @@ char *nom;
   } else {
 
 /*  essais la routine de xv-3.00a */
- 
+
      id = ReadFileType( nom );
      if ( id == WKF_INCONNU ) {
 
 /*  dernier espoir */
- 
+
        if ( ispcl( nom ) )
          return WKF_PCL;
        else
@@ -595,7 +639,7 @@ char *path;
    while ( fgets( buffer, 256, fp ) != NULL ) {
 
 /*  first must enter Postcript using PJL */
- 
+
      if ( i == 0 ) {
        for ( j = 0 ; (j < 256)&&(buffer[j]!='\0') ; j++ )
          buffer[j] = (char)toupper((int)buffer[j]);
@@ -713,7 +757,7 @@ char *path;
    if (fread(magic, 6, 1, fp) != 1) return(FALSE);
    if (strncmp( magic, IDGIF87, 6 )==0)
      status = WKF_GIF87;
-   if (strncmp( magic, IDGIF89, 6 )==0) 
+   if (strncmp( magic, IDGIF89, 6 )==0)
      status = WKF_GIF89;
    fclose(fp);
    return(status);
@@ -765,7 +809,7 @@ char *path;
               mode = 1;
               break;
               }
-            else 
+            else
 	      {
               kmwndx++;
 	      }
@@ -1404,7 +1448,7 @@ static int ReadFileType(fname)
 
   rv = WKF_INCONNU;
   if (strncmp((char *) magicno,"GIF87a",6)==0) rv = WKF_GIF87;
- 
+
   else if (strncmp((char *) magicno,"GIF89a",6)==0) rv = WKF_GIF89;
 
   else if (strncmp((char *) magicno,"VIEW",4)==0 ||
@@ -1473,7 +1517,7 @@ int main(int argc, char **argv){
 wordint f77name(wkoffit)(char *nom, F2Cl fl1)
 {
   int l1=fl1;
-  
+
   return(c_wkoffit(nom,l1));
 }
 
