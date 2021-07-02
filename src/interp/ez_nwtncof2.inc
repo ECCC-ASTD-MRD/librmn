@@ -42,7 +42,7 @@
 !*******
       implicit none
           
-      integer ni,nj,i1,j1,i2,j2
+      integer i1, j1, i2, j2
       real cx(i1:i2,6),cy(j1:j2,6),ax(i1:i2),ay(j1:j2)
       
       integer i,j

@@ -26,7 +26,7 @@
       subroutine ez_glat(latroots,groots,nj,hem)
       implicit none
 
-      integer nj, hem,ier
+      integer nj, hem
 
 #include "qqqpar.cdk"
 #include "pi.cdk"

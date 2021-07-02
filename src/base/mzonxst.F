@@ -257,7 +257,7 @@
 ***    Declaration des parametres communs a mzonxst/mvznxst.
 
       Integer       J,NDIM,hhhh,ORD,tttt
-      Real          FACF, FACF3D(NDIM,*)
+      Real          FACF3D(NDIM,*)
 
 ***    Declaration des parametres specifiques a mzonxst.
 
@@ -381,7 +381,7 @@
       Integer       NIC,NJC,NKC, bini, deb,fin,lo,DIFP, 
      +              II,JJ,J0,JJ0,KK,numero,numeroX,numeroY,
      +              place,placeX,placeY,tranche,LocVAL,
-     +              val11,val11X,val11Y, v
+     +              val11,val11X,val11Y
 
 ***    Declaration des valeurs initiales 
 

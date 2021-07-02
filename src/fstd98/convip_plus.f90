@@ -72,7 +72,6 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   real *8 limit1, limit2, temp
   real abs_p
   integer iexp,  offset, itemp, lstring
-  character *128 var_fmt
 
   INTEGER, PARAMETER :: Max_Kind = 31
   integer maxkind
@@ -328,7 +327,6 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   6002 format(' Error in convip: pressure value =',e12.5,' returned ip is -999999')
   6003 format(' Error in convip: arbitrary value=',e12.5,' returned ip is -999999')
   6004 format(' Error in convip: invalid kind =',I10)
-  6005 format(' Error in convip: kind=10 (oldstyle) value out of range=',e12.5,' returned ip is -999999')
   6006 format(' Error in convip: p is out of bounds =',e12.5,' min=',e12.5,' max=',e12.5,' returned ip is -999999')
 ! 6007 format(' Warning in convip: undetermined kind used =',I10)
 
@@ -645,7 +643,6 @@ FUNCTION kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 chara
   if(code/16>9)  return  ! not a potentially valid subkind of kind 15
 
   write(1,string)'I',code/16   ! 'In' code where n=code/16 (n=0,1..,9)
-1 format(A,I1)
 
   return
 end FUNCTION kind_to_string

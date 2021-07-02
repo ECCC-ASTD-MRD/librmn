@@ -70,7 +70,7 @@
       INTEGER IDX,IDY,IFLGS,ILNGR,irien
 
       INTEGER PRI(NPRITOT), NPRI, I
-      integer annee, mois, AA, MM, JJ, date
+      integer annee, AA, MM, JJ, date
 
       date = DATEin
       MRFLOC = -1

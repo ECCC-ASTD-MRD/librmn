@@ -19,18 +19,18 @@
 ! */
       subroutine ez_rgdint_0(zo,px,py,npts,z,ni,j1,j2)
       implicit none
-      
-      integer npts,ni,j1,j2,degree,wrap,i,j,n
+
+      integer npts, ni, j1, j2, i, j, n
       real zo(npts),px(npts),py(npts)
       real z(ni,j1:j2)
-      
+
       do n=1,npts
          i = min(ni,max(1,nint(px(n))))
          j = min(j2,max(j1,nint(py(n))))
-         
+
          zo(n)=z(i,j)
       enddo
-      
+
       return
       end
-      
+

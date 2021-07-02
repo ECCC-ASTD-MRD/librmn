@@ -23,7 +23,7 @@
 !Auteur: Y.Chartier, drpn
 !        Fevrier 1991
 !
-!Objet:  Interpolation bi-cubique de points a partir 
+!Objet:  Interpolation bi-cubique de points a partir
 !        d'une grille source irreguliere.
 !*******
 
@@ -44,7 +44,7 @@
 !***************************************************************************
 !
 !  *   *   *   *
-!  
+!
 !  *   *   *   *
 !        #        .eq.>   pt (x,y)
 !  *  (=)  *   *  .eq.> = pt (i, j)
@@ -52,19 +52,18 @@
 !  *   *   *   *
 !
 !
-!     
+!
 
 !  structure identique pour cy(j,1..6)
 
       real a11,a12,a13,a14
-      real b1
       real x1,x2,x3
       integer i, n
-      
+
       real a1,a2,a3,a4,x,c1,c2,c3,c4,c5,c6
       real fa, fa2, fa3, fa4
-      real dx,dy
-      
+      real dx
+
 !     definition des fonctions in-line
 
 #include "ez_qqqxtrp.cdk"
@@ -78,38 +77,38 @@
       if (ordint.eq.cubique) then
          do 10 n=1,npts
             i = min(ni-2,max(2,ifix(px(n))))
-            
+
             x = ax(i) + (ax(i+1)-ax(i))*(px(n)-i)
-            
+
             a11 = z(i-1)
             a12 = fa2((1.0/(ax(i)-ax(i-1))),z(i-1),z(i))
             a13 = fa3((1.0/(ax(i)-ax(i-1))),1.0/(ax(i+1)-ax(i-1)), 1.0/(ax(i+1)-ax(i)),z(i-1),z(i),z(i+1))
             a14 = fa4((1.0/(ax(i)-ax(i-1))),1.0/(ax(i+1)-ax(i-1)), 1.0/(ax(i+1)-ax(i)),1.0/(ax(i+2)-ax(i-1)),1.0/(ax(i+2)-ax(i)),1.0/(ax(i+2)-ax(i+1)),z(i-1),z(i),z(i+1),z(i+2))
             zo(n)  = fa(a11,a12,a13,a14,x,ax(i-1),ax(i),ax(i+1))
-            
-            
+
+
  10      continue
          endif
 
          if (ordint.eq.lineair) then
             do 20 n=1,npts
                i = min(i2-1,max(i1,ifix(px(n))))
-               
+
                x = ax(i) + (ax(i+1)-ax(i))*(px(n)-i)
-               
+
                dx = (x - ax(i))/(ax(i+1)-ax(i))
-               
+
                zo(n) = zlin((z(i)),z(i+1),dx)
  20         continue
          endif
-         
+
          if (ordint.eq.voisin) then
             do 30 n=1,npts
                i = min(i2,max(i1,nint(px(n))))
                zo(n) = z(i)
  30         continue
          endif
-         
+
          return
          end
 

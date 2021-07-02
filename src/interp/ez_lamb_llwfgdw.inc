@@ -26,8 +26,8 @@
       integer ig1,ig2,ig3,ig4   
       real x1(li*lj,2),y1(li*lj,2),xlat(li*lj,2)
 
-      real delx,dely,uuu,vvv,alpha,psi
-      integer i,j,ier
+      real delx,dely,uuu,vvv,alpha
+      integer i
 
 !     
 !     * 1.866025=(1+sin60),   6.371e+6=earth radius in meters.      

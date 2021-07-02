@@ -58,12 +58,12 @@
 *        APRES USAGE.
 *
 **
-      INTEGER ISTAMP,IST,JD,IYR,IMON,IWK,IDAY,ISTMP,L,LONGUEUR,IUN
-      INTEGER ier,fnom,fclos
-      CHARACTER* 10 IFFLG,IQUOI,IDNT
+      INTEGER ISTAMP, JD, IYR, IMON, IDAY, ISTMP, L, LONGUEUR, IUN
+      INTEGER ier, fnom, fclos
+      CHARACTER* 10 IFFLG, IQUOI, IDNT
       CHARACTER * 128 DATAREP
-      EXTERNAL system_time,fnom,fclos,jdatec,datec,newdate,longueur
-      INTEGER i1,i2
+      EXTERNAL system_time, fnom, fclos, jdatec, datec, newdate, longueur
+      INTEGER i1, i2
       character *26 upper, lower
 
       upper='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -99,10 +99,10 @@ C    %            MOD(ISTAMP,100)*10 + 1
          ISTAMP = 010101011
          CALL GETENV('CMC_OCMPATH',DATAREP)
          L = LONGUEUR(DATAREP)
-         IF (L .GT. 0) THEN 
+         IF (L .GT. 0) THEN
            IUN = 0
            IER = FNOM(IUN,DATAREP(1:L)//'/datafiles/data/uspmadt',
-     %                'SEQ+FTN+FMT',0)                     
+     %                'SEQ+FTN+FMT',0)
          ELSE
            CALL GETENV('AFSISIO',DATAREP)
            L = LONGUEUR(DATAREP)

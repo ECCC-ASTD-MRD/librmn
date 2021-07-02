@@ -71,7 +71,6 @@ function bmf_get2(nom,time1,time2,hgrid,vgrid,r4,imin,imax,jmin,jmax,kmin,kmax) 
   integer imin,imax,jmin,jmax,kmin,kmax,hgrid,vgrid
   integer dtyp
   integer r4(imin:imax,jmin:jmax,kmin:kmax)
-  integer i,j,k
   integer istart,iend,jstart,jend,kstart,kend,ndata
   integer indice
   integer, allocatable, dimension(:) :: cdata

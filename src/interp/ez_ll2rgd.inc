@@ -35,14 +35,10 @@
       logical sym
       real pi,pj,dgrw,d60
       real dellat, dellon, xlat0, xlon0
-      real lambx1, lamby1, res
       real lroots(nj)
       real clat, clon
       
-      real xg(20)
-      character*1 gtyout,gtyin
-      real swlat,swlon,dx,latin1,latin2,yaxislon
-      integer i,j
+      integer i
       
       if (grtyp.eq.'N') then
          call cigaxg(grtyp,pi,pj,d60,dgrw,ig1,ig2,ig3,ig4)

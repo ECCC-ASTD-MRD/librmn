@@ -78,15 +78,9 @@
 
 !
 
-      integer i,j,k,ntot,npart,ier
+      integer i, j
       real psi,u,v
       real xg1, xg2, xg3, xg4
-      character*1 gtypout
-      real xglst(20)
-      integer nxg
-      real lat45,lat50,delx,dely,alpha
-      real uuu,vvv
-      integer un
       real x1(2*li*lj),y1(2*li*lj),lat(2*li*lj)
 
 

@@ -33,11 +33,6 @@
       real dellat, dellon, xlat0, xlon0
       real xlat1,xlat2,xlon1,xlon2
       real xlatgf(npts),xlongf(npts)
-      integer ier
-
-
-      integer i,j
-      real rinc
 
       call cigaxg(grtyp,xlat1,xlon1,xlat2,xlon2,ig1,ig2,ig3,ig4)
       call ez_gfxyfll(xlon,xlat,xlongf,xlatgf,npts,      xlat1,xlon1,xlat2,xlon2)

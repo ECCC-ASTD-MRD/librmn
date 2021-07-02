@@ -55,8 +55,6 @@
      &         NOMBRE, STAT,   PRII,   PRI(2,NPRITOT), AUX(2,NAUXTOT),  &
      &         IER,    AUXX
       logical initdone
-      integer lng
-      character * 128 STRICT8
       CHARACTER*4 APPL, VERSN
       CHARACTER*6 MODE
       DATA        IOUT /6/

@@ -47,7 +47,7 @@ subroutine bmf_splitwrite2(comm_split_func,nom,gni,gnj,nk,time1,time2, &
   integer il,ir,jl,jr,gil,gir,gjl,gjr,vgni,vgnj
   integer vgni_bmf,vgnj_bmf
   logical fill
-  integer j,k,size
+  integer k,size
   integer  comm_split_func, bmf_write2
   external comm_split_func, bmf_write2
   size=dtyp/10/4

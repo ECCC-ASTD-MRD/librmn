@@ -24,11 +24,11 @@
 !
 !Objet:  Interpolation bi-cubique de points a partir d'une grille
 !        source reguliere.
-!        
+!
 !*******
       implicit none
 
-      integer npts,ni,j1,j2
+      integer npts, ni, j1, j2
       real zo(npts),px(npts),py(npts)
       real z(ni,j1:j2)
 !
@@ -44,7 +44,7 @@
 !===========================================
 !
 !     *   *   *   *
-!     
+!
 !     *   *   *   *
 !           #        ==>   pt (x,y)
 !     *  (=)  *   *  ==> = pt (iind, jind)
@@ -53,26 +53,26 @@
 !
 !===========================================
 
-      real*8 y1,y2,y3,y4
-      integer m,n,i,j
+      real*8 y1, y2, y3, y4
+      integer n, i, j
 
 #include "cubic8.cdk"
 
       do n=1,npts
          i = min(ni-2,max(2,ifix(px(n))))
          j = min(j2-2,max(j1+1,ifix(py(n))))
-         
+
          dx = px(n) - i
          dy = py(n) - j
-         
+
          y1=cubic(dble(z(i-1,j-1)),dble(z(i  ,j-1)),dble(z(i+1,j-1)),dble(z(i+2,j-1)),dx)
          y2=cubic(dble(z(i-1,j  )),dble(z(i  ,j  )),dble(z(i+1,j  )),dble(z(i+2,j  )),dx)
          y3=cubic(dble(z(i-1,j+1)),dble(z(i  ,j+1)),dble(z(i+1,j+1)),dble(z(i+2,j+1)),dx)
          y4=cubic(dble(z(i-1,j+2)),dble(z(i  ,j+2)),dble(z(i+1,j+2)),dble(z(i+2,j+2)),dx)
-         
+
          zo(n)=cubic(y1,y2,y3,y4,dy)
       enddo
-      
+
       return
       end
 

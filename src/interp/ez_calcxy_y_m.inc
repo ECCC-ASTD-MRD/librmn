@@ -11,8 +11,8 @@
    real rx, ry
    integer i,j,k,ii,jj,iz
    real lon_min, lon_max, lat_min, lat_max
-   integer valmax, locmax
-   integer ier, i1, j1, k1, exception
+   integer locmax
+   integer ier
    logical point_found
 
    integer ezgetval

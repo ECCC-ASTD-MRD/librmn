@@ -6,7 +6,6 @@
   real Grd_xlat1, Grd_xlon1,Grd_xlon2, Grd_xlat2
      
   real*8 Grd_rot_8(3,3),xyz1_8(3),xyz2_8(3),xyz3_8(3),b_8
-  real   xyz1(3), xyz2(3)
 
 !   Grd_xlat1 = 45.
 !   Grd_xlon1 = 0.

@@ -44,7 +44,6 @@
 
    integer  :: ni,nj,i1,i2,j1,j2,extension
    real ::   x1,x2,x3,x4
-   integer :: limite,imoins1,iplus1,iplus2,wrap
    real, dimension(:) :: ax(ni),ay(j1:j2)
    real, dimension(:,:) :: cx(ni,6),cy(j1:j2,6)
    logical sequence_ok

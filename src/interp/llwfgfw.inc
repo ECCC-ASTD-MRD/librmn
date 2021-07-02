@@ -65,7 +65,6 @@
       real r(3,3),ri(3,3)
 !
 
-      integer i,j,ier
       real xlat1,xlon1,xlat2,xlon2
       real :: xlatgf(li,lj),xlongf(li,lj)
       real :: uvcart(3, li, lj), xyz(3, li, lj)

@@ -11,8 +11,7 @@
    real rx, ry
    integer i,j,k,ii,jj,iz
    real lon_min, lon_max, lat_min, lat_max
-   integer valmax, locmax
-   integer i1, j1, k1, exception
+   integer locmax
    logical point_found
 
    lon_min = minval(gdin_lon)

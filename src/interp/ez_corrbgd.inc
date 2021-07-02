@@ -22,7 +22,7 @@
       integer ni,nj,hem
       real zout(ni,nj)
 
-      integer i,j
+      integer i
       real moyenne, somme
 
 

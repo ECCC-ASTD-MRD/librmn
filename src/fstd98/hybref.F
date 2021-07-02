@@ -19,7 +19,7 @@
 * */
 *
 **********************************************************************
-***s/r hyb2pres - to return pressure given a unit number and 
+***s/r hyb2pres - to return pressure given a unit number and
 *                 a list of fstkeys of the RPN standard file
 **********************************************************************
 *
@@ -28,12 +28,12 @@
       implicit none
 *
       integer iun,NI,NJ,NK
-      real    PX(NI,NJ,NK) 
+      real    PX(NI,NJ,NK)
       integer fstkeys(NK)
       logical logPX_L
 *
 *author
-*     V.Lee Oct 2009 
+*     V.Lee Oct 2009
 *
 *revision
 * ________________________________________________________________
@@ -63,7 +63,7 @@
       real      hyb(NK),p0(NI,NJ),work(NI,NJ)
       integer   nia,nja,nka,ni1,nj1,nk1,i,j,k
       integer   e1_key,hy_key,pt_key,p0_key,xx_key
-      integer   datev, dateo, deet, ipas, ip1a, ip2a, ip3a, 
+      integer   datev, dateo, deet, ipas, ip1a, ip2a, ip3a,
      $          ig1a, ig2a, ig3a, ig4a, bit, datyp,
      $          swa, lng, dlf, ubc, ex1, ex2, ex3, kind
       real      lev,ptop,pref,rcoef,etatop
@@ -73,8 +73,8 @@
 
       hyb2pres=0
 
-      hyb2pres = fstprm (fstkeys(1), dateo, deet, ipas, nia, nja, nka, 
-     $     bit, datyp, ip1a,ip2a,ip3a, tva, var, etik_S, grda, 
+      hyb2pres = fstprm (fstkeys(1), dateo, deet, ipas, nia, nja, nka,
+     $     bit, datyp, ip1a,ip2a,ip3a, tva, var, etik_S, grda,
      $     ig1a,ig2a,ig3a,ig4a, swa,lng, dlf, ubc, ex1, ex2, ex3 )
       if (hyb2pres.lt.0) then
           print *,'hyb2pres error: fstprm on key',fstkeys(1)
@@ -85,8 +85,8 @@
          hyb(1)=lev
       endif
       do k=2,NK
-         hyb2pres = fstprm(fstkeys(k), dateo, deet, ipas, ni1, nj1, nk1, 
-     $     bit, datyp, ip1a,ip2a,ip3a, tva, var, etik_S, grda, 
+         hyb2pres = fstprm(fstkeys(k), dateo, deet, ipas, ni1, nj1, nk1,
+     $     bit, datyp, ip1a,ip2a,ip3a, tva, var, etik_S, grda,
      $     ig1a,ig2a,ig3a,ig4a, swa,lng, dlf, ubc, ex1, ex2, ex3 )
            if (ni1.ne.nia.and.nj1.ne.nja.and.nk1.ne.nka.or.
      $                                               hyb2pres.lt.0) then
@@ -155,7 +155,7 @@
      $                             NK)
               if (logPX_L) PX(:,:,:)=log( 100.0*PX(:,:,:))
               return
-          else 
+          else
 * sigma coordinate found
               hyb2pres=sigma_to_pres(PX,hyb,p0,NI,NJ,NK)
               if (logPX_L) PX(:,:,:)=log( 100.0*PX(:,:,:))
@@ -229,7 +229,7 @@
 *
 *object
 *     To derive pressure fields and model hybrid levels (levels used by
-*     the model) from user-defined hybrid levels and the hybrid reference 
+*     the model) from user-defined hybrid levels and the hybrid reference
 *     parameters(ptop,rcoef,pref)
 *arguments
 * ________________________________________________________________
@@ -309,7 +309,7 @@
             pressure(i,k) = (pia(k)+pibb(k)*ps(i)) * fact
          enddo
          hybm(k) = hybm_8(k)
-      enddo 
+      enddo
       print *,'WARNING: recommend to use hyb_to_pres'
       hybrid_to_pres=0
       return
@@ -375,7 +375,7 @@
 
       implicit none
       integer ig1,ig2,ig3,ig4
-      real ptop,rcoef,pref,x1,x2
+      real rcoef,pref,x1,x2
 *
 *author
 *     Vivian Lee/Michel Valin    Nov.28, 2001
@@ -477,7 +477,7 @@
       character*(4) var
       character*(12) labanl
 
-*     typvar of HY must be X 
+*     typvar of HY must be X
       l = fstinf(iun, i, j, k, date, etik, -1, ip2, ip3, 'X', nom)
       read_decode_hyb = l   !!! BUG FIX read_decode_hyb now properly set
       if (l.ge.0) then
@@ -548,9 +548,8 @@
       external fstecr,hybref_to_ig
 
 
-      integer  l,deet,ip1, ig1, ig2, ig3, ig4, bit
-      integer  idayo, dty,  swa,  lng,  dlf,  ubc,  ex1,  ex2, ex3
-      integer  npas, nia, nja, i, j, k,ierr
+      integer  ip1, ig1, ig2, ig3, ig4
+      integer  ierr
       real     x1,x2
       character*1 blk_S
 
@@ -699,7 +698,7 @@
 **********************************************************************
 *
       integer function hyb_to_pres(pressure,hyb,ptop,rcoef,pref,
-     %                             kind,ps,NI,NJ,NK) 
+     %                             kind,ps,NI,NJ,NK)
       implicit none
       integer NI,NJ,NK,kind
       real pressure(NI*NJ,NK),ptop,ps(NI*NJ),rcoef,pref,hyb(NK)
@@ -716,7 +715,7 @@
 *
 *object
 *     To derive pressure fields from levels derived by "convip_plus", the
-*     kind value from the ip1 codes and the hybrid reference 
+*     kind value from the ip1 codes and the hybrid reference
 *     parameters(ptop,rcoef,pref)
 *
 *arguments
@@ -765,7 +764,7 @@
          do i=1,ni*nj
             pressure(i,k) = pia(k)+pibb(k)*ps(i)
          enddo
-      enddo 
+      enddo
       hyb_to_pres=0
       return
       end
@@ -817,7 +816,7 @@
          do i=1,ni*nj
             pressure(i,k) = pia(k)+pibb(k)*ps(i)
          enddo
-      enddo 
+      enddo
       eta_to_pres=0
       return
       end
@@ -874,7 +873,7 @@
          do i=1,ni*nj
             pressure(i,k) = pia(k)+pibb(k)*ps(i)
          enddo
-      enddo 
+      enddo
       etasef_to_pres=0
       return
       end
@@ -895,7 +894,7 @@
 *revision
 *
 *object
-*     To derive pressure fields from model sigma levels 
+*     To derive pressure fields from model sigma levels
 *
 *arguments
 * ________________________________________________________________
@@ -918,7 +917,7 @@
          do i=1,ni*nj
             pressure(i,k) = hybm(k)*ps(i)
          enddo
-      enddo 
+      enddo
       sigma_to_pres=0
       return
       end

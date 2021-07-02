@@ -97,8 +97,7 @@ use bmf_modsplit
 
 ! Declarations
 
-  integer :: size,head_size,data_size,iun
-  real rvecteur
+  integer :: iun
 
   integer  bmf_connect
   external bmf_connect

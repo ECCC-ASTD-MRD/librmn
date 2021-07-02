@@ -30,12 +30,11 @@
       integer npts, ni, nj
       real x(npts), y(npts), xlat(npts), xlon(npts)
       real lroots(nj)
-      real abs,del,epsphi
       integer ez_cherche
       external ez_cherche
 
-      integer i,j,guess,hem,indy
-      real tmplat, dellat, dellon, xlat0, xlon0
+      integer i, hem, indy
+      real dellon, xlon0
       
       dellon = 360.0 / real(ni)
       xlon0 = 0.0

@@ -2,12 +2,11 @@
 !=============================================================================
   subroutine ibicubic_int4(izo,ni,nj,step,ajus_x,ajus_y)
   implicit none
-  integer npts,ni,nj,nic,njc,step,ajus_x,ajus_y
+  integer ni,nj,step,ajus_x,ajus_y
   integer izo(ni,nj)
-  real*8 y1,y2,y3,y4
   real*8 one, two,three,six, third, sixth,half,my_half
-  real*8 z,z11,z12,z13,z14,z21,z22,z23,z24,z31,z32,z33,z34,z41,z42,z43,z44,fac1,fac2,unsurfac2
-  integer m,n,i,j,ii,jj,ic,jc,iref,jref,nimax,njmax,nilim,njlim
+  real*8 z,z12,z21,z22,z23,z24,z32,z42,fac1,fac2,unsurfac2
+  integer i,j,iref,jref,nimax,njmax,nilim,njlim
   parameter (one = 1.0D0)
   parameter (two = 2.0D0)
   parameter (three = 3.0D0)
@@ -19,7 +18,7 @@
   parameter (fac1 = 108.0D0) 
   parameter (fac2 = 1944.0D0) 
   parameter (unsurfac2 = 1.0D0/fac2) 
-  real*8 icubic, icubic1, icubic2, cubic, dx,dy,z1,z2,z3,z4
+  real*8 icubic, dx, dy, z1, z2, z3, z4
   integer my_nint
 !  cubic(z1,z2,z3,z4,dx)=((((z4-z1)*sixth + 0.5*(z2-z3))*dx  + 0.5*(z1+z3)-z2)*dx  + z3-sixth*z4-0.5*z2-third*z1)*dx+z2
   icubic(z1,z2,z3,z4,dx)=z2+(dx*(6*(dx*(2*(dx*((z4-z1)+3*(z2-z3)))+18*((z1+z3)-2*z2)))+fac1*(6*z3-z4-3*z2-2*z1)))*unsurfac2
@@ -113,14 +112,14 @@
 !=============================================================================
   subroutine ibicubic_int3(izo,ni,nj,izc,nic,njc,step)
   implicit none
-  integer npts,ni,nj,nic,njc,step
+  integer ni,nj,nic,njc,step
   integer izo(ni,nj)
   integer izc(nic,njc)
   real zc(nic,njc)
   real*8 y1,y2,y3,y4
   real*8 one, three,six, third, sixth
   real*8 z11,z12,z13,z14,z21,z22,z23,z24,z31,z32,z33,z34,z41,z42,z43,z44
-  integer m,n,i,j,ii,jj,ic,jc
+  integer i,j,ic,jc
   parameter (one = 1.0D0)
   parameter (three = 3.0D0)
   parameter (six = 6.0D0)

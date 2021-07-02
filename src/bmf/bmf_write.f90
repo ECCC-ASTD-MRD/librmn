@@ -94,7 +94,6 @@ subroutine bmf_write(iun,nom,ni,istart,iend,nj,jstart,jend,nk,kstart, &
 ! Declarations
   integer :: size,head_size,data_size,sizeofint,toto(2)
   integer, allocatable, dimension(:) :: cdata
-  real rvecteur
   integer bmf_char2i, err
 !
   size=dtyp/10/4

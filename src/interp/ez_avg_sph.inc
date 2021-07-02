@@ -1,25 +1,22 @@
    subroutine ez_avg_sph(zout, xx, yy, lats_dst, ni_dst, nj_dst, zin, ni_src, nj_src,extension)
    implicit none
 
-   integer udst, extension
+   integer extension
    integer ni_src, nj_src, ni_dst, nj_dst
    real, dimension(ni_src, nj_src) :: zin
    real, dimension(ni_dst, nj_dst) :: zout,xx,yy
    real, dimension(nj_dst) :: lats_dst
-   integer avg
 
    real, parameter :: degre_a_radian = 0.017453295199
    real, dimension(:), allocatable :: x, y, y_low, y_high, amplif_lats
    real, dimension(:,:), allocatable :: ztmp, x_low, x_high
 
-   integer i, j, nix, njx, nkx, imid, jmid
-   integer lcl_avg
+   integer i, j 
 
-   real dxcore, dycore, dxcoarse, dycoarse
    real total_area, xtile_min, ytile_min, xtile_max, ytile_max, xfrac, yfrac, area
-   integer ez_cherche,ii,jj
-   integer istart, iend, jstart, jend, compression_code, usr_datyp
-   integer low_bound_x, high_bound_x, low_bound_y, high_bound_y
+   integer ii, jj
+   integer istart, iend, jstart, jend
+   integer low_bound_x, high_bound_x
 
    if (extension == 0) then
       low_bound_x = 1

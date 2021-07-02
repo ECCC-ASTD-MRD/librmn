@@ -28,7 +28,7 @@
 
       real delx,dely,uuu,vvv,alpha,psi
 
-      integer i,j
+      integer i
 
 !     
 !     * 1.866025=(1+sin60),   6.371e+6=earth radius in meters.      

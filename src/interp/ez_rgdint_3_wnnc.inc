@@ -24,12 +24,12 @@
 !
 !Objet:  Interpolation bi-cubique de points a partir d'une grille
 !        source reguliere.
-!        
+!
 !*******
       implicit none
 
 
-      integer npts,ni,j1,j2,degree,wrap
+      integer npts, ni, j1, j2, wrap
       real zo(npts),px(npts),py(npts)
       real z(ni,j1:j2)
 !
@@ -51,7 +51,7 @@
 !===========================================
 !
 !     *   *   *   *
-!     
+!
 !     *   *   *   *
 !           #        ==>   pt (x,y)
 !     *  (=)  *   *  ==> = pt (iind, jind)
@@ -60,29 +60,29 @@
 !
 !===========================================
 
-      real*8 y1,y2,y3,y4
-      integer m,n,i,j,stride
+      real*8 y1, y2, y3, y4
+      integer n, i, j
       integer imoins1, iplus1, iplus2, limite
 
 #include "ez_qqqxtrp.cdk"
 #include "cubic8.cdk"
 
       limite = ni+2-wrap
-      
+
       do n=1,npts
          i = min(ni-2+wrap,max(1,max(2-wrap,ifix(px(n)))))
          j = min(j2-2,max(j1+1,ifix(py(n))))
-         
+
          if (wrap.gt.0.and.(i.le.1).or.i.ge.(ni-1)) then
             imoins1 = mod(limite+i-1,limite)
             iplus1  = mod(limite+i+1,limite)
             iplus2  = mod(limite+i+2,limite)
-            
+
             if (imoins1.eq.0) imoins1 = ni
             if (i.eq.0) i = ni
             if (iplus1.eq.0) iplus1 = ni
             if (iplus2.eq.0) iplus2 = ni
-            
+
             if (wrap.eq.1) then
                if (iplus2.eq.ni) iplus2 = 2
                if (imoins1.eq.ni) imoins1=ni-1
@@ -94,15 +94,15 @@
          endif
          dx = px(n) - i
          dy = py(n) - j
-         
+
          y1=cubic(dble(z(imoins1,j-1)),dble(z(i ,j-1)),dble(z(iplus1,j-1)),dble(z(iplus2,j-1)),dx)
          y2=cubic(dble(z(imoins1,j  )),dble(z(i ,j  )),dble(z(iplus1,j  )),dble(z(iplus2,j  )),dx)
          y3=cubic(dble(z(imoins1,j+1)),dble(z(i ,j+1)),dble(z(iplus1,j+1)),dble(z(iplus2,j+1)),dx)
          y4=cubic(dble(z(imoins1,j+2)),dble(z(i ,j+2)),dble(z(iplus1,j+2)),dble(z(iplus2,j+2)),dx)
-         
+
          zo(n)=cubic(y1,y2,y3,y4,dy)
       enddo
-      
+
       return
       end
 

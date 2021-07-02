@@ -19,10 +19,10 @@
 ! */
       subroutine ez_mxm(a,nar,b,nac,c,nbc)
 
-      integer nar,nac,nbc,i,j,k
-      real a(nar,1),b(nac,1),c(nar,1)
+      integer nar, nac, nbc
+      real a(nar,1), b(nac,1), c(nar,1)
 
-      call mxm(a,nar,b,nac,c,nbc)
+      call mxm(a, nar, b, nac, c, nbc)
 
-      return 
+      return
       end

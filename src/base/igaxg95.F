@@ -29,8 +29,8 @@
       real xglst(20)
       integer nxg
 
-      integer iun,ier
-#include "qqqcgb1.cdk"      
+      integer ier
+#include "qqqcgb1.cdk"
 
       nxg=20
       if (gtyin.ne.'!') then
@@ -43,7 +43,7 @@
             igagds95 = -1
             return
          endif
-         
+
          ier = qgblukig(gtyout,xglst,nxg,gtyin,ig1,ig2,ig3,ig4)
          if (ier.lt.0) then
             igagds95 = -1
@@ -53,7 +53,7 @@
             igagds95 = nint(xglst(14))
          endif
       endif
-      
+
  80   format(' ',79('*'))
 
       return
@@ -70,14 +70,14 @@
       integer qqqgbld,qgblukig
       external qqqgbld,qgblukig
 
-      integer iun,ier
-      
+      integer ier
+
       grtypout= '*'
       if (grtypin.ne.'!') then
          if (nxg.lt.4) then
             print 80
             print *, ' <igaxg95> Error: xglist not long enough'
-            print *, 
+            print *,
      $           ' <igaxg95> need 4 elements, list given has only ',nxg
             return
          endif
@@ -90,16 +90,16 @@
          if (ier.lt.0) then
             return
          endif
-            
+
          ier = qgblukig(grtypout,xglst,nxg,grtypin,ig1,ig2,ig3,ig4)
          ig3 = 256*nint(xglst(13))+nint(xglst(14))
          ig4 = 0
          if (ier.lt.0) then
             return
          endif
-         
+
       endif
-      
+
  80   format(' ',79('*'))
 
       return
@@ -116,7 +116,7 @@
 
 #include "qqqcgb1.cdk"
 #include "qqqgb2.cdk"
-      
+
       integer i,gribcode,ni,nj,centercode,subcentercode,projcode
       real xlat00,xlon00,xlatninj,xlonninj,dx,dy,
      $     yaxislon,latin1,latin2
@@ -132,17 +132,17 @@
          if (nxg.lt.14) then
             print 80
             print *, ' <qgblukig> Error: xglist not long enough'
-            print *, 
+            print *,
      $        ' <qgblukig> need 14 elements, list given has only', nxg
             qgblukig = -1
             return
          endif
          read (cgbinfo(i),*,err=110) gribcode,
-     $        centercode,subcentercode,projcode,gtyout, 
+     $        centercode,subcentercode,projcode,gtyout,
      $        xlat00,xlon00,dx,dy,
      $        yaxislon,latin1,latin2,ni,nj,xlatninj,xlonninj,gdsinfo(i)
-         
-         
+
+
          xglst( 1)  = xlat00
          xglst( 2)  = xlon00
          xglst( 3)  = dx
@@ -157,7 +157,7 @@
          xglst(12)  = centercode * 1.0
          xglst(13)  = subcentercode * 1.0
          xglst(14)  = projcode *1.0
-         
+
          if (ig2.eq.nint(xglst(12)).or.ig2.eq.0) then
             found = .true.
          endif
@@ -165,10 +165,10 @@
          i = i+1
          goto 10
       endif
-      
-      qgblukig = i 
+
+      qgblukig = i
       return
-      
+
  80   format(' ',79('*'))
  256  format(256(' '))
  110  print 80
@@ -179,12 +179,12 @@
 
  999  qgblukig = -1
       print *,' <qgblukig> GRIB code ',ig1,'not found...'
-      
+
 
       return
       end
 
-      
+
       subroutine qqqcltab(str,strlen)
       integer strlen
       character str(strlen)
@@ -200,7 +200,7 @@
 
       integer function qqqgbld()
       implicit none
-#include "qqqcgb1.cdk"      
+#include "qqqcgb1.cdk"
 #include "qqqgb2.cdk"
 
       character*256 filename,armnlib
@@ -220,7 +220,7 @@
          qqqgbld = 1
          return
       endif
-      
+
       filename='gribtable'
       iun = 0
       ier = fnom(iun, filename, 'FTN+FMT+R/O+OLD', 0)
@@ -249,7 +249,7 @@
           endif
         endif
       endif
-      
+
       rewind(iun)
  20   read(iun,256,err=110,end=120) buffer
       if (buffer(1:1).ne.'#') then
@@ -259,7 +259,7 @@
          cgbinfo(qqqngb) = buffer
       endif
       goto 20
-      
+
  120  print *,' <qqqgbld> end-of-file reached'
       print *,' <qqqgbld> found ',qqqngb, ' grids'
       once = .true.

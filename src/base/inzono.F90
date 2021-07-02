@@ -849,7 +849,6 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     external fstnbr, fstouv, fstfrm, fstecr, fstecr_s, exfin, fnom, fclos, qqexit
 
     character(len = 1) :: typvar
-    character(len = 4) :: etivar
     character(len = 4) :: nomvar
     character(len = 12) :: etiket
     character(len = 1) :: grtyp
@@ -872,7 +871,7 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     logical :: rewrit
 
     ! Variables de travail non statiques.
-    integer :: nic, njc, nkc, ii, jj, kk, i, i0, i1
+    integer :: nic, njc, nkc, ii, jj, kk, i0, i1
 
     !---------------------------------------------------------------------------
     ! Body

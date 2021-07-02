@@ -37,10 +37,10 @@
 
       integer i,j
       real*8 x2,y2,xy,x3,y3,x2y,xy2
-      real pi,pj,dlon,temp
+      real pi,pj,dlon
       real*8 a(6,6),b(6),vpole,det,deta,detb,detc
       integer l(6),m(6)
-      integer n,nglat,ier
+      integer n, nglat
       real lat1,lat2,dlat,xla0
       integer ilat1,ilat2
 

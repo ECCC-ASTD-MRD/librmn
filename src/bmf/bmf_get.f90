@@ -78,12 +78,10 @@
   integer r8i(2*(imin-1)+1:2*imax,jmin:jmax,kmin:kmax)
   pointer(r8i_,r8i)
   pointer(rr4_,rr4)
-  integer i,j,k
   integer istart,iend,jstart,jend,kstart,kend
   integer indice
   integer dtyp
   logical trouve
-  integer bmf_get2
 
    error=0
    r8i_=loc(r8(imin,jmin,kmin))

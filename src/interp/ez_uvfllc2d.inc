@@ -67,7 +67,7 @@
 
    subroutine ez_uvfllc2d(u, v, x, y, x0, y0, x1, y1, x2, y2, x3, y3)
    implicit none
-   real :: u, v, lat, lon, x, y
+   real :: u, v, x, y
 
    real a,b,c,d,e, f, g,h, i
    real dx1, dx2, dy1, dy2, som_x ,som_y

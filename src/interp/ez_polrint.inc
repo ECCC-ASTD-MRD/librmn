@@ -27,7 +27,6 @@
       real ax(ni),ay(nj)
       character*1 grtyp,grref
       logical vecteur      
-      integer n
       real vpolnor, vpolsud, sum
 
       
@@ -37,8 +36,7 @@
 !Definition des variables locales
 !
 
-      integer i,j
-      integer n1, n2, s1, s2
+      integer i
 
       if(vecteur) then
          return

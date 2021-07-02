@@ -1,23 +1,20 @@
    subroutine ez_avg(zout, xx, yy, ni_dst, nj_dst, zin, ni_src, nj_src, extension)
    implicit none
 
-   integer udst
    integer ni_src, nj_src, ni_dst, nj_dst
    real, dimension(ni_src, nj_src) :: zin
    real, dimension(ni_dst, nj_dst) :: zout,xx,yy
    real, dimension(ni_dst) :: x, x_low, x_high
    real, dimension(nj_dst) :: y, y_low, y_high
    real, dimension(:,:), allocatable :: ztmp
-   integer avg, extension
-   integer low_bound_x, high_bound_x, low_bound_y, high_bound_y
+   integer extension
+   integer low_bound_x, high_bound_x
 
-   integer i, j, nix, njx, nkx, imid, jmid
-   integer lcl_avg
+   integer i, j
 
-   real dxcore, dycore, dxcoarse, dycoarse
    real total_area, xtile_min, ytile_min, xtile_max, ytile_max, xfrac, yfrac, area
-   integer ez_cherche,ii,jj
-   integer istart, iend, jstart, jend, compression_code, usr_datyp
+   integer ii, jj
+   integer istart, iend, jstart, jend
 
    if (extension == 0) then
       low_bound_x = 1

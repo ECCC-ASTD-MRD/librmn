@@ -21,7 +21,7 @@
       implicit none
       integer n
       real x(n),y(n),lat(n),lon(n)
-      real lat11,lon11,latninj,lonninj,latin1,latin2,yaxislat,yaxislon
+      real latin1,latin2,yaxislat,yaxislon
       
       real pi,pisur4,d2r,rn,rphi1,rphi2,r,f,rtan,rho,theta,rhozero,dlon,tmplat
       integer i

@@ -27,7 +27,7 @@
 !        d'une grille gaussienne.
 !*******
 
-      integer npts,i1,i2,j1,j2,degree
+      integer npts, i1, i2, j1, j2
       real zo(npts),px(npts),py(npts)
       real ay(j1:j2),cy(6)
       real z(i1:i2,j1:j2)
@@ -55,10 +55,8 @@
 !  *   *   *   *
 !
 !
-      integer i, j, m, n,stride
-      real*8 x, x1, x2, x3, x4
-      real*8 b1, b2,  b3,  b4
-      real*8 b11, b12, b13, b14
+      integer i, j, n
+      real*8 x, x1, x2, x3
       real*8 y,y1,y2,y3,y4
       real*8 y11, y12, y13, y14
       real*8 ay1, ay2, ay3, ay4

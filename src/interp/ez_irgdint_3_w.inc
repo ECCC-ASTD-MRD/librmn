@@ -27,7 +27,7 @@
 !     d'une grille source irreguliere.
 !*******
       
-      integer npts,ni,j1,j2,degree,wrap,limite
+      integer npts, ni, j1, j2, wrap
       integer imoins1, iplus1, iplus2
       real zo(npts),px(npts),py(npts)
       real ax(ni),ay(j1:j2),cx(ni,6),cy(j1:j2,6)
@@ -68,7 +68,7 @@
 !     
 !  structure identique pour cy(j,1..6)
 
-      integer i, j, m, n
+      integer i, j, n
       real*8 a11,a12,a13,a14,a21,a22,a23,a24
       real*8 a31,a32,a33,a34,a41,a42,a43,a44
       real*8 b1,b2,b3,b4,b11,b12,b13,b14

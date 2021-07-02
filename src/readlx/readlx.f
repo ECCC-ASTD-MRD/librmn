@@ -87,15 +87,15 @@
 
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
-      INTEGER NARG,NPRM,DOPE,NDOPE,DOPEA,DOPES,PARM
+      INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
       Integer*8 ADR
 **
 
       IF((N .LE. NARG))THEN
          ARGDIMS = DOPE(N)
-      ELSE 
+      ELSE
          ARGDIMS = 0
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -119,7 +119,7 @@
 
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
-      INTEGER NARG,NPRM,DOPE,NDOPE,DOPEA,DOPES,PARM
+      INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
       Integer*8 ADR
 *
 **
@@ -127,13 +127,13 @@
       INTEGER I,BASE
       IF( (N.GT. NARG))THEN
          ARGDOPE = 0
-      ELSE 
+      ELSE
          BASE = DOPEA(N)
          ARGDOPE = DOPEA(N+1) - DOPEA(N)
          DO 23002 I = 1,MIN(DOPEA(N+1)-DOPEA(N),ND)
             LISTE(I) = DOPES(BASE+I-1)
-23002    CONTINUE 
-      ENDIF 
+23002    CONTINUE
+      ENDIF
       RETURN
       END
 
@@ -175,19 +175,19 @@
       IZ = IND
       IF((QLXDTYP(IZ).EQ.1))THEN
          INDX = IZ
-      ELSE 
+      ELSE
          INDX = NINT(Z)
-      ENDIF 
+      ENDIF
       CALL QLXFND(KLE,LOCVAR,LOCCNT,LIMITE,ITYP)
       IF((ITYP.NE.0 .AND. ITYP.NE.1))THEN
          ERR = .TRUE.
-      ENDIF 
+      ENDIF
       IF((INDX.GT.LIMITE .OR. INDX.LE.0))THEN
          ERR = .TRUE.
-      ENDIF 
+      ENDIF
       IF((.NOT.ERR))THEN
          CALLPEEK(LOCVAR,INDX,VALEUR)
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -198,7 +198,7 @@
 
       CHARACTER *(*) KLE
       LOGICAL ERR
-      INTEGER LIMITS,INF,ITYP
+      INTEGER LIMITS, ITYP
       Integer*8 LOCCNT, locvar8
       Integer*8 get_address_from
       EXTERNAL get_address_from
@@ -216,18 +216,18 @@
 
 *            QLXADR = QLXMAD(LOCVAR,IND)
             QLXADR = get_address_from(VARI(IND))
-         ELSE 
+         ELSE
             ERR=.TRUE.
             CALL QLXERR(21017,'QLXADR')
             QLXADR=0
-         ENDIF 
+         ENDIF
 
 *
-      ELSE 
+      ELSE
          QLXADR=0
 
 *
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -284,7 +284,7 @@
 
       IF((.NOT.ERR))THEN
          CALL QLXTOK
-      ENDIF 
+      ENDIF
       IF((TOKEN(1:2).EQ.'= ' .AND. TYPE.EQ.4 .AND. .NOT. ERR)
      %)THEN
 23004    IF((.NOT.ERR .AND. .NOT.FIN))THEN
@@ -293,30 +293,30 @@
                CALL QLXXPR(ERR)
                IF((ERR))THEN
                   GOTO 23005
-               ENDIF 
-            ENDIF 
+               ENDIF
+            ENDIF
             IF((TYPE.EQ.8))THEN
                call get_content_of_location(JVAL,1,JVAL)
-            ELSE 
+            ELSE
                IF((TYPE.EQ.1 .AND. OLDTYP.EQ.4))THEN
                   ITEMP(1)=JVAL
                   JLEN=1
 
 *
-               ELSE 
+               ELSE
                   IF((TYPE.EQ.2 .AND. OLDTYP.EQ.4))THEN
                      TEMP(1)=ZVAL
                      JLEN=1
 
 *
-                  ELSE 
+                  ELSE
                      IF((TYPE.EQ.3 .AND. OLDTYP.EQ.4))THEN
                         JLEN=(LEN+KARMOT-1)/KARMOT
                         READ(TOKEN,LINEFMT)(ITEMP(J),J=1,JLEN)
 101                     FORMAT(20A4)
 
 *
-                     ELSE 
+                     ELSE
                         IF((TYPE.EQ.4))THEN
                            IF((TOKEN(1:2).EQ.'% '))THEN
                               IF((OLDTYP.EQ.1 .AND.(.NOT.IAREP))
@@ -325,70 +325,70 @@
                                  IF((IREPCN.GT.0))THEN
                                     IAREP=.TRUE.
                                     JLEN=0
-                                 ELSE 
+                                 ELSE
                                     CALL QLXERR(21001,'QLXASG')
                                     ERR=.TRUE.
-                                 ENDIF 
-                              ELSE 
+                                 ENDIF
+                              ELSE
                                  CALL QLXERR(21002,'QLXASG')
                                  ERR=.TRUE.
-                              ENDIF 
+                              ENDIF
 
 *
-                           ELSE 
+                           ELSE
                               IF((TOKEN(1:2).EQ.', ' .OR.TOKEN(1:2).
      %                        EQ.'$ '))THEN
                                  IF(((IREPCN*MAX(JLEN,1)+IND).GT.
      %                           LIMIT+1))THEN
                                     CALL QLXERR(21003,'QLXASG')
                                     ERR=.TRUE.
-                                 ELSE 
+                                 ELSE
                                     DO 23030  I=1,IREPCN
                                        DO 23032  J=1,JLEN
                                           call set_content_of_location
      %                                    (VAL,IND+J-1,ITEMP(J))
-23032                                  CONTINUE 
+23032                                  CONTINUE
                                        IND=IND+MAX(JLEN,1)
-23030                               CONTINUE 
+23030                               CONTINUE
                                     IREPCN=1
                                     IAREP=.FALSE.
                                     JLEN=0
                                     ICOUNT = IND-1
-                                 ENDIF 
+                                 ENDIF
                                  FIN=TOKEN(1:1).EQ.'$'
-                              ELSE 
+                              ELSE
                                  CALL QLXERR(21004,'QLXASG')
                                  ERR=.TRUE.
-                              ENDIF 
-                           ENDIF 
+                              ENDIF
+                           ENDIF
 
 *
-                        ELSE 
+                        ELSE
                            IF((TYPE.EQ.0 .AND. OLDTYP.EQ.4)
      %                     )THEN
                               JLEN=1
                               ITEMP(1)=QLXVAL(TOKEN(1:8),ERR)
-                           ELSE 
+                           ELSE
                               CALL QLXERR(21005,'QLXASG')
                               ERR=.TRUE.
-                           ENDIF 
-                        ENDIF 
-                     ENDIF 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                  ENDIF
+               ENDIF
+            ENDIF
             OLDTYP=TYPE
             GOTO 23004
-         ENDIF 
-23005    CONTINUE 
+         ENDIF
+23005    CONTINUE
 
 *
-      ELSE 
+      ELSE
          CALL QLXERR(21006,'QLXASG')
          ERR=.TRUE.
 
 *
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -420,11 +420,11 @@
       IF((NC.GT.1))THEN
          INLINE(NC-1:NC-1)=ICAR
          NC=NC-1
-      ELSE 
+      ELSE
          CALL QLXERR(81007,'QLXBAK')
 *
 
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -450,7 +450,7 @@
 
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
-      INTEGER NARG,NPRM,DOPE,NDOPE,DOPEA,DOPES,PARM
+      INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
       Integer*8 ADR
       CHARACTER * 20 LINEFMT
       INTEGER KARMOT
@@ -480,7 +480,7 @@
          DOPE(I) = 0
          DOPEA(I) = 0
          ADR(I) = LOCDUM
-23000 CONTINUE 
+23000 CONTINUE
       NARG = 0
       NPRM = 0
       NPRM0 = 0
@@ -493,7 +493,7 @@
          ERR = .TRUE.
 
 *
-      ENDIF 
+      ENDIF
 23004 IF( (.NOT. ERR .AND. .NOT.FIN))THEN
          CALL QLXTOK
          IF( (PREVI .EQ.4))THEN
@@ -503,19 +503,19 @@
                IF((INLIST))THEN
                   NPRM = MIN(NPRM+1,101)
                   PARM(NPRM) = QLXVAL(KLE,ERR)
-               ELSE 
+               ELSE
                   NARG = MIN(NARG+1,41)
                   ADR(NARG) = QLXADR(KLE,ERR)
                   DOPEA(NARG) = NDOPES + 1
                   NPRM0 = NPRM - 1
-               ENDIF 
+               ENDIF
                NDOPES = MIN(NDOPES+1,101)
                DOPES(NDOPES) = TYPE + 1 * 256 + (NPRM-NPRM0)*256 *
      %         256
                DOPE(NARG) = DOPE(NARG) + 1
 
 *
-            ELSE 
+            ELSE
                IF( (TYPE.EQ.1 .OR. TYPE.EQ.2))THEN
                   NPRM = MIN(NPRM+1,101)
                   PARM(NPRM) = JVAL
@@ -525,14 +525,14 @@
                      ADR(NARG) =get_address_from(PARM(NPRM))
                      DOPEA(NARG) = NDOPES + 1
                      NPRM0 = NPRM - 1
-                  ENDIF 
+                  ENDIF
                   NDOPES = MIN(NDOPES+1,101)
                   DOPES(NDOPES) = TYPE + 1 * 256 + (NPRM-NPRM0)*256
      %             *256
                   DOPE(NARG) = DOPE(NARG) + 1
 
 *
-               ELSE 
+               ELSE
                   IF( (TYPE .EQ.3))THEN
                      JLEN = MIN((LEN+KARMOT-1) / KARMOT , 101 - NPRM
      %               )
@@ -541,7 +541,7 @@
                         ADR(NARG) =get_address_from(PARM(NPRM+1))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM
-                     ENDIF 
+                     ENDIF
                      READ(TOKEN,LINEFMT) (PARM(J+NPRM),J=1,JLEN)
 101                  FORMAT(25 A4)
                      NDOPES = MIN(NDOPES+1,101)
@@ -554,7 +554,7 @@
                      PREVI =7
 
 *
-                  ELSE 
+                  ELSE
                      IF((TYPE.EQ.4 .AND. TOKEN(1:1).EQ.'[' .AND. .
      %               NOT.INLIST))THEN
                         INLIST = .TRUE.
@@ -563,49 +563,49 @@
                         ADR(NARG) =get_address_from(PARM(NPRM+1))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM
-                     ELSE 
+                     ELSE
                         IF((TYPE.EQ.4 .AND. TOKEN(1:1).EQ.')' .AND.
      %                   NARG.EQ.0))THEN
                            FIN = .TRUE.
-                        ELSE 
+                        ELSE
                            CALL QLXERR(81019,'QLXCALL')
                            ERR = .TRUE.
 
 *
-                        ENDIF 
-                     ENDIF 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
+                        ENDIF
+                     ENDIF
+                  ENDIF
+               ENDIF
+            ENDIF
 
 *
-         ELSE 
+         ELSE
             IF( (TYPE.EQ.4 .AND. (TOKEN(1:1).EQ.',' .OR. TOKEN(1:1)
      %         .EQ.')')))THEN
                FIN = TOKEN(1:1).EQ.')'
                PREVI =4
 
 *
-            ELSE 
+            ELSE
                IF((TYPE.EQ.4 .AND. TOKEN(1:1).EQ.']' .AND. INLIST)
      %         )THEN
                   INLIST = .FALSE.
 
 *
-               ELSE 
+               ELSE
                   CALL QLXERR(81020,'QLXCALL')
                   ERR = .TRUE.
 
 *
-               ENDIF 
-            ENDIF 
+               ENDIF
+            ENDIF
 
 *
-         ENDIF 
+         ENDIF
 
 *
          GOTO 23004
-      ENDIF 
+      ENDIF
       DOPEA(NARG+1) = NDOPES + 1
       IF( (.NOT. ERR))THEN
          LIM1 = LIMITS/100
@@ -616,24 +616,24 @@
             ERR = .TRUE.
 
 *
-         ELSE 
+         ELSE
             IF( (NARG.LT.LIM1 .OR. NARG.GT.LIM2))THEN
                CALL QLXERR(81022,'QLXCALL')
                ERR = .TRUE.
 
 *
-            ELSE 
+            ELSE
                call set_content_of_location(ICOUNT,1,NARG)
                JUNK=RMTCALL(SUB,ADR)
                call set_content_of_location(ICOUNT,1,0)
                CALL QLXFLSH('$')
 
 *
-            ENDIF 
-         ENDIF 
+            ENDIF
+         ENDIF
 
 *
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -676,20 +676,20 @@
          NC=NC+1
 
 *
-      ELSE 
+      ELSE
          IF( (.NOT. EOFL))THEN
 1           CONTINUE
             IF((READREC.GT.CURREC))THEN
                READREC=0
-            ENDIF 
+            ENDIF
             IF((READREC.EQ.0))THEN
                READ(INPFILE,'(A80)',END=10)INLINE(21:100)
                CURREC = CURREC + 1
                WRITE(TMPFILE,'(A80)',REC=CURREC)INLINE(21:100)
-            ELSE 
+            ELSE
                READ(TMPFILE,'(A80)',REC=READREC)INLINE(21:100)
                READREC = READREC + 1
-            ENDIF 
+            ENDIF
             INLINE(1:20) = ' '
             COMMENT = .FALSE.
             PRTFLAG = SKIPFLG
@@ -698,39 +698,39 @@
                IF( (PRTFLAG.EQ. 0))THEN
                   COMMENT = .TRUE.
                   PRTFLAG=3
-               ELSE 
+               ELSE
                   COMMENT = .TRUE.
-               ENDIF 
-            ENDIF 
+               ENDIF
+            ENDIF
             WRITE(6,'(1X,A8,1X,A80)')   SKIPMSG(PRTFLAG),INLINE(21:
      %      100)
             IF( ((INLINE.EQ.' ') .OR. (COMMENT)))THEN
                GOTO 1
-            ENDIF 
+            ENDIF
             LAST=100
 23014       IF((LAST.GT.21 .AND.INLINE(LAST:LAST).EQ.' '))THEN
                LAST=LAST-1
                GOTO 23014
-            ENDIF 
+            ENDIF
             IF( (INLINE(LAST:LAST) .EQ.'_'))THEN
                LAST = LAST-1
-            ELSE 
+            ELSE
                IF( (INLINE(LAST:LAST) .NE.','))THEN
                   LAST = LAST+1
                   INLINE(LAST:LAST) ='$'
-               ENDIF 
-            ENDIF 
+               ENDIF
+            ENDIF
             QLXCHR=INLINE(21:21)
             NC=22
 
 *
-         ELSE 
+         ELSE
             CALL QLXERR(81008,'QLXCHR')
             CALL ABORT
 
 *
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       RETURN
 10    INLINE = ' END$'
       QLXCHR=' '
@@ -764,9 +764,9 @@
       INTEGER ITEM
       IF((ABS(ITEM).LE.2147483647))THEN
          QLXDTYP =1
-      ELSE 
+      ELSE
          QLXDTYP =2
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -877,7 +877,7 @@
 
 *
          GOTO 23000
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -894,7 +894,7 @@
       INTEGER QLXNVAR, QLXUNDF, QLXPRNT
       EXTERNAL QLXNVAR, QLXUNDF, QLXPRNT, LOW2UP
       CHARACTER *8 IKEY, CLEF(12)
-      INTEGER DUMMY,IPNT,POS
+      INTEGER DUMMY, POS
       SAVE DUMMY
       DATA CLEF /'END','IF','ELSE','ENDIF','WHILE','ENDWHILE',
      %'ENDDATA','ENDCASE','ENDREAD','@PRINT','@DEFINE','@UNDEF'/
@@ -912,8 +912,8 @@
          IF( (IKEY.EQ. CLEF(I)))THEN
             POS = I
             GOTO 05
-         ENDIF 
-23000 CONTINUE 
+         ENDIF
+23000 CONTINUE
 05    CONTINUE
       GOTO (10,20,30,40,50,60,70,80,90,100,110,120,130) POS+1
 10    CONTINUE
@@ -998,24 +998,24 @@
          IF((((TYPE.EQ.1) .OR.(TYPE.EQ.0)) .AND. JVAL.GT.0)
      %   )THEN
             IND=JVAL
-         ELSE 
+         ELSE
             CALL QLXERR(21009,'QLXIND')
             ERR=.TRUE.
-         ENDIF 
+         ENDIF
          IF((.NOT.ERR))THEN
             CALL QLXTOK
             IF((TOKEN(1:1).NE.']' .OR. TYPE.NE.4))THEN
                CALL QLXERR(21010,'QLXIND')
                ERR=.TRUE.
-            ENDIF 
-         ENDIF 
+            ENDIF
+         ENDIF
 
 *
-      ELSE 
+      ELSE
          CALL QLXBAK(IC)
 *
 
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -1036,7 +1036,7 @@
          PRINT *,' *** QLXINX ne peut etre utilise pour ityp <> 2'
          CALL QLXERR(81013,'QLXINS')
          STOP
-      ENDIF 
+      ENDIF
       CALL QQLXINS(IDUM,KEY,ICOUNT,LIMITS,ITYP,XTERN)
       RETURN
       END
@@ -1062,9 +1062,9 @@
 *           CALL QLXERR(10013,'QLXINS')
 *           CALL QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,IVAR)
 
-      ELSE 
+      ELSE
          CALL QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,READLX)
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -1092,7 +1092,7 @@
       CHARACTER *8 NAMES(256)
       COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
       COMMON /qqq_nrdlx2/ IPTADR
-      
+
       DATA ITAB /256 * 0/
       DATA IPTADR /256 * 0,256 * 0/
       DATA NAMES /256 * ' '/
@@ -1106,37 +1106,37 @@
 23000 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
          IPNT = IPNT - 1
          GOTO 23000
-      ENDIF 
+      ENDIF
       IF((IPNT.EQ.0))THEN
          NENTRY=NENTRY+1
          IPNT=NENTRY
 
 *
-      ENDIF 
+      ENDIF
       IF((IPNT.EQ.256))THEN
          CALL QLXERR(10011,'QLXINS')
 
 *
-      ENDIF 
+      ENDIF
       IF((LIMITS.LT.0 .OR. LIMITS.GT.99999))THEN
          CALL QLXERR(20012,'QLXINS')
          RETURN
 
 *
-      ENDIF 
+      ENDIF
       IF((ITYP.LT.0 .OR.ITYP.GT.13))THEN
          CALL QLXERR(20013,'QLXINS')
          RETURN
 
 *
-      ENDIF 
+      ENDIF
       ICOUNT=0
       NAMES(IPNT)=IKEY
       IF( (ITYP.EQ. 2))THEN
          IPTADR(1,IPNT)=get_address_from(XTERN)
-      ELSE 
+      ELSE
          IPTADR(1,IPNT)=get_address_from(IVAR)
-      ENDIF 
+      ENDIF
       ITAB(3,IPNT)=IOR(LIMITS,ishft(ITYP,24))
       IPTADR(2,IPNT)=get_address_from(ICOUNT)
       RETURN
@@ -1147,7 +1147,7 @@
       Integer*8 ivar,icount
       INTEGER ITYP,LIMITS
       CHARACTER *(*) KEY
-      
+
       INTEGER ITAB(3:3,256),NENTRY,IPNT
       Integer*8 IPTADR(2,256)
       CHARACTER *8 NAMES(256)
@@ -1155,7 +1155,7 @@
       COMMON /qqq_nrdlx2/ IPTADR
 
       character *8 ikey
-      
+
 *
 *     TROUVER LA CLE
 *
@@ -1165,7 +1165,7 @@
 23012 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
          IPNT = IPNT - 1
          GOTO 23012
-      ENDIF 
+      ENDIF
       IF((IPNT.EQ. 0))THEN
          ITYP = -1
          IVAR = 0
@@ -1176,7 +1176,7 @@
 *
 *     DECORTIQUER LES PARAMETRES DE LA CLE
 *
-      ENDIF 
+      ENDIF
       IVAR=IPTADR(1,IPNT)
       ICOUNT=IPTADR(2,IPNT)
       LIMITS=IAND(ITAB(3,IPNT),ishft(-1,-(32-(24))))
@@ -1194,23 +1194,23 @@
 23016 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
          IPNT = IPNT - 1
          GOTO 23016
-      ENDIF 
+      ENDIF
       IF((IPNT .EQ. 0))THEN
          RETURN
-      ENDIF 
+      ENDIF
       DO 23020 I=IPNT, NENTRY-1
          IPTADR(1,I) = IPTADR(1,I+1)
          ITAB(3,I) = ITAB(3,I+1)
          IPTADR(2,I) = IPTADR(2,I+1)
          NAMES(I)  = NAMES(I+1)
-23020 CONTINUE 
+23020 CONTINUE
       NENTRY = NENTRY - 1
       RETURN
       ENTRY QLXDTB
       PRINT *,' NAMES, LOCVAR, TYPE/LIMITS, LOCCOUNT'
       DO 23022 I=1,NENTRY
          PRINT 101, NAMES(I),IPTADR(1,I),ITAB(3,I),IPTADR(2,I)
-23022 CONTINUE 
+23022 CONTINUE
 101   FORMAT (2X,A8,3Z22)
       RETURN
       END
@@ -1247,9 +1247,9 @@
 
       IF((IB(1:1).EQ.'.'))THEN
          ILX=1
-      ELSE 
+      ELSE
          ILX=0
-      ENDIF 
+      ENDIF
       I=QLXCHR()
 *
 
@@ -1260,7 +1260,7 @@
 
 *
          GOTO 23002
-      ENDIF 
+      ENDIF
       IF((I.EQ.'.' .AND. IB(1:1).NE.'.'))THEN
          ILX=1
          LENG=MIN(21,LENG+1)
@@ -1271,15 +1271,15 @@
             IB(LENG:LENG)=I
             I=QLXCHR()
             GOTO 23006
-         ENDIF 
+         ENDIF
 
 *
-      ENDIF 
+      ENDIF
       IF((I.EQ.'E' ))THEN
          IF((ILX.EQ.0))THEN
             LENG=MIN(21,LENG+1)
             IB(LENG:LENG)='.'
-         ENDIF 
+         ENDIF
          ILX=1
          LENG=MIN(21,LENG+1)
          IB(LENG:LENG)=I
@@ -1291,53 +1291,53 @@
             I=QLXCHR()
             IF((I.GE.'0' .AND. I.LE.'9'))THEN
                GOTO 6
-            ENDIF 
-         ENDIF 
+            ENDIF
+         ENDIF
 
 *
-      ENDIF 
+      ENDIF
       IF((LENG.GE.21))THEN
          QLXNUM=5
 
 *
-      ELSE 
+      ELSE
          IF((ILX.EQ.0))THEN
             IF((I.NE.'B'))THEN
                QLXNUM=1
-            ELSE 
+            ELSE
                QLXNUM=6
                I=QLXCHR()
                DO 23022  J=LENG,1,-1
                   IF((IB(J:J).GT.'7'))THEN
                      QLXNUM=5
-                  ENDIF 
+                  ENDIF
                   CTMP = IB(J:J)
                   IB(20-LENG+J:20-LENG+J)=CTMP
-23022          CONTINUE 
+23022          CONTINUE
                DO 23026  J=1,20-LENG
                   IB(J:J)='0'
-23026          CONTINUE 
+23026          CONTINUE
                LENG=20
-            ENDIF 
+            ENDIF
 
 *
-         ELSE 
+         ELSE
             IF((LENG.GT.1))THEN
                IF((IB(LENG:LENG).EQ.'.'))THEN
                   QLXNUM=2
-               ELSE 
+               ELSE
                   IF((IB(LENG:LENG).GE.'0' .AND. IB(LENG:LENG).LE.
      %            '9'))THEN
                      QLXNUM=2
-                  ELSE 
+                  ELSE
                      QLXNUM=5
-                  ENDIF 
-               ENDIF 
-            ELSE 
+                  ENDIF
+               ENDIF
+            ELSE
                QLXNUM=5
-            ENDIF 
-         ENDIF 
-      ENDIF 
+            ENDIF
+         ENDIF
+      ENDIF
       CALL QLXBAK(I)
 *
 
@@ -1366,11 +1366,11 @@
       CALL QLXLOOK(IVAR,IKEY,ICOUNT,LIMITS,ITYP)
       IF((ITYP.NE.-1))THEN
          RETURN
-      ENDIF 
+      ENDIF
       IF((NSC+NW .GT.1024+1))THEN
          CALL QLXERR(21011,'DEFINE')
          RETURN
-      ENDIF 
+      ENDIF
       CALL QLXINS(SC(NSC),IKEY,DUMMY,NW,1)
       NSC = NSC + NW
       RETURN
@@ -1394,28 +1394,28 @@
       POINTER (PTOK,TOK(*))
       IF((ERR))THEN
          RETURN
-      ENDIF 
+      ENDIF
       IF((OPRTR.EQ.4 .OR. OPRTR.EQ.17))THEN
          MINOPER = 1
-      ELSE 
+      ELSE
          MINOPER = 2
-      ENDIF 
+      ENDIF
       IF((NTOKEN.LT.MINOPER))THEN
          ERR = .TRUE.
          RETURN
-      ENDIF 
+      ENDIF
       IF((TOKTYPE(NTOKEN).GT.0))THEN
          call get_content_of_location(TOKENS(NTOKEN),1,TOKENS(NTOKEN))
          TOKTYPE(NTOKEN) = 0
-      ENDIF 
+      ENDIF
       IF((OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND.
      % OPRTR.NE.4))THEN
          IF((TOKTYPE(NTOKEN-1).GT.0))THEN
             call get_content_of_location(TOKENS(NTOKEN-1),1,
      %      TOKENS(NTOKEN-1))
             TOKTYPE(NTOKEN-1) = 0
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       REALOP = ABS(TOKENS(NTOKEN)).GT.2147483647
       IZ1 = TOKENS(NTOKEN)
       IF((OPRTR.NE.2 .AND. OPRTR.NE.17 .AND. OPRTR.NE.4))THEN
@@ -1424,12 +1424,12 @@
          IF((REALOP))THEN
             IF((ABS(IZ1).LE.2147483647))THEN
                Z1 = TOKENS(NTOKEN)
-            ENDIF 
+            ENDIF
             IF((ABS(IZ2).LE.2147483647))THEN
                Z2 = TOKENS(NTOKEN-1)
-            ENDIF 
-         ENDIF 
-      ENDIF 
+            ENDIF
+         ENDIF
+      ENDIF
       IR1 = 0
       GOTO (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21)
      %OPRTR
@@ -1440,13 +1440,13 @@
      % REALOP))THEN
          ERR = .TRUE.
          RETURN
-      ENDIF 
+      ENDIF
       IF((TOKENS(NTOKEN).GE.TOKTYPE(NTOKEN-1)))THEN
          ERR = .TRUE.
          RETURN
 
 *temporaire      TOKENS(NTOKEN-1)=QLXMAD(TOKENS(NTOKEN-1),TOKENS(NTOKEN))
-      ENDIF 
+      ENDIF
       PTOK = get_address_from(TOKENS(NTOKEN-1))
       TOKENS(NTOKEN-1) = TOK(TOKENS(NTOKEN))
       NTOKEN = NTOKEN - 1
@@ -1456,155 +1456,155 @@
 4     CONTINUE
       IF((REALOP))THEN
          R1 = -Z1
-      ELSE 
+      ELSE
          IR1 = -IZ1
-      ENDIF 
+      ENDIF
       GOTO 1000
 5     CONTINUE
       IF((REALOP))THEN
          R1 = Z2**Z1
-      ELSE 
+      ELSE
          IR1 = IZ2**IZ1
-      ENDIF 
+      ENDIF
       GOTO 1000
 6     CONTINUE
       IF((REALOP))THEN
          R1 = Z2*Z1
-      ELSE 
+      ELSE
          IR1 = IZ2*IZ1
-      ENDIF 
+      ENDIF
       GOTO 1000
 7     CONTINUE
       IF((REALOP))THEN
          R1 = Z2/Z1
-      ELSE 
+      ELSE
          IR1 = IZ2/IZ1
-      ENDIF 
+      ENDIF
       GOTO 1000
 8     CONTINUE
       IF((REALOP))THEN
          R1 = Z2+Z1
-      ELSE 
+      ELSE
          IR1 = IZ2+IZ1
-      ENDIF 
+      ENDIF
       GOTO 1000
 9     CONTINUE
       IF((REALOP))THEN
          R1 = Z2-Z1
-      ELSE 
+      ELSE
          IR1 = IZ2-IZ1
-      ENDIF 
+      ENDIF
       GOTO 1000
 10    CONTINUE
       IF((REALOP))THEN
          IF((Z2.LT.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.LT.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 11    CONTINUE
       IF((REALOP))THEN
          IF((Z2.GT.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.GT.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 12    CONTINUE
       IF((REALOP))THEN
          IF((Z2.EQ.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.EQ.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 13    CONTINUE
       IF((REALOP))THEN
          IF((Z2.LE.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.LE.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 14    CONTINUE
       IF((REALOP))THEN
          IF((Z2.GE.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.GE.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 15    CONTINUE
       IF((REALOP))THEN
          IF((Z2.NE.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.NE.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 16    CONTINUE
       IF((REALOP))THEN
          IF((Z2.NE.Z1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ELSE 
+         ENDIF
+      ELSE
          IF((IZ2.NE.IZ1))THEN
             IR1 =ishft(-1,32-(32))
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       GOTO 1000
 17    CONTINUE
       IF((REALOP))THEN
          ERR = .TRUE.
-      ELSE 
+      ELSE
          IR1 =NOT(IZ1)
-      ENDIF 
+      ENDIF
       GOTO 1000
 18    CONTINUE
       IF((REALOP))THEN
          ERR = .TRUE.
-      ELSE 
+      ELSE
          IR1 = IAND(IZ2,IZ1)
-      ENDIF 
+      ENDIF
       GOTO 1000
 19    CONTINUE
       IF((REALOP))THEN
          ERR = .TRUE.
-      ELSE 
+      ELSE
          IR1 = IOR(IZ2,IZ1)
-      ENDIF 
+      ENDIF
       GOTO 1000
 20    CONTINUE
       IF((REALOP))THEN
          ERR = .TRUE.
-      ELSE 
+      ELSE
          IR1 = IEOR(IZ2,IZ1)
-      ENDIF 
+      ENDIF
       GOTO 1000
 21    CONTINUE
       IF((TOKTYPE(NTOKEN-1).LE.0))THEN
          ERR = .TRUE.
          RETURN
-      ENDIF 
+      ENDIF
       call set_content_of_location(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN))
       NTOKEN = NTOKEN - 1
       RETURN
@@ -1631,10 +1631,10 @@
       IF( (OPTION(1:6).EQ. 'CARMOT'))THEN
          KARMOT = VAL
          WRITE(LINEFMT,'(A,I2,A)') '(25 A',KARMOT,')'
-      ELSE 
+      ELSE
          WRITE(6,*) ' *** ERREUR QLXOPT, OPTION (',OPTION,
      %   ') INCONNUE'
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -1663,12 +1663,12 @@
          IF((OPRTR.EQ.LISTE(I)))THEN
             IF((LEFTPRI))THEN
                QLXPRI = I + PRI(I)*100
-            ELSE 
+            ELSE
                QLXPRI = I + (PRI(I)-MOD(PRI(I),2))*100
-            ENDIF 
+            ENDIF
             RETURN
-         ENDIF 
-23000 CONTINUE 
+         ENDIF
+23000 CONTINUE
       QLXPRI = 0
       RETURN
       ENTRY QLXPRIL(OPR)
@@ -1690,7 +1690,7 @@
       L2 = MIN(120/KARMOT,ARGDIMS(2))
       IF((L1.LT.1 .OR. L2.LT.1))THEN
          RETURN
-      ENDIF 
+      ENDIF
       WRITE(FMT,LINEFMT)(COMMENT(I),I=1,L2)
 100   FORMAT(20 A4)
       WRITE(6,FMT)(QUOI(I),I=1,L1)
@@ -1711,12 +1711,12 @@
       CHARACTER *4 PILEOP(MAXOPS)
       IF((ERR))THEN
          RETURN
-      ENDIF 
+      ENDIF
       TOKEN = TOK
       IF((TOKEN.EQ.'(' .OR. TOKEN.EQ.'['))THEN
          NOPER = MIN(NOPER+1 , MAXOPS)
          PILEOP(NOPER) = TOKEN
-      ELSE 
+      ELSE
          IF((TOKEN.EQ.')'))THEN
 23006       IF((PILEOP(NOPER) .NE.'(' .AND.   PILEOP(NOPER) .NE.'['
      %        .AND.   PILEOP(NOPER) .NE.'$'))THEN
@@ -1724,13 +1724,13 @@
      %         NOPER)),100),ERR)
                NOPER = NOPER - 1
                GOTO 23006
-            ENDIF 
+            ENDIF
             IF((PILEOP(NOPER).EQ.'('))THEN
                NOPER = NOPER-1
-            ELSE 
+            ELSE
                ERR = .TRUE.
-            ENDIF 
-         ELSE 
+            ENDIF
+         ELSE
             IF((TOKEN.EQ.']'))THEN
 23012          IF((PILEOP(NOPER) .NE.'(' .AND.   PILEOP(NOPER) .NE.
      %         '['  .AND.   PILEOP(NOPER) .NE.'$'))THEN
@@ -1738,15 +1738,15 @@
      %            PILEOP(NOPER)),100),ERR)
                   NOPER = NOPER - 1
                   GOTO 23012
-               ENDIF 
+               ENDIF
                IF((PILEOP(NOPER).EQ.'['))THEN
                   CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(']'),
      %            100),ERR)
                   NOPER = NOPER-1
-               ELSE 
+               ELSE
                   ERR = .TRUE.
-               ENDIF 
-            ELSE 
+               ENDIF
+            ELSE
                IF((TOKEN.EQ.'$'))THEN
 23018             IF((PILEOP(NOPER) .NE.'(' .AND.   PILEOP(NOPER) .
      %            NE.'['  .AND.   PILEOP(NOPER) .NE.'$'))THEN
@@ -1754,26 +1754,26 @@
      %               PILEOP(NOPER)),100),ERR)
                      NOPER = NOPER - 1
                      GOTO 23018
-                  ENDIF 
+                  ENDIF
                   IF((PILEOP(NOPER).EQ.'$'))THEN
                      NOPER = NOPER-1
-                  ELSE 
+                  ELSE
                      ERR = .TRUE.
-                  ENDIF 
-               ELSE 
+                  ENDIF
+               ELSE
 23022             IF((QLXPRIL(PILEOP(NOPER)).GT.QLXPRI(TOKEN))
      %            )THEN
                      CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(
      %               PILEOP(NOPER)),100),ERR)
                      NOPER = NOPER -1
                      GOTO 23022
-                  ENDIF 
+                  ENDIF
                   NOPER = MIN(NOPER+1 , MAXOPS)
                   PILEOP(NOPER) = TOKEN
-               ENDIF 
-            ENDIF 
-         ENDIF 
-      ENDIF 
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDIF
       RETURN
       END
 
@@ -1802,8 +1802,8 @@
          CTMP = QLXCHR()
 23001    IF(.NOT.(CTMP.NE. ICAR))THEN
             GOTO 23000
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       QLXSKP = CTMP
 *
 
@@ -1834,7 +1834,7 @@
 *        (S)       CONTENU DANS UN TOKEN.
 *
 
-      INTEGER DELIM,ISIGN,ITYP
+      INTEGER ISIGN, ITYP
       COMMON/QLXTOK1/LEN,TYPE,ZVAL,INEXPR
       LOGICAL INEXPR
       INTEGER LEN,TYPE,JVAL
@@ -1864,8 +1864,8 @@
          IC = QLXCHR()
 23001    IF(.NOT.(IC.NE.' '))THEN
             GOTO 23000
-         ENDIF 
-      ENDIF 
+         ENDIF
+      ENDIF
       LENG=1
       TOKEN(1:1)=IC
       IF(((IC.GE.'A'.AND.IC.LE.'Z').OR.IC.EQ.'@'.OR.IC.EQ.'_'   .OR.
@@ -1877,16 +1877,16 @@
             TOKEN(LENG:LENG)=IC
             IC=QLXCHR()
             GOTO 23005
-         ENDIF 
+         ENDIF
          IF((LENG.GT.8))THEN
             TYPE=3
-         ELSE 
+         ELSE
             TYPE=0
-         ENDIF 
+         ENDIF
          CALL QLXBAK(IC)
 
 *
-      ELSE 
+      ELSE
          IF((IC.EQ.'''' .OR. IC.EQ.'"'))THEN
             LENG=0
 23011       IF(.TRUE.)THEN
@@ -1894,51 +1894,51 @@
                TOKEN(LENG:LENG)=QLXCHR()
 23012          IF(.NOT.(TOKEN(LENG:LENG).EQ. IC))THEN
                   GOTO 23011
-               ENDIF 
-            ENDIF 
+               ENDIF
+            ENDIF
             TOKEN(LENG:LENG) = ' '
             LENG = LENG -1
             IF( (IC .EQ.'"'))THEN
                LENG = MIN(LENG,KARMOT)
-            ENDIF 
+            ENDIF
             TYPE=3
 
 *
-         ELSE 
+         ELSE
             IF(((IC.GE.'0' .AND. IC.LE.'9')   .OR.(IC.EQ.'.'))
      %      )THEN
                TYPE=QLXNUM(TOKEN,LENG)
                ISIGN=1
 
 *
-            ELSE 
+            ELSE
                IF(((IC.EQ.'+' .OR. IC.EQ.'-').AND.(.NOT.INEXPR) )
      %         )THEN
                   IF((IC.EQ.'+'))THEN
                      ISIGN=1
-                  ELSE 
+                  ELSE
                      ISIGN=-1
-                  ENDIF 
+                  ENDIF
                   IC=QLXCHR()
                   IF(((IC.GE.'0' .AND. IC.LE.'9').OR. IC.EQ.'.')
      %            )THEN
                      TOKEN(1:1)=IC
                      TYPE=QLXNUM(TOKEN,LENG)
-                  ELSE 
+                  ELSE
                      CALL QLXBAK(IC)
                      TYPE=4
-                  ENDIF 
-               ELSE 
+                  ENDIF
+               ELSE
                   IF((IC.EQ.'*'))THEN
                      TYPE =4
                      IC=QLXCHR()
                      IF((IC.EQ.'*'))THEN
                         LENG = 2
                         TOKEN = '**'
-                     ELSE 
+                     ELSE
                         CALL QLXBAK(IC)
-                     ENDIF 
-                  ELSE 
+                     ENDIF
+                  ELSE
                      IF((IC.EQ.'<' .OR. IC.EQ.'>' .OR. IC.EQ.'=' .OR
      %               . IC.EQ.':'))THEN
                         TYPE =4
@@ -1947,52 +1947,52 @@
      %                  )THEN
                            LENG = 2
                            TOKEN(2:2) = IC
-                        ELSE 
+                        ELSE
                            CALL QLXBAK(IC)
-                        ENDIF 
-                     ELSE 
+                        ENDIF
+                     ELSE
                         TYPE=4
 
 *
-                     ENDIF 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-         ENDIF 
-      ENDIF 
+                     ENDIF
+                  ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDIF
       IF(((LENG.GT.80) .OR. (TYPE.EQ.5)))THEN
          TOKEN = 'SCRAP'
          TYPE=5
          CALL QLXERR(21014,'QLXTOK')
-      ENDIF 
+      ENDIF
       IF((TYPE.EQ.1))THEN
          READ(TOKEN,'(I20)')JVAL
          JVAL=SIGN(JVAL,ISIGN)
-      ELSE 
+      ELSE
          IF((TYPE.EQ.2))THEN
             READ(TOKEN,'(G20.3)')ZVAL
             ZVAL=SIGN(ZVAL,FLOAT(ISIGN))
-         ELSE 
+         ELSE
             IF((TYPE.EQ.6))THEN
                READ(TOKEN,'(O20)')JVAL
                TYPE=1
                JVAL=SIGN(JVAL,ISIGN)
-            ENDIF 
-         ENDIF 
-      ENDIF 
+            ENDIF
+         ENDIF
+      ENDIF
       IF((TYPE.EQ.0))THEN
          CALL QLXFND(TOKEN(1:8),LOCVAR,LOCCNT,LIMITS,ITYP)
          IF( (ITYP .EQ. -1))THEN
             TYPE =3
             LENG = MIN(LENG,KARMOT)
-         ELSE 
+         ELSE
             IF( ((ITYP .EQ. 0) .OR. (ITYP .EQ. 1)))THEN
                call get_content_of_location(LOCVAR,1,JVAL)
-            ELSE 
+            ELSE
                JVAL = -1
-            ENDIF 
-         ENDIF 
-      ENDIF 
+            ENDIF
+         ENDIF
+      ENDIF
       LEN=LENG
 *
 
@@ -2035,7 +2035,7 @@
          CALL QLXADI(KLE,IND,VAL,DUM,ERR)
 
 *
-      ENDIF 
+      ENDIF
       QLXVAL=VAL
 *
 
@@ -2080,106 +2080,106 @@
      % .AND. .NOT.ERR))THEN
          IF((.NOT.FIRST))THEN
             CALL QLXTOK
-         ENDIF 
+         ENDIF
          FIRST = .FALSE.
          IF((TYPE.EQ.0))THEN
             NTOKEN = NTOKEN + 1
             CALL QLXFND(TOKEN(1:8),LOCVAR,LOCCNT,LIMITES,ITYP)
             IF((ITYP.NE.0 .AND. ITYP.NE.1))THEN
                ERR=.TRUE.
-            ENDIF 
+            ENDIF
             TOKENS(NTOKEN) = LOCVAR
             TOKTYPE(NTOKEN) = LIMITES + 1
             IF((.NOT. UNARY))THEN
                ERR=.TRUE.
-            ENDIF 
+            ENDIF
             UNARY = .FALSE.
-         ELSE 
+         ELSE
             IF((TYPE.EQ.1 .OR. TYPE.EQ.2))THEN
                NTOKEN = NTOKEN + 1
                TOKENS(NTOKEN) = JVAL
                TOKTYPE(NTOKEN) = 0
                IF((.NOT. UNARY))THEN
                   ERR=.TRUE.
-               ENDIF 
+               ENDIF
                UNARY = .FALSE.
-            ELSE 
+            ELSE
                IF((QLXPRI(TOKEN(1:4)).GT.0))THEN
                   IF((TOKEN(1:2).EQ.'( '))THEN
                      PLEV = PLEV + 1
-                  ELSE 
+                  ELSE
                      IF((TOKEN(1:2).EQ.') '))THEN
                         PLEV = PLEV - 1
-                     ELSE 
+                     ELSE
                         IF((TOKEN(1:2).EQ.'[ '))THEN
                            BLEV = BLEV + 1
-                        ELSE 
+                        ELSE
                            IF((TOKEN(1:2).EQ.'] '))THEN
                               BLEV = BLEV - 1
-                           ENDIF 
-                        ENDIF 
-                     ENDIF 
-                  ENDIF 
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                  ENDIF
                   IF((PLEV.LT.0 .OR. BLEV.LT.0))THEN
                      FINI = .TRUE.
                      CALL QLXBAK(TOKEN(1:1))
                      GOTO 23001
-                  ENDIF 
+                  ENDIF
                   IF((UNARY))THEN
                      IF((TOKEN(1:2).EQ.'+ '))THEN
                         TOKEN(1:2) = 'U+'
-                     ELSE 
+                     ELSE
                         IF((TOKEN(1:2).EQ.'- '))THEN
                            TOKEN(1:2) = 'U-'
-                        ELSE 
+                        ELSE
                            IF((TOKEN(1:2).NE.'( ' .AND. TOKEN(1:2).
      %                     NE.'[ '))THEN
                               ERR=.TRUE.
-                           ENDIF 
-                        ENDIF 
-                     ENDIF 
-                  ENDIF 
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                  ENDIF
                   UNARY = TOKEN(1:1).NE.')' .AND. TOKEN(1:1).NE.']'
                   CALL QLXRPN(TOKEN,TOKENS,MAXTKNS,NTOKEN,TOKTYPE,
      %            PILEOP,MAXOPS,NOPER,ERR)
-               ELSE 
+               ELSE
                   IF((TOKEN(1:1).EQ.',' .OR. TOKEN(1:1).EQ.'$'   .OR
      %            . TOKEN(1:2).EQ.':='))THEN
                      CALL QLXRPN('$',TOKENS,MAXTKNS,NTOKEN,TOKTYPE,
      %               PILEOP,MAXOPS,NOPER,ERR)
                      FINI = .TRUE.
                      CALL QLXBAK(TOKEN(1:1))
-                  ELSE 
+                  ELSE
                      WRITE(6,'(A8,A)')TOKEN(1:8),' IS INVALID'
                      ERR = .TRUE.
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-         ENDIF 
+                  ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
          GOTO 23000
-      ENDIF 
-23001 CONTINUE 
+      ENDIF
+23001 CONTINUE
       IF( (PLEV.GT.0 .OR. .NOT.FINI .OR. BLEV.GT.0   .OR. NTOKEN.NE.
      %1 ))THEN
          ERR = .TRUE.
-      ENDIF 
+      ENDIF
       INEXPR = .FALSE.
       IF((.NOT.ERR))THEN
          TOKEN   = ' '
          JVAL   = TOKENS(1)
          IF((TOKTYPE(1).GT.0))THEN
             TYPE =8
-         ELSE 
+         ELSE
             IF((ABS(JVAL).LE.2147483647))THEN
                TYPE =1
-            ELSE 
+            ELSE
                TYPE =2
-            ENDIF 
-         ENDIF 
-      ENDIF 
+            ENDIF
+         ENDIF
+      ENDIF
       IF((ERR))THEN
          CALL QLXERR(81005,'QLXEXPR')
-      ENDIF 
+      ENDIF
       RETURN
       END
 
@@ -2228,11 +2228,11 @@
 **
 
       EXTERNAL QLXNVAR,QLXPRNT,QLXUNDF,fnom
-      INTEGER UNIT,KEND,IVAR,ICOUNT,fnom
-      Integer*8 LOCCNT,LOCVAR
+      INTEGER UNIT, KEND, fnom
+      Integer*8 LOCCNT, LOCVAR
       Integer IICNT
-      INTEGER LIMITS,ITYP
-      LOGICAL FIN,ERR
+      INTEGER LIMITS, ITYP
+      LOGICAL FIN, ERR
       PARAMETER (MAXSTRU=20)
       INTEGER NXTELSE(0:2), NEXTIF(0:2), STYPE(MAXSTRU), SKIPF(
      %MAXSTRU)
@@ -2252,7 +2252,7 @@
       KERRMAX = 999999
       IF((KERR.LT.0 ))THEN
          KERRMAX = MIN(ABS(KERR),KERRMAX)
-      ENDIF 
+      ENDIF
       NC=1
       LAST=0
       INPFILE=UNIT
@@ -2283,10 +2283,10 @@
                call get_content_of_location(LOCCNT,1,IICNT)
                CALL QLXASG(LOCVAR,IICNT,LIMITS,ERR)
                call set_content_of_location(LOCCNT,1,IICNT)
-            ELSE 
+            ELSE
                IF((ITYP.EQ.2 .AND. SKIPF(NSTRUC).EQ.0))THEN
                   CALL QLXCALL(LOCVAR,LOCCNT,LIMITS,ERR)
-               ELSE 
+               ELSE
                   IF((ITYP.EQ.3))THEN
                      NSTRUC = NSTRUC + 1
                      STYPE(NSTRUC) = ITYP
@@ -2297,37 +2297,37 @@
                            CALL QLXXPR(ERR)
                            IF((ERR))THEN
                               GOTO 23003
-                           ENDIF 
+                           ENDIF
                            IF((TYPE.EQ.8))THEN
                               call get_content_of_location(JVAL,1,JVAL)
-                           ENDIF 
+                           ENDIF
                            IF((IAND(JVAL,ishft(-1,32-(16))).EQ.0)
      %                     )THEN
                               SKIPF(NSTRUC) = 1
-                           ENDIF 
-                        ELSE 
+                           ENDIF
+                        ELSE
                            CALL QLXBAK('$')
-                        ENDIF 
-                     ENDIF 
+                        ENDIF
+                     ENDIF
                      CALL QLXFLSH('$')
-                  ELSE 
+                  ELSE
                      IF((ITYP.EQ.4))THEN
                         IF((STYPE(NSTRUC).NE.3))THEN
                            GOTO 23003
-                        ENDIF 
+                        ENDIF
                         STYPE(NSTRUC) = ITYP
                         SKIPF(NSTRUC) = NXTELSE(SKIPF(NSTRUC))
                         CALL QLXFLSH('$')
-                     ELSE 
+                     ELSE
                         IF((ITYP.EQ.5))THEN
                            IF((STYPE(NSTRUC).NE.3 .AND. STYPE(NSTRUC
      %                     ).NE.4))THEN
                               GOTO 23003
-                           ENDIF 
+                           ENDIF
                            SKIPF(NSTRUC) = 0
                            NSTRUC = NSTRUC - 1
                            CALL QLXFLSH('$')
-                        ELSE 
+                        ELSE
                            IF((ITYP.EQ.6))THEN
                               NSTRUC = NSTRUC + 1
                               STYPE(NSTRUC) = ITYP
@@ -2335,72 +2335,72 @@
      %                        )
                               IF( (READREC.NE. 0))THEN
                                  READBSE(NSTRUC) = READREC -1
-                              ELSE 
+                              ELSE
                                  READBSE(NSTRUC) = CURREC
-                              ENDIF 
+                              ENDIF
                               IF((SKIPF(NSTRUC).EQ.0))THEN
                                  CALL QLXTOK
                                  IF((TOKEN(1:1).NE.'$'))THEN
                                     CALL QLXXPR(ERR)
                                     IF((ERR))THEN
                                        GOTO 23003
-                                    ENDIF 
+                                    ENDIF
                                     IF((TYPE.EQ.8))THEN
                              call get_content_of_location(JVAL,1,JVAL)
-                                    ENDIF 
+                                    ENDIF
                                     IF((IAND(JVAL,ishft(-1,32-(16)))
      %                              .EQ.0))THEN
                                        SKIPF(NSTRUC) = 1
-                                    ENDIF 
-                                 ELSE 
+                                    ENDIF
+                                 ELSE
                                     CALL QLXBAK('$')
-                                 ENDIF 
-                              ENDIF 
+                                 ENDIF
+                              ENDIF
                               CALL QLXFLSH('$')
-                           ELSE 
+                           ELSE
                               IF((ITYP.EQ.7))THEN
                                  IF((STYPE(NSTRUC).NE.6))THEN
                                     GOTO 23003
-                                 ENDIF 
+                                 ENDIF
                                  IF( (SKIPF(NSTRUC) .EQ. 0)
      %                           )THEN
                                     READREC = READBSE(NSTRUC)
-                                 ENDIF 
+                                 ENDIF
                                  SKIPF(NSTRUC) = 0
                                  NSTRUC = NSTRUC - 1
                                  CALL QLXFLSH('$')
-                              ELSE 
+                              ELSE
                                  IF((ITYP.GE.10 .AND. ITYP.LE.13 .
      %                           AND. SKIPF(NSTRUC).EQ.0))THEN
                                     KERR=NERR
                                     KEND=ITYP-10
                                     FIN=.TRUE.
-                                 ELSE 
+                                 ELSE
                                     IF((SKIPF(NSTRUC).NE.0)
      %                              )THEN
                                        CALL QLXFLSH('$')
-                                    ELSE 
+                                    ELSE
                                        CALL QLXERR(21015,'READLX')
                                        ERR=.TRUE.
-                                    ENDIF 
-                                 ENDIF 
-                              ENDIF 
-                           ENDIF 
-                        ENDIF 
-                     ENDIF 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-         ELSE 
+                                    ENDIF
+                                 ENDIF
+                              ENDIF
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                  ENDIF
+               ENDIF
+            ENDIF
+         ELSE
             CALL QLXERR(21016,'READLX')
             ERR=.TRUE.
-         ENDIF 
+         ENDIF
          IF((ERR.AND.(TOKEN(1:1).NE.'$'.OR. TYPE.NE.4)))THEN
             CALL QLXFLSH('$')
-         ENDIF 
+         ENDIF
          GOTO 23002
-      ENDIF 
-23003 CONTINUE 
+      ENDIF
+23003 CONTINUE
       IF((NSTRUC.GT.1))THEN
          WRITE(6,*)
      %   ' ERREUR DANS LA STRUCTURE DES BLOCS IF THEN ELSE'
@@ -2408,7 +2408,7 @@
          KEND = -1
 
 *
-      ENDIF 
+      ENDIF
       CLOSE(TMPFILE,STATUS='DELETE')
       RETURN
       END

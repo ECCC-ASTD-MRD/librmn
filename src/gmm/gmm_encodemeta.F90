@@ -6,8 +6,6 @@ integer function gmm_encodemeta(meta, output)
     type(gmm_metadata), intent(in) :: meta
     integer, dimension(:), intent(out) :: output
 
-    integer :: i
-
     if (size(output) < GMM_META_SIZE) then
         gmm_encodemeta = GMM_ERROR
         return
@@ -26,8 +24,6 @@ integer function gmm_decodemeta(meta, input)
 
     type(gmm_metadata), intent(out):: meta
     integer, dimension(:), intent(in) :: input
-
-    integer :: i
 
     if (size(input) < GMM_META_SIZE) then
        gmm_decodemeta = GMM_ERROR
