@@ -47,9 +47,7 @@ void unpack_stream_nbits_8(unsigned char ufld[], unsigned int z[], int npts, int
 
 #define SEQUENCE 0
 #define COUNT    1
-#define ZERO     0
-#define UN       1
-  
+ 
 
 static unsigned char fastlog[256];
 static int once = 0;
