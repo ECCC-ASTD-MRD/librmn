@@ -4,14 +4,11 @@ void calcule_entropie(float *entropie, unsigned short *bitstream, int npts, int 
 void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
 void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
 void calcul_ninjcoarse(int *nicoarse, int *njcoarse, int ni, int nj, int ajus_x, int ajus_y, int istep);
-extern ftnword calc_crc(unsigned char *p, ftnword *flen, ftnword *fseed, ftnword stride);
 char CAT(PROJECT_NAME,_version)[] = VERSION;
 char CAT(PROJECT_NAME,_ec_arch)[] = EC_ARCH;
 void check_data(char *record, int size);
 int check_start_end_char(char *var, int length);
-extern int close_channel (int fclient, char *channel);
 int compact_mask_char(unsigned int *dest, unsigned char *src, int npts);
-extern int connect_to_subchannel_by_name (char *channel, char *subchannel, char *mode);
 int connect_with_timeout(char *ipaddress, int portno, int timeout);
 int connect_with_timeout_localport(char *ipaddress, int portno, int timeout);
 int cpu_has_feature_(int flag);
@@ -56,70 +53,6 @@ void *DlSym(void *handle, const char *symbol);
 int EncodeMissingValue(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double);
 int encode_missing_value_(void *field,void *field2,int *nvalues,int *datatype,int *nbits,int *is_byte,int *is_short,int *is_double);
 int encode_missing_value__(void *field,void *field2,int *nvalues,int *datatype,int *nbits,int *is_byte,int *is_short,int *is_double);
-int f77name(armn_compress32)(unsigned char *, float *, int *, int *, int *, int *);
-extern long long f77name(f_gettimeofday_micro)();
-int f77name(armn_uncompress32)(float *fld, unsigned char *zstream, int *ni, int *nj, int *nk, int *nchiffres_sign);
-extern void f77name(f_bits_put)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *slices, ftnword *nslices);
-extern void f77name(f_bits_get)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *slices, ftnword *nslices);
-void f77name(f_igaip84)(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4);
-void f77name(f_ipaig84)(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *ip1, ftnword *ip2, ftnword *ip3);
-void f77name(f_def_84bitkey)(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, 
-f77name(qqexit) (val)
-f77name(getenvc) ( name, value, len1, len2 )
-ftnword f77name(open_db_file) (ftnword * );
-ftnword f77name(close_db_file) (ftnword * );
-ftnword f77name(read_db_file) (ftnword *, ftnword *, ftnword *);
-ftnword f77name(write_db_file) (ftnword *, ftnword *, ftnword *);
-ftnword f77name(rewind_db_file) (ftnword *);
-void f77name(armn_compress_setlevel)(wordint *level);
-f77name(csortr) ( list, index, size )
-ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
-ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc );
-ftnword f77name (mgi_init) (char *channel_name, F2Cl lname);
-ftnword f77name(slabig34)(unsigned ftnword *f_ig3, unsigned ftnword *f_ig4,
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, F2Cl lmode);
-ftnword f77name (mgi_read) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, F2Cl ltype);
-ftnword f77name (mgi_write) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, F2Cl ltype);
-ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
-ftnword f77name (mgi_clos) (ftnword *f_chan);
-ftnword f77name (mgi_term) ();
-void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout);
-ftnword f77name(slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
-ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, F2Cl l1);
-ftnword f77name (mgi_read_oob) ();
-f77name(ipsort) ( index, list, size )
-ftnword f77name (mgi_write_oob) ();
-f77name(csortr) ( list, index, size ) ;
-f77name(csortd) ( list, index, size )
-f77name(ipsort8) ( index, list, size )
-f77name(csortd) ( list, index, size ) ;
-f77name(csorte) ( list, index, size )
-f77name(ipsorti) ( index, list, size )
-f77name(csorte) ( list, index, size ) ;
-f77name(csortc) ( list, index, size, len )
-f77name(ipsortc) ( index, list, size, len )
-f77name(csortc) ( list, index, size, len ) ;
-int f77name(memoirc)(msg_level)
-void f77name(dmmsdbg)(dbgr)
-void f77name(dmmsnabt)(abort)
-f77name(hpalloc)( addr, length, errcode, abort )
-f77name(tracebck)();
-f77name(hpdeallc)(addr, errcode, abort)
-f77name(ca_deallc)(addr, errcode, abort)
-f77name(memoirh)(buf,ind,nw)
-f77name(memoir)(buf,ind,nw)
-f77name(bkcheck)(addr, errcode)
-f77name(hpcheck)(errcode)
-f77name(mcheck)(errcode)
-f77name(bkcheck)(addr, errcode)
-f77name(hpalloc)( addr, length, errcode, abort )
-f77name(tracebck)();
-f77name(hpdeallc)(addr, errcode, abort)
-f77name(memoirh)(buf,ind,nw)
-f77name(memoir)(buf,ind,nw)
-void f77_name(f_logical_move)(void *, void *, wordint *);
-void f77_name(f_logical2int)(void *, void *, wordint *);
-void f77_name(f_int2logical)(void *, void *, wordint *);
 char **fill_string_array(char **string_array, char *farray, int nc, int ns, int rmblanks);
 void fixpredflds(int *predfld, int *zc, int ni, int nj, int nicoarse, int njcoarse, int step, int ajus_x, int ajus_y);
 int force_missing_value_used_(int *flag);
@@ -132,8 +65,6 @@ void f_requetes_init_();
 void f_requetes_init__();
 uint32_t f_update_crc_ne_(uint32_t *old_crc, int *crclen, void *data, int *datasiz, int *datalen, int *mode);
 uint32_t f_update_crc_ne__(uint32_t *old_crc, int *crclen, void *data, int *datasiz, int *datalen, int *mode);
-extern int get_ack_nack (int socket);
-extern int get_client_timeout (int fclient);
 int get_cpu_cores_();
 int get_cpu_cores__();
 uint64_t get_cpu_freq_(void);
@@ -144,7 +75,6 @@ int get_cpu_id_();
 int get_cpu_id__();
 int get_fp_status_ctl_(void);
 int get_fp_status_ctl__(void);
-extern char *get_gossip_dir (int display);
 char *get_link_address(char *path, const char *filename);
 int get_missing_value_flags_(float *f, int *i, unsigned int *ui, double *d, short *s, unsigned short *us,
 int get_missing_value_flags__(float *f, int *i, unsigned int *ui, double *d, short *s, unsigned short *us,
@@ -153,7 +83,6 @@ void get_wall_clock_used(char *stepid,char **hostname,int *wu,int *wh,int *ws);
 void grb_84bits_to_ig1234(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token);
 void grb_84bits_to_ip123(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token);
 int IARGC();
-extern void init_client_table ();
 void init_comp_settings(char *comp_settings);
 int is_big_endian_();
 int is_big_endian__();
@@ -186,11 +115,9 @@ uint64_t rdtsc_(void);
 double rdtsc_seconds_(void) ;
 double rdtsc_seconds__(void) ;
 uint64_t rdtsc__(void);
-extern void *read_record (int fclient, void *buf, int *longueur, int maxlongueur, int tokensize);
 void register_dl_routines_();
 void register_dl_routines__();
 void SetMissingValueMapping(int what, int datatype, void *processor_, int is_byte, int is_short, int is_double);
-extern void set_client_timeout (int fclient, int timeout);
 void set_fp_status_ctl_(int fpstat_in);
 void set_fp_status_ctl__(int fpstat_in);
 void set_missing_value_flags_(float *f, int *i, unsigned int *ui, double *d, short *s, unsigned short *us,
@@ -215,4 +142,3 @@ void unpack_tokens(unsigned int *ufld, unsigned int *z, int ni, int nj, int nbit
 uint32_t update_crc_ne(uint32_t seed, int crclen, void *data, int datasiz, int datalen, int mode);
 double wall_clock_seconds_(uint64_t ticks) ;
 double wall_clock_seconds__(uint64_t ticks) ;
-extern int write_record (int fclient, void *buf, int longueur, int tokensize);
