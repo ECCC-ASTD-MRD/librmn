@@ -69,13 +69,11 @@ typedef long int pid_t;
 #     define memint wordint
 #endif
 
-#define PRIVATE /**/
-
 /*
  * Internal prototypes
  */
-PRIVATE void ouvre_ou_ferme_controle(int , int , char *);
-PRIVATE int obtient_environ();
+void ouvre_ou_ferme_controle(int , int , char *);
+int obtient_environ();
 
 #if defined (TEST_VMM)
 #define NAMES Names
@@ -338,7 +336,7 @@ calc_checksum(int bkno)
 *     in   inext  index du deuxieme bloc
 *
 **/
-PRIVATE void 
+void 
 collapse_blocks(int i, int inext)
 {
    void imprime();
@@ -388,7 +386,7 @@ collapse_blocks(int i, int inext)
 *     in   nmots    longueur en mots de la tranche
 *
 **/
-PRIVATE void 
+void 
 ecrit_bloc(int bkno,int classe,wordint *memadresse,
                         int fileadresse,int nmots)
 {
@@ -448,7 +446,7 @@ ecrit_bloc(int bkno,int classe,wordint *memadresse,
 *
 *argument
 **/
-PRIVATE void 
+void 
 ecrit_vmm_controle()
 {
 /*
@@ -532,7 +530,7 @@ ecrit_vmm_controle()
 *                   les attributs du bloc (save, altered ...)
 *
 **/
-PRIVATE int 
+int 
 eject_block(int bkno,int save,int fait_checksum)
 
 {
@@ -631,7 +629,7 @@ eject_block(int bkno,int save,int fait_checksum)
  *                tableau_eject_index - indice de depart dans le tableau
  *
  **/
-PRIVATE int 
+int 
  eject_from_tableau(int size,int tableau_eject_index)
 {
 
@@ -668,7 +666,7 @@ PRIVATE int
  * Argument   in   nom -  nom du fichier a verifier
  *
  **/
-PRIVATE int
+int
 fichier_vide(char *nom)
 {
    FILE *fd;
@@ -794,7 +792,7 @@ void
 *                     mode = 2  - imprime name_table
 *
 */
-PRIVATE void 
+void 
 imprime_structures(int mode)
 {
        int indice;
@@ -889,7 +887,7 @@ imprime_structures(int mode)
 *     in   nmots       longueur en mots de la tranche
 *
 **/
-PRIVATE void 
+void 
 lit_bloc(int bkno,unsigned int classe,wordint *memadresse,
                         int fileadresse,int nmots)
 {
@@ -965,7 +963,7 @@ lit_bloc(int bkno,unsigned int classe,wordint *memadresse,
 *
 *
 **/
-PRIVATE void 
+void 
 lit_vmm_controle()
 {
 
@@ -1080,7 +1078,7 @@ lit_vmm_controle()
 *
 *
 **/
-PRIVATE int obtient_environ()
+int obtient_environ()
 {
 
       char repertoire[NCARMAX], rslt_fic[NCARMAX];
@@ -1222,7 +1220,7 @@ PRIVATE int obtient_environ()
 *                              l'association unite logique-nom de fichier
 *              fonction        nom de la fonction ayant fait l'appel
 **/
-PRIVATE void 
+void 
 ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
 {
 
@@ -1293,7 +1291,7 @@ ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
 *   out   biggest_free_block_index  indice du plus gros bloc libre
 *
 **/
-PRIVATE int 
+int 
 pack_blocks(int *biggest_free_block_index)
 {
    void swap_blocks(),collapse_blocks();
@@ -1344,7 +1342,7 @@ pack_blocks(int *biggest_free_block_index)
 *   out   biggest_free_block_index  indice du plus gros bloc libre
 *
 **/
-PRIVATE int 
+int 
 pack_segment(int bkno, int *biggest_free_block_index)
 {
    void swap_blocks(),collapse_blocks();
@@ -1413,7 +1411,7 @@ pack_segment(int bkno, int *biggest_free_block_index)
 *     in   inkey   clef usager pointant a une des slices de la variable
 *
 **/
-PRIVATE int 
+int 
 qvmindex_from_key(complete_key inkey)
 
 {
@@ -1775,7 +1773,7 @@ qvmlod(complete_key inlkey[], wordint *nkey)
 *         in  bkno - numero du block memoire
 *
 */
-PRIVATE void
+void
 reserve_disk_space(int bkno)
 {
 
@@ -1855,7 +1853,7 @@ reserve_disk_space(int bkno)
 *     in  Chaine       chaine complete
 *
 **/
-PRIVATE int 
+int 
 strfind(char *SousChaine, char *Chaine)
 {
 int i,j, LongueurChaine, LongueurSousChaine, PositionTrouvee;
@@ -1904,7 +1902,7 @@ return(PositionTrouvee);
 *     in   inext  index du bloc non vide deplacable
 *
 **/
-PRIVATE void 
+void 
 swap_blocks(int i,int inext)
 
 {
@@ -1981,7 +1979,7 @@ swap_blocks(int i,int inext)
  *           in-out  - table    - tableau a trier
  *           in      - longueur - nombre d'elements dans le tableau
  **/
-PRIVATE void
+void
 trie_le_tableau(int *table,int longueur)
 {
    int i, j;
@@ -2153,7 +2151,7 @@ int trouve_best_free(int size)
  *                                    a partir d'ou on fait l'ejection.
  **/
 
-PRIVATE int
+int
 trouve_best_segment(int size, int *tableau_eject_index)
 {
 
@@ -2290,7 +2288,7 @@ trouve_best_segment(int size, int *tableau_eject_index)
 *
 **/
 
-PRIVATE int
+int
  verbar(int bkno)
 {
 
@@ -3239,7 +3237,7 @@ f77name(vmmdmp)(unsigned wordint *mode)
 *     in   fonction    nom de la fonction appelante
 *
 **/
-PRIVATE int 
+int 
 vmmerr(char *fonction,wordint valeur)
 {
       switch (valeur)
