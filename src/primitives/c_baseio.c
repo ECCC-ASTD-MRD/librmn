@@ -99,8 +99,8 @@ static void wa_page_write(int fd,word *buf,unsigned int adr,int nmots,int indf);
 static void qqcwawr(word *buf,unsigned int ladr,int lnmots,int indf);
 static void qqcward(word *buf,unsigned int ladr,int  lnmots,int indf);
 static INT_32 qqcnblk(int lfd,int indf);
-static void MOVE (word *src, word *dest, int nwords);
-static void ZERO ( word *dest, int nwords);
+static void arrayCopy(word *src, word *dest, int nwords);
+static void arrayZero(word *dest, int nwords);
 static int fnom_rem_connect(int ind, char* remote_host);
 
 
@@ -2268,7 +2268,7 @@ static void wa_page_read(int fd,word *buf,unsigned int adr,int nmots,int indf)
           }
        if (nbytes < sizeof(word)*WA_PAGE_SIZE) {
          lnmots = WA_PAGE_SIZE - (nbytes/sizeof(word));
-         ZERO(wafile[ind].page[i].page_adr+(nbytes/sizeof(word)),lnmots);
+         arrayZero(wafile[ind].page[i].page_adr+(nbytes/sizeof(word)),lnmots);
          }
        wafile[ind].page[i].walast = wafile[ind].page[i].wa0 + nbytes / sizeof(word) -1;
        if (debug_mode > 4) {
@@ -2289,7 +2289,7 @@ static void wa_page_read(int fd,word *buf,unsigned int adr,int nmots,int indf)
    }
    f77name(movlev)(wafile[ind].page[i].page_adr+offset,buf,&lnmots);
 */
-   MOVE(wafile[ind].page[i].page_adr+offset,buf,lnmots);
+   arrayCopy(wafile[ind].page[i].page_adr+offset,buf,lnmots);
    wafile[ind].page[i].last_access = 0;
    wafile[ind].page[i].access_count = new_age_rd(wafile[ind].page[i].access_count);
 
@@ -2445,7 +2445,7 @@ static void wa_page_write(int fd,word *buf,unsigned int adr,int nmots,int indf)
              while(lnmots--) *move_dest++ = 0;
            }
 */
-           ZERO(wafile[ind].page[i].page_adr+(nbytes/sizeof(word)),lnmots);
+           arrayZero(wafile[ind].page[i].page_adr+(nbytes/sizeof(word)),lnmots);
            }
          wafile[ind].page[i].walast = wafile[ind].page[i].wa0 + nbytes / sizeof(word) -1;
          if (debug_mode > 4) {
@@ -2466,7 +2466,7 @@ static void wa_page_write(int fd,word *buf,unsigned int adr,int nmots,int indf)
    }
    f77name(movlev)(buf,wafile[ind].page[i].page_adr+offset,&lnmots);
 */
-   MOVE(buf,wafile[ind].page[i].page_adr+offset,lnmots);
+   arrayCopy(buf,wafile[ind].page[i].page_adr+offset,lnmots);
    wafile[ind].page[i].last_access = 0;
    wafile[ind].page[i].access_count = new_age_wr(wafile[ind].page[i].access_count);
    wafile[ind].page[i].touch_flag = 1;
@@ -2783,7 +2783,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   ier = system(remote_command);
 
   fflush(stdout);
-  FD_ZERO(&rfds);
+  FD_arrayZero(&rfds);
   FD_SET(fserver, &rfds);
   tv.tv_sec = 5;
   tv.tv_usec = 0;
@@ -2859,42 +2859,35 @@ int fnom_rem_connect(int ind, char* remote_host)
   return(0);
 }
 
-/****************************************************************************
-*                                  MOVE                                     *
-*****************************************************************************
-*
-***function move
-*
-*OBJECT: Moves nwords words from src to dest.
-*
-*ARGUMENTS: in src     source of information
-*           in dest    destination of move
-*           in nwords  number of words to copy
-*
-*/
-static void MOVE (word *src, word *dest, int nwords)
-{
-int i;
-for (i=0 ; i<nwords ; i++) {dest[i]=src[i];};
+
+//! Copy words from one array to another
+static void arrayCopy(
+    //! Pointer to the source array
+    word *src,
+    //! Pointer to the destination array
+    word *dest,
+    //! Number of elements to copy
+    int nwords
+) {
+    for (int i = 0; i < nwords; i++) {
+        dest[i] = src[i];
+    }
 }
 
-/****************************************************************************
-*                                   ZERO                                    *
-*****************************************************************************
-*
-***function zero
-*
-*OBJECT: Puts zeros in nwords words at dest.
-*
-*ARGUMENTS: in dest    destination in memory
-*           in nwords  number of words to put to zero
-*
-*/
-static void ZERO ( word *dest, int nwords)
-{
-int i;
-for (i=0 ; i<nwords ; i++) {dest[i]=0;};
+
+//! Zero words of an array
+static void arrayZero(
+    //! Pointer to the array
+    word *dest,
+    //! Number of words to zero
+    int nwords
+) {
+    for (int i = 0; i < nwords; i++) {
+        dest[i] = 0;
+    }
 }
+
+
 /****************************************************************************
 *                              check_host_id                                *
 ****************************************************************************/
