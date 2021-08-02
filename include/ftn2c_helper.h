@@ -1,4 +1,3 @@
-
 #if !defined(__FTN2C_HELPER__)
 #define __FTN2C_HELPER__
 

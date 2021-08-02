@@ -91,9 +91,11 @@ list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_SOURCE_DIR}/include/rmnlib.h
     ${CMAKE_SOURCE_DIR}/include/rpnmacros.h
     ${CMAKE_SOURCE_DIR}/include/rpnmacros_global.h
+    ${CMAKE_SOURCE_DIR}/include/ftn2c_helper.h
     ${CMAKE_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
     ${CMAKE_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
+
 
 set_target_properties(rmn PROPERTIES VERSION ${GIT_VERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
