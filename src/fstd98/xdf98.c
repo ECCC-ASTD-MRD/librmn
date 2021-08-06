@@ -34,6 +34,7 @@
 #include <string.h>
 #define XDF_OWNER
 #include "qstdir.h"
+#include <fstd98.h>
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
@@ -110,7 +111,7 @@ static int get_free_index();
 static void init_file(int i);
 static void init_package();
 static INT_32 scan_random(int file_index);
-static INT_32 add_dir_page(int file_index,int wflag);
+static INT_32 add_dir_page(int file_index, int wflag);
 static INT_32 rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
                           word_2 *aux, int naux, char *appl);
@@ -230,7 +231,7 @@ static INT_32 add_dir_page(
             // First page has no predecessor
             (fte->dir_page[fte->npages-1])->dir.nxt_addr = page->dir.addr;
         }
-        c_wawrit(fte->iun,&page->dir, fte->nxtadr, W64TOWD(wdlng));
+        c_wawrit(fte->iun, &page->dir, fte->nxtadr, W64TOWD(wdlng));
         fte->nxtadr += W64TOWD(wdlng);
         fte->header->fsiz = WDTO64(fte->nxtadr -1);
         fte->header->nbd++;
@@ -246,7 +247,7 @@ static INT_32 add_dir_page(
 //! Calculates an address from an handle for a sequential file
 //! \return Corresponding address
 static INT_32 address_from_handle(
-    //! [in] (cluster:2,address:22,file_index:8)
+    //! [in] (cluster:2, address:22, file_index:8)
     int handle,
     //! [in] Pointer to xdf file information structure
     file_table_entry *fte
@@ -271,7 +272,7 @@ void build_fstd_info_keys(
     word *keys,
     //! [in] File index in file table
     int index,
-    //! [in] if mode = WMODE,write to buffer otherwise get keys from buffer.
+    //! [in] if mode = WMODE, write to buffer otherwise get keys from buffer.
     int mode
 ) {
 }
@@ -503,8 +504,8 @@ int c_qdfdiag(
 
         if (addr == readpos) {
             if (header.lng < W64TOwd(1)) {
-                sprintf(errmsg,"Invalid record length=%d, addr=%d\n",header.lng,addr);
-                return error_msg("c_qdfdiag",ERR_BAD_LEN,ERRFATAL);
+                sprintf(errmsg, "Invalid record length=%d, addr=%d\n", header.lng, addr);
+                return error_msg("c_qdfdiag", ERR_BAD_LEN, ERRFATAL);
             }
             if (header.idtyp == 0) {
                 ndirect++;
@@ -530,28 +531,28 @@ int c_qdfdiag(
               ((fh->nxtn - fh->nrec) == nrec_eff) &&
               (fh->nbig == leplusgros) && (fh->nbd == ndirect));
 
-    fprintf(stdout,"\nStatistics from file header for %s\n", FGFDT[index_fnom].file_name);
-    fprintf(stdout,"\t file size (64 bit units)        %d\n", fh->fsiz);
-    fprintf(stdout,"\t number of rewrites              %d\n", fh->nrwr);
-    fprintf(stdout,"\t number of extensions            %d\n", fh->nxtn);
-    fprintf(stdout,"\t number of directory pages       %d\n", fh->nbd);
-    fprintf(stdout,"\t last directory page address     %d\n", fh->plst);
-    fprintf(stdout,"\t size of biggest record          %d\n", fh->nbig);
-    fprintf(stdout,"\t number erasures                 %d\n", fh->neff);
-    fprintf(stdout,"\t number of valid records         %d\n", fh->nrec);
-    fprintf(stdout,"\t XDF version                     %s\n", vers);
-    fprintf(stdout,"\t application signature           %s\n", appl);
+    fprintf(stdout, "\nStatistics from file header for %s\n", FGFDT[index_fnom].file_name);
+    fprintf(stdout, "\t file size (64 bit units)        %d\n", fh->fsiz);
+    fprintf(stdout, "\t number of rewrites              %d\n", fh->nrwr);
+    fprintf(stdout, "\t number of extensions            %d\n", fh->nxtn);
+    fprintf(stdout, "\t number of directory pages       %d\n", fh->nbd);
+    fprintf(stdout, "\t last directory page address     %d\n", fh->plst);
+    fprintf(stdout, "\t size of biggest record          %d\n", fh->nbig);
+    fprintf(stdout, "\t number erasures                 %d\n", fh->neff);
+    fprintf(stdout, "\t number of valid records         %d\n", fh->nrec);
+    fprintf(stdout, "\t XDF version                     %s\n", vers);
+    fprintf(stdout, "\t application signature           %s\n", appl);
 
     if (! thesame) {
-        fprintf(stdout,"\n **** This file has been damaged ****\n");
-        fprintf(stdout,"\nStatistics from file scan\n");
-        fprintf(stdout,"\t number of extensions            %d\n", nrec_tot);
-        fprintf(stdout,"\t number of directory pages       %d\n", ndirect);
-        fprintf(stdout,"\t size of biggest record          %d\n", leplusgros);
-        fprintf(stdout,"\t number erasures                 %d\n", nrec_eff);
-        fprintf(stdout,"\t number of valid records         %d\n", nrec_act);
+        fprintf(stdout, "\n **** This file has been damaged ****\n");
+        fprintf(stdout, "\nStatistics from file scan\n");
+        fprintf(stdout, "\t number of extensions            %d\n", nrec_tot);
+        fprintf(stdout, "\t number of directory pages       %d\n", ndirect);
+        fprintf(stdout, "\t size of biggest record          %d\n", leplusgros);
+        fprintf(stdout, "\t number erasures                 %d\n", nrec_eff);
+        fprintf(stdout, "\t number of valid records         %d\n", nrec_act);
     } else {
-        fprintf(stdout,"\n **** This file is OK ****\n");
+        fprintf(stdout, "\n **** This file is OK ****\n");
     }
 
     if (! wasopen) {
@@ -800,7 +801,7 @@ int c_xdfcle(
 
     *desc1 = 0; *desc2 = 0;
 
-    for(i=0; (i < 4 && *keyname); i++,*keyname++) {
+    for(i=0; (i < 4 && *keyname); i++, *keyname++) {
         *desc1 = (*desc1 <<8) | (*keyname & 0xff);
     }
 
@@ -900,7 +901,7 @@ int c_xdfcls(
         if ((f->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only)) {
             // Rewrite file header
             f->header->rwflg = 0;
-            c_wawrit(iun,f->header, 1, W64TOWD(f->header->lng));
+            c_wawrit(iun, f->header, 1, W64TOWD(f->header->lng));
         }
 
         c_waclos(iun);
@@ -986,19 +987,19 @@ int c_xdfdel(
     // validate index, page number and record number
 
     if ((index >= MAX_XDF_FILES) || (file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        sprintf(errmsg,"invalid handle, invalid file index\n");
+        sprintf(errmsg, "invalid handle, invalid file index\n");
         return error_msg("c_xdfdel", ERR_BAD_HNDL, ERROR);
     }
 
     f = file_table[index];
 
     if ((f->header->rwflg == RDMODE) || (f->header->rwflg == APPEND)) {
-        sprintf(errmsg,"file is open in read or append mode only\n");
+        sprintf(errmsg, "file is open in read or append mode only\n");
         return error_msg("c_xdfdel", ERR_RDONLY, ERROR);
     }
 
     if (f->cur_info->attr.read_only) {
-        sprintf(errmsg,"file is read only\n");
+        sprintf(errmsg, "file is read only\n");
         return error_msg("c_xdfdel", ERR_RDONLY, ERROR);
     }
 
@@ -1023,7 +1024,7 @@ int c_xdfdel(
         }
 
         if (record_number > target_page->dir.nent) {
-            sprintf(errmsg,"invalid handle, invalid record number\n");
+            sprintf(errmsg, "invalid handle, invalid record number\n");
             return error_msg("c_xdfdel", ERR_BAD_HNDL, ERROR);
         }
 
@@ -1115,7 +1116,7 @@ int c_xdfget2(
         } else {
             // page is in a link file
             if (f->link == -1) {
-                sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number,f->npages-1);
+                sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, f->npages-1);
                 return error_msg("c_xdfget", ERR_BAD_PAGENO, ERROR);
             }
             target_page = f->dir_page[f->npages-1];
@@ -1143,7 +1144,7 @@ int c_xdfget2(
         }
         record = (file_record *) f->head_keys;
         if (address_from_handle(handle, f) != W64TOWD(record->addr - 1) + 1) {
-            sprintf(errmsg,"invalid handle, invalid address=%d record address=%d\n",
+            sprintf(errmsg, "invalid handle, invalid address=%d record address=%d\n",
                 address_from_handle(handle, f), W64TOWD(record->addr - 1) + 1);
             return error_msg("c_xdfget", ERR_BAD_HNDL, ERROR);
         }
@@ -1156,7 +1157,7 @@ int c_xdfget2(
 
     if (idtyp == 0) {
         sprintf(errmsg, "special record idtyp=0\n");
-        return error_msg("c_xdfget", ERR_SPECIAL,ERROR);
+        return error_msg("c_xdfget", ERR_SPECIAL, ERROR);
     }
 
     if ((idtyp & 0x7E) == 0x7E) {
@@ -1227,31 +1228,31 @@ int c_xdfgop(
 ) {
     if (strstr(optname, "ERRTOLR") || strstr(optname, "errtolr")) {
         if (xdf_toler == TRIVIAL) {
-            strcpy(optc,"TRIVIAL");
+            strcpy(optc, "TRIVIAL");
         } else if (xdf_toler == INFORM) {
-            strcpy(optc,"INFORM");
+            strcpy(optc, "INFORM");
         } else if (xdf_toler == WARNING) {
-            strcpy(optc,"WARNING");
+            strcpy(optc, "WARNING");
         } else if (xdf_toler == ERROR) {
-            strcpy(optc,"ERROR");
+            strcpy(optc, "ERROR");
         } else if (xdf_toler == ERRFATAL) {
-            strcpy(optc,"ERRFATAL");
+            strcpy(optc, "ERRFATAL");
         } else if (xdf_toler == SYSTEM) {
-            strcpy(optc,"SYSTEM");
+            strcpy(optc, "SYSTEM");
         }
     } else if (strstr(optname, "MSGLVL") || strstr(optname, "msglvl")) {
         if (msg_level == TRIVIAL) {
-            strcpy(optc,"TRIVIAL");
+            strcpy(optc, "TRIVIAL");
         } else if (msg_level == INFORM) {
-            strcpy(optc,"INFORM");
+            strcpy(optc, "INFORM");
         } else if (msg_level == WARNING) {
-            strcpy(optc,"WARNING");
+            strcpy(optc, "WARNING");
         } else if (msg_level == ERROR) {
-            strcpy(optc,"ERROR");
+            strcpy(optc, "ERROR");
         } else if (msg_level == ERRFATAL) {
-            strcpy(optc,"ERRFATAL");
+            strcpy(optc, "ERRFATAL");
         } else if (msg_level == SYSTEM) {
-            strcpy(optc,"SYSTEM");
+            strcpy(optc, "SYSTEM");
         }
     } else {
         sprintf(errmsg, "invalid option name: %s", optname);
@@ -1575,27 +1576,27 @@ int c_xdflnk(
 
     index_fnom = fnom_index(liste[0]);
     if (index_fnom == -1) {
-        sprintf(errmsg,"file is not connected with fnom");
-        return error_msg("c_xdflnk",ERR_NO_FNOM,ERROR);
+        sprintf(errmsg, "file is not connected with fnom");
+        return error_msg("c_xdflnk", ERR_NO_FNOM, ERROR);
     }
 
     if ((index = file_index(liste[0])) == ERR_NO_FILE) {
-        sprintf(errmsg,"file is not open");
-        return error_msg("c_xdflnk",ERR_NO_FILE,ERROR);
+        sprintf(errmsg, "file is not open");
+        return error_msg("c_xdflnk", ERR_NO_FILE, ERROR);
     }
 
     f = file_table[index];
     for (i=1; i < n; i++) {
         if ((index_fnom = fnom_index(liste[i])) == -1) {
-            sprintf(errmsg,"file is not connected with fnom");
-           return error_msg("c_xdflnk",ERR_NO_FNOM,ERROR);
+            sprintf(errmsg, "file is not connected with fnom");
+           return error_msg("c_xdflnk", ERR_NO_FNOM, ERROR);
         }
         if ((indnext = file_index(liste[i])) == ERR_NO_FILE) {
-            sprintf(errmsg,"file is not open");
-           return error_msg("c_xdflnk",ERR_NO_FILE,ERROR);
+            sprintf(errmsg, "file is not open");
+           return error_msg("c_xdflnk", ERR_NO_FILE, ERROR);
         }
         if (msg_level <= TRIVIAL) {
-            fprintf(stdout,"Debug xdflink %d avec %d\n",liste[i-1],liste[i]);
+            fprintf(stdout, "Debug xdflink %d avec %d\n", liste[i-1], liste[i]);
         }
         fnext = file_table[indnext];
         f->link = indnext;
@@ -1661,7 +1662,7 @@ int c_xdfloc2(
     seq_dir_keys seq_entry;
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open,iun=%d\n", iun);
+        sprintf(errmsg, "file is not open, iun=%d\n", iun);
         return error_msg("c_xdfloc", ERR_NO_FILE, ERROR);
     }
     f = file_table[index];
@@ -1690,7 +1691,7 @@ int c_xdfloc2(
             return error_msg("c_xdfloc", ERR_BAD_HNDL, ERROR);
          }
         if (f->xdf_seq) {
-            f->cur_addr = address_from_handle(handle,f);
+            f->cur_addr = address_from_handle(handle, f);
             if (f->fstd_vintage_89) {
                 c_waread(iun, &seq_entry, f->cur_addr, sizeof(seq_entry) / bytesperword);
                 header.lng = ((seq_entry.lng + 3) >> 2) + 15;
@@ -1740,7 +1741,7 @@ int c_xdfloc2(
                 if (f->link == -1) {
                     sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", pageno, f->npages - 1);
                     f->cur_entry = NULL;
-                    return error_msg("c_xdfloc",ERR_BAD_PAGENO,ERROR);
+                    return error_msg("c_xdfloc", ERR_BAD_PAGENO, ERROR);
                 }
                 f->cur_dir_page = f->dir_page[f->npages - 1];
                 f->cur_pageno = f->npages - 1;
@@ -1751,7 +1752,7 @@ int c_xdfloc2(
                 if (f->cur_dir_page == NULL) {
                     sprintf(errmsg, "invalid handle, invalid page number\n");
                     f->cur_entry = NULL;
-                    return error_msg("c_xdfloc",ERR_BAD_PAGENO,ERROR);
+                    return error_msg("c_xdfloc", ERR_BAD_PAGENO, ERROR);
                 }
             }
         } else {
@@ -1764,7 +1765,7 @@ int c_xdfloc2(
 
     if (((f->cur_entry == NULL) || (f->cur_pageno == -1)) && (! f->xdf_seq)) {
         sprintf(errmsg, "no valid current file position\n");
-        return error_msg("c_xdfloc", ERR_NO_POS,ERROR);
+        return error_msg("c_xdfloc", ERR_NO_POS, ERROR);
     }
 
     if (! f->valid_target) {
@@ -1836,8 +1837,8 @@ int c_xdfopn(
         return error_msg("c_xdfopn", -1, ERROR);
     }
 
-    if (strstr(appl,"BRP0")) f->cur_info->attr.burp = 1;
-    if (strstr(appl,"STD"))  f->cur_info->attr.std = 1;
+    if (strstr(appl, "BRP0")) f->cur_info->attr.burp = 1;
+    if (strstr(appl, "STD"))  f->cur_info->attr.std = 1;
 
     if (f->cur_info->attr.burp) {
         f->build_primary = (fn_b_p *) build_burp_prim_keys;
@@ -1853,12 +1854,12 @@ int c_xdfopn(
         }
     }
 
-    if ((strstr(f->cur_info->file_type,"SEQ")) || (strstr(f->cur_info->file_type,"seq"))) {
+    if ((strstr(f->cur_info->file_type, "SEQ")) || (strstr(f->cur_info->file_type, "seq"))) {
         f->xdf_seq = 1;
         // at least one seq file is opened, limit number of xdf files is now 128
         STDSEQ_opened = 1;
         if (index > 127) {
-            sprintf(errmsg,"while opening std/seq file, limit of 128 opened file reached");
+            sprintf(errmsg, "while opening std/seq file, limit of 128 opened file reached");
             return error_msg("c_xdfopn", -1, ERROR);
         }
     }
@@ -1868,7 +1869,7 @@ int c_xdfopn(
         fprintf(stdout, "Debug c_xdfopn f->xdf_seq=%d\n", f->xdf_seq);
     }
 
-    if (strstr(mode,"CREATE") || strstr(mode,"create")) {
+    if (strstr(mode, "CREATE") || strstr(mode, "create")) {
 
         // Create new xdf file
         c_waopen(iun);
@@ -1969,7 +1970,7 @@ int c_xdfopn(
                         checksum ^= check32[j];
                     }
                     if (checksum != 0) {
-                        sprintf(errmsg," incorrect checksum in page %d, directory is probably damaged\n file in error: %s\n", i, FGFDT[index_fnom].file_name);
+                        sprintf(errmsg, " incorrect checksum in page %d, directory is probably damaged\n file in error: %s\n", i, FGFDT[index_fnom].file_name);
                         error_msg("c_xdfopn", ERR_BAD_CHKS, ERROR);
                     }
                     wdaddress = W64TOWD(curpage->nxt_addr - 1) +1;
@@ -2085,13 +2086,13 @@ int c_xdfopn(
                 free(directory);
             } else {
                 // Sequential
-                c_waread(iun,&header_seq,1,30);
+                c_waread(iun, &header_seq, 1, 30);
                 if (header_seq[896/32] == STDF_SEQ_SIGN) {
                     // old sequential stdf
                     f->cur_info->attr.read_only = 1;
                     f->fstd_vintage_89 = 1;
                     f->xdf_seq = 1;
-                    create_new_xdf(index, iun,(word_2 *)&stdfkeys, 16, aux, 0, "STDF");
+                    create_new_xdf(index, iun, (word_2 *)&stdfkeys, 16, aux, 0, "STDF");
                     f->cur_addr = 1;
                     f->seq_bof = 1;
                     return 0;
@@ -2281,7 +2282,7 @@ int c_xdfput(
     }
 
     if ((buf->nbits & 0x3f) != 0) {
-        sprintf(errmsg,"buf->nbits is not a multiple of 64 bits\n");
+        sprintf(errmsg, "buf->nbits is not a multiple of 64 bits\n");
         return error_msg("c_xdfput", ERR_BAD_ADDR, SYSTEM);
     }
 
@@ -2333,7 +2334,7 @@ int c_xdfput(
             } else {
                 // Page is in a link file
                 if (f->link == -1) {
-                    sprintf(errmsg,"page number=%d > last page=%d and file not linked\n", page_number, f->npages - 1);
+                    sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, f->npages - 1);
                     return error_msg("c_xdfput", ERR_BAD_PAGENO, ERROR);
                 }
                 f->cur_dir_page = f->dir_page[f->npages-1];
@@ -2358,7 +2359,7 @@ int c_xdfput(
             // file is xdf sequential
             if (handle > 0) {
                 // Rewrite record
-                addr = address_from_handle(handle,f);
+                addr = address_from_handle(handle, f);
                 c_waread(iun, f->head_keys, addr, MAX_PRIMARY_LNG);
                 record = (file_record *) f->head_keys;
             }
@@ -2830,12 +2831,12 @@ int c_xdfuse(
     if ((index_dest = file_index(dest_unit)) == ERR_NO_FILE) {
         if (FGFDT[index_fnom_dest].file_size > 0) {
             // Destination file exists
-            err = c_xdfsta(dest_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers,appl);
+            err = c_xdfsta(dest_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
             if (err < 0) return err;
             err = c_xdfopn(dest_unit, "APPEND", primk, stat[6], info, stat[8], appl);
             if (err < 0) return err;
         } else {
-            err = c_xdfsta(src_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers,appl);
+            err = c_xdfsta(src_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
             if (err < 0) return err;
             for (i = 0; i < xdf_nsplit; i++) {
                 err = c_xdfopn(dest_unit + i, "CREATE", primk, stat[6], info, stat[8], appl);
@@ -2909,7 +2910,7 @@ int c_xdfuse(
         buf->iun = src_unit;
 
         while (! nomore) {
-            c_waread(src_unit ,&header, readpos, W64TOWD(1));
+            c_waread(src_unit , &header, readpos, W64TOWD(1));
             addr = (header.addr == 0) ? 1 : header.addr;
             idtyp = header.idtyp;
             lng = header.lng;
@@ -3518,7 +3519,7 @@ static word next_match(
                     f_datev = (ftnword) datexx;
                     i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
                     nhours = (double) (i_nhours / 3600.0);
-                    f77name(incdatr)(&f_datev,&f_datev,&nhours);
+                    f77name(incdatr)(&f_datev, &f_datev, &nhours);
                     // Re-octalise the date_stamp
                     datexx = (int) f_datev;
                     stde->date_stamp = 8 * (datexx/10) + (datexx % 10);
@@ -3567,11 +3568,780 @@ static word next_match(
         handle = MAKE_RND_HANDLE(f->cur_pageno, f->page_record-1, f->file_index);
     } else {
         if (msg_level <= TRIVIAL) {
-            fprintf(stdout, "Record found at address %d,\n", addr_match);
+            fprintf(stdout, "Record found at address %d, \n", addr_match);
         }
         stde = (stdf_dir_keys *) f->head_keys;
-        handle = make_seq_handle(addr_match,f->file_index,f);
+        handle = make_seq_handle(addr_match, f->file_index, f);
     }
    return handle;
 }
-#include "if_xdf98.h"
+
+
+// Everything after this point has been moved from if_xdf98.h
+// This is the only place where it was used
+
+
+/*****************************************************************************
+ *                             Q D F D I A G                                 *
+ *****************************************************************************/
+
+ftnword  f77name(qdfdiag)(ftnword *f_iun)
+{
+  int iun = *f_iun, ier;
+
+  ier = c_qdfdiag(iun);
+  return (ftnword) ier;
+}
+/*****************************************************************************
+ *                              Q D F E R R                                  *
+ *****************************************************************************/
+
+ftnword f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
+            ftnword *ferrcode, F2Cl l1, F2Cl l2)
+{
+   int errlevl = *ferrlevl, errcode = *ferrcode, lng;
+   char c_subname[128];
+
+   errcode = (errcode > 0) ? -errcode : errcode;
+   lng = (l1 < 128) ? l1 : 127;
+   strncpy(c_subname, subname, lng);
+   c_subname[lng] = '\0';
+
+   lng = (l2 < 1024) ? l2 : 1023;
+   strncpy(errmsg, msg, lng);
+
+   return (ftnword) error_msg(c_subname, errcode, errlevl);
+}
+
+
+/*****************************************************************************
+ *                              Q D F I N D                                  *
+ *****************************************************************************/
+
+ftnword f77name(qdfind)(ftnword *iun)
+{
+   int ind;
+   ind = file_index(*iun);
+   ind = (ind != ERR_NO_FILE) ? ind : 9999;
+
+   return (ftnword) ind;
+}
+
+
+/*****************************************************************************
+ *                            Q D F M S I G                                  *
+ *****************************************************************************/
+
+ftnword f77name(qdfmsig)(ftnword *fiun, char *appl, F2Cl l1)
+{
+   int iun = *fiun, lng;
+   char c_appl[257];
+
+   lng = (l1 <= 256) ? l1 : 256;
+   strncpy(c_appl, appl, lng);
+   c_appl[lng] = '\0';
+
+   return c_qdfmsig(iun, c_appl);
+}
+
+
+/*****************************************************************************
+ *                              Q D F P U T                                  *
+ *****************************************************************************/
+
+ftnword f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
+            ftnword *fnbits)
+{
+   int elem = *felem, nbits = *fnbits, derbit = *fderbit;
+   int ier;
+#if defined(NEC64)
+   BUF_C;
+   ier = c_qdfput(buf+1, elem, derbit, nbits);
+   BUF_F;
+#else
+   ier = c_qdfput(buf, elem, derbit, nbits);
+#endif
+   return (ftnword) ier;
+}
+/*****************************************************************************
+ *                             Q D F R S T R                                 *
+ *****************************************************************************/
+
+ftnword  f77name(qdfrstr)(ftnword *f_inp, ftnword *f_outp)
+{
+  int inp = *f_inp, outp = *f_outp, ier;
+
+  ier = c_qdfrstr(inp, outp);
+  return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                          R E W I N D _ F I L E                            *
+ *****************************************************************************/
+
+/* set file position, if handle=-1, rewind file */
+static INT_32 rewind_file(int file_index, int handle)
+{
+   register file_table_entry *f, *f2;
+   int linked=0, file_index2;
+
+   /* check if file exists */
+   if( (f = file_table[file_index]) == NULL) return (ERR_NO_FILE);
+
+   if (handle==-1){
+      f->cur_dir_page = f->dir_page[0];
+      f->cur_entry = (f->cur_dir_page)->dir.entry;
+      f->page_nrecords = (f->cur_dir_page)->dir.nent;
+      f->page_record = 0;
+   }
+   else{
+      file_index2=INDEX_FROM_HANDLE(handle);
+
+      if(file_index!=file_index2){
+         /* check if file2 exists and is linked to file */
+         if( (f2 = file_table[file_index2]) == NULL) return (ERR_NO_FILE);
+         f2=f;
+         linked=f2->link;
+         while((linked>0) && (linked!=file_index2)){
+            f2=file_table[linked];
+            linked=f2->link;
+         };
+         if(linked!=file_index2) return (ERR_BAD_LINK);
+      }
+      f2=file_table[file_index2];
+      f->cur_dir_page = f2->dir_page[PAGENO_FROM_HANDLE(handle)];
+      f->page_record = RECORD_FROM_HANDLE(handle);
+      f->page_nrecords = (f->cur_dir_page)->dir.nent;
+      f->cur_entry = (f->cur_dir_page)->dir.entry + (f->page_record)*(f->primary_len);
+   }
+   return 0;
+}
+
+
+/*****************************************************************************
+ *                              X D F A D D                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfadd)(word *buf, word *donnees,
+                        ftnword *fnelm, ftnword *fnbits, ftnword *fdatyp)
+{
+   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp;
+   int ier;
+
+#if defined(NEC64)
+   BUF_C;
+   if ((datyp == 2) || (datyp == 4)) {
+     xdf_stride = 2;
+     ier = c_xdfadd(buf+1, donnees+1, nelm, nbits, datyp);
+     xdf_stride = 1;
+   }
+   else
+     ier = c_xdfadd(buf+1, donnees, nelm, nbits, datyp);
+   BUF_F;
+#else
+   ier = c_xdfadd(buf, donnees, nelm, nbits, datyp);
+#endif
+   return (ftnword) ier;
+
+}
+
+
+
+/*****************************************************************************
+ *                                X D F C L E                                *
+ *****************************************************************************/
+ftnword f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
+            ftnword *ftkey, ftnword *fdesc1, ftnword *fdesc2, F2Cl l1)
+{
+   char keyname[5]={' ', ' ', ' ', ' ', '\0'};
+   int lkey = *flkey, tkey = *ftkey, bit1 = *fbit1;
+   int desc1, desc2;
+   int lng, err;
+
+   lng = (l1 <= 4) ? l1 : 4;
+   strncpy(keyname, fkeyname, lng);
+
+   err = c_xdfcle(keyname, bit1, lkey, tkey, &desc1, &desc2);
+
+   *fdesc1 = (ftnword) desc1;
+   *fdesc2 = (ftnword) desc2;
+
+   return err;
+}
+
+
+/*****************************************************************************
+ *                              X D F C L S                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfcls)(ftnword *fiun)
+{
+   int iun = *fiun;
+
+   return c_xdfcls(iun);
+}
+
+
+/*****************************************************************************
+ *                              X D F C U T                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfcut)(word *buf,
+            ftnword *fbitpos, ftnword *fnelm,
+            ftnword *fnbits, ftnword *fdatyp)
+{
+   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+   int ier;
+
+#if defined(NEC64)
+   BUF_C;
+   ier = c_xdfcut(buf+1, bitpos, nelm, nbits, datyp);
+   BUF_F;
+#else
+   ier = c_xdfcut(buf, bitpos, nelm, nbits, datyp);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F D E L                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfdel)(ftnword *fhandle)
+{
+   int handle = *fhandle;
+
+   return (ftnword) c_xdfdel(handle);
+}
+
+
+/*****************************************************************************
+ *                              X D F G E T                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfget)(ftnword *fhandle, word *buf)
+{
+   int handle = *fhandle, ier;
+
+#if defined(NEC64)
+   BUF_C;
+   ier = c_xdfget(handle, buf+1);
+   BUF_F;
+#else
+   ier = c_xdfget(handle, (buffer_interface_ptr) buf);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F G O P                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
+            F2Cl ll1, F2Cl ll2)
+{
+   int optv, err, l1=ll1, l2=ll2;
+   char optname[257], optc[257];
+
+   l1 = (l1 <= 256) ? l1 : 256;
+   strncpy(optname, foptname, l1);
+   optname[l1] = '\0';
+
+   err = c_xdfgop(optname, optc, &optv);
+
+   l2 = (l2 <= 256) ? l2 : 256;
+   strncpy(foptc, optc, l2);
+
+   *foptv = (ftnword) optv;
+   return (ftnword) err;
+
+}
+
+
+/*****************************************************************************
+ *                              X D F H D R                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
+                        ftnword *idtyp, ftnword *primk, ftnword *fnprim,
+            ftnword *info, ftnword *fninfo)
+{
+   int nprim = *fnprim, ninfo = *fninfo, ier, i;
+   int l_addr, l_lng, l_idtyp;
+   word l_primk[MAX_KEYS];
+   word l_info[MAX_KEYS];
+
+#if defined(NEC64)
+   BUF_C;
+   ier = c_xdfhdr(buf+1, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
+   BUF_F;
+#else
+   ier = c_xdfhdr((buffer_interface_ptr)buf, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
+#endif
+
+   *addr =  (ftnword) l_addr;
+   *lng =   (ftnword) l_lng;
+   *idtyp = (ftnword) l_idtyp;
+
+   if ((nprim > MAX_KEYS) || (ninfo >MAX_KEYS)) {
+      sprintf(errmsg, "nprim=%d or ninfo=%d > MAX_KEYS must recompile", nprim, ninfo);
+      return error_msg("xdfhdr", ERR_OUT_RANGE, SYSTEM);
+      }
+
+   for (i=0; i < nprim; i++)
+      primk[i] = (ftnword) l_primk[i];
+
+   for (i=0; i < ninfo; i++)
+      info[i] = (ftnword) l_info[i];
+
+   return ((ftnword) ier);
+}
+
+
+/*****************************************************************************
+ *                              X D F I M P                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
+                    ftnword_2 *pri, ftnword_2 *aux,
+                    char *vers, char *appl, F2Cl l1, F2Cl l2)
+{
+   int iun = *fiun, nstat = *fnstat, lng, ier, i, nkeys, ninfo;
+   char c_vers[257], c_appl[257];
+   word_2 primk[MAX_KEYS], infok[MAX_KEYS];
+   word lstat[12];
+
+   lng = (l1 <= 256) ? l1 : 256;
+   strncpy(c_vers, vers, lng);
+   c_vers[lng] = '\0';
+
+   lng = (l2 <= 256) ? l2 : 256;
+   strncpy(c_appl, appl, lng);
+   c_appl[lng] = '\0';
+
+#if defined(NEC64)
+   for (i=0; i < nstat; i++)
+     lstat[i] = stat[i];
+   nkeys = lstat[6];
+   ninfo = lstat[8];
+   if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
+      sprintf(errmsg, "nkeys=%d or ninfo=%d > MAX_KEYS must recompile", nkeys, ninfo);
+      return error_msg("xdfimp", ERR_OUT_RANGE, SYSTEM);
+      }
+   for (i=0; i < nkeys; i++) {
+     primk[i].wd1 = pri[i].wd1;
+     primk[i].wd2 = pri[i].wd2;
+     }
+   for (i=0; i < ninfo; i++) {
+     infok[i].wd1 = aux[i].wd1;
+     infok[i].wd2 = aux[i].wd2;
+     }
+   ier = c_xdfimp(iun, lstat, nstat, primk, infok, c_vers, c_appl);
+#else
+   ier = c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F I N I                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
+            ftnword *keys, ftnword *fnkeys, ftnword *info,
+            ftnword *fninfo)
+{
+   int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
+   int ier, i;
+#if defined(NEC64)
+   word primk[MAX_KEYS], infok[MAX_KEYS];
+
+   if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
+      sprintf(errmsg, "nkeys=%d or ninfo=%d > MAX_KEYS must recompile", nkeys, ninfo);
+      return error_msg("xdfini", ERR_OUT_RANGE, SYSTEM);
+      }
+   for (i=0; i < nkeys; i++)
+     primk[i] = keys[i];
+   for (i=0; i < ninfo; i++)
+     infok[i] = info[i];
+   BUF_C;
+   ier = c_xdfini(iun, buf+1, idtyp, primk, nkeys, infok, ninfo);
+   BUF_F;
+#else
+   ier = c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F I N S                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfins)(word *buf, word *donnees,
+                        ftnword *fbitpos, ftnword *fnelm,
+            ftnword *fnbits, ftnword *fdatyp)
+{
+   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+   int ier;
+
+#if defined(NEC64)
+   BUF_C;
+   if ((datyp == 2) || (datyp == 4)) {
+     xdf_stride = 2;
+     ier = c_xdfins(buf+1, donnees+1, bitpos, nelm, nbits, datyp);
+     xdf_stride = 1;
+   }
+   else
+     ier = c_xdfins(buf+1, donnees, bitpos, nelm, nbits, datyp);
+   BUF_F;
+#else
+   ier = c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F L N K                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdflnk)(ftnword *liste, ftnword *fn)
+{
+   int n = *fn, ier;
+
+   ier = c_xdflnk(liste, n);
+   return (ftnword) ier;
+
+}
+
+
+/*****************************************************************************
+ *                              X D F L O C                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
+            ftnword *fnprim)
+{
+   int iun = *fiun, nprim = *fnprim, i;
+   int handle = *fhandle;
+   word l_primk[MAX_KEYS];
+
+   if (nprim > MAX_KEYS) {
+      sprintf(errmsg, "nprim=%d > MAX_KEYS must recompile", nprim);
+      return error_msg("xdfloc", ERR_OUT_RANGE, SYSTEM);
+      }
+   for (i=0; i<nprim; i++)
+      l_primk[i] = primk[i];
+
+   return (ftnword) c_xdfloc(iun, handle, l_primk, nprim);
+
+}
+
+
+/*****************************************************************************
+ *                              X D F O P N                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
+            ftnword_2 *pri, ftnword *fnpri,
+            ftnword_2 *aux, ftnword *fnaux,
+            char *appl, F2Cl l1, F2Cl l2)
+{
+   int iun = *fiun, npri = *fnpri, naux = *fnaux, lng, i, ier;
+   char c_mode[257], c_appl[257];
+   word_2 primk[MAX_KEYS], infok[MAX_KEYS];
+
+   lng = (l1 <= 256) ? l1 : 256;
+   strncpy(c_mode, mode, lng);
+   c_mode[lng] = '\0';
+
+   lng = (l2 <= 256) ? l2 : 256;
+   strncpy(c_appl, appl, lng);
+   c_appl[lng] = '\0';
+
+   if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
+      sprintf(errmsg, "npri=%d or naux=%d > MAX_KEYS must recompile",
+          npri, naux);
+      return error_msg("xdfopn", ERR_OUT_RANGE, SYSTEM);
+      }
+   for (i=0; i < npri; i++) {
+     primk[i].wd1 = pri[i].wd1;
+     primk[i].wd2 = pri[i].wd2;
+     }
+   for (i=0; i < naux; i++) {
+     infok[i].wd1 = aux[i].wd1;
+     infok[i].wd2 = aux[i].wd2;
+     }
+   ier = c_xdfopn(iun, c_mode, primk, npri, infok, naux, c_appl);
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F O P T                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
+            F2Cl ll1, F2Cl ll2)
+{
+   int optv = *foptv, l1=ll1, l2=ll2;
+   char optname[257], optc[257];
+
+   l1 = (l1 <= 256) ? l1 : 256;
+   strncpy(optname, foptname, l1);
+   optname[l1] = '\0';
+
+   l2 = (l2 <= 256) ? l2 : 256;
+   strncpy(optc, foptc, l2);
+   optc[l2] = '\0';
+
+   return (ftnword) c_xdfopt(optname, optc, optv);
+}
+
+
+/*****************************************************************************
+ *                              X D F P R M                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfprm)(ftnword *fhandle, ftnword *addr, ftnword *lng,
+                        ftnword *idtyp, ftnword *primk, ftnword *fnprim)
+{
+   int nprim = *fnprim, ier, i;
+   int handle = *fhandle;
+   int l_addr, l_lng, l_idtyp;
+   word l_primk[MAX_KEYS];
+
+   ier = c_xdfprm(handle, &l_addr, &l_lng, &l_idtyp, l_primk, nprim);
+   *addr =  (ftnword) l_addr;
+   *lng =   (ftnword) l_lng;
+   *idtyp = (ftnword) l_idtyp;
+
+   for (i=0; i < nprim; i++)
+      primk[i] = (ftnword) l_primk[i];
+
+   return ((ftnword) ier);
+}
+
+
+/*****************************************************************************
+ *                              X D F P U T                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
+            word *buf)
+{
+   int handle = *fhandle;
+   int iun = *fiun, ier;
+
+#if defined(NEC64)
+   BUF_C;
+   ier = c_xdfput(iun, handle, buf+1);
+   BUF_F;
+#else
+   ier = c_xdfput(iun, handle, (buffer_interface_ptr)buf);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F R E P                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfrep)(word *buf, word *donnees,
+                        ftnword *fbitpos, ftnword *fnelm,
+            ftnword *fnbits, ftnword *fdatyp)
+{
+   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+   int ier;
+
+#if defined(NEC64)
+   BUF_C;
+   if ((datyp == 2) || (datyp == 4)) {
+     xdf_stride = 2;
+     ier = c_xdfrep(buf+1, donnees+1, bitpos, nelm, nbits, datyp);
+     xdf_stride = 1;
+   }
+   else
+     ier = c_xdfrep(buf+1, donnees, bitpos, nelm, nbits, datyp);
+   BUF_F;
+#else
+   ier = c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F S T A                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
+            ftnword_2 *pri, ftnword *fnpri,
+            ftnword_2 *aux, ftnword *fnaux,
+            char *vers, char *appl, F2Cl l1, F2Cl l2)
+{
+   int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat, lng, ier;
+   char c_vers[257], c_appl[257];
+   int i;
+
+#if defined(NEC64)
+   word_2 primk[MAX_KEYS], infok[MAX_KEYS];
+   word lstat[12];
+
+   ier = c_xdfsta(iun, lstat, nstat, primk, npri, infok, naux, c_vers, c_appl);
+
+   if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
+      sprintf(errmsg, "npri=%d or naux=%d > MAX_KEYS must recompile",
+          npri, naux);
+      return error_msg("xdfsta", ERR_OUT_RANGE, SYSTEM);
+      }
+   for (i=0; i < npri; i++) {
+     pri[i].wd1 = primk[i].wd1;
+     pri[i].wd2 = primk[i].wd2;
+     }
+   for (i=0; i < naux; i++) {
+     aux[i].wd1 = infok[i].wd1;
+     aux[i].wd2 = infok[i].wd2;
+     }
+   for (i=0; i < nstat; i++)
+     stat[i] = lstat[i];
+#else
+   ier = c_xdfsta(iun, stat, nstat, pri, npri, aux, naux, c_vers, c_appl);
+#endif
+   lng = (l1 <= 256) ? l1 : 256;
+   c_vers[lng] = '\0';
+   strncpy(vers, c_vers, lng);
+
+   lng = (l2 <= 256) ? l2 : 256;
+   c_appl[lng] = '\0';
+   strncpy(appl, c_appl, lng);
+
+   return (ftnword) ier;
+
+}
+
+
+/*****************************************************************************
+ *                              X D F U P D                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfupd)(ftnword *fiun, word *buf, ftnword *fidtyp,
+            ftnword *keys, ftnword *fnkeys,
+            ftnword *info, ftnword *fninfo)
+{
+   int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
+   int ier, i;
+#if defined(NEC64)
+   word l_keys[MAX_KEYS], l_info[MAX_KEYS];
+
+   BUF_C;
+   for (i=0; i < nkeys; i++)
+      l_keys[i] = (ftnword) keys[i];
+   for (i=0; i < ninfo; i++)
+      l_info[i] = (ftnword) info[i];
+   ier = c_xdfupd(iun, buf+1, idtyp, l_keys, nkeys, l_info, ninfo);
+   BUF_F;
+#else
+   ier = c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
+#endif
+   return (ftnword) ier;
+}
+
+
+/*****************************************************************************
+ *                              X D F U S E                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
+{
+   int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
+
+   return (ftnword)c_xdfuse(src_unit, dest_unit);
+
+}
+
+
+/*****************************************************************************
+ *                              X D F X T R                                  *
+ *****************************************************************************/
+
+ftnword f77name(xdfxtr)(word *buf, word *donnees,
+                        ftnword *fbitpos, ftnword *fnelm,
+            ftnword *fnbits, ftnword *fdatyp)
+{
+   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+   int ier;
+
+#if defined(NEC64)
+   BUF_C;
+   if ((datyp == 2) || (datyp == 4)) {
+     xdf_stride = 2;
+     ier = c_xdfxtr(buf+1, donnees+1, bitpos, nelm, nbits, datyp);
+     xdf_stride = 1;
+   }
+   else
+     ier = c_xdfxtr(buf+1, donnees, bitpos, nelm, nbits, datyp);
+   BUF_F;
+#else
+   ier = c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
+#endif
+   return (ftnword) ier;
+}
+
+
+
+/*****************************************************************************
+ *                            S E C A T E U R                                *
+ *                                                                           *
+ *Object                                                                     *
+ *  The file whose name is given by filename has its size truncated to       *
+ *  the number of bytes given by where.                                      *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  filename file name                                                   *
+ *  IN  where    number of bytes for the file zise                           *
+ *                                                                           *
+ *****************************************************************************/
+
+ftnword f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1)
+{
+  int ier, where = *f_where;
+
+  ier = c_secateur(filename, where);
+  return (ftnword) ier;
+}
+
+
+
+/*****************************************************************************
+ *                        C _ S E C A T E U R                                *
+ *                                                                           *
+ *Object                                                                     *
+ *  The file whose name is given by filename has its size truncated to       *
+ *  the number of bytes given by where.                                      *
+ *                                                                           *
+ *Arguments                                                                  *
+ *                                                                           *
+ *  IN  filename file name                                                   *
+ *  IN  where    number of bytes for the file zise                           *
+ *                                                                           *
+ *****************************************************************************/
+
+int c_secateur(char *filename, int where)
+{
+  int ier;
+
+  if (msg_level <= TRIVIAL)
+    fprintf(stdout, "Truncating %s to \t %d Bytes\n", filename, where);
+
+  ier = truncate(filename, where);
+  if (ier == -1) perror("secateur");
+  return ier;
+}

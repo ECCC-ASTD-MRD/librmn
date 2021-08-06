@@ -1,9 +1,11 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+#include <fstd98.h>
+
 void RemplirDeBlancs(char str[],wordint longueur);
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 void Lire_enrUvercode1(_Grille *gr, ftnfloat *yy, wordint nix)
 {
   wordint ig1refyin,ig2refyin,ig3refyin,ig4refyin;
@@ -53,7 +55,7 @@ void Lire_enrTicTac(_Grille *gr, ftnfloat *ax, wordint nixnjx, ftnfloat *ay, wor
       memcpy(gr->ax,ax,nixnjx*sizeof(ftnfloat));
       memcpy(gr->ay,ay,niynjy*sizeof(ftnfloat));
       break;
-  
+
     case '#':
       gr->ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
       gr->ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
@@ -63,7 +65,7 @@ void Lire_enrTicTac(_Grille *gr, ftnfloat *ax, wordint nixnjx, ftnfloat *ay, wor
         {
         gr->ay[j] = ay[j+offsety];
         }
-  
+
       for (i=0; i < gr->ni; i++)
         {
         gr->ax[i] = ax[i+offsetx];
@@ -280,12 +282,12 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
   gr->fst.ig[IG2]    =  intip2;
   gr->fst.ig[IG3]    =  intip3;
   gr->fst.ig[IG4]    =  intip4;
- 
+
   gr->fst.xg[IG1]    =  0.0;
   gr->fst.xg[IG2]    =  0.0;
   gr->fst.xg[IG3]    =  0.0;
   gr->fst.xg[IG4]    =  0.0;
- 
+
   switch (gr->grtyp[0])
   {
      case 'Y':
@@ -295,7 +297,7 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
         gr->fst.ip2     = ig2ref;
         gr->fst.ip3     = ig3ref;
         break;
-        
+
      case '#':
         gr->fst.ip1     = ig1ref;
         gr->fst.ip2     = ig2ref;
@@ -304,21 +306,21 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
         gr->fst.ig[IG4]    =  ip4;
         break;
   }
-  
+
   if (gr->grref[0] == 'N') gr->fst.hemisphere = 1;
   if (gr->grref[0] == 'S') gr->fst.hemisphere = 2;
- 
+
   gr->fst.igref[IG1]  = ig1ref;
   gr->fst.igref[IG2]  = ig2ref;
   gr->fst.igref[IG3]  = ig3ref;
   gr->fst.igref[IG4]  = ig4ref;
- 
+
   if ( gr->grref[0] != 'O' && gr->grtyp[0] != 'U' )
      {
      f77name(cigaxg)(&(gr->grref),&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
          &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
      }
- 
+
   gr->fst.deet    = 0;
   gr->fst.npas    = 0;
   gr->fst.nbits   = 0;
@@ -330,15 +332,15 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
   strcpy(gr->fst.nomvary, nomvary);
   strcpy(gr->fst.typvary, typvary);
   strcpy(gr->fst.etikety, etiky);
- 
+
   RemplirDeBlancs(gr->fst.nomvarx, 5);
   RemplirDeBlancs(gr->fst.typvarx, 3);
   RemplirDeBlancs(gr->fst.etiketx, 13);
   RemplirDeBlancs(gr->fst.nomvary, 5);
   RemplirDeBlancs(gr->fst.typvary, 3);
   RemplirDeBlancs(gr->fst.etikety, 13);
- 
-  if (read == 1) 
+
+  if (read == 1)
      {
      gr->flags  |= AX;
      }

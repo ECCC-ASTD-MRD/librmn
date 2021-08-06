@@ -1196,7 +1196,7 @@ int c_mrfrwd(
 
     if (! fte->cur_info->attr.burp) {
         sprintf(errmsg, "file (unit=%d) is not a BURP file", iun);
-        return error_msg("c_fstrwd", ERR_NO_FILE, ERROR);
+        return error_msg("c_mrfrwd", ERR_NO_FILE, ERROR);
     }
 
     if (! fte->xdf_seq) {

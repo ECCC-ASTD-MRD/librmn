@@ -20,70 +20,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*****************************************************************************
- *                                                                           *
- *WKOFFIT                                                                    *
- *                                                                           *
- *AUTEUR  M. LEPINE  -  NOV 1994                                             *
- *MODIFICATION : ERIC MICHAUD - JANV 1995                                    *
- *Modification : M. Lepine - Juil 2011 (reconnaissance fichiers NetCDF)      *
- *Modification : M. Lepine - Juil 2011 (bug fix get_mode)                    *
- *Modification : M. Valin  - Jan  2020 (reconnaissance fichiers CMCARC)      *
- *                                     enleve dependance rmnlib              *
- *                                     creation du programme r.file_is_type  *
- *                                                                           *
- *OBJET                                                                      *
- *     DETERMINER QUEL EST LE TYPE D'UN FICHIER                              *
- *                                                                           *
- *         EX:   FICHIER STANDARD (89) RANDOM, SEQUENTIEL,                   *
- *               FICHIER FORTRAN ...                                         *
- *                                                                           *
- *     VALEURS DE RETOUR POSSIBLES                                           *
- *                                                                           *
- *        -4     FICHIER CORROMPU                                            *
- *        -3     FICHIER INEXISTANT                                          *
- *        -2     FICHIER VIDE                                                *
- *        -1     FICHIER INCONNU                                             *
- *         1     FICHIER STANDARD RANDOM 89                                  *
- *         2     FICHIER STANDARD SEQUENTIEL 89                              *
- *         3     FICHIER STANDARD SEQUENTIEL FORTRAN 89                      *
- *         4     FICHIER CCRN                                                *
- *         5     FICHIER CCRN-RPN                                            *
- *         6     FICHIER BURP                                                *
- *         7     FICHIER GRIB                                                *
- *         8     FICHIER BUFR                                                *
- *         9     FICHIER BLOK                                                *
- *        10     FICHIER FORTRAN                                             *
- *        11     FICHIER COMPRESS                                            *
- *        12     FICHIER GIF89                                               *
- *        13     FICHIER GIF87                                               *
- *        14     FICHIER IRIS                                                *
- *        15     FICHIER JPG                                                 *
- *        16     FICHIER KMW                                                 *
- *        17     FICHIER PBM                                                 *
- *        18     FICHIER PCL                                                 *
- *        19     FICHIER PCX                                                 *
- *        20     FICHIER PDSVICAR                                            *
- *        21     FICHIER PM                                                  *
- *        22     FICHIER PPM                                                 *
- *        23     FICHIER PS                                                  *
- *        24     FICHIER KMW_                                                *
- *        25     FICHIER RRBX                                                *
- *        26     FICHIER SUNRAS                                              *
- *        27     FICHIER TIFF                                                *
- *        28     FICHIER UTAHRLE                                             *
- *        29     FICHIER XBM                                                 *
- *        30     FICHIER XWD                                                 *
- *        31     FICHIER ASCII                                               *
- *        32     FICHIER BMP                                                 *
- *        33     FICHIER STANDARD RANDOM 98                                  *
- *        34     FICHIER STANDARD SEQUENTIEL 98                              *
- *        35     FICHIER NETCDF                                              *
- *        36     FICHIER CMCARC v4                                           *
- *        37     FICHIER CMCARC v5                                           *
- *                                                                           *
- *****************************************************************************/
-
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
@@ -135,34 +71,26 @@
 #define SIGN_STD89_RND  012525252525
 #define SIGN_STD89_SEQ  025252525252
 
-#define  FALSE     (0==1)
-#define  TRUE      (0==0)
+#define  TRUE  (0 == 0)
+#define  FALSE (0 == 1)
 
 #define  IDGIF87   "GIF87a"
 #define  IDGIF89   "GIF89a"
 
 #define  RAS_MAGIC 0x59a66a95
 
-
 /*  Sun supported ras_type's */
-
 #define  RT_OLD          0      /* Raw pixrect image in 68000 byte order */
 #define  RT_STANDARD     1      /* Raw pixrect image in 68000 byte order */
 #define  RT_BYTE_ENCODED 2      /* Run-length compression of bytes */
 #define  RT_EXPERIMENTAL 0xffff /* Reserved for testing */
 
-
 /*  Sun registered ras_maptype's */
-
-
 #define  RMT_RAW 2
 
-
 /*  Sun supported ras_maptype's */
-
 #define  RMT_NONE      0
 #define  RMT_EQUAL_RGB 1
-
 
 
 #include <stdio.h>
@@ -178,7 +106,7 @@
 #else
   #ifdef WIN32    /*CHC/NRC*/
     typedef unsigned long CARD32;
-    #define rindex(a,b) strrchr((a),(b))
+    #define rindex(a, b) strrchr((a), (b))
   #else
     #include <unistd.h>
     #define CARD32 unsigned int
@@ -186,76 +114,46 @@
 #define B32 :32
 #endif
 
-static int endian_int=1;
-static char *little_endian=(char *)&endian_int;
-/*****************************************************************************
- *                            F R E A D 3 2                                  *
- *                                                                           *
- *Object                                                                     *
- *   Reads nitems elements of data, each size bytes long                     *
- *   and swap each bytes for each 4 bytes elements                           *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  ptr     pointer to array to receive  data                            *
- *  IN  size    size in bytes of elements of data                            *
- *  IN  nitems  number of items to read                                      *
- *  IN  stream  file pointer                                                 *
- *                                                                           *
- *****************************************************************************/
-static size_t fread32(void *ptr, size_t size, size_t nitems, FILE *stream)
-{
-  size_t nr;
-  int i, n4=(size*nitems)/4;    /* number of 4 bytes */
-  uint32_t *pt4 = (uint32_t *) ptr;
+#include <fstd98.h>
 
-  if (*little_endian) {
-    if ((size & 3) != 0) {
-      fprintf(stderr,"fread64 error: size=%d must be a multiple of 4\n",size);
-      return(-1);
-    }
 
-    nr = fread(ptr,size,nitems,stream);
+static int endian_int = 1;
+static char *little_endian = (char *)&endian_int;
 
-    for (i=0; i < n4; i++) {
-      *pt4 = (*pt4>>24) | (*pt4<<24) | ((*pt4>>8)&0xFF00) | ((*pt4&0xFF00)<<8);
-      pt4++;
-    }
-  }
-  else
-    nr = fread(ptr,size,nitems,stream);
-
-  return((size_t) nr);
-}
-
-/*  RRBX stuff */
 
 typedef struct {
-                  int ftn1;
-                  int nbits;
-                  int nr;
-                  int nw;
-                  int ncp;
-                  int ftn2[2];
-                  char plotid[80];
-                  int ftn3[2];
-                  char framid[80];
-                  int ftn4;
-               }  Rrbxfile;
+    int ftn1;
+    int nbits;
+    int nr;
+    int nw;
+    int ncp;
+    int ftn2[2];
+    char plotid[80];
+    int ftn3[2];
+    char framid[80];
+    int ftn4;
+} Rrbxfile;
 
 
-/*  Description of header for files containing raster images */
-
- struct  rasterfile {
-         int ras_magic;     /* magic number */
-         int ras_width;     /* width (pixels) of image */
-         int ras_height;    /* height (pixels) of image */
-         int ras_depth;     /* depth (1, 8, or 24 bits) of pixel */
-         int ras_length;    /* length (bytes) of image */
-         int ras_type;      /* type of file; see RT_* below */
-         int ras_maptype;   /* type of colormap; see RMT_* below */
-         int ras_maplength; /* length (bytes) of following map */
-         };
+//! Header for files containing raster images
+struct rasterfile {
+    //! Magic number
+    int ras_magic;
+    //! Image width (pixels)
+    int ras_width;
+    //! Image height (pixels)
+    int ras_height;
+    //! Bits per pixel (depth)
+    int ras_depth;
+    //! Image size in bytes
+    int ras_length;
+    //! File type; see RT_* below
+    int ras_type;
+    //! Colormap; see RMT_* below
+    int ras_maptype;
+    //! Size in bytes of following map
+    int ras_maplength;
+};
 
 /*  XWDFile  stuff */
 
@@ -310,102 +208,135 @@ typedef struct _xwd_file_header {
 #define RPPM_FORMAT (PPM_MAGIC1 * 256 + RPPM_MAGIC2)
 
 /*  PCL stuff */
-
 static   char *enter_pcl = "\033%-12345X@PJL ENTER LANGUAGE=PCL";
 static   char *enter_ps = "\033%-12345X@PJL ENTER LANGUAGE=POSTSCRIPT";
-#define  PCL_MAX_LEN    512000
+#define PCL_MAX_LEN 512000
 
-static float    Get_Frac();
+static float Get_Frac();
 
-static int mutant_kmw=FALSE;
+static int mutant_kmw = FALSE;
 
 static int ReadFileType(char *fname);
-static void Flush_Bytes(unsigned int num, FILE *fp );
+static void Flush_Bytes(unsigned int num, FILE *fp);
 static void Flush_To_Term(FILE *fp);
-static int ispcl(char *path );
-static int isppm(char *path );
-static int issun(char *path );
-static  int isrrbx(char *path );
-static  int isrrbx(char *path );
+static int ispcl(char *path);
+static int isppm(char *path);
+static int issun(char *path);
+static int isrrbx(char *path);
+static int isrrbx(char *path);
 static int iskmw(char *path);
-static int isgif(char *path );
-static int isxwd(char *path );
-static int isps(char *path );
-static int test_fichier (char *nom );
+static int isgif(char *path);
+static int isxwd(char *path);
+static int isps(char *path);
+static int test_fichier(char *nom);
 
-/*****************************************************/
 
-static int retour(pf,code)
-FILE *pf;
-int code;
-{
-   fclose(pf);
-   return(code);
-   }
+static int retour(
+    FILE * pf,
+    int code
+) {
+    fclose(pf);
+    return code;
+}
 
-/******************************************************/
 
-static int
-isftnbin(pf,lng)
-FILE *pf;
-int lng;
-{
-   int mot;
-   int32_t offset;
+//! Reads nitems elements of data, each size bytes long and swap each bytes for each 4 bytes elements
+static size_t fread32(
+    //! Pointer to array into which to place data read
+    void *ptr,
+    //! Size in bytes of elements of data
+    size_t size,
+    //! Number of items to read
+    size_t nitems,
+    //! File pointer from whih to read data
+    FILE *stream
+) {
+    size_t nr;
+    int i;
+    int n4 = (size * nitems) / 4;    /* number of 4 bytes */
+    uint32_t *pt4 = (uint32_t *) ptr;
 
-   offset = lng +4;
-   fseek(pf,offset,0);
-   fread32(&mot,sizeof(int),1,pf);
-   if (mot == lng) {
-      return(1);
-   }
-   else {
-      return(0);
-   }
+    if (*little_endian) {
+        if ((size & 3) != 0) {
+            fprintf(stderr, "fread64 error: size=%d must be a multiple of 4\n", size);
+            return -1;
+        }
+
+        nr = fread(ptr, size, nitems, stream);
+
+        for (i = 0; i < n4; i++) {
+            *pt4 = (*pt4 >> 24) | (*pt4 << 24) | ((*pt4 >> 8) & 0xFF00) | ((*pt4 & 0xFF00) << 8);
+            pt4++;
+        }
+    } else {
+        nr = fread(ptr, size, nitems, stream);
+    }
+
+    return (size_t)nr;
+}
+
+
+static int isftnbin(
+    FILE *pf,
+    int lng
+) {
+    int mot;
+    int32_t offset;
+
+    offset = lng + 4;
+    fseek(pf, offset, 0);
+    fread32(&mot, sizeof(int), 1, pf);
+    if (mot == lng) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 
 //! Return code type of file
-/*
- @return File type code
-   -3  INEXISTANT
-   -2  VIDE
-   -1  INCONNU
-    1  STANDARD RANDOM 89
-    2  STANDARD SEQUENTIEL 89
-    3  STANDARD SEQUENTIEL FORTRAN 89
-    4  CCRN
-    5  CCRN-RPN
-    6  BURP
-    7  GRIB
-    8  BUFR
-    9  BLOK
-    10 FORTRAN
-    11 COMPRESS
-    12 GIF89
-    13 GIF87
-    14 IRIS
-    15 JPG
-    16 KMW
-    17 PBM
-    18 PCL
-    19 PCX
-    20 PDSVICAR
-    21 PM
-    22 PPM
-    23 PS
-    24 KMW_
-    25 RRBX
-    26 SUNRAS
-    27 TIFF
-    28 UTAHRLE
-    29 XBM
-    30 XWD
-    31 ASCII
-    32 BMP
-    33 STANDARD RANDOM 98
-    34 STANDARD SEQUENTIEL 98
-    35 NETCDF
+/*!
+    @return File type code
+    -3  INEXISTANT
+    -2  VIDE
+    -1  INCONNU
+     1  STANDARD RANDOM 89
+     2  STANDARD SEQUENTIEL 89
+     3  STANDARD SEQUENTIEL FORTRAN 89
+     4  CCRN
+     5  CCRN-RPN
+     6  BURP
+     7  GRIB
+     8  BUFR
+     9  BLOK
+     10 FORTRAN
+     11 COMPRESS
+     12 GIF89
+     13 GIF87
+     14 IRIS
+     15 JPG
+     16 KMW
+     17 PBM
+     18 PCL
+     19 PCX
+     20 PDSVICAR
+     21 PM
+     22 PPM
+     23 PS
+     24 KMW_
+     25 RRBX
+     26 SUNRAS
+     27 TIFF
+     28 UTAHRLE
+     29 XBM
+     30 XWD
+     31 ASCII
+     32 BMP
+     33 STANDARD RANDOM 98
+     34 STANDARD SEQUENTIEL 98
+     35 NETCDF
+     36 FICHIER CMCARC v4
+     37 FICHIER CMCARC v5
  */
 int32_t c_wkoffit(
     //! Path of the file to examine
@@ -413,227 +344,199 @@ int32_t c_wkoffit(
     //! Fall back to legacy fnom mode for filenames if True
     int l1
 ){
-   FILE *pf;
-   char nom2[4096], nom3[4096], *pn2, *pn3;
-   char cbuf[1024];
-   int buffer[1024], *ptbuf, lowc=0;
-   int32_t pos,lngf;
-   int longnom;
+    FILE *pf;
+    char nom2[4096], nom3[4096], *pn2, *pn3;
+    char cbuf[1024];
+    int buffer[1024], *ptbuf, lowc=0;
+    int32_t pos, lngf;
+    int longnom;
 
-   longnom = ( ( l1 <= 4095 ) ? l1 : 4095 );
-   pos = 0;
-   ptbuf = &buffer[0];
-   if (filePath[0] == '+') {     /* garder le nom de fichier tel quel */
-     longnom--;
-     strncpy(nom2,filePath+1,longnom);
-     nom2[longnom] = '\0';
-     while (nom2[--longnom] == ' ')
-       nom2[longnom]='\0';
-   }
-   else {
-     strncpy(nom2,filePath,longnom);
-     nom2[longnom] = '\0';
-     pn2 = &nom2[0];
-     pn3 = &nom3[0];
-     while ((*pn2 != ' ') && (*pn2 != '\0')) {
-       if (islower(*pn2)) {
-         *pn3 = *pn2;
-         lowc = 1;
-       } else {
-         *pn3 = tolower(*pn2);
-       }
-       pn2++;
-       pn3++;
-     }
-     *pn2 = '\0';
-     *pn3 = '\0';
-     if (lowc == 0) strcpy(nom2,nom3);
-   }
-   pf = fopen(nom2,"rb");
-   if (pf == (FILE *) NULL){
-      return(WKF_INEXISTANT);
-   } else {
+    longnom = ( ( l1 <= 4095 ) ? l1 : 4095 );
+    pos = 0;
+    ptbuf = &buffer[0];
+    if (filePath[0] == '+') {
+        /* garder le nom de fichier tel quel */
+        longnom--;
+        strncpy(nom2, filePath + 1, longnom);
+        nom2[longnom] = '\0';
+        while (nom2[--longnom] == ' ') {
+            nom2[longnom] = '\0';
+        }
+    } else {
+        strncpy(nom2, filePath, longnom);
+        nom2[longnom] = '\0';
+        pn2 = &nom2[0];
+        pn3 = &nom3[0];
+        while ((*pn2 != ' ') && (*pn2 != '\0')) {
+            if (islower(*pn2)) {
+                *pn3 = *pn2;
+                lowc = 1;
+            } else {
+                *pn3 = tolower(*pn2);
+            }
+            pn2++;
+            pn3++;
+        }
+        *pn2 = '\0';
+        *pn3 = '\0';
+        if (lowc == 0) strcpy(nom2, nom3);
+    }
+    pf = fopen(nom2, "rb");
+    if (pf == (FILE *) NULL){
+        return WKF_INEXISTANT;
+    } else {
+        /* positionnement a la fin du fichier */
+        fseek(pf, pos, 2);
+        lngf = ftell(pf);
+        if (lngf == 0) return retour(pf, WKF_VIDE);
 
-     /* positionnement a la fin du fichier */
-      fseek(pf,pos,2);
-      lngf=ftell(pf);
-      if (lngf == 0) return(retour(pf,WKF_VIDE));
+        /* positionnement et lecture au debut du fichier */
+        fseek(pf, pos, 0);
+        fread(cbuf, 1024, 1, pf);           // suite de caracteres
+        fseek(pf, pos, 0);
+        fread32(ptbuf, sizeof(int), 1024, pf); // suite d'entiers 32 bits
 
-     /* positionnement et lecture au debut du fichier */
-      fseek(pf,pos,0);
-      fread(cbuf, 1024, 1, pf);           // suite de caracteres
-      fseek(pf,pos,0);
-      fread32(ptbuf,sizeof(int),1024,pf); // suite d'entiers 32 bits
+        /* CMCARC v5 */
+        if( strncmp(cbuf+17, CMCARC_SIGN_V5, 8) == 0 ) {
+            return retour(pf, WKF_CMCARC5);
+        }
 
-     /* CMCARC v5 */
-      if( strncmp(cbuf+17,CMCARC_SIGN_V5,8) == 0 ) {
-        return retour(pf,WKF_CMCARC5);
-      }
+        /* CMCARC v4 */
+        if( strncmp(cbuf+9, CMCARC_SIGN, 8) == 0 ) {
+            return retour(pf, WKF_CMCARC4);
+        }
 
-     /* CMCARC v4 */
-      if( strncmp(cbuf+9,CMCARC_SIGN,8) == 0 ) {
-        return retour(pf,WKF_CMCARC4);
-      }
+        /* RANDOM89 */
+        if (*ptbuf == SIGN_STD89_RND && *(ptbuf+1) == SIGN_STD89_RND){
+            return retour(pf, WKF_RANDOM89);
+        }
 
-     /* RANDOM89 */
-      if (*ptbuf == SIGN_STD89_RND && *(ptbuf+1) == SIGN_STD89_RND){
-          return(retour(pf,WKF_RANDOM89));
-      }
+        /* CCRN */
+        if (*(ptbuf) == 64 && *(ptbuf + 17) == 64 && *(ptbuf + 2) == 0x20202020){
+            return retour(pf, WKF_CCRN);
+        }
 
-     /* CCRN */
-      if (*(ptbuf) == 64 && *(ptbuf+17) == 64 && *(ptbuf+2) == 0x20202020){
-         return(retour(pf,WKF_CCRN));
-      }
+        /* CCRN-RPN */
+        if (*(ptbuf + 2) == 0x504b3834 && isftnbin(pf, *ptbuf)){  /* PK84 */
+            return retour(pf, WKF_CCRN_RPN);
+        }
 
-     /* CCRN-RPN */
-      if (*(ptbuf+2) == 0x504b3834 && isftnbin(pf,*ptbuf)){  /* PK84 */
-         return(retour(pf,WKF_CCRN_RPN));
-      }
+        /* SEQUENTIEL89 */
+        if (*(ptbuf + 28) == SIGN_STD89_SEQ && *(ptbuf + 29) == SIGN_STD89_SEQ){
+            return retour(pf, WKF_SEQUENTIEL89);
+        }
 
-     /* SEQUENTIEL89 */
-      if (*(ptbuf+28) == SIGN_STD89_SEQ && *(ptbuf+29) == SIGN_STD89_SEQ){
-         return(retour(pf,WKF_SEQUENTIEL89));
-      }
+        /* SEQUENTIELFORTRAN89 */
+        if (*(ptbuf + 29) == SIGN_STD89_SEQ && *(ptbuf + 30) == SIGN_STD89_SEQ
+                        && isftnbin(pf, *ptbuf)) {
+            return retour(pf, WKF_SEQUENTIELFORTRAN89);
+        }
 
-     /* SEQUENTIELFORTRAN89 */
-      if (*(ptbuf+29) == SIGN_STD89_SEQ && *(ptbuf+30) == SIGN_STD89_SEQ
-                       && isftnbin(pf,*ptbuf)) {
-         return(retour(pf,WKF_SEQUENTIELFORTRAN89));
-      }
+        /* STANDARD 98 RANDOM */
+        if (*(ptbuf + 3) == 'STDR') {
+            if (c_fstcheck(nom2) < 0) {
+                return retour(pf, WKF_CORROMPU);
+            } else {
+                return retour(pf, WKF_RANDOM98);
+            }
+        }
 
-    /* STANDARD 98 RANDOM */
-      if (*(ptbuf+3) == 'STDR') {
-         if (c_fstcheck(nom2)<0) {
-            return(retour(pf,WKF_CORROMPU));
-         } else {
-            return(retour(pf,WKF_RANDOM98));
-         }
-      }
+        /* STANDARD 98 SEQUENTIEL */
+        if (*(ptbuf + 3) == 'STDS') {
+            return retour(pf, WKF_SEQUENTIEL98);
+        }
 
-    /* STANDARD 98 SEQUENTIEL */
-      if (*(ptbuf+3) == 'STDS') {
-         return(retour(pf,WKF_SEQUENTIEL98));
-      }
+        /* BURP */
+        if ((*(ptbuf + 3) == 'BRP0') || (*(ptbuf + 3) == 'bRp0')){
+            if (c_burpcheck(nom2) < 0) {
+                return retour(pf, WKF_CORROMPU);
+            } else {
+                return retour(pf, WKF_BURP);
+            }
+        }
 
-    /* BURP */
-      if ((*(ptbuf+3) == 'BRP0') || (*(ptbuf+3) == 'bRp0')){
-         if (c_burpcheck(nom2) < 0) {
-            return(retour(pf, WKF_CORROMPU));
-         } else {
-            return(retour(pf, WKF_BURP));
-         }
-      }
+        /* GRIB */
+        if (*(ptbuf) == 0x47524942)   {
+            return retour(pf, WKF_GRIB);
+        }
 
-    /* GRIB */
-      if (*(ptbuf) == 0x47524942)   {
-         return(retour(pf,WKF_GRIB));
-      }
+        /* BUFR */
+        if (*(ptbuf) == 0x42554652)  {
+            return retour(pf, WKF_BUFR);
+        }
 
-    /* BUFR */
-      if (*(ptbuf) == 0x42554652)  {
-         return(retour(pf,WKF_BUFR));
-      }
+        /* NetCDF classic format */
+        if (*(ptbuf) == 'CDF\001'){
+            return retour(pf, WKF_NETCDF);
+        }
 
-    /* NetCDF classic format */
-      if (*(ptbuf) == 'CDF\001'){
-         return(retour(pf,WKF_NETCDF));
-      }
+        /* NetCDF 64-bit offset format */
+        if (*(ptbuf) == 'CDF\002'){
+            return retour(pf, WKF_NETCDF);
+        }
 
-    /* NetCDF 64-bit offset format */
-      if (*(ptbuf) == 'CDF\002'){
-         return(retour(pf,WKF_NETCDF));
-      }
+        /* BLOK */
+        if (*(ptbuf) == 0x424c4f4b)   {
+            return retour(pf, WKF_BLOK);
+        }
 
-    /* BLOK */
-      if (*(ptbuf) == 0x424c4f4b)   {
-         return(retour(pf,WKF_BLOK));
-      }
+        /* FORTRAN */
+        if (isftnbin(pf, *ptbuf)){
+            return retour(pf, WKF_FORTRAN);
+        }
 
-    /* FORTRAN */
-      if (isftnbin(pf,*ptbuf)){
-         return(retour(pf,WKF_FORTRAN));
-      }
-
-    /* INCONNU  */
-      return(retour(pf,test_fichier (nom2) ));
-   }
+        /* INCONNU  */
+        return retour(pf, test_fichier(nom2));
+    }
 }
 
-/****************************************************/
 
-static int test_fichier ( nom )
-char *nom;
-{
-  int id;
-  int repgif;
+static int test_fichier(
+    char *nom
+) {
+    int id;
+    int repgif;
 
-  repgif = isgif (nom);
-  if ( repgif != FALSE ) {
-     return repgif;
-  } else
-    if ( isrrbx( nom ) ) {
-     return WKF_RRBX;
-  } else
-    if ( issun( nom ) ) {
-     return WKF_SUNRAS;
-  } else
-    if ( isxwd( nom ) ) {
-     return WKF_XWD;
-  } else
-   if ( isppm( nom ) ) {
-     return WKF_PPM;
-  } else
-    if ( iskmw( nom ) ) {
-     if ( mutant_kmw )
-       return WKF_KMW_;
-     else
-       return WKF_KMW;
-  } else
-    if ( isps( nom ) ) {
-     return WKF_PS;
-  } else {
+    repgif = isgif(nom);
+    if ( repgif != FALSE ) return repgif;
+    if ( isrrbx(nom) ) return WKF_RRBX;
+    if ( issun(nom) ) return WKF_SUNRAS;
+    if ( isxwd(nom) ) return WKF_XWD;
+    if ( isppm(nom) ) return WKF_PPM;
+    if ( iskmw(nom) ) {
+        if ( mutant_kmw ) {
+            return WKF_KMW_;
+        } else {
+            return WKF_KMW;
+        }
+    }
+    if ( isps(nom) ) return WKF_PS;
 
-/*  essais la routine de xv-3.00a */
-
-     id = ReadFileType( nom );
-     if ( id == WKF_INCONNU ) {
-
-/*  dernier espoir */
-
-       if ( ispcl( nom ) )
-         return WKF_PCL;
-       else
-         return WKF_INCONNU;
-     } else
-       return id;
+    /*  essais la routine de xv-3.00a */
+    id = ReadFileType(nom);
+    if ( id == WKF_INCONNU ) {
+        /*  dernier espoir */
+        if ( ispcl( nom ) ) {
+            return WKF_PCL;
+        } else {
+            return WKF_INCONNU;
+        }
+    } else {
+        return id;
+    }
   }
 }
 
 
-/*
- *
- *  module    :  ISPS
- *
- *  auteur    :  VANH SOUVANLASY
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A PostScript
- *
- */
-
-static int isps( path )
-char *path;
-{
+//! Test if the file corresponding to the path provided is PostScript
+static int isps(
+    char *path
+) {
    FILE *fp;
    char buffer[256];
    int  i, j, ps_i;
 
-   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
+   if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
    i = 0;
    while ( fgets( buffer, 256, fp ) != NULL ) {
@@ -644,8 +547,8 @@ char *path;
        for ( j = 0 ; (j < 256)&&(buffer[j]!='\0') ; j++ )
          buffer[j] = (char)toupper((int)buffer[j]);
        if ( strncmp( buffer, enter_ps, strlen(enter_ps) ) == 0 ) {
-         fclose( fp );
-         return (TRUE);
+         fclose(fp);
+         return TRUE;
        }
      }
 
@@ -659,14 +562,14 @@ char *path;
          switch( buffer[0] ) {
          case '%' :
          case '/' :
-           fclose( fp );
-           return (TRUE);
+           fclose(fp);
+           return TRUE;
          break;
          case '\n' :
          break;
          default :
-           fclose( fp );
-           return (FALSE);
+           fclose(fp);
+           return FALSE;
          break;
          }
        }
@@ -674,118 +577,73 @@ char *path;
      if ( strncmp( buffer, "%", 1 ) == 0 ) continue;
      break;
    }
-   fclose( fp );
-   return (FALSE);
+   fclose(fp);
+   return FALSE;
 }
 
-/*
- *
- *  module    :  ISXWD
- *
- *  auteur    :  VANH SOUVANLASY
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A XWDFile
- *
- */
 
-static int isxwd( path )
-char *path;
-{
+//! Test if the file corresponding to the path provided is XWDFile
+static int isxwd(
+    char *path
+) {
    FILE   *fp;
    XWDFileHeader xwd;
    int   flen, len;
 
-   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
+   if( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
    if (fread32 ((char *) &xwd, sizeof(XWDFileHeader), 1, fp) != 1)
    {
-       fclose( fp );
-       return (FALSE);
+       fclose(fp);
+       return FALSE;
    }
 
-   if (fseek( fp, 0L, SEEK_END ))
-   {
-       fclose( fp );
-       return(FALSE);
+   if (fseek( fp, 0L, SEEK_END )) {
+       fclose(fp);
+       return FALSE;
    }
    flen = ftell(fp);
    fclose(fp);
 
    if (xwd.file_version != XWD_FILE_VERSION )
-      return (FALSE);
+      return FALSE;
 
    len = xwd.header_size + xwd.ncolors * sz_XWDColor
          + xwd.bytes_per_line * xwd.pixmap_height;
 
-   if ( len != flen ) return (FALSE);
-   return(TRUE);
+   if ( len != flen ) return FALSE;
+   return TRUE;
 }
 
 
+//! Test if the file corresponding to the path provided is a Gif
+static int isgif(
+    char *path
+) {
+   FILE *fp;
+   char magic[6];
+   int  status = FALSE;
 
-/*
- *
- *  module    :  ISGIF
- *
- *  auteur    :  VANH SOUVANLASY
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A GIF
- *
- */
+   if( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
-static int isgif( path )
-char *path;
-{
-   FILE   *fp;
-   char    magic[6];
-   int     status = FALSE;
-
-   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
-
-   if (fread(magic, 6, 1, fp) != 1) return(FALSE);
+   if (fread(magic, 6, 1, fp) != 1) return FALSE;
    if (strncmp( magic, IDGIF87, 6 )==0)
      status = WKF_GIF87;
    if (strncmp( magic, IDGIF89, 6 )==0)
      status = WKF_GIF89;
    fclose(fp);
-   return(status);
+   return status;
 }
 
-/*
- *
- *  module    :  GET_MODE
- *
- *  auteur    :  MICHEL GRENIER    CMCOG
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  CE MODULE TENTE D'INDENTIFIER UN FICHIER KMW
- *
- */
 
- static int get_mode ( fp, depth, height, width, length )
- FILE  *fp;
- int  *depth ;
- int  *height ;
- int  *width ;
- int32_t *length;
-     {
+//! Get info from a KMW file
+static int get_mode(
+    FILE *fp,
+    int  *depth,
+    int  *height,
+    int  *width,
+    int32_t *length
+) {
      int cpt = 0;
      int kmwndx = 0 ;
      int mode = 0;
@@ -795,278 +653,161 @@ char *path;
      register char *data = buf;
      int32_t  curpos;
 
-/*
- *  verifie dans les 350 premiers caracteres si on trouve
- *  la chaine PLOT$Z qui indique un fichier KMW
- */
-     while( (*data = getc(fp)) != EOF && cpt++ < 350)
-          {
-/*	  printf("Debug cpt=%d \n",cpt); */
-          if( *data == sigkmw[kmwndx] ) {
-/*            printf("Debug kmwndx=%d\n",kmwndx); */
-            if( kmwndx == strlen(sigkmw) - 1)
-              {
-              mode = 1;
-              break;
-              }
-            else
-	      {
-              kmwndx++;
-	      }
-	  }
-	  else
-	    kmwndx=0;
-          data++;
-          }
-if (mode == 0) return(mode);
-
-*depth = 1;
-/*
- *  va lire les dimensions et verifie que la decompression est possible
- */
-     *data = '\0';
-if (cpt < 10) mode = 0 ;
-     if( mode != 0 )
-       {
-       data = (char *)rindex(buf, '\n');
-       sscanf(data - 9, "%4d%4d%1d", width, height, depth );
-
-       if( mode == 1 && (*depth != 1 && *depth != 3) )
-        {
-                *depth = 777 ;
-                *width = 4224 ;
-                *height = 6048  ;
+    // Verifie dans les 350 premiers caracteres si on trouve la chaine PLOT$Z qui indique un fichier KMW
+    while ( (*data = getc(fp)) != EOF && cpt++ < 350) {
+        // printf("Debug cpt=%d \n", cpt);
+        if ( *data == sigkmw[kmwndx] ) {
+            // printf("Debug kmwndx=%d\n", kmwndx);
+            if ( kmwndx == strlen(sigkmw) - 1) {
+                mode = 1;
+                break;
+            } else {
+                kmwndx++;
+            }
+        } else {
+            kmwndx = 0;
         }
-       }
+        data++;
+    }
+    if (mode == 0) return mode;
+
+    *depth = 1;
+    // Lre les dimensions et verifie que la decompression est possible
+    *data = '\0';
+    if (cpt < 10) mode = 0 ;
+    if ( mode != 0 ) {
+        data = (char *)rindex(buf, '\n');
+        sscanf(data - 9, "%4d%4d%1d", width, height, depth );
+
+        if( mode == 1 && (*depth != 1 && *depth != 3) ) {
+            *depth = 777;
+            *width = 4224;
+            *height = 6048;
+        }
+    }
 
     curpos = ftell(fp);
     if (fseek( fp, 0L, SEEK_END ))  {
-       fclose( fp );
-       perror("fseek");
-       exit(0);
+        fclose(fp);
+        perror("fseek");
+        exit(0);
     }
 
     *length = ftell(fp);
     if (fseek( fp, curpos, SEEK_SET ))  {
-       fclose( fp );
-       perror("fseek");
-       exit(0);
+        fclose(fp);
+        perror("fseek");
+        exit(0);
     }
 
-     return(mode);
-     }
+    return mode;
+}
 
-/*
- *
- *  module    :  ISKMW
- *
- *  auteur    :  MICHEL GRENIER
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A KMW
- *
- */
 
-static int iskmw(path)
-char *path;
-{
-   FILE *fp;
-   int height,width, depth;
-   int ierr=0;
-   int32_t length;
+//! Test if the file corresponding to the path provided is a KMW
+static int iskmw(
+    char *path
+) {
+    FILE *fp;
+    int height, width, depth;
+    int ierr = 0;
+    int32_t length;
 
-   if( (fp = fopen( path, "rb")) == NULL ) return(ierr);
-
-/*
- *  verifie si c'est un fichier KMW
- */
+    if ( (fp = fopen( path, "rb")) == NULL ) return ierr;
 
     ierr = get_mode( fp, &depth, &height, &width, &length );
     if ( depth == 3 ) mutant_kmw = TRUE;
 
     fclose(fp) ;
 
-    return(ierr);
+    return ierr;
  }
 
-/*
- *
- *  module    :  ISRRBX
- *
- *  auteur    :  MICHEL GRENIER    CMCOG
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A RRBX FILE
- *
- */
 
-static  int isrrbx( path )
- char *path;
-     {
-     FILE    *fp;
-     Rrbxfile header;
+//! Test if the file corresponding to the path provided is a RRBX
+static  int isrrbx(
+    char *path
+) {
+    FILE    *fp;
+    Rrbxfile header;
 
-/*
- *  open file
- */
+    if( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
-    if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
+    // Read header
+    if ( fread32( &header, sizeof(Rrbxfile), 1, fp ) == 0 ) return FALSE;
 
-/*
- *  read header
- */
-    if( fread32( &header, sizeof(Rrbxfile), 1, fp ) == 0 ) return(FALSE);
-
-/*
- *  close file
- */
     fclose(fp);
 
-/*
- *  check magic string
- */
-    if( strncmp(&header.plotid[8],"RRBXRRUX",8) != 0 ) return(FALSE);
+    if ( strncmp(&header.plotid[8], "RRBXRRUX", 8) != 0 ) return FALSE;
 
-/*
- *  return result
- */
-    return(TRUE);
+    return TRUE;
+}
+
+
+//! Test if the file corresponding to the path provided is a SUNRASTER
+static int issun(
+    char *path
+) {
+    FILE   *fp;
+    struct rasterfile header;
+
+    if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
+
+    // Read header
+    if ( fread32( &header, sizeof(struct rasterfile), 1, fp ) == 0 ) return FALSE;
+
+    if ( header.ras_magic != RAS_MAGIC ) {
+        fclose(fp);
+        return FALSE;
     }
 
-/*
- *
- *  module    :  ISSUN
- *
- *  auteur    :  MICHEL GRENIER
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A SUNRASTER
- *
- */
-
- static int issun( path )
- char *path;
-     {
-     FILE   *fp;
-     struct rasterfile header;
-
-/*
- *  open file
- */
-
-    if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
-
-/*
- *  read sunraster header
- */
-    if( fread32( &header, sizeof(struct rasterfile), 1, fp ) == 0 ) return(FALSE
-);
-/*
- *  check magic word
- */
-    if( header.ras_magic != RAS_MAGIC )
-      {
-      fclose(fp);
-      return(FALSE);
-      }
-
-/*
- *  close file
- */
     fclose(fp);
-    switch( header.ras_maptype ) {
-      case RT_OLD :
-      case RT_STANDARD :
-      case RT_BYTE_ENCODED :
-        switch( header.ras_maptype) {
-         case RMT_EQUAL_RGB :
-         case RMT_NONE :
-            return (TRUE);
-         break;
-         default :
-         break;
-         }
-      break;
-      default :
-      break;
+
+    switch ( header.ras_maptype ) {
+        case RT_OLD :
+        case RT_STANDARD :
+        case RT_BYTE_ENCODED :
+            switch ( header.ras_maptype) {
+                case RMT_EQUAL_RGB :
+                case RMT_NONE :
+                    return TRUE;
+            }
     }
-/*
- *  return result
- */
-     return(FALSE);
+
+    return FALSE;
 }
 
-/*
- *
- *  module    :  ISPPM
- *
- *  auteur    :
- *
- *  revision  :  V0.0
- *
- *  status    :  DEVELOPPEMENT
- *
- *  langage   :  C
- *
- *  objet     :  THIS MODULE TESTS IF A FILE IS A PPM
- *
- */
+//! Test if the file corresponding to the path provided is a PPM
+static int isppm(
+    char *path
+) {
+    FILE *fp;
+    int c0, c1;
+    int magic;
 
-static int isppm( path )
-char *path;
-{
-   FILE   *fp;
-   int   c0, c1;
-   int   magic;
+    if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
-/*
- *  open file
- */
+    c0 = getc(fp);
+    if ( c0 == EOF ) {
+        fclose(fp);
+        return FALSE;
+    }
+    c1 = getc(fp);
+    if ( c1 == EOF ) {
+        fclose(fp);
+        return FALSE;
+    }
 
-   if( (fp = fopen( path, "rb")) == NULL ) return(FALSE);
+    fclose(fp);
 
-   c0 = getc(fp);
-   if ( c0 == EOF ) {
-     fclose(fp);
-     return FALSE;
-   }
-   c1 = getc(fp);
-   if ( c1 == EOF ) {
-     fclose(fp);
-     return FALSE;
-   }
+    magic = (c0 << 8) + c1 ;
+    if ( (magic == PPM_FORMAT) || (magic == RPPM_FORMAT) ) return TRUE;
 
-/*
- *  close file
- */
-   fclose(fp);
-
-   magic = (c0<<8)+c1 ;
-   if ((magic == PPM_FORMAT)||(magic == RPPM_FORMAT)) return (TRUE);
-
-   return FALSE;
+    return FALSE;
 }
 
-#define MIN(x,y)        ( ((x) < (y)) ? (x) : (y) )
+
 #define ESC     27
-
-
-
 
 
 /*
@@ -1075,363 +816,308 @@ char *path;
 **  escape sequences better.
 */
 
-static int ispcl( path )
-char *path;
-{
-  FILE *fp;
-  int   c,j;
-int     parameter;
-int     group_char;
-int     terminator;
-int     value;
-float   fvalue;                 /* fractional value */
-int     scanf_count;
-char    in_sequence = FALSE;
-char    pass_seq;
-char    plus_sign;              /* for relative values */
-char    strip_seq = FALSE;
-int32_t    flen;
-char    buffer[256];
+static int ispcl(
+    char *path
+) {
+    FILE *fp;
+    int   c, j;
+    int     parameter;
+    int     group_char;
+    int     terminator;
+    int     value;
+    float   fvalue;                 /* fractional value */
+    int     scanf_count;
+    char    in_sequence = FALSE;
+    char    pass_seq;
+    char    plus_sign;              /* for relative values */
+    char    strip_seq = FALSE;
+    int32_t    flen;
+    char    buffer[256];
 
-/*
- *  open file
- */
+    if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
-  if( (fp = fopen( path, "rb")) == NULL )
-      return(FALSE);
-
-  if (fseek( fp, 0L, SEEK_END ))  {
-       fclose( fp );
-       return(FALSE);
-  }
-  flen = ftell(fp);
-  if (fseek( fp, 0L, SEEK_SET ))  {
-       fclose( fp );
-       return(FALSE);
-  }
-/*
- * first line must enter PCL if it is not a graphic PCL
- */
-
-   if ( fgets( buffer, 256, fp ) == NULL ) {
-     fclose( fp );
-     return(FALSE);
-   }
-   for ( j = 0 ; (j < 256)&&(buffer[j]!='\0') ; j++ )
-     buffer[j] = (char)toupper((int)buffer[j]);
-   if ( strncmp( buffer, enter_pcl, 13 ) == 0 ) {
-     fclose( fp );
-     return (TRUE);
-   }
-
-/*
- * escape sequence for enter graphic mode must be there
- * or it isnt a PCL
- */
-   if (fseek( fp, 0L, SEEK_SET ))  {
-       fclose( fp );
-       return(FALSE);
-   }
-
-
-/*
- * This is the pcl input parsing loop.
- */
-  while( ( c = getc(fp) ) != EOF )
-  {
-
-/*  Ignore all chars until an escape char  */
-
-    if ( c != ESC ) continue;
-/*
- *  Now we have an escape sequence, get the parameter char.
- */
-    parameter = getc(fp);
-
-    if ( parameter == EOF ) {
-      fclose( fp );
-      return FALSE;
+    if (fseek( fp, 0L, SEEK_END )) {
+        fclose(fp);
+        return FALSE;
+    }
+    flen = ftell(fp);
+    if (fseek( fp, 0L, SEEK_SET )) {
+        fclose(fp);
+        return FALSE;
     }
 
-/*
- *  Now check to see if it is a two character sequence.
- */
-    if ( parameter >= '0' && parameter <= '~' ) continue;
-
-/*
- *  Now check to make sure that the parameter character is
- *  within range.
- */
-     if ( parameter < '!' || parameter > '/' ) {
-       fclose( fp );
-       return (FALSE);
-     }
-/*
- *  We are only interested in certain parameters, so pass
- *  the rest of the sequences.
- */
-/*
- *  For the moment, we are only interested in '*' (graphics)
- *  '(' and ')' (downloads).  Although we do not do anything
- *  with downloads, we need to pass the binary data thru
- *  untouched.
- *  Oops, '&' is handled too.
- */
-    if ( parameter != '*' && parameter != '('
-         && parameter != ')' && parameter != '&' ) {
-      Flush_To_Term(fp);                /* flush rest of seq. */
-      continue;
+    // first line must enter PCL if it is not a graphic PCL
+    if ( fgets( buffer, 256, fp ) == NULL ) {
+        fclose(fp);
+        return FALSE;
     }
-/*
- *  Parameter character is in range, look for a valid group char
- */
-    group_char = getc(fp);
-    if ( group_char == EOF )    /* oops, ran out of input */
-    {
-      fclose( fp );
-      return FALSE;
+
+    for ( j = 0 ; (j < 256) && (buffer[j]!='\0')s; j++ ) {
+        buffer[j] = (char)toupper((int)buffer[j]);
     }
-/*
- *  See if in proper range.  If it isn't, it is not an error
- *  because the group character is optional for some sequences.
- *  For the moment, we are not interested in those sequences,
- *  so pass them thru.
- */
-    if ( group_char < '`' || group_char > '~' ) {
-/*
- *  If the "stripper" is active, we need to suspend
- *  it till graphics are re-started.
- */
-      if ( group_char < '@' || group_char > '^' )
-        Flush_To_Term(fp);      /* pass rest of seq. */
-      continue;
+
+    if ( strncmp( buffer, enter_pcl, 13 ) == 0 ) {
+        fclose(fp);
+        return TRUE;
     }
-/*
-*  Now we have a valid group character, decide if we want
-*  to deal with this escape sequence.
-*
-*  Sequences we want do deal with include:
-*
-*    <esc>*r    ** graphics
-*    <esc>*b    ** graphics
-*    <esc>*v    ** graphics
-*
-*  Sequences we must pass thru binary data:
-*
-*    <esc>*c    ** pattern
-*    <esc>*m    ** download dither
-*    <esc>*t    ** obsolete
-*    <esc>(f    ** download char set
-*    <esc>(s    ** download char
-*    <esc>)s    ** download font
-*    <esc>&a    ** logical page
-*    <esc>&b    ** AppleTalk stuff
-*    <esc>&l    ** obsolete
-*
-*/
-     if (  ( parameter == '*'
-        && group_char != 'r' && group_char != 'b'
-        && group_char != 'v' && group_char != 'c'
-        && group_char != 't' && group_char != 'm' )
-        || ( parameter == '&'
-        && group_char != 'a' && group_char != 'l'
-        && group_char != 'b' )
-        || ( parameter == '('
-        && group_char != 'f' && group_char != 's' )
-        || ( parameter == ')' && group_char != 's' ) )
-     {
-/*
-*  Definately not interested in the sequence.
-*/
-        Flush_To_Term(fp);
-        continue;
-      }
 
+    // Escape sequence for enter graphic mode must be there or it isnt a PCL
+    if (fseek( fp, 0L, SEEK_SET )) {
+        fclose(fp);
+        return FALSE;
+    }
 
-/*
- *  If the sequence is <esc>&a#H, it will have gotten past
- *  the above, but we need to suspend the "stripper" if
- *  it is active, because the CAP is getting moved.
- *
- *  The <esc>*p#X/Y sequences will have been filtered
- *  thru just above (<esc>*p is not a needed group).
- */
+    // PCL input parsing loop.
+    while ( ( c = getc(fp) ) != EOF ) {
+        // Ignore all chars until an escape char
+        if ( c != ESC ) continue;
 
-/*
- *  Now set up a pass thru flag so we can ignore the entire
- *  sequences of some of these.
- */
-      if ( parameter != '*' )
-        pass_seq = TRUE;
-      else if ( group_char == 'c' || group_char == 't' || group_char == 'm' )
-        pass_seq = TRUE;
-      else
-        pass_seq = FALSE;
+        // Now we have an escape sequence, get the parameter char.
+        parameter = getc(fp);
 
-/*
- *  Now we have a sequence that we are definately interested in.
- *
- *  Get the value field and terminator, and loop until final
- *  terminator is found.
- */
-/* first see if the value has a plus sign */
-        scanf_count = fscanf(fp, " + %d", &value );
-        if ( scanf_count == 1 )
-          plus_sign = TRUE;
-        else
-        {
-          plus_sign = FALSE;
-          scanf_count = fscanf(fp, " %d", &value );
-          if ( scanf_count == 0 )
-          value = 0;            /* by default */
+        if ( parameter == EOF ) {
+            fclose(fp);
+            return FALSE;
         }
-/*
- *  I wonder if I will get bitten by a trailing
- *  space character right here?
- */
+
+        // Check if it is a two character sequence.
+        if ( parameter >= '0' && parameter <= '~' ) continue;
+
+        // Check that the parameter character is within range.
+        if ( parameter < '!' || parameter > '/' ) {
+            fclose(fp);
+            return FALSE;
+        }
+
+        // We are only interested in certain parameters, so pass the rest of the sequences.
+
+        /*
+        *  For the moment, we are only interested in '*' (graphics)
+        *  '(' and ')' (downloads).  Although we do not do anything
+        *  with downloads, we need to pass the binary data thru
+        *  untouched.
+        *  Oops, '&' is handled too.
+        */
+        if ( parameter != '*' && parameter != '(' && parameter != ')' && parameter != '&' ) {
+            // Flush rest of seq.
+            Flush_To_Term(fp);
+            continue;
+        }
+
+        // Parameter character is in range, look for a valid group char
+        group_char = getc(fp);
+        if ( group_char == EOF ) {
+            // Ran out of input!
+            fclose(fp);
+            return FALSE;
+        }
+
+        /*
+        *  See if in proper range.  If it isn't, it is not an error
+        *  because the group character is optional for some sequences.
+        *  For the moment, we are not interested in those sequences,
+        *  so pass them thru.
+        */
+        if ( group_char < '`' || group_char > '~' ) {
+            // If the "stripper" is active, we need to suspend it till graphics are re-started.
+            if ( group_char < '@' || group_char > '^' ) {
+                // Pass rest of seq.
+                Flush_To_Term(fp);
+            }
+            continue;
+        }
+
+        /*
+        *  Now we have a valid group character, decide if we want
+        *  to deal with this escape sequence.
+        *
+        *  Sequences we want do deal with include:
+        *
+        *    <esc>*r    ** graphics
+        *    <esc>*b    ** graphics
+        *    <esc>*v    ** graphics
+        *
+        *  Sequences we must pass thru binary data:
+        *
+        *    <esc>*c    ** pattern
+        *    <esc>*m    ** download dither
+        *    <esc>*t    ** obsolete
+        *    <esc>(f    ** download char set
+        *    <esc>(s    ** download char
+        *    <esc>)s    ** download font
+        *    <esc>&a    ** logical page
+        *    <esc>&b    ** AppleTalk stuff
+        *    <esc>&l    ** obsolete
+        *
+        */
+        if (
+            ( parameter == '*' && group_char != 'r' && group_char != 'b' && group_char != 'v' && group_char != 'c' && group_char != 't' && group_char != 'm' )
+            || ( parameter == '&' && group_char != 'a' && group_char != 'l' && group_char != 'b' )
+            || ( parameter == '(' && group_char != 'f' && group_char != 's' )
+            || ( parameter == ')' && group_char != 's' )
+        ) {
+            // Definately not interested in the sequence.
+            Flush_To_Term(fp);
+            continue;
+        }
+
+        /*
+        *  If the sequence is <esc>&a#H, it will have gotten past
+        *  the above, but we need to suspend the "stripper" if
+        *  it is active, because the CAP is getting moved.
+        *
+        *  The <esc>*p#X/Y sequences will have been filtered
+        *  thru just above (<esc>*p is not a needed group).
+        */
+
+        // Now set up a pass thru flag so we can ignore the entire sequences of some of these.
+        if ( parameter != '*' ) {
+            pass_seq = TRUE;
+        } else if ( group_char == 'c' || group_char == 't' || group_char == 'm' ) {
+            pass_seq = TRUE;
+        } else {
+            pass_seq = FALSE;
+        }
+
+        /*
+        *  Now we have a sequence that we are definately interested in.
+        *
+        *  Get the value field and terminator, and loop until final
+        *  terminator is found.
+        */
+        // First see if the value has a plus sign
+        scanf_count = fscanf(fp, " + %d", &value );
+        if ( scanf_count == 1 ) {
+            plus_sign = TRUE;
+        } else {
+            plus_sign = FALSE;
+            scanf_count = fscanf(fp, " %d", &value );
+            if ( scanf_count == 0 ) {
+                /* by default */
+                value = 0;
+            }
+        }
+
+        // I wonder if I will get bitten by a trailing space character right here?
         terminator = getc(fp);
-/*
- *  Check for a fractional component.
- */
+
+        // Check for a fractional component.
         fvalue = 0.0;
         if ( terminator == '.' ) {
-          fvalue = Get_Frac(fp);
-/*
- *  Now get real terminator.
- */
-        terminator = getc(fp);
-      }
-
-      if ( terminator == EOF ) {
-         fclose( fp );
-         return (FALSE);
-      }
-/*
- *  If the pass_seq flag is set, then just pass
- *  it thru to stdout until a 'W' is found.
- */
-      if ( pass_seq ) {
-        if ( !in_sequence ) in_sequence = TRUE;
-
-/*
- *  See if there was a non-zero fraction.
- */
-        if ( fvalue != 0.0 ) {
-          if ( value < 0 ) {
-            value = -value;
-          }
-          fvalue += value;
-/* if binary data, pass it thru */
-
-          if ( terminator == 'W' ) {
-            in_sequence = FALSE;        /* terminates */
-            Flush_Bytes ( value, fp );  /* pass data */
-          }
-
-          continue;
-         }
+            fvalue = Get_Frac(fp);
+            // Now get real terminator.
+            terminator = getc(fp);
         }
-/*
- * if we had gone so far, a big chance that it is a graphic PCL
- */
-        fclose(fp);
-        return (TRUE);
-    }
-    fclose(fp);
-    return (FALSE);
-}
 
-/*
-**  Flush_To_Term() simply passes thru input until a valid terminator
-**  character is found.  This is for unwanted escape sequences.
-*/
+        if ( terminator == EOF ) {
+            fclose(fp);
+            return FALSE;
+        }
 
-static void Flush_To_Term(fp)
-FILE *fp;
-{
-        int     c;
+        // If the pass_seq flag is set, then just pass it thru to stdout until a 'W' is found.
+        if ( pass_seq ) {
+            if ( !in_sequence ) in_sequence = TRUE;
 
-        do
-        {
-                c = getc(fp);
-
-                if ( c == EOF )                 /* this is a problem */
-                        return;
-        } while ( c < '@' || c > '^' );
-
-}
-
-
-/*
-**  Flush_Bytes() simply transfers so many bytes directly from input to outpu
-t.
-**  This is used to pass thru binary data that we are not interested in so th
-at
-**  it will not confuse the parser.  I.e. downloads.
-*/
-static void Flush_Bytes( num, fp )
-unsigned int    num;
-FILE *fp;
-{
-   int  bnum;
-   char buf[BUFSIZ];
-
-   while ( num > 0 ) {
-     bnum = MIN ( BUFSIZ, num );
-     fread( buf, 1, bnum, fp );
-     num -= bnum;
-   }
-}
-
-/*
-**  Get_Frac() simply gets the fractional part of a value.  This is here
-**  because scanf() will consume a trailing 'e' or 'E', which is a problem
-**  in PCL.
-*/
-
-static float    Get_Frac(fp)
-FILE *fp;
-{
-        float   result = 0.0;
-        int     c;
-        float   position = 10.0;
-
-        while ( (c = getc(fp)) != EOF )
-        {
-                /*
-                **  Do we have a digit?
-                */
-
-                if ( !isdigit(c) )              /* not a digit */
-                {
-                        ungetc( c, fp );     /* put it back */
-                        break;                  /* quit */
+            // See if there was a non-zero fraction.
+            if ( fvalue != 0.0 ) {
+                if ( value < 0 ) {
+                    value = -value;
                 }
+                fvalue += value;
 
-                result += ((c - '0') / position);
-
-                position *= 10.0;
+                // if binary data, pass it thru
+                if ( terminator == 'W' ) {
+                    /* terminates */
+                    in_sequence = FALSE;
+                    /* pass data */
+                    Flush_Bytes ( value, fp );
+                }
+                continue;
+            }
         }
 
-        return ( result );
+        // If we had gone so far, a big chance that it is a graphic PCL
+        fclose(fp);
+        return TRUE;
+    }
+
+    fclose(fp);
+    return FALSE;
 }
 
-/*
- *name: ReadFileType
- *
- *source: XV-3.0a
- */
-static int ReadFileType(fname)
-     char *fname;
-{
+//! Pass thru input until a valid terminator character is found.
+//! This is for unwanted escape sequences.
+static void Flush_To_Term(
+    FILE *fp
+) {
+    int c;
+
+    do {
+        c = getc(fp);
+
+        if ( c == EOF ) {
+            /* this is a problem */
+            return;
+        }
+    } while ( c < '@' || c > '^' );
+}
+
+
+//! Tansfer the specified number of bytes directly from input to output
+//! This is used to pass thru binary data that we are not interested in so that
+//! it will not confuse the parser.  I.e. downloads.
+static void Flush_Bytes(
+    unsigned int num,
+    FILE *fp
+) {
+    int  bnum;
+    char buf[BUFSIZ];
+
+    while ( num > 0 ) {
+        bnum = ( BUFSIZ < num ? BUFSIZ : num );
+        fread( buf, 1, bnum, fp );
+        num -= bnum;
+    }
+}
+
+
+//! Get the fractional part of a value.
+//! This is here because scanf() will consume a trailing 'e' or 'E', which is a problem in PCL.
+static float Get_Frac(
+    FILE *fp;
+) {
+    int c;
+    float result = 0.0;
+    float position = 10.0;
+
+    while ( (c = getc(fp)) != EOF ) {
+        if ( !isdigit(c) ) {
+            /* put it back */
+            ungetc( c, fp );
+            /* quit */
+            break;
+        }
+
+        result += ((c - '0') / position);
+
+        position *= 10.0;
+    }
+
+    return result;
+}
+
+
+static int ReadFileType(
+    char *fname
+) {
   /* opens fname (which *better* be an actual file by this point!) and
      reads the first couple o' bytes.  Figures out what the file's likely
      to be, and returns the appropriate *** code */
 
 
   FILE *fp;
-  unsigned char  magicno[8];    /* first 8 bytes of file */
-  int   rv;
+  unsigned char magicno[8];    /* first 8 bytes of file */
+  int rv;
 
 
   rv = WKF_INCONNU;
@@ -1441,23 +1127,23 @@ static int ReadFileType(fname)
 
   if (!fp) return rv;
 
-  rv = fread(magicno,8,1,fp);
+  rv = fread(magicno, 8, 1, fp);
   fclose(fp);
 
   if (rv!=1) return WKF_INCONNU;    /* files less than 8 bytes long... */
 
   rv = WKF_INCONNU;
-  if (strncmp((char *) magicno,"GIF87a",6)==0) rv = WKF_GIF87;
+  if (strncmp((char *) magicno, "GIF87a", 6)==0) rv = WKF_GIF87;
 
-  else if (strncmp((char *) magicno,"GIF89a",6)==0) rv = WKF_GIF89;
+  else if (strncmp((char *) magicno, "GIF89a", 6)==0) rv = WKF_GIF89;
 
-  else if (strncmp((char *) magicno,"VIEW",4)==0 ||
-           strncmp((char *) magicno,"WEIV",4)==0) rv = WKF_PM;
+  else if (strncmp((char *) magicno, "VIEW", 4)==0 ||
+           strncmp((char *) magicno, "WEIV", 4)==0) rv = WKF_PM;
 
   else if (magicno[0] == 'P' && magicno[1]>='1' &&
            magicno[1]<='6') rv = WKF_PBM;
 
-  else if (strncmp((char *) magicno,"#define",7)==0) rv = WKF_XBM;
+  else if (strncmp((char *) magicno, "#define", 7)==0) rv = WKF_XBM;
 
   else if (magicno[0]==0x59 && (magicno[1]&0x7f)==0x26 &&
            magicno[2]==0x6a && (magicno[3]&0x7f)==0x15) rv = WKF_SUNRAS;
@@ -1479,14 +1165,14 @@ static int ReadFileType(fname)
   else if ((magicno[0]=='M' && magicno[1]=='M') ||
            (magicno[0]=='I' && magicno[1]=='I')) rv = WKF_TIFF;
 
-  else if (strncmp((char *) magicno,  "NJPL1I00",8)==0 || /* fixed-len pds */
-           strncmp((char *) magicno+2,"NJPL1I",  6)==0 || /* vger+other pds *
+  else if (strncmp((char *) magicno,  "NJPL1I00", 8)==0 || /* fixed-len pds */
+           strncmp((char *) magicno+2, "NJPL1I",  6)==0 || /* vger+other pds *
 /
            strncmp((char *) magicno,  "CCSD3ZF", 7)==0 || /* vikng pds browse
 */
-           strncmp((char *) magicno+2,"CCSD3Z",  6)==0 || /* vik. huffman pds
+           strncmp((char *) magicno+2, "CCSD3Z",  6)==0 || /* vik. huffman pds
 */
-           strncmp((char *) magicno,  "LBLSIZE=",8)==0)   /* vicar */
+           strncmp((char *) magicno,  "LBLSIZE=", 8)==0)   /* vicar */
       rv = WKF_PDSVICAR;
 
   else if (magicno[0] == '%' && magicno[1] == '!') rv = WKF_PS;
@@ -1494,31 +1180,37 @@ static int ReadFileType(fname)
   return rv;
 }
 
+
+
+
+
 #if defined(WITH_TEST_PROGRAM)
 
-int main(int argc, char **argv){
-  int i, code;
-  if(argc < 3) {
-    printf("USAGE: %s filename type_1 .... type_n\n", argv[0]);
+int main(int argc, char **argv) {
+    int i, code;
+    if (argc < 3) {
+        printf("USAGE: %s filename type_1 .... type_n\n", argv[0]);
+        return 1;
+    }
+    code = c_wkoffit(argv[1], strlen(argv[1]));
+    // printf("type code = %d\n", code);
+    for (i = 2; i < argc; i++) {
+        if (atoi(argv[i]) == code) return 0;
+    }
     return 1;
-  }
-  code = c_wkoffit(argv[1], strlen(argv[1]));
-//   printf("type code = %d\n",code);
-  for(i=2 ; i<argc ; i++){
-    if(atoi(argv[i]) == code) return 0;
-  }
-  return 1;
 }
 
 #else
 
 // not utility, provide Fortran callable entry point
 #include <rpnmacros.h>
-wordint f77name(wkoffit)(char *nom, F2Cl fl1)
-{
-  int l1=fl1;
+wordint f77name(wkoffit)(
+    char *nom,
+    F2Cl fl1
+) {
+    int l1=fl1;
 
-  return(c_wkoffit(nom,l1));
+    return c_wkoffit(nom, l1);
 }
 
 #endif
