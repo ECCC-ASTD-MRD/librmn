@@ -6,8 +6,11 @@
 #define Little_Endian
 #endif
 #define PTR_AS_INT long long
+
+//! \bug INT_32 and INT_64 should be taken from stdint.h which is part of the C99 standard
 #define INT_32 int
 #define INT_64 long long
+
 #define tell(fdesc) lseek(fdesc,0,1)
 #define FORTRAN_loc_delta           4
 #define wordint INT_32
