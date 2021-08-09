@@ -382,7 +382,7 @@ int32_t c_wkoffit(
         if (lowc == 0) strcpy(nom2, nom3);
     }
     pf = fopen(nom2, "rb");
-    if (pf == (FILE *) NULL){
+    if (pf == (FILE *) NULL) {
         return WKF_INEXISTANT;
     } else {
         /* positionnement a la fin du fichier */
@@ -407,28 +407,27 @@ int32_t c_wkoffit(
         }
 
         /* RANDOM89 */
-        if (*ptbuf == SIGN_STD89_RND && *(ptbuf+1) == SIGN_STD89_RND){
+        if (*ptbuf == SIGN_STD89_RND && *(ptbuf+1) == SIGN_STD89_RND) {
             return retour(pf, WKF_RANDOM89);
         }
 
         /* CCRN */
-        if (*(ptbuf) == 64 && *(ptbuf + 17) == 64 && *(ptbuf + 2) == 0x20202020){
+        if (*(ptbuf) == 64 && *(ptbuf + 17) == 64 && *(ptbuf + 2) == 0x20202020) {
             return retour(pf, WKF_CCRN);
         }
 
         /* CCRN-RPN */
-        if (*(ptbuf + 2) == 0x504b3834 && isftnbin(pf, *ptbuf)){  /* PK84 */
+        if (*(ptbuf + 2) == 0x504b3834 && isftnbin(pf, *ptbuf)) {  /* PK84 */
             return retour(pf, WKF_CCRN_RPN);
         }
 
         /* SEQUENTIEL89 */
-        if (*(ptbuf + 28) == SIGN_STD89_SEQ && *(ptbuf + 29) == SIGN_STD89_SEQ){
+        if (*(ptbuf + 28) == SIGN_STD89_SEQ && *(ptbuf + 29) == SIGN_STD89_SEQ) {
             return retour(pf, WKF_SEQUENTIEL89);
         }
 
         /* SEQUENTIELFORTRAN89 */
-        if (*(ptbuf + 29) == SIGN_STD89_SEQ && *(ptbuf + 30) == SIGN_STD89_SEQ
-                        && isftnbin(pf, *ptbuf)) {
+        if (*(ptbuf + 29) == SIGN_STD89_SEQ && *(ptbuf + 30) == SIGN_STD89_SEQ && isftnbin(pf, *ptbuf)) {
             return retour(pf, WKF_SEQUENTIELFORTRAN89);
         }
 
@@ -447,7 +446,7 @@ int32_t c_wkoffit(
         }
 
         /* BURP */
-        if ((*(ptbuf + 3) == 'BRP0') || (*(ptbuf + 3) == 'bRp0')){
+        if ((*(ptbuf + 3) == 'BRP0') || (*(ptbuf + 3) == 'bRp0')) {
             if (c_burpcheck(nom2) < 0) {
                 return retour(pf, WKF_CORROMPU);
             } else {
@@ -456,32 +455,32 @@ int32_t c_wkoffit(
         }
 
         /* GRIB */
-        if (*(ptbuf) == 0x47524942)   {
+        if (*(ptbuf) == 0x47524942) {
             return retour(pf, WKF_GRIB);
         }
 
         /* BUFR */
-        if (*(ptbuf) == 0x42554652)  {
+        if (*(ptbuf) == 0x42554652) {
             return retour(pf, WKF_BUFR);
         }
 
         /* NetCDF classic format */
-        if (*(ptbuf) == 'CDF\001'){
+        if (*(ptbuf) == 'CDF\001') {
             return retour(pf, WKF_NETCDF);
         }
 
         /* NetCDF 64-bit offset format */
-        if (*(ptbuf) == 'CDF\002'){
+        if (*(ptbuf) == 'CDF\002') {
             return retour(pf, WKF_NETCDF);
         }
 
         /* BLOK */
-        if (*(ptbuf) == 0x424c4f4b)   {
+        if (*(ptbuf) == 0x424c4f4b) {
             return retour(pf, WKF_BLOK);
         }
 
         /* FORTRAN */
-        if (isftnbin(pf, *ptbuf)){
+        if (isftnbin(pf, *ptbuf)) {
             return retour(pf, WKF_FORTRAN);
         }
 
@@ -524,7 +523,6 @@ static int test_fichier(
     } else {
         return id;
     }
-  }
 }
 
 
@@ -532,53 +530,54 @@ static int test_fichier(
 static int isps(
     char *path
 ) {
-   FILE *fp;
-   char buffer[256];
-   int  i, j, ps_i;
+    FILE *fp;
+    char buffer[256];
+    int  i, j, ps_i;
 
-   if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
+    if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
-   i = 0;
-   while ( fgets( buffer, 256, fp ) != NULL ) {
+    i = 0;
+    while ( fgets( buffer, 256, fp ) != NULL ) {
 
-/*  first must enter Postcript using PJL */
+    /*  first must enter Postcript using PJL */
 
-     if ( i == 0 ) {
-       for ( j = 0 ; (j < 256)&&(buffer[j]!='\0') ; j++ )
-         buffer[j] = (char)toupper((int)buffer[j]);
-       if ( strncmp( buffer, enter_ps, strlen(enter_ps) ) == 0 ) {
-         fclose(fp);
-         return TRUE;
-       }
-     }
+        if ( i == 0 ) {
+            for ( j = 0 ; (j < 256)&&(buffer[j]!='\0') ; j++ ) {
+                buffer[j] = (char)toupper((int)buffer[j]);
+            }
+            if ( strncmp( buffer, enter_ps, strlen(enter_ps) ) == 0 ) {
+                fclose(fp);
+                return TRUE;
+            }
+        }
 
-     if ( strncmp( buffer, "%%", 2 ) == 0 ) continue;
-     ++i;
-     if ( i > 66 ) break;
-     if ( strncmp( buffer, "%!", 2 ) == 0 ) {
-       while ( fgets( buffer, 256, fp ) != NULL ) {
-         ++i;
-         if ( i > 66 ) break;
-         switch( buffer[0] ) {
-         case '%' :
-         case '/' :
-           fclose(fp);
-           return TRUE;
-         break;
-         case '\n' :
-         break;
-         default :
-           fclose(fp);
-           return FALSE;
-         break;
-         }
-       }
-     }
-     if ( strncmp( buffer, "%", 1 ) == 0 ) continue;
-     break;
-   }
-   fclose(fp);
-   return FALSE;
+        if ( strncmp( buffer, "%%", 2 ) == 0 ) continue;
+        ++i;
+        if ( i > 66 ) break;
+        if ( strncmp( buffer, "%!", 2 ) == 0 ) {
+            while ( fgets( buffer, 256, fp ) != NULL ) {
+                ++i;
+                if ( i > 66 ) break;
+                switch( buffer[0] ) {
+                    case '%' :
+                    case '/' :
+                        fclose(fp);
+                        return TRUE;
+                        break;
+                    case '\n' :
+                        break;
+                    default :
+                        fclose(fp);
+                        return FALSE;
+                        break;
+                }
+            }
+        }
+        if ( strncmp( buffer, "%", 1 ) == 0 ) continue;
+        break;
+    }
+    fclose(fp);
+    return FALSE;
 }
 
 
@@ -586,14 +585,13 @@ static int isps(
 static int isxwd(
     char *path
 ) {
-   FILE   *fp;
+   FILE *fp;
    XWDFileHeader xwd;
    int   flen, len;
 
    if( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
-   if (fread32 ((char *) &xwd, sizeof(XWDFileHeader), 1, fp) != 1)
-   {
+   if (fread32 ((char *) &xwd, sizeof(XWDFileHeader), 1, fp) != 1) {
        fclose(fp);
        return FALSE;
    }
@@ -605,11 +603,9 @@ static int isxwd(
    flen = ftell(fp);
    fclose(fp);
 
-   if (xwd.file_version != XWD_FILE_VERSION )
-      return FALSE;
+   if (xwd.file_version != XWD_FILE_VERSION ) return FALSE;
 
-   len = xwd.header_size + xwd.ncolors * sz_XWDColor
-         + xwd.bytes_per_line * xwd.pixmap_height;
+   len = xwd.header_size + xwd.ncolors * sz_XWDColor + xwd.bytes_per_line * xwd.pixmap_height;
 
    if ( len != flen ) return FALSE;
    return TRUE;
@@ -624,13 +620,11 @@ static int isgif(
    char magic[6];
    int  status = FALSE;
 
-   if( (fp = fopen( path, "rb")) == NULL ) return FALSE;
+   if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
    if (fread(magic, 6, 1, fp) != 1) return FALSE;
-   if (strncmp( magic, IDGIF87, 6 )==0)
-     status = WKF_GIF87;
-   if (strncmp( magic, IDGIF89, 6 )==0)
-     status = WKF_GIF89;
+   if (strncmp( magic, IDGIF87, 6 ) == 0) status = WKF_GIF87;
+   if (strncmp( magic, IDGIF89, 6 ) == 0) status = WKF_GIF89;
    fclose(fp);
    return status;
 }
@@ -807,7 +801,7 @@ static int isppm(
 }
 
 
-#define ESC     27
+#define ESC 27
 
 
 /*
@@ -819,8 +813,8 @@ static int isppm(
 static int ispcl(
     char *path
 ) {
-    FILE *fp;
-    int   c, j;
+    FILE    *fp;
+    int     c, j;
     int     parameter;
     int     group_char;
     int     terminator;
@@ -831,7 +825,7 @@ static int ispcl(
     char    pass_seq;
     char    plus_sign;              /* for relative values */
     char    strip_seq = FALSE;
-    int32_t    flen;
+    int32_t flen;
     char    buffer[256];
 
     if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
@@ -852,7 +846,7 @@ static int ispcl(
         return FALSE;
     }
 
-    for ( j = 0 ; (j < 256) && (buffer[j]!='\0')s; j++ ) {
+    for ( j = 0; (j < 256) && (buffer[j] != '\0'); j++ ) {
         buffer[j] = (char)toupper((int)buffer[j]);
     }
 
@@ -1084,7 +1078,7 @@ static void Flush_Bytes(
 //! Get the fractional part of a value.
 //! This is here because scanf() will consume a trailing 'e' or 'E', which is a problem in PCL.
 static float Get_Frac(
-    FILE *fp;
+    FILE *fp
 ) {
     int c;
     float result = 0.0;

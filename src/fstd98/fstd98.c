@@ -302,76 +302,74 @@ return(0);
 }
 
 
-/*
-void *fst_encode_missing_value(void *field,void *field2,int nvalues,int datatype,int nbits,int is_byte,int is_short,int is_double);
-void fst_decode_missing_value(void *field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
-*/
-/*****************************************************************************
- *                           C _ F S T E C R                                 *
- *                                                                           *
- *Object                                                                     *
- *   Writes record to file.                                                  *
- *                                                                           *
- *Revision                                                                   *
- *   Sept 2011 - Deltat, becomes a long long (deet*npas > 32bit)             *
- *   Mar  2013 - M.Valin  missing values, turbo compression, byte/short mods *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  field   field to write to the file                                   *
- *  IN  work    work field (kept for backward compatibility)                 *
- *  IN  npak    number of bits kept for the elements of the field (-npak)    *
- *  IN  iun     unit number associated to the file                           *
- *  IN  date    date time stamp                                              *
- *  IN  deet    length of a time step in seconds                             *
- *  IN  npas    time step number                                             *
- *  IN  ni      first dimension of the data field                            *
- *  IN  nj      second dimension of the data field                           *
- *  IN  nk      third dimension of the data field                            *
- *  IN  ip1     vertical level                                               *
- *  IN  ip2     forecast hour                                                *
- *  IN  ip3     user defined identifier                                      *
- *  IN  typvar  type of field (forecast, analysis, climatology)              *
- *  IN  nomvar  variable name                                                *
- *  IN  etiket  label                                                        *
- *  IN  grtyp   type of geographical projection                              *
- *  IN  ig1     first grid descriptor                                        *
- *  IN  ig2     second grid descriptor                                       *
- *  IN  ig3     third grid descriptor                                        *
- *  IN  ig4     fourth grid descriptor                                       *
- *  IN  datyp   data type of the elements                                    *
- *          0: binary, transparent                                           *
- *          1: floating point                                                *
- *          2: unsigned integer                                              *
- *          3: character (R4A in an integer)                                 *
- *          4: signed integer                                                *
- *          5: IEEE floating point                                           *
- *          6: floating point (16 bit, made for compressor)                  *
- *          7: character string                                              *
- *          8: complex IEEE                                                  *
- *        130: compressed short integer  (128+2)                             *
- *        133: compressed IEEE           (128+5)                             *
- *        134: compressed floating point (128+6)                             *
- *      +128 : second stage packer active                                    *
- *      +64  : missing value convention used                                 *
- *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
- *                                                                           *
- *****************************************************************************/
+//! Write a field into a rpn file
 int c_fstecr(
-    word *field_in,
-    void * work,
+    //! [in] Field to write to the file
+    int *field_in,
+    //! [in] work field (kept for backward compatibility)
+    void *work,
+    //! [in] Number of bits kept for the elements of the field
     int npak,
-    int iun, int date,
-    int deet, int npas,
-    int ni, int nj, int nk,
-    int ip1, int ip2, int ip3,
-    char *in_typvar, char *in_nomvar, char *in_etiket,
-    char *in_grtyp, int ig1, int ig2,
-    int ig3, int ig4,
-    int in_datyp_ori, int rewrit
+    //! [in] Unit number associated to the file in which to write the field
+    int iun,
+    //! [in] Date timestamp
+    int date,
+    //! [in] Length of the time steps in seconds
+    int deet,
+    //! [in] Time step number
+    int npas,
+    //! [in] First dimension of the data field
+    int ni,
+    //! [in] Second dimension of the data field
+    int nj,
+    //! [in] Thierd dimension of the data field
+    int nk,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field (forecast, analysis, climatology)
+    char *in_typvar,
+    //! Variable name
+    char *in_nomvar,
+    //! Label
+    char *in_etiket,
+    //! Type of geographical projection
+    char *in_grtyp,
+    //! [in] First grid descriptor
+    int ig1,
+    //! [in] Second grid descriptor
+    int ig2,
+    //! [in] Third grid descriptor
+    int ig3,
+    //! [in] Fourth grid descriptor
+    int ig4,
+    //! [in] Data type of elements
+    /*
+     *     0: binary, transparent
+     *     1: floating point
+     *     2: unsigned integer
+     *     3: character (R4A in an integer)
+     *     4: signed integer
+     *     5: IEEE floating point
+     *     6: floating point (16 bit, made for compressor)
+     *     7: character string
+     *     8: complex IEEE
+     *   130: compressed short integer  (128+2)
+     *   133: compressed IEEE           (128+5)
+     *   134: compressed floating point (128+6)
+     * +128 : second stage packer active
+     * +64  : missing value convention used
+     */
+    int in_datyp_ori,
+    //! [in] Rewrite existing record, append otherwise
+    int rewrit
 ) {
-  word *field = field_in ; /* use field internally in case we have to allocate new array because of missing values */
-  word *field3;
+    // Use field internally in case we have to allocate new array because of missing values
+  int *field = field_in;
+  int *field3;
   short *s_field;
   signed char *b_field;
   int ier,l1,l2,l3,l4;
@@ -580,12 +578,12 @@ int c_fstecr(
   nw = W64TOWD(nw);
 
   keys_len = W64TOWD((f->primary_len + f->info_len));
-  buffer = (buffer_interface_ptr) alloca((10+keys_len+nw+128)*sizeof(word));
+  buffer = (buffer_interface_ptr) alloca((10+keys_len+nw+128)*sizeof(int));
   if (buffer)
-    memset(buffer,0,(10+keys_len+nw+128)*sizeof(word));
+    memset(buffer,0,(10+keys_len+nw+128)*sizeof(int));
   else {
     sprintf(errmsg,"memory is full, was trying to allocate %ld bytes",
-            (10+keys_len+nw+128)*sizeof(word));
+            (10+keys_len+nw+128)*sizeof(int));
     return(error_msg("c_fstecr",ERR_MEM_FULL,ERRFATAL));
   }
   buffer->nwords = 10 + keys_len + nw;
@@ -692,7 +690,7 @@ int c_fstecr(
     if(xdf_short) sizefactor=2 ;
     if(xdf_double | IEEE_64)sizefactor=8 ;
     if(is_missing){    /* put appropriate values into field after allocating it */
-      field= (word *) alloca(ni*nj*nk*sizefactor); /* allocate self deallocating scratch field */
+      field= (int *) alloca(ni*nj*nk*sizefactor); /* allocate self deallocating scratch field */
       if( 0 == EncodeMissingValue(field,field_in,ni*nj*nk,in_datyp,nbits,xdf_byte,xdf_short,xdf_double) ) {
         field=field_in ;
         INFOPRINT fprintf(stderr,"NO missing value, data type %d reset to %d\n",stdf_entry->datyp,datyp);
@@ -827,7 +825,7 @@ int c_fstecr(
 // fprintf(stderr,"OLD PACK CODE======================================\n");
       field3 = field;
       if(xdf_short || xdf_byte){
-        field3=(word *)alloca(ni*nj*nk*sizeof(word));
+        field3=(int *)alloca(ni*nj*nk*sizeof(int));
         s_field = (short *)field; b_field = (signed char *)field;
         if(xdf_short) for (i=0;i<ni*nj*nk;i++) { field3[i]=s_field[i]; } ;
         if(xdf_byte)  for (i=0;i<ni*nj*nk;i++) { field3[i]=b_field[i]; } ;
@@ -1443,282 +1441,294 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
   return(handle);
 }
 
-/*****************************************************************************
- *                        C _ F S T I N L                                    *
- *                                                                           *
- *Object                                                                     *
- *   Locates all the records that matches the research keys.                 *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  iun     unit number associated to the file                           *
- *  OUT ni      dimension 1 of the data field                                *
- *  OUT nj      dimension 2 of the data field                                *
- *  OUT nk      dimension 3 of the data field                                *
- *  IN  datev   valid date                                                   *
- *  IN  etiket  label                                                        *
- *  IN  ip1     vertical level                                               *
- *  IN  ip2     forecast hour                                                *
- *  IN  ip3     user defined identifier                                      *
- *  IN  typvar  type of field                                                *
- *  IN  nomvar  variable name                                                *
- *  OUT liste   list of handle to the records                                *
- *  OUT infon   number of elements for the list (number of records found)    *
- *  OUT nmax    dimension of list as given by caller                         *
- *                                                                           *
- *****************************************************************************/
 
-int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
-                 int ip1, int ip2, int ip3, char *typvar, char *nomvar,
-                 word *liste, int *infon, int nmax)
-{
-  int handle, nfound=0, nimax, njmax, nkmax, nijkmax;
+//! Locates all the records that matches the search keys
+//! \return 0 on scuccess, error code otherwise
+int c_fstinl(
+    //! [in] Unit number associated to the file in which to search
+    int iun,
+    //! [out] First dimension of the field
+    int *ni,
+    //! [out] Second dimension of the field
+    int *nj,
+    //! [out] Third dimension of the field
+    int *nk,
+    //! [in] Validity date
+    int datev,
+    //! [in] Label
+    char *etiket,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field
+    char *typvar,
+    //! [in] Variable name
+    char *nomvar,
+    //! [out] List of handles of the matching records
+    int *liste,
+    //! [out] Number of elements for the list (number of matching records)
+    int *infon,
+    //! [in] List size (maximum number of matches)
+    int nmax
+) {
+    int handle;
+    int nfound = 0;
+    int nimax;
+    int njmax;
+    int nkmax;
+    int nijkmax;
 
-  if (msg_level < INFORM)
-    fprintf(stdout,"Debug fstinl iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
-
-  handle = c_fstinf(iun,ni,nj,nk,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
-  nijkmax = (*ni) * (*nj) * (*nk);
-  nimax = *ni;
-  njmax = *nj;
-  nkmax = *nk;
-
-  while ((handle >= 0) && (nfound < nmax)) {
-    liste[nfound] = handle;
-    nfound++;
-    if (nfound >= nmax) break;
-    handle = c_fstsui(iun,ni,nj,nk);
-    if ( ((*ni) * (*nj) * (*nk)) > nijkmax ) {
-      nimax = *ni;
-      njmax = *nj;
-      nkmax = *nk;
-      nijkmax = (*ni) * (*nj) * (*nk);
+    if (msg_level < INFORM) {
+        fprintf(stdout, "Debug fstinl iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",
+                iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
     }
-  }
-  *ni = nimax;
-  *nj = njmax;
-  *nk = nkmax;
-  *infon = nfound;
-  if (msg_level < INFORM)
-    fprintf(stdout,"Debug fstinl nombre trouve=%d nmax=%d\n",nfound,nmax);
 
-  while ( (handle = c_fstsui(iun,ni,nj,nk)) >= 0) nfound++;
-  if (nfound > nmax) {
-     sprintf(errmsg,"number of records found (%d) > nmax specified (%d)",nfound,nmax);
-     return(error_msg("FSTINL",-nfound,ERROR));
-  }
-  else
-    return(0);
+    handle = c_fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    nijkmax = (*ni) * (*nj) * (*nk);
+    nimax = *ni;
+    njmax = *nj;
+    nkmax = *nk;
+
+    while ((handle >= 0) && (nfound < nmax)) {
+        liste[nfound] = handle;
+        nfound++;
+        if (nfound >= nmax) break;
+        handle = c_fstsui(iun, ni, nj, nk);
+        if ( ((*ni) * (*nj) * (*nk)) > nijkmax ) {
+            nimax = *ni;
+            njmax = *nj;
+            nkmax = *nk;
+            nijkmax = (*ni) * (*nj) * (*nk);
+        }
+    }
+    *ni = nimax;
+    *nj = njmax;
+    *nk = nkmax;
+    *infon = nfound;
+    if (msg_level < INFORM) {
+        fprintf(stdout, "Debug fstinl nombre trouve=%d nmax=%d\n", nfound, nmax);
+    }
+
+    while ( (handle = c_fstsui(iun, ni, nj, nk)) >= 0 ) nfound++;
+    if (nfound > nmax) {
+        sprintf(errmsg, "number of records found (%d) > nmax specified (%d)", nfound, nmax);
+        return error_msg("FSTINL", -nfound, ERROR);
+    } else {
+        return 0;
+    }
 }
 
-/*****************************************************************************
- *                        C _ F S T L I C                                    *
- *                                                                           *
- *Object                                                                     *
- *   Search for a record that matches the research keys and check that the   *
- *   remaining parmeters match the record descriptors                        *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field    data field to be read                                       *
- *  IN  iun      unit number associated to the file                          *
- *  IN  niin     dimension 1 of the data field                               *
- *  IN  njin     dimension 2 of the data field                               *
- *  IN  nkin     dimension 3 of the data field                               *
- *  IN  datein   valid date                                                  *
- *  IN  etiketin label                                                       *
- *  IN  ip1in    vertical level                                              *
- *  IN  ip2in    forecast hour                                               *
- *  IN  ip3in    user defined identifier                                     *
- *  IN  typvarin type of field                                               *
- *  IN  nomvarin variable name                                               *
- *  IN  ig1      first grid descriptor                                       *
- *  IN  ig2      second grid descriptor                                      *
- *  IN  ig3      third grid descriptor                                       *
- *  IN  ig4      fourth grid descriptor                                      *
- *  IN  grtypin  type of geographical projection                             *
- *                                                                           *
- *****************************************************************************/
 
-int c_fstlic(word *field, int iun, int niin, int njin, int nkin,
-                 int datein, char *etiketin, int ip1in, int ip2in, int ip3in,
-                 char *typvarin, char *nomvarin,
-                 int ig1in, int ig2in, int ig3in, int ig4in, char *grtypin)
-{
-  int handle, ier;
-  int ni, nj, nk, date, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
-  int nbits, swa, ubc, lng, dltf, xtra1, xtra2, xtra3, deet, npas, datyp;
-  char etiket[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','\0'};
-  char typvar[3]={' ',' ','\0'};
-  char nomvar[5]={' ',' ',' ',' ','\0'};
-  char grtyp[2]={' ','\0'};
+//! Search for a record that matches the search keys and check that the remaining parmeters match the record descriptors
+int c_fstlic(
+    //! [out] Field to be read
+    int *field,
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [in] First of the data field
+    int niin,
+    //! [in] Second of the data field
+    int njin,
+    //! [in] Third of the data field
+    int nkin,
+    //! [in] Valid date
+    int datein,
+    //! [in] Label
+    char *etiketin,
+    //! [in] Vertical level
+    int ip1in,
+    //! [in] Forecast hour
+    int ip2in,
+    //! [in] User defined identifier
+    int ip3in,
+    //! [in] Type of field
+    char *typvarin,
+    //! [in] Variable name
+    char *nomvarin,
+    //! [in] First grid descriptor
+    int ig1in,
+    //! [in] Second grid descriptor
+    int ig2in,
+    //! [in] Third grid descriptor
+    int ig3in,
+    //! [in] Fourth grid descriptor
+    int ig4in,
+    //! [in] Type of geographical projection
+    char *grtypin
+) {
+    int handle, ier;
+    int ni, nj, nk, date, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
+    int nbits, swa, ubc, lng, dltf, xtra1, xtra2, xtra3, deet, npas, datyp;
+    char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+    char typvar[3]={' ', ' ', '\0'};
+    char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
+    char grtyp[2]={' ', '\0'};
 
-  handle = c_fstinf(iun,&ni,&nj,&nk,datein,etiketin,
-                        ip1in,ip2in,ip3in,typvarin,nomvarin);
+    handle = c_fstinf(iun, &ni, &nj, &nk, datein, etiketin, ip1in, ip2in, ip3in, typvarin, nomvarin);
 
-  if (handle < 0) {
-    sprintf(errmsg,"(unit=%d) record not found",iun);
-    return(error_msg("c_fstlic",ERR_NOT_FOUND,ERROR));
-  }
+    if (handle < 0) {
+        sprintf(errmsg, "(unit=%d) record not found", iun);
+        return error_msg("c_fstlic", ERR_NOT_FOUND, ERROR);
+    }
 
-  if ((niin != ni) || (njin != nj) || (nkin != nk)) {
-    fprintf(stderr,"c_fstlic unit=%d, ni or nj or nk error:",iun);
-    fprintf(stderr," user ni=%d, file ni=%d\n",niin,ni);
-    fprintf(stderr," user nj=%d, file nj=%d\n",njin,nj);
-    fprintf(stderr," user nk=%d, file nk=%d\n",nkin,nk);
-    return(-1);
-  }
+    if ((niin != ni) || (njin != nj) || (nkin != nk)) {
+        fprintf(stderr, "c_fstlic unit=%d, ni or nj or nk error:", iun);
+        fprintf(stderr, " user ni=%d, file ni=%d\n", niin, ni);
+        fprintf(stderr, " user nj=%d, file nj=%d\n", njin, nj);
+        fprintf(stderr, " user nk=%d, file nk=%d\n", nkin, nk);
+        return -1;
+    }
 
-  ier = c_fstprm(handle,&date,&deet,&npas,&ni,&nj,&nk,&nbits,&datyp,&ip1,
-                     &ip2,&ip3,typvar,nomvar,etiket,grtyp,&ig1,&ig2,
-                     &ig3,&ig4,&swa,&lng,&dltf,&ubc,&xtra1,&xtra2,&xtra3);
+    ier = c_fstprm(handle, &date, &deet, &npas, &ni, &nj, &nk, &nbits, &datyp, &ip1,
+                        &ip2, &ip3, typvar, nomvar, etiket, grtyp, &ig1, &ig2,
+                        &ig3, &ig4, &swa, &lng, &dltf, &ubc, &xtra1, &xtra2, &xtra3);
 
-  if ((strcmp(grtypin,grtyp) != 0) || (ig1in != ig1) ||
-      (ig2in != ig2) || (ig3in != ig3) || (ig4in != ig4)) {
-    fprintf(stderr,"c_fstlic unit=%d, grtyp ig1 ig2 ig3 ig4 error:",iun);
-    fprintf(stderr," user grtyp=%s, file grtyp=%s\n",grtypin,grtyp);
-    fprintf(stderr," user ig1=%d, file ig1=%d\n",ig1in,ig1);
-    fprintf(stderr," user ig2=%d, file ig2=%d\n",ig2in,ig2);
-    fprintf(stderr," user ig3=%d, file ig3=%d\n",ig3in,ig3);
-    fprintf(stderr," user ig4=%d, file ig4=%d\n",ig4in,ig4);
-    return(-1);
-  }
+    if ((strcmp(grtypin, grtyp) != 0) || (ig1in != ig1) ||
+        (ig2in != ig2) || (ig3in != ig3) || (ig4in != ig4)) {
+        fprintf(stderr, "c_fstlic unit=%d, grtyp ig1 ig2 ig3 ig4 error:", iun);
+        fprintf(stderr, " user grtyp=%s, file grtyp=%s\n", grtypin, grtyp);
+        fprintf(stderr, " user ig1=%d, file ig1=%d\n", ig1in, ig1);
+        fprintf(stderr, " user ig2=%d, file ig2=%d\n", ig2in, ig2);
+        fprintf(stderr, " user ig3=%d, file ig3=%d\n", ig3in, ig3);
+        fprintf(stderr, " user ig4=%d, file ig4=%d\n", ig4in, ig4);
+        return -1;
+    }
 
-  ier = c_fstlir(field,iun,&ni,&nj,&nk,datein,etiketin,ip1in,ip2in,
-                 ip3in,typvarin,nomvarin);
-  return(ier);
-}
-/*****************************************************************************
- *                        C _ F S T L I R                                    *
- *                                                                           *
- *Object                                                                     *
- *   Reads the next record that matches the research keys.                   *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field   data field to be read                                        *
- *  IN  iun     unit number associated to the file                           *
- *  OUT ni      dimension 1 of the data field                                *
- *  OUT nj      dimension 2 of the data field                                *
- *  OUT nk      dimension 3 of the data field                                *
- *  IN  datev   valid date                                                   *
- *  IN  etiket  label                                                        *
- *  IN  ip1     vertical level                                               *
- *  IN  ip2     forecast hour                                                *
- *  IN  ip3     user defined identifier                                      *
- *  IN  typvar  type of field                                                *
- *  IN  nomvar  variable name                                                *
- *                                                                           *
- *****************************************************************************/
-
-int c_fstlir(word *field, int iun, int *ni, int *nj, int *nk,
-                 int datev, char *etiket,
-                 int ip1, int ip2, int ip3, char *typvar, char *nomvar)
-{
-  int key,handle;
-
-  handle = -2;  /* means handle will be discarded */
-  key = c_fstlirx(field,handle,iun,ni,nj,nk,datev,etiket,ip1,ip2,ip3,
-                      typvar,nomvar);
-  return(key);
+    ier = c_fstlir(field, iun, &ni, &nj, &nk, datein, etiketin, ip1in, ip2in, ip3in, typvarin, nomvarin);
+    return ier;
 }
 
-/*****************************************************************************
- *                      C _ F S T L I R X                                    *
- *                                                                           *
- *Object                                                                     *
- *   Reads the next record that matches the research keys.                   *
- *   The search begins at the position given by handle.                      *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field   data field to be read                                        *
- *  IN  iun     unit number associated to the file                           *
- *  OUT ni      dimension 1 of the data field                                *
- *  OUT nj      dimension 2 of the data field                                *
- *  OUT nk      dimension 3 of the data field                                *
- *  IN  datev   valid date                                                   *
- *  IN  etiket  label                                                        *
- *  IN  ip1     vertical level                                               *
- *  IN  ip2     forecast hour                                                *
- *  IN  ip3     user defined identifier                                      *
- *  IN  typvar  type of field                                                *
- *  IN  nomvar  variable name                                                *
- *                                                                           *
- *****************************************************************************/
 
-int c_fstlirx(word *field, int handle, int iun,
-                  int *ni, int *nj, int *nk, int datev, char *etiket,
-                  int ip1, int ip2, int ip3, char *typvar, char *nomvar)
-{
-  int ier;
+//! Reads the next record that matches the search keys
+int c_fstlir(
+    //! [out] Data field to be read
+    int *field,
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [out] First of the data field
+    int *ni,
+    //! [out] Second of the data field
+    int *nj,
+    //! [out] Third of the data field
+    int *nk,
+    //! [in] Validity date
+    int datev,
+    //! [in] Label
+    char *etiket,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field
+    char *typvar,
+    //! [in] Variable name
+    char *nomvar
+) {
+    // Means handle will be discarded
+    int handle = -2;
 
-  handle = c_fstinfx(handle,iun,ni,nj,nk,datev,etiket,
-                         ip1,ip2,ip3,typvar,nomvar);
-  if (handle < 0) {
-    if (msg_level <= WARNING)
-      fprintf(stdout,"c_fstlirx: (unit=%d) record not found, errcode=%d\n",
-              iun,handle);
-    return(handle);
-  }
-
-  ier = c_fstluk(field,handle,ni,nj,nk);
-  if (ier < 0)
-    return(ier);
-  else
-    return(handle);
+    return c_fstlirx(field, handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 }
 
-/*****************************************************************************
- *                         C _ F S T L I S                                   *
- *                                                                           *
- *Object                                                                     *
- *   Reads the next record that matches the last search criterias            *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field   data field to be read                                        *
- *  IN  iun     unit number associated to the file                           *
- *  OUT ni      dimension 1 of the data field                                *
- *  OUT nj      dimension 2 of the data field                                *
- *  OUT nk      dimension 3 of the data field                                *
- *                                                                           *
- *****************************************************************************/
 
-int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
-{
-  int index_fnom, index, handle, ier;
-  word *primk=NULL;
+//! Reads the next record that matches the search keys.  The search begins at the position given by handle.
+int c_fstlirx(
+    //! [out] Field to be read
+    int *field,
+    //! [in] Record handle from which the search begins
+    int handle,
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [out] First of the data field
+    int *ni,
+    //! [out] Second of the data field
+    int *nj,
+    //! [out] Third of the data field
+    int *nk,
+    //! [in] Validity date
+    int datev,
+    //! [in] Label
+    char *etiket,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field
+    char *typvar,
+    //! [in] Variable name
+    char *nomvar
+) {
+    int ier;
 
-  index_fnom = fnom_index(iun);
-  if (index_fnom == -1) {
-    sprintf(errmsg,"file (unit=%d) is not connected with fnom",iun);
-    return(error_msg("c_fstlis",ERR_NO_FNOM,ERROR));
-  }
+    handle = c_fstinfx(handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    if (handle < 0) {
+        if (msg_level <= WARNING)
+        fprintf(stdout, "c_fstlirx: (unit=%d) record not found, errcode=%d\n", iun, handle);
+        return handle;
+    }
 
-  if ((index = file_index(iun)) == ERR_NO_FILE) {
-    sprintf(errmsg,"file (unit=%d) is not open",iun);
-    return(error_msg("c_fstlis",ERR_NO_FILE,ERROR));
-  }
+    ier = c_fstluk(field, handle, ni, nj, nk);
+    if (ier < 0) {
+        return ier;
+    } else {
+        return handle;
+    }
+}
 
-  /* position to the next record that matches the last search criterias */
-  handle = c_xdfloc(iun,-1,primk,0); /* find next with handle=-1 and nprim=0 */
-  if (handle < 0) {
-    if (msg_level <= WARNING)
-      fprintf(stdout,"c_fstlis: (unit=%d) record not found, errcode=%d\n",
-              iun,handle);
-    return(handle);
-  }
 
-  ier = c_fstluk(field,handle,ni,nj,nk);
-  return(ier);
+//! Reads the next record that matches the last search criterias
+int c_fstlis(
+    //! [out] Field to be read
+    int  *field,
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [out] First of the data field
+    int *ni,
+    //! [out] Second of the data field
+    int *nj,
+    //! [out] Third of the data field
+    int *nk
+) {
+    int index_fnom, index, handle, ier;
+    word *primk = NULL;
+
+    index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
+        return error_msg("c_fstlis", ERR_NO_FNOM, ERROR);
+    }
+
+    if ((index = file_index(iun)) == ERR_NO_FILE) {
+        sprintf(errmsg, "file (unit=%d) is not open", iun);
+        return error_msg("c_fstlis", ERR_NO_FILE, ERROR);
+    }
+
+    // position to the next record that matches the last search criterias
+    // find next with handle=-1 and nprim=0
+    handle = c_xdfloc(iun, -1, primk, 0);
+    if (handle < 0) {
+        if (msg_level <= WARNING) {
+            fprintf(stdout, "c_fstlis: (unit=%d) record not found, errcode=%d\n", iun, handle);
+        }
+        return handle;
+    }
+
+    ier = c_fstluk(field, handle, ni, nj, nk);
+    return ier;
 }
 
 
 //! Read the record corresponding to the provided handle
 int c_fstluk(
     //! [out] Pointer to where the data read will be placed.  Must be allocated!
-    word *field,
+    int *field,
     //! [in] Handle of the record to be read
     int handle,
     //! [out] Dimension 1 of the data field
@@ -1729,8 +1739,7 @@ int c_fstluk(
     int *nk
 ) {
     stdf_dir_keys stdf_entry;
-    word *pkeys;
-    // word *workField;
+    int *pkeys;
 
     float *ptr_real;
     double *ptr_double;
@@ -1753,7 +1762,7 @@ int c_fstluk(
     // printf("sizeof(stdf_dir_keys) = %d\n", sizeof(stdf_dir_keys));
 
     // printf("Debug+ c_fstluk - &stdf_entry = %p\n", &stdf_entry);
-    pkeys = (word *) &stdf_entry;
+    pkeys = (int *) &stdf_entry;
     // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
     pkeys += W64TOWD(1);
     // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
@@ -1803,14 +1812,14 @@ int c_fstluk(
     // printf("Debug+ fstluk lng2 = %d\n", lng2);
 
     // Allocate 8 more bytes in case of realingment for 64 bit data
-    int workFieldSz = 8 + (lng2 + 10) * sizeof(word);
+    int workFieldSz = 8 + (lng2 + 10) * sizeof(int);
     // printf("Debug+ fstluk - workFieldSz = %d\n", workFieldSz);
     char workField[workFieldSz];
     // printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
     memset(workField, 0, workFieldSz);
 
     // if ((workField = alloca(workFieldSz)) == NULL) {
-    //     sprintf(errmsg, "memory is full, was trying to allocate %ld bytes", lng * sizeof(word));
+    //     sprintf(errmsg, "memory is full, was trying to allocate %ld bytes", lng * sizeof(int));
     //     return error_msg("c_fstluk", ERR_MEM_FULL, ERRFATAL);
     // } else {
     //     printf("Debug+ fstluk - &\n");
@@ -1820,7 +1829,7 @@ int c_fstluk(
 
     // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
     buf = (buffer_interface_ptr) workField;
-    if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(word)) & 0x7) != 0 ) {
+    if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7) != 0 ) {
         // Realign buf to make sure that buf->data is 64bit align
         buf = (buffer_interface_ptr) (workField + 1);
     }
@@ -2067,6 +2076,7 @@ int c_fstluk(
 
     return handle;
 }
+
 
 /*****************************************************************************
  *                        C _ F S T M S Q                                    *
@@ -2452,61 +2462,55 @@ int c_fstcheck(
 }
 
 
-/*****************************************************************************
- *                         C _ F S T O U V                                   *
- *                                                                           *
- *Object                                                                     *
- *   Opens a RPN standard file.                                              *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  iun     unit number associated to the file                           *
- *  IN  options random or sequential access                                  *
- *                                                                           *
- *****************************************************************************/
+//! Opens a RPN standard file
+int c_fstouv(
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [in] Random or sequential access
+    char *options
+) {
+    int ier, nrec, i, iwko;
+    static int premiere_fois=1;
+    char appl[5];
 
-int c_fstouv(int iun, char *options)
-{
-  int ier,nrec,i,iwko;
-  static int premiere_fois=1;
-//  char *turbo_compression;
-  char appl[5];
-
-  if (premiere_fois) {
-    premiere_fois = 0;
-/*    printf("DEBUG++ fstouv appel a c_env_var_cracker\n"); */
-    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");    /* obtain options from environment variable */
-    C_requetes_init(requetes_filename,debug_filename);
-    ier = init_ip_vals();
-  }
-  i = fnom_index(iun);
-  if (i == -1) {
-    sprintf(errmsg,"file (unit=%d) is not connected with fnom",iun);
-    return(error_msg("c_fstouv",ERR_NO_FNOM,ERROR));
-  }
-
-  if ((strstr(options,"RND"))  || (strstr(options,"rnd")))
-    sprintf(appl,"%s","STDR");      /* standard random */
-  else
-    sprintf(appl,"%s","STDS");      /* standard sequential */
-
-  FGFDT[i].attr.std = 1;  /* force attribute to standard file */
-  if (FGFDT[i].attr.remote)
-    if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old))
-      ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
-    else
-      ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
-  else
-    if (((iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name))) == -2) &&
-        (! FGFDT[i].attr.old)) {
-      ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
-    } else {
-      ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+    if (premiere_fois) {
+        premiere_fois = 0;
+        // printf("DEBUG++ fstouv appel a c_env_var_cracker\n");
+        // Obtain options from environment variable
+        c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
+        C_requetes_init(requetes_filename, debug_filename);
+        ier = init_ip_vals();
+    }
+    i = fnom_index(iun);
+    if (i == -1) {
+        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
+        return error_msg("c_fstouv", ERR_NO_FNOM, ERROR);
     }
 
-  if (ier < 0) return(ier);
-  nrec = c_fstnbr(iun);
-  return(nrec);
+    if ((strstr(options, "RND"))  || (strstr(options, "rnd"))) {
+        sprintf(appl, "%s", "STDR");      /* standard random */
+    } else {
+        sprintf(appl, "%s", "STDS");      /* standard sequential */
+    }
+
+    FGFDT[i].attr.std = 1;  /* force attribute to standard file */
+    if (FGFDT[i].attr.remote) {
+        if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
+            ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+        } else {
+            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+        }
+    } else {
+        if (((iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name))) == -2) && (! FGFDT[i].attr.old)) {
+            ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+        } else {
+            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+        }
+    }
+
+    if (ier < 0) return ier;
+    nrec = c_fstnbr(iun);
+    return nrec;
 }
 
 /*****************************************************************************

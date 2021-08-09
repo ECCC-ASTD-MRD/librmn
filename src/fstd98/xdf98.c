@@ -1567,7 +1567,7 @@ int c_xdfins(
 //! \return 0 on success, error code otherwise
 int c_xdflnk(
     //! List of files indexes for the files to be linked
-    word *liste,
+    int *liste,
     //! Number of files to be linked
     int n
 ) {
@@ -2702,7 +2702,7 @@ int c_xdfsta(
 //! \return 0 on success, error code otherwise
 int c_xdfunl(
     //! [in] Unit number associated to the file
-    word *liste,
+    int *liste,
     //! [in] Number of files to be unlinked
     int n
 ) {
