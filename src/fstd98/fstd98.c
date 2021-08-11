@@ -28,13 +28,15 @@
 
 #include <stdio.h>
 #ifdef WIN32    /*CHC/NRC*/
-#include <string.h>
-#include <malloc.h>
+    #include <string.h>
+    #include <malloc.h>
 #else
-#include <unistd.h>
-#include <alloca.h>
+    #include <unistd.h>
+    #include <alloca.h>
 #endif
+
 #include <stdlib.h>
+#include <stdint.h>
 #include "qstdir.h"
 #include "convert_ip.h"
 #include "proto.h"
@@ -305,7 +307,7 @@ return(0);
 //! Write a field into a rpn file
 int c_fstecr(
     //! [in] Field to write to the file
-    int *field_in,
+    uint32_t *field_in,
     //! [in] work field (kept for backward compatibility)
     void *work,
     //! [in] Number of bits kept for the elements of the field
@@ -368,8 +370,8 @@ int c_fstecr(
     int rewrit
 ) {
     // Use field internally in case we have to allocate new array because of missing values
-  int *field = field_in;
-  int *field3;
+  uint32_t *field = field_in;
+  uint32_t *field3;
   short *s_field;
   signed char *b_field;
   int ier,l1,l2,l3,l4;
@@ -682,17 +684,17 @@ int c_fstecr(
       for (i=0; i < lngw; i++)
         buffer->data[keys_len+i] = field[i];
     }
-  }
-  else {   /* not image mode copy */
+  } else {   /* not image mode copy */
     /* time to fudge field if missing value feature is used */
-    sizefactor=4 ;
+    sizefactor = 4 ;
     if(xdf_byte)  sizefactor=1 ;
     if(xdf_short) sizefactor=2 ;
     if(xdf_double | IEEE_64)sizefactor=8 ;
     if(is_missing){    /* put appropriate values into field after allocating it */
-      field= (int *) alloca(ni*nj*nk*sizefactor); /* allocate self deallocating scratch field */
-      if( 0 == EncodeMissingValue(field,field_in,ni*nj*nk,in_datyp,nbits,xdf_byte,xdf_short,xdf_double) ) {
-        field=field_in ;
+      // allocate self deallocating scratch field
+      field = (uint32_t *)alloca(ni * nj * nk * sizefactor);
+      if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, nbits, xdf_byte, xdf_short, xdf_double) ) {
+        field = field_in ;
         INFOPRINT fprintf(stderr,"NO missing value, data type %d reset to %d\n",stdf_entry->datyp,datyp);
         stdf_entry->datyp = datyp;  /* cancel missing data flag in data type */
         is_missing = 0;
@@ -939,7 +941,7 @@ int c_fstecr(
   xdf_double = 0;
   xdf_short = 0;
   xdf_byte = 0;
-  return(ier);
+  return ier;
 }
 
 /*****************************************************************************
@@ -1525,7 +1527,7 @@ int c_fstinl(
 //! Search for a record that matches the search keys and check that the remaining parmeters match the record descriptors
 int c_fstlic(
     //! [out] Field to be read
-    int *field,
+    uint32_t *field,
     //! [in] Unit number associated to the file
     int iun,
     //! [in] First of the data field
@@ -1605,7 +1607,7 @@ int c_fstlic(
 //! Reads the next record that matches the search keys
 int c_fstlir(
     //! [out] Data field to be read
-    int *field,
+    uint32_t *field,
     //! [in] Unit number associated to the file
     int iun,
     //! [out] First of the data field
@@ -1639,7 +1641,7 @@ int c_fstlir(
 //! Reads the next record that matches the search keys.  The search begins at the position given by handle.
 int c_fstlirx(
     //! [out] Field to be read
-    int *field,
+    uint32_t *field,
     //! [in] Record handle from which the search begins
     int handle,
     //! [in] Unit number associated to the file
@@ -1686,7 +1688,7 @@ int c_fstlirx(
 //! Reads the next record that matches the last search criterias
 int c_fstlis(
     //! [out] Field to be read
-    int  *field,
+    uint32_t *field,
     //! [in] Unit number associated to the file
     int iun,
     //! [out] First of the data field
@@ -1728,7 +1730,7 @@ int c_fstlis(
 //! Read the record corresponding to the provided handle
 int c_fstluk(
     //! [out] Pointer to where the data read will be placed.  Must be allocated!
-    int *field,
+    uint32_t *field,
     //! [in] Handle of the record to be read
     int handle,
     //! [out] Dimension 1 of the data field
@@ -1961,7 +1963,7 @@ int c_fstluk(
                     s_field_out = (short *)field;
                     b_field_out = (signed char *)field;
                 } else {
-                    field_out = (int *)field;
+                    field_out = (uint32_t *)field;
                 }
                 ier = compact_integer(field_out, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, mode);
                 if (xdf_short) {
