@@ -19,8 +19,20 @@
 
 #include <stdlib.h>
 #include <glob.h>
-#include <limits.h>
 #include <rmnlib.h>
+
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
+
+#ifdef __APPLE__ && __MACH__
+#include <sys/limits.h>
+#endif
+
+#ifdef WIN32
+// For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h
+#define PATH_MAX _PATH_MAX
+#endif
 
 #define CLIB_OK    1
 #define CLIB_ERROR -1
