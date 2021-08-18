@@ -18,14 +18,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*
- * CoMpIlAtIoN_OpTiOnS ::SX4=-O overlap::SX5=-O overlap::
- * a l'oppose de c_baseio.c
- */
-#include <rpnmacros.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
+#include <rpnmacros.h>
 #ifdef WIN32    /*CHC/NRC*/
 #include <fcntl.h>
 #define S_IRUSR _S_IREAD
@@ -64,7 +61,7 @@ typedef long int pid_t;
 #endif
 
 #if defined (NEC)
-#     define memint INT_64
+#     define memint int64_t
 #else
 #     define memint wordint
 #endif

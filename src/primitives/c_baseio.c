@@ -18,7 +18,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*CoMpIlAtIoN_OpTiOnS ::SX4=-Onooverlap::SX5=-Onooverlap::*/
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
@@ -26,6 +25,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #ifdef WIN32    /*CHC/NRC*/
@@ -98,7 +98,7 @@ static void wa_page_read(int fd,word *buf,unsigned int adr,int nmots,int indf);
 static void wa_page_write(int fd,word *buf,unsigned int adr,int nmots,int indf);
 static void qqcwawr(word *buf,unsigned int ladr,int lnmots,int indf);
 static void qqcward(word *buf,unsigned int ladr,int  lnmots,int indf);
-static INT_32 qqcnblk(int lfd,int indf);
+static int32_t qqcnblk(int lfd,int indf);
 static void arrayCopy(word *src, word *dest, int nwords);
 static void arrayZero(word *dest, int nwords);
 static int fnom_rem_connect(int ind, char* remote_host);
@@ -134,12 +134,13 @@ static char *LOCALDIR = "./";
 
 //! Kept only for backward compatibility; only returns 0
 //
-//! @param[in] unit Unit number, ignored
 //! @return Always zero
 //
 //! @deprecated
-int c_fretour(int iun)
-{
+int c_fretour(
+    //! [in] Unit number, ignored
+    int iun
+) {
     return(0);
 }
 //! @copydoc c_fretour
@@ -238,7 +239,7 @@ static int find_file_entry(char *caller, int iun)
     }
 
     fprintf(stderr,"%s error: unit %d is not associated with any file\n",caller,iun);
-    return(-1);
+    return -1;
 }
 
 
@@ -259,7 +260,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
   char *c, *c2, *tmpdir, *cmcarc, *pos2p;
   char remote_mach[256];
   char nom2[1024];
-  PTR_AS_INT ptr_as_int;
+  intptr_t ptr_as_int;
 
     if (fnom_initialized == 0) {
         //  Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file
@@ -282,9 +283,9 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         fnom_initialized = 1;
     }
 
-    if (((PTR_AS_INT) iun > 0) && ((PTR_AS_INT) iun < 1000)) {
+    if (((intptr_t)iun > 0) && ((intptr_t)iun < 1000)) {
         // An integer value has been passed to c_fnom as iun
-        ptr_as_int = (PTR_AS_INT) iun ;
+        ptr_as_int = (intptr_t)iun ;
         liun = ptr_as_int;
     } else {
         // a pointer has been passed to c_fnom as iun
@@ -293,7 +294,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         }
         if (*iun == -1) {
             fprintf(stderr,"C_FNOM ERROR: no more units available\n");
-            return(-1);
+            return -1;
         }
         liun = *iun;
     }
@@ -346,7 +347,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
     for (i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == liun) {
             fprintf(stderr, "c_fnom error: unit %d is already in use\n", liun);
-            return(-1);
+            return -1;
         }
     }
     for (i = 0; i < MAXFILES; i++) {
@@ -357,7 +358,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
     }
     if (i == MAXFILES) {
         fprintf(stderr, "c_fnom error: too many files, file table is full\n");
-        return(-1);
+        return -1;
     }
 
     // Record file attributes
@@ -439,7 +440,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         if (strstr(nom,"/")) {
             fprintf(stderr, "c_fnom error: / is illegal in scratch file name\n");
             fprintf(stderr, "              specified name was %s\n", nom);
-            return(-1);
+            return -1;
         }
         pid = getpid();
         tmpdir = getenv("TMPDIR");
@@ -546,7 +547,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
           sprintf(filename,"%s/data/%s",ARMNLIB,FGFDT[i].file_name);
 
           if (access(filename,F_OK)  == -1) {             /* not under ARMNLIB either */
-             return(-1);
+             return -1;
              }
           }
        }
@@ -560,7 +561,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
      if (!f77name(existe)(FGFDT[i].file_name,(F2Cl) strlen(FGFDT[i].file_name))) {
         fprintf(stderr,"c_fnom error: file %s should exist and does not\n",FGFDT[i].file_name);
         junk=c_fclos(liun);
-        return(-1);
+        return -1;
         }
 /*
  *   FORTRAN files must be opened by a FORTRAN module
@@ -592,12 +593,13 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
      FGFDT[i].attr.wa = 0;   /* will be set by waopen */
   }
 
-  if (FGFDT[i].attr.remote) ier = fnom_rem_connect(i,remote_mach);
+  if (FGFDT[i].attr.remote) ier = fnom_rem_connect(i, remote_mach);
 
   if (ier == 0) FGFDT[i].open_flag = 1;
-  if (ier < 0) junk=c_fclos(liun);
-  return(ier<0?-1:0);
+  if (ier < 0) junk = c_fclos(liun);
+  return(ier < 0 ? -1 : 0);
 }
+
 
 ftnword f77name(fnom)(ftnword *iun,char *nom,char *type,ftnword *flrec,F2Cl l1,F2Cl l2)
 {
@@ -861,7 +863,7 @@ int c_waopen2(int iun)   /* open unit iun for WORD ADDRESSABLE access */
             }
       if (i == MAXFILES) {
         fprintf(stderr,"c_waopen error: file table is full\n");
-        return(-1);
+        return -1;
         }
 /*
  *  file is not associated with fnom, file name is set to Wafileiun
@@ -874,7 +876,7 @@ int c_waopen2(int iun)   /* open unit iun for WORD ADDRESSABLE access */
    else {
       if (FGFDT[i].attr.rnd == 0) {
          fprintf(stderr,"c_waopen error: waopen needs a file with the RND or WA type\n");
-         return(-1);
+         return -1;
       }
       if (FGFDT[i].open_flag) {
          if (FGFDT[i].attr.wa == 1){ /* fnom opens the file but does not set wa flag */
@@ -926,7 +928,7 @@ int c_waclos2(int iun)
 
    if (! FGFDT[i].open_flag) {
       fprintf(stderr,"c_waclos error: unit %d is not open\n",iun);
-      return(-1);
+      return -1;
       }
 
    ier = qqcclos(i);
@@ -967,57 +969,61 @@ void f77name(waclos)(ftnword *fiun)
 *
 */
 
-void c_wawrit(int iun,void *buf,unsigned int adr,int nmots)
-{
-  c_wawrit2(iun,buf,adr,nmots);
+void c_wawrit(int iun, void *buf, unsigned int adr, int nmots) {
+  c_wawrit2(iun, buf, adr, nmots);
 }
-int c_wawrit2(int iun,void *buf,unsigned int adr,int nmots)
-{
+
+
+int c_wawrit2(int iun,void *buf,unsigned int adr,int nmots) {
 #define WA_HOLE 2048
-   int i;
-   word scrap[WA_HOLE];
-   word *bufswap = (word *) buf;
+    int i;
+    word scrap[WA_HOLE];
+    word *bufswap = (word *) buf;
 
-   if ((i=find_file_entry("c_wawrit",iun)) < 0) return(i);
+    if ((i = find_file_entry("c_wawrit", iun)) < 0) return i;
 
-   if (! FGFDT[i].open_flag) {
-      fprintf(stderr,"c_wawrit error: unit %d is not open\n",iun);
-      return(-1);
-      }
-   if ( FGFDT[i].attr.read_only != 0 ) {
-      fprintf(stderr,"c_wawrit error: unit %d ,file= %s is READ ONLY\n",
-                     iun,FGFDT[i].file_name);
-      return(-1);
-      }
-   if ( adr > FGFDT[i].file_size+WA_HOLE ) {
-      fprintf(stderr,"c_wawrit error: attempt to write beyond EOF+%d\n",WA_HOLE);
-      fprintf(stderr,"                unit = %d, adr=%u > file_size=%d\n",
-                     iun,adr,FGFDT[i].file_size);
-      fprintf(stderr,"                filename=%s\n",FGFDT[i].file_name);
-      exit(1);
-      }
-   if ( adr > FGFDT[i].file_size+1 ){
-      qqcwawr(scrap,FGFDT[i].file_size+1,adr-FGFDT[i].file_size,i);
-      }
-   if (*little_endian) swap_buffer_endianness(bufswap,nmots)
-   qqcwawr((word *)buf,adr,nmots,i);
-   if (*little_endian) swap_buffer_endianness(bufswap,nmots)
-   return( nmots>0 ? nmots : 0);
+    if (! FGFDT[i].open_flag) {
+        fprintf(stderr, "c_wawrit error: unit %d is not open\n", iun);
+        return -1;
+    }
+    if ( FGFDT[i].attr.read_only != 0 ) {
+        fprintf(stderr, "c_wawrit error: unit %d , file= %s is READ ONLY\n", iun, FGFDT[i].file_name);
+        return -1;
+    }
+    if ( adr > FGFDT[i].file_size+WA_HOLE ) {
+        fprintf(stderr, "c_wawrit error: attempt to write beyond EOF+%d\n", WA_HOLE);
+        fprintf(stderr, "                unit = %d, adr=%u > file_size=%d\n", iun, adr, FGFDT[i].file_size);
+        fprintf(stderr, "                filename=%s\n", FGFDT[i].file_name);
+        exit(1);
+    }
+    if ( adr > FGFDT[i].file_size + 1 ){
+        qqcwawr(scrap, FGFDT[i].file_size + 1, adr-FGFDT[i].file_size, i);
+    }
+    if (*little_endian) swap_buffer_endianness(bufswap, nmots)
+    qqcwawr((word *)buf, adr, nmots, i);
+    if (*little_endian) swap_buffer_endianness(bufswap, nmots)
+
+    return  nmots > 0 ? nmots : 0;
 }
-void f77name(wawrit)(ftnword *fiun,void *buf,unsigned ftnword *fadr,ftnword *fnmots){
-     f77name(wawrit2)(fiun,buf,fadr,fnmots);
-     }
-ftnword f77name(wawrit2)(ftnword *fiun,void *buf,unsigned ftnword *fadr,ftnword *fnmots)
-{
-   int iun,adr,nmots;
-   iun = *fiun; adr = *fadr; nmots = *fnmots;
+
+
+void f77name(wawrit)(ftnword *fiun, void *buf, unsigned ftnword *fadr, ftnword *fnmots) {
+    f77name(wawrit2)(fiun, buf, fadr, fnmots);
+}
+
+
+ftnword f77name(wawrit2)(ftnword *fiun, void *buf, unsigned ftnword *fadr, ftnword *fnmots) {
+    int iun = *fiun;
+    int adr = *fadr;
+    int nmots = *fnmots;
 #if defined (ALL64)
-   if ( adr > 0 )
-      return(c_wawrit2(iun,buf,(2*adr)-1,nmots*2));
-   else
-      return(c_wawrit2(iun,buf,adr,nmots));
+    if ( adr > 0 ) {
+        return c_wawrit2(iun, buf, (2*adr)-1, nmots*2);
+    } else {
+        return c_wawrit2(iun, buf, adr, nmots);
+    }
 #else
-   return(c_wawrit2(iun,buf,adr,nmots));
+    return c_wawrit2(iun, buf, adr, nmots);
 #endif
 }
 
@@ -1061,7 +1067,7 @@ int c_waread2(int iun,void *buf,unsigned int adr,int nmots)
 
    if (! FGFDT[i].open_flag) {
       fprintf(stderr,"c_waread error: unit %d is not open\n",iun);
-      return(-1);
+      return -1;
       }
 
    if ( adr > FGFDT[i].eff_file_size+2 ) return(-2);
@@ -1112,7 +1118,7 @@ ftnword f77name(waread2)(ftnword *fiun,void *buf,unsigned ftnword *fadr,
 *NOTE: Gives the size of any file that can be passed to fnom.
 *
 */
-INT_32 c_wasize(int iun)
+int32_t c_wasize(int iun)
 {
    int i;
    word n;
@@ -1155,7 +1161,7 @@ ftnword f77name(wasize)(ftnword *fiun)  /* return file size in FORTRAN WORDS */
 *NOTE: It uses c_wasize.
 *
 */
-INT_32 c_numblks(int iun)
+int32_t c_numblks(int iun)
 {
    int i;
    int n;
@@ -1397,11 +1403,11 @@ int c_getfdsc(int iun) {
 
    if (! FGFDT[i].attr.stream) {
       fprintf(stderr,"c_getfdsc error: unit %d does not have the STREAM attribute\n",iun);
-      return(-1);
+      return -1;
       }
    if (! FGFDT[i].open_flag) {
       fprintf(stderr,"c_getfdsc error: unit %d is not open\n",iun);
-      return(-1);
+      return -1;
       }
 
    return(FGFDT[i].fd) ;
@@ -1874,7 +1880,7 @@ static long long filepos(int indf)
   HEADER_CMCARC *cmcarc_file;
   int nblu,lng,found=0,version=0,tail_offset;
   unsigned int nt,nd;
-  INT_64 nt64, nd64, lng64, nblu64, pos64, retour;
+  int64_t nt64, nd64, lng64, nblu64, pos64, retour;
 
 
   lseek(FGFDT[indf].fd,(off_t) 0,L_SET);
@@ -1892,7 +1898,7 @@ static long long filepos(int indf)
         }
       else {
         fprintf(stderr,"%s is not a CMCARC type file\n",FGFDT[indf].file_name);
-        return(-1);
+        return -1;
         }
     }
     cmcarc_file = (HEADER_CMCARC *) &sign[0];
@@ -1912,7 +1918,7 @@ static long long filepos(int indf)
       if (nd != 0) {
         fprintf(stderr,
                 "%s is a CMCARC file but nd=%d\n",FGFDT[indf].file_name,nd);
-        return(-1);
+        return -1;
       }
     lng = (nt *8) - 25;
     if (lseek(FGFDT[indf].fd,(off_t)lng,L_INCR) == (off_t)(-1)) {
@@ -1958,7 +1964,7 @@ static long long filepos(int indf)
       if (nt64 < nd64+6) {
         fprintf(stderr,
                 "%s is a CMCARC file but nt=%d nd=%d\n",FGFDT[indf].file_name,nt64,nd64);
-        return(-1);
+        return -1;
         }
       }
 /*    printf("Debug+ nt64=%Ld nd64=%Ld lng64=%Ld\n",nt64,nd64,lng64); */
@@ -2064,7 +2070,7 @@ while ((wafile[ind].file_desc != -1) && (ind < MAXWAFILES))
 ind++;
 if (ind == MAXWAFILES) {
   fprintf(stderr,"qqcopen error: too many open files\n");
-  return(-1);
+  return -1;
 }
 
 if (FGFDT[indf].subname) {    /* fichier de type cmcarc */
@@ -2076,14 +2082,14 @@ if (FGFDT[indf].subname) {    /* fichier de type cmcarc */
   mode = O_RDONLY;
   if ((fd = open64(FGFDT[indf].file_name,mode | WIN32_O_BINARY)) == -1) {
     fprintf(stderr,"qqcopen error: cannot open file %s\n",FGFDT[indf].file_name);
-    return(-1);
+    return -1;
   }
   wafile[ind].file_desc = fd;
   FGFDT[indf].fd = fd;
   if ((wafile[ind].offset = filepos(indf)) <= 0) {
     fprintf(stderr,"qqcopen error: subfile %s not found in %s\n",
             FGFDT[indf].subname,FGFDT[indf].file_name);
-    return(-1);
+    return -1;
   }
   FGFDT[indf].open_flag = 1;
   if (debug_mode > 4) {
@@ -2128,7 +2134,7 @@ else {  /* not a CMCARC type file */
   if (fd == -1)
     {
       fprintf(stderr, "qqcopen error: %s filename=(%s) !\n",errmsg,FGFDT[indf].file_name);
-      return(-1);
+      return -1;
     }
   wafile[ind].file_desc = fd;
   FGFDT[indf].fd = fd;
@@ -2799,7 +2805,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       indx++;
     if (indx == MAXWAFILES) {
       fprintf(stderr, "fnom_rem_connect error: too many open files\n");
-      return(-1);
+      return -1;
     }
 
     s_ID = &(demande[0]);
@@ -2823,7 +2829,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       fprintf(stderr, "fnom_rem_connect error: wrote only %d bytes to server\n", nc);
       fflush(stderr);
       close(fclient);
-      return(-1);
+      return -1;
       }
 
     demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
@@ -2832,7 +2838,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       fprintf(stderr, "fnom_rem_connect error: read only %d bytes from server\n", nc);
       fflush(stderr);
       close(fclient);
-      return(-1);
+      return -1;
       }
 
     check_swap_records(demande, 5, sizeof(int));
@@ -2841,7 +2847,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       fprintf(stderr,"fnom_rem_connect error: invalid checksum=%X not %X\n",new_checksum,checksum);
       fflush(stderr);
       close(fclient);
-      return(-1);
+      return -1;
       }
       printf("Debug+ fnom_rem_connect wasize=%d\n",*nw);
       fflush(stdout);
@@ -2850,7 +2856,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   }
   else {
     fprintf(stderr,"fnom_rem_connect error: cannot connect to server\n");
-    return(-1);
+    return -1;
   }
 
   wafile[indx].file_desc = fclient;
@@ -2897,13 +2903,13 @@ static void arrayZero(
  check_host_id returns the HOST id as obtained by gethostid
 */
 
-unsigned INT_32 f77name(check_host_id)()
+unsigned int32_t f77name(check_host_id)()
 {
 #if defined NEC || !defined CHECK_RMNLIB_LIC
 return(0);
 #else
 FILE *id_file;
-unsigned INT_32 sysid, key, domain_ok , junk;
+unsigned int32_t sysid, key, domain_ok , junk;
 char ypdomain[200];
 char *ARMNLIB;
 

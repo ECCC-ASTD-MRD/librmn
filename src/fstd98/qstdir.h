@@ -1,5 +1,6 @@
 //! @file qstdir.h XDF constants and data structures
 
+#include <stdint.h>
 #include <rpnmacros.h>
 #include "fnom.h"
 #define WRITE_PAGE(a,b,c)
@@ -17,8 +18,6 @@
 #define MAX_PRIMARY_LNG 32
 //! Maximum length of info keys
 #define MAX_SECONDARY_LNG 16
-//! Unsigned 32 bit word
-typedef unsigned INT_32 word32;
 //! Word to 64 bit word conversion
 #define WDTO64(nwds) (nwds>>1)
 //! 64 bit word to word conversion
@@ -41,8 +40,6 @@ typedef unsigned INT_32 word32;
 #define MAX_PRIMARY_LNG 16
 //! Maximum length of info keys
 #define MAX_SECONDARY_LNG 8
-//! Unsigned 32 bit word
-typedef unsigned INT_32 word32;
 //! Word to 64 bit word conversion
 #define WDTO64(nwds) (nwds)
 //! 64 bit word to word conversion
@@ -505,16 +502,16 @@ typedef struct {
 typedef struct {
     char etiket[13], nomvar[5], typvar[3], gtyp[2], extra;
     word lng, addr;
-    INT_32 aammjj, hhmmss;
-    INT_32 ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
+    int32_t aammjj, hhmmss;
+    int32_t ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_rec_parms;
 
 /*! Collection area for some special cracked record parameters that need to
  * be reassembled */
 typedef struct {
     char etiket[13], nomvar[5], typvar[3], gtyp[2];
-    INT_32 date_stamp, aammjj, hhmmss;
-    INT_32 ig2, date_valid;
+    int32_t date_stamp, aammjj, hhmmss;
+    int32_t ig2, date_valid;
 } stdf_special_parms;
 
 //! Collection area for parameter addresses/values
@@ -522,7 +519,7 @@ typedef struct {
     char *etiket, *nomvar, *typvar, *gtyp, *extra;
     ftnword *date;
     int l_etiket, l_nomvar, l_typvar, l_extra;
-    INT_32 lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
+    int32_t lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_adr_parms;
 
 typedef struct {
@@ -767,7 +764,7 @@ typedef struct {
     //! Pointer to file header
     file_header* header;
     //! Next write address (in word units)
-    INT_32 nxtadr;
+    int32_t nxtadr;
     //! Length in 64 bit units of primary keys (including 64 bit header)
     int primary_len;
     //! Length in 64 bit units of info keys

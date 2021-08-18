@@ -2,17 +2,18 @@
 #define f77name(a) a##_
 //! Name mangling for Fortran functions with underscores in their name
 #define f77_name(a) a##_
+
 #ifndef Big_Endian
 #define Big_Endian
 #endif
-#define PTR_AS_INT long
-#define INT_32 int
-#define INT_64 long
-#define FORTRAN_loc_delta 4
-#define wordint INT_32
-#define ftnword INT_32
+
+#define wordint int32_t
+#define ftnword int32_t
 #define ftnfloat float
 #define wordfloat float
 #define bytesperword 4
-#define D77MULT  4
+
+// Used only in c_fnom defined in c_baseio.c and passed to the qqqf7op function
+#define D77MULT 4
+
 #define F2Cl int

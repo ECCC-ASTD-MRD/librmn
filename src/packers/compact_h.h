@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <math.h>
@@ -351,7 +352,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
       if (rangeTemplate.XD == 0)
         tempInt = 0;
       else
-        tempInt = (INT_64) (( maxFloat - minFloat ) * powerOf2s[bitSizeOfPackedToken] / rangeTemplate.XD);
+        tempInt = (int64_t) (( maxFloat - minFloat ) * powerOf2s[bitSizeOfPackedToken] / rangeTemplate.XD);
 
       if ( ( tempInt == missingToken )  && ( hasMissing ) )
         { 
@@ -640,7 +641,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
                   }
                 else
                   {
-                    tempInt = (INT_64) (( arrayOfFloat[i] - minFloat ) * mulFactor) ;
+                    tempInt = (int64_t) (( arrayOfFloat[i] - minFloat ) * mulFactor) ;
                   };     
 
                 stuff(tempInt, arrayPtr, wordSize, EffectivePackedTokenSize, lastWordShifted, 

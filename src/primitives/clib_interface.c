@@ -129,6 +129,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <sys/stat.h>
 #include <sys/types.h> /* for mkdir & stat */
@@ -711,7 +712,7 @@ F77_INTEGER CLIB_F77NAME(clib_mtime)(F77_CHARACTER *path HIDDENLEN(path) ) {
  *
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
-F77_INTEGER CLIB_F77NAME(clib_stat)(F77_CHARACTER *path, INT_64 *table HIDDENLEN(path) ) {
+F77_INTEGER CLIB_F77NAME(clib_stat)(F77_CHARACTER *path, int64_t *table HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   struct stat buf1;
   struct stat *buf;

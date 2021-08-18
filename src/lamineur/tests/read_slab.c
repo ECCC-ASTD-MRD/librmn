@@ -17,13 +17,14 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-#include<stdio.h>
-#include<fcntl.h>
-#include<stdlib.h>
-#include<string.h>
-#include<ctype.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <ctype.h>
 #include <rpnmacros.h>
-#include "slab.h"
+#include <slab.h>
 
 /*Author: Karim Tegguiche
  *
@@ -65,7 +66,7 @@ struct block3 { /*  SLB2 header */
    }block3_dat;
 
 static Id_Block_file  block1;  /*  SLB0 header */
-static unsigned INT_32  *ptr_IEEE_IBM=(unsigned INT_32  *)&block1.val15;
+static uint32_t  *ptr_IEEE_IBM=(uint32_t  *)&block1.val15;
 
 static Slab_Descrt_file slab_dsc;
 static Data_Block_file data_block;
@@ -84,7 +85,7 @@ static int entier_quelconque=1;
 static char *little_endian=(char *)&entier_quelconque; 
 
 /* Prototypes des fonctions */
-void transfert_IBM_IEEE( unsigned INT_32 *source, int nelements); 
+void transfert_IBM_IEEE( uint32_t *source, int nelements); 
 
 
 
@@ -98,14 +99,14 @@ void transfert_IBM_IEEE( unsigned INT_32 *source, int nelements);
  *****************************************************************************/
 static int read_buf(int fd, void *Ibuffer, int nbytes)
 {
-  unsigned INT_32 *buffer=(unsigned INT_32 *)Ibuffer;
+  uint32_t *buffer=(uint32_t *)Ibuffer;
   int n;
   int nread;
   int really_read=0;
   char *cbuf=(char *)buffer;
-  int nitems=nbytes/sizeof(INT_32);
+  int nitems=nbytes/sizeof(int32_t);
  
-  n=nitems*sizeof(INT_32);
+  n=nitems*sizeof(int32_t);
   while(n>0){
     nread=read(fd,cbuf,n);
     if(nread<=0) break;
@@ -116,23 +117,23 @@ static int read_buf(int fd, void *Ibuffer, int nbytes)
 
   if(really_read == 0) return(-1);
 
-  nitems = really_read/sizeof(INT_32);
+  nitems = really_read/sizeof(int32_t);
   n=nitems;
   if(*little_endian){  /* slab files are BIG ENDIAN */
-    unsigned INT_32 *tmpbuf=buffer;
+    uint32_t *tmpbuf=buffer;
     while(n--){
-     unsigned INT_32 temp=*tmpbuf;
+     uint32_t temp=*tmpbuf;
      *tmpbuf=SWAP32(temp);
      tmpbuf++;
     }
   }
-  return(nitems*sizeof(INT_32));
+  return(nitems*sizeof(int32_t));
 }
 
 static void swap_words(void *what, int nwords){
-  unsigned INT_32 *What=(unsigned INT_32  *)what;
+  uint32_t *What=(uint32_t  *)what;
   while(nwords--){
-    unsigned INT_32 temp=*What;
+    uint32_t temp=*What;
     *What=SWAP32(temp);
     What++;
   }
@@ -143,8 +144,8 @@ static void swap_words(void *what, int nwords){
   allocate a block of memory, print error
   message and abort if unsuccessful
 **************************************************/
-INT_32 *allocate_block(int size, char *errmsg){
-  INT_32 *temp=(INT_32 *)malloc(size);
+int32_t *allocate_block(int size, char *errmsg){
+  int32_t *temp=(int32_t *)malloc(size);
 #ifdef DEBUG
   printf("Allocating %s, %d bytes\n",errmsg,size);
 #endif
@@ -158,7 +159,7 @@ INT_32 *allocate_block(int size, char *errmsg){
 void convert_to_IEEE(void *source, int nelements){
   if (*ptr_IEEE_IBM != 0x3fc00000) { 
     if (*ptr_IEEE_IBM == 0x41180000) {
-       transfert_IBM_IEEE((unsigned INT_32 *) source, nelements);
+       transfert_IBM_IEEE((uint32_t *) source, nelements);
     } else{
        fprintf(stderr,"Floating points in data field ");
        fprintf(stderr,"are not IBM/IEEE\n");
@@ -213,7 +214,7 @@ int delamineur2(int fd, char *std_file_name, char *slab_file_name){
  
  int fd1;
 
- unsigned INT_32 *p_xpos, *p_ypos, *p_xtra;
+ uint32_t *p_xpos, *p_ypos, *p_xtra;
 
  for(i=0 ; i<MAX_SLAB_TYPES ; i++) block2_dsc[i].slab_id = -1;
 
@@ -509,11 +510,11 @@ int delamineur2(int fd, char *std_file_name, char *slab_file_name){
 
 
 
-void transfert_IBM_IEEE (unsigned INT_32 *tab_data_IBM, int nb_data)
+void transfert_IBM_IEEE (uint32_t *tab_data_IBM, int nb_data)
 {
    int signbit;
    int expos;
-   INT_32 Mantis;
+   int32_t Mantis;
    int i;
    
    for(i=0; i<nb_data; i++) {

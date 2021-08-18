@@ -1,6 +1,8 @@
 #if !defined (_RPN_MACROS_GLOBAL_)
 #define _RPN_MACROS_GLOBAL_ _rpn_macros_global_
 
+#include <stdint.h>
+
 #define F77_INTEGER   ftnword
 #define F77_REAL      ftnfloat
 #define F77_INTEGER8  long long
@@ -50,33 +52,33 @@
 #    define NEC32 nec32
 #endif
 
-#define word unsigned INT_32
+#define word uint32_t
 
 #if defined(Little_Endian)
     typedef struct {
-        unsigned INT_32 mantis3:29, mantis2:3, mantis1:20, expo:11, sign:1;
+        uint32_t mantis3:29, mantis2:3, mantis1:20, expo:11, sign:1;
     } IEEE_FLOAT_DOUBLE;
     typedef struct {
-        unsigned INT_32 mantis:23, expo:8 , sign:1;
+        uint32_t mantis:23, expo:8 , sign:1;
     } IEEE_FLOAT;
 #else
     typedef struct {
-        unsigned INT_32 sign:1, expo:11 , mantis1:20,mantis2:3,mantis3:29;
+        uint32_t sign:1, expo:11 , mantis1:20,mantis2:3,mantis3:29;
     } IEEE_FLOAT_DOUBLE;
     typedef struct {
-        unsigned INT_32 sign:1, expo:8 , mantis:23;
+        uint32_t sign:1, expo:8 , mantis:23;
     } IEEE_FLOAT;
 #endif
 typedef struct {
-    unsigned INT_32 sign:1, expo:7 , mantis:24;
+    uint32_t sign:1, expo:7 , mantis:24;
 } IBM_FLOAT;
 typedef struct {
-    unsigned INT_32 sign:1, expo:7 , mantis1:24 , mantis2:32;
+    uint32_t sign:1, expo:7 , mantis1:24 , mantis2:32;
 } IBM_FLOAT_DOUBLE;
 typedef union {
     float X;
     double XD;
-    unsigned INT_32 U;
+    uint32_t U;
     IEEE_FLOAT_DOUBLE MD;
     IEEE_FLOAT M;
     IBM_FLOAT I;
@@ -199,11 +201,11 @@ typedef union {
                   lastSlot++;                                                              \
                 }; /* if */                                                                \
   }
-#define swap_word_endianness(mot) { register unsigned INT_32 tmp =(unsigned INT_32)mot; \
+#define swap_word_endianness(mot) { register uint32_t tmp =(uint32_t)mot; \
    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
 #define swap_buffer_endianness(buff,nwds) {\
-    unsigned INT_32 *buf=(unsigned INT_32 *)buff ;\
-   register INT_32 nwords=nwds ;\
+    uint32_t *buf=(uint32_t *)buff ;\
+   register int32_t nwords=nwds ;\
    while(nwords--) { swap_word_endianness(*buf);buf++; };\
    }
 

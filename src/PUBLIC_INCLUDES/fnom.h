@@ -1,3 +1,6 @@
+#include <stdint.h>
+#include <rpnmacros.h>
+
 #define MAXFILES 1024
 typedef struct {
     unsigned int
@@ -26,24 +29,26 @@ typedef struct {
     //! File type and options
     char * file_type;
     //! fnom unit number
-    INT_32 iun;
+    int32_t iun;
     //! C file descriptor
-    INT_32 fd;
+    int32_t fd;
     //! File size in words
-    INT_32 file_size;
+    int32_t file_size;
     //! effective file size in words
-    INT_32 eff_file_size;
+    int32_t eff_file_size;
     //! Record length when appliable
-    INT_32 lrec;
+    int32_t lrec;
     //! Open/close flag
-    INT_32 open_flag;
+    int32_t open_flag;
     attributs attr;
 } general_file_info;
+
 #if defined(FNOM_OWNER)
 general_file_info Fnom_General_File_Desc_Table[MAXFILES];
 #else
 extern general_file_info Fnom_General_File_Desc_Table[MAXFILES];
 #endif
+
 #define FGFDT Fnom_General_File_Desc_Table
 
 int c_fretour(int iun);
@@ -70,9 +75,9 @@ void c_waread(int iun, void *buf, unsigned int adr, int nmots);
 int c_waread2(int iun, void *buf, unsigned int adr, int nmots);
 void f77name(waread)(ftnword *fiun, void *buf, unsigned ftnword *fadr, ftnword *fnmots);
 ftnword f77name(waread2)(ftnword *fiun, void *buf, unsigned ftnword *fadr, ftnword *fnmots);
-INT_32 c_wasize(int iun);
+int32_t c_wasize(int iun);
 ftnword f77name(wasize)(ftnword *fiun);
-INT_32 c_numblks(int iun);
+int32_t c_numblks(int iun);
 ftnword f77name(numblks)(ftnword *fiun);
 ftnword f77name(existe)(char *nom, F2Cl lng);
 void c_openda(int iun);
@@ -106,4 +111,4 @@ ftnword f77name(sqputs)(ftnword *iun, char  *bufptr, ftnword *nchar, F2Cl lbuf);
 void f77name(d_wafdt)();
 unsigned ftnword f77name(hrjust) (unsigned ftnword *moth, ftnword *ncar);
 unsigned ftnword f77name(hljust) (unsigned ftnword *moth, ftnword *ncar);
-unsigned INT_32 f77name(check_host_id)();
+unsigned int32_t f77name(check_host_id)();

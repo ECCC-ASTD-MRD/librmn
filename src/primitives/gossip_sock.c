@@ -20,11 +20,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
-#include <strings.h> 
+#include <strings.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/time.h> 
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -50,8 +51,7 @@ static int endian_flag = 1;
 static char *little_endian = (char *)&endian_flag;
 static int must_init_signal = 1;
 
-/* size of socket buffers in KiloBytes */
-/*JMB #define SOCK_BUF_SIZE 256 */
+//! size of socket buffers in KiloBytes
 #define SOCK_BUF_SIZE 1024
 
 #define BPATH         1024
@@ -120,9 +120,9 @@ char *get_server_host( char *channel )
   struct hostent *host_str;
   struct sockaddr_in addr;
   char *host_and_port, *host_IP, *delimiter = ":";
-  
+
   host_and_port = get_host_and_port( channel );
-  
+
   /* Obtain pointer to host name structure, using */
   /* inet_addr() function call to pass IP address */
   /* in dotted decimal notation.                  */
@@ -130,16 +130,16 @@ char *get_server_host( char *channel )
   if( ( host_IP = strtok( host_and_port, delimiter ) ) != NULL )
     {
       addr.sin_addr.s_addr = inet_addr( host_IP );
-      host_str = gethostbyaddr( (char *)&addr.sin_addr.s_addr, sizeof( addr.sin_addr.s_addr ), AF_INET ); 
-      
+      host_str = gethostbyaddr( (char *)&addr.sin_addr.s_addr, sizeof( addr.sin_addr.s_addr ), AF_INET );
+
       /* If a host name structure is obtained, */
       /* print the host name */
-      
+
       if ( host_str )
 	{
 	  return host_str->h_name;
 	}
-      
+
       else
 	{
 	  fprintf(stderr,"Sorry, unable to determine host name\n");
@@ -161,11 +161,11 @@ char *get_server_name( char *host_ip )
   struct hostent *host_str;
   struct sockaddr_in addr;
   char *host_IP, *delimiter = ":";
-  
+
   /* Obtain pointer to host name structure, using */
   /* inet_addr() function call to pass IP address */
   /* in dotted decimal notation.                  */
-  
+
   if((host_IP = strtok(host_ip, delimiter)) != NULL)
     {
       if(strcmp(host_IP, "host_IP") == 0)
@@ -173,20 +173,20 @@ char *get_server_name( char *host_ip )
 	  fprintf(stderr,"Sorry, unable to determine \"%s\" host name\n", host_ip);
 	  return NULL;
 	}
-      
+
       addr.sin_addr.s_addr = inet_addr(host_IP);
-      host_str = gethostbyaddr((char *)&addr.sin_addr.s_addr, sizeof(addr.sin_addr.s_addr), AF_INET); 
-      
+      host_str = gethostbyaddr((char *)&addr.sin_addr.s_addr, sizeof(addr.sin_addr.s_addr), AF_INET);
+
       /* If a host name structure is obtained, */
       /* print the host name */
-      
+
       if ( host_str != NULL )
 	{
 	  if( strcmp( host_str->h_name, "c4f09p1s" ) == 0 )
 	    return "maia";
 	  return host_str->h_name;
 	}
-      
+
       else
 	{
 	  fprintf(stderr,"Sorry, unable to determine \"%s\" host name\n", host_ip);
@@ -212,10 +212,10 @@ int GetHostName(char *name, size_t len)  /*   %ENTRY%   */
 #endif
 
   junk = gethostname(name, len);
-  
+
   if( name[0] == 'c' && name[2] == 'f' && name[5] == 'p' && name[7] == 'm' && name[8] == '\0' )
     name[7] = 's';  /* name = cxfyypzm, return cxfyypzs instead */
-  
+
   return(junk);
 }
 
@@ -227,7 +227,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
      char buf[1024];
      int nc;
 
-     if(strncmp(channel_file, "Anonym", 6) == 0) 
+     if(strncmp(channel_file, "Anonym", 6) == 0)
        return(0) ; /* anonymous channel created */
 
      fprintf(stderr, "Channel Description file: %s\n", channel_file);
@@ -235,8 +235,8 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
      /* $HOME/.broker/channel_name is the file path and name for channel descriptor */
      snprintf(buf, 1023,"%s/.gossip/%s", getenv("HOME"), channel_file);
 
-     if((fserver = open(buf, O_WRONLY + O_CREAT, 0700)) == -1) 
-       { 
+     if((fserver = open(buf, O_WRONLY + O_CREAT, 0700)) == -1)
+       {
          fprintf(stderr, "Can't open or create Channel Description file\n");
          return(-1);
        };
@@ -255,7 +255,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
       return(0);
  }
 
- /* read hostname:port_number from channel description file 
+ /* read hostname:port_number from channel description file
     return pointer to character string upon success
     return NULL pointer in case of failure
  */
@@ -276,7 +276,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    fprintf(stderr, "gossip_sock::get_host_and_port(), buf contient = %s\n", buf);
 #endif
 
-   if((fd = open(buf, O_RDONLY)) == -1) 
+   if((fd = open(buf, O_RDONLY)) == -1)
      {
        fprintf(stderr, "Can't open Channel Description file\n");
        return(NULL);
@@ -295,7 +295,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    if(index(chan_buf, '\n'))
      {
        *index(chan_buf,'\n') = '\0' ;
-     } 
+     }
    else
      {
        fprintf(stderr, "Invalid Channel Description file\n");
@@ -321,7 +321,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    if(chmod(buf, 0711))
      {
        fprintf(stderr, "Improper permissions for broker directory %s\n", buf);
-       return(NULL); 
+       return(NULL);
      }
 
    snprintf(buf, 1023, "%s/.gossip/.Bauth", getenv("HOME"));
@@ -331,10 +331,10 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
        fprintf(stderr, "Improper permissions for Authorization file\n");
        return(NULL);
      }
-   if((fd = open(buf, O_RDONLY)) == -1) 
+   if((fd = open(buf, O_RDONLY)) == -1)
      {
        fprintf(stderr, "Can't open Authorization file\n");
-       return(NULL); 
+       return(NULL);
      };
 
    auth_buf = malloc(1024);
@@ -355,7 +355,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
      {
        *index(auth_buf, '\n') = '\0' ;
      }
-   else 
+   else
      {
        fprintf(stderr, "Invalid Authorization file\n");
        if( auth_buf )
@@ -398,7 +398,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
  {
    int fclient =  accept(fserver, (struct  sockaddr *)&server, &sizeserver);
 
-   if(fclient < 0) 
+   if(fclient < 0)
      {
        fprintf(stderr, "Accept failed!\n");
        return(-1);
@@ -476,8 +476,8 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    b0 = setsockopt(s, SOL_SOCKET, SO_SNDBUF,(char *)&optval, sizeof(optval));
 
    if(b0 != 0)
-     { 
-       fprintf(stderr, "Error setting SO_SNDBUF size \n"); 
+     {
+       fprintf(stderr, "Error setting SO_SNDBUF size \n");
      }
 
    optval = 0;
@@ -500,7 +500,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    b0 = setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char *)&optval, sizeof(optval));
 
    if(b0 != 0)
-     { 
+     {
        fprintf(stderr, "Error setting SO_RCVBUF size \n");
      }
 
@@ -527,7 +527,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    /* inet_addr() function call to pass IP address */
    /* in dotted decimal notation.                  */
 
-   if ( (int)( addr.sin_addr.s_addr = inet_addr( hostname ) ) == -1) 
+   if ( (int)( addr.sin_addr.s_addr = inet_addr( hostname ) ) == -1)
      {
        /* fprintf(stderr,"IP address must be of the form a.b.c.d\n"); */
        fprintf(stderr,"Server host: %s\n", hostname);
@@ -620,10 +620,10 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 	    }
 
 	  ipaddr = get_ip_address(buf);
-	} 
-      else 
+	}
+      else
 	{  /* use specified host, find address */
-	  portno = strstr(target, ":"); 
+	  portno = strstr(target, ":");
 	  *portno = '\0';
 	  portno++;
 	  ipaddr = get_ip_address(target);
@@ -658,115 +658,115 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
  }
 
  /*******************************************************/
- int connect_with_timeout(char *ipaddress, int portno, int timeout) 
- { 
-   int res; 
-   struct sockaddr_in addr; 
-   long arg; 
-   fd_set myset; 
-   struct timeval tv; 
-   int valopt; 
-   socklen_t lon; 
+ int connect_with_timeout(char *ipaddress, int portno, int timeout)
+ {
+   int res;
+   struct sockaddr_in addr;
+   long arg;
+   fd_set myset;
+   struct timeval tv;
+   int valopt;
+   socklen_t lon;
    int soc;
 
    /* Create socket  */
-   soc = socket(AF_INET, SOCK_STREAM, 0); 
-   if (soc < 0) 
-     { 
-       fprintf(stderr, "Error creating socket (%d %s)\n", errno, strerror(errno)); 
-       return(-1); 
-     } 
+   soc = socket(AF_INET, SOCK_STREAM, 0);
+   if (soc < 0)
+     {
+       fprintf(stderr, "Error creating socket (%d %s)\n", errno, strerror(errno));
+       return(-1);
+     }
 
-   addr.sin_family = AF_INET; 
-   addr.sin_port = htons(portno); 
-   addr.sin_addr.s_addr = inet_addr(ipaddress); 
+   addr.sin_family = AF_INET;
+   addr.sin_port = htons(portno);
+   addr.sin_addr.s_addr = inet_addr(ipaddress);
 
    /* Set non-blocking  */
-   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
+   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
    arg |= O_NONBLOCK;
 
-   if( fcntl(soc, F_SETFL, arg) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
+   if( fcntl(soc, F_SETFL, arg) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
    /* Trying to connect with timeout  */
    res = connect(soc, (struct sockaddr *)&addr, sizeof(addr));
 
-   if (res < 0) 
-     { 
-       if (errno == EINPROGRESS) 
-	 { 
-	   fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
-	   do { 
-	     tv.tv_sec = timeout; 
-	     tv.tv_usec = 0; 
-	     FD_ZERO(&myset); 
+   if (res < 0)
+     {
+       if (errno == EINPROGRESS)
+	 {
+	   fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+	   do {
+	     tv.tv_sec = timeout;
+	     tv.tv_usec = 0;
+	     FD_ZERO(&myset);
 	     FD_SET(soc, &myset);
 	     /* monitor fd socket for write operation during timeout */
-	     res = select(soc+1, NULL, &myset, NULL, &tv); 
+	     res = select(soc+1, NULL, &myset, NULL, &tv);
 
-	     if (res < 0 && errno != EINTR) 
-	       { 
-		 fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-		 close(soc); 
-		 return(-1); 
-	       } 
-	     else if (res > 0) 
-	       { 
+	     if (res < 0 && errno != EINTR)
+	       {
+		 fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
+		 close(soc);
+		 return(-1);
+	       }
+	     else if (res > 0)
+	       {
 		 /* Socket selected for write  */
-		 lon = sizeof(int); 
-		 if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) 
-		   { 
-		     fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
-		     close(soc); 
-		     return(-1); 
-		   } 
+		 lon = sizeof(int);
+		 if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0)
+		   {
+		     fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
+		     close(soc);
+		     return(-1);
+		   }
 		 /* Check the value returned...  */
-		 if (valopt) 
-		   { 
+		 if (valopt)
+		   {
 		   fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
-		   close(soc); 
-		   return(-1); 
-		 } 
-		 break; 
-	       } 
-	     else 
-	       { 
-		 fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
-		 close(soc); 
-		 return(-1); 
-	       } 
-	   } while (1); 
-	 } 
+		   close(soc);
+		   return(-1);
+		 }
+		 break;
+	       }
+	     else
+	       {
+		 fprintf(stderr, "Timeout in select() - Cancelling!\n");
+		 close(soc);
+		 return(-1);
+	       }
+	   } while (1);
+	 }
        else  /* not EINPROGRESS */
-	 { 
-	   fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-	   close(soc); 
-	   return(-1); 
-	 } 
-     } 
+	 {
+	   fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
+	   close(soc);
+	   return(-1);
+	 }
+     }
    /* Set to blocking mode again...  */
-   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
-   arg &= (~O_NONBLOCK); 
+   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
+   arg &= (~O_NONBLOCK);
 
-   if( fcntl(soc, F_SETFL, arg) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
+   if( fcntl(soc, F_SETFL, arg) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
    /* I hope that is all  */
    if(soc > 0)
      {
@@ -777,45 +777,45 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
  }
 
  /*******************************************************/
- int connect_with_timeout_localport(char *ipaddress, int portno, int timeout) 
- { 
-   int res; 
-   struct sockaddr_in addr; 
-   long arg; 
-   fd_set myset; 
-   struct timeval tv; 
-   int valopt; 
-   socklen_t lon; 
+ int connect_with_timeout_localport(char *ipaddress, int portno, int timeout)
+ {
+   int res;
+   struct sockaddr_in addr;
+   long arg;
+   fd_set myset;
+   struct timeval tv;
+   int valopt;
+   socklen_t lon;
    int soc;
 
    /* Create socket  */
-   soc = socket(AF_INET, SOCK_STREAM, 0); 
-   if (soc < 0) 
-     { 
-       fprintf(stderr, "Error creating socket (%d %s)\n", errno, strerror(errno)); 
-       return(-1); 
-     } 
+   soc = socket(AF_INET, SOCK_STREAM, 0);
+   if (soc < 0)
+     {
+       fprintf(stderr, "Error creating socket (%d %s)\n", errno, strerror(errno));
+       return(-1);
+     }
 
-   addr.sin_family = AF_INET; 
-   addr.sin_port = htons(portno); 
+   addr.sin_family = AF_INET;
+   addr.sin_port = htons(portno);
 //   addr.sin_addr.s_addr = inet_addr(ipaddress); //
    addr.sin_addr.s_addr = INADDR_ANY;
 
    /* Set non-blocking  */
-   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
+   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
    arg |= O_NONBLOCK;
 
-   if( fcntl(soc, F_SETFL, arg) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
+   if( fcntl(soc, F_SETFL, arg) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
    /* Trying to connect with timeout  */
    res = connect(soc, (struct sockaddr *)&addr, sizeof(addr));
 
@@ -826,74 +826,74 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 	//        printf("%s\n", asctime(tm));
 	fprintf(stderr, "connect_with_timeout_localport: PINGER connect port=<%d> ,res=<%d>  ! Current Date and Time: %s \n", portno,res,asctime(tm));
 
-   if (res < 0) 
-     { 
-       if (errno == EINPROGRESS) 
-	 { 
-	   fprintf(stderr, "EINPROGRESS in connect() - selecting\n"); 
-	   do { 
-	     tv.tv_sec = timeout; 
-	     tv.tv_usec = 0; 
-	     FD_ZERO(&myset); 
+   if (res < 0)
+     {
+       if (errno == EINPROGRESS)
+	 {
+	   fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+	   do {
+	     tv.tv_sec = timeout;
+	     tv.tv_usec = 0;
+	     FD_ZERO(&myset);
 	     FD_SET(soc, &myset);
 	     /* monitor fd socket for write operation during timeout */
-	     res = select(soc+1, NULL, &myset, NULL, &tv); 
+	     res = select(soc+1, NULL, &myset, NULL, &tv);
 
-	     if (res < 0 && errno != EINTR) 
-	       { 
-		 fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-		 close(soc); 
-		 return(-1); 
-	       } 
-	     else if (res > 0) 
-	       { 
+	     if (res < 0 && errno != EINTR)
+	       {
+		 fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
+		 close(soc);
+		 return(-1);
+	       }
+	     else if (res > 0)
+	       {
 		 /* Socket selected for write  */
-		 lon = sizeof(int); 
-		 if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) 
-		   { 
-		     fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno)); 
-		     close(soc); 
-		     return(-1); 
-		   } 
+		 lon = sizeof(int);
+		 if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0)
+		   {
+		     fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
+		     close(soc);
+		     return(-1);
+		   }
 		 /* Check the value returned...  */
-		 if (valopt) 
-		   { 
+		 if (valopt)
+		   {
 		   fprintf(stderr, "Error in delayed connection() %d - %s\n", valopt, strerror(valopt));
-		   close(soc); 
-		   return(-1); 
-		 } 
-		 break; 
-	       } 
-	     else 
-	       { 
-		 fprintf(stderr, "Timeout in select() - Cancelling!\n"); 
-		 close(soc); 
-		 return(-1); 
-	       } 
-	   } while (1); 
-	 } 
+		   close(soc);
+		   return(-1);
+		 }
+		 break;
+	       }
+	     else
+	       {
+		 fprintf(stderr, "Timeout in select() - Cancelling!\n");
+		 close(soc);
+		 return(-1);
+	       }
+	   } while (1);
+	 }
        else  /* not EINPROGRESS */
-	 { 
-	   fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno)); 
-	   close(soc); 
-	   return(-1); 
-	 } 
-     } 
+	 {
+	   fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
+	   close(soc);
+	   return(-1);
+	 }
+     }
    /* Set to blocking mode again...  */
-   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
-   arg &= (~O_NONBLOCK); 
+   if( (arg = fcntl(soc, F_GETFL, NULL)) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
+   arg &= (~O_NONBLOCK);
 
-   if( fcntl(soc, F_SETFL, arg) < 0) 
-     { 
-       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno)); 
-       close(soc); 
-       return(-1); 
-     } 
+   if( fcntl(soc, F_SETFL, arg) < 0)
+     {
+       fprintf(stderr, "Error fcntl(..., F_SETFL) (%s)\n", strerror(errno));
+       close(soc);
+       return(-1);
+     }
    /* I hope that is all  */
    if(soc > 0)
      {
@@ -912,40 +912,40 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 
    path[0] = '\0';
    temp = getenv("GOSSIP_ALIASES");
-   if(temp) 
+   if(temp)
      {
      snprintf(fpath, 1023, "%s/%s",temp,filename);
      nchars = readlink(fpath, path, maxlen-1);
-     if(nchars>0) 
-       { 
-	 path[nchars] = '\0'; 
-	 return(0); 
+     if(nchars>0)
+       {
+	 path[nchars] = '\0';
+	 return(0);
        }
      }
 
    temp = getenv("HOME");
 
-   if(temp) 
+   if(temp)
      {
        snprintf(fpath, 1023, "%s/GossipAliases/%s",temp,filename);
        nchars = readlink(fpath, path, maxlen-1);
-       if(nchars>0) 
-	 { 
-	   path[nchars] = '\0'; 
-	   return(0); 
+       if(nchars>0)
+	 {
+	   path[nchars] = '\0';
+	   return(0);
 	 }
      }
 
    temp = getenv("ARMNLIB");
-   if(temp) 
+   if(temp)
      {
        snprintf(fpath, 1023, "%s/data/GossipAliases/%s", temp, filename);
        nchars = readlink(fpath, path, maxlen-1);
 
-       if(nchars>0) 
-	 { 
-	   path[nchars] = '\0'; 
-	   return(0); 
+       if(nchars>0)
+	 {
+	   path[nchars] = '\0';
+	   return(0);
 	 }
      }
    return(-1) ; /* everything failed */
@@ -1037,8 +1037,8 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 	err=write_ft_nonblocking_socket(fclient,"ACK\0\0",5);
       }
 
-   if (err < 0) 
-     { 
+   if (err < 0)
+     {
        fprintf(stderr, "gossip_sock:: send_ack_nack(): write errno= %d \n",errno);
        fflush(stderr);
       }
@@ -1051,7 +1051,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
     char reply[5];
     int ier;
 
-#ifdef DEBUG 
+#ifdef DEBUG
    /****************end timing******************/
    unsigned long long tt1,tt2,clk1,clk2;
    tt1 = time_base();
@@ -1065,26 +1065,26 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    /****************end timing******************/
    tt2 = time_base() - tt1;
    fprintf(stderr,"\n get_ack_nack: read_ft_nonblocking_socket error, tid= %lu, errno= %d, Wall Clock = %llu bigticks \n",pthread_self(),errno, tt2);
-   fflush(stderr); 
+   fflush(stderr);
    /****************end timing******************/
 #endif
        return(-1);
-     }     
-         
+     }
+
     if (strncmp(reply, "ACK", 3) == 0)
-      { 
+      {
 #ifdef INFOLEVEL1
         fprintf(stderr, "\n get_ack_nack: GOOD received ACK = %s\n",reply);
-        fflush(stderr); 
+        fflush(stderr);
 #endif
 	return(0);
       }
     else
       {
         if (strncmp(reply, "NACK", 4) == 0)
-         { 
+         {
            fprintf(stderr, "\n get_ack_nack: Error: received NACK = %s\n",reply);
-           fflush(stderr); 
+           fflush(stderr);
 	   return(-1) ; /* NACK */
          }
 
@@ -1092,7 +1092,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 	///        reply[5] = '\0';
         reply[4] = '\0';
 	fprintf(stderr, "\n get_ack_nack: read_ft Error: = %s\n",reply);
-        fflush(stderr); 
+        fflush(stderr);
 	return(-1) ; /* NACK */
       }
  }
@@ -1103,62 +1103,62 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    int ier1,ier2;
    /* send command to server */
    //JMB   ier=write(fserver, buf, strlen(buf));
-   
+
 #ifdef INFOLEVEL1
-  fprintf(stderr, "\n gossip_sock::send_command_to_server: COMM1-W send_command_to_server on channel: %d",fserver); 
-  fprintf(stderr, "\n gossip_sock::send_command_to_server, command sent: \"%s\"\n", buf); 
+  fprintf(stderr, "\n gossip_sock::send_command_to_server: COMM1-W send_command_to_server on channel: %d",fserver);
+  fprintf(stderr, "\n gossip_sock::send_command_to_server, command sent: \"%s\"\n", buf);
   fflush(stderr);
 #endif
 
    ier1=write_ft_nonblocking_socket(fserver, buf, strlen(buf));
 
-    if (ier1 < 0) 
-     { 
+    if (ier1 < 0)
+     {
        fprintf(stderr, "\n gossip_sock::(): send_command_to_server returns ier1= %d\n",ier1);
        fprintf(stderr, "\n gossip_sock::(): send_command_to_server write(), ier1= %d, errno= (%d,%s) \n",ier1, errno,strerror(errno));
        fflush(stderr);
      }
 
 #ifdef INFOLEVEL1
-   fprintf(stderr, "\n gossip_sock::send_command_to_server: COMM2-R get_ack_nack() on channel: %d",fserver); 
+   fprintf(stderr, "\n gossip_sock::send_command_to_server: COMM2-R get_ack_nack() on channel: %d",fserver);
    fflush(stderr);
 #endif
 
     ier2=get_ack_nack(fserver);
 
-    if(ier2 < 0) 
-      { 
+    if(ier2 < 0)
+      {
         fprintf(stderr,"\n gossip_sock::send_command_to_server:  get_ack_nack returns ier2= %d\n",ier2);
-	fprintf(stderr, "\n Command rejected !!! < %s >, using channel: %d\n", buf, fserver); 
+	fprintf(stderr, "\n Command rejected !!! < %s >, using channel: %d\n", buf, fserver);
         fflush(stderr);
 	return(-1);
       }
-    else 
-      { 
+    else
+      {
 	return(0);
       }
 
  }
 
  /* get a 32 bit integer through a socket in network */
- /* (BIG-ENDIAN) order can also be used for a float as   */ 
+ /* (BIG-ENDIAN) order can also be used for a float as   */
  /* long as sizeof(float) is equal to sizeof(int) and    */
  /* both are equal to 4                                  */
- INT_32 get_int32_from_channel(int channel)  /*   %ENTRY%   */
+ int32_t get_int32_from_channel(int channel)  /*   %ENTRY%   */
  {
-   INT_32 to_receive;
-   
+   int32_t to_receive;
+
    int ier;
    char *tagptr;
 
-#ifdef DEBUG 
+#ifdef DEBUG
    /****************end timing******************/
    unsigned long long tt1,tt2,clk1,clk2;
    fprintf(stderr,"\n get_int_from_channel: channel= %d \n",channel);
    tt1 = time_base();
    /****************end timing******************/
 #endif
-   
+
    //JMB   if (ier=read_ft_nonblocking_socket(channel, &to_receive, sizeof(to_receive)) < 0) ;
    // TEST: pass to_receive by value
 
@@ -1167,7 +1167,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 
     ier=read_ft_nonblocking_socket(channel,tagptr, sizeof(to_receive)) ;
 
-    if (ier < 0) 
+    if (ier < 0)
      {
 #ifdef DEBUG
    fprintf(stderr,"\n get_int_from_channel: read_ft_nonblocking_socket returns ier=%d \n",ier);
@@ -1186,7 +1186,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
    fprintf(stderr,"\n get_int_from_channel: to_receive=%d \n",to_receive);
 #endif
 
-   if(*little_endian) 
+   if(*little_endian)
      {
        swap_4(to_receive);
      }
@@ -1196,12 +1196,12 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
  }
 
  /* put a 32 bit integer through a socket in network */
- /* (BIG-ENDIAN) order can also be used for a float as   */ 
+ /* (BIG-ENDIAN) order can also be used for a float as   */
  /* long as sizeof(float) is equal to sizeof(int) and    */
  /* both are equal to 4                                  */
- void put_int32_to_channel(int channel, INT_32 to_send)  /*   %ENTRY%   */
+ void put_int32_to_channel(int channel, int32_t to_send)  /*   %ENTRY%   */
  {
-   INT_32 to_be_sent = to_send;
+   int32_t to_be_sent = to_send;
    //JMB
    int ier;
    char * char_to_send;
@@ -1217,9 +1217,9 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
     //   ier=write_ft_nonblocking_socket(channel, &to_be_sent, sizeof(to_be_sent));
    ier=write_ft_nonblocking_socket(channel, char_to_send, sizeof(to_be_sent));
 
-   if (ier < 0) 
+   if (ier < 0)
      {
-      fprintf(stderr, "\n put_int32_to_channel: ERROR from write_ft: ier=%d",ier); 
+      fprintf(stderr, "\n put_int32_to_channel: ERROR from write_ft: ier=%d",ier);
       fflush(stderr);
      }
 
@@ -1242,7 +1242,7 @@ int set_host_and_port(char *channel_file, char *host_and_port)  /*   %ENTRY%   *
 #ifdef DEBUG
    fprintf(stderr, "\n gossip_sock::send_request(), ERROR on channel %d for request= %s \n",channel,request );
 #endif
-   return(-1);     
+   return(-1);
 }
 else return (0);
 
@@ -1257,14 +1257,14 @@ else return (0);
    len = len > sizeof(reply)-1 ? sizeof(reply) - 1 : len ;
 
 //JMB   n = read_stream(channel, reply, len);
- 
+
    if ( (ier=read_ft_nonblocking_socket(channel, reply, len)) < 0)
 {
 #ifdef DEBUG
    fprintf(stderr, "\n gossip_sock::get_request(), ERROR reply= %s \n", reply);
    fflush(stderr);
 #endif
-   return(-1);     
+   return(-1);
 }
 else return (0);
 
@@ -1286,7 +1286,7 @@ else return (0);
    fprintf(stderr, "fserver: %d\n" , fserver);
 #endif
 
-   if (fserver < 0) 
+   if (fserver < 0)
      return fserver;
 
 #ifdef DEBUG
@@ -1332,19 +1332,19 @@ else return (0);
 
 
      /* connect to data server by channel_name or @host:port */
-      if ( *name == '@' ) 
+      if ( *name == '@' )
 	{
 	  name++;
 	  fprintf(stderr, "Connecting to: \"%s\"\n", name);
 	  fserver = connect_to_hostport(name);
 	  if(fserver < 0)
 	    return(-1);
-	} 
-      else 
+	}
+      else
 	{
 	  char *host_and_port = get_host_and_port(name);
 
-	  if(host_and_port == NULL) 
+	  if(host_and_port == NULL)
 	    return(-1);
 
 	  fprintf(stderr, "Opening channel \"%s\" to name: \"%s\" and port: \"%s\"\n", name, name, host_and_port);
@@ -1362,7 +1362,7 @@ else return (0);
 #ifdef DEBUG
 	  fprintf(stderr, "gossip_sock::connect_to_channel_by_name_2(), fserver = %d\n", fserver);
 #endif
-	  if(fserver < 0) 
+	  if(fserver < 0)
 	    {
 	      fprintf(stderr, "gossip_sock::connect_to_channel_by_name_2(), fserver = %d\n", fserver);
 	      return(-1);
@@ -1387,12 +1387,12 @@ else return (0);
 
       snprintf(buf, 1023, "%s %d %d %u:%s:%s", "LOGIN", getuid(), getpid(), Bauth_token, host_name, msg);
 
-      if(send_command_to_server(fserver, buf)) 
+      if(send_command_to_server(fserver, buf))
 	{
 	  fprintf(stderr, "LOGIN rejected\n");
 	  return(-1);
-	} 
-      else 
+	}
+      else
 	{
 	  fprintf(stderr, "LOGIN accepted\n");
 	  return(fserver);
@@ -1426,7 +1426,7 @@ else return (0);
  }
 
  // JMB - TEST  write_ft_nonblocking_socket as a replacement for write_stream
- // use in put_int32_to_channel and send_ack_nack as a safe IO compared to 
+ // use in put_int32_to_channel and send_ack_nack as a safe IO compared to
  // a simple write()
 
 int write_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
@@ -1440,14 +1440,14 @@ int write_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
  // write_ft_nonblocking_socket returns a value 0 (success) or -1 (error)
  // to match expectation of routines in mgilib2 and gossip_sock
 
-#ifdef DEBUG 
+#ifdef DEBUG
   /****************end timing******************/
   unsigned long long tt1,tt2,clk1,clk2;
   tt1 = time_base();
   /****************end timing******************/
 #endif
 
-#ifdef DEBUG    
+#ifdef DEBUG
   fprintf(stderr, "\n gossip_sock:: write_ft_nonblocking_socket()   bytes to write = %d\n", n);
   fflush(stderr);
 #endif
@@ -1456,7 +1456,7 @@ int write_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
   total=0;
   // ERROR return code on write
   // ERROR return code on select (>0
-while (n > 0) 
+while (n > 0)
 {
     iter++;
     FD_ZERO(&wfds);
@@ -1482,13 +1482,13 @@ while (n > 0)
             if (iers < 0) {
                 /* error; log/die/whatever and close() socket */
                fprintf(stderr, "\n gossip_sock::write_ft_nonblocking_socket()  iter=%d,  iers= %d FATAL error on select EAGAIN errno= (%d, %s) %d bytes written\n",iter,iers, errno,strerror(errno),total);
-               fflush(stderr);               
-               return(-1); 
+               fflush(stderr);
+               return(-1);
             } else if (iers == 0) {
                 /* timed out without receiving any data; log/die/whatever and close() */
                fprintf(stderr, "\n gossip_sock::write_ft_nonblocking_socket()  iter=%d,  iers= %d timeout on select EAGAIN errno= (%d,%s) %d bytes written\n",iter,iers, errno,strerror(errno),total);
                fflush(stderr);
-               return(-1); 
+               return(-1);
             }
             /* else, socket is now writeable, so loop back up and do the write() again */
 
@@ -1501,13 +1501,13 @@ while (n > 0)
             /* some real error; log/die/whatever and close() socket */
            fprintf(stderr, "\n gossip_sock::write_ft_nonblocking_socket() iter=%d, FATAL write error errno= (%d,%s) %d bytes written\n",iter,errno,strerror(errno),total);
            fflush(stderr);
-           return(-1); 
+           return(-1);
         }
     } else if (written == 0) {
         /* the connection has been closed by your peer; clean-up and close() */
            fprintf(stderr, "\n gossip_sock::write_ft_nonblocking_socket() iter=%d, FATAL write error CONNECTION CLOSED errno= (%d,%s) %d bytes written\n",iter,errno,strerror(errno),total);
            fflush(stderr);
-           return(-1); 
+           return(-1);
     } else {
         /* you got some data; do whatever with it... */
 
@@ -1543,14 +1543,14 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
   fd_set wfds;
   struct timeval tv;
 
-#ifdef DEBUG 
+#ifdef DEBUG
   /****************end timing******************/
   unsigned long long tt1,tt2,clk1,clk2;
   tt1 = time_base();
   /****************end timing******************/
 #endif
 
-#ifdef DEBUG    
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes a envoyer = %d\n", n);
   fflush(stderr);
 #endif
@@ -1560,8 +1560,8 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
 
   tv.tv_sec = get_stream_timeout(fd);
   tv.tv_usec = 0;
- 
-  while (n > 0) 
+
+  while (n > 0)
     {
       if (select(fd+1, NULL, &wfds, NULL, &tv))
       	{
@@ -1572,13 +1572,13 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
 	}
       else
         return(-n);
-       
+
       if (res <= 0)
-        return (-n);          
+        return (-n);
       n -= res;
       ptr += res;
     }
-  
+
 #ifdef DEBUG
   /****************end timing******************/
   tt2 = time_base() - tt1;
@@ -1592,7 +1592,7 @@ int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
 #endif
 
   return n;
-} 
+}
 
 int read_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
 {
@@ -1606,14 +1606,14 @@ int read_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
  // read_ft_nonblocking_socket returns a value 0 (success) or -1 (error)
  // to match expectation of routines in mgilib2 and gossip_sock
 
-#ifdef DEBUG 
+#ifdef DEBUG
   /****************end timing******************/
   unsigned long long tt1,tt2,clk1,clk2;
   tt1 = time_base();
   /****************end timing******************/
 #endif
 
-#ifdef DEBUG    
+#ifdef DEBUG
   fprintf(stderr, "\n gossip_sock:: read_ft_nonblocking_socket()   bytes to read = %d\n", n);
   fflush(stderr);
 #endif
@@ -1622,7 +1622,7 @@ int read_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
   total=0;
   // ERROR return code on read
   // ERROR return code on select (>0
-while (remaining > 0) 
+while (remaining > 0)
 {
   iter++;
 
@@ -1632,7 +1632,7 @@ while (remaining > 0)
     tv.tv_usec = 0;
     iers = select (fd+1, &rfds, NULL, NULL, &tv);
 
-#ifdef INFOLEVEL1 
+#ifdef INFOLEVEL1
     fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, select returns iers=%d \n",iter,iers);
     fflush(stderr);
 #endif
@@ -1640,7 +1640,7 @@ while (remaining > 0)
     bytesread = read (fd, ptr, remaining);
 
 
-#ifdef INFOLEVEL1 
+#ifdef INFOLEVEL1
     fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, read returns bytesread=%d \n",iter,bytesread);
     fprintf(stderr, "\n read_ft_nonblocking_socket()  read returns bytesread=%d \n",bytesread);
     fflush(stderr);
@@ -1663,16 +1663,16 @@ while (remaining > 0)
             if (iers < 0) {
                 /* error; log/die/whatever and close() socket */
                fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d,  iers= %d FATAL error on select EAGAIN errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
-               fflush(stderr);               
-               return(-1); 
+               fflush(stderr);
+               return(-1);
             } else if (iers == 0) {
                 /* timed out without receiving any data; log/die/whatever and close() */
                fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d,  iers= %d timeout on select EAGAIN errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
                fflush(stderr);
-               return(-1); 
+               return(-1);
             }
             /* else, socket is now readable, so loop back up and do the read() again */
-#ifdef INFOLEVEL1 
+#ifdef INFOLEVEL1
                fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, iers= %d select READABLE W errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
                fflush(stderr);
 #endif
@@ -1681,13 +1681,13 @@ while (remaining > 0)
             /* some real error; log/die/whatever and close() socket */
            fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket() iter=%d, FATAL read error errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
            fflush(stderr);
-           return(-1); 
+           return(-1);
         }
     } else if (bytesread == 0) {
         /* the connection has been closed by your peer; clean-up and close() */
            fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket() iter=%d, FATAL read error CONNECTION CLOSED errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
            fflush(stderr);
-           return(-1); 
+           return(-1);
     } else {
         /* you got some data; do whatever with it... */
 
@@ -1695,7 +1695,7 @@ while (remaining > 0)
       ptr += bytesread;
       total += bytesread;
 
-#ifdef INFOLEVEL1 
+#ifdef INFOLEVEL1
       fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, %d bytes bytesread OK \n",iter,total);
       fflush(stderr);
 #endif
@@ -1726,14 +1726,14 @@ int read_ft_nonblocking_socket_count(int fd, char *ptr, int n)  /*   %ENTRY%   *
  // read_ft_nonblocking_socket_count returns the number of bytes read (success) or -1 (error)
  // to match expectation of routines in mgilib2 and gossip_sock
 
-#ifdef DEBUG 
+#ifdef DEBUG
   /****************end timing******************/
   unsigned long long tt1,tt2,clk1,clk2;
   tt1 = time_base();
   /****************end timing******************/
 #endif
 
-#ifdef DEBUG    
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock:: read_ft_nonblocking_socket()   bytes to read = %d\n", n);
   fflush(stderr);
 #endif
@@ -1742,7 +1742,7 @@ int read_ft_nonblocking_socket_count(int fd, char *ptr, int n)  /*   %ENTRY%   *
   total=0;
   // ERROR return code on read
   // ERROR return code on select (>0
-while (remaining > 0) 
+while (remaining > 0)
 {
     iter++;
 
@@ -1770,16 +1770,16 @@ while (remaining > 0)
             if (iers < 0) {
                 /* error; log/die/whatever and close() socket */
                fprintf(stderr, "gossip_sock::read_ft_nonblocking_socket_count()  iter=%d,  iers= %d FATAL error on select EAGAIN errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
-               fflush(stderr);               
-               return(-1); 
+               fflush(stderr);
+               return(-1);
             } else if (iers == 0) {
                 /* timed out without receiving any data; log/die/whatever and close() */
                fprintf(stderr, "gossip_sock::read_ft_nonblocking_socket_count()  iter=%d,  iers= %d timeout on select EAGAIN errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
                fflush(stderr);
-               return(-1); 
+               return(-1);
             }
             /* else, socket is now readable, so loop back up and do the read() again */
-#ifdef INFOLEVEL1 
+#ifdef INFOLEVEL1
                fprintf(stderr, "gossip_sock::read_ft_nonblocking_socket_count()  iter=%d, iers= %d select READABLE W errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
                fflush(stderr);
 #endif
@@ -1788,13 +1788,13 @@ while (remaining > 0)
             /* some real error; log/die/whatever and close() socket */
            fprintf(stderr, "gossip_sock::read_ft_nonblocking_socket_count() iter=%d, FATAL read error errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
            fflush(stderr);
-           return(-1); 
+           return(-1);
         }
     } else if (bytesread == 0) {
         /* the connection has been closed by your peer; clean-up and close() */
            fprintf(stderr, "gossip_sock::read_ft_nonblocking_socket_count() iter=%d, FATAL read error CONNECTION CLOSED errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
            fflush(stderr);
-           return(-1); 
+           return(-1);
     } else {
         /* you got some data; do whatever with it... */
 
@@ -1802,7 +1802,7 @@ while (remaining > 0)
       ptr += bytesread;
       total += bytesread;
 
-#ifdef INFOLEVEL1 
+#ifdef INFOLEVEL1
       fprintf(stderr, "gossip_sock::read_ft_nonblocking_socket_count()  iter=%d, %d bytes bytesread OK \n",iter,total);
       fflush(stderr);
 #endif
@@ -1826,11 +1826,11 @@ while (remaining > 0)
 /* return bytes_read (number of bytes read) */
 int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
 {
-  int  n, res, bytes_read; 
+  int  n, res, bytes_read;
   fd_set rfds;
   struct timeval tv;
 
-#ifdef DEBUG  
+#ifdef DEBUG
   /****************start timing******************/
   unsigned long long tt1,tt2,clk1,clk2;
   /****************start timing******************/
@@ -1839,7 +1839,7 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
   n = nbytes;
   bytes_read = 0;
 
-#ifdef DEBUG 
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_stream(), bytes to be read = %d\n", n);
   fprintf(stderr, "gossip_sock::read_stream(), fd = %d\n", fd);
 #endif
@@ -1854,7 +1854,7 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
 #endif
 
   while (n > 0)
-    {  
+    {
       if (select(fd+1, &rfds, NULL, NULL, &tv))
 	{
 	  res = read(fd, ptr, n);
@@ -1874,25 +1874,25 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
         {
           return (res);
         }
-      
+
       n -= res;
       ptr += res;
       bytes_read += res;
     }
 
-#ifdef DEBUG 
+#ifdef DEBUG
   /****************end timing******************/
   clk2 = time_base() - clk1;
   fprintf(stderr,"\n read_stream: bytes read = %d, Total Wall Clock = %llu bigticks,", nbytes, clk2);
   /*****************end timing******************/
 #endif
 
-#ifdef DEBUG 
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_stream(), after while(), bytes read = %d\n", res);
-#endif   
-  
+#endif
+
   return bytes_read;
-} 
+}
 
 
 
@@ -1900,20 +1900,20 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
 /* swap elements of size tokensize bytes if little endian */
 void check_swap_records(void *record, int size, int tokensize) /*   %ENTRY%   */
 {
-  
+
   if(!*little_endian || tokensize == ONE_BYTE)
     return;
-   
+
   if(tokensize == TWO_BYTES)
     {
       int i;
-      
-      INT_16 *element = (INT_16 *)record;
-      
+
+      int16_t *element = (int16_t *)record;
+
 #ifdef DEBUG
       fprintf(stderr, "gossip_sock::check_swap_records(),  TWO_BYTES\n");
 #endif
-      
+
       for(i = 0; i<size; i++)
         {
 	  swap_2(*element);
@@ -1925,8 +1925,8 @@ void check_swap_records(void *record, int size, int tokensize) /*   %ENTRY%   */
   if(tokensize == FOUR_BYTES)
     {
       int i;
-      
-      INT_32 *element = (INT_32 *)record;
+
+      int32_t *element = (int32_t *)record;
 
 #ifdef DEBUG
       fprintf(stderr, "gossip_sock::check_swap_records(),  FOUR_BYTES\n");
@@ -1941,8 +1941,8 @@ void check_swap_records(void *record, int size, int tokensize) /*   %ENTRY%   */
   else if(tokensize == EIGHT_BYTES)
     {
       int i;
-      INT_64 *element = (INT_64 *)record;
-      
+      int64_t *element = (int64_t *)record;
+
       for(i = 0; i<size; i++)
         {
           swap_8(*element);
@@ -1972,12 +1972,12 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
   /**************** timing******************/
 #endif
 
-#ifdef INFOLEVEL1 
-  fprintf(stderr, "\n write_record: COMM3-R get_request() SEND on channel: %d",fclient); 
+#ifdef INFOLEVEL1
+  fprintf(stderr, "\n write_record: COMM3-R get_request() SEND on channel: %d",fclient);
   fflush(stderr);
 #endif
 
-  /* wait for send request */ 
+  /* wait for send request */
   //JMB  if(!get_request(fclient, "SEND"))
   if(get_request(fclient, "SEND"))
     {
@@ -2016,8 +2016,8 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
   /****************start timing******************/
 #endif
 
-#ifdef INFOLEVEL1 
-  fprintf(stderr, "\n write_record: COMM4-W put_int32_to_channel() TAG1 on channel: %d",fclient); 
+#ifdef INFOLEVEL1
+  fprintf(stderr, "\n write_record: COMM4-W put_int32_to_channel() TAG1 on channel: %d",fclient);
   fflush(stderr);
 #endif
 
@@ -2054,8 +2054,8 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
   /****************start timing******************/
 #endif
 
-#ifdef INFOLEVEL1 
-  fprintf(stderr, "\n write_record: COMM5-W write_ft() DATA on channel: %d",fclient); 
+#ifdef INFOLEVEL1
+  fprintf(stderr, "\n write_record: COMM5-W write_ft() DATA on channel: %d",fclient);
   fflush(stderr);
 #endif
 
@@ -2088,16 +2088,16 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
   fprintf(stderr,"\nwrite_record(): set_timeout_signal, Wall Clock = %llu bigticks,", tt2);
   /****************end timing******************/
 #endif
-  
-#ifdef DEBUG 
+
+#ifdef DEBUG
   /****************start timing******************/
   tt1 = time_base();
-  /****************start timing******************/ 
+  /****************start timing******************/
 #endif
- 
+
   check_swap_records(record, size, tokensize); /* swap back if necessary */
 
-#ifdef DEBUG  
+#ifdef DEBUG
   /****************end timing******************/
   tt2 = time_base() - tt1;
   fprintf(stderr,"\nwrite_record(): check data swapping, Wall Clock = %llu bigticks,", tt2);
@@ -2110,8 +2110,8 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
   /****************start timing******************/
 #endif
 
-#ifdef INFOLEVEL1 
-  fprintf(stderr, "\n write_record: COMM6-W put_int32_to_channel() TAG2 on channel: %d",fclient); 
+#ifdef INFOLEVEL1
+  fprintf(stderr, "\n write_record: COMM6-W put_int32_to_channel() TAG2 on channel: %d",fclient);
   fflush(stderr);
 #endif
 
@@ -2130,8 +2130,8 @@ int write_record(int fclient, void *record, int size, int tokensize)  /*   %ENTR
   /****************start timing******************/
 #endif
 
-#ifdef INFOLEVEL1 
-  fprintf(stderr, "\n write_record: COMM7-W get_ack_nack() on channel: %d",fclient); 
+#ifdef INFOLEVEL1
+  fprintf(stderr, "\n write_record: COMM7-W get_ack_nack() on channel: %d",fclient);
   fflush(stderr);
 #endif
 
@@ -2162,7 +2162,7 @@ static int swallow_data(int fd, int nbytes)
       if(bytes_read <= 0) return(-nbytes);
       nbytes -= bytes_read;
     }
-  
+
   return(0);
 }
 
@@ -2173,26 +2173,26 @@ static int swallow_data(int fd, int nbytes)
 void *read_record( int fclient, void *records, int *length, int maxlength, int tokensize )  /*   %ENTRY%   */
 {
   char *records2 = NULL;
-  
+
   int length1, length2, length3;
 
-#ifdef DEBUG  
+#ifdef DEBUG
   /****************start timing*************/
   unsigned long long tt1,tt2,clk1,clk2;
   /**************** timing******************/
 #endif
 
   set_timeout_signal(fclient, FALSE);
-  
+
   tokensize = ( tokensize > 1 )?tokensize:1;
- 
-#ifdef DEBUG 
+
+#ifdef DEBUG
   fprintf(stderr, "\n gossip_sock::read_record(), before send_request(), fclient = %d\n", fclient);
 #endif
-  
+
   /* send SEND request */
   send_request( fclient, "SEND" );
-    
+
   /**** data delivery protocol: | length | data | length | ****/
 
   /* read 1st length */
@@ -2211,11 +2211,11 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   /****************end timing******************/
 #endif
 
-#ifdef DEBUG 
+#ifdef DEBUG
   fprintf(stderr, "\n gossip_sock::read_record(), 1st length tag = %d \n", length1);
   fflush(stderr);
 #endif
-  
+
   if( length1 == 0 )
     {
       swallow_data(fclient, length1);
@@ -2230,7 +2230,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
     {
       fprintf(stderr, "\n gossip_sock::read_record: Problem reading TAG1 length: \"%d\" is greater than max requested: \"%d\" \n", length1, maxlength);
       fflush(stderr);
-      if (swallow_data(fclient, length1) != 0) 
+      if (swallow_data(fclient, length1) != 0)
        {
          fprintf(stderr, "\n gossip_sock::read_record() : cannot get enough data \n");
          fflush(stderr);
@@ -2238,7 +2238,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
       send_ack_nack(fclient, NOT_OK);
       return NULL;
     }
- 
+
   if( length1 > maxsize)
     {
       maxsize = length1;
@@ -2246,7 +2246,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
 
   records2 = (records == NULL)? malloc(maxsize + 2*sizeof(int)):records;
 
-  if(records2 == NULL) 
+  if(records2 == NULL)
     {
       fprintf(stderr, "\n gossip_sock::read_record: cannot allocate memory for data with size = %d\n", length1);
       fflush(stderr);
@@ -2254,8 +2254,8 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
       send_ack_nack(fclient, NOT_OK);
       return NULL;
     }
-   
-  
+
+
   /* read data, and get received stream length */
 #ifdef DEBUG
   /****************start timing******************/
@@ -2269,10 +2269,10 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   /****************end timing******************/
   tt2 = time_base() - tt1;
   fprintf(stderr,"\n read_record(): read_stream data from socket, size = %d, Wall Clock = %llu bigticks,", length1, tt2);
-  fflush(stderr);     
+  fflush(stderr);
   /****************end timing******************/
-#endif 
- 
+#endif
+
   /* If length2 < 0 => there was an error reading data */
   if(length2 < 0)
     {
@@ -2284,7 +2284,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
 
       if(records == NULL && records2 != NULL)
 	free(records2);
-      return NULL; 
+      return NULL;
     }
 
   /* read 2nd length  */
@@ -2293,7 +2293,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   /****************start timing******************/
   tt1 = time_base();
   /****************start timing******************/
-#endif 
+#endif
 
   length3 = get_int32_from_channel(fclient);
 
@@ -2303,9 +2303,9 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
   fprintf(stderr,"\n read_record(): get 2nd length TAG = %d from socket Wall Clock = %llu bigticks,", length3, tt2);
   fflush(stderr);
   /****************end timing******************/
-#endif 
+#endif
 
-  
+
   if(length1 != length2)
     {
       fprintf(stderr, "\n read_record: Problem DATA bytes read  %d NOT EQUAL to TAG1= %d \n", length2, length1);
@@ -2317,7 +2317,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
 	  free(records2);
       return NULL;
     }
-  
+
   if(*length > 0 && *length * tokensize != length2)
     {
       fprintf(stderr, "\n read_record: Problem requested DATA length %d != TAG2 = %d\n", *length * tokensize , length2);
@@ -2329,13 +2329,13 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
 	free(records2);
       return NULL;
     }
-  
-  
+
+
   /* check length values */
   if(length1 != length3)
     {
       fprintf(stderr, "\n read_record: Problem TAGS read length1 = %d NOT EQUAL to length3 = %d \n", length1, length3);
-      fflush(stderr); 
+      fflush(stderr);
       send_ack_nack(fclient, NOT_OK);
       /* set_timeout_signal(fclient, FALSE); */
       set_timeout_signal(fclient, TRUE);
@@ -2343,16 +2343,16 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
       if(records != NULL && records2 != NULL)
 	free(records2);
       return NULL;
-    } 
-  
+    }
+
   /* check swap records */
   check_swap_records(records2, length1/tokensize, tokensize);
-  
+
   /************read: SEND ACK_NACK********************/
    send_ack_nack(fclient, IS_OK);
   /************SEND ACK_NACK********************/
   /* return total number of bytes read */
-  
+
   *length = length2/tokensize;
 
   /*****************************/
@@ -2362,7 +2362,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
 #ifdef DEBUG
   fprintf(stderr, "\n gossip_sock::read_record(), *length = %d\n", *length);
 #endif
-  
+
   return records2;
 }
 
@@ -2392,17 +2392,17 @@ int store_channel_data(char *buffer, int nbytes, char *file_name)  /*   %ENTRY% 
 {
   int fd;
   char buf[BPATH];
-  
+
   /* Current_Working_dir/channel_subchannel_gsave is the data file path to be stored */
   snprintf(buf, sizeof(buf)-1, "%s_%s_gsave", get_gossip_dir(0), file_name);
-  
+
 
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::store_channel_data(), buf = %s\n", buf);
 #endif
 
-    if((fd = open(buf, O_WRONLY + O_CREAT, 0700)) == -1) 
-    { 
+    if((fd = open(buf, O_WRONLY + O_CREAT, 0700)) == -1)
+    {
       fprintf(stderr, "Can't Open or Create Channel Data file\n");
       return(-1);
     }
@@ -2411,8 +2411,8 @@ int store_channel_data(char *buffer, int nbytes, char *file_name)  /*   %ENTRY% 
   fprintf(stderr, "gossip_sock::store_channel_data():  nbytes = %d\n", nbytes);
 #endif
 
-  
-  if(write(fd, (char *)buffer, nbytes) != nbytes) 
+
+  if(write(fd, (char *)buffer, nbytes) != nbytes)
     {
       fprintf(stderr, "store_channel_data: Error writing into data file\n");
       close(fd);
@@ -2423,15 +2423,15 @@ int store_channel_data(char *buffer, int nbytes, char *file_name)  /*   %ENTRY% 
 }
 
 /* get file size using file descriptor */
-long fsize(FILE* fd) 
+long fsize(FILE* fd)
 {
   long savepos, size;
-  
+
   savepos = ftell(fd);          /* save position    */
   fseek(fd, 0, SEEK_END);       /* go to the end    */
   size = ftell(fd);             /* read size        */
   fseek(fd, savepos, SEEK_SET); /* restore position */
-  
+
   return size;
 }
 
@@ -2441,23 +2441,23 @@ int get_file_size(char *file_name)   /*   %ENTRY%   */
   FILE *ifp;
   char buf[BPATH];
   int the_size;
-  
-  
+
+
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::get_file_size: file_name = %s\n", file_name);
 #endif
 
   snprintf(buf, 1023, "./%s", file_name);
-#ifdef DEBUG  
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::get_file_size(): buf = %s\n", buf);
 #endif
- 
+
   if ((ifp = fopen(buf, "r")) == NULL)
     {
       fprintf(stderr, "data file: %s, doesn't exist!\n", buf);
       return 0;
     }
-  
+
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::get_file_size(): ifp = %d\n", ifp);
 #endif
@@ -2472,30 +2472,30 @@ int get_file_size(char *file_name)   /*   %ENTRY%   */
 
 /* read data in file channel_subchannel_gsave,              */
 /* rename data file to channel_subchannel_gback             */
-/* return number of bytes read from file (= data file size) */ 
+/* return number of bytes read from file (= data file size) */
 int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
 {
   int i, fd;
   char buf[BPATH];
   char nbuf[BPATH] = "";
   char *delimiter = "_", *token;
-      
-#ifdef DEBUG 
+
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_data_file(): file_name = %s\n", file_name);
 #endif
 
   /* snprintf(buf, sizeof(buf) - 1, "./%s_gsave", file_name); */
   snprintf(buf, sizeof(buf) - 1, "./%s", file_name);
 
-#ifdef DEBUG 
+#ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_data_file(): buf = %s\n", buf);
 #endif
 
   i = 0;
-  if((fd = open(buf, O_RDONLY)) == -1) 
+  if((fd = open(buf, O_RDONLY)) == -1)
     {
       fprintf(stderr, "data file: %s doesn't exist\n", buf);
-      return -1; 
+      return -1;
 
      }
 
@@ -2509,18 +2509,18 @@ int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
      {
       fprintf(stderr, "Can't read data file, i = %d, size = %d\n", i, size);
       close(fd);
-      return -1; 
+      return -1;
 
     }
 
   close(fd);
 
-#ifdef DEBUG  
+#ifdef DEBUG
   fprintf(stderr, " Will Try to rename data file \"%s\"\n", buf);
 #endif
 
   token = strtok(file_name, delimiter);
-  
+
   if(token == NULL)
     return -1;
 
@@ -2532,7 +2532,7 @@ int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
       strncpy (nbuf + strlen (nbuf), token, strlen(token));
       strncpy (nbuf + strlen(nbuf), "_", strlen("_"));
     }
- 
+
   strncpy (nbuf + strlen (nbuf), "gback", strlen("_gback"));
   nbuf[strlen(nbuf)] = '\0';
 
@@ -2540,15 +2540,15 @@ int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
 #ifdef DEBUG
   fprintf(stderr, " Will Try to rename data file < %s > ***\n", nbuf);
 #endif
-  
+
   if((rename(buf, nbuf)) < 0)
     fprintf(stderr, "Can't rename data file\n");
 
-#ifdef DEBUG      
+#ifdef DEBUG
   fprintf(stderr, "Data file < %s > renamed succefully \n", nbuf);
   fprintf(stderr, "gossip_sock::read_data_file(), number of bytes read i = %d\n", i);
 #endif
-  
+
   return i;
 }
 
@@ -2561,7 +2561,7 @@ int connect_to_server()
 
   return fserver;
 }
- 
+
 /* send flag status to server to check active channels      */
 /* on running server with channel $GOSSIPDIR                */
 /* default = "mgi", return 0 if command accepted, -1 if not */
@@ -2574,13 +2574,13 @@ int get_status(char *reply)
 
   reply1 = (reply == NULL) ? &reply0[0] : reply;
   reply1[0]='\0';
-  fserver = connect_to_server(); 
+  fserver = connect_to_server();
   if(fserver > 0)
     {
       sprintf(buf, "STATUS");
       status = send_command_to_server(fserver, buf);
 
-      if(status != 0) 
+      if(status != 0)
 	{
 	  fprintf(stderr, "command \"%s\" rejected \n", buf);
 	  close(fserver);
@@ -2608,22 +2608,22 @@ int send_command(char *command)
 {
   int fserver = 0;
   int status;
-  
-  fserver = connect_to_server(); 
-  
+
+  fserver = connect_to_server();
+
   if(fserver > 0)
     {
       status = send_command_to_server(fserver, command);
 
       close(fserver);
-     
+
     }
   else
     {
       fprintf(stderr, "No server running on channel \"%s\" !!\n", get_gossip_dir(0));
       status = -1;
     }
-  
+
   return status;
 }
 
@@ -2633,7 +2633,7 @@ int send_command(char *command)
 /* success, -1 else                                      */
 int close_channel(int fclient, char *channel)
 {
-  int ier = 0; 
+  int ier = 0;
   char buf[1024];
 
   if(fclient != 0)
@@ -2663,13 +2663,13 @@ void pack_cmd( char *buffer, char *tmpbuf )
 
   memcpy( tmpbuf, (char *)&nbytes, sizeof(int) );
   memcpy( tmpbuf + sizeof(int), buffer, strlen(buffer) );
-  
+
   fprintf(stderr, "sending command: %s\n", tmpbuf + sizeof(int));
-  
+
 }
 
 
-/* send command to server return bytes sent 
+/* send command to server return bytes sent
 (= 0 all command bytes sent, >0 failure)  */
 int send_command_to_server2( int fclient, char *buffer )
 {
@@ -2688,7 +2688,7 @@ int send_command_to_server2( int fclient, char *buffer )
   pack_cmd( buffer, tmpbuf );
   /* nbytes = write_stream( fclient, tmpbuf, strlen(buffer) + sizeof(int) ); */
   nbytes = write( fclient, tmpbuf, strlen(buffer) + sizeof(int) );
-  
+
   reply = get_ack_nack(fclient);
 
   if( reply < 0 )
@@ -2746,12 +2746,12 @@ void check_data(char *record, int size)
     {
       for(i = 0; i<(size/4); i++)
 	{
-	  memcpy( &element, record, sizeof( int ) ); 
+	  memcpy( &element, record, sizeof( int ) );
 
 	  /* swap_4(*element); */
 	  fprintf(stderr, "check_data( ):  element[%d] = %f\n", i, element);
 	  record += sizeof( int );
-	
+
 	}
       record -= (size/4 - 1) * sizeof( int );
     }

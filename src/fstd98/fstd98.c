@@ -549,8 +549,8 @@ int c_fstecr(
     case 6:
       c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,ni*nj*nk);
       nw = ((header_size+stream_size) * 8 + 63) / 64;
-      header_size /= sizeof(INT_32);
-      stream_size /= sizeof(INT_32);
+      header_size /= sizeof(int32_t);
+      stream_size /= sizeof(int32_t);
       break;
 
     case 8:
@@ -568,8 +568,8 @@ int c_fstecr(
     case 134:
       c_float_packer_params(&header_size,&stream_size,&p1out,&p2out,ni*nj*nk);
       nw = ((header_size+stream_size) * 8 + 32 + 63) / 64;
-      stream_size /= sizeof(INT_32);
-      header_size /= sizeof(INT_32);
+      stream_size /= sizeof(int32_t);
+      header_size /= sizeof(int32_t);
       break;
 
     default:
@@ -1796,7 +1796,7 @@ int c_fstluk(
         // New packer
         // printf("Debug+ fstluk - c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, (*ni) * (*nj) * (*nk))\n");
         c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, (*ni) * (*nj) * (*nk));
-        header_size /= sizeof(INT_32);
+        header_size /= sizeof(int32_t);
         lng2 = 1 + ((*ni * *nj * *nk* 16 + 32 + 31) / 32) + header_size + 20;
     } else if (xdf_datatyp == 133) {
         // Compressed ieee
@@ -1993,14 +1993,14 @@ int c_fstluk(
                 // IEEE representation
                 // printf("Debug+ fstluk - IEEE representation\n");
                 mode = 2;
-                register INT_32 temp32,*src,*dest;
+                register int32_t temp32,*src,*dest;
                 if ((downgrade_32) && (stdf_entry.nbits == 64)) {
                     // Downgrade 64 bit to 32 bit
                     ptr_real = (float *) field;
                     ptr_double = (double *) buf->data;
 #if defined(Little_Endian)
-                    src = (INT_32 *) buf->data;
-                    dest = (INT_32 *) buf->data;
+                    src = (int32_t *) buf->data;
+                    dest = (int32_t *) buf->data;
                     for (i = 0; i < nelm; i++) {
                         temp32 = *src++;
                         *dest++ = *src++;
@@ -3601,10 +3601,10 @@ void backto64(ftnword *field, word *temp, int nelm)
 {
 #if defined(NEC64)
   int i;
-  INT_64 *pll = (INT_64 *) field;
-  INT_32 *pl = (INT_32 *) temp;
-  unsigned INT_64 *upll = (unsigned INT_64 *) field;
-  unsigned INT_32 *upl = (unsigned INT_32 *) temp;
+  int64_t *pll = (int64_t *) field;
+  int32_t *pl = (int32_t *) temp;
+  uint64_t *upll = (uint64_t *) field;
+  uint32_t *upl = (uint32_t *) temp;
 
   if (xdf_datatyp == 4) {
       for (i=nelm-1; i>=0; i--)
@@ -4263,7 +4263,7 @@ ftnword f77name(fstinl)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
   int infon, nmax = *f_nmax;
   int ier,ni,nj,nk, i;
   int l1=ll1, l2=ll2, l3=ll3;
-  INT_32 *plong;
+  int32_t *plong;
   char etiket[13];
   char typvar[3];
   char nomvar[5];

@@ -32,14 +32,15 @@
    Revision V9.0 - V.Lee Jan 2003(28bit check for IP1,IP2,IP3;24bit for NIO,NJO)
 */
 
-#include<rpnmacros.h>
-#include<fcntl.h>
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
+#include <rpnmacros.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
-#include "slab.h"
+#include <slab.h>
 
 
 #ifdef DEBUG
@@ -54,8 +55,8 @@
    it gets written to appropriate file / pipe / socket */
 
 #define put_in_buffer(file_desc,from,Ibuffer,pos,nbre) \
-                 {unsigned INT_32 *ptemp=(unsigned INT_32 *)from;\
-                  unsigned INT_32 *buffer=(unsigned INT_32 *)Ibuffer;\
+                 {uint32_t *ptemp=(uint32_t *)from;\
+                  uint32_t *buffer=(uint32_t *)Ibuffer;\
                   int nbmots=nbre;\
                   while(nbmots--){ \
 		    if(pos==BUFSIZE) {\
@@ -134,20 +135,20 @@ ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, F2Cl l1);
  *****************************************************************************/
 static int write_buf(int fd, void *Ibuffer, int nitems)
 {
-  unsigned INT_32 *buffer=(unsigned INT_32 *)Ibuffer;
+  uint32_t *buffer=(uint32_t *)Ibuffer;
   int n=nitems;
   int nwritten;
   char *cbuf=(char *)buffer;
 
   if(*little_endian){  /* slab files are BIG ENDIAN */
-    unsigned INT_32 *tmpbuf=buffer;
+    uint32_t *tmpbuf=buffer;
     while(n--){
-     unsigned INT_32 temp=*tmpbuf;
+     uint32_t temp=*tmpbuf;
      *tmpbuf=SWAP32(temp);
      tmpbuf++;
     }
   }
-  n=nitems*sizeof(INT_32);
+  n=nitems*sizeof(int32_t);
   while(n>0){
     nwritten=write(fd,cbuf,n);
     /*
@@ -164,7 +165,7 @@ static int write_buf(int fd, void *Ibuffer, int nitems)
     n-=nwritten;
     cbuf+=nwritten;
   }
-  return(nitems*sizeof(INT_32));
+  return(nitems*sizeof(int32_t));
 }
 /***************************************************************************** 
  *                            S L A B _ E X I T                              *
@@ -362,7 +363,7 @@ ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
      return(slab_exit(-3));
      }
  
- file_table[ix].buffer = (unsigned INT_32*)intBuffer;
+ file_table[ix].buffer = (uint32_t*)intBuffer;
    
  id_block.slb0    = 'SLB0';
  id_block.nBytes  = 32;
@@ -1019,7 +1020,7 @@ ftnword f77name (slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
              for(i = 0; i < Nx; i++) {
                  if(pos >= BUFSIZE) {     
                     taille = sizeof(float) * pos;  /* alors, on ecrit le buffer dans */
-                    nBytes =  write_buf(fd, (unsigned INT_32 *)fBuffer, pos);
+                    nBytes =  write_buf(fd, (uint32_t *)fBuffer, pos);
 
 		    if(nBytes != (sizeof(float) *  pos)) {
 		        fprintf(stderr,"\n***ERROR in SLABXTR(%s)slabid %d: WRITE ERROR in slab file\n",
@@ -1105,14 +1106,14 @@ ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, F2Cl l1)
 
   iVal = (int *) &slab_end;
 
-  taille = sizeof(slab_end) / sizeof(INT_32);
+  taille = sizeof(slab_end) / sizeof(int32_t);
   /* add SLB9 block to buffer */
   put_in_buffer(fd,iVal,intBuffer,pos,taille);
 
   if(pos == 0)
      {
       taille=sizeof(slab_end);
-      nBytes = write_buf(fd,(unsigned INT_32 *)intBuffer,taille/sizeof(INT_32));
+      nBytes = write_buf(fd,(uint32_t *)intBuffer,taille/sizeof(int32_t));
       if(nBytes != taille)
 	 {
           fprintf(stderr,"\n***ERROR in SLABEND(%s): WRITE ERROR in slab file, errno=%d\n",file_table[ix].file_name,errno);
@@ -1122,7 +1123,7 @@ ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, F2Cl l1)
   
   else{
        taille = sizeof(int) * pos;
-       nBytes = write_buf(fd,(unsigned INT_32 *)intBuffer,pos);
+       nBytes = write_buf(fd,(uint32_t *)intBuffer,pos);
        if(nBytes != taille)
 	  {
 	  fprintf(stderr,"\n***ERROR in SLABEND(%s): WRITE ERROR in slab file, errno=%d\n",file_table[ix].file_name,errno);

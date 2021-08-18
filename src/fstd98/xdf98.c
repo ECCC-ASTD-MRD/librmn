@@ -110,9 +110,9 @@ static key_descriptor fstcles[] = {
 static int get_free_index();
 static void init_file(int i);
 static void init_package();
-static INT_32 scan_random(int file_index);
-static INT_32 add_dir_page(int file_index, int wflag);
-static INT_32 rewind_file(int file_index, int handle);
+static int32_t scan_random(int file_index);
+static int32_t add_dir_page(int file_index, int wflag);
+static int32_t rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
                           word_2 *aux, int naux, char *appl);
 static word next_match(int file_index);
@@ -172,7 +172,7 @@ int c_xdfcheck(
 
 //! Add a directory page to file file_index
 //! \return 0 on success.  Can be ERR_DIR_FULL or ERR_MEM_FULL in case of error.
-static INT_32 add_dir_page(
+static int32_t add_dir_page(
     //! [in] File index in file table
     int file_index,
     //! [in] Write flag. In case of a new file, or a file extenxion the directory page has to be written on disk
@@ -246,7 +246,7 @@ static INT_32 add_dir_page(
 
 //! Calculates an address from an handle for a sequential file
 //! \return Corresponding address
-static INT_32 address_from_handle(
+static int32_t address_from_handle(
     //! [in] (cluster:2, address:22, file_index:8)
     int handle,
     //! [in] Pointer to xdf file information structure
@@ -443,7 +443,7 @@ int c_qdfdiag(
     //! [in] unit number associated to the file
     int iun
 ) {
-#define swap_4(mot) { register unsigned INT_32 tmp =(unsigned INT_32)mot; \
+#define swap_4(mot) { register uint32_t tmp =(uint32_t)mot; \
    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
 
     int index, index_fnom, ier, wasopen=0, addr, nw;
@@ -836,7 +836,7 @@ int c_xdfcls(
     int index, index_fnom, i, j, lng64, width, open_mode;
     file_table_entry *f;
     xdf_dir_page * curpage;
-    word32 * check32, checksum;
+    uint32_t * check32, checksum;
     word *entry;
     xdf_record_header *rec;
 
@@ -878,7 +878,7 @@ int c_xdfcls(
                 lng64 = f->primary_len * ENTRIES_PER_PAGE + 4;
                 curpage = &((f->dir_page[i])->dir);
                 checksum = curpage->chksum;
-                check32 = (word32 *) curpage;
+                check32 = (uint32_t *) curpage;
                 for (j = 4; j < W64TOWD(lng64); j++) {
                     checksum ^= check32[j];
                 }
@@ -1893,7 +1893,7 @@ int c_xdfopn(
     {
         int unit = iun, wdaddress = 1, wdlng_header, lng64;
         file_record header64;
-        word32 *check32, checksum;
+        uint32_t *check32, checksum;
         int header_seq[30];
         int lng;
         stdf_struct_RND header_rnd;
@@ -1965,7 +1965,7 @@ int c_xdfopn(
                     curpage = &((f->dir_page[f->npages-1])->dir);
                     c_waread(unit, curpage, wdaddress, W64TOWD(lng64));
                     checksum = 0;
-                    check32 = (word32 *) curpage;
+                    check32 = (uint32_t *) curpage;
                     for (j = 4; j < W64TOWD(lng64); j++) {
                         checksum ^= check32[j];
                     }
@@ -1989,7 +1989,7 @@ int c_xdfopn(
             }
         } else {
             // Signature != XDF0
-            check32 = (word32 *) &header64;
+            check32 = (uint32_t *) &header64;
             if (*check32 == STDF_RND_SIGN) {
                 // Old random standard file
                 f->cur_info->attr.read_only = 1;
@@ -3316,7 +3316,7 @@ static void init_package()
 
 //! Calculates an handle for a sequential file from address and index
 //! \return Sequential file handle
-static INT_32 make_seq_handle(
+static int32_t make_seq_handle(
     //! [in] Address (in units of 32bit)
     int address,
     //! [in] File index in table
@@ -3681,7 +3681,7 @@ ftnword  f77name(qdfrstr)(ftnword *f_inp, ftnword *f_outp)
  *****************************************************************************/
 
 /* set file position, if handle=-1, rewind file */
-static INT_32 rewind_file(int file_index, int handle)
+static int32_t rewind_file(int file_index, int handle)
 {
    register file_table_entry *f, *f2;
    int linked=0, file_index2;

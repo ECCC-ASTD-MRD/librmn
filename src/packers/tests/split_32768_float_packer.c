@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <rpnmacros.h>
 
 typedef union {
- INT_32 i;
+ int32_t i;
  float f;
 } floatint;
 
@@ -17,7 +18,7 @@ typedef union {
    +-------------+-----------------+-----------------+  ...    +-----------------+-----------------------+
    | main header | header block 1  | header block 2  |         | header block n  |        D A T A        |
    +-------------+-----------------+-----------------+  ...    +-----------------+-----------------------+
-   there is 1 header block for each group of 32768 values, 
+   there is 1 header block for each group of 32768 values,
    the last header block may represent a smaller group
 
    32 bit main header format :
@@ -49,11 +50,11 @@ typedef union {
 
 */
 
-INT_32 float_unpacker_1(float *dest, INT_32 *header, INT_32 *stream, INT_32 npts)
+int32_t float_unpacker_1(float *dest, int32_t *header, int32_t *stream, int32_t npts)
 {
   floatint temp,temp2;
-  INT_32 n;
-  INT_32 MaxExp, Mantis, Sgn, Minimum, Shift2, Fetch, Accu;
+  int32_t n;
+  int32_t MaxExp, Mantis, Sgn, Minimum, Shift2, Fetch, Accu;
 
   Minimum = header[0];                     /* get Minimum, MaxExp, Shift2 from header */
   MaxExp = (header[1] >> 24) & 0xFF;
@@ -105,13 +106,13 @@ INT_32 float_unpacker_1(float *dest, INT_32 *header, INT_32 *stream, INT_32 npts
 
    ===================================================================================================== */
 
-INT_32 float_packer_1(float *source, INT_32 nbits, INT_32 *header, INT_32 *stream, INT_32 npts)
+int32_t float_packer_1(float *source, int32_t nbits, int32_t *header, int32_t *stream, int32_t npts)
 {
   float *z=source;
-  INT_32 *intsrc= (INT_32 *)source;
+  int32_t *intsrc= (int32_t *)source;
   floatint fmin,fmax;
-  INT_32 n;
-  INT_32 MaxExp, Exp, Mask, Mantis, Shift, Minimum, Maximum, Src, Shift2, Store, Accu, Round;
+  int32_t n;
+  int32_t MaxExp, Exp, Mask, Mantis, Shift, Minimum, Maximum, Src, Shift2, Store, Accu, Round;
 
   if (npts > 32768) {     /* verify that the number of points is not too large for a single block */
     printf("float_packer_1: ERROR number of points is too large (max 32768)\n");
@@ -171,7 +172,7 @@ INT_32 float_packer_1(float *source, INT_32 nbits, INT_32 *header, INT_32 *strea
     Mantis = (1 << 23) | ( 0x7FFFFF & Src );
     Exp    = (Src >> 23) & 0xFF;
     Shift  = MaxExp - Exp;
-    if (Shift > 31) Shift = 31;    
+    if (Shift > 31) Shift = 31;
     Mantis = Mantis >> Shift;
     if( Src >> 31 ) Mantis = - Mantis;
     Mantis = Mantis - Minimum;              /* subtract minimum from mantissa */
@@ -199,12 +200,12 @@ INT_32 float_packer_1(float *source, INT_32 nbits, INT_32 *header, INT_32 *strea
     subroutine float_unpacker(VALUES,HEADER,STREAM,NPTS,NBITS)
     integer *4 NPTS, HEADER(2), STREAM(NPTS/2, NBITS)
     real *4 VALUES(NPTS)
-    return value is zero if OK, error code from float_unpacker_1 otherwise 
+    return value is zero if OK, error code from float_unpacker_1 otherwise
    ===================================================================================================== */
 
-INT_32 c_float_unpacker(float *dest, INT_32 *header, INT_32 *stream, INT_32 npts, INT_32 *nbits)
+int32_t c_float_unpacker(float *dest, int32_t *header, int32_t *stream, int32_t npts, int32_t *nbits)
 {
-  INT_32 npoints,npointsleft,ierror;
+  int32_t npoints,npointsleft,ierror;
 
   *nbits = ( (header[0]>>16) & 0xF) + 1 ;
   if(0xEFF != ( (header[0]>>20) & 0xFFF)) {
@@ -230,7 +231,7 @@ INT_32 c_float_unpacker(float *dest, INT_32 *header, INT_32 *stream, INT_32 npts
   return 0;
 }
 
-ftnword f77name(float_unpacker)(float *dest, INT_32 *header, INT_32 *stream, INT_32 *npts, INT_32 *nbits)
+ftnword f77name(float_unpacker)(float *dest, int32_t *header, int32_t *stream, int32_t *npts, int32_t *nbits)
 {
   return c_float_unpacker(dest, header, stream, *npts, nbits);
 }
@@ -248,12 +249,12 @@ ftnword f77name(float_unpacker)(float *dest, INT_32 *header, INT_32 *stream, INT
     integer function float_packer(VALUES,NBITS,HEADER,STREAM,NPTS)
     integer *4 NPTS, HEADER(2), NBITS, STREAM(NPTS/2)
     real *4 VALUES(NPTS)
-    return value is 0 if there was no error, -1 if error occurred 
+    return value is 0 if there was no error, -1 if error occurred
    ===================================================================================================== */
 
-INT_32 c_float_packer(float *source, INT_32 nbits, INT_32 *header, INT_32 *stream, INT_32 npts)
+int32_t c_float_packer(float *source, int32_t nbits, int32_t *header, int32_t *stream, int32_t npts)
 {
-  INT_32 npoints,npointsleft;
+  int32_t npoints,npointsleft;
 
   if(nbits > 16 || nbits < 1) {
     printf("float_unpacker: ERROR nbits must be > 0 and <= 16 ,nbits = %d\n",nbits);
@@ -274,7 +275,7 @@ INT_32 c_float_packer(float *source, INT_32 nbits, INT_32 *header, INT_32 *strea
     }
   return  0 ;   /* return 0 if no error */
 }
-ftnword f77name(float_packer)(float *source, INT_32 *nbits, INT_32 *header, INT_32 *stream, INT_32 *npts)
+ftnword f77name(float_packer)(float *source, int32_t *nbits, int32_t *header, int32_t *stream, int32_t *npts)
 {
   return c_float_packer(source,*nbits,header,stream,*npts);
 }
@@ -288,18 +289,18 @@ ftnword f77name(float_packer)(float *source, INT_32 *nbits, INT_32 *header, INT_
 
    subroutine float_packer_params(HEADER_SIZE,STREAM_SIZE,P1,P2,NPTS)
    integer *4 NPTS,HEADER_SIZE,STREAM_SIZE,P1,P2
-   
+
   ===================================================================================================== */
-void c_float_packer_params(INT_32 *header_size, INT_32 *stream_size, INT_32 *p1, INT_32 *p2, INT_32 npts)
+void c_float_packer_params(int32_t *header_size, int32_t *stream_size, int32_t *p1, int32_t *p2, int32_t npts)
 {
-  *header_size = 1+2*((npts+32767)/32768) ; /* size used for header 2 INT_32s per 32768 values block plus 1 */
-  *header_size = *header_size * sizeof(INT_32);
-  *stream_size = (npts + 1) / 2 ;           /* size used for stream, 1 INT_32 per 2 values */
-  *stream_size = *stream_size * sizeof(INT_32);
+  *header_size = 1+2*((npts+32767)/32768) ; /* size used for header 2 int32_ts per 32768 values block plus 1 */
+  *header_size = *header_size * sizeof(int32_t);
+  *stream_size = (npts + 1) / 2 ;           /* size used for stream, 1 int32_t per 2 values */
+  *stream_size = *stream_size * sizeof(int32_t);
   *p1 = 0;
   *p2 = 0;
 }
-void f77name(float_packer_params)(INT_32 *header_size, INT_32 *stream_size, INT_32 *p1, INT_32 *p2, INT_32 *npts)
+void f77name(float_packer_params)(int32_t *header_size, int32_t *stream_size, int32_t *p1, int32_t *p2, int32_t *npts)
 {
   c_float_packer_params(header_size,stream_size,p1,p2,*npts);
 }
@@ -311,17 +312,17 @@ main()
   float source[NPTS];
   float source2[NPTS];
   double error,errormax,errorabs,erroravg;
-  INT_32 nbits=14;
-  INT_32 NBITS;
-  INT_32 npts=NPTS;
-  INT_32 header[1+2*((NPTS+32767)/32768)], stream[(NPTS+1)/2];
-  INT_32 signature;
+  int32_t nbits=14;
+  int32_t NBITS;
+  int32_t npts=NPTS;
+  int32_t header[1+2*((NPTS+32767)/32768)], stream[(NPTS+1)/2];
+  int32_t signature;
   int i,j,nhead;
-  INT_32 p1,p2,header_size,stream_size;
-  
+  int32_t p1,p2,header_size,stream_size;
+
   f77name(float_packer_params)(&header_size, &stream_size, &p1, &p2, &npts);
   printf("header_size,stream_size=%d,%d\n",header_size,stream_size);
-  
+
   for ( i=0 ; i<NPTS ; i++ ) { source[i]=i*1.234-1123.123; };
   printf("source[0],source[1],source[2],source[NPTS-1]=%f,%f,%f,%f\n",source[0],source[1],source[2],source[NPTS-1]);
   f77name(float_packer)(source, &nbits, header, stream, &npts);
@@ -330,8 +331,8 @@ main()
   printf("source2[0],source2[1],source2[2],source2[NPTS-1]=%f,%f,%f,%f\n",source2[0],source2[1],source2[2],source2[NPTS-1]);
   printf("nbits = %d ,nbits from unpacker = %d\n",nbits,NBITS);
   signature=0;
-  for ( i=0 ; i< (1+2*((NPTS+32767)/32768))  ; i++ ) { 
-    signature=signature^header[i]; 
+  for ( i=0 ; i< (1+2*((NPTS+32767)/32768))  ; i++ ) {
+    signature=signature^header[i];
     /* printf(" %x",header[i]);  */
     }
   printf("\nafter packing signature=%x\n",signature);
@@ -342,11 +343,11 @@ main()
   errormax=0;
   errorabs=0;
   erroravg=0;
-  for ( i=0 ; i<NPTS ; i++ ) { 
-    error = source2[i]-source[i]; 
-    erroravg=erroravg+error; 
-    if(error<0) error=-error ; 
-    errorabs=errorabs+error ; 
+  for ( i=0 ; i<NPTS ; i++ ) {
+    error = source2[i]-source[i];
+    erroravg=erroravg+error;
+    if(error<0) error=-error ;
+    errorabs=errorabs+error ;
     errormax=error>errormax?error:errormax;
     }
   printf("after packing errormax=%f,erroravg=%f, errorabs avg=%f\n",errormax,erroravg/NPTS,errorabs/NPTS);
@@ -363,10 +364,10 @@ main()
 
   errormax=0;
   erroravg=0;
-  for ( i=0 ; i<NPTS ; i++ ) { 
-    error = source2[i]-source[i]; 
-    erroravg=erroravg+error; 
-    if(error<0) error=-error ; 
+  for ( i=0 ; i<NPTS ; i++ ) {
+    error = source2[i]-source[i];
+    erroravg=erroravg+error;
+    if(error<0) error=-error ;
     errormax=error>errormax?error:errormax;
     }
   printf("after REpacking errormax=%f,erroravg=%f\n",errormax,erroravg/NPTS);  /* better be zero */

@@ -1,23 +1,22 @@
+#include <stdint.h>
 #include <rpnmacros.h>
 
-#define INT_16 short
-
-#define swap_2(mot) { register unsigned INT_16 tmp =(unsigned INT_16)mot; \
+#define swap_2(mot) { register uint16_t tmp =(uint16_t)mot; \
    mot = (tmp>>8) | (tmp<<8) ; }
 
-#define swap_4(mot) { register unsigned INT_32 tmp =(unsigned INT_32)mot; \
+#define swap_4(mot) { register uint32_t tmp =(uint32_t)mot; \
    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
 
-#define swap_8(mot) { register unsigned INT_64 tmp1; register unsigned INT_64 tmp2; register unsigned INT_32 mot1;\
-   tmp1 = ((unsigned INT_64) mot << 32) >> 32 ; \
-   tmp2 = (unsigned INT_64) mot >> 32 ; \
+#define swap_8(mot) { register uint64_t tmp1; register uint64_t tmp2; register uint32_t mot1;\
+   tmp1 = ((uint64_t) mot << 32) >> 32 ; \
+   tmp2 = (uint64_t) mot >> 32 ; \
    mot  = ( (tmp1>>24) | (tmp1<<24) | ((tmp1>>8)&0xFF00) | ((tmp1&0xFF00)<<8) ) << 32 ; \
    mot1 = ( (tmp2>>24) | (tmp2<<24) | ((tmp2>>8)&0xFF00) | ((tmp2&0xFF00)<<8) ); \
    mot |= mot1; }
    
 
-#define swap_4_4(mot1,mot2) { register unsigned INT_32 tmp1 = (unsigned INT_32)mot1; \
-                              register unsigned INT_32 tmp2 = (unsigned INT_32)mot2; \
+#define swap_4_4(mot1,mot2) { register uint32_t tmp1 = (uint32_t)mot1; \
+                              register uint32_t tmp2 = (uint32_t)mot2; \
      mot2 = (tmp1>>24) | (tmp1<<24) | ((tmp1>>8)&0xFF00) | ((tmp1&0xFF00)<<8); \
      mot1 = (tmp2>>24) | (tmp2<<24) | ((tmp2>>8)&0xFF00) | ((tmp2&0xFF00)<<8); }
 
@@ -111,8 +110,8 @@ int bind_to_localport(int *port, char *buf, int maxbuf)  ;
 void send_ack_nack(int fclient,int status)  ;
 int get_ack_nack(int fserver)  ;
 int send_command_to_server(int fserver, char *buf)  ;
-INT_32 get_int32_from_channel(int channel)  ;
-void put_int32_to_channel(int channel, INT_32 to_send)  ;
+int32_t get_int32_from_channel(int channel)  ;
+void put_int32_to_channel(int channel, int32_t to_send)  ;
 int connect_to_channel_by_name(char *name)  ;
 void gossip_fork_server(char *LOGFILE, char *channel, int (*user_client)(int,int,int,int,char *), int PING_INTERVAL, int from_inetd)   ;
 int init_gossip_stream(gossip_stream *s,int fd,int bufsz)  ;
