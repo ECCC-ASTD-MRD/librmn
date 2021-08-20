@@ -46,13 +46,13 @@ void f77name(cmainii)()
   int longElementCount = 40;
   int strideNotWorking;
 
-  word arrayOfInt1[myElementCount2], arrayOfInt2[myElementCount2];
-  word arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
-  word arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
+  int32_t arrayOfInt1[myElementCount2], arrayOfInt2[myElementCount2];
+  int32_t arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
+  int32_t arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
   unsigned short arrayOfShort1[myElementCount2], arrayOfShort3[myElementCount2];
   unsigned char arrayOfChar1[myElementCount2], arrayOfChar3[myElementCount2];  
-  ftnword arrayOfFtnword1[myElementCount2], arrayOfFtnword2[myElementCount2], arrayOfFtnword3[myElementCount2];
-  word arrayOfHeader[4];
+  int32_t arrayOfFtnword1[myElementCount2], arrayOfFtnword2[myElementCount2], arrayOfFtnword3[myElementCount2];
+  int32_t arrayOfHeader[4];
   int arrayOfSignedInt1[myElementCount2], arrayOfSignedInt2[myElementCount2];
   int arrayOfSignedInt3[myElementCount2];
 
@@ -70,9 +70,9 @@ void f77name(cmainii)()
   int isOverIndex;
   int testNotWorking;
 
-  word bits[maxBit]; 
+  int32_t bits[maxBit]; 
   int numOfBitPerToken, randomBitReduction, shiftRequired;
-  word chopOffMask;
+  int32_t chopOffMask;
   int minInt;
   int missingValueTag = -9999;
 
@@ -752,12 +752,12 @@ void f77name(cmainii)()
 
 
   {
-  ftnword ftn_elementCount = elementCount;
-  ftnword ftn_off_set      = 0;
-  ftnword ftn_bitSizeOfInt = -4;
-  ftnword ftn_nj           = 1;
-  ftnword ftn_opCode       = 1;
-  ftnword ftn_opCode1      = 2;
+  int32_t ftn_elementCount = elementCount;
+  int32_t ftn_off_set      = 0;
+  int32_t ftn_bitSizeOfInt = -4;
+  int32_t ftn_nj           = 1;
+  int32_t ftn_opCode       = 1;
+  int32_t ftn_opCode1      = 2;
   
   f77name(iipak)(arrayOfFtnword1, arrayOfFtnword2, &ftn_elementCount, ftn_nj, 
                  &ftn_bitSizeOfInt, &ftn_off_set, &ftn_opCode);
@@ -792,12 +792,12 @@ void f77name(cmainii)()
       arrayOfFtnword3[i] = 0;
     };  
   {
-    ftnword ftn_elementCount = elementCount;
-    ftnword ftn_off_set      = 0;
-    ftnword ftn_bitSizeOfInt = -4;
-    ftnword ftn_stride       = 1;
-    ftnword ftn_opCode       = 1;
-    ftnword ftn_opCode1      = 2;
+    int32_t ftn_elementCount = elementCount;
+    int32_t ftn_off_set      = 0;
+    int32_t ftn_bitSizeOfInt = -4;
+    int32_t ftn_stride       = 1;
+    int32_t ftn_opCode       = 1;
+    int32_t ftn_opCode1      = 2;
 
     f77name(iipak)(arrayOfFtnword1, arrayOfFtnword2, &ftn_elementCount, &ftn_stride,
                  &ftn_bitSizeOfInt, &ftn_off_set, &ftn_opCode);

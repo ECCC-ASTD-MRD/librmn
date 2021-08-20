@@ -23,17 +23,17 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezget_nsubgrids)(wordint *gdid)
+wordint f77name(ezget_nsubgrids)(int32_t *gdid)
 {
-   wordint icode;
+   int32_t icode;
 
    icode = c_ezget_nsubgrids(*gdid);
    return icode;
 }
 
-wordint c_ezget_nsubgrids(wordint gdid)
+wordint c_ezget_nsubgrids(int32_t gdid)
 {
-  wordint icode, gdrow_id, gdcol_id;
+  int32_t icode, gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   icode=Grille[gdrow_id][gdcol_id].nsubgrids;

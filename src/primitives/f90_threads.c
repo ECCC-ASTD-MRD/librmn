@@ -132,7 +132,7 @@ event* c_create_event()
    INTEGER *8 EVENT                          ! returns the value associated with event
    INTEGER VALUE
 */
-wordint f77name(post_event)(event** user_event, wordint* value)
+wordint f77name(post_event)(event** user_event, int32_t* value)
 {
    event* the_event = *user_event;
 
@@ -149,7 +149,7 @@ wordint f77name(post_event)(event** user_event, wordint* value)
 int c_post_event(event* user_event, int value)
 {
    event* the_event = user_event;
-   wordint f_value = value;
+   int32_t f_value = value;
 
    /*
    printf("c_post_event: event address=%x, lock=%x,cond=%x\n",the_event,&(the_event->mutex),&(the_event->condition));
@@ -179,7 +179,7 @@ int c_check_event(event *user_event)
    INTEGER *8 EVENT                          ! to take a specific value
    INTEGER VALUE                             ! returns the value associated with event
 */
-wordint f77name(wait_event)(event **user_event, wordint *value)
+wordint f77name(wait_event)(event **user_event, int32_t *value)
 {
    event *the_event = *user_event;
 
@@ -195,7 +195,7 @@ wordint f77name(wait_event)(event **user_event, wordint *value)
 int c_wait_event(event *user_event, int value)
 {
    event *the_event=user_event;
-   wordint f_value=value;
+   int32_t f_value=value;
    return( f77name(wait_event)(&the_event,&f_value) );
 }
 
@@ -239,7 +239,7 @@ int c_create_thread(void *(*function)(void *), void *arg)
 }
 
 /*! Wait for a thread to terminate */
-wordint f77name(join_thread)(wordint *id)
+wordint f77name(join_thread)(int32_t *id)
 {
    pthread_t thread_id = *id;
    return( pthread_join(thread_id, NULL) );
@@ -247,7 +247,7 @@ wordint f77name(join_thread)(wordint *id)
 
 int c_join_thread(int id)
 {
-   wordint f_id = id;
+   int32_t f_id = id;
    return( f77name(join_thread)( &f_id ) );
 }
 

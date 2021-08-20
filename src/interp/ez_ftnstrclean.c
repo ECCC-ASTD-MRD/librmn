@@ -33,7 +33,7 @@ wordint ftnstrclean(str,lenstr)
   char str[];
 wordint lenstr;
 {
-   wordint i, j, iinit, jinit;
+   int32_t i, j, iinit, jinit;
    
    iinit = 0;
    i = iinit;

@@ -24,10 +24,10 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void ez_xpnsrcgd(wordint gdid, ftnfloat *zout, ftnfloat *zin)
+void ez_xpnsrcgd(int32_t gdid, float *zout, float *zin)
 {
    _Grille gr;
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    gr = Grille[gdrow_id][gdcol_id];

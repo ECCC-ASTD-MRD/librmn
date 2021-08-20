@@ -23,10 +23,10 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void c_llfgr(ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint npts,
-	     ftnfloat latOrigine, ftnfloat lonOrigine, ftnfloat deltaLat, ftnfloat deltaLon)
+void c_llfgr(float *lat, float *lon, float *x, float *y, int32_t npts,
+	     float latOrigine, float lonOrigine, float deltaLat, float deltaLon)
 {
-  wordint i;
+  int32_t i;
   
   for (i=0; i < npts; i++)
     {

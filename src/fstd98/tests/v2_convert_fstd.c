@@ -26,88 +26,86 @@
 
 #define Bitmot 32
 
-typedef unsigned long word;
-
 typedef struct
   {
-   word swa : 32, npas1 : 16, nk : 12, epce1 : 4;
-   word ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8; 
-   word ip1 :16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8; 
-   word etiq14 :32, etiq56 : 16, etiq78 : 16;
-   word epce3 : 32, epce4 : 16, ig2 : 16;
-   word ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
-   word date : 32, ubc : 16, deet : 16;  
-   word lng : 32, eof : 32;                  
+   unint64_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
+   unint64_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8;
+   unint64_t ip1 :16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8;
+   unint64_t etiq14 :32, etiq56 : 16, etiq78 : 16;
+   unint64_t epce3 : 32, epce4 : 16, ig2 : 16;
+   unint64_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
+   unint64_t date : 32, ubc : 16, deet : 16;
+   unint64_t lng : 32, eof : 32;
 
               /****Format de bits 480-959 SEQ/SQI****/
               /* Le eof defini precedemant appartient
                  a cet interval de nombre de bits   */
 
-   word vide1 : 32, vide2 : 32;
-   word vide3 : 32, vide4 : 32;
-   word epce5 : 32, epce6 : 32;
-   word epce7 : 32, epce8 : 32;
-   word epce9 : 32, epce10: 32;
-   word epce11: 32, epce12: 32;
-   word vide5 : 32, vide6 : 32;
+   unint64_t vide1 : 32, vide2 : 32;
+   unint64_t vide3 : 32, vide4 : 32;
+   unint64_t epce5 : 32, epce6 : 32;
+   unint64_t epce7 : 32, epce8 : 32;
+   unint64_t epce9 : 32, epce10: 32;
+   unint64_t epce11: 32, epce12: 32;
+   unint64_t vide5 : 32, vide6 : 32;
 
    }seq_dir_keys;
 
 
 typedef struct
   {
-   word etiqt1  : 32, etiqt2  : 32;
-   word dirsiz  : 32, inuti1  : 32;
-   word nutil   : 32, inuti2  : 32;
-   word nbecr   : 32, inuti3  : 32;
-   word nbrec   : 32, inuti4  : 32;
-   word nbext   : 32, inuti5  : 32;
-   word nrecup  : 32, inuti6  : 32;
-   word nbeff   : 32, inuti7  : 32;
-   word nbcorr  : 32, inuti8  : 32;
-   word inuti9  : 32, inuti10 : 32;
-   word inuti11 : 32, inuti12 : 32;
-   word inut13  : 32, inuti14 : 32;
-   word inuti15 : 32, inuti16 : 32;
-   word inuti17 : 32, inuti18 : 32;
-     
+   unint64_t etiqt1  : 32, etiqt2  : 32;
+   unint64_t dirsiz  : 32, inuti1  : 32;
+   unint64_t nutil   : 32, inuti2  : 32;
+   unint64_t nbecr   : 32, inuti3  : 32;
+   unint64_t nbrec   : 32, inuti4  : 32;
+   unint64_t nbext   : 32, inuti5  : 32;
+   unint64_t nrecup  : 32, inuti6  : 32;
+   unint64_t nbeff   : 32, inuti7  : 32;
+   unint64_t nbcorr  : 32, inuti8  : 32;
+   unint64_t inuti9  : 32, inuti10 : 32;
+   unint64_t inuti11 : 32, inuti12 : 32;
+   unint64_t inut13  : 32, inuti14 : 32;
+   unint64_t inuti15 : 32, inuti16 : 32;
+   unint64_t inuti17 : 32, inuti18 : 32;
+
      }stdf_struct_RND;
 
 typedef struct
   {
-   word swa : 32, npas1 : 16, nk : 12, epce1 : 4;
-   word ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8; 
-   word ip1 : 16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8; 
-   word etiq14 : 32, etiq56 : 16, etiq78 : 16;
-   word epce3 : 32, epce4 : 16, ig2 : 16;
-   word ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
-   word date : 32, ubc : 16, deet : 16;  
-   word lng : 32;                  
-          
+   unint64_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
+   unint64_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8;
+   unint64_t ip1 : 16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8;
+   unint64_t etiq14 : 32, etiq56 : 16, etiq78 : 16;
+   unint64_t epce3 : 32, epce4 : 16, ig2 : 16;
+   unint64_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
+   unint64_t date : 32, ubc : 16, deet : 16;
+   unint64_t lng : 32;
+
    }rnd_dir_keys;
 
 typedef struct
   {
-   word signa : 12, ninj : 20, nscal : 16, iexpo : 12, signe : 4;
-   word mantis : 32, mantirest : 16, nBits : 8, espce : 8;
+   unint64_t signa : 12, ninj : 20, nscal : 16, iexpo : 12, signe : 4;
+   unint64_t mantis : 32, mantirest : 16, nBits : 8, espce : 8;
 
    }stdf_struct_data;
 
-union base                                                           
+union base
    {
     unsigned long iXmin;
     float Xmin;
-    }Xbase;                                      
+    }Xbase;
 
 
 
-static word iexpo, iexpmin, iscal, iXmin, iTemp, result,isign,nBits, 
-             nBits1, nBits2, nBytes, ninj,left, iexp_local, 
-             *idata, *rawdata, *unpacked, *funpacked,ofset, block,*iidata, offset;  
-          
+static unint64_t iexpo, iexpmin, iscal, iXmin, iTemp, result,isign,nBits,
+             nBits1, nBits2, nBytes, ninj,left, iexp_local,
+             *idata, *rawdata, *unpacked, *funpacked,ofset, block,*iidata, offset;
+
 static long taille, alloue=0,allouer=0;
 static int  ni, nj, nk,
-       record, i, fdr, fdw; 
+       record, i, fdr, fdw;
 static stdf_struct_data *indata;
 
 float *ffunpacked;
@@ -115,20 +113,20 @@ float *ffunpacked;
 stdf_struct_data *data;
 stdf_struct_RND randm;
 rnd_dir_keys dir[4096];
-seq_dir_keys key;     
+seq_dir_keys key;
 
 		    /*******Prototype des fonctions********/
- 
+
 static void entet_enreg(void),
             traiter_fichier_seq(seq_dir_keys *),
             traiter_fichier_rndm(stdf_struct_RND *,rnd_dir_keys *),
             decompact_float(rnd_dir_keys *),
             decompact_integer(rnd_dir_keys *),
             sortie_header (rnd_dir_keys *);
-      
-       
+
+
 main(int argc, char *argv[])
- { 
+ {
   if((sizeof(int) != 4) || (sizeof(float) != 4))
      {
       printf(" Inproper size for INT/FLOAT\n");
@@ -147,41 +145,41 @@ main(int argc, char *argv[])
      fprintf(stderr,"\n\n usage : commande source result!\n\n");
      exit(1);
      }
- 
+
   if((fdr = open(argv[1], O_RDONLY)) == -1)                     /* Ouverture du fichier d'entree.  */
      {
       fprintf(stderr,"\nErreur opening file %s !\n\n",argv[1]);
       exit(1);
       }
-  
+
   if((fdw = open(argv[2], O_RDWR | O_CREAT,0644)) == -1)        /* ouverture du fichier de sortie. */
      {
       fprintf(stderr, "\nErreur opening file %s\n", argv[2]);
       exit(1);
       }
-  
-  nBytes = read(fdr,&randm,sizeof(stdf_struct_RND));            /* lecture de l'entete, de taille  */ 
+
+  nBytes = read(fdr,&randm,sizeof(stdf_struct_RND));            /* lecture de l'entete, de taille  */
   lseek(fdr,0L,SEEK_SET);                                       /* 120 Bytes, du fichir randm.     */
   nBytes = read(fdr,&key,sizeof(seq_dir_keys));                 /* lecture de l'entete, de taille  */
                                                                 /* 120 Bytes, du fichier sequentiel*/
   entet_enreg();
-  
+
   if ((key.vide5)== 0xaaaaaaaa)                                 /* si le patron binaire est celui  */
        traiter_fichier_seq(&key);                               /* d'un fichier sequentiel, alors  */
   else                                                          /* traiter_fichier_seq. Sinon si   */
      if((randm.etiqt1) == 0x55555555)                           /* c'est celui d'un fichier random */
-         traiter_fichier_rndm(&randm,dir);                      /* alors traiter_fichier_random.   */ 
+         traiter_fichier_rndm(&randm,dir);                      /* alors traiter_fichier_random.   */
      else{                                                      /* sinon, le fichier n'est pas en  */
-          printf("\n This file is not standard file!");         /* format standard.                */ 
+          printf("\n This file is not standard file!");         /* format standard.                */
           exit(1);
 	  }
-  
+
 
   close(fdr);                                                   /*Fermeture du fichier d'entree.   */
   close(fdw);                                                   /*Fermeture du fichier de sortie.  */
 
  }/*end main*/
- 
+
 
 
  /*================================================================================================*/
@@ -203,15 +201,15 @@ main(int argc, char *argv[])
  /*================================================================================================*/
 
   void traiter_fichier_seq(seq_dir_keys *keys)
-    { 
-     lseek(fdr,0L,SEEK_SET);  
+    {
+     lseek(fdr,0L,SEEK_SET);
      for(nBytes = read(fdr,keys,sizeof(seq_dir_keys));          /* Lecture des enregistrements     */
          nBytes==120;                                           /* du fichier standard sequentiel. */
          nBytes = read(fdr,keys,sizeof(seq_dir_keys)))
-	{ 
+	{
 	 if((keys->nk) == 0)
 	     keys->nk = 1;
-	      
+
 	 if((keys->vide5) != 0xaaaaaaaa)
 	     exit(1);
 
@@ -220,15 +218,15 @@ main(int argc, char *argv[])
 	     if (keys->eof > 14)
 		break;
              else
-                continue;       
+                continue;
              }
 
 	 taille = ((keys->lng + 59) / 60) * 120;                /* calcul de la taille de l'enre-  */
 	                                                        /* gistrement .                    */
-	 if (taille != 0) 
-            { 
+	 if (taille != 0)
+            {
 	     if (alloue<taille)
-		{ 
+		{
                  if(alloue)free(indata);
 		 alloue=taille;
                                                                 /* Allocation de la memoire.       */
@@ -238,19 +236,19 @@ main(int argc, char *argv[])
 		     exit(1);
 		     }
 		 }
-             rawdata = (word *) indata;                               
-            
+             rawdata = (unint64_t *) indata;
+
              nBytes = read(fdr,indata,taille);                  /* lecture des donnees en fonction */
-             }                                                  /* de la taille allouee.           */ 
-                                                                
-	 if(keys->datyp == 1)                                   /* Si les donnees sont en point    */ 
+             }                                                  /* de la taille allouee.           */
+
+	 if(keys->datyp == 1)                                   /* Si les donnees sont en point    */
 	    decompact_float((rnd_dir_keys *)keys);              /* flottant appel a decompact_     */
-	                                                        /* float.                          */             
+	                                                        /* float.                          */
           if((keys->datyp) == 2 || (keys->datyp) == 4)          /* Si les donnees sont des integer */
 	     decompact_integer((rnd_dir_keys *)keys);           /* non signees ou signees, appel a */
 	                                                        /* decompact_integer.              */
 	 }/*end for loop*/
- 
+
      }/*end traiter_fichier_seq*/
 
 
@@ -261,9 +259,9 @@ main(int argc, char *argv[])
  /*================================================================================================*/
 
   void decompact_float(rnd_dir_keys *fkeys)
-    { 
+    {
      int ier;
-     
+
      nBits = indata->nBits;                                     /* enregistrements.                */
      ni = fkeys->ni;
      nj = fkeys->nj;
@@ -271,28 +269,28 @@ main(int argc, char *argv[])
      ninj  = ni * nj * nk;
 
      if((indata->ninj) != (ninj & 0xfffff))
-        return;  
-    
+        return;
+
         if(allouer < (sizeof(float) * ninj))
           {
            if(allouer) free(idata);
               allouer = (sizeof(float) * ninj);                 /* allocation dynamique du tableau */
                                                                 /* pour les donnees decompactees.  */
-           if((idata = (word *) malloc(allouer)) == NULL)         
+           if((idata = (unint64_t *) malloc(allouer)) == NULL)
 	     {
               printf("\n\nmalloc : cannot allocate memory!\n\n");
               exit(1);
               }
            }
-     funpacked = (word *) idata;
+     funpacked = (unint64_t *) idata;
 
      ier = compact_float (funpacked, rawdata, ninj, nBits, 120, 1, 2);
-     
+
      sortie_header (fkeys);                                     /* de decompaction.                */
-       
+
     }/*end decompact_float*/
- 
- 
+
+
  /*================================================================================================*/
  /* Definition de lafonction pour decompacter les entiers organises sequentiellement.              */
  /*================================================================================================*/
@@ -306,22 +304,22 @@ main(int argc, char *argv[])
     nj = ikeys->nj;
     nk = ikeys->nk;
     ninj  = ni * nj * nk;
-    left = Bitmot;   
+    left = Bitmot;
     block = (ninj + 3) * 4;
-    
+
     if(allouer < (sizeof(int) * ninj))
       {
        if(allouer) free(idata);
           allouer = (sizeof(int) * ninj);
 
-       if((idata = (word *) malloc(allouer)) == NULL)           /* Allocation de la memoire.       */
+       if((idata = (unint64_t *) malloc(allouer)) == NULL)           /* Allocation de la memoire.       */
          {
           printf("\nmalloc : cannot allocate memory!\n");
           exit(1);
           }
-         
+
        }
-    unpacked = (word *) idata;
+    unpacked = (unint64_t *) idata;
 
     if(ikeys->datyp == 2)
        OP = 2;
@@ -329,12 +327,12 @@ main(int argc, char *argv[])
        OP = 4;
 
     ier = compact_int (unpacked, rawdata, ninj, nBits, 0 ,1 , OP);
-    
-    sortie_header (ikeys);                                      /* appel de sortie_header pour     */  
+
+    sortie_header (ikeys);                                      /* appel de sortie_header pour     */
                                                                 /* ecrire les resultats.           */
     }/*end decompact_integer*/
 
- 
+
 
 
 
@@ -346,15 +344,15 @@ main(int argc, char *argv[])
   void traiter_fichier_rndm (stdf_struct_RND *randm,rnd_dir_keys *dir)
    {
     nBytes = read(fdr,dir,sizeof(rnd_dir_keys) * randm->nutil);
-          	     
+
     for(record=0; record <( randm->nutil); record++ )
-       { 
+       {
         if(dir[record].nk ==0)                                  /* pour eviter que ni * nj * nk   */
            dir[record].nk = 1;                                  /* soit null.                     */
-	       
+
         if(dir[record].dltf == 1)                               /* si c'est un delete file        */
            continue;                                            /* on continu.                    */
-              
+
         taille = ((dir[record].lng + 59) / 60) * 120;           /* calcul de la taille du record  */
         if(taille != 0)
 	  {
@@ -369,23 +367,23 @@ main(int argc, char *argv[])
 	         exit(1);
 	         }
 	      }
-           rawdata = (word *) indata;
+           rawdata = (unint64_t *) indata;
            ofset = dir[record].swa;                             /* determiner la position pour    */
            ofset <<= 1;                                         /* la lecture.                    */
            lseek(fdr, ofset, SEEK_SET);                         /* lecture  en mode d'acces direct*/
-           nBytes=read(fdr, indata,taille);                     /* (random acces).                */        
-           }  
-        
+           nBytes=read(fdr, indata,taille);                     /* (random acces).                */
+           }
+
         if (dir[record].datyp == 1)                             /* si c'est des donnees en float  */
             decompact_float(&(dir[record]));                    /* appel a decompact_float        */
-        
+
 	if (dir[record].datyp == 2 || (dir[record].datyp == 4)) /* et si c'est des integer        */
-	    decompact_integer(&(dir[record]));                  /* appel a decompact_integer      */        
-        
-       }/*end for loop*/          
-       
+	    decompact_integer(&(dir[record]));                  /* appel a decompact_integer      */
+
+       }/*end for loop*/
+
     }/*end traiter_fichier_rndm*/
-	
+
 
 
  /*===============================================================================================*/
@@ -395,13 +393,13 @@ main(int argc, char *argv[])
 
   void sortie_header (rnd_dir_keys *hkeys)
     {
-     word ea,eb,ec; 
+     unint64_t ea,eb,ec;
      char c1, c2, c3, etiq14, etiq56, etiq78,
           grtyp,e1,e2,e3,e4,e5,e6,e7,e8;
      int  npas, deet,ip1,ip2,ip3,ig1,ig2,ig3,
           ig4, date,c4,j;
      static int k=0;
-    
+
      c1 = (hkeys->nomvar) >> 8;
      c2 = (hkeys->nomvar) &0xff;
      c3 = (hkeys->typvar);
@@ -423,7 +421,7 @@ main(int argc, char *argv[])
      ec = hkeys -> etiq78;
      e7 = ec >> 8;
      e8 = ec & 0xff;
-     date = (hkeys->date) >> 3;      
+     date = (hkeys->date) >> 3;
      ig1 = hkeys->ig1;
      ig2 = hkeys->ig2;
      ig3 = hkeys->ig3;
@@ -439,15 +437,15 @@ main(int argc, char *argv[])
      printf("%3c%c%c%c%c%c%c%c%5s%u%7s%u%5s%3u%6s%2c%3s%2u%5s%2u%5s%2u%4s %2u%4s %u\n",
              e1,e2,e3,e4, e5,e6,e7,e8,"",date,"",deet,"",npas,"",grtyp,"",ig1,"",ig2,"",
 	                                                             ig3,"",ig4,"", c4);
-  
+
      write(fdw, &block, sizeof(float));                 /* write data by idata into output file  */
      write(fdw, &ni, sizeof(float));                    /* if hkeys->datyp == 1 idata point to   */
-     write(fdw, &nj, sizeof(float));                    /* float.                                */ 
+     write(fdw, &nj, sizeof(float));                    /* float.                                */
      write(fdw, &nk, sizeof(float));
      write(fdw, idata, (ninj * 4));
-     write(fdw, &block, sizeof(float));                                                     
+     write(fdw, &block, sizeof(float));
 
-     
+
    }/*end sortie_header_seq*/
 
 

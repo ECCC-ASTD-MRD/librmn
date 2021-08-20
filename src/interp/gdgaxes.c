@@ -23,18 +23,18 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdgaxes)(wordint *gdid, ftnfloat *ax, ftnfloat *ay)
+wordint f77name(gdgaxes)(int32_t *gdid, float *ax, float *ay)
 {
    c_gdgaxes(*gdid, ax, ay);
    return 0;
 }
 
-wordint c_gdgaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
+wordint c_gdgaxes(int32_t gdid, float *ax, float *ay)
 {
 
-   wordint nix, njy;
+   int32_t nix, njy;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    
@@ -53,8 +53,8 @@ wordint c_gdgaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
    
    if (Grille[gdrow_id][gdcol_id].flags & AX)
       {
-      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(ftnfloat));
-      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, njy*sizeof(ftnfloat));
+      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
+      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, njy*sizeof(float));
       }
    else
       {

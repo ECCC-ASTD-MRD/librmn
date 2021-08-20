@@ -1,7 +1,7 @@
  #include "ezscint.h"
  #include "ez_funcdef.h"
  
- wordint ez_find_gdin_in_gset(wordint gdin, wordint gdout)
+ int32_t ez_find_gdin_in_gset(int32_t gdin, int32_t gdout)
   {
   int i, found, idx_gdin; 
   int gdrow_in, gdrow_out, gdcol_in, gdcol_out;

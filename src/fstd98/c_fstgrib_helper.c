@@ -9,52 +9,52 @@ Yves Chartier - Juin 2006
 
 */
 
-extern ftnword calc_crc(unsigned char *p, ftnword *flen, ftnword *fseed, ftnword stride);
+extern int32_t calc_crc(unsigned char *p, int32_t *flen, int32_t *fseed, int32_t stride);
 extern long long f77name(f_gettimeofday_micro)();
-extern void f77name(f_bits_put)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *slices, ftnword *nslices);
-extern void f77name(f_bits_get)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *slices, ftnword *nslices);
-void grb_84bits_to_ig1234(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token);
-void grb_84bits_to_ip123(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token);
-void c_84bits_ig_get(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token);
-void c_84bits_ig_put(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token);
-void c_84bits_ip_get(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token);
-void c_84bits_ip_put(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token);
-void c_igaip84(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4);
-void c_ipaig84(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *ip1, ftnword *ip2, ftnword *ip3);
-void f77name(f_igaip84)(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4);
-void f77name(f_ipaig84)(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *ip1, ftnword *ip2, ftnword *ip3);
-void c_84bits_token(ftnword *the_84bit_token, unsigned char *grib_header, ftnword length_grib_header);
-void f77name(f_def_84bitkey)(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, 
-  ftnword *ig3, ftnword *ig4, unsigned char *grib_header, int *len_grib_header);
-void c_def_84bitkey(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, 
-  ftnword *ig3, ftnword *ig4, unsigned char *grib_header, int len_grib_header);
+extern void f77name(f_bits_put)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *slices, int32_t *nslices);
+extern void f77name(f_bits_get)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *slices, int32_t *nslices);
+void grb_84bits_to_ig1234(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *the_84bit_token);
+void grb_84bits_to_ip123(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *the_84bit_token);
+void c_84bits_ig_get(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *the_84bit_token);
+void c_84bits_ig_put(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *the_84bit_token);
+void c_84bits_ip_get(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *the_84bit_token);
+void c_84bits_ip_put(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *the_84bit_token);
+void c_igaip84(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4);
+void c_ipaig84(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *ip1, int32_t *ip2, int32_t *ip3);
+void f77name(f_igaip84)(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4);
+void f77name(f_ipaig84)(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *ip1, int32_t *ip2, int32_t *ip3);
+void c_84bits_token(int32_t *the_84bit_token, unsigned char *grib_header, int32_t length_grib_header);
+void f77name(f_def_84bitkey)(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, 
+  int32_t *ig3, int32_t *ig4, unsigned char *grib_header, int *len_grib_header);
+void c_def_84bitkey(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, 
+  int32_t *ig3, int32_t *ig4, unsigned char *grib_header, int len_grib_header);
 
 
-void f77name(f_def_84bitkey)(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, 
-  ftnword *ig3, ftnword *ig4, unsigned char *grib_header, int *len_grib_header)
+void f77name(f_def_84bitkey)(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, 
+  int32_t *ig3, int32_t *ig4, unsigned char *grib_header, int *len_grib_header)
   {
   c_def_84bitkey(ip1, ip2, ip3, ip1, ig2, ig3, ig4, grib_header, *len_grib_header);
   }
 
-void c_def_84bitkey(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, 
-  ftnword *ig3, ftnword *ig4, unsigned char *grib_header, int len_grib_header)
+void c_def_84bitkey(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, 
+  int32_t *ig3, int32_t *ig4, unsigned char *grib_header, int len_grib_header)
   {
-  ftnword the_84bit_token[3];
+  int32_t the_84bit_token[3];
   c_84bits_token(the_84bit_token, grib_header, len_grib_header);
   c_84bits_ip_get(ip1, ip2, ip3, the_84bit_token);
   c_84bits_ig_get(ig1, ig2, ig3, ig4, the_84bit_token);
   }
 
 
-void c_84bits_token(ftnword *the_84bit_token, unsigned char *grib_header, ftnword length_grib_header)
+void c_84bits_token(int32_t *the_84bit_token, unsigned char *grib_header, int32_t length_grib_header)
   {
   long long time_of_day_micro;
-  unsigned ftnword time_of_day, micro_secs;
-  ftnword slices[3];
-  ftnword nslices = 3;
-  ftnword fseed = 0;
-  ftnword bits_per_slice[] = {32, 32, 20};
-  ftnword header_crc;
+  uint32_t time_of_day, micro_secs;
+  int32_t slices[3];
+  int32_t nslices = 3;
+  int32_t fseed = 0;
+  int32_t bits_per_slice[] = {32, 32, 20};
+  int32_t header_crc;
   
   time_of_day_micro = f77name(f_gettimeofday_micro)();
   
@@ -68,30 +68,30 @@ void c_84bits_token(ftnword *the_84bit_token, unsigned char *grib_header, ftnwor
   slices[0] = header_crc;
   slices[1] = time_of_day;
   slices[2] = micro_secs;
-  f77name(f_bits_put)((ftnword *)the_84bit_token, (ftnword *)bits_per_slice, (ftnword *)slices, (ftnword *)&nslices);
+  f77name(f_bits_put)((int32_t *)the_84bit_token, (int32_t *)bits_per_slice, (int32_t *)slices, (int32_t *)&nslices);
 
   }
 
-void grb_84bits_to_ip123(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token)
+void grb_84bits_to_ip123(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *the_84bit_token)
   {
-  ftnword ip_bits_per_slice[] = {28, 28, 28};
-  ftnword ip_slices[3];
-  ftnword nslices = 3;
+  int32_t ip_bits_per_slice[] = {28, 28, 28};
+  int32_t ip_slices[3];
+  int32_t nslices = 3;
    
-  f77name(f_bits_get)((ftnword *)the_84bit_token, (ftnword *)ip_bits_per_slice, (ftnword *)ip_slices, (ftnword *)&nslices);
+  f77name(f_bits_get)((int32_t *)the_84bit_token, (int32_t *)ip_bits_per_slice, (int32_t *)ip_slices, (int32_t *)&nslices);
   *ip1 = ip_slices[0];
   *ip2 = ip_slices[1];
   *ip3 = ip_slices[2];
    
   }
 
-void grb_84bits_to_ig1234(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token)
+void grb_84bits_to_ig1234(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *the_84bit_token)
   {
-  ftnword ig_bits_per_slice[] = {21, 21, 21, 21};
-  ftnword ig_slices[4];
-  ftnword nslices = 4;
+  int32_t ig_bits_per_slice[] = {21, 21, 21, 21};
+  int32_t ig_slices[4];
+  int32_t nslices = 4;
    
-  f77name(f_bits_get)((ftnword *)the_84bit_token, (ftnword *)ig_bits_per_slice, (ftnword *)ig_slices, (ftnword *)&nslices);
+  f77name(f_bits_get)((int32_t *)the_84bit_token, (int32_t *)ig_bits_per_slice, (int32_t *)ig_slices, (int32_t *)&nslices);
   *ig1 = ig_slices[0];
   *ig2 = ig_slices[1];
   *ig3 = ig_slices[2];
@@ -99,80 +99,80 @@ void grb_84bits_to_ig1234(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4
    
   }
   
-void c_84bits_ig_get(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token)
+void c_84bits_ig_get(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *the_84bit_token)
   {
-  ftnword ig_bits_per_slice[] = {21, 21, 21, 21};
-  ftnword ig_slices[4];
-  ftnword nslices = 4;
+  int32_t ig_bits_per_slice[] = {21, 21, 21, 21};
+  int32_t ig_slices[4];
+  int32_t nslices = 4;
    
-  f77name(f_bits_get)((ftnword *)the_84bit_token, (ftnword *)ig_bits_per_slice, (ftnword *)ig_slices, (ftnword *)&nslices);
+  f77name(f_bits_get)((int32_t *)the_84bit_token, (int32_t *)ig_bits_per_slice, (int32_t *)ig_slices, (int32_t *)&nslices);
   *ig1 = ig_slices[0];
   *ig2 = ig_slices[1];
   *ig3 = ig_slices[2];
   *ig4 = ig_slices[3];
   }
 
-void c_84bits_ig_put(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *the_84bit_token)
+void c_84bits_ig_put(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *the_84bit_token)
   {
-  ftnword ig_bits_per_slice[] = {21, 21, 21, 21};
-  ftnword ig_slices[4];
-  ftnword nslices = 4;
+  int32_t ig_bits_per_slice[] = {21, 21, 21, 21};
+  int32_t ig_slices[4];
+  int32_t nslices = 4;
    
-  memset(the_84bit_token, 0, 3*sizeof(ftnword));
+  memset(the_84bit_token, 0, 3*sizeof(int32_t));
   ig_slices[0] = *ig1;
   ig_slices[1] = *ig2;
   ig_slices[2] = *ig3;
   ig_slices[3] = *ig4;
-  f77name(f_bits_put)((ftnword *)the_84bit_token, (ftnword *)ig_bits_per_slice, (ftnword *)ig_slices, (ftnword *)&nslices);
+  f77name(f_bits_put)((int32_t *)the_84bit_token, (int32_t *)ig_bits_per_slice, (int32_t *)ig_slices, (int32_t *)&nslices);
   }
 
-void c_84bits_ip_get(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token)
+void c_84bits_ip_get(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *the_84bit_token)
   {
-  ftnword ip_bits_per_slice[] = {28, 28, 28};
-  ftnword ip_slices[3];
-  ftnword nslices = 3;
+  int32_t ip_bits_per_slice[] = {28, 28, 28};
+  int32_t ip_slices[3];
+  int32_t nslices = 3;
    
-  f77name(f_bits_get)((ftnword *)the_84bit_token, (ftnword *)ip_bits_per_slice, (ftnword *)ip_slices, (ftnword *)&nslices);
+  f77name(f_bits_get)((int32_t *)the_84bit_token, (int32_t *)ip_bits_per_slice, (int32_t *)ip_slices, (int32_t *)&nslices);
   *ip1 = ip_slices[0];
   *ip2 = ip_slices[1];
   *ip3 = ip_slices[2];
   }
 
-void c_84bits_ip_put(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *the_84bit_token)
+void c_84bits_ip_put(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *the_84bit_token)
   {
-  ftnword ip_bits_per_slice[] = {28, 28, 28};
-  ftnword ip_slices[3];
-  ftnword nslices = 3;
+  int32_t ip_bits_per_slice[] = {28, 28, 28};
+  int32_t ip_slices[3];
+  int32_t nslices = 3;
    
-  memset(the_84bit_token, 0, 3*sizeof(ftnword));
+  memset(the_84bit_token, 0, 3*sizeof(int32_t));
   ip_slices[0] = *ip1;
   ip_slices[1] = *ip2;
   ip_slices[2] = *ip3;
-  f77name(f_bits_put)((ftnword *)the_84bit_token, (ftnword *)ip_bits_per_slice, (ftnword *)ip_slices, (ftnword *)&nslices);
+  f77name(f_bits_put)((int32_t *)the_84bit_token, (int32_t *)ip_bits_per_slice, (int32_t *)ip_slices, (int32_t *)&nslices);
   }
 
-void c_igaip84(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4)
+void c_igaip84(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4)
   {
-  ftnword the_84bit_token[3];
+  int32_t the_84bit_token[3];
   
   c_84bits_ig_put(ig1, ig2, ig3, ig4, the_84bit_token);
   c_84bits_ip_get(ip1, ip2, ip3, the_84bit_token);
   }
   
-void c_ipaig84(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *ip1, ftnword *ip2, ftnword *ip3)
+void c_ipaig84(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *ip1, int32_t *ip2, int32_t *ip3)
   {
-  ftnword the_84bit_token[3];
+  int32_t the_84bit_token[3];
   
   c_84bits_ip_put(ip1, ip2, ip3, the_84bit_token);
   c_84bits_ig_get(ig1, ig2, ig3, ig4, the_84bit_token);
   }
 
-void f77name(f_igaip84)(ftnword *ip1, ftnword *ip2, ftnword *ip3, ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4)
+void f77name(f_igaip84)(int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4)
   {
   c_igaip84(ip1,ip2, ip3, ig1, ig2, ig3, ig4);
   }
   
-void f77name(f_ipaig84)(ftnword *ig1, ftnword *ig2, ftnword *ig3, ftnword *ig4, ftnword *ip1, ftnword *ip2, ftnword *ip3)
+void f77name(f_ipaig84)(int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *ip1, int32_t *ip2, int32_t *ip3)
   {
   c_ipaig84(ig1, ig2, ig3, ig4, ip1, ip2, ip3);
   }

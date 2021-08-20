@@ -23,20 +23,20 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllvval)(wordint *gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, 
-                      ftnfloat *lat, ftnfloat *lon, wordint *n)
+wordint f77name(gdllvval)(int32_t *gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
+                      float *lat, float *lon, int32_t *n)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_gdllvval(*gdid, uuout,vvout, uuin, vvin, lat, lon, *n);
    return icode;
 }
 
-wordint c_gdllvval(wordint gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, 
-               ftnfloat *lat, ftnfloat *lon, wordint n)
+wordint c_gdllvval(int32_t gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
+               float *lat, float *lon, int32_t n)
 {
-   ftnfloat *x, *y;
-   wordint ier,gdrow_id,gdcol_id;
+   float *x, *y;
+   int32_t ier,gdrow_id,gdcol_id;
    
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
@@ -47,8 +47,8 @@ wordint c_gdllvval(wordint gdid, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
   else
     {
 
-     x = (ftnfloat *) malloc(n * sizeof(float));
-     y = (ftnfloat *) malloc(n * sizeof(float));
+     x = (float *) malloc(n * sizeof(float));
+     y = (float *) malloc(n * sizeof(float));
    
      ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
      ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);

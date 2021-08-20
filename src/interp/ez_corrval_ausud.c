@@ -21,21 +21,21 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
+wordint ez_corrval_ausud(float *zout, float *zin, int32_t gdin, int32_t gdout)
 {
-  wordint i;
-  wordint npts;
-  ftnfloat vpolesud;
-  ftnfloat *temp, *temp_y, *vals;
-  ftnfloat ay[4];
-  wordint ni, nj, i1, i2, j1, j2;
-  wordint un = 1;
-  wordint quatre = 4;
-  wordint zero = 0;
-  wordint trois = 3;
+  int32_t i;
+  int32_t npts;
+  float vpolesud;
+  float *temp, *temp_y, *vals;
+  float ay[4];
+  int32_t ni, nj, i1, i2, j1, j2;
+  int32_t un = 1;
+  int32_t quatre = 4;
+  int32_t zero = 0;
+  int32_t trois = 3;
   _Grille *lgdin, *lgdout;
 
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
   _gridset *gset;
 
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
@@ -56,8 +56,8 @@ wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gd
     j1 = lgdin->j1 - 1;
     j2 = j1 + 3;
 
-    temp = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
-    vals = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+    temp = (float *) malloc(4 * ni * sizeof(float));
+    vals = (float *) malloc(npts * sizeof(float));
     f77name(ez_calcpoleval)(&vpolesud, zin, &ni, lgdin->ax,
 			    &lgdin->grtyp, &lgdin->grref,1,1);
     f77name(ez_fillspole)(temp, zin, &ni, &lgdin->j1, &lgdin->j2, &vpolesud);
@@ -104,7 +104,7 @@ wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gd
 	break;
 
       case LINEAIRE:
-	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+	   temp_y = (float *) malloc(npts*sizeof(float));
 /*	   for (i=0; i < npts; i++)
 	     {
 	     temp_y[i] = gset->zones[AU_SUD].y[i] - (1.0*j1);
@@ -116,7 +116,7 @@ wordint ez_corrval_ausud(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gd
 	   break;
 
       case VOISIN:
-  	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+  	   temp_y = (float *) malloc(npts*sizeof(float));
 /*	   for (i=0; i < npts; i++)
 	     {
 	     temp_y[i] = gset->zones[AU_SUD].y[i] - (1.0*j1);

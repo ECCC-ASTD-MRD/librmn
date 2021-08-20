@@ -23,23 +23,23 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_defzone_dehors(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _zone *zone)
+wordint ez_defzone_dehors(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone)
 {
-  ftnfloat *tmpx, *tmpy;
-  wordint *tmpidx;
-  wordint nhits;
-  wordint i;
+  float *tmpx, *tmpy;
+  int32_t *tmpidx;
+  int32_t nhits;
+  int32_t i;
   
-  wordint offsetleft, offsetright, ix, iy;
+  int32_t offsetleft, offsetright, ix, iy;
   
-   wordint gdrow_in, gdcol_in;
+   int32_t gdrow_in, gdcol_in;
    int lcl_ngdin;
    
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
   
-  tmpx =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-  tmpy =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-  tmpidx = (wordint   *) malloc(npts*sizeof(wordint));
+  tmpx =   (float *) malloc(npts*sizeof(float));
+  tmpy =   (float *) malloc(npts*sizeof(float));
+  tmpidx = (int32_t   *) malloc(npts*sizeof(int32_t));
   
 /*
   if (groptions.degre_interp == CUBIQUE)
@@ -63,8 +63,8 @@ wordint ez_defzone_dehors(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, 
   nhits = 0;
   for (i=0; i < npts; i++)
     {
-    ix = (wordint)(x[i]+0.5);
-    iy = (wordint)(y[i]+0.5);
+    ix = (int32_t)(x[i]+0.5);
+    iy = (int32_t)(y[i]+0.5);
     if (ix < (1+offsetleft) || iy < (1+offsetleft) || ix > (Grille[gdrow_in][gdcol_in].ni-offsetright) || iy > (Grille[gdrow_in][gdcol_in].nj-offsetright))
       {
       tmpx[nhits]  = x[i];
@@ -77,9 +77,9 @@ wordint ez_defzone_dehors(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, 
   if (nhits > 0)
     {
     zone->npts = nhits;
-    zone->x =   (ftnfloat *) malloc(zone->npts*sizeof(ftnfloat));
-    zone->y =   (ftnfloat *) malloc(zone->npts*sizeof(ftnfloat));
-    zone->idx = (wordint *) malloc(zone->npts*sizeof(wordint));
+    zone->x =   (float *) malloc(zone->npts*sizeof(float));
+    zone->y =   (float *) malloc(zone->npts*sizeof(float));
+    zone->idx = (int32_t *) malloc(zone->npts*sizeof(int32_t));
     if (groptions.verbose > 0)
       {
       fprintf(stderr, "Nombre de points dehors: %d\n", zone->npts); 

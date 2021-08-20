@@ -30,7 +30,7 @@ ftnword f77name(rename_c)(char *oldname, char *newname, F2Cl lng1, F2Cl lng2)
 
   if (lng1 > 256 || lng2 > 256) {
     printf("rename_c error: oldname or newname > 256 char\n");
-    return((ftnword) -1);
+    return((int32_t) -1);
   }
   while (oldname[lng1-1] == ' ' && lng1 > 0) lng1--;
   while (newname[lng2-1] == ' ' && lng2 > 0) lng2--;
@@ -40,5 +40,5 @@ ftnword f77name(rename_c)(char *oldname, char *newname, F2Cl lng1, F2Cl lng2)
   new[lng2] = '\0';
   rcode = rename(&old[0],&new[0]);
   if (rcode == -1) perror("rename_c error");
-  return((ftnword)rcode);
+  return((int32_t)rcode);
 }

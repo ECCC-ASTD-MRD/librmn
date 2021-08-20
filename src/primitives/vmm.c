@@ -63,7 +63,7 @@ typedef long int pid_t;
 #if defined (NEC)
 #     define memint int64_t
 #else
-#     define memint wordint
+#     define memint int32_t
 #endif
 
 /*
@@ -159,7 +159,7 @@ typedef struct {
 #endif
 typedef union
    {
-     wordint clef;
+     int32_t clef;
      key_in_pieces key;
    } complete_key;
 
@@ -218,7 +218,7 @@ struct slice_table {
    };
 
 struct block_table {
-   wordint *memadr;
+   int32_t *memadr;
    union {
       unsigned int attributs;
       BITFLAGS flags;
@@ -244,11 +244,11 @@ struct block_table BLOCKS[MAXBLOCKS];
 struct name_table NAMES[MAXNAMES];
 
 static int maxmem = 0, free_space = 0, nbslices = 0, nbvar = 0, nbblocks = 0;
-static wordint mot_de_passe = 0, pwd_set = 0;
+static int32_t mot_de_passe = 0, pwd_set = 0;
 static int called_vmmallc = 0; /*called_vmmallc mis a  1 lors du 1er appel a vmmallc */
 #if defined (_FLOAT1)
-static wordfloat MAXVAL= 1.0e75;
-static wordfloat zero=0.0;
+static float MAXVAL= 1.0e75;
+static float zero=0.0;
 static double MAXVAL8= 1.0e75;
 static double zero8=0.0;
 #else
@@ -263,7 +263,7 @@ static double zero8=0.0;
  */
 static int fclass[NCLASSE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0} ;
 static char *fclass_names[NCLASSE] , *fcontrole_name ;
-static wordint fcontrole=0;   /* nom du fichier: Vmm_controle */
+static int32_t fcontrole=0;   /* nom du fichier: Vmm_controle */
 static int wp_Vmm[NCLASSE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0} ; /*longueur des Vmm_0n*/
 static int fichiers_ouverts = 0; 
 static int champs_bloques = 0; 
@@ -299,14 +299,14 @@ static char cd_repertoire[128]= "./";       /* repertoire de travail pour les fi
 int
 calc_checksum(int bkno)
 {
-     extern wordint f77name(qvmcks)();
+     extern int32_t f77name(qvmcks)();
 
-     wordint  *adresse, longueur;
-     wordint mode = 1;
+     int32_t  *adresse, longueur;
+     int32_t mode = 1;
      int checks;
 
-     adresse = (wordint *) BLOCKS[bkno].memadr;
-     longueur = (wordint) BLOCKS[bkno].size;
+     adresse = (int32_t *) BLOCKS[bkno].memadr;
+     longueur = (int32_t) BLOCKS[bkno].size;
 
      checks=(int) (f77name(qvmcks)(adresse,&longueur,&mode));
 
@@ -384,7 +384,7 @@ collapse_blocks(int i, int inext)
 *
 **/
 void 
-ecrit_bloc(int bkno,int classe,wordint *memadresse,
+ecrit_bloc(int bkno,int classe,int32_t *memadresse,
                         int fileadresse,int nmots)
 {
       int verbar(),calc_checksum();
@@ -392,14 +392,14 @@ ecrit_bloc(int bkno,int classe,wordint *memadresse,
       void  ouvre_ou_ferme_controle();
 */
 
-      wordint iun, lfileadresse, lnmots, ier;
+      int32_t iun, lfileadresse, lnmots, ier;
 
       ier = verbar(bkno);
       if( ! fichiers_ouverts) ouvre_ou_ferme_controle(1,0,"ecrit_bloc");
 
-      iun = (wordint) fclass[classe - 1];
-      lfileadresse = (wordint) fileadresse;
-      lnmots = (wordint) nmots;
+      iun = (int32_t) fclass[classe - 1];
+      lfileadresse = (int32_t) fileadresse;
+      lnmots = (int32_t) nmots;
 /*
 #if ! defined (ALL64)
       lnmots *=
@@ -721,7 +721,7 @@ void imprime()
  * Auteur: J. Caveen - avril 1994
  * 
  * Revision: james caveen - mars 1995
- *            change la nature de l'argument de float a wordint
+ *            change la nature de l'argument de float a int32_t
  *            afin d'eliminer les incompatibilites de types lors de l'appel.
  *
  *objet (impval)  - fonction servant a imprimer les valeurs reelles du
@@ -732,7 +732,7 @@ void imprime()
  *      
  **/
 void
-    impval(wordint *adresse)
+    impval(int32_t *adresse)
 {
 
    void imp_bar();
@@ -885,22 +885,22 @@ imprime_structures(int mode)
 *
 **/
 void 
-lit_bloc(int bkno,unsigned int classe,wordint *memadresse,
+lit_bloc(int bkno,unsigned int classe,int32_t *memadresse,
                         int fileadresse,int nmots)
 {
 /*
       void  ouvre_ou_ferme_controle();
 */
       int calc_checksum();
-      wordint iun, lfileadresse, lnmots;
+      int32_t iun, lfileadresse, lnmots;
 
       int cks;
 
       if( ! fichiers_ouverts) ouvre_ou_ferme_controle(1,0,"lit_bloc");
 
-      iun = (wordint) fclass[classe - 1];
-      lfileadresse = (wordint) fileadresse;
-      lnmots = (wordint) nmots;
+      iun = (int32_t) fclass[classe - 1];
+      lfileadresse = (int32_t) fileadresse;
+      lnmots = (int32_t) nmots;
 /*
 #if ! defined (ALL64)
       lnmots *=
@@ -969,7 +969,7 @@ lit_vmm_controle()
 /*ETG ofset of type off_t */
    int i,j,k,ier,nmots, erreur;
    off_t ofset;
-   wordint lpos,liun,lun;
+   int32_t lpos,liun,lun;
 
    ofset = 0;
    erreur = 0;
@@ -1013,7 +1013,7 @@ lit_vmm_controle()
  */
       for (i = 0; i < NCLASSE; i++)
       {
-          liun = (wordint) fclass[i];
+          liun = (int32_t) fclass[i];
           lpos = 0;
           if(fichier_vide(fclass_names[i]))
               wp_Vmm[i] = 0;
@@ -1229,7 +1229,7 @@ ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
          
          
          int i, lng,  mzero = 0;
-         wordint  iun, ier;
+         int32_t  iun, ier;
          char *ouvmod = "RND+R/W";
 /*
  *   au premier appel, on fait l'association fichiers-numero d'unite
@@ -1481,7 +1481,7 @@ qvmindex_from_key(complete_key inkey)
 *
 **/
 wordint
-qvmlod(complete_key inlkey[], wordint *nkey)
+qvmlod(complete_key inlkey[], int32_t *nkey)
 {
    
    void lit_bloc();
@@ -1495,7 +1495,7 @@ qvmlod(complete_key inlkey[], wordint *nkey)
 #endif
    int qvmindex_from_key(), vmmerr();
 
-   wordint lslice_lng, *lbest_fit;
+   int32_t lslice_lng, *lbest_fit;
    double *dlbest_fit;
        
    if(callc("VMMLOD"))   ;
@@ -1678,7 +1678,7 @@ qvmlod(complete_key inlkey[], wordint *nkey)
 /*
  *    initialiser le champ
  */
-            lslice_lng = (wordint) slice_lng;
+            lslice_lng = (int32_t) slice_lng;
             if (SLICES[*p].info.flags.size8)
             {
 #if ! defined (ALL64)
@@ -1702,7 +1702,7 @@ qvmlod(complete_key inlkey[], wordint *nkey)
             }
             else
             {
-              lbest_fit = (wordint *) BLOCKS[best_fit].memadr;
+              lbest_fit = (int32_t *) BLOCKS[best_fit].memadr;
               switch (SLICES[*p].info.flags.init)
               {
 	      
@@ -1775,7 +1775,7 @@ reserve_disk_space(int bkno)
 {
 
    int ind,cl,i,slice_lng;
-   wordint lun, lpos, liun, *bidon ,nmots;
+   int32_t lun, lpos, liun, *bidon ,nmots;
 
    ind = SLICES[BLOCKS[bkno].slice_table_index].name_table_index;
 
@@ -1786,7 +1786,7 @@ reserve_disk_space(int bkno)
    }
 
    cl  = NAMES[ind].class;
-   nmots =  (wordint) NAMES[ind].lslice;
+   nmots =  (int32_t) NAMES[ind].lslice;
 #if !defined (ALL64)
    nmots *= (BLOCKS[bkno].info.flags.size8 == 1) ? 2 :1;
 #endif
@@ -1795,9 +1795,9 @@ reserve_disk_space(int bkno)
  * init. des adresses d'ecriture
  */
    NAMES[ind].base_file_adr = wp_Vmm[cl - 1];
-   lpos = (wordint) wp_Vmm[cl - 1];
+   lpos = (int32_t) wp_Vmm[cl - 1];
    bidon = BLOCKS[0].memadr;
-   liun = (wordint) fclass[cl - 1];
+   liun = (int32_t) fclass[cl - 1];
 /*
  *  on reserve l'espace pour toutes les tranches de la variable
  */
@@ -1907,8 +1907,8 @@ swap_blocks(int i,int inext)
     void imprime();
    int t_attributs, t_slice_table_index, t_size;
    int  t_file_adr;
-   wordint *dest_adr, *src_adr;
-   wordint nmots, ind;
+   int32_t *dest_adr, *src_adr;
+   int32_t nmots, ind;
    extern void f77name(movlev8)();
 
    ind = BLOCKS[inext].slice_table_index;
@@ -1918,7 +1918,7 @@ swap_blocks(int i,int inext)
       ind - NAMES[SLICES[ind].name_table_index].major_key + 1,i);
    dest_adr =  BLOCKS[i].memadr;
    src_adr =  BLOCKS[inext].memadr;
-   nmots = (wordint) BLOCKS[inext].size;
+   nmots = (int32_t) BLOCKS[inext].size;
 #if ! defined (ALL64)
    nmots *= BLOCKS[inext].info.flags.size8 == 1 ? 2 : 1;
 #endif
@@ -1932,7 +1932,7 @@ swap_blocks(int i,int inext)
    BLOCKS[i].file_adr = BLOCKS[inext].file_adr;
    BLOCKS[inext].info.attributs = t_attributs;
    BLOCKS[inext].slice_table_index = t_slice_table_index;
-   BLOCKS[inext].memadr = BLOCKS[i].memadr + (wordint) BLOCKS[i].size;
+   BLOCKS[inext].memadr = BLOCKS[i].memadr + (int32_t) BLOCKS[i].size;
    BLOCKS[inext].size = t_size;
    BLOCKS[inext].file_adr = t_file_adr;
  /* rechainage des blocs libres */
@@ -1949,12 +1949,12 @@ swap_blocks(int i,int inext)
    SLICES[BLOCKS[i].slice_table_index].block_table_index = i;
 
 #if defined(__uxpv__)
-   _MmCopy(dest_adr,src_adr,nmots*sizeof(wordint));
+   _MmCopy(dest_adr,src_adr,nmots*sizeof(int32_t));
 #else 
 #  if defined(NEC)
    f77name(movlev8)(src_adr,dest_adr,&nmots);      /* assure la vectorisation */
 #  else
-   memcpy(dest_adr,src_adr,nmots*sizeof(wordint));
+   memcpy(dest_adr,src_adr,nmots*sizeof(int32_t));
 #  endif
 #endif
 
@@ -2413,7 +2413,7 @@ int
 *
 **/
 wordint
-f77name(vmmallc2)(wordint *memry, char *cd_rep, F2Cl lng)
+f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 {
    int vmmerr();
    void  lit_vmm_controle();
@@ -2469,19 +2469,19 @@ f77name(vmmallc2)(wordint *memry, char *cd_rep, F2Cl lng)
  */
 
    noctets = maxmem;
-/*ETG noctets=noctets*4 si wordint sur 4 par 8 si wordint sur 8 */
-   noctets <<= (sizeof(wordint)==4?2:3) ;
+/*ETG noctets=noctets*4 si int32_t sur 4 par 8 si int32_t sur 8 */
+   noctets <<= (sizeof(int32_t)==4?2:3) ;
    free_space = maxmem;
 #if defined (NEC) && defined (_FLOAT0) && !defined(__uxpv__)
    /*   fprintf(stdout,"Debug VMMALLC appel a malloc2\n"); */
    noctets += 8;
-   BLOCKS[0].memadr = (wordint *) f77name(malloc2)(&noctets); 
+   BLOCKS[0].memadr = (int32_t *) f77name(malloc2)(&noctets); 
    /*   fprintf(stdout,"Debug vmmallc memry=%d, maxmem=%d, noctets=%ld\n",*memry,maxmem,noctets); */
    /*   fprintf(stdout,"Debug vmmallc BLOCKS[0].memadr=%d\n",BLOCKS[0].memadr); */
 #else
-   BLOCKS[0].memadr = (wordint *) malloc(noctets + 8);
+   BLOCKS[0].memadr = (int32_t *) malloc(noctets + 8);
 #endif
-   if(BLOCKS[0].memadr == (wordint *) NULL)
+   if(BLOCKS[0].memadr == (int32_t *) NULL)
         return(vmmerr("VMMALLC",NOT_ENOUGH_MEMORY));
 
 /*
@@ -2493,7 +2493,7 @@ f77name(vmmallc2)(wordint *memry, char *cd_rep, F2Cl lng)
 #else
    *(BLOCKS[0].memadr) = *(BLOCKS[0].memadr+1) = BARVAL;
 #endif
-   BLOCKS[0].memadr+=(8/sizeof(wordint));
+   BLOCKS[0].memadr+=(8/sizeof(int32_t));
    BLOCKS[0].slice_table_index = -1;
    BLOCKS[0].size = maxmem ;
    nbblocks++;
@@ -2539,9 +2539,9 @@ f77name(vmmallc2)(wordint *memry, char *cd_rep, F2Cl lng)
 *
 **/
 wordint
-f77name(vmmallc)(wordint *memry)
+f77name(vmmallc)(int32_t *memry)
 {
-  wordint ier;
+  int32_t ier;
   char current_dir[2] = "./";
   
   ier = f77name(vmmallc2)(memry,current_dir,2);
@@ -2564,7 +2564,7 @@ f77name(vmmallc)(wordint *memry)
 *
 **/
 wordint
-f77name(vmmatt)(char *namevar,wordint *lpiece,wordint *npiece,char *attr,F2Cl l1,F2Cl l2)
+f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1,F2Cl l2)
 {
    int vmmerr();
 
@@ -2608,8 +2608,8 @@ f77name(vmmatt)(char *namevar,wordint *lpiece,wordint *npiece,char *attr,F2Cl l1
    if(ind == MAXNAMES)
            return vmmerr("VMMATT", UNKNOWNVAR);
 
-   *lpiece = (wordint) NAMES[ind].lslice - 8/sizeof(wordint); 
-   *npiece = (wordint) NAMES[ind].nslice; 
+   *lpiece = (int32_t) NAMES[ind].lslice - 8/sizeof(int32_t); 
+   *npiece = (int32_t) NAMES[ind].nslice; 
    slice_num = NAMES[ind].major_key;
 /*
  * recuperation des attributs
@@ -2679,15 +2679,15 @@ f77name(vmmatt)(char *namevar,wordint *lpiece,wordint *npiece,char *attr,F2Cl l1
 *
 **/
 wordint
-f77name(vmmcks)(complete_key *inkey, wordint *mode)
+f77name(vmmcks)(complete_key *inkey, int32_t *mode)
 {
 
-     extern wordint f77name(qvmcks)();
+     extern int32_t f77name(qvmcks)();
      int qvmindex_from_key(), vmmerr();
 
      int slice_ind, i ;
-     wordint check_sum, *adresse_du_bloc;
-     wordint nbelem;
+     int32_t check_sum, *adresse_du_bloc;
+     int32_t nbelem;
 
      if(callc("VMMCKS")) ;
        
@@ -2695,7 +2695,7 @@ f77name(vmmcks)(complete_key *inkey, wordint *mode)
 
 #if defined CALL_SEQ
      fprintf(fdout,
-      "CALL- vmmcks(%d,%d)\n",(wordint) inkey->clef, *mode);
+      "CALL- vmmcks(%d,%d)\n",(int32_t) inkey->clef, *mode);
 #endif
      if(*mode != 1)
         return(vmmerr("VMMCKS",BAD_CKSUM_MODE)); 
@@ -2711,7 +2711,7 @@ f77name(vmmcks)(complete_key *inkey, wordint *mode)
 
 
      adresse_du_bloc = BLOCKS[SLICES[slice_ind].block_table_index].memadr; 
-     nbelem = (wordint) BLOCKS[SLICES[slice_ind].block_table_index].size;
+     nbelem = (int32_t) BLOCKS[SLICES[slice_ind].block_table_index].size;
 
 
 /*
@@ -2807,7 +2807,7 @@ wordint f77name(vmmcpk)()
 *     in   l2       longueur de inattr
 **/
 wordint
-f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
+f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
                 char *inattr,F2Cl l1,F2Cl l2)
 {
    int vmmerr();
@@ -2818,7 +2818,7 @@ f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
    char junk[20], csauv, cinit, csize8, attr[NCARATTR], namevar[9];
    complete_key keyout;
 
-   wordint nmots;
+   int32_t nmots;
 
    if(callc("VMMCRE")) ;
        
@@ -2870,8 +2870,8 @@ f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
       NAMES[ind].nslice = (int) *npiece;
       NAMES[ind].major_key = nbslices;
 /*      NAMES[ind].lslice = (int) *lpiece; */
-       NAMES[ind].lslice = (int) ((((sizeof(wordint)*(*lpiece) +7)/8)*8)/sizeof(wordint));
-      NAMES[ind].lslice+=(8/sizeof(wordint));
+       NAMES[ind].lslice = (int) ((((sizeof(int32_t)*(*lpiece) +7)/8)*8)/sizeof(int32_t));
+      NAMES[ind].lslice+=(8/sizeof(int32_t));
       if((pos = strfind("CL=",attr)) != -1)
          sscanf(&attr[pos],"%3s%d",junk,&cl);
 
@@ -2999,8 +2999,8 @@ f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
  *    on s'assure que les caracteristiques inchangeables
  *    sont bel et bien inchangees avant de faire les modifications
  */
-      inlpiece = (int) ((((sizeof(wordint)*(*lpiece) +7)/8)*8)/sizeof(wordint));
-      inlpiece +=(8/sizeof(wordint));
+      inlpiece = (int) ((((sizeof(int32_t)*(*lpiece) +7)/8)*8)/sizeof(int32_t));
+      inlpiece +=(8/sizeof(int32_t));
 
 
       if((*npiece != NAMES[ind].nslice) ||
@@ -3040,7 +3040,7 @@ f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
  *  s'assurer que la longueur d'une tranche n'est pas plus longue que
  *  l'espace demande dans vmmallc
  */
-    nmots =  (wordint) NAMES[ind].lslice;
+    nmots =  (int32_t) NAMES[ind].lslice;
 #if !defined (ALL64)
     nmots *= (nsize8 == 1) ? 2 :1;
 #endif
@@ -3075,7 +3075,7 @@ f77name(vmmcre)(char innamevar[],wordint *lpiece,wordint *npiece,
 *
 **/
 wordint
-f77name(vmmdbg)(char command[],complete_key inlkey[], wordint *nkey,F2Cl l1)
+f77name(vmmdbg)(char command[],complete_key inlkey[], int32_t *nkey,F2Cl l1)
 {
 
   char cmd[NCARATTR], junk[20], diag_file[80], msg[80];
@@ -3200,7 +3200,7 @@ f77name(vmmdiag)()
 *
 **/
 wordint 
-f77name(vmmdmp)(unsigned wordint *mode)
+f77name(vmmdmp)(uint32_t *mode)
 {
          void imprime_structures();
          int i;
@@ -3235,7 +3235,7 @@ f77name(vmmdmp)(unsigned wordint *mode)
 *
 **/
 int 
-vmmerr(char *fonction,wordint valeur)
+vmmerr(char *fonction,int32_t valeur)
 {
       switch (valeur)
       {
@@ -3377,7 +3377,7 @@ vmmerr(char *fonction,wordint valeur)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-f77name(vmmfgt)(complete_key inlkey[], wordint *nkey)
+f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr();
        int indice, i, iii, bloc_indice;
@@ -3449,9 +3449,9 @@ f77name(vmmfgt)(complete_key inlkey[], wordint *nkey)
 **/
 wordint 
 #if defined (_FLOAT1)
-f77name(vmmget)(complete_key  *inkey, wordint *pointeur,wordint *tablo)
+f77name(vmmget)(complete_key  *inkey, int32_t *pointeur,int32_t *tablo)
 #else
-f77name(vmmget)(complete_key  *inkey, void **pointeur,wordint *tablo)
+f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
 #endif
 {
 
@@ -3466,7 +3466,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,wordint *tablo)
 
 #if defined CALL_SEQ
      fprintf(fdout,
-      "CALL- vmmget(%d,%d,%d)\n",(wordint) inkey->clef , pointeur, tablo);
+      "CALL- vmmget(%d,%d,%d)\n",(int32_t) inkey->clef , pointeur, tablo);
 #endif
           indice = qvmindex_from_key(*inkey);
 
@@ -3518,9 +3518,9 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,wordint *tablo)
 #if defined (_FLOAT1)
           intptr = (memint) BLOCKS[SLICES[indice].block_table_index].memadr;
 #if defined (ALL64)
-          *pointeur = (wordint) (intptr >> 3);
+          *pointeur = (int32_t) (intptr >> 3);
 #else
-          *pointeur = (wordint)  (intptr >> 2);
+          *pointeur = (int32_t)  (intptr >> 2);
 #endif
 #else
           *pointeur = (void *) BLOCKS[SLICES[indice].block_table_index].memadr;
@@ -3547,16 +3547,16 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,wordint *tablo)
 **/
 wordint
 #if defined (_FLOAT1)
-f77name(vmmhpa)(wordint *ptr,wordint *memry,wordint *mode)
+f77name(vmmhpa)(int32_t *ptr,int32_t *memry,int32_t *mode)
 #else
-f77name(vmmhpa)(void **ptr,wordint *memry,wordint *mode)
+f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
 #endif
 {
 
    int vmmerr();
    int nbytes;
    memint lptr;
-   wordint *pointeur;
+   int32_t *pointeur;
 
    if( callc("VMMHPA")) ; 
        
@@ -3565,26 +3565,26 @@ f77name(vmmhpa)(void **ptr,wordint *memry,wordint *mode)
       "CALL- vmmhpa(%d,%d,%d)\n",ptr,*memry,*mode);
 #endif
 
-   nbytes = sizeof(wordint);
+   nbytes = sizeof(int32_t);
    nbytes = (int) ((nbytes ==4 && *mode ==8) ? nbytes * *memry * 2 : nbytes * *memry);
 /*
-   if (free_space - nbytes/sizeof(wordint) < 0)
+   if (free_space - nbytes/sizeof(int32_t) < 0)
       fprintf(fd_err,"vmmhpa debug : allocation supplementaire (malloc)\n");
    else
-      free_space -=  nbytes/sizeof(wordint);
+      free_space -=  nbytes/sizeof(int32_t);
 */
-   pointeur = (wordint *) malloc(nbytes); 
+   pointeur = (int32_t *) malloc(nbytes); 
 
-   if (pointeur == (wordint *) NULL)
+   if (pointeur == (int32_t *) NULL)
         return(vmmerr("VMMHPA",NOT_ENOUGH_MEMORY));
    else
    {
 #if defined (_FLOAT1)
       lptr = (memint) pointeur;
 #if defined (ALL64)
-      *ptr = (wordint) (lptr >> 3);
+      *ptr = (int32_t) (lptr >> 3);
 #else
-      *ptr = (wordint) (lptr >> 2);
+      *ptr = (int32_t) (lptr >> 2);
 #endif
 #else
       *ptr = pointeur;
@@ -3607,14 +3607,14 @@ f77name(vmmhpa)(void **ptr,wordint *memry,wordint *mode)
 **/
 wordint
 #if defined(_FLOAT1)
-f77name(vmmhpd)(wordint *ptr)
+f77name(vmmhpd)(int32_t *ptr)
 #else
 f77name(vmmhpd)(void **ptr)
 #endif
 {
 
    memint lptr;
-   wordint *pointeur;
+   int32_t *pointeur;
 
    int vmmerr();
 
@@ -3630,9 +3630,9 @@ f77name(vmmhpd)(void **ptr)
 #if defined (_FLOAT1)
    lptr = (memint) *ptr;
 #if defined (ALL64)
-   pointeur = (wordint *) (lptr << 3);
+   pointeur = (int32_t *) (lptr << 3);
 #else
-   pointeur = (wordint *) (lptr << 2);
+   pointeur = (int32_t *) (lptr << 2);
 #endif
 #else
    pointeur =  *ptr;
@@ -3741,7 +3741,7 @@ int f77name(vmmint)()
 *
 **/
 wordint
-f77name(vmmlck)(complete_key inlkey[], wordint *nkey)
+f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(), verbar(),calc_checksum();
        int indice, i,iii,ier;
@@ -3758,7 +3758,7 @@ f77name(vmmlck)(complete_key inlkey[], wordint *nkey)
      fprintf(fdout,
       "CALL- vmmlck([");
         for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
      fprintf(fdout,"],%d)\n",*nkey);
 #endif
@@ -3818,11 +3818,11 @@ f77name(vmmlck)(complete_key inlkey[], wordint *nkey)
 *
 **/
 wordint
-f77name(vmmlod)(complete_key inlkey[], wordint *nkey)
+f77name(vmmlod)(complete_key inlkey[], int32_t *nkey)
 {
-        wordint qvmlod();
+        int32_t qvmlod();
 	int qvm_index_frim_key();
-        wordint ier, i,iii, un = 1;
+        int32_t ier, i,iii, un = 1;
 	int clef;
 
          
@@ -3835,7 +3835,7 @@ f77name(vmmlod)(complete_key inlkey[], wordint *nkey)
          fprintf(fdout,
           "CALL- vmmlod([");
             for (iii = 0; iii < *nkey; iii++)
-                fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+                fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
          fprintf(fdout,"],%d)\n",*nkey);
          fprintf(fdout," adresse de inlkey = %x\n",&inlkey[0]);
@@ -3966,7 +3966,7 @@ f77name(vmmpak)()
 *
 **/
 wordint
-f77name(vmmpwd)(wordint *mot_passe, wordint *mode)
+f77name(vmmpwd)(int32_t *mot_passe, int32_t *mode)
 {
 
 
@@ -4018,7 +4018,7 @@ f77name(vmmpwd)(wordint *mot_passe, wordint *mode)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-f77name(vmmrls)(complete_key inlkey[], wordint *nkey)
+f77name(vmmrls)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(),eject_block();
        int indice, i,iii, bloc_indice, ier;
@@ -4035,7 +4035,7 @@ f77name(vmmrls)(complete_key inlkey[], wordint *nkey)
      fprintf(fdout,
       "CALL- vmmrls([");
         for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
        fprintf(fdout,"],%d)\n",*nkey);
        fprintf(fdout," adresse de inlkey = %x\n",&inlkey[0]);
@@ -4108,7 +4108,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 #if defined CALL_SEQ
      fprintf(fdout," longueur de newname: %d\n",l1);
      fprintf(fdout,
-      "CALL- vmmrnm(%d,%s)\n",(wordint) oldkey->clef,innewname);
+      "CALL- vmmrnm(%d,%s)\n",(int32_t) oldkey->clef,innewname);
 #endif
 /*
  *   trouver la slice 
@@ -4141,7 +4141,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 *
 **/
 wordint 
-f77name(vmmsav)(complete_key inlkey[], wordint *nkey)
+f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
 {
          void ecrit_bloc(),reserve_disk_space();
          int qvmindex_from_key(), vmmerr();
@@ -4158,7 +4158,7 @@ f77name(vmmsav)(complete_key inlkey[], wordint *nkey)
      fprintf(fdout,
       "CALL- vmmsav([");
         for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
      fprintf(fdout,"],%d)\n",*nkey);
      fprintf(fdout," adresse de inlkey = %x\n",&inlkey[0]);
@@ -4231,7 +4231,7 @@ f77name(vmmsav)(complete_key inlkey[], wordint *nkey)
 *
 **/
 wordint
-f77name(vmmuld)(complete_key inlkey[], wordint *nkey)
+f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(), eject_block(), verbar();
        int calc_checksum();
@@ -4249,7 +4249,7 @@ f77name(vmmuld)(complete_key inlkey[], wordint *nkey)
      fprintf(fdout,
       "CALL- vmmuld([");
         for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
      fprintf(fdout,"],%d)\n",*nkey);
      fprintf(fdout," adresse de inlkey = %x\n",&inlkey[0]);
@@ -4354,7 +4354,7 @@ f77name(vmmuld)(complete_key inlkey[], wordint *nkey)
 *
 **/
 wordint
-f77name(vmmulk)(complete_key inlkey[], wordint *nkey)
+f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(),verbar(),calc_checksum();
        int indice, i,iii,ier;
@@ -4371,7 +4371,7 @@ f77name(vmmulk)(complete_key inlkey[], wordint *nkey)
      fprintf(fdout,
       "CALL- vmmulk([");
         for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
      fprintf(fdout,"],%d)\n",*nkey);
 #endif
@@ -4456,7 +4456,7 @@ f77name(vmmulk)(complete_key inlkey[], wordint *nkey)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-f77name(vmmuln)(complete_key inlkey[], wordint *nkey)
+f77name(vmmuln)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(), eject_block(),verbar();
        int calc_checksum();
@@ -4474,7 +4474,7 @@ f77name(vmmuln)(complete_key inlkey[], wordint *nkey)
      fprintf(fdout,
       "CALL- vmmuln([");
         for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(wordint) inlkey[iii].clef);
+            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
 
      fprintf(fdout,"],%d)\n",*nkey);
 #endif
@@ -4548,7 +4548,7 @@ f77name(vmmuln)(complete_key inlkey[], wordint *nkey)
 *
 **/
 wordint
-f77name(vmmwho)(wordint *adr)
+f77name(vmmwho)(int32_t *adr)
 {
    int i,sind,nind;
 
@@ -4843,7 +4843,7 @@ f77name(vmmend)()
    free(BLOCKS[0].memadr); 
    fprintf(stdout,"Debug vmmend BLOCKS[0].memadr=%d\n",BLOCKS[0].memadr);
 
-   if(BLOCKS[0].memadr != (wordint *) NULL)
+   if(BLOCKS[0].memadr != (int32_t *) NULL)
         return(vmmerr("VMMALLC",SPACE_STILL_ALLOCATED));
 
 

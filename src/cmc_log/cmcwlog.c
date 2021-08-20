@@ -291,7 +291,7 @@ wordint f77name(cmcwlog)(
     //! [in]
     char *fclstr,
     //! [in]
-    ftnword *msgno,
+    int32_t *msgno,
     //! [in]
     char *fidstr,
     //! [in]

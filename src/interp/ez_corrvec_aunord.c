@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrvec_aunord(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, wordint gdin, wordint gdout)
+wordint ez_corrvec_aunord(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout)
 {
 ftnfloat uupole, vvpole;
 ftnfloat *polar_uu_in, *polar_vv_in, *polar_uu_out, *polar_vv_out, *corr_uus, *corr_vvs, *temp_y,ay[4];
@@ -51,10 +51,10 @@ degree = 3;
 gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
 npts = gset->zones[AU_NORD].npts;
 
-polar_uu_in = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
-polar_vv_in = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
-corr_uus = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
-corr_vvs = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+polar_uu_in = (float *) malloc(4 * ni * sizeof(float));
+polar_vv_in = (float *) malloc(4 * ni * sizeof(float));
+corr_uus = (float *) malloc(npts * sizeof(float));
+corr_vvs = (float *) malloc(npts * sizeof(float));
 
 ez_calcnpolarwind(polar_uu_in, polar_vv_in, uuin, vvin, ni, nj, gdin);
 
@@ -100,7 +100,7 @@ switch (groptions.degre_interp)
       break;
 
    case LINEAIRE:
-      temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+      temp_y = (float *) malloc(npts*sizeof(float));
       for (i=0; i < npts; i++)
          {
          temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (laGrille.j2-3));
@@ -111,7 +111,7 @@ switch (groptions.degre_interp)
       break;
 
    case VOISIN:
-      temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+      temp_y = (float *) malloc(npts*sizeof(float));
       for (i=0; i < npts; i++)
          {
          temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (laGrille.j2-3));

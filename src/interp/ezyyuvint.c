@@ -22,21 +22,21 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint c_ezyyuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin,  ftnfloat *vvin, wordint gdout,wordint gdin)
+wordint c_ezyyuvint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin)
 {
   int idx_gdin;
-  wordint icode,i,j,k,ierc1,ierc2,ierc;
-  wordint yancount_yin,yincount_yin, yancount_yan,yincount_yan;
-  wordint yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;
-  wordint yin_gdrow_in, yin_gdcol_in, yin_gdrow_out, yin_gdcol_out;
-  wordint yan_gdrow_in, yan_gdcol_in, yan_gdrow_out, yan_gdcol_out;
-  wordint     gdrow_in,     gdcol_in,     gdrow_out,     gdcol_out;
-  wordint ni, nj;
-  ftnfloat *yin2yin_uuout,*yan2yin_uuout, *yin2yin_vvout,*yan2yin_vvout;
-  ftnfloat *yin2yan_uuout,*yan2yan_uuout, *yin2yan_vvout,*yan2yan_vvout;
-  ftnfloat *yin2yin_spdout,*yan2yin_spdout, *yin2yin_wdout,*yan2yin_wdout;
-  ftnfloat *yin2yan_spdout,*yan2yan_spdout, *yin2yan_wdout,*yan2yan_wdout;
-  ftnfloat *spdout,*wdout;
+  int32_t icode,i,j,k,ierc1,ierc2,ierc;
+  int32_t yancount_yin,yincount_yin, yancount_yan,yincount_yan;
+  int32_t yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;
+  int32_t yin_gdrow_in, yin_gdcol_in, yin_gdrow_out, yin_gdcol_out;
+  int32_t yan_gdrow_in, yan_gdcol_in, yan_gdrow_out, yan_gdcol_out;
+  int32_t     gdrow_in,     gdcol_in,     gdrow_out,     gdcol_out;
+  int32_t ni, nj;
+  float *yin2yin_uuout,*yan2yin_uuout, *yin2yin_vvout,*yan2yin_vvout;
+  float *yin2yan_uuout,*yan2yan_uuout, *yin2yan_vvout,*yan2yan_vvout;
+  float *yin2yin_spdout,*yan2yin_spdout, *yin2yin_wdout,*yan2yin_wdout;
+  float *yin2yan_spdout,*yan2yan_spdout, *yin2yan_wdout,*yan2yan_wdout;
+  float *spdout,*wdout;
   
   _Grille *lgdin, *lgdout;
  /*  need only access to either yin or Yang info for the lat and lon val */
@@ -160,16 +160,16 @@ wordint c_ezyyuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin,  ftnfloat 
     {
     yincount_yin = lgdout->gset[idx_gdin].yincount_yin;
     yancount_yin = lgdout->gset[idx_gdin].yancount_yin;
-    spdout        = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    wdout         = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    yin2yin_uuout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yin2yin_vvout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yin2yin_spdout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yin2yin_wdout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yan2yin_uuout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yan2yin_vvout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yan2yin_spdout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yan2yin_wdout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
+    spdout        = (float *) malloc(ni*nj*sizeof(float));
+    wdout         = (float *) malloc(ni*nj*sizeof(float));
+    yin2yin_uuout = (float *) malloc(yincount_yin*sizeof(float));
+    yin2yin_vvout = (float *) malloc(yincount_yin*sizeof(float));
+    yin2yin_spdout = (float *) malloc(yincount_yin*sizeof(float));
+    yin2yin_wdout = (float *) malloc(yincount_yin*sizeof(float));
+    yan2yin_uuout = (float *) malloc(yancount_yin*sizeof(float));
+    yan2yin_vvout = (float *) malloc(yancount_yin*sizeof(float));
+    yan2yin_spdout = (float *) malloc(yancount_yin*sizeof(float));
+    yan2yin_wdout = (float *) malloc(yancount_yin*sizeof(float));
 
     icode = c_gdxyvval(yin_gdin,yin2yin_uuout,yin2yin_vvout,uuin,vvin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,lgdout->gset[idx_gdin].yincount_yin);
     icode = c_gdwdfuv(yin_gdin,yin2yin_spdout,yin2yin_wdout,yin2yin_uuout,yin2yin_vvout,lgdout->gset[idx_gdin].yin2yin_lat,lgdout->gset[idx_gdin].yin2yin_lon,yincount_yin);
@@ -217,25 +217,25 @@ wordint c_ezyyuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin,  ftnfloat 
     yancount_yin = lgdout->gset[idx_gdin].yancount_yin;
     yincount_yan = lgdout->gset[idx_gdin].yincount_yan;
     yancount_yan = lgdout->gset[idx_gdin].yancount_yan;
-    spdout = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    wdout = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    yin2yin_uuout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yin2yin_vvout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yin2yin_spdout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yin2yin_wdout = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yan2yin_uuout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yan2yin_vvout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yan2yin_spdout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yan2yin_wdout = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
+    spdout = (float *) malloc(ni*nj*sizeof(float));
+    wdout = (float *) malloc(ni*nj*sizeof(float));
+    yin2yin_uuout = (float *) malloc(yincount_yin*sizeof(float));
+    yin2yin_vvout = (float *) malloc(yincount_yin*sizeof(float));
+    yin2yin_spdout = (float *) malloc(yincount_yin*sizeof(float));
+    yin2yin_wdout = (float *) malloc(yincount_yin*sizeof(float));
+    yan2yin_uuout = (float *) malloc(yancount_yin*sizeof(float));
+    yan2yin_vvout = (float *) malloc(yancount_yin*sizeof(float));
+    yan2yin_spdout = (float *) malloc(yancount_yin*sizeof(float));
+    yan2yin_wdout = (float *) malloc(yancount_yin*sizeof(float));
 
-    yin2yan_uuout = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    yin2yan_vvout = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    yin2yan_spdout = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    yin2yan_wdout = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    yan2yan_uuout = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    yan2yan_vvout = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    yan2yan_spdout = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    yan2yan_wdout = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
+    yin2yan_uuout = (float *) malloc(yincount_yan*sizeof(float));
+    yin2yan_vvout = (float *) malloc(yincount_yan*sizeof(float));
+    yin2yan_spdout = (float *) malloc(yincount_yan*sizeof(float));
+    yin2yan_wdout = (float *) malloc(yincount_yan*sizeof(float));
+    yan2yan_uuout = (float *) malloc(yancount_yan*sizeof(float));
+    yan2yan_vvout = (float *) malloc(yancount_yan*sizeof(float));
+    yan2yan_spdout = (float *) malloc(yancount_yan*sizeof(float));
+    yan2yan_wdout = (float *) malloc(yancount_yan*sizeof(float));
 
     icode = c_gdxyvval(yin_gdin,yin2yin_uuout,yin2yin_vvout,uuin,vvin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yincount_yin);
     icode = c_gdwdfuv(yin_gdin,yin2yin_spdout,yin2yin_wdout,yin2yin_uuout,yin2yin_vvout,lgdout->gset[idx_gdin].yin2yin_lat,lgdout->gset[idx_gdin].yin2yin_lon,yincount_yin);

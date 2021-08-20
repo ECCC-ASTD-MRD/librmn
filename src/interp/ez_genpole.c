@@ -22,32 +22,32 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(ezgenpole)(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
-                           wordint *ni, wordint *nj, wordint *vecteur, 
-                           char *grtyp, wordint *hem, F2Cl lengrtyp)
+wordint f77name(ezgenpole)(float *vpolnor, float *vpolsud, float *fld,
+                           int32_t *ni, int32_t *nj, int32_t *vecteur, 
+                           char *grtyp, int32_t *hem, F2Cl lengrtyp)
 {
    return c_ezgenpole(vpolnor, vpolsud, fld, *ni, *nj, *vecteur, grtyp, *hem);
 
 }
 
-wordint c_ezgenpole(ftnfloat *vpolnor, ftnfloat *vpolsud, ftnfloat *fld,
-                           wordint ni, wordint nj, wordint vecteur, 
-                           char *grtyp, wordint hem)
+wordint c_ezgenpole(float *vpolnor, float *vpolsud, float *fld,
+                           int32_t ni, int32_t nj, int32_t vecteur, 
+                           char *grtyp, int32_t hem)
 {
-   wordint lni, lnj, lvecteur, lhem;
-   ftnfloat *x, *y, *z, *lat, *lon, *gausslat;
+   int32_t lni, lnj, lvecteur, lhem;
+   float *x, *y, *z, *lat, *lon, *gausslat;
 
    lni = ni; 
    lnj = nj; 
    lvecteur = vecteur; 
    lhem = hem;
 
-   x =    (ftnfloat *) malloc(2*lni*sizeof(ftnfloat));
-   y =    (ftnfloat *) malloc(2*lni*sizeof(ftnfloat));
-   z =    (ftnfloat *) malloc(2*lni*sizeof(ftnfloat));
-   lat =  (ftnfloat *) malloc(2*lni*sizeof(ftnfloat));
-   lon =  (ftnfloat *) malloc(2*lni*sizeof(ftnfloat));
-   gausslat = (ftnfloat *) malloc(2*lnj*sizeof(ftnfloat));
+   x =    (float *) malloc(2*lni*sizeof(float));
+   y =    (float *) malloc(2*lni*sizeof(float));
+   z =    (float *) malloc(2*lni*sizeof(float));
+   lat =  (float *) malloc(2*lni*sizeof(float));
+   lon =  (float *) malloc(2*lni*sizeof(float));
+   gausslat = (float *) malloc(2*lnj*sizeof(float));
    
    f77name(ez_genpole)(vpolnor, vpolsud, fld, &lni, &lnj, &lvecteur, grtyp, &lhem,
                        x,y,z,lat,lon,gausslat, &groptions.degre_interp,1);

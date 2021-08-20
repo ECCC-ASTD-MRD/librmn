@@ -73,7 +73,7 @@ wordint *index, *size ;
 {
 
    int switches = 0 ;
-   wordint gap = *size, i = 0, j = 0, top = 0 ;
+   int32_t gap = *size, i = 0, j = 0, top = 0 ;
 
 /* Faut-il initialiser les index's */
 
@@ -85,7 +85,7 @@ wordint *index, *size ;
    do
       {
 
-      gap = (wordint)((wordfloat)gap/SHRINKFACTOR);
+      gap = (int32_t)((float)gap/SHRINKFACTOR);
       switch (gap)
 	 {
 	 case 0:  /* The smallest gap is 1 - bubble sort */
@@ -141,7 +141,7 @@ wordint *index, *size ;
 {
 
    int switches = 0 ; 
-   wordint gap = *size, i = 0, j = 0, top = 0 ;
+   int32_t gap = *size, i = 0, j = 0, top = 0 ;
 
 /* Faut-il initialiser les index's */
 
@@ -153,7 +153,7 @@ wordint *index, *size ;
    do
       {
 
-      gap = (wordint)((wordfloat)gap/SHRINKFACTOR);
+      gap = (int32_t)((float)gap/SHRINKFACTOR);
       switch (gap)
 	 {
 	 case 0:  /* The smallest gap is 1 - bubble sort */
@@ -207,7 +207,7 @@ wordint *list, *index, *size ;
 {
 
    int switches = 0 ; 
-   wordint gap = *size, i = 0, j = 0, top = 0 ;
+   int32_t gap = *size, i = 0, j = 0, top = 0 ;
 
 /* Faut-il initialiser les index's */
 
@@ -219,7 +219,7 @@ wordint *list, *index, *size ;
    do
       {
 
-      gap = (wordint)((wordfloat)gap/SHRINKFACTOR);
+      gap = (int32_t)((float)gap/SHRINKFACTOR);
       switch (gap)
 	 {
 	 case 0:  /* The smallest gap is 1 - bubble sort */
@@ -273,7 +273,7 @@ wordint *index, *size, len ;
 {
 
    int switches = 0 ;
-   wordint gap = *size, i = 0, j = 0, top = 0 ;
+   int32_t gap = *size, i = 0, j = 0, top = 0 ;
 
 /* Faut-il initialiser les index's */
 
@@ -285,7 +285,7 @@ wordint *index, *size, len ;
    do
       {
 
-      gap = (wordint)((wordfloat)gap/SHRINKFACTOR);
+      gap = (int32_t)((float)gap/SHRINKFACTOR);
       switch (gap)
 	 {
 	 case 0:  /* The smallest gap is 1 - bubble sort */

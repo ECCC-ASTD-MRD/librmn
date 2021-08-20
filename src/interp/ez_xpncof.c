@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcxpncof(wordint gdid)
+wordint ez_calcxpncof(int32_t gdid)
 {
 wordint gdrow_id, gdcol_id;
 
@@ -46,12 +46,12 @@ ez_xpncof(&Grille[gdrow_id][gdcol_id].i1,
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-void ez_xpncof(wordint *i1, wordint *i2, wordint *j1, wordint *j2, wordint *extension,
-            wordint ni,wordint nj,char grtyp, char grref,
-            wordint ig1,wordint ig2,wordint ig3,wordint ig4,wordint sym, ftnfloat *ax, ftnfloat *ay)
+void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *extension,
+            int32_t ni,int32_t nj,char grtyp, char grref,
+            int32_t ig1,int32_t ig2,int32_t ig3,int32_t ig4,int32_t sym, float *ax, float *ay)
    {
-   ftnfloat first_lat, first_lon, last_lat, last_lon, extra_lon, dlat, dlon;
-   wordint lcl_ig1, lcl_ig2, lcl_ig3, lcl_ig4;
+   float first_lat, first_lon, last_lat, last_lon, extra_lon, dlat, dlon;
+   int32_t lcl_ig1, lcl_ig2, lcl_ig3, lcl_ig4;
    char lcl_grtyp;
    
    *i1 = 1;

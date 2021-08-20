@@ -22,19 +22,19 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllfxy)(wordint *gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint *n)
+wordint f77name(gdllfxy)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
 {
   return c_gdllfxy(*gdid, lat, lon, x, y, *n);
 
 }
 
-wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
+wordint c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
-  wordint j, icode, yin_gdid, yan_gdid;
-  ftnfloat *latyin, *lonyin, *latyan, *lonyan;
-  ftnfloat *tmpy;
+  int32_t j, icode, yin_gdid, yan_gdid;
+  float *latyin, *lonyin, *latyan, *lonyan;
+  float *tmpy;
 
-  wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
+  int32_t gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -43,11 +43,11 @@ wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfl
       yin_gdid=Grille[gdrow_id][gdcol_id].subgrid[0];
       yan_gdid=Grille[gdrow_id][gdcol_id].subgrid[1];
       c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
-      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      latyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      lonyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      latyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      lonyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      tmpy = (float *) malloc(n*sizeof(float));
+      latyin = (float *) malloc(n*sizeof(float));
+      lonyin = (float *) malloc(n*sizeof(float));
+      latyan = (float *) malloc(n*sizeof(float));
+      lonyan = (float *) malloc(n*sizeof(float));
       for (j=0; j< n; j++)
         {
           if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)
@@ -90,18 +90,18 @@ wordint c_gdllfxy(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfl
     }
   return icode;
 }
-wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
+wordint c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
-  ftnfloat xlat1, xlon1, xlat2, xlon2;
-  wordint i, npts, un;
-  ftnfloat *tmpx, *tmpy, *ytmp=NULL;
-  ftnfloat delxx, delyy;
-  ftnfloat dlat, dlon, swlat, swlon;
-  wordint indx, indy;
+  float xlat1, xlon1, xlat2, xlon2;
+  int32_t i, npts, un;
+  float *tmpx, *tmpy, *ytmp=NULL;
+  float delxx, delyy;
+  float dlat, dlon, swlat, swlon;
+  int32_t indx, indy;
 
   _Grille gr;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -116,7 +116,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
 	      {
 	      lat[i] = (y[i]-1.0)*gr.fst.xg[DLAT]+gr.fst.xg[SWLAT];
 	      lon[i] = (x[i]-1.0)*gr.fst.xg[DLON]+gr.fst.xg[SWLON];
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      }
       break;
 
@@ -125,13 +125,13 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
 	      {
 	      lat[i] = (y[i]-1.0)*gr.fst.xg[DLAT]+gr.fst.xg[SWLAT];
 	      lon[i] = (x[i]-1.0)*gr.fst.xg[DLON]+gr.fst.xg[SWLON];
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      }
       break;
 
     case 'E':
-      tmpx = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      tmpx = (float *) malloc(n*sizeof(float));
+      tmpy = (float *) malloc(n*sizeof(float));
       for (i=0; i < n; i++)
 	      {
 	      dlat  = 180.0 / gr.nj;
@@ -152,7 +152,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
       for (i=0; i < n; i++)
 	      {
 	      lon[i] = (x[i]-1.0)*gr.fst.xg[DLON]+gr.fst.xg[SWLON];
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      lat[i] = (y[i]-1.0)*gr.fst.xg[DLAT]+gr.fst.xg[SWLAT];
 	      }
       break;
@@ -162,7 +162,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
       f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&gr.fst.xg[D60],&gr.fst.xg[DGRW],&gr.fst.xg[PI],&gr.fst.xg[PJ],&gr.fst.hemisphere);
       for (i=0; i < n; i++)
 	      {
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      }
       break;
 
@@ -184,9 +184,9 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
     case '#':
     case 'Z':
     case 'G':
-      tmpx = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      ytmp = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      tmpx = (float *) malloc(n*sizeof(float));
+      tmpy = (float *) malloc(n*sizeof(float));
+      ytmp = (float *) malloc(n*sizeof(float));
       for (i=0; i < n; i++)
 	      {
 	      indx = (int)x[i]-1;
@@ -223,7 +223,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
 			           &gr.fst.xgref[DGRW],&gr.fst.xgref[PI],&gr.fst.xgref[PJ],&gr.fst.hemisphere);
 	        for (i=0; i < n; i++)
 	          {
-	          lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	          lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	          }
 	        break;
 
@@ -232,7 +232,7 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
 	          {
 	          lat[i] = (tmpy[i])*gr.fst.xgref[DLAT]+gr.fst.xgref[SWLAT];
 	          lon[i] = (tmpx[i])*gr.fst.xgref[DLON]+gr.fst.xgref[SWLON];
-	          lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	          lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	          }
 	        break;
 
@@ -250,18 +250,18 @@ wordint c_gdllfxy_new(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, f
 
 }
 
-wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
+wordint c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
-  ftnfloat xlat1, xlon1, xlat2, xlon2;
-  wordint i, npts, un;
-  ftnfloat *tmpx, *tmpy;
-  ftnfloat delxx, delyy;
-  ftnfloat dlat, dlon, swlat, swlon;
-  wordint indx, indy;
+  float xlat1, xlon1, xlat2, xlon2;
+  int32_t i, npts, un;
+  float *tmpx, *tmpy;
+  float delxx, delyy;
+  float dlat, dlon, swlat, swlon;
+  int32_t indx, indy;
 
   _Grille gr;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -276,7 +276,7 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
 	      {
 	      lat[i] = (y[i]-1.0)*gr.fst.xg[DLAT]+gr.fst.xg[SWLAT];
 	      lon[i] = (x[i]-1.0)*gr.fst.xg[DLON]+gr.fst.xg[SWLON];
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      }
       break;
 
@@ -285,13 +285,13 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
 	      {
 	      lat[i] = (y[i]-1.0)*gr.fst.xg[DLAT]+gr.fst.xg[SWLAT];
 	      lon[i] = (x[i]-1.0)*gr.fst.xg[DLON]+gr.fst.xg[SWLON];
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      }
       break;
 
     case 'E':
-      tmpx = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      tmpx = (float *) malloc(n*sizeof(float));
+      tmpy = (float *) malloc(n*sizeof(float));
       for (i=0; i < n; i++)
 	      {
 	      dlat  = 180.0 / gr.nj;
@@ -312,7 +312,7 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
       for (i=0; i < n; i++)
 	      {
 	      lon[i] = (x[i]-1.0)*gr.fst.xg[DLON]+gr.fst.xg[SWLON];
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      lat[i] = (y[i]-1.0)*gr.fst.xg[DLAT]+gr.fst.xg[SWLAT];
 	      }
       break;
@@ -322,7 +322,7 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
       f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&gr.fst.xg[D60],&gr.fst.xg[DGRW],&gr.fst.xg[PI],&gr.fst.xg[PJ],&gr.fst.hemisphere);
       for (i=0; i < n; i++)
 	      {
-	      lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	      lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	      }
       break;
 
@@ -344,8 +344,8 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
     case '#':
     case 'Z':
     case 'G':
-      tmpx = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      tmpx = (float *) malloc(n*sizeof(float));
+      tmpy = (float *) malloc(n*sizeof(float));
       for (i=0; i < n; i++)
 	      {
 	      indx = (int)x[i]-1;
@@ -377,7 +377,7 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
 			           &gr.fst.xgref[DGRW],&gr.fst.xgref[PI],&gr.fst.xgref[PJ],&gr.fst.hemisphere);
 	        for (i=0; i < n; i++)
 	          {
-	          lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	          lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	          }
 	        break;
 
@@ -386,7 +386,7 @@ wordint c_gdllfxy_orig(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, 
 	          {
 	          lat[i] = (tmpy[i])*gr.fst.xgref[DLAT]+gr.fst.xgref[SWLAT];
 	          lon[i] = (tmpx[i])*gr.fst.xgref[DLON]+gr.fst.xgref[SWLON];
-	          lon[i] = (ftnfloat) (fmod((double) (lon[i] + 360.0), (double) 360.0));
+	          lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
 	          }
 	        break;
 

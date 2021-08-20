@@ -22,18 +22,18 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllfxyz)(wordint *gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint *n)
+wordint f77name(gdllfxyz)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
 {
   return c_gdllfxyz(*gdid, lat, lon, x, y, *n);
 }
 
-wordint c_gdllfxyz(wordint gdid, ftnfloat *lat, ftnfloat *lon, ftnfloat *x, ftnfloat *y, wordint n)
+wordint c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
-  wordint i,npts, hem, un;
+  int32_t i,npts, hem, un;
   
   _Grille grEntree;
   
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   

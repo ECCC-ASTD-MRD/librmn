@@ -34,7 +34,7 @@ typedef struct {
     //! x dimension of '#' grid section for any grid type but '#', i1=j, 1=1, ni=nio, nj=njo
     int nj[MAX_SLAB_TYPES];
     //! Data buffer
-    unsigned int32_t *buffer;
+    uint32_t *buffer;
     //! Current write position into buffer
     int pos;
 } file_table_desc;

@@ -21,12 +21,12 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void c_ezdefxg(wordint gdid)
+void c_ezdefxg(int32_t gdid)
 {
 
   _Grille *gr;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 

@@ -35,8 +35,8 @@
 */
 
 
-void  packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, word *header);
-void  packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, word *header);
+void  packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header);
+void  packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header);
 int armn_compress(unsigned char *fld, int ni, int nj, int nk, int nbits, int op_code);
 int c_armn_compress_getlevel();
 int c_fstzip_getlevel();    
@@ -45,27 +45,27 @@ void calcule_entropie(float *entropie, unsigned short *bitstream, int npts, int 
 void fixpredflds(int *predfld, int *zc, int ni, int nj, int nicoarse, int njcoarse, int step, int ajus_x, int ajus_y);
 void init_comp_settings(char *comp_settings);
 int is_on_coarse(int i, int j, int ni, int nj, int step);
-void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoarse, int njcoarse, int diffs[], int ni, int nj, int nbits, int step, word *header, int start, int end);
-void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, word *header);
-void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, word *header);
-void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, word *header, int start);
-void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, word *header, int start);
+void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoarse, int njcoarse, int diffs[], int ni, int nj, int nbits, int step, int32_t *header, int start, int end);
+void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, int32_t *header);
+void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, int32_t *header);
+void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, int32_t *header, int start);
+void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, int32_t *header, int start);
 void c_armn_compress_setlevel(int level);
 int  c_armn_compress_getlevel();
 void c_armn_compress_setswap(int swapState);
 int  c_armn_compress_getswap();
 void c_armn_compress_option(char *option, char *value);
 void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);    
-void c_fstunzip_minimum(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header);
-void c_fstunzip_parallelogram(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header);
-void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header);
+void c_fstunzip_minimum(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, int32_t *header);
+void c_fstunzip_parallelogram(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, int32_t *header);
+void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, int32_t *header);
 void c_fstzip(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int code_methode, int degre, int step, int nbits, int bzip);
-void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, word *header);
-void c_fstzip_sample(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, word *header);
+void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, int32_t *header);
+void c_fstzip_sample(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, int32_t *header);
 void c_fstzip_setlevel(int level);
 void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
 void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
-void f77name(armn_compress_setlevel)(wordint *level);
+void f77name(armn_compress_setlevel)(int32_t *level);
 void make_shorts(unsigned short *z16, unsigned int *z32, int npts);
 void unpack_tokens(unsigned int *ufld, unsigned int *z, int ni, int nj, int nbits);
 
@@ -275,17 +275,17 @@ void c_fstzip(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, 
   switch (code_methode)
     {
     case MINIMUM:
-      c_fstzip_minimum(zfld, zlng, (unsigned short *)fld, ni, nj, step, nbits, (word *) &zfstzip);
+      c_fstzip_minimum(zfld, zlng, (unsigned short *)fld, ni, nj, step, nbits, (int32_t *) &zfstzip);
       break;
       
     case PARALLELOGRAM:
-      c_fstzip_parallelogram(zfld, zlng, (unsigned short *)fld, ni, nj, step, nbits, (word *) &zfstzip);
+      c_fstzip_parallelogram(zfld, zlng, (unsigned short *)fld, ni, nj, step, nbits, (int32_t *) &zfstzip);
       break;
     
     case SAMPLE:
       fprintf(stderr, "The SAMPLE option has been deactivated as of April 2006. This is an error and should never happen.\n");
       exit(13);
-/*      c_fstzip_sample(zfld, zlng, (unsigned short *)fld, ni, nj, step, nbits, (word *) &zfstzip);*/
+/*      c_fstzip_sample(zfld, zlng, (unsigned short *)fld, ni, nj, step, nbits, (int32_t *) &zfstzip);*/
       break;
       
     default:
@@ -305,15 +305,15 @@ void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits
   switch (zfstzip.predictor_type)
     {
     case MINIMUM:
-      c_fstunzip_minimum((unsigned short *)fld, zfld, ni, nj, zfstzip.step, zfstzip.nbits, (word *)&zfstzip);
+      c_fstunzip_minimum((unsigned short *)fld, zfld, ni, nj, zfstzip.step, zfstzip.nbits, (int32_t *)&zfstzip);
       break;
       
     case PARALLELOGRAM:
-      c_fstunzip_parallelogram((unsigned short *)fld, zfld, ni, nj, zfstzip.step, zfstzip.nbits, (word *)&zfstzip);
+      c_fstunzip_parallelogram((unsigned short *)fld, zfld, ni, nj, zfstzip.step, zfstzip.nbits, (int32_t *)&zfstzip);
       break;
     
     case SAMPLE:
-      c_fstunzip_sample((unsigned short *)fld, zfld, ni, nj, zfstzip.step, zfstzip.nbits, (word *)&zfstzip);
+      c_fstunzip_sample((unsigned short *)fld, zfld, ni, nj, zfstzip.step, zfstzip.nbits, (int32_t *)&zfstzip);
       break;
       
     default:
@@ -332,7 +332,7 @@ void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits
 }
  
 /**********************************************************************************************************************************/
-void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, word *header)
+void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, int32_t *header)
   {
 
   packTokensMinimum(zfld, zlng, fld, ni, nj, nbits, step, header);
@@ -340,7 +340,7 @@ void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni
   }
 
 /**********************************************************************************************************************************/
-int c_fstzip_parallelogram(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, word *header)
+int c_fstzip_parallelogram(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, int32_t *header)
   {
 
   packTokensParallelogram(zfld, zlng, fld, ni, nj, nbits, step, header);
@@ -349,19 +349,19 @@ int c_fstzip_parallelogram(unsigned int *zfld, int *zlng, unsigned short *fld, i
 
 /**********************************************************************************************************************************/
 
-void c_fstunzip_minimum(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header)
+void c_fstunzip_minimum(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, int32_t *header)
   {
   unpackTokensMinimum(fld, zfld, ni, nj, nbits, step, header);
   }
 
-void c_fstunzip_parallelogram(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header)
+void c_fstunzip_parallelogram(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, int32_t *header)
   {
   unpackTokensParallelogram(fld, zfld, ni, nj, nbits, step, header);
   }
 
 /**********************************************************************************************************************************/
 
-void c_fstzip_sample(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, word *header)
+void c_fstzip_sample(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, int32_t *header)
   {
   int ajus_x, ajus_y, ninj, i, j, k;
   unsigned int *zc,  *zc1, *zc2;
@@ -481,7 +481,7 @@ void c_fstzip_sample(unsigned int *zfld, int *zlng, unsigned short *fld, int ni,
 
 /**********************************************************************************************************************************/
 
-void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, word *header)
+void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, int32_t *header)
   {
   unsigned int *zc, *zc1, *zc2;
   int *idiffs;
@@ -629,7 +629,7 @@ void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, 
 */
 
 
-void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, word *header)
+void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header)
 {
   unsigned int i, j, k, m, n;
   unsigned int lastWordShifted, spaceInLastWord, lastSlot;
@@ -756,7 +756,7 @@ if (debug)
 /**********************************************************************************************************************************/
 /* See the documentation of "packTokensMinimum" for the structure of the compressed stream */
 
-void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, word *header)
+void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, int32_t *header)
 {
   int i, j, k, m, n;
   int bitPackInWord;
@@ -826,7 +826,7 @@ void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj
 /**********************************************************************************************************************************/
 /* See the documentation of "packTokensMinimum" for the structure of the compressed stream */
 
-void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, word *header)
+void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header)
 {
   unsigned int i, j, k, m, n;
   unsigned int lastWordShifted, spaceInLastWord, lastSlot;
@@ -1032,7 +1032,7 @@ if (debug)
 }
 
 
-void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, word *header)
+void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, int32_t *header)
 {
   int i, j, k, m, n;
   int bitPackInWord;
@@ -1238,7 +1238,7 @@ void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, 
             if == 0, nothing is done
             if == 1, a 32-bit word containing 0 closes the stream
 */
-void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoarse, int njcoarse, int diffs[], int ni, int nj, int nbits, int step, word *header, int start, int end)
+void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoarse, int njcoarse, int diffs[], int ni, int nj, int nbits, int step, int32_t *header, int start, int end)
 {
   int i, j, k, m, n;
   static unsigned int lastWordShifted, spaceInLastWord, lastSlot;
@@ -1401,7 +1401,7 @@ if (debug)
 /**********************************************************************************************************************************/
 /* See documentation for packTokenSample */
 
-void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, word *header, int start)
+void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, int32_t *header, int start)
 {
   int i, j, k, m, n;
   static unsigned int *cur, curword;
@@ -1693,7 +1693,7 @@ void calcule_entropie(float *entropie, unsigned short *bitstream, int npts, int 
 }
 
 /**********************************************************************************************************************/
-void f77name(armn_compress_setlevel)(wordint *level)
+void f77name(armn_compress_setlevel)(int32_t *level)
 {
   int local_level;
   
@@ -1737,7 +1737,7 @@ int c_armn_compress_getlevel()
 }
 
 /**********************************************************************************************************************/
-void f77name(armn_compress_setswap)(wordint *swap)
+void f77name(armn_compress_setswap)(int32_t *swap)
 {
   int local_swap;
   

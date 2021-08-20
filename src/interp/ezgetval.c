@@ -22,11 +22,11 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgetval)(char *option, ftnfloat *fvalue, F2Cl llenoption)
+wordint f77name(ezgetval)(char *option, float *fvalue, F2Cl llenoption)
 {
-   wordint icode;
+   int32_t icode;
    char local_opt[32];
-   wordint lenoption=llenoption;
+   int32_t lenoption=llenoption;
 
    ftnstrclean(option,lenoption);
    strncpy(local_opt, option, lenoption);
@@ -37,11 +37,11 @@ wordint f77name(ezgetval)(char *option, ftnfloat *fvalue, F2Cl llenoption)
    return icode;
 }
 
-wordint f77name(ezgetival)(char *option, wordint *ivalue, F2Cl llenoption)
+wordint f77name(ezgetival)(char *option, int32_t *ivalue, F2Cl llenoption)
 {
-   wordint icode;
+   int32_t icode;
    char local_opt[32];
-   wordint lenoption=llenoption;
+   int32_t lenoption=llenoption;
 
    ftnstrclean(option,lenoption);
    strncpy(local_opt, option, lenoption);
@@ -50,10 +50,10 @@ wordint f77name(ezgetival)(char *option, wordint *ivalue, F2Cl llenoption)
    return c_ezgetival(local_opt, ivalue);
 }
 
-wordint c_ezgetval(char *option, ftnfloat *fvalue)
+wordint c_ezgetval(char *option, float *fvalue)
 {
    char local_opt[32];
-   wordint i;
+   int32_t i;
 
    strcpy(local_opt, option);
 
@@ -84,10 +84,10 @@ wordint c_ezgetval(char *option, ftnfloat *fvalue)
    return 0;
 }
 
-wordint c_ezgetival(char *option, wordint *ivalue)
+wordint c_ezgetival(char *option, int32_t *ivalue)
 {
    char local_opt[32];
-   wordint i;
+   int32_t i;
 
    strcpy(local_opt, option);
 

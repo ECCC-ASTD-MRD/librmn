@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <math.h>
 #include "rmnlib.h"
-extern double f77name(f_pow)(double *base, wordint *i);
+extern double f77name(f_pow)(double *base, int32_t *i);
 
 
 
@@ -69,11 +69,11 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
     typedef struct
     { 
 #if defined(Little_Endian)
-      word counter : 20, marker : 12, minSign : 4, minExpo : 12, rangeExpo : 16;
-      word minMantisa32 : 32, emptySpace : 8, bitSize : 8, minMantisa16 : 16;
+      int32_t counter : 20, marker : 12, minSign : 4, minExpo : 12, rangeExpo : 16;
+      int32_t minMantisa32 : 32, emptySpace : 8, bitSize : 8, minMantisa16 : 16;
 #else
-      word marker : 12, counter : 20, rangeExpo : 16, minExpo : 12, minSign : 4; 
-      word minMantisa32 : 32, minMantisa16 : 16, bitSize : 8, emptySpace : 8 ; 
+      int32_t marker : 12, counter : 20, rangeExpo : 16, minExpo : 12, minSign : 4; 
+      int32_t minMantisa32 : 32, minMantisa16 : 16, bitSize : 8, emptySpace : 8 ; 
 #endif
     }xxpack_struct_data;
 
@@ -85,25 +85,25 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
      ***************************************/
     int wordSize;
     FLOAT_4_8 *arrayOfFloat;
-    word *packHeader, *arrayOfInt;
+    int32_t *packHeader, *arrayOfInt;
     int i, k;
-    word floatCount;
+    int32_t floatCount;
 
     double maxFloat, minFloat;
     ALL_FLOAT rangeTemplate;
     double desiredRange;
-    word signOfMinFloat;
-    word scaledExpOfMinFloat, scaledExpOfRange;
+    int32_t signOfMinFloat;
+    int32_t scaledExpOfMinFloat, scaledExpOfRange;
     double mulFactor;
     int  lastPackBit, spaceInLastWord, lastSlot;
-    word lastWordShifted;
+    int32_t lastWordShifted;
     unsigned int tempInt;
     ALL_FLOAT minFloatTemplate;
-    word tempFloat;
-    word tempMantisa1, tempMantisa2;
-    word *arrayPtr, *arrayOfUnpacked;
+    int32_t tempFloat;
+    int32_t tempMantisa1, tempMantisa2;
+    int32_t *arrayPtr, *arrayOfUnpacked;
     int  headerStyle;
-    word headerType, countLower20, countUpper8;
+    int32_t headerType, countLower20, countUpper8;
 
 
     /*****************************************
@@ -112,23 +112,23 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
      *                                       *
      ****************************************/
     xxpack_struct_data *theHeader;
-    word currentWord;
-    word intCount;
+    int32_t currentWord;
+    int32_t intCount;
    
-    word rangeExponent;
+    int32_t rangeExponent;
     int firstPackBit;
-    word bitPackInFirstWord;
+    int32_t bitPackInFirstWord;
     int currentSlot;
-    word packInt;
-    word tempExp;
-    word rangeExpo;
+    int32_t packInt;
+    int32_t tempExp;
+    int32_t rangeExpo;
     ALL_FLOAT floatTemplate;
     int significantBit, inSignificantBit;
     float missingValueTag = *((FLOAT_4_8 *)missingTag);
-    word missingToken;
+    int32_t missingToken;
     int tempExpo;
-    word * tempArrayOfInt;
-    ftnword *tempArrayOfFtnword;
+    int32_t * tempArrayOfInt;
+    int32_t *tempArrayOfFtnword;
     int tokenSize; 
     int EffectivePackedTokenSize=0;      /* only set with special case when bitSizeOfPackedToken > 64 */
     int token16OnNEC = 0;
@@ -179,7 +179,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
      *    determine wordsize                * 
      *                                      *
      ***************************************/
-    wordSize = 8 * sizeof(word);
+    wordSize = 8 * sizeof(int32_t);
 
 
 
@@ -199,9 +199,9 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
       arrayOfFloat = (FLOAT_4_8 *)unpackedArrayOfFloat;
       tempArrayOfInt = NULL;
       
-      tempArrayOfInt = (word *)malloc(sizeof(word)*elementCount*stride);
-      packHeader   = (word  *)packedHeader;
-      arrayOfInt   = (word  *)packedArrayOfInt;
+      tempArrayOfInt = (int32_t *)malloc(sizeof(int32_t)*elementCount*stride);
+      packHeader   = (int32_t  *)packedHeader;
+      arrayOfInt   = (int32_t  *)packedArrayOfInt;
       floatCount = elementCount;
 
 
@@ -320,10 +320,10 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
         }
       else
         {
-          ftnword  ftn_floatCount      = floatCount;
-          ftnword  ftn_stride          = stride;
-          ftnword  ftn_hasMissing      = hasMissing;
-          ftnfloat ftn_missingValueTag = missingValueTag;
+          int32_t  ftn_floatCount      = floatCount;
+          int32_t  ftn_stride          = stride;
+          int32_t  ftn_hasMissing      = hasMissing;
+          float ftn_missingValueTag = missingValueTag;
           f77name(gggmima3) ( arrayOfFloat, &ftn_floatCount, &ftn_stride, 
                               &maxFloat, &minFloat, &ftn_hasMissing, &ftn_missingValueTag ); 
         };
@@ -533,7 +533,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
     {
       
       double two=2.0;
-      ftnword expos_ftn; 
+      int32_t expos_ftn; 
       expos_ftn = tempExpo;
       mulFactor = powerOf2s[bitSizeOfPackedToken] / f77name(f_pow)(&two,&expos_ftn);
     }
@@ -598,7 +598,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
           };
 
         arrayPtr = &arrayOfInt[lastSlot];
-        arrayOfUnpacked = (word *)arrayOfFloat;
+        arrayOfUnpacked = (int32_t *)arrayOfFloat;
         if (( spaceInLastWord == wordSize ) && ( bitSizeOfPackedToken == wordSize ))
           /**************************
            *                        *
@@ -702,11 +702,11 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
          *****************************************/
 #if defined (NEC)
         {
-          ftnword ftn_off_set;
-          ftnword ftn_bitSizeOfPackedToken = bitSizeOfPackedToken;
-          ftnword ftn_wordSize             = wordSize;
-          ftnword ftn_stride               = stride;
-          ftnword ftn_floatCount           = floatCount;
+          int32_t ftn_off_set;
+          int32_t ftn_bitSizeOfPackedToken = bitSizeOfPackedToken;
+          int32_t ftn_wordSize             = wordSize;
+          int32_t ftn_stride               = stride;
+          int32_t ftn_floatCount           = floatCount;
          
 
           if ( off_set > 31 )
@@ -732,7 +732,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
 
     free (tempArrayOfInt);
     tempArrayOfInt = NULL;
-    return (word *)arrayOfInt;
+    return (int32_t *)arrayOfInt;
  
   }
 
@@ -764,12 +764,12 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
      * in fotran routine aazz1                 *
      *                                         *
      ******************************************/
-    tempArrayOfInt = (word *)malloc(sizeof(word)*(elementCount+2)*stride);
+    tempArrayOfInt = (int32_t *)malloc(sizeof(int32_t)*(elementCount+2)*stride);
     tempArrayOfFtnword = NULL;
 
-    tempArrayOfFtnword = (ftnword *)malloc(sizeof(ftnword)*elementCount*stride);
+    tempArrayOfFtnword = (int32_t *)malloc(sizeof(int32_t)*elementCount*stride);
     theHeader      = ( xxpack_struct_data *) packedHeader;
-    arrayOfInt     = ( word *) packedArrayOfInt;
+    arrayOfInt     = ( int32_t *) packedArrayOfInt;
     if (( theHeader->marker == 0x7ff ) || ( theHeader->marker == 0x7ef ))
       {
       if ( theHeader->counter != elementCount )
@@ -826,7 +826,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
     {
       double two=2.0, expos;
       int expos_i;
-      wordint expos_ftn;  /* bug on the NEC, can not pass expos_i directly to f_pow */
+      int32_t expos_ftn;  /* bug on the NEC, can not pass expos_i directly to f_pow */
       expos_i = (rangeExponent - 127 - tokenSize);
       expos_ftn = expos_i;
       mulFactor = f77name(f_pow)(&two,&expos_ftn);
@@ -1058,7 +1058,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
         {
           for ( i = 0; i < intCount*stride; i += stride)
             {
-              arrayOfFloat[i] = ( (word)tempArrayOfInt[i]  *  mulFactor) * 1.0000000000000001 + minFloat;
+              arrayOfFloat[i] = ( (int32_t)tempArrayOfInt[i]  *  mulFactor) * 1.0000000000000001 + minFloat;
 
             };
 
@@ -1101,10 +1101,10 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
         else
           {
 
-          ftnword  ftn_stride          = stride;
-          ftnword  ftn_intCount        = intCount;
-          ftnword  ftn_hasMissing      = hasMissing;
-          ftnword  ftn_missingToken    = missingToken;
+          int32_t  ftn_stride          = stride;
+          int32_t  ftn_intCount        = intCount;
+          int32_t  ftn_hasMissing      = hasMissing;
+          int32_t  ftn_missingToken    = missingToken;
           double   ftn_missingValueTag = missingValueTag;  
           
           f77name(aakk2) (tempArrayOfFtnword, arrayOfFloat, &ftn_stride, &ftn_intCount, 
@@ -1127,7 +1127,7 @@ void *compact_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader, void *pa
     free( tempArrayOfFtnword);
     tempArrayOfInt = NULL;
     tempArrayOfFtnword= NULL;
-    return ((word *)arrayOfFloat);
+    return ((int32_t *)arrayOfFloat);
 
   }
   else

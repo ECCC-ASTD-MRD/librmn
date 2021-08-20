@@ -104,12 +104,12 @@ static void strcopy (char *s, char *t, int charlen);
 static int validchan (int chan);
 static int bwrite (int chan, void *buffer, int nelem, char *dtype);
 ftnword f77name (mgi_init) (char *channel_name, F2Cl lname);
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, F2Cl lmode);
-ftnword f77name (mgi_read) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, F2Cl ltype);
-ftnword f77name (mgi_write) (ftnword *f_chan, void *data, ftnword *f_nelm, char *dtype, F2Cl ltype);
-ftnword f77name (mgi_clos) (ftnword *f_chan);
+ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, F2Cl lmode);
+ftnword f77name (mgi_read) (int32_t *f_chan, void *data, int32_t *f_nelm, char *dtype, F2Cl ltype);
+ftnword f77name (mgi_write) (int32_t *f_chan, void *data, int32_t *f_nelm, char *dtype, F2Cl ltype);
+ftnword f77name (mgi_clos) (int32_t *f_chan);
 ftnword f77name (mgi_term) ();
-void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout);
+void f77name (mgi_set_timeout) (int32_t *chan, int32_t *timeout);
 
 extern int connect_to_subchannel_by_name (char *channel, char *subchannel, char *mode);
 extern int get_ack_nack (int socket);
@@ -310,7 +310,7 @@ static int bwrite ( int chan, void *buffer, int nelem, char *dtype )
   return ier;
 }
 
-ftnword f77name (mgi_clos) (ftnword *f_chan)
+ftnword f77name (mgi_clos) (int32_t *f_chan)
      /* close a channel and signal that it can be opened in another mode */
 {
   int ier = 0, chan;
@@ -422,7 +422,7 @@ ftnword f77name (mgi_init) (char *channel_name, F2Cl lname)
   return(chan);
 }
 
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, F2Cl lmode)
+ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, F2Cl lmode)
      /* to open a channel in mode "mode"; where mode can be:
 	'R' for reading
 	'W' for writing
@@ -474,7 +474,7 @@ ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, F2Cl lmode)
 /* else use user value                    */
 
 int USER_TRY_CONNECT = 10;
-void f77name (mgi_set_retry_connect) (ftnword *try_nbr)
+void f77name (mgi_set_retry_connect) (int32_t *try_nbr)
 {
   printf( "MGI_OPEN, setting try to connect USER_TRY_CONNECT: \"%d\" times\n", (int) *try_nbr );  
   if((int) *try_nbr > 0 && (int) *try_nbr < 10)
@@ -507,7 +507,7 @@ int retry_connect( int chan )
   return chn[chan].gchannel; 
   
 }
-ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, F2Cl ltype)
+ftnword f77name (mgi_write) (int32_t *f_chan, void *buffer, int32_t *f_nelem, char *dtype, F2Cl ltype)
      /* to write elements from "buffer" into the specified channel
 	opened for WRITEMODE. It actually writes
 	
@@ -612,13 +612,13 @@ ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, ftnword *f_nelem, ch
   return ier;
 }
 
-void f77name (mgi_set_timeout) (ftnword *chan, ftnword *timeout)
+void f77name (mgi_set_timeout) (int32_t *chan, int32_t *timeout)
 {
   set_client_timeout(chn[(int) *chan].gchannel, (int) *timeout);
 
 }
 
-ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, ftnword *f_nelem, char *dtype, F2Cl ltype)
+ftnword f77name (mgi_read) (int32_t *f_chan, void *buffer, int32_t *f_nelem, char *dtype, F2Cl ltype)
 
      /* to read elements directly from the data file related to the 
 	specified channel into "buffer". The channel must be opened for 

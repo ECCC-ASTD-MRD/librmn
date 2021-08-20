@@ -26,10 +26,10 @@
 extern pthread_mutex_t EZ_MTX;
 #endif
 
-void EliminerGrille(wordint gdid)
+void EliminerGrille(int32_t gdid)
 {
-  wordint i, index;
-  wordint gdrow_id, gdcol_id;
+  int32_t i, index;
+  int32_t gdrow_id, gdcol_id;
     
 #ifdef MUTEX
 // JP

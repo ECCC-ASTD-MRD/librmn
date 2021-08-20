@@ -22,19 +22,19 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint c_ezyysint(ftnfloat *zout, ftnfloat *zin,wordint gdout,wordint gdin)
+wordint c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin)
 {
-  wordint icode,i,j,k,ierc1,ierc2,ierc;
-  wordint yancount_yin,yincount_yin, yancount_yan,yincount_yan;
-  wordint yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;
-  wordint yin_gdrow_in, yin_gdcol_in, yin_gdrow_out, yin_gdcol_out;
-  wordint yan_gdrow_in, yan_gdcol_in, yan_gdrow_out, yan_gdcol_out;
-  wordint     gdrow_in,     gdcol_in,     gdrow_out,     gdcol_out;
-  wordint ni, nj;
-  /*wordint yin2yin,yan2yin,yin2yan,yan2yan;*/
+  int32_t icode,i,j,k,ierc1,ierc2,ierc;
+  int32_t yancount_yin,yincount_yin, yancount_yan,yincount_yan;
+  int32_t yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;
+  int32_t yin_gdrow_in, yin_gdcol_in, yin_gdrow_out, yin_gdcol_out;
+  int32_t yan_gdrow_in, yan_gdcol_in, yan_gdrow_out, yan_gdcol_out;
+  int32_t     gdrow_in,     gdcol_in,     gdrow_out,     gdcol_out;
+  int32_t ni, nj;
+  /*int32_t yin2yin,yan2yin,yin2yan,yan2yan;*/
   int idx_gdin;
-  ftnfloat *yin2yin_zvals,*yan2yin_zvals;
-  ftnfloat *yin2yan_zvals,*yan2yan_zvals;
+  float *yin2yin_zvals,*yan2yin_zvals;
+  float *yin2yan_zvals,*yan2yan_zvals;
   
   _Grille *lgdin, *lgdout;
  /*  need only access to either yin or Yang info for the lat and lon val */
@@ -156,8 +156,8 @@ wordint c_ezyysint(ftnfloat *zout, ftnfloat *zin,wordint gdout,wordint gdin)
     {
     yincount_yin = lgdout->gset[idx_gdin].yincount_yin;
     yancount_yin = lgdout->gset[idx_gdin].yancount_yin;
-    yin2yin_zvals = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yan2yin_zvals = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
+    yin2yin_zvals = (float *) malloc(yincount_yin*sizeof(float));
+    yan2yin_zvals = (float *) malloc(yancount_yin*sizeof(float));
 
     icode = c_gdxysval(yin_gdin,yin2yin_zvals,zin,
            lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,
@@ -200,10 +200,10 @@ wordint c_ezyysint(ftnfloat *zout, ftnfloat *zin,wordint gdout,wordint gdin)
     yancount_yin = lgdout->gset[idx_gdin].yancount_yin;
     yincount_yan = lgdout->gset[idx_gdin].yincount_yan;
     yancount_yan = lgdout->gset[idx_gdin].yancount_yan;
-    yin2yin_zvals = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    yan2yin_zvals = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    yin2yan_zvals = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    yan2yan_zvals = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
+    yin2yin_zvals = (float *) malloc(yincount_yin*sizeof(float));
+    yan2yin_zvals = (float *) malloc(yancount_yin*sizeof(float));
+    yin2yan_zvals = (float *) malloc(yincount_yan*sizeof(float));
+    yan2yan_zvals = (float *) malloc(yancount_yan*sizeof(float));
     
     icode = c_gdxysval(yin_gdin,yin2yin_zvals,zin,
             lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,

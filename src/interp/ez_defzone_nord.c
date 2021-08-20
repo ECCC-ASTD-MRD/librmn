@@ -22,20 +22,20 @@
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint ez_defzone_nord(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _zone *zone)
+wordint ez_defzone_nord(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone)
 {
-  ftnfloat *tmpx, *tmpy;
-  wordint nhits, i;
-  wordint *tmpidx;
-  wordint jmax;
+  float *tmpx, *tmpy;
+  int32_t nhits, i;
+  int32_t *tmpidx;
+  int32_t jmax;
 
-  wordint gdrow_in, gdcol_in;
+  int32_t gdrow_in, gdcol_in;
     
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
     
-  tmpx =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-  tmpy =   (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-  tmpidx = (wordint  *) malloc(npts*sizeof(wordint));
+  tmpx =   (float *) malloc(npts*sizeof(float));
+  tmpy =   (float *) malloc(npts*sizeof(float));
+  tmpidx = (int32_t  *) malloc(npts*sizeof(int32_t));
   
   nhits = 0;
   jmax = Grille[gdrow_in][gdcol_in].j2-2;
@@ -53,9 +53,9 @@ wordint ez_defzone_nord(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _z
   zone->npts = nhits;
   if (nhits > 0)
     {
-    zone->x = (ftnfloat *) malloc(nhits*sizeof(ftnfloat));
-    zone->y = (ftnfloat *) malloc(nhits*sizeof(ftnfloat));
-    zone->idx = (wordint *) malloc(nhits*sizeof(wordint));
+    zone->x = (float *) malloc(nhits*sizeof(float));
+    zone->y = (float *) malloc(nhits*sizeof(float));
+    zone->idx = (int32_t *) malloc(nhits*sizeof(int32_t));
     if (groptions.verbose > 0)
       {
       fprintf(stderr, "Nombre de points entre nj-2 et le pole %d\n", nhits); 

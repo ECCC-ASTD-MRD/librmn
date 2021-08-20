@@ -22,20 +22,20 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint c_ezyy_calcxy(wordint gdout,wordint gdin)
+wordint c_ezyy_calcxy(int32_t gdout,int32_t gdin)
 {
-  wordint icode,nij,i,j,k,ivalue,ni,nj,yni,ynj,yin_mgid;
+  int32_t icode,nij,i,j,k,ivalue,ni,nj,yni,ynj,yin_mgid;
   int idx_gdin;
-  wordint yancount_yin,yincount_yin, yancount_yan,yincount_yan;
-  wordint yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;
-  wordint yin_gdrow_in, yin_gdcol_in, yin_gdrow_out, yin_gdcol_out;
-  wordint yan_gdrow_in, yan_gdcol_in, yan_gdrow_out, yan_gdcol_out;
-  wordint mask_gdrow, mask_gdcol;
-  wordint     gdrow_in,     gdcol_in,     gdrow_out,     gdcol_out;
-  wordint yin2yin,yan2yin,yin2yan,yan2yan;
-  ftnfloat *yin2yin_lat,*yin2yin_lon,*yan2yin_lat,*yan2yin_lon;
-  ftnfloat *yin2yan_lat,*yin2yan_lon,*yan2yan_lat,*yan2yan_lon;
-  ftnfloat *yin_fld, global_extrap_value, local_extrap_value;
+  int32_t yancount_yin,yincount_yin, yancount_yan,yincount_yan;
+  int32_t yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;
+  int32_t yin_gdrow_in, yin_gdcol_in, yin_gdrow_out, yin_gdcol_out;
+  int32_t yan_gdrow_in, yan_gdcol_in, yan_gdrow_out, yan_gdcol_out;
+  int32_t mask_gdrow, mask_gdcol;
+  int32_t     gdrow_in,     gdcol_in,     gdrow_out,     gdcol_out;
+  int32_t yin2yin,yan2yin,yin2yan,yan2yan;
+  float *yin2yin_lat,*yin2yin_lon,*yan2yin_lat,*yan2yin_lon;
+  float *yin2yan_lat,*yin2yan_lon,*yan2yan_lat,*yan2yan_lon;
+  float *yin_fld, global_extrap_value, local_extrap_value;
   char interp_degree[32],extrap_degree[32],extrap_value[32],local_val[32];
   char global_interp_degree[32],global_extrap_degree[32];
   
@@ -88,42 +88,42 @@ wordint c_ezyy_calcxy(wordint gdout,wordint gdin)
   nij = ni*nj;
 
   /* Masquer les grilles YY input pour enlever overlap si OUI */
-  yin2yin_lat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yin2yin_lon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yan2yin_lat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yan2yin_lon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yin2yan_lat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yin2yan_lon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yan2yan_lat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-  yan2yan_lon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+  yin2yin_lat = (float *) malloc(ni*nj*sizeof(float));
+  yin2yin_lon = (float *) malloc(ni*nj*sizeof(float));
+  yan2yin_lat = (float *) malloc(ni*nj*sizeof(float));
+  yan2yin_lon = (float *) malloc(ni*nj*sizeof(float));
+  yin2yan_lat = (float *) malloc(ni*nj*sizeof(float));
+  yin2yan_lon = (float *) malloc(ni*nj*sizeof(float));
+  yan2yan_lat = (float *) malloc(ni*nj*sizeof(float));
+  yan2yan_lon = (float *) malloc(ni*nj*sizeof(float));
   yancount_yin=0;
   yincount_yin=0;
   if (yyout == 0)
     /* destination grid is one grid */ 
     {
     /* create mask with Yin as a priority choice and store x,y,lat,lon pos */
-    lgdout->gset[idx_gdin].yin_maskout = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yinlat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yinlon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yin_maskout = (float *) malloc(ni*nj*sizeof(float));
+    lgdout->gset[idx_gdin].yinlat = (float *) malloc(ni*nj*sizeof(float));
+    lgdout->gset[idx_gdin].yinlon = (float *) malloc(ni*nj*sizeof(float));
     icode = c_gdll(yin_gdout,lgdout->gset[idx_gdin].yinlat,lgdout->gset[idx_gdin].yinlon);
     icode = c_ezyymint(yin_gdout,yin_gdin,ni,nj,lgdout->gset[idx_gdin].yin_maskout,lgdout->gset[idx_gdin].yinlat,lgdout->gset[idx_gdin].yinlon,yin2yin_lat,yin2yin_lon,&yincount_yin,yan2yin_lat,yan2yin_lon,&yancount_yin);
     /* store the lats and lons */
     lgdout->gset[idx_gdin].yincount_yin = yincount_yin;
     lgdout->gset[idx_gdin].yancount_yin = yancount_yin;
-    lgdout->gset[idx_gdin].yin2yin_lat = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yin_lon = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_lat = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_lon = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yin2yin_lat,yin2yin_lat,yincount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yin2yin_lon,yin2yin_lon,yincount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yan2yin_lat,yan2yin_lat,yancount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yan2yin_lon,yan2yin_lon,yancount_yin*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yin2yin_lat = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yin_lon = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_lat = (float *) malloc(yancount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_lon = (float *) malloc(yancount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yin2yin_lat,yin2yin_lat,yincount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yin2yin_lon,yin2yin_lon,yincount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yan2yin_lat,yan2yin_lat,yancount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yan2yin_lon,yan2yin_lon,yancount_yin*sizeof(float));
 
     /* store the Xs and Ys */
-    lgdout->gset[idx_gdin].yin2yin_x = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yin_y = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_x = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_y = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yin2yin_x = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yin_y = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_x = (float *) malloc(yancount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_y = (float *) malloc(yancount_yin*sizeof(float));
     icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
     icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
     }
@@ -132,50 +132,50 @@ wordint c_ezyy_calcxy(wordint gdout,wordint gdin)
     { /* destination grid is a U grid*/
     /* create mask (Yin priority)with src Yin,src Yang onto dest Yin and 
                                                           store x,y pos */
-    lgdout->gset[idx_gdin].yin_maskout = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yinlat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yinlon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yin_maskout = (float *) malloc(ni*nj*sizeof(float));
+    lgdout->gset[idx_gdin].yinlat = (float *) malloc(ni*nj*sizeof(float));
+    lgdout->gset[idx_gdin].yinlon = (float *) malloc(ni*nj*sizeof(float));
     icode = c_gdll(yin_gdout,lgdout->gset[idx_gdin].yinlat,lgdout->gset[idx_gdin].yinlon);
     icode = c_ezyymint(yin_gdout,yin_gdin,ni,nj,lgdout->gset[idx_gdin].yin_maskout,lgdout->gset[idx_gdin].yinlat,lgdout->gset[idx_gdin].yinlon,yin2yin_lat,yin2yin_lon,&yincount_yin,yan2yin_lat,yan2yin_lon,&yancount_yin);
     lgdout->gset[idx_gdin].yincount_yin = yincount_yin;
     lgdout->gset[idx_gdin].yancount_yin = yancount_yin;
-    lgdout->gset[idx_gdin].yin2yin_lat = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yin_lon = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_lat = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_lon = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yin2yin_lat,yin2yin_lat,yincount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yin2yin_lon,yin2yin_lon,yincount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yan2yin_lat,yan2yin_lat,yancount_yin*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yan2yin_lon,yan2yin_lon,yancount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yin_x = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yin_y = (ftnfloat *) malloc(yincount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_x = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yin_y = (ftnfloat *) malloc(yancount_yin*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yin2yin_lat = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yin_lon = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_lat = (float *) malloc(yancount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_lon = (float *) malloc(yancount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yin2yin_lat,yin2yin_lat,yincount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yin2yin_lon,yin2yin_lon,yincount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yan2yin_lat,yan2yin_lat,yancount_yin*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yan2yin_lon,yan2yin_lon,yancount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yin_x = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yin_y = (float *) malloc(yincount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_x = (float *) malloc(yancount_yin*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yin_y = (float *) malloc(yancount_yin*sizeof(float));
     icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
     icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
     
     /* create mask (Yin priority)with src Yin,src Yang onto dest Yang and 
                                                           store x,y pos */
 
-    lgdout->gset[idx_gdin].yan_maskout = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yanlat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yanlon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yan_maskout = (float *) malloc(ni*nj*sizeof(float));
+    lgdout->gset[idx_gdin].yanlat = (float *) malloc(ni*nj*sizeof(float));
+    lgdout->gset[idx_gdin].yanlon = (float *) malloc(ni*nj*sizeof(float));
     icode = c_gdll(yan_gdout,lgdout->gset[idx_gdin].yanlat,lgdout->gset[idx_gdin].yanlon);
     icode = c_ezyymint(yan_gdout,yin_gdin,ni,nj,lgdout->gset[idx_gdin].yan_maskout,lgdout->gset[idx_gdin].yanlat,lgdout->gset[idx_gdin].yanlon,yin2yan_lat,yin2yan_lon,&yincount_yan,yan2yan_lat,yan2yan_lon,&yancount_yan);
     lgdout->gset[idx_gdin].yincount_yan = yincount_yan;
     lgdout->gset[idx_gdin].yancount_yan = yancount_yan;
-    lgdout->gset[idx_gdin].yin2yan_lat = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yan_lon = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yan_lat = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yan_lon = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yin2yan_lat,yin2yan_lat,yincount_yan*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yin2yan_lon,yin2yan_lon,yincount_yan*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yan2yan_lat,yan2yan_lat,yancount_yan*sizeof(ftnfloat));
-    memcpy(lgdout->gset[idx_gdin].yan2yan_lon,yan2yan_lon,yancount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yan_x = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yin2yan_y = (ftnfloat *) malloc(yincount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yan_x = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
-    lgdout->gset[idx_gdin].yan2yan_y = (ftnfloat *) malloc(yancount_yan*sizeof(ftnfloat));
+    lgdout->gset[idx_gdin].yin2yan_lat = (float *) malloc(yincount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yan_lon = (float *) malloc(yincount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yan_lat = (float *) malloc(yancount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yan_lon = (float *) malloc(yancount_yan*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yin2yan_lat,yin2yan_lat,yincount_yan*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yin2yan_lon,yin2yan_lon,yincount_yan*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yan2yan_lat,yan2yan_lat,yancount_yan*sizeof(float));
+    memcpy(lgdout->gset[idx_gdin].yan2yan_lon,yan2yan_lon,yancount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yan_x = (float *) malloc(yincount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yin2yan_y = (float *) malloc(yincount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yan_x = (float *) malloc(yancount_yan*sizeof(float));
+    lgdout->gset[idx_gdin].yan2yan_y = (float *) malloc(yancount_yan*sizeof(float));
     icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yan_x,lgdout->gset[idx_gdin].yin2yan_y,yin2yan_lat,yin2yan_lon,yincount_yan);
     icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yan_x,lgdout->gset[idx_gdin].yan2yan_y,yan2yan_lat,yan2yan_lon,yancount_yan);
     }

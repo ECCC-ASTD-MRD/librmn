@@ -30,12 +30,12 @@ ftnword f77name(mkdir_c)(char *filename, F2Cl lng1)
 
   if (lng1 > 4096) {
     printf("mkdir_c error: file name > 4096 char\n");
-    return((ftnword) -1);
+    return((int32_t) -1);
   }
   while (filename[lng1-1] == ' ' && lng1 > 0) lng1--;
   strncpy(fname,filename,lng1);
   fname[lng1] = '\0';
   rcode = mkdir(fname,0777);
   if (rcode == -1) perror("mkdir_c error");
-  return((ftnword)rcode);
+  return((int32_t)rcode);
 }

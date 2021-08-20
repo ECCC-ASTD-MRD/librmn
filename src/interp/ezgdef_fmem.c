@@ -22,11 +22,11 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(ezgdef_fmem)(wordint* ni, wordint* nj, char* grtyp, char* grref,
-   wordint* ig1, wordint* ig2, wordint* ig3, wordint* ig4,
-   ftnfloat* ax, ftnfloat* ay, F2Cl lengrtyp, F2Cl lengrref)
+wordint f77name(ezgdef_fmem)(int32_t* ni, int32_t* nj, char* grtyp, char* grref,
+   int32_t* ig1, int32_t* ig2, int32_t* ig3, int32_t* ig4,
+   float* ax, float* ay, F2Cl lengrtyp, F2Cl lengrref)
 {
-  wordint icode;
+  int32_t icode;
   char lgrtyp[2];
   char lgrref[2];
 
@@ -60,11 +60,11 @@ wordint f77name(ezgdef_fmem)(wordint* ni, wordint* nj, char* grtyp, char* grref,
 //!
 //! If grtyp == 'Z' or '#', the dimensions of ax=ni and ay=nj.
 //! If grtyp == 'Y', the dimensions of ax=ay=ni*nj. 
-wordint c_ezgdef_fmem(wordint ni, wordint nj, char* grtyp, char* grref,
-   wordint ig1, wordint ig2, wordint ig3, wordint ig4, ftnfloat* ax, ftnfloat* ay)
+wordint c_ezgdef_fmem(int32_t ni, int32_t nj, char* grtyp, char* grref,
+   int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, float* ax, float* ay)
 {
-   wordint gdid;
-   wordint gdrow_id, gdcol_id;
+   int32_t gdid;
+   int32_t gdrow_id, gdcol_id;
 
 
    if (grtyp[0] == '#' || grtyp[0] == 'Y' || grtyp[0] == 'Z' || grtyp[0] == 'G') {

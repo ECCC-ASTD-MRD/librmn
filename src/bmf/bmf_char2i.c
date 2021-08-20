@@ -27,8 +27,8 @@
 
 
 
-ftnword f77name(bmf_char2i)(char *f_char, ftnword *f_length,
-			    ftnword *f_outint, ftnword *f_outlen, F2Cl l1)
+ftnword f77name(bmf_char2i)(char *f_char, int32_t *f_length,
+			    int32_t *f_outint, int32_t *f_outlen, F2Cl l1)
 
 {
   int length = *f_length, outlen = *f_outlen ;
@@ -51,8 +51,8 @@ ftnword f77name(bmf_char2i)(char *f_char, ftnword *f_length,
    f_outint--;
    return((length-1)/sizeof(length)+2);
 }
-ftnword f77name(bmf_i2char)(char *f_char, ftnword *f_length,
-			    ftnword *f_outint, ftnword *f_outlen, F2Cl l1)
+ftnword f77name(bmf_i2char)(char *f_char, int32_t *f_length,
+			    int32_t *f_outint, int32_t *f_outlen, F2Cl l1)
 
 {
   int length= *f_length , outlen=*f_outlen;

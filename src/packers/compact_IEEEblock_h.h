@@ -70,9 +70,9 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
     typedef struct
     { 
 #if defined(Little_Endian)
-      word bitSizeOfExpo : 5, bitSizeOfToken : 7, maxExpo : 8, marker : 12, count : 32;
+      int32_t bitSizeOfExpo : 5, bitSizeOfToken : 7, maxExpo : 8, marker : 12, count : 32;
 #else
-      word marker : 12, maxExpo : 8, bitSizeOfToken : 7, bitSizeOfExpo : 5, count : 32;
+      int32_t marker : 12, maxExpo : 8, bitSizeOfToken : 7, bitSizeOfExpo : 5, count : 32;
 #endif
     }IEEEblock_struct_data;
 
@@ -84,17 +84,17 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
      ***************************************/
     int   wordSize;
     FLOAT_4_8 *arrayOfFloat;
-    word *packHeader, *arrayOfInt;
+    int32_t *packHeader, *arrayOfInt;
     int   i, k;
-    word  floatCount;
+    int32_t  floatCount;
     float maxFloat;
     ALL_FLOAT maxFloatTemplate, floatTemplate;
-    word  maxFloatExpo, maxPackedExpo, expoAlignmentFactor;
-    word  packedSign, packedExpo, packedMantisa;
+    int32_t  maxFloatExpo, maxPackedExpo, expoAlignmentFactor;
+    int32_t  packedSign, packedExpo, packedMantisa;
     int   expoDifference;
     int   lastPackBit, spaceInLastWord, lastSlot;
-    word  lastWordShifted, tempInt;
-    word *arrayPtr, *arrayOfUnpacked;
+    int32_t  lastWordShifted, tempInt;
+    int32_t *arrayPtr, *arrayOfUnpacked;
     FLOAT_4_8 *arrayOfTempFloat;
     float tempFloat;
 
@@ -107,12 +107,12 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
      *                                       *
      ****************************************/
     IEEEblock_struct_data *theHeader;
-    word currentWord;
-    word intCount;
+    int32_t currentWord;
+    int32_t intCount;
     int  firstPackBit;
-    word bitPackInFirstWord;
+    int32_t bitPackInFirstWord;
     int  currentSlot;
-    word packInt;
+    int32_t packInt;
     int  tempSignedInt;
     int  significantBit, inSignificantBit;
     int  packedTokenSize, packedMantisaSize, packedExpoSize;
@@ -161,7 +161,7 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
      *    determine wordsize                * 
      *                                      *
      ***************************************/
-    wordSize         = 8 * sizeof(word);
+    wordSize         = 8 * sizeof(int32_t);
     
  
 
@@ -196,7 +196,7 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
     if ( opCode == FLOAT_PACK )   
       /********************************************************************
        *                                                                  *
-       *       compact a floating point array into an word array          *
+       *       compact a floating point array into an int32_t array          *
        *                                                                  *
        ********************************************************************/
     {
@@ -206,8 +206,8 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
        *                                                       *
        *********************************************************/
       arrayOfFloat = (FLOAT_4_8 *)unpackedArrayOfFloat;
-      packHeader   = (word  *)packedHeader;
-      arrayOfInt   = (word  *)packedArrayOfInt;
+      packHeader   = (int32_t  *)packedHeader;
+      arrayOfInt   = (int32_t  *)packedArrayOfInt;
       floatCount   = elementCount;
 
 
@@ -388,7 +388,7 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
         *arrayPtr = ( lastWordShifted << spaceInLastWord) |
                     ( *arrayPtr & ~(-1 << spaceInLastWord));   
       };
-    return (word *)arrayOfInt;
+    return (int32_t *)arrayOfInt;
     }
 
 
@@ -443,7 +443,7 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
 
     arrayOfFloat        = (FLOAT_4_8 *)unpackedArrayOfFloat;
     theHeader           = ( IEEEblock_struct_data *) packedHeader;
-    arrayOfInt          = (word  *)packedArrayOfInt;
+    arrayOfInt          = (int32_t  *)packedArrayOfInt;
     packedTokenSize     = theHeader->bitSizeOfToken;
     packedExpoSize      = theHeader->bitSizeOfExpo;
     maxPackedExpo       = powerOf2s[packedExpoSize] - 1;
@@ -561,7 +561,7 @@ void *compact_IEEEblock_FLOAT_4_8(void *unpackedArrayOfFloat, void *packedHeader
 
 
 
-    return ((word *)arrayOfFloat);
+    return ((int32_t *)arrayOfFloat);
 
   }
   else

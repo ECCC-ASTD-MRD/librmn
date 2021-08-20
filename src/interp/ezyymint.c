@@ -21,12 +21,12 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint c_ezyymint(wordint gdout, wordint gdin, wordint ni, wordint nj, ftnfloat *maskout, ftnfloat *dlat, ftnfloat *dlon, ftnfloat *yinlat, ftnfloat *yinlon, wordint *yyincount, ftnfloat *yanlat, ftnfloat *yanlon, wordint *yyancount)
+wordint c_ezyymint(int32_t gdout, int32_t gdin, int32_t ni, int32_t nj, float *maskout, float *dlat, float *dlon, float *yinlat, float *yinlon, int32_t *yyincount, float *yanlat, float *yanlon, int32_t *yyancount)
 {
-  wordint ivalue,icode,i,j,k,yin_mgid;
-  wordint gdrow_in, gdcol_in, mask_gdrow, mask_gdcol;
-  wordint yincount,yancount,yni,ynj;
-  ftnfloat *yin_fld, global_extrap_value, local_extrap_value;
+  int32_t ivalue,icode,i,j,k,yin_mgid;
+  int32_t gdrow_in, gdcol_in, mask_gdrow, mask_gdcol;
+  int32_t yincount,yancount,yni,ynj;
+  float *yin_fld, global_extrap_value, local_extrap_value;
   char interp_degree[32],extrap_degree[32],extrap_value[32],local_val[32];
   char global_interp_degree[32],global_extrap_degree[32];
   
@@ -36,8 +36,8 @@ wordint c_ezyymint(wordint gdout, wordint gdin, wordint ni, wordint nj, ftnfloat
   yni=Grille[mask_gdrow][mask_gdcol].ni;
   ynj=Grille[mask_gdrow][mask_gdcol].nj;
 
-  yin_fld = (ftnfloat *) malloc(yni*ynj*sizeof(ftnfloat));
-  memset(yin_fld,0.0,yni*ynj*sizeof(ftnfloat));
+  yin_fld = (float *) malloc(yni*ynj*sizeof(float));
+  memset(yin_fld,0.0,yni*ynj*sizeof(float));
   /*get original options*/
   strcpy(interp_degree,"interp_degree");
   icode = c_ezgetopt(interp_degree,global_interp_degree);

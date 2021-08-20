@@ -23,18 +23,18 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezwdint)(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+wordint f77name(ezwdint)(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-   wordint icode;
+   int32_t icode;
 
    icode = c_ezwdint(uuout, vvout, uuin, vvin);
    return icode;
 }
 
-wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+wordint c_ezwdint(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-   wordint icode,gdin,gdout;
-   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+   int32_t icode,gdin,gdout;
+   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
 
    gdin = iset_gdin;
    gdout= iset_gdout;
@@ -53,14 +53,14 @@ wordint c_ezwdint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vv
    return icode;
 }
 
-wordint c_ezwdint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+wordint c_ezwdint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-   wordint gdin,gdout,ier,ierc,ierc1,ierc2;
-   ftnfloat *uullout = NULL;
-   ftnfloat *vvllout = NULL;
-   wordint npts;
+   int32_t gdin,gdout,ier,ierc,ierc1,ierc2;
+   float *uullout = NULL;
+   float *vvllout = NULL;
+   int32_t npts;
 
-   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin;
+   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin;
    int lcl_ngdin;
 
    gdin = iset_gdin;
@@ -94,8 +94,8 @@ wordint c_ezwdint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloa
      ier = ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
      }
 
-   uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-   vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+   uullout = (float *) malloc(npts*sizeof(float));
+   vvllout = (float *) malloc(npts*sizeof(float));
 
    /*ezsint does not allocate lat,lon if gdin=gdout*/
    ier = ez_calclatlon(gdout);
@@ -103,8 +103,8 @@ wordint c_ezwdint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloa
    c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
              Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
 
-   memcpy(uuout, uullout, npts*sizeof(ftnfloat));
-   memcpy(vvout, vvllout, npts*sizeof(ftnfloat));
+   memcpy(uuout, uullout, npts*sizeof(float));
+   memcpy(vvout, vvllout, npts*sizeof(float));
 
    groptions.vecteur = SCALAIRE;
    free(uullout);

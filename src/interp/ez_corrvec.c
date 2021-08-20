@@ -21,11 +21,11 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrvec(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, wordint gdin, wordint gdout)
+wordint ez_corrvec(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout)
 {
-  wordint ier;
+  int32_t ier;
 
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
   _gridset *gset;
   
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);

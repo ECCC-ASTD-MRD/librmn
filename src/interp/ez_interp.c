@@ -23,11 +23,11 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_interp(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
+wordint ez_interp(float *zout, float *zin, int32_t gdin, int32_t gdout)
   {
-  wordint ni_in, nj_in, ni_out, nj_out, ninj_out;
+  int32_t ni_in, nj_in, ni_out, nj_out, ninj_out;
   
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin, idx_gdin;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin, idx_gdin;
   int lcl_ngdin;
   
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);

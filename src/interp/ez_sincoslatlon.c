@@ -22,11 +22,11 @@
 #include "ez_funcdef.h"
 
 
-wordint c_ezsincoslatlon(ftnfloat *lat, ftnfloat *lon,
-                         ftnfloat *sinlat, ftnfloat *sinlon, ftnfloat *coslat, ftnfloat *coslon, wordint npts)
+wordint c_ezsincoslatlon(float *lat, float *lon,
+                         float *sinlat, float *sinlon, float *coslat, float *coslon, int32_t npts)
 {
-    wordint i,gdidout;
-    ftnfloat dar = PI / 180.0;
+    int32_t i,gdidout;
+    float dar = PI / 180.0;
 
     for (i=0; i < npts; i++) {
         sinlat[i]  = sin(dar*lat[i]);

@@ -42,16 +42,16 @@
 /*         NE PAS UTILISER pour une variable de type CHARACTER.      */
 wordint f77name(rmtcall)(unsigned long long *entry_in,unsigned long long *args_in)
 {
-  typedef wordint *W_ptr;
+  typedef int32_t *W_ptr;
   W_ptr args[41];
   int i;
   union {
     long long ptr_sub;
-    wordint (* entry)();
+    int32_t (* entry)();
     } callee;
   union {
     long long ptr;
-    wordint * entry;
+    int32_t * entry;
     } arg_temp;
  
   callee.ptr_sub = *entry_in;  

@@ -29,7 +29,7 @@ void * f77name(loc_sub)(void *x)
 wordint f77name(loc_sub)(void *x)
 {
   long long temp= (long long) x;
-  wordint rval;
+  int32_t rval;
   temp >>= 2;
   rval = temp;
   return(rval);
@@ -38,7 +38,7 @@ wordint f77name(loc_sub)(void *x)
 wordint f77name(loc_sub)(void *x)
 {
   long long temp= (long long) x;
-  wordint rval;
+  int32_t rval;
   temp >>= 3;
   rval = temp;
   return(rval);

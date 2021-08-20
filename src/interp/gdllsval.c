@@ -23,23 +23,23 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllsval)(wordint *gdid, ftnfloat *zout, ftnfloat *zin, ftnfloat *lat, ftnfloat *lon, wordint *n)
+wordint f77name(gdllsval)(int32_t *gdid, float *zout, float *zin, float *lat, float *lon, int32_t *n)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_gdllsval(*gdid, zout, zin, lat, lon, *n);
    return icode;
 }
 
-wordint c_gdllsval(wordint gdid, ftnfloat *zout, ftnfloat *zin, ftnfloat *lat, ftnfloat *lon, wordint n)
+wordint c_gdllsval(int32_t gdid, float *zout, float *zin, float *lat, float *lon, int32_t n)
 {
-   ftnfloat *x, *y;
-   wordint ier,gdrow_id,gdcol_id;
+   float *x, *y;
+   int32_t ier,gdrow_id,gdcol_id;
    
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
-   x = (ftnfloat *)malloc(n * sizeof(float));
-   y = (ftnfloat *)malloc(n * sizeof(float));
+   x = (float *)malloc(n * sizeof(float));
+   y = (float *)malloc(n * sizeof(float));
    
    if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
       {

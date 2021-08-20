@@ -21,15 +21,15 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
+void c_ezdefaxes(int32_t gdid, float *ax, float *ay)
 {
-  wordint i,j;
-  ftnfloat *temp, dlon;
-  wordint zero, deuxnj;
+  int32_t i,j;
+  float *temp, dlon;
+  int32_t zero, deuxnj;
 
   _Grille *gr;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -41,20 +41,20 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
       f77name(cigaxg)(&gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
 		      &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
 
-      Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
-      Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
+      Grille[gdrow_id][gdcol_id].ax = (float *) malloc(gr->ni*sizeof(float));
+      Grille[gdrow_id][gdcol_id].ay = (float *) malloc(gr->nj*sizeof(float));
 
-      memcpy(Grille[gdrow_id][gdcol_id].ax,ax,gr->ni*sizeof(ftnfloat));
-      memcpy(Grille[gdrow_id][gdcol_id].ay,ay,gr->nj*sizeof(ftnfloat));
+      memcpy(Grille[gdrow_id][gdcol_id].ax,ax,gr->ni*sizeof(float));
+      memcpy(Grille[gdrow_id][gdcol_id].ay,ay,gr->nj*sizeof(float));
       ez_calcxpncof(gdid);
       ez_calcntncof(gdid);
       break;
 
     case 'Y':
-      Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*gr->nj*sizeof(ftnfloat));
-      Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->ni*gr->nj*sizeof(ftnfloat));
-      memcpy(Grille[gdrow_id][gdcol_id].ax,ax,gr->ni*gr->nj*sizeof(ftnfloat));
-      memcpy(Grille[gdrow_id][gdcol_id].ay,ay,gr->ni*gr->nj*sizeof(ftnfloat));
+      Grille[gdrow_id][gdcol_id].ax = (float *) malloc(gr->ni*gr->nj*sizeof(float));
+      Grille[gdrow_id][gdcol_id].ay = (float *) malloc(gr->ni*gr->nj*sizeof(float));
+      memcpy(Grille[gdrow_id][gdcol_id].ax,ax,gr->ni*gr->nj*sizeof(float));
+      memcpy(Grille[gdrow_id][gdcol_id].ay,ay,gr->ni*gr->nj*sizeof(float));
 
       ez_calcxpncof(gdid);
       break;
@@ -68,11 +68,11 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
       f77name(cxgaig)(&gr->grref,&gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],
 		      &gr->fst.xgref[SWLAT], &gr->fst.xgref[SWLON], &gr->fst.xgref[DLAT], &gr->fst.xgref[DLON],1);
 
-      Grille[gdrow_id][gdcol_id].ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
-      dlon = 360. / (ftnfloat) gr->ni;
+      Grille[gdrow_id][gdcol_id].ax = (float *) malloc(gr->ni*sizeof(float));
+      dlon = 360. / (float) gr->ni;
       for (i=0; i < gr->ni; i++)
 	      {
-	      Grille[gdrow_id][gdcol_id].ax[i] = (ftnfloat)i * dlon;
+	      Grille[gdrow_id][gdcol_id].ax[i] = (float)i * dlon;
 	      }
 
       zero = 0;
@@ -81,8 +81,8 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
       switch (Grille[gdrow_id][gdcol_id].fst.ig[IG1])
 	      {
 	      case GLOBAL:
-	        Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
-	        temp    = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
+	        Grille[gdrow_id][gdcol_id].ay = (float *) malloc(gr->nj*sizeof(float));
+	        temp    = (float *) malloc(gr->nj*sizeof(float));
 	        f77name(ez_glat)(Grille[gdrow_id][gdcol_id].ay,temp,&gr->nj,&zero);
 	        free(temp);
 	        break;
@@ -90,8 +90,8 @@ void c_ezdefaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
 	      case NORD:
 	      case SUD:
 	        deuxnj = 2 * gr->nj;
-	        Grille[gdrow_id][gdcol_id].ay = (ftnfloat *) malloc(deuxnj*sizeof(ftnfloat));
-	        temp    = (ftnfloat *) malloc(deuxnj*sizeof(ftnfloat));
+	        Grille[gdrow_id][gdcol_id].ay = (float *) malloc(deuxnj*sizeof(float));
+	        temp    = (float *) malloc(deuxnj*sizeof(float));
 	        f77name(ez_glat)(Grille[gdrow_id][gdcol_id].ay,temp,&deuxnj,&zero);
 	        free(temp);
 	        break;

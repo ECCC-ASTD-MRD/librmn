@@ -25,24 +25,24 @@ void reallocate_gridset_table(int gdid);
 void   allocate_gridset_table(int gdid);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezdefset)(wordint *gdout, wordint *gdin)
+wordint f77name(ezdefset)(int32_t *gdout, int32_t *gdin)
 {
-   wordint icode;
+   int32_t icode;
 
    icode = c_ezdefset(*gdout, *gdin);
    return icode;
 }
 
-wordint c_ezdefset(wordint gdout, wordint gdin)
+wordint c_ezdefset(int32_t gdout, int32_t gdin)
 {
   /* d'abord trouver si l'ensemble est deja defini */
 
-   wordint i;
-   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin;
+   int32_t i;
+   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin;
    int lcl_ngdin, idx_gdin;
-   static wordint found = -1;
-   static wordint ncalls = 0;
-   wordint nsets = 0;
+   static int32_t found = -1;
+   static int32_t ncalls = 0;
+   int32_t nsets = 0;
    _Grille *gr;
 
    if (gdout == UNDEFINED)
@@ -129,8 +129,8 @@ wordint c_ezdefset(wordint gdout, wordint gdin)
    gr->n_gdin++;
 
    npts = gr->ni * gr->nj;
-   gr->gset[i].x = malloc (sizeof(ftnfloat)*npts);
-   gr->gset[i].y = malloc (sizeof(ftnfloat)*npts);
+   gr->gset[i].x = malloc (sizeof(float)*npts);
+   gr->gset[i].y = malloc (sizeof(float)*npts);
    gr->gset[i].use_sincos_cache = NON;
 
    if (gr->n_gdin >= (primes[gr->log_chunk_gdin]/2))
@@ -172,13 +172,13 @@ wordint c_ezdefset(wordint gdout, wordint gdin)
 
 void reallocate_gridset_table(int gdid)
 {
-   wordint i;
-   wordint gdrow_id, gdrow_out, gdcol_id, gdcol_out, npts, cur_gdin, log_chunk_gdin;
-   wordint newIndex, inserted, curIndex;
+   int32_t i;
+   int32_t gdrow_id, gdrow_out, gdcol_id, gdcol_out, npts, cur_gdin, log_chunk_gdin;
+   int32_t newIndex, inserted, curIndex;
    int lcl_ngdin, oldChunkSize, newChunkSize;
    int cur_chunk;
-   static wordint found = -1;
-   static wordint ncalls = 0;
+   static int32_t found = -1;
+   static int32_t ncalls = 0;
    _Grille *gr;
    _gridset *gset, *newTable;
 
@@ -235,9 +235,9 @@ void reallocate_gridset_table(int gdid)
 
 void allocate_gridset_table(int gdid)
 {
-   wordint i;
-   wordint gdrow_id, gdrow_out, gdcol_id, gdcol_out, npts, cur_gdin, log_chunk_gdin;
-   wordint newIndex, inserted, curIndex;
+   int32_t i;
+   int32_t gdrow_id, gdrow_out, gdcol_id, gdcol_out, npts, cur_gdin, log_chunk_gdin;
+   int32_t newIndex, inserted, curIndex;
    int lcl_ngdin, chunkSize;
    int cur_chunk;
    _Grille *gr;

@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_defzones(wordint gdin, wordint gdout)
+wordint ez_defzones(int32_t gdin, int32_t gdout)
 {
 wordint i;
 wordint extrap;

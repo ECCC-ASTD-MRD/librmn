@@ -21,16 +21,16 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
+wordint ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout)
 {
-  wordint i;
-  wordint npts;
-  ftnfloat *temp, *vals, *temp_y;
-  ftnfloat ay[4], poleval;
-  wordint ni, nj, i1, i2, j1, j2;
-  wordint un = 1;
-  wordint quatre = 4;
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+  int32_t i;
+  int32_t npts;
+  float *temp, *vals, *temp_y;
+  float ay[4], poleval;
+  int32_t ni, nj, i1, i2, j1, j2;
+  int32_t un = 1;
+  int32_t quatre = 4;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
   _gridset *gset;
   _Grille *lgd;
 
@@ -52,8 +52,8 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
     j1 = lgd->j2-2;
     j2 = j1 + 3;
 
-    temp = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
-    vals = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+    temp = (float *) malloc(4 * ni * sizeof(float));
+    vals = (float *) malloc(npts * sizeof(float));
     f77name(ez_calcpoleval)(&poleval, &zin[(nj-1)*ni], &ni, lgd->ax, &(lgd->grtyp),
 &(lgd->grref),1,1);
     f77name(ez_fillnpole)(temp, zin, &ni, &(lgd->j1), &(lgd->j2), &poleval);
@@ -97,7 +97,7 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
    	break;
 
       case LINEAIRE:
-	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+	   temp_y = (float *) malloc(npts*sizeof(float));
 	   for (i=0; i < npts; i++)
 	     {
         temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (lgd->j2-3));
@@ -107,7 +107,7 @@ wordint ez_corrval_aunord(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint g
 	   break;
 
       case VOISIN:
-	   temp_y = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+	   temp_y = (float *) malloc(npts*sizeof(float));
 	   for (i=0; i < npts; i++)
 	     {
 	     temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (lgd->j2-3));

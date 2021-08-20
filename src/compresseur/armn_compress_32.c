@@ -9,16 +9,16 @@
 int  c_armn_compress32(unsigned char *, float *, int, int, int, int);
 int  c_armn_uncompress32(float *fld, unsigned char *zstream, int ni, int nj, int nk, int nchiffres_sign);
 int  c_fstzip32(unsigned int *zfld, unsigned int *fld, int ni, int nj, int nk, int step, int nbits, int remaining_space);
-int  c_fstzip_parallelogram32(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int step, int nbits, word *header);
+int  c_fstzip_parallelogram32(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int step, int nbits, int32_t *header);
 int  f77name(armn_compress32)(unsigned char *, float *, int *, int *, int *, int *);
 int  f77name(armn_uncompress32)(float *fld, unsigned char *zstream, int *ni, int *nj, int *nk, int *nchiffres_sign);
 void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);    
 void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int npts);
-void packTokensParallelogram(unsigned int z[], unsigned int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, word *header);
+void packTokensParallelogram(unsigned int z[], unsigned int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header);
 void packTokensParallelogram32(unsigned int z[], int *zlng, unsigned int ufld[], int ni, int nj, int nbits, int istep, int remaining_space);
 void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int ni, int nj, int nbits, int istep);
 void pack_stream_nbits_32(unsigned int z[], unsigned int *zlng, unsigned int ufld[], int npts, int nbits);
-void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, word *header);
+void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, int32_t *header);
 void unpackTokensParallelogram32(unsigned int ufld[], unsigned int z[], int ni, int nj, int nbits, int istep);
 void unpackTokensParallelogram_8(unsigned char ufld[], unsigned int z[], int ni, int nj, int nbits, int istep);
 

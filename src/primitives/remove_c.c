@@ -30,12 +30,12 @@ ftnword f77name(remove_c)(char *filename, F2Cl lng1)
 
   if (lng1 > 256) {
     printf("remove_c error: file name > 256 char\n");
-    return((ftnword) -1);
+    return((int32_t) -1);
   }
   while (filename[lng1-1] == ' ' && lng1 > 0) lng1--;
   strncpy(fname,filename,lng1);
   fname[lng1] = '\0';
   rcode = unlink(fname);
   if (rcode == -1) perror("remove_c error");
-  return((ftnword)rcode);
+  return((int32_t)rcode);
 }

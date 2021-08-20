@@ -21,20 +21,20 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
+wordint ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout)
 {
-  wordint i,ierc;
-  ftnfloat valmax, valmin,fudgeval;
-  wordint fudgeval_set;
-  wordint degIntCourant;
-  wordint npts,nj;
-  ftnfloat vpolnor, vpolsud;
-  ftnfloat *temp;
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+  int32_t i,ierc;
+  float valmax, valmin,fudgeval;
+  int32_t fudgeval_set;
+  int32_t degIntCourant;
+  int32_t npts,nj;
+  float vpolnor, vpolsud;
+  float *temp;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
   _Grille *lgdin, *lgdout;
 
-  extern ftnfloat f77name(amax)();
-  extern ftnfloat f77name(amin)();
+  extern float f77name(amax)();
+  extern float f77name(amin)();
 
   gdin = iset_gdin;
   gdout= iset_gdout;
@@ -114,7 +114,7 @@ wordint ez_corrval(ftnfloat *zout, ftnfloat *zin, wordint gdin, wordint gdout)
       {
       degIntCourant = groptions.degre_interp;
       groptions.degre_interp = groptions.degre_extrap;
-      temp = (ftnfloat *) malloc(lgdout->gset[idx_gdin].zones[DEHORS].npts*sizeof(ftnfloat));
+      temp = (float *) malloc(lgdout->gset[idx_gdin].zones[DEHORS].npts*sizeof(float));
 
       c_gdinterp(temp, zin, gdin, lgdout->gset[idx_gdin].zones[DEHORS].x,
 		 lgdout->gset[idx_gdin].zones[DEHORS].y, lgdout->gset[idx_gdin].zones[DEHORS].npts);

@@ -104,12 +104,12 @@ static void strcopy(char *s, char *t, int charlen);
 static int validchan(int chan);
 static int bwrite(int chan, void *buffer, int nelem, char *dtype);
 ftnword f77name (mgi_init) (char *channel_name, int lname);
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode);
-ftnword f77name (mgi_read) (ftnword *f_chan, void *data, ftnword *f_nelm,
+ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode);
+ftnword f77name (mgi_read) (int32_t *f_chan, void *data, int32_t *f_nelm,
                                char *dtype, int ltype);
-ftnword f77name (mgi_write) (ftnword *f_chan, void *data, ftnword *f_nelm,
+ftnword f77name (mgi_write) (int32_t *f_chan, void *data, int32_t *f_nelm,
                                char *dtype, int ltype);
-ftnword f77name (mgi_clos) (ftnword *f_chan);
+ftnword f77name (mgi_clos) (int32_t *f_chan);
 void f77name (mgi_term) ();
 void f77name (mgi_nosig) ();
 
@@ -170,8 +170,8 @@ out to the data file related to the channel */
 
    int nb,i,j;
    char *buf = (char *) buffer;
-   ftnword  *ibuf = (ftnword *) buffer;
-   ftnfloat *fbuf = (ftnfloat *) buffer;
+   int32_t  *ibuf = (int32_t *) buffer;
+   float *fbuf = (float *) buffer;
    double *dbuf = (double *) buffer;
 
    intBuffer = chn[chan].buffer; /*set intBuffer to point to channel buffer*/
@@ -200,7 +200,7 @@ out to the data file related to the channel */
        pos = 0;
        }
       if (nelem > BUFSIZE) {
-        if (sizeof(ftnword) > sizeof(int)){
+        if (sizeof(int32_t) > sizeof(int)){
            printf("MGI_WRITE WARNING on %s: Dyn alloc; nelem > %d(BUFSIZE)\n",
                               chn[chan].name,BUFSIZE);
            if ((extBuffer = (int *) malloc((nelem) * sizeof(int)))==NULL){
@@ -216,7 +216,7 @@ out to the data file related to the channel */
            }
 
       fBuffer = (float *) intBuffer;
-      if (nelem <= BUFSIZE || sizeof(ftnword) > sizeof(int)){
+      if (nelem <= BUFSIZE || sizeof(int32_t) > sizeof(int)){
          if (*dtype == 'I'){ /* integer */
 /* for (i=0; i < nelem; i++) printf("ibuf[%d]=%d\n",i,ibuf[i]);*/
          for (j=0; j < nelem; j++){
@@ -323,7 +323,7 @@ ftnword f77name (mgi_init) (char *channel_name, int lname)
    return(chan);
 }
 
-ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode)
+ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode)
 /* to open a channel in mode "mode" where mode can be:
    'R' for reading
    'W' for writing
@@ -408,7 +408,7 @@ ftnword f77name (mgi_open) (ftnword *f_chan, char *mode, int lmode)
    return(ier);
 }
 
-ftnword f77name (mgi_clos) (ftnword *f_chan)
+ftnword f77name (mgi_clos) (int32_t *f_chan)
 /* To close a channel and signal that it can be opened in another mode */
 {
    int i,ier,nb,fd_rst,chan;
@@ -498,8 +498,8 @@ ftnword f77name (mgi_clos) (ftnword *f_chan)
 }
  
 
-ftnword f77name (mgi_write) (ftnword *f_chan, void *buffer, 
-                    ftnword *f_nelem, char *dtype, int ltype)
+ftnword f77name (mgi_write) (int32_t *f_chan, void *buffer, 
+                    int32_t *f_nelem, char *dtype, int ltype)
 /* to write elements from "buffer" into the specified channel
 opened for WRITEMODE or STOREMODE only. It actually writes
 (bwrite) to a write buffer before outputting it to the data file. 
@@ -542,8 +542,8 @@ The following types of data (dtype) are accepted:
    return(ier);
 }
 
-ftnword f77name (mgi_read) (ftnword *f_chan, void *buffer, 
-                       ftnword *f_nelem, char *dtype, int ltype)
+ftnword f77name (mgi_read) (int32_t *f_chan, void *buffer, 
+                       int32_t *f_nelem, char *dtype, int ltype)
 /* to read elements directly from the data file related to the 
 specified channel into "buffer". The channel must be opened for 
 READMODE only.
@@ -556,7 +556,7 @@ The following types of data (dtype) are accepted:
    int i,ier,nb,chan,nelem;
    int *ibuf = (int *) buffer;
    float *fbuf = (float *) buffer;
-   ftnword *lbuf = (ftnword *) buffer;
+   int32_t *lbuf = (int32_t *) buffer;
    double *dbuf = (double *) buffer;
 
    chan = (int) *f_chan;
@@ -574,20 +574,20 @@ The following types of data (dtype) are accepted:
    }
 
    if (*dtype == 'I'){ /* integer */
-   if (sizeof(ftnword) == sizeof(int))
+   if (sizeof(int32_t) == sizeof(int))
    nb = read(chn[chan].fd_data,ibuf,nelem*sizeof(int));
    else{
    nb = read(chn[chan].fd_data,&ibuf[nelem],nelem*sizeof(int));
-   for (i=0; i < nelem; i++) lbuf[i]= (ftnword) ibuf[i+nelem];
+   for (i=0; i < nelem; i++) lbuf[i]= (int32_t) ibuf[i+nelem];
    }
 /* for (i=0; i < nelem; i++) printf("ibuf[%d]=%d\n",i,ibuf[i]); */
    }
    else if (*dtype == 'R'){ /* real */
-   if (sizeof(ftnfloat) == sizeof(float))
+   if (sizeof(float) == sizeof(float))
    nb = read(chn[chan].fd_data,fbuf,nelem*sizeof(float));
    else{
    nb = read(chn[chan].fd_data,&fbuf[nelem],nelem*sizeof(float));
-   for (i=0; i < nelem; i++) dbuf[i]= (ftnfloat) fbuf[i+nelem];
+   for (i=0; i < nelem; i++) dbuf[i]= (float) fbuf[i+nelem];
    }
 /* for (i=0; i < nelem; i++) printf("fbuf[%d]=%f\n",i,fbuf[i]); */
    }

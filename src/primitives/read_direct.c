@@ -44,7 +44,7 @@ typedef struct{
 	void *private_data;              /* pointer to private data */
 	void *private_data_2;            /* pointer to private data */
 	int max_args;                    /* maximun number of arguments permitted */
-	wordint *actual_args;            /* actual number of arguments */
+	int32_t *actual_args;            /* actual number of arguments */
 	int is_ftn;                      /* 1 if FORTRAN routine, 0 if C routine */
 	}callback_entry;
 
@@ -122,7 +122,7 @@ void rpn_c_callback_setverbose(int verbose) {
 	 rpnCBverbose=RPNCB_QUIET;
 }
 
-void f77name(rpn_f_callback_setverbose)(wordint *verbose) {
+void f77name(rpn_f_callback_setverbose)(int32_t *verbose) {
   rpn_c_callback_setverbose((int) *verbose);
 }
 

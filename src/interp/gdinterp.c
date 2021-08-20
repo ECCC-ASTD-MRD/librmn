@@ -21,19 +21,19 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts)
+wordint c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
 {
-   wordint lnpts;
-   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
+   int32_t lnpts;
+   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
    int lcl_ngdin;
    int gdout, ier, un, j;
-   wordint old_degre_interp;
-   static wordint found = -1;
-   static wordint ncalls = 0;
-   ftnfloat *gdst_lats, tmp, real_un, real_j;
+   int32_t old_degre_interp;
+   static int32_t found = -1;
+   static int32_t ncalls = 0;
+   float *gdst_lats, tmp, real_un, real_j;
    char option[32], value[32];
 
-   wordint ni_in, nj_in, ni_out, nj_out, ninj_out;
+   int32_t ni_in, nj_in, ni_out, nj_out, ninj_out;
 
    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 
@@ -131,7 +131,7 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
          case 5:
          gdout = c_ezgetgdout();
          c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
-         gdst_lats = (float *) malloc(sizeof(ftnfloat)*lnpts);
+         gdst_lats = (float *) malloc(sizeof(float)*lnpts);
          real_un = 1.0;
          for (j=0; j < Grille[gdrow_out][gdcol_out].nj; j++)
             {
@@ -234,7 +234,7 @@ wordint c_gdinterp(ftnfloat *zout, ftnfloat *zin, wordint gdin, ftnfloat *x, ftn
          case 5:
          gdout = c_ezgetgdout();
          c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
-         gdst_lats = (float *) malloc(sizeof(ftnfloat)*lnpts);
+         gdst_lats = (float *) malloc(sizeof(float)*lnpts);
          real_un = 1.0;
          for (j=0; j < Grille[gdrow_out][gdcol_out].nj; j++)
             {

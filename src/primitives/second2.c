@@ -39,8 +39,8 @@ f77name(second) ( )
 
    struct tms buffer;
    clock_t elapsed;
-   wordint ticks;
-   wordfloat hold;
+   int32_t ticks;
+   float hold;
 
    ticks = sysconf(_SC_CLK_TCK) ;
    elapsed = times(&buffer) ;

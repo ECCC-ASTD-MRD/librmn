@@ -59,7 +59,7 @@ static int dejafait_2 = 0;
 
 static int ips_tab[3][Max_Ipvals];
 
-static word link_list[1024];
+static int32_t link_list[1024];
 static int link_n;
 static int stdf_version = 200001;
 static int downgrade_32 = 0;    /* downgrade 64 bit field to 32 bit field when reading */
@@ -393,7 +393,7 @@ int c_fstecr(
   stdf_dir_keys *stdf_entry;
   buffer_interface_ptr buffer;
   PackFunctionPointer packfunc;
-  ftnword f_datev;
+  int32_t f_datev;
   double nhours, tempfloat=99999.0;
   char string[12];
 
@@ -503,7 +503,7 @@ int c_fstecr(
   ;
 
   datev = date;
-  f_datev = (ftnword) datev;
+  f_datev = (int32_t) datev;
   if (( (long long) deet * npas) > 0) {
     deltat = (long long) deet * npas;
     nhours = (double) deltat;
@@ -851,11 +851,11 @@ int c_fstecr(
 
     case 5: case 8: case 133:  case 136:            /* IEEE and IEEE complex representation */
       {
-        ftnword f_ni = (ftnword) ni;
-        ftnword f_njnk = (ftnword) njnk;
-        ftnword f_zero = (ftnword) zero;
-        ftnword f_one = (ftnword) one;
-        ftnword f_minus_nbits = (ftnword) minus_nbits;
+        int32_t f_ni = (int32_t) ni;
+        int32_t f_njnk = (int32_t) njnk;
+        int32_t f_zero = (int32_t) zero;
+        int32_t f_one = (int32_t) one;
+        int32_t f_minus_nbits = (int32_t) minus_nbits;
         if(datyp==136) {
           WARNPRINT fprintf(stderr,"WARNING: extra compression not available, data type %d reset to %d\n",stdf_entry->datyp,8);
           datyp = 8;
@@ -967,7 +967,7 @@ int c_fst_edit_dir_plus(int handle,
   int index,width,pageno,recno;
   int l1,l2,l3,l4;
   file_table_entry *f;
-  word *entry;
+  int32_t *entry;
   stdf_dir_keys *stdf_entry;
   stdf_special_parms cracked;
   char string[20];
@@ -1264,7 +1264,7 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
                  int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar)
 {
   stdf_dir_keys *stdf_entry, *search_mask;
-  word * pkeys, *pmask;
+  int32_t * pkeys, *pmask;
   file_table_entry *f;
   int i, index_fnom, index, index_h;
   int addr, lng, idtyp, ier, l1, l2, l3;
@@ -1301,10 +1301,10 @@ int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
   stdf_entry = (stdf_dir_keys *) calloc(1,sizeof(stdf_dir_keys));
   search_mask = (stdf_dir_keys *) calloc(1,sizeof(stdf_dir_keys));
 
-  pkeys = (word *) stdf_entry;
-  pmask = (word *) search_mask;
+  pkeys = (int32_t *) stdf_entry;
+  pmask = (int32_t *) search_mask;
 
-  for (i = 0; i < (sizeof(stdf_dir_keys) / sizeof(word)); i++)
+  for (i = 0; i < (sizeof(stdf_dir_keys) / sizeof(int32_t)); i++)
     pmask[i] = -1;
 
   search_mask->pad1 = 0;
@@ -1699,7 +1699,7 @@ int c_fstlis(
     int *nk
 ) {
     int index_fnom, index, handle, ier;
-    word *primk = NULL;
+    int32_t *primk = NULL;
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -2011,11 +2011,11 @@ int c_fstluk(
                         *ptr_real++ = *ptr_double++ ;
                     }
                 } else {
-                    ftnword f_nelm = (ftnword) nelm;
-                    ftnword f_one = (ftnword) one;
-                    ftnword f_npak = (ftnword) npak;
-                    ftnword f_zero = (ftnword) zero;
-                    ftnword f_mode = (ftnword) mode;
+                    int32_t f_nelm = (int32_t) nelm;
+                    int32_t f_one = (int32_t) one;
+                    int32_t f_npak = (int32_t) npak;
+                    int32_t f_zero = (int32_t) zero;
+                    int32_t f_mode = (int32_t) mode;
                     f77name(ieeepak)(field, buf->data, &f_nelm, &f_one, &f_npak, &f_zero, &f_mode);
                 }
 
@@ -2568,11 +2568,11 @@ int c_fstprm(int handle,
 {
   stdf_dir_keys *stdf_entry;
   stdf_special_parms cracked;
-  word *pkeys;
+  int32_t *pkeys;
   int ier, addr, idtyp, xdflng, l1, l2, l3, l4;
 
   stdf_entry = (stdf_dir_keys *) calloc(1,sizeof(stdf_dir_keys));
-  pkeys = (word *) stdf_entry;
+  pkeys = (int32_t *) stdf_entry;
   pkeys += W64TOWD(1);
 
   ier = c_xdfprm(handle,&addr,&xdflng,&idtyp,pkeys,16);
@@ -2763,7 +2763,7 @@ int c_fstskp(int iun, int nrec)
     }
   }
   else {        /* old sequential standard file */
-    dim = sizeof(seq_entry) / sizeof(word);
+    dim = sizeof(seq_entry) / sizeof(int32_t);
     if (nrec < 0) {    /* skip forward */
       for (i=0; i < nrec; i++) {
         nw = c_waread2(iun,&seq_entry,f->cur_addr,dim);
@@ -2814,8 +2814,8 @@ int c_fstsui(int iun, int *ni, int *nj, int *nk)
 {
   int addr,lng,idtyp,ier,handle;
   stdf_dir_keys *stdf_entry;
-  word *pkeys;
-  word *primk=NULL;
+  int32_t *pkeys;
+  int32_t *primk=NULL;
 
   /* position to the next record that matches the last search criterias */
   handle = c_xdfloc(iun,-1,primk,0); /* find next with handle=-1 and nprim=0 */
@@ -2826,7 +2826,7 @@ int c_fstsui(int iun, int *ni, int *nj, int *nk)
   }
 
   stdf_entry = (stdf_dir_keys *) calloc(1,sizeof(stdf_dir_keys));
-  pkeys = (word *) stdf_entry;
+  pkeys = (int32_t *) stdf_entry;
   pkeys += W64TOWD(1);
 
   ier = c_xdfprm(handle,&addr,&lng,&idtyp,pkeys,16);
@@ -2868,13 +2868,13 @@ int c_fstvoi(int iun,char *options)
    int index, index_fnom, i, j, width, nrec, nw, end_of_file;
    file_table_entry* file_entry;
    xdf_dir_page* curpage;
-   word* entry;
+   int32_t* entry;
    stdf_dir_keys* stdf_entry;
    seq_dir_keys* seq_entry;
    stdf_special_parms cracked;
    xdf_record_header* header;
    char string[20];
-   ftnword f_datev;
+   int32_t f_datev;
    double nhours;
    int deet, npas, run;
    unsigned int datexx;
@@ -3001,7 +3001,7 @@ int c_fstvoi(int iun,char *options)
             run = stdf_entry->date_stamp & 0x7;
             datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
 
-            f_datev = (ftnword) datexx;
+            f_datev = (int32_t) datexx;
             i_nhours = (deetnpas - ((deetnpas+1800)/3600)*3600);
             nhours = i_nhours;
             nhours = (nhours / 3600.0);
@@ -3424,7 +3424,7 @@ static void crack_std_parms(stdf_dir_keys *stdf_entry,
   int i, run;
   unsigned int datexx;
   double r8_diff;
-  ftnword ftn_date;
+  int32_t ftn_date;
   int diff;
 
   for (i=0; i <= 4; i++)
@@ -3460,7 +3460,7 @@ static void crack_std_parms(stdf_dir_keys *stdf_entry,
   diff = -(((stdf_entry->deet) * (stdf_entry->npas) + 1800)/3600);
   cracked_parms->date_valid = datexx;
   cracked_parms->date_stamp = datexx;
-  ftn_date = (ftnword) datexx;
+  ftn_date = (int32_t) datexx;
   if ((stdf_entry->deet * stdf_entry->npas) != 0) {           /* compute origin date */
     f77name(incdatr)(&ftn_date,&ftn_date,&r8_diff);
     cracked_parms->date_stamp = (int) ftn_date;
@@ -3597,7 +3597,7 @@ int ip_is_equal(int target, int ip, int ind)
  *                                                                           *
  *****************************************************************************/
 
-void backto64(ftnword *field, word *temp, int nelm)
+void backto64(int32_t *field, int32_t *temp, int nelm)
 {
 #if defined(NEC64)
   int i;
@@ -3634,12 +3634,12 @@ void backto64(ftnword *field, word *temp, int nelm)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstapp)(ftnword *f_iun, char *option, F2Cl lng)
+ftnword f77name(fstapp)(int32_t *f_iun, char *option, F2Cl lng)
 {
   int ier, iun = *f_iun;
 
   ier = c_fstapp(iun,option);    /* option not used anymore by c_fstapp */
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -3654,13 +3654,13 @@ ftnword f77name(fstapp)(ftnword *f_iun, char *option, F2Cl lng)
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstckp)(ftnword *f_iun)
+ftnword f77name(fstckp)(int32_t *f_iun)
 {
   int iun = *f_iun;
   int ier;
 
   ier = c_fstckp(iun);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -3685,14 +3685,14 @@ ftnword f77name(fstckp)(ftnword *f_iun)
  *                      LOGICAL .FALSE. CARACTERE A HOLLERITH                *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstcvt)(ftnword *name, ftnword *type, ftnword *etik, ftnword *grtyp,
-                        char *cname, char *ctype, char *cetik, char *cgrtyp, ftnword *holocar,
+ftnword f77name(fstcvt)(int32_t *name, int32_t *type, int32_t *etik, int32_t *grtyp,
+                        char *cname, char *ctype, char *cetik, char *cgrtyp, int32_t *holocar,
                         F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
   int ier;
 
   ier = f77name(fstcvt2)(name,type,etik,grtyp,cname,ctype,cetik,cgrtyp,holocar,l1,l2,l3,l4);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -3717,7 +3717,7 @@ ftnword f77name(fst_data_length)(int *f_length_type)
   int ier, length_type=*f_length_type;
 
   ier = c_fst_data_length(length_type);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -3754,15 +3754,15 @@ ftnword f77name(fst_data_length)(int *f_length_type)
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr)(word *field, ftnword *work, ftnword *f_npak,
-                        ftnword *f_iun, ftnword *f_date,
-                        ftnword *f_deet, ftnword *f_npas,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstecr)(int32_t *field, int32_t *work, int32_t *f_npak,
+                        int32_t *f_iun, int32_t *f_date,
+                        int32_t *f_deet, int32_t *f_npas,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
-                        ftnword *f_ig3, ftnword *f_ig4,
-                        ftnword *f_datyp, ftnword *f_rewrit,
+                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+                        int32_t *f_ig3, int32_t *f_ig4,
+                        int32_t *f_datyp, int32_t *f_rewrit,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
   int iun=*f_iun, npak=*f_npak, date=*f_date, deet=*f_deet;
@@ -3817,7 +3817,7 @@ ftnword f77name(fstecr)(word *field, ftnword *work, ftnword *f_npak,
                  typvar,nomvar,etiket,grtyp,ig1,ig2,ig3,ig4,
                  datyp,rewrit);
 #endif
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 /*****************************************************************************
  *                              F S T E C R _ S                              *
@@ -3852,15 +3852,15 @@ ftnword f77name(fstecr)(word *field, ftnword *work, ftnword *f_npak,
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr_s)(void *string, ftnword *work, ftnword *f_npak,
-                        ftnword *f_iun, ftnword *f_date,
-                        ftnword *f_deet, ftnword *f_npas,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
+                        int32_t *f_iun, int32_t *f_date,
+                        int32_t *f_deet, int32_t *f_npas,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
-                        ftnword *f_ig3, ftnword *f_ig4,
-                        ftnword *f_datyp, ftnword *f_rewrit,
+                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+                        int32_t *f_ig3, int32_t *f_ig4,
+                        int32_t *f_datyp, int32_t *f_rewrit,
                         int lng_string, F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 int ninjnk;
@@ -3912,15 +3912,15 @@ else
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr_h)(void *haft_w, ftnword *work, ftnword *f_npak,
-                        ftnword *f_iun, ftnword *f_date,
-                        ftnword *f_deet, ftnword *f_npas,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
+                        int32_t *f_iun, int32_t *f_date,
+                        int32_t *f_deet, int32_t *f_npas,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
-                        ftnword *f_ig3, ftnword *f_ig4,
-                        ftnword *f_datyp, ftnword *f_rewrit,
+                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+                        int32_t *f_ig3, int32_t *f_ig4,
+                        int32_t *f_datyp, int32_t *f_rewrit,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 // int ninjnk;
@@ -3965,15 +3965,15 @@ ftnword ier=0;
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr_b)(void *bytes, ftnword *work, ftnword *f_npak,
-                        ftnword *f_iun, ftnword *f_date,
-                        ftnword *f_deet, ftnword *f_npas,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
+                        int32_t *f_iun, int32_t *f_date,
+                        int32_t *f_deet, int32_t *f_npas,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
-                        ftnword *f_ig3, ftnword *f_ig4,
-                        ftnword *f_datyp, ftnword *f_rewrit,
+                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+                        int32_t *f_ig3, int32_t *f_ig4,
+                        int32_t *f_datyp, int32_t *f_rewrit,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 //int ninjnk;
@@ -3998,13 +3998,13 @@ ftnword ier=0;
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77_name(fst_edit_dir_plus)(ftnword *f_handle,
-                               ftnword *f_date, ftnword *f_deet, ftnword *f_npas,
-                               ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                               ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77_name(fst_edit_dir_plus)(int32_t *f_handle,
+                               int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
+                               int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                               int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                                char *f_typvar, char *f_nomvar, char *f_etiket,
-                               char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
-                               ftnword *f_ig3, ftnword *f_ig4, ftnword *f_datyp,
+                               char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+                               int32_t *f_ig3, int32_t *f_ig4, int32_t *f_datyp,
                                F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
   int ier;
@@ -4027,16 +4027,16 @@ ftnword f77_name(fst_edit_dir_plus)(ftnword *f_handle,
 
   ier = c_fst_edit_dir_plus(handle,date,deet,npas,ni,nj,nk,ip1,ip2,ip3,typvar,nomvar,etiket,grtyp,
                        ig1,ig2,ig3,ig4,datyp);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
-ftnword f77_name(fst_edit_dir)(ftnword *f_handle,
-                               ftnword *f_date, ftnword *f_deet, ftnword *f_npas,
-                               ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                               ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77_name(fst_edit_dir)(int32_t *f_handle,
+                               int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
+                               int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                               int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                                char *f_typvar, char *f_nomvar, char *f_etiket,
-                               char *f_grtyp, ftnword *f_ig1, ftnword *f_ig2,
-                               ftnword *f_ig3, ftnword *f_ig4, ftnword *f_datyp,
+                               char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+                               int32_t *f_ig3, int32_t *f_ig4, int32_t *f_datyp,
                                F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
   int ier;
@@ -4059,7 +4059,7 @@ ftnword f77_name(fst_edit_dir)(ftnword *f_handle,
 
   ier = c_fst_edit_dir(handle,date,deet,npas,ni,nj,nk,ip1,ip2,ip3,typvar,nomvar,etiket,grtyp,
                        ig1,ig2,ig3,ig4,datyp);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 /*****************************************************************************
@@ -4074,12 +4074,12 @@ ftnword f77_name(fst_edit_dir)(ftnword *f_handle,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fsteff)(ftnword *f_handle)
+ftnword f77name(fsteff)(int32_t *f_handle)
 {
   int ier,handle = *f_handle;
 
   ier = c_fsteff(handle);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -4095,12 +4095,12 @@ ftnword f77name(fsteff)(ftnword *f_handle)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fsteof)(ftnword *f_iun)
+ftnword f77name(fsteof)(int32_t *f_iun)
 {
   int eof, iun = *f_iun;
 
   eof = c_fsteof(iun);
-  return((ftnword) eof);
+  return((int32_t) eof);
 }
 
 
@@ -4116,10 +4116,10 @@ ftnword f77name(fsteof)(ftnword *f_iun)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstfrm)(ftnword *f_iun)
+ftnword f77name(fstfrm)(int32_t *f_iun)
 {
   int iun = *f_iun;
-  return ((ftnword) c_fstfrm(iun));
+  return ((int32_t) c_fstfrm(iun));
 }
 
 
@@ -4145,9 +4145,9 @@ ftnword f77name(fstfrm)(ftnword *f_iun)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstinf)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstinf)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
@@ -4168,10 +4168,10 @@ ftnword f77name(fstinf)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
   str_cp_init(nomvar,5,f_nomvar,l3);
 
   ier = c_fstinf(iun,&ni,&nj,&nk,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 
 
@@ -4198,10 +4198,10 @@ ftnword f77name(fstinf)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstinfx)(ftnword *f_handle, ftnword *f_iun,
-                         ftnword *f_ni, ftnword *f_nj,
-                         ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                         ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstinfx)(int32_t *f_handle, int32_t *f_iun,
+                         int32_t *f_ni, int32_t *f_nj,
+                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                          char *f_typvar, char *f_nomvar,
                          F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
@@ -4220,10 +4220,10 @@ ftnword f77name(fstinfx)(ftnword *f_handle, ftnword *f_iun,
 
   ier = c_fstinfx(handle,iun,&ni,&nj,&nk,datev,etiket,
                      ip1,ip2,ip3,typvar,nomvar);
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 
 
@@ -4252,11 +4252,11 @@ ftnword f77name(fstinfx)(ftnword *f_handle, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstinl)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
-                        ftnword *liste, ftnword *f_infon, ftnword *f_nmax,
+                        int32_t *liste, int32_t *f_infon, int32_t *f_nmax,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
   int iun = *f_iun, datev=*f_datev, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
@@ -4273,12 +4273,12 @@ ftnword f77name(fstinl)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
   str_cp_init(nomvar,5,f_nomvar,l3);
 
   ier = c_fstinl(iun,&ni,&nj,&nk,datev,etiket,ip1,ip2,ip3,typvar,nomvar,
-                 (word *)liste,&infon,nmax);
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  *f_infon = (ftnword) infon;
-  return((ftnword) ier);
+                 (int32_t *)liste,&infon,nmax);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  *f_infon = (int32_t) infon;
+  return((int32_t) ier);
 }
 
 
@@ -4312,13 +4312,13 @@ ftnword f77name(fstinl)(ftnword *f_iun, ftnword *f_ni, ftnword *f_nj,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlic)(word *field, ftnword *f_iun,
-                         ftnword *f_ni, ftnword *f_nj,
-                         ftnword *f_nk, ftnword *f_date, char *f_etiket,
-                         ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstlic)(int32_t *field, int32_t *f_iun,
+                         int32_t *f_ni, int32_t *f_nj,
+                         int32_t *f_nk, int32_t *f_date, char *f_etiket,
+                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                          char *f_typvar, char *f_nomvar,
-                         ftnword *f_ig1, ftnword *f_ig2, ftnword *f_ig3,
-                         ftnword *f_ig4, char *f_grtyp,
+                         int32_t *f_ig1, int32_t *f_ig2, int32_t *f_ig3,
+                         int32_t *f_ig4, char *f_grtyp,
                          F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 
@@ -4340,7 +4340,7 @@ ftnword f77name(fstlic)(word *field, ftnword *f_iun,
 
   ier = c_fstlic(field,iun,ni,nj,nk,date,etiket,ip1,ip2,ip3,
                      typvar,nomvar,ig1,ig2,ig3,ig4,grtyp);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -4367,10 +4367,10 @@ ftnword f77name(fstlic)(word *field, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir)(void *field, ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstlir)(void *field, int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
@@ -4390,17 +4390,17 @@ ftnword f77name(fstlir)(void *field, ftnword *f_iun,
   xdf_double = 1;
   ier = c_fstlir(field,iun,&ni,&nj,&nk,datev,etiket,
                      ip1,ip2,ip3,typvar,nomvar);
-  backto64(field,(word *) field,ni*nj*nk);
+  backto64(field,(int32_t *) field,ni*nj*nk);
   xdf_double = 0;
 #else
   ier = c_fstlir(field,iun,&ni,&nj,&nk,datev,etiket,
                      ip1,ip2,ip3,typvar,nomvar);
 #endif
-  if (ier < 0) return((ftnword) ier);
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  if (ier < 0) return((int32_t) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 /*****************************************************************************
  *                              F S T L I R _ S                              *
@@ -4425,14 +4425,14 @@ ftnword f77name(fstlir)(void *field, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir_s)(void *string, ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstlir_s)(void *string, int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
                         int lng_string, F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  ftnword ier;
+  int32_t ier;
   int i;
   char *ptr=(char*) string;
 
@@ -4465,14 +4465,14 @@ ftnword f77name(fstlir_s)(void *string, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir_h)(void *haft_w, ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstlir_h)(void *haft_w, int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  ftnword ier;
+  int32_t ier;
 
   xdf_short = 1;
   ier = f77name(fstlir)(haft_w,f_iun,f_ni,f_nj,f_nk,f_datev,f_etiket,
@@ -4503,14 +4503,14 @@ ftnword f77name(fstlir_h)(void *haft_w, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir_b)(void *bytes, ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstlir_b)(void *bytes, int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  ftnword ier;
+  int32_t ier;
 
   xdf_byte = 1;
   ier = f77name(fstlir)(bytes,f_iun,f_ni,f_nj,f_nk,f_datev,f_etiket,
@@ -4544,10 +4544,10 @@ ftnword f77name(fstlir_b)(void *bytes, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlirx)(word *field, ftnword *f_handle, ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj,
-                        ftnword *f_nk, ftnword *f_datev, char *f_etiket,
-                        ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+ftnword f77name(fstlirx)(int32_t *field, int32_t *f_handle, int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj,
+                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
+                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
@@ -4568,16 +4568,16 @@ ftnword f77name(fstlirx)(word *field, ftnword *f_handle, ftnword *f_iun,
   xdf_double = 1;
   ier = c_fstlirx(field,handle,iun,&ni,&nj,&nk,datev,etiket,
                      ip1,ip2,ip3,typvar,nomvar);
-  backto64(field,(word *) field,ni*nj*nk);
+  backto64(field,(int32_t *) field,ni*nj*nk);
   xdf_double = 0;
 #else
   ier = c_fstlirx(field,handle,iun,&ni,&nj,&nk,datev,etiket,
                      ip1,ip2,ip3,typvar,nomvar);
 #endif
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 
 
@@ -4596,24 +4596,24 @@ ftnword f77name(fstlirx)(word *field, ftnword *f_handle, ftnword *f_iun,
  *  OUT nk      dimension 3 of the data field                                *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstlis)(word *field, ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk)
+ftnword f77name(fstlis)(int32_t *field, int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
   int iun = *f_iun;
   int ier,ni,nj,nk;
 
 #if defined(NEC64)
   xdf_double = 1;
-  ier = c_fstlis((word *)field,iun,&ni,&nj,&nk);
-  backto64(field,(word *) field,ni*nj*nk);
+  ier = c_fstlis((int32_t *)field,iun,&ni,&nj,&nk);
+  backto64(field,(int32_t *) field,ni*nj*nk);
   xdf_double = 0;
 #else
-  ier = c_fstlis((word *)field,iun,&ni,&nj,&nk);
+  ier = c_fstlis((int32_t *)field,iun,&ni,&nj,&nk);
 #endif
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 
 
@@ -4631,7 +4631,7 @@ ftnword f77name(fstlis)(word *field, ftnword *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlnk)(ftnword *liste, ftnword *f_n)
+ftnword f77name(fstlnk)(int32_t *liste, int32_t *f_n)
 {
   int ier;
   int i;
@@ -4640,7 +4640,7 @@ ftnword f77name(fstlnk)(ftnword *liste, ftnword *f_n)
   for (i=0; i<link_n; i++)
     link_list[i] = liste[i];
   ier = c_xdflnk(link_list,link_n);
-  return ((ftnword) ier);
+  return ((int32_t) ier);
 }
 
 
@@ -4660,8 +4660,8 @@ ftnword f77name(fstlnk)(ftnword *liste, ftnword *f_n)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstluk)(word *field, ftnword *f_handle,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk)
+ftnword f77name(fstluk)(int32_t *field, int32_t *f_handle,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
   int handle = *f_handle;
   int ier,ni,nj,nk;
@@ -4669,15 +4669,15 @@ ftnword f77name(fstluk)(word *field, ftnword *f_handle,
 #if defined(NEC64)
   xdf_double = 1;
   ier = c_fstluk(field,handle,&ni,&nj,&nk);
-  backto64(field,(word *) field,ni*nj*nk);
+  backto64(field,(int32_t *) field,ni*nj*nk);
   xdf_double = 0;
 #else
   ier = c_fstluk(field,handle,&ni,&nj,&nk);
 #endif
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 
 
@@ -4698,8 +4698,8 @@ ftnword f77name(fstluk)(word *field, ftnword *f_handle,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstmsq)(ftnword *f_iun, ftnword *f_mip1, ftnword *f_mip2,
-                        ftnword *f_mip3, char *f_metiket, ftnword *f_getmode,
+ftnword f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
+                        int32_t *f_mip3, char *f_metiket, int32_t *f_getmode,
                         F2Cl ll1)
 {
   int err, iun = *f_iun, mip1 = *f_mip1, mip2 = *f_mip2, mip3 = *f_mip3;
@@ -4712,9 +4712,9 @@ ftnword f77name(fstmsq)(ftnword *f_iun, ftnword *f_mip1, ftnword *f_mip2,
   err = c_fstmsq(iun,&mip1,&mip2,&mip3,metiket,getmode);
 
   if (getmode) {
-    *f_mip1 = (ftnword) mip1;
-    *f_mip2 = (ftnword) mip2;
-    *f_mip3 = (ftnword) mip3;
+    *f_mip1 = (int32_t) mip1;
+    *f_mip2 = (int32_t) mip2;
+    *f_mip3 = (int32_t) mip3;
   }
   return(err);
 }
@@ -4732,10 +4732,10 @@ ftnword f77name(fstmsq)(ftnword *f_iun, ftnword *f_mip1, ftnword *f_mip2,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstnbr)(ftnword *f_iun)
+ftnword f77name(fstnbr)(int32_t *f_iun)
 {
   int iun = *f_iun;
-  return ((ftnword) c_fstnbr(iun));
+  return ((int32_t) c_fstnbr(iun));
 }
 
 
@@ -4752,10 +4752,10 @@ ftnword f77name(fstnbr)(ftnword *f_iun)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstnbrv)(ftnword *f_iun)
+ftnword f77name(fstnbrv)(int32_t *f_iun)
 {
   int iun = *f_iun;
-  return ((ftnword) c_fstnbrv(iun));
+  return ((int32_t) c_fstnbrv(iun));
 }
 
 
@@ -4772,7 +4772,7 @@ ftnword f77name(fstnbrv)(ftnword *f_iun)
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopc)(char *f_option, char *f_value, ftnword *f_getmode,
+ftnword f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
                         F2Cl ll1, F2Cl ll2)
 {
   int getmode = *f_getmode, ier;
@@ -4798,7 +4798,7 @@ ftnword f77name(fstopc)(char *f_option, char *f_value, ftnword *f_getmode,
   }
 
   ier = c_fstopc(option,value,getmode);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -4815,7 +4815,7 @@ ftnword f77name(fstopc)(char *f_option, char *f_value, ftnword *f_getmode,
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopi)(char *f_option, ftnword *f_value, ftnword * f_getmode,
+ftnword f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
@@ -4826,7 +4826,7 @@ ftnword f77name(fstopi)(char *f_option, ftnword *f_value, ftnword * f_getmode,
   strncpy(option,f_option,l1);
 
   ier = c_fstopi(option,value,getmode);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 /*****************************************************************************
@@ -4842,7 +4842,7 @@ ftnword f77name(fstopi)(char *f_option, ftnword *f_value, ftnword * f_getmode,
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopl)(char *f_option, ftnword *f_value, ftnword * f_getmode,
+ftnword f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
@@ -4854,7 +4854,7 @@ ftnword f77name(fstopl)(char *f_option, ftnword *f_value, ftnword * f_getmode,
   option[l1] = '\0';
 
   ier = c_fstopl(option,value,getmode);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -4871,7 +4871,7 @@ ftnword f77name(fstopl)(char *f_option, ftnword *f_value, ftnword * f_getmode,
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopr)(char *f_option, ftnfloat *f_value, ftnword * f_getmode,
+ftnword f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, ier;
@@ -4884,7 +4884,7 @@ ftnword f77name(fstopr)(char *f_option, ftnfloat *f_value, ftnword * f_getmode,
   option[l1] = '\0';
 
   ier = c_fstopr(option,value,getmode);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -4904,7 +4904,7 @@ ftnword f77name(fstcheck)(char *filename, F2Cl lng)
 {
   int ier;
   ier = c_fstcheck(filename);
-  return ((ftnword) ier);
+  return ((int32_t) ier);
 }
 
 /*****************************************************************************
@@ -4920,11 +4920,11 @@ ftnword f77name(fstcheck)(char *filename, F2Cl lng)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstouv)(ftnword *f_iun, char *options, F2Cl lng)
+ftnword f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
 {
   int iun = *f_iun, ier;
   ier = c_fstouv(iun,options);
-  return ((ftnword) ier);
+  return ((int32_t) ier);
 }
 
 /*****************************************************************************
@@ -4965,16 +4965,16 @@ ftnword f77name(fstouv)(ftnword *f_iun, char *options, F2Cl lng)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstprm)(ftnword *f_handle,
-                        ftnword *f_dateo, ftnword *f_deet, ftnword *f_npas,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk,
-                        ftnword *f_nbits, ftnword *f_datyp, ftnword *f_ip1,
-                        ftnword *f_ip2, ftnword *f_ip3, char *f_typvar,
+ftnword f77name(fstprm)(int32_t *f_handle,
+                        int32_t *f_dateo, int32_t *f_deet, int32_t *f_npas,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                        int32_t *f_nbits, int32_t *f_datyp, int32_t *f_ip1,
+                        int32_t *f_ip2, int32_t *f_ip3, char *f_typvar,
                         char *f_nomvar, char *f_etiket, char *f_grtyp,
-                        ftnword *f_ig1, ftnword *f_ig2, ftnword *f_ig3,
-                        ftnword *f_ig4, ftnword *f_swa, ftnword *f_lng,
-                        ftnword *f_dltf, ftnword *f_ubc, ftnword *f_extra1,
-                        ftnword *f_extra2, ftnword *f_extra3,
+                        int32_t *f_ig1, int32_t *f_ig2, int32_t *f_ig3,
+                        int32_t *f_ig4, int32_t *f_swa, int32_t *f_lng,
+                        int32_t *f_dltf, int32_t *f_ubc, int32_t *f_extra1,
+                        int32_t *f_extra2, int32_t *f_extra3,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
   int handle = *f_handle;
@@ -4996,33 +4996,33 @@ ftnword f77name(fstprm)(ftnword *f_handle,
                      &nbits,&datyp,&ip1,&ip2,&ip3,typvar,
                      nomvar,etiket,grtyp,&ig1,&ig2,&ig3,&ig4,&swa,&lng,
                      &dltf,&ubc,&extra1,&extra2,&extra3);
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  *f_dateo = (ftnword) dateo;
-  *f_deet = (ftnword) deet;
-  *f_npas = (ftnword) npas;
-  *f_nbits = (ftnword) nbits;
-  *f_datyp = (ftnword) datyp;
-  *f_ip1 = (ftnword) ip1;
-  *f_ip2 = (ftnword) ip2;
-  *f_ip3 = (ftnword) ip3;
-  *f_ig1 = (ftnword) ig1;
-  *f_ig2 = (ftnword) ig2;
-  *f_ig3 = (ftnword) ig3;
-  *f_ig4 = (ftnword) ig4;
-  *f_swa = (ftnword) swa;
-  *f_lng = (ftnword) lng;
-  *f_dltf = (ftnword) dltf;
-  *f_ubc = (ftnword) ubc;
-  *f_extra1 = (ftnword) extra1;
-  *f_extra2 = (ftnword) extra2;
-  *f_extra3 = (ftnword) extra3;
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  *f_dateo = (int32_t) dateo;
+  *f_deet = (int32_t) deet;
+  *f_npas = (int32_t) npas;
+  *f_nbits = (int32_t) nbits;
+  *f_datyp = (int32_t) datyp;
+  *f_ip1 = (int32_t) ip1;
+  *f_ip2 = (int32_t) ip2;
+  *f_ip3 = (int32_t) ip3;
+  *f_ig1 = (int32_t) ig1;
+  *f_ig2 = (int32_t) ig2;
+  *f_ig3 = (int32_t) ig3;
+  *f_ig4 = (int32_t) ig4;
+  *f_swa = (int32_t) swa;
+  *f_lng = (int32_t) lng;
+  *f_dltf = (int32_t) dltf;
+  *f_ubc = (int32_t) ubc;
+  *f_extra1 = (int32_t) extra1;
+  *f_extra2 = (int32_t) extra2;
+  *f_extra3 = (int32_t) extra3;
   string_copy(f_typvar,typvar,l1);
   string_copy(f_nomvar,nomvar,l2);
   string_copy(f_etiket,etiket,l3);
   string_copy(f_grtyp,grtyp,l4);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -5052,12 +5052,12 @@ void f77name(fstreset_ip_flags)()
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstrwd)(ftnword *f_iun)
+ftnword f77name(fstrwd)(int32_t *f_iun)
 {
   int err, iun = *f_iun;
 
   err = c_fstrwd(iun);
-  return((ftnword) err);
+  return((int32_t) err);
 }
 
 
@@ -5073,13 +5073,13 @@ ftnword f77name(fstrwd)(ftnword *f_iun)
  *  IN  nrec    number of records to skip (negative nrec means backward)     *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstskp)(ftnword *f_iun, ftnword *f_nrec)
+ftnword f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec)
 {
   int iun = *f_iun, nrec = *f_nrec;
   int ier;
 
   ier = c_fstskp(iun,nrec);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -5097,17 +5097,17 @@ ftnword f77name(fstskp)(ftnword *f_iun, ftnword *f_nrec)
  *  OUT nk      dimension 3 of the data field                                *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstsui)(ftnword *f_iun,
-                        ftnword *f_ni, ftnword *f_nj, ftnword *f_nk)
+ftnword f77name(fstsui)(int32_t *f_iun,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
   int iun = *f_iun;
   int ier,ni,nj,nk;
 
   ier = c_fstsui(iun,&ni,&nj,&nk);
-  *f_ni = (ftnword) ni;
-  *f_nj = (ftnword) nj;
-  *f_nk = (ftnword) nk;
-  return((ftnword) ier);
+  *f_ni = (int32_t) ni;
+  *f_nj = (int32_t) nj;
+  *f_nk = (int32_t) nk;
+  return((int32_t) ier);
 }
 
 
@@ -5129,7 +5129,7 @@ ftnword f77name(fstunl)()
   int ier;
 
   ier = c_xdfunl(link_list,link_n);
-  return ((ftnword) ier);
+  return ((int32_t) ier);
 }
 
 
@@ -5143,7 +5143,7 @@ ftnword f77name(fstunl)()
 
 wordint f77name(fst_version)()
 {
-  return((wordint) stdf_version);
+  return((int32_t) stdf_version);
 }
 
 
@@ -5160,7 +5160,7 @@ wordint f77name(fst_version)()
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstvoi)(ftnword *f_iun,char *f_options, F2Cl ll1)
+ftnword f77name(fstvoi)(int32_t *f_iun,char *f_options, F2Cl ll1)
 {
   int iun = *f_iun, l1=ll1;
   char options[80] =
@@ -5177,7 +5177,7 @@ ftnword f77name(fstvoi)(ftnword *f_iun,char *f_options, F2Cl ll1)
   strncpy(options,f_options,l1);
   options[l1] = '\0';
 
-  return ((ftnword) c_fstvoi(iun,options));
+  return ((int32_t) c_fstvoi(iun,options));
 }
 
 
@@ -5194,12 +5194,12 @@ ftnword f77name(fstvoi)(ftnword *f_iun,char *f_options, F2Cl ll1)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstweo)(ftnword *f_iun, ftnword *f_level)
+ftnword f77name(fstweo)(int32_t *f_iun, int32_t *f_level)
 {
   int ier, iun = *f_iun, level = *f_level;
 
   ier = c_fstweo(iun,level);
-  return((ftnword) ier);
+  return((int32_t) ier);
 }
 
 
@@ -5216,58 +5216,58 @@ ftnword f77name(fstweo)(ftnword *f_iun, ftnword *f_level)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(ip1_all)(ftnfloat *f_level, ftnword *f_kind)
+ftnword f77name(ip1_all)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip1;
   float level = *f_level;
 
   ip1 = c_ip1_all(level,kind);
-  return((ftnword) ip1);
+  return((int32_t) ip1);
 }
 
-ftnword f77name(ip2_all)(ftnfloat *f_level, ftnword *f_kind)
+ftnword f77name(ip2_all)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip2;
   float level = *f_level;
 
   ip2 = c_ip2_all(level,kind);
-  return((ftnword) ip2);
+  return((int32_t) ip2);
 }
 
-ftnword f77name(ip3_all)(ftnfloat *f_level, ftnword *f_kind)
+ftnword f77name(ip3_all)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip3;
   float level = *f_level;
 
   ip3 = c_ip3_all(level,kind);
-  return((ftnword) ip3);
+  return((int32_t) ip3);
 }
 
-ftnword f77name(ip1_val)(ftnfloat *f_level, ftnword *f_kind)
+ftnword f77name(ip1_val)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip1;
   float level = *f_level;
 
   ip1 = c_ip1_val(level,kind);
-  return((ftnword) ip1);
+  return((int32_t) ip1);
 }
 
-ftnword f77name(ip2_val)(ftnfloat *f_level, ftnword *f_kind)
+ftnword f77name(ip2_val)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip2;
   float level = *f_level;
 
   ip2 = c_ip2_val(level,kind);
-  return((ftnword) ip2);
+  return((int32_t) ip2);
 }
 
-ftnword f77name(ip3_val)(ftnfloat *f_level, ftnword *f_kind)
+ftnword f77name(ip3_val)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip3;
   float level = *f_level;
 
   ip3 = c_ip3_val(level,kind);
-  return((ftnword) ip3);
+  return((int32_t) ip3);
 }
 
 

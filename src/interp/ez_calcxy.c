@@ -23,14 +23,14 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcxy(wordint gdin, wordint gdout)
+wordint ez_calcxy(int32_t gdin, int32_t gdout)
 {
-   wordint coordonnee, ni_in, nj_in, ni_out, nj_out, ninj_in, ninj_out;
-   wordint i,j,ier;
-   wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin, previous_val_polar_correction;
+   int32_t coordonnee, ni_in, nj_in, ni_out, nj_out, ninj_in, ninj_out;
+   int32_t i,j,ier;
+   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin, previous_val_polar_correction;
    int lcl_ngdin, idx_gdin;
-   static wordint found = -1;
-   static wordint ncalls = 0;
+   static int32_t found = -1;
+   static int32_t ncalls = 0;
 
    _ygrid *ygrid;
    float *gdout_lat, *gdout_lon;
@@ -55,8 +55,8 @@ wordint ez_calcxy(wordint gdin, wordint gdout)
    nj_out = Grille[gdrow_out][gdcol_out].nj;
    ninj_out = ni_out * nj_out;
 
-   Grille[gdrow_out][gdcol_out].gset[idx_gdin].x = (ftnfloat *) malloc(ninj_out*sizeof(ftnfloat));
-   Grille[gdrow_out][gdcol_out].gset[idx_gdin].y = (ftnfloat *) malloc(ninj_out*sizeof(ftnfloat));
+   Grille[gdrow_out][gdcol_out].gset[idx_gdin].x = (float *) malloc(ninj_out*sizeof(float));
+   Grille[gdrow_out][gdcol_out].gset[idx_gdin].y = (float *) malloc(ninj_out*sizeof(float));
 
    switch(Grille[gdrow_in][gdcol_in].grtyp[0])
       {
@@ -108,13 +108,13 @@ wordint ez_calcxy(wordint gdin, wordint gdout)
          Grille[gdrow_out][gdcol_out].gset[idx_gdin].ygrid.n_wts = groptions.wgt_num;
 /*         fprintf(stderr, "(ez_calcxy) %d\n", groptions.wgt_num);*/
          ygrid = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin].ygrid);
-         ygrid->lat =  (float *) malloc(ninj_in*sizeof(ftnfloat));
-         ygrid->lon =  (float *) malloc(ninj_in*sizeof(ftnfloat));
-         gdout_lat =  (float *) malloc(ninj_out*sizeof(ftnfloat));
-         gdout_lon =  (float *) malloc(ninj_out*sizeof(ftnfloat));
-         ygrid->wts =  (float *) malloc(ninj_out * groptions.wgt_num*sizeof(ftnfloat));
-         ygrid->idx =  (int *) malloc(ninj_out * groptions.wgt_num*sizeof(wordint));
-         ygrid->mask = (int *) malloc(ninj_out*sizeof(wordint));
+         ygrid->lat =  (float *) malloc(ninj_in*sizeof(float));
+         ygrid->lon =  (float *) malloc(ninj_in*sizeof(float));
+         gdout_lat =  (float *) malloc(ninj_out*sizeof(float));
+         gdout_lon =  (float *) malloc(ninj_out*sizeof(float));
+         ygrid->wts =  (float *) malloc(ninj_out * groptions.wgt_num*sizeof(float));
+         ygrid->idx =  (int *) malloc(ninj_out * groptions.wgt_num*sizeof(int32_t));
+         ygrid->mask = (int *) malloc(ninj_out*sizeof(int32_t));
          ier = c_gdll(gdin, ygrid->lat, ygrid->lon);
          ier = c_gdll(gdout, gdout_lat, gdout_lon);
 

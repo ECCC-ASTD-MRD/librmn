@@ -111,7 +111,7 @@ ftnword f77name(c_get_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv)
   i = lng;
   while (i <= lv)
     value[i++] = ' ';          /* remove null, blank pad */
-  return((ftnword) lng);
+  return((int32_t) lng);
 }
 
 void f77name(c_init_appl_var_table)()
