@@ -24,7 +24,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
+int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {
    int i;
    int32_t icode,len;
@@ -50,7 +50,7 @@ wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenval
    return icode;
 }
 
-wordint c_ezgetopt(char *option, char *value)
+int32_t c_ezgetopt(char *option, char *value)
 {
   char local_opt[32], local_val[32];
   int32_t i;

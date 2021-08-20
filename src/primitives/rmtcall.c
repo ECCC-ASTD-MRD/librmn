@@ -40,7 +40,7 @@
 /*  notes: toutes ces fonctions travaillent avec des MOTS.           */
 /*         Pour FORTRAN, un INTEGER ou un REAL occupent un mot.      */
 /*         NE PAS UTILISER pour une variable de type CHARACTER.      */
-wordint f77name(rmtcall)(unsigned long long *entry_in,unsigned long long *args_in)
+int32_t f77name(rmtcall)(unsigned long long *entry_in,unsigned long long *args_in)
 {
   typedef int32_t *W_ptr;
   W_ptr args[41];

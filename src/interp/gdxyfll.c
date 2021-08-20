@@ -22,19 +22,19 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxyfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n)
+int32_t f77name(gdxyfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n)
 {
 return c_gdxyfll(*gdid, x, y, lat, lon, *n);
 }
 
 
-wordint c_gdxyfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
+int32_t c_gdxyfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-wordint j, icode, yin_gdid, yan_gdid,maxni,maxnj ;
-ftnfloat *xyin, *xyan, *yyin, *yyan;
-wordint gdrow_id, gdcol_id;
-wordint yin_gdrow_id, yin_gdcol_id;
-wordint yan_gdrow_id, yan_gdcol_id;
+int32_t j, icode, yin_gdid, yan_gdid,maxni,maxnj ;
+float *xyin, *xyan, *yyin, *yyan;
+int32_t gdrow_id, gdcol_id;
+int32_t yin_gdrow_id, yin_gdcol_id;
+int32_t yan_gdrow_id, yan_gdcol_id;
 
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -92,19 +92,19 @@ return icode;
 
 }
 
-wordint c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
+int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-ftnfloat *tmplons;
+float *tmplons;
 
-wordint j,ni_in, nj_in;
-wordint sym=groptions.symmetrie;
+int32_t j,ni_in, nj_in;
+int32_t sym=groptions.symmetrie;
 
 
 _Grille gr;
-wordint npts;
-wordint coordonnee;
+int32_t npts;
+int32_t coordonnee;
 
-wordint gdrow_id, gdcol_id;
+int32_t gdrow_id, gdcol_id;
    
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    
@@ -170,19 +170,19 @@ c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 return 0;
 }
 
-wordint c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
+int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-ftnfloat *tmplons;
+float *tmplons;
 
-wordint j,ni_in, nj_in;
-wordint sym=groptions.symmetrie;
+int32_t j,ni_in, nj_in;
+int32_t sym=groptions.symmetrie;
 
 
 _Grille gr;
-wordint npts;
-wordint coordonnee;
+int32_t npts;
+int32_t coordonnee;
 
-wordint gdrow_id, gdcol_id;
+int32_t gdrow_id, gdcol_id;
    
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    

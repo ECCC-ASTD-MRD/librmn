@@ -24,7 +24,7 @@
 void ez_freezones(_gridset *gdset);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxysval)(int32_t *gdin, float *zout, float *zin, float *x, float *y, int32_t *n)
+int32_t f77name(gdxysval)(int32_t *gdin, float *zout, float *zin, float *x, float *y, int32_t *n)
 {
    int32_t icode;
    
@@ -32,13 +32,13 @@ wordint f77name(gdxysval)(int32_t *gdin, float *zout, float *zin, float *x, floa
    return icode;
 }
 
-wordint c_gdxysval(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n)
+int32_t c_gdxysval(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n)
 {
   int32_t j, icode, yin_gdid, yan_gdid,ni,nj;
   float *zoutyin, *zoutyan;
   float *tmpy;
 
-wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
+int32_t gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
 
   c_gdkey2rowcol(gdin,  &gdrow_id,  &gdcol_id);
 
@@ -88,7 +88,7 @@ wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
    
 }
 
-wordint c_gdxysval_orig(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n)
+int32_t c_gdxysval_orig(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n)
 {
    int32_t ier;
 

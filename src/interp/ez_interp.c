@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_interp(float *zout, float *zin, int32_t gdin, int32_t gdout)
+int32_t ez_interp(float *zout, float *zin, int32_t gdin, int32_t gdout)
   {
   int32_t ni_in, nj_in, ni_out, nj_out, ninj_out;
   

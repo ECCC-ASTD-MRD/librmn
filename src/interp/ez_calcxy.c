@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcxy(int32_t gdin, int32_t gdout)
+int32_t ez_calcxy(int32_t gdin, int32_t gdout)
 {
    int32_t coordonnee, ni_in, nj_in, ni_out, nj_out, ninj_in, ninj_out;
    int32_t i,j,ier;

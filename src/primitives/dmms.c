@@ -415,7 +415,7 @@ int mode, msg_level;
  **/
 
 int f77name(memoirc)(msg_level)
-wordint *msg_level;
+int32_t *msg_level;
 
 {
    int errs, errh;
@@ -453,7 +453,7 @@ wordint *msg_level;
  **/
 
 void f77name(dmmsdbg)(dbgr)
-wordint *dbgr;
+int32_t *dbgr;
 {
    debug_mode = (*dbgr == 1) ? 1 : 0;
    }
@@ -472,7 +472,7 @@ wordint *dbgr;
  **/
 
 void f77name(dmmsnabt)(abort)
-wordint *abort;
+int32_t *abort;
 {
    dmms_noabort = (*abort == 1) ? 1 : 0;
    }
@@ -485,7 +485,7 @@ wordint *abort;
 
 void
 f77name(hpalloc)( addr, length, errcode, abort )
-wordint *length, *errcode, *abort;
+int32_t *length, *errcode, *abort;
 void **addr;
 {
    struct blocmem *ptbloc;
@@ -505,7 +505,7 @@ void **addr;
 
 void 
 f77name(hpdeallc)(addr, errcode, abort)
-wordint *errcode, *abort;
+int32_t *errcode, *abort;
 char **addr;
 {
    int offset=4*sizeof(addr);
@@ -566,7 +566,7 @@ f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *abort
 
 void 
 f77name(ca_deallc)(addr, errcode, abort)
-wordint *errcode, *abort;
+int32_t *errcode, *abort;
 int **addr;
 {
    int **ptr;
@@ -580,7 +580,7 @@ int **addr;
  ************************************************************************/
 void
 f77name(memoirh)(buf,ind,nw)
-wordint buf[], *ind, *nw;
+int32_t buf[], *ind, *nw;
 {
    int errcode, **ptr;
    struct blocmem *ptbloc;
@@ -614,7 +614,7 @@ wordint buf[], *ind, *nw;
  ************************************************************************/
 void
 f77name(memoir)(buf,ind,nw)
-wordint buf[], *ind, *nw;
+int32_t buf[], *ind, *nw;
 {
    int  errcode, **ptr;
    struct blocmem *ptbloc;
@@ -649,7 +649,7 @@ wordint buf[], *ind, *nw;
 
 void
 f77name(bkcheck)(addr, errcode)
-wordint **addr, *errcode;
+int32_t **addr, *errcode;
 {
    *errcode = bloc_check((*addr)-4,1);
    }
@@ -661,7 +661,7 @@ wordint **addr, *errcode;
  ************************************************************************/
 void
 f77name(hpcheck)(errcode)
-wordint *errcode;
+int32_t *errcode;
 {
    if (*errcode == 0) 
       *errcode = mem_check(HEAP,0);
@@ -691,7 +691,7 @@ int *errcode;
 
 void
 f77name(bkcheck)(addr, errcode)
-wordint *addr, *errcode;
+int32_t *addr, *errcode;
 {
    int64_t temp;
    int **p;
@@ -710,7 +710,7 @@ wordint *addr, *errcode;
  ************************************************************************/
 void
 f77name(hpalloc)( addr, length, errcode, abort )
-wordint *addr, *length, *errcode, *abort;
+int32_t *addr, *length, *errcode, *abort;
 {
    struct blocmem *ptbloc;
    int64_t laddr;
@@ -734,7 +734,7 @@ wordint *addr, *length, *errcode, *abort;
  ************************************************************************/
 void 
 f77name(hpdeallc)(addr, errcode, abort)
-wordint *addr, *errcode, *abort;
+int32_t *addr, *errcode, *abort;
 {
    int64_t temp;
    int **p;
@@ -753,7 +753,7 @@ wordint *addr, *errcode, *abort;
  ************************************************************************/
 void
 f77name(memoirh)(buf,ind,nw)
-wordint buf[], *ind, *nw;
+int32_t buf[], *ind, *nw;
 {
    int errcode, **ptr;
    int64_t adr1, adr2;
@@ -776,7 +776,7 @@ wordint buf[], *ind, *nw;
  ************************************************************************/
 void
 f77name(memoir)(buf,ind,nw)
-wordint buf[], *ind, *nw;
+int32_t buf[], *ind, *nw;
 {
    int errcode, **ptr;
    int64_t adr1, adr2;

@@ -103,13 +103,13 @@ static void removepidfile();
 static void strcopy(char *s, char *t, int charlen);
 static int validchan(int chan);
 static int bwrite(int chan, void *buffer, int nelem, char *dtype);
-ftnword f77name (mgi_init) (char *channel_name, int lname);
-ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode);
-ftnword f77name (mgi_read) (int32_t *f_chan, void *data, int32_t *f_nelm,
+int32_t f77name (mgi_init) (char *channel_name, int lname);
+int32_t f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode);
+int32_t f77name (mgi_read) (int32_t *f_chan, void *data, int32_t *f_nelm,
                                char *dtype, int ltype);
-ftnword f77name (mgi_write) (int32_t *f_chan, void *data, int32_t *f_nelm,
+int32_t f77name (mgi_write) (int32_t *f_chan, void *data, int32_t *f_nelm,
                                char *dtype, int ltype);
-ftnword f77name (mgi_clos) (int32_t *f_chan);
+int32_t f77name (mgi_clos) (int32_t *f_chan);
 void f77name (mgi_term) ();
 void f77name (mgi_nosig) ();
 
@@ -267,7 +267,7 @@ void f77name (mgi_nosig) ()
    printf("MGI_NOSIG: SIGNALS are disabled\n");
 }
 
-ftnword f77name (mgi_init) (char *channel_name, int lname)
+int32_t f77name (mgi_init) (char *channel_name, int lname)
 /* To initialize a channel given a channel_name.
    It will return a number to represent this channel (1 to MAX_CHANNELS-1 */
 {
@@ -323,7 +323,7 @@ ftnword f77name (mgi_init) (char *channel_name, int lname)
    return(chan);
 }
 
-ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode)
+int32_t f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode)
 /* to open a channel in mode "mode" where mode can be:
    'R' for reading
    'W' for writing
@@ -408,7 +408,7 @@ ftnword f77name (mgi_open) (int32_t *f_chan, char *mode, int lmode)
    return(ier);
 }
 
-ftnword f77name (mgi_clos) (int32_t *f_chan)
+int32_t f77name (mgi_clos) (int32_t *f_chan)
 /* To close a channel and signal that it can be opened in another mode */
 {
    int i,ier,nb,fd_rst,chan;
@@ -498,7 +498,7 @@ ftnword f77name (mgi_clos) (int32_t *f_chan)
 }
  
 
-ftnword f77name (mgi_write) (int32_t *f_chan, void *buffer, 
+int32_t f77name (mgi_write) (int32_t *f_chan, void *buffer, 
                     int32_t *f_nelem, char *dtype, int ltype)
 /* to write elements from "buffer" into the specified channel
 opened for WRITEMODE or STOREMODE only. It actually writes
@@ -542,7 +542,7 @@ The following types of data (dtype) are accepted:
    return(ier);
 }
 
-ftnword f77name (mgi_read) (int32_t *f_chan, void *buffer, 
+int32_t f77name (mgi_read) (int32_t *f_chan, void *buffer, 
                        int32_t *f_nelem, char *dtype, int ltype)
 /* to read elements directly from the data file related to the 
 specified channel into "buffer". The channel must be opened for 

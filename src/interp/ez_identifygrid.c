@@ -35,7 +35,7 @@ void c_ez_manageGrillesMemory() {
 }
 
 
-wordint c_ezidentify_reg_grid(int32_t ni, int32_t nj, char* grtyp, int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4) {
+int32_t c_ezidentify_reg_grid(int32_t ni, int32_t nj, char* grtyp, int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4) {
    int32_t i;
    int32_t gdid, gdrow, gdcol, nchunks, newGrid;
    int32_t res1, res2, newgrsize, grid_index;
@@ -90,7 +90,7 @@ wordint c_ezidentify_reg_grid(int32_t ni, int32_t nj, char* grtyp, int32_t ig1, 
    }
 }
 
-wordint c_ezidentify_irreg_grid(
+int32_t c_ezidentify_irreg_grid(
       int32_t ni, int32_t nj, char* grtyp, char* grref,
       int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4,
       float* ax, float* ay) {

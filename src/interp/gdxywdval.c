@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
+int32_t f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
 {
    int32_t icode;
 
@@ -33,7 +33,7 @@ wordint f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uui
 
 
 //! Vector interpolation of points located at x-y coordinates, returned as speed and direction (UVand WD)
-wordint c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
+int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
     int32_t ier, j, icode, yin_gdid, yan_gdid, lni, lnj;
 

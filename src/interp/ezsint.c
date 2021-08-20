@@ -23,14 +23,14 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsint)(float *zout, float *zin)
+int32_t f77name(ezsint)(float *zout, float *zin)
 {
    int32_t icode;
    
    icode = c_ezsint(zout, zin);
    return icode;
 }
-wordint c_ezsint(float *zout, float *zin)
+int32_t c_ezsint(float *zout, float *zin)
 {
   int32_t icode,gdin,gdout;
   int32_t gdrow_in,gdcol_in, gdrow_out,gdcol_out;
@@ -67,7 +67,7 @@ wordint c_ezsint(float *zout, float *zin)
   return icode;
 }
 
-wordint c_ezsint_orig(float *zout, float *zin)
+int32_t c_ezsint_orig(float *zout, float *zin)
 {
   int32_t gdin, gdout;
   int32_t ier,ierc;

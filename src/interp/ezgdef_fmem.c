@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(ezgdef_fmem)(int32_t* ni, int32_t* nj, char* grtyp, char* grref,
+int32_t f77name(ezgdef_fmem)(int32_t* ni, int32_t* nj, char* grtyp, char* grref,
    int32_t* ig1, int32_t* ig2, int32_t* ig3, int32_t* ig4,
    float* ax, float* ay, F2Cl lengrtyp, F2Cl lengrref)
 {
@@ -60,7 +60,7 @@ wordint f77name(ezgdef_fmem)(int32_t* ni, int32_t* nj, char* grtyp, char* grref,
 //!
 //! If grtyp == 'Z' or '#', the dimensions of ax=ni and ay=nj.
 //! If grtyp == 'Y', the dimensions of ax=ay=ni*nj. 
-wordint c_ezgdef_fmem(int32_t ni, int32_t nj, char* grtyp, char* grref,
+int32_t c_ezgdef_fmem(int32_t ni, int32_t nj, char* grtyp, char* grref,
    int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, float* ax, float* ay)
 {
    int32_t gdid;

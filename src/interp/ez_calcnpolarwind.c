@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcnpolarwind(float *polar_uu_in, float *polar_vv_in, float *uuin, float *vvin, 
+int32_t ez_calcnpolarwind(float *polar_uu_in, float *polar_vv_in, float *uuin, float *vvin, 
 			  int32_t ni, int32_t nj, int32_t gdin)
 {
   int32_t k1, k2;

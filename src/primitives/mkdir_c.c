@@ -23,7 +23,7 @@
 #include <rpnmacros.h>
 #define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
 
-ftnword f77name(mkdir_c)(char *filename, F2Cl lng1)
+int32_t f77name(mkdir_c)(char *filename, F2Cl lng1)
 {
   int rcode;
   char fname[4097];

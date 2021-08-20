@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezqkdef)(int32_t *ni, int32_t *nj, char *grtyp, 
+int32_t f77name(ezqkdef)(int32_t *ni, int32_t *nj, char *grtyp, 
                     int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *iunit, F2Cl lengrtyp)
 {
    int32_t icode;
@@ -35,7 +35,7 @@ wordint f77name(ezqkdef)(int32_t *ni, int32_t *nj, char *grtyp,
    return icode;
 }
 
-wordint c_ezqkdef(int32_t ni, int32_t nj, char *grtyp,
+int32_t c_ezqkdef(int32_t ni, int32_t nj, char *grtyp,
              int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, int32_t iunit)
 {
   int32_t icode;

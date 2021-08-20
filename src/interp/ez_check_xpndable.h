@@ -1,7 +1,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint c_ez_check_xpndable(int32_t *extension, int32_t ni, int32_t nj, char grtyp, int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4)
+int32_t c_ez_check_xpndable(int32_t *extension, int32_t ni, int32_t nj, char grtyp, int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4)
    {
    char lcl_grtyp;
    int32_t lcl_ig1, lcl_ig2, lcl_ig3, lcl_ig4;

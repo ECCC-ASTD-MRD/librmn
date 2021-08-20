@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgprm)(int32_t *gdid, char *grtyp, int32_t *ni, int32_t *nj,
+int32_t f77name(ezgprm)(int32_t *gdid, char *grtyp, int32_t *ni, int32_t *nj,
              int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, F2Cl lengrtyp)
 {
   int i;
@@ -36,7 +36,7 @@ wordint f77name(ezgprm)(int32_t *gdid, char *grtyp, int32_t *ni, int32_t *nj,
   return icode;
 }
 
-wordint   c_ezgprm(int32_t gdid, char *grtyp, int32_t *ni, int32_t *nj, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4)
+int32_t   c_ezgprm(int32_t gdid, char *grtyp, int32_t *ni, int32_t *nj, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4)
 {
   int32_t gdrow_id, gdcol_id;
     

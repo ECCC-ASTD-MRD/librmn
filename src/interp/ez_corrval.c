@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout)
+int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout)
 {
   int32_t i,ierc;
   float valmax, valmin,fudgeval;

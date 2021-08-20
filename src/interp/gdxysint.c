@@ -22,9 +22,9 @@
 #include "ez_funcdef.h"
 
 
-wordint c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts);
+int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxysint)(float *zout, float *zin, int32_t *gdin, float *x, float *y, int32_t *npts)
+int32_t f77name(gdxysint)(float *zout, float *zin, int32_t *gdin, float *x, float *y, int32_t *npts)
 {
    int32_t icode;
 
@@ -32,7 +32,7 @@ wordint f77name(gdxysint)(float *zout, float *zin, int32_t *gdin, float *x, floa
    return icode;
 }
 
-wordint c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
+int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
 {
    int32_t ier;
    float *lzin, *lxzin;

@@ -30,7 +30,7 @@
 
 
 
-ftnfloat f77name(second)();
+float f77name(second)();
 
 static double powerOf2s[maxBit];
 

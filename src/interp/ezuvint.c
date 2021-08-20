@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezuvint)(float *uuout, float *vvout, float *uuin, float *vvin)
+int32_t f77name(ezuvint)(float *uuout, float *vvout, float *uuin, float *vvin)
 {
    int32_t icode;
    
@@ -31,7 +31,7 @@ wordint f77name(ezuvint)(float *uuout, float *vvout, float *uuin, float *vvin)
    return icode;
 }
 
-wordint c_ezuvint(float *uuout, float *vvout, float *uuin, float *vvin)
+int32_t c_ezuvint(float *uuout, float *vvout, float *uuin, float *vvin)
 {
   int32_t icode,gdin,gdout;
    
@@ -55,7 +55,7 @@ wordint c_ezuvint(float *uuout, float *vvout, float *uuin, float *vvin)
 
 }
 
-wordint c_ezuvint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
+int32_t c_ezuvint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
 {
   int32_t gdin,gdout;
   int32_t npts, ier, ierc,ierc1,ierc2;

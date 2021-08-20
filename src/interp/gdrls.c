@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdrls)(int32_t *gdin)
+int32_t f77name(gdrls)(int32_t *gdin)
 {
    int32_t icode;
    
@@ -31,7 +31,7 @@ wordint f77name(gdrls)(int32_t *gdin)
    return icode;
 }
 
-wordint c_gdrls(int32_t gdin)
+int32_t c_gdrls(int32_t gdin)
 {
    EliminerGrille(gdin);
 

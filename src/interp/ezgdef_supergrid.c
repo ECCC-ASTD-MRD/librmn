@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref)
+int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref)
 {
   int32_t gdid,i;
   char lgrtyp[2],lgrref[2];
@@ -37,7 +37,7 @@ wordint f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *g
   return gdid;
 }
 
-wordint c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int32_t vercode,int32_t nsubgrids, int32_t *subgrid)
+int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int32_t vercode,int32_t nsubgrids, int32_t *subgrid)
 {
   int32_t sub_gdrow_id, sub_gdcol_id, sub_gdid;
   int32_t mask_gdrow_id, mask_gdcol_id, mask_gdid;

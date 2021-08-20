@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin)
+int32_t c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin)
 {
   int32_t icode,i,j,k,ierc1,ierc2,ierc;
   int32_t yancount_yin,yincount_yin, yancount_yan,yincount_yan;

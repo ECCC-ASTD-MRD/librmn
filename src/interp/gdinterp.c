@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
+int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
 {
    int32_t lnpts;
    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;

@@ -32,7 +32,7 @@
 
 */
 
-wordfloat
+float
 f77name(second) ( )
 
 {

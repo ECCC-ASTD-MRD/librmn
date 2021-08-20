@@ -4,7 +4,7 @@
 
 #include <rpnmacros.h>
 
-ftnword f77name(get_max_rss)()
+int32_t f77name(get_max_rss)()
 {
 struct rlimit limits;
 struct rusage mydata;

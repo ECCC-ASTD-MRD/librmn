@@ -144,7 +144,7 @@ int c_fretour(
     return(0);
 }
 //! @copydoc c_fretour
-ftnword f77name(fretour)(int32_t *fiun){
+int32_t f77name(fretour)(int32_t *fiun){
     return(0);
 }
 
@@ -601,7 +601,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
 }
 
 
-ftnword f77name(fnom)(int32_t *iun,char *nom,char *type,int32_t *flrec,F2Cl l1,F2Cl l2)
+int32_t f77name(fnom)(int32_t *iun,char *nom,char *type,int32_t *flrec,F2Cl l1,F2Cl l2)
 {
    int lrec,lng,tmp,liun=*iun;
    char filename[1025],filetype[257];
@@ -681,7 +681,7 @@ int c_fclos(int iun)
    return(ier);
 }
 
-ftnword f77name(fclos)(int32_t *fiun)
+int32_t f77name(fclos)(int32_t *fiun)
 {
    int iun,ier;
    iun = *fiun;
@@ -745,7 +745,7 @@ static int c_qqqfscr(char *type)
 *          in  l2      length of type
 *
 */
-ftnword f77name(qqqfnom)(int32_t *iun,char *nom,char *type,int32_t *flrec,F2Cl l1,F2Cl l2)
+int32_t f77name(qqqfnom)(int32_t *iun,char *nom,char *type,int32_t *flrec,F2Cl l1,F2Cl l2)
 {
    int i,j;
 
@@ -891,7 +891,7 @@ int c_waopen2(int iun)   /* open unit iun for WORD ADDRESSABLE access */
    return ier;
 }
 
-ftnword f77name(waopen2)(int32_t *fiun)
+int32_t f77name(waopen2)(int32_t *fiun)
 {
    int iun;
    iun = *fiun;
@@ -936,7 +936,7 @@ int c_waclos2(int iun)
    FGFDT[i].attr.wa = 0;
    return(ier);
 }
-ftnword f77name(waclos2)(int32_t *fiun)
+int32_t f77name(waclos2)(int32_t *fiun)
 {
    int iun;
    iun = *fiun;
@@ -1012,7 +1012,7 @@ void f77name(wawrit)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) 
 }
 
 
-ftnword f77name(wawrit2)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) {
+int32_t f77name(wawrit2)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) {
     int iun = *fiun;
     int adr = *fadr;
     int nmots = *fnmots;
@@ -1087,7 +1087,7 @@ void f77name(waread)(int32_t *fiun,void *buf,uint32_t *fadr,
 {
   f77name(waread2)(fiun,buf,fadr,fnmots);
 }
-ftnword f77name(waread2)(int32_t *fiun,void *buf,uint32_t *fadr,
+int32_t f77name(waread2)(int32_t *fiun,void *buf,uint32_t *fadr,
                          int32_t *fnmots)
 {
    int iun,adr,nmots;
@@ -1135,7 +1135,7 @@ int32_t c_wasize(int iun)
 
    return n;
 }
-ftnword f77name(wasize)(int32_t *fiun)  /* return file size in FORTRAN WORDS */
+int32_t f77name(wasize)(int32_t *fiun)  /* return file size in FORTRAN WORDS */
 {
    int iun;
    iun = *fiun;
@@ -1171,7 +1171,7 @@ int32_t c_numblks(int iun)
    i = 1024 / sizeof(int32_t);
    return (n + i - 1) / i;
 }
-ftnword f77name(numblks)(int32_t *fiun)     /* return file size in KiloBytes */
+int32_t f77name(numblks)(int32_t *fiun)     /* return file size in KiloBytes */
 {
    int iun;
    iun = *fiun;
@@ -1196,7 +1196,7 @@ ftnword f77name(numblks)(int32_t *fiun)     /* return file size in KiloBytes */
 *
 *
 */
-ftnword f77name(existe)(char *nom, F2Cl llng)
+int32_t f77name(existe)(char *nom, F2Cl llng)
 {
    int l2, lng = llng;
    char filename[257];
@@ -1412,7 +1412,7 @@ int c_getfdsc(int iun) {
 
    return(FGFDT[i].fd) ;
    }
-ftnword f77name(getfdsc)( int32_t *iun) { return(c_getfdsc((int) *iun)) ;}
+int32_t f77name(getfdsc)( int32_t *iun) { return(c_getfdsc((int) *iun)) ;}
 
 /***************************************************************************
 *                     C _ S Q O P E N ,   S Q O P E N                      *
@@ -1555,7 +1555,7 @@ int c_sqgetw(int iun, int32_t *bufptr, int nmots) {
    }
    return( (alire == 0) ? alu/sizeof(int32_t) : -1);
 }
-ftnword f77name(sqgetw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
+int32_t f77name(sqgetw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
    int mult = sizeof(int32_t) / sizeof(int32_t);
    return(c_sqgetw((int) *iun, (int32_t *) bufptr, (int) (*nmots * mult)));
 }
@@ -1594,7 +1594,7 @@ int c_sqputw(int iun, int32_t *bufptr, int nmots) {
    }
    return( (aecrire == 0) ? necrit/sizeof(int32_t) : -1);
 }
-ftnword f77name(sqputw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
+int32_t f77name(sqputw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
    int mult = sizeof(int32_t) / sizeof(int32_t);
    return(c_sqputw((int) *iun, (int32_t *) bufptr, (int) (*nmots * mult)));
 }
@@ -1622,7 +1622,7 @@ int c_sqgets(int iun, char *bufptr, int nchar) {
    nlu = read(fd,bufptr,nchar);
    return( (nlu > 0) ? nlu : -1);
 }
-ftnword f77name(sqgets)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl llbuf) {
+int32_t f77name(sqgets)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl llbuf) {
    int lbuf=llbuf;
    if (lbuf >= *nchar)
       return( c_sqgets(*iun, bufptr , *nchar));
@@ -1653,7 +1653,7 @@ int c_sqputs(int iun, char *bufptr, int nchar) {
    nlu = write(fd,bufptr,nchar);
    return( (nlu > 0) ? nlu : -1);
 }
-ftnword f77name(sqputs)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl llbuf) {
+int32_t f77name(sqputs)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl llbuf) {
    int lbuf=llbuf;
    if (lbuf >= *nchar)
       return( c_sqputs(*iun, bufptr , *nchar));

@@ -23,13 +23,13 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_defzones(int32_t gdin, int32_t gdout)
+int32_t ez_defzones(int32_t gdin, int32_t gdout)
 {
-wordint i;
-wordint extrap;
+int32_t i;
+int32_t extrap;
 int lcl_ngdin;
 
-wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, idx_gdin;
+int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, idx_gdin;
    
 c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);

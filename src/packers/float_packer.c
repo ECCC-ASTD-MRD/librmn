@@ -216,7 +216,7 @@ int32_t c_float_unpacker(float *dest, int32_t *header, int32_t *stream, int32_t 
   return 0;
 }
 
-ftnword f77name(float_unpacker)(float *dest, int32_t *header, int32_t *stream, int32_t *npts, int32_t *nbits)
+int32_t f77name(float_unpacker)(float *dest, int32_t *header, int32_t *stream, int32_t *npts, int32_t *nbits)
 {
   return c_float_unpacker(dest, header, stream, *npts, nbits);
 }
@@ -250,7 +250,7 @@ int32_t c_float_packer(float *source, int32_t nbits, int32_t *header, int32_t *s
   if( float_packer_1(source, nbits, header, stream, npts) ) return -1;  /* return -1 on error */
   return  0 ;   /* return 0 if no error */
 }
-ftnword f77name(float_packer)(float *source, int32_t *nbits, int32_t *header, int32_t *stream, int32_t *npts)
+int32_t f77name(float_packer)(float *source, int32_t *nbits, int32_t *header, int32_t *stream, int32_t *npts)
 {
   return c_float_packer(source,*nbits,header,stream,*npts);
 }

@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(gdxyvval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
+int32_t f77name(gdxyvval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
 {
    int32_t icode;
 
@@ -32,7 +32,7 @@ wordint f77name(gdxyvval)(int32_t *gdin, float *uuout, float *vvout, float *uuin
 
 
 //! Vector interpolation of points located at x-y coordinates, returned as grid components (UU and VV). 
-wordint c_gdxyvval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
+int32_t c_gdxyvval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
     int32_t j, icode, yin_gdid, yan_gdid, ni, nj;
     float *uuyin, *vvyin, *uuyan, *vvyan;
@@ -83,7 +83,7 @@ wordint c_gdxyvval(int32_t gdin, float *uuout, float *vvout, float *uuin, float 
     }
 }
 
-wordint c_gdxyvval_orig(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
+int32_t c_gdxyvval_orig(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
     groptions.vecteur = VECTEUR;
 

@@ -1480,7 +1480,7 @@ qvmindex_from_key(complete_key inkey)
 *         in nkey    -  nombre de clefs dans inlkey
 *
 **/
-wordint
+int32_t
 qvmlod(complete_key inlkey[], int32_t *nkey)
 {
    
@@ -2412,7 +2412,7 @@ int
 *     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
 *
 **/
-wordint
+int32_t
 f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 {
    int vmmerr();
@@ -2538,7 +2538,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 *     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
 *
 **/
-wordint
+int32_t
 f77name(vmmallc)(int32_t *memry)
 {
   int32_t ier;
@@ -2563,7 +2563,7 @@ f77name(vmmallc)(int32_t *memry)
 *     out  attr     chaine de caracteres decrivant les attributs du champ
 *
 **/
-wordint
+int32_t
 f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1,F2Cl l2)
 {
    int vmmerr();
@@ -2678,7 +2678,7 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
 *                       pour cette version, mode=1 seulement => xor du champ
 *
 **/
-wordint
+int32_t
 f77name(vmmcks)(complete_key *inkey, int32_t *mode)
 {
 
@@ -2735,7 +2735,7 @@ f77name(vmmcks)(complete_key *inkey, int32_t *mode)
  *          forcer l'ejection des blocs qui n'ont pas l'attribut save
  *          
  **/
-wordint f77name(vmmcpk)()
+int32_t f77name(vmmcpk)()
 {
    
    void ecrit_vmm_controle(), ecrit_bloc();
@@ -2806,7 +2806,7 @@ wordint f77name(vmmcpk)()
 *     in   l1       longueur de namevar
 *     in   l2       longueur de inattr
 **/
-wordint
+int32_t
 f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
                 char *inattr,F2Cl l1,F2Cl l2)
 {
@@ -3074,7 +3074,7 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
 *         in nkey    -  nombre de clefs dans inlkey
 *
 **/
-wordint
+int32_t
 f77name(vmmdbg)(char command[],complete_key inlkey[], int32_t *nkey,F2Cl l1)
 {
 
@@ -3162,7 +3162,7 @@ f77name(vmmdbg)(char command[],complete_key inlkey[], int32_t *nkey,F2Cl l1)
 *                aucun
 *
 **/
-wordint
+int32_t
 f77name(vmmdiag)()
 {
    int vmmerr();
@@ -3199,7 +3199,7 @@ f77name(vmmdiag)()
 *
 *
 **/
-wordint 
+int32_t 
 f77name(vmmdmp)(uint32_t *mode)
 {
          void imprime_structures();
@@ -3447,7 +3447,7 @@ f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
 *         out tablo     -  champ a obtenir (inutile en mode dynamique)
 *
 **/
-wordint 
+int32_t 
 #if defined (_FLOAT1)
 f77name(vmmget)(complete_key  *inkey, int32_t *pointeur,int32_t *tablo)
 #else
@@ -3545,7 +3545,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
 *     in   mode   si mode=8, forcer une allocation en mots de 8 bytes
 *
 **/
-wordint
+int32_t
 #if defined (_FLOAT1)
 f77name(vmmhpa)(int32_t *ptr,int32_t *memry,int32_t *mode)
 #else
@@ -3605,7 +3605,7 @@ f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
 *     in   ptr    pointeur au bloc de memoire
 *
 **/
-wordint
+int32_t
 #if defined(_FLOAT1)
 f77name(vmmhpd)(int32_t *ptr)
 #else
@@ -3740,7 +3740,7 @@ int f77name(vmmint)()
 *         in nkey    -  nombre de clefs dans inlkey
 *
 **/
-wordint
+int32_t
 f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(), verbar(),calc_checksum();
@@ -3817,7 +3817,7 @@ f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
 *         in nkey    -  nombre de clefs dans inlkey
 *
 **/
-wordint
+int32_t
 f77name(vmmlod)(complete_key inlkey[], int32_t *nkey)
 {
         int32_t qvmlod();
@@ -3885,7 +3885,7 @@ f77name(vmmlod)(complete_key inlkey[], int32_t *nkey)
 *
 *
 **/
-wordint
+int32_t
 f77name(vmmlse)()
 {
    int vmmerr();
@@ -3921,7 +3921,7 @@ f77name(vmmlse)()
 *auteur M. Lepine  -  juin 1993
 *
 **/
-wordint
+int32_t
 f77name(vmmpak)()
 {
    int vmmerr(), pack_blocks();
@@ -3965,7 +3965,7 @@ f77name(vmmpak)()
 *                             mode = 1, on deverrouille
 *
 **/
-wordint
+int32_t
 f77name(vmmpwd)(int32_t *mot_passe, int32_t *mode)
 {
 
@@ -4077,7 +4077,7 @@ f77name(vmmrls)(complete_key inlkey[], int32_t *nkey)
 *     in   l1       longueur de newname
 *
 **/
-wordint
+int32_t
 f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 {
      int vmmerr();
@@ -4140,7 +4140,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-wordint 
+int32_t 
 f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
 {
          void ecrit_bloc(),reserve_disk_space();
@@ -4230,7 +4230,7 @@ f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-wordint
+int32_t
 f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(), eject_block(), verbar();
@@ -4353,7 +4353,7 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
 *         in nkey    -  nombre de clefs dans inlkey
 *
 **/
-wordint
+int32_t
 f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
 {
        int qvmindex_from_key(), vmmerr(),verbar(),calc_checksum();
@@ -4547,7 +4547,7 @@ f77name(vmmuln)(complete_key inlkey[], int32_t *nkey)
 *         in  adr  -  adresse recherchee
 *
 **/
-wordint
+int32_t
 f77name(vmmwho)(int32_t *adr)
 {
    int i,sind,nind;
@@ -4609,7 +4609,7 @@ f77name(vmmwho)(int32_t *adr)
 *         faire plusieurs appels a vmmckmx au cours d'une meme execution.
 *
 
-wordint f77name(vmmckmx)()
+int32_t f77name(vmmckmx)()
 {
 
    void ecrit_vmm_controle(), ecrit_bloc();
@@ -4679,7 +4679,7 @@ wordint f77name(vmmckmx)()
 *auteur J. Caveen  -  juillet 1993
 *
 **/
-wordint f77name(vmmckmx)()
+int32_t f77name(vmmckmx)()
 {
 
    void ecrit_vmm_controle(), ecrit_bloc();
@@ -4746,7 +4746,7 @@ wordint f77name(vmmckmx)()
 *    yes if 1 delete 10 files Vmm_* 
 *
 **/
-wordint f77name(vmmdel)(int yes) {
+int32_t f77name(vmmdel)(int yes) {
    int vmmerr();
    int i, ier;
 
@@ -4793,7 +4793,7 @@ wordint f77name(vmmdel)(int yes) {
 *     None
 *
 **/
-wordint
+int32_t
 f77name(vmmend)()
 {
    int vmmerr();

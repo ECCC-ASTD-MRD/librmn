@@ -287,7 +287,7 @@ static int setfp(FILE *fp)
 
 //! FORTRAN interface
 //! call cmcwlog(CLASS, msgno, ID, TEXT)
-wordint f77name(cmcwlog)(
+int32_t f77name(cmcwlog)(
     //! [in]
     char *fclstr,
     //! [in]

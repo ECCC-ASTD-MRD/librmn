@@ -24,7 +24,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint c_ezgdef_yymask(_Grille *subgd)
+int32_t c_ezgdef_yymask(_Grille *subgd)
 {
   int32_t ni,nj,yni,ynj,i,j,k,ii;
   int32_t i0,i1,j0,j1;

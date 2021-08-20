@@ -21,16 +21,16 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-wordint f77name(ezsetfval)(char *option, float *fvalue, F2Cl lenoption);
-wordint f77name(ezsetval)(char *option, float *fvalue, F2Cl lenoption);
-wordint f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl lenoption);
-wordint c_ezsetfval(char *option, float fvalue);
-wordint c_ezsetval(char *option, float fvalue);
-wordint c_ezsetival(char *option, int32_t ivalue);
+int32_t f77name(ezsetfval)(char *option, float *fvalue, F2Cl lenoption);
+int32_t f77name(ezsetval)(char *option, float *fvalue, F2Cl lenoption);
+int32_t f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl lenoption);
+int32_t c_ezsetfval(char *option, float fvalue);
+int32_t c_ezsetval(char *option, float fvalue);
+int32_t c_ezsetival(char *option, int32_t ivalue);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetfval)(char *option, float *fvalue, F2Cl llenoption)
+int32_t f77name(ezsetfval)(char *option, float *fvalue, F2Cl llenoption)
    {
    int32_t i, icode;
    int32_t longueur_option, longueur_value;
@@ -51,12 +51,12 @@ wordint f77name(ezsetfval)(char *option, float *fvalue, F2Cl llenoption)
    return icode;
 }
 
-wordint f77name(ezsetval)(char *option, float *fvalue, F2Cl lenoption)
+int32_t f77name(ezsetval)(char *option, float *fvalue, F2Cl lenoption)
    {
    return f77name(ezsetfval)(option, fvalue, lenoption);
    }
 
-wordint f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl llenoption)
+int32_t f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl llenoption)
 {
    int32_t i, icode;
    int32_t longueur_option, longueur_value;
@@ -78,7 +78,7 @@ wordint f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl llenoption)
 }
 
 
-wordint c_ezsetfval(char *option, float fvalue)
+int32_t c_ezsetfval(char *option, float fvalue)
    {
    char local_opt[32];
    int32_t i;
@@ -109,13 +109,13 @@ wordint c_ezsetfval(char *option, float fvalue)
    return 0;
    }
 
-wordint c_ezsetval(char *option, float fvalue)
+int32_t c_ezsetval(char *option, float fvalue)
    {
    return c_ezsetfval(option, fvalue);
    }
 
 
-wordint c_ezsetival(char *option, int32_t ivalue)
+int32_t c_ezsetival(char *option, int32_t ivalue)
    {
    char local_opt[32];
    int32_t i;
@@ -143,7 +143,7 @@ wordint c_ezsetival(char *option, int32_t ivalue)
    return 0;
    }
 
-wordint c_ezsetval2(char *option, float *fvalue)
+int32_t c_ezsetval2(char *option, float *fvalue)
 {
    char local_opt[32];
    int32_t i;

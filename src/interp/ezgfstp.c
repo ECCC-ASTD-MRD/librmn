@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgfstp)(int32_t *gdid, 
+int32_t f77name(ezgfstp)(int32_t *gdid, 
                          char *nomvarx, char *typvarx, char *etiketx,
                          char *nomvary, char *typvary, char *etikety,
                          int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *dateo, 
@@ -68,7 +68,7 @@ wordint f77name(ezgfstp)(int32_t *gdid,
    return icode;
 }
 
-wordint c_ezgfstp(int32_t gdid, char *nomvarx, char *typvarx, char *etiketx, 
+int32_t c_ezgfstp(int32_t gdid, char *nomvarx, char *typvarx, char *etiketx, 
               char *nomvary, char *typvary, char *etikety,
               int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *dateo, int32_t *deet, int32_t *npas, int32_t *nbits)
 {

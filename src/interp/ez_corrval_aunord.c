@@ -21,7 +21,7 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout)
+int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout)
 {
   int32_t i;
   int32_t npts;

@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
+int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
 {
   int32_t gdid;
 
@@ -31,7 +31,7 @@ wordint f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
   return gdid;
 }
 
-wordint c_ezgdef_fll(int32_t ni, int32_t nj,float *lat, float *lon)
+int32_t c_ezgdef_fll(int32_t ni, int32_t nj,float *lat, float *lon)
    {
    int32_t gdid;
    int32_t gdrow_id, gdcol_id;

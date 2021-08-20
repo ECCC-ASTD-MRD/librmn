@@ -23,13 +23,13 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdgaxes)(int32_t *gdid, float *ax, float *ay)
+int32_t f77name(gdgaxes)(int32_t *gdid, float *ax, float *ay)
 {
    c_gdgaxes(*gdid, ax, ay);
    return 0;
 }
 
-wordint c_gdgaxes(int32_t gdid, float *ax, float *ay)
+int32_t c_gdgaxes(int32_t gdid, float *ax, float *ay)
 {
 
    int32_t nix, njy;

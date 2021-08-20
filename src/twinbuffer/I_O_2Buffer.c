@@ -31,11 +31,11 @@
 #define Max_File 10
 
 
-ftnword f77name(open_db_file) (int32_t * );
-ftnword f77name(close_db_file) (int32_t * );
-ftnword f77name(read_db_file) (int32_t *, int32_t *, int32_t *);
-ftnword f77name(write_db_file) (int32_t *, int32_t *, int32_t  *);
-ftnword f77name(rewind_db_file) (int32_t *);
+int32_t f77name(open_db_file) (int32_t * );
+int32_t f77name(close_db_file) (int32_t * );
+int32_t f77name(read_db_file) (int32_t *, int32_t *, int32_t *);
+int32_t f77name(write_db_file) (int32_t *, int32_t *, int32_t  *);
+int32_t f77name(rewind_db_file) (int32_t *);
 static int file_index(int );
 static void init_TB_package(int);
 
@@ -119,7 +119,7 @@ static void init_TB_package(int inutile)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(open_db_file)(int32_t *iun)
+int32_t f77name(open_db_file)(int32_t *iun)
 {
   int indx, f, i;
 
@@ -182,7 +182,7 @@ ftnword f77name(open_db_file)(int32_t *iun)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(read_db_file)( int32_t *iun, int32_t *bucket, int32_t *NB) 
+int32_t f77name(read_db_file)( int32_t *iun, int32_t *bucket, int32_t *NB) 
 {
    int i, nbytes,  data_a_lire;
    int fd, f;
@@ -253,7 +253,7 @@ ftnword f77name(read_db_file)( int32_t *iun, int32_t *bucket, int32_t *NB)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(write_db_file)(int32_t *iun,int32_t *bucket,int32_t *NB)
+int32_t f77name(write_db_file)(int32_t *iun,int32_t *bucket,int32_t *NB)
 {
    int data_a_ecrire = *NB;
    int i, nbytes, room_left, f, fd;
@@ -328,7 +328,7 @@ ftnword f77name(write_db_file)(int32_t *iun,int32_t *bucket,int32_t *NB)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(rewind_db_file)(int32_t *iun)
+int32_t f77name(rewind_db_file)(int32_t *iun)
 {
    int i, fd, nbytes, f;
 
@@ -380,7 +380,7 @@ ftnword f77name(rewind_db_file)(int32_t *iun)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(close_db_file)(int32_t *iun)                                    
+int32_t f77name(close_db_file)(int32_t *iun)                                    
 {
   int ier, f, i;
 

@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(ezgenpole)(float *vpolnor, float *vpolsud, float *fld,
+int32_t f77name(ezgenpole)(float *vpolnor, float *vpolsud, float *fld,
                            int32_t *ni, int32_t *nj, int32_t *vecteur, 
                            char *grtyp, int32_t *hem, F2Cl lengrtyp)
 {
@@ -30,7 +30,7 @@ wordint f77name(ezgenpole)(float *vpolnor, float *vpolsud, float *fld,
 
 }
 
-wordint c_ezgenpole(float *vpolnor, float *vpolsud, float *fld,
+int32_t c_ezgenpole(float *vpolnor, float *vpolsud, float *fld,
                            int32_t ni, int32_t nj, int32_t vecteur, 
                            char *grtyp, int32_t hem)
 {

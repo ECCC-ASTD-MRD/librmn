@@ -21,16 +21,16 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrvec_ausud(float *uuout, float *vvout,
+int32_t ez_corrvec_ausud(float *uuout, float *vvout,
          float *uuin, float *vvin,
          int32_t gdin, int32_t gdout)
 {
-ftnfloat *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, *temp_y, ay[4];
-wordint ni, nj, i1, i2, j1, j2, degree,npts,i;
-wordint quatre = 4;
-wordint un = 1;
+float *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, *temp_y, ay[4];
+int32_t ni, nj, i1, i2, j1, j2, degree,npts,i;
+int32_t quatre = 4;
+int32_t un = 1;
 
-wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
 _gridset *gset;
 _Grille laGrille;
 

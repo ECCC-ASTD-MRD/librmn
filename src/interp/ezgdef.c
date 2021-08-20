@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, 
+int32_t f77name(ezgdef)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, 
 			int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, 
 			float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref)
 {
@@ -40,7 +40,7 @@ wordint f77name(ezgdef)(int32_t *ni, int32_t *nj, char *grtyp, char *grref,
   return icode;
 }
 
-wordint c_ezgdef(int32_t ni, int32_t nj, char *grtyp, char *grref,
+int32_t c_ezgdef(int32_t ni, int32_t nj, char *grtyp, char *grref,
 		 int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, float *ax, float *ay)
 {
   int32_t found,source;

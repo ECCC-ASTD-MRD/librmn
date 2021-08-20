@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint c_ezyy_calcxy(int32_t gdout,int32_t gdin)
+int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin)
 {
   int32_t icode,nij,i,j,k,ivalue,ni,nj,yni,ynj,yin_mgid;
   int idx_gdin;

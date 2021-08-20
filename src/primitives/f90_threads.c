@@ -34,7 +34,7 @@ typedef struct {
    INTEGER *8 LOCK
 */
 /*! Create a user lock */
-wordint f77name(create_lock)(pthread_mutex_t** lockno)
+int32_t f77name(create_lock)(pthread_mutex_t** lockno)
 {
    if( ( *lockno = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t)) ) == NULL ) return(1);
    pthread_mutex_init(*lockno,NULL);      /* initialize  mutex */
@@ -54,7 +54,7 @@ pthread_mutex_t* c_create_lock()
    INTEGER *8 LOCK
 */
 /*! Destroy a user lock */
-wordint f77name(destroy_lock)(pthread_mutex_t** lockno)
+int32_t f77name(destroy_lock)(pthread_mutex_t** lockno)
 {
    pthread_mutex_destroy(*lockno) ;
    free(*lockno);
@@ -74,7 +74,7 @@ int c_destroy_lock(pthread_mutex_t* lockno)
    INTEGER *8 LOCK
 */
 /*! Acquire a user lock */
-wordint f77name(acquire_lock)(pthread_mutex_t** lockno)
+int32_t f77name(acquire_lock)(pthread_mutex_t** lockno)
 {
    return( pthread_mutex_lock(*lockno) );
 }
@@ -89,7 +89,7 @@ int c_acquire_lock(pthread_mutex_t* lockno)
    INTEGER *8 LOCK
 */
 /*! Release a user lock */
-wordint f77name(release_lock)(pthread_mutex_t** lockno)
+int32_t f77name(release_lock)(pthread_mutex_t** lockno)
 {
    return( pthread_mutex_unlock(*lockno) );
 }
@@ -104,7 +104,7 @@ int c_release_lock(pthread_mutex_t *lockno)
    INTEGER *8 EVENT
 */
 /*! Create a user event */
-wordint f77name(create_event)(event** user_event)
+int32_t f77name(create_event)(event** user_event)
 {
    event *the_event;
 
@@ -132,7 +132,7 @@ event* c_create_event()
    INTEGER *8 EVENT                          ! returns the value associated with event
    INTEGER VALUE
 */
-wordint f77name(post_event)(event** user_event, int32_t* value)
+int32_t f77name(post_event)(event** user_event, int32_t* value)
 {
    event* the_event = *user_event;
 
@@ -161,7 +161,7 @@ int c_post_event(event* user_event, int value)
    INTEGER FUNCTION CHECK_EVENT (EVENT) ! returns the value associated with event
    INTEGER *8 EVENT
 */
-wordint f77name(check_event)(event **user_event)
+int32_t f77name(check_event)(event **user_event)
 {
    event *the_event = *user_event;
 
@@ -179,7 +179,7 @@ int c_check_event(event *user_event)
    INTEGER *8 EVENT                          ! to take a specific value
    INTEGER VALUE                             ! returns the value associated with event
 */
-wordint f77name(wait_event)(event **user_event, int32_t *value)
+int32_t f77name(wait_event)(event **user_event, int32_t *value)
 {
    event *the_event = *user_event;
 
@@ -203,7 +203,7 @@ int c_wait_event(event *user_event, int value)
    INTEGER FUNCTION DESTROY_EVENT (EVENT)    ! destroys a user event, returns 0
    INTEGER *8 EVENT
 */
-wordint f77name(destroy_event)(event **user_event)
+int32_t f77name(destroy_event)(event **user_event)
 {
    event *the_event = *user_event;
 
@@ -223,7 +223,7 @@ int c_destroy_event(event *the_event)
 }
 
 /*! Ccreate a new thread (task) */
-wordint f77name(create_thread)(void *(*function)(void *), void *arg)
+int32_t f77name(create_thread)(void *(*function)(void *), void *arg)
 {
    pthread_t thread_id;
    if ( pthread_create(&thread_id, NULL, function, arg) ) {
@@ -239,7 +239,7 @@ int c_create_thread(void *(*function)(void *), void *arg)
 }
 
 /*! Wait for a thread to terminate */
-wordint f77name(join_thread)(int32_t *id)
+int32_t f77name(join_thread)(int32_t *id)
 {
    pthread_t thread_id = *id;
    return( pthread_join(thread_id, NULL) );
@@ -252,7 +252,7 @@ int c_join_thread(int id)
 }
 
 /*! Get current thread id */
-wordint f77name(id_thread)()
+int32_t f77name(id_thread)()
 {
    return(pthread_self());
 }

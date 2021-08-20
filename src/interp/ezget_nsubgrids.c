@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezget_nsubgrids)(int32_t *gdid)
+int32_t f77name(ezget_nsubgrids)(int32_t *gdid)
 {
    int32_t icode;
 
@@ -31,7 +31,7 @@ wordint f77name(ezget_nsubgrids)(int32_t *gdid)
    return icode;
 }
 
-wordint c_ezget_nsubgrids(int32_t gdid)
+int32_t c_ezget_nsubgrids(int32_t gdid)
 {
   int32_t icode, gdrow_id, gdcol_id;
 

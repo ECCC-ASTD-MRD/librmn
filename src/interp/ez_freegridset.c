@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 
-wordint c_ezfreegridset(int32_t gdid, int32_t index)
+int32_t c_ezfreegridset(int32_t gdid, int32_t index)
 {
   int32_t i, gdrow, gdcol;
 

@@ -3634,7 +3634,7 @@ void backto64(int32_t *field, int32_t *temp, int nelm)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstapp)(int32_t *f_iun, char *option, F2Cl lng)
+int32_t f77name(fstapp)(int32_t *f_iun, char *option, F2Cl lng)
 {
   int ier, iun = *f_iun;
 
@@ -3654,7 +3654,7 @@ ftnword f77name(fstapp)(int32_t *f_iun, char *option, F2Cl lng)
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstckp)(int32_t *f_iun)
+int32_t f77name(fstckp)(int32_t *f_iun)
 {
   int iun = *f_iun;
   int ier;
@@ -3685,7 +3685,7 @@ ftnword f77name(fstckp)(int32_t *f_iun)
  *                      LOGICAL .FALSE. CARACTERE A HOLLERITH                *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstcvt)(int32_t *name, int32_t *type, int32_t *etik, int32_t *grtyp,
+int32_t f77name(fstcvt)(int32_t *name, int32_t *type, int32_t *etik, int32_t *grtyp,
                         char *cname, char *ctype, char *cetik, char *cgrtyp, int32_t *holocar,
                         F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
@@ -3712,7 +3712,7 @@ ftnword f77name(fstcvt)(int32_t *name, int32_t *type, int32_t *etik, int32_t *gr
  *                      8: double (64 bits)                                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fst_data_length)(int *f_length_type)
+int32_t f77name(fst_data_length)(int *f_length_type)
 {
   int ier, length_type=*f_length_type;
 
@@ -3754,7 +3754,7 @@ ftnword f77name(fst_data_length)(int *f_length_type)
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr)(int32_t *field, int32_t *work, int32_t *f_npak,
+int32_t f77name(fstecr)(int32_t *field, int32_t *work, int32_t *f_npak,
                         int32_t *f_iun, int32_t *f_date,
                         int32_t *f_deet, int32_t *f_npas,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
@@ -3852,7 +3852,7 @@ ftnword f77name(fstecr)(int32_t *field, int32_t *work, int32_t *f_npak,
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
+int32_t f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
                         int32_t *f_iun, int32_t *f_date,
                         int32_t *f_deet, int32_t *f_npas,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
@@ -3864,7 +3864,7 @@ ftnword f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
                         int lng_string, F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 int ninjnk;
-ftnword ier=0;
+int32_t ier=0;
 
 ninjnk = Max(1,*f_ni) * Max(1,*f_nj) * Max(1,*f_nk);
 if (ninjnk > lng_string * *f_nj) {
@@ -3912,7 +3912,7 @@ else
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
+int32_t f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
                         int32_t *f_iun, int32_t *f_date,
                         int32_t *f_deet, int32_t *f_npas,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
@@ -3924,7 +3924,7 @@ ftnword f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 // int ninjnk;
-ftnword ier=0;
+int32_t ier=0;
   xdf_short = 1;
   ier = f77name(fstecr)(haft_w,work,f_npak,f_iun,f_date,f_deet,f_npas,f_ni,f_nj,f_nk,f_ip1,f_ip2,f_ip3,
                         f_typvar,f_nomvar,f_etiket,f_grtyp,f_ig1,f_ig2,f_ig3,f_ig4,f_datyp,f_rewrit,
@@ -3965,7 +3965,7 @@ ftnword ier=0;
  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
+int32_t f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
                         int32_t *f_iun, int32_t *f_date,
                         int32_t *f_deet, int32_t *f_npas,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
@@ -3977,7 +3977,7 @@ ftnword f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 //int ninjnk;
-ftnword ier=0;
+int32_t ier=0;
   xdf_byte = 1;
   ier = f77name(fstecr)(bytes,work,f_npak,f_iun,f_date,f_deet,f_npas,f_ni,f_nj,f_nk,f_ip1,f_ip2,f_ip3,
                         f_typvar,f_nomvar,f_etiket,f_grtyp,f_ig1,f_ig2,f_ig3,f_ig4,f_datyp,f_rewrit,
@@ -3998,7 +3998,7 @@ ftnword ier=0;
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77_name(fst_edit_dir_plus)(int32_t *f_handle,
+int32_t f77_name(fst_edit_dir_plus)(int32_t *f_handle,
                                int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
                                int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
                                int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4030,7 +4030,7 @@ ftnword f77_name(fst_edit_dir_plus)(int32_t *f_handle,
   return((int32_t) ier);
 }
 
-ftnword f77_name(fst_edit_dir)(int32_t *f_handle,
+int32_t f77_name(fst_edit_dir)(int32_t *f_handle,
                                int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
                                int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
                                int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4074,7 +4074,7 @@ ftnword f77_name(fst_edit_dir)(int32_t *f_handle,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fsteff)(int32_t *f_handle)
+int32_t f77name(fsteff)(int32_t *f_handle)
 {
   int ier,handle = *f_handle;
 
@@ -4095,7 +4095,7 @@ ftnword f77name(fsteff)(int32_t *f_handle)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fsteof)(int32_t *f_iun)
+int32_t f77name(fsteof)(int32_t *f_iun)
 {
   int eof, iun = *f_iun;
 
@@ -4116,7 +4116,7 @@ ftnword f77name(fsteof)(int32_t *f_iun)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstfrm)(int32_t *f_iun)
+int32_t f77name(fstfrm)(int32_t *f_iun)
 {
   int iun = *f_iun;
   return ((int32_t) c_fstfrm(iun));
@@ -4145,7 +4145,7 @@ ftnword f77name(fstfrm)(int32_t *f_iun)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstinf)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
+int32_t f77name(fstinf)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
@@ -4198,7 +4198,7 @@ ftnword f77name(fstinf)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstinfx)(int32_t *f_handle, int32_t *f_iun,
+int32_t f77name(fstinfx)(int32_t *f_handle, int32_t *f_iun,
                          int32_t *f_ni, int32_t *f_nj,
                          int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                          int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4252,7 +4252,7 @@ ftnword f77name(fstinfx)(int32_t *f_handle, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
+int32_t f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
                         char *f_typvar, char *f_nomvar,
@@ -4312,7 +4312,7 @@ ftnword f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlic)(int32_t *field, int32_t *f_iun,
+int32_t f77name(fstlic)(int32_t *field, int32_t *f_iun,
                          int32_t *f_ni, int32_t *f_nj,
                          int32_t *f_nk, int32_t *f_date, char *f_etiket,
                          int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4367,7 +4367,7 @@ ftnword f77name(fstlic)(int32_t *field, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir)(void *field, int32_t *f_iun,
+int32_t f77name(fstlir)(void *field, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4425,7 +4425,7 @@ ftnword f77name(fstlir)(void *field, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir_s)(void *string, int32_t *f_iun,
+int32_t f77name(fstlir_s)(void *string, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4465,7 +4465,7 @@ ftnword f77name(fstlir_s)(void *string, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir_h)(void *haft_w, int32_t *f_iun,
+int32_t f77name(fstlir_h)(void *haft_w, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4503,7 +4503,7 @@ ftnword f77name(fstlir_h)(void *haft_w, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlir_b)(void *bytes, int32_t *f_iun,
+int32_t f77name(fstlir_b)(void *bytes, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4544,7 +4544,7 @@ ftnword f77name(fstlir_b)(void *bytes, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlirx)(int32_t *field, int32_t *f_handle, int32_t *f_iun,
+int32_t f77name(fstlirx)(int32_t *field, int32_t *f_handle, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
@@ -4596,7 +4596,7 @@ ftnword f77name(fstlirx)(int32_t *field, int32_t *f_handle, int32_t *f_iun,
  *  OUT nk      dimension 3 of the data field                                *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstlis)(int32_t *field, int32_t *f_iun,
+int32_t f77name(fstlis)(int32_t *field, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
   int iun = *f_iun;
@@ -4631,7 +4631,7 @@ ftnword f77name(fstlis)(int32_t *field, int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstlnk)(int32_t *liste, int32_t *f_n)
+int32_t f77name(fstlnk)(int32_t *liste, int32_t *f_n)
 {
   int ier;
   int i;
@@ -4660,7 +4660,7 @@ ftnword f77name(fstlnk)(int32_t *liste, int32_t *f_n)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstluk)(int32_t *field, int32_t *f_handle,
+int32_t f77name(fstluk)(int32_t *field, int32_t *f_handle,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
   int handle = *f_handle;
@@ -4698,7 +4698,7 @@ ftnword f77name(fstluk)(int32_t *field, int32_t *f_handle,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
+int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
                         int32_t *f_mip3, char *f_metiket, int32_t *f_getmode,
                         F2Cl ll1)
 {
@@ -4732,7 +4732,7 @@ ftnword f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstnbr)(int32_t *f_iun)
+int32_t f77name(fstnbr)(int32_t *f_iun)
 {
   int iun = *f_iun;
   return ((int32_t) c_fstnbr(iun));
@@ -4752,7 +4752,7 @@ ftnword f77name(fstnbr)(int32_t *f_iun)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstnbrv)(int32_t *f_iun)
+int32_t f77name(fstnbrv)(int32_t *f_iun)
 {
   int iun = *f_iun;
   return ((int32_t) c_fstnbrv(iun));
@@ -4772,7 +4772,7 @@ ftnword f77name(fstnbrv)(int32_t *f_iun)
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
+int32_t f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
                         F2Cl ll1, F2Cl ll2)
 {
   int getmode = *f_getmode, ier;
@@ -4815,7 +4815,7 @@ ftnword f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
+int32_t f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
@@ -4842,7 +4842,7 @@ ftnword f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
+int32_t f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
@@ -4871,7 +4871,7 @@ ftnword f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
  *   IN     getmode  logical (1: get option, 0: set option)                  *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode,
+int32_t f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, ier;
@@ -4900,7 +4900,7 @@ ftnword f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstcheck)(char *filename, F2Cl lng)
+int32_t f77name(fstcheck)(char *filename, F2Cl lng)
 {
   int ier;
   ier = c_fstcheck(filename);
@@ -4920,7 +4920,7 @@ ftnword f77name(fstcheck)(char *filename, F2Cl lng)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
+int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
 {
   int iun = *f_iun, ier;
   ier = c_fstouv(iun,options);
@@ -4965,7 +4965,7 @@ ftnword f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstprm)(int32_t *f_handle,
+int32_t f77name(fstprm)(int32_t *f_handle,
                         int32_t *f_dateo, int32_t *f_deet, int32_t *f_npas,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
                         int32_t *f_nbits, int32_t *f_datyp, int32_t *f_ip1,
@@ -5052,7 +5052,7 @@ void f77name(fstreset_ip_flags)()
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstrwd)(int32_t *f_iun)
+int32_t f77name(fstrwd)(int32_t *f_iun)
 {
   int err, iun = *f_iun;
 
@@ -5073,7 +5073,7 @@ ftnword f77name(fstrwd)(int32_t *f_iun)
  *  IN  nrec    number of records to skip (negative nrec means backward)     *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec)
+int32_t f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec)
 {
   int iun = *f_iun, nrec = *f_nrec;
   int ier;
@@ -5097,7 +5097,7 @@ ftnword f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec)
  *  OUT nk      dimension 3 of the data field                                *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstsui)(int32_t *f_iun,
+int32_t f77name(fstsui)(int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
   int iun = *f_iun;
@@ -5124,7 +5124,7 @@ ftnword f77name(fstsui)(int32_t *f_iun,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstunl)()
+int32_t f77name(fstunl)()
 {
   int ier;
 
@@ -5141,7 +5141,7 @@ ftnword f77name(fstunl)()
  *                                                                           *
  *****************************************************************************/
 
-wordint f77name(fst_version)()
+int32_t f77name(fst_version)()
 {
   return((int32_t) stdf_version);
 }
@@ -5160,7 +5160,7 @@ wordint f77name(fst_version)()
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstvoi)(int32_t *f_iun,char *f_options, F2Cl ll1)
+int32_t f77name(fstvoi)(int32_t *f_iun,char *f_options, F2Cl ll1)
 {
   int iun = *f_iun, l1=ll1;
   char options[80] =
@@ -5194,7 +5194,7 @@ ftnword f77name(fstvoi)(int32_t *f_iun,char *f_options, F2Cl ll1)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(fstweo)(int32_t *f_iun, int32_t *f_level)
+int32_t f77name(fstweo)(int32_t *f_iun, int32_t *f_level)
 {
   int ier, iun = *f_iun, level = *f_level;
 
@@ -5216,7 +5216,7 @@ ftnword f77name(fstweo)(int32_t *f_iun, int32_t *f_level)
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(ip1_all)(float *f_level, int32_t *f_kind)
+int32_t f77name(ip1_all)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip1;
   float level = *f_level;
@@ -5225,7 +5225,7 @@ ftnword f77name(ip1_all)(float *f_level, int32_t *f_kind)
   return((int32_t) ip1);
 }
 
-ftnword f77name(ip2_all)(float *f_level, int32_t *f_kind)
+int32_t f77name(ip2_all)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip2;
   float level = *f_level;
@@ -5234,7 +5234,7 @@ ftnword f77name(ip2_all)(float *f_level, int32_t *f_kind)
   return((int32_t) ip2);
 }
 
-ftnword f77name(ip3_all)(float *f_level, int32_t *f_kind)
+int32_t f77name(ip3_all)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip3;
   float level = *f_level;
@@ -5243,7 +5243,7 @@ ftnword f77name(ip3_all)(float *f_level, int32_t *f_kind)
   return((int32_t) ip3);
 }
 
-ftnword f77name(ip1_val)(float *f_level, int32_t *f_kind)
+int32_t f77name(ip1_val)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip1;
   float level = *f_level;
@@ -5252,7 +5252,7 @@ ftnword f77name(ip1_val)(float *f_level, int32_t *f_kind)
   return((int32_t) ip1);
 }
 
-ftnword f77name(ip2_val)(float *f_level, int32_t *f_kind)
+int32_t f77name(ip2_val)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip2;
   float level = *f_level;
@@ -5261,7 +5261,7 @@ ftnword f77name(ip2_val)(float *f_level, int32_t *f_kind)
   return((int32_t) ip2);
 }
 
-ftnword f77name(ip3_val)(float *f_level, int32_t *f_kind)
+int32_t f77name(ip3_val)(float *f_level, int32_t *f_kind)
 {
   int kind = *f_kind, ip3;
   float level = *f_level;
@@ -5610,22 +5610,22 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option,
  *   Stubs for standard file routines not implemented yet.                   *
  *                                                                           *
  *****************************************************************************/
-ftnword f77name(fstabt)()
+int32_t f77name(fstabt)()
 {
   sprintf(errmsg,"this routine is not implemented in FSTD98");
   return(error_msg("FSTABT",ERR_NOT_IMPL,ERRFATAL));
 }
-ftnword f77name(fstsel)()
+int32_t f77name(fstsel)()
 {
   sprintf(errmsg,"this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead");
   return(error_msg("FSTSEL",ERR_NOT_IMPL,WARNING));
 }
-ftnword f77name(zfstcvt)()
+int32_t f77name(zfstcvt)()
 {
   sprintf(errmsg,"this routine is not implemented yet in FSTD98");
   return(error_msg("FSTCVT",ERR_NOT_IMPL,ERROR));
 }
-ftnword f77name(fstpos)()
+int32_t f77name(fstpos)()
 {
   sprintf(errmsg,"this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead");
   return(error_msg("FSTPOS",ERR_NOT_IMPL,WARNING));

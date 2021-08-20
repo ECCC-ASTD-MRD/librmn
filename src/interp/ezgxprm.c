@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgxprm)(int32_t *gdid, int32_t *ni, int32_t *nj, char *grtyp,
+int32_t f77name(ezgxprm)(int32_t *gdid, int32_t *ni, int32_t *nj, char *grtyp,
                      int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, 
                      char *grref, int32_t *ig1ref, int32_t *ig2ref, 
                      int32_t *ig3ref, int32_t *ig4ref,
@@ -56,7 +56,7 @@ wordint f77name(ezgxprm)(int32_t *gdid, int32_t *ni, int32_t *nj, char *grtyp,
   return icode;
 }
 
-wordint c_ezgxprm(int32_t gdid, int32_t *ni, int32_t *nj, 
+int32_t c_ezgxprm(int32_t gdid, int32_t *ni, int32_t *nj, 
               char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
               char *grref, int32_t *ig1ref, int32_t *ig2ref, int32_t *ig3ref, int32_t *ig4ref)
 {

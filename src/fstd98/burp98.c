@@ -1211,7 +1211,7 @@ int c_mrfrwd(
 
 // Everything past this point was included from what used to be in if_burp98.h
 //! Check if a BURP file is valid
-ftnword f77name(burpcheck)(
+int32_t f77name(burpcheck)(
     //! IN Path of the file to be checked
     char *filePath,
     //! IN filePath strong length
@@ -1236,7 +1236,7 @@ void f77name(buf89a0)(
 }
 
 
-ftnword f77name(getbuf8)(
+int32_t f77name(getbuf8)(
     int32_t *buf
 ) {
     int n;
@@ -1268,7 +1268,7 @@ void f77name(genvdt8)(
 
 
 
-ftnword f77name(mrbadd)(
+int32_t f77name(mrbadd)(
     int32_t *buf,
     int32_t *f_bkno,
     int32_t *f_nele,
@@ -1329,7 +1329,7 @@ ftnword f77name(mrbadd)(
 }
 
 
-ftnword f77name(mrbdel)(
+int32_t f77name(mrbdel)(
     int32_t *buf,
     int32_t *f_number
 ) {
@@ -1347,7 +1347,7 @@ ftnword f77name(mrbdel)(
 }
 
 
-ftnword f77name(mrbhdr)(
+int32_t f77name(mrbhdr)(
     int32_t *buf,
     int32_t *f_temps,
     int32_t *f_flgs,
@@ -1408,7 +1408,7 @@ ftnword f77name(mrbhdr)(
 
 
 
-ftnword f77name(mrblen)(
+int32_t f77name(mrblen)(
     int32_t *buf,
     int32_t *f_lbits,
     int32_t *f_left
@@ -1428,7 +1428,7 @@ ftnword f77name(mrblen)(
 }
 
 
-ftnword f77name(mrbloc)(
+int32_t f77name(mrbloc)(
     int32_t *buf,
     int32_t *f_bfam,
     int32_t *f_bdesc,
@@ -1450,7 +1450,7 @@ ftnword f77name(mrbloc)(
 }
 
 
-ftnword f77name(mrbrep)(
+int32_t f77name(mrbrep)(
     int32_t *buf,
     int32_t *f_blkno,
     int32_t *tblval
@@ -1470,7 +1470,7 @@ ftnword f77name(mrbrep)(
 }
 
 
-ftnword f77name(mrbxtr)(
+int32_t f77name(mrbxtr)(
     int32_t *buf,
     int32_t *f_bkno,
     int32_t *lstele,
@@ -1498,7 +1498,7 @@ ftnword f77name(mrbxtr)(
 }
 
 
-ftnword f77name(mrfapp)(
+int32_t f77name(mrfapp)(
     int32_t *f_iun
 ) {
   int ier, iun = *f_iun;
@@ -1508,7 +1508,7 @@ ftnword f77name(mrfapp)(
 }
 
 
-ftnword f77name(mrfget)(
+int32_t f77name(mrfget)(
     int32_t *f_handle,
     int32_t *buf
 ) {
@@ -1524,7 +1524,7 @@ ftnword f77name(mrfget)(
 }
 
 
-ftnword f77name(mrfput)(
+int32_t f77name(mrfput)(
     int32_t *f_iun,
     int32_t *f_handle,
     int32_t *buf
@@ -1542,7 +1542,7 @@ ftnword f77name(mrfput)(
 }
 
 
-ftnword f77name(mrfrwd)(
+int32_t f77name(mrfrwd)(
     int32_t *f_iun
 ) {
     int err, iun = *f_iun;

@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgetval)(char *option, float *fvalue, F2Cl llenoption)
+int32_t f77name(ezgetval)(char *option, float *fvalue, F2Cl llenoption)
 {
    int32_t icode;
    char local_opt[32];
@@ -37,7 +37,7 @@ wordint f77name(ezgetval)(char *option, float *fvalue, F2Cl llenoption)
    return icode;
 }
 
-wordint f77name(ezgetival)(char *option, int32_t *ivalue, F2Cl llenoption)
+int32_t f77name(ezgetival)(char *option, int32_t *ivalue, F2Cl llenoption)
 {
    int32_t icode;
    char local_opt[32];
@@ -50,7 +50,7 @@ wordint f77name(ezgetival)(char *option, int32_t *ivalue, F2Cl llenoption)
    return c_ezgetival(local_opt, ivalue);
 }
 
-wordint c_ezgetval(char *option, float *fvalue)
+int32_t c_ezgetval(char *option, float *fvalue)
 {
    char local_opt[32];
    int32_t i;
@@ -84,7 +84,7 @@ wordint c_ezgetval(char *option, float *fvalue)
    return 0;
 }
 
-wordint c_ezgetival(char *option, int32_t *ivalue)
+int32_t c_ezgetival(char *option, int32_t *ivalue)
 {
    char local_opt[32];
    int32_t i;

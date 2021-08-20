@@ -1198,7 +1198,7 @@ int main(int argc, char **argv) {
 
 // not utility, provide Fortran callable entry point
 #include <rpnmacros.h>
-wordint f77name(wkoffit)(
+int32_t f77name(wkoffit)(
     char *nom,
     F2Cl fl1
 ) {

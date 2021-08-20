@@ -25,7 +25,7 @@ void reallocate_gridset_table(int gdid);
 void   allocate_gridset_table(int gdid);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezdefset)(int32_t *gdout, int32_t *gdin)
+int32_t f77name(ezdefset)(int32_t *gdout, int32_t *gdin)
 {
    int32_t icode;
 
@@ -33,7 +33,7 @@ wordint f77name(ezdefset)(int32_t *gdout, int32_t *gdin)
    return icode;
 }
 
-wordint c_ezdefset(int32_t gdout, int32_t gdin)
+int32_t c_ezdefset(int32_t gdout, int32_t gdin)
 {
   /* d'abord trouver si l'ensemble est deja defini */
 

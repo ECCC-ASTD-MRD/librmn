@@ -26,7 +26,7 @@ extern int f77name(longueur)(char *string, int stringlength);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsetopt)(char *option, char *value, F2Cl llenoption, F2Cl llenvalue)
+int32_t f77name(ezsetopt)(char *option, char *value, F2Cl llenoption, F2Cl llenvalue)
 {
    int32_t i, icode;
    int32_t longueur_option, longueur_value;
@@ -55,7 +55,7 @@ wordint f77name(ezsetopt)(char *option, char *value, F2Cl llenoption, F2Cl llenv
    return icode;
 }
 
-wordint c_ezsetopt(char *option, char *value)
+int32_t c_ezsetopt(char *option, char *value)
    {
    char local_opt[32], local_val[32];
    int32_t i, option_ok, value_ok;

@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin)
+int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin)
 {
   int idx_gdin;
   int32_t icode,i,j,k,ierc1,ierc2,ierc;

@@ -69,10 +69,10 @@ static int slab_exit(int level);
 static int get_free_index(int fd);
 static int get_file_index(int fd);
 
-ftnword f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
+int32_t f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
 		     int32_t *f_deet, char *f_etiket, int l1, int l2);
-ftnword f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc );
-ftnword f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
+int32_t f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc );
+int32_t f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
 		     int32_t *f_ixyg1,int32_t *f_ixyg2,
 		     int32_t *f_ixyg3, int32_t *f_ixyg4,int32_t *f_nio,
 		     int32_t *f_njo,int32_t *f_nxgrid, 
@@ -84,10 +84,10 @@ ftnword f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
 		     int32_t *f_ip2, int32_t *f_ip3,
 		     int32_t *f_datyp,int32_t *f_nbits,int32_t *iflt,
 		     float *f_xp, int l1, int l2, int l3, int l4);
-ftnword f77name(slabxtr)(int32_t *f_hand, int32_t *f_snum, int32_t *f_nx,
+int32_t f77name(slabxtr)(int32_t *f_hand, int32_t *f_snum, int32_t *f_nx,
 		      int32_t *f_xnio,int32_t *f_mt,int32_t *f_mtas,
 		      float *f_mtadd, float *f_mtmult, float *f_mtval);
-ftnword f77name(slabend)(int32_t *f_hand, char *f_sf_hand, int l1);
+int32_t f77name(slabend)(int32_t *f_hand, char *f_sf_hand, int l1);
 
 
 
@@ -177,7 +177,7 @@ static int get_file_index(int fd)
    }
 
 
-ftnword f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc)
+int32_t f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc)
 {
      numproc = (int) *f_numproc; 
      if ( (int ) *f_proc != 0)  proc0=0;
@@ -199,7 +199,7 @@ ftnword f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc)
  *  IN   etiket   record identificator                                       * 
  *****************************************************************************/
 
-ftnword f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
+int32_t f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
 			int32_t *f_deet, char *f_etiket, int l1, int l2)
 {                                               
  int fd, ix, i, j, taille, npas;
@@ -310,7 +310,7 @@ ftnword f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
+int32_t f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
 		     int32_t *f_ixyg1,int32_t *f_ixyg2,
                      int32_t *f_ixyg3, int32_t *f_ixyg4,int32_t *f_nio,
 		     int32_t *f_njo, int32_t *f_nxgrid,
@@ -688,7 +688,7 @@ ftnword f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name (slabxtr)(int32_t *f_hand, int32_t *f_snum, int32_t *f_nx,
+int32_t f77name (slabxtr)(int32_t *f_hand, int32_t *f_snum, int32_t *f_nx,
 		      int32_t *f_xnio,int32_t *f_mt,int32_t *f_mtas,
 		      float *f_mtadd, float *f_mtmult, float *f_mtval)
 {                                               
@@ -841,7 +841,7 @@ if ( (ix = get_file_index( (int ) *f_hand)) < 0 ) return(slab_exit(-3));
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(slabend)(int32_t *f_hand, char *f_sf_hand, int l1)
+int32_t f77name(slabend)(int32_t *f_hand, char *f_sf_hand, int l1)
  {
   int end, taille, i, ix, fd; 
   int nBytes;

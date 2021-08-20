@@ -22,12 +22,12 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllfxyz)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
+int32_t f77name(gdllfxyz)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
 {
   return c_gdllfxyz(*gdid, lat, lon, x, y, *n);
 }
 
-wordint c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
+int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
   int32_t i,npts, hem, un;
   

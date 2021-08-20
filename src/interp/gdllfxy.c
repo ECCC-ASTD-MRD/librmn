@@ -22,13 +22,13 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllfxy)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
+int32_t f77name(gdllfxy)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
 {
   return c_gdllfxy(*gdid, lat, lon, x, y, *n);
 
 }
 
-wordint c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
+int32_t c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
   int32_t j, icode, yin_gdid, yan_gdid;
   float *latyin, *lonyin, *latyan, *lonyan;
@@ -90,7 +90,7 @@ wordint c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int3
     }
   return icode;
 }
-wordint c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
+int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
   float xlat1, xlon1, xlat2, xlon2;
   int32_t i, npts, un;
@@ -250,7 +250,7 @@ wordint c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
 
 }
 
-wordint c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
+int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
 {
   float xlat1, xlon1, xlat2, xlon2;
   int32_t i, npts, un;

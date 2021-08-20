@@ -22,9 +22,9 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcxpncof(int32_t gdid)
+int32_t ez_calcxpncof(int32_t gdid)
 {
-wordint gdrow_id, gdcol_id;
+int32_t gdrow_id, gdcol_id;
 
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 

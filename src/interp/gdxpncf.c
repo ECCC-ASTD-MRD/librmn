@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxpncf)(int32_t *gdin, int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2)
+int32_t f77name(gdxpncf)(int32_t *gdin, int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2)
 {
    int32_t icode;
    
@@ -30,7 +30,7 @@ wordint f77name(gdxpncf)(int32_t *gdin, int32_t *i1, int32_t *i2, int32_t *j1, i
    return icode;
 }
 
-wordint c_gdxpncf(int32_t gdin, int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2)
+int32_t c_gdxpncf(int32_t gdin, int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2)
 {
   int32_t gdrow_in, gdcol_in;
     

@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calclatlon(int32_t gdid)
+int32_t ez_calclatlon(int32_t gdid)
    {
    float xlat00, xlon00, dlat, dlon;
    int32_t i,j,k,ni, nj, npts, hemisphere, gdrow, gdcol;

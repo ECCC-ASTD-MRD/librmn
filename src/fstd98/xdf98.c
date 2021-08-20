@@ -3585,7 +3585,7 @@ static word next_match(
  *                             Q D F D I A G                                 *
  *****************************************************************************/
 
-ftnword  f77name(qdfdiag)(ftnword *f_iun)
+int32_t  f77name(qdfdiag)(ftnword *f_iun)
 {
   int iun = *f_iun, ier;
 
@@ -3596,7 +3596,7 @@ ftnword  f77name(qdfdiag)(ftnword *f_iun)
  *                              Q D F E R R                                  *
  *****************************************************************************/
 
-ftnword f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
+int32_t f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
             ftnword *ferrcode, F2Cl l1, F2Cl l2)
 {
    int errlevl = *ferrlevl, errcode = *ferrcode, lng;
@@ -3618,7 +3618,7 @@ ftnword f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
  *                              Q D F I N D                                  *
  *****************************************************************************/
 
-ftnword f77name(qdfind)(ftnword *iun)
+int32_t f77name(qdfind)(ftnword *iun)
 {
    int ind;
    ind = file_index(*iun);
@@ -3632,7 +3632,7 @@ ftnword f77name(qdfind)(ftnword *iun)
  *                            Q D F M S I G                                  *
  *****************************************************************************/
 
-ftnword f77name(qdfmsig)(ftnword *fiun, char *appl, F2Cl l1)
+int32_t f77name(qdfmsig)(ftnword *fiun, char *appl, F2Cl l1)
 {
    int iun = *fiun, lng;
    char c_appl[257];
@@ -3649,7 +3649,7 @@ ftnword f77name(qdfmsig)(ftnword *fiun, char *appl, F2Cl l1)
  *                              Q D F P U T                                  *
  *****************************************************************************/
 
-ftnword f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
+int32_t f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
             ftnword *fnbits)
 {
    int elem = *felem, nbits = *fnbits, derbit = *fderbit;
@@ -3667,7 +3667,7 @@ ftnword f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
  *                             Q D F R S T R                                 *
  *****************************************************************************/
 
-ftnword  f77name(qdfrstr)(ftnword *f_inp, ftnword *f_outp)
+int32_t  f77name(qdfrstr)(ftnword *f_inp, ftnword *f_outp)
 {
   int inp = *f_inp, outp = *f_outp, ier;
 
@@ -3723,7 +3723,7 @@ static int32_t rewind_file(int file_index, int handle)
  *                              X D F A D D                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfadd)(word *buf, word *donnees,
+int32_t f77name(xdfadd)(word *buf, word *donnees,
                         ftnword *fnelm, ftnword *fnbits, ftnword *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp;
@@ -3751,7 +3751,7 @@ ftnword f77name(xdfadd)(word *buf, word *donnees,
 /*****************************************************************************
  *                                X D F C L E                                *
  *****************************************************************************/
-ftnword f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
+int32_t f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
             ftnword *ftkey, ftnword *fdesc1, ftnword *fdesc2, F2Cl l1)
 {
    char keyname[5]={' ', ' ', ' ', ' ', '\0'};
@@ -3775,7 +3775,7 @@ ftnword f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
  *                              X D F C L S                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfcls)(ftnword *fiun)
+int32_t f77name(xdfcls)(ftnword *fiun)
 {
    int iun = *fiun;
 
@@ -3787,7 +3787,7 @@ ftnword f77name(xdfcls)(ftnword *fiun)
  *                              X D F C U T                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfcut)(word *buf,
+int32_t f77name(xdfcut)(word *buf,
             ftnword *fbitpos, ftnword *fnelm,
             ftnword *fnbits, ftnword *fdatyp)
 {
@@ -3809,7 +3809,7 @@ ftnword f77name(xdfcut)(word *buf,
  *                              X D F D E L                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfdel)(ftnword *fhandle)
+int32_t f77name(xdfdel)(ftnword *fhandle)
 {
    int handle = *fhandle;
 
@@ -3821,7 +3821,7 @@ ftnword f77name(xdfdel)(ftnword *fhandle)
  *                              X D F G E T                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfget)(ftnword *fhandle, word *buf)
+int32_t f77name(xdfget)(ftnword *fhandle, word *buf)
 {
    int handle = *fhandle, ier;
 
@@ -3840,7 +3840,7 @@ ftnword f77name(xdfget)(ftnword *fhandle, word *buf)
  *                              X D F G O P                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
+int32_t f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
             F2Cl ll1, F2Cl ll2)
 {
    int optv, err, l1=ll1, l2=ll2;
@@ -3865,7 +3865,7 @@ ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
  *                              X D F H D R                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
+int32_t f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
                         ftnword *idtyp, ftnword *primk, ftnword *fnprim,
             ftnword *info, ftnword *fninfo)
 {
@@ -3905,7 +3905,7 @@ ftnword f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
  *                              X D F I M P                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
+int32_t f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
                     ftnword_2 *pri, ftnword_2 *aux,
                     char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
@@ -3951,7 +3951,7 @@ ftnword f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
  *                              X D F I N I                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
+int32_t f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
             ftnword *keys, ftnword *fnkeys, ftnword *info,
             ftnword *fninfo)
 {
@@ -3982,7 +3982,7 @@ ftnword f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
  *                              X D F I N S                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfins)(word *buf, word *donnees,
+int32_t f77name(xdfins)(word *buf, word *donnees,
                         ftnword *fbitpos, ftnword *fnelm,
             ftnword *fnbits, ftnword *fdatyp)
 {
@@ -4010,7 +4010,7 @@ ftnword f77name(xdfins)(word *buf, word *donnees,
  *                              X D F L N K                                  *
  *****************************************************************************/
 
-ftnword f77name(xdflnk)(ftnword *liste, ftnword *fn)
+int32_t f77name(xdflnk)(ftnword *liste, ftnword *fn)
 {
    int n = *fn, ier;
 
@@ -4024,7 +4024,7 @@ ftnword f77name(xdflnk)(ftnword *liste, ftnword *fn)
  *                              X D F L O C                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
+int32_t f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
             ftnword *fnprim)
 {
    int iun = *fiun, nprim = *fnprim, i;
@@ -4047,7 +4047,7 @@ ftnword f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
  *                              X D F O P N                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
+int32_t f77name(xdfopn)(ftnword *fiun, char *mode,
             ftnword_2 *pri, ftnword *fnpri,
             ftnword_2 *aux, ftnword *fnaux,
             char *appl, F2Cl l1, F2Cl l2)
@@ -4086,7 +4086,7 @@ ftnword f77name(xdfopn)(ftnword *fiun, char *mode,
  *                              X D F O P T                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
+int32_t f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
             F2Cl ll1, F2Cl ll2)
 {
    int optv = *foptv, l1=ll1, l2=ll2;
@@ -4108,7 +4108,7 @@ ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
  *                              X D F P R M                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfprm)(ftnword *fhandle, ftnword *addr, ftnword *lng,
+int32_t f77name(xdfprm)(ftnword *fhandle, ftnword *addr, ftnword *lng,
                         ftnword *idtyp, ftnword *primk, ftnword *fnprim)
 {
    int nprim = *fnprim, ier, i;
@@ -4132,7 +4132,7 @@ ftnword f77name(xdfprm)(ftnword *fhandle, ftnword *addr, ftnword *lng,
  *                              X D F P U T                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
+int32_t f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
             word *buf)
 {
    int handle = *fhandle;
@@ -4153,7 +4153,7 @@ ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
  *                              X D F R E P                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfrep)(word *buf, word *donnees,
+int32_t f77name(xdfrep)(word *buf, word *donnees,
                         ftnword *fbitpos, ftnword *fnelm,
             ftnword *fnbits, ftnword *fdatyp)
 {
@@ -4181,7 +4181,7 @@ ftnword f77name(xdfrep)(word *buf, word *donnees,
  *                              X D F S T A                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
+int32_t f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
             ftnword_2 *pri, ftnword *fnpri,
             ftnword_2 *aux, ftnword *fnaux,
             char *vers, char *appl, F2Cl l1, F2Cl l2)
@@ -4231,7 +4231,7 @@ ftnword f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
  *                              X D F U P D                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfupd)(ftnword *fiun, word *buf, ftnword *fidtyp,
+int32_t f77name(xdfupd)(ftnword *fiun, word *buf, ftnword *fidtyp,
             ftnword *keys, ftnword *fnkeys,
             ftnword *info, ftnword *fninfo)
 {
@@ -4258,7 +4258,7 @@ ftnword f77name(xdfupd)(ftnword *fiun, word *buf, ftnword *fidtyp,
  *                              X D F U S E                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
+int32_t f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
 {
    int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
 
@@ -4271,7 +4271,7 @@ ftnword f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
  *                              X D F X T R                                  *
  *****************************************************************************/
 
-ftnword f77name(xdfxtr)(word *buf, word *donnees,
+int32_t f77name(xdfxtr)(word *buf, word *donnees,
                         ftnword *fbitpos, ftnword *fnelm,
             ftnword *fnbits, ftnword *fdatyp)
 {
@@ -4310,7 +4310,7 @@ ftnword f77name(xdfxtr)(word *buf, word *donnees,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1)
+int32_t f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1)
 {
   int ier, where = *f_where;
 

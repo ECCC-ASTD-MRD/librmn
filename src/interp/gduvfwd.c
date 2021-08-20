@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gduvfwd)(int32_t *gdid, float *uugdout, float *vvgdout, 
+int32_t f77name(gduvfwd)(int32_t *gdid, float *uugdout, float *vvgdout, 
                          float *uullin, float *vvllin, float *latin, float *lonin, int32_t *npts)
 {
    int32_t icode;
@@ -32,7 +32,7 @@ wordint f77name(gduvfwd)(int32_t *gdid, float *uugdout, float *vvgdout,
    return icode;
 }
 
-wordint c_gduvfwd(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, float *vvllin,
+int32_t c_gduvfwd(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, float *vvllin,
               float *latin, float *lonin, int32_t npts)
   {
   int32_t j, icode;
@@ -51,7 +51,7 @@ wordint c_gduvfwd(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, 
     }
 }
 
-wordint c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, float *vvllin,
+int32_t c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, float *vvllin,
               float *latin, float *lonin, int32_t npts)
   {
   float *xlatingf, *xloningf, *xlatingf2, *xloningf2, *uvcart, *xyz;

@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezll)(int32_t *gdid, float *lat, float *lon)
+int32_t f77name(ezll)(int32_t *gdid, float *lat, float *lon)
 {
    int32_t icode;
    
@@ -32,7 +32,7 @@ wordint f77name(ezll)(int32_t *gdid, float *lat, float *lon)
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdll)(int32_t *gdid, float *lat, float *lon)
+int32_t f77name(gdll)(int32_t *gdid, float *lat, float *lon)
 {
    int32_t icode;
    
@@ -40,7 +40,7 @@ wordint f77name(gdll)(int32_t *gdid, float *lat, float *lon)
    return icode;
 }
 
-wordint c_gdll(int32_t gdid, float *lat, float *lon)
+int32_t c_gdll(int32_t gdid, float *lat, float *lon)
 {
    int32_t icode;
   int32_t gdrow_id, gdcol_id, ni, nj;
@@ -69,7 +69,7 @@ wordint c_gdll(int32_t gdid, float *lat, float *lon)
   return icode;
 }
 
-wordint c_gdll_orig(int32_t gdid, float *lat, float *lon)
+int32_t c_gdll_orig(int32_t gdid, float *lat, float *lon)
 {
   int32_t gdrow_id, gdcol_id;
     

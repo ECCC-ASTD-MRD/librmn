@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllsval)(int32_t *gdid, float *zout, float *zin, float *lat, float *lon, int32_t *n)
+int32_t f77name(gdllsval)(int32_t *gdid, float *zout, float *zin, float *lat, float *lon, int32_t *n)
 {
    int32_t icode;
    
@@ -31,7 +31,7 @@ wordint f77name(gdllsval)(int32_t *gdid, float *zout, float *zin, float *lat, fl
    return icode;
 }
 
-wordint c_gdllsval(int32_t gdid, float *zout, float *zin, float *lat, float *lon, int32_t n)
+int32_t c_gdllsval(int32_t gdid, float *zout, float *zin, float *lat, float *lon, int32_t n)
 {
    float *x, *y;
    int32_t ier,gdrow_id,gdcol_id;

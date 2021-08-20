@@ -67,8 +67,8 @@
 */
 void 
 f77name(csortr) ( list, index, size )
-wordfloat *list ;
-wordint *index, *size ;
+float *list ;
+int32_t *index, *size ;
 
 {
 
@@ -124,8 +124,8 @@ wordint *index, *size ;
 
 void 
 f77name(ipsort) ( index, list, size )
-wordint *index, *size ;
-wordfloat *list ;
+int32_t *index, *size ;
+float *list ;
 
 {
    *index = -1 ;
@@ -136,7 +136,7 @@ wordfloat *list ;
 void 
 f77name(csortd) ( list, index, size )
 double *list ;
-wordint *index, *size ;
+int32_t *index, *size ;
 
 {
 
@@ -192,7 +192,7 @@ wordint *index, *size ;
 
 void 
 f77name(ipsort8) ( index, list, size )
-wordint *index, *size ;
+int32_t *index, *size ;
 double  *list ;
 
 {
@@ -202,7 +202,7 @@ double  *list ;
 
 void 
 f77name(csorte) ( list, index, size )
-wordint *list, *index, *size ;
+int32_t *list, *index, *size ;
 
 {
 
@@ -258,7 +258,7 @@ wordint *list, *index, *size ;
 
 void 
 f77name(ipsorti) ( index, list, size )
-wordint *index, *list, *size ;
+int32_t *index, *list, *size ;
 
 {
    *index = -1 ;
@@ -268,7 +268,7 @@ wordint *index, *list, *size ;
 void 
 f77name(csortc) ( list, index, size, len )
 char *list ;
-wordint *index, *size, len ;
+int32_t *index, *size, len ;
 
 {
 
@@ -323,7 +323,7 @@ wordint *index, *size, len ;
 
 void 
 f77name(ipsortc) ( index, list, size, len )
-wordint *index, *size, len ;
+int32_t *index, *size, len ;
 char *list ;
 
 {

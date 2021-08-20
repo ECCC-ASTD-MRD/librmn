@@ -83,7 +83,7 @@ void Lire_enrTicTac(_Grille *gr, float *ax, int32_t nixnjx, float *ay, int32_t n
           }
       }
 }
-wordint LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2, int32_t ip3, int32_t ip4, int32_t read)
+int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2, int32_t ip3, int32_t ip4, int32_t read)
 {
   int32_t moins1 = -1;
   int32_t cle;

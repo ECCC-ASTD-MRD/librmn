@@ -23,7 +23,7 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdllwdval)(int32_t *gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
+int32_t f77name(gdllwdval)(int32_t *gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
                       float *lat, float *lon, int32_t *n)
 {
    int32_t icode;
@@ -32,7 +32,7 @@ wordint f77name(gdllwdval)(int32_t *gdid, float *uuout, float *vvout, float *uui
    return icode;
 }
 
-wordint c_gdllwdval(int32_t gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
+int32_t c_gdllwdval(int32_t gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
                float *lat, float *lon, int32_t n)
 {
 

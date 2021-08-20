@@ -102,7 +102,7 @@ int get_appl_var(char* varname,char *value, int ln, int lng)
   return((lng >= appl_var_table[ind].ncv) ? appl_var_table[ind].ncv : -(appl_var_table[ind].ncv));
 }
 
-ftnword f77name(c_get_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv)
+int32_t f77name(c_get_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv)
 {
 
   int i, lng, ln=lln, lv=llv;
