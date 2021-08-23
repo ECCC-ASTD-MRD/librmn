@@ -18,48 +18,40 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(gdgaxes)(int32_t *gdid, float *ax, float *ay)
-{
-   c_gdgaxes(*gdid, ax, ay);
-   return 0;
+int32_t f77name(gdgaxes)(int32_t *gdid, float *ax, float *ay) {
+    c_gdgaxes(*gdid, ax, ay);
+    return 0;
 }
 
-int32_t c_gdgaxes(int32_t gdid, float *ax, float *ay)
-{
+int32_t c_gdgaxes(int32_t gdid, float *ax, float *ay) {
+    int32_t nix, njy;
 
-   int32_t nix, njy;
+    int32_t gdrow_id, gdcol_id;
 
-  int32_t gdrow_id, gdcol_id;
-    
-  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-   
-   switch(Grille[gdrow_id][gdcol_id].grtyp[0])
-      {
-      case 'Y':
-        nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
-        njy = nix;
-        break;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
-      default:
-        nix = Grille[gdrow_id][gdcol_id].ni;
-        njy = Grille[gdrow_id][gdcol_id].nj;
-        break;
-      }
-   
-   if (Grille[gdrow_id][gdcol_id].flags & AX)
-      {
-      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
-      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, njy*sizeof(float));
-      }
-   else
-      {
-      fprintf(stderr, "(gdgaxes) Erreur! A l'aide! Descripteurs manquants!\n");
-      return -1;
-      }
-   return 0;
+    switch(Grille[gdrow_id][gdcol_id].grtyp[0]) {
+        case 'Y':
+            nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
+            njy = nix;
+            break;
+
+        default:
+            nix = Grille[gdrow_id][gdcol_id].ni;
+            njy = Grille[gdrow_id][gdcol_id].nj;
+            break;
+    }
+
+    if (Grille[gdrow_id][gdcol_id].flags & AX) {
+        memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
+        memcpy(ay, Grille[gdrow_id][gdcol_id].ay, njy*sizeof(float));
+    } else {
+        fprintf(stderr, "(gdgaxes) Erreur! A l'aide! Descripteurs manquants!\n");
+        return -1;
+    }
+    return 0;
 }

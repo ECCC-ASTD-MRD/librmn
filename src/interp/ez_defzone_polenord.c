@@ -18,73 +18,62 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-int32_t ez_defzone_polenord(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone)
-{
-  float *tmpx, *tmpy;
-  float latpolenord, lonpolenord, xpolenord, ypolenord;
-  int32_t nhits, i;
-  int32_t *tmpidx;
-  
+int32_t ez_defzone_polenord(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone) {
+    float *tmpx, *tmpy;
+    float latpolenord, lonpolenord, xpolenord, ypolenord;
+    int32_t nhits;
+    int32_t *tmpidx;
 
-  int32_t gdrow_in, gdcol_in;
-    
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  
-  /* On commence par trouver les points au pole nord */
-  tmpx =   (float *) malloc(npts*sizeof(float));
-  tmpy =   (float *) malloc(npts*sizeof(float));
-  tmpidx = (int32_t  *) malloc(npts*sizeof(int32_t));
-  
-  nhits = 0;
-  if (Grille[gdrow_in][gdcol_in].grtyp[0] == 'Z' && Grille[gdrow_in][gdcol_in].grref[0] == 'E')
-    {
-    xpolenord = 0.5 * Grille[gdrow_in][gdcol_in].ni;
-    ypolenord = Grille[gdrow_in][gdcol_in].nj+0.5;
+    int32_t gdrow_in, gdcol_in;
+
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+
+    /* On commence par trouver les points au pole nord */
+    tmpx =   (float *) malloc(npts*sizeof(float));
+    tmpy =   (float *) malloc(npts*sizeof(float));
+    tmpidx = (int32_t  *) malloc(npts*sizeof(int32_t));
+
+    nhits = 0;
+    if (Grille[gdrow_in][gdcol_in].grtyp[0] == 'Z' && Grille[gdrow_in][gdcol_in].grref[0] == 'E') {
+        xpolenord = 0.5 * Grille[gdrow_in][gdcol_in].ni;
+        ypolenord = Grille[gdrow_in][gdcol_in].nj+0.5;
+    } else {
+        latpolenord = 90.0;
+        lonpolenord = 0.0;
+        c_gdxyfll_orig(gdin, &xpolenord, &ypolenord,  &latpolenord, &lonpolenord, 1);
     }
-  else
-    {
-    latpolenord = 90.0;
-    lonpolenord = 0.0;
-    c_gdxyfll_orig(gdin, &xpolenord, &ypolenord,  &latpolenord, &lonpolenord, 1);
+
+    for (int i = 0; i < npts; i++) {
+        if (fabs(y[i]-ypolenord) < 1.0e-3) {
+            tmpx[nhits] = x[i];
+            tmpy[nhits] = y[i];
+            tmpidx[nhits]=i;
+            nhits++;
+        }
     }
-  
-  for (i=0; i < npts; i++)
-    {
-    if (fabs(y[i]-ypolenord) < 1.0e-3)
-      {
-      tmpx[nhits] = x[i];
-      tmpy[nhits] = y[i];
-      tmpidx[nhits]=i;
-      nhits++;
-      }
+
+    zone->npts = nhits;
+    if (nhits > 0) {
+        zone->x = (float *) malloc(nhits*sizeof(float));
+        zone->y = (float *) malloc(nhits*sizeof(float));
+        zone->idx = (int32_t *) malloc(nhits*sizeof(int32_t));
+        if (groptions.verbose > 0) {
+            fprintf(stderr, "Nombre de points au pole nord: %d\n", nhits);
+        }
+
+        for (int i = 0; i < zone->npts; i++) {
+            zone->x[i]   = tmpx[i];
+            zone->y[i]   = tmpy[i];
+            zone->idx[i] = tmpidx[i];
+        }
     }
-  
-  zone->npts = nhits;
-  if (nhits > 0)
-    {
-    zone->x = (float *) malloc(nhits*sizeof(float));
-    zone->y = (float *) malloc(nhits*sizeof(float));
-    zone->idx = (int32_t *) malloc(nhits*sizeof(int32_t));
-    if (groptions.verbose > 0)
-      {
-      fprintf(stderr, "Nombre de points au pole nord: %d\n", nhits); 
-      }
-    
-    for (i=0; i < zone->npts; i++)
-      {
-      zone->x[i]   = tmpx[i];      
-      zone->y[i]   = tmpy[i];     
-      zone->idx[i] = tmpidx[i];
-      }
-    }
-  
-  free(tmpx);
-  free(tmpy);
-  free(tmpidx);
-  return 0;
-  
+
+    free(tmpx);
+    free(tmpy);
+    free(tmpidx);
+    return 0;
+
 }

@@ -72,7 +72,7 @@ typedef struct {
     int32_t ig3_;
     int32_t ig4_;
     // 4 char variable disguised as 32 bit integer
-    int32_t Igrtyp
+    int32_t Igrtyp;
     // 4 char variable disguised as 32 bit integer
     int32_t Igrtyp_;
 } Slab_Descrt_file;

@@ -18,12 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+
+#include <stdio.h>
 #include "ez_funcdef.h"
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin)
-{
+
+int32_t c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin) {
   int32_t icode,i,j,k,ierc1,ierc2,ierc;
   int32_t yancount_yin,yincount_yin, yancount_yan,yincount_yan;
   int32_t yin_gdin,yan_gdin,yin_gdout,yan_gdout,yyin,yyout;

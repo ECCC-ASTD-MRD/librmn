@@ -1,13 +1,12 @@
-#include "ezscint.h"
+#include <stdio.h>
+#include <string.h>
 #include "ez_funcdef.h"
 
-#include <fstd98.h>
 
 void RemplirDeBlancs(char str[],int32_t longueur);
 
 
-void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix)
-{
+void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix) {
   int32_t ig1refyin,ig2refyin,ig3refyin,ig4refyin;
   int32_t ig1refyan,ig2refyan,ig3refyan,ig4refyan;
   int32_t yinsize,ndiv,ni,nj,ier;
@@ -43,8 +42,8 @@ void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix)
   free(ay);
 }
 
-void Lire_enrTicTac(_Grille *gr, float *ax, int32_t nixnjx, float *ay, int32_t niynjy, int32_t ip3, int32_t ip4)
-{
+
+void Lire_enrTicTac(_Grille *gr, float *ax, int32_t nixnjx, float *ay, int32_t niynjy, int32_t ip3, int32_t ip4) {
   int32_t i,j,offsetx,offsety;
   switch (gr->grtyp[0])
     {
@@ -347,13 +346,10 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
    return 0;
 }
 
-void RemplirDeBlancs(char str[],int32_t longueur)
-{
-  int32_t i;
 
-  for (i=strlen(str);i < longueur; i++)
-    {
-    str[i] = ' ';
+void RemplirDeBlancs(char str[], int32_t longueur) {
+    for (int i = strlen(str); i < longueur; i++) {
+        str[i] = ' ';
     }
-  str[longueur - 1] = '\0';
+    str[longueur - 1] = '\0';
 }

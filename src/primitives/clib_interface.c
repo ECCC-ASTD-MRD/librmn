@@ -46,19 +46,19 @@
 ! The interfaces to fortran code are defined in clib_interface.cdk
 !-------------------------------------------------------------------
 ! Description
-! This module is an interface for Fortran to some C STD fonctions 
+! This module is an interface for Fortran to some C STD fonctions
 ! Description of C STD functions can be found at:
 ! http://www.opengroup.org/onlinepubs/007908799/headix.html
-! 
-! stdlib.h: standard library definitions 
+!
+! stdlib.h: standard library definitions
 !   char *getenv(const char *name);
 !   int putenv(char *string);
 !   char *realpath(const char *file_name, char *resolved_name);
-!   #int system(const char *command); 
+!   #int system(const char *command);
 !      Use F90 command instead
 !   #void qsort(void *base, size_t nel, size_t width, int (*compar)(const void *, const void *));
 ! stdio.h: standard buffered input/output
-!   int remove(const char *path); 
+!   int remove(const char *path);
 !   int rename(const char *old, const char *new);
 ! unistd.h: standard symbolic constants and types
 !   #int access(const char *path, int amode);
@@ -94,10 +94,10 @@
 ! libgen.h: http://www.opengroup.org/onlinepubs/007908799/xsh/libgen.h.html
 !   char *basename(char *path);  this one is emulated, because of IRIX
 !   char *dirname(char *path);  this one is emulated, because of IRIX
-! 
+!
 ! glob.h: http://www.opengroup.org/onlinepubs/007908799/xsh/glob.h.html
 !   int glob(const char *pattern, int flags,
-!            int(*errfunc)(const char *epath, int errno), 
+!            int(*errfunc)(const char *epath, int errno),
 !            glob_t *pglob);
 !   void globfree(glob_t *pglob);
 !
@@ -124,6 +124,7 @@
 ! PRIVATE FN: (see below)
 ! PUBLIC FN: (see below)
 !===================================================================*/
+
 /* be ready for files > 2 GB by using long offsets */
 #define _FILE_OFFSET_BITS 64
 #include <stdio.h>
@@ -160,7 +161,7 @@ F77_INTEGER CLIB_F77NAME(clib_getenv)(F77_CHARACTER *name, F77_CHARACTER *value
   char *defStr = " ";
   int name_c_len;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   name_c_len = 1 + F77STRLEN(name);
   name_c = (char *)alloca((size_t)(name_c_len*sizeof(char)));
@@ -193,7 +194,7 @@ F77_INTEGER CLIB_F77NAME(clib_putenv)(F77_CHARACTER *name_value
   char *name_value_c;
   int name_c_len;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   name_c_len = 1 + F77STRLEN(name_value);
   name_value_c = (char *)malloc((size_t)(name_c_len*sizeof(char)));
@@ -213,8 +214,8 @@ F77_INTEGER CLIB_F77NAME(clib_putenv)(F77_CHARACTER *name_value
 }
 
 /* ================================================================
- * The realpath() function derives, from the pathname pointed 
- * to by file_name, an absolute pathname that names the same file, 
+ * The realpath() function derives, from the pathname pointed
+ * to by file_name, an absolute pathname that names the same file,
  * whose resolution does not involve ".", "..", or symbolic links
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
@@ -226,7 +227,7 @@ F77_INTEGER CLIB_F77NAME(clib_realpath)(F77_CHARACTER *fnamein,
   char fnameout2_c[MAXPATHLEN];
   char *defStr = " ";
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(fnamein,fnamein_c,F77STRLEN(fnamein),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -248,8 +249,8 @@ F77_INTEGER CLIB_F77NAME(clib_realpath)(F77_CHARACTER *fnamein,
 }
 
 /* ================================================================
- * The readlink() function gets, from the pathname pointed 
- * the contents of the link 
+ * The readlink() function gets, from the pathname pointed
+ * the contents of the link
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_readlink)(F77_CHARACTER *fnamein,
@@ -260,7 +261,7 @@ F77_INTEGER CLIB_F77NAME(clib_readlink)(F77_CHARACTER *fnamein,
   char *defStr = " ";
   F77_INTEGER status;
   ssize_t nc;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(fnamein,fnamein_c,F77STRLEN(fnamein),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -272,7 +273,7 @@ F77_INTEGER CLIB_F77NAME(clib_readlink)(F77_CHARACTER *fnamein,
   if(nc>0)fnameout2_c[nc]='\0';
   /* Translate Back to Fortran strings */
   status = CLIB_ERROR;
-  if ( (nc > 0) && 
+  if ( (nc > 0) &&
         (FTN2C_CSTR2FSTR(fnameout2_c,fnameout,nc,F77STRLEN(fnameout)) >= 0)  ) {
       status = CLIB_OK;
   } else {
@@ -283,13 +284,13 @@ F77_INTEGER CLIB_F77NAME(clib_readlink)(F77_CHARACTER *fnamein,
 
 /* ================================================================
  * If path does not name a directory, remove(path) is equivalent to unlink(path).*
- * If path names a directory, remove(path) is equivalent to rmdir(path). 
+ * If path names a directory, remove(path) is equivalent to rmdir(path).
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_remove)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -308,13 +309,13 @@ F77_INTEGER CLIB_F77NAME(clib_remove)(F77_CHARACTER *path HIDDENLEN(path) ) {
  * Rename a file named pathold to pathnew
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
-F77_INTEGER CLIB_F77NAME(clib_rename)(F77_CHARACTER *pathold, 
-                                      F77_CHARACTER *pathnew 
+F77_INTEGER CLIB_F77NAME(clib_rename)(F77_CHARACTER *pathold,
+                                      F77_CHARACTER *pathnew
                                       HIDDENLEN(pathold) HIDDENLEN(pathnew) ) {
   char pathold_c[MAXPATHLEN];
   char pathnew_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(pathold,pathold_c,F77STRLEN(pathold),MAXPATHLEN) < 0 ||
       FTN2C_FSTR2CSTR(pathnew,pathnew_c,F77STRLEN(pathnew),MAXPATHLEN) < 0){
@@ -331,7 +332,7 @@ F77_INTEGER CLIB_F77NAME(clib_rename)(F77_CHARACTER *pathold,
 }
 
 /* ================================================================
- * Checks the file named by the pathname pointed to by the 
+ * Checks the file named by the pathname pointed to by the
  * path argument for accessibility.
  * clib_fileexist : CLIB_OK if path exist
  * clib_isreadok  : CLIB_OK if path is readable
@@ -342,7 +343,7 @@ F77_INTEGER CLIB_F77NAME(clib_rename)(F77_CHARACTER *pathold,
 F77_INTEGER CLIB_F77NAME(clib_fileexist)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -360,7 +361,7 @@ F77_INTEGER CLIB_F77NAME(clib_fileexist)(F77_CHARACTER *path HIDDENLEN(path) ) {
 F77_INTEGER CLIB_F77NAME(clib_isreadok)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -378,7 +379,7 @@ F77_INTEGER CLIB_F77NAME(clib_isreadok)(F77_CHARACTER *path HIDDENLEN(path) ) {
 F77_INTEGER CLIB_F77NAME(clib_iswriteok)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -396,7 +397,7 @@ F77_INTEGER CLIB_F77NAME(clib_iswriteok)(F77_CHARACTER *path HIDDENLEN(path) ) {
 F77_INTEGER CLIB_F77NAME(clib_isexecok)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -418,7 +419,7 @@ F77_INTEGER CLIB_F77NAME(clib_isexecok)(F77_CHARACTER *path HIDDENLEN(path) ) {
 F77_INTEGER CLIB_F77NAME(clib_chdir)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -441,7 +442,7 @@ F77_INTEGER CLIB_F77NAME(clib_getcwd)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   char *defStr = " ";
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   status = CLIB_ERROR;
 
   /* Call C function */
@@ -460,20 +461,20 @@ F77_INTEGER CLIB_F77NAME(clib_getcwd)(F77_CHARACTER *path HIDDENLEN(path) ) {
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_getuid)(F77_INTEGER *uid ) {
   F77_INTEGER status=CLIB_OK;
-  /*--------------------------------------------------------------*/
+
   *uid = getuid();
   return(status);
 }
 
 /* ================================================================
- * removes a directory whose name is given by path. 
+ * removes a directory whose name is given by path.
  * The directory is removed only if it is an empty directory.
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_rmdir)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -489,19 +490,19 @@ F77_INTEGER CLIB_F77NAME(clib_rmdir)(F77_CHARACTER *path HIDDENLEN(path) ) {
 }
 
 /* ================================================================
- * Creates a symbolic link. Its name is the pathname pointed to 
+ * Creates a symbolic link. Its name is the pathname pointed to
  * by path2, which must be a pathname that does not name an existing
- * file or symbolic link. The contents of the symbolic link are 
+ * file or symbolic link. The contents of the symbolic link are
  * the string pointed to by path1.
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
-F77_INTEGER CLIB_F77NAME(clib_symlink)(F77_CHARACTER *pathold, 
-                                       F77_CHARACTER *pathnew 
+F77_INTEGER CLIB_F77NAME(clib_symlink)(F77_CHARACTER *pathold,
+                                       F77_CHARACTER *pathnew
                                        HIDDENLEN(pathold) HIDDENLEN(pathnew) ) {
   char pathold_c[MAXPATHLEN];
   char pathnew_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(pathold,pathold_c,F77STRLEN(pathold),MAXPATHLEN) < 0 ||
       FTN2C_FSTR2CSTR(pathnew,pathnew_c,F77STRLEN(pathnew),MAXPATHLEN) < 0){
@@ -518,18 +519,18 @@ F77_INTEGER CLIB_F77NAME(clib_symlink)(F77_CHARACTER *pathold,
 }
 
 /* ================================================================
- * Removes a link to a file. If path names a symbolic link, unlink() 
- * removes the symbolic link named by path and does not affect any 
- * file or directory named by the contents of the symbolic link. 
- * Otherwise, unlink() removes the link named by the pathname 
- * pointed to by path and decrements the link count of the file 
+ * Removes a link to a file. If path names a symbolic link, unlink()
+ * removes the symbolic link named by path and does not affect any
+ * file or directory named by the contents of the symbolic link.
+ * Otherwise, unlink() removes the link named by the pathname
+ * pointed to by path and decrements the link count of the file
  * referenced by the link.
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_unlink)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -552,7 +553,7 @@ F77_INTEGER CLIB_F77NAME(clib_mkdir)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   /* mode_t mode; */
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -585,7 +586,7 @@ F77_INTEGER CLIB_F77NAME(clib_isdir)(F77_CHARACTER *path HIDDENLEN(path) ) {
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -607,7 +608,7 @@ F77_INTEGER CLIB_F77NAME(clib_islink)(F77_CHARACTER *path HIDDENLEN(path) ) {
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -629,7 +630,7 @@ F77_INTEGER CLIB_F77NAME(clib_isfifo)(F77_CHARACTER *path HIDDENLEN(path) ) {
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -651,7 +652,7 @@ F77_INTEGER CLIB_F77NAME(clib_isfile)(F77_CHARACTER *path HIDDENLEN(path) ) {
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -673,7 +674,7 @@ F77_INTEGER8 CLIB_F77NAME(clib_size)(F77_CHARACTER *path HIDDENLEN(path) ) {
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -695,7 +696,7 @@ F77_INTEGER CLIB_F77NAME(clib_mtime)(F77_CHARACTER *path HIDDENLEN(path) ) {
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -717,7 +718,7 @@ F77_INTEGER CLIB_F77NAME(clib_stat)(F77_CHARACTER *path, int64_t *table HIDDENLE
   struct stat buf1;
   struct stat *buf;
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -745,20 +746,20 @@ F77_INTEGER CLIB_F77NAME(clib_stat)(F77_CHARACTER *path, int64_t *table HIDDENLE
 
 
 /* ================================================================
- * The basename() function takes the pathname pointed to by path 
- * and returns a pointer to the final component of the pathname, 
+ * The basename() function takes the pathname pointed to by path
+ * and returns a pointer to the final component of the pathname,
  * deleting any trailing '/' characters.
- * If the string consists entirely of the '/' character, basename() 
+ * If the string consists entirely of the '/' character, basename()
  * returns a pointer to the string "/" .
- * If path is a null pointer or points to an empty string, 
- * basename() returns a pointer to the string "." . 
+ * If path is a null pointer or points to an empty string,
+ * basename() returns a pointer to the string "." .
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_basename)(F77_CHARACTER *path,
                                         F77_CHARACTER *mybasename
                                         HIDDENLEN(path) HIDDENLEN(mybasename) ) {
   char *defStr = " ";
-  F77_INTEGER status;  
+  F77_INTEGER status;
   int lpath=F77STRLEN(path)-1;
 
   FTN2C_CSTR2FSTR(defStr,mybasename,1,F77STRLEN(mybasename));     /* fill destination with blanks, in case ... */
@@ -770,15 +771,15 @@ F77_INTEGER CLIB_F77NAME(clib_basename)(F77_CHARACTER *path,
 }
 
 /* ================================================================
- * The dirname() function takes a pointer to a character string 
- * that contains a pathname, and returns a pointer to a string 
- * that is a pathname of the parent directory of that file. 
- * Trailing '/' characters in the path are not counted as part 
+ * The dirname() function takes a pointer to a character string
+ * that contains a pathname, and returns a pointer to a string
+ * that is a pathname of the parent directory of that file.
+ * Trailing '/' characters in the path are not counted as part
  * of the path.
- * If path does not contain a '/', then dirname() returns a 
- * pointer to the string "." . If path is a null pointer or 
- * points to an empty string, dirname() returns a pointer to 
- * the string "." . 
+ * If path does not contain a '/', then dirname() returns a
+ * pointer to the string "." . If path is a null pointer or
+ * points to an empty string, dirname() returns a pointer to
+ * the string "." .
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_dirname)(F77_CHARACTER *path,
@@ -814,7 +815,7 @@ F77_INTEGER CLIB_F77NAME(clib_glob)(F77_CHARACTER *filelist,
   glob_t globbuf;
   char pattern_c[MAXPATHLEN];
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(pattern,pattern_c,F77STRLEN(pattern),MAXPATHLEN) < 0){
     return(CLIB_ERROR);
@@ -828,7 +829,7 @@ F77_INTEGER CLIB_F77NAME(clib_glob)(F77_CHARACTER *filelist,
       *nfiles = (F77_INTEGER)globbuf.gl_pathc;
       if (FTN2C_CSTR2FSTR_A(globbuf.gl_pathv,filelist,
                             MAXPATHLEN,(int)F77STRLEN(filelist),
-                            (int)*nfiles) >= 0) 
+                            (int)*nfiles) >= 0)
                                  status = CLIB_OK;
     }
   }
@@ -841,14 +842,14 @@ F77_INTEGER CLIB_F77NAME(clib_glob)(F77_CHARACTER *filelist,
  * ================================================================*/
 F77_INTEGER CLIB_F77NAME(clib_tolower)(F77_CHARACTER *mystr HIDDENLEN(mystr) ) {
   int ii;
-  /*--------------------------------------------------------------*/
+
   for (ii=0 ; ii<F77STRLEN(mystr) ; ii++) mystr[ii] = (F77_CHARACTER)tolower((int)mystr[ii]);
   return((F77_INTEGER)CLIB_OK);
 }
 
 F77_INTEGER CLIB_F77NAME(clib_toupper)(F77_CHARACTER *mystr HIDDENLEN(mystr) ) {
   int ii;
-  /*--------------------------------------------------------------*/
+
   for (ii=0 ; ii<F77STRLEN(mystr) ; ii++) mystr[ii] = (F77_CHARACTER)toupper((int)mystr[ii]);
   return((F77_INTEGER)CLIB_OK);
 }
@@ -892,7 +893,7 @@ F77_INTEGER CLIB_F77NAME(clib_isxdigit)(F77_CHARACTER *mystr HIDDENLEN(mystr) ) 
   return (isxdigit((int)mystr[0]))? CLIB_OK : CLIB_ERROR;
 }
 
-/* Function with behaviour like `mkdir -p' 
+/* Function with behaviour like `mkdir -p'
 Source: http://niallohiggins.com/2009/01/08/mkpath-mkdir-p-alike-in-c-for-unix/
 */
 int mkpath(char *s, mode_t mode){
@@ -905,13 +906,13 @@ int mkpath(char *s, mode_t mode){
 
         if ((path = strdup(s)) == NULL)
                 exit(1);
-     
+
         if ((q = strdup(s)) == NULL)
                 exit(1);
 
         if ((r = dirname(q)) == NULL)
                 goto out;
-        
+
         if ((up = strdup(r)) == NULL)
                 exit(1);
 
@@ -940,7 +941,7 @@ F77_INTEGER CLIB_F77NAME(clib_mkdir_r)(F77_CHARACTER *path HIDDENLEN(path) ) {
   char path_c[MAXPATHLEN];
   /* mode_t mode; */
   F77_INTEGER status;
-  /*--------------------------------------------------------------*/
+
   /* Translate to C strings */
   if (FTN2C_FSTR2CSTR(path,path_c,F77STRLEN(path),MAXPATHLEN) < 0){
     return(CLIB_ERROR);

@@ -18,26 +18,23 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-int32_t ez_defzone_sud(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone)
-{
+int32_t ez_defzone_sud(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone) {
   float *tmpx, *tmpy;
   int32_t *tmpidx;
   int32_t nhits, i;
   int32_t jmin;
 
-
   int32_t gdrow_in, gdcol_in;
-    
+
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  
+
   tmpx =   (float *) malloc(npts*sizeof(float));
   tmpy =   (float *) malloc(npts*sizeof(float));
   tmpidx = (int32_t  *) malloc(npts*sizeof(int32_t));
-  
+
   nhits = 0;
   jmin = Grille[gdrow_in][gdcol_in].j1+1;
   for (i=0; i < npts; i++)
@@ -50,7 +47,7 @@ int32_t ez_defzone_sud(int32_t gdin, float *x, float *y, int32_t npts, _zone *zo
       nhits++;
       }
     }
-  
+
   zone->npts = nhits;
   if (nhits > 0)
     {
@@ -59,17 +56,17 @@ int32_t ez_defzone_sud(int32_t gdin, float *x, float *y, int32_t npts, _zone *zo
     zone->idx = (int32_t *) malloc(nhits*sizeof(int32_t));
     if (groptions.verbose > 0)
       {
-      fprintf(stderr, "Nombre de points entre le pole et nj=2 : %d\n", nhits); 
+      fprintf(stderr, "Nombre de points entre le pole et nj=2 : %d\n", nhits);
       }
-    
+
     for (i=0; i < zone->npts; i++)
       {
-      zone->x[i]   = tmpx[i];      
-      zone->y[i]   = tmpy[i];     
+      zone->x[i]   = tmpx[i];
+      zone->y[i]   = tmpy[i];
       zone->idx[i] = tmpidx[i];
       }
     }
-  
+
   free(tmpx);
   free(tmpy);
   free(tmpidx);

@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 #define BITPOS(i) (i - ((i >> 5) << 5))
@@ -26,45 +26,41 @@
 #define SETMSK(fld,i) (fld[i >> 5] | (fld[i] << BITPOS(i)))
 
 
-int f77name(gdsetmask)(int *gdid, int *mask)
-   {
-   return c_gdsetmask(*gdid, mask);
-   }
+int f77name(gdsetmask)(int *gdid, int *mask) {
+    return c_gdsetmask(*gdid, mask);
+}
 
-int f77name(gdgetmask)(int *gdid, int *mask)
-   {
-   return c_gdgetmask(*gdid, mask);
-   }
+int f77name(gdgetmask)(int *gdid, int *mask) {
+    return c_gdgetmask(*gdid, mask);
+}
 
-int f77name(ezsint_m)(float *zout, float *zin)
-   {
-   return c_ezsint_m(zout, zin);
-   }
 
-int f77name(ezuvint_m)(float *uuout, float *vvout, float *uuin, float *vvin)
-   {
-   return c_ezuvint_m(uuout, vvout, uuin, vvin);
-   }
+int f77name(ezsint_m)(float *zout, float *zin) {
+    return c_ezsint_m(zout, zin);
+}
 
-int f77name(ezsint_mdm)(float *zout, int *mask_out, float *zin, int *mask_in)
-   {
-   return c_ezsint_mdm(zout, mask_out, zin, mask_in);
-   }
 
-int f77name(ezuvint_mdm)(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in)
-   {
-   return c_ezuvint_mdm(uuout, vvout, mask_out, uuin, vvin, mask_in);
-   }
+int f77name(ezuvint_m)(float *uuout, float *vvout, float *uuin, float *vvin) {
+    return c_ezuvint_m(uuout, vvout, uuin, vvin);
+}
 
-int f77name(ezsint_mask)(int *mask_out, int *mask_in)
-   {
-   return c_ezsint_mask(mask_out, mask_in);
-   }
 
-/* ------------------------------------------------------------------------- */
+int f77name(ezsint_mdm)(float *zout, int *mask_out, float *zin, int *mask_in) {
+    return c_ezsint_mdm(zout, mask_out, zin, mask_in);
+}
 
-int c_gdsetmask(int gdid, int *mask)
-   {
+
+int f77name(ezuvint_mdm)(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in) {
+    return c_ezuvint_mdm(uuout, vvout, mask_out, uuin, vvin, mask_in);
+}
+
+
+int f77name(ezsint_mask)(int *mask_out, int *mask_in) {
+    return c_ezsint_mask(mask_out, mask_in);
+}
+
+
+int c_gdsetmask(int gdid, int *mask) {
    int gdrow, gdcol;
    int ni, nj;
    c_gdkey2rowcol(gdid, &gdrow, &gdcol);
@@ -83,13 +79,10 @@ int c_gdsetmask(int gdid, int *mask)
    Grille[gdrow][gdcol].mask = (int *)malloc(ni*nj*sizeof(int));
    memcpy(Grille[gdrow][gdcol].mask, mask, ni*nj*sizeof(int));
    return 0;
-   }
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int c_gdgetmask(int gdid, int *mask)
-   {
+int c_gdgetmask(int gdid, int *mask) {
    int gdrow, gdcol;
    int ni, nj;
 
@@ -112,31 +105,22 @@ int c_gdgetmask(int gdid, int *mask)
       mask = NULL;
       return -1;
       }
-   }
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int c_ezsint_m(float *zout, float *zin)
-   {
-       fprintf(stderr, "<ezsint_m> This operation is currently not implemented.\n");
+int c_ezsint_m(float *zout, float *zin) {
+    fprintf(stderr, "<ezsint_m> This operation is currently not implemented.\n");
     return 0;
-   } 
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int c_ezuvint_m(float *uuout, float *vvout, float *uuin, float *vvin)
-   {
-       fprintf(stderr, "<ezuvint_m> This operation is currently not implemented.\n");
+int c_ezuvint_m(float *uuout, float *vvout, float *uuin, float *vvin) {
+    fprintf(stderr, "<ezuvint_m> This operation is currently not implemented.\n");
     return 0;
-   }
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
-   {
+int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in) {
    int32_t gdin, gdout, gdrow_out, gdcol_out;
    int32_t              gdrow_in,  gdcol_in;
    int32_t methode = 2;
@@ -149,7 +133,7 @@ int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
 
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
        Grille[gdrow_in][gdcol_in].nsubgrids > 0)
       {
        fprintf(stderr, "<ezsint_mdm> This operation is not supported for 'U' grids.\n");
@@ -161,14 +145,10 @@ int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
    c_ezsint_mask(mask_out, mask_in);
    f77name(lorenzo_mask_fill)(zout, mask_out, &ni_out, &nj_out, &methode);
    return 0;
+}
 
-   }
 
-
-/* ------------------------------------------------------------------------- */
-
-int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in)
-   {
+int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in) {
    int32_t gdin, gdout, gdrow_out, gdcol_out;
    int32_t              gdrow_in,  gdcol_in;
    int32_t methode = 2;
@@ -181,7 +161,7 @@ int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float 
 
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
        Grille[gdrow_in][gdcol_in].nsubgrids > 0)
       {
        fprintf(stderr, "<ezuvint_mdm> This operation is not supported for 'U' grids.\n");
@@ -194,13 +174,10 @@ int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float 
    f77name(lorenzo_mask_fill)(uuout, mask_out, &ni_out, &nj_out, &methode);
    f77name(lorenzo_mask_fill)(vvout, mask_out, &ni_out, &nj_out, &methode);
    return 0;
-   }
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int c_ezsint_mask(int *mask_out, int *mask_in)
-   {
+int c_ezsint_mask(int *mask_out, int *mask_in) {
    char grtyp_in[2], grtyp_out[2];
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
@@ -217,7 +194,7 @@ int c_ezsint_mask(int *mask_out, int *mask_in)
    gdout = c_ezgetgdout();
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
        Grille[gdrow_in][gdcol_in].nsubgrids > 0)
       {
        fprintf(stderr, "<ezsint_mask> This operation is not supported for 'U' grids.\n");
@@ -245,21 +222,15 @@ int c_ezsint_mask(int *mask_out, int *mask_in)
       f77name(qqq_ezsint_mask)(mask_out, x, y, &ni_gdout, &nj_gdout, mask_in, &ni_gdin, &nj_gdin);
       }
    return 0;
-   }
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int f77name(ezget_mask_zones)(int *mask_out, int *mask_in)
-   {
+int f77name(ezget_mask_zones)(int *mask_out, int *mask_in) {
     return c_ezget_mask_zones(mask_out, mask_in);
-   }
+}
 
 
-/* ------------------------------------------------------------------------- */
-
-int c_ezget_mask_zones(int *mask_out, int *mask_in)
-   {
+int c_ezget_mask_zones(int *mask_out, int *mask_in) {
    char grtyp_in[2], grtyp_out[2];
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
@@ -276,7 +247,7 @@ int c_ezget_mask_zones(int *mask_out, int *mask_in)
    gdout = c_ezgetgdout();
    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || 
+   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
        Grille[gdrow_in][gdcol_in].nsubgrids > 0)
       {
        fprintf(stderr, "<ezget_mask_zones> This operation is not supported for 'U' grids.\n");
@@ -296,9 +267,4 @@ int c_ezget_mask_zones(int *mask_out, int *mask_in)
 
    f77name(qqq_ezget_mask_zones)(mask_out, x, y, &ni_gdout, &nj_gdout, mask_in, &ni_gdin, &nj_gdin);
     return 0;
-   }
-
-
-/* ------------------------------------------------------------------------- */
-
-
+}

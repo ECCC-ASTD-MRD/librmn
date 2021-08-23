@@ -18,11 +18,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout)
-{
+
+int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout) {
   int32_t i,ierc;
   float valmax, valmin,fudgeval;
   int32_t fudgeval_set;
@@ -44,12 +43,12 @@ int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout)
 
   lgdin = &(Grille[gdrow_in][gdcol_in]);
   lgdout = &(Grille[gdrow_out][gdcol_out]);
-  
+
   idx_gdin = c_find_gdin(gdin, gdout);
 
   nj = lgdin->j2 - lgdin->j1 +1;
   ierc = 0; /* no extrapolation */
-  
+
   if (lgdout->gset[idx_gdin].zones[DEHORS].npts > 0)
     {
     ierc = 2; /* code to indicate extrapolation */
@@ -101,7 +100,7 @@ int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout)
            }
          }
 
-      if (fudgeval_set == 0) 
+      if (fudgeval_set == 0)
          {
         fprintf(stderr, "Error : ezcorrval : fudgeval not set \n");
          }

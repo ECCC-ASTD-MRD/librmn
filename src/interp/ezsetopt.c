@@ -18,14 +18,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+
+#include <stdio.h>
 #include "ez_funcdef.h"
-#include <ctype.h>
+
 
 extern int f77name(longueur)(char *string, int stringlength);
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 int32_t f77name(ezsetopt)(char *option, char *value, F2Cl llenoption, F2Cl llenvalue)
 {
    int32_t i, icode;
@@ -109,7 +109,7 @@ int32_t c_ezsetopt(char *option, char *value)
 	      }
       }
 
- 
+
    if (0 == strcmp(local_opt, "verbose"))
       {
       option_ok = 1;

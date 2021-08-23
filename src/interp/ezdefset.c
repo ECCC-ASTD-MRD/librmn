@@ -18,23 +18,21 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 void reallocate_gridset_table(int gdid);
-void   allocate_gridset_table(int gdid);
+void allocate_gridset_table(int gdid);
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(ezdefset)(int32_t *gdout, int32_t *gdin)
-{
+
+int32_t f77name(ezdefset)(int32_t *gdout, int32_t *gdin) {
    int32_t icode;
 
    icode = c_ezdefset(*gdout, *gdin);
    return icode;
 }
 
-int32_t c_ezdefset(int32_t gdout, int32_t gdin)
-{
+int32_t c_ezdefset(int32_t gdout, int32_t gdin) {
   /* d'abord trouver si l'ensemble est deja defini */
 
    int32_t i;
@@ -170,8 +168,8 @@ int32_t c_ezdefset(int32_t gdout, int32_t gdin)
    return 1;
 }
 
-void reallocate_gridset_table(int gdid)
-{
+
+void reallocate_gridset_table(int gdid) {
    int32_t i;
    int32_t gdrow_id, gdrow_out, gdcol_id, gdcol_out, npts, cur_gdin, log_chunk_gdin;
    int32_t newIndex, inserted, curIndex;
@@ -233,8 +231,8 @@ void reallocate_gridset_table(int gdid)
    gr->log_chunk_gdin++;
 }
 
-void allocate_gridset_table(int gdid)
-{
+
+void allocate_gridset_table(int gdid) {
    int32_t i;
    int32_t gdrow_id, gdrow_out, gdcol_id, gdcol_out, npts, cur_gdin, log_chunk_gdin;
    int32_t newIndex, inserted, curIndex;

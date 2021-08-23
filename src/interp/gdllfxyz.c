@@ -18,28 +18,27 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(gdllfxyz)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n)
-{
+
+int32_t f77name(gdllfxyz)(int32_t *gdid, float *lat, float *lon, float *x, float *y, int32_t *n) {
   return c_gdllfxyz(*gdid, lat, lon, x, y, *n);
 }
 
-int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n)
-{
+
+int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n) {
   int32_t i,npts, hem, un;
-  
+
   _Grille grEntree;
-  
+
   int32_t gdrow_id, gdcol_id;
-    
+
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-  
+
   grEntree = Grille[gdrow_id][gdcol_id];
   npts = n;
-  
+
   switch(grEntree.grtyp[0])
     {
     case 'A':
@@ -52,13 +51,13 @@ int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int
     case '!':
       c_gdllfxy_orig(gdid, lat, lon, x, y, n);
       break;
-      
+
     case 'Y':
       fprintf(stderr, "********************************************************\n");
       fprintf(stderr, "<gdllfxy>: This operation is not supported for 'Y' grids\n");
       fprintf(stderr, "********************************************************\n");
       break;
-      
+
     case '#':
     case 'Z':
       switch (grEntree.grref[0])
@@ -67,10 +66,10 @@ int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int
     f77name(ez_gfllfxy)(lon,lat,x,y,&npts,&grEntree.fst.xgref[XLAT1],&grEntree.fst.xgref[XLON1],
             &grEntree.fst.xgref[XLAT2],&grEntree.fst.xgref[XLON2]);
     break;
-    
+
   case 'S':
   case 'N':
-    if (grEntree.grref[0] == 'N') 
+    if (grEntree.grref[0] == 'N')
       hem = 1;
     else
       hem = 2;
@@ -79,7 +78,7 @@ int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int
     f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&grEntree.fst.xgref[D60],
         &grEntree.fst.xgref[DGRW], &grEntree.fst.xgref[PI], &grEntree.fst.xgref[PJ],&grEntree.fst.hemisphere);
     break;
-    
+
   case 'L':
     for (i=0; i < n; i++)
       {
@@ -88,14 +87,14 @@ int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int
         lon[i] = lon[i] < 0.0 ? lon[i] + 360.0 : lon[i];
       }
     break;
-    
+
   default:
     fprintf(stderr,"<gdllfxy> Errrrrrrrrrrreur!\n");
     break;
   }
       break;
     }
-  
+
   return 0;
-  
+
 }

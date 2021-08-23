@@ -18,21 +18,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 int32_t f77name(gdwdfuv)(int32_t *gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
                      float *latin, float *lonin, int32_t *npts)
 {
    int32_t icode;
-   
+
    icode = c_gdwdfuv(*gdid, spd_out, wd_out, uuin, vvin,latin, lonin, *npts);
    return icode;
 }
 
-int32_t c_gdwdfuv(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin, 
+int32_t c_gdwdfuv(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
               float *latin, float *lonin, int32_t npts)
 {
   int32_t j, icode;
@@ -51,7 +50,7 @@ int32_t c_gdwdfuv(int32_t gdid, float *spd_out, float *wd_out, float *uuin, floa
       return icode;
     }
 }
-int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin, 
+int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
               float *latin, float *lonin, int32_t npts)
 {
    float *xlatingf, *xloningf, *uvcart, *xyz;
@@ -59,16 +58,16 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
    float *lat_rot, *lon_rot;
 
   int32_t gdrow_id, gdcol_id;
-    
+
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-   
+
    ni = npts;
    nj = 1;
 
    memcpy(spd_out, uuin, npts*sizeof(float));
    memcpy(wd_out, vvin, npts*sizeof(float));
 
-/*   
+/*
     if (iset == -1)
       {
       use_sincos_cache = NON;
@@ -97,7 +96,7 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
         f77name(ez_gfxyfll)(lonin, latin, lon_rot,lat_rot, &ni,
                             &Grille[gdrow_id][gdcol_id].fst.xg[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xg[XLON1],
                             &Grille[gdrow_id][gdcol_id].fst.xg[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xg[XLON2]);
-        
+
         c_ezllwfgfw(spd_out,wd_out, latin,lonin, lat_rot,lon_rot,
                     &ni,&nj,Grille[gdrow_id][gdcol_id].grtyp,
                     &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
@@ -107,47 +106,47 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
         return 0;
         }
        break;
-       
+
      case '#':
      case 'Y':
      case 'Z':
        switch(Grille[gdrow_id][gdcol_id].grref[0])
-	 {
-	 case 'E':
-	     lat_rot=(float *)(malloc(npts*sizeof(float)));
-	     lon_rot=(float *)(malloc(npts*sizeof(float)));
-	     f77name(ez_gfxyfll)(lonin,latin,lon_rot, lat_rot, &ni,
-				 &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON1],
-				 &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON2]);
-	     
-	     c_ezllwfgfw(spd_out,wd_out,latin,lonin,lat_rot, lon_rot, 
-			 &ni,&nj,Grille[gdrow_id][gdcol_id].grref,
-			 &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
-			 &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
-	     free(lat_rot);
-	     free(lon_rot);
-	     return 0;
-	   break;
-	   
+    {
+    case 'E':
+        lat_rot=(float *)(malloc(npts*sizeof(float)));
+        lon_rot=(float *)(malloc(npts*sizeof(float)));
+        f77name(ez_gfxyfll)(lonin,latin,lon_rot, lat_rot, &ni,
+             &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON1],
+             &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON2]);
 
-	 default:
-	   f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
-			       &ni,&nj,
-			       &Grille[gdrow_id][gdcol_id].grref,
-			       &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
-			       &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
-	   break;
-	 }
+        c_ezllwfgfw(spd_out,wd_out,latin,lonin,lat_rot, lon_rot,
+          &ni,&nj,Grille[gdrow_id][gdcol_id].grref,
+          &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
+          &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
+        free(lat_rot);
+        free(lon_rot);
+        return 0;
+      break;
+
+
+    default:
+      f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
+                &ni,&nj,
+                &Grille[gdrow_id][gdcol_id].grref,
+                &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
+                &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
+      break;
+    }
        break;
-       
+
      default:
        f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
-			   &ni,&nj,
-			   &Grille[gdrow_id][gdcol_id].grtyp,
-			   &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
-			   &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4]);
+            &ni,&nj,
+            &Grille[gdrow_id][gdcol_id].grtyp,
+            &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
+            &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4]);
        break;
      }
-   
+
    return 0;
 }

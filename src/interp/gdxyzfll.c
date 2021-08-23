@@ -18,69 +18,63 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(gdxyzfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n)
-{
-   return c_gdxyzfll(*gdid, x, y, lat, lon, *n);
+
+int32_t f77name(gdxyzfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n) {
+    return c_gdxyzfll(*gdid, x, y, lat, lon, *n);
 }
 
-int32_t c_gdxyzfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
-{
-   int32_t ni_in, nj_in;
-   
-   int32_t coordonnee;
 
-   _Grille grEntree;
-   int32_t npts;
+int32_t c_gdxyzfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n) {
+    int32_t ni_in, nj_in;
 
-  int32_t gdrow_id, gdcol_id;
-    
-  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-   grEntree =  Grille[gdrow_id][gdcol_id];
-   npts = n;
-              
-   ni_in =  grEntree.ni;
-   nj_in =  grEntree.nj;
+    int32_t coordonnee;
 
-   
-   switch(grEntree.grtyp[0])
-      {
-      case 'A':
-      case 'B':
-      case 'E':
-      case 'G':
-      case 'L':
-      case 'N':
-      case 'S':
-      case 'T':
-      case '!':
-	c_gdxyfll_orig(gdid, x, y, lat, lon, n);
-        break;
-        
-      case 'Y':
-	fprintf(stderr, "********************************************************\n");
-	fprintf(stderr, "<gdxyzfll>: This operation is not supported for 'Y' grids\n");
-	fprintf(stderr, "********************************************************\n");
-	break;
-	
-      case '#':
-      case 'Z':
-	coordonnee = ABSOLU;
-        f77name(ez_ll2igd)(x, y, lat, lon, &npts,
-			    &ni_in,&nj_in,&grEntree.grtyp, &grEntree.grref,
-			    &grEntree.fst.igref[IG1], &grEntree.fst.igref[IG2], 
-			    &grEntree.fst.igref[IG3], &grEntree.fst.igref[IG4],
-			    grEntree.ax, grEntree.ay, &coordonnee);
-        break;
-        
-        
-      default:
-        break;
-      }
+    _Grille grEntree;
+    int32_t npts;
+
+    int32_t gdrow_id, gdcol_id;
+
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    grEntree =  Grille[gdrow_id][gdcol_id];
+    npts = n;
+
+    ni_in =  grEntree.ni;
+    nj_in =  grEntree.nj;
 
 
-   return 0;
+    switch(grEntree.grtyp[0]) {
+        case 'A':
+        case 'B':
+        case 'E':
+        case 'G':
+        case 'L':
+        case 'N':
+        case 'S':
+        case 'T':
+        case '!':
+            c_gdxyfll_orig(gdid, x, y, lat, lon, n);
+            break;
+        case 'Y':
+            fprintf(stderr, "********************************************************\n");
+            fprintf(stderr, "<gdxyzfll>: This operation is not supported for 'Y' grids\n");
+            fprintf(stderr, "********************************************************\n");
+            break;
+        case '#':
+        case 'Z':
+            coordonnee = ABSOLU;
+            f77name(ez_ll2igd)(x, y, lat, lon, &npts,
+                &ni_in,&nj_in,&grEntree.grtyp, &grEntree.grref,
+                &grEntree.fst.igref[IG1], &grEntree.fst.igref[IG2],
+                &grEntree.fst.igref[IG3], &grEntree.fst.igref[IG4],
+                grEntree.ax, grEntree.ay, &coordonnee);
+            break;
+
+        default:
+            break;
+    }
+
+    return 0;
 }

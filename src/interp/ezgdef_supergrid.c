@@ -18,11 +18,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref)
 {
   int32_t gdid,i;
@@ -30,7 +29,7 @@ int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *g
 
   lgrtyp[0] = grtyp[0];
   lgrtyp[1] = '\0';
-   
+
   lgrref[0] = grref[0];
   lgrref[1] = '\0';
   gdid = c_ezgdef_supergrid(*ni, *nj, lgrtyp, lgrref, *vercode, *nsubgrids,subgrid);
@@ -46,7 +45,7 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
   float *ax,*ay;
   unsigned int grid_crc;
    _Grille newgr,*maskgd;
-    
+
   if (nsubgrids <= 1)
     {
     fprintf(stderr,"<c_ezgdef_supergrid> nsubgrids given is less than 2! Aborting...\n");

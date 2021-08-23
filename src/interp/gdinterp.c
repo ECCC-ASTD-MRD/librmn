@@ -18,11 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+
+#include <stdio.h>
 #include "ez_funcdef.h"
 
-int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
-{
+
+int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts) {
    int32_t lnpts;
    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
    int lcl_ngdin;
@@ -73,51 +74,51 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
       case 'Z':
       case 'G':
       switch (groptions.degre_interp)
-	      {
-	      case VOISIN:
+         {
+         case VOISIN:
          f77name(ez_rgdint_0)(zout,x,y,
-			   &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
-			   &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
-	      break;
+            &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
+            &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+         break;
 
-	      case LINEAIRE:
-	      switch(Grille[gdrow_in][gdcol_in].extension)
-	         {
-	         case 0:
-	         f77name(ez_irgdint_1_nw)(zout,x, y,
-				  &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-				  zin,&Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
-	         break;
+         case LINEAIRE:
+         switch(Grille[gdrow_in][gdcol_in].extension)
+            {
+            case 0:
+            f77name(ez_irgdint_1_nw)(zout,x, y,
+              &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+              zin,&Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
+            break;
 
-	         case 1:
-	         case 2:
-	         f77name(ez_irgdint_1_w)(zout,x, y,
-				   &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-				   zin,&Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2, &Grille[gdrow_in][gdcol_in].extension);
-	         break;
-	         }
-	        break;
+            case 1:
+            case 2:
+            f77name(ez_irgdint_1_w)(zout,x, y,
+               &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+               zin,&Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2, &Grille[gdrow_in][gdcol_in].extension);
+            break;
+            }
+           break;
 
-	      case CUBIQUE:
-	        switch(Grille[gdrow_in][gdcol_in].extension)
-	         {
-	         case 0:
-	         f77name(ez_irgdint_3_nw)(zout, x, y,
-				   &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-				   Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
-				   &Grille[gdrow_in][gdcol_in].i1, &Grille[gdrow_in][gdcol_in].i2,
-				   &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
-	         break;
+         case CUBIQUE:
+           switch(Grille[gdrow_in][gdcol_in].extension)
+            {
+            case 0:
+            f77name(ez_irgdint_3_nw)(zout, x, y,
+               &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+               Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
+               &Grille[gdrow_in][gdcol_in].i1, &Grille[gdrow_in][gdcol_in].i2,
+               &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+            break;
 
-	         case 1:
-	         case 2:
-	         f77name(ez_irgdint_3_w)(zout, x, y,
-				   &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-				   Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
-				   &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
-				   &Grille[gdrow_in][gdcol_in].extension);
-	         break;
-	         }
+            case 1:
+            case 2:
+            f77name(ez_irgdint_3_w)(zout, x, y,
+               &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+               Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
+               &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
+               &Grille[gdrow_in][gdcol_in].extension);
+            break;
+            }
          break;
 
          case 4:
@@ -142,7 +143,7 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
             zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
             &Grille[gdrow_in][gdcol_in].extension);
          break;
-	      }
+         }
 
       break;
 
@@ -181,8 +182,8 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
          {
          case VOISIN:
          f77name(ez_rgdint_0)(zout,x,y,
-			   &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
-			   &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+            &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
+            &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
          break;
 
          case LINEAIRE:
@@ -191,15 +192,15 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
             case 0:
             case 1:
             f77name(ez_rgdint_1_nw)(zout,x,y,
-		            &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
-		            &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+                  &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
+                  &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
             break;
 
             case 2:
             f77name(ez_rgdint_1_w)(zout,x,y,
-		              &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
-		              &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
-		              &Grille[gdrow_in][gdcol_in].extension);
+                    &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
+                    &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
+                    &Grille[gdrow_in][gdcol_in].extension);
             }
          break;
 
@@ -207,20 +208,20 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
          switch(Grille[gdrow_in][gdcol_in].extension)
             {
             case 0:
-	         f77name(ez_rgdint_3_nw)(zout, x, y,
-				        &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
-				        &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
-	         break;
+            f77name(ez_rgdint_3_nw)(zout, x, y,
+                    &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
+                    &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+            break;
 
             case 1:
             case 2:
             f77name(ez_rgdint_3_w)(zout, x, y,
-		              &lnpts, zin,  &Grille[gdrow_in][gdcol_in].ni,
-		              &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
-		              &Grille[gdrow_in][gdcol_in].extension);
+                    &lnpts, zin,  &Grille[gdrow_in][gdcol_in].ni,
+                    &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
+                    &Grille[gdrow_in][gdcol_in].extension);
             break;
             }
-	      break;
+         break;
 
          case 4:
          gdout = c_ezgetgdout();
@@ -246,7 +247,7 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
             &Grille[gdrow_in][gdcol_in].extension);
          free(gdst_lats);
          break;
-	     }
+        }
       break;
       }
    groptions.degre_interp = old_degre_interp;
@@ -254,24 +255,23 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
 
 }
 
-int c_gdcompatible_grids(int gdin, int gdout)
-   {
+int c_gdcompatible_grids(int gdin, int gdout) {
    int gdrow_in, gdrow_out, gdcol_in, gdcol_out;
 
    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
    c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
 
    switch(Grille[gdrow_out][gdcol_out].grtyp[0])
-   	{
-	case 'L':
-	case 'A':
-	case 'B':
-	case 'G':
-	return 0;
+      {
+   case 'L':
+   case 'A':
+   case 'B':
+   case 'G':
+   return 0;
 
-	default:
-	return -1;
-	}
+   default:
+   return -1;
+   }
 
    switch (Grille[gdrow_in][gdcol_in].grtyp[0])
       {
@@ -297,33 +297,27 @@ int c_gdcompatible_grids(int gdin, int gdout)
       }
 
    return 0;
-   }
+}
 
-int c_gd_isgridrotated(int gdid)
-   {
-   int gdrow_id, gdcol_id;
-   int ig1, ig2, ig3, ig4;
-   float xg1, xg2, xg3, xg4;
+int c_gd_isgridrotated(int gdid) {
+    int gdrow_id, gdcol_id;
+    int ig1, ig2, ig3, ig4;
+    float xg1, xg2, xg3, xg4;
 
-   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
-   if (Grille[gdrow_id][gdcol_id].grref[0] == 'E')
-      {
-      xg1 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1];
-      xg3 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2];
-/*      fprintf(stderr,"gdid xg1: xg3: %d %f %f\n", gdid, xg1, xg3);*/
-      if (fabs(xg1-xg3) < 0.001)
-         {
-         return 0;/* non rotated*/
-         }
-      else
-         {
-         return 1; /*rotated*/
-         }
-      }
-   else
-      {
-      return 0;
-      }
-   return 0;
-   }
+    if (Grille[gdrow_id][gdcol_id].grref[0] == 'E') {
+        xg1 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1];
+        xg3 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2];
+        /*      fprintf(stderr,"gdid xg1: xg3: %d %f %f\n", gdid, xg1, xg3);*/
+        if (fabs(xg1-xg3) < 0.001) {
+            /* non rotated*/
+            return 0;
+        } else {
+            /*rotated*/
+            return 1; 
+        }
+    }
+
+    return 0;
+}

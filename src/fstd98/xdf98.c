@@ -115,10 +115,10 @@ static int32_t add_dir_page(int file_index, int wflag);
 static int32_t rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
                           word_2 *aux, int naux, char *appl);
-static word next_match(int file_index);
-static void build_gen_prim_keys(word *buf, word *keys, word *mask,
-                                word *mskkeys, int index, int mode);
-static void build_gen_info_keys(word *buf, word *keys, int index,
+static int32_t next_match(int file_index);
+static void build_gen_prim_keys(int32_t *buf, int32_t *keys, int32_t *mask,
+                                int32_t *mskkeys, int index, int mode);
+static void build_gen_info_keys(int32_t *buf, int32_t *keys, int index,
                                 int mode);
 int C_fst_match_req(int set_nb, int handle);
 #include "proto.h"
@@ -267,9 +267,9 @@ static int32_t address_from_handle(
 //! @deprecated This function does absolutely nothing
 void build_fstd_info_keys(
     //! [inout] Buffer to contain the keys
-    word *buf,
+    int32_t *buf,
     //! [inout] Info keys
-    word *keys,
+    int32_t *keys,
     //! [in] File index in file table
     int index,
     //! [in] if mode = WMODE, write to buffer otherwise get keys from buffer.
@@ -281,13 +281,13 @@ void build_fstd_info_keys(
 //! Pack fstd primary keys into buffer or get primary keys from buffer depending on mode argument.
 void build_fstd_prim_keys(
     //! [inout] Buffer to contain the keys
-    word *buf,
+    int32_t *buf,
     //! [inout] Primary keys
-    word *keys,
+    int32_t *keys,
     //! [out] Search mask
-    word *mask,
+    int32_t *mask,
     //! [in] Unpacked masks
-    word *mskkeys,
+    int32_t *mskkeys,
     //! [in] File index in file table
     int index,
     //! [in] If mode = WMODE, write to buffer otherwise get keys from buffer
@@ -325,9 +325,9 @@ void build_fstd_prim_keys(
 //! Pack generic info keys into buffer or get info keys from buffer depending on mode argument.
 static void build_gen_info_keys(
     //! [inout] Buffer to contain the keys
-    word *buf,
+    int32_t *buf,
     //! [inout] Info keys
-    word *keys,
+    int32_t *keys,
     //! [in] File index in file table
     int index,
     //! [in] Ff mode = WMODE, write to buffer otherwise get keys from buffer
@@ -371,13 +371,13 @@ static void build_gen_info_keys(
 //! Pack generic primary keys into buffer or get primary keys from buffer depending on mode argument.
 static void build_gen_prim_keys(
     //! [inout] Buffer to contain the keys
-    word *buf,
+    int32_t *buf,
     //! [inout] Primary keys
-    word *keys,
+    int32_t *keys,
     //! [out] Search mask
-    word *mask,
+    int32_t *mask,
     //! [in] Unpacked masks
-    word *mskkeys,
+    int32_t *mskkeys,
     //! [in] File index in file table
     int index,
     //! [in] if this is set to WMODE, write to buffer otherwise get keys from buffer
@@ -600,7 +600,7 @@ int c_qdfmsig(
 //! \return Always 0
 int c_qdfput(
     //! [inout] Buffer to contain the element to add
-    word *buf,
+    int32_t *buf,
     //! [in] Element to add
     int elem,
     //! [in] Position of last bit in buf
@@ -689,9 +689,9 @@ int c_qdfrstr(
 //! Add to the end of the record contained in buf, nelm*nbits bits from donnees.
 int c_xdfadd(
     //! [inout] Buffer to contain the record
-    word *buffer,
+    int32_t *buffer,
     //! [in] Data bits to add to buffer
-    word *donnees,
+    int32_t *donnees,
     //! [in] Number of elements
     int nelm,
     //! [in] Number of bits per element, must be a multiple of 64
@@ -712,7 +712,7 @@ int c_xdfadd(
     nbwords = (nelm * nbits + 63) / 64;
     nbwords = W64TOWD(nbwords);
 
-    index_word = buf->nbits / (sizeof(word) * 8);
+    index_word = buf->nbits / (sizeof(int32_t) * 8);
 
     if ((index_word + nbwords - 1) > buf->nwords) {
         sprintf(errmsg, "buffer not big enough for insertion");
@@ -776,7 +776,7 @@ int c_xdfadd(
 
     } /* end switch */
 
-    buf->nbits += nbwords * sizeof(word) * 8;
+    buf->nbits += nbwords * sizeof(int32_t) * 8;
     return 0;
 }
 
@@ -837,7 +837,7 @@ int c_xdfcls(
     file_table_entry *f;
     xdf_dir_page * curpage;
     uint32_t * check32, checksum;
-    word *entry;
+    int32_t *entry;
     xdf_record_header *rec;
 
     index_fnom = fnom_index(iun);
@@ -890,7 +890,7 @@ int c_xdfcls(
         if (f->xdf_seq) {
             {
                 int trunc_to;
-                trunc_to = FGFDT[index_fnom].file_size * sizeof(word);
+                trunc_to = FGFDT[index_fnom].file_size * sizeof(int32_t);
                 c_secateur(FGFDT[index_fnom].file_name, trunc_to);
             }
         }
@@ -949,9 +949,9 @@ int c_xdfcut(
     nbwords = (nelm * nbits + 63) / 64;
     nbwords = W64TOWD(nbwords);
 
-    index_word = buf->data_index + (bitpos / (sizeof(word) * 8));
+    index_word = buf->data_index + (bitpos / (sizeof(int32_t) * 8));
 
-    last_ind = buf->record_index + (buf->nbits / (sizeof(word) *8));
+    last_ind = buf->record_index + (buf->nbits / (sizeof(int32_t) *8));
 
     // Move buffer content nbwords to the left
     if (last_ind != index_word) {
@@ -960,7 +960,7 @@ int c_xdfcut(
         }
     }
 
-   buf->nbits -= nbwords * sizeof(word) * 8;
+   buf->nbits -= nbwords * sizeof(int32_t) * 8;
    return 0;
 }
 
@@ -976,7 +976,7 @@ int c_xdfdel(
     int index, page_number, record_number, idtyp, i, addr;
     file_table_entry *f;
     file_record *record;
-    word *rec;
+    int32_t *rec;
     page_ptr target_page;
     xdf_record_header header;
 
@@ -1093,7 +1093,7 @@ int c_xdfget2(
     int offset, nw, nread;
     file_table_entry *f;
     file_record *record;
-    word *rec;
+    int32_t *rec;
     max_dir_keys argument_not_used;
     page_ptr target_page;
 
@@ -1188,7 +1188,7 @@ int c_xdfget2(
         return error_msg("c_xdfget", ERR_BAD_DIM, ERROR);
     }
 
-    buf->nbits = lngw * 8 * sizeof(word);
+    buf->nbits = lngw * 8 * sizeof(int32_t);
     buf->record_index = RECADDR;
     buf->data_index = buf->record_index + W64TOWD(f->primary_len + f->info_len);
     buf->iun = f->iun;
@@ -1274,11 +1274,11 @@ int c_xdfhdr(
     //! [out] Record id type
     int *idtyp,
     //! [out] Primary keys
-    word *primk,
+    int32_t *primk,
     //! [in] Number of primary keys
     int nprim,
     //! [out] Info keys
-    word *info,
+    int32_t *info,
     //! [in] Number of info keys
     int ninfo
 ) {
@@ -1286,7 +1286,7 @@ int c_xdfhdr(
     file_table_entry *f;
     file_record *record;
     max_dir_keys argument_not_used;
-    word *mskkeys = NULL;
+    int32_t *mskkeys = NULL;
 
     record = (file_record *) buf->data;
 
@@ -1315,7 +1315,7 @@ int c_xdfimp(
     //! [in] Unit number associated to the file
     int iun,
     //! [in] Statistics of the file
-    word *stat,
+    int32_t *stat,
     //! [in] Number of statistics to print
     int nstat,
     //! [in] Primary keys
@@ -1329,7 +1329,7 @@ int c_xdfimp(
 ) {
     int i, ind, temp;
     key_descriptor * kdp;
-    word wtemp[2];
+    int32_t wtemp[2];
     char nomcle[5];
 
     ind = fnom_index(iun);
@@ -1395,11 +1395,11 @@ int c_xdfini(
     //! [in] Id type
     int idtyp,
     //! [in] Primary keys
-    word *keys,
+    int32_t *keys,
     //! [in] Number of primary keys
     int nkeys,
     //! [in] Info keys
-    word *info,
+    int32_t *info,
     //! [in] Number of info keys
     int ninfo
 ) {
@@ -1407,8 +1407,8 @@ int c_xdfini(
     file_record *record;
     file_table_entry *f;
     max_dir_keys mask;
-    word *mskkeys = NULL;
-    word *buffer = (word *) buf;
+    int32_t *mskkeys = NULL;
+    int32_t *buffer = (int32_t *) buf;
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -1453,9 +1453,9 @@ int c_xdfini(
 //! \return 0 on success, error code otherwise
 int c_xdfins(
     //! [inout] Buffer to contain the modified record
-    word *buffer,
+    int32_t *buffer,
     //! [in] Data bits to add
-    word *donnees,
+    int32_t *donnees,
     //! [in] Bit position of insertion into buf
     int bitpos,
     //! [in] Number of elements to add into buf
@@ -1482,9 +1482,9 @@ int c_xdfins(
     nbwords = (nelm * nbits + 63) / 64;
     nbwords = W64TOWD(nbwords);
 
-    index_word = buf->data_index + (bitpos / (sizeof(word) * 8));
+    index_word = buf->data_index + (bitpos / (sizeof(int32_t) * 8));
 
-    last_ind = buf->record_index + (buf->nbits / (sizeof(word) *8));
+    last_ind = buf->record_index + (buf->nbits / (sizeof(int32_t) *8));
 
     if ((last_ind + nbwords - 1) > buf->nwords) {
         sprintf(errmsg, "buffer not big enough for insertion");
@@ -1558,7 +1558,7 @@ int c_xdfins(
 
     } /* end switch */
 
-    buf->nbits += nbwords * sizeof(word) * 8;
+    buf->nbits += nbwords * sizeof(int32_t) * 8;
     return 0;
 }
 
@@ -1623,11 +1623,11 @@ int c_xdfloc(
     //! [in] Handle to the starting search position
     int handle,
     //! [in] Primary search keys
-    word *primk,
+    int32_t *primk,
     //! [in] Number search primary search keys
     int nprim
 ) {
-  word *mskkeys = NULL;
+    int32_t *mskkeys = NULL;
 
     return c_xdfloc2(iun, handle, primk, nprim, mskkeys);
 }
@@ -1648,15 +1648,15 @@ int c_xdfloc2(
     //! [in] Handle to the starting search position
     int handle,
     //! [in] Primary search keys
-    word *primk,
+    int32_t *primk,
     //! [in] Number search primary search keys
     int nprim,
     //! [in] Search mask
-    word *mskkeys
+    int32_t *mskkeys
 ) {
     int i, record, pageno;
     int index, index_h, was_allocated, new_handle;
-    word *pmask, *psmask;
+    int32_t *pmask, *psmask;
     file_table_entry *f;
     xdf_record_header header;
     seq_dir_keys seq_entry;
@@ -1669,7 +1669,7 @@ int c_xdfloc2(
 
     was_allocated = 0;
     if ((mskkeys == NULL) && (nprim != 0)) {
-        mskkeys = malloc(nprim * sizeof(word));
+        mskkeys = malloc(nprim * sizeof(int32_t));
         was_allocated = 1;
         for (i = 0; i < nprim; i++) {
             if (*primk == -1) {
@@ -1722,8 +1722,8 @@ int c_xdfloc2(
     // If nprim == 0 keep same search target
     if (nprim) {
         f->build_primary(f->target, primk, f->cur_mask, mskkeys, index, WMODE);
-        pmask = (word *) f->cur_mask;
-        psmask = (word *) f->srch_mask;
+        pmask = (int32_t *) f->cur_mask;
+        psmask = (int32_t *) f->srch_mask;
         for (i = 0; i < W64TOWD(f->primary_len); i++, pmask++, psmask++) {
             *pmask &= *psmask;
         }
@@ -1798,11 +1798,11 @@ int c_xdfopn(
 ) {
     int index, index_fnom, ier, i, j, nrec = 0;
     file_table_entry *f;
-    ftnword f_datev;
+    int32_t f_datev;
     double nhours;
     int deet, npas, i_nhours, run, datexx;
-    word STDR_sign = 'S' << 24 | 'T' << 16 | 'D' << 8 | 'R';
-    word STDS_sign = 'S' << 24 | 'T' << 16 | 'D' << 8 | 'S';
+    int32_t STDR_sign = 'S' << 24 | 'T' << 16 | 'D' << 8 | 'R';
+    int32_t STDS_sign = 'S' << 24 | 'T' << 16 | 'D' << 8 | 'S';
 
     if (!init_package_done) {
         init_package();
@@ -1994,14 +1994,14 @@ int c_xdfopn(
                 // Old random standard file
                 f->cur_info->attr.read_only = 1;
                 f->fstd_vintage_89 = 1;
-                lng = sizeof(header_rnd) / sizeof(word);
+                lng = sizeof(header_rnd) / sizeof(int32_t);
                 c_waread(iun, &header_rnd, wdaddress, lng);
                 wdaddress += lng;
-                if ((directory = calloc(header_rnd.nutil, sizeof(word) * sizeof(rnd_dir_keys))) == NULL) {
+                if ((directory = calloc(header_rnd.nutil, sizeof(int32_t) * sizeof(rnd_dir_keys))) == NULL) {
                     sprintf(errmsg, "memory is full");
                     return error_msg("c_xdfopn", ERR_MEM_FULL, ERRFATAL);
                 }
-                lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(word);
+                lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(int32_t);
                 c_waread(iun, directory, wdaddress, lng);
                 create_new_xdf(index, iun, (word_2 *)&stdfkeys, 16, aux, 0, "STDF");
                 add_dir_page(index, RDMODE);
@@ -2070,7 +2070,7 @@ int c_xdfopn(
                             run = stdf_entry->date_stamp & 0x7;
                             datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
 
-                            f_datev = (ftnword) datexx;
+                            f_datev = (int32_t) datexx;
                             i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
                             nhours = (double) (i_nhours / 3600.0);
                             f77name(incdatr)(&f_datev, &f_datev, &nhours);
@@ -2172,16 +2172,16 @@ int c_xdfprm(
     //! [out] Record id type
     int *idtyp,
     //! [out] Primary keys
-    word *primk,
+    int32_t *primk,
     //! [in] Number of primary keys
     int nprim
 ) {
     int index, record_number, page_number, i;
     file_table_entry *fte;
     file_record *record;
-    word *rec;
+    int32_t *rec;
     max_dir_keys argument_not_used;
-    word *mskkeys = NULL;
+    int32_t *mskkeys = NULL;
     page_ptr target_page;
 
     index =         INDEX_FROM_HANDLE(handle);
@@ -2240,7 +2240,7 @@ int c_xdfprm(
     *addr = record->addr;
     *lng = record->lng;
 
-    fte->build_primary((word *) record, primk, argument_not_used, mskkeys, index, RDMODE);
+    fte->build_primary((int32_t *) record, primk, argument_not_used, mskkeys, index, RDMODE);
 
     return 0;
 }
@@ -2286,7 +2286,7 @@ int c_xdfput(
         return error_msg("c_xdfput", ERR_BAD_ADDR, SYSTEM);
     }
 
-    nwords = buf->nbits / (8 * sizeof(word));
+    nwords = buf->nbits / (8 * sizeof(int32_t));
     index = index_from_iun;
     f = file_table[index_from_iun];
 
@@ -2492,9 +2492,9 @@ int c_xdfput(
 //! \return 0 on success, error code otherwise
 int c_xdfrep(
     //! [inout] Buffer to contain the modified record
-    word *buffer,
+    int32_t *buffer,
     //! [in] Replacement data bits
-    word *donnees,
+    int32_t *donnees,
     //! [in] Bit position of replacement in buf
     int bitpos,
     //! [in] Number of elements to replace in buf
@@ -2521,9 +2521,9 @@ int c_xdfrep(
     nbwords = (nelm * nbits + 63) / 64;
     nbwords = W64TOWD(nbwords);
 
-    index_word = buf->data_index + (bitpos / (sizeof(word) * 8));
+    index_word = buf->data_index + (bitpos / (sizeof(int32_t) * 8));
 
-    last_ind = buf->record_index + (buf->nbits / (sizeof(word) *8));
+    last_ind = buf->record_index + (buf->nbits / (sizeof(int32_t) *8));
 
     if ((index_word + nbwords - 1) > buf->nwords) {
         sprintf(errmsg, "buffer not big enough for replacement");
@@ -2601,7 +2601,7 @@ int c_xdfsta(
     //! [in] Unit number associated to the file
     int iun,
     //! [out] Statistics of the file
-    word *stat,
+    int32_t *stat,
     //! [in] Number of statistics to print
     int nstat,
     //! [out] Primary keys
@@ -2739,11 +2739,11 @@ int c_xdfupd(
     //! [in] Record type
     int idtyp,
     //! [in] List of primary keys
-    word *keys,
+    int32_t *keys,
     //! [in] Number of primary keys
     int nkeys,
     //! [in] List of secondary keys
-    word *info,
+    int32_t *info,
     //! [in] Number of secondary keys
     int ninfo
 ) {
@@ -2751,7 +2751,7 @@ int c_xdfupd(
     file_record *record;
     file_table_entry *f;
     max_dir_keys argument_not_used;
-    word *mskkeys = NULL;
+    int32_t *mskkeys = NULL;
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -2831,12 +2831,12 @@ int c_xdfuse(
     if ((index_dest = file_index(dest_unit)) == ERR_NO_FILE) {
         if (FGFDT[index_fnom_dest].file_size > 0) {
             // Destination file exists
-            err = c_xdfsta(dest_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
+            err = c_xdfsta(dest_unit, (int32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
             if (err < 0) return err;
             err = c_xdfopn(dest_unit, "APPEND", primk, stat[6], info, stat[8], appl);
             if (err < 0) return err;
         } else {
-            err = c_xdfsta(src_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
+            err = c_xdfsta(src_unit, (int32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
             if (err < 0) return err;
             for (i = 0; i < xdf_nsplit; i++) {
                 err = c_xdfopn(dest_unit + i, "CREATE", primk, stat[6], info, stat[8], appl);
@@ -2845,7 +2845,7 @@ int c_xdfuse(
         }
     } else {
         /* file is open */
-        err = c_xdfsta(dest_unit, (word *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
+        err = c_xdfsta(dest_unit, (int32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
         if (err < 0) return err;
     }
     nprim = stat[6];
@@ -2858,7 +2858,7 @@ int c_xdfuse(
         if (err < 0) return err;
     }
 
-    err = c_xdfsta(src_unit, (word *)&src_stat, MAX_STAT, src_primk, MAX_KEYS, src_info, MAX_KEYS, vers, appl);
+    err = c_xdfsta(src_unit, (int32_t *)&src_stat, MAX_STAT, src_primk, MAX_KEYS, src_info, MAX_KEYS, vers, appl);
     if (err < 0) return err;
 
     // Make sure that source file and destination file are the same type
@@ -2882,7 +2882,7 @@ int c_xdfuse(
         return error_msg("c_xdfuse", ERR_NOT_COMP, ERROR);
     }
     if (msg_level <= INFORM) {
-        err = c_xdfimp(src_unit, (word *)&src_stat, src_stat[6], src_primk, src_info, vers, appl);
+        err = c_xdfimp(src_unit, (int32_t *)&src_stat, src_stat[6], src_primk, src_info, vers, appl);
     }
 
     // Copy source file to destination
@@ -2930,7 +2930,7 @@ int c_xdfuse(
                     nbwords = W64TOWD(lng);
                     last_word = readpos + nbwords - 1;
                     if (last_word <= file_size) {
-                        buf->nbits = nbwords * sizeof(word) * 8;
+                        buf->nbits = nbwords * sizeof(int32_t) * 8;
                         for (i=0; i < nbwords; i++) {
                             buf->data[i] = 0;
                         }
@@ -2966,9 +2966,9 @@ int c_xdfuse(
 //! \return 0 on success, error code otherwise
 int c_xdfxtr(
     //! [in] Buffer to contain the modified record
-    word *buffer,
+    int32_t *buffer,
     //! [out] Data bits to get
-    word *donnees,
+    int32_t *donnees,
     //! [in] Bit position of starting extraction
     int bitpos,
     //! [in] Number of elements to extract into buf
@@ -2995,7 +2995,7 @@ int c_xdfxtr(
     nbwords = (nelm * nbits + 63) / 64;
     nbwords = W64TOWD(nbwords);
 
-    index_word = buf->data_index + (bitpos / (sizeof(word) * 8));
+    index_word = buf->data_index + (bitpos / (sizeof(int32_t) * 8));
 
     // extract data
     switch (datyp) {
@@ -3140,7 +3140,7 @@ static int create_new_xdf(
    file_table[index]->info_len = laux;
    if (! file_table[index]->cur_info->attr.read_only) {
         {
-            int unit = iun, waddress = 1, nwords = file->fsiz * 8 / sizeof(word);
+            int unit = iun, waddress = 1, nwords = file->fsiz * 8 / sizeof(int32_t);
             c_wawrit(unit, file_table[index]->header, waddress, nwords);
             file_table[index]->nxtadr += nwords;
         }
@@ -3360,7 +3360,7 @@ static int32_t make_seq_handle(
 
 //! Find the next record that matches the current search criterias.
 //! \return Handle of the next matching record or error code
-static word next_match(
+static int32_t next_match(
     //! [in] index of file in the file table
     int file_index
 ) {
@@ -3368,11 +3368,11 @@ static word next_match(
     int found, i, record_in_page, page_no, j, width, match;
     int end_of_file, nw, iun, addr_match;
     /*   xdf_record_header *rec; */
-    word *entry, *search, *mask, handle;
+    int32_t *entry, *search, *mask, handle;
     stdf_dir_keys *stds, *stdm, *stde;
     seq_dir_keys *seq_entry;
     xdf_record_header *header;
-    ftnword f_datev;
+    int32_t f_datev;
     double nhours;
     int deet, npas, i_nhours, run, datexx;
 
@@ -3412,8 +3412,8 @@ static word next_match(
                     entry = f->cur_entry;
                     header = (xdf_record_header *) entry;
                     if (header->idtyp < 127) {
-                        search = (word *) f->target;
-                        mask = (word *) f->cur_mask;
+                        search = (int32_t *) f->target;
+                        mask = (int32_t *) f->cur_mask;
                         stde = (stdf_dir_keys *) entry;
                         stdm = (stdf_dir_keys *) mask;
                         stds = (stdf_dir_keys *) search;
@@ -3516,7 +3516,7 @@ static word next_match(
                     run = stde->date_stamp & 0x7;
                     datexx = (stde->date_stamp >> 3) * 10 + run;
 
-                    f_datev = (ftnword) datexx;
+                    f_datev = (int32_t) datexx;
                     i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
                     nhours = (double) (i_nhours / 3600.0);
                     f77name(incdatr)(&f_datev, &f_datev, &nhours);
@@ -3525,8 +3525,8 @@ static word next_match(
                     stde->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
 
-                entry = (word *) stde;
-                search = (word *) f->head_keys;
+                entry = (int32_t *) stde;
+                search = (int32_t *) f->head_keys;
                 for (i = 0; i < width; i++, entry++, search++) {
                     *search = *entry;
                 }
@@ -3537,9 +3537,9 @@ static word next_match(
                 f->cur_addr += W64TOWD(header->lng);
                 continue;
             }
-            entry = (word *) f->head_keys;
-            search = (word *) f->target;
-            mask = (word *) f->cur_mask;
+            entry = (int32_t *) f->head_keys;
+            search = (int32_t *) f->target;
+            mask = (int32_t *) f->cur_mask;
             match = 0;
             for (i = 0; i < width; i++, mask++, search++, entry++) {
                 match |= (((*entry) ^ (*search)) & (*mask));
@@ -3585,19 +3585,19 @@ static word next_match(
  *                             Q D F D I A G                                 *
  *****************************************************************************/
 
-int32_t  f77name(qdfdiag)(ftnword *f_iun)
+int32_t  f77name(qdfdiag)(int32_t *f_iun)
 {
   int iun = *f_iun, ier;
 
   ier = c_qdfdiag(iun);
-  return (ftnword) ier;
+  return (int32_t) ier;
 }
 /*****************************************************************************
  *                              Q D F E R R                                  *
  *****************************************************************************/
 
-int32_t f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
-            ftnword *ferrcode, F2Cl l1, F2Cl l2)
+int32_t f77name(qdferr)(char *subname, char *msg, int32_t *ferrlevl,
+            int32_t *ferrcode, F2Cl l1, F2Cl l2)
 {
    int errlevl = *ferrlevl, errcode = *ferrcode, lng;
    char c_subname[128];
@@ -3610,7 +3610,7 @@ int32_t f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
    lng = (l2 < 1024) ? l2 : 1023;
    strncpy(errmsg, msg, lng);
 
-   return (ftnword) error_msg(c_subname, errcode, errlevl);
+   return (int32_t) error_msg(c_subname, errcode, errlevl);
 }
 
 
@@ -3618,13 +3618,13 @@ int32_t f77name(qdferr)(char *subname, char *msg, ftnword *ferrlevl,
  *                              Q D F I N D                                  *
  *****************************************************************************/
 
-int32_t f77name(qdfind)(ftnword *iun)
+int32_t f77name(qdfind)(int32_t *iun)
 {
    int ind;
    ind = file_index(*iun);
    ind = (ind != ERR_NO_FILE) ? ind : 9999;
 
-   return (ftnword) ind;
+   return (int32_t) ind;
 }
 
 
@@ -3632,7 +3632,7 @@ int32_t f77name(qdfind)(ftnword *iun)
  *                            Q D F M S I G                                  *
  *****************************************************************************/
 
-int32_t f77name(qdfmsig)(ftnword *fiun, char *appl, F2Cl l1)
+int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1)
 {
    int iun = *fiun, lng;
    char c_appl[257];
@@ -3649,8 +3649,8 @@ int32_t f77name(qdfmsig)(ftnword *fiun, char *appl, F2Cl l1)
  *                              Q D F P U T                                  *
  *****************************************************************************/
 
-int32_t f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
-            ftnword *fnbits)
+int32_t f77name(qdfput)(int32_t *buf, int32_t *felem, int32_t *fderbit,
+            int32_t *fnbits)
 {
    int elem = *felem, nbits = *fnbits, derbit = *fderbit;
    int ier;
@@ -3661,18 +3661,18 @@ int32_t f77name(qdfput)(word *buf, ftnword *felem, ftnword *fderbit,
 #else
    ier = c_qdfput(buf, elem, derbit, nbits);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 /*****************************************************************************
  *                             Q D F R S T R                                 *
  *****************************************************************************/
 
-int32_t  f77name(qdfrstr)(ftnword *f_inp, ftnword *f_outp)
+int32_t  f77name(qdfrstr)(int32_t *f_inp, int32_t *f_outp)
 {
   int inp = *f_inp, outp = *f_outp, ier;
 
   ier = c_qdfrstr(inp, outp);
-  return (ftnword) ier;
+  return (int32_t) ier;
 }
 
 
@@ -3723,8 +3723,8 @@ static int32_t rewind_file(int file_index, int handle)
  *                              X D F A D D                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfadd)(word *buf, word *donnees,
-                        ftnword *fnelm, ftnword *fnbits, ftnword *fdatyp)
+int32_t f77name(xdfadd)(int32_t *buf, int32_t *donnees,
+                        int32_t *fnelm, int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp;
    int ier;
@@ -3742,7 +3742,7 @@ int32_t f77name(xdfadd)(word *buf, word *donnees,
 #else
    ier = c_xdfadd(buf, donnees, nelm, nbits, datyp);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 
 }
 
@@ -3751,8 +3751,8 @@ int32_t f77name(xdfadd)(word *buf, word *donnees,
 /*****************************************************************************
  *                                X D F C L E                                *
  *****************************************************************************/
-int32_t f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
-            ftnword *ftkey, ftnword *fdesc1, ftnword *fdesc2, F2Cl l1)
+int32_t f77name(xdfcle)(char *fkeyname, int32_t *fbit1, int32_t *flkey,
+            int32_t *ftkey, int32_t *fdesc1, int32_t *fdesc2, F2Cl l1)
 {
    char keyname[5]={' ', ' ', ' ', ' ', '\0'};
    int lkey = *flkey, tkey = *ftkey, bit1 = *fbit1;
@@ -3764,8 +3764,8 @@ int32_t f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
 
    err = c_xdfcle(keyname, bit1, lkey, tkey, &desc1, &desc2);
 
-   *fdesc1 = (ftnword) desc1;
-   *fdesc2 = (ftnword) desc2;
+   *fdesc1 = (int32_t) desc1;
+   *fdesc2 = (int32_t) desc2;
 
    return err;
 }
@@ -3775,7 +3775,7 @@ int32_t f77name(xdfcle)(char *fkeyname, ftnword *fbit1, ftnword *flkey,
  *                              X D F C L S                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfcls)(ftnword *fiun)
+int32_t f77name(xdfcls)(int32_t *fiun)
 {
    int iun = *fiun;
 
@@ -3787,9 +3787,9 @@ int32_t f77name(xdfcls)(ftnword *fiun)
  *                              X D F C U T                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfcut)(word *buf,
-            ftnword *fbitpos, ftnword *fnelm,
-            ftnword *fnbits, ftnword *fdatyp)
+int32_t f77name(xdfcut)(int32_t *buf,
+            int32_t *fbitpos, int32_t *fnelm,
+            int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
@@ -3801,7 +3801,7 @@ int32_t f77name(xdfcut)(word *buf,
 #else
    ier = c_xdfcut(buf, bitpos, nelm, nbits, datyp);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -3809,11 +3809,11 @@ int32_t f77name(xdfcut)(word *buf,
  *                              X D F D E L                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfdel)(ftnword *fhandle)
+int32_t f77name(xdfdel)(int32_t *fhandle)
 {
    int handle = *fhandle;
 
-   return (ftnword) c_xdfdel(handle);
+   return (int32_t) c_xdfdel(handle);
 }
 
 
@@ -3821,7 +3821,7 @@ int32_t f77name(xdfdel)(ftnword *fhandle)
  *                              X D F G E T                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfget)(ftnword *fhandle, word *buf)
+int32_t f77name(xdfget)(int32_t *fhandle, int32_t *buf)
 {
    int handle = *fhandle, ier;
 
@@ -3832,7 +3832,7 @@ int32_t f77name(xdfget)(ftnword *fhandle, word *buf)
 #else
    ier = c_xdfget(handle, (buffer_interface_ptr) buf);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -3840,7 +3840,7 @@ int32_t f77name(xdfget)(ftnword *fhandle, word *buf)
  *                              X D F G O P                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
+int32_t f77name(xdfgop)(char *foptname, char *foptc, int32_t *foptv,
             F2Cl ll1, F2Cl ll2)
 {
    int optv, err, l1=ll1, l2=ll2;
@@ -3855,8 +3855,8 @@ int32_t f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
    l2 = (l2 <= 256) ? l2 : 256;
    strncpy(foptc, optc, l2);
 
-   *foptv = (ftnword) optv;
-   return (ftnword) err;
+   *foptv = (int32_t) optv;
+   return (int32_t) err;
 
 }
 
@@ -3865,14 +3865,14 @@ int32_t f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
  *                              X D F H D R                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
-                        ftnword *idtyp, ftnword *primk, ftnword *fnprim,
-            ftnword *info, ftnword *fninfo)
+int32_t f77name(xdfhdr)(int32_t *buf, int32_t *addr, int32_t *lng,
+                        int32_t *idtyp, int32_t *primk, int32_t *fnprim,
+            int32_t *info, int32_t *fninfo)
 {
    int nprim = *fnprim, ninfo = *fninfo, ier, i;
    int l_addr, l_lng, l_idtyp;
-   word l_primk[MAX_KEYS];
-   word l_info[MAX_KEYS];
+   int32_t l_primk[MAX_KEYS];
+   int32_t l_info[MAX_KEYS];
 
 #if defined(NEC64)
    BUF_C;
@@ -3882,9 +3882,9 @@ int32_t f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
    ier = c_xdfhdr((buffer_interface_ptr)buf, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
 #endif
 
-   *addr =  (ftnword) l_addr;
-   *lng =   (ftnword) l_lng;
-   *idtyp = (ftnword) l_idtyp;
+   *addr =  (int32_t) l_addr;
+   *lng =   (int32_t) l_lng;
+   *idtyp = (int32_t) l_idtyp;
 
    if ((nprim > MAX_KEYS) || (ninfo >MAX_KEYS)) {
       sprintf(errmsg, "nprim=%d or ninfo=%d > MAX_KEYS must recompile", nprim, ninfo);
@@ -3892,12 +3892,12 @@ int32_t f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
       }
 
    for (i=0; i < nprim; i++)
-      primk[i] = (ftnword) l_primk[i];
+      primk[i] = (int32_t) l_primk[i];
 
    for (i=0; i < ninfo; i++)
-      info[i] = (ftnword) l_info[i];
+      info[i] = (int32_t) l_info[i];
 
-   return ((ftnword) ier);
+   return ((int32_t) ier);
 }
 
 
@@ -3905,14 +3905,14 @@ int32_t f77name(xdfhdr)(word *buf, ftnword *addr, ftnword *lng,
  *                              X D F I M P                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
+int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
                     ftnword_2 *pri, ftnword_2 *aux,
                     char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
    int iun = *fiun, nstat = *fnstat, lng, ier, i, nkeys, ninfo;
    char c_vers[257], c_appl[257];
    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
-   word lstat[12];
+   int32_t lstat[12];
 
    lng = (l1 <= 256) ? l1 : 256;
    strncpy(c_vers, vers, lng);
@@ -3943,7 +3943,7 @@ int32_t f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
 #else
    ier = c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -3951,14 +3951,14 @@ int32_t f77name(xdfimp)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
  *                              X D F I N I                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
-            ftnword *keys, ftnword *fnkeys, ftnword *info,
-            ftnword *fninfo)
+int32_t f77name(xdfini)(int32_t *fiun, int32_t *buf, int32_t *fidtyp,
+            int32_t *keys, int32_t *fnkeys, int32_t *info,
+            int32_t *fninfo)
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
    int ier, i;
 #if defined(NEC64)
-   word primk[MAX_KEYS], infok[MAX_KEYS];
+   int32_t primk[MAX_KEYS], infok[MAX_KEYS];
 
    if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
       sprintf(errmsg, "nkeys=%d or ninfo=%d > MAX_KEYS must recompile", nkeys, ninfo);
@@ -3974,7 +3974,7 @@ int32_t f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
 #else
    ier = c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -3982,9 +3982,9 @@ int32_t f77name(xdfini)(ftnword *fiun, word *buf, ftnword *fidtyp,
  *                              X D F I N S                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfins)(word *buf, word *donnees,
-                        ftnword *fbitpos, ftnword *fnelm,
-            ftnword *fnbits, ftnword *fdatyp)
+int32_t f77name(xdfins)(int32_t *buf, int32_t *donnees,
+                        int32_t *fbitpos, int32_t *fnelm,
+            int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
@@ -4002,7 +4002,7 @@ int32_t f77name(xdfins)(word *buf, word *donnees,
 #else
    ier = c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -4010,12 +4010,12 @@ int32_t f77name(xdfins)(word *buf, word *donnees,
  *                              X D F L N K                                  *
  *****************************************************************************/
 
-int32_t f77name(xdflnk)(ftnword *liste, ftnword *fn)
+int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn)
 {
    int n = *fn, ier;
 
    ier = c_xdflnk(liste, n);
-   return (ftnword) ier;
+   return (int32_t) ier;
 
 }
 
@@ -4024,12 +4024,12 @@ int32_t f77name(xdflnk)(ftnword *liste, ftnword *fn)
  *                              X D F L O C                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
-            ftnword *fnprim)
+int32_t f77name(xdfloc)(int32_t *fiun, int32_t *fhandle, int32_t *primk,
+            int32_t *fnprim)
 {
    int iun = *fiun, nprim = *fnprim, i;
    int handle = *fhandle;
-   word l_primk[MAX_KEYS];
+   int32_t l_primk[MAX_KEYS];
 
    if (nprim > MAX_KEYS) {
       sprintf(errmsg, "nprim=%d > MAX_KEYS must recompile", nprim);
@@ -4038,7 +4038,7 @@ int32_t f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
    for (i=0; i<nprim; i++)
       l_primk[i] = primk[i];
 
-   return (ftnword) c_xdfloc(iun, handle, l_primk, nprim);
+   return (int32_t) c_xdfloc(iun, handle, l_primk, nprim);
 
 }
 
@@ -4047,9 +4047,9 @@ int32_t f77name(xdfloc)(ftnword *fiun, ftnword *fhandle, ftnword *primk,
  *                              X D F O P N                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfopn)(ftnword *fiun, char *mode,
-            ftnword_2 *pri, ftnword *fnpri,
-            ftnword_2 *aux, ftnword *fnaux,
+int32_t f77name(xdfopn)(int32_t *fiun, char *mode,
+            ftnword_2 *pri, int32_t *fnpri,
+            ftnword_2 *aux, int32_t *fnaux,
             char *appl, F2Cl l1, F2Cl l2)
 {
    int iun = *fiun, npri = *fnpri, naux = *fnaux, lng, i, ier;
@@ -4078,7 +4078,7 @@ int32_t f77name(xdfopn)(ftnword *fiun, char *mode,
      infok[i].wd2 = aux[i].wd2;
      }
    ier = c_xdfopn(iun, c_mode, primk, npri, infok, naux, c_appl);
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -4086,7 +4086,7 @@ int32_t f77name(xdfopn)(ftnword *fiun, char *mode,
  *                              X D F O P T                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
+int32_t f77name(xdfopt)(char *foptname, char *foptc, int32_t *foptv,
             F2Cl ll1, F2Cl ll2)
 {
    int optv = *foptv, l1=ll1, l2=ll2;
@@ -4100,7 +4100,7 @@ int32_t f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
    strncpy(optc, foptc, l2);
    optc[l2] = '\0';
 
-   return (ftnword) c_xdfopt(optname, optc, optv);
+   return (int32_t) c_xdfopt(optname, optc, optv);
 }
 
 
@@ -4108,23 +4108,23 @@ int32_t f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
  *                              X D F P R M                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfprm)(ftnword *fhandle, ftnword *addr, ftnword *lng,
-                        ftnword *idtyp, ftnword *primk, ftnword *fnprim)
+int32_t f77name(xdfprm)(int32_t *fhandle, int32_t *addr, int32_t *lng,
+                        int32_t *idtyp, int32_t *primk, int32_t *fnprim)
 {
    int nprim = *fnprim, ier, i;
    int handle = *fhandle;
    int l_addr, l_lng, l_idtyp;
-   word l_primk[MAX_KEYS];
+   int32_t l_primk[MAX_KEYS];
 
    ier = c_xdfprm(handle, &l_addr, &l_lng, &l_idtyp, l_primk, nprim);
-   *addr =  (ftnword) l_addr;
-   *lng =   (ftnword) l_lng;
-   *idtyp = (ftnword) l_idtyp;
+   *addr =  (int32_t) l_addr;
+   *lng =   (int32_t) l_lng;
+   *idtyp = (int32_t) l_idtyp;
 
    for (i=0; i < nprim; i++)
-      primk[i] = (ftnword) l_primk[i];
+      primk[i] = (int32_t) l_primk[i];
 
-   return ((ftnword) ier);
+   return ((int32_t) ier);
 }
 
 
@@ -4132,8 +4132,8 @@ int32_t f77name(xdfprm)(ftnword *fhandle, ftnword *addr, ftnword *lng,
  *                              X D F P U T                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
-            word *buf)
+int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
+            int32_t *buf)
 {
    int handle = *fhandle;
    int iun = *fiun, ier;
@@ -4145,7 +4145,7 @@ int32_t f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
 #else
    ier = c_xdfput(iun, handle, (buffer_interface_ptr)buf);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -4153,9 +4153,9 @@ int32_t f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
  *                              X D F R E P                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfrep)(word *buf, word *donnees,
-                        ftnword *fbitpos, ftnword *fnelm,
-            ftnword *fnbits, ftnword *fdatyp)
+int32_t f77name(xdfrep)(int32_t *buf, int32_t *donnees,
+                        int32_t *fbitpos, int32_t *fnelm,
+            int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
@@ -4173,7 +4173,7 @@ int32_t f77name(xdfrep)(word *buf, word *donnees,
 #else
    ier = c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -4181,9 +4181,9 @@ int32_t f77name(xdfrep)(word *buf, word *donnees,
  *                              X D F S T A                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
-            ftnword_2 *pri, ftnword *fnpri,
-            ftnword_2 *aux, ftnword *fnaux,
+int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
+            ftnword_2 *pri, int32_t *fnpri,
+            ftnword_2 *aux, int32_t *fnaux,
             char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
    int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat, lng, ier;
@@ -4192,7 +4192,7 @@ int32_t f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
 
 #if defined(NEC64)
    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
-   word lstat[12];
+   int32_t lstat[12];
 
    ier = c_xdfsta(iun, lstat, nstat, primk, npri, infok, naux, c_vers, c_appl);
 
@@ -4222,7 +4222,7 @@ int32_t f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
    c_appl[lng] = '\0';
    strncpy(appl, c_appl, lng);
 
-   return (ftnword) ier;
+   return (int32_t) ier;
 
 }
 
@@ -4231,26 +4231,26 @@ int32_t f77name(xdfsta)(ftnword *fiun, ftnword *stat, ftnword *fnstat,
  *                              X D F U P D                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfupd)(ftnword *fiun, word *buf, ftnword *fidtyp,
-            ftnword *keys, ftnword *fnkeys,
-            ftnword *info, ftnword *fninfo)
+int32_t f77name(xdfupd)(int32_t *fiun, int32_t *buf, int32_t *fidtyp,
+            int32_t *keys, int32_t *fnkeys,
+            int32_t *info, int32_t *fninfo)
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
    int ier, i;
 #if defined(NEC64)
-   word l_keys[MAX_KEYS], l_info[MAX_KEYS];
+   int32_t l_keys[MAX_KEYS], l_info[MAX_KEYS];
 
    BUF_C;
    for (i=0; i < nkeys; i++)
-      l_keys[i] = (ftnword) keys[i];
+      l_keys[i] = (int32_t) keys[i];
    for (i=0; i < ninfo; i++)
-      l_info[i] = (ftnword) info[i];
+      l_info[i] = (int32_t) info[i];
    ier = c_xdfupd(iun, buf+1, idtyp, l_keys, nkeys, l_info, ninfo);
    BUF_F;
 #else
    ier = c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -4258,11 +4258,11 @@ int32_t f77name(xdfupd)(ftnword *fiun, word *buf, ftnword *fidtyp,
  *                              X D F U S E                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
+int32_t f77name(xdfuse)(int32_t *fsrc_unit, int32_t *fdest_unit)
 {
    int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
 
-   return (ftnword)c_xdfuse(src_unit, dest_unit);
+   return (int32_t)c_xdfuse(src_unit, dest_unit);
 
 }
 
@@ -4271,9 +4271,9 @@ int32_t f77name(xdfuse)(ftnword *fsrc_unit, ftnword *fdest_unit)
  *                              X D F X T R                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfxtr)(word *buf, word *donnees,
-                        ftnword *fbitpos, ftnword *fnelm,
-            ftnword *fnbits, ftnword *fdatyp)
+int32_t f77name(xdfxtr)(int32_t *buf, int32_t *donnees,
+                        int32_t *fbitpos, int32_t *fnelm,
+            int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
@@ -4291,7 +4291,7 @@ int32_t f77name(xdfxtr)(word *buf, word *donnees,
 #else
    ier = c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
 #endif
-   return (ftnword) ier;
+   return (int32_t) ier;
 }
 
 
@@ -4310,12 +4310,12 @@ int32_t f77name(xdfxtr)(word *buf, word *donnees,
  *                                                                           *
  *****************************************************************************/
 
-int32_t f77name(secateur)(char *filename, ftnword *f_where, F2Cl l1)
+int32_t f77name(secateur)(char *filename, int32_t *f_where, F2Cl l1)
 {
   int ier, where = *f_where;
 
   ier = c_secateur(filename, where);
-  return (ftnword) ier;
+  return (int32_t) ier;
 }
 
 

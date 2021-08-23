@@ -18,41 +18,35 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <stddef.h>
 #include "rpnmacros.h"
-unsigned int ez_calc_crc(int *p, int *flen,  float *ax, float *ay, int ni, int nj)
-{
-   int len;
-   register unsigned int hold;		/* crc computed so far */
-   register int i;			/* index into data */
-   unsigned int *p2;
+unsigned int ez_calc_crc(int *p, int *flen,  float *ax, float *ay, int ni, int nj) {
+    int len;
+    // crc computed so far
+    register unsigned int hold;
+    unsigned int *p2;
 
-   len = *flen / 4;
+    len = *flen / 4;
 
-   hold = 0;
+    hold = 0;
 
-   for (i = 0; i < len; i++, p++)
-      {
-      hold ^= *p;
-      }
+    for (int i = 0; i < len; i++, p++) {
+        hold ^= *p;
+    }
 
-   p2 = (unsigned int *) ax;
-   if (p2 != NULL)
-      {
-      for (i = 0; i < ni; i++, p2++)
-         {
-         /* if (i<10){ printf("ez_calc_crc on ax[%d]=%u\n",i,*p2); } */
-         hold ^= *p2;
-         }
-      }
+    p2 = (unsigned int *) ax;
+    if (p2 != NULL) {
+        for (int i = 0; i < ni; i++, p2++) {
+            hold ^= *p2;
+        }
+    }
 
-   p2 = (unsigned int *) ay;
-   if (p2 != NULL)
-      {
-      for (i = 0; i < nj; i++, p2++)
-         {
-         hold ^= *p2;
-         }
-      }
-   return (hold);
-} /* calc_crc() */
+    p2 = (unsigned int *) ay;
+    if (p2 != NULL) {
+        for (int i = 0; i < nj; i++, p2++) {
+            hold ^= *p2;
+        }
+    }
+    return hold;
+}
 

@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
@@ -159,14 +159,14 @@ int32_t c_ezidentify_irreg_grid(
       case '#':
          grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, &(ax[ig3-1]), &(ay[ig4-1]), ni, nj);
          newgr.ax = ax;
-         newgr.ay = ay; 
+         newgr.ay = ay;
          break;
 
       case 'Y':
          npts = ni * nj;
          grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, npts, npts);
          newgr.ax = ax;
-         newgr.ay = ay; 
+         newgr.ay = ay;
          break;
 
       case 'Z':
@@ -175,7 +175,7 @@ int32_t c_ezidentify_irreg_grid(
             &newgr.fst.igref[IG1],   &newgr.fst.igref[IG2],   &newgr.fst.igref[IG3],   &newgr.fst.igref[IG4],1);
          grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, ni, nj);
          newgr.ax = ax;
-         newgr.ay = ay; 
+         newgr.ay = ay;
          break;
 
       case 'G':

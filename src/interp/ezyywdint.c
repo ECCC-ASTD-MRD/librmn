@@ -18,12 +18,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+
+#include <stdio.h>
 #include "ez_funcdef.h"
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin)
-{
+int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin) {
   int idx_gdin;
   int32_t icode,i,j,k,ierc1,ierc2,ierc;
   int32_t yancount_yin,yincount_yin, yancount_yan,yincount_yan;
@@ -37,10 +36,10 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
   float *yin2yin_spdout,*yan2yin_spdout, *yin2yin_wdout,*yan2yin_wdout;
   float *yin2yan_spdout,*yan2yan_spdout, *yin2yan_wdout,*yan2yan_wdout;
   float *spdout,*wdout;
-  
+
   _Grille *lgdin, *lgdout;
  /*  need only access to either yin or Yang info for the lat and lon val */
-   
+
   yyin=0; yyout=0;
   ierc=0;
   ierc1=0;ierc2=0;
@@ -167,7 +166,7 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
 
     icode = c_gdxyvval_orig(yin_gdin,yin2yin_uuout,yin2yin_vvout,uuin,vvin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,lgdout->gset[idx_gdin].yincount_yin);
     icode = c_gdwdfuv_orig(yin_gdin,yin2yin_spdout,yin2yin_wdout,yin2yin_uuout,yin2yin_vvout,lgdout->gset[idx_gdin].yin2yin_lat,lgdout->gset[idx_gdin].yin2yin_lon,yincount_yin);
- 
+
     icode = c_gdxyvval_orig(yan_gdin,yan2yin_uuout,yan2yin_vvout,&uuin[(lgdin->ni)*(lgdin->nj)],&vvin[(lgdin->ni)*(lgdin->nj)],lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yancount_yin);
     icode = c_gdwdfuv_orig(yan_gdin,yan2yin_spdout,yan2yin_wdout,yan2yin_uuout, yan2yin_vvout,lgdout->gset[idx_gdin].yan2yin_lat,lgdout->gset[idx_gdin].yan2yin_lon,yancount_yin);
     yincount_yin=0;
@@ -179,14 +178,14 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
         k=(j*ni)+i;
         if (lgdout->gset[idx_gdin].yin_maskout[k] == 1.0)
           {
-          uuout[k]=yan2yin_spdout[yancount_yin]; 
-          vvout[k]=yan2yin_wdout[yancount_yin]; 
+          uuout[k]=yan2yin_spdout[yancount_yin];
+          vvout[k]=yan2yin_wdout[yancount_yin];
           yancount_yin++;
           }
         else
           {
-          uuout[k]=yin2yin_spdout[yincount_yin]; 
-          vvout[k]=yin2yin_wdout[yincount_yin]; 
+          uuout[k]=yin2yin_spdout[yincount_yin];
+          vvout[k]=yin2yin_wdout[yincount_yin];
           yincount_yin++;
           }
         }
@@ -247,14 +246,14 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
         k=(j*ni)+i;
         if (lgdout->gset[idx_gdin].yin_maskout[k] == 1.0)
           {
-          uuout[k]=yan2yin_spdout[yancount_yin]; 
-          vvout[k]=yan2yin_wdout[yancount_yin]; 
+          uuout[k]=yan2yin_spdout[yancount_yin];
+          vvout[k]=yan2yin_wdout[yancount_yin];
           yancount_yin++;
           }
         else
           {
-          uuout[k]=yin2yin_spdout[yincount_yin]; 
-          vvout[k]=yin2yin_wdout[yincount_yin]; 
+          uuout[k]=yin2yin_spdout[yincount_yin];
+          vvout[k]=yin2yin_wdout[yincount_yin];
           yincount_yin++;
           }
         }
@@ -269,14 +268,14 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
         k=(j*ni)+i;
         if (lgdout->gset[idx_gdin].yan_maskout[k] == 1.0)
           {
-          uuout[k+(ni*nj)]=yan2yan_spdout[yancount_yan]; 
-          vvout[k+(ni*nj)]=yan2yan_wdout[yancount_yan]; 
+          uuout[k+(ni*nj)]=yan2yan_spdout[yancount_yan];
+          vvout[k+(ni*nj)]=yan2yan_wdout[yancount_yan];
           yancount_yan++;
           }
         else
           {
-          uuout[k+(ni*nj)]=yin2yan_spdout[yincount_yan]; 
-          vvout[k+(ni*nj)]=yin2yan_wdout[yincount_yan]; 
+          uuout[k+(ni*nj)]=yin2yan_spdout[yincount_yan];
+          vvout[k+(ni*nj)]=yin2yan_wdout[yincount_yan];
           yincount_yan++;
           }
         }

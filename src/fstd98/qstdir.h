@@ -18,7 +18,7 @@
 #define MAX_PRIMARY_LNG 32
 //! Maximum length of info keys
 #define MAX_SECONDARY_LNG 16
-21//! Word to 64 bit int32_t conversion
+//! Word to 64 bit int32_t conversion
 #define WDTO64(nwds) (nwds>>1)
 //! 64 bit word to word conversion
 #define W64TOWD(nw64) (nw64<<1)
@@ -687,11 +687,11 @@ typedef struct {
 
 //! XDF file header template, provision is made for up to 1024 keys
 typedef struct {
-    /* each line (except last one) describes 64 bits */
+    // Each line (except last one) describes 64 bits
 #if !defined(Little_Endian)
     // Standard XDF record header
     int32_t idtyp:8,  lng:24,   addr:32;
-    // char[4]
+
     int32_t vrsn,     sign;
     int32_t fsiz:32,  nrwr:32;
     int32_t nxtn:32,  nbd:32;
@@ -700,7 +700,7 @@ typedef struct {
 #else
     // Standard XDF record header
     int32_t lng:24,   idtyp:8,   addr:32;
-    // char[4]
+
     int32_t vrsn,     sign;
     int32_t fsiz:32,  nrwr:32;
     int32_t nxtn:32,  nbd:32;
@@ -709,6 +709,7 @@ typedef struct {
 #endif
     int32_t neff:32,  nrec:32;
     int32_t rwflg:32, reserved:32;
+
     key_descriptor keys[1024];
 /*
  * idtyp:     id type (usualy 0)
@@ -823,13 +824,13 @@ typedef file_table_entry* file_table_entry_ptr;
 //! XDF buffer interface layout
 typedef struct {
     //! Pointer to next data block
-    struct data_block* next;
+    struct data_block *next;
     //! Pointer to data itself
-    word* data_ptr;
+    uint32_t *data_ptr;
     //! Data length in word units
     int data_lng;
 } data_block;
-typedef data_block* data_block_ptr;
+typedef data_block *data_block_ptr;
 
 #define buf7 dummy[0]
 #define buf8 dummy[1]

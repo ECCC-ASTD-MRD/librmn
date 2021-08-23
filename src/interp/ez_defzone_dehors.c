@@ -18,29 +18,27 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t ez_defzone_dehors(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone)
-{
+int32_t ez_defzone_dehors(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone) {
   float *tmpx, *tmpy;
   int32_t *tmpidx;
   int32_t nhits;
   int32_t i;
-  
+
   int32_t offsetleft, offsetright, ix, iy;
-  
+
    int32_t gdrow_in, gdcol_in;
    int lcl_ngdin;
-   
+
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  
+
   tmpx =   (float *) malloc(npts*sizeof(float));
   tmpy =   (float *) malloc(npts*sizeof(float));
   tmpidx = (int32_t   *) malloc(npts*sizeof(int32_t));
-  
+
 /*
   if (groptions.degre_interp == CUBIQUE)
     {
@@ -53,7 +51,7 @@ int32_t ez_defzone_dehors(int32_t gdin, float *x, float *y, int32_t npts, _zone 
     offsetleft = 0;
     }
 */
-  
+
   offsetright = 0;
   offsetleft = 0;
   if (groptions.verbose > 0)
@@ -82,19 +80,19 @@ int32_t ez_defzone_dehors(int32_t gdin, float *x, float *y, int32_t npts, _zone 
     zone->idx = (int32_t *) malloc(zone->npts*sizeof(int32_t));
     if (groptions.verbose > 0)
       {
-      fprintf(stderr, "Nombre de points dehors: %d\n", zone->npts); 
+      fprintf(stderr, "Nombre de points dehors: %d\n", zone->npts);
       }
     for (i=0; i < zone->npts; i++)
       {
-      zone->x[i] = tmpx[i];      
-      zone->y[i] = tmpy[i];     
+      zone->x[i] = tmpx[i];
+      zone->y[i] = tmpy[i];
       zone->idx[i] = tmpidx[i];
       }
     }
-  
+
   free(tmpx);
   free(tmpy);
   free(tmpidx);
-  
+
   return 0;
 }

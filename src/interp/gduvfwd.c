@@ -18,26 +18,24 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(gduvfwd)(int32_t *gdid, float *uugdout, float *vvgdout, 
-                         float *uullin, float *vvllin, float *latin, float *lonin, int32_t *npts)
-{
+int32_t f77name(gduvfwd)(int32_t *gdid, float *uugdout, float *vvgdout,
+                         float *uullin, float *vvllin, float *latin, float *lonin, int32_t *npts) {
    int32_t icode;
-   
+
    icode = c_gduvfwd(*gdid, uugdout, vvgdout, uullin, vvllin, latin, lonin, *npts);
    return icode;
 }
 
+
 int32_t c_gduvfwd(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, float *vvllin,
-              float *latin, float *lonin, int32_t npts)
-  {
+              float *latin, float *lonin, int32_t npts) {
   int32_t j, icode;
   int32_t gdrow_id, gdcol_id;
-  
+
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
     {
@@ -51,24 +49,24 @@ int32_t c_gduvfwd(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, 
     }
 }
 
+
 int32_t c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uullin, float *vvllin,
-              float *latin, float *lonin, int32_t npts)
-  {
+              float *latin, float *lonin, int32_t npts) {
   float *xlatingf, *xloningf, *xlatingf2, *xloningf2, *uvcart, *xyz;
   int32_t ni, nj, use_sincos_cache;
   float *lat_true,*lon_true;
-  
+
   int32_t gdrow_id, gdcol_id;
-    
+
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
-  
+
   ni = npts;
   nj = 1;
-  
+
   memcpy(uugdout, uullin, npts*sizeof(float));
   memcpy(vvgdout, vvllin, npts*sizeof(float));
-  
+
   use_sincos_cache = NON;
   switch (Grille[gdrow_id][gdcol_id].grtyp[0])
     {
@@ -78,7 +76,7 @@ int32_t c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uul
     f77name(ez_gfxyfll)(lon_true,lat_true,lonin,latin,&ni,
                         &Grille[gdrow_id][gdcol_id].fst.xg[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xg[XLON1],
                         &Grille[gdrow_id][gdcol_id].fst.xg[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xg[XLON2]);
-    
+
     c_ezgfwfllw(uugdout,vvgdout,latin,lonin,lat_true,lon_true,
                 &ni,&nj,Grille[gdrow_id][gdcol_id].grtyp,
                 &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
@@ -87,8 +85,8 @@ int32_t c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uul
     free(lon_true);
     return 0;
     break;
-        
-        
+
+
     case '#':
     case 'Y':
     case 'Z':
@@ -100,7 +98,7 @@ int32_t c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uul
       f77name(ez_gfxyfll)(lonin,latin,lon_true,lat_true,&ni,
                           &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON1],
                           &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON2]);
-      
+
       c_ezgfwfllw(uugdout,vvgdout,latin,lonin,lat_true,lon_true,
                   &ni,&nj,Grille[gdrow_id][gdcol_id].grref,
                   &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
@@ -109,21 +107,20 @@ int32_t c_gduvfwd_orig(int32_t gdid,  float *uugdout, float *vvgdout, float *uul
       free(lon_true);
       return 0;
       break;
-	    
+
       default:
       f77name(ez_gdwfllw)(uugdout,vvgdout,lonin,&ni,&nj,&Grille[gdrow_id][gdcol_id].grref,
                           &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
                           &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4], 1);
       break;
       }
-        
+
     default:
     f77name(ez_gdwfllw)(uugdout,vvgdout,lonin,&ni,&nj,&Grille[gdrow_id][gdcol_id].grtyp,
                         &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
                         &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4], 1);
     break;
     }
-   
+
    return 0;
 }
-

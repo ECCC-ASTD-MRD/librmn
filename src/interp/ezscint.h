@@ -135,7 +135,7 @@ typedef struct {
     float *lon;
     //! Tableau de poids
     float *wts;
-    int32_t *mask
+    int32_t *mask;
     //! indice du point dans le champ de destination
     int32_t *idx;
 } _ygrid;

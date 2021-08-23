@@ -18,24 +18,23 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 int32_t f77name(ezll)(int32_t *gdid, float *lat, float *lon)
 {
    int32_t icode;
-   
+
    icode = c_gdll(*gdid, lat, lon);
    return icode;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 int32_t f77name(gdll)(int32_t *gdid, float *lat, float *lon)
 {
    int32_t icode;
-   
+
    icode = c_gdll(*gdid, lat, lon);
    return icode;
 }
@@ -47,7 +46,7 @@ int32_t c_gdll(int32_t gdid, float *lat, float *lon)
   int32_t yin_gdid,yan_gdid;
   int32_t yin_gdrow_id, yin_gdcol_id;
   int32_t yan_gdrow_id, yan_gdcol_id;
-    
+
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
     {
@@ -72,9 +71,9 @@ int32_t c_gdll(int32_t gdid, float *lat, float *lon)
 int32_t c_gdll_orig(int32_t gdid, float *lat, float *lon)
 {
   int32_t gdrow_id, gdcol_id;
-    
+
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-   
+
    ez_calclatlon(gdid);
    if (Grille[gdrow_id][gdcol_id].flags & LAT)
       {

@@ -18,43 +18,39 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+
+#include <stdio.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(gdllvval)(int32_t *gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
-                      float *lat, float *lon, int32_t *n)
-{
-   int32_t icode;
-   
-   icode = c_gdllvval(*gdid, uuout,vvout, uuin, vvin, lat, lon, *n);
-   return icode;
+int32_t f77name(gdllvval)(int32_t *gdid, float *uuout, float *vvout, float *uuin, float *vvin,
+                      float *lat, float *lon, int32_t *n) {
+    int32_t icode;
+
+    icode = c_gdllvval(*gdid, uuout,vvout, uuin, vvin, lat, lon, *n);
+    return icode;
 }
 
-int32_t c_gdllvval(int32_t gdid, float *uuout, float *vvout, float *uuin, float *vvin, 
-               float *lat, float *lon, int32_t n)
-{
-   float *x, *y;
-   int32_t ier,gdrow_id,gdcol_id;
-   
-  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
-    {
-     fprintf(stderr, "<gdllvval>: This operation is not supported for 'U' grids\n");
-     return -1;
-    }
-  else
-    {
 
-     x = (float *) malloc(n * sizeof(float));
-     y = (float *) malloc(n * sizeof(float));
-   
-     ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
-     ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
-   
-     free(x);
-     free(y);
-     return 0;
+int32_t c_gdllvval(int32_t gdid, float *uuout, float *vvout, float *uuin, float *vvin,
+               float *lat, float *lon, int32_t n) {
+    float *x, *y;
+    int32_t ier,gdrow_id,gdcol_id;
+
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 ) {
+        fprintf(stderr, "<gdllvval>: This operation is not supported for 'U' grids\n");
+        return -1;
+    } else {
+
+        x = (float *) malloc(n * sizeof(float));
+        y = (float *) malloc(n * sizeof(float));
+
+        ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
+        ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
+
+        free(x);
+        free(y);
+        return 0;
     }
 }

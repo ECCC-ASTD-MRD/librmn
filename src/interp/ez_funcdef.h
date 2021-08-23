@@ -1,6 +1,8 @@
-#include "ezscint.h"
-
 #ifndef _ezfuncdef
+#define _ezfuncdef
+
+#include <stddef.h>
+#include "ezscint.h"
 #include "gd_key2rowcol.h"
 
 static _Grille **Grille  = NULL;
@@ -297,4 +299,3 @@ int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float 
 int c_ezsint_mask(int *mask_out, int *mask_in);
 
 #endif
-#define _ezfuncdef
