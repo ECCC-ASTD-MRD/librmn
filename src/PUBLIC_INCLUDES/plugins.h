@@ -1,5 +1,4 @@
 #if ! defined(RMNLIB_PLUGINS)
-
 #define RMNLIB_PLUGINS
 
 #if defined(ThisIsNeverDefined)
@@ -213,7 +212,7 @@ end interface
 
 typedef const char * charptr;       // pointer to char string
 typedef int (*fnptr)();             // pointer to function
-typedef void * (*fnpptr)();             // pointer to function
+typedef void * (*fnpptr)();         // pointer to subroutine
 
 #if ! defined(NO_PROTOTYPES)
 void *load_plugin(const char *lib);

@@ -18,19 +18,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*CoMpIlAtIoN_OpTiOnS ::SX4=-Onooverlap::SX5=-Onooverlap::IRIX64=-O3::HP-UX=+O2::*/
+
 #define powerSpan 65
 #define MAX_RANGE 1.0e+38
 static double powerOf2s[powerSpan];
 static int powerOf2sInitialized = 0;
 
-#define isDouble 1
-#define FLOAT_4_8 double
-#define compact_FLOAT_4_8 compact_double
-#include "compact_h.h"
+#define FLOAT_TYPE double
+#define compact_FLOAT_TYPE compact_double
+#include "compact.h"
+#undef compact_FLOAT_TYPE
+#undef FLOAT_TYPE
 
-
-#define isDouble 0
-#define FLOAT_4_8 float
-#define compact_FLOAT_4_8 compact_float
-#include "compact_h.h"
+#define FLOAT_TYPE float
+#define compact_FLOAT_TYPE compact_float
+#include "compact.h"
+#undef compact_FLOAT_TYPE
+#undef FLOAT_TYPE

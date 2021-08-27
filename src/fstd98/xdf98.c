@@ -1693,7 +1693,7 @@ int c_xdfloc2(
         if (f->xdf_seq) {
             f->cur_addr = address_from_handle(handle, f);
             if (f->fstd_vintage_89) {
-                c_waread(iun, &seq_entry, f->cur_addr, sizeof(seq_entry) / bytesperword);
+                c_waread(iun, &seq_entry, f->cur_addr, sizeof(seq_entry) / sizeof(int32_t));
                 header.lng = ((seq_entry.lng + 3) >> 2) + 15;
             } else {
                 c_waread(iun, &header, f->cur_addr, W64TOWD(1));

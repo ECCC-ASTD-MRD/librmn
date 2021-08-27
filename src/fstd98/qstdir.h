@@ -887,7 +887,7 @@ int xdf_datatyp;
 //! Number of splited output files in xdfuse
 int xdf_nsplit = 1;
 //! Number of bits per FORTRAN word
-int FTN_Bitmot = 8 * bytesperword;
+int FTN_Bitmot = 8 * sizeof(int32_t);
 //! No pack/unpack, used by editfst
 int image_mode_copy = 0;
 //! Chekcpoint mode, no closing of the file

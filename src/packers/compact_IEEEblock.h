@@ -1,0 +1,286 @@
+/* RMNLIB - Library of useful routines for C and FORTRAN programming
+ * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+ *                          Environnement Canada
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation,
+ * version 2.1 of the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include "rmnlib.h"
+
+
+// Pack IEEE floating point numbers( float and double ) into a reduced bit size "IEEE" floating point numbers
+void *compact_IEEEblock_FLOAT_TYPE(
+    //! [in.out] Array of floating point numbers
+    void *unpackedArrayOfFloat,
+    //! [in.out] Format information of packed integer numbers
+    void *packedHeader,
+    //! [in.out] Array Of Integers
+    void *packedArrayOfInt,
+    //! [in] Total count of element in floating point array
+    int elementCount,
+    //! [in] Token size in bit
+    int bitSizeOfPackedToken,
+    //! [in] Packed exponent size in bit
+    int bitSizeOfPackedExpo,
+    //! [in] The last bit of integer packed inside array when packing or the first bit of integer packed into array when unpacking
+    int off_set,
+    //! [in] Floating point number spacing indicator
+    int stride,
+    //! [in] Operation to perform (FLOAT_PACK, FLOAT_UNPACK)
+    int opCode,
+    //! [in] 1 to indicate the presence of missing values in the floating point array, 0 otherwise
+    int hasMissing,
+    //! [in] Missing value identifier
+    void *missingTag
+) {
+
+    typedef struct {
+#if defined(Little_Endian)
+        int32_t bitSizeOfExpo : 5, bitSizeOfToken : 7, maxExpo : 8, marker : 12, count : 32;
+#else
+        int32_t marker : 12, maxExpo : 8, bitSizeOfToken : 7, bitSizeOfExpo : 5, count : 32;
+#endif
+    } IEEEblock_struct_data;
+
+    // Variables used by the packer
+    int   wordSize;
+    FLOAT_TYPE *arrayOfFloat;
+    int32_t *packHeader, *arrayOfInt;
+    int   i, k;
+    int32_t  floatCount;
+    float maxFloat;
+    ALL_FLOAT maxFloatTemplate, floatTemplate;
+    int32_t  maxFloatExpo, maxPackedExpo, expoAlignmentFactor;
+    int32_t  packedSign, packedExpo, packedMantisa;
+    int   expoDifference;
+    int   lastPackBit, spaceInLastWord, lastSlot;
+    int32_t  lastWordShifted, tempInt;
+    int32_t *arrayPtr, *arrayOfUnpacked;
+    FLOAT_TYPE *arrayOfTempFloat;
+    float tempFloat;
+
+    // Variables used by the unpacker
+    IEEEblock_struct_data *theHeader;
+    int32_t currentWord;
+    int32_t intCount;
+    int  firstPackBit;
+    int32_t bitPackInFirstWord;
+    int  currentSlot;
+    int32_t packInt;
+    int  tempSignedInt;
+    int  significantBit, inSignificantBit;
+    int  packedTokenSize, packedMantisaSize, packedExpoSize;
+
+
+    // Obtain an array of power of 2
+    if ( ! powerOf2sInitialized ) {
+        powerOf2s[0] = 1.0;
+        for ( i = 1; i < powerSpan; i++) {
+            powerOf2s[i] = 2.0 *powerOf2s[i-1];
+        }
+        powerOf2sInitialized = 1;
+    }
+
+    // Handle abnormal condition
+    if ( bitSizeOfPackedToken == 0 ) {
+        return NULL;
+    }
+    // Missing value handling routine no available yet
+    if ( hasMissing ) {
+        return NULL;
+    }
+    // Element count exceeds allowable limits in header field
+    if ( elementCount > powerOf2s[32] -1 ){
+        return NULL;
+    }
+
+    // Determine wordsize
+    wordSize = 8 * sizeof(int32_t);
+
+    if ( opCode == FLOAT_PACK ) {
+        // Compact a floating point array into an int32_t array
+
+        arrayOfFloat = (FLOAT_TYPE *)unpackedArrayOfFloat;
+        packHeader = (int32_t *)packedHeader;
+        arrayOfInt = (int32_t *)packedArrayOfInt;
+        floatCount = elementCount;
+
+        // Determine the bitSizeOfMantisa
+        packedMantisaSize = bitSizeOfPackedToken - 1 - bitSizeOfPackedExpo;
+        maxPackedExpo = powerOf2s[bitSizeOfPackedExpo] - 1;
+
+        // Obtain the maximun float
+        maxFloat = arrayOfFloat[0];
+
+        for (i = stride; i < floatCount * stride; i += stride) {
+            if ( arrayOfFloat[i] > maxFloat ) {
+                maxFloat = arrayOfFloat[i];
+            }
+        }
+
+        maxFloatTemplate.X = maxFloat;
+
+        // Obtain the alignmentFactor
+        maxFloatExpo        = maxFloatTemplate.M.expo;
+        expoAlignmentFactor = maxFloatExpo - maxPackedExpo;
+
+        // Initialize the header of the integer array
+        packHeader[0] = 0xfb0 << 20 | maxFloatExpo << 12 | bitSizeOfPackedToken << 5 | bitSizeOfPackedExpo;
+        packHeader[1] = floatCount;
+
+
+        // Transform the floating point into the desired representation
+
+        lastPackBit = off_set;
+        spaceInLastWord =  wordSize - ( lastPackBit % wordSize );
+        lastSlot = ( lastPackBit / wordSize );
+
+        if ( spaceInLastWord == wordSize ) {
+            lastWordShifted = 0;
+        } else {
+            lastWordShifted = arrayOfInt[lastSlot] >> spaceInLastWord ;
+        }
+
+        arrayPtr = &arrayOfInt[lastSlot];
+        if ( bitSizeOfPackedToken == 64 ) {
+            // 64 bits direct copy
+            /* CHC/NRC       arrayOfTempFloat = (double *)arrayOfInt; */
+            arrayOfTempFloat = (FLOAT_TYPE *)arrayOfInt;
+            for ( i = 0; i < floatCount * stride; i += stride) {
+                arrayOfTempFloat[i] = arrayOfFloat[i];
+            }
+            return arrayOfTempFloat;
+
+        } else if (( spaceInLastWord == wordSize ) && ( bitSizeOfPackedToken == wordSize )) {
+            // 32 bits direct copy
+
+            for ( i = 0; i < floatCount * stride; i += stride) {
+                floatTemplate.X = arrayOfFloat[i];
+                arrayOfInt[i] = floatTemplate.U;
+
+            }
+            return arrayOfTempFloat;
+        } else {
+            // Bit by bit shuffle
+            for ( i = 0; i < floatCount * stride; i += stride) {
+                // Determine tempInt
+                floatTemplate.X = arrayOfFloat[i];
+                expoDifference = floatTemplate.M.expo - expoAlignmentFactor;
+                if ( expoDifference >= 0 ) {
+                    packedSign = floatTemplate.M.sign;
+                    packedExpo = expoDifference;
+
+                    if ( packedMantisaSize >= 24 ) {
+                        packedMantisa = floatTemplate.M.mantis;
+                    } else {
+                        packedMantisa=floatTemplate.M.mantis>>(24-packedMantisaSize);
+                    }
+
+                    tempInt = packedSign << ( bitSizeOfPackedToken - 1) |
+                            packedExpo << packedMantisaSize | packedMantisa;
+                } else {
+                    tempInt = 0;
+                }
+
+                // Pack tempInt
+                stuff(tempInt, arrayPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord);
+            }
+        }
+
+        // Squeezes hole left in the integer array
+        if ( spaceInLastWord < wordSize ) {
+            *arrayPtr = ( lastWordShifted << spaceInLastWord) |
+                        ( *arrayPtr & ~(-1 << spaceInLastWord));
+        }
+        return (int32_t *)arrayOfInt;
+
+    } else if ( opCode == FLOAT_UNPACK ) {
+
+        arrayOfFloat        = (FLOAT_TYPE *)unpackedArrayOfFloat;
+        theHeader           = (IEEEblock_struct_data *) packedHeader;
+        arrayOfInt          = (int32_t  *)packedArrayOfInt;
+        packedTokenSize     = theHeader->bitSizeOfToken;
+        packedExpoSize      = theHeader->bitSizeOfExpo;
+        maxPackedExpo       = powerOf2s[packedExpoSize] - 1;
+        expoAlignmentFactor = theHeader->maxExpo  - maxPackedExpo;
+        intCount            = theHeader->count;
+        packedMantisaSize   = packedTokenSize - 1 - packedExpoSize;
+        firstPackBit        = off_set;
+        bitPackInFirstWord  =  wordSize - ( firstPackBit % wordSize );
+        currentSlot         = ( firstPackBit / wordSize );
+        currentWord         = arrayOfInt[currentSlot] << ( wordSize - bitPackInFirstWord );
+
+        if ( packedTokenSize > wordSize ) {
+            significantBit   = wordSize;
+            inSignificantBit = packedTokenSize - wordSize;
+        } else {
+            significantBit   = packedTokenSize;
+            inSignificantBit = 0;
+        }
+
+        arrayPtr = &arrayOfInt[currentSlot];
+
+        if ( packedTokenSize == 64 ) {
+            // 64 bit target IEEE size
+            /* CHC/NRC        arrayOfTempFloat = (double *)arrayOfInt; */
+            arrayOfTempFloat = (FLOAT_TYPE *)arrayOfInt;
+            for ( i = 0; i < intCount * stride; i += stride) {
+                arrayOfFloat[i] = arrayOfTempFloat[i];
+            }
+            return arrayOfFloat;
+        } else if ((significantBit == wordSize) && ( bitPackInFirstWord == wordSize)) {
+            // 32 bit target IEEE size
+            for ( i = 0; i < intCount * stride; i += stride) {
+                floatTemplate.U = arrayOfInt[i];
+                arrayOfFloat[i] = floatTemplate.X;
+            }
+            return arrayOfFloat;
+        } else {
+            // >32 bit target IEEE size
+            for ( i = 0; i < intCount * stride; i += stride) {
+                extract(packInt, arrayPtr, wordSize, significantBit, currentWord, bitPackInFirstWord);
+
+                // Truncate extra bit if necessary
+                if ( inSignificantBit > 0 ) {
+                    discard(arrayPtr, wordSize, inSignificantBit, currentWord, bitPackInFirstWord);
+                }
+
+                // Recover the IEEE numbers
+                if ( packInt == 0 ) {
+                    arrayOfFloat[i] = 0;
+                } else {
+                    floatTemplate.M.sign = (packInt << (wordSize - packedTokenSize)) >> ( wordSize -1);
+                    tempSignedInt = (packInt << (wordSize - packedTokenSize + 1)) >> (wordSize - packedExpoSize);
+                    floatTemplate.M.expo    = tempSignedInt + expoAlignmentFactor;
+                    floatTemplate.M.mantis  = (packInt << (wordSize - packedTokenSize + 1 + packedExpoSize))
+                                               >> (wordSize - packedMantisaSize );
+                    arrayOfFloat[i] = floatTemplate.X;
+                }
+            }
+        }
+
+        return (int32_t *)arrayOfFloat;
+
+    } else {
+        printf("\n opCode is not defined \n");
+        return NULL;
+    }
+}

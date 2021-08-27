@@ -5,13 +5,20 @@
 
 //! \deprecated This macro will be removed from future releases.  Please use the types defined stdint.h instead.
 #define wordint int32_t
+
 //! \deprecated This macro will be removed from future releases.  Please use the types defined stdint.h instead.
 #define ftnword int32_t
+
 //! \deprecated This macro will be removed from future releases.  Please use the types defined stdint.h instead.
 #define ftnfloat float
+
 //! \deprecated This macro will be removed from future releases.  Please use the types defined stdint.h instead.
 #define wordfloat float
 
+//! \deprecated This macro will be removed from future releases.  Please use the types defined stdint.h instead.
+#define word uint32_t
+
+//! \deprecated This macro will be removed from future releases.  Please use the types defined stdint.h instead.
 #define bytesperword 4
 
 // Used only in c_fnom defined in c_baseio.c and passed to the qqqf7op function
@@ -29,8 +36,6 @@
 #define F77STRLEN(X)       CONCAT(X,_length)
 #define HIDDENLEN(X)       , F2Cl F77STRLEN(X)
 
-#define UNIX unix
-
 #if defined(_AIX)
 #define __AIX__ 
 #define AIX IBM_AIX
@@ -39,39 +44,12 @@
 #define FLOAT_PACK 1
 #define FLOAT_UNPACK 2
 
-#if defined (mips) || defined (__mips)
-#    define C910
-#endif
-
-#if defined (__hp9000s800) || defined (__hp9000s700)
-#    define HP
-#endif
-
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64) || defined(__x86_64__)
-#    define Amd64 Amd64
-#endif
-
-#if defined(__alpha__) || defined(__alpha)
-#    define Alpha Alpha
-#endif
-
-#if defined (_FLOAT1)
-    error " wrong float mode : must be FLOAT0"
-#endif
-#if defined (_FLOAT2)
-    error " wrong float mode : must be FLOAT0"
-#endif
-#if defined(_FLOAT0)
-#    define NEC
-#    define NEC32 nec32
-#endif
-
-#define word uint32_t
 
 #if defined(Little_Endian)
     typedef struct {
         uint32_t mantis3:29, mantis2:3, mantis1:20, expo:11, sign:1;
     } IEEE_FLOAT_DOUBLE;
+
     typedef struct {
         uint32_t mantis:23, expo:8 , sign:1;
     } IEEE_FLOAT;
@@ -79,16 +57,20 @@
     typedef struct {
         uint32_t sign:1, expo:11 , mantis1:20,mantis2:3,mantis3:29;
     } IEEE_FLOAT_DOUBLE;
+
     typedef struct {
         uint32_t sign:1, expo:8 , mantis:23;
     } IEEE_FLOAT;
 #endif
+
 typedef struct {
     uint32_t sign:1, expo:7 , mantis:24;
 } IBM_FLOAT;
+
 typedef struct {
     uint32_t sign:1, expo:7 , mantis1:24 , mantis2:32;
 } IBM_FLOAT_DOUBLE;
+
 typedef union {
     float X;
     double XD;
@@ -98,9 +80,6 @@ typedef union {
     IBM_FLOAT I;
     IBM_FLOAT_DOUBLE ID;
 } ALL_FLOAT;
-
-
-
 
 
 /*****************************************************************************
