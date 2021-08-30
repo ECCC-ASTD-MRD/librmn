@@ -25,6 +25,9 @@ echo -e "// Prototypes automatically extracted from the C source code with ctags
 # FIXME We have functions defined in *.h files!
 for cSourceFile in ${@:2}; do
     strippedName="${cSourceFile##$srcDirPrefix/}"
-    echo -e "\n\n// ${strippedName}" >> cprotos.h
-    ctags -x --_xformat="%{C.properties} %{typeref} %{name}%{signature};" --sort=foldcase --kinds-C=f "${cSourceFile}" | sed -E -e 's/typename://g' -e 's/^[[:space:]]+//g' | grep -vP '(F77|f77|^static)' >> cprotos.h
+    protos=$(ctags -x --_xformat="%{C.properties} %{typeref} %{name}%{signature};" --sort=foldcase --kinds-C=f "${cSourceFile}" | sed -E -e 's/typename://g' -e 's/^[[:space:]]+//g' | grep -vP '(F77|f77|^static)')
+    if (( ${#protos} > 0 )); then
+        echo -e "\n\n// ${strippedName}" >> cprotos.h
+        echo "$protos" >> cprotos.h
+    fi
 done
