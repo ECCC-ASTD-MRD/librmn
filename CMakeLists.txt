@@ -54,7 +54,6 @@ add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn)
 target_link_libraries(librmn_version rmn)
 
-
 # This really isn't the ideal solution; the compiler should be invoqued with all
 # the definitions and options as if we it was processing a source file
 
@@ -101,3 +100,10 @@ set_target_properties(rmn PROPERTIES VERSION ${GIT_VERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
 
 install(TARGETS rmn librmn_version)
+
+add_custom_target(
+    cprotos
+    ${CMAKE_SOURCE_DIR}/extractProtos.bash ${CMAKE_SOURCE_DIR}/src ${PROJECT_C_FILES}
+    #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Extract function prototypes from C source code"
+)
