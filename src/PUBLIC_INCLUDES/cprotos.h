@@ -130,7 +130,6 @@ void grb_84bits_to_ip123(int32_t * ip1,int32_t * ip2,int32_t * ip3,int32_t * the
 
 
 // fstd98/excdes_new.c
-- c_main(int argc,char ** argv);
 int C_filtre_desire();
 int C_filtre_exclure();
 int C_fstmatch_parm(int handle,int datevalid,int ni,int nj,int nk,int ip1,int ip2,int ip3,char * typvar,char * nomvar,char * etiket,char * grtyp,int ig1,int ig2,int ig3,int ig4);
@@ -180,7 +179,6 @@ int encode_missing_value(void * field,void * field2,int * nvalues,int * datatype
 int ForceMissingValueUsage(int flag);
 int force_missing_value_used(int * flag);
 int get_missing_value_flags(float * f,int * i,unsigned int * ui,double * d,short * s,unsigned short * us,signed char * b,unsigned char * ub);
-int main();
 int missing_value_used();
 void DecodeMissingValue(void * field,int nvalues,int datatype,int is_byte,int is_short,int is_double);
 void decode_missing_value(void * field,int * nvalues,int * datatype,int * is_byte,int * is_short,int * is_double);
@@ -695,7 +693,6 @@ int compact_rle(void * unpackedArrayOfInt,void * packedHeader,void * packedArray
 
 
 // packers/float_packer.c
-- main();
 int32_t c_float_packer(float * source,int32_t nbits,int32_t * header,int32_t * stream,int32_t npts);
 int32_t c_float_unpacker(float * dest,int32_t * header,int32_t * stream,int32_t npts,int32_t * nbits);
 int32_t float_packer_1(float * source,int32_t nbits,int32_t * header,int32_t * stream,int32_t npts);
@@ -726,7 +723,6 @@ void set_appl_var(char * name,char * value,int ln,int lv);
 
 
 // primitives/arc4.c
-- main();
 int arc4_self_test(int verbose);
 void arc4_crypt(arc4_context * ctx,unsigned char * buf,int buflen);
 void arc4_setup(arc4_context * ctx,unsigned char * key,int keylen);
@@ -808,7 +804,6 @@ int get_cpu_core_thread();
 int get_cpu_hyperthreads();
 int get_cpu_id();
 int get_fp_status_ctl(void);
-int main(int argc,char ** argv);
 int main_cpuid(int argc,char ** argv);
 int main_rdtsc(int argc,char ** argv);
 uint64_t get_cpu_freq(void);
@@ -842,7 +837,6 @@ crc32_t crc32_update_le(crc32_t crc,const unsigned char * data,size_t data_len,i
 
 
 // primitives/crc_16_24_32.c
-int main(int argc,char ** argv);
 uint32_t f_update_crc_ne(uint32_t * old_crc,int * crclen,void * data,int * datasiz,int * datalen,int * mode);
 uint32_t update_crc_ne(uint32_t old_crc,int crclen,void * data,int datasiz,int datalen,int mode);
 
@@ -880,10 +874,6 @@ void flush_stdout_();
 void flush_stdout__();
 
 
-// primitives/fmain2cmain.c
-- c_main(int argc,char ** argv);
-
-
 // primitives/fool_optimizer.c
 void fool_optimizer();
 void fool_optimizer_();
@@ -912,7 +902,6 @@ char * get_ccard_arg_m(char * nom,int ord);
 // primitives/get_endian.c
 int is_big_endian();
 int is_little_endian();
-int main();
 
 
 // primitives/gossip_sock.c
@@ -1006,7 +995,6 @@ int c_logical_smt_cpus();
 
 
 // primitives/md5.c
-- main(int argc,char ** argv);
 int md5_file(char * path,unsigned char output[16]);
 int md5_self_test(int verbose);
 int md5_ssh(unsigned char output[16]);
@@ -1056,7 +1044,6 @@ void register_dl_routines();
 - f_get_my_resident_time(int * wu,int * wh,int * ws);
 - f_get_my_resident_time_(int * wu,int * wh,int * ws);
 - f_get_my_resident_time__(int * wu,int * wh,int * ws);
-int main(int argc,char ** argv);
 void c_get_my_resident_time(int * wu,int * wh,int * ws);
 void get_wall_clock_used(char * stepid,char ** hostname,int * wu,int * wh,int * ws);
 
