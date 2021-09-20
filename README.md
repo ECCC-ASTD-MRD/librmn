@@ -42,6 +42,8 @@ WITH_OPENMP
 ## Exemple de compilation
 ```
 cmake \
+    -DCMAKE_C_STANDARD=99 \
+    -DCMAKE_C_EXTENSIONS=OFF \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
     -DBUILD_SHARED_LIBS=no \
     -DWITH_DOC=no \
