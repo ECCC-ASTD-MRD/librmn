@@ -17,7 +17,9 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-        INTEGER FUNCTION qqqf7op(iun,name,lrec,rndflag,unfflag,lmult)
+
+
+      INTEGER FUNCTION qqqf7op(iun,name,lrec,rndflag,unfflag,lmult)
         integer iun,lrec
         character *(*) name
         integer rndflag,unfflag
@@ -74,12 +76,14 @@
         CLOSE(iun)
         return
         end
+
+
       INTEGER FUNCTION LONGUEUR(NOM)
       implicit none
       CHARACTER * (*) NOM
-*
+
       INTEGER LNG,I
-*
+
       LNG = LEN(NOM)
       DO 10 I = LNG,1,-1
          IF (NOM(I:I) .EQ. ' ') THEN

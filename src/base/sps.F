@@ -19,7 +19,8 @@
 * */
 
 
-***FONCTION SPS - INTERPOLATION A PARTIR D'UNE GRILLE POLAIRE STEREOGRAPHIQUE
+***FONCTION SPS - INTERPOLATION A PARTIR D'UNE GRILLE POLAIRE
+***STEREOGRAPHIQUE
 *
       FUNCTION SPS(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM)
       REAL F(LI,LJ), T(4)
@@ -57,7 +58,7 @@
 *
 *MODULES  - XYFLL
 *
-*--------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
 #include "ordr.cdk"
       REAL LAMBDA

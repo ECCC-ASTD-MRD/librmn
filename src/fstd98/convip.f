@@ -21,7 +21,7 @@
       implicit none
       integer ip, kind, mode
       real p
-      character *(*) string 
+      character *(*) string
       logical flag
 
 **********************************************************************
@@ -35,7 +35,7 @@
 *     Auteurs: N. Ek et B. Dugas - Mars 1996
 *     Revision 001  M. Lepine - juin 1997 convpr devient convip
 *     Revision 002  M. Valin  - mai  1998 fichiers std 98
-*     Revision 003  B. Dugas  - juillet 2000 code arbitraire 
+*     Revision 003  B. Dugas  - juillet 2000 code arbitraire
 *     Revision 004  M. Lepine - fevrier 2002 kind = 4, hauteur au sol +
 *                               possibilite de forcer newstyle ou non avec mode=2 et mode=3
 *     Revision 005  M. Lepine - avril 2002 kind = 5 (hybride), kind = 21 (GalChen)
@@ -58,7 +58,7 @@
 *               FLAG = .true. , ecriture de P avec format dans string
 *
 *     Input/
-*     Ouput:    IP  =   Valeur codee 
+*     Ouput:    IP  =   Valeur codee
 *               P    =   Valeur reelle
 *               KIND =0, p est en hauteur (m) par rapport au niveau de la mer (-20,000 -> 100,000)
 *               KIND =1, p est en sigma                                       (0.0 -> 1.0)
@@ -68,7 +68,7 @@
 *               KIND =5, p est en coordonnee hybride                          (0.0 -> 1.0)
 *               KIND =6, p est en coordonnee theta                            (1 -> 200,000)
 *               KIND =10, p represente le temps en heure                      (0.0 -> 1.0e10)
-*               KIND =15, reserve (entiers)                                   
+*               KIND =15, reserve (entiers)
 *               KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
 *               KIND =21, p est en metres-pression  (partage avec kind=5 a cause du range exclusif)
 *                                                                             (0 -> 1,000,000) fact=1e4
@@ -95,7 +95,7 @@
 
       REAL, PARAMETER, DIMENSION(0:Max_Kind) :: low_val =
      %   (/ -20 000., 0., 0.,    -4.8e+8, -20 000., 0.,
-     %      1.0, (-4.8e+8,i=7,9), 0.0, (-4.8e+8,i=11,16), 
+     %      1.0, (-4.8e+8,i=7,9), 0.0, (-4.8e+8,i=11,16),
      %      1.0, (-4.8e+8,i=18,20), 0., (-4.8e+8,i=22,31) /)
       REAL, PARAMETER :: hi_val(0:Max_Kind) =
      %   (/  100 000., 1., 1100., 1.0e+10, 100 000., 1.,
@@ -269,7 +269,7 @@ c     %         goto 101
                ip = -999999
                return
             endif
- 
+
          else
 
 *           Valeur illegale de kind.
@@ -307,30 +307,34 @@ c     %         goto 101
             if (itemp > 1 000 000) itemp = -(itemp - 1 000 000)
  555        continue
             p = itemp / exptab(iexp)
-            p = p / fact_val(kind)                          ! retirer le facteur multiplicatif
+            p = p / fact_val(kind)    ! retirer le facteur multiplicatif
             if (kind .eq. 5) then
-               if ((p .lt. low_val(kind)) .or. 
+               if ((p .lt. low_val(kind)) .or.
      %             (p .gt. hi_val(kind))) then
-                  kind = 21         !  (en dehors du range, on essaye code partage avec kind=5)
+*               (en dehors du range, on essaye code partage avec kind=5)
+                  kind = 21
 *                  print *,'Debug+ o.b. kind 5 --> 21'
-                  goto 555  
+                  goto 555
                endif
             endif
             if (kind .eq. 1) then
-               if ((p .lt. low_val(kind)) .or. 
+               if ((p .lt. low_val(kind)) .or.
      %             (p .gt. hi_val(kind))) then
-                  kind = 17         !  (en dehors du range, on essaye code partage avec kind=2)
+!               (en dehors du range, on essaye code partage avec kind=2)
+                  kind = 17
 *                  print *,'Debug+ o.b. kind 1 --> 17'
-                  goto 555  
+                  goto 555
                endif
             endif
-            if (p .lt. low_val(kind)) p = low_val(kind)     ! clipping a la valeur minimale
-            if (p .gt. hi_val(kind)) p = hi_val(kind)       ! clipping a la valeur maximale
+            ! clipping a la valeur minimale
+            if (p .lt. low_val(kind)) p = low_val(kind)
+            ! clipping a la valeur maximale
+            if (p .gt. hi_val(kind)) p = hi_val(kind)
             if (abs(p) .lt. 1.001*zero_val(kind)) p = zero_val2(kind)
             abs_p = abs(p)
             if (flag) then
                if (len(string) .ge. 15) then
-                  if(abs_p .eq. int(abs_p) .and. abs_p.lt.1000000.) then
+                  if(abs_p .eq. int(abs_p).and. abs_p.lt.1000000.) then
                      write(var_fmt,'(i12,1x,a2)')int(p),kinds(kind)
                   elseif (abs_p.ge. 1000000.) then
                      write(var_fmt,'(e12.6,1x,a2)')p,kinds(kind)
@@ -356,7 +360,7 @@ c     %         goto 101
                      write(var_fmt,'(e12.6,1x,a2)')p,kinds(kind)
                   endif
                else
-                  if(abs_p .eq. int(abs_p) .and. abs_p.lt.1000000.) then
+                  if(abs_p .eq. int(abs_p).and. abs_p.lt.1000000.) then
                      write(var_fmt,'(i6,1x,a2)')int(abs_p),kinds(kind)
                   elseif (abs_p.gt. 1000000.) then
                      write(var_fmt,'(e9.4,1x,a2)')p,kinds(kind)
@@ -396,7 +400,7 @@ c     %         goto 101
      +           ( 1200 .lt. ip .and. ip .lt. 2000 )) then
 
 *           ... a pression ...
-     
+
             kind = 2
             if ( 0 .le. ip .and. ip .lt. 1100 ) then
                p = float(ip)
@@ -434,7 +438,7 @@ c     %         goto 101
          endif
 
       endif
-      
+
       return
 
 **********************************************************************
@@ -452,7 +456,7 @@ c     %         goto 101
  6007 format(' Warning in convip: undetermined kind used =',I10)
 
       end
-      
+
       subroutine igapg(grtyp,pg1,pg2,pg3,pg4,ig1,ig2,ig3,ig4)
       implicit none
       character *1 grtyp

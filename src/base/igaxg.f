@@ -116,11 +116,11 @@
         XG4 = IG2 * 0.01
 
       ELSE IF(CGTYP .EQ. 'H') THEN
-        XG1 = IG3                 !  PHI1 / PHI2
-        XG2 = .01*IG4 - 90.       !  PHI0
-        XG3 = 500*IG2             !  DELTA S  (DEMI KILOMETRES)
-        XG4 = IG1*.2              !  LAMBDA0
-*                                 !  GRILLE LAMBERT CONFORME CENTREE NORD
+        XG1 = IG3                !  PHI1 / PHI2
+        XG2 = .01*IG4 - 90.      !  PHI0
+        XG3 = 500*IG2            !  DELTA S  (DEMI KILOMETRES)
+        XG4 = IG1*.2             !  LAMBDA0
+*                                !  GRILLE LAMBERT CONFORME CENTREE NORD
 
       ELSE IF(CGTYP .EQ. 'E') THEN
         I2B = IAND(IG3,3)
@@ -132,8 +132,8 @@
         if (lg2.gt.3600)  lg2=lg2-7201
         XG1 = (LG1 -3600.0D0) / 40.0
 C
-C       bug de code, le +90 est de trop, ce qui peut causer un debordement
-C       pour ig3
+C       bug de code, le +90 est de trop, ce qui peut causer un
+C       debordement pour ig3
 C
         if(lg3 .lt. 3559) lg3=lg3+16384
         XG2 = (LG3 -3600.0D0) / 40.0
@@ -142,9 +142,11 @@ C
 *                                 !  GRILLE LAT,LON (GEF)
       ELSE IF(CGTYP .EQ. '+') THEN
         XG18 = (IG3*.01_8) - 100.0   ! compatibilite arriere
-        if(IG1.ne.0) XG18 = XG18 + (IG1-1000)*.00001_8  ! correction au 1/100000 de degre
+        ! correction au 1/100000 de degre
+        if(IG1.ne.0) XG18 = XG18 + (IG1-1000)*.00001_8
         XG28 = (IG4*.01_8)           ! compatibilite arriere
-        if(IG2.ne.0) XG28 = XG28 + (IG2-1000)*.00001_8  ! correction au 1/100000 de degre
+        ! correction au 1/100000 de degre
+        if(IG2.ne.0) XG28 = XG28 + (IG2-1000)*.00001_8
         XG1 = XG18
         XG2 = XG28
         XG3 = 0.0    ! dummy

@@ -29,7 +29,8 @@
 *
 *REVISION 001:  C. THIBEAULT - JUL 79  DOCUMENTATION AND CALL TO VECLIB
 *REVISION 002:  C. THIBEAULT - MAR 83  CONVERSION AU CODE CRAY
-*REVISION 003:  M. Valin     - JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
+*REVISION 003:  M. Valin     - JUIN 2015  implicit none + utilisation de
+*                                               Real*8 pour les calculs
 *
 *LANGUAGE  - fortran
 *
@@ -50,7 +51,7 @@
 *
 *
 *
-*-------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       REAL *8 :: SUM
       integer :: I, J, IH, IL, JH, JL, PTS
@@ -74,7 +75,7 @@
 *
       AMEAN=SUM/PTS
 *
-*-------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       RETURN
       END

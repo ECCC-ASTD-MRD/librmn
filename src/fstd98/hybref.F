@@ -85,11 +85,11 @@
          hyb(1)=lev
       endif
       do k=2,NK
-         hyb2pres = fstprm(fstkeys(k), dateo, deet, ipas, ni1, nj1, nk1,
+         hyb2pres = fstprm(fstkeys(k), dateo, deet, ipas, ni1, nj1,nk1,
      $     bit, datyp, ip1a,ip2a,ip3a, tva, var, etik_S, grda,
      $     ig1a,ig2a,ig3a,ig4a, swa,lng, dlf, ubc, ex1, ex2, ex3 )
            if (ni1.ne.nia.and.nj1.ne.nja.and.nk1.ne.nka.or.
-     $                                               hyb2pres.lt.0) then
+     $                                              hyb2pres.lt.0) then
              print *,'hyb2pres error: fstprm on key',fstkeys(k),
      $               'dim mismatch'
              return
@@ -110,7 +110,8 @@
       call incdatr(datev,dateo,ipas*deet/3600.0d0)
 
       if (kind.eq.1) then
-          p0_key=fstinf(iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,' ','P0')
+          p0_key=fstinf(iun, ni, nj, nk, datev, etik_S, -1, ip2a,
+     $                  ip3a, ' ', 'P0')
           if (p0_key.lt.0) then
               print *,'hyb2pres error: No p0 found, kind = 1'
               hyb2pres = -1
@@ -151,8 +152,8 @@
                   print *,'hyb2pres error: in read_decode_hyb'
                   return
               endif
-              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,NJ,
-     $                             NK)
+              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,
+     $                             NJ,NK)
               if (logPX_L) PX(:,:,:)=log( 100.0*PX(:,:,:))
               return
           else
@@ -188,8 +189,8 @@
                   print *,'hyb2pres error: in read_decode_hyb'
                   return
               endif
-              p0_key=fstinf (iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,' ',
-     $                       'P0')
+              p0_key=fstinf (iun,ni,nj,nk,datev,etik_S,-1,ip2a,ip3a,
+     $                       ' ','P0')
               if (p0_key.lt.0) then
                  print *,'hyb2pres error: HY found,No p0 found, kind=5'
                  hyb2pres = -1
@@ -197,8 +198,8 @@
               else
                  hyb2pres = fstluk(p0,p0_key,ni,nj,nk)
               endif
-              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,NJ,
-     $                             NK)
+              hyb2pres=hyb_to_pres(PX,hyb,ptop,rcoef,pref,kind,p0,NI,
+     $                             NJ,NK)
               return
          else
              print *,'hyb2pres error: kind=5 but !! nor  HY NOT FOUND'
@@ -209,28 +210,29 @@
       end
 *
 **********************************************************************
-***function hybrid_to_pres  - function to convert from hybrid to pressure
+***function hybrid_to_pres - function to convert from hybrid to pressure
 *                    WARNING : only good for normalized hybrid
 **********************************************************************
 *
-      integer function hybrid_to_pres(pressure,hybm,ptop,ps,NI,NJ,rcoef,
-     %                                                 pref,hyb,NK)
+      integer function hybrid_to_pres(pressure,hybm,ptop,ps,NI,NJ,
+     %                                rcoef,pref,hyb,NK)
 
       implicit none
       integer NI,NJ,NK
-      real pressure(NI*NJ,NK),ptop,ps(NI*NJ),rcoef,pref,hyb(NK),hybm(NK)
+      real pressure(NI*NJ,NK),ptop,ps(NI*NJ),rcoef,pref,hyb(NK)
+      real hybm(NK)
 *
 *author
 *     Vivian Lee/Michel Valin    Nov.28, 2001
 *
 *revision
-* Lee V. - warning added to routine (check for normalized versus unnormalized
-*                                    hybrid levels is absent)
+* Lee V. - warning added to routine (check for normalized versus
+*                                  unnormalized hybrid levels is absent)
 *
 *object
-*     To derive pressure fields and model hybrid levels (levels used by
-*     the model) from user-defined hybrid levels and the hybrid reference
-*     parameters(ptop,rcoef,pref)
+*    To derive pressure fields and model hybrid levels (levels used by
+*    the model) from user-defined hybrid levels and the hybrid reference
+*    parameters(ptop,rcoef,pref)
 *arguments
 * ________________________________________________________________
 *  Name        I/O      Description
@@ -261,7 +263,7 @@
 
       if (rcoef.lt.1.0.or.rcoef.gt.2.0) then
           print *,
-     $      'ERROR in hybrid_to_pres: rcoef must be between 1.0 and 2.0'
+     $     'ERROR in hybrid_to_pres: rcoef must be between 1.0 and 2.0'
           return
       endif
       if (pref .lt.400 .or. pref .gt.1050) then
@@ -428,7 +430,7 @@
 *
 **********************************************************************
 ***function read_decode_hyb - to read a FSTD record and then decode the
-*                                reference values for a hybrid coordinate
+*                               reference values for a hybrid coordinate
 **********************************************************************
 *
       integer function read_decode_hyb(iun,nom,ip2,ip3,etik,
@@ -463,7 +465,8 @@
 * pref          O       reference pressure in mb(normally = 800mb)
 * rcoef         O       coefficient (1.0 to 2.0)
 * ----------------------------------------------------------------
-* the function will return KEY of FSTD record upon success, a negative error code if there is an error
+* the function will return KEY of FSTD record upon success, a negative
+* error code if there is an error
 *
       integer  fstinf,fstprm,ig_to_hybref
       external fstinf,fstprm,ig_to_hybref
@@ -500,14 +503,15 @@
       else
           print *,'ERROR in read_decode_hyb:Record ',nom,
      $            ' of typvar X is not found'
-          read_decode_hyb = -2  !!! SPECIFIC error code if record not found
+          read_decode_hyb = -2 ! SPECIFIC error code if record not found
       endif
       return
       end
 *
 **********************************************************************
-***function write_encode_hyb - to encode hybrid reference values into the
-*                          IG* parameters and then write out the FSTD record
+***function write_encode_hyb - to encode hybrid reference values into
+*                              the IG* parameters and then write out
+*                              the FSTD record
 **********************************************************************
 *
       integer function write_encode_hyb(iun,nom,ip2,ip3,etik,date,
@@ -693,8 +697,8 @@
       end
 *
 **********************************************************************
-***function hyb_to_pres  - new function to convert from hybrid to pressure(mb)
-*                          which includes the kind value
+***function hyb_to_pres  - new function to convert from hybrid to
+*                          pressure(mb) which includes the kind value
 **********************************************************************
 *
       integer function hyb_to_pres(pressure,hyb,ptop,rcoef,pref,
@@ -714,8 +718,8 @@
 *      in case hybm_8(1) is not given!
 *
 *object
-*     To derive pressure fields from levels derived by "convip_plus", the
-*     kind value from the ip1 codes and the hybrid reference
+*     To derive pressure fields from levels derived by "convip_plus",
+*     the kind value from the ip1 codes and the hybrid reference
 *     parameters(ptop,rcoef,pref)
 *
 *arguments
@@ -879,7 +883,8 @@
       end
 *
 **********************************************************************
-***function sigma_to_pres  - function to convert from sigma to pressure(mb)
+***function sigma_to_pres  - function to convert from sigma to
+***                          pressure(mb)
 **********************************************************************
 *
       integer function sigma_to_pres(pressure,hybm,ps,NI,NJ,NK)

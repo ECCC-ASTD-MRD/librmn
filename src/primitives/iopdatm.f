@@ -62,7 +62,8 @@
       INTEGER ier, fnom, fclos
       CHARACTER* 10 IFFLG, IQUOI, IDNT
       CHARACTER * 128 DATAREP
-      EXTERNAL system_time, fnom, fclos, jdatec, datec, newdate, longueur
+      EXTERNAL system_time, fnom, fclos, jdatec, datec, newdate
+      EXTERNAL longueur
       INTEGER i1, i2
       character *26 upper, lower
 

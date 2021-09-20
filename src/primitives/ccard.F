@@ -40,38 +40,38 @@
 
 !ADAPTATION: JAMES CAVEEN
 
-!OBJET(CCARD)   -   RECUPERATION DES PARAMETRES D'APPEL A UN PROGRAMME
-!                   SI LE NOM D'UNE CLEF APPARAIT SEUL LORS DE LA SEQUENCE
-!                   D'APPEL, ON LUI ATTRIBUE LA VALEUR CONTENUE DANS DEF
-!                   SI LE NOM APPARAIT, SUIVI D'UNE OU DES VALEURS, ON LUI
-!                   ATTRIBUE CES VALEURS.  SINON, LA CLEF PREND POUR VALEUR
-!                   LE CONTENU INITIAL DE VAL.
+!OBJET(CCARD) - RECUPERATION DES PARAMETRES D'APPEL A UN PROGRAMME
+!               SI LE NOM D'UNE CLEF APPARAIT SEUL LORS DE LA SEQUENCE
+!               D'APPEL, ON LUI ATTRIBUE LA VALEUR CONTENUE DANS DEF
+!               SI LE NOM APPARAIT, SUIVI D'UNE OU DES VALEURS, ON LUI
+!               ATTRIBUE CES VALEURS.  SINON, LA CLEF PREND POUR VALEUR
+!               LE CONTENU INITIAL DE VAL.
 
-!                   ON PEUT DONNER UNE VALEUR A UNE CLEF DES FACONS
-!                   SUIVANTES:
+!               ON PEUT DONNER UNE VALEUR A UNE CLEF DES FACONS
+!               SUIVANTES:
 
-!                   -CLEF VALEUR
-!                   -CLEF VAL1:VAL2:VAL3:...
-!                   -CLEF 2:3:-4
-!                   -CLEF =-2:3:4
-!                   -CLEF =-22
-!                   -CLE=-22:33:...
+!               -CLEF VALEUR
+!               -CLEF VAL1:VAL2:VAL3:...
+!               -CLEF 2:3:-4
+!               -CLEF =-2:3:4
+!               -CLEF =-22
+!               -CLE=-22:33:...
 
-!                   LORS DE LA SEQUENCE D'APPEL, TOUS LES PARAMETRES
-!                   PRECEDANT LA PREMIERE CLEF RENCONTREE ET
-!                   SUIVANT LES SIGNES -- SONT TRAITES EN MODE POSITIONEL.
+!               LORS DE LA SEQUENCE D'APPEL, TOUS LES PARAMETRES
+!               PRECEDANT LA PREMIERE CLEF RENCONTREE ET
+!               SUIVANT LES SIGNES -- SONT TRAITES EN MODE POSITIONEL.
 
-!                   EXEMPLES D'UTILISATION:
+!               EXEMPLES D'UTILISATION:
 
-!                   PROGNOM -CLEF1 -CLEF2 VAL2 -- POS1 POS2
-!                   PROGNOM POS1 POS2 -CLEF1 -- POS3 POS4 ...
-!                   PROGNOM -CLEF1 =-12:33 -CLEF2 12 =-34
+!               PROGNOM -CLEF1 -CLEF2 VAL2 -- POS1 POS2
+!               PROGNOM POS1 POS2 -CLEF1 -- POS3 POS4 ...
+!               PROGNOM -CLEF1 =-12:33 -CLEF2 12 =-34
 
-!                   LORSQUE LE PREMIER PARAMETRE PASSE = -H/-h, CCARD IMPRIME
-!                   SUR L'UNITE 6 LA SEQUENCE D'APPEL AU PROGRAMME.
+!               LORSQUE LE PREMIER PARAMETRE PASSE = -H/-h, CCARD
+!               IMPRIME SUR L'UNITE 6 LA SEQUENCE D'APPEL AU PROGRAMME.
 
-!                   LA SEQUENCE D'APPEL ET LES VALEURS COURANTES DES CLEFS
-!                   SERONT IMPRIMEES S'IL Y A ERREUR LORS DE L'APPEL.
+!               LA SEQUENCE D'APPEL ET LES VALEURS COURANTES DES CLEFS
+!               SERONT IMPRIMEES S'IL Y A ERREUR LORS DE L'APPEL.
 
 
 !ARGUMENTS:
@@ -83,8 +83,8 @@
 !                               (I.E. ASSOCIES AUX CLEFS "-")
 !                            -  SI II > 0, ON RETOURNE LE NOMBRE DE
 !                               PARAMETRES POSITIONELS.
-!                            -  SI II = -111 ou +111, ON ARRETE DES LA PREMIERE
-!                               ERREUR
+!                            -  SI II = -111 ou +111, ON ARRETE DES LA
+!                               PREMIERE ERREUR
 !                            -  SI II <=0 & <> -111, ON NE RETOURNE PAS
 !                               LE NOMBRE D'ARGUMENTS POSITIONELS ET ON
 !                               CONTINUE MALGRE LES ERREURS
@@ -202,7 +202,8 @@
             IF (POSC .NE. 0 .AND. CLE(POS) .EQ. CLE(POSC)) THEN
               CALL QQQTRNS(ARGtemp,ARG,CLTYPE(POSC))
               VAL(POSC) = ARGtemp
-!              print *,'Debug+ ccard cle(posc)=',cle(posc),' ARGtemp=',trim(ARGtemp)
+!              print *,'Debug+ ccard cle(posc)=',cle(posc),' ARGtemp=',
+!    %                 trim(ARGtemp)
 !              print *,'Debug+ ccard val(posc)=',val(posc)
               write(keyname,109) '%%'//trim(cle(posc)),posc-pos,'%%'
               call c_set_appl_var(Keyname,ARGtemp)
@@ -397,15 +398,15 @@
 !AUTEUR          M. Lepine,  Fevrier 2003
 
 !OBJET(QQQOENV)
-!       FONCTION QUI PERMET D'ALLER CHERCHER LES ARGUMENTS D'UNE SEQUENCE
-!       D'APPEL A UN PROGRAMME ET D'EN EXTRAIRE LES NOMS DE CLEFS ET LES
-!       VALEURS A DONNER A CES CLEFS.
-!       LA FONCTION QQQOENV RETOURNE:
-!            - UNE VALEUR DE 1 SI ARG CONTIENT UN NOM DE CLEF
-!            - UNE VALEUR DE 2 SI ARG CONTIENT UNE VALEUR A DONNER A UNE CLEF
-!            - UNE VALEUR DE 3 SI ARG CONTIENT UN ARGUMENT POSITIONEL
-!            - UNE VALEUR DE 5 SI ON DEMANDE LA SEQUENCE D'APPEL
-!            - UNE VALEUR DE 0 LORSQUE TOUT EST FINI
+!  FONCTION QUI PERMET D'ALLER CHERCHER LES ARGUMENTS D'UNE SEQUENCE
+!  D'APPEL A UN PROGRAMME ET D'EN EXTRAIRE LES NOMS DE CLEFS ET LES
+!  VALEURS A DONNER A CES CLEFS.
+!  LA FONCTION QQQOENV RETOURNE:
+!       - UNE VALEUR DE 1 SI ARG CONTIENT UN NOM DE CLEF
+!       - UNE VALEUR DE 2 SI ARG CONTIENT UNE VALEUR A DONNER A UNE CLEF
+!       - UNE VALEUR DE 3 SI ARG CONTIENT UN ARGUMENT POSITIONEL
+!       - UNE VALEUR DE 5 SI ON DEMANDE LA SEQUENCE D'APPEL
+!       - UNE VALEUR DE 0 LORSQUE TOUT EST FINI
 
 !ARGUMENT:
 !         ARGP    SORTIE     NOM DE CLEF OU VALEUR RETOURNE
@@ -436,8 +437,8 @@
         endif
 
         c = ccard_args(pos:pos)
-        getarg: DO                            ! obtenir la prochaine cle, valeur
-          if ((pos > L) .or. (c .eq. ' ') .or. (c .eq. ':')) EXIT getarg
+        getarg: DO                    ! obtenir la prochaine cle, valeur
+          if ((pos > L) .or. (c .eq. ' ').or.(c .eq. ':')) EXIT getarg
           if ((c .ne. '''') .and. (c .ne. '"')) then
             arg(i:i) = c
             pos = pos +1
@@ -468,9 +469,9 @@
         if ((arg(1:1) .eq. '-') .and. (.not. pudcle)) then
            qqqoenv = 1           ! nom de cle
            ic = 2                ! position de copie apres '-'
-           if (arg(2:2) .eq. '-') then     ! -- passage en mode positionel
+           if (arg(2:2) .eq. '-') then   ! -- passage en mode positionel
               pudcle = .true.
-              goto 100                     ! prochain argument positionel
+              goto 100                    ! prochain argument positionel
            endif
         else
            if (pudcle) then                ! argument positionel
@@ -480,7 +481,7 @@
               qqqoenv = 2                  ! valeur
               ic = 1
            endif
-           if (arg(1:1) .eq. '=') ic = 2   ! passer le caractere d'escape
+           if (arg(1:1) .eq. '=') ic = 2  ! passer le caractere d'escape
         endif
         argp = arg(ic:indfin)
         if ((qqqoenv == 1) .and. (indfin == 2) .and.
@@ -488,7 +489,7 @@
      %  (arg(1:5) .eq. '-help') .or. (arg(1:5) .eq. '-HELP') )) then
           qqqoenv = 5                      ! sequence d'appel demande
         endif
-        pos = pos + 1          ! positionnement au debut du prochain argument
+        pos = pos + 1     ! positionnement au debut du prochain argument
 
         return
         end
@@ -539,11 +540,11 @@
 !                   ET LEUR PREMIERE ET DEUXIEME VALEUR DE DEFAUT.
 
 !ARGUMENTS:
-!        CLE      ENTREE  - TABLEAU CONTENANT LE NOM DES N CLEFS
-!        DEF      ENTREE  - TABLEAU CONTENANT LA DEUXIEME VALEUR DE DEFAUT
-!        VAL      ENTREE  - TABLEAU CONTENANT LA PREMIERE VALEUR DE DEFAUT
-!                           OU LA VALEUR COURANTE DE LA CLEF
-!        N        ENTREE  - NOMBRE DE CLEFS
+!      CLE      ENTREE  - TABLEAU CONTENANT LE NOM DES N CLEFS
+!      DEF      ENTREE  - TABLEAU CONTENANT LA DEUXIEME VALEUR DE DEFAUT
+!      VAL      ENTREE  - TABLEAU CONTENANT LA PREMIERE VALEUR DE DEFAUT
+!                         OU LA VALEUR COURANTE DE LA CLEF
+!      N        ENTREE  - NOMBRE DE CLEFS
 
 
         INTEGER LONGUEUR

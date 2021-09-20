@@ -52,7 +52,7 @@
 *   IN    - DGRW   - ANGLE ENTRE L'AXE X ET LE MERIDIEN DE GRENWICH
 *   IN    - HEM    - CODE D'HEMISPHERE  (1=NORD , 2=SUD)
 *
-*---------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       REAL LAMBDA
       integer HEM
