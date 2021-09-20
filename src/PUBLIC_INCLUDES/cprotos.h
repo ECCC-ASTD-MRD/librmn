@@ -192,6 +192,11 @@ void set_missing_value_mapping(int * what,int * datatype,void * processor_,int *
 
 
 // fstd98/fstd98.c
+int FstCanTranslateName(char * varname);
+int c_fst_data_length(int length_type);
+int c_fst_edit_dir(int handle,unsigned int date,int deet,int npas,int ni,int nj,int nk,int ip1,int ip2,int ip3,char * in_typvar,char * in_nomvar,char * in_etiket,char * in_grtyp,int ig1,int ig2,int ig3,int ig4,int datyp);
+int c_fst_edit_dir_plus(int handle,unsigned int date,int deet,int npas,int ni,int nj,int nk,int ip1,int ip2,int ip3,char * in_typvar,char * in_nomvar,char * in_etiket,char * in_grtyp,int ig1,int ig2,int ig3,int ig4,int datyp);
+int c_fst_version();
 int c_fstapp(int iun,char * option);
 int c_fstcheck(const char * filePath);
 int c_fstckp(int iun);
@@ -221,22 +226,17 @@ int c_fstskp(int iun,int nrec);
 int c_fstsui(int iun,int * ni,int * nj,int * nk);
 int c_fstvoi(int iun,char * options);
 int c_fstweo(int iun,int level);
-int c_fst_data_length(int length_type);
-int c_fst_edit_dir(int handle,unsigned int date,int deet,int npas,int ni,int nj,int nk,int ip1,int ip2,int ip3,char * in_typvar,char * in_nomvar,char * in_etiket,char * in_grtyp,int ig1,int ig2,int ig3,int ig4,int datyp);
-int c_fst_edit_dir_plus(int handle,unsigned int date,int deet,int npas,int ni,int nj,int nk,int ip1,int ip2,int ip3,char * in_typvar,char * in_nomvar,char * in_etiket,char * in_grtyp,int ig1,int ig2,int ig3,int ig4,int datyp);
-int c_fst_version();
 int c_ip1_all(float level,int kind);
 int c_ip1_val(float level,int kind);
 int c_ip2_all(float level,int kind);
 int c_ip2_val(float level,int kind);
 int c_ip3_all(float level,int kind);
 int c_ip3_val(float level,int kind);
-int FstCanTranslateName(char * varname);
 int init_ip_vals();
 int ip_is_equal(int target,int ip,int ind);
 void backto64(int32_t * field,int32_t * temp,int nelm);
-void c_fstreset_ip_flags();
 void c_fst_env_var(char * cle,int index,char * content);
+void c_fstreset_ip_flags();
 
 
 // fstd98/memcpy_16_32.c
@@ -874,6 +874,10 @@ void flush_stdout_();
 void flush_stdout__();
 
 
+// primitives/fmain2cmain.c
+- c_main(int argc,char ** argv);
+
+
 // primitives/fool_optimizer.c
 void fool_optimizer();
 void fool_optimizer_();
@@ -911,13 +915,13 @@ char * get_host_and_port(char * channel_file);
 char * get_server_host(char * channel);
 char * get_server_name(char * host_ip);
 int accept_from_sock(int fserver);
-int bind_sock_to_port(int s);
+int bind_sock_to_port(int sockfd);
 int bind_to_localport(int * port,char * buf,int maxbuf);
 int close_channel(int fclient,char * channel);
 int cmd_open();
 int connect_to_channel_by_name(char * name);
 int connect_to_channel_by_name_2(char * name,char * msg);
-int connect_to_hostport(char * target2);
+int connect_to_hostport(char * target);
 int connect_to_localport(int port);
 int connect_to_server();
 int connect_to_subchannel_by_name(char * channel,char * subchannel,char * mode);
@@ -941,7 +945,7 @@ int send_command(char * command);
 int send_command_to_server(int fserver,char * buf);
 int send_command_to_server2(int fclient,char * buffer);
 int set_host_and_port(char * channel_file,char * host_and_port);
-int set_sock_opt(int s);
+int set_sock_opt(int sockfd);
 int signal_timeout(int channel);
 int store_channel_data(char * buffer,int nbytes,char * file_name);
 int write_ft_nonblocking_socket(int fd,char * ptr,int n);
@@ -969,11 +973,11 @@ int exit_from_client(int fclient);
 int get_client_count();
 int is_exit_requested();
 void decrement_client_count();
-void exit_from_client_thread(EXTENDED_CLIENT_SLOT * client);
+void exit_from_client_thread(extendedClientSlot * client);
 void increment_client_count();
 void set_exit_requested();
 void start_client_module_2(void (* client_address)(),int client_uid,int client_pid,int fclient,char * command,void * data);
-void start_client_thread_2(void (* client_address)(EXTENDED_CLIENT_SLOT *),int client_uid,int client_pid,int fclient,char * command,void * data,void (* user_server)());
+void start_client_thread_2(void (* client_address)(extendedClientSlot *),int client_uid,int client_pid,int fclient,char * command,void * data,void (* user_server)());
 
 
 // primitives/gossip_timeout.c
@@ -1009,7 +1013,6 @@ void md5_update(md5_context * ctx,unsigned char * input,int ilen);
 
 
 // primitives/mgilib2.c
-int check_ends(char * s1,char * s2,int s1length,int s2length,int i);
 int mgi_get_retry_connect(int chan);
 int retry_connect(int chan);
 

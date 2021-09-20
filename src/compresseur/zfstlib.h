@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <rpnmacros.h>
+#include <bitPacking.h>
 
 #define   COMPRESS    1
 #define UNCOMPRESS    2
@@ -52,13 +53,9 @@ typedef union {
 } _floatint;
 
 
-#define stuffmore(token, availableWordPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord)  \
-{                                                                                                             \
-stuff(token, availableWordPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord);             \
-if (spaceInLastWord < wordSize )                                                                              \
-  {                                                                                                           \
-  *availableWordPtr = ( lastWordShifted << spaceInLastWord) | ( *availableWordPtr & ~(-1 << spaceInLastWord));                          \
-  }                                                                                                           \
-}                                                                                                             \
-
-
+#define stuffmore(token, availableWordPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord) {\
+    stuff(token, availableWordPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord);\
+    if (spaceInLastWord < wordSize ) {\
+        *availableWordPtr = ( lastWordShifted << spaceInLastWord) | ( *availableWordPtr & ~(-1 << spaceInLastWord));\
+    }\
+}

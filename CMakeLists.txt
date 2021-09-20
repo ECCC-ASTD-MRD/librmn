@@ -20,7 +20,7 @@ enable_language(C Fortran)
 include(ec_compiler_presets)
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
-include(OpenMP)
+include(ec_openmp)
 include(ec_doxygen)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
@@ -49,7 +49,7 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 ec_build_info()
 
 add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmn build_info)
+add_dependencies(rmn librmn_build_info)
 add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn)
 target_link_libraries(librmn_version rmn)

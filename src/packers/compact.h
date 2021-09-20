@@ -25,7 +25,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <math.h>
-#include "rmnlib.h"
 
 
 extern double f77name(f_pow)(double *base, int32_t *i);
@@ -333,7 +332,7 @@ void *compact_FLOAT_TYPE(
                     tempInt = (int64_t) (( arrayOfFloat[i] - minFloat ) * mulFactor) ;
                 }
 
-                stuff(tempInt, arrayPtr, wordSize, EffectivePackedTokenSize, lastWordShifted, spaceInLastWord)
+                stuff(tempInt, arrayPtr, wordSize, EffectivePackedTokenSize, lastWordShifted, spaceInLastWord);
             }
         }
 

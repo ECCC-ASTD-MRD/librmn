@@ -83,6 +83,18 @@
 #define tell64(fd) lseek(fd,0,1)
 #endif
 
+#define swap_word_endianness(mot) {\
+    register uint32_t tmp = (uint32_t)mot;\
+    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8);\
+}
+
+#define swap_buffer_endianness(buff, nwds) {\
+    uint32_t *buf=(uint32_t *)buff ;\
+    register int32_t nwords=nwds ;\
+    while(nwords--) { swap_word_endianness(*buf); buf++; };\
+}
+
+
 void static dump_file_entry(int i);
 static void reset_file_entry(int i);
 static int find_file_entry(char *caller, int iun);

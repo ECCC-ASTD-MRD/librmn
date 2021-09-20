@@ -22,8 +22,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <rmnlib.h>
-
+#include <bitPacking.h>
 
 
 
@@ -230,7 +229,7 @@
    packHeader[3] = max;                                                  \
                                                                          \
  };                                                                      \
-        
+
 /*******************************************************************
  *                                                                 *
  *  Objective : unpack an array                                    *
@@ -323,15 +322,15 @@
  *                                   3: signed pack                                            *
  *                                   4: signed unpack                                          *
  **********************************************************************************************/
-int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packedArrayOfInt, 
-                       int elementCount, int bitSizeOfPackedToken, int off_set, 
+int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packedArrayOfInt,
+                       int elementCount, int bitSizeOfPackedToken, int off_set,
                        int stride, int opCode)
 {
 
     typedef struct
     {
 #if defined(Little_Endian)
-      int32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
+      int32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8;
 #else
       int32_t ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
 #endif
@@ -346,7 +345,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     int32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     int32_t maxRange;
     int32_t maxSpan;
-   
+
 
     int positiveMask;
     int32_t *arrayOfUnsignedUnpacked;
@@ -356,7 +355,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
 
-    
+
 
     /****************************************
      *                                      *
@@ -366,7 +365,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     int lastPackBit, spaceInLastWord, lastSlot;
     int32_t lastWordShifted, tempInt;
     int32_t *packHeader;
-    
+
     /***************************************
      *                                     *
      *    variables used by the unpacker   *
@@ -391,18 +390,18 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      ********************************/
     /* token size is 0 */
     if ( bitSizeOfPackedToken == 0 )
-      { 
+      {
         return 0;
-      };  
+      };
 
 
 
 
 
-   
+
     /********************************************************
      *                                                      *
-     *    determine wordsize and others                     * 
+     *    determine wordsize and others                     *
      *                                                      *
      ********************************************************/
     wordSize                 = 8 * sizeof(int32_t);
@@ -413,7 +412,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     arrayOfPacked            = (int32_t  *)packedArrayOfInt;
     intCount                 = elementCount;
     cleanupMask              = ((int32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
-      
+
 
 
    if ( (opCode==1) || (opCode==3) )
@@ -421,7 +420,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      *                                              *
      *         collect info for the packing         *
      *                                              *
-     ***********************************************/   
+     ***********************************************/
    {
      if ( packedHeader != NULL )
        /*******************************************************************
@@ -431,12 +430,12 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
         *******************************************************************/
        {
          if ( opCode == 1 )
-           { 
+           {
              constructHeader(arrayOfUnsignedUnpacked, minUnsignedInteger, maxUnsignedInteger);
            }
          else
            {
-             constructHeader(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger); 
+             constructHeader(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger);
            }
       }
     else
@@ -457,11 +456,11 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
             if ( opCode == 3 )
               {
                 /* signed integer number */
-               
+
                 FindMinMax(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger);
 
-                maxSpan    = ( abs(minSignedInteger) > maxSignedInteger ) ? abs(minSignedInteger) : 
-                             maxSignedInteger;            
+                maxSpan    = ( abs(minSignedInteger) > maxSignedInteger ) ? abs(minSignedInteger) :
+                             maxSignedInteger;
               }
             else if (  opCode == 1 )
               {
@@ -471,9 +470,9 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
                 for(i=stride; i < intCount*stride ; i+=stride)
                   {
                     maxSpan |= arrayOfUnsignedUnpacked[i];
-                  }; 
+                  };
               };
-          
+
             /************************************************************
              *                                                          *
              *           derive bitSizeOfPackedToken                    *
@@ -495,7 +494,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
 
 
       };/* else */
-   } 
+   }
    else/* opCode == 2 or 4 */
     /************************************************
      *                                              *
@@ -506,7 +505,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
        if ( packHeader != NULL )
          {
            theHeader     = (integer_header *)packedHeader;
-           tokenSize     = theHeader->numOfBitsPerToken; 
+           tokenSize     = theHeader->numOfBitsPerToken;
            ShiftIntended = theHeader->SHIFT;
            intCount      = theHeader->numOfPackedToken;
            minSigned     = theHeader->minValue;
@@ -522,8 +521,8 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
            minUnsigned   = minUnsignedInteger;
          };
      };
- 
-   
+
+
 
    /**********************************************
     *                                            *
@@ -541,11 +540,11 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     **********************************************/
    if ( opCode == 1 )
      {
-       Pack(arrayOfUnsignedUnpacked, minUnsignedInteger); 
+       Pack(arrayOfUnsignedUnpacked, minUnsignedInteger);
      }
    else if ( opCode == 3 )
      {
-       Pack(arrayOfSignedUnpacked, minSignedInteger);     
+       Pack(arrayOfSignedUnpacked, minSignedInteger);
      }
    /***********************************************
     *                                             *
@@ -554,12 +553,12 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     **********************************************/
    else if ( opCode == 2 )
      {
-       Unpack(arrayOfUnsignedUnpacked, ShiftIntended, tokenSize, 
+       Unpack(arrayOfUnsignedUnpacked, ShiftIntended, tokenSize,
               minUnsigned, intCount);
      }
    else if ( opCode == 4 )
      {
-       Unpack(arrayOfSignedUnpacked, ShiftIntended, tokenSize, 
+       Unpack(arrayOfSignedUnpacked, ShiftIntended, tokenSize,
               minSigned, intCount);
      }
    else
@@ -567,9 +566,9 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
        printf("\n opCode:%d is not defined \n", opCode);
        return 0;
      };/* if */
- 
+
   return intCount;  /* unused, function must return something */
- 
+
 
 } /* end compact_integer */
 
@@ -593,15 +592,15 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
  *                                   7: signed short pack    (not implemented)                 *
  *                                   8: signed short unpack  (not implemented)                 *
  **********************************************************************************************/
-int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packedArrayOfInt, 
-                       int elementCount, int bitSizeOfPackedToken, int off_set, 
+int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packedArrayOfInt,
+                       int elementCount, int bitSizeOfPackedToken, int off_set,
                        int stride, int opCode)
 {
 
     typedef struct
     {
 #if defined(Little_Endian)
-      int32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
+      int32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8;
 #else
       int32_t ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
 #endif
@@ -616,7 +615,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     int32_t maxRange;
     int32_t maxSpan;
-   
+
 
     int positiveMask;
     unsigned short *arrayOfUnsignedShort;
@@ -625,7 +624,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
 
-    
+
 
     /****************************************
      *                                      *
@@ -635,7 +634,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int lastPackBit, spaceInLastWord, lastSlot;
     int32_t lastWordShifted, tempInt;
     int32_t *packHeader;
-    
+
     /***************************************
      *                                     *
      *    variables used by the unpacker   *
@@ -660,18 +659,18 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      ********************************/
     /* token size is 0 */
     if ( bitSizeOfPackedToken == 0 )
-      { 
+      {
         return 0;
-      };  
+      };
 
 
 
 
 
-   
+
     /********************************************************
      *                                                      *
-     *    determine wordsize and others                     * 
+     *    determine wordsize and others                     *
      *                                                      *
      ********************************************************/
     wordSize                 = 8 * sizeof(int32_t);
@@ -681,7 +680,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     arrayOfPacked            = (int32_t  *)packedArrayOfInt;
     intCount                 = elementCount;
     cleanupMask              = ((int32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
-      
+
 
 
    if (opCode==5)
@@ -689,7 +688,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      *                                              *
      *         collect info for the packing         *
      *                                              *
-     ***********************************************/   
+     ***********************************************/
    {
      if ( packedHeader != NULL )
        /*******************************************************************
@@ -723,9 +722,9 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
                 for(i=stride; i < intCount*stride ; i+=stride)
                   {
                     maxSpan |= arrayOfUnsignedShort[i];
-                  }; 
+                  };
               };
-          
+
             /************************************************************
              *                                                          *
              *           derive bitSizeOfPackedToken                    *
@@ -747,7 +746,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
 
 
       };/* else */
-   } 
+   }
    else/* opCode == 6 or 8 */
     /************************************************
      *                                              *
@@ -758,7 +757,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
        if ( packHeader != NULL )
          {
            theHeader     = (integer_header *)packedHeader;
-           tokenSize     = theHeader->numOfBitsPerToken; 
+           tokenSize     = theHeader->numOfBitsPerToken;
            ShiftIntended = theHeader->SHIFT;
            intCount      = theHeader->numOfPackedToken;
            minSigned     = theHeader->minValue;
@@ -774,8 +773,8 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
            minUnsigned   = minUnsignedInteger;
          };
      };
- 
-   
+
+
 
    /**********************************************
     *                                            *
@@ -793,7 +792,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     **********************************************/
    if ( opCode == 5 )
      {
-       Pack(arrayOfUnsignedShort, 0); 
+       Pack(arrayOfUnsignedShort, 0);
      }
    /***********************************************
     *                                             *
@@ -802,7 +801,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     **********************************************/
    else if ( opCode == 6 )
      {
-       Unpack(arrayOfUnsignedShort, ShiftIntended, tokenSize, 
+       Unpack(arrayOfUnsignedShort, ShiftIntended, tokenSize,
               0, intCount);
      }
    else
@@ -810,9 +809,9 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
        printf("\n opCode:%d is not defined \n", opCode);
        return 0;
      };/* if */
- 
+
   return intCount;  /* unused, function must return something */
- 
+
 
 } /* end compact_short */
 
@@ -834,15 +833,15 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
  *    IN      opCode                 9: unsigned char pack                                     *
  *                                  10: unsigned char unpack                                   *
  **********************************************************************************************/
-int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedArrayOfInt, 
-                       int elementCount, int bitSizeOfPackedToken, int off_set, 
+int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedArrayOfInt,
+                       int elementCount, int bitSizeOfPackedToken, int off_set,
                        int stride, int opCode)
 {
 
     typedef struct
     {
 #if defined(Little_Endian)
-      int32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
+      int32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8;
 #else
       int32_t ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
 #endif
@@ -857,7 +856,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     int32_t maxRange;
     int32_t maxSpan;
-   
+
 
     int positiveMask;
     unsigned char *arrayOfUnsignedChar;
@@ -866,7 +865,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
 
-    
+
 
     /****************************************
      *                                      *
@@ -876,7 +875,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int lastPackBit, spaceInLastWord, lastSlot;
     int32_t lastWordShifted, tempInt;
     int32_t *packHeader;
-    
+
     /***************************************
      *                                     *
      *    variables used by the unpacker   *
@@ -901,18 +900,18 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      ********************************/
     /* token size is 0 */
     if ( bitSizeOfPackedToken == 0 )
-      { 
+      {
         return 0;
-      };  
+      };
 
 
 
 
 
-   
+
     /********************************************************
      *                                                      *
-     *    determine wordsize and others                     * 
+     *    determine wordsize and others                     *
      *                                                      *
      ********************************************************/
     wordSize                 = 8 * sizeof(int32_t);
@@ -922,7 +921,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     arrayOfPacked            = (int32_t  *)packedArrayOfInt;
     intCount                 = elementCount;
     cleanupMask              = ((int32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
-      
+
 
 
    if (opCode==9)
@@ -930,7 +929,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      *                                              *
      *         collect info for the packing         *
      *                                              *
-     ***********************************************/   
+     ***********************************************/
    {
      if ( packedHeader != NULL )
        /*******************************************************************
@@ -964,9 +963,9 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
                 for(i=stride; i < intCount*stride ; i+=stride)
                   {
                     maxSpan |= arrayOfUnsignedChar[i];
-                  }; 
+                  };
               };
-          
+
             /************************************************************
              *                                                          *
              *           derive bitSizeOfPackedToken                    *
@@ -988,7 +987,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
 
 
       };/* else */
-   } 
+   }
    else/* opCode == 10 */
     /************************************************
      *                                              *
@@ -999,7 +998,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
        if ( packHeader != NULL )
          {
            theHeader     = (integer_header *)packedHeader;
-           tokenSize     = theHeader->numOfBitsPerToken; 
+           tokenSize     = theHeader->numOfBitsPerToken;
            ShiftIntended = theHeader->SHIFT;
            intCount      = theHeader->numOfPackedToken;
            minSigned     = theHeader->minValue;
@@ -1015,8 +1014,8 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
            minUnsigned   = minUnsignedInteger;
          };
      };
- 
-   
+
+
 
    /**********************************************
     *                                            *
@@ -1034,7 +1033,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     **********************************************/
    if ( opCode == 9 )
      {
-       Pack(arrayOfUnsignedChar, 0); 
+       Pack(arrayOfUnsignedChar, 0);
      }
    /***********************************************
     *                                             *
@@ -1043,7 +1042,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     **********************************************/
    else if ( opCode == 10 )
      {
-       Unpack(arrayOfUnsignedChar, ShiftIntended, tokenSize, 
+       Unpack(arrayOfUnsignedChar, ShiftIntended, tokenSize,
               0, intCount);
      }
    else
@@ -1051,9 +1050,9 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
        printf("\n opCode:%d is not defined \n", opCode);
        return 0;
      };/* if */
- 
+
   return intCount;  /* unused, function must return something */
- 
+
 
 } /* end compact_char */
 

@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include "rmnlib.h"
+#include <bitPacking.h>
 
 
 // Pack IEEE floating point numbers( float and double ) into a reduced bit size "IEEE" floating point numbers
@@ -191,7 +191,7 @@ void *compact_IEEEblock_FLOAT_TYPE(
                     if ( packedMantisaSize >= 24 ) {
                         packedMantisa = floatTemplate.M.mantis;
                     } else {
-                        packedMantisa=floatTemplate.M.mantis>>(24-packedMantisaSize);
+                        packedMantisa = floatTemplate.M.mantis >> (24-packedMantisaSize);
                     }
 
                     tempInt = packedSign << ( bitSizeOfPackedToken - 1) |
