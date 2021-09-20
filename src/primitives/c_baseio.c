@@ -2801,7 +2801,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   ier = system(remote_command);
 
   fflush(stdout);
-  FD_arrayZero(&rfds);
+  FD_ZERO(&rfds);
   FD_SET(fserver, &rfds);
   tv.tv_sec = 5;
   tv.tv_usec = 0;
