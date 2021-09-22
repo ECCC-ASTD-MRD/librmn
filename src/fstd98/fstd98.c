@@ -959,128 +959,140 @@ int c_fst_edit_dir_plus(
     int ig4,
     int datyp
 ) {
-  int index, width, pageno, recno;
-  int l1, l2, l3, l4;
-  file_table_entry *f;
-  int32_t *entry;
-  stdf_dir_keys *stdf_entry;
-  stdf_special_parms cracked;
-  char string[20];
-  char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-  char typvar[3]={' ', ' ', '\0'};
-  char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
-  char grtyp[2]={' ', '\0'};
+    int index, width, pageno, recno;
+    int l1, l2, l3, l4;
+    file_table_entry *f;
+    int32_t *entry;
+    stdf_dir_keys *stdf_entry;
+    stdf_special_parms cracked;
+    char string[20];
+    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+    char typvar[3] = {' ', ' ', '\0'};
+    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
+    char grtyp[2] = {' ', '\0'};
 
 
-  index = INDEX_FROM_HANDLE(handle);
+    index = INDEX_FROM_HANDLE(handle);
 
-  if ((index < 0) || (index >= MAX_XDF_FILES)) {
-    sprintf(errmsg, "invalid handle=%d", handle);
-    return error_msg("c_fst_edit_dir", ERR_BAD_HNDL, ERROR);
-  }
+    if ((index < 0) || (index >= MAX_XDF_FILES)) {
+        sprintf(errmsg, "invalid handle=%d", handle);
+        return error_msg("c_fst_edit_dir", ERR_BAD_HNDL, ERROR);
+    }
 
-  f = file_table[index];
+    f = file_table[index];
 
-  if (! f->cur_info->attr.std) {
-    sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
-    return error_msg("c_fst_edit_dir", ERR_NO_FILE, ERROR);
-  }
+    if (! f->cur_info->attr.std) {
+        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
+        return error_msg("c_fst_edit_dir", ERR_NO_FILE, ERROR);
+    }
 
-  if (f->xdf_seq) {
-    sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
-    return error_msg("c_fst_edit_dir", ERR_NO_FILE, ERROR);
-  }
+    if (f->xdf_seq) {
+        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
+        return error_msg("c_fst_edit_dir", ERR_NO_FILE, ERROR);
+    }
 
-  l1 = strlen(in_typvar);
-  l2 = strlen(in_nomvar);
-  l3 = strlen(in_etiket);
-  l4 = strlen(in_grtyp);
+    l1 = strlen(in_typvar);
+    l2 = strlen(in_nomvar);
+    l3 = strlen(in_etiket);
+    l4 = strlen(in_grtyp);
 
-  string_copy(typvar, in_typvar, l1);
-  string_copy(nomvar, in_nomvar, l2);
-  string_copy(etiket, in_etiket, l3);
-  string_copy(grtyp, in_grtyp, l4);
+    string_copy(typvar, in_typvar, l1);
+    string_copy(nomvar, in_nomvar, l2);
+    string_copy(etiket, in_etiket, l3);
+    string_copy(grtyp, in_grtyp, l4);
 
-  pageno = PAGENO_FROM_HANDLE(handle);
-  if (pageno > f->npages) {   /* page is not in current file */
-    sprintf(errmsg, "invalid handle, invalid page number\n");
-    return error_msg("c_fst_edit_dir", ERR_BAD_PAGENO, ERROR);
-  }
+    pageno = PAGENO_FROM_HANDLE(handle);
+    if (pageno > f->npages) {
+        /* page is not in current file */
+        sprintf(errmsg, "invalid handle, invalid page number\n");
+        return error_msg("c_fst_edit_dir", ERR_BAD_PAGENO, ERROR);
+    }
 
-  recno = RECORD_FROM_HANDLE(handle);
-/*  printf("Debug+ c_fst_edit_dir pageno=%d recno=%d\n", pageno, recno); */
-  width = W64TOWD(f->primary_len);
-  entry = (f->dir_page[pageno])->dir.entry + recno * width;
-  stdf_entry = (stdf_dir_keys *) entry;
+    recno = RECORD_FROM_HANDLE(handle);
+    /*  printf("Debug+ c_fst_edit_dir pageno=%d recno=%d\n", pageno, recno); */
+    width = W64TOWD(f->primary_len);
+    entry = (f->dir_page[pageno])->dir.entry + recno * width;
+    stdf_entry = (stdf_dir_keys *) entry;
 
-/*  stdf_entry->ni = ni; */
-/*  stdf_entry->nj = nj; */
-/*  stdf_entry->nk = nk; */
-  if (grtyp[0] != ' ') stdf_entry->gtyp = grtyp[0];
-/*  stdf_entry->datyp = datyp; */
+    if (grtyp[0] != ' ') stdf_entry->gtyp = grtyp[0];
 
-  if (deet != -1) stdf_entry->deet = deet;
-  if (npas != -1) stdf_entry->npas = npas;
-  if (ig1 != -1) stdf_entry->ig1 = ig1;
-  if (ig2 != -1) {
-    stdf_entry->ig2a = ig2 >> 16;
-    stdf_entry->ig2b = ig2 >> 8;
-    stdf_entry->ig2c = ig2 & 0xff;
-  }
-  if (ig3 != -1) stdf_entry->ig3 = ig3;
-  if (ig4 != -1) stdf_entry->ig4 = ig4;
-  if (strcmp(etiket, "            ") !=0 ) {
-    stdf_entry->etik15 =
-      (ascii6(etiket[0]) << 24) |
-      (ascii6(etiket[1]) << 18) |
-      (ascii6(etiket[2]) << 12) |
-      (ascii6(etiket[3]) <<  6) |
-      (ascii6(etiket[4]));
-    stdf_entry->etik6a =
-      (ascii6(etiket[5]) << 24) |
-      (ascii6(etiket[6]) << 18) |
-      (ascii6(etiket[7]) << 12) |
-      (ascii6(etiket[8])<<  6) |
-      (ascii6(etiket[9]));
-    stdf_entry->etikbc =
-      (ascii6(etiket[10]) <<  6) |
-      (ascii6(etiket[11]));
-  }
-  if (strcmp(typvar, "  ") != 0) {
-    stdf_entry->typvar =
-      (ascii6(typvar[0]) <<  6) |
-      (ascii6(typvar[1]));
-  }
-  if (strcmp(nomvar, "    ") != 0) {
-    stdf_entry->nomvar =
-      (ascii6(nomvar[0]) << 18) |
-      (ascii6(nomvar[1]) << 12) |
-      (ascii6(nomvar[2]) <<  6) |
-      (ascii6(nomvar[3]));
-  }
-/*  stdf_entry->levtyp = 0; */
-  if (ip1 != -1) stdf_entry->ip1 = ip1;
-  if (ip2 != -1) stdf_entry->ip2 = ip2;
-  if (ip3 != -1) stdf_entry->ip3 = ip3;
-  if (date != -1) stdf_entry->date_stamp = 8 * (date/10) + (date % 10);
+    if (deet != -1) stdf_entry->deet = deet;
+    if (npas != -1) stdf_entry->npas = npas;
+    if (ig1 != -1) stdf_entry->ig1 = ig1;
+    if (ig2 != -1) {
+        stdf_entry->ig2a = ig2 >> 16;
+        stdf_entry->ig2b = ig2 >> 8;
+        stdf_entry->ig2c = ig2 & 0xff;
+    }
+    if (ig3 != -1) stdf_entry->ig3 = ig3;
+    if (ig4 != -1) stdf_entry->ig4 = ig4;
+    if (strcmp(etiket, "            ") !=0 ) {
+        stdf_entry->etik15 =
+        (ascii6(etiket[0]) << 24) |
+        (ascii6(etiket[1]) << 18) |
+        (ascii6(etiket[2]) << 12) |
+        (ascii6(etiket[3]) <<  6) |
+        (ascii6(etiket[4]));
+        stdf_entry->etik6a =
+        (ascii6(etiket[5]) << 24) |
+        (ascii6(etiket[6]) << 18) |
+        (ascii6(etiket[7]) << 12) |
+        (ascii6(etiket[8])<<  6) |
+        (ascii6(etiket[9]));
+        stdf_entry->etikbc =
+        (ascii6(etiket[10]) <<  6) |
+        (ascii6(etiket[11]));
+    }
+    if (strcmp(typvar, "  ") != 0) {
+        stdf_entry->typvar =
+        (ascii6(typvar[0]) <<  6) |
+        (ascii6(typvar[1]));
+    }
+    if (strcmp(nomvar, "    ") != 0) {
+        stdf_entry->nomvar =
+        (ascii6(nomvar[0]) << 18) |
+        (ascii6(nomvar[1]) << 12) |
+        (ascii6(nomvar[2]) <<  6) |
+        (ascii6(nomvar[3]));
+    }
 
-  crack_std_parms(stdf_entry, &cracked);
-  sprintf(string, "%5d-", recno);
-  print_std_parms(stdf_entry, string, "NINJNK+DATEO+IP1+IG1234", 1);
-  f->dir_page[pageno]->modified = 1;
-  f->modified = 1;
-  return 0;
+    if (ip1 != -1) stdf_entry->ip1 = ip1;
+    if (ip2 != -1) stdf_entry->ip2 = ip2;
+    if (ip3 != -1) stdf_entry->ip3 = ip3;
+    if (date != -1) stdf_entry->date_stamp = 8 * (date/10) + (date % 10);
+
+    crack_std_parms(stdf_entry, &cracked);
+    sprintf(string, "%5d-", recno);
+    if (msg_level <= INFORM) {
+        print_std_parms(stdf_entry, string, "NINJNK+DATEO+IP1+IG1234", 1);
+    }
+    f->dir_page[pageno]->modified = 1;
+    f->modified = 1;
+    return 0;
 }
 
-
-int c_fst_edit_dir(int handle,
-                   unsigned int date, int deet, int npas,
-                   int ni, int nj, int nk,
-                   int ip1, int ip2, int ip3,
-                   char *in_typvar, char *in_nomvar, char *in_etiket,
-                   char *in_grtyp, int ig1, int ig2,
-                   int ig3, int ig4, int datyp)
-{
+//! Wrapper of \link c_fst_edit_dir_plus for backward compatibility
+int c_fst_edit_dir(
+    int handle,
+    unsigned int date,
+    int deet,
+    int npas,
+    int ni,
+    int nj,
+    int nk,
+    int ip1,
+    int ip2,
+    int ip3,
+    char *in_typvar,
+    char *in_nomvar,
+    char *in_etiket,
+    char *in_grtyp,
+    int ig1,
+    int ig2,
+    int ig3,
+    int ig4,
+    int datyp
+) {
   return c_fst_edit_dir_plus(handle, date, deet, npas, -1, -1, -1, ip1, ip2, ip3, in_typvar, in_nomvar, in_etiket, " ", ig1, ig2, ig3, ig4, -1);
 }
 
@@ -1231,184 +1243,192 @@ int c_fstinfx(
     //! [in] Variable name
     char *in_nomvar
 ) {
-  stdf_dir_keys *stdf_entry, *search_mask;
-  int32_t * pkeys, *pmask;
-  file_table_entry *f;
-  int i, index_fnom, index, index_h;
-  int addr, lng, idtyp, ier, l1, l2, l3;
-  unsigned int u_datev=datev;
+    stdf_dir_keys *stdf_entry, *search_mask;
+    int32_t * pkeys, *pmask;
+    file_table_entry *f;
+    int i, index_fnom, index, index_h;
+    int addr, lng, idtyp, ier, l1, l2, l3;
+    unsigned int u_datev = datev;
 
-  char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '
-                   , '\0'};
-  char typvar[3]={' ', ' ', '\0'};
-  char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
+    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+    char typvar[3] = {' ', ' ', '\0'};
+    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
 
-  l1 = strlen(in_etiket);
-  l2 = strlen(in_typvar);
-  l3 = strlen(in_nomvar);
+    l1 = strlen(in_etiket);
+    l2 = strlen(in_typvar);
+    l3 = strlen(in_nomvar);
 
-  string_copy(etiket, in_etiket, l1);
-  string_copy(typvar, in_typvar, l2);
-  string_copy(nomvar, in_nomvar, l3);
-  if (msg_level < INFORM)
-    fprintf(stdout, "Debug fstinf iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n", iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    string_copy(etiket, in_etiket, l1);
+    string_copy(typvar, in_typvar, l2);
+    string_copy(nomvar, in_nomvar, l3);
+    if (msg_level < INFORM) {
+        fprintf(stdout, "Debug fstinf iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n", iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    }
 
-  index_fnom = fnom_index(iun);
-  if (index_fnom == -1) {
-    sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-    return error_msg("c_fstinf", ERR_NO_FNOM, ERROR);
-  }
+    index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
+        return error_msg("c_fstinf", ERR_NO_FNOM, ERROR);
+    }
 
-  if ((index = file_index(iun)) == ERR_NO_FILE) {
-    sprintf(errmsg, "file (unit=%d) is not open", iun);
-    return error_msg("c_fstinf", ERR_NO_FILE, ERROR);
-  }
+    if ((index = file_index(iun)) == ERR_NO_FILE) {
+        sprintf(errmsg, "file (unit=%d) is not open", iun);
+        return error_msg("c_fstinf", ERR_NO_FILE, ERROR);
+    }
 
-  f = file_table[index];
+    f = file_table[index];
 
-  stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-  search_mask = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    search_mask = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
 
-  pkeys = (int32_t *) stdf_entry;
-  pmask = (int32_t *) search_mask;
+    pkeys = (int32_t *) stdf_entry;
+    pmask = (int32_t *) search_mask;
 
-  for (i = 0; i < (sizeof(stdf_dir_keys) / sizeof(int32_t)); i++)
-    pmask[i] = -1;
+    for (i = 0; i < (sizeof(stdf_dir_keys) / sizeof(int32_t)); i++) {
+        pmask[i] = -1;
+    }
 
-  search_mask->pad1 = 0;
-  search_mask->pad2 = 0;
-  search_mask->pad3 = 0;
-  search_mask->pad4 = 0;
-  search_mask->pad5 = 0;
-  search_mask->pad6 = 0;
-  search_mask->pad7 = 0;
-  search_mask->deleted = 0;
-  search_mask->select = 0;
-  search_mask->lng = 0;
-  search_mask->addr = 0;
-  search_mask->deet = 0;
-  search_mask->nbits = 0;
-  search_mask->ni = 0;
-  search_mask->gtyp = 0;
-  search_mask->nj = 0;
-  search_mask->datyp = 0;
-  search_mask->nk = 0;
-  search_mask->ubc = 0;
-  search_mask->npas = 0;
-  search_mask->ig4 = 0;
-  search_mask->ig2a = 0;
-  search_mask->ig1 = 0;
-  search_mask->ig2b = 0;
-  search_mask->ig3 = 0;
-  search_mask->ig2c = 0;
-  search_mask->levtyp = 0;
+    search_mask->pad1 = 0;
+    search_mask->pad2 = 0;
+    search_mask->pad3 = 0;
+    search_mask->pad4 = 0;
+    search_mask->pad5 = 0;
+    search_mask->pad6 = 0;
+    search_mask->pad7 = 0;
+    search_mask->deleted = 0;
+    search_mask->select = 0;
+    search_mask->lng = 0;
+    search_mask->addr = 0;
+    search_mask->deet = 0;
+    search_mask->nbits = 0;
+    search_mask->ni = 0;
+    search_mask->gtyp = 0;
+    search_mask->nj = 0;
+    search_mask->datyp = 0;
+    search_mask->nk = 0;
+    search_mask->ubc = 0;
+    search_mask->npas = 0;
+    search_mask->ig4 = 0;
+    search_mask->ig2a = 0;
+    search_mask->ig1 = 0;
+    search_mask->ig2b = 0;
+    search_mask->ig3 = 0;
+    search_mask->ig2c = 0;
+    search_mask->levtyp = 0;
 
-  stdf_entry->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
-  search_mask->date_stamp &= ~(0x7);
-  if (datev == -1) search_mask->date_stamp = 0;
+    stdf_entry->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
+    search_mask->date_stamp &= ~(0x7);
+    if (datev == -1) search_mask->date_stamp = 0;
 
-  stdf_entry->ip1 = ip1;
-  if ((ip1 == -1) || (ip1s_flag)) search_mask->ip1 = 0;
+    stdf_entry->ip1 = ip1;
+    if ((ip1 == -1) || (ip1s_flag)) search_mask->ip1 = 0;
 
-  stdf_entry->ip2 = ip2;
-  if ((ip2 == -1) || (ip2s_flag)) search_mask->ip2 = 0;
+    stdf_entry->ip2 = ip2;
+    if ((ip2 == -1) || (ip2s_flag)) search_mask->ip2 = 0;
 
-  stdf_entry->ip3 = ip3;
-  if ((ip3 == -1) || (ip3s_flag)) search_mask->ip3 = 0;
+    stdf_entry->ip3 = ip3;
+    if ((ip3 == -1) || (ip3s_flag)) search_mask->ip3 = 0;
 
-  stdf_entry->nomvar = (ascii6(nomvar[0]) << 18) |
-                       (ascii6(nomvar[1]) << 12) |
-                       (ascii6(nomvar[2]) <<  6) |
-                       (ascii6(nomvar[3]));
-  if (stdf_entry->nomvar == 0) search_mask->nomvar = 0;
+    stdf_entry->nomvar = (ascii6(nomvar[0]) << 18) |
+                        (ascii6(nomvar[1]) << 12) |
+                        (ascii6(nomvar[2]) <<  6) |
+                        (ascii6(nomvar[3]));
+    if (stdf_entry->nomvar == 0) search_mask->nomvar = 0;
 
-  stdf_entry->typvar = (ascii6(typvar[0]) << 6) |
-                       (ascii6(typvar[1]));
-  if (stdf_entry->typvar == 0) search_mask->typvar = 0;
+    stdf_entry->typvar = (ascii6(typvar[0]) << 6) |
+                        (ascii6(typvar[1]));
+    if (stdf_entry->typvar == 0) search_mask->typvar = 0;
 
-  stdf_entry->etik15 = (ascii6(etiket[0]) << 24) |
-                       (ascii6(etiket[1]) << 18) |
-                       (ascii6(etiket[2]) << 12) |
-                       (ascii6(etiket[3]) <<  6) |
-                       (ascii6(etiket[4]));
+    stdf_entry->etik15 = (ascii6(etiket[0]) << 24) |
+                        (ascii6(etiket[1]) << 18) |
+                        (ascii6(etiket[2]) << 12) |
+                        (ascii6(etiket[3]) <<  6) |
+                        (ascii6(etiket[4]));
 
-  stdf_entry->etik6a = (ascii6(etiket[5]) << 24) |
-                       (ascii6(etiket[6]) << 18) |
-                       (ascii6(etiket[7]) << 12) |
-                       (ascii6(etiket[8]) <<  6) |
-                       (ascii6(etiket[9]));
+    stdf_entry->etik6a = (ascii6(etiket[5]) << 24) |
+                        (ascii6(etiket[6]) << 18) |
+                        (ascii6(etiket[7]) << 12) |
+                        (ascii6(etiket[8]) <<  6) |
+                        (ascii6(etiket[9]));
 
-  stdf_entry->etikbc = (ascii6(etiket[10]) <<  6) |
-                       (ascii6(etiket[11]));
+    stdf_entry->etikbc = (ascii6(etiket[10]) <<  6) |
+                        (ascii6(etiket[11]));
 
-  if ((stdf_entry->etik15 == 0) && (stdf_entry->etik6a == 0)) {
-    search_mask->etik15 = 0;
-    search_mask->etik6a = 0;
-    search_mask->etikbc = 0;
-  }
-  pkeys += W64TOWD(1);
-  pmask += W64TOWD(1);
-  if (handle == -2)  /* means handle not specified */
-    if (f->xdf_seq)
-      handle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
-    else
-      handle = c_xdfloc2(iun, 0, pkeys, 16, pmask);
-  else {
-    if (handle > 0) {
-      index_h = INDEX_FROM_HANDLE(handle);
-      if (index_h != index) {
-        sprintf(errmsg, "invalid handle=%d, or iun=%d", handle, iun);
+    if ((stdf_entry->etik15 == 0) && (stdf_entry->etik6a == 0)) {
+        search_mask->etik15 = 0;
+        search_mask->etik6a = 0;
+        search_mask->etikbc = 0;
+    }
+    pkeys += W64TOWD(1);
+    pmask += W64TOWD(1);
+    if (handle == -2) {
+        /* means handle not specified */
+        if (f->xdf_seq) {
+            handle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
+        } else {
+            handle = c_xdfloc2(iun, 0, pkeys, 16, pmask);
+        }
+    } else {
+        if (handle > 0) {
+            index_h = INDEX_FROM_HANDLE(handle);
+            if (index_h != index) {
+                sprintf(errmsg, "invalid handle=%d, or iun=%d", handle, iun);
+                free(stdf_entry);
+                free(search_mask);
+                return error_msg("c_fstinfx", ERR_BAD_HNDL, ERROR);
+            }
+        }
+        handle = c_xdfloc2(iun, handle, pkeys, 16, pmask);
+    }
+
+    if (handle < 0) {
+        if (msg_level == TRIVIAL) {
+            fprintf(stdout, "c_fstinf: (unit=%d) record not found, errcode=%d\n", iun, handle);
+        }
+        if (ip1s_flag || ip2s_flag || ip3s_flag) ier = init_ip_vals();
         free(stdf_entry);
         free(search_mask);
-        return error_msg("c_fstinfx", ERR_BAD_HNDL, ERROR);
-      }
+        return handle;
     }
-    handle = c_xdfloc2(iun, handle, pkeys, 16, pmask);
-  }
+    ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
 
-  if (handle < 0) {
-    if (msg_level == TRIVIAL)
-      fprintf(stdout, "c_fstinf: (unit=%d) record not found, errcode=%d\n",
-              iun, handle);
-    if (ip1s_flag || ip2s_flag || ip3s_flag) ier = init_ip_vals();
+    if (ip1s_flag || ip2s_flag || ip3s_flag) {
+        int nomatch = 1;
+        while ((handle >=  0) && (nomatch)) {
+            nomatch = 0;
+            if ((ip1s_flag) && (ip1 >= 0)) {
+                if (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0) {
+                    nomatch = 1;
+                } else if ((ip2s_flag) && (ip2 >= 0)) {
+                    if (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0) {
+                        nomatch = 1;
+                    } else if ((ip3s_flag) && (ip3 >= 0)) {
+                        if (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0) {
+                            nomatch = 1;
+                        }
+                    }
+                }
+            }
+            if (nomatch) {
+                handle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
+                if (handle >= 0) ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
+            }
+        }
+    }
+    if (ip1s_flag || ip2s_flag || ip3s_flag) {
+        /* arranger les masques de recherches pour un fstsui */
+        if (ip1s_flag) search_mask->ip1 = 0xFFFFFFF;
+        if (ip2s_flag) search_mask->ip2 = 0xFFFFFFF;
+        if (ip3s_flag) search_mask->ip3 = 0xFFFFFFF;
+        f->build_primary(f->target, pkeys, f->cur_mask, pmask, index, 1);
+        ier = init_ip_vals();
+    }
+    *ni = stdf_entry->ni;
+    *nj = stdf_entry->nj;
+    *nk = stdf_entry->nk;
     free(stdf_entry);
     free(search_mask);
     return handle;
-  }
-  ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
-
-  if (ip1s_flag || ip2s_flag || ip3s_flag) {
-    int nomatch = 1;
-    while ((handle >=  0) && (nomatch)) {
-      nomatch = 0;
-      if ((ip1s_flag) && (ip1 >= 0))
-        if (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0)
-          nomatch = 1;
-        else if ((ip2s_flag) && (ip2 >= 0))
-           if (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0)
-             nomatch = 1;
-           else if ((ip3s_flag) && (ip3 >= 0))
-             if (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0)
-              nomatch = 1;
-      if (nomatch) {
-        handle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
-        if (handle >= 0) ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
-      }
-    } /* end while */
-  }
-  if (ip1s_flag || ip2s_flag || ip3s_flag) {   /* arranger les masques de recherches pour un fstsui */
-    if (ip1s_flag) search_mask->ip1 = 0xFFFFFFF;
-    if (ip2s_flag) search_mask->ip2 = 0xFFFFFFF;
-    if (ip3s_flag) search_mask->ip3 = 0xFFFFFFF;
-    f->build_primary(f->target, pkeys, f->cur_mask, pmask, index, 1);
-    ier = init_ip_vals();
-  }
-  *ni = stdf_entry->ni;
-  *nj = stdf_entry->nj;
-  *nk = stdf_entry->nk;
-  free(stdf_entry);
-  free(search_mask);
-  return handle;
 }
 
 
