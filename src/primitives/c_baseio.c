@@ -77,7 +77,8 @@
 #include "fnom.h"
 #include "wafile.h"
 
-#define MAXTYPE 256
+//! Maximum length of the type string for fnom
+#define FNOM_TYPE_MAX 256
 
 // _SC_HOST_NAME_MAX is defined by POSIX in unistd.h
 #ifdef _SC_HOST_NAME_MAX
@@ -689,7 +690,7 @@ int32_t f77name(fnom)(
     int lrec = *flrec;
     int liun = *iun;
     char filename[PATH_MAX + 1];
-    char filetype[MAXTYPE + 1];
+    char filetype[FNOM_TYPE_MAX + 1];
 
     int lng = (l1 <= PATH_MAX) ? l1 : PATH_MAX;
 
@@ -703,7 +704,7 @@ int32_t f77name(fnom)(
         filename[lng] = '\0';
     }
 
-    lng = (l2 <= MAXTYPE) ? l2 : MAXTYPE;
+    lng = (l2 <= FNOM_TYPE_MAX) ? l2 : FNOM_TYPE_MAX;
     /*  copy file type into a C string  */
     strncpy(filetype, type, lng);
     filetype[lng] = '\0';
