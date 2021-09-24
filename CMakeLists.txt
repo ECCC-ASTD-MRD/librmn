@@ -2,7 +2,7 @@
 # sufficient
 cmake_minimum_required(VERSION 3.16)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_rpn)
 include(ec_init)
 ec_git_version()
 
@@ -58,27 +58,27 @@ target_link_libraries(librmn_version rmn)
 # the definitions and options as if we it was processing a source file
 
 # We need to creat a file here because gfortran won't process a file nammmed *.hf
-file(GLOB GMM_HEADER_DEPS ${CMAKE_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_SOURCE_DIR}/src/gmm/*.hf)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 "#include <gmm.hf>\n")
+file(GLOB GMM_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.hf)
 add_custom_command(
     TARGET rmn
     POST_BUILD
-    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
+    COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf > ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     COMMENT "Generating gmm.hf"
-    MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/gmm/gmm.hf
+    MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf
     DEPENDS ${GMM_HEADER_DEPS}
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     USES_TERMINAL
 )
 
-file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_SOURCE_DIR}/src/whiteboard/*.hf)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 "#include <WhiteBoard.hf>\n")
+file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
     TARGET rmn
     POST_BUILD
-    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/src/whiteboard -P -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
+    COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard -P -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     COMMENT "Generating WhiteBoard.hf"
-    MAIN_DEPENDENCY ${CMAKE_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
+    MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
     DEPENDS ${WHITEBOARD_HEADER_DEPS}
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     USES_TERMINAL
@@ -87,12 +87,12 @@ add_custom_command(
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
 list(APPEND PROJECT_INCLUDE_FILES
-    ${CMAKE_SOURCE_DIR}/include/rmnlib.h
-    ${CMAKE_SOURCE_DIR}/include/rpnmacros.h
-    ${CMAKE_SOURCE_DIR}/include/rpnmacros_global.h
-    ${CMAKE_SOURCE_DIR}/include/ftn2c_helper.h
-    ${CMAKE_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
-    ${CMAKE_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rmnlib.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros_global.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/ftn2c_helper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
 
 
@@ -103,7 +103,7 @@ install(TARGETS rmn librmn_version)
 
 add_custom_target(
     cprotos
-    ${CMAKE_SOURCE_DIR}/extractProtos.bash ${CMAKE_SOURCE_DIR}/src ${PROJECT_C_FILES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/extractProtos.bash ${CMAKE_CURRENT_SOURCE_DIR}/src ${PROJECT_C_FILES}
     #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Extract function prototypes from C source code"
 )
