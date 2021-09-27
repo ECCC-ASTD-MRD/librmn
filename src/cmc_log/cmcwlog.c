@@ -27,14 +27,16 @@
 #endif /* __STDC_VERSION__ */
 
 
-#include <rpnmacros.h>
-#include "envrecv.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+
+#include <rpnmacros.h>
+#include <gossip.h>
+#include "envrecv.h"
 
 static int setfp();
 
@@ -64,12 +66,12 @@ int c_cmcwlog3(
     time_t cloc,time();
     clock_t cpuclock;
     clock_t clock();
-    mode_t mask=umask(0);
 
     if (msgno > 9999) msgno = 9999;
     if (msgno < 0) msgno = 0;
 
 
+    // mode_t mask = umask(0);
     // fprintf(stderr,"file=%s, id=%s, msgno=%d, cl=%s, txt=%s, umask=%d\n",filen,id,msgno,cl,txt,mask);
     // Make sure that there are valid id and text arguments
     if ( id == NULL || txt == NULL ) {
@@ -170,7 +172,7 @@ int c_cmcwlog2B(
 
         // Connect to server, specified by channel_name or @host:port
         snprintf(buffer, (sizeof buffer) - 1, "%s", pivot);
-        fserver = connect_to_channel_by_name(pivot); 
+        fserver = connect_to_channel_by_name(pivot);
         if (fserver < 0) {
             fprintf(stderr, "Error while connecting to %s\n", buffer);
             return 4;

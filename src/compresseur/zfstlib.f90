@@ -1,31 +1,17 @@
-! 
-!=============================================================================
-  subroutine ibicubic_int4(izo,ni,nj,step,ajus_x,ajus_y)
+subroutine ibicubic_int4(izo, ni, nj, step, ajus_x, ajus_y)
   implicit none
-  integer ni,nj,step,ajus_x,ajus_y
-  integer izo(ni,nj)
-  real*8 one, two,three,six, third, sixth,half,my_half
-  real*8 z,z12,z21,z22,z23,z24,z32,z42,fac1,fac2,unsurfac2
-  integer i,j,iref,jref,nimax,njmax,nilim,njlim
-  parameter (one = 1.0D0)
-  parameter (two = 2.0D0)
-  parameter (three = 3.0D0)
-  parameter (six = 6.0D0)
-  parameter (sixth = one/six)
-  parameter (third = one/three)
-  parameter (half = 0.5D0)
-  parameter (my_half = 0.5001D0)
-  parameter (fac1 = 108.0D0) 
-  parameter (fac2 = 1944.0D0) 
-  parameter (unsurfac2 = 1.0D0/fac2) 
+  integer :: ni, nj, step, ajus_x, ajus_y
+  integer, dimension(ni, nj) :: izo
+  real*8 z, z12, z21, z22, z23, z24, z32, z42, fac1, fac2, unsurfac2
+  integer i, j, iref, jref, nimax, njmax, nilim, njlim
+  parameter (fac1 = 108.0D0)
+  parameter (fac2 = 1944.0D0)
+  parameter (unsurfac2 = 1.0D0/fac2)
   real*8 icubic, dx, dy, z1, z2, z3, z4
   integer my_nint
-!  cubic(z1,z2,z3,z4,dx)=((((z4-z1)*sixth + 0.5*(z2-z3))*dx  + 0.5*(z1+z3)-z2)*dx  + z3-sixth*z4-0.5*z2-third*z1)*dx+z2
-  icubic(z1,z2,z3,z4,dx)=z2+(dx*(6*(dx*(2*(dx*((z4-z1)+3*(z2-z3)))+18*((z1+z3)-2*z2)))+fac1*(6*z3-z4-3*z2-2*z1)))*unsurfac2
-!  icubic1(z1,z2,z3,z4)=z2+(1*(6*(1*(2*(1*((z4-z1)+3*(z2-z3)))+18*((z1+z3)-2*z2)))+fac1*(6*z3-z4-3*z2-2*z1)))/fac2
-!  icubic2(z1,z2,z3,z4)=z2+(2*(6*(2*(2*(2*((z4-z1)+3*(z2-z3)))+18*((z1+z3)-2*z2)))+fac1*(6*z3-z4-3*z2-2*z1)))/fac2
-  my_nint(z)=(z+sign(my_half,z))
-!  nimax = min(ni-ajus_x,ni-2)
+  icubic(z1, z2, z3, z4, dx) = z2 + (dx*(6*(dx*(2*(dx*((z4-z1)+3*(z2-z3)))+18*((z1+z3)-2*z2))) + fac1 * (6*z3-z4-3*z2-2*z1))) * unsurfac2
+  my_nint(z) = (z + sign(0.5001D0, z))
+
   if (ajus_x == 0) then
     nimax = ni - 3
     nilim = nimax - 3
@@ -53,19 +39,15 @@
       z22 = dble(izo(iref,j ))
       z32 = dble(izo(iref+step,j  ))
       z42 = dble(izo(min(ni,iref+2*step),j  ))
-!     m=0, n=0
-!     m=1, n=0
       dx = dble(i+1-iref)
-!      izo(i+1,j)=my_nint(cubic(z12,z22,z32,z42,dx)) 
       izo(i+1,j)=my_nint(icubic(z12,z22,z32,z42,dx))
-!     m=2, n=0
       dx = dble(i+2-iref)
       izo(i+2,j)=my_nint(icubic(z12,z22,z32,z42,dx))
      enddo
   enddo
   if (ajus_x == 2) then
     do j=1,nj-ajus_y,step
-      izo(ni-1,j)=my_nint(half*(dble(izo(ni,j))+dble(izo(ni-2,j))))
+      izo(ni-1,j)=my_nint(0.5D0*(dble(izo(ni,j))+dble(izo(ni-2,j))))
     enddo
   endif
   do j=0,ajus_y
@@ -75,16 +57,13 @@
       z22 = dble(izo(iref,nj-j ))
       z32 = dble(izo(iref+step,nj-j  ))
       z42 = dble(izo(min(ni,iref+2*step),nj-j))
-!     m=0, n=0
-!     m=1, n=0
       dx = dble(i+1-iref)
       izo(i+1,nj-j)=my_nint(icubic(z12,z22,z32,z42,dx))
-!     m=2, n=0
       dx = dble(i+2-iref)
       izo(i+2,nj-j)=my_nint(icubic(z12,z22,z32,z42,dx))
      enddo
     if (ajus_x == 2) then
-       izo(ni-1,nj-j)=my_nint(half*(dble(izo(ni,nj-j))+dble(izo(ni-2,nj-j))))
+       izo(ni-1,nj-j)=my_nint(0.5D0*(dble(izo(ni,nj-j))+dble(izo(ni-2,nj-j))))
     endif
   enddo
   do j=1,njmax,step
@@ -94,23 +73,22 @@
       z22 = dble(izo(i,jref  ))
       z23 = dble(izo(i,jref+step))
       z24 = dble(izo(i,min(nj,jref+2*step)))
-!     m=0, n=1
       dy = dble(j+1-jref)
       izo(i,j+1)=my_nint(icubic(z21,z22,z23,z24,dy))
-!     m=0, n=2
       dy = (dble(j+2-jref))
       izo(i,j+2)=my_nint(icubic(z21,z22,z23,z24,dy))
      enddo
   enddo
   if (ajus_y == 2) then
     do i=1,ni
-      izo(i,nj-1)=my_nint(half*(dble(izo(i,nj))+dble(izo(i,nj-2))))
+      izo(i,nj-1)=my_nint(0.5D0*(dble(izo(i,nj))+dble(izo(i,nj-2))))
     enddo
   endif
   return
-  end
-!=============================================================================
-  subroutine ibicubic_int3(izo,ni,nj,izc,nic,njc,step)
+end
+
+
+subroutine ibicubic_int3(izo,ni,nj,izc,nic,njc,step)
   implicit none
   integer ni,nj,nic,njc,step
   integer izo(ni,nj)
@@ -152,53 +130,38 @@
       z42 = dble(zc(i+2,j  ))
       z43 = dble(zc(i+2,j+1))
       z44 = dble(zc(i+2,j+2))
-!     m=0, n=0
-!       dy = 0.0
-!       dx = 0.0
-!       y1=cubic(z11,z21,z31,z41,dx)
-!       y2=cubic(z12,z22,z32,z42,dx)
-!       y3=cubic(z13,z23,z33,z43,dx)
-!       y4=cubic(z14,z24,z34,z44,dx)
       izo(step*(ic-1)+1,step*(jc-1)+1)=nint(z22)
-!     m=1, n=0
       dy = 0
       dx = third
       y2=cubic(z12,z22,z32,z42,dx)
       izo(step*(ic-1)+2,step*(jc-1)+1)=nint(y2)
-!     m=2, n=0
       dx = 2.0 * third
       y2=cubic(z12,z22,z32,z42,dx)
       izo(step*(ic-1)+3,step*(jc-1)+1)=nint(y2)
-!     m=0, n=1
       dy = third
       dx = 0.0
       izo(step*(ic-1)+1,step*(jc-1)+2)=nint(cubic(z21,z22,z23,z24,dy))
-!     m=1, n=1
       dx = third
       y1=cubic(z11,z21,z31,z41,dx)
       y2=cubic(z12,z22,z32,z42,dx)
       y3=cubic(z13,z23,z33,z43,dx)
       y4=cubic(z14,z24,z34,z44,dx)
       izo(step*(ic-1)+2,step*(jc-1)+2)=nint(cubic(y1,y2,y3,y4,dy))
-!     m=2, n=1
       dx = 2.0 * third
       y1=cubic(z11,z21,z31,z41,dx)
       y2=cubic(z12,z22,z32,z42,dx)
       y3=cubic(z13,z23,z33,z43,dx)
       y4=cubic(z14,z24,z34,z44,dx)
       izo(step*(ic-1)+3,step*(jc-1)+2)=nint(cubic(y1,y2,y3,y4,dy))
-!     m=0, n=2
       dy = 2.0*third
       dx = 0.0
       izo(step*(ic-1)+1,step*(jc-1)+3)=nint(cubic(z21,z22,z23,z24,dy))
-!     m=1, n=2
       dx = third
       y1=cubic(z11,z21,z31,z41,dx)
       y2=cubic(z12,z22,z32,z42,dx)
       y3=cubic(z13,z23,z33,z43,dx)
       y4=cubic(z14,z24,z34,z44,dx)
       izo(step*(ic-1)+2,step*(jc-1)+3)=nint(cubic(y1,y2,y3,y4,dy))
-!     m=2, n=2
       dx = 2.0 * third
       y1=cubic(z11,z21,z31,z41,dx)
       y2=cubic(z12,z22,z32,z42,dx)
@@ -208,8 +171,9 @@
      enddo
   enddo
   return
-  end
-!=============================================================================
+end
+
+
 subroutine fill_coarse_grid(zc, nicoarse, njcoarse, z, ni, nj, istep)
   implicit none
   integer nicoarse, njcoarse, ni, nj, istep
@@ -243,6 +207,8 @@ subroutine fill_coarse_grid(zc, nicoarse, njcoarse, z, ni, nj, istep)
      zc(1,njcoarse) = z(1,nj)
   endif
 end subroutine fill_coarse_grid
+
+
 subroutine fill_coarse_nodes(z, ni, nj, zc, nicoarse, njcoarse, istep)
   implicit none
   integer nicoarse, njcoarse, ni, nj, istep
@@ -264,6 +230,8 @@ subroutine fill_coarse_nodes(z, ni, nj, zc, nicoarse, njcoarse, istep)
      return
   endif
 end subroutine fill_coarse_nodes
+
+
 subroutine fill_last_colrows(px, py, z, ni, nj, nicoarse, njcoarse, istep)
   implicit none
   integer ni,nj,nicoarse,njcoarse, istep, z(ni,nj)
@@ -305,5 +273,5 @@ subroutine fill_last_colrows(px, py, z, ni, nj, nicoarse, njcoarse, istep)
      enddo
   enddo
 !  print *, 'coin complete...'
-  return	
+  return
 end subroutine fill_last_colrows

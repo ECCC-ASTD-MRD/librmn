@@ -835,8 +835,8 @@ int c_xdfcls(
 ) {
     int index, index_fnom, i, j, lng64, width, open_mode;
     file_table_entry *f;
-    xdf_dir_page * curpage;
-    uint32_t * check32, checksum;
+    xdf_dir_page *curpage;
+    uint32_t *check32, checksum;
     int32_t *entry;
     xdf_record_header *rec;
 
@@ -1899,7 +1899,7 @@ int c_xdfopn(
         stdf_struct_RND header_rnd;
         rnd_dir_keys *directory;
         stdf_dir_keys *stdf_entry;
-        xdf_dir_page * curpage;
+        xdf_dir_page *curpage;
 
         c_waread(unit, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {

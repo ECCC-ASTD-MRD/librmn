@@ -506,8 +506,7 @@ int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
       }
       Requests[set_nb].dates.nelm = 2;
     }
-    dbprint(stddebug, "Debug Requests[%d].dates.data[%d] = %d\n", set_nb, i,
-           Requests[set_nb].dates.data[i]);
+    dbprint(stddebug, "Debug Requests[%d].dates.data[%d] = %d\n", set_nb, i, Requests[set_nb].dates.data[i]);
   }
   return(0);
 error:
@@ -680,7 +679,6 @@ int ReadRequestTable(char *filename)
   int nvalues;
   int a[100];
   int i, j;
-  int nx[7];
   char gtyp;
   int rvd; /* range, value, delta */
   int dex ; /* desire / exclure */
@@ -902,7 +900,6 @@ return 0; /*CHC/NRC*/
  *****************************************************************************/
 static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
 {
-  int amatch=0;
   int mode = -1;   /* IP to P, KIND conversion */
   int i, ip, kind1, kind2, kind3;
   float p0, p1, p2, p3, delta, modulo, error;
@@ -997,15 +994,13 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
                      int ip1, int ip2, int ip3, char *typvar, char *nomvar, char *etiket,
                      char *grtyp, int ig1, int ig2, int ig3, int ig4)
 {
-  int i, j, set_nb, last_in_use;
-  int mode=-1, flag=0;
-  int ip_kind, amatch=0;
+  int i, set_nb, last_in_use;
+  int amatch = 0;
   int debut, fin, date;
   double diff_deb, diff_fin, delta8, remainder;
   char *desire_exclure;
   int translatable;
-  int supp_ok;       /* supplementary parameters match */
-  int nb_desire=0;
+  int nb_desire = 0;
 
   if(package_not_initialized) {
     fprintf(stderr, "INFO: C_fstmatch_parm, initializing request tables \n");
@@ -1229,7 +1224,7 @@ int C_fstmatch_req(int handle)
 {
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
-  int nbits, swa, ubc, lng, dltf, datevalid, xtra1, xtra2, xtra3, datyp;
+  int nbits, swa, ubc, lng, dltf, datevalid, xtra2, xtra3, datyp;
   char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
   char typvar[3]={' ', ' ', '\0'};
   char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
@@ -1254,7 +1249,7 @@ int C_fst_match_req(int handle)
 {
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
-  int nbits, swa, ubc, lng, dltf, datevalid, xtra1, xtra2, xtra3, datyp;
+  int nbits, swa, ubc, lng, dltf, datevalid, xtra2, xtra3, datyp;
   char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
   char typvar[3]={' ', ' ', '\0'};
   char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
@@ -1288,37 +1283,37 @@ int C_fst_match_req(int handle)
 int C_select_ip1(void *iplist, int nelm)
 {
 /*CHC/NRC*/
-	return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, nelm);
+  return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, nelm);
 }
 
 int C_select_ip2(void *iplist, int nelm)
 {
 /*CHC/NRC*/
-	return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, nelm);
+  return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, nelm);
 }
 
 int C_select_ip3(void *iplist, int nelm)
 {
 /*CHC/NRC*/
-	return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, nelm);
+  return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, nelm);
 }
 
 int C_select_date(int set_nb, int des_exc, int *date_list, int nelm)
 {
 /*CHC/NRC*/
-	return Xc_Select_date(bundle_nb, desire_exclure, date_list, nelm);
+  return Xc_Select_date(bundle_nb, desire_exclure, date_list, nelm);
 }
 
 int C_select_etiquette(char *etiq_list[], int nelm)
 {
 /*CHC/NRC*/
-	return Xc_Select_etiquette(bundle_nb, desire_exclure, etiq_list, nelm);
+  return Xc_Select_etiquette(bundle_nb, desire_exclure, etiq_list, nelm);
 }
 
 int C_select_nomvar(char *nomv_list[], int nelm)
 {
 /*CHC/NRC*/
-	return Xc_Select_nomvar(bundle_nb, desire_exclure, nomv_list, nelm);
+  return Xc_Select_nomvar(bundle_nb, desire_exclure, nomv_list, nelm);
 }
 
 int C_select_typvar(char *typv_list[], int nelm)
@@ -1440,13 +1435,13 @@ int f77name(f_select_typvar)(char *typv_list, int *nelm, F2Cl flng)
 int f77name(f_filtre_desire)()
 {
 /*CHC/NRC*/
-	return C_filtre_desire();
+  return C_filtre_desire();
 }
 
 int f77name(f_filtre_exclure)()
 {
 /*CHC/NRC*/
-	return C_filtre_exclure();
+  return C_filtre_exclure();
 }
 
 int f77name(f_fst_match_req)(int *handle)
@@ -1549,28 +1544,26 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
  *****************************************************************************/
 void C_requetes_init(char *requetes_filename, char *debug_filename)
 {
-  int i, j, ier;
+    /*  debug_filename = getenv("DEBUGFILE"); */
+    if (debug_filename != NULL)
+        stddebug = fopen(debug_filename, "w");
+    else
+        stddebug = fopen("/dev/null", "w");
 
-/*  debug_filename = getenv("DEBUGFILE"); */
-  if (debug_filename != NULL)
-    stddebug = fopen(debug_filename, "w");
-  else
-    stddebug = fopen("/dev/null", "w");
-
-  first_R = 0;
-  last_R = MAX_requetes-1;
-  bundle_nb = -1;
-  desire_exclure = 1;
-  for (i=0; i<MAX_requetes; i++) {
-    C_requetes_reset(i, 0, 0, 0, 0, 0, 0, 0);
-  }
+    first_R = 0;
+    last_R = MAX_requetes-1;
+    bundle_nb = -1;
+    desire_exclure = 1;
+    for (int i = 0; i < MAX_requetes; i++) {
+        C_requetes_reset(i, 0, 0, 0, 0, 0, 0, 0);
+    }
 #ifdef NO_LONGER_USED
-  /* requetes_filename = getenv("FST_FILTER_FILE"); */
-  if (requetes_filename != NULL)
-    ier = C_requetes_read_file(requetes_filename);
+    /* requetes_filename = getenv("FST_FILTER_FILE"); */
+    if (requetes_filename != NULL)
+        ier = C_requetes_read_file(requetes_filename);
 #endif
-  dbprint(stderr, "INFO: (C_requetes_init) request table initialized \n");
-  package_not_initialized = 0;
+    dbprint(stderr, "INFO: (C_requetes_init) request table initialized \n");
+    package_not_initialized = 0;
 }
 
 /*****************************************   start of deprecated code *****************************************/
@@ -1593,31 +1586,31 @@ int Directive_ip123(int argc , char **argv, char cmd_strt,  void *func(), char *
     printf("argument # %d-->%s<-- \n", i, argv[i]); */
 
   set_nb = bundle_nb;
-	des_exc = desire_exclure;
+  des_exc = desire_exclure;
   if ((strncasecmp(argv[1], "asis", 3) == 0) || (strncasecmp(argv[1], "telquel", 3) == 0))
-  	kind = -1;
+    kind = -1;
   else if ((strncasecmp(argv[1], "height", 3) == 0) || (strncasecmp(argv[1], "hauteur", 3) ==0))
-  	kind = 0;
+    kind = 0;
   else if (strncasecmp(argv[1], "sigma", 3) == 0)
-  	kind = 1;
+    kind = 1;
   else if (strncasecmp(argv[1], "pression", 3) == 0)
-  	kind = 2;
+    kind = 2;
   else if (strncasecmp(argv[1], "arbitraire", 3) == 0)
-  	kind = 3;
+    kind = 3;
   else if ((strncasecmp(argv[1], "ground", 3) == 0) || (strncasecmp(argv[1], "sol", 3) ==0))
-  	kind = 4;
+    kind = 4;
   else if (strncasecmp(argv[1], "hybride", 3) == 0)
-  	kind = 5;
+    kind = 5;
   else if (strncasecmp(argv[1], "theta", 3) == 0)
-  	kind = 6;
+    kind = 6;
   else if ((strncasecmp(argv[1], "temps", 3) == 0) || (strncasecmp(argv[1], "time", 3) == 0))
-  	kind = 10;
+    kind = 10;
   else if (strncasecmp(argv[1], "galchen", 3) == 0)
-  	kind = 21;
+    kind = 21;
   else if (strncasecmp(argv[1], "kind_", 5) == 0)
     kind = atoi(argv[1]+5);
   else {
-  	printf("Directive_ip123 error: unknown kind =%s\n", argv[1]);
+    printf("Directive_ip123 error: unknown kind =%s\n", argv[1]);
     kind = -1;
     }
 
@@ -1746,13 +1739,13 @@ int Directive_datev(int argc , char **argv, char cmd_strt,  void *func(), char *
   if (argc > 1) {
     sscanf(argv[1], "[%d]", &nelm);
     if (((nelm % 2) != 0) && (nelm != 5)) {
-    	printf("Directive_datev error: visual date format list must contain an even number of date elements\n");
+      printf("Directive_datev error: visual date format list must contain an even number of date elements\n");
       return(-1);
       }
     offset=2;
   }
   else {
-  	printf("Directive_datev error: visual date format list must contain an even number of date elements\n");
+    printf("Directive_datev error: visual date format list must contain an even number of date elements\n");
     return(-1);
   }
 
@@ -1803,7 +1796,7 @@ int Directive_charvar(int argc , char **argv, char cmd_strt,  void *func(), char
 /*  for (i=0;i<=argc;i++)
     printf("argument # %d-->%s<-- \n", i, argv[i]); */
 
-	set_nb = bundle_nb;
+  set_nb = bundle_nb;
   des_exc = desire_exclure;
 
   if (argc > 1) {
@@ -1820,7 +1813,7 @@ int Directive_charvar(int argc , char **argv, char cmd_strt,  void *func(), char
   string_array = allocate_string_array(nelm);
   for (i=0; i<nelm; i++) {
     if ((*argv[i+offset] == '\'') || (*argv[i+offset] == '"')) {
-    	*(argv[i+offset]+strlen(argv[i+offset])-1) = '\0';
+      *(argv[i+offset]+strlen(argv[i+offset])-1) = '\0';
       argv[i+offset]++;
     }
     string_array[i] = malloc(12 * sizeof(char));
@@ -1843,9 +1836,9 @@ int Directive_charvar(int argc , char **argv, char cmd_strt,  void *func(), char
  *****************************************************************************/
 int Directive_desire(int argc , char **argv, char cmd_strt,  void *func(), char *Private_Data_2)
 {
-	func();
+  func();
 /*CHC/NRC*/
-	return 0;
+  return 0;
 }
 
 /*****************************************************************************
@@ -1857,9 +1850,9 @@ int Directive_desire(int argc , char **argv, char cmd_strt,  void *func(), char 
  *****************************************************************************/
 int Directive_exclure(int argc , char **argv, char cmd_strt,  void *func(), char *Private_Data_2)
 {
-	func();
+  func();
 /*CHC/NRC*/
-	return 0;
+  return 0;
 }
 
 /*****************************************************************************
@@ -1898,7 +1891,7 @@ return 0;
   rpn_c_callback("exclure", Directive_exclure, "", C_filtre_exclure, pv2);
   process_c_callback(requetes_file);
 
-	return 0; /*CHC/NRC*/
+  return 0; /*CHC/NRC*/
 }
 
 #endif

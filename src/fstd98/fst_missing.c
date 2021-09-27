@@ -628,10 +628,9 @@ static int fld_ubyte_anal(unsigned char *z, int n , unsigned char *zmax, unsigne
 static void fst_double_decode_missing(double *z, int n)  /* float values */
 {
   double zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_double_anal(z,n,&zma,&zmi);
+  fld_double_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=double_missing_val ; z++ ; } /* float values */
   return;
 }
@@ -639,10 +638,9 @@ static void fst_double_decode_missing(double *z, int n)  /* float values */
 static void fst_float_decode_missing(float *z, int n)  /* float values */
 {
   float zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_float_anal(z,n,&zma,&zmi);
+  fld_float_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=float_missing_val ; z++ ; } /* float values */
   return;
 }
@@ -650,10 +648,8 @@ static void fst_float_decode_missing(float *z, int n)  /* float values */
 static void fst_int_decode_missing(int *z, int n)  /* signed ints */
 {
   int zma, zmi;
-  int notused;
 
-  if(missing_value_used()==0) return;
-  notused = fld_int_anal(z,n,&zma,&zmi);
+  if(missing_value_used()==0) return;fld_int_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=int_missing_val ; z++ ; }
   return;
 }
@@ -661,10 +657,9 @@ static void fst_int_decode_missing(int *z, int n)  /* signed ints */
 static void fst_short_decode_missing(short *z, int n) /* signed shorts */
 {
   short zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_short_anal(z,n,&zma,&zmi);
+  fld_short_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=short_missing_val ; z++ ; } /* signed shorts */
   return;
 }
@@ -672,10 +667,9 @@ static void fst_short_decode_missing(short *z, int n) /* signed shorts */
 static void fst_byte_decode_missing(signed char *z, int n) /* signed bytes */
 {
   signed char zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_byte_anal(z,n,&zma,&zmi);
+  fld_byte_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=byte_missing_val ; z++ ; } /* signed bytes */
   return;
 }
@@ -683,10 +677,9 @@ static void fst_byte_decode_missing(signed char *z, int n) /* signed bytes */
 static void fst_uint_decode_missing(unsigned int *z, int n) /* unsigned integers */
 {
   unsigned int zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_uint_anal(z,n,&zma,&zmi);
+  fld_uint_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=uint_missing_val ; z++ ; } /* unsigned integers */
   return;
 }
@@ -694,10 +687,9 @@ static void fst_uint_decode_missing(unsigned int *z, int n) /* unsigned integers
 static void fst_ushort_decode_missing(unsigned short *z, int n) /* unsigned shorts */
 {
   unsigned short zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_ushort_anal(z,n,&zma,&zmi);
+  fld_ushort_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=ushort_missing_val ; z++ ;  } /* unsigned shorts */
   return;
 }
@@ -705,10 +697,9 @@ static void fst_ushort_decode_missing(unsigned short *z, int n) /* unsigned shor
 static void fst_ubyte_decode_missing(unsigned char *z, int n) /* unsigned bytes */
 {
   unsigned char zma, zmi;
-  int notused;
 
   if(missing_value_used()==0) return;
-  notused = fld_ubyte_anal(z,n,&zma,&zmi);
+  fld_ubyte_anal(z,n,&zma,&zmi);
   while(n--) { if(*z==zma) *z=ubyte_missing_val ; z++ ;  } /* unsigned bytes */
   return;
 }

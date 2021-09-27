@@ -2769,7 +2769,7 @@ int c_fstvoi(
 ) {
    int index, index_fnom, i, j, width, nrec, nw, end_of_file;
    file_table_entry* file_entry;
-   xdf_dir_page* curpage;
+   xdf_dir_page *curpage;
    int32_t* entry;
    stdf_dir_keys* stdf_entry;
    seq_dir_keys* seq_entry;

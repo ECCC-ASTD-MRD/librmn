@@ -9,7 +9,6 @@
 int  c_armn_compress32(unsigned char *, float *, int, int, int, int);
 int  c_armn_uncompress32(float *fld, unsigned char *zstream, int ni, int nj, int nk, int nchiffres_sign);
 int  c_fstzip32(unsigned int *zfld, unsigned int *fld, int ni, int nj, int nk, int step, int nbits, int remaining_space);
-int  c_fstzip_parallelogram32(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int step, int nbits, int32_t *header);
 int  f77name(armn_compress32)(unsigned char *, float *, int *, int *, int *, int *);
 int  f77name(armn_uncompress32)(float *fld, unsigned char *zstream, int *ni, int *nj, int *nk, int *nchiffres_sign);
 void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);
@@ -287,8 +286,16 @@ int f77name(armn_uncompress32)(float *fld, unsigned char *zstream, int *ni, int 
 }
 
 
-int c_armn_uncompress32(float *fld, unsigned char *zstream, int ni, int nj, int nk, int znbits)
-{
+int c_armn_uncompress32(
+    float *fld,
+    unsigned char *zstream,
+    int ni,
+    int nj,
+    //! \deprecated This isnt' used
+    int nk,
+    //! \deprecated This isnt' used
+    int znbits
+) {
     _fstzip zfstzip;
     int saut, zlng;
     int nbits_mantisse, nbits;
@@ -338,7 +345,7 @@ int c_armn_uncompress32(float *fld, unsigned char *zstream, int ni, int nj, int 
                 signe[i] = 0;
             }
         } else {
-            for (int i = 0; i < npts; i++) {
+            for (unsigned int i = 0; i < npts; i++) {
                 signe[i] = 1;
             }
         }
@@ -430,17 +437,25 @@ int c_fstzip32(unsigned int *zfld, unsigned int *fld, int ni, int nj, int nk, in
 }
 
 
-
-void packTokensParallelogram32(unsigned int z[], int *zlng, unsigned int ufld[], int ni, int nj, int istep, int nbits, int remaining_space)
-{
+void packTokensParallelogram32(
+        unsigned int z[],
+        int *zlng,
+        unsigned int ufld[],
+        int ni,
+        int nj,
+        int istep,
+        int nbits,
+        int remaining_space
+) {
     _floatint r_lmax;
     int *ufld_dst;
-    int k22, nbits2;
+    int k22;
     int lcl_m, lcl_n;
     int local_max;
     unsigned int *cur;
     unsigned int k;
     unsigned int lastWordShifted, spaceInLastWord, lastSlot;
+    unsigned int nbits2;
     unsigned int lcl, nbits_needed;
     unsigned int nbits_req_container, token;
 
@@ -612,12 +627,13 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
 {
     float rlog2;
     int *ufld_dst;
-    int k22, nbits2;
+    int k22;
     int lcl_m, lcl_n;
     int local_max;
     unsigned int *cur;
     unsigned int k;
     unsigned int lastWordShifted, spaceInLastWord, lastSlot;
+    unsigned int nbits2;
     unsigned int lcl, nbits_needed;
     unsigned int nbits_req_container, token;
 
@@ -687,7 +703,7 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
                 if (local_max < 256) {
                     nbits_needed = fastlog[local_max];
                 } else {
-                    nbits_needed = 8 + fastlog[local_max>>8];
+                    nbits_needed = 8 + fastlog[local_max >> 8];
                 }
             }
             stuff(nbits_needed, cur, 32, nbits_req_container, lastWordShifted, spaceInLastWord);
@@ -869,8 +885,13 @@ void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int
 }
 
 
-void unpack1bitRLE(unsigned char ufld[], unsigned int z[], unsigned int *zlng,  int npts)
-{
+void unpack1bitRLE(
+    unsigned char ufld[],
+    unsigned int z[],
+    //! \deprecated Not used
+    unsigned int *zlng,
+    int npts
+) {
     unsigned int *cur = z;
     unsigned int seq_type, val, last_val;
     int count, limite;

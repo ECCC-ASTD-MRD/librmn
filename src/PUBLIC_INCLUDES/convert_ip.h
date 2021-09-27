@@ -29,7 +29,7 @@ KIND = 4, hauteur (M) par rapport au niveau du sol    (-20,000 -> 100,000)
 KIND = 5, coordonnee hybride        (0.0 -> 1.0)
 KIND = 6, coordonnee theta (1 -> 200,000)
 KIND =10, temps en heure    (0.0 -> 200,000.0)
-KIND =15, reserve (entiers)        
+KIND =15, reserve (entiers)
 KIND =17, indice x de la matrice de conversion (1.0 -> 1.0e10)
           (partage avec kind=1 a cause du range exclusif
 KIND =21, p est en metres-pression  (partage avec kind=5 a cause du range exclusif)
@@ -53,8 +53,11 @@ typedef struct { /* if v1 == v2, it is not a range but a single value */
   int kind;      /* kind of value (see table above) */
 } ip_info;
 
-static ip_info invalid_ip_info={0.0,0.0,-1};
+//! \deprecated Is this used by anyone?
+static ip_info invalid_ip_info = {0.0, 0.0, -1};
+//! \deprecated Is this used by anyone?
 #define NULL_ip_info &invalid_ip_info
+
 #define INIT_ip_info(a) {(a).v1 = 0.0; (a).v2 = 0.0; (a).kind =-1 ;};
 
 /* see fortran module convert_ip123.f90 for quick documentation of arguments */

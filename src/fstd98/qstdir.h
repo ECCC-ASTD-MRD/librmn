@@ -393,6 +393,8 @@ typedef struct full_dir_page {
     struct full_dir_page* prev_page;
     int modified;
     int true_file_index;
+    //! \bug warning: invalid use of structure with flexible array member
+    // GCC doen't like this!  It probably works as expected, but it generates a warning when compiling
     xdf_dir_page dir;
 } full_dir_page;
 
