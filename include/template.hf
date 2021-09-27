@@ -1,3 +1,6 @@
+#ifndef TEMPLATE_HF
+#define TEMPLATE_HF
+
 !> @file This file is meant to be included only from Fortran source code.
 !> It defines macros used for generic programming in Fortran.  It deal with the
 !> secifics of concatenation for different compilers
@@ -12,3 +15,5 @@
 #endif
 
 #define NAMEA(name) CAT(name,_a)
+
+#endif
