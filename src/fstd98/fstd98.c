@@ -43,6 +43,7 @@
 
 #include <bitPacking.h>
 #include <fstd98.h>
+#include <armn_compress.h>
 
 #define Max_Ipvals 50
 
@@ -3922,54 +3923,53 @@ int32_t f77name(fstfrm)(int32_t *f_iun)
 }
 
 
-/*****************************************************************************
- *                              F S T I N F                                  *
- *                                                                           *
- *Object                                                                     *
- *   Locate the next record that matches the research keys.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  iun     unit number associated to the file                           *
- *  OUT ni      dimension 1 of the data field                                *
- *  OUT nj      dimension 2 of the data field                                *
- *  OUT nk      dimension 3 of the data field                                *
- *  IN  datev   valid date                                                   *
- *  IN  etiket  label                                                        *
- *  IN  ip1     vertical level                                               *
- *  IN  ip2     forecast hour                                                *
- *  IN  ip3     user defined identifier                                      *
- *  IN  typvar  type of field                                                *
- *  IN  nomvar  variable name                                                *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstinf)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
-                        int32_t *f_nk, int32_t *f_datev, char *f_etiket,
-                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
-                        char *f_typvar, char *f_nomvar,
-                        F2Cl ll1, F2Cl ll2, F2Cl ll3)
-{
-  int iun = *f_iun, datev=*f_datev, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
-  int ier, ni, nj, nk;
-  int l1=ll1, l2=ll2, l3=ll3;
+//! Locate the next record that matches the research keys
+int32_t f77name(fstinf)(
+    //! [in] Unit number associated to the file
+    int32_t *f_iun,
+    //! [out] Dimension 1 of the data field
+    int32_t *f_ni,
+    //! [out] Dimension 2 of the data field
+    int32_t *f_nj,
+    //! [out] Dimension 3 of the data field
+    int32_t *f_nk,
+    //! [in] Validity date
+    int32_t *f_datev,
+    //! [in] Label
+    char *f_etiket,
+    //! [in] Vertical level
+    int32_t *f_ip1,
+    //! [in] Forecast hour
+    int32_t *f_ip2,
+    //! [in] User defined identifier
+    int32_t *f_ip3,
+    //! [in] Type of field
+    char *f_typvar,
+    //! [in] Variable name
+    char *f_nomvar,
+    //! [in] Fortran hidden string length for 1st string
+    F2Cl ll1,
+    //! [in] Fortran hidden string length for 1st string
+    F2Cl ll2,
+    //! [in] Fortran hidden string length for 1st string
+    F2Cl ll3
+) {
+    int32_t iun = *f_iun;
+    int32_t datev = *f_datev;
+    int32_t ip1 = *f_ip1;
+    int32_t ip2 = *f_ip2;
+    int32_t ip3 = *f_ip3;
+    int l1 = ll1, l2 = ll2, l3 = ll3;
 
-  char etiket[13];
-  char typvar[3];
-  char nomvar[5];
+    char etiket[13];
+    char typvar[3];
+    char nomvar[5];
 
-/*  l1 = (l1 < 12) ? l1 :12;           /* etiket length */
-/*  l2 = (l2 < 2) ? l2 : 2;            /* typvar length */
-/*  l3 = (l3 < 4) ? l3 : 4;            /* nomvar length */
+    str_cp_init(etiket, 13, f_etiket, l1);
+    str_cp_init(typvar, 3, f_typvar, l2);
+    str_cp_init(nomvar, 5, f_nomvar, l3);
 
-  str_cp_init(etiket, 13, f_etiket, l1);
-  str_cp_init(typvar, 3, f_typvar, l2);
-  str_cp_init(nomvar, 5, f_nomvar, l3);
-
-  ier = c_fstinf(iun, &ni, &nj, &nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
-  *f_ni = (int32_t) ni;
-  *f_nj = (int32_t) nj;
-  *f_nk = (int32_t) nk;
-  return (int32_t) ier;
+    return (int32_t) c_fstinf(iun, f_ni, f_nj, f_nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 }
 
 
@@ -4413,28 +4413,19 @@ int32_t f77name(fstlis)(int32_t *field, int32_t *f_iun,
 }
 
 
-/*****************************************************************************
- *                              F S T L N K                                  *
- *                                                                           *
- *Object                                                                     *
- *   Links a list of files together for search purpose.                      *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  liste   list of unit numbers associated to the files                 *
- *  IN  n       number of files to link                                      *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstlnk)(int32_t *liste, int32_t *f_n)
-{
-  int ier;
-  int i;
+//! Link files together for search purpose
+int32_t f77name(fstlnk)(
+    //! [in] List of unit numbers associated to the files
+    int32_t *liste,
+    //! [in] Number of files to link
+    int32_t *f_n
+) {
+    link_n = *f_n;
+    for (int i = 0; i < link_n; i++) {
+        link_list[i] = liste[i];
+    }
 
-  link_n = *f_n;
-  for (i=0; i<link_n; i++)
-    link_list[i] = liste[i];
-  ier = c_xdflnk(link_list, link_n);
-  return (int32_t) ier;
+    return (int32_t) c_xdflnk(link_list, link_n);;
 }
 
 
