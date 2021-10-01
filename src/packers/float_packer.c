@@ -6,7 +6,7 @@
 typedef union {
     int32_t i;
     float f;
-} floatint;
+} FloatInt;
 
 /* =====================================================================================================
 
@@ -36,62 +36,81 @@ typedef union {
    data : one 16 bit token for each float value
 
    ===================================================================================================== */
-/*
-    SINGLE BLOCK floating point unpacker
-    dest    : pointer to output array of floating point numbers
-    nbits   : pointer to number of useful bits in token
-    header  : pointer to 64 bit header for this block
-    stream  : pointer to packed stream (16 bits per token, 32 bit aligned at start)
-    npts    : pointer to number of values to unpack
 
-    return value is 0 if there is no error, the number of point discrepancy otherwise
 
-*/
+//! SINGLE BLOCK Floating point unpacker
+//! \return 0 if there is no error, the number of point discrepancy otherwise
+int32_t float_unpacker_1(
+    //! [in] Pointer to output array of floating point numbers
+    float *dest,
+    //! [in] Pointer to 64 bit header for this block
+    int32_t *header,
+    //! [in] Pointer to packed stream (16 bits per token, 32 bit aligned at start)
+    int32_t *stream,
+    //! [in] Number of values to unpack
+    int32_t npts
+) {
+    FloatInt temp, temp2;
+    int32_t mantis;
+    int32_t sgn;
 
-int32_t float_unpacker_1(float *dest, int32_t *header, int32_t *stream, int32_t npts)
-{
-  floatint temp,temp2;
-  int32_t n;
-  int32_t MaxExp, Mantis, Sgn, Minimum, Shift2, Fetch, Accu;
+    // Get parameters from header
+    int32_t minimum = header[1];
+    int32_t maxExp = (header[0] >> 8) & 0xFF;
+    int32_t shift2 = header[0] & 0xFF;
 
-  Minimum = header[1];                     /* get Minimum, MaxExp, Shift2 from header */
-  MaxExp = (header[0] >> 8) & 0xFF;
-  Shift2 = header[0] & 0xFF;
-  if (npts != header[2]) {     /* verify that the number of points is consistent with header */
-    printf("float_unpacker_1: ERROR inconsistent number of points\n");
-    return npts - header[2];   /* return discrepancy */
+    /* verify that the number of points is consistent with header */
+    if (npts != header[2]) {
+        printf("float_unpacker_1: ERROR inconsistent number of points\n");
+        return npts - header[2];   /* return discrepancy */
     }
 
-  n=npts;
-  if (MaxExp == 0) {
-  	while (n--) *dest++ = 0.0;
-    return (0);
+    int32_t nbVals = npts;
+    if (maxExp == 0) {
+        while (nbVals--) *dest++ = 0.0;
+        return 0;
     }
-  Accu = *stream++;                                    /* get first 32 bit token from stream */
-  Fetch = 0;
-  while(n--){
-    Mantis = (Accu >> 16) & 0xFFFF;                    /* get upper 16 bits of token */
-    Mantis = Mantis << Shift2;
-    Mantis = Mantis + Minimum;                         /* regenerate mantissa, possibly not normalized */
-    Sgn = (Mantis >> 31) & 1;
-    if(Sgn) Mantis =- Mantis;                          /* need absolute value of Mantis */
-    if (Mantis > 0xFFFFFF) Mantis = 0xFFFFFF;
-    temp.i = (Mantis & (~(-1<<23))) | (MaxExp << 23);  /* eliminate bit 23 (hidden 1) and add exponent */
-    temp.i = temp.i | (Sgn << 31);                     /* add sign in proper position */
-    if(Mantis & (1<<23)) {
-      *dest++ = temp.f;                                /* hidden 1 is genuine */
-    }else{
-      temp2.i= MaxExp << 23;                           /* subtract this bogus hidden 1 */
-      temp2.i = temp2.i | (Sgn << 31);                 /* add sign in proper position */
-      temp2.i = temp2.i & ( ~( (Mantis << 8) >> 31 ) );/* non zero only if hidden 1 is not present */
-      *dest++ = temp.f - temp2.f;                      /* hidden 1 was not present, subtract it */
-      }
-    Accu = Accu << 16;                                 /* token must be in upper part of 32 bit word */
-    if(Fetch) Accu = *stream++;                        /* new 32 bit word every other trip in loop */
-    Fetch = Fetch ^ 1;                                 /* toggle Fetch */
+
+    /* get first 32 bit token from stream */
+    int32_t accu = *stream++;
+    int32_t fetch = 0;
+    while (nbVals--) {
+        /* get upper 16 bits of token */
+        mantis = (accu >> 16) & 0xFFFF;
+        mantis = mantis << shift2;
+        /* regenerate mantissa, possibly not normalized */
+        mantis = mantis + minimum;
+        sgn = (mantis >> 31) & 1;
+        /* need absolute value of mantis */
+        if (sgn) mantis =- mantis;
+        if (mantis > 0xFFFFFF) mantis = 0xFFFFFF;
+        /* eliminate bit 23 (hidden 1) and add exponent */
+        temp.i = (mantis & (~(-1<<23))) | (maxExp << 23);
+        /* add sign in proper position */
+        temp.i = temp.i | (sgn << 31);
+        if (mantis & (1 << 23)) {
+            /* hidden 1 is genuine */
+            *dest++ = temp.f;
+        } else {
+            /* subtract this bogus hidden 1 */
+            temp2.i= maxExp << 23;
+            /* add sign in proper position */
+            temp2.i = temp2.i | (sgn << 31);
+            /* non zero only if hidden 1 is not present */
+            temp2.i = temp2.i & ( ~( (mantis << 8) >> 31 ) );
+            /* hidden 1 was not present, subtract it */
+            *dest++ = temp.f - temp2.f;
+        }
+        /* token must be in upper part of 32 bit word */
+        accu = accu << 16;
+        /* new 32 bit word every other trip in loop */
+        if (fetch) accu = *stream++;
+        /* toggle fetch */
+        fetch = fetch ^ 1;
     }
-  return 0;
+    return 0;
 }
+
 
 /* =====================================================================================================
     SINGLE BLOCK floating point packer
@@ -109,7 +128,7 @@ int32_t float_packer_1(float *source, int32_t nbits, int32_t *header, int32_t *s
 {
   float *z=source;
   int32_t *intsrc= (int32_t *)source;
-  floatint fmin,fmax;
+  FloatInt fmin ,fmax;
   int32_t n;
   int32_t MaxExp, Exp, Mask, Mantis, Shift, Minimum, Maximum, Src, Shift2, Store, Accu, Round;
 

@@ -48,7 +48,7 @@ typedef long int pid_t;
 #include <stdlib.h>
 
 
-/*  Pour le test testvm.f, on force la continuation 
+/*  Pour le test testvm.f, on force la continuation
  *  de l'execution malgre les erreurs rencontrees
  */
 
@@ -111,7 +111,7 @@ int obtient_environ();
 
 #define UNKNOWNVAR             100  /*nom de variable pas defini */
 #define BADINKEY               101  /*mauvaise valeur de KEY*/
-#define NOT_IN_CORE            102 
+#define NOT_IN_CORE            102
 #define ALREADY_LOCKED         103
 #define NO_SPACE_LEFT_FOR_LOAD 104
 #define NO_CALL_TO_VMMALLC     105
@@ -257,7 +257,7 @@ static float zero=0.0;
 static double MAXVAL8= 1.0e308;
 static double zero8=0.0;
 #endif
- 
+
 /* variables globales pour les unites logiques des fichiers Vmm_classe
    et Vmm_controle
  */
@@ -265,15 +265,15 @@ static int fclass[NCLASSE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0} ;
 static char *fclass_names[NCLASSE] , *fcontrole_name ;
 static int32_t fcontrole=0;   /* nom du fichier: Vmm_controle */
 static int wp_Vmm[NCLASSE] = { 0, 0, 0, 0, 0, 0, 0, 0, 0} ; /*longueur des Vmm_0n*/
-static int fichiers_ouverts = 0; 
-static int champs_bloques = 0; 
+static int fichiers_ouverts = 0;
+static int champs_bloques = 0;
 static int reprise = 0;   /* mis a 1 si le fichier Vmm_controle est non vide */
 static FILE *fdout;
 static int debug_mode = 0;
 static int checksum_mode = 0;
-static int espace_requis_max = 0; 
-static int champs_bloques_max = 0; 
-static int nbblocks_max = 0; 
+static int espace_requis_max = 0;
+static int champs_bloques_max = 0;
+static int nbblocks_max = 0;
 static int nb_appels_no_lock = 0;
 static int nb_appels_lock = 0;
 static int nb_ecritures = 0;
@@ -282,7 +282,7 @@ static int first_free_bloc = 0;
 static int tableau_eject[MAXBLOCKS]; /* tableau ordonne des blocs du segment a
                                         utiliser pour un load */
 static char cd_repertoire[128]= "./";       /* repertoire de travail pour les fichiers de controle */
-      
+
 
 
 /***s/p calc_checksum
@@ -333,20 +333,20 @@ calc_checksum(int bkno)
 *     in   inext  index du deuxieme bloc
 *
 **/
-void 
+void
 collapse_blocks(int i, int inext)
 {
    void imprime();
    int verbar();
    int j,ier;
-   
+
    BLOCKS[i].size += BLOCKS[inext].size;
    BLOCKS[i].next_fb =
         (BLOCKS[inext].next_fb == -1 ? -1: BLOCKS[inext].next_fb-1);
-   
+
    for (j=0; j < nbslices; j++)
       if (SLICES[j].block_table_index > i)
-	 SLICES[j].block_table_index --;
+         SLICES[j].block_table_index --;
    for (j=inext; j < nbblocks-1; j++) {
      ier = verbar(j);
      ier = verbar(j+1);
@@ -365,7 +365,7 @@ collapse_blocks(int i, int inext)
    imprime();
 */
    }
- 
+
 
 
 /***s/p ecrit_bloc
@@ -383,7 +383,7 @@ collapse_blocks(int i, int inext)
 *     in   nmots    longueur en mots de la tranche
 *
 **/
-void 
+void
 ecrit_bloc(int bkno,int classe,int32_t *memadresse,
                         int fileadresse,int nmots)
 {
@@ -428,7 +428,7 @@ ecrit_bloc(int bkno,int classe,int32_t *memadresse,
 
 
       nb_ecritures++;
-} 
+}
 
 /***s/p ecrit_vmm_controle
  *
@@ -443,13 +443,13 @@ ecrit_bloc(int bkno,int classe,int32_t *memadresse,
 *
 *argument
 **/
-void 
+void
 ecrit_vmm_controle()
 {
 /*
       void  ouvre_ou_ferme_controle();
 */
-   
+
 /* ETG ofset of type off_t */
    int nmots,i;
    off_t ofset;
@@ -459,7 +459,7 @@ ecrit_vmm_controle()
    ofset = 0;
    ofset = lseek(fcontrole, ofset, SEEK_SET);
    nmots = write(fcontrole,&nbvar,4);
-   
+
    nmots = sizeof(struct name_table)*nbvar;
    nmots = write(fcontrole,&NAMES[0],nmots);
    /*
@@ -468,19 +468,19 @@ ecrit_vmm_controle()
     *    (keep_in_core, is_in_core, etc
     *    apres l'ecriture, ont leur redonne leur valeur originale
     */
-   
+
    for (i = 0; i < nbblocks; i++)
    {
       if(BLOCKS[i].info.flags.in_used)
       {
-	 SLICES[BLOCKS[i].slice_table_index].block_table_index = -1;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core = 0;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core = 0;
+       SLICES[BLOCKS[i].slice_table_index].block_table_index = -1;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core = 0;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core = 0;
          SLICES[BLOCKS[i].slice_table_index].info.flags.in_used = 0;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.locked = 0;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.altered = 0;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered = 0;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.traced = 0;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.locked = 0;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.altered = 0;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered = 0;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.traced = 0;
       }
    }
    nmots = write(fcontrole,&nbslices,4);
@@ -494,21 +494,21 @@ ecrit_vmm_controle()
    {
       if(BLOCKS[i].info.flags.in_used)
       {
-	 SLICES[BLOCKS[i].slice_table_index].block_table_index = i;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core = 
-	 BLOCKS[i].info.flags.keep_in_core;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core = 
-	 BLOCKS[i].info.flags.is_in_core;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.in_used = 
-	 BLOCKS[i].info.flags.in_used;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.locked = 
-	 BLOCKS[i].info.flags.locked;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.altered = 
-	 BLOCKS[i].info.flags.altered;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered = 
-	 BLOCKS[i].info.flags.was_altered;
-	 SLICES[BLOCKS[i].slice_table_index].info.flags.traced = 
-	 BLOCKS[i].info.flags.traced;
+       SLICES[BLOCKS[i].slice_table_index].block_table_index = i;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core =
+       BLOCKS[i].info.flags.keep_in_core;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core =
+       BLOCKS[i].info.flags.is_in_core;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.in_used =
+       BLOCKS[i].info.flags.in_used;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.locked =
+       BLOCKS[i].info.flags.locked;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.altered =
+       BLOCKS[i].info.flags.altered;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered =
+       BLOCKS[i].info.flags.was_altered;
+       SLICES[BLOCKS[i].slice_table_index].info.flags.traced =
+       BLOCKS[i].info.flags.traced;
       }
    }
 
@@ -527,7 +527,7 @@ ecrit_vmm_controle()
 *                   les attributs du bloc (save, altered ...)
 *
 **/
-int 
+int
 eject_block(int bkno,int save,int fait_checksum)
 
 {
@@ -563,9 +563,9 @@ eject_block(int bkno,int save,int fait_checksum)
       || (BLOCKS[bkno].info.flags.was_altered))) {
         if(NAMES[SLICES[ind].name_table_index].base_file_adr == -1)
              reserve_disk_space(bkno);
-	ecrit_bloc(bkno,BLOCKS[bkno].info.flags.class,BLOCKS[bkno].memadr,
-		    BLOCKS[bkno].file_adr,BLOCKS[bkno].size);
-	}
+      ecrit_bloc(bkno,BLOCKS[bkno].info.flags.class,BLOCKS[bkno].memadr,
+                BLOCKS[bkno].file_adr,BLOCKS[bkno].size);
+      }
      }
    BLOCKS[bkno].info.attributs = 0;
    BLOCKS[bkno].slice_table_index= -1;
@@ -586,16 +586,16 @@ eject_block(int bkno,int save,int fait_checksum)
       BLOCKS[bkno].next_fb = first_free_bloc;
       BLOCKS[first_free_bloc].prev_fb = bkno;
       first_free_bloc = bkno;
-   } 
+   }
    else
    {
        indx = first_free_bloc;
        while(1)
        {
-           if((BLOCKS[indx].next_fb == -1) || 
+           if((BLOCKS[indx].next_fb == -1) ||
               (BLOCKS[indx].next_fb > bkno))
                       break;
-  
+
            indx = BLOCKS[indx].next_fb;
        }
        BLOCKS[bkno].next_fb = BLOCKS[indx].next_fb;
@@ -619,14 +619,14 @@ eject_block(int bkno,int save,int fait_checksum)
  *                         a partir de la liste contenue dans le tableau
  *                         tableau_eject.  L'ejection se fait en tenant
  *                         compte du poids des blocs a ejecter.  On arrete
- *                         l'ejection des qu'il y a assez d'espace dans le 
- *                         segment 
+ *                         l'ejection des qu'il y a assez d'espace dans le
+ *                         segment
  *
  * Arguments : in size                - espace total requis
  *                tableau_eject_index - indice de depart dans le tableau
  *
  **/
-int 
+int
  eject_from_tableau(int size,int tableau_eject_index)
 {
 
@@ -637,12 +637,12 @@ int
      while(espace_libre < size)
      {
           bloc_index = tableau_eject[i] & BKNO_MASK;
-          if(! BLOCKS[bloc_index].info.flags.in_used) 
+          if(! BLOCKS[bloc_index].info.flags.in_used)
             espace_libre += BLOCKS[bloc_index].size;
           else
             espace_libre += eject_block(bloc_index,1,1);
 
-	  i++;
+        i++;
      } /* end while */
 
    return(espace_libre);
@@ -682,7 +682,7 @@ fichier_vide(char *nom)
 }
 
 
-/***s/p imprime 
+/***s/p imprime
  *
  * Auteur James Caveen - mai 1994
  *
@@ -719,7 +719,7 @@ void imprime()
 /***s/p impval - imprimer les valeurs d'un champ autour du marqueur de bloc
  *
  * Auteur: J. Caveen - avril 1994
- * 
+ *
  * Revision: james caveen - mars 1995
  *            change la nature de l'argument de float a int32_t
  *            afin d'eliminer les incompatibilites de types lors de l'appel.
@@ -729,7 +729,7 @@ void imprime()
  *                  de bloc.
  *argument    entree adresse - adresse memoire a partir de laquelle on imprime
  *
- *      
+ *
  **/
 void
     impval(int32_t *adresse)
@@ -751,7 +751,7 @@ void
     }
 
     imp_bar(&intval);
-    
+
 }
 /***s/p imp_bar - imprimer la valeur float du delimiteur de blocs
  *
@@ -789,7 +789,7 @@ void
 *                     mode = 2  - imprime name_table
 *
 */
-void 
+void
 imprime_structures(int mode)
 {
        int indice;
@@ -809,7 +809,7 @@ imprime_structures(int mode)
                 printf("     nslice       : %d\n",NAMES[indice].nslice);
                 printf("     major_key    : %d\n",NAMES[indice].major_key);
                 printf("     class        : %d\n",NAMES[indice].class);
-              }              
+              }
               break;
           case 1:
               printf("\nContenu de slices\n");
@@ -836,7 +836,7 @@ imprime_structures(int mode)
                 printf("     name_table_index   : %d\n",SLICES[indice].name_table_index);
                 printf("     checksum           : %d\n",SLICES[indice].checksum);
               }
-              break; 
+              break;
           case 0:
               printf("\nContenu de blocks\n");
               for (indice=0; indice<nbblocks; indice++)
@@ -884,7 +884,7 @@ imprime_structures(int mode)
 *     in   nmots       longueur en mots de la tranche
 *
 **/
-void 
+void
 lit_bloc(int bkno,unsigned int classe,int32_t *memadresse,
                         int fileadresse,int nmots)
 {
@@ -917,7 +917,7 @@ lit_bloc(int bkno,unsigned int classe,int32_t *memadresse,
            NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
            BLOCKS[bkno].slice_table_index -
            NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
-      
+
 /*
  *     faire le checksum si slice marquee comme tel
  */
@@ -932,12 +932,12 @@ lit_bloc(int bkno,unsigned int classe,int32_t *memadresse,
        else if (SLICES[BLOCKS[bkno].slice_table_index].info.flags.do_checksum ||
            checksum_mode)
        {
-                 SLICES[BLOCKS[bkno].slice_table_index].checksum = 
+                 SLICES[BLOCKS[bkno].slice_table_index].checksum =
                     calc_checksum(bkno);
        }
 
        nb_lectures++;
-} 
+}
 
 /***s/p lit_vmm_controle
 *objet(lit_vmm_controle) relire les structures du fichier Vmm_controle
@@ -945,22 +945,22 @@ lit_bloc(int bkno,unsigned int classe,int32_t *memadresse,
 *auteur:  J. Caveen - juillet 1993
 *
 *revision: J. Caveen - juin 1994
-*                      Verifier si les fichiers de donnes sont disponibles 
-*                      pour les variables de type MUSTEXIST qui ont ete 
+*                      Verifier si les fichiers de donnes sont disponibles
+*                      pour les variables de type MUSTEXIST qui ont ete
 *                      utilisees lors de tranches precedentes. (Une variable
 *                      MUSTEXIST qui n'a jamais ete utilisee n'a pas besoin
 *                      d'avoir une image disque).
 *
-*                      Ajout d'un appel a une fonction servant a verifier 
-*                      si le fichier a lire est vide ou non.  Avant, on 
-*                      utilisait la "propriete" des fichiers WA de 
+*                      Ajout d'un appel a une fonction servant a verifier
+*                      si le fichier a lire est vide ou non.  Avant, on
+*                      utilisait la "propriete" des fichiers WA de
 *                      retourner un nombre de mots lu de zero lorsque le
 *                      fichier est vide.
-*                      
+*
 *
 *
 **/
-void 
+void
 lit_vmm_controle()
 {
 
@@ -991,7 +991,7 @@ lit_vmm_controle()
             nmots = sizeof(struct name_table)*nbvar;
             read(fcontrole,&NAMES[0],nmots);
        }
-        
+
        read(fcontrole,&nbslices,4);
        if((nbslices > 0) && (nbslices <= MAXSLICES))
        {
@@ -1002,7 +1002,7 @@ lit_vmm_controle()
    }
 
    if(nbslices > 0 && nbvar > 0)
-   { 
+   {
       reprise = 1 ;
 /*
  *    s'assurer que les structures lues sont bonnes
@@ -1040,7 +1040,7 @@ lit_vmm_controle()
                  erreur++;
               }
               NAMES[j].base_file_adr = -1;
- 
+
               for(k = 0; k < NAMES[j].nslice; k++)
                       SLICES[NAMES[j].major_key+k].info.flags.disk_image=0;
            }
@@ -1070,8 +1070,8 @@ lit_vmm_controle()
 *   revision:  mai 1994 - ajout de checksum_mode
 *       revision: E. Gondet - 19 avril 2002
 *                 Repertoire pour decouplage en parallele des fichiers
-*		  Rangement de tous les fichiers de travail dans ce repertoire.
-*   003 - Avril 2003 - M. Lepine, initialisation dbg_cks 
+*              Rangement de tous les fichiers de travail dans ce repertoire.
+*   003 - Avril 2003 - M. Lepine, initialisation dbg_cks
 *
 *
 **/
@@ -1101,7 +1101,7 @@ int obtient_environ()
       il_err = sprintf(repertoire,"%s", cd_repertoire);
 
       ptenv = (char *) getenv("VMM_CONFIG");
-     
+
       if(ptenv != (char *) NULL)
       {
         sscanf(ptenv,"%s %d %s",&repertoire[0],&dbg_cks,&rslt_fic[0]);
@@ -1124,7 +1124,7 @@ int obtient_environ()
               break;
        }
 
-/* 
+/*
  *    initialiser les noms de fichiers Vmm_0n et Vmm_controle
  */
 
@@ -1139,7 +1139,7 @@ int obtient_environ()
       }
 
 
-/*ETG 10/04/01 on attrappe le pid                                               
+/*ETG 10/04/01 on attrappe le pid
       pid = getpid();
       sprintf(spid,"%i", pid);
 */
@@ -1149,24 +1149,24 @@ int obtient_environ()
       {
            fclass_names[i] = (char *) calloc(longueur+7,sizeof(char));
            strcpy(fclass_names[i],repertoire);
-           strcat(fclass_names[i],noms[i]);                                     
+           strcat(fclass_names[i],noms[i]);
 /*ETG  fclass_names[i] need strlen(spid) and +1 for the . more characters       */
 /*
            fclass_names[i] = (char *) calloc(longueur+7+strlen(spid)+1,sizeof(char));
-	   sprintf(fclass_names[i],"%s%s.%s",repertoire, noms[i], spid);
+         sprintf(fclass_names[i],"%s%s.%s",repertoire, noms[i], spid);
 */
       }
 
-      fcontrole_name = (char *) calloc(longueur+13,sizeof(char));   
+      fcontrole_name = (char *) calloc(longueur+13,sizeof(char));
       strcpy(fcontrole_name,repertoire);
-      strcat(fcontrole_name,noms[9]);                                          
+      strcat(fcontrole_name,noms[9]);
 /*ETG  fclass_names[i] need strlen(spid) and +1 for the . more characters       */
 /*
       fcontrole_name = (char *) calloc(longueur+13+strlen(spid)+1,sizeof(char));
       sprintf(fcontrole_name,"%s%s.%s",repertoire, noms[9], spid);
 */
 
-/*    
+/*
  *    ouvrir le fichier pour imprimer les resultats d'execution
  */
       if(strlen(rslt_fic) > 0)
@@ -1207,27 +1207,27 @@ int obtient_environ()
 *
 *auteur J. Caveen  -  juillet 1993
 *       revision: E. Gondet - 19 avril 2002
-*		  Porting on FUJITSU (__uxpv__)
+*              Porting on FUJITSU (__uxpv__)
 *
 *
-*argument 
+*argument
 *           in ouvre           si ouvre != 0, on ouvre
 *                              si ouvre  = 0, on ferme
 *              premiere_fois   si premiere_fois, on appelle fnom pour faire
 *                              l'association unite logique-nom de fichier
 *              fonction        nom de la fonction ayant fait l'appel
 **/
-void 
+void
 ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
 {
 
          extern void c_waopen(), c_waclos();
          int  vmmerr();
-	 /*
+       /*
          int  obtient_environ();
-	 */
-         
-         
+       */
+
+
          int i, lng,  mzero = 0;
          int32_t  iun, ier;
          char *ouvmod = "RND+R/W";
@@ -1246,7 +1246,7 @@ ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
           for ( i = 0; i < NCLASSE; i++)
            {
               iun = 0;
-              ier += f77name(fnom)(&iun,fclass_names[i],ouvmod,&mzero,lng+6,7); 
+              ier += f77name(fnom)(&iun,fclass_names[i],ouvmod,&mzero,lng+6,7);
 /*ETG BUG There is a bug with the following line chksum become false ETG*/
 /*ETG              ier += f77name(fnom)(&iun,fclass_names[i],ouvmod,&mzero,lng+strlen(fclass_names[i]),7); */
               fclass[i] = (int) iun;
@@ -1288,39 +1288,39 @@ ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
 *   out   biggest_free_block_index  indice du plus gros bloc libre
 *
 **/
-int 
+int
 pack_blocks(int *biggest_free_block_index)
 {
    void swap_blocks(),collapse_blocks();
    int i=0, big=0, ind = -1;
-   
+
    while ((i < nbblocks-1) && (! BLOCKS[i].info.flags.hpa_alloc)) {
      if (BLOCKS[i].info.flags.in_used)
-	i++;
+      i++;
      else {
         while ((i<nbblocks-1) && (! BLOCKS[i+1].info.flags.in_used))
-	   collapse_blocks(i,i+1);
-	if (i < nbblocks)
-	   if ((BLOCKS[i].info.flags.locked) || (BLOCKS[i+1].info.flags.locked))
-	      i++;
-	   else
-	      while ((i<nbblocks-1) && (BLOCKS[i+1].info.flags.in_used) &&
-		     (! BLOCKS[i+1].info.flags.locked)) {
-	         swap_blocks(i,i+1);
-		 i++;
-		 }
-	} /* end else */
+         collapse_blocks(i,i+1);
+      if (i < nbblocks)
+         if ((BLOCKS[i].info.flags.locked) || (BLOCKS[i+1].info.flags.locked))
+            i++;
+         else
+            while ((i<nbblocks-1) && (BLOCKS[i+1].info.flags.in_used) &&
+                 (! BLOCKS[i+1].info.flags.locked)) {
+               swap_blocks(i,i+1);
+             i++;
+             }
+      } /* end else */
      } /* end while */
    for (i=0; i < nbblocks; i++)
       if (! BLOCKS[i].info.flags.in_used)
-	 if (BLOCKS[i].size > big) {
-	    big = BLOCKS[i].size;
-	    ind = i;
-	    }
+       if (BLOCKS[i].size > big) {
+          big = BLOCKS[i].size;
+          ind = i;
+          }
    *biggest_free_block_index = ind;
    return(big);
    }
-            
+
 
 /***s/p pack_segment
 *
@@ -1330,7 +1330,7 @@ pack_blocks(int *biggest_free_block_index)
 *     au bloc bkno
 *
 *auteur M. Lepine  -  juillet 1993
-*Modification: J.Caveen - mai 1994 
+*Modification: J.Caveen - mai 1994
 *               adaptation du pack_bloc de M.Lepine pour ne
 *               traiter que les blocs a l'interieur d'un segment
 *
@@ -1339,7 +1339,7 @@ pack_blocks(int *biggest_free_block_index)
 *   out   biggest_free_block_index  indice du plus gros bloc libre
 *
 **/
-int 
+int
 pack_segment(int bkno, int *biggest_free_block_index)
 {
    void swap_blocks(),collapse_blocks();
@@ -1355,25 +1355,25 @@ pack_segment(int bkno, int *biggest_free_block_index)
    index = i;
 
    while ((i < nbblocks-1) && ((! BLOCKS[i].info.flags.hpa_alloc)||
-                               (! BLOCKS[i].info.flags.locked))) 
+                               (! BLOCKS[i].info.flags.locked)))
    {
      if (BLOCKS[i].info.flags.in_used)
-	i++;
-     else 
+      i++;
+     else
      {
         while ((i<nbblocks-1) && (! BLOCKS[i+1].info.flags.in_used))
-	   collapse_blocks(i,i+1);
+         collapse_blocks(i,i+1);
 
-	if (i < nbblocks)
+      if (i < nbblocks)
         {
-	   if ((BLOCKS[i].info.flags.locked) || (BLOCKS[i+1].info.flags.locked))
-	       break;
-	   else
-	      while ((i<nbblocks-1) && (BLOCKS[i+1].info.flags.in_used) &&
-		     (! BLOCKS[i+1].info.flags.locked)) 
+         if ((BLOCKS[i].info.flags.locked) || (BLOCKS[i+1].info.flags.locked))
+             break;
+         else
+            while ((i<nbblocks-1) && (BLOCKS[i+1].info.flags.in_used) &&
+                 (! BLOCKS[i+1].info.flags.locked))
               {
-	         swap_blocks(i,i+1);
-		 i++;
+               swap_blocks(i,i+1);
+             i++;
               }
         }
      } /* end else */
@@ -1383,11 +1383,11 @@ pack_segment(int bkno, int *biggest_free_block_index)
     {
       if (! BLOCKS[index].info.flags.in_used)
       {
-	 if (BLOCKS[index].size > big) 
+       if (BLOCKS[index].size > big)
          {
-	    big = BLOCKS[index].size;
-	    ind = index;
-	 }
+          big = BLOCKS[index].size;
+          ind = index;
+       }
       }
       index++;
     }
@@ -1408,7 +1408,7 @@ pack_segment(int bkno, int *biggest_free_block_index)
 *     in   inkey   clef usager pointant a une des slices de la variable
 *
 **/
-int 
+int
 qvmindex_from_key(complete_key inkey)
 
 {
@@ -1416,14 +1416,14 @@ qvmindex_from_key(complete_key inkey)
     int  laclef ;
 
 
-    laclef = inkey.key.key_major + (inkey.key.key_minor == 0 ? 0: inkey.key.key_minor-1); 
+    laclef = inkey.key.key_major + (inkey.key.key_minor == 0 ? 0: inkey.key.key_minor-1);
 
     if(laclef > nbslices || laclef < 0)
          return(-BADINKEY);
 
     return ( inkey.key.key_major == NAMES[SLICES[laclef].name_table_index].major_key ? laclef : -BADINKEY);
 }
-                 
+
 
 /***s/p qvmlod
 *
@@ -1442,7 +1442,7 @@ qvmindex_from_key(complete_key inkey)
 *                  changement de l'algorithme de chargement:  pour charger
 *                  un bloc, on fait les operations dans l'ordre suivant,
 *                  si necessaire:
-*                        1 - cherche un best fit, 
+*                        1 - cherche un best fit,
 *                        2 - eject jusqu'a espace_requis <= espace_libre
 *                            et pack_blocks
 *                        3 - eject tous les blocs ejectables et pack_blocks
@@ -1453,7 +1453,7 @@ qvmindex_from_key(complete_key inkey)
 *                  du chargement.  On ne faisait alors jamais d'ejection par
 *                  la suite.
 *
-*        
+*
 *       J. Caveen - juin,juillet 1994
 *                  Introduction de la methode de chargement par segments
 *                  et de l'utilisation de listes liees de blocs vides.
@@ -1464,7 +1464,7 @@ qvmindex_from_key(complete_key inkey)
 *                    1 - parcourir la liste des blocs vides pour trouver
 *                        un best_fit ( le plus petit bloc assez grand pour
 *                        contenir le champ a charger).
-*                    2 - si il n'y a pas de best-fit, trouver le segment 
+*                    2 - si il n'y a pas de best-fit, trouver le segment
 *                        le moins couteux a utiliser ( c.a.d. celui duquel
 *                        on ejectera le moins de champs possible du plus
 *                        petit poids possible), ejecter des champs du segment
@@ -1474,7 +1474,7 @@ qvmindex_from_key(complete_key inkey)
 *                    La fonction trouve_best_free() se charge de gerer tout le
 *                    travail et de retourner l'index du bloc qui sera utilise
 *                    pour le chargement du champ.
-*              
+*
 *arguments
 *         in inlkey  -  liste de clefs des champs a charger
 *         in nkey    -  nombre de clefs dans inlkey
@@ -1483,7 +1483,7 @@ qvmindex_from_key(complete_key inkey)
 int32_t
 qvmlod(complete_key inlkey[], int32_t *nkey)
 {
-   
+
    void lit_bloc();
    int verbar(),calc_checksum(), trouve_best_free();
 
@@ -1497,15 +1497,15 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 
    int32_t lslice_lng, *lbest_fit;
    double *dlbest_fit;
-       
+
    if(callc("VMMLOD"))   ;
-       
+
 
 
    if(pwd_set)
         return(vmmerr("VMMLOD",PASSWORD_IS_SET));
 
-   
+
 
    indices = &indic[0];
 
@@ -1526,7 +1526,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 
 /*
  *   trouver l'espace requis pour contenir toutes les tranches
- *   si une tranche est deja en memoire, on ne calcule pas son 
+ *   si une tranche est deja en memoire, on ne calcule pas son
  *   espace mais on met le marqueur keep_in_core a 1 afin d'eviter
  *   son ejection par pack_blocks()
  */
@@ -1539,7 +1539,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 #else
          espace_requis += (NAMES[SLICES[*p].name_table_index].lslice);
 #endif
-	 }
+       }
          else
          {
             SLICES[*p].info.flags.keep_in_core = 1;
@@ -1576,51 +1576,51 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
  */
 
    best_fit = trouve_best_free(espace_requis);
-   if (best_fit == -1) 
+   if (best_fit == -1)
    {
             fprintf(fdout," VMMLOD-Espace requis minimal = %d\n",
                             espace_requis_max);
-	    return(vmmerr("VMMLOD",NO_SPACE_LEFT_FOR_LOAD));
+          return(vmmerr("VMMLOD",NO_SPACE_LEFT_FOR_LOAD));
    }
-   
+
    for (i=0, p=indices; i < *nkey; i++,p++) {
       if (! SLICES[*p].info.flags.is_in_core) {
-	 slice_lng = NAMES[SLICES[*p].name_table_index].lslice;
+       slice_lng = NAMES[SLICES[*p].name_table_index].lslice;
 
 #if ! defined (ALL64)
          slice_lng *=
             (SLICES[*p].info.flags.size8 ==1) ? 2:1;
 #endif
-	 if (BLOCKS[best_fit].size != slice_lng) 
-         { 
+       if (BLOCKS[best_fit].size != slice_lng)
+         {
 /*
  *         fragmentation du bloc libre
  */
            nbblocks++;
            nbblocks_max = nbblocks_max > nbblocks ?
                           nbblocks_max : nbblocks ;
-	   for (j=nbblocks-1; j > best_fit+1; j--)
+         for (j=nbblocks-1; j > best_fit+1; j--)
            {
-	      BLOCKS[j].info.attributs = BLOCKS[j-1].info.attributs;
-	      BLOCKS[j].slice_table_index = BLOCKS[j-1].slice_table_index;
-       	      BLOCKS[j].memadr = BLOCKS[j-1].memadr;
-       	      BLOCKS[j].file_adr = BLOCKS[j-1].file_adr;
-	      BLOCKS[j].size = BLOCKS[j-1].size;
+            BLOCKS[j].info.attributs = BLOCKS[j-1].info.attributs;
+            BLOCKS[j].slice_table_index = BLOCKS[j-1].slice_table_index;
+                   BLOCKS[j].memadr = BLOCKS[j-1].memadr;
+                   BLOCKS[j].file_adr = BLOCKS[j-1].file_adr;
+            BLOCKS[j].size = BLOCKS[j-1].size;
               BLOCKS[j].prev_fb = (BLOCKS[j-1].prev_fb >= best_fit?
                       BLOCKS[j-1].prev_fb+1:BLOCKS[j-1].prev_fb);
               BLOCKS[j].next_fb = (BLOCKS[j-1].next_fb != -1 ?
                       BLOCKS[j-1].next_fb+1 : -1);
-	   }
-	   for (j=0; j < nbslices; j++)
-	      if (SLICES[j].block_table_index > best_fit)
-	         SLICES[j].block_table_index++;
+         }
+         for (j=0; j < nbslices; j++)
+            if (SLICES[j].block_table_index > best_fit)
+               SLICES[j].block_table_index++;
 
 
-	   BLOCKS[best_fit+1].info.attributs = 0;
-	   BLOCKS[best_fit+1].slice_table_index = -1;
-	   BLOCKS[best_fit+1].file_adr = -1;
+         BLOCKS[best_fit+1].info.attributs = 0;
+         BLOCKS[best_fit+1].slice_table_index = -1;
+         BLOCKS[best_fit+1].file_adr = -1;
            BLOCKS[best_fit+1].size = BLOCKS[best_fit].size - slice_lng;
-	   BLOCKS[best_fit+1].memadr = BLOCKS[best_fit].memadr + slice_lng;
+         BLOCKS[best_fit+1].memadr = BLOCKS[best_fit].memadr + slice_lng;
            BLOCKS[best_fit+1].prev_fb = BLOCKS[best_fit].prev_fb;
            BLOCKS[best_fit+1].next_fb = (BLOCKS[best_fit].next_fb != -1?
                          BLOCKS[best_fit].next_fb+1: -1);
@@ -1645,36 +1645,36 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
              }
              if(BLOCKS[best_fit].next_fb != -1)
              {
-                 BLOCKS[BLOCKS[best_fit].next_fb].prev_fb = BLOCKS[best_fit].prev_fb; 
+                 BLOCKS[BLOCKS[best_fit].next_fb].prev_fb = BLOCKS[best_fit].prev_fb;
                  if(first_free_bloc == best_fit)
                          first_free_bloc = BLOCKS[best_fit].next_fb;
              }
          }
-	 SLICES[*p].info.flags.is_in_core = 1;
-	 SLICES[*p].info.flags.keep_in_core = 1;
-	 SLICES[*p].info.flags.in_used = 1;
-	 SLICES[*p].block_table_index = best_fit;
+       SLICES[*p].info.flags.is_in_core = 1;
+       SLICES[*p].info.flags.keep_in_core = 1;
+       SLICES[*p].info.flags.in_used = 1;
+       SLICES[*p].block_table_index = best_fit;
          BLOCKS[best_fit].next_fb = BLOCKS[best_fit].prev_fb =  -1;
-	 BLOCKS[best_fit].slice_table_index = *p;
-	 BLOCKS[best_fit].info.attributs = SLICES[*p].info.attributs;
-	 BLOCKS[best_fit].size = slice_lng;
-	 BLOCKS[best_fit].file_adr = 
-	    (NAMES[SLICES[*p].name_table_index].base_file_adr == -1) ? -1 :
-	   NAMES[SLICES[*p].name_table_index].base_file_adr + (slice_lng *
+       BLOCKS[best_fit].slice_table_index = *p;
+       BLOCKS[best_fit].info.attributs = SLICES[*p].info.attributs;
+       BLOCKS[best_fit].size = slice_lng;
+       BLOCKS[best_fit].file_adr =
+          (NAMES[SLICES[*p].name_table_index].base_file_adr == -1) ? -1 :
+         NAMES[SLICES[*p].name_table_index].base_file_adr + (slice_lng *
            (inlkey[i].key.key_minor == 0 ? 0: inlkey[i].key.key_minor-1));
          if ((BLOCKS[best_fit].info.flags.traced) || debug_mode)
              fprintf(fdout,"VMM trace: chargement memoire  de variable %s tranche %d en position %d\n",
               NAMES[SLICES[*p].name_table_index].nom,
               *p - NAMES[SLICES[*p].name_table_index].major_key + 1,best_fit);
-	 if (SLICES[*p].info.flags.disk_image) {
+       if (SLICES[*p].info.flags.disk_image) {
 /*
  *    lire la tranche sur disque
  */
-	    lit_bloc(best_fit,BLOCKS[best_fit].info.flags.class,
-		       BLOCKS[best_fit].memadr,BLOCKS[best_fit].file_adr,
-		       BLOCKS[best_fit].size);
+          lit_bloc(best_fit,BLOCKS[best_fit].info.flags.class,
+                   BLOCKS[best_fit].memadr,BLOCKS[best_fit].file_adr,
+                   BLOCKS[best_fit].size);
          }
-	 else if (SLICES[*p].info.flags.init) {
+       else if (SLICES[*p].info.flags.init) {
 /*
  *    initialiser le champ
  */
@@ -1685,18 +1685,18 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
               lslice_lng /= 2 ;
 #endif
               dlbest_fit = (double *) BLOCKS[best_fit].memadr;
-	      switch (SLICES[*p].info.flags.init)
+            switch (SLICES[*p].info.flags.init)
               {
-	      
-	         case 1:
-	            f77name(afix8)(dlbest_fit,&zero8,&lslice_lng);
-	            break;
+
+               case 1:
+                  f77name(afix8)(dlbest_fit,&zero8,&lslice_lng);
+                  break;
                  case 2:
                     f77name(afix8)(dlbest_fit,&MAXVAL8,&lslice_lng);
                     break;
                  default:
                     fprintf(fd_err,"vmmlod error: bad init mode, init =%d",
-			  SLICES[*p].info.flags.init);
+                    SLICES[*p].info.flags.init);
                     break;
               }
             }
@@ -1705,7 +1705,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
               lbest_fit = (int32_t *) BLOCKS[best_fit].memadr;
               switch (SLICES[*p].info.flags.init)
               {
-	      
+
                  case 1:
                     f77name(afix)(lbest_fit,&zero,&lslice_lng);
                     break;
@@ -1714,7 +1714,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
                     break;
                  default:
                     fprintf(fd_err,"vmmlod error: bad init mode, init =%d",
-			  SLICES[*p].info.flags.init);
+                    SLICES[*p].info.flags.init);
                     break;
                }
              }
@@ -1728,7 +1728,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
              if(SLICES[*p].info.flags.do_checksum || checksum_mode)
                   SLICES[*p].checksum = calc_checksum(best_fit);
 
-	 }
+       }
          else
          {
 /*
@@ -1744,8 +1744,8 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 
          verbar(best_fit);
 
-	 best_fit++;
-	 }
+       best_fit++;
+       }
       } /* end for */
 
 
@@ -1757,7 +1757,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 
 
 
-/***s/p reserve_disk_space 
+/***s/p reserve_disk_space
 *    objet(reserve_disk_space) - reserver la memoire disque pour
 *                                l'ecriture des variables.  L'espace disque
 *                                n'est reserve qu'au moment opportun.
@@ -1815,10 +1815,10 @@ reserve_disk_space(int bkno)
 
 /*
  * faire la mise a jour de tous les blocs memoires associes
- * a la meme variable: on calcule la bonne adresse fichier 
+ * a la meme variable: on calcule la bonne adresse fichier
  * pour chacun de ces blocs
  */
-   
+
    slice_lng = NAMES[ind].lslice;
 #if ! defined (ALL64)
          slice_lng *= (SLICES[NAMES[ind].major_key].info.flags.size8 ==1) ? 2:1;
@@ -1827,7 +1827,7 @@ reserve_disk_space(int bkno)
    for (i = 0; i < NAMES[ind].nslice ; i++)
    {
      if(SLICES[NAMES[ind].major_key + i].block_table_index != -1)
-        BLOCKS[SLICES[NAMES[ind].major_key + i].block_table_index].file_adr = 
+        BLOCKS[SLICES[NAMES[ind].major_key + i].block_table_index].file_adr =
            NAMES[ind].base_file_adr + (slice_lng * i);
    }
 
@@ -1850,7 +1850,7 @@ reserve_disk_space(int bkno)
 *     in  Chaine       chaine complete
 *
 **/
-int 
+int
 strfind(char *SousChaine, char *Chaine)
 {
 int i,j, LongueurChaine, LongueurSousChaine, PositionTrouvee;
@@ -1866,21 +1866,21 @@ i=0;
 while (i < LongueurChaine)
       {
       if (tolower(SousChaine[0]) == tolower(Chaine[i]))
-	 {
-	 j = i + LongueurSousChaine - 1;
+       {
+       j = i + LongueurSousChaine - 1;
 
-	 if (j > LongueurChaine)
-	    return(PositionTrouvee);
+       if (j > LongueurChaine)
+          return(PositionTrouvee);
 
-	 while (j > i && tolower(SousChaine[j-i]) == tolower(Chaine[j]))
-	       j--;
+       while (j > i && tolower(SousChaine[j-i]) == tolower(Chaine[j]))
+             j--;
 
          if (j==i)
-	    PositionTrouvee = i;
+          PositionTrouvee = i;
          }
       i++;
       }
-return(PositionTrouvee); 
+return(PositionTrouvee);
 }
 
 
@@ -1892,14 +1892,14 @@ return(PositionTrouvee);
 *
 *auteur M. Lepine  -  juillet 1993
 *       revision: E. Gondet - 19 avril 2002
-*		  Porting on FUJITSU (__uxpv__) + appel libmp pour copie de blocs: _MmCopy
+*              Porting on FUJITSU (__uxpv__) + appel libmp pour copie de blocs: _MmCopy
 *
 *arguments
 *     in   i      index du bloc vide
 *     in   inext  index du bloc non vide deplacable
 *
 **/
-void 
+void
 swap_blocks(int i,int inext)
 
 {
@@ -1950,7 +1950,7 @@ swap_blocks(int i,int inext)
 
 #if defined(__uxpv__)
    _MmCopy(dest_adr,src_adr,nmots*sizeof(int32_t));
-#else 
+#else
 #  if defined(NEC)
    f77name(movlev8)(src_adr,dest_adr,&nmots);      /* assure la vectorisation */
 #  else
@@ -1980,18 +1980,18 @@ void
 trie_le_tableau(int *table,int longueur)
 {
    int i, j;
-   
-   
+
+
    for(i = 0; i< longueur-1; i++)
    {
       for(j=longueur-1; j > i; j--)
       {
-	 if(*(table+j) < *(table+j-1))
-	 {
-	    *(table+j) = *(table+j)^*(table+j-1);
-	    *(table+j-1) = *(table+j)^*(table+j-1);
-	    *(table+j) = *(table+j)^*(table+j-1);
-	 }
+       if(*(table+j) < *(table+j-1))
+       {
+          *(table+j) = *(table+j)^*(table+j-1);
+          *(table+j-1) = *(table+j)^*(table+j-1);
+          *(table+j) = *(table+j)^*(table+j-1);
+       }
       }
    }
 }
@@ -2001,7 +2001,7 @@ trie_le_tableau(int *table,int longueur)
  *
  *  Auteur : James Caveen -  mai 1994
  *
- *  Objet (trouve_best_fit) - trouver le plus petit bloc memoire 
+ *  Objet (trouve_best_fit) - trouver le plus petit bloc memoire
  *                            assez gros pour contenir un champ de
  *                            dimension size.
  *                            La recherche d'un bloc se fait a partir
@@ -2031,23 +2031,23 @@ int trouve_best_fit(int size)
                  best_fit = i;
              }
         }
-         if(min_diff == 0) 
+         if(min_diff == 0)
                return(best_fit);
 
          i = BLOCKS[i].next_fb;
      }
-          
+
      return(best_fit);
 }
 
 
-/***s/p trouve_best_free - trouver le meilleur bloc memoire pour 
+/***s/p trouve_best_free - trouver le meilleur bloc memoire pour
  *                         charger un champ.
  * Auteur James Caveen - mai 1994
  *
- * Objet (trouve_best_free) - fonction servant a trouver le meileur bloc 
+ * Objet (trouve_best_free) - fonction servant a trouver le meileur bloc
  *                            memoire pouvant loger un champ de dimension
- *                            size.  
+ *                            size.
  *                            Methode : 1 - chercher un best_fit parmis
  *                                          les blocs vides.
  *                                      2 - Chercher le segment pouvant fournir
@@ -2093,7 +2093,7 @@ int trouve_best_free(int size)
  *   L'operation pack_segment rend tableau_eject inutilisable
  */
      grosseur = eject_from_tableau(size,tableau_eject_index);
-     
+
 /*
  *   On comprime le segment
  */
@@ -2113,7 +2113,7 @@ int trouve_best_free(int size)
 
 
 
-/***s/p trouve_best_segment - trouver le meilleur segment pouvant 
+/***s/p trouve_best_segment - trouver le meilleur segment pouvant
  *                           contenir un bloc de grosseur size
  *                           Un segment est une suite de blocs compris
  *                           entre deux blocs bloques non-contigues.
@@ -2124,10 +2124,10 @@ int trouve_best_free(int size)
  *                             segment memoire est le plus approprie
  *                             pour recevoir un bloc de grosseur size.
  *                             La fonction retourne le numero du premier
- *                             bloc du segment.  
+ *                             bloc du segment.
  *
- * Methode:       Parcourir chaque bloc de chaque segment et 
- *                dresser une liste de tous les blocs.  Chaque entree de la 
+ * Methode:       Parcourir chaque bloc de chaque segment et
+ *                dresser une liste de tous les blocs.  Chaque entree de la
  *                liste est un entier qui contient le numero du segment,
  *                le poids du bloc et le numero du bloc:
  *
@@ -2137,10 +2137,10 @@ int trouve_best_free(int size)
  *                Note: un bloc libre a un poids de zero
  *                Cette liste triee se trouve dans le tableau tableau_eject.
  *                La fonction retourne l'indice du premier bloc
- *                du segment pouvant fournir l'espace necessaire 
+ *                du segment pouvant fournir l'espace necessaire
  *                au moindre cout.
  *
- *                  
+ *
  *
  *
  * Argument in size - grosseur du champ a charger en memoire
@@ -2181,12 +2181,12 @@ trouve_best_segment(int size, int *tableau_eject_index)
         {
             if(! BLOCKS[i].info.flags.keep_in_core)
             {
-	         if(! BLOCKS[i].info.flags.in_used )
-	            l_poid = 0;
-	         else
-	            l_poid = (BLOCKS[i].info.flags.must_exist == 1 ?
-			 BLOCKS[i].info.flags.weight :
-			 BLOCKS[i].info.flags.weight + 9);
+               if(! BLOCKS[i].info.flags.in_used )
+                  l_poid = 0;
+               else
+                  l_poid = (BLOCKS[i].info.flags.must_exist == 1 ?
+                   BLOCKS[i].info.flags.weight :
+                   BLOCKS[i].info.flags.weight + 9);
 
                  tableau_eject[index] = (nseg & SEGMENT_MASK)<< SEGMENT_SHIFT |
                                 (l_poid & WEIGHT_MASK)<< WEIGHT_SHIFT |
@@ -2229,12 +2229,12 @@ trouve_best_segment(int size, int *tableau_eject_index)
         if(t_size >= size)
         {
             while((((tableau_eject[i]>>SEGMENT_SHIFT) & SEGMENT_MASK) == nseg) && ( i < index))
-                i++; 
+                i++;
 
             break;
         }
      }
-        
+
 
  /*
   *  Si on a assez d'espace, on evalue son cout d'utilisation
@@ -2251,10 +2251,10 @@ trouve_best_segment(int size, int *tableau_eject_index)
              npoid_max = t_npoid_max ;
              nblocs  = t_nblocs;
              *tableau_eject_index = t_tablo_index;
-       } 
+       }
      }
    }
-         
+
     if(debug_mode)
     {
        if(bkno > -1)
@@ -2264,9 +2264,9 @@ trouve_best_segment(int size, int *tableau_eject_index)
        }
        else
        {
-	  printf(" Aucun segment assez gros pour chargement\n");
+        printf(" Aucun segment assez gros pour chargement\n");
        }
-    } 
+    }
 
     return (bkno);
 
@@ -2296,10 +2296,10 @@ int
 
       int erreur;
 
-/*  si les marqueurs sont endommages, on imprime un message d'erreur, et on met 
+/*  si les marqueurs sont endommages, on imprime un message d'erreur, et on met
  *  fin a l'execution du programme.
  *  Sinon, on retourne la valeur 0
- */ 
+ */
 
     erreur = 0;
     if(! BLOCKS[bkno].info.flags.in_used)
@@ -2355,7 +2355,7 @@ int
            fprintf(fdout,"BLOCK DELIMITOR ADDRESS +- 2 WORDS\n");
             impval(BLOCKS[bkno].memadr+BLOCKS[bkno].size-2);
         }
-        else 
+        else
         {
            fprintf(fdout,"       - POSSIBLE ADDRESSING ERROR: VARIABLE %s, SLICE %d\n",
                              NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
@@ -2367,7 +2367,7 @@ int
         }
     }
 
-    if(erreur) 
+    if(erreur)
     {
       if(debug_mode)
       {
@@ -2387,7 +2387,7 @@ int
 *
 *objet(vmmallc2)
 *     Reserver l'espace memoire necessaire au systeme de gestion de
-*     memoire virtuelle. 
+*     memoire virtuelle.
 *     vmmallc doit ete la premiere fonction du systeme de gestion de
 *     memoire virtuelle appelee par l'usager.
 *
@@ -2406,7 +2406,7 @@ int
 *                 consequence.
 *       revision: E. Gondet - 19 avril 2002
 *                 Repertoire en argument pour decouplage en parallele des fichiers
-*		  Porting on FUJITSU (__uxpv__)
+*              Porting on FUJITSU (__uxpv__)
 *argument
 *     in  memry    quantite de memoire a reserver (en mots)
 *     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
@@ -2420,12 +2420,12 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 /*
       void  ouvre_ou_ferme_controle();
 */
- 
+
    int i;
-  
+
 #if defined (NEC) && defined (_FLOAT0) && !defined(__uxpv__)
    void *f77name(malloc2)();
-   long long noctets; 
+   long long noctets;
 #else
    size_t noctets;
 #endif
@@ -2436,7 +2436,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
    if(called_vmmallc)
        return vmmerr("VMMALLC",VMMALLC_ALREADY_CALLED);
 
-/* 
+/*
  * initialiser les structures
  */
    for (i = 0; i < MAXSLICES; i++)
@@ -2447,7 +2447,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
           BLOCKS[i].prev_fb = BLOCKS[i].next_fb = -1;
    }
 /*
- * ouverture de tous les fichiers du systeme de gestion 
+ * ouverture de tous les fichiers du systeme de gestion
  */
    strncpy(cd_repertoire,cd_rep,((lng > 256) ? 256 : lng));
    cd_repertoire[lng] = '\0';
@@ -2458,7 +2458,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
  * en cas de reprise
  */
    lit_vmm_controle();
-       
+
 
    maxmem = (int) *memry;
    /*   fprintf(stdout,"Debug vmmallc maxmem=%d \n",maxmem); */
@@ -2475,7 +2475,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 #if defined (NEC) && defined (_FLOAT0) && !defined(__uxpv__)
    /*   fprintf(stdout,"Debug VMMALLC appel a malloc2\n"); */
    noctets += 8;
-   BLOCKS[0].memadr = (int32_t *) f77name(malloc2)(&noctets); 
+   BLOCKS[0].memadr = (int32_t *) f77name(malloc2)(&noctets);
    /*   fprintf(stdout,"Debug vmmallc memry=%d, maxmem=%d, noctets=%ld\n",*memry,maxmem,noctets); */
    /*   fprintf(stdout,"Debug vmmallc BLOCKS[0].memadr=%d\n",BLOCKS[0].memadr); */
 #else
@@ -2489,7 +2489,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
  *  decalage de l'adresse de depart du bloc[0]
  */
 #if defined (ALL64)
-   *(BLOCKS[0].memadr) = BARVAL; 
+   *(BLOCKS[0].memadr) = BARVAL;
 #else
    *(BLOCKS[0].memadr) = *(BLOCKS[0].memadr+1) = BARVAL;
 #endif
@@ -2513,7 +2513,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 *
 *objet(vmmallc)
 *     Reserver l'espace memoire necessaire au systeme de gestion de
-*     memoire virtuelle. 
+*     memoire virtuelle.
 *     vmmallc doit ete la premiere fonction du systeme de gestion de
 *     memoire virtuelle appelee par l'usager.
 *
@@ -2532,7 +2532,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 *                 consequence.
 *       revision: E. Gondet - 19 avril 2002
 *                 Repertoire en argument pour decouplage en parallele des fichiers
-*		  Porting on FUJITSU (__uxpv__)
+*              Porting on FUJITSU (__uxpv__)
 *argument
 *     in  memry    quantite de memoire a reserver (en mots)
 *     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
@@ -2543,7 +2543,7 @@ f77name(vmmallc)(int32_t *memry)
 {
   int32_t ier;
   char current_dir[2] = "./";
-  
+
   ier = f77name(vmmallc2)(memry,current_dir,2);
   return(ier);
 }
@@ -2577,7 +2577,7 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
    char innamevar[9];
 
    if(callc("VMMATT"))  ;
-       
+
 
 
    if(pwd_set)
@@ -2604,12 +2604,12 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
    ind = 0;
    while ((strncmp(innamevar,NAMES[ind].nom,8) != 0) && (ind < MAXNAMES))
       ind++;
-   
+
    if(ind == MAXNAMES)
            return vmmerr("VMMATT", UNKNOWNVAR);
 
-   *lpiece = (int32_t) NAMES[ind].lslice - 8/sizeof(int32_t); 
-   *npiece = (int32_t) NAMES[ind].nslice; 
+   *lpiece = (int32_t) NAMES[ind].lslice - 8/sizeof(int32_t);
+   *npiece = (int32_t) NAMES[ind].nslice;
    slice_num = NAMES[ind].major_key;
 /*
  * recuperation des attributs
@@ -2620,7 +2620,7 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
    ninit = SLICES[slice_num].info.flags.init;
    nsize8 = SLICES[slice_num].info.flags.size8;
    mexist = SLICES[slice_num].info.flags.must_exist;
- 
+
    switch (nsauv)
    {
         case 1:
@@ -2629,10 +2629,10 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
         default:
              cnsauv = 'N';
    }
- 
+
    switch (ninit)
    {
-        case 1: 
+        case 1:
             cninit  = '0';
             break;
         case 2:
@@ -2650,7 +2650,7 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
         default:
             cnsize8 = 0;
    }
-        
+
 /*
  * recomposer la liste d'attributs
  */
@@ -2674,7 +2674,7 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
 *
 *arguments
 *         in  inkey  -  clef pour laquelle on fait le check-sum
-*         in  mode   -  mode de calcul 
+*         in  mode   -  mode de calcul
 *                       pour cette version, mode=1 seulement => xor du champ
 *
 **/
@@ -2690,7 +2690,7 @@ f77name(vmmcks)(complete_key *inkey, int32_t *mode)
      int32_t nbelem;
 
      if(callc("VMMCKS")) ;
-       
+
 
 
 #if defined CALL_SEQ
@@ -2698,8 +2698,8 @@ f77name(vmmcks)(complete_key *inkey, int32_t *mode)
       "CALL- vmmcks(%d,%d)\n",(int32_t) inkey->clef, *mode);
 #endif
      if(*mode != 1)
-        return(vmmerr("VMMCKS",BAD_CKSUM_MODE)); 
-            
+        return(vmmerr("VMMCKS",BAD_CKSUM_MODE));
+
      slice_ind = qvmindex_from_key(*inkey);
 
      if(slice_ind <0)
@@ -2710,7 +2710,7 @@ f77name(vmmcks)(complete_key *inkey, int32_t *mode)
         return(vmmerr("VMMCKS",NOT_IN_CORE));
 
 
-     adresse_du_bloc = BLOCKS[SLICES[slice_ind].block_table_index].memadr; 
+     adresse_du_bloc = BLOCKS[SLICES[slice_ind].block_table_index].memadr;
      nbelem = (int32_t) BLOCKS[SLICES[slice_ind].block_table_index].size;
 
 
@@ -2733,27 +2733,27 @@ f77name(vmmcks)(complete_key *inkey, int32_t *mode)
  *
  *revision  james caveen - mars 1995
  *          forcer l'ejection des blocs qui n'ont pas l'attribut save
- *          
+ *
  **/
 int32_t f77name(vmmcpk)()
 {
-   
+
    void ecrit_vmm_controle(), ecrit_bloc();
    void reserve_disk_space();
    int vmmerr(), eject_block();
 /*
       void  ouvre_ou_ferme_controle();
 */
-   
+
    int i;
-   
+
    if(callc("VMMCPK"))  ;
-   
-   
-   
+
+
+
    if(pwd_set)
    return(vmmerr("VMMCPK",PASSWORD_IS_SET));
-   
+
 #if defined CALL_SEQ
    fprintf(fdout,"CALL- vmmcpk()\n");
 #endif
@@ -2761,22 +2761,22 @@ int32_t f77name(vmmcpk)()
    {
       if(BLOCKS[i].info.flags.in_used)
       {
-	 if(BLOCKS[i].info.flags.keep_in_core)
-	 return(vmmerr("VMMCPK",KEEP_IN_CORE_CPK));
+       if(BLOCKS[i].info.flags.keep_in_core)
+       return(vmmerr("VMMCPK",KEEP_IN_CORE_CPK));
 
-	 if(BLOCKS[i].info.flags.save && (BLOCKS[i].info.flags.altered ||
-					  BLOCKS[i].info.flags.was_altered))
-	 {
-	    if(BLOCKS[i].file_adr == -1)
-	    reserve_disk_space(i);
-	    ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
-		       BLOCKS[i].file_adr,BLOCKS[i].size);
-	 }
-	 else
-	    eject_block(i,0,0);
+       if(BLOCKS[i].info.flags.save && (BLOCKS[i].info.flags.altered ||
+                                BLOCKS[i].info.flags.was_altered))
+       {
+          if(BLOCKS[i].file_adr == -1)
+          reserve_disk_space(i);
+          ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
+                   BLOCKS[i].file_adr,BLOCKS[i].size);
+       }
+       else
+          eject_block(i,0,0);
       }
    }
-   
+
    ecrit_vmm_controle();
    ouvre_ou_ferme_controle(0,0,"VMMCPK");
    return 0;
@@ -2814,16 +2814,16 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
 
    int i, pos, ind, cl, j, wt, nsauv, ninit, nsize8, mexist,slice_num;
    int innpiece,inlpiece;
-   
+
    char junk[20], csauv, cinit, csize8, attr[NCARATTR], namevar[9];
    complete_key keyout;
 
    int32_t nmots;
 
    if(callc("VMMCRE")) ;
-       
 
-   
+
+
    if(pwd_set)
         return(vmmerr("VMMCRE",PASSWORD_IS_SET));
 
@@ -2853,7 +2853,7 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
    if (ind == MAXNAMES)
    {
 /*
- *    si il s'agit d'une reprise, on s'assure que la variable 
+ *    si il s'agit d'une reprise, on s'assure que la variable
  *    n'a pas l'attribut MUSTEXIST
  *    if(reprise && ((pos = strfind("MUSTEXIST",attr))  != -1))
  *          return vmmerr("VMMCRE",VAR_MUST_EXIST);
@@ -2877,7 +2877,7 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
 
       if((pos = strfind("W=",attr))  != -1)
          sscanf(&attr[pos],"%2s%d",junk,&wt);
-      
+
       if((pos = strfind("SAVE=",attr))  != -1)
       {
          sscanf(&attr[pos],"%5s%1c",junk,&csauv);
@@ -2897,10 +2897,10 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
       if((pos = strfind("SIZE=",attr))  != -1)
       {
          sscanf(&attr[pos],"%5s%1c",junk,&csize8);
-         if ( csize8 == '8')  
+         if ( csize8 == '8')
               nsize8 = 1;
       }
-      
+
 
       if((pos = strfind("MUSTEXIST",attr))  != -1)
             mexist = 1;
@@ -2908,16 +2908,16 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
       NAMES[ind].class = cl;
       for (j=0; j < *npiece; j++)
       {
-	    SLICES[nbslices+j].info.flags.save = nsauv;
-	    SLICES[nbslices+j].info.flags.size8 = nsize8;
-	    SLICES[nbslices+j].info.flags.must_exist = mexist;
-	    SLICES[nbslices+j].info.flags.class = cl;
-	    SLICES[nbslices+j].info.flags.weight = wt;
-	    SLICES[nbslices+j].info.flags.init = ninit;
-	    SLICES[nbslices+j].name_table_index = ind;
-	    SLICES[nbslices+j].block_table_index = -1;
+          SLICES[nbslices+j].info.flags.save = nsauv;
+          SLICES[nbslices+j].info.flags.size8 = nsize8;
+          SLICES[nbslices+j].info.flags.must_exist = mexist;
+          SLICES[nbslices+j].info.flags.class = cl;
+          SLICES[nbslices+j].info.flags.weight = wt;
+          SLICES[nbslices+j].info.flags.init = ninit;
+          SLICES[nbslices+j].name_table_index = ind;
+          SLICES[nbslices+j].block_table_index = -1;
       }
-        
+
 
 /*
  *    composer la clef de sortie
@@ -2940,10 +2940,10 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
       wt = SLICES[slice_num].info.flags.weight;
       ninit = SLICES[slice_num].info.flags.init;
       nsize8 = 0;
-      
+
       if((pos = strfind("W=",attr))  != -1)
          sscanf(&attr[pos],"%2s%d",junk,&wt);
-      
+
       if((pos = strfind("SAVE=",attr))  != -1)
       {
          sscanf(&attr[pos],"%5s%1c",junk,&csauv);
@@ -2995,7 +2995,7 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
 */
 
 
-/* 
+/*
  *    on s'assure que les caracteristiques inchangeables
  *    sont bel et bien inchangees avant de faire les modifications
  */
@@ -3010,22 +3010,22 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
       {
              fprintf(fd_err,
                      " VMMCRE - THE CARACTERISTICS OF VARIABLE %s HAVE BEEN ALTERED\n",
-                     NAMES[ind].nom); 
+                     NAMES[ind].nom);
              fprintf(fd_err,
                  "npiece=%d, NAMES.nlsice=%d\nlpiece=%d, NAMES.lsice=%d\ncl=%d, NAMES.class=%d\nsize8=%d, NAMES.size8=%d\n",
       *npiece,NAMES[ind].nslice,inlpiece,NAMES[ind].lslice,
       cl,SLICES[slice_num].info.flags.class,
       nsize8,SLICES[slice_num].info.flags.size8);
-                   
+
                  return (vmmerr("VMMCRE",ATTRIBUTS_MODIFIES));
       }
 
       for (j=0; j < innpiece; j++)
       {
-	    SLICES[slice_num+j].info.flags.save = nsauv;
-	    SLICES[slice_num+j].info.flags.weight = wt;
-	    SLICES[slice_num+j].info.flags.init = ninit;
-	    SLICES[slice_num+j].info.flags.must_exist = mexist;
+          SLICES[slice_num+j].info.flags.save = nsauv;
+          SLICES[slice_num+j].info.flags.weight = wt;
+          SLICES[slice_num+j].info.flags.init = ninit;
+          SLICES[slice_num+j].info.flags.must_exist = mexist;
       }
 /*
  *    composer la clef de sortie
@@ -3033,7 +3033,7 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
       keyout.clef = 0;
       keyout.key.key_major = slice_num;
       keyout.key.key_minor = 0;
-    
+
    }
 
 /*
@@ -3109,15 +3109,15 @@ f77name(vmmdbg)(char command[],complete_key inlkey[], int32_t *nkey,F2Cl l1)
   if ((pos = strfind("TRACE",cmd)) != -1) {
      for (i=0; i < nvar; i++) {
         ind = (inlkey[0].clef == -1) ? i : qvmindex_from_key(inlkey[i]);
-	SLICES[ind].info.flags.traced = 1;
-	}
+      SLICES[ind].info.flags.traced = 1;
+      }
      }
 
   if ((pos = strfind("CHECKSUM",cmd)) != -1) {
      for (i=0; i < nvar; i++) {
         ind = (inlkey[0].clef == -1) ? i : qvmindex_from_key(inlkey[i]);
-	SLICES[ind].info.flags.do_checksum = 1;
-	}
+      SLICES[ind].info.flags.do_checksum = 1;
+      }
      }
 
   if ((pos = strfind("MEMDMP",cmd)) != -1) {
@@ -3143,7 +3143,7 @@ f77name(vmmdbg)(char command[],complete_key inlkey[], int32_t *nkey,F2Cl l1)
                 fprintf(fdout,"     weight             : %d\n",SLICES[ind].info.flags.weight);
                 fprintf(fdout,"     do_checksum        : %d\n",SLICES[ind].info.flags.do_checksum);
                 fprintf(fdout,"     init               : %d\n",SLICES[ind].info.flags.init);
-	}
+      }
      }
 
   return(0);
@@ -3169,7 +3169,7 @@ f77name(vmmdiag)()
 
 
    if(callc("VMMDIAG")) ;
-       
+
 #if defined CALL_SEQ
      fprintf(fdout,
       "CALL- vmmdiag()\n");
@@ -3199,7 +3199,7 @@ f77name(vmmdiag)()
 *
 *
 **/
-int32_t 
+int32_t
 f77name(vmmdmp)(uint32_t *mode)
 {
          void imprime_structures();
@@ -3210,10 +3210,10 @@ f77name(vmmdmp)(uint32_t *mode)
 #endif
          for(i = 0; i < 3; i++)
          {
-              if((*mode >> i) & 1)   
+              if((*mode >> i) & 1)
                        imprime_structures(i);
          }
-	 return(0);
+       return(0);
 }
 
 /***s/p vmmerr
@@ -3222,7 +3222,7 @@ f77name(vmmdmp)(uint32_t *mode)
 *     Emettre les messages d'erreur et mettre fin a l'execution si necessaire
 *
 *auteur J. Caveen  -  juillet 1993
-*revision james caveen - mars 1995 
+*revision james caveen - mars 1995
 *       changement a la definition de la macro sortir afin de lui
 *       passer un argument.
 *       Ajout des erreurs pour appel a vmmcpk ou vmmckmx avec champs
@@ -3234,7 +3234,7 @@ f77name(vmmdmp)(uint32_t *mode)
 *     in   fonction    nom de la fonction appelante
 *
 **/
-int 
+int
 vmmerr(char *fonction,int32_t valeur)
 {
       switch (valeur)
@@ -3309,7 +3309,7 @@ vmmerr(char *fonction,int32_t valeur)
                     fprintf(fd_err,
                       "ERROR - %s - BAD KEY\n",fonction);
                     SORTIR(-valeur)
-		    valeur = -valeur;   /* cas du test vmm pour retourner une valeur negative */
+                valeur = -valeur;   /* cas du test vmm pour retourner une valeur negative */
                     break;
            case NOT_IN_CORE:
                     fprintf(fd_err,
@@ -3360,7 +3360,7 @@ vmmerr(char *fonction,int32_t valeur)
                     fprintf(fd_err,
                       "WARNING - %s - RELEASING A POSSIBLY MODIFIED FIELD\n",fonction);
                     break;
-      }   
+      }
 
       return( (int) (-valeur));
 }
@@ -3384,7 +3384,7 @@ f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
 
 
        if(callc("VMMFGT"))   ;
-       
+
 
 
    if(pwd_set)
@@ -3404,7 +3404,7 @@ f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
               indice = qvmindex_from_key(inlkey[i]);
               if (indice < 0)
                     return vmmerr("VMMFGT",indice);
-            
+
               bloc_indice = SLICES[indice].block_table_index ;
               SLICES[indice].info.flags.keep_in_core = 0;
               SLICES[indice].info.flags.is_in_core = 0;
@@ -3437,7 +3437,7 @@ f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
 *
 *revision james caveen - mars 1995
 *       bug fix: ajout de la verification de l'attribut keep_in_core
-*                avant on pouvait faire un get d'un champ ayant subit un 
+*                avant on pouvait faire un get d'un champ ayant subit un
 *                unload mais etant toujours resident en memoire
 *
 *
@@ -3447,7 +3447,7 @@ f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
 *         out tablo     -  champ a obtenir (inutile en mode dynamique)
 *
 **/
-int32_t 
+int32_t
 #if defined (_FLOAT1)
 f77name(vmmget)(complete_key  *inkey, int32_t *pointeur,int32_t *tablo)
 #else
@@ -3461,7 +3461,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
           memint intptr;
 
           if(callc("VMMGET"))  ;
-       
+
 
 
 #if defined CALL_SEQ
@@ -3470,11 +3470,11 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
 #endif
           indice = qvmindex_from_key(*inkey);
 
- 
+
           if(indice < 0)
               return vmmerr("VMMGET",indice);
 
-          if( (! SLICES[indice].info.flags.is_in_core)) 
+          if( (! SLICES[indice].info.flags.is_in_core))
 /*          if( (! SLICES[indice].info.flags.is_in_core) || (! SLICES[indice].info.flags.keep_in_core)) **/
           {
               if(debug_mode)
@@ -3483,7 +3483,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
                          NAMES[SLICES[indice].name_table_index].nom,
                          indice-NAMES[SLICES[indice].name_table_index].major_key+1);
               }
-                         
+
               return vmmerr("VMMGET",NOT_IN_CORE);
           }
 
@@ -3491,7 +3491,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
           {
                  champs_bloques++;
 /*
- *            faire le checksum si requis et le comparer a celui deja dans 
+ *            faire le checksum si requis et le comparer a celui deja dans
  *            SLICE[indice]
  */
                      if(SLICES[indice].info.flags.do_checksum || checksum_mode)
@@ -3508,11 +3508,11 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
           SLICES[indice].info.flags.was_altered =
                SLICES[indice].info.flags.was_altered ||
                SLICES[indice].info.flags.altered;
-          SLICES[indice].info.flags.altered = SLICES[indice].info.flags.save; 
-          BLOCKS[SLICES[indice].block_table_index].info.flags.was_altered = 
+          SLICES[indice].info.flags.altered = SLICES[indice].info.flags.save;
+          BLOCKS[SLICES[indice].block_table_index].info.flags.was_altered =
                SLICES[indice].info.flags.was_altered;
-          BLOCKS[SLICES[indice].block_table_index].info.flags.altered = 
-	       SLICES[indice].info.flags.save;
+          BLOCKS[SLICES[indice].block_table_index].info.flags.altered =
+             SLICES[indice].info.flags.save;
 
 
 #if defined (_FLOAT1)
@@ -3525,7 +3525,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
 #else
           *pointeur = (void *) BLOCKS[SLICES[indice].block_table_index].memadr;
 #endif
-          
+
           champs_bloques_max = champs_bloques_max > champs_bloques ?
                                champs_bloques_max : champs_bloques ;
           return 0;
@@ -3558,8 +3558,8 @@ f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
    memint lptr;
    int32_t *pointeur;
 
-   if( callc("VMMHPA")) ; 
-       
+   if( callc("VMMHPA")) ;
+
 #if defined CALL_SEQ
      fprintf(fdout,
       "CALL- vmmhpa(%d,%d,%d)\n",ptr,*memry,*mode);
@@ -3573,7 +3573,7 @@ f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
    else
       free_space -=  nbytes/sizeof(int32_t);
 */
-   pointeur = (int32_t *) malloc(nbytes); 
+   pointeur = (int32_t *) malloc(nbytes);
 
    if (pointeur == (int32_t *) NULL)
         return(vmmerr("VMMHPA",NOT_ENOUGH_MEMORY));
@@ -3618,8 +3618,8 @@ f77name(vmmhpd)(void **ptr)
 
    int vmmerr();
 
-   if( callc("VMMHPD")) ; 
-       
+   if( callc("VMMHPD")) ;
+
 
 
 #if defined CALL_SEQ
@@ -3677,20 +3677,20 @@ int f77name(vmmint)()
        {
          if(BLOCKS[i].slice_table_index != -1)
          {
-	    ier = verbar(i);
+          ier = verbar(i);
             if(SLICES[BLOCKS[i].slice_table_index].block_table_index != i)
             {
                 fprintf(fdout," ERROR - INDEX MISMATCH BLOCKS[%d].slice_table_index = %d, SLICES[%d].block_table_index = %d\n",
                   i,BLOCKS[i].slice_table_index,
                   BLOCKS[i].slice_table_index,
-                  SLICES[BLOCKS[i].slice_table_index].block_table_index); 
+                  SLICES[BLOCKS[i].slice_table_index].block_table_index);
                     ier--;
             }
          }
        }
 
 /*
- *     boucle sur les names et slices 
+ *     boucle sur les names et slices
  */
        for(i=0; i<nbvar; i++)
        {
@@ -3705,7 +3705,7 @@ int f77name(vmmint)()
                       SLICES[NAMES[i].major_key+j].name_table_index,
                       i,NAMES[i].nom);
                     ier--;
-                 } 
+                 }
                  if(SLICES[NAMES[i].major_key+j].info.flags.class !=
                                                         NAMES[i].class)
                  {
@@ -3715,12 +3715,12 @@ int f77name(vmmint)()
                        SLICES[NAMES[i].major_key+j].info.flags.class,
                        i,NAMES[i].class );
                     ier--;
-                 } 
-                 
+                 }
+
              }
-                     
+
        }
-       
+
        return (ier == 0 ? ier : vmmerr("VMMINT",CONTROLE_DAMAGE));
 }
 
@@ -3747,7 +3747,7 @@ f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
        int indice, i,iii,ier;
 
        if (callc("VMMLCK"))   ;
-       
+
 
 
    if(pwd_set)
@@ -3771,13 +3771,13 @@ f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
               indice = qvmindex_from_key(inlkey[i]);
               if (indice < 0)
                     return vmmerr("VMMLCK",indice);
-            
+
               if( ! SLICES[indice].info.flags.is_in_core)
-                 return vmmerr("VMMLCK",NOT_IN_CORE); 
+                 return vmmerr("VMMLCK",NOT_IN_CORE);
 
               if(SLICES[indice].info.flags.locked)
                  return vmmerr("VMMLCK",ALREADY_LOCKED);
-              ier = verbar(SLICES[indice].block_table_index);   
+              ier = verbar(SLICES[indice].block_table_index);
               SLICES[indice].info.flags.locked = 1;
               BLOCKS[SLICES[indice].block_table_index].info.flags.locked = 1;
               champs_bloques++;
@@ -3790,7 +3790,7 @@ f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
                     SLICES[indice].checksum =
                        calc_checksum(SLICES[indice].block_table_index);
        }
-     
+
        champs_bloques_max = champs_bloques_max > champs_bloques ?
                             champs_bloques_max : champs_bloques ;
        return 0;
@@ -3808,10 +3808,10 @@ f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
 *                       On met l'attribut keep_in_core a 1
 *                       pour les champs deja en memoire dans le
 *                       cas ou il y a  des champs bloques.
-*                       Ceci evite l'ejection inutile de blocs. 
-*                       
-*                       
-*                       
+*                       Ceci evite l'ejection inutile de blocs.
+*
+*
+*
 *arguments
 *         in inlkey  -  liste de clefs des champs a charger
 *         in nkey    -  nombre de clefs dans inlkey
@@ -3821,11 +3821,11 @@ int32_t
 f77name(vmmlod)(complete_key inlkey[], int32_t *nkey)
 {
         int32_t qvmlod();
-	int qvm_index_frim_key();
+      int qvm_index_frim_key();
         int32_t ier, i,iii, un = 1;
-	int clef;
+      int clef;
 
-         
+
 
 #if defined CALL_SEQ
      if(*nkey > NCLEMAX)
@@ -3845,17 +3845,17 @@ f77name(vmmlod)(complete_key inlkey[], int32_t *nkey)
         if(champs_bloques)
         {
              nb_appels_lock++;
-	     
-	     for(i = 0;  i < *nkey; i++)
-	     {
-		clef = qvmindex_from_key(inlkey[i]);
-		if(SLICES[clef].info.flags.is_in_core)
-		{
-		   SLICES[clef].info.flags.keep_in_core = 1;
-		   BLOCKS[SLICES[clef].block_table_index].info.flags.keep_in_core = 1;
-		}
-	     }
-	       
+
+           for(i = 0;  i < *nkey; i++)
+           {
+            clef = qvmindex_from_key(inlkey[i]);
+            if(SLICES[clef].info.flags.is_in_core)
+            {
+               SLICES[clef].info.flags.keep_in_core = 1;
+               BLOCKS[SLICES[clef].block_table_index].info.flags.keep_in_core = 1;
+            }
+           }
+
              for( i = 0; i < *nkey; i++)
              {
                   ier = qvmlod(&inlkey[i],&un);
@@ -3872,7 +3872,7 @@ f77name(vmmlod)(complete_key inlkey[], int32_t *nkey)
         }
         return(ier);
 }
-                  
+
 
 
 /***s/p vmmlse
@@ -3892,7 +3892,7 @@ f77name(vmmlse)()
    int biggest_free_block_size, i;
 
    if( callc("VMMLSE")) ;
-       
+
 
 
    if(pwd_set)
@@ -3906,8 +3906,8 @@ f77name(vmmlse)()
    biggest_free_block_size = 0;
    for (i=0; i < nbblocks; i++)
       if (! BLOCKS[i].info.flags.in_used)
-	 if (BLOCKS[i].size > biggest_free_block_size)
-	    biggest_free_block_size = BLOCKS[i].size;
+       if (BLOCKS[i].size > biggest_free_block_size)
+          biggest_free_block_size = BLOCKS[i].size;
    return(biggest_free_block_size);
    }
 
@@ -3928,7 +3928,7 @@ f77name(vmmpak)()
    int biggest, ind;
 
    if( callc("VMMPAK")) ;
-       
+
 
 
    if(pwd_set)
@@ -3938,13 +3938,13 @@ f77name(vmmpak)()
      fprintf(fdout,
       "CALL- vmmpak()\n");
 #endif
-   
+
    ind = pack_blocks(&biggest);
 
    return(0);
    }
 
-      
+
 /***s/p vmmpwd
 *
 *objet(vmmpwd)
@@ -3973,7 +3973,7 @@ f77name(vmmpwd)(int32_t *mot_passe, int32_t *mode)
          int vmmerr();
 
          if(callc("VMMPWD"))   ;
-       
+
 
 
         if(*mode == 0)
@@ -3986,8 +3986,8 @@ f77name(vmmpwd)(int32_t *mot_passe, int32_t *mode)
       "CALL- vmmpwd(%d,%d)\n",*mot_passe, *mode);
 #endif
            pwd_set = 1;
-           mot_de_passe = *mot_passe; 
-          
+           mot_de_passe = *mot_passe;
+
         }
         else
         {
@@ -4003,7 +4003,7 @@ f77name(vmmpwd)(int32_t *mot_passe, int32_t *mode)
 /***s/p vmmrls
 *
 *objet(vmmrls)
-*     ejection d'un champ sans sauvegarde 
+*     ejection d'un champ sans sauvegarde
 *
 *auteur J. Caveen  -  juillet 1993
 *
@@ -4025,7 +4025,7 @@ f77name(vmmrls)(complete_key inlkey[], int32_t *nkey)
 
 
        if(callc("VMMRLS"))   ;
-       
+
 
 
    if(pwd_set)
@@ -4039,35 +4039,35 @@ f77name(vmmrls)(complete_key inlkey[], int32_t *nkey)
 
        fprintf(fdout,"],%d)\n",*nkey);
        fprintf(fdout," adresse de inlkey = %x\n",&inlkey[0]);
-       
+
 #endif
        for (i=0; i< *nkey; i++)
        {
-	  indice = qvmindex_from_key(inlkey[i]);
-	  if (indice < 0)
-	  return vmmerr("VMMRLS",indice);
-	  
-	  if( SLICES[indice].info.flags.was_altered)
-	  ier = vmmerr("VMMRLS",WAS_ALTERED_RELEASE); 
-	  
-	  bloc_indice = SLICES[indice].block_table_index ;
-	  if(bloc_indice != -1)
-	  {
-	     SLICES[indice].checksum = 0;
-	     if(BLOCKS[bloc_indice].info.flags.locked)
-	     champs_bloques--;
-	     ier = eject_block(bloc_indice,0,0);
-	  }
+        indice = qvmindex_from_key(inlkey[i]);
+        if (indice < 0)
+        return vmmerr("VMMRLS",indice);
+
+        if( SLICES[indice].info.flags.was_altered)
+        ier = vmmerr("VMMRLS",WAS_ALTERED_RELEASE);
+
+        bloc_indice = SLICES[indice].block_table_index ;
+        if(bloc_indice != -1)
+        {
+           SLICES[indice].checksum = 0;
+           if(BLOCKS[bloc_indice].info.flags.locked)
+           champs_bloques--;
+           ier = eject_block(bloc_indice,0,0);
+        }
        }
-       
+
        return 0;
 }
 
 /***s/p vmmrnm
 *
 *objet(vmmrnm)
-*    Changer le nom d'une variable dans les tables du systeme de 
-*    gestion de memoire 
+*    Changer le nom d'une variable dans les tables du systeme de
+*    gestion de memoire
 *
 *auteur J. Caveen  -  juin 1993
 *
@@ -4087,7 +4087,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
      int i;
 
      if (callc("VMMRNM"))   ;
-       
+
 
 
    if(pwd_set)
@@ -4111,7 +4111,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
       "CALL- vmmrnm(%d,%s)\n",(int32_t) oldkey->clef,innewname);
 #endif
 /*
- *   trouver la slice 
+ *   trouver la slice
  */
      slice_index = qvmindex_from_key(*oldkey);
 
@@ -4123,7 +4123,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
      name_index = SLICES[slice_index].name_table_index;
      strcpy(NAMES[name_index].nom,innewname);
 
-     
+
      return 0;
 }
 
@@ -4131,7 +4131,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 /***s/p vmmsav
 *
 *objet(vmmsav)
-*     Sauver une ou plusieurs variables sur disque 
+*     Sauver une ou plusieurs variables sur disque
 *
 *auteur J. Caveen  -  juillet 1993
 *
@@ -4140,7 +4140,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-int32_t 
+int32_t
 f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
 {
          void ecrit_bloc(),reserve_disk_space();
@@ -4148,7 +4148,7 @@ f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
          int indice,  i,iii;
 
          if(callc("VMMSAV"))  ;
-       
+
 
 
          if(pwd_set)
@@ -4171,7 +4171,7 @@ f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
              {
                 if(BLOCKS[i].info.flags.in_used)
                 {
-                   if(BLOCKS[i].info.flags.save && (BLOCKS[i].info.flags.altered || 
+                   if(BLOCKS[i].info.flags.save && (BLOCKS[i].info.flags.altered ||
                       BLOCKS[i].info.flags.was_altered))
                    {
                       if(BLOCKS[i].file_adr == -1)
@@ -4214,12 +4214,12 @@ f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
 
 
 
-                
+
 
 /***s/p vmmuld
 *
 *objet(vmmuld)
-*     Rendre un champ ejectable apres sauvegarde 
+*     Rendre un champ ejectable apres sauvegarde
 *     vmmuld ne fait ni la sauvegarde ni l'ejection
 *     sauf si le champ est nosave
 *
@@ -4239,7 +4239,7 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
 
 
        if(callc("VMMULD"))   ;
-       
+
 
 
    if(pwd_set)
@@ -4256,10 +4256,10 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
 
 #endif
 
-/*  
+/*
  *     si inlkey[0] = -1, on ejecte toutes les slices
  */
- 
+
 /*
  *          boucle sur toutes les clefs
  */
@@ -4278,7 +4278,7 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
                    SLICES[ BLOCKS[i].slice_table_index].info.flags.keep_in_core = 0;
                    SLICES[ BLOCKS[i].slice_table_index].info.flags.locked = 0;
                    if(SLICES[ BLOCKS[i].slice_table_index].info.flags.do_checksum || checksum_mode)
-                      SLICES[ BLOCKS[i].slice_table_index].checksum = 
+                      SLICES[ BLOCKS[i].slice_table_index].checksum =
                          calc_checksum(i);
                 }
                 if (BLOCKS[i].info.flags.save)
@@ -4302,7 +4302,7 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
               indice = qvmindex_from_key(inlkey[i]);
               if (indice < 0)
                     return vmmerr("VMMULD",indice);
-            
+
               SLICES[indice].info.flags.keep_in_core = 0;
               SLICES[indice].info.flags.locked = 0;
               bloc_indice = SLICES[indice].block_table_index ;
@@ -4324,12 +4324,12 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
                      if(BLOCKS[bloc_indice].info.flags.locked)
                              champs_bloques--;
                      BLOCKS[bloc_indice].info.flags.locked = 0;
-                  } 
+                  }
                   else
                   {
                       if(BLOCKS[bloc_indice].info.flags.locked)
                             champs_bloques--;
-     
+
                       ier = eject_block(bloc_indice,0,0);
                   }
 
@@ -4361,7 +4361,7 @@ f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
 
 
        if(callc("VMMULK"))   ;
-       
+
 
 
    if(pwd_set)
@@ -4376,17 +4376,17 @@ f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
      fprintf(fdout,"],%d)\n",*nkey);
 #endif
 
-/*  
- *     si inlkey[0] = -1, on boucle sur les blocs pour mettre locked = 0 
+/*
+ *     si inlkey[0] = -1, on boucle sur les blocs pour mettre locked = 0
  *     sinon, on boucle sur les slices
  */
- 
+
        if ( inlkey[0].clef == -1)
        {
             for (i=0; i< nbblocks; i++)
             {
               ier = verbar(i);
-	      indice = BLOCKS[i].slice_table_index;
+            indice = BLOCKS[i].slice_table_index;
               BLOCKS[i].info.flags.locked = 0;
               if(indice != -1)
               {
@@ -4410,7 +4410,7 @@ f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
               indice = qvmindex_from_key(inlkey[i]);
               if (indice < 0)
                     return vmmerr("VMMULK",indice);
-            
+
               SLICES[indice].info.flags.locked = 0;
               if(SLICES[indice].block_table_index != -1)
               {
@@ -4438,19 +4438,19 @@ f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
 /***s/p vmmuln
 *
 *objet(vmmuln)
-*     Rendre un champ ejectable sans sauvegarde 
+*     Rendre un champ ejectable sans sauvegarde
 *     vmmuln ne fait pas l'ejection
 *     sauf si le bloc est nosave
 *
 *auteur J. Caveen  -  juillet 1993
 *
-*revision: j. caveen - fevrier 1995 
+*revision: j. caveen - fevrier 1995
 *                      enlever la possibilite de passer
 *                      inlk[0] = -1 pour faire un uln
 *                      tous les blocs memoires; (cette
 *                      methode a des effets de bord
 *                      pour le moins dangeureux)
-*                      
+*
 *arguments
 *     in   inlkey      liste des clefs de tranches a expulser
 *     in   nkey        nombre de clefs dans inlkey
@@ -4464,7 +4464,7 @@ f77name(vmmuln)(complete_key inlkey[], int32_t *nkey)
 
 
        if(callc("VMMULN"))   ;
-       
+
 
 
    if(pwd_set)
@@ -4478,57 +4478,57 @@ f77name(vmmuln)(complete_key inlkey[], int32_t *nkey)
 
      fprintf(fdout,"],%d)\n",*nkey);
 #endif
-       
+
        for (i=0; i< *nkey; i++)
        {
-	  indice = qvmindex_from_key(inlkey[i]);
-	  if (indice < 0)
-	  return vmmerr("VMMULN",indice);
-	  
-	  SLICES[indice].info.flags.keep_in_core = 0;
-	  SLICES[indice].info.flags.locked = 0;
-	  SLICES[indice].info.flags.altered =
-	         SLICES[indice].info.flags.was_altered;
-	  bloc_indice = SLICES[indice].block_table_index ;
-	  if(bloc_indice != -1)
-	  {
-	     if(SLICES[indice].info.flags.do_checksum || checksum_mode)
-	     SLICES[indice].checksum = calc_checksum(bloc_indice);
-	     
-	     if(SLICES[indice].info.flags.save) 
-	     {
-		ier = verbar(bloc_indice);
-		if(BLOCKS[bloc_indice].info.flags.locked)
-		champs_bloques--;
-		BLOCKS[bloc_indice].info.flags.keep_in_core = 0;
-		BLOCKS[bloc_indice].info.flags.locked = 0;
-		BLOCKS[bloc_indice].info.flags.altered =
-		BLOCKS[bloc_indice].info.flags.was_altered;
-		
-		if ((BLOCKS[bloc_indice].info.flags.traced) || debug_mode)
-		{
-		   fprintf(fdout,"VMM trace: vmmuln du bloc %d variable %s tranche %d\n",
-			   bloc_indice,NAMES[SLICES[indice].name_table_index].nom,
-			   indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
-		   if(BLOCKS[bloc_indice].info.flags.altered)
-		   fprintf(fdout,"           Block will be saved upon ejection\n");
-		   else
+        indice = qvmindex_from_key(inlkey[i]);
+        if (indice < 0)
+        return vmmerr("VMMULN",indice);
+
+        SLICES[indice].info.flags.keep_in_core = 0;
+        SLICES[indice].info.flags.locked = 0;
+        SLICES[indice].info.flags.altered =
+               SLICES[indice].info.flags.was_altered;
+        bloc_indice = SLICES[indice].block_table_index ;
+        if(bloc_indice != -1)
+        {
+           if(SLICES[indice].info.flags.do_checksum || checksum_mode)
+           SLICES[indice].checksum = calc_checksum(bloc_indice);
+
+           if(SLICES[indice].info.flags.save)
+           {
+            ier = verbar(bloc_indice);
+            if(BLOCKS[bloc_indice].info.flags.locked)
+            champs_bloques--;
+            BLOCKS[bloc_indice].info.flags.keep_in_core = 0;
+            BLOCKS[bloc_indice].info.flags.locked = 0;
+            BLOCKS[bloc_indice].info.flags.altered =
+            BLOCKS[bloc_indice].info.flags.was_altered;
+
+            if ((BLOCKS[bloc_indice].info.flags.traced) || debug_mode)
+            {
+               fprintf(fdout,"VMM trace: vmmuln du bloc %d variable %s tranche %d\n",
+                     bloc_indice,NAMES[SLICES[indice].name_table_index].nom,
+                     indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
+               if(BLOCKS[bloc_indice].info.flags.altered)
+               fprintf(fdout,"           Block will be saved upon ejection\n");
+               else
                    fprintf(fdout,"           Block will not be saved upon ejection\n");
-		}
-	     }
-	     else
-	     {
-		if(BLOCKS[bloc_indice].info.flags.locked)
-		champs_bloques--;
-		eject_block(bloc_indice,0,0);
-	     }
-	  }
-	  else
-	  {
-	     fprintf(fdout,"VMM trace: vmmuln  variable %s tranche %d pas en memoire\n",
-		     NAMES[SLICES[indice].name_table_index].nom,
-		     indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
-	  }
+            }
+           }
+           else
+           {
+            if(BLOCKS[bloc_indice].info.flags.locked)
+            champs_bloques--;
+            eject_block(bloc_indice,0,0);
+           }
+        }
+        else
+        {
+           fprintf(fdout,"VMM trace: vmmuln  variable %s tranche %d pas en memoire\n",
+                 NAMES[SLICES[indice].name_table_index].nom,
+                 indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
+        }
        }
        return 0;
 }
@@ -4557,16 +4557,16 @@ f77name(vmmwho)(int32_t *adr)
      return(-1);
      }
    for (i=0; i < nbblocks; i++) {
-      if ((adr >= BLOCKS[i].memadr) && 
+      if ((adr >= BLOCKS[i].memadr) &&
           (adr <= BLOCKS[i].memadr+BLOCKS[i].size-1)) {
         sind = BLOCKS[i].slice_table_index;
-	nind = SLICES[sind].name_table_index;
-	fprintf(fdout,
+      nind = SLICES[sind].name_table_index;
+      fprintf(fdout,
                 "  VMMWHO\n\t address in block #%d, variable %s, slice %d\n\n",
-		i,NAMES[nind].nom,sind - NAMES[nind].major_key + 1);
-	fprintf(fdout,"\t          address = %#x\n",adr);
-	fprintf(fdout,"\t BLOCKS[%d].memadr = %#x\n",i,BLOCKS[i].memadr);
-	fprintf(fdout,"\t          indice  = %d\n\n",1+(adr-BLOCKS[i].memadr));
+            i,NAMES[nind].nom,sind - NAMES[nind].major_key + 1);
+      fprintf(fdout,"\t          address = %#x\n",adr);
+      fprintf(fdout,"\t BLOCKS[%d].memadr = %#x\n",i,BLOCKS[i].memadr);
+      fprintf(fdout,"\t          indice  = %d\n\n",1+(adr-BLOCKS[i].memadr));
         fprintf(fdout,"\t keep_in_core       : %d\n",SLICES[sind].info.flags.keep_in_core);
         fprintf(fdout,"\t is_in_core         : %d\n",SLICES[sind].info.flags.is_in_core);
         fprintf(fdout,"\t in_used            : %d\n",SLICES[sind].info.flags.in_used);
@@ -4585,8 +4585,8 @@ f77name(vmmwho)(int32_t *adr)
         fprintf(fdout,"\t init               : %d\n",SLICES[sind].info.flags.init);
         fprintf(fdout,"\t block_table_index  : %d\n",SLICES[sind].block_table_index);
         fprintf(fdout,"\t name_table_index   : %d\n",SLICES[sind].name_table_index);
-	return(0);
-	}
+      return(0);
+      }
       }
   return 0; /*CHC/NRC*/
 }
@@ -4616,53 +4616,53 @@ int32_t f77name(vmmckmx)()
    void reserve_disk_space();
    int vmmerr(), strfind(), eject_block();
    void  ouvre_ou_ferme_controle();
-   
+
    int i,pos;
-   
+
    if(callc("VMMCKMX"))  ;
-   
-   
-   
+
+
+
    if(pwd_set)
    return(vmmerr("VMMCKMX",PASSWORD_IS_SET));
-   
+
 #if defined CALL_SEQ
    fprintf(fdout,"CALL- vmmckmx()\n");
 #endif
-**/   
+**/
 /*
- * On ecrit tous les blocs memoires qui ont l'attribut mustexist   
+ * On ecrit tous les blocs memoires qui ont l'attribut mustexist
  * et on ejecte tous les autres sans sauvegarde
    for (i = 0; i< nbblocks; i++)
    {
       if(BLOCKS[i].info.flags.in_used)
       {
-	 if(BLOCKS[i].info.flags.keep_in_core)
-	 return(vmmerr("VMMCKMX",KEEP_IN_CORE_CKMX));
+       if(BLOCKS[i].info.flags.keep_in_core)
+       return(vmmerr("VMMCKMX",KEEP_IN_CORE_CKMX));
 
-	 if(BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
-					     BLOCKS[i].info.flags.was_altered))
-	 {
-	    if(BLOCKS[i].file_adr == -1)
-	               reserve_disk_space(i);
+       if(BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
+                                   BLOCKS[i].info.flags.was_altered))
+       {
+          if(BLOCKS[i].file_adr == -1)
+                     reserve_disk_space(i);
 
-	    ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
-		       BLOCKS[i].file_adr,BLOCKS[i].size);
-	 }
-	 else
-	    eject_block(i,0,0);
+          ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
+                   BLOCKS[i].file_adr,BLOCKS[i].size);
+       }
+       else
+          eject_block(i,0,0);
       }
    }
 
- * On indique que toutes les tranches qui ne 
+ * On indique que toutes les tranches qui ne
  * sont pas mustexist n'ont pas d'image disque
 
    for (i = 0; i < nbslices; i++)
       if(! SLICES[i].info.flags.must_exist)
-	 SLICES[i].info.flags.disk_image = 0;
+       SLICES[i].info.flags.disk_image = 0;
 
 
-   
+
    ecrit_vmm_controle();
    ouvre_ou_ferme_controle(0,0,"VMMCKMX");
    return 0;
@@ -4683,52 +4683,52 @@ int32_t f77name(vmmckmx)()
 {
 
    void ecrit_vmm_controle(), ecrit_bloc();
- /*   
-    ouvre_ou_ferme_controle(); 
+ /*
+    ouvre_ou_ferme_controle();
 */
    void reserve_disk_space();
-   int vmmerr(), strfind(); 
-   
+   int vmmerr(), strfind();
+
    int i,pos;
-   
+
    if(callc("VMMCKMX"))  ;
-   
-   
+
+
    if(pwd_set)
    return(vmmerr("VMMCKMX",PASSWORD_IS_SET));
-   
+
 #if defined CALL_SEQ
    fprintf(fdout,"CALL- vmmckmx()\n");
 #endif
-   
-   
+
+
    for (i = 0; i< nbblocks; i++)
    {
       if(BLOCKS[i].info.flags.in_used)
       {
-	 if(BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
-						BLOCKS[i].info.flags.was_altered))
-	 {
-	    if(BLOCKS[i].file_adr == -1)
-	               reserve_disk_space(i);
+       if(BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
+                                    BLOCKS[i].info.flags.was_altered))
+       {
+          if(BLOCKS[i].file_adr == -1)
+                     reserve_disk_space(i);
 
-	    ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
-		       BLOCKS[i].file_adr,BLOCKS[i].size);
-	 }
-	 else if(BLOCKS[i].info.flags.save && !(BLOCKS[i].info.flags.must_exist))
-	 {
-	    BLOCKS[i].info.flags.altered =
-	    BLOCKS[i].info.flags.was_altered =
-	    BLOCKS[i].info.flags.disk_image = 0;
-	    SLICES[BLOCKS[i].slice_table_index].info.flags.altered =
-	    SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered =
-	    SLICES[BLOCKS[i].slice_table_index].info.flags.disk_image = 0;
-	 }
+          ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
+                   BLOCKS[i].file_adr,BLOCKS[i].size);
+       }
+       else if(BLOCKS[i].info.flags.save && !(BLOCKS[i].info.flags.must_exist))
+       {
+          BLOCKS[i].info.flags.altered =
+          BLOCKS[i].info.flags.was_altered =
+          BLOCKS[i].info.flags.disk_image = 0;
+          SLICES[BLOCKS[i].slice_table_index].info.flags.altered =
+          SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered =
+          SLICES[BLOCKS[i].slice_table_index].info.flags.disk_image = 0;
+       }
       }
    }
-   
+
 /**   ckp_mustexist_done = 1; **/
-   
+
    ecrit_vmm_controle();
    ouvre_ou_ferme_controle(0,0,"VMMCKMX");
    return 0;
@@ -4743,18 +4743,18 @@ int32_t f77name(vmmckmx)()
 *auteur E. Gondet  -  April 2001
 *
 *argument
-*    yes if 1 delete 10 files Vmm_* 
+*    yes if 1 delete 10 files Vmm_*
 *
 **/
 int32_t f77name(vmmdel)(int yes) {
    int vmmerr();
    int i, ier;
 
-   if (yes == 1) 
+   if (yes == 1)
    {
      for ( i = 0; i < NCLASSE; i++)
      {
-       printf("Fichier i = %s\n", fclass_names[i]); 
+       printf("Fichier i = %s\n", fclass_names[i]);
        ier = unlink(fclass_names[i]);
        printf("\n unlink rend : %i\n", ier);
      }
@@ -4775,8 +4775,8 @@ int32_t f77name(vmmdel)(int yes) {
 /***s/p vmmend
 *
 *objet(vmmend)
-*     Liberer l'espace memoire du systeme de gestion de memoire virtuelle. 
-*     Remettre a zero les tableaux de structures statiques controlant 
+*     Liberer l'espace memoire du systeme de gestion de memoire virtuelle.
+*     Remettre a zero les tableaux de structures statiques controlant
 *     l'espace memoire.
 *     vmmend doit etre la derniere fonction du systeme de gestion de
 *     memoire virtuelle appelee par l'usager.
@@ -4798,12 +4798,12 @@ f77name(vmmend)()
 {
    int vmmerr();
    void  lit_vmm_controle();
- /*   
-    ouvre_ou_ferme_controle(); 
+ /*
+    ouvre_ou_ferme_controle();
 */
- 
+
    int i;
-  
+
 /*
  * s'assurer que vmmallc a ete appele avant vmmend
  */
@@ -4811,7 +4811,7 @@ f77name(vmmend)()
    if(!called_vmmallc)
        return vmmerr("VMMEND",NO_CALL_TO_VMMALLC);
 
-/* 
+/*
  * Reinitialiser les structures NAMES, SLICES, BLOCKS
  */
 /*ETG OLD from vmmallc   for (i = 0; i < MAXSLICES; i++)
@@ -4827,7 +4827,7 @@ f77name(vmmend)()
    memset(SLICES, 0, MAXSLICES*sizeof(struct slice_table) );
 
 /*
- * fermerture de tous les fichiers du systeme de gestion 
+ * fermerture de tous les fichiers du systeme de gestion
  */
    ouvre_ou_ferme_controle(0,0,"VMMEND");
 
@@ -4840,7 +4840,7 @@ f77name(vmmend)()
  * Liberer la memoire allouee par VMM
  */
 
-   free(BLOCKS[0].memadr); 
+   free(BLOCKS[0].memadr);
    fprintf(stdout,"Debug vmmend BLOCKS[0].memadr=%d\n",BLOCKS[0].memadr);
 
    if(BLOCKS[0].memadr != (int32_t *) NULL)
@@ -4856,7 +4856,7 @@ f77name(vmmend)()
  maxmem = 0, free_space = 0, nbslices = 0, nbvar = 0, nbblocks = 0;
  mot_de_passe = 0, pwd_set = 0;
  called_vmmallc = 0; /*called_vmmallc mis a  1 lors du 1er appel a vmmallc */
- 
+
 /* variables globales pour les unites logiques des fichiers Vmm_classe
    et Vmm_controle
  */
@@ -4866,14 +4866,14 @@ f77name(vmmend)()
      wp_Vmm[i] = 0; ; /*longueur des Vmm_0n*/
    }
    fcontrole=0;   /* nom du fichier: Vmm_controle */
-   fichiers_ouverts = 0; 
-   champs_bloques = 0; 
+   fichiers_ouverts = 0;
+   champs_bloques = 0;
    reprise = 0;       /* mis a 1 si le fichier Vmm_controle est non vide */
    debug_mode = 0;
    checksum_mode = 0;
-   espace_requis_max = 0; 
-   champs_bloques_max = 0; 
-   nbblocks_max = 0; 
+   espace_requis_max = 0;
+   champs_bloques_max = 0;
+   nbblocks_max = 0;
    nb_appels_no_lock = 0;
    nb_appels_lock = 0;
    nb_ecritures = 0;

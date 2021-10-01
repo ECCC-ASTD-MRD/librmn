@@ -33,7 +33,6 @@
 
 static void  packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header);
 void  packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, int32_t *header);
-int armn_compress(unsigned char *fld, int ni, int nj, int nk, int nbits, int op_code);
 int c_armn_compress_getlevel();
 int c_fstzip_getlevel();
 int c_fstzip_parallelogram(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, int32_t *header);
@@ -69,9 +68,7 @@ int zfst_msglevel = 2;
 
 
 
-// Main entry point to the compression routines
-
-
+//! Main entry point to the compression routines
 int armn_compress(
     unsigned char *fld,
     int ni,
