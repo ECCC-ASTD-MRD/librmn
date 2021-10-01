@@ -464,18 +464,18 @@ void packTokensParallelogram32(
 
     ufld_dst = (int *) malloc(ni * nj * sizeof(int));
 
-    for (int j = 1; j <= nj; j++) {
+    for (unsigned int j = 1; j <= nj; j++) {
         k = FTN2C(1, j, ni);
         ufld_dst[k] = 0;
     }
 
-    for (int i = 1; i <= ni; i++) {
+    for (unsigned int i = 1; i <= ni; i++) {
         k = FTN2C(i, 1, ni);
         ufld_dst[k] = 0;
     }
 
-    for (int j = 2; j <= nj; j++) {
-        for (int i = 2; i <= ni; i++) {
+    for (unsigned int j = 2; j <= nj; j++) {
+        for (unsigned int i = 2; i <= ni; i++) {
             k22 = FTN2C(i, j, ni);
             ufld_dst[k22] = ufld[k22] - (ufld[k22 - ni] + ufld[k22 - 1] - ufld[k22 - 1 - ni]);
         }
@@ -489,24 +489,24 @@ void packTokensParallelogram32(
 
     stuff(nbits_req_container, cur, 32, istep, lastWordShifted, spaceInLastWord);
 
-    for (int i = 1; i <= ni; i++) {
+    for (unsigned int i = 1; i <= ni; i++) {
         k = FTN2C(i, 1, ni);
         stuff(ufld[k], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
 
-    for (int j = 2; j <= nj; j++) {
+    for (unsigned int j = 2; j <= nj; j++) {
         k = FTN2C(1,j,ni);
         stuff(ufld[k], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
 
-    for (int j = 2; j <= nj; j += istep) {
+    for (unsigned int j = 2; j <= nj; j += istep) {
         lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
-        for (int i = 2; i <= ni; i += istep) {
+        for (unsigned int i = 2; i <= ni; i += istep) {
             k = FTN2C(i, j, ni);
             local_max = ufld_dst[k];
             lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
-            for (int n = 0; n <= lcl_n; n++) {
-                for (int m = 0; m <= lcl_m; m++) {
+            for (unsigned int n = 0; n <= lcl_n; n++) {
+                for (unsigned int m = 0; m <= lcl_m; m++) {
                     k = FTN2C(i + m, j + n, ni);
                     if (local_max < abs(ufld_dst[k])) local_max = abs(ufld_dst[k]);
                 }
@@ -524,8 +524,8 @@ void packTokensParallelogram32(
 
                 default:
                     nbits2 = nbits_needed + 1;
-                    for (int n = 0; n <= lcl_n; n++) {
-                        for (int m = 0; m <= lcl_m; m++) {
+                    for (unsigned int n = 0; n <= lcl_n; n++) {
+                        for (unsigned int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
                             token = (unsigned int) (ufld_dst[k] & ~((-1) << nbits2));
                             stuff(token, cur, 32, nbits2, lastWordShifted, spaceInLastWord);
@@ -568,27 +568,27 @@ void unpackTokensParallelogram32(unsigned int ufld[], unsigned int z[], int ni, 
 
     extract(nbits_req_container, cur, 32, istep, curword, bitPackInWord);
 
-    for (int i = 1; i <= ni; i++) {
+    for (unsigned int i = 1; i <= ni; i++) {
         k = FTN2C(i, 1, ni);
         extract(token, cur, 32, nbits, curword, bitPackInWord);
         ufld[k] = token;
     }
 
-    for (int j = 2; j <= nj; j++) {
+    for (unsigned int j = 2; j <= nj; j++) {
         k = FTN2C(1, j, ni);
         extract(token, cur, 32, nbits, curword, bitPackInWord);
         ufld[k] = token;
     }
 
-    for (int j = 2; j <= nj; j += istep) {
+    for (unsigned int j = 2; j <= nj; j += istep) {
         lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
-        for (int i = 2; i <= ni; i += istep) {
+        for (unsigned int i = 2; i <= ni; i += istep) {
             lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
             extract(nbits_needed, cur, 32, nbits_req_container, curword, bitPackInWord);
             switch (nbits_needed) {
                 case 0:
-                    for (int n = 0; n <= lcl_n; n++) {
-                        for (int m = 0; m <= lcl_m; m++) {
+                    for (unsigned int n = 0; n <= lcl_n; n++) {
+                        for (unsigned int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
                             ufld_tmp[k] = 0;
                         }
@@ -597,8 +597,8 @@ void unpackTokensParallelogram32(unsigned int ufld[], unsigned int z[], int ni, 
 
                 default:
                     nbits2 = nbits_needed + 1;
-                    for (int n = 0; n <= lcl_n; n++) {
-                        for (int m = 0; m <= lcl_m; m++) {
+                    for (unsigned int n = 0; n <= lcl_n; n++) {
+                        for (unsigned int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
                             extract(token, cur, 32, nbits2, curword, bitPackInWord);
                             ufld_tmp[k] = token;
@@ -609,8 +609,8 @@ void unpackTokensParallelogram32(unsigned int ufld[], unsigned int z[], int ni, 
         }
     }
 
-    for (int j = 2; j <= nj; j++) {
-        for (int i = 2; i <= ni; i++) {
+    for (unsigned int j = 2; j <= nj; j++) {
+        for (unsigned int i = 2; i <= ni; i++) {
             k11 = FTN2C(i-1,j-1,ni);
             k12 = FTN2C(i-1,j  ,ni);
             k21 = FTN2C(i,  j-1,ni);
@@ -642,7 +642,7 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
 
     if (once == 0) {
         rlog2 = 1.0 / log(2.0);
-        for (int i = 0; i < 256; i++) {
+        for (unsigned int i = 0; i < 256; i++) {
             fastlog[i] = (int)(1 + log(i + 0.5) * rlog2);
         }
         once = 1;
@@ -650,18 +650,18 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
 
     ufld_dst = (int *) malloc(ni * nj * sizeof(int));
 
-    for (int j = 1; j <= nj; j++) {
+    for (unsigned int j = 1; j <= nj; j++) {
         k = FTN2C(1, j, ni);
         ufld_dst[k] = 0;
     }
 
-    for (int i = 1; i <= ni; i++) {
+    for (unsigned int i = 1; i <= ni; i++) {
         k = FTN2C(i, 1, ni);
         ufld_dst[k] = 0;
     }
 
-    for (int j = 2; j <= nj; j++) {
-        for (int i = 2; i <= ni; i++) {
+    for (unsigned int j = 2; j <= nj; j++) {
+        for (unsigned int i = 2; i <= ni; i++) {
             k22 = FTN2C(i, j, ni);
             ufld_dst[k22] = ufld[k22] - (ufld[k22 - ni] + ufld[k22 - 1] - ufld[k22 - 1 - ni]);
         }
@@ -675,24 +675,24 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
 
     stuff(nbits_req_container, cur, 32, istep, lastWordShifted, spaceInLastWord);
 
-    for (int i = 1; i <= ni; i++) {
+    for (unsigned int i = 1; i <= ni; i++) {
         k = FTN2C(i, 1, ni);
         stuff(ufld[k], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
 
-    for (int j = 2; j <= nj; j++) {
+    for (unsigned int j = 2; j <= nj; j++) {
         k = FTN2C(1, j, ni);
         stuff(ufld[k], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
 
-    for (int j = 2; j <= nj; j += istep) {
+    for (unsigned int j = 2; j <= nj; j += istep) {
         lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
-        for (int i = 2; i <= ni; i += istep) {
+        for (unsigned int i = 2; i <= ni; i += istep) {
             k = FTN2C(i, j, ni);
             local_max = ufld_dst[k];
             lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
-            for (int n = 0; n <= lcl_n; n++) {
-                for (int m = 0; m <= lcl_m; m++) {
+            for (unsigned int n = 0; n <= lcl_n; n++) {
+                for (unsigned int m = 0; m <= lcl_m; m++) {
                     k = FTN2C(i + m, j + n, ni);
                     if (local_max < abs(ufld_dst[k])) local_max = abs(ufld_dst[k]);
                 }
@@ -713,8 +713,8 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
 
                 default:
                     nbits2 = nbits_needed + 1;
-                    for (int n = 0; n <= lcl_n; n++) {
-                        for (int m = 0; m <= lcl_m; m++) {
+                    for (unsigned int n = 0; n <= lcl_n; n++) {
+                        for (unsigned int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
                             token = (unsigned int) (ufld_dst[k] & ~((-1) << nbits2));
                             stuff(token, cur, 32, nbits2, lastWordShifted, spaceInLastWord);
@@ -753,27 +753,27 @@ void unpackTokensParallelogram_8(unsigned char ufld[], unsigned int z[], int ni,
 
     extract(nbits_req_container, cur, 32, istep, curword, bitPackInWord);
 
-    for (int i = 1; i <= ni; i++) {
+    for (unsigned int i = 1; i <= ni; i++) {
         k = FTN2C(i, 1, ni);
         extract(token, cur, 32, nbits, curword, bitPackInWord);
         ufld[k] = token;
     }
 
-    for (int j = 2; j <= nj; j++) {
+    for (unsigned int j = 2; j <= nj; j++) {
         k = FTN2C(1, j, ni);
         extract(token, cur, 32, nbits, curword, bitPackInWord);
         ufld[k] = token;
     }
 
-    for (int j = 2; j <= nj; j += istep) {
+    for (unsigned int j = 2; j <= nj; j += istep) {
         lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
-        for (int i = 2; i <= ni; i += istep) {
+        for (unsigned int i = 2; i <= ni; i += istep) {
             lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
             extract(nbits_needed, cur, 32, nbits_req_container, curword, bitPackInWord);
             switch (nbits_needed) {
                 case 0:
-                    for (int n = 0; n <= lcl_n; n++) {
-                        for (int m = 0; m <= lcl_m; m++) {
+                    for (unsigned int n = 0; n <= lcl_n; n++) {
+                        for (unsigned int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
                             ufld_tmp[k] = 0;
                         }
@@ -782,8 +782,8 @@ void unpackTokensParallelogram_8(unsigned char ufld[], unsigned int z[], int ni,
 
                 default:
                     nbits2 = nbits_needed + 1;
-                    for (int n = 0; n <= lcl_n; n++) {
-                        for (int m = 0; m <= lcl_m; m++) {
+                    for (unsigned int n = 0; n <= lcl_n; n++) {
+                        for (unsigned int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
                             extract(token, cur, 32, nbits2, curword, bitPackInWord);
                             ufld_tmp[k] = token;
@@ -794,8 +794,8 @@ void unpackTokensParallelogram_8(unsigned char ufld[], unsigned int z[], int ni,
         }
     }
 
-    for (int j = 2; j <= nj; j++) {
-        for (int i = 2; i <= ni; i++) {
+    for (unsigned int j = 2; j <= nj; j++) {
+        for (unsigned int i = 2; i <= ni; i++) {
             k11 = FTN2C(i-1,j-1,ni);
             k12 = FTN2C(i-1,j  ,ni);
             k21 = FTN2C(i,  j-1,ni);
@@ -831,7 +831,7 @@ void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int
         if (count < 8) {
             stuff(SEQUENCE, cur, 32, 1, lastWordShifted, spaceInLastWord);
             limite = (last_indx + 7) > npts ? (npts - last_indx) : 7;
-            for (int i = 0; i < limite; i++) {
+            for (unsigned int i = 0; i < limite; i++) {
                 stuff(ufld[last_indx + i], cur, 32, 1, lastWordShifted, spaceInLastWord);
             }
             last_indx += 7;
@@ -844,7 +844,7 @@ void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int
                 if (lcl_count < 8) {
                     stuff(SEQUENCE, cur, 32, 1, lastWordShifted, spaceInLastWord);
                     limite = (last_indx + 7) > npts ? (npts - last_indx) : 7;
-                    for (int j = 0; j < limite; j++){
+                    for (unsigned int j = 0; j < limite; j++){
                         stuff(ufld[last_indx+j], cur, 32, 1, lastWordShifted, spaceInLastWord);
                     }
                     last_indx +=7;
@@ -910,7 +910,7 @@ void unpack1bitRLE(
         switch(seq_type) {
             case SEQUENCE:
                 limite = (i + 7) > npts ? (npts - i) : 7;
-                for (int j = 0; j < limite; j++) {
+                for (unsigned int j = 0; j < limite; j++) {
                     extract(token, cur, 32, 1, curword, bitPackInWord);
                     ufld[i+j] = (unsigned char) token;
                 }
@@ -922,14 +922,14 @@ void unpack1bitRLE(
                 extract(count, cur, 32, 6, curword, bitPackInWord);
                 switch (count) {
                     case 63:
-                        for (int j = 0; j < 255; j++) {
+                        for (unsigned int j = 0; j < 255; j++) {
                             ufld[i+j] = (unsigned char) last_val;
                         }
                         i += 255;
                         break;
 
                     default:
-                        for (int j = 0; j < count; j++) {
+                        for (unsigned int j = 0; j < count; j++) {
                             ufld[i+j] = (unsigned char) val;
                         }
                         i += count;
@@ -948,11 +948,11 @@ int compact_mask_char(unsigned int *dest, unsigned char *src, int npts)
 
     npts32 = 1 + (npts >> 5);
 
-    for (int i = 0; i < npts32; i++) {
+    for (unsigned int i = 0; i < npts32; i++) {
         dest[i] = 0;
     }
 
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         entier = i >> 5;
         fraction = i - (entier << 5);
         dest[entier] |= (src[i] << fraction);
@@ -965,7 +965,7 @@ int uncompact_mask_char(int *dest, unsigned int *src, int npts)
 {
     int entier, fraction;
 
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         entier = i >> 5;
         fraction = i - (entier << 5);
         dest[i] = (src[entier]  & (1 << fraction)) >> fraction;
@@ -984,7 +984,7 @@ void pack_stream_nbits_32(unsigned int z[], unsigned int *zlng, unsigned int ufl
     unsigned int lastSlot = 0;
 
     *cur = 0;
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         stuff(ufld[i], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
     stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
@@ -1000,7 +1000,7 @@ void unpack_stream_nbits_32(unsigned int ufld[], unsigned int z[], int npts, int
     unsigned int curword = *cur;
     int bitPackInWord = 32;
 
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         extract(ufld[i], cur, 32, nbits, curword, bitPackInWord);
     }
 }
@@ -1016,7 +1016,7 @@ void pack_stream_nbits_16(unsigned int z[], unsigned int *zlng, unsigned short u
     unsigned int lastSlot = 0;
 
     *cur = 0;
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         stuff(ufld[i], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
     stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
@@ -1032,7 +1032,7 @@ void unpack_stream_nbits_16(unsigned short ufld[], unsigned int z[], int npts, i
     unsigned int curword = *cur;
     int bitPackInWord = 32;
 
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         extract(ufld[i], cur, 32, nbits, curword, bitPackInWord);
     }
 }
@@ -1048,7 +1048,7 @@ void pack_stream_nbits_8(unsigned int z[], unsigned int *zlng, unsigned char ufl
     unsigned int lastSlot = 0;
 
     *cur = 0;
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         stuff(ufld[i], cur, 32, nbits, lastWordShifted, spaceInLastWord);
     }
     stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
@@ -1064,7 +1064,7 @@ void unpack_stream_nbits_8(unsigned char ufld[], unsigned int z[], int npts, int
     unsigned int curword = *cur;
     int bitPackInWord = 32;
 
-    for (int i = 0; i < npts; i++) {
+    for (unsigned int i = 0; i < npts; i++) {
         extract(ufld[i], cur, 32, nbits, curword, bitPackInWord);
     }
 }
