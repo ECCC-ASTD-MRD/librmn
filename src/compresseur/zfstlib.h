@@ -1,3 +1,6 @@
+#ifndef ZFSTLIB_H
+#define ZFSTLIB_H
+
 #include <stdint.h>
 #include <rpnmacros.h>
 #include <bitPacking.h>
@@ -59,3 +62,5 @@ typedef union {
         *availableWordPtr = ( lastWordShifted << spaceInLastWord) | ( *availableWordPtr & ~(-1 << spaceInLastWord));\
     }\
 }
+
+#endif
