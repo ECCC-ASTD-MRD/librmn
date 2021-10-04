@@ -13,8 +13,11 @@ set(PROJECT_VERSION ${GIT_VERSION})
 
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones." FALSE)
 
-# CMAKE_BUILD_TYPE can be one of Debug, Release, RelWithDebInfo, MinSizeRel
-set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "CMAKE_BUILD_TYPE not defined; using default (RelWithDebInfo)")
+    # This doesn't work as expected: If CACHE is specified, even if CMAKE_BUILD_TYPE has no value, it isn't set
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
 
 enable_language(C Fortran)
 include(ec_compiler_presets)
@@ -23,6 +26,9 @@ set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)
 include(ec_doxygen)
 
+message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+
+set(CMAKE_SKIP_RPATH TRUE)
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 # Figure out the correct ach_dependant include path
@@ -89,6 +95,7 @@ add_custom_command(
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
 list(APPEND PROJECT_INCLUDE_FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/rmnlib.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros_global.h
@@ -99,6 +106,9 @@ list(APPEND PROJECT_INCLUDE_FILES
 
 
 set_target_properties(rmn PROPERTIES VERSION ${GIT_VERSION})
+string(REGEX MATCH "([0-9]+)" SOVERSION ${GIT_VERSION})
+message(STATUS "SOVERSION=${SOVERSION}")
+set_target_properties(rmn PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
 
 install(TARGETS rmn librmn_version)
