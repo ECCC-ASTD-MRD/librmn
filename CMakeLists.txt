@@ -26,6 +26,12 @@ set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)
 include(ec_doxygen)
 
+# This is required when using GNU compilers without OpenMP.
+# It has no adverse effect with other compilers and/or when OpenMP is enabled.
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
+
 message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_SKIP_RPATH TRUE)
