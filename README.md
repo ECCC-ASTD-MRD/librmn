@@ -74,3 +74,14 @@ cd librmn_build
 cmake ../librmn -DBUILD_SHARED_LIBS=FALSE -DWITH_DOC=NO -DCMAKE_INSTALL_PREFIX=~/opt/
 make -j4 install
 ```
+
+
+## Exemple d'utilisation dans une application cliente
+
+Nous avons développé un exemple très simple d'application qui utilise librmn.
+Il peut être utilisé comme référence pour construire un projet CMake qui utilise
+la librmn.
+
+Il peut être consulté aux adresses suivantes:
+- [https://gitlab.science.gc.ca/RPN-SI/librmn-client-example](https://gitlab.science.gc.ca/RPN-SI/librmn-client-example) (Sur le réseau d'ECCC)
+- [https://github.com/ECCC-ASTD-MRD/librmn-client-example](https://github.com/ECCC-ASTD-MRD/librmn-client-example) (Public)
