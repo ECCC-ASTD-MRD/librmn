@@ -16,6 +16,7 @@ defs="@EC_CMAKE_DEFINITIONS@"
 libs=CMAKE_LIBS
 
 version=@VERSION@@STATE@
+env=@ECCI_ENV@
 
 usage()
 {
@@ -31,6 +32,7 @@ Available values for OPTION include:
   --fflags       Fortran compiler flags [${fflags}]
   --defs         Preprocessor definitions [${defs}]
   --version      library version [${version}]
+  --env          environment version used [${env}]
 
 EOF
 }
@@ -81,6 +83,10 @@ while test $# -gt 0; do
     --version)
 	    echo ${version}
 	    ;;
+
+    --env)
+       echo ${env}
+       ;;
 
     *)
         echo "unknown option: $1"
