@@ -3,21 +3,17 @@
 cmake_minimum_required(VERSION 3.16)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_rpn)
-include(ec_init)
-ec_git_version()
+include(ec_init)           # Initialise compilers and ec specific functions
+ec_git_version()           # Get version from git state
+ec_parse_manifest()        # Parse MANIFEST file
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
 project(librmn DESCRIPTION "Library of functions for numerical weather forecasting")
-set(PROJECT_VERSION ${GIT_VERSION})
+set(PROJECT_VERSION ${VERSION}${STATE})
+set(RMN_VERSION ${PROJECT_VERSION} CACHE INTERNAL "RMN version" FORCE) # Needed for cascaded version identification
 
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones." FALSE)
-
-if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "CMAKE_BUILD_TYPE not defined; using default (RelWithDebInfo)")
-    # This doesn't work as expected: If CACHE is specified, even if CMAKE_BUILD_TYPE has no value, it isn't set
-    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
-endif()
 
 enable_language(C Fortran)
 include(ec_compiler_presets)
@@ -31,8 +27,6 @@ include(ec_doxygen)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
-
-message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_SKIP_RPATH TRUE)
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
@@ -58,7 +52,7 @@ file(GLOB PROJECT_F_FILES
 )
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
-ec_build_info()
+ec_build_info()            # Generate build include file (optional)
 
 add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_dependencies(rmn librmn_build_info)
@@ -114,8 +108,8 @@ list(APPEND PROJECT_INCLUDE_FILES
 )
 
 
-set_target_properties(rmn PROPERTIES VERSION ${GIT_VERSION})
-string(REGEX MATCH "([0-9]+)" SOVERSION ${GIT_VERSION})
+set_target_properties(rmn PROPERTIES VERSION ${PROJECT_VERSION})
+string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 message(STATUS "SOVERSION=${SOVERSION}")
 set_target_properties(rmn PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
@@ -128,3 +122,18 @@ add_custom_target(
     #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Extract function prototypes from C source code"
 )
+
+ec_install_prefix(${NAME} ${PROJECT_VERSION} PACKAGE_PREFIX)  # Define package prefix  
+ec_build_config()                                             # Create build configuration script
+ec_prepare_ssm()                                              # Prepare ssm packaging files
+
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_PACKAGE_VENDOR "ECCC")
+set(CPACK_PACKAGE_CONTACT "${MAINTAINER}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/package")
+set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_PREFIX}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
+include(CPack)
