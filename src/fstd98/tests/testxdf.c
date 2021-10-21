@@ -72,82 +72,82 @@ static long add_dir_page(int file_index,int wflag);
 static long rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, ftnword_2 *pri, int npri,
                           ftnword_2 *aux, int naux, char *appl);
-ftnword f77name(xdfopn)(ftnword *fiun,char *mode,ftnword_2 *pri,ftnword *fnpri,
-             ftnword_2 *aux,ftnword *fnaux,char *appl,F2Cl l1,F2Cl l2);
+int32_t f77name(xdfopn)(int32_t *fiun,char *mode,ftnword_2 *pri,int32_t *fnpri,
+             ftnword_2 *aux,int32_t *fnaux,char *appl,F2Cl l1,F2Cl l2);
 int c_xdfopn(int iun,char *mode,ftnword_2 *pri,int npri,
              ftnword_2 *aux,int naux,char *appl);
-ftnword f77name(xdfcls)(ftnword *fiun);
+int32_t f77name(xdfcls)(int32_t *fiun);
 int c_xdfcls(int iun);
-ftnword f77name(xdfsta)(int *fiun,ftnword *stat,int *fnstat,
+int32_t f77name(xdfsta)(int *fiun,int32_t *stat,int *fnstat,
                     ftnword_2 *pri,int *fnpri,ftnword_2 *aux,int *fnaux,
                     char *vers,char *appl,F2Cl l1,F2Cl l2);
-int c_xdfsta(int iun,ftnword *stat,int nstat,
+int c_xdfsta(int iun,int32_t *stat,int nstat,
                     ftnword_2 *pri,int npri,ftnword_2 *aux,int naux,
                     char *vers,char *appl);
-ftnword f77name(xdfimp)(int *fiun,ftnword *stat,int *fnstat,
+int32_t f77name(xdfimp)(int *fiun,int32_t *stat,int *fnstat,
                     ftnword_2 *pri,ftnword_2 *aux,
                     char *vers,char *appl,F2Cl l1,F2Cl l2);
-int c_xdfimp(int iun,ftnword *stat,int nstat,ftnword_2 *pri,ftnword_2 *aux,
+int c_xdfimp(int iun,int32_t *stat,int nstat,ftnword_2 *pri,ftnword_2 *aux,
                     char *vers,char *appl);
-ftnword f77name(xdfini)(int *fiun,buffer_interface_ptr buf,int *fidtyp,
-                    ftnword *keys,int *fnkeys,ftnword *info,int *fninfo);
+int32_t f77name(xdfini)(int *fiun,buffer_interface_ptr buf,int *fidtyp,
+                    int32_t *keys,int *fnkeys,int32_t *info,int *fninfo);
 int c_xdfini(int iun,buffer_interface_ptr buf,int idtyp,
-             ftnword *keys,int nkeys,ftnword *info,int ninfo);
-static void build_burp_prim_keys(burp_record *brpk, ftnword *keys,
+             int32_t *keys,int nkeys,int32_t *info,int ninfo);
+static void build_burp_prim_keys(burp_record *brpk, int32_t *keys,
                                  burp_record *mask, int mode);
-static void build_burp_info_keys(burp_record *brpk, ftnword *keys,int mode);
-ftnword f77name(xdfadd)(buffer_interface_ptr buf,ftnword *donnees,
-                        ftnword *fnelm, ftnword *fnbits, ftnword *fdatyp);
-int c_xdfadd(buffer_interface_ptr buf,ftnword *donnees,
+static void build_burp_info_keys(burp_record *brpk, int32_t *keys,int mode);
+int32_t f77name(xdfadd)(buffer_interface_ptr buf,int32_t *donnees,
+                        int32_t *fnelm, int32_t *fnbits, int32_t *fdatyp);
+int c_xdfadd(buffer_interface_ptr buf,int32_t *donnees,
              int nelm, int nbits, int datyp);
 static void scan_dir_page(file_table_entry *f);
-static word next_match(int file_index);
-ftnword f77name(xdfprm)(ftnword *fhandle,ftnword *addr,ftnword *lng,
-                        ftnword *idtyp,ftnword *primk,int *fnprim);
-int c_xdfprm(int handle,int *addr,int *lng,int *idtyp,word *primk,int nprim);
-ftnword f77name(xdfhdr)(buffer_interface_ptr buf,ftnword *addr,ftnword *lng,
-                        ftnword *idtyp,ftnword *primk,ftnword *fnprim,
-			ftnword *info, ftnword *fninfo);
+static uint32_t next_match(int file_index);
+int32_t f77name(xdfprm)(int32_t *fhandle,int32_t *addr,int32_t *lng,
+                        int32_t *idtyp,int32_t *primk,int *fnprim);
+int c_xdfprm(int handle,int *addr,int *lng,int *idtyp,uint32_t *primk,int nprim);
+int32_t f77name(xdfhdr)(buffer_interface_ptr buf,int32_t *addr,int32_t *lng,
+                        int32_t *idtyp,int32_t *primk,int32_t *fnprim,
+			int32_t *info, int32_t *fninfo);
 int c_xdfhdr(buffer_interface_ptr buf ,int *addr,int *lng,int *idtyp,
-	     word *primk,int nprim,word *info,int ninfo);
-ftnword f77name(xdfloc)(int *fiun, word *fhandle, ftnword *primk,int *fnprim);
-int c_xdfloc(int iun, int handle, word *primk,int nprim);
-ftnword f77name(xdfget)(ftnword *fhandle, buffer_interface_ptr buf);
+	     uint32_t *primk,int nprim,uint32_t *info,int ninfo);
+int32_t f77name(xdfloc)(int *fiun, uint32_t *fhandle, int32_t *primk,int *fnprim);
+int c_xdfloc(int iun, int handle, uint32_t *primk,int nprim);
+int32_t f77name(xdfget)(int32_t *fhandle, buffer_interface_ptr buf);
 int c_xdfget(int handle, buffer_interface_ptr buf);
-ftnword f77name(xdfput)(ftnword *fiun, ftnword *fhandle,
+int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
 			buffer_interface_ptr buf);
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf);
-ftnword f77name(xdfopt)(char *foptname, char *foptc, ftnword *foptv,
+int32_t f77name(xdfopt)(char *foptname, char *foptc, int32_t *foptv,
 			F2Cl l1, F2Cl l2);
 int c_xdfopt(char *optname, char *optc, int optv);
-ftnword f77name(xdfgop)(char *foptname, char *foptc, ftnword *foptv,
+int32_t f77name(xdfgop)(char *foptname, char *foptc, int32_t *foptv,
 			F2Cl l1, F2Cl l2);
 int c_xdfgop(char *optname, char *optc, int *optv);
-ftnword f77name(xdfins)(buffer_interface_ptr buf,ftnword *donnees,
-                        ftnword *fbitpos, ftnword *fnelm,
-			ftnword *fnbits, ftnword *fdatyp);
-int c_xdfins(buffer_interface_ptr buf, ftnword *donnees, int bitpos,
+int32_t f77name(xdfins)(buffer_interface_ptr buf,int32_t *donnees,
+                        int32_t *fbitpos, int32_t *fnelm,
+			int32_t *fnbits, int32_t *fdatyp);
+int c_xdfins(buffer_interface_ptr buf, int32_t *donnees, int bitpos,
              int nelm, int nbits, int datyp);
-ftnword f77name(xdfxtr)(buffer_interface_ptr buf,ftnword *donnees,
-                        ftnword *fbitpos, ftnword *fnelm,
-			ftnword *fnbits, ftnword *fdatyp);
+int32_t f77name(xdfxtr)(buffer_interface_ptr buf,int32_t *donnees,
+                        int32_t *fbitpos, int32_t *fnelm,
+			int32_t *fnbits, int32_t *fdatyp);
 int c_xdfxtr(buffer_interface_ptr buf, void *data, int bitpos,
              int nelm, int nbits, int datyp);
-ftnword f77name(xdfrep)(buffer_interface_ptr buf,ftnword *donnees,
-                        ftnword *fbitpos, ftnword *fnelm,
-			ftnword *fnbits, ftnword *fdatyp);
+int32_t f77name(xdfrep)(buffer_interface_ptr buf,int32_t *donnees,
+                        int32_t *fbitpos, int32_t *fnelm,
+			int32_t *fnbits, int32_t *fdatyp);
 int c_xdfrep(buffer_interface_ptr buf, void *data, int bitpos,
              int nelm, int nbits, int datyp);
-ftnword f77name(xdfcut)(buffer_interface_ptr buf,
-			ftnword *fbitpos, ftnword *fnelm,
-			ftnword *fnbits, ftnword *fdatyp);
+int32_t f77name(xdfcut)(buffer_interface_ptr buf,
+			int32_t *fbitpos, int32_t *fnelm,
+			int32_t *fnbits, int32_t *fdatyp);
 int c_xdfcut(buffer_interface_ptr buf, int bitpos, int nelm, int nbits,
 	     int datyp);
-ftnword f77name(xdfupd)(int *fiun,buffer_interface_ptr buf,int *fidtyp,
-                    ftnword *keys,int *fnkeys,ftnword *info,int *fninfo);
+int32_t f77name(xdfupd)(int *fiun,buffer_interface_ptr buf,int *fidtyp,
+                    int32_t *keys,int *fnkeys,int32_t *info,int *fninfo);
 int c_xdfupd(int iun,buffer_interface_ptr buf,int idtyp,
-             ftnword *keys,int nkeys,ftnword *info,int ninfo);
-ftnword f77name(xdfuse)(int *fsrc_unit, int *fdest_unit);
+             int32_t *keys,int nkeys,int32_t *info,int ninfo);
+int32_t f77name(xdfuse)(int *fsrc_unit, int *fdest_unit);
 int c_xdfuse(int src_unit, int dest_unit);
 
 
@@ -165,12 +165,12 @@ float srce[1000];
 long dest[2000];
 char vers[5], appl[5];
 int stat[12];
-ftnword buf[100];
+int32_t buf[100];
 double date0= 19940914.123341;
-word keys[18]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,14980,32030,-1,0,36,0,-1,-1};
-word keyz[18]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,136,0,-1,-1};
+uint32_t keys[18]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,14980,32030,-1,0,36,0,-1,-1};
+uint32_t keyz[18]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,136,0,-1,-1};
 
-/*  word ncle:32, bit1:13, lcle:5, tcle:6, reserved:8 */
+/*  uint32_t ncle:32, bit1:13, lcle:5, tcle:6, reserved:8 */
 printf("-----------------------------------------\n");
 for (i=0;i<18;i++){
 j=truc[i].ncle;
@@ -212,7 +212,7 @@ ier = c_xdfopn(iun,"CREATE",(ftnword_2 *)&truc,18,(ftnword_2 *)&auxkey,5,"BRP0")
 ier = c_xdfcls(iun);
 
 /* TEST POUR XDFSTA */
-ier = c_xdfsta(iun,(ftnword *)&stat,12,(ftnword_2 *)&truc,18,(ftnword_2 *)&auxkey,5,vers,appl);
+ier = c_xdfsta(iun,(int32_t *)&stat,12,(ftnword_2 *)&truc,18,(ftnword_2 *)&auxkey,5,vers,appl);
 
 /* TEST POUR REOUVERTURE VERIFICATION DE LE CREATION */
 ier = c_xdfopn(iun,"READ",(ftnword_2 *)&truc,18,(ftnword_2 *)&auxkey,5,"BRP0");

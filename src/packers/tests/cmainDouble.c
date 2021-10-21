@@ -46,8 +46,8 @@ void f77name(dcmain)()
   float arrayOfFloat5_f[myElementCount2], arrayOfFloat6_f[myElementCount2];
 
   INT_32 arrayOfInt1[myElementCount2], arrayOfInt2[myElementCount2];
-  word arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
-  word arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
+  uint32_t arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
+  uint32_t arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
   
 
 
@@ -57,7 +57,7 @@ void f77name(dcmain)()
   int stride = 2;
   int opCode = FLOAT_PACK;
   int opCode1 = FLOAT_UNPACK; 
-  ftnword *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
+  int32_t *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
 
   FLOAT_4_8 missingTag = 9999.0000;
   float float_missingTag = 9999.0000;

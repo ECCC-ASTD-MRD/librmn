@@ -22,9 +22,9 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(gdxyvval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint *n)
+int32_t f77name(gdxyvval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
 {
-   wordint icode;
+   int32_t icode;
 
    icode = c_gdxyvval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
    return icode;
@@ -32,13 +32,13 @@ wordint f77name(gdxyvval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfl
 
 
 //! Vector interpolation of points located at x-y coordinates, returned as grid components (UU and VV). 
-wordint c_gdxyvval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint n)
+int32_t c_gdxyvval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
-    wordint j, icode, yin_gdid, yan_gdid, ni, nj;
-    ftnfloat *uuyin, *vvyin, *uuyan, *vvyan;
-    ftnfloat *tmpy;
+    int32_t j, icode, yin_gdid, yan_gdid, ni, nj;
+    float *uuyin, *vvyin, *uuyan, *vvyan;
+    float *tmpy;
 
-    wordint gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
+    int32_t gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
 
     c_gdkey2rowcol(gdin, &gdrow_id, &gdcol_id);
     if (Grille[gdrow_id][gdcol_id].nsubgrids > 0) {
@@ -47,11 +47,11 @@ wordint c_gdxyvval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
         c_gdkey2rowcol(yin_gdid, &yin_gdrow_id, &yin_gdcol_id);
         ni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
         nj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
-        tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        uuyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        vvyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        uuyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        vvyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+        tmpy = (float *) malloc(n*sizeof(float));
+        uuyin = (float *) malloc(n*sizeof(float));
+        vvyin = (float *) malloc(n*sizeof(float));
+        uuyan = (float *) malloc(n*sizeof(float));
+        vvyan = (float *) malloc(n*sizeof(float));
         for (j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 tmpy[j] = y[j]-Grille[yin_gdrow_id][yin_gdcol_id].nj;
@@ -83,7 +83,7 @@ wordint c_gdxyvval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uui
     }
 }
 
-wordint c_gdxyvval_orig(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint n)
+int32_t c_gdxyvval_orig(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
     groptions.vecteur = VECTEUR;
 

@@ -26,19 +26,19 @@ void * f77name(loc_sub)(void *x)
 }
 #else
 #if !defined (NEC64)
-wordint f77name(loc_sub)(void *x)
+int32_t f77name(loc_sub)(void *x)
 {
   long long temp= (long long) x;
-  wordint rval;
+  int32_t rval;
   temp >>= 2;
   rval = temp;
   return(rval);
 }
 #else
-wordint f77name(loc_sub)(void *x)
+int32_t f77name(loc_sub)(void *x)
 {
   long long temp= (long long) x;
-  wordint rval;
+  int32_t rval;
   temp >>= 3;
   rval = temp;
   return(rval);

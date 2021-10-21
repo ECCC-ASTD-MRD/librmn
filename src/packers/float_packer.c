@@ -85,8 +85,8 @@ INT_32 float_unpacker_1(float *dest, INT_32 *header, INT_32 *stream, INT_32 npts
       temp2.i = temp2.i & ( ~( (Mantis << 8) >> 31 ) );/* non zero only if hidden 1 is not present */
       *dest++ = temp.f - temp2.f;                      /* hidden 1 was not present, subtract it */
       }
-    Accu = Accu << 16;                                 /* token must be in upper part of 32 bit word */
-    if(Fetch) Accu = *stream++;                        /* new 32 bit word every other trip in loop */
+    Accu = Accu << 16;                                 /* token must be in upper part of 32 bit uint32_t */
+    if(Fetch) Accu = *stream++;                        /* new 32 bit uint32_t every other trip in loop */
     Fetch = Fetch ^ 1;                                 /* toggle Fetch */
     }
   return 0;
@@ -215,7 +215,7 @@ INT_32 c_float_unpacker(float *dest, INT_32 *header, INT_32 *stream, INT_32 npts
   return 0;
 }
 
-ftnword f77name(float_unpacker)(float *dest, INT_32 *header, INT_32 *stream, INT_32 *npts, INT_32 *nbits)
+int32_t f77name(float_unpacker)(float *dest, INT_32 *header, INT_32 *stream, INT_32 *npts, INT_32 *nbits)
 {
   return c_float_unpacker(dest, header, stream, *npts, nbits);
 }
@@ -249,7 +249,7 @@ INT_32 c_float_packer(float *source, INT_32 nbits, INT_32 *header, INT_32 *strea
   if( float_packer_1(source, nbits, header, stream, npts) ) return -1;  /* return -1 on error */
   return  0 ;   /* return 0 if no error */
 }
-ftnword f77name(float_packer)(float *source, INT_32 *nbits, INT_32 *header, INT_32 *stream, INT_32 *npts)
+int32_t f77name(float_packer)(float *source, INT_32 *nbits, INT_32 *header, INT_32 *stream, INT_32 *npts)
 {
   return c_float_packer(source,*nbits,header,stream,*npts);
 }

@@ -26,70 +26,70 @@
 
 #define Bitmot 32
 
-typedef unsigned long word;
+typedef unsigned long uint32_t;
 
 typedef struct
   {
-   word swa : 32, npas1 : 16, nk : 12, epce1 : 4;
-   word ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8; 
-   word ip1 :16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8; 
-   word etiq14 :32, etiq56 : 16, etiq78 : 16;
-   word epce3 : 32, epce4 : 16, ig2 : 16;
-   word ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
-   word date : 32, ubc : 16, deet : 16;  
-   word lng : 32, eof : 32;                  
+   uint32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
+   uint32_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8; 
+   uint32_t ip1 :16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8; 
+   uint32_t etiq14 :32, etiq56 : 16, etiq78 : 16;
+   uint32_t epce3 : 32, epce4 : 16, ig2 : 16;
+   uint32_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
+   uint32_t date : 32, ubc : 16, deet : 16;  
+   uint32_t lng : 32, eof : 32;                  
 
               /****Format de bits 480-959 SEQ/SQI****/
               /* Le eof defini precedemant appartient
                  a cet interval de nombre de bits   */
 
-   word vide1 : 32, vide2 : 32;
-   word vide3 : 32, vide4 : 32;
-   word epce5 : 32, epce6 : 32;
-   word epce7 : 32, epce8 : 32;
-   word epce9 : 32, epce10: 32;
-   word epce11: 32, epce12: 32;
-   word vide5 : 32, vide6 : 32;
+   uint32_t vide1 : 32, vide2 : 32;
+   uint32_t vide3 : 32, vide4 : 32;
+   uint32_t epce5 : 32, epce6 : 32;
+   uint32_t epce7 : 32, epce8 : 32;
+   uint32_t epce9 : 32, epce10: 32;
+   uint32_t epce11: 32, epce12: 32;
+   uint32_t vide5 : 32, vide6 : 32;
 
    }seq_dir_keys;
 
 
 typedef struct
   {
-   word etiqt1  : 32, etiqt2  : 32;
-   word dirsiz  : 32, inuti1  : 32;
-   word nutil   : 32, inuti2  : 32;
-   word nbecr   : 32, inuti3  : 32;
-   word nbrec   : 32, inuti4  : 32;
-   word nbext   : 32, inuti5  : 32;
-   word nrecup  : 32, inuti6  : 32;
-   word nbeff   : 32, inuti7  : 32;
-   word nbcorr  : 32, inuti8  : 32;
-   word inuti9  : 32, inuti10 : 32;
-   word inuti11 : 32, inuti12 : 32;
-   word inut13  : 32, inuti14 : 32;
-   word inuti15 : 32, inuti16 : 32;
-   word inuti17 : 32, inuti18 : 32;
+   uint32_t etiqt1  : 32, etiqt2  : 32;
+   uint32_t dirsiz  : 32, inuti1  : 32;
+   uint32_t nutil   : 32, inuti2  : 32;
+   uint32_t nbecr   : 32, inuti3  : 32;
+   uint32_t nbrec   : 32, inuti4  : 32;
+   uint32_t nbext   : 32, inuti5  : 32;
+   uint32_t nrecup  : 32, inuti6  : 32;
+   uint32_t nbeff   : 32, inuti7  : 32;
+   uint32_t nbcorr  : 32, inuti8  : 32;
+   uint32_t inuti9  : 32, inuti10 : 32;
+   uint32_t inuti11 : 32, inuti12 : 32;
+   uint32_t inut13  : 32, inuti14 : 32;
+   uint32_t inuti15 : 32, inuti16 : 32;
+   uint32_t inuti17 : 32, inuti18 : 32;
      
      }stdf_struct_RND;
 
 typedef struct
   {
-   word swa : 32, npas1 : 16, nk : 12, epce1 : 4;
-   word ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8; 
-   word ip1 : 16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8; 
-   word etiq14 : 32, etiq56 : 16, etiq78 : 16;
-   word epce3 : 32, epce4 : 16, ig2 : 16;
-   word ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
-   word date : 32, ubc : 16, deet : 16;  
-   word lng : 32;                  
+   uint32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
+   uint32_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nBits : 8; 
+   uint32_t ip1 : 16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8; 
+   uint32_t etiq14 : 32, etiq56 : 16, etiq78 : 16;
+   uint32_t epce3 : 32, epce4 : 16, ig2 : 16;
+   uint32_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
+   uint32_t date : 32, ubc : 16, deet : 16;  
+   uint32_t lng : 32;                  
           
    }rnd_dir_keys;
 
 typedef struct
   {
-   word signa : 12, ninj : 20, nscal : 16, iexpo : 12, signe : 4;
-   word mantis : 32, mantirest : 16, nBits : 8, espce : 8;
+   uint32_t signa : 12, ninj : 20, nscal : 16, iexpo : 12, signe : 4;
+   uint32_t mantis : 32, mantirest : 16, nBits : 8, espce : 8;
 
    }stdf_struct_data;
 
@@ -101,7 +101,7 @@ union base
 
 
 
-static word iexpo, iexpmin, iscal, iXmin, iTemp, result,isign,nBits, 
+static uint32_t iexpo, iexpmin, iscal, iXmin, iTemp, result,isign,nBits, 
              nBits1, nBits2, nBytes, ninj,left, iexp_local, 
              *idata, *rawdata, *unpacked, *funpacked,ofset, block,*iidata, offset;  
           
@@ -238,7 +238,7 @@ main(int argc, char *argv[])
 		     exit(1);
 		     }
 		 }
-             rawdata = (word *) indata;                               
+             rawdata = (uint32_t *) indata;                               
             
              nBytes = read(fdr,indata,taille);                  /* lecture des donnees en fonction */
              }                                                  /* de la taille allouee.           */ 
@@ -278,13 +278,13 @@ main(int argc, char *argv[])
            if(allouer) free(idata);
               allouer = (sizeof(float) * ninj);                 /* allocation dynamique du tableau */
                                                                 /* pour les donnees decompactees.  */
-           if((idata = (word *) malloc(allouer)) == NULL)         
+           if((idata = (uint32_t *) malloc(allouer)) == NULL)         
 	     {
               printf("\n\nmalloc : cannot allocate memory!\n\n");
               exit(1);
               }
            }
-     funpacked = (word *) idata;
+     funpacked = (uint32_t *) idata;
 
      ier = compact_float (funpacked, rawdata, ninj, nBits, 120, 1, 2);
      
@@ -314,14 +314,14 @@ main(int argc, char *argv[])
        if(allouer) free(idata);
           allouer = (sizeof(int) * ninj);
 
-       if((idata = (word *) malloc(allouer)) == NULL)           /* Allocation de la memoire.       */
+       if((idata = (uint32_t *) malloc(allouer)) == NULL)           /* Allocation de la memoire.       */
          {
           printf("\nmalloc : cannot allocate memory!\n");
           exit(1);
           }
          
        }
-    unpacked = (word *) idata;
+    unpacked = (uint32_t *) idata;
 
     if(ikeys->datyp == 2)
        OP = 2;
@@ -369,7 +369,7 @@ main(int argc, char *argv[])
 	         exit(1);
 	         }
 	      }
-           rawdata = (word *) indata;
+           rawdata = (uint32_t *) indata;
            ofset = dir[record].swa;                             /* determiner la position pour    */
            ofset <<= 1;                                         /* la lecture.                    */
            lseek(fdr, ofset, SEEK_SET);                         /* lecture  en mode d'acces direct*/
@@ -395,7 +395,7 @@ main(int argc, char *argv[])
 
   void sortie_header (rnd_dir_keys *hkeys)
     {
-     word ea,eb,ec; 
+     uint32_t ea,eb,ec; 
      char c1, c2, c3, etiq14, etiq56, etiq78,
           grtyp,e1,e2,e3,e4,e5,e6,e7,e8;
      int  npas, deet,ip1,ip2,ip3,ig1,ig2,ig3,

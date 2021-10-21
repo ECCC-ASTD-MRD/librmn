@@ -21,16 +21,16 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_corrvec_ausud(ftnfloat *uuout, ftnfloat *vvout,
-         ftnfloat *uuin, ftnfloat *vvin,
-         wordint gdin, wordint gdout)
+int32_t ez_corrvec_ausud(float *uuout, float *vvout,
+         float *uuin, float *vvin,
+         int32_t gdin, int32_t gdout)
 {
-ftnfloat *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, *temp_y, ay[4];
-wordint ni, nj, i1, i2, j1, j2, degree,npts,i;
-wordint quatre = 4;
-wordint un = 1;
+float *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, *temp_y, ay[4];
+int32_t ni, nj, i1, i2, j1, j2, degree,npts,i;
+int32_t quatre = 4;
+int32_t un = 1;
 
-wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
 _gridset *gset;
 _Grille laGrille;
 
@@ -52,10 +52,10 @@ j1 = laGrille.j1 - 1;
 j2 = j1 + 3;
 degree = 3;
 
-polar_uu_in = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
-polar_vv_in = (ftnfloat *) malloc(4 * ni * sizeof(ftnfloat));
-corr_uus = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
-corr_vvs = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+polar_uu_in = (float *) malloc(4 * ni * sizeof(float));
+polar_vv_in = (float *) malloc(4 * ni * sizeof(float));
+corr_uus = (float *) malloc(npts * sizeof(float));
+corr_vvs = (float *) malloc(npts * sizeof(float));
 
 ez_calcspolarwind(polar_uu_in, polar_vv_in, uuin, vvin, ni, nj, gdin);
 

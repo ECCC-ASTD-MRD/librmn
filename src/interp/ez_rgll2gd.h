@@ -21,15 +21,15 @@
 #include <stdio.h>
 #include <rpnmacros.h>
 
-f77name(ez_rgll2gd)(ftnfloat *z1, ftnfloat *z2, ftnfloat *xlon, wordint *ni, wordint *nj, 
-                    char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,F2Cl lengrtyp)
+f77name(ez_rgll2gd)(float *z1, float *z2, float *xlon, int32_t *ni, int32_t *nj, 
+                    char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,F2Cl lengrtyp)
 {
-  ftnfloat *tmplat;
-  wordint gdid, npts,n;
+  float *tmplat;
+  int32_t gdid, npts,n;
   char lgrtyp[2];
   
   npts = *ni * *nj;
-  tmplat = (float *)malloc(npts*sizeof(ftnfloat));
+  tmplat = (float *)malloc(npts*sizeof(float));
   for (n=0; n < npts; n++)
     {
     tmplat[n] = 0.0;

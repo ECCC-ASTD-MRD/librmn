@@ -21,19 +21,19 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-void f77name(ez_gfwfllw)(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
-			 ftnfloat *xlatingf, ftnfloat *xloningf, 
-			 wordint *ni, wordint *nj,
-			 char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)
+void f77name(ez_gfwfllw)(float *uullout, float *vvllout, float *latin, float *lonin,
+			 float *xlatingf, float *xloningf, 
+			 int32_t *ni, int32_t *nj,
+			 char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4)
 {
   c_ezgfwfllw(uullout, vvllout, latin, lonin, xlatingf, xloningf, 
 	      ni, nj, grtyp, ig1, ig2, ig3, ig4);
     }
 
-void c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat *lonin,
-                  ftnfloat *xlatingf, ftnfloat *xloningf, 
-                  wordint *ni, wordint *nj,
-                  char *grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4)
+void c_ezgfwfllw(float *uullout, float *vvllout, float *latin, float *lonin,
+                  float *xlatingf, float *xloningf, 
+                  int32_t *ni, int32_t *nj,
+                  char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4)
 {
 
   /*
@@ -44,15 +44,15 @@ void c_ezgfwfllw(ftnfloat *uullout, ftnfloat *vvllout, ftnfloat *latin, ftnfloat
     xlatingf, xloningf sont les latlons sur la grille tournee
   */
 
-  wordint zero = 0;
-  wordint npts = *ni * *nj;
-  wordint trois = 3;
-  ftnfloat r[9], ri[9], xlon1, xlat1, xlon2, xlat2;
-  ftnfloat *uvcart, *xyz;
+  int32_t zero = 0;
+  int32_t npts = *ni * *nj;
+  int32_t trois = 3;
+  float r[9], ri[9], xlon1, xlat1, xlon2, xlat2;
+  float *uvcart, *xyz;
   char grtypl[2];
 
-  uvcart = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
-  xyz    = (ftnfloat *) malloc(3*npts*sizeof(ftnfloat));
+  uvcart = (float *) malloc(3*npts*sizeof(float));
+  xyz    = (float *) malloc(3*npts*sizeof(float));
   
   
   f77name(cigaxg)(grtyp, &xlat1, &xlon1, &xlat2, &xlon2, ig1, ig2, ig3, ig4, 1);

@@ -27,7 +27,7 @@
 
 void 
 f77name(qqexit) (val)
-wordint *val ;
+int32_t *val ;
 
 {
      exit(*val);

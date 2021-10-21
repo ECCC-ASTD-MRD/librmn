@@ -23,10 +23,10 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezqkdef)(wordint *ni, wordint *nj, char *grtyp, 
-                    wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, wordint *iunit, F2Cl lengrtyp)
+int32_t f77name(ezqkdef)(int32_t *ni, int32_t *nj, char *grtyp, 
+                    int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *iunit, F2Cl lengrtyp)
 {
-   wordint icode;
+   int32_t icode;
    char cgrtyp[2];
 
    cgrtyp[0] = grtyp[0];
@@ -35,10 +35,10 @@ wordint f77name(ezqkdef)(wordint *ni, wordint *nj, char *grtyp,
    return icode;
 }
 
-wordint c_ezqkdef(wordint ni, wordint nj, char *grtyp,
-             wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit)
+int32_t c_ezqkdef(int32_t ni, int32_t nj, char *grtyp,
+             int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, int32_t iunit)
 {
-  wordint icode;
+  int32_t icode;
 
   icode = c_ezgdef_ffile(ni, nj, grtyp, ig1, ig2, ig3, ig4, iunit);
   

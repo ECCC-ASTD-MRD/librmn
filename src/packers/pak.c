@@ -51,8 +51,8 @@ static PackFunctionPointer pfp;
  *                           +1000: pack header is used                                   *
  *                                                                                        *
  *****************************************************************************************/      
-void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, ftnword *nBits, 
-                 ftnword *NB, ftnword *OP)
+void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, int32_t *nBits, 
+                 int32_t *NB, int32_t *OP)
 {
 
   /***************************************
@@ -67,9 +67,9 @@ void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, 
   int lnBits;
   int OPER = *OP;
   int lengthOfPackedArray;
-  word *tempPackedArray,  *dummyArray, *tempUnpackedArray;
-  word *ptrXpacked, *ptrXUnpacked, *transitPtr;
-  ftnword *ftnPtrXUnpacked;
+  uint32_t *tempPackedArray,  *dummyArray, *tempUnpackedArray;
+  uint32_t *ptrXpacked, *ptrXUnpacked, *transitPtr;
+  int32_t *ftnPtrXUnpacked;
   int returnBitSizeOfToken;
   int packHeaderUsed;
 
@@ -157,9 +157,9 @@ void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, 
       stride =stride*2;
 
       ptrXpacked   = NULL;
-      ptrXpacked   = (word *)xpacked;
+      ptrXpacked   = (uint32_t *)xpacked;
       ptrXUnpacked = NULL;
-      ptrXUnpacked = (word *)xunpacked; 
+      ptrXUnpacked = (uint32_t *)xunpacked; 
 
       transitPtr = NULL;
       transitPtr = &ptrXUnpacked[1];
@@ -168,7 +168,7 @@ void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, 
       transitPtr   = NULL;
 
       ftnPtrXUnpacked = NULL;
-      ftnPtrXUnpacked = (ftnword *)xunpacked;
+      ftnPtrXUnpacked = (int32_t *)xunpacked;
 
       /*******************************************************
        *                                                     *
@@ -185,7 +185,7 @@ void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, 
       if (packHeaderUsed) lengthOfPackedArray += 4; 
  
       tempPackedArray = NULL;    
-      tempPackedArray = ( word *) malloc(lengthOfPackedArray*sizeof(word));
+      tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));
 
 
       
@@ -323,7 +323,7 @@ void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, 
       if (packHeaderUsed) lengthOfPackedArray += 4;                  
       tempPackedArray = NULL;    
       
-      tempPackedArray = ( word *) malloc(lengthOfPackedArray*sizeof(word));  
+      tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));  
       
 
       if ( (OPER == 1) || (OPER == 3) )
@@ -447,8 +447,8 @@ void f77name (iipak) (void *xunpacked, void *xpacked, ftnword *ni, ftnword *nj, 
  *                           6   : unpack double                                          *
  *                                                                                        *
  *****************************************************************************************/
-void f77name (xxpak) (void *xunpacked, void *xpacked,ftnword *ni, ftnword *nj, ftnword *nBits,
-                      ftnword *NB, ftnword *OP)
+void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, int32_t *nBits,
+                      int32_t *NB, int32_t *OP)
 {
   /**************************************************************************
    *                                                                        *
@@ -461,11 +461,11 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,ftnword *ni, ftnword *nj, f
   int ninj = ((*ni) * (*nj));
   int lnBits = (*nBits);
   int OPER = (*OP);
-  word *tempIntArray;
+  uint32_t *tempIntArray;
   int lengthOfIntArray;
-  word *tempFloatArray;
+  uint32_t *tempFloatArray;
   double tempFloat=9999.0000;
-  word *ptrXpacked;
+  uint32_t *ptrXpacked;
  
 
 
@@ -532,7 +532,7 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,ftnword *ni, ftnword *nj, f
     
       lengthOfIntArray = (ninj*lnBits) / 32 + 6;
       tempIntArray = NULL;    
-      tempIntArray = ( word *) malloc(lengthOfIntArray*sizeof(word));  
+      tempIntArray = ( uint32_t *) malloc(lengthOfIntArray*sizeof(uint32_t));  
       
 
       if (OPER == 1)

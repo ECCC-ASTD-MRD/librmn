@@ -41,9 +41,9 @@ typedef struct
 typedef struct
 {
 #if defined(Little_Endian)
-  word predictor_type:4, degree:3, step:3, nbits:5, levels: 3, version: 6, reserved3:8;
+  uint32_t predictor_type:4, degree:3, step:3, nbits:5, levels: 3, version: 6, reserved3:8;
 #else
-  word reserved3:8, version:6, levels:3, nbits:5, step:3, degree:3, predictor_type:4;
+  uint32_t reserved3:8, version:6, levels:3, nbits:5, step:3, degree:3, predictor_type:4;
 #endif
 } _fstzip;
 

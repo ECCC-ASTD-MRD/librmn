@@ -24,14 +24,14 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint c_ezgdef_yymask(_Grille *subgd)
+int32_t c_ezgdef_yymask(_Grille *subgd)
 {
-  wordint ni,nj,yni,ynj,i,j,k,ii;
-  wordint i0,i1,j0,j1;
-  wordint ig1ref,ig2ref,ig3ref,ig4ref;
-  wordint mask_gdrow_id, mask_gdcol_id, mask_gdid;
+  int32_t ni,nj,yni,ynj,i,j,k,ii;
+  int32_t i0,i1,j0,j1;
+  int32_t ig1ref,ig2ref,ig3ref,ig4ref;
+  int32_t mask_gdrow_id, mask_gdcol_id, mask_gdid;
   
-  ftnfloat *ax,*ay;
+  float *ax,*ay;
 
   k=0;
   for (i=0; i < subgd->ni; i++)

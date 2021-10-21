@@ -39,9 +39,9 @@ typedef uint16_t crc16_t;
 
 
 /**
- * Reflect all bits of a \a data word of \a data_len bytes.
+ * Reflect all bits of a \a data uint32_t of \a data_len bytes.
  *
- * \param data         The data word to be reflected.
+ * \param data         The data uint32_t to be reflected.
  * \param data_len     The width of \a data expressed in number of bits.
  * \return             The reflected data.
  *****************************************************************************/

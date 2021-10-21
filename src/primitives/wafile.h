@@ -18,14 +18,14 @@
  {\
   LLSK local_off;\
   local_off = offst;\
-  LSEEK(fdesc,local_off * sizeof(word),posi);\
+  LSEEK(fdesc,local_off * sizeof(uint32_t),posi);\
  }
 
 #define CMCARC_SIGN "CMCARCHS"  /* signature du debut d'un fichier cmcarc */
 #define CMCARC_SIGN_V5 "CMCARCH5"  /* signature du debut d'un fichier cmcarc version 5 */
 
 typedef struct {
-   word *page_adr;
+   uint32_t *page_adr;
    int wa0;
    int walast;
    int access_count;

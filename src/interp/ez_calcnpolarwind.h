@@ -21,30 +21,30 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calcnpolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat *uuin, ftnfloat *vvin, 
-			  wordint ni, wordint nj, wordint gdin)
+int32_t ez_calcnpolarwind(float *polar_uu_in, float *polar_vv_in, float *uuin, float *vvin, 
+			  int32_t ni, int32_t nj, int32_t gdin)
 {
-  wordint k1, k2;
-  ftnfloat *polar_wd, *polar_spd,*polar_lat,*polar_lon,*polar_lat_gem, *polar_lon_gem, *polar_x, *polar_y, *polar_uu, *polar_vv;
+  int32_t k1, k2;
+  float *polar_wd, *polar_spd,*polar_lat,*polar_lon,*polar_lat_gem, *polar_lon_gem, *polar_x, *polar_y, *polar_uu, *polar_vv;
   char  grtyp[2],grref[2],grtypn[2],grtypa[2];
-  wordint ig1in,ig2in,ig3in,ig4in,ig1in_ref,ig2in_ref,ig3in_ref,ig4in_ref;
-  ftnfloat xlat1, xlat2, xlon1, xlon2;
-  wordint ig1n, ig2n, ig3n, ig4n;
-  ftnfloat pi, pj, d60, dgrw;
-  wordint i,j,ier,gdps,gda,gdrow,gdcol;
-  ftnfloat uupole, vvpole;
-  ftnfloat quatrevingtdix, zero;
+  int32_t ig1in,ig2in,ig3in,ig4in,ig1in_ref,ig2in_ref,ig3in_ref,ig4in_ref;
+  float xlat1, xlat2, xlon1, xlon2;
+  int32_t ig1n, ig2n, ig3n, ig4n;
+  float pi, pj, d60, dgrw;
+  int32_t i,j,ier,gdps,gda,gdrow,gdcol;
+  float uupole, vvpole;
+  float quatrevingtdix, zero;
 
   
   c_gdkey2rowcol(gdin, &gdrow, &gdcol);
-  polar_uu  = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_vv  = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_wd  = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_spd = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_lat = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_lon = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_x   = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  polar_y   = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
+  polar_uu  = (float *) malloc(ni*sizeof(float));
+  polar_vv  = (float *) malloc(ni*sizeof(float));
+  polar_wd  = (float *) malloc(ni*sizeof(float));
+  polar_spd = (float *) malloc(ni*sizeof(float));
+  polar_lat = (float *) malloc(ni*sizeof(float));
+  polar_lon = (float *) malloc(ni*sizeof(float));
+  polar_x   = (float *) malloc(ni*sizeof(float));
+  polar_y   = (float *) malloc(ni*sizeof(float));
 
   for (i=0; i < ni; i++)
     {
@@ -58,8 +58,8 @@ wordint ez_calcnpolarwind(ftnfloat *polar_uu_in, ftnfloat *polar_vv_in, ftnfloat
 
   if (grtyp[0] == 'Z' && grref[0] == 'E')
     {
-    polar_lat_gem   = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-    polar_lon_gem   = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
+    polar_lat_gem   = (float *) malloc(ni*sizeof(float));
+    polar_lon_gem   = (float *) malloc(ni*sizeof(float));
     
     for (i=0; i < ni; i++)
       {

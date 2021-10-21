@@ -23,21 +23,21 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef_fll)(wordint *ni, wordint *nj, ftnfloat *lat, ftnfloat *lon)
+int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
 {
-  wordint gdid;
+  int32_t gdid;
 
   gdid = c_ezgdef_fll(*ni, *nj, lat, lon);
   return gdid;
 }
 
-wordint c_ezgdef_fll(wordint ni, wordint nj,ftnfloat *lat, ftnfloat *lon)
+int32_t c_ezgdef_fll(int32_t ni, int32_t nj,float *lat, float *lon)
    {
-   wordint gdid;
-   wordint gdrow_id, gdcol_id;
+   int32_t gdid;
+   int32_t gdrow_id, gdcol_id;
 
-   ftnfloat swlat, swlon, dlat, dlon;
-   wordint ig1, ig2, ig3, ig4;
+   float swlat, swlon, dlat, dlon;
+   int32_t ig1, ig2, ig3, ig4;
    char grtyp[2], grref[2];
 
    swlat = 0.0;

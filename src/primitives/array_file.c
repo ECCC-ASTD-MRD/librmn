@@ -30,7 +30,7 @@
 
   if the file is too big to fit into array, array(1) = nw-2 upon return
 */
-void f77name(array_from_file)(ftnword *array, ftnword *nw, char *file_name, F2Cl nc_file_name)
+void f77name(array_from_file)(int32_t *array, int32_t *nw, char *file_name, F2Cl nc_file_name)
 {
   char *buffer;
   int fd;
@@ -44,8 +44,8 @@ void f77name(array_from_file)(ftnword *array, ftnword *nw, char *file_name, F2Cl
     nc_file_name--;
     }
   fd=open(buffer,O_RDONLY);                     /* open file read only */
-  array[1]=read(fd,(char *)(array+2),(*nw-2)*sizeof(ftnword));  /* read data from file up to array capacity */
-  array[0]=2 + ((array[1]+sizeof(ftnword)-1))/sizeof(ftnword);  /* set las index used in array */
+  array[1]=read(fd,(char *)(array+2),(*nw-2)*sizeof(int32_t));  /* read data from file up to array capacity */
+  array[0]=2 + ((array[1]+sizeof(int32_t)-1))/sizeof(int32_t);  /* set las index used in array */
   close(fd);
 }
 
@@ -63,7 +63,7 @@ void f77name(array_from_file)(ftnword *array, ftnword *nw, char *file_name, F2Cl
 
   if the file is too big to fit into array, array(1) = nw-2
 */
-void f77name(array_to_file)(ftnword *array, ftnword *nw, char *file_name, F2Cl nc_file_name)
+void f77name(array_to_file)(int32_t *array, int32_t *nw, char *file_name, F2Cl nc_file_name)
 {
   char *buffer;
   int fd;

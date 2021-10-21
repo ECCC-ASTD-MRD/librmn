@@ -491,7 +491,7 @@ double rdtsc_seconds(void) {
 
 /****f* X86/get_fp_status_ctl
  * FUNCTION
- *   get floating point status word
+ *   get floating point status uint32_t
  *  SYNOPSIS
    C:
      int get_fp_status_ctl();
@@ -508,7 +508,7 @@ double rdtsc_seconds(void) {
  * ARGUMENTS
     none
  * RESULT
- *  the floating point status word (nozero on X86 family cpus only)
+ *  the floating point status uint32_t (nozero on X86 family cpus only)
 *****
 */
 #pragma weak get_fp_status_ctl__= get_fp_status_ctl
@@ -525,7 +525,7 @@ int get_fp_status_ctl(void) {
 
 /****f* X86/set_fp_status_ctl
  * FUNCTION
- *   set the floating point status and control word
+ *   set the floating point status and control uint32_t
  *  SYNOPSIS
    C:
      void set_fp_status_ctl(int id);
@@ -540,7 +540,7 @@ int get_fp_status_ctl(void) {
  * AUTHOR
  *  M.Valin Recherche en Prevision Numerique 2016
  * ARGUMENTS
-    id : integer value to store into the floating point status and control word
+    id : integer value to store into the floating point status and control uint32_t
  * NOTES
  *  (on X86 family cpus only)
 *****

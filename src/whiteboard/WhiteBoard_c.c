@@ -64,8 +64,8 @@ typedef struct {
 
 //! MPI broadcast information
 typedef struct {
-    wordint pe_root;
-    wordint pe_me;
+    int32_t pe_root;
+    int32_t pe_me;
     char *domain;
     F2Cl ldomain;
     void (*broadcast_function)();
@@ -175,9 +175,9 @@ static int new_page(WhiteBoard *WB, int nlines);
 int c_wb_reload();
 
 //! \todo Replace these with iso_c_binding
-void f77_name(f_logical_move)(void *, void *, wordint *);
-void f77_name(f_logical2int)(void *, void *, wordint *);
-void f77_name(f_int2logical)(void *, void *, wordint *);
+void f77_name(f_logical_move)(void *, void *, int32_t *);
+void f77_name(f_logical2int)(void *, void *, int32_t *);
+void f77_name(f_int2logical)(void *, void *, int32_t *);
 
 static wb_mpi_broadcast wb_broadcast_cfg;
 
@@ -200,11 +200,11 @@ int c_wb_verbosity(
 
 
 //! Set verbosity level (FORTRAN callable)
-wordint f77_name(f_wb_verbosity)(
+int32_t f77_name(f_wb_verbosity)(
     //! [in] New verbosity level
-    wordint *level
+    int32_t *level
 ) {
-   wordint old_level = message_level;
+   int32_t old_level = message_level;
    message_level = *level;
    return old_level;
 }
@@ -289,7 +289,7 @@ WhiteBoard *c_wb_new() {
 
 //! Create a new WhiteBoard instance
 //! \return WB_OK on scuccess or WB_ERROR if the creation failed
-wordint f77_name(f_wb_new)(
+int32_t f77_name(f_wb_new)(
     //! [out] New WhiteBoard instance
     WhiteBoard **wb
 ) {
@@ -331,10 +331,10 @@ int c_wb_free(
 
 
 //! @copydoc c_wb_free
-wordint f77_name(f_wb_free)(
+int32_t f77_name(f_wb_free)(
     WhiteBoard **wb
 ) {
-    wordint status = c_wb_free(*wb);
+    int32_t status = c_wb_free(*wb);
     // Set whiteboard address to address of dummy whiteboard, so that we can trap it
     *wb = DummyWhiteboardPtr;
     return status;
@@ -375,7 +375,7 @@ static void null_error_handler()
 }
 
 //! Pointer to the user's FORTRAN handler routine, defaults to internal null_error_handler
-//! The error handler receives two pointers to wordint variables
+//! The error handler receives two pointers to int32_t variables
 static void (*errorHandler)() = &null_error_handler;
 
 
@@ -430,8 +430,8 @@ static int wb_error(
     int code
 ) {
     wb_symbol *message = &errors[0];
-    wordint Severity = severity;
-    wordint Code = code;
+    int32_t Severity = severity;
+    int32_t Code = code;
 
     // Do nothing if there is no error or it's below the severity treshold
     if (code == WB_OK || severity < message_level) {
@@ -553,7 +553,7 @@ static int c_fortran_string_copy(
 
 #ifdef NOT_USED
 /* FORTRAN callable version of above routine */
-wordint f77_name(fortran_string_copy)(char *src, char *dst, F2Cl src_len, F2Cl dst_len)
+int32_t f77_name(fortran_string_copy)(char *src, char *dst, F2Cl src_len, F2Cl dst_len)
 {
    int Ldst = dst_len;
    int Lsrc = src_len;
@@ -738,7 +738,7 @@ int c_wb_checkpoint_name(
 
 //! Set checkpoint file name
 //! \return 0 on success or error code otherwise
-wordint f77_name(f_wb_checkpoint_name)(
+int32_t f77_name(f_wb_checkpoint_name)(
     //! [in] File name
     char *filename,
     //! [in] Length of the file name
@@ -774,7 +774,7 @@ int c_wb_checkpoint_get_name(
 
 //! Get checkpoint file name
 //! \return 0 on success or error code otherwise
-wordint f77_name(f_wb_checkpoint_get_name)(
+int32_t f77_name(f_wb_checkpoint_get_name)(
     //! [out] File name
     char *filename,
     //! [in] Maximum length for the file name
@@ -963,19 +963,19 @@ static int c_wb_lookup(
 
 //! Get the metadata associated with a WhiteBoard name for Fortran
 //! \return Status from c_wb_lookup
-wordint f77_name(f_wb_get_meta)(
+int32_t f77_name(f_wb_get_meta)(
     //! [in] WhiteBoard in which to search
     WhiteBoard **wb,
     //! [in] Name to search for
     char *name,
     //! [out] Type of the element(s)
-    wordint *elementtype,
+    int32_t *elementtype,
     //! [out] Size of each element in bytes
-    wordint *elementsize,
+    int32_t *elementsize,
     //! [out] Number of elements in array, 0 if scalar
-    wordint *elements,
+    int32_t *elements,
     //! [out] Numeric representation of active flags
-    wordint *options,
+    int32_t *options,
     //! [in] Length of the name
     F2Cl nameLength
 ){
@@ -1103,7 +1103,7 @@ int c_wb_get(
     }
     if (element_type != WB_FORTRAN_CHAR) {
         // Not a character string
-        wordint nbelemf = nbelem;
+        int32_t nbelemf = nbelem;
         if (element_type == WB_FORTRAN_BOOL) {
             // Special case for FORTRAN logicals
             // Fortran helper to move ints into logicals
@@ -1133,8 +1133,8 @@ int c_wb_get(
 
 //! @copydoc c_wb_get
 // f_wb_get(wb, key, type_name, type_size, val, nbelem)
-wordint f77_name(f_wb_get)(WhiteBoard **wb, char *name, wordint *type, wordint *size, void *dest,
-                           wordint *nbelem, F2Cl nameLength)
+int32_t f77_name(f_wb_get)(WhiteBoard **wb, char *name, int32_t *type, int32_t *size, void *dest,
+                           int32_t *nbelem, F2Cl nameLength)
 {
     // FIXME Check typing!  The compiler probably throws a buch of warnings for these!
     // FIXME Why copy to local variables prior to the function call for pass-by-value parameters?
@@ -1363,7 +1363,7 @@ int c_wb_put(
         }
         if (typecode != WB_FORTRAN_CHAR) {
             // Not a character string
-            wordint nbelemf = nbelem;
+            int32_t nbelemf = nbelem;
             if (typecode == WB_FORTRAN_BOOL) {
                 // Special case for FORTRAN logicals; use a Fortran helper to move logicals into ints
                 f77_name(f_logical2int)(dest, src, &nbelemf);
@@ -1393,14 +1393,14 @@ int c_wb_put(
 
 
 //! @copydoc c_wb_put
-wordint f77_name(f_wb_put)(
+int32_t f77_name(f_wb_put)(
     WhiteBoard **wb,
     char *name,
-    wordint *type,
-    wordint *size,
+    int32_t *type,
+    int32_t *size,
     void *src,
-    wordint *nbelem,
-    wordint *options,
+    int32_t *nbelem,
+    int32_t *options,
     F2Cl nameLength
 ) {
    char _type = *type;
@@ -1475,7 +1475,7 @@ int c_wb_checkpoint()
 
 
 //! @copydoc c_wb_checkpoint
-wordint f77_name(f_wb_checkpoint)(WhiteBoard **WB){
+int32_t f77_name(f_wb_checkpoint)(WhiteBoard **WB){
    return c_wb_checkpoint();
 }
 
@@ -1562,13 +1562,13 @@ int c_wb_check(
 
 //! Print flags of lines with the provided name and that match the option mask
 //! \return Number of matches, but as a negative number.
-wordint f77_name(f_wb_check)(
+int32_t f77_name(f_wb_check)(
     //! [in] WhiteBoard in which to search the lines
     WhiteBoard **wb,
     //! [in] Entry name (length MUST be supplied in nameLength)
     char *name,
     //! [in] Mask for the options to be tested
-    wordint *optionMask,
+    int32_t *optionMask,
     //! [in] Length of the entry name
     F2Cl nameLength
 ) {
@@ -1650,7 +1650,7 @@ static int wb_cb_from_restart(
 
 
 //! Configure WhiteBoard MPI broadcasts
-void f77_name(f_wb_bcst_init)(wordint *pe_root, wordint *pe_me, char *domain, void (*broadcast_function)(), void (*allreduce_function)() )
+void f77_name(f_wb_bcst_init)(int32_t *pe_root, int32_t *pe_me, char *domain, void (*broadcast_function)(), void (*allreduce_function)() )
 {
     wb_broadcast_cfg.pe_root = *pe_root;
     wb_broadcast_cfg.pe_me = *pe_me;
@@ -1671,13 +1671,13 @@ static int wb_print_bcast_line(wb_line *line, void *blinddata)
 
 //! Print "Broadcasting %lineName" for each matching line
 //! \return Number of matches, but as a negative number.
-wordint f77_name(f_wb_bcst)(
+int32_t f77_name(f_wb_bcst)(
     //! [in] WhiteBoard in which to search
     WhiteBoard **wb,
     //! [in] Name to match
     char *name,
     //! [in] If this in not null, replace the first blank in the provided name with the string terminaison
-    wordint *wildcard,
+    int32_t *wildcard,
     //! [in] Length of the name
     F2Cl nameLength
 ) {
@@ -1721,7 +1721,7 @@ static int wb_copy_key_name(
 
 
 //! Get a list of keys matching a name
-wordint f77_name(f_wb_get_keys)(WhiteBoard **wb, char *labels, wordint *nlabels, char *name, F2Cl llabels, F2Cl nameLength)
+int32_t f77_name(f_wb_get_keys)(WhiteBoard **wb, char *labels, int32_t *nlabels, char *name, F2Cl llabels, F2Cl nameLength)
 {
    int _nameLength = nameLength;
    wb_keys keys;
@@ -1754,7 +1754,7 @@ int c_wb_lock(
 
 
 //! @copydoc c_wb_lock
-wordint f77_name(f_wb_lock)(WhiteBoard **wb, char *name, F2Cl nameLength){
+int32_t f77_name(f_wb_lock)(WhiteBoard **wb, char *name, F2Cl nameLength){
    int _nameLength = nameLength;
    return c_wb_lock(*wb, name, _nameLength);
 }
@@ -1820,7 +1820,7 @@ int c_wb_reload()
 
 
 //! @copydoc c_wb_reload
-wordint f77_name(f_wb_reload)(WhiteBoard **wb){
+int32_t f77_name(f_wb_reload)(WhiteBoard **wb){
    return c_wb_reload();
 }
 
@@ -2572,7 +2572,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
 }
 
 /* read a dictionary or user directive file (FORTRAN version) */
-wordint f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, wordint *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
+int32_t f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, int32_t *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
    int _filenameLength = filenameLength;
    int _packageLength = packageLength;
    int _sectionLength = sectionLength;

@@ -23,14 +23,14 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezget_subgridids)(wordint *gdid, wordint *subgrid)
+int32_t f77name(ezget_subgridids)(int32_t *gdid, int32_t *subgrid)
 {
    return c_ezget_subgridids(*gdid, subgrid);
 }
 
-wordint c_ezget_subgridids(wordint gdid, wordint *subgrid)
+int32_t c_ezget_subgridids(int32_t gdid, int32_t *subgrid)
 {
-  wordint i,gdrow_id, gdcol_id;
+  int32_t i,gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid, &gdrow_id, &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids == 0) 

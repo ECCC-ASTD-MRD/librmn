@@ -22,7 +22,7 @@
 static int endian_int=1;
 static char *little_endian=(char *)&endian_int;
 
-void f77name(movr8r4)(double *r8, float *r4, ftnword *f_lng)
+void f77name(movr8r4)(double *r8, float *r4, int32_t *f_lng)
 {
   int lng = *f_lng;
 
@@ -30,7 +30,7 @@ void f77name(movr8r4)(double *r8, float *r4, ftnword *f_lng)
     *r4++ = *r8 ++;
 
 }
-void f77name(movr4r8)(float *r4, double *r8, ftnword *f_lng)
+void f77name(movr4r8)(float *r4, double *r8, int32_t *f_lng)
 {
   int lng = *f_lng;
 
@@ -39,7 +39,7 @@ void f77name(movr4r8)(float *r4, double *r8, ftnword *f_lng)
 
 }
 
-void f77name(move6432)(unsigned INT_32 *src, unsigned INT_32 *dst, ftnword *f_lng)
+void f77name(move6432)(unsigned INT_32 *src, unsigned INT_32 *dst, int32_t *f_lng)
 {
   int lng = *f_lng;
   register unsigned INT_32 t1,t2;

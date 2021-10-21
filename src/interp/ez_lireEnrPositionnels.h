@@ -3,30 +3,30 @@
 
 #include <fstd98.h>
 
-void RemplirDeBlancs(char str[],wordint longueur);
+void RemplirDeBlancs(char str[],int32_t longueur);
 
 
-void Lire_enrUvercode1(_Grille *gr, ftnfloat *yy, wordint nix)
+void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix)
 {
-  wordint ig1refyin,ig2refyin,ig3refyin,ig4refyin;
-  wordint ig1refyan,ig2refyan,ig3refyan,ig4refyan;
-  wordint yinsize,ndiv,ni,nj,ier;
-  wordint sub_gdrow_id,sub_gdcol_id;
+  int32_t ig1refyin,ig2refyin,ig3refyin,ig4refyin;
+  int32_t ig1refyan,ig2refyan,ig3refyan,ig4refyan;
+  int32_t yinsize,ndiv,ni,nj,ier;
+  int32_t sub_gdrow_id,sub_gdcol_id;
   char grtypZ[2],grref[2],grrefE[2];
-  ftnfloat *ax,*ay;
+  float *ax,*ay;
 
   ndiv=(int)yy[2];  /* number of LAM grids is 2*/
   ni=(int)yy[5];    /* ni size of LAM grid */
   nj=(int)yy[6];    /* nj size of LAM grid */
   gr->ni = ni;      /* ni size of U grid */
   gr->nj = nj*ndiv; /* nj size of U grid */
-  ax = (ftnfloat *) malloc(ni*sizeof(ftnfloat));
-  ay = (ftnfloat *) malloc(nj*sizeof(ftnfloat));
-  memcpy(ax,&yy[15],ni*sizeof(ftnfloat));
-  memcpy(ay,&yy[15+ni],nj*sizeof(ftnfloat));
+  ax = (float *) malloc(ni*sizeof(float));
+  ay = (float *) malloc(nj*sizeof(float));
+  memcpy(ax,&yy[15],ni*sizeof(float));
+  memcpy(ay,&yy[15+ni],nj*sizeof(float));
   yinsize=15+ni+nj;
   gr->nsubgrids = ndiv;
-  gr->subgrid = (wordint *) malloc(ndiv*sizeof(wordint));
+  gr->subgrid = (int32_t *) malloc(ndiv*sizeof(int32_t));
   strcpy(grtypZ,"Z"); strcpy(grrefE,"E");
   /*yin*/
   ier = f77name(cxgaig)(grrefE,&ig1refyin,&ig2refyin,&ig3refyin,&ig4refyin,&yy[11], &yy[12], &yy[13], &yy[14],1);
@@ -43,22 +43,22 @@ void Lire_enrUvercode1(_Grille *gr, ftnfloat *yy, wordint nix)
   free(ay);
 }
 
-void Lire_enrTicTac(_Grille *gr, ftnfloat *ax, wordint nixnjx, ftnfloat *ay, wordint niynjy, wordint ip3, wordint ip4)
+void Lire_enrTicTac(_Grille *gr, float *ax, int32_t nixnjx, float *ay, int32_t niynjy, int32_t ip3, int32_t ip4)
 {
-  wordint i,j,offsetx,offsety;
+  int32_t i,j,offsetx,offsety;
   switch (gr->grtyp[0])
     {
     case 'Y':
     case 'Z':
-      gr->ax = (ftnfloat *) malloc(nixnjx*sizeof(ftnfloat));
-      gr->ay = (ftnfloat *) malloc(niynjy*sizeof(ftnfloat));
-      memcpy(gr->ax,ax,nixnjx*sizeof(ftnfloat));
-      memcpy(gr->ay,ay,niynjy*sizeof(ftnfloat));
+      gr->ax = (float *) malloc(nixnjx*sizeof(float));
+      gr->ay = (float *) malloc(niynjy*sizeof(float));
+      memcpy(gr->ax,ax,nixnjx*sizeof(float));
+      memcpy(gr->ay,ay,niynjy*sizeof(float));
       break;
 
     case '#':
-      gr->ax = (ftnfloat *) malloc(gr->ni*sizeof(ftnfloat));
-      gr->ay = (ftnfloat *) malloc(gr->nj*sizeof(ftnfloat));
+      gr->ax = (float *) malloc(gr->ni*sizeof(float));
+      gr->ay = (float *) malloc(gr->nj*sizeof(float));
       offsetx = ip3 - 1;
       offsety = ip4 - 1;
       for (j=0; j < gr->nj; j++)
@@ -83,25 +83,25 @@ void Lire_enrTicTac(_Grille *gr, ftnfloat *ax, wordint nixnjx, ftnfloat *ay, wor
           }
       }
 }
-wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2, wordint ip3, wordint ip4, wordint read)
+int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2, int32_t ip3, int32_t ip4, int32_t read)
 {
-  wordint moins1 = -1;
-  wordint cle;
-  wordint niy, njy, nky, nix, njx, nkx;
-  wordint ier, ier1, ier2;
-  wordint clex, bidon,ig1ref,ig2ref,ig3ref,ig4ref;
+  int32_t moins1 = -1;
+  int32_t cle;
+  int32_t niy, njy, nky, nix, njx, nkx;
+  int32_t ier, ier1, ier2;
+  int32_t clex, bidon,ig1ref,ig2ref,ig3ref,ig4ref;
   char grref[2];
-  ftnfloat *ax,*ay;
-  ftnfloat *yy;
+  float *ax,*ay;
+  float *yy;
 
   char nomvarx[8], typvarx[4], etikx[16];
   char nomvary[8], typvary[4], etiky[16];
-  wordint i,j;
+  int32_t i,j;
   int Cles_ax, Cles_ay;
   int trouve_x, trouve_y;
 
-  wordint dateo, deet, npas, nbits;
-  wordint intip1, intip2, intip3,intip4, tmpip3, intiunit,offsetx,offsety;
+  int32_t dateo, deet, npas, nbits;
+  int32_t intip1, intip2, intip3,intip4, tmpip3, intiunit,offsetx,offsety;
 
   intip1 = ip1;
   intip2 = ip2;
@@ -195,7 +195,7 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
      if (read == 1)
         {
         /* read the ^> grid descriptor */
-        yy = (ftnfloat *)malloc(nix * sizeof(ftnfloat));
+        yy = (float *)malloc(nix * sizeof(float));
         ier = f77name(fstluk)(yy, &ier2, &nix, &njx, &nkx);
         /* vercode=ig1ref */
         switch (ig1ref)
@@ -262,9 +262,9 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
          gr->grref[0] = grref[0];
          gr->ni_ax = nix;
          gr->nj_ay = njy;
-         ay = (ftnfloat *) malloc(niy*njy*sizeof(ftnfloat));
+         ay = (float *) malloc(niy*njy*sizeof(float));
          ier = f77name(fstluk)(ay, &ier1, &niy, &njy, &nky);
-         ax = (ftnfloat *) malloc(nix*njx*sizeof(ftnfloat));
+         ax = (float *) malloc(nix*njx*sizeof(float));
          clex = f77name(fstluk)(ax, &ier2, &nix, &njx, &nkx);
          Lire_enrTicTac(gr,ax,nix*njx,ay,niy*njy,ip3,ip4);
          free(ax);
@@ -347,9 +347,9 @@ wordint LireEnrPositionnels(_Grille *gr, wordint iunit, wordint ip1, wordint ip2
    return 0;
 }
 
-void RemplirDeBlancs(char str[],wordint longueur)
+void RemplirDeBlancs(char str[],int32_t longueur)
 {
-  wordint i;
+  int32_t i;
 
   for (i=strlen(str);i < longueur; i++)
     {

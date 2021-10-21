@@ -30,22 +30,22 @@
 
 
 
-ftnfloat f77name(second)();
+float f77name(second)();
 
 static double powerOf2s[maxBit];
 
 void f77name(mainrle)()
 {
 
-  word bits[maxBit];
-  word i, k, j;
+  uint32_t bits[maxBit];
+  uint32_t i, k, j;
   int arrayOfInt1[elementCount_4], arrayOfInt2[elementCount_4];
   int arrayOfInt3[elementCount_4], arrayOfInt4[elementCount_4];
   int numOfBitPerToken;
   int tempInteger;
   int packedElementCount;
   int isError;
-  ftnfloat startTime, switchTime, endTime;
+  float startTime, switchTime, endTime;
   int repeatTestTimes = 100;
   int stride;
   int maxStride = 4;

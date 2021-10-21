@@ -23,9 +23,9 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef_supergrid)(wordint *ni, wordint *nj, char *grtyp, char *grref, wordint *vercode, wordint *nsubgrids, wordint *subgrid, F2Cl lengrtyp, F2Cl lengrref)
+int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref)
 {
-  wordint gdid,i;
+  int32_t gdid,i;
   char lgrtyp[2],lgrref[2];
 
   lgrtyp[0] = grtyp[0];
@@ -37,13 +37,13 @@ wordint f77name(ezgdef_supergrid)(wordint *ni, wordint *nj, char *grtyp, char *g
   return gdid;
 }
 
-wordint c_ezgdef_supergrid(wordint ni, wordint nj, char *grtyp, char *grref, wordint vercode,wordint nsubgrids, wordint *subgrid)
+int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int32_t vercode,int32_t nsubgrids, int32_t *subgrid)
 {
-  wordint sub_gdrow_id, sub_gdcol_id, sub_gdid;
-  wordint mask_gdrow_id, mask_gdcol_id, mask_gdid;
-  wordint  ii,i,j,k,i0,j0,i1,j1,yni,ynj,gdid;
-  wordint gdrow_in, gdcol_in, grid_index,newgrsize;
-  ftnfloat *ax,*ay;
+  int32_t sub_gdrow_id, sub_gdcol_id, sub_gdid;
+  int32_t mask_gdrow_id, mask_gdcol_id, mask_gdid;
+  int32_t  ii,i,j,k,i0,j0,i1,j1,yni,ynj,gdid;
+  int32_t gdrow_in, gdcol_in, grid_index,newgrsize;
+  float *ax,*ay;
   unsigned int grid_crc;
    _Grille newgr,*maskgd;
     
@@ -84,10 +84,10 @@ wordint c_ezgdef_supergrid(wordint ni, wordint nj, char *grtyp, char *grref, wor
     newgr.nj = nj;
     newgr.idx_last_gdin = -1;
     /* create tictac arrays to add uniqueness in supergrid*/
-    ax = (ftnfloat *) malloc(newgr.ni*sizeof(ftnfloat));
-    ay = (ftnfloat *) malloc(newgr.nj*sizeof(ftnfloat));
-    memcpy(ax,Grille[sub_gdrow_id][sub_gdcol_id].ax,newgr.ni*sizeof(ftnfloat));
-    memcpy(ay,Grille[sub_gdrow_id][sub_gdcol_id].ay,newgr.nj*sizeof(ftnfloat));
+    ax = (float *) malloc(newgr.ni*sizeof(float));
+    ay = (float *) malloc(newgr.nj*sizeof(float));
+    memcpy(ax,Grille[sub_gdrow_id][sub_gdcol_id].ax,newgr.ni*sizeof(float));
+    memcpy(ay,Grille[sub_gdrow_id][sub_gdcol_id].ay,newgr.nj*sizeof(float));
     newgr.fst.ip1      = Grille[sub_gdrow_id][sub_gdcol_id].fst.ip1;
     newgr.fst.ip2      = Grille[sub_gdrow_id][sub_gdcol_id].fst.ip2;
     newgr.fst.ip3      = Grille[sub_gdrow_id][sub_gdcol_id].fst.ip3;
@@ -151,7 +151,7 @@ add   the rotation of YIN */
     Grille[gdrow_in][gdcol_in].fst.igref[IG3] = newgr.fst.igref[IG3];
     Grille[gdrow_in][gdcol_in].fst.igref[IG4] = newgr.fst.igref[IG4];
     Grille[gdrow_in][gdcol_in].nsubgrids = nsubgrids;
-    Grille[gdrow_in][gdcol_in].subgrid = (wordint *) malloc(nsubgrids*sizeof(wordint));
+    Grille[gdrow_in][gdcol_in].subgrid = (int32_t *) malloc(nsubgrids*sizeof(int32_t));
 
     for (ii=0; ii < nsubgrids; ii++)
        {

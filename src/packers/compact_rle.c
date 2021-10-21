@@ -65,17 +65,17 @@ int  compact_rle( void *unpackedArrayOfInt, void *packedHeader, void *packedArra
     typedef struct
     {
 #if defined(Little_Endian)
-      word RESERVED :16,RLE_TYP :4,LNG :4,ID :8,numOfPackedToken :26,numOfBitsPerToken :6;
+      uint32_t RESERVED :16,RLE_TYP :4,LNG :4,ID :8,numOfPackedToken :26,numOfBitsPerToken :6;
 #else
-      word ID :8,LNG :4,RLE_TYP :4,RESERVED :16,numOfBitsPerToken :6,numOfPackedToken :26;
+      uint32_t ID :8,LNG :4,RLE_TYP :4,RESERVED :16,numOfBitsPerToken :6,numOfPackedToken :26;
 #endif
-      word minInteger :32,maxRange :32;
+      uint32_t minInteger :32,maxRange :32;
     }rle_header;
 
 
     int wordSize;
-    word *arrayOfUnpacked;
-    word *arrayOfPacked;
+    uint32_t *arrayOfUnpacked;
+    uint32_t *arrayOfPacked;
     int i, k;
     int intCount;
 
@@ -85,20 +85,20 @@ int  compact_rle( void *unpackedArrayOfInt, void *packedHeader, void *packedArra
      *                                      *
      ***************************************/
     int lastPackBit, spaceInLastWord, lastSlot;
-    word lastWordShifted, tempInt;
+    uint32_t lastWordShifted, tempInt;
 
-    word minInteger, maxInteger;
-    word maxRange;
-    word currentToken, previousToken;
+    uint32_t minInteger, maxInteger;
+    uint32_t maxRange;
+    uint32_t currentToken, previousToken;
     
     int previousTokenCount, currentTokenCount;
    
     int currentPosition, totalPackedElementCount, maxRepeatPerToken;
-    word *packHeader;
+    uint32_t *packHeader;
     int lastTokenPosition;
 
 
-    word *arrayPosition;
+    uint32_t *arrayPosition;
 
     
     /***************************************
@@ -107,9 +107,9 @@ int  compact_rle( void *unpackedArrayOfInt, void *packedHeader, void *packedArra
      *                                     *
      **************************************/
     int firstPackBit, bitPackInFirstWord, currentSlot;
-    word currentWord, packInt;
+    uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
-    word *tempPackedArray;
+    uint32_t *tempPackedArray;
     rle_header *theHeader;
     int repeatCount;
 
@@ -151,10 +151,10 @@ int  compact_rle( void *unpackedArrayOfInt, void *packedHeader, void *packedArra
      *    determine wordsize and others                     * 
      *                                                      *
      ********************************************************/
-    wordSize        = 8 * sizeof(word);
-    arrayOfUnpacked = (word *)unpackedArrayOfInt;
-    packHeader      = (word *) packedHeader;
-    arrayOfPacked   = (word *)packedArrayOfInt;
+    wordSize        = 8 * sizeof(uint32_t);
+    arrayOfUnpacked = (uint32_t *)unpackedArrayOfInt;
+    packHeader      = (uint32_t *) packedHeader;
+    arrayOfPacked   = (uint32_t *)packedArrayOfInt;
     intCount        = elementCount;
 
 

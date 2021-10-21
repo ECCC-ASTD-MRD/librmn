@@ -36,7 +36,7 @@ char name[1], value[1];
 
 {
 
-   wordint i;
+   int32_t i;
    unsigned size;
    char *temp, *hold;
 

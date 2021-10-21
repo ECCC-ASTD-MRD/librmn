@@ -88,12 +88,12 @@ void f77name(pass_address_to)(long long *c, int *funct())
     (void) *funct(myptr.ptr);
 }
 
-void f77name(set_content_of_location)(long long *location, wordint *indx, wordint *value)
+void f77name(set_content_of_location)(long long *location, int32_t *indx, int32_t *value)
 // Indexing of location is done in base 1 (Fortran like)
 {
     typedef union {
         long long address_in_64bit;
-        wordint *ptr;
+        int32_t *ptr;
     } U_ptr;
 
     U_ptr myptr;
@@ -105,12 +105,12 @@ void f77name(set_content_of_location)(long long *location, wordint *indx, wordin
     myptr.ptr[(*indx)-1] = *value;
 }
 
-void f77name(get_content_of_location)(long long *location, wordint *indx, wordint *value)
+void f77name(get_content_of_location)(long long *location, int32_t *indx, int32_t *value)
 // Indexing of location is done in base 1 (Fortran like)
 {
     typedef union {
     long long address_in_64bit;
-    wordint *ptr;
+    int32_t *ptr;
     } U_ptr;
 
     U_ptr myptr;

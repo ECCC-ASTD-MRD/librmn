@@ -22,26 +22,26 @@
 #include "ez_funcdef.h"
 
 
-void f77name(ezgfllfxy)(ftnfloat *lonp, ftnfloat *latp,
-		    ftnfloat *lon, ftnfloat *lat, 
-		    ftnfloat *r, ftnfloat *ri, wordint *npts, 
-		    ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
+void f77name(ezgfllfxy)(float *lonp, float *latp,
+		    float *lon, float *lat, 
+		    float *r, float *ri, int32_t *npts, 
+		    float *xlat1, float *xlon1, float *xlat2, float *xlon2)
 {
   c_ezgfllfxy(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
 }
 
 
 
-void  c_ezgfllfxy(ftnfloat *lonp, ftnfloat *latp,
-                 ftnfloat *lon, ftnfloat *lat, 
-                 ftnfloat *r, ftnfloat *ri, wordint *npts, 
-                 ftnfloat *xlat1, ftnfloat *xlon1, ftnfloat *xlat2, ftnfloat *xlon2)
+void  c_ezgfllfxy(float *lonp, float *latp,
+                 float *lon, float *lat, 
+                 float *r, float *ri, int32_t *npts, 
+                 float *xlat1, float *xlon1, float *xlat2, float *xlon2)
 {
-   ftnfloat *cart, *carot;
-   wordint trois = 3;
+   float *cart, *carot;
+   int32_t trois = 3;
 
-   cart = (ftnfloat *) malloc(3* *npts*sizeof(ftnfloat));
-   carot = (ftnfloat *) malloc(3* *npts*sizeof(ftnfloat));
+   cart = (float *) malloc(3* *npts*sizeof(float));
+   carot = (float *) malloc(3* *npts*sizeof(float));
 
    f77name(ez_crot)( r, ri, xlon1, xlat1, xlon2, xlat2);
    f77name(ez_lac) (cart,lon,lat, npts);

@@ -22,9 +22,9 @@
 #include "ez_funcdef.h"
 
 
-wordint f77name(gdxywdval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint *n)
+int32_t f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
 {
-   wordint icode;
+   int32_t icode;
 
    icode = c_gdxywdval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
    return icode;
@@ -33,19 +33,19 @@ wordint f77name(gdxywdval)(wordint *gdin, ftnfloat *uuout, ftnfloat *vvout, ftnf
 
 
 //! Vector interpolation of points located at x-y coordinates, returned as speed and direction (UVand WD)
-wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin, ftnfloat *x, ftnfloat *y, wordint n)
+int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
-    wordint ier, j, icode, yin_gdid, yan_gdid, lni, lnj;
+    int32_t ier, j, icode, yin_gdid, yan_gdid, lni, lnj;
 
-    wordint gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
-    ftnfloat *tmplat, *tmplon, *tmpy;
-    ftnfloat *uuyin, *vvyin, *uuyan, *vvyan;
-    ftnfloat *tmpuu, *tmpvv;
+    int32_t gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
+    float *tmplat, *tmplon, *tmpy;
+    float *uuyin, *vvyin, *uuyan, *vvyan;
+    float *tmpuu, *tmpvv;
 
-    tmplat = (ftnfloat *) malloc(n * sizeof(ftnfloat));
-    tmplon = (ftnfloat *) malloc(n * sizeof(ftnfloat));
-    tmpuu = (ftnfloat *) malloc(n * sizeof(ftnfloat));
-    tmpvv = (ftnfloat *) malloc(n * sizeof(ftnfloat));
+    tmplat = (float *) malloc(n * sizeof(float));
+    tmplon = (float *) malloc(n * sizeof(float));
+    tmpuu = (float *) malloc(n * sizeof(float));
+    tmpvv = (float *) malloc(n * sizeof(float));
 
     c_gdkey2rowcol(gdin, &gdrow_id, &gdcol_id);
     if (Grille[gdrow_id][gdcol_id].nsubgrids > 0) {
@@ -54,11 +54,11 @@ wordint c_gdxywdval(wordint gdin, ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uu
         c_gdkey2rowcol(yin_gdid, &yin_gdrow_id, &yin_gdcol_id);
         lni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
         lnj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
-        tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        uuyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        vvyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        uuyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-        vvyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+        tmpy = (float *) malloc(n*sizeof(float));
+        uuyin = (float *) malloc(n*sizeof(float));
+        vvyin = (float *) malloc(n*sizeof(float));
+        uuyan = (float *) malloc(n*sizeof(float));
+        vvyan = (float *) malloc(n*sizeof(float));
         for (j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 tmpy[j] = y[j]-Grille[yin_gdrow_id][yin_gdcol_id].nj;

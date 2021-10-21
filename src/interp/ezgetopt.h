@@ -24,11 +24,11 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
+int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {
    int i;
-   wordint icode,len;
-   wordint longueur_option, longueur_value;
+   int32_t icode,len;
+   int32_t longueur_option, longueur_value;
    char local_opt[32], local_val[32];
 
    longueur_option = f77name(longueur)(option, lenoption);
@@ -50,10 +50,10 @@ wordint f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenval
    return icode;
 }
 
-wordint c_ezgetopt(char *option, char *value)
+int32_t c_ezgetopt(char *option, char *value)
 {
   char local_opt[32], local_val[32];
-  wordint i;
+  int32_t i;
 
   memset(local_opt, (int) '\0', 32);
   memset(local_val, (int) '\0', 32);

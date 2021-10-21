@@ -23,17 +23,17 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezsint)(ftnfloat *zout, ftnfloat *zin)
+int32_t f77name(ezsint)(float *zout, float *zin)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_ezsint(zout, zin);
    return icode;
 }
-wordint c_ezsint(ftnfloat *zout, ftnfloat *zin)
+int32_t c_ezsint(float *zout, float *zin)
 {
-  wordint icode,gdin,gdout;
-  wordint gdrow_in,gdcol_in, gdrow_out,gdcol_out;
+  int32_t icode,gdin,gdout;
+  int32_t gdrow_in,gdcol_in, gdrow_out,gdcol_out;
    
   if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED)
     {
@@ -50,7 +50,7 @@ wordint c_ezsint(ftnfloat *zout, ftnfloat *zin)
    
   if (iset_gdin == iset_gdout)
     {
-    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
     return 1;
     }
 
@@ -67,13 +67,13 @@ wordint c_ezsint(ftnfloat *zout, ftnfloat *zin)
   return icode;
 }
 
-wordint c_ezsint_orig(ftnfloat *zout, ftnfloat *zin)
+int32_t c_ezsint_orig(float *zout, float *zin)
 {
-  wordint gdin, gdout;
-  wordint ier,ierc;
-  wordint npts;
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out;
-  ftnfloat *lzin, *lxzin;
+  int32_t gdin, gdout;
+  int32_t ier,ierc;
+  int32_t npts;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+  float *lzin, *lxzin;
   
   lzin  = NULL;
   lxzin = NULL;
@@ -94,14 +94,14 @@ wordint c_ezsint_orig(ftnfloat *zout, ftnfloat *zin)
    
   if (iset_gdin == iset_gdout)
     {
-    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
     return 1;
     }
   
   if (Grille[gdrow_in][gdcol_in].fst.axe_y_inverse == 1)
     {
-    lzin = (ftnfloat *) malloc(Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
-    memcpy(lzin, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+    lzin = (float *) malloc(Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
+    memcpy(lzin, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
     f77name(permut)(lzin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
     }
   else
@@ -111,7 +111,7 @@ wordint c_ezsint_orig(ftnfloat *zout, ftnfloat *zin)
   
   if (Grille[gdrow_in][gdcol_in].needs_expansion == OUI)
     {
-    lxzin = (ftnfloat *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(ftnfloat));
+    lxzin = (float *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
     ez_xpnsrcgd(gdin, lxzin, lzin);
     }
   else

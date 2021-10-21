@@ -80,13 +80,13 @@ void f77name(cmainieeedouble)()
 
   FLOAT_4_8 arrayOfFloat1_IEEE[myElementCount2], arrayOfFloat2_IEEE[myElementCount2];
   FLOAT_4_8 arrayOfFloat3_IEEE[myElementCount2];
-  ftnword   ftnBitSizeOfIEEE, ftnBitSizeOfIBM, ftnElementCount, ftnCorrectElement, ftnErrorCode;
+  int32_t   ftnBitSizeOfIEEE, ftnBitSizeOfIBM, ftnElementCount, ftnCorrectElement, ftnErrorCode;
 
 
 
-  word arrayOfInt1[myElementCount2], arrayOfInt2[myElementCount2];
-  word arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
-  word arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
+  uint32_t arrayOfInt1[myElementCount2], arrayOfInt2[myElementCount2];
+  uint32_t arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
+  uint32_t arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
   
 
   /***************************
@@ -98,7 +98,7 @@ void f77name(cmainieeedouble)()
   int stride = 1;
   int opCode = FLOAT_PACK;
   int opCode1 = FLOAT_UNPACK; 
-  ftnword *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
+  int32_t *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
 
   FLOAT_4_8 missingTag = 9999.0000;
   FLOAT_4_8 tempFloat;

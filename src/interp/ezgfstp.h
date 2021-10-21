@@ -23,16 +23,16 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgfstp)(wordint *gdid, 
+int32_t f77name(ezgfstp)(int32_t *gdid, 
                          char *nomvarx, char *typvarx, char *etiketx,
                          char *nomvary, char *typvary, char *etikety,
-                         wordint *ip1, wordint *ip2, wordint *ip3, wordint *dateo, 
-                         wordint *deet, wordint *npas, wordint *nbits,
+                         int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *dateo, 
+                         int32_t *deet, int32_t *npas, int32_t *nbits,
                          F2Cl lennomvarx, F2Cl lentypvarx, F2Cl lenetiketx,
                          F2Cl lennomvary, F2Cl lentypvary, F2Cl lenetikety)
 {
-   wordint i;
-   wordint icode;
+   int32_t i;
+   int32_t icode;
    
    char lnomvarx[5],lnomvary[5],letiketx[13],letikety[13],ltypvarx[2],ltypvary[2];
 
@@ -68,11 +68,11 @@ wordint f77name(ezgfstp)(wordint *gdid,
    return icode;
 }
 
-wordint c_ezgfstp(wordint gdid, char *nomvarx, char *typvarx, char *etiketx, 
+int32_t c_ezgfstp(int32_t gdid, char *nomvarx, char *typvarx, char *etiketx, 
               char *nomvary, char *typvary, char *etikety,
-              wordint *ip1, wordint *ip2, wordint *ip3, wordint *dateo, wordint *deet, wordint *npas, wordint *nbits)
+              int32_t *ip1, int32_t *ip2, int32_t *ip3, int32_t *dateo, int32_t *deet, int32_t *npas, int32_t *nbits)
 {
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    

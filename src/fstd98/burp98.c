@@ -31,7 +31,7 @@
 int BurP_nele;
 int BurP_ntot;
 
-void c_buf89a0(word *buffer)
+void c_buf89a0(uint32_t *buffer)
 {
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
@@ -40,7 +40,7 @@ void c_buf89a0(word *buffer)
 }
 
 
-int c_getbuf8(word *buffer)
+int c_getbuf8(uint32_t *buffer)
 {
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
@@ -52,9 +52,9 @@ int c_getbuf8(word *buffer)
 //! Pack burp info keys into buffer or get info keys from buffer depending on mode argument
 void build_burp_info_keys(
     //! [in,out]  Buffer to contain the keys
-    word *buf,
+    uint32_t *buf,
     //! [in,out] Info keys
-    word *keys,
+    uint32_t *keys,
     //! [in] File index in file table
     int index,
     //! [in] Write to buffer when WMODE, otherwise get keys from buffer
@@ -88,11 +88,11 @@ void build_burp_prim_keys(
     //! [in,out] Buffer to contain the keys
     burp_record *brpk,
     //! [in,out] Primary keys
-    word *keys,
+    uint32_t *keys,
     //! [out] Search mask
     burp_record *mask,
     //! [in] Unpacked masks
-    word *mskkeys,
+    uint32_t *mskkeys,
     //! [in] File index in file table
     int index,
     //! [in] Write to buffer when WMODE, otherwise get keys from buffer
@@ -248,7 +248,7 @@ static int burp_nbit_datyp(
     //! [in,out] Data type of tblval
     int *datyp,
     //! [in] Tblval  array of values to be inserted subsequently
-    word *tval,
+    uint32_t *tval,
     //! [in] Tblval dimension
     int tbldim,
     //! [in] Stride to use within tblval
@@ -360,7 +360,7 @@ static int burp_nbit_datyp(
 */
 static int burp_valid789(
     //! [in,out] List of elements
-    word *lstele,
+    uint32_t *lstele,
     //! [in] Number of elements in list
     int nele,
     //! [in] Data type
@@ -443,21 +443,21 @@ int c_mrbadd(
     //! [in] Data type for packing
     int datyp,
     //! [in] List of nele meteorogical elements
-    word *lstele,
+    uint32_t *lstele,
     //! [in] Array of values to write (nele*nval*nt)
-    word *tblval
+    uint32_t *tblval
 ) {
     burp_block_header entete;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    word *pos;
+    uint32_t *pos;
     int inbit, idatyp, nombre, err, temp, left, i, bits_added, bfamho;
     int done,indx;
-    word r_nele, r_nval, r_nt, r_bfam, r_bdesc;
-    word r_btyp, r_nbit, r_bit0, r_datyp;
+    uint32_t r_nele, r_nval, r_nt, r_bfam, r_bdesc;
+    uint32_t r_btyp, r_nbit, r_bit0, r_datyp;
 
     /* initialize block header to 0 */
-    pos = (word *)&entete;
-    for (i = 0; i < (sizeof(entete) / sizeof(word)); i++) {
+    pos = (uint32_t *)&entete;
+    for (i = 0; i < (sizeof(entete) / sizeof(uint32_t)); i++) {
         *pos = 0;
     }
 
@@ -522,11 +522,11 @@ int c_mrbadd(
         entete.elem3 = lstele[2];
         done = 3;
     }
-    indx = (buf->nbits) / (8 * sizeof(word));
-    pos = (word *) &(buf->data[indx]);
+    indx = (buf->nbits) / (8 * sizeof(uint32_t));
+    pos = (uint32_t *) &(buf->data[indx]);
     *pos = 0;
     temp = 0;
-    left = 8 * sizeof(word);
+    left = 8 * sizeof(uint32_t);
     bits_added = 0;
 
     i = done;
@@ -537,21 +537,21 @@ int c_mrbadd(
         if (left == 0) {
             pos++;
             *pos = 0;
-            left = 8*sizeof(word);
+            left = 8*sizeof(uint32_t);
         }
         i++;
     }
-    if (left != 8 * sizeof(word)) {
+    if (left != 8 * sizeof(uint32_t)) {
         *pos <<= 16;
         bits_added += 16;
     }
 
     buf->nbits += (bits_added +63) / 64 * 64;
-    err = c_xdfins((word *)buf, (word *)&entete, buf->buf9, DIMENT,
-        8 * sizeof(word), 0);
+    err = c_xdfins((uint32_t *)buf, (uint32_t *)&entete, buf->buf9, DIMENT,
+        8 * sizeof(uint32_t), 0);
     if (err < 0) return err;
 
-    err = c_xdfadd((word *)buf, tblval, nombre, inbit, idatyp);
+    err = c_xdfadd((uint32_t *)buf, tblval, nombre, inbit, idatyp);
     if (err < 0) return err;
 
     buf->buf78.buf8++;
@@ -559,7 +559,7 @@ int c_mrbadd(
     *bkno = buf->buf78.buf8;
 
     if (msg_level <= INFORM) {
-        err = c_mrbprm((word *)buf, *bkno, &r_nele, &r_nval, &r_nt, &r_bfam, &r_bdesc,
+        err = c_mrbprm((uint32_t *)buf, *bkno, &r_nele, &r_nval, &r_nt, &r_bfam, &r_bdesc,
             &r_btyp, &r_nbit, &r_bit0, &r_datyp);
         fprintf(stdout, "MRBADD - write block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",
             *bkno, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
@@ -580,7 +580,7 @@ int c_mrbdel(
     int nelements, datyp, nombre, i;
     burp_block_header entete, *block;
     burp_record *burprec;
-    word *pos;
+    uint32_t *pos;
 
     if ((number < 1) || (number > buf->buf78.buf8)) {
         sprintf(errmsg, "invalid block number");
@@ -588,7 +588,7 @@ int c_mrbdel(
     }
 
    bitpos = NBENTB * (number -1);
-   err = c_xdfxtr((word *)buf,(word *)&entete,bitpos,DIMENT,8*sizeof(word),0);
+   err = c_xdfxtr((uint32_t *)buf,(uint32_t *)&entete,bitpos,DIMENT,8*sizeof(uint32_t),0);
    if (err < 0) return err;
 
     if (entete.flag != 0) {
@@ -617,7 +617,7 @@ int c_mrbdel(
     err = c_xdfcut(buf, bit0, nombre, nbit, datyp);
 
     /* cut block header */
-    err = c_xdfcut(buf, bitpos, DIMENT, 8 * sizeof(word), 0);
+    err = c_xdfcut(buf, bitpos, DIMENT, 8 * sizeof(uint32_t), 0);
 
     /* update number of blocks */
     buf->buf78.buf8--;
@@ -642,7 +642,7 @@ int c_mrbdel(
 //! Get the description parameters of a data block
 int c_mrbhdr(
     //! [in] Buffer containing the report
-    word *buf,
+    uint32_t *buf,
     int *temps,
     int *flgs,
     char *stnid,
@@ -658,9 +658,9 @@ int c_mrbhdr(
     int *run,
     //! [in] Block number
     int *nblk,
-    word *sup,
+    uint32_t *sup,
     int nsup,
-    word *xaux,
+    uint32_t *xaux,
     int nxaux
 ) {
     buffer_interface_ptr buffer = (buffer_interface_ptr)buf;
@@ -730,7 +730,7 @@ int c_mrblen(
    buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
    *bitsUsed = buf->nbits;
-   *bitsLeft = ((buf->nwords - 9) * 8 * sizeof(word)) - *bitsUsed;
+   *bitsLeft = ((buf->nwords - 9) * 8 * sizeof(uint32_t)) - *bitsUsed;
    return 0;
 }
 
@@ -824,7 +824,7 @@ int c_mrbloc(
 //! \return 0 on success, error code otherwise
 int c_mrbprm(
     //! [in] Buffer containing the report
-    word *buf,
+    uint32_t *buf,
     //! [in] Index of the block from which to get the parameters
     int  bkno,
     //! [out] Number of elements
@@ -850,7 +850,7 @@ int c_mrbprm(
     int ier, bitpos;
 
     bitpos = (bkno - 1) * NBENTB;
-    ier = c_xdfxtr(buf, (word *)&header, bitpos, DIMENT, 32, 0);
+    ier = c_xdfxtr(buf, (uint32_t *)&header, bitpos, DIMENT, 32, 0);
 
     *btyp = header.btyp;
     *nbit = header.nbit + 1;
@@ -881,7 +881,7 @@ int c_mrbrep(
     //! [in] Index of the block to be replaced
     int blkno,
     //! [in] Array of values to write (nele * nval * nt)
-    word *tblval
+    uint32_t *tblval
 ) {
     burp_block_header *block;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
@@ -946,7 +946,7 @@ int c_mrbrep(
         /* insertion by 32 bit slices */
         new_nmots = diff_nmots * 2;
         if (new_nmots > 0) {
-            err = c_xdfins((word *)buf, tblval, bitpos, new_nmots, 32, 0);
+            err = c_xdfins((uint32_t *)buf, tblval, bitpos, new_nmots, 32, 0);
             for (i = blkno; i < buf->buf78.buf8; i++) {
                 block[i].bit0 += diff_nmots;
             }
@@ -954,7 +954,7 @@ int c_mrbrep(
     }
 
     /* replace block */
-    err = c_xdfrep((word *)buf, tblval, bitpos, nombre, new_nbit, new_datyp);
+    err = c_xdfrep((uint32_t *)buf, tblval, bitpos, nombre, new_nbit, new_datyp);
     return err;
 }
 
@@ -967,16 +967,16 @@ int c_mrbxtr(
     //! [in] Number of blocks in buf
     int bkno,
     //! [out] List of nele meteorogical elements
-    word *lstele,
+    uint32_t *lstele,
     //! [out] Array of values to write (nele * nval * nt)
-    word *tblval
+    uint32_t *tblval
 ) {
     burp_block_header entete;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
     int nele, nval, nt, nelements;
     int nbit, bit0, datyp, bitpos, err, done, i, rmask, nnbits, nombre, allones;
     int in_header;
-    word *pos;
+    uint32_t *pos;
 
     err = 0;
     if ((bkno < 1) || (bkno > buf->buf78.buf8)) {
@@ -985,7 +985,7 @@ int c_mrbxtr(
     }
 
     bitpos = NBENTB * (bkno - 1);
-    err = c_xdfxtr((word *)buf, (word *)&entete, bitpos, DIMENT, 8 * sizeof(word), 0);
+    err = c_xdfxtr((uint32_t *)buf, (uint32_t *)&entete, bitpos, DIMENT, 8 * sizeof(uint32_t), 0);
     if (err < 0) return err;
 
     if (entete.flag != 0) {
@@ -1023,14 +1023,14 @@ int c_mrbxtr(
 
     /* extract list of elements */
     if (nelements > 0) {
-        err = c_xdfxtr((word *)buf, lstele, bitpos, nelements, 16, 2);
+        err = c_xdfxtr((uint32_t *)buf, lstele, bitpos, nelements, 16, 2);
     }
 
     /* extract array of values */
     nnbits = (((nele - done) * 16 + 63) / 64) * 64;
     bitpos = bitpos + nnbits;
     nombre = nele * nval * nt;
-    err = c_xdfxtr((word *)buf, tblval, bitpos, nombre, nbit, datyp);
+    err = c_xdfxtr((uint32_t *)buf, tblval, bitpos, nombre, nbit, datyp);
 
     if ((datyp == 2) || (datyp == 4) || (datyp == 6)) {
         /* set all bits of missing values to 1 */
@@ -1161,9 +1161,9 @@ int c_mrfput(
     if (msg_level <= INFORM) {
         nsup = 0;
         nxaux = 0;
-        err = c_mrbhdr((word *)buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
+        err = c_mrbhdr((uint32_t *)buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
                 &dx, &dy, &elev, &drnd, &date, &oars, &runn, &nblk,
-                (word *)&sup, nsup, (word *)&xaux, nxaux);
+                (uint32_t *)&sup, nsup, (uint32_t *)&xaux, nxaux);
         stnid[9] = '\0';
         fprintf(stdout, "MRFPUT - WRITE - STNID=%s IDTYP=%3d LAT=%5d LON=%5d DX=%4d DY=%4d DATE=%8d TEMPS=%4d, FLGS=%8d\n",
             stnid, idtyp, lat, lon, dx, dy, date, temps, flgs);

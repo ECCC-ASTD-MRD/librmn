@@ -24,21 +24,21 @@
 void ez_freezones(_gridset *gdset);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxysval)(wordint *gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x, ftnfloat *y, wordint *n)
+int32_t f77name(gdxysval)(int32_t *gdin, float *zout, float *zin, float *x, float *y, int32_t *n)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_gdxysval(*gdin, zout, zin, x, y, *n);
    return icode;
 }
 
-wordint c_gdxysval(wordint gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x, ftnfloat *y, wordint n)
+int32_t c_gdxysval(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n)
 {
-  wordint j, icode, yin_gdid, yan_gdid,ni,nj;
-  ftnfloat *zoutyin, *zoutyan;
-  ftnfloat *tmpy;
+  int32_t j, icode, yin_gdid, yan_gdid,ni,nj;
+  float *zoutyin, *zoutyan;
+  float *tmpy;
 
-wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
+int32_t gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
 
   c_gdkey2rowcol(gdin,  &gdrow_id,  &gdcol_id);
 
@@ -49,9 +49,9 @@ wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
       c_gdkey2rowcol(yin_gdid,  &yin_gdrow_id,  &yin_gdcol_id);
       ni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
       nj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
-      tmpy = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      zoutyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      zoutyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      tmpy = (float *) malloc(n*sizeof(float));
+      zoutyin = (float *) malloc(n*sizeof(float));
+      zoutyan = (float *) malloc(n*sizeof(float));
       for (j=0; j< n; j++)
         {
           if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj)
@@ -88,9 +88,9 @@ wordint gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
    
 }
 
-wordint c_gdxysval_orig(wordint gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x, ftnfloat *y, wordint n)
+int32_t c_gdxysval_orig(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n)
 {
-   wordint ier;
+   int32_t ier;
 
    ier = c_gdxysint(zout, zin, gdin, x, y, n);
 
@@ -100,7 +100,7 @@ wordint c_gdxysval_orig(wordint gdin, ftnfloat *zout, ftnfloat *zin, ftnfloat *x
 
 void ez_freezones(_gridset *gdset)
 {
-  wordint i;
+  int32_t i;
 
   for (i=0; i < NZONES; i++)
     {

@@ -40,7 +40,7 @@ expected output:
    
 */
 
-void f77name(f_bits_get)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *slices, ftnword *nslices)
+void f77name(f_bits_get)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *slices, int32_t *nslices)
 {
   int number_of_slices = *nslices;
   int left = 0;  /* number of bits left in bit reservoir (mybits) */
@@ -78,7 +78,7 @@ void f77name(f_bits_get)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *s
     *slices++ = temp_slice;                                 /* store result */
   }  /* end while */
 }
-void f77name(f_bits_put)(ftnword *bit_array, ftnword *bits_per_slice, ftnword *slices, ftnword *nslices)
+void f77name(f_bits_put)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *slices, int32_t *nslices)
 {
   int number_of_slices = *nslices;
   int left = 32;          /* number of bits stored in bit reservoir (mybits) */

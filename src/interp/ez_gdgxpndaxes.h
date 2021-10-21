@@ -23,19 +23,19 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdgxpndaxes)(wordint *gdid, ftnfloat *ax, ftnfloat *ay)
+int32_t f77name(gdgxpndaxes)(int32_t *gdid, float *ax, float *ay)
 {
    c_gdgxpndaxes(*gdid, ax, ay);
    return 0;
 }
 
-wordint c_gdgxpndaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
+int32_t c_gdgxpndaxes(int32_t gdid, float *ax, float *ay)
 {
   
-  wordint nix, njy;
-  wordint istart, jstart;
+  int32_t nix, njy;
+  int32_t istart, jstart;
   
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0)
@@ -54,8 +54,8 @@ wordint c_gdgxpndaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
     {
     case 'Y':
       nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
-      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(ftnfloat));
-      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, nix*sizeof(ftnfloat));
+      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
+      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, nix*sizeof(float));
       break;
       
     default:
@@ -68,8 +68,8 @@ wordint c_gdgxpndaxes(wordint gdid, ftnfloat *ax, ftnfloat *ay)
       if (Grille[gdrow_id][gdcol_id].j2 == (njy+1)) jstart = 1;
       if (Grille[gdrow_id][gdcol_id].j2 == (njy+2)) jstart = 2;
       if (Grille[gdrow_id][gdcol_id].j2 == (njy))   jstart = 0;
-      memcpy(&ax[istart],Grille[gdrow_id][gdcol_id].ax, nix*sizeof(ftnfloat));
-      memcpy(&ay[jstart],Grille[gdrow_id][gdcol_id].ay, njy*sizeof(ftnfloat));
+      memcpy(&ax[istart],Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
+      memcpy(&ay[jstart],Grille[gdrow_id][gdcol_id].ay, njy*sizeof(float));
       
       if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+1))
 	{

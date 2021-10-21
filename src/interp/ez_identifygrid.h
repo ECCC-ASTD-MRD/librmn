@@ -35,10 +35,10 @@ void c_ez_manageGrillesMemory() {
 }
 
 
-wordint c_ezidentify_reg_grid(wordint ni, wordint nj, char* grtyp, wordint ig1, wordint ig2, wordint ig3, wordint ig4) {
-   wordint i;
-   wordint gdid, gdrow, gdcol, nchunks, newGrid;
-   wordint res1, res2, newgrsize, grid_index;
+int32_t c_ezidentify_reg_grid(int32_t ni, int32_t nj, char* grtyp, int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4) {
+   int32_t i;
+   int32_t gdid, gdrow, gdcol, nchunks, newGrid;
+   int32_t res1, res2, newgrsize, grid_index;
    unsigned int grid_crc;
    char typeGrille;
    _Grille* gr;
@@ -90,14 +90,14 @@ wordint c_ezidentify_reg_grid(wordint ni, wordint nj, char* grtyp, wordint ig1, 
    }
 }
 
-wordint c_ezidentify_irreg_grid(
-      wordint ni, wordint nj, char* grtyp, char* grref,
-      wordint ig1, wordint ig2, wordint ig3, wordint ig4,
-      ftnfloat* ax, ftnfloat* ay) {
+int32_t c_ezidentify_irreg_grid(
+      int32_t ni, int32_t nj, char* grtyp, char* grref,
+      int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4,
+      float* ax, float* ay) {
 
-   wordint i;
-   wordint gdid, gdrow, gdcol, nchunks, newGrid;
-   wordint res1, res2, newgrsize, npts, grid_index;
+   int32_t i;
+   int32_t gdid, gdrow, gdcol, nchunks, newGrid;
+   int32_t res1, res2, newgrsize, npts, grid_index;
    unsigned int grid_crc;
    char typeGrille;
    _Grille *gr, newgr;

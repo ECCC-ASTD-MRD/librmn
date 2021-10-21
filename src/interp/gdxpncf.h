@@ -22,17 +22,17 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxpncf)(wordint *gdin, wordint *i1, wordint *i2, wordint *j1, wordint *j2)
+int32_t f77name(gdxpncf)(int32_t *gdin, int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_gdxpncf(*gdin, i1, i2, j1, j2);
    return icode;
 }
 
-wordint c_gdxpncf(wordint gdin, wordint *i1, wordint *i2, wordint *j1, wordint *j2)
+int32_t c_gdxpncf(int32_t gdin, int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2)
 {
-  wordint gdrow_in, gdcol_in;
+  int32_t gdrow_in, gdcol_in;
     
   if (gdin < 0 || gdin >= nGrilles) return -1;
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);

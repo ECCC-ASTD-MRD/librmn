@@ -23,11 +23,11 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezgdef_ffile)(wordint *ni, wordint *nj, char *grtyp,
-            wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4,
-            wordint *iunit, F2Cl lengrtyp)
+int32_t f77name(ezgdef_ffile)(int32_t *ni, int32_t *nj, char *grtyp,
+            int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
+            int32_t *iunit, F2Cl lengrtyp)
 {
-  wordint icode;
+  int32_t icode;
   char lgrtyp[2];
 
   lgrtyp[0] = grtyp[0];
@@ -37,20 +37,20 @@ wordint f77name(ezgdef_ffile)(wordint *ni, wordint *nj, char *grtyp,
   return icode;
 }
 
-wordint c_ezgdef_ffile(wordint ni, wordint nj, char *grtyp,
-          wordint ig1, wordint ig2, wordint ig3, wordint ig4, wordint iunit)
+int32_t c_ezgdef_ffile(int32_t ni, int32_t nj, char *grtyp,
+          int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, int32_t iunit)
 {
-  wordint i;
-  wordint found, gdrow_in, gdcol_in;
+  int32_t i;
+  int32_t found, gdrow_in, gdcol_in;
   char typeGrille;
   char grref[2];
-  ftnfloat *bidon = NULL;
+  float *bidon = NULL;
   int old_ngrilles, gdid;
-  wordint newgrsize, fseed, un, grid_index;
+  int32_t newgrsize, fseed, un, grid_index;
   unsigned int grid_crc;
   _Grille *gr, newgr;
-  wordint *subgrid;
-  wordint nsubgrids, vercode,read;
+  int32_t *subgrid;
+  int32_t nsubgrids, vercode,read;
 
   found = 0;
   un = 1;

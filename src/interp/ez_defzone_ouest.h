@@ -22,7 +22,7 @@
 #include "ez_funcdef.h"
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-wordint ez_defzone_ouest(wordint gdin, ftnfloat *x, ftnfloat *y, wordint npts, _zone *zone)
+int32_t ez_defzone_ouest(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone)
 {
   return 0;
 }

@@ -22,19 +22,19 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxyfll)(wordint *gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint *n)
+int32_t f77name(gdxyfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n)
 {
 return c_gdxyfll(*gdid, x, y, lat, lon, *n);
 }
 
 
-wordint c_gdxyfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
+int32_t c_gdxyfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-wordint j, icode, yin_gdid, yan_gdid,maxni,maxnj ;
-ftnfloat *xyin, *xyan, *yyin, *yyan;
-wordint gdrow_id, gdcol_id;
-wordint yin_gdrow_id, yin_gdcol_id;
-wordint yan_gdrow_id, yan_gdcol_id;
+int32_t j, icode, yin_gdid, yan_gdid,maxni,maxnj ;
+float *xyin, *xyan, *yyin, *yyan;
+int32_t gdrow_id, gdcol_id;
+int32_t yin_gdrow_id, yin_gdcol_id;
+int32_t yan_gdrow_id, yan_gdcol_id;
 
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -46,10 +46,10 @@ if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
       c_gdkey2rowcol(yan_gdid,  &yan_gdrow_id,  &yan_gdcol_id);
       maxni= Grille[yin_gdrow_id][yin_gdcol_id].ni;
       maxnj= Grille[yin_gdrow_id][yin_gdcol_id].nj;
-      xyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      xyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      yyin = (ftnfloat *) malloc(n*sizeof(ftnfloat));
-      yyan = (ftnfloat *) malloc(n*sizeof(ftnfloat));
+      xyin = (float *) malloc(n*sizeof(float));
+      xyan = (float *) malloc(n*sizeof(float));
+      yyin = (float *) malloc(n*sizeof(float));
+      yyan = (float *) malloc(n*sizeof(float));
       icode = c_gdxyfll_orig(yin_gdid,xyin,yyin,lat,lon,n);
       icode = c_gdxyfll_orig(yan_gdid,xyan,yyan,lat,lon,n);
       for (j=0; j < n; j++)
@@ -92,19 +92,19 @@ return icode;
 
 }
 
-wordint c_gdxyfll_new(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
+int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-ftnfloat *tmplons;
+float *tmplons;
 
-wordint j,ni_in, nj_in;
-wordint sym=groptions.symmetrie;
+int32_t j,ni_in, nj_in;
+int32_t sym=groptions.symmetrie;
 
 
 _Grille gr;
-wordint npts;
-wordint coordonnee;
+int32_t npts;
+int32_t coordonnee;
 
-wordint gdrow_id, gdcol_id;
+int32_t gdrow_id, gdcol_id;
    
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    
@@ -124,8 +124,8 @@ c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
       case 'S':
       case 'T':
       case '!':
-         tmplons = (ftnfloat *)malloc(npts * sizeof(ftnfloat));
-         memcpy(tmplons,lon,sizeof(ftnfloat)*npts);
+         tmplons = (float *)malloc(npts * sizeof(float));
+         memcpy(tmplons,lon,sizeof(float)*npts);
          
          f77name(ez_ll2rgd)(x, y,
             lat, tmplons, &npts,
@@ -170,19 +170,19 @@ c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 return 0;
 }
 
-wordint c_gdxyfll_orig(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
+int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-ftnfloat *tmplons;
+float *tmplons;
 
-wordint j,ni_in, nj_in;
-wordint sym=groptions.symmetrie;
+int32_t j,ni_in, nj_in;
+int32_t sym=groptions.symmetrie;
 
 
 _Grille gr;
-wordint npts;
-wordint coordonnee;
+int32_t npts;
+int32_t coordonnee;
 
-wordint gdrow_id, gdcol_id;
+int32_t gdrow_id, gdcol_id;
    
 c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    
@@ -202,8 +202,8 @@ c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
       case 'S':
       case 'T':
       case '!':
-         tmplons = (ftnfloat *)malloc(npts * sizeof(ftnfloat));
-         memcpy(tmplons,lon,sizeof(ftnfloat)*npts);
+         tmplons = (float *)malloc(npts * sizeof(float));
+         memcpy(tmplons,lon,sizeof(float)*npts);
          
          f77name(ez_ll2rgd)(x, y,
             lat, tmplons, &npts,

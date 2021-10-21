@@ -21,25 +21,25 @@
 #include <stdio.h>
 #include <rpnmacros.h>
 
-static ftnfloat *eziglat = NULL;
-static ftnfloat *eziglon = NULL;
+static float *eziglat = NULL;
+static float *eziglon = NULL;
 
-f77name(ez_igscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
-                    ftnfloat *zi, wordint *ni, wordint *nj, 
-                    char* grtyp, char *grref, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, 
-                    ftnfloat *sym, ftnfloat *ax, ftnfloat *ay, F2Cl lengrtyp, F2Cl lengrref)
+f77name(ez_igscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon, 
+                    float *zi, int32_t *ni, int32_t *nj, 
+                    char* grtyp, char *grref, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, 
+                    float *sym, float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref)
 {
-  wordint gdin, gdout, npts, i, ier;
+  int32_t gdin, gdout, npts, i, ier;
   char ogrtyp[2], ogrref[2];
-  wordint oig1, oig2, oig3, oig4;
-  ftnfloat xg1, xg2, xg3, xg4;
-  ftnfloat *tmplon;
+  int32_t oig1, oig2, oig3, oig4;
+  float xg1, xg2, xg3, xg4;
+  float *tmplon;
   
   ftnstrclean(grtyp,lengrtyp);
   ftnstrclean(grref,lengrref);
   
   npts = *li * *lj;
-  tmplon = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+  tmplon = (float *) malloc(npts * sizeof(float));
   for (i=0; i < npts; i++)
     {
     tmplon[i] = xlon[i] < 0.0 ? xlon[i] + 360.0 : xlon[i];
@@ -51,19 +51,19 @@ f77name(ez_igscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnf
   return 0;
 }
 
-f77name(ez_rgscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
-                    ftnfloat *zi, wordint *ni, wordint *nj, 
-                    char* grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, ftnfloat *sym,
+f77name(ez_rgscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon, 
+                    float *zi, int32_t *ni, int32_t *nj, 
+                    char* grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, float *sym,
                     F2Cl lengrtyp)
 {
-  wordint gdin, gdout;
+  int32_t gdin, gdout;
   char ogrtyp[2], ogrref[2], igrtyp[2],igrref[2];
-  wordint oig1, oig2, oig3, oig4, npts, i, ier;
-  ftnfloat xg1, xg2, xg3, xg4;
-  ftnfloat *tmplon;
+  int32_t oig1, oig2, oig3, oig4, npts, i, ier;
+  float xg1, xg2, xg3, xg4;
+  float *tmplon;
   
   npts = *li * *lj;
-  tmplon = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+  tmplon = (float *) malloc(npts * sizeof(float));
   for (i=0; i < npts; i++)
     {
     tmplon[i] = xlon[i] < 0.0 ? xlon[i] + 360.0 : xlon[i];
@@ -75,19 +75,19 @@ f77name(ez_rgscint)(ftnfloat *zo, wordint *li, wordint *lj, ftnfloat *xlat, ftnf
   return 0;
 }
 
-f77name(ez_iguvint)(ftnfloat *spdo, ftnfloat *psio, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
-                    ftnfloat *ui, ftnfloat *vi, wordint *ni, wordint *nj, 
-                    char* grtyp, char *grref, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, 
-                    ftnfloat *sws, ftnfloat *ax, ftnfloat *ay, F2Cl lengrtyp, F2Cl lengrref)
+f77name(ez_iguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *xlat, float *xlon, 
+                    float *ui, float *vi, int32_t *ni, int32_t *nj, 
+                    char* grtyp, char *grref, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, 
+                    float *sws, float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref)
 {
-  ftnfloat *tmplon;
-  wordint gdin, gdout, i, ier;
+  float *tmplon;
+  int32_t gdin, gdout, i, ier;
   char ogrtyp[2], ogrref[2];
-  ftnfloat xg1, xg2, xg3, xg4;
-  wordint npts, oig1, oig2, oig3, oig4;
+  float xg1, xg2, xg3, xg4;
+  int32_t npts, oig1, oig2, oig3, oig4;
   
   npts = *li * *lj;
-  tmplon = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+  tmplon = (float *) malloc(npts * sizeof(float));
   for (i=0; i < npts; i++)
     {
     tmplon[i] = xlon[i] < 0.0 ? xlon[i] + 360.0 : xlon[i];
@@ -100,18 +100,18 @@ f77name(ez_iguvint)(ftnfloat *spdo, ftnfloat *psio, wordint *li, wordint *lj, ft
   free(tmplon);
 }
 
-f77name(ez_rguvint)(ftnfloat *spdo, ftnfloat *psio, wordint *li, wordint *lj, ftnfloat *xlat, ftnfloat *xlon, 
-                    ftnfloat *ui, ftnfloat *vi, wordint *ni, wordint *nj, 
-                    char* grtyp, wordint *ig1, wordint *ig2, wordint *ig3, wordint *ig4, ftnfloat *sws, F2Cl lengrtyp)
+f77name(ez_rguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *xlat, float *xlon, 
+                    float *ui, float *vi, int32_t *ni, int32_t *nj, 
+                    char* grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, float *sws, F2Cl lengrtyp)
 {
-  ftnfloat *tmplon;
-  wordint gdin, gdout, i, ier;
+  float *tmplon;
+  int32_t gdin, gdout, i, ier;
   char ogrtyp[2], ogrref[2];
-  ftnfloat xg1, xg2, xg3, xg4;
-  wordint npts, oig1, oig2, oig3, oig4;
+  float xg1, xg2, xg3, xg4;
+  int32_t npts, oig1, oig2, oig3, oig4;
   
   npts = *li * *lj;
-  tmplon = (ftnfloat *) malloc(npts * sizeof(ftnfloat));
+  tmplon = (float *) malloc(npts * sizeof(float));
   for (i=0; i < npts; i++)
     {
     tmplon[i] = xlon[i] < 0.0 ? xlon[i] + 360.0 : xlon[i];

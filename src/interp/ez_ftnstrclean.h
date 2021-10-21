@@ -29,11 +29,11 @@
  ******************************************************************************
  **/
 
-wordint ftnstrclean(str,lenstr)
+int32_t ftnstrclean(str,lenstr)
   char str[];
-wordint lenstr;
+int32_t lenstr;
 {
-   wordint i, j, iinit, jinit;
+   int32_t i, j, iinit, jinit;
    
    iinit = 0;
    i = iinit;

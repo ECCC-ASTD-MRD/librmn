@@ -137,10 +137,10 @@ int c_ezuvint_m(float *uuout, float *vvout, float *uuin, float *vvin)
 
 int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
    {
-   wordint gdin, gdout, gdrow_out, gdcol_out;
-   wordint              gdrow_in,  gdcol_in;
-   wordint methode = 2;
-   wordint ni_out, nj_out;
+   int32_t gdin, gdout, gdrow_out, gdcol_out;
+   int32_t              gdrow_in,  gdcol_in;
+   int32_t methode = 2;
+   int32_t ni_out, nj_out;
 
    gdin = c_ezgetgdin();
    gdout = c_ezgetgdout();
@@ -169,10 +169,10 @@ int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in)
 
 int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in)
    {
-   wordint gdin, gdout, gdrow_out, gdcol_out;
-   wordint              gdrow_in,  gdcol_in;
-   wordint methode = 2;
-   wordint ni_out, nj_out;
+   int32_t gdin, gdout, gdrow_out, gdcol_out;
+   int32_t              gdrow_in,  gdcol_in;
+   int32_t methode = 2;
+   int32_t ni_out, nj_out;
 
    gdin = c_ezgetgdin();
    gdout = c_ezgetgdout();
@@ -205,13 +205,13 @@ int c_ezsint_mask(int *mask_out, int *mask_in)
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
    int i, j, k, ier,npts_in, npts_out, idx_gdin, gdrow_out, gdcol_out;
-   wordint              gdrow_in,  gdcol_in;
+   int32_t              gdrow_in,  gdcol_in;
    unsigned int bitpos;
    float *fmask_in, *fmask_out, *x, *y;
    char current_option[32], interp_degree[32];
    _ygrid *ygrid;
 
-   wordint gdin, gdout;
+   int32_t gdin, gdout;
 
    gdin = c_ezgetgdin();
    gdout = c_ezgetgdout();
@@ -264,12 +264,12 @@ int c_ezget_mask_zones(int *mask_out, int *mask_in)
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
    int i, j, k, ier,npts_in, npts_out, idx_gdin, gdrow_out, gdcol_out;
-   wordint              gdrow_in,  gdcol_in;
+   int32_t              gdrow_in,  gdcol_in;
    unsigned int bitpos;
    float *x, *y;
    char current_option[32], interp_degree[32];
 
-   wordint gdin, gdout;
+   int32_t gdin, gdout;
 
    strcpy(interp_degree,"interp_degree");
    gdin = c_ezgetgdin();

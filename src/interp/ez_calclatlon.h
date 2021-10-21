@@ -23,12 +23,12 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint ez_calclatlon(wordint gdid)
+int32_t ez_calclatlon(int32_t gdid)
    {
-   ftnfloat xlat00, xlon00, dlat, dlon;
-   wordint i,j,k,ni, nj, npts, hemisphere, gdrow, gdcol;
-   ftnfloat *lonp, *latp, *xp, *yp;
-   ftnfloat *x, *y;
+   float xlat00, xlon00, dlat, dlon;
+   int32_t i,j,k,ni, nj, npts, hemisphere, gdrow, gdcol;
+   float *lonp, *latp, *xp, *yp;
+   float *x, *y;
 
 
    c_gdkey2rowcol(gdid, &gdrow, &gdcol);
@@ -38,8 +38,8 @@ wordint ez_calclatlon(wordint gdid)
       nj = Grille[gdrow][gdcol].nj;
       npts = ni*nj;
 
-      Grille[gdrow][gdcol].lat = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-      Grille[gdrow][gdcol].lon = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+      Grille[gdrow][gdcol].lat = (float *) malloc(ni*nj*sizeof(float));
+      Grille[gdrow][gdcol].lon = (float *) malloc(ni*nj*sizeof(float));
 
       switch(Grille[gdrow][gdcol].grtyp[0])
          {
@@ -60,13 +60,13 @@ wordint ez_calclatlon(wordint gdid)
          f77name(cigaxg)(&Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.xg[XLAT1], &Grille[gdrow][gdcol].fst.xg[XLON1],
 			&Grille[gdrow][gdcol].fst.xg[XLAT2], &Grille[gdrow][gdcol].fst.xg[XLON2],
          &Grille[gdrow][gdcol].fst.ig[IG1],  &Grille[gdrow][gdcol].fst.ig[IG2], &Grille[gdrow][gdcol].fst.ig[IG3], &Grille[gdrow][gdcol].fst.ig[IG4],1);
-         latp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-         lonp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+         latp = (float *) malloc(ni*nj*sizeof(float));
+         lonp = (float *) malloc(ni*nj*sizeof(float));
          f77name(ez_gfllfxy)(lonp,latp,Grille[gdrow][gdcol].lon,Grille[gdrow][gdcol].lat,&npts,
 			       &Grille[gdrow][gdcol].fst.xg[XLAT1], &Grille[gdrow][gdcol].fst.xg[XLON1], &Grille[gdrow][gdcol].fst.xg[XLAT2],
 			       &Grille[gdrow][gdcol].fst.xg[XLON2]);
-         memcpy(Grille[gdrow][gdcol].lat,latp,npts*sizeof(ftnfloat));
-         memcpy(Grille[gdrow][gdcol].lon,lonp,npts*sizeof(ftnfloat));
+         memcpy(Grille[gdrow][gdcol].lat,latp,npts*sizeof(float));
+         memcpy(Grille[gdrow][gdcol].lon,lonp,npts*sizeof(float));
          free(latp);
          free(lonp);
          break;
@@ -94,10 +94,10 @@ wordint ez_calclatlon(wordint gdid)
 
          case 'T':
          npts = ni * nj;
-         latp = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-         lonp = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-         xp = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-         yp = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+         latp = (float *) malloc(npts*sizeof(float));
+         lonp = (float *) malloc(npts*sizeof(float));
+         xp = (float *) malloc(npts*sizeof(float));
+         yp = (float *) malloc(npts*sizeof(float));
          for (j=0; j < nj; j++)
             {
             for (i=0; i < ni; i++)
@@ -113,8 +113,8 @@ wordint ez_calclatlon(wordint gdid)
                            &Grille[gdrow][gdcol].fst.xg[TD60],&Grille[gdrow][gdcol].fst.xg[TDGRW],
                            &ni,&nj,&npts);
 
-          memcpy(Grille[gdrow][gdcol].lon, lonp, ni*nj*sizeof(ftnfloat));
-          memcpy(Grille[gdrow][gdcol].lat, latp, ni*nj*sizeof(ftnfloat));
+          memcpy(Grille[gdrow][gdcol].lon, lonp, ni*nj*sizeof(float));
+          memcpy(Grille[gdrow][gdcol].lat, latp, ni*nj*sizeof(float));
           free(lonp);
           free(latp);
           free(xp);
@@ -132,8 +132,8 @@ wordint ez_calclatlon(wordint gdid)
 
             case 'L':
             case 'O':
-            memcpy(Grille[gdrow][gdcol].lon, Grille[gdrow][gdcol].ax, Grille[gdrow][gdcol].ni*Grille[gdrow][gdcol].nj*sizeof(ftnfloat));
-	    memcpy(Grille[gdrow][gdcol].lat, Grille[gdrow][gdcol].ay, Grille[gdrow][gdcol].ni*Grille[gdrow][gdcol].nj*sizeof(ftnfloat));
+            memcpy(Grille[gdrow][gdcol].lon, Grille[gdrow][gdcol].ax, Grille[gdrow][gdcol].ni*Grille[gdrow][gdcol].nj*sizeof(float));
+	    memcpy(Grille[gdrow][gdcol].lat, Grille[gdrow][gdcol].ay, Grille[gdrow][gdcol].ni*Grille[gdrow][gdcol].nj*sizeof(float));
 	    for (i=0; i < Grille[gdrow][gdcol].ni*Grille[gdrow][gdcol].nj; i++)
                {
 	       if (Grille[gdrow][gdcol].lon[i] < 0.0)
@@ -178,8 +178,8 @@ wordint ez_calclatlon(wordint gdid)
 	     {
 	     case 'N':
 	     case 'S':
-	       latp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-	       lonp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+	       latp = (float *) malloc(ni*nj*sizeof(float));
+	       lonp = (float *) malloc(ni*nj*sizeof(float));
 	       f77name(ez_vllfxy)(latp,lonp,
 			       Grille[gdrow][gdcol].lon,Grille[gdrow][gdcol].lat,&ni,&nj,
 			       &Grille[gdrow][gdcol].fst.xgref[D60],&Grille[gdrow][gdcol].fst.xgref[DGRW],
@@ -190,8 +190,8 @@ wordint ez_calclatlon(wordint gdid)
 		 if (lonp[i] < 0.0) lonp[i] += 360.0;
 		 }
 
-	       memcpy(Grille[gdrow][gdcol].lon, lonp, ni*nj*sizeof(ftnfloat));
-	       memcpy(Grille[gdrow][gdcol].lat, latp, ni*nj*sizeof(ftnfloat));
+	       memcpy(Grille[gdrow][gdcol].lon, lonp, ni*nj*sizeof(float));
+	       memcpy(Grille[gdrow][gdcol].lat, latp, ni*nj*sizeof(float));
 	       free(lonp);
 	       free(latp);
 	       break;
@@ -210,12 +210,12 @@ wordint ez_calclatlon(wordint gdid)
 	       break;
 
 	     case 'E':
-	       latp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-	       lonp = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+	       latp = (float *) malloc(ni*nj*sizeof(float));
+	       lonp = (float *) malloc(ni*nj*sizeof(float));
 	       f77name(ez_gfllfxy)(lonp,latp,Grille[gdrow][gdcol].lon,Grille[gdrow][gdcol].lat,&npts,
 				   &Grille[gdrow][gdcol].fst.xgref[XLAT1],&Grille[gdrow][gdcol].fst.xgref[XLON1], &Grille[gdrow][gdcol].fst.xgref[XLAT2], &Grille[gdrow][gdcol].fst.xgref[XLON2]);
-	       memcpy(Grille[gdrow][gdcol].lon, lonp, ni*nj*sizeof(ftnfloat));
-	       memcpy(Grille[gdrow][gdcol].lat, latp, ni*nj*sizeof(ftnfloat));
+	       memcpy(Grille[gdrow][gdcol].lon, lonp, ni*nj*sizeof(float));
+	       memcpy(Grille[gdrow][gdcol].lat, latp, ni*nj*sizeof(float));
 	       free(lonp);
 	       free(latp);
 	       break;
@@ -224,14 +224,14 @@ wordint ez_calclatlon(wordint gdid)
            break;
 
          case '!':
-	   x = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
-	   y = (ftnfloat *) malloc(ni*nj*sizeof(ftnfloat));
+	   x = (float *) malloc(ni*nj*sizeof(float));
+	   y = (float *) malloc(ni*nj*sizeof(float));
 	   for (j=0; j < nj; j++)
 	     {
 	     for (i=0; i < ni; i++)
 	       {
-	       x[C_TO_FTN(i,j,ni)] = (ftnfloat) (i+1.0);
-	       y[C_TO_FTN(i,j,ni)] = (ftnfloat) (j+1.0);
+	       x[C_TO_FTN(i,j,ni)] = (float) (i+1.0);
+	       y[C_TO_FTN(i,j,ni)] = (float) (j+1.0);
 	       }
 	     }
 	   f77name(ez_llflamb)(Grille[gdrow][gdcol].lat,Grille[gdrow][gdcol].lon,x,y,&npts,

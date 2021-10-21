@@ -52,10 +52,10 @@ static Slab_End slab_end;
 
 static int *intBuffer, pos;
 static int *iVal;
-static ftnword *pVal;
+static int32_t *pVal;
 
 static float *fBuffer;
-static ftnfloat *fVal;
+static float *fVal;
 
 static int init=0; 
 static int proc0=1;
@@ -69,25 +69,25 @@ static int slab_exit(int level);
 static int get_free_index(int fd);
 static int get_file_index(int fd);
 
-ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
-		     ftnword *f_deet, char *f_etiket, int l1, int l2);
-ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc );
-ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
-		     ftnword *f_ixyg1,ftnword *f_ixyg2,
-		     ftnword *f_ixyg3, ftnword *f_ixyg4,ftnword *f_nio,
-		     ftnword *f_njo,ftnword *f_nxgrid, 
-		     ftnword *f_nygrid, ftnfloat *f_xgrid,ftnfloat *f_ygrid,
-		     char *f_grtyp,ftnword *f_ig1,
-		     ftnword *f_ig2,ftnword *f_ig3,ftnword *f_ig4,
-		     ftnword *f_mtout, ftnword *f_np,
-		     char *f_typvar,char *f_nomvar,ftnword *f_ip1,
-		     ftnword *f_ip2, ftnword *f_ip3,
-		     ftnword *f_datyp,ftnword *f_nbits,ftnword *iflt,
-		     ftnfloat *f_xp, int l1, int l2, int l3, int l4);
-ftnword f77name(slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
-		      ftnword *f_xnio,ftnword *f_mt,ftnword *f_mtas,
-		      ftnfloat *f_mtadd, ftnfloat *f_mtmult, ftnfloat *f_mtval);
-ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, int l1);
+int32_t f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
+		     int32_t *f_deet, char *f_etiket, int l1, int l2);
+int32_t f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc );
+int32_t f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
+		     int32_t *f_ixyg1,int32_t *f_ixyg2,
+		     int32_t *f_ixyg3, int32_t *f_ixyg4,int32_t *f_nio,
+		     int32_t *f_njo,int32_t *f_nxgrid, 
+		     int32_t *f_nygrid, float *f_xgrid,float *f_ygrid,
+		     char *f_grtyp,int32_t *f_ig1,
+		     int32_t *f_ig2,int32_t *f_ig3,int32_t *f_ig4,
+		     int32_t *f_mtout, int32_t *f_np,
+		     char *f_typvar,char *f_nomvar,int32_t *f_ip1,
+		     int32_t *f_ip2, int32_t *f_ip3,
+		     int32_t *f_datyp,int32_t *f_nbits,int32_t *iflt,
+		     float *f_xp, int l1, int l2, int l3, int l4);
+int32_t f77name(slabxtr)(int32_t *f_hand, int32_t *f_snum, int32_t *f_nx,
+		      int32_t *f_xnio,int32_t *f_mt,int32_t *f_mtas,
+		      float *f_mtadd, float *f_mtmult, float *f_mtval);
+int32_t f77name(slabend)(int32_t *f_hand, char *f_sf_hand, int l1);
 
 
 
@@ -177,7 +177,7 @@ static int get_file_index(int fd)
    }
 
 
-ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc)
+int32_t f77name(slabopt)(int32_t *f_proc, int32_t *f_numproc)
 {
      numproc = (int) *f_numproc; 
      if ( (int ) *f_proc != 0)  proc0=0;
@@ -199,8 +199,8 @@ ftnword f77name(slabopt)(ftnword *f_proc, ftnword *f_numproc)
  *  IN   etiket   record identificator                                       * 
  *****************************************************************************/
 
-ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
-			ftnword *f_deet, char *f_etiket, int l1, int l2)
+int32_t f77name(slabini)(char *f_name, int32_t dateo[2], int32_t *f_npas,
+			int32_t *f_deet, char *f_etiket, int l1, int l2)
 {                                               
  int fd, ix, i, j, taille, npas;
  char name[MAX_LEN], etiket[MAX_LEN];
@@ -268,7 +268,7 @@ ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
  if (proc0) put_in_buffer(iVal,intBuffer,pos,taille);
 
  file_table[ix].pos = pos;
- return (ftnword) fd;
+ return (int32_t) fd;
 }
 
 
@@ -310,29 +310,29 @@ ftnword f77name(slabini)(char *f_name, ftnword dateo[2], ftnword *f_npas,
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
-		     ftnword *f_ixyg1,ftnword *f_ixyg2,
-                     ftnword *f_ixyg3, ftnword *f_ixyg4,ftnword *f_nio,
-		     ftnword *f_njo, ftnword *f_nxgrid,
-                     ftnword *f_nygrid, ftnfloat *f_xgrid,ftnfloat *f_ygrid,
-		     char *f_grtyp,ftnword *f_ig1,
-		     ftnword *f_ig2,ftnword *f_ig3,ftnword *f_ig4,
-		     ftnword *f_mtout, ftnword *f_np, 
-                     char *f_typvar, char *f_nomvar,ftnword *f_ip1,
-		     ftnword *f_ip2, ftnword *f_ip3,
-                     ftnword *f_datyp,ftnword *f_nbits,ftnword *f_iflt,
-		     ftnfloat *f_xp, int l1, int l2, int l3, int l4)
+int32_t f77name(slabdsc)(int32_t *f_hand, int32_t *f_snum,char *f_gxtyp,
+		     int32_t *f_ixyg1,int32_t *f_ixyg2,
+                     int32_t *f_ixyg3, int32_t *f_ixyg4,int32_t *f_nio,
+		     int32_t *f_njo, int32_t *f_nxgrid,
+                     int32_t *f_nygrid, float *f_xgrid,float *f_ygrid,
+		     char *f_grtyp,int32_t *f_ig1,
+		     int32_t *f_ig2,int32_t *f_ig3,int32_t *f_ig4,
+		     int32_t *f_mtout, int32_t *f_np, 
+                     char *f_typvar, char *f_nomvar,int32_t *f_ip1,
+		     int32_t *f_ip2, int32_t *f_ip3,
+                     int32_t *f_datyp,int32_t *f_nbits,int32_t *f_iflt,
+		     float *f_xp, int l1, int l2, int l3, int l4)
 {
  int nrows, nio, njo, nxtra, 
      taille, i, x, MAX_GRTYP;
  int lng, n, nn, ix, snum;
  char grtyp[MAX_LEN], grtyp_[MAX_LEN];
  char *nomvars, *nomvars_0, *typvars, *typvars_0, *p_nomvar, *p_typvar;
- ftnword *p_ip1,*p_ip2,*p_ip3,*p_datyp,*p_nbits,*p_iflt;
+ int32_t *p_ip1,*p_ip2,*p_ip3,*p_datyp,*p_nbits,*p_iflt;
 
 /* for debug only 
   int ip1[20],ip2[20],ip3[20],datyp[20],nbits[20],iflt[20];
-  ftnword *p_ip1,*p_ip2,*p_ip3,*p_datyp,*p_nbits,*p_iflt; 
+  int32_t *p_ip1,*p_ip2,*p_ip3,*p_datyp,*p_nbits,*p_iflt; 
 */
 
  MAX_GRTYP = strlen(GRTYPES);
@@ -688,9 +688,9 @@ ftnword f77name(slabdsc)(ftnword *f_hand, ftnword *f_snum,char *f_gxtyp,
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name (slabxtr)(ftnword *f_hand, ftnword *f_snum, ftnword *f_nx,
-		      ftnword *f_xnio,ftnword *f_mt,ftnword *f_mtas,
-		      ftnfloat *f_mtadd, ftnfloat *f_mtmult, ftnfloat *f_mtval)
+int32_t f77name (slabxtr)(int32_t *f_hand, int32_t *f_snum, int32_t *f_nx,
+		      int32_t *f_xnio,int32_t *f_mt,int32_t *f_mtas,
+		      float *f_mtadd, float *f_mtmult, float *f_mtval)
 {                                               
  int i, j, ix, ij = 0, 
      taille,
@@ -841,7 +841,7 @@ if ( (ix = get_file_index( (int ) *f_hand)) < 0 ) return(slab_exit(-3));
  *                                                                           *
  *****************************************************************************/
 
-ftnword f77name(slabend)(ftnword *f_hand, char *f_sf_hand, int l1)
+int32_t f77name(slabend)(int32_t *f_hand, char *f_sf_hand, int l1)
  {
   int end, taille, i, ix, fd; 
   int nBytes;

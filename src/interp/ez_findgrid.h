@@ -9,8 +9,8 @@ extern pthread_mutex_t EZ_MTX;
 
 int c_ez_findgrid(int grid_index, _Grille *gr)
   {
-  wordint gdrow, gdcol, index_found, gr_size, resax, resay;
-  wordint found, end_reached, next_index, i,j;
+  int32_t gdrow, gdcol, index_found, gr_size, resax, resay;
+  int32_t found, end_reached, next_index, i,j;
   _Grille *refgd;
     
   if (grid_index == -1)
@@ -98,8 +98,8 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
                     }
                   }
                }
-/*            resax = memcmp(refgd->ax, gr->ax, (size_t)(gr->ni*sizeof(ftnfloat)));
-            resay = memcmp(refgd->ay, gr->ay, (size_t)(gr->nj*sizeof(ftnfloat)));*/
+/*            resax = memcmp(refgd->ax, gr->ax, (size_t)(gr->ni*sizeof(float)));
+            resay = memcmp(refgd->ay, gr->ay, (size_t)(gr->nj*sizeof(float)));*/
             }
          else
             {
@@ -123,8 +123,8 @@ int c_ez_findgrid(int grid_index, _Grille *gr)
                   }
                }
 
-/*            resax = memcmp(refgd->ax, gr->ax, (size_t)(gr->ni*gr->nj*sizeof(ftnfloat)));
-            resay = memcmp(refgd->ay, gr->ay, (size_t)(gr->ni*gr->nj*sizeof(ftnfloat)));*/
+/*            resax = memcmp(refgd->ax, gr->ax, (size_t)(gr->ni*gr->nj*sizeof(float)));
+            resay = memcmp(refgd->ay, gr->ay, (size_t)(gr->ni*gr->nj*sizeof(float)));*/
             }
 
          if (resax == 0 && resay == 0)

@@ -46,13 +46,13 @@ void f77name(cmain)()
 #if !defined (NEC)
 
   float arrayOfFloat1_large[veryLargeElementCount], arrayOfFloat2_large[veryLargeElementCount];
-  word  arrayOfInt1_large[veryLargeElementCount];
+  uint32_t  arrayOfInt1_large[veryLargeElementCount];
   
 #endif
 
   INT_32 arrayOfInt1[myElementCount3], arrayOfInt2[myElementCount3];
-  word arrayOfInt3[myElementCount3], arrayOfInt4[myElementCount3];
-  word arrayOfInt5[myElementCount3], arrayOfInt6[myElementCount3], arrayOfInt7[myElementCount3];
+  uint32_t arrayOfInt3[myElementCount3], arrayOfInt4[myElementCount3];
+  uint32_t arrayOfInt5[myElementCount3], arrayOfInt6[myElementCount3], arrayOfInt7[myElementCount3];
   
 
   /***************************
@@ -64,7 +64,7 @@ void f77name(cmain)()
   int stride = 2;
   int opCode = FLOAT_PACK;
   int opCode1 = FLOAT_UNPACK; 
-  ftnword *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
+  int32_t *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
 
   FLOAT_4_8 missingTag = 9999.0000;
   FLOAT_4_8 tempFloat;
@@ -813,15 +813,15 @@ if ( inPlaceTestOn == 1 )
 
 
 {
-  ftnword *ftn_arrayOfInt1;
-  ftnword ftn_elementCount = elementCount;
-  ftnword ftn_off_set      = off_set;
-  ftnword ftn_mBitSizeOfInt= mBitSizeOfInt;
-  ftnword ftn_stride       = stride;
-  ftnword ftn_opCode       = opCode;
-  ftnword ftn_opCode1      = opCode1;
+  int32_t *ftn_arrayOfInt1;
+  int32_t ftn_elementCount = elementCount;
+  int32_t ftn_off_set      = off_set;
+  int32_t ftn_mBitSizeOfInt= mBitSizeOfInt;
+  int32_t ftn_stride       = stride;
+  int32_t ftn_opCode       = opCode;
+  int32_t ftn_opCode1      = opCode1;
 
-  ftn_arrayOfInt1 = (ftnword *)malloc(sizeof(ftnword)*elementCount);
+  ftn_arrayOfInt1 = (int32_t *)malloc(sizeof(int32_t)*elementCount);
   for ( i = 0; i < elementCount; i++ )
     {
       ftn_arrayOfInt1[i] = arrayOfInt1[i];

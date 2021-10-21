@@ -31,11 +31,11 @@
 #define Max_File 10
 
 
-ftnword f77name(open_db_file) (ftnword * );
-ftnword f77name(close_db_file) (ftnword * );
-ftnword f77name(read_db_file) (ftnword *, ftnword *, ftnword *);
-ftnword f77name(write_db_file) (ftnword *, ftnword *, ftnword  *);
-ftnword f77name(rewind_db_file) (ftnword *);
+int32_t f77name(open_db_file) (int32_t * );
+int32_t f77name(close_db_file) (int32_t * );
+int32_t f77name(read_db_file) (int32_t *, int32_t *, int32_t *);
+int32_t f77name(write_db_file) (int32_t *, int32_t *, int32_t  *);
+int32_t f77name(rewind_db_file) (int32_t *);
 static int file_index(int );
 static void init_TB_package(int);
 
@@ -47,7 +47,7 @@ typedef struct {
   int iun, fd;
   int pos_in, pos_out;
   int nb_elmt_lu, nb_elmt_ecrit, nb_elmt_Buf_IN;
-  ftnword *pBuf_IN, *pBuf_OUT;
+  int32_t *pBuf_IN, *pBuf_OUT;
 } Twin_Buffer;
 
 static Twin_Buffer TB[Max_File];
@@ -89,10 +89,10 @@ static void init_TB_package(int inutile)
   char *envar;
 
   envar=getenv("DB_FILE_CONFIG");
-  if ( envar != NULL ) BUF_SIZE = atoi (envar)*sizeof(ftnword);
+  if ( envar != NULL ) BUF_SIZE = atoi (envar)*sizeof(int32_t);
 
 
-  BUF_SIZE_W = (BUF_SIZE / sizeof(ftnword));
+  BUF_SIZE_W = (BUF_SIZE / sizeof(int32_t));
   for (i=0; i < Max_File; i++) {
     TB[i].fd = -1;
     TB[i].iun = -1;
@@ -119,7 +119,7 @@ static void init_TB_package(int inutile)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(open_db_file)(ftnword *iun)
+int32_t f77name(open_db_file)(int32_t *iun)
 {
   int indx, f, i;
 
@@ -182,11 +182,11 @@ ftnword f77name(open_db_file)(ftnword *iun)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB) 
+int32_t f77name(read_db_file)( int32_t *iun, int32_t *bucket, int32_t *NB) 
 {
    int i, nbytes,  data_a_lire;
    int fd, f;
-   ftnword *p_bucket, *p_bufin;
+   int32_t *p_bucket, *p_bufin;
 
    f = -1;
    for (i=0; i < Max_File; i++)
@@ -221,14 +221,14 @@ ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB)
        p_bucket += TB[f].nb_elmt_Buf_IN;
        p_bufin += TB[f].nb_elmt_Buf_IN;
        data_a_lire -= TB[f].nb_elmt_Buf_IN;
-       lseek(fd,TB[f].nb_elmt_lu * sizeof(ftnword),SEEK_SET);
+       lseek(fd,TB[f].nb_elmt_lu * sizeof(int32_t),SEEK_SET);
        nbytes = read(fd,TB[f].pBuf_IN,BUF_SIZE);
        if (nbytes <= 0) {
 	 fprintf(stderr,"read_db_file error: try to read past end of file\n");
 	 return(-1);
        }
-       TB[f].nb_elmt_lu += nbytes/sizeof(ftnword);
-       TB[f].nb_elmt_Buf_IN = nbytes/sizeof(ftnword);
+       TB[f].nb_elmt_lu += nbytes/sizeof(int32_t);
+       TB[f].nb_elmt_Buf_IN = nbytes/sizeof(int32_t);
        TB[f].pos_in = 0;
      }
 
@@ -253,11 +253,11 @@ ftnword f77name(read_db_file)( ftnword *iun, ftnword *bucket, ftnword *NB)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(write_db_file)(ftnword *iun,ftnword *bucket,ftnword *NB)
+int32_t f77name(write_db_file)(int32_t *iun,int32_t *bucket,int32_t *NB)
 {
    int data_a_ecrire = *NB;
    int i, nbytes, room_left, f, fd;
-   ftnword *p_bucket, *p_bufout;
+   int32_t *p_bucket, *p_bufout;
 
    f = -1;
    for (i=0; i < Max_File; i++)
@@ -299,7 +299,7 @@ ftnword f77name(write_db_file)(ftnword *iun,ftnword *bucket,ftnword *NB)
 	 p_bufout[i] = p_bucket[i];
        p_bufout += room_left;
        p_bucket += room_left;
-       lseek(fd,TB[f].nb_elmt_ecrit * sizeof(ftnword),SEEK_SET);
+       lseek(fd,TB[f].nb_elmt_ecrit * sizeof(int32_t),SEEK_SET);
        nbytes = write(fd,TB[f].pBuf_OUT,BUF_SIZE);
        if (nbytes != BUF_SIZE) {
 	 fprintf(stderr,"write_db_file error: can't write of file\n");
@@ -328,7 +328,7 @@ ftnword f77name(write_db_file)(ftnword *iun,ftnword *bucket,ftnword *NB)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(rewind_db_file)(ftnword *iun)
+int32_t f77name(rewind_db_file)(int32_t *iun)
 {
    int i, fd, nbytes, f;
 
@@ -348,9 +348,9 @@ ftnword f77name(rewind_db_file)(ftnword *iun)
    TB[f].nb_elmt_lu = 0;
 
    if (TB[f].pos_out > 0) {
-     lseek(fd,TB[f].nb_elmt_ecrit * sizeof(ftnword),SEEK_SET);
-     nbytes = write(fd,TB[f].pBuf_OUT,TB[f].pos_out*sizeof(ftnword));
-     if (nbytes != TB[f].pos_out*sizeof(ftnword)) {
+     lseek(fd,TB[f].nb_elmt_ecrit * sizeof(int32_t),SEEK_SET);
+     nbytes = write(fd,TB[f].pBuf_OUT,TB[f].pos_out*sizeof(int32_t));
+     if (nbytes != TB[f].pos_out*sizeof(int32_t)) {
        fprintf(stderr,"rewind_db_file error: can't write of file\n");
        exit(2);
      }
@@ -380,7 +380,7 @@ ftnword f77name(rewind_db_file)(ftnword *iun)
  *                                                                          *
  ****************************************************************************/
 
-ftnword f77name(close_db_file)(ftnword *iun)                                    
+int32_t f77name(close_db_file)(int32_t *iun)                                    
 {
   int ier, f, i;
 

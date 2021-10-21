@@ -23,19 +23,19 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(ezuvint)(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+int32_t f77name(ezuvint)(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_ezuvint(uuout, vvout, uuin, vvin);
    return icode;
 }
 
-wordint c_ezuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+int32_t c_ezuvint(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-  wordint icode,gdin,gdout;
+  int32_t icode,gdin,gdout;
    
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
    
   gdin = iset_gdin;
   gdout= iset_gdout;
@@ -55,14 +55,14 @@ wordint c_ezuvint(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vv
 
 }
 
-wordint c_ezuvint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloat *vvin)
+int32_t c_ezuvint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-  wordint gdin,gdout;
-  wordint npts, ier, ierc,ierc1,ierc2;
-  ftnfloat *uullout = NULL;
-  ftnfloat *vvllout = NULL;
+  int32_t gdin,gdout;
+  int32_t npts, ier, ierc,ierc1,ierc2;
+  float *uullout = NULL;
+  float *vvllout = NULL;
    
-  wordint gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
    
   gdin = iset_gdin;
   gdout= iset_gdout;
@@ -93,8 +93,8 @@ wordint c_ezuvint_orig(ftnfloat *uuout, ftnfloat *vvout, ftnfloat *uuin, ftnfloa
     ier=ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
     }
   
-  uullout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
-  vvllout = (ftnfloat *) malloc(npts*sizeof(ftnfloat));
+  uullout = (float *) malloc(npts*sizeof(float));
+  vvllout = (float *) malloc(npts*sizeof(float));
   
   c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
             Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);

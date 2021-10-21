@@ -44,7 +44,7 @@ typedef struct{
 	void *private_data;              /* pointer to private data */
 	void *private_data_2;            /* pointer to private data */
 	int max_args;                    /* maximun number of arguments permitted */
-	wordint *actual_args;            /* actual number of arguments */
+	int32_t *actual_args;            /* actual number of arguments */
 	int is_ftn;                      /* 1 if FORTRAN routine, 0 if C routine */
 	}callback_entry;
 
@@ -122,12 +122,12 @@ void rpn_c_callback_setverbose(int verbose) {
 	 rpnCBverbose=RPNCB_QUIET;
 }
 
-void f77name(rpn_f_callback_setverbose)(wordint *verbose) {
+void f77name(rpn_f_callback_setverbose)(int32_t *verbose) {
   rpn_c_callback_setverbose((int) *verbose);
 }
 
 /*  register a FORTRAN callback function */
-wordint f77name(rpn_fortran_callback)(char *VERB, void *callback, char *OPTIONS,
+int32_t f77name(rpn_fortran_callback)(char *VERB, void *callback, char *OPTIONS,
 		void *Private_data,void *Private_data_2,  F2Cl l_VERB, F2Cl l_OPTIONS) {
 
  strncpy(callback_table[callbacks].command_name,VERB,l_VERB<MAX_CMD_LEN-1?l_VERB:MAX_CMD_LEN-1);
@@ -312,7 +312,7 @@ int process_c_callback(char *filename){
 int oo, errors=0;
 int i, nrange, start_of_list=0;
 int status;
-wordint wstatus;
+int32_t wstatus;
 int cmd_end = ')'; unsigned char cmd_strt;
 
 if(INIT) init_char_table();
@@ -477,7 +477,7 @@ return (errors);
 }
 
 /* equivalent of process_c_callback but FORTRAN callable */
-wordint f77name(process_f_callback)(char *filename, F2Cl l_filename){
+int32_t f77name(process_f_callback)(char *filename, F2Cl l_filename){
 char the_name[1024];
 strncpy(the_name, filename, l_filename<1023 ? l_filename : 1023);
 the_name[l_filename<1023 ? l_filename : 1023]='\0';

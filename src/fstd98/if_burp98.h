@@ -20,7 +20,7 @@
 
 
 //! Check if a BURP file is valid
-ftnword f77name(burpcheck)(
+int32_t f77name(burpcheck)(
     //! IN Path of the file to be checked
     char *filePath,
     //! IN filePath strong length
@@ -28,12 +28,12 @@ ftnword f77name(burpcheck)(
 ) {
     int ier;
     ier = c_burpcheck(filePath);
-    return (ftnword)ier;
+    return (int32_t)ier;
 }
 
 
 void f77name(buf89a0)(
-    word *buf
+    uint32_t *buf
 ) {
 #if defined(NEC64)
     BUF_C;
@@ -45,8 +45,8 @@ void f77name(buf89a0)(
 }
 
 
-ftnword f77name(getbuf8)(
-    word *buf
+int32_t f77name(getbuf8)(
+    uint32_t *buf
 ) {
     int n;
 #if defined(NEC64)
@@ -56,12 +56,12 @@ ftnword f77name(getbuf8)(
 #else
     n = c_getbuf8(buf);
 #endif
-    return (ftnword)n;
+    return (int32_t)n;
 }
 
 
 void f77name(genvdt8)(
-    ftnword *val
+    int32_t *val
 ) {
     char *enforc8;
 
@@ -77,20 +77,20 @@ void f77name(genvdt8)(
 
 
 
-ftnword f77name(mrbadd)(
-    word *buf,
-    ftnword *f_bkno,
-    ftnword *f_nele,
-    ftnword *f_nval,
-    ftnword *f_nt,
-    ftnword *f_bfam,
-    ftnword *f_bdesc,
-    ftnword *f_btyp,
-    ftnword *f_nbit,
-    ftnword *f_bit0,
-    ftnword *f_datyp,
-    ftnword *lstele,
-    word *tblval
+int32_t f77name(mrbadd)(
+    uint32_t *buf,
+    int32_t *f_bkno,
+    int32_t *f_nele,
+    int32_t *f_nval,
+    int32_t *f_nt,
+    int32_t *f_bfam,
+    int32_t *f_bdesc,
+    int32_t *f_btyp,
+    int32_t *f_nbit,
+    int32_t *f_bit0,
+    int32_t *f_datyp,
+    int32_t *lstele,
+    uint32_t *tblval
 ) {
     int bkno = *f_bkno;
     int nele = *f_nele;
@@ -130,17 +130,17 @@ ftnword f77name(mrbadd)(
     BUF_F;
 #else
     err = c_mrbadd(buf, &bkno, nele, nval, nt, bfam, bdesc, btyp, nbit, &bit0,
-        datyp, (word *)lstele, tblval);
+        datyp, (uint32_t *)lstele, tblval);
 #endif
-    *f_bit0 = (ftnword)bit0;
-    *f_bkno = (ftnword)bkno;
+    *f_bit0 = (int32_t)bit0;
+    *f_bkno = (int32_t)bkno;
     return err;
 }
 
 
-ftnword f77name(mrbdel)(
-    word *buf,
-    ftnword *f_number
+int32_t f77name(mrbdel)(
+    uint32_t *buf,
+    int32_t *f_number
 ) {
    int number = *f_number;
    int ier;
@@ -151,31 +151,31 @@ ftnword f77name(mrbdel)(
 #else
     ier = c_mrbdel(buf, number);
 #endif
-    return (ftnword)ier;
+    return (int32_t)ier;
 
 }
 
 
-ftnword f77name(mrbhdr)(
-    word *buf,
-    ftnword *f_temps,
-    ftnword *f_flgs,
+int32_t f77name(mrbhdr)(
+    uint32_t *buf,
+    int32_t *f_temps,
+    int32_t *f_flgs,
     char *f_stnid,
-    ftnword *f_idtyp,
-    ftnword *f_lati,
-    ftnword *f_lon,
-    ftnword *f_dx,
-    ftnword *f_dy,
-    ftnword *f_elev,
-    ftnword *f_drcv,
-    ftnword *f_date,
-    ftnword *f_oars,
-    ftnword *f_run,
-    ftnword *f_nblk,
-    ftnword *f_sup,
-    ftnword *f_nsup,
-    ftnword *f_xaux,
-    ftnword *f_nxaux,
+    int32_t *f_idtyp,
+    int32_t *f_lati,
+    int32_t *f_lon,
+    int32_t *f_dx,
+    int32_t *f_dy,
+    int32_t *f_elev,
+    int32_t *f_drcv,
+    int32_t *f_date,
+    int32_t *f_oars,
+    int32_t *f_run,
+    int32_t *f_nblk,
+    int32_t *f_sup,
+    int32_t *f_nsup,
+    int32_t *f_xaux,
+    int32_t *f_nxaux,
     int ll1
 ) {
     int temps, flgs, idtyp, lati, lon;
@@ -189,38 +189,38 @@ ftnword f77name(mrbhdr)(
     ier = c_mrbhdr(buf + 1, &temps, &flgs, stnid, &idtyp,
         &lati, &lon, &dx, &dy, &elev,
         &drcv, &date, &oars, &run, &nblk,
-        (word *)f_sup, nsup, (word *)f_xaux, nxaux);
+        (uint32_t *)f_sup, nsup, (uint32_t *)f_xaux, nxaux);
     BUF_F;
 #else
     ier = c_mrbhdr(buf, &temps, &flgs, stnid, &idtyp,
         &lati, &lon, &dx, &dy, &elev,
         &drcv, &date, &oars, &run, &nblk,
-        (word *)f_sup, nsup, (word *)f_xaux, nxaux);
+        (uint32_t *)f_sup, nsup, (uint32_t *)f_xaux, nxaux);
 #endif
-    *f_temps = (ftnword) temps;
-    *f_flgs = (ftnword) flgs;
-    *f_idtyp = (ftnword) idtyp;
-    *f_lati  = (ftnword) lati;
-    *f_lon = (ftnword) lon;
-    *f_dx = (ftnword) dx;
-    *f_dy = (ftnword) dy;
-    *f_elev = (ftnword) elev;
-    *f_drcv = (ftnword) drcv;
-    *f_date = (ftnword) date;
-    *f_oars = (ftnword) oars;
-    *f_run = (ftnword) run;
-    *f_nblk = (ftnword) nblk;
+    *f_temps = (int32_t) temps;
+    *f_flgs = (int32_t) flgs;
+    *f_idtyp = (int32_t) idtyp;
+    *f_lati  = (int32_t) lati;
+    *f_lon = (int32_t) lon;
+    *f_dx = (int32_t) dx;
+    *f_dy = (int32_t) dy;
+    *f_elev = (int32_t) elev;
+    *f_drcv = (int32_t) drcv;
+    *f_date = (int32_t) date;
+    *f_oars = (int32_t) oars;
+    *f_run = (int32_t) run;
+    *f_nblk = (int32_t) nblk;
     l1 = (ll1 > 11) ? 11: ll1;
     string_copy(f_stnid,stnid,l1);
-    return (ftnword)ier;
+    return (int32_t)ier;
 }
 
 
 
-ftnword f77name(mrblen)(
-    word *buf,
-    ftnword *f_lbits,
-    ftnword *f_left
+int32_t f77name(mrblen)(
+    uint32_t *buf,
+    int32_t *f_lbits,
+    int32_t *f_left
 ) {
     int lbits, left, err;
 #if defined(NEC64)
@@ -230,19 +230,19 @@ ftnword f77name(mrblen)(
 #else
    err = c_mrblen(buf, &lbits, &left);
 #endif
-   *f_lbits = (ftnword)lbits;
-   *f_left = (ftnword)left;
-   return (ftnword)err;
+   *f_lbits = (int32_t)lbits;
+   *f_left = (int32_t)left;
+   return (int32_t)err;
 
 }
 
 
-ftnword f77name(mrbloc)(
-    word *buf,
-    ftnword *f_bfam,
-    ftnword *f_bdesc,
-    ftnword *f_btyp,
-    ftnword *f_blkno
+int32_t f77name(mrbloc)(
+    uint32_t *buf,
+    int32_t *f_bfam,
+    int32_t *f_bdesc,
+    int32_t *f_btyp,
+    int32_t *f_blkno
 ) {
    int blkno = *f_blkno, bfam = *f_bfam;
    int bdesc = *f_bdesc, btyp = *f_btyp;
@@ -255,14 +255,14 @@ ftnword f77name(mrbloc)(
 #else
     ier = c_mrbloc(buf, bfam, bdesc, btyp, blkno);
 #endif
-    return (ftnword)ier;
+    return (int32_t)ier;
 }
 
 
-ftnword f77name(mrbrep)(
-    word *buf,
-    ftnword *f_blkno,
-    word *tblval
+int32_t f77name(mrbrep)(
+    uint32_t *buf,
+    int32_t *f_blkno,
+    uint32_t *tblval
 ) {
     int blkno = *f_blkno;
     int ier;
@@ -275,22 +275,22 @@ ftnword f77name(mrbrep)(
 #else
    ier = c_mrbrep(buf, blkno, tblval);
 #endif
-   return (ftnword)ier;
+   return (int32_t)ier;
 }
 
 
-ftnword f77name(mrbxtr)(
-    word *buf,
-    ftnword *f_bkno,
-    ftnword *lstele,
-    ftnword *tblval
+int32_t f77name(mrbxtr)(
+    uint32_t *buf,
+    int32_t *f_bkno,
+    int32_t *lstele,
+    int32_t *tblval
 ) {
     int ier, i;
     int bkno = *f_bkno;
 #if defined(NEC64)
     INT_32 *plong;
     BUF_C;
-    ier = c_mrbxtr(buf + 1, bkno, (word *)lstele, (word *)tblval);
+    ier = c_mrbxtr(buf + 1, bkno, (uint32_t *)lstele, (uint32_t *)tblval);
     BUF_F;
     plong = (INT_32 *) lstele;
     for (i = BurP_nele - 1; i >= 0; i--) {
@@ -301,25 +301,25 @@ ftnword f77name(mrbxtr)(
         tblval[i] = plong[i];
     }
 #else
-    ier = c_mrbxtr(buf, bkno, (word *)lstele, (word *)tblval);
+    ier = c_mrbxtr(buf, bkno, (uint32_t *)lstele, (uint32_t *)tblval);
 #endif
-    return (ftnword)ier;
+    return (int32_t)ier;
 }
 
 
-ftnword f77name(mrfapp)(
-    ftnword *f_iun
+int32_t f77name(mrfapp)(
+    int32_t *f_iun
 ) {
   int ier, iun = *f_iun;
 
   ier = c_mrfapp(iun);
-  return (ftnword)ier;
+  return (int32_t)ier;
 }
 
 
-ftnword f77name(mrfget)(
-    ftnword *f_handle,
-    word *buf
+int32_t f77name(mrfget)(
+    int32_t *f_handle,
+    uint32_t *buf
 ) {
    int handle = *f_handle, ier;
 #if defined(NEC64)
@@ -329,14 +329,14 @@ ftnword f77name(mrfget)(
 #else
     ier = c_mrfget(handle, buf);
 #endif
-    return (ftnword)ier;
+    return (int32_t)ier;
 }
 
 
-ftnword f77name(mrfput)(
-    ftnword *f_iun,
-    ftnword *f_handle,
-    word *buf
+int32_t f77name(mrfput)(
+    int32_t *f_iun,
+    int32_t *f_handle,
+    uint32_t *buf
 ) {
     int iun = *f_iun, handle = *f_handle, ier;
 
@@ -347,15 +347,15 @@ ftnword f77name(mrfput)(
 #else
     ier = c_mrfput(iun, handle, buf);
 #endif
-    return (ftnword)ier;
+    return (int32_t)ier;
 }
 
 
-ftnword f77name(mrfrwd)(
-    ftnword *f_iun
+int32_t f77name(mrfrwd)(
+    int32_t *f_iun
 ) {
     int err, iun = *f_iun;
 
     err = c_mrfrwd(iun);
-    return (ftnword)err;
+    return (int32_t)err;
 }

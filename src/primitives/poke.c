@@ -20,9 +20,9 @@
 
 #include <rpnmacros.h>
 #if !defined (_FLOAT1)
-void f77name(poke)(wordint **adr,wordint *indx, wordint *val)
+void f77name(poke)(int32_t **adr,int32_t *indx, int32_t *val)
 {
-  wordint *base;
+  int32_t *base;
 
   base = *adr;
   base[*indx-1] = *val;

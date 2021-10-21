@@ -59,7 +59,7 @@
 
 /*********************************************************************
  *                                                                   *
- *  Objective : obtain and stuff a chain of 32 bit word into an array*
+ *  Objective : obtain and stuff a chain of 32 bit uint32_t into an array*
  *              ( macro tobe used in another macro "pack" )          *
  *                                                                   *
  *  Argument  :                                                      *
@@ -93,7 +93,7 @@
 
 /*************************************************************************
  *                                                                       *
- *  Objective : obtain and stuff a chain of word(<32 bit) into an array  *
+ *  Objective : obtain and stuff a chain of uint32_t(<32 bit) into an array  *
  *              ( tobe used in another macro "pack" )                    *
  *                                                                       *
  *  Argument  :                                                          *
@@ -127,7 +127,7 @@
 
 /*********************************************************************
  *                                                                   *
- *  Objective : pack a chain of word into an array                   *
+ *  Objective : pack a chain of uint32_t into an array                   *
  *                                                                   *
  *  Argument  :                                                      *
  *   IN   arrayOfUnpacked       integer array                        *
@@ -186,7 +186,7 @@
  ******************************************************************/
 #define constructHeader(arrayOfUnpacked, min, max)                       \
  {                                                                       \
-  word tempUnsignedMax, tempUnsignedMin;                                 \
+  uint32_t tempUnsignedMax, tempUnsignedMin;                                 \
                                                                          \
   /*      obtain min, max & range         */                             \
                                                                          \
@@ -331,27 +331,27 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     typedef struct
     {
 #if defined(Little_Endian)
-      word numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
+      uint32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
 #else
-      word ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
+      uint32_t ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
 #endif
-      word numOfPackedToken : 32;
-      word minValue         : 32;
-      word maxValue         : 32;
+      uint32_t numOfPackedToken : 32;
+      uint32_t minValue         : 32;
+      uint32_t maxValue         : 32;
     }integer_header;
 
     int wordSize;
-    word cleanupMask;
+    uint32_t cleanupMask;
     int minSignedInteger=0, maxSignedInteger=0;
-    word minUnsignedInteger=0, maxUnsignedInteger=0;
-    word maxRange;
-    word maxSpan;
+    uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
+    uint32_t maxRange;
+    uint32_t maxSpan;
    
 
     int positiveMask;
-    word *arrayOfUnsignedUnpacked;
+    uint32_t *arrayOfUnsignedUnpacked;
     int  *arrayOfSignedUnpacked;
-    word *arrayOfPacked;
+    uint32_t *arrayOfPacked;
     int i, k;
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
@@ -364,8 +364,8 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      *                                      *
      ***************************************/
     int lastPackBit, spaceInLastWord, lastSlot;
-    word lastWordShifted, tempInt;
-    word *packHeader;
+    uint32_t lastWordShifted, tempInt;
+    uint32_t *packHeader;
     
     /***************************************
      *                                     *
@@ -373,12 +373,12 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      *                                     *
      **************************************/
     int firstPackBit, bitPackInFirstWord, currentSlot;
-    word currentWord, packInt;
+    uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
-    word *arrayPtr;
+    uint32_t *arrayPtr;
     int tokenSize, ShiftIntended, elementCountFromHeader;
     int  minSigned;
-    word minUnsigned;
+    uint32_t minUnsigned;
     integer_header *theHeader;
 
 
@@ -405,14 +405,14 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      *    determine wordsize and others                     * 
      *                                                      *
      ********************************************************/
-    wordSize                 = 8 * sizeof(word);
-    arrayOfUnsignedUnpacked  = (word *)unpackedArrayOfInt;
+    wordSize                 = 8 * sizeof(uint32_t);
+    arrayOfUnsignedUnpacked  = (uint32_t *)unpackedArrayOfInt;
     arrayOfSignedUnpacked    = (int *)unpackedArrayOfInt;
     theHeader                = (integer_header *)packedHeader;
-    packHeader               = (word *)packedHeader;
-    arrayOfPacked            = (word  *)packedArrayOfInt;
+    packHeader               = (uint32_t *)packedHeader;
+    arrayOfPacked            = (uint32_t  *)packedArrayOfInt;
     intCount                 = elementCount;
-    cleanupMask              = ((word)(~0)>>(wordSize-bitSizeOfPackedToken));
+    cleanupMask              = ((uint32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
       
 
 
@@ -489,7 +489,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
               {/* accomodate the signed bit */
                 bitSizeOfPackedToken++;
               };
-            cleanupMask = ((word)(~0)>>(wordSize-bitSizeOfPackedToken));
+            cleanupMask = ((uint32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
           };/* if */
 
 
@@ -601,26 +601,26 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     typedef struct
     {
 #if defined(Little_Endian)
-      word numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
+      uint32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
 #else
-      word ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
+      uint32_t ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
 #endif
-      word numOfPackedToken : 32;
-      word minValue         : 32;
-      word maxValue         : 32;
+      uint32_t numOfPackedToken : 32;
+      uint32_t minValue         : 32;
+      uint32_t maxValue         : 32;
     }integer_header;
 
     int wordSize;
-    word cleanupMask;
+    uint32_t cleanupMask;
     int minSignedInteger=0, maxSignedInteger=0;
-    word minUnsignedInteger=0, maxUnsignedInteger=0;
-    word maxRange;
-    word maxSpan;
+    uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
+    uint32_t maxRange;
+    uint32_t maxSpan;
    
 
     int positiveMask;
     unsigned short *arrayOfUnsignedShort;
-    word *arrayOfPacked;
+    uint32_t *arrayOfPacked;
     int i, k;
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
@@ -633,8 +633,8 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      *                                      *
      ***************************************/
     int lastPackBit, spaceInLastWord, lastSlot;
-    word lastWordShifted, tempInt;
-    word *packHeader;
+    uint32_t lastWordShifted, tempInt;
+    uint32_t *packHeader;
     
     /***************************************
      *                                     *
@@ -642,12 +642,12 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      *                                     *
      **************************************/
     int firstPackBit, bitPackInFirstWord, currentSlot;
-    word currentWord, packInt;
+    uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
-    word *arrayPtr;
+    uint32_t *arrayPtr;
     int tokenSize, ShiftIntended, elementCountFromHeader;
     int  minSigned;
-    word minUnsigned;
+    uint32_t minUnsigned;
     integer_header *theHeader;
 
 
@@ -674,13 +674,13 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      *    determine wordsize and others                     * 
      *                                                      *
      ********************************************************/
-    wordSize                 = 8 * sizeof(word);
+    wordSize                 = 8 * sizeof(uint32_t);
     arrayOfUnsignedShort     = (short *)unpackedArrayOfShort;
     theHeader                = (integer_header *)packedHeader;
-    packHeader               = (word *)packedHeader;
-    arrayOfPacked            = (word  *)packedArrayOfInt;
+    packHeader               = (uint32_t *)packedHeader;
+    arrayOfPacked            = (uint32_t  *)packedArrayOfInt;
     intCount                 = elementCount;
-    cleanupMask              = ((word)(~0)>>(wordSize-bitSizeOfPackedToken));
+    cleanupMask              = ((uint32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
       
 
 
@@ -741,7 +741,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
               {/* accomodate the signed bit */
                 bitSizeOfPackedToken++;
               };
-            cleanupMask = ((word)(~0)>>(wordSize-bitSizeOfPackedToken));
+            cleanupMask = ((uint32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
           };/* if */
 
 
@@ -842,26 +842,26 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     typedef struct
     {
 #if defined(Little_Endian)
-      word numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
+      uint32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8; 
 #else
-      word ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
+      uint32_t ID : 8, unused : 12, SHIFT : 6, numOfBitsPerToken : 6;
 #endif
-      word numOfPackedToken : 32;
-      word minValue         : 32;
-      word maxValue         : 32;
+      uint32_t numOfPackedToken : 32;
+      uint32_t minValue         : 32;
+      uint32_t maxValue         : 32;
     }integer_header;
 
     int wordSize;
-    word cleanupMask;
+    uint32_t cleanupMask;
     int minSignedInteger=0, maxSignedInteger=0;
-    word minUnsignedInteger=0, maxUnsignedInteger=0;
-    word maxRange;
-    word maxSpan;
+    uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
+    uint32_t maxRange;
+    uint32_t maxSpan;
    
 
     int positiveMask;
     unsigned char *arrayOfUnsignedChar;
-    word *arrayOfPacked;
+    uint32_t *arrayOfPacked;
     int i, k;
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
@@ -874,8 +874,8 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      *                                      *
      ***************************************/
     int lastPackBit, spaceInLastWord, lastSlot;
-    word lastWordShifted, tempInt;
-    word *packHeader;
+    uint32_t lastWordShifted, tempInt;
+    uint32_t *packHeader;
     
     /***************************************
      *                                     *
@@ -883,12 +883,12 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      *                                     *
      **************************************/
     int firstPackBit, bitPackInFirstWord, currentSlot;
-    word currentWord, packInt;
+    uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
-    word *arrayPtr;
+    uint32_t *arrayPtr;
     int tokenSize, ShiftIntended, elementCountFromHeader;
     int  minSigned;
-    word minUnsigned;
+    uint32_t minUnsigned;
     integer_header *theHeader;
 
 
@@ -915,13 +915,13 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      *    determine wordsize and others                     * 
      *                                                      *
      ********************************************************/
-    wordSize                 = 8 * sizeof(word);
+    wordSize                 = 8 * sizeof(uint32_t);
     arrayOfUnsignedChar      = (unsigned char *)unpackedArrayOfBytes;
     theHeader                = (integer_header *)packedHeader;
-    packHeader               = (word *)packedHeader;
-    arrayOfPacked            = (word  *)packedArrayOfInt;
+    packHeader               = (uint32_t *)packedHeader;
+    arrayOfPacked            = (uint32_t  *)packedArrayOfInt;
     intCount                 = elementCount;
-    cleanupMask              = ((word)(~0)>>(wordSize-bitSizeOfPackedToken));
+    cleanupMask              = ((uint32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
       
 
 
@@ -982,7 +982,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
               {/* accomodate the signed bit */
                 bitSizeOfPackedToken++;
               };
-            cleanupMask = ((word)(~0)>>(wordSize-bitSizeOfPackedToken));
+            cleanupMask = ((uint32_t)(~0)>>(wordSize-bitSizeOfPackedToken));
           };/* if */
 
 

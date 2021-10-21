@@ -22,21 +22,21 @@
 #include "ez_funcdef.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdxyzfll)(wordint *gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint *n)
+int32_t f77name(gdxyzfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n)
 {
    return c_gdxyzfll(*gdid, x, y, lat, lon, *n);
 }
 
-wordint c_gdxyzfll(wordint gdid, ftnfloat *x, ftnfloat *y, ftnfloat *lat, ftnfloat *lon, wordint n)
+int32_t c_gdxyzfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n)
 {
-   wordint ni_in, nj_in;
+   int32_t ni_in, nj_in;
    
-   wordint coordonnee;
+   int32_t coordonnee;
 
    _Grille grEntree;
-   wordint npts;
+   int32_t npts;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    grEntree =  Grille[gdrow_id][gdcol_id];

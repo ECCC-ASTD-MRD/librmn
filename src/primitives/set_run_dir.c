@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 
-void f77name(set_run_dir)(ftnword *mype)
+void f77name(set_run_dir)(int32_t *mype)
 {
 char buffer[1024];
 int pe=*mype;
@@ -41,7 +41,7 @@ perror("set_run_dir: cannot change to specidied directory");
 exit(1);
 }
 }
-void f77name(set_run_dir_xy)(ftnword *mypex, ftnword *mypey)
+void f77name(set_run_dir_xy)(int32_t *mypex, int32_t *mypey)
 {
 char buffer[1024];
 int pex=*mypex;

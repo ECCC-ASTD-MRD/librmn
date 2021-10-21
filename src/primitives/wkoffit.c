@@ -195,7 +195,7 @@ typedef struct _xwd_file_header {
     CARD32 window_y B32;        /* Window upper left Y coordinate */
     CARD32 window_bdrwidth B32; /* Window border width */
 #ifdef ALL64
-    CARD32 header_end B32;      /* Pad to fill out word */
+    CARD32 header_end B32;      /* Pad to fill out uint32_t */
 #endif
 } XWDFileHeader;
 
@@ -1198,7 +1198,7 @@ int main(int argc, char **argv) {
 
 // not utility, provide Fortran callable entry point
 #include <rpnmacros.h>
-wordint f77name(wkoffit)(
+int32_t f77name(wkoffit)(
     char *nom,
     F2Cl fl1
 ) {

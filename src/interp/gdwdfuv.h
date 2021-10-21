@@ -23,21 +23,21 @@
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-wordint f77name(gdwdfuv)(wordint *gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnfloat *uuin, ftnfloat *vvin,
-                     ftnfloat *latin, ftnfloat *lonin, wordint *npts)
+int32_t f77name(gdwdfuv)(int32_t *gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
+                     float *latin, float *lonin, int32_t *npts)
 {
-   wordint icode;
+   int32_t icode;
    
    icode = c_gdwdfuv(*gdid, spd_out, wd_out, uuin, vvin,latin, lonin, *npts);
    return icode;
 }
 
-wordint c_gdwdfuv(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnfloat *uuin, ftnfloat *vvin, 
-              ftnfloat *latin, ftnfloat *lonin, wordint npts)
+int32_t c_gdwdfuv(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin, 
+              float *latin, float *lonin, int32_t npts)
 {
-  wordint j, icode;
-  ftnfloat *spdout, *wdout;
-  wordint gdrow_id, gdcol_id;
+  int32_t j, icode;
+  float *spdout, *wdout;
+  int32_t gdrow_id, gdcol_id;
 
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
   if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 )
@@ -51,22 +51,22 @@ wordint c_gdwdfuv(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnfloat *u
       return icode;
     }
 }
-wordint c_gdwdfuv_orig(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnfloat *uuin, ftnfloat *vvin, 
-              ftnfloat *latin, ftnfloat *lonin, wordint npts)
+int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin, 
+              float *latin, float *lonin, int32_t npts)
 {
-   ftnfloat *xlatingf, *xloningf, *uvcart, *xyz;
-   wordint ni, nj, use_sincos_cache;
-   ftnfloat *lat_rot, *lon_rot;
+   float *xlatingf, *xloningf, *uvcart, *xyz;
+   int32_t ni, nj, use_sincos_cache;
+   float *lat_rot, *lon_rot;
 
-  wordint gdrow_id, gdcol_id;
+  int32_t gdrow_id, gdcol_id;
     
   c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
    
    ni = npts;
    nj = 1;
 
-   memcpy(spd_out, uuin, npts*sizeof(ftnfloat));
-   memcpy(wd_out, vvin, npts*sizeof(ftnfloat));
+   memcpy(spd_out, uuin, npts*sizeof(float));
+   memcpy(wd_out, vvin, npts*sizeof(float));
 
 /*   
     if (iset == -1)
@@ -92,8 +92,8 @@ wordint c_gdwdfuv_orig(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnflo
      case 'E':
        if (use_sincos_cache == NON)
         {
-        lat_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
-        lon_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
+        lat_rot=(float *)(malloc(npts*sizeof(float)));
+        lon_rot=(float *)(malloc(npts*sizeof(float)));
         f77name(ez_gfxyfll)(lonin, latin, lon_rot,lat_rot, &ni,
                             &Grille[gdrow_id][gdcol_id].fst.xg[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xg[XLON1],
                             &Grille[gdrow_id][gdcol_id].fst.xg[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xg[XLON2]);
@@ -114,8 +114,8 @@ wordint c_gdwdfuv_orig(wordint gdid, ftnfloat *spd_out, ftnfloat *wd_out, ftnflo
        switch(Grille[gdrow_id][gdcol_id].grref[0])
 	 {
 	 case 'E':
-	     lat_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
-	     lon_rot=(ftnfloat *)(malloc(npts*sizeof(ftnfloat)));
+	     lat_rot=(float *)(malloc(npts*sizeof(float)));
+	     lon_rot=(float *)(malloc(npts*sizeof(float)));
 	     f77name(ez_gfxyfll)(lonin,latin,lon_rot, lat_rot, &ni,
 				 &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON1],
 				 &Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2],&Grille[gdrow_id][gdcol_id].fst.xgref[XLON2]);

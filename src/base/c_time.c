@@ -21,7 +21,7 @@
 #include <rpnmacros.h>
 #include <sys/types.h>
 #include <time.h>
-ftnword f77name(c_time)()
+int32_t f77name(c_time)()
 {
 return time(NULL);
 }
