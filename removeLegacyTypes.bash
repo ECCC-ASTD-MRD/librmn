@@ -43,7 +43,6 @@ for filePath in $(find src -name '*.h' -o -name '*.c'); do
         grep --color=always -HnP "(^|\W)${dataType}(\W)" $filePath
     else
         perl -p -i -e "s/(^|\W)${dataType}(\W)/\1${newType}\2/g" $filePath
-        perl -p -i -e "s/unsigned\s+${newType}/u${newType}/g" $filePath
     fi
 
     newType=float
