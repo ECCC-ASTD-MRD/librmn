@@ -1,5 +1,6 @@
 //! @file qstdir.h XDF constants and data structures
 
+#include <stdint.h>
 #include <rpnmacros.h>
 #include "fnom.h"
 #define WRITE_PAGE(a,b,c)

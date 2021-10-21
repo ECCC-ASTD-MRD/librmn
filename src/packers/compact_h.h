@@ -20,9 +20,7 @@
 
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <sys/types.h>
+#include <stdint.h>
 #include <math.h>
 #include "rmnlib.h"
 extern double f77name(f_pow)(double *base, int32_t *i);

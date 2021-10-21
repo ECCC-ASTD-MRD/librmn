@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if defined(NEC)
-#endif
-#include <stdlib.h>
+#include <stdint.h>
 #include <rpnmacros.h>
 /*
    La routine getenvc fouille l'environnement pour une chaine

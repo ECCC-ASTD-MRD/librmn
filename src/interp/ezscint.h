@@ -1,11 +1,6 @@
 #ifndef _EZSCINT
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <rpnmacros.h>
-#include <string.h>
-#include <pthread.h>
+#include <stdint.h>
 
 #define NMAXGRIDS 32
 #define NMAXSETS  NMAXGRIDS * (NMAXGRIDS - 1)

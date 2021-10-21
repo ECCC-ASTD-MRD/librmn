@@ -18,6 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <stdint.h>
 #include <rpnmacros.h>
 #if !defined (_FLOAT1)
 void f77name(peek)(int32_t **adr,int32_t *indx, int32_t *val)

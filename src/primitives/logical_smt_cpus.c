@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <rpnmacros.h>
 int c_logical_smt_cpus()
 {

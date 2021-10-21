@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <stdio.h>
 #include <rpnmacros.h>
 #include "ezscint.h"
 #include "ez_funcdef.h"

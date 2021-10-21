@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <rpnmacros.h>
 /* FORTRAN callable bit slicer  
    call f_bits_get(bits,bits_per_slice,slices,nslices)

@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "ezscint.h"
 
 #ifndef _ezfuncdef

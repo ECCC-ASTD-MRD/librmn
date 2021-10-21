@@ -17,14 +17,10 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-#include <rpnmacros.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
 
+#include <stdio.h>
+#include <stdint.h>
+#include <rpnmacros.h>
 
 
 int32_t f77name(bmf_char2i)(char *f_char, int32_t *f_length,

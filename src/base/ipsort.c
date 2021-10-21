@@ -22,6 +22,7 @@
 #include <string.h> 
 #endif
 
+#include <stdint.h>
 #include <rpnmacros.h>
 #define SHRINKFACTOR 1.3
 /* 

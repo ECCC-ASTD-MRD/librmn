@@ -22,33 +22,33 @@
  * CoMpIlAtIoN_OpTiOnS ::SX4=-O overlap::SX5=-O overlap::
  * a l'oppose de c_baseio.c
  */
-#include <rpnmacros.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+
 #ifdef WIN32    /*CHC/NRC*/
-#include <fcntl.h>
-#define S_IRUSR _S_IREAD
-#define S_IWUSR _S_IWRITE
-#define S_IRGRP _S_IREAD
-#define S_IWGRP _S_IWRITE
-#define S_IROTH _S_IREAD
-#define S_IWOTH _S_IWRITE
-typedef long int pid_t;
+#   include <fcntl.h>
+#   define S_IRUSR _S_IREAD
+#   define S_IWUSR _S_IWRITE
+#   define S_IRGRP _S_IREAD
+#   define S_IWGRP _S_IWRITE
+#   define S_IROTH _S_IREAD
+#   define S_IWOTH _S_IWRITE
+    typedef long int pid_t;
 #else
-#include <unistd.h>
-#include <sys/types.h>
-#if defined (__AIX__)
-#include <fcntl.h>
-#else
-#include <sys/fcntl.h>
+#   include <unistd.h>
+#   include <sys/types.h>
+
+#   if defined (__AIX__)
+#       include <fcntl.h>
+#   else
+#       include <sys/fcntl.h>
+#   endif
 #endif
-#endif
+
 #include <sys/stat.h>
 
-#if defined (NEC)
-#endif
-#include <stdlib.h>
+#include <rpnmacros.h>
 
 
 /*  Pour le test testvm.f, on force la continuation 

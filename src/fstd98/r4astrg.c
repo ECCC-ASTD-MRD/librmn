@@ -1,4 +1,5 @@
 /* M.valin 2007 */
+#include <stdint.h>
 #include <rpnmacros.h>
 void f77name(r4astrg)(char *strg, char *r4a, int32_t *posdeb, int32_t *posfin, F2Cl lstrg)
 {

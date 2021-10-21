@@ -74,18 +74,15 @@
                              S - seconds
 */
 
-#include <rpnmacros.h>
-#include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <rpnmacros.h>
 
 #ifdef WIN32	/*CHC/NRC*/
 #else
 #include <unistd.h>
 #endif
 
-#include <ctype.h>
 
 #define FNAME_LEN 50
 

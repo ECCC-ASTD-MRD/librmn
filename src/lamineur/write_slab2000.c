@@ -32,13 +32,11 @@
    Revision V9.0 - V.Lee Jan 2003(28bit check for IP1,IP2,IP3;24bit for NIO,NJO)
 */
 
-#include<rpnmacros.h>
-#include<fcntl.h>
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <errno.h>
+#include <stdint.h>
+#include<rpnmacros.h>
 #include "slab.h"
 
 

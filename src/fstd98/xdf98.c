@@ -836,7 +836,7 @@ int c_xdfcls(
     int index, index_fnom, i, j, lng64, width, open_mode;
     file_table_entry *f;
     xdf_dir_page * curpage;
-    word32 * check32, checksum;
+    uint32_t * check32, checksum;
     uint32_t *entry;
     xdf_record_header *rec;
 
@@ -878,7 +878,7 @@ int c_xdfcls(
                 lng64 = f->primary_len * ENTRIES_PER_PAGE + 4;
                 curpage = &((f->dir_page[i])->dir);
                 checksum = curpage->chksum;
-                check32 = (word32 *) curpage;
+                check32 = (uint32_t *) curpage;
                 for (j = 4; j < W64TOWD(lng64); j++) {
                     checksum ^= check32[j];
                 }
@@ -1893,7 +1893,7 @@ int c_xdfopn(
     {
         int unit = iun, wdaddress = 1, wdlng_header, lng64;
         file_record header64;
-        word32 *check32, checksum;
+        uint32_t *check32, checksum;
         int header_seq[30];
         int lng;
         stdf_struct_RND header_rnd;
@@ -1965,7 +1965,7 @@ int c_xdfopn(
                     curpage = &((f->dir_page[f->npages-1])->dir);
                     c_waread(unit, curpage, wdaddress, W64TOWD(lng64));
                     checksum = 0;
-                    check32 = (word32 *) curpage;
+                    check32 = (uint32_t *) curpage;
                     for (j = 4; j < W64TOWD(lng64); j++) {
                         checksum ^= check32[j];
                     }
@@ -1989,7 +1989,7 @@ int c_xdfopn(
             }
         } else {
             // Signature != XDF0
-            check32 = (word32 *) &header64;
+            check32 = (uint32_t *) &header64;
             if (*check32 == STDF_RND_SIGN) {
                 // Old random standard file
                 f->cur_info->attr.read_only = 1;

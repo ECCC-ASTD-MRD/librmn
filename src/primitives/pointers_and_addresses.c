@@ -18,6 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <stdint.h>
 #include <rpnmacros.h>
 //! Union allowing to store an address and return it to caller using a 64 bit
 //! integer. This should work on any platform.

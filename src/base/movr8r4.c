@@ -18,6 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <stdint.h>
 #include <rpnmacros.h>
 static int endian_int=1;
 static char *little_endian=(char *)&endian_int;

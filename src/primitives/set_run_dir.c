@@ -19,13 +19,14 @@
  */
 
 /* auteur: M. valin */
-#include <rpnmacros.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <errno.h>
 
 #ifndef WIN32	/*CHC/NRC*/
 #include <unistd.h>
 #endif
+
+#include <rpnmacros.h>
 
 void f77name(set_run_dir)(int32_t *mype)
 {

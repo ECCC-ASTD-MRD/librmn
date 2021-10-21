@@ -19,6 +19,7 @@
  */
 
 #if !defined (_FLOAT1)
+#include <stdint.h>
 #include <rpnmacros.h>
 /*                                                                   */
 /*  RMTCALL: effectuer un appel a une fonction FORTRAN dont on a     */

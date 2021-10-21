@@ -18,11 +18,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <rpnmacros.h>
-#include <unistd.h>
 #include "zfstlib.h"
 
 /* 

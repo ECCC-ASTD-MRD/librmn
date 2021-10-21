@@ -18,8 +18,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rpnmacros.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <rpnmacros.h>
 void f77name(rah2char)(char *chaine, int32_t *f_entier, int32_t *f_nc, F2Cl lng)
 {
   int nc=*f_nc;

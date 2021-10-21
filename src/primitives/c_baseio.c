@@ -22,11 +22,10 @@
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
-#include <rpnmacros.h>
-#include <ctype.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <errno.h>
+#include <stdint.h>
+#include <rpnmacros.h>
 
 #ifdef WIN32    /*CHC/NRC*/
 #include <stdio.h>
@@ -52,8 +51,7 @@
 #define WIN32_O_BINARY 0
 #endif
 
-#include <fcntl.h>
-#include <errno.h>
+// #include <fcntl.h>
 
 /* ETG Normally in <sys/file.h> but forgotten on VPP */
 #if defined (__uxpv__) || defined(SUN)
@@ -2783,7 +2781,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   ier = system(remote_command);
 
   fflush(stdout);
-  FD_arrayZero(&rfds);
+  FD_ZERO(&rfds);
   FD_SET(fserver, &rfds);
   tv.tv_sec = 5;
   tv.tv_usec = 0;

@@ -1,10 +1,7 @@
-#include <math.h>
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <rpnmacros.h>
-#include <unistd.h>
 #include "zfstlib.h"
-#include <string.h>
 
 int  c_armn_compress32(unsigned char *, float *, int, int, int, int);
 int  c_armn_uncompress32(float *fld, unsigned char *zstream, int ni, int nj, int nk, int nchiffres_sign);

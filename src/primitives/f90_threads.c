@@ -18,8 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdint.h>
 #include <pthread.h>
 #include <rpnmacros.h>
 

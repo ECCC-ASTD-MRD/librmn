@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #define MAXFILES 1024
 typedef struct {
     unsigned int

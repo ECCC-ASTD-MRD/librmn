@@ -70,18 +70,12 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <rpnmacros.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/time.h> 
-#include <string.h>
-#include <ctype.h>
-#include "mgi.h"
-#include <gossip.h>
-//JMB
+#include <stdint.h>
 #include <sys/resource.h>
 
+#include <rpnmacros.h>
+#include "mgi.h"
+#include <gossip.h>
 /* error codes header file */
 #include "cgossip.h"
 
