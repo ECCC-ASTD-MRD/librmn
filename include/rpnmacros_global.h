@@ -1,17 +1,17 @@
 #if !defined (_RPN_MACROS_GLOBAL_)
 #define _RPN_MACROS_GLOBAL_ _rpn_macros_global_
 
-#define F77_INTEGER   ftnword
-#define F77_REAL      ftnfloat
-#define F77_INTEGER8  long long
-#define F77_REAL8     double
+#define F77_INTEGER int32_t
+#define F77_REAL float
+#define F77_INTEGER8 int64_t
+#define F77_REAL8 double
 #define F77_CHARACTER char
 
 #define F77_LOGICAL_ARG(X)   void *X
 
-#define CONCAT(A,B)          A##B
-#define F77STRLEN(X)       CONCAT(X,_length)
-#define HIDDENLEN(X)       , F2Cl F77STRLEN(X)
+#define CONCAT(A,B) A##B
+#define F77STRLEN(X) CONCAT(X,_length)
+#define HIDDENLEN(X) , F2Cl F77STRLEN(X)
 
 #define UNIX unix
 
