@@ -128,6 +128,7 @@
 #define _FILE_OFFSET_BITS 64
 #include <stdio.h>
 #include <unistd.h>
+#include <limits.h>
 #include <stdlib.h>
 
 #include <sys/stat.h>
@@ -217,33 +218,36 @@ F77_INTEGER CLIB_F77NAME(clib_putenv)(F77_CHARACTER *name_value
  * whose resolution does not involve ".", "..", or symbolic links
  * Return CLIB_OK if success, CLIB_ERROR if not
  * ================================================================*/
-F77_INTEGER CLIB_F77NAME(clib_realpath)(F77_CHARACTER *fnamein,
-                                        F77_CHARACTER *fnameout
-                                        HIDDENLEN(fnamein) HIDDENLEN(fnameout) ) {
-  char fnamein_c[MAXPATHLEN];
-  char *fnameout_c;
-  char fnameout2_c[MAXPATHLEN];
-  char *defStr = " ";
-  F77_INTEGER status;
-  /*--------------------------------------------------------------*/
-  /* Translate to C strings */
-  if (FTN2C_FSTR2CSTR(fnamein,fnamein_c,F77STRLEN(fnamein),MAXPATHLEN) < 0){
-    return(CLIB_ERROR);
-  }
+F77_INTEGER CLIB_F77NAME(clib_realpath)(
+    F77_CHARACTER *fnamein,
+    F77_CHARACTER *fnameout
+    HIDDENLEN(fnamein) HIDDENLEN(fnameout)
+) {
+    char fnamein_c[MAXPATHLEN];
+    char *fnameout_c;
+    F77_INTEGER status = CLIB_ERROR;
 
-  /* Call C function */
-  fnameout_c = realpath(fnamein_c,fnameout2_c);
+    printf("clib_realpath - MAXPATHLEN=%d\n", MAXPATHLEN);
 
-  /* Translate Back to Fortran strings */
-  status = CLIB_ERROR;
-  if (fnameout_c &&
-      FTN2C_CSTR2FSTR(fnameout_c,fnameout,
-                      strlen(fnameout_c)+1,F77STRLEN(fnameout)) >= 0) {
-      status = CLIB_OK;
-  } else {
-    FTN2C_CSTR2FSTR(defStr,fnameout,2,F77STRLEN(fnameout));
-  }
-  return(status);
+    /* Translate to C strings */
+    if (FTN2C_FSTR2CSTR(fnamein, fnamein_c, F77STRLEN(fnamein), MAXPATHLEN) < 0){
+        return(CLIB_ERROR);
+    }
+    printf("clib_realpath - fnamein_c=\"%s\"\n", fnamein_c);
+
+    /* Call C function */
+    fnameout_c = realpath(fnamein_c, NULL);
+    printf("clib_realpath - fnameout_c=\"%p\"\n", fnameout_c);
+
+    /* Translate Back to Fortran strings */
+    if (fnameout_c &&
+        FTN2C_CSTR2FSTR(fnameout_c, fnameout, strlen(fnameout_c) + 1, F77STRLEN(fnameout)) >= 0) {
+        status = CLIB_OK;
+    } else {
+        FTN2C_CSTR2FSTR(" ", fnameout, 2, F77STRLEN(fnameout));
+    }
+    free(fnameout_c);
+    return(status);
 }
 
 /* ================================================================
