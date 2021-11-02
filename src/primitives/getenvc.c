@@ -18,56 +18,52 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <rpnmacros.h>
-/*
-   La routine getenvc fouille l'environnement pour une chaine
-   de type "name=xxx", retournant "xxx" ou une chaine vide 
-   dans value. ( BD, RPN - 04 mars 1992 )
 
-*/
 
-void
-f77name(getenvc) ( name, value, len1, len2 )
-F2Cl  len1, len2;
-char name[1], value[1];
+//! Get environement variable value
+void f77name(getenvc) (
+    //! [in] Name of the environment variable to get
+    char *name,
+    //! [out] Value of the environement variable if found.  Blank otherwise.
+    char *value,
+    //! [in] Name length
+    F2Cl nameLen,
+    //! [in] Value length
+    F2Cl valueLen
+) {
+    int tempLen = nameLen + 1;
 
-{
+    // Transfert de name dans une chaine
+    char *temp = (char *) malloc( tempLen ) ;
 
-   int32_t i;
-   unsigned size;
-   char *temp, *hold;
+    int realNameLen;
+    for ( realNameLen = 0 ; realNameLen < nameLen && name[realNameLen] != ' ' ; realNameLen++ ) {
+        temp[realNameLen] = name[realNameLen];
+    }
+    temp[realNameLen] = '\0';
 
-/* Transfert de name dans une chaine C */
+    char *envVal = getenv( temp );
+    free( temp );
 
-   size = len1+len2+1 ;
-   temp = (char *) malloc( size ) ;
+    for ( int i = 0 ; i < valueLen ; i++ ) {
+        value[i] = ' ';
+    }
 
-   for ( i=0 ; 
-         i < len1 && name[i] != ' ' ; 
-         i++ ) 
-         *(temp+i) = name[i] ;
+    if (envVal != NULL) {
+        if ( tempLen != 1 ) {
+            //! \todo Throw a warning when the value length is to small for the environement variable's value
 
-   *(temp+i) = '\0' ;
-
-/* Appel a la fonction C getenv */
-
-   hold = (char *) getenv( temp ) ;
-
-/*
-   Si la chaine n'a pas ete trouvee, getenv retourne un
-   pointeur null. value sera alors entierement vide.
-   Sinon, on copie le contenu de hold dans value.
- 
-*/
-
-   for ( i=0 ; i < len2 ; i++ ) value[i] = ' ' ;
-
-   if ( hold != 0 && size != 1 ) {
-        size = strlen( hold ) ;
-        for ( i=0 ; i < size ; i++ ) value[i] = *(hold+i) ;
+            int envValLen = strlen(envVal);
+            for ( int i = 0; i < envValLen && i < valueLen; i++ ) {
+                value[i] = envVal[i];
+            }
         }
-
-   free( temp );
-
+    } else {
+        printf("getnevc - %s Not found in environement!\n", temp);
+    }
 }
