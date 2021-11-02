@@ -25,7 +25,7 @@
 
 	omp_var_S='OMP_NUM_THREADS'
 
-	call getenvc(omp_var_S,result_S)
+	call getenvc(omp_var_S, result_S)
 
 	if(result_S == '') then
 	   gnthread = 1
