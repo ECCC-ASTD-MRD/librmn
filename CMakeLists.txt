@@ -54,8 +54,10 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
 ec_build_info()            # Generate build include file (optional)
 
-add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmn rmn_build_info)
+add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_library(rmn       STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_dependencies(rmn rmn_build_info)  
+
 add_executable(librmn_version src/librmn_version.c) #TODO: Could get rid of this binary a it's availble through rmn_config
 add_dependencies(librmn_version rmn)
 target_link_libraries(librmn_version rmn)
@@ -107,14 +109,21 @@ list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
 
-
-set_target_properties(rmn PROPERTIES VERSION ${PROJECT_VERSION})
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
-message(STATUS "SOVERSION=${SOVERSION}")
-set_target_properties(rmn PROPERTIES SOVERSION ${SOVERSION})
-set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
 
-install(TARGETS rmn librmn_version)
+set_target_properties(rmn PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}"
+    POSITION_INDEPENDENT_CODE ON
+    OUTPUT_NAME rmn)
+set_target_properties(rmnshared PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}"
+    POSITION_INDEPENDENT_CODE ON
+    SOVERSION ${SOVERSION}
+    OUTPUT_NAME rmn)
+    
+install(TARGETS rmn rmnshared librmn_version)
 
 add_custom_target(
     cprotos
