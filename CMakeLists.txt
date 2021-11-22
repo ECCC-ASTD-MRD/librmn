@@ -9,7 +9,7 @@ ec_parse_manifest()        # Parse MANIFEST file
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
-project(librmn DESCRIPTION "Library of functions for numerical weather forecasting")
+project(${NAME} DESCRIPTION "${DESCRIPTION}")
 set(PROJECT_VERSION ${VERSION}${STATE})
 set(RMN_VERSION ${PROJECT_VERSION} CACHE INTERNAL "RMN version" FORCE) # Needed for cascaded version identification
 
@@ -55,8 +55,8 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 ec_build_info()            # Generate build include file (optional)
 
 add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmn librmn_build_info)
-add_executable(librmn_version src/librmn_version.c)
+add_dependencies(rmn rmn_build_info)
+add_executable(librmn_version src/librmn_version.c) #TODO: Could get rid of this binary a it's availble through rmn_config
 add_dependencies(librmn_version rmn)
 target_link_libraries(librmn_version rmn)
 
@@ -123,6 +123,28 @@ add_custom_target(
     COMMENT "Extract function prototypes from C source code"
 )
 
+#----- Generate the config file for the project to be usable via cmake's find_package command
+set(INCLUDE_INSTALL_DIR include)
+set(LIB_INSTALL_DIR     lib)
+set(CONFIG_INSTALL_DIR  "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "Config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION "${CONFIG_INSTALL_DIR}"
+    PATH_VARS           INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    COMPATIBILITY SameMajorVersion
+)
+install(FILES   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+                "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION "${CONFIG_INSTALL_DIR}"
+)
+
+# Packaging
 ec_install_prefix(${NAME} ${PROJECT_VERSION} PACKAGE_PREFIX)  # Define package prefix  
 ec_build_config()                                             # Create build configuration script
 ec_prepare_ssm()                                              # Prepare ssm packaging files

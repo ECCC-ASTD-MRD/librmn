@@ -4,11 +4,11 @@
 
 int main(int argc, char **argv) {
     //! \todo These 2 definitions should be in the library top-level header file
-    extern char librmn_version[];
-    extern char librmn_ec_arch[];
+    extern char rmn_version[];
+    extern char rmn_ec_arch[];
 
-    printf("Version: %s\n", librmn_version);
-    printf("EC_ARCH: %s\n", librmn_ec_arch);
+    printf("Version: %s\n", rmn_version);
+    printf("EC_ARCH: %s\n", rmn_ec_arch);
 
     return 0;
 }

@@ -2,7 +2,7 @@
 #define VERSION_H
 
 #include <cat.h>
-#include <librmn_build_info.h>
+#include <rmn_build_info.h>
 
 //! Project version
 //!
