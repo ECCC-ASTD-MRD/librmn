@@ -4,7 +4,7 @@ stages:
    - build
    - test
    - package
-#   - deploy
+   - deploy
 
 before_script:
    # Force color CMake output even when output is not TTY
@@ -131,7 +131,7 @@ package:gnu-7.4.0:
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package
 
-staging:
+deploy:staging:
    stage: deploy
    only:
       - tags
