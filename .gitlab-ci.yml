@@ -110,7 +110,7 @@ package:intel-19.0.3:
    only:
       - tags
    dependencies:
-      - build:intel-19.0.5
+      - build:intel-19.0.3
    environment:
       name: testing
    script:
