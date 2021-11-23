@@ -56,10 +56,11 @@ ec_build_info()            # Generate build include file (optional)
 
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmn       STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmn rmn_build_info)  
+add_dependencies(rmnshared rmn_build_info)  
+add_dependencies(rmn       rmn_build_info)  
 
 add_executable(librmn_version src/librmn_version.c) #TODO: Could get rid of this binary a it's availble through rmn_config
-add_dependencies(librmn_version rmn)
+add_dependencies(librmn_version rmn rmn_build_info)
 target_link_libraries(librmn_version rmn)
 
 # This really isn't the ideal solution; the compiler should be invoqued with all
