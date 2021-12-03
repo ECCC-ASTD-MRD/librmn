@@ -34,7 +34,6 @@ set_target_properties(${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME} PRO
 message(STATUS "Looking for ${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME} interface dependencies")
 if(@WITH_OPENMP@)
    find_package(OpenMP)
-   find_package(OpenMP)
    target_link_libraries(${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME}
    INTERFACE $<$<LINK_LANGUAGE:Fortran>:OpenMP::OpenMP_Fortran>
              $<$<LINK_LANGUAGE:C>:OpenMP::OpenMP_C>)
