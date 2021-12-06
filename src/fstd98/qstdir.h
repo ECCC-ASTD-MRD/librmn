@@ -334,34 +334,34 @@ typedef int32_t max_info_keys[MAX_SECONDARY_LNG];
 typedef struct {
 #if !defined(Little_Endian)
     //! Type ID (usualy 0)
-    int32_t idtyp:8;
+    uint32_t idtyp:8;
     //! Header length (in 64 bit units)
-    int32_t lng:24;
+    uint32_t lng:24;
     //! Address of directory page (origin 1, 64 bit units)
     addr:32;
 #else
     //! Header length (in 64 bit units)
-    int32_t lng:24;
+    uint32_t lng:24;
     //! Type ID (usualy 0)
-    int32_t idtyp:8;
+    uint32_t idtyp:8;
     //! Address of directory page (origin 1, 64 bit units)
-    int32_t addr:32;
+    uint32_t addr:32;
 #endif
 
     //! idrep (4 ascii char 'DIR0')
-    int32_t reserved1:32;
+    uint32_t reserved1:32;
     //! Reserved (0)
-    int32_t reserved2:32;
+    uint32_t reserved2:32;
 
     //! Address of next directory page (origin 1, 64 bit units)
-    int32_t nxt_addr:32;
+    uint32_t nxt_addr:32;
     //! Number of entries in page
-    int32_t nent:32;
+    uint32_t nent:32;
 
     //! Checksum (not valid when in core)
-    int32_t chksum:32;
+    uint32_t chksum:32;
     //! page_no, record_no, file_index: handle templage
-    int32_t reserved3:32;
+    uint32_t reserved3:32;
 
     //! (real allocated dimension will be ENTRIES_PER_PAGE * primary_len)
     int32_t entry[];
@@ -373,15 +373,15 @@ typedef struct {
 typedef struct {
     // Each line describes 64 bits
 #if !defined(Little_Endian)
-    int32_t idtyp:8, lng:24,  addr:32;
-    int32_t reserved1:32, reserved2:32;
-    int32_t nxt_addr:32,  nent:32;
-    int32_t chksum:32, page_no:16, record_no:8, file_index:8;
+    uint32_t idtyp:8, lng:24,  addr:32;
+    uint32_t reserved1:32, reserved2:32;
+    uint32_t nxt_addr:32,  nent:32;
+    uint32_t chksum:32, page_no:16, record_no:8, file_index:8;
 #else
-    int32_t lng:24, idtyp:8, addr:32;
-    int32_t reserved1:32, reserved2:32;
-    int32_t nxt_addr:32,  nent:32;
-    int32_t chksum:32, file_index:8, record_no:8, page_no:16;
+    uint32_t lng:24, idtyp:8, addr:32;
+    uint32_t reserved1:32, reserved2:32;
+    uint32_t nxt_addr:32,  nent:32;
+    uint32_t chksum:32, file_index:8, record_no:8, page_no:16;
 #endif
 } base_dir_page;
 
@@ -405,9 +405,9 @@ typedef full_dir_page* page_ptr;
 //! XDF record header
 typedef struct {
 #if !defined(Little_Endian)
-    int32_t idtyp:8, lng:24, addr:32;
+    uint32_t idtyp:8, lng:24, addr:32;
 #else
-    int32_t lng:24, idtyp:8, addr:32;
+    uint32_t lng:24, idtyp:8, addr:32;
 #endif
 } xdf_record_header;
 
@@ -416,10 +416,10 @@ typedef struct {
 typedef struct {
 #if !defined(Little_Endian)
     // XDF record header
-    int32_t idtyp:8, lng:24,  addr:32;
+    uint32_t idtyp:8, lng:24,  addr:32;
 #else
     // XDF record header
-    int32_t lng:24, idtyp:8,  addr:32;
+    uint32_t lng:24, idtyp:8,  addr:32;
 #endif
     // Primary keys, info keys, data
     int32_t data[2];
@@ -428,18 +428,18 @@ typedef struct {
 
 typedef struct {
 #if !defined(Little_Endian)
-    int32_t page_no:16, record_no:8, file_index:8;
+    uint32_t page_no:16, record_no:8, file_index:8;
 #else
-    int32_t file_index:8, record_no:8, page_no:16;
+    uint32_t file_index:8, record_no:8, page_no:16;
 #endif
 } random_record_handle;
 
 
 typedef struct {
 #if !defined(Little_Endian)
-    int32_t address:24, file_index:8;
+    uint32_t address:24, file_index:8;
 #else
-    int32_t file_index:8, address:24;
+    uint32_t file_index:8, address:24;
 #endif
 } seq_record_handle;
 
@@ -467,25 +467,25 @@ typedef struct {
 typedef struct {
     /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-    int32_t deleted:1, select:7, lng:24, addr:32;
-    int32_t deet:24, nbits: 8, ni:   24, gtyp:  8;
-    int32_t nj:24,  datyp: 8, nk:   20, ubc:  12;
-    int32_t npas: 26, pad7: 6, ig4: 24, ig2a:  8;
-    int32_t ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
-    int32_t etik15:30, pad1:2, etik6a:30, pad2:2;
-    int32_t etikbc:12, typvar:12, pad3:8, nomvar:24, pad4:8;
-    int32_t ip1:28, levtyp:4, ip2:28, pad5:4;
-    int32_t ip3:28, pad6:4, date_stamp:32;
+    uint32_t deleted:1, select:7, lng:24, addr:32;
+    uint32_t deet:24, nbits: 8, ni:   24, gtyp:  8;
+    uint32_t nj:24,  datyp: 8, nk:   20, ubc:  12;
+    uint32_t npas: 26, pad7: 6, ig4: 24, ig2a:  8;
+    uint32_t ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
+    uint32_t etik15:30, pad1:2, etik6a:30, pad2:2;
+    uint32_t etikbc:12, typvar:12, pad3:8, nomvar:24, pad4:8;
+    uint32_t ip1:28, levtyp:4, ip2:28, pad5:4;
+    uint32_t ip3:28, pad6:4, date_stamp:32;
 #else
-    int32_t lng:24, select:7, deleted:1, addr:32;
-    int32_t nbits: 8, deet:24, gtyp:  8, ni:   24;
-    int32_t datyp: 8, nj:24, ubc:  12, nk:   20;
-    int32_t pad7: 6, npas: 26, ig2a:  8, ig4: 24;
-    int32_t ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
-    int32_t pad1:2, etik15:30, pad2:2, etik6a:30;
-    int32_t pad3:8, typvar:12, etikbc:12, pad4:8, nomvar:24;
-    int32_t levtyp:4, ip1:28, pad5:4, ip2:28;
-    int32_t pad6:4, ip3:28, date_stamp:32;
+    uint32_t lng:24, select:7, deleted:1, addr:32;
+    uint32_t nbits: 8, deet:24, gtyp:  8, ni:   24;
+    uint32_t datyp: 8, nj:24, ubc:  12, nk:   20;
+    uint32_t pad7: 6, npas: 26, ig2a:  8, ig4: 24;
+    uint32_t ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
+    uint32_t pad1:2, etik15:30, pad2:2, etik6a:30;
+    uint32_t pad3:8, typvar:12, etikbc:12, pad4:8, nomvar:24;
+    uint32_t levtyp:4, ip1:28, pad5:4, ip2:28;
+    uint32_t pad6:4, ip3:28, date_stamp:32;
 #endif
 } stdf_dir_keys;
 
@@ -493,9 +493,9 @@ typedef struct {
 typedef struct {
     /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-    int32_t nblks: 8, blk1: 24, blk2: 32;
+    uint32_t nblks: 8, blk1: 24, blk2: 32;
 #else
-    int32_t blk1: 24, nblks: 8, blk2: 32;
+    uint32_t blk1: 24, nblks: 8, blk2: 32;
 #endif
     /* number of blocks, first 2 block pointers */
 } stdf_dir_info;
@@ -526,84 +526,84 @@ typedef struct {
 
 typedef struct {
 #if !defined(Little_Endian)
-   int32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
-   int32_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nbits : 8;
-   int32_t ip1 :16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8;
-   int32_t etiq14 :32, etiq56 : 16, etiq78 : 16;
-   int32_t epce3 : 32, epce4 : 16, ig2 : 16;
-   int32_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
-   int32_t date : 32, ubc : 16, deet : 16;
-   int32_t lng : 32, eof : 32;
+   uint32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
+   uint32_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nbits : 8;
+   uint32_t ip1 :16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8;
+   uint32_t etiq14 :32, etiq56 : 16, etiq78 : 16;
+   uint32_t epce3 : 32, epce4 : 16, ig2 : 16;
+   uint32_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
+   uint32_t date : 32, ubc : 16, deet : 16;
+   uint32_t lng : 32, eof : 32;
 #else
-   int32_t swa : 32, epce1 : 4, nk : 12, npas1 : 16;
-   int32_t nj : 16, ni : 16, nbits : 8, typvar : 8, nomvar : 16;
-   int32_t ip2 :16, ip1 : 16, npas2 : 8, dltf : 1, epce2 : 7, ip3 : 16;
-   int32_t etiq14 :32, etiq78 : 16, etiq56 : 16;
-   int32_t epce3 : 32, ig2 : 16, epce4 : 16;
-   int32_t ig4 : 16, ig3 : 16, ig1 : 16, datyp : 8, grtyp : 8;
-   int32_t date : 32, deet : 16, ubc : 16;
-   int32_t lng : 32, eof : 32;
+   uint32_t swa : 32, epce1 : 4, nk : 12, npas1 : 16;
+   uint32_t nj : 16, ni : 16, nbits : 8, typvar : 8, nomvar : 16;
+   uint32_t ip2 :16, ip1 : 16, npas2 : 8, dltf : 1, epce2 : 7, ip3 : 16;
+   uint32_t etiq14 :32, etiq78 : 16, etiq56 : 16;
+   uint32_t epce3 : 32, ig2 : 16, epce4 : 16;
+   uint32_t ig4 : 16, ig3 : 16, ig1 : 16, datyp : 8, grtyp : 8;
+   uint32_t date : 32, deet : 16, ubc : 16;
+   uint32_t lng : 32, eof : 32;
 #endif
    /****Format de bits 512-959 SEQ/SQI****/
    /* Le eof defini precedemant appartient a cet interval de nombre de bits */
 
-   int32_t vide1 : 32, swa_last : 32;
-   int32_t vide3 : 32, vide4 : 32;
-   int32_t epce5 : 32, epce6 : 32;
-   int32_t epce7 : 32, epce8 : 32;
-   int32_t epce9 : 32, epce10: 32;
-   int32_t epce11: 32, epce12: 32;
-   int32_t vide5 : 32, vide6 : 32;
+   uint32_t vide1 : 32, swa_last : 32;
+   uint32_t vide3 : 32, vide4 : 32;
+   uint32_t epce5 : 32, epce6 : 32;
+   uint32_t epce7 : 32, epce8 : 32;
+   uint32_t epce9 : 32, epce10: 32;
+   uint32_t epce11: 32, epce12: 32;
+   uint32_t vide5 : 32, vide6 : 32;
 } seq_dir_keys;
 
 
 typedef struct {
-   int32_t etiqt1  : 32, etiqt2  : 32;
-   int32_t dirsiz  : 32, inuti1  : 32;
-   int32_t nutil   : 32, inuti2  : 32;
-   int32_t nbecr   : 32, inuti3  : 32;
-   int32_t nbrec   : 32, inuti4  : 32;
-   int32_t nbext   : 32, inuti5  : 32;
-   int32_t nrecup  : 32, inuti6  : 32;
-   int32_t nbeff   : 32, inuti7  : 32;
-   int32_t nbcorr  : 32, inuti8  : 32;
-   int32_t inuti9  : 32, inuti10 : 32;
-   int32_t inuti11 : 32, inuti12 : 32;
-   int32_t inuti13 : 32, inuti14 : 32;
-   int32_t inuti15 : 32, inuti16 : 32;
-   int32_t inuti17 : 32, inuti18 : 32;
-   int32_t inuti19 : 32, inuti20 : 32;
+   uint32_t etiqt1  : 32, etiqt2  : 32;
+   uint32_t dirsiz  : 32, inuti1  : 32;
+   uint32_t nutil   : 32, inuti2  : 32;
+   uint32_t nbecr   : 32, inuti3  : 32;
+   uint32_t nbrec   : 32, inuti4  : 32;
+   uint32_t nbext   : 32, inuti5  : 32;
+   uint32_t nrecup  : 32, inuti6  : 32;
+   uint32_t nbeff   : 32, inuti7  : 32;
+   uint32_t nbcorr  : 32, inuti8  : 32;
+   uint32_t inuti9  : 32, inuti10 : 32;
+   uint32_t inuti11 : 32, inuti12 : 32;
+   uint32_t inuti13 : 32, inuti14 : 32;
+   uint32_t inuti15 : 32, inuti16 : 32;
+   uint32_t inuti17 : 32, inuti18 : 32;
+   uint32_t inuti19 : 32, inuti20 : 32;
 } stdf_struct_RND;
 
 typedef struct {
 #if !defined(Little_Endian)
-   int32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
-   int32_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nbits : 8;
-   int32_t ip1 : 16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8;
-   int32_t etiq14 : 32, etiq56 : 16, etiq78 : 16;
-   int32_t epce3 : 32, epce4 : 16, ig2 : 16;
-   int32_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
-   int32_t date : 32, ubc : 16, deet : 16;
-   int32_t lng : 32;
+   uint32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
+   uint32_t ni : 16, nj : 16, nomvar : 16, typvar : 8, nbits : 8;
+   uint32_t ip1 : 16, ip2 : 16, ip3 : 16, epce2 : 7, dltf : 1, npas2 : 8;
+   uint32_t etiq14 : 32, etiq56 : 16, etiq78 : 16;
+   uint32_t epce3 : 32, epce4 : 16, ig2 : 16;
+   uint32_t ig3 : 16, ig4 : 16, grtyp : 8, datyp : 8, ig1 : 16;
+   uint32_t date : 32, ubc : 16, deet : 16;
+   uint32_t lng : 32;
 #else
-   int32_t swa : 32, epce1 : 4, nk : 12, npas1 : 16;
-   int32_t nj : 16, ni : 16, nbits : 8, typvar : 8, nomvar : 16;
-   int32_t ip2 :16, ip1 : 16, npas2 : 8, dltf : 1, epce2 : 7, ip3 : 16;
-   int32_t etiq14 :32, etiq78 : 16, etiq56 : 16;
-   int32_t epce3 : 32, ig2 : 16, epce4 : 16;
-   int32_t ig4 : 16, ig3 : 16, ig1 : 16, datyp : 8, grtyp : 8;
-   int32_t date : 32, deet : 16, ubc : 16;
-   int32_t lng : 32;
+   uint32_t swa : 32, epce1 : 4, nk : 12, npas1 : 16;
+   uint32_t nj : 16, ni : 16, nbits : 8, typvar : 8, nomvar : 16;
+   uint32_t ip2 :16, ip1 : 16, npas2 : 8, dltf : 1, epce2 : 7, ip3 : 16;
+   uint32_t etiq14 :32, etiq78 : 16, etiq56 : 16;
+   uint32_t epce3 : 32, ig2 : 16, epce4 : 16;
+   uint32_t ig4 : 16, ig3 : 16, ig1 : 16, datyp : 8, grtyp : 8;
+   uint32_t date : 32, deet : 16, ubc : 16;
+   uint32_t lng : 32;
 #endif
 } rnd_dir_keys;
 
 typedef struct {
 #if !defined(Little_Endian)
-   int32_t idtyp : 8, lng : 24, addr : 32;
-   int32_t prev_idtyp : 8, prev_lng : 24, prev_addr :32;
+   uint32_t idtyp : 8, lng : 24, addr : 32;
+   uint32_t prev_idtyp : 8, prev_lng : 24, prev_addr :32;
 #else
-   int32_t lng : 24, idtyp : 8, addr : 32;
-   int32_t prev_lng : 24, prev_idtyp : 8, prev_addr :32;
+   uint32_t lng : 24, idtyp : 8, addr : 32;
+   uint32_t prev_lng : 24, prev_idtyp : 8, prev_addr :32;
 #endif
 } postfix_seq;
 
@@ -617,15 +617,15 @@ typedef struct {
 typedef struct {
         /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-    int32_t idtyp:8,  lng:24,   addr:32;  /* standard XDF record header */
-    int32_t sti1:8, sti2:8, sti3:8, sti4:8, sti5:8, sti6:8, sti7:8, sti8:8;
-    int32_t sti9:8, flgs:24, lati:16, lon:16;
-    int32_t date:20, dx:12, idtp:8, dy:12, heur:6, min:6;
+    uint32_t idtyp:8,  lng:24,   addr:32;  /* standard XDF record header */
+    uint32_t sti1:8, sti2:8, sti3:8, sti4:8, sti5:8, sti6:8, sti7:8, sti8:8;
+    uint32_t sti9:8, flgs:24, lati:16, lon:16;
+    uint32_t date:20, dx:12, idtp:8, dy:12, heur:6, min:6;
 #else
-    int32_t lng:24, idtyp:8,   addr:32;  /* standard XDF record header */
-    int32_t sti4:8, sti3:8, sti2:8, sti1:8, sti8:8, sti7:8, sti6:8, sti5:8;
-    int32_t flgs:24, sti9:8, lon:16, lati:16;
-    int32_t dx:12, date:20, min:6, heur:6, dy:12, idtp:8;
+    uint32_t lng:24, idtyp:8,   addr:32;  /* standard XDF record header */
+    uint32_t sti4:8, sti3:8, sti2:8, sti1:8, sti8:8, sti7:8, sti6:8, sti5:8;
+    uint32_t flgs:24, sti9:8, lon:16, lati:16;
+    uint32_t dx:12, date:20, min:6, heur:6, dy:12, idtp:8;
 #endif
 } burp_dir_keys;
 
@@ -634,9 +634,9 @@ typedef struct {
 typedef struct {
     /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-    int32_t nblks:16, oars:16, elev:13 ,drcv:11, runn:8;
+    uint32_t nblks:16, oars:16, elev:13 ,drcv:11, runn:8;
 #else
-    int32_t oars:16, nblks:16, runn:8, drcv:11, elev:13;
+    uint32_t oars:16, nblks:16, runn:8, drcv:11, elev:13;
 #endif
 } burp_dir_info;
 
@@ -653,11 +653,11 @@ typedef struct {
 typedef struct {
     /* there is one 64 bit group per line */
 #if !defined(Little_Endian)
-    int32_t bfamdesc:12, btyp:15, nbit:5, nt:8, datyp:4, bit0:20;
-    int32_t flag:1, nele:7, nval:8, elem1:16, elem2:16, elem3:16;
+    uint32_t bfamdesc:12, btyp:15, nbit:5, nt:8, datyp:4, bit0:20;
+    uint32_t flag:1, nele:7, nval:8, elem1:16, elem2:16, elem3:16;
 #else
-    int32_t nbit:5, btyp:15, bfamdesc:12, bit0:20, datyp:4, nt:8;
-    int32_t elem1:16, nval:8, nele:7, flag:1, elem3:16, elem2:16;
+    uint32_t nbit:5, btyp:15, bfamdesc:12, bit0:20, datyp:4, nt:8;
+    uint32_t elem1:16, nval:8, nele:7, flag:1, elem3:16, elem2:16;
 #endif
 } burp_block_header;
 
@@ -668,9 +668,9 @@ typedef struct {
 //! Key descriptor structure, 64 bits per key description
 typedef struct {
 #if !defined(Little_Endian)
-    int32_t ncle:32, bit1:13, lcle:5, tcle:6, reserved:8;
+    uint32_t ncle:32, bit1:13, lcle:5, tcle:6, reserved:8;
 #else
-    int32_t ncle:32, reserved:8, tcle:6, lcle:5, bit1:13;
+    uint32_t ncle:32, reserved:8, tcle:6, lcle:5, bit1:13;
 #endif
 } key_descriptor;
 
@@ -692,25 +692,25 @@ typedef struct {
     // Each line (except last one) describes 64 bits
 #if !defined(Little_Endian)
     // Standard XDF record header
-    int32_t idtyp:8,  lng:24,   addr:32;
+    uint32_t idtyp:8,  lng:24,   addr:32;
 
     int32_t vrsn,     sign;
-    int32_t fsiz:32,  nrwr:32;
-    int32_t nxtn:32,  nbd:32;
-    int32_t plst:32,  nbig:32;
-    int32_t nprm:16,  lprm:16,  naux:16, laux:16;
+    uint32_t fsiz:32,  nrwr:32;
+    uint32_t nxtn:32,  nbd:32;
+    uint32_t plst:32,  nbig:32;
+    uint32_t nprm:16,  lprm:16,  naux:16, laux:16;
 #else
     // Standard XDF record header
-    int32_t lng:24,   idtyp:8,   addr:32;
+    uint32_t lng:24,   idtyp:8,   addr:32;
 
     int32_t vrsn,     sign;
-    int32_t fsiz:32,  nrwr:32;
-    int32_t nxtn:32,  nbd:32;
-    int32_t plst:32,  nbig:32;
-    int32_t lprm:16,  nprm:16,  laux:16, naux:16;
+    uint32_t fsiz:32,  nrwr:32;
+    uint32_t nxtn:32,  nbd:32;
+    uint32_t plst:32,  nbig:32;
+    uint32_t lprm:16,  nprm:16,  laux:16, naux:16;
 #endif
-    int32_t neff:32,  nrec:32;
-    int32_t rwflg:32, reserved:32;
+    uint32_t neff:32,  nrec:32;
+    uint32_t rwflg:32, reserved:32;
 
     key_descriptor keys[1024];
 /*
