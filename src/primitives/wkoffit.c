@@ -98,6 +98,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <strings.h>
 #include <assert.h>
 #include <sys/types.h>
 

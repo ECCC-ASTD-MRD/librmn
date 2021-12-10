@@ -13,7 +13,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   integer, intent(INOUT) :: ip, kind
   integer, intent(IN) :: mode
   real, intent(INOUT) :: p
-  character *(*), intent(OUT) :: string 
+  character *(*), intent(OUT) :: string
   logical, intent(IN) :: flagv
 
 !  Etendue des valeurs reelles encodees: 10e-5 -> 10e10
@@ -24,7 +24,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 
 !     Revision 001  M. Lepine - juin 1997 convpr devient convip
 !     Revision 002  M. Valin  - mai  1998 fichiers std 98
-!     Revision 003  B. Dugas  - juillet 2000 code arbitraire 
+!     Revision 003  B. Dugas  - juillet 2000 code arbitraire
 !     Revision 004  M. Lepine - fevrier 2002 kind = 4, hauteur au sol +
 !                               possibilite de forcer newstyle ou non avec mode=2 et mode=3
 !     Revision 005  M. Lepine - avril 2002 kind = 5 (hybride), kind = 21 (GalChen)
@@ -51,7 +51,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !    MODE = +3, de P  --> IP en mode NEWSTYLE force a false
 !    FLAGV = .true. , ecriture de P avec format dans string
 ! INOUTS
-!    IP  =   Valeur codee 
+!    IP  =   Valeur codee
 !    P    =   Valeur reelle
 !    KIND =0, p est en hauteur (m) par rapport au niveau de la mer (-20,000 -> 100,000)
 !    KIND =1, p est en sigma                                       (0.0 -> 1.0)
@@ -61,11 +61,11 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !    KIND =5, p est en coordonnee hybride                          (0.0 -> 1.0)
 !    KIND =6, p est en coordonnee theta                            (1 -> 200,000)
 !    KIND =10, p represente le temps en heure                      (0.0 -> 1.0e10)
-!    KIND =15, reserve (entiers)                                   
+!    KIND =15, reserve (entiers)
 !    KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
 !              (partage avec kind=1 a cause du range exclusif
 !    KIND =21, p est en metres-pression                            (0 -> 1,000,000) fact=1e4
-!              (partage avec kind=5 a cause du range exclusif)                                                             
+!              (partage avec kind=5 a cause du range exclusif)
 ! OUTPUTS
 !    STRING = valeur de P formattee
 
@@ -132,7 +132,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
       if ( is_invalid_kind(kind) ) then
           write(6,6004) kind
 !           call qqexit(1)    !  force excessive ?
-          ip = -999999 
+          ip = -999999
           return  ! erreur si kind pas valide
       endif
       if (kind .eq. 2 .and. p .eq. 0.) then  ! ou ajouter .and. .not. NEWENCODING
@@ -256,7 +256,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
  555        continue
           p = itemp / exptab(iexp)             ! apply pseudo exponent
           p = p / fact_val(kind)               ! apply scaling factor
- 
+
           if (p < low_val(kind) .or. p>hi_val(kind)) then ! hors limite, essayer le type associe si valide
             if(kind+16 <= Max_Kind) then
               if(validkind(kind) .and. validkind(kind+16)) then
@@ -312,9 +312,9 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
       else  !  Valeur inderminee de ip  old style
           kind = 3
           p = float( ip )
-      endif   !    ip .gt. 32767 elseif, elseif, 
+      endif   !    ip .gt. 32767 elseif, elseif,
   endif  ! ....  Conversion de xx a yy .....
-      
+
   return
 
 777  continue  ! invalid ip, return kind = -1
@@ -344,7 +344,7 @@ function conv_kind_15(p,mykind,ip,mode) result(status) ! convert kind = 15 and s
     integer :: hi      ! lhighest value of ipv for this sub kind
     integer :: base    ! offset for this sub kind
   end type
-  type(e15), dimension(2), save :: t15 = & 
+  type(e15), dimension(2), save :: t15 = &
          (/ &
          e15(       0,  2000000,      0), &     ! values between 0 and 1 999 999    (kind 15)
          e15(16000000, 15000001,  -1000)  &     ! values between -1000 and 998 999 (kind 31) ! entries swapped to deactivate
@@ -390,7 +390,7 @@ end SUBROUTINE CONVIP_plus
 ! SUMMARY
 ! write value val into string using at most maxlen characters
 ! SYNOPSIS
-integer function value_to_string(val,string,maxlen)  
+integer function value_to_string(val,string,maxlen)
 ! AUTHOR
 !  M.Valin 2013
 !  Revision 001 :  M.Valin  Oct 2013 alignement a droite corrige pour valeurs entieres > 0
@@ -572,7 +572,7 @@ subroutine test_convip_plus() ! test routine for convip_plus
     ip1 = i
     ip1=ior(ip1, ishft(j,20))  ! add exponent
     ip1=ior(ip1, ishft(3,24))  ! kind =3 to test full range
-    call CONVIP_plus( ip1, p, kind, -1, string, .false. )  ! ip1 -> p,kind 
+    call CONVIP_plus( ip1, p, kind, -1, string, .false. )  ! ip1 -> p,kind
     call CONVIP_plus( ip2, p, kind, +2, string, .false. )  ! p,kind -> ip2
     call CONVIP_plus( ip2, p2, k2, -1, string, .false. )
     if(ip1/=ip2) nip=nip+1

@@ -20,8 +20,9 @@
 
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #define NCARMAX 256
 #define NKLEMAX 100
@@ -245,7 +246,6 @@ void c_ccard(char **argv, int argc, char **cle, char val[][NCARMAX],
 
 int c_jfc_cherche_la_clef(char *nom,struct c_jfc_definition cle[],int n)
 {
-  int toupper();
   int i=0;
 
   char tmpstr[256];
@@ -341,8 +341,6 @@ void c_jfc_les_valeurs(struct c_jfc_definition clefs[], char **argv,
 void c_jfc_tradup(char *nom, char *nommaj)
 
 {
-  int toupper();
-
   /*   nettoyer nommaj  */
   while(*nommaj)
   {

@@ -25,21 +25,25 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
 #if defined (NEC)
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
+
 #include <rpnmacros.h>
+
 #define ERROR 0
 #define STACK 0
 #define HEAP  1
 
 struct blocmem {
-
-  struct blocmem *fwd;
-  struct blocmem *bwd;
-  int *data[4];
-  };
+    struct blocmem *fwd;
+    struct blocmem *bwd;
+    int *data[4];
+};
 
 static struct blocmem stack_first, stack_last, heap_first, heap_last;
 static struct blocmem *badptr;
@@ -69,7 +73,7 @@ static int ptrsize, *pointer, debug_mode=0, dejala=0, dmms_noabort=0;
  ************************************************************************/
 void c_memuse()
 {
-        INT_64 use, max;
+        int64_t use, max;
 	struct rlimit lims;    
 	struct jresourcemem jusage;
 
@@ -550,8 +554,8 @@ f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *abort
    ptbloc = bloc_alloc(nbytes + 8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
    pt_data1 = &(ptbloc->data[1]);
    pt_aligned = &(ptbloc->data[2]) + (nbytes / sizeof(pt_aligned));
-   pt_aligned = (void *) (((PTR_AS_INT) pt_aligned) >> pw2);
-   pt_aligned = (void *) (((PTR_AS_INT) pt_aligned) << pw2);
+   pt_aligned = (void *) (( (intptr_t)pt_aligned) >> pw2);
+   pt_aligned = (void *) (( (intptr_t)pt_aligned) << pw2);
    ajout =  pt_aligned -  pt_data1;
    ptbloc->data[1] = (int *) ptbloc;
    for (i=0; i <= ajout; i++)
@@ -693,9 +697,9 @@ void
 f77name(bkcheck)(addr, errcode)
 int32_t *addr, *errcode;
 {
-   INT_64 temp;
+   int64_t temp;
    int **p;
-   temp = (INT_64) *addr;
+   temp = (int64_t) *addr;
 #if defined (ALL64)
    temp = temp << 3;
 #else
@@ -713,14 +717,14 @@ f77name(hpalloc)( addr, length, errcode, abort )
 int32_t *addr, *length, *errcode, *abort;
 {
    struct blocmem *ptbloc;
-   INT_64 laddr;
+   int64_t laddr;
    if (*length == 0) {
       fprintf(stderr,"HPALLOC error: 0 length\n");
       f77name(tracebck)();
       exit(13);
       }
    ptbloc = bloc_alloc(*length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
-   laddr = (INT_64) &(ptbloc->data[1]);
+   laddr = (int64_t) &(ptbloc->data[1]);
 #if defined (ALL64)
    *addr = (int32_t) (laddr >> 3);
 #else
@@ -736,9 +740,9 @@ void
 f77name(hpdeallc)(addr, errcode, abort)
 int32_t *addr, *errcode, *abort;
 {
-   INT_64 temp;
+   int64_t temp;
    int **p;
-   temp = (INT_64) *addr;
+   temp = (int64_t) *addr;
 #if defined (ALL64)
    temp = temp << 3;
 #else
@@ -756,13 +760,13 @@ f77name(memoirh)(buf,ind,nw)
 int32_t buf[], *ind, *nw;
 {
    int errcode, **ptr;
-   INT_64 adr1, adr2;
+   int64_t adr1, adr2;
    struct blocmem *ptbloc;
 
    if (*nw > 0) {
       ptbloc = bloc_alloc(*nw * sizeof(int32_t),HEAP);
-      adr1 = (INT_64) &(ptbloc->data[1]);
-      adr2 = (INT_64) buf;
+      adr1 = (int64_t) &(ptbloc->data[1]);
+      adr2 = (int64_t) buf;
       *ind = (int32_t) ((adr1 - adr2) / sizeof(int32_t)) + 1;
       }
    else {
@@ -779,13 +783,13 @@ f77name(memoir)(buf,ind,nw)
 int32_t buf[], *ind, *nw;
 {
    int errcode, **ptr;
-   INT_64 adr1, adr2;
+   int64_t adr1, adr2;
    struct blocmem *ptbloc;
 
    if (*nw > 0) {
       ptbloc = bloc_alloc(*nw * sizeof(int32_t),STACK);
-      adr1 = (INT_64) &(ptbloc->data[1]);
-      adr2 = (INT_64) buf;
+      adr1 = (int64_t) &(ptbloc->data[1]);
+      adr2 = (int64_t) buf;
       *ind = (int32_t) ((adr1 - adr2) / sizeof(int32_t)) + 1;
       }
    else {

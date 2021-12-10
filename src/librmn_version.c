@@ -11,4 +11,4 @@ int main(int argc, char **argv) {
     printf("EC_ARCH: %s\n", librmn_ec_arch);
 
     return 0;
-};
+}

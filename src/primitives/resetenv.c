@@ -18,10 +18,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rpnmacros.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
+
+#include <rpnmacros.h>
+
 static char line[32768];
 
 void f77name(resetenv)()

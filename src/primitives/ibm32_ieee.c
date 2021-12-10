@@ -19,55 +19,48 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include <rpnmacros.h>
+
+
 void c_ibm32_ieee (unsigned long *tab_data_IBM, int nb_data)
 {
-   int signbit;
-   int expos;
-   int long Mantis;
-   int i;
-   
-   for(i=0; i<nb_data; i++)
-      {
-      signbit = tab_data_IBM[i] >> 31; 
-      
-      expos = (tab_data_IBM[i] >> 24) & 0x7f;
-      
-      Mantis = (tab_data_IBM[i] & 0xffffff);
-      
-      expos = ((expos - 64) << 2) + 128 - 2;
-      
-      if(Mantis != 0)
-	 {
-	 while((Mantis & 0x800000) == 0)
-	    { 
-	    Mantis <<= 1;
-	    expos--;
-	    }
-	 Mantis &= 0x7fffff;
-	 
-	 tab_data_IBM[i] = Mantis | (expos << 23) | (signbit << 31);
-	 }
-      
-      if(expos <= 0)                               /* || (Mantis == 0))*/
-	 {
-	 tab_data_IBM[i] = 0.0;
-         expos = 0;
-         }
-      else{
-          if(expos >= 255)
-	     {
-	     fprintf(stderr,"c_ibm32_ieee ERROR: Overflow in data field\n");
-	     exit(1);
-	     }
-	  }
+    int signbit;
+    int expos;
+    int long Mantis;
 
-      }/* end for */
-   
-}/* end transfert_IBM_IEEE */
+    for(int i = 0; i < nb_data; i++) {
+        signbit = tab_data_IBM[i] >> 31;
+        expos = (tab_data_IBM[i] >> 24) & 0x7f;
+        Mantis = (tab_data_IBM[i] & 0xffffff);
+        expos = ((expos - 64) << 2) + 128 - 2;
+
+        if (Mantis != 0) {
+            while((Mantis & 0x800000) == 0) {
+                Mantis <<= 1;
+                expos--;
+            }
+            Mantis &= 0x7fffff;
+
+            tab_data_IBM[i] = Mantis | (expos << 23) | (signbit << 31);
+        }
+
+        /* || (Mantis == 0))*/
+        if (expos <= 0) {
+            tab_data_IBM[i] = 0.0;
+            expos = 0;
+        } else {
+            if (expos >= 255) {
+                fprintf(stderr,"c_ibm32_ieee ERROR: Overflow in data field\n");
+                exit(1);
+            }
+        }
+    }
+}
 
 void f77name(ibm32_ieee)(unsigned long *tab_data_IBM, int *f_nb_data)
 {
-  int nb_data = *f_nb_data;
-  c_ibm32_ieee(tab_data_IBM,nb_data);
+    int nb_data = *f_nb_data;
+    c_ibm32_ieee(tab_data_IBM,nb_data);
 }

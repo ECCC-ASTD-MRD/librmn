@@ -20,7 +20,8 @@
 
 #include <rpnmacros.h>
 
-#ifdef WIN32	/*CHC/NRC*/
+#ifdef WIN32
+/*CHC/NRC*/
 void f77name(nice19)() {}
 #else
 #include <unistd.h>

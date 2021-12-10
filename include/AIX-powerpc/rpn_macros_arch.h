@@ -1,18 +1,14 @@
+//! \file rpn_macros_arch.h Architecture and compiler specific definitions.  This file should never be included directly; use rpnmacros.h
+
+
 //! Name mangling for Fortran functions without underscores in their name
 #define f77name(a) a##_
 //! Name mangling for Fortran functions with underscores in their name
 #define f77_name(a) a##_
+
 #ifndef Big_Endian
 #define Big_Endian
 #endif
-#define PTR_AS_INT long
-#define INT_32 int
-#define INT_64 long
-#define FORTRAN_loc_delta 4
-#define wordint INT_32
-#define ftnword INT_32
-#define ftnfloat float
-#define wordfloat float
-#define bytesperword 4
-#define D77MULT  4
+
+//! \todo Replace with a definition from stdint.h like int32_t according to the actual size of an int on that platform!
 #define F2Cl int

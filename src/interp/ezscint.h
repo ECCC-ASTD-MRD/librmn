@@ -1,4 +1,5 @@
 #ifndef _EZSCINT
+#define _EZSCINT
 
 #include <stdint.h>
 
@@ -113,55 +114,61 @@
 #define YES             1
 #define NO              0
 
-typedef struct
-{
-  int32_t npts;               /* nombre de points */
-  float *x;                /* vecteur de coordonnees x */
-  float *y;                /* vecteur de coordonnees y */
-  int32_t *idx;               /* indice du point dans le champ de destination */
+typedef struct {
+    //! Nombre de points
+    int32_t npts;
+    //! Vecteur de coordonnees x
+    float *x;
+    //! Vecteur de coordonnees y
+    float *y;
+    //! indice du point dans le champ de destination
+    int32_t *idx;
 } _zone;
 
-typedef struct
-{
-  int32_t n_wts;          /* nombre de poids */
-  float *xx, *yy;
-  float *lat, *lon;
-  float *wts;              /* tableau de poids */
-  int32_t *mask, *idx;               /* indice du point dans le champ de destination */
-} _ygrid;                     /* Grille Y */
+//! Grille Y
+typedef struct {
+    //! Nombre de poids
+    int32_t n_wts;
+    float *xx;
+    float *yy;
+    float *lat;
+    float *lon;
+    //! Tableau de poids
+    float *wts;
+    int32_t *mask;
+    //! indice du point dans le champ de destination
+    int32_t *idx;
+} _ygrid;
 
-typedef struct
-{
-  int32_t flags;
-  float *lat_rot, *lon_rot, *lat_true, *lon_true;
-  float *sinlat_rot, *coslat_rot, *sinlon_rot, *coslon_rot;
-  float *sinlat_true, *coslat_true, *sinlon_true, *coslon_true;
-  float r[9], ri[9];
+typedef struct {
+    int32_t flags;
+    float *lat_rot, *lon_rot, *lat_true, *lon_true;
+    float *sinlat_rot, *coslat_rot, *sinlon_rot, *coslon_rot;
+    float *sinlat_true, *coslat_true, *sinlon_true, *coslon_true;
+    float r[9], ri[9];
 } _gemgrid;
 
-typedef struct
-{
-  int32_t flags,yyflags;
-  int32_t use_sincos_cache;
-  int32_t gdin;
-  int32_t next_gdin;
-  float valpolesud, valpolenord;
-  float *x, *y;
-  int32_t *mask_in, *mask_out;
-  float *yin_maskout,*yan_maskout;
-  float *yinlat,*yinlon,*yanlat,*yanlon;
-  float *yin2yin_lat,*yin2yin_lon,*yan2yin_lat,*yan2yin_lon;
-  float *yin2yan_lat,*yin2yan_lon,*yan2yan_lat,*yan2yan_lon;
-  float *yin2yin_x,*yin2yin_y,*yan2yin_x,*yan2yin_y;
-  float *yin2yan_x,*yin2yan_y,*yan2yan_x,*yan2yan_y;
-  int32_t yincount_yin,yancount_yin,yincount_yan,yancount_yan;
-  _gemgrid gemin, gemout;
-  _ygrid ygrid;
-  _zone zones[NZONES];
+typedef struct {
+    int32_t flags,yyflags;
+    int32_t use_sincos_cache;
+    int32_t gdin;
+    int32_t next_gdin;
+    float valpolesud, valpolenord;
+    float *x, *y;
+    int32_t *mask_in, *mask_out;
+    float *yin_maskout,*yan_maskout;
+    float *yinlat,*yinlon,*yanlat,*yanlon;
+    float *yin2yin_lat,*yin2yin_lon,*yan2yin_lat,*yan2yin_lon;
+    float *yin2yan_lat,*yin2yan_lon,*yan2yan_lat,*yan2yan_lon;
+    float *yin2yin_x,*yin2yin_y,*yan2yin_x,*yan2yin_y;
+    float *yin2yan_x,*yin2yan_y,*yan2yan_x,*yan2yan_y;
+    int32_t yincount_yin,yancount_yin,yincount_yan,yancount_yan;
+    _gemgrid gemin, gemout;
+    _ygrid ygrid;
+    _zone zones[NZONES];
 }_gridset;
 
-typedef struct
-   {
+typedef struct {
    int child;
    int childOf;
    int parent;
@@ -170,58 +177,55 @@ typedef struct
    int assembly;
    int *parentOf;
    int *sisterOf;
-   }_sousgrille;
+} _sousgrille;
 
-typedef struct
-  {
-  int32_t  ip1, ip2, ip3;
-  int32_t date;
-  int32_t npas, deet, nbits;
-  int32_t hemisphere,axe_y_inverse;
-  float xg[16], xgref[16];
-  int32_t  ig[16], igref[16];
-  char fst_grtyp[4],fst_grref[4];
-  int32_t key_ax, key_ay;
-  char nomvarx[8];
-  char nomvary[8];
-  char typvarx[4];
-  char typvary[4];
-  char etiketx[16];
-  char etikety[16];
-  } _fstinfo;
+typedef struct {
+    int32_t  ip1, ip2, ip3;
+    int32_t date;
+    int32_t npas, deet, nbits;
+    int32_t hemisphere,axe_y_inverse;
+    float xg[16], xgref[16];
+    int32_t  ig[16], igref[16];
+    char fst_grtyp[4],fst_grref[4];
+    int32_t key_ax, key_ay;
+    char nomvarx[8];
+    char nomvary[8];
+    char typvarx[4];
+    char typvary[4];
+    char etiketx[16];
+    char etikety[16];
+} _fstinfo;
 
-typedef struct
-{
-  int32_t index;
-  int32_t grid_index;
-  int32_t flags;
-  int32_t i1, i2, j1, j2;
-  int32_t ni,nj;
-  int32_t nig, nxg;
-  int32_t ni_ax, nj_ay;
-  int32_t extension;
-  int32_t needs_expansion;
-  int32_t access_count;
-  int32_t structured;
-  int32_t next_gd;
-  int32_t n_gdin, next_gdin, idx_last_gdin, n_gdin_for;
-  int32_t log_chunk_gdin, log_chunk_gdin_for;
-  int32_t *gdin_for, *mask;
-  int32_t nsubgrids,mymaskgrid;
-  int32_t mymaskgridi0,mymaskgridi1;
-  int32_t mymaskgridj0,mymaskgridj1;
-  int32_t *subgrid;
-  float *lat, *lon;
-  float *ax, *ay;
-  float *ncx, *ncy;
-  char grtyp[4], grref[4];
-  _fstinfo fst;
-  _gridset *gset;
+typedef struct {
+    int32_t index;
+    int32_t grid_index;
+    int32_t flags;
+    int32_t i1, i2, j1, j2;
+    int32_t ni,nj;
+    int32_t nig, nxg;
+    int32_t ni_ax, nj_ay;
+    int32_t extension;
+    int32_t needs_expansion;
+    int32_t access_count;
+    int32_t structured;
+    int32_t next_gd;
+    int32_t n_gdin, next_gdin, idx_last_gdin, n_gdin_for;
+    int32_t log_chunk_gdin, log_chunk_gdin_for;
+    int32_t *gdin_for, *mask;
+    int32_t nsubgrids,mymaskgrid;
+    int32_t mymaskgridi0,mymaskgridi1;
+    int32_t mymaskgridj0,mymaskgridj1;
+    int32_t *subgrid;
+    float *lat, *lon;
+    float *ax, *ay;
+    float *ncx, *ncy;
+    char grtyp[4], grref[4];
+    _fstinfo fst;
+    _gridset *gset;
 } _Grille;
 
 
-typedef struct
-{
+typedef struct {
   int32_t  damage_control;
   int32_t  degre_interp;
   int32_t  degre_extrap;
@@ -239,10 +243,6 @@ typedef struct
   float msg_gridpt_dist;
   float msg_dist_thresh;
   float valeur_extrap;
-}_groptions;
-
+} _groptions;
 
 #endif
-
-
-#define _EZSCINT

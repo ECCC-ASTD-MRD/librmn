@@ -9,6 +9,8 @@
       call vexp(r,t,n)
       return
       end
+
+
       subroutine vpow1n(r,x,y,n)
       real*8 x,y(*),r(*)
       real*8 t(n),tt
@@ -19,6 +21,8 @@
       call vexp(r,t,n)
       return
       end
+
+
       subroutine vpown1(r,x,y,n)
       real*8 x(*),y,r(*)
       real*8 t(n)
@@ -29,6 +33,8 @@
       call vexp(r,t,n)
       return
       end
+
+
       subroutine vspownn(r,x,y,n)
       real*4 x(*),y(*),r(*)
       real (kind=8), dimension(n) :: t8,x8,y8,r8
@@ -46,6 +52,8 @@
       enddo
       return
       end
+
+
       subroutine vspow1n(r,x,y,n)
       real*4 x,y(*),r(*)
       real*8 t8(n),tt,y8(n),r8(n)
@@ -62,6 +70,8 @@
       enddo
       return
       end
+
+
       subroutine vspown1(r,x,y,n)
       real*4 x(*),y,r(*)
       real*8 t8(n),x8(n),y8,r8(n)
@@ -87,6 +97,8 @@
    10 continue
       return
       end
+
+
       subroutine vpown1(r,x,y,n)
       real*8 x(*),y,r(*)
       do 10 j=1,n
@@ -94,6 +106,8 @@
    10 continue
       return
       end
+
+
       subroutine vpownn(r,x,y,n)
       real*8 x(*),y(*),r(*)
       do 10 j=1,n
@@ -101,6 +115,8 @@
    10 continue
       return
       end
+
+
       subroutine vspow1n(r,x,y,n)
       real*4 x,y(*),r(*)
       do 10 j=1,n
@@ -108,6 +124,8 @@
    10 continue
       return
       end
+
+
       subroutine vspown1(r,x,y,n)
       real*4 x(*),y,r(*)
       do 10 j=1,n
@@ -115,6 +133,8 @@
    10 continue
       return
       end
+
+
       subroutine vspownn(r,x,y,n)
       real*4 x(*),y(*),r(*)
       do 10 j=1,n

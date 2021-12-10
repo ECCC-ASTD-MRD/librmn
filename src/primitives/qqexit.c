@@ -19,18 +19,13 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
+
 #include <rpnmacros.h>
-/*
 
-   La routine qqexit retourne un code EXIT au process parent.
-
-*/
-
-void 
-f77name(qqexit) (val)
-int32_t *val ;
-
+//! Fortran wrapper around the exit function
+void f77name(qqexit) (int32_t *val)
 {
-     exit(*val);
+    exit(*val);
 }
 

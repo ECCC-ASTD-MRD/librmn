@@ -24,9 +24,7 @@ extern "C" {
 #endif
 
 
-/**
- * The definition of the used algorithm.
- *****************************************************************************/
+//! The definition of the used algorithm
 #define CRC_ALGO_TABLE_DRIVEN 1
 
 
@@ -38,46 +36,44 @@ extern "C" {
 typedef uint32_t crc32_t;
 
 
-/**
- * Reflect all bits of a \a data uint32_t of \a data_len bytes.
- *
- * \param data         The data uint32_t to be reflected.
- * \param data_len     The width of \a data expressed in number of bits.
- * \return             The reflected data.
- *****************************************************************************/
-crc32_t crc32_reflect(crc32_t data, size_t data_len);
+//! Reflect all bits of a \a data word of \a data_len bytes
+//! \return The reflected data
+crc32_t crc32_reflect(
+    //! The data word to be reflected
+    crc32_t data,
+    //! [in] The width of \a data expressed in number of bits
+    size_t data_len
+);
 
 
-/**
- * Calculate the initial crc value.
- *
- * \return     The initial crc value.
- *****************************************************************************/
+
+//! Calculate the initial crc value.
+//! \return The initial crc value.
 static crc32_t crc32_init(void)
 {
     return 0xffffffff;
 }
 
 
-/**
- * Update the crc value with new data.
- *
- * \param crc      The current crc value.
- * \param data     Pointer to a buffer of \a data_len bytes.
- * \param data_len Number of bytes in the \a data buffer.
- * \return         The updated crc value.
- *****************************************************************************/
-crc32_t crc32_update(crc32_t crc, const unsigned char *data, size_t data_len);
+//! Update the crc value with new data.
+//! \return The updated crc value
+crc32_t crc32_update(
+    //! [in] The current crc value
+    crc32_t crc,
+    //! [in] Pointer to a buffer of \a data_len bytes
+    const unsigned char *data,
+    //! Number of bytes in the \a data buffer
+    size_t data_len
+);
 crc32_t crc32_update_le(crc32_t crc, const unsigned char *data, size_t data_len, int mask);
 
-/**
- * Calculate the final crc value.
- *
- * \param crc  The current crc value.
- * \return     The final crc value.
- *****************************************************************************/
-static crc32_t crc32_finalize(crc32_t crc)
-{
+
+//! Calculate the final crc value.
+//! \return The final crc value.
+static crc32_t crc32_finalize(
+    //! [in] The current crc value
+    crc32_t crc
+) {
     return crc ^ 0xffffffff;
 }
 

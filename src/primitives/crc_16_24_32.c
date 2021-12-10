@@ -26,9 +26,9 @@ uint32_t update_crc_ne(uint32_t old_crc, int crclen, void *data, int datasiz, in
   crc32_t crc32;
   unsigned int mask=0 ;
   int data_len=datasiz*datalen ;
-  
+
   new_crc = seed ;
-    
+
   if( (*little_endian) & (datasiz>1)){  /* multibyte tokens on little endian machine */
     mask = datasiz-1 ; /* 0/1/3/7 magic mask to get stitching order count on little endian machines */
   }

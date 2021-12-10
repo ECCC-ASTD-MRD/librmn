@@ -6,6 +6,8 @@ typedef struct {
 } timezone;
 
 
+#include <stdio.h>
+
 #ifndef WIN32
 /*CHC/NRC*/
 #include <unistd.h>

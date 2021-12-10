@@ -41,7 +41,7 @@ int i;
       return;
 }
 
-void f77name(dumpbuf)(uint32_t *buf, int32_t *n)
+void f77name(dumpbuf)(int32_t *buf, int32_t *n)
 {
 int nn = *n;
 

@@ -20,51 +20,62 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <rpnmacros.h>
 
 
-int32_t f77name(bmf_char2i)(char *f_char, int32_t *f_length,
-			    int32_t *f_outint, int32_t *f_outlen, F2Cl l1)
+int32_t f77name(bmf_char2i)(
+    char *f_char,
+    int32_t *f_length,
+    int32_t *f_outint,
+    int32_t *f_outlen,
+    F2Cl l1
+) {
+    int length = *f_length;
+    int outlen = *f_outlen;
+    if (length == 0) {
+        fprintf(stderr,"bmf_char2i WARNING: char length = 0, exiting \n");
+        return 0;
+    }
+    /*  if (length > l1) {
+        fprintf(stderr,"bmf_char2i: length too big for char variable \n");
+        return(-1);
+        }*/
 
-{
-  int length = *f_length, outlen = *f_outlen ;
-  if (length == 0) {
-    fprintf(stderr,"bmf_char2i WARNING: char length = 0, exiting \n");
-    return(0);
-  }
-  /*  if (length > l1) {
-    fprintf(stderr,"bmf_char2i: length too big for char variable \n");
-    return(-1);
-    }*/
-
-   if (outlen*sizeof(outlen) < length*sizeof(f_char[0])+sizeof(outlen)) {
-    fprintf(stderr,"bmf_char2i: integer array size too small \n");
-    return(-1);
-  }
-   f_outint[0]= length;
-   f_outint++;
-   strncpy((char *)f_outint,f_char,length);
-   f_outint--;
-   return((length-1)/sizeof(length)+2);
+    if (outlen*sizeof(outlen) < length*sizeof(f_char[0])+sizeof(outlen)) {
+        fprintf(stderr,"bmf_char2i: integer array size too small \n");
+        return -1;
+    }
+    f_outint[0] = length;
+    f_outint++;
+    strncpy((char *)f_outint, f_char,length);
+    f_outint--;
+    return (length - 1) / sizeof(length) + 2 ;
 }
-int32_t f77name(bmf_i2char)(char *f_char, int32_t *f_length,
-			    int32_t *f_outint, int32_t *f_outlen, F2Cl l1)
 
-{
-  int length= *f_length , outlen=*f_outlen;
- 
-  /* if (length > l1) {
-    fprintf(stderr,"bmf_i2char: length too big for char variable \n");
-    return(-1);
-    }*/
- 
-   if (outlen*sizeof(outlen) < length*sizeof(f_char[0])+sizeof(outlen)) {
-    fprintf(stderr,"bmf_i2char: integer array size too small \n");
-    return(-1);
-  }
-   f_length = (long *)f_outint[0];
-   f_outint++;
-   strncpy(f_char,(char *)f_outint,length);
-   f_outint--;
-   return(length);
+
+int32_t f77name(bmf_i2char)(
+    char *f_char,
+    int32_t *f_length,
+    int32_t *f_outint,
+    int32_t *f_outlen,
+    F2Cl l1
+) {
+    int length = *f_length;
+    int outlen = *f_outlen;
+
+    /* if (length > l1) {
+        fprintf(stderr,"bmf_i2char: length too big for char variable \n");
+        return(-1);
+        }*/
+
+    if (outlen*sizeof(outlen) < length*sizeof(f_char[0]) + sizeof(outlen)) {
+        fprintf(stderr,"bmf_i2char: integer array size too small \n");
+        return -1;
+    }
+    f_length = (long *)f_outint[0];
+    f_outint++;
+    strncpy(f_char,(char *)f_outint,length);
+    f_outint--;
+    return length;
 }

@@ -19,7 +19,9 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <pthread.h>
+
 #include <rpnmacros.h>
 
 typedef struct {

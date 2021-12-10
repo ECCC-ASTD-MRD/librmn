@@ -19,31 +19,31 @@
 * */
 ***S/P CXGAIG - PASSE DES PARAMETRES (REELS) DESCRIPTEURS DE GRILLE
 *              AUX PARAMETRES ENTIERS.
-      
+
       SUBROUTINE CXGAIG(CGTYP,IG1,IG2,IG3,IG4,XG1,XG2,XG3,XG4)
       CHARACTER * 1 CGTYP
-*     
+*
 *AUTEUR- M. VALIN  -  FEV 82
-*     
+*
 *REVISION001  C. THIBEAULT  -  MARS 83  CONVERSION AU CODE CRAY
 *     002  M. Lepine     -  fev  94  bug fix nint pour grille L
 *     003  M. Lepine     -  fev  94  introduction du type de grille E
 *     004  M. Lepine     -  nov  94  traduction de ratfor a fortran
 *     005  M. Valin      -  fev 2013 permutation de 2 enonces (ig2<0)
 *     006  M. Valin      -  mars 2018 grille +
-*     
+*
 *LANGAGE- RATFOR
-*     
+*
 *OBJET(XGAIG)
 *     - PASSE DES PARAMETRES (REELS) DESCRIPTEURS DE GRILLE
 *     AUX PARAMETRES ENTIERS.
-*     
+*
 *LIBRAIRIES
 *     - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=XGAIG
 *     - OBJET   RMNLIB,ID=RMNP
-*     
+*
 *APPEL- CALL XGAIG(CGTYP,IG1,IG2,IG3,IG4,XG1,XG2,XG3,XG4)
-*     
+*
 *ARGUMENTS
 *     IN    - CGTYP - TYPE DE GRILLE (VOIR OUVRIR)
 *     OUT   - IG1   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
@@ -58,14 +58,14 @@
 *     = 2, SUD **
 *     CGTYP = 'E', LAT1, LON1, LAT2, LON2
 *     CGTYP = '+', LAT, LON, dummy, dummy
-*     
+*
 *MESSAGES- "ERREUR DANS LA DESCRIPTION DE LA GRILLE (IG1) (XGAIG)"
 *     "ERREUR, MAUVAISE SPECIFICATION (LAT0) (XGAIG)"
 *     "ERREUR, GRILLE INCONNUE (TYPE) (XGAIG)"
-*     
+*
 *------------------------------------------------------------------
-*     
-*     
+*
+*
       REAL XXG2, XXG4
       REAL*8 :: XLON8, XLAT8
       INTEGER I2B
@@ -112,7 +112,7 @@
             IG3 = IG3 + NINT(DLON*32767./360.)
             IG4 = IG4 + NINT(DLAT*16383./180.)
          ENDIF
-         
+
       ELSE IF (CGTYP .EQ. 'A' .OR. CGTYP .EQ. 'B' .OR.
      %        CGTYP .EQ. 'G')  THEN
          IG1 = XG1
@@ -121,7 +121,7 @@
          IG4 = 0
          STATUS = VALIDE("IG1",IG1,0,2) ! VERIFIER SI IG1=0,1,OU 2
          STATUS = VALIDE("IG2",IG2,0,1) ! VERIFIER SI IG2=0 OU 1
-         
+
       ELSE IF(CGTYP .EQ. 'C') THEN   ! C TYPE LAT LON GRID
         IG1 = NINT(180. / XG3)
         IG2 = NINT(360. / XG4)
@@ -176,8 +176,8 @@
         IG2 = NINT(XG3 * 40.)
         IG3 = NINT((XXG2+90.) * 40.)
 C
-C       bug de code, le +90 est de trop, ce qui peut causer un debordement
-C       pour ig3
+C       bug de code, le +90 est de trop, ce qui peut causer un
+C       debordement pour ig3
 C
         if(ig3 .ge. 16384) ig3=ig3-16384
         IG4 = NINT(XXG4 * 40.)
@@ -195,12 +195,17 @@ C
         XLON8 = XG2
         if(XLON8 < 0) XLON8 = XLON8 + 360.0     ! -180, +180 -> 0, 360
         STATUS = VALIDE("XG2",NINT(XLON8),0,360)    ! 0, 360
-        IG3  = nint( (XLAT8+100.)*100. )        ! compatibilite arriere, centidegres (10 -> 19000)
-        IG4  = nint( XLON8*100. )               ! compatibilite arriere, centidegres (0 -> 36000)
-        IG1  = nint( (XLAT8+100.)*100000. ) - IG3*1000  ! en 1/100000 de degre
-        IG1  = IG1 + 1000                       ! correction, IG1 pourrait etre < 0  (500 -> 1500)
-        IG2  = nint( XLON8*100000. ) - IG4*1000         ! en 1/100000 de degre
-        IG2  = IG2 + 1000                       ! correction, IG2 pourrait etre < 0  (500 -> 1500)
+        ! compatibilite arriere, centidegres (10 -> 19000)
+        IG3  = nint( (XLAT8+100.)*100. )
+        ! compatibilite arriere, centidegres (0 -> 36000)
+        IG4  = nint( XLON8*100. )
+        ! en 1/100000 de degre
+        IG1  = nint( (XLAT8+100.)*100000. ) - IG3*1000
+        ! correction, IG1 pourrait etre < 0  (500 -> 1500)
+        IG1  = IG1 + 1000
+        IG2  = nint( XLON8*100000. ) - IG4*1000   ! en 1/100000 de degre
+        ! correction, IG2 pourrait etre < 0  (500 -> 1500)
+        IG2  = IG2 + 1000
 
       ELSE
         WRITE(6,602)

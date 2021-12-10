@@ -17,11 +17,13 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-        INTEGER FUNCTION qqqf7op(iun,name,lrec,rndflag,unfflag,lmult)
+
+
+      INTEGER FUNCTION qqqf7op(iun,name,lrec,rndflag,unfflag,lmult)
         integer iun,lrec
         character *(*) name
         integer rndflag,unfflag
-        
+
         integer lng
         qqqf7op=0
         lng = len(name)
@@ -54,9 +56,9 @@
 *              print *,'FORMATTED open'
 #if !defined (HP)
               OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',DELIM='QUOTE',
-     %             ERR=77)        
+     %             ERR=77)
 #else
-              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',ERR=77)        
+              OPEN(iun,FILE=name(1:lng),FORM='FORMATTED',ERR=77)
 #endif
             endif
           endif
@@ -69,17 +71,19 @@
 
         integer FUNCTION ftnclos(iun)
         integer iun
-        
+
         ftnclos = 0
         CLOSE(iun)
         return
         end
+
+
       INTEGER FUNCTION LONGUEUR(NOM)
       implicit none
       CHARACTER * (*) NOM
-*
+
       INTEGER LNG,I
-*
+
       LNG = LEN(NOM)
       DO 10 I = LNG,1,-1
          IF (NOM(I:I) .EQ. ' ') THEN

@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <rpnmacros.h>
 
 
@@ -46,6 +47,7 @@ void f77name(getenvc) (
         temp[realNameLen] = name[realNameLen];
     }
     temp[realNameLen] = '\0';
+    // printf("getnevc() - EnvVarName=\"%s\" \n", temp);
 
     char *envVal = getenv( temp );
     free( temp );

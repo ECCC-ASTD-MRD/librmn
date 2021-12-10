@@ -21,6 +21,7 @@
 //! C interface for burp
 
 
+#include <string.h>
 #include <rpnmacros.h>
 
 

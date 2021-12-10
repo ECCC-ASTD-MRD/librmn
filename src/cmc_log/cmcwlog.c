@@ -27,14 +27,16 @@
 #endif /* __STDC_VERSION__ */
 
 
-#include <rpnmacros.h>
-#include "envrecv.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+
+#include <rpnmacros.h>
+#include <gossip.h>
+#include "envrecv.h"
 
 static int setfp();
 
@@ -49,8 +51,8 @@ int c_cmcwlog3(
     //! Message id, MAXID-1 chars max
     char *id,
     //! Message text, MAXTEXT-1 chars max
-    char *txt)
-{
+    char *txt
+) {
     FILE *fp;
     int fd;
     int i;
@@ -64,12 +66,12 @@ int c_cmcwlog3(
     time_t cloc,time();
     clock_t cpuclock;
     clock_t clock();
-    mode_t mask=umask(0);
 
     if (msgno > 9999) msgno = 9999;
     if (msgno < 0) msgno = 0;
 
 
+    // mode_t mask = umask(0);
     // fprintf(stderr,"file=%s, id=%s, msgno=%d, cl=%s, txt=%s, umask=%d\n",filen,id,msgno,cl,txt,mask);
     // Make sure that there are valid id and text arguments
     if ( id == NULL || txt == NULL ) {
@@ -153,8 +155,13 @@ int c_cmcwlog3(
 }
 
 
-int c_cmcwlog2B(char *filen, char *cl, int msgno, char *id, char *txt)
-{
+int c_cmcwlog2B(
+    char *filen,
+    char *cl,
+    int msgno,
+    char *id,
+    char *txt
+) {
     char *pivot = strchr(filen, '@');
     char buffer[1024];
     int fserver, errcode;
@@ -165,7 +172,7 @@ int c_cmcwlog2B(char *filen, char *cl, int msgno, char *id, char *txt)
 
         // Connect to server, specified by channel_name or @host:port
         snprintf(buffer, (sizeof buffer) - 1, "%s", pivot);
-        fserver = connect_to_channel_by_name(pivot); 
+        fserver = connect_to_channel_by_name(pivot);
         if (fserver < 0) {
             fprintf(stderr, "Error while connecting to %s\n", buffer);
             return 4;
@@ -191,8 +198,13 @@ int c_cmcwlog2B(char *filen, char *cl, int msgno, char *id, char *txt)
     c_cmcwlog2 will try targets in succession. If all targets fail,
     an error code is returned
 */
-int c_cmcwlog2(char *filen, char *cl, int msgno, char *id, char *txt)
-{
+int c_cmcwlog2(
+    char *filen,
+    char *cl,
+    int msgno,
+    char *id,
+    char *txt
+) {
     char *next_target = strchr(filen,',');
     int retcode;
     char buffer[1024];
@@ -224,13 +236,15 @@ int c_cmcwlog2(char *filen, char *cl, int msgno, char *id, char *txt)
 }
 
 
-
-
 //! 1st level interface
 //! Checks for the CMC_LOGFILE environment variable and complain if not found
 //! if found, the 2nd level interface will be called
-int c_cmcwlog(char *cl, int msgno, char *id, char *txt)
-{
+int c_cmcwlog(
+    char *cl,
+    int msgno,
+    char *id,
+    char *txt
+) {
     char *filen;
     extern char *getenv();
 
@@ -243,10 +257,12 @@ int c_cmcwlog(char *cl, int msgno, char *id, char *txt)
     return c_cmcwlog2(filen, cl, msgno, id, txt);
 }
 
+
 //! Find the position of the next write in the logfile either by initializing the
 //! write pointer in a new file or reading from an existing one
-static int setfp(FILE *fp)
-{
+static int setfp(
+    FILE *fp
+) {
     long int frptr;
     long int fwptr, fwptr2;
     long int flptr;
@@ -301,8 +317,8 @@ int32_t f77name(cmcwlog)(
     //! [in]
     F2Cl lidstr,
     //! [in]
-    F2Cl ltxtstr)
-{
+    F2Cl ltxtstr
+) {
     char msgcl[30];
     char msgid[MAXID];
     char msgtxt[MAXTEXT];

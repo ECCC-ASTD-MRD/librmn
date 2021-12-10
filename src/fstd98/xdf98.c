@@ -27,11 +27,12 @@
 */
 
 #include <stdio.h>
-#ifndef WIN32    /*CHC/NRC*/
-#include <unistd.h>
-#endif
 #include <stdlib.h>
 #include <string.h>
+
+#include <unistd.h>
+#include <sys/types.h>
+
 #define XDF_OWNER
 #include "qstdir.h"
 #include <fstd98.h>
@@ -110,9 +111,9 @@ static key_descriptor fstcles[] = {
 static int get_free_index();
 static void init_file(int i);
 static void init_package();
-static INT_32 scan_random(int file_index);
-static INT_32 add_dir_page(int file_index, int wflag);
-static INT_32 rewind_file(int file_index, int handle);
+static int32_t scan_random(int file_index);
+static int32_t add_dir_page(int file_index, int wflag);
+static int32_t rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
                           word_2 *aux, int naux, char *appl);
 static uint32_t next_match(int file_index);
@@ -150,7 +151,7 @@ int c_xdfcheck(
 
    fclose(fd);
 
-   // Flip bytes in each 32-bit uint32_t (16 of them)
+   // Flip bytes in each 32-bit word (16 of them)
    for(int i = 0 ; i < 16 ; i++) {
       tmp = buf_ptr[i] ;
       buf_ptr[i] = (tmp << 24) | (tmp >> 24) | ((tmp & 0xFF0000) >> 8) | ((tmp & 0xFF00) << 8) ;
@@ -172,7 +173,7 @@ int c_xdfcheck(
 
 //! Add a directory page to file file_index
 //! \return 0 on success.  Can be ERR_DIR_FULL or ERR_MEM_FULL in case of error.
-static INT_32 add_dir_page(
+static int32_t add_dir_page(
     //! [in] File index in file table
     int file_index,
     //! [in] Write flag. In case of a new file, or a file extenxion the directory page has to be written on disk
@@ -246,7 +247,7 @@ static INT_32 add_dir_page(
 
 //! Calculates an address from an handle for a sequential file
 //! \return Corresponding address
-static INT_32 address_from_handle(
+static int32_t address_from_handle(
     //! [in] (cluster:2, address:22, file_index:8)
     int handle,
     //! [in] Pointer to xdf file information structure
@@ -443,7 +444,7 @@ int c_qdfdiag(
     //! [in] unit number associated to the file
     int iun
 ) {
-#define swap_4(mot) { register unsigned INT_32 tmp =(unsigned INT_32)mot; \
+#define swap_4(mot) { register uint32_t tmp =(uint32_t)mot; \
    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
 
     int index, index_fnom, ier, wasopen=0, addr, nw;
@@ -781,6 +782,36 @@ int c_xdfadd(
 }
 
 
+//! Truncate a file
+int c_secateur(
+    //! Path of the file
+    char *filePath,
+    //! File size to set (in bytes)
+    int size
+) {
+    if (msg_level <= TRIVIAL) {
+        fprintf(stdout, "Truncating %s to \t %d Bytes\n", filePath, size);
+    }
+
+    int ier = truncate(filePath, size);
+    if (ier == -1) perror("secateur");
+    return ier;
+}
+
+
+//! Truncate a file
+int32_t f77name(secateur)(
+    //! Path of the file to truncate
+    char *filePath,
+    //! File size to set (in bytes)
+    int32_t *f_size,
+    F2Cl l1
+) {
+    int ier = c_secateur(filePath, *f_size);
+    return (int32_t) ier;
+}
+
+
 //! Pack key descriptors into 2 different 32 bit wide elements.
 int c_xdfcle(
     //! [in] Name of the key (max 4 char)
@@ -835,8 +866,8 @@ int c_xdfcls(
 ) {
     int index, index_fnom, i, j, lng64, width, open_mode;
     file_table_entry *f;
-    xdf_dir_page * curpage;
-    uint32_t * check32, checksum;
+    xdf_dir_page *curpage;
+    uint32_t *check32, checksum;
     uint32_t *entry;
     xdf_record_header *rec;
 
@@ -1693,7 +1724,7 @@ int c_xdfloc2(
         if (f->xdf_seq) {
             f->cur_addr = address_from_handle(handle, f);
             if (f->fstd_vintage_89) {
-                c_waread(iun, &seq_entry, f->cur_addr, sizeof(seq_entry) / bytesperword);
+                c_waread(iun, &seq_entry, f->cur_addr, sizeof(seq_entry) / sizeof(uint32_t));
                 header.lng = ((seq_entry.lng + 3) >> 2) + 15;
             } else {
                 c_waread(iun, &header, f->cur_addr, W64TOWD(1));
@@ -1899,7 +1930,7 @@ int c_xdfopn(
         stdf_struct_RND header_rnd;
         rnd_dir_keys *directory;
         stdf_dir_keys *stdf_entry;
-        xdf_dir_page * curpage;
+        xdf_dir_page *curpage;
 
         c_waread(unit, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
@@ -3316,7 +3347,7 @@ static void init_package()
 
 //! Calculates an handle for a sequential file from address and index
 //! \return Sequential file handle
-static INT_32 make_seq_handle(
+static int32_t make_seq_handle(
     //! [in] Address (in units of 32bit)
     int address,
     //! [in] File index in table
@@ -3328,7 +3359,7 @@ static INT_32 make_seq_handle(
     static int MB512 = 0x4000000, MB128 = 0x1000000, MB32 = 0x400000;
     // MB512 , MB128 and MB32 are represented in 64 bit unit
 
-    // 32 bit uint32_t to 64 bit unit address
+    // 32 bit word to 64 bit unit address
     address = (address - 1) >> 1;
     if (fte->fstd_vintage_89) {
         cluster = 0;
@@ -3681,7 +3712,7 @@ int32_t  f77name(qdfrstr)(int32_t *f_inp, int32_t *f_outp)
  *****************************************************************************/
 
 /* set file position, if handle=-1, rewind file */
-static INT_32 rewind_file(int file_index, int handle)
+static int32_t rewind_file(int file_index, int handle)
 {
    register file_table_entry *f, *f2;
    int linked=0, file_index2;
@@ -4292,56 +4323,4 @@ int32_t f77name(xdfxtr)(uint32_t *buf, uint32_t *donnees,
    ier = c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
 #endif
    return (int32_t) ier;
-}
-
-
-
-/*****************************************************************************
- *                            S E C A T E U R                                *
- *                                                                           *
- *Object                                                                     *
- *  The file whose name is given by filename has its size truncated to       *
- *  the number of bytes given by where.                                      *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  filename file name                                                   *
- *  IN  where    number of bytes for the file zise                           *
- *                                                                           *
- *****************************************************************************/
-
-int32_t f77name(secateur)(char *filename, int32_t *f_where, F2Cl l1)
-{
-  int ier, where = *f_where;
-
-  ier = c_secateur(filename, where);
-  return (int32_t) ier;
-}
-
-
-
-/*****************************************************************************
- *                        C _ S E C A T E U R                                *
- *                                                                           *
- *Object                                                                     *
- *  The file whose name is given by filename has its size truncated to       *
- *  the number of bytes given by where.                                      *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  filename file name                                                   *
- *  IN  where    number of bytes for the file zise                           *
- *                                                                           *
- *****************************************************************************/
-
-int c_secateur(char *filename, int where)
-{
-  int ier;
-
-  if (msg_level <= TRIVIAL)
-    fprintf(stdout, "Truncating %s to \t %d Bytes\n", filename, where);
-
-  ier = truncate(filename, where);
-  if (ier == -1) perror("secateur");
-  return ier;
 }

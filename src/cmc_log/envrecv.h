@@ -28,5 +28,5 @@ byte #      line #     contents
 40            3         entry size
 60            4         message # 1
 60+ENTRYSIZE  5         message # 2
- and so on 
+ and so on
 */

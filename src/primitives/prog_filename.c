@@ -76,22 +76,21 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <rpnmacros.h>
-
-#ifdef WIN32	/*CHC/NRC*/
-#else
 #include <unistd.h>
-#endif
+#include <string.h>
+#include <ctype.h>
+
+#include <rpnmacros.h>
 
 
 #define FNAME_LEN 50
 
-int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix, 
-       int32_t *f_date, int32_t *f_hour, int32_t *f_min, int32_t *f_sec, 
-       int32_t *f_npex, int32_t *f_npey, int32_t *f_num, int32_t *f_numlen, 
+int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
+       int32_t *f_date, int32_t *f_hour, int32_t *f_min, int32_t *f_sec,
+       int32_t *f_npex, int32_t *f_npey, int32_t *f_num, int32_t *f_numlen,
        char *f_unit, F2Cl l1, F2Cl l2, F2Cl l3)
 
-{                                               
+{
 
  int i,len,err,numlen,c1,c2;
  char format[20], units[2], fname[FNAME_LEN];

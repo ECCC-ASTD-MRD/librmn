@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
+#include <ctype.h>
+
 #include <rpnmacros.h>
 
 #define null 0

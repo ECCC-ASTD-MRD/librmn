@@ -67,7 +67,7 @@
 *                PAIR SETTRI - SOLTRI WILL OFFER A BETTER ALTERNATIVE.
 *         - ALL PARAMETERS ARE IN SCM (LEVEL 1).
 *
-*-------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       REAL      P(M)
       REAL      A(M)
@@ -75,7 +75,7 @@
       REAL      C(M)
       REAL      D(M)
 *
-*-------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
 *  DELTA IS A WORKING STORAGE ARRAY OF DIMENSION M
 *  IF THE VECTOR D IS NOT REQUIRED SUBSEQUENTLY THEN THE CALL STATEMENT

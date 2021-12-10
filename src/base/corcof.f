@@ -30,7 +30,8 @@
 *
 *REVISION 001  C. THIBEAULT  -  SEP 79  DOCUMENTATION
 *REVISION 002  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
-*REVISION 003  M. Valin      -  JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
+*REVISION 003  M. Valin      -  JUIN 2015  implicit none + utilisation
+*                                          de Real*8 pour les calculs
 *
 *OBJECT(CORCOF)
 *         _ GIVEN AN INITIAL FIELD, A FORECAST AND A VERIFYING FIELD,
@@ -65,10 +66,10 @@
 *            CC = MEAN(DA*DF) / SQRT(MEAN(DA)**2 * MEAN(DF)**2)
 *           IF DA, DF OR W ARE PATHOLOGICAL, CC IS SET TO 99999.
 *
-*-----------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
 *
-*-------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       REAL *8 R(5), FFI, DA, DF, DW, FTW, X, Y, A, B, C
       integer :: I, J
@@ -115,7 +116,7 @@
       IF (B.EQ.0..OR.C.EQ.0.) RETURN
       CC = A/SQRT(B*C)
 *
-*-------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       RETURN
       END

@@ -20,12 +20,11 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+
 #include "rmnlib.h"
+
 static PackFunctionPointer pfp;
-
-
-
-
 
 
 /******************************************************************************************

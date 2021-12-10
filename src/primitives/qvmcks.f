@@ -19,7 +19,7 @@
 * */
 
        function qvmcks(adresse,nbelem,mode)
-      
+
         integer qvmcks
         integer nbelem, mode
         integer adresse(nbelem)

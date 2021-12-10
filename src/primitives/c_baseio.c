@@ -18,16 +18,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*CoMpIlAtIoN_OpTiOnS ::SX4=-Onooverlap::SX5=-Onooverlap::*/
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
-#include <stdlib.h>
-#include <errno.h>
-#include <stdint.h>
 #include <rpnmacros.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <sys/types.h>
 
-#ifdef WIN32    /*CHC/NRC*/
+#ifdef WIN32
 #include <stdio.h>
 #include <sys/stat.h>
 #include <Winsock2.h>
@@ -41,6 +42,8 @@
 #define S_IROTH _S_IREAD
 #define S_IWOTH _S_IWRITE
 #define WIN32_O_BINARY O_BINARY
+// For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h
+#define PATH_MAX _PATH_MAX
 #else
 #include <sys/time.h>
 #include <unistd.h>
@@ -51,7 +54,16 @@
 #define WIN32_O_BINARY 0
 #endif
 
-// #include <fcntl.h>
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
+
+#ifdef __APPLE__ && __MACH__
+#include <sys/limits.h>
+#endif
+
+#include <fcntl.h>
+#include <errno.h>
 
 /* ETG Normally in <sys/file.h> but forgotten on VPP */
 #if defined (__uxpv__) || defined(SUN)
@@ -64,6 +76,17 @@
 #define FNOM_OWNER
 #include "fnom.h"
 #include "wafile.h"
+
+//! Maximum length of the type string for fnom
+#define FNOM_TYPE_MAX 256
+
+// _SC_HOST_NAME_MAX is defined by POSIX in unistd.h
+#ifdef _SC_HOST_NAME_MAX
+#   define HOST_NAME_MAX _SC_HOST_NAME_MAX
+#else
+    // Provide a fallback for non POSIX compliant platforms
+#   define HOST_NAME_MAX 256
+#endif
 
 #if defined (NEC)
 #define tell(fd) lseek(fd,0,1)
@@ -81,6 +104,18 @@
 #define tell64(fd) lseek(fd,0,1)
 #endif
 
+#define swap_word_endianness(mot) {\
+    register uint32_t tmp = (uint32_t)mot;\
+    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8);\
+}
+
+#define swap_buffer_endianness(buff, nwds) {\
+    uint32_t *buf=(uint32_t *)buff ;\
+    register int32_t nwords=nwds ;\
+    while(nwords--) { swap_word_endianness(*buf); buf++; };\
+}
+
+
 void static dump_file_entry(int i);
 static void reset_file_entry(int i);
 static int find_file_entry(char *caller, int iun);
@@ -96,7 +131,7 @@ static void wa_page_read(int fd,uint32_t *buf,unsigned int adr,int nmots,int ind
 static void wa_page_write(int fd,uint32_t *buf,unsigned int adr,int nmots,int indf);
 static void qqcwawr(uint32_t *buf,unsigned int ladr,int lnmots,int indf);
 static void qqcward(uint32_t *buf,unsigned int ladr,int  lnmots,int indf);
-static INT_32 qqcnblk(int lfd,int indf);
+static int32_t qqcnblk(int lfd,int indf);
 static void arrayCopy(uint32_t *src, uint32_t *dest, int nwords);
 static void arrayZero(uint32_t *dest, int nwords);
 static int fnom_rem_connect(int ind, char* remote_host);
@@ -132,12 +167,13 @@ static char *LOCALDIR = "./";
 
 //! Kept only for backward compatibility; only returns 0
 //
-//! @param[in] unit Unit number, ignored
 //! @return Always zero
 //
 //! @deprecated
-int c_fretour(int iun)
-{
+int c_fretour(
+    //! [in] Unit number, ignored
+    int iun
+) {
     return(0);
 }
 //! @copydoc c_fretour
@@ -236,28 +272,70 @@ static int find_file_entry(char *caller, int iun)
     }
 
     fprintf(stderr,"%s error: unit %d is not associated with any file\n",caller,iun);
-    return(-1);
+    return -1;
 }
 
 
-//! Open a file and make the connection with a unit number.  Process record file attributes.
-//
-//! @param[in] iun  Unit number
-//! @param[in] nom  String containing the name of the file
-//! @param[in] type String that contains the desired file attributes
-//! @param[in] lrec Length of record(must be 0 except if type contains D77)
-//
-//! @return 0 if connection is successful, non-zero otherwise.
+//! Open a file and make the connection with a unit number and process record file attributes
+//! \return 0 if connection is successful, non-zero otherwise.
 //
 //! If name is all in upper case it will be converted to lower case.
 //! c_fnom is intended to be called from C. fnom is intended to be called from Fortran.
-int c_fnom(int *iun, char *nom, char *type, int lrec)
-{
-  int liun,ier = 0, minus = 0, majus = 0, lng, i, j, pid, lngt, junk, mode;
-  char *c, *c2, *tmpdir, *cmcarc, *pos2p;
-  char remote_mach[256];
-  char nom2[1024];
-  PTR_AS_INT ptr_as_int;
+int c_fnom(
+    //! [in] Unit number
+    int *iun,
+    //! [in] File path
+    //! - If the file name contains the special character @ then it refers to a CMCARC file.
+    //!   The first part of the name (up to the @ character) is then recognized to be the actual
+    //!   file name and the second part of the name (after the @ character) refers to the sub-file
+    //!   name within the CMCARC file.
+    //! - If the file name ends with ":" (column) and the type argument contains the attribute
+    //!   "remote" then the file is perceived to be remote and to reside on another computer.
+    //!   The remote attribute works only with "word adressable" (waread, wawrit) type of file as
+    //!   the RPN standard file and BURP files are. It then instructs the package to perform I/O
+    //!   with the use of UNIX sockets instead of conventional NFS. This feature could be useful
+    //!   for files that are not accessible via NFS.
+    //! - If the file name is all capital letters, it will be down-cased. 
+    char *nom,
+    //! [in] String that contains the desired file attributes
+    //! - 'STREAM' : BYTE STREAM file type (a la C)
+    //! - 'RND' : random type (word addressable, XDF, BURP, RPN standard file ...)
+    //! - 'FTN' : FORTRAN type ('SEQ' is implicit)
+    //! - 'FMT' : file to be read with FORMAT (FTN or D77 only)
+    //! - 'D77' : direct access file (in FORTRAN ANSI 77 sense). READ/WRITE(...,REC= ,...)
+    //! - 'STD' : RPN standard file
+    //! - 'SEQ' : sequential file (not necessarily FTN)
+    //! - 'OLD' : file must already exist
+    //! - 'SCRATCH' : temporarily file. The name will be generated by fnom based on fname
+    //! - ' APPEND' : file to be opened in append mode. Doesn't work or not implemented ?
+    //! - 'R/W' : file to be opened in read/write mode
+    //! - 'R/O' : file to be opened in read only mode
+    //! - 'REMOTE' : remote file (file name must end with ':', all I/O will be performed using UNIX sockets) 
+    //!
+    //! Attribute can be combined as shown blow:
+    //!       +--------STREAM-------+
+    //!       |                     |
+    //!       +---------RND---------+
+    //!       |                     |
+    //!       +--FTN--+  +--FMT--+  |
+    //!       |       |  |       |  |
+    //!       +--D77--+--+-------+--+                 +--APPEND--+
+    //!       |                     |                 |          |
+    //!       |          +--RND--+  |  +----OLD----+  +---R/W----+
+    //!       |          |       |  |  |           |  |          |
+    //!    >--+---STD----+--SEQ--+--+--+-----------+--+---R/O----+--+----->
+    //!                  |       |     |                            |
+    //!                  +--FTN--+     +--SCRATCH-------------------+
+    char *type,
+    //! [in] Length of record (must be 0 except if type contains D77)
+    int lrec
+) {
+    int liun,ier = 0, minus = 0, majus = 0, lng, i, j, pid, lngt, junk, mode;
+    char *c, *c2, *tmpdir, *cmcarc, *pos2p;
+
+    char remote_mach[HOST_NAME_MAX];
+    char nom2[PATH_MAX];
+    intptr_t ptr_as_int;
 
     if (fnom_initialized == 0) {
         //  Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file
@@ -280,9 +358,9 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         fnom_initialized = 1;
     }
 
-    if (((PTR_AS_INT) iun > 0) && ((PTR_AS_INT) iun < 1000)) {
+    if (((intptr_t)iun > 0) && ((intptr_t)iun < 1000)) {
         // An integer value has been passed to c_fnom as iun
-        ptr_as_int = (PTR_AS_INT) iun ;
+        ptr_as_int = (intptr_t)iun ;
         liun = ptr_as_int;
     } else {
         // a pointer has been passed to c_fnom as iun
@@ -291,17 +369,17 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         }
         if (*iun == -1) {
             fprintf(stderr,"C_FNOM ERROR: no more units available\n");
-            return(-1);
+            return -1;
         }
         liun = *iun;
     }
 
-    if ((liun ==6) && ((strcmp(nom, "$OUT") == 0) || (strcmp(nom, "$OUTPUT") == 0) ||
+    if ((liun == 6) && ((strcmp(nom, "$OUT") == 0) || (strcmp(nom, "$OUTPUT") == 0) ||
                        (strcmp(nom, "OUTPUT") == 0) || (strcmp(nom, "output") == 0))) {
         stdoutflag = 1;
         return(0);
     }
-    if ((liun ==5) && ((strcmp(nom, "$IN") == 0) || (strcmp(nom, "$INPUT") == 0) ||
+    if ((liun == 5) && ((strcmp(nom, "$IN") == 0) || (strcmp(nom, "$INPUT") == 0) ||
                        (strcmp(nom, "INPUT") == 0) || (strcmp(nom, "input") == 0))) {
         stdinflag = 1;
         return(0);
@@ -311,7 +389,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         c = nom;
         c2 = nom2;
         nom2[strlen(nom)] = '\0';
-        for (j = 0; j < strlen(nom) && j < 1024; j++, c++, c2++) {
+        for (j = 0; j < strlen(nom) && j < PATH_MAX; j++, c++, c2++) {
             if (islower(*c)) {
                 minus = 1;
                 *c2 = *c;
@@ -344,7 +422,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
     for (i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == liun) {
             fprintf(stderr, "c_fnom error: unit %d is already in use\n", liun);
-            return(-1);
+            return -1;
         }
     }
     for (i = 0; i < MAXFILES; i++) {
@@ -355,12 +433,12 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
     }
     if (i == MAXFILES) {
         fprintf(stderr, "c_fnom error: too many files, file table is full\n");
-        return(-1);
+        return -1;
     }
 
     // Record file attributes
     lngt = strlen(type) + 1;
-    FGFDT[i].file_type = malloc(lngt+1);
+    FGFDT[i].file_type = malloc(lngt + 1);
     strncpy(FGFDT[i].file_type, type, lngt);
     FGFDT[i].attr.stream = 0;
     FGFDT[i].attr.std = 0;
@@ -437,7 +515,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
         if (strstr(nom,"/")) {
             fprintf(stderr, "c_fnom error: / is illegal in scratch file name\n");
             fprintf(stderr, "              specified name was %s\n", nom);
-            return(-1);
+            return -1;
         }
         pid = getpid();
         tmpdir = getenv("TMPDIR");
@@ -474,7 +552,7 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
                 FGFDT[i].attr.read_only = 0;
             }
         } else {
-            FGFDT[i].attr.remote=0;
+            FGFDT[i].attr.remote = 0;
         }
         c = nom;
         if (nom[0] == '@') {
@@ -514,139 +592,142 @@ int c_fnom(int *iun, char *nom, char *type, int lrec)
                 }
             }
             if (majus && minus) {
-                strncpy(FGFDT[i].file_name,nom,lng);
+                strncpy(FGFDT[i].file_name, nom, lng);
             }
         }
     }
-/*
- *   verify for a cmcarc type of file (filename@subfilename)
- */
-  if ((cmcarc = strchr(FGFDT[i].file_name,'@')) && !(FGFDT[i].attr.remote)) {
-     FGFDT[i].subname = malloc(lng+1);
-     strcpy(FGFDT[i].subname,cmcarc+1);
-     *cmcarc = '\0';
-     FGFDT[i].attr.old = 1;  /* file must exist and be read/only */
-     FGFDT[i].attr.read_only = 1;
+
+
+    // Verify for a cmcarc type of file (filename@subfilename)
+    if ((cmcarc = strchr(FGFDT[i].file_name,'@')) && !(FGFDT[i].attr.remote)) {
+        FGFDT[i].subname = malloc(lng+1);
+        strcpy(FGFDT[i].subname,cmcarc+1);
+        *cmcarc = '\0';
+        /* file must exist and be read/only */
+        FGFDT[i].attr.old = 1;
+        FGFDT[i].attr.read_only = 1;
+    } else {
+        FGFDT[i].subname = NULL;
+    }
+
+    // Check for @file (@filename)
+    if (nom[0]=='@') {
+        char filename[PATH_MAX];
+        strcpy(filename,FGFDT[i].file_name);
+
+        if (access(filename,F_OK) == -1) {
+            /* no local file */
+            sprintf(filename, "%s/datafiles/constants/%s", AFSISIO, FGFDT[i].file_name);
+
+            if (access(filename,F_OK)  == -1) {
+                /* not under AFSISIO */
+                sprintf(filename,"%s/data/%s",ARMNLIB,FGFDT[i].file_name);
+
+                if (access(filename,F_OK)  == -1) {
+                    /* not under ARMNLIB either */
+                    return -1;
+                }
+            }
+        }
+        free(FGFDT[i].file_name);
+        FGFDT[i].file_name = malloc(strlen(filename) + 10);
+        strcpy(FGFDT[i].file_name, filename);
+        lng = strlen(filename);
      }
-  else
-     FGFDT[i].subname = NULL;
-/*
- *   check for @file (@filename)
- */
-  if (nom[0]=='@') {
-     char filename[1024];
-     strcpy(filename,FGFDT[i].file_name);
 
-     if (access(filename,F_OK) == -1) {         /* no local file */
-       sprintf(filename,"%s/datafiles/constants/%s",AFSISIO,FGFDT[i].file_name);
-
-       if (access(filename,F_OK)  == -1) {                /* not under AFSISIO */
-          sprintf(filename,"%s/data/%s",ARMNLIB,FGFDT[i].file_name);
-
-          if (access(filename,F_OK)  == -1) {             /* not under ARMNLIB either */
-             return(-1);
-             }
-          }
-       }
-     free(FGFDT[i].file_name);
-     FGFDT[i].file_name = malloc(strlen(filename)+10);
-     strcpy(FGFDT[i].file_name,filename);
-     lng=strlen(filename);
-     }
-
-  if ((FGFDT[i].attr.old || FGFDT[i].attr.read_only) && ! FGFDT[i].attr.remote)
-     if (!f77name(existe)(FGFDT[i].file_name,(F2Cl) strlen(FGFDT[i].file_name))) {
-        fprintf(stderr,"c_fnom error: file %s should exist and does not\n",FGFDT[i].file_name);
-        junk=c_fclos(liun);
-        return(-1);
+    if ((FGFDT[i].attr.old || FGFDT[i].attr.read_only) && ! FGFDT[i].attr.remote) {
+        if (!f77name(existe)(FGFDT[i].file_name,(F2Cl) strlen(FGFDT[i].file_name))) {
+            fprintf(stderr,"c_fnom error: file %s should exist and does not\n",FGFDT[i].file_name);
+            junk = c_fclos(liun);
+            return -1;
         }
-/*
- *   FORTRAN files must be opened by a FORTRAN module
- */
-  ier = 0;
-  if (FGFDT[i].attr.ftn) {
-     int32_t iun77=liun;
-     int32_t lrec77=lrec;
-     int32_t rndflag77 = FGFDT[i].attr.rnd;
-     int32_t unfflag77 = FGFDT[i].attr.unf;
-     int32_t lmult = D77MULT;
-     ier = open64(FGFDT[i].file_name,O_RDONLY | WIN32_O_BINARY);
-     if (ier <=0) {
-        FGFDT[i].file_size = -1;
-        FGFDT[i].eff_file_size = -1;
+    }
+
+    // FORTRAN files must be opened by a FORTRAN module
+    ier = 0;
+    if (FGFDT[i].attr.ftn) {
+        int32_t iun77 = liun;
+        int32_t lrec77 = lrec;
+        int32_t rndflag77 = FGFDT[i].attr.rnd;
+        int32_t unfflag77 = FGFDT[i].attr.unf;
+        int32_t lmult = D77MULT;
+        ier = open64(FGFDT[i].file_name, O_RDONLY | WIN32_O_BINARY);
+        if (ier <= 0) {
+            FGFDT[i].file_size = -1;
+            FGFDT[i].eff_file_size = -1;
+        } else {
+            LLSK dimm = 0;
+            dimm = LSEEK(ier,dimm,L_XTND);
+            FGFDT[i].file_size = dimm / sizeof(uint32_t);
+            FGFDT[i].eff_file_size = dimm / sizeof(uint32_t);
+            close(ier);
         }
-     else {
-        LLSK dimm=0;
-        dimm = LSEEK(ier,dimm,L_XTND);
-        FGFDT[i].file_size = dimm / sizeof(uint32_t);
-        FGFDT[i].eff_file_size = dimm / sizeof(uint32_t);
-        close(ier);
-        }
-     ier = f77name(qqqf7op)(&iun77, FGFDT[i].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
-  }
-  else if (FGFDT[i].attr.stream || FGFDT[i].attr.std || FGFDT[i].attr.burp || FGFDT[i].attr.wa ||
-          (FGFDT[i].attr.rnd && !FGFDT[i].attr.ftn) ) {
-     ier = c_waopen2(liun);
-     FGFDT[i].attr.wa = 0;   /* will be set by waopen */
-  }
+        ier = f77name(qqqf7op)(&iun77, FGFDT[i].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
+    } else if (FGFDT[i].attr.stream || FGFDT[i].attr.std || FGFDT[i].attr.burp || FGFDT[i].attr.wa ||
+               (FGFDT[i].attr.rnd && !FGFDT[i].attr.ftn) ) {
+        ier = c_waopen2(liun);
+        /* will be set by waopen */
+        FGFDT[i].attr.wa = 0;
+    }
 
-  if (FGFDT[i].attr.remote) ier = fnom_rem_connect(i,remote_mach);
+    if (FGFDT[i].attr.remote) ier = fnom_rem_connect(i, remote_mach);
 
-  if (ier == 0) FGFDT[i].open_flag = 1;
-  if (ier < 0) junk=c_fclos(liun);
-  return(ier<0?-1:0);
-}
-
-int32_t f77name(fnom)(int32_t *iun,char *nom,char *type,int32_t *flrec,F2Cl l1,F2Cl l2)
-{
-   int lrec,lng,tmp,liun=*iun;
-   char filename[1025],filetype[257];
-
-   lrec = *flrec;
-
-   lng = (l1 <= 1024) ? l1 : 1024;
-   strncpy(filename,nom,lng);        /*  copy filename into a C string  */
-   filename[lng] = '\0';
-
-   while ((filename[lng-1] == ' ') && (lng > 1)) {  /* strip trailing blanks */
-      lng--;
-      filename[lng] = '\0';
-      }
-
-   lng = (l2 <= 256) ? l2 : 256;
-   strncpy(filetype,type,lng);   /*  copy file type into a C string  */
-   filetype[lng] = '\0';
-
-   while ((filetype[lng-1] == ' ') && (lng > 1)) { /* strip trailing blanks */
-      lng--;
-      filetype[lng] = '\0';
-      }
-
-   tmp=(c_fnom(&liun,filename,filetype,lrec));
-   if(*iun==0) *iun = liun;
-   return (tmp);
+    if (ier == 0) FGFDT[i].open_flag = 1;
+    if (ier < 0) junk = c_fclos(liun);
+    return ier < 0 ? -1 : 0;
 }
 
 
+int32_t f77name(fnom)(
+    int32_t *iun,
+    char *nom,
+    char *type,
+    int32_t *flrec,
+    F2Cl l1,
+    F2Cl l2
+) {
+    int tmp;
+    int lrec = *flrec;
+    int liun = *iun;
+    char filename[PATH_MAX + 1];
+    char filetype[FNOM_TYPE_MAX + 1];
 
-/****************************************************************************
-*                            C _ F C L O S,   F C L O S                     *
-*****************************************************************************
-*
-***functions c_fclos and fclos
-*
-*OBJECT: Close file associated with unit iun.
-*        Returns zero
-*        and non-zero otherwise.
-*
-*ARGUMENTS: in iun   unit number
-*
-*RETURNS: zero if the connection is successful, non-zero
-*         otherwise
-*
-*/
-int c_fclos(int iun)
-{
+    int lng = (l1 <= PATH_MAX) ? l1 : PATH_MAX;
+
+    /*  copy filename into a C string  */
+    strncpy(filename, nom, lng);
+    filename[lng] = '\0';
+
+    while ((filename[lng-1] == ' ') && (lng > 1)) {
+        /* strip trailing blanks */
+        lng--;
+        filename[lng] = '\0';
+    }
+
+    lng = (l2 <= FNOM_TYPE_MAX) ? l2 : FNOM_TYPE_MAX;
+    /*  copy file type into a C string  */
+    strncpy(filetype, type, lng);
+    filetype[lng] = '\0';
+
+    while ((filetype[lng-1] == ' ') && (lng > 1)) {
+        /* strip trailing blanks */
+        lng--;
+        filetype[lng] = '\0';
+    }
+
+    tmp = c_fnom(&liun, filename, filetype, lrec);
+    if (*iun == 0) *iun = liun;
+    return tmp;
+}
+
+
+
+//! Close a file
+//! \return 0 on success, non-zero otherwise
+int c_fclos(
+    //! Unit number of the file to close
+    int iun
+) {
    int i,ier;
    int32_t iun77;
 
@@ -665,7 +746,7 @@ int c_fclos(int iun)
 
    if ((i=find_file_entry("c_fclos",iun)) < 0) return(i);
    iun77 = iun;
-   ier=0;
+   ier = 0;
    if (FGFDT[i].open_flag){
       if (FGFDT[i].attr.ftn)
          ier = f77name(ftnclos)(&iun77);
@@ -674,53 +755,44 @@ int c_fclos(int iun)
       }
 
    reset_file_entry(i);
-   return(ier);
+   return ier;
 }
+
 
 int32_t f77name(fclos)(int32_t *fiun)
 {
-   int iun,ier;
-   iun = *fiun;
-   ier=c_fclos(iun);
-   return(ier);
+    return c_fclos(*fiun);
 }
 
 
-/****************************************************************************
-*                          C _ Q Q Q F S C R                                *
-*****************************************************************************
-*
-***function c_qqqfscr
-*
-*OBJECT: Generates a scratch unit number.
-*
-*ARGUMENTS: in type  string that contains the file attributes (see FNOM)
-*
-*RETURNS: the scratch unit number
-*
-*/
-static int c_qqqfscr(char *type)
-{
-   int iun,i,j,inused,start;
+//! Generate unit number
+//! \return Valid unit number
+static int c_qqqfscr(
+    //! File attributes (see FNOM)
+    char *type
+) {
+    int iun, inused, start;
 
-   iun = -1;
-   if (strstr(type,"FTN") || strstr(type,"ftn") || strstr(type,"D77") || strstr(type,"d77"))
-      start = 99;
-   else
-      start = 999;
-   for (j=start; j>10; j--) {
-      inused = 0;
-      for (i=0; i<MAXFILES; i++)
-         if (FGFDT[i].iun == j) {
-            inused = 1;
-            break;
+    iun = -1;
+    if (strstr(type, "FTN") || strstr(type, "ftn") || strstr(type, "D77") || strstr(type, "d77")) {
+            start = 99;
+    } else {
+        start = 999;
+    }
+    for (int j = start; j > 10; j--) {
+        inused = 0;
+        for (int i = 0; i < MAXFILES; i++) {
+            if (FGFDT[i].iun == j) {
+                inused = 1;
+                break;
             }
-      if (! inused) {
-         iun = j;
-         break;
-         }
-      }
-   return(iun);
+        }
+        if (! inused) {
+            iun = j;
+            break;
+        }
+    }
+    return iun;
 }
 
 
@@ -836,7 +908,7 @@ static int qqcclos(int indf)
 *
 ***function c_waopen
 *
-*OBJECT: Opens a uint32_t addressable file.
+*OBJECT: Opens a word addressable file.
 *
 *ARGUMENTS: in iun   unit number
 *
@@ -859,7 +931,7 @@ int c_waopen2(int iun)   /* open unit iun for WORD ADDRESSABLE access */
             }
       if (i == MAXFILES) {
         fprintf(stderr,"c_waopen error: file table is full\n");
-        return(-1);
+        return -1;
         }
 /*
  *  file is not associated with fnom, file name is set to Wafileiun
@@ -872,7 +944,7 @@ int c_waopen2(int iun)   /* open unit iun for WORD ADDRESSABLE access */
    else {
       if (FGFDT[i].attr.rnd == 0) {
          fprintf(stderr,"c_waopen error: waopen needs a file with the RND or WA type\n");
-         return(-1);
+         return -1;
       }
       if (FGFDT[i].open_flag) {
          if (FGFDT[i].attr.wa == 1){ /* fnom opens the file but does not set wa flag */
@@ -907,7 +979,7 @@ void f77name(waopen)(int32_t *fiun)
 *
 ***function c_waclos
 *
-*OBJECT: Closes a uint32_t addressable file.
+*OBJECT: Closes a word addressable file.
 *
 *ARGUMENTS: in iun   unit number
 *
@@ -924,7 +996,7 @@ int c_waclos2(int iun)
 
    if (! FGFDT[i].open_flag) {
       fprintf(stderr,"c_waclos error: unit %d is not open\n",iun);
-      return(-1);
+      return -1;
       }
 
    ier = qqcclos(i);
@@ -953,7 +1025,7 @@ void f77name(waclos)(int32_t *fiun)
 *
 ***function c_wawrit, c_wawrit2, wawrit, wawrit2
 *
-*OBJECT: Writes in a uint32_t addressable. c_wawrit2 and wawrit2 are functions
+*OBJECT: Writes in a word addressable. c_wawrit2 and wawrit2 are functions
 *        returning an error code.
 *
 *ARGUMENTS: in iun    unit number
@@ -965,57 +1037,61 @@ void f77name(waclos)(int32_t *fiun)
 *
 */
 
-void c_wawrit(int iun,void *buf,unsigned int adr,int nmots)
-{
-  c_wawrit2(iun,buf,adr,nmots);
+void c_wawrit(int iun, void *buf, unsigned int adr, int nmots) {
+  c_wawrit2(iun, buf, adr, nmots);
 }
-int c_wawrit2(int iun,void *buf,unsigned int adr,int nmots)
-{
+
+
+int c_wawrit2(int iun,void *buf,unsigned int adr,int nmots) {
 #define WA_HOLE 2048
-   int i;
-   uint32_t scrap[WA_HOLE];
-   uint32_t *bufswap = (uint32_t *) buf;
+    int i;
+    uint32_t scrap[WA_HOLE];
+    uint32_t *bufswap = (uint32_t *) buf;
 
-   if ((i=find_file_entry("c_wawrit",iun)) < 0) return(i);
+    if ((i = find_file_entry("c_wawrit", iun)) < 0) return i;
 
-   if (! FGFDT[i].open_flag) {
-      fprintf(stderr,"c_wawrit error: unit %d is not open\n",iun);
-      return(-1);
-      }
-   if ( FGFDT[i].attr.read_only != 0 ) {
-      fprintf(stderr,"c_wawrit error: unit %d ,file= %s is READ ONLY\n",
-                     iun,FGFDT[i].file_name);
-      return(-1);
-      }
-   if ( adr > FGFDT[i].file_size+WA_HOLE ) {
-      fprintf(stderr,"c_wawrit error: attempt to write beyond EOF+%d\n",WA_HOLE);
-      fprintf(stderr,"                unit = %d, adr=%u > file_size=%d\n",
-                     iun,adr,FGFDT[i].file_size);
-      fprintf(stderr,"                filename=%s\n",FGFDT[i].file_name);
-      exit(1);
-      }
-   if ( adr > FGFDT[i].file_size+1 ){
-      qqcwawr(scrap,FGFDT[i].file_size+1,adr-FGFDT[i].file_size,i);
-      }
-   if (*little_endian) swap_buffer_endianness(bufswap,nmots)
-   qqcwawr((uint32_t *)buf,adr,nmots,i);
-   if (*little_endian) swap_buffer_endianness(bufswap,nmots)
-   return( nmots>0 ? nmots : 0);
+    if (! FGFDT[i].open_flag) {
+        fprintf(stderr, "c_wawrit error: unit %d is not open\n", iun);
+        return -1;
+    }
+    if ( FGFDT[i].attr.read_only != 0 ) {
+        fprintf(stderr, "c_wawrit error: unit %d , file= %s is READ ONLY\n", iun, FGFDT[i].file_name);
+        return -1;
+    }
+    if ( adr > FGFDT[i].file_size+WA_HOLE ) {
+        fprintf(stderr, "c_wawrit error: attempt to write beyond EOF+%d\n", WA_HOLE);
+        fprintf(stderr, "                unit = %d, adr=%u > file_size=%d\n", iun, adr, FGFDT[i].file_size);
+        fprintf(stderr, "                filename=%s\n", FGFDT[i].file_name);
+        exit(1);
+    }
+    if ( adr > FGFDT[i].file_size + 1 ){
+        qqcwawr(scrap, FGFDT[i].file_size + 1, adr-FGFDT[i].file_size, i);
+    }
+    if (*little_endian) swap_buffer_endianness(bufswap, nmots)
+    qqcwawr((int32_t *)buf, adr, nmots, i);
+    if (*little_endian) swap_buffer_endianness(bufswap, nmots)
+
+    return  nmots > 0 ? nmots : 0;
 }
-void f77name(wawrit)(int32_t *fiun,void *buf,uint32_t *fadr,int32_t *fnmots){
-     f77name(wawrit2)(fiun,buf,fadr,fnmots);
-     }
-int32_t f77name(wawrit2)(int32_t *fiun,void *buf,uint32_t *fadr,int32_t *fnmots)
-{
-   int iun,adr,nmots;
-   iun = *fiun; adr = *fadr; nmots = *fnmots;
+
+
+void f77name(wawrit)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) {
+    f77name(wawrit2)(fiun, buf, fadr, fnmots);
+}
+
+
+int32_t f77name(wawrit2)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) {
+    int iun = *fiun;
+    int adr = *fadr;
+    int nmots = *fnmots;
 #if defined (ALL64)
-   if ( adr > 0 )
-      return(c_wawrit2(iun,buf,(2*adr)-1,nmots*2));
-   else
-      return(c_wawrit2(iun,buf,adr,nmots));
+    if ( adr > 0 ) {
+        return c_wawrit2(iun, buf, (2*adr)-1, nmots*2);
+    } else {
+        return c_wawrit2(iun, buf, adr, nmots);
+    }
 #else
-   return(c_wawrit2(iun,buf,adr,nmots));
+    return c_wawrit2(iun, buf, adr, nmots);
 #endif
 }
 
@@ -1026,7 +1102,7 @@ int32_t f77name(wawrit2)(int32_t *fiun,void *buf,uint32_t *fadr,int32_t *fnmots)
 *
 ***function c_waread, c_waread2, waread, waread2
 *
-*OBJECT: Read from a uint32_t addressable file.
+*OBJECT: Read from a word addressable file.
 *
 *ARGUMENTS: in  iun     unit number
 *           out buf     will contain the data read
@@ -1059,7 +1135,7 @@ int c_waread2(int iun,void *buf,unsigned int adr,int nmots)
 
    if (! FGFDT[i].open_flag) {
       fprintf(stderr,"c_waread error: unit %d is not open\n",iun);
-      return(-1);
+      return -1;
       }
 
    if ( adr > FGFDT[i].eff_file_size+2 ) return(-2);
@@ -1110,7 +1186,7 @@ int32_t f77name(waread2)(int32_t *fiun,void *buf,uint32_t *fadr,
 *NOTE: Gives the size of any file that can be passed to fnom.
 *
 */
-INT_32 c_wasize(int iun)
+int32_t c_wasize(int iun)
 {
    int i;
    uint32_t n;
@@ -1153,7 +1229,7 @@ int32_t f77name(wasize)(int32_t *fiun)  /* return file size in FORTRAN WORDS */
 *NOTE: It uses c_wasize.
 *
 */
-INT_32 c_numblks(int iun)
+int32_t c_numblks(int iun)
 {
    int i;
    int n;
@@ -1171,43 +1247,32 @@ int32_t f77name(numblks)(int32_t *fiun)     /* return file size in KiloBytes */
 }
 
 
+//! Check if file exists
+//!  \return 1 if file exists, 0 otherwise
+int32_t f77name(existe)(
+    //! [in] File path
+    char *nom,
+    F2Cl llng
+) {
+    int l2, lng = llng;
+    char filename[PATH_MAX + 1];
 
-/****************************************************************************
-*                             E X I S T E                                   *
-*****************************************************************************
-*
-***function existe
-*
-*OBJECT: Checks if file exists.
-*
-*ARGUMENTS: in  nom  name of the file
-*           in  lng  length of name
-*
-*RETURNS: one if the file exists,
-*         zero if it doesn't.
-*
-*
-*/
-int32_t f77name(existe)(char *nom, F2Cl llng)
-{
-   int l2, lng = llng;
-   char filename[257];
+    l2 = (lng <= PATH_MAX) ? lng : PATH_MAX;
+    strncpy(filename, nom, l2);
+    filename[lng] = '\0';
 
-   l2 = (lng <= 256) ? lng : 256;
-   strncpy(filename, nom, l2);
-   filename[lng] = '\0';
+    while ((filename[lng-1] == ' ') && (lng > 1)) {
+        lng--;
+        filename[lng] = '\0';
+    }
 
-   while ((filename[lng-1] == ' ') && (lng > 1)) {
-      lng--;
-      filename[lng] = '\0';
-      }
-
-   if (access(filename, F_OK) == -1)
-      /* file does not exist */
-      return 0;
-   else
-      /* file exists */
-      return 1;
+    if (access(filename, F_OK) == -1) {
+        /* file does not exist */
+        return 0;
+    } else {
+        /* file exists */
+        return 1;
+    }
 }
 
 
@@ -1293,7 +1358,7 @@ void f77name(checda)(int32_t *iun)
 *ARGUMENTS: in  iun      unit number
 *           out bufptr   will contain the data read
 *           in  ns       number of words to read
-*           in  is       uint32_t to start from
+*           in  is       word to start from
 *
 */
 void c_readda(int iun,int *bufptr,int ns,int is)
@@ -1338,7 +1403,7 @@ void f77name(readda)(int32_t *iun,int32_t *bufptr,int32_t *ns,int32_t *is)
 *ARGUMENTS: in  iun     unit number
 *           in  bufptr  will contain the data read
 *           in  ns      number of words to write
-*           in  is      uint32_t to start from
+*           in  is      word to start from
 *
 */
 void c_writda(int iun,int *bufptr,int ns,int is)
@@ -1395,11 +1460,11 @@ int c_getfdsc(int iun) {
 
    if (! FGFDT[i].attr.stream) {
       fprintf(stderr,"c_getfdsc error: unit %d does not have the STREAM attribute\n",iun);
-      return(-1);
+      return -1;
       }
    if (! FGFDT[i].open_flag) {
       fprintf(stderr,"c_getfdsc error: unit %d is not open\n",iun);
-      return(-1);
+      return -1;
       }
 
    return(FGFDT[i].fd) ;
@@ -1511,7 +1576,9 @@ void c_sqeoi(int iun) {
    if (fd <= 0) return;
    lseek(fd,0,L_XTND);
 }
-void f77name(sqeoi)(int32_t *iun) { c_sqeoi((int) *iun) ; }
+void f77name(sqeoi)(int32_t *iun) {
+    c_sqeoi((int) *iun);
+}
 
 /**************************************************************************
 *                     C _ S Q G E T W ,   S Q G E T W                     *
@@ -1529,27 +1596,28 @@ void f77name(sqeoi)(int32_t *iun) { c_sqeoi((int) *iun) ; }
 *         or a negative or null number otherwise.
 *
 */
-int c_sqgetw(int iun, uint32_t *bufptr, int nmots) {
-   int nlu, alu, alire;
-   int fd ;
+int c_sqgetw(int iun, int32_t *bufptr, int nmots) {
+    int fd;
 
-   alu=0; nlu=1;
-   alire = nmots * sizeof(uint32_t);
+    int alu = 0;
+    int nlu = 1;
+    int alire = nmots * sizeof(int32_t);
 
-   fd = c_getfdsc(iun);
-   if (fd <= 0) return(fd);
+    fd = c_getfdsc(iun);
+    if (fd <= 0) return fd;
 
-   while (alire && (nlu > 0)) {
-     nlu = read(fd,bufptr,alire);
-     alire -= nlu;
-     alu += nlu;
-     bufptr += (nlu / sizeof(uint32_t));
-   }
-   return( (alire == 0) ? alu/sizeof(uint32_t) : -1);
+    while (alire && (nlu > 0)) {
+        nlu = read(fd, bufptr, alire);
+        alire -= nlu;
+        alu += nlu;
+        bufptr += (nlu / sizeof(int32_t));
+    }
+    return (alire == 0) ? alu / sizeof(int32_t) : -1;
 }
+
+
 int32_t f77name(sqgetw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
-   int mult = sizeof(int32_t) / sizeof(uint32_t);
-   return(c_sqgetw((int) *iun, (uint32_t *) bufptr, (int) (*nmots * mult)));
+   return c_sqgetw((int) *iun, (uint32_t *) bufptr, *nmots);
 }
 
 /***************************************************************************
@@ -1568,27 +1636,25 @@ int32_t f77name(sqgetw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
 *         or a negative or null number otherwise.
 *
 */
-int c_sqputw(int iun, uint32_t *bufptr, int nmots) {
-   int necrit, aecrit, aecrire ;
-   int fd ;
+int c_sqputw(int iun, int32_t *bufptr, int nmots) {
+    int fd;
 
-   aecrit = 0;
-   aecrire = sizeof(uint32_t) * nmots;
-   necrit = 1;
-   fd = c_getfdsc(iun);
-   if (fd <= 0) return(fd);
+    int aecrit = 0;
+    int aecrire = sizeof(int32_t) * nmots;
+    int necrit = 1;
+    fd = c_getfdsc(iun);
+    if (fd <= 0) return fd;
 
-   while (aecrire && (necrit > 0)) {
-     necrit = write(fd,bufptr,aecrire);
-     aecrire -= necrit;
-     aecrit += necrit;
-     bufptr += (necrit / sizeof(uint32_t));
-   }
-   return( (aecrire == 0) ? necrit/sizeof(uint32_t) : -1);
+    while (aecrire && (necrit > 0)) {
+        necrit = write(fd,bufptr,aecrire);
+        aecrire -= necrit;
+        aecrit += necrit;
+        bufptr += (necrit / sizeof(uint32_t));
+    }
+    return (aecrire == 0) ? necrit/sizeof(uint32_t) : -1;
 }
 int32_t f77name(sqputw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
-   int mult = sizeof(int32_t) / sizeof(uint32_t);
-   return(c_sqputw((int) *iun, (uint32_t *) bufptr, (int) (*nmots * mult)));
+   return(c_sqputw((int) *iun, bufptr, *nmots ));
 }
 /***************************************************************************
 *                     C _ S Q G E T S ,   S Q G E T S                      *
@@ -1822,7 +1888,7 @@ static void get_new_page(int ind)
 *
 ***function wa_pages_flush
 *
-*OBJECT: Flushes all pages of a uint32_t addressable file.
+*OBJECT: Flushes all pages of a word addressable file.
 *
 *ARGUMENTS: in ind   index of the wafile
 *
@@ -1872,7 +1938,7 @@ static long long filepos(int indf)
   HEADER_CMCARC *cmcarc_file;
   int nblu,lng,found=0,version=0,tail_offset;
   unsigned int nt,nd;
-  INT_64 nt64, nd64, lng64, nblu64, pos64, retour;
+  int64_t nt64, nd64, lng64, nblu64, pos64, retour;
 
 
   lseek(FGFDT[indf].fd,(off_t) 0,L_SET);
@@ -1890,7 +1956,7 @@ static long long filepos(int indf)
         }
       else {
         fprintf(stderr,"%s is not a CMCARC type file\n",FGFDT[indf].file_name);
-        return(-1);
+        return -1;
         }
     }
     cmcarc_file = (HEADER_CMCARC *) &sign[0];
@@ -1910,7 +1976,7 @@ static long long filepos(int indf)
       if (nd != 0) {
         fprintf(stderr,
                 "%s is a CMCARC file but nd=%d\n",FGFDT[indf].file_name,nd);
-        return(-1);
+        return -1;
       }
     lng = (nt *8) - 25;
     if (lseek(FGFDT[indf].fd,(off_t)lng,L_INCR) == (off_t)(-1)) {
@@ -1956,7 +2022,7 @@ static long long filepos(int indf)
       if (nt64 < nd64+6) {
         fprintf(stderr,
                 "%s is a CMCARC file but nt=%d nd=%d\n",FGFDT[indf].file_name,nt64,nd64);
-        return(-1);
+        return -1;
         }
       }
 /*    printf("Debug+ nt64=%Ld nd64=%Ld lng64=%Ld\n",nt64,nd64,lng64); */
@@ -2062,7 +2128,7 @@ while ((wafile[ind].file_desc != -1) && (ind < MAXWAFILES))
 ind++;
 if (ind == MAXWAFILES) {
   fprintf(stderr,"qqcopen error: too many open files\n");
-  return(-1);
+  return -1;
 }
 
 if (FGFDT[indf].subname) {    /* fichier de type cmcarc */
@@ -2074,14 +2140,14 @@ if (FGFDT[indf].subname) {    /* fichier de type cmcarc */
   mode = O_RDONLY;
   if ((fd = open64(FGFDT[indf].file_name,mode | WIN32_O_BINARY)) == -1) {
     fprintf(stderr,"qqcopen error: cannot open file %s\n",FGFDT[indf].file_name);
-    return(-1);
+    return -1;
   }
   wafile[ind].file_desc = fd;
   FGFDT[indf].fd = fd;
   if ((wafile[ind].offset = filepos(indf)) <= 0) {
     fprintf(stderr,"qqcopen error: subfile %s not found in %s\n",
             FGFDT[indf].subname,FGFDT[indf].file_name);
-    return(-1);
+    return -1;
   }
   FGFDT[indf].open_flag = 1;
   if (debug_mode > 4) {
@@ -2126,7 +2192,7 @@ else {  /* not a CMCARC type file */
   if (fd == -1)
     {
       fprintf(stderr, "qqcopen error: %s filename=(%s) !\n",errmsg,FGFDT[indf].file_name);
-      return(-1);
+      return -1;
     }
   wafile[ind].file_desc = fd;
   FGFDT[indf].fd = fd;
@@ -2199,11 +2265,11 @@ for (i=0;i<MAXWAFILES;i++){
 *
 ***function wa_page_read
 *
-*OBJECT: Reads a uint32_t addressable file page.
+*OBJECT: Reads a word addressable file page.
 *
 *ARGUMENTS: in  fd     file descriptor
 *           out buf    will contain the data read
-*           in  adr    uint32_t to start at
+*           in  adr    word to start at
 *           in  nmots  number of words to read
 *           in  indf   index of wafile in the master file table
 *
@@ -2316,7 +2382,7 @@ static void wa_page_read(int fd,uint32_t *buf,unsigned int adr,int nmots,int ind
 *
 *OBJECT: Right justifies a group of ncar characters(8 bits each).
 *
-*ARGUMENTS: in moth   uint32_t to justify
+*ARGUMENTS: in moth   word to justify
 *           in ncar number of characters
 *
 *RETURNS: the group of characters right justified.
@@ -2337,7 +2403,7 @@ uint32_t f77name(hrjust) (uint32_t *moth, int32_t *ncar)
 *
 *OBJECT: Left justifies a group of ncar characters(8 bits each).
 *
-*ARGUMENTS: in moth   uint32_t to justify
+*ARGUMENTS: in moth   word to justify
 *           in ncar   number of characters
 *
 *RETURNS: the group of characters left justified.
@@ -2504,7 +2570,7 @@ static void wa_page_write(int fd,uint32_t *buf,unsigned int adr,int nmots,int in
 *
 ***function qqcwawr
 *
-*OBJECT: Writes in a uint32_t adressable file.
+*OBJECT: Writes in a word adressable file.
 *        Active part of c_wawrit2.
 *
 *ARGUMENTS: in lfd    file descriptor
@@ -2647,7 +2713,7 @@ else {
 *
 ***function qqcward
 *
-*OBJECT: Reads a uint32_t addressable file.
+*OBJECT: Reads a word addressable file.
 *        Active part of c_waread2.
 *
 *ARGUMENTS: in  lfd     file descriptor
@@ -2797,7 +2863,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       indx++;
     if (indx == MAXWAFILES) {
       fprintf(stderr, "fnom_rem_connect error: too many open files\n");
-      return(-1);
+      return -1;
     }
 
     s_ID = &(demande[0]);
@@ -2821,7 +2887,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       fprintf(stderr, "fnom_rem_connect error: wrote only %d bytes to server\n", nc);
       fflush(stderr);
       close(fclient);
-      return(-1);
+      return -1;
       }
 
     demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
@@ -2830,7 +2896,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       fprintf(stderr, "fnom_rem_connect error: read only %d bytes from server\n", nc);
       fflush(stderr);
       close(fclient);
-      return(-1);
+      return -1;
       }
 
     check_swap_records(demande, 5, sizeof(int));
@@ -2839,7 +2905,7 @@ int fnom_rem_connect(int ind, char* remote_host)
       fprintf(stderr,"fnom_rem_connect error: invalid checksum=%X not %X\n",new_checksum,checksum);
       fflush(stderr);
       close(fclient);
-      return(-1);
+      return -1;
       }
       printf("Debug+ fnom_rem_connect wasize=%d\n",*nw);
       fflush(stdout);
@@ -2848,7 +2914,7 @@ int fnom_rem_connect(int ind, char* remote_host)
   }
   else {
     fprintf(stderr,"fnom_rem_connect error: cannot connect to server\n");
-    return(-1);
+    return -1;
   }
 
   wafile[indx].file_desc = fclient;
@@ -2895,13 +2961,13 @@ static void arrayZero(
  check_host_id returns the HOST id as obtained by gethostid
 */
 
-unsigned INT_32 f77name(check_host_id)()
+uint32_t f77name(check_host_id)()
 {
 #if defined NEC || !defined CHECK_RMNLIB_LIC
 return(0);
 #else
 FILE *id_file;
-unsigned INT_32 sysid, key, domain_ok , junk;
+uint32_t sysid, key, domain_ok , junk;
 char ypdomain[200];
 char *ARMNLIB;
 

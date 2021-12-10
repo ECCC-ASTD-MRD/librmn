@@ -20,45 +20,45 @@
 
 #include <stdint.h>
 #include <rpnmacros.h>
-static int endian_int=1;
-static char *little_endian=(char *)&endian_int;
 
-void f77name(movr8r4)(double *r8, float *r4, int32_t *f_lng)
-{
-  int lng = *f_lng;
+static int endian_int = 1;
+static char *little_endian = (char *)&endian_int;
 
-  while (lng--)
-    *r4++ = *r8 ++;
+void f77name(movr8r4)(double *r8, float *r4, int32_t *f_lng) {
+    int lng = *f_lng;
 
-}
-void f77name(movr4r8)(float *r4, double *r8, int32_t *f_lng)
-{
-  int lng = *f_lng;
-
-  while (lng--)
-    *r8++ = *r4 ++;
-
+    while (lng--) {
+        *r4++ = *r8 ++;
+    }
 }
 
-void f77name(move6432)(unsigned INT_32 *src, unsigned INT_32 *dst, int32_t *f_lng)
-{
-  int lng = *f_lng;
-  register unsigned INT_32 t1,t2;
 
-  if (*little_endian) {
+void f77name(movr4r8)(float *r4, double *r8, int32_t *f_lng) {
+    int lng = *f_lng;
+
     while (lng--) {
-      t1 = *src++;
-      t2 = *src++;
-      *dst++ = t2;
-      *dst++ = t1;
+        *r8++ = *r4 ++;
     }
-  }
-  else {
-    while (lng--) {
-      t1 = *src++;
-      t2 = *src++;
-      *dst++ = t1;
-      *dst++ = t2;
+}
+
+
+void f77name(move6432)(uint32_t *src, uint32_t *dst, int32_t *f_lng) {
+    int lng = *f_lng;
+    register uint32_t t1, t2;
+
+    if (*little_endian) {
+        while (lng--) {
+            t1 = *src++;
+            t2 = *src++;
+            *dst++ = t2;
+            *dst++ = t1;
+        }
+    } else {
+        while (lng--) {
+            t1 = *src++;
+            t2 = *src++;
+            *dst++ = t1;
+            *dst++ = t2;
+        }
     }
-  }
 }

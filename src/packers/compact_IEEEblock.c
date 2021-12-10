@@ -23,13 +23,14 @@
 static double powerOf2s[powerSpan];
 static int powerOf2sInitialized = 0;
 
-#define isDouble 1
-#define FLOAT_4_8 double
-#define compact_IEEEblock_FLOAT_4_8 compact_IEEEblock_double
-#include "compact_IEEEblock_h.h"
+#define FLOAT_TYPE double
+#define compact_IEEEblock_FLOAT_TYPE compact_IEEEblock_double
+#include "compact_IEEEblock.h"
+#undef compact_IEEEblock_FLOAT_TYPE
+#undef FLOAT_TYPE
 
-
-#define isDouble 0
-#define FLOAT_4_8 float
-#define compact_IEEEblock_FLOAT_4_8 compact_IEEEblock_float
-#include "compact_IEEEblock_h.h"
+#define FLOAT_TYPE float
+#define compact_IEEEblock_FLOAT_TYPE compact_IEEEblock_float
+#include "compact_IEEEblock.h"
+#undef compact_IEEEblock_FLOAT_TYPE
+#undef FLOAT_TYPE

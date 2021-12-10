@@ -111,7 +111,7 @@
       SAVE T1
 
       titre = ' '
-      titre(1:min(len(in_titre),90)) = in_titre(1:min(len(in_titre),90))
+      titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
       IDATIM(14) = IOPDATM(FLAG)
       CALL DATMGP2(IDATIM)
       CALL FDATE(CDATIM)
@@ -162,7 +162,7 @@
 
       call flush_stdout()
       titre = ' '
-      titre(1:min(len(in_titre),90)) = in_titre(1:min(len(in_titre),90))
+      titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
       CALL FDATE(CDATIM)
       WRITE(6,501) TITRE,REVIS,CDATIM,'END EXECUTION       ',
      %     SECOND( )-T1

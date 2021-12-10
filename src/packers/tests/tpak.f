@@ -77,12 +77,12 @@
 *     float
       OP  = 1
       OPCODE = 2
-*     double 
+*     double
       DOP = 5
       DOPCODE = 6
 
 
-      
+
 
       WRITE(*,1)
 1     FORMAT(1H1,30X,'TESTPAK 1.0',//,
@@ -145,9 +145,9 @@ C     GOTO 333
 
          IMAXDIF = 0
          DO 23008 I = 1,2000
-*         DO 23008 I = 1,20 
+*         DO 23008 I = 1,20
             IF( IWK(I).NE. BITS(MOD(I,NBITS)) )THEN
-               WRITE(*,*) I, IWK(I), BITS(MOD(I,NBITS))  
+               WRITE(*,*) I, IWK(I), BITS(MOD(I,NBITS))
                ERR = .TRUE.
                IMAXDIF = IMAXDIF + 1
 *               WRITE(*,902) NBITS,BITS(MOD(I,NBITS)),I,IWK(I)
@@ -195,7 +195,7 @@ C     GOTO 333
 *        CALL IIPAK(IWK,IWK2,20,1,-NBITS,1017,1001)
 *        CALL IIPAK(IWK,IWK2,20,1,-NBITS,1017,1002)
 
-         
+
 
          T1=SECOND()
          DO 93004 I=1,NFOIS
@@ -218,7 +218,7 @@ C     GOTO 333
          DO 93008 I = 1,2000
 *         DO 93008 I = 1,20
             IF( IWK(I).NE. BITS(MOD(I,NBITS)) )THEN
-               WRITE(*,*) I, IWK(I), BITS(MOD(I,NBITS))  
+               WRITE(*,*) I, IWK(I), BITS(MOD(I,NBITS))
                ERR = .TRUE.
                IMAXDIF = IMAXDIF + 1
 C              WRITE(*,9902) NBITS,BITS(MOD(I,NBITS)),I,IWK(I)
@@ -324,7 +324,7 @@ C              WRITE(*,903) NBITS,IWK2(I),I,IWK(I)
 *            PRINT *,'IWK2',IWK2(I), I
 
  8016    CONTINUE
-         
+
 *         CALL IIPAK(IWK,IWK,10,1,-NBITS,0,3)
 *         CALL IIPAK(IWK,IWK,10,1,-NBITS,0,4)
 *         oneLess = NBITS - 1
@@ -384,7 +384,7 @@ C              WRITE(*,8903) NBITS,IWK2(I),I,IWK(I)
          CALL IIPAK(IWK,IWK2(1),513,1,-NBITS,OFFSET,11)
          OFFSET = NBITS * 513 + JJJ
          CALL IIPAK(IWK(514),IWK2(1),1487,1,-NBITS,OFFSET,11)
-         
+
          OFFSET = JJJ
          CALL IIPAK(IWK3(1),IWK2,511,1,-NBITS,OFFSET,112)
          OFFSET = NBITS * 511 + JJJ
@@ -474,16 +474,16 @@ C              WRITE(*,8903) NBITS,IWK2(I),I,IWK(I)
 
 
       DO 23536 I = 1, 10
-           
+
          WRITE(*,961) NBITS,  I, WK1(I), I, WK2(I), IWK3(I)
  961     FORMAT(' NBITS=',I2, ' WK1(',I3,
      %        ')=',F10.6,   ' WK2(',I3,')=',F10.6, ' IWK3=',Z8)
- 
+
 23536    CONTINUE
 
          WRITE(*,*)
          IF( (WK1(1).eq.WK2(1)) .AND. (WK1(9).eq.WK2(9)) .AND. (WK1(1)
-     %   .eq. 100) .AND. (WK1(9).eq.100) ) THEN        
+     %   .eq. 100) .AND. (WK1(9).eq.100) ) THEN
            WRITE(*,*) '************* Passed ************'
          ELSE
            WRITE(*,*) '************* Failed ************'
@@ -494,7 +494,7 @@ C              WRITE(*,8903) NBITS,IWK2(I),I,IWK(I)
          WRITE(*,*) '=================================================='
 
 
-         
+
 
 
       WRITE(*,*)
@@ -526,19 +526,19 @@ C              WRITE(*,8903) NBITS,IWK2(I),I,IWK(I)
 
       tempII = -1
       IF ( tempII .EQ. -1 ) THEN
-      
+
       IF ( theMode .EQ. 2 ) THEN
 
 
 
-      
-        
-      WRITE(*,*) '---TEST 16.0_A (XXPAK) on **float** PAQUETER DE 1 A ',MAXBITS,
-     %     ' BITS'
+
+
+      WRITE(*,*) '---TEST 16.0_A (XXPAK) on **float** PAQUETER DE 1 A ',
+     %     MAXBITS, ' BITS'
       ERR = .FALSE.
 *      DO 23026 NBITS = 1, 5
       DO 23026 NBITS = 1, MAXBITS
-*      DO 23026 NBITS = 32, MAXBITS 
+*      DO 23026 NBITS = 32, MAXBITS
         MAXDIF = 0.0
          WK1(1) = 0.0
          WK1(2) = 0.9999999
@@ -608,7 +608,7 @@ C              WRITE(*,8903) NBITS,IWK2(I),I,IWK(I)
       ERR = .FALSE.
 *      DO 23026 NBITS = 3, 3
       DO 33026 NBITS = 1, MAXBITS
-*      DO 23026 NBITS = 32, MAXBITS 
+*      DO 23026 NBITS = 32, MAXBITS
         MAXDIF = 0.0
          DWK1(1) = 0.0
          DWK1(2) = 0.9999999
@@ -689,7 +689,7 @@ C              WRITE(*,3901) NBITS, ERRMAX, I, WK1(I), I, WK2(I)
             WK1(I) = REAL(I)/(2000.0+10.) - 0.5
             WK2(I) = WK1(I)
 44028    CONTINUE
-         
+
 *         IF(NBITS .EQ. 3) THEN
 *            DO I=1,2000
 *               PRINT *,'WK1',WK1(I),I
@@ -747,7 +747,7 @@ C              WRITE(*,3901) NBITS, ERRMAX, I, WK1(I), I, WK2(I)
             DWK1(I) = REAL(I)/(2000.0+10.) - 0.5
             DWK2(I) = DWK1(I)
 54028    CONTINUE
-         
+
 *         IF(NBITS .EQ. 3) THEN
 *            DO I=1,2000
 *               PRINT *,'WK1',WK1(I),I
@@ -789,7 +789,7 @@ C              WRITE(*,3901) NBITS, ERRMAX, I, WK1(I), I, WK2(I)
       ENDIF
 
 
-*     
+*
 *     test of new features in the floating point packer
 *
 *
@@ -818,14 +818,14 @@ C      CALL mainrle
 C      ENDIF
 
 
-*     
+*
 *     IEEE block test
 *
 *
 *
       WRITE(*,*)
-      WRITE(*,*) '=======================================================
-     %==============='
+      WRITE(*,*) '======================================================
+     %================'
       WRITE(*,*)
       WRITE(*,*) '---TEST 17.1 (cmainIEEEBlock)'
       IF ( theMode .EQ. 2 ) THEN
@@ -836,21 +836,21 @@ C      ENDIF
 
 
 
-*     
+*
 *     IBM mantisa shift test
 *
 *
 *
       WRITE(*,*)
-      WRITE(*,*) '=======================================================
-     %==============='
+      WRITE(*,*) '======================================================
+     %================'
       WRITE(*,*)
       WRITE(*,*) '---TEST 18.1 (min_1_2)'
       CALL min_1_2()
 
       WRITE(*,*)
       WRITE(*,*) '---TEST 18.2 (min_2_4)'
-      CALL min_2_4()    
+      CALL min_2_4()
 
       WRITE(*,*)
       WRITE(*,*) '---TEST 18.3 (min_4_8)'

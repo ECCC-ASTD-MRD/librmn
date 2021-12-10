@@ -1,5 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <rmnlib.h>
 
 #define MAX_ENTRIES 1024
@@ -17,7 +20,7 @@ static int In_Used;
 void init_appl_var_table()
 {
   int i;
-  
+
   for (i=0; i < MAX_ENTRIES; i++) {
     appl_var_table[i].name = (char *) NULL;
     appl_var_table[i].value = (char *) NULL;
@@ -30,7 +33,7 @@ void init_appl_var_table()
 void free_appl_var_table()
 {
   int i;
-  
+
   for (i=0; i < In_Used; i++) {
     if (appl_var_table[i].name) free(appl_var_table[i].name);
     if (appl_var_table[i].value) free(appl_var_table[i].value);
@@ -44,7 +47,7 @@ void set_appl_var(char* name, char* value, int ln, int lv)
 {
   int i, ind=-1;
   while ((ln > 0) && (name[ln-1] == ' ')) ln--;
-  while ((lv > 0) && (value[lv-1] == ' ')) lv--;  
+  while ((lv > 0) && (value[lv-1] == ' ')) lv--;
   if (ln != 0) {
     for (i = 0; i < In_Used; i++)
       if (strncmp(name,appl_var_table[i].name,ln) == 0) {
@@ -52,19 +55,19 @@ void set_appl_var(char* name, char* value, int ln, int lv)
         break;
         }
     }
-  else {  
+  else {
     for (i = 0; i < In_Used; i++)
       if (strcmp(name,appl_var_table[i].name) == 0) {
         ind = i;
         break;
        }
      }
-      
+
   if (ind != -1)
     i = ind;
   else
     i = In_Used++;
-    
+
   if (appl_var_table[i].name) free(appl_var_table[i].name);
   if (appl_var_table[i].value) free(appl_var_table[i].value);
   appl_var_table[i].name = malloc(ln+1);
@@ -80,7 +83,7 @@ int get_appl_var(char* varname,char *value, int ln, int lng)
   int i, ind=-1;
 
   while ((ln > 0) && (varname[ln-1] == ' ')) ln--;
-  
+
   if (ln != 0) {
     for (i = 0; i < In_Used;  i++) {
 /*      printf("i=%d appl_var_table[i].name=%s varname=%s\n",i,appl_var_table[i].name,varname); */
@@ -96,7 +99,7 @@ int get_appl_var(char* varname,char *value, int ln, int lng)
         ind = i;
         break;
         }
-    } 
+    }
   if (ind == -1) return(0);
   strncpy(value,appl_var_table[ind].value,lng);
   return((lng >= appl_var_table[ind].ncv) ? appl_var_table[ind].ncv : -(appl_var_table[ind].ncv));
@@ -106,7 +109,7 @@ int32_t f77name(c_get_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv)
 {
 
   int i, lng, ln=lln, lv=llv;
-  
+
   lng = get_appl_var(name,value,ln,lv);
   i = lng;
   while (i <= lv)
@@ -128,5 +131,5 @@ void f77name(c_set_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv)
 {
   int ln=lln, lv=llv;
   set_appl_var(name,value,ln,lv);
-}  
+}
 

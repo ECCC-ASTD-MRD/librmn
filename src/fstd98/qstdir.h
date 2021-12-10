@@ -41,7 +41,6 @@
 #define MAX_PRIMARY_LNG 16
 //! Maximum length of info keys
 #define MAX_SECONDARY_LNG 8
-
 //! Word to 64 bit word conversion
 #define WDTO64(nwds) (nwds)
 //! 64 bit word to word conversion
@@ -395,6 +394,8 @@ typedef struct full_dir_page {
     struct full_dir_page* prev_page;
     int modified;
     int true_file_index;
+    //! \bug warning: invalid use of structure with flexible array member
+    // GCC doen't like this!  It probably works as expected, but it generates a warning when compiling
     xdf_dir_page dir;
 } full_dir_page;
 
@@ -504,16 +505,16 @@ typedef struct {
 typedef struct {
     char etiket[13], nomvar[5], typvar[3], gtyp[2], extra;
     uint32_t lng, addr;
-    INT_32 aammjj, hhmmss;
-    INT_32 ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
+    int32_t aammjj, hhmmss;
+    int32_t ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_rec_parms;
 
 /*! Collection area for some special cracked record parameters that need to
  * be reassembled */
 typedef struct {
     char etiket[13], nomvar[5], typvar[3], gtyp[2];
-    INT_32 date_stamp, aammjj, hhmmss;
-    INT_32 ig2, date_valid;
+    int32_t date_stamp, aammjj, hhmmss;
+    int32_t ig2, date_valid;
 } stdf_special_parms;
 
 //! Collection area for parameter addresses/values
@@ -521,7 +522,7 @@ typedef struct {
     char *etiket, *nomvar, *typvar, *gtyp, *extra;
     int32_t *date;
     int l_etiket, l_nomvar, l_typvar, l_extra;
-    INT_32 lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
+    int32_t lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_adr_parms;
 
 typedef struct {
@@ -689,7 +690,7 @@ typedef struct {
 
 //! XDF file header template, provision is made for up to 1024 keys
 typedef struct {
-    /* each line (except last one) describes 64 bits */
+    // Each line (except last one) describes 64 bits
 #if !defined(Little_Endian)
     // Standard XDF record header
     uint32_t idtyp:8,  lng:24,   addr:32;
@@ -765,8 +766,8 @@ typedef struct {
     uint32_t* cur_entry;
     //! Pointer to file header
     file_header* header;
-    //! Next write address (in uint32_t units)
-    INT_32 nxtadr;
+    //! Next write address (in word units)
+    int32_t nxtadr;
     //! Length in 64 bit units of primary keys (including 64 bit header)
     int primary_len;
     //! Length in 64 bit units of info keys
@@ -825,13 +826,13 @@ typedef file_table_entry* file_table_entry_ptr;
 //! XDF buffer interface layout
 typedef struct {
     //! Pointer to next data block
-    struct data_block* next;
+    struct data_block *next;
     //! Pointer to data itself
-    uint32_t* data_ptr;
-    //! Data length in uint32_t units
+    uint32_t *data_ptr;
+    //! Data length in word units
     int data_lng;
 } data_block;
-typedef data_block* data_block_ptr;
+typedef data_block *data_block_ptr;
 
 #define buf7 dummy[0]
 #define buf8 dummy[1]
@@ -888,7 +889,7 @@ int xdf_datatyp;
 //! Number of splited output files in xdfuse
 int xdf_nsplit = 1;
 //! Number of bits per FORTRAN word
-int FTN_Bitmot = 8 * bytesperword;
+int FTN_Bitmot = 8 * sizeof(int32_t);
 //! No pack/unpack, used by editfst
 int image_mode_copy = 0;
 //! Chekcpoint mode, no closing of the file

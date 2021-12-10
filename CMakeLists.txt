@@ -2,7 +2,7 @@
 # sufficient
 cmake_minimum_required(VERSION 3.16)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_rpn)
 include(ec_init)
 ec_git_version()
 
@@ -13,16 +13,28 @@ set(PROJECT_VERSION ${GIT_VERSION})
 
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones." FALSE)
 
-# CMAKE_BUILD_TYPE can be one of Debug, Release, RelWithDebInfo, MinSizeRel
-set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type (Debug, Release, RelWithDebInfo, MinSizeRel)")
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "CMAKE_BUILD_TYPE not defined; using default (RelWithDebInfo)")
+    # This doesn't work as expected: If CACHE is specified, even if CMAKE_BUILD_TYPE has no value, it isn't set
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
 
 enable_language(C Fortran)
 include(ec_compiler_presets)
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
-include(OpenMP)
+include(ec_openmp)
 include(ec_doxygen)
 
+# This is required when using GNU compilers without OpenMP.
+# It has no adverse effect with other compilers and/or when OpenMP is enabled.
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
+
+message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+
+set(CMAKE_SKIP_RPATH TRUE)
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 # Figure out the correct ach_dependant include path
@@ -49,11 +61,10 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 ec_build_info()
 
 add_library(rmn ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmn build_info)
+add_dependencies(rmn librmn_build_info)
 add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn)
 target_link_libraries(librmn_version rmn)
-
 
 # This really isn't the ideal solution; the compiler should be invoqued with all
 # the definitions and options as if we it was processing a source file
@@ -87,19 +98,33 @@ add_custom_command(
     USES_TERMINAL
 )
 
-list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
+list(APPEND PROJECT_INCLUDE_FILES 
+    ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
+    ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
+)
 
 list(APPEND PROJECT_INCLUDE_FILES
-    ${CMAKE_SOURCE_DIR}/include/rmnlib.h
-    ${CMAKE_SOURCE_DIR}/include/rpnmacros.h
-    ${CMAKE_SOURCE_DIR}/include/rpnmacros_global.h
-    ${CMAKE_SOURCE_DIR}/include/ftn2c_helper.h
-    ${CMAKE_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
-    ${CMAKE_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rmnlib.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros_global.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/ftn2c_helper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
 
 
 set_target_properties(rmn PROPERTIES VERSION ${GIT_VERSION})
+string(REGEX MATCH "([0-9]+)" SOVERSION ${GIT_VERSION})
+message(STATUS "SOVERSION=${SOVERSION}")
+set_target_properties(rmn PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(rmn PROPERTIES PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}")
 
 install(TARGETS rmn librmn_version)
+
+add_custom_target(
+    cprotos
+    ${CMAKE_CURRENT_SOURCE_DIR}/extractProtos.bash ${CMAKE_CURRENT_SOURCE_DIR}/src ${PROJECT_C_FILES}
+    #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Extract function prototypes from C source code"
+)

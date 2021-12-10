@@ -1,5 +1,3 @@
-#define UNIX
-
 #if defined (ALL64)
 #  define BITMOT 64
 #  define CARMOT 08
@@ -12,45 +10,27 @@
 #  define OCW O11
 #endif
 
-#if defined (UNIX)
-#  define IMPNONE IMPLICIT NONE
-#  define EXPBIAS 127
-#  define BITCAR 08
-#  define MEMADR LOC
-#  define CURTIM CLOCK
-#  define HEX(x) Z'x'
-#  define HCAR(x) "x"
-#  define COMPL(x) NOT(x)
-#  define IXOR(x,y) ieor(x,y)
-#  define ixor(x,y) ieor(x,y)
-#  define MASK(x) ishft(-1,BITMOT-(x))
-#  define RMASK(x) ishft(-1,-(BITMOT-(x)))
-#  define RSHIFT(x,y) ishft(x,-(y))
-#  define RXSHIFT(x,y) ishft(x,-(y))
-#  define RYSHIFT(x,y) ishft(x,-(y))
-#  define LXSHIFT(x,y) ishft(x,y)
-#  define LYSHIFT(x,y) ishft(x,y)
-#  define LSHIFT(x,y) ishft(x,y)
-#  define SHCNT(x)  (31-IAND(x,31))
-#  define XTRACBIT  ibits(MOT,BDROIT,LONG)
-#endif
+#define IMPNONE IMPLICIT NONE
+#define EXPBIAS 127
+#define BITCAR 08
+#define MEMADR LOC
+#define CURTIM CLOCK
+#define HEX(x) Z'x'
+#define HCAR(x) "x"
+#define COMPL(x) NOT(x)
+#define IXOR(x,y) ieor(x,y)
+#define ixor(x,y) ieor(x,y)
+#define MASK(x) ishft(-1,BITMOT-(x))
+#define RMASK(x) ishft(-1,-(BITMOT-(x)))
+#define RSHIFT(x,y) ishft(x,-(y))
+#define RXSHIFT(x,y) ishft(x,-(y))
+#define RYSHIFT(x,y) ishft(x,-(y))
+#define LXSHIFT(x,y) ishft(x,y)
+#define LYSHIFT(x,y) ishft(x,y)
+#define LSHIFT(x,y) ishft(x,y)
+#define SHCNT(x)  (31-IAND(x,31))
+#define XTRACBIT  ibits(MOT,BDROIT,LONG)
 
-#if defined (NEC)
-#  define EXPBIAS 16433
-#  define HCAR(x) "x"H
-#endif
-
-#if defined (C910) 
-#  define EXPBIAS 127
-#  define RYSHIFT(x,y) rshift(x,y)
-#  define LYSHIFT(x,y) lshift(x,y)
-#  define YMASK(x) lshift(-1,32-(x))
-#  define RYMASK(x) NOT(lshift(-1,(x)))
-#endif
-
-#if defined (HP)
-#  define EXPBIAS 127
-#endif
 
 #define WDNO(x) (1+RSHIFT(x,5))
 #if defined (ALL64)

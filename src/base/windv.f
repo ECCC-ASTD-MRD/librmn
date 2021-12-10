@@ -30,7 +30,8 @@
 *
 *REVISION 001   C. THIBEAULT  -  NOV 79  DOCUMENTATION
 *REVISION 002   C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
-*REVISION 003   M. Valin      -  JUIN 2015  implicit none + utilisation de Real*8 pour les calculs
+*REVISION 003   M. Valin      -  JUIN 2015  implicit none + utilisation 
+*                                           de Real*8 pour les calculs
 *
 *LANGUAGE - fortran
 *
@@ -60,10 +61,10 @@
 *         - NW2 - UPPER RIGHT CORNER OF Y-COORDINATE OF WINDOW
 *
 *NOTES    - IF THE CO-ORDINATES OF THE WINDOW ARE OUTSIDE THE LIMIT OF
-*           THE ARRAYS OR IF THE TOTAL WEIGHT IS EQUAL TO ZERO, RMS IS SET
-*           TO 99999.
+*           THE ARRAYS OR IF THE TOTAL WEIGHT IS EQUAL TO ZERO, RMS IS
+*           SET TO 99999.
 *
-*------------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
 *
       real *8 :: FUMVU, FVMVV, WIJ, Y, FTW
@@ -92,7 +93,7 @@
       IF (FTW.EQ.0.) RETURN
       RMS = SQRT(Y/FTW)
 *
-*---------------------------------------------------------------------------
+*-----------------------------------------------------------------------
 *
       RETURN
       END

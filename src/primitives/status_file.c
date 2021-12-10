@@ -20,8 +20,9 @@
 
 /* auteur: M. valin */
 #include <stdio.h>
+#include <stdlib.h>
 
-#ifndef WIN32	/*CHC/NRC*/
+#ifndef WIN32
 #include <unistd.h>
 #endif
 
