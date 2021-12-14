@@ -35,7 +35,7 @@ int c_fstmsq(int iun, int *mip1, int *mip2, int *mip3, char *metiket, int getmod
 int c_fstopi(char *option, int value, int getmode);
 int c_fstopl(char *option, int value, int getmode);
 int c_fstopr(char *option, float value, int getmode);
-int c_fstopc(char *option, char *value, int getmode);
+int c_fstopc(const char *option, const char *value, int getmode);
 int c_fstcheck(const char *filePath);
 int c_fstinf(int iun, int *ni, int *nj, int *nk, int datev, const char *in_etiket,
             int ip1, int ip2, int ip3, const char *in_typvar, const char *in_nomvar);

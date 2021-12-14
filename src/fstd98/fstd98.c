@@ -2203,9 +2203,9 @@ int c_fstnbrv(
 //! Print, get, or set a fstd or xdf global option
 int c_fstopc(
     //! [in] Option name
-    char *option,
+    const char *option,
     //! [in,out] Value
-    char *value,
+    const char *value,
     //! [in] Operation mode (1: print option, 0: set option, 2: get option)
     int getmode
 ) {
