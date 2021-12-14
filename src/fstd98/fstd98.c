@@ -1199,7 +1199,7 @@ int c_fstinf(
     //! [in] Validity date
     int datev,
     //! [in] Label
-    char *in_etiket,
+    const char *in_etiket,
     //! [in] Vertical level
     int ip1,
     //! [in] Forecast hour
@@ -1207,9 +1207,9 @@ int c_fstinf(
     //! [in] User defined identifier
     int ip3,
     //! [in] Type of field
-    char *in_typvar,
+    const char *in_typvar,
     //! [in] Variable name
-    char *in_nomvar
+    const char *in_nomvar
 ) {
     /* means handle will be discarded */
     int handle = -2;
@@ -1233,7 +1233,7 @@ int c_fstinfx(
     //! [in] Validity date
     int datev,
     //! [in] Label
-    char *in_etiket,
+    const char *in_etiket,
     //! [in] Vertical level
     int ip1,
     //! [in] Forecast hour
@@ -1241,9 +1241,9 @@ int c_fstinfx(
     //! [in] User defined identifier
     int ip3,
     //! [in] Type of field
-    char *in_typvar,
+    const char *in_typvar,
     //! [in] Variable name
-    char *in_nomvar
+    const char *in_nomvar
 ) {
     stdf_dir_keys *stdf_entry, *search_mask;
     uint32_t * pkeys, *pmask;

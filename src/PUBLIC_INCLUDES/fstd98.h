@@ -37,15 +37,15 @@ int c_fstopl(char *option, int value, int getmode);
 int c_fstopr(char *option, float value, int getmode);
 int c_fstopc(char *option, char *value, int getmode);
 int c_fstcheck(const char *filePath);
-int c_fstinf(int iun, int *ni, int *nj, int *nk, int datev,char *in_etiket,
-            int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar);
+int c_fstinf(int iun, int *ni, int *nj, int *nk, int datev, const char *in_etiket,
+            int ip1, int ip2, int ip3, const char *in_typvar, const char *in_nomvar);
 int c_fstsui(int iun, int *ni, int *nj, int *nk);
 int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
             int ip1, int ip2, int ip3, char *typvar, char *nomvar,
             int *liste, int *infon, int nmax);
 int c_fstinfx(int handle, int iun, int *ni, int *nj, int *nk,
-            int datev,char *in_etiket,
-            int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar);
+            int datev, const char *in_etiket,
+            int ip1, int ip2, int ip3, const  char *in_typvar, const char *in_nomvar);
 int c_fstlir(uint32_t *field, int iun, int *ni, int *nj, int *nk,
             int datev, char *etiket,
             int ip1, int ip2, int ip3, char *typvar, char *nomvar);
