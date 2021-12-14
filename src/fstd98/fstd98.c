@@ -2409,7 +2409,7 @@ int c_fstouv(
     //! [in] Unit number associated to the file
     int iun,
     //! [in] Random or sequential access
-    char *options
+    const char *options
 ) {
     int ier, nrec, i, iwko;
     static int premiere_fois = 1;

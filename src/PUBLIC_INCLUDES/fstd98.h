@@ -67,7 +67,7 @@ int c_fstecr(uint32_t *field_in, void * work, int npak, int iun, int date,
             int deet, int npas, int ni, int nj, int nk, int ip1, int ip2, int ip3,
             char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
             int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
-int c_fstouv(int iun, char *options);
+int c_fstouv(int iun, const char *options);
 int c_fstvoi(int iun,char *options);
 int c_fstapp(int iun, char *option);
 int c_fsteff(int handle);
