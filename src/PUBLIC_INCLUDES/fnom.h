@@ -4,6 +4,10 @@
 
 #define MAXFILES 1024
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //! \todo Rename this type to something more specific.  Is it used by client apps?
 typedef struct {
     unsigned int
@@ -61,7 +65,7 @@ int32_t f77name(fretour)(int32_t *fiun);
 
 void f77name(d_fgfdt)();
 
-int c_fnom(int *iun, char *nom, char *type, int lrec);
+int c_fnom(int *iun, const char *nom, const char *type, int lrec);
 int32_t f77name(fnom)(int32_t *iun, char *nom, char *type, int32_t *flrec, F2Cl l1, F2Cl l2);
 
 int c_fclos(int iun);
@@ -147,3 +151,7 @@ uint32_t f77name(hrjust) (uint32_t *moth, int32_t *ncar);
 uint32_t f77name(hljust) (uint32_t *moth, int32_t *ncar);
 
 uint32_t f77name(check_host_id)();
+
+#ifdef __cplusplus
+}
+#endif

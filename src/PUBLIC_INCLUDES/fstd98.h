@@ -17,6 +17,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int c_fst_data_length(int length_type);
 int c_ip1_all(float level, int kind);
 int c_ip1_val(float level, int kind);
@@ -85,3 +89,7 @@ int c_fst_edit_dir(int handle, unsigned int date, int deet, int npas,
                 int ni, int nj, int nk, int ip1, int ip2, int ip3,
                 char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
                 int ig1, int ig2, int ig3, int ig4, int datyp);
+
+#ifdef __cplusplus
+}
+#endif

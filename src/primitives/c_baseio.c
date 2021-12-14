@@ -119,7 +119,7 @@
 void static dump_file_entry(int i);
 static void reset_file_entry(int i);
 static int find_file_entry(char *caller, int iun);
-static int c_qqqfscr(char *type);
+static int c_qqqfscr(const char *type);
 static int qqcclos(int indf);
 static void scrap_page(int ind0,int ind1);
 static void process_decay();
@@ -296,7 +296,7 @@ int c_fnom(
     //!   with the use of UNIX sockets instead of conventional NFS. This feature could be useful
     //!   for files that are not accessible via NFS.
     //! - If the file name is all capital letters, it will be down-cased. 
-    char *nom,
+    const char *nom,
     //! [in] String that contains the desired file attributes
     //! - 'STREAM' : BYTE STREAM file type (a la C)
     //! - 'RND' : random type (word addressable, XDF, BURP, RPN standard file ...)
@@ -326,12 +326,13 @@ int c_fnom(
     //!    >--+---STD----+--SEQ--+--+--+-----------+--+---R/O----+--+----->
     //!                  |       |     |                            |
     //!                  +--FTN--+     +--SCRATCH-------------------+
-    char *type,
+    const char *type,
     //! [in] Length of record (must be 0 except if type contains D77)
     int lrec
 ) {
     int liun,ier = 0, minus = 0, majus = 0, lng, i, j, pid, lngt, junk, mode;
-    char *c, *c2, *tmpdir, *cmcarc, *pos2p;
+    const char *c;
+    char *c2, *tmpdir, *cmcarc, *pos2p;
 
     char remote_mach[HOST_NAME_MAX];
     char nom2[PATH_MAX];
@@ -769,7 +770,7 @@ int32_t f77name(fclos)(int32_t *fiun)
 //! \return Valid unit number
 static int c_qqqfscr(
     //! File attributes (see FNOM)
-    char *type
+    const char *type
 ) {
     int iun, inused, start;
 

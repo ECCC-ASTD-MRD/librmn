@@ -44,7 +44,7 @@ void f77name (xxpak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
 int c_fretour(int iun);
 int32_t f77name(fretour)(int32_t *fiun);
 void f77name(d_fgfdt)();
-int c_fnom(int *iun, char *nom, char *type, int lrec);
+int c_fnom(int *iun, const char *nom, const char *type, int lrec);
 int32_t f77name(fnom)(int32_t *iun, char *nom, char *type, int32_t *flrec, F2Cl l1, F2Cl l2);
 int c_fclos(int iun);
 int32_t f77name(fclos)(int32_t *fiun);
