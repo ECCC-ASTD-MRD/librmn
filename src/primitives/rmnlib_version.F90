@@ -1,17 +1,15 @@
 !> Return the version identification string
-subroutine rmnlib_version(version, prnt)
+#include <librmn_build_info.h>
+
+subroutine rmnlib_version(version_string, prnt)
     implicit none
 
-    character(len = *), intent(out) :: version
+    character(len = *), intent(out) :: version_string
     logical, intent(in) :: prnt
 
-#ifndef EC_ARCH
-#define EC_ARCH ""
-#endif
-
-    version = "  RMNLIB  -  Release: " // VERSION // " " // EC_ARCH
+    version_string = "  RMNLIB  -  Release: " // VERSION // " " // EC_ARCH
 
     if (prnt) then 
-        print *, version
+        print *, version_string
     end if
 end subroutine
