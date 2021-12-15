@@ -47,7 +47,7 @@ void f77name(getenvc) (
         temp[realNameLen] = name[realNameLen];
     }
     temp[realNameLen] = '\0';
-    // printf("getnevc() - EnvVarName=\"%s\" \n", temp);
+    // printf("getenvc() - EnvVarName=\"%s\" \n", temp);
 
     char *envVal = getenv( temp );
     free( temp );
@@ -66,6 +66,6 @@ void f77name(getenvc) (
             }
         }
     } else {
-        printf("getnevc - %s Not found in environement!\n", temp);
+        printf("getenvc - %s Not found in environment!\n", temp);
     }
 }
