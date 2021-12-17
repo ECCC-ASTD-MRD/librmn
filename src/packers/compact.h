@@ -57,11 +57,11 @@ void *compact_FLOAT_TYPE(
     // Declare header type
     typedef struct {
 #if defined(Little_Endian)
-        int32_t counter : 20, marker : 12, minSign : 4, minExpo : 12, rangeExpo : 16;
-        int32_t minMantisa32 : 32, emptySpace : 8, bitSize : 8, minMantisa16 : 16;
+        uint32_t counter : 20, marker : 12, minSign : 4, minExpo : 12, rangeExpo : 16;
+        uint32_t minMantisa32 : 32, emptySpace : 8, bitSize : 8, minMantisa16 : 16;
 #else
-        int32_t marker : 12, counter : 20, rangeExpo : 16, minExpo : 12, minSign : 4;
-        int32_t minMantisa32 : 32, minMantisa16 : 16, bitSize : 8, emptySpace : 8 ;
+        uint32_t marker : 12, counter : 20, rangeExpo : 16, minExpo : 12, minSign : 4;
+        uint32_t minMantisa32 : 32, minMantisa16 : 16, bitSize : 8, emptySpace : 8 ;
 #endif
     } xxpack_struct_data;
 
@@ -69,46 +69,44 @@ void *compact_FLOAT_TYPE(
     // Variables used by the packer
     int wordSize;
     FLOAT_TYPE *arrayOfFloat;
-    int32_t *packHeader, *arrayOfInt;
+    uint32_t *packHeader, *arrayOfInt;
     int i;
-    int32_t floatCount;
+    uint32_t floatCount;
 
     double maxFloat, minFloat;
     ALL_FLOAT rangeTemplate;
     double desiredRange;
-    int32_t signOfMinFloat;
-    int32_t scaledExpOfMinFloat, scaledExpOfRange;
+    uint32_t signOfMinFloat;
+    uint32_t scaledExpOfMinFloat, scaledExpOfRange;
     double mulFactor;
     int  lastPackBit, spaceInLastWord, lastSlot;
-    int32_t lastWordShifted;
+    uint32_t lastWordShifted;
     unsigned int tempInt;
     ALL_FLOAT minFloatTemplate;
-    int32_t tempFloat;
-    int32_t tempMantisa1, tempMantisa2;
-    int32_t *arrayPtr, *arrayOfUnpacked;
+    uint32_t tempFloat;
+    uint32_t tempMantisa1, tempMantisa2;
+    uint32_t *arrayPtr, *arrayOfUnpacked;
     int  headerStyle;
-    int32_t headerType, countLower20, countUpper8;
+    uint32_t headerType, countLower20, countUpper8;
 
 
     // Variables used by the unpacker
     xxpack_struct_data *theHeader;
-    int32_t currentWord;
-    int32_t intCount;
+    uint32_t currentWord;
+    uint32_t intCount;
 
-    int32_t rangeExponent;
+    uint32_t rangeExponent;
     int firstPackBit;
-    int32_t bitPackInFirstWord;
+    uint32_t bitPackInFirstWord;
     int currentSlot;
-    int32_t packInt;
-    int32_t tempExp;
-    int32_t rangeExpo;
+    uint32_t packInt;
+    uint32_t tempExp;
+    uint32_t rangeExpo;
     ALL_FLOAT floatTemplate;
     int significantBit, inSignificantBit;
     float missingValueTag = *((FLOAT_TYPE *)missingTag);
-    int32_t missingToken;
+    uint32_t missingToken;
     int tempExpo;
-    int32_t * tempArrayOfInt;
-    int32_t *tempArrayOfFtnword;
     int tokenSize;
     int EffectivePackedTokenSize=0;      /* only set with special case when bitSizeOfPackedToken > 64 */
 
@@ -148,11 +146,8 @@ void *compact_FLOAT_TYPE(
         // Compact a floating point array into an integer array
 
         arrayOfFloat = (FLOAT_TYPE *)unpackedArrayOfFloat;
-        tempArrayOfInt = NULL;
-
-        tempArrayOfInt = (int32_t *)malloc(sizeof(int32_t) * elementCount * stride);
-        packHeader   = (int32_t *)packedHeader;
-        arrayOfInt   = (int32_t *)packedArrayOfInt;
+        packHeader   = (uint32_t *)packedHeader;
+        arrayOfInt   = (uint32_t *)packedArrayOfInt;
         floatCount = elementCount;
 
 
@@ -278,7 +273,6 @@ void *compact_FLOAT_TYPE(
         }
 
         packHeader[0] = headerType << 20 | countLower20;
-
         packHeader[1] = ((scaledExpOfRange + 4096) << 16) | ((scaledExpOfMinFloat << 4) | signOfMinFloat);
 
         if ( minFloat == 0.0 ) {
@@ -310,7 +304,7 @@ void *compact_FLOAT_TYPE(
         }
 
         arrayPtr = &arrayOfInt[lastSlot];
-        arrayOfUnpacked = (int32_t *)arrayOfFloat;
+        arrayOfUnpacked = (uint32_t *)arrayOfFloat;
         if (( spaceInLastWord == wordSize ) && ( bitSizeOfPackedToken == wordSize )) {
             // direct copy
 
@@ -342,22 +336,15 @@ void *compact_FLOAT_TYPE(
                         ( *arrayPtr & ~(-1 << spaceInLastWord));
         }
 
-        free (tempArrayOfInt);
-        tempArrayOfInt = NULL;
-        return (int32_t *)arrayOfInt;
+        return (uint32_t *)arrayOfInt;
 
     } else if ( opCode == FLOAT_UNPACK ) {
         arrayOfFloat = (FLOAT_TYPE *)unpackedArrayOfFloat;
-        tempArrayOfInt = NULL;
 
         // Extra space neccessary since this array is delcared as a three dimension array
         // [ stride, 2, elementCount/(stride*2)+1 ] in fotran routine aazz1
-        tempArrayOfInt = (int32_t *)malloc(sizeof(int32_t) * (elementCount + 2) * stride);
-        tempArrayOfFtnword = NULL;
-
-        tempArrayOfFtnword = (int32_t *)malloc(sizeof(int32_t) * elementCount * stride);
         theHeader = (xxpack_struct_data *)packedHeader;
-        arrayOfInt = (int32_t *)packedArrayOfInt;
+        arrayOfInt = (uint32_t *)packedArrayOfInt;
         if (( theHeader->marker == 0x7ff ) || ( theHeader->marker == 0x7ef )) {
             if ( theHeader->counter != elementCount ) {
                 // legacy data with more than 2POW(20) elements but only 120-bit header and 20-bit ninj
@@ -444,11 +431,7 @@ void *compact_FLOAT_TYPE(
         }
 
         // Book keeping
-        free( tempArrayOfInt );
-        free( tempArrayOfFtnword);
-        tempArrayOfInt = NULL;
-        tempArrayOfFtnword = NULL;
-        return (int32_t *)arrayOfFloat;
+        return (uint32_t *)arrayOfFloat;
 
     } else {
         printf("\n opCode is not defined \n");

@@ -1731,7 +1731,7 @@ int c_fstluk(
     int *nk
 ) {
     stdf_dir_keys stdf_entry;
-    int *pkeys;
+    uint32_t *pkeys;
 
     float *ptr_real;
     double *ptr_double;
@@ -1754,7 +1754,7 @@ int c_fstluk(
     // printf("sizeof(stdf_dir_keys) = %d\n", sizeof(stdf_dir_keys));
 
     // printf("Debug+ c_fstluk - &stdf_entry = %p\n", &stdf_entry);
-    pkeys = (int *) &stdf_entry;
+    pkeys = (uint32_t *) &stdf_entry;
     // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
     pkeys += W64TOWD(1);
     // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
