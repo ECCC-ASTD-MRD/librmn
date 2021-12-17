@@ -5,7 +5,7 @@ variables:
    ORD_SOUMET_M: "100G"
    ORD_SOUMET_TMPFS: "10G"
 
-   stages:
+stages:
    - build
    - test
    - package
