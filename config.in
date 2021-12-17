@@ -17,6 +17,7 @@ libs=CMAKE_LIBS
 
 version=@PROJECT_VERSION@
 env=@EC_CI_ENV@
+arch=@EC_ARCH@
 
 usage()
 {
@@ -33,6 +34,7 @@ Available values for OPTION include:
   --defs         Preprocessor definitions [${defs}]
   --version      library version [${version}]
   --env          environment version used [${env}]
+  --arch         architecture of build [${arch}]
 
 EOF
 }
@@ -88,6 +90,10 @@ while test $# -gt 0; do
        echo ${env}
        ;;
 
+    --arch)
+       echo ${arch}
+       ;;
+       
     *)
         echo "unknown option: $1"
 	    usage 1

@@ -1,5 +1,5 @@
 !> Return the version identification string
-#include <librmn_build_info.h>
+#include <rmn_build_info.h>
 
 subroutine rmnlib_version(version_string, prnt)
     implicit none
