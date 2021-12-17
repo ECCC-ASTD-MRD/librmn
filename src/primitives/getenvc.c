@@ -50,7 +50,6 @@ void f77name(getenvc) (
     // printf("getenvc() - EnvVarName=\"%s\" \n", temp);
 
     char *envVal = getenv( temp );
-    free( temp );
 
     for ( int i = 0 ; i < valueLen ; i++ ) {
         value[i] = ' ';
@@ -68,4 +67,5 @@ void f77name(getenvc) (
     } else {
         printf("getenvc - %s Not found in environment!\n", temp);
     }
+    free( temp );
 }
