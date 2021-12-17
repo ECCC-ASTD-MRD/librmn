@@ -40,6 +40,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !                               menage dans le code, changement de nom, refactoring
 !     Revision 012  M. Valin  - Oct/Nov 2013 bug de conversion corrige pour certains cas limites
 !                               enleve une amelioration qui entrainait une non compatibilite avec convip
+!     Revision 013  M. Valin  - Dec 2020 ajout de la coordonnee de type 7 (metres sous l'eau) (profondeur)
 
 ! INPUTS
 !    MODE = -1, de IP -->  P
@@ -60,12 +61,14 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !    KIND =4, p est en hauteur (M) par rapport au niveau du sol    (-20,000 -> 100,000)
 !    KIND =5, p est en coordonnee hybride                          (0.0 -> 1.0)
 !    KIND =6, p est en coordonnee theta                            (1 -> 200,000)
+!    KIND =7, p est en metres (profondeur sous l'eau)              (0 -> 20,000)
 !    KIND =10, p represente le temps en heure                      (0.0 -> 1.0e10)
 !    KIND =15, reserve (entiers)
 !    KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
 !              (partage avec kind=1 a cause du range exclusif
 !    KIND =21, p est en metres-pression                            (0 -> 1,000,000) fact=1e4
-!              (partage avec kind=5 a cause du range exclusif)
+!              (partage avec kind=5 a cause du range exclusif)                                                             
+!    KIND =23, reserve pour usage futur (partage avec kind=7)
 ! OUTPUTS
 !    STRING = valeur de P formattee
 
@@ -84,26 +87,26 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   logical :: flag
 
   LOGICAL, PARAMETER, DIMENSION(0:Max_Kind) :: validkind =                    &
-  & (/ (.true.,i=0,6), (.false.,i=7,9), .true., (.false.,i=11,14),            &
+  & (/ (.true.,i=0,7), (.false.,i=8,9), .true., (.false.,i=11,14),            &
   &    .true., .false.,.true.,                                                &
   &    (.false., i=18,20), .true., (.false., i=22,30),.true. /)   ! kind 31 valide
 
   REAL, PARAMETER, DIMENSION(0:Max_Kind) :: low_val =                         &
   &  (/ -20000., 0., 0.,    -4.8e+8, -20000., 0.,                             &
-  &    1.0, (-4.8e+8,i=7,9), 0.0, (-4.8e+8,i=11,16),                          &
+  &    1.0, 0.0, (-4.8e+8,i=8,9), 0.0, (-4.8e+8,i=11,16),                     &
   &    1.0, (-4.8e+8,i=18,20), 0., (-4.8e+8,i=22,31) /)
   REAL, PARAMETER, DIMENSION(0:Max_Kind) :: hi_val =                          &
   &  (/  100000., 1., 1100., 1.0e+10, 100000., 1.,                            &
-  &     200000., (1.0e+10,i=7,9), 1.0e+10, (1.0e+10,i=11,16),                 &
+  &     200000., 20000., (1.0e+10,i=8,9), 1.0e+10, (1.0e+10,i=11,16),         &
   &     1.0e+10, (1.0e+10,i=18,20), 1000000., (1.0e+10,i=22,31) /)
   REAL, PARAMETER, DIMENSION(0:Max_Kind) :: zero_val =                        &
-  &  (/ 0., 0., 0., 0., 0., 0., 1., (0.0,i=7,16),                             &
+  &  (/ 0., 0., 0., 0., 0., 0., 1., 0., (0.0,i=8,16),                         &
   &    1.0, (0.0,i=18,20), 1.001e-4, (0.0,i=22,31) /)
   REAL, PARAMETER, DIMENSION(0:Max_Kind) :: zero_val2 =                       &
-  &  (/ 0., 0., 0., 0., 0., 0., 1., (0.0,i=7,16),                             &
+  &  (/ 0., 0., 0., 0., 0., 0., 1., 0., (0.0,i=8,16),                         &
   &    1.0, (0.0,i=18,20), 0.0, (0.0,i=22,31) /)
   REAL, PARAMETER, DIMENSION(0:Max_Kind) :: fact_val =                        &
-  &  (/ 1., 1., 1., 1., 1., 1., 1., (1.0,i=7,16),                             &
+  &  (/ 1., 1., 1., 1., 1., 1., 1., 1., (1.0,i=8,16),                         &
   &    -1.0, (1.0,i=18,20), 1.0e+4, (1.0,i=22,31) /)
 
   save NEWSTYLE, exptab, maxkind
@@ -588,9 +591,16 @@ subroutine test_convip_plus() ! test routine for convip_plus
   enddo
   print 112,'ip1<>ip2 (normalization aliases)=',nip,' p1 ~= p2 (within 2.0E-7 relative error)',nip2,' errors=',nip3
   do i=5,1005,100
-     ip1 = i
+     ip1 = i       ! old style presure in mb
      call CONVIP_plus( ip1, p, kind, -1, string, .false.)
-     p=p+.751
+     p =p + .751
+     call CONVIP_plus( ip1, p, kind, +2, string, .false. )
+     call CONVIP_plus( ip1, p, kind, -1, string, .true.)
+     print 113,i,p,kind,':'//trim(string)//':'
+  enddo
+  do i=0,20000,2000
+     p = i + .1
+     kind = 7  ! force to type 7
      call CONVIP_plus( ip1, p, kind, +2, string, .false. )
      call CONVIP_plus( ip1, p, kind, -1, string, .true.)
      print 113,i,p,kind,':'//trim(string)//':'
@@ -623,7 +633,7 @@ FUNCTION kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 chara
   character(len=2) :: string
   integer, parameter :: Max_Kind=31
   character(len=2), save, dimension(0:Max_Kind) :: kinds = &
-    (/    ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', '??',                       &
+    (/    ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
           '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
           '??', '[]', '??', '??', '??', 'mp', '??', '??',                       &
           '??', '??', '??', '??', '??', '??', '??', '_1' /)

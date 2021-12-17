@@ -22,6 +22,7 @@
       integer, parameter :: KIND_ABOVE_GND=4
       integer, parameter :: KIND_HYBRID=5
       integer, parameter :: KIND_THETA=6
+      integer, parameter :: KIND_BELOW_SEA=7
       integer, parameter :: KIND_HOURS=10
       integer, parameter :: KIND_SAMPLES=15
       integer, parameter :: KIND_MTX_IND=17
