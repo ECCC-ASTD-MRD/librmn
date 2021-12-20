@@ -101,6 +101,8 @@ build:gnu-7.4.0:
 
 package:XC50_intel-19.0.5:
    stage: package
+   tags:
+      - XC50-login
    only:
       - tags
    dependencies:
