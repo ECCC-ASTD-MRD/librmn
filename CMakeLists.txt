@@ -70,7 +70,7 @@ target_link_libraries(librmn_version rmn)
 file(GLOB GMM_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.hf)
 add_custom_command(
     TARGET rmn
-    POST_BUILD
+    PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf > ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90
     COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     COMMENT "Generating gmm.hf"
@@ -83,7 +83,7 @@ add_custom_command(
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
     TARGET rmn
-    POST_BUILD
+    PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
     COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
