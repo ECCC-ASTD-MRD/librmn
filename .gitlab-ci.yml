@@ -81,8 +81,6 @@ build:skylake-intel-19.0.3:
       paths:
          - build_skylake-intel-19.0.3
 
-         build:intel-19.0.3:
-
 build:amd-intel-19.0.3:
    stage: build
    only:
