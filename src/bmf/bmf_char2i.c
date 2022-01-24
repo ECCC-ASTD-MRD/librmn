@@ -73,7 +73,7 @@ int32_t f77name(bmf_i2char)(
         fprintf(stderr,"bmf_i2char: integer array size too small \n");
         return -1;
     }
-    f_length = (long *)f_outint[0];
+    f_length = (int32_t *)f_outint[0];
     f_outint++;
     strncpy(f_char,(char *)f_outint,length);
     f_outint--;

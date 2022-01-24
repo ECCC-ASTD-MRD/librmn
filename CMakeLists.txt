@@ -16,6 +16,8 @@ set(RMN_VERSION ${PROJECT_VERSION} CACHE INTERNAL "RMN version" FORCE) # Needed 
 enable_language(C Fortran)
 include(ec_compiler_presets)
 
+#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -diag-disable=6916")
+
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)
 include(ec_doxygen)
@@ -102,7 +104,6 @@ list(APPEND PROJECT_INCLUDE_FILES
 
 list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/rmnlib.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros_global.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ftn2c_helper.h
