@@ -3,9 +3,12 @@
 cmake_minimum_required(VERSION 3.16)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_rpn)
-include(ec_init)           # Initialise compilers and ec specific functions
-ec_git_version()           # Get version from git state
-ec_parse_manifest()        # Parse MANIFEST file
+# Initialise compilers and ec specific functions
+include(ec_init)
+# Get version from git
+ec_git_version()
+# Parse MANIFEST file
+ec_parse_manifest()
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
@@ -54,14 +57,16 @@ file(GLOB PROJECT_F_FILES
 )
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
-ec_build_info()            # Generate build include file (optional)
+# Generate build include file (optional)
+ec_build_info()
 
+add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_library(rmn       STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmnshared rmn_build_info)  
-add_dependencies(rmn       rmn_build_info)  
+add_dependencies(rmn rmn_build_info)
+add_dependencies(rmnshared rmn rmn_build_info)
 
-add_executable(librmn_version src/librmn_version.c) #TODO: Could get rid of this binary a it's availble through rmn_config
+#TODO: Could get rid of this binary a it's availble through rmn_config
+add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn rmn_build_info)
 target_link_libraries(librmn_version rmn)
 
@@ -97,7 +102,7 @@ add_custom_command(
     USES_TERMINAL
 )
 
-list(APPEND PROJECT_INCLUDE_FILES 
+list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
 )
@@ -124,7 +129,7 @@ set_target_properties(rmnshared PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     SOVERSION ${SOVERSION}
     OUTPUT_NAME rmn)
-    
+
 install(TARGETS rmn rmnshared librmn_version)
 
 add_custom_target(
@@ -134,31 +139,36 @@ add_custom_target(
     COMMENT "Extract function prototypes from C source code"
 )
 
-#----- Generate the config file for the project to be usable via cmake's find_package command
+# Generate the config file for the project to be usable via cmake's find_package command
 set(INCLUDE_INSTALL_DIR include)
-set(LIB_INSTALL_DIR     lib)
-set(CONFIG_INSTALL_DIR  "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
+set(LIB_INSTALL_DIR lib)
+set(CONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "Config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     INSTALL_DESTINATION "${CONFIG_INSTALL_DIR}"
-    PATH_VARS           INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
 )
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     COMPATIBILITY SameMajorVersion
 )
-install(FILES   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-                "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
 # Packaging
-ec_install_prefix(${NAME} ${PROJECT_VERSION} PACKAGE_PREFIX)  # Define package prefix  
-ec_build_config()                                             # Create build configuration script
-ec_prepare_ssm()                                              # Prepare ssm packaging files
+# Define package prefix
+ec_install_prefix(${NAME} ${PROJECT_VERSION} PACKAGE_PREFIX)
+# Create build configuration script
+ec_build_config()
+# Prepare ssm packaging files
+ec_prepare_ssm()
 
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_VENDOR "ECCC")
