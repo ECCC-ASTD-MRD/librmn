@@ -45,46 +45,50 @@ fi
 
 while test $# -gt 0; do
     case "$1" in
-    # this deals with options in the style
-    # --option=value and extracts the value part
-    # [not currently used]
-    -*=*) value=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
-    *) value= ;;
+        # this deals with options in the style
+        # --option=value and extracts the value part
+        # [not currently used]
+        -*=*)
+            value=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'`
+            ;;
+        *)
+            value=
+            ;;
     esac
 
     case "$1" in
 
     --help)
-	usage 0
-	;;
+        usage 0
+        ;;
 
     --cc)
-       	echo ${cc:-no}
-       	;;
+        echo ${cc:-no}
+        ;;
 
     --fc)
-       	echo ${fc:-no}
-       	;;
+        echo ${fc:-no}
+        ;;
 
     --cflags)
-       	echo ${cflags}
-       	;;
-           
+        echo ${cflags}
+        ;;
+
     --fflags)
-       	echo ${fflags}
-       	;;
+        echo ${fflags}
+        ;;
 
     --defs)
-       	echo ${defs}
-       	;;
+        echo ${defs}
+        ;;
 
     --libs)
-       	echo ${libs}
-       	;;
+        echo ${libs}
+        ;;
 
     --version)
-	    echo ${version}
-	    ;;
+        echo ${version}
+        ;;
 
     --env)
        echo ${env}
@@ -93,11 +97,11 @@ while test $# -gt 0; do
     --arch)
        echo ${arch}
        ;;
-       
+
     *)
         echo "unknown option: $1"
-	    usage 1
-	    ;;
+        usage 1
+        ;;
     esac
     shift
 done
