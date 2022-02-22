@@ -35,7 +35,9 @@ BUILD_SHARED_LIBS
 : `(yes|no)` Indique si les bibliothèques de fonctions dynamiques doivent être produites.  Défaut: `no`
 
 COMPILER_SUITE
-: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Défaut: `GNU`
+: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Sur les systèmes d'ECCC,
+le compilateur chargé sera utilisé.  Si les vairables d'environnement propres à
+ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
 
 WITH_OPENMP
 : `(yes|no)` Indique si le support pour OpenMP doit être activée.  Défaut: `yes`
@@ -44,10 +46,7 @@ WITH_OPENMP
 ### Exemple de compilation
 ```
 cmake \
-    -DCMAKE_C_STANDARD=99 \
-    -DCMAKE_C_EXTENSIONS=OFF \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
-    -DBUILD_SHARED_LIBS=no \
     -DWITH_DOC=no \
     -DWITH_OPENMP=no \
     $src_dir_path
@@ -73,7 +72,7 @@ est trop vieille, vous devez charger une version plus récente.  Par exemple:
 git clone --recurse-submodules -b dev https://github.com/ECCC-ASTD-MRD/librmn.git 
 mkdir librmn_build
 cd librmn_build
-cmake ../librmn -DBUILD_SHARED_LIBS=FALSE -DWITH_DOC=NO -DCMAKE_INSTALL_PREFIX=~/opt/
+cmake ../librmn -DCMAKE_INSTALL_PREFIX=~/opt/
 make -j4 install
 ```
 
