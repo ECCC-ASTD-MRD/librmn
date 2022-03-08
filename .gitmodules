@@ -2,6 +2,3 @@
 	path = cmake_rpn
 	url = ../cmake_rpn.git
 	branch = dev
-[submodule "ci-env"]
-	path = ci-env
-	url = ../ci-env

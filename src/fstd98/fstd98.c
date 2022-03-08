@@ -469,9 +469,9 @@ int c_fstecr(
     }
 
     /* 64 bits real IEEE */
-    if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) IEEE_64=1;
+    if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) IEEE_64 = 1;
     /* 64 bits complex IEEE */
-    if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) IEEE_64=1;
+    if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) IEEE_64 = 1;
 
     /* validate range of arguments */
     VALID(ni, 1, NI_MAX, "ni", "c_fstecr")
@@ -708,7 +708,7 @@ int c_fstecr(
 
             case 0: case 128:
                 /* transparent mode */
-                if (datyp==128) {
+                if (datyp == 128) {
                     WARNPRINT fprintf(stderr, "WARNING: extra compression not available, data type %d reset to %d\n", stdf_entry->datyp, 0);
                     datyp = 0;
                     stdf_entry->datyp = 0;
@@ -814,7 +814,7 @@ int c_fstecr(
 
             case 4: case 132:
                 /* signed integer */
-                if (datyp==132) {
+                if (datyp == 132) {
                     WARNPRINT fprintf(stderr, "WARNING: extra compression not supported, data type %d reset to %d\n", stdf_entry->datyp, is_missing | 4);
                     datyp = 4;
                 }
@@ -824,7 +824,7 @@ int c_fstecr(
                 // fprintf(stderr, "OLD PACK CODE======================================\n");
                 field3 = field;
                 if (xdf_short || xdf_byte) {
-                    field3=(int *)alloca(ni * nj * nk*sizeof(int));
+                    field3 = (int *)alloca(ni * nj * nk*sizeof(int));
                     s_field = (short *)field; b_field = (signed char *)field;
                     if (xdf_short) for (i = 0; i < ni * nj * nk;i++) { field3[i] = s_field[i]; };
                     if (xdf_byte)  for (i = 0; i < ni * nj * nk;i++) { field3[i] = b_field[i]; };
@@ -854,7 +854,7 @@ int c_fstecr(
                     int32_t f_zero = (int32_t) zero;
                     int32_t f_one = (int32_t) one;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
-                    if (datyp==136) {
+                    if (datyp == 136) {
                         WARNPRINT fprintf(stderr, "WARNING: extra compression not available, data type %d reset to %d\n", stdf_entry->datyp, 8);
                         datyp = 8;
                         stdf_entry->datyp = 8;
@@ -1028,7 +1028,7 @@ int c_fst_edit_dir_plus(
     }
     if (ig3 != -1) stdf_entry->ig3 = ig3;
     if (ig4 != -1) stdf_entry->ig4 = ig4;
-    if (strcmp(etiket, "            ") !=0 ) {
+    if (strcmp(etiket, "            ") != 0) {
         stdf_entry->etik15 =
         (ascii6(etiket[0]) << 24) |
         (ascii6(etiket[1]) << 18) |
@@ -2109,11 +2109,13 @@ int c_fstmsq(
         *mip1 = ~(search_mask->ip1) & 0xfffffff;
         *mip2 = ~(search_mask->ip2) & 0xfffffff;
         *mip3 = ~(search_mask->ip3) & 0xfffffff;
-        for (i=0; i <= 4; i++)
-        metiket[i] = inv_isignore( ((search_mask->etik15 >> ((4-i)*6)) & 0x3f) );
+        for (i = 0; i <= 4; i++) {
+            metiket[i] = inv_isignore( ((search_mask->etik15 >> ((4-i)*6)) & 0x3f) );
+        }
 
-        for (i=5; i <=9; i++)
-        metiket[i] = inv_isignore( ((search_mask->etik6a >> ((9-i)*6)) & 0x3f) );
+        for (i = 5; i <= 9; i++) {
+            metiket[i] = inv_isignore( ((search_mask->etik6a >> ((9-i)*6)) & 0x3f) );
+        }
 
         metiket[10] = inv_isignore( ((search_mask->etikbc >> 6) & 0x3f) );
         metiket[11] = inv_isignore((search_mask->etikbc  & 0x3f));
@@ -2552,9 +2554,9 @@ int c_fstprm(
   *extra2 = 0;
   *extra3 = 0;
 
-  for (l1=0; (typvar[l1] != '\0') && (l1 <2); l1++);
-  for (l2=0; (nomvar[l2] != '\0') && (l2 <4); l2++);
-  for (l3=0; (etiket[l3] != '\0') && (l3 <12); l3++);
+  for (l1 = 0; (typvar[l1] != '\0') && (l1 <2); l1++);
+  for (l2 = 0; (nomvar[l2] != '\0') && (l2 <4); l2++);
+  for (l3 = 0; (etiket[l3] != '\0') && (l3 <12); l3++);
   l4 = 1;
   string_copy(typvar, cracked.typvar, l1);
   string_copy(nomvar, cracked.nomvar, l2);
@@ -2644,9 +2646,9 @@ int c_fstskp(
     if (! f->fstd_vintage_89) {
         if (nrec > 0) {
             /* skip forward */
-            for (i=0; i < nrec; i++) {
+            for (i = 0; i < nrec; i++) {
                 nw = c_waread2(iun, &header64, f->cur_addr, W64TOWD(1));
-                if ((nw != W64TOWD(1)) || ((header64.idtyp >= 112) && (header64.idtyp <=127))) {
+                if ((nw != W64TOWD(1)) || ((header64.idtyp >= 112) && (header64.idtyp <= 127))) {
                     if (msg_level <= INFORM) {
                         fprintf(stdout, "c_fstskp: (unit %d) skip to end of file\n", iun);
                     }
@@ -2665,7 +2667,7 @@ int c_fstskp(
             }
         } else {
             nrec = -nrec;
-            for (i=0; i < nrec; i++) {
+            for (i = 0; i < nrec; i++) {
                 if ((f->cur_addr - W64TOWD(2)) > f->seq_bof) {
                     c_waread(iun, &postfix, (f->cur_addr - W64TOWD(2)), W64TOWD(2));
                     if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
@@ -2688,7 +2690,7 @@ int c_fstskp(
         dim = sizeof(seq_entry) / sizeof(int32_t);
         if (nrec < 0) {
             /* skip forward */
-            for (i=0; i < nrec; i++) {
+            for (i = 0; i < nrec; i++) {
                 nw = c_waread2(iun, &seq_entry, f->cur_addr, dim);
                 if ((nw != dim) || (seq_entry.eof > 0)) {
                     if (msg_level <= INFORM) {
@@ -2701,7 +2703,7 @@ int c_fstskp(
         } else {
             /* skip backward */
             nrec = -nrec;
-            for (i=0; i < nrec; i++) {
+            for (i = 0; i < nrec; i++) {
                 if (f->cur_addr <= 1) {
                     f->cur_addr = 1;
                     break;
@@ -2735,10 +2737,10 @@ int c_fstsui(
     int addr, lng, idtyp, ier, handle;
     stdf_dir_keys *stdf_entry;
     uint32_t *pkeys;
-    uint32_t *primk=NULL;
+    uint32_t *primk = NULL;
 
     /* position to the next record that matches the last search criterias */
-    handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle=-1 and nprim=0 */
+    handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
     if (handle < 0) {
         if (msg_level == TRIVIAL)
         fprintf(stdout, "c_fstsui: record not found, errcode=%d\n", handle);
@@ -2808,9 +2810,9 @@ int c_fstvoi(
    nrec = 0;
    width = W64TOWD(file_entry->primary_len);
    if (! file_entry->xdf_seq) {
-     for (i=0; i < file_entry->npages; i++) {
+     for (i = 0; i < file_entry->npages; i++) {
        entry = (file_entry->dir_page[i])->dir.entry;
-       for (j=0; j < (file_entry->dir_page[i])->dir.nent; j++) {
+       for (j = 0; j < (file_entry->dir_page[i])->dir.nent; j++) {
          header = (xdf_record_header *) entry;
          if (header->idtyp < 112) {
            stdf_entry = (stdf_dir_keys *) entry;
@@ -3412,7 +3414,7 @@ void backto64(
         }
     } else {
         if ((xdf_datatyp == 2) || (xdf_datatyp == 3)) {
-            for (i=nelm-1; i>=0; i--)
+            for (i = nelm-1; i >= 0; i--)
                 upll[i] = upl[i];
         }
     }
@@ -3512,7 +3514,7 @@ int32_t f77name(fstcvt)(
  *****************************************************************************/
 int32_t f77name(fst_data_length)(int *f_length_type)
 {
-  int ier, length_type=*f_length_type;
+  int ier, length_type = *f_length_type;
 
   ier = c_fst_data_length(length_type);
   return (int32_t) ier;
@@ -3549,7 +3551,7 @@ int32_t f77name(fst_data_length)(int *f_length_type)
  *  IN  ig3     third grid descriptor                                        *
  *  IN  ig4     fourth grid descriptor                                       *
  *  IN  datyp   data type of the elements                                    *
- *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+ *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
  *                                                                           *
  *****************************************************************************/
 int32_t f77name(fstecr)(uint32_t *field, int32_t *work, int32_t *f_npak,
@@ -3563,13 +3565,13 @@ int32_t f77name(fstecr)(uint32_t *field, int32_t *work, int32_t *f_npak,
                         int32_t *f_datyp, int32_t *f_rewrit,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
-  int iun=*f_iun, npak=*f_npak, date=*f_date, deet=*f_deet;
-  int npas=*f_npas, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
-  int ni=*f_ni, nj=*f_nj, nk=*f_nk;
-  int ig1=*f_ig1, ig2=*f_ig2, ig3=*f_ig3, ig4=*f_ig4;
-  int datyp=*f_datyp, rewrit=*f_rewrit;
+  int iun = *f_iun, npak = *f_npak, date = *f_date, deet = *f_deet;
+  int npas = *f_npas, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
+  int ni = *f_ni, nj = *f_nj, nk = *f_nk;
+  int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
+  int datyp = *f_datyp, rewrit = *f_rewrit;
   int ier;
-  int l1=ll1, l2=ll2, l3=ll3, l4=ll4;
+  int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
 
   char etiket[13];
   char typvar[3];
@@ -3649,7 +3651,7 @@ int32_t f77name(fstecr)(uint32_t *field, int32_t *work, int32_t *f_npak,
  *  IN  ig3     third grid descriptor                                        *
  *  IN  ig4     fourth grid descriptor                                       *
  *  IN  datyp   data type of the elements                                    *
- *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+ *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
  *                                                                           *
  *****************************************************************************/
 int32_t f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
@@ -3664,7 +3666,7 @@ int32_t f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
                         int lng_string, F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 int ninjnk;
-int32_t ier=0;
+int32_t ier = 0;
 
 ninjnk = Max(1, *f_ni) * Max(1, *f_nj) * Max(1, *f_nk);
 if (ninjnk > lng_string * *f_nj) {
@@ -3711,7 +3713,7 @@ else
  *  IN  ig3     third grid descriptor                                        *
  *  IN  ig4     fourth grid descriptor                                       *
  *  IN  datyp   data type of the elements                                    *
- *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+ *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
  *                                                                           *
  *****************************************************************************/
 int32_t f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
@@ -3726,7 +3728,7 @@ int32_t f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 // int ninjnk;
-int32_t ier=0;
+int32_t ier = 0;
   xdf_short = 1;
   ier = f77name(fstecr)(haft_w, work, f_npak, f_iun, f_date, f_deet, f_npas, f_ni, f_nj, f_nk, f_ip1, f_ip2, f_ip3,
                         f_typvar, f_nomvar, f_etiket, f_grtyp, f_ig1, f_ig2, f_ig3, f_ig4, f_datyp, f_rewrit,
@@ -3766,7 +3768,7 @@ int32_t ier=0;
  *  IN  ig3     third grid descriptor                                        *
  *  IN  ig4     fourth grid descriptor                                       *
  *  IN  datyp   data type of the elements                                    *
- *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+ *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)    *
  *                                                                           *
  *****************************************************************************/
 int32_t f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
@@ -3781,7 +3783,7 @@ int32_t f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
 //int ninjnk;
-int32_t ier=0;
+int32_t ier = 0;
   xdf_byte = 1;
   ier = f77name(fstecr)(bytes, work, f_npak, f_iun, f_date, f_deet, f_npas, f_ni, f_nj, f_nk, f_ip1, f_ip2, f_ip3,
                         f_typvar, f_nomvar, f_etiket, f_grtyp, f_ig1, f_ig2, f_ig3, f_ig4, f_datyp, f_rewrit,
@@ -3813,12 +3815,12 @@ int32_t f77_name(fst_edit_dir_plus)(int32_t *f_handle,
                                F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
   int ier;
-  int handle=*f_handle;
-  int date=*f_date, deet=*f_deet;
-  int npas=*f_npas, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
-  int ni=*f_ni, nj=*f_nj, nk=*f_nk;
-  int ig1=*f_ig1, ig2=*f_ig2, ig3=*f_ig3, ig4=*f_ig4;
-  int datyp=*f_datyp;
+  int handle = *f_handle;
+  int date = *f_date, deet = *f_deet;
+  int npas = *f_npas, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
+  int ni = *f_ni, nj = *f_nj, nk = *f_nk;
+  int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
+  int datyp = *f_datyp;
 
   char etiket[13];
   char typvar[3];
@@ -3846,12 +3848,12 @@ int32_t f77_name(fst_edit_dir)(int32_t *f_handle,
                                F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
 {
   int ier;
-  int handle=*f_handle;
-  int date=*f_date, deet=*f_deet;
-  int npas=*f_npas, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
-  int ni=*f_ni, nj=*f_nj, nk=*f_nk;
-  int ig1=*f_ig1, ig2=*f_ig2, ig3=*f_ig3, ig4=*f_ig4;
-  int datyp=*f_datyp;
+  int handle = *f_handle;
+  int date = *f_date, deet = *f_deet;
+  int npas = *f_npas, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
+  int ni = *f_ni, nj = *f_nj, nk = *f_nk;
+  int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
+  int datyp = *f_datyp;
 
   char etiket[13];
   char typvar[3];
@@ -4006,10 +4008,10 @@ int32_t f77name(fstinfx)(int32_t *f_handle, int32_t *f_iun,
                          char *f_typvar, char *f_nomvar,
                          F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  int iun = *f_iun, datev=*f_datev, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
+  int iun = *f_iun, datev = *f_datev, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
   int handle = *f_handle;
   int ier, ni, nj, nk;
-  int l1=ll1, l2=ll2, l3=ll3;
+  int l1 = ll1, l2 = ll2, l3 = ll3;
 
   char etiket[13];
   char typvar[3];
@@ -4059,10 +4061,10 @@ int32_t f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
                         int32_t *liste, int32_t *f_infon, int32_t *f_nmax,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  int iun = *f_iun, datev=*f_datev, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
+  int iun = *f_iun, datev = *f_datev, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
   int infon, nmax = *f_nmax;
   int ier, ni, nj, nk, i;
-  int l1=ll1, l2=ll2, l3=ll3;
+  int l1 = ll1, l2 = ll2, l3 = ll3;
   int32_t *plong;
   char etiket[13];
   char typvar[3];
@@ -4126,7 +4128,7 @@ int32_t f77name(fstlic)(uint32_t *field, int32_t *f_iun,
   int date = *f_date, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
   int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
   int ier;
-  int l1=ll1, l2=ll2, l3=ll3, l4=ll4;
+  int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
 
   char etiket[13];
   char typvar[3];
@@ -4173,9 +4175,9 @@ int32_t f77name(fstlir)(void *field, int32_t *f_iun,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  int iun = *f_iun, datev=*f_datev, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
+  int iun = *f_iun, datev = *f_datev, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
   int ier, ni, nj, nk;
-  int l1=ll1, l2=ll2, l3=ll3;
+  int l1 = ll1, l2 = ll2, l3 = ll3;
 
   char etiket[13];
   char typvar[3];
@@ -4234,9 +4236,9 @@ int32_t f77name(fstlir_s)(void *string, int32_t *f_iun,
 {
   int32_t ier;
   int i;
-  char *ptr=(char*) string;
+  char *ptr = (char*) string;
 
-  for (i=0; i < lng_string; i++)
+  for (i = 0; i < lng_string; i++)
     *ptr++ = ' ';
   ier = f77name(fstlir)(string, f_iun, f_ni, f_nj, f_nk, f_datev, f_etiket,
                      f_ip1, f_ip2, f_ip3, f_typvar, f_nomvar, ll1, ll2, ll3);
@@ -4352,10 +4354,10 @@ int32_t f77name(fstlirx)(uint32_t *field, int32_t *f_handle, int32_t *f_iun,
                         char *f_typvar, char *f_nomvar,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-  int iun = *f_iun, datev=*f_datev, ip1=*f_ip1, ip2=*f_ip2, ip3=*f_ip3;
+  int iun = *f_iun, datev = *f_datev, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
   int handle = *f_handle;
   int ier, ni, nj, nk;
-  int l1=ll1, l2=ll2, l3=ll3;
+  int l1 = ll1, l2 = ll2, l3 = ll3;
 
   char etiket[13];
   char typvar[3];
@@ -4493,7 +4495,7 @@ int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
 {
   int err, iun = *f_iun, mip1 = *f_mip1, mip2 = *f_mip2, mip3 = *f_mip3;
   int getmode = *f_getmode;
-  int l1=ll1;
+  int l1 = ll1;
 
   char metiket[13];
 
@@ -4565,7 +4567,7 @@ int32_t f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
   int getmode = *f_getmode, ier;
   char option[17];
   char value[129];
-  int l1=ll1, l2=ll2;
+  int l1 = ll1, l2 = ll2;
 
   l1 = (l1 > 16) ? 16 : l1;
   l2 = (l2 > 128) ? 128 : l2;
@@ -4573,14 +4575,14 @@ int32_t f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
   option[l1] = '\0';
   l1--;
   while ((l1 > 0) && (option[l1] == ' ')) {
-    option[l1]='\0';
+    option[l1] = '\0';
     l1--;
   }
   strncpy(value, f_value, l2);
   value[l2] = '\0';
   l2--;
   while ((l2 > 0) && (value[l2] == ' ')) {
-    value[l2]='\0';
+    value[l2] = '\0';
     l2--;
   }
 
@@ -4606,7 +4608,7 @@ int32_t f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
-  int l1=ll1;
+  int l1 = ll1;
   char option[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 
   l1 = (l1 > 6) ? 6 : l1;
@@ -4634,7 +4636,7 @@ int32_t f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
                         F2Cl ll1)
 {
   int getmode = *f_getmode, value = *f_value, ier;
-  int l1=ll1;
+  int l1 = ll1;
   char option[17];
 
   l1 = (l1 > 16) ? 16 : l1;
@@ -4664,7 +4666,7 @@ int32_t f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode,
 {
   int getmode = *f_getmode, ier;
   float value = *f_value;
-  int l1=ll1;
+  int l1 = ll1;
   char option[7];
 
   l1 = (l1 > 6) ? 6 : l1;
@@ -4767,12 +4769,12 @@ int32_t f77name(fstprm)(int32_t *f_handle,
   int handle = *f_handle;
   int ni, nj, nk, nbits, datyp, ip1, ip2, ip3, dateo, deet, npas;
   int ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3, ier;
-  int l1=ll1, l2=ll2, l3=ll3, l4=ll4;
-  char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '
+  int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
+  char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '
                    , '\0'};
-  char typvar[3]={' ', ' ', '\0'};
-  char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
-  char grtyp[2]={' ', '\0'};
+  char typvar[3] = {' ', ' ', '\0'};
+  char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
+  char grtyp[2] = {' ', '\0'};
 
   l1 = (l1 < 2) ? l1 : 2;            /* typvar length */
   l2 = (l2 < 4) ? l2 : 4;            /* nomvar length */
@@ -4945,7 +4947,7 @@ int32_t f77name(fst_version)()
  *****************************************************************************/
 int32_t f77name(fstvoi)(int32_t *f_iun, char *f_options, F2Cl ll1)
 {
-  int iun = *f_iun, l1=ll1;
+  int iun = *f_iun, l1 = ll1;
   char options[80] =
   {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -5071,7 +5073,7 @@ int FstCanTranslateName(char *varname) {
             strncpy( exception_vars , FST_NOIP_NAME , sizeof(exception_vars) );
             BASENAME = NULL;
             // FST_NOIP_NAME contains a file name
-            if (exception_vars[0]=='|') BASENAME = exception_vars + 1;
+            if (exception_vars[0] == '|') BASENAME = exception_vars + 1;
         }
         if (BASENAME) {
             // Get table from $ARMNLIB/data/exception_vars file if it exists
@@ -5116,255 +5118,295 @@ static void print_std_parms(
     char *pre,
     //! [in] List of fields to print
     char *option,
-    //! [in] A header will be printed when this is non zero
+    //! [in] Print header if true (!= 0)
     int header
 ) {
-  stdf_special_parms cracked;
-  char cdt[9]={'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
-  char cmsgp=' '; /* initialize for case where there are no missing value(s) in record */
-  int dat2, dat3, minus3=-3;
-  int iip1, kind, mode=-1, flag=1;
-  int ig1, ig2, ig3, ig4;
-  float level;
-  char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
-  char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
-  char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
-  char h_decoded[39], v_decoded[39];
-  char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5];
-  char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5];
-  int posc, posv;
-  static char *ARMNLIB=NULL;                        /* ARMNLIB environment variable */
-  static char filename[256];
-  FILE *fileref;
+    stdf_special_parms cracked;
+    char cdt[9] = {'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
+    char cmsgp = ' '; /* initialize for case where there are no missing value(s) in record */
+    int dat2, dat3;
+    int minus3 = -3;
+    int iip1, kind;
+    int mode = -1, flag = 1;
+    int ig1, ig2, ig3, ig4;
+    float level;
+    char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
+    char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
+    char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
+    char h_decoded[39], v_decoded[39];
+    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5];
+    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5];
+    int posc, posv;
+    static char *ARMNLIB = NULL; /* ARMNLIB environment variable */
+    static char filename[256];
+    FILE *fileref;
 
-  /* printf("Debug+ print_std_parms option=%s\n", option); */
-  crack_std_parms(stdf_entry, &cracked);
+    /* printf("Debug+ print_std_parms option=%s\n", option); */
+    crack_std_parms(stdf_entry, &cracked);
 
   if (header) {
-      /* build and print header line */
+        /* build and print header line */
 
-    if (strstr(option, "NONOMV"))
-      h_nomv[0]='\0';
-    else
-      snprintf(h_nomv, sizeof(h_nomv), "%s", "NOMV");
-
-    if (strstr(option, "NOTYPV"))
-      h_typv[0]='\0';
-    else
-      snprintf(h_typv, sizeof(h_typv), "%s", "TV");
-
-    if (strstr(option, "NOETIQ"))
-      h_etiq[0]='\0';
-    else
-      snprintf(h_etiq, sizeof(h_etiq), "%s", "  ETIQUETTE ");
-
-    if (strstr(option, "NINJNK"))
-      snprintf(h_dims, sizeof(h_dims), "%s", "      NI      NJ    NK");
-    else
-      h_dims[0]='\0';
-
-    if (strstr(option, "DATEO"))
-      /*      snprintf(h_dateo, "%s", "YYYYMMDD HHMMSS"); */
-      snprintf(h_dateo, sizeof(h_dateo), "%s", "(DATE-O  h m s)");
-    else
-      h_dateo[0]='\0';
-
-    if (strstr(option, "DATESTAMPO"))
-      snprintf(h_stampo, sizeof(h_stampo), "%s", "  STAMP-O");
-    else
-      h_stampo[0]='\0';
-
-    if (strstr(option, "DATEV"))
-      /*      snprintf(h_datev, "%s", "YYYYMMDD HHMMSS     DATEV"); */
-      snprintf(h_datev, sizeof(h_datev), "%s", "(DATE-V  h m s)   STAMP-V");
-    else
-      h_datev[0]='\0';
-
-    if (strstr(option, "LEVEL"))
-      snprintf(h_level, sizeof(h_level), "%s", "       LEVEL   ");
-    else
-      h_level[0]='\0';
-
-    if (strstr(option, "IPALL"))
-      snprintf(h_decoded, sizeof(h_decoded), "%s", "          DECODED IP1/IP2/IP3         ");
-    else
-      h_decoded[0]='\0';
-
-    if (strstr(option, "IP1"))
-      snprintf(h_ip1, sizeof(h_ip1), "%s", "      IP1");
-    else
-      h_ip1[0]='\0';
-
-    if (strstr(option, "NOIP23"))
-      h_ip23[0]='\0';
-    else
-      snprintf(h_ip23, sizeof(h_ip23), "%s", "      IP2       IP3");
-
-    if (strstr(option, "NODEET"))
-      h_deet[0]='\0';
-    else
-      snprintf(h_deet, sizeof(h_deet), "%s", "    DEET");
-
-    if (strstr(option, "NONPAS"))
-      h_npas[0]='\0';
-    else
-      snprintf(h_npas, sizeof(h_npas), "%s", "    NPAS");
-
-    if (strstr(option, "NODTY"))
-      h_dty[0]='\0';
-    else
-      snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
-
-    if (strstr(option, "GRIDINFO"))
-      snprintf(h_grid, sizeof(h_grid), "%s", "G    XG1    XG2     XG3     XG4");
-    else
-      if (strstr(option, "IG1234"))
-        snprintf(h_grid, sizeof(h_grid), "%s", "G   IG1   IG2   IG3   IG4");
-      else
-        h_grid[0]='\0';
-
-    fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n", h_nomv, h_typv, h_etiq, h_dims, h_dateo, h_stampo, h_datev, h_level, h_decoded, h_ip1, h_ip23, h_deet, h_npas, h_dty, h_grid);
-    /*    fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid); */
-  }
-
-  if (strstr(option, "NONOMV"))
-    v_nomv[0]='\0';
-  else
-    snprintf(v_nomv, sizeof(v_nomv), "%4s", cracked.nomvar);
-
-  if (strstr(option, "NOTYPV"))
-    v_typv[0]='\0';
-  else
-    snprintf(v_typv, sizeof(v_typv), "%2s", cracked.typvar);
-
-  if (strstr(option, "NOETIQ"))
-    v_etiq[0]='\0';
-  else
-    snprintf(v_etiq, sizeof(v_etiq), "%12s", cracked.etiket);
-
-  if (strstr(option, "NINJNK"))
-    snprintf(v_dims, sizeof(v_dims), " %7d %7d %5d", stdf_entry->ni, stdf_entry->nj, stdf_entry->nk);
-  else
-    v_dims[0]='\0';
-
-  if (strstr(option, "DATEO")) {
-    f77name(newdate)(&cracked.date_stamp, &dat2, &dat3, &minus3);
-    snprintf(v_dateo, sizeof(v_dateo), "%08d %06d", dat2, dat3/100);
-  }
-  else
-    v_dateo[0]='\0';
-
-  if (strstr(option, "DATESTAMPO"))
-    snprintf(v_stampo, sizeof(v_stampo), "%09d", cracked.date_stamp);
-  else
-    v_stampo[0]='\0';
-
-  if (strstr(option, "DATEV")) {
-    f77name(newdate)(&cracked.date_valid, &dat2, &dat3, &minus3);
-    if (cracked.date_valid < -1)
-      snprintf(v_datev, sizeof(v_datev), "%08d %06d %10d", dat2, dat3/100, cracked.date_valid);
-    else
-      snprintf(v_datev, sizeof(v_datev), "%08d %06d %09d", dat2, dat3/100, cracked.date_valid);
-  }
-  else
-    v_datev[0]='\0';
-
-  v_level[0]='\0';
-  v_decoded[0]='\0';
-  if ( strstr(option, "LEVEL") || strstr(option, "IPALL") )
-    {
-      iip1 = stdf_entry->ip1;
-
-      if (! FstCanTranslateName(cracked.nomvar)) {
-        snprintf(c_level, sizeof(c_level), "%12d   ", iip1);
-        if (strstr(option, "LEVEL")) snprintf(v_level, sizeof(v_level), "%15s", "     -----     ");
-        if (strstr(option, "IPALL")) snprintf(v_decoded, sizeof(v_decoded), "[%10d] [%10d] [%10d]", stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
-      }
-      else     /* not a special variable  */
-      {
-        if (strstr(option, "LEVEL")) /* good old level option */
-        {
-          f77name(convip_plus)(&iip1, &level, &kind, &mode, c_level, &flag, (F2Cl) 15);
-          c_level[15] = '\0';
-          snprintf(v_level, sizeof(v_level), "%s", "               ");        /* blank initialisation */
-          posc=14;
-          posv=14;
-          while ((posc >= 0) && (isspace(c_level[posc])))  /* skip blanks and right justify string */
-            posc--;
-          if (isdigit(c_level[posc]))
-            posv -= 3;
-          while ((posv >=0) && (posc >=0)) {
-            v_level[posv] = c_level[posc];
-            posv--;
-            posc--;
-          }
+        if (strstr(option, "NONOMV")) {
+            h_nomv[0] = '\0';
+        } else {
+            snprintf(h_nomv, sizeof(h_nomv), "%s", "NOMV");
         }
-        if (strstr(option, "IPALL")) /* full IP1/IP2/IP3 triplet decoding */
-        {
-          float p1, p2, p3;
-          int kind1, kind2, kind3, StatusIP;
-          StatusIP=ConvertIPtoPK(&p1, &kind1, &p2, &kind2, &p3, &kind3, stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
-          if (kind1<0 || kind2<0 || kind3<0 || (StatusIP&CONVERT_ERROR) ) { /* decode error somewhere */
-            kind1 = 15; kind2 = 15; kind3 = 15;  /* integer code P=IP */
-            p1 = stdf_entry->ip1; p2 = stdf_entry->ip2; p3 = stdf_entry->ip3;
-          }
-          kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;   /* force modulo 32 */
-          snprintf(v_decoded, sizeof(v_decoded), "%10g%s %10g%s %10g%s", p1, kinds(kind1), p2, kinds(kind2), p3, kinds(kind3));
+
+        if (strstr(option, "NOTYPV")) {
+            h_typv[0] = '\0';
+        } else {
+            snprintf(h_typv, sizeof(h_typv), "%s", "TV");
         }
-      }     /* special variable, no decoding */
+
+        if (strstr(option, "NOETIQ")) {
+            h_etiq[0] = '\0';
+        } else {
+            snprintf(h_etiq, sizeof(h_etiq), "%s", "  ETIQUETTE ");
+        }
+
+        if (strstr(option, "NINJNK")) {
+            snprintf(h_dims, sizeof(h_dims), "%s", "      NI      NJ    NK");
+        } else {
+            h_dims[0] = '\0';
+        }
+
+        if (strstr(option, "DATEO")) {
+            /*      snprintf(h_dateo, "%s", "YYYYMMDD HHMMSS"); */
+            snprintf(h_dateo, sizeof(h_dateo), "%s", "(DATE-O  h m s)");
+        } else {
+            h_dateo[0] = '\0';
+        }
+
+        if (strstr(option, "DATESTAMPO")) {
+            snprintf(h_stampo, sizeof(h_stampo), "%s", "  STAMP-O");
+        } else {
+            h_stampo[0] = '\0';
+        }
+
+        if (strstr(option, "DATEV")) {
+            /*      snprintf(h_datev, "%s", "YYYYMMDD HHMMSS     DATEV"); */
+            snprintf(h_datev, sizeof(h_datev), "%s", "(DATE-V  h m s)   STAMP-V");
+        } else {
+            h_datev[0] = '\0';
+        }
+
+        if (strstr(option, "LEVEL")) {
+            snprintf(h_level, sizeof(h_level), "%s", "       LEVEL   ");
+        } else {
+            h_level[0] = '\0';
+        }
+
+        if (strstr(option, "IPALL")) {
+            snprintf(h_decoded, sizeof(h_decoded), "%s", "          DECODED IP1/IP2/IP3         ");
+        } else {
+            h_decoded[0] = '\0';
+        }
+
+        if (strstr(option, "IP1")) {
+            snprintf(h_ip1, sizeof(h_ip1), "%s", "      IP1");
+        } else {
+            h_ip1[0] = '\0';
+        }
+
+        if (strstr(option, "NOIP23")) {
+            h_ip23[0] = '\0';
+        } else {
+            snprintf(h_ip23, sizeof(h_ip23), "%s", "      IP2       IP3");
+        }
+
+        if (strstr(option, "NODEET")) {
+            h_deet[0] = '\0';
+        } else {
+            snprintf(h_deet, sizeof(h_deet), "%s", "    DEET");
+        }
+
+        if (strstr(option, "NONPAS")) {
+            h_npas[0] = '\0';
+        } else {
+            snprintf(h_npas, sizeof(h_npas), "%s", "    NPAS");
+        }
+
+        if (strstr(option, "NODTY")) {
+            h_dty[0] = '\0';
+        } else {
+            snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
+        }
+
+        if (strstr(option, "GRIDINFO")) {
+            snprintf(h_grid, sizeof(h_grid), "%s", "G    XG1    XG2     XG3     XG4");
+        } else {
+            if (strstr(option, "IG1234")) {
+                snprintf(h_grid, sizeof(h_grid), "%s", "G   IG1   IG2   IG3   IG4");
+            } else {
+                h_grid[0] = '\0';
+            }
+        }
+
+        fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n",
+                h_nomv, h_typv, h_etiq, h_dims, h_dateo, h_stampo, h_datev, h_level, h_decoded,
+                h_ip1, h_ip23, h_deet, h_npas, h_dty, h_grid);
+        /*    fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid); */
+    } // if (header)
+
+    if (strstr(option, "NONOMV")) {
+        v_nomv[0] = '\0';
+    } else {
+        snprintf(v_nomv, sizeof(v_nomv), "%4s", cracked.nomvar);
     }
 
-  if (strstr(option, "IP1"))
-    snprintf(v_ip1, sizeof(v_ip1), "%9d", stdf_entry->ip1);
-  else
-    v_ip1[0]='\0';
+    if (strstr(option, "NOTYPV")) {
+        v_typv[0] = '\0';
+    } else {
+        snprintf(v_typv, sizeof(v_typv), "%2s", cracked.typvar);
+    }
 
-  if (strstr(option, "NOIP23"))
-    v_ip23[0]='\0';
-  else
-    snprintf(v_ip23, sizeof(v_ip23), "%9d %9d", stdf_entry->ip2, stdf_entry->ip3);
+    if (strstr(option, "NOETIQ")) {
+        v_etiq[0] = '\0';
+    } else {
+        snprintf(v_etiq, sizeof(v_etiq), "%12s", cracked.etiket);
+    }
 
-  if (strstr(option, "NODEET"))
-    v_deet[0]='\0';
-  else
-    snprintf(v_deet, sizeof(v_deet), "%8d", stdf_entry->deet);
+    if (strstr(option, "NINJNK")) {
+        snprintf(v_dims, sizeof(v_dims), " %7d %7d %5d", stdf_entry->ni, stdf_entry->nj, stdf_entry->nk);
+    } else {
+        v_dims[0] = '\0';
+    }
 
-  if (strstr(option, "NONPAS"))
-    v_npas[0]='\0';
-  else
-    snprintf(v_npas, sizeof(v_npas), "%8d", stdf_entry->npas);
+    if (strstr(option, "DATEO")) {
+        f77name(newdate)(&cracked.date_stamp, &dat2, &dat3, &minus3);
+        snprintf(v_dateo, sizeof(v_dateo), "%08d %06d", dat2, dat3/100);
+    } else {
+        v_dateo[0] = '\0';
+    }
 
-  if (stdf_entry->datyp & 64)cmsgp='m';  /* m will be added to data type if there are missing values in record */
-  if (strstr(option, "NODTY"))
-    v_dty[0]='\0';
-  else
-    if (stdf_entry->datyp > 128)  /* force lower case data type code if compressed */
-      snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits);  /* suppress bits for 64 and 128 */
-    else
-      snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits);  /* suppress bits for 64 and 128 */
+    if (strstr(option, "DATESTAMPO")) {
+        snprintf(v_stampo, sizeof(v_stampo), "%09d", cracked.date_stamp);
+    } else {
+        v_stampo[0] = '\0';
+    }
 
-  if (strstr(option, "GRIDINFO")) {
-    F2Cl lc1=1, lc2=7, lc3=7, lc4=8, lc5=8;
-    ig1=stdf_entry->ig1; ig2=cracked.ig2;
-    ig3=stdf_entry->ig3; ig4=stdf_entry->ig4;
-    f77name(igapg)(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4,
-                   lc1, lc2, lc3, lc4, lc5);
-            /*     1, 7, 7, 8, 8);       */
-    pg1[6]='\0'; pg2[6]='\0'; pg3[7]='\0'; pg4[7]='\0';
-    snprintf(v_grid, sizeof(v_grid), "%1s %6s %6s %7s %7s", cracked.gtyp, pg1, pg2, pg3, pg4);
-  }
-  else
-    if (strstr(option, "IG1234"))
-      snprintf(v_grid, sizeof(v_grid), "%1s %5d %5d %5d %5d", cracked.gtyp, stdf_entry->ig1, cracked.ig2, stdf_entry->ig3, stdf_entry->ig4);
-    else
-      v_grid[0]='\0';
+    if (strstr(option, "DATEV")) {
+        f77name(newdate)(&cracked.date_valid, &dat2, &dat3, &minus3);
+        if (cracked.date_valid < -1) {
+            snprintf(v_datev, sizeof(v_datev), "%08d %06d %10d", dat2, dat3/100, cracked.date_valid);
+        } else {
+            snprintf(v_datev, sizeof(v_datev), "%08d %06d %09d", dat2, dat3/100, cracked.date_valid);
+        }
+    } else {
+        v_datev[0] = '\0';
+    }
 
-  fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
-          pre, v_nomv, v_typv, v_etiq,
-          v_dims, v_dateo, v_stampo, v_datev,
-          v_level, v_decoded, v_ip1, v_ip23,
-          v_deet, v_npas, v_dty,
-          v_grid);
+    v_level[0] = '\0';
+    v_decoded[0] = '\0';
+    if ( strstr(option, "LEVEL") || strstr(option, "IPALL") ) {
+        iip1 = stdf_entry->ip1;
+
+        if (! FstCanTranslateName(cracked.nomvar)) {
+            snprintf(c_level, sizeof(c_level), "%12d   ", iip1);
+            if (strstr(option, "LEVEL")) snprintf(v_level, sizeof(v_level), "%15s", "     -----     ");
+            if (strstr(option, "IPALL")) snprintf(v_decoded, sizeof(v_decoded), "[%10d] [%10d] [%10d]", stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
+        } else {
+            /* not a special variable  */
+            if (strstr(option, "LEVEL")) {
+                /* good old level option */
+                f77name(convip_plus)(&iip1, &level, &kind, &mode, c_level, &flag, (F2Cl) 15);
+                c_level[15] = '\0';
+                /* blank initialisation */
+                snprintf(v_level, sizeof(v_level), "%s", "               ");
+                posc = 14;
+                posv = 14;
+                /* skip blanks and right justify string */
+                while ((posc >= 0) && (isspace(c_level[posc]))) {
+                    posc--;
+                }
+                if (isdigit(c_level[posc])) {
+                    posv -= 3;
+                }
+                while ((posv >= 0) && (posc >= 0)) {
+                    v_level[posv] = c_level[posc];
+                    posv--;
+                    posc--;
+                }
+            }
+            if (strstr(option, "IPALL")) {
+                /* full IP1/IP2/IP3 triplet decoding */
+                float p1, p2, p3;
+                int kind1, kind2, kind3, StatusIP;
+                StatusIP = ConvertIPtoPK(&p1, &kind1, &p2, &kind2, &p3, &kind3, stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
+                if (kind1<0 || kind2<0 || kind3<0 || (StatusIP&CONVERT_ERROR) ) {
+                    /* decode error somewhere */
+                    kind1 = 15; kind2 = 15; kind3 = 15;  /* integer code P = IP */
+                    p1 = stdf_entry->ip1; p2 = stdf_entry->ip2; p3 = stdf_entry->ip3;
+                }
+                kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;   /* force modulo 32 */
+                snprintf(v_decoded, sizeof(v_decoded), "%10g%s %10g%s %10g%s", p1, kinds(kind1), p2, kinds(kind2), p3, kinds(kind3));
+            }
+        } /* special variable, no decoding */
+    }
+
+    if (strstr(option, "IP1")) {
+        snprintf(v_ip1, sizeof(v_ip1), "%9d", stdf_entry->ip1);
+    } else {
+        v_ip1[0] = '\0';
+    }
+
+    if (strstr(option, "NOIP23")) {
+        v_ip23[0] = '\0';
+    } else {
+        snprintf(v_ip23, sizeof(v_ip23), "%9d %9d", stdf_entry->ip2, stdf_entry->ip3);
+    }
+
+    if (strstr(option, "NODEET")) {
+        v_deet[0] = '\0';
+    } else {
+        snprintf(v_deet, sizeof(v_deet), "%8d", stdf_entry->deet);
+    }
+
+    if (strstr(option, "NONPAS")) {
+        v_npas[0] = '\0';
+    } else {
+        snprintf(v_npas, sizeof(v_npas), "%8d", stdf_entry->npas);
+    }
+
+    /* m will be added to data type if there are missing values in record */
+    if (stdf_entry->datyp & 64) cmsgp = 'm';
+    if (strstr(option, "NODTY")) {
+        v_dty[0] = '\0';
+    } else {
+        /* force lower case data type code if compressed */
+        if (stdf_entry->datyp > 128) {
+            /* suppress bits for 64 and 128 */
+            snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits);
+        } else {
+            /* suppress bits for 64 and 128 */
+            snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits);
+        }
+    }
+
+    if (strstr(option, "GRIDINFO")) {
+        F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
+        ig1 = stdf_entry->ig1; ig2 = cracked.ig2;
+        ig3 = stdf_entry->ig3; ig4 = stdf_entry->ig4;
+        f77name(igapg)(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4,
+                    lc1, lc2, lc3, lc4, lc5);
+                /*     1, 7, 7, 8, 8);       */
+        pg1[6] = '\0'; pg2[6] = '\0'; pg3[7] = '\0'; pg4[7] = '\0';
+        snprintf(v_grid, sizeof(v_grid), "%1s %6s %6s %7s %7s", cracked.gtyp, pg1, pg2, pg3, pg4);
+    } else {
+        if (strstr(option, "IG1234")) {
+            snprintf(v_grid, sizeof(v_grid), "%1s %5d %5d %5d %5d", cracked.gtyp, stdf_entry->ig1, cracked.ig2, stdf_entry->ig3, stdf_entry->ig4);
+        } else {
+            v_grid[0] = '\0';
+        }
+    }
+
+    fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
+            pre, v_nomv, v_typv, v_etiq,
+            v_dims, v_dateo, v_stampo, v_datev,
+            v_level, v_decoded, v_ip1, v_ip23,
+            v_deet, v_npas, v_dty,
+            v_grid);
 }
 
 

@@ -1,15 +1,6 @@
 #ifndef CONVERT_IP_DEFS
 #define CONVERT_IP_DEFS
 
-/* C++ needs to know that types and declarations are C, not C++.  */
-#ifdef    __cplusplus
-# define __DEB_DECL    extern "C" {
-# define __FIN_DECL    }
-#else
-# define __DEB_DECL
-# define __FIN_DECL
-#endif
-
 #define TO_IP 1
 #define TO_RP -1
 #define CONVERT_OK 0
@@ -20,21 +11,6 @@
 #define CONVERT_WARNING 32
 #define CONVERT_ERROR 64
 
-/*
-KIND = 0, hauteur (m) par rapport au niveau de la mer (-20,000 -> 100,000)
-KIND = 1, sigma   (0.0 -> 1.0)
-KIND = 2, p est en pression (mb)  (0 -> 1100)
-KIND = 3, code arbitraire  (-4.8e8 -> 1.0e10)
-KIND = 4, hauteur (M) par rapport au niveau du sol    (-20,000 -> 100,000)
-KIND = 5, coordonnee hybride        (0.0 -> 1.0)
-KIND = 6, coordonnee theta (1 -> 200,000)
-KIND =10, temps en heure    (0.0 -> 200,000.0)
-KIND =15, reserve (entiers)
-KIND =17, indice x de la matrice de conversion (1.0 -> 1.0e10)
-          (partage avec kind=1 a cause du range exclusif
-KIND =21, p est en metres-pression  (partage avec kind=5 a cause du range exclusif)
-                                                                       (0 -> 1,000,000) fact=1e4
-*/
 #define KIND_ABOVE_SEA 0
 #define KIND_SIGMA 1
 #define KIND_PRESSURE 2
@@ -47,10 +23,32 @@ KIND =21, p est en metres-pression  (partage avec kind=5 a cause du range exclus
 #define KIND_MTX_IND 17
 #define KIND_M_PRES 21
 
-typedef struct { /* if v1 == v2, it is not a range but a single value */
-  float v1;      /* first value of range */
-  float v2;      /* second value of range */
-  int kind;      /* kind of value (see table above) */
+//! IP level info
+/*!
+    If v1 == v2, it is not a range but a single value.
+ */
+typedef struct { /*  */
+    //! First value of range
+    float v1;
+    //! Second value of range
+    float v2;
+    //! Kind of value
+    /*!
+        | Kind | Description                               | Range          |
+        | ---: | :---------------------------------------- | -------------: |
+        |    0 | Height in reference to mean sea level (m) | -20000, 100000 |
+        |    1 | Sigma                                     |       0.0, 1.0 |
+        |    2 | Pressure (mb)                             |        0, 1100 |
+        |    3 | Arbitrary code                            | -4.8e8, 1.0e10 |
+        |    4 | Height above ground level (m)             | -20000, 100000 |
+        |    5 | Hybrid coordinate                         |       0.0, 1.0 |
+        |    5 | Theta coordinate                          |      1, 200000 |
+        |   10 | Time (h)                                  |  0.0, 200000.0 |
+        |   15 | Reserved (integer)                        |                |
+        |   17 | X index of the conversion matrix          |    1.0, 1.0e10 |
+        |   21 | Pressure-metre                            |     0, 1000000 |
+     */
+    int kind;
 } ip_info;
 
 //! \deprecated Is this used by anyone?
@@ -62,21 +60,26 @@ static ip_info invalid_ip_info = {0.0, 0.0, -1};
 
 /* see fortran module convert_ip123.f90 for quick documentation of arguments */
 
-__DEB_DECL void ConvertIp(int *ip, float *p, int *kind, int mode); __FIN_DECL
+#ifdef __cplusplus
+extern "C" {
+#endif
+    void ConvertIp(int *ip, float *p, int *kind, int mode);
 
-__DEB_DECL int EncodeIp( int *ip1, int *ip2, int *ip3, ip_info *p1, ip_info *p2, ip_info *p3); __FIN_DECL
-__DEB_DECL int DecodeIp(ip_info *p1, ip_info *p2, ip_info *p3, int ip1, int ip2, int ip3); __FIN_DECL
+    int EncodeIp( int *ip1, int *ip2, int *ip3, ip_info *p1, ip_info *p2, ip_info *p3);
+    int DecodeIp(ip_info *p1, ip_info *p2, ip_info *p3, int ip1, int ip2, int ip3);
 
-__DEB_DECL int EncodeIp_v(int ip[3],ip_info p[3]); __FIN_DECL
-__DEB_DECL int DecodeIp_v(ip_info p[3],int ip[3]); __FIN_DECL
+    int EncodeIp_v(int ip[3],ip_info p[3]);
+    int DecodeIp_v(ip_info p[3],int ip[3]);
 
-__DEB_DECL int ConvertPKtoIP(int *ip1, int *ip2, int *ip3, float p1, int kind1, float p2, int kind2, float p3, int kind3); __FIN_DECL
-__DEB_DECL int ConvertIPtoPK(float *p1, int *kind1, float *p2, int *kind2, float *p3, int *kind3, int ip1, int ip2, int ip3); __FIN_DECL
+    int ConvertPKtoIP(int *ip1, int *ip2, int *ip3, float p1, int kind1, float p2, int kind2, float p3, int kind3);
+    int ConvertIPtoPK(float *p1, int *kind1, float *p2, int *kind2, float *p3, int *kind3, int ip1, int ip2, int ip3);
 
-__DEB_DECL int ConvertPKtoIP_v(int ip[3],float p[3],int kind[3]); __FIN_DECL
-__DEB_DECL int ConvertIPtoPK_v(float p[3],int kind[3],int ip[3]); __FIN_DECL
+    int ConvertPKtoIP_v(int ip[3],float p[3],int kind[3]);
+    int ConvertIPtoPK_v(float p[3],int kind[3],int ip[3]);
 
-__DEB_DECL void KindToString(int code, char *s1, char *s2) ; __FIN_DECL
-
+    void KindToString(int code, char *s1, char *s2) ;
+#ifdef __cplusplus
+}
 #endif
 
+#endif
