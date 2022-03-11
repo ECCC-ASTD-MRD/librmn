@@ -16,13 +16,15 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-	subroutine bmf_perturb(nom,f,ni,nj,nk)
-	character*4 nom
-	integer ni,nj,nk
-	real f(ni,nj,nk)
 
-!	do some perturbation to a field
 
-	return
-	end
+!> \deprecated
+subroutine bmf_perturb(nom,f,ni,nj,nk)
+    character*4 nom
+    integer ni,nj,nk
+    real f(ni,nj,nk)
 
+    !	do some perturbation to a field
+
+    return
+end

@@ -16,7 +16,10 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
- Subroutine bmf_splitoptions(string, array)
+
+
+!> \deprecated
+Subroutine bmf_splitoptions(string, array)
  use bmf_modsplit
  character*(*) string
  integer array(*)
@@ -41,6 +44,3 @@
     stop
  endif
 end subroutine bmf_splitoptions
-
-
-

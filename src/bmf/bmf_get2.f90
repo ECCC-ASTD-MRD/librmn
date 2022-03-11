@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 function bmf_get2(nom,time1,time2,hgrid,vgrid,r4,imin,imax,jmin,jmax,kmin,kmax) &
          result(error)
 !

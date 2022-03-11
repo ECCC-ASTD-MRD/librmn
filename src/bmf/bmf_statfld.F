@@ -15,6 +15,7 @@
 ***s/r bmf_statfld - calcule la moyenne, la variance, le minimum et 
 *                 le maximum d un champs et imprime le resultat.
 *
+!> \deprecated
       subroutine bmf_statfld (F_field, F_nv_S, F_no, F_from_S,
      $                     minx,maxx,miny,maxy,lnk,
      $                     F_i0,F_j0,F_k0,F_in,F_jn,F_kn)

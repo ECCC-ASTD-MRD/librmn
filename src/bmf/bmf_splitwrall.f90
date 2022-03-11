@@ -16,6 +16,10 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+
+!> \deprecated
 subroutine bmf_splitwrall(nom,gni,gnj,nk,time1,time2, &
                          hgrid,vgrid,dtyp,scat,vecteur)
 ! SUBROUTINE bmf_splitwrall (nom,gni,gnj,nk,time1,time2, &
@@ -60,4 +64,4 @@ subroutine bmf_splitwrall(nom,gni,gnj,nk,time1,time2, &
   enddo
   enddo
   return
-  end
+end

@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 subroutine bmf_splitwritexy2(comm_split_func,nom,gni,gnj,nk,kstart,kend,time1,time2, &
                          hgrid,vgrid,dtyp,scat,vecteur)
 ! SUBROUTINE bmf_splitwritexy(nom,gni,gnj,nk,kstart,kend,time1,time2,&
@@ -144,4 +147,4 @@ subroutine bmf_splitwritexy2(comm_split_func,nom,gni,gnj,nk,kstart,kend,time1,ti
   enddo
   enddo
   return
-  end
+end

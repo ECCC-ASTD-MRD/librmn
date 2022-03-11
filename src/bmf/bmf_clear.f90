@@ -16,7 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-        subroutine bmf_clear      
+
+!> \deprecated
+subroutine bmf_clear
 !
 ! SUBROUTINE BMF_clear, L. Corbeil
 !
@@ -42,4 +44,4 @@
         enddo
         bmf_started=.false.
         bmf_liste_started=.false.
-        end subroutine bmf_clear
+end subroutine bmf_clear

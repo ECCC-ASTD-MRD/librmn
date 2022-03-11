@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 subroutine bmf_splitstart(npex,npey,path,prefix,date,hour,min,sec)
 !SUBROUTINE bmf_splitinit(npex,npey,path,prefix,date,&
 ! & hour,min,sec,num,numlen,unit), L. Corbeil
@@ -25,7 +28,7 @@ subroutine bmf_splitstart(npex,npey,path,prefix,date,hour,min,sec)
 ! IN
 ! npex        Number of processors for x axis
 ! npey        Number of processors for y axis
-! path        Path to the splitted files   
+! path        Path to the splitted files
 ! prefix      Prefix (character*2)
 ! date        date (integer, YYYYMMDD)
 ! hour        hours
@@ -39,7 +42,7 @@ subroutine bmf_splitstart(npex,npey,path,prefix,date,hour,min,sec)
 ! Routine which starts bmf_split mode: it permits to write bmf
 ! fields by dividing them for a later use in a parallel context.
 ! Files corresponding to the return value of prog_filename
-! will be open and used for writing by bmf_splitwr* routines.  
+! will be open and used for writing by bmf_splitwr* routines.
   use bmf_modsplit
   implicit none
   integer npex,npey,date,hour,min,sec,num,numlen
@@ -93,16 +96,13 @@ subroutine bmf_splitstart(npex,npey,path,prefix,date,hour,min,sec)
   bmf_ghaloiright=0
   bmf_ghalojleft=0
   bmf_ghaloiright=0
-  
+
   bmf_nig=-1
   bmf_njg=-1
 !
 ! Start a list of holes if not done already
 !
-  nullify(holelist)   
+  nullify(holelist)
 
-
-  
-
-  return 
-  end subroutine
+  return
+end subroutine

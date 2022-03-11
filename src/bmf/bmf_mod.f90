@@ -17,6 +17,7 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
 
+!> \deprecated
 module bmf_mod
     save
     type bmf_entree

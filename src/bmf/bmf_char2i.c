@@ -23,7 +23,7 @@
 #include <string.h>
 #include <rpnmacros.h>
 
-
+//! \deprecated
 int32_t f77name(bmf_char2i)(
     char *f_char,
     int32_t *f_length,
@@ -54,6 +54,7 @@ int32_t f77name(bmf_char2i)(
 }
 
 
+//! \deprecated
 int32_t f77name(bmf_i2char)(
     char *f_char,
     int32_t *f_length,

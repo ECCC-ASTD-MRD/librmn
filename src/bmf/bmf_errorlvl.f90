@@ -16,7 +16,10 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-  subroutine bmf_error(errlvl)
+
+
+!> \deprecated
+subroutine bmf_error(errlvl)
 !
 ! SUBROUTINE BMF_error, L. Corbeil
 !
@@ -38,4 +41,4 @@
 
   bmf_errorlvl=errlvl
 
-  end subroutine bmf_error
+end subroutine bmf_error

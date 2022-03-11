@@ -16,7 +16,10 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
- function bmf_get(nom,time1,time2,i4,r4,r8,imin,imax,jmin,jmax,kmin,kmax) &
+
+
+!> \deprecated
+function bmf_get(nom,time1,time2,i4,r4,r8,imin,imax,jmin,jmax,kmin,kmax) &
          result(error)
 !
 !AUTEUR       Luc Corbeil (bmf_get)
@@ -144,4 +147,4 @@
  endif
 
  return
- end
+end

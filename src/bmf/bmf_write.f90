@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 subroutine bmf_write(iun,nom,ni,istart,iend,nj,jstart,jend,nk,kstart, &
               kend,time1,time2,hgrid,vgrid,dtyp,scat,ndata,vecteur)
 !

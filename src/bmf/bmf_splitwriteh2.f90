@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 subroutine bmf_splitwriteh2(comm_split_func,nom,minx,maxx,miny,maxy,nk,ni0,&
      nj0,gni,gnj,time1,time2,dtyp,vecteur,holename)
 ! SUBROUTINE bmf_splitwriteh(nom,gni,gnj,nk,time1,time2, &

@@ -16,7 +16,10 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-  function bmf_connect(no_pe) result(ierr)
+
+
+!> \deprecated
+function bmf_connect(no_pe) result(ierr)
   use bmf_modsplit
   implicit none
   integer, intent(IN) ::  no_pe
@@ -31,4 +34,4 @@
      ierr=0
   endif
 
-  end function bmf_connect
+end function bmf_connect

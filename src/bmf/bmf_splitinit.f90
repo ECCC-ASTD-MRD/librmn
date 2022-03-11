@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 subroutine bmf_splitinit(npex,npey,path,prefix,date,hour,min,sec,num,numlen,unit)
 !SUBROUTINE bmf_splitinit(npex,npey,path,prefix,date,&
 ! & hour,min,sec,num,numlen,unit), L. Corbeil
@@ -94,4 +97,4 @@ subroutine bmf_splitinit(npex,npey,path,prefix,date,hour,min,sec,num,numlen,unit
   bmf_nig=-1
   bmf_njg=-1
   return 
-  end subroutine
+end subroutine

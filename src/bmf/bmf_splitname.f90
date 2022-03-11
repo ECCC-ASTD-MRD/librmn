@@ -16,6 +16,9 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
+!> \deprecated
 subroutine bmf_splitname(pe_file,pex,pey,path,prefix,date,hour,min,sec)
 !SUBROUTINE bmf_splitname(pe_file,pex,pey,path,prefix,date,&
 ! & hour,min,sec,num,numlen,unit), L. Corbeil
@@ -61,5 +64,5 @@ subroutine bmf_splitname(pe_file,pex,pey,path,prefix,date,hour,min,sec)
 !      write(*,*) i,split_unit(i),split_files(i)
   pe_file=pe_file(1:longueur(pe_file)-4)    
   pe_file=path(1:longueur(path))//'/'//pe_file
-  return 
-  end subroutine
+  return
+end subroutine

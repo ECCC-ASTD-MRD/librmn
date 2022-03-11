@@ -16,6 +16,8 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+!> \deprecated
 module bmf_modsplit
    save
    character(len=1024), allocatable, dimension(:) :: split_files
