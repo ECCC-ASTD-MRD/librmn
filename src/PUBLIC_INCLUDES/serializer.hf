@@ -1,0 +1,116 @@
+!  serializer for FORTRAN programming
+!  Copyright (C) 2022  Recherche en Prevision Numerique
+! 
+!  This software is free software; you can redistribute it and/or
+!  modify it under the terms of the GNU Lesser General Public
+!  License as published by the Free Software Foundation,
+!  version 2.1 of the License.
+!
+!  This software is distributed in the hope that it will be useful,
+!  but WITHOUT ANY WARRANTY; without even the implied warranty of
+!  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+!  Lesser General Public License for more details.
+!
+!
+!> \author M. Valin,   Recherche en Prevision Numerique
+!> \author V. Magnoux, Recherche en Prevision Numerique
+!> \date 2020-2022
+!> \file serializer.hf Helper macros for Fortran data serializer
+
+! Include guard
+#if ! defined(JAR_ELEM_COUNT)
+
+!> \brief Evaluate needed space in data jar as a function of item type
+!> type(whatever_type) :: my_item
+!> type(whatever_type), dimension(whatever_dimensions) :: my_array
+!> integer :: needed
+!> needed = JAR_ELEM_COUNT(my_item)
+!> needed = JAR_ELEM_COUNT(my_array) * size(my_array)
+#define JAR_ELEM_COUNT(item) ( (storage_size(item) + 63) / 64)
+
+!> \brief Declare a data jar
+!> JAR_DECLARE(my_jar_name)
+#define JAR_DECLARE(name) type(jar) :: name
+
+!> \brief Allocate the data container for a data jar, with a size of size_of_jar
+!> size is in 64 bit units (returns 0 if ok, -1 if error)
+!> macro JARSPACE_ITEM will help compute needed space
+!> integer :: ok
+!> ok = JAR_CREATE(my_jar_name, size_of_jar)
+#define JAR_CREATE(jar, siz) jar%new(siz)
+
+!> \brief Get Fortran pointer to an integer array with the jar data (NOT A COPY, a live pointer)
+!> integer, dimension(:), pointer :: arrayptr
+#define JAR_DATA(jar, arrayptr)  arrayptr => jar%array()
+
+!> \brief Free the data container of the data jar (returns 0 if ok, -1 if error)
+!> integer :: ok
+!> ok = JAR_FREE(my_jar_name)
+#define JAR_FREE(jar) jar%free()
+
+!> \biref Check if a data jar is valid
+!> logical isok
+!> isok = JAR_VALID(my_jar_name)
+#define JAR_VALID(jar) jar%valid()
+
+!> \brief Totally empty a data jar
+!> JAR_RESET(my_jar_name)
+#define JAR_RESET(jar) call jar%reset()
+
+!> \brief Rreset extraction pointer to beginning of jar
+!> JAR_REWIND(my_jar_name)
+#define JAR_REWIND(jar) call jar%rewind()
+
+!> \brief Insert a SCALAR item into data jar at current insertion position or at a specific position
+!> beginning of data jar is at position 1
+!> item may be of any user defined type
+!> the result is the position of the last filled element in the data jar (or -1 if an overflow would accur)
+!> integer :: ne, insertion_point
+!> type(whatever_type) :: my_item
+!> ne = JAR_PUT_ITEM(my_jar_name, my_item)                       ! or JAR_INTO_SINGLE
+!> ne = JAR_PUT_ITEM_AT(my_jar_name, my_item, insertion_point)   ! or JAR_INTO_SINGLE_AT
+#define JAR_PUT_ITEM(jar, item)          jar%put( item, storage_size(item) )
+#if defined(JAR_EXTENDED_MACROS)
+#define JAR_PUT_ITEM_AT(jar, item, pos)  jar%put( item, storage_size(item), where=pos )
+#endif
+
+!> \brief Insert an ARRAY or an ARRAY section into data jar at current insertion position or at a specific position
+!> beginning of data jar is at position 1
+!> ARRAY may be of any user defined type
+!> the result is the position of the last filled element in the data jar (or -1 if an overflow would accur)
+!> integer :: ne, insertion_point
+!> type(whatever_type), dimension(whatever_dimensions) :: my_array
+!> ne = JAR_PUT_ITEMS(my_jar_name, my_array(start:end))                      ! or JAR_INTO_MULTI
+!> ne = JAR_PUT_ITEMS_AT(my_jar_name, my_array(start:end), insertion_point)  ! or JAR_INTO_MULTI_AT
+#define JAR_PUT_ITEMS(jar, item)          jar%put( item, storage_size(item)*size(item) )
+#if defined(JAR_EXTENDED_MACROS)
+#define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%put( item, storage_size(item)*size(item), where=pos )
+#endif
+
+!> \brief Extract a SCALAR item from data jar at current extraction position or at a specific position
+!> beginning of data jar is at position 1
+!> item may be of any user defined type
+!> the result is the position of the last extracted element in the data jar (or -1 if there is not enough data)
+!> integer :: ne, extraction_point
+!> type(whatever_type) :: my_item
+!> ne = JAR_GET_ITEM(my_jar_name, my_item)                       ! or JAR_OUTOF_SINGLE
+!> ne = JAR_GET_ITEM_AT(my_jar_name, my_item, extraction_point)  ! or JAR_OUTOF_SINGLE_AT
+#define JAR_GET_ITEM(jar, item)         jar%get( item, storage_size(item) )
+#if defined(JAR_EXTENDED_MACROS)
+#define JAR_GET_ITEM_AT(jar, item, pos) jar%get( item, storage_size(item), where=pos )
+#endif
+
+!> \brief Extract an ARRAY or an ARRAY section from data jar at current extraction position or at a specific position
+!> beginning of data jar is at position 1
+!> ARRAY may be of any user defined type
+!> the result is the position of the last extracted element in the data jar (or -1 if there is not enough data)
+!> integer :: ne, extraction_point
+!> type(whatever_type), dimension(whatever_dimensions) :: my_array
+!> ne = JAR_GET_ITEMS(my_jar_name, my_array(start:end))                       ! or JAR_OUTOF_MULTI
+!> ne = JAR_GET_ITEMS_AT(my_jar_name, my_array(start:end), extraction_point)  ! or JAR_OUTOF_MULTI_AT
+#define JAR_GET_ITEMS(jar, item)         jar%get( item, storage_size(item)*size(item) )
+#if defined(JAR_EXTENDED_MACROS)
+#define JAR_GET_ITEMS_AT(jar, item, pos) jar%get( item, storage_size(item)*size(item), where=pos )
+#endif
+
+#endif
