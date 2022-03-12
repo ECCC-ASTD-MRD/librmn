@@ -115,6 +115,8 @@ list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
+# Modules Fortran qui devraient être publiés comme des includes
+#   jar_module
 
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 

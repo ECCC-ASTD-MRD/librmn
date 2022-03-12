@@ -119,7 +119,7 @@ static void ConvipPlus(
 //! Translate kind code to 2 char string
 //! \return corresponding kind string
 static char *kinds(
-    //! [in]
+    //! [in] Kind code
     int kind
 ) {
     // Initialize table if first call
@@ -2518,52 +2518,53 @@ int c_fstprm(
     //! [out] Extra parameter
     int *extra3
 ) {
-  stdf_dir_keys *stdf_entry;
-  stdf_special_parms cracked;
-  uint32_t *pkeys;
-  int ier, addr, idtyp, xdflng, l1, l2, l3, l4;
+    stdf_dir_keys *stdf_entry;
+    stdf_special_parms cracked;
+    uint32_t *pkeys;
+    int ier, addr, idtyp, xdflng, l1, l2, l3, l4;
 
-  stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-  pkeys = (uint32_t *) stdf_entry;
-  pkeys += W64TOWD(1);
+    stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    pkeys = (uint32_t *) stdf_entry;
+    pkeys += W64TOWD(1);
 
-  ier = c_xdfprm(handle, &addr, &xdflng, &idtyp, pkeys, 16);
+    ier = c_xdfprm(handle, &addr, &xdflng, &idtyp, pkeys, 16);
 
-  crack_std_parms(stdf_entry, &cracked);
+    crack_std_parms(stdf_entry, &cracked);
 
-  *ni = stdf_entry->ni;
-  *nj = stdf_entry->nj;
-  *nk = stdf_entry->nk;
-  *dateo = cracked.date_stamp;
-  *deet = stdf_entry->deet;
-  *npas = stdf_entry->npas;
-  *nbits = stdf_entry->nbits;
-  *datyp = stdf_entry->datyp;
-  *ip1 = stdf_entry->ip1;
-  *ip2 = stdf_entry->ip2;
-  *ip3 = stdf_entry->ip3;
-  *ig1 = stdf_entry->ig1;
-  *ig2 = cracked.ig2;
-  *ig3 = stdf_entry->ig3;
-  *ig4 = stdf_entry->ig4;
-  *swa = addr;
-  *lng = W64TOWD(xdflng);
-  *dltf = stdf_entry->deleted;
-  *ubc = stdf_entry->ubc;
-  *extra1 = cracked.date_valid;              /* new, use to be undefined */
-  *extra2 = 0;
-  *extra3 = 0;
+    *ni = stdf_entry->ni;
+    *nj = stdf_entry->nj;
+    *nk = stdf_entry->nk;
+    *dateo = cracked.date_stamp;
+    *deet = stdf_entry->deet;
+    *npas = stdf_entry->npas;
+    *nbits = stdf_entry->nbits;
+    *datyp = stdf_entry->datyp;
+    *ip1 = stdf_entry->ip1;
+    *ip2 = stdf_entry->ip2;
+    *ip3 = stdf_entry->ip3;
+    *ig1 = stdf_entry->ig1;
+    *ig2 = cracked.ig2;
+    *ig3 = stdf_entry->ig3;
+    *ig4 = stdf_entry->ig4;
+    *swa = addr;
+    *lng = W64TOWD(xdflng);
+    *dltf = stdf_entry->deleted;
+    *ubc = stdf_entry->ubc;
+    /* new, use to be undefined */
+    *extra1 = cracked.date_valid;
+    *extra2 = 0;
+    *extra3 = 0;
 
-  for (l1 = 0; (typvar[l1] != '\0') && (l1 <2); l1++);
-  for (l2 = 0; (nomvar[l2] != '\0') && (l2 <4); l2++);
-  for (l3 = 0; (etiket[l3] != '\0') && (l3 <12); l3++);
-  l4 = 1;
-  string_copy(typvar, cracked.typvar, l1);
-  string_copy(nomvar, cracked.nomvar, l2);
-  string_copy(etiket, cracked.etiket, l3);
-  string_copy(grtyp, cracked.gtyp, l4);
-  free(stdf_entry);
-  return ier;
+    for (l1 = 0; (typvar[l1] != '\0') && (l1 < 2); l1++);
+    for (l2 = 0; (nomvar[l2] != '\0') && (l2 < 4); l2++);
+    for (l3 = 0; (etiket[l3] != '\0') && (l3 < 12); l3++);
+    l4 = 1;
+    string_copy(typvar, cracked.typvar, l1);
+    string_copy(nomvar, cracked.nomvar, l2);
+    string_copy(etiket, cracked.etiket, l3);
+    string_copy(grtyp, cracked.gtyp, l4);
+    free(stdf_entry);
+    return ier;
 }
 
 
@@ -3252,12 +3253,6 @@ static void crack_std_parms(
     //! [out] Reassembled parameters
     stdf_special_parms *cracked_parms
 ) {
-  int run;
-  unsigned int datexx;
-  double r8_diff;
-  int32_t ftn_date;
-  int diff;
-
     for (int i = 0; i <= 4; i++) {
         cracked_parms->etiket[i] = ((stdf_entry->etik15 >> ((4-i)*6)) & 0x3f) + 32;
     }
@@ -3286,13 +3281,13 @@ static void crack_std_parms(
     cracked_parms->ig2 = (stdf_entry->ig2a << 16) | (stdf_entry->ig2b << 8) | stdf_entry->ig2c;
 
     // De-octalise the date_stamp and convert from valid date to origin date
-    run = stdf_entry->date_stamp & 0x7;
-    datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
-    r8_diff = -((((double)stdf_entry->deet) * ((double)stdf_entry->npas))/3600.0);
-    diff = -(((stdf_entry->deet) * (stdf_entry->npas) + 1800)/3600);
+    int run = stdf_entry->date_stamp & 0x7;
+    unsigned int datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
+    double r8_diff = -((((double)stdf_entry->deet) * ((double)stdf_entry->npas))/3600.0);
+    int diff = -(((stdf_entry->deet) * (stdf_entry->npas) + 1800)/3600);
     cracked_parms->date_valid = datexx;
     cracked_parms->date_stamp = datexx;
-    ftn_date = (int32_t) datexx;
+    int32_t ftn_date = (int32_t) datexx;
     if ((stdf_entry->deet * stdf_entry->npas) != 0) {
         /* compute origin date */
         f77name(incdatr)(&ftn_date, &ftn_date, &r8_diff);
@@ -3716,25 +3711,25 @@ else
  *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstecr_h)(void *haft_w, int32_t *work, int32_t *f_npak,
-                        int32_t *f_iun, int32_t *f_date,
-                        int32_t *f_deet, int32_t *f_npas,
-                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
-                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
-                        char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
-                        int32_t *f_ig3, int32_t *f_ig4,
-                        int32_t *f_datyp, int32_t *f_rewrit,
-                        F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
-{
-// int ninjnk;
-int32_t ier = 0;
-  xdf_short = 1;
-  ier = f77name(fstecr)(haft_w, work, f_npak, f_iun, f_date, f_deet, f_npas, f_ni, f_nj, f_nk, f_ip1, f_ip2, f_ip3,
-                        f_typvar, f_nomvar, f_etiket, f_grtyp, f_ig1, f_ig2, f_ig3, f_ig4, f_datyp, f_rewrit,
-                        ll1, ll2, ll3, ll4);
-  xdf_short = 0;
-  return ier;
+int32_t f77name(fstecr_h)(
+    void *haft_w, int32_t *work, int32_t *f_npak,
+    int32_t *f_iun, int32_t *f_date,
+    int32_t *f_deet, int32_t *f_npas,
+    int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+    int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
+    char *f_typvar, char *f_nomvar, char *f_etiket,
+    char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+    int32_t *f_ig3, int32_t *f_ig4,
+    int32_t *f_datyp, int32_t *f_rewrit,
+    F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4
+) {
+    xdf_short = 1;
+    int32_t ier = f77name(fstecr)(
+        haft_w, work, f_npak, f_iun, f_date, f_deet, f_npas, f_ni, f_nj, f_nk, f_ip1, f_ip2, f_ip3,
+        f_typvar, f_nomvar, f_etiket, f_grtyp, f_ig1, f_ig2, f_ig3, f_ig4, f_datyp, f_rewrit,
+        ll1, ll2, ll3, ll4);
+    xdf_short = 0;
+    return ier;
 }
 
 
@@ -3768,52 +3763,45 @@ int32_t ier = 0;
  *  IN  ig3     third grid descriptor                                        *
  *  IN  ig4     fourth grid descriptor                                       *
  *  IN  datyp   data type of the elements                                    *
- *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)    *
+ *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstecr_b)(void *bytes, int32_t *work, int32_t *f_npak,
-                        int32_t *f_iun, int32_t *f_date,
-                        int32_t *f_deet, int32_t *f_npas,
-                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
-                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
-                        char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
-                        int32_t *f_ig3, int32_t *f_ig4,
-                        int32_t *f_datyp, int32_t *f_rewrit,
-                        F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
-{
-//int ninjnk;
-int32_t ier = 0;
-  xdf_byte = 1;
-  ier = f77name(fstecr)(bytes, work, f_npak, f_iun, f_date, f_deet, f_npas, f_ni, f_nj, f_nk, f_ip1, f_ip2, f_ip3,
-                        f_typvar, f_nomvar, f_etiket, f_grtyp, f_ig1, f_ig2, f_ig3, f_ig4, f_datyp, f_rewrit,
-                        ll1, ll2, ll3, ll4);
-  xdf_byte = 0;
-  return ier;
+int32_t f77name(fstecr_b)(
+    void *bytes, int32_t *work, int32_t *f_npak,
+    int32_t *f_iun, int32_t *f_date,
+    int32_t *f_deet, int32_t *f_npas,
+    int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+    int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
+    char *f_typvar, char *f_nomvar, char *f_etiket,
+    char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+    int32_t *f_ig3, int32_t *f_ig4,
+    int32_t *f_datyp, int32_t *f_rewrit,
+    F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4
+) {
+
+    int32_t ier = 0;
+    xdf_byte = 1;
+    ier = f77name(fstecr)(
+        bytes, work, f_npak, f_iun, f_date, f_deet, f_npas, f_ni, f_nj, f_nk, f_ip1, f_ip2, f_ip3,
+        f_typvar, f_nomvar, f_etiket, f_grtyp, f_ig1, f_ig2, f_ig3, f_ig4, f_datyp, f_rewrit,
+        ll1, ll2, ll3, ll4);
+    xdf_byte = 0;
+    return ier;
 }
 
 
-/*****************************************************************************
- *                     C _ F S T _ E D I T _ D I R                           *
- *                                                                           *
- *Object                                                                     *
- *   Edits the directory content of a RPN standard file.                     *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  handle     handle to the directory entry to edit                     *
- *                                                                           *
- *****************************************************************************/
-
-int32_t f77_name(fst_edit_dir_plus)(int32_t *f_handle,
-                               int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
-                               int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
-                               int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
-                               char *f_typvar, char *f_nomvar, char *f_etiket,
-                               char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
-                               int32_t *f_ig3, int32_t *f_ig4, int32_t *f_datyp,
-                               F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
-{
+//! Edits the directory content of a RPN standard file
+int32_t f77_name(fst_edit_dir_plus)(
+    //! Handle of the directory entry to edit
+    int32_t *f_handle,
+    int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
+    int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+    int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
+    char *f_typvar, char *f_nomvar, char *f_etiket,
+    char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+    int32_t *f_ig3, int32_t *f_ig4, int32_t *f_datyp,
+    F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4
+) {
   int ier;
   int handle = *f_handle;
   int date = *f_date, deet = *f_deet;
@@ -3838,15 +3826,16 @@ int32_t f77_name(fst_edit_dir_plus)(int32_t *f_handle,
 }
 
 
-int32_t f77_name(fst_edit_dir)(int32_t *f_handle,
-                               int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
-                               int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
-                               int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
-                               char *f_typvar, char *f_nomvar, char *f_etiket,
-                               char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
-                               int32_t *f_ig3, int32_t *f_ig4, int32_t *f_datyp,
-                               F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4)
-{
+int32_t f77_name(fst_edit_dir)(
+    int32_t *f_handle,
+    int32_t *f_date, int32_t *f_deet, int32_t *f_npas,
+    int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+    int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
+    char *f_typvar, char *f_nomvar, char *f_etiket,
+    char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
+    int32_t *f_ig3, int32_t *f_ig4, int32_t *f_datyp,
+    F2Cl l1, F2Cl l2, F2Cl l3, F2Cl l4
+) {
   int ier;
   int handle = *f_handle;
   int date = *f_date, deet = *f_deet;
@@ -4987,19 +4976,13 @@ int32_t f77name(fstweo)(int32_t *f_iun, int32_t *f_level)
 }
 
 
-/*****************************************************************************
- *                             I P 1 _ A L L                                 *
- *                                                                           *
- *Object                                                                     *
- *   Generates all possible coded ip1 values for a given level               *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  level          ip1 level (float value)                               *
- *  IN  kind           level kind as defined in convip_plus                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(ip1_all)(float *f_level, int32_t *f_kind)
+//! Generate a all possible coded IP1 values
+int32_t f77name(ip1_all)(
+    //! [in] IP1 level (float value)
+    float *f_level,
+    // Level kind as defined in convip_plus
+    int32_t *f_kind
+)
 {
   int kind = *f_kind, ip1;
   float level = *f_level;
@@ -5059,7 +5042,7 @@ int FstCanTranslateName(char *varname) {
     FILE *fileref;
     static char filename[256];
     char *FST_NOIP_NAME, *BASENAME;
-    int result, i;
+    int result;
     regmatch_t match_table;
 
     if (! read_done) {
@@ -5089,6 +5072,7 @@ int FstCanTranslateName(char *varname) {
             }
         }
         if (exception_vars[0] == '~') {
+            int i;
             for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
             exception_vars[i] = '\0';
             result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
@@ -5110,6 +5094,34 @@ int FstCanTranslateName(char *varname) {
 }
 
 
+//! Generate a string of the field's IP1, IP2, IP3
+void c_ip_string(
+    //! [out] Buffer into which to write
+    char* buffer,
+    //! [in] Size of the buffer
+    int size,
+    //! [in] Field's IP1
+    int ip1,
+    //! [in] Field's IP2
+    int ip2,
+    //! [in] Field's IP3
+    int ip3
+) {
+    float lip1, lip2, lip3;
+    int kind1, kind2, kind3;
+    int StatusIP = ConvertIPtoPK(&lip1, &kind1, &lip2, &kind2, &lip3, &kind3, ip1, ip2, ip3);
+    if (kind1 < 0 || kind2 < 0 || kind3 < 0 || (StatusIP & CONVERT_ERROR) ) {
+        // decode error somewhere
+        /* integer code P = IP */
+        kind1 = 15; kind2 = 15; kind3 = 15;
+        lip1 = ip1; lip2 = ip2; lip3 = ip3;
+    }
+    /* force modulo 32 */
+    kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;
+    snprintf(buffer, size, "IP1 %g (%s), IP2 %g (%s), IP3 %g (%s)", lip1, kinds(kind1), lip2, kinds(kind2), lip3, kinds(kind3));
+}
+
+
 //! Prints the standard file record descriptors
 static void print_std_parms(
     //! [in] Directory entry that contains the descriptors
@@ -5127,9 +5139,7 @@ static void print_std_parms(
     int dat2, dat3;
     int minus3 = -3;
     int iip1, kind;
-    int mode = -1, flag = 1;
     int ig1, ig2, ig3, ig4;
-    float level;
     char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
     char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
     char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
@@ -5249,6 +5259,7 @@ static void print_std_parms(
         /*    fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid); */
     } // if (header)
 
+
     if (strstr(option, "NONOMV")) {
         v_nomv[0] = '\0';
     } else {
@@ -5310,6 +5321,9 @@ static void print_std_parms(
             /* not a special variable  */
             if (strstr(option, "LEVEL")) {
                 /* good old level option */
+                int mode = -1;
+                int flag = 1;
+                float level;
                 f77name(convip_plus)(&iip1, &level, &kind, &mode, c_level, &flag, (F2Cl) 15);
                 c_level[15] = '\0';
                 /* blank initialisation */
@@ -5332,9 +5346,9 @@ static void print_std_parms(
             if (strstr(option, "IPALL")) {
                 /* full IP1/IP2/IP3 triplet decoding */
                 float p1, p2, p3;
-                int kind1, kind2, kind3, StatusIP;
-                StatusIP = ConvertIPtoPK(&p1, &kind1, &p2, &kind2, &p3, &kind3, stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
-                if (kind1<0 || kind2<0 || kind3<0 || (StatusIP&CONVERT_ERROR) ) {
+                int kind1, kind2, kind3;
+                int StatusIP = ConvertIPtoPK(&p1, &kind1, &p2, &kind2, &p3, &kind3, stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
+                if (kind1 < 0 || kind2 < 0 || kind3 < 0 || (StatusIP & CONVERT_ERROR) ) {
                     /* decode error somewhere */
                     kind1 = 15; kind2 = 15; kind3 = 15;  /* integer code P = IP */
                     p1 = stdf_entry->ip1; p2 = stdf_entry->ip2; p3 = stdf_entry->ip3;
@@ -5410,28 +5424,25 @@ static void print_std_parms(
 }
 
 
-/*****************************************************************************
- *                               S T U B                                     *
- *                                                                           *
- *Object                                                                     *
- *   Stubs for standard file routines not implemented yet.                   *
- *                                                                           *
- *****************************************************************************/
+//! \warning Stub; not implemented yet
 int32_t f77name(fstabt)()
 {
     sprintf(errmsg, "this routine is not implemented in FSTD98");
     return error_msg("FSTABT", ERR_NOT_IMPL, ERRFATAL);
 }
+//! \warning Stub; not implemented yet
 int32_t f77name(fstsel)()
 {
     sprintf(errmsg, "this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead");
     return error_msg("FSTSEL", ERR_NOT_IMPL, WARNING);
 }
+//! \warning Stub; not implemented yet
 int32_t f77name(zfstcvt)()
 {
     sprintf(errmsg, "this routine is not implemented yet in FSTD98");
     return error_msg("FSTCVT", ERR_NOT_IMPL, ERROR);
 }
+//! \warning Stub; not implemented yet
 int32_t f77name(fstpos)()
 {
     sprintf(errmsg, "this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead");

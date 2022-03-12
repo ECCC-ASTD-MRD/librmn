@@ -31,16 +31,17 @@ module jar_module
     private
 
     interface
-        function libc_malloc(sz) result(ptr) BIND(C,name='malloc')
-        import :: C_SIZE_T, C_PTR
-        implicit none
-        integer(C_SIZE_T), intent(IN), value :: sz
-        type(C_PTR) :: ptr
+        function libc_malloc(sz) result(ptr) BIND(C, name='malloc')
+            import :: C_SIZE_T, C_PTR
+            implicit none
+            integer(C_SIZE_T), intent(IN), value :: sz
+            type(C_PTR) :: ptr
         end function libc_malloc
+
         subroutine libc_free(ptr) BIND(C, name='free')
-        import :: C_PTR
-        implicit none
-        type(C_PTR), intent(IN), value :: ptr
+            import :: C_PTR
+            implicit none
+            type(C_PTR), intent(IN), value :: ptr
         end subroutine libc_free
     end interface
 
@@ -290,7 +291,7 @@ module jar_module
         if (jar_instance%opt == 0) call libc_free(jar_instance%ptr)      ! release storage associated with jar if jar owns it
             jar_instance%ptr = C_NULL_PTR
         else
-            if(debug_mode) print *,'DEBUG(jar finalize): nothing to free in jar'
+            if(debug_mode) print *, 'DEBUG(jar finalize): nothing to free in jar'
         endif
         jar_instance%top  = 0                             ! data jar is now empty (no data written)
         jar_instance%bot  = 0                             ! data jar is now empty (no data to read)
@@ -306,13 +307,13 @@ module jar_module
         integer :: status                                   !> 0 if O.K., -1 if nothing to free
 
         if (C_ASSOCIATED(jar_instance%ptr)) then
-        if (debug_mode .and. jar_instance%opt == 0) print *,'DEBUG(jar free): freing jar memory'
-        if (debug_mode .and. jar_instance%opt == 1) print *,'DEBUG(jar free): not owner, not freing jar memory'
+        if (debug_mode .and. jar_instance%opt == 0) print *, 'DEBUG(jar free): freing jar memory'
+        if (debug_mode .and. jar_instance%opt == 1) print *, 'DEBUG(jar free): not owner, not freing jar memory'
         if (jar_instance%opt == 0) call libc_free(jar_instance%ptr)    ! release storage associated with jar if jar owns it
             jar_instance%ptr = C_NULL_PTR                     ! nullify data pointer to avoid accidents
             status = 0
         else
-            if (debug_mode) print *,'DEBUG(jar free): nothing to free in jar'
+            if (debug_mode) print *, 'DEBUG(jar free): nothing to free in jar'
             status = -1                            ! already freed
         endif
         jar_instance%top  = 0                             ! data jar is now empty (no data written)

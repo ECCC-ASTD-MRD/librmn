@@ -464,9 +464,14 @@ typedef struct {
 #define IP2_MAX     0xFFFFFFF
 #define IP3_MAX     0xFFFFFFF
 
+#define ETIKET_LEN 13
+#define NOMVAR_LEN 5
+#define TYPVAR_LEN 3
+#define GTYP_LEN 2
+
 //! Search tags part of standard file directory entry :  header + 8 x 64 bits
 typedef struct {
-    /* there is one 64 bit group per line */
+    // Each line is 64 bits long
 #if !defined(Little_Endian)
     uint32_t deleted:1, select:7, lng:24, addr:32;
     uint32_t deet:24, nbits: 8, ni:   24, gtyp:  8;
@@ -490,32 +495,47 @@ typedef struct {
 #endif
 } stdf_dir_keys;
 
+
 //! Information part of a standard file record header, 1 x 64 bits
 typedef struct {
-    /* there is one 64 bit group per line */
+    // Each line is 64 bits long
 #if !defined(Little_Endian)
     uint32_t nblks: 8, blk1: 24, blk2: 32;
 #else
     uint32_t blk1: 24, nblks: 8, blk2: 32;
 #endif
-    /* number of blocks, first 2 block pointers */
+    // Number of blocks, first 2 block pointers
 } stdf_dir_info;
 
-//! Collection area for cracked record parameter values
+
+//! Cracked record parameter values
 typedef struct {
-    char etiket[13], nomvar[5], typvar[3], gtyp[2], extra;
-    uint32_t lng, addr;
-    int32_t aammjj, hhmmss;
+    char etiket[ETIKET_LEN];
+    char nomvar[NOMVAR_LEN];
+    char typvar[TYPVAR_LEN];
+    char gtyp[GTYP_LEN];
+    char extra;
+    uint32_t lng;
+    uint32_t addr;
+    int32_t aammjj;
+    int32_t hhmmss;
     int32_t ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_rec_parms;
 
-/*! Collection area for some special cracked record parameters that need to
- * be reassembled */
+
+//! Special cracked record parameters that need to be reassembled
 typedef struct {
-    char etiket[13], nomvar[5], typvar[3], gtyp[2];
-    int32_t date_stamp, aammjj, hhmmss;
-    int32_t ig2, date_valid;
+    char etiket[ETIKET_LEN];
+    char nomvar[NOMVAR_LEN];
+    char typvar[TYPVAR_LEN];
+    char gtyp[GTYP_LEN];
+    int32_t date_stamp;
+    int32_t aammjj;
+    int32_t hhmmss;
+    int32_t ig2;
+    int32_t date_valid;
 } stdf_special_parms;
+
 
 //! Collection area for parameter addresses/values
 typedef struct {
@@ -524,6 +544,7 @@ typedef struct {
     int l_etiket, l_nomvar, l_typvar, l_extra;
     int32_t lng, addr, ni, nj, nk, nbits, datyp, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
 } stdf_adr_parms;
+
 
 typedef struct {
 #if !defined(Little_Endian)
