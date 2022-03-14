@@ -101,6 +101,5 @@ int32_t f77name(sqputs)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl lbuf);
 void f77name(d_wafdt)();
 uint32_t f77name(hrjust) (uint32_t *moth, int32_t *ncar);
 uint32_t f77name(hljust) (uint32_t *moth, int32_t *ncar);
-uint32_t f77name(check_host_id)();
 
 #endif

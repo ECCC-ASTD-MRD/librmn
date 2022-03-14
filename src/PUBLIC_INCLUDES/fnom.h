@@ -146,4 +146,3 @@ uint32_t f77name(hrjust) (uint32_t *moth, int32_t *ncar);
 
 uint32_t f77name(hljust) (uint32_t *moth, int32_t *ncar);
 
-uint32_t f77name(check_host_id)();

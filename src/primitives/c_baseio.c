@@ -342,7 +342,6 @@ int c_fnom(
         for (i = 0; i < MAXFILES; i++) {
             reset_file_entry(i);
         }
-        f77name(check_host_id)();
         fnom_initialized = 1;
     }
 
@@ -2933,21 +2932,4 @@ static void arrayZero(
     for (int i = 0; i < nwords; i++) {
         dest[i] = 0;
     }
-}
-
-
-/****************************************************************************
-*                              check_host_id                                *
-****************************************************************************/
-/*
- * This function used to do the following, but it was pretty much dead code
- *
- *  check that RMNLIB license file (node locked) is valid
- *  check_host_id is FORTRAN callable
- *  check_host_id returns the HOST id as obtained by gethostid
-*/
-
-uint32_t f77name(check_host_id)()
-{
-    return 0;
 }
