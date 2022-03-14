@@ -50,7 +50,7 @@ C     --------------------------------------------------------------
 C 
 C     ON DEMANDE UNE PRECISION DE 1.E-13 POUR LES RACINES DE PN.
 C 
-#if defined (CRAY) || defined (NEC64)
+#if defined (CRAY)
       XLIM=1.E-13 
 #else
       XLIM=1.E-6

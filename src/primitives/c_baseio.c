@@ -65,14 +65,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-/* ETG Normally in <sys/file.h> but forgotten on VPP */
-#if defined (__uxpv__) || defined(SUN)
-//! Relative to current offset
-#define L_INCR 1
-//! Relative to end of file
-#define L_XTND 2
-#endif
-
 #define FNOM_OWNER
 #include "fnom.h"
 #include "wafile.h"
@@ -86,10 +78,6 @@
 #else
     // Provide a fallback for non POSIX compliant platforms
 #   define HOST_NAME_MAX 256
-#endif
-
-#if defined (NEC)
-#define tell(fd) lseek(fd,0,1)
 #endif
 
 #if defined(__linux__) || defined(__AIX__)
@@ -2223,14 +2211,10 @@ if (WA_PAGE_SIZE != 0) {
   if (debug_mode > 1) {
     fprintf(stderr,"Debug ouverture du fichier %s ind=%d, fd=%d\n",
             FGFDT[indf].file_name,ind,fd);
-#if defined (NEC)
-    fprintf(stderr,"Debug longueur du fichier =%lld Bytes\n",dim);
-#else
     fprintf(stderr,"Debug longueur du fichier =%d Bytes\n",dim);
-#endif
   }
     }
-return(fd);
+  return(fd);
 }
 
 
@@ -2963,58 +2947,54 @@ static void arrayZero(
 
 uint32_t f77name(check_host_id)()
 {
-#if defined NEC || !defined CHECK_RMNLIB_LIC
-return(0);
-#else
-FILE *id_file;
-uint32_t sysid, key, domain_ok , junk;
-char ypdomain[200];
-char *ARMNLIB;
+    FILE *id_file;
+    uint32_t sysid, key, domain_ok , junk;
+    char ypdomain[200];
+    char *ARMNLIB;
 
-/* find YP(NIS) domain name */
-junk=getdomainname(ypdomain,19);
-/* find HOST id */
-sysid=gethostid();
-/* check that ARMNLIB is an environment variable */
-ARMNLIB=getenv("ARMNLIB");
-if (ARMNLIB==NULL){
-  printf("ERROR: ARMNLIB environment variable not defined\n");
-  exit(1);
-}
+    /* find YP(NIS) domain name */
+    junk = getdomainname(ypdomain, 19);
+    /* find HOST id */
+    sysid = gethostid();
+    /* check that ARMNLIB is an environment variable */
+    ARMNLIB = getenv("ARMNLIB");
+    if (ARMNLIB == NULL){
+        printf("ERROR: ARMNLIB environment variable not defined\n");
+        exit(1);
+    }
 
-/* if NIS domain name is cmcnet, no further check */
-domain_ok= (ypdomain[0]=='c') && (ypdomain[1]=='m') &&
-           (ypdomain[2]=='c') && (ypdomain[3]=='n') &&
-           (ypdomain[4]=='e') && (ypdomain[5]=='t');
+    /* if NIS domain name is cmcnet, no further check */
+    domain_ok = (ypdomain[0]=='c') && (ypdomain[1]=='m') &&
+                (ypdomain[2]=='c') && (ypdomain[3]=='n') &&
+                (ypdomain[4]=='e') && (ypdomain[5]=='t');
 
-/* in test mode, ignore the NIS domain name */
-#if defined(TEST)
-domain_ok=0;
-#endif
+    /* in test mode, ignore the NIS domain name */
+    #if defined(TEST)
+    domain_ok=0;
+    #endif
 
-if(domain_ok)return(sysid);
+    if (domain_ok) return sysid;
 
-/* license file name is $ARMNLIB/data/.LIC */
-sprintf(ypdomain,"%s/data/.LIC",ARMNLIB);
-id_file=fopen(ypdomain,"r");
-if (id_file == NULL) {
-  printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
-  exit(1);
-}
+    /* license file name is $ARMNLIB/data/.LIC */
+    sprintf(ypdomain, "%s/data/.LIC", ARMNLIB);
+    id_file = fopen(ypdomain,"r");
+    if (id_file == NULL) {
+        printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
+        exit(1);
+    }
 
-/* check all numeric tokens found in license file */
-while( EOF != fscanf(id_file,"%u",&key)){
-  domain_ok = domain_ok || (sysid ^ 0xCAFEFADE)==key ;
-}
+    /* check all numeric tokens found in license file */
+    while ( EOF != fscanf(id_file,"%u",&key) ) {
+        domain_ok = domain_ok || (sysid ^ 0xCAFEFADE) == key ;
+    }
 
-fclose(id_file);
+    fclose(id_file);
 
-if ( domain_ok) {
-  /*  printf(" LICENSE is VALID\n"); */
-  return(sysid);
-}else{
-  printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
-  exit(1);
-}
-#endif
+    if ( domain_ok) {
+        /*  printf(" LICENSE is VALID\n"); */
+        return sysid;
+    } else {
+        printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
+        exit(1);
+    }
 }

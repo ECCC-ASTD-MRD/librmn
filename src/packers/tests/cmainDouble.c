@@ -117,48 +117,32 @@ if ( stabilityOn == 1 )
                                  bitSizeOfInt, 0, 1, 1, 0, &missingTag);
 
 
-#if defined (NEC64)
-  unpackedFloat2 = compact_FLOAT_4_8(arrayOfFloat2, &arrayOfInt1[0], &arrayOfInt1[4], elementCount,
-                                 bitSizeOfInt, 0, 1, FLOAT_UNPACK, 0, &missingTag);
-#else
   unpackWrapper(arrayOfFloat2_f, arrayOfInt1, arrayOfInt1, 1, &missingTag);
   for ( i = 0; i < elementCount; i++)
     {
      arrayOfFloat2[i] = arrayOfFloat2_f[i];
     };
-#endif
 
 
   unpackedFloat3 = compact_FLOAT_4_8(arrayOfFloat2, &arrayOfInt2[0], &arrayOfInt2[4],elementCount,
                                  bitSizeOfInt, 0, 1, 1, 0, &missingTag);
 
 
-
-#if defined (NEC64)
-  unpackedFloat4 = compact_FLOAT_4_8(arrayOfFloat3, &arrayOfInt2[0], &arrayOfInt2[4], elementCount,
-                                 bitSizeOfInt, 0, 1, FLOAT_UNPACK, 0, &missingTag);
-#else
 unpackWrapper(arrayOfFloat3_f, arrayOfInt2, arrayOfInt2, 1, &missingTag);
   for ( i = 0; i < elementCount; i++)
     {
      arrayOfFloat3[i] = arrayOfFloat3_f[i];
     };
-#endif
 
   unpackedFloat5 = compact_FLOAT_4_8(arrayOfFloat3, &arrayOfInt3[0], &arrayOfInt3[4], elementCount,
                                  bitSizeOfInt, 0, 1, 1, 0, &missingTag);
 
 
-#if defined (NEC64)
-  unpackedFloat6 = compact_FLOAT_4_8(arrayOfFloat4, &arrayOfInt3[0], &arrayOfInt3[4], elementCount,
-                                 bitSizeOfInt, 0, 1, FLOAT_UNPACK, 0, &missingTag);
-#else
   unpackWrapper(arrayOfFloat4_f, arrayOfInt3, arrayOfInt3, 1, &missingTag);
   for ( i = 0; i < elementCount; i++)
     {
      arrayOfFloat4[i] = arrayOfFloat4_f[i];
     };
-#endif
 
   /*
   unpackedFloat1 = compact_FLOAT_4_8(arrayOfFloat1, &arrayOfInt1[0], &arrayOfInt1[4], elementCount,
@@ -289,16 +273,6 @@ if ( strideTestOn == 1 )
   unpackedFloat3 = compact_FLOAT_4_8(&arrayOfFloat[2], &arrayOfInt3[0], &arrayOfInt3[4],elementCount,
                                  bitSizeOfInt, 0, stride, 1, 0, &missingTag);
 
-
-
-#if defined (NEC64)
-  unpackedFloat4 = compact_FLOAT_4_8(&arrayOfFloat4[0],  &arrayOfInt1[0], &arrayOfInt1[4],elementCount,
-                                 bitSizeOfInt, 0, stride, FLOAT_UNPACK, 0, &missingTag);
-  unpackedFloat5 = compact_FLOAT_4_8(&arrayOfFloat4[1],  &arrayOfInt2[0], &arrayOfInt2[4],elementCount,
-                                 bitSizeOfInt, 0, stride, FLOAT_UNPACK, 0, &missingTag);
-  unpackedFloat6 = compact_FLOAT_4_8(&arrayOfFloat4[2],  &arrayOfInt3[0], &arrayOfInt3[4],elementCount,
-                                 bitSizeOfInt, 0, stride, FLOAT_UNPACK, 0, &missingTag);
-#else
   unpackWrapper(&arrayOfFloat4_f[0],  arrayOfInt1, arrayOfInt1, stride, &missingTag);
   unpackWrapper(&arrayOfFloat4_f[1],  arrayOfInt2, arrayOfInt2, stride, &missingTag);
   unpackWrapper(&arrayOfFloat4_f[2],  arrayOfInt3, arrayOfInt3, stride, &missingTag);
@@ -308,7 +282,7 @@ if ( strideTestOn == 1 )
       arrayOfFloat4[i+1] = arrayOfFloat4_f[i+1];
       arrayOfFloat4[i+2] = arrayOfFloat4_f[i+2];
     };
-#endif
+
   /*
   unpackedFloat4 = compact_FLOAT_4_8(&arrayOfFloat4[0],  &arrayOfInt1[0], &arrayOfInt1[4],elementCount,
                                  bitSizeOfInt, 0, stride, FLOAT_UNPACK, 0, &missingTag);
@@ -405,34 +379,23 @@ if ( errorTestOn  == 1 )
   arrayOfFloat[15] = 7.5;
   unpackedFloat1 = compact_FLOAT_4_8(&arrayOfFloat[0],  arrayOfInt1, &arrayOfInt1[4],elementCount,
                                  bitSizeOfInt, 0, 1, 1, 1, &missingTag );
-#if defined (NEC64)
-  unpackedFloat4 = compact_FLOAT_4_8(&arrayOfFloat4[0],  arrayOfInt1, &arrayOfInt1[4],elementCount,
-                                 bitSizeOfInt, 0, 1, FLOAT_UNPACK, 1, &missingTag );
-#else
+
   unpackWrapper(arrayOfFloat4_f, arrayOfInt1, arrayOfInt1, 1, &float_missingTag);
   for ( i = 0; i < elementCount; i++)
     {
       arrayOfFloat4[i] = arrayOfFloat4_f[i];
     };
-#endif
-
 
   arrayOfFloat[15] = 6.0;
   unpackedFloat2 = compact_FLOAT_4_8(&arrayOfFloat[0],  arrayOfInt2, &arrayOfInt2[4],elementCount,
 
                                  bitSizeOfInt, 0, 1, 1, 1, &missingTag );
-#if defined (NEC64)
-  unpackedFloat5 = compact_FLOAT_4_8(&arrayOfFloat5[0],  arrayOfInt2, &arrayOfInt2[4],elementCount,
-                                 bitSizeOfInt, 0, 1, FLOAT_UNPACK, 1, &missingTag );
-#else
-
   unpackWrapper(arrayOfFloat5_f, arrayOfInt2, arrayOfInt2, 1, &float_missingTag);
 
   for ( i = 0; i < elementCount; i++)
     {
       arrayOfFloat5[i] = arrayOfFloat5_f[i];
     };
-#endif
 
   powerOf2s[0] = 1.0;
   for ( i = 1; i < 32; i++)
@@ -509,16 +472,11 @@ if ( indexTestOn == 1 )
   unpackedFloat1 = compact_FLOAT_4_8(&arrayOfFloat1[1], &arrayOfInt1[1], &arrayOfInt1[1], elementCount-2,
                                  bitSizeOfInt, 120, 1, FLOAT_PACK, 0, &missingTag);
 
-#if defined (NEC64)
-  unpackedFloat2 = compact_FLOAT_4_8(&arrayOfFloat1[1], &arrayOfInt1[1], &arrayOfInt1[1], elementCount-2,
-                                 bitSizeOfInt, 120, 1, FLOAT_UNPACK, 0, &missingTag);
-#else
   /*
     unpackWrapper(&arrayOfFloat1[1], &arrayOfInt1[1], &arrayOfInt1[1], 1, &missingTag);
     */
   unpackedFloat2 = compact_FLOAT_4_8(&arrayOfFloat1[1], &arrayOfInt1[1], &arrayOfInt1[1], elementCount-2,
                                      bitSizeOfInt, 120, 1, FLOAT_UNPACK, 0, &missingTag);
-#endif
   printf("\n i, originaldouble, \t packedInt, \t unpackeddouble\n");
   /*
   printf("\n i, arrayOfInt1[i], arrayOfFloat1[i], arrayOfFloat2[i]\n");

@@ -49,8 +49,8 @@ static PackFunctionPointer pfp;
  *                           +100: NINJ = NJ and stride = NJ                              *
  *                           +1000: pack header is used                                   *
  *                                                                                        *
- *****************************************************************************************/      
-void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, int32_t *nBits, 
+ *****************************************************************************************/
+void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, int32_t *nBits,
                  int32_t *NB, int32_t *OP)
 {
 
@@ -58,7 +58,7 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
    *                                     *
    *   local variables                   *
    *                                     *
-   **************************************/ 
+   **************************************/
   int i;
   int stride;
   int offset;
@@ -81,13 +81,13 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
   if(*nBits > 1)
      {
       if(1 > (32 / *nBits))
-	 lnBits = 1;
+     lnBits = 1;
       else
-	 lnBits = (32 / *nBits);
+     lnBits = (32 / *nBits);
       }
-  else if (*nBits < 0) 
+  else if (*nBits < 0)
      lnBits = *nBits * (-1);
-  else 
+  else
      lnBits = 32;
 
   /**************************************
@@ -127,184 +127,11 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
   if (OPER >= 10)
     {
       offset = *NB;
-      
+
       OPER = (OPER % 10);
     }
   else
     offset = 0;
-   
-
-
-
-
-#if defined(NEC64)
-  /*************************************************************************
-   *                                                                        *
-   *  64 bit mode on NEC                                                    *
-   *                                                                        *
-   *************************************************************************/ 
-
-      /**********************************************************
-      *                                                        *
-      *  determine                                             *
-      *     stride                                             *
-      *     ptrXpacked, ptrXUnpacked                           *
-      *     ftnPtrXUnpacked                                    *
-      *     tempPackedArray                                    *
-      *                                                        *
-      *********************************************************/
-      stride =stride*2;
-
-      ptrXpacked   = NULL;
-      ptrXpacked   = (uint32_t *)xpacked;
-      ptrXUnpacked = NULL;
-      ptrXUnpacked = (uint32_t *)xunpacked; 
-
-      transitPtr = NULL;
-      transitPtr = &ptrXUnpacked[1];
-      ptrXUnpacked = NULL;
-      ptrXUnpacked = transitPtr;
-      transitPtr   = NULL;
-
-      ftnPtrXUnpacked = NULL;
-      ftnPtrXUnpacked = (int32_t *)xunpacked;
-
-      /*******************************************************
-       *                                                     *
-       *   handle situation when offset exceeds 32 bit       *
-       *                                                     *
-       ******************************************************/
-      if ( offset >= 32 )
-        {
-          ptrXpacked = &ptrXpacked[offset/32];
-          offset = offset % 32;
-        }
-
-      lengthOfPackedArray = ((ninj*lnBits)+31+offset) / 32;
-      if (packHeaderUsed) lengthOfPackedArray += 4; 
- 
-      tempPackedArray = NULL;    
-      tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));
-
-
-      
-      
-      if ( (OPER == 1) || (OPER == 3) )
-        /*******************************************************
-         *                                                     *
-         *   pack                                              *
-         *                                                     *
-         ******************************************************/
-        { 
-          
-          if ( packHeaderUsed )
-            {
-              returnBitSizeOfToken = compact_integer(ptrXUnpacked, tempPackedArray, 
-                                                     &tempPackedArray[4], 
-                                                     ninj, lnBits, 0, stride, OPER);
-            }
-          else
-            {
-              returnBitSizeOfToken = compact_integer(ptrXUnpacked, NULL, tempPackedArray, 
-                                                     ninj, lnBits, offset, stride, OPER);
-            };     
-
-          /******************************************
-           *                                        *
-           *   avoid overriding the info            *
-           *   in the leading cell of packed array  *
-           *                                        *
-           *****************************************/
-          ptrXpacked[0] = ( ptrXpacked[0] & ( (-1) << (32-offset) ) ) | 
-                                   tempPackedArray[0];
-
-          /******************************************
-           *                                        *
-           *  shuffle back the packed integer       *
-           *                                        *
-           *****************************************/
-          for ( i = 1; i < lengthOfPackedArray; i++)
-            { 
-              ptrXpacked[i] =  tempPackedArray[i];
-            };
-        }
-      else if ( (OPER == 2) || (OPER == 4) )
-        /*******************************************************
-         *                                                     *
-         *   unpack                                            *
-         *                                                     *
-         ******************************************************/
-        {
-          
-          for ( i = 0; i < lengthOfPackedArray; i++)
-            { 
-              tempPackedArray[i] = ptrXpacked[i];
-            };
-          
-          if ( packHeaderUsed )
-            {        
-              returnBitSizeOfToken = compact_integer(ptrXUnpacked, tempPackedArray, 
-                                                     &tempPackedArray[4], 
-                                                     ninj, lnBits, 0, stride, OPER);
-            }
-          else
-            {
-              returnBitSizeOfToken = compact_integer(ptrXUnpacked, NULL, tempPackedArray, 
-                                                     ninj, lnBits, offset, stride, OPER);
-            };
-         
-          /******************************************
-           *                                        *
-           *  shuffle back the unpacked integer     *
-           *                                        *
-           *****************************************/
-          if ( lnBits == 32 )
-            /**********************
-             *                    *
-             *   32 bit           *
-             *                    *
-             *********************/
-            {
-              for ( i = 0; i < ninj; i++)
-                {
-                  
-                  ftnPtrXUnpacked[i] =  ptrXUnpacked[i*stride];
-                };
-            }
-          else
-            /**********************
-             *                    *
-             *  less than 32 bit  *
-             *                    *
-             *********************/
-            {
-              for ( i = 0; i < ninj; i++)
-                {
-              
-                  if ( (ptrXUnpacked[i*stride] & 0x80000000 ) == 0 )
-                    {
-                  
-                      ftnPtrXUnpacked[i] =  ptrXUnpacked[i*stride];
-                    }
-                  else
-                    {
-                      ftnPtrXUnpacked[i] = (-1) * abs(ptrXUnpacked[i*stride]);
-                    };
-                };
-
-            };
-            
-        };
-       
-      free(tempPackedArray);  
-
-#else
-
-  /*******************************************************************
-  *                                                                  *
-  *   HP or 32 bit on NEC                                            *
-  *                                                                  *
-  *******************************************************************/
 
   ptrXpacked = NULL;
   ptrXpacked = xpacked;
@@ -316,14 +143,14 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
      *   in place                                          *
      *                                                     *
      ******************************************************/
-    {  
-     
+    {
+
       lengthOfPackedArray = ((ninj*lnBits)+31) / 32;
-      if (packHeaderUsed) lengthOfPackedArray += 4;                  
-      tempPackedArray = NULL;    
-      
-      tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));  
-      
+      if (packHeaderUsed) lengthOfPackedArray += 4;
+      tempPackedArray = NULL;
+
+      tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));
+
 
       if ( (OPER == 1) || (OPER == 3) )
         /****************************************
@@ -331,26 +158,26 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
          *   pack                               *
          *                                      *
          ***************************************/
-        { 
+        {
 
           if ( packHeaderUsed )
             {
-             
-              returnBitSizeOfToken = compact_integer(xunpacked, tempPackedArray, tempPackedArray, 
+
+              returnBitSizeOfToken = compact_integer(xunpacked, tempPackedArray, tempPackedArray,
                                                      ninj, lnBits, 128, stride, OPER);
             }
           else
             {
-              returnBitSizeOfToken = compact_integer(xunpacked, NULL, tempPackedArray, 
+              returnBitSizeOfToken = compact_integer(xunpacked, NULL, tempPackedArray,
                                                      ninj, lnBits, offset, stride, OPER);
             };
-                                        
+
           for ( i = 0; i < lengthOfPackedArray; i++)
-            { 
-              ptrXpacked[i] = tempPackedArray[i];  
-              
+            {
+              ptrXpacked[i] = tempPackedArray[i];
+
             };
-            
+
 
         }
       else if ( (OPER == 2) || (OPER == 4) )
@@ -361,27 +188,27 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
          ***************************************/
         {
           for ( i = 0; i < lengthOfPackedArray; i++)
-            { 
-              tempPackedArray[i] = ptrXpacked[i] ;  
+            {
+              tempPackedArray[i] = ptrXpacked[i] ;
             };
 
           if ( packHeaderUsed )
-            {            
-              returnBitSizeOfToken = compact_integer(xunpacked, tempPackedArray, tempPackedArray, 
+            {
+              returnBitSizeOfToken = compact_integer(xunpacked, tempPackedArray, tempPackedArray,
                                                      ninj, lnBits, 128, stride, OPER);
             }
           else
             {
-              returnBitSizeOfToken = compact_integer(xunpacked, NULL, tempPackedArray, 
+              returnBitSizeOfToken = compact_integer(xunpacked, NULL, tempPackedArray,
                                                      ninj, lnBits, offset, stride, OPER);
             };
-          
-          
+
+
         };
-      
-      free(tempPackedArray);  
+
+      free(tempPackedArray);
       tempPackedArray = NULL;
-      
+
     }
   else
     /*******************************************************
@@ -389,41 +216,22 @@ void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, 
      *   non in place                                      *
      *                                                     *
      ******************************************************/
-    {      
+    {
       if ( packHeaderUsed )
         {
-          returnBitSizeOfToken = compact_integer(xunpacked, xpacked, xpacked, 
+          returnBitSizeOfToken = compact_integer(xunpacked, xpacked, xpacked,
                                                  ninj, lnBits, 128, stride, OPER);
         }
       else
         {
-          returnBitSizeOfToken = compact_integer(xunpacked, NULL, xpacked, 
+          returnBitSizeOfToken = compact_integer(xunpacked, NULL, xpacked,
                                                  ninj, lnBits, offset, stride, OPER);
-        }; 
+        };
     };
 
    ptrXpacked = NULL;
    tempUnpackedArray = NULL;
-#endif   
-   
 }
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /******************************************************************************************
@@ -465,7 +273,7 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, i
   uint32_t *tempFloatArray;
   double tempFloat=9999.0000;
   uint32_t *ptrXpacked;
- 
+
 
 
   /***************************************************************************
@@ -476,34 +284,15 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, i
   if(*nBits > 1)
      {
       if(1 > (32 / *nBits))
-	 lnBits = 1;
+     lnBits = 1;
       else
-	 lnBits = (32 / (int)*nBits);
+     lnBits = (32 / (int)*nBits);
       }
-  else if (*nBits < 0) 
+  else if (*nBits < 0)
      lnBits = (int)*nBits * (-1);
-  else 
+  else
      lnBits = 32;
 
-
-
-  /***************************************************************************
-   *                                                                         *
-   *   allows 1 to represent pack doubles under NEC64 mode                   *
-   *          2 to represent unpack doubles under NEC64 mode                 *
-   *                                                                         *
-   **************************************************************************/
-#if defined (NEC64)
-  if ( OPER == 1 )
-    {
-      OPER = 5;
-    }
-  else if (OPER == 2)
-    {
-      OPER = 6;
-    };
-
-#endif
 
 
   /*************************************************************************
@@ -527,23 +316,23 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, i
      *                                                   *
      *   inplace stuff                                   *
      ****************************************************/
-    {  
-    
+    {
+
       lengthOfIntArray = (ninj*lnBits) / 32 + 6;
-      tempIntArray = NULL;    
-      tempIntArray = ( uint32_t *) malloc(lengthOfIntArray*sizeof(uint32_t));  
-      
+      tempIntArray = NULL;
+      tempIntArray = ( uint32_t *) malloc(lengthOfIntArray*sizeof(uint32_t));
+
 
       if (OPER == 1)
         /**************
          *  pack      *
          *************/
         {
-          tempFloatArray = (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, 
-                                         offset, stride, OPER, 0, &tempFloat);                               
+          tempFloatArray = (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits,
+                                         offset, stride, OPER, 0, &tempFloat);
           for ( i = 0; i < lengthOfIntArray; i++)
-            { 
-              ptrXpacked[i] = tempIntArray[i];  
+            {
+              ptrXpacked[i] = tempIntArray[i];
             };
         }
       else if ( OPER == 2 )
@@ -552,15 +341,15 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, i
          *************/
         {
           for ( i = 0; i < lengthOfIntArray; i++)
-            { 
-              tempIntArray[i] = ptrXpacked[i] ;  
+            {
+              tempIntArray[i] = ptrXpacked[i] ;
             };
-          tempFloatArray = (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, 
+          tempFloatArray = (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits,
                                          offset, stride, OPER, 0, &tempFloat);
         };
 
-      free(tempIntArray);  
-      tempIntArray = NULL;     
+      free(tempIntArray);
+      tempIntArray = NULL;
     }
   else
     /***************************************************
@@ -569,10 +358,10 @@ void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, i
      *                                                 *
      **************************************************/
     {
-      tempFloatArray = (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, 
+      tempFloatArray = (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits,
                                               offset, stride, OPER, 0, &tempFloat);
     };
-    
+
    ptrXpacked = NULL;
 
 }

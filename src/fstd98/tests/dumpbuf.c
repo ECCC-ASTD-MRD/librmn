@@ -20,37 +20,30 @@
 
 #include "qstdir.h"
 #include <stdio.h>
+
 void c_dumpbuf(buffer_interface_ptr buf, int n)
 {
-int i;      
+    fprintf(stdout,"\n");
+    fprintf(stdout," <<<  D U M P B U F  >>>\n");
+    fprintf(stdout,"  buf->nwords =      %d\n",buf->nwords);
+    fprintf(stdout,"  buf->nbits  =      %d\n",buf->nbits);
+    fprintf(stdout,"  buf->data_index =  %d\n",buf->data_index);
+    fprintf(stdout,"  buf->record_index =%d\n",buf->record_index);
+    fprintf(stdout,"  buf->iun    =      %d\n",buf->iun);
+    fprintf(stdout,"  buf->aux_index =   %d\n",buf->aux_index);
+    fprintf(stdout,"  buf->buf9   =      %d\n",buf->buf9);
+    fprintf(stdout,"\n");
 
-      fprintf(stdout,"\n");
-      fprintf(stdout," <<<  D U M P B U F  >>>\n");
-      fprintf(stdout,"  buf->nwords =      %d\n",buf->nwords);
-      fprintf(stdout,"  buf->nbits  =      %d\n",buf->nbits);
-      fprintf(stdout,"  buf->data_index =  %d\n",buf->data_index);
-      fprintf(stdout,"  buf->record_index =%d\n",buf->record_index);
-      fprintf(stdout,"  buf->iun    =      %d\n",buf->iun);
-      fprintf(stdout,"  buf->aux_index =   %d\n",buf->aux_index);
-      fprintf(stdout,"  buf->buf9   =      %d\n",buf->buf9);
-      fprintf(stdout,"\n");
-
-      for (i=0; i < n; i+=5)
+    for (int i = 0; i < n; i += 5)
         fprintf(stdout," %08X  %08X  %08X  %08X  %08X\n",buf->data[i],
-        buf->data[i+1],buf->data[i+2],buf->data[i+3],buf->data[i+4]);
-      return;
+            buf->data[i+1],buf->data[i+2],buf->data[i+3],buf->data[i+4]);
+    return;
 }
 
 void f77name(dumpbuf)(int32_t *buf, int32_t *n)
 {
-int nn = *n;
+    int nn = *n;
+    c_dumpbuf(buf,nn);
 
-#if defined(NEC64)
-   BUF_C;
-     c_dumpbuf(buf+1,nn);
-   BUF_F;
-#else
-   c_dumpbuf(buf,nn);
-#endif
-return;
+    return;
 }

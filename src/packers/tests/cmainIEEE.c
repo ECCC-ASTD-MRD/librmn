@@ -32,7 +32,7 @@ static double powerOf2s[33];
 
 
 
-void IEEEtransform1(int bitSizeOfToken, int mantisaSize, int expoAlignment, FLOAT_4_8 *inArrayFloat, 
+void IEEEtransform1(int bitSizeOfToken, int mantisaSize, int expoAlignment, FLOAT_4_8 *inArrayFloat,
                    FLOAT_4_8 *outArrayFloat, int floatCount, int stride)
 {
 
@@ -58,7 +58,7 @@ void IEEEtransform1(int bitSizeOfToken, int mantisaSize, int expoAlignment, FLOA
             floatTemplate.M.mantis = floatTemplate.M.mantis >> ( 24 - mantisaSize );
 
           outArrayFloat[i] = floatTemplate.X;
-      
+
         };
     };
 
@@ -74,21 +74,17 @@ void f77name(cmainieee)()
 
   FLOAT_4_8 arrayOfFloat0[myElementCount];
   FLOAT_4_8 arrayOfFloat[myElementCount2], arrayOfFloatTest[strideElementCount];
-  FLOAT_4_8 arrayOfFloat1[myElementCount2], arrayOfFloat2[strideElementCount]; 
-  FLOAT_4_8 arrayOfFloat3[myElementCount2], arrayOfFloat4[strideElementCount]; 
+  FLOAT_4_8 arrayOfFloat1[myElementCount2], arrayOfFloat2[strideElementCount];
+  FLOAT_4_8 arrayOfFloat3[myElementCount2], arrayOfFloat4[strideElementCount];
   FLOAT_4_8 arrayOfFloat5[myElementCount2], arrayOfFloat6[myElementCount2], arrayOfFloat7[myElementCount2];
- 
-#if !defined (NEC64)
 
   float arrayOfFloat1_large[veryLargeElementCount], arrayOfFloat2_large[veryLargeElementCount];
   uint32_t  arrayOfInt1_large[veryLargeElementCount];
-  
-#endif
 
   uint32_t arrayOfInt1[myElementCount2], arrayOfInt2[myElementCount2];
   uint32_t arrayOfInt3[myElementCount2], arrayOfInt4[myElementCount2];
   uint32_t arrayOfInt5[myElementCount2], arrayOfInt6[myElementCount2], arrayOfInt7[myElementCount2];
-  
+
 
   /***************************
     need to switch between 4 and 32 to check its viability
@@ -98,7 +94,7 @@ void f77name(cmainieee)()
   int off_set = 1;
   int stride = 1;
   int opCode = FLOAT_PACK;
-  int opCode1 = FLOAT_UNPACK; 
+  int opCode1 = FLOAT_UNPACK;
   int32_t *unpackedFloat1, *unpackedFloat2, *unpackedFloat3, *unpackedFloat4,*unpackedFloat5, *unpackedFloat6;
 
   FLOAT_4_8 missingTag = 9999.0000;
@@ -125,7 +121,7 @@ void f77name(cmainieee)()
   powerOf2s[0] = 1.0;
   for ( i = 1; i < 64; i++)
     {
-      powerOf2s[i] = 2.0 *powerOf2s[i-1];      
+      powerOf2s[i] = 2.0 *powerOf2s[i-1];
     };
 
 
@@ -141,16 +137,16 @@ if ( geneticOn == 1 )
   bitSizeOfExpo = 7;
   mantisaSize = 9;
 
-  printf("\n IEEE block test starts(float) \n" );  
+  printf("\n IEEE block test starts(float) \n" );
   arrayOfFloat1[0] = 0.0;
   arrayOfFloat1[1] = 0.999999;
 
   for ( i = 2; i < elementCount ; i++ )
     {
       arrayOfFloat1[i] = ((i+1.0) / (elementCount + 10.0) - 0.5);
-    };  
- 
-  
+    };
+
+
   for ( bitSizeOfInt = 16; bitSizeOfInt < 33; bitSizeOfInt++)
     {
 
@@ -165,9 +161,9 @@ if ( geneticOn == 1 )
       else if ( bitSizeOfInt < 29 )
         {
           bitSizeOfExpo = 7;
-          
+
         }
-      else 
+      else
         {
           bitSizeOfExpo = 8;
         }
@@ -176,24 +172,24 @@ if ( geneticOn == 1 )
       expoAlignment = 126 - (powerOf2s[bitSizeOfExpo] - 1);
 
 
-      unpackedFloat1 = compact_IEEEblock_FLOAT_4_8(arrayOfFloat1, &arrayOfInt1[0], &arrayOfInt1[4], 
-                                                   elementCount, bitSizeOfInt, 
+      unpackedFloat1 = compact_IEEEblock_FLOAT_4_8(arrayOfFloat1, &arrayOfInt1[0], &arrayOfInt1[4],
+                                                   elementCount, bitSizeOfInt,
                                                    bitSizeOfExpo, 0, 1, FLOAT_PACK, 0, &missingTag);
-      
-      unpackWrapper(arrayOfFloat2, &arrayOfInt1[0], &arrayOfInt1[4], 1,&missingTag); 
+
+      unpackWrapper(arrayOfFloat2, &arrayOfInt1[0], &arrayOfInt1[4], 1,&missingTag);
       /*
-      unpackedFloat2 = compact_IEEEblock_FLOAT_4_8(arrayOfFloat2, &arrayOfInt1[0], &arrayOfInt1[4], 
-                                                   elementCount, bitSizeOfInt, 
+      unpackedFloat2 = compact_IEEEblock_FLOAT_4_8(arrayOfFloat2, &arrayOfInt1[0], &arrayOfInt1[4],
+                                                   elementCount, bitSizeOfInt,
                                                    bitSizeOfExpo, 0, 1, FLOAT_UNPACK, 0, &missingTag);
-                                                   */                                           
-      IEEEtransform1(bitSizeOfInt, mantisaSize, expoAlignment, arrayOfFloat1, arrayOfFloat3, 
-                    elementCount, stride); 
+                                                   */
+      IEEEtransform1(bitSizeOfInt, mantisaSize, expoAlignment, arrayOfFloat1, arrayOfFloat3,
+                    elementCount, stride);
 
 
 
 
-                                
-  
+
+
 
       testError = 0;
 
@@ -208,12 +204,12 @@ if ( geneticOn == 1 )
 
       if (testError == 1 )
         {
-          printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test not passed \n", 
+          printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test not passed \n",
                  bitSizeOfInt, bitSizeOfExpo);
         }
       else
         {
-          printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test passed \n", 
+          printf(" bitSizeOfToken: %d \t bitSizeOfExpo: %d \t test passed \n",
                  bitSizeOfInt, bitSizeOfExpo);
         };
     };
@@ -222,30 +218,4 @@ if ( geneticOn == 1 )
 
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 }/* end of program */
-
-
-
-
-
-
-
-
-
-
-
-
-
-

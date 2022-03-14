@@ -18,15 +18,10 @@
 * * Boston, MA 02111-1307, USA.
 * */
       subroutine tracebck
-#if defined (NEC)
-      call mesput('<<<<< TRACEBACK >>>>>',22,1)
-      call flush(6)
-#else
 #if defined (AIX)
       call xl__trbk()
 #else
       print *,' <<<<< TRACEBACK >>>>>'
-#endif
 #endif
       return
       end

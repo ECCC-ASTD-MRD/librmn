@@ -36,20 +36,17 @@ C
       INTEGER IX,N8,II,IXX
       INTEGER ADJ
       EXTERNAL MEMOIR, qqexit
-      
+
 #if !defined (OLD_32BIT_CODE)
-	print *,'****************************************************'
-	print *,'* ERROR: MEMOIR8                                   *'
-	print *,'* This code is obsolete, will not work on a 64     *'
-	print *,'* bit architecture and should not be used.         *'
-	print *,'* allocate shoud be used instead                   *'
-	print *,'* EXITING                                          *'
-	print *,'****************************************************'
-	call qqexit(44)
+    print *,'****************************************************'
+    print *,'* ERROR: MEMOIR8                                   *'
+    print *,'* This code is obsolete, will not work on a 64     *'
+    print *,'* bit architecture and should not be used.         *'
+    print *,'* allocate shoud be used instead                   *'
+    print *,'* EXITING                                          *'
+    print *,'****************************************************'
+    call qqexit(44)
 #else
-C
-C     ADJ = 1 (NEC 64 BITS)
-C     ADJ = 2 (NEC 32 BITS)
 C     ADJ = 8 (SERVEUR 32 BITS)
 C
       ADJ = LOC(ZW(2))-LOC(ZW(1))

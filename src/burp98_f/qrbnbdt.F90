@@ -43,7 +43,7 @@
 !
 !     LA FONCTION RETOURNE UN CODE D'ERREUR SI LA PRECISION REQUISE
 !     EST IRREALISABLE.  SINON, ON RETOURNE ZERO.
-!                                                                       
+!
 !
 !ARGUMENTS
 !     NBIT     ENT/SRT  NOMBRE DE BIT A CONSERVER PAR VALEUR
@@ -54,7 +54,7 @@
 !IMPLICITE
 #include "codes.cdk"
 !
-!MODULES 
+!MODULES
       EXTERNAL QDFERR
       INTEGER  QDFERR, I, TBLMAX, TBLMIN, ERREUR, SUPVAL(32)
 !
@@ -66,7 +66,7 @@
      &           65536,     131072,      262144,      524288,  &
      &         1048576,    2097152,     4194304,     8388608,  &
      &        16777216,   33554432,    67108864,   134217728,  &
-     &       268435456,  536870912,  1073741824,  2147483647  / 
+     &       268435456,  536870912,  1073741824,  2147483647  /
 
 !
 !*
@@ -80,16 +80,6 @@
          RETURN
       ENDIF
 
- 
-#if defined (NEC)       
-!
-!     Verifier si datyp est plus grand que 5 --> pas permis sur NEC
-!
-      if(datyp .ge. 6) then
-         qrbnbdt = QDFERR('QRBNBDT', 'DATYP=6,7,8 OU 9, PAS PERMIS SUR NEC',ERFATAL, EREDAT)
-         return
-      endif
-#endif
 
 !
 !     SI datyp >=6 (real, real*8, complex, complex*8)
@@ -112,18 +102,18 @@
       TBLMAX = 0
       TBLMIN = 0
       DO 10 I = 1,TBLDIM
-         TBLMAX = MAX(TBLMAX, TBLVAL(I))       
-         TBLMIN = MIN(TBLMIN, TBLVAL(I))       
+         TBLMAX = MAX(TBLMAX, TBLVAL(I))
+         TBLMIN = MIN(TBLMIN, TBLVAL(I))
  10      CONTINUE
-        
+
 !     DETERMINER LA VALEUR ABS MAXIMALE ET SI ENTIERS SIGNES SONT REQUIS
       IF(TBLMIN .LT. -1) THEN
          TBLMAX  = MAX(TBLMAX, ABS( TBLMIN ))
          DATYP   = 4
-      ENDIF   
+      ENDIF
 
 !
-!     Verifier si il y a des valeurs manquantes et mettre indicateur 
+!     Verifier si il y a des valeurs manquantes et mettre indicateur
 !     a vrai si necessaire. On devra alors calculer 1 bit de plus
 !
 !      nomanke = .true.
@@ -150,7 +140,7 @@
  20         CONTINUE
          ERREUR = QDFERR('QDFNBDT', 'ON CODE AVEC NBIT=32 ET DATYP=2', WARNIN, ERCMPR)
       ENDIF
-     
+
  100  CONTINUE
 
 !     S'ASSURER QUE LES PARAMETRES SONT VALABLES:

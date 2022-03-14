@@ -1327,9 +1327,7 @@
 
                       listej(KK) = LocVAL
                       KAJ(KK)    = KA
-#if defined(NEC)
-*vdir novector
-#endif
+
                       Do  JJ=1,SOMNK
                           util(JJ,KK) = -1
                       End Do

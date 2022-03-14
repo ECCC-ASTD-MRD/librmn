@@ -44,12 +44,8 @@ void f77name(cmain)()
   FLOAT_4_8 arrayOfFloat3[myElementCount2], arrayOfFloat4[myElementCount2];
   FLOAT_4_8 arrayOfFloat5[myElementCount2], arrayOfFloat6[myElementCount2], arrayOfFloat7[myElementCount2];
 
-#if !defined (NEC)
-
   float arrayOfFloat1_large[veryLargeElementCount], arrayOfFloat2_large[veryLargeElementCount];
   uint32_t  arrayOfInt1_large[veryLargeElementCount];
-
-#endif
 
   int32_t arrayOfInt1[myElementCount3], arrayOfInt2[myElementCount3];
   uint32_t arrayOfInt3[myElementCount3], arrayOfInt4[myElementCount3];
@@ -1031,18 +1027,6 @@ if ( indexTestOn == 1 )
 
 
 
-
-
-
-
-
-
-
-
-
-
-#if !defined (NEC)
-
 if ( largeTestOn == 1 )
 {
   /******************************
@@ -1081,18 +1065,18 @@ if ( largeTestOn == 1 )
   {
      if ( arrayOfFloat1_large[i] != arrayOfFloat2_large[i] )
         {
-	  tempFloat = arrayOfFloat1_large[i] - arrayOfFloat2_large[i];
-	  if (tempFloat < 0 )
-	    tempFloat = tempFloat * -1.0;
-	  if ( tempFloat > maxDifference )
-	    {
-	      maxDifference = tempFloat;
-	      position_i = i;
+      tempFloat = arrayOfFloat1_large[i] - arrayOfFloat2_large[i];
+      if (tempFloat < 0 )
+        tempFloat = tempFloat * -1.0;
+      if ( tempFloat > maxDifference )
+        {
+          maxDifference = tempFloat;
+          position_i = i;
             printf("%d  \t %8e \t %8.8x \t %8e %8e \n", i,  arrayOfFloat1_large[i], arrayOfInt1_large[i],
-	    arrayOfFloat2_large[i],maxDifference);
-	    };
+        arrayOfFloat2_large[i],maxDifference);
+        };
 /*          printf("%d  \t %8e \t %8.8x \t %8e %8e \n", i,  arrayOfFloat1_large[i], arrayOfInt1_large[i],
-	    arrayOfFloat2_large[i],maxDifference); */
+        arrayOfFloat2_large[i],maxDifference); */
           testNotWorking = 1;
         };
 
@@ -1136,7 +1120,6 @@ if ( largeTestOn == 1 )
 
 };
 
-#endif
 
 }/* end of program */
 

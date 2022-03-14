@@ -28,19 +28,8 @@
       RETURN
       END
 #else
-#if defined (_FLOAT1)
-      INTEGER FUNCTION LEGVAR(X)
-      IF (IAND(ISHFT(X,-23),255) .EQ. 255) THEN
-         LEGVAR = -1
-      ELSE
-         LEGVAR = 0
-      ENDIF
-      RETURN
-      END 
-#else
       INTEGER FUNCTION LEGVAR(X)
       LEGVAR=0
       RETURN
-      END 
-#endif
+      END
 #endif

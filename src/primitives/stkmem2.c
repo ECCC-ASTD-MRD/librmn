@@ -19,7 +19,7 @@
  */
 
 #include <rpnmacros.h>
-#if !defined (NEC)
+
 #include <stdlib.h>
 
 #ifdef WIN32    /*CHC/NRC*/
@@ -42,9 +42,3 @@ void f77name(unstak2)(void **ptr)
 {
   free(*ptr);
 }
-#else
-void f77name(unstak2)(void **ptr)
-{
-
-}
-#endif

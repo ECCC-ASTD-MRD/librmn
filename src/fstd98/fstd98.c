@@ -3386,39 +3386,6 @@ int ip_is_equal(
 // It has been moved here since this is the only place where it was used
 
 
-//! Copy back content of field to a Fortran 64 bit array of elements
-//! \deprecated This use to be usefull only on the NEC; it does nothing now
-void backto64(
-    //! [in,out] Fortran 64 bit array
-    int32_t *field,
-    //! [in] C 32 bit array (same array, different pointer type)
-    uint32_t *temp,
-    //! [in] Number of elements
-    int nelm
-) {
-#if defined(NEC64)
-    int i;
-    int64_t *pll = (int64_t *) field;
-    int32_t *pl = (int32_t *) temp;
-    uint64_t *upll = (uint64_t *) field;
-    uint32_t *upl = (uint32_t *) temp;
-
-    if (xdf_datatyp == 4) {
-        for (i = nelm - 1; i >= 0; i--) {
-            pll[i] = pl[i];
-        }
-    } else {
-        if ((xdf_datatyp == 2) || (xdf_datatyp == 3)) {
-            for (i = nelm-1; i >= 0; i--)
-                upll[i] = upl[i];
-        }
-    }
-#else
-    exit(1);
-#endif
-}
-
-
 //! Position at the end of a sequential file for an append
 int32_t f77name(fstapp)(
     //! [in] Unit number associated to the file
@@ -3583,35 +3550,10 @@ int32_t f77name(fstecr)(uint32_t *field, int32_t *work, int32_t *f_npak,
   str_cp_init(etiket, 13, f_etiket, l3);
   str_cp_init(grtyp, 2, f_grtyp, l4);
 
-#if defined (NEC64)
-  if ((datyp == 1) || (datyp == 5)) {      /* floating point */
-    xdf_double = 1;
-    ier = c_fstecr(field, work, npak, iun, date, deet, npas,
-                   ni, nj, nk, ip1, ip2, ip3,
-                   typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,
-                   datyp, rewrit);
-    xdf_double = 0;
-  }
-  else if ((datyp != 0) && (!image_mode_copy)) {
-    xdf_stride = 2;
-    ier = c_fstecr(field+1, work, npak, iun, date, deet, npas,
-                   ni, nj, nk, ip1, ip2, ip3,
-                   typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,
-                   datyp, rewrit);
-    xdf_stride = 1;
-  }
-  else {
   ier = c_fstecr(field, work, npak, iun, date, deet, npas,
                  ni, nj, nk, ip1, ip2, ip3,
                  typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,
                  datyp, rewrit);
-  }
-#else
-  ier = c_fstecr(field, work, npak, iun, date, deet, npas,
-                 ni, nj, nk, ip1, ip2, ip3,
-                 typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,
-                 datyp, rewrit);
-#endif
   return (int32_t) ier;
 }
 
@@ -4176,16 +4118,9 @@ int32_t f77name(fstlir)(void *field, int32_t *f_iun,
   str_cp_init(typvar, 3, f_typvar, l2);
   str_cp_init(nomvar, 5, f_nomvar, l3);
 
-#if defined(NEC64)
-  xdf_double = 1;
   ier = c_fstlir(field, iun, &ni, &nj, &nk, datev, etiket,
                      ip1, ip2, ip3, typvar, nomvar);
-  backto64(field, (uint32_t *) field, ni * nj * nk);
-  xdf_double = 0;
-#else
-  ier = c_fstlir(field, iun, &ni, &nj, &nk, datev, etiket,
-                     ip1, ip2, ip3, typvar, nomvar);
-#endif
+
   if (ier < 0) return (int32_t) ier;
   *f_ni = (int32_t) ni;
   *f_nj = (int32_t) nj;
@@ -4356,16 +4291,9 @@ int32_t f77name(fstlirx)(uint32_t *field, int32_t *f_handle, int32_t *f_iun,
   str_cp_init(typvar, 3, f_typvar, l2);
   str_cp_init(nomvar, 5, f_nomvar, l3);
 
-#if defined(NEC64)
-  xdf_double = 1;
   ier = c_fstlirx(field, handle, iun, &ni, &nj, &nk, datev, etiket,
                      ip1, ip2, ip3, typvar, nomvar);
-  backto64(field, (uint32_t *)field, ni * nj * nk);
-  xdf_double = 0;
-#else
-  ier = c_fstlirx(field, handle, iun, &ni, &nj, &nk, datev, etiket,
-                     ip1, ip2, ip3, typvar, nomvar);
-#endif
+
   *f_ni = (int32_t) ni;
   *f_nj = (int32_t) nj;
   *f_nk = (int32_t) nk;
@@ -4394,14 +4322,8 @@ int32_t f77name(fstlis)(uint32_t *field, int32_t *f_iun,
   int iun = *f_iun;
   int ier, ni, nj, nk;
 
-#if defined(NEC64)
-  xdf_double = 1;
   ier = c_fstlis((uint32_t *)field, iun, &ni, &nj, &nk);
-  backto64(field, (uint32_t *)field, ni * nj * nk);
-  xdf_double = 0;
-#else
-  ier = c_fstlis((uint32_t *)field, iun, &ni, &nj, &nk);
-#endif
+
   *f_ni = (int32_t) ni;
   *f_nj = (int32_t) nj;
   *f_nk = (int32_t) nk;
@@ -4447,14 +4369,8 @@ int32_t f77name(fstluk)(uint32_t *field, int32_t *f_handle,
   int handle = *f_handle;
   int ier, ni, nj, nk;
 
-#if defined(NEC64)
-  xdf_double = 1;
   ier = c_fstluk(field, handle, &ni, &nj, &nk);
-  backto64(field,(uint32_t *)field, ni * nj * nk);
-  xdf_double = 0;
-#else
-  ier = c_fstluk(field, handle, &ni, &nj, &nk);
-#endif
+
   *f_ni = (int32_t) ni;
   *f_nj = (int32_t) nj;
   *f_nk = (int32_t) nk;

@@ -28,11 +28,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined (NEC)
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
 #include <rpnmacros.h>
 
 #define ERROR 0
@@ -67,34 +62,6 @@ static int ptrsize, *pointer, debug_mode=0, dejala=0, dmms_noabort=0;
   dejala=0;\
 }
 
-#if defined (NEC)
-/************************************************************************
- *                        c _ m e m u s e                               *
- ************************************************************************/
-void c_memuse()
-{
-        int64_t use, max;
-	struct rlimit lims;    
-	struct jresourcemem jusage;
-
-	if (getresourcej( 0, CURR_UMEM, &jusage) == -1) {
-		perror("getresource failed");
-		exit(1);
-	}
-	use = jusage.jr_umem.mv_used / 1024 ; 
-
-	if (getrlimitj(0,RLIMIT_UMEM, &lims) == -1) {
-		perror("getrlimit failed");
-		exit(1);
-	}
-	max = lims.rlim_max / 1024; 
-	fprintf(stderr, "memory usage of jid (%d) is: %d kbytes\n", 
-		getjid(0), use );
-	fprintf(stderr, "max memory usage of jid (%d) is: %d kbytes\n", 
-		getjid(0), max );
-}
-#endif
-
 
 /************************************************************************
  *                      b l o c _ a l l o c                             *
@@ -118,7 +85,7 @@ void c_memuse()
  *     ----------------      ----------------
  *  <___|   |________|        |   |________|
  *                            |
- *      |_____________________| 
+ *      |_____________________|
  *
  **/
 
@@ -144,9 +111,6 @@ int nbytes,mode;
      else {
        perror("bloc_alloc error can't allocate");
        fprintf(stderr,"bloc_alloc trying to allocate lng=%d bytes\n",lng);
-#if defined(NEC)
-       c_memuse();
-#endif
        f77name(tracebck)();
        exit(7);
      }
@@ -191,12 +155,12 @@ int nbytes,mode;
       if (strcmp(value,"ON") == 0)
          con = 0xFFFA5A5A;
       else
-	 n = sscanf(value,"%x",&con);
+     n = sscanf(value,"%x",&con);
       }
 
     value = getenv("DEBUG_MODE");
     debug_mode = ((value != NULL) && (strcmp(value,"OFF") != 0)
-                   && (strcmp(value,"0") != 0));    
+                   && (strcmp(value,"0") != 0));
     init = 1;
     if (debug_mode) {
        fprintf(stdout,"DEBUG_MODE %s\n",value);
@@ -211,8 +175,8 @@ int nbytes,mode;
      if (badptr ==  ptbloc) {
         fprintf(stderr,"bloc_alloc bad_pointer %#x\n",ptbloc);
         f77name(tracebck)();
-	exit(10);
-	}
+    exit(10);
+    }
 
   if (mode == HEAP) {
     ptbloc->bwd = heap_last.bwd;
@@ -285,7 +249,7 @@ int mode;
      if (err < 0) {
         f77name(tracebck)();
         exit(12);
-	}
+    }
      (ptbloc->bwd)->fwd = ptbloc->fwd;
      (ptbloc->fwd)->bwd = ptbloc->bwd;
      free(ptbloc);
@@ -301,7 +265,7 @@ int mode;
        if (err < 0) {
           f77name(tracebck)();
           exit(14);
-	  }
+      }
        pt = ptbloc->fwd;
        free(ptbloc);
        ptbloc = pt;
@@ -309,7 +273,7 @@ int mode;
      }
    sortie();
    return(0);
-   
+
    }
 
 /************************************************************************
@@ -482,7 +446,6 @@ int32_t *abort;
    }
 
 
-#if !defined (_FLOAT1)
 /************************************************************************
  *                           h p a l l o c                              *
  ************************************************************************/
@@ -507,7 +470,7 @@ void **addr;
  *                          h p d e a l l c                             *
  ************************************************************************/
 
-void 
+void
 f77name(hpdeallc)(addr, errcode, abort)
 int32_t *errcode, *abort;
 char **addr;
@@ -568,7 +531,7 @@ f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *abort
  *                          c a _ d e a l l c                           *
  ************************************************************************/
 
-void 
+void
 f77name(ca_deallc)(addr, errcode, abort)
 int32_t *errcode, *abort;
 int **addr;
@@ -577,7 +540,7 @@ int **addr;
    ptr = *addr - sizeof(addr);
    *errcode = bloc_dealloc(*ptr,HEAP);
    }
-   
+
 #if defined (OLD_32BIT_CODE)
 /************************************************************************
  *                          m e m o i r h                               *
@@ -591,16 +554,16 @@ int32_t buf[], *ind, *nw;
    int32_t *adr1;
 
 #if !defined (OLD_32BIT_CODE)
-	fprintf(stderr, "****************************************************\n");
-	fprintf(stderr, "* ERROR: MEMOIRH                                   *\n");
-	fprintf(stderr, "* This code is obsolete, will not work on a 64     *\n");
-	fprintf(stderr, "* bit architecture and should not be used.         *\n");
-	fprintf(stderr, "* allocate shoud be used instead                   *\n");
-	fprintf(stderr, "* EXITING                                          *\n");
-	fprintf(stderr, "****************************************************\n");
-	exit(33);
+    fprintf(stderr, "****************************************************\n");
+    fprintf(stderr, "* ERROR: MEMOIRH                                   *\n");
+    fprintf(stderr, "* This code is obsolete, will not work on a 64     *\n");
+    fprintf(stderr, "* bit architecture and should not be used.         *\n");
+    fprintf(stderr, "* allocate shoud be used instead                   *\n");
+    fprintf(stderr, "* EXITING                                          *\n");
+    fprintf(stderr, "****************************************************\n");
+    exit(33);
 #else
-	
+
    if (*nw > 0) {
       ptbloc = bloc_alloc(8 + *nw * sizeof(int32_t),HEAP);
       adr1 = (int32_t *) &(ptbloc->data[2]);
@@ -624,14 +587,14 @@ int32_t buf[], *ind, *nw;
    struct blocmem *ptbloc;
    int32_t *adr1;
 #if !defined (OLD_32BIT_CODE)
-	fprintf(stderr, "****************************************************\n");
-	fprintf(stderr, "* ERROR: MEMOIR                                    *\n");
-	fprintf(stderr, "* This code is obsolete, will not work on a 64     *\n");
-	fprintf(stderr, "* bit architecture and should not be used.         *\n");
-	fprintf(stderr, "* allocate shoud be used instead                   *\n");
-	fprintf(stderr, "* EXITING                                          *\n");
-	fprintf(stderr, "****************************************************\n");
-	exit(44);
+    fprintf(stderr, "****************************************************\n");
+    fprintf(stderr, "* ERROR: MEMOIR                                    *\n");
+    fprintf(stderr, "* This code is obsolete, will not work on a 64     *\n");
+    fprintf(stderr, "* bit architecture and should not be used.         *\n");
+    fprintf(stderr, "* allocate shoud be used instead                   *\n");
+    fprintf(stderr, "* EXITING                                          *\n");
+    fprintf(stderr, "****************************************************\n");
+    exit(44);
 #else
 
    if (*nw > 0) {
@@ -656,9 +619,8 @@ f77name(bkcheck)(addr, errcode)
 int32_t **addr, *errcode;
 {
    *errcode = bloc_check((*addr)-4,1);
-   }
+}
 
-#endif
 
 /************************************************************************
  *                          h p c h e c k                               *
@@ -667,11 +629,11 @@ void
 f77name(hpcheck)(errcode)
 int32_t *errcode;
 {
-   if (*errcode == 0) 
+   if (*errcode == 0)
       *errcode = mem_check(HEAP,0);
    else
       *errcode = mem_check(HEAP,1);
-   }
+}
 
 /************************************************************************
  *                           m c h e c k                                *
@@ -680,121 +642,8 @@ void
 f77name(mcheck)(errcode)
 int *errcode;
 {
-   if (*errcode == 0) 
+   if (*errcode == 0)
       *errcode = mem_check(STACK,0);
    else
       *errcode = mem_check(STACK,1);
-   }
-
-
-
-#if defined (_FLOAT1)
-/************************************************************************
- *                          b k c h e c k                               *
- ************************************************************************/
-
-void
-f77name(bkcheck)(addr, errcode)
-int32_t *addr, *errcode;
-{
-   int64_t temp;
-   int **p;
-   temp = (int64_t) *addr;
-#if defined (ALL64)
-   temp = temp << 3;
-#else
-   temp = temp << 2;
-#endif
-   p = (int **) temp;
-   *errcode = bloc_check(p-3,1);
-   }
-
-/************************************************************************
- *                           h p a l l o c                              *
- ************************************************************************/
-void
-f77name(hpalloc)( addr, length, errcode, abort )
-int32_t *addr, *length, *errcode, *abort;
-{
-   struct blocmem *ptbloc;
-   int64_t laddr;
-   if (*length == 0) {
-      fprintf(stderr,"HPALLOC error: 0 length\n");
-      f77name(tracebck)();
-      exit(13);
-      }
-   ptbloc = bloc_alloc(*length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
-   laddr = (int64_t) &(ptbloc->data[1]);
-#if defined (ALL64)
-   *addr = (int32_t) (laddr >> 3);
-#else
-   *addr = (int32_t) (laddr >> 2);
-#endif
-   *errcode = (*addr == NULL) ? 1 : 0;
-   }
-
-/************************************************************************
- *                          h p d e a l l c                             *
- ************************************************************************/
-void 
-f77name(hpdeallc)(addr, errcode, abort)
-int32_t *addr, *errcode, *abort;
-{
-   int64_t temp;
-   int **p;
-   temp = (int64_t) *addr;
-#if defined (ALL64)
-   temp = temp << 3;
-#else
-   temp = temp << 2;
-#endif
-   p = (int **) temp;
-   *errcode = bloc_dealloc(p-3,HEAP);
-   }
-
-/************************************************************************
- *                          m e m o i r h                               *
- ************************************************************************/
-void
-f77name(memoirh)(buf,ind,nw)
-int32_t buf[], *ind, *nw;
-{
-   int errcode, **ptr;
-   int64_t adr1, adr2;
-   struct blocmem *ptbloc;
-
-   if (*nw > 0) {
-      ptbloc = bloc_alloc(*nw * sizeof(int32_t),HEAP);
-      adr1 = (int64_t) &(ptbloc->data[1]);
-      adr2 = (int64_t) buf;
-      *ind = (int32_t) ((adr1 - adr2) / sizeof(int32_t)) + 1;
-      }
-   else {
-      ptr = (int **) &buf[*ind - 1];
-      errcode = bloc_dealloc(ptr-3,HEAP);
-      }
-   }
-
-/************************************************************************
- *                           m e m o i r                                *
- ************************************************************************/
-void
-f77name(memoir)(buf,ind,nw)
-int32_t buf[], *ind, *nw;
-{
-   int errcode, **ptr;
-   int64_t adr1, adr2;
-   struct blocmem *ptbloc;
-
-   if (*nw > 0) {
-      ptbloc = bloc_alloc(*nw * sizeof(int32_t),STACK);
-      adr1 = (int64_t) &(ptbloc->data[1]);
-      adr2 = (int64_t) buf;
-      *ind = (int32_t) ((adr1 - adr2) / sizeof(int32_t)) + 1;
-      }
-   else {
-      ptr = (int **) &buf[*ind - 1];
-      errcode = bloc_dealloc(ptr-3,STACK);
-      }
-   }
-#endif
+}

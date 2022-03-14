@@ -19,29 +19,8 @@
  */
 
 #include <rpnmacros.h>
-#if !defined (_FLOAT1)
+
 void * f77name(loc_sub)(void *x)
 {
   return(x);
 }
-#else
-#if !defined (NEC64)
-int32_t f77name(loc_sub)(void *x)
-{
-  long long temp= (long long) x;
-  int32_t rval;
-  temp >>= 2;
-  rval = temp;
-  return(rval);
-}
-#else
-int32_t f77name(loc_sub)(void *x)
-{
-  long long temp= (long long) x;
-  int32_t rval;
-  temp >>= 3;
-  rval = temp;
-  return(rval);
-}
-#endif
-#endif

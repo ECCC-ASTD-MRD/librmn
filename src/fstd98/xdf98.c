@@ -730,7 +730,6 @@ int c_xdfadd(
             }
             break;
 
-#if !defined(NEC)
         case 6:
 
         case 8:
@@ -752,7 +751,6 @@ int c_xdfadd(
                 }
             }
             break;
-#endif
 
         case 5:
             // Upper char only
@@ -1541,7 +1539,6 @@ int c_xdfins(
             }
             break;
 
-#if !defined(NEC)
         case 6:
 
         case 8:
@@ -1564,7 +1561,6 @@ int c_xdfins(
                 }
             }
             break;
-#endif
 
         case 5:
             // Upper char only
@@ -2576,7 +2572,6 @@ int c_xdfrep(
             }
             break;
 
-#if !defined(NEC)
         case 6:
         case 8:
             for (i=0; i < nbwords; i++) {
@@ -2598,7 +2593,6 @@ int c_xdfrep(
                 }
                 break;
             }
-#endif
 
         case 5:
             // Upper char only
@@ -3038,7 +3032,6 @@ int c_xdfxtr(
             }
             break;
 
-#if !defined(NEC)
         case 6:
         case 8:
             for (i = 0; i < nbwords; i++)
@@ -3058,7 +3051,6 @@ int c_xdfxtr(
                 }
             }
             break;
-#endif
 
         case 2:
             mode = 2;
@@ -3685,13 +3677,9 @@ int32_t f77name(qdfput)(uint32_t *buf, int32_t *felem, int32_t *fderbit,
 {
    int elem = *felem, nbits = *fnbits, derbit = *fderbit;
    int ier;
-#if defined(NEC64)
-   BUF_C;
-   ier = c_qdfput(buf+1, elem, derbit, nbits);
-   BUF_F;
-#else
+
    ier = c_qdfput(buf, elem, derbit, nbits);
-#endif
+
    return (int32_t) ier;
 }
 /*****************************************************************************
@@ -3760,19 +3748,8 @@ int32_t f77name(xdfadd)(uint32_t *buf, uint32_t *donnees,
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp;
    int ier;
 
-#if defined(NEC64)
-   BUF_C;
-   if ((datyp == 2) || (datyp == 4)) {
-     xdf_stride = 2;
-     ier = c_xdfadd(buf+1, donnees+1, nelm, nbits, datyp);
-     xdf_stride = 1;
-   }
-   else
-     ier = c_xdfadd(buf+1, donnees, nelm, nbits, datyp);
-   BUF_F;
-#else
    ier = c_xdfadd(buf, donnees, nelm, nbits, datyp);
-#endif
+
    return (int32_t) ier;
 
 }
@@ -3825,13 +3802,8 @@ int32_t f77name(xdfcut)(uint32_t *buf,
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
 
-#if defined(NEC64)
-   BUF_C;
-   ier = c_xdfcut(buf+1, bitpos, nelm, nbits, datyp);
-   BUF_F;
-#else
    ier = c_xdfcut(buf, bitpos, nelm, nbits, datyp);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -3856,13 +3828,8 @@ int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf)
 {
    int handle = *fhandle, ier;
 
-#if defined(NEC64)
-   BUF_C;
-   ier = c_xdfget(handle, buf+1);
-   BUF_F;
-#else
    ier = c_xdfget(handle, (buffer_interface_ptr) buf);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -3905,13 +3872,7 @@ int32_t f77name(xdfhdr)(uint32_t *buf, int32_t *addr, int32_t *lng,
    uint32_t l_primk[MAX_KEYS];
    uint32_t l_info[MAX_KEYS];
 
-#if defined(NEC64)
-   BUF_C;
-   ier = c_xdfhdr(buf+1, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
-   BUF_F;
-#else
    ier = c_xdfhdr((buffer_interface_ptr)buf, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
-#endif
 
    *addr =  (int32_t) l_addr;
    *lng =   (int32_t) l_lng;
@@ -3953,27 +3914,8 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    strncpy(c_appl, appl, lng);
    c_appl[lng] = '\0';
 
-#if defined(NEC64)
-   for (i=0; i < nstat; i++)
-     lstat[i] = stat[i];
-   nkeys = lstat[6];
-   ninfo = lstat[8];
-   if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
-      sprintf(errmsg, "nkeys=%d or ninfo=%d > MAX_KEYS must recompile", nkeys, ninfo);
-      return error_msg("xdfimp", ERR_OUT_RANGE, SYSTEM);
-      }
-   for (i=0; i < nkeys; i++) {
-     primk[i].wd1 = pri[i].wd1;
-     primk[i].wd2 = pri[i].wd2;
-     }
-   for (i=0; i < ninfo; i++) {
-     infok[i].wd1 = aux[i].wd1;
-     infok[i].wd2 = aux[i].wd2;
-     }
-   ier = c_xdfimp(iun, lstat, nstat, primk, infok, c_vers, c_appl);
-#else
    ier = c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -3988,23 +3930,9 @@ int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
    int ier, i;
-#if defined(NEC64)
-   uint32_t primk[MAX_KEYS], infok[MAX_KEYS];
 
-   if ((nkeys > MAX_KEYS) || (ninfo >MAX_KEYS)) {
-      sprintf(errmsg, "nkeys=%d or ninfo=%d > MAX_KEYS must recompile", nkeys, ninfo);
-      return error_msg("xdfini", ERR_OUT_RANGE, SYSTEM);
-      }
-   for (i=0; i < nkeys; i++)
-     primk[i] = keys[i];
-   for (i=0; i < ninfo; i++)
-     infok[i] = info[i];
-   BUF_C;
-   ier = c_xdfini(iun, buf+1, idtyp, primk, nkeys, infok, ninfo);
-   BUF_F;
-#else
    ier = c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -4020,19 +3948,8 @@ int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
 
-#if defined(NEC64)
-   BUF_C;
-   if ((datyp == 2) || (datyp == 4)) {
-     xdf_stride = 2;
-     ier = c_xdfins(buf+1, donnees+1, bitpos, nelm, nbits, datyp);
-     xdf_stride = 1;
-   }
-   else
-     ier = c_xdfins(buf+1, donnees, bitpos, nelm, nbits, datyp);
-   BUF_F;
-#else
    ier = c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -4169,13 +4086,8 @@ int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
    int handle = *fhandle;
    int iun = *fiun, ier;
 
-#if defined(NEC64)
-   BUF_C;
-   ier = c_xdfput(iun, handle, buf+1);
-   BUF_F;
-#else
    ier = c_xdfput(iun, handle, (buffer_interface_ptr)buf);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -4191,19 +4103,8 @@ int32_t f77name(xdfrep)(uint32_t *buf, uint32_t *donnees,
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
 
-#if defined(NEC64)
-   BUF_C;
-   if ((datyp == 2) || (datyp == 4)) {
-     xdf_stride = 2;
-     ier = c_xdfrep(buf+1, donnees+1, bitpos, nelm, nbits, datyp);
-     xdf_stride = 1;
-   }
-   else
-     ier = c_xdfrep(buf+1, donnees, bitpos, nelm, nbits, datyp);
-   BUF_F;
-#else
    ier = c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -4221,30 +4122,8 @@ int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    char c_vers[257], c_appl[257];
    int i;
 
-#if defined(NEC64)
-   word_2 primk[MAX_KEYS], infok[MAX_KEYS];
-   uint32_t lstat[12];
-
-   ier = c_xdfsta(iun, lstat, nstat, primk, npri, infok, naux, c_vers, c_appl);
-
-   if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
-      sprintf(errmsg, "npri=%d or naux=%d > MAX_KEYS must recompile",
-          npri, naux);
-      return error_msg("xdfsta", ERR_OUT_RANGE, SYSTEM);
-      }
-   for (i=0; i < npri; i++) {
-     pri[i].wd1 = primk[i].wd1;
-     pri[i].wd2 = primk[i].wd2;
-     }
-   for (i=0; i < naux; i++) {
-     aux[i].wd1 = infok[i].wd1;
-     aux[i].wd2 = infok[i].wd2;
-     }
-   for (i=0; i < nstat; i++)
-     stat[i] = lstat[i];
-#else
    ier = c_xdfsta(iun, stat, nstat, pri, npri, aux, naux, c_vers, c_appl);
-#endif
+
    lng = (l1 <= 256) ? l1 : 256;
    c_vers[lng] = '\0';
    strncpy(vers, c_vers, lng);
@@ -4268,19 +4147,9 @@ int32_t f77name(xdfupd)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
    int ier, i;
-#if defined(NEC64)
-   uint32_t l_keys[MAX_KEYS], l_info[MAX_KEYS];
 
-   BUF_C;
-   for (i=0; i < nkeys; i++)
-      l_keys[i] = (int32_t) keys[i];
-   for (i=0; i < ninfo; i++)
-      l_info[i] = (int32_t) info[i];
-   ier = c_xdfupd(iun, buf+1, idtyp, l_keys, nkeys, l_info, ninfo);
-   BUF_F;
-#else
    ier = c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
-#endif
+
    return (int32_t) ier;
 }
 
@@ -4309,18 +4178,7 @@ int32_t f77name(xdfxtr)(uint32_t *buf, uint32_t *donnees,
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
    int ier;
 
-#if defined(NEC64)
-   BUF_C;
-   if ((datyp == 2) || (datyp == 4)) {
-     xdf_stride = 2;
-     ier = c_xdfxtr(buf+1, donnees+1, bitpos, nelm, nbits, datyp);
-     xdf_stride = 1;
-   }
-   else
-     ier = c_xdfxtr(buf+1, donnees, bitpos, nelm, nbits, datyp);
-   BUF_F;
-#else
    ier = c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
-#endif
+
    return (int32_t) ier;
 }

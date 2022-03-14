@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 #include <rpnmacros.h>
-#if !defined (_FLOAT1)
+
 void f77name(peek)(int32_t **adr,int32_t *indx, int32_t *val)
 {
   int32_t *base;
@@ -28,4 +28,3 @@ void f77name(peek)(int32_t **adr,int32_t *indx, int32_t *val)
   base = *adr;
   *val = base[*indx-1];
 }
-#endif

@@ -17,7 +17,7 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-#if !defined (NEC)
+
       subroutine stkmemw(nw,ptr)
       integer nw,ptr
       integer errcode
@@ -25,24 +25,11 @@
       call hpalloc(ptr,nw,errcode,0)
       return
       end
-#else
-#if !defined (_FLOAT1)
-      subroutine stkmemw(nw,ptr)
-      integer nw,ptr
-      integer errcode
 
-      print *,'ERROR: stkmem2 must be used instead of stkmemw'
-      call tracebck()
-      return
-      end
-#endif
-#endif
       subroutine unstakw(ptr)
       integer ptr
-#if !defined (NEC)
       integer ier
       call hpdeallc(ptr,ier,0)
-#endif
       return
       end
 

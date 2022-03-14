@@ -34,7 +34,7 @@
 !     ENREGISTREMENT DU FICHIER BURP DONT LE NUMERO D'UNITE EST IUN.
 !     MRFVOI RENSEIGNE AUSSI SUR LE TYPE D'ENREGISTREMENT, SA LONGUEUR
 !     AINSI QUE SON ADRESSE EN UNITES DE 64 BITS.
-!                                                                       
+!
 !ARGUMENTS
 !
 !     IUN   ENTREE   NUMERO D'UNITE DU FICHIER
@@ -43,7 +43,7 @@
 #include "defi.cdk"
 #include "enforc8.cdk"
 !
-!MODULES 
+!MODULES
       EXTERNAL XDFSTA, XDFPRM, QDFIND, RAH2CHAR, XDFLOC, XDFOPN, XDFCLS, QQQFNOM
       INTEGER  XDFSTA,  XDFPRM, QDFIND, TEMPS, LONG, STAT(12),   &
      &         QQQFNOM, INDFIC, HANDLE, TYPREC, NLIGN, ADDR, IOUT, J,  &
@@ -53,7 +53,7 @@
       CHARACTER*9  STNID
       CHARACTER*4  VERS, APPLIC
       CHARACTER*50 NOMFIC,  TYPFIC
-      LOGICAL      ONFERME 
+      LOGICAL      ONFERME
       integer date, mois, annee, AA, MM, JJ
 !
 !*
@@ -94,7 +94,7 @@
                CALL RAH2CHAR(STNID(J:J),KLPRIM(J),1)
  20            CONTINUE
 !           COMMENCER NOUVELLE PAGE?
-            IF(NLIGN .EQ. 60) THEN 
+            IF(NLIGN .EQ. 60) THEN
                WRITE(IOUT, 400) IUN, NOMFIC, NBPAGES
                WRITE(IOUT, 500)
                NLIGN   = 0
@@ -144,11 +144,7 @@
  400  FORMAT('1  MRFVOI  UNITE  ',I3,'  NOM ',A,T86,'  PAGE ',I3)
  500  FORMAT('0  STATION   LATI   LONG     DX     DY   FLGS(HEX)   DATE'  &
      &       ,'   TEMPS   IDTYP   LONGUEUR  ADRESSE '/)
-#if defined (NEC)
- 600  FORMAT(' ',A9,1X,4(I6,1X),4X,Z6,1X,I8,3X,I4,3X,I3,3X,I8,1X,I10)
-#else
  600  FORMAT(' ',A9,1X,4(I6,1X),4X,Z6.6,1X,I8,3X,I4,3X,I3,3X,I8,1X,I10)
-#endif
  700  FORMAT(/' N.B. DIMENSIONS ET ADRESSES EN UNITES DE 64 BITS'//)
  800  FORMAT('0 STATISTIQUES'//)
  900  FORMAT(A38, I10)

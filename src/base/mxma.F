@@ -17,7 +17,7 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-#if !defined (NEC)
+
       subroutine mxma(a,na,iad,b,nb,ibd,c,nc,icd,nar,nac,nbc)
 C
 C     Computes a matrix, A, times a matrix, B, and allows for
@@ -85,4 +85,3 @@ C
    30 continue
       return
       end
-#endif

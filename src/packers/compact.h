@@ -373,10 +373,8 @@ void *compact_FLOAT_TYPE(
         {
             double two = 2.0, expos;
             int expos_i;
-            int32_t expos_ftn;  /* bug on the NEC, can not pass expos_i directly to f_pow */
             expos_i = (rangeExponent - 127 - tokenSize);
-            expos_ftn = expos_i;
-            mulFactor = f77name(f_pow)(&two, &expos_ftn);
+            mulFactor = f77name(f_pow)(&two, &expos_i);
         }
 
         if ( ( theHeader->minMantisa32 == 0 ) || ( theHeader->minExpo < 849 ) ) {

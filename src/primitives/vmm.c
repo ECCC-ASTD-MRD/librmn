@@ -43,8 +43,6 @@ typedef long int pid_t;
 #endif
 #include <sys/stat.h>
 
-#if defined (NEC)
-#endif
 #include <stdlib.h>
 
 
@@ -60,15 +58,9 @@ typedef long int pid_t;
 #     define SORTIR(X) f77name(tracebck)(); exit(X);
 #endif
 
-#if defined (NEC)
-#     define memint int64_t
-#else
-#     define memint int32_t
-#endif
+#define memint int32_t
 
-/*
- * Internal prototypes
- */
+// Internal prototypes
 void ouvre_ou_ferme_controle(int , int , char *);
 int obtient_environ();
 
@@ -246,17 +238,11 @@ struct name_table NAMES[MAXNAMES];
 static int maxmem = 0, free_space = 0, nbslices = 0, nbvar = 0, nbblocks = 0;
 static int32_t mot_de_passe = 0, pwd_set = 0;
 static int called_vmmallc = 0; /*called_vmmallc mis a  1 lors du 1er appel a vmmallc */
-#if defined (_FLOAT1)
-static float MAXVAL= 1.0e75;
-static float zero=0.0;
-static double MAXVAL8= 1.0e75;
-static double zero8=0.0;
-#else
+
 static float MAXVAL= 1.0e38;
 static float zero=0.0;
 static double MAXVAL8= 1.0e308;
 static double zero8=0.0;
-#endif
 
 /* variables globales pour les unites logiques des fichiers Vmm_classe
    et Vmm_controle
@@ -1206,8 +1192,6 @@ int obtient_environ()
 *     Ouvrir les fichiers necessaire au systeme de gestion de memoire virtuelle
 *
 *auteur J. Caveen  -  juillet 1993
-*       revision: E. Gondet - 19 avril 2002
-*              Porting on FUJITSU (__uxpv__)
 *
 *
 *argument
@@ -1891,8 +1875,6 @@ return(PositionTrouvee);
 *     Intervertir un bloc vide avec un bloc non vide deplacable
 *
 *auteur M. Lepine  -  juillet 1993
-*       revision: E. Gondet - 19 avril 2002
-*              Porting on FUJITSU (__uxpv__) + appel libmp pour copie de blocs: _MmCopy
 *
 *arguments
 *     in   i      index du bloc vide
@@ -1948,15 +1930,7 @@ swap_blocks(int i,int inext)
    BLOCKS[i].prev_fb = BLOCKS[i].next_fb = -1;
    SLICES[BLOCKS[i].slice_table_index].block_table_index = i;
 
-#if defined(__uxpv__)
-   _MmCopy(dest_adr,src_adr,nmots*sizeof(int32_t));
-#else
-#  if defined(NEC)
-   f77name(movlev8)(src_adr,dest_adr,&nmots);      /* assure la vectorisation */
-#  else
    memcpy(dest_adr,src_adr,nmots*sizeof(int32_t));
-#  endif
-#endif
 
 
 /*
@@ -2404,9 +2378,6 @@ int
 *                 ajout d'un marqueur de bloc 64 bits au debut et
 *                 decalage de l'adresse de depart du bloc[0] en
 *                 consequence.
-*       revision: E. Gondet - 19 avril 2002
-*                 Repertoire en argument pour decouplage en parallele des fichiers
-*              Porting on FUJITSU (__uxpv__)
 *argument
 *     in  memry    quantite de memoire a reserver (en mots)
 *     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
@@ -2422,13 +2393,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 */
 
    int i;
-
-#if defined (NEC) && defined (_FLOAT0) && !defined(__uxpv__)
-   void *f77name(malloc2)();
-   long long noctets;
-#else
    size_t noctets;
-#endif
 /*
  * s'assurer que c'est bien le premier appel a vmmallc
  */
@@ -2472,15 +2437,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 /*ETG noctets=noctets*4 si int32_t sur 4 par 8 si int32_t sur 8 */
    noctets <<= (sizeof(int32_t)==4?2:3) ;
    free_space = maxmem;
-#if defined (NEC) && defined (_FLOAT0) && !defined(__uxpv__)
-   /*   fprintf(stdout,"Debug VMMALLC appel a malloc2\n"); */
-   noctets += 8;
-   BLOCKS[0].memadr = (int32_t *) f77name(malloc2)(&noctets);
-   /*   fprintf(stdout,"Debug vmmallc memry=%d, maxmem=%d, noctets=%ld\n",*memry,maxmem,noctets); */
-   /*   fprintf(stdout,"Debug vmmallc BLOCKS[0].memadr=%d\n",BLOCKS[0].memadr); */
-#else
    BLOCKS[0].memadr = (int32_t *) malloc(noctets + 8);
-#endif
    if(BLOCKS[0].memadr == (int32_t *) NULL)
         return(vmmerr("VMMALLC",NOT_ENOUGH_MEMORY));
 
@@ -2530,9 +2487,6 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 *                 ajout d'un marqueur de bloc 64 bits au debut et
 *                 decalage de l'adresse de depart du bloc[0] en
 *                 consequence.
-*       revision: E. Gondet - 19 avril 2002
-*                 Repertoire en argument pour decouplage en parallele des fichiers
-*              Porting on FUJITSU (__uxpv__)
 *argument
 *     in  memry    quantite de memoire a reserver (en mots)
 *     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
@@ -3447,13 +3401,7 @@ f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
 *         out tablo     -  champ a obtenir (inutile en mode dynamique)
 *
 **/
-int32_t
-#if defined (_FLOAT1)
-f77name(vmmget)(complete_key  *inkey, int32_t *pointeur,int32_t *tablo)
-#else
-f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
-#endif
-{
+int32_t f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo) {
 
           int qvmindex_from_key(), vmmerr(), verbar(),calc_checksum();
 
@@ -3514,17 +3462,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
           BLOCKS[SLICES[indice].block_table_index].info.flags.altered =
              SLICES[indice].info.flags.save;
 
-
-#if defined (_FLOAT1)
-          intptr = (memint) BLOCKS[SLICES[indice].block_table_index].memadr;
-#if defined (ALL64)
-          *pointeur = (int32_t) (intptr >> 3);
-#else
-          *pointeur = (int32_t)  (intptr >> 2);
-#endif
-#else
           *pointeur = (void *) BLOCKS[SLICES[indice].block_table_index].memadr;
-#endif
 
           champs_bloques_max = champs_bloques_max > champs_bloques ?
                                champs_bloques_max : champs_bloques ;
@@ -3546,11 +3484,7 @@ f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo)
 *
 **/
 int32_t
-#if defined (_FLOAT1)
-f77name(vmmhpa)(int32_t *ptr,int32_t *memry,int32_t *mode)
-#else
 f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
-#endif
 {
 
    int vmmerr();
@@ -3579,19 +3513,10 @@ f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
         return(vmmerr("VMMHPA",NOT_ENOUGH_MEMORY));
    else
    {
-#if defined (_FLOAT1)
-      lptr = (memint) pointeur;
-#if defined (ALL64)
-      *ptr = (int32_t) (lptr >> 3);
-#else
-      *ptr = (int32_t) (lptr >> 2);
-#endif
-#else
       *ptr = pointeur;
-#endif
       return(0);
     }
-   }
+}
 
 /***s/p vmmhpd
 *
@@ -3606,11 +3531,7 @@ f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
 *
 **/
 int32_t
-#if defined(_FLOAT1)
-f77name(vmmhpd)(int32_t *ptr)
-#else
 f77name(vmmhpd)(void **ptr)
-#endif
 {
 
    memint lptr;
@@ -3627,19 +3548,10 @@ f77name(vmmhpd)(void **ptr)
       "CALL- vmmhpd(%d)\n",ptr);
 #endif
 
-#if defined (_FLOAT1)
-   lptr = (memint) *ptr;
-#if defined (ALL64)
-   pointeur = (int32_t *) (lptr << 3);
-#else
-   pointeur = (int32_t *) (lptr << 2);
-#endif
-#else
-   pointeur =  *ptr;
-#endif
+   pointeur = *ptr;
    free(pointeur);
    return(0);
-   }
+}
 
 /***s/p vmmint
 *
