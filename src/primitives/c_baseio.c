@@ -2940,66 +2940,14 @@ static void arrayZero(
 *                              check_host_id                                *
 ****************************************************************************/
 /*
- check that RMNLIB license file (node locked) is valid
- check_host_id is FORTRAN callable
- check_host_id returns the HOST id as obtained by gethostid
+ * This function used to do the following, but it was pretty much dead code
+ *
+ *  check that RMNLIB license file (node locked) is valid
+ *  check_host_id is FORTRAN callable
+ *  check_host_id returns the HOST id as obtained by gethostid
 */
 
 uint32_t f77name(check_host_id)()
 {
-
-#if defined NEC || !defined CHECK_RMNLIB_LIC
     return 0;
-#else
-    FILE *id_file;
-    uint32_t sysid, key, domain_ok , junk;
-    char ypdomain[200];
-    char *ARMNLIB;
-
-    /* find YP(NIS) domain name */
-    junk = getdomainname(ypdomain, 19);
-    /* find HOST id */
-    sysid = gethostid();
-    /* check that ARMNLIB is an environment variable */
-    ARMNLIB = getenv("ARMNLIB");
-    if (ARMNLIB == NULL){
-        printf("ERROR: ARMNLIB environment variable not defined\n");
-        exit(1);
-    }
-
-    /* if NIS domain name is cmcnet, no further check */
-    domain_ok = (ypdomain[0]=='c') && (ypdomain[1]=='m') &&
-                (ypdomain[2]=='c') && (ypdomain[3]=='n') &&
-                (ypdomain[4]=='e') && (ypdomain[5]=='t');
-
-    /* in test mode, ignore the NIS domain name */
-    #if defined(TEST)
-    domain_ok=0;
-    #endif
-
-    if (domain_ok) return sysid;
-
-    /* license file name is $ARMNLIB/data/.LIC */
-    sprintf(ypdomain, "%s/data/.LIC", ARMNLIB);
-    id_file = fopen(ypdomain,"r");
-    if (id_file == NULL) {
-        printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
-        exit(1);
-    }
-
-    /* check all numeric tokens found in license file */
-    while ( EOF != fscanf(id_file,"%u",&key) ) {
-        domain_ok = domain_ok || (sysid ^ 0xCAFEFADE) == key ;
-    }
-
-    fclose(id_file);
-
-    if ( domain_ok) {
-        /*  printf(" LICENSE is VALID\n"); */
-        return sysid;
-    } else {
-        printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
-        exit(1);
-    }
-#endif
 }
