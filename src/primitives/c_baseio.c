@@ -2947,6 +2947,10 @@ static void arrayZero(
 
 uint32_t f77name(check_host_id)()
 {
+
+#if defined NEC || !defined CHECK_RMNLIB_LIC
+    return 0;
+#else
     FILE *id_file;
     uint32_t sysid, key, domain_ok , junk;
     char ypdomain[200];
@@ -2997,4 +3001,5 @@ uint32_t f77name(check_host_id)()
         printf(" ERROR: RMNLIB LICENSE FILE IS NOT VALID\n");
         exit(1);
     }
+#endif
 }
