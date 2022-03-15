@@ -637,7 +637,8 @@ int c_fnom(
         int32_t lrec77 = lrec;
         int32_t rndflag77 = FGFDT[i].attr.rnd;
         int32_t unfflag77 = FGFDT[i].attr.unf;
-        int32_t lmult = D77MULT;
+        // lmult is no longer used by qqqf7op, but the argument was kept for backward compatibility
+        int32_t lmult = 42;
         ier = open64(FGFDT[i].file_name, O_RDONLY | WIN32_O_BINARY);
         if (ier <= 0) {
             FGFDT[i].file_size = -1;
