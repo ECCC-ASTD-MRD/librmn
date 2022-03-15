@@ -1,6 +1,8 @@
 # This must be repeated in each CMake file; having it in an included file is not
 # sufficient
-cmake_minimum_required(VERSION 3.16)
+
+# The minimum version can not be 3.16 because of the LINK_LANGUAGE generator expression in Config.cmake.in
+cmake_minimum_required(VERSION 3.20)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_rpn)
 # Initialise compilers and ec specific functions
@@ -115,8 +117,6 @@ list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
-# Modules Fortran qui devraient être publiés comme des includes
-#   jar_module
 
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
@@ -133,6 +133,8 @@ set_target_properties(rmnshared PROPERTIES
     OUTPUT_NAME rmn)
 
 install(TARGETS rmn rmnshared librmn_version)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jar_module.mod TYPE INCLUDE)
 
 add_custom_target(
     cprotos

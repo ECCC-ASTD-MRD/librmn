@@ -76,6 +76,15 @@ cmake ../librmn -DCMAKE_INSTALL_PREFIX=~/opt/
 make -j4 install
 ```
 
+### Changement de compilateur
+
+Étant donné que la bibliothèque de fonctions contient un module Fortran, il
+faut utiliser le même compilateur qui a produit la biliothèque pour les
+applications clientes.
+
+Ainsi, il faut nettoyer le répertoire de compilation et ré-exécuter les
+instructions de compilation en spécifiant un répertoire d'installation
+(`-DCMAKE_INSTALL_PREFIX=$install_dir_path`) différent.
 
 
 ## Exemple d'utilisation dans une application cliente
