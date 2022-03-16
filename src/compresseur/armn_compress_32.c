@@ -3,35 +3,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
 #include <rpnmacros.h>
+
 #include "zfstlib.h"
 #include "armn_compress_32.h"
 
-int  c_armn_compress32(unsigned char *, float *, int, int, int, int);
-int  c_armn_uncompress32(float *fld, unsigned char *zstream, int ni, int nj, int nk, int nchiffres_sign);
 int  c_fstzip32(unsigned int *zfld, unsigned int *fld, int ni, int nj, int nk, int step, int nbits, int remaining_space);
+void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int ni, int nj, int nbits, int istep);
+void unpackTokensParallelogram_8(unsigned char ufld[], unsigned int z[], int ni, int nj, int nbits, int istep);
+void packTokensParallelogram32(unsigned int z[], int *zlng, unsigned int ufld[], int ni, int nj, int nbits, int istep, int remaining_space);
+void unpackTokensParallelogram32(unsigned int ufld[], unsigned int z[], int ni, int nj, int nbits, int istep);
+
 int  f77name(armn_compress32)(unsigned char *, float *, int *, int *, int *, int *);
 int  f77name(armn_uncompress32)(float *fld, unsigned char *zstream, int *ni, int *nj, int *nk, int *nchiffres_sign);
-void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);
-void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int npts);
-void packTokensParallelogram(unsigned int z[], unsigned int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, uint32_t *header);
-void packTokensParallelogram32(unsigned int z[], int *zlng, unsigned int ufld[], int ni, int nj, int nbits, int istep, int remaining_space);
-void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int ni, int nj, int nbits, int istep);
-void pack_stream_nbits_32(unsigned int z[], unsigned int *zlng, unsigned int ufld[], int npts, int nbits);
-void unpackTokensParallelogram32(unsigned int ufld[], unsigned int z[], int ni, int nj, int nbits, int istep);
-void unpackTokensParallelogram_8(unsigned char ufld[], unsigned int z[], int ni, int nj, int nbits, int istep);
-
 
 int compact_mask_char(unsigned int *dest, unsigned char *src, int npts);
 int uncompact_mask_char(int *dest, unsigned int *src, int npts);
 void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int npts);
-void pack_stream_nbits_16(unsigned int z[], unsigned int *zlng, unsigned short ufld[], int npts, int nbits);
-void pack_stream_nbits_32(unsigned int z[], unsigned int *zlng, unsigned int ufld[], int npts, int nbits);
-void pack_stream_nbits_8(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int npts, int nbits);
 void unpack1bitRLE(unsigned char ufld[], unsigned int z[], unsigned int *zlng,  int npts);
-void unpack_stream_nbits_16(unsigned short ufld[], unsigned int z[], int npts, int nbits);
-void unpack_stream_nbits_32(unsigned int ufld[], unsigned int z[], int npts, int nbits);
+void pack_stream_nbits_8(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int npts, int nbits);
 void unpack_stream_nbits_8(unsigned char ufld[], unsigned int z[], int npts, int nbits);
+void pack_stream_nbits_16(unsigned int z[], unsigned int *zlng, unsigned short ufld[], int npts, int nbits);
+void unpack_stream_nbits_16(unsigned short ufld[], unsigned int z[], int npts, int nbits);
+void pack_stream_nbits_32(unsigned int z[], unsigned int *zlng, unsigned int ufld[], int npts, int nbits);
+void unpack_stream_nbits_32(unsigned int ufld[], unsigned int z[], int npts, int nbits);
 
 
 #define MEME_SIGNE_POSITIF   0x00

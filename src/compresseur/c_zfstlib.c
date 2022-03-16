@@ -30,35 +30,33 @@
 #include "zfstlib.h"
 #include "armn_compress_32.h"
 
-
-static void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, uint32_t *header);
-static void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header);
-static void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, uint32_t *header, int start);
-int c_armn_compress_getlevel();
-int c_fstzip_getlevel();
 int c_fstzip_parallelogram(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, uint32_t *header);
-static void calcul_ninjcoarse(int *nicoarse, int *njcoarse, int ni, int nj, int ajus_x, int ajus_y, int istep);
 void calcule_entropie(float *entropie, unsigned short *bitstream, int npts, int nbits);
 void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoarse, int njcoarse, int diffs[], int ni, int nj, int nbits, int step, uint32_t *header, int start, int end);
+static void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, uint32_t *header, int start);
 void c_armn_compress_setlevel(int level);
-int  c_armn_compress_getlevel();
+int c_armn_compress_getlevel();
 void c_armn_compress_setswap(int swapState);
 int  c_armn_compress_getswap();
 void c_armn_compress_option(char *option, char *value);
+void c_fstzip(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int code_methode, int degre, int step, int nbits, int bzip);
 void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);
+void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, uint32_t *header);
 void c_fstunzip_minimum(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, uint32_t *header);
 void c_fstunzip_parallelogram(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, uint32_t *header);
 void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, int step, int nbits, uint32_t *header);
-void c_fstzip(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int code_methode, int degre, int step, int nbits, int bzip);
-void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, uint32_t *header);
-void c_fstzip_setlevel(int level);
-static void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
+
 void f77name(armn_compress_setlevel)(int32_t *level);
-void make_shorts(unsigned short *z16, unsigned int *z32, int npts);
-void unpack_tokens(unsigned int *ufld, unsigned int *z, int ni, int nj, int nbits);
 
 void f77name(fill_coarse_nodes)(int32_t *z, int32_t *ni, int32_t *nj, int32_t *zc, int32_t *nicoarse, int32_t *njcoarse, int32_t *istep);
 void f77name(ibicubic_int4)(int32_t *izo, int32_t *ni, int32_t *nj, int32_t *step, int32_t *ajus_x,int32_t *ajus_y);
+
+static void calcul_ninjcoarse(int *nicoarse, int *njcoarse, int ni, int nj, int ajus_x, int ajus_y, int istep);
+static void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, uint32_t *header);
+static void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header);
+static void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
+static void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, uint32_t *header);
+static void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header);
 
 static int fstcompression_level = -1;
 static int swapStream           =  1;
@@ -615,74 +613,58 @@ if (debug)
 
 void unpackTokensMinimum(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header)
 {
-  int i, j, k, m, n;
-  int bitPackInWord;
+    unsigned int *cur, local_min;
+    unsigned int  nbits_needed, curword;
+    int lcl_m, lcl_n;
 
-  unsigned int *cur, local_min;
-  unsigned int  nbits_needed, curword;
-  int lcl_m, lcl_n;
+    int bitPackInWord = 32;
 
-  bitPackInWord = 32;
+    cur = z;
+    memcpy(header, cur, sizeof(unsigned int));
+    cur++;
+    curword = *cur;
+    for (int j = 1; j <= nj; j += istep) {
+        lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
+        for (int i = 1; i <= ni; i += istep) {
+            lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
+            extract(nbits_needed, cur, 32, 4, curword, bitPackInWord);
+            switch (nbits_needed) {
+                case 0:
+                    extract(local_min, cur, 32, nbits, curword, bitPackInWord);
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            ufld[FTN2C(i + m, j + n, ni)] = local_min;
+                        }
+                    }
+                    break;
 
-/*   memset(ufld, NULL, ni*nj*sizeof(short)); */
-  cur = z;
-  memcpy(header, cur, sizeof(unsigned int));
-  cur++;
-  curword = *cur;
-  for (j=1; j <= nj; j+=istep)
-    {
-    lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
-    for (i=1; i <= ni; i+=istep)
-      {
-      lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
-      extract(nbits_needed, cur, 32, 4, curword, bitPackInWord);
-      switch (nbits_needed)
-        {
-        case 0:
-        extract(local_min, cur, 32, nbits, curword, bitPackInWord);
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            k = FTN2C(i+m,j+n,ni);
-            ufld[k] = local_min;
+                case 15:
+                case 16:
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            extract(ufld[FTN2C(i + m, j + n, ni)], cur, 32, 16, curword, bitPackInWord);
+                        }
+                    }
+                    break;
+
+                default:
+                    extract(local_min, cur, 32, nbits, curword, bitPackInWord);
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            int k = FTN2C(i + m, j + n, ni);
+                            extract(ufld[k], cur, 32, nbits_needed, curword, bitPackInWord);
+                            ufld[k] += local_min;
+                        }
+                    }
+                break;
             }
-          }
-        break;
-
-        case 15:
-        case 16:
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            k = FTN2C(i+m,j+n,ni);
-            extract(ufld[k], cur, 32, 16, curword, bitPackInWord);
-            }
-          }
-        break;
-
-        default:
-        extract(local_min, cur, 32, nbits, curword, bitPackInWord);
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            k = FTN2C(i+m,j+n,ni);
-            extract(ufld[k], cur, 32, nbits_needed, curword, bitPackInWord);
-            ufld[k] += local_min;
-            }
-          }
-        break;
         }
-      }
     }
-
 }
 
 
 //! See the documentation of "packTokensMinimum" for the structure of the compressed stream
-void packTokensParallelogram(
+static void packTokensParallelogram(
     unsigned int z[],
     int *zlng,
     unsigned short ufld[],
@@ -848,108 +830,87 @@ void packTokensParallelogram(
 }
 
 
-void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header)
+static void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header)
 {
-  int i, j, k, m, n;
-  int bitPackInWord;
+    int bitPackInWord = 32;
 
-  unsigned int *cur;
-  unsigned int  nbits_needed, curword;
-  int lcl_m, lcl_n;
-  int *ufld_tmp;
-  int k11, k12, k21, k22;
-  unsigned int nbits_req_container, token, nbits2;
+    unsigned int *cur = z;
+    unsigned int  nbits_needed;
+    int lcl_m, lcl_n;
+    int *ufld_tmp;
+    int k11, k12, k21, k22;
+    unsigned int nbits_req_container, token, nbits2;
 
-  bitPackInWord = 32;
+    memcpy(header, cur, sizeof(unsigned int));
+    cur++;
+    unsigned int curword = *cur;
+    ufld_tmp = (int *) malloc(ni * nj * sizeof(int));
 
-  cur = z;
-  memcpy(header, cur, sizeof(unsigned int));
-  cur++;
-  curword = *cur;
-  ufld_tmp = (int *) malloc(ni*nj*sizeof(int));
+    extract(nbits_req_container, cur, 32, 3, curword, bitPackInWord);
 
-  extract(nbits_req_container, cur, 32, 3, curword, bitPackInWord);
-
-  for (i=1; i <= ni; i++)
-   {
-   k = FTN2C(i,1,ni);
-   extract(token, cur, 32, nbits, curword, bitPackInWord);
-   ufld[k] = token;
-   }
-
-  for (j=2; j <= nj; j++)
-   {
-   k = FTN2C(1,j,ni);
-   extract(token, cur, 32, nbits, curword, bitPackInWord);
-   ufld[k] = token;
-   }
-
-
-  for (j=2; j <= nj; j+=istep)
-    {
-    lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
-    for (i=2; i <= ni; i+=istep)
-      {
-      lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
-      extract(nbits_needed, cur, 32, nbits_req_container, curword, bitPackInWord);
-      switch (nbits_needed)
-        {
-        case 0:
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            k = FTN2C(i+m,j+n,ni);
-            ufld_tmp[k] = 0;
-            }
-          }
-        break;
-
-        case 15:
-        case 16:
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-              k = FTN2C(i+m,j+n,ni);
-              extract(token, cur, 32, 17, curword, bitPackInWord);
-              ufld_tmp[k] = token;
-              ufld_tmp[k] = (ufld_tmp[k] << 15) >> 15;
-            }
-          }
-        break;
-
-        default:
-        nbits2 = nbits_needed + 1;
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            k = FTN2C(i+m,j+n,ni);
-            extract(token, cur, 32, nbits2, curword, bitPackInWord);
-            ufld_tmp[k] = token;
-            ufld_tmp[k] = (ufld_tmp[k] << (32-nbits2)) >> (32-nbits2);
-            }
-          }
-         }
-
-        }
-      }
-
-  for (j=2; j<=nj; j++)
-   {
-   for (i=2; i <=ni; i++)
-      {
-      k11 = FTN2C(i-1,j-1,ni);
-      k12 = FTN2C(i-1,j  ,ni);
-      k21 = FTN2C(i,  j-1,ni);
-      k22 = FTN2C(i,  j,  ni);
-      ufld[k22] =  ufld_tmp[k22] + (ufld[k21]+ufld[k12]-ufld[k11]);
-      }
-   }
-
-      free(ufld_tmp);
+    for (int i = 1; i <= ni; i++) {
+        extract(token, cur, 32, nbits, curword, bitPackInWord);
+        ufld[FTN2C(i, 1, ni)] = token;
     }
+
+    for (int j = 2; j <= nj; j++) {
+        extract(token, cur, 32, nbits, curword, bitPackInWord);
+        ufld[FTN2C(1, j, ni)] = token;
+    }
+
+
+    for (int j = 2; j <= nj; j += istep) {
+        lcl_n = ((j + istep - 1) >= nj ? nj - j : istep - 1);
+        for (int i = 2; i <= ni; i += istep) {
+            lcl_m = ((i + istep - 1) >= ni ? ni - i : istep - 1);
+            extract(nbits_needed, cur, 32, nbits_req_container, curword, bitPackInWord);
+            switch (nbits_needed) {
+                case 0:
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            ufld_tmp[FTN2C(i + m, j + n, ni)] = 0;
+                        }
+                    }
+                    break;
+
+                case 15:
+                case 16:
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            int k = FTN2C(i + m, j + n, ni);
+                            extract(token, cur, 32, 17, curword, bitPackInWord);
+                            ufld_tmp[k] = token;
+                            ufld_tmp[k] = (ufld_tmp[k] << 15) >> 15;
+                        }
+                    }
+                    break;
+
+                default:
+                    nbits2 = nbits_needed + 1;
+                    for (int n=0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            int k = FTN2C(i + m, j + n, ni);
+                            extract(token, cur, 32, nbits2, curword, bitPackInWord);
+                            ufld_tmp[k] = token;
+                            ufld_tmp[k] = (ufld_tmp[k] << (32-nbits2)) >> (32-nbits2);
+                        }
+                    }
+            }
+        }
+    }
+
+    for (int j = 2; j <= nj; j++) {
+        for (int i = 2; i <= ni; i++) {
+            k11 = FTN2C(i-1, j-1,ni);
+            k12 = FTN2C(i-1, j  ,ni);
+            k21 = FTN2C(i,   j-1,ni);
+            k22 = FTN2C(i,   j,  ni);
+            ufld[k22] =  ufld_tmp[k22] + (ufld[k21]+ufld[k12]-ufld[k11]);
+        }
+    }
+
+    free(ufld_tmp);
+}
 
 
 

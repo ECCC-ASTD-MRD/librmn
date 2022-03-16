@@ -40,54 +40,54 @@ subroutine ibicubic_int4(izo, ni, nj, step, ajus_x, ajus_y)
     endif
     do j = 1, nj - ajus_y, step
         do i = 1, nimax, step
-        iref = min(nilim, max(4, i))
-        z12 = dble(izo(iref - step, j ))
-        z22 = dble(izo(iref, j ))
-        z32 = dble(izo(iref + step, j  ))
-        z42 = dble(izo(min(ni, iref + 2 * step), j  ))
-        dx = dble(i + 1 - iref)
-        izo(i + 1, j) = my_nint(icubic(z12, z22, z32, z42, dx))
-        dx = dble(i + 2 - iref)
-        izo(i + 2, j) = my_nint(icubic(z12, z22, z32, z42, dx))
+            iref = min(nilim, max(4, i))
+            z12 = dble(izo(iref - step, j ))
+            z22 = dble(izo(iref, j ))
+            z32 = dble(izo(iref + step, j  ))
+            z42 = dble(izo(min(ni, iref + 2 * step), j  ))
+            dx = dble(i + 1 - iref)
+            izo(i + 1, j) = my_nint(icubic(z12, z22, z32, z42, dx))
+            dx = dble(i + 2 - iref)
+            izo(i + 2, j) = my_nint(icubic(z12, z22, z32, z42, dx))
         enddo
     enddo
     if (ajus_x ==  2) then
         do j = 1, nj - ajus_y, step
-        izo(ni - 1, j) = my_nint(0.5D0 * (dble(izo(ni, j)) + dble(izo(ni - 2, j))))
+            izo(ni - 1, j) = my_nint(0.5D0 * (dble(izo(ni, j)) + dble(izo(ni - 2, j))))
         enddo
     endif
     do j = 0, ajus_y
         do i = 1, nimax, step
-        iref = min(nilim, max(4, i))
-        z12 = dble(izo(iref - step, nj - j ))
-        z22 = dble(izo(iref, nj - j ))
-        z32 = dble(izo(iref + step, nj - j  ))
-        z42 = dble(izo(min(ni, iref + 2 * step), nj - j))
-        dx = dble(i + 1 - iref)
-        izo(i + 1, nj - j) = my_nint(icubic(z12, z22, z32, z42, dx))
-        dx = dble(i + 2 - iref)
-        izo(i + 2, nj - j) = my_nint(icubic(z12, z22, z32, z42, dx))
+            iref = min(nilim, max(4, i))
+            z12 = dble(izo(iref - step, nj - j ))
+            z22 = dble(izo(iref, nj - j ))
+            z32 = dble(izo(iref + step, nj - j  ))
+            z42 = dble(izo(min(ni, iref + 2 * step), nj - j))
+            dx = dble(i + 1 - iref)
+            izo(i + 1, nj - j) = my_nint(icubic(z12, z22, z32, z42, dx))
+            dx = dble(i + 2 - iref)
+            izo(i + 2, nj - j) = my_nint(icubic(z12, z22, z32, z42, dx))
         enddo
         if (ajus_x ==  2) then
-        izo(ni - 1, nj - j) = my_nint(0.5D0 * (dble(izo(ni, nj - j)) + dble(izo(ni - 2, nj - j))))
+            izo(ni - 1, nj - j) = my_nint(0.5D0 * (dble(izo(ni, nj - j)) + dble(izo(ni - 2, nj - j))))
         endif
     enddo
     do j = 1, njmax, step
         jref = min(njlim, max(4, j))
         do i = 1, ni
-        z21 = dble(izo(i, jref - step))
-        z22 = dble(izo(i, jref  ))
-        z23 = dble(izo(i, jref + step))
-        z24 = dble(izo(i, min(nj, jref + 2 * step)))
-        dy = dble(j + 1 - jref)
-        izo(i, j + 1) = my_nint(icubic(z21, z22, z23, z24, dy))
-        dy = (dble(j + 2 - jref))
-        izo(i, j + 2) = my_nint(icubic(z21, z22, z23, z24, dy))
+            z21 = dble(izo(i, jref - step))
+            z22 = dble(izo(i, jref  ))
+            z23 = dble(izo(i, jref + step))
+            z24 = dble(izo(i, min(nj, jref + 2 * step)))
+            dy = dble(j + 1 - jref)
+            izo(i, j + 1) = my_nint(icubic(z21, z22, z23, z24, dy))
+            dy = (dble(j + 2 - jref))
+            izo(i, j + 2) = my_nint(icubic(z21, z22, z23, z24, dy))
         enddo
     enddo
     if (ajus_y ==  2) then
         do i = 1, ni
-        izo(i, nj - 1) = my_nint(0.5D0 * (dble(izo(i, nj)) + dble(izo(i, nj - 2))))
+            izo(i, nj - 1) = my_nint(0.5D0 * (dble(izo(i, nj)) + dble(izo(i, nj - 2))))
         enddo
     endif
     return
@@ -237,7 +237,7 @@ subroutine fill_coarse_nodes(z, ni, nj, zc, nicoarse, njcoarse, istep)
     if (ni > 1 .and. nj > 1) then
         do j = 1, njcoarse - 1
             do i = 1, nicoarse - 1
-            z(istep  *  (i - 1) + 1, istep  *  (j - 1) + 1) = zc(i, j)
+                z(istep  *  (i - 1) + 1, istep  *  (j - 1) + 1) = zc(i, j)
             enddo
         enddo
         do j = 1, njcoarse - 1
@@ -274,9 +274,9 @@ subroutine fill_last_colrows(px, py, z, ni, nj, nicoarse, njcoarse, istep)
         dy = 1.0 / nintervalles
         do j = jstart, nj
             do i = 1, ni
-            px(i, j) = 1.0 + 1.0 * (i - 1)/rstep
-            py(i, j) = 1.0 * (njcoarse - 1) + (j - jstart) * dy
-            ! print  * , i, j, px(i, j), py(i, j)
+                px(i, j) = 1.0 + 1.0 * (i - 1)/rstep
+                py(i, j) = 1.0 * (njcoarse - 1) + (j - jstart) * dy
+                ! print  * , i, j, px(i, j), py(i, j)
         enddo
         enddo
     endif
@@ -286,9 +286,9 @@ subroutine fill_last_colrows(px, py, z, ni, nj, nicoarse, njcoarse, istep)
         dx = 1.0 / nintervalles
         do i = istart, ni
             do j = 1, nj
-            px(i, j) = 1.0 * (nicoarse - 1) + (i - istart) * dx
-            py(i, j) = 1.0 + 1.0 * (j - 1)/rstep
-            ! print  * , i, j, px(i, j), py(i, j)
+                px(i, j) = 1.0 * (nicoarse - 1) + (i - istart) * dx
+                py(i, j) = 1.0 + 1.0 * (j - 1)/rstep
+                ! print  * , i, j, px(i, j), py(i, j)
             enddo
         enddo
     endif
