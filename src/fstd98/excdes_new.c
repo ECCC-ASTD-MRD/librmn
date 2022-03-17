@@ -93,38 +93,39 @@ static int last_R = MAX_requetes-1;
 static FILE *stddebug;
 static int bundle_nb = -1;
 static int desire_exclure = 1;
+
 typedef struct {
-  int in_use;
-  int nelm;
-  int delta;
-  int data[MAX_Nlist];
+    int in_use;
+    int nelm;
+    int delta;
+    int data[MAX_Nlist];
 } DE_int;
 
 typedef struct {
-  int in_use;
-  int nelm;
-  char pdata[MAX_Nlist][13];
+    int in_use;
+    int nelm;
+    char pdata[MAX_Nlist][13];
 } DE_char;
 typedef struct {
-  int hit;   /* hit count for this request (number of times it was satisfied) */
-  int in_use;
-  int in_use_supp;
-  int exdes;
-  DE_char etiquettes;
-  DE_char nomvars;
-  DE_char typvars;
-  DE_int dates;
-  DE_int ip1s;
-  DE_int ip2s;
-  DE_int ip3s;
-  int nis;    /* the next 7 items are integer "supplementary" criteria */
-  int njs;    /* -1 means it is not to be used */
-  int nks;
-  int ig1s;
-  int ig2s;
-  int ig3s;
-  int ig4s;
-  char grdtyps;    /* "supplementary" criterion grid type, ' ' means do not use */
+    int hit;   /* hit count for this request (number of times it was satisfied) */
+    int in_use;
+    int in_use_supp;
+    int exdes;
+    DE_char etiquettes;
+    DE_char nomvars;
+    DE_char typvars;
+    DE_int dates;
+    DE_int ip1s;
+    DE_int ip2s;
+    DE_int ip3s;
+    int nis;    /* the next 7 items are integer "supplementary" criteria */
+    int njs;    /* -1 means it is not to be used */
+    int nks;
+    int ig1s;
+    int ig2s;
+    int ig3s;
+    int ig4s;
+    char grdtyps;    /* "supplementary" criterion grid type, ' ' means do not use */
 } DesireExclure;
 
 static DesireExclure  Requests[MAX_requetes];
@@ -138,7 +139,7 @@ int fst_deactivate_filters_();
 int fst_deactivate_filters(){
   int old=DeactivateAllFilters;
   DeactivateAllFilters = 1;
-  return(old);
+  return old;
 }
 
 #pragma weak fst_reactivate_filters__=fst_reactivate_filters
@@ -148,7 +149,7 @@ int fst_reactivate_filters_();
 int fst_reactivate_filters(){
   int old=DeactivateAllFilters;
   DeactivateAllFilters = 0;
-  return(old);
+  return old;
 }
 
 /* put the contents of the request table in text format
@@ -227,10 +228,14 @@ void WriteRequestTable(int use_header, char *filename)
   if(! use_header) fprintf(outfile, " 0\n");
   if(outfile != stdout) fclose(outfile);
 }
+
+
 void DumpRequestTable()
 {
   WriteRequestTable(1, NULL);
 }
+
+
 /*
  * basic validation of requests
  * do we exceed the max number of request sets ?
@@ -240,32 +245,32 @@ void DumpRequestTable()
  */
 static int ValidateRequestForSet(int set_nb, int des_exc, int nelm, int nelm_lt, char *msg)
 {
-  if(package_not_initialized) RequetesInit();
+    if (package_not_initialized) RequetesInit();
 
-  if (set_nb > MAX_requetes-1) {
-    fprintf(stderr, "ERROR: (C_select_%s) set_nb=%d > MAX_requetes-1=%d\n", msg, set_nb, MAX_requetes-1);
-    return(-1);
-  }
-
-  if (nelm > MAX_Nlist) {
-    fprintf(stderr, "ERROR: (C_select_%s) nelm=%d > limit=%d\n", msg, nelm, MAX_Nlist);
-    return(-2);
-  }
-
-  if (nelm <= 0) {
-    if (nelm != nelm_lt) {   /* if nelm <= 0, it must be equal to nelm_lt */
-      fprintf(stderr, "ERROR: (C_select_%s) nelm invalid = %d\n", msg, nelm);
-      return(-3);
+    if (set_nb > MAX_requetes-1) {
+        fprintf(stderr, "ERROR: (C_select_%s) set_nb=%d > MAX_requetes-1=%d\n", msg, set_nb, MAX_requetes-1);
+        return -1;
     }
-  }
 
-  if ((Requests[set_nb].in_use) && (((des_exc == 1) ? DESIRE : EXCLURE) != Requests[set_nb].exdes)) {
-    fprintf(stderr, "ERROR: (C_select_%s) des_exc value differs from previous call for set number=%d\n", msg, set_nb);
-    fprintf(stderr, "        expected %s, got %s \n", (Requests[set_nb].exdes==DESIRE) ? "desire":"exclure", (des_exc == 1) ? "desire":"exclure");
-    return(-4);
-  }
+    if (nelm > MAX_Nlist) {
+        fprintf(stderr, "ERROR: (C_select_%s) nelm=%d > limit=%d\n", msg, nelm, MAX_Nlist);
+        return -2;
+    }
 
-  return(0);
+    if (nelm <= 0) {
+        if (nelm != nelm_lt) {   /* if nelm <= 0, it must be equal to nelm_lt */
+        fprintf(stderr, "ERROR: (C_select_%s) nelm invalid = %d\n", msg, nelm);
+        return -3;
+        }
+    }
+
+    if ((Requests[set_nb].in_use) && (((des_exc == 1) ? DESIRE : EXCLURE) != Requests[set_nb].exdes)) {
+        fprintf(stderr, "ERROR: (C_select_%s) des_exc value differs from previous call for set number=%d\n", msg, set_nb);
+        fprintf(stderr, "        expected %s, got %s \n", (Requests[set_nb].exdes==DESIRE) ? "desire":"exclure", (des_exc == 1) ? "desire":"exclure");
+        return -4;
+    }
+
+    return 0;
 }
 
 /*****************************************************************************
@@ -303,14 +308,14 @@ int Xc_Select_ip1(int set_nb, int des_exc, void *iplist, int nelm)
   Requests[set_nb].ip1s.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
   Requests[set_nb].ip1s.data[0] = ip_entier[0];  /* first value from list */
 
-  if (nelm == 1 ) return(0);               /* one value, cannot be a range */
+  if (nelm == 1 ) return 0;               /* one value, cannot be a range */
 
   if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
     Requests[set_nb].ip1s.data[1] = ip_entier[2];
     Requests[set_nb].ip1s.data[2] = ip_entier[4];
     Requests[set_nb].ip1s.in_use = DELTA;
 // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip1s.data[0], Requests[set_nb].ip1s.data[1], Requests[set_nb].ip1s.data[2]);
-    return(0);
+    return 0;
   }
   Requests[set_nb].ip1s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
   for (i=1; i<nelm; i++) {                       /* rest of values */
@@ -319,10 +324,10 @@ int Xc_Select_ip1(int set_nb, int des_exc, void *iplist, int nelm)
 
   if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) { Requests[set_nb].ip1s.in_use = RANGE; Requests[set_nb].ip1s.nelm = 2 ; }
   if (ip_entier[1] == READLX_RANGE) Requests[set_nb].ip1s.data[1] = Requests[set_nb].ip1s.data[2];   /* value @ value  or value @  or @ @ */
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -360,14 +365,14 @@ int Xc_Select_ip2(int set_nb, int des_exc, void *iplist, int nelm)
   Requests[set_nb].ip2s.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
   Requests[set_nb].ip2s.data[0] = ip_entier[0];  /* first value from list */
 
-  if (nelm == 1 ) return(0);               /* one value, cannot be a range */
+  if (nelm == 1 ) return 0;               /* one value, cannot be a range */
 
   if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
     Requests[set_nb].ip2s.data[1] = ip_entier[2];
     Requests[set_nb].ip2s.data[2] = ip_entier[4];
     Requests[set_nb].ip2s.in_use = DELTA;
 // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip2s.data[0], Requests[set_nb].ip2s.data[1], Requests[set_nb].ip2s.data[2]);
-    return(0);
+    return 0;
   }
   Requests[set_nb].ip2s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
   for (i=1; i<nelm; i++) {                       /* rest of values */
@@ -376,10 +381,10 @@ int Xc_Select_ip2(int set_nb, int des_exc, void *iplist, int nelm)
 
   if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) { Requests[set_nb].ip2s.in_use = RANGE;; Requests[set_nb].ip2s.nelm = 2 ; }
   if (ip_entier[1] == READLX_RANGE) Requests[set_nb].ip2s.data[1] = Requests[set_nb].ip2s.data[2];   /* value @ value  or value @  or @ @ */
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -417,14 +422,14 @@ int Xc_Select_ip3(int set_nb, int des_exc, void *iplist, int nelm)
   Requests[set_nb].ip3s.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
   Requests[set_nb].ip3s.data[0] = ip_entier[0];  /* first value from list */
 
-  if (nelm == 1 ) return(0);               /* one value, cannot be a range */
+  if (nelm == 1 ) return 0;               /* one value, cannot be a range */
 
   if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
     Requests[set_nb].ip3s.data[1] = ip_entier[2];
     Requests[set_nb].ip3s.data[2] = ip_entier[4];
     Requests[set_nb].ip3s.in_use = DELTA;
 // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip3s.data[0], Requests[set_nb].ip3s.data[1], Requests[set_nb].ip3s.data[2]);
-    return(0);
+    return 0;
   }
   Requests[set_nb].ip3s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
   for (i=1; i<nelm; i++) {                       /* rest of values */
@@ -433,10 +438,10 @@ int Xc_Select_ip3(int set_nb, int des_exc, void *iplist, int nelm)
 
   if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) { Requests[set_nb].ip3s.in_use = RANGE;; Requests[set_nb].ip3s.nelm = 2 ; }
   if (ip_entier[1] == READLX_RANGE) Requests[set_nb].ip3s.data[1] = Requests[set_nb].ip3s.data[2];   /* value @ value  or value @  or @ @ */
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -478,7 +483,7 @@ int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
   Requests[set_nb].dates.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
   Requests[set_nb].dates.data[0] = date_list[0];  /* first value from list */
 
-  if (nelm == 1 ) return(0);               /* one value, cannot be a range */
+  if (nelm == 1 ) return 0;               /* one value, cannot be a range */
 
   Requests[set_nb].dates.nelm = nelm;      /* irrelevant if we have a range of dates */
   for (i=0; i<nelm; i++) {
@@ -509,10 +514,10 @@ int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
     }
     dbprint(stddebug, "Debug Requests[%d].dates.data[%d] = %d\n", set_nb, i, Requests[set_nb].dates.data[i]);
   }
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -546,10 +551,10 @@ int Xc_Select_etiquette(int set_nb, int des_exc, char *etiq_list[], int nelm)
     dbprint(stddebug, "Debug Requests[%i].etiquettes.pdata[%i]=%s\n",
            set_nb, i, Requests[set_nb].etiquettes.pdata[i]);
   }
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -583,10 +588,10 @@ int Xc_Select_nomvar(int set_nb, int des_exc, char *nomv_list[], int nelm)
     dbprint(stddebug, "Debug Requests[%i].nomvars.pdata[%i]=%s\n",
            set_nb, i, Requests[set_nb].nomvars.pdata[i]);
   }
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -625,10 +630,10 @@ int Xc_Select_suppl(int set_nb, int des_exc, int ni, int nj, int nk, int ig1, in
   Requests[set_nb].ig4s    = ig4;
   Requests[set_nb].grdtyps = gtyp;
 //  fprintf(stderr, "CRITSUP: ni=%d nj=%d nk=%d ig1=%d ig2=%d ig3=%d ig4=%d gtyp='%c'\n", ni, nj, nj, ig1, ig2, ig2, ig4, gtyp);
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 /*****************************************************************************
@@ -662,165 +667,170 @@ int Xc_Select_typvar(int set_nb, int des_exc, char *typv_list[], int nelm)
     dbprint(stddebug, "Debug Requests[%i].typvars.pdata[%i]=%s\n",
            set_nb, i, Requests[set_nb].typvars.pdata[i]);
   }
-  return(0);
+  return 0;
 error:
   Requests[set_nb].dates.in_use = UNUSED;
-  return(-1);
+  return -1;
 }
 
 int ReadRequestTable(char *filename)
 {
-  char line[4096];
-  FILE *input=NULL;
-  char *cptr;
-  int dirset;
-  char s1[16], s2[16], s3[16];
-  char sar[40][13];
-  char *sarp[41];
-  int nvalues;
-  int a[100];
-  int i, j;
-  char gtyp;
-  int rvd; /* range, value, delta */
-  int dex ; /* desire / exclure */
-  int status;
-  union {
-    int i;
-    float f;
-  }i_or_f;
+    char line[4096];
+    FILE *input=NULL;
+    char *cptr;
+    int dirset;
+    char s1[16], s2[16], s3[16];
+    char sar[40][13];
+    char *sarp[41];
+    int nvalues;
+    int a[100];
+    int i, j;
+    char gtyp;
+    int rvd; /* range, value, delta */
+    int dex ; /* desire / exclure */
+    int status;
+    union {
+        int i;
+        float f;
+    }i_or_f;
 
-  status = 0;
-  if(filename != NULL) input=fopen(filename, "r");
-  if(input == NULL) {
-    fprintf(stderr, "ERROR: (ReadRequestTable) cannot open directive file '%s'\n", filename);
-    return(-1);
-  }
-  readnext:
-  cptr=fgets(line, sizeof(line), input);
-//  fprintf(stderr, "header=%s", line);
-  dirset=0;
-  s1[0]='\000';
-  s2[0]='\000';
-  s3[0]='\000';
-  nvalues=0;
+    status = 0;
+    if (filename != NULL) {
+        input = fopen(filename, "r");
+    }
+    if(input == NULL) {
+        fprintf(stderr, "ERROR: (ReadRequestTable) cannot open directive file '%s'\n", filename);
+        return -1;
+    }
+    readnext:
+    cptr=fgets(line, sizeof(line), input);
+    //  fprintf(stderr, "header=%s", line);
+    dirset=0;
+    s1[0]='\000';
+    s2[0]='\000';
+    s3[0]='\000';
+    nvalues=0;
 
-  sscanf(line, "%d", &dirset);
-  if(dirset==0) {fclose(input) ; return(0); }
-  cptr=line;
-  while(*cptr != '\'' ) cptr++ ; cptr++ ;
-  sscanf(cptr, "%s", s1);
-  while(*cptr != ', ' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
-  sscanf(cptr, "%s", s2);
-  while(*cptr != ', ' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
-  sscanf(cptr, "%s", s3);
-  while(*cptr != ', ' ) cptr++ ; cptr++ ;
-  sscanf(cptr, "%d", &nvalues);
-//  fprintf(stderr, "%d, '%s', '%s', '%s', %d\n", dirset, s1, s2, s3, nvalues);
-  rvd = 0 ; /* not used */
-  if(s3[0] == 'v') rvd = VALUE;
-  if(s3[0] == 'r') rvd = RANGE;
-  if(s3[0] == 'd') rvd = DELTA;
-  dex = s1[0] == 'D' ? DESIRE : EXCLURE ;
-
-  cptr=fgets(line, sizeof(line), input);
-  cptr = line;
-//  fprintf(stderr, "reading data\n");
-
-  if(s2[0]=='D') {                            /*  Date */
-    sscanf(cptr, "%d", a);
-    for (i=1;i<nvalues;i++) {
-      while(*cptr != ', ' ) cptr++ ; cptr++ ;
-      sscanf(cptr, "%d", a+i);
+    sscanf(line, "%d", &dirset);
+    if(dirset==0) {
+        fclose(input);
+        return 0;
     }
-    if(rvd == RANGE && a[0] >= 0 && a[1] >= 0) {
-      nvalues=3;
-      a[2]=a[1];
-      a[1]=READLX_RANGE;
-    }
-    if(rvd == DELTA) {
-      nvalues=5;
-      i_or_f.f = a[2];    /* already in seconds, send as a float */
-      a[4]=i_or_f.i;
-      a[3]=READLX_DELTA;
-      a[2]=a[1];
-      a[1]=READLX_RANGE;
-    }
-    status = Xc_Select_date(dirset, dex, a, nvalues);
-    if(status != 0) {
-      fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in date");
-      for (i=0;i<nvalues;i++) {
-        fprintf(stderr, " %d", a[i]);
-      }
-      fprintf(stderr, "\n");
-    }
-  }else if(s2[0]=='I') {                       /* IP1/2/3 */
-    sscanf(cptr, "%d", a);
-    for (i=1;i<nvalues;i++) {
-      while(*cptr != ', ' ) cptr++ ; cptr++ ;
-      sscanf(cptr, "%d", a+i);
-    }
-    if(rvd == RANGE) {
-      nvalues=3;
-      a[2]=a[1];
-      a[1]=READLX_RANGE;
-    }
-    if(rvd == DELTA) nvalues = 0;
-    if(s2[2]=='1') status = Xc_Select_ip1(dirset, dex, a, nvalues);
-    if(s2[2]=='2') status = Xc_Select_ip2(dirset, dex, a, nvalues);
-    if(s2[2]=='3') status = Xc_Select_ip3(dirset, dex, a, nvalues);
-    if(status != 0) {
-      fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in ip1/ip2/ip3");
-      for (i=0;i<nvalues;i++) {
-        fprintf(stderr, " %d", a[i]);
-      }
-      fprintf(stderr, "\n");
-    }
-  }else if(s2[0]=='X'){                           /* Xtra  */
-    sscanf(cptr, "%d", a);
-    for (i=1;i<8;i++) {
-      while(*cptr != ', ' ) cptr++ ; cptr++ ;
-      sscanf(cptr, "%d", a+i);
-    }
+    cptr=line;
     while(*cptr != '\'' ) cptr++ ; cptr++ ;
-    gtyp=*cptr;
-    status = Xc_Select_suppl(dirset, dex, a[0], a[1], a[2], a[3], a[4], a[5], a[6], gtyp);
-    if(status != 0) {
-      fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in supplementary criteria");
-      for (i=0;i<8;i++) {
-        fprintf(stderr, " %d", a[i]);
-      }
-      fprintf(stderr, " %c\n", gtyp);
-  }
-  }else if(s2[0]=='N' || s2[0]=='T' || s2[0]=='E'){   /* Nomvar, Typvar or Etiket */
-    for (i=0;i<nvalues;i++) {
-      while(*cptr != '\'' ) cptr++ ; cptr++ ;
-      j=0;
-      while(*cptr != '\'' ) sar[i][j++]=*cptr++; cptr++ ;
-      sar[i][j]='\000';
-      sarp[i] = sar[i];
+    sscanf(cptr, "%s", s1);
+    while(*cptr != ', ' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    sscanf(cptr, "%s", s2);
+    while(*cptr != ', ' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    sscanf(cptr, "%s", s3);
+    while(*cptr != ', ' ) cptr++ ; cptr++ ;
+    sscanf(cptr, "%d", &nvalues);
+    //  fprintf(stderr, "%d, '%s', '%s', '%s', %d\n", dirset, s1, s2, s3, nvalues);
+    rvd = 0 ; /* not used */
+    if(s3[0] == 'v') rvd = VALUE;
+    if(s3[0] == 'r') rvd = RANGE;
+    if(s3[0] == 'd') rvd = DELTA;
+    dex = s1[0] == 'D' ? DESIRE : EXCLURE ;
+
+    cptr=fgets(line, sizeof(line), input);
+    cptr = line;
+    //  fprintf(stderr, "reading data\n");
+
+    if(s2[0]=='D') {                            /*  Date */
+        sscanf(cptr, "%d", a);
+        for (i=1;i<nvalues;i++) {
+        while(*cptr != ', ' ) cptr++ ; cptr++ ;
+        sscanf(cptr, "%d", a+i);
+        }
+        if(rvd == RANGE && a[0] >= 0 && a[1] >= 0) {
+        nvalues=3;
+        a[2]=a[1];
+        a[1]=READLX_RANGE;
+        }
+        if(rvd == DELTA) {
+        nvalues=5;
+        i_or_f.f = a[2];    /* already in seconds, send as a float */
+        a[4]=i_or_f.i;
+        a[3]=READLX_DELTA;
+        a[2]=a[1];
+        a[1]=READLX_RANGE;
+        }
+        status = Xc_Select_date(dirset, dex, a, nvalues);
+        if(status != 0) {
+        fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in date");
+        for (i=0;i<nvalues;i++) {
+            fprintf(stderr, " %d", a[i]);
+        }
+        fprintf(stderr, "\n");
+        }
+    }else if(s2[0]=='I') {                       /* IP1/2/3 */
+        sscanf(cptr, "%d", a);
+        for (i=1;i<nvalues;i++) {
+        while(*cptr != ', ' ) cptr++ ; cptr++ ;
+        sscanf(cptr, "%d", a+i);
+        }
+        if(rvd == RANGE) {
+        nvalues=3;
+        a[2]=a[1];
+        a[1]=READLX_RANGE;
+        }
+        if(rvd == DELTA) nvalues = 0;
+        if(s2[2]=='1') status = Xc_Select_ip1(dirset, dex, a, nvalues);
+        if(s2[2]=='2') status = Xc_Select_ip2(dirset, dex, a, nvalues);
+        if(s2[2]=='3') status = Xc_Select_ip3(dirset, dex, a, nvalues);
+        if(status != 0) {
+        fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in ip1/ip2/ip3");
+        for (i=0;i<nvalues;i++) {
+            fprintf(stderr, " %d", a[i]);
+        }
+        fprintf(stderr, "\n");
+        }
+    }else if(s2[0]=='X'){                           /* Xtra  */
+        sscanf(cptr, "%d", a);
+        for (i=1;i<8;i++) {
+        while(*cptr != ', ' ) cptr++ ; cptr++ ;
+        sscanf(cptr, "%d", a+i);
+        }
+        while(*cptr != '\'' ) cptr++ ; cptr++ ;
+        gtyp=*cptr;
+        status = Xc_Select_suppl(dirset, dex, a[0], a[1], a[2], a[3], a[4], a[5], a[6], gtyp);
+        if(status != 0) {
+        fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in supplementary criteria");
+        for (i=0;i<8;i++) {
+            fprintf(stderr, " %d", a[i]);
+        }
+        fprintf(stderr, " %c\n", gtyp);
     }
-    sarp[nvalues] = NULL;
-    if(s2[0] == 'N') status = Xc_Select_nomvar(dirset, dex, sarp, nvalues) ;
-    if(s2[0] == 'T') status = Xc_Select_typvar(dirset, dex, sarp, nvalues) ;
-    if(s2[0] == 'E') status = Xc_Select_etiquette(dirset, dex, sarp, nvalues) ;
-    if(status != 0) {
-      fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in nomvar/typvar/etiekt");
-      for (i=0;i<nvalues;i++) {
-        fprintf(stderr, " '%s'", sar[i]);
-      }
-      fprintf(stderr, "\n");
+    }else if(s2[0]=='N' || s2[0]=='T' || s2[0]=='E'){   /* Nomvar, Typvar or Etiket */
+        for (i=0;i<nvalues;i++) {
+        while(*cptr != '\'' ) cptr++ ; cptr++ ;
+        j=0;
+        while(*cptr != '\'' ) sar[i][j++]=*cptr++; cptr++ ;
+        sar[i][j]='\000';
+        sarp[i] = sar[i];
+        }
+        sarp[nvalues] = NULL;
+        if(s2[0] == 'N') status = Xc_Select_nomvar(dirset, dex, sarp, nvalues) ;
+        if(s2[0] == 'T') status = Xc_Select_typvar(dirset, dex, sarp, nvalues) ;
+        if(s2[0] == 'E') status = Xc_Select_etiquette(dirset, dex, sarp, nvalues) ;
+        if(status != 0) {
+        fprintf(stderr, "ERROR: (ReadRequestTable) bad value(s) in nomvar/typvar/etiekt");
+        for (i=0;i<nvalues;i++) {
+            fprintf(stderr, " '%s'", sar[i]);
+        }
+        fprintf(stderr, "\n");
+        }
+    }else{
+        fprintf(stderr, "ERROR: (ReadRequestTable) unrecognized type s2='%s' in directive file\n", s2);
+        status = -1;
     }
-  }else{
-    fprintf(stderr, "ERROR: (ReadRequestTable) unrecognized type s2='%s' in directive file\n", s2);
-    status = -1;
-  }
-  if(status != 0) {
-    fclose(input);
-    fprintf(stderr, "ERROR: (ReadRequestTable) status=%d \n", status);
-    return -1;
-  }
-  goto readnext;
-  return 0;
+    if(status != 0) {
+        fclose(input);
+        fprintf(stderr, "ERROR: (ReadRequestTable) status=%d \n", status);
+        return -1;
+    }
+    goto readnext;
+    return 0;
 }
 
 
@@ -842,7 +852,7 @@ int C_select_groupset(int first_set_nb, int last_set_nb)
   if ((first_set_nb > MAX_requetes-1) || (last_set_nb > MAX_requetes-1) || (first_set_nb > last_set_nb)) {
     fprintf(stderr, "ERROR: (C_select_groupset) first_set_nb=%d, last_set_nb=%d, MAX allowed=%d\n",
             first_set_nb, last_set_nb, MAX_requetes-1);
-    return(-1);
+    return -1;
   }
   first_R = first_set_nb;
   last_R = last_set_nb;
@@ -865,7 +875,7 @@ int C_filtre_desire()
   desire_exclure = 1;
   if (bundle_nb > MAX_requetes-1) {
     fprintf(stderr, "ERROR: C_filtre_desire nb=%d > MAX desire/exclure =%d\n", bundle_nb, MAX_requetes-1);
-    return(-1);
+    return -1;
   }
   printf("desire bundle_nb = %d, desire_exclure = %d\n", bundle_nb, desire_exclure);
 return 0; /*CHC/NRC*/
@@ -887,7 +897,7 @@ int C_filtre_exclure()
   desire_exclure = 0;
   if (bundle_nb > MAX_requetes-1) {
     fprintf(stderr, "ERROR: C_filtre_exclure nb=%d > MAX desire/exclure =%d\n", bundle_nb, MAX_requetes-1);
-    return(-1);
+    return -1;
   }
   printf("exclure bundle_nb = %d, desire_exclure = %d\n", bundle_nb, desire_exclure);
 return 0; /*CHC/NRC*/
@@ -909,7 +919,7 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
   if( ! in_use ) return 0;
   if( in_use == RANGE || in_use == DELTA ) {
 //fprintf(stderr, "range matching %d\n", ip1);
-    if(! translatable) return(0) ;      /* name is not translatable we are done */
+    if(! translatable) return 0;      /* name is not translatable we are done */
     ip = ip1;
     ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
     ip = data[0];
@@ -956,7 +966,7 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
 //fprintf(stderr, "list[%d]=%d\n", i, data[i]);
       if(ip1 == data[i] || data[i] == -1) return 1;  /* we have a match with raw ip values */
     }
-    if(! translatable) return(0) ;/* name is not translatable we are done */
+    if(! translatable) return 0;/* name is not translatable we are done */
     ip = ip1;
     ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
     for (i=0 ; i<nelm ; i++) {
@@ -1007,7 +1017,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
     fprintf(stderr, "INFO: C_fstmatch_parm, initializing request tables \n");
     RequetesInit();
   }
-//  if (! Requests[first_R].in_use) return(1);        /* aucune requete desire ou exclure */
+//  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
 
 #ifdef NOTUSED
   dbprint(stddebug, "Debug C_fst_match_req fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar-->%s<-- typvar-->%s<-- etiket-->%s<--\n",
@@ -1148,7 +1158,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
           default:
             fprintf(stderr, "ERROR: (C_fst_match_req) invalid Requests[%d].dates.in_use=%d\n",
                   set_nb, Requests[set_nb].dates.in_use);
-            return(0);
+            return 0;
             break;     /* this never gets executed */
 
           } /* end switch */
@@ -1188,7 +1198,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
       if (amatch == 1) {
         dbprint(stddebug, "Debug C_fst_match_req fin requete %s satisfaite, handle=%d \n", desire_exclure, handle);
         Requests[set_nb].hit++ ;                                    /* add one to this request's hit count */
-        return((Requests[set_nb].exdes == DESIRE) ? set_nb+1 : 0 );  /* requete desire satisfaite */
+        return (Requests[set_nb].exdes == DESIRE) ? set_nb+1 : 0 ;  /* requete desire satisfaite */
       }
     /* Next:                  verifier le prochain desire/exclure */
 
@@ -1200,9 +1210,9 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
 /*  fprintf(stderr, "Debug+ last_in_use=%d\n", last_in_use); */
 /*  rien trouve qui satisfasse les requetes */
   if ((Requests[last_in_use].exdes == DESIRE) && (Requests[last_in_use].in_use))
-    return(0);  /* ne satisfait pas la requete desire */
+    return 0;  /* ne satisfait pas la requete desire */
   else
-    return(nb_desire==0 ? 1:0);  /* rien a exclure */
+    return nb_desire==0 ? 1:0;  /* rien a exclure */
 
 } /* end fst_match_req */
 
@@ -1231,15 +1241,15 @@ int C_fstmatch_req(int handle)
   char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
   char grtyp[2]={' ', '\0'};
   int status;
-//  return(1);
-  if(DeactivateAllFilters) return(1);  /* filtering deactivated */
+//  return 1;
+  if(DeactivateAllFilters) return 1;  /* filtering deactivated */
   if(package_not_initialized) RequetesInit();
   ier = c_fstprm(handle, &dateo, &deet, &npas, &ni, &nj, &nk,
                      &nbits, &datyp, &ip1, &ip2, &ip3, typvar,
                      nomvar, etiket, grtyp, &ig1, &ig2, &ig3, &ig4, &swa, &lng,
                      &dltf, &ubc, &datevalid, &xtra2, &xtra3);
 
-  if (ier < 0) return(0);
+  if (ier < 0) return 0;
   status = C_fstmatch_parm(handle, datevalid, ni, nj, nk, ip1, ip2, ip3,
                             typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
 //  fprintf(stderr, "C_fstmatch_req/fstd status=%d\n", status);
@@ -1257,14 +1267,14 @@ int C_fst_match_req(int handle)
   char grtyp[2]={' ', '\0'};
   int status;
 
-  if(DeactivateAllFilters) return(1);  /* filtering deactivated */
+  if(DeactivateAllFilters) return 1;  /* filtering deactivated */
   if(package_not_initialized) RequetesInit();
   ier = c_fstprm(handle, &dateo, &deet, &npas, &ni, &nj, &nk,
                      &nbits, &datyp, &ip1, &ip2, &ip3, typvar,
                      nomvar, etiket, grtyp, &ig1, &ig2, &ig3, &ig4, &swa, &lng,
                      &dltf, &ubc, &datevalid, &xtra2, &xtra3);
 
-  if (ier < 0) return(0);
+  if (ier < 0) return 0;
   status = C_fstmatch_parm(handle, datevalid, ni, nj, nk, ip1, ip2, ip3,
                             typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
 //  fprintf(stderr, "C_fst_match_req status=%d\n", status);
@@ -1331,22 +1341,22 @@ int C_select_suppl(int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, c
 
 int f77name(f_select_ip1)(void *iplist, int *nelm)
 {
-  return(Xc_Select_ip1(bundle_nb, desire_exclure, iplist, *nelm));
+  return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, *nelm);
 }
 
 int f77name(f_select_ip2)(void *iplist, int *nelm)
 {
-  return(Xc_Select_ip2(bundle_nb, desire_exclure, iplist, *nelm));
+  return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, *nelm);
 }
 
 int f77name(f_select_ip3)(void *iplist, int *nelm)
 {
-  return(Xc_Select_ip3(bundle_nb, desire_exclure, iplist, *nelm));
+  return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, *nelm);
 }
 
 int f77name(f_select_date)(int *date_list, int *nelm)
 {
-  return(Xc_Select_date(bundle_nb, desire_exclure, date_list, *nelm));
+  return Xc_Select_date(bundle_nb, desire_exclure, date_list, *nelm);
 }
 
 int f77name(f_select_suppl)(int *ni, int *nj, int *nk, int *ig1, int *ig2, int *ig3, int *ig4, char *gtyp, F2Cl flng)
@@ -1365,7 +1375,7 @@ int Xf_Select_etiquette(int set_nb, int des_exc, char *etiq_list, int nelm, int 
       dbprint(stddebug, "Debug string_array[%d]-->%s<--\n", i, string_array[i]);
   ier = Xc_Select_etiquette(set_nb, des_exc, string_array, nelm);
   free_string_array(string_array);
-  return(ier);
+  return ier;
 }
 
 int f77name(f_select_etiquette)(char *etiq_list, int *nelm, F2Cl flng)
@@ -1378,7 +1388,7 @@ int f77name(f_select_etiquette)(char *etiq_list, int *nelm, F2Cl flng)
       dbprint(stddebug, "Debug string_array[%d]-->%s<--\n", i, string_array[i]);
   ier = Xc_Select_etiquette(bundle_nb, desire_exclure, string_array, *nelm);
   free_string_array(string_array);
-  return(ier);
+  return ier;
 }
 
 int Xf_Select_nomvar(int set_nb, int des_exc, char *nomv_list, int nelm, int flng)
@@ -1391,7 +1401,7 @@ int Xf_Select_nomvar(int set_nb, int des_exc, char *nomv_list, int nelm, int fln
       dbprint(stddebug, "Debug string_array[%d]-->%s<--\n", i, string_array[i]);
   ier = Xc_Select_nomvar(set_nb, des_exc, string_array, nelm);
   free_string_array(string_array);
-  return(ier);
+  return ier;
 }
 
 int f77name(f_select_nomvar)(char *nomv_list, int *nelm, F2Cl flng)
@@ -1404,7 +1414,7 @@ int f77name(f_select_nomvar)(char *nomv_list, int *nelm, F2Cl flng)
       dbprint(stddebug, "Debug string_array[%d]-->%s<--\n", i, string_array[i]);
   ier = Xc_Select_nomvar(bundle_nb, desire_exclure, string_array, *nelm);
   free_string_array(string_array);
-  return(ier);
+  return ier;
 }
 
 int Xf_Select_typvar(int set_nb, int des_exc, char *typv_list, int nelm, int flng)
@@ -1417,7 +1427,7 @@ int Xf_Select_typvar(int set_nb, int des_exc, char *typv_list, int nelm, int fln
       dbprint(stddebug, "Debug string_array[%d]-->%s<--\n", i, string_array[i]);
   ier = Xc_Select_typvar(set_nb, des_exc, string_array, nelm);
   free_string_array(string_array);
-  return(ier);
+  return ier;
 }
 
 int f77name(f_select_typvar)(char *typv_list, int *nelm, F2Cl flng)
@@ -1430,7 +1440,7 @@ int f77name(f_select_typvar)(char *typv_list, int *nelm, F2Cl flng)
       dbprint(stddebug, "Debug string_array[%d]-->%s<--\n", i, string_array[i]);
   ier = Xc_Select_typvar(bundle_nb, desire_exclure, string_array, *nelm);
   free_string_array(string_array);
-  return(ier);
+  return ier;
 }
 
 int f77name(f_filtre_desire)()
@@ -1447,7 +1457,7 @@ int f77name(f_filtre_exclure)()
 
 int f77name(f_fst_match_req)(int *handle)
 {
-  return(C_fstmatch_req(*handle));
+  return C_fstmatch_req(*handle);
 }
 
 /*****************************************************************************
@@ -1475,7 +1485,7 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
 
   if (set_nb > MAX_requetes-1) {
     fprintf(stderr, "ERROR: (C_requetes_reset) set_nb=%d > MAX allowed=%d\n", set_nb, MAX_requetes-1);
-    return(-1);
+    return -1;
   }
 
   Requests[set_nb].in_use = UNUSED;
@@ -1534,7 +1544,7 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
   Requests[set_nb].ig4s = 0;
   Requests[set_nb].grdtyps = ' ';
 
-  return(0);
+  return 0;
 }
 /*****************************************************************************
  *                      C _ R E Q U E T E S _ I N I T                        *
@@ -1655,7 +1665,7 @@ int Directive_ip123(int argc , char **argv, char cmd_strt,  void *func(), char *
     func(set_nb, des_exc, list_reel, nelm, kind);
   }
 
-  return(0);
+  return 0;
 }
 
 /*****************************************************************************
@@ -1710,7 +1720,7 @@ int Directive_dates(int argc , char **argv, char cmd_strt,  void *func(int set_n
   if (range) nelm = -2;
   /* ier = func(set_nb, des_exc, list_entier, nelm, delta); */
   Xc_Select_date(set_nb, des_exc, list_entier, nelm);
-  return(0);
+  return 0;
 }
 
 /*****************************************************************************
@@ -1741,13 +1751,13 @@ int Directive_datev(int argc , char **argv, char cmd_strt,  void *func(), char *
     sscanf(argv[1], "[%d]", &nelm);
     if (((nelm % 2) != 0) && (nelm != 5)) {
       printf("Directive_datev error: visual date format list must contain an even number of date elements\n");
-      return(-1);
+      return -1;
       }
     offset=2;
   }
   else {
     printf("Directive_datev error: visual date format list must contain an even number of date elements\n");
-    return(-1);
+    return -1;
   }
 
   range = 0;
@@ -1779,7 +1789,7 @@ int Directive_datev(int argc , char **argv, char cmd_strt,  void *func(), char *
     nelm = j;
   /* func(set_nb, des_exc, list_entier, nelm, delta); */
   Xc_Select_date(set_nb, des_exc, list_entier, nelm);
-  return(0);
+  return 0;
 }
 
 /*****************************************************************************
@@ -1825,7 +1835,7 @@ int Directive_charvar(int argc , char **argv, char cmd_strt,  void *func(), char
   /* printf("Debug+ Directive_charvar appel la fonction avec set_nb=%d nelm=%d\n", set_nb, nelm); */
   func(set_nb, des_exc, string_array, nelm);
   free_string_array(string_array);
-  return(0);
+  return 0;
 }
 
 /*****************************************************************************
@@ -1875,7 +1885,7 @@ return 0;
   if (fp == (FILE *) NULL) {
     fprintf(stderr, "C_requetes_read_file error opening file %s\n", requetes_file);
     fprintf(stderr, "filter file ignored\n");
-    return(-1);
+    return -1;
     }
   else
     fprintf(stderr, "warning: FSTD software uses filter file %s for scans\n", requetes_file);

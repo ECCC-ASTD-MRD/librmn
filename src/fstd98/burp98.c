@@ -262,8 +262,6 @@ static int burp_nbit_datyp(
     int32_t temp;
     int32_t tblmax;
     int32_t tblmin;
-    int v_nbits = inbits;
-    int v_datyp = *datyp;
 
     /* if transparent mode, nomodifications */
     if (((*datyp==2) && (*nbits == 32)) || (datyp == 0)) return 0;
@@ -444,7 +442,7 @@ int c_mrbadd(
     burp_block_header entete;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
     uint32_t *pos;
-    int inbit, idatyp, nombre, err, temp, left, i, bits_added, bfamho;
+    int inbit, idatyp, nombre, err, left, i, bits_added, bfamho;
     int done,indx;
     uint32_t r_nele, r_nval, r_nt, r_bfam, r_bdesc;
     uint32_t r_btyp, r_nbit, r_bit0, r_datyp;
@@ -512,7 +510,6 @@ int c_mrbadd(
     indx = (buf->nbits) / (8 * sizeof(uint32_t));
     pos = (uint32_t *) &(buf->data[indx]);
     *pos = 0;
-    temp = 0;
     left = 8 * sizeof(uint32_t);
     bits_added = 0;
 
@@ -567,7 +564,6 @@ int c_mrbdel(
     int nelements, datyp, nombre, i;
     burp_block_header entete, *block;
     burp_record *burprec;
-    uint32_t *pos;
 
     if ((number < 1) || (number > buf->buf78.buf8)) {
         sprintf(errmsg, "invalid block number");
@@ -738,7 +734,7 @@ int c_mrbloc(
     int blkno
 ) {
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int i, bfamho, bfamdesc, err;
+    int bfamho, bfamdesc;
     int match, mskbtyp, mskfamdesc;
     int r_nele, r_nval, r_nt, r_bfam, r_bdesc, r_btyp, r_nbit, r_bit0, r_datyp;
     int bno;
@@ -783,13 +779,13 @@ int c_mrbloc(
     burprec = (burp_record *) buf->data;
     block = (burp_block_header *) burprec->data;
     match = 0;
-    for (i = blkno; i < buf->buf78.buf8; i++) {
+    for (int i = blkno; i < buf->buf78.buf8; i++) {
         match = ((((bfamdesc ^ block[i].bfamdesc) & mskfamdesc) == 0) &&
                 (((btyp ^ block[i].btyp) & mskbtyp) == 0));
         if (match) {
             if (msg_level <= INFORM) {
                 bno = i + 1;
-                err = c_mrbprm(buf, bno, &r_nele, &r_nval, &r_nt,
+                c_mrbprm(buf, bno, &r_nele, &r_nval, &r_nt,
                         &r_bfam, &r_bdesc, &r_btyp, &r_nbit,
                         &r_bit0, &r_datyp);
                 fprintf(stdout, "MRBLOC - find block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",
@@ -872,7 +868,7 @@ int c_mrbrep(
 ) {
     burp_block_header *block;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int nele, nval, nt, nelements;
+    int nele, nval, nt;
     int nbit, bit0, datyp, bitpos, err, done, i, nnbits;
     int nmots, new_nmots, diff_nmots;
     int new_nbit, new_datyp, nombre;
@@ -890,13 +886,11 @@ int c_mrbrep(
         nele = block[blkno - 1].elem1;
         nval = block[blkno - 1].elem2;
         nt = block[blkno - 1].elem3;
-        nelements = nele;
         done = 0;
     } else {
         nele = block[blkno-1].nele;
         nval = block[blkno-1].nval;
         nt = block[blkno-1].nt;
-        nelements = ((nele-3) > 0) ? nele-3 : 0;
         done = (nele < 3) ? nele : 3;
     }
     nbit = block[blkno-1].nbit + 1;
@@ -956,7 +950,6 @@ int c_mrbxtr(
     int nele, nval, nt, nelements;
     int nbit, bit0, datyp, bitpos, err, done, i, rmask, nnbits, nombre, allones;
     int in_header;
-    uint32_t *pos;
 
     err = 0;
     if ((bkno < 1) || (bkno > buf->buf78.buf8)) {
@@ -1026,7 +1019,6 @@ int c_mrfapp(
     int index_fnom, index, width, nw, end_of_file;
     file_table_entry *fte;
     xdf_record_header *header;
-    seq_dir_keys *seq_entry;
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -1121,7 +1113,7 @@ int c_mrfput(
 ) {
     buffer_interface_ptr buf = (buffer_interface_ptr)buffer;
     burp_record *burprec;
-    int err, new_handle;
+    int new_handle;
     int temps, flgs, idtyp, lat, lon, dx, dy, elev, drnd, date;
     int oars, runn, nblk, sup, nsup, xaux, nxaux;
     char stnid[10];
@@ -1130,11 +1122,11 @@ int c_mrfput(
     burprec->info.nblks = buf->buf78.buf8;
 
     new_handle = (handle > 0) ? -handle : handle;
-    err = c_xdfput(iun, new_handle, buf);
+    c_xdfput(iun, new_handle, buf);
     if (msg_level <= INFORM) {
         nsup = 0;
         nxaux = 0;
-        err = c_mrbhdr((uint32_t *)buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
+        c_mrbhdr((uint32_t *)buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
                 &dx, &dy, &elev, &drnd, &date, &oars, &runn, &nblk,
                 (uint32_t *)&sup, nsup, (uint32_t *)&xaux, nxaux);
         stnid[9] = '\0';
