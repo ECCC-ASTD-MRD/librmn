@@ -1,5 +1,6 @@
-#ifndef DlInterface_DEFINED
-#define DlInterface_DEFINED
+#ifndef DlInterface_H
+#define DlInterface_H
+
 #include <stdlib.h>
 #include <dlfcn.h>
 /*
@@ -18,4 +19,5 @@ void *DlSym(void *handle, const char *symbol);
 char *DlError(void);
 int DlClose(void *handle);
 void DlRegister(void *open, void *sym, void *error, void *close);
+
 #endif

@@ -182,8 +182,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <dlfcn.h>
 
+#include <DlInterface.h>
 #include "qstdir.h"
 
 //! -1 not initialized, 1 active, 0 not active
@@ -268,26 +268,26 @@ int missing_value_used() {
         text = getenv("MISSING_VALUE_PLUGINS");
         if (text != NULL) {
             fprintf(stderr, "INFO: opening plugin library '%s'\n", text);
-            handle = dlopen(text, RTLD_NOW);
+            handle = DlOpen(text, RTLD_NOW);
             if (handle != NULL) {
-                SetMissingValueMapping(1, 1, dlsym(handle, "float_decode"), 0, 0, 0);
-                SetMissingValueMapping(1, 1, dlsym(handle, "double_decode"), 0, 0, 1);
-                SetMissingValueMapping(1, 2, dlsym(handle, "uint_decode"), 0, 0, 0);
-                SetMissingValueMapping(1, 2, dlsym(handle, "ubyte_decode"), 1, 0, 0);
-                SetMissingValueMapping(1, 2, dlsym(handle, "ushort_decode"), 0, 1, 0);
-                SetMissingValueMapping(1, 4, dlsym(handle, "int_decode"), 0, 0, 0);
-                SetMissingValueMapping(1, 4, dlsym(handle, "byte_decode"), 1, 0, 0);
-                SetMissingValueMapping(1, 4, dlsym(handle, "short_decode"), 0, 1, 0);
+                SetMissingValueMapping(1, 1, DlSym(handle, "float_decode"), 0, 0, 0);
+                SetMissingValueMapping(1, 1, DlSym(handle, "double_decode"), 0, 0, 1);
+                SetMissingValueMapping(1, 2, DlSym(handle, "uint_decode"), 0, 0, 0);
+                SetMissingValueMapping(1, 2, DlSym(handle, "ubyte_decode"), 1, 0, 0);
+                SetMissingValueMapping(1, 2, DlSym(handle, "ushort_decode"), 0, 1, 0);
+                SetMissingValueMapping(1, 4, DlSym(handle, "int_decode"), 0, 0, 0);
+                SetMissingValueMapping(1, 4, DlSym(handle, "byte_decode"), 1, 0, 0);
+                SetMissingValueMapping(1, 4, DlSym(handle, "short_decode"), 0, 1, 0);
 
-                SetMissingValueMapping(2, 1, dlsym(handle, "float_encode"), 0, 0, 0);
-                SetMissingValueMapping(2, 1, dlsym(handle, "double_encode"), 0, 0, 1);
-                SetMissingValueMapping(2, 2, dlsym(handle, "uint_encode"), 0, 0, 0);
-                SetMissingValueMapping(2, 2, dlsym(handle, "ubyte_encode"), 1, 0, 0);
-                SetMissingValueMapping(2, 2, dlsym(handle, "ushort_encode"), 0, 1, 0);
-                SetMissingValueMapping(2, 4, dlsym(handle, "int_encode"), 0, 0, 0);
-                SetMissingValueMapping(2, 4, dlsym(handle, "byte_encode"), 1, 0, 0);
-                SetMissingValueMapping(2, 4, dlsym(handle, "short_encode"), 0, 1, 0);
-                set_plugin_missing_value_flags = (void(*)()) dlsym(handle, "set_plugin_missing_value_flags");
+                SetMissingValueMapping(2, 1, DlSym(handle, "float_encode"), 0, 0, 0);
+                SetMissingValueMapping(2, 1, DlSym(handle, "double_encode"), 0, 0, 1);
+                SetMissingValueMapping(2, 2, DlSym(handle, "uint_encode"), 0, 0, 0);
+                SetMissingValueMapping(2, 2, DlSym(handle, "ubyte_encode"), 1, 0, 0);
+                SetMissingValueMapping(2, 2, DlSym(handle, "ushort_encode"), 0, 1, 0);
+                SetMissingValueMapping(2, 4, DlSym(handle, "int_encode"), 0, 0, 0);
+                SetMissingValueMapping(2, 4, DlSym(handle, "byte_encode"), 1, 0, 0);
+                SetMissingValueMapping(2, 4, DlSym(handle, "short_encode"), 0, 1, 0);
+                set_plugin_missing_value_flags = (void(*)()) DlSym(handle, "set_plugin_missing_value_flags");
             } else {
                 fprintf(stderr, "WARNING: plugin library '%s' not found\n", text);
             }
