@@ -19,7 +19,6 @@
 
 #include <stdlib.h>
 #include <glob.h>
-#include <rmnlib.h>
 
 #ifdef __linux__
 #include <linux/limits.h>
@@ -28,6 +27,8 @@
 #ifdef __APPLE__ && __MACH__
 #include <sys/limits.h>
 #endif
+
+#include <rpnmacros.h>
 
 #ifdef WIN32
 // For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h

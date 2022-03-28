@@ -24,9 +24,6 @@
 static double powerOf2s[powerSpan];
 static int powerOf2sInitialized = 0;
 
-#include <rmnlib.h>
-#include <bitPacking.h>
-
 #define FLOAT_TYPE double
 #define compact_FLOAT_TYPE compact_double
 #include "compact.tmplc"

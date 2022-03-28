@@ -142,7 +142,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include <rmnlib.h>
+#include <rpnmacros.h>
 
 #define CLIB_OK    1
 #define CLIB_ERROR -1

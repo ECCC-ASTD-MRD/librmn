@@ -18,7 +18,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rmnlib.h>
 #include <stdlib.h>
 #include "mymacrosIEEEDouble.h"
 #define myElementCount 2100
