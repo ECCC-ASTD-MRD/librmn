@@ -28,14 +28,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <unistd.h>
 #include <sys/types.h>
 
 #define XDF_OWNER
-#include "qstdir.h"
 #include <fstd98.h>
+
+#include <armn_compress.h>
+
+#include "qstdir.h"
+#include "burp98.h"
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
@@ -122,8 +127,6 @@ static void build_gen_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask,
 static void build_gen_info_keys(uint32_t *buf, uint32_t *keys, int index,
                                 int mode);
 int C_fst_match_req(int set_nb, int handle);
-#include "proto.h"
-#include <stdint.h>
 
 //! Check XDF file for corruption
 //! @return              Valid(0) or not(-1)
@@ -1823,7 +1826,6 @@ int c_xdfopn(
     //! [in] Application signature
     char *appl
 ) {
-    int index, index_fnom, ier, i, j, nrec = 0;
     file_table_entry *f;
     int32_t f_datev;
     double nhours;
@@ -1846,11 +1848,11 @@ int c_xdfopn(
         return error_msg("c_xdfopn", ERR_FILE_OPN, WARNING);
     }
 
-    index = get_free_index();
+    int index = get_free_index();
     file_table[index]->iun = iun;
     file_table[index]->file_index = index;
 
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
         return error_msg("c_xdfopn", ERR_NO_FNOM, ERROR);
@@ -1900,7 +1902,7 @@ int c_xdfopn(
 
         // Create new xdf file
         c_waopen(iun);
-        ier = create_new_xdf(index, iun, pri, npri, aux, naux, appl);
+        int ier = create_new_xdf(index, iun, pri, npri, aux, naux, appl);
         if (! f->xdf_seq) {
             add_dir_page(index, WMODE);
         } else {
@@ -1917,8 +1919,9 @@ int c_xdfopn(
         c_waopen(iun);
     }
 
+    int nrec = 0;
     {
-        int unit = iun, wdaddress = 1, wdlng_header, lng64;
+        int wdaddress = 1;
         file_record header64;
         uint32_t *check32, checksum;
         int header_seq[30];
@@ -1928,7 +1931,7 @@ int c_xdfopn(
         stdf_dir_keys *stdf_entry;
         xdf_dir_page *curpage;
 
-        c_waread(unit, &header64, wdaddress, W64TOWD(2));
+        c_waread(iun, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
             if ((f->header = malloc(header64.lng * 8)) == NULL) {
                 sprintf(errmsg, "memory is full");
@@ -1936,8 +1939,8 @@ int c_xdfopn(
             }
 
             // Read file header
-            wdlng_header = W64TOWD(header64.lng);
-            c_waread(unit, f->header, wdaddress, wdlng_header);
+            int wdlng_header = W64TOWD(header64.lng);
+            c_waread(iun, f->header, wdaddress, wdlng_header);
             f->primary_len = f->header->lprm;
             f->info_len = f->header->laux;
             // nxtadr = fsiz +1
@@ -1953,7 +1956,7 @@ int c_xdfopn(
                 f->header->rwflg = RDMODE;
             } else {
                 if (f->header->rwflg != RDMODE) {
-                    sprintf(errmsg, "file (unit=%d) currently used by another application in write mode", unit);
+                    sprintf(errmsg, "file (unit=%d) currently used by another application in write mode", iun);
                     return error_msg("c_xdfopn", ERR_STILL_OPN, ERRFATAL);
                 }
 
@@ -1986,14 +1989,14 @@ int c_xdfopn(
 
             if (! f->xdf_seq) {
                 // Read directory pages and compute checksum
-                for (i=0; i < f->header->nbd; i++) {
+                for (int i = 0; i < f->header->nbd; i++) {
                     add_dir_page(index, RDMODE);
-                    lng64 = f->primary_len * ENTRIES_PER_PAGE + 4;
+                    int lng64 = f->primary_len * ENTRIES_PER_PAGE + 4;
                     curpage = &((f->dir_page[f->npages-1])->dir);
-                    c_waread(unit, curpage, wdaddress, W64TOWD(lng64));
+                    c_waread(iun, curpage, wdaddress, W64TOWD(lng64));
                     checksum = 0;
                     check32 = (uint32_t *) curpage;
-                    for (j = 4; j < W64TOWD(lng64); j++) {
+                    for (int j = 4; j < W64TOWD(lng64); j++) {
                         checksum ^= check32[j];
                     }
                     if (checksum != 0) {
@@ -2033,7 +2036,7 @@ int c_xdfopn(
                 create_new_xdf(index, iun, (word_2 *)&stdfkeys, 16, aux, 0, "STDF");
                 add_dir_page(index, RDMODE);
                 f->cur_dir_page = f->dir_page[f->npages-1];
-                for (i = 0; i < header_rnd.nutil; i++) {
+                for (int i = 0; i < header_rnd.nutil; i++) {
                     if (f->cur_dir_page->dir.nent >= ENTRIES_PER_PAGE) {
                         f->nrecords += f->page_nrecords;
                         add_dir_page(index, RDMODE);
@@ -2281,7 +2284,7 @@ int c_xdfprm(
 //! \return 0 on success, error code otherwise
 int c_xdfput(
     //! [in] Unit number of the file to be written
-    int iun,
+    const int iun,
     //! [in] File index, page number and record number to record
     int handle,
     //! [in] Buffer to contain record
@@ -3206,10 +3209,9 @@ int error_msg(
 //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
 int file_index(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
-    int i;
-    for (i = 0 ; i < MAX_XDF_FILES ; i++) {
+    for (int i = 0; i < MAX_XDF_FILES; i++) {
         if (file_table[i] != NULL) {
             if (file_table[i]->iun == iun) {
                 return i;
@@ -3224,10 +3226,9 @@ int file_index(
 //! \return Index of the provided unit number in the file table or -1 if not found.
 int fnom_index(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
-    int i;
-    for (i = 0; i < MAXFILES; i++) {
+    for (int i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == iun) {
             return i;
         }
@@ -3240,14 +3241,14 @@ int fnom_index(
 //! \return Free position index or error code
 static int get_free_index()
 {
-    int i, nlimite;
+    int nlimite;
 
     if (STDSEQ_opened == 1) {
         nlimite = 128;
     } else {
         nlimite = MAX_XDF_FILES;
     }
-    for (i = 0; i < nlimite; i++) {
+    for (int i = 0; i < nlimite; i++) {
         if (file_table[i] == NULL) {
             if ((file_table[i] = (file_table_entry_ptr) malloc(sizeof(file_table_entry))) == NULL) {
                 sprintf(errmsg, "can't alocate file_table_entry\n");
@@ -4076,42 +4077,25 @@ int32_t f77name(xdfprm)(int32_t *fhandle, int32_t *addr, int32_t *lng,
 }
 
 
-/*****************************************************************************
- *                              X D F P U T                                  *
- *****************************************************************************/
-
 int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
             uint32_t *buf)
 {
    int handle = *fhandle;
-   int iun = *fiun, ier;
+   int iun = *fiun;
 
-   ier = c_xdfput(iun, handle, (buffer_interface_ptr)buf);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfput(iun, handle, (buffer_interface_ptr)buf);
 }
 
-
-/*****************************************************************************
- *                              X D F R E P                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfrep)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fbitpos, int32_t *fnelm,
             int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
-   int ier;
 
-   ier = c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
 }
 
-
-/*****************************************************************************
- *                              X D F S T A                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
             ftnword_2 *pri, int32_t *fnpri,
@@ -4120,7 +4104,6 @@ int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
 {
    int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat, lng, ier;
    char c_vers[257], c_appl[257];
-   int i;
 
    ier = c_xdfsta(iun, stat, nstat, pri, npri, aux, naux, c_vers, c_appl);
 
@@ -4133,52 +4116,33 @@ int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    strncpy(appl, c_appl, lng);
 
    return (int32_t) ier;
-
 }
 
-
-/*****************************************************************************
- *                              X D F U P D                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfupd)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
             int32_t *keys, int32_t *fnkeys,
             int32_t *info, int32_t *fninfo)
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
-   int ier, i;
 
-   ier = c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
 }
 
-
-/*****************************************************************************
- *                              X D F U S E                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfuse)(int32_t *fsrc_unit, int32_t *fdest_unit)
 {
    int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
 
-   return (int32_t)c_xdfuse(src_unit, dest_unit);
+   return (int32_t) c_xdfuse(src_unit, dest_unit);
 
 }
 
-
-/*****************************************************************************
- *                              X D F X T R                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfxtr)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fbitpos, int32_t *fnelm,
             int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
-   int ier;
 
-   ier = c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
 }

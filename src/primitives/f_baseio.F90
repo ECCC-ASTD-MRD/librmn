@@ -22,8 +22,8 @@
 integer function qqqf7op(iun, name, lrec, rndflag, unfflag, lmult)
     implicit none
     integer, intent(in) :: iun
-    integer, intent(in) :: lrec
     character(len = *), intent(in) :: name
+    integer, intent(in) :: lrec
     integer, intent(in) :: rndflag
     integer, intent(in) :: unfflag
     !> No longer used, but kept for backward compatibility

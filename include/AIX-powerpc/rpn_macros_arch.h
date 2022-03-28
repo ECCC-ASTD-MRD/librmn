@@ -11,4 +11,4 @@
 #endif
 
 //! \todo Replace with a definition from stdint.h like int32_t according to the actual size of an int on that platform!
-#define F2Cl int
+#define F2Cl const int

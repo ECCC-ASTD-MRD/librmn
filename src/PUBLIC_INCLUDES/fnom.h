@@ -1,3 +1,6 @@
+#ifndef FNOM_H
+#define FNOM_H
+
 #include <stdint.h>
 
 #include <rpnmacros.h>
@@ -56,93 +59,214 @@ extern general_file_info Fnom_General_File_Desc_Table[MAXFILES];
 
 #define FGFDT Fnom_General_File_Desc_Table
 
-int c_fretour(int iun);
-int32_t f77name(fretour)(int32_t *fiun);
+int c_fretour(
+    const int iun
+);
+int32_t f77name(fretour)(
+    const int32_t * const fiun
+);
 
 void f77name(d_fgfdt)();
 
-int c_fnom(int *iun, char *nom, char *type, int lrec);
-int32_t f77name(fnom)(int32_t *iun, char *nom, char *type, int32_t *flrec, F2Cl l1, F2Cl l2);
+int c_fnom(
+    int * const iun,
+    const char * const nom,
+    const char * const type,
+    const int lrec
+);
+int32_t f77name(fnom)(
+    int32_t * const iun,
+    const char * const nom,
+    const char * const type,
+    const int32_t * const flrec,
+    F2Cl l1,
+    F2Cl l2
+);
 
-int c_fclos(int iun);
-int32_t f77name(fclos)(int32_t *fiun);
+int c_fclos(const int iun);
+int32_t f77name(fclos)(const int32_t * const fiun);
 
-int32_t f77name(qqqfnom)(int32_t *iun, char *nom, char *type, int32_t *flrec, F2Cl l1, F2Cl l2);
-void c_waopen(int iun);
+int32_t f77name(qqqfnom)(
+    const int32_t * const iun,
+    char * const nom,
+    char * const type,
+    int32_t * const flrec,
+    F2Cl l1,
+    F2Cl l2
+);
 
-int c_waopen2(int iun);
-int32_t f77name(waopen2)(int32_t *fiun);
-void f77name(waopen)(int32_t *fiun);
-void c_waclos(int iun);
+int c_waopen2(const int iun);
+int32_t f77name(waopen2)(const int32_t * const iun);
 
-int c_waclos2(int iun);
-int32_t f77name(waclos2)(int32_t *fiun);
+void c_waopen(const int iun);
+void f77name(waopen)(const int32_t * const iun);
 
-void f77name(waclos)(int32_t *fiun);
+int c_waclos2(const int iun);
+int32_t f77name(waclos2)(const int32_t * const iun);
 
-void c_wawrit(int iun, void *buf, unsigned int adr, int nmots);
-int c_wawrit2(int iun, void *buf, unsigned int adr, int nmots);
-void f77name(wawrit)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots);
-int32_t f77name(wawrit2)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots);
+void c_waclos(const int iun);
+void f77name(waclos)(const int32_t * const iun);
 
-void c_waread(int iun, void *buf, unsigned int adr, int nmots);
-int c_waread2(int iun, void *buf, unsigned int adr, int nmots);
-void f77name(waread)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots);
-int32_t f77name(waread2)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots);
+int c_wawrit2(
+    const int iun,
+    const void * const buf,
+    const unsigned int offset,
+    const int nwords
+);
+int32_t f77name(wawrit2)(
+    const int32_t * const iun,
+    const void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+);
 
-int32_t c_wasize(int iun);
-int32_t f77name(wasize)(int32_t *fiun);
+void c_wawrit(
+    const int iun,
+    const void * const buf,
+    const unsigned int offset,
+    const int nwords
+);
+void f77name(wawrit)(
+    const int32_t * const iun,
+    const void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+);
 
-int32_t c_numblks(int iun);
-int32_t f77name(numblks)(int32_t *fiun);
+int c_waread2(
+    const int iun,
+    void *buf,
+    const unsigned int offset,
+    const int nwords
+);
+int32_t f77name(waread2)(
+    const int32_t * const iun,
+    void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+);
 
-int32_t f77name(existe)(char *nom, F2Cl lng);
+void c_waread(
+    const int iun,
+    void * const buf,
+    const unsigned int offset,
+    const int nwords
+);
+void f77name(waread)(
+    const int32_t * const iun,
+    void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+);
 
-void c_openda(int iun);
-void f77name(openda)(int32_t *iun);
+int32_t c_wasize(const int iun);
+int32_t f77name(wasize)(const int32_t * const iun);
 
-void c_closda(int iun);
-void f77name(closda)(int32_t *iun);
+int32_t c_numblks(const int iun);
+int32_t f77name(numblks)(const int32_t * const iun);
 
-void c_checda(int iun);
-void f77name(checda)(int32_t *iun);
+int32_t f77name(existe)(const char * const nom, F2Cl llng);
 
-void c_readda(int iun, int *bufptr, int ns, int is);
-void f77name(readda)(int32_t *iun, int32_t *bufptr, int32_t *ns, int32_t *is);
+void c_openda(const int iun);
+void f77name(openda)(const int32_t * const iun);
 
-void c_writda(int iun, int *bufptr, int ns, int is);
-void f77name(writda)(int32_t *iun, int32_t *bufptr, int32_t *ns, int32_t *is);
+void c_closda(const int iun);
+void f77name(closda)(const int32_t * const iun);
 
-int c_getfdsc(int iun);
-int32_t f77name(getfdsc)( int32_t *iun);
+void c_checda(const int iun);
+void f77name(checda)(const int32_t * const iun);
 
-void c_sqopen(int iun);
-void f77name(sqopen)(int32_t *iun);
+void c_readda(
+    const int iun,
+    int * const buf,
+    const int nwords,
+    const int offset
+);
+void f77name(readda)(
+    const int32_t * const iun,
+    int32_t * const buf,
+    const int32_t * const nwords,
+    const int32_t * const offset
+);
 
-void c_sqclos(int iun);
-void f77name(sqclos)(int32_t *iun);
+void c_writda(
+    const int iun,
+    const int * const buf,
+    const int nwords,
+    const int offset
+);
+void f77name(writda)(
+    const int32_t * const iun,
+    const int32_t * const buf,
+    const int32_t * const nwords,
+    const int32_t * const offset
+);
 
-void c_sqrew(int iun);
-void f77name(sqrew)(int32_t *iun);
+int c_getfdsc(const int iun);
+int32_t f77name(getfdsc)(const int32_t * const iun);
 
-void c_sqeoi(int iun);
-void f77name(sqeoi)(int32_t *iun);
+void c_sqopen(const int iun);
+void f77name(sqopen)(const int32_t * const iun);
 
-int c_sqgetw(int iun, int32_t *bufptr, int nmots);
-int32_t f77name(sqgetw)(int32_t *iun, int32_t *bufptr, int32_t *nmots);
+void c_sqclos(const int iun);
+void f77name(sqclos)(const int32_t * const iun);
 
-int c_sqputw(int iun, int32_t *bufptr, int nmots);
-int32_t f77name(sqputw)(int32_t *iun, int32_t *bufptr, int32_t *nmots);
+void c_sqrew(const int iun);
+void f77name(sqrew)(const int32_t * const iun);
 
-int c_sqgets(int iun, char *bufptr, int nchar);
-int32_t f77name(sqgets)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl lbuf);
+void c_sqeoi(const int iun);
+void f77name(sqeoi)(const int32_t * const iun);
 
-int c_sqputs(int iun, char *bufptr, int nchar);
-int32_t f77name(sqputs)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl lbuf);
+int c_sqgetw(
+    const int iun,
+    uint32_t * const buf,
+    const int nwords
+);
+int32_t f77name(sqgetw)(
+    const int32_t * const iun,
+    uint32_t * const buf,
+    const int32_t * const nwords
+);
+
+int c_sqputw(
+    const int iun,
+    const uint32_t * const buf,
+    const int nwords
+);
+int32_t f77name(sqputw)(
+    const int32_t * const iun,
+    const uint32_t * const buf,
+    const int32_t * const nwords
+);
+
+int c_sqgets(
+    const int iun,
+    char * const buf,
+    const int nchar
+);
+int32_t f77name(sqgets)(
+    const int32_t * const iun,
+    char * const buf,
+    const int32_t * const nchar,
+    F2Cl llbuf
+);
+
+int c_sqputs(
+    const int iun,
+    const char * const buf,
+    const int nchar
+);
+int32_t f77name(sqputs)(
+    const int32_t *iun,
+    const char * const buf,
+    const int32_t * const nchar,
+    F2Cl llbuf
+);
 
 void f77name(d_wafdt)();
 
-uint32_t f77name(hrjust) (uint32_t *moth, int32_t *ncar);
+uint32_t f77name(hrjust) (uint32_t *str, const int32_t * const ncar);
 
-uint32_t f77name(hljust) (uint32_t *moth, int32_t *ncar);
+uint32_t f77name(hljust) (uint32_t *str, const int32_t * const ncar);
 
+#endif

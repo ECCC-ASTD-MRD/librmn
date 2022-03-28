@@ -26,21 +26,21 @@
 
 #include <rpnmacros.h>
 
-#define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
-
-int32_t f77name(mkdir_c)(char *filename, F2Cl lng1)
-{
-    int rcode;
+int32_t f77name(mkdir_c)(
+    const char * const filename,
+    F2Cl lng1
+) {
     char fname[4097];
 
     if (lng1 > 4096) {
         printf("mkdir_c error: file name > 4096 char\n");
         return((int32_t) -1);
     }
-    while (filename[lng1-1] == ' ' && lng1 > 0) lng1--;
-    strncpy(fname, filename, lng1);
-    fname[lng1] = '\0';
-    rcode = mkdir(fname, 0777);
+    int llng1 = lng1;
+    while (filename[llng1 - 1] == ' ' && llng1 > 0) llng1--;
+    strncpy(fname, filename, llng1);
+    fname[llng1] = '\0';
+    int rcode = mkdir(fname, 0777);
     if (rcode == -1) perror("mkdir_c error");
     return (int32_t)rcode;
 }

@@ -31,10 +31,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include "qstdir.h"
-#include "convert_ip.h"
-#include "proto.h"
-#include <rmnlib.h>
 #include <string.h>
 #include <strings.h>
 #include <math.h>
@@ -42,9 +38,13 @@
 #include <regex.h>
 #include <ctype.h>
 
+#include <rmnlib.h>
 #include <bitPacking.h>
 #include <fstd98.h>
 #include <armn_compress.h>
+#include "qstdir.h"
+#include "convert_ip.h"
+#include "xdf98.h"
 
 #define Max_Ipvals 50
 
@@ -284,7 +284,7 @@ int c_fst_data_length(
 int c_fstecr(
     //! [in] Field to write to the file
     uint32_t *field_in,
-    //! [in] work field (kept for backward compatibility)
+    //! [in] Work field (kept for backward compatibility)
     void *work,
     //! [in] Number of bits kept for the elements of the field
     int npak,
@@ -3482,79 +3482,89 @@ int32_t f77name(fst_data_length)(int *f_length_type)
   return (int32_t) ier;
 }
 
+//! Write record to file
+int32_t f77name(fstecr)(
+    //! [in] Field to write to the file
+    uint32_t *field,
+    //! [in] Unused, but kept for backward compatibility
+    int32_t *work,
+    //! [in] Number of bits kept for the elements of the field
+    int32_t *f_npak,
+    //! [in] Unit number of the file in which to write
+    int32_t *f_iun,
+    //! [in] Date time stamp
+    int32_t *f_date,
+    //! [in] Duration of timestemps in seconds
+    int32_t *f_deet,
+    //! [in] Time step number
+    int32_t *f_npas,
+    //! [in] First dimension of the data field
+    int32_t *f_ni,
+    //! [in] Second dimension of the data field
+    int32_t *f_nj,
+    //! [in] Third dimension of the data field
+    int32_t *f_nk,
+    //! [in] Vertical level
+    int32_t *f_ip1,
+    //! [in] Forecast hour
+    int32_t *f_ip2,
+    //! [in] User defined identifier
+    int32_t *f_ip3,
+    //! [in] type of field (forecast, analysis, climatology)
+    char *f_typvar,
+    //! [in] Variable name
+    char *f_nomvar,
+    //! [in] Label
+    char *f_etiket,
+    //! [in] Grid type
+    char *f_grtyp,
+    //! [in] First grid descriptor
+    int32_t *f_ig1,
+    //! [in] Second grid descriptor
+    int32_t *f_ig2,
+    //! [in] Third grid descriptor
+    int32_t *f_ig3,
+    //! [in] Fourth grid descriptor
+    int32_t *f_ig4,
+    //! [in] Data type of the elements
+    int32_t *f_datyp,
+    //! [in] Rewrite existing record if true, append otherwise
+    int32_t *f_rewrit,
+    //! [in] Length of f_typvar
+    F2Cl ll1,
+    //! [in] Length of f_nomvar
+    F2Cl ll2,
+    //! [in] Length of f_etiket
+    F2Cl ll3,
+    //! [in] Length of f_grtyp
+    F2Cl ll4
+) {
+    int iun = *f_iun, npak = *f_npak, date = *f_date, deet = *f_deet;
+    int npas = *f_npas, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
+    int ni = *f_ni, nj = *f_nj, nk = *f_nk;
+    int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
+    int datyp = *f_datyp, rewrit = *f_rewrit;
+    int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
 
-/*****************************************************************************
- *                              F S T E C R                                  *
- *                                                                           *
- *Object                                                                     *
- *   Writes record to file.                                                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  field   field to write to the file                                   *
- *  IN  work    work field (kept for backward compatibility)                 *
- *  IN  npak    number of bits kept for the elements of the field (-npak)    *
- *  IN  iun     unit number associated to the file                           *
- *  IN  date    date time stamp                                              *
- *  IN  deet    length of a time step in seconds                             *
- *  IN  npas    time step number                                             *
- *  IN  ni      first dimension of the data field                            *
- *  IN  nj      second dimension of the data field                           *
- *  IN  nk      third dimension of the data field                            *
- *  IN  ip1     vertical level                                               *
- *  IN  ip2     forecast hour                                                *
- *  IN  ip3     user defined identifier                                      *
- *  IN  typvar  type of field (forecast, analysis, climatology)              *
- *  IN  nomvar  variable name                                                *
- *  IN  etiket  label                                                        *
- *  IN  grtyp   type of geographical projection                              *
- *  IN  ig1     first grid descriptor                                        *
- *  IN  ig2     second grid descriptor                                       *
- *  IN  ig3     third grid descriptor                                        *
- *  IN  ig4     fourth grid descriptor                                       *
- *  IN  datyp   data type of the elements                                    *
- *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstecr)(uint32_t *field, int32_t *work, int32_t *f_npak,
-                        int32_t *f_iun, int32_t *f_date,
-                        int32_t *f_deet, int32_t *f_npas,
-                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
-                        int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,
-                        char *f_typvar, char *f_nomvar, char *f_etiket,
-                        char *f_grtyp, int32_t *f_ig1, int32_t *f_ig2,
-                        int32_t *f_ig3, int32_t *f_ig4,
-                        int32_t *f_datyp, int32_t *f_rewrit,
-                        F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
-{
-  int iun = *f_iun, npak = *f_npak, date = *f_date, deet = *f_deet;
-  int npas = *f_npas, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
-  int ni = *f_ni, nj = *f_nj, nk = *f_nk;
-  int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
-  int datyp = *f_datyp, rewrit = *f_rewrit;
-  int ier;
-  int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
+    char etiket[13];
+    char typvar[3];
+    char nomvar[5];
+    char grtyp[2];
 
-  char etiket[13];
-  char typvar[3];
-  char nomvar[5];
-  char grtyp[2];
+    /*  l1 = (l1 < 2) ? l1 : 2;            /* typvar length */
+    /*  l2 = (l2 < 4) ? l2 : 4;            /* nomvar length */
+    /*  l3 = (l3 < 12) ? l3 :12;           /* etiket length */
+    /*  l4 = (l4 < 1) ? l4 : 1;            /* grtyp length */
 
-/*  l1 = (l1 < 2) ? l1 : 2;            /* typvar length */
-/*  l2 = (l2 < 4) ? l2 : 4;            /* nomvar length */
-/*  l3 = (l3 < 12) ? l3 :12;           /* etiket length */
-/*  l4 = (l4 < 1) ? l4 : 1;            /* grtyp length */
+    str_cp_init(typvar, 3, f_typvar, l1);
+    str_cp_init(nomvar, 5, f_nomvar, l2);
+    str_cp_init(etiket, 13, f_etiket, l3);
+    str_cp_init(grtyp, 2, f_grtyp, l4);
 
-  str_cp_init(typvar, 3, f_typvar, l1);
-  str_cp_init(nomvar, 5, f_nomvar, l2);
-  str_cp_init(etiket, 13, f_etiket, l3);
-  str_cp_init(grtyp, 2, f_grtyp, l4);
-
-  ier = c_fstecr(field, work, npak, iun, date, deet, npas,
+    return (int32_t) c_fstecr(field, work, npak, iun, date, deet, npas,
                  ni, nj, nk, ip1, ip2, ip3,
                  typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,
                  datyp, rewrit);
-  return (int32_t) ier;
 }
 
 

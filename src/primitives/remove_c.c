@@ -25,21 +25,22 @@
 
 #include <rpnmacros.h>
 
-#define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
 
-int32_t f77name(remove_c)(char *filename, F2Cl lng1)
+int32_t f77name(remove_c)(
+    const char * const filename,
+    F2Cl lng1)
 {
-    int rcode;
     char fname[256];
 
     if (lng1 > 256) {
         printf("remove_c error: file name > 256 char\n");
         return((int32_t) -1);
     }
-    while (filename[lng1-1] == ' ' && lng1 > 0) lng1--;
-    strncpy(fname,filename,lng1);
-    fname[lng1] = '\0';
-    rcode = unlink(fname);
+    int llng1 = lng1;
+    while (filename[llng1 - 1] == ' ' && llng1 > 0) llng1--;
+    strncpy(fname, filename, llng1);
+    fname[llng1] = '\0';
+    int rcode = unlink(fname);
     if (rcode == -1) perror("remove_c error");
     return (int32_t)rcode;
 }

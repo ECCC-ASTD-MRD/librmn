@@ -22,354 +22,194 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "rmnlib.h"
-
-static PackFunctionPointer pfp;
-
-
-/******************************************************************************************
- *                                                                                        *
- * Author    : Jianhui He, 1997                                                           *
- *                                                                                        *
- * Objective : FORTRAN interface to integer packer/unpacker written in C                  *
- *                                                                                        *
- * Arguments :                                                                            *
- *  IN/OUT     xunpacked     unpacked integer array                                       *
- *  IN/OUT     xpacked       packed integer array                                         *
- *  IN         ni            total count of element in unpacked integer array             *
- *  IN         nj            unpacked integer spacing indicator                           *
- *  IN         nBits         packed integer size in bit                                   *
- *  IN         NB            in packing   : the last bit of integer packed inside array   *
- *                           in unpacking : the first bit of integer packed inside array  *
- *  IN         OP            1   : unsigned pack                                          *
- *                           2   : unsigned unpack                                        *
- *                           3   : signed pack                                            *
- *                           4   : signed unpack                                          *
- *                           +10 : use offset                                             *
- *                           +100: NINJ = NJ and stride = NJ                              *
- *                           +1000: pack header is used                                   *
- *                                                                                        *
- *****************************************************************************************/
-void f77name (iipak) (void *xunpacked, void *xpacked, int32_t *ni, int32_t *nj, int32_t *nBits,
-                 int32_t *NB, int32_t *OP)
-{
-
-  /***************************************
-   *                                     *
-   *   local variables                   *
-   *                                     *
-   **************************************/
-  int i;
-  int stride;
-  int offset;
-  int ninj;
-  int lnBits;
-  int OPER = *OP;
-  int lengthOfPackedArray;
-  uint32_t *tempPackedArray,  *dummyArray, *tempUnpackedArray;
-  uint32_t *ptrXpacked, *ptrXUnpacked, *transitPtr;
-  int32_t *ftnPtrXUnpacked;
-  int returnBitSizeOfToken;
-  int packHeaderUsed;
+#include <rpnmacros.h>
+#include <armn_compress.h>
 
 
-  /***************************************
-   *                                     *
-   * fix lnBits                          *
-   *                                     *
-   **************************************/
-  if(*nBits > 1)
-     {
-      if(1 > (32 / *nBits))
-     lnBits = 1;
-      else
-     lnBits = (32 / *nBits);
-      }
-  else if (*nBits < 0)
-     lnBits = *nBits * (-1);
-  else
-     lnBits = 32;
-
-  /**************************************
-   *                                    *
-   *   check if pack header             *
-   *        is used                     *
-   *                                    *
-   *************************************/
-  if ( (OPER % 10000) >=1000 )
-    {
-      packHeaderUsed = 1;
+//! FORTRAN interface to integer packer/unpacker written in C
+void f77name(iipak)(
+    //! [in,out] Unpacked integer array
+    void * const xunpacked,
+    //! [in,out] Packed integer array
+    void * const xpacked,
+    //! [in] Number of elements in the unpacked integer array
+    const int32_t * const ni,
+    //! [in] Unpacked integer spacing indicator
+    const int32_t * const nj,
+    //! [in] Packed integer size in bit
+    const int32_t * const nBits,
+    //! In packing mode, the last bit of integer packed inside array
+    //! In unpacking mode : the first bit of integer packed inside array
+    const int32_t * const offset,
+    //! Operation mode:
+    //! | -----:| :-----------------------: |
+    //! |     1 | Unsigned pack             |
+    //! |     2 | Unsigned unpack           |
+    //! |     3 | Signed pack               |
+    //! |     4 | Signed unpack             |
+    //! |   +10 | Use offset                |
+    //! |  +100 | NINJ = nj and stride = nj |
+    //! | +1000 | Use pack header           |
+    const int32_t * const mode
+) {
+    // fix lnBits
+    int lnBits;
+    if (*nBits > 1) {
+        if (1 > (32 / *nBits)) {
+            lnBits = 1;
+        } else {
+            lnBits = (32 / *nBits);
+        }
+    } else if (*nBits < 0) {
+        lnBits = *nBits * (-1);
+    } else {
+        lnBits = 32;
     }
-  else
-    {
-      packHeaderUsed = 0;
-    };
-  OPER = OPER % 1000;
 
-  /***************************************
-   *                                     *
-   *  handle the stride and offset       *
-   *  specification from FORTRAN program *
-   *                                     *
-   **************************************/
-  if ((OPER % 1000) >= 100)
-     {
-     ninj = *ni;
-     stride = *nj;
-     OPER = OPER % 100;
-     }
-  else
-    {
+    // Check if pack header is used
+    int oper = *mode;
+    int packHeaderUsed;
+    if ( (oper % 10000) >= 1000 ) {
+        packHeaderUsed = 1;
+    } else {
+        packHeaderUsed = 0;
+    }
+    oper = oper % 1000;
+
+    // handle the stride and offset specification from FORTRAN program
+    int stride;
+    int ninj;
+    if ((oper % 1000) >= 100) {
+        ninj = *ni;
+        stride = *nj;
+        oper = oper % 100;
+    } else {
       ninj = (*ni) * (*nj);
       stride = 1;
     }
 
-  if (OPER >= 10)
-    {
-      offset = *NB;
-
-      OPER = (OPER % 10);
+    int loffset;
+    if (oper >= 10) {
+        loffset = *offset;
+        oper = (oper % 10);
+    } else {
+        loffset = 0;
     }
-  else
-    offset = 0;
 
-  ptrXpacked = NULL;
-  ptrXpacked = xpacked;
+    uint32_t  *ptrXpacked = xpacked;
 
+    if ( xunpacked == xpacked ) {
+        // In place
+        int lengthOfPackedArray = ((ninj * lnBits) + 31) / 32;
+        if (packHeaderUsed) lengthOfPackedArray += 4;
 
-  if ( xunpacked == xpacked )
-    /*******************************************************
-     *                                                     *
-     *   in place                                          *
-     *                                                     *
-     ******************************************************/
-    {
+        uint32_t *tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));
 
-      lengthOfPackedArray = ((ninj*lnBits)+31) / 32;
-      if (packHeaderUsed) lengthOfPackedArray += 4;
-      tempPackedArray = NULL;
-
-      tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));
-
-
-      if ( (OPER == 1) || (OPER == 3) )
-        /****************************************
-         *                                      *
-         *   pack                               *
-         *                                      *
-         ***************************************/
-        {
-
-          if ( packHeaderUsed )
-            {
-
-              returnBitSizeOfToken = compact_integer(xunpacked, tempPackedArray, tempPackedArray,
-                                                     ninj, lnBits, 128, stride, OPER);
+        if ( (oper == 1) || (oper == 3) ) {
+            // Pack
+            if ( packHeaderUsed ) {
+                compact_integer(xunpacked, tempPackedArray, tempPackedArray, ninj, lnBits, 128, stride, oper);
+            } else {
+                compact_integer(xunpacked, NULL, tempPackedArray, ninj, lnBits, loffset, stride, oper);
             }
-          else
-            {
-              returnBitSizeOfToken = compact_integer(xunpacked, NULL, tempPackedArray,
-                                                     ninj, lnBits, offset, stride, OPER);
-            };
 
-          for ( i = 0; i < lengthOfPackedArray; i++)
-            {
-              ptrXpacked[i] = tempPackedArray[i];
+            for (int i = 0; i < lengthOfPackedArray; i++) {
+                ptrXpacked[i] = tempPackedArray[i];
+            }
+        } else if ( (oper == 2) || (oper == 4) ) {
+            // Unpack
+            for (int i = 0; i < lengthOfPackedArray; i++) {
+                tempPackedArray[i] = ptrXpacked[i] ;
+            }
 
-            };
-
-
+            if ( packHeaderUsed ){
+                compact_integer(xunpacked, tempPackedArray, tempPackedArray, ninj, lnBits, 128, stride, oper);
+            } else {
+                compact_integer(xunpacked, NULL, tempPackedArray, ninj, lnBits, loffset, stride, oper);
+            }
         }
-      else if ( (OPER == 2) || (OPER == 4) )
-        /****************************************
-         *                                      *
-         *   unpack                             *
-         *                                      *
-         ***************************************/
-        {
-          for ( i = 0; i < lengthOfPackedArray; i++)
-            {
-              tempPackedArray[i] = ptrXpacked[i] ;
-            };
 
-          if ( packHeaderUsed )
-            {
-              returnBitSizeOfToken = compact_integer(xunpacked, tempPackedArray, tempPackedArray,
-                                                     ninj, lnBits, 128, stride, OPER);
-            }
-          else
-            {
-              returnBitSizeOfToken = compact_integer(xunpacked, NULL, tempPackedArray,
-                                                     ninj, lnBits, offset, stride, OPER);
-            };
-
-
-        };
-
-      free(tempPackedArray);
-      tempPackedArray = NULL;
-
+        free(tempPackedArray);
+        tempPackedArray = NULL;
+    } else {
+        // Not in place
+        if ( packHeaderUsed ) {
+            compact_integer(xunpacked, xpacked, xpacked, ninj, lnBits, 128, stride, oper);
+        } else {
+            compact_integer(xunpacked, NULL, xpacked, ninj, lnBits, loffset, stride, oper);
+        }
     }
-  else
-    /*******************************************************
-     *                                                     *
-     *   non in place                                      *
-     *                                                     *
-     ******************************************************/
-    {
-      if ( packHeaderUsed )
-        {
-          returnBitSizeOfToken = compact_integer(xunpacked, xpacked, xpacked,
-                                                 ninj, lnBits, 128, stride, OPER);
-        }
-      else
-        {
-          returnBitSizeOfToken = compact_integer(xunpacked, NULL, xpacked,
-                                                 ninj, lnBits, offset, stride, OPER);
-        };
-    };
-
-   ptrXpacked = NULL;
-   tempUnpackedArray = NULL;
 }
 
 
-/******************************************************************************************
- *                                                                                        *
- * Author    : Jianhui He, 1997                                                           *
- *                                                                                        *
- * Objective : FORTRAN interface to floating point packer/unpacker written in C           *
- *                                                                                        *
- * Arguments :                                                                            *
- *  IN/OUT     xunpacked     unpacked floating point array                                *
- *  IN/OUT     xpacked       packed integer array                                         *
- *  IN         ni            total count of element in unpacked array                     *
- *  IN         nj            unpacked array element spacing indicator                     *
- *  IN         nBits         packed integer size in bit                                   *
- *  IN         NB            in packing   : the last bit of integer packed inside array   *
- *                           in unpacking : the first bit of integer packed inside array  *
- *  IN         OP            1   : pack float                                             *
- *                           2   : unpack float                                           *
- *                           5   : pack double                                            *
- *                           6   : unpack double                                          *
- *                                                                                        *
- *****************************************************************************************/
-void f77name (xxpak) (void *xunpacked, void *xpacked,int32_t *ni, int32_t *nj, int32_t *nBits,
-                      int32_t *NB, int32_t *OP)
-{
-  /**************************************************************************
-   *                                                                        *
-   *   variable declaration                                                 *
-   *                                                                        *
-   *************************************************************************/
-  int i;
-  int stride = 1;
-  int offset = 24;
-  int ninj = ((*ni) * (*nj));
-  int lnBits = (*nBits);
-  int OPER = (*OP);
-  uint32_t *tempIntArray;
-  int lengthOfIntArray;
-  uint32_t *tempFloatArray;
-  double tempFloat=9999.0000;
-  uint32_t *ptrXpacked;
+void f77name(xxpak) (
+    //! [in,out] Unpacked floating point array
+    void * const xunpacked,
+    //! [in,out] Packed integer array
+    void * const xpacked,
+    //! [in] Number of elements in the unpacked integer array
+    const int32_t * const ni,
+    //! [in] Unpacked integer spacing indicator
+    const int32_t * const nj,
+    //! [in] Packed integer size in bit
+    const int32_t * const nBits,
+    //! \deprecated Unused
+    const int32_t * const unused,
+    //! Operation mode:
+    //! | -:| :-----------: |
+    //! | 1 | Pack float    |
+    //! | 2 | Unpack float  |
+    //! | 3 | Pack double   |
+    //! | 4 | Unpack double |
+    const int32_t * const mode
+) {
+    const int stride = 1;
+    const int offset = 24;
+    const int ninj = ((*ni) * (*nj));
+    int oper = *mode;
+    const double tempFloat = 9999.0000;
 
-
-
-  /***************************************************************************
-   *                                                                         *
-   *    determine lnBits                                                     *
-   *                                                                         *
-   **************************************************************************/
-  if(*nBits > 1)
-     {
-      if(1 > (32 / *nBits))
-     lnBits = 1;
-      else
-     lnBits = (32 / (int)*nBits);
-      }
-  else if (*nBits < 0)
-     lnBits = (int)*nBits * (-1);
-  else
-     lnBits = 32;
-
-
-
-  /*************************************************************************
-   *                                                                       *
-   *  determine function pointer and make OPER uniform for pack and unpack *
-   *                                                                       *
-   ************************************************************************/
-  pfp = OPER > 3 ? &compact_double : &compact_float;
-  OPER = OPER > 3 ? OPER - 4 : OPER;
-  ptrXpacked = NULL;
-  ptrXpacked = xpacked;
-
-
-  /************************************************************************
-   *                                                                      *
-   *  call the appropriate pack/unpack routine written in C               *
-   *                                                                      *
-   ***********************************************************************/
-  if ( xunpacked == xpacked )
-    /*****************************************************
-     *                                                   *
-     *   inplace stuff                                   *
-     ****************************************************/
-    {
-
-      lengthOfIntArray = (ninj*lnBits) / 32 + 6;
-      tempIntArray = NULL;
-      tempIntArray = ( uint32_t *) malloc(lengthOfIntArray*sizeof(uint32_t));
-
-
-      if (OPER == 1)
-        /**************
-         *  pack      *
-         *************/
-        {
-          tempFloatArray = (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits,
-                                         offset, stride, OPER, 0, &tempFloat);
-          for ( i = 0; i < lengthOfIntArray; i++)
-            {
-              ptrXpacked[i] = tempIntArray[i];
-            };
+    int lnBits = (*nBits);
+    if (*nBits > 1) {
+        if (1 > (32 / *nBits)) {
+            lnBits = 1;
+        } else {
+            lnBits = (32 / (int) *nBits);
         }
-      else if ( OPER == 2 )
-        /**************
-         *  unpack    *
-         *************/
-        {
-          for ( i = 0; i < lengthOfIntArray; i++)
-            {
-              tempIntArray[i] = ptrXpacked[i] ;
-            };
-          tempFloatArray = (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits,
-                                         offset, stride, OPER, 0, &tempFloat);
-        };
-
-      free(tempIntArray);
-      tempIntArray = NULL;
+    } else if (*nBits < 0) {
+        lnBits = (int) *nBits * (-1);
+    } else {
+        lnBits = 32;
     }
-  else
-    /***************************************************
-     *                                                 *
-     *  regular stuff                                  *
-     *                                                 *
-     **************************************************/
-    {
-      tempFloatArray = (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits,
-                                              offset, stride, OPER, 0, &tempFloat);
-    };
 
-   ptrXpacked = NULL;
+    // determine function pointer and make oper uniform for pack and unpack
+    PackFunctionPointer pfp = oper > 3 ? &compact_double : &compact_float;
+    oper = oper > 3 ? oper - 4 : oper;
 
+    uint32_t *ptrXpacked = xpacked;
+
+    // call the appropriate pack/unpack routine written in C
+    if ( xunpacked == ptrXpacked ) {
+        // In place
+        int lengthOfIntArray = (ninj * lnBits) / 32 + 6;
+        uint32_t *tempIntArray = ( uint32_t *) malloc(lengthOfIntArray * sizeof(uint32_t));
+
+      if (oper == 1) {
+            // Pack
+            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat);
+            for (int i = 0; i < lengthOfIntArray; i++) {
+                ptrXpacked[i] = tempIntArray[i];
+            }
+        } else if ( oper == 2 ) {
+            // Unpack
+            for (int i = 0; i < lengthOfIntArray; i++) {
+                tempIntArray[i] = ptrXpacked[i] ;
+            }
+            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat);
+        }
+
+        free(tempIntArray);
+    } else {
+        (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat);
+    }
 }
-
-
-
-
-
-
-
-

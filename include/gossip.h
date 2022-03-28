@@ -1,3 +1,6 @@
+#ifndef GOSSIP_H
+#define GOSSIP_H
+
 #include <stdint.h>
 #include <rpnmacros.h>
 
@@ -128,3 +131,9 @@ void increment_timeout_counter();
 void decrement_timeout_counter();
 int set_timeout_counter(int timeout_value);
 int get_timeout_counter();
+
+void check_swap_records(void * const record, const int size, const int tokensize);
+int write_stream(const int fd, const char * const data, const int bytes);
+int read_stream(const int fd, char * const data, const int nbytes);
+
+#endif
