@@ -29,6 +29,7 @@
 #endif
 
 #include <rpnmacros.h>
+#include <ftn2c_helper.h>
 
 #ifdef WIN32
 // For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h

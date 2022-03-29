@@ -143,6 +143,7 @@
 #include <errno.h>
 
 #include <rpnmacros.h>
+#include <ftn2c_helper.h>
 
 #define CLIB_OK    1
 #define CLIB_ERROR -1
