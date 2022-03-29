@@ -41,25 +41,21 @@
 
 !> \brief Get Fortran pointer to an integer array with the jar data (NOT A COPY, a live pointer)
 !> integer, dimension(:), pointer :: arrayptr
-#define JAR_DATA(jar, arrayptr)  arrayptr => jar%array()
+#define JAR_DATA(jar, arrayptr)  arrayptr => jar%f_array()
 
 !> \brief Free the data container of the data jar (returns 0 if ok, -1 if error)
 !> integer :: ok
 !> ok = JAR_FREE(my_jar_name)
 #define JAR_FREE(jar) jar%free()
 
-!> \biref Check if a data jar is valid
+!> \brief Check if a data jar is valid
 !> logical isok
 !> isok = JAR_VALID(my_jar_name)
-#define JAR_VALID(jar) jar%valid()
+#define JAR_VALID(jar) jar%is_valid()
 
 !> \brief Totally empty a data jar
 !> JAR_RESET(my_jar_name)
 #define JAR_RESET(jar) call jar%reset()
-
-!> \brief Rreset extraction pointer to beginning of jar
-!> JAR_REWIND(my_jar_name)
-#define JAR_REWIND(jar) call jar%rewind()
 
 !> \brief Insert a SCALAR item into data jar at current insertion position or at a specific position
 !> beginning of data jar is at position 1
@@ -69,9 +65,9 @@
 !> type(whatever_type) :: my_item
 !> ne = JAR_PUT_ITEM(my_jar_name, my_item)                       ! or JAR_INTO_SINGLE
 !> ne = JAR_PUT_ITEM_AT(my_jar_name, my_item, insertion_point)   ! or JAR_INTO_SINGLE_AT
-#define JAR_PUT_ITEM(jar, item)          jar%put( item, storage_size(item) )
+#define JAR_PUT_ITEM(jar, item)          jar%insert( item, storage_size(item) )
 #if defined(JAR_EXTENDED_MACROS)
-#define JAR_PUT_ITEM_AT(jar, item, pos)  jar%put( item, storage_size(item), where=pos )
+#define JAR_PUT_ITEM_AT(jar, item, pos)  jar%insert( item, storage_size(item), position=pos )
 #endif
 
 !> \brief Insert an ARRAY or an ARRAY section into data jar at current insertion position or at a specific position
@@ -82,9 +78,9 @@
 !> type(whatever_type), dimension(whatever_dimensions) :: my_array
 !> ne = JAR_PUT_ITEMS(my_jar_name, my_array(start:end))                      ! or JAR_INTO_MULTI
 !> ne = JAR_PUT_ITEMS_AT(my_jar_name, my_array(start:end), insertion_point)  ! or JAR_INTO_MULTI_AT
-#define JAR_PUT_ITEMS(jar, item)          jar%put( item, storage_size(item)*size(item) )
+#define JAR_PUT_ITEMS(jar, item)          jar%insert( item, storage_size(item)*size(item) )
 #if defined(JAR_EXTENDED_MACROS)
-#define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%put( item, storage_size(item)*size(item), where=pos )
+#define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%insert( item, storage_size(item)*size(item), position=pos )
 #endif
 
 !> \brief Extract a SCALAR item from data jar at current extraction position or at a specific position
@@ -95,9 +91,9 @@
 !> type(whatever_type) :: my_item
 !> ne = JAR_GET_ITEM(my_jar_name, my_item)                       ! or JAR_OUTOF_SINGLE
 !> ne = JAR_GET_ITEM_AT(my_jar_name, my_item, extraction_point)  ! or JAR_OUTOF_SINGLE_AT
-#define JAR_GET_ITEM(jar, item)         jar%get( item, storage_size(item) )
+#define JAR_GET_ITEM(jar, item)         jar%extract( item, storage_size(item, kind=8) )
 #if defined(JAR_EXTENDED_MACROS)
-#define JAR_GET_ITEM_AT(jar, item, pos) jar%get( item, storage_size(item), where=pos )
+#define JAR_GET_ITEM_AT(jar, item, pos) jar%extract( item, storage_size(item, kind=8), position=pos )
 #endif
 
 !> \brief Extract an ARRAY or an ARRAY section from data jar at current extraction position or at a specific position
@@ -108,9 +104,9 @@
 !> type(whatever_type), dimension(whatever_dimensions) :: my_array
 !> ne = JAR_GET_ITEMS(my_jar_name, my_array(start:end))                       ! or JAR_OUTOF_MULTI
 !> ne = JAR_GET_ITEMS_AT(my_jar_name, my_array(start:end), extraction_point)  ! or JAR_OUTOF_MULTI_AT
-#define JAR_GET_ITEMS(jar, item)         jar%get( item, storage_size(item)*size(item) )
+#define JAR_GET_ITEMS(jar, item)         jar%extract( item, storage_size(item, kind=8) * size(item) )
 #if defined(JAR_EXTENDED_MACROS)
-#define JAR_GET_ITEMS_AT(jar, item, pos) jar%get( item, storage_size(item)*size(item), where=pos )
+#define JAR_GET_ITEMS_AT(jar, item, pos) jar%extract( item, storage_size(item, kind=8) * size(item), position=pos )
 #endif
 
 #endif

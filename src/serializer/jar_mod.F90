@@ -52,40 +52,39 @@ module jar_module
     !> C interoperable version of jar
     type, public, BIND(C) :: c_jar
         private
-        integer(JAR_ELEMENT) :: size = 0             ! capacity of jar
-        integer(JAR_ELEMENT) :: top  = 0             ! last posision "written" (cannot write beyond size)
-        integer(JAR_ELEMENT) :: bot  = 0             ! last position "read" (cannot read beyond top)
-        integer(JAR_ELEMENT) :: opt  = 0             ! option flags (0 owner of data memory, 1 not owner)
-        type(C_PTR)          :: ptr = C_NULL_PTR     ! address of actual data
+        integer(JAR_ELEMENT) :: size_elem = 0             ! capacity of jar, in number of elements
+        integer(JAR_ELEMENT) :: top       = 0             ! last posision "written" (cannot write beyond size)
+        integer(JAR_ELEMENT) :: bot       = 0             ! last position "read" (cannot read beyond top)
+        integer(JAR_ELEMENT) :: opt       = 0             ! option flags (0 owner of data memory, 1 not owner)
+        type(C_PTR)          :: ptr       = C_NULL_PTR    ! address of actual data
     end type
 
     !> Same as c_jar, but with type bound procedures
     type, public :: jar
         private
-        integer(JAR_ELEMENT) :: size = 0             ! capacity of jar
-        integer(JAR_ELEMENT) :: top  = 0             ! last posision "written" (cannot write beyond size)
-        integer(JAR_ELEMENT) :: bot  = 0             ! last position "read" (cannot read beyond top)
-        integer(JAR_ELEMENT) :: opt  = 0             ! option flags (0 owner of data memory, 1 not owner)
-        type(C_PTR)          :: ptr = C_NULL_PTR     ! address of actual data
+        integer(JAR_ELEMENT) :: size_elem = 0             ! capacity of jar, in number of elements
+        integer(JAR_ELEMENT) :: top       = 0             ! last posision "written" (cannot write beyond size)
+        integer(JAR_ELEMENT) :: bot       = 0             ! last position "read" (cannot read beyond top)
+        integer(JAR_ELEMENT) :: opt       = 0             ! option flags (0 owner of data memory, 1 not owner)
+        type(C_PTR)          :: ptr       = C_NULL_PTR    ! address of actual data
     contains
-        procedure, PASS :: new     => new_jar
-        procedure, PASS :: shape   => shape_as_jar
-        procedure, PASS :: valid   => valid_jar
-        procedure, PASS :: free    => free_jar
-        procedure, PASS :: rewind  => rewind_jar
-        procedure, PASS :: reset   => reset_jar
-        procedure, PASS :: data    => jar_pointer
-        procedure, PASS :: array   => jar_contents
-        procedure, PASS :: raw_array => jar_contents_full
-        procedure, PASS :: usable  => jar_size
-        procedure, PASS :: high    => jar_top
-        procedure, PASS :: low     => jar_bot
-        procedure, PASS :: avail   => jar_avail
-        procedure, PASS :: put     => put_into_jar
-        procedure, PASS :: get     => get_outof_jar
-        procedure, PASS :: print   => print_jar
-        procedure, NOPASS :: debug => debug_jars
-        final :: final_jar
+        procedure, PASS :: new          => jar_new
+        procedure, PASS :: shape_with   => jar_shape_with
+        procedure, PASS :: is_valid     => jar_is_valid
+        procedure, PASS :: free         => jar_free
+        procedure, PASS :: reset        => jar_reset
+        procedure, PASS :: raw_data     => jar_raw_pointer
+        procedure, PASS :: f_array      => jar_contents
+        procedure, PASS :: full_f_array => jar_contents_full
+        procedure, PASS :: get_size     => jar_size
+        procedure, PASS :: get_top      => jar_top
+        procedure, PASS :: get_bot      => jar_bot
+        procedure, PASS :: get_num_avail => jar_avail
+        procedure, PASS :: insert       => jar_put_into
+        procedure, PASS :: extract      => jar_get_outof
+        procedure, PASS :: print_data   => jar_print_data
+        procedure, NOPASS :: debug      => debug_jars
+        final :: jar_final
     end type
 
     contains
@@ -103,146 +102,137 @@ module jar_module
 
 
     !> Create a new data jar, allocate data storage
-    function new_jar(jar_instance, data_size) result(ok)
+    function jar_new(jar_instance, data_size) result(ok)
         implicit none
-        class(jar), intent(INOUT) :: jar_instance !> Data jar
+        class(jar), intent(INOUT) :: jar_instance !> Data jar instance
         integer, intent(IN), value :: data_size   !> Number of elements in jar
-        integer :: ok                             !> 0 if O.K., -1 if error
+        logical :: ok                             !> .true. if jar was successfully created, .false. otherwise
 
-        integer(C_SIZE_T)    :: dsz
+        integer(C_SIZE_T)    :: data_size_byte
         integer(JAR_ELEMENT) :: dummy_jar_element
 
-        ok = -1
+        ok = .false.
         if (C_ASSOCIATED(jar_instance%ptr)) return       ! error, there is already an allocated data container
 
-        dsz = data_size
+        data_size_byte = data_size * storage_size(dummy_jar_element) / 8
         ! size in bytes
-        jar_instance%ptr = libc_malloc( dsz * storage_size(dummy_jar_element) / 8)
+        jar_instance%ptr = libc_malloc(data_size_byte)
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return ! malloc failed
-        ok = 0
+        ok = .true.
 
-        jar_instance%top  = 0                            ! data jar is empty (no data written)
-        jar_instance%bot  = 0                            ! data jar is empty (no data to read)
-        jar_instance%opt  = 0                            ! options = 0, jar owns the memory storage
-        jar_instance%size = data_size                    ! data jar capacity
-    end function new_jar
+        jar_instance%top       = 0                            ! data jar is empty (no data written)
+        jar_instance%bot       = 0                            ! data jar is empty (no data to read)
+        jar_instance%opt       = 0                            ! options = 0, jar owns the memory storage
+        jar_instance%size_elem = data_size                    ! data jar capacity
+    end function jar_new
 
 
     !> Transform an integer array into a jar
-    function shape_as_jar(jar_instance, array, arraysize) result(ok)
+    function jar_shape_with(jar_instance, array, array_size_elem) result(ok)
         implicit none
         class(jar), intent(INOUT) :: jar_instance                       !> Data jar instance
-        integer(C_INT), intent(IN), value :: arraysize                  !> Number of elements in arrray
-        integer(JAR_ELEMENT), dimension(arraysize), intent(IN) :: array !> Input array
-        integer :: ok                                                   !> 0 if O.K., -1 if error
+        integer(C_INT), intent(IN), value :: array_size_elem            !> Number of elements in array
+        integer(JAR_ELEMENT), dimension(array_size_elem), intent(IN) :: array !> Input array
+        logical :: ok                                                   !> .true. if O.K., .false. if error
 
         integer(C_INTPTR_T) :: temp
 
-        ok = -1
+        ok = .false.
         if (C_ASSOCIATED(jar_instance%ptr)) return          ! error, there is already an allocated data container
 
         temp = LOC(array)
         jar_instance%ptr = transfer(temp, jar_instance%ptr)
-        ok = 0
+        ok = .true.
 
-        jar_instance%top  = arraysize                    ! data jar is full
-        jar_instance%bot  = 0                            ! no data has been read yet
-        jar_instance%opt  = 1                            ! options = 1, jar is not the owner of the storage
-        jar_instance%size = arraysize                    ! data jar capacity
-    end function shape_as_jar
+        jar_instance%top       = array_size_elem              ! data jar is full
+        jar_instance%bot       = 0                            ! no data has been read yet
+        jar_instance%opt       = 1                            ! options = 1, jar is not the owner of the storage
+        jar_instance%size_elem = array_size_elem              ! data jar capacity
+    end function jar_shape_with
 
 
     !> Check if jar is valid (is there is a valid data pointer ?)
-    function valid_jar(jar_instance) result(ok)
+    function jar_is_valid(jar_instance) result(ok)
         implicit none
         class(jar), intent(INOUT) :: jar_instance          !> Data jar instance
         logical :: ok                                      !> .true. if valid, .false. if not
 
         ok = C_ASSOCIATED(jar_instance%ptr)
-    end function valid_jar
+    end function jar_is_valid
 
 
     !> Empty, keep allocated space
-    subroutine reset_jar(jar_instance)
+    subroutine jar_reset(jar_instance)
         implicit none
         class(jar), intent(INOUT) :: jar_instance          !> Data jar instance
 
         jar_instance%top  = 0                              ! data jar is empty (no data written)
         jar_instance%bot  = 0                              ! data jar is empty (no data read)
-    end subroutine reset_jar
-
-
-    !> Rewind jar for extraction
-    subroutine rewind_jar(jar_instance)
-        implicit none
-        class(jar), intent(INOUT) :: jar_instance          !> Data jar instance
-
-        jar_instance%bot  = 0                              ! no data read yet
-    end subroutine rewind_jar
+    end subroutine jar_reset
 
 
     !> Print jar info
-    subroutine print_jar(jar_instance, max_elem)
+    subroutine jar_print_data(jar_instance, max_elem)
         implicit none
         class(jar), intent(IN) :: jar_instance               !> Data jar instance
         integer(JAR_ELEMENT), intent(IN), value :: max_elem  !> Maximum number of data elements to print
 
-        integer, dimension(:), pointer :: data
+        integer, dimension(:), pointer :: jar_data
 
-        call C_F_POINTER(jar_instance%ptr, data, [jar_instance%size])
-        print '(3I6,(20Z9.8))', jar_instance%size, jar_instance%bot, jar_instance%top, data(1:min(max_elem, jar_instance%top))
-    end subroutine print_jar
+        call C_F_POINTER(jar_instance%ptr, jar_data, [jar_instance%size_elem])
+        print '(3I6,(20Z9.8))', jar_instance%size_elem, jar_instance%bot, jar_instance%top, jar_data(1:min(max_elem, jar_instance%top))
+    end subroutine jar_print_data
 
 
     !> Get current number of elements available for extraction (high - low) (JAR_ELEMENT units)
-    function jar_avail(jar_instance) result(sz)
+    function jar_avail(jar_instance) result(num_elem)
         implicit none
         class(jar), intent(IN) :: jar_instance             !> Data jar instance
-        integer(JAR_ELEMENT) :: sz                         !> Number of elements available data in jar (JAR_ELEMENT units)
+        integer(JAR_ELEMENT) :: num_elem                   !> Number of elements available data in jar (JAR_ELEMENT units)
 
-        sz = -1
+        num_elem = -1
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
-        sz = jar_instance%top - jar_instance%bot
+        num_elem = jar_instance%top - jar_instance%bot
     end function jar_avail
 
 
     !> Get current number of elements inserted (written) (JAR_ELEMENT units)
-    function jar_top(jar_instance) result(sz)
+    function jar_top(jar_instance) result(num_elem)
         implicit none
         class(jar), intent(IN) :: jar_instance             !> Data jar instance
-        integer(JAR_ELEMENT) :: sz                         !> Number of elements inserted in jar (JAR_ELEMENT units)
+        integer(JAR_ELEMENT) :: num_elem                   !> Number of elements inserted in jar (JAR_ELEMENT units)
 
-        sz = -1
+        num_elem = -1
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
-        sz = jar_instance%top
+        num_elem = jar_instance%top
     end function jar_top
 
     !> Get current number of elements extracted (read) (JAR_ELEMENT units)
-    function jar_bot(jar_instance) result(sz)
+    function jar_bot(jar_instance) result(num_elem)
         implicit none
         class(jar), intent(IN) :: jar_instance             !> Data jar instance
-        integer(JAR_ELEMENT) :: sz                         !> Number of elements extracted from jar (JAR_ELEMENT units)
+        integer(JAR_ELEMENT) :: num_elem                   !> Number of elements extracted from jar (JAR_ELEMENT units)
 
-        sz = -1
+        num_elem = -1
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
-        sz = jar_instance%bot
+        num_elem = jar_instance%bot
     end function jar_bot
 
 
     !> Get maximum capacity of data jar (JAR_ELEMENT units)
-    function jar_size(jar_instance) result(sz)
+    function jar_size(jar_instance) result(num_elem)
         implicit none
         class(jar), intent(IN) :: jar_instance             !> Data jar instance
-        integer(JAR_ELEMENT) :: sz                         !> Jar capacity (JAR_ELEMENT units)
+        integer(JAR_ELEMENT) :: num_elem                   !> Jar capacity (JAR_ELEMENT units)
 
-        sz = -1
+        num_elem = -1
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
-        sz = jar_instance%size
+        num_elem = jar_instance%size_elem
     end function jar_size
 
 
     !> Get C pointer to jar data (1 D array of JAR_ELEMENTs)
-    function jar_pointer(jar_instance) result(ptr)
+    function jar_raw_pointer(jar_instance) result(ptr)
         implicit none
         class(jar), intent(IN) :: jar_instance             !> Data jar instance
         type(C_PTR) :: ptr                                 !> C pointer to jar data
@@ -250,151 +240,174 @@ module jar_module
         ptr = C_NULL_PTR
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
         ptr = jar_instance%ptr
-    end function jar_pointer
+    end function jar_raw_pointer
 
 
     !> Get Fortran pointer to jar data (1 D array of JAR_ELEMENTs)
-    function jar_contents(jar_instance) result(fp)
+    function jar_contents(jar_instance) result(f_ptr)
         implicit none
-        class(jar), intent(IN) :: jar_instance             !> Data jar instance
-        integer(JAR_ELEMENT), dimension(:),  pointer :: fp !> Fortran pointer to jar data
+        class(jar), intent(IN) :: jar_instance                !> Data jar instance
+        integer(JAR_ELEMENT), dimension(:),  pointer :: f_ptr !> Fortran pointer to jar data
 
-        nullify(fp)
+        nullify(f_ptr)
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return ! no data pointer, return NULL pointer
         if (jar_instance%top == 0) return                ! empty jar, return NULL pointer
 
-        call C_F_POINTER(jar_instance%ptr, fp, [jar_instance%top])  ! Fortran pointer to array of jar_instance%size JAR_ELEMENTs
+        call C_F_POINTER(jar_instance%ptr, f_ptr, [jar_instance%top])  ! Fortran pointer to array of jar_instance%size_elem JAR_ELEMENTs
     end function jar_contents
 
 
     !> Get Fortran pointer to entire jar data array
-    function jar_contents_full(jar_instance) result(fp)
+    function jar_contents_full(jar_instance) result(f_ptr)
         implicit none
-        class(jar), intent(IN) :: jar_instance             !> Data jar instance
-        integer(JAR_ELEMENT), dimension(:), pointer :: fp  !> Fortran pointer to jar data
+        class(jar), intent(IN) :: jar_instance                !> Data jar instance
+        integer(JAR_ELEMENT), dimension(:), pointer :: f_ptr  !> Fortran pointer to jar data
 
-        nullify(fp)
+        nullify(f_ptr)
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
 
-        call C_F_POINTER(jar_instance%ptr, fp, [jar_instance%size])
+        call C_F_POINTER(jar_instance%ptr, f_ptr, [jar_instance%size_elem])
     end function jar_contents_full
 
 
     !> Deallocate a jar's data if not already done at finalize (if jar owns it)
-    subroutine final_jar(jar_instance)
+    subroutine jar_final(jar_instance)
         implicit none
         type(jar), intent(INOUT) :: jar_instance            !> Data jar instance
 
         if (C_ASSOCIATED(jar_instance%ptr)) then
-        if (debug_mode .and. jar_instance%opt == 0) print *, 'DEBUG(jar finalize): freing jar memory, size =', jar_instance%size
-        if (debug_mode .and. jar_instance%opt == 1) print *, 'DEBUG(jar finalize): not owner, not freing jar memory, size =', jar_instance%size
+        if (debug_mode .and. jar_instance%opt == 0) print *, 'DEBUG(jar finalize): freing jar memory, size =', jar_instance%size_elem
+        if (debug_mode .and. jar_instance%opt == 1) print *, 'DEBUG(jar finalize): not owner, not freing jar memory, size =', jar_instance%size_elem
         if (jar_instance%opt == 0) call libc_free(jar_instance%ptr)      ! release storage associated with jar if jar owns it
             jar_instance%ptr = C_NULL_PTR
         else
-            if(debug_mode) print *, 'DEBUG(jar finalize): nothing to free in jar'
+            if(debug_mode) print *,'DEBUG(jar finalize): nothing to free in jar'
         endif
-        jar_instance%top  = 0                             ! data jar is now empty (no data written)
-        jar_instance%bot  = 0                             ! data jar is now empty (no data to read)
-        jar_instance%opt  = 0                             ! reset ownership flag
-        jar_instance%size = 0                             ! data jar cannot store data
-    end subroutine final_jar
+        jar_instance%top       = 0                      ! data jar is now empty (no data written)
+        jar_instance%bot       = 0                      ! data jar is now empty (no data to read)
+        jar_instance%opt       = 0                      ! reset ownership flag
+        jar_instance%size_elem = 0                      ! data jar cannot store data
+    end subroutine jar_final
 
 
     !> Deallocate a jar's data space (if jar owns it)
-    function free_jar(jar_instance) result(status)
+    function jar_free(jar_instance) result(status)
         implicit none
         class(jar), intent(INOUT) :: jar_instance           !> Data jar instance
         integer :: status                                   !> 0 if O.K., -1 if nothing to free
 
         if (C_ASSOCIATED(jar_instance%ptr)) then
-        if (debug_mode .and. jar_instance%opt == 0) print *, 'DEBUG(jar free): freing jar memory'
-        if (debug_mode .and. jar_instance%opt == 1) print *, 'DEBUG(jar free): not owner, not freing jar memory'
-        if (jar_instance%opt == 0) call libc_free(jar_instance%ptr)    ! release storage associated with jar if jar owns it
-            jar_instance%ptr = C_NULL_PTR                     ! nullify data pointer to avoid accidents
+            if (debug_mode .and. jar_instance%opt == 0) print *,'DEBUG(jar free): freing jar memory'
+            if (debug_mode .and. jar_instance%opt == 1) print *,'DEBUG(jar free): not owner, not freing jar memory'
+            if (jar_instance%opt == 0) call libc_free(jar_instance%ptr)    ! release storage associated with jar if jar owns it
+            jar_instance%ptr = C_NULL_PTR          ! nullify data pointer to avoid accidents
             status = 0
         else
-            if (debug_mode) print *, 'DEBUG(jar free): nothing to free in jar'
+            if (debug_mode) print *,'DEBUG(jar free): nothing to free in jar'
             status = -1                            ! already freed
         endif
-        jar_instance%top  = 0                             ! data jar is now empty (no data written)
-        jar_instance%bot  = 0                             ! data jar is now empty (no data to read)
-        jar_instance%opt  = 0                             ! reset ownership flag
-        jar_instance%size = 0                             ! data jar cannot store data
-    end function free_jar
+        jar_instance%top       = 0                 ! data jar is now empty (no data written)
+        jar_instance%bot       = 0                 ! data jar is now empty (no data to read)
+        jar_instance%opt       = 0                 ! reset ownership flag
+        jar_instance%size_elem = 0                 ! data jar cannot store data
+    end function jar_free
 
 
 #define IgnoreTypeKindRank object
 #define ExtraAttributes , target
     !> Add data to jar at top of jar (or at a specific position)
-    function put_into_jar(jar_instance, object, size, where) result(sz)
+    function jar_put_into(jar_instance, object, size_bits, position) result(success)
         implicit none
-        class(jar), intent(INOUT) :: jar_instance                          !> Data jar instance
+        class(jar), intent(INOUT) :: jar_instance               !> Data jar instance
 #include <IgnoreTypeKindRank.hf>
-        integer, intent(IN), value :: size                                 !> Size to insert = storage_size(item) * nb_of_items
-        integer(JAR_ELEMENT), intent(IN), optional, value :: where         !> Insertion point (1 = start of jar), optional
-        integer(JAR_ELEMENT) :: sz                                         !> Position of last inserted element (-1 if error)
+        integer, intent(IN), value :: size_bits                 !> Size to insert in number of bits = storage_size(item) * nb_of_items
+        integer(JAR_ELEMENT), intent(IN), optional :: position  !> Insertion point (1 = start of jar), optional
+        logical :: success                                      !> Whether the operation succeeded
 
-        integer(JAR_ELEMENT) :: intsize, pos
+        integer(JAR_ELEMENT) :: size_elem, insertion_pos
         type(C_PTR) :: temp
-        integer(JAR_ELEMENT), dimension(:), pointer :: je, content
+        integer(JAR_ELEMENT), dimension(:), pointer :: object_as_array, jar_content
 
-        sz = -1
+        success = .false.
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
 
-        call C_F_POINTER(jar_instance%ptr, content, [jar_instance%size])   ! pointer to jar data
-        if ( present(where) ) then
-            pos = where - 1                                                ! insert starting at position "where"
+        call C_F_POINTER(jar_instance%ptr, jar_content, [jar_instance%size_elem])   ! pointer to jar data
+        if ( present(position) ) then
+            insertion_pos = position - 1                                            ! insert starting at "position"
         else
-            pos = jar_instance%top                                         ! insert after data currently in jar
+            insertion_pos = jar_instance%top                                        ! insert after data currently in jar
         endif
-        if (pos < 0) return                                                ! invalid insertion position
-        if (pos > jar_instance%top) content(jar_instance%top + 1 : pos) = 0 ! zero fill skipped portion
+        if (insertion_pos < 0) return                                               ! invalid insertion position
+        if (insertion_pos > jar_instance%top) jar_content(jar_instance%top + 1 : insertion_pos) = 0 ! zero fill skipped portion
 
-        intsize = (size + storage_size(content(1)) - 1) / storage_size(content(1))
-        if (pos + intsize > jar_instance%size) return                      ! jar would overflow
+        size_elem = (size_bits + storage_size(jar_content(1)) - 1) / storage_size(jar_content(1))
+        if (insertion_pos + size_elem > jar_instance%size_elem) return              ! jar would overflow
 
         temp = C_LOC(object)
-        call C_F_POINTER(temp, je, [intsize])                              ! make what into an integer array
-        content(pos + 1 : pos + intsize) = je(1 : intsize)                 ! insert into data portion of jar
-        jar_instance%top = pos + intsize                                   ! update top of jar position
-        sz = jar_instance%top                                              ! number of elements in jar
-    end function put_into_jar
+        call C_F_POINTER(temp, object_as_array, [size_elem])                        ! make what into an integer array
+        jar_content(insertion_pos + 1 : insertion_pos + size_elem) = object_as_array(1 : size_elem)  ! insert into data portion of jar
+        jar_instance%top = insertion_pos + size_elem                                ! update top of jar position
+        success = .true.
+
+    end function jar_put_into
 
 
 #define IgnoreTypeKindRank object
 #define ExtraAttributes , target
     !> Get data from jar at current (or specific position)
-    function get_outof_jar(jar_instance, object, size, where) result(sz)
+    function jar_get_outof(jar_instance, object, size_bits, position) result(success)
         implicit none
-        class(jar), intent(INOUT) :: jar_instance                    !> Data jar instance
+        class(jar), intent(INOUT) :: jar_instance               !> Data jar instance
 #include <IgnoreTypeKindRank.hf>
-        integer, intent(IN), value :: size                           !> Size to insert = storage_size(item) * nb_of_items
-        integer(JAR_ELEMENT), intent(IN), optional, value :: where   !> Extraction point (1 = start of jar), optional
-        integer(JAR_ELEMENT) :: sz                                   !> Position of last extracted element (-1 if error)
+        integer(C_INT64_T),   intent(IN), value :: size_bits    !> Size to insert in bits = storage_size(item) * nb_of_items
+        integer(JAR_ELEMENT), intent(IN), optional :: position  !> Extraction point (1 = start of jar), optional
+        logical :: success                                      !> Whether the operation succeeded
 
-        integer(JAR_ELEMENT) :: intsize, pos
+        integer(JAR_ELEMENT) :: size_elem_down, size_elem_up
+        integer(JAR_ELEMENT) :: extraction_pos
         type(C_PTR) :: temp
-        integer(JAR_ELEMENT), dimension(:), pointer :: je, content
+        integer(JAR_ELEMENT), dimension(:), pointer :: object_as_array, jar_content
 
-        sz = -1
+        success = .false.
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
 
-        call C_F_POINTER(jar_instance%ptr, content, [jar_instance%size]) ! pointer to jar data
-        if ( present(where) ) then
-            pos = where - 1                                              ! insert at position "where"
+        call C_F_POINTER(jar_instance%ptr, jar_content, [jar_instance%size_elem])   ! pointer to jar data
+        if ( present(position) ) then
+            extraction_pos = position - 1                                           ! insert at "position"
         else
-            pos = jar_instance%bot                                       ! insert after data currently in jar
+            extraction_pos = jar_instance%bot                                       ! insert after data currently in jar
         endif
-        if (pos < 0) return                                              ! invalid insertion position
+        if (extraction_pos < 0) return                                              ! invalid extraction position
 
-        intsize = size / storage_size(content(1))
-        if (pos + intsize > jar_instance%top) return                     ! insufficient data in jar
+        size_elem_down = size_bits / storage_size(jar_content(1))                   ! size of object in JAR_ELEMENTs (rounded down)
+        size_elem_up   = (size_bits + storage_size(jar_content(1)) - 1) / storage_size(jar_content(1)) ! size of object in JAR_ELEMENTs (rounded up)
+        if (extraction_pos + size_elem_up > jar_instance%top) return                ! insufficient data in jar
 
         temp = C_LOC(object)
-        call C_F_POINTER(temp, je, [intsize])                            ! make what into an integer array
-        je(1 : intsize) = content(pos + 1 : pos + intsize)               ! insert into data portion of jar
-        jar_instance%bot = pos + intsize                                 ! update top of jar position
-        sz = jar_instance%bot                                            ! position of last extracted element
-    end function get_outof_jar
+        call C_F_POINTER(temp, object_as_array, [size_elem_down])                   ! object as an array of JAR_ELEMENT
+        object_as_array(1 : size_elem_down) = jar_content(extraction_pos + 1 : extraction_pos + size_elem_down)        ! copy from data portion of jar
+
+        if(size_elem_up > size_elem_down)then
+            ! insert extra bytes. Need to cast everything as an array of bytes to get the exact size we want to copy
+            block
+                integer(C_INT64_T)   :: size_byte, size_byte_down
+                integer(JAR_ELEMENT) :: byte_pos
+                integer(C_INT8_T)    :: byte
+                integer(C_INT8_T), dimension(:), pointer :: jar_bytes, object_bytes
+
+                size_byte      = size_bits / storage_size(byte)                     ! size in bytes (rounded down, if number of bits doesn't fit)
+                size_byte_down = size_elem_down * (storage_size(jar_content(1)) / storage_size(byte)) ! number of bytes already inserted
+                byte_pos = extraction_pos * (storage_size(jar_content(1)) / storage_size(byte)) ! extraction_pos in bytes
+                temp = C_LOC(object)
+                call C_F_POINTER(temp, object_bytes, [size_byte])                   ! object as a byte array
+                call C_F_POINTER(jar_instance%ptr, jar_bytes, [size_byte])          ! jar data as a byte array
+                object_bytes(size_byte_down + 1 : size_byte) = jar_bytes(byte_pos + size_byte_down + 1 : byte_pos + size_byte)
+            end block
+        endif
+
+        jar_instance%bot = extraction_pos + size_elem_up                            ! update jar bottom position
+        success = .true.
+
+    end function jar_get_outof
 
 end module jar_module
