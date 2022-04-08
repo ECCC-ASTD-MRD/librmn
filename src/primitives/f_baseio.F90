@@ -99,18 +99,3 @@ integer function ftnclos(iun)
     ftnclos = 0
     CLOSE(iun)
 end
-
-
-integer function longueur(nom)
-    implicit none
-    character(len = *), intent(in) :: nom
-
-    integer :: lng
-
-    lng = len(nom)
-    do while (lng > 1 .and. nom(lng:lng) == ' ')
-        lng = lng - 1
-    end do
-
-    longueur = lng
-end

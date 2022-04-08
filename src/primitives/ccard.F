@@ -89,8 +89,8 @@
 !                               LE NOMBRE D'ARGUMENTS POSITIONELS ET ON
 !                               CONTINUE MALGRE LES ERREURS
 
-        INTEGER QQQOBM, LONGUEUR, QQQOENV
-        EXTERNAL QQQOBM, QQQSAP, LOW2UP, QQQTRNS, LONGUEUR
+        INTEGER QQQOBM, QQQOENV
+        EXTERNAL QQQOBM, QQQSAP, LOW2UP, QQQTRNS
         EXTERNAL QQQOENV, qqexit
         INTEGER I, POS, J, POSC, INDEX, CLLNG, POSMOIN, POSMOINC
 ! TYPE DE CLE -1=MINUS, 1=MAJUS, 0=PAREIL
@@ -107,14 +107,14 @@
 
         plante = abs(ii) .eq. 111
         call getenv('CCARD_OPT',ccard_args)
-        L_argenv = longueur(ccard_args)
+        L_argenv = len_trim(ccard_args)
         IF (L_argenv .gt. 0) THEN
           IF (ccard_args(1:L_argenv) .eq. 'ABORT') THEN
             plante = .true.
           ENDIF
         ENDIF
         call getenv('CCARD_ARGS',ccard_args)
-        L_argenv = longueur(ccard_args)
+        L_argenv = len_trim(ccard_args)
 
 
 !       INITIALISER LE VECTEUR DE TYPE DE CLEFS
@@ -191,7 +191,7 @@
                 GOTO 201
               ENDIF
  110        CONTINUE
-            CLLNG = LONGUEUR(ARGUP)
+            CLLNG = len_trim(ARGUP)
             PRINT *,' *** ERREUR: cle ',ARGUP(1:CLLNG),' non reconnue'
             CALL QQQSAP(CLE,DEF,VAL,N)
             IF(PLANTE) THEN
@@ -279,9 +279,6 @@
 !         ARG    SORTIE     NOM DE CLEF OU VALEUR RETOURNE
 
 !*
-        INTEGER LONGUEUR
-        EXTERNAL LONGUEUR
-
         LOGICAL PASDCLE, PUDCLE, PREMIER
         INTEGER ARGNUM, IINDEX, INDFIN, NARG, I, INDEB, J
         CHARACTER *8192 ARGUP
@@ -332,7 +329,7 @@
 
 !            TROUVER LA FIN DE ARGUP
 
-             INDFIN = LONGUEUR(ARGUP)
+             INDFIN = len_trim(ARGUP)
          ENDIF
 
 
@@ -416,8 +413,6 @@
         Logical debut, pudcle
         character c, quotechar
         character * 8192 arg
-        integer  longueur
-        external longueur
         SAVE        pos,debut
         DATA        debut, pudcle /.true., .false./
 
@@ -464,7 +459,7 @@
           endif
         END DO getarg
 
-        indfin = longueur(arg)
+        indfin = len_trim(arg)
 
         if ((arg(1:1) .eq. '-') .and. (.not. pudcle)) then
            qqqoenv = 1           ! nom de cle
@@ -545,11 +540,6 @@
 !      VAL      ENTREE  - TABLEAU CONTENANT LA PREMIERE VALEUR DE DEFAUT
 !                         OU LA VALEUR COURANTE DE LA CLEF
 !      N        ENTREE  - NOMBRE DE CLEFS
-
-
-        INTEGER LONGUEUR
-        EXTERNAL LONGUEUR
-
         CHARACTER*8192 LENOM
         INTEGER I,NOMLNG,CLELNG,DEFLNG,VALLNG
         character*128 clepre
@@ -560,7 +550,7 @@
 
         WRITE(6,100)
 
-        NOMLNG = LONGUEUR(LENOM)
+        NOMLNG = len_trim(LENOM)
         WRITE(6,*)LENOM(1:NOMLNG)
         clepre = ' '
         repcle = 0
@@ -574,9 +564,9 @@
              endif
              repcle = 0
              clepre = trim(CLE(I))
-             CLELNG = LONGUEUR(CLE(I))
-             DEFLNG = LONGUEUR(DEF(I))
-             VALLNG = LONGUEUR(VAL(I))
+             CLELNG = len_trim(CLE(I))
+             DEFLNG = len_trim(DEF(I))
+             VALLNG = len_trim(VAL(I))
              WRITE(6,200) CLE(I)(1:CLELNG),VAL(I)(1:VALLNG),
      %                  DEF(I)(1:DEFLNG)
            endif

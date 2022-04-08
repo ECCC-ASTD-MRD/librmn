@@ -49,8 +49,7 @@
 !
 !MODULES 
       EXTERNAL XDFOPN, XDFCLE, XDFSTA, QDFERR, MRFOPR, MRFOPC
-      external longueur,genvdt8
-      integer longueur
+      external genvdt8
       INTEGER  XDFOPN, XDFCLE, XDFSTA, QDFERR, MRFOPR, MRFOPC, IOUT,  &
      &         NOMBRE, STAT,   PRII,   PRI(2,NPRITOT), AUX(2,NAUXTOT),  &
      &         IER,    AUXX
