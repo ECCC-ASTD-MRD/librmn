@@ -233,7 +233,7 @@ int c_fstckp(
 }
 
 
-//! Gives information on data lenght of the elements passed to fstecr and fstlir (double, short integer, byte ...)
+//! Gives information on data length of the elements passed to fstecr and fstlir (double, short integer, byte ...)
 int c_fst_data_length(
     //! [in] Data length and kind
     //! 1: byte
@@ -280,6 +280,22 @@ int c_fst_data_length(
 
 
 //! Write a field into a rpn file
+//! | datyp | Description                                  |
+//! | ----: | :------------------------------------------- |
+//! |     0 | Binary, transparent                          |
+//! |     1 | Floating point                               |
+//! |     2 | Unsigned integer                             |
+//! |     3 | Character (R4A in an integer)                |
+//! |     4 | Signed integer                               |
+//! |     5 | IEEE floating point                          |
+//! |     6 | Floating point (16 bit, made for compressor) |
+//! |     7 | Character string                             |
+//! |     8 | Complex IEEE                                 |
+//! |   130 | Compressed short integer  (128+2)            |
+//! |   133 | Compressed IEEE           (128+5)            |
+//! |   134 | Compressed floating point (128+6)            |
+//! | +128  | Second stage packer active                   |
+//! | +64   | Missing value convention used                |
 int c_fstecr(
     //! [in] Field to write to the file
     uint32_t *field_in,
@@ -309,11 +325,11 @@ int c_fstecr(
     int ip3,
     //! [in] Type of field (forecast, analysis, climatology)
     char *in_typvar,
-    //! Variable name
+    //! [in] Variable name
     char *in_nomvar,
-    //! Label
+    //! [in] Label
     char *in_etiket,
-    //! Type of geographical projection
+    //! [in] Type of geographical projection
     char *in_grtyp,
     //! [in] First grid descriptor
     int ig1,
@@ -324,22 +340,6 @@ int c_fstecr(
     //! [in] Fourth grid descriptor
     int ig4,
     //! [in] Data type of elements
-    /*
-     *     0: binary, transparent
-     *     1: floating point
-     *     2: unsigned integer
-     *     3: character (R4A in an integer)
-     *     4: signed integer
-     *     5: IEEE floating point
-     *     6: floating point (16 bit, made for compressor)
-     *     7: character string
-     *     8: complex IEEE
-     *   130: compressed short integer  (128+2)
-     *   133: compressed IEEE           (128+5)
-     *   134: compressed floating point (128+6)
-     * +128 : second stage packer active
-     * +64  : missing value convention used
-     */
     int in_datyp_ori,
     //! [in] Rewrite existing record, append otherwise
     int rewrit
@@ -486,7 +486,7 @@ int c_fstecr(
     VALID(ip1, 0, IP1_MAX, "ip1", "c_fstecr")
     VALID(ip2, 0, IP2_MAX, "ip2", "c_fstecr")
     VALID(ip3, 0, IP3_MAX, "ip3", "c_fstecr")
-    VALID(ni * nj * nk*nbits/FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB", "c_fstecr");
+    VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB", "c_fstecr");
 
     datev = date;
     f_datev = (int32_t) datev;

@@ -265,7 +265,7 @@
 //! Restore to original buffer
 #define BUF_F buf[1] = (buf[1] +1) >> 1
 
-#define IUN_INDEX(ifile,unit) { \
+#define IUN_INDEX(ifile, unit) { \
    ifile = MAX_XDF_FILES; \
    while (--ifile >= 0) {\
      if (file_table[ifile] != NULL) \
@@ -273,13 +273,14 @@
      } \
    }
 
-#define FREE_INDEX(ifile,unit) { \
+#define FREE_INDEX(ifile, unit) { \
    ifile = MAX_XDF_FILES; \
    while (--ifile >= 0) {\
      if (file_table[ifile] == NULL) break;\
      } \
    }
 
+//! \todo Transform into an inline function in fstd98.c
 #define VALID(val, minval, maxval, what, caller) \
    if ((val < minval) || (val > maxval)) { \
      sprintf(errmsg, "%s = %d must be between %d and %d", what, val, minval, maxval); \
