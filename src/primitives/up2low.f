@@ -17,8 +17,12 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+* both subroutines ASSUME the ASCII character set
+* convert string S1 from upper case to lower case, output in S2
         SUBROUTINE UP2LOW(S1,S2)
-        CHARACTER * (*) S1,S2
+        IMPLICIT NONE
+        CHARACTER(len=*), intent(IN) :: S1
+        CHARACTER(len=*), intent(OUT) ::S2
         INTEGER I,L,L2
         L = MIN(LEN(S1),LEN(S2))
         L2 = LEN(S2)
@@ -29,12 +33,18 @@
             S2(I:I) = S1(I:I)
           ENDIF
  10     CONTINUE
-	DO 15 I = L+1,L2
-	  S2(I:I) = ' '
+        DO 15 I = L+1,L2
+          S2(I:I) = ' '
  15     CONTINUE
         RETURN
+        END
 *
-        ENTRY LOW2UP(S1,S2)
+* convert string S1 from lower case to upper case, output in S2
+        SUBROUTINE LOW2UP(S1,S2)
+        IMPLICIT NONE
+        CHARACTER(len=*), intent(IN) :: S1
+        CHARACTER(len=*), intent(OUT) ::S2
+        INTEGER I,L,L2
         L = MIN(LEN(S1),LEN(S2))
         L2 = LEN(S2)
         DO 20 I = 1,L

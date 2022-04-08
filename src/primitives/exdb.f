@@ -31,8 +31,7 @@
       EXDB=EXDBPLUS(in_TITRE,REVIS,FLAG,UNUSEDSTRING,0)
       RETURN
       END
-
-**FONCTION EXDBPLUS    IMPRESSION DE BOITE DE DEBUT D'EXECUTION
+****FONCTION EXDBPLUS    IMPRESSION DE BOITE DE DEBUT D'EXECUTION
 *
 *
       INTEGER FUNCTION EXDBPLUS(in_TITRE,REVIS,FLAG,SUPP,NSUP)
@@ -44,20 +43,15 @@
 *Revision 002 M. Lepine Octobre 1998 - Ajout de la signature RMNLIB
 *Revision 003 M. Lepine Octobre 2008 - Anciennement exdb, ajout de lignes d'impression
 *                                      supplementaires en option
-*
-*LANGAGE RATFOR
-*        IL Y A DES DEPENDANCES CDC NOS/SCOPE 2
+*Revision 004 M. Valin  Mars 2022    - eliminer l'enonce ENTRY pour EXFIN et 
+*                                      en faire une fonction a part
+*                                      suppression de format inutilise
 *
 *OBJET(EXDB)
 *        IMPRIMER UNE BOITE INDIQUANT LE DEBUT DE L'EXECUTION
 *        D'UN PROGRAMME FORTRAN. EXDB RENVOIE EGALEMENT LE
 *        DATE TIME STAMP (NOMBRE ENTIER DE 10 CHIFFRES) DE
 *        LA PASSE OPERATIONNELLE COURANTE.
-*
-*        EXFIN IMPRIME UNE BOITE INDIQUANT LA FIN DE L'EXECUTION
-*        D'UN PROGRAMME FORTRAN. LA VALEUR RENVOYEE EST ZERO.
-*
-*CALL STDLIB
 *
 *ARGUMENTS
 *  E     TITRE     CHAINE DE CARACTERES. SEULS LES 7 PREMIERS
@@ -105,10 +99,10 @@
 
       CHARACTER *24 CDATIM
       CHARACTER *105 VERSION,titre,tempstring
-      INTEGER EXFIN,IOPDATM,I,IDATIM(14)
+      INTEGER IOPDATM,I,IDATIM(14)
       REAL T1,SECOND
-      external flush_stdout
-      SAVE T1
+*     utilise pour que EXFIN ait acces a T1
+      common/exdb_t1/ T1
 
       titre = ' '
       titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
@@ -138,13 +132,6 @@
      %     /,3X,'*',107X,'*',
      %     /,3X,'*',107X,'*',
      %     /,3X,'*',3X,A24,46X,34X,'*')
- 600  FORMAT(1H1,
-     %     /,3X,'*',107('*'),'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',4X,A7,53X,A10,17X,'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',3X,A10,56X,A10,16X,'*')
  700  FORMAT(3X,'*',107X,'*',
      %     /,3X,'*',3X,7A4,I12,10X,'*')
  800  FORMAT(3X,'*',107X,'*',
@@ -157,9 +144,30 @@
 
 
       RETURN
-* ENTREE EXFIN   BOITE DE FIN D'EXECUTION
-      ENTRY EXFIN(in_TITRE,REVIS,FLAG)
+      END
 
+***FONCTION EXDBPLUS    IMPRESSION DE BOITE DE FIN D'EXECUTION
+      INTEGER FUNCTION EXFIN(in_TITRE,REVIS,FLAG)
+      IMPLICIT NONE
+      CHARACTER*(*) in_TITRE,REVIS,FLAG
+*AUTEUR  M.VALIN RPN MARS 2022
+*
+*OBJET(EXFIN)
+*        EXFIN IMPRIME UNE BOITE INDIQUANT LA FIN DE L'EXECUTION
+*        D'UN PROGRAMME FORTRAN. LA VALEUR RENVOYEE EST ZERO.
+*ARGUMENTS
+*  E     TITRE     voir EXDB
+*  E     REVIS     voir EXDB
+*  E     FLAG      inutilise, garde par compatibilite arriere
+*NOTES
+*     autrefois un ENTRY dans EXDBPLUS, maintenant une fonction `a part
+**
+      external flush_stdout
+      common/exdb_t1/ T1
+      REAL T1, SECOND
+      EXTERNAL SECOND
+      CHARACTER *105 titre
+      CHARACTER *24 CDATIM
       call flush_stdout()
       titre = ' '
       titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
@@ -178,23 +186,8 @@
      %     /,3X,'*',3X,'CP SECS = ',F10.3,84X,'*',
      %     /,3X,'*',107X,'*',
      %     /,3X,'*',107('*'),'*')
- 601  FORMAT(
-     %     /,3X,'*',107('*'),'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',3X,A7,53X,A10,27X,'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',3X,A10,50X,A10,27X,'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',3X,A20,84X,'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',3X,'CP SECS = ',F10.3,70X,'*',
-     %     /,3X,'*',107X,'*',
-     %     /,3X,'*',107('*'),'*')
-
-*      call memoirc(0)
 
       EXFIN = 0
-      
 
       RETURN
       END
