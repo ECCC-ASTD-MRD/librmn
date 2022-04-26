@@ -41,6 +41,7 @@
 #include <bitPacking.h>
 #include <fstd98.h>
 #include <armn_compress.h>
+
 #include "qstdir.h"
 #include "convert_ip.h"
 #include "xdf98.h"
@@ -101,18 +102,6 @@ static void print_std_parms(stdf_dir_keys *stdf_entry, char *pre, char *option, 
 void KindToString(int kind, char *s1, char *s2);  /* fortran routine from comvertip_123 */
 int EncodeMissingValue(void *field, void *field2, int nvalues, int datatype, int nbits, int is_byte, int is_short, int is_double);
 void DecodeMissingValue(void *field, int nvalues, int datatype, int is_byte, int is_short, int is_double);
-
-
-//! Interface to IP conversion package
-static void ConvipPlus(
-    int *ip_new,
-    float *level,
-    int *kind,
-    int *mode
-) {
-    // Ignore s and flag that are not used anyway
-    ConvertIp(ip_new, level, kind, *mode);
-}
 
 
 //! Translate kind code to 2 char string
@@ -211,7 +200,7 @@ int c_fstapp(
 //! Checkpoint. Clear buffers, rewrite headers.
 int c_fstckp(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
     int index, ier;
 
@@ -240,7 +229,7 @@ int c_fst_data_length(
     //! 2: short (16 bits)
     //! 4: regular 32 bits
     //! 8: double (64 bits)
-    int length_type
+    const int length_type
 ) {
     switch (length_type) {
 
@@ -1719,15 +1708,15 @@ int c_fstlis(
 //! Read the record corresponding to the provided handle
 int c_fstluk(
     //! [out] Pointer to where the data read will be placed.  Must be allocated!
-    uint32_t *field,
+    uint32_t * const field,
     //! [in] Handle of the record to be read
-    int handle,
+    const int handle,
     //! [out] Dimension 1 of the data field
-    int *ni,
+    int * const ni,
     //! [out] Dimension 2 of the data field
-    int *nj,
+    int * const nj,
     //! [out] Dimension 3 of the data field
-    int *nk
+    int * const nk
 ) {
     stdf_dir_keys stdf_entry;
     uint32_t *pkeys;
@@ -2069,10 +2058,21 @@ int c_fstluk(
 }
 
 
+//! Helper function for c_fstmsq
+static inline char isignore(const char chr) {
+    return (chr == '*') ? 0 : 0x3f;
+}
+
+
+//! Helper function for c_fstmsq
+static inline char inv_isignore(const char chr) {
+    return (chr == 0x3f) ? ' ' : '*';
+}
+
 //! Mask a portion of the research keys
 int c_fstmsq(
     //! [in] Unit number associated to the file
-    int iun,
+    const int iun,
     //! [in,out] Mask for vertical level
     int *mip1,
     //! [in,out] Mask for the forecast hour
@@ -2082,37 +2082,32 @@ int c_fstmsq(
     //! [in,out] Mask for the label
     char *metiket,
     //! [in] Operation: Get when 1, Set when 2
-    int getmode
+    const int getmode
 ) {
-    stdf_dir_keys *search_mask;
-    int index, i;
-    file_table_entry *f;
 
-#define isignore(c) ((c == '*') ? 0 : 0x3f)
-#define inv_isignore(c) ((c == 0x3f) ? ' ' : '*')
-
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    int index = file_index(iun);
+    if (index == ERR_NO_FILE) {
         sprintf(errmsg, "file (unit=%d) is not open", iun);
         return error_msg("c_fstmsq", ERR_NO_FILE, ERROR);
     }
 
-    f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-    if (! f->cur_info->attr.std) {
+    if (! fte->cur_info->attr.std) {
         sprintf(errmsg, "file (unit=%d) is not a RPN standard file", iun);
         return error_msg("c_fstmsq", ERR_NO_FILE, ERROR);
     }
 
-    search_mask = (stdf_dir_keys *) f->srch_mask;
+    stdf_dir_keys * search_mask = (stdf_dir_keys *) fte->srch_mask;
     if (getmode) {
         *mip1 = ~(search_mask->ip1) & 0xfffffff;
         *mip2 = ~(search_mask->ip2) & 0xfffffff;
         *mip3 = ~(search_mask->ip3) & 0xfffffff;
-        for (i = 0; i <= 4; i++) {
+        for (int i = 0; i <= 4; i++) {
             metiket[i] = inv_isignore( ((search_mask->etik15 >> ((4-i)*6)) & 0x3f) );
         }
 
-        for (i = 5; i <= 9; i++) {
+        for (int i = 5; i <= 9; i++) {
             metiket[i] = inv_isignore( ((search_mask->etik6a >> ((9-i)*6)) & 0x3f) );
         }
 
@@ -2146,10 +2141,10 @@ int c_fstmsq(
 //! Get the number of records of the file
 int c_fstnbr(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
     int index, index_fnom, ier, nrec;
-    file_table_entry *f;
+    file_table_entry *fte;
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -2162,14 +2157,14 @@ int c_fstnbr(
         /*    return error_msg("c_fstnbr", ERR_NO_FILE, ERROR); */
         ier = c_fstouv(iun, "RND");
         index = file_index(iun);
-        f = file_table[index];
-        nrec = f->nrecords;
+        fte = file_table[index];
+        nrec = fte->nrecords;
         ier = c_fstfrm(iun);
         return nrec;
     }
 
-    f = file_table[index];
-    return f->nrecords;
+    fte = file_table[index];
+    return fte->nrecords;
 }
 
 
@@ -2278,20 +2273,19 @@ int c_fstopc(
 //! Print, get, or set a fstd or xdf global option
 int c_fstopi(
     //! [in] Option name
-    char *option,
+    const char * const option,
     //! [in] Value
-    int value,
+    const int value,
     //! [in] Operation mode (1: print option, 0: set option, 2: get option)
-    int getmode
+    const int getmode
 ) {
-  int i;
   int val = 0;
 
   if (strcmp(option, "MSGLVL") == 0) {
     if (getmode){
       if (getmode == 2) val = msg_level;
     }else{
-      for (i = 0; i < 7; i++) {
+      for (int i = 0; i < 7; i++) {
         if (nivmsg[i] == value) {
           msg_level = i;
           break;
@@ -2306,7 +2300,7 @@ int c_fstopi(
     if (getmode){
       if (getmode == 2) val = xdf_toler;
     }else{
-      for (i = 0; i < 7; i++){
+      for (int i = 0; i < 7; i++){
         if (nivmsg[i] == value) {
           xdf_toler = i;
           break;
@@ -3061,16 +3055,22 @@ void c_fst_env_var(
 //! Generate all possible coded ip1 values for a given level
 int c_ip1_all(
     //! [in] IP1 level (float value)
-    float level,
+    const float level,
     //! [in] Level kind as defined by \link convip
-    int kind
+    const int kind
 ) {
-    int ip_old, ip_new;
-
+    //! \warning Bloody global variable that prevents re-entrancy!
     ip1s_flag = 1;
 
+    // Need to copy the inputs to tmp vars since ConvertIp can operate
+    // in different modes and does not guaranty that parameters will not
+    // be modified when they shouldn't
+    int lkind = kind;
+    float llevel = level;
+
+    int ip_new = 0;
     int mode = 2;
-    ConvipPlus(&ip_new, &level, &kind, &mode);
+    ConvertIp(&ip_new, &llevel, &lkind, &mode);
     ips_tab[0][ip_nb[0]] = ip_new;
     ip_nb[0]++;
     if (ip_nb[0] >= Max_Ipvals) {
@@ -3078,9 +3078,10 @@ int c_ip1_all(
         return -1;
     }
 
+    int ip_old = 0;
     mode = 3;
-    if (kind < 4) {
-        ConvipPlus(&ip_old, &level, &kind, &mode);
+    if (lkind < 4) {
+        ConvertIp(&ip_old, &llevel, &lkind, &mode);
     } else {
         /* no valid value for oldtype */
         ip_old = -9999;
@@ -3092,7 +3093,7 @@ int c_ip1_all(
         fprintf(stderr, "ip1 table full (i1_ind=%d)\n", ip_nb[0]);
         return -1;
     }
-    // printf("Debug+ c_ip1_all level=%f kind=%d ip_new=%d ip_old=%d\n", level, kind, ip_new, ip_old);
+    // printf("Debug+ c_ip1_all llevel=%f lkind=%d ip_new=%d ip_old=%d\n", llevel, lkind, ip_new, ip_old);
     return ip_new;
 }
 
@@ -3100,16 +3101,22 @@ int c_ip1_all(
 //! Generate all possible coded ip2 values for a given level
 int c_ip2_all(
     //! [in] IP2 level (float value)
-    float level,
+    const float level,
     //! [in] Level kind as defined in convip
-    int kind
+    const int kind
 ) {
-    int ip_old, ip_new, mode;
-
+    //! \warning Bloody global variable that prevents re-entrancy!
     ip2s_flag = 1;
 
-    mode = 2;
-    ConvipPlus(&ip_new, &level, &kind, &mode);
+    // Need to copy the inputs to tmp vars since ConvertIp can operate
+    // in different modes and does not guaranty that parameters will not
+    // be modified when they shouldn't
+    int lkind = kind;
+    float llevel = level;
+
+    int mode = 2;
+    int ip_new = 0;
+    ConvertIp(&ip_new, &llevel, &lkind, &mode);
     ips_tab[1][ip_nb[1]] = ip_new;
     ip_nb[1]++;
     if (ip_nb[1] >= Max_Ipvals) {
@@ -3118,8 +3125,9 @@ int c_ip2_all(
     }
 
     mode = 3;
-    if (kind < 4) {
-        ConvipPlus(&ip_old, &level, &kind, &mode);
+    int ip_old = 0;
+    if (lkind < 4) {
+        ConvertIp(&ip_old, &llevel, &lkind, &mode);
     } else {
         /* no valid value for oldtype */
         ip_old = -9999;
@@ -3138,16 +3146,22 @@ int c_ip2_all(
 //! Generate all possible coded ip3 values
 int c_ip3_all(
     //! [in] IP3  (float value)
-    float level,
+    const float level,
     //! [in] Level kind as defined in convip
-    int kind
+    const int kind
 ) {
-    int ip_old, ip_new, mode;
-
+    //! \warning Bloody global variable that prevents re-entrancy!
     ip3s_flag = 1;
 
-    mode = 2;
-    ConvipPlus(&ip_new, &level, &kind, &mode);
+    // Need to copy the inputs to tmp vars since ConvertIp can operate
+    // in different modes and does not guaranty that parameters will not
+    // be modified when they shouldn't
+    int lkind = kind;
+    float llevel = level;
+
+    int mode = 2;
+    int ip_new = 0;
+    ConvertIp(&ip_new, &llevel, &lkind, &mode);
     ips_tab[2][ip_nb[2]] = ip_new;
     ip_nb[2]++;
     if (ip_nb[2] >= Max_Ipvals) {
@@ -3156,8 +3170,9 @@ int c_ip3_all(
     }
 
     mode = 3;
-    if (kind < 4) {
-        ConvipPlus(&ip_old, &level, &kind, &mode);
+    int ip_old = 0;
+    if (lkind < 4) {
+        ConvertIp(&ip_old, &llevel, &lkind, &mode);
     } else {
         /* no valid value for oldtype */
         ip_old = -9999;
@@ -3176,17 +3191,22 @@ int c_ip3_all(
 //! Generate coded ip1 value for a given level (shorthand for convip)
 int c_ip1_val(
     //! [in] IP1 level (float value)
-    float level,
+    const float level,
     //! [in] Level kind as defined in convip
-    int kind
+    const int kind
 ) {
-    int ip_new;
-    char s[128];
-
+    //! \warning Bloody global variable that prevents re-entrancy!
     ip1s_flag = 1;
 
+    // Need to copy the inputs to tmp vars since ConvertIp can operate
+    // in different modes and does not guaranty that parameters will not
+    // be modified when they shouldn't
+    int lkind = kind;
+    float llevel = level;
+
     int mode = 2;
-    ConvipPlus(&ip_new, &level, &kind, &mode);
+    int ip_new = 0;
+    ConvertIp(&ip_new, &llevel, &lkind, &mode);
     ips_tab[0][ip_nb[0]] = ip_new;
     ip_nb[0]++;
     if (ip_nb[0] >= Max_Ipvals) {
@@ -3200,17 +3220,22 @@ int c_ip1_val(
 //! Generate coded ip2 value for a given level (shorthand for convip)
 int c_ip2_val(
     //! [in] IP2 level (float value)
-    float level,
+    const float level,
     //! [in] Level kind as defined in convip
-    int kind
+    const int kind
 ) {
-    int ip_new;
-    char s[128];
-
+    //! \warning Bloody global variable that prevents re-entrancy!
     ip2s_flag = 1;
 
+    // Need to copy the inputs to tmp vars since ConvertIp can operate
+    // in different modes and does not guaranty that parameters will not
+    // be modified when they shouldn't
+    int lkind = kind;
+    float llevel = level;
+
     int mode = 2;
-    ConvipPlus(&ip_new, &level, &kind, &mode);
+    int ip_new = 0;
+    ConvertIp(&ip_new, &llevel, &lkind, &mode);
     ips_tab[1][ip_nb[1]] = ip_new;
     ip_nb[1]++;
     if (ip_nb[1] >= Max_Ipvals) {
@@ -3228,13 +3253,18 @@ int c_ip3_val(
     //! [in] Level kind as defined in convip
     int kind
 ) {
-    int ip_new;
-    char s[128];
-
+    //! \warning Bloody global variable that prevents re-entrancy!
     ip3s_flag = 1;
 
+    // Need to copy the inputs to tmp vars since ConvertIp can operate
+    // in different modes and does not guaranty that parameters will not
+    // be modified when they shouldn't
+    int lkind = kind;
+    float llevel = level;
+
     int mode = 2;
-    ConvipPlus(&ip_new, &level, &kind, &mode);
+    int ip_new = 0;
+    ConvertIp(&ip_new, &llevel, &lkind, &mode);
     ips_tab[2][ip_nb[2]] = ip_new;
     ip_nb[2]++;
     if (ip_nb[2] >= Max_Ipvals) {
@@ -5022,15 +5052,15 @@ int FstCanTranslateName(char *varname) {
 //! Generate a string of the field's IP1, IP2, IP3
 void c_ip_string(
     //! [out] Buffer into which to write
-    char* buffer,
+    char * const buffer,
     //! [in] Size of the buffer
-    int size,
+    const int size,
     //! [in] Field's IP1
-    int ip1,
+    const int ip1,
     //! [in] Field's IP2
-    int ip2,
+    const int ip2,
     //! [in] Field's IP3
-    int ip3
+    const int ip3
 ) {
     float lip1, lip2, lip3;
     int kind1, kind2, kind3;

@@ -63,7 +63,7 @@ static ip_info invalid_ip_info = {0.0, 0.0, -1};
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void ConvertIp(int *ip, float *p, int *kind, int mode);
+    void ConvertIp(int * const ip, float * const p, int * const kind, const int mode);
 
     int EncodeIp( int *ip1, int *ip2, int *ip3, ip_info *p1, ip_info *p2, ip_info *p3);
     int DecodeIp(ip_info *p1, ip_info *p2, ip_info *p3, int ip1, int ip2, int ip3);
