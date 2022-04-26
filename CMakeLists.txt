@@ -42,6 +42,9 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
 
+# TODO Adapt Config.cmake.in to be ready for this
+#set(CMAKE_DEBUG_POSTFIX "d")
+
 include_directories(
    include
    include/${BUILD_ARCH}-${COMPILER_SUITE}
