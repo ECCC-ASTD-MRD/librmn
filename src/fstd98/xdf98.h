@@ -3,6 +3,9 @@
 
 #include <rpnmacros.h>
 
+int c_xdflnk(int *liste, int n);
+int c_xdfunl(int *liste, int n);
+
 int fnom_index(int iun);
 int error_msg(char *function_name, int errcode, int errlevel);
 int file_index(int iun);
