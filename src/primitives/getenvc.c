@@ -27,11 +27,13 @@
 
 
 //! Get environement variable value
-void f77name(getenvc) (
+void f77name(getenvc2) (
     //! [in] Name of the environment variable to get
     char *name,
     //! [out] Value of the environement variable if found.  Blank otherwise.
     char *value,
+    //! [in] If non-zero, don't print message when variable not found
+    const int quiet,
     //! [in] Name length
     F2Cl nameLen,
     //! [in] Value length
@@ -65,7 +67,25 @@ void f77name(getenvc) (
             }
         }
     } else {
-        printf("getenvc - %s Not found in environment!\n", temp);
+        if (!quiet) {
+            printf("getenvc - %s Not found in environment!\n", temp);
+        }
     }
     free( temp );
+}
+
+
+//! Get environement variable value
+//! Wrapper to getenvc2 to mimic old behaviour
+void f77name(getenvc) (
+    //! [in] Name of the environment variable to get
+    const char * const name,
+    //! [out] Value of the environement variable if found.  Blank otherwise.
+    char * const value,
+    //! [in] Name length
+    F2Cl nameLen,
+    //! [in] Value length
+    F2Cl valueLen
+) {
+    f77name(getenvc2)(name, value, 1, nameLen, valueLen);
 }
