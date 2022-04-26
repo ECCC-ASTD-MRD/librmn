@@ -67,7 +67,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !    KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
 !              (partage avec kind=1 a cause du range exclusif
 !    KIND =21, p est en metres-pression                            (0 -> 1,000,000) fact=1e4
-!              (partage avec kind=5 a cause du range exclusif)                                                             
+!              (partage avec kind=5 a cause du range exclusif)
 !    KIND =23, reserve pour usage futur (partage avec kind=7)
 ! OUTPUTS
 !    STRING = valeur de P formattee
@@ -659,14 +659,15 @@ end FUNCTION kind_to_string
 !===============================================================================================
 
 !> C language interface with no string option
-subroutine C_CONV_IP( ip, p, kind, mode ) BIND(C,name='ConvertIp')
-  use ISO_C_BINDING
-  implicit none
-    integer(C_INT), intent(INOUT) :: ip, kind
-    integer(C_INT), intent(IN), value :: mode
+subroutine C_CONV_IP(ip, p, kind, mode) BIND(C, name = 'ConvertIp')
+    use ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(INOUT) :: ip
     real(C_FLOAT), intent(INOUT) :: p
+    integer(C_INT), intent(INOUT) :: kind
+    integer(C_INT), intent(IN), value :: mode
+
     character (len=1) :: string
-    integer :: mode2
-    mode2 = mode
-    call CONVIP_plus( ip, p, kind, mode2,string,.false.)
+
+    call CONVIP_plus(ip, p, kind, mode, string, .false.)
 end subroutine C_CONV_IP
