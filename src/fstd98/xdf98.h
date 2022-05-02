@@ -1,6 +1,12 @@
-#if !defined(F2Cl)
-#define F2Cl int
-#endif
+#ifndef XDF98_C
+#define XDF98_C
+
+#include <rpnmacros.h>
+
+int c_xdflnk(int *liste, int n);
+int c_xdfunl(int *liste, int n);
+int c_xdfdel(const int handle);
+
 int fnom_index(int iun);
 int error_msg(char *function_name, int errcode, int errlevel);
 int file_index(int iun);
@@ -28,13 +34,7 @@ int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
 int c_xdfini(int iun, buffer_interface_ptr buf, int idtyp,
              uint32_t *keys, int nkeys, uint32_t *info, int ninfo);
 
-void build_burp_prim_keys(burp_record *brpk, uint32_t *keys,
-                                 burp_record *mask, uint32_t *mskkeys,
-                 int index, int mode);
-void build_burp_info_keys(uint32_t *buf, uint32_t *keys, int index, int mode);
-void build_fstd_info_keys(uint32_t *buf, uint32_t *keys, int index, int mode);
-void build_fstd_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask, uint32_t *mskkeys,
-                int index, int mode);
+
 int32_t f77name(xdfadd)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fnelm, int32_t *fnbits, int32_t *fdatyp);
 int c_xdfadd(uint32_t *buffer, uint32_t *donnees, int nelm, int nbits, int datyp);
@@ -52,7 +52,7 @@ int32_t f77name(xdfloc)(int32_t *fiun, int32_t *fhandle, int32_t *primk,
 int c_xdfloc(int iun, int handle, uint32_t *primk, int nprim);
 int c_xdfloc2(int iun, int handle, uint32_t *primk, int nprim, uint32_t *mskkeys);
 int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf);
-int c_xdfget(int handle, buffer_interface_ptr buf);
+int c_xdfget(const int handle, buffer_interface_ptr buf);
 int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
             uint32_t *buf);
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf);
@@ -93,11 +93,14 @@ int32_t f77name(xdfcle)(char *fkeyname, int32_t *fbit1, int32_t *flkey,
             int32_t *ftkey, int32_t *fdesc1, int32_t *fdesc2, F2Cl l1);
 int c_xdfcle(char *keyname, int bit1, int lkey, int tkey, int *desc1, int *desc2);
 int c_qdfmsig(int iun, char* newappl);
-int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1);
-int32_t f77name(mrbdel)(uint32_t *buf, int32_t *f_number);
-int c_mrbdel(void *buffer, int number);
-int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn);
-int32_t f77name(fstvoi)(int32_t *f_iun, char *options, F2Cl l1);
-int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl l1);
-int32_t f77name(secateur)(char *filename, int32_t *f_where, F2Cl l1);
 int c_xdfcheck(const char* filename);
+
+int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1);
+int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn);
+int32_t f77name(secateur)(char *filename, int32_t *f_where, F2Cl l1);
+
+void build_fstd_info_keys(uint32_t *buf, uint32_t *keys, int index, int mode);
+void build_fstd_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask, uint32_t *mskkeys,
+                int index, int mode);
+
+#endif

@@ -25,12 +25,12 @@ static int powerOf2sInitialized = 0;
 
 #define FLOAT_TYPE double
 #define compact_IEEEblock_FLOAT_TYPE compact_IEEEblock_double
-#include "compact_IEEEblock.h"
+#include "compact_IEEEblock.tmplc"
 #undef compact_IEEEblock_FLOAT_TYPE
 #undef FLOAT_TYPE
 
 #define FLOAT_TYPE float
 #define compact_IEEEblock_FLOAT_TYPE compact_IEEEblock_float
-#include "compact_IEEEblock.h"
+#include "compact_IEEEblock.tmplc"
 #undef compact_IEEEblock_FLOAT_TYPE
 #undef FLOAT_TYPE

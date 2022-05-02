@@ -21,15 +21,13 @@
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
-#include <rpnmacros.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <sys/types.h>
+#include <stdio.h>
 
 #ifdef WIN32
-#include <stdio.h>
 #include <sys/stat.h>
 #include <Winsock2.h>
 #define L_SET SEEK_SET
@@ -45,25 +43,31 @@
 // For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h
 #define PATH_MAX _PATH_MAX
 #else
-#include <sys/time.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/file.h>
-#include <sys/stat.h>
 #include <sys/signal.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #define WIN32_O_BINARY 0
 #endif
 
 #ifdef __linux__
-#include <linux/limits.h>
+# include <linux/limits.h>
 #endif
 
+
 #ifdef __APPLE__ && __MACH__
-#include <sys/limits.h>
+#   include <sys/limits.h>
 #endif
 
 #include <fcntl.h>
 #include <errno.h>
+
+#include <rpnmacros.h>
+#include <ftn_c_protos.h>
+#include <gossip.h>
 
 #define FNOM_OWNER
 #include "fnom.h"
@@ -81,15 +85,15 @@
 #endif
 
 #if defined(__linux__) || defined(__AIX__)
-#define tell64(fd) lseek64(fd,0,1)
+#define tell64(fd) lseek64(fd, 0, 1)
 #endif
 
 #ifdef __CYGWIN__
 #define lseek64 lseek
 #define open64 open
 #define off64_t off_t
-#define tell(fd) lseek(fd,0,1)
-#define tell64(fd) lseek(fd,0,1)
+#define tell(fd) lseek(fd, 0, 1)
+#define tell64(fd) lseek(fd, 0, 1)
 #endif
 
 #define swap_word_endianness(mot) {\
@@ -104,26 +108,26 @@
 }
 
 
-void static dump_file_entry(int i);
-static void reset_file_entry(int i);
-static int find_file_entry(char *caller, int iun);
-static int c_qqqfscr(char *type);
-static int qqcclos(int indf);
-static void scrap_page(int ind0,int ind1);
-static void process_decay();
-static void get_new_page(int ind);
-static void wa_pages_flush(int ind);
-static long long filepos(int indf);
-static int qqcopen(int indf);
-static void wa_page_read(int fd,uint32_t *buf,unsigned int adr,int nmots,int indf);
-static void wa_page_write(int fd,uint32_t *buf,unsigned int adr,int nmots,int indf);
-static void qqcwawr(uint32_t *buf,unsigned int ladr,int lnmots,int indf);
-static void qqcward(uint32_t *buf,unsigned int ladr,int  lnmots,int indf);
-static int32_t qqcnblk(int lfd,int indf);
-static void arrayCopy(uint32_t *src, uint32_t *dest, int nwords);
-static void arrayZero(uint32_t *dest, int nwords);
-static int fnom_rem_connect(int ind, char* remote_host);
+static int c_qqqfscr(const char * const type);
+static int fnom_rem_connect( const int ind, const char * const remote_host);
+static void wa_pages_flush(const int fileIdx);
+static int qqcopen(const int indf);
+static void qqcwawr(const uint32_t * const buf, const unsigned int wadr, const int nwords, const int indf);
+static void qqcward(uint32_t * const buf, const unsigned int woffset, const int lnmots, const int indf);
+static void arrayZero(uint32_t * const dest, const int nwords);
+static void arrayCopy(const uint32_t * const src, uint32_t * const dest, const int nwords);
 
+// Defined inf f_baseio.F90 but only used here
+int32_t f77name(qqqf7op)(
+    const int32_t * const iun,
+    const char * const name,
+    const int32_t * const lrec,
+    const int32_t * const rndflag,
+    const int32_t * const unfflag,
+    const int32_t * const lmult,
+    F2Cl name_len
+);
+int32_t f77name(ftnclos)(const int32_t * const iun);
 
 static ENTETE_CMCARC cmcarc;
 static ENTETE_CMCARC_V5 cmcarc64;
@@ -132,7 +136,7 @@ static FILEINFO wafile[MAXWAFILES];
 static uint32_t *free_list[MAXWAFILES * MAXPAGES];
 static int dastat[MAXWAFILES] = {MAXWAFILES * 0};
 
-static int BLKSIZE = 512;
+static int blkSize = 512;
 
 static int WA_PAGE_SIZE = 0;
 static int WA_PAGE_NB   = 1;
@@ -154,31 +158,32 @@ static char *ARMNLIB = NULL;
 static char *LOCALDIR = "./";
 
 //! Kept only for backward compatibility; only returns 0
-//
-//! @return Always zero
-//
-//! @deprecated
+//! \return Always zero
+//! \deprecated
 int c_fretour(
     //! [in] Unit number, ignored
-    int iun
+    const int iun
 ) {
-    return(0);
+    return 0;
 }
-//! @copydoc c_fretour
-int32_t f77name(fretour)(int32_t *fiun){
-    return(0);
+//! \copydoc c_fretour
+int32_t f77name(fretour)(
+    //! [in] Unit number, ignored
+    const int32_t * const fiun
+){
+    return 0;
 }
 
 
-//! Prints the characteristics and attributes of one file of the master file table(for debugging use).
-//
-//! @param[in] idx Index of the entry to dump
-void static dump_file_entry(int idx)
-{
-      fprintf(stderr,"FGFDT[%d] ", idx);
-      fprintf(stderr,"file_name=%s subname=%s file_type=%s\n",
-              FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
-      fprintf(stderr,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
+//! Print the characteristics and attributes of one file of the master file table(for debugging use)
+static void dump_file_entry(
+    //! [in] Index of the entry to dump
+    const int idx
+) {
+      fprintf(stderr, "FGFDT[%d] ", idx);
+      fprintf(stderr, "file_name=%s subname=%s file_type=%s\n",
+              FGFDT[idx].file_name, FGFDT[idx].subname, FGFDT[idx].file_type);
+      fprintf(stderr, "iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
               FGFDT[idx].iun,
               FGFDT[idx].fd,
               FGFDT[idx].file_size,
@@ -196,10 +201,10 @@ void static dump_file_entry(int idx)
               FGFDT[idx].attr.old?"+OLD":"",
               FGFDT[idx].attr.notpaged?"+NOT PAGED":"",
               FGFDT[idx].attr.scratch?"+SCRATCH":"");
-      fprintf(stderr,"\n");
+      fprintf(stderr, "\n");
 }
 
-//! Prints file characteristics and attributes of in use files in the master file table(for debugging use).
+//! Print file characteristics and attributes of in use files in the master file table(for debugging use)
 void f77name(d_fgfdt)()
 {
     fprintf(stderr, "********** DUMP of MASTER FILE TABLE **********\n");
@@ -210,56 +215,56 @@ void f77name(d_fgfdt)()
     }
 }
 
-//! Resets a file entry in the master file table to "not in use" values.
-//
-//! @param[in] idx Index of the file to reset
-static void reset_file_entry(int idx)
-{
-   if (FGFDT[idx].file_name) free(FGFDT[idx].file_name);
-   if (FGFDT[idx].subname)   free(FGFDT[idx].subname);
-   if (FGFDT[idx].file_type) free(FGFDT[idx].file_type);
+//! Resets a file entry in the master file table to "not in use" values
+static void reset_file_entry(
+    //! [in] Index of the file to reset
+    int idx
+) {
+    if (FGFDT[idx].file_name) free(FGFDT[idx].file_name);
+    if (FGFDT[idx].subname)   free(FGFDT[idx].subname);
+    if (FGFDT[idx].file_type) free(FGFDT[idx].file_type);
 
-   FGFDT[idx].file_name      = (char *) NULL;
-   FGFDT[idx].subname        = (char *) NULL;
-   FGFDT[idx].file_type      = (char *) NULL;
-   FGFDT[idx].iun            = 0;
-   FGFDT[idx].fd             = -1;
-   FGFDT[idx].file_size      = 0;
-   FGFDT[idx].eff_file_size  = 0;
-   FGFDT[idx].lrec           = 0;
-   FGFDT[idx].open_flag      = 0;
-   FGFDT[idx].attr.stream    = 0;
-   FGFDT[idx].attr.std       = 0;
-   FGFDT[idx].attr.burp      = 0;
-   FGFDT[idx].attr.rnd       = 0;
-   FGFDT[idx].attr.wa        = 0;
-   FGFDT[idx].attr.ftn       = 0;
-   FGFDT[idx].attr.unf       = 0;
-   FGFDT[idx].attr.read_only = 0;
-   FGFDT[idx].attr.old       = 0;
-   FGFDT[idx].attr.scratch   = 0;
-   FGFDT[idx].attr.notpaged  = 0;
-   FGFDT[idx].attr.write_mode= 0;
-   // Remote file, socket wa file
-   FGFDT[idx].attr.remote    = 0;
+    FGFDT[idx].file_name      = (char *) NULL;
+    FGFDT[idx].subname        = (char *) NULL;
+    FGFDT[idx].file_type      = (char *) NULL;
+    FGFDT[idx].iun            = 0;
+    FGFDT[idx].fd             = -1;
+    FGFDT[idx].file_size      = 0;
+    FGFDT[idx].eff_file_size  = 0;
+    FGFDT[idx].lrec           = 0;
+    FGFDT[idx].open_flag      = 0;
+    FGFDT[idx].attr.stream    = 0;
+    FGFDT[idx].attr.std       = 0;
+    FGFDT[idx].attr.burp      = 0;
+    FGFDT[idx].attr.rnd       = 0;
+    FGFDT[idx].attr.wa        = 0;
+    FGFDT[idx].attr.ftn       = 0;
+    FGFDT[idx].attr.unf       = 0;
+    FGFDT[idx].attr.read_only = 0;
+    FGFDT[idx].attr.old       = 0;
+    FGFDT[idx].attr.scratch   = 0;
+    FGFDT[idx].attr.notpaged  = 0;
+    FGFDT[idx].attr.write_mode= 0;
+    // Remote file, socket wa file
+    FGFDT[idx].attr.remote    = 0;
 }
 
 
-//! Returns the index in the master file table of the file having iun as unit number.
-//
-//! @param[in] caller Name of the function calling find_file_entry
-//! @param[in] iun    Unit number
-//
-//! @return Index in the master file table of the file having iun as unit number.
-static int find_file_entry(char *caller, int iun)
-{
+//! Find the index of a file in the master file table
+//! \return Index of the file in the master file table
+static int find_file_entry(
+    //! [in] Name of the function calling find_file_entry
+    const char * const caller,
+    //! [in] Unit number to search
+    const int iun
+) {
     for (int i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == iun) {
-            return(i);
+            return i;
         }
     }
 
-    fprintf(stderr,"%s error: unit %d is not associated with any file\n",caller,iun);
+    fprintf(stderr, "%s error: unit %d is not associated with any file\n", caller, iun);
     return -1;
 }
 
@@ -270,8 +275,8 @@ static int find_file_entry(char *caller, int iun)
 //! If name is all in upper case it will be converted to lower case.
 //! c_fnom is intended to be called from C. fnom is intended to be called from Fortran.
 int c_fnom(
-    //! [in] Unit number
-    int *iun,
+    //! [in,out] Unit number
+    int * const iun,
     //! [in] File path
     //! - If the file name contains the special character @ then it refers to a CMCARC file.
     //!   The first part of the name (up to the @ character) is then recognized to be the actual
@@ -284,7 +289,7 @@ int c_fnom(
     //!   with the use of UNIX sockets instead of conventional NFS. This feature could be useful
     //!   for files that are not accessible via NFS.
     //! - If the file name is all capital letters, it will be down-cased. 
-    char *nom,
+    const char * const nom,
     //! [in] String that contains the desired file attributes
     //! - 'STREAM' : BYTE STREAM file type (a la C)
     //! - 'RND' : random type (word addressable, XDF, BURP, RPN standard file ...)
@@ -314,23 +319,15 @@ int c_fnom(
     //!    >--+---STD----+--SEQ--+--+--+-----------+--+---R/O----+--+----->
     //!                  |       |     |                            |
     //!                  +--FTN--+     +--SCRATCH-------------------+
-    char *type,
+    const char * const type,
     //! [in] Length of record (must be 0 except if type contains D77)
-    int lrec
+    const int lrec
 ) {
-    int liun,ier = 0, minus = 0, majus = 0, lng, i, j, pid, lngt, junk, mode;
-    char *c, *c2, *tmpdir, *cmcarc, *pos2p;
-
-    char remote_mach[HOST_NAME_MAX];
-    char nom2[PATH_MAX];
-    intptr_t ptr_as_int;
-
     if (fnom_initialized == 0) {
         //  Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file
         // This is a workaround for a particular case on Linux in batch mode with PBS
-        mode = O_RDONLY;
 #ifndef WIN32
-        junk = open("/dev/null", mode);
+        int junk = open("/dev/null", O_RDONLY);
         if (junk != 0) {
             close(junk);
         }
@@ -339,15 +336,16 @@ int c_fnom(
         if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
         AFSISIO = getenv("AFSISIO");
         if( AFSISIO == NULL ) AFSISIO = LOCALDIR;
-        for (i = 0; i < MAXFILES; i++) {
+        for (int i = 0; i < MAXFILES; i++) {
             reset_file_entry(i);
         }
         fnom_initialized = 1;
     }
 
+    int liun;
     if (((intptr_t)iun > 0) && ((intptr_t)iun < 1000)) {
         // An integer value has been passed to c_fnom as iun
-        ptr_as_int = (intptr_t)iun ;
+        intptr_t ptr_as_int = (intptr_t)iun ;
         liun = ptr_as_int;
     } else {
         // a pointer has been passed to c_fnom as iun
@@ -355,7 +353,7 @@ int c_fnom(
             *iun = c_qqqfscr(type);
         }
         if (*iun == -1) {
-            fprintf(stderr,"C_FNOM ERROR: no more units available\n");
+            fprintf(stderr, "C_FNOM ERROR: no more units available\n");
             return -1;
         }
         liun = *iun;
@@ -364,39 +362,42 @@ int c_fnom(
     if ((liun == 6) && ((strcmp(nom, "$OUT") == 0) || (strcmp(nom, "$OUTPUT") == 0) ||
                        (strcmp(nom, "OUTPUT") == 0) || (strcmp(nom, "output") == 0))) {
         stdoutflag = 1;
-        return(0);
+        return 0;
     }
     if ((liun == 5) && ((strcmp(nom, "$IN") == 0) || (strcmp(nom, "$INPUT") == 0) ||
                        (strcmp(nom, "INPUT") == 0) || (strcmp(nom, "input") == 0))) {
         stdinflag = 1;
-        return(0);
+        return 0;
     }
 
+    int minus = 0;
+    int majus = 0;
+    char nom2[PATH_MAX];
     if ((liun == 6) || (liun == -2)) {
-        c = nom;
-        c2 = nom2;
+        const char * cptr1 = nom;
+        char * cptr2 = nom2;
         nom2[strlen(nom)] = '\0';
-        for (j = 0; j < strlen(nom) && j < PATH_MAX; j++, c++, c2++) {
-            if (islower(*c)) {
+        for (unsigned int j = 0; j < strlen(nom) && j < PATH_MAX; j++, cptr1++, cptr2++) {
+            if (islower(*cptr1)) {
                 minus = 1;
-                *c2 = *c;
-            } else if (isupper(*c)) {
+                *cptr2 = *cptr1;
+            } else if (isupper(*cptr1)) {
                 majus = 1;
-                *c2 = tolower(*c);
+                *cptr2 = tolower(*cptr1);
             } else {
-                *c2 = *c;
+                *cptr2 = *cptr1;
             }
         }
     }
     if (liun == 6) {
         fclose(stdout);
         if (minus && majus) {
-            freopen(nom, "a" ,stdout);
+            freopen(nom, "a" , stdout);
         } else {
             freopen(nom2, "a", stdout);
         }
         stdoutflag = 1;
-        return(0);
+        return 0;
     } else if (liun == -2) {
         fclose(stderr);
         if (minus && majus) {
@@ -404,278 +405,280 @@ int c_fnom(
         } else {
             freopen(nom2, "a", stderr);
         }
-        return(0);
+        return 0;
     }
-    for (i = 0; i < MAXFILES; i++) {
+    for (int i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == liun) {
             fprintf(stderr, "c_fnom error: unit %d is already in use\n", liun);
             return -1;
         }
     }
-    for (i = 0; i < MAXFILES; i++) {
-        if (FGFDT[i].iun == 0) {
-            FGFDT[i].iun = liun;
-            break;
-        }
+    int entry = 0;
+    while (entry < MAXFILES && FGFDT[entry].iun != 0) {
+        entry++;
     }
-    if (i == MAXFILES) {
+    if (FGFDT[entry].iun == 0) {
+        FGFDT[entry].iun = liun;
+    } else {
         fprintf(stderr, "c_fnom error: too many files, file table is full\n");
         return -1;
     }
 
     // Record file attributes
-    lngt = strlen(type) + 1;
-    FGFDT[i].file_type = malloc(lngt + 1);
-    strncpy(FGFDT[i].file_type, type, lngt);
-    FGFDT[i].attr.stream = 0;
-    FGFDT[i].attr.std = 0;
-    FGFDT[i].attr.burp = 0;
-    FGFDT[i].attr.rnd = 0;
-    FGFDT[i].attr.wa = 0;
-    FGFDT[i].attr.ftn = 0;
-    FGFDT[i].attr.unf = 0;
-    FGFDT[i].attr.read_only = 0;
-    FGFDT[i].attr.old = 0;
-    FGFDT[i].attr.notpaged = 0;
-    FGFDT[i].attr.scratch = 0;
-    FGFDT[i].attr.pipe = 0;
-    FGFDT[i].attr.remote = 0;
+    int lngt = strlen(type) + 1;
+    FGFDT[entry].file_type = malloc(lngt + 1);
+    strncpy(FGFDT[entry].file_type, type, lngt);
+    FGFDT[entry].attr.stream = 0;
+    FGFDT[entry].attr.std = 0;
+    FGFDT[entry].attr.burp = 0;
+    FGFDT[entry].attr.rnd = 0;
+    FGFDT[entry].attr.wa = 0;
+    FGFDT[entry].attr.ftn = 0;
+    FGFDT[entry].attr.unf = 0;
+    FGFDT[entry].attr.read_only = 0;
+    FGFDT[entry].attr.old = 0;
+    FGFDT[entry].attr.notpaged = 0;
+    FGFDT[entry].attr.scratch = 0;
+    FGFDT[entry].attr.pipe = 0;
+    FGFDT[entry].attr.remote = 0;
 
     if (strstr(type, "STREAM") || strstr(type, "stream")) {
-        FGFDT[i].attr.stream = 1;
-        FGFDT[i].attr.rnd = 1;
+        FGFDT[entry].attr.stream = 1;
+        FGFDT[entry].attr.rnd = 1;
     }
     if (strstr(type, "STD") || strstr(type, "std")) {
-        FGFDT[i].attr.std = 1;
-        FGFDT[i].attr.rnd = 1;
+        FGFDT[entry].attr.std = 1;
+        FGFDT[entry].attr.rnd = 1;
     }
     if (strstr(type, "BURP") || strstr(type, "burp")) {
-        FGFDT[i].attr.burp = 1;
-        FGFDT[i].attr.rnd = 1;
+        FGFDT[entry].attr.burp = 1;
+        FGFDT[entry].attr.rnd = 1;
     }
     if (strstr(type, "RND") || strstr(type, "rnd")) {
-        FGFDT[i].attr.rnd = 1;
+        FGFDT[entry].attr.rnd = 1;
     }
     if (strstr(type, "WA") || strstr(type, "wa")) {
         // wa attribute will be set by waopen
-        FGFDT[i].attr.rnd = 1;
+        FGFDT[entry].attr.rnd = 1;
     }
     if (strstr(type, "FTN") || strstr(type, "ftn")) {
-        FGFDT[i].attr.ftn = 1;
-        FGFDT[i].attr.rnd = 0;
+        FGFDT[entry].attr.ftn = 1;
+        FGFDT[entry].attr.rnd = 0;
     }
     if (strstr(type, "UNF") || strstr(type, "unf")) {
-        FGFDT[i].attr.unf = 1;
-        FGFDT[i].attr.ftn = 1;
-        FGFDT[i].attr.rnd = 0;
+        FGFDT[entry].attr.unf = 1;
+        FGFDT[entry].attr.ftn = 1;
+        FGFDT[entry].attr.rnd = 0;
     }
     if (strstr(type, "OLD") || strstr(type, "old")) {
-        FGFDT[i].attr.old = 1;
+        FGFDT[entry].attr.old = 1;
     }
     if (strstr(type, "R/O") || strstr(type, "r/o")) {
-        FGFDT[i].attr.read_only = 1;
-        FGFDT[i].attr.old = 1;
+        FGFDT[entry].attr.read_only = 1;
+        FGFDT[entry].attr.old = 1;
     }
     if (strstr(type, "R/W") || strstr(type, "r/w")) {
-        FGFDT[i].attr.read_only = 0;
-        FGFDT[i].attr.write_mode = 1;
+        FGFDT[entry].attr.read_only = 0;
+        FGFDT[entry].attr.write_mode = 1;
     }
-    if (strstr(type, "D77") || strstr(type,"d77")) {
-        FGFDT[i].attr.ftn = 1;
-        FGFDT[i].attr.rnd = 1;
+    if (strstr(type, "D77") || strstr(type, "d77")) {
+        FGFDT[entry].attr.ftn = 1;
+        FGFDT[entry].attr.rnd = 1;
     }
     if (strstr(type, "SCRATCH") || strstr(type, "scratch")) {
-        FGFDT[i].attr.scratch = 1;
+        FGFDT[entry].attr.scratch = 1;
     }
     if (strstr(type, "REMOTE") || strstr(type, "remote")) {
-        FGFDT[i].attr.remote = 1;
+        FGFDT[entry].attr.remote = 1;
     }
 
-    if (!FGFDT[i].attr.std && !FGFDT[i].attr.burp && !FGFDT[i].attr.wa && !FGFDT[i].attr.rnd  && !FGFDT[i].attr.stream) {
-        FGFDT[i].attr.ftn = 1;
+    if (!FGFDT[entry].attr.std && !FGFDT[entry].attr.burp && !FGFDT[entry].attr.wa && !FGFDT[entry].attr.rnd  && !FGFDT[entry].attr.stream) {
+        FGFDT[entry].attr.ftn = 1;
     }
-    FGFDT[i].lrec = lrec;
-    FGFDT[i].open_flag = 0;
+    FGFDT[entry].lrec = lrec;
+    FGFDT[entry].open_flag = 0;
 
     // If scratch file, add tmpdir directory and pid to the file name
-    if (FGFDT[i].attr.scratch) {
-        if (strstr(nom,"/")) {
+    int lng;
+    const char * lnom = nom;
+    char remote_mach[HOST_NAME_MAX];
+    if (FGFDT[entry].attr.scratch) {
+        if (strstr(lnom, "/")) {
             fprintf(stderr, "c_fnom error: / is illegal in scratch file name\n");
-            fprintf(stderr, "              specified name was %s\n", nom);
+            fprintf(stderr, "              specified name was %s\n", lnom);
             return -1;
         }
-        pid = getpid();
-        tmpdir = getenv("TMPDIR");
+        int pid = getpid();
+        char *tmpdir = getenv("TMPDIR");
         if (tmpdir == NULL) {
             fprintf(stderr, "c_fnom warning: TMPDIR environment variable is not defined, /tmp is used\n");
             tmpdir = "/tmp";
         }
         // Espace tampon supplementaire
-        lng = strlen(nom) + strlen(tmpdir) + 10 + 3 + 128;
-        if ((FGFDT[i].file_name = malloc(lng)) == NULL) {
+        lng = strlen(lnom) + strlen(tmpdir) + 10 + 3 + 128;
+        if ((FGFDT[entry].file_name = malloc(lng)) == NULL) {
             fprintf(stderr, "c_fnom error: can't allocate memory for file name\n");
             perror("c_fnom");
             exit(1);
         }
-        sprintf(FGFDT[i].file_name, "%s/%d_%s", tmpdir, pid, nom);
+        sprintf(FGFDT[entry].file_name, "%s/%d_%s", tmpdir, pid, lnom);
     } else {
         // Convert file name to lower case unless it contains a mix of upper case / lower case
-        lng = strlen(nom);
-        FGFDT[i].file_name = malloc(lng + 1);
-        if ((FGFDT[i].attr.remote) && (strchr(nom, ':'))) {
-            if (FGFDT[i].attr.rnd) {
-                pos2p = strchr(nom, ':');
+        lng = strlen(lnom);
+        FGFDT[entry].file_name = malloc(lng + 1);
+        if ((FGFDT[entry].attr.remote) && (strchr(lnom, ':'))) {
+            if (FGFDT[entry].attr.rnd) {
+                char *pos2p = strchr(lnom, ':');
                 if (pos2p != NULL) {
-                    strncpy(remote_mach, nom, pos2p-nom);
-                    remote_mach[pos2p-nom] = '\0';
-                    nom = ++pos2p;
-                    printf("Debug+ remote_mach=%s file name=%s\n", remote_mach, nom);
-                    lng = strlen(nom);
+                    strncpy(remote_mach, lnom, pos2p - lnom);
+                    remote_mach[pos2p - lnom] = '\0';
+                    lnom = ++pos2p;
+                    printf("Debug+ remote_mach=%s file name=%s\n", remote_mach, lnom);
+                    lng = strlen(lnom);
                 }
             } else {
                 // Code to remote copy the file on local machine and change file name
-                FGFDT[i].attr.remote = 0;
+                FGFDT[entry].attr.remote = 0;
                 // File becomes read only
-                FGFDT[i].attr.read_only = 0;
+                FGFDT[entry].attr.read_only = 0;
             }
         } else {
-            FGFDT[i].attr.remote = 0;
+            FGFDT[entry].attr.remote = 0;
         }
-        c = nom;
-        if (nom[0] == '@') {
+        const char *cptr1 = lnom;
+        if (lnom[0] == '@') {
             // Name is of the form @some_file_name
             // Skip the @, scan later under
-            c++;
+            cptr1++;
             // AFSISIO & ARMNLIB if not local file
             lng--;
         }
-        if (nom[0] == '%') {
+        if (lnom[0] == '%') {
             // Name is of the form %[%@]some_pipe_ file
             // Skip the %
-            c++;
+            cptr1++;
             lng--;
-            FGFDT[i].attr.pipe = 1;
+            FGFDT[entry].attr.pipe = 1;
         }
-        if (nom[0] == '+') {
+        if (lnom[0] == '+') {
             // Name is of the form +some_file_name
             // skip the +, do not convert to lowercase
-            c++;
+            cptr1++;
             lng--;
-            strncpy(FGFDT[i].file_name, nom + 1, lng);
-            c2 = FGFDT[i].file_name;
-            *(c2 + lng) = '\0';
+            strncpy(FGFDT[entry].file_name, lnom + 1, lng);
+            char *cptr2 = FGFDT[entry].file_name;
+            *(cptr2 + lng) = '\0';
         } else {
-            c2 = FGFDT[i].file_name;
-            *(c2 + lng) = '\0';
-            for (j = 0; j < lng; j++, c++, c2++) {
-                if (islower(*c)) {
+            char *cptr2 = FGFDT[entry].file_name;
+            *(cptr2 + lng) = '\0';
+            for (int j = 0; j < lng; j++, cptr1++, cptr2++) {
+                if (islower(*cptr1)) {
                     minus = 1;
-                    *c2 = *c;
-                } else if (isupper(*c)) {
+                    *cptr2 = *cptr1;
+                } else if (isupper(*cptr1)) {
                     majus = 1;
-                    *c2 = tolower(*c);
+                    *cptr2 = tolower(*cptr1);
                 } else {
-                    *c2 = *c;
+                    *cptr2 = *cptr1;
                 }
             }
             if (majus && minus) {
-                strncpy(FGFDT[i].file_name, nom, lng);
+                strncpy(FGFDT[entry].file_name, lnom, lng);
             }
         }
     }
 
 
     // Verify for a cmcarc type of file (filename@subfilename)
-    if ((cmcarc = strchr(FGFDT[i].file_name,'@')) && !(FGFDT[i].attr.remote)) {
-        FGFDT[i].subname = malloc(lng+1);
-        strcpy(FGFDT[i].subname,cmcarc+1);
+    char *cmcarc = strchr(FGFDT[entry].file_name, '@');
+    if (cmcarc && !(FGFDT[entry].attr.remote)) {
+        FGFDT[entry].subname = malloc(lng + 1);
+        strcpy(FGFDT[entry].subname, cmcarc + 1);
         *cmcarc = '\0';
         /* file must exist and be read/only */
-        FGFDT[i].attr.old = 1;
-        FGFDT[i].attr.read_only = 1;
+        FGFDT[entry].attr.old = 1;
+        FGFDT[entry].attr.read_only = 1;
     } else {
-        FGFDT[i].subname = NULL;
+        FGFDT[entry].subname = NULL;
     }
 
     // Check for @file (@filename)
-    if (nom[0]=='@') {
+    if (lnom[0] == '@') {
         char filename[PATH_MAX];
-        strcpy(filename,FGFDT[i].file_name);
+        strcpy(filename, FGFDT[entry].file_name);
 
-        if (access(filename,F_OK) == -1) {
+        if (access(filename, F_OK) == -1) {
             /* no local file */
-            sprintf(filename, "%s/datafiles/constants/%s", AFSISIO, FGFDT[i].file_name);
+            sprintf(filename, "%s/datafiles/constants/%s", AFSISIO, FGFDT[entry].file_name);
 
-            if (access(filename,F_OK)  == -1) {
+            if (access(filename, F_OK)  == -1) {
                 /* not under AFSISIO */
-                sprintf(filename,"%s/data/%s",ARMNLIB,FGFDT[i].file_name);
+                sprintf(filename, "%s/data/%s", ARMNLIB, FGFDT[entry].file_name);
 
-                if (access(filename,F_OK)  == -1) {
+                if (access(filename, F_OK)  == -1) {
                     /* not under ARMNLIB either */
                     return -1;
                 }
             }
         }
-        free(FGFDT[i].file_name);
-        FGFDT[i].file_name = malloc(strlen(filename) + 10);
-        strcpy(FGFDT[i].file_name, filename);
+        free(FGFDT[entry].file_name);
+        FGFDT[entry].file_name = malloc(strlen(filename) + 10);
+        strcpy(FGFDT[entry].file_name, filename);
         lng = strlen(filename);
      }
 
-    if ((FGFDT[i].attr.old || FGFDT[i].attr.read_only) && ! FGFDT[i].attr.remote) {
-        if (!f77name(existe)(FGFDT[i].file_name,(F2Cl) strlen(FGFDT[i].file_name))) {
-            fprintf(stderr,"c_fnom error: file %s should exist and does not\n",FGFDT[i].file_name);
-            junk = c_fclos(liun);
+    if ((FGFDT[entry].attr.old || FGFDT[entry].attr.read_only) && ! FGFDT[entry].attr.remote) {
+        if (!f77name(existe)(FGFDT[entry].file_name, (F2Cl) strlen(FGFDT[entry].file_name))) {
+            fprintf(stderr, "c_fnom error: file %s should exist and does not\n", FGFDT[entry].file_name);
+            c_fclos(liun);
             return -1;
         }
     }
 
     // FORTRAN files must be opened by a FORTRAN module
-    ier = 0;
-    if (FGFDT[i].attr.ftn) {
+    int ier = 0;
+    if (FGFDT[entry].attr.ftn) {
         int32_t iun77 = liun;
         int32_t lrec77 = lrec;
-        int32_t rndflag77 = FGFDT[i].attr.rnd;
-        int32_t unfflag77 = FGFDT[i].attr.unf;
+        int32_t rndflag77 = FGFDT[entry].attr.rnd;
+        int32_t unfflag77 = FGFDT[entry].attr.unf;
         // lmult is no longer used by qqqf7op, but the argument was kept for backward compatibility
         int32_t lmult = 42;
-        ier = open64(FGFDT[i].file_name, O_RDONLY | WIN32_O_BINARY);
+        ier = open64(FGFDT[entry].file_name, O_RDONLY | WIN32_O_BINARY);
         if (ier <= 0) {
-            FGFDT[i].file_size = -1;
-            FGFDT[i].eff_file_size = -1;
+            FGFDT[entry].file_size = -1;
+            FGFDT[entry].eff_file_size = -1;
         } else {
             LLSK dimm = 0;
-            dimm = LSEEK(ier,dimm,L_XTND);
-            FGFDT[i].file_size = dimm / sizeof(uint32_t);
-            FGFDT[i].eff_file_size = dimm / sizeof(uint32_t);
+            dimm = LSEEK(ier, dimm, L_XTND);
+            FGFDT[entry].file_size = dimm / sizeof(uint32_t);
+            FGFDT[entry].eff_file_size = dimm / sizeof(uint32_t);
             close(ier);
         }
-        ier = f77name(qqqf7op)(&iun77, FGFDT[i].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
-    } else if (FGFDT[i].attr.stream || FGFDT[i].attr.std || FGFDT[i].attr.burp || FGFDT[i].attr.wa ||
-               (FGFDT[i].attr.rnd && !FGFDT[i].attr.ftn) ) {
+        ier = f77name(qqqf7op)(&iun77, FGFDT[entry].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
+    } else if (FGFDT[entry].attr.stream || FGFDT[entry].attr.std || FGFDT[entry].attr.burp || FGFDT[entry].attr.wa ||
+               (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn) ) {
         ier = c_waopen2(liun);
         /* will be set by waopen */
-        FGFDT[i].attr.wa = 0;
+        FGFDT[entry].attr.wa = 0;
     }
 
-    if (FGFDT[i].attr.remote) ier = fnom_rem_connect(i, remote_mach);
+    if (FGFDT[entry].attr.remote) ier = fnom_rem_connect(entry, remote_mach);
 
-    if (ier == 0) FGFDT[i].open_flag = 1;
-    if (ier < 0) junk = c_fclos(liun);
+    if (ier == 0) FGFDT[entry].open_flag = 1;
+    if (ier < 0) c_fclos(liun);
     return ier < 0 ? -1 : 0;
 }
 
 
 int32_t f77name(fnom)(
-    int32_t *iun,
-    char *nom,
-    char *type,
-    int32_t *flrec,
+    int32_t * const iun,
+    const char * const nom,
+    const char * const type,
+    const int32_t * const flrec,
     F2Cl l1,
     F2Cl l2
 ) {
-    int tmp;
-    int lrec = *flrec;
     int liun = *iun;
     char filename[PATH_MAX + 1];
     char filetype[FNOM_TYPE_MAX + 1];
@@ -703,52 +706,43 @@ int32_t f77name(fnom)(
         filetype[lng] = '\0';
     }
 
-    tmp = c_fnom(&liun, filename, filetype, lrec);
+    int tmp = c_fnom(&liun, filename, filetype, *flrec);
     if (*iun == 0) *iun = liun;
     return tmp;
 }
 
 
 
-//! Close a file
+//! \brief Close a file
 //! \return 0 on success, non-zero otherwise
 int c_fclos(
     //! Unit number of the file to close
-    int iun
+    const int iun
 ) {
-   int i,ier;
-   int32_t iun77;
+    if ((iun == 6) && (stdoutflag)) return 0;
+    if ((iun == 5) && (stdinflag)) return 0;
 
-/*
-   for (i=0; i<MAXFILES; i++)
-      if (FGFDT[i].iun == iun)
-         break;
-   if (i == MAXFILES) {
-   fprintf(stderr,"c_fclos error: unit %d is not associated with any file\n",iun);
-   return(-2);
-   }
-*/
+    int entry = find_file_entry("c_fclos", iun);
+    if (entry < 0) return entry;
 
-   if ((iun == 6) && (stdoutflag)) return(0);
-   if ((iun == 5) && (stdinflag)) return(0);
+    int ier = 0;
+    if (FGFDT[entry].open_flag) {
+        if (FGFDT[entry].attr.ftn) {
+            int32_t iun77 = iun;
+            ier = f77name(ftnclos)(&iun77);
+        } else {
+            ier = close(FGFDT[entry].fd);
+        }
+    }
 
-   if ((i=find_file_entry("c_fclos",iun)) < 0) return(i);
-   iun77 = iun;
-   ier = 0;
-   if (FGFDT[i].open_flag){
-      if (FGFDT[i].attr.ftn)
-         ier = f77name(ftnclos)(&iun77);
-      else
-         ier = close(FGFDT[i].fd);
-      }
-
-   reset_file_entry(i);
-   return ier;
+    reset_file_entry(entry);
+    return ier;
 }
 
-
-int32_t f77name(fclos)(int32_t *fiun)
-{
+//! \copydoc c_fclos
+int32_t f77name(fclos)(
+    const int32_t * const fiun
+) {
     return c_fclos(*fiun);
 }
 
@@ -757,18 +751,17 @@ int32_t f77name(fclos)(int32_t *fiun)
 //! \return Valid unit number
 static int c_qqqfscr(
     //! File attributes (see FNOM)
-    char *type
+    const char * const type
 ) {
-    int iun, inused, start;
-
-    iun = -1;
+    int start;
+    int iun = -1;
     if (strstr(type, "FTN") || strstr(type, "ftn") || strstr(type, "D77") || strstr(type, "d77")) {
-            start = 99;
+        start = 99;
     } else {
         start = 999;
     }
     for (int j = start; j > 10; j--) {
-        inused = 0;
+        int inused = 0;
         for (int i = 0; i < MAXFILES; i++) {
             if (FGFDT[i].iun == j) {
                 inused = 1;
@@ -784,454 +777,456 @@ static int c_qqqfscr(
 }
 
 
-/****************************************************************************
-*                             Q Q Q F N O M                                 *
-*****************************************************************************
-*
-***function qqqfnom
-*
-*OBJECT: Obtain some information about a unit: file name, file type,
-*        lenght of record.
-*
-*ARGUMENTS:in  iun     unit number
-*          out nom     file name(blank padded to have a total length of l1)
-*          out type    type of file(blank padded to have a total length of l2)
-*          out flrec   length of record
-*          in  l1      length of filename
-*          in  l2      length of type
-*
-*/
-int32_t f77name(qqqfnom)(int32_t *iun,char *nom,char *type,int32_t *flrec,F2Cl l1,F2Cl l2)
-{
-   int i,j;
+//! Retreive file name, type and size
+//! \return 0 on success, negative number otherwise
+int32_t f77name(qqqfnom)(
+    //! [in] Unit number
+    const int32_t * const iun,
+    //! [out] File name(blank padded to have a total length of l1)
+    char * const nom,
+    //! [out] File type (blank padded to have a total length of l2)
+    char * const type,
+    //! [out] File size
+    int32_t * const flrec,
+    //! [in] File name length
+    F2Cl l1,
+    //! [in] File type length
+    F2Cl l2
+) {
+    int entry = find_file_entry("qqqfnom", *iun);
+    if (entry < 0) return entry;
 
-   j=*iun;
-   if ((i=find_file_entry("qqqfnom",j)) < 0) return(i);
-
-   strncpy(nom,FGFDT[i].file_name,l1);
-   for(j=strlen(FGFDT[i].file_name);j<l1;j++) nom[j]=' ';
-   strncpy(type,FGFDT[i].file_type,l2);
-   for(j=strlen(FGFDT[i].file_type);j<l2;j++) type[j]=' ';
-   *flrec=FGFDT[i].lrec;
-   return(0);
+    strncpy(nom, FGFDT[entry].file_name, l1);
+    for (int j = strlen(FGFDT[entry].file_name); j < l1; j++) {
+       nom[j] = ' ';
+    }
+    strncpy(type, FGFDT[entry].file_type, l2);
+    for (int j = strlen(FGFDT[entry].file_type); j < l2; j++) {
+        type[j] = ' ';
+    }
+    *flrec = FGFDT[entry].lrec;
+    return 0;
 }
-/****************************************************************************
-*                              Q Q C C L O S                                *
-*****************************************************************************
-*
-***function qqcclos
-*
-*OBJECT: Closes a file, given its index.
-*
-*ARGUMENTS: in indf   index of the file in the master file table
-*
-*RETURNS: zero if file correctly closed, non-zero otherwise
-*
-*/
-static int qqcclos(int indf)
-{
-  int lfd=FGFDT[indf].fd;
-  int ind;
 
-  ind = 0;
-  while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES))
-     ind++;
-  if (ind == MAXWAFILES) {
-     fprintf(stderr,"qqcclos error: file is not open, fd=%d, name=%s\n",
-                    lfd,FGFDT[indf].file_name);
-     return(1);
-     }
 
-  if (FGFDT[indf].attr.remote) {
-    int *s_ID, *addr, *nw, *RW_mode, *checksum;
-    int sock_comm_ID=0xBABE;
-    int demande[5];
-    int nc;
+//! Close file
+//! \return 0 on success, non-zero on otherwise
+static int qqcclos(
+    //! [in] Index of the file in the master file table
+    const int indf
+) {
+    int lfd = FGFDT[indf].fd;
 
-    s_ID = &(demande[0]);
-    addr = &(demande[1]);
-    nw = &(demande[2]);
-    RW_mode = &(demande[3]);
-    checksum = &(demande[4]);
-    *s_ID = sock_comm_ID;
-    *addr = 0;
-    *nw = 0;
-    *RW_mode = 3;  /* close request */
-    *checksum = *s_ID ^ *addr ^ *nw ^ *RW_mode;
-    check_swap_records(demande,5,sizeof(int));
-    nc=write_stream(FGFDT[indf].fd,demande,5*sizeof(int));
-    if (nc == 0) {
-      printf("socket qqcclos wrote to server OK\n");
-      fflush(stdout);
-      }
-    else {
-      fprintf(stderr,"socket qqcclos error: wrote only %d bytes to server\n",nc);
-      fflush(stderr);
-      }
-  } /* end remote */
-	else {
-    if (WA_PAGE_SIZE != 0) {
-      wa_pages_flush(ind);
-      if (wafile[ind].nb_page_in_use != 0)
-          fprintf(stderr,"qqcclos error: nb_page_in_use = %d\n",wafile[ind].nb_page_in_use);
-      FGFDT[indf].file_size = 0;
-      FGFDT[indf].eff_file_size = 0;
-      wafile[ind].nb_page_in_use = 0;
-      if (debug_mode > 1) {
-        fprintf(stderr,"Debug fermeture du fichier ind=%d, fd=%d\n",ind,lfd);
+    int ind = 0;
+    while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES)) {
+        ind++;
+    }
+    if (ind == MAXWAFILES) {
+        fprintf(stderr, "qqcclos error: file is not open, fd=%d, name=%s\n", lfd, FGFDT[indf].file_name);
+        return 1;
+    }
+
+    if (FGFDT[indf].attr.remote) {
+        int demande[5];
+
+        int *s_ID = &(demande[0]);
+        int *addr = &(demande[1]);
+        int *nw = &(demande[2]);
+        int *RW_mode = &(demande[3]);
+        int *checksum = &(demande[4]);
+        *s_ID = 0xBABE;
+        *addr = 0;
+        *nw = 0;
+        *RW_mode = 3;  /* close request */
+        *checksum = *s_ID ^ *addr ^ *nw ^ *RW_mode;
+        check_swap_records(demande, 5, sizeof(int));
+        int nc = write_stream(FGFDT[indf].fd, (char *)demande, 5 * sizeof(int));
+        if (nc == 0) {
+            printf("socket qqcclos wrote to server OK\n");
+            fflush(stdout);
+        } else {
+            fprintf(stderr, "socket qqcclos error: wrote only %d bytes to server\n", nc);
+            fflush(stderr);
         }
-      }
-	}
-  wafile[ind].file_desc = -1;
-  FGFDT[indf].fd = -1;
-  FGFDT[indf].open_flag = 0;
-  close(lfd);
-  return(0);
+    } else {
+        if (WA_PAGE_SIZE != 0) {
+            wa_pages_flush(ind);
+            if (wafile[ind].nb_page_in_use != 0) {
+                fprintf(stderr, "qqcclos error: nb_page_in_use = %d\n", wafile[ind].nb_page_in_use);
+            }
+            FGFDT[indf].file_size = 0;
+            FGFDT[indf].eff_file_size = 0;
+            wafile[ind].nb_page_in_use = 0;
+            if (debug_mode > 1) {
+                fprintf(stderr, "Debug fermeture du fichier ind=%d, fd=%d\n", ind, lfd);
+                }
+        }
+    }
+    wafile[ind].file_desc = -1;
+    FGFDT[indf].fd = -1;
+    FGFDT[indf].open_flag = 0;
+    close(lfd);
+    return 0;
 }
 
 
-/****************************************************************************
-*  C _ W A O P E N ,   C _ W A O P E N 2 ,   W A O P E N 2 ,   W A O P E N  *
-*****************************************************************************
-*
-***function c_waopen
-*
-*OBJECT: Opens a word addressable file.
-*
-*ARGUMENTS: in iun   unit number
-*
-*RETURNS: (only for c_waopen2 and waopen2) zero if file correctly opened, non-zero otherwise
-*
-*/
-void c_waopen(int iun) { int scrap=c_waopen2(iun); if(scrap<=0) exit(1); }
-int c_waopen2(int iun)   /* open unit iun for WORD ADDRESSABLE access */
-{
-   int i,ier;
+//! Open a word addressable file
+//! \return 0 on success, non-zero otherwise
+int c_waopen2(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = 0;
+    while (entry < MAXFILES && FGFDT[entry].iun != iun) {
+        entry++;
+    }
+    if (entry == MAXFILES) {
+        // iun not found; search again for an available entry
+        while (entry < MAXFILES && FGFDT[entry].iun != 0) {
+            entry++;
+        }
+        if (entry == MAXFILES) {
+            fprintf(stderr, "c_waopen error: file table is full\n");
+            return -1;
+        } else {
+            FGFDT[entry].iun = iun;
+        }
 
-   for (i=0; i < MAXFILES; i++)
-      if (FGFDT[i].iun == iun)
-         break;
-   if (i == MAXFILES) {
-      for (i=0; i < MAXFILES; i++)
-         if (FGFDT[i].iun == 0) {
-            FGFDT[i].iun = iun;
-            break;
+        // file is not associated with fnom, file name is set to Wafileiun
+        FGFDT[entry].file_name = malloc(10);
+        sprintf(FGFDT[entry].file_name, "%s%d", "Wafile", iun);
+        FGFDT[entry].attr.wa = 1;
+        FGFDT[entry].attr.rnd = 1;
+    } else {
+        if (FGFDT[entry].attr.rnd == 0) {
+            fprintf(stderr, "c_waopen error: waopen needs a file with the RND or WA type\n");
+            return -1;
+        }
+        if (FGFDT[entry].open_flag) {
+            if (FGFDT[entry].attr.wa == 1){
+                // fnom opened the file but does not set wa flag
+                fprintf(stderr, "c_waopen warning: unit %d already open as %s\n", iun, FGFDT[entry].file_name);
             }
-      if (i == MAXFILES) {
-        fprintf(stderr,"c_waopen error: file table is full\n");
+            FGFDT[entry].attr.wa = 1;
+            return FGFDT[entry].fd;
+        }
+    }
+
+    int ier = qqcopen(entry);
+    if (ier >= 0) {
+        FGFDT[entry].open_flag = 1;
+        FGFDT[entry].attr.wa = 1;
+        FGFDT[entry].attr.rnd = 1;
+    }
+    return ier;
+}
+
+
+//! \copydoc c_waopen2
+int32_t f77name(waopen2)(
+    const int32_t * const iun
+) {
+    return c_waopen2(*iun);
+}
+
+
+//! Open a word addressable file
+//! Quit program on error
+void c_waopen(
+    //! [in] Unit number
+    const int iun
+) {
+    if (c_waopen2(iun) <= 0) {
+        exit(1);
+    }
+}
+
+
+//! \copydoc c_waopen
+void f77name(waopen)(
+    const int32_t * const iun
+) {
+    c_waopen(*iun);
+}
+
+
+//! Close a word addressable file
+//! \return 0 on success, non-zero otherwise
+int c_waclos2(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = find_file_entry("c_waclos", iun);
+    if (entry < 0) return entry;
+
+    if (! FGFDT[entry].open_flag) {
+        fprintf(stderr, "c_waclos error: unit %d is not open\n", iun);
         return -1;
         }
-/*
- *  file is not associated with fnom, file name is set to Wafileiun
- */
-      FGFDT[i].file_name = malloc(10);
-      sprintf(FGFDT[i].file_name,"%s%d","Wafile",iun);
-      FGFDT[i].attr.wa = 1;
-      FGFDT[i].attr.rnd = 1;
-      }
-   else {
-      if (FGFDT[i].attr.rnd == 0) {
-         fprintf(stderr,"c_waopen error: waopen needs a file with the RND or WA type\n");
-         return -1;
-      }
-      if (FGFDT[i].open_flag) {
-         if (FGFDT[i].attr.wa == 1){ /* fnom opens the file but does not set wa flag */
-            fprintf(stderr,"c_waopen warning: unit %d already open as %s\n",iun,FGFDT[i].file_name);
-            }
-         FGFDT[i].attr.wa = 1;
-         return(FGFDT[i].fd);
-         }
-      }
-   ier = qqcopen(i);
-   if (ier >=0) { FGFDT[i].open_flag = 1; FGFDT[i].attr.wa = 1; FGFDT[i].attr.rnd = 1; }
-   return ier;
-}
 
-int32_t f77name(waopen2)(int32_t *fiun)
-{
-   int iun;
-   iun = *fiun;
-   return(c_waopen2(iun));
-}
-
-void f77name(waopen)(int32_t *fiun)
-{
-   int iun;
-   iun = *fiun;
-   c_waopen(iun);
-}
-
-/****************************************************************************
-* C _ W A C L O S ,   C _ W A C L O S 2 ,   W A C L O S ,   W A C L O S 2   *
-*****************************************************************************
-*
-***function c_waclos
-*
-*OBJECT: Closes a word addressable file.
-*
-*ARGUMENTS: in iun   unit number
-*
-*RETURNS: (only for c_waclos2 and waclos2) zero if closure is successful,
-*         non-zero otherwise.
-*
-*/
-void c_waclos(int iun) { c_waclos2(iun); }
-int c_waclos2(int iun)
-{
-   int i,ier;
-
-   if ((i=find_file_entry("c_waclos",iun)) < 0) return(i);
-
-   if (! FGFDT[i].open_flag) {
-      fprintf(stderr,"c_waclos error: unit %d is not open\n",iun);
-      return -1;
-      }
-
-   ier = qqcclos(i);
-   FGFDT[i].open_flag = 0;
-   FGFDT[i].attr.wa = 0;
-   return(ier);
-}
-int32_t f77name(waclos2)(int32_t *fiun)
-{
-   int iun;
-   iun = *fiun;
-   return(c_waclos2(iun));
-}
-void f77name(waclos)(int32_t *fiun)
-{
-   int iun;
-   iun = *fiun;
-   iun=c_waclos2(iun);
+    int ier = qqcclos(entry);
+    FGFDT[entry].open_flag = 0;
+    FGFDT[entry].attr.wa = 0;
+    return ier;
 }
 
 
+//! \copydoc c_waclos2
+int32_t f77name(waclos2)(
+    const int32_t * const iun
+) {
+   return c_waclos2(*iun);
+}
 
-/****************************************************************************
-*   C _ W A W R I T ,   C _ W A W R I T 2 ,   W A W R I T ,   W A W R I T 2 *
-*****************************************************************************
-*
-***function c_wawrit, c_wawrit2, wawrit, wawrit2
-*
-*OBJECT: Writes in a word addressable. c_wawrit2 and wawrit2 are functions
-*        returning an error code.
-*
-*ARGUMENTS: in iun    unit number
-*           in buf    will contain data
-*           in adr    file address
-*           in nmots  number of words
-*
-*RETURNS: (only for c-wawrit2 and wawrit2) the number of words written.
-*
-*/
-
-void c_wawrit(int iun, void *buf, unsigned int adr, int nmots) {
-  c_wawrit2(iun, buf, adr, nmots);
+//! Close a word addressable file
+//! \deprecated Use c_waclos2 instead
+void c_waclos(
+    //! [in] Unit number
+    const int iun
+) {
+    c_waclos2(iun);
 }
 
 
-int c_wawrit2(int iun,void *buf,unsigned int adr,int nmots) {
+//! \copydoc c_waclos
+//! \deprecated Use waclos2 instead
+void f77name(waclos)(
+    const int32_t * const iun
+) {
+   c_waclos2(*iun);
+}
+
+
+//! Write into a word adressable file
+//! \return Number of words written on success, negative number otherwise
+int c_wawrit2(
+    //! [in] Unit number
+    const int iun,
+    //! [in] Buffer containing the data to write
+    const void * const buf,
+    //! [in] Offset where to write in the file
+    const unsigned int offset,
+    //! [in] Number of words to write
+    const int nwords
+) {
 #define WA_HOLE 2048
-    int i;
     uint32_t scrap[WA_HOLE];
     uint32_t *bufswap = (uint32_t *) buf;
 
-    if ((i = find_file_entry("c_wawrit", iun)) < 0) return i;
+    int entry = find_file_entry("c_wawrit", iun);
+    if (entry < 0) return entry;
 
-    if (! FGFDT[i].open_flag) {
+    if (! FGFDT[entry].open_flag) {
         fprintf(stderr, "c_wawrit error: unit %d is not open\n", iun);
         return -1;
     }
-    if ( FGFDT[i].attr.read_only != 0 ) {
-        fprintf(stderr, "c_wawrit error: unit %d , file= %s is READ ONLY\n", iun, FGFDT[i].file_name);
+    if ( FGFDT[entry].attr.read_only != 0 ) {
+        fprintf(stderr, "c_wawrit error: unit %d , file= %s is READ ONLY\n", iun, FGFDT[entry].file_name);
         return -1;
     }
-    if ( adr > FGFDT[i].file_size+WA_HOLE ) {
+    if ( offset > FGFDT[entry].file_size + WA_HOLE ) {
         fprintf(stderr, "c_wawrit error: attempt to write beyond EOF+%d\n", WA_HOLE);
-        fprintf(stderr, "                unit = %d, adr=%u > file_size=%d\n", iun, adr, FGFDT[i].file_size);
-        fprintf(stderr, "                filename=%s\n", FGFDT[i].file_name);
+        fprintf(stderr, "                unit = %d, adr=%u > file_size=%d\n", iun, offset, FGFDT[entry].file_size);
+        fprintf(stderr, "                filename=%s\n", FGFDT[entry].file_name);
         exit(1);
     }
-    if ( adr > FGFDT[i].file_size + 1 ){
-        qqcwawr(scrap, FGFDT[i].file_size + 1, adr-FGFDT[i].file_size, i);
+    if ( offset > FGFDT[entry].file_size + 1 ){
+        qqcwawr(scrap, FGFDT[entry].file_size + 1, offset - FGFDT[entry].file_size, entry);
     }
-    if (*little_endian) swap_buffer_endianness(bufswap, nmots)
-    qqcwawr((int32_t *)buf, adr, nmots, i);
-    if (*little_endian) swap_buffer_endianness(bufswap, nmots)
+    if (*little_endian) swap_buffer_endianness(bufswap, nwords)
+    qqcwawr((uint32_t *)buf, offset, nwords, entry);
+    if (*little_endian) swap_buffer_endianness(bufswap, nwords)
 
-    return  nmots > 0 ? nmots : 0;
+    return  nwords > 0 ? nwords : 0;
 }
 
 
-void f77name(wawrit)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) {
-    f77name(wawrit2)(fiun, buf, fadr, fnmots);
+//! \copydoc c_wawrit2
+int32_t f77name(wawrit2)(
+    const int32_t * const iun,
+    const void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+) {
+#if defined (ALL64)
+    if ( offset > 0 ) {
+        return c_wawrit2(*iun, buf, (2 * (*offset)) - 1, *nwords * 2);
+    } else {
+        return c_wawrit2(*iun, buf, *offset, *nwords);
+    }
+#else
+    return c_wawrit2(*iun, buf, *offset, *nwords);
+#endif
 }
 
 
-int32_t f77name(wawrit2)(int32_t *fiun, void *buf, uint32_t *fadr, int32_t *fnmots) {
-    int iun = *fiun;
-    int adr = *fadr;
-    int nmots = *fnmots;
+//! Write into a word adressable file
+void c_wawrit(
+    //! [in] Unit number
+    const int iun,
+    //! [in] Buffer containing the data to write
+    const void * const buf,
+    //! [in] Offset where to write in the file
+    const unsigned int offset,
+    //! [in] Number of words to write
+    const int nwords
+) {
+    c_wawrit2(iun, buf, offset, nwords);
+}
+
+
+//! \copydoc c_wawrit
+void f77name(wawrit)(
+    const int32_t * const iun,
+    const void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+) {
+    f77name(wawrit2)(iun, buf, offset, nwords);
+}
+
+
+//! Read from word adressable file
+//! \return Number of entries read on success, negative error code otherwise
+int c_waread2(
+    //! [in] Unit number of the file from which to read
+    const int iun,
+    //! [in] Buffer that will contain the data read
+    void *buf,
+    //! [in] Offset from the beginning of the file where to read
+    const unsigned int offset,
+    //! [in] Number of word to read
+    const int nwords
+) {
+    uint32_t *bufswap = (uint32_t *) buf;
+
+    int entry = find_file_entry("c_waread", iun);
+    if (entry < 0) return entry;
+
+    if (! FGFDT[entry].open_flag) {
+        fprintf(stderr, "c_waread error: unit %d is not open\n", iun);
+        return -1;
+    }
+
+    if ( offset > FGFDT[entry].eff_file_size + 2 ) return -2;
+
+    if ( FGFDT[entry].eff_file_size == 0 ) return 0;
+
+    int lnwords = nwords;
+    if ( offset + lnwords - 1 > FGFDT[entry].eff_file_size ) {
+        lnwords -= (offset + lnwords - 1 - FGFDT[entry].eff_file_size);
+    }
+    if ( lnwords == 0 ) return 0;
+    qqcward((uint32_t *)buf, offset, lnwords, entry);
+    if (*little_endian) swap_buffer_endianness(bufswap, lnwords)
+    return lnwords;
+}
+
+
+//! \copydoc c_waread2
+int32_t f77name(waread2)(
+    const int32_t * const iun,
+    void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+) {
 #if defined (ALL64)
     if ( adr > 0 ) {
-        return c_wawrit2(iun, buf, (2*adr)-1, nmots*2);
+        return c_waread2(*iun, buf, (2 * (*offset)) - 1, *nwords * 2);
     } else {
-        return c_wawrit2(iun, buf, adr, nmots);
+        return c_waread2(*iun, buf, *offset, *nwords);
     }
 #else
-    return c_wawrit2(iun, buf, adr, nmots);
+    return c_waread2(*iun, buf, *offset, *nwords);
 #endif
 }
 
 
-/****************************************************************************
-* C _ W A R E A D ,   C _ W A R E A D 2 ,   W A R E A D ,   W A R E A D 2   *
-*****************************************************************************
-*
-***function c_waread, c_waread2, waread, waread2
-*
-*OBJECT: Read from a word addressable file.
-*
-*ARGUMENTS: in  iun     unit number
-*           out buf     will contain the data read
-*           in  adr     adress to start from
-*           in  nmots   number of words to read
-*
-*RETURNS: (only for c-waread2 and waread2) the number of words read.
-*
-*/
-void c_waread(int iun,void *buf,unsigned int adr,int nmots)
-{
-  int ier, i;
-  ier = c_waread2(iun,buf,adr,nmots);
-  if (ier == -2) {
-    i = find_file_entry("c_waread",iun);
-    fprintf(stderr,
-            "c_waread error: attempt to read beyond EOF, of file %s\n",
-            FGFDT[i].file_name);
-    fprintf(stderr,"                addr = %u, EOF = %d\n",
-            adr,FGFDT[i].eff_file_size);
-  }
-
-}
-int c_waread2(int iun,void *buf,unsigned int adr,int nmots)
-{
-   int i;
-   uint32_t *bufswap = (uint32_t *) buf;
-
-   if ((i=find_file_entry("c_waread",iun)) < 0) return(i);
-
-   if (! FGFDT[i].open_flag) {
-      fprintf(stderr,"c_waread error: unit %d is not open\n",iun);
-      return -1;
-      }
-
-   if ( adr > FGFDT[i].eff_file_size+2 ) return(-2);
-
-   if ( FGFDT[i].eff_file_size == 0 ) return(0);
-
-   if ( adr+nmots-1 > FGFDT[i].eff_file_size ) {
-      nmots -= (adr+nmots-1-FGFDT[i].eff_file_size);
-      }
-   if ( nmots == 0 ) return(0);
-   qqcward((uint32_t *)buf,adr,nmots,i);
-   if (*little_endian) swap_buffer_endianness(bufswap,nmots)
-   return(nmots);
-}
-void f77name(waread)(int32_t *fiun,void *buf,uint32_t *fadr,
-                     int32_t *fnmots)
-{
-  f77name(waread2)(fiun,buf,fadr,fnmots);
-}
-int32_t f77name(waread2)(int32_t *fiun,void *buf,uint32_t *fadr,
-                         int32_t *fnmots)
-{
-   int iun,adr,nmots;
-   iun = *fiun; adr = *fadr; nmots = *fnmots;
-#if defined (ALL64)
-   if ( adr > 0 )
-      return(c_waread2(iun,buf,(2*adr)-1,nmots*2));
-   else
-      return(c_waread2(iun,buf,adr,nmots));
-#else
-   return(c_waread2(iun,buf,adr,nmots));
-#endif
+//! Read from word adressable file
+void c_waread(
+    //! [in] Unit number of the file from which to read
+    const int iun,
+    //! [in] Buffer that will contain the data read
+    void * const buf,
+    //! [in] Offset from the beginning of the file where to read
+    const unsigned int offset,
+    //! [in] Number of word to read
+    const int nwords
+) {
+    int ier = c_waread2(iun, buf, offset, nwords);
+    if (ier == -2) {
+        int entry = find_file_entry("c_waread", iun);
+        fprintf(stderr, "c_waread error: attempt to read beyond EOF, of file %s\n", FGFDT[entry].file_name);
+        fprintf(stderr, "                addr = %u, EOF = %d\n", offset, FGFDT[entry].eff_file_size);
+    }
 }
 
 
-/****************************************************************************
-*                      C _ W A S I Z E ,   W A S I Z E                      *
-*****************************************************************************
-*
-***function c_wasize, wasize
-*
-*OBJECT: Returns the size (in words) of a file, given its unit number.
-*
-*ARGUMENTS: in iun   unit number
-*
-*RETURNS: the size of a file in words.
-*
-*NOTE: Gives the size of any file that can be passed to fnom.
-*
-*/
-int32_t c_wasize(int iun)
-{
-   int i;
-   uint32_t n;
+//! \copydoc c_waread
+void f77name(waread)(
+    const int32_t * const iun,
+    void * const buf,
+    const uint32_t * const offset,
+    const int32_t * const nwords
+) {
+    f77name(waread2)(iun, buf, offset, nwords);
+}
 
-   if ((i = find_file_entry("c_wasize", iun)) < 0) return i;
 
-   if (! FGFDT[i].open_flag) {
-      qqcopen(i);
-      n = FGFDT[i].eff_file_size;
-      qqcclos(i);
+//! Get file size
+//! \return File size in words
+int32_t c_wasize(
+    //! [in] Unit number
+    const int iun
+) {
+   int entry = find_file_entry("c_wasize", iun);
+   if (entry < 0) return entry;
+
+   uint32_t nwords;
+   if (! FGFDT[entry].open_flag) {
+      qqcopen(entry);
+      nwords = FGFDT[entry].eff_file_size;
+      qqcclos(entry);
    } else {
-      n = FGFDT[i].eff_file_size;
+      nwords = FGFDT[entry].eff_file_size;
    }
 
-   return n;
+   return nwords;
 }
-int32_t f77name(wasize)(int32_t *fiun)  /* return file size in FORTRAN WORDS */
-{
-   int iun;
-   iun = *fiun;
+
+
+//! Get file size in Fortran words
+//! \return File size in Fortran words
+int32_t f77name(wasize)(
+    //! [in] Unit number
+    const int32_t * const iun
+) {
 #if defined (ALL64)
-   return c_wasize(iun) / 2;
+    return c_wasize(*iun) / 2;
 #else
-   return c_wasize(iun);
+    return c_wasize(*iun);
 #endif
 }
 
-/****************************************************************************
-*                    C _ N U M B L K S ,   N U M B L K S                    *
-*****************************************************************************
-*
-***function c_numblks, numblks
-*
-*OBJECT: Returns the size of a file in kilobytes.
-*
-*ARGUMENTS: in iun   unit number
-*
-*RETURNS: the size of a file in kilobytes.
-*
-*NOTE: It uses c_wasize.
-*
-*/
-int32_t c_numblks(int iun)
-{
-   int i;
-   int n;
 
-   n = c_wasize(iun);
-   if (n < 0) return n;
-   i = 1024 / sizeof(uint32_t);
-   return (n + i - 1) / i;
+//! Get file size in kilobytes
+//! \return File size in kilobytes, or negative number on error
+int32_t c_numblks(
+    //! [in] Unit number
+    const int iun
+) {
+   int nwords = c_wasize(iun);
+   if (nwords < 0) return nwords;
+   int wordPerKb = 1024 / sizeof(uint32_t);
+   return (nwords + wordPerKb - 1) / wordPerKb;
 }
-int32_t f77name(numblks)(int32_t *fiun)     /* return file size in KiloBytes */
-{
-   int iun;
-   iun = *fiun;
-   return c_numblks(iun);
+
+
+//! \copydoc c_numblks
+int32_t f77name(numblks)(
+    const int32_t * const iun
+) {
+    return c_numblks(*iun);
 }
 
 
@@ -1239,13 +1234,14 @@ int32_t f77name(numblks)(int32_t *fiun)     /* return file size in KiloBytes */
 //!  \return 1 if file exists, 0 otherwise
 int32_t f77name(existe)(
     //! [in] File path
-    char *nom,
+    const char * const nom,
+    //! [in] File path length
     F2Cl llng
 ) {
-    int l2, lng = llng;
+    int lng = llng;
     char filename[PATH_MAX + 1];
 
-    l2 = (lng <= PATH_MAX) ? lng : PATH_MAX;
+    int l2 = (lng <= PATH_MAX) ? lng : PATH_MAX;
     strncpy(filename, nom, l2);
     filename[lng] = '\0';
 
@@ -1264,1658 +1260,1439 @@ int32_t f77name(existe)(
 }
 
 
-/****************************************************************************
-*                    C _ O P E N D A ,   O P E N D A                        *
-*****************************************************************************
-*
-***function c_openda, openda
-*
-*OBJECT: Opens a direct access file.
-*
-*ARGUMENTS: in iun  unit number
-*
-*/
-void c_openda(int iun)
-{
-   c_waopen(iun);
-}
-void f77name(openda)(int32_t *iun)
-{
-   int liun;
-   liun = (int) *iun;
-   c_waopen(liun);
-}
-
-/****************************************************************************
-*                   C _ C L O S D A ,   C L O S D A                         *
-*****************************************************************************
-*
-***function c_closda, closda
-*
-*OBJECT: Closes a direct access file.
-*
-*ARGUMENTS: in iun unit number
-*
-*/
-void c_closda(int iun)
-{
-   c_waclos(iun);
-}
-void f77name(closda)(int32_t *iun)
-{
-   int liun;
-   liun = (int) *iun;
-   c_closda(liun);
-}
-
-/****************************************************************************
-*                     C _ C H E C D A ,   C H E C D A                       *
-*****************************************************************************
-*
-***function c_checda, checda
-*
-*OBJECT: Checks that I/O is done.
-*
-*ARGUMENTS: in iun   unit number
-*
-*/
-void c_checda(int iun)
-{
-   int *pt;
-   for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++)
-      if (*pt == iun) {
-         *pt = 0;
-         break ;
-         }
-}
-void f77name(checda)(int32_t *iun)
-{
-   int liun;
-   liun = (int) *iun;
-   c_checda(liun);
-}
-
-/****************************************************************************
-*                     C _ R E A D D A ,   R E A D D A                       *
-*****************************************************************************
-*
-***function c_readda, readda
-*
-*OBJECT: Reads a direct access file.
-*
-*ARGUMENTS: in  iun      unit number
-*           out bufptr   will contain the data read
-*           in  ns       number of words to read
-*           in  is       word to start from
-*
-*/
-void c_readda(int iun,int *bufptr,int ns,int is)
-{
-   int *pt;
-   for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++)
-     if( *pt == iun ) break ;
-
-   if ( pt <= &dastat[MAXWAFILES] )
-   if (*pt == iun)
-      {
-      fprintf(stderr,"readda error: consecutive calls to readda without call to checda, iun=%d \n",iun);
-      return;
-      }
-   c_waread(iun,bufptr,(is-1)*BLKSIZE+1,ns*BLKSIZE);
-   for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++)
-      if( *pt == 0 ) break ;
-   if (  pt >= &dastat[MAXWAFILES] ) {
-      fprintf(stderr," *** readda error: recompiler avec MAXWAFILES++ \n");
-      return;
-      }
-   *pt = iun;
-}
-void f77name(readda)(int32_t *iun,int32_t *bufptr,int32_t *ns,int32_t *is)
-{
-   int liun,lns,lis,save=BLKSIZE;
-   liun = (int) *iun;
-   lns = (int) *ns;
-   lis = (int) *is;
-   BLKSIZE = BLKSIZE * (sizeof(int32_t)/sizeof(uint32_t));
-   c_readda(liun,bufptr,lns,lis);
-   BLKSIZE=save;
-}
-/****************************************************************************
-*                      C _ W R I T D A ,   W R I T D A                      *
-*****************************************************************************
-*
-***function c_writda, writda
-*
-*OBJECT: Writes to a direct access file.
-*
-*ARGUMENTS: in  iun     unit number
-*           in  bufptr  will contain the data read
-*           in  ns      number of words to write
-*           in  is      word to start from
-*
-*/
-void c_writda(int iun,int *bufptr,int ns,int is)
-{
-   int *pt;
-   for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++)
-      if( *pt == iun ) break ;
-   if ( pt <= &dastat[MAXWAFILES] )
-   if (*pt == iun)
-      {
-      fprintf(stderr,"writda error: consecutive calls to writda without call to checda, iun=%d \n",iun);
-      return;
-      }
-   c_wawrit(iun,bufptr,(is-1)*BLKSIZE+1,ns*BLKSIZE);
-   for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++)
-      if( *pt == 0 ) break ;
-   if (  pt >= &dastat[MAXWAFILES] ) {
-      fprintf(stderr," *** writda error: recompiler avec MAXWAFILES++ \n");
-      return;
-      }
-   *pt = iun;
-}
-
-void f77name(writda)(int32_t *iun,int32_t *bufptr,int32_t *ns,int32_t *is)
-{
-   int liun,lns,lis,save=BLKSIZE;
-   liun = (int) *iun;
-   lns = (int) *ns;
-   lis = (int) *is;
-   BLKSIZE = BLKSIZE * (sizeof(int32_t)/sizeof(uint32_t));
-   c_writda(liun,bufptr,lns,lis);
-   BLKSIZE=save;
+// Open a direct access file
+void c_openda(
+    //! [in] Unit number
+    const int iun
+) {
+    c_waopen(iun);
 }
 
 
-/***************************************************************************
-*                     C _ G E T F D S C ,   G E T F D S C                  *
-****************************************************************************
-*
-***function c_getfdsc,getfdsc
-*
-*OBJECT: Get file descriptor associated to unit iun.
-*
-*ARGUMENTS: in iun   unit number
-*
-*RETURNS: a file descriptor, if there is no error,
-*         or a negative number if there is an error.
-*
-*/
-int c_getfdsc(int iun) {
-   int i;
+//! \copydoc c_openda
+void f77name(openda)(
+    const int32_t * const iun
+) {
+    c_waopen(*iun);
+}
 
-   if ((i=find_file_entry("c_getfdsc",iun)) < 0) return(i);
+//! Closes a direct access file.
+void c_closda(
+    //! [in] Unit number
+    const int iun
+) {
+    c_waclos(iun);
+}
 
-   if (! FGFDT[i].attr.stream) {
-      fprintf(stderr,"c_getfdsc error: unit %d does not have the STREAM attribute\n",iun);
-      return -1;
-      }
-   if (! FGFDT[i].open_flag) {
-      fprintf(stderr,"c_getfdsc error: unit %d is not open\n",iun);
-      return -1;
-      }
 
-   return(FGFDT[i].fd) ;
-   }
-int32_t f77name(getfdsc)( int32_t *iun) { return(c_getfdsc((int) *iun)) ;}
+//! \copydoc c_closda
+void f77name(closda)(
+    const int32_t * const iun
+) {
+   c_closda(*iun);
+}
 
-/***************************************************************************
-*                     C _ S Q O P E N ,   S Q O P E N                      *
-****************************************************************************
-*
-***function c_sqopen, sqopen
-*
-*OBJECT: Opens a stream.
-*
-*ARGUMENTS: in iun   unit number
-*
-*/
 
+//! Check that I/O is done
+void c_checda(
+    //! [in] Unit number
+    const int iun
+) {
+    for (int *pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
+        if (*pt == iun) {
+            *pt = 0;
+            break;
+        }
+    }
+}
+
+
+//! \copydoc c_checda
+void f77name(checda)(
+    const int32_t * const iun)
+{
+    c_checda(*iun);
+}
+
+
+//! Read from a direct acces file
+void c_readda(
+    //! [in] Unit number
+    const int iun,
+    //! [out] Buffer where the data read will be placed
+    int * const buf,
+    //! [in] Number of words to read
+    const int nwords,
+    //! [in] Word to start from
+    const int offset
+) {
+    int *pt = dastat;
+    while (pt < &dastat[MAXWAFILES] && *pt != iun) {
+       pt++;
+    }
+
+    if ( pt <= &dastat[MAXWAFILES] ) {
+        if (*pt == iun) {
+            fprintf(stderr, "readda error: consecutive calls to readda without call to checda, iun=%d \n", iun);
+            return;
+        }
+    }
+    c_waread(iun, buf, (offset - 1) * blkSize + 1, nwords * blkSize);
+    for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
+        if ( *pt == 0 ) break ;
+        if (  pt >= &dastat[MAXWAFILES] ) {
+            fprintf(stderr, " *** readda error: recompiler avec MAXWAFILES++ \n");
+            return;
+        }
+    }
+    *pt = iun;
+}
+
+
+//! \copydoc c_readda
+void f77name(readda)(
+    const int32_t * const iun,
+    int32_t * const buf,
+    const int32_t * const nwords,
+    const int32_t * const offset
+) {
+   int save = blkSize;
+   blkSize = blkSize * (sizeof(int32_t) / sizeof(uint32_t));
+   c_readda(*iun, buf, *nwords, *offset);
+   blkSize = save;
+}
+
+
+//! Write to a direct access file
+void c_writda(
+    //! [in] Unit number
+    const int iun,
+    //! [in] Buffer containing the data to be written
+    const int * const buf,
+    //! [in] Number of words to write
+    const int nwords,
+    //! [in] Word to start from
+    const int offset
+) {
+    int *pt = dastat;
+    while (pt < &dastat[MAXWAFILES] && *pt != iun) {
+        pt++;
+    }
+    if ( pt <= &dastat[MAXWAFILES] ) {
+        if (*pt == iun) {
+            fprintf(stderr, "writda error: consecutive calls to writda without call to checda, iun=%d \n", iun);
+            return;
+        }
+    }
+    c_wawrit(iun, buf, (offset - 1) * blkSize + 1, nwords * blkSize);
+    for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
+        if( *pt == 0 ) break ;
+        if (  pt >= &dastat[MAXWAFILES] ) {
+            fprintf(stderr, " *** writda error: recompiler avec MAXWAFILES++ \n");
+            return;
+        }
+    }
+    *pt = iun;
+}
+
+
+//! \copydoc c_writda
+void f77name(writda)(
+    const int32_t * const iun,
+    const int32_t * const buf,
+    const int32_t * const nwords,
+    const int32_t * const offset
+) {
+    int save = blkSize;
+    blkSize = blkSize * (sizeof(int32_t) / sizeof(uint32_t));
+    c_writda(*iun, buf, *nwords, *offset);
+    blkSize = save;
+}
+
+
+//! Get file descriptor associated to a unit number
+//! \return File descriptor or negative number on error
+int c_getfdsc(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = find_file_entry("c_getfdsc", iun);
+    if (entry < 0) return entry;
+
+    if (! FGFDT[entry].attr.stream) {
+        fprintf(stderr, "c_getfdsc error: unit %d does not have the STREAM attribute\n", iun);
+        return -1;
+    }
+    if (! FGFDT[entry].open_flag) {
+        fprintf(stderr, "c_getfdsc error: unit %d is not open\n", iun);
+        return -1;
+    }
+
+    return FGFDT[entry].fd;
+}
+
+
+//! \copydoc c_getfdsc
+int32_t f77name(getfdsc)(
+    const int32_t * const iun
+) {
+    return c_getfdsc((int) *iun);
+}
+
+
+//! Seriously, why is this here!?  It does absolutely nothing, but a
+//! symbol will be created which means it will overshadow any other
+//! proper implementation that might exist elsewhere
 void c_socket_open()
 {
 }
-void c_sqopen(int iun)
-{
-  int i;
+//! Open a stream
+void c_sqopen(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = find_file_entry("c_sqopen", iun);
+    if (entry < 0) return;
 
-  if ((i=find_file_entry("c_sqopen",iun)) < 0) return;
-
-  if (FGFDT[i].attr.pipe) {
-    if ((FGFDT[i].file_name[0] == '@') || (FGFDT[i].file_name[0] == '%'))
-      c_socket_open();
-    else
-      if ((FGFDT[i].file_name[1] == '0') || (FGFDT[i].file_name[1] == '1'))
-        i = sscanf(&(FGFDT[i].file_name[1]),"%d",&(FGFDT[i].fd));
-      else {
-        FGFDT[i].file_name++;
+    if (FGFDT[entry].attr.pipe) {
+        if ((FGFDT[entry].file_name[0] == '@') || (FGFDT[entry].file_name[0] == '%')) {
+            c_socket_open();
+        } else {
+            if ((FGFDT[entry].file_name[1] == '0') || (FGFDT[entry].file_name[1] == '1')) {
+                sscanf(&(FGFDT[entry].file_name[1]), "%d", &(FGFDT[entry].fd));
+            } else {
+                FGFDT[entry].file_name++;
+                c_waopen(iun);
+            }
+        }
+    } else {
         c_waopen(iun);
-      }
-  }
-  else
-    c_waopen(iun) ;
+    }
 }
-void f77name(sqopen)(int32_t *iun) { c_sqopen((int) *iun) ; }
 
-/***************************************************************************
-*                     C _ S Q C L O S ,   S Q C L O S                      *
-****************************************************************************
-*
-***function c_sqclos, sqclos
-*
-*OBJECT: Closes a stream.
-*
-*ARGUMENTS: in iun  unit number
-*
-*/
-void c_sqclos(int iun)
-{
-   int i;
 
-   if ((i=find_file_entry("c_sqclos",iun)) < 0) return;
-   if (FGFDT[i].attr.wa == 1) c_waclos(iun) ;
+//! \copydoc c_sqopen
+void f77name(sqopen)(
+    const int32_t * const iun
+) {
+    c_sqopen((int) *iun);
 }
-void f77name(sqclos)(int32_t *iun) { c_sqclos((int) *iun) ; }
 
-/***************************************************************************
-*                     C _ S Q R E W ,   S Q R E W                          *
-****************************************************************************
-*
-***function c_sqrew, sqrew
-*
-*OBJECT: Rewinds a stream
-*
-*ARGUMENTS: in iun  unit number
-*
-*/
-void c_sqrew(int iun) {
-   int fd ;
-   int i;
 
-   if ((i=find_file_entry("c_sqrew",iun)) < 0) return;
+//! Close a stream
+void c_sqclos(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = find_file_entry("c_sqclos", iun);
+    if (entry < 0) return;
 
-   if (FGFDT[i].attr.pipe) return;
-
-   fd = c_getfdsc(iun);
-   if (fd <= 0) return;
-   lseek(fd,0,L_SET);
+    if (FGFDT[entry].attr.wa == 1) {
+        c_waclos(iun);
+    }
 }
-void f77name(sqrew)(int32_t *iun) { c_sqrew((int) *iun) ; }
 
-/***************************************************************************
-*                     C _ S Q E O I ,   S Q E O I                          *
-****************************************************************************
-*
-***function c_sqeoi, sqeoi
-*
-*OBJECT: Goes to the end of stream(information).
-*
-*ARGUMENTS: in iun  unit number
-*
-*/
-void c_sqeoi(int iun) {
-   int fd ;
-   int i;
 
-   if ((i=find_file_entry("c_sqeoi",iun)) < 0) return;
-
-   if (FGFDT[i].attr.pipe) return;
-
-   fd = c_getfdsc(iun);
-   if (fd <= 0) return;
-   lseek(fd,0,L_XTND);
+//! \copydoc c_sqclos
+void f77name(sqclos)(
+    const int32_t * const iun) {
+    c_sqclos((int) *iun);
 }
-void f77name(sqeoi)(int32_t *iun) {
+
+//! Rewind a stream
+void c_sqrew(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = find_file_entry("c_sqrew", iun);
+    if (entry < 0) return;
+
+    if (FGFDT[entry].attr.pipe) return;
+
+    int fd = c_getfdsc(iun);
+    if (fd <= 0) return;
+    lseek(fd, 0, L_SET);
+}
+
+
+//! \copydoc c_sqrew
+void f77name(sqrew)(
+    const int32_t * const iun
+) {
+    c_sqrew((int) *iun);
+}
+
+
+//! Go to the end of stream(information)
+void c_sqeoi(
+    //! [in] Unit number
+    const int iun
+) {
+    int entry = find_file_entry("c_sqeoi", iun);
+    if (entry < 0) return;
+
+    if (FGFDT[entry].attr.pipe) return;
+
+    int fd = c_getfdsc(iun);
+    if (fd <= 0) return;
+    lseek(fd, 0, L_XTND);
+}
+
+
+//! [in] \copydoc c_sqeoi
+void f77name(sqeoi)(
+    const int32_t * const iun
+) {
     c_sqeoi((int) *iun);
 }
 
-/**************************************************************************
-*                     C _ S Q G E T W ,   S Q G E T W                     *
-***************************************************************************
-*
-***function c_sqgetw, sqgetw
-*
-*OBJECT: Gets a certain number of words from a stream.
-*
-*ARGUMENTS: in  iun      unit number
-*           out bufptr   will contain the data read
-*           in  nmots    number of words to read
-*
-*RETURNS: the number of words read if the read is successful,
-*         or a negative or null number otherwise.
-*
-*/
-int c_sqgetw(int iun, int32_t *bufptr, int nmots) {
-    int fd;
 
+//! Read a certain number of words from a stream
+//! \return Number of words read on success, 0 or negative on error
+int c_sqgetw(
+    //! [in] Unit number
+    const int iun,
+    //! [out] Buffer to hold the data read
+    uint32_t * const buf,
+    //! [in] Number of words to read
+    const int nwords
+) {
     int alu = 0;
     int nlu = 1;
-    int alire = nmots * sizeof(int32_t);
+    int alire = nwords * sizeof(uint32_t);
 
-    fd = c_getfdsc(iun);
+    int fd = c_getfdsc(iun);
     if (fd <= 0) return fd;
 
+    uint32_t *pbuf = buf;
     while (alire && (nlu > 0)) {
-        nlu = read(fd, bufptr, alire);
+        nlu = read(fd, pbuf, alire);
         alire -= nlu;
         alu += nlu;
-        bufptr += (nlu / sizeof(int32_t));
+        pbuf += (nlu / sizeof(uint32_t));
     }
-    return (alire == 0) ? alu / sizeof(int32_t) : -1;
+    return (alire == 0) ? alu / sizeof(uint32_t) : -1;
 }
 
 
-int32_t f77name(sqgetw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
-   return c_sqgetw((int) *iun, (uint32_t *) bufptr, *nmots);
+int32_t f77name(sqgetw)(
+    const int32_t * const iun,
+    uint32_t * const buf,
+    const int32_t * const nwords
+) {
+    return c_sqgetw((int) *iun, (uint32_t *) buf, *nwords);
 }
 
-/***************************************************************************
-*                     C _ S Q P U T W ,   S Q P U T W                      *
-****************************************************************************
-*
-***function c_sqputw, sqputw
-*
-*OBJECT: Writes in a stream.
-*
-*ARGUMENTS: in iun      unit number
-*           in bufptr   what to write
-*           in nmots    number of words to write
-*
-*RETURNS: the number of words written, if the write is successful,
-*         or a negative or null number otherwise.
-*
-*/
-int c_sqputw(int iun, int32_t *bufptr, int nmots) {
-    int fd;
 
+//! Write in a stream
+int c_sqputw(
+    //! [in] Unit number
+    const int iun,
+    //! [in] Buf from which to read the data to be written
+    const uint32_t * const buf,
+    //! [in] Number of words to write
+    const int nwords
+) {
     int aecrit = 0;
-    int aecrire = sizeof(int32_t) * nmots;
+    int aecrire = sizeof(uint32_t) * nwords;
     int necrit = 1;
-    fd = c_getfdsc(iun);
+    int fd = c_getfdsc(iun);
     if (fd <= 0) return fd;
 
+    const uint32_t *pbuf = buf;
     while (aecrire && (necrit > 0)) {
-        necrit = write(fd,bufptr,aecrire);
+        necrit = write(fd, pbuf, aecrire);
         aecrire -= necrit;
         aecrit += necrit;
-        bufptr += (necrit / sizeof(uint32_t));
+        pbuf += (necrit / sizeof(uint32_t));
     }
-    return (aecrire == 0) ? necrit/sizeof(uint32_t) : -1;
-}
-int32_t f77name(sqputw)(int32_t *iun, int32_t *bufptr, int32_t *nmots) {
-   return(c_sqputw((int) *iun, bufptr, *nmots ));
-}
-/***************************************************************************
-*                     C _ S Q G E T S ,   S Q G E T S                      *
-****************************************************************************
-*
-***function c_sqgets, sqgets
-*
-*OBJECT: Gets a certain number of character from a stream.
-*
-*ARGUMENTS: in  iun     unit number
-*           out bufptr  will contain the data read
-*           in  nchar   number of char to get
-*
-*RETURNS: the number of characters read, if the read is successful,
-*         or a negative or null number otherwise.
-*
-*/
-int c_sqgets(int iun, char *bufptr, int nchar) {
-   int nlu ;
-   int fd ;
-   fd = c_getfdsc(iun);
-   if (fd <= 0) return(fd);
-   nlu = read(fd,bufptr,nchar);
-   return( (nlu > 0) ? nlu : -1);
-}
-int32_t f77name(sqgets)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl llbuf) {
-   int lbuf=llbuf;
-   if (lbuf >= *nchar)
-      return( c_sqgets(*iun, bufptr , *nchar));
-   else
-      return( c_sqgets(*iun, bufptr , lbuf));
-}
-/***************************************************************************
-*                     C _ S Q P U T S ,   S Q P U T S                      *
-****************************************************************************
-*
-***function c_sqputs, sqputs
-*
-*OBJECT: Writes a certain number of character to a stream.
-*
-*ARGUMENTS: in iun     unit number
-*           in bufptr  contains data to write
-*           in nchar   number of char to write
-*
-*RETURNS: the number of characters written in the stream, if the read is successful
-*         or a negative or null number otherwise.
-*
-*/
-int c_sqputs(int iun, char *bufptr, int nchar) {
-   int nlu ;
-   int fd ;
-   fd = c_getfdsc(iun);
-   if (fd <= 0) return(fd);
-   nlu = write(fd,bufptr,nchar);
-   return( (nlu > 0) ? nlu : -1);
-}
-int32_t f77name(sqputs)(int32_t *iun, char  *bufptr, int32_t *nchar, F2Cl llbuf) {
-   int lbuf=llbuf;
-   if (lbuf >= *nchar)
-      return( c_sqputs(*iun, bufptr , *nchar));
-   else
-      return( c_sqputs(*iun, bufptr , lbuf));
+    return (aecrire == 0) ? necrit / sizeof(uint32_t) : -1;
 }
 
 
+//! \copydoc c_sqputw
+int32_t f77name(sqputw)(
+    const int32_t * const iun,
+    const uint32_t * const buf,
+    const int32_t * const nwords
+) {
+    return c_sqputw((int) *iun, buf, *nwords );
+}
 
-/****************************************************************************
-*                           S C R A P _ P A G E                             *
-*****************************************************************************
-*
-***function scrap_page
-*
-*OBJECT: Gets rid of the least useful page used by wafiles ind0
-*        up to (and including) ind1.
-*
-*ARGUMENTS: in ind0  index of first file
-*           in ind1  index of last file
-*
-*/
-static void scrap_page(int ind0,int ind1)
-{
-   int fl0, pg0, age0, i, j, nm, ier, found_a_page=0;;
 
-   fl0 = ind0;
-   pg0 = 0;
-   age0 = 0x7fffffff;
-   if (debug_mode > 4) {
-      fprintf(stderr,"Debug SCRAP_PAGE ind0=%d, ind1=%d \n",ind0,ind1);
-      }
-/*
- * TROUVER LA PAGE LA MOINS "UTILE"
- */
-   for (j = ind0; j <= ind1; j++){
-      for (i = 0; i < wafile[j].nb_page_in_use; i++) {
-         if (debug_mode > 5) {
-            fprintf(stderr,"Debug SCRAP_PAGE j=%d, i=%d age0=%d\n",
-                           j,i,wafile[j].page[i].access_count);
+//! Read bytes from a file
+//! \return The number of characters read on success, 0 or negative on error
+int c_sqgets(
+    //! [in] Unit number of the file from which to read
+    const int iun,
+    //! [out] Pointer to where the data read will be placed
+    char * const buf,
+    //! [in] Number of bytes to read
+    const int nchar
+) {
+    int fd = c_getfdsc(iun);
+    if (fd <= 0) return fd;
+    int nlu = read(fd, buf, nchar);
+    return  (nlu > 0) ? nlu : -1;
+}
+
+//! Read bytes from a file.
+//! Reads the smallest of nchar or the size of the Fortran string bytes
+//! \return The number of characters read on success, 0 or negative on error
+int32_t f77name(sqgets)(
+    //! [in] Unit number of the file from which to read
+    const int32_t * const iun,
+    //! [out] Pointer to where the data read will be placed
+    char * const buf,
+    //! [in] Number of bytes to read
+    const int32_t * const nchar,
+    //! [in] Size of buf if it's a Fortran string
+    F2Cl llbuf
+) {
+    if (llbuf >= *nchar) {
+        return c_sqgets(*iun, buf, *nchar);
+    } else {
+        return c_sqgets(*iun, buf, llbuf);
+    }
+}
+
+
+//! Write bytes to a file
+int c_sqputs(
+    //! [in] Unit number of the file into which to write
+    const int iun,
+    //! [in] Buffer containing the data to write
+    const char * const buf,
+    //! [in] Number of bytes to write
+    const int nchar
+) {
+    int fd = c_getfdsc(iun);
+    if (fd <= 0) return fd;
+    int nlu = write(fd, buf, nchar);
+    return (nlu > 0) ? nlu : -1;
+}
+
+
+//! \copydoc c_sqputs
+int32_t f77name(sqputs)(
+    const int32_t *iun,
+    const char * const buf,
+    const int32_t * const nchar,
+    F2Cl llbuf
+) {
+    if (llbuf >= *nchar) {
+        return c_sqputs(*iun, buf , *nchar);
+    } else {
+        return c_sqputs(*iun, buf , llbuf);
+    }
+}
+
+
+//! Get rid of the least useful page
+static void scrap_page(
+    //! [in] Index of the first file
+    const int ind0,
+    //! [in] Index of the last file
+    const int ind1
+) {
+    int fl0 = ind0;
+    int pg0 = 0;
+    int age0 = 0x7fffffff;
+    int found_a_page = 0;
+    if (debug_mode > 4) {
+        fprintf(stderr, "Debug SCRAP_PAGE ind0=%d, ind1=%d \n", ind0, ind1);
+    }
+
+    // Trouver la page la moins utile
+    for (int j = ind0; j <= ind1; j++) {
+        for (int i = 0; i < wafile[j].nb_page_in_use; i++) {
+            if (debug_mode > 5) {
+                fprintf(stderr, "Debug SCRAP_PAGE j=%d, i=%d age0=%d\n", j, i, wafile[j].page[i].access_count);
             }
-         if (wafile[j].page[i].access_count < age0) {
-            age0 = wafile[j].page[i].access_count;
-            found_a_page=1;
-            pg0 = i;
-            fl0 = j;
+            if (wafile[j].page[i].access_count < age0) {
+                age0 = wafile[j].page[i].access_count;
+                found_a_page = 1;
+                pg0 = i;
+                fl0 = j;
             }
-         }
-      }
-   if(found_a_page==0){
-      fprintf(stderr,"scrap_page error: cannot find a page to scrap\n");
-      exit(1);
-      }
-   if (debug_mode > 4) {
-      fprintf(stderr,"Debug SCRAP_PAGE fl0=%d, pg0=%d, age0=%d\n",fl0,pg0,age0);
-      }
-/*
-  REECRIRE LA PAGE SI CE N'EST PAS UNE PAGE READ/ONLY
-*/
-   if (wafile[fl0].page[pg0].touch_flag) {
-      nm = wafile[fl0].page[pg0].walast - wafile[fl0].page[pg0].wa0 + 1;
-      WSEEK(wafile[fl0].file_desc,wafile[fl0].page[pg0].wa0-1,L_SET);
-      ier = write(wafile[fl0].file_desc,wafile[fl0].page[pg0].page_adr,sizeof(uint32_t)*nm);
-      if (ier != sizeof(uint32_t)*nm) {
-        fprintf(stderr,"scrap_page error: cannot write page, fd=%d\n",wafile[fl0].file_desc);
-        fprintf(stderr,"scrap_page error: trying to write %d words buffer=%p, fileadr=%d\n",nm,
-                             wafile[fl0].page[pg0].page_adr,wafile[fl0].page[pg0].wa0-1);
-        fprintf(stderr,"scrap_page error: ier=%d,fl0=%d,ind0=%d,ind1=%d\n",ier,fl0,ind0,ind1);
-        perror("FATAL WA ERROR");
+        }
+    }
+    if (found_a_page == 0) {
+        fprintf(stderr, "scrap_page error: cannot find a page to scrap\n");
         exit(1);
-        }
-      if (debug_mode > 4) {
-         fprintf(stderr,"Debug SCRAP_PAGE ecriture disque adr=%d, nmots=%d \n",
-                        wafile[fl0].page[pg0].wa0,nm);
-         }
-      }
-   wafile[fl0].nb_page_in_use--;
-   free_list[++nfree] = wafile[fl0].page[pg0].page_adr;
-   if (pg0 != wafile[fl0].nb_page_in_use)
-      memcpy(&wafile[fl0].page[pg0],&wafile[fl0].page[pg0+1],
-             sizeof(PAGEINFO)*(wafile[fl0].nb_page_in_use - pg0));
-   pg0 = wafile[fl0].nb_page_in_use;
-   wafile[fl0].page[pg0].wa0 = 0;
-   wafile[fl0].page[pg0].walast = 0;
-   wafile[fl0].page[pg0].access_count = 0;
-   wafile[fl0].page[pg0].last_access = 0;
-   wafile[fl0].page[pg0].touch_flag = 0;
-   }
+    }
+    if (debug_mode > 4) {
+      fprintf(stderr, "Debug SCRAP_PAGE fl0=%d, pg0=%d, age0=%d\n", fl0, pg0, age0);
+    }
 
-/****************************************************************************
-*                        P R O C E S S _ D E C A Y                          *
-*****************************************************************************
-*
-***function process_decay
-*
-*OBJECT: Updates the age of the pages.
-*
-*ARGUMENTS: none
-*
-*/
-static void process_decay()
-{
-  int i,j;
-  for (j = 0; j < MAXWAFILES; j++)
-    for (i = 0; i < wafile[j].nb_page_in_use; i++) {
-      wafile[j].page[i].access_count = decay(wafile[j].page[i].access_count);
-      wafile[j].page[i].last_access++;
+    // Réécrire la page si ce n'est pas une page read-only
+    if (wafile[fl0].page[pg0].touch_flag) {
+        int nm = wafile[fl0].page[pg0].walast - wafile[fl0].page[pg0].wa0 + 1;
+        WSEEK(wafile[fl0].file_desc, wafile[fl0].page[pg0].wa0 - 1, L_SET);
+        int ier = write(wafile[fl0].file_desc, wafile[fl0].page[pg0].page_adr, sizeof(uint32_t) * nm);
+        if (ier != sizeof(uint32_t) * nm) {
+            fprintf(stderr, "scrap_page error: cannot write page, fd=%d\n", wafile[fl0].file_desc);
+            fprintf(stderr, "scrap_page error: trying to write %d words buffer=%p, fileadr=%d\n", nm,
+                             (void *)wafile[fl0].page[pg0].page_adr, wafile[fl0].page[pg0].wa0 - 1);
+            fprintf(stderr, "scrap_page error: ier=%d,fl0=%d,ind0=%d,ind1=%d\n", ier, fl0, ind0, ind1);
+            perror("FATAL WA ERROR");
+            exit(1);
+        }
+        if (debug_mode > 4) {
+            fprintf(stderr, "Debug SCRAP_PAGE ecriture disque adr=%d, nmots=%d \n", wafile[fl0].page[pg0].wa0, nm);
+        }
+    }
+    wafile[fl0].nb_page_in_use--;
+    free_list[++nfree] = wafile[fl0].page[pg0].page_adr;
+    if (pg0 != wafile[fl0].nb_page_in_use) {
+        memcpy(&wafile[fl0].page[pg0], &wafile[fl0].page[pg0+1], sizeof(PAGEINFO) * (wafile[fl0].nb_page_in_use - pg0));
+    }
+    pg0 = wafile[fl0].nb_page_in_use;
+    wafile[fl0].page[pg0].wa0 = 0;
+    wafile[fl0].page[pg0].walast = 0;
+    wafile[fl0].page[pg0].access_count = 0;
+    wafile[fl0].page[pg0].last_access = 0;
+    wafile[fl0].page[pg0].touch_flag = 0;
+}
+
+
+//! Update age and access count of pages
+static void process_decay() {
+    for (int j = 0; j < MAXWAFILES; j++) {
+        for (int i = 0; i < wafile[j].nb_page_in_use; i++) {
+            wafile[j].page[i].access_count = decay(wafile[j].page[i].access_count);
+            wafile[j].page[i].last_access++;
+        }
     }
 }
 
 
-/****************************************************************************
-*                        G E T _ N E W _ P A G E                            *
-*****************************************************************************
-*
-***function get_new_page
-*
-*OBJECT: Gets a new page for the wafile of index ind.
-*
-*ARGUMENTS: in ind   index of wafile
-*
-*/
-static void get_new_page(int ind)
-{
-   int pg0;
+//! Get a new page
+static void get_new_page(
+    //! [in] Index of the file into which to get a new page
+    const int fileIdx
+) {
+    if (wafile[fileIdx].nb_page_in_use >= WA_PAGE_NB) {
+        scrap_page(fileIdx, fileIdx);
+        if (wafile[fileIdx].nb_page_in_use >= WA_PAGE_NB) {
+            fprintf(stderr, "get_new_page error: no page left !??");
+            exit(1);
+        }
+    }
 
-   if (wafile[ind].nb_page_in_use >= WA_PAGE_NB) {
-      scrap_page(ind,ind);
-      if (wafile[ind].nb_page_in_use >= WA_PAGE_NB) {
-        fprintf(stderr,"get_new_page error: no page left !??");
+    if (nfree < 0) {
+        if (global_count < WA_PAGE_LIMIT) {
+            global_count++;
+            free_list[++nfree] = (uint32_t *) malloc(WA_PAGE_SIZE * sizeof(uint32_t));
+            if (free_list[nfree] == NULL) {
+                fprintf(stderr, "WA get_new_page error: can't allocate (not enough memory)\n");
+                exit(1);
+            }
+            if (debug_mode > 4) {
+                fprintf(stderr, "Debug GET_NEW_PAGE nfree=%d malloc=%p \n", nfree, (void *)free_list[nfree]);
+            }
+        }
+    }
+    if (nfree < 0) {
+        scrap_page(0, MAXWAFILES - 1);
+    }
+
+    if (nfree < 0) {
+        fprintf(stderr, "get_new_page error: no page left !??");
         exit(1);
-        }
-      }
+    }
 
-   if (nfree < 0) {
-      if (global_count < WA_PAGE_LIMIT) {
-         global_count++;
-         free_list[++nfree] = (uint32_t *) malloc(WA_PAGE_SIZE * sizeof(uint32_t));
-         if (free_list[nfree] == NULL) {
-           fprintf(stderr,
-           "WA get_new_page error: can't allocate (not enough memory)\n");
-           exit(1);
-           }
-   if (debug_mode > 4) {
-      fprintf(stderr,"Debug GET_NEW_PAGE nfree=%d malloc=%p \n", nfree, free_list[nfree]);
-      }
-         }
-      }
-   if (nfree < 0)
-      scrap_page(0,MAXWAFILES-1);
+    int pg0 = wafile[fileIdx].nb_page_in_use++;
 
-   if (nfree < 0) {
-      fprintf(stderr,"get_new_page error: no page left !??");
-      exit(1);
-      }
-
-   pg0 = wafile[ind].nb_page_in_use++;
-
-   wafile[ind].page[pg0].page_adr = free_list[nfree--];
-   wafile[ind].page[pg0].wa0 = 0;
-   wafile[ind].page[pg0].walast = 0;
-   wafile[ind].page[pg0].access_count = 0;
-   wafile[ind].page[pg0].last_access = 0;
-   wafile[ind].page[pg0].touch_flag = 0;
-   if (debug_mode > 4) {
-      fprintf(stderr,"Debug GET_NEW_PAGE pg0=%d, page_adr=%d \n",
-                     pg0,wafile[ind].page[pg0].page_adr);
-      }
-   }
-
-/****************************************************************************
-*                       W A _ P A G E S _ F L U S H                         *
-*****************************************************************************
-*
-***function wa_pages_flush
-*
-*OBJECT: Flushes all pages of a word addressable file.
-*
-*ARGUMENTS: in ind   index of the wafile
-*
-*/
-static void wa_pages_flush(int ind)
-
-{
-   while (wafile[ind].nb_page_in_use > 0) {
-      scrap_page(ind,ind);
-      }
+    wafile[fileIdx].page[pg0].page_adr = free_list[nfree--];
+    wafile[fileIdx].page[pg0].wa0 = 0;
+    wafile[fileIdx].page[pg0].walast = 0;
+    wafile[fileIdx].page[pg0].access_count = 0;
+    wafile[fileIdx].page[pg0].last_access = 0;
+    wafile[fileIdx].page[pg0].touch_flag = 0;
+    if (debug_mode > 4) {
+        fprintf(stderr, "Debug GET_NEW_PAGE pg0=%d, page_adr=%d \n", pg0, wafile[fileIdx].page[pg0].page_adr);
+    }
 }
 
 
-/****************************************************************************
-*                              F I L E P O S                                *
-*****************************************************************************
-*
-***function filepos
-*
-*OBJECT: Returns the position of the start of the data of a subfile
-*        in a CMCARC file.
-*
-*ARGUMENTS: in indf  index of the subfile in the master file table
-*
-*RETURNS: the position of the start of the data of a subfile
-*         in a CMCARC file.
-*
-*/
-static long long filepos(int indf)
-{
-  char sign[25];
-
-  typedef struct {
-    unsigned char ntotal[4];
-    unsigned char ndata[4];
-    char code;
-    char header[MAX_NAME];
-  } HEADER_CMCARC;
-
-  typedef struct {
-    unsigned char ntotal[8];
-    unsigned char ndata[8];
-    char code;
-    char header[MAX_NAME];
-  } HEADER_CMCARC_V5;
-
-  HEADER_CMCARC *cmcarc_file;
-  int nblu,lng,found=0,version=0,tail_offset;
-  unsigned int nt,nd;
-  int64_t nt64, nd64, lng64, nblu64, pos64, retour;
+//! Get rid of all the pages of a word addressable file
+static void wa_pages_flush(
+    //! [in] Index of the wafile
+    const int fileIdx
+) {
+    while (wafile[fileIdx].nb_page_in_use > 0) {
+        scrap_page(fileIdx, fileIdx);
+    }
+}
 
 
-  lseek(FGFDT[indf].fd,(off_t) 0,L_SET);
-  nblu = read(FGFDT[indf].fd,sign,8);
-  if (strncmp(sign,CMCARC_SIGN,8) != 0) {
-    nblu = read(FGFDT[indf].fd,&sign[8],17);
-    if (strncmp(&sign[9],CMCARC_SIGN,8) == 0) {                   /* skip to beginning of next file */
-      version=4;
-/*      printf("Debug+ signature version 4 trouvee\n"); */
-      }
-    else {
-      if (strncmp(&sign[17],CMCARC_SIGN_V5,8) == 0) {
-        version=5;
-/*        printf("Debug+ signature version 5 trouvee\n"); */
+//! Get the position of the start of the data of a subfile in a CMCARC file
+//! \return Position of the start of the data of a subfile in a CMCARC file
+static long long filepos(
+    //! [in] Index of the subfile in the master file table
+    const int indf
+) {
+    char sign[25];
+
+    typedef struct {
+        unsigned char ntotal[4];
+        unsigned char ndata[4];
+        char code;
+        char header[MAX_NAME];
+    } HEADER_CMCARC;
+
+    typedef struct {
+        unsigned char ntotal[8];
+        unsigned char ndata[8];
+        char code;
+        char header[MAX_NAME];
+    } HEADER_CMCARC_V5;
+
+    HEADER_CMCARC *cmcarc_file;
+
+
+    lseek(FGFDT[indf].fd, (off_t) 0, L_SET);
+    int nblu = read(FGFDT[indf].fd, sign, 8);
+    if (strncmp(sign, CMCARC_SIGN, 8) != 0) {
+        int version = 0;
+        nblu = read(FGFDT[indf].fd, &sign[8], 17);
+        if (strncmp(&sign[9], CMCARC_SIGN, 8) == 0) {
+            // skip to beginning of next file
+            version = 4;
+            // printf("Debug+ signature version 4 trouvee\n");
+        } else if (strncmp(&sign[17], CMCARC_SIGN_V5, 8) == 0) {
+            version = 5;
+            // printf("Debug+ signature version 5 trouvee\n");
+        } else {
+            fprintf(stderr, "%s is not a CMCARC type file\n", FGFDT[indf].file_name);
+            return -1;
         }
-      else {
-        fprintf(stderr,"%s is not a CMCARC type file\n",FGFDT[indf].file_name);
+
+        cmcarc_file = (HEADER_CMCARC *) &sign[0];
+        unsigned int nt = (cmcarc_file->ntotal[0] << 24) |
+            (cmcarc_file->ntotal[1] << 16) |
+            (cmcarc_file->ntotal[2] <<  8) |
+            (cmcarc_file->ntotal[3]);
+
+        unsigned int nd = (cmcarc_file->ndata[0] << 24) |
+            (cmcarc_file->ndata[1] << 16) |
+            (cmcarc_file->ndata[2] <<  8) |
+            (cmcarc_file->ndata[3]);
+
+        if (version == 5) {
+            nt = nd;
+        } else {
+            if (nd != 0) {
+                fprintf(stderr,
+                        "%s is a CMCARC file but nd=%d\n", FGFDT[indf].file_name, nd);
+                return -1;
+            }
+        }
+        int lng = (nt * 8) - 25;
+        if (lseek(FGFDT[indf].fd, (off_t)lng, L_INCR) == (off_t)(-1)) {
+            return -1;
+        }
+    }
+
+    //! \warning File scope variable!
+    subfile_length = 0;
+
+    int found = 0;
+    int tail_offset;
+    int64_t nt64, nd64, lng64, nblu64;
+    unsigned int nt, nd;
+    do {
+        // lire nt et nd
+        nblu = read(FGFDT[indf].fd, &cmcarc, 8);
+        if (nblu != 8) return -2;
+
+        nt = (cmcarc.ntc[0] << 24) |
+            (cmcarc.ntc[1] << 16) |
+            (cmcarc.ntc[2] <<  8) |
+            (cmcarc.ntc[3]);
+
+        nd = (cmcarc.ndc[0] << 24) |
+            (cmcarc.ndc[1] << 16) |
+            (cmcarc.ndc[2] <<  8) |
+            (cmcarc.ndc[3]);
+
+        if (nt >= nd + 4) {
+            nt64 = nt;
+            nd64 = nd;
+            lng64 = (nt64 - nd64 - 2) * 8;
+            tail_offset = 1;
+        } else {
+            tail_offset = 2;
+            nt64 = nt;
+            nt64 = (nt64 << 32) | nd;
+            read(FGFDT[indf].fd, &cmcarc, 8);
+            nd64 = cmcarc.ntc[0];
+            nd64 = (nd64 << 8) | cmcarc.ntc[1];
+            nd64 = (nd64 << 8) | cmcarc.ntc[2];
+            nd64 = (nd64 << 8) | cmcarc.ntc[3];
+            nd64 = (nd64 << 8) | cmcarc.ndc[0];
+            nd64 = (nd64 << 8) | cmcarc.ndc[1];
+            nd64 = (nd64 << 8) | cmcarc.ndc[2];
+            nd64 = (nd64 << 8) | cmcarc.ndc[3];
+            lng64 = (nt64 - nd64 - 4) * 8;
+            if (nt64 < nd64 + 6) {
+                fprintf(stderr, "%s is a CMCARC file but nt=%ld nd=%ld\n", FGFDT[indf].file_name, nt64, nd64);
+                return -1;
+            }
+        }
+        // printf("Debug+ nt64=%Ld nd64=%Ld lng64=%Ld\n", nt64, nd64, lng64);
+        nblu64 = read(FGFDT[indf].fd, cmcarc.cmcarc_name, lng64);
+        // printf("Debug cmcarc.cmcarc_name=%s\n", &cmcarc.cmcarc_name[1]);
+        if (nblu64 != lng64) return -3;
+        if (strcmp(FGFDT[indf].subname, &cmcarc.cmcarc_name[1]) == 0) {
+            found = 1;
+        } else {
+            // sauter les donnees
+            lng64 = (nd64 + tail_offset) * 8;
+            if (lseek64(FGFDT[indf].fd, (off_t)lng64, L_INCR) == (off_t)(-1)) {
+                return -1;
+            }
+        }
+    } while(!found);
+
+    subfile_length = (nd * 8) / sizeof(uint32_t);
+    int64_t pos64 = tell64(FGFDT[indf].fd);
+    return pos64 / sizeof(uint32_t);
+}
+
+
+//! Open a non-Fortran file (active part of c_waopen2)
+//! \return File descriptor on success, negative number otherwise
+static int qqcopen(
+    //! [in] Index of the subfile in the master file table
+    const int indf
+) {
+    if (! init) {
+        char * waConfig = getenv("WA_CONFIG");
+        int nset = 0;
+        int n1, n2, n3, n4;
+        if (waConfig != NULL) {
+            nset = sscanf(waConfig, "%d %d %d %d", &n1, &n2, &n3, &n4);
+        }
+
+        switch (nset) {
+            case 4:
+                debug_mode = n4;
+
+            case 3:
+                WA_PAGE_LIMIT = n3;
+
+            case 2:
+                WA_PAGE_NB = n2;
+
+            case 1:
+                WA_PAGE_SIZE = n1 * 1024 * (sizeof(int32_t) / sizeof(uint32_t));
+                break;
+
+            default:
+                WA_PAGE_SIZE = 0;
+        }
+
+        WA_PAGE_NB   = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
+
+        if (WA_PAGE_LIMIT == 0)
+            WA_PAGE_LIMIT = WA_PAGE_NB * MAXWAFILES;
+        if (WA_PAGE_SIZE > 0) {
+            fprintf(stderr, "WA_PAGE_SZ = %ld Bytes ", WA_PAGE_SIZE * sizeof(uint32_t));
+            fprintf(stderr, "WA_PAGE_NB = %d ", WA_PAGE_NB);
+            fprintf(stderr, "WA_PAGE_LIMIT = %d\n", WA_PAGE_LIMIT);
+        }
+        for (int ind = 0; ind < MAXWAFILES; ind++) {
+            wafile[ind].file_desc = -1;
+            wafile[ind].nb_page_in_use = 0;
+            wafile[ind].offset = 0;
+        }
+        //! \warning File scope variable
+        init = 1;
+    }
+
+    if (FGFDT[indf].attr.remote) {
+        // file will be open by fnom_rem_connect
+        return 0;
+    }
+
+    FGFDT[indf].fd = -1;
+    int ind = 0;
+    while ((wafile[ind].file_desc != -1) && (ind < MAXWAFILES)) {
+        ind++;
+    }
+    if (ind == MAXWAFILES) {
+        fprintf(stderr, "qqcopen error: too many open files\n");
         return -1;
+    }
+
+    int fd;
+    if (FGFDT[indf].subname) {
+        // cmcarc file
+        if (debug_mode > 4) {
+            fprintf(stderr, "Debug opening subfile %s from file %s\n", FGFDT[indf].subname, FGFDT[indf].file_name);
         }
-    }
-    cmcarc_file = (HEADER_CMCARC *) &sign[0];
-    nt = (cmcarc_file->ntotal[0] << 24) |
-    (cmcarc_file->ntotal[1] << 16) |
-    (cmcarc_file->ntotal[2] <<  8) |
-    (cmcarc_file->ntotal[3]);
-
-    nd = (cmcarc_file->ndata[0] << 24) |
-    (cmcarc_file->ndata[1] << 16) |
-    (cmcarc_file->ndata[2] <<  8) |
-    (cmcarc_file->ndata[3]);
-
-    if (version == 5)
-      nt = nd;
-    else
-      if (nd != 0) {
-        fprintf(stderr,
-                "%s is a CMCARC file but nd=%d\n",FGFDT[indf].file_name,nd);
-        return -1;
-      }
-    lng = (nt *8) - 25;
-    if (lseek(FGFDT[indf].fd,(off_t)lng,L_INCR) == (off_t)(-1)) {
-      return (-1);
-    }
-  }
-  subfile_length = 0;
-  do {
-
-    nblu = read(FGFDT[indf].fd,&cmcarc,8); /* lire nt et nd */
-    if (nblu != 8) return -2;
-
-    nt = (cmcarc.ntc[0] << 24) |
-      (cmcarc.ntc[1] << 16) |
-      (cmcarc.ntc[2] <<  8) |
-      (cmcarc.ntc[3]);
-
-    nd = (cmcarc.ndc[0] << 24) |
-      (cmcarc.ndc[1] << 16) |
-      (cmcarc.ndc[2] <<  8) |
-      (cmcarc.ndc[3]);
-
-    if (nt >= nd+4) {
-      nt64 = nt;
-      nd64 = nd;
-      lng64 = (nt64 - nd64 - 2) * 8;
-      tail_offset = 1;
-      }
-    else {
-      tail_offset = 2;
-      nt64 = nt;
-      nt64 = (nt64 << 32) | nd;
-      nblu = read(FGFDT[indf].fd,&cmcarc,8);
-      nd64 = cmcarc.ntc[0];
-      nd64 = (nd64 << 8) | cmcarc.ntc[1];
-      nd64 = (nd64 << 8) | cmcarc.ntc[2];
-      nd64 = (nd64 << 8) | cmcarc.ntc[3];
-      nd64 = (nd64 << 8) | cmcarc.ndc[0];
-      nd64 = (nd64 << 8) | cmcarc.ndc[1];
-      nd64 = (nd64 << 8) | cmcarc.ndc[2];
-      nd64 = (nd64 << 8) | cmcarc.ndc[3];
-      lng64 = (nt64 - nd64 - 4) * 8;
-      if (nt64 < nd64+6) {
-        fprintf(stderr,
-                "%s is a CMCARC file but nt=%d nd=%d\n",FGFDT[indf].file_name,nt64,nd64);
-        return -1;
-        }
-      }
-/*    printf("Debug+ nt64=%Ld nd64=%Ld lng64=%Ld\n",nt64,nd64,lng64); */
-    nblu64 = read(FGFDT[indf].fd,cmcarc.cmcarc_name,lng64);
-/*    printf("Debug cmcarc.cmcarc_name=%s\n",&cmcarc.cmcarc_name[1]); */
-    if (nblu64 != lng64) return -3;
-    if (strcmp(FGFDT[indf].subname,&cmcarc.cmcarc_name[1]) == 0) {
-      found = 1;
-    }
-    else {              /* sauter les donnees */
-      lng64 = (nd64+tail_offset) * 8;
-      if (lseek64(FGFDT[indf].fd,(off_t)lng64,L_INCR) == (off_t)(-1)) {
-        return (-1);
-      }
-    }
-  } while(!found);
-  subfile_length = (nd*8)/sizeof(uint32_t);
-  pos64=tell64(FGFDT[indf].fd);
-  retour = pos64/sizeof(uint32_t);
-  return(retour);
-/*  return((tell(FGFDT[indf].fd))/sizeof(uint32_t)); */
-}
-
-
-
-/****************************************************************************
-*                              Q Q C O P E N                                *
-*****************************************************************************
-*
-***function qqcopen
-*
-*OBJECT: Opens a non-fortran file.
-*        Active part of c_waopen2.
-*
-*ARGUMENTS: in indf  index of the file in the master file table
-*
-*NOTE: Processes files contained in a CMCARC file.
-*
-*RETURNS: the file descriptor, if the open is successful,
-*         or a negative number otherwise.
-*
-*/
-static int qqcopen(int indf)
-{
-  int fd, mode;
-  int ind, i, nset, n1, n2, n3, n4;
-  char *ptenv, *getenv();
-  LLSK dim;
-  char *errmsg="";
-
-  /*    beginning of INITIALIZATION section    */
-if (! init) {
-  ptenv = getenv("WA_CONFIG");
-  nset = 0;
-  if (ptenv != NULL)
-    nset = sscanf(ptenv,"%d %d %d %d",&n1,&n2,&n3,&n4);
-
-  switch (nset)
-    {
-    case 4:
-      debug_mode = n4;
-
-    case 3:
-      WA_PAGE_LIMIT = n3;
-
-    case 2:
-      WA_PAGE_NB = n2;
-
-    case 1:
-      WA_PAGE_SIZE = n1 * 1024 * (sizeof(int32_t) / sizeof(uint32_t));
-      break;
-
-    default:
-      WA_PAGE_SIZE = 0;
-      break;
-
-    }
-
-
-  WA_PAGE_NB   = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
-
-  if (WA_PAGE_LIMIT == 0)
-    WA_PAGE_LIMIT = WA_PAGE_NB * MAXWAFILES;
-  if (WA_PAGE_SIZE > 0) {
-    fprintf(stderr,"WA_PAGE_SZ = %d Bytes ",WA_PAGE_SIZE*sizeof(uint32_t));
-    fprintf(stderr,"WA_PAGE_NB = %d ",WA_PAGE_NB);
-    fprintf(stderr,"WA_PAGE_LIMIT = %d\n",WA_PAGE_LIMIT);
-  }
-  for (ind = 0; ind < MAXWAFILES; ind++) {
-    wafile[ind].file_desc = -1;
-    wafile[ind].nb_page_in_use = 0;
-    wafile[ind].offset = 0;
-  }
-  init = 1;
-}
-/*    end of INITIALIZATION section    */
-if (FGFDT[indf].attr.remote) return(0);  /* file will be open by fnom_rem_connect */
-
-
-FGFDT[indf].fd = -1;
-ind = 0;
-while ((wafile[ind].file_desc != -1) && (ind < MAXWAFILES))
-ind++;
-if (ind == MAXWAFILES) {
-  fprintf(stderr,"qqcopen error: too many open files\n");
-  return -1;
-}
-
-if (FGFDT[indf].subname) {    /* fichier de type cmcarc */
-  if (debug_mode > 4) {
-    fprintf(stderr,"Debug opening subfile %s from file %s\n",
-            FGFDT[indf].subname,FGFDT[indf].file_name);
-  }
-  FGFDT[indf].attr.read_only = 1;
-  mode = O_RDONLY;
-  if ((fd = open64(FGFDT[indf].file_name,mode | WIN32_O_BINARY)) == -1) {
-    fprintf(stderr,"qqcopen error: cannot open file %s\n",FGFDT[indf].file_name);
-    return -1;
-  }
-  wafile[ind].file_desc = fd;
-  FGFDT[indf].fd = fd;
-  if ((wafile[ind].offset = filepos(indf)) <= 0) {
-    fprintf(stderr,"qqcopen error: subfile %s not found in %s\n",
-            FGFDT[indf].subname,FGFDT[indf].file_name);
-    return -1;
-  }
-  FGFDT[indf].open_flag = 1;
-  if (debug_mode > 4) {
-    fprintf(stderr,"Debug subfile found at position %u\n",wafile[ind].offset);
-  }
-}
-
-else {  /* not a CMCARC type file */
-  if (access(FGFDT[indf].file_name, F_OK) == -1)
-    {
-      if (errno == ENOENT)     /* nouveau fichier, creation */
-        {
-          fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT | WIN32_O_BINARY,
-                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-          FGFDT[indf].attr.read_only = 0;
-          errmsg="cannot create file";
-        }
-    }
-  else
-    if (! FGFDT[indf].attr.read_only)      /* tentative d'ouverture en mode R/W */
-      {
-        mode = O_RDWR;
-        fd = open64(FGFDT[indf].file_name, mode | WIN32_O_BINARY);
+        FGFDT[indf].attr.read_only = 1;
+        fd = open64(FGFDT[indf].file_name, O_RDONLY | WIN32_O_BINARY);
         if (fd == -1) {
-          if (!FGFDT[indf].attr.write_mode)
-            {
-              mode = O_RDONLY;
-              FGFDT[indf].attr.read_only = 1;
-              fd = open64(FGFDT[indf].file_name, mode | WIN32_O_BINARY);
-              errmsg="cannot open file";
-            }
-          else                  /* ouverture demande en mode R/W */
-            errmsg="cannot open in write mode";
+            fprintf(stderr, "qqcopen error: cannot open file %s\n", FGFDT[indf].file_name);
+            return -1;
         }
-      }
-    else if (FGFDT[indf].attr.read_only)  /* ouverture en mode R/O */
-      {
-        mode = O_RDONLY;
-        fd = open64(FGFDT[indf].file_name, mode | WIN32_O_BINARY);
-        errmsg="cannot open file";
-      }
-  if (fd == -1)
-    {
-      fprintf(stderr, "qqcopen error: %s filename=(%s) !\n",errmsg,FGFDT[indf].file_name);
-      return -1;
+        wafile[ind].file_desc = fd;
+        FGFDT[indf].fd = fd;
+        if ((wafile[ind].offset = filepos(indf)) <= 0) {
+            fprintf(stderr, "qqcopen error: subfile %s not found in %s\n", FGFDT[indf].subname, FGFDT[indf].file_name);
+            return -1;
+        }
+        FGFDT[indf].open_flag = 1;
+        if (debug_mode > 4) {
+            fprintf(stderr, "Debug subfile found at position %llu\n", wafile[ind].offset);
+        }
+    } else {
+        // Not a cmcarc file
+        char *errmsg = "";
+        if (access(FGFDT[indf].file_name, F_OK) == -1) {
+            if (errno == ENOENT) {
+                // Create new file
+                fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT | WIN32_O_BINARY,
+                            S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+                FGFDT[indf].attr.read_only = 0;
+                errmsg = "cannot create file";
+            }
+        } else {
+            if (! FGFDT[indf].attr.read_only) {
+                fd = open64(FGFDT[indf].file_name, O_RDWR | WIN32_O_BINARY);
+                if (fd == -1) {
+                    if (!FGFDT[indf].attr.write_mode) {
+                        FGFDT[indf].attr.read_only = 1;
+                        fd = open64(FGFDT[indf].file_name, O_RDONLY | WIN32_O_BINARY);
+                        errmsg = "cannot open file";
+                    } else {
+                        errmsg = "cannot open in write mode";
+                    }
+                }
+            } else if (FGFDT[indf].attr.read_only) {
+                fd = open64(FGFDT[indf].file_name, O_RDONLY | WIN32_O_BINARY);
+                errmsg = "cannot open file";
+            }
+        }
+        if (fd == -1) {
+            fprintf(stderr, "qqcopen error: %s filename=(%s) !\n", errmsg, FGFDT[indf].file_name);
+            return -1;
+        }
+        wafile[ind].file_desc = fd;
+        FGFDT[indf].fd = fd;
+        FGFDT[indf].open_flag = 1;
     }
-  wafile[ind].file_desc = fd;
-  FGFDT[indf].fd = fd;
-  FGFDT[indf].open_flag = 1;
+
+    LLSK dim = LSEEK(fd, dim, L_XTND);
+    FGFDT[indf].file_size = dim / sizeof(uint32_t);
+    FGFDT[indf].eff_file_size = dim / sizeof(uint32_t);
+    dim = 0;
+    dim = LSEEK(fd, dim, L_SET);
+    if (subfile_length > 0) {
+        FGFDT[indf].eff_file_size = subfile_length;
+    }
+    subfile_length = 0;
+
+    if (WA_PAGE_SIZE != 0) {
+        for (int i = 0; i < WA_PAGE_NB; i++) {
+            wafile[ind].page[i].page_adr = NULL;
+            wafile[ind].page[i].wa0 = 0;
+            wafile[ind].page[i].walast = 0;
+            wafile[ind].page[i].access_count = 0;
+            wafile[ind].page[i].last_access = 0;
+            wafile[ind].page[i].touch_flag = 0;
+        }
+        wafile[ind].nb_page_in_use = 0;
+        if (debug_mode > 1) {
+            fprintf(stderr, "Debug ouverture du fichier %s ind=%d, fd=%d\n", FGFDT[indf].file_name, ind, fd);
+            fprintf(stderr, "Debug longueur du fichier =%lld Bytes\n", dim);
+        }
+    }
+    return fd;
 }
 
 
-dim = 0;
-dim = LSEEK(fd, dim, L_XTND);
-FGFDT[indf].file_size = dim / sizeof(uint32_t);
-FGFDT[indf].eff_file_size = dim / sizeof(uint32_t);
-dim = 0;
-dim = LSEEK(fd, dim, L_SET);
-if (subfile_length > 0)
-FGFDT[indf].eff_file_size = subfile_length;
-subfile_length = 0;
-
-if (WA_PAGE_SIZE != 0) {
-  for (i = 0; i < WA_PAGE_NB; i++) {
-    wafile[ind].page[i].page_adr = NULL;
-    wafile[ind].page[i].wa0 = 0;
-    wafile[ind].page[i].walast = 0;
-    wafile[ind].page[i].access_count = 0;
-    wafile[ind].page[i].last_access = 0;
-    wafile[ind].page[i].touch_flag = 0;
-  }
-  wafile[ind].nb_page_in_use = 0;
-  if (debug_mode > 1) {
-    fprintf(stderr,"Debug ouverture du fichier %s ind=%d, fd=%d\n",
-            FGFDT[indf].file_name,ind,fd);
-    fprintf(stderr,"Debug longueur du fichier =%d Bytes\n",dim);
-  }
-    }
-  return(fd);
-}
-
-
-/****************************************************************************
-*                               D _ W A F D T                               *
-*****************************************************************************
-*
-***function d_wafdt
-*
-*OBJECT: Prints the wa control table.
-*
-*ARGUMENTS: none.
-*
-*/
-
-
+//! Print wa control table
 void f77name(d_wafdt)()
 {
-int i;
-fprintf(stderr,"\n   DUMP OF WA CONTROL TABLE \n");
-for (i=0;i<MAXWAFILES;i++){
-   if(wafile[i].file_desc != -1)
-   fprintf(stderr,"waindex=%d, fd=%d, npages=%d, offset=%Ld\n",
-    i,wafile[i].file_desc,wafile[i].nb_page_in_use,wafile[i].offset);
-   }
-}
-
-
-/****************************************************************************
-*                         W A _ P A G E _ R E A D                           *
-*****************************************************************************
-*
-***function wa_page_read
-*
-*OBJECT: Reads a word addressable file page.
-*
-*ARGUMENTS: in  fd     file descriptor
-*           out buf    will contain the data read
-*           in  adr    word to start at
-*           in  nmots  number of words to read
-*           in  indf   index of wafile in the master file table
-*
-*/
-static void wa_page_read(int fd,uint32_t *buf,unsigned int adr,int nmots,int indf)
-
-{
-   int ind, j, wa0, offset, i=0, found=0, nbytes;
-   uint32_t lnmots;
-   uint32_t readbytes;
-
-   process_decay();
-/*
-  TROUVER ind DU FICHIER
-*/
-   ind = 0;
-   while ((wafile[ind].file_desc != fd) && (ind < MAXWAFILES))
-      ind++;
-   if (debug_mode > 4) {
-      fprintf(stderr,"Debug WA_PAGE_READ requete adr=%u, nmots=%d ind=%d\n",adr,nmots,ind);
-      }
-   if (ind == MAXWAFILES) {
-      fprintf(stderr,"wa_page_read error: file is not open\n");
-      exit(1);
-      }
-
-/*
-  TROUVER LA PAGE i QUI CONTIENT [adr,adr+nmots]
-*/
-   found = 0;
-   while((! found) && (i < wafile[ind].nb_page_in_use))
-      if((adr >= wafile[ind].page[i].wa0) && (adr+nmots <= wafile[ind].page[i].wa0+WA_PAGE_SIZE))
-         found = 1;
-      else
-         i++;
-
-    if (! found) {
-/*
-  OBTENIR UNE NOUVELLE PAGE
-*/
-       get_new_page(ind);
-       i = wafile[ind].nb_page_in_use -1;
-       wa0 = adr - (adr % WA_PAGE_SIZE) + 1;
-       wafile[ind].page[i].wa0 = (wa0 > 1) ? wa0 : 1;
-       wafile[ind].page[i].access_count++;
-       if (debug_mode > 4) {
-          fprintf(stderr,"Debug WA_PAGE_READ obtention d'une page %d\n",i);
-          }
-       WSEEK(fd,wafile[ind].page[i].wa0-1,L_SET);
-       if (WA_PAGE_SIZE+wafile[ind].page[i].wa0 > FGFDT[indf].file_size)
-          readbytes =  sizeof(uint32_t)*(FGFDT[indf].file_size+1-wafile[ind].page[i].wa0);
-       else
-          readbytes = sizeof(uint32_t)*WA_PAGE_SIZE;
-       nbytes = read(fd,wafile[ind].page[i].page_adr,sizeof(uint32_t)*WA_PAGE_SIZE);
-       if ( nbytes < readbytes ) {
-          fprintf(stderr,"wa_page_read error: cannot read page from file %d,fd=%d\n",ind,fd);
-          fprintf(stderr,"  tried to get %d bytes, got %d\n",sizeof(uint32_t)*WA_PAGE_SIZE,nbytes);
-          perror("WA_PAGE_READ");
-          exit(1);
-          }
-       if (nbytes < sizeof(uint32_t)*WA_PAGE_SIZE) {
-         lnmots = WA_PAGE_SIZE - (nbytes/sizeof(uint32_t));
-         arrayZero(wafile[ind].page[i].page_adr+(nbytes/sizeof(uint32_t)),lnmots);
-         }
-       wafile[ind].page[i].walast = wafile[ind].page[i].wa0 + nbytes / sizeof(uint32_t) -1;
-       if (debug_mode > 4) {
-          fprintf(stderr,"Debug WA_PAGE_READ lecture disque adr=%d\n",wafile[ind].page[i].wa0);
-          }
-       }
-
-
-/*
-  COPIER DANS BUF LA SECTION DESIREE
-*/
-   offset = adr - wafile[ind].page[i].wa0;
-   lnmots = nmots;
-/*
-   { uint32_t *move_src=wafile[ind].page[i].page_adr+offset,
-          *move_dest=buf , nwords=lnmots;
-     while(lnmots--) *move_dest++ = *move_src++;
-   }
-   f77name(movlev)(wafile[ind].page[i].page_adr+offset,buf,&lnmots);
-*/
-   arrayCopy(wafile[ind].page[i].page_adr+offset,buf,lnmots);
-   wafile[ind].page[i].last_access = 0;
-   wafile[ind].page[i].access_count = new_age_rd(wafile[ind].page[i].access_count);
-
-/*
-  VERIFICATION DES CROISEMENTS POSSIBLES DES PAGES
-*/
-   for (j=0; j< wafile[ind].nb_page_in_use; j++)
-      for (i=0; i < wafile[ind].nb_page_in_use; i++)
-         if (j != i)
-            if ((wafile[ind].page[j].wa0 >= wafile[ind].page[i].wa0) &&
-                (wafile[ind].page[j].wa0 <= wafile[ind].page[i].wa0+WA_PAGE_SIZE-1)) {
-               fprintf(stderr,"WA_PAGE_READ error: overlapping pages i=%d\n",i);
-               fprintf(stderr,"page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%d\n",
-                              wafile[ind].page[j].wa0,wafile[ind].page[i].wa0,
-                              wafile[ind].page[i].wa0+WA_PAGE_SIZE-1);
-               f77name(tracebck)();
-               exit(1);
-               }
-   }
-
-/*****************************************************************************
-*                      H R J U S T                                           *
-******************************************************************************
-*
-***function hrjust
-*
-*OBJECT: Right justifies a group of ncar characters(8 bits each).
-*
-*ARGUMENTS: in moth   word to justify
-*           in ncar number of characters
-*
-*RETURNS: the group of characters right justified.
-*
-*/
-uint32_t f77name(hrjust) (uint32_t *moth, int32_t *ncar)
-{
-   int sc;
-   sc = 8 * ( sizeof(int32_t) - *ncar );
-   return (sc<=0 ? *moth : (*moth) >> sc);
-}
-
-/*****************************************************************************
-*                      H L J U S T                                           *
-******************************************************************************
-*
-***function hljust
-*
-*OBJECT: Left justifies a group of ncar characters(8 bits each).
-*
-*ARGUMENTS: in moth   word to justify
-*           in ncar   number of characters
-*
-*RETURNS: the group of characters left justified.
-*
-*/
-uint32_t f77name(hljust) (uint32_t *moth, int32_t *ncar)
-{
-   int sc;
-   sc = 8 * ( sizeof(int32_t) - *ncar );
-   return (sc<=0 ? *moth : (*moth) << sc);
-}
-
-
-/****************************************************************************
-*                       W A _ P A G E _ W R I T E                           *
-*****************************************************************************
-*
-***function wa_page_write
-*
-*OBJECT: Writes on a wa page.
-*
-*ARGUMENTS: in fd    file descriptor
-*           in buf   contains data to write
-*           in adr   where to start writing
-*           in nmots number of words to write
-*           in indf  index of the wafile in the master file table
-*
-*/
-static void wa_page_write(int fd,uint32_t *buf,unsigned int adr,int nmots,int indf)
-
-{
-   int ind, j, wa0, offset, i=0, found=0, nbytes, readbytes;
-   uint32_t lnmots;
-
-   process_decay();
-/*
-  TROUVER ind DU FICHIER
-*/
-   ind = 0;
-   while ((wafile[ind].file_desc != fd) && (ind < MAXWAFILES))
-      ind++;
-   if (debug_mode > 4) {
-      fprintf(stderr,"Debug WA_PAGE_WRITE requete adr=%u, nmots=%d ind=%d\n",adr,nmots,ind);
-      }
-   if (ind == MAXWAFILES) {
-      fprintf(stderr,"wa_page_write error: file is not open\n");
-      exit(1);
-      }
-/*
-  TROUVER LA PAGE i QUI CONTIENT [adr,adr+nmots]
-*/
-   found = 0;
-   while((! found) && (i < wafile[ind].nb_page_in_use))
-      if((adr >= wafile[ind].page[i].wa0) && (adr+nmots <= wafile[ind].page[i].wa0+WA_PAGE_SIZE))
-         found = 1;
-      else
-         i++;
-
-   if (! found) {
-/*
-  OBTENIR UNE NOUVELLE PAGE
-*/
-      get_new_page(ind);
-      i = wafile[ind].nb_page_in_use -1;
-      if (debug_mode > 4) {
-         fprintf(stderr,"Debug WA_PAGE_WRITE obtention d'une page %d\n",i);
-         }
-      wa0 = adr - (adr % WA_PAGE_SIZE) + 1;
-      wafile[ind].page[i].wa0 = (wa0 > 1) ? wa0 : 1;
-      wafile[ind].page[i].access_count++;
-/*
-  SI LA REQUETE D'ECRITURE NE COUVRE PAS LA PAGE EN ENTIER, OU
-  SI LA REQUETE NE PART PAS DU DEBUT DE LA PAGE POUR SE TERMINER
-  A LA FIN DE FICHIER OU PLUS, ALORS IL FAUT RELIRE LA PAGE EN QUESTION
-*/
-
-     if ((adr > wafile[ind].page[i].wa0) ||
-          ((adr+nmots != wafile[ind].page[i].wa0+WA_PAGE_SIZE) &&
-           (adr+nmots < FGFDT[indf].file_size))) {
-         WSEEK(fd,wafile[ind].page[i].wa0-1,L_SET);
-         if (WA_PAGE_SIZE+wafile[ind].page[i].wa0 > FGFDT[indf].file_size)
-            readbytes =  sizeof(uint32_t)*(FGFDT[indf].file_size+1-wafile[ind].page[i].wa0);
-         else
-            readbytes = sizeof(uint32_t)*WA_PAGE_SIZE;
-         nbytes = read(fd,wafile[ind].page[i].page_adr,readbytes);
-         if ( nbytes < readbytes ) {
-            fprintf(stderr,
-                    "wa_page_write error: cannot read page on file %s\n",
-                    FGFDT[indf].file_name);
-            fprintf(stderr," tried to get %d bytes, got %d\n",
-                    readbytes,nbytes);
-            fprintf(stderr,"WA_PAGE_SIZE=%d wa0=%d file_size=%d\n",
-                    WA_PAGE_SIZE,wafile[ind].page[i].wa0 ,
-                    FGFDT[indf].file_size);
-            perror("WA_PAGE_WRITE");
-            exit(1);
-            }
-         if (nbytes < sizeof(uint32_t)*WA_PAGE_SIZE) {
-           lnmots = WA_PAGE_SIZE - (nbytes/sizeof(uint32_t));
-/*
-           { uint32_t *move_dest=wafile[ind].page[i].page_adr+(nbytes/sizeof(uint32_t)),
-             nwords=lnmots;
-             while(lnmots--) *move_dest++ = 0;
-           }
-*/
-           arrayZero(wafile[ind].page[i].page_adr+(nbytes/sizeof(uint32_t)),lnmots);
-           }
-         wafile[ind].page[i].walast = wafile[ind].page[i].wa0 + nbytes / sizeof(uint32_t) -1;
-         if (debug_mode > 4) {
-            fprintf(stderr,"Debug WA_PAGE_WRITE relecture disque de la page %d a l'adresse %d\n",
-                           i,wafile[ind].page[i].wa0);
-            }
-         }
-      }
-/*
-  COPIER DANS LA PAGE LA SECTION buf
-*/
-   offset = adr - wafile[ind].page[i].wa0;
-   lnmots = nmots;
-/*
-   { uint32_t *move_dest=wafile[ind].page[i].page_adr+offset,
-          *move_src=buf , nwords=lnmots;
-     while(lnmots--) *move_dest++ = *move_src++;
-   }
-   f77name(movlev)(buf,wafile[ind].page[i].page_adr+offset,&lnmots);
-*/
-   arrayCopy(buf,wafile[ind].page[i].page_adr+offset,lnmots);
-   wafile[ind].page[i].last_access = 0;
-   wafile[ind].page[i].access_count = new_age_wr(wafile[ind].page[i].access_count);
-   wafile[ind].page[i].touch_flag = 1;
-   if (adr > FGFDT[indf].file_size+1) {
-      fprintf(stderr,"WA_PAGE_WRITE error: ind = %d, adr=%u > file_size=%d\n",
-                     ind,adr,FGFDT[indf].file_size);
-      fprintf(stderr,"                     filename=%s\n",FGFDT[indf].file_name);
-      exit(1);
-      }
-
-   if (adr+nmots-1 > FGFDT[indf].file_size) {
-      FGFDT[indf].file_size = adr+nmots-1;
-      FGFDT[indf].eff_file_size = adr+nmots-1;
-      }
-   if (wafile[ind].page[i].walast < adr+nmots-1)
-      wafile[ind].page[i].walast = adr+nmots-1;
-
-   for (j=0; j< wafile[ind].nb_page_in_use; j++)
-      for (i=0; i < wafile[ind].nb_page_in_use; i++)
-         if (j != i)
-            if ((wafile[ind].page[j].wa0 >= wafile[ind].page[i].wa0) &&
-                (wafile[ind].page[j].wa0 <= wafile[ind].page[i].wa0+WA_PAGE_SIZE-1)) {
-               fprintf(stderr,"WA_PAGE_WRITE error: overlapping pages i=%d\n",i);
-               fprintf(stderr,"page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%d\n",
-                              wafile[ind].page[j].wa0,wafile[ind].page[i].wa0,
-                              wafile[ind].page[i].wa0+WA_PAGE_SIZE-1);
-               f77name(tracebck)();
-               exit(1);
-               }
-      }
-
-
-
-/****************************************************************************
-*                              Q Q C W A W R                                *
-*****************************************************************************
-*
-***function qqcwawr
-*
-*OBJECT: Writes in a word adressable file.
-*        Active part of c_wawrit2.
-*
-*ARGUMENTS: in lfd    file descriptor
-*           in buf    contains data to write
-*           in wadr   file address in words
-*           in nmots  number of words to write
-*           in indf   index in the master file table
-*
-*/
-
-static void qqcwawr(uint32_t *buf,unsigned int wadr,int lnmots,int indf)
-{
-
-int offset, adr0, nwritten, togo;
-int lng, l, lastadr, ind;
-int lfd = FGFDT[indf].fd;
-long long ladr = wadr;
-char *cbuf;
-
-ind = 0;
-while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES))
-   ind++;
-if (ind == MAXWAFILES) {
-  fprintf(stderr,"qqcwawr error: filename=%s , fd=%d not found in table\n",
-                 FGFDT[indf].file_name,lfd);
-  exit(1);
-  }
-
-if (ladr != 0)
-  ladr += wafile[ind].offset;
-
-if (FGFDT[indf].attr.read_only) {
-  fprintf(stderr,"qqcwawr error: no write permission for file %s\n",FGFDT[indf].file_name);
-  exit(1);
-  }
-
-if (FGFDT[indf].attr.remote) {
-  int *s_ID, *addr, *nw, *RW_mode, *checksum;
-  int sock_comm_ID=0xBABE;
-  int demande[5];
-  int nc, nelm;
-
-  s_ID = &(demande[0]);
-  addr = &(demande[1]);
-  nw = &(demande[2]);
-  RW_mode = &(demande[3]);
-  checksum = &(demande[4]);
-  *s_ID = sock_comm_ID;
-  *addr = ladr;
-  *nw = lnmots;
-  *RW_mode = 2;  /* write request */
-  *checksum = *s_ID ^ *addr ^ *nw ^ *RW_mode;
-  check_swap_records(demande,5,sizeof(int));
-  nc=write_stream(FGFDT[indf].fd,demande,5*sizeof(int));
-  if (nc != 0) {
-    fprintf(stderr,"socket qqcwawr error: wrote only %i bytes to server\n",nc);
-    fflush(stderr);
-    }
-  nelm=write_stream(FGFDT[indf].fd,buf,lnmots*sizeof(int));
-#if defined (DEBUG)
-  if (nelm == 0) printf("socket qqcwawr wrote %d bytes\n",lnmots*sizeof(int));
-#endif
-  if (ladr+lnmots-1 > FGFDT[indf].file_size) {
-    FGFDT[indf].file_size = ladr+lnmots-1;
-    FGFDT[indf].eff_file_size = ladr+lnmots-1;
-    }
-} /* end remote */
-else {
-
-  if ((WA_PAGE_SIZE == 0) || (ladr == 0)) {
-    if(ladr!=0) WSEEK(lfd,ladr - 1, L_SET);
-    if ((nwritten=write(lfd, buf, sizeof(uint32_t) * lnmots)) != sizeof(uint32_t) * lnmots)
-        {
-          if (errno == 14)
-            {
-              fprintf(stderr, "qqcwawr error: write error for file %s\n",FGFDT[indf].file_name);
-              fprintf(stderr,"qqcwawr: filename=%s, buf=%0x adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
-                      FGFDT[indf].file_name,buf,ladr,lnmots,nwritten,errno);
-              fprintf(stderr, "*** Contactez un membre de la section informatique de RPN ***\n");
-              fprintf(stderr, "*** Seek support from RPN informatic section ***\n");
-              /*            memorymap(1); */
-              perror("qqcwawr");
-              exit(1);
-            }
-          if (nwritten >= 0) {
-            cbuf = (char *) buf;
-            cbuf += nwritten;
-            togo = (lnmots * sizeof(uint32_t)) - nwritten;
-            nwritten = write(lfd,buf,togo);
-            fprintf(stderr,"qqcwawr WARNING: multiple write attempt of file %s last write=%d bytes, total needed=%d bytes\n",
-                    FGFDT[indf].file_name,togo,lnmots*sizeof(uint32_t));
-            if (nwritten != togo) {
-              fprintf(stderr, "qqcwawr error: write error for file %s\n",FGFDT[indf].file_name);
-              fprintf(stderr,"qqcwawr: filename=%s, buf=%0x adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
-                      FGFDT[indf].file_name,buf,ladr,lnmots,nwritten,errno);
-              perror("qqcwawr");
-              exit(1);
-            }
-          }
-          else {
-            fprintf(stderr, "qqcwawr error: write error or file not open for write!\n");
-            fprintf(stderr,"qqcwawr: filename=%s, buf=%0x adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
-                    FGFDT[indf].file_name,buf,ladr,lnmots,nwritten,errno);
-            perror("qqcwawr");
-            exit(1);
-          }
-        }
-    if (ladr+lnmots-1 > FGFDT[indf].file_size) {
-        FGFDT[indf].file_size = ladr+lnmots-1;
-        FGFDT[indf].eff_file_size = ladr+lnmots-1;
+    fprintf(stderr, "\n   DUMP OF WA CONTROL TABLE \n");
+    for (int i = 0; i < MAXWAFILES; i++) {
+        if (wafile[i].file_desc != -1) {
+            fprintf(stderr, "waindex=%d, fd=%d, npages=%d, offset=%lld\n",
+                i, wafile[i].file_desc, wafile[i].nb_page_in_use, wafile[i].offset);
         }
     }
-  else {
-    lng = lnmots;
-    adr0 = ladr;
-    offset = 0;
-    lastadr = (adr0 + WA_PAGE_SIZE -1)/WA_PAGE_SIZE * WA_PAGE_SIZE;
-    while (lng > 0) {
-        if (lng > lastadr-adr0) {
-          l = lastadr - adr0 +1;
-          wa_page_write(lfd,buf+offset,adr0,l,indf);
-          offset = offset + l;
-          adr0 = adr0 +l;
-          lng = lng -l;
-          lastadr = (adr0 + WA_PAGE_SIZE -1)/WA_PAGE_SIZE * WA_PAGE_SIZE;
-          }
-        else {
-          wa_page_write(lfd,buf+offset,adr0,lng,indf);
-          lng = 0;
-          }
-        }
-    }
-} /* end else remote */
 }
 
 
-/****************************************************************************
-*                              Q Q C W A R D                                *
-*****************************************************************************
-*
-***function qqcward
-*
-*OBJECT: Reads a word addressable file.
-*        Active part of c_waread2.
-*
-*ARGUMENTS: in  lfd     file descriptor
-*           out buf     will contain data read
-*           in  wadr    file address in words
-*           in  lnmots  number of words to read
-*           in  indf    index of file in the master file table
-*
-*/
-static void qqcward(uint32_t *buf,unsigned int wadr,int  lnmots,int indf)
-{
-int offset, adr0, lng, l, lastadr;
-int reste, ind;
-int lfd = FGFDT[indf].fd;
-long long ladr=wadr;
+//! Read a word adressable file page
+static void wa_page_read(
+    //! [in] Descriptor of the file from which to read
+    const int fd,
+    //! [out] Buffer where to place the data read
+    uint32_t * const buf,
+    //! [in] Offset from beginning of file
+    const unsigned int adr,
+    //! [in] Number of words to read
+    const int nmots,
+    //! [in] Index of the file in the master file table
+    const int indf
+) {
+    process_decay();
 
-ind = 0;
-while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES))
-   ind++;
-if (ind == MAXWAFILES) {
-  fprintf(stderr,"qqcward error: fd=%d not found in table\n",lfd);
-  exit(1);
-  }
-if (FGFDT[indf].attr.remote) {
-  int *s_ID, *addr, *nw, *RW_mode, *checksum;
-  int sock_comm_ID=0xBABE;
-  int demande[5];
-  int nc, nelm;
-
-  s_ID = &(demande[0]);
-  addr = &(demande[1]);
-  nw = &(demande[2]);
-  RW_mode = &(demande[3]);
-  checksum = &(demande[4]);
-  *s_ID = sock_comm_ID;
-  *addr = ladr;
-  *nw = lnmots;
-  *RW_mode = 1;  /* read request */
-  *checksum = *s_ID ^ *addr ^ *nw ^ *RW_mode;
-  check_swap_records(demande,5,sizeof(int));
-  nc=write_stream(FGFDT[indf].fd,demande,5*sizeof(int));
-  if (nc != 0) {
-    fprintf(stderr,"socket qqcward error: wrote only %d bytes to server\n",nc);
-    fflush(stderr);
+    // Trouver l'index du fichier
+    int fileIdx = 0;
+    while ((wafile[fileIdx].file_desc != fd) && (fileIdx < MAXWAFILES)) {
+        fileIdx++;
     }
-  nelm=read_stream(FGFDT[indf].fd,buf,lnmots*sizeof(int));
-#if defined (DEBUG)
-  printf("qqcward read %d bytes\n",nelm);
-#endif
-} /* end remote */
-else {
-  if (ladr != 0)
-    ladr += wafile[ind].offset;
-
-  if ((WA_PAGE_SIZE == 0) || (ladr == 0)) {
-    if(ladr!=0) WSEEK(lfd, ladr - 1, L_SET);
-    reste=read(lfd, buf, sizeof(uint32_t) * lnmots);
-    if(reste != sizeof(uint32_t)*lnmots) {
-        fprintf(stderr,"qqcward error: tried to read %d words, only read %d\n",
-                      sizeof(uint32_t)*lnmots,reste);
-        fprintf(stderr,"qqcward: wafile[ind].offset=%d ladr=%Ld\n",wafile[ind].offset,ladr);
-        f77name(tracebck)();
+    if (debug_mode > 4) {
+        fprintf(stderr, "Debug WA_PAGE_READ requete adr=%u, nmots=%d ind=%d\n", adr, nmots, fileIdx);
+    }
+    if (fileIdx == MAXWAFILES) {
+        fprintf(stderr, "wa_page_read error: file is not open\n");
         exit(1);
     }
+
+    // Trouver la page qui contient [adr, adr+nmots]
+    int found = 0;
+    int pageIdx = 0;
+    while ((! found) && (pageIdx < wafile[fileIdx].nb_page_in_use)) {
+        if ((adr >= wafile[fileIdx].page[pageIdx].wa0) && (adr + nmots <= wafile[fileIdx].page[pageIdx].wa0 + WA_PAGE_SIZE)) {
+            found = 1;
+        } else {
+            pageIdx++;
+        }
     }
-  else {
-    lng = lnmots;
-    adr0 = ladr;
-    offset = 0;
-    lastadr = (adr0 + WA_PAGE_SIZE -1)/WA_PAGE_SIZE * WA_PAGE_SIZE;
-    while (lng > 0) {
-        if (lng > lastadr-adr0) {
-          l = lastadr - adr0 +1;
-          wa_page_read(lfd,buf+offset,adr0,l,indf);
-          offset = offset + l;
-          adr0 = adr0 +l;
-          lng = lng -l;
-          lastadr = (adr0 + WA_PAGE_SIZE -1)/WA_PAGE_SIZE * WA_PAGE_SIZE;
-          }
-        else {
-          wa_page_read(lfd,buf+offset,adr0,lng,indf);
-          lng = 0;
-          }
-    } /* end while */
-  } /* end else */
-} /* end else */
+
+    if (! found) {
+        // Obtenir une nouvelle page
+        get_new_page(fileIdx);
+        pageIdx = wafile[fileIdx].nb_page_in_use - 1;
+        int wa0 = adr - (adr % WA_PAGE_SIZE) + 1;
+        wafile[fileIdx].page[pageIdx].wa0 = (wa0 > 1) ? wa0 : 1;
+        wafile[fileIdx].page[pageIdx].access_count++;
+        if (debug_mode > 4) {
+            fprintf(stderr, "Debug WA_PAGE_READ obtention d'une page %d\n", pageIdx);
+        }
+        WSEEK(fd, wafile[fileIdx].page[pageIdx].wa0 - 1, L_SET);
+        uint32_t readbytes;
+        if (WA_PAGE_SIZE + wafile[fileIdx].page[pageIdx].wa0 > FGFDT[indf].file_size) {
+            readbytes = sizeof(uint32_t) * (FGFDT[indf].file_size + 1 - wafile[fileIdx].page[pageIdx].wa0);
+        } else {
+            readbytes = sizeof(uint32_t) * WA_PAGE_SIZE;
+        }
+        int nbytes = read(fd, wafile[fileIdx].page[pageIdx].page_adr, sizeof(uint32_t) * WA_PAGE_SIZE);
+        if ( nbytes < readbytes ) {
+            fprintf(stderr, "wa_page_read error: cannot read page from file %d,fd=%d\n", fileIdx, fd);
+            fprintf(stderr, "  tried to get %ld bytes, got %d\n", sizeof(uint32_t) * WA_PAGE_SIZE, nbytes);
+            perror("WA_PAGE_READ");
+            exit(1);
+        }
+        if (nbytes < sizeof(uint32_t) * WA_PAGE_SIZE) {
+            uint32_t lnmots = WA_PAGE_SIZE - (nbytes / sizeof(uint32_t));
+            arrayZero(wafile[fileIdx].page[pageIdx].page_adr + (nbytes / sizeof(uint32_t)), lnmots);
+        }
+        wafile[fileIdx].page[pageIdx].walast = wafile[fileIdx].page[pageIdx].wa0 + nbytes / sizeof(uint32_t) - 1;
+        if (debug_mode > 4) {
+            fprintf(stderr, "Debug WA_PAGE_READ lecture disque adr=%d\n", wafile[fileIdx].page[pageIdx].wa0);
+        }
+    }
+
+    // Copier la section désirée dans buf
+    int offset = adr - wafile[fileIdx].page[pageIdx].wa0;
+    arrayCopy(wafile[fileIdx].page[pageIdx].page_adr + offset, buf, nmots);
+    wafile[fileIdx].page[pageIdx].last_access = 0;
+    wafile[fileIdx].page[pageIdx].access_count = new_age_rd(wafile[fileIdx].page[pageIdx].access_count);
+
+    // Vérification des croisements possibles des pages
+    for (int j = 0; j < wafile[fileIdx].nb_page_in_use; j++) {
+        for (int i = 0; i < wafile[fileIdx].nb_page_in_use; i++) {
+            if (j != i) {
+                if ((wafile[fileIdx].page[j].wa0 >= wafile[fileIdx].page[pageIdx].wa0) &&
+                    (wafile[fileIdx].page[j].wa0 <= wafile[fileIdx].page[pageIdx].wa0 + WA_PAGE_SIZE - 1)) {
+                    fprintf(stderr, "WA_PAGE_READ error: overlapping pages i=%d\n", i);
+                    fprintf(stderr, "page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%d\n",
+                              wafile[fileIdx].page[j].wa0, wafile[fileIdx].page[pageIdx].wa0,
+                              wafile[fileIdx].page[pageIdx].wa0 + WA_PAGE_SIZE - 1);
+                    f77name(tracebck)();
+                    exit(1);
+                }
+            }
+        }
+    }
 }
-/****************************************************************************
-*                              fnom_rem_connect                             *
-*****************************************************************************
-*
-***function fnom_rem_connect
-*
-*OBJECT: Establish socket connection with host server
-*
-*ARGUMENTS: in remote_host remote host server name
-*           in ind         file index in fnom general file table index
-*
-*Revisions
-*           nov 2009 - Utilisation de ssh dans tous les cas pour demarrer wa_server
-*           fev 2011 - Utilisation de system(r.remote_wa_server) au lieu de popen
-*
-*/
-int fnom_rem_connect(int ind, char* remote_host)
-{
-  char cbuf[1024];
-  char pbuf[1024];
-  char remote_command[1024];
-  int fserver;
-  int fclient = -1;
-  int server_port = -1;
-  fd_set rfds;
-  struct timeval tv;
-  int nc, indx, isel, ier;
-  int *s_ID, *addr, *nw, *RW_mode, *checksum, new_checksum;
-  int sock_comm_ID = 0xBABE;
-  int demande[5];
-
-  fserver = bind_to_localport(&server_port, cbuf, sizeof(cbuf)-1);
-  listen(fserver,5);
-  printf("bound to #%s#\n", cbuf);
-  fflush(stdout);
-
-  snprintf(pbuf,sizeof(pbuf)-1,"echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'",
-           FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
 
 
-  snprintf(remote_command,sizeof(remote_command)-1,"r.remote_wa_server %s %s %s %s",
-	  FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
-  printf("Debug+ commande passee =\n%s\n",remote_command);
-  ier = system(remote_command);
+//! Right justify 8 bits characters
+uint32_t f77name(hrjust) (
+    //! [in,out] Input string
+    uint32_t *str,
+    //! [in] Number of characters
+    const int32_t * const ncar
+) {
+   int sc = 8 * ( sizeof(int32_t) - *ncar );
+   return sc <= 0 ? *str : (*str) >> sc;
+}
 
-  fflush(stdout);
-  FD_ZERO(&rfds);
-  FD_SET(fserver, &rfds);
-  tv.tv_sec = 5;
-  tv.tv_usec = 0;
-  isel = select(fserver+1, &rfds, NULL, NULL, &tv);
-  if (isel)
-  {
-    fclient = accept_from_sock(fserver);
-    printf("connected to server\n");
-    fflush(stdout);
-    FGFDT[ind].fd = -1;
-    indx = 0;
-    while ((wafile[indx].file_desc != -1) && (indx < MAXWAFILES))
-      indx++;
-    if (indx == MAXWAFILES) {
-      fprintf(stderr, "fnom_rem_connect error: too many open files\n");
-      return -1;
+
+//! Left justify 8 bit characters
+uint32_t f77name(hljust) (
+    //! [in,out] Input string
+    uint32_t *str,
+    //! [in] Number of characters
+    const int32_t * const ncar
+) {
+   int sc = 8 * ( sizeof(int32_t) - *ncar );
+   return sc <= 0 ? *str : (*str) << sc;
+}
+
+
+//! Write a wa page
+static void wa_page_write(
+    //! [in] File descriptor
+    const int fd,
+    //! [in] Buffer containing the data to write
+    const uint32_t * const buf,
+    //! [in] Offset where to write in the file
+    const unsigned int offset,
+    //! [in] Number of words to write
+    const int nmots,
+    //! [in] Index of the wafile in the master file table
+    int indf
+) {
+    process_decay();
+
+    int ind = 0;
+    while ((wafile[ind].file_desc != fd) && (ind < MAXWAFILES)) {
+        ind++;
+    }
+    if (debug_mode > 4) {
+        fprintf(stderr, "Debug WA_PAGE_WRITE requete adr=%u, nmots=%d ind=%d\n", offset, nmots, ind);
+    }
+    if (ind == MAXWAFILES) {
+        fprintf(stderr, "wa_page_write error: file is not open\n");
+        exit(1);
     }
 
-    s_ID = &(demande[0]);
-    addr = &(demande[1]);
-    nw = &(demande[2]);
-    RW_mode = &(demande[3]);
-    checksum = &(demande[4]);
-    *s_ID = sock_comm_ID;
-    *addr = 0;
-    *nw = 0;
-    *RW_mode = 4;  /* wasize request */
-    *checksum = *s_ID ^ *addr ^ *RW_mode;
-    check_swap_records(demande, 5, sizeof(int));
-    nc = write_stream(fclient, demande, 5*sizeof(int));
+    // Search for the page containing [offset, offset+nmots]
+    int found = 0;
+    int pageIdx = 0;
+    while((! found) && (pageIdx < wafile[ind].nb_page_in_use)) {
+        if ((offset >= wafile[ind].page[pageIdx].wa0) && (offset + nmots <= wafile[ind].page[pageIdx].wa0 + WA_PAGE_SIZE)) {
+            found = 1;
+        } else {
+            pageIdx++;
+        }
+    }
 
-    if (nc == 0) {
-      printf("fnom_rem_connect wrote to server OK\n");
-      fflush(stdout);
-      }
-    else {
-      fprintf(stderr, "fnom_rem_connect error: wrote only %d bytes to server\n", nc);
-      fflush(stderr);
-      close(fclient);
-      return -1;
-      }
+    if (! found) {
+        get_new_page(ind);
+        pageIdx = wafile[ind].nb_page_in_use - 1;
+        if (debug_mode > 4) {
+            fprintf(stderr, "Debug WA_PAGE_WRITE obtention d'une page %d\n", pageIdx);
+         }
+        int wa0 = offset - (offset % WA_PAGE_SIZE) + 1;
+        wafile[ind].page[pageIdx].wa0 = (wa0 > 1) ? wa0 : 1;
+        wafile[ind].page[pageIdx].access_count++;
 
-    demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
-    nc = read_stream(fclient, demande, 5*sizeof(int));
-    if (nc !=  5*sizeof(int)) {
-      fprintf(stderr, "fnom_rem_connect error: read only %d bytes from server\n", nc);
-      fflush(stderr);
-      close(fclient);
-      return -1;
-      }
+        // si la requete d'ecriture ne couvre pas la page en entier, ou
+        // si la requete ne part pas du debut de la page pour se terminer
+        // a la fin de fichier ou plus, alors il faut relire la page en question
+        if ((offset > wafile[ind].page[pageIdx].wa0) ||
+            ((offset + nmots != wafile[ind].page[pageIdx].wa0 + WA_PAGE_SIZE) &&
+            (offset + nmots < FGFDT[indf].file_size))) {
 
-    check_swap_records(demande, 5, sizeof(int));
-    new_checksum = *s_ID ^ *addr ^ *RW_mode;
-    if (new_checksum != *checksum) {
-      fprintf(stderr,"fnom_rem_connect error: invalid checksum=%X not %X\n",new_checksum,checksum);
-      fflush(stderr);
-      close(fclient);
-      return -1;
-      }
-      printf("Debug+ fnom_rem_connect wasize=%d\n",*nw);
-      fflush(stdout);
-    FGFDT[ind].file_size = *nw;
-    FGFDT[ind].eff_file_size = *nw;
-  }
-  else {
-    fprintf(stderr,"fnom_rem_connect error: cannot connect to server\n");
-    return -1;
-  }
+            WSEEK(fd, wafile[ind].page[pageIdx].wa0 - 1, L_SET);
+            int readbytes;
+            if (WA_PAGE_SIZE + wafile[ind].page[pageIdx].wa0 > FGFDT[indf].file_size) {
+                readbytes = sizeof(uint32_t) * (FGFDT[indf].file_size + 1 - wafile[ind].page[pageIdx].wa0);
+            } else {
+                readbytes = sizeof(uint32_t) * WA_PAGE_SIZE;
+            }
+            int nbytes = read(fd, wafile[ind].page[pageIdx].page_adr, readbytes);
+            if ( nbytes < readbytes ) {
+                fprintf(stderr, "wa_page_write error: cannot read page on file %s\n", FGFDT[indf].file_name);
+                fprintf(stderr, " tried to get %d bytes, got %d\n", readbytes, nbytes);
+                fprintf(stderr, "WA_PAGE_SIZE=%d wa0=%d file_size=%d\n", WA_PAGE_SIZE, wafile[ind].page[pageIdx].wa0,
+                    FGFDT[indf].file_size);
+                perror("WA_PAGE_WRITE");
+                exit(1);
+            }
+            if (nbytes < sizeof(uint32_t) * WA_PAGE_SIZE) {
+                int lnmots = WA_PAGE_SIZE - (nbytes / sizeof(uint32_t));
+                arrayZero(wafile[ind].page[pageIdx].page_adr + (nbytes / sizeof(uint32_t)), lnmots);
+            }
+            wafile[ind].page[pageIdx].walast = wafile[ind].page[pageIdx].wa0 + nbytes / sizeof(uint32_t) - 1;
+            if (debug_mode > 4) {
+                fprintf(stderr, "Debug WA_PAGE_WRITE relecture disque de la page %d a l'adresse %d\n",
+                           pageIdx, wafile[ind].page[pageIdx].wa0);
+            }
+        }
+    }
 
-  wafile[indx].file_desc = fclient;
-  FGFDT[ind].fd = fclient;
-  FGFDT[ind].open_flag = 1;
-  return(0);
+    // Copier dans la page la section buf
+    int loffset = offset - wafile[ind].page[pageIdx].wa0;
+    arrayCopy(buf, wafile[ind].page[pageIdx].page_adr + loffset, nmots);
+    wafile[ind].page[pageIdx].last_access = 0;
+    wafile[ind].page[pageIdx].access_count = new_age_wr(wafile[ind].page[pageIdx].access_count);
+    wafile[ind].page[pageIdx].touch_flag = 1;
+    if (offset > FGFDT[indf].file_size + 1) {
+        fprintf(stderr, "WA_PAGE_WRITE error: ind = %d, adr=%u > file_size=%d\n", ind, offset, FGFDT[indf].file_size);
+        fprintf(stderr, "                     filename=%s\n", FGFDT[indf].file_name);
+        exit(1);
+    }
+
+    if (offset + nmots - 1 > FGFDT[indf].file_size) {
+        FGFDT[indf].file_size = offset + nmots - 1;
+        FGFDT[indf].eff_file_size = offset + nmots - 1;
+    }
+    if (wafile[ind].page[pageIdx].walast < offset + nmots - 1) {
+        wafile[ind].page[pageIdx].walast = offset + nmots - 1;
+    }
+
+    for (int j = 0; j < wafile[ind].nb_page_in_use; j++) {
+        for (int i = 0; i < wafile[ind].nb_page_in_use; i++) {
+            if (j != i) {
+                if ((wafile[ind].page[j].wa0 >= wafile[ind].page[i].wa0) &&
+                           (wafile[ind].page[j].wa0 <= wafile[ind].page[i].wa0 + WA_PAGE_SIZE - 1)) {
+                    fprintf(stderr, "WA_PAGE_WRITE error: overlapping pages i=%d\n", i);
+                    fprintf(stderr, "page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%d\n",
+                              wafile[ind].page[j].wa0, wafile[ind].page[i].wa0,
+                              wafile[ind].page[i].wa0 + WA_PAGE_SIZE - 1);
+                    f77name(tracebck)();
+                    exit(1);
+                }
+            }
+        }
+    }
+}
+
+
+//! Write in a word adressable file
+static void qqcwawr(
+    //! [in] Buffer contraining the data to write
+    const uint32_t * const buf,
+    //! [in] File adressable in words
+    const unsigned int wadr,
+    //! [in] Number of words to write
+    const int nwords,
+    //! [in] Index of the file in the master file table
+    const int indf
+) {
+    int lfd = FGFDT[indf].fd;
+
+    int ind = 0;
+    while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES)) {
+        ind++;
+    }
+    if (ind == MAXWAFILES) {
+        fprintf(stderr, "qqcwawr error: filename=%s , fd=%d not found in table\n", FGFDT[indf].file_name, lfd);
+        exit(1);
+    }
+
+    long long ladr = wadr;
+    if (ladr != 0) {
+        ladr += wafile[ind].offset;
+    }
+
+    if (FGFDT[indf].attr.read_only) {
+        fprintf(stderr, "qqcwawr error: no write permission for file %s\n", FGFDT[indf].file_name);
+        exit(1);
+    }
+
+    if (FGFDT[indf].attr.remote) {
+        int demande[5];
+
+        int *s_ID = &(demande[0]);
+        int *addr = &(demande[1]);
+        int *nw = &(demande[2]);
+        int *RW_mode = &(demande[3]);
+        int *checksum = &(demande[4]);
+        *s_ID = 0xBABE;
+        *addr = ladr;
+        *nw = nwords;
+        *RW_mode = 2;  /* write request */
+        *checksum = *s_ID ^ *addr ^ *nw ^ *RW_mode;
+        check_swap_records(demande, 5, sizeof(int));
+        int nc = write_stream(FGFDT[indf].fd, (const char *)demande, 5 * sizeof(int));
+        if (nc != 0) {
+            fprintf(stderr, "socket qqcwawr error: wrote only %i bytes to server\n", nc);
+            fflush(stderr);
+        }
+        int nelm = write_stream(FGFDT[indf].fd, (const char *)buf, nwords * sizeof(int));
+#if defined (DEBUG)
+        if (nelm == 0) printf("socket qqcwawr wrote %d bytes\n", nwords * sizeof(int));
+#endif
+        if (ladr + nwords - 1 > FGFDT[indf].file_size) {
+            FGFDT[indf].file_size = ladr + nwords - 1;
+            FGFDT[indf].eff_file_size = ladr + nwords - 1;
+        }
+    } else {
+        // File is local
+        if ((WA_PAGE_SIZE == 0) || (ladr == 0)) {
+            if (ladr != 0) WSEEK(lfd, ladr - 1, L_SET);
+            int nwritten = write(lfd, buf, sizeof(uint32_t) * nwords);
+            if (nwritten != sizeof(uint32_t) * nwords) {
+                if (errno == 14) {
+                    fprintf(stderr, "qqcwawr error: write error for file %s\n", FGFDT[indf].file_name);
+                    fprintf(stderr, "qqcwawr: filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
+                            FGFDT[indf].file_name, buf, ladr, nwords, nwritten, errno);
+                    fprintf(stderr, "*** Contactez un membre de la section informatique de RPN ***\n");
+                    fprintf(stderr, "*** Seek support from RPN informatic section ***\n");
+                    /*            memorymap(1); */
+                    perror("qqcwawr");
+                    exit(1);
+                }
+                if (nwritten >= 0) {
+                    int togo = (nwords * sizeof(uint32_t)) - nwritten;
+                    nwritten = write(lfd, buf, togo);
+                    fprintf(stderr, "qqcwawr WARNING: multiple write attempt of file %s last write=%d bytes, total needed=%ld bytes\n",
+                            FGFDT[indf].file_name, togo, nwords * sizeof(uint32_t));
+                    if (nwritten != togo) {
+                        fprintf(stderr, "qqcwawr error: write error for file %s\n", FGFDT[indf].file_name);
+                        fprintf(stderr, "qqcwawr: filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
+                                FGFDT[indf].file_name, buf, ladr, nwords, nwritten, errno);
+                        perror("qqcwawr");
+                        exit(1);
+                    }
+                } else {
+                    fprintf(stderr, "qqcwawr error: write error or file not open for write!\n");
+                    fprintf(stderr, "qqcwawr: filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
+                            FGFDT[indf].file_name, buf, ladr, nwords, nwritten, errno);
+                    perror("qqcwawr");
+                    exit(1);
+                }
+            }
+            if (ladr + nwords - 1 > FGFDT[indf].file_size) {
+                FGFDT[indf].file_size = ladr + nwords - 1;
+                FGFDT[indf].eff_file_size = ladr + nwords - 1;
+            }
+        } else {
+            int lng = nwords;
+            int adr0 = ladr;
+            int offset = 0;
+            int lastadr = (adr0 + WA_PAGE_SIZE -1)/WA_PAGE_SIZE * WA_PAGE_SIZE;
+            while (lng > 0) {
+                if (lng > lastadr - adr0) {
+                    int l = lastadr - adr0 + 1;
+                    wa_page_write(lfd, buf + offset, adr0, l, indf);
+                    offset = offset + l;
+                    adr0 = adr0 + l;
+                    lng = lng - l;
+                    lastadr = (adr0 + WA_PAGE_SIZE -1) / WA_PAGE_SIZE * WA_PAGE_SIZE;
+                } else {
+                    wa_page_write(lfd, buf + offset, adr0, lng, indf);
+                    lng = 0;
+                }
+            }
+        }
+    }
+}
+
+
+//! Read from a word adressable file. (Active part of c_waread2)
+static void qqcward(
+    //! [out]
+    uint32_t * const buf,
+    //! [in] Offset in file in words
+    const unsigned int woffset,
+    //! [in] Number of words to read
+    const int lnmots,
+    //! [in] Index of the file in the master file table
+    const int indf
+) {
+    int lfd = FGFDT[indf].fd;
+    long long ladr = woffset;
+
+    int ind = 0;
+    while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES)) ind++;
+    if (ind == MAXWAFILES) {
+        fprintf(stderr, "qqcward error: fd=%d not found in table\n", lfd);
+        exit(1);
+    }
+    if (FGFDT[indf].attr.remote) {
+        const int sock_comm_ID = 0xBABE;
+        int demande[5];
+
+        int *s_ID = &(demande[0]);
+        int *addr = &(demande[1]);
+        int *nw = &(demande[2]);
+        int *RW_mode = &(demande[3]);
+        int *checksum = &(demande[4]);
+        *s_ID = sock_comm_ID;
+        *addr = ladr;
+        *nw = lnmots;
+        *RW_mode = 1;  /* read request */
+        *checksum = *s_ID ^ *addr ^ *nw ^ *RW_mode;
+        check_swap_records(demande, 5, sizeof(int));
+        int nc = write_stream(FGFDT[indf].fd, (const char *)demande, 5 * sizeof(int));
+        if (nc != 0) {
+            fprintf(stderr, "socket qqcward error: wrote only %d bytes to server\n", nc);
+            fflush(stderr);
+        }
+        int nelm = read_stream(FGFDT[indf].fd, (char *)buf, lnmots * sizeof(int));
+#       if defined (DEBUG)
+            printf("qqcward read %d bytes\n", nelm);
+#       endif
+    } else {
+        if (ladr != 0) {
+            ladr += wafile[ind].offset;
+        }
+
+        if ((WA_PAGE_SIZE == 0) || (ladr == 0)) {
+            if (ladr != 0) {
+                WSEEK(lfd, ladr - 1, L_SET);
+            }
+            int reste = read(lfd, buf, sizeof(uint32_t) * lnmots);
+            if (reste != sizeof(uint32_t) * lnmots) {
+                    fprintf(stderr, "qqcward error: tried to read %d words, only read %d\n",
+                            sizeof(uint32_t) * lnmots, reste);
+                fprintf(stderr, "qqcward: wafile[ind].offset=%d ladr=%Ld\n", wafile[ind].offset, ladr);
+                f77name(tracebck)();
+                exit(1);
+            }
+        } else {
+            int lng = lnmots;
+            int adr0 = ladr;
+            int offset = 0;
+            int l;
+            int lastadr = (adr0 + WA_PAGE_SIZE -1) / WA_PAGE_SIZE * WA_PAGE_SIZE;
+            while (lng > 0) {
+                if (lng > lastadr-adr0) {
+                    l = lastadr - adr0 + 1;
+                    wa_page_read(lfd, buf + offset, adr0, l, indf);
+                    offset = offset + l;
+                    adr0 = adr0 + l;
+                    lng = lng - l;
+                    lastadr = (adr0 + WA_PAGE_SIZE - 1) / WA_PAGE_SIZE * WA_PAGE_SIZE;
+                } else {
+                    wa_page_read(lfd, buf + offset, adr0, lng, indf);
+                    lng = 0;
+                }
+            }
+        }
+    }
+}
+
+
+//! Establish socket connection with host server
+//! \return 0 on success, negative otherwise
+static int fnom_rem_connect(
+    //! [in] Index of the file in the master file table
+    const int ind,
+    //! [in] Remote host name
+    const char * const remote_host
+) {
+    int server_port = -1;
+    char cbuf[1024];
+    int fserver = bind_to_localport(&server_port, cbuf, sizeof(cbuf)-1);
+    listen(fserver, 5);
+    printf("bound to #%s#\n", cbuf);
+    fflush(stdout);
+
+    char pbuf[1024];
+    snprintf(pbuf, sizeof(pbuf)-1, "echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'",
+            FGFDT[ind].file_name, (FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W", cbuf, remote_host);
+
+    char remote_command[1024];
+    snprintf(remote_command, sizeof(remote_command)-1, "r.remote_wa_server %s %s %s %s",
+        FGFDT[ind].file_name, (FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W", cbuf, remote_host);
+    printf("Debug+ commande passee =\n%s\n", remote_command);
+    system(remote_command);
+
+    fflush(stdout);
+
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(fserver, &rfds);
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+
+    int fclient = -1;
+    int indx = 0;
+    int isel = select(fserver + 1, &rfds, NULL, NULL, &tv);
+    if (isel) {
+        fclient = accept_from_sock(fserver);
+        printf("connected to server\n");
+        fflush(stdout);
+        FGFDT[ind].fd = -1;
+        while ((wafile[indx].file_desc != -1) && (indx < MAXWAFILES)) {
+            indx++;
+        }
+        if (indx == MAXWAFILES) {
+            fprintf(stderr, "fnom_rem_connect error: too many open files\n");
+            return -1;
+        }
+
+        int demande[5];
+        int *s_ID = &(demande[0]);
+        int *addr = &(demande[1]);
+        int *nw = &(demande[2]);
+        int *RW_mode = &(demande[3]);
+        int *checksum = &(demande[4]);
+        *s_ID = 0xBABE;
+        *addr = 0;
+        *nw = 0;
+        *RW_mode = 4;  /* wasize request */
+        *checksum = *s_ID ^ *addr ^ *RW_mode;
+        check_swap_records(demande, 5, sizeof(int));
+        int nc = write_stream(fclient, (const char *)demande, 5*sizeof(int));
+
+        if (nc == 0) {
+            printf("fnom_rem_connect wrote to server OK\n");
+            fflush(stdout);
+        } else {
+            fprintf(stderr, "fnom_rem_connect error: wrote only %d bytes to server\n", nc);
+            fflush(stderr);
+            close(fclient);
+            return -1;
+        }
+
+        demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
+        nc = read_stream(fclient, demande, 5 * sizeof(int));
+        if (nc !=  5 * sizeof(int)) {
+            fprintf(stderr, "fnom_rem_connect error: read only %d bytes from server\n", nc);
+            fflush(stderr);
+            close(fclient);
+            return -1;
+        }
+
+        check_swap_records(demande, 5, sizeof(int));
+        int new_checksum = *s_ID ^ *addr ^ *RW_mode;
+        if (new_checksum != *checksum) {
+            fprintf(stderr, "fnom_rem_connect error: invalid checksum=%X not %X\n", new_checksum, checksum);
+            fflush(stderr);
+            close(fclient);
+            return -1;
+        }
+        printf("Debug+ fnom_rem_connect wasize=%d\n", *nw);
+        fflush(stdout);
+        FGFDT[ind].file_size = *nw;
+        FGFDT[ind].eff_file_size = *nw;
+    } else {
+        fprintf(stderr, "fnom_rem_connect error: cannot connect to server\n");
+        return -1;
+    }
+
+    wafile[indx].file_desc = fclient;
+    FGFDT[ind].fd = fclient;
+    FGFDT[ind].open_flag = 1;
+    return 0;
 }
 
 
 //! Copy words from one array to another
 static void arrayCopy(
     //! Pointer to the source array
-    uint32_t *src,
+    const uint32_t * const src,
     //! Pointer to the destination array
-    uint32_t *dest,
+    uint32_t * const dest,
     //! Number of elements to copy
-    int nwords
+    const int nwords
 ) {
     for (int i = 0; i < nwords; i++) {
         dest[i] = src[i];
@@ -2926,9 +2703,9 @@ static void arrayCopy(
 //! Zero words of an array
 static void arrayZero(
     //! Pointer to the array
-    uint32_t *dest,
+    uint32_t * const dest,
     //! Number of words to zero
-    int nwords
+    const int nwords
 ) {
     for (int i = 0; i < nwords; i++) {
         dest[i] = 0;

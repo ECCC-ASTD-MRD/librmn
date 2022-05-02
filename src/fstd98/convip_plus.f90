@@ -1,20 +1,27 @@
 !> Encode/Decode IP pour IP1, IP2, IP3
 !> This is required before reading or writting to a FST file
-!> @date 1996
-!> @author Nils Ek
-!> @author Bernard Dugas
-!> @author Mario Lepine
-!> @author Michel Valin
+!> \date 1996
+!> \author Nils Ek
+!> \author Bernard Dugas
+!> \author Mario Lepine
+!> \author Michel Valin
 SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
-  use convert_ip123_int
-  implicit none
-  include 'convip_plus.inc'
+    use convert_ip123_int
+    implicit none
+    include 'convip_plus.inc'
 
-  integer, intent(INOUT) :: ip, kind
-  integer, intent(IN) :: mode
-  real, intent(INOUT) :: p
-  character *(*), intent(OUT) :: string
-  logical, intent(IN) :: flagv
+    !> Coded value
+    integer, intent(INOUT) :: ip
+    !> Real value
+    real, intent(INOUT) :: p
+    !> Coordinate type
+    integer, intent(INOUT) :: kind
+    !> When -1, IP -> P; When 0, force 31 bit conversion; When 1, P -> IP; When 2, P -> IP Force NEWSTYLE, When 3, P -> IP Force OLD STYLE
+    integer, intent(IN) :: mode
+    !> String representation of ip or p
+    character *(*), intent(OUT) :: string
+    !> If true, print P with the format in string
+    logical, intent(IN) :: flagv
 
 !  Etendue des valeurs reelles encodees: 10e-5 -> 10e10
 !  pseudo mantisses :
@@ -67,10 +74,8 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !    KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
 !              (partage avec kind=1 a cause du range exclusif
 !    KIND =21, p est en metres-pression                            (0 -> 1,000,000) fact=1e4
-!              (partage avec kind=5 a cause du range exclusif)                                                             
+!              (partage avec kind=5 a cause du range exclusif)
 !    KIND =23, reserve pour usage futur (partage avec kind=7)
-! OUTPUTS
-!    STRING = valeur de P formattee
 
   real *8 limit1, limit2, temp
   real abs_p
@@ -334,7 +339,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 ! 6007 format(' Warning in convip: undetermined kind used =',I10)
 
   contains
-!=========================== start of private function =========================================
+
 function conv_kind_15(p,mykind,ip,mode) result(status) ! convert kind = 15 and subkinds
   implicit none
   integer :: status
@@ -386,133 +391,128 @@ function conv_kind_15(p,mykind,ip,mode) result(status) ! convert kind = 15 and s
 end function conv_kind_15
 
 end SUBROUTINE CONVIP_plus
-!===============================================================================================
-!============================= end of private function =========================================
-!===============================================================================================
-!****f* rmnlib/value_to_string
-! SUMMARY
-! write value val into string using at most maxlen characters
-! SYNOPSIS
-integer function value_to_string(val,string,maxlen)
-! AUTHOR
-!  M.Valin 2013
-!  Revision 001 :  M.Valin  Oct 2013 alignement a droite corrige pour valeurs entieres > 0
-! ARGUMENTS
-  integer, intent(IN) :: maxlen
-  character (len=*), intent(OUT) :: string
-  real *4, intent(IN) :: val
-! INPUTS
-!  maxlen : use at most maxlen characters to code value
-!  val    : real value to be encoded (left aligned) into string
-! OUTPUTS
-!  string : result of encoding
-! RESULT
-!  if something went wrong, the return value will be <= 0
-!  if an integer format (I) is used, the return value is the number of characters used
-!  if a floating format (F/G) is used, return value =- 100*field_width + nb_of_significant_digits
-!  ex: if F8.3 is used, the result will be 803, if I6 is used, the result will be 6
-!******
-  character (len=32) :: fstring
-  character (len=128) :: tempstring
-  real *4 :: value
-  integer :: after, before
-  integer :: grosint, maxc, intdig
 
-  string=" "
-  maxc=min(maxlen,len(string))
-  value=abs(val)
-  after=min(7,maxc-6)
-  before=maxc
-  value_to_string=-(100*before+after*10)
-  write(fstring,11)maxc,after    ! default G format
 
-  if(value /= 0.0) then
-    if(value >= 1000000000000.0 .or. value < .0001) goto 666   ! use G format
-  endif
+!> Write value val into string using at most maxlen characters
+!> \author M. Valin
+!> \date 2013
+!> \return If something went wrong, the return value will be <= 0
+!>  if an integer format (I) is used, the return value is the number of characters used
+!>  if a floating format (F/G) is used, return value =- 100*field_width + nb_of_significant_digits
+!>  ex: if F8.3 is used, the result will be 803, if I6 is used, the result will be 6
+integer function value_to_string(val, string, maxlen)
+    implicit none
 
-  if(nint(value)==value) then ! exact integral value
-    grosint=1
-    intdig=2
-    do i=1,min(9,maxc-1)
-      if(nint(value) > grosint) intdig=intdig+1
-      grosint=grosint*10  ! largest integer value that will fit in maxc characters
+    !> The real value to be encoded into string (left aligned)
+    real *4, intent(IN) :: val
+    !> Encoded representation
+    character (len=*), intent(OUT) :: string
+    !> Maximum number of characters to use to represent the value
+    integer, intent(IN) :: maxlen
+
+    character (len=32) :: fstring
+    character (len=128) :: tempstring
+    real *4 :: value
+    integer :: after, before
+    integer :: grosint, maxc, intdig
+    integer :: i
+
+    string = " "
+    maxc = min(maxlen,len(string))
+    value = abs(val)
+    after = min(7, maxc - 6)
+    before = maxc
+    value_to_string = -(100 * before + after * 10)
+    write(fstring, 11) maxc, after    ! default G format
+
+    if(value /= 0.0) then
+        if(value >= 1000000000000.0 .or. value < .0001) goto 666   ! use G format
+    endif
+
+    if(nint(value)==value) then ! exact integral value
+        grosint=1
+        intdig=2
+        do i = 1, min(9, maxc - 1)
+        if(nint(value) > grosint) intdig=intdig+1
+        grosint=grosint*10  ! largest integer value that will fit in maxc characters
+        enddo
+        if(value >= grosint) goto 444   ! try something else
+        if(val>0) intdig = intdig - 1   ! one less character if number is positive
+        write(fstring,12)'(I',min(maxc,intdig),')'    ! use I format
+        value_to_string=min(maxc,intdig)
+        goto 777
+    endif
+
+    444 continue  ! real values within "civilized" range
+    if (value >= 1.0) then
+        before = 0
+        after = 0
+        do while(value>=1.0)
+        before = before +1
+        value = value * .1
+        enddo
+        if(before<6) after=min(6-before,maxc-before-2) ! we have at best 6 significant digits
+    !    if(before<8) after=max(0,maxc-before-2)
+    else   ! value < 1.0
+        after = 5
+        before = 0
+        do while(value<1.0)
+        value = value * 10.0
+        after = after  +1
+        enddo
+        after=min(after,maxc-2)
+    endif
+
+    after=min(9,after)  ! never more than 9 digits after the decimal point
+
+    if(before+after+2 > maxc) goto 666  ! use G format
+
+    before=before+after+2
+    value_to_string=100*before+after*10
+
+    write(fstring,10)before,after       ! use F format
+    !print *,'=',trim(fstring)
+    write(string,fstring)val            ! F format
+    i=len(trim(string))
+    do while(i>4 .and. string(i:i)=='0')
+        string(i:i)=' '
+        i=i-1
     enddo
-    if(value >= grosint) goto 444   ! try something else
-    if(val>0) intdig = intdig - 1   ! one less character if number is positive
-    write(fstring,12)'(I',min(maxc,intdig),')'    ! use I format
-    value_to_string=min(maxc,intdig)
-    goto 777
-  endif
+    if(string(1:1)==' ') then
+        tempstring=string(2:len(string))
+        string=tempstring
+    endif
+    return
 
-  444 continue  ! real values within "civilized" range
-  if (value >= 1.0) then
-    before = 0
-    after = 0
-    do while(value>=1.0)
-      before = before +1
-      value = value * .1
-    enddo
-    if(before<6) after=min(6-before,maxc-before-2) ! we have at best 6 significant digits
-!    if(before<8) after=max(0,maxc-before-2)
-  else   ! value < 1.0
-    after = 5
-    before = 0
-    do while(value<1.0)
-      value = value * 10.0
-      after = after  +1
-    enddo
-    after=min(after,maxc-2)
-  endif
+    666 continue
+    if(maxc-6<=0) goto 888
+    !print *,'=',trim(fstring)
+    write(string,fstring)val            ! G format
+    if(string(1:1)==' ') then
+        tempstring=string(2:len(string))
+        string=tempstring
+    endif
+    return
 
-  after=min(9,after)  ! never more than 9 digits after the decimal point
+    777 continue
+    !print *,'=',trim(fstring)
+    write(string,fstring)nint(val)      ! I format
+    if(string(1:1)==' ') then
+        tempstring=string(2:len(string))
+        string=tempstring
+    endif
+    return
 
-  if(before+after+2 > maxc) goto 666  ! use G format
-
-  before=before+after+2
-  value_to_string=100*before+after*10
-
-  write(fstring,10)before,after       ! use F format
-  !print *,'=',trim(fstring)
-  write(string,fstring)val            ! F format
-  i=len(trim(string))
-  do while(i>4 .and. string(i:i)=='0')
-    string(i:i)=' '
-    i=i-1
-  enddo
-  if(string(1:1)==' ') then
-    tempstring=string(2:len(string))
-    string=tempstring
-  endif
-  return
-
-  666 continue
-  if(maxc-6<=0) goto 888
-  !print *,'=',trim(fstring)
-  write(string,fstring)val            ! G format
-  if(string(1:1)==' ') then
-    tempstring=string(2:len(string))
-    string=tempstring
-  endif
-  return
-
-  777 continue
-  !print *,'=',trim(fstring)
-  write(string,fstring)nint(val)      ! I format
-  if(string(1:1)==' ') then
-    tempstring=string(2:len(string))
-    string=tempstring
-  endif
-  return
-
-  888 continue
-  value_to_string=0
-  return
+    888 continue
+    value_to_string=0
+    return
 
 10 format(2H(F,I2,1H.,I1,1H))
 11 format(2H(G,I2,1H.,I1,1H))
 12 format(A,I2,A)
 end function value_to_string
-!===============================================================================================
+
+
 subroutine test_value_to_string
   implicit none
   include 'convip_plus.inc'
@@ -557,7 +557,8 @@ subroutine test_value_to_string
 101 format(1H|,A15,1H|,A15,1H|,1X,A2,3X,f6.2)
 return
 end subroutine test_value_to_string
-!===============================================================================================
+
+
 subroutine test_convip_plus() ! test routine for convip_plus
   use ISO_C_BINDING
   implicit none
@@ -610,63 +611,66 @@ subroutine test_convip_plus() ! test routine for convip_plus
 113 format(I9,F11.5,I3,A)
   return
 end subroutine test_convip_plus
-!===============================================================================================
+
+
 subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')  ! interface for C routines
-! translate kind integer code to 2 character string, gateway to Fortran kind_to_string
-  use ISO_C_BINDING
-  implicit none
-  include 'convip_plus.inc'
+    ! translate kind integer code to 2 character string, gateway to Fortran kind_to_string
+    use ISO_C_BINDING
+    implicit none
+    include 'convip_plus.inc'
 
-  integer(C_INT), intent(IN), value :: code
-  character(C_CHAR), intent(OUT) :: s1, s2
+    integer(C_INT), intent(IN), value :: code
+    character(C_CHAR), intent(OUT) :: s1, s2
 
-  character(len=2) :: temp
-  temp = kind_to_string(code)
-  s1 = transfer(temp(1:1),s1)
-  s2 = transfer(temp(2:2),s2)
-  return
+    character(len=2) :: temp
+    temp = kind_to_string(code)
+    s1 = transfer(temp(1:1),s1)
+    s2 = transfer(temp(2:2),s2)
+    return
 end subroutine c_kind_to_string
 
-FUNCTION kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 character string code
-  implicit none
-  integer, intent(IN) :: code
-  character(len=2) :: string
-  integer, parameter :: Max_Kind=31
-  character(len=2), save, dimension(0:Max_Kind) :: kinds = &
-    (/    ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
-          '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
-          '??', '[]', '??', '??', '??', 'mp', '??', '??',                       &
-          '??', '??', '??', '??', '??', '??', '??', '_1' /)
+
+function kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 character string code
+    implicit none
+    integer, intent(IN) :: code
+    character(len=2) :: string
+    integer, parameter :: Max_Kind=31
+    character(len=2), save, dimension(0:Max_Kind) :: kinds = &
+        (/    ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
+            '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
+            '??', '[]', '??', '??', '??', 'mp', '??', '??',                       &
+            '??', '??', '??', '??', '??', '??', '??', '_1' /)
 
 
-  string = '!!'    ! precondition to fail
+    string = '!!'    ! precondition to fail
 
-  if(code<0) return   ! invalid type code
+    if(code<0) return   ! invalid type code
 
-  if(code<=Max_Kind) then
-    string = kinds(code)  ! straight table lookup
+    if(code<=Max_Kind) then
+        string = kinds(code)  ! straight table lookup
+        return
+    endif
+
+    if(mod(code,16)/=15) return  ! not a subkind of kind 15
+
+    if(code/16>9)  return  ! not a potentially valid subkind of kind 15
+
+    write(1,string)'I',code/16   ! 'In' code where n=code/16 (n=0,1..,9)
+
     return
-  endif
+end function kind_to_string
 
-  if(mod(code,16)/=15) return  ! not a subkind of kind 15
-
-  if(code/16>9)  return  ! not a potentially valid subkind of kind 15
-
-  write(1,string)'I',code/16   ! 'In' code where n=code/16 (n=0,1..,9)
-
-  return
-end FUNCTION kind_to_string
-!===============================================================================================
 
 !> C language interface with no string option
-subroutine C_CONV_IP( ip, p, kind, mode ) BIND(C,name='ConvertIp')
-  use ISO_C_BINDING
-  implicit none
-    integer(C_INT), intent(INOUT) :: ip, kind
-    integer(C_INT), intent(IN), value :: mode
+subroutine C_CONV_IP(ip, p, kind, mode) BIND(C, name = 'ConvertIp')
+    use ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(INOUT) :: ip
     real(C_FLOAT), intent(INOUT) :: p
+    integer(C_INT), intent(INOUT) :: kind
+    integer(C_INT), intent(IN), value :: mode
+
     character (len=1) :: string
-    integer :: mode2
-    mode2 = mode
-    call CONVIP_plus( ip, p, kind, mode2,string,.false.)
+
+    call CONVIP_plus(ip, p, kind, mode, string, .false.)
 end subroutine C_CONV_IP

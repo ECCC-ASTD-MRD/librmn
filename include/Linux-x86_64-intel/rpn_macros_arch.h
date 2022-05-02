@@ -16,4 +16,4 @@
 // F2Cl is an hidden parameter of Fortran compilers for string length.
 // The type of the argument is implementation specific and can be different
 // according to the compiler
-#define F2Cl int64_t
+#define F2Cl const int64_t

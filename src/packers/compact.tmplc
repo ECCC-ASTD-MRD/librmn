@@ -26,6 +26,8 @@
 #include <sys/types.h>
 #include <math.h>
 
+#include <rpnmacros.h>
+#include <bitPacking.h>
 
 extern double f77name(f_pow)(double *base, int32_t *i);
 
@@ -39,20 +41,20 @@ void *compact_FLOAT_TYPE(
     //! [in,out] Array of integers
     void *packedArrayOfInt,
     //! [in] Number of elements in the floating point array
-    int elementCount,
+    const int elementCount,
     //! [in] Integer size in bit
-    int bitSizeOfPackedToken,
+    const int packedTokenBitSize,
     //! [in] in packing   : the last bit of integer packed inside array
     //! in unpacking : the first bit of integer packed into array
-    int off_set,
+    const int offset,
     //! [in] Floating point number spacing indicator
-    int stride,
+    const int stride,
     //! [in] Operator(FLOAT_PACK, FLOAT_UNPACK)
-    int opCode,
+    const int opCode,
     //! [in] Set to 1 when there are missing values, 0 otherwise
-    int hasMissing,
+    const int hasMissing,
     //! [in] Missing value identifier
-    void *missingTag
+    const void * const missingTag
 ) {
     // Declare header type
     typedef struct {
@@ -70,7 +72,6 @@ void *compact_FLOAT_TYPE(
     int wordSize;
     FLOAT_TYPE *arrayOfFloat;
     uint32_t *packHeader, *arrayOfInt;
-    int i;
     uint32_t floatCount;
 
     double maxFloat, minFloat;
@@ -85,7 +86,7 @@ void *compact_FLOAT_TYPE(
     ALL_FLOAT minFloatTemplate;
     uint32_t tempFloat;
     uint32_t tempMantisa1, tempMantisa2;
-    uint32_t *arrayPtr, *arrayOfUnpacked;
+    uint32_t *arrayPtr;
     int  headerStyle;
     uint32_t headerType, countLower20, countUpper8;
 
@@ -100,40 +101,37 @@ void *compact_FLOAT_TYPE(
     uint32_t bitPackInFirstWord;
     int currentSlot;
     uint32_t packInt;
-    uint32_t tempExp;
-    uint32_t rangeExpo;
-    ALL_FLOAT floatTemplate;
     int significantBit, inSignificantBit;
     float missingValueTag = *((FLOAT_TYPE *)missingTag);
     uint32_t missingToken;
     int tempExpo;
     int tokenSize;
-    int EffectivePackedTokenSize=0;      /* only set with special case when bitSizeOfPackedToken > 64 */
 
     // Handle abnormal condition
     /* token size is 0 */
-    if ( bitSizeOfPackedToken == 0 ) {
+    if ( packedTokenBitSize == 0 ) {
         return NULL;
     }
     /* missing value handling routine fails if token size is 1 */
-    if (( bitSizeOfPackedToken == 1 ) &&  hasMissing ) {
+    if (( packedTokenBitSize == 1 ) &&  hasMissing ) {
         return NULL;
     }
 
-
-    if (bitSizeOfPackedToken > 64) {
-        EffectivePackedTokenSize = bitSizeOfPackedToken >> 6;
-        bitSizeOfPackedToken &= 0x3F;
-        /* fprintf(stderr, "Debug+++ compact_float nbits > 64 EffectivePackedTokenSize=%d bitSizeOfPackedToken=%d opCode=%d\n",
-             EffectivePackedTokenSize, bitSizeOfPackedToken, opCode); */
+    int packedTokenBS = packedTokenBitSize;
+    int EffectivePackedTokenSize = 0;      /* only set with special case when packedTokenBS > 64 */
+    if (packedTokenBS > 64) {
+        EffectivePackedTokenSize = packedTokenBS >> 6;
+        packedTokenBS &= 0x3F;
+        /* fprintf(stderr, "Debug+++ compact_float nbits > 64 EffectivePackedTokenSize=%d packedTokenBS=%d opCode=%d\n",
+             EffectivePackedTokenSize, packedTokenBS, opCode); */
     } else {
-        EffectivePackedTokenSize = bitSizeOfPackedToken;
+        EffectivePackedTokenSize = packedTokenBS;
     }
 
     // Obtain an array of power of 2
     if ( ! powerOf2sInitialized ) {
         powerOf2s[0] = 1.0;
-        for ( i = 1; i < powerSpan; i++) {
+        for (int i = 1; i < powerSpan; i++) {
             powerOf2s[i] = 2.0 *powerOf2s[i-1];
         }
         powerOf2sInitialized = 1;
@@ -152,14 +150,14 @@ void *compact_FLOAT_TYPE(
 
 
         // Determine the missing token and header style
-        if ( bitSizeOfPackedToken != wordSize ) {
-            missingToken = ~(-1 << bitSizeOfPackedToken);
+        if ( packedTokenBS != wordSize ) {
+            missingToken = ~(-1 << packedTokenBS);
         } else {
             missingToken = ~0;
         }
 
-        if (( &packHeader[3] == arrayOfInt ) && ( off_set == 24 ) ||
-            ( &packHeader[0] == arrayOfInt ) && ( off_set == 120 ) ) {
+        if (( &packHeader[3] == arrayOfInt ) && ( offset == 24 ) ||
+            ( &packHeader[0] == arrayOfInt ) && ( offset == 120 ) ) {
             headerStyle = 1;
         } else {
             headerStyle = 2;
@@ -177,7 +175,7 @@ void *compact_FLOAT_TYPE(
             maxFloat = arrayOfFloat[0];
             minFloat = arrayOfFloat[0];
 
-            for (i = stride; i < floatCount*stride; i += stride) {
+            for (int i = stride; i < floatCount * stride; i += stride) {
                 if ( arrayOfFloat[i] < minFloat ) {
                     minFloat = arrayOfFloat[i];
                 } else if ( arrayOfFloat[i] > maxFloat ) {
@@ -187,14 +185,14 @@ void *compact_FLOAT_TYPE(
         } else {
             // Existence of missing value indicated
             /* initialize min and max */
-            i = 0 ;
+            int i = 0 ;
             while ( arrayOfFloat[i] == missingValueTag ) {
                 i += stride;
             }
             maxFloat = arrayOfFloat[i];
             minFloat = arrayOfFloat[i];
             /* traverse the array to search the actual min and max */
-            for (i = stride; i < floatCount*stride; i += stride) {
+            for (int i = stride; i < floatCount * stride; i += stride) {
                 if ( arrayOfFloat[i] == missingValueTag ) {
                     /* ignore the missing value */
                 } else if ( arrayOfFloat[i] < minFloat ) {
@@ -222,7 +220,7 @@ void *compact_FLOAT_TYPE(
         if (rangeTemplate.XD == 0) {
             tempInt = 0;
         } else {
-            tempInt = (int64_t) (( maxFloat - minFloat ) * powerOf2s[bitSizeOfPackedToken] / rangeTemplate.XD);
+            tempInt = (int64_t) (( maxFloat - minFloat ) * powerOf2s[packedTokenBS] / rangeTemplate.XD);
         }
 
         if ( ( tempInt == missingToken )  && ( hasMissing ) ) {
@@ -236,7 +234,7 @@ void *compact_FLOAT_TYPE(
 
         scaledExpOfMinFloat = minFloatTemplate.MD.expo - 1023 + 1024 - 48;
 
-        scaledExpOfRange = tempExpo - bitSizeOfPackedToken;
+        scaledExpOfRange = tempExpo - packedTokenBS;
 
         // Obtain desired range and sign of minimum floating point number
         desiredRange = rangeTemplate.XD;
@@ -283,17 +281,17 @@ void *compact_FLOAT_TYPE(
             packHeader[2] = ( -1 << (wordSize - 1) ) | (tempMantisa1 << 11) | (tempMantisa2 << 8);
         }
 
-        packHeader[3] = bitSizeOfPackedToken << 8 | countUpper8;
+        packHeader[3] = packedTokenBS << 8 | countUpper8;
 
         {
             // Obtain multiplication factor
             double two = 2.0;
             int32_t expos_ftn;
             expos_ftn = tempExpo;
-            mulFactor = powerOf2s[bitSizeOfPackedToken] / f77name(f_pow)(&two, &expos_ftn);
+            mulFactor = powerOf2s[packedTokenBS] / f77name(f_pow)(&two, &expos_ftn);
         }
 
-        lastPackBit = off_set;
+        lastPackBit = offset;
         spaceInLastWord =  wordSize - ( lastPackBit % wordSize );
         lastSlot = ( lastPackBit / wordSize );
 
@@ -304,11 +302,10 @@ void *compact_FLOAT_TYPE(
         }
 
         arrayPtr = &arrayOfInt[lastSlot];
-        arrayOfUnpacked = (uint32_t *)arrayOfFloat;
-        if (( spaceInLastWord == wordSize ) && ( bitSizeOfPackedToken == wordSize )) {
+        if (( spaceInLastWord == wordSize ) && ( packedTokenBS == wordSize )) {
             // direct copy
 
-            for ( i = 0; i < floatCount*stride; i+= stride) {
+            for (int i = 0; i < floatCount * stride; i+= stride) {
                 if ( ( hasMissing == 1 ) && ( arrayOfFloat[i] == missingValueTag ) ) {
                     tempInt = missingToken;
                 } else {
@@ -319,7 +316,7 @@ void *compact_FLOAT_TYPE(
             }
         } else {
             // bit by bit shuffle
-            for ( i = 0; i < floatCount*stride; i += stride) {
+            for (int i = 0; i < floatCount * stride; i += stride) {
                 if ( ( hasMissing == 1 ) && ( arrayOfFloat[i] == missingValueTag ) ) {
                     tempInt = missingToken;
                 } else {
@@ -371,7 +368,7 @@ void *compact_FLOAT_TYPE(
         rangeExponent = theHeader->rangeExpo - 4096 + 127 + tokenSize;
 
         {
-            double two = 2.0, expos;
+            double two = 2.0;
             int expos_i;
             expos_i = (rangeExponent - 127 - tokenSize);
             mulFactor = f77name(f_pow)(&two, &expos_i);
@@ -391,7 +388,7 @@ void *compact_FLOAT_TYPE(
             */
         }
 
-        firstPackBit = off_set;
+        firstPackBit = offset;
         bitPackInFirstWord =  wordSize - ( firstPackBit % wordSize );
         currentSlot = ( firstPackBit / wordSize );
         currentWord = arrayOfInt[currentSlot] << ( wordSize - bitPackInFirstWord );
@@ -409,7 +406,7 @@ void *compact_FLOAT_TYPE(
 
         // Unpack floating point numbers from its integer representation
         arrayPtr = &arrayOfInt[currentSlot];
-        for ( i = 0; i < intCount*stride; i += stride) {
+        for (int i = 0; i < intCount * stride; i += stride) {
             extract(packInt, arrayPtr, wordSize, significantBit, currentWord, bitPackInFirstWord);
             /*            printf("Debug i=%d packInt=%X\n", i, packInt);  */
 

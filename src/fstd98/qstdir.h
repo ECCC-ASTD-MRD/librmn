@@ -1,5 +1,8 @@
 //! @file qstdir.h XDF constants and data structures
 
+#ifndef QSTDDIR_H
+#define QSTDDIR_H
+
 #include <stdint.h>
 #include <rpnmacros.h>
 #include "fnom.h"
@@ -262,7 +265,7 @@
 //! Restore to original buffer
 #define BUF_F buf[1] = (buf[1] +1) >> 1
 
-#define IUN_INDEX(ifile,unit) { \
+#define IUN_INDEX(ifile, unit) { \
    ifile = MAX_XDF_FILES; \
    while (--ifile >= 0) {\
      if (file_table[ifile] != NULL) \
@@ -270,60 +273,71 @@
      } \
    }
 
-#define FREE_INDEX(ifile,unit) { \
+#define FREE_INDEX(ifile, unit) { \
    ifile = MAX_XDF_FILES; \
    while (--ifile >= 0) {\
      if (file_table[ifile] == NULL) break;\
      } \
    }
 
-#define VALID(val, minval, maxval, what, caller) \
-   if ((val < minval) || (val > maxval)) { \
-     sprintf(errmsg, "%s = %d must be between %d and %d", what, val, minval, maxval); \
-     return(error_msg(caller, ERR_OUT_RANGE, ERROR));\
-   }
-
 #define MOREFILES
 
 #ifdef MOREFILES
+
 /* how to make ordinary handles for random and sequential files */
 /* handle is limited to 128 MB for a sequential file */
 /*       HANDLE RANDOM */
 /*       sign #page #record index */
 /*         1    12     9     10   */
-#define MAKE_RND_HANDLE(pageno,recno,file_index) ((file_index &0x3FF) | ((recno & 0x1FF)<<10) | ((pageno & 0xFFF)<<19))
+#define MAKE_RND_HANDLE(pageno, recno, file_index) ((file_index &0x3FF) | ((recno & 0x1FF) << 10) | ((pageno & 0xFFF) << 19))
+
 /*       HANDLE SEQ */
 /*       sign cluster addr index */
 /*         1    2      22    7   */
-#define MAKE_SEQ_HANDLE(cluster,address,file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))
-/* how to extract the file index, record number and page number from a handle */
-#define INDEX_FROM_HANDLE(handle) ((STDSEQ_opened==1) ? ( 0x7F & handle) : ( 0x3FF & handle))
-/* #define INDEX_FROM_HANDLE(handle) ( 0x3FF & handle) */
-#define RECORD_FROM_HANDLE(handle) ( 0x1FF & (handle>>10))
-#define PAGENO_FROM_HANDLE(handle) ( 0xFFF & (handle>>19))
-/* how to extract the record address from a sequential handle */
-#define ADDRESS_FROM_HNDL(handle) ( 0x3FFFFF & (handle>>7))
-#define CLUSTER_FROM_HANDLE(handle) ( 0x3 & (handle>>29))
-#define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 *CLUSTER_FROM_HANDLE(handle)) )
+#define MAKE_SEQ_HANDLE(cluster, address, file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))
+
+//! Extract the file index, record number and page number from a handle
+#define INDEX_FROM_HANDLE(handle) ((STDSEQ_opened == 1) ? (0x7F & handle) : (0x3FF & handle))
+
+#define RECORD_FROM_HANDLE(handle) (0x1FF & (handle >> 10))
+
+#define PAGENO_FROM_HANDLE(handle) (0xFFF & (handle >> 19))
+
+//! Extract the record address from a sequential handle
+#define ADDRESS_FROM_HNDL(handle) (0x3FFFFF & (handle >> 7))
+
+#define CLUSTER_FROM_HANDLE(handle) (0x3 & (handle >> 29))
+
+#define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 * CLUSTER_FROM_HANDLE(handle)) )
+
 #else
+
 /* how to make ordinary handles for random and sequential files */
 /* handle is limited to 128 MB for a sequential file */
 /*       HANDLE RANDOM */
 /*       sign #page #record index */
 /*         1    12     12     7   */
-#define MAKE_RND_HANDLE(pageno,recno,file_index) (file_index | (recno<<7) | (pageno<<19))
+#define MAKE_RND_HANDLE(pageno, recno, file_index) (file_index | (recno << 7) | (pageno << 19))
+
 /*       HANDLE SEQ */
 /*       sign cluster addr index */
 /*         1    2      22    7   */
-#define MAKE_SEQ_HANDLE(cluster,address,file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))
-/* how to extract the file index, record number and page number from a handle */
-#define INDEX_FROM_HANDLE(handle) ( 0x7F & handle)
-#define RECORD_FROM_HANDLE(handle) ( 0xFFF & (handle>>7))
-#define PAGENO_FROM_HANDLE(handle) ( 0xFFF & (handle>>19))
-/* how to extract the record address from a sequential handle */
-#define ADDRESS_FROM_HNDL(handle) ( 0x3FFFFF & (handle>>7))
-#define CLUSTER_FROM_HANDLE(handle) ( 0x3 & (handle>>29))
+#define MAKE_SEQ_HANDLE(cluster, address, file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))
+
+//! Extract the file index, record number and page number from a handle
+#define INDEX_FROM_HANDLE(handle) (0x7F & handle)
+
+#define RECORD_FROM_HANDLE(handle) (0xFFF & (handle >> 7))
+
+#define PAGENO_FROM_HANDLE(handle) (0xFFF & (handle >> 19))
+
+//! Extract the record address from a sequential handle
+#define ADDRESS_FROM_HNDL(handle) (0x3FFFFF & (handle >> 7))
+
+#define CLUSTER_FROM_HANDLE(handle) (0x3 & (handle >> 29))
+
 #define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 *CLUSTER_FROM_HANDLE(handle)) )
+
 #endif
 
 
@@ -597,6 +611,7 @@ typedef struct {
    uint32_t inuti19 : 32, inuti20 : 32;
 } stdf_struct_RND;
 
+
 typedef struct {
 #if !defined(Little_Endian)
    uint32_t swa : 32, npas1 : 16, nk : 12, epce1 : 4;
@@ -618,6 +633,7 @@ typedef struct {
    uint32_t lng : 32;
 #endif
 } rnd_dir_keys;
+
 
 typedef struct {
 #if !defined(Little_Endian)
@@ -919,48 +935,48 @@ int xdf_checkpoint = 0;
 int STDSEQ_opened = 0;
 key_descriptor stdfkeys[] = {
 #if !defined(Little_Endian)
-  {'SF01', 31,31, 0, 0},
-  {'SF02', 63,31, 0, 0},
-  {'SF03', 95,31, 0, 0},
-  {'SF04',127,31, 0, 0},
-  {'SF05',159,31, 0, 0},
-  {'SF06',191,31, 0, 0},
-  {'SF07',223,31, 0, 0},
-  {'SF08',255,31, 0, 0},
-  {'SF09',287,31, 0, 0},
-  {'SF10',319,31, 0, 0},
-  {'SF11',351,31, 0, 0},
-  {'SF12',383,31, 0, 0},
-  {'SF13',415,31, 0, 0},
-  {'SF14',447,31, 0, 0},
-  {'SF15',479,31, 0, 0},
-  {'SF16',511,31, 0, 0}
+    {'SF01', 31,31, 0, 0},
+    {'SF02', 63,31, 0, 0},
+    {'SF03', 95,31, 0, 0},
+    {'SF04',127,31, 0, 0},
+    {'SF05',159,31, 0, 0},
+    {'SF06',191,31, 0, 0},
+    {'SF07',223,31, 0, 0},
+    {'SF08',255,31, 0, 0},
+    {'SF09',287,31, 0, 0},
+    {'SF10',319,31, 0, 0},
+    {'SF11',351,31, 0, 0},
+    {'SF12',383,31, 0, 0},
+    {'SF13',415,31, 0, 0},
+    {'SF14',447,31, 0, 0},
+    {'SF15',479,31, 0, 0},
+    {'SF16',511,31, 0, 0}
 #else
-  {'SF01', 0, 0, 31,  31},
-  {'SF02', 0, 0, 31,  63},
-  {'SF03', 0, 0, 31,  95},
-  {'SF04', 0, 0, 31, 127},
-  {'SF05', 0, 0, 31, 159},
-  {'SF06', 0, 0, 31, 191},
-  {'SF07', 0, 0, 31, 223},
-  {'SF08', 0, 0, 31, 255},
-  {'SF09', 0, 0, 31, 287},
-  {'SF10', 0, 0, 31, 319},
-  {'SF11', 0, 0, 31, 351},
-  {'SF12', 0, 0, 31, 383},
-  {'SF13', 0, 0, 31, 415},
-  {'SF14', 0, 0, 31, 447},
-  {'SF15', 0, 0, 31, 479},
-  {'SF16', 0, 0, 31, 511}
+    {'SF01', 0, 0, 31,  31},
+    {'SF02', 0, 0, 31,  63},
+    {'SF03', 0, 0, 31,  95},
+    {'SF04', 0, 0, 31, 127},
+    {'SF05', 0, 0, 31, 159},
+    {'SF06', 0, 0, 31, 191},
+    {'SF07', 0, 0, 31, 223},
+    {'SF08', 0, 0, 31, 255},
+    {'SF09', 0, 0, 31, 287},
+    {'SF10', 0, 0, 31, 319},
+    {'SF11', 0, 0, 31, 351},
+    {'SF12', 0, 0, 31, 383},
+    {'SF13', 0, 0, 31, 415},
+    {'SF14', 0, 0, 31, 447},
+    {'SF15', 0, 0, 31, 479},
+    {'SF16', 0, 0, 31, 511}
 #endif
 };
 key_descriptor stdf_info_keys[] = {
 #if !defined(Little_Endian)
-  {'AXI1', 31, 31, 0, 0},
-  {'AXI2', 63, 31, 0, 0}
+    {'AXI1', 31, 31, 0, 0},
+    {'AXI2', 63, 31, 0, 0}
 #else
-  {'AXI1', 0, 0, 31, 31},
-  {'AXI2', 0, 0, 31, 63}
+    {'AXI1', 0, 0, 31, 31},
+    {'AXI2', 0, 0, 31, 63}
 #endif
 };
 #else
@@ -995,4 +1011,6 @@ extern int xdf_checkpoint;
 extern int STDSEQ_opened;
 extern key_descriptor stdfkeys[];
 extern key_descriptor stdf_info_keys[];
+#endif
+
 #endif

@@ -42,7 +42,7 @@ int32_t f77name(ezsetfval)(char *option, float *fvalue, F2Cl llenoption)
    char local_opt[32];
 
    memset(local_opt, (unsigned char)'\0', 32);
-   longueur_option = f77name(longueur)(option, lenoption);
+   longueur_option = ftnStrLen(option, lenoption);
    longueur_option = longueur_option < 32 ? longueur_option : 31;
 
    for (i=0; i < longueur_option; i++)
@@ -68,7 +68,7 @@ int32_t f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl llenoption)
    char local_opt[32];
 
    memset(local_opt, (unsigned char)'\0', 32);
-   longueur_option = f77name(longueur)(option, lenoption);
+   longueur_option = ftnStrLen(option, lenoption);
    longueur_option = longueur_option < 32 ? longueur_option : 31;
 
    for (i=0; i < longueur_option; i++)

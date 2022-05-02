@@ -117,18 +117,17 @@ int c_mrbini(
     int xaux[],
     int nxaux
 ) {
-  int liun, ltemps, lflgs, lidtp, llati, llongi, lelev, ldrcv, ldate, loars;
-  int ldx, ldy;
-  int lrunn, lnsup, lnxaux;
-  F2Cl l1;
-  ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
-  ldx = dx; ldy = dy;
-  lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
-  lnsup = nsup; lnxaux = nxaux; liun = iun;
-  l1 = strlen(stnid);
-  return f77name(mrbini)(&liun, buf, &ltemps, &lflgs, stnid, &lidtp, &llati, &llongi,
-                 &ldx, &ldy, &lelev, &ldrcv, &ldate, &loars, &lrunn, sup, &lnsup, xaux,
-                 &lnxaux, l1);
+    int liun, ltemps, lflgs, lidtp, llati, llongi, lelev, ldrcv, ldate, loars;
+    int ldx, ldy;
+    int lrunn, lnsup, lnxaux;
+    F2Cl l1 = strlen(stnid);
+    ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
+    ldx = dx; ldy = dy;
+    lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
+    lnsup = nsup; lnxaux = nxaux; liun = iun;
+    return f77name(mrbini)(&liun, buf, &ltemps, &lflgs, stnid, &lidtp, &llati, &llongi,
+                    &ldx, &ldy, &lelev, &ldrcv, &ldate, &loars, &lrunn, sup, &lnsup, xaux,
+                    &lnxaux, l1);
 }
 
 
@@ -230,12 +229,11 @@ int c_mrbupd(
     int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
     int ldx, ldy;
     int lrunn,lnsup,lnxaux;
-    F2Cl l1;
+    F2Cl l1 = strlen(stnid);
     ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
     ldx = dx; ldy = dy;
     lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
     lnsup = nsup; lnxaux = nxaux; liun = iun;
-    l1 = strlen(stnid);
     return f77name(mrbupd)(&liun, buf, &ltemps, &lflgs, stnid, &lidtp, &llati, &llongi,
                     &ldx, &ldy, &lelev, &ldrcv, &ldate, &loars, &lrunn, sup, &lnsup, xaux,
                     &lnxaux, l1);
@@ -257,11 +255,9 @@ int c_mrfcls(int iun)
 //! Get the value of a character option
 int c_mrfgoc(char optnom[], char opvalc[9])
 {
-    F2Cl l1,l2;
-    int iii;
-    l1 = strlen(optnom);
-    l2 = strlen(opvalc);
-    iii = f77name(mrfgoc)(optnom,opvalc,l1,l2);
+    F2Cl l1 = strlen(optnom);
+    F2Cl l2 = strlen(opvalc);
+    int iii = f77name(mrfgoc)(optnom, opvalc, l1, l2);
     opvalc[8] = '\0';
     return iii;
 }
@@ -270,8 +266,7 @@ int c_mrfgoc(char optnom[], char opvalc[9])
 //! Get the value of a float option
 int c_mrfgor(char optnom[], float *opvalr)
 {
-    F2Cl l1;
-    l1 = strlen(optnom);
+    F2Cl l1 = strlen(optnom);
     return f77name(mrfgor)(optnom, opvalr, l1);
 }
 
@@ -297,13 +292,9 @@ int c_mrfloc(
     int sup[],
     int nsup
 ) {
-    int liun, lhandle, lidtyp, llat, llon, ldate, ltemps, lnsup;
-    F2Cl l1;
-    l1 = strlen(stnid);
-    liun = iun; lhandle = handle; lidtyp = idtyp; llat = lat; llon = lon;
-    ldate = date; ltemps = temps; lnsup = nsup;
-    return f77name(mrfloc)(&liun, &lhandle, stnid, &lidtyp, &llat, &llon, &ldate,
-                    &ltemps, sup, &lnsup, l1);
+    F2Cl l1 = strlen(stnid);
+    return f77name(mrfloc)(&iun, &handle, stnid, &idtyp, &lat, &lon, &date,
+                    &temps, sup, &nsup, l1);
 }
 
 
@@ -333,20 +324,16 @@ int c_mrfnbr(int iun)
 //! \return Number of active reports in the file
 int c_mrfopn(int iun, char mode[])
 {
-    int liun;
-    F2Cl l1;
-    liun = iun;
-    l1 = strlen(mode);
-    return f77name(mrfopn)(&liun, mode, l1);
+    F2Cl l1 = strlen(mode);
+    return f77name(mrfopn)(&iun, mode, l1);
 }
 
 
 //! Initialize a character option
 int c_mrfopc(char optnom[], char opvalc[])
 {
-    F2Cl l1, l2;
-    l1 = strlen(optnom);
-    l2 = strlen(opvalc);
+    F2Cl l1 = strlen(optnom);
+    F2Cl l2 = strlen(opvalc);
     return f77name(mrfopc)(optnom, opvalc, l1, l2);
 }
 
@@ -354,11 +341,8 @@ int c_mrfopc(char optnom[], char opvalc[])
 //! Initialize a float option
 int c_mrfopr(char optnom[], float opvalr)
 {
-    F2Cl l1;
-    float lopvalr;
-    l1 = strlen(optnom);
-    lopvalr = opvalr;
-    return f77name(mrfopr)(optnom, &lopvalr, l1);
+    F2Cl l1 = strlen(optnom);
+    return f77name(mrfopr)(optnom, &opvalr, l1);
 }
 
 
@@ -378,12 +362,9 @@ int c_mrfprm(
     int nsup,
     int *lng
 ) {
-    int lhandle, lnsup, iii;
-    F2Cl l1;
-    lhandle = handle; lnsup = nsup;
-    l1 = strlen(stnid);
-    iii = f77name(mrfprm)(&lhandle, stnid, idtyp, lat, lon, dx, dy, date, temps, flgs,
-                    sup, &lnsup, lng, l1);
+    F2Cl l1 = strlen(stnid);
+    int iii = f77name(mrfprm)(&handle, stnid, idtyp, lat, lon, dx, dy, date, temps, flgs,
+                    sup, &nsup, lng, l1);
     stnid[9] = '\0';
     return iii;
 }
@@ -392,16 +373,12 @@ int c_mrfprm(
 //! Print the parameter descriptions from reports contained in the file corresponding to iun
 int  c_mrfvoi(int iun)
 {
-    int liun;
-    liun = iun;
-    return f77name(mrfvoi)(&liun);
+    return f77name(mrfvoi)(&iun);
 }
 
 
 //! Delete the report designated by handle
 int c_mrfdel(int handle)
 {
-    int lhandle;
-    lhandle = handle;
-    return f77name(mrfdel)(&lhandle);
+    return f77name(mrfdel)(&handle);
 }

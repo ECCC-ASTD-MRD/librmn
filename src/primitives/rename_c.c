@@ -22,24 +22,29 @@
 #include <stdio.h>
 #include <string.h>
 #include <rpnmacros.h>
-#define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
 
-int32_t f77name(rename_c)(char *oldname, char *newname, F2Cl lng1, F2Cl lng2)
-{
-  int rcode;
-  char old[256], new[256];
 
-  if (lng1 > 256 || lng2 > 256) {
-    printf("rename_c error: oldname or newname > 256 char\n");
-    return((int32_t) -1);
-  }
-  while (oldname[lng1-1] == ' ' && lng1 > 0) lng1--;
-  while (newname[lng2-1] == ' ' && lng2 > 0) lng2--;
-  strncpy(old,oldname,lng1);
-  old[lng1] = '\0';
-  strncpy(new,newname,lng2);
-  new[lng2] = '\0';
-  rcode = rename(&old[0],&new[0]);
-  if (rcode == -1) perror("rename_c error");
-  return((int32_t)rcode);
+int32_t f77name(rename_c)(
+    const char * const oldname,
+    const char * const newname,
+    F2Cl lng1,
+    F2Cl lng2
+) {
+    char old[256], new[256];
+
+    if (lng1 > 256 || lng2 > 256) {
+        printf("rename_c error: oldname or newname > 256 char\n");
+        return((int32_t) -1);
+    }
+    int llng1 = lng1;
+    int llng2 = lng2;
+    while (oldname[llng1 - 1] == ' ' && llng1 > 0) llng1--;
+    while (newname[llng2 - 1] == ' ' && llng2 > 0) llng2--;
+    strncpy(old, oldname, llng1);
+    old[llng1] = '\0';
+    strncpy(new, newname, llng2);
+    new[llng2] = '\0';
+    int rcode = rename(&old[0], &new[0]);
+    if (rcode == -1) perror("rename_c error");
+    return((int32_t)rcode);
 }
