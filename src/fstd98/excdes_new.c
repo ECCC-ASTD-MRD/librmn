@@ -54,21 +54,18 @@
   #define dbprint ;
 #endif
 
-char **fill_string_array(char **string_array, char *farray, int nc, int ns, int rmblanks);
-char **allocate_string_array(int ns);
-void C_requetes_init(char *f1, char *f2);
-void RequetesInit()
-{
-  C_requetes_init(NULL, NULL);
+void RequetesInit() {
+    C_requetes_init(NULL, NULL);
 }
-#pragma weak f_requetes_init__=f_requetes_init
-#pragma weak f_requetes_init_=f_requetes_init
+#pragma weak f_requetes_init__ = f_requetes_init
+#pragma weak f_requetes_init_ = f_requetes_init
 void f_requetes_init__();
 void f_requetes_init_();
 void f_requetes_init()
 {
   RequetesInit();
 }
+
 #ifdef NOTUSED
 enum cquoica {unused, entier, reel, deb_fin_entier, deb_fin_reel, deb_fin_entier_delta,
               deb_fin_reel_delta} parametre;
@@ -1598,7 +1595,7 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
  *   Initialiser le package de requetes                                      *
  *                                                                           *
  *****************************************************************************/
-void C_requetes_init(char *requetes_filename, char *debug_filename)
+void C_requetes_init(char *requetes_filename, const char * const debug_filename)
 {
     /*  debug_filename = getenv("DEBUGFILE"); */
     if (debug_filename != NULL)
@@ -1918,36 +1915,36 @@ int Directive_exclure(int argc , char **argv, char cmd_strt,  void *func(), char
  *   Definir un ensemble de requetes a partir d'un fichier                   *
  *                                                                           *
  *****************************************************************************/
-int C_requetes_read_file(char *requetes_file)
+int C_requetes_read_file(const char * const requetes_file)
 {
-  FILE *fp;
-  int *pv2 = 0;
+    FILE *fp;
+    int *pv2 = 0;
 
-fprintf(stderr, "C _ R E Q U E T E S _ R E A D _ F I L E : FEATURE NOT ACTIVE\n");
-return 0;
+    fprintf(stderr, "C _ R E Q U E T E S _ R E A D _ F I L E : FEATURE NOT ACTIVE\n");
+    return 0;
 
-  fp = fopen(requetes_file, "r");
-  if (fp == (FILE *) NULL) {
-    fprintf(stderr, "C_requetes_read_file error opening file %s\n", requetes_file);
-    fprintf(stderr, "filter file ignored\n");
-    return -1;
+    fp = fopen(requetes_file, "r");
+    if (fp == (FILE *) NULL) {
+        fprintf(stderr, "C_requetes_read_file error opening file %s\n", requetes_file);
+        fprintf(stderr, "filter file ignored\n");
+        return -1;
+    } else {
+        fprintf(stderr, "warning: FSTD software uses filter file %s for scans\n", requetes_file);
     }
-  else
-    fprintf(stderr, "warning: FSTD software uses filter file %s for scans\n", requetes_file);
 
-  rpn_c_callback("ip1", Directive_ip123, "", Xc_Select_ip1, pv2);
-  rpn_c_callback("ip2", Directive_ip123, "", Xc_Select_ip2, pv2);
-  rpn_c_callback("ip3", Directive_ip123, "", Xc_Select_ip3, pv2);
-  rpn_c_callback("datestamp", Directive_dates, "", Xc_Select_date, pv2);
-  rpn_c_callback("datevisual", Directive_datev, "", Xc_Select_date, pv2);
-  rpn_c_callback("nomvar", Directive_charvar, "", Xc_Select_nomvar, pv2);
-  rpn_c_callback("typvar", Directive_charvar, "", Xc_Select_typvar, pv2);
-  rpn_c_callback("etiquette", Directive_charvar, "", Xc_Select_etiquette, pv2);
-  rpn_c_callback("desire", Directive_desire, "", C_filtre_desire, pv2);
-  rpn_c_callback("exclure", Directive_exclure, "", C_filtre_exclure, pv2);
-  process_c_callback(requetes_file);
+    rpn_c_callback("ip1", Directive_ip123, "", Xc_Select_ip1, pv2);
+    rpn_c_callback("ip2", Directive_ip123, "", Xc_Select_ip2, pv2);
+    rpn_c_callback("ip3", Directive_ip123, "", Xc_Select_ip3, pv2);
+    rpn_c_callback("datestamp", Directive_dates, "", Xc_Select_date, pv2);
+    rpn_c_callback("datevisual", Directive_datev, "", Xc_Select_date, pv2);
+    rpn_c_callback("nomvar", Directive_charvar, "", Xc_Select_nomvar, pv2);
+    rpn_c_callback("typvar", Directive_charvar, "", Xc_Select_typvar, pv2);
+    rpn_c_callback("etiquette", Directive_charvar, "", Xc_Select_etiquette, pv2);
+    rpn_c_callback("desire", Directive_desire, "", C_filtre_desire, pv2);
+    rpn_c_callback("exclure", Directive_exclure, "", C_filtre_exclure, pv2);
+    process_c_callback(requetes_file);
 
-  return 0; /*CHC/NRC*/
+    return 0; /*CHC/NRC*/
 }
 
 #endif

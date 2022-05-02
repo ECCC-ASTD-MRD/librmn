@@ -5,6 +5,7 @@
 
 int c_xdflnk(int *liste, int n);
 int c_xdfunl(int *liste, int n);
+int c_xdfdel(const int handle);
 
 int fnom_index(int iun);
 int error_msg(char *function_name, int errcode, int errlevel);
@@ -51,7 +52,7 @@ int32_t f77name(xdfloc)(int32_t *fiun, int32_t *fhandle, int32_t *primk,
 int c_xdfloc(int iun, int handle, uint32_t *primk, int nprim);
 int c_xdfloc2(int iun, int handle, uint32_t *primk, int nprim, uint32_t *mskkeys);
 int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf);
-int c_xdfget(int handle, buffer_interface_ptr buf);
+int c_xdfget(const int handle, buffer_interface_ptr buf);
 int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
             uint32_t *buf);
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf);

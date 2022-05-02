@@ -1003,7 +1003,7 @@ int c_xdfcut(
 //! and will be marked as idtyp=255 upon closing of the file.
 int c_xdfdel(
     //! [in] File index, page number and record number to record
-    int handle
+    const int handle
 ) {
     int index, page_number, record_number, idtyp, i, addr;
     file_table_entry *f;
@@ -1100,26 +1100,14 @@ int c_xdfdel(
     return 0;
 }
 
-//! Obtain record referenced by handle in buf
-int c_xdfget(
-    //! [in] file index, page number and record number to record
-    int handle,
-    //! [out]  buffer to contain record
-    buffer_interface_ptr buf
-) {
-    int *aux_keys = NULL;
-
-    return c_xdfget2(handle, buf, aux_keys);
-}
-
 
 //! Obtain record referenced by handle in buf
 int c_xdfget2(
     //! [in] File index, page number and record number to record
-    int handle,
+    const int handle,
     // [out] Buffer to contain record
     buffer_interface_ptr buf,
-    int *aux_ptr
+    int * const aux_ptr
 ) {
     int index, record_number, page_number, i, idtyp, addr, lng, lngw;
     int offset, nw, nread;
@@ -1245,6 +1233,17 @@ int c_xdfget2(
     }
 
     return 0;
+}
+
+
+//! Obtain record referenced by handle in buf
+int c_xdfget(
+    //! [in] file index, page number and record number to record
+    const int handle,
+    //! [out]  buffer to contain record
+    buffer_interface_ptr buf
+) {
+    return c_xdfget2(handle, buf, NULL);
 }
 
 
