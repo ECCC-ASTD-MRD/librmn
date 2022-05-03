@@ -27,6 +27,11 @@ set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)
 include(ec_doxygen)
 
+# Fortran compiler options required to build this project
+set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
+set(GNU_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
+set(Flang_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
+
 # This is required when using GNU compilers without OpenMP.
 # It has no adverse effect with other compilers and/or when OpenMP is enabled.
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
@@ -70,10 +75,17 @@ add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_dependencies(rmn rmn_build_info)
 add_dependencies(rmnshared rmn rmn_build_info)
 
+foreach(TARGET IN ITEMS rmn rmnshared)
+    target_compile_options(${TARGET}
+        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>)
+endforeach()
+
 #TODO: Could get rid of this binary a it's availble through rmn_config
 add_executable(librmn_version src/librmn_version.c)
-add_dependencies(librmn_version rmn rmn_build_info)
 target_link_libraries(librmn_version rmn)
+add_dependencies(librmn_version rmn_build_info)
 
 # This really isn't the ideal solution; the compiler should be invoqued with all
 # the definitions and options as if we it was processing a source file

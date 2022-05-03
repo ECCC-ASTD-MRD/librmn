@@ -47,8 +47,9 @@ endif()
 
 #----- Compile flag interface
 target_compile_options(${CMAKE_FIND_PACKAGE_NAME}
-    INTERFACE $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-fconvert=big-endian -fcray-pointer -fno-second-underscore -frecord-marker=4>
-              $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-align array32byte -assume byterecl -convert big_endian>)
+    INTERFACE $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:@GNU_FFLAGS@>
+              $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:@Intel_FFLAGS@>
+              $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:@Flang_FFLAGS@>)
 
 #----- Check that everything is there and undefines ${PACKAGE_NAME}_FOUND if it's not the case
 check_required_components(${CMAKE_FIND_PACKAGE_NAME})
