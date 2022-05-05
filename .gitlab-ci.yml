@@ -36,7 +36,7 @@ build:XC50_intel-19.0.3:
       - set -e
       - mkdir build_XC50_intel-19.0.3
       - cd build_XC50_intel-19.0.3
-      - cmake ../ 
+      - cmake ../
       - make
    artifacts:
       expire_in: 2 hrs
@@ -57,7 +57,7 @@ build:XC50_intel-19.0.5:
       - set -e
       - mkdir build_XC50_intel-19.0.5
       - cd build_XC50_intel-19.0.5
-      - cmake ../ 
+      - cmake ../
       - make
    artifacts:
       expire_in: 2 hrs
@@ -74,7 +74,7 @@ build:skylake-intel-19.0.3:
       - source ci-env/latest/ubuntu-18.04-skylake-64/intel-19.0.3.199.sh
       - mkdir build_skylake-intel-19.0.3
       - cd build_skylake-intel-19.0.3
-      - cmake ../ 
+      - cmake ../
       - make -j
    artifacts:
       expire_in: 2 hrs
@@ -91,7 +91,7 @@ build:amd-intel-19.0.3:
       - source ci-env/latest/ubuntu-18.04-amd-64/intel-19.0.3.199.sh
       - mkdir build_amd-intel-19.0.3
       - cd build_amd-intel-19.0.3
-      - cmake ../ 
+      - cmake ../
       - make -j
    artifacts:
       expire_in: 2 hrs
@@ -112,7 +112,7 @@ build:skylake-gnu-9.3.0:
       - export EC_ARCH=ubuntu-18.04-skylake-64/gnu-9.3.0
       - mkdir build_skylake-gnu-9.3.0
       - cd build_skylake-gnu-9.3.0
-      - cmake ../ 
+      - cmake ../
       - make -j
    artifacts:
       expire_in: 2 hrs
