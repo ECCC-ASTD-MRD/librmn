@@ -98,24 +98,26 @@ build:amd-intel-19.0.3:
       paths:
          - build_amd-intel-19.0.3
 
-build:amd-gnu-7.4.0:
+build:skylake-gnu-9.3.0:
    stage: build
    only:
 #      - master
 #      - dev
 #      - tags
    script:
-      - set +e
       - source ci-env/latest/profile.sh
-      - set -e
-      - mkdir build_amd-gnu-7.4.0
-      - cd build_amd-gnu-7.4.0
+      - . r.load.dot main/opt/gcc/gcc-9.3.0
+      # Loading the compiler via SSM or r.load.dot does not
+      # set EC_ARCH, so we set it manually
+      - export EC_ARCH=ubuntu-18.04-skylake-64/gnu-9.3.0
+      - mkdir build_skylake-gnu-9.3.0
+      - cd build_skylake-gnu-9.3.0
       - cmake ../ 
       - make -j
    artifacts:
       expire_in: 2 hrs
       paths:
-         - build_amd-gnu-7.4.0
+         - build_skylake-gnu-9.3.0
 
 #test:skylake-intel-19.0.3:
 #   stage: test
