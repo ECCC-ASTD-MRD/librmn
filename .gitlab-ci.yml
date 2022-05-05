@@ -106,8 +106,7 @@ build:amd-gnu-7.4.0:
 #      - tags
    script:
       - set +e
-      - source ci-env/latest/ubuntu-18.04-amd-64/gnu-7.4.0.sh
-      - . r.load.dot rpn/libs/19.7.1/tdpack_1.6.0-gnu-7.4.0_ubuntu-18.04-amd64-64
+      - source ci-env/latest/profile.sh
       - set -e
       - mkdir build_amd-gnu-7.4.0
       - cd build_amd-gnu-7.4.0
