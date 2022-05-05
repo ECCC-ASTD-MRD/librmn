@@ -93,7 +93,7 @@ add_dependencies(librmn_version rmn_build_info)
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB GMM_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.hf)
 add_custom_command(
-    TARGET rmn
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf > ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90
     COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
@@ -103,10 +103,14 @@ add_custom_command(
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     USES_TERMINAL
 )
+# Add a custom target to regenerate gmm.hf
+add_custom_target(gmmFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf)
+# Add the gmm generating target to rmn, ensuring WhiteBoard.hf is kept up to date
+add_dependencies(rmn gmmFortranHeader)
 
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
-    TARGET rmn
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
     COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
@@ -118,6 +122,11 @@ add_custom_command(
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     USES_TERMINAL
 )
+# Add a custom target to regenerate WhiteBoard.hf
+add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
+# Add the WhiteBoard-generating target to rmn, ensuring WhiteBoard.hf is kept up to date
+add_dependencies(rmn WhiteBoardFortranHeader)
+
 
 list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
