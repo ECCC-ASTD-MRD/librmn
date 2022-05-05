@@ -88,8 +88,10 @@ add_custom_command(
 )
 
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
+
+# Commands to generate the compiled WhiteBoard.hf in the working directory
 add_custom_command(
-    TARGET rmn
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
     COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
@@ -101,6 +103,12 @@ add_custom_command(
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     USES_TERMINAL
 )
+
+# Add a custom target to regenerate WhiteBoard.hf
+add_custom_target(make_WhiteBoard DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
+
+# Add the WhiteBoard-generating target to rmn, ensuring WhiteBoard.hf is kept up to date
+add_dependencies(rmn make_WhiteBoard)
 
 list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
