@@ -10,16 +10,6 @@
 #  define OCW O11
 #endif
 
-#define IMPNONE IMPLICIT NONE
-#define EXPBIAS 127
-#define BITCAR 08
-#define MEMADR LOC
-#define CURTIM CLOCK
-#define HEX(x) Z'x'
-#define HCAR(x) "x"
-#define COMPL(x) NOT(x)
-#define IXOR(x,y) ieor(x,y)
-#define ixor(x,y) ieor(x,y)
 #define MASK(x) ishft(-1,BITMOT-(x))
 #define RMASK(x) ishft(-1,-(BITMOT-(x)))
 #define RSHIFT(x,y) ishft(x,-(y))
@@ -28,26 +18,43 @@
 #define LXSHIFT(x,y) ishft(x,y)
 #define LYSHIFT(x,y) ishft(x,y)
 #define LSHIFT(x,y) ishft(x,y)
-#define SHCNT(x)  (31-IAND(x,31))
-#define XTRACBIT  ibits(MOT,BDROIT,LONG)
-
+#define SHCNT(x) (31-IAND(x,31))
+#define XTRACBIT ibits(MOT,BDROIT,LONG)
 
 #define WDNO(x) (1+RSHIFT(x,5))
+
 #if defined (ALL64)
 #  define  WDNO(x) (1+RSHIFT(x,6))
 #  define  SHCNT(x) (63-IAND(x,63))
 #endif
-#define ICHAMP(x,y,z)\
-RSHIFT( LSHIFT(x, BITMOT-(y)-(z) ), BITMOT-(z) )
-#define IUNPAK(x,y,z)\
-ICHAMP(x(1+(y)/BITMOT),BITMOT-MOD(y,BITMOT)-1,z)
-#define GETBIT(x,y,z)\
+
+!> Get field from array
+!> \param x Array containing the field to extract
+!> \param y Position of the right hand bit of the field to extract.  Bit 0 is the sign bit of the word of the array.
+!> \param z Number of bit of the field (max 32)
+#define GETBIT(x, y, z)\
 IAND(RSHIFT(x(WDNO(y)),SHCNT(y)),RMASK(z))
-#define INSERT(a,b,c,d)\
-a(1+(c)/BITMOT) = (a(1+(c)/BITMOT) .AND. (.NOT. LSHIFT( RMASK(d),BITMOT-1-MOD(c,BITMOT)))) .OR. LSHIFT(b,BITMOT-1-MOD(c,BITMOT))
-#define PUTBIT(w,x,y,z)\
+
+
+!> Insert a field in an array
+!> \param w Array that will contain the field after insertion
+!> \param x Word that contains the right justified field to insert
+!> \param y Position of the right hand bit of the field to extract.  Bit 0 is the sign bit of the word of the array.
+!> \param z Number of bit of the field (max 32)
+#define PUTBIT(w, x, y, z)\
 w(WDNO(y))=IOR(w(WDNO(y)),LSHIFT(IAND(x,RMASK(z)),SHCNT(y)))
+
+!> Zero a field in an array
+!> \param x Array
+!> \param y Position of the right hand bit of the field to extract.  Bit 0 is the sign bit of the word of the array.
+!> \param z Number of bit of the field (max 32)
 #define CLRBIT(x,y,z)\
-x(WDNO(y))=IAND(x(WDNO(y)),COMPL(LSHIFT(RMASK(z),SHCNT(y))))
+x(WDNO(y))=IAND(x(WDNO(y)),NOT(LSHIFT(RMASK(z),SHCNT(y))))
+
+!> Insert a field into an array after inital cleanup
+!> \param w Array that will contain the field after insertion
+!> \param x Word that contains the right justified field to insert
+!> \param y Position of the right hand bit of the field to extract.  Bit 0 is the sign bit of the word of the array.
+!> \param z Number of bit of the field (max 32)
 #define PUTBITC(w,x,y,z)\
 CLRBIT(w,y,z)~~PUTBIT(w,x,y,z)

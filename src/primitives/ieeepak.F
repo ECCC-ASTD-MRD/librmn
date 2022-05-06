@@ -22,7 +22,7 @@
 ***S/P IEEEPAK - COMPACTION / DECOMPACTION DE REELS ("format ieee")
 *
       SUBROUTINE IEEEPAK(IFLD,IPK,NI,NJ,NPAK,serpas,KIND)
-      IMPNONE
+      IMPLICIT NONE
       INTEGER NI,NJ,IFLD(0:*),IPK(*),NPAK,KIND,serpas
 *
 *AUTHOR    - M. LEPINE  - Nov 91
@@ -159,7 +159,7 @@
             ELSE
               RLEFT = RMASK(NBITS-LEFT)
               IFLD(I)=IOR(IAND(IAND(RYSHIFT(ITEMP,BITMOT-NBITS),RBITS),
-     %            COMPL(RLEFT)),IAND(RYSHIFT(INEXT,BITMOT-(NBITS-LEFT)),
+     %            NOT(RLEFT)),IAND(RYSHIFT(INEXT,BITMOT-(NBITS-LEFT)),
      %            RLEFT))
               INDX = INDX+1
               ITEMP = LYSHIFT(INEXT,NBITS-LEFT)

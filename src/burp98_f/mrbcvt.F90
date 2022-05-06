@@ -102,7 +102,7 @@
           PREMIER = .FALSE.
       ENDIF
 
-      ZEROCPL = COMPL( 0 )
+      ZEROCPL = NOT( 0 )
 
       DO 50 I = 1, NELE
 !        TROUVER L'INDEX J POINTANT A L'ELEMENT DANS TABLEAU
