@@ -38,7 +38,6 @@
 #include <regex.h>
 #include <ctype.h>
 
-#include <rmn.h>
 #include <bitPacking.h>
 #include <fstd98.h>
 #include <armn_compress.h>

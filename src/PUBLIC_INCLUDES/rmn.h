@@ -4,6 +4,8 @@
 #include <version.h>
 #include <fnom.h>
 #include <fstd98.h>
+#include <fst_missing.h>
+#include <burp.h>
 #include <ezscint.h>
 #include <c_ccard.h>
 
