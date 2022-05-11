@@ -133,46 +133,46 @@ int C_fst_match_req(int set_nb, int handle);
 //! Check XDF file for corruption
 //! @return              Valid(0) or not(-1)
 int c_xdfcheck(
-   //! [in] filePath Path to the file
-   const char *filePath
+    //! [in] filePath Path to the file
+    const char *filePath
 ) {
-   file_header header;
-   uint32_t tmp;
-   uint32_t *buf_ptr = (uint32_t *) &header;
-   FILE *fd = fopen(filePath, "r");
+    file_header header;
+    uint32_t tmp;
+    uint32_t *buf_ptr = (uint32_t *) &header;
+    FILE *fd = fopen(filePath, "r");
 
-   if (!fd) {
-      sprintf(errmsg, "Cannot open file");
-      return(error_msg("c_xdfcheck", ERR_NO_FILE, ERROR));
-   }
+    if (!fd) {
+        sprintf(errmsg, "Cannot open file");
+        return(error_msg("c_xdfcheck", ERR_NO_FILE, ERROR));
+    }
 
-   // Read the header
-   int num_records = fread(buf_ptr, sizeof(header), 1, fd);
+    // Read the header
+    int num_records = fread(buf_ptr, sizeof(header), 1, fd);
 
-   // Get file size
-   fseek(fd, 0L, SEEK_END);
-   long file_size = ftell(fd);
-   fseek(fd, 0L, SEEK_SET);
+    // Get file size
+    fseek(fd, 0L, SEEK_END);
+    long file_size = ftell(fd);
+    fseek(fd, 0L, SEEK_SET);
 
-   fclose(fd);
+    fclose(fd);
 
-   // Flip bytes in each 32-bit word (16 of them)
-   for(int i = 0 ; i < 16 ; i++) {
-      tmp = buf_ptr[i] ;
-      buf_ptr[i] = (tmp << 24) | (tmp >> 24) | ((tmp & 0xFF0000) >> 8) | ((tmp & 0xFF00) << 8) ;
-   }
+    // Flip bytes in each 32-bit word (16 of them)
+    for(int i = 0 ; i < 16 ; i++) {
+        tmp = buf_ptr[i] ;
+        buf_ptr[i] = (tmp << 24) | (tmp >> 24) | ((tmp & 0xFF0000) >> 8) | ((tmp & 0xFF00) << 8) ;
+    }
 
-   if ((size_t)header.fsiz * 8 != file_size) {
-      sprintf(errmsg, "File size does not match header. Expected size: %d bytes. Actual size: %d", header.fsiz * 8, file_size);
-      return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
-   }
+    if ((size_t)header.fsiz * 8 != file_size) {
+        sprintf(errmsg, "File size does not match header. Expected size: %d bytes. Actual size: %d", header.fsiz * 8, file_size);
+        return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
+    }
 
-   if (header.idtyp != 0) {
-      sprintf(errmsg, "Wrong header ID type (%d), should be %d\n", header.idtyp, 0);
-      return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
-   }
+    if (header.idtyp != 0) {
+        sprintf(errmsg, "Wrong header ID type (%d), should be %d\n", header.idtyp, 0);
+        return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
+    }
 
-   return 0;
+    return 0;
 }
 
 
@@ -258,9 +258,7 @@ static int32_t address_from_handle(
     //! [in] Pointer to xdf file information structure
     file_table_entry *fte
 ) {
-    int addr;
-
-    addr = (ADDRESS_FROM_HNDL(handle) << (2 * CLUSTER_FROM_HANDLE(handle)));
+    int addr = (ADDRESS_FROM_HNDL(handle) << (2 * CLUSTER_FROM_HANDLE(handle)));
     if (fte->fstd_vintage_89) {
         addr = (addr * 15);
     }
@@ -339,22 +337,21 @@ static void build_gen_info_keys(
     //! [in] Ff mode = WMODE, write to buffer otherwise get keys from buffer
     int mode
 ) {
-    file_header *fh;
-    int i, wi, sc, rmask, key;
-    int bitmot = 32;
+    //! \todo Shouldn't this comme from somewhere else?
+    const int bitmot = 32;
 
-    fh = file_table[index]->header;
+    file_header * fh = file_table[index]->header;
 
     if (mode == WMODE) {
         // Write keys to buffer
-        for (i = 0; i < fh->naux; i++) {
+        for (int i = 0; i < fh->naux; i++) {
             if (keys[i] != -1) {
-                wi = fh->keys[i+fh->nprm].bit1 / bitmot;
-                sc = (bitmot-1) - (fh->keys[i+fh->nprm].bit1 % bitmot);
-                rmask = -1 << (fh->keys[i+fh->nprm].lcle);
+                int wi = fh->keys[i+fh->nprm].bit1 / bitmot;
+                int sc = (bitmot-1) - (fh->keys[i+fh->nprm].bit1 % bitmot);
+                int rmask = -1 << (fh->keys[i+fh->nprm].lcle);
                 rmask = ~(rmask << 1);
                 // equivalent of << lcle+1 and covers 32 bit case
-                key = keys[i];
+                int key = keys[i];
                 if ((fh->keys[i+fh->nprm].tcle /32) > 0)
                 key = key & (~((key & 0x40404040) >> 1));
                 // Clear bits
@@ -363,10 +360,10 @@ static void build_gen_info_keys(
             }
         }
     } else {
-        for (i = 0; i < fh->naux; i++) {
-            wi = fh->keys[i+fh->nprm].bit1 / bitmot;
-            sc = (bitmot-1) - (fh->keys[i+fh->nprm].bit1 % bitmot);
-            rmask = -1 << (fh->keys[i+fh->nprm].lcle);
+        for (int i = 0; i < fh->naux; i++) {
+            int wi = fh->keys[i+fh->nprm].bit1 / bitmot;
+            int sc = (bitmot-1) - (fh->keys[i+fh->nprm].bit1 % bitmot);
+            int rmask = -1 << (fh->keys[i+fh->nprm].lcle);
             rmask = ~(rmask << 1);
             keys[i] = (buf[wi] >> sc) & rmask;
         }
@@ -389,9 +386,7 @@ static void build_gen_prim_keys(
     //! [in] if this is set to WMODE, write to buffer otherwise get keys from buffer
     int mode
 ) {
-    file_header *fh;
-    int i, wi, sc, rmask, key, wfirst, wlast;
-    int bitmot=32;
+    const int bitmot = 32;
 
     // Skip first 64 bit header
     buf += 2;
@@ -403,24 +398,24 @@ static void build_gen_prim_keys(
     // Skip first 64 bit header
     mask += 2;
 
-    fh = file_table[index]->header;
+    file_header * fh = file_table[index]->header;
 
     if (mode == WMODE) {
         // Write keys to buffer
-        wfirst = fh->keys[0].bit1 / bitmot;
-        wlast = fh->keys[fh->nprm-1].bit1 / bitmot;
-        for (i=wfirst; i <= wlast; i++) {
+        int wfirst = fh->keys[0].bit1 / bitmot;
+        int wlast = fh->keys[fh->nprm-1].bit1 / bitmot;
+        for (int i = wfirst; i <= wlast; i++) {
             mask[i] = 0;
         }
 
-        for (i=0; i < fh->nprm; i++) {
+        for (int i = 0; i < fh->nprm; i++) {
             if (keys[i] != -1) {
-                wi = fh->keys[i].bit1 / bitmot;
-                sc = (bitmot-1) - (fh->keys[i].bit1 % bitmot);
-                rmask = -1 << (fh->keys[i].lcle);
+                int wi = fh->keys[i].bit1 / bitmot;
+                int sc = (bitmot-1) - (fh->keys[i].bit1 % bitmot);
+                int rmask = -1 << (fh->keys[i].lcle);
                 rmask = ~(rmask << 1);
                 /* equivalent of << lcle+1 and covers 32 bit case */
-                key = keys[i];
+                int key = keys[i];
                 if ((fh->keys[i].tcle /32) > 0) {
                     key = key & (~((key & 0x40404040) >> 1));
                 }
@@ -433,10 +428,10 @@ static void build_gen_prim_keys(
             }
         }
     } else {
-        for (i = 0; i < fh->nprm; i++) {
-            wi = fh->keys[i].bit1 / bitmot;
-            sc = (bitmot-1) - (fh->keys[i].bit1 % bitmot);
-            rmask = -1 << (fh->keys[i].lcle);
+        for (int i = 0; i < fh->nprm; i++) {
+            int wi = fh->keys[i].bit1 / bitmot;
+            int sc = (bitmot-1) - (fh->keys[i].bit1 % bitmot);
+            int rmask = -1 << (fh->keys[i].lcle);
             rmask = ~(rmask << 1);
             keys[i] = (buf[wi] >> sc) & rmask;
         }
@@ -452,21 +447,17 @@ int c_qdfdiag(
 #define swap_4(mot) { register uint32_t tmp =(uint32_t)mot; \
    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
 
-    int index, index_fnom, ier, wasopen=0, addr, nw;
-    int nrec_tot=0, nrec_act=0, nrec_eff=0, ndirect=0, leplusgros=0;
-    int readpos, eofile=0, thesame;
-    char appl[5], vers[5];
-    file_header *fh;
-    file_record header64;
-    xdf_record_header header;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         sprintf(errmsg, "file is not connected with fnom");
         return error_msg("c_qdfrstr", ERR_NO_FNOM, WARNING);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    int wasopen = 0;
+    int index = file_index(iun);
+    file_record header64;
+    file_header *fh;
+    if (index == ERR_NO_FILE) {
         // open file and read file header
         c_waopen(iun);
         c_waread(iun, &header64, 1, W64TOWD(2));
@@ -484,7 +475,8 @@ int c_qdfdiag(
         wasopen = 1;
         fh = file_table[index]->header;
     }
-    nw = c_wasize(iun);
+    int nw = c_wasize(iun);
+    char vers[5];
     if (*little_endian) {
         int  ct = fh->vrsn ;
         swap_4(ct);
@@ -492,6 +484,7 @@ int c_qdfdiag(
     } else {
         strncpy(vers, (char *)&(fh->vrsn), 4);
     }
+    char appl[5];
     if (*little_endian) {
         int  ct = fh->sign ;
         swap_4(ct);
@@ -502,11 +495,17 @@ int c_qdfdiag(
 
     vers[4] = '\0';
     appl[4] = '\0';
-    readpos = 1 + W64TOwd(header64.lng);
-    eofile = 0;
+    int readpos = 1 + W64TOwd(header64.lng);
+    int eofile = 0;
+    int nrec_tot = 0;
+    int nrec_act = 0;
+    int nrec_eff = 0;
+    int ndirect = 0;
+    int leplusgros = 0;
+    xdf_record_header header;
     while (! eofile) {
         c_waread(iun, &header, readpos, W64TOwd(1));
-        addr = W64TOwd(header.addr-1) + 1;
+        int addr = W64TOwd(header.addr-1) + 1;
 
         if (addr == readpos) {
             if (header.lng < W64TOwd(1)) {
@@ -533,9 +532,9 @@ int c_qdfdiag(
         }
     }
 
-    thesame = ((fh->nxtn == nrec_tot) && (fh->nrec == nrec_act) &&
-              ((fh->nxtn - fh->nrec) == nrec_eff) &&
-              (fh->nbig == leplusgros) && (fh->nbd == ndirect));
+    int thesame = ((fh->nxtn == nrec_tot) && (fh->nrec == nrec_act) &&
+                  ((fh->nxtn - fh->nrec) == nrec_eff) &&
+                  (fh->nbig == leplusgros) && (fh->nbd == ndirect));
 
     fprintf(stdout, "\nStatistics from file header for %s\n", FGFDT[index_fnom].file_name);
     fprintf(stdout, "\t file size (64 bit units)        %d\n", fh->fsiz);
@@ -582,21 +581,19 @@ int c_qdfmsig(
     //! [in] new application signature
     char *newappl
 ) {
-    file_header *fh;
-    int index, index_fnom;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         sprintf(errmsg, "file is not connected with fnom");
         return error_msg("c_qdfmsig", ERR_NO_FNOM, ERROR);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    int index = file_index(iun);
+    if (index == ERR_NO_FILE) {
         sprintf(errmsg, "file is not open");
         return error_msg("c_qdfmsig", ERR_NO_FILE, ERROR);
     }
 
-    fh = file_table[index]->header;
+    file_header * fh = file_table[index]->header;
     fh->sign = newappl[0] << 24 | newappl[1] << 16 | newappl[2] << 8 | newappl[3];
     return 0;
 }
@@ -614,11 +611,11 @@ int c_qdfput(
     //! [in] Length in bit of element to add
     int nbits
 ) {
-    int wi, sc, msk, bitmot = 32;
+    const int bitmot = 32;
 
-    wi = derbit / bitmot;
-    sc = (bitmot-1) - (derbit % bitmot);
-    msk = ~(-1 << nbits);
+    int wi = derbit / bitmot;
+    int sc = (bitmot-1) - (derbit % bitmot);
+    int msk = ~(-1 << nbits);
     buf[wi] = buf[wi] & (~(msk << sc));
     buf[wi] = buf[wi] | ((elem & msk) << sc);
     return 0;
@@ -632,14 +629,10 @@ int c_qdfrstr(
     //! [in] Output unit number associated to the file
     int outp
 ) {
-    int index_fnom, ier, nw, rwpos, lng, i, alire;
-
 #define Buflen 8192
     int buffer[Buflen];
-    file_header fh;
-    file_record header64;
 
-    index_fnom = fnom_index(inp);
+    int index_fnom = fnom_index(inp);
     if (index_fnom == -1) {
         sprintf(errmsg, "file (unit=%d) is not connected with fnom", inp);
         return error_msg("c_qdfrstr", ERR_NO_FNOM, WARNING);
@@ -653,30 +646,32 @@ int c_qdfrstr(
 
     // Open file and read file header
     c_waopen(inp);
+    file_record header64;
     c_waread(inp, &header64, 1, W64TOWD(2));
     if (header64.data[0] != 'XDF0' && header64.data[0] !='xdf0') {
         sprintf(errmsg, "file is not XDF type\n");
         return error_msg("c_qdfrstr", ERR_NOT_XDF, ERRFATAL);
     }
-    lng = W64TOWD(header64.lng);
-    nw = c_wasize(inp);
+    int lng = W64TOWD(header64.lng);
+    int nw = c_wasize(inp);
 
     if (lng > nw) {
         sprintf(errmsg, "Invalid header file length=%d\n", header64.lng);
         return error_msg("c_qdfrstr", ERR_BAD_LEN, ERRFATAL);
     }
+    file_header fh;
     c_waread(inp, &fh, 1, W64TOWD(header64.lng));
     c_waopen(outp);
 
     // Reset read/write flag to zero
     fh.rwflg = 0;
     c_wawrit(outp, &fh, 1, W64TOwd(header64.lng));
-    rwpos = 1 + W64TOwd(header64.lng);
+    int rwpos = 1 + W64TOwd(header64.lng);
 
     lng = W64TOwd(fh.fsiz - header64.lng);
-    alire = (lng < Buflen) ? lng : Buflen;
+    int alire = (lng < Buflen) ? lng : Buflen;
     while (alire > 0) {
-        for (i = 0; i < Buflen; i++) {
+        for (int i = 0; i < Buflen; i++) {
             buffer[i] = 0;
         }
         c_waread(inp, &buffer, rwpos, alire);
@@ -705,20 +700,16 @@ int c_xdfadd(
     //! [in] Data type of elements to add
     int datyp
 ) {
-    int index_word, nbwords, mode, i;
-    buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int ier;
-
-
     if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
         sprintf(errmsg, "nbits must be 8 for datyp %d", datyp);
         return error_msg("c_xdfadd", ERR_BAD_DATYP, ERRFATAL);
     }
 
-    nbwords = (nelm * nbits + 63) / 64;
+    int nbwords = (nelm * nbits + 63) / 64;
     nbwords = W64TOWD(nbwords);
 
-    index_word = buf->nbits / (sizeof(uint32_t) * 8);
+    buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
+    int index_word = buf->nbits / (sizeof(uint32_t) * 8);
 
     if ((index_word + nbwords - 1) > buf->nwords) {
         sprintf(errmsg, "buffer not big enough for insertion");
@@ -730,7 +721,7 @@ int c_xdfadd(
             // transparent mode
 
         case 3:
-            for (i=0; i < nbwords; i++) {
+            for (int i = 0; i < nbwords; i++) {
                 buf->data[index_word+i] = donnees[i];
             }
             break;
@@ -738,7 +729,7 @@ int c_xdfadd(
         case 6:
 
         case 8:
-            for (i=0; i < nbwords; i++) {
+            for (int i = 0; i < nbwords; i++) {
                 buf->data[index_word+i] = donnees[i];
             }
             break;
@@ -746,12 +737,12 @@ int c_xdfadd(
 
         case 9:
             if (*little_endian) {
-                for (i=0; i < nbwords; i+=2) {
+                for (int i = 0; i < nbwords; i+=2) {
                     buf->data[index_word+i] = donnees[i+1];
                     buf->data[index_word+i+1] = donnees[i];
                 }
             } else {
-                for (i=0; i < nbwords; i++) {
+                for (int i = 0; i < nbwords; i++) {
                     buf->data[index_word+i] = donnees[i];
                 }
             }
@@ -759,19 +750,17 @@ int c_xdfadd(
 
         case 5:
             // Upper char only
-            for (i = 0; i < nbwords; i++) {
+            for (int i = 0; i < nbwords; i++) {
                 buf->data[index_word+i] = upper_case_word(donnees[i]);
             }
             break;
 
         case 2:
-            mode = 1;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 1);
             break;
 
         case 4:
-            mode = 3;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 3);
             break;
 
         default:
