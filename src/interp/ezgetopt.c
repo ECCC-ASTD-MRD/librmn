@@ -19,6 +19,7 @@
  */
 
 #include <string.h>
+#include <ctype.h>
 
 #include "ezscint.h"
 #include "ez_funcdef.h"

@@ -43,6 +43,7 @@
 #include <armn_compress.h>
 #include <c_wkoffit.h>
 #include <excdes_new.h>
+#include <fst_missing.h>
 
 #include "qstdir.h"
 #include "convert_ip.h"
@@ -99,9 +100,7 @@ static char *comptab[2] = {"FAST", "BEST"};
 static char *msgtab[7] = {"DEBUG", "INFORM", "WARNIN", "ERRORS", "FATALE", "SYSTEM", "CATAST"};
 static int nivmsg[7] = {0, 2, 4, 6, 8, 10, 10};
 
-int EncodeMissingValue(void *field, void *field2, int nvalues, int datatype, int nbits, int is_byte, int is_short, int is_double);
-void DecodeMissingValue(void *field, int nvalues, int datatype, int is_byte, int is_short, int is_double);
-
+int FstCanTranslateName(char *varname);
 
 static void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {

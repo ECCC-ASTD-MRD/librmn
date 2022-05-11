@@ -127,13 +127,15 @@
 
 /* be ready for files > 2 GB by using long offsets */
 #define _FILE_OFFSET_BITS 64
+
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <sys/stat.h>
 #include <sys/types.h> /* for mkdir & stat */
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <libgen.h>
 // #include <glob.h>
 #include <sys/param.h> /* for MAXPATHLEN = PATH_MAX */

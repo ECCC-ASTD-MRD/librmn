@@ -35,6 +35,7 @@
 #include <sys/types.h>
 
 #define XDF_OWNER
+#include "xdf98.h"
 #include <fstd98.h>
 
 #include <armn_compress.h>

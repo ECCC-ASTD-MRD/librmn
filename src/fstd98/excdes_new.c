@@ -54,12 +54,15 @@
   #define dbprint ;
 #endif
 
+// Defined in fstd98.c, but isn't public so it can't go in fstd98.h
+int FstCanTranslateName(char *varname);
+
 void RequetesInit() {
     C_requetes_init(NULL, NULL);
 }
 #pragma weak f_requetes_init__ = f_requetes_init
-#pragma weak f_requetes_init_ = f_requetes_init
 void f_requetes_init__();
+#pragma weak f_requetes_init_ = f_requetes_init
 void f_requetes_init_();
 void f_requetes_init()
 {
@@ -149,7 +152,7 @@ int fst_reactivate_filters(){
 }
 
 
-static inline Min(int x, int y) {
+static inline int Min(int x, int y) {
     return (x < y) ? x : y;
 }
 

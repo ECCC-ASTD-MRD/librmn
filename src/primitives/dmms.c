@@ -89,10 +89,7 @@ static int ptrsize, *pointer, debug_mode=0, dejala=0, dmms_noabort=0;
  *
  **/
 
-struct blocmem *bloc_alloc(nbytes,mode)
-int nbytes,mode;
-
-{
+struct blocmem *bloc_alloc(int nbytes, int mode) {
   struct blocmem *ptbloc;
   unsigned int errptr;
   int lng, nitem, n;
@@ -107,7 +104,7 @@ int nbytes,mode;
   ptbloc = (struct blocmem *) malloc(lng);
   if (ptbloc == NULL) {
      if (dmms_noabort)
-       return((struct blocmem *) NULL);
+       return (struct blocmem *) NULL;
      else {
        perror("bloc_alloc error can't allocate");
        fprintf(stderr,"bloc_alloc trying to allocate lng=%d bytes\n",lng);
@@ -141,9 +138,9 @@ int nbytes,mode;
 
     value = getenv("BAD_POINTER");
     if (value != NULL) {
-      n = sscanf(value,"%x",&errptr);
+      n = sscanf(value,"%x", &errptr);
       badptr = (struct blocmem *) errptr;
-      fprintf(stderr,"Debug bad_pointer to look for is %#x\n",badptr);
+      fprintf(stderr,"Debug bad_pointer to look for is %#p\n", badptr);
       }
     else
       badptr = (struct blocmem *) 0;
@@ -164,10 +161,10 @@ int nbytes,mode;
     init = 1;
     if (debug_mode) {
        fprintf(stdout,"DEBUG_MODE %s\n",value);
-       fprintf(stdout,"Debug &heap_first =%#x\n",&heap_first);
-       fprintf(stdout,"Debug &heap_last =%#x\n",&heap_last);
-       fprintf(stdout,"Debug &stack_first =%#x\n",&stack_first);
-       fprintf(stdout,"Debug &stack_last =%#x\n",&stack_last);
+       fprintf(stdout,"Debug &heap_first =%#p\n", &heap_first);
+       fprintf(stdout,"Debug &heap_last =%#p\n", &heap_last);
+       fprintf(stdout,"Debug &stack_first =%#p\n", &stack_first);
+       fprintf(stdout,"Debug &stack_last =%#p\n", &stack_last);
        }
     }
 
@@ -194,14 +191,14 @@ int nbytes,mode;
   ptbloc->data[0] = (int *) &(ptbloc->data[nitem+1]);
   ptbloc->data[nitem+1] = (int *) &(ptbloc->data[0]);
   if (debug_mode) {
-     fprintf(stdout,"\n");
-     fprintf(stdout,"Debug alloc_bloc nitem = %d\n",nitem);
-     fprintf(stdout,"Debug alloc_bloc lng = %d\n",lng);
-     fprintf(stdout,"Debug alloc_bloc ptbloc =%#x\n",ptbloc);
-     fprintf(stdout,"Debug alloc_bloc ptbloc->bwd =%#x\n",ptbloc->bwd);
-     fprintf(stdout,"Debug alloc_bloc ptbloc->fwd =%#x\n",ptbloc->fwd);
-     fprintf(stdout,"Debug alloc_bloc ptbloc->data[0] =%#x\n",ptbloc->data[0]);
-     fprintf(stdout,"Debug alloc_bloc ptbloc->data[nitem+1] =%#x\n",ptbloc->data[nitem+1]);
+     fprintf(stdout, "\n");
+     fprintf(stdout, "Debug alloc_bloc nitem = %d\n", nitem);
+     fprintf(stdout, "Debug alloc_bloc lng = %d\n", lng);
+     fprintf(stdout, "Debug alloc_bloc ptbloc =%#p\n", ptbloc);
+     fprintf(stdout, "Debug alloc_bloc ptbloc->bwd =%#p\n", ptbloc->bwd);
+     fprintf(stdout, "Debug alloc_bloc ptbloc->fwd =%#p\n", ptbloc->fwd);
+     fprintf(stdout, "Debug alloc_bloc ptbloc->data[0] =%#p\n", ptbloc->data[0]);
+     fprintf(stdout, "Debug alloc_bloc ptbloc->data[nitem+1] =%#p\n", ptbloc->data[nitem+1]);
      }
 
   if (initmem) {
@@ -215,124 +212,90 @@ int nbytes,mode;
      }
 
   sortie();
-  return(ptbloc);
-  }
+  return ptbloc;
+}
 
-/************************************************************************
- *                      b l o c _ d e a l l o c                         *
- ************************************************************************/
 
-/**
- *
- *auteur   M. Lepine - fev 92
- *
- *objet(bloc_dealloc)
- *
- *     desallocation d'un bloc de memoire (heap ou stack ) avec
- *     validation des pointeurs du bloc
- **/
-
-int bloc_dealloc(ptbloc,mode)
-struct blocmem *ptbloc;
-int mode;
-{
-   int err;
-   struct blocmem *pt;
-
-   single();
-   if (debug_mode) {
-      fprintf(stdout,"\n");
-      fprintf(stdout,"Debug bloc_dealloc ptbloc =%#x\n",ptbloc);
-      }
-   if (mode == HEAP) {
-     err = bloc_check(ptbloc,0);
-     if (err < 0) {
-        f77name(tracebck)();
-        exit(12);
+//! Check memory block pointers
+int bloc_check(
+    struct blocmem * ptbloc,
+    int msg_level
+) {
+    if ((debug_mode) || (msg_level > 1)) {
+        fprintf(stdout, "\n");
+        fprintf(stdout, "Debug check ptbloc =%#p\n", ptbloc);
+        fprintf(stdout, "Debug check ptbloc->bwd =%#p\n", ptbloc->bwd);
+        fprintf(stdout, "Debug check ptbloc->fwd =%#p\n", ptbloc->fwd);
     }
-     (ptbloc->bwd)->fwd = ptbloc->fwd;
-     (ptbloc->fwd)->bwd = ptbloc->bwd;
-     free(ptbloc);
-     sortie();
-     return(0);
-     }
-   else {
-     pt = ptbloc;
-     stack_last.bwd = ptbloc->bwd;
-     (ptbloc->bwd)->fwd = &stack_last;
-     while (pt != &stack_last) {
-       err = bloc_check(pt,0);
-       if (err < 0) {
-          f77name(tracebck)();
-          exit(14);
-      }
-       pt = ptbloc->fwd;
-       free(ptbloc);
-       ptbloc = pt;
-       }
-     }
-   sortie();
-   return(0);
 
-   }
+    if (ptbloc->bwd == NULL) {
+        fprintf(stderr, "block_check error: NULL backward pointer ptbloc=%#p\n", ptbloc);
+        return -1;
+    }
 
-/************************************************************************
- *                      b l o c _ c h e c k                             *
- ************************************************************************/
+    if (ptbloc->fwd == NULL) {
+        fprintf(stderr, "block_check error: NULL forward pointer ptbloc=%#p\n", ptbloc);
+        return -2;
+    }
 
-/**
- *
- *auteur   M. Lepine - fev 92
- *
- *objet(bloc_check)
- *
- *     validation des differents pointeurs d'un bloc de memoire
- **/
+    int ** pt = (int **) ptbloc->data[0];
 
-int bloc_check(ptbloc,msg_level)
-struct blocmem *ptbloc;
-int msg_level;
+    if ((debug_mode) || (msg_level > 1)) {
+        fprintf(stdout, "Debug check ptbloc->data[0] =%#p\n", ptbloc->data[0]);
+        fprintf(stdout, "Debug check ptbloc->data[nitem+1] =%#p\n", *pt);
+    }
 
-{
-   int **pt;
+    if (*pt != (int *) &(ptbloc->data[0])) {
+        fprintf(stderr, "block_check error: internal pointers destroyed ptbloc=%#p\n", ptbloc);
+        return -3;
+    }
 
-   if ((debug_mode) || (msg_level > 1)) {
-      fprintf(stdout,"\n");
-      fprintf(stdout,"Debug check ptbloc =%#x\n",ptbloc);
-      fprintf(stdout,"Debug check ptbloc->bwd =%#x\n",ptbloc->bwd);
-      fprintf(stdout,"Debug check ptbloc->fwd =%#x\n",ptbloc->fwd);
-      }
+    if (msg_level > ERROR) fprintf(stderr,"block_check OK \n");
 
-   if (ptbloc->bwd == NULL) {
-     fprintf(stderr,
-     "block_check error: NULL backward pointer ptbloc=%#x\n",ptbloc);
-     return(-1);
-     }
+    return 0;
+}
 
-   if (ptbloc->fwd == NULL) {
-     fprintf(stderr,
-     "block_check error: NULL forward pointer ptbloc=%#x\n",ptbloc);
-     return(-2);
-     }
 
-   pt = (int **) ptbloc->data[0];
+//! Deallocate memory block and check pointers
+int bloc_dealloc(
+    struct blocmem * ptbloc,
+    int mode
+){
+    single();
+    if (debug_mode) {
+        fprintf(stdout, "\n");
+        fprintf(stdout, "Debug bloc_dealloc ptbloc =%#p\n", ptbloc);
+    }
+    if (mode == HEAP) {
+        int err = bloc_check(ptbloc, 0);
+        if (err < 0) {
+            f77name(tracebck)();
+            exit(12);
+        }
+        (ptbloc->bwd)->fwd = ptbloc->fwd;
+        (ptbloc->fwd)->bwd = ptbloc->bwd;
+        free(ptbloc);
+        sortie();
+        return 0;
+    } else {
+        struct blocmem * pt = ptbloc;
+        stack_last.bwd = ptbloc->bwd;
+        (ptbloc->bwd)->fwd = &stack_last;
+        while (pt != &stack_last) {
+            int err = bloc_check(pt, 0);
+            if (err < 0) {
+                f77name(tracebck)();
+                exit(14);
+            }
+            pt = ptbloc->fwd;
+            free(ptbloc);
+            ptbloc = pt;
+        }
+    }
+    sortie();
+    return 0;
+}
 
-   if ((debug_mode) || (msg_level > 1)) {
-      fprintf(stdout,"Debug check ptbloc->data[0] =%#x\n",ptbloc->data[0]);
-      fprintf(stdout,"Debug check ptbloc->data[nitem+1] =%#x\n",*pt);
-      }
-
-   if (*pt != (int *) &(ptbloc->data[0])) {
-     fprintf(stderr,
- "block_check error: internal pointers destroyed ptbloc=%#x\n",ptbloc);
-     return(-3);
-     }
-
-   if (msg_level > ERROR)
-       fprintf(stderr,"block_check OK \n");
-
-   return(0);
-   }
 
 /************************************************************************
  *                        m e m _ c h e c k                             *
@@ -348,10 +311,7 @@ int msg_level;
  *     pour validation des differents pointeurs
  **/
 
-int mem_check(mode,msg_level)
-int mode, msg_level;
-
-{
+int mem_check(int mode, int msg_level) {
    struct blocmem *ptbloc;
    int err;
    if (mode == HEAP)
@@ -360,12 +320,12 @@ int mode, msg_level;
       ptbloc = stack_first.fwd;
    while (ptbloc->fwd != (struct blocmem *) NULL) {
      if ((err = bloc_check(ptbloc,msg_level)) < 0)
-        return(err);
+        return err;
      ptbloc = ptbloc->fwd;
      }
 
-   return(0);
-   }
+   return 0;
+}
 
 
 /************************************************************************
@@ -382,26 +342,25 @@ int mode, msg_level;
  *     pour verification d'integrite des differents blocs de memoire
  **/
 
-int f77name(memoirc)(msg_level)
-int32_t *msg_level;
+int f77name(memoirc)(
+    int32_t * msg_level
+) {
+    int errs, errh;
 
-{
-   int errs, errh;
+    if (! init) return 0;
 
-   if (! init)
-      return(0);
-   if (stack_first.fwd != &stack_last)
-      fprintf(stderr,"memoirc warning: stack not empty \n");
-   if (*msg_level > 1) {
-       fprintf(stdout,"Debug &heap_first =%#x\n",&heap_first);
-       fprintf(stdout,"Debug &heap_last =%#x\n",&heap_last);
-       fprintf(stdout,"Debug &stack_first =%#x\n",&stack_first);
-       fprintf(stdout,"Debug &stack_last =%#x\n",&stack_last);
-       }
-   errh = mem_check(HEAP,*msg_level);
-   errs = mem_check(STACK,*msg_level);
-   return((errh !=0) ? errh : (errs != 0) ? errs : 0);
-   }
+    if (stack_first.fwd != &stack_last)
+        fprintf(stderr,"memoirc warning: stack not empty \n");
+    if (*msg_level > 1) {
+        fprintf(stdout,"Debug &heap_first =%#p\n",&heap_first);
+        fprintf(stdout,"Debug &heap_last =%#p\n",&heap_last);
+        fprintf(stdout,"Debug &stack_first =%#p\n",&stack_first);
+        fprintf(stdout,"Debug &stack_last =%#p\n",&stack_last);
+        }
+    errh = mem_check(HEAP,*msg_level);
+    errs = mem_check(STACK,*msg_level);
+    return (errh !=0) ? errh : (errs != 0) ? errs : 0;
+}
 
 
 

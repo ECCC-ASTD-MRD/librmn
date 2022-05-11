@@ -22,6 +22,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <ftnStrLen.h>
+
 #include "ezscint.h"
 #include "ez_funcdef.h"
 

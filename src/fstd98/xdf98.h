@@ -2,6 +2,7 @@
 #define XDF98_C
 
 #include <rpnmacros.h>
+#include "qstdir.h"
 
 int c_xdflnk(int *liste, int n);
 int c_xdfunl(int *liste, int n);
@@ -53,6 +54,7 @@ int c_xdfloc(int iun, int handle, uint32_t *primk, int nprim);
 int c_xdfloc2(int iun, int handle, uint32_t *primk, int nprim, uint32_t *mskkeys);
 int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf);
 int c_xdfget(const int handle, buffer_interface_ptr buf);
+int c_xdfget2(const int handle, buffer_interface_ptr buf, int * const aux_ptr);
 int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
             uint32_t *buf);
 int c_xdfput(int iun, int handle, buffer_interface_ptr buf);
