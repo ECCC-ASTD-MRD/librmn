@@ -1,5 +1,5 @@
 - Les types de données suivants ne sont plus disponible.  Il faut utiliser les
-types de base correspondants ou accessibles via `#include <stdint.h>`
+types correspondants accessibles via `#include <stdint.h>`
 
 | Ancien   | Nouveau  |
 | ---------| -------- |
