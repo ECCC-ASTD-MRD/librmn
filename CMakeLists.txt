@@ -65,27 +65,16 @@ file(GLOB PROJECT_F_FILES
    src/*/*.f
    src/*/*.f90
 )
+file(GLOB PROJECT_H_FILES
+   src/*/*.h
+   src/*/*.inc
+   src/*/*.hf
+   src/*/*.cdk
+   src/*/*.tpl*
+)
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
-# Generate build include file (optional)
-ec_build_info()
 
-add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_dependencies(rmn rmn_build_info)
-add_dependencies(rmnshared rmn rmn_build_info)
-
-foreach(TARGET IN ITEMS rmn rmnshared)
-    target_compile_options(${TARGET}
-        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>)
-endforeach()
-
-#TODO: Could get rid of this binary a it's availble through rmn_config
-add_executable(librmn_version src/librmn_version.c)
-target_link_libraries(librmn_version rmn)
-add_dependencies(librmn_version rmn_build_info)
 
 # This really isn't the ideal solution; the compiler should be invoqued with all
 # the definitions and options as if we it was processing a source file
@@ -100,13 +89,13 @@ add_custom_command(
     COMMENT "Generating gmm.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf
     DEPENDS ${GMM_HEADER_DEPS}
+
     USES_TERMINAL
 )
 # Add a custom target to regenerate gmm.hf
 add_custom_target(gmmFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf)
-# Add the gmm generating target to rmn, ensuring WhiteBoard.hf is kept up to date
-add_dependencies(rmn gmmFortranHeader)
 
+# We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
@@ -118,13 +107,41 @@ add_custom_command(
     COMMENT "Generating WhiteBoard.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
     DEPENDS ${WHITEBOARD_HEADER_DEPS}
+
     USES_TERMINAL
 )
+
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
-# Add the WhiteBoard-generating target to rmn, ensuring WhiteBoard.hf is kept up to date
-add_dependencies(rmn WhiteBoardFortranHeader)
 
+# Generate build include file (optional)
+# The H and INCLUDE files must be included explicitly here because build_info is created with a dependency on the _source_ files, not
+# the _object_ files.  Without this explicit inclusion, an update to a header file can trigger a rebuild of object files, but it would
+# not trigger a rebuild of build_info.
+ec_build_info_with_deps(
+    ${PROJECT_C_FILES}
+    ${PROJECT_F_FILES}
+    ${GMM_HEADER_DEPS}
+    ${WHITEBOARD_HEADER_DEPS}
+    ${PROJECT_H_FILES}
+    ${PROJECT_INCLUDE_FILES}
+)
+
+add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+
+foreach(TARGET IN ITEMS rmn rmnshared)
+    target_compile_options(${TARGET}
+        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>)
+        add_dependencies(${TARGET} rmn_build_info gmmFortranHeader WhiteBoardFortranHeader)
+endforeach()
+
+#TODO: Could get rid of this binary a it's availble through rmn_config
+add_executable(librmn_version src/librmn_version.c)
+add_dependencies(librmn_version rmn rmn_build_info)
+target_link_libraries(librmn_version rmn)
 
 list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
@@ -139,6 +156,7 @@ list(APPEND PROJECT_INCLUDE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/arch_specific.hf
 )
+
 
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
