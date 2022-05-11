@@ -100,7 +100,6 @@ add_custom_command(
     COMMENT "Generating gmm.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf
     DEPENDS ${GMM_HEADER_DEPS}
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     USES_TERMINAL
 )
 # Add a custom target to regenerate gmm.hf
@@ -119,7 +118,6 @@ add_custom_command(
     COMMENT "Generating WhiteBoard.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
     DEPENDS ${WHITEBOARD_HEADER_DEPS}
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
     USES_TERMINAL
 )
 # Add a custom target to regenerate WhiteBoard.hf
