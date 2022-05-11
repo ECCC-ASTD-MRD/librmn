@@ -129,6 +129,7 @@ static void build_gen_info_keys(uint32_t *buf, uint32_t *keys, int index,
                                 int mode);
 int C_fst_match_req(int set_nb, int handle);
 
+
 //! Check XDF file for corruption
 //! @return              Valid(0) or not(-1)
 int c_xdfcheck(
