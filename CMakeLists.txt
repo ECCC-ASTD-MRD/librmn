@@ -114,33 +114,28 @@ add_custom_command(
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
-# Generate build include file (optional)
-# The H and INCLUDE files must be included explicitly here because build_info is created with a dependency on the _source_ files, not
-# the _object_ files.  Without this explicit inclusion, an update to a header file can trigger a rebuild of object files, but it would
-# not trigger a rebuild of build_info.
-ec_build_info_with_deps(
-    ${PROJECT_C_FILES}
-    ${PROJECT_F_FILES}
-    ${GMM_HEADER_DEPS}
-    ${WHITEBOARD_HEADER_DEPS}
-    ${PROJECT_H_FILES}
-    ${PROJECT_INCLUDE_FILES}
-)
+ec_build_info()
 
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+# Required to prevent missing Fortran modules when building in parallel
+# (make -j) with GNU compilers
+add_dependencies(rmnshared rmn)
 
 foreach(TARGET IN ITEMS rmn rmnshared)
     target_compile_options(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>)
-        add_dependencies(${TARGET} rmn_build_info gmmFortranHeader WhiteBoardFortranHeader)
+        add_dependencies(${TARGET}
+            ${PROJECT_NAME}_build_info
+            gmmFortranHeader
+            WhiteBoardFortranHeader)
 endforeach()
 
 #TODO: Could get rid of this binary a it's availble through rmn_config
 add_executable(librmn_version src/librmn_version.c)
-add_dependencies(librmn_version rmn rmn_build_info)
+add_dependencies(librmn_version rmn ${PROJECT_NAME}_build_info)
 target_link_libraries(librmn_version rmn)
 
 list(APPEND PROJECT_INCLUDE_FILES
