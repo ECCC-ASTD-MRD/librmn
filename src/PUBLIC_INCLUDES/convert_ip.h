@@ -51,19 +51,13 @@ typedef struct { /*  */
     int kind;
 } ip_info;
 
-//! \deprecated Is this used by anyone?
-static ip_info invalid_ip_info = {0.0, 0.0, -1};
-//! \deprecated Is this used by anyone?
-#define NULL_ip_info &invalid_ip_info
-
-#define INIT_ip_info(a) {(a).v1 = 0.0; (a).v2 = 0.0; (a).kind =-1 ;};
 
 /* see fortran module convert_ip123.f90 for quick documentation of arguments */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void ConvertIp(int *ip, float *p, int *kind, int mode);
+    void ConvertIp(int * const ip, float * const p, int * const kind, const int mode);
 
     int EncodeIp( int *ip1, int *ip2, int *ip3, ip_info *p1, ip_info *p2, ip_info *p3);
     int DecodeIp(ip_info *p1, ip_info *p2, ip_info *p3, int ip1, int ip2, int ip3);

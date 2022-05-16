@@ -30,23 +30,27 @@
 
   if the file is too big to fit into array, array(1) = nw-2 upon return
 */
-void f77name(array_from_file)(int32_t *array, int32_t *nw, char *file_name, F2Cl nc_file_name)
-{
-  char *buffer;
-  int fd;
+void f77name(array_from_file)(
+    int32_t * const array,
+    const int32_t * const nw,
+    const char * const file_name,
+    F2Cl nc_file_name
+) {
+    char *buffer;
+    int file_name_len = nc_file_name;
 
-  buffer=(char *)malloc(nc_file_name+1);        /* allocate buffer for file name */
-  strncpy(buffer,file_name,nc_file_name);       /* copy file name into buffer */
-  buffer[nc_file_name]='\0';
-  nc_file_name--;                               /* and eliminate trailing blanks */
-  while ( buffer[nc_file_name]==' ' && nc_file_name>0 ) {
-    buffer[nc_file_name]='\0';
-    nc_file_name--;
+    buffer = (char *)malloc(file_name_len + 1);        /* allocate buffer for file name */
+    strncpy(buffer, file_name, file_name_len);       /* copy file name into buffer */
+    buffer[file_name_len] = '\0';
+    file_name_len--;                               /* and eliminate trailing blanks */
+    while ( buffer[file_name_len] == ' ' && file_name_len > 0 ) {
+        buffer[file_name_len] = '\0';
+        file_name_len--;
     }
-  fd=open(buffer,O_RDONLY);                     /* open file read only */
-  array[1]=read(fd,(char *)(array+2),(*nw-2)*sizeof(int32_t));  /* read data from file up to array capacity */
-  array[0]=2 + ((array[1]+sizeof(int32_t)-1))/sizeof(int32_t);  /* set las index used in array */
-  close(fd);
+    int fd = open(buffer, O_RDONLY);                     /* open file read only */
+    array[1] = read(fd, (char *)(array + 2), (*nw - 2) * sizeof(int32_t));  /* read data from file up to array capacity */
+    array[0] = 2 + ((array[1] + sizeof(int32_t) - 1)) / sizeof(int32_t);  /* set las index used in array */
+    close(fd);
 }
 
 /*
@@ -63,23 +67,28 @@ void f77name(array_from_file)(int32_t *array, int32_t *nw, char *file_name, F2Cl
 
   if the file is too big to fit into array, array(1) = nw-2
 */
-void f77name(array_to_file)(int32_t *array, int32_t *nw, char *file_name, F2Cl nc_file_name)
-{
-  char *buffer;
-  int fd;
-  int nc;
-  off_t len;
+void f77name(array_to_file)(
+    //! [in] Array to write to file
+    const int32_t * const array,
+    //! [in] \deprecated Not used
+    const int32_t * const nw,
+    //! [in] Name or path of the file into which to write
+    const char * const file_name,
+    F2Cl nc_file_name
+) {
+    char *buffer;
+    int file_name_len = nc_file_name;
 
-  buffer=(char *)malloc(nc_file_name+1);        /* allocate buffer for file name */
-  strncpy(buffer,file_name,nc_file_name);       /* copy file name into buffer */
-  buffer[nc_file_name]='\0';
-  nc_file_name--;                               /* and eliminate trailing blanks */
-  while ( buffer[nc_file_name]==' ' && nc_file_name>0 ) {
-    buffer[nc_file_name]='\0';
-    nc_file_name--;
+    buffer = (char *)malloc(file_name_len + 1);        /* allocate buffer for file name */
+    strncpy(buffer, file_name, file_name_len);       /* copy file name into buffer */
+    buffer[file_name_len] = '\0';
+    file_name_len--;                               /* and eliminate trailing blanks */
+    while (buffer[file_name_len] == ' ' && file_name_len > 0) {
+        buffer[file_name_len] = '\0';
+        file_name_len--;
     }
-  fd=open(buffer,O_CREAT+O_RDWR,0777);          /* open file for writing */
-  len=write(fd,(char *)(array+2),array[1]);     /* write data into file */
-  ftruncate(fd,len);                            /* make sure to truncate after write */
-  close(fd);                                    /* close file */
+    int fd = open(buffer, O_CREAT+O_RDWR, 0777);          /* open file for writing */
+    off_t len = write(fd, (char *)(array + 2), array[1]);     /* write data into file */
+    ftruncate(fd, len);                            /* make sure to truncate after write */
+    close(fd);                                    /* close file */
 }

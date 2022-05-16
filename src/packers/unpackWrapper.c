@@ -21,10 +21,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <rmnlib.h>
+#include <armn_compress.h>
 
-
-#define NOTSPECIFIED -1
+#include "compact_IEEEblock.h"
 
 
 //! Convinience function to unpack data
@@ -40,56 +39,21 @@ void unpackWrapper(
     //! [in] Missing value identifier
     void *missingValueTag
 ) {
-    int elementCount, bitSizeOfPackedToken, bitSizeOfPackedExpo, off_set, opCode, hasMissing;
-    int min, max;
-    uint32_t  headerType;
-    uint32_t *packHeader;
-
-    elementCount         = NOTSPECIFIED;
-    bitSizeOfPackedToken = NOTSPECIFIED;
-    off_set              = 128;
-    min                  = NOTSPECIFIED;
-    max                  = NOTSPECIFIED;
-    packHeader           = (uint32_t *)packedHeader;
-    headerType           = packHeader[0] >> 24;
+    uint32_t *packHeader = (uint32_t *)packedHeader;
+    uint32_t headerType = packHeader[0] >> 24;
 
     if (( headerType == 0x0000007f ) || ( headerType == 0x000000ff )) {
         // Floating point, without missing value
-        opCode     = 2;
-        hasMissing = 0;
-        compact_float(unpackedArray, packedHeader, packedArray,
-                        elementCount, bitSizeOfPackedToken, off_set, stride, opCode,
-                        hasMissing, missingValueTag);
+        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 0, missingValueTag);
     } else if (( headerType == 0x0000007e ) || ( headerType == 0x000000fe )) {
         // Floating point, with missing value
-        opCode     = 2;
-        hasMissing = 1;
-        compact_float(unpackedArray, packedHeader, packedArray,
-                        elementCount, bitSizeOfPackedToken, off_set, stride, opCode,
-                        hasMissing, missingValueTag);
+        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 1, missingValueTag);
     } else if ( headerType == 0x000000fb ) {
-        // IEEE block
-        opCode              = 2;
-        hasMissing          = 0;
-        bitSizeOfPackedExpo = NOTSPECIFIED;
-        off_set             = 0;
-        compact_IEEEblock_float(unpackedArray, packedHeader, packedArray,
-                                elementCount, bitSizeOfPackedToken, bitSizeOfPackedExpo,
-                                off_set, stride, opCode, hasMissing, missingValueTag);
+        compact_IEEEblock_float(unpackedArray, packedHeader, packedArray, -1, -1, -1, 0, stride, 2, 0, missingValueTag);
     } else if ( headerType == 0x000000fd ) {
-        // Integer
-        opCode = 2;
-
-        compact_integer(unpackedArray, packedHeader, packedArray,
-                        elementCount, bitSizeOfPackedToken, off_set, stride,
-                        opCode);
+        compact_integer(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2);
     } else if ( headerType == 0x000000f0 ) {
-        // Run length encoding
-        opCode = 2;
-        compact_rle(unpackedArray, packedHeader, packedArray,
-                    max, min,
-                    elementCount, bitSizeOfPackedToken, off_set,
-                    stride, opCode);
+        compact_rle(unpackedArray, packedHeader, packedArray, -1, -1, -1, -1, 128, stride, 2);
     } else {
         printf("\n %8.8x not a valid header \n", headerType);
     }

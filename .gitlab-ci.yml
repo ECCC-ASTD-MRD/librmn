@@ -36,7 +36,7 @@ build:XC50_intel-19.0.3:
       - set -e
       - mkdir build_XC50_intel-19.0.3
       - cd build_XC50_intel-19.0.3
-      - cmake ../ 
+      - cmake ../
       - make
    artifacts:
       expire_in: 2 hrs
@@ -57,7 +57,7 @@ build:XC50_intel-19.0.5:
       - set -e
       - mkdir build_XC50_intel-19.0.5
       - cd build_XC50_intel-19.0.5
-      - cmake ../ 
+      - cmake ../
       - make
    artifacts:
       expire_in: 2 hrs
@@ -74,7 +74,7 @@ build:skylake-intel-19.0.3:
       - source ci-env/latest/ubuntu-18.04-skylake-64/intel-19.0.3.199.sh
       - mkdir build_skylake-intel-19.0.3
       - cd build_skylake-intel-19.0.3
-      - cmake ../ 
+      - cmake ../
       - make -j
    artifacts:
       expire_in: 2 hrs
@@ -91,32 +91,33 @@ build:amd-intel-19.0.3:
       - source ci-env/latest/ubuntu-18.04-amd-64/intel-19.0.3.199.sh
       - mkdir build_amd-intel-19.0.3
       - cd build_amd-intel-19.0.3
-      - cmake ../ 
+      - cmake ../
       - make -j
    artifacts:
       expire_in: 2 hrs
       paths:
          - build_amd-intel-19.0.3
 
-build:amd-gnu-7.4.0:
+build:skylake-gnu-9.3.0:
    stage: build
    only:
 #      - master
 #      - dev
 #      - tags
    script:
-      - set +e
-      - source ci-env/latest/ubuntu-18.04-amd-64/gnu-7.4.0.sh
-      - . r.load.dot rpn/libs/19.7.1/tdpack_1.6.0-gnu-7.4.0_ubuntu-18.04-amd64-64
-      - set -e
-      - mkdir build_amd-gnu-7.4.0
-      - cd build_amd-gnu-7.4.0
-      - cmake ../ 
+      - source ci-env/latest/profile.sh
+      - . r.load.dot main/opt/gcc/gcc-9.3.0
+      # Loading the compiler via SSM or r.load.dot does not
+      # set EC_ARCH, so we set it manually
+      - export EC_ARCH=ubuntu-18.04-skylake-64/gnu-9.3.0
+      - mkdir build_skylake-gnu-9.3.0
+      - cd build_skylake-gnu-9.3.0
+      - cmake ../
       - make -j
    artifacts:
       expire_in: 2 hrs
       paths:
-         - build_amd-gnu-7.4.0
+         - build_skylake-gnu-9.3.0
 
 #test:skylake-intel-19.0.3:
 #   stage: test
@@ -202,19 +203,19 @@ package:amd-intel-19.0.3:
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package
 
-package:amd-gnu-7.4.0:
+package:skylake-gnu-9.3.0:
    stage: package
    only:
       - tags
    dependencies:
-      - build:amd-gnu-7.4.0
+      - build:skylake-gnu-9.3.0
    environment:
       name: testing
    script:
       - set +e
       - source ci-env/latest/ubuntu-18.04-amd-64/gnu-7.4.0.sh
       - set -e
-      - cd build_amd-gnu-7.4.0
+      - cd build_skylake-gnu-9.3.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package
 

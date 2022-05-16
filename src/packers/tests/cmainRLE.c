@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <rmnlib.h>
 #include <rpnmacros.h>
 
 

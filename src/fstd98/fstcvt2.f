@@ -17,6 +17,8 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+
+
 ***FONCTION Fstcvt2 HOLLERITH A CARACTERE OU L'INVERSE
       INTEGER FUNCTION Fstcvt2( NOM, TYP, ETIK, GRTP, CNOM, CTYP,CETIK,
      % CGRTP, HOLACAR)
@@ -124,11 +126,5 @@
       ENDIF
 600   FORMAT(3A4)
 601   FORMAT(2A4)
-666   FORMAT(' HOLLERITH NOM=',A4,' TYP=',A2,' GRTP=',A1,' ETIK= ',
-     %A12)
-668   FORMAT(' HOLLERITH NOM=',A4,' TYP=',A2,' GRTP=',A1,' ETIK= ',
-     %A4,A4,a4)
-667   FORMAT(' CARACTERE NOM=',A4,' TYP=',A2,' GRTP=',A10,'ETIK= ',
-     %A12)
       RETURN
       END

@@ -22,8 +22,8 @@
 integer function qqqf7op(iun, name, lrec, rndflag, unfflag, lmult)
     implicit none
     integer, intent(in) :: iun
-    integer, intent(in) :: lrec
     character(len = *), intent(in) :: name
+    integer, intent(in) :: lrec
     integer, intent(in) :: rndflag
     integer, intent(in) :: unfflag
     !> No longer used, but kept for backward compatibility
@@ -98,19 +98,4 @@ integer function ftnclos(iun)
 
     ftnclos = 0
     CLOSE(iun)
-end
-
-
-integer function longueur(nom)
-    implicit none
-    character(len = *), intent(in) :: nom
-
-    integer :: lng
-
-    lng = len(nom)
-    do while (lng > 1 .and. nom(lng:lng) == ' ')
-        lng = lng - 1
-    end do
-
-    longueur = lng
 end

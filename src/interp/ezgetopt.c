@@ -19,10 +19,11 @@
  */
 
 #include <string.h>
+#include <ctype.h>
 
 #include "ezscint.h"
 #include "ez_funcdef.h"
-
+#include <ftnStrLen.h>
 
 int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {
@@ -30,7 +31,7 @@ int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenval
     int32_t longueur_option, longueur_value;
     char local_opt[32], local_val[32];
 
-    longueur_option = f77name(longueur)(option, lenoption);
+    longueur_option = ftnStrLen(option, lenoption);
     longueur_option = longueur_option < 32 ? longueur_option : 31;
 
     for (int i = 0; i < longueur_option; i++) {

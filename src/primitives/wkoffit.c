@@ -341,10 +341,10 @@ static int isftnbin(
  */
 int32_t c_wkoffit(
     //! Path of the file to examine
-    char *filePath,
+    const char * const filePath,
     //! Fall back to legacy fnom mode for filenames if True
-    int l1
-){
+    const int l1
+) {
     FILE *pf;
     char nom2[4096], nom3[4096], *pn2, *pn3;
     char cbuf[1024];
@@ -1161,12 +1161,9 @@ static int ReadFileType(
            (magicno[0]=='I' && magicno[1]=='I')) rv = WKF_TIFF;
 
   else if (strncmp((char *) magicno,  "NJPL1I00", 8)==0 || /* fixed-len pds */
-           strncmp((char *) magicno+2, "NJPL1I",  6)==0 || /* vger+other pds *
-/
-           strncmp((char *) magicno,  "CCSD3ZF", 7)==0 || /* vikng pds browse
-*/
-           strncmp((char *) magicno+2, "CCSD3Z",  6)==0 || /* vik. huffman pds
-*/
+           strncmp((char *) magicno+2, "NJPL1I",  6)==0 || /* vger+other pds */
+           strncmp((char *) magicno,  "CCSD3ZF", 7)==0 || /* vikng pds browse */
+           strncmp((char *) magicno+2, "CCSD3Z",  6)==0 || /* vik. huffman pds */
            strncmp((char *) magicno,  "LBLSIZE=", 8)==0)   /* vicar */
       rv = WKF_PDSVICAR;
 
@@ -1203,9 +1200,7 @@ int32_t f77name(wkoffit)(
     char *nom,
     F2Cl fl1
 ) {
-    int l1=fl1;
-
-    return c_wkoffit(nom, l1);
+    return c_wkoffit(nom, fl1);
 }
 
 #endif

@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <burp.h>
 #include "qstdir.h"
-#include "proto.h"
+#include "xdf98.h"
 
 int32_t f77name(mrfbfl)(int32_t *iun);
 
@@ -51,41 +51,204 @@ int c_getbuf8(uint32_t *buffer)
 }
 
 
+//! Read info from burp record
+void read_burp_info_keys(
+    //! [in]  Buffer from which to read the the keys
+    const uint32_t * const buf,
+    //! [out] Info keys
+    uint32_t *keys
+) {
+    burp_dir_info * info = (burp_dir_info *) buf;
+
+    keys[0] = info->nblks;
+    keys[1] = info->oars;
+    keys[2] = info->elev;
+    keys[3] = info->drcv;
+    keys[4] = info->runn;
+}
+
+
+//! Write info keys to burp record
+void write_burp_info_keys(
+    //! [in]  Buffer from which to read the the keys
+    uint32_t * const buf,
+    //! [out] Info keys
+    const uint32_t * const keys
+) {
+    burp_dir_info * info = (burp_dir_info *) buf;
+
+    if (keys[0] != -1) info->nblks = keys[0];
+    if (keys[1] != -1) info->oars  = keys[1];
+    if (keys[2] != -1) info->elev  = keys[2];
+    if (keys[3] != -1) info->drcv  = keys[3];
+    if (keys[4] != -1) info->runn  = keys[4];
+}
+
+
 //! Pack burp info keys into buffer or get info keys from buffer depending on mode argument
+//! \deprecated Use read_burp_info_keys or write_burp_info_keys directly for better argument protection
 void build_burp_info_keys(
     //! [in,out]  Buffer to contain the keys
-    uint32_t *buf,
+    uint32_t * const buf,
     //! [in,out] Info keys
-    uint32_t *keys,
-    //! [in] File index in file table
-    int index,
+    uint32_t * const keys,
+    //! [in] \deprecated Not used
+    const int index,
     //! [in] Write to buffer when WMODE, otherwise get keys from buffer
-    int mode
+    const int mode
 ) {
-    burp_dir_info *info;
-
-    info = (burp_dir_info *) buf;
-
     if (mode == WMODE) {
-        /* write info keys to burp record */
-        if (keys[0] != -1) info->nblks = keys[0];
-        if (keys[1] != -1) info->oars  = keys[1];
-        if (keys[2] != -1) info->elev  = keys[2];
-        if (keys[3] != -1) info->drcv  = keys[3];
-        if (keys[4] != -1) info->runn  = keys[4];
+        write_burp_info_keys(buf, keys);
     } else {
-        /* read info keys from burp record */
-        keys[0] = info->nblks;
-        keys[1] = info->oars;
-        keys[2] = info->elev;
-        keys[3] = info->drcv;
-        keys[4] = info->runn;
+        read_burp_info_keys(buf, keys);
     }
 }
 
 
+//! Read keys from burp record
+void read_burp_prim_keys(
+    //! [in,out] Buffer to contain the keys
+    const burp_record * const brpk,
+    //! [in,out] Primary keys
+    uint32_t * const keys
+) {
+    keys[0] = brpk->keys.sti1;
+    keys[1] = brpk->keys.sti2;
+    keys[2] = brpk->keys.sti3;
+    keys[3] = brpk->keys.sti4;
+    keys[4] = brpk->keys.sti5;
+    keys[5] = brpk->keys.sti6;
+    keys[6] = brpk->keys.sti7;
+    keys[7] = brpk->keys.sti8;
+    keys[8] = brpk->keys.sti9;
+    keys[9] = brpk->keys.flgs;
+    keys[10] = brpk->keys.lati;
+    keys[11] = brpk->keys.lon;
+    keys[12] = brpk->keys.date;
+    keys[13] = brpk->keys.dx;
+    keys[14] = brpk->keys.idtp;
+    keys[15] = brpk->keys.dy;
+    keys[16] = brpk->keys.heur;
+    keys[17] = brpk->keys.min;
+}
+
+
+//! Write keys to burp record
+void write_burp_prim_keys(
+    //! [out] Buffer to contain the keys
+    burp_record * const brpk,
+    //! [in] Primary keys
+    const uint32_t * const keys,
+    //! [out] Search mask
+    burp_record *mask
+) {
+    // Initialize compress keys to 0 and bit masks to all ones
+
+    int * mskptr = (int *)mask;
+    for (int i = 0; i < sizeof(burp_dir_keys) / sizeof(int); i++) {
+        *mskptr = -1;
+        mskptr++;
+    }
+
+    mask->keys.idtyp = 0;
+    mask->keys.lng = 0;
+    mask->keys.addr = 0;
+
+    if (keys[0] == -1) {
+        mask->keys.sti1 = 0;
+    } else {
+        brpk->keys.sti1 = upper_case(keys[0]);
+    }
+    if (keys[1] == -1) {
+        mask->keys.sti2 = 0;
+    } else {
+        brpk->keys.sti2 = upper_case(keys[1]);
+    }
+    if (keys[2] == -1) {
+        mask->keys.sti3 = 0;
+    } else {
+        brpk->keys.sti3 = upper_case(keys[2]);
+    }
+    if (keys[3] == -1) {
+        mask->keys.sti4 = 0;
+    } else {
+        brpk->keys.sti4 = upper_case(keys[3]);
+    }
+    if (keys[4] == -1) {
+        mask->keys.sti5 = 0;
+    } else {
+        brpk->keys.sti5 = upper_case(keys[4]);
+    }
+    if (keys[5] == -1) {
+        mask->keys.sti6 = 0;
+    } else {
+        brpk->keys.sti6 = upper_case(keys[5]);
+    }
+    if (keys[6] == -1) {
+        mask->keys.sti7 = 0;
+    } else {
+        brpk->keys.sti7 = upper_case(keys[6]);
+    }
+    if (keys[7] == -1) {
+        mask->keys.sti8 = 0;
+    } else {
+        brpk->keys.sti8 = upper_case(keys[7]);
+    }
+    if (keys[8] == -1) {
+        mask->keys.sti9 = 0;
+    } else {
+        brpk->keys.sti9 = upper_case(keys[8]);
+    }
+    if (keys[9] == -1) {
+        mask->keys.flgs = 0;
+    } else {
+        brpk->keys.flgs = keys[9];
+    }
+    if (keys[10] == -1) {
+        mask->keys.lati = 0;
+    } else {
+        brpk->keys.lati = keys[10];
+    }
+    if (keys[11] == -1) {
+        mask->keys.lon = 0;
+    } else {
+        brpk->keys.lon = keys[11];
+    }
+    if (keys[12] == -1) {
+        mask->keys.date = 0;
+    } else {
+        brpk->keys.date = keys[12];
+    }
+    if (keys[13] == -1) {
+        mask->keys.dx = 0;
+    } else {
+        brpk->keys.dx = keys[13];
+    }
+    if (keys[14] == -1) {
+        mask->keys.idtp = 0;
+    } else {
+        brpk->keys.idtp = keys[14];
+    }
+    if (keys[15] == -1) {
+        mask->keys.dy = 0;
+    } else {
+        brpk->keys.dy = keys[15];
+    }
+    if (keys[16] == -1) {
+        mask->keys.heur = 0;
+    } else {
+        brpk->keys.heur = keys[16];
+    }
+    if (keys[17] == -1) {
+        mask->keys.min = 0;
+    } else {
+        brpk->keys.min = keys[17];
+    }
+}
+
 
 //! Pack burp primary keys into buffer or get primary keys from buffer depending on mode argument
+//! \deprecated Used read_burp_prim_keys or write_burp_prim_keys instead.
 void build_burp_prim_keys(
     //! [in,out] Buffer to contain the keys
     burp_record *brpk,
@@ -93,141 +256,17 @@ void build_burp_prim_keys(
     uint32_t *keys,
     //! [out] Search mask
     burp_record *mask,
-    //! [in] Unpacked masks
-    uint32_t *mskkeys,
-    //! [in] File index in file table
-    int index,
+    //! [in] \deprecated This isn't used
+    const uint32_t *mskkeys,
+    //! [in] \deprecated This isn't used
+    const int index,
     //! [in] Write to buffer when WMODE, otherwise get keys from buffer
-    int mode
+    const int mode
 ) {
-    int *mskptr;
-    int i;
-
-    mskptr = (int *)mask;
-
-   if (mode == WMODE) {
-        // Write keys to burp record
-        // Initialize compress keys to 0 and bit masks to all ones
-
-        for (i = 0; i < sizeof(burp_dir_keys) / sizeof(int); i++) {
-            *mskptr = -1;
-            mskptr++;
-        }
-
-        mask->keys.idtyp = 0;
-        mask->keys.lng = 0;
-        mask->keys.addr = 0;
-
-        if (keys[0] == -1) {
-            mask->keys.sti1 = 0;
-        } else {
-            brpk->keys.sti1 = upper_case(keys[0]);
-        }
-        if (keys[1] == -1) {
-            mask->keys.sti2 = 0;
-        } else {
-            brpk->keys.sti2 = upper_case(keys[1]);
-        }
-        if (keys[2] == -1) {
-            mask->keys.sti3 = 0;
-        } else {
-            brpk->keys.sti3 = upper_case(keys[2]);
-        }
-        if (keys[3] == -1) {
-            mask->keys.sti4 = 0;
-        } else {
-            brpk->keys.sti4 = upper_case(keys[3]);
-        }
-        if (keys[4] == -1) {
-            mask->keys.sti5 = 0;
-        } else {
-            brpk->keys.sti5 = upper_case(keys[4]);
-        }
-        if (keys[5] == -1) {
-            mask->keys.sti6 = 0;
-        } else {
-            brpk->keys.sti6 = upper_case(keys[5]);
-        }
-        if (keys[6] == -1) {
-            mask->keys.sti7 = 0;
-        } else {
-            brpk->keys.sti7 = upper_case(keys[6]);
-        }
-        if (keys[7] == -1) {
-            mask->keys.sti8 = 0;
-        } else {
-            brpk->keys.sti8 = upper_case(keys[7]);
-        }
-        if (keys[8] == -1) {
-            mask->keys.sti9 = 0;
-        } else {
-            brpk->keys.sti9 = upper_case(keys[8]);
-        }
-        if (keys[9] == -1) {
-            mask->keys.flgs = 0;
-        } else {
-            brpk->keys.flgs = keys[9];
-        }
-        if (keys[10] == -1) {
-            mask->keys.lati = 0;
-        } else {
-            brpk->keys.lati = keys[10];
-        }
-        if (keys[11] == -1) {
-            mask->keys.lon = 0;
-        } else {
-            brpk->keys.lon = keys[11];
-        }
-        if (keys[12] == -1) {
-            mask->keys.date = 0;
-        } else {
-            brpk->keys.date = keys[12];
-        }
-        if (keys[13] == -1) {
-            mask->keys.dx = 0;
-        } else {
-            brpk->keys.dx = keys[13];
-        }
-        if (keys[14] == -1) {
-            mask->keys.idtp = 0;
-        } else {
-            brpk->keys.idtp = keys[14];
-        }
-        if (keys[15] == -1) {
-            mask->keys.dy = 0;
-        } else {
-            brpk->keys.dy = keys[15];
-        }
-        if (keys[16] == -1) {
-            mask->keys.heur = 0;
-        } else {
-            brpk->keys.heur = keys[16];
-        }
-        if (keys[17] == -1) {
-            mask->keys.min = 0;
-        } else {
-            brpk->keys.min = keys[17];
-        }
+    if (mode == WMODE) {
+        write_burp_prim_keys(brpk, keys, mask);
     } else {
-        // Read keys from burp record
-        keys[0] = brpk->keys.sti1;
-        keys[1] = brpk->keys.sti2;
-        keys[2] = brpk->keys.sti3;
-        keys[3] = brpk->keys.sti4;
-        keys[4] = brpk->keys.sti5;
-        keys[5] = brpk->keys.sti6;
-        keys[6] = brpk->keys.sti7;
-        keys[7] = brpk->keys.sti8;
-        keys[8] = brpk->keys.sti9;
-        keys[9] = brpk->keys.flgs;
-        keys[10] = brpk->keys.lati;
-        keys[11] = brpk->keys.lon;
-        keys[12] = brpk->keys.date;
-        keys[13] = brpk->keys.dx;
-        keys[14] = brpk->keys.idtp;
-        keys[15] = brpk->keys.dy;
-        keys[16] = brpk->keys.heur;
-        keys[17] = brpk->keys.min;
+        read_burp_prim_keys(brpk, keys);
     }
 }
 

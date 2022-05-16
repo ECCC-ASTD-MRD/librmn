@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -188,7 +189,7 @@ char *get_server_name(
 }
 
 
-/* GetHostName special gethostname with IBM p690 name substitution */
+//! Special gethostname with IBM p690 name substitution
 int GetHostName(
     char *name,
     size_t len
@@ -1374,7 +1375,7 @@ while (n > 0)
             tv.tv_sec = get_stream_timeout(fd);
             tv.tv_usec = 0;
 
-            iers = select (fd+1, NULL, &wfds, NULL, &tv);
+            iers = select(fd+1, NULL, &wfds, NULL, &tv);
 
             if (iers < 0) {
                 /* error; log/die/whatever and close() socket */
@@ -1431,65 +1432,65 @@ while (n > 0)
   return n;
 }
 
-/* Write "n" bytes to a stream socket return 0 if OK  */
-/* (all bytes have been sent), return -number of bytes not */
-/* written if not OK (number of bytes not sent)       */
-int write_stream(int fd, char *ptr, int n)  /*   %ENTRY%   */
-{
-  int  res;
-  fd_set wfds;
-  struct timeval tv;
+
+//! Write bytes to a stream socket
+//! \return 0 on success, negative number of byte not written
+int write_stream(
+    //! [in] Socket into which to write
+    const int fd,
+    //! [in] Pointer to the data to write
+    const char * const data,
+    //! [in] Number of bytes to write
+    const int bytes
+) {
+    fd_set wfds;
+    struct timeval tv;
 
 #ifdef DEBUG
-  /****************end timing******************/
-  unsigned long long tt1,tt2,clk1,clk2;
-  tt1 = time_base();
-  /****************end timing******************/
+    unsigned long long tt1, tt2, clk1, clk2;
+    tt1 = time_base();
+
+    fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes a envoyer = %d\n", n);
+    fflush(stderr);
 #endif
 
+    FD_ZERO(&wfds);
+    FD_SET(fd, &wfds);
+
+    tv.tv_sec = get_stream_timeout(fd);
+    tv.tv_usec = 0;
+
+    int res;
+    const char * ptr = data;
+    int bytesRemaining = bytes;
+    while (bytesRemaining > 0) {
+        if (select(fd + 1, NULL, &wfds, NULL, &tv)) {
+            res = write(fd, ptr, bytesRemaining);
 #ifdef DEBUG
-  fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes a envoyer = %d\n", n);
-  fflush(stderr);
+            printf("\nwrite_stream: sent \"%d\" bytes", res);
 #endif
+        } else {
+            return -bytesRemaining;
+        }
 
-  FD_ZERO(&wfds);
-  FD_SET(fd, &wfds);
-
-  tv.tv_sec = get_stream_timeout(fd);
-  tv.tv_usec = 0;
-
-  while (n > 0)
-    {
-      if (select(fd+1, NULL, &wfds, NULL, &tv))
-          {
-      res = write(fd, ptr, n);
-#ifdef DEBUG
-      printf("\nwrite_stream: sent \"%d\" bytes", res);
-#endif
+        if (res <= 0) {
+            return -bytesRemaining;
+        }
+        bytesRemaining -= res;
+        ptr += res;
     }
-      else
-        return(-n);
-
-      if (res <= 0)
-        return (-n);
-      n -= res;
-      ptr += res;
-    }
 
 #ifdef DEBUG
-  /****************end timing******************/
-  tt2 = time_base() - tt1;
-  printf("\nwrite_stream: res = %d Wall Clock = %llu bigticks,", res, tt2);
-  /****************end timing******************/
+    tt2 = time_base() - tt1;
+    printf("\nwrite_stream: res = %d Wall Clock = %llu bigticks,", res, tt2);
+
+    fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes envoyes = %d\n", res);
+    fflush(stderr);
 #endif
 
-#ifdef DEBUG
-  fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes envoyes = %d\n", res);
-  fflush(stderr);
-#endif
-
-  return n;
+    return bytesRemaining;
 }
+
 
 int read_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
 {
@@ -1527,7 +1528,7 @@ while (remaining > 0)
     FD_SET(fd, &rfds);
     tv.tv_sec = get_stream_timeout(fd);
     tv.tv_usec = 0;
-    iers = select (fd+1, &rfds, NULL, NULL, &tv);
+    iers = select(fd+1, &rfds, NULL, NULL, &tv);
 
 #ifdef INFOLEVEL1
     fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, select returns iers=%d \n",iter,iers);
@@ -1554,7 +1555,7 @@ while (remaining > 0)
             tv.tv_sec = get_stream_timeout(fd);
             tv.tv_usec = 0;
 
-            iers = select (fd+1, &rfds, NULL, NULL, &tv);
+            iers = select(fd+1, &rfds, NULL, NULL, &tv);
             fprintf(stderr, "\n read_ft_nonblocking_socket()  select returns iers=%d \n",iers);
 
             if (iers < 0) {
@@ -1647,7 +1648,7 @@ while (remaining > 0)
     FD_SET(fd, &rfds);
     tv.tv_sec = get_stream_timeout(fd);
     tv.tv_usec = 0;
-    iers = select (fd+1, &rfds, NULL, NULL, &tv);
+    iers = select(fd+1, &rfds, NULL, NULL, &tv);
 
     bytesread = read (fd, ptr, remaining);
 
@@ -1662,7 +1663,7 @@ while (remaining > 0)
             tv.tv_sec = get_stream_timeout(fd);
             tv.tv_usec = 0;
 
-            iers = select (fd+1, &rfds, NULL, NULL, &tv);
+            iers = select(fd+1, &rfds, NULL, NULL, &tv);
 
             if (iers < 0) {
                 /* error; log/die/whatever and close() socket */
@@ -1719,73 +1720,65 @@ while (remaining > 0)
 }
 
 
-/* Read "n" bytes from a stream socket,     */
-/* return bytes_read (number of bytes read) */
-int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
-{
-  int  n, res, bytes_read;
-  fd_set rfds;
-  struct timeval tv;
+//! Read data from a stream socket
+//! \return Number of bytes read
+int read_stream(
+    //! [in] Socket from which to read the data
+    const int fd,
+    //! [in] Pointer to where the data read will be stored
+    char * const data,
+    //! [in] Number of bytes to read
+    const int nbytes
+) {
+    fd_set rfds;
+    struct timeval tv;
 
 #ifdef DEBUG
-  /****************start timing******************/
-  unsigned long long tt1,tt2,clk1,clk2;
-  /****************start timing******************/
+    unsigned long long clk1, clk2;
+
+    fprintf(stderr, "gossip_sock::read_stream(), bytes to be read = %d\n", n);
+    fprintf(stderr, "gossip_sock::read_stream(), fd = %d\n", fd);
 #endif
 
-  n = nbytes;
-  bytes_read = 0;
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
 
+    tv.tv_sec = get_stream_timeout(fd);
+    tv.tv_usec = 0;
 #ifdef DEBUG
-  fprintf(stderr, "gossip_sock::read_stream(), bytes to be read = %d\n", n);
-  fprintf(stderr, "gossip_sock::read_stream(), fd = %d\n", fd);
+    clk1 = time_base();
 #endif
 
-  FD_ZERO(&rfds);
-  FD_SET(fd, &rfds);
-
-  tv.tv_sec = get_stream_timeout(fd);
-  tv.tv_usec = 0;
+    int bytesRemaining = nbytes;
+    int bytes_read = 0;
+    int res;
+    char * ptr = data;
+    while (bytesRemaining > 0) {
+        if (select(fd + 1, &rfds, NULL, NULL, &tv)) {
+            res = read(fd, ptr, bytesRemaining);
 #ifdef DEBUG
-  clk1 = time_base();
+            fprintf(stderr,"\n read_stream(): bytes read = %d of nbytes = %d", res, nbytes);
 #endif
-
-  while (n > 0)
-    {
-      if (select(fd+1, &rfds, NULL, NULL, &tv))
-    {
-      res = read(fd, ptr, n);
+        } else {
 #ifdef DEBUG
-      fprintf(stderr,"\n read_stream(): bytes read = %d of nbytes = %d", res, nbytes);
+        fprintf(stderr,"\n read_stream(): select problem, errno= %d", errno);
 #endif
-
-    }
-      else
-    {
-#ifdef DEBUG
-      fprintf(stderr,"\n read_stream(): select problem, errno= %d", errno);
-#endif
-      return 0;
-    }
-      if (res <= 0)
-        {
+            return 0;
+        }
+        if (res <= 0) {
           return res;
         }
 
-      n -= res;
-      ptr += res;
-      bytes_read += res;
+        bytesRemaining -= res;
+        ptr += res;
+        bytes_read += res;
     }
 
 #ifdef DEBUG
-  /****************end timing******************/
-  clk2 = time_base() - clk1;
-  fprintf(stderr,"\n read_stream: bytes read = %d, Total Wall Clock = %llu bigticks,", nbytes, clk2);
-  /*****************end timing******************/
-#endif
+    clk2 = time_base() - clk1;
+    fprintf(stderr,"\n read_stream: bytes read = %d, Total Wall Clock = %llu bigticks,", nbytes, clk2);
 
-#ifdef DEBUG
-  fprintf(stderr, "gossip_sock::read_stream(), after while(), bytes read = %d\n", res);
+    fprintf(stderr, "gossip_sock::read_stream(), after while(), bytes read = %d\n", res);
 #endif
 
   return bytes_read;
@@ -1794,64 +1787,55 @@ int read_stream(int fd, char *ptr, int nbytes)  /*   %ENTRY%   */
 
 
 
-/* swap elements of size tokensize bytes if little endian */
-void check_swap_records(void *record, int size, int tokensize) /*   %ENTRY%   */
-{
+//! Swap elements if little endian
+void check_swap_records(
+    //! [inout] Buffer in which to swap the endianess
+    void * const record,
+    //! [in] Number of elements to swap
+    const int size,
+    //! [in] Size of the elements to swap
+    const int tokensize
+) {
+    if (!*little_endian || tokensize == ONE_BYTE) return;
 
-  if(!*little_endian || tokensize == ONE_BYTE)
-    return;
-
-  if(tokensize == TWO_BYTES)
-    {
-      int i;
-
-      int16_t *element = (int16_t *)record;
+    if (tokensize == TWO_BYTES) {
+        int16_t *element = (int16_t *)record;
 
 #ifdef DEBUG
-      fprintf(stderr, "gossip_sock::check_swap_records(),  TWO_BYTES\n");
+        fprintf(stderr, "gossip_sock::check_swap_records(),  TWO_BYTES\n");
 #endif
 
-      for(i = 0; i<size; i++)
-        {
-      swap_2(*element);
-          element++;
+        for(int i = 0; i < size; i++) {
+            swap_2(*element);
+            element++;
         }
     }
 
-
-  if(tokensize == FOUR_BYTES)
-    {
-      int i;
-
+  if (tokensize == FOUR_BYTES) {
       int32_t *element = (int32_t *)record;
 
 #ifdef DEBUG
       fprintf(stderr, "gossip_sock::check_swap_records(),  FOUR_BYTES\n");
 #endif
 
-      for(i = 0; i<size; i++)
-        {
-      swap_4(*element);
-          element++;
-    }
-    }
-  else if(tokensize == EIGHT_BYTES)
-    {
-      int i;
-      int64_t *element = (int64_t *)record;
+        for(int i = 0; i < size; i++){
+            swap_4(*element);
+            element++;
+        }
+    } else if (tokensize == EIGHT_BYTES) {
+        int64_t *element = (int64_t *)record;
 
-      for(i = 0; i<size; i++)
-        {
-          swap_8(*element);
-      element++;
-    }
+        for(int i = 0; i < size; i++){
+            swap_8(*element);
+            element++;
+        }
 
 #ifdef DEBUG
-      fprintf(stderr, "gossip_sock::check_swap_records(),  EIGHT_BYTES\n");
+        fprintf(stderr, "gossip_sock::check_swap_records(),  EIGHT_BYTES\n");
 #endif
     }
 #ifdef DEBUG
-  fprintf(stderr, "gossip_sock::check_swap_records(),  end\n");
+    fprintf(stderr, "gossip_sock::check_swap_records(),  end\n");
 #endif
 }
 

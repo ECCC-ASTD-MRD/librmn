@@ -17,105 +17,102 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-!.S MRBPRML
-!**S/P MRBPRML - EXTRAIRE LES PARAMETRES DESCRIPTEURS DE TOUS LES BLOCS
-!
-      FUNCTION MRBPRML( BUF,    INBKNO, TBLPRM, NPRM, INBLOCS)
-      IMPLICIT NONE
 
-      INTEGER  MRBPRML, BUF(*), INBKNO,  NPRM, INBLOCS, TBLPRM(NPRM, INBLOCS)
+!> Extract descriptor parameters from all blocks
+integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
+    implicit none
+
+    integer, intent(in) :: buf(*)
+    integer, intent(in) :: inbkno
+    integer, intent(in) :: nprm
+    integer, intent(in) :: inblocs
+    integer, intent(out) :: tblprm(nprm, inblocs)
 !
 !AUTEUR  J. CAVEEN   OCTOBRE 1990
 !REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
 !rev 002 j. caveen   sept    1995 elimine bdsec et bfam passe a 12 bits
 !
-!OBJET( MRBPRML )
-!     FONCTION SERVANT A RETOURNER DANS LE TABLEAU TBLPRM
-!     LES PARAMETRES DESCRIPTEURS DES INBLOCS BLOCS A PARTIR 
-!     DU BLOC SUIVANT LE BLOC NUMERO BKNO.
+!OBJET( mrbprml )
+!     FONCTION SERVANT A RETOURNER DANS LE TABLEAU tblprm
+!     LES PARAMETRES DESCRIPTEURS DES inblocs BLOCS A PARTIR 
+!     DU BLOC SUIVANT LE BLOC NUMERO bkno.
 !                                                                       
 !ARGUMENTS
-!     BUF        ENTREE    VECTEUR CONTENANT LE RAPPORT
-!     INBKNO        "      NUMERO D'ORDRE DU PREMIER BLOC
-!     NPRM          "      NOMBRE DE PARAMETRES A EXTRAIRE (DIM 1 DE TBLPRM)
-!     INBLOCS       "      NOMBRE DE BLOCS DONT ON VEUT LES PARAMETRES
-!     TBLPRM     SORTIE    TABLEAU CONTENANT LES PARAMETRES DES INBLOCS
+!     buf        ENTREE    VECTEUR CONTENANT LE RAPPORT
+!     inbkno        "      NUMERO D'ORDRE DU PREMIER BLOC
+!     nprm          "      NOMBRE DE PARAMETRES A EXTRAIRE (DIM 1 DE tblprm)
+!     inblocs       "      NOMBRE DE BLOCS DONT ON VEUT LES PARAMETRES
+!     tblprm     SORTIE    TABLEAU CONTENANT LES PARAMETRES DES inblocs
 !
-!     STRUCTURE DE TBLPRM(NPRM,INBLOCS)
-!     TBLPRM(1,I) - NUMERO DU BLOC I
-!     TBLPRM(2,I) - NOMBRE D'ELEMENTS DANS LE BLOC I  (NELE)
-!     TBLPRM(3,I) - NOMBRE DE VALEURS  PAR ELEMENT    (NVAL)
-!     TBLPRM(4,I) - NOMBRE DE PAS DE TEMPS            (NT)
-!     TBLPRM(5,I) - FAMILLE DU BLOC                   (BFAM) (12 bits)
-!     TBLPRM(6,I) - DESCRIPTEUR DE BLOC               (BDESC) (mis a zero)
-!     TBLPRM(7,I) - TYPE DU BLOC                      (BTYP)
-!     TBLPRM(8,I) - NOMBRE DE BITS PAR ELEMENT        (NBIT)
-!     TBLPRM(9,I) - NUMERO DU PREMIER BIT             (BIT0)
-!     TBLPRM(10,I)- TYPE DE DONNEES POUR COMPACTION   (DATYP)
+!     STRUCTURE DE tblprm(nprm, inblocs)
+!     tblprm(1,I) - NUMERO DU BLOC I
+!     tblprm(2,I) - NOMBRE D'ELEMENTS DANS LE BLOC I  (NELE)
+!     tblprm(3,I) - NOMBRE DE VALEURS  PAR ELEMENT    (NVAL)
+!     tblprm(4,I) - NOMBRE DE PAS DE TEMPS            (NT)
+!     tblprm(5,I) - FAMILLE DU BLOC                   (BFAM) (12 bits)
+!     tblprm(6,I) - DESCRIPTEUR DE BLOC               (BDESC) (mis a zero)
+!     tblprm(7,I) - TYPE DU BLOC                      (BTYP)
+!     tblprm(8,I) - NOMBRE DE BITS PAR ELEMENT        (NBIT)
+!     tblprm(9,I) - NUMERO DU PREMIER BIT             (BIT0)
+!     tblprm(10,I)- TYPE DE DONNEES POUR COMPACTION   (DATYP)
 !
 !IMPLICITES
 #include "defi.cdk"
 #include "bpl.cdk"
 #include "codes.cdk"
 #include <ftnmacros.hf>
-!
-!MODULES 
-      EXTERNAL XDFXTR, QDFERR, getbuf8
-      INTEGER  XDFXTR, QDFERR, getbuf8
-!*
 
-      integer ENTETE(DIMENT), BITPOS, NBLOCS, BKNO, NOBL
-      integer famdesc
-!
-!*
-      MRBPRML = -1
+    EXTERNAL XDFXTR, QDFERR, getbuf8
+    INTEGER  XDFXTR, QDFERR, getbuf8
 
-!     S'ASSURER QUE LES DIMENSIONS DU TABLEAU SONT ADEQUATES
-      IF(NPRM .NE. NPRMMAX) THEN
-         MRBPRML = QDFERR('MRBPRML', 'DIMENSIONS DE TBLPRM INCORRECTES', ERROR, ERNPRM)
-         RETURN
-      ENDIF
+    integer :: ENTETE(DIMENT), BITPOS, nblocs, bkno, nobl
+    integer :: famdesc
 
-!     BLOC DE DEPART
-      BKNO = MAX(INBKNO, 0)
+    mrbprml = -1
 
-!     NOMBRE DE BLOCS A EXTRAIRE
-      NBLOCS = MIN(INBLOCS, getbuf8(buf))
-
-!     EXTRAIRE TOUTES LES ENTETES DE BLOCS
-      DO 10 NOBL = 1,NBLOCS
-!        ADRESSE DU BLOC
-         BITPOS = BKNO*NBENTB
-!        EXTRACTION DE L'ENTETE DU BLOC
-         MRBPRML = XDFXTR(BUF, ENTETE, BITPOS, DIMENT, BITMOT, 0)
-         TBLPRM(1,NOBL)  = BKNO + 1
-         famdesc         = GETBIT(ENTETE, BPFMDSC,   LFMDSC)
-         TBLPRM(6,NOBL)  = 0
-         TBLPRM(7,NOBL)  = GETBIT(ENTETE, BPTYP,   LTYP)
-         TBLPRM(8,NOBL)  = GETBIT(ENTETE, BPNBIT,  LNBIT) + 1
-         TBLPRM(9,NOBL)  = GETBIT(ENTETE, BPBIT0,  LBIT0)
-         TBLPRM(10,NOBL) = GETBIT(ENTETE, BPDATYP, LDATYP)
-         TBLPRM(2,NOBL)  = GETBIT(ENTETE, BPNELE,  LNELE)
-         IF(TBLPRM(2,NOBL) .GE. GRONELE) THEN
-            TBLPRM(2,NOBL) = GETBIT(ENTETE, BPNELE16, LNELE16)
-            TBLPRM(3,NOBL) = GETBIT(ENTETE, BPNVAL16, LNVAL16)
-            TBLPRM(4,NOBL) = GETBIT(ENTETE, BPNT16,   LNT16)
-         ELSE
-            TBLPRM(3,NOBL) = GETBIT(ENTETE, BPNVAL, LNVAL)
-            TBLPRM(4,NOBL) = GETBIT(ENTETE, BPNT,   LNT)
-         ENDIF
-
-!     
-!     construire bfam a partir de famdesc 
-!     (interchange 6 bits du bas avec 6 bits du haut)
-!     
-         TBLPRM(5,NOBL) = LSHIFT(IAND(famdesc,RMASK(6)),6)
-         TBLPRM(5,NOBL) = IOR(TBLPRM(5,NOBL),(IAND(RSHIFT(famdesc,6),RMASK(6))))
-         
-         BKNO = BKNO + 1
-10       CONTINUE 
-
-        MRBPRML = NBLOCS
-
+    !  S'ASSURER QUE LES DIMENSIONS DU TABLEAU SONT ADEQUATES
+    IF (nprm .NE. NPRMMAX) THEN
+        mrbprml = QDFERR('MRBPRML', 'DIMENSIONS DE TBLPRM INCORRECTES', ERROR, ERNPRM)
         RETURN
-        END
+    ENDIF
+
+    ! BLOC DE DEPART
+    bkno = MAX(inbkno, 0)
+
+    !  NOMBRE DE BLOCS A EXTRAIRE
+    nblocs = MIN(inblocs, getbuf8(buf))
+
+    ! EXTRAIRE TOUTES LES ENTETES DE BLOCS
+    DO nobl = 1, nblocs
+        ! ADRESSE DU BLOC
+        BITPOS = bkno * NBENTB
+        ! EXTRACTION DE L'ENTETE DU BLOC
+        mrbprml = XDFXTR(buf, ENTETE, BITPOS, DIMENT, BITMOT, 0)
+        tblprm(1,nobl)  = bkno + 1
+        famdesc         = GETBIT(ENTETE, BPFMDSC,   LFMDSC)
+        tblprm(6,nobl)  = 0
+        tblprm(7,nobl)  = GETBIT(ENTETE, BPTYP,   LTYP)
+        tblprm(8,nobl)  = GETBIT(ENTETE, BPNBIT,  LNBIT) + 1
+        tblprm(9,nobl)  = GETBIT(ENTETE, BPBIT0,  LBIT0)
+        tblprm(10,nobl) = GETBIT(ENTETE, BPDATYP, LDATYP)
+        tblprm(2,nobl)  = GETBIT(ENTETE, BPNELE,  LNELE)
+        IF (tblprm(2,nobl) .GE. GRONELE) THEN
+            tblprm(2,nobl) = GETBIT(ENTETE, BPNELE16, LNELE16)
+            tblprm(3,nobl) = GETBIT(ENTETE, BPNVAL16, LNVAL16)
+            tblprm(4,nobl) = GETBIT(ENTETE, BPNT16,   LNT16)
+        ELSE
+            tblprm(3,nobl) = GETBIT(ENTETE, BPNVAL, LNVAL)
+            tblprm(4,nobl) = GETBIT(ENTETE, BPNT,   LNT)
+        ENDIF
+
+        ! construire bfam a partir de famdesc 
+        ! (interchange 6 bits du bas avec 6 bits du haut)
+
+        tblprm(5,nobl) = LSHIFT(IAND(famdesc,RMASK(6)),6)
+        tblprm(5,nobl) = IOR(tblprm(5,nobl),(IAND(RSHIFT(famdesc,6),RMASK(6))))
+ 
+         bkno = bkno + 1
+    end do
+
+        mrbprml = nblocs
+END
