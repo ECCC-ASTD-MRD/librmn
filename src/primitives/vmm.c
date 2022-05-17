@@ -19,10 +19,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
-#include <rpnmacros.h>
+
 #ifdef WIN32    /*CHC/NRC*/
 #include <fcntl.h>
 #define S_IRUSR _S_IREAD
@@ -43,7 +44,8 @@ typedef long int pid_t;
 #endif
 #include <sys/stat.h>
 
-#include <stdlib.h>
+#include <fnom.h>
+
 
 
 /*  Pour le test testvm.f, on force la continuation
@@ -59,10 +61,6 @@ typedef long int pid_t;
 #endif
 
 #define memint int32_t
-
-// Internal prototypes
-void ouvre_ou_ferme_controle(int , int , char *);
-int obtient_environ();
 
 #if defined (TEST_VMM)
 #define NAMES Names
@@ -127,122 +125,124 @@ int obtient_environ();
 #define KEEP_IN_CORE_CKMX      123
 #define SPACE_STILL_ALLOCATED  124
 
-/* callc macro servant a verifier si vmmallc a ete appele */
-#define callc(X) (called_vmmallc == 0) ? vmmerr(X,NO_CALL_TO_VMMALLC) : 1
-
 #if defined (ALL64)
 typedef struct {
-   unsigned int key_pading : NBITKEYPAD; /* remplissage 32 bits de gauche*/
-   unsigned int key_major : NBITKEYMAJ;  /*portion majeure de la clef ( meme valeur que dans names*/
-   unsigned int key_minor : NBITKEYMIN;  /*portion mineure de la clef ( ajoute a la portion majeure */
-   } key_in_pieces ;
+    unsigned int key_pading : NBITKEYPAD; /* remplissage 32 bits de gauche*/
+    unsigned int key_major : NBITKEYMAJ;  /*portion majeure de la clef ( meme valeur que dans names*/
+    unsigned int key_minor : NBITKEYMIN;  /*portion mineure de la clef ( ajoute a la portion majeure */
+} key_in_pieces;
 #else
 #if !defined(Little_Endian)
 typedef struct {
-   unsigned int key_major : NBITKEYMAJ;   /*portion majeure de la clef ( meme valeur que dans names*/
-   unsigned int key_minor : NBITKEYMIN;   /*portion mineure de la clef ( ajoute a la portion majeure */
-   } key_in_pieces ;
+    unsigned int key_major : NBITKEYMAJ;   /*portion majeure de la clef ( meme valeur que dans names*/
+    unsigned int key_minor : NBITKEYMIN;   /*portion mineure de la clef ( ajoute a la portion majeure */
+} key_in_pieces;
 #else
 typedef struct {
-   unsigned int key_minor : NBITKEYMIN;   /*portion mineure de la clef ( ajoute a la portion majeure */
-   unsigned int key_major : NBITKEYMAJ;   /*portion majeure de la clef ( meme valeur que dans names*/
-   } key_in_pieces ;
+    unsigned int key_minor : NBITKEYMIN;   /*portion mineure de la clef ( ajoute a la portion majeure */
+    unsigned int key_major : NBITKEYMAJ;   /*portion majeure de la clef ( meme valeur que dans names*/
+} key_in_pieces;
 #endif
 #endif
-typedef union
-   {
-     int32_t clef;
-     key_in_pieces key;
-   } complete_key;
+
+typedef union {
+    int32_t clef;
+    key_in_pieces key;
+} complete_key;
 
 #if !defined(Little_Endian)
 typedef struct {
-   unsigned int keep_in_core : 1;
-   unsigned int is_in_core : 1;
-   unsigned int in_used : 1;
-   unsigned int locked : 1;
-   unsigned int save : 1;
-   unsigned int altered : 1;
-   unsigned int was_altered : 1;
-   unsigned int traced : 1;
-   unsigned int hpa_alloc : 1;
-   unsigned int disk_image : 1;
-   unsigned int size8  : 1;
-   unsigned int must_exist  : 1;
-   unsigned int class : 4;
-   unsigned int init   : 2;    /* initialisation: 0=aucune, 1= a zero, 2= au plus gros nombre machine */
-   unsigned int weight : 4;
-   unsigned int do_checksum : 1;
-   unsigned int filling1 : 1;
-   unsigned int filling2: 8;
-   } BITFLAGS;
+    unsigned int keep_in_core : 1;
+    unsigned int is_in_core : 1;
+    unsigned int in_used : 1;
+    unsigned int locked : 1;
+    unsigned int save : 1;
+    unsigned int altered : 1;
+    unsigned int was_altered : 1;
+    unsigned int traced : 1;
+    unsigned int hpa_alloc : 1;
+    unsigned int disk_image : 1;
+    unsigned int size8  : 1;
+    unsigned int must_exist  : 1;
+    unsigned int class : 4;
+    unsigned int init   : 2;    /* initialisation: 0=aucune, 1= a zero, 2= au plus gros nombre machine */
+    unsigned int weight : 4;
+    unsigned int do_checksum : 1;
+    unsigned int filling1 : 1;
+    unsigned int filling2: 8;
+} BITFLAGS;
 #else
 typedef struct {
-   unsigned int filling2: 8;
-   unsigned int filling1 : 1;
-   unsigned int do_checksum : 1;
-   unsigned int weight : 4;
-   unsigned int init   : 2;    /* initialisation: 0=aucune, 1= a zero, 2= au plus gros nombre machine */
-   unsigned int class : 4;
-   unsigned int must_exist  : 1;
-   unsigned int size8  : 1;
-   unsigned int disk_image : 1;
-   unsigned int hpa_alloc : 1;
-   unsigned int traced : 1;
-   unsigned int was_altered : 1;
-   unsigned int altered : 1;
-   unsigned int save : 1;
-   unsigned int locked : 1;
-   unsigned int in_used : 1;
-   unsigned int is_in_core : 1;
-   unsigned int keep_in_core : 1;
-   } BITFLAGS;
+    unsigned int filling2: 8;
+    unsigned int filling1 : 1;
+    unsigned int do_checksum : 1;
+    unsigned int weight : 4;
+    unsigned int init   : 2;    /* initialisation: 0=aucune, 1= a zero, 2= au plus gros nombre machine */
+    unsigned int class : 4;
+    unsigned int must_exist  : 1;
+    unsigned int size8  : 1;
+    unsigned int disk_image : 1;
+    unsigned int hpa_alloc : 1;
+    unsigned int traced : 1;
+    unsigned int was_altered : 1;
+    unsigned int altered : 1;
+    unsigned int save : 1;
+    unsigned int locked : 1;
+    unsigned int in_used : 1;
+    unsigned int is_in_core : 1;
+    unsigned int keep_in_core : 1;
+} BITFLAGS;
 #endif
 
 struct slice_table {
-   union {
-      unsigned int attributs;
-      BITFLAGS flags;
-      } info;
-   int block_table_index;
-   int name_table_index;
-   int checksum;
-   };
+    union {
+        unsigned int attributs;
+        BITFLAGS flags;
+    } info;
+    int block_table_index;
+    int name_table_index;
+    int checksum;
+};
 
 struct block_table {
-   int32_t *memadr;
-   union {
-      unsigned int attributs;
-      BITFLAGS flags;
-      } info;
-   int slice_table_index;
-   int file_adr;
-   int size;
-   int prev_fb;
-   int next_fb;
-   };
+    int32_t *memadr;
+    union {
+        unsigned int attributs;
+        BITFLAGS flags;
+    } info;
+    int slice_table_index;
+    int file_adr;
+    int size;
+    int prev_fb;
+    int next_fb;
+};
 
 struct name_table {
-   int base_file_adr;
-   int lslice;
-   int nslice;
-   int major_key;
-   int class;
-   char nom[9];
-   };
+    int base_file_adr;
+    int lslice;
+    int nslice;
+    int major_key;
+    int class;
+    char nom[9];
+};
 
 struct slice_table SLICES[MAXSLICES];
 struct block_table BLOCKS[MAXBLOCKS];
 struct name_table NAMES[MAXNAMES];
 
-static int maxmem = 0, free_space = 0, nbslices = 0, nbvar = 0, nbblocks = 0;
-static int32_t mot_de_passe = 0, pwd_set = 0;
+static int maxmem = 0;
+static int free_space = 0;
+static int nbslices = 0;
+static int nbvar = 0;
+static int nbblocks = 0;
+static int32_t mot_de_passe = 0;
+static int32_t pwd_set = 0;
 static int called_vmmallc = 0; /*called_vmmallc mis a  1 lors du 1er appel a vmmallc */
 
-static float MAXVAL= 1.0e38;
-static float zero=0.0;
-static double MAXVAL8= 1.0e308;
-static double zero8=0.0;
+static const float MAXVAL = 1.0e38;
+static const float zero = 0.0;
+static const double MAXVAL8 = 1.0e308;
+static const double zero8 = 0.0;
 
 /* variables globales pour les unites logiques des fichiers Vmm_classe
    et Vmm_controle
@@ -267,334 +267,740 @@ static int nb_lectures = 0;
 static int first_free_bloc = 0;
 static int tableau_eject[MAXBLOCKS]; /* tableau ordonne des blocs du segment a
                                         utiliser pour un load */
-static char cd_repertoire[128]= "./";       /* repertoire de travail pour les fichiers de controle */
+//! Path of the folder containing the control files
+static char controlDirPath[128] = "./";
 
 
+extern int32_t f77name(qvmcks)(const int32_t * const block, const int32_t * const nbelem, const int32_t * const mode);
 
-/***s/p calc_checksum
-*
-*objet(calc_checksum)
-*            Calculer le checksum d'un bloc memoire
-*
-*auteur J. Caveen - mai 1994
-*
-*arguments
-*         in  bkno - numero du block memoire
-*
-**/
-int
-calc_checksum(int bkno)
-{
-     extern int32_t f77name(qvmcks)();
 
-     int32_t  *adresse, longueur;
-     int32_t mode = 1;
-     int checks;
+//! Print the list of free and used blocs
+static void imprime() {
+    printf(" Nombre de BLOCKSs = %d\n",nbblocks);
+    printf(" Premier BLOCKS libre = %d\n", first_free_bloc);
 
-     adresse = (int32_t *) BLOCKS[bkno].memadr;
-     longueur = (int32_t) BLOCKS[bkno].size;
+    printf(" Liste des BLOCKSs libres\n");
 
-     checks=(int) (f77name(qvmcks)(adresse,&longueur,&mode));
+    int i = first_free_bloc;
+    while(i != -1) {
+        printf(" BLOCKS[%d].prev=%d,BLOCKS[%d].next=%d,BLOCKS[%d].size=%d\n",
+                 i, BLOCKS[i].prev_fb,i, BLOCKS[i].next_fb,i,BLOCKS[i].size);
+        i = BLOCKS[i].next_fb;
+    }
 
-     fprintf(fdout,"Checksum block numero %d, variable %s, tranche %d = %d\n",
-               bkno,NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
-               BLOCKS[bkno].slice_table_index -
-               NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1,
-               checks);
-
-     return(checks);
+    printf(" Liste des BLOCKSs utilises\n");
+    for (i = 0; i < nbblocks; i++) {
+        if (BLOCKS[i].info.flags.in_used) {
+            printf(" BLOCKS[%d].next=%d,BLOCKS[%d].prev=%d,BLOCKS[%d].size=%d\n",
+                   i, BLOCKS[i].prev_fb,i, BLOCKS[i].next_fb,i,BLOCKS[i].size);
+        }
+    }
 }
 
 
+//! Checksum a memory bloc
+static int calc_checksum(
+    //! [in] Memory block number
+    const int bkno
+) {
+    int32_t * adresse = (int32_t *) BLOCKS[bkno].memadr;
+    int32_t longueur = (int32_t) BLOCKS[bkno].size;
+    int32_t mode = 1;
+    int checks = (int) (f77name(qvmcks)(adresse, &longueur, &mode));
 
-/***s/p collapse_blocks
-*
-*objet(collapse_blocks)
-*     Regrouper deux blocs vides adjacents
-*
-*auteur M. Lepine  -  juillet 1993
-*
-*arguments
-*     in   i      index du premier bloc
-*     in   inext  index du deuxieme bloc
-*
-**/
-void
-collapse_blocks(int i, int inext)
-{
-   void imprime();
-   int verbar();
-   int j,ier;
+    fprintf(fdout, "Checksum block numero %d, variable %s, tranche %d = %d\n",
+            bkno, NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
+            BLOCKS[bkno].slice_table_index -
+            NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1,
+            checks);
 
-   BLOCKS[i].size += BLOCKS[inext].size;
-   BLOCKS[i].next_fb =
-        (BLOCKS[inext].next_fb == -1 ? -1: BLOCKS[inext].next_fb-1);
-
-   for (j=0; j < nbslices; j++)
-      if (SLICES[j].block_table_index > i)
-         SLICES[j].block_table_index --;
-   for (j=inext; j < nbblocks-1; j++) {
-     ier = verbar(j);
-     ier = verbar(j+1);
-     BLOCKS[j].info.attributs = BLOCKS[j+1].info.attributs;
-     BLOCKS[j].slice_table_index = BLOCKS[j+1].slice_table_index;
-     BLOCKS[j].memadr = BLOCKS[j+1].memadr;
-     BLOCKS[j].file_adr = BLOCKS[j+1].file_adr;
-     BLOCKS[j].size = BLOCKS[j+1].size < 0 ? 0 :BLOCKS[j+1].size;
-     BLOCKS[j].prev_fb = BLOCKS[j+1].prev_fb == -1 ? -1:BLOCKS[j+1].prev_fb -1;
-     BLOCKS[j].next_fb = BLOCKS[j+1].next_fb == -1 ? -1:BLOCKS[j+1].next_fb -1;
-     }
-   nbblocks--;
-
-/*
-   fprintf(fdout," COLLAPSE_BLOC\n");
-   imprime();
-*/
-   }
+    return checks;
+}
 
 
+//! Print memory block delimiters in float format
+static void imp_bar(
+    //! [in] Integer value to print as float
+    const int * const valeur
+) {
+    float * fvaleur = (float *) valeur;
+    fprintf(fdout, "\nTRUE FLOAT VALUE OF BLOCK DELIMITOR: %f\n", *fvaleur);
+}
 
-/***s/p ecrit_bloc
-*
-*objet(ecrit_bloc)
-*     Ecrire un block sur disque ou dans le XMU
-*
-*auteur J. Caveen  -  juillet 1993
-*
-*arguments
-*     in   bkno      numero du bloc a ecrire
-*     in   classe      classe de la variable (1 a 9)
-*     in   memadresse  adresse memoire de la tranche
-*     in   fileadresse adresse sur le fichier de la tranche
-*     in   nmots    longueur en mots de la tranche
-*
-**/
-void
-ecrit_bloc(int bkno,int classe,int32_t *memadresse,
-                        int fileadresse,int nmots)
-{
-      int verbar(),calc_checksum();
-/*
-      void  ouvre_ou_ferme_controle();
-*/
 
-      int32_t iun, lfileadresse, lnmots, ier;
+//! Print real values of the memory addresses around delimiter
+static void impval(
+    //! [in] Starting address from which to print
+    const int32_t * const adresse
+) {
+    float * fadresse = (float *) adresse;
 
-      ier = verbar(bkno);
-      if( ! fichiers_ouverts) ouvre_ou_ferme_controle(1,0,"ecrit_bloc");
+    for (int i = 0; i < 5; i++) {
+        fprintf(fdout, "%f ", *fadresse);
+        fadresse++;
+    }
 
-      iun = (int32_t) fclass[classe - 1];
-      lfileadresse = (int32_t) fileadresse;
-      lnmots = (int32_t) nmots;
-/*
-#if ! defined (ALL64)
-      lnmots *=
-       (SLICES[BLOCKS[bkno].slice_table_index].info.flags.size8 == 1) ? 2:1;
-#endif
-*/
-      if(SLICES[BLOCKS[bkno].slice_table_index].info.flags.do_checksum)
-            SLICES[BLOCKS[bkno].slice_table_index].checksum =
-                                             calc_checksum(bkno);
+    int intval = BARVAL;
+    imp_bar(&intval);
+}
 
-      f77name(wawrit)(&iun,memadresse,&lfileadresse,&lnmots);
-      BLOCKS[bkno].info.flags.altered = 0;
-      BLOCKS[bkno].info.flags.was_altered = 0;
-      BLOCKS[bkno].info.flags.disk_image = 1;
-      SLICES[BLOCKS[bkno].slice_table_index].info.flags.altered = 0;
-      SLICES[BLOCKS[bkno].slice_table_index].info.flags.was_altered = 0;
-      SLICES[BLOCKS[bkno].slice_table_index].info.flags.disk_image = 1;
 
-      if ((SLICES[BLOCKS[bkno].slice_table_index].info.flags.traced) ||
-                                                             debug_mode)
+//! Print all allocated structures
+static void imprime_structures(
+    //! [in] What to print
+    //! | Value | Description  |
+    //! | ----: | :----------- |
+    //! |     0 | block_table  |
+    //! |     1 | slice_table  |
+    //! |     2 | name_table   |
+    int mode
+) {
+    switch(mode) {
+        case 0:
+            printf("\nContenu de blocks\n");
+            for (int indice = 0; indice < nbblocks; indice++)  {
+                printf("  Indice du bloc: %d\n",indice);
+                printf("     keep_in_core       : %d\n",BLOCKS[indice].info.flags.keep_in_core);
+                printf("     is_in_core         : %d\n",BLOCKS[indice].info.flags.is_in_core);
+                printf("     in_used            : %d\n",BLOCKS[indice].info.flags.in_used);
+                printf("     locked             : %d\n",BLOCKS[indice].info.flags.locked);
+                printf("     save               : %d\n",BLOCKS[indice].info.flags.save);
+                printf("     altered            : %d\n",BLOCKS[indice].info.flags.altered);
+                printf("     was_altered        : %d\n",BLOCKS[indice].info.flags.was_altered);
+                printf("     traced             : %d\n",BLOCKS[indice].info.flags.traced);
+                printf("     hpa_alloc          : %d\n",BLOCKS[indice].info.flags.hpa_alloc);
+                printf("     disk_image         : %d\n",BLOCKS[indice].info.flags.disk_image);
+                printf("     size8              : %d\n",BLOCKS[indice].info.flags.size8);
+                printf("     must_exist         : %d\n",BLOCKS[indice].info.flags.must_exist);
+                printf("     class              : %d\n",BLOCKS[indice].info.flags.class);
+                printf("     weight             : %d\n",BLOCKS[indice].info.flags.weight);
+                printf("     do_checksum        : %d\n",BLOCKS[indice].info.flags.do_checksum);
+                printf("     init               : %d\n",BLOCKS[indice].info.flags.init);
+                printf("     slice_table_index  : %d\n",BLOCKS[indice].slice_table_index);
+                printf("     file_adr           : %d\n",BLOCKS[indice].file_adr);
+                printf("     memadr             : %x\n",BLOCKS[indice].memadr);
+                printf("     size               : %d\n",BLOCKS[indice].size);
+                printf("     prev_fb            : %d\n",BLOCKS[indice].prev_fb);
+                printf("     next_fb            : %d\n",BLOCKS[indice].next_fb);
+            }
+            break;
+        case 1:
+            printf("\nContenu de slices\n");
+            for (int indice = 0; indice < nbslices; indice++) {
+                printf("  Indice de la slice: %d\n",indice);
+                printf("     keep_in_core       : %d\n",SLICES[indice].info.flags.keep_in_core);
+                printf("     is_in_core         : %d\n",SLICES[indice].info.flags.is_in_core);
+                printf("     in_used            : %d\n",SLICES[indice].info.flags.in_used);
+                printf("     locked             : %d\n",SLICES[indice].info.flags.locked);
+                printf("     save               : %d\n",SLICES[indice].info.flags.save);
+                printf("     altered            : %d\n",SLICES[indice].info.flags.altered);
+                printf("     was_altered        : %d\n",SLICES[indice].info.flags.was_altered);
+                printf("     traced             : %d\n",SLICES[indice].info.flags.traced);
+                printf("     hpa_alloc          : %d\n",SLICES[indice].info.flags.hpa_alloc);
+                printf("     disk_image         : %d\n",SLICES[indice].info.flags.disk_image);
+                printf("     size8              : %d\n",SLICES[indice].info.flags.size8);
+                printf("     must_exist         : %d\n",SLICES[indice].info.flags.must_exist);
+                printf("     class              : %d\n",SLICES[indice].info.flags.class);
+                printf("     weight             : %d\n",SLICES[indice].info.flags.weight);
+                printf("     do_checksum        : %d\n",SLICES[indice].info.flags.do_checksum);
+                printf("     init               : %d\n",SLICES[indice].info.flags.init);
+                printf("     block_table_index  : %d\n",SLICES[indice].block_table_index);
+                printf("     name_table_index   : %d\n",SLICES[indice].name_table_index);
+                printf("     checksum           : %d\n",SLICES[indice].checksum);
+            }
+            break;
+        case 2:
+            printf("\nContenu de names\n");
+            for (int indice = 0; indice < nbvar; indice++) {
+                printf("  Indice de la variable: %d\n", indice);
+                printf("     nom          : %s\n",NAMES[indice].nom);
+                printf("     base_file_adr: %d\n",NAMES[indice].base_file_adr);
+                printf("     lslice       : %d\n",NAMES[indice].lslice);
+                printf("     nslice       : %d\n",NAMES[indice].nslice);
+                printf("     major_key    : %d\n",NAMES[indice].major_key);
+                printf("     class        : %d\n",NAMES[indice].class);
+            }
+            break;
+    }
+}
+
+
+//! Print error messages and terminate execution as required
+int vmmerr(
+    //! [in] Name of the calling function
+    const char * const fnctName,
+    //! [in] Errror code
+    int32_t errorCode
+) {
+    switch (errorCode) {
+        case NO_CALL_TO_VMMALLC:
+            fprintf(fd_err, "ERROR - %s - NO PREVIOUS CALL TO VMMALLC\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case VMMALLC_ALREADY_CALLED:
+            fprintf(fd_err, "ERROR - %s - VMMALLC ALREADY CALLED\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case NO_SPACE_LEFT_FOR_LOAD:
+            fprintf(fd_err, "ERROR - %s - NO SPACE LEFT FOR LOAD\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case CONTROL_FILE_ERROR:
+            fprintf(fd_err, "ERROR - %s - CANNOT OPEN CONTROL FILES\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case PWD_ALREADY_SET:
+            fprintf(fd_err, "ERROR - %s - PASSWORD IS ALREADY SET\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case BAD_PASSWORD:
+            fprintf(fd_err, "ERROR - %s - WRONG PASSWORD\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case PASSWORD_IS_SET:
+            fprintf(fd_err, "ERROR - %s - PASSWORD IS SET\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case VAR_MUST_EXIST:
+            fprintf(fd_err, "ERROR - %s - VARIABLE MUST EXIST FOR A RESTART\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case CONTROLE_DAMAGE:
+            fprintf(fd_err, "ERROR - %s - NAMES-SLICES OR BLOCK-SLICES INCONSISTENCIES\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case NOT_ENOUGH_MEMORY:
+            fprintf(fd_err, "ERROR - %s - CANNOT ALLOCATE MEMORY REQUESTED\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case TOO_MANY_KEYS:
+            fprintf(fd_err, "ERROR - %s - NKEYS > %d, LIMIT EXCEEDED\n", fnctName, NCLEMAX);
+            SORTIR(errorCode)
+            break;
+        case BAD_CKSUM_MODE:
+            fprintf(fd_err, "ERROR - %s - BAD MODE FOR CHECK SUM\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case UNKNOWNVAR:
+            fprintf(fd_err, "ERROR - %s - UNKNOWN VARIABLE\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case -BADINKEY:
+            fprintf(fd_err, "ERROR - %s - BAD KEY\n", fnctName);
+            SORTIR(-errorCode)
+            // cas du test vmm pour retourner une errorCode negative
+            errorCode = -errorCode;
+            break;
+        case NOT_IN_CORE:
+            fprintf(fd_err, "ERROR - %s - SLICE NOT IN CORE\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case ALREADY_LOCKED:
+            fprintf(fd_err, "ERROR - %s - SLICE ALREADY LOCKED\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case BLOCK_DAMAGE:
+            fprintf(fd_err, "ERROR - %s - MEMORY BLOCK DAMAGE\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case ATTRIBUTS_MODIFIES:
+            fprintf(fd_err, "ERROR - %s - MODIFICATION TO UNCHANGEABLE ATTRIBUTES OF A VARIABLE\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case SLICE_TOO_BIG:
+            fprintf(fd_err, "ERROR - %s - SLICE LONGER THAN TOTAL MEMORY REQUESTED\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case CHECKSUM_ERROR:
+            fprintf(fd_err, "ERROR - %s - CHECKSUM MODIFIED FOR AN UNLOCKED FIELD\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case CHECKSUM_READ_ERROR:
+            fprintf(fd_err, "ERROR - %s - CHECKSUM ERROR WHILE READING FROM FILE\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case KEEP_IN_CORE_CPK:
+            fprintf(fd_err, "ERROR - %s - CALL TO VMMCPK WITH KEEP IN CORE FIELDS\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case KEEP_IN_CORE_CKMX:
+            fprintf(fd_err, "ERROR - %s - CALL TO VMMCKMX WITH KEEP IN CORE FIELDS\n", fnctName);
+            SORTIR(errorCode)
+            break;
+        case WAS_ALTERED_RELEASE:
+            fprintf(fd_err, "WARNING - %s - RELEASING A POSSIBLY MODIFIED FIELD\n", fnctName);
+            break;
+      }
+
+    return (int) (-errorCode);
+}
+
+
+//! Check if vmmallc was called
+static void callc(const char * const fnctName) {
+    if (called_vmmallc == 0) {
+        vmmerr(fnctName, NO_CALL_TO_VMMALLC);
+    }
+}
+
+//! Check if beginning and end markers of a memory block are intact
+//!
+//! If markers have been modified, an error message is printed and
+//! execution is terminated.
+//!
+//! \return 0 on success
+int verbar(
+    //! [in] Index of the block to check
+    int bkno
+) {
+    int erreur = 0;
+    if (! BLOCKS[bkno].info.flags.in_used) {
+        return(erreur);
+    }
+
+    if (*(BLOCKS[bkno].memadr -1)^BARVAL) {
+        erreur++;
+        fprintf(fdout," ERROR - BEGINNING BLOCK DELIMITOR FOR BLOCK %d IS DAMAGED\n",bkno);
+
+        if((bkno > 0) && (BLOCKS[bkno-1].info.flags.in_used)) {
+            fprintf(fdout,"       - POSSIBLE MEMORY OVERLAP: VARIABLE %s, SLICE %d\n",
+                                NAMES[SLICES[BLOCKS[bkno-1].slice_table_index].name_table_index].nom,
+                                BLOCKS[bkno-1].slice_table_index -
+                                NAMES[SLICES[BLOCKS[bkno-1].slice_table_index].name_table_index].major_key + 1);
+            fprintf(fdout,"                              AND VARIABLE %s, SLICE %d\n",
+                                NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
+                                BLOCKS[bkno].slice_table_index -
+                                NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
+
+            fprintf(fdout,"BLOCK DELIMITOR ADDRESS +- 2 WORDS\n");
+            impval(BLOCKS[bkno].memadr-2);
+        } else {
+            fprintf(fdout,"       - POSSIBLE ADDRESSING ERROR: VARIABLE %s, SLICE %d\n",
+                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
+                             BLOCKS[bkno].slice_table_index -
+                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
+
+            fprintf(fdout,"BLOCK DELIMITOR ADDRESS + 4  WORDS\n");
+            impval(BLOCKS[bkno].memadr-1);
+        }
+    }
+
+    if (*(BLOCKS[bkno].memadr+BLOCKS[bkno].size-1)^BARVAL) {
+        erreur++;
+        fprintf(fdout," ERROR - END BLOCK DELIMITOR FOR BLOCK %d IS DAMAGED\n",bkno);
+        if ((bkno <  (nbblocks-1)) && (BLOCKS[bkno+1].info.flags.in_used)) {
+            fprintf(fdout,"       - POSSIBLE MEMORY OVERLAP: VARIABLE %s, SLICE %d\n",
+                                NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
+                                BLOCKS[bkno].slice_table_index -
+                                NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
+            fprintf(fdout,"         AND VARIABLE %s, SLICE %d\n",
+                                NAMES[SLICES[BLOCKS[bkno+1].slice_table_index].name_table_index].nom,
+                                BLOCKS[bkno+1].slice_table_index -
+                                NAMES[SLICES[BLOCKS[bkno+1].slice_table_index].name_table_index].major_key + 1);
+
+            fprintf(fdout,"BLOCK DELIMITOR ADDRESS +- 2 WORDS\n");
+            impval(BLOCKS[bkno].memadr+BLOCKS[bkno].size-2);
+        } else {
+            fprintf(fdout,"       - POSSIBLE ADDRESSING ERROR: VARIABLE %s, SLICE %d\n",
+                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
+                             BLOCKS[bkno].slice_table_index -
+                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
+
+            fprintf(fdout,"BLOCK DELIMITOR ADDRESS - 4 WORDS\n");
+            impval(BLOCKS[bkno].memadr+BLOCKS[bkno].size-5);
+        }
+    }
+
+    if (erreur) {
+        if (debug_mode) {
+            imprime_structures(2);
+            imprime_structures(1);
+            imprime_structures(0);
+        }
+        return (vmmerr("VERBAR",BLOCK_DAMAGE));
+    }
+
+    return 0;
+}
+
+
+//! Initialize global variables from the VMM_CONFIG environment variable
+//!
+//! debug_mode, checksum_mod, fclass_names and fcontrole are initialized
+//!
+//! \return The string length of the path of the folder to use
+static int initFromEnv() {
+    static char *noms[] = {"Vmm_01", "Vmm_02", "Vmm_03", "Vmm_04", "Vmm_05", 
+        "Vmm_06", "Vmm_07", "Vmm_08", "Vmm_09", "Vmm_controle"} ;
+
+    char repertoire[NCARMAX];
+    char rslt_fic[NCARMAX];
+    for (int i = 0; i < NCARMAX; i++) {
+        repertoire[i] = '\0';
+        rslt_fic[i] = '\0';
+    }
+
+    sprintf(repertoire, "%s", controlDirPath);
+
+    int dbg_cks = 0;
+    const char * const vmmConfig = (char *) getenv("VMM_CONFIG");
+    if (vmmConfig != (char *) NULL) {
+        sscanf(vmmConfig, "%s %d %s", &repertoire[0], &dbg_cks, &rslt_fic[0]);
+    }
+
+    // initialiser debug_mode et/ou checksum_mode selon la valeur de dbg_cks
+    switch(dbg_cks) {
+        case ENVDEBUG:
+            debug_mode = 1;
+            break;
+        case ENVCHECKSUM:
+            checksum_mode = 1;
+            break;
+        case ENVPARANOID:
+            debug_mode = 1;
+            checksum_mode = 1;
+            break;
+    }
+
+    // initialiser les noms de fichiers Vmm_0n et Vmm_controle
+    int longueur = strlen(repertoire);
+    if (longueur > 0) {
+        if (repertoire[longueur - 1] != '/') {
+            repertoire[longueur] = '/';
+            longueur++;
+        }
+    }
+
+    for (int i = 0; i < 9; i++) {
+        fclass_names[i] = (char *) calloc(longueur + 7, sizeof(char));
+        strcpy(fclass_names[i], repertoire);
+        strcat(fclass_names[i], noms[i]);
+    }
+
+    fcontrole_name = (char *) calloc(longueur + 13, sizeof(char));
+    strcpy(fcontrole_name, repertoire);
+    strcat(fcontrole_name, noms[9]);
+
+    // ouvrir le fichier pour imprimer les resultats d'execution
+    if (strlen(rslt_fic) > 0) {
+        if ( ! strncmp(rslt_fic, "stdout", 6) ) {
+            fdout = stdout;
+        } else if( ! strncmp(rslt_fic, "fd_err", 6) ) {
+            fdout = fd_err;
+        } else {
+            if ((fdout = fopen(rslt_fic,"w")) == (FILE *) NULL) {
+                fprintf(fd_err, " WARNING - CANNOT OPEN OUTPUT FILE %s\n", rslt_fic);
+                fprintf(fd_err, "           USING STDOUT  INSTEAD\n");
+                fdout = stdout;
+            }
+        }
+    } else {
+        fdout = stdout;
+    }
+
+    if (debug_mode) {
+        fprintf(fdout, " VMM_CONFIG=%s\n", vmmConfig);
+        fprintf(fdout, " Repertoire pour fichiers de controle=%s\n", repertoire);
+        fprintf(fdout, " Fichier de sortie=%s\n", rslt_fic);
+    }
+
+    return longueur;
+}
+
+
+//! Open or close the files used by the vrtual memroy system
+static void ouvre_ou_ferme_controle(
+    //! [in] Open when != 1.  Close when == 0
+    int ouvre,
+    //! [in] Non-zero if this is the first call to bind the unit number with the file name
+    int premiere_fois,
+    //! [in] Name of the calling function
+    const char * const fnctName
+) {
+    if (premiere_fois) {
+        int lng = initFromEnv();
+        int32_t ier = 0;
+        const int mzero = 0;
+        for (int i = 0; i < NCLASSE; i++) {
+            int32_t iun = 0;
+            ier += f77name(fnom)(&iun, fclass_names[i], "RND+R/W", &mzero, lng + 6, 7);
+            fclass[i] = (int) iun;
+        }
+        if (ier != 0) {
+            vmmerr(fnctName,CONTROL_FILE_ERROR);
+        }
+    }
+
+    if (ouvre) {
+        for (int i = 0; i < NCLASSE; i++) {
+            c_waopen(fclass[i]);
+        }
+
+        fcontrole = open(fcontrole_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        fichiers_ouverts = 1;
+     } else {
+        for (int i = 0; i < NCLASSE; i++) {
+            c_waclos(fclass[i]);
+        }
+
+        close(fcontrole);
+        fichiers_ouverts = 0;
+    }
+}
+
+
+//! Wtite block to disc or in the XMU
+void ecrit_bloc(
+    //! [in] Number of the block to write
+    int bkno,
+    //! [in] Variable class (1 to 9)
+    int classe,
+    //! [in] Slice memory address
+    int32_t *memadresse,
+    //! [in] Address in the slice file
+    int fileadresse,
+    //! [in] Length of the slice in words
+    int nmots
+) {
+    verbar(bkno);
+    if (! fichiers_ouverts) {
+        ouvre_ou_ferme_controle(1, 0, "ecrit_bloc");
+    }
+
+    int32_t iun = (int32_t) fclass[classe - 1];
+    int32_t lfileadresse = (int32_t) fileadresse;
+    int32_t lnmots = (int32_t) nmots;
+
+    if (SLICES[BLOCKS[bkno].slice_table_index].info.flags.do_checksum) {
+        SLICES[BLOCKS[bkno].slice_table_index].checksum = calc_checksum(bkno);
+    }
+
+    f77name(wawrit)(&iun, memadresse, &lfileadresse, &lnmots);
+    BLOCKS[bkno].info.flags.altered = 0;
+    BLOCKS[bkno].info.flags.was_altered = 0;
+    BLOCKS[bkno].info.flags.disk_image = 1;
+    SLICES[BLOCKS[bkno].slice_table_index].info.flags.altered = 0;
+    SLICES[BLOCKS[bkno].slice_table_index].info.flags.was_altered = 0;
+    SLICES[BLOCKS[bkno].slice_table_index].info.flags.disk_image = 1;
+
+    if ((SLICES[BLOCKS[bkno].slice_table_index].info.flags.traced) || debug_mode) {
           fprintf(fdout,
           "VMM trace: ecriture dans le fichier Vmm_0%d de la variable %s tranche %d\n",classe,
            NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
            BLOCKS[bkno].slice_table_index -
            NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
-
-
-      nb_ecritures++;
-}
-
-/***s/p ecrit_vmm_controle
- *
- *objet(ecrit_vmm_controle)
-*      ecrire les structures du systeme de gestion de memoire virtuelle
-*      dans le fichier Vmm_controle.
-*
-*      le fichier est structure comme suit:
-*         [nbvar,tous les names,nbslices,toutes les slices]
-*
-*auteur: J. Caveen- juin 1993
-*
-*argument
-**/
-void
-ecrit_vmm_controle()
-{
-/*
-      void  ouvre_ou_ferme_controle();
-*/
-
-/* ETG ofset of type off_t */
-   int nmots,i;
-   off_t ofset;
-
-   if( ! fichiers_ouverts) ouvre_ou_ferme_controle(1,0,"ecrit_vmm_controle");
-
-   ofset = 0;
-   ofset = lseek(fcontrole, ofset, SEEK_SET);
-   nmots = write(fcontrole,&nbvar,4);
-
-   nmots = sizeof(struct name_table)*nbvar;
-   nmots = write(fcontrole,&NAMES[0],nmots);
-   /*
-    *    ecriture des tranches
-    *    on met tous les marqueurs appropries a nul
-    *    (keep_in_core, is_in_core, etc
-    *    apres l'ecriture, ont leur redonne leur valeur originale
-    */
-
-   for (i = 0; i < nbblocks; i++)
-   {
-      if(BLOCKS[i].info.flags.in_used)
-      {
-       SLICES[BLOCKS[i].slice_table_index].block_table_index = -1;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core = 0;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core = 0;
-         SLICES[BLOCKS[i].slice_table_index].info.flags.in_used = 0;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.locked = 0;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.altered = 0;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered = 0;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.traced = 0;
-      }
-   }
-   nmots = write(fcontrole,&nbslices,4);
-   nmots = sizeof(struct slice_table)*nbslices;
-   nmots = write(fcontrole,&SLICES[0],nmots);
-
-/*
- *    on redonne aux slices les attributs des blocks
- */
-   for (i = 0; i < nbblocks; i++)
-   {
-      if(BLOCKS[i].info.flags.in_used)
-      {
-       SLICES[BLOCKS[i].slice_table_index].block_table_index = i;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core =
-       BLOCKS[i].info.flags.keep_in_core;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core =
-       BLOCKS[i].info.flags.is_in_core;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.in_used =
-       BLOCKS[i].info.flags.in_used;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.locked =
-       BLOCKS[i].info.flags.locked;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.altered =
-       BLOCKS[i].info.flags.altered;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered =
-       BLOCKS[i].info.flags.was_altered;
-       SLICES[BLOCKS[i].slice_table_index].info.flags.traced =
-       BLOCKS[i].info.flags.traced;
-      }
-   }
-
-}
-
-/***s/p eject_block
-*
-*objet(eject_block)
-*     Ejecter un bloc de la memoire pour recuperer l'espace
-*
-*auteur M. Lepine  -  juillet 1993
-*
-*arguments
-*     in   bkno     numero du bloc a expulser
-*     in   save     indique si on doit sauver le bloc sur disque selon
-*                   les attributs du bloc (save, altered ...)
-*
-**/
-int
-eject_block(int bkno,int save,int fait_checksum)
-
-{
-   void imprime();
-   void ecrit_bloc(), reserve_disk_space();
-   int verbar(), calc_checksum();
-   int ind,ier,cks,indx;
-
-    if ( ! BLOCKS[bkno].info.flags.in_used)
-         return(0);
-   ind = BLOCKS[bkno].slice_table_index;
-
-   if(ind != -1)
-   {
-      if(fait_checksum && (SLICES[ind].info.flags.do_checksum || checksum_mode))
-      {
-         cks = calc_checksum(bkno);
-         if(cks != SLICES[ind].checksum)
-            return(vmmerr("EJECT_BLOCK",CHECKSUM_ERROR));
-
-         SLICES[ind].checksum = 0;
-      }
-   }
-   ier = verbar(bkno);
-   if ((BLOCKS[bkno].info.flags.traced) || debug_mode)
-      fprintf(fdout,"VMM trace: ejection du bloc %d variable %s tranche %d\n",
-      bkno,NAMES[SLICES[ind].name_table_index].nom,
-      ind - NAMES[SLICES[ind].name_table_index].major_key + 1);
-
-
-   if (save) {
-     if ((BLOCKS[bkno].info.flags.save) && ((BLOCKS[bkno].info.flags.altered)
-      || (BLOCKS[bkno].info.flags.was_altered))) {
-        if(NAMES[SLICES[ind].name_table_index].base_file_adr == -1)
-             reserve_disk_space(bkno);
-      ecrit_bloc(bkno,BLOCKS[bkno].info.flags.class,BLOCKS[bkno].memadr,
-                BLOCKS[bkno].file_adr,BLOCKS[bkno].size);
-      }
-     }
-   BLOCKS[bkno].info.attributs = 0;
-   BLOCKS[bkno].slice_table_index= -1;
-   if(ind != -1)
-   {
-      SLICES[ind].info.flags.is_in_core = 0;
-      SLICES[ind].info.flags.keep_in_core = 0;
-      SLICES[ind].info.flags.in_used = 0;
-      SLICES[ind].info.flags.locked = 0;
-      SLICES[ind].info.flags.altered = 0;
-      SLICES[ind].info.flags.was_altered = 0;
-      SLICES[ind].block_table_index = -1;
-   }
-   /* rechainage des pointeurs de blocs libres */
-   if(first_free_bloc > bkno)
-   {
-      BLOCKS[bkno].prev_fb = -1;
-      BLOCKS[bkno].next_fb = first_free_bloc;
-      BLOCKS[first_free_bloc].prev_fb = bkno;
-      first_free_bloc = bkno;
-   }
-   else
-   {
-       indx = first_free_bloc;
-       while(1)
-       {
-           if((BLOCKS[indx].next_fb == -1) ||
-              (BLOCKS[indx].next_fb > bkno))
-                      break;
-
-           indx = BLOCKS[indx].next_fb;
-       }
-       BLOCKS[bkno].next_fb = BLOCKS[indx].next_fb;
-       BLOCKS[bkno].prev_fb = indx;
-       BLOCKS[BLOCKS[indx].next_fb].prev_fb = bkno;
-       BLOCKS[indx].next_fb = bkno;
     }
 
-/*
-   imprime();
-*/
-   return(BLOCKS[bkno].size);
+    nb_ecritures++;
+}
+
+
+//! Regroup 2 adjacent empty blocs
+void collapse_blocks(
+    //! [in] Index of the first bloc
+    int bloc1,
+    //! [in] Index of the second bloc
+    int bloc2
+) {
+    BLOCKS[bloc1].size += BLOCKS[bloc2].size;
+    BLOCKS[bloc1].next_fb = (BLOCKS[bloc2].next_fb == -1 ? -1: BLOCKS[bloc2].next_fb-1);
+
+    for (int j = 0; j < nbslices; j++) {
+        if (SLICES[j].block_table_index > bloc1) {
+            SLICES[j].block_table_index --;
+        }
+    }
+    for (int j = bloc2; j < nbblocks-1; j++) {
+        verbar(j);
+        verbar(j+1);
+        BLOCKS[j].info.attributs = BLOCKS[j+1].info.attributs;
+        BLOCKS[j].slice_table_index = BLOCKS[j+1].slice_table_index;
+        BLOCKS[j].memadr = BLOCKS[j+1].memadr;
+        BLOCKS[j].file_adr = BLOCKS[j+1].file_adr;
+        BLOCKS[j].size = BLOCKS[j+1].size < 0 ? 0 :BLOCKS[j+1].size;
+        BLOCKS[j].prev_fb = BLOCKS[j+1].prev_fb == -1 ? -1:BLOCKS[j+1].prev_fb -1;
+        BLOCKS[j].next_fb = BLOCKS[j+1].next_fb == -1 ? -1:BLOCKS[j+1].next_fb -1;
+    }
+    nbblocks--;
+}
+
+
+//! Write virtual memory system structures in the Vmm_controle file
+void ecrit_vmm_controle() {
+    if ( ! fichiers_ouverts) {
+       ouvre_ou_ferme_controle(1, 0, "ecrit_vmm_controle");
+    }
+
+    /* ETG ofset of type off_t */
+    off_t ofset = 0;
+    ofset = lseek(fcontrole, ofset, SEEK_SET);
+    int nmots = write(fcontrole,&nbvar,4);
+
+    nmots = sizeof(struct name_table)*nbvar;
+    nmots = write(fcontrole,&NAMES[0],nmots);
+    // ecriture des tranches
+    // on met tous les marqueurs appropries a nul
+    // (keep_in_core, is_in_core, etc) apres l'ecriture, ont leur redonne leur valeur originale
+
+    for (int i = 0; i < nbblocks; i++) {
+        if (BLOCKS[i].info.flags.in_used) {
+            SLICES[BLOCKS[i].slice_table_index].block_table_index = -1;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core = 0;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core = 0;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.in_used = 0;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.locked = 0;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.altered = 0;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered = 0;
+            SLICES[BLOCKS[i].slice_table_index].info.flags.traced = 0;
+        }
+    }
+    nmots = write(fcontrole,&nbslices,4);
+    nmots = sizeof(struct slice_table)*nbslices;
+    nmots = write(fcontrole,&SLICES[0],nmots);
+
+    // Redonner aux slices les attributs des blocks
+    for (int i = 0; i < nbblocks; i++) {
+        if (BLOCKS[i].info.flags.in_used) {
+        SLICES[BLOCKS[i].slice_table_index].block_table_index = i;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.keep_in_core = BLOCKS[i].info.flags.keep_in_core;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.is_in_core = BLOCKS[i].info.flags.is_in_core;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.in_used = BLOCKS[i].info.flags.in_used;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.locked = BLOCKS[i].info.flags.locked;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.altered = BLOCKS[i].info.flags.altered;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered = BLOCKS[i].info.flags.was_altered;
+        SLICES[BLOCKS[i].slice_table_index].info.flags.traced = BLOCKS[i].info.flags.traced;
+      }
    }
+}
+
+
+//! Reserve space on disk to write variables
+//!
+//! Disk space is reserved only when needed
+//!
+//! Space for all the slices of a variable is reserved
+void reserve_disk_space(
+    //! [in] Block number
+    int bkno
+) {
+    int ind = SLICES[BLOCKS[bkno].slice_table_index].name_table_index;
+
+    if (debug_mode) {
+        fprintf(fdout," RESERVE_DISK_SPACE-Allocation d'espace disque, variable=%s,lslice=%d,nslice=%d\n",
+        NAMES[ind].nom, NAMES[ind].lslice, NAMES[ind].nslice);
+    }
+
+    int cl = NAMES[ind].class;
+    int32_t nmots =  (int32_t) NAMES[ind].lslice;
+#if !defined (ALL64)
+    nmots *= (BLOCKS[bkno].info.flags.size8 == 1) ? 2 :1;
+#endif
+
+    // init. des adresses d'ecriture
+    NAMES[ind].base_file_adr = wp_Vmm[cl - 1];
+    int32_t lpos = (int32_t) wp_Vmm[cl - 1];
+    int32_t * bidon = BLOCKS[0].memadr;
+    int32_t liun = (int32_t) fclass[cl - 1];
+    // Reserver l'espace pour toutes les tranches de la variable
+    for (int i = 0; i < NAMES[ind].nslice; i++) {
+        f77name(wawrit)(&liun, bidon, &lpos, &nmots);
+        lpos += nmots;
+    }
+    // Mise a jour de la position d'ecriture dans le premier mot du fichier
+    wp_Vmm[cl - 1] =  (int) lpos;
+    int32_t lun = 1;
+    f77name(wawrit)(&liun, &lpos, &lun, &lun);
+
+    //mise a jour de tous les blocs memoires associes a la meme variable:
+    // on calcule la bonne adresse fichier pour chacun de ces blocs
+    int slice_lng = NAMES[ind].lslice;
+#if ! defined (ALL64)
+    slice_lng *= (SLICES[NAMES[ind].major_key].info.flags.size8 ==1) ? 2:1;
+#endif
+
+    for (int i = 0; i < NAMES[ind].nslice ; i++) {
+        if (SLICES[NAMES[ind].major_key + i].block_table_index != -1) {
+            BLOCKS[SLICES[NAMES[ind].major_key + i].block_table_index].file_adr =
+            NAMES[ind].base_file_adr + (slice_lng * i);
+        }
+    }
+
+}
+
+
+//! Free block from memory
+int eject_block(
+    //! [in] Block number
+    int bkno,
+    //! [in] Save block to disc if != 0
+    int save,
+    //! [in] Compute checksum if != 0
+    int fait_checksum
+) {
+    if (! BLOCKS[bkno].info.flags.in_used) return 0;
+
+    int ind = BLOCKS[bkno].slice_table_index;
+
+    if (ind != -1) {
+        if (fait_checksum && (SLICES[ind].info.flags.do_checksum || checksum_mode)) {
+            int cks = calc_checksum(bkno);
+            if (cks != SLICES[ind].checksum) {
+                return vmmerr("EJECT_BLOCK",CHECKSUM_ERROR);
+            }
+
+            SLICES[ind].checksum = 0;
+        }
+    }
+    verbar(bkno);
+    if ((BLOCKS[bkno].info.flags.traced) || debug_mode) {
+        fprintf(fdout,"VMM trace: ejection du bloc %d variable %s tranche %d\n",
+        bkno,NAMES[SLICES[ind].name_table_index].nom,
+        ind - NAMES[SLICES[ind].name_table_index].major_key + 1);
+    }
+
+    if (save) {
+        if ((BLOCKS[bkno].info.flags.save) && ((BLOCKS[bkno].info.flags.altered)
+            || (BLOCKS[bkno].info.flags.was_altered))) {
+            if (NAMES[SLICES[ind].name_table_index].base_file_adr == -1) {
+                reserve_disk_space(bkno);
+            }
+            ecrit_bloc(bkno, BLOCKS[bkno].info.flags.class, BLOCKS[bkno].memadr, BLOCKS[bkno].file_adr, BLOCKS[bkno].size);
+        }
+    }
+    BLOCKS[bkno].info.attributs = 0;
+    BLOCKS[bkno].slice_table_index= -1;
+    if (ind != -1) {
+        SLICES[ind].info.flags.is_in_core = 0;
+        SLICES[ind].info.flags.keep_in_core = 0;
+        SLICES[ind].info.flags.in_used = 0;
+        SLICES[ind].info.flags.locked = 0;
+        SLICES[ind].info.flags.altered = 0;
+        SLICES[ind].info.flags.was_altered = 0;
+        SLICES[ind].block_table_index = -1;
+    }
+    /* rechainage des pointeurs de blocs libres */
+    if (first_free_bloc > bkno) {
+        BLOCKS[bkno].prev_fb = -1;
+        BLOCKS[bkno].next_fb = first_free_bloc;
+        BLOCKS[first_free_bloc].prev_fb = bkno;
+        first_free_bloc = bkno;
+    } else {
+        int indx = first_free_bloc;
+        while(1) {
+            if ((BLOCKS[indx].next_fb == -1) || (BLOCKS[indx].next_fb > bkno)) {
+                break;
+            }
+
+            indx = BLOCKS[indx].next_fb;
+        }
+        BLOCKS[bkno].next_fb = BLOCKS[indx].next_fb;
+        BLOCKS[bkno].prev_fb = indx;
+        BLOCKS[BLOCKS[indx].next_fb].prev_fb = bkno;
+        BLOCKS[indx].next_fb = bkno;
+    }
+
+    return BLOCKS[bkno].size;
+}
 
 
 /***s/p eject_from_tableau - ejecter les blocs d'un segment
@@ -667,194 +1073,6 @@ fichier_vide(char *nom)
    return(retour);
 }
 
-
-/***s/p imprime
- *
- * Auteur James Caveen - mai 1994
- *
- * Objet (imprime) - imprimer les listes de blocs libres et utilises
- *
- **/
-void imprime()
-{
-     int i;
-
-     printf(" Nombre de BLOCKSs = %d\n",nbblocks);
-     printf(" Premier BLOCKS libre = %d\n", first_free_bloc);
-
-     printf(" Liste des BLOCKSs libres\n");
-
-     i = first_free_bloc;
-     while(i != -1)
-     {
-          printf(" BLOCKS[%d].prev=%d,BLOCKS[%d].next=%d,BLOCKS[%d].size=%d\n",
-                 i, BLOCKS[i].prev_fb,i, BLOCKS[i].next_fb,i,BLOCKS[i].size);
-          i = BLOCKS[i].next_fb;
-     }
-
-     printf(" Liste des BLOCKSs utilises\n");
-     for (i=0; i < nbblocks; i++)
-     {
-         if(BLOCKS[i].info.flags.in_used)
-           printf(" BLOCKS[%d].next=%d,BLOCKS[%d].prev=%d,BLOCKS[%d].size=%d\n",
-                 i, BLOCKS[i].prev_fb,i, BLOCKS[i].next_fb,i,BLOCKS[i].size);
-     }
-}
-
-
-/***s/p impval - imprimer les valeurs d'un champ autour du marqueur de bloc
- *
- * Auteur: J. Caveen - avril 1994
- *
- * Revision: james caveen - mars 1995
- *            change la nature de l'argument de float a int32_t
- *            afin d'eliminer les incompatibilites de types lors de l'appel.
- *
- *objet (impval)  - fonction servant a imprimer les valeurs reelles du
- *                  contenu des adresses memoires autour d'un delimiteur
- *                  de bloc.
- *argument    entree adresse - adresse memoire a partir de laquelle on imprime
- *
- *
- **/
-void
-    impval(int32_t *adresse)
-{
-
-   void imp_bar();
-    int i;
-    int intval;
-    float *fadresse;
-
-    fadresse = (float *) adresse;
-
-    intval = BARVAL;
-
-    for (i=0; i<5; i++)
-    {
-        fprintf(fdout,"%f ",*fadresse);
-        fadresse++;
-    }
-
-    imp_bar(&intval);
-
-}
-/***s/p imp_bar - imprimer la valeur float du delimiteur de blocs
- *
- *Auteur: james caveen - avril 1994
- *
-* Revision: james caveen - mars 1995
- *            change la nature de l'argument de float a int
- *            afin d'eliminer les incompatibilites de types lors de l'appel.
- *
- *objet (imp_bar) imprimer en format float la valeur des delimiteurs
- *                de blocs memoires
- *
- *argument  entree - valeur : valeur entiere a imprimer en format float
- *
- **/
-void
-  imp_bar(int *valeur)
-{
-   float *fvaleur;
-   fvaleur = (float *) valeur;
-    fprintf(fdout,"\nTRUE FLOAT VALUE OF BLOCK DELIMITOR: %f\n", *fvaleur);
-}
-
-
-/***s/p imprime_structures
- *
- *objet(imprime_structures)
-*      imprimer le contenu de toutes les structures allouees jusqu'ici
-*auteur: J. Caveen- juin 1993
-*
-*argument
-*          in mode  - indique quel type de structures imprimer
-*                     mode = 0  - imprime block_table
-*                     mode = 1  - imprime slice_table
-*                     mode = 2  - imprime name_table
-*
-*/
-void
-imprime_structures(int mode)
-{
-       int indice;
-/*
- *     impression du contenu de la table names
- */
-       switch(mode)
-       {
-          case 2:
-              printf("\nContenu de names\n");
-              for (indice=0; indice<nbvar; indice++)
-              {
-                printf("  Indice de la variable: %d\n",indice);
-                printf("     nom          : %s\n",NAMES[indice].nom);
-                printf("     base_file_adr: %d\n",NAMES[indice].base_file_adr);
-                printf("     lslice       : %d\n",NAMES[indice].lslice);
-                printf("     nslice       : %d\n",NAMES[indice].nslice);
-                printf("     major_key    : %d\n",NAMES[indice].major_key);
-                printf("     class        : %d\n",NAMES[indice].class);
-              }
-              break;
-          case 1:
-              printf("\nContenu de slices\n");
-              for (indice=0; indice<nbslices; indice++)
-              {
-                printf("  Indice de la slice: %d\n",indice);
-                printf("     keep_in_core       : %d\n",SLICES[indice].info.flags.keep_in_core);
-                printf("     is_in_core         : %d\n",SLICES[indice].info.flags.is_in_core);
-                printf("     in_used            : %d\n",SLICES[indice].info.flags.in_used);
-                printf("     locked             : %d\n",SLICES[indice].info.flags.locked);
-                printf("     save               : %d\n",SLICES[indice].info.flags.save);
-                printf("     altered            : %d\n",SLICES[indice].info.flags.altered);
-                printf("     was_altered        : %d\n",SLICES[indice].info.flags.was_altered);
-                printf("     traced             : %d\n",SLICES[indice].info.flags.traced);
-                printf("     hpa_alloc          : %d\n",SLICES[indice].info.flags.hpa_alloc);
-                printf("     disk_image         : %d\n",SLICES[indice].info.flags.disk_image);
-                printf("     size8              : %d\n",SLICES[indice].info.flags.size8);
-                printf("     must_exist         : %d\n",SLICES[indice].info.flags.must_exist);
-                printf("     class              : %d\n",SLICES[indice].info.flags.class);
-                printf("     weight             : %d\n",SLICES[indice].info.flags.weight);
-                printf("     do_checksum        : %d\n",SLICES[indice].info.flags.do_checksum);
-                printf("     init               : %d\n",SLICES[indice].info.flags.init);
-                printf("     block_table_index  : %d\n",SLICES[indice].block_table_index);
-                printf("     name_table_index   : %d\n",SLICES[indice].name_table_index);
-                printf("     checksum           : %d\n",SLICES[indice].checksum);
-              }
-              break;
-          case 0:
-              printf("\nContenu de blocks\n");
-              for (indice=0; indice<nbblocks; indice++)
-              {
-                printf("  Indice du bloc: %d\n",indice);
-                printf("     keep_in_core       : %d\n",BLOCKS[indice].info.flags.keep_in_core);
-                printf("     is_in_core         : %d\n",BLOCKS[indice].info.flags.is_in_core);
-                printf("     in_used            : %d\n",BLOCKS[indice].info.flags.in_used);
-                printf("     locked             : %d\n",BLOCKS[indice].info.flags.locked);
-                printf("     save               : %d\n",BLOCKS[indice].info.flags.save);
-                printf("     altered            : %d\n",BLOCKS[indice].info.flags.altered);
-                printf("     was_altered        : %d\n",BLOCKS[indice].info.flags.was_altered);
-                printf("     traced             : %d\n",BLOCKS[indice].info.flags.traced);
-                printf("     hpa_alloc          : %d\n",BLOCKS[indice].info.flags.hpa_alloc);
-                printf("     disk_image         : %d\n",BLOCKS[indice].info.flags.disk_image);
-                printf("     size8              : %d\n",BLOCKS[indice].info.flags.size8);
-                printf("     must_exist         : %d\n",BLOCKS[indice].info.flags.must_exist);
-                printf("     class              : %d\n",BLOCKS[indice].info.flags.class);
-                printf("     weight             : %d\n",BLOCKS[indice].info.flags.weight);
-                printf("     do_checksum        : %d\n",BLOCKS[indice].info.flags.do_checksum);
-                printf("     init               : %d\n",BLOCKS[indice].info.flags.init);
-                printf("     slice_table_index  : %d\n",BLOCKS[indice].slice_table_index);
-                printf("     file_adr           : %d\n",BLOCKS[indice].file_adr);
-                printf("     memadr             : %x\n",BLOCKS[indice].memadr);
-                printf("     size               : %d\n",BLOCKS[indice].size);
-                printf("     prev_fb            : %d\n",BLOCKS[indice].prev_fb);
-                printf("     next_fb            : %d\n",BLOCKS[indice].next_fb);
-              }
-              break;
-       }
-}
-
 /***s/p lit_bloc
 *
 *objet(lit_bloc)
@@ -870,13 +1088,13 @@ imprime_structures(int mode)
 *     in   nmots       longueur en mots de la tranche
 *
 **/
-void
-lit_bloc(int bkno,unsigned int classe,int32_t *memadresse,
-                        int fileadresse,int nmots)
-{
-/*
-      void  ouvre_ou_ferme_controle();
-*/
+void lit_bloc(
+    int bkno,
+    unsigned int classe,
+    int32_t *memadresse,
+    int fileadresse,
+    int nmots
+) {
       int calc_checksum();
       int32_t iun, lfileadresse, lnmots;
 
@@ -1042,223 +1260,6 @@ lit_vmm_controle()
            wp_Vmm[i] = (wp_Vmm[i] < 2 ? 2 : wp_Vmm[i]);
 }
 
-/***s/p obtient_environ
-*
-*objet(obtient_environ)
-*           Obtenir la valeur de VMM_CONFIG et initialiser les variables
-*           debug_mode,checksum_mode ainsi que le tableau fclass_names[] et fcontrole
-*
-*auteur J. Caveen  -  aout 1993
-*
-**/
-/**
-*
-*   revision:  mai 1994 - ajout de checksum_mode
-*       revision: E. Gondet - 19 avril 2002
-*                 Repertoire pour decouplage en parallele des fichiers
-*              Rangement de tous les fichiers de travail dans ce repertoire.
-*   003 - Avril 2003 - M. Lepine, initialisation dbg_cks
-*
-*
-**/
-int obtient_environ()
-{
-
-      char repertoire[NCARMAX], rslt_fic[NCARMAX];
-      char spid[NCARMAX];      /* the pid under char* form */
-      char *ptenv;
-      int i, longueur ,dbg_cks=0;
-      int il_err;
-      pid_t pid;
-
-      static char *noms[] = {"Vmm_01","Vmm_02","Vmm_03","Vmm_04","Vmm_05",
-                        "Vmm_06","Vmm_07","Vmm_08","Vmm_09","Vmm_controle"} ;
-
-/*
- *    initialiser repertoire a des nuls
- */
-      for ( i = 0; i < NCARMAX; i++)
-      {
-        repertoire[i] = '\0';
-        rslt_fic[i] = '\0';
-      }
-/*ETG 17/04/2002 rajout
-*/
-      il_err = sprintf(repertoire,"%s", cd_repertoire);
-
-      ptenv = (char *) getenv("VMM_CONFIG");
-
-      if(ptenv != (char *) NULL)
-      {
-        sscanf(ptenv,"%s %d %s",&repertoire[0],&dbg_cks,&rslt_fic[0]);
-      }
-/*
- *    initialiser debug_mode et/ou checksum_mode selon la valeur de dbg_cks
- */
-
-      switch(dbg_cks)
-      {
-         case ENVDEBUG:
-              debug_mode = 1;
-              break;
-         case ENVCHECKSUM:
-              checksum_mode = 1;
-              break;
-         case ENVPARANOID:
-              debug_mode = 1;
-              checksum_mode = 1;
-              break;
-       }
-
-/*
- *    initialiser les noms de fichiers Vmm_0n et Vmm_controle
- */
-
-      longueur = strlen(repertoire);
-      if (longueur > 0)
-      {
-          if(repertoire[longueur-1] != '/')
-          {
-               repertoire[longueur] = '/';
-               longueur++;
-          }
-      }
-
-
-/*ETG 10/04/01 on attrappe le pid
-      pid = getpid();
-      sprintf(spid,"%i", pid);
-*/
-
-
-      for (i = 0; i < 9; i++)
-      {
-           fclass_names[i] = (char *) calloc(longueur+7,sizeof(char));
-           strcpy(fclass_names[i],repertoire);
-           strcat(fclass_names[i],noms[i]);
-/*ETG  fclass_names[i] need strlen(spid) and +1 for the . more characters       */
-/*
-           fclass_names[i] = (char *) calloc(longueur+7+strlen(spid)+1,sizeof(char));
-         sprintf(fclass_names[i],"%s%s.%s",repertoire, noms[i], spid);
-*/
-      }
-
-      fcontrole_name = (char *) calloc(longueur+13,sizeof(char));
-      strcpy(fcontrole_name,repertoire);
-      strcat(fcontrole_name,noms[9]);
-/*ETG  fclass_names[i] need strlen(spid) and +1 for the . more characters       */
-/*
-      fcontrole_name = (char *) calloc(longueur+13+strlen(spid)+1,sizeof(char));
-      sprintf(fcontrole_name,"%s%s.%s",repertoire, noms[9], spid);
-*/
-
-/*
- *    ouvrir le fichier pour imprimer les resultats d'execution
- */
-      if(strlen(rslt_fic) > 0)
-      {
-          if( ! strncmp(rslt_fic,"stdout",6))
-             fdout = stdout;
-          else if( ! strncmp(rslt_fic,"fd_err",6))
-             fdout = fd_err;
-          else
-          {
-            if((fdout = fopen(rslt_fic,"w")) == (FILE *) NULL)
-            {
-               fprintf(fd_err," WARNING - CANNOT OPEN OUTPUT FILE %s\n",rslt_fic);
-               fprintf(fd_err,"           USING STDOUT  INSTEAD\n");
-               fdout = stdout ;
-            }
-          }
-       }
-       else
-       {
-             fdout = stdout;
-       }
-
-      if(debug_mode)
-      {
-         fprintf(fdout," VMM_CONFIG=%s\n",ptenv);
-         fprintf(fdout," Repertoire pour fichiers de controle=%s\n",repertoire);
-         fprintf(fdout," Fichier de sortie=%s\n",rslt_fic);
-      }
-
-      return(longueur);
-}
-
-/***s/p ouvre_ou_ferme_controle
-*
-*objet(ouvre_ou_ferme_controle)
-*     Ouvrir les fichiers necessaire au systeme de gestion de memoire virtuelle
-*
-*auteur J. Caveen  -  juillet 1993
-*
-*
-*argument
-*           in ouvre           si ouvre != 0, on ouvre
-*                              si ouvre  = 0, on ferme
-*              premiere_fois   si premiere_fois, on appelle fnom pour faire
-*                              l'association unite logique-nom de fichier
-*              fonction        nom de la fonction ayant fait l'appel
-**/
-void
-ouvre_ou_ferme_controle(int ouvre, int premiere_fois, char *fonction)
-{
-
-         extern void c_waopen(), c_waclos();
-         int  vmmerr();
-       /*
-         int  obtient_environ();
-       */
-
-
-         int i, lng,  mzero = 0;
-         int32_t  iun, ier;
-         char *ouvmod = "RND+R/W";
-/*
- *   au premier appel, on fait l'association fichiers-numero d'unite
- */
-     if(premiere_fois)
-     {
-/*
- *        on obtient la valeur de VMM_CONFIG
- *        et on compose les noms de fichiers a ouvrir
- */
-/*ETG obtient_environ renvoit la taille du path uniquement                           */
-          lng = obtient_environ();
-          ier = 0;
-          for ( i = 0; i < NCLASSE; i++)
-           {
-              iun = 0;
-              ier += f77name(fnom)(&iun,fclass_names[i],ouvmod,&mzero,lng+6,7);
-/*ETG BUG There is a bug with the following line chksum become false ETG*/
-/*ETG              ier += f77name(fnom)(&iun,fclass_names[i],ouvmod,&mzero,lng+strlen(fclass_names[i]),7); */
-              fclass[i] = (int) iun;
-           }
-          if(ier != 0)
-         vmmerr(fonction,CONTROL_FILE_ERROR);
-     }
-
-     if(ouvre)
-     {
-         for (i = 0; i < NCLASSE; i++)
-                  c_waopen(fclass[i]);
-
-         fcontrole = open(fcontrole_name,O_RDWR | O_CREAT,
-             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-         fichiers_ouverts = 1;
-     }
-     else
-     {
-         for (i = 0; i < NCLASSE; i++)
-                  c_waclos(fclass[i]);
-
-         close(fcontrole);
-         fichiers_ouverts = 0;
-     }
-}
-
-
 
 /***s/p pack_blocks
 *
@@ -1381,31 +1382,16 @@ pack_segment(int bkno, int *biggest_free_block_index)
    }
 
 
-/***s/p qvmindex_from_key
-*
-*objet(qvmindex_from_key)
-*    Valider et retourner l'indice dans la table slices a partir d'une clef de l'usager
-*
-*auteur J. Caveen  -  juin 1993
-*
-*argument
-*     in   inkey   clef usager pointant a une des slices de la variable
-*
-**/
-int
-qvmindex_from_key(complete_key inkey)
+//! Validate and return the slice table index
+int qvmindex_from_key(
+    //! [in] User key pointing to one of the variable's slices
+    complete_key inkey
+) {
+    int laclef = inkey.key.key_major + (inkey.key.key_minor == 0 ? 0: inkey.key.key_minor-1);
 
-{
+    if (laclef > nbslices || laclef < 0) return -BADINKEY;
 
-    int  laclef ;
-
-
-    laclef = inkey.key.key_major + (inkey.key.key_minor == 0 ? 0: inkey.key.key_minor-1);
-
-    if(laclef > nbslices || laclef < 0)
-         return(-BADINKEY);
-
-    return ( inkey.key.key_major == NAMES[SLICES[laclef].name_table_index].major_key ? laclef : -BADINKEY);
+    return inkey.key.key_major == NAMES[SLICES[laclef].name_table_index].major_key ? laclef : -BADINKEY;
 }
 
 
@@ -1477,12 +1463,11 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 #if !defined (ALL64)
    int tempor;
 #endif
-   int qvmindex_from_key(), vmmerr();
 
    int32_t lslice_lng, *lbest_fit;
    double *dlbest_fit;
 
-   if(callc("VMMLOD"))   ;
+   callc("VMMLOD");
 
 
 
@@ -1741,81 +1726,7 @@ qvmlod(complete_key inlkey[], int32_t *nkey)
 
 
 
-/***s/p reserve_disk_space
-*    objet(reserve_disk_space) - reserver la memoire disque pour
-*                                l'ecriture des variables.  L'espace disque
-*                                n'est reserve qu'au moment opportun.
-*                                On reserve l'espace pour toutes les tranches
-*                                d'une variable.
-*
-*auteur J. Caveen - mai 1994
-*
-*arguments
-*         in  bkno - numero du block memoire
-*
-*/
-void
-reserve_disk_space(int bkno)
-{
 
-   int ind,cl,i,slice_lng;
-   int32_t lun, lpos, liun, *bidon ,nmots;
-
-   ind = SLICES[BLOCKS[bkno].slice_table_index].name_table_index;
-
-   if(debug_mode)
-   {
-      fprintf(fdout," RESERVE_DISK_SPACE-Allocation d'espace disque, variable=%s,lslice=%d,nslice=%d\n",
-      NAMES[ind].nom,NAMES[ind].lslice,NAMES[ind].nslice);
-   }
-
-   cl  = NAMES[ind].class;
-   nmots =  (int32_t) NAMES[ind].lslice;
-#if !defined (ALL64)
-   nmots *= (BLOCKS[bkno].info.flags.size8 == 1) ? 2 :1;
-#endif
-
-/*
- * init. des adresses d'ecriture
- */
-   NAMES[ind].base_file_adr = wp_Vmm[cl - 1];
-   lpos = (int32_t) wp_Vmm[cl - 1];
-   bidon = BLOCKS[0].memadr;
-   liun = (int32_t) fclass[cl - 1];
-/*
- *  on reserve l'espace pour toutes les tranches de la variable
- */
-   for( i = 0; i < NAMES[ind].nslice; i++)
-   {
-       f77name(wawrit)(&liun,bidon, &lpos,&nmots);
-       lpos+=nmots;
-   }
-/*
- * Mise a jour de la position d'ecriture dans le premier mot du fichier
- */
-   wp_Vmm[cl - 1] =  (int) lpos;
-   lun = 1;
-   f77name(wawrit)(&liun,&lpos,&lun,&lun);
-
-/*
- * faire la mise a jour de tous les blocs memoires associes
- * a la meme variable: on calcule la bonne adresse fichier
- * pour chacun de ces blocs
- */
-
-   slice_lng = NAMES[ind].lslice;
-#if ! defined (ALL64)
-         slice_lng *= (SLICES[NAMES[ind].major_key].info.flags.size8 ==1) ? 2:1;
-#endif
-
-   for (i = 0; i < NAMES[ind].nslice ; i++)
-   {
-     if(SLICES[NAMES[ind].major_key + i].block_table_index != -1)
-        BLOCKS[SLICES[NAMES[ind].major_key + i].block_table_index].file_adr =
-           NAMES[ind].base_file_adr + (slice_lng * i);
-   }
-
-}
 
 
 
@@ -2246,116 +2157,6 @@ trouve_best_segment(int size, int *tableau_eject_index)
 
 }
 
-/***s/p verbar
-*
-*objet(verbar)
-*          Fonction servant a verifier si les marqueurs de debut et de fin
-*          d'un bloc memoire sont intacts
-*
-*auteur J. Caveen  -  avril 1994
-*
-*arguments
-*       bkno - entree - numero du bloc pour lequel on verifie les marqueurs
-*
-**/
-
-int
- verbar(int bkno)
-{
-
-      int vmmerr();
-      void imprime_structures();
-      void impval();
-      extern void f77name(tracebak)();
-
-      int erreur;
-
-/*  si les marqueurs sont endommages, on imprime un message d'erreur, et on met
- *  fin a l'execution du programme.
- *  Sinon, on retourne la valeur 0
- */
-
-    erreur = 0;
-    if(! BLOCKS[bkno].info.flags.in_used)
-         return(erreur);
-
-    if(*(BLOCKS[bkno].memadr -1)^BARVAL)
-    {
-        erreur++;
-        fprintf(fdout," ERROR - BEGINNING BLOCK DELIMITOR FOR BLOCK %d IS DAMAGED\n",bkno);
-
-        if((bkno > 0) && (BLOCKS[bkno-1].info.flags.in_used))
-        {
-           fprintf(fdout,"       - POSSIBLE MEMORY OVERLAP: VARIABLE %s, SLICE %d\n",
-                             NAMES[SLICES[BLOCKS[bkno-1].slice_table_index].name_table_index].nom,
-                             BLOCKS[bkno-1].slice_table_index -
-                             NAMES[SLICES[BLOCKS[bkno-1].slice_table_index].name_table_index].major_key + 1);
-           fprintf(fdout,"                              AND VARIABLE %s, SLICE %d\n",
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
-                             BLOCKS[bkno].slice_table_index -
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
-
-           fprintf(fdout,"BLOCK DELIMITOR ADDRESS +- 2 WORDS\n");
-           impval(BLOCKS[bkno].memadr-2);
-        }
-        else
-        {
-           fprintf(fdout,"       - POSSIBLE ADDRESSING ERROR: VARIABLE %s, SLICE %d\n",
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
-                             BLOCKS[bkno].slice_table_index -
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
-
-           fprintf(fdout,"BLOCK DELIMITOR ADDRESS + 4  WORDS\n");
-            impval(BLOCKS[bkno].memadr-1);
-        }
-
-    }
-
-    if(*(BLOCKS[bkno].memadr+BLOCKS[bkno].size-1)^BARVAL)
-    {
-        erreur++;
-        fprintf(fdout," ERROR - END BLOCK DELIMITOR FOR BLOCK %d IS DAMAGED\n",bkno);
-        if((bkno <  (nbblocks-1)) && (BLOCKS[bkno+1].info.flags.in_used))
-        {
-           fprintf(fdout,"       - POSSIBLE MEMORY OVERLAP: VARIABLE %s, SLICE %d\n",
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
-                             BLOCKS[bkno].slice_table_index -
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
-           fprintf(fdout,"         AND VARIABLE %s, SLICE %d\n",
-                             NAMES[SLICES[BLOCKS[bkno+1].slice_table_index].name_table_index].nom,
-                             BLOCKS[bkno+1].slice_table_index -
-                             NAMES[SLICES[BLOCKS[bkno+1].slice_table_index].name_table_index].major_key + 1);
-
-           fprintf(fdout,"BLOCK DELIMITOR ADDRESS +- 2 WORDS\n");
-            impval(BLOCKS[bkno].memadr+BLOCKS[bkno].size-2);
-        }
-        else
-        {
-           fprintf(fdout,"       - POSSIBLE ADDRESSING ERROR: VARIABLE %s, SLICE %d\n",
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].nom,
-                             BLOCKS[bkno].slice_table_index -
-                             NAMES[SLICES[BLOCKS[bkno].slice_table_index].name_table_index].major_key + 1);
-
-           fprintf(fdout,"BLOCK DELIMITOR ADDRESS - 4 WORDS\n");
-           impval(BLOCKS[bkno].memadr+BLOCKS[bkno].size-5);
-        }
-    }
-
-    if(erreur)
-    {
-      if(debug_mode)
-      {
-         imprime_structures(2);
-         imprime_structures(1);
-         imprime_structures(0);
-      }
-      return (vmmerr("VERBAR",BLOCK_DAMAGE));
-    }
-
-
-    return(0);
-}
-
 
 /***s/p vmmallc2
 *
@@ -2380,7 +2181,7 @@ int
 *                 consequence.
 *argument
 *     in  memry    quantite de memoire a reserver (en mots)
-*     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
+*     in  controlDirPath Nom du repertoire de travail pour le processus vmm
 *
 **/
 int32_t
@@ -2414,8 +2215,8 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 /*
  * ouverture de tous les fichiers du systeme de gestion
  */
-   strncpy(cd_repertoire,cd_rep,((lng > 256) ? 256 : lng));
-   cd_repertoire[lng] = '\0';
+   strncpy(controlDirPath,cd_rep,((lng > 256) ? 256 : lng));
+   controlDirPath[lng] = '\0';
    ouvre_ou_ferme_controle(1,1,"VMMALLC");
 
 /*
@@ -2489,7 +2290,7 @@ f77name(vmmallc2)(int32_t *memry, char *cd_rep, F2Cl lng)
 *                 consequence.
 *argument
 *     in  memry    quantite de memoire a reserver (en mots)
-*     in  cd_repertoire Nom du repertoire de travail pour le processus vmm
+*     in  controlDirPath Nom du repertoire de travail pour le processus vmm
 *
 **/
 int32_t
@@ -2530,7 +2331,7 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
    int i;
    char innamevar[9];
 
-   if(callc("VMMATT"))  ;
+   callc("VMMATT");
 
 
 
@@ -2618,61 +2419,30 @@ f77name(vmmatt)(char *namevar,int32_t *lpiece,int32_t *npiece,char *attr,F2Cl l1
    return (keyout.clef);
 }
 
-/***s/p vmmcks
-*
-*objet(vmmcks)
-*          Calculer et retourner le chek sum du bloc
-*          memoire associe a la clef inkey
-*
-*auteur J. Caveen  -  novembre 1993
-*
-*arguments
-*         in  inkey  -  clef pour laquelle on fait le check-sum
-*         in  mode   -  mode de calcul
-*                       pour cette version, mode=1 seulement => xor du champ
-*
-**/
-int32_t
-f77name(vmmcks)(complete_key *inkey, int32_t *mode)
-{
 
-     extern int32_t f77name(qvmcks)();
-     int qvmindex_from_key(), vmmerr();
-
-     int slice_ind, i ;
-     int32_t check_sum, *adresse_du_bloc;
-     int32_t nbelem;
-
-     if(callc("VMMCKS")) ;
-
-
+//! Compute memory block checksum
+int32_t f77name(vmmcks)(
+    //! [in] Key of the memory block for which to compute the checksum
+    complete_key *inkey,
+    //! [in] Cheksum algorithm.  1 -> XOR
+    int32_t *mode
+) {
+    callc("VMMCKS");
 
 #if defined CALL_SEQ
-     fprintf(fdout,
-      "CALL- vmmcks(%d,%d)\n",(int32_t) inkey->clef, *mode);
+    fprintf(fdout, "CALL- vmmcks(%d,%d)\n", (int32_t) inkey->clef, *mode);
 #endif
-     if(*mode != 1)
-        return(vmmerr("VMMCKS",BAD_CKSUM_MODE));
+    if (*mode != 1) return vmmerr("VMMCKS", BAD_CKSUM_MODE);
 
-     slice_ind = qvmindex_from_key(*inkey);
+    int slice_ind = qvmindex_from_key(*inkey);
+    if (slice_ind < 0) return vmmerr("VMMCKS", slice_ind);
 
-     if(slice_ind <0)
-        return(vmmerr("VMMCKS",slice_ind));
+    if (! SLICES[slice_ind].info.flags.is_in_core) return vmmerr("VMMCKS", NOT_IN_CORE);
 
+    int32_t * adresse_du_bloc = BLOCKS[SLICES[slice_ind].block_table_index].memadr;
+    int32_t  nbelem = (int32_t) BLOCKS[SLICES[slice_ind].block_table_index].size;
 
-     if(! SLICES[slice_ind].info.flags.is_in_core)
-        return(vmmerr("VMMCKS",NOT_IN_CORE));
-
-
-     adresse_du_bloc = BLOCKS[SLICES[slice_ind].block_table_index].memadr;
-     nbelem = (int32_t) BLOCKS[SLICES[slice_ind].block_table_index].size;
-
-
-/*
- *   on fait le check-sum mode 1
- */
-     check_sum = f77name(qvmcks)(adresse_du_bloc,&nbelem,mode);
-     return (check_sum);
+    return f77name(qvmcks)(adresse_du_bloc, &nbelem, mode);
 }
 
 
@@ -2701,7 +2471,7 @@ int32_t f77name(vmmcpk)()
 
    int i;
 
-   if(callc("VMMCPK"))  ;
+   callc("VMMCPK");
 
 
 
@@ -2774,7 +2544,7 @@ f77name(vmmcre)(char innamevar[],int32_t *lpiece,int32_t *npiece,
 
    int32_t nmots;
 
-   if(callc("VMMCRE")) ;
+   callc("VMMCRE");
 
 
 
@@ -3122,7 +2892,7 @@ f77name(vmmdiag)()
    int vmmerr();
 
 
-   if(callc("VMMDIAG")) ;
+   callc("VMMDIAG");
 
 #if defined CALL_SEQ
      fprintf(fdout,
@@ -3170,214 +2940,50 @@ f77name(vmmdmp)(uint32_t *mode)
        return(0);
 }
 
-/***s/p vmmerr
-*
-*objet(vmmerr)
-*     Emettre les messages d'erreur et mettre fin a l'execution si necessaire
-*
-*auteur J. Caveen  -  juillet 1993
-*revision james caveen - mars 1995
-*       changement a la definition de la macro sortir afin de lui
-*       passer un argument.
-*       Ajout des erreurs pour appel a vmmcpk ou vmmckmx avec champs
-*       ayant l'attribut keep_in_core.
-*       Elimine l'erreur associee a vmmckmx: CKP_MUSTEXIST_DONE
-*
-*arguments
-*     in   valeur      code de l'erreur
-*     in   fonction    nom de la fonction appelante
-*
-**/
-int
-vmmerr(char *fonction,int32_t valeur)
-{
-      switch (valeur)
-      {
-           case NO_CALL_TO_VMMALLC :                               /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - NO PREVIOUS CALL TO VMMALLC\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case VMMALLC_ALREADY_CALLED :                           /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - VMMALLC ALREADY CALLED\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case NO_SPACE_LEFT_FOR_LOAD:                           /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - NO SPACE LEFT FOR LOAD\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case CONTROL_FILE_ERROR:                               /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - CANNOT OPEN CONTROL FILES\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case PWD_ALREADY_SET:                                  /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - PASSWORD IS ALREADY SET\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case BAD_PASSWORD:                                     /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - WRONG PASSWORD\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case PASSWORD_IS_SET:                                     /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - PASSWORD IS SET\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case VAR_MUST_EXIST:                                     /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - VARIABLE MUST EXIST FOR A RESTART\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case CONTROLE_DAMAGE:                                 /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - NAMES-SLICES OR BLOCK-SLICES INCONSISTENCIES\n",
-                       fonction);
-                    SORTIR(valeur)
-                    break;
-           case NOT_ENOUGH_MEMORY:                                 /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - CANNOT ALLOCATE MEMORY REQUESTED\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case TOO_MANY_KEYS:                                 /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - NKEYS > %d, LIMIT EXCEEDED\n",fonction,NCLEMAX);
-                    SORTIR(valeur)
-                    break;
-           case BAD_CKSUM_MODE:                                 /*FATAL*/
-                    fprintf(fd_err,
-                      "ERROR - %s - BAD MODE FOR CHECK SUM\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case UNKNOWNVAR:
-                    fprintf(fd_err,
-                      "ERROR - %s - UNKNOWN VARIABLE\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case -BADINKEY:
-                    fprintf(fd_err,
-                      "ERROR - %s - BAD KEY\n",fonction);
-                    SORTIR(-valeur)
-                valeur = -valeur;   /* cas du test vmm pour retourner une valeur negative */
-                    break;
-           case NOT_IN_CORE:
-                    fprintf(fd_err,
-                      "ERROR - %s - SLICE NOT IN CORE\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case ALREADY_LOCKED:
-                    fprintf(fd_err,
-                      "ERROR - %s - SLICE ALREADY LOCKED\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case BLOCK_DAMAGE:
-                    fprintf(fd_err,
-                      "ERROR - %s - MEMORY BLOCK DAMAGE\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case ATTRIBUTS_MODIFIES:
-                    fprintf(fd_err,
-                      "ERROR - %s - MODIFICATION TO UNCHANGEABLE ATTRIBUTES OF A VARIABLE\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case SLICE_TOO_BIG:
-                    fprintf(fd_err,
-                      "ERROR - %s - SLICE LONGER THAN TOTAL MEMORY REQUESTED\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case CHECKSUM_ERROR:
-                    fprintf(fd_err,
-                      "ERROR - %s - CHECKSUM MODIFIED FOR AN UNLOCKED FIELD\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case CHECKSUM_READ_ERROR:
-                    fprintf(fd_err,
-                      "ERROR - %s - CHECKSUM ERROR WHILE READING FROM FILE\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case KEEP_IN_CORE_CPK:
-                    fprintf(fd_err,
-                      "ERROR - %s - CALL TO VMMCPK WITH KEEP IN CORE FIELDS\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case KEEP_IN_CORE_CKMX:
-                    fprintf(fd_err,
-                      "ERROR - %s - CALL TO VMMCKMX WITH KEEP IN CORE FIELDS\n",fonction);
-                    SORTIR(valeur)
-                    break;
-           case WAS_ALTERED_RELEASE:
-                    fprintf(fd_err,
-                      "WARNING - %s - RELEASING A POSSIBLY MODIFIED FIELD\n",fonction);
-                    break;
-      }
 
-      return( (int) (-valeur));
-}
+int32_t f77name(vmmfgt)(
+    //! [in] List of slices to free
+    complete_key inlkey[],
+    //! [in] Number of entries in inlkey
+    int32_t *nkey
+) {
+    int qvmindex_from_key(), vmmerr();
+    int indice, bloc_indice;
 
-/***s/p vmmfgt
-*
-*objet(vmmfgt)
-*     Rendre un champ non defini en memoire et sur disque
-*
-*auteur J. Caveen  -  aout 1993
-*
-*arguments
-*     in   inlkey      liste des clefs de tranches a oublier
-*     in   nkey        nombre de clefs dans inlkey
-*
-**/
-f77name(vmmfgt)(complete_key inlkey[], int32_t *nkey)
-{
-       int qvmindex_from_key(), vmmerr();
-       int indice, i, iii, bloc_indice;
+    callc("VMMFGT");
 
-
-       if(callc("VMMFGT"))   ;
-
-
-
-   if(pwd_set)
-        return(vmmerr("VMMFGT",PASSWORD_IS_SET));
+    if (pwd_set) return vmmerr("VMMFGT",PASSWORD_IS_SET);
 
 #if defined CALL_SEQ
-     fprintf(fdout,
-      "CALL- vmmfgt(");
-        for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",inlkey[iii]);
+    fprintf(fdout, "CALL- vmmfgt(");
+    for (int i = 0; i < *nkey; i++) {
+        fprintf(fdout, "%d ", inlkey[i]);
+    }
 
-     fprintf(fdout,"],%d)\n",*nkey);
+    fprintf(fdout, "],%d)\n", *nkey);
 #endif
+    for (int i = 0; i< *nkey; i++) {
+        indice = qvmindex_from_key(inlkey[i]);
+        if (indice < 0) return vmmerr("VMMFGT",indice);
 
-        for (i=0; i< *nkey; i++)
-        {
-              indice = qvmindex_from_key(inlkey[i]);
-              if (indice < 0)
-                    return vmmerr("VMMFGT",indice);
+        bloc_indice = SLICES[indice].block_table_index ;
+        SLICES[indice].info.flags.keep_in_core = 0;
+        SLICES[indice].info.flags.is_in_core = 0;
+        SLICES[indice].info.flags.in_used = 0;
+        SLICES[indice].info.flags.locked = 0;
+        SLICES[indice].info.flags.altered = 0;
+        SLICES[indice].info.flags.was_altered = 0;
+        SLICES[indice].info.flags.disk_image = 0;
+        SLICES[indice].checksum = 0;
+        SLICES[indice].block_table_index = -1;
+        if (bloc_indice != -1) {
+            BLOCKS[bloc_indice].info.attributs = 0;
+            BLOCKS[bloc_indice].slice_table_index = -1;
+            BLOCKS[bloc_indice].file_adr = -1;
+        }
+    }
 
-              bloc_indice = SLICES[indice].block_table_index ;
-              SLICES[indice].info.flags.keep_in_core = 0;
-              SLICES[indice].info.flags.is_in_core = 0;
-              SLICES[indice].info.flags.in_used = 0;
-              SLICES[indice].info.flags.locked = 0;
-              SLICES[indice].info.flags.altered = 0;
-              SLICES[indice].info.flags.was_altered = 0;
-              SLICES[indice].info.flags.disk_image = 0;
-              SLICES[indice].checksum = 0;
-              SLICES[indice].block_table_index = -1;
-              if(bloc_indice != -1)
-              {
-                 BLOCKS[bloc_indice].info.attributs = 0;
-                 BLOCKS[bloc_indice].slice_table_index = -1;
-                 BLOCKS[bloc_indice].file_adr = -1;
-              }
-       }
-
-       return 0;
+    return 0;
 }
 
 
@@ -3408,7 +3014,7 @@ int32_t f77name(vmmget)(complete_key  *inkey, void **pointeur,int32_t *tablo) {
           int indice,ier,cks2;
           memint intptr;
 
-          if(callc("VMMGET"))  ;
+          callc("VMMGET");
 
 
 
@@ -3492,7 +3098,7 @@ f77name(vmmhpa)(void **ptr,int32_t *memry,int32_t *mode)
    memint lptr;
    int32_t *pointeur;
 
-   if( callc("VMMHPA")) ;
+   callc("VMMHPA");
 
 #if defined CALL_SEQ
      fprintf(fdout,
@@ -3539,7 +3145,7 @@ f77name(vmmhpd)(void **ptr)
 
    int vmmerr();
 
-   if( callc("VMMHPD")) ;
+   callc("VMMHPD");
 
 
 
@@ -3658,7 +3264,7 @@ f77name(vmmlck)(complete_key inlkey[], int32_t *nkey)
        int qvmindex_from_key(), vmmerr(), verbar(),calc_checksum();
        int indice, i,iii,ier;
 
-       if (callc("VMMLCK"))   ;
+       callc("VMMLCK");
 
 
 
@@ -3803,7 +3409,7 @@ f77name(vmmlse)()
    int vmmerr();
    int biggest_free_block_size, i;
 
-   if( callc("VMMLSE")) ;
+   callc("VMMLSE");
 
 
 
@@ -3839,7 +3445,7 @@ f77name(vmmpak)()
    int vmmerr(), pack_blocks();
    int biggest, ind;
 
-   if( callc("VMMPAK")) ;
+   callc("VMMPAK");
 
 
 
@@ -3877,14 +3483,11 @@ f77name(vmmpak)()
 *                             mode = 1, on deverrouille
 *
 **/
-int32_t
-f77name(vmmpwd)(int32_t *mot_passe, int32_t *mode)
-{
-
-
-         int vmmerr();
-
-         if(callc("VMMPWD"))   ;
+int32_t f77name(vmmpwd)(
+    int32_t *mot_passe,
+    int32_t *mode
+) {
+    callc("VMMPWD");
 
 
 
@@ -3936,7 +3539,7 @@ f77name(vmmrls)(complete_key inlkey[], int32_t *nkey)
        int indice, i,iii, bloc_indice, ier;
 
 
-       if(callc("VMMRLS"))   ;
+       callc("VMMRLS");
 
 
 
@@ -3998,7 +3601,7 @@ f77name(vmmrnm)(complete_key *oldkey,char *newname, F2Cl l1)
      char innewname[9];
      int i;
 
-     if (callc("VMMRNM"))   ;
+     callc("VMMRNM");
 
 
 
@@ -4059,7 +3662,7 @@ f77name(vmmsav)(complete_key inlkey[], int32_t *nkey)
          int qvmindex_from_key(), vmmerr();
          int indice,  i,iii;
 
-         if(callc("VMMSAV"))  ;
+         callc("VMMSAV");
 
 
 
@@ -4150,7 +3753,7 @@ f77name(vmmuld)(complete_key inlkey[], int32_t *nkey)
        int indice, i,iii, bloc_indice,ier;
 
 
-       if(callc("VMMULD"))   ;
+       callc("VMMULD");
 
 
 
@@ -4272,7 +3875,7 @@ f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
        int indice, i,iii,ier;
 
 
-       if(callc("VMMULK"))   ;
+       callc("VMMULK");
 
 
 
@@ -4368,430 +3971,234 @@ f77name(vmmulk)(complete_key inlkey[], int32_t *nkey)
 *     in   nkey        nombre de clefs dans inlkey
 *
 **/
-f77name(vmmuln)(complete_key inlkey[], int32_t *nkey)
-{
-       int qvmindex_from_key(), vmmerr(), eject_block(),verbar();
-       int calc_checksum();
-       int indice, i,iii, bloc_indice,ier;
+int32_t f77name(vmmuln)(
+    complete_key inlkey[],
+    int32_t *nkey
+) {
+    callc("VMMULN");
 
-
-       if(callc("VMMULN"))   ;
-
-
-
-   if(pwd_set)
-        return(vmmerr("VMMULN",PASSWORD_IS_SET));
+    if (pwd_set) return vmmerr("VMMULN",PASSWORD_IS_SET);
 
 #if defined CALL_SEQ
-     fprintf(fdout,
-      "CALL- vmmuln([");
-        for (iii = 0; iii < *nkey; iii++)
-            fprintf(fdout,"%d ",(int32_t) inlkey[iii].clef);
-
-     fprintf(fdout,"],%d)\n",*nkey);
+    fprintf(fdout, "CALL- vmmuln([");
+    for (i = 0; i < *nkey; i++) {
+        fprintf(fdout, "%d ", (int32_t) inlkey[iii].clef);
+    }
+    fprintf(fdout, "],%d)\n", *nkey);
 #endif
 
-       for (i=0; i< *nkey; i++)
-       {
-        indice = qvmindex_from_key(inlkey[i]);
-        if (indice < 0)
-        return vmmerr("VMMULN",indice);
+    for (int i = 0; i < *nkey; i++) {
+        int indice = qvmindex_from_key(inlkey[i]);
+        if (indice < 0) return vmmerr("VMMULN",indice);
 
         SLICES[indice].info.flags.keep_in_core = 0;
         SLICES[indice].info.flags.locked = 0;
-        SLICES[indice].info.flags.altered =
-               SLICES[indice].info.flags.was_altered;
-        bloc_indice = SLICES[indice].block_table_index ;
-        if(bloc_indice != -1)
-        {
-           if(SLICES[indice].info.flags.do_checksum || checksum_mode)
-           SLICES[indice].checksum = calc_checksum(bloc_indice);
-
-           if(SLICES[indice].info.flags.save)
-           {
-            ier = verbar(bloc_indice);
-            if(BLOCKS[bloc_indice].info.flags.locked)
-            champs_bloques--;
-            BLOCKS[bloc_indice].info.flags.keep_in_core = 0;
-            BLOCKS[bloc_indice].info.flags.locked = 0;
-            BLOCKS[bloc_indice].info.flags.altered =
-            BLOCKS[bloc_indice].info.flags.was_altered;
-
-            if ((BLOCKS[bloc_indice].info.flags.traced) || debug_mode)
-            {
-               fprintf(fdout,"VMM trace: vmmuln du bloc %d variable %s tranche %d\n",
-                     bloc_indice,NAMES[SLICES[indice].name_table_index].nom,
-                     indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
-               if(BLOCKS[bloc_indice].info.flags.altered)
-               fprintf(fdout,"           Block will be saved upon ejection\n");
-               else
-                   fprintf(fdout,"           Block will not be saved upon ejection\n");
+        SLICES[indice].info.flags.altered = SLICES[indice].info.flags.was_altered;
+        int bloc_indice = SLICES[indice].block_table_index ;
+        if (bloc_indice != -1) {
+            if (SLICES[indice].info.flags.do_checksum || checksum_mode) {
+                SLICES[indice].checksum = calc_checksum(bloc_indice);
             }
-           }
-           else
-           {
-            if(BLOCKS[bloc_indice].info.flags.locked)
-            champs_bloques--;
-            eject_block(bloc_indice,0,0);
-           }
+
+            if (SLICES[indice].info.flags.save) {
+                verbar(bloc_indice);
+                if (BLOCKS[bloc_indice].info.flags.locked) champs_bloques--;
+                BLOCKS[bloc_indice].info.flags.keep_in_core = 0;
+                BLOCKS[bloc_indice].info.flags.locked = 0;
+                BLOCKS[bloc_indice].info.flags.altered =
+                BLOCKS[bloc_indice].info.flags.was_altered;
+
+                if ((BLOCKS[bloc_indice].info.flags.traced) || debug_mode) {
+                    fprintf(fdout,"VMM trace: vmmuln du bloc %d variable %s tranche %d\n",
+                        bloc_indice,NAMES[SLICES[indice].name_table_index].nom,
+                        indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
+                    if (BLOCKS[bloc_indice].info.flags.altered) {
+                        fprintf(fdout,"           Block will be saved upon ejection\n");
+                    } else {
+                        fprintf(fdout,"           Block will not be saved upon ejection\n");
+                    }
+                }
+            } else {
+                if (BLOCKS[bloc_indice].info.flags.locked) champs_bloques--;
+                    eject_block(bloc_indice,0,0);
+            }
+        } else {
+            fprintf(fdout,"VMM trace: vmmuln  variable %s tranche %d pas en memoire\n",
+                NAMES[SLICES[indice].name_table_index].nom,
+                indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
         }
-        else
-        {
-           fprintf(fdout,"VMM trace: vmmuln  variable %s tranche %d pas en memoire\n",
-                 NAMES[SLICES[indice].name_table_index].nom,
-                 indice - NAMES[SLICES[indice].name_table_index].major_key + 1);
+    }
+    return 0;
+}
+
+
+//! Identify the variable corresponding to the provided address
+int32_t f77name(vmmwho)(
+    //! [in] Memory address
+    int32_t *adr
+) {
+    if ((adr < BLOCKS[0].memadr) || (adr > BLOCKS[nbblocks-1].memadr)) {
+        fprintf(fdout, "VMMWHO address %#x not in block table\n", adr);
+        return -1;
+    }
+    for (int i = 0; i < nbblocks; i++) {
+        if ((adr >= BLOCKS[i].memadr) && (adr <= BLOCKS[i].memadr+BLOCKS[i].size-1)) {
+            int sind = BLOCKS[i].slice_table_index;
+            int nind = SLICES[sind].name_table_index;
+            fprintf(fdout, "  VMMWHO\n\t address in block #%d, variable %s, slice %d\n\n", 
+                    i, NAMES[nind].nom, sind - NAMES[nind].major_key + 1);
+            fprintf(fdout,"\t          address = %#x\n",adr);
+            fprintf(fdout,"\t BLOCKS[%d].memadr = %#x\n",i,BLOCKS[i].memadr);
+            fprintf(fdout,"\t          indice  = %d\n\n",1+(adr-BLOCKS[i].memadr));
+            fprintf(fdout,"\t keep_in_core       : %d\n",SLICES[sind].info.flags.keep_in_core);
+            fprintf(fdout,"\t is_in_core         : %d\n",SLICES[sind].info.flags.is_in_core);
+            fprintf(fdout,"\t in_used            : %d\n",SLICES[sind].info.flags.in_used);
+            fprintf(fdout,"\t locked             : %d\n",SLICES[sind].info.flags.locked);
+
+            fprintf(fdout,"\t save               : %d\n",SLICES[sind].info.flags.save);
+            fprintf(fdout,"\t altered            : %d\n",SLICES[sind].info.flags.altered);
+            fprintf(fdout,"\t was_altered        : %d\n",SLICES[sind].info.flags.was_altered);
+            fprintf(fdout,"\t traced             : %d\n",SLICES[sind].info.flags.traced);
+            fprintf(fdout,"\t hpa_alloc          : %d\n",SLICES[sind].info.flags.hpa_alloc);
+            fprintf(fdout,"\t disk_image         : %d\n",SLICES[sind].info.flags.disk_image);
+            fprintf(fdout,"\t size8              : %d\n",SLICES[sind].info.flags.size8);
+            fprintf(fdout,"\t must_exist         : %d\n",SLICES[sind].info.flags.must_exist);
+            fprintf(fdout,"\t class              : %d\n",SLICES[sind].info.flags.class);
+            fprintf(fdout,"\t weight             : %d\n",SLICES[sind].info.flags.weight);
+            fprintf(fdout,"\t init               : %d\n",SLICES[sind].info.flags.init);
+            fprintf(fdout,"\t block_table_index  : %d\n",SLICES[sind].block_table_index);
+            fprintf(fdout,"\t name_table_index   : %d\n",SLICES[sind].name_table_index);
+            return 0;
         }
-       }
-       return 0;
+    }
+    return 0;
 }
 
 
+//! Checkpoint all MUSTEXIST variables
+//!
+//! Writes MUSTEXIST variables into Vmm_0n files and save control tables in Vmm_controle
+//! Files are closed to flush all buffers
+//!
+//! \return 0 on success; error code otherwise
+int32_t f77name(vmmckmx)() {
+   callc("VMMCKMX");
 
-/***s/p vmmwho
-*
-*objet(vmmwho)
-*          Determiner a quelle variable correspond l'adresse
-*          recherchee
-*
-*auteur M. Lepine  -  avril 1994
-*
-*arguments
-*         in  adr  -  adresse recherchee
-*
-**/
-int32_t
-f77name(vmmwho)(int32_t *adr)
-{
-   int i,sind,nind;
-
-   if ((adr < BLOCKS[0].memadr) || (adr > BLOCKS[nbblocks-1].memadr)) {
-     fprintf(fdout,"VMMWHO address %#x not in block table\n",adr);
-     return(-1);
-     }
-   for (i=0; i < nbblocks; i++) {
-      if ((adr >= BLOCKS[i].memadr) &&
-          (adr <= BLOCKS[i].memadr+BLOCKS[i].size-1)) {
-        sind = BLOCKS[i].slice_table_index;
-      nind = SLICES[sind].name_table_index;
-      fprintf(fdout,
-                "  VMMWHO\n\t address in block #%d, variable %s, slice %d\n\n",
-            i,NAMES[nind].nom,sind - NAMES[nind].major_key + 1);
-      fprintf(fdout,"\t          address = %#x\n",adr);
-      fprintf(fdout,"\t BLOCKS[%d].memadr = %#x\n",i,BLOCKS[i].memadr);
-      fprintf(fdout,"\t          indice  = %d\n\n",1+(adr-BLOCKS[i].memadr));
-        fprintf(fdout,"\t keep_in_core       : %d\n",SLICES[sind].info.flags.keep_in_core);
-        fprintf(fdout,"\t is_in_core         : %d\n",SLICES[sind].info.flags.is_in_core);
-        fprintf(fdout,"\t in_used            : %d\n",SLICES[sind].info.flags.in_used);
-        fprintf(fdout,"\t locked             : %d\n",SLICES[sind].info.flags.locked);
-
-        fprintf(fdout,"\t save               : %d\n",SLICES[sind].info.flags.save);
-        fprintf(fdout,"\t altered            : %d\n",SLICES[sind].info.flags.altered);
-        fprintf(fdout,"\t was_altered        : %d\n",SLICES[sind].info.flags.was_altered);
-        fprintf(fdout,"\t traced             : %d\n",SLICES[sind].info.flags.traced);
-        fprintf(fdout,"\t hpa_alloc          : %d\n",SLICES[sind].info.flags.hpa_alloc);
-        fprintf(fdout,"\t disk_image         : %d\n",SLICES[sind].info.flags.disk_image);
-        fprintf(fdout,"\t size8              : %d\n",SLICES[sind].info.flags.size8);
-        fprintf(fdout,"\t must_exist         : %d\n",SLICES[sind].info.flags.must_exist);
-        fprintf(fdout,"\t class              : %d\n",SLICES[sind].info.flags.class);
-        fprintf(fdout,"\t weight             : %d\n",SLICES[sind].info.flags.weight);
-        fprintf(fdout,"\t init               : %d\n",SLICES[sind].info.flags.init);
-        fprintf(fdout,"\t block_table_index  : %d\n",SLICES[sind].block_table_index);
-        fprintf(fdout,"\t name_table_index   : %d\n",SLICES[sind].name_table_index);
-      return(0);
-      }
-      }
-  return 0; /*CHC/NRC*/
-}
-
-/***s/p vmmckmx
-*
-*objet(vmmckmx)
-*    Faire un check-point des variables MUSTEXIST (sauver les variables dans les fichiers Vmm_0n
-*    et sauver les tables de controle dans Vmm_controle
-*    On ferme les fichiers pour vider tous les tampons
-*
-*auteur J. Caveen  -  juillet 1993
-*
-*revision james caveen - mars 1995
-*         forcer l'ejection des blocs qui n'ont pas l'attribut mustexist
-*         et indiquer que toutes les variables qui ne sont pas mustexist
-*         n'ont pas d'image disque.
-*         elimination du marqueur ckp_mustexist_done qui servait a prevenir
-*         la continuation de l'execution apres vmmckmx.  On peut maintenant
-*         faire plusieurs appels a vmmckmx au cours d'une meme execution.
-*
-
-int32_t f77name(vmmckmx)()
-{
-
-   void ecrit_vmm_controle(), ecrit_bloc();
-   void reserve_disk_space();
-   int vmmerr(), strfind(), eject_block();
-   void  ouvre_ou_ferme_controle();
-
-   int i,pos;
-
-   if(callc("VMMCKMX"))  ;
-
-
-
-   if(pwd_set)
-   return(vmmerr("VMMCKMX",PASSWORD_IS_SET));
-
-#if defined CALL_SEQ
-   fprintf(fdout,"CALL- vmmckmx()\n");
-#endif
-**/
-/*
- * On ecrit tous les blocs memoires qui ont l'attribut mustexist
- * et on ejecte tous les autres sans sauvegarde
-   for (i = 0; i< nbblocks; i++)
-   {
-      if(BLOCKS[i].info.flags.in_used)
-      {
-       if(BLOCKS[i].info.flags.keep_in_core)
-       return(vmmerr("VMMCKMX",KEEP_IN_CORE_CKMX));
-
-       if(BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
-                                   BLOCKS[i].info.flags.was_altered))
-       {
-          if(BLOCKS[i].file_adr == -1)
-                     reserve_disk_space(i);
-
-          ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
-                   BLOCKS[i].file_adr,BLOCKS[i].size);
-       }
-       else
-          eject_block(i,0,0);
-      }
-   }
-
- * On indique que toutes les tranches qui ne
- * sont pas mustexist n'ont pas d'image disque
-
-   for (i = 0; i < nbslices; i++)
-      if(! SLICES[i].info.flags.must_exist)
-       SLICES[i].info.flags.disk_image = 0;
-
-
-
-   ecrit_vmm_controle();
-   ouvre_ou_ferme_controle(0,0,"VMMCKMX");
-   return 0;
-}
-
-**/
-/***s/p vmmckmx
-*
-*objet(vmmckmx)
-*    Faire un check-point des variables MUSTEXIST (sauver les variables dans les fichiers Vmm_0n
-*    et sauver les tables de controle dans Vmm_controle
-*    On ferme les fichiers pour vider tous les tampons
-*
-*auteur J. Caveen  -  juillet 1993
-*
-**/
-int32_t f77name(vmmckmx)()
-{
-
-   void ecrit_vmm_controle(), ecrit_bloc();
- /*
-    ouvre_ou_ferme_controle();
-*/
-   void reserve_disk_space();
-   int vmmerr(), strfind();
-
-   int i,pos;
-
-   if(callc("VMMCKMX"))  ;
-
-
-   if(pwd_set)
-   return(vmmerr("VMMCKMX",PASSWORD_IS_SET));
+   if (pwd_set) return vmmerr("VMMCKMX", PASSWORD_IS_SET);
 
 #if defined CALL_SEQ
    fprintf(fdout,"CALL- vmmckmx()\n");
 #endif
 
+   for (int i = 0; i < nbblocks; i++) {
+        if (BLOCKS[i].info.flags.in_used) {
+            if (BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
+                                    BLOCKS[i].info.flags.was_altered)) {
+                if (BLOCKS[i].file_adr == -1) {
+                    reserve_disk_space(i);
+                }
+                ecrit_bloc(i, BLOCKS[i].info.flags.class,BLOCKS[i].memadr, BLOCKS[i].file_adr,BLOCKS[i].size);
+            } else if (BLOCKS[i].info.flags.save && !(BLOCKS[i].info.flags.must_exist)) {
+                BLOCKS[i].info.flags.altered =
+                BLOCKS[i].info.flags.was_altered =
+                BLOCKS[i].info.flags.disk_image = 0;
+                SLICES[BLOCKS[i].slice_table_index].info.flags.altered =
+                SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered =
+                SLICES[BLOCKS[i].slice_table_index].info.flags.disk_image = 0;
+            }
+        }
+    }
 
-   for (i = 0; i< nbblocks; i++)
-   {
-      if(BLOCKS[i].info.flags.in_used)
-      {
-       if(BLOCKS[i].info.flags.must_exist && (BLOCKS[i].info.flags.altered ||
-                                    BLOCKS[i].info.flags.was_altered))
-       {
-          if(BLOCKS[i].file_adr == -1)
-                     reserve_disk_space(i);
+    ecrit_vmm_controle();
+    ouvre_ou_ferme_controle(0, 0, "VMMCKMX");
+    return 0;
+}
 
-          ecrit_bloc(i,BLOCKS[i].info.flags.class,BLOCKS[i].memadr,
-                   BLOCKS[i].file_adr,BLOCKS[i].size);
-       }
-       else if(BLOCKS[i].info.flags.save && !(BLOCKS[i].info.flags.must_exist))
-       {
-          BLOCKS[i].info.flags.altered =
-          BLOCKS[i].info.flags.was_altered =
-          BLOCKS[i].info.flags.disk_image = 0;
-          SLICES[BLOCKS[i].slice_table_index].info.flags.altered =
-          SLICES[BLOCKS[i].slice_table_index].info.flags.was_altered =
-          SLICES[BLOCKS[i].slice_table_index].info.flags.disk_image = 0;
-       }
-      }
+
+//! Delete files
+int32_t f77name(vmmdel)(
+    //! [in] If non-zero, delete files; otherwise, do nothing
+    const int deleteVmmFiles
+) {
+    if (deleteVmmFiles == 1) {
+        int ier;
+        for (int i = 0; i < NCLASSE; i++) {
+            printf("Fichier i = %s\n", fclass_names[i]);
+            ier = unlink(fclass_names[i]);
+            printf("\n unlink rend : %i\n", ier);
+        }
+        if (ier != 0)  vmmerr("vmmdel", CONTROL_FILE_ERROR);
+
+        ier = unlink(fcontrole_name);
+        printf("\n unlink rend pour le fichier de controle : %i\n", ier);
+        if (ier != 0) vmmerr("vmmdel",CONTROL_FILE_ERROR);
+
+        fichiers_ouverts = 0;
    }
 
-/**   ckp_mustexist_done = 1; **/
-
-   ecrit_vmm_controle();
-   ouvre_ou_ferme_controle(0,0,"VMMCKMX");
    return 0;
 }
 
-/***s/p vmmdel
-*
-*objet(vmmdel)
-*     vmmdel detruit le fichier de controle si il existe ainsi que les fichiers
-*     de sauvegarde
-*
-*auteur E. Gondet  -  April 2001
-*
-*argument
-*    yes if 1 delete 10 files Vmm_*
-*
-**/
-int32_t f77name(vmmdel)(int yes) {
-   int vmmerr();
-   int i, ier;
 
-   if (yes == 1)
-   {
-     for ( i = 0; i < NCLASSE; i++)
-     {
-       printf("Fichier i = %s\n", fclass_names[i]);
-       ier = unlink(fclass_names[i]);
-       printf("\n unlink rend : %i\n", ier);
-     }
-     if (ier != 0)
-       vmmerr("vmmdel",CONTROL_FILE_ERROR);
+//! Shut down the virtual memory system
+//!
+//! Will delete the control file if it exists
+int32_t f77name(vmmend)() {
+    if (!called_vmmallc) return vmmerr("VMMEND", NO_CALL_TO_VMMALLC);
 
-     ier = unlink(fcontrole_name);
-       printf("\n unlink rend pour le fichier de controle : %i\n", ier);
-     if (ier != 0)
-       vmmerr("vmmdel",CONTROL_FILE_ERROR);
+    memset(BLOCKS, 0, MAXBLOCKS*sizeof(struct block_table) );
+    memset(NAMES , 0, MAXNAMES*sizeof(struct name_table) );
+    memset(SLICES, 0, MAXSLICES*sizeof(struct slice_table) );
 
-     fichiers_ouverts = 0;
-   }
+    // fermerture de tous les fichiers du systeme de gestion
+    ouvre_ou_ferme_controle(0, 0, "VMMEND");
 
-   return (0);
+    // Suppression des fichiers Vmm_*
+    f77name(vmmdel)(1);
+
+    // Liberer la memoire allouee par VMM
+    free(BLOCKS[0].memadr);
+    fprintf(stdout, "Debug vmmend BLOCKS[0].memadr=%d\n", BLOCKS[0].memadr);
+
+    if (BLOCKS[0].memadr != (int32_t *) NULL) return vmmerr("VMMALLC",SPACE_STILL_ALLOCATED);
+
+    BLOCKS[0].slice_table_index = -1;
+    BLOCKS[0].size = 0 ;
+
+    if (debug_mode) fprintf(fdout, " VMMEND-deallocation complete de l espace memoire de VMM\n");
+
+    maxmem = 0;
+    free_space = 0;
+    nbslices = 0;
+    nbvar = 0;
+    nbblocks = 0;
+    mot_de_passe = 0;
+    pwd_set = 0;
+    // called_vmmallc mis a  1 lors du 1er appel a vmmallc
+    called_vmmallc = 0;
+
+    // variables globales pour les unites logiques des fichiers Vmm_classe et Vmm_controle
+    for (int i = 0; i < NCLASSE; i++) {
+        fclass[i] = 0;
+        // longueur des Vmm_0n
+        wp_Vmm[i] = 0;
+    }
+    // nom du fichier: Vmm_controle
+    fcontrole = 0;
+    fichiers_ouverts = 0;
+    champs_bloques = 0;
+    // mis a 1 si le fichier Vmm_controle est non vide
+    reprise = 0;
+    debug_mode = 0;
+    checksum_mode = 0;
+    espace_requis_max = 0;
+    champs_bloques_max = 0;
+    nbblocks_max = 0;
+    nb_appels_no_lock = 0;
+    nb_appels_lock = 0;
+    nb_ecritures = 0;
+    nb_lectures = 0;
+    first_free_bloc = 0;
+
+    return 0;
 }
-
-/***s/p vmmend
-*
-*objet(vmmend)
-*     Liberer l'espace memoire du systeme de gestion de memoire virtuelle.
-*     Remettre a zero les tableaux de structures statiques controlant
-*     l'espace memoire.
-*     vmmend doit etre la derniere fonction du systeme de gestion de
-*     memoire virtuelle appelee par l'usager.
-*
-*     vmmend fait l'ouverture de tous les fichiers associes au systeme
-*     de gestion de memoire virtuelle (VMM_01,... et VMM_controle)
-*     et initialise les wp_Vmm (mot ou ecrire a la fin des fichiers)
-*
-*     vmmend detruit le fichier de controle si il existe.
-*
-*auteur E. Gondet  -  April 2001
-*
-*argument
-*     None
-*
-**/
-int32_t
-f77name(vmmend)()
-{
-   int vmmerr();
-   void  lit_vmm_controle();
- /*
-    ouvre_ou_ferme_controle();
-*/
-
-   int i;
-
-/*
- * s'assurer que vmmallc a ete appele avant vmmend
- */
-
-   if(!called_vmmallc)
-       return vmmerr("VMMEND",NO_CALL_TO_VMMALLC);
-
-/*
- * Reinitialiser les structures NAMES, SLICES, BLOCKS
- */
-/*ETG OLD from vmmallc   for (i = 0; i < MAXSLICES; i++)
-          SLICES[i].info.attributs = 0;
-   for (i = 0; i < MAXBLOCKS; i++)
-   {
-          BLOCKS[i].info.attributs = 0;
-          BLOCKS[i].prev_fb = BLOCKS[i].next_fb = -1;
-   }                                                     ETG*/
-
-   memset(BLOCKS, 0, MAXBLOCKS*sizeof(struct block_table) );
-   memset(NAMES , 0, MAXNAMES*sizeof(struct name_table) );
-   memset(SLICES, 0, MAXSLICES*sizeof(struct slice_table) );
-
-/*
- * fermerture de tous les fichiers du systeme de gestion
- */
-   ouvre_ou_ferme_controle(0,0,"VMMEND");
-
-/*
- * Destruction des fichiers Vmm_*
- */
-   f77name(vmmdel)(1);
-
-/*
- * Liberer la memoire allouee par VMM
- */
-
-   free(BLOCKS[0].memadr);
-   fprintf(stdout,"Debug vmmend BLOCKS[0].memadr=%d\n",BLOCKS[0].memadr);
-
-   if(BLOCKS[0].memadr != (int32_t *) NULL)
-        return(vmmerr("VMMALLC",SPACE_STILL_ALLOCATED));
-
-
-   BLOCKS[0].slice_table_index = -1;
-   BLOCKS[0].size = 0 ;
-
-   if(debug_mode)
-         fprintf(fdout," VMMEND-deallocation complete de l espace memoire de VMM\n");
-
- maxmem = 0, free_space = 0, nbslices = 0, nbvar = 0, nbblocks = 0;
- mot_de_passe = 0, pwd_set = 0;
- called_vmmallc = 0; /*called_vmmallc mis a  1 lors du 1er appel a vmmallc */
-
-/* variables globales pour les unites logiques des fichiers Vmm_classe
-   et Vmm_controle
- */
-   for (i=0; i<NCLASSE; i++)
-   {
-     fclass[i] = 0;
-     wp_Vmm[i] = 0; ; /*longueur des Vmm_0n*/
-   }
-   fcontrole=0;   /* nom du fichier: Vmm_controle */
-   fichiers_ouverts = 0;
-   champs_bloques = 0;
-   reprise = 0;       /* mis a 1 si le fichier Vmm_controle est non vide */
-   debug_mode = 0;
-   checksum_mode = 0;
-   espace_requis_max = 0;
-   champs_bloques_max = 0;
-   nbblocks_max = 0;
-   nb_appels_no_lock = 0;
-   nb_appels_lock = 0;
-   nb_ecritures = 0;
-   nb_lectures = 0;
-   first_free_bloc = 0;
-
-   return(0);
-   }
-

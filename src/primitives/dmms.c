@@ -90,129 +90,122 @@ static int ptrsize, *pointer, debug_mode=0, dejala=0, dmms_noabort=0;
  **/
 
 struct blocmem *bloc_alloc(int nbytes, int mode) {
-  struct blocmem *ptbloc;
-  unsigned int errptr;
-  int lng, nitem, n;
-  char *value, *getenv();
+    struct blocmem *ptbloc;
+    unsigned int errptr;
+    int lng, nitem, n;
+    char *value, *getenv();
 
-  single();
-  ptrsize = sizeof(pointer);
+    single();
+    ptrsize = sizeof(pointer);
 
-  nitem = (nbytes + ptrsize - 1) / ptrsize;
-  lng = sizeof(struct blocmem) + (nitem * ptrsize);
+    nitem = (nbytes + ptrsize - 1) / ptrsize;
+    lng = sizeof(struct blocmem) + (nitem * ptrsize);
 
-  ptbloc = (struct blocmem *) malloc(lng);
-  if (ptbloc == NULL) {
-     if (dmms_noabort)
-       return (struct blocmem *) NULL;
-     else {
-       perror("bloc_alloc error can't allocate");
-       fprintf(stderr,"bloc_alloc trying to allocate lng=%d bytes\n",lng);
-       f77name(tracebck)();
-       exit(7);
-     }
-  }
+    ptbloc = (struct blocmem *) malloc(lng);
+    if (ptbloc == NULL) {
+        if (dmms_noabort) {
+            return (struct blocmem *) NULL;
+        } else {
+            perror("bloc_alloc error can't allocate");
+            fprintf(stderr,"bloc_alloc trying to allocate lng=%d bytes\n",lng);
+            f77name(tracebck)();
+            exit(7);
+        }
+    }
 
-  if (! init) {
-    /*    mallopt(M_DEBUG,1); */
+    if (! init) {
+        heap_first.bwd = (struct blocmem *) NULL;
+        heap_first.fwd = &heap_last;
+        heap_last.bwd = &heap_first;
+        heap_last.fwd = (struct blocmem *) NULL;
 
-    heap_first.bwd = (struct blocmem *) NULL;
-    heap_first.fwd = &heap_last;
-    heap_last.bwd = &heap_first;
-    heap_last.fwd = (struct blocmem *) NULL;
+        stack_first.bwd = (struct blocmem *) NULL;
+        stack_first.fwd = &stack_last;
+        stack_last.bwd = &stack_first;
+        stack_last.fwd = (struct blocmem *) NULL;
 
-    stack_first.bwd = (struct blocmem *) NULL;
-    stack_first.fwd = &stack_last;
-    stack_last.bwd = &stack_first;
-    stack_last.fwd = (struct blocmem *) NULL;
+        heap_first.data[0] = (int *) &(heap_first.data[1]);
+        heap_first.data[1] = (int *) &(heap_first.data[0]);
+        heap_last.data[0] = (int *) &(heap_last.data[1]);
+        heap_last.data[1] = (int *) &(heap_last.data[0]);
 
-    heap_first.data[0] = (int *) &(heap_first.data[1]);
-    heap_first.data[1] = (int *) &(heap_first.data[0]);
-    heap_last.data[0] = (int *) &(heap_last.data[1]);
-    heap_last.data[1] = (int *) &(heap_last.data[0]);
+        stack_first.data[0] = (int *) &(stack_first.data[1]);
+        stack_first.data[1] = (int *) &(stack_first.data[0]);
+        stack_last.data[0] = (int *) &(stack_last.data[1]);
+        stack_last.data[1] = (int *) &(stack_last.data[0]);
 
-    stack_first.data[0] = (int *) &(stack_first.data[1]);
-    stack_first.data[1] = (int *) &(stack_first.data[0]);
-    stack_last.data[0] = (int *) &(stack_last.data[1]);
-    stack_last.data[1] = (int *) &(stack_last.data[0]);
+        value = getenv("BAD_POINTER");
+        if (value != NULL) {
+            n = sscanf(value,"%x", &errptr);
+            badptr = (struct blocmem *) errptr;
+            fprintf(stderr,"Debug bad_pointer to look for is %#p\n", badptr);
+        } else {
+            badptr = (struct blocmem *) 0;
+        }
 
-    value = getenv("BAD_POINTER");
-    if (value != NULL) {
-      n = sscanf(value,"%x", &errptr);
-      badptr = (struct blocmem *) errptr;
-      fprintf(stderr,"Debug bad_pointer to look for is %#p\n", badptr);
-      }
-    else
-      badptr = (struct blocmem *) 0;
+        initmem = 0;
+        value = getenv("INITMEM");
+        if (value != NULL) {
+            initmem = 1;
+            if (strcmp(value,"ON") == 0) {
+                con = 0xFFFA5A5A;
+            } else {
+                n = sscanf(value,"%x",&con);
+            }
+        }
 
-    initmem = 0;
-    value = getenv("INITMEM");
-    if (value != NULL) {
-      initmem = 1;
-      if (strcmp(value,"ON") == 0)
-         con = 0xFFFA5A5A;
-      else
-     n = sscanf(value,"%x",&con);
-      }
+        value = getenv("DEBUG_MODE");
+        debug_mode = ((value != NULL) && (strcmp(value,"OFF") != 0) && (strcmp(value,"0") != 0));
+        init = 1;
+        if (debug_mode) {
+            fprintf(stdout,"DEBUG_MODE %s\n",value);
+            fprintf(stdout,"Debug &heap_first =%#p\n", &heap_first);
+            fprintf(stdout,"Debug &heap_last =%#p\n", &heap_last);
+            fprintf(stdout,"Debug &stack_first =%#p\n", &stack_first);
+            fprintf(stdout,"Debug &stack_last =%#p\n", &stack_last);
+        }
+    }
 
-    value = getenv("DEBUG_MODE");
-    debug_mode = ((value != NULL) && (strcmp(value,"OFF") != 0)
-                   && (strcmp(value,"0") != 0));
-    init = 1;
+    if (badptr != (struct blocmem *) 0) {
+        if (badptr ==  ptbloc) {
+            fprintf(stderr,"bloc_alloc bad_pointer %#x\n",ptbloc);
+            f77name(tracebck)();
+            exit(10);
+        }
+    }
+
+    if (mode == HEAP) {
+        ptbloc->bwd = heap_last.bwd;
+        ptbloc->fwd = &heap_last;
+        heap_last.bwd = ptbloc;
+        (ptbloc->bwd)->fwd = ptbloc;
+    } else {
+        ptbloc->bwd = stack_last.bwd;
+        ptbloc->fwd = &stack_last;
+        stack_last.bwd = ptbloc;
+        (ptbloc->bwd)->fwd = ptbloc;
+    }
+
+    ptbloc->data[0] = (int *) &(ptbloc->data[nitem+1]);
+    ptbloc->data[nitem+1] = (int *) &(ptbloc->data[0]);
     if (debug_mode) {
-       fprintf(stdout,"DEBUG_MODE %s\n",value);
-       fprintf(stdout,"Debug &heap_first =%#p\n", &heap_first);
-       fprintf(stdout,"Debug &heap_last =%#p\n", &heap_last);
-       fprintf(stdout,"Debug &stack_first =%#p\n", &stack_first);
-       fprintf(stdout,"Debug &stack_last =%#p\n", &stack_last);
-       }
+        fprintf(stdout, "\n");
+        fprintf(stdout, "Debug alloc_bloc nitem = %d\n", nitem);
+        fprintf(stdout, "Debug alloc_bloc lng = %d\n", lng);
+        fprintf(stdout, "Debug alloc_bloc ptbloc =%#p\n", ptbloc);
+        fprintf(stdout, "Debug alloc_bloc ptbloc->bwd =%#p\n", ptbloc->bwd);
+        fprintf(stdout, "Debug alloc_bloc ptbloc->fwd =%#p\n", ptbloc->fwd);
+        fprintf(stdout, "Debug alloc_bloc ptbloc->data[0] =%#p\n", ptbloc->data[0]);
+        fprintf(stdout, "Debug alloc_bloc ptbloc->data[nitem+1] =%#p\n", ptbloc->data[nitem+1]);
     }
 
-  if (badptr != (struct blocmem *) 0)
-     if (badptr ==  ptbloc) {
-        fprintf(stderr,"bloc_alloc bad_pointer %#x\n",ptbloc);
-        f77name(tracebck)();
-    exit(10);
+    if (initmem) {
+        lng = (nitem-2) * ptrsize / sizeof(int32_t);
+        f77name(afix)(&(ptbloc->data[2]),&con,&lng);
     }
 
-  if (mode == HEAP) {
-    ptbloc->bwd = heap_last.bwd;
-    ptbloc->fwd = &heap_last;
-    heap_last.bwd = ptbloc;
-    (ptbloc->bwd)->fwd = ptbloc;
-    }
-  else {
-    ptbloc->bwd = stack_last.bwd;
-    ptbloc->fwd = &stack_last;
-    stack_last.bwd = ptbloc;
-    (ptbloc->bwd)->fwd = ptbloc;
-    }
-
-  ptbloc->data[0] = (int *) &(ptbloc->data[nitem+1]);
-  ptbloc->data[nitem+1] = (int *) &(ptbloc->data[0]);
-  if (debug_mode) {
-     fprintf(stdout, "\n");
-     fprintf(stdout, "Debug alloc_bloc nitem = %d\n", nitem);
-     fprintf(stdout, "Debug alloc_bloc lng = %d\n", lng);
-     fprintf(stdout, "Debug alloc_bloc ptbloc =%#p\n", ptbloc);
-     fprintf(stdout, "Debug alloc_bloc ptbloc->bwd =%#p\n", ptbloc->bwd);
-     fprintf(stdout, "Debug alloc_bloc ptbloc->fwd =%#p\n", ptbloc->fwd);
-     fprintf(stdout, "Debug alloc_bloc ptbloc->data[0] =%#p\n", ptbloc->data[0]);
-     fprintf(stdout, "Debug alloc_bloc ptbloc->data[nitem+1] =%#p\n", ptbloc->data[nitem+1]);
-     }
-
-  if (initmem) {
-     lng = (nitem-2) * ptrsize / sizeof(int32_t);
-     f77name(afix)(&(ptbloc->data[2]),&con,&lng);
-/*     while (ptint < &(ptbloc->data[nitem+1])) {
-       *ptint = con;
-       ptint ++;
-       }
-*/
-     }
-
-  sortie();
-  return ptbloc;
+    sortie();
+    return ptbloc;
 }
 
 
@@ -297,220 +290,130 @@ int bloc_dealloc(
 }
 
 
-/************************************************************************
- *                        m e m _ c h e c k                             *
- ************************************************************************/
-
-/**
- *
- *auteur   M. Lepine - fev 92
- *
- *objet(mem_check)
- *
- *     parcourir la liste des blocs de memoire (heap ou stack )
- *     pour validation des differents pointeurs
- **/
-
+//! Validate pointers in memory bloc list (heap and stack)
 int mem_check(int mode, int msg_level) {
-   struct blocmem *ptbloc;
-   int err;
-   if (mode == HEAP)
-      ptbloc = heap_first.fwd;
-   else
-      ptbloc = stack_first.fwd;
-   while (ptbloc->fwd != (struct blocmem *) NULL) {
-     if ((err = bloc_check(ptbloc,msg_level)) < 0)
-        return err;
-     ptbloc = ptbloc->fwd;
-     }
+    struct blocmem *ptbloc;
+    if (mode == HEAP) {
+        ptbloc = heap_first.fwd;
+    } else {
+        ptbloc = stack_first.fwd;
+    }
+    while (ptbloc->fwd != (struct blocmem *) NULL) {
+        int err = bloc_check(ptbloc,msg_level);
+        if (err < 0) {
+            return err;
+        }
+        ptbloc = ptbloc->fwd;
+    }
 
-   return 0;
+    return 0;
 }
 
 
-/************************************************************************
- *                            m e m o i r c                             *
- ************************************************************************/
-
-/**
- *
- *auteur   M. Lepine - mars 92
- *
- *objet(memoirc)
- *
- *     parcourir la liste des blocs de memoire (heap et stack )
- *     pour verification d'integrite des differents blocs de memoire
- **/
-
+//! Check integrity of blocs in memory bloc list (heap and stack)
 int f77name(memoirc)(
     int32_t * msg_level
 ) {
-    int errs, errh;
-
     if (! init) return 0;
 
-    if (stack_first.fwd != &stack_last)
+    if (stack_first.fwd != &stack_last) {
         fprintf(stderr,"memoirc warning: stack not empty \n");
+    }
     if (*msg_level > 1) {
         fprintf(stdout,"Debug &heap_first =%#p\n",&heap_first);
         fprintf(stdout,"Debug &heap_last =%#p\n",&heap_last);
         fprintf(stdout,"Debug &stack_first =%#p\n",&stack_first);
         fprintf(stdout,"Debug &stack_last =%#p\n",&stack_last);
-        }
-    errh = mem_check(HEAP,*msg_level);
-    errs = mem_check(STACK,*msg_level);
+    }
+    int errh = mem_check(HEAP,*msg_level);
+    int errs = mem_check(STACK,*msg_level);
     return (errh !=0) ? errh : (errs != 0) ? errs : 0;
 }
 
 
+//! Enable or disable debug messages
+void f77name(dmmsdbg)(int32_t * dbgr) {
+    debug_mode = (*dbgr == 1) ? 1 : 0;
+}
 
 
-
-/************************************************************************
- *                            d m m s d b g                             *
- ************************************************************************/
-
-/**
- *
- *auteur   M. Lepine - janvier 94
- *
- *objet(dmmsdbg)
- *
- *     Activer ou desactiver les messages de debug
- **/
-
-void f77name(dmmsdbg)(dbgr)
-int32_t *dbgr;
-{
-   debug_mode = (*dbgr == 1) ? 1 : 0;
-   }
-
-/************************************************************************
- *                            d m m s n a b t                           *
- ************************************************************************/
-
-/**
- *
- *auteur   M. Lepine - mars 2000
- *
- *objet(dmmsnabt)
- *
- *     Activer ou desactiver le mode abort pour manque de memoire
- **/
-
-void f77name(dmmsnabt)(abort)
-int32_t *abort;
-{
-   dmms_noabort = (*abort == 1) ? 1 : 0;
-   }
+//! Enable or disable abort mode when out of memory
+void f77name(dmmsnabt)(int32_t * abort) {
+    dmms_noabort = (*abort == 1) ? 1 : 0;
+}
 
 
-/************************************************************************
- *                           h p a l l o c                              *
- ************************************************************************/
+void f77name(hpalloc)(int32_t ** addr, int32_t * length, int32_t * errcode, int32_t * abort) {
+    if (*length == 0) {
+        fprintf(stderr,"HPALLOC error: 0 length\n");
+        f77name(tracebck)();
+        exit(13);
+    }
+    struct blocmem * ptbloc = bloc_alloc(8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
+    *addr =  (void *) &(ptbloc->data[2]);
+    *errcode = (ptbloc == (struct blocmem *) NULL) ? 1 : 0;
+}
 
-void
-f77name(hpalloc)( addr, length, errcode, abort )
-int32_t *length, *errcode, *abort;
-void **addr;
-{
-   struct blocmem *ptbloc;
-   if (*length == 0) {
-      fprintf(stderr,"HPALLOC error: 0 length\n");
-      f77name(tracebck)();
-      exit(13);
-      }
-   ptbloc = bloc_alloc(8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
-   *addr =  (void *) &(ptbloc->data[2]);
-   *errcode = (ptbloc == (struct blocmem *) NULL) ? 1 : 0;
-   }
 
-/************************************************************************
- *                          h p d e a l l c                             *
- ************************************************************************/
+void f77name(hpdeallc)(int32_t ** addr, int32_t * errcode, int32_t * abort) {
+    int offset=4*sizeof(addr);
+    *errcode = bloc_dealloc((*addr)-offset,HEAP);
+}
 
-void
-f77name(hpdeallc)(addr, errcode, abort)
-int32_t *errcode, *abort;
-char **addr;
-{
-   int offset=4*sizeof(addr);
-   *errcode = bloc_dealloc((*addr)-offset,HEAP);
-   }
 
-/************************************************************************
- *                          c a _ a l l o c                             *
- *                                                                      *
- *   cached align allocation                                            *
- *                                                                      *
- ************************************************************************/
-
-void
-f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *abort, int32_t *fpw2 )
-{
-   struct blocmem *ptbloc;
-   int **pt_data1, **pt_aligned;
+//! Cache aligned allocation
+void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *abort, int32_t *fpw2) {
 #if defined (AIX)
-   int alignment[3] = {128, 128, 512};
+    int alignment[3] = {128, 128, 512};
 #else
-   int alignment[3] = {32, 32, 32};
+    int alignment[3] = {32, 32, 32};
 #endif
-   int nbytes, ajout, i;
-   int pw2 = *fpw2;
 
-   if (*length == 0) {
-      fprintf(stderr,"CA_ALLOC error: 0 length\n");
-      f77name(tracebck)();
-      exit(13);
-      }
-   if (pw2 < 0) {
-     pw2 = -pw2;
-     if ((pw2 < 1) || (pw2 > 3)) {
-       fprintf(stderr,"ca_alloc wrong value for alignment:%d\n",-pw2);
-       exit(33);
-     }
-     nbytes = alignment[pw2-1];
-   }
-   else
-     nbytes = 1 << pw2;
-   ptbloc = bloc_alloc(nbytes + 8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
-   pt_data1 = &(ptbloc->data[1]);
-   pt_aligned = &(ptbloc->data[2]) + (nbytes / sizeof(pt_aligned));
-   pt_aligned = (void *) (( (intptr_t)pt_aligned) >> pw2);
-   pt_aligned = (void *) (( (intptr_t)pt_aligned) << pw2);
-   ajout =  pt_aligned -  pt_data1;
-   ptbloc->data[1] = (int *) ptbloc;
-   for (i=0; i <= ajout; i++)
-     ptbloc->data[1+i] = (int *) ptbloc;
-   *addr =  (void *) pt_aligned;
-   *errcode = (ptbloc == (struct blocmem *) NULL) ? 1 : 0;
-   }
+    if (*length == 0) {
+        fprintf(stderr,"CA_ALLOC error: 0 length\n");
+        f77name(tracebck)();
+        exit(13);
+    }
 
-/************************************************************************
- *                          c a _ d e a l l c                           *
- ************************************************************************/
+    int nbytes;
+    int pw2 = *fpw2;
+    if (pw2 < 0) {
+        pw2 = -pw2;
+        if ((pw2 < 1) || (pw2 > 3)) {
+            fprintf(stderr,"ca_alloc wrong value for alignment:%d\n",-pw2);
+            exit(33);
+        }
+        nbytes = alignment[pw2-1];
+    } else {
+        nbytes = 1 << pw2;
+    }
+    struct blocmem * ptbloc = bloc_alloc(nbytes + 8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
+    int ** pt_data1 = &(ptbloc->data[1]);
+    int ** pt_aligned = &(ptbloc->data[2]) + (nbytes / sizeof(pt_aligned));
+    pt_aligned = (void *) (( (intptr_t)pt_aligned) >> pw2);
+    pt_aligned = (void *) (( (intptr_t)pt_aligned) << pw2);
+    int ajout =  pt_aligned -  pt_data1;
+    ptbloc->data[1] = (int *) ptbloc;
+    for (int i=0; i <= ajout; i++) {
+        ptbloc->data[1+i] = (int *) ptbloc;
+    }
+    *addr =  (void *) pt_aligned;
+    *errcode = (ptbloc == (struct blocmem *) NULL) ? 1 : 0;
+}
 
-void
-f77name(ca_deallc)(addr, errcode, abort)
-int32_t *errcode, *abort;
-int **addr;
-{
+
+void f77name(ca_deallc)(int32_t ** addr, int32_t * errcode, int32_t * abort) {
    int **ptr;
    ptr = *addr - sizeof(addr);
    *errcode = bloc_dealloc(*ptr,HEAP);
-   }
+}
+
 
 #if defined (OLD_32BIT_CODE)
-/************************************************************************
- *                          m e m o i r h                               *
- ************************************************************************/
-void
-f77name(memoirh)(buf,ind,nw)
-int32_t buf[], *ind, *nw;
-{
-   int errcode, **ptr;
-   struct blocmem *ptbloc;
-   int32_t *adr1;
+void f77name(memoirh)(int32_t buf[], int32_t * ind, int32_t * nw){
+    int errcode, **ptr;
+    struct blocmem *ptbloc;
+    int32_t *adr1;
 
 #if !defined (OLD_32BIT_CODE)
     fprintf(stderr, "****************************************************\n");
@@ -523,28 +426,22 @@ int32_t buf[], *ind, *nw;
     exit(33);
 #else
 
-   if (*nw > 0) {
-      ptbloc = bloc_alloc(8 + *nw * sizeof(int32_t),HEAP);
-      adr1 = (int32_t *) &(ptbloc->data[2]);
-      *ind = (adr1 - buf) + 1;
-      }
-   else {
-      ptr = (int **) &buf[*ind - 1];
-      errcode = bloc_dealloc(ptr-4,HEAP);
-      }
+    if (*nw > 0) {
+        ptbloc = bloc_alloc(8 + *nw * sizeof(int32_t),HEAP);
+        adr1 = (int32_t *) &(ptbloc->data[2]);
+        *ind = (adr1 - buf) + 1;
+    } else {
+        ptr = (int **) &buf[*ind - 1];
+        errcode = bloc_dealloc(ptr-4,HEAP);
+    }
 #endif
-   }
+}
 
-/************************************************************************
- *                           m e m o i r                                *
- ************************************************************************/
-void
-f77name(memoir)(buf,ind,nw)
-int32_t buf[], *ind, *nw;
-{
-   int  errcode, **ptr;
-   struct blocmem *ptbloc;
-   int32_t *adr1;
+
+void f77name(memoir)(int32_t buf[], int32_t * ind, int32_t * nw) {
+    int  errcode, **ptr;
+    struct blocmem *ptbloc;
+    int32_t *adr1;
 #if !defined (OLD_32BIT_CODE)
     fprintf(stderr, "****************************************************\n");
     fprintf(stderr, "* ERROR: MEMOIR                                    *\n");
@@ -556,53 +453,37 @@ int32_t buf[], *ind, *nw;
     exit(44);
 #else
 
-   if (*nw > 0) {
-      ptbloc = bloc_alloc(8 + *nw * sizeof(int32_t),STACK);
-      adr1 = (int32_t *) &(ptbloc->data[2]);
-      *ind = (adr1 - buf) + 1;
-      }
-   else {
-      ptr = (int **) &buf[*ind - 1];
-      errcode = bloc_dealloc(ptr-4,STACK);
-      }
+    if (*nw > 0) {
+        ptbloc = bloc_alloc(8 + *nw * sizeof(int32_t),STACK);
+        adr1 = (int32_t *) &(ptbloc->data[2]);
+        *ind = (adr1 - buf) + 1;
+    } else {
+        ptr = (int **) &buf[*ind - 1];
+        errcode = bloc_dealloc(ptr-4,STACK);
+    }
 #endif
 }
 #endif
 
-/************************************************************************
- *                          b k c h e c k                               *
- ************************************************************************/
 
-void
-f77name(bkcheck)(addr, errcode)
-int32_t **addr, *errcode;
-{
-   *errcode = bloc_check((*addr)-4,1);
+void f77name(bkcheck)(int32_t ** addr, int32_t * errcode) {
+    *errcode = bloc_check((*addr)-4, 1);
 }
 
 
-/************************************************************************
- *                          h p c h e c k                               *
- ************************************************************************/
-void
-f77name(hpcheck)(errcode)
-int32_t *errcode;
-{
-   if (*errcode == 0)
-      *errcode = mem_check(HEAP,0);
-   else
-      *errcode = mem_check(HEAP,1);
+void f77name(hpcheck)(int32_t * errcode) {
+    if (*errcode == 0) {
+        *errcode = mem_check(HEAP, 0);
+    } else {
+        *errcode = mem_check(HEAP, 1);
+    }
 }
 
-/************************************************************************
- *                           m c h e c k                                *
- ************************************************************************/
-void
-f77name(mcheck)(errcode)
-int *errcode;
-{
-   if (*errcode == 0)
-      *errcode = mem_check(STACK,0);
-   else
-      *errcode = mem_check(STACK,1);
+
+void f77name(mcheck)(int * errcode){
+    if (*errcode == 0) {
+        *errcode = mem_check(STACK, 0);
+    } else {
+        *errcode = mem_check(STACK, 1);
+    }
 }
