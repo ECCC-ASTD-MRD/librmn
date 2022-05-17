@@ -18,6 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
       SUBROUTINE ALPNM8(ALP,LALP,LM,SINLAT,OLDE,KHEM) 
+      use alpnrt_comlrlm, AAE=>AE, AAD=>AD, AAC=>AC ! aliases for AC, AD, AE from module
 
 ***    AUTHOR: B.DUGAS, SEPT 1993
 ***    (THIS IS A RECODED VERSION BASED ON 1) A FIRST VERSION 
@@ -32,6 +33,9 @@
 ***    THE SYMMETRIC AND ANTISYMMETRIC VALUES IN ALP ARE INTERLEAVED 
 ***     IN EACH ROW.   E.G. ROW 1 = ( 0,1,2,3....LALP ). 
 
+****   got rid of common blocks and Cray pointers  M.Valin 2022
+****   introduced module alpnrt_comlrlm
+
       IMPLICIT  none
 
       REAL      OLDE
@@ -39,22 +43,20 @@
       INTEGER   LM,LALP(LM),KHEM
 
       LOGICAL   RHOMBOID
-      INTEGER   NM0,NM,NM1,NM2,LRLM
+      INTEGER   NM0,NM,NM1,NM2
       INTEGER   MULT,M,N,IR,LR,MR,LASTN
-      REAL*8    ALPNM,ALPNMM1,ALPNMM2,AC,AD,AE
-      REAL*8    COS2, PROD,A,B, EPSI
+      REAL*8    ALPNM,ALPNMM1,ALPNMM2
+      REAL*8    COS2, PROD,A,B
 
-      POINTER ( IC,AC(0:LM-1,0:1) )
-      POINTER ( ID,AD(0:LM-1,0:1) )
-      POINTER ( IE,AE(0:LM-1,0:1) )
-
-      POINTER ( IP,EPSI(1) )
-
-      COMMON   /COMLRLM/ LRLM
-      COMMON   /ALPNRT/ IC,ID,IE,IP
+      real(kind=8), dimension(:,:), pointer :: AC
+      real(kind=8), dimension(:,:), pointer :: AD
+      real(kind=8), dimension(:,:), pointer :: AE
 
       EXTERNAL  EPSIL8
 
+      AC(0:LM-1,0:1) => AAC(1:2*LM)   ! reshape AC, AD, AE as 2D arrays
+      AD(0:LM-1,0:1) => AAC(1:2*LM)
+      AE(0:LM-1,0:1) => AAC(1:2*LM)
 *-----------------------------------------------------------------------
       IF ((LALP(1)*1000+LM) .NE. LRLM)
      +    CALL EPSIL8( LALP,LM,KHEM )

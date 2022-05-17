@@ -238,6 +238,7 @@
 *         034 K. Winger  (nov06) - Read variable names as characters
 *                                - Allow 4 character variables
 *         035 B.Dugas    (jan07) eliminer les message d'erreur (en option)
+*         036 M.Valin    (mai22) eliminer hpalloc, utiliser des pointeurs Fortran
 ***
 
       IMPLICIT NONE
@@ -323,23 +324,13 @@
       Integer       sizWK
       save          sizWK
 
-      Real          sint,cost,pds,somx,somx2,temp,WK
-      Integer       bin,util
+      real, dimension(:,:), save, pointer :: sint, cost, pds
+      integer, dimension(:,:), save, pointer :: bin
+      real, dimension(:,:), save, pointer :: somx, somx2
 
-      Pointer     ( psint,  sint (NI  ,NJ   ) ),
-     +            ( pcost,  cost (NI  ,NJ   ) ),
-     +            ( pbin,   bin  (NI  ,NJ   ) ),
-     +            ( ppds,   pds  (NI  ,NJ   ) ),
-     +            ( psomx,  somx (NBIP,SOMNK) ),
-     +            ( psomx2, somx2(NBIP,SOMNK) )
-
-      Pointer     ( ptemp,  temp (NIP ,SOMNK,MaxTask) ), 
-     +            ( putil,  util (     SOMNK,MaxTask) )
-
-      Pointer     ( pWK,    WK   (NBIN*SOMNK) )              
-
-      Save          psint,pcost, pbin, ppds,pWK,
-     +              psomx,psomx2,ptemp,putil
+      real, dimension(:,:,:), save, pointer :: temp
+      integer, dimension(:,:), save, pointer :: util
+      real, dimension(:), save, pointer :: WK
 
 ***    Drapeaux logiques.
 
@@ -358,7 +349,6 @@
      +              fnom,   fclos,  wkoffit,r4astrg 
 
       Integer       errcod
-      External      hpalloc,hpdeallc
 
       Character     typvar*1,                nomvar*4,
      +              etiket*12,               grtyp*1
@@ -579,10 +569,10 @@
 ***      Allouer l'espace d'une premiere serie de champs 
 ***         en fonction de cette information.
 
-              Call hpalloc( psint, NI*NJ, errcod,0 )
-              Call hpalloc( pcost, NI*NJ, errcod,0 )
-              Call hpalloc( pbin,  NI*NJ, errcod,0 )
-              Call hpalloc( ppds,  NI*NJ, errcod,0 )
+              allocate(sint(ni,nj))
+              allocate(cost(ni,nj))
+              allocate(bin(ni,nj))
+              allocate(pds(ni,nj))
 
 ***      Lire ces champs grilles. Commencer par SINT.
 
@@ -768,19 +758,19 @@
 ***       Allouer la deuxieme serie de grilles. 
 
               If (mod(MODE,2).eq.1)
-     +        Call hpalloc( psomx,    SOMNK*NBIP, errcod,0 )
+     +        allocate( somx(SOMNK,NBIP))
 
               If (MODE.ge.2)
-     +        Call hpalloc( psomx2,   SOMNK*NBIP, errcod,0 )
+     +        allocate( somx2(SOMNK,NBIP) )
 
-              Call hpalloc( ptemp,NIP*SOMNK*NCPU, errcod,0 )
-              Call hpalloc( putil,    SOMNK*NCPU, errcod,0 )
+              allocate(temp(NIP,SOMNK,NCPU))
+              allocate(util(SOMNK,NCPU))
 
 
 ***       Allouer l'espace de travail des fichier standart WK.
 
               sizWK = max( NBIN*SOMNK, NombreC )
-              Call hpalloc( pWK, sizWK, errcod,0 )
+              allocate(WK(sizWK))
 
               If (COMPLET.ne.0)                                Then
 
@@ -999,21 +989,17 @@
 
 ***       Liberer la memoire dynamique.
 
-              Call hpdeallc( psint, errcod,1 )
-              Call hpdeallc( pcost, errcod,1 )
-              Call hpdeallc( pbin,  errcod,1 )
-              Call hpdeallc( ppds,  errcod,1 )
+              deallocate(sint, cost, bin, pds)
 
               If (mod(MODE,2).eq.1)
-     +        Call hpdeallc( psomx, errcod,1 )
+     +        deallocate(somx)
 
               If (MODE.ge.2)
-     +        Call hpdeallc( psomx2,errcod,1 )
+     +        deallocate(somx2)
 
-              Call hpdeallc( ptemp, errcod,1 )
-              Call hpdeallc( putil, errcod,1 )
+              deallocate(temp, util)
 
-              Call hpdeallc( pWK,   errcod,1 )
+              deallocate(WK)
 
 ***       Fermer le fichier IUN.
 

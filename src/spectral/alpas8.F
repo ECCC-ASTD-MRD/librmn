@@ -18,6 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
       SUBROUTINE ALPAS8( ALP, LA, LRS, LRA, LM, OLDW )
+      implicit none
 
 ***   ****   OCT 1975  -  JOHN D. HENDERSON  ****
 ***    DEC 23/93 - D.Dugas, RPN: Version REAL/REAL*8.
@@ -36,16 +37,13 @@
       REAL*8    ALP(*)
       INTEGER   LM,LRS(LM),LRA(LM),LA
 
-      REAL*8    WRKL
-      POINTER ( IW,  WRKL(1) )
+      REAL(kind=8), dimension(2*LA) :: WRKL
 
       INTEGER   LA2,MN,MHS,MHA,MF,M,N,IER
       INTEGER   LHS,LHA,MNS,MNA,NNS,NNA
 
-      EXTERNAL  HPALLOC,HPDEALLC
 *-----------------------------------------------------------------------
 
-      CALL HPALLOC( IW,LA*2,IER,8 )
 
 ***    TRANSFERS ALP TO WRKL
 
@@ -81,7 +79,6 @@
          MHA = MHA+LHA 
    70 CONTINUE
 
-      CALL HPDEALLC( IW,IER,1 )
 
       RETURN
       END 

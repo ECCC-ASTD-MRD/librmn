@@ -18,7 +18,8 @@
 * * Boston, MA 02111-1307, USA.
 * */
       SUBROUTINE ALPDR8 (DALP,ALP,LALP,LM,SINLAT,OLDE,KHEM)
-
+      use alpnrt_comlrlm
+      implicit none
 ***   ****   OCT 1975  -  JOHN D. HENDERSON  ****
 ***    DEC 23/93 - D.Dugas, RPN: Version Real*8.
 
@@ -29,20 +30,16 @@
 ***    EPSI IS NOW CALCULATED ON DEMAND BY ROUTINE EPSIL8. 
 ***    OLDE IS USED TO PRESERVE THE OLD CALLING SEQUENCE.
 
+****   got rid of common blocks and Cray pointers  M.Valin 2022
+****   introduced module alpnrt_comlrlm
+
       INTEGER   LM,LALP(LM),KHEM
       REAL*8    DALP(*),ALP(*),SINLAT
       REAL      OLDE
 
-      REAL*8    FNS,EPSI,ALPILM,AC,AD,AE
-      INTEGER   MULT,MR,M,N,MN,LRLM,LR
+      REAL*8    FNS,ALPILM
+      INTEGER   MULT,MR,M,N,MN,LR
 
-      COMMON   /COMLRLM/ LRLM
-      COMMON   /ALPNRT/ IC,ID,IE,IP
-
-      POINTER ( IC, AC(1) )
-      POINTER ( ID, AD(1) )
-      POINTER ( IE, AE(1) )
-      POINTER ( IP, EPSI(1) )
 
       EXTERNAL  EPSIL8
 *-----------------------------------------------------------------------

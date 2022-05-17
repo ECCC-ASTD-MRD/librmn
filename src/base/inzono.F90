@@ -81,8 +81,7 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
 
     ! Parametres servant a l'allocation de memoire dynamique.
     ! pWk   - espace de travail pour fichier standard
-    real :: wk
-    pointer     ( pwk, wk(ni * nj) )
+    real, dimension (:), allocatable :: wk
 
     ! Drapeaux logiques.
     logical, save :: tourne = .true.
@@ -92,7 +91,6 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     external fstnbr, fstouv, fstfrm, fstecr,  exfin, fnom, qqexit, strgr4a
 
     integer :: errcod
-    external hpalloc, hpdeallc
 
     character(len = 1) :: typvar
     character(len = 4) :: etivar
@@ -202,7 +200,7 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     inbr = fstouv(iun, ' RND ')
 
     ! Allouer la memoire pour les vecteurs de travail
-    call hpalloc(pwk, ni * nj, errcod, 1)
+    allocate(wk(ni * nj))
 
     ! Definir les parametres de stockage du fichier standard
     datyp  = 2
@@ -368,7 +366,7 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     end if
 
     ! Liberer la memoire dynamique.
-    call hpdeallc(pwk, errcod, 1)
+    deallocate(wk)
 
     ! Fermer le fichier iun.
     ifrm = fstfrm(iun)
@@ -455,8 +453,7 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
 
     ! Parametres servant a l'allocation de memoire dynamique.
     ! pWk   - espace de travail pour fichier standard
-    real :: wk
-    pointer     ( pwk, wk(ni * nj) )
+    real, dimension (:), allocatable :: wk
 
     ! Drapeaux logiques.
     logical, save :: tourne = .true.
@@ -466,7 +463,6 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     external fstnbr, fstouv, fstfrm, fstecr, exfin, fnom, fclos, qqexit, strgr4a
 
     integer :: errcod
-    external hpalloc, hpdeallc
 
     character(len = 1) :: typvar
     character(len = 4) :: etivar
@@ -585,7 +581,7 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     end if
 
     ! Allouer la memoire pour les vecteurs de travail
-    call hpalloc(pwk, ni * nj, errcod, 1)
+    allocate(wk(ni * nj))
 
     ! Definir les parametres de stockage du fichier standard
     datyp  = 2
@@ -751,7 +747,7 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     end if
 
     ! Liberer la memoire dynamique.
-    call hpdeallc(pwk, errcod, 1)
+    deallocate(wk)
 
     ! Fermer le fichier iun.
     ifrm = fstfrm(iun)

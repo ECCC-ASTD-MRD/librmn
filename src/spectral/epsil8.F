@@ -17,7 +17,18 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+      module alpnrt_comlrlm
+        ! NOTE: AC, AD, AE may get used as 2D arrays
+        ! in that case they are imported as AAC, AAD, AAE and 'pointer reshaped'
+        integer, save :: LRLM = 0
+        real(kind=8), dimension(:), pointer  ::  EPSI => NULL()
+        real(kind=8), dimension(:), pointer  ::  AC => NULL()
+        real(kind=8), dimension(:), pointer  ::  AD => NULL()
+        real(kind=8), dimension(:), pointer  ::  AE => NULL()
+      end module
+
       SUBROUTINE EPSIL8 (LALP,LM,KHEM) 
+      use alpnrt_comlrlm
 
       IMPLICIT none
 
@@ -31,22 +42,14 @@
 ***    POLYNOMIAL RECURSIVE CALCULATIONS FOR N FROM 0 TO LALP(M)-1,
 ***    AND M FROM 0 TO LM-1.
 
+****   got rid of common blocks and Cray pointers  M.Valin 2022
+****   introduced module alpnrt_comlrlm
+
       INTEGER  LM,KHEM,LALP(LM) 
 
-      EXTERNAL  HPALLOC,HPDEALLC
-
-      REAL*8    FNUM,FDEN, AC,AD,AE,  EPSI, c,d,e
-      INTEGER   M,N,MN,    IR,IER,    LRLM
+      REAL*8    FNUM,FDEN, c,d,e      ! AC,AD,AE imported from alpnrt_comlrlm
+      INTEGER   M,N,MN,    IR,IER     ! LRLM imported from alpnrt_comlrlm
       INTEGER   MULT,MR,   N1,LR,     MS,NS
-
-      POINTER ( IC,AC(1) )
-      POINTER ( ID,AD(1) )
-      POINTER ( IE,AE(1) )
-
-      POINTER ( IP,EPSI(1) )
-
-      COMMON   /COMLRLM/ LRLM
-      COMMON   /ALPNRT/ IC,ID,IE,IP
 
       c(m,n) = sqrt( dble( (2*n+1)*(n+m-1)*(n+m-3) )/
      +               dble( (2*n-3)*(n+m  )*(n+m-2) ))
@@ -54,8 +57,6 @@
      +               dble( (2*n-1)*(n+m  )*(n+m-2) ))
       e(m,n) = sqrt( dble( (2*n+1)*(n-m) )/
      +               dble( (2*n-1)*(n+m) ))
-
-      DATA      LRLM / 0 /
 
 *-----------------------------------------------------------------------
                      MULT = 1
@@ -69,20 +70,19 @@
           IF (LRLM.NE.0)                                       THEN
 
 ***            DE-ALLOUER LA VIELLE MEMOIRE.
-
-              CALL HPDEALLC( IC,IER,1 )
-              CALL HPDEALLC( ID,IER,1 )
-              CALL HPDEALLC( IE,IER,1 )
-              CALL HPDEALLC( IP,IER,1 )
+              if(associated(AC))   deallocate(AC)
+              if(associated(AD))   deallocate(AD)
+              if(associated(AE))   deallocate(AE)
+              if(associated(EPSI)) deallocate(EPSI)
 
           END IF
 
 ***        ALLOUER L'ESPACE POUR LES AC,AD,AE ET POUR EPSI.
 
-          CALL HPALLOC( IC,LM*LALP(1)*MULT,IER,8 )
-          CALL HPALLOC( ID,LM*LALP(1)*MULT,IER,8 )
-          CALL HPALLOC( IE,LM*LALP(1)*MULT,IER,8 )
-          CALL HPALLOC( IP,LM*LALP(1)*MULT,IER,8 )
+          allocate( AC(LM*LALP(1)*MULT) )
+          allocate( AD(LM*LALP(1)*MULT) )
+          allocate( AE(LM*LALP(1)*MULT) )
+          allocate( EPSI(LM*LALP(1)*MULT) )
 
       END IF
 
