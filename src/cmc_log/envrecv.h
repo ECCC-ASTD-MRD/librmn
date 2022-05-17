@@ -1,18 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <fcntl.h>
-
-#include <rpnmacros.h>
-
 /* ENTRY = ID + TEXT + NewLine
    ID = 8 chars, TEXT = 55 chars */
 
-#define MAXTEXT   90
-#define MAXID      9
+#define MAXTEXT    90
+#define MAXID       9
 #define ENTRYSIZE 128
 
 #define READ_PTR 00L

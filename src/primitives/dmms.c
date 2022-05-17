@@ -40,26 +40,36 @@ struct blocmem {
     int *data[4];
 };
 
-static struct blocmem stack_first, stack_last, heap_first, heap_last;
+static struct blocmem stack_first;
+static struct blocmem stack_last;
+static struct blocmem heap_first;
+static struct blocmem heap_last;
+
 static struct blocmem *badptr;
 
-static int init = 0, initmem = 0;
+static int init = 0;
+static int initmem = 0;
 
 static int32_t con;
 
-static int ptrsize, *pointer, debug_mode=0, dejala=0, dmms_noabort=0;
+static int ptrsize;
+static int *pointer;
+static int debug_mode = 0;
+static int dejala = 0;
+static int dmms_noabort = 0;
 
 #define single() {\
-  if (dejala) {\
-    fprintf(stderr," * * * ERROR * * *: more than one task in dmms\n");\
-    f77name(tracebck)();\
-    exit(50);\
+    if (dejala) {\
+        fprintf(stderr, " * * * ERROR * * *: more than one task in dmms\n");\
+        f77name(tracebck)();\
+        exit(50);\
+    } else {\
+        dejala = 1;\
     }\
-  else dejala=1;\
 }
 
 #define sortie() {\
-  dejala=0;\
+  dejala = 0;\
 }
 
 
@@ -343,21 +353,39 @@ void f77name(dmmsnabt)(int32_t * abort) {
 }
 
 
-void f77name(hpalloc)(int32_t ** addr, int32_t * length, int32_t * errcode, int32_t * abort) {
+//! Dynamically allocates memory on the heap
+void f77name(hpalloc)(
+    //! [out] Pointer to the allocated memory (cray_f_pointer)
+    int32_t ** addr,
+    //! [in] Number of words to allocate
+    int32_t * length,
+    //! [out] 0 on succes, 1 on error
+    int32_t * errcode,
+    //! [in] 0 to allocate 32 bits words, 8 to allocate 64 bits words
+    int32_t * abort
+) {
     if (*length == 0) {
-        fprintf(stderr,"HPALLOC error: 0 length\n");
+        fprintf(stderr, "HPALLOC error: 0 length\n");
         f77name(tracebck)();
         exit(13);
     }
-    struct blocmem * ptbloc = bloc_alloc(8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
+    struct blocmem * ptbloc = bloc_alloc(8 + *length * sizeof(int32_t) * ((*abort == 8) ? 2 : 1), HEAP);
     *addr =  (void *) &(ptbloc->data[2]);
     *errcode = (ptbloc == (struct blocmem *) NULL) ? 1 : 0;
 }
 
 
-void f77name(hpdeallc)(int32_t ** addr, int32_t * errcode, int32_t * abort) {
-    int offset=4*sizeof(addr);
-    *errcode = bloc_dealloc((*addr)-offset,HEAP);
+//! Free allocated memory
+void f77name(hpdeallc)(
+    //! [in] Pointer to the allocated memory (cray_f_pointer)
+    int32_t ** addr,
+    //! [out] Always 0
+    int32_t * errcode,
+    //! [in] Not used
+    int32_t * abort
+) {
+    int offset = 4 * sizeof(addr);
+    *errcode = bloc_dealloc((*addr) - offset, HEAP);
 }
 
 

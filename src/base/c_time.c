@@ -18,10 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rpnmacros.h>
 #include <sys/types.h>
 #include <time.h>
+
+#include <rpnmacros.h>
+
 int32_t f77name(c_time)()
 {
-return time(NULL);
+    return time(NULL);
 }

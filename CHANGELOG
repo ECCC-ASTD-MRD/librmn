@@ -26,6 +26,80 @@ utlisées.
     - memoir
 
 - Le composants suivants ont été retirés de la bibliothèque de fonctions
-car ils ne devraient plus être utilisés:
+car ils ne devraient déjà plus être utilisés:
     - VMM
-    - Slab
+    - BMF
+        bmf_catalog
+        bmf_char2i
+        bmf_i2char
+        bmf_clear
+        bmf_connect
+        bmf_error
+        bmf_get
+        bmf_get2
+        bmf_geth
+        bmf_gobe
+        bmf_init
+        bmf_list
+        bmf_perturb
+        bmf_splitend
+        bmf_splithalo
+        bmf_splithole
+        bmf_splitinit
+        bmf_splitname
+        bmf_splitoptions
+        bmf_splitstart
+        bmf_splitwrall
+        bmf_splitwrite
+        bmf_splitwrite2
+        bmf_splitwriteh
+        bmf_splitwriteh2
+        bmf_splitwritex
+        bmf_splitwritex2
+        bmf_splitwritexy
+        bmf_splitwritexy2
+        bmf_splitwritey
+        bmf_splitwritey2
+        bmf_statfld
+        bmf_write
+        bmf_write2
+    - lamineur
+        slabopt
+        slabini
+        slabig34
+        slabdsc
+        slabxtr
+        slabxtrf
+        slabxtr
+        slabend
+    - Spectral
+        - ALPAS2
+        - ALPAS8
+        - ALPDL2
+        - ALPDL8
+        - ALPDR2
+        - ALPDR8
+        - ALPNM2
+        - ALPNM8
+        - DIMCAL
+        - EPSIL2
+        - EPSIL8
+        - EWFDR2
+        - FASP2
+        - FASP8
+        - GGASP0
+        - GGASP8
+        - GWAQD0
+        - GWAQD8
+        - PERM
+        - SCOF2
+        - SPAF2
+        - SPAF8
+        - SPAGG0
+        - SPAGG8
+    - twinbuffer
+        open_db_file
+        close_db_file
+        read_db_file
+        write_db_file
+        rewind_db_file

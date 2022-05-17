@@ -19,6 +19,7 @@
  */
 
 #include <stdint.h>
+
 #include <rpnmacros.h>
 
 static int endian_int = 1;
