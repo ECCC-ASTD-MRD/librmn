@@ -18,22 +18,75 @@
  * Boston, MA 02111-1307, USA.
  */
 
+
+#include <stdlib.h>
+#include <string.h>
+
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
+#ifdef MUTEX
+//JP
+extern pthread_mutex_t EZ_MTX;
+#endif
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(gdrls)(int32_t *gdin)
-{
-   int32_t icode;
-   
-   icode = c_gdrls(*gdin);
-   return icode;
+
+void EliminerGrille(int32_t gdid) {
+#ifdef MUTEX
+    pthread_mutex_lock(&EZ_MTX);
+#endif
+
+    int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
+    if (Grille[gdrow_id][gdcol_id].access_count > 0) {
+        Grille[gdrow_id][gdcol_id].access_count--;
+    }
+
+    if (Grille[gdrow_id][gdcol_id].access_count == 0) {
+        if (Grille[gdrow_id][gdcol_id].flags & LAT) {
+            if (Grille[gdrow_id][gdcol_id].lat != NULL) {
+                free(Grille[gdrow_id][gdcol_id].lat);
+                free(Grille[gdrow_id][gdcol_id].lon);
+            }
+        }
+
+        if (Grille[gdrow_id][gdcol_id].flags & AX) {
+            if (Grille[gdrow_id][gdcol_id].ax != NULL) {
+                free(Grille[gdrow_id][gdcol_id].ax);
+                free(Grille[gdrow_id][gdcol_id].ay);
+            }
+            }
+
+        if (Grille[gdrow_id][gdcol_id].ncx != NULL) {
+            if (Grille[gdrow_id][gdcol_id].ncx != NULL) {
+                free(Grille[gdrow_id][gdcol_id].ncx);
+                free(Grille[gdrow_id][gdcol_id].ncy);
+           }
+        }
+
+        for (int32_t i = 0; i < Grille[gdrow_id][gdcol_id].n_gdin_for; i++) {
+            int32_t index = ez_find_gdin_in_gset(gdid, Grille[gdrow_id][gdcol_id].gdin_for[i]);
+            c_ezfreegridset(Grille[gdrow_id][gdcol_id].gdin_for[i], index);
+        }
+
+        gr_list[Grille[gdrow_id][gdcol_id].grid_index] = (_Grille *) NULL;
+        memset(&(Grille[gdrow_id][gdcol_id]),(int)NULL, sizeof(_Grille));
+        nGrilles--;
+    }
+
+#ifdef MUTEX
+    pthread_mutex_unlock(&EZ_MTX);
+#endif
 }
 
-int32_t c_gdrls(int32_t gdin)
-{
-   EliminerGrille(gdin);
 
-   return 0;
+int32_t f77name(gdrls)(int32_t *gdin) {
+    return c_gdrls(*gdin);
+}
+
+int32_t c_gdrls(int32_t gdin) {
+    EliminerGrille(gdin);
+
+    return 0;
 }

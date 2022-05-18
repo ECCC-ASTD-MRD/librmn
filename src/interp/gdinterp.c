@@ -28,110 +28,97 @@
 
 
 int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts) {
-   int32_t lnpts;
-   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
-   int lcl_ngdin;
-   int gdout, ier, un, j;
-   int32_t old_degre_interp;
-   static int32_t found = -1;
-   static int32_t ncalls = 0;
-   float *gdst_lats, tmp, real_un, real_j;
-   char option[32], value[32];
+    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
+    int gdout, ier, un, j;
+    static int32_t found = -1;
+    static int32_t ncalls = 0;
+    float *gdst_lats, tmp, real_un, real_j;
+    char option[32], value[32];
 
-   int32_t ni_in, nj_in, ni_out, nj_out, ninj_out;
+    int32_t ni_out, nj_out, ninj_out;
 
-   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 
-   lnpts = npts;
-   old_degre_interp = groptions.degre_interp;
+    int32_t lnpts = npts;
+    int32_t old_degre_interp = groptions.degre_interp;
 
-   ni_in =  Grille[gdrow_in][gdcol_in].ni;
-   nj_in =  Grille[gdrow_in][gdcol_in].nj;
+    int32_t ni_in = Grille[gdrow_in][gdcol_in].ni;
+    int32_t nj_in = Grille[gdrow_in][gdcol_in].nj;
 
 
-   switch (groptions.degre_interp)
-      {
-      case 4:
-      case 5:
-      gdout = c_ezgetgdout();
-      c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
-      ni_out = Grille[gdrow_out][gdcol_out].ni;
-      nj_out = Grille[gdrow_out][gdcol_out].nj;
-      ninj_out = ni_out * nj_out;
-      ier = c_gdcompatible_grids(gdin, gdout);
-      if (ier < 0)
-         {
-         fprintf(stderr, "(gdinterp) input and output grids are not compatible for average computation\n");
-         fprintf(stderr, "(gdinterp) interpolaton level set to linear\n");
-         groptions.degre_interp = LINEAIRE;
-         }
-      break;
-
-      default:
-      break;
-      }
-
-
-   switch(Grille[gdrow_in][gdcol_in].grtyp[0])
-      {
-      case '#':
-      case 'Z':
-      case 'G':
-      switch (groptions.degre_interp)
-         {
-         case VOISIN:
-         f77name(ez_rgdint_0)(zout,x,y,
-            &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
-            &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
-         break;
-
-         case LINEAIRE:
-         switch(Grille[gdrow_in][gdcol_in].extension)
-            {
-            case 0:
-            f77name(ez_irgdint_1_nw)(zout,x, y,
-              &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-              zin,&Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
-            break;
-
-            case 1:
-            case 2:
-            f77name(ez_irgdint_1_w)(zout,x, y,
-               &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-               zin,&Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2, &Grille[gdrow_in][gdcol_in].extension);
-            break;
+    switch (groptions.degre_interp) {
+        case 4:
+        case 5:
+            gdout = c_ezgetgdout();
+            c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
+            ni_out = Grille[gdrow_out][gdcol_out].ni;
+            nj_out = Grille[gdrow_out][gdcol_out].nj;
+            ninj_out = ni_out * nj_out;
+            ier = c_gdcompatible_grids(gdin, gdout);
+            if (ier < 0) {
+                fprintf(stderr, "(gdinterp) input and output grids are not compatible for average computation\n");
+                fprintf(stderr, "(gdinterp) interpolaton level set to linear\n");
+                groptions.degre_interp = LINEAIRE;
             }
-           break;
-
-         case CUBIQUE:
-           switch(Grille[gdrow_in][gdcol_in].extension)
-            {
-            case 0:
-            f77name(ez_irgdint_3_nw)(zout, x, y,
-               &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-               Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
-               &Grille[gdrow_in][gdcol_in].i1, &Grille[gdrow_in][gdcol_in].i2,
-               &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
             break;
+    }
 
-            case 1:
-            case 2:
-            f77name(ez_irgdint_3_w)(zout, x, y,
-               &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-               Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
-               &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
-               &Grille[gdrow_in][gdcol_in].extension);
-            break;
-            }
-         break;
 
-         case 4:
-         gdout = c_ezgetgdout();
-         c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
-         f77name(ez_avg)(zout, x, y, &Grille[gdrow_out][gdcol_out].ni, &Grille[gdrow_out][gdcol_out].nj,
-         zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
-         &Grille[gdrow_in][gdcol_in].extension);
-         break;
+    switch(Grille[gdrow_in][gdcol_in].grtyp[0]) {
+        case '#':
+        case 'Z':
+        case 'G':
+            switch (groptions.degre_interp) {
+                case VOISIN:
+                    f77name(ez_rgdint_0)(zout, x, y, &lnpts, zin, &Grille[gdrow_in][gdcol_in].ni,
+                        &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+                break;
+
+                case LINEAIRE:
+                    switch (Grille[gdrow_in][gdcol_in].extension) {
+                        case 0:
+                            f77name(ez_irgdint_1_nw)(zout, x, y,
+                                &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+                                zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
+                            break;
+
+                        case 1:
+                        case 2:
+                            f77name(ez_irgdint_1_w)(zout, x, y,
+                                &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+                                zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2, &Grille[gdrow_in][gdcol_in].extension);
+                            break;
+                    }
+                    break;
+
+                case CUBIQUE:
+                    switch (Grille[gdrow_in][gdcol_in].extension) {
+                        case 0:
+                            f77name(ez_irgdint_3_nw)(zout, x, y,
+                                &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+                                Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
+                                &Grille[gdrow_in][gdcol_in].i1, &Grille[gdrow_in][gdcol_in].i2,
+                                &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2);
+                            break;
+
+                        case 1:
+                        case 2:
+                            f77name(ez_irgdint_3_w)(zout, x, y,
+                                &lnpts, Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
+                                Grille[gdrow_in][gdcol_in].ncx, Grille[gdrow_in][gdcol_in].ncy, zin,
+                                &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].j1, &Grille[gdrow_in][gdcol_in].j2,
+                                &Grille[gdrow_in][gdcol_in].extension);
+                            break;
+                    }
+                    break;
+
+                case 4:
+                    gdout = c_ezgetgdout();
+                    c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
+                    f77name(ez_avg)(zout, x, y, &Grille[gdrow_out][gdcol_out].ni, &Grille[gdrow_out][gdcol_out].nj,
+                        zin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj,
+                        &Grille[gdrow_in][gdcol_in].extension);
+                    break;
 
          case 5:
          gdout = c_ezgetgdout();
@@ -260,59 +247,54 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
 }
 
 int c_gdcompatible_grids(int gdin, int gdout) {
-   int gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+    int gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+    c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
 
-   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-   c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
+    switch(Grille[gdrow_out][gdcol_out].grtyp[0]) {
+        case 'L':
+        case 'A':
+        case 'B':
+        case 'G':
+            return 0;
 
-   switch(Grille[gdrow_out][gdcol_out].grtyp[0])
-      {
-   case 'L':
-   case 'A':
-   case 'B':
-   case 'G':
-   return 0;
+        default:
+            return -1;
+    }
 
-   default:
-   return -1;
-   }
+    switch (Grille[gdrow_in][gdcol_in].grtyp[0]) {
+        case 'L':
+        case 'A':
+        case 'B':
+        case 'G':
+            return 0;
+            break;
 
-   switch (Grille[gdrow_in][gdcol_in].grtyp[0])
-      {
-      case 'L':
-      case 'A':
-      case 'B':
-      case 'G':
-      return 0;
-      break;
+        case 'Z':
+            if (Grille[gdrow_in][gdcol_in].grref[0] == 'L') {
+                return 0;
+            } else if (Grille[gdrow_in][gdcol_in].grref[0] == 'E') {
+                if (0 == c_gd_isgridrotated(gdin))
+                    return 0;
+                else
+                    return -1;
+            }
+            break;
 
-      case 'Z':
-      if (Grille[gdrow_in][gdcol_in].grref[0] == 'L')
-         return 0;
-      else if (Grille[gdrow_in][gdcol_in].grref[0] == 'E')
-         if (0 == c_gd_isgridrotated(gdin))
-         return 0;
-      else
-         return -1;
-      break;
+        default:
+            return -1;
+    }
 
-      default:
-      return -1;
-      }
-
-   return 0;
+    return 0;
 }
 
 int c_gd_isgridrotated(int gdid) {
     int gdrow_id, gdcol_id;
-    int ig1, ig2, ig3, ig4;
-    float xg1, xg2, xg3, xg4;
-
     c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
     if (Grille[gdrow_id][gdcol_id].grref[0] == 'E') {
-        xg1 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1];
-        xg3 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2];
+        float xg1 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1];
+        float xg3 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2];
         /*      fprintf(stderr,"gdid xg1: xg3: %d %f %f\n", gdid, xg1, xg3);*/
         if (fabs(xg1-xg3) < 0.001) {
             /* non rotated*/

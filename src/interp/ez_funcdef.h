@@ -32,8 +32,6 @@ extern int32_t chunks_sq[];
 
 
 // Prototypes
-void EliminerGrille(int32_t gridid);
-
 void f77name(ez_avg)(float *zout, float *x, float *y, int *ni_src, int *nj_src,
                      float *zin, int *ni_dst, int *nj_dst, int *extension);
 
