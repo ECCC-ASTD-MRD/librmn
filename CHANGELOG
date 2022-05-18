@@ -103,3 +103,37 @@ car ils ne devraient déjà plus être utilisés:
         read_db_file
         write_db_file
         rewind_db_file
+    - Base
+        - AFIX
+        - AFIX8
+        - AMAX
+        - AMEAN
+        - AMIN
+        - GDADCN
+        - GDADGD
+        - GDMPGD
+        - GDSQRT
+        - SLL
+        - VLL
+        - SGLO
+        - SGLOGG
+        - VPOLAGR
+        - SPS
+        - VPS
+        - grid_to_grid
+        - grid_to_grid_interp
+        - grid_to_grid_coef
+        - FD1
+        - D1INT2
+        - INT1D1
+        - D1
+        - DEFVEC
+        - FDM
+        - SPD
+        - D1INTR
+        - D1INT1
+        - FCONW
+        - mxm
+        - mxma
+        - mxma8
+        - ROSSR3
