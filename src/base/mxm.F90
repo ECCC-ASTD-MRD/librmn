@@ -18,11 +18,23 @@
 ! Boston, MA 02111-1307, USA.
 
 
-SUBROUTINE ez_AMINMAX(FLDMIN, FLDMAX, FLD, NI, NJ)
-    REAL, intent(out) :: FLDMIN, FLDMAX
-    INTEGER, intent(in) :: NI, NJ
-    REAL, dimension(NI,NJ), intent(in) :: FLD
+! Routine on VAX to emulate CRAY SCILIB routine, MXM p. 4-22
+! LIBRARY manual, implemented in VAX single precision.
+subroutine mxm(a, nar, b, nac, c, nbc)
+    integer, intent(in) :: nar, nac, nbc
+    real, dimension(nar,nac) :: a
+    real, dimension(nac,nbc), intent(in) :: b
+    real, dimension(nar,nbc), intent(out) :: c
 
-    FLDMIN = MINVAL(FLD)
-    FLDMAX = MAXVAL(FLD)
-END
+    integer :: i, j, k
+
+    do j = 1, nbc
+        do i = 1, nar
+            c(i,j) = 0.0
+            do k = 1, nac
+               c(i,j) = c(i,j) + a(i,k) * b(k,j)
+            end do
+        end do
+    end do
+
+end
