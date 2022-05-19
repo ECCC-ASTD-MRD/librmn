@@ -25,20 +25,11 @@
 #include "ez_funcdef.h"
 
 
-int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts)
-{
-    int32_t ier;
-    float *lzin, *lxzin;
-    _zone zones[NZONES];
-    int32_t gdout;
-    _gridset tmpset;
+int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts) {
     int32_t gdrow_in, gdcol_in;
-
-    lzin  = NULL;
-    lxzin = NULL;
-
     c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 
+    float * lzin = NULL;
     if (Grille[gdrow_in][gdcol_in].fst.axe_y_inverse == 1) {
         lzin = (float *) malloc(Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
         memcpy(lzin, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
@@ -47,6 +38,7 @@ int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, in
         lzin = zin;
     }
 
+    float * lxzin = NULL;
     if (Grille[gdrow_in][gdcol_in].needs_expansion == OUI) {
         lxzin = (float *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
         ez_xpnsrcgd(gdin, lxzin, lzin);
@@ -54,37 +46,12 @@ int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, in
         lxzin = lzin;
     }
 
-    ier = c_gdinterp(zout, lxzin, gdin, x, y, npts);
+    c_gdinterp(zout, lxzin, gdin, x, y, npts);
 
-    gdout = NMAXGRIDS-1;
-    // tmpset.gdin = gdin;
-    // tmpset.gdout = gdout;
-
-    // Grille[gdout].ni = npts;
-    // Grille[gdout].nj = 1;
-    // Grille[gdout].grtyp = 'L';
-    // 
-    // if (groptions.polar_correction == OUI && groptions.vecteur != VECTEUR) {
-    //     ier = ez_defzones(&tmpset);
-    //     ier = ez_corrval(zout, lxzin, &tmpset);
-    // }
-    // 
-    // if (lzin != zin && lzin != NULL) {
-    //     free(lzin);
-    // }
-    // 
-    // if (lxzin != lzin && lxzin != zin && lxzin != NULL) {
-    //     free(lxzin);
-    // }
-
-   return 0;
+    return 0;
 }
 
 
-int32_t f77name(gdxysint)(float *zout, float *zin, int32_t *gdin, float *x, float *y, int32_t *npts)
-{
-   int32_t icode;
-
-   icode = c_gdxysint(zout, zin, *gdin, x, y, *npts);
-   return icode;
+int32_t f77name(gdxysint)(float *zout, float *zin, int32_t *gdin, float *x, float *y, int32_t *npts) {
+   return c_gdxysint(zout, zin, *gdin, x, y, *npts);
 }

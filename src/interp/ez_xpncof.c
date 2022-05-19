@@ -21,39 +21,36 @@
 #include "ezscint.h"
 #include "ez_funcdef.h"
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t ez_calcxpncof(int32_t gdid)
-{
-int32_t gdrow_id, gdcol_id;
 
-c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+int32_t ez_calcxpncof(int32_t gdid) {
+    int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
-ez_xpncof(&Grille[gdrow_id][gdcol_id].i1,
-            &Grille[gdrow_id][gdcol_id].i2,
-            &Grille[gdrow_id][gdcol_id].j1,
-            &Grille[gdrow_id][gdcol_id].j2,
-            &Grille[gdrow_id][gdcol_id].extension,
-      Grille[gdrow_id][gdcol_id].ni,
-            Grille[gdrow_id][gdcol_id].nj,
-            Grille[gdrow_id][gdcol_id].grtyp[0],
-            Grille[gdrow_id][gdcol_id].grref[0],
-      Grille[gdrow_id][gdcol_id].fst.ig[IG1], Grille[gdrow_id][gdcol_id].fst.ig[IG2],
-            Grille[gdrow_id][gdcol_id].fst.ig[IG3], Grille[gdrow_id][gdcol_id].fst.ig[IG4],
-      groptions.symmetrie, Grille[gdrow_id][gdcol_id].ax, Grille[gdrow_id][gdcol_id].ay);
+    ez_xpncof(&Grille[gdrow_id][gdcol_id].i1,
+        &Grille[gdrow_id][gdcol_id].i2,
+        &Grille[gdrow_id][gdcol_id].j1,
+        &Grille[gdrow_id][gdcol_id].j2,
+        &Grille[gdrow_id][gdcol_id].extension,
+    Grille[gdrow_id][gdcol_id].ni,
+        Grille[gdrow_id][gdcol_id].nj,
+        Grille[gdrow_id][gdcol_id].grtyp[0],
+        Grille[gdrow_id][gdcol_id].grref[0],
+    Grille[gdrow_id][gdcol_id].fst.ig[IG1], Grille[gdrow_id][gdcol_id].fst.ig[IG2],
+        Grille[gdrow_id][gdcol_id].fst.ig[IG3], Grille[gdrow_id][gdcol_id].fst.ig[IG4],
+        groptions.symmetrie, Grille[gdrow_id][gdcol_id].ax, Grille[gdrow_id][gdcol_id].ay);
 
    return 0;
-
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *extension,
             int32_t ni,int32_t nj,char grtyp, char grref,
-            int32_t ig1,int32_t ig2,int32_t ig3,int32_t ig4,int32_t sym, float *ax, float *ay)
-   {
-   float first_lat, first_lon, last_lat, last_lon, extra_lon, dlat, dlon;
-   int32_t lcl_ig1, lcl_ig2, lcl_ig3, lcl_ig4;
-   char lcl_grtyp;
-   
+            int32_t ig1,int32_t ig2,int32_t ig3,int32_t ig4,int32_t sym, float *ax, float *ay
+) {
+    float first_lat, first_lon, last_lat, last_lon, extra_lon, dlat, dlon;
+    int32_t lcl_ig1, lcl_ig2, lcl_ig3, lcl_ig4;
+    char lcl_grtyp;
+
    *i1 = 1;
    *i2 = ni;
    switch (grtyp)
@@ -73,11 +70,11 @@ void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *exte
          *j2 = nj;
          lcl_grtyp = grtyp;
          lcl_ig1 = ig1, lcl_ig2 = ig2, lcl_ig3 = ig3; lcl_ig4 = ig4;
-         
-         
+
+
          f77name(cigaxg)(&lcl_grtyp,&first_lat, &first_lon, &dlat, &dlon,
                          &lcl_ig1, &lcl_ig2, &lcl_ig3, &lcl_ig4);
-         
+
          if ((first_lat - dlat) > (-90.0+0.01*dlat))
             {
             break;
@@ -91,7 +88,7 @@ void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *exte
             {
             first_lon += 360.0;
             }
-         
+
          last_lon = first_lon + (dlon * (ni-1));
          if ((last_lon - first_lon) > (360-0.01*dlon))
             {
@@ -103,10 +100,9 @@ void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *exte
             {
             *extension = 2;
             }
-         
-//         c_ez_check_xpndable(extension,ni,nj,grtyp, ig1, ig2, ig3, ig4);
+
       break;
-         
+
       case 'A':
       case 'G':
       *extension = 2;
@@ -189,16 +185,16 @@ void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *exte
                dlat = ay[nj-1] - ay[nj-2];
                if ((last_lat + dlat) < (90.0-0.01*dlat))
                   {
-                  break;   
+                  break;
                   }
                }
-               
+
             first_lon = ax[0];
             last_lon = ax[ni-1];
             dlon = ax[ni-1]-ax[ni-2];
             if ((last_lon - first_lon) > (360.0-0.01*dlon)) // Equivalent a une grille B
                {
-               *extension = 1;   
+               *extension = 1;
                }
             else
                {
