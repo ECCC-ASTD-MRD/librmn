@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ezscint.h"
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 

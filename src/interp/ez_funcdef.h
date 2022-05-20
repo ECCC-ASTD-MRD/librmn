@@ -1,11 +1,9 @@
 #ifndef _ezfuncdef
 #define _ezfuncdef
 
-#include <stddef.h>
-
 #include <rpnmacros.h>
 
-#include "ezscint.h"
+#include "ez_def.h"
 #include "gd_key2rowcol.h"
 
 
@@ -120,5 +118,86 @@ void c_ezdefaxes(int32_t gdid, float *ax, float *ay);
 int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts);
 
 int c_find_gdin(int gdin, int gdout);
+
+int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n);
+
+int32_t ez_calcnpolarwind(
+    float *polar_uu_in,
+    float *polar_vv_in,
+    float *uuin,
+    float *vvin,
+    int32_t ni,
+    int32_t nj,
+    int32_t gdin
+);
+
+int32_t ez_calcspolarwind(
+    float *polar_uu_in,
+    float *polar_vv_in,
+    float *uuin,
+    float *vvin,
+    int32_t ni,
+    int32_t nj,
+    int32_t gdin
+);
+
+int c_ez_addgrid(
+    int32_t grid_index,
+    _Grille *newgr
+);
+
+int c_ez_findgrid(int grid_index, _Grille *gr);
+
+int c_ezget_mask_zones(int *mask_out, int *mask_in);
+
+int32_t c_ezidentify_irreg_grid(
+    int32_t ni,
+    int32_t nj,
+    char* grtyp,
+    char* grref,
+    int32_t ig1,
+    int32_t ig2,
+    int32_t ig3,
+    int32_t ig4,
+    float* ax,
+    float* ay
+);
+
+int32_t c_ezidentify_reg_grid(
+    int32_t ni,
+    int32_t nj,
+    char* grtyp,
+    int32_t ig1,
+    int32_t ig2,
+    int32_t ig3,
+    int32_t ig4
+);
+
+void RemplirDeBlancs(char str[], int32_t longueur);
+
+int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n);
+
+int32_t c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin);
+
+int32_t c_ezsint_orig(float *zout, float *zin);
+
+int32_t c_ezyyuvint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin);
+
+int32_t c_ezuvint_orig(float *uuout, float *vvout, float *uuin, float *vvin);
+
+int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32_t gdout,int32_t gdin);
+
+int32_t c_ezwdint_orig(float *uuout, float *vvout, float *uuin, float *vvin);
+
+int32_t c_ezyymint(int32_t gdout, int32_t gdin, int32_t ni, int32_t nj, float *maskout, float *dlat, float *dlon, float *yinlat, float *yinlon, int32_t *yyincount, float *yanlat, float *yanlon, int32_t *yyancount);
+
+int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin);
+
+int32_t c_gdxyvval_orig(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n);
+
+int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
+              float *latin, float *lonin, int32_t npts);
+
+int32_t ez_find_gdin_in_gset(int32_t gdin, int32_t gdout);
 
 #endif

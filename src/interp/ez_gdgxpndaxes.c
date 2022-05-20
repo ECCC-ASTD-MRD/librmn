@@ -19,8 +19,9 @@
  */
 
 #include <string.h>
-
 #include <stdio.h>
+
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 

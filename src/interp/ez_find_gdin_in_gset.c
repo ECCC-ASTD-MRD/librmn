@@ -1,4 +1,4 @@
- #include "ezscint.h"
+ #include <ezscint.h>
  #include "ez_funcdef.h"
  
  int32_t ez_find_gdin_in_gset(int32_t gdin, int32_t gdout)

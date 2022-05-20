@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <fstd98.h>
+#include <ezscint.h>
 #include "ez_funcdef.h"
-
-
-void RemplirDeBlancs(char str[],int32_t longueur);
 
 
 void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix) {

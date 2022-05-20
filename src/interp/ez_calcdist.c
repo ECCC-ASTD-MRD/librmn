@@ -21,7 +21,7 @@
 
 #include <math.h>
 #include <stdio.h>
-#include "ezscint.h"
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 void f77name(ez_calcdist)(float *distance, float *lat1, float *lon1, float *lat2, float *lon2);

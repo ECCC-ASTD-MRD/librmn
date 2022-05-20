@@ -18,44 +18,34 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 
-int32_t f77name(ezsetgdout)(int *gdout)
-  {
-  return c_ezsetgdout(*gdout);
-  }
+int32_t c_ezgetgdin() {
+    return iset_gdin;
+}
 
-int32_t f77name(ezgetgdout)()
-  {
-  return c_ezgetgdout();
-  }
+int32_t c_ezgetgdout() {
+    if (iset_gdout == UNDEFINED) {
+        if (iset_gdin != UNDEFINED) {
+            iset_gdout = iset_gdin;
+        } else {
+            iset_gdout = UNDEFINED;
+        }
+    }
+    return iset_gdout;
+}
 
-int32_t c_ezgetgdin()
-  {
-  return iset_gdin; 
-  }
+int32_t f77name(ezgetgdout)() {
+    return c_ezgetgdout();
+}
 
-int32_t c_ezgetgdout()
-  {
-  if (iset_gdout == UNDEFINED)
-     {
-     if (iset_gdin != UNDEFINED)
-        {
-	iset_gdout = iset_gdin;
-	}
-     else
-       {
-       iset_gdout = UNDEFINED;
-       }
-     }
-  return iset_gdout;
-  }
+int32_t c_ezsetgdout(int32_t gdout) {
+    iset_gdout = gdout;
+    return 0;
+}
 
-int32_t c_ezsetgdout(gdout)
-int32_t gdout;
-  {
-  iset_gdout = gdout;
-  return 0;
-  }
+int32_t f77name(ezsetgdout)(int *gdout) {
+    return c_ezsetgdout(*gdout);
+}

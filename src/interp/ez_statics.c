@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "ezscint.h"
+#include "ez_def.h"
 
 // Ezscint static object definitions
 _Grille **Grille  = NULL;

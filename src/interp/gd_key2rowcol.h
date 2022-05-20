@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <ezscint.h>
 
 
 static inline void c_gdkey2rowcol(int32_t key, int32_t *row, int32_t *col) {

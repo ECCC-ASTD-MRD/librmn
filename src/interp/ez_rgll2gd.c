@@ -22,6 +22,8 @@
 #include <string.h>
 
 #include <rpnmacros.h>
+#include <ezscint.h>
+#include "ez_funcdef.h"
 
 int f77name(ez_rgll2gd)(float *z1, float *z2, float *xlon, int32_t *ni, int32_t *nj,
                     char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,F2Cl lengrtyp)

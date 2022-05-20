@@ -19,7 +19,8 @@
  */
 
 #include <stdlib.h>
-#include "ezscint.h"
+
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t ez_calcnpolarwind(

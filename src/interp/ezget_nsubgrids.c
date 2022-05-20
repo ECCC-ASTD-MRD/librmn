@@ -18,28 +18,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(ezget_nsubgrids)(int32_t *gdid)
-{
-   int32_t icode;
-
-   icode = c_ezget_nsubgrids(*gdid);
-   return icode;
+int32_t c_ezget_nsubgrids(int32_t gdid) {
+    int32_t icode, gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    icode = Grille[gdrow_id][gdcol_id].nsubgrids;
+    if (icode == 0)  {
+        icode = 1;
+    }
+    return icode;
 }
 
-int32_t c_ezget_nsubgrids(int32_t gdid)
-{
-  int32_t icode, gdrow_id, gdcol_id;
-
-  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-  icode=Grille[gdrow_id][gdcol_id].nsubgrids;
-  if (icode == 0) 
-     {
-     icode=1;
-     }
-  return icode;
+int32_t f77name(ezget_nsubgrids)(int32_t *gdid) {
+    return c_ezget_nsubgrids(*gdid);
 }

@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t ez_calclatlon(int32_t gdid) {

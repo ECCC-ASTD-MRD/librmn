@@ -18,29 +18,24 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "ezscint.h"
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t f77name(ezget_subgridids)(int32_t *gdid, int32_t *subgrid)
-{
-   return c_ezget_subgridids(*gdid, subgrid);
+int32_t c_ezget_subgridids(int32_t gdid, int32_t *subgrid) {
+    int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid, &gdrow_id, &gdcol_id);
+
+    if (Grille[gdrow_id][gdcol_id].nsubgrids == 0)  {
+        *subgrid = gdid;
+        return 1;
+    }
+    for (int32_t i = 0; i < Grille[gdrow_id][gdcol_id].nsubgrids; i++) {
+        subgrid[i]=Grille[gdrow_id][gdcol_id].subgrid[i];
+    }
+    return Grille[gdrow_id][gdcol_id].nsubgrids;
 }
 
-int32_t c_ezget_subgridids(int32_t gdid, int32_t *subgrid)
-{
-  int32_t i,gdrow_id, gdcol_id;
-
-  c_gdkey2rowcol(gdid, &gdrow_id, &gdcol_id);
-  if (Grille[gdrow_id][gdcol_id].nsubgrids == 0) 
-    {
-    *subgrid=gdid;
-    return 1;  
-    }
-  for (i=0; i<Grille[gdrow_id][gdcol_id].nsubgrids; i++)
-   {
-   subgrid[i]=Grille[gdrow_id][gdcol_id].subgrid[i];
-   }
-  return Grille[gdrow_id][gdcol_id].nsubgrids;
+int32_t f77name(ezget_subgridids)(int32_t *gdid, int32_t *subgrid) {
+    return c_ezget_subgridids(*gdid, subgrid);
 }

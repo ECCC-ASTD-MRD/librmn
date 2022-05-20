@@ -19,6 +19,8 @@
  */
 
 #include <stdio.h>
+
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 void c_ezdefxg(int32_t gdid) {

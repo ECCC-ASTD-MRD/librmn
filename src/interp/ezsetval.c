@@ -24,7 +24,7 @@
 
 #include <ftnStrLen.h>
 
-#include "ezscint.h"
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t f77name(ezsetfval)(char *option, float *fvalue, F2Cl lenoption);

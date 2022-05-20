@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 

@@ -159,4 +159,7 @@ int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float 
 int f77name(ezsint_mask)(int *mask_out, int *mask_in);
 int c_ezsint_mask(int *mask_out, int *mask_in);
 
+int f77name(ez_rgll2gd)(float *z1, float *z2, float *xlon, int32_t *ni, int32_t *nj,
+                    char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,F2Cl lengrtyp);
+
 #endif

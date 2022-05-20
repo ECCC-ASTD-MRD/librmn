@@ -19,14 +19,18 @@
  */
 
 #include <stdlib.h>
-
 #include <stdio.h>
+#include <stdint.h>
+
 #include <rpnmacros.h>
+
+#include <ezscint.h>
+#include "ez_funcdef.h"
 
 static float *eziglat = NULL;
 static float *eziglon = NULL;
 
-f77name(ez_igscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon,
+int32_t f77name(ez_igscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon,
                     float *zi, int32_t *ni, int32_t *nj,
                     char* grtyp, char *grref, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
                     float *sym, float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref)
@@ -53,7 +57,7 @@ f77name(ez_igscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlo
   return 0;
 }
 
-f77name(ez_rgscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon,
+int32_t f77name(ez_rgscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon,
                     float *zi, int32_t *ni, int32_t *nj,
                     char* grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, float *sym,
                     F2Cl lengrtyp)
@@ -77,7 +81,7 @@ f77name(ez_rgscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlo
   return 0;
 }
 
-f77name(ez_iguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *xlat, float *xlon,
+int32_t f77name(ez_iguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *xlat, float *xlon,
                     float *ui, float *vi, int32_t *ni, int32_t *nj,
                     char* grtyp, char *grref, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
                     float *sws, float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref)
@@ -102,7 +106,7 @@ f77name(ez_iguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *x
   free(tmplon);
 }
 
-f77name(ez_rguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *xlat, float *xlon,
+int32_t f77name(ez_rguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, float *xlat, float *xlon,
                     float *ui, float *vi, int32_t *ni, int32_t *nj,
                     char* grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, float *sws, F2Cl lengrtyp)
 {

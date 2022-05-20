@@ -1,5 +1,6 @@
 #include <rpnmacros.h>
-#include "ezscint.h"
+
+#include <ezscint.h>
 #include "ez_funcdef.h"
 
 int c_find_gdin(int gdin, int gdout) {

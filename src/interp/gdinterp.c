@@ -27,6 +27,70 @@
 #include "ez_funcdef.h"
 
 
+int c_gdcompatible_grids(int gdin, int gdout) {
+    int gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+    c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
+
+    switch(Grille[gdrow_out][gdcol_out].grtyp[0]) {
+        case 'L':
+        case 'A':
+        case 'B':
+        case 'G':
+            return 0;
+
+        default:
+            return -1;
+    }
+
+    switch (Grille[gdrow_in][gdcol_in].grtyp[0]) {
+        case 'L':
+        case 'A':
+        case 'B':
+        case 'G':
+            return 0;
+            break;
+
+        case 'Z':
+            if (Grille[gdrow_in][gdcol_in].grref[0] == 'L') {
+                return 0;
+            } else if (Grille[gdrow_in][gdcol_in].grref[0] == 'E') {
+                if (0 == c_gd_isgridrotated(gdin))
+                    return 0;
+                else
+                    return -1;
+            }
+            break;
+
+        default:
+            return -1;
+    }
+
+    return 0;
+}
+
+
+int c_gd_isgridrotated(int gdid) {
+    int gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+
+    if (Grille[gdrow_id][gdcol_id].grref[0] == 'E') {
+        float xg1 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1];
+        float xg3 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2];
+        /*      fprintf(stderr,"gdid xg1: xg3: %d %f %f\n", gdid, xg1, xg3);*/
+        if (fabs(xg1-xg3) < 0.001) {
+            /* non rotated*/
+            return 0;
+        } else {
+            /*rotated*/
+            return 1; 
+        }
+    }
+
+    return 0;
+}
+
+
 int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts) {
     int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
     int gdout, ier, un, j;
@@ -244,66 +308,4 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
    groptions.degre_interp = old_degre_interp;
    return 0;
 
-}
-
-int c_gdcompatible_grids(int gdin, int gdout) {
-    int gdrow_in, gdrow_out, gdcol_in, gdcol_out;
-    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-    c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
-
-    switch(Grille[gdrow_out][gdcol_out].grtyp[0]) {
-        case 'L':
-        case 'A':
-        case 'B':
-        case 'G':
-            return 0;
-
-        default:
-            return -1;
-    }
-
-    switch (Grille[gdrow_in][gdcol_in].grtyp[0]) {
-        case 'L':
-        case 'A':
-        case 'B':
-        case 'G':
-            return 0;
-            break;
-
-        case 'Z':
-            if (Grille[gdrow_in][gdcol_in].grref[0] == 'L') {
-                return 0;
-            } else if (Grille[gdrow_in][gdcol_in].grref[0] == 'E') {
-                if (0 == c_gd_isgridrotated(gdin))
-                    return 0;
-                else
-                    return -1;
-            }
-            break;
-
-        default:
-            return -1;
-    }
-
-    return 0;
-}
-
-int c_gd_isgridrotated(int gdid) {
-    int gdrow_id, gdcol_id;
-    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-
-    if (Grille[gdrow_id][gdcol_id].grref[0] == 'E') {
-        float xg1 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT1];
-        float xg3 = Grille[gdrow_id][gdcol_id].fst.xgref[XLAT2];
-        /*      fprintf(stderr,"gdid xg1: xg3: %d %f %f\n", gdid, xg1, xg3);*/
-        if (fabs(xg1-xg3) < 0.001) {
-            /* non rotated*/
-            return 0;
-        } else {
-            /*rotated*/
-            return 1; 
-        }
-    }
-
-    return 0;
 }
