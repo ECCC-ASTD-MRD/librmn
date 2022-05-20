@@ -162,4 +162,10 @@ int c_ezsint_mask(int *mask_out, int *mask_in);
 int f77name(ez_rgll2gd)(float *z1, float *z2, float *xlon, int32_t *ni, int32_t *nj,
                     char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,F2Cl lengrtyp);
 
+int32_t c_ezget_nsubgrids(int32_t gdid);
+int32_t f77name(ezget_nsubgrids)(int32_t *gdid);
+
+int32_t c_ezget_subgridids(int32_t gdid, int32_t *subgrid);
+int32_t f77name(ezget_subgridids)(int32_t *gdid, int32_t *subgrid);
+
 #endif
