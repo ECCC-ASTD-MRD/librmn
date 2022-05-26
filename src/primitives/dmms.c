@@ -211,7 +211,9 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
 
     if (initmem) {
         lng = (nitem-2) * ptrsize / sizeof(int32_t);
-        f77name(afix)(&(ptbloc->data[2]),&con,&lng);
+        for (int i = 0; i < lng; i++) {
+            ptbloc->data[2 + i] = con;
+        }
     }
 
     sortie();
