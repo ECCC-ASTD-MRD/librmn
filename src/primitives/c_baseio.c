@@ -27,31 +27,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#ifdef WIN32
-#include <sys/stat.h>
-#include <Winsock2.h>
-#define L_SET SEEK_SET
-#define L_INCR SEEK_CUR
-#define L_XTND SEEK_END
-#define S_IRUSR _S_IREAD
-#define S_IWUSR _S_IWRITE
-#define S_IRGRP _S_IREAD
-#define S_IWGRP _S_IWRITE
-#define S_IROTH _S_IREAD
-#define S_IWOTH _S_IWRITE
-#define WIN32_O_BINARY O_BINARY
-// For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h
-#define PATH_MAX _PATH_MAX
-#else
-#include <unistd.h>
 #include <sys/file.h>
 #include <sys/signal.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#define WIN32_O_BINARY 0
-#endif
+#include <unistd.h>
 
 #ifdef __linux__
 # include <linux/limits.h>
@@ -83,30 +65,6 @@
     // Provide a fallback for non POSIX compliant platforms
 #   define HOST_NAME_MAX 256
 #endif
-
-#if defined(__linux__) || defined(__AIX__)
-#define tell64(fd) lseek64(fd, 0, 1)
-#endif
-
-#ifdef __CYGWIN__
-#define lseek64 lseek
-#define open64 open
-#define off64_t off_t
-#define tell(fd) lseek(fd, 0, 1)
-#define tell64(fd) lseek(fd, 0, 1)
-#endif
-
-#define swap_word_endianness(mot) {\
-    register uint32_t tmp = (uint32_t)mot;\
-    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8);\
-}
-
-#define swap_buffer_endianness(buff, nwds) {\
-    uint32_t *buf=(uint32_t *)buff ;\
-    register int32_t nwords=nwds ;\
-    while(nwords--) { swap_word_endianness(*buf); buf++; };\
-}
-
 
 static int c_qqqfscr(const char * const type);
 static int fnom_rem_connect( const int ind, const char * const remote_host);
@@ -156,6 +114,26 @@ static char *little_endian = (char *)&endian_int;
 static char *AFSISIO = NULL;
 static char *ARMNLIB = NULL;
 static char *LOCALDIR = "./";
+
+
+//! Seek in a file at a given word
+static off64_t wseek(fdesc, offst, posi) {
+    return lseek64(fdesc, offst * sizeof(uint32_t), posi);
+}
+
+
+static inline void swap_word_endianness(uint32_t * mot) {
+    register uint32_t tmp = (uint32_t) *mot;
+    *mot = (tmp >> 24) | (tmp << 24) | ((tmp >> 8) & 0xFF00) | ((tmp & 0xFF00) << 8);
+}
+
+
+static inline void swap_buffer_endianness(uint32_t * buff, int32_t nwds) {
+    for (int32_t i = 0; i < nwds; i++) {
+        swap_word_endianness(&buff[i]);
+    }
+}
+
 
 //! Kept only for backward compatibility; only returns 0
 //! \return Always zero
@@ -644,13 +622,12 @@ int c_fnom(
         int32_t unfflag77 = FGFDT[entry].attr.unf;
         // lmult is no longer used by qqqf7op, but the argument was kept for backward compatibility
         int32_t lmult = 42;
-        ier = open64(FGFDT[entry].file_name, O_RDONLY | WIN32_O_BINARY);
+        ier = open64(FGFDT[entry].file_name, O_RDONLY);
         if (ier <= 0) {
             FGFDT[entry].file_size = -1;
             FGFDT[entry].eff_file_size = -1;
         } else {
-            LLSK dimm = 0;
-            dimm = LSEEK(ier, dimm, L_XTND);
+            off64_t dimm = lseek64(ier, dimm, SEEK_END);
             FGFDT[entry].file_size = dimm / sizeof(uint32_t);
             FGFDT[entry].eff_file_size = dimm / sizeof(uint32_t);
             close(ier);
@@ -1033,9 +1010,9 @@ int c_wawrit2(
     if ( offset > FGFDT[entry].file_size + 1 ){
         qqcwawr(scrap, FGFDT[entry].file_size + 1, offset - FGFDT[entry].file_size, entry);
     }
-    if (*little_endian) swap_buffer_endianness(bufswap, nwords)
+    if (*little_endian) swap_buffer_endianness(bufswap, nwords);
     qqcwawr((uint32_t *)buf, offset, nwords, entry);
-    if (*little_endian) swap_buffer_endianness(bufswap, nwords)
+    if (*little_endian) swap_buffer_endianness(bufswap, nwords);
 
     return  nwords > 0 ? nwords : 0;
 }
@@ -1118,7 +1095,7 @@ int c_waread2(
     }
     if ( lnwords == 0 ) return 0;
     qqcward((uint32_t *)buf, offset, lnwords, entry);
-    if (*little_endian) swap_buffer_endianness(bufswap, lnwords)
+    if (*little_endian) swap_buffer_endianness(bufswap, lnwords);
     return lnwords;
 }
 
@@ -1153,8 +1130,7 @@ void c_waread(
     //! [in] Number of word to read
     const int nwords
 ) {
-    int ier = c_waread2(iun, buf, offset, nwords);
-    if (ier == -2) {
+    if (c_waread2(iun, buf, offset, nwords) == -2) {
         int entry = find_file_entry("c_waread", iun);
         fprintf(stderr, "c_waread error: attempt to read beyond EOF, of file %s\n", FGFDT[entry].file_name);
         fprintf(stderr, "                addr = %u, EOF = %d\n", offset, FGFDT[entry].eff_file_size);
@@ -1511,7 +1487,7 @@ void c_sqrew(
 
     int fd = c_getfdsc(iun);
     if (fd <= 0) return;
-    lseek(fd, 0, L_SET);
+    lseek64(fd, 0, SEEK_SET);
 }
 
 
@@ -1535,7 +1511,7 @@ void c_sqeoi(
 
     int fd = c_getfdsc(iun);
     if (fd <= 0) return;
-    lseek(fd, 0, L_XTND);
+    lseek64(fd, 0, SEEK_END);
 }
 
 
@@ -1728,7 +1704,7 @@ static void scrap_page(
     // Réécrire la page si ce n'est pas une page read-only
     if (wafile[fl0].page[pg0].touch_flag) {
         int nm = wafile[fl0].page[pg0].walast - wafile[fl0].page[pg0].wa0 + 1;
-        WSEEK(wafile[fl0].file_desc, wafile[fl0].page[pg0].wa0 - 1, L_SET);
+        wseek(wafile[fl0].file_desc, wafile[fl0].page[pg0].wa0 - 1, SEEK_SET);
         int ier = write(wafile[fl0].file_desc, wafile[fl0].page[pg0].page_adr, sizeof(uint32_t) * nm);
         if (ier != sizeof(uint32_t) * nm) {
             fprintf(stderr, "scrap_page error: cannot write page, fd=%d\n", wafile[fl0].file_desc);
@@ -1852,7 +1828,7 @@ static long long filepos(
     HEADER_CMCARC *cmcarc_file;
 
 
-    lseek(FGFDT[indf].fd, (off_t) 0, L_SET);
+    lseek64(FGFDT[indf].fd, 0, SEEK_SET);
     int nblu = read(FGFDT[indf].fd, sign, 8);
     if (strncmp(sign, CMCARC_SIGN, 8) != 0) {
         int version = 0;
@@ -1890,7 +1866,7 @@ static long long filepos(
             }
         }
         int lng = (nt * 8) - 25;
-        if (lseek(FGFDT[indf].fd, (off_t)lng, L_INCR) == (off_t)(-1)) {
+        if (lseek64(FGFDT[indf].fd, lng, SEEK_CUR) == -1) {
             return -1;
         }
     }
@@ -1950,14 +1926,14 @@ static long long filepos(
         } else {
             // sauter les donnees
             lng64 = (nd64 + tail_offset) * 8;
-            if (lseek64(FGFDT[indf].fd, (off_t)lng64, L_INCR) == (off_t)(-1)) {
+            if (lseek64(FGFDT[indf].fd, lng64, SEEK_CUR) == -1) {
                 return -1;
             }
         }
     } while(!found);
 
     subfile_length = (nd * 8) / sizeof(uint32_t);
-    int64_t pos64 = tell64(FGFDT[indf].fd);
+    off64_t pos64 = lseek(FGFDT[indf].fd, 0, SEEK_END);
     return pos64 / sizeof(uint32_t);
 }
 
@@ -1994,10 +1970,11 @@ static int qqcopen(
                 WA_PAGE_SIZE = 0;
         }
 
-        WA_PAGE_NB   = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
+        WA_PAGE_NB = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
 
-        if (WA_PAGE_LIMIT == 0)
+        if (WA_PAGE_LIMIT == 0) {
             WA_PAGE_LIMIT = WA_PAGE_NB * MAXWAFILES;
+        }
         if (WA_PAGE_SIZE > 0) {
             fprintf(stderr, "WA_PAGE_SZ = %ld Bytes ", WA_PAGE_SIZE * sizeof(uint32_t));
             fprintf(stderr, "WA_PAGE_NB = %d ", WA_PAGE_NB);
@@ -2027,14 +2004,14 @@ static int qqcopen(
         return -1;
     }
 
-    int fd;
+    FILE* fd;
     if (FGFDT[indf].subname) {
         // cmcarc file
         if (debug_mode > 4) {
             fprintf(stderr, "Debug opening subfile %s from file %s\n", FGFDT[indf].subname, FGFDT[indf].file_name);
         }
         FGFDT[indf].attr.read_only = 1;
-        fd = open64(FGFDT[indf].file_name, O_RDONLY | WIN32_O_BINARY);
+        fd = open64(FGFDT[indf].file_name, O_RDONLY);
         if (fd == -1) {
             fprintf(stderr, "qqcopen error: cannot open file %s\n", FGFDT[indf].file_name);
             return -1;
@@ -2055,25 +2032,25 @@ static int qqcopen(
         if (access(FGFDT[indf].file_name, F_OK) == -1) {
             if (errno == ENOENT) {
                 // Create new file
-                fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT | WIN32_O_BINARY,
+                fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT,
                             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 FGFDT[indf].attr.read_only = 0;
                 errmsg = "cannot create file";
             }
         } else {
             if (! FGFDT[indf].attr.read_only) {
-                fd = open64(FGFDT[indf].file_name, O_RDWR | WIN32_O_BINARY);
+                fd = open64(FGFDT[indf].file_name, O_RDWR);
                 if (fd == -1) {
                     if (!FGFDT[indf].attr.write_mode) {
                         FGFDT[indf].attr.read_only = 1;
-                        fd = open64(FGFDT[indf].file_name, O_RDONLY | WIN32_O_BINARY);
+                        fd = open64(FGFDT[indf].file_name, O_RDONLY);
                         errmsg = "cannot open file";
                     } else {
                         errmsg = "cannot open in write mode";
                     }
                 }
             } else if (FGFDT[indf].attr.read_only) {
-                fd = open64(FGFDT[indf].file_name, O_RDONLY | WIN32_O_BINARY);
+                fd = open64(FGFDT[indf].file_name, O_RDONLY);
                 errmsg = "cannot open file";
             }
         }
@@ -2086,11 +2063,11 @@ static int qqcopen(
         FGFDT[indf].open_flag = 1;
     }
 
-    LLSK dim = LSEEK(fd, dim, L_XTND);
+    off64_t dim = lseek64(fd, 0, SEEK_END);
     FGFDT[indf].file_size = dim / sizeof(uint32_t);
     FGFDT[indf].eff_file_size = dim / sizeof(uint32_t);
     dim = 0;
-    dim = LSEEK(fd, dim, L_SET);
+    dim = lseek64(fd, dim, SEEK_SET);
     if (subfile_length > 0) {
         FGFDT[indf].eff_file_size = subfile_length;
     }
@@ -2177,7 +2154,7 @@ static void wa_page_read(
         if (debug_mode > 4) {
             fprintf(stderr, "Debug WA_PAGE_READ obtention d'une page %d\n", pageIdx);
         }
-        WSEEK(fd, wafile[fileIdx].page[pageIdx].wa0 - 1, L_SET);
+        wseek(fd, wafile[fileIdx].page[pageIdx].wa0 - 1, SEEK_SET);
         uint32_t readbytes;
         if (WA_PAGE_SIZE + wafile[fileIdx].page[pageIdx].wa0 > FGFDT[indf].file_size) {
             readbytes = sizeof(uint32_t) * (FGFDT[indf].file_size + 1 - wafile[fileIdx].page[pageIdx].wa0);
@@ -2305,7 +2282,7 @@ static void wa_page_write(
             ((offset + nmots != wafile[ind].page[pageIdx].wa0 + WA_PAGE_SIZE) &&
             (offset + nmots < FGFDT[indf].file_size))) {
 
-            WSEEK(fd, wafile[ind].page[pageIdx].wa0 - 1, L_SET);
+            wseek(fd, wafile[ind].page[pageIdx].wa0 - 1, SEEK_SET);
             int readbytes;
             if (WA_PAGE_SIZE + wafile[ind].page[pageIdx].wa0 > FGFDT[indf].file_size) {
                 readbytes = sizeof(uint32_t) * (FGFDT[indf].file_size + 1 - wafile[ind].page[pageIdx].wa0);
@@ -2433,7 +2410,7 @@ static void qqcwawr(
     } else {
         // File is local
         if ((WA_PAGE_SIZE == 0) || (ladr == 0)) {
-            if (ladr != 0) WSEEK(lfd, ladr - 1, L_SET);
+            if (ladr != 0) wseek(lfd, ladr - 1, SEEK_SET);
             int nwritten = write(lfd, buf, sizeof(uint32_t) * nwords);
             if (nwritten != sizeof(uint32_t) * nwords) {
                 if (errno == 14) {
@@ -2544,7 +2521,7 @@ static void qqcward(
 
         if ((WA_PAGE_SIZE == 0) || (ladr == 0)) {
             if (ladr != 0) {
-                WSEEK(lfd, ladr - 1, L_SET);
+                wseek(lfd, ladr - 1, SEEK_SET);
             }
             int reste = read(lfd, buf, sizeof(uint32_t) * lnmots);
             if (reste != sizeof(uint32_t) * lnmots) {

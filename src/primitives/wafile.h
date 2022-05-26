@@ -7,15 +7,6 @@
 //! Decay age of page
 #define decay(age) (age - (age >> 2))
 
-#define LLSK long long
-#define LSEEK lseek64
-
-#define WSEEK(fdesc, offst, posi)\
-{\
-    LLSK local_off = offst;\
-    LSEEK(fdesc, local_off * sizeof(uint32_t), posi);\
-}
-
 //! cmcarc file signature
 #define CMCARC_SIGN "CMCARCHS"
 //! cmcarc version 5 file signature
