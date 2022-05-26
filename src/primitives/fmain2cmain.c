@@ -31,10 +31,10 @@
 #endif
 
 #ifdef SELFTEST
-c_main(int argc, char **argv){
-while(argc--){
-  printf("Argument %d = :%s:\n",argc,argv[argc]);
-  }
+c_main(int argc, char **argv) {
+    while (argc--) {
+        printf("Argument %d = :%s:\n", argc, argv[argc]);
+    }
 }
 #endif
 
@@ -63,28 +63,35 @@ f77name(true_main)(int argc, **argv) {
 */
 
 int IARGC();
-void f77name(fmain2cmain)(void (*the_main)() )
-{
-int argc=1+IARGC();  /* get number of arguments */
-int i,j;
-char *argv[4096];
-char buffer[4096];
 
-argv[argc]=0;
+void f77name(fmain2cmain)(void (*the_main)() ) {
+    // get number of arguments
+    int argc = 1 + IARGC();
+    char *argv[4096];
+    char buffer[4096];
 
-for (i=0; i<argc ; i++){            /* get arg[0] thru arg[argc-1] */
-  GETARG(&i,buffer,4096);  /* get string for argument i */
+    argv[argc] = 0;
 
-  j=4096-1;                         /* get rid of trailing spaces */
-  while((j>=0) && (buffer[j]==' ')) { buffer[j]=0 ; j-- ; }
-                                    /* and copy into argument pointer list */
-  strcpy(argv[i]=malloc(1+strlen(buffer)) , buffer);
-  }
+    // get arg[0] thru arg[argc-1]
+    for (int i = 0; i < argc ; i++) {
+        // get string for argument i
+        GETARG(&i, buffer, 4096);
+
+        // get rid of trailing spaces
+        int j = 4096 - 1;
+        while ((j >= 0) && (buffer[j] == ' ')) {
+            buffer[j] = 0;
+            j--;
+        }
+        // copy into argument pointer list
+        strcpy(argv[i] = malloc(1 + strlen(buffer)) , buffer);
+    }
 
 #ifdef SELFTEST
-c_main(argc,argv);       /* call test main */
+    // Call test main
+    c_main(argc,argv);
 #else
-(*the_main)(argc,argv);  /* call actual C "main" program */
+    // call actual C "main" program
+    (*the_main)(argc,argv);
 #endif
-
 }

@@ -100,38 +100,32 @@ int get_appl_var(char* varname,char *value, int ln, int lng) {
     }
     if (ind == -1) return 0;
     strncpy(value,appl_var_table[ind].value,lng);
-    return((lng >= appl_var_table[ind].ncv) ? appl_var_table[ind].ncv : -(appl_var_table[ind].ncv));
+    return (lng >= appl_var_table[ind].ncv) ? appl_var_table[ind].ncv : -(appl_var_table[ind].ncv);
 }
 
 
-int32_t f77name(c_get_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv) {
-    int i, lng, ln = lln, lv = llv;
-
-    lng = get_appl_var(name, value, ln, lv);
-    i = lng;
+int32_t f77name(c_get_appl_var)(char* name, char* value, F2Cl ln, F2Cl lv) {
+    int lng = get_appl_var(name, value, ln, lv);
+    int i = lng;
     /* remove null, blank pad */
     while (i <= lv) {
         value[i++] = ' ';
     }
-    return((int32_t) lng);
+    return (int32_t) lng;
 }
 
 
-void f77name(c_init_appl_var_table)()
-{
+void f77name(c_init_appl_var_table)() {
     init_appl_var_table();
 }
 
 
-void f77name(c_free_appl_var_table)()
-{
+void f77name(c_free_appl_var_table)() {
     free_appl_var_table();
 }
 
 
-void f77name(c_set_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv)
-{
-    int ln = lln, lv = llv;
-    set_appl_var(name, value, ln, lv);
+void f77name(c_set_appl_var)(char* name, char* value, F2Cl lln, F2Cl llv) {
+    set_appl_var(name, value, lln, llv);
 }
 
