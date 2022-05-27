@@ -1,408 +1,378 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+ 
 #define NKLEMAX 1024
-        module ccard_private
-            USE ISO_C_BINDING
-            PROCEDURE(), pointer, save :: callback => NULL()
-        end module ccard_private
-
-        SUBROUTINE CCARD_callback(p)
-            USE ccard_private
-        external p
-
-        call C_F_PROCPOINTER(C_FUNLOC(p), callback)
-            return
-        end
-
-! RECUPERATION DES PARAMETRES D'APPEL A UN PROGRAMME
-
-        SUBROUTINE CCARD(INCLE,DEF,VAL,N,II)
-        use ccard_private
-        INTEGER N,II
-        CHARACTER * (*) INCLE(N), DEF(N), VAL(N)
-
-!ADAPTATION: JAMES CAVEEN
-
-!OBJET(CCARD) - RECUPERATION DES PARAMETRES D'APPEL A UN PROGRAMME
-!               SI LE NOM D'UNE CLEF APPARAIT SEUL LORS DE LA SEQUENCE
-!               D'APPEL, ON LUI ATTRIBUE LA VALEUR CONTENUE DANS DEF
-!               SI LE NOM APPARAIT, SUIVI D'UNE OU DES VALEURS, ON LUI
-!               ATTRIBUE CES VALEURS.  SINON, LA CLEF PREND POUR VALEUR
-!               LE CONTENU INITIAL DE VAL.
-
-!               ON PEUT DONNER UNE VALEUR A UNE CLEF DES FACONS
-!               SUIVANTES:
-
-!               -CLEF VALEUR
-!               -CLEF VAL1:VAL2:VAL3:...
-!               -CLEF 2:3:-4
-!               -CLEF =-2:3:4
-!               -CLEF =-22
-!               -CLE=-22:33:...
-
-!               LORS DE LA SEQUENCE D'APPEL, TOUS LES PARAMETRES
-!               PRECEDANT LA PREMIERE CLEF RENCONTREE ET
-!               SUIVANT LES SIGNES -- SONT TRAITES EN MODE POSITIONEL.
-
-!               EXEMPLES D'UTILISATION:
-
-!               PROGNOM -CLEF1 -CLEF2 VAL2 -- POS1 POS2
-!               PROGNOM POS1 POS2 -CLEF1 -- POS3 POS4 ...
-!               PROGNOM -CLEF1 =-12:33 -CLEF2 12 =-34
-
-!               LORSQUE LE PREMIER PARAMETRE PASSE = -H/-h, CCARD
-!               IMPRIME SUR L'UNITE 6 LA SEQUENCE D'APPEL AU PROGRAMME.
-
-!               LA SEQUENCE D'APPEL ET LES VALEURS COURANTES DES CLEFS
-!               SERONT IMPRIMEES S'IL Y A ERREUR LORS DE L'APPEL.
 
 
-!ARGUMENTS:
-!       INCLE     ENTREE     -  NOM DES DIFFERENTES CLEFS A INITIALISER
-!       DEF          "       -  DEUXIEME VALEUR DE DEFAUT
-!       VAL       SORTIE     -  VALEUR FINALE ATTRIBUEE AUX CLEFS
-!       N         ENTREE     -  NOMBRE DE CLEFS A INITIALISER
-!       II        SORTIE     -  NOMBRE DE PARAMETRES POSITIONNELS
-!                               (I.E. ASSOCIES AUX CLEFS "-")
-!                            -  SI II > 0, ON RETOURNE LE NOMBRE DE
-!                               PARAMETRES POSITIONELS.
-!                            -  SI II = -111 ou +111, ON ARRETE DES LA
-!                               PREMIERE ERREUR
-!                            -  SI II <=0 & <> -111, ON NE RETOURNE PAS
-!                               LE NOMBRE D'ARGUMENTS POSITIONELS ET ON
-!                               CONTINUE MALGRE LES ERREURS
+module ccard_private
+    USE ISO_C_BINDING
+    IMPLICIT NONE
+    PROCEDURE(), pointer, save :: callback => NULL()
+end module ccard_private
 
-        INTEGER QQQOBM, QQQOENV
-        EXTERNAL QQQOBM, QQQSAP, LOW2UP, QQQTRNS
-        EXTERNAL QQQOENV, qqexit
-        INTEGER I, POS, J, POSC, INDEX, CLLNG, POSMOIN, POSMOINC
-! TYPE DE CLE -1=MINUS, 1=MAJUS, 0=PAREIL
-        INTEGER CLTYPE(NKLEMAX)
-        CHARACTER * 50 CLEUP, CLE(NKLEMAX), cletemp
-        CHARACTER * 8192 ARGUP, ARG, CCARD_ARGS, ARGtemp
-        CHARACTER * 60 Keyname
-        LOGICAL PASFINI, PLANTE
-        INTEGER STATUS, INTERNE
-        Integer L_argenv
 
-!       SI II = -111, LE PROGRAMME ARRETE DES LA PREMIERE
-!       ERREUR RENCONTREE SINON, ON CONTINUE
+subroutine CCARD_callback(p)
+    USE ccard_private
+    IMPLICIT NONE
+    external p
 
-        plante = abs(ii) .eq. 111
-        call getenv('CCARD_OPT',ccard_args)
-        L_argenv = len_trim(ccard_args)
-        IF (L_argenv .gt. 0) THEN
-          IF (ccard_args(1:L_argenv) .eq. 'ABORT') THEN
+    call C_F_PROCPOINTER(C_FUNLOC(p), callback)
+end subroutine
+
+
+!> Parse command line; retreive key values and positionnal arguments
+!>
+!> If a key name is present in the command line without '=' or followed by a value,
+!> the corresponding value in def is given for that key.  If the name is fallowed
+!> by a value, that value is given to the key.  Otherwise, the key is given the
+!> corresponding value from val
+!>
+!> All the arguments preceding the first key and following '--' are handled as
+!> positionnal arguments.
+!>
+!> Values can be given in the followin manner:
+!>
+!>     -key value
+!>     -key val1:val2:val3:...
+!>     -key 2:3:-4
+!>     -key =-2:3:4
+!>     -key =-22
+!>     -key=-22:33:...
+!>
+!> When '-h' or '-H' is present in the command line, ccard prints the calling convention
+!>
+!> If there is an error in the command line, it will be printed along with the
+!> keys and their current value
+subroutine ccard(incle, def, val, nbkeys, ii)
+    use ccard_private
+    IMPLICIT NONE
+
+    !> Number of keys
+    INTEGER, intent(in) :: nbkeys
+    !> If > 0, return the number of positional arguments.  If -111 or 111, stop on error.  If <= 0, no value returned but will not stop on error
+    INTEGER, intent(inout) :: ii
+    !> Key names
+    CHARACTER(len = *), dimension(nbkeys), intent(in) :: incle
+    !> Second default values
+    CHARACTER(len = *), dimension(nbkeys), intent(in) :: def
+    !> Final key values
+    CHARACTER(len = *), dimension(nbkeys), intent(out) :: val
+
+    INTEGER qqqobm, QQQOENV
+    EXTERNAL qqqobm, QQQSAP, low2up, QQQTRNS
+    EXTERNAL QQQOENV, qqexit
+    INTEGER i, pos, j, posc, idx, cllng, posmoin, posmoinc
+    ! TYPE DE CLE -1=MINUS, 1=MAJUS, 0=PAREIL
+    INTEGER cltype(NKLEMAX)
+    CHARACTER * 50 cleup, cle(NKLEMAX), cletemp
+    CHARACTER * 8192 argup, ARG, ccard_args, ARGtemp
+    CHARACTER * 60 keyName
+    LOGICAL pasfini, plante
+    INTEGER status, interne
+    Integer largenv
+
+    character(len = *), parameter :: errorFmt = "(a,i4.4,a)"
+
+    ! SI abs(II) = 111, LE PROGRAMME ARRETE DES LA premierE ERREUR RENCONTREE SINON, ON CONTINUE
+    plante = abs(ii) == 111
+    call getenv('CCARD_OPT', ccard_args)
+    largenv = len_trim(ccard_args)
+    IF (largenv > 0) THEN
+        IF (ccard_args(1:largenv) == 'ABORT') THEN
             plante = .true.
-          ENDIF
-        ENDIF
-        call getenv('CCARD_ARGS',ccard_args)
-        L_argenv = len_trim(ccard_args)
+        END IF
+    END IF
+    call getenv('CCARD_ARGS', ccard_args)
+    largenv = len_trim(ccard_args)
 
-
-!       INITIALISER LE VECTEUR DE TYPE DE CLEFS
-
-        DO 20 I = 1, N
-            cletemp = incle(i)
-            IF (TRIM(incle(i)) .ne. TRIM(cletemp)) THEN
-              write(*,777) 'CCARD erreur: nom de la cle #',i,
-     $                     ' > limite de 50 caracteres'
- 777          format(a,i4,a)
-              if (plante) call qqexit(21)
-            ENDIF
-            CALL LOW2UP(INCLE(I),CLEUP)
-            DO 10 J =50,1,-1
-                IF(CLEUP(J:J) .NE. ' ') THEN
-                    INDEX = J
-                    GOTO 11
-                ENDIF
- 10         CONTINUE
- 11         CONTINUE
-
-            IF(CLEUP(INDEX:INDEX) .EQ. '.') THEN
-                CLTYPE(I) = 0
-                CLEUP(INDEX:INDEX) = ' '
-            ELSE IF (CLEUP(INDEX:INDEX) .EQ. '_') THEN
-                CLTYPE(I) = -1
-                CLEUP(INDEX:INDEX) = ' '
-            ELSE IF(CLEUP(INDEX:INDEX) .EQ. ':') THEN
-                CLTYPE(I) = 2
-                CLEUP(INDEX:INDEX) = ' '
-            ELSE
-                CLTYPE(I) = 1
-            ENDIF
-            CLE(I) = CLEUP
- 20     CONTINUE
-
-!       TROUVER LA POSITION DE LA PREMIERE CLEF - DANS LA LISTE CLE
-
-        POSMOIN = 0
-        POSMOINC = 0
-        DO 30 J=1,N
-            IF(CLE(J) .EQ. '-') THEN
-                  POSMOINC = J
-                  POSMOIN  = J
-                  GOTO 80
-            ENDIF
- 30     CONTINUE
-
- 80     CONTINUE
-
-        POS  = 0
-        POSC = 0
-        INTERNE   = 0
-        PASFINI = .TRUE.
- 100    CONTINUE
-        IF (PASFINI) THEN
-          if (L_argenv .gt. 0) then
-            status = qqqoenv(arg,ccard_args,L_argenv)
-          else
-            STATUS = QQQOBM(ARG,cltype(pos))
-          endif
-          IF(STATUS .EQ. 1) THEN
-            CALL LOW2UP(ARG,ARGUP)
-            DO 110 J = 1,N
-              CLEUP = CLE(J)
-              IF (trim(ARGUP) .EQ. trim(CLEUP)) THEN
-                POSC = J
-                POS = J
-                CALL QQQTRNS(VAL(POS), DEF(POS),CLTYPE(POS))
-!              print *,'Debug+ ccard cleup=',cleup,' val(pos)=',val(pos)
-                write(keyname,109) '%%'//trim(cle(posc)),posc-pos,'%%'
- 109            format(a,i4.4,a)
-                call c_set_appl_var(Keyname,val(pos))
-                GOTO 201
-              ENDIF
- 110        CONTINUE
-            CLLNG = len_trim(ARGUP)
-            PRINT *,' *** ERREUR: cle ',ARGUP(1:CLLNG),' non reconnue'
-            CALL QQQSAP(CLE,DEF,VAL,N)
-            IF(PLANTE) THEN
-               CALL QQEXIT(22)
-            ENDIF
- 201        CONTINUE
-          ELSE IF(STATUS .EQ. 2) THEN
-            IF (POSC .NE. 0 .AND. CLE(POS) .EQ. CLE(POSC)) THEN
-              CALL QQQTRNS(ARGtemp,ARG,CLTYPE(POSC))
-              VAL(POSC) = ARGtemp
-!              print *,'Debug+ ccard cle(posc)=',cle(posc),' ARGtemp=',
-!    %                 trim(ARGtemp)
-!              print *,'Debug+ ccard val(posc)=',val(posc)
-              write(keyname,109) '%%'//trim(cle(posc)),posc-pos,'%%'
-              call c_set_appl_var(Keyname,ARGtemp)
-              POSC = POSC + 1
-            ELSE
-              PRINT *,' *** ERREUR: debordement de liste'
-              CALL QQQSAP(CLE,DEF,VAL,N)
-              IF(PLANTE) THEN
-                   CALL QQEXIT(23)
-              ENDIF
-            ENDIF
-          ELSE IF(STATUS .EQ. 3) THEN
-            IF (POSMOINC .NE. 0 .AND. CLE(POSMOIN) .EQ. CLE(POSMOINC))
-     %        THEN
-              CALL QQQTRNS(ARGtemp,ARG,CLTYPE(POSMOINC))
-              VAL(POSMOINC) = ARGtemp
-              write(keyname,109)
-     $             '%%'//trim(cle(posmoinc)),posmoinc-pos,'%%'
-              call c_set_appl_var(Keyname,ARGtemp)
-            ELSE
-              PRINT *,' *** ERREUR: debordement de liste'
-              PRINT *,'         ou  mode positionnel non permis'
-              CALL QQQSAP(CLE,DEF,VAL,N)
-              IF(PLANTE) THEN
-                   CALL QQEXIT(24)
-              ENDIF
-            ENDIF
-            POSMOINC = POSMOINC + 1
-            INTERNE = INTERNE + 1
-          ELSE IF(STATUS .EQ. 5) THEN
-              CALL QQQSAP(CLE,DEF,VAL,N)
-              if(associated(callback)) then
-                print *,''
-                call callback
-              endif
-              CALL QQEXIT(0)
-          ELSE
-             PASFINI = .FALSE.
-
-          ENDIF
-          GOTO 100
-        ENDIF
-
-!       RETOURNER LE NOMBRE D'ARGUMENTS ASSOCIES A LA CLEF - SI DEMANDE
-        IF(II .GT. 0) THEN
-           II = INTERNE
-        ENDIF
-        RETURN
-        END
-
-!**S/P  QQQOBM - OBTENIR UN NOM DE CLEF OU UNE VALEUR D'UN ARGUMENT
-
-        FUNCTION QQQOBM(ARG,cltype)
-
-        INTEGER QQQOBM
-        CHARACTER * 8192 ARG
-        integer cltype
-
-!AUTEUR          J.CAVEEN, JANVIER 1991
-
-!OBJET(QQQOBM)
-!       FONCTION QUI PERMET D'ALLER CHERCHER LES ARGUMENTS D'UNE SEQUENCE
-!       D'APPEL A UN PROGRAMME ET D'EN EXTRAIRE LES NOMS DE CLEFS ET LES
-!       VALEURS A DONNER A CES CLEFS.
-!       LA FONCTION QQQOBM RETOURNE:
-!            - UNE VALEUR DE 1 SI ARG CONTIENT UN NOM DE CLEF
-!            - UNE VALEUR DE 2 SI ARG CONTIENT UNE VALEUR A DONNER A UNE CLEF
-!            - UNE VALEUR DE 3 SI ARG CONTIENT UN ARGUMENT POSITIONEL
-!            - UNE VALEUR DE 5 SI ON DEMANDE LA SEQUENCE D'APPEL
-!            - UNE VALEUR DE 0 LORSQUE TOUT EST FINI
-
-!ARGUMENT:
-!         ARG    SORTIE     NOM DE CLEF OU VALEUR RETOURNE
-
-!*
-        LOGICAL PASDCLE, PUDCLE, PREMIER
-        INTEGER ARGNUM, IINDEX, INDFIN, NARG, I, INDEB, J
-        CHARACTER *8192 ARGUP
-        character *1 delim
-
-        SAVE ARGUP
-        SAVE PASDCLE, PUDCLE, PREMIER, ARGNUM, NARG, IINDEX, INDFIN
-        DATA PASDCLE, PUDCLE, PREMIER /.TRUE., .FALSE., .TRUE./
-        DATA ARGNUM, NARG, IINDEX, INDFIN /0, 0, 0, 0/
-
-
-        if (cltype .eq. 2) then
-          delim = '='
-        else
-          delim = ':'
-        endif
-
- 100    QQQOBM = 0
-        DO 120 I = 1, 8192
-          ARG(I:I) = ' '
- 120    CONTINUE
-
-        IF(PREMIER) THEN
-            NARG = IARGC()
-            PREMIER = .FALSE.
-        ENDIF
-
-        IF(IINDEX .GE. INDFIN) THEN
-!            #  ALLER CHERCHER UN ARGUMENT
-
-             ARGNUM = ARGNUM + 1
-             IF (ARGNUM .GT. NARG)   RETURN
-
-             DO 150 I = 1,8192
-                 ARGUP(I:I) = ' '
- 150         CONTINUE
-
-             CALL GETARG(ARGNUM,ARGUP)
-             IF(((NARG .EQ. 1) .AND. ((INDEX(ARGUP,'-H ') .NE. 0) .OR.
-     %          (INDEX(ARGUP,'-h ') .NE. 0)
-     %          .OR. (INDEX(ARGUP,'-HELP') .NE. 0)
-     %          .OR. (INDEX(ARGUP,'-help') .NE. 0) ))) THEN
-                 QQQOBM = 5
-                 RETURN
-             ENDIF
-
-             IINDEX = 1
-
-!            TROUVER LA FIN DE ARGUP
-
-             INDFIN = len_trim(ARGUP)
-         ENDIF
-
-
-!         EXTRAIRE UN NOM DE CLEF OU UNE VALEUR
-
-
-        IF((IINDEX .EQ. 1) .AND.  (ARGUP(1:1) .EQ. '-') .AND.
-     %     (.NOT. PUDCLE)) THEN
-
-!         NOM DE CLEF
-
-            PASDCLE = .FALSE.
-            QQQOBM = 1
-            IINDEX = 2
-            IF(ARGUP(2:2) .EQ. '-') THEN
-                PUDCLE = .TRUE.
-                GO TO 100
-!               CHERCHER PROCHAIN ARG POSITIONEL
-            ENDIF
+    ! INITIALISER LE VECTEUR DE TYPE DE CLEFS
+    DO i = 1, nbkeys
+        cletemp = incle(i)
+        IF (TRIM(incle(i)) /= TRIM(cletemp)) THEN
+            write(*, "(a,i4,a)") 'CCARD erreur: nom de la cle #', i, ' > limite de 50 caracteres'
+            if (plante) call qqexit(21)
+        END IF
+        CALL low2up(incle(i), cleup)
+        DO j = 50, 1, -1
+            IF (cleup(j:j) /= ' ') THEN
+                idx = j
+                EXIT
+            END IF
+        END DO
+ 
+        IF (cleup(idx:idx) == '.') THEN
+            cltype(i) = 0
+            cleup(idx:idx) = ' '
+        ELSE IF (cleup(idx:idx) == '_') THEN
+            cltype(i) = -1
+            cleup(idx:idx) = ' '
+        ELSE IF(cleup(idx:idx) == ':') THEN
+            cltype(i) = 2
+            cleup(idx:idx) = ' '
         ELSE
-! VALEUR A DONNER
-            IF(PUDCLE .OR. PASDCLE) THEN
-! ARGUMENT POSITIONEL
-                 QQQOBM = 3
-                 ARG = ARGUP
-                 IINDEX = INDFIN
-                 RETURN
+            cltype(i) = 1
+        END IF
+        cle(i) = cleup
+    END DO
+
+    ! TROUVER LA POSITION DE LA premierE CLEF - DANS LA LISTE CLE
+
+    posmoin = 1
+    posmoinc = 1
+    DO j = 1, nbkeys
+        IF (cle(j) == '-') THEN
+            posmoinc = j
+            posmoin  = j
+            EXIT
+        END IF
+    END DO
+
+    pos = 1
+    posc = 1
+    interne = 0
+    pasfini = .TRUE.
+    DO WHILE (pasfini)
+        if (largenv > 0) then
+            status = qqqoenv(arg, ccard_args, largenv)
+        else
+            status = qqqobm(arg, cltype(pos))
+        end if
+
+        IF (status == 1) THEN
+            ! argup is a keyname
+            CALL low2up(arg, argup)
+            DO j = 1, nbkeys
+                cleup = cle(j)
+                IF (trim(argup) == trim(cleup)) THEN
+                    posc = j
+                    pos = j
+                    CALL qqqtrns(val(pos), def(pos), cltype(pos))
+                    ! print *,'Debug+ ccard cleup=',cleup,' val(pos)=',val(pos)
+                    write(keyname, errorFmt) '%%' // trim(cle(posc)), posc - pos, '%%'
+                    call c_set_appl_var(keyName, val(pos))
+                    EXIT
+                END IF
+            END DO
+ 
+            IF (j >= nbkeys) THEN
+                cllng = len_trim(argup)
+                PRINT *, ' *** ERREUR: cle ', argup(1:cllng), ' non reconnue'
+                CALL qqqsap(cle, def, val, nbkeys)
+                IF (plante) THEN
+                    CALL qqexit(22)
+                END IF
+            END IF
+
+        ELSE IF (status == 2) THEN
+            ! argup is a value for a key
+            IF (posc /= 0 .AND. cle(pos) == cle(posc)) THEN
+                CALL qqqtrns(argtemp, arg, cltype(posc))
+                VAL(posc) = ARGtemp
+                ! print *,'Debug+ ccard cle(posc)=',cle(posc),' ARGtemp=', trim(ARGtemp)
+                ! print *,'Debug+ ccard val(posc)=',val(posc)
+                write(keyname, errorFmt) '%%' // trim(cle(posc)), posc - pos, '%%'
+                call c_set_appl_var(keyname, argtemp)
+                posc = posc + 1
             ELSE
-                 QQQOBM = 2
-            ENDIF
-            IF((ARGUP(IINDEX:IINDEX) .EQ. delim) .OR.
-     %         (ARGUP(IINDEX:IINDEX) .EQ. '=')) then
-                       IINDEX = IINDEX + 1
-            endif
-        ENDIF
+                PRINT *, ' *** ERREUR: debordement de liste'
+                CALL qqqsap(cle, def, val, nbkeys)
+                IF (plante) THEN
+                    CALL qqexit(23)
+                ENDIF
+            END IF
 
-        INDEB = IINDEX
-        J = 1
-        DO 200 I= INDEB ,INDFIN
-            IF((ARGUP(I:I) .EQ. '=') .OR. (ARGUP(I:I) .EQ. delim)) THEN
-                  GOTO 500
+        ELSE IF (status == 3) THEN
+            ! argup is a positionnal argument
+            IF (posmoinc /= 0 .AND. cle(posmoin) == cle(posmoinc)) THEN
+                CALL qqqtrns(argtemp, arg, cltype(posmoinc))
+                val(posmoinc) = argtemp
+                write(keyname, errorFmt) '%%' // trim(cle(posmoinc)), posmoinc - pos, '%%'
+                call c_set_appl_var(keyname, argtemp)
             ELSE
-                 ARG(J:J) = ARGUP(I:I)
-                 IINDEX = IINDEX +1
-                 J = J + 1
-            ENDIF
- 200    CONTINUE
+                PRINT *,' *** ERREUR: debordement de liste'
+                PRINT *,'         ou  mode positionnel non permis'
+                CALL qqqsap(cle, def, val, nbkeys)
+                IF (plante) THEN
+                    CALL qqexit(24)
+                END IF
+            END IF
+            posmoinc = posmoinc + 1
+            interne = interne + 1
 
- 500    CONTINUE
+        ELSE IF (status == 5) THEN
+            ! Help printout requested
+            CALL qqqsap(cle, def, val, nbkeys)
+            if (associated(callback)) then
+                print *, ''
+                call callback
+            end if
+            CALL qqexit(0)
+        ELSE
+            pasfini = .FALSE.
+        END IF
+     END DO
 
-        RETURN
-        END
+    ! RETOURNER LE NOMBRE D'ARGUMENTS ASSOCIES A LA CLEF - SI DEMANDE
+    IF (ii > 0) THEN
+        ii = interne
+    END IF
+END SUBROUTINE
+
+
+!> Get key name or value of an argument
+!> ＼return The return value has the followin meaning:
+!> | Value | Description                     |
+!> | ----: | :------------------------------ |
+!> |     0 | Everything done                 |
+!> |     1 | arg is a key name               |
+!> |     2 | arg is a value to give to a key |
+!> |     3 | arg is a positionnal argument   |
+!> |     5 | Help printout requested         |
+INTEGER FUNCTION qqqobm(arg, cltype)
+    IMPLICIT NONE
+
+    !> Key name or value
+    CHARACTER(len = 8192), intent(out) :: arg
+    integer, intent(in) :: cltype
+
+    LOGICAL :: pasdcle
+    LOGICAL :: pudcle
+    LOGICAL :: premier
+    INTEGER :: argnum
+    INTEGER :: iindex
+    INTEGER :: indfin
+    INTEGER :: narg
+    INTEGER :: i
+    INTEGER :: indeb
+    INTEGER :: j
+    CHARACTER(len = 8192) :: argup
+    character(len = 1) :: delim
+
+    SAVE argup
+    SAVE pasdcle, pudcle, premier, argnum, narg, iindex, indfin
+    DATA pasdcle, pudcle, premier /.TRUE., .FALSE., .TRUE./
+    DATA argnum, narg, iindex, indfin /0, 0, 0, 0/
+
+
+    if (cltype == 2) then
+        delim = '='
+    else
+        delim = ':'
+    endif
+
+    ! Shitty loop condition used as a simple replacement for GOTOs and labels
+    DO WHILE (.TRUE.)
+        qqqobm = 0
+        DO i = 1, 8192
+            arg(i:i) = ' '
+        END DO
+
+        IF (premier) THEN
+            narg = IARGC()
+            premier = .FALSE.
+        END IF
+
+        IF (iindex >= indfin) THEN
+            ! ALLER CHERCHER UN ARGUMENT
+            argnum = argnum + 1
+            IF (argnum > narg)   RETURN
+
+            DO I = 1, 8192
+                argup(I:I) = ' '
+            END DO
+
+            CALL GETARG(argnum, argup)
+            IF (((narg == 1) .AND. ((INDEX(argup, '-H ') /= 0) .OR. (INDEX(argup,'-h ') /= 0) &
+        &          .OR. (INDEX(argup,'-HELP') /= 0) .OR. (INDEX(argup,'-help') /= 0) ))) THEN
+                qqqobm = 5
+                RETURN
+            END IF
+
+            iindex = 1
+
+            ! TROUVER LA FIN DE argup
+            indfin = len_trim(argup)
+        END IF
+
+        ! EXTRAIRE UN NOM DE CLEF OU UNE VALEUR
+        IF ((iindex == 1) .AND.  (argup(1:1) == '-') .AND. (.NOT. pudcle)) THEN
+            ! NOM DE CLEF
+            pasdcle = .FALSE.
+            qqqobm = 1
+            iindex = 2
+            IF (argup(2:2) == '-') THEN
+                pudcle = .TRUE.
+                ! CHERCHER PROCHAIN ARG POSITIONEL
+            END IF
+            EXIT
+        ELSE
+            ! VALEUR A DONNER
+            IF (pudcle .OR. pasdcle) THEN
+                ! ARGUMENT POSITIONEL
+                qqqobm = 3
+                arg = argup
+                iindex = indfin
+                RETURN
+            ELSE
+                qqqobm = 2
+            END IF
+            IF ((argup(iindex:iindex) == delim) .OR. (argup(iindex:iindex) == '=')) then
+                iindex = iindex + 1
+            END IF
+            EXIT
+        END IF
+    END DO
+
+    indeb = iindex
+    j = 1
+    DO I = indeb, indfin
+        IF ((argup(i:i) == '=') .OR. (argup(i:i) == delim)) THEN
+            EXIT
+        ELSE
+            arg(j:j) = argup(i:i)
+            iindex = iindex + 1
+            j = j + 1
+        END IF
+    END DO
+END
+
 
 !**S/P  QQQOENV - OBTENIR UN NOM DE CLEF OU UNE VALEUR D'UN ARGUMENT
 !                 A PARTIR D'UNE VARIABLE D'ENVIRONNEMENT CONTENANT LA
 !                 SEQUENCE D'APPEL COMPLETE
 
-        INTEGER FUNCTION QQQOENV(ARGP,CCARD_ARGS,L)
+INTEGER FUNCTION QQQOENV(ARGP,ccard_args,L)
         IMPLICIT NONE
-        CHARACTER * 8192 ARGP, CCARD_ARGS
+        CHARACTER * 8192 ARGP, ccard_args
         INTEGER L
 
 !AUTEUR          M. Lepine,  Fevrier 2003
 
 !OBJET(QQQOENV)
-!  FONCTION QUI PERMET D'ALLER CHERCHER LES ARGUMENTS D'UNE SEQUENCE
+!  FONCTION QUI PERMET D'ALLER CHERCHER LES ARGUMENTS D'UNE ==ENCE
 !  D'APPEL A UN PROGRAMME ET D'EN EXTRAIRE LES NOMS DE CLEFS ET LES
 !  VALEURS A DONNER A CES CLEFS.
 !  LA FONCTION QQQOENV RETOURNE:
 !       - UNE VALEUR DE 1 SI ARG CONTIENT UN NOM DE CLEF
 !       - UNE VALEUR DE 2 SI ARG CONTIENT UNE VALEUR A DONNER A UNE CLEF
 !       - UNE VALEUR DE 3 SI ARG CONTIENT UN ARGUMENT POSITIONEL
-!       - UNE VALEUR DE 5 SI ON DEMANDE LA SEQUENCE D'APPEL
+!       - UNE VALEUR DE 5 SI ON DEMANDE LA ==ENCE D'APPEL
 !       - UNE VALEUR DE 0 LORSQUE TOUT EST FINI
 
 !ARGUMENT:
@@ -433,8 +403,8 @@
 
         c = ccard_args(pos:pos)
         getarg: DO                    ! obtenir la prochaine cle, valeur
-          if ((pos > L) .or. (c .eq. ' ').or.(c .eq. ':')) EXIT getarg
-          if ((c .ne. '''') .and. (c .ne. '"')) then
+          if ((pos > L) .or. (c == ' ').or.(c == ':')) EXIT getarg
+          if ((c /= '''') .and. (c /= '"')) then
             arg(i:i) = c
             pos = pos +1
             i = i + 1
@@ -444,7 +414,7 @@
             pos = pos + 1
             c = ccard_args(pos:pos)
             quote: DO
-                       if (c .eq. quotechar) EXIT quote
+                       if (c == quotechar) EXIT quote
                   if (pos > L) then
                   print *,'CCARD, qqqoenv error: unmatched quote'
                   EXIT quote
@@ -461,10 +431,10 @@
 
         indfin = len_trim(arg)
 
-        if ((arg(1:1) .eq. '-') .and. (.not. pudcle)) then
+        if ((arg(1:1) == '-') .and. (.not. pudcle)) then
            qqqoenv = 1           ! nom de cle
            ic = 2                ! position de copie apres '-'
-           if (arg(2:2) .eq. '-') then   ! -- passage en mode positionel
+           if (arg(2:2) == '-') then   ! -- passage en mode positionel
               pudcle = .true.
               goto 100                    ! prochain argument positionel
            endif
@@ -476,107 +446,83 @@
               qqqoenv = 2                  ! valeur
               ic = 1
            endif
-           if (arg(1:1) .eq. '=') ic = 2  ! passer le caractere d'escape
+           if (arg(1:1) == '=') ic = 2  ! passer le caractere d'escape
         endif
         argp = arg(ic:indfin)
-        if ((qqqoenv == 1) .and. (indfin == 2) .and.
-     % ((arg(1:2) .eq. '-h') .or. (arg(1:2) .eq. '-H') .or.
-     %  (arg(1:5) .eq. '-help') .or. (arg(1:5) .eq. '-HELP') )) then
+        if ((qqqoenv == 1) .and. (indfin == 2) .and. &
+     & ((arg(1:2) == '-h') .or. (arg(1:2) == '-H') .or. &
+     &  (arg(1:5) == '-help') .or. (arg(1:5) == '-HELP') )) then
           qqqoenv = 5                      ! sequence d'appel demande
         endif
         pos = pos + 1     ! positionnement au debut du prochain argument
 
         return
-        end
+END FUNCTION
 
-!**S/P - QQQTRNS - TRADUIRE ET TRANSFERER UNE VALEUR SELON LE TYPE
 
-        SUBROUTINE QQQTRNS(SORTI,ENTRE,TYPE)
+!> Coy input to ouput while applying specified case conversion
+SUBROUTINE qqqtrns(sorti, entre, traduction)
+    !> Converted text
+    CHARACTER(LEN = *), INTENT(OUT)  :: sorti
+    !> Input text
+    CHARACTER(LEN = *), INTENT(IN) :: entre
+    !> If 1, convert to uppercace.  If -1 convert to lowercase.  Otherwise, copy as-is.
+    INTEGER, INTENT(IN) :: traduction
 
-        CHARACTER*(*) SORTI,ENTRE
-        INTEGER TYPE
+    EXTERNAL low2up, up2low
 
-!AUTEUR:   JAMES CAVEEN,  JUILLET 1991
+    IF (traduction == 1) THEN
+        CALL low2up(entre, sorti)
+    ELSE IF (traduction == -1) THEN
+        CALL up2low(entre, sorti)
+    ELSE
+        sorti = entre
+    END IF
+END SUBROUTINE
 
-!OBJET(QQQTRNS) - TRADUIRE UNE VALEUR EN MAJUSCULES/MINUSCULE SELON
-!                 LE TYPE DE CLE ET TRANSFERE LE RESULTAT DANS SORTI
 
-!ARGUMENTS    SORTI  SORTIE -  NOM RESULTANT DE LA TRANSFORMATION
-!             ENTRE  ENTREE - NOM A TRADUIRE
-!             TYPE      "   - TYPE DE TRADUCTION A APPLIQUER
+!> Print program argument syntax along with default values
+SUBROUTINE qqqsap(cle, def, val, nbkeys)
+    !> Number of keys
+    INTEGER, INTENT(IN) :: nbkeys
+    !> Kay names
+    CHARACTER(LEN = *), DIMENSION(nbkeys), INTENT(IN) :: cle
+    !> Second default values
+    CHARACTER(LEN = *), DIMENSION(nbkeys), INTENT(IN) :: def
+    !> First default values or current values
+    CHARACTER(LEN = *), DIMENSION(nbkeys), INTENT(IN) :: val
 
-!*
-        EXTERNAL LOW2UP, UP2LOW
+    CHARACTER(LEN = 8192) :: lenom
+    INTEGER :: i, nomlng, clelng, deflng, valng
+    CHARACTER(LEN = 128) :: clepre
+    INTEGER :: repcle
 
-        IF(TYPE .EQ. 1) THEN
-           CALL LOW2UP(ENTRE,SORTI)
-        ELSE IF(TYPE .EQ. -1) THEN
-           CALL UP2LOW(ENTRE,SORTI)
+    ! ON OBTIENT LE NOM DU PROGRAMME APPELANT
+    CALL GETARG(0, lenom)
+
+    WRITE(6, *) ' *** SEQUENCE D''APPEL ***'
+
+    nomlng = len_trim(lenom)
+    WRITE(6,*) lenom(1:nomlng)
+    clepre = ' '
+    repcle = 0
+
+    DO i = 1, nbkeys
+        IF (trim(clepre) == trim(cle(i))) then
+            repcle = repcle + 1
         ELSE
-           SORTI = ENTRE
-        ENDIF
-        RETURN
-        END
-
-!**S/P QQQSAP - IMPRIMER LA SEQUENCE D'APPEL AU PROGRAMME
-
-        SUBROUTINE QQQSAP(CLE,DEF,VAL,N)
-
-        INTEGER N
-        CHARACTER* (*) CLE(N), DEF(N), VAL(N)
-
-
-!AUTEUR:  JAMES CAVEEN, JUILLET 1991
-
-!OBJET(QQQSAP) - SOUS-PROGRAMME SERVANT A IMPRIMER LA SEQUENCE D'APPEL
-!                AU PROGRAMME PRESENTEMENT EN EXECUTION.
-!                QQQSAP IMPRIME SUR L'UNITE 6:
-!                   LE NOM DU PROGRAMME, LES DIFFERENTS NOM DE CLEFS
-!                   ET LEUR PREMIERE ET DEUXIEME VALEUR DE DEFAUT.
-
-!ARGUMENTS:
-!      CLE      ENTREE  - TABLEAU CONTENANT LE NOM DES N CLEFS
-!      DEF      ENTREE  - TABLEAU CONTENANT LA DEUXIEME VALEUR DE DEFAUT
-!      VAL      ENTREE  - TABLEAU CONTENANT LA PREMIERE VALEUR DE DEFAUT
-!                         OU LA VALEUR COURANTE DE LA CLEF
-!      N        ENTREE  - NOMBRE DE CLEFS
-        CHARACTER*8192 LENOM
-        INTEGER I,NOMLNG,CLELNG,DEFLNG,VALLNG
-        character*128 clepre
-        integer repcle
-
-!       ON OBTIENT LE NOM DU PROGRAMME APPELANT
-        CALL GETARG(0,LENOM)
-
-        WRITE(6,100)
-
-        NOMLNG = len_trim(LENOM)
-        WRITE(6,*)LENOM(1:NOMLNG)
-        clepre = ' '
-        repcle = 0
-
-        DO 50 I =1,N
-           if(trim(clepre) == trim(CLE(I))) then
-             repcle = repcle + 1
-           else
-             if(repcle > 0) then
-               print 300,'     [repeated',repcle,' time(s)]'
-             endif
-             repcle = 0
-             clepre = trim(CLE(I))
-             CLELNG = len_trim(CLE(I))
-             DEFLNG = len_trim(DEF(I))
-             VALLNG = len_trim(VAL(I))
-             WRITE(6,200) CLE(I)(1:CLELNG),VAL(I)(1:VALLNG),
-     %                  DEF(I)(1:DEFLNG)
-           endif
- 50     CONTINUE
-        if(repcle > 0) then
-          print 300,'     [repeated',repcle,' more time(s)]'
-        endif
-
- 100    FORMAT(' *** SEQUENCE D''APPEL ***'//)
- 200    FORMAT('     -',A,' [',A,':',A,']')
- 300    FORMAT(A,I4,A)
-        RETURN
-        END
+            IF (repcle > 0) THEN
+                print '(A,I4,A)', '     [repeated', repcle, ' time(s)]'
+            END IF
+            repcle = 0
+            clepre = trim(cle(i))
+            clelng = len_trim(cle(i))
+            deflng = len_trim(def(i))
+            valng = len_trim(VAL(i))
+            WRITE(6, "('     -',A,' [',A,':',A,']')") cle(i)(1:clelng), VAL(i)(1:valng), def(i)(1:deflng)
+        END IF
+    END DO
+    IF (repcle > 0) THEN
+        print '(A,I4,A)', '     [repeated', repcle, ' more time(s)]'
+    END IF
+END SUBROUTINE
