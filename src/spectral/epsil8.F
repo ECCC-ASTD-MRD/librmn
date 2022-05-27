@@ -48,7 +48,7 @@
       INTEGER  LM,KHEM,LALP(LM) 
 
       REAL*8    FNUM,FDEN, c,d,e      ! AC,AD,AE imported from alpnrt_comlrlm
-      INTEGER   M,N,MN,    IR,IER     ! LRLM imported from alpnrt_comlrlm
+      INTEGER   M,N,MN,    IR         ! LRLM imported from alpnrt_comlrlm
       INTEGER   MULT,MR,   N1,LR,     MS,NS
 
       c(m,n) = sqrt( dble( (2*n+1)*(n+m-1)*(n+m-3) )/

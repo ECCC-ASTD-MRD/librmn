@@ -348,8 +348,6 @@
      +              fstprm, fstluk, fstinf, qqexit,
      +              fnom,   fclos,  wkoffit,r4astrg 
 
-      Integer       errcod
-
       Character     typvar*1,                nomvar*4,
      +              etiket*12,               grtyp*1
 

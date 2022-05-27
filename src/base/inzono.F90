@@ -90,8 +90,6 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin, fnom
     external fstnbr, fstouv, fstfrm, fstecr,  exfin, fnom, qqexit, strgr4a
 
-    integer :: errcod
-
     character(len = 1) :: typvar
     character(len = 4) :: etivar
     character(len = 2) :: nomvar
@@ -461,8 +459,6 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     ! Declaration des fonctions fstxxx et de leurs parametres.
     integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin, fnom, fclos
     external fstnbr, fstouv, fstfrm, fstecr, exfin, fnom, fclos, qqexit, strgr4a
-
-    integer :: errcod
 
     character(len = 1) :: typvar
     character(len = 4) :: etivar

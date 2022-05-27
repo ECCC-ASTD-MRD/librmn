@@ -2,7 +2,7 @@
 #define FTNSTRLEN_H
 
 unsigned int ftnStrLen(
-    const char const * str,
+    const char * const str,
     const unsigned int maxLen
 );
 

@@ -39,7 +39,7 @@
 
       REAL(kind=8), dimension(2*LA) :: WRKL
 
-      INTEGER   LA2,MN,MHS,MHA,MF,M,N,IER
+      INTEGER   LA2,MN,MHS,MHA,MF,M,N
       INTEGER   LHS,LHA,MNS,MNA,NNS,NNA
 
 *-----------------------------------------------------------------------
