@@ -2240,7 +2240,7 @@ int c_fstluk(
     // printf("Debug+ fstluk - workFieldSz = %d\n", workFieldSz);
     char workField[workFieldSz];
     // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
-    memset(workField, 0, workFieldSz);
+    bzero(workField, workFieldSz);
 
     // if ((workField = alloca(workFieldSz)) == NULL) {
     //     sprintf(errmsg, "memory is full, was trying to allocate %ld bytes", lng * sizeof(int));
@@ -2299,7 +2299,7 @@ int c_fstluk(
         }
     } else {
         switch (stdf_entry.datyp) {
-            case 0:
+            case 0: {
                 // Raw binary
                 // printf("Debug+ fstluk - Raw binary\n");
                 int lngw = ((nelm * stdf_entry.nbits) + bitmot - 1) / bitmot;
@@ -2307,9 +2307,10 @@ int c_fstluk(
                     field[i] = buf->data[i];
                 }
                 break;
+            }
 
             case 1:
-            case 129:
+            case 129: {
                 // Floating Point
                 // printf("Debug+ fstluk - Floating Point\n");
                 double tempfloat = 99999.0;
@@ -2322,8 +2323,8 @@ int c_fstluk(
                 } else {
                     packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
                 }
-
                 break;
+            }
 
             case 2:
             case 130:
@@ -2365,12 +2366,13 @@ int c_fstluk(
                     break;
                 }
 
-            case 3:
+            case 3: {
                 // Character
                 // printf("Debug+ fstluk - Character\n");
                 int nc = (nelm + 3) / 4;
                 ier = compact_integer(field, (void *) NULL, buf->data, nc, 32, 0, xdf_stride, 2);
                 break;
+            }
 
 
             case 4:
@@ -2412,7 +2414,7 @@ int c_fstluk(
                 break;
 
             case 5:
-            case 8:
+            case 8: {
                 // IEEE representation
                 // printf("Debug+ fstluk - IEEE representation\n");
                 register int32_t temp32, *src, *dest;
@@ -2440,30 +2442,31 @@ int c_fstluk(
                 }
 
                 break;
+            }
 
             case 6:
-            case 134:
-                {
-                    // Floating point, new packers
-                    // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
-                    int nbits;
-                    if (stdf_entry.datyp > 128) {
-                        int nbytes = armn_compress(buf->data + 1 + header_size, *ni, *nj, *nk, stdf_entry.nbits, 2);
-                        // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
-                        //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
+            case 134: {
+                // Floating point, new packers
+                // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
+                int nbits;
+                if (stdf_entry.datyp > 128) {
+                    int nbytes = armn_compress(buf->data + 1 + header_size, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
+                    //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
-                        c_float_unpacker(field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);
-                    } else {
-                        c_float_unpacker(field, buf->data, buf->data + header_size, nelm, &nbits);
-                    }
-                    break;
+                    c_float_unpacker(field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);
+                } else {
+                    c_float_unpacker(field, buf->data, buf->data + header_size, nelm, &nbits);
                 }
+                break;
+            }
 
-            case 133:
+            case 133: {
                 // Floating point, new packers
                 // printf("Debug+ fstluk - Floating point, new packers (133)\n");
                 int nbytes = c_armn_uncompress32(field, buf->data + 1, *ni, *nj, *nk, stdf_entry.nbits);
                 break;
+            }
 
             case 7:
                 // Character string
@@ -2585,7 +2588,7 @@ int c_fstnbr(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index, index_fnom, ier, nrec;
+    int index, index_fnom, nrec;
     file_table_entry *fte;
 
     index_fnom = fnom_index(iun);
@@ -2597,11 +2600,11 @@ int c_fstnbr(
     if ((index = file_index(iun)) == ERR_NO_FILE) {
         /*    sprintf(errmsg, "file (unit=%d) is not open", iun); */
         /*    return error_msg("c_fstnbr", ERR_NO_FILE, ERROR); */
-        ier = c_fstouv(iun, "RND");
+        c_fstouv(iun, "RND");
         index = file_index(iun);
         fte = file_table[index];
         nrec = fte->nrecords;
-        ier = c_fstfrm(iun);
+        c_fstfrm(iun);
         return nrec;
     }
 
@@ -2615,7 +2618,7 @@ int c_fstnbrv(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index, index_fnom, ier, nrec;
+    int index, index_fnom, nrec;
     file_table_entry *f;
 
     index_fnom = fnom_index(iun);
@@ -2625,11 +2628,11 @@ int c_fstnbrv(
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        ier = c_fstouv(iun, "RND");
+        c_fstouv(iun, "RND");
         index = file_index(iun);
         f = file_table[index];
         nrec = f->header->nrec;
-        ier = c_fstfrm(iun);
+        c_fstfrm(iun);
         return nrec;
     }
 
