@@ -1153,8 +1153,7 @@ void c_waread(
     //! [in] Number of word to read
     const int nwords
 ) {
-    int ier = c_waread2(iun, buf, offset, nwords);
-    if (ier == -2) {
+    if (c_waread2(iun, buf, offset, nwords) == -2) {
         int entry = find_file_entry("c_waread", iun);
         fprintf(stderr, "c_waread error: attempt to read beyond EOF, of file %s\n", FGFDT[entry].file_name);
         fprintf(stderr, "                addr = %u, EOF = %d\n", offset, FGFDT[entry].eff_file_size);
