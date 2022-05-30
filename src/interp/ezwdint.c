@@ -57,13 +57,12 @@ int32_t c_ezwdint(float *uuout, float *vvout, float *uuin, float *vvin)
 
 int32_t c_ezwdint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-   int32_t gdin,gdout,ier,ierc,ierc1,ierc2;
+   int32_t gdin, gdout, ierc, ierc1, ierc2;
    float *uullout = NULL;
    float *vvllout = NULL;
    int32_t npts;
 
-   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin;
-   int lcl_ngdin;
+   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
 
    gdin = iset_gdin;
    gdout= iset_gdout;
@@ -91,16 +90,15 @@ int32_t c_ezwdint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
 
    groptions.symmetrie = SYM;
 
-   if (groptions.polar_correction == OUI)
-     {
-     ier = ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
-     }
+   if (groptions.polar_correction == 1) {
+     ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
+   }
 
    uullout = (float *) malloc(npts*sizeof(float));
    vvllout = (float *) malloc(npts*sizeof(float));
 
    /*ezsint does not allocate lat,lon if gdin=gdout*/
-   ier = ez_calclatlon(gdout);
+   ez_calclatlon(gdout);
 
    c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
              Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);

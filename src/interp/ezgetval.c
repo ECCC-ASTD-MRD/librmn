@@ -42,7 +42,6 @@ int32_t f77name(ezgetval)(char *option, float *fvalue, F2Cl llenoption)
 
 int32_t f77name(ezgetival)(char *option, int32_t *ivalue, F2Cl llenoption)
 {
-   int32_t icode;
    char local_opt[32];
    int32_t lenoption=llenoption;
 

@@ -33,7 +33,6 @@ int32_t ez_defzone_dehors(int32_t gdin, float *x, float *y, int32_t npts, _zone 
   int32_t offsetleft, offsetright, ix, iy;
 
    int32_t gdrow_in, gdcol_in;
-   int lcl_ngdin;
 
   c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 

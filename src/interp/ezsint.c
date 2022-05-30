@@ -72,77 +72,62 @@ int32_t c_ezsint(float *zout, float *zin)
 
 int32_t c_ezsint_orig(float *zout, float *zin)
 {
-  int32_t gdin, gdout;
-  int32_t ier,ierc;
-  int32_t npts;
-  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
-  float *lzin, *lxzin;
 
-  lzin  = NULL;
-  lxzin = NULL;
-  ierc  = 0;
+    float * lzin  = NULL;
+    float * lxzin = NULL;
+    int32_t ierc  = 0;
 
-  if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED)
-    {
-    fprintf(stderr,"<c_ezsint_orig> Source or target grid undefined! Aborting...\n");
-    return -1;
+    if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED) {
+        fprintf(stderr,"<c_ezsint_orig> Source or target grid undefined! Aborting...\n");
+        return -1;
     }
 
+    int32_t gdin = iset_gdin;
+    int32_t gdout= iset_gdout;
 
-  gdin = iset_gdin;
-  gdout= iset_gdout;
+    int32_t gdrow_in, gdcol_in;
+    int32_t gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
 
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-
-  if (iset_gdin == iset_gdout)
-    {
-    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
-    return 1;
+    if (iset_gdin == iset_gdout) {
+        memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
+        return 1;
     }
 
-  if (Grille[gdrow_in][gdcol_in].fst.axe_y_inverse == 1)
-    {
-    lzin = (float *) malloc(Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
-    memcpy(lzin, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
-    f77name(permut)(lzin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
-    }
-  else
-    {
-    lzin = zin;
+    if (Grille[gdrow_in][gdcol_in].fst.axe_y_inverse == 1) {
+        lzin = (float *) malloc(Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
+        memcpy(lzin, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
+        f77name(permut)(lzin, &Grille[gdrow_in][gdcol_in].ni, &Grille[gdrow_in][gdcol_in].nj);
+    } else {
+        lzin = zin;
     }
 
-  if (Grille[gdrow_in][gdcol_in].needs_expansion == OUI)
-    {
-    lxzin = (float *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
-    ez_xpnsrcgd(gdin, lxzin, lzin);
-    }
-  else
-    {
-    lxzin = lzin;
+    if (Grille[gdrow_in][gdcol_in].needs_expansion == 1) {
+        lxzin = (float *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
+        ez_xpnsrcgd(gdin, lxzin, lzin);
+    } else {
+        lxzin = lzin;
     }
 
-  ier = ez_calclatlon(gdout);
-  ier = ez_calcxy(gdin, gdout);
-  npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
+    ez_calclatlon(gdout);
+    ez_calcxy(gdin, gdout);
+    Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
 
-  ier = ez_interp(zout, lxzin, gdin, gdout);
+    ez_interp(zout, lxzin, gdin, gdout);
 
-  if (groptions.polar_correction == OUI)
-    {
-    ier = ez_defzones(gdin, gdout);
-    ierc= ez_corrval(zout, lxzin, gdin, gdout);
+    if (groptions.polar_correction == 1) {
+        ez_defzones(gdin, gdout);
+        ierc= ez_corrval(zout, lxzin, gdin, gdout);
     }
 
-  if (lzin != zin && lzin != NULL)
-    {
-    free(lzin);
+    if (lzin != zin && lzin != NULL) {
+        free(lzin);
     }
 
-  if (lxzin != lzin && lxzin != zin && lxzin != NULL)
-    {
-    free(lxzin);
+    if (lxzin != lzin && lxzin != zin && lxzin != NULL) {
+        free(lxzin);
     }
 
-  return ierc;
+    return ierc;
 }

@@ -20,38 +20,29 @@
 
 #include <ezscint.h>
 #include "ez_funcdef.h"
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t ez_corrvec(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout)
-{
-  int32_t ier;
 
-  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
-  _gridset *gset;
-  
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-  idx_gdin = c_find_gdin(gdin, gdout);
-  
-  gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
-  if (gset->zones[AU_NORD].npts > 0)
-    {
-    ier = ez_corrvec_aunord(uuout,vvout,uuin,vvin, gdin, gdout);
+int32_t ez_corrvec(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout) {
+    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    idx_gdin = c_find_gdin(gdin, gdout);
+
+    _gridset * gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
+    if (gset->zones[AU_NORD].npts > 0) {
+        ez_corrvec_aunord(uuout,vvout,uuin,vvin, gdin, gdout);
     }
-  
-  if (gset->zones[AU_SUD].npts > 0)
-    {
-    ier = ez_corrvec_ausud(uuout,vvout,uuin,vvin, gdin, gdout);
+
+    if (gset->zones[AU_SUD].npts > 0) {
+        ez_corrvec_ausud(uuout,vvout,uuin,vvin, gdin, gdout);
     }
-  
-  if (gset->zones[POLE_NORD].npts > 0)
-    {
-    ier = ez_corrvec_aunord(uuout,vvout,uuin,vvin, gdin, gdout);
+
+    if (gset->zones[POLE_NORD].npts > 0) {
+        ez_corrvec_aunord(uuout,vvout,uuin,vvin, gdin, gdout);
     }
-  
-  if (gset->zones[POLE_SUD].npts > 0)
-    {
-    ier = ez_corrvec_ausud(uuout,vvout,uuin,vvin, gdin, gdout);
+
+    if (gset->zones[POLE_SUD].npts > 0) {
+        ez_corrvec_ausud(uuout,vvout,uuin,vvin, gdin, gdout);
     }
-      
-   return 0;
+
+    return 0;
 }

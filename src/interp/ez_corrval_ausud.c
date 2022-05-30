@@ -33,12 +33,8 @@ int32_t ez_corrval_ausud(float *zout, float *zin, int32_t gdin, int32_t gdout)
   float vpolesud;
   float *temp, *temp_y, *vals;
   float ay[4];
-  int32_t ni, nj, i1, i2, j1, j2;
-  int32_t un = 1;
-  int32_t quatre = 4;
-  int32_t zero = 0;
-  int32_t trois = 3;
-  _Grille *lgdin, *lgdout;
+  int32_t ni, j1, j2;
+  _Grille *lgdin;
 
   int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
   _gridset *gset;
@@ -48,16 +44,14 @@ int32_t ez_corrval_ausud(float *zout, float *zin, int32_t gdin, int32_t gdout)
   idx_gdin = c_find_gdin(gdin, gdout);
 
   lgdin = &(Grille[gdrow_in][gdcol_in]);
-  lgdout = &(Grille[gdrow_out][gdcol_out]);
-  
+  &(Grille[gdrow_out][gdcol_out]);
+
   gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
   npts = gset->zones[AU_SUD].npts;
   if (npts > 0)
     {
     ni = lgdin->ni;
 
-    i1 = 1;
-    i2 = ni;
     j1 = lgdin->j1 - 1;
     j2 = j1 + 3;
 

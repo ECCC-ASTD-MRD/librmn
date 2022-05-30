@@ -39,7 +39,7 @@ int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, in
     }
 
     float * lxzin = NULL;
-    if (Grille[gdrow_in][gdcol_in].needs_expansion == OUI) {
+    if (Grille[gdrow_in][gdcol_in].needs_expansion == 1) {
         lxzin = (float *) malloc(2*Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
         ez_xpnsrcgd(gdin, lxzin, lzin);
     } else {
@@ -53,5 +53,5 @@ int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, in
 
 
 int32_t f77name(gdxysint)(float *zout, float *zin, int32_t *gdin, float *x, float *y, int32_t *npts) {
-   return c_gdxysint(zout, zin, *gdin, x, y, *npts);
+    return c_gdxysint(zout, zin, *gdin, x, y, *npts);
 }

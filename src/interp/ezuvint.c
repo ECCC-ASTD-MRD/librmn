@@ -24,89 +24,72 @@
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 int32_t f77name(ezuvint)(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-   int32_t icode;
-
-   icode = c_ezuvint(uuout, vvout, uuin, vvin);
-   return icode;
+    return c_ezuvint(uuout, vvout, uuin, vvin);
 }
 
 int32_t c_ezuvint(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-  int32_t icode,gdin,gdout;
+    int32_t gdin = iset_gdin;
+    int32_t gdrow_in, gdcol_in;
+    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
 
-  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+    int32_t gdout= iset_gdout;
+    int32_t gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdout, &gdrow_out,&gdcol_out);
 
-  gdin = iset_gdin;
-  gdout= iset_gdout;
-
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-
-  if (Grille[gdrow_in][gdcol_in].nsubgrids > 0 || Grille[gdrow_out][gdcol_out].nsubgrids > 0)
-      {
-      icode = c_ezyyuvint(uuout,vvout,uuin,vvin,gdout,gdin);
-      iset_gdin=gdin;
-      iset_gdout=gdout;
-      return icode;
-      }
-  icode = c_ezuvint_orig(uuout, vvout, uuin,vvin);
-  return icode;
-
+    if (Grille[gdrow_in][gdcol_in].nsubgrids > 0 || Grille[gdrow_out][gdcol_out].nsubgrids > 0) {
+        int32_t icode = c_ezyyuvint(uuout, vvout, uuin, vvin, gdout, gdin);
+        iset_gdin = gdin;
+        iset_gdout = gdout;
+        return icode;
+    }
+    return c_ezuvint_orig(uuout, vvout, uuin,vvin);
 }
 
 int32_t c_ezuvint_orig(float *uuout, float *vvout, float *uuin, float *vvin)
 {
-  int32_t gdin,gdout;
-  int32_t npts, ier, ierc,ierc1,ierc2;
-  float *uullout = NULL;
-  float *vvllout = NULL;
 
-  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+    int32_t gdin = iset_gdin;
+    int32_t gdrow_in, gdcol_in;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 
-  gdin = iset_gdin;
-  gdout= iset_gdout;
-  ierc = 0;
-  ierc1 = 0;
-  ierc2 = 0;
+    int32_t gdout = iset_gdout;
+    int32_t gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
 
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    int32_t npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
+    ez_calclatlon(gdout);
 
-  npts = Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
-  ier = ez_calclatlon(gdout);
+    groptions.vecteur = VECTEUR;
 
-  groptions.vecteur = VECTEUR;
-
-  groptions.symmetrie = SYM;
-  ierc1=c_ezsint(uuout,uuin);
-  groptions.symmetrie = ANTISYM;
-  ierc2=c_ezsint(vvout,vvin);
-  groptions.symmetrie = SYM;
-  if (ierc1 == 2 || ierc2 == 2)
-      {
-      ierc = 2;
-      }
-
-  if (groptions.polar_correction == OUI)
-    {
-    ier=ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
+    int32_t ierc = 0;
+    groptions.symmetrie = SYM;
+    int32_t ierc1 = c_ezsint(uuout,uuin);
+    groptions.symmetrie = ANTISYM;
+    int32_t ierc2 = c_ezsint(vvout,vvin);
+    groptions.symmetrie = SYM;
+    if (ierc1 == 2 || ierc2 == 2) {
+        ierc = 2;
     }
 
-  uullout = (float *) malloc(npts*sizeof(float));
-  vvllout = (float *) malloc(npts*sizeof(float));
+    if (groptions.polar_correction == 1) {
+        ez_corrvec(uuout, vvout, uuin, vvin, gdin, gdout);
+    }
 
-  c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
-            Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
-  c_gduvfwd(gdout, uuout, vvout, uullout, vvllout,
-            Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
+    float * uullout = (float *) malloc(npts*sizeof(float));
+    float * vvllout = (float *) malloc(npts*sizeof(float));
 
-  groptions.vecteur = SCALAIRE;
-  free(uullout);
-  free(vvllout);
+    c_gdwdfuv(gdin, uullout, vvllout, uuout, vvout,
+                Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
+    c_gduvfwd(gdout, uuout, vvout, uullout, vvllout,
+                Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, npts);
 
-  return ierc;
+    groptions.vecteur = SCALAIRE;
+    free(uullout);
+    free(vvllout);
+
+    return ierc;
 }
 

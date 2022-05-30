@@ -131,7 +131,7 @@ int32_t c_ezdefset(int32_t gdout, int32_t gdin) {
    npts = gr->ni * gr->nj;
    gr->gset[i].x = malloc (sizeof(float)*npts);
    gr->gset[i].y = malloc (sizeof(float)*npts);
-   gr->gset[i].use_sincos_cache = NON;
+   gr->gset[i].use_sincos_cache = 0;
 
    if (gr->n_gdin >= (primes[gr->log_chunk_gdin]/2))
    {

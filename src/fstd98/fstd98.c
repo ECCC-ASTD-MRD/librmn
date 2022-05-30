@@ -3270,6 +3270,7 @@ int c_fstvoi(
                 seq_dir_keys* seq_entry = (seq_dir_keys *) fte->head_keys;
                 if (seq_entry->dltf) {
                     fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
+                    free(stdf_entry);
                     continue;
                 }
                 if (seq_entry->eof > 0) {
@@ -3277,6 +3278,7 @@ int c_fstvoi(
                         fte->cur_addr += W64TOWD(1);
                     }
                     end_of_file = 1;
+                    free(stdf_entry);
                     break;
                 }
                 stdf_entry->deleted = 0;
@@ -5134,22 +5136,22 @@ int32_t f77name(fst_version)()
  *****************************************************************************/
 int32_t f77name(fstvoi)(int32_t *f_iun, char *f_options, F2Cl ll1)
 {
-  int iun = *f_iun, l1 = ll1;
-  char options[80] =
-  {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+    char options[80] =
+    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 
-  l1 = (l1 > 79) ? 79 : l1;
-  strncpy(options, f_options, l1);
-  options[l1] = '\0';
+    int l1 = ll1;
+    l1 = (l1 > 79) ? 79 : l1;
+    strncpy(options, f_options, l1);
+    options[l1] = '\0';
 
-  return (int32_t) c_fstvoi(iun, options);
+    return (int32_t) c_fstvoi(*f_iun, options);
 }
 
 

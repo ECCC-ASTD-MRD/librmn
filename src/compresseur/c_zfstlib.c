@@ -1180,97 +1180,80 @@ if (debug)
 
 void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int nicoarse, int njcoarse,  int ni, int nj, int nbits, int step, uint32_t *header, int start)
 {
-  int i, j, k, m, n;
-  static unsigned int *cur, curword;
-  static int bitPackInWord;
+    static unsigned int *cur, curword;
+    static int bitPackInWord;
 
-  unsigned int nbits_req_container;
-  unsigned int nbits_needed, nbits2, token;
-  int lcl_m, lcl_n;
+    unsigned int nbits_req_container;
+    unsigned int nbits_needed, nbits2, token;
 
-  if (start == 1)
-    {
-    bitPackInWord = 32;
+    if (start == 1) {
+        bitPackInWord = 32;
 
-    memset(zc, 0, nicoarse*njcoarse*sizeof(int));
-    cur = z;
-    memcpy(header, cur, sizeof(unsigned int));
-    cur++;
-    curword = *cur;
+        memset(zc, 0, nicoarse * njcoarse * sizeof(int));
+        cur = z;
+        memcpy(header, cur, sizeof(unsigned int));
+        cur++;
+        curword = *cur;
     }
-  memset(diffs, 0, ni*nj*sizeof(int));
+    memset(diffs, 0, ni*nj*sizeof(int));
 
-  if (start == 1)
-    {
-    for (j=1; j <= njcoarse; j++)
-      {
-      for (i=1; i <= nicoarse; i++)
-        {
-        k = FTN2C(i,j,nicoarse);
-        extract(zc[k], cur, 32, nbits, curword, bitPackInWord);
+    int k;
+    if (start == 1) {
+        for (int j = 1; j <= njcoarse; j++) {
+            for (int i = 1; i <= nicoarse; i++) {
+                k = FTN2C(i, j, nicoarse);
+                extract(zc[k], cur, 32, nbits, curword, bitPackInWord);
+            }
         }
-      }
     }
 
-  extract(nbits_req_container, cur, 32, 3, curword, bitPackInWord);
-/*  printf("Apres nicoarse*njcoarse (cur-z) = %d\n", cur-z);*/
-  for (j=1; j <= nj; j+=step)
-    {
-    lcl_n = ((j + step - 1) >= nj ? nj - j : step - 1);
-    for (i=1; i <= ni; i+=step)
-      {
-      lcl_m = ((i + step - 1) >= ni ? ni - i : step - 1);
-      extract(nbits_needed, cur, 32, nbits_req_container, curword, bitPackInWord);
-      switch (nbits_needed)
-        {
-        case 0:
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            k = FTN2C(i+m,j+n,ni);
-            diffs[k] = 0;
-            }
-          }
-        break;
+    extract(nbits_req_container, cur, 32, 3, curword, bitPackInWord);
+    //  printf("Apres nicoarse*njcoarse (cur-z) = %d\n", cur-z);
+    for (int j = 1; j <= nj; j+=step) {
+        int lcl_n = ((j + step - 1) >= nj ? nj - j : step - 1);
+        for (int i = 1; i <= ni; i+=step) {
+            int lcl_m = ((i + step - 1) >= ni ? ni - i : step - 1);
+            extract(nbits_needed, cur, 32, nbits_req_container, curword, bitPackInWord);
+            switch (nbits_needed) {
+                case 0:
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            k = FTN2C(i+m,j+n,ni);
+                            diffs[k] = 0;
+                        }
+                    }
+                    break;
 
-        case 15:
-        case 16:
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            if (!(m == 0 && n == 0))
-              {
-              k = FTN2C(i+m,j+n,ni);
-              extract(token, cur, 32, 17, curword, bitPackInWord);
-              diffs[k] = token;
-              diffs[k] = (diffs[k] << 15) >> 15;
-              }
-            }
-          }
-        break;
+                case 15:
+                case 16:
+                    for (int n = 0; n <= lcl_n; n++) {
+                        for (int m = 0; m <= lcl_m; m++) {
+                            if (!(m == 0 && n == 0)) {
+                                k = FTN2C(i+m,j+n,ni);
+                                extract(token, cur, 32, 17, curword, bitPackInWord);
+                                diffs[k] = token;
+                                diffs[k] = (diffs[k] << 15) >> 15;
+                            }
+                        }
+                    }
+                    break;
 
-        default:
-        nbits2 = nbits_needed + 1;
-        for (n=0; n <= lcl_n; n++)
-          {
-          for (m=0; m <= lcl_m; m++)
-            {
-            if (!(m == 0 && n == 0))
-              {
-              k = FTN2C(i+m,j+n,ni);
-              extract(token, cur, 32, nbits2, curword, bitPackInWord);
-              diffs[k] = token;
-              diffs[k] = (diffs[k] << (32-nbits2)) >> (32-nbits2);
-              }
+                default:
+                    nbits2 = nbits_needed + 1;
+                    for (int n=0; n <= lcl_n; n++) {
+                        for (int m=0; m <= lcl_m; m++) {
+                            if (!(m == 0 && n == 0)) {
+                                k = FTN2C(i+m,j+n,ni);
+                                extract(token, cur, 32, nbits2, curword, bitPackInWord);
+                                diffs[k] = token;
+                                diffs[k] = (diffs[k] << (32-nbits2)) >> (32-nbits2);
+                            }
+                        }
+                    }
+                    break;
             }
-          }
-        break;
         }
-      }
     }
-
 }
 
 

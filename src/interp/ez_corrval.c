@@ -63,35 +63,32 @@ int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout) {
 
         f77name(ez_aminmax)(&valmin,&valmax,zin,&(lgdin->ni), &nj);
         if (groptions.degre_extrap >= MAXIMUM) {
+            fudgeval = 0.0;
             if (groptions.vecteur == VECTEUR) {
-                fudgeval = 0.0;
                 fudgeval_set = 1;
             } else {
                 switch (groptions.degre_extrap) {
                     case MAXIMUM:
                         fudgeval = valmax + 0.05 * (valmax - valmin);
-                            fudgeval_set = 1;
-                        if (groptions.verbose > 0)
-                        {
-                        fprintf(stderr, "<ez_corrval>: maximum: %f \n", fudgeval);
+                        fudgeval_set = 1;
+                        if (groptions.verbose > 0) {
+                            fprintf(stderr, "<ez_corrval>: maximum: %f \n", fudgeval);
                         }
                         break;
 
                     case MINIMUM:
                         fudgeval = valmin - 0.05 * (valmax - valmin);
-                            fudgeval_set = 1;
-                        if (groptions.verbose > 0)
-                        {
-                        fprintf(stderr, "<ez_corrval>: minimum: %f \n", fudgeval);
+                        fudgeval_set = 1;
+                        if (groptions.verbose > 0) {
+                            fprintf(stderr, "<ez_corrval>: minimum: %f \n", fudgeval);
                         }
                         break;
 
                     case VALEUR:
                         fudgeval = groptions.valeur_extrap;
-                            fudgeval_set = 1;
-                        if (groptions.verbose > 0)
-                        {
-                        fprintf(stderr, "<ez_corrval>: valeur: %f \n", fudgeval);
+                        fudgeval_set = 1;
+                        if (groptions.verbose > 0) {
+                            fprintf(stderr, "<ez_corrval>: valeur: %f \n", fudgeval);
                         }
                         break;
                 }

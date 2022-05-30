@@ -184,11 +184,9 @@ int c_ezsint_mask(int *mask_out, int *mask_in) {
    char grtyp_in[2], grtyp_out[2];
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
-   int i, j, k, ier,npts_in, npts_out, idx_gdin, gdrow_out, gdcol_out;
+   int idx_gdin, gdrow_out, gdcol_out;
    int32_t              gdrow_in,  gdcol_in;
-   unsigned int bitpos;
-   float *fmask_in, *fmask_out, *x, *y;
-   char current_option[32], interp_degree[32];
+   float *fmask_in, *x, *y;
    _ygrid *ygrid;
 
    int32_t gdin, gdout;
@@ -206,12 +204,8 @@ int c_ezsint_mask(int *mask_out, int *mask_in) {
 
    c_ezdefset(gdout, gdin);
    idx_gdin = c_find_gdin(gdin, gdout);
-   ier = c_ezgprm(gdin, grtyp_in, &ni_gdin, &nj_gdin, &ig1_gdin, &ig2_gdin, &ig3_gdin, &ig4_gdin);
-   ier = c_ezgprm(gdout, grtyp_out, &ni_gdout, &nj_gdout, &ig1_gdout, &ig2_gdout, &ig3_gdout, &ig4_gdout);
-
-
-   npts_in  = ni_gdin*nj_gdin;
-   npts_out = ni_gdout*nj_gdout;
+   c_ezgprm(gdin, grtyp_in, &ni_gdin, &nj_gdin, &ig1_gdin, &ig2_gdin, &ig3_gdin, &ig4_gdin);
+   c_ezgprm(gdout, grtyp_out, &ni_gdout, &nj_gdout, &ig1_gdout, &ig2_gdout, &ig3_gdout, &ig4_gdout);
 
    if (grtyp_in[0] == 'Y')
       {

@@ -71,7 +71,6 @@ void c_ez_calcdist(float *distance, float lat1, float lon1, float lat2, float lo
 {
    double degre_a_radian;
    double radlat1, radlat2, radlon1, radlon2;
-   double dist;
    double earth_radius = 6370997.;
 
    degre_a_radian = PI / 180.0;
@@ -88,7 +87,6 @@ void c_ez_calcdist2(double *distance, float lat1, float lon1, float lat2, float 
 {
    double degre_a_radian;
    double radlat1, radlat2, radlon1, radlon2;
-   double dist;
    double earth_radius = 6370997.;
    double a,c,dlat,dlon,sindlat, sindlon;
 
@@ -154,7 +152,6 @@ void c_ez_calcarea_rect(float *area, float lat1, float lon1, float lat2, float l
 {
    double degre_a_radian;
    double radlat1, radlat2, radlon1, radlon2;
-   double dist;
    double earth_radius = 6370997.;
    double a,b,c,d,e;
    double seg_a, seg_b, seg_c, seg_d, seg_e;
@@ -206,7 +203,6 @@ void c_ez_calcarea(float *area, float lats[], float lons[])
 {
    double degre_a_radian;
    double radlat[4], radlon[4];
-   double dist;
    double earth_radius = 6370997.;
    double a,b,c,d,e;
    double seg_a, seg_b, seg_c, seg_d, seg_e;
@@ -261,72 +257,45 @@ void c_ez_calcarea(float *area, float lats[], float lons[])
 
 void c_ez_calcarea2(double *area, float lats[], float lons[])
 {
-   double degre_a_radian;
-   double radlat[4], radlon[4];
-   double dist;
-   double earth_radius = 6370997.;
-   double a,b,c,d,e;
-   double seg_a, seg_b, seg_c, seg_d, seg_e;
-   double area1, area2;
-   double s, excess;
-   int i;
+    const double earth_radius = 6370997.;
 
-   degre_a_radian = PI / 180.0;
+    // These computations have not been optimized
+    double seg_a, seg_b, seg_c, seg_d, seg_e;
+    c_ez_calcdist2(&seg_a, lats[0], lons[0], lats[1], lons[1]);
+    c_ez_calcdist2(&seg_b, lats[1], lons[1], lats[2], lons[2]);
+    c_ez_calcdist2(&seg_c, lats[0], lons[0], lats[2], lons[2]);
+    c_ez_calcdist2(&seg_d, lats[2], lons[2], lats[3], lons[3]);
+    c_ez_calcdist2(&seg_e, lats[3], lons[3], lats[0], lons[0]);
+    // printf("seg_a:%f seg_b:%f seg_c:%f seg_d:%f seg_e:%f\n", seg_a, seg_b, seg_c, seg_d, seg_e);
 
-   for (i=0; i < 4; i++)
-      {
-      radlat[i] = lats[i] * degre_a_radian;
-      radlon[i] = lons[i] * degre_a_radian;
-      }
+    seg_a /= earth_radius;
+    seg_b /= earth_radius;
+    seg_c /= earth_radius;
+    seg_d /= earth_radius;
+    seg_e /= earth_radius;
 
+    double s = 0.5*(seg_a+seg_b+seg_c);
+    double excess = sqrt(tan(0.5*s)*tan(0.5*(s-seg_a))*tan(0.5*(s-seg_b))*tan(0.5*(s-seg_c)));
+    excess = atan(excess);
+    excess = 4.0 * excess;
+    double area1 = earth_radius * earth_radius * excess;
+    // printf("s: %f excess: %f area1: %f\n", s, excess, area1);
 
-   /*
-   seg_a = distance pt(1,1) - pt(2,1)
-   seg_b = distance pt(2,1) - pt(2,2)
-   seg_c = distance pt(1,1) - pt(2,2)
-   seg_d = distance pt(1,2) - pt(2,2)
-   seg_e = distance pt(1,1) - pt(1,2)
-   */
+    s = 0.5*(seg_c+seg_d+seg_e);
+    excess = sqrt(tan(0.5*s)*tan(0.5*(s-seg_c))*tan(0.5*(s-seg_d))*tan(0.5*(s-seg_e)));
+    excess = atan(excess);
+    excess *= 4.0;
+    double area2 = earth_radius * earth_radius * excess;
+    // printf("s: %f excess: %f area2: %f\n", s, excess, area2);
 
-   /* These computations have not been optimized */
-
-   c_ez_calcdist2(&seg_a, lats[0], lons[0], lats[1], lons[1]);
-   c_ez_calcdist2(&seg_b, lats[1], lons[1], lats[2], lons[2]);
-   c_ez_calcdist2(&seg_c, lats[0], lons[0], lats[2], lons[2]);
-   c_ez_calcdist2(&seg_d, lats[2], lons[2], lats[3], lons[3]);
-   c_ez_calcdist2(&seg_e, lats[3], lons[3], lats[0], lons[0]);
-/*
-   printf("seg_a:%f seg_b:%f seg_c:%f seg_d:%f seg_e:%f\n", seg_a, seg_b, seg_c, seg_d, seg_e);
-*/
-
-   seg_a /= earth_radius;
-   seg_b /= earth_radius;
-   seg_c /= earth_radius;
-   seg_d /= earth_radius;
-   seg_e /= earth_radius;
-
-   s = 0.5*(seg_a+seg_b+seg_c);
-   excess = sqrt(tan(0.5*s)*tan(0.5*(s-seg_a))*tan(0.5*(s-seg_b))*tan(0.5*(s-seg_c)));
-   excess = atan(excess);
-   excess = 4.0 * excess;
-   area1 = earth_radius * earth_radius * excess;
-/*   printf("s: %f excess: %f area1: %f\n", s, excess, area1);*/
-
-   s = 0.5*(seg_c+seg_d+seg_e);
-   excess = sqrt(tan(0.5*s)*tan(0.5*(s-seg_c))*tan(0.5*(s-seg_d))*tan(0.5*(s-seg_e)));
-   excess = atan(excess);
-   excess *= 4.0;
-   area2 = earth_radius * earth_radius * excess;
-/*   printf("s: %f excess: %f area2: %f\n", s, excess, area2);*/
-
-   *area = (float)(area1 + area2);
-   if (*area < 0.0)
-      {
-      printf("area1:%f\n", area1);
-      printf("area2:%f\n", area2);
-      }
-
+    *area = (float)(area1 + area2);
+    if (*area < 0.0) {
+        printf("area1:%f\n", area1);
+        printf("area2:%f\n", area2);
+    }
 }
+
+
 /*
 main()
 {

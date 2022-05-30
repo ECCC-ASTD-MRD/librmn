@@ -29,8 +29,6 @@ int32_t ftnstrclean(
     char str[],
     int32_t lenstr
 ){
-    int32_t j, jinit;
-
     int32_t leadingBlanks = 0;
     while (str[leadingBlanks] == ' ' && leadingBlanks < lenstr) leadingBlanks++;
 
@@ -38,7 +36,7 @@ int32_t ftnstrclean(
         strcpy(str, str + leadingBlanks);
     }
 
-    jinit = lenstr - leadingBlanks - 1;
+    int32_t jinit = lenstr - leadingBlanks - 1;
     int32_t traillingBlanks = jinit;
     while (str[traillingBlanks] == ' ' && traillingBlanks >= 0) traillingBlanks--;
 

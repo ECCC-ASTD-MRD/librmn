@@ -6,8 +6,8 @@ extern pthread_mutex_t EZ_MTX;
 #endif
 
 int c_ez_findgrid(int grid_index, _Grille *gr) {
-    int32_t gdrow, gdcol, index_found, gr_size, resax, resay;
-    int32_t found, end_reached, next_index, i,j;
+    int32_t gdrow, gdcol, index_found, resax, resay;
+    int32_t found, end_reached, i, j;
     _Grille *refgd;
 
     if (grid_index == -1) {

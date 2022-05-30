@@ -8,34 +8,34 @@
 
 
 void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix) {
-  int32_t ig1refyin,ig2refyin,ig3refyin,ig4refyin;
-  int32_t ig1refyan,ig2refyan,ig3refyan,ig4refyan;
-  int32_t yinsize,ndiv,ni,nj,ier;
+  int32_t ig1refyin, ig2refyin, ig3refyin, ig4refyin;
+  int32_t ig1refyan, ig2refyan, ig3refyan, ig4refyan;
+  int32_t yinsize, ndiv, ni, nj;
   int32_t sub_gdrow_id,sub_gdcol_id;
-  char grtypZ[2],grref[2],grrefE[2];
-  float *ax,*ay;
+  char grtypZ[2], grrefE[2];
+  float *ax, *ay;
 
-  ndiv=(int)yy[2];  /* number of LAM grids is 2*/
-  ni=(int)yy[5];    /* ni size of LAM grid */
-  nj=(int)yy[6];    /* nj size of LAM grid */
+  ndiv = (int)yy[2];  /* number of LAM grids is 2*/
+  ni = (int)yy[5];    /* ni size of LAM grid */
+  nj = (int)yy[6];    /* nj size of LAM grid */
   gr->ni = ni;      /* ni size of U grid */
   gr->nj = nj*ndiv; /* nj size of U grid */
   ax = (float *) malloc(ni*sizeof(float));
   ay = (float *) malloc(nj*sizeof(float));
-  memcpy(ax,&yy[15],ni*sizeof(float));
-  memcpy(ay,&yy[15+ni],nj*sizeof(float));
-  yinsize=15+ni+nj;
+  memcpy(ax, &yy[15], ni * sizeof(float));
+  memcpy(ay, &yy[15+ni], nj * sizeof(float));
+  yinsize = 15 + ni + nj;
   gr->nsubgrids = ndiv;
   gr->subgrid = (int32_t *) malloc(ndiv*sizeof(int32_t));
   strcpy(grtypZ,"Z"); strcpy(grrefE,"E");
   /*yin*/
-  ier = f77name(cxgaig)(grrefE,&ig1refyin,&ig2refyin,&ig3refyin,&ig4refyin,&yy[11], &yy[12], &yy[13], &yy[14],1);
+  f77name(cxgaig)(grrefE,&ig1refyin,&ig2refyin,&ig3refyin,&ig4refyin,&yy[11], &yy[12], &yy[13], &yy[14],1);
   gr->subgrid[0] = c_ezgdef_fmem(ni,nj,grtypZ,grrefE,ig1refyin,ig2refyin,ig3refyin,ig4refyin,ax,ay);
   c_gdkey2rowcol(gr->subgrid[0],  &sub_gdrow_id,  &sub_gdcol_id);
   c_ezgdef_yymask(&(Grille[sub_gdrow_id][sub_gdcol_id]));
 
   /*yang*/
-  ier = f77name(cxgaig)(grrefE,&ig1refyan,&ig2refyan,&ig3refyan,&ig4refyan,&yy[yinsize+6], &yy[yinsize+7], &yy[yinsize+8], &yy[yinsize+9],1);
+  f77name(cxgaig)(grrefE,&ig1refyan,&ig2refyan,&ig3refyan,&ig4refyan,&yy[yinsize+6], &yy[yinsize+7], &yy[yinsize+8], &yy[yinsize+9],1);
   gr->subgrid[1] = c_ezgdef_fmem(ni,nj,grtypZ,grrefE,ig1refyan,ig2refyan,ig3refyan,ig4refyan,ax,ay);
   c_gdkey2rowcol(gr->subgrid[1],  &sub_gdrow_id,  &sub_gdcol_id);
   c_ezgdef_yymask(&(Grille[sub_gdrow_id][sub_gdcol_id]));
@@ -86,22 +86,20 @@ void Lire_enrTicTac(_Grille *gr, float *ax, int32_t nixnjx, float *ay, int32_t n
 int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2, int32_t ip3, int32_t ip4, int32_t read)
 {
   int32_t moins1 = -1;
-  int32_t cle;
   int32_t niy, njy, nky, nix, njx, nkx;
   int32_t ier, ier1, ier2;
-  int32_t clex, bidon,ig1ref,ig2ref,ig3ref,ig4ref;
+  int32_t bidon, ig1ref, ig2ref, ig3ref, ig4ref;
   char grref[2];
   float *ax,*ay;
   float *yy;
 
   char nomvarx[8], typvarx[4], etikx[16];
   char nomvary[8], typvary[4], etiky[16];
-  int32_t i,j;
   int Cles_ax, Cles_ay;
   int trouve_x, trouve_y;
 
   int32_t dateo, deet, npas, nbits;
-  int32_t intip1, intip2, intip3,intip4, tmpip3, intiunit,offsetx,offsety;
+  int32_t intip1, intip2, intip3,intip4, tmpip3, intiunit;
 
   intip1 = ip1;
   intip2 = ip2;
@@ -265,7 +263,7 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
          ay = (float *) malloc(niy*njy*sizeof(float));
          ier = f77name(fstluk)(ay, &ier1, &niy, &njy, &nky);
          ax = (float *) malloc(nix*njx*sizeof(float));
-         clex = f77name(fstluk)(ax, &ier2, &nix, &njx, &nkx);
+         f77name(fstluk)(ax, &ier2, &nix, &njx, &nkx);
          Lire_enrTicTac(gr,ax,nix*njx,ay,niy*njy,ip3,ip4);
          free(ax);
          free(ay);

@@ -29,9 +29,6 @@
 #define GLOBALE                   0
 #define LOCALE                    1
 
-#define NON                       0
-#define OUI                       1
-
 #define VOISIN                    0
 #define NEAREST                   0
 #define LINEAIRE                  1

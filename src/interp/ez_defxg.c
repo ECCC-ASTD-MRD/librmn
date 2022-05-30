@@ -49,13 +49,13 @@ void c_ezdefxg(int32_t gdid) {
    case 1:
      gr->fst.xg[DLAT] = 90./gr->nj;
      gr->fst.xg[SWLAT] = 0.5*gr->fst.xg[DLAT];
-     gr->needs_expansion = OUI;
+     gr->needs_expansion = 1;
      break;
 
    case 2:
      gr->fst.xg[DLAT] = 90./gr->nj;
      gr->fst.xg[SWLAT] = -90. + 0.5*gr->fst.xg[DLAT];
-     gr->needs_expansion = OUI;
+     gr->needs_expansion = 1;
      break;
 
    default:
@@ -66,7 +66,7 @@ void c_ezdefxg(int32_t gdid) {
    switch(gr->fst.ig[IG2])
       {
       case 1:
-        gr->fst.axe_y_inverse = OUI;
+        gr->fst.axe_y_inverse = 1;
         break;
 
       default:
@@ -88,13 +88,13 @@ void c_ezdefxg(int32_t gdid) {
          case 1:
            gr->fst.xg[DLAT] = 90./(gr->nj-1);
            gr->fst.xg[SWLAT] = 0.;
-           gr->needs_expansion = OUI;
+           gr->needs_expansion = 1;
            break;
 
          case 2:
            gr->fst.xg[DLAT] = 90./(gr->nj-1);
            gr->fst.xg[SWLAT] = -90.;
-           gr->needs_expansion = OUI;
+           gr->needs_expansion = 1;
            break;
 
          default:
@@ -105,7 +105,7 @@ void c_ezdefxg(int32_t gdid) {
       switch(gr->fst.ig[IG2])
          {
          case 1:
-           gr->fst.axe_y_inverse = OUI;
+           gr->fst.axe_y_inverse = 1;
            break;
 
          default:

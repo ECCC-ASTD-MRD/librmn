@@ -306,10 +306,30 @@ int c_armn_uncompress32(
 
     npts = ni * nj;
     signe = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
+    if (signe == NULL) {
+        fprintf(stderr, "Failed to allocate memory in %s (%s:%d)!\n", __func__, __FILE__, __LINE__);
+        exit(1);
+    }
     zsigne = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
+    if (zsigne == NULL) {
+        fprintf(stderr, "Failed to allocate memory in %s (%s:%d)!\n", __func__, __FILE__, __LINE__);
+        exit(1);
+    }
     exposant = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
+    if (exposant == NULL) {
+        fprintf(stderr, "Failed to allocate memory in %s (%s:%d)!\n", __func__, __FILE__, __LINE__);
+        exit(1);
+    }
     exposant2 = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
+    if (exposant2 == NULL) {
+        fprintf(stderr, "Failed to allocate memory in %s (%s:%d)!\n", __func__, __FILE__, __LINE__);
+        exit(1);
+    }
     mantisse = (unsigned int *)   malloc(2 * npts * sizeof(unsigned int));
+    if (mantisse == NULL) {
+        fprintf(stderr, "Failed to allocate memory in %s (%s:%d)!\n", __func__, __FILE__, __LINE__);
+        exit(1);
+    }
 
     cur = (unsigned int *)zstream;
     memcpy(&zfstzip, cur, sizeof(unsigned int));

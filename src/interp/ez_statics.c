@@ -14,7 +14,7 @@ __thread int32_t iset     = -1;
 __thread int32_t iset_gdin = -1;
 __thread int32_t iset_gdout = -1;
 __thread _gridset *gridset = NULL;
- __thread _groptions groptions = { OUI, CUBIQUE,  MAXIMUM, NON, -1, SYM, SCALAIRE, NON, NON, OUI, 16, 0, DISTANCE, NEAREST, 0.5, 3.0, 0.0  };
+ __thread _groptions groptions = { 1, CUBIQUE,  MAXIMUM, 0, -1, SYM, SCALAIRE, 0, 0, 1, 16, 0, DISTANCE, NEAREST, 0.5, 3.0, 0.0  };
 
 int32_t log_chunks[] = {0, 1,  2, 3,    4,    5,    6,      7,     8,      9,      10,     11,        12};
 int32_t primes[]     = {0, 0,  3, 7,   13,   31,   61,    127,   251,    509,    1021,   2039,      4093};

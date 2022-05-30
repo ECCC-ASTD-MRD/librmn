@@ -36,21 +36,15 @@ int32_t c_ezgdef_ffile(
     int32_t ig4,
     int32_t iunit
 ) {
-    int32_t found, gdrow_in, gdcol_in;
-    char typeGrille;
-    char grref[2];
-    float *bidon = NULL;
-    int old_ngrilles, gdid;
-    int32_t newgrsize, fseed, grid_index;
-    unsigned int grid_crc;
     _Grille *gr, newgr;
-    int32_t *subgrid;
-    int32_t nsubgrids, vercode,read;
+    int32_t read;
 
-    found = 0;
-    typeGrille = (char)grtyp[0];
+    int32_t found = 0;
+    char typeGrille = (char)grtyp[0];
     if (typeGrille != '#' && typeGrille != 'Y' && typeGrille != 'Z' && typeGrille != 'U' && typeGrille != ' ') {
         /* no need to look for grid descriptors */
+        char grref[2];
+        float *bidon = NULL;
         strcpy(grref, " ");
         return c_ezgdef_fmem(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, bidon, bidon);
     }
@@ -80,11 +74,11 @@ int32_t c_ezgdef_ffile(
         /* problems with finding grid descriptors */
         return found;
     }
-    newgrsize = sizeof(_Grille);
-    fseed = 0;
-    grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, newgr.ax, newgr.ay, newgr.ni, newgr.nj);
-    grid_index = grid_crc % primes_sq[cur_log_chunk];
+    int32_t newgrsize = sizeof(_Grille);
+    unsigned int grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, newgr.ax, newgr.ay, newgr.ni, newgr.nj);
+    int32_t grid_index = grid_crc % primes_sq[cur_log_chunk];
 
+    int gdid;
     if (gr_list[grid_index] == NULL) {
         gdid = c_ez_addgrid(grid_index, &newgr);
     } else {
@@ -97,6 +91,7 @@ int32_t c_ezgdef_ffile(
     }
 
     /* define new grid */
+    int32_t gdrow_in, gdcol_in;
     c_gdkey2rowcol(gdid, &gdrow_in, &gdcol_in);
     read = 1;
     switch(newgr.grtyp[0]) {

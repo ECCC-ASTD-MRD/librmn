@@ -39,7 +39,7 @@ int32_t ez_calcnpolarwind(
     float xlat1, xlat2, xlon1, xlon2;
     int32_t ig1n, ig2n, ig3n, ig4n;
     float pi, pj, d60, dgrw;
-    int32_t  ier, gdps, gda, gdrow, gdcol;
+    int32_t  gdps, gda, gdrow, gdcol;
     float uupole, vvpole;
     float quatrevingtdix, zero;
 
@@ -60,7 +60,7 @@ int32_t ez_calcnpolarwind(
     }
 
     c_gdllfxy_orig(gdin, polar_lat, polar_lon, polar_x, polar_y, ni);
-    ier = c_ezgxprm(gdin, &ni, &nj, grtyp, &ig1in, &ig2in, &ig3in, &ig4in,
+    c_ezgxprm(gdin, &ni, &nj, grtyp, &ig1in, &ig2in, &ig3in, &ig4in,
             grref, &ig1in_ref, &ig2in_ref, &ig3in_ref, &ig4in_ref);
 
     if (grtyp[0] == 'Z' && grref[0] == 'E') {

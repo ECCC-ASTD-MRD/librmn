@@ -28,10 +28,8 @@ int32_t ez_corrvec_ausud(float *uuout, float *vvout,
          float *uuin, float *vvin,
          int32_t gdin, int32_t gdout)
 {
-    float *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, *temp_y, ay[4];
-    int32_t ni, nj, i1, i2, j1, j2, degree,npts,i;
-    int32_t quatre = 4;
-    int32_t un = 1;
+    float *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, ay[4];
+    int32_t ni, nj, j1, j2, npts, i;
 
     int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
     _gridset *gset;
@@ -49,11 +47,8 @@ int32_t ez_corrvec_ausud(float *uuout, float *vvout,
     ni = laGrille.ni;
     nj = laGrille.j2 - laGrille.j1 + 1;
 
-    i1 = 1;
-    i2 = ni;
     j1 = laGrille.j1 - 1;
     j2 = j1 + 3;
-    degree = 3;
 
     polar_uu_in = (float *) malloc(4 * ni * sizeof(float));
     polar_vv_in = (float *) malloc(4 * ni * sizeof(float));

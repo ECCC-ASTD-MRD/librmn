@@ -33,7 +33,7 @@ void free_cstring(char *cstring)
 }
 
 
-void cstring_to_fstring(char *cstring, char *fstring, int nc)
+void cstring_to_fstring(const char *cstring, char *fstring, int nc)
 {
     int i = 0;
     while ((*cstring) && (i < nc)) {
@@ -50,7 +50,7 @@ void cstring_to_fstring(char *cstring, char *fstring, int nc)
 }
 
 
-char *fstring_to_cstring(char *fstring, int nc, int rmblanks)
+char *fstring_to_cstring(char *fstring, const int nc, int rmblanks)
 {
     int i;
     char *cstring, *ctemp;
@@ -90,14 +90,9 @@ char **fill_string_array(char **string_array, char *farray, int nc, int ns, int 
 
 void f77name(fs_to_cs)(char *fstring, int *rmblanks, int *ns, F2Cl fnc)
 {
-    char *cstring, *cmpstring;
-    char **string_array;
-    int i, nc=fnc;
-
-    cmpstring = malloc(13);
-
     if (*ns == 1) {
-        cstring = fstring_to_cstring(fstring, nc, *rmblanks);
+        char * cmpstring = malloc(13);
+        char * cstring = fstring_to_cstring(fstring, fnc, *rmblanks);
         printf("Debug fs_to_cs cstring-->%s<--\n", cstring);
         strcpy(cmpstring, "Label01");
         printf("Debug fs_to_cs cmpstring-->%s<--\n", cmpstring);
@@ -105,19 +100,18 @@ void f77name(fs_to_cs)(char *fstring, int *rmblanks, int *ns, F2Cl fnc)
         strcpy(cmpstring, "Label01     ");
         printf("Debug fs_to_cs cmpstring-->%s<--\n", cmpstring);
         printf("Debug fs_to_cs strncmp avec blancs=%d\n", strncmp(cstring, cmpstring, 13));
+        free(cmpstring);
     } else {
-        string_array = fill_string_array(allocate_string_array(*ns), fstring, nc, *ns, *rmblanks);
-    /*    for (i=0; i < *ns; i++)
-        printf("Debug string_array[%d]-->%s<--\n", i, string_array[i]);*/
+        fill_string_array(allocate_string_array(*ns), fstring, fnc, *ns, *rmblanks);
     }
 }
 
 void f77name(cs_to_fs)(char *fstring, int *nc)
 {
-    char *cstring;
-
-    cstring = malloc(12);
+    char * cstring = malloc(12);
     strcpy(cstring, "Test001");
 
     cstring_to_fstring(cstring, fstring, *nc);
+
+    free(cstring);
 }

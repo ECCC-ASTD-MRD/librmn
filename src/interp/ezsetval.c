@@ -38,7 +38,7 @@ int32_t c_ezsetival(char *option, int32_t ivalue);
 int32_t f77name(ezsetfval)(char *option, float *fvalue, F2Cl llenoption)
    {
    int32_t i, icode;
-   int32_t longueur_option, longueur_value;
+   int32_t longueur_option;
    F2Cl lenoption=llenoption;
 
    char local_opt[32];
@@ -64,7 +64,7 @@ int32_t f77name(ezsetval)(char *option, float *fvalue, F2Cl lenoption)
 int32_t f77name(ezsetival)(char *option, int32_t *ivalue, F2Cl llenoption)
 {
    int32_t i, icode;
-   int32_t longueur_option, longueur_value;
+   int32_t longueur_option;
    F2Cl lenoption=llenoption;
 
    char local_opt[32];
@@ -87,7 +87,6 @@ int32_t c_ezsetfval(char *option, float fvalue)
    {
    char local_opt[32];
    int32_t i;
-   int *ibidon;
 
    strcpy(local_opt, option);
 
