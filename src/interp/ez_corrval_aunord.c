@@ -54,7 +54,7 @@ int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) 
             switch (lgd->grtyp[0]) {
                 case 'Z':
                 case 'E':
-                case 'G':
+                case 'G': {
                     float ay[4];
                     if  (lgd->ay[lgd->j2-1] == 90.0) {
                         ay[0] = lgd->ay[lgd->j2-4];
@@ -74,6 +74,7 @@ int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) 
                                     &ni, &j1, &j2, &(lgd->extension));
                     }
                     break;
+                }
 
                 default:
                     f77name(ez_rgdint_3_wnnc)(vals,gset->zones[AU_NORD].x,
