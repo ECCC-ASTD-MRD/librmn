@@ -287,7 +287,7 @@ static int isftnbin(
     offset = lng + 4;
     fseek(pf, offset, 0);
     fread32(&mot, sizeof(int), 1, pf);
-    if (mot == lng) {
+    if (mot == lng && lng != 0) {
         return 1;
     } else {
         return 0;
