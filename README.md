@@ -83,7 +83,8 @@ est trop vieille, vous devez charger une version plus récente.  Par exemple:
 
 ### Exemple de compilation de la branche dev sur un système non-ECCC
 ```
-git clone --recurse-submodules -b dev https://github.com/ECCC-ASTD-MRD/librmn.git 
+git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git 
+git -c submodule."ci-env".update=none submodule update --init --recursive
 mkdir librmn_build
 cd librmn_build
 cmake ../librmn -DCMAKE_INSTALL_PREFIX=~/opt/
