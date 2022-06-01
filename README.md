@@ -11,6 +11,18 @@ l'interpolateur EZ.
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
 
+## Obtenir le code
+
+Le projet est hébergé à l'adresse https://gitlab.science.gc.ca/RPN-SI/librmn
+Le code est disponible via Git aux adresse suivates:
+  * Sur le réseau ECCC: git@gitlab.science.gc.ca:RPN-SI/librmn.git
+  * Pour les utilisateurs à l'extérieur d'ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
+
+`cmake_rpn` et `ci-env` sont inclus via des submodules de Git, mais
+`ci-env` n'est pas disponible à l'extérieur d'ECCC.
+Veuillez exécuter la commande suivante après avoir cloné le dépôt:
+`git -c submodule."ci-env".update=none submodule update --init --recursive`
+
 
 ## Instructions d'installation
 

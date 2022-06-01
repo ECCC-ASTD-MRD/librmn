@@ -1,3 +1,18 @@
+== Ajouts ==
+
+- IgnoreTypeKindRank.hf
+- Compilation portable avec CMake; les outils de compilation propre au
+  CMC ne sont plus nécessaire pour la compilation et le processus est
+  grandement simplifié.
+
+
+== Bris de compatibilité ==
+
+La version 20 est une version majeure et elle a fait l'objet d'un
+nettoyage considérable du code.  Des fonctions et des constructions
+désuettes ont été retirées.
+
+
 - Les types de données suivants ne sont plus disponible.  Il faut utiliser les
 types correspondants accessibles via `#include <stdint.h>`
 
