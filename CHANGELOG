@@ -12,6 +12,8 @@ La version 20 est une version majeure et elle a fait l'objet d'un
 nettoyage considérable du code.  Des fonctions et des constructions
 désuettes ont été retirées.
 
+- La case des nom de fichier ne sera plus modifiée si le nom de fichier
+en entrée contient uniquement des majuscules.
 
 - Les types de données suivants ne sont plus disponible.  Il faut utiliser les
 types correspondants accessibles via `#include <stdint.h>`
