@@ -547,22 +547,7 @@ int c_fnom(
             char *cptr2 = FGFDT[entry].file_name;
             *(cptr2 + lng) = '\0';
         } else {
-            char *cptr2 = FGFDT[entry].file_name;
-            *(cptr2 + lng) = '\0';
-            for (int j = 0; j < lng; j++, cptr1++, cptr2++) {
-                if (islower(*cptr1)) {
-                    minus = 1;
-                    *cptr2 = *cptr1;
-                } else if (isupper(*cptr1)) {
-                    majus = 1;
-                    *cptr2 = tolower(*cptr1);
-                } else {
-                    *cptr2 = *cptr1;
-                }
-            }
-            if (majus && minus) {
-                strncpy(FGFDT[entry].file_name, lnom, lng);
-            }
+            strncpy(FGFDT[entry].file_name, lnom, lng);
         }
     }
 
