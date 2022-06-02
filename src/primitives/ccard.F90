@@ -169,8 +169,8 @@ subroutine ccard(incle, def, val, nbkeys, ii)
                     EXIT
                 END IF
             END DO
- 
-            IF (j >= nbkeys) THEN
+
+            IF (j > nbkeys) THEN
                 cllng = len_trim(argup)
                 PRINT *, ' *** ERREUR: cle ', argup(1:cllng), ' non reconnue'
                 CALL qqqsap(cle, def, val, nbkeys)
