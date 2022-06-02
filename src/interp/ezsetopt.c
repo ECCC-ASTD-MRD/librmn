@@ -56,7 +56,10 @@ int32_t f77name(ezsetopt)(
 }
 
 
-int32_t c_ezsetopt(char *option, char *value) {
+int32_t c_ezsetopt(
+    char *option,
+    char *value
+) {
     char local_opt[32], local_val[32];
 
     int32_t option_ok = 0;

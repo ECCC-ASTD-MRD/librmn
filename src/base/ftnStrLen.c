@@ -6,11 +6,14 @@ unsigned int ftnStrLen(
     //! [in] String for which we want the length
     const char * const str,
     //! [in] Maximum length as defined for the Fortran string
-    const unsigned int maxLen
+    const uint32_t maxLen
 ) {
-    unsigned int len = maxLen - 1;
-    while(len > 1 && str[len] == ' ') {
+    uint32_t len = maxLen - 1;
+    while (len > 0 && (str[len] == ' ' || str[len] == '\0')) {
         len--;
+    }
+    if (str[len] != ' ' && str[len] != '\0') {
+        len++;
     }
     return len;
 }
