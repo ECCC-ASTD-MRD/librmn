@@ -41,7 +41,7 @@ build:skylake-gnu-9.3.0:
       - mkdir build_skylake-gnu-9.3.0
       - cd build_skylake-gnu-9.3.0
       - cmake ../
-      - time make -j
+      - time make -j $NCPUS
    artifacts:
       expire_in: 2 hrs
       paths:
