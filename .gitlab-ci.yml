@@ -32,7 +32,7 @@ build:icelake-gnu-9.3.0:
    script:
       - source ci-env/latest/profile.sh
       - . r.load.dot main/opt/gcc/gcc-9.3.0
-      - export EC_ARCH=ubuntu-18.04-icelake-64/gnu-9.3.0
+      - export EC_ARCH=rhel-8-icelake-64/gnu-9.3.0
       - echo "========================================================="
       - env | sort
       - echo "========================================================="
@@ -57,7 +57,7 @@ build:icelake-gnu-12.1.0:
       - source ci-env/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc12
-      - export EC_ARCH=ubuntu-18.04-icelake-64/gnu-12.1.0
+      - export EC_ARCH=rhel-8-icelake-64/gnu-12.1.0
       - echo "========================================================="
       - env | sort
       - echo "========================================================="
