@@ -31,9 +31,9 @@ build:amd64-gnu-9.3.0:
 #      - tags
    script:
       - source ci-env/latest/profile.sh
-      - . r.load.dot main/opt/gcc/gcc-9.3.0
       - . r.env.dot --arch amd64
-#      - export EC_ARCH=rhel-8-icelake-64/gnu-9.3.0
+      - . r.load.dot main/opt/gcc/gcc-9.3.0
+      - export EC_ARCH=Linux_x86-64/gnu-9.3.0
       - echo "========================================================="
       - env | sort
       - echo "========================================================="
