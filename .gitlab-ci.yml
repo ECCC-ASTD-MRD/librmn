@@ -23,7 +23,7 @@ before_script:
 #    - dev
 
 
-build:icelake-gnu-9.3.0:
+build:amd64-gnu-9.3.0:
    stage: build
    only:
 #      - master
@@ -32,20 +32,21 @@ build:icelake-gnu-9.3.0:
    script:
       - source ci-env/latest/profile.sh
       - . r.load.dot main/opt/gcc/gcc-9.3.0
-      - export EC_ARCH=rhel-8-icelake-64/gnu-9.3.0
+      - . r.env.dot --arch amd64
+#      - export EC_ARCH=rhel-8-icelake-64/gnu-9.3.0
       - echo "========================================================="
       - env | sort
       - echo "========================================================="
       # Loading the compiler via SSM or r.load.dot does not
       # set EC_ARCH, so we set it manually
-      - mkdir build_icelake-gnu-9.3.0
-      - cd build_icelake-gnu-9.3.0
+      - mkdir build_amd64-gnu-9.3.0
+      - cd build_amd64-gnu-9.3.0
       - cmake ../
       - time make -j $NCPUS
    artifacts:
       expire_in: 2 hrs
       paths:
-         - build_icelake-gnu-9.3.0
+         - build_amd64-gnu-9.3.0
 
 build:icelake-gnu-12.1.0:
    stage: build
@@ -117,19 +118,19 @@ build:icelake-inteloneapi-2022.1.2:
 #      - make check
 
 
-package:icelake-gnu-9.3.0:
+package:amd64-gnu-9.3.0:
    stage: package
    only:
       - tags
    dependencies:
-      - build:icelake-gnu-9.3.0
+      - build:amd64-gnu-9.3.0
    environment:
       name: testing
    script:
       - set +e
       - source ci-env/latest/ubuntu-18.04-amd-64/gnu-7.4.0.sh
       - set -e
-      - cd build_icelake-gnu-9.3.0
+      - cd build_amd64-gnu-9.3.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package
 
