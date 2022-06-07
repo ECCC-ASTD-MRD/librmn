@@ -16,7 +16,7 @@ stages:
 before_script:
    # Force color CMake output even when output is not TTY
    - export CLICOLOR_FORCE=true
-   - [[ $CI_COMMIT_REF_NAME=="dev" && ECCI_PROCESS!="nightly" ]] && ECCI_PROCESS="dev"
+   - if [[ $CI_COMMIT_REF_NAME=="dev" && ECCI_PROCESS!="nightly" ]]; then ECCI_PROCESS="dev"; fi
 
 #build_gpsc:
 #  stage: build
