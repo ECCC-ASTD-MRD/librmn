@@ -147,6 +147,8 @@ build:amd64-inteloneapi-2022.1.2:
 package:amd64-gnu-9.3.0:
    stage: package
    only:
+      - master
+      - dev
       - tags
       - schedules
    dependencies:
@@ -164,6 +166,8 @@ package:amd64-gnu-9.3.0:
 package:icelake-inteloneapi-2022.1.2:
    stage: package
    only:
+      - master
+      - dev
       - tags
       - schedules
    dependencies:
@@ -181,6 +185,8 @@ package:icelake-inteloneapi-2022.1.2:
 package:amd64-inteloneapi-2022.1.2:
    stage: package
    only:
+      - master
+      - dev
       - tags
       - schedules
    dependencies:
@@ -198,6 +204,7 @@ package:amd64-inteloneapi-2022.1.2:
 deploy:staging:
    stage: deploy
    only:
+      - master
       - tags
       - schedules
    script:
