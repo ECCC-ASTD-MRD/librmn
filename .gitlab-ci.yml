@@ -16,7 +16,7 @@ stages:
 before_script:
    # Force color CMake output even when output is not TTY
    - export CLICOLOR_FORCE=true
-   - if [[ $CI_COMMIT_REF_NAME=="dev" && ECCI_PROCESS!="nightly" ]]; then ECCI_PROCESS="dev"; fi
+   - if [[ $CI_COMMIT_REF_NAME=="dev" && $ECCI_PROCESS!="nightly" ]]; then ECCI_PROCESS="dev"; fi
 
 #build_gpsc:
 #  stage: build
@@ -162,7 +162,7 @@ package:amd64-gnu-9.3.0:
       - set -e
       - cd build_amd64-gnu-9.3.0
       - make package
-      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package $ECCI_PROCESS
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
 package:icelake-inteloneapi-2022.1.2:
    stage: package
@@ -181,7 +181,7 @@ package:icelake-inteloneapi-2022.1.2:
       - set -e
       - cd build_icelake-inteloneapi-2022.1.2
       - make package
-      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package $ECCI_PROCESS
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
 package:amd64-inteloneapi-2022.1.2:
    stage: package
@@ -200,7 +200,7 @@ package:amd64-inteloneapi-2022.1.2:
       - set -e
       - cd build_amd64-inteloneapi-2022.1.2
       - make package
-      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package $ECCI_PROCESS
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
 deploy:staging:
    stage: deploy
@@ -210,7 +210,7 @@ deploy:staging:
       - schedules
    script:
       - source ci-env/latest/profile.sh
-      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn $CI_COMMIT_TAG $ECCI_PROCESS
+      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn ${CI_COMMIT_TAG} ${ECCI_PROCESS}
 
 deploy:dev:
    stage: deploy
@@ -220,7 +220,8 @@ deploy:dev:
       - tags
       - schedules
    script:
-      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn $CI_COMMIT_TAG $ECCI_PROCESS
+      - echo "...  ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn ${CI_COMMIT_TAG} ${ECCI_PROCESS}"
+      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn ${CI_COMMIT_TAG} ${ECCI_PROCESS}
 
 trigger:
    stage: trigger
@@ -230,4 +231,5 @@ trigger:
       - tags
       - schedules
    script:
+      - echo "... TRIGGER_FSTTOOLS} -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS}"
       - curl -X POST -F token=${EC_TRIGGER_FSTTOOLS} -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/6032/trigger/pipeline
