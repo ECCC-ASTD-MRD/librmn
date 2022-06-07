@@ -35,7 +35,7 @@ build:amd64-gnu-9.3.0:
    script:
       - source ci-env/latest/profile.sh
       - . r.env.dot --arch amd64
-      - . r.load.dot main/opt/gcc/gcc-9.3.0
+      - . ssmuse-sh -p main/opt/gcc/gcc-9.3.0/gcc_9.3.0_ubuntu-18.04-amd64-64
       - export EC_ARCH=Linux_x86-64/gnu-9.3.0
       - echo "========================================================="
       - env | sort
