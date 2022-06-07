@@ -4,12 +4,14 @@ variables:
    ORD_SOUMET_C: "4"
    ORD_SOUMET_M: "8G"
    ORD_SOUMET_TMPFS: "1G"
+   EC_TRIGGER_FSTTOOLS: a1bf9df63799d00ea5acd683d28e8f
 
 stages:
    - build
    - test
    - package
    - deploy
+   - trigger
 
 before_script:
    # Force color CMake output even when output is not TTY
@@ -96,6 +98,30 @@ build:icelake-inteloneapi-2022.1.2:
       paths:
          - build_icelake-inteloneapi-2022.1.2
 
+build:amd64-inteloneapi-2022.1.2:
+   stage: build
+   only:
+#      - master
+#      - dev
+#      - tags
+   script:
+      - source ci-env/latest/profile.sh
+      - . r.env.dot --arch amd64
+      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
+      - echo "========================================================="
+      - env | sort
+      - echo "========================================================="
+      # Loading the compiler via SSM or r.load.dot does not
+      # set EC_ARCH, so we set it manually
+      - mkdir build_amd64-inteloneapi-2022.1.2
+      - cd build_amd64-inteloneapi-2022.1.2
+      - cmake ../
+      - time make -j $NCPUS
+   artifacts:
+      expire_in: 2 hrs
+      paths:
+         - build_amd64-inteloneapi-2022.1.2
+
 
 #test:icelake-intel-19.0.3:
 #   stage: test
@@ -122,6 +148,7 @@ package:amd64-gnu-9.3.0:
    stage: package
    only:
       - tags
+      - schedules
    dependencies:
       - build:amd64-gnu-9.3.0
    environment:
@@ -138,15 +165,33 @@ package:icelake-inteloneapi-2022.1.2:
    stage: package
    only:
       - tags
+      - schedules
    dependencies:
       - build:icelake-inteloneapi-2022.1.2
    environment:
       name: testing
    script:
       - set +e
-      - source ci-env/latest/ubuntu-18.04-amd-64/gnu-7.4.0.sh
+      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
       - set -e
       - cd build_icelake-inteloneapi-2022.1.2
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package
+
+package:amd64-inteloneapi-2022.1.2:
+   stage: package
+   only:
+      - tags
+      - schedules
+   dependencies:
+      - build:amd64-inteloneapi-2022.1.2
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
+      - set -e
+      - cd build_amd64-inteloneapi-2022.1.2
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package
 
@@ -154,6 +199,29 @@ deploy:staging:
    stage: deploy
    only:
       - tags
+      - schedules
    script:
       - source ci-env/latest/profile.sh
-      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs $CI_PROJECT_NAME $CI_COMMIT_TAG
+      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh vgrid $CI_PROJECT_NAME $CI_COMMIT_TAG $ECCI_PROCESS
+         fi
+
+deploy:dev:
+   stage: deploy
+   only:
+      - dev
+   except:
+      - tags
+      - schedules
+   script:
+      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs $CI_PROJECT_NAME $CI_COMMIT_TAG dev
+      - ECCI_PROCESS="dev"
+
+trigger:
+   stage: trigger
+   only:
+      - master
+      - dev
+      - tags
+      - schedules
+   script:
+      - curl -X POST -F token=${EC_TRIGGER_FSTTOOLS} -F ref=main -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=$ECCI_PROCESS https://gitlab.science.gc.ca/api/v4/projects/6032/trigger/pipeline
