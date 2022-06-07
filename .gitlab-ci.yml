@@ -157,7 +157,7 @@ package:amd64-gnu-9.3.0:
       name: testing
    script:
       - set +e
-      - source ci-env/latest/ubuntu-18.04-amd-64/gnu-7.4.0.sh
+      - source ci-env/latest/ubuntu-18.04-amd-64/gnu-9.3.0.sh
       - set -e
       - cd build_amd64-gnu-9.3.0
       - make package
@@ -209,7 +209,7 @@ deploy:staging:
       - schedules
    script:
       - source ci-env/latest/profile.sh
-      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh vgrid $CI_PROJECT_NAME $CI_COMMIT_TAG $ECCI_PROCESS
+      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn $CI_COMMIT_TAG $ECCI_PROCESS
          fi
 
 deploy:dev:
@@ -220,7 +220,7 @@ deploy:dev:
       - tags
       - schedules
    script:
-      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs $CI_PROJECT_NAME $CI_COMMIT_TAG dev
+      - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn $CI_COMMIT_TAG dev
       - ECCI_PROCESS="dev"
 
 trigger:
@@ -231,4 +231,4 @@ trigger:
       - tags
       - schedules
    script:
-      - curl -X POST -F token=${EC_TRIGGER_FSTTOOLS} -F ref=main -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=$ECCI_PROCESS https://gitlab.science.gc.ca/api/v4/projects/6032/trigger/pipeline
+      - curl -X POST -F token=${EC_TRIGGER_FSTTOOLS} -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=$ECCI_PROCESS https://gitlab.science.gc.ca/api/v4/projects/6032/trigger/pipeline
