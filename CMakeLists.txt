@@ -1,6 +1,3 @@
-# This must be repeated in each CMake file; having it in an included file is not
-# sufficient
-
 # The minimum version can not be 3.16 because of the LINK_LANGUAGE generator expression in Config.cmake.in
 cmake_minimum_required(VERSION 3.20)
 
@@ -14,14 +11,11 @@ ec_parse_manifest()
 
 # Given our wacky compiler setups, languages must be activated after the
 # compieler has been configured
-project(${NAME} DESCRIPTION "${DESCRIPTION}")
+project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES C Fortran)
 set(PROJECT_VERSION ${VERSION}${STATE})
 set(RMN_VERSION ${PROJECT_VERSION} CACHE INTERNAL "RMN version" FORCE) # Needed for cascaded version identification
 
-enable_language(C Fortran)
 include(ec_compiler_presets)
-
-#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -diag-disable=6916")
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)
@@ -75,8 +69,7 @@ file(GLOB PROJECT_H_FILES
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
 
-
-# This really isn't the ideal solution; the compiler should be invoqued with all
+# This really isn't the ideal solution; the compiler should be called with all
 # the definitions and options as if we it was processing a source file
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
