@@ -153,3 +153,20 @@ car ils ne devraient déjà plus être utilisés:
         - mxma
         - mxma8
         - ROSSR3
+    - primitives
+        - unstakw
+        - stkmemw
+
+
+Voici une commande qui peut aider à identifier si votre code contient
+des appels aux fonctions et sous-routines qui ont été identifiées pour
+être retirées de la librmn:
+
+for varName in AFIX AFIX8 ALPAS2 ALPAS8 ALPDL2 ALPDL8 ALPDR2 ALPDR8 ALPNM2 ALPNM8 AMAX AMEAN AMIN D1 D1INT1 D1INT2 D1INTR DEFVEC DIMCAL EPSIL2 EPSIL8 EWFDR2 FASP2 FASP8 FCONW FD1 FDM GDADCN GDADGD GDMPGD GDSQRT GGASP0 GGASP8 GWAQD0 GWAQD8 INT1D1 PERM ROSSR3 SCOF2 SGLO SGLOGG SLL SPAF2 SPAF8 SPAGG0 SPAGG8 SPD SPS VLL VPOLAGR VPS bmf_catalog bmf_char2i bmf_clear bmf_connect bmf_error bmf_get bmf_get2 bmf_geth bmf_gobe bmf_i2char bmf_init bmf_list bmf_perturb bmf_splitend bmf_splithalo bmf_splithole bmf_splitinit bmf_splitname bmf_splitoptions bmf_splitstart bmf_splitwrall bmf_splitwrite bmf_splitwrite2 bmf_splitwriteh bmf_splitwriteh2 bmf_splitwritex bmf_splitwritex2 bmf_splitwritexy bmf_splitwritexy2 bmf_splitwritey bmf_splitwritey2 bmf_statfld bmf_write bmf_write2 ca_alloc ca_deallc close_db_file dmmsdbg dmmsnabt grid_to_grid grid_to_grid_coef grid_to_grid_interp hpalloc hpdeallc memoir memoirc memoirh mxma mxma8 open_db_file read_db_file rewind_db_file slabdsc slabend slabig34 slabini slabopt slabxtr slabxtr slabxtrf stkmemw unstakw write_db_file; do
+    grepOut=$(grep --color=always -RinP "(?>\W)${varName}(?>\W)" | grep -v tests)
+    if [[ -n "${grepOut}" ]]; then
+        echo ${varName};
+        echo "${grepOut}";
+        echo "";
+    fi
+done

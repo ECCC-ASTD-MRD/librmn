@@ -36,9 +36,6 @@ int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout) {
     int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
     _Grille *lgdin, *lgdout;
 
-    extern float f77name(amax)();
-    extern float f77name(amin)();
-
     gdin = iset_gdin;
     gdout= iset_gdout;
     fudgeval_set = 0;
