@@ -1,9 +1,12 @@
 # Ajouts
 
-- IgnoreTypeKindRank.hf
-- Compilation portable avec CMake; les outils de compilation propre au
-  CMC ne sont plus nécessaire pour la compilation et le processus est
-  grandement simplifié.
+- IgnoreTypeKindRank.hf permet d'indiquer aux compilateurs Fortran de ne pas se
+soucier du type, kind et rank.  C'est utilise lorsqu'il faut appeler des
+fonctions C qui s'attendent à un `void *`.
+
+- Les outils propre au CMC ne sont plus nécessaire pour la compilation et le
+processus est grandement simplifié grace à l'utilisation de
+[CMake](https://cmake.org/documentation/)
 
 
 # Bris de compatibilité
