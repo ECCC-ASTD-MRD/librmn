@@ -1,4 +1,4 @@
-== Ajouts ==
+# Ajouts
 
 - IgnoreTypeKindRank.hf
 - Compilation portable avec CMake; les outils de compilation propre au
@@ -6,7 +6,7 @@
   grandement simplifié.
 
 
-== Bris de compatibilité ==
+# Bris de compatibilité
 
 La version 20 est une version majeure et elle a fait l'objet d'un
 nettoyage considérable du code.  Des fonctions et des constructions
@@ -157,6 +157,8 @@ car ils ne devraient déjà plus être utilisés:
         - unstakw
         - stkmemw
 
+
+# Trouver des appels de fonctions obsolètes dans votre code
 
 Voici une commande qui peut aider à identifier si votre code contient
 des appels aux fonctions et sous-routines qui ont été identifiées pour
