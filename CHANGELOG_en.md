@@ -4,8 +4,10 @@
 type and kind of functions arguments in formal interfaces.  This is
 especially useful when calling C functions that expect `void *`
 
-- Building the code is now portable with (CMake)[https://cmake.org/documentation/]
-Custom homegrown tools are no longer required to build the library.
+- The code has been made more portable; homebrewed tools are no longer
+required to build the library.  Building the is now done with
+[CMake](https://cmake.org/documentation/)
+
 
 
 # Breaks in backward compatibility
