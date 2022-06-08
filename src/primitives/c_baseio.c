@@ -544,11 +544,10 @@ int c_fnom(
             cptr1++;
             lng--;
             strncpy(FGFDT[entry].file_name, lnom + 1, lng);
-            char *cptr2 = FGFDT[entry].file_name;
-            *(cptr2 + lng) = '\0';
         } else {
             strncpy(FGFDT[entry].file_name, lnom, lng);
         }
+        FGFDT[entry].file_name[lng] = '\0';
     }
 
 

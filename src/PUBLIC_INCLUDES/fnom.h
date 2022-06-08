@@ -52,12 +52,11 @@ typedef struct {
 } general_file_info;
 
 #if defined(FNOM_OWNER)
-general_file_info Fnom_General_File_Desc_Table[MAXFILES];
+general_file_info FGFDT[MAXFILES];
 #else
-extern general_file_info Fnom_General_File_Desc_Table[MAXFILES];
+extern general_file_info FGFDT[MAXFILES];
 #endif
 
-#define FGFDT Fnom_General_File_Desc_Table
 
 int c_fretour(
     const int iun

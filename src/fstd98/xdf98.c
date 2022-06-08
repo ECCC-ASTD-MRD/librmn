@@ -1849,7 +1849,7 @@ int c_xdfopn(
     }
 
     f = file_table[index];
-    f->cur_info = &Fnom_General_File_Desc_Table[index_fnom];
+    f->cur_info = &FGFDT[index_fnom];
 
     if (! f->cur_info->attr.rnd) {
         sprintf(errmsg, "file must be random\n file in error: %s\n", FGFDT[index_fnom].file_name);
