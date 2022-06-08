@@ -52,6 +52,7 @@ typedef struct {
 } general_file_info;
 
 #if defined(FNOM_OWNER)
+//! Fnom General File Desc Table
 general_file_info FGFDT[MAXFILES];
 #else
 extern general_file_info FGFDT[MAXFILES];
