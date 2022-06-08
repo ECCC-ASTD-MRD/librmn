@@ -158,7 +158,7 @@ package:amd64-gnu-9.3.0:
       name: testing
    script:
       - set +e
-      - source ci-env/latest/ubuntu-18.04-amd-64/gnu-9.3.0.sh
+      - source ci-env/latest/rhel-8-amd-64/gnu-9.3.0.sh
       - set -e
       - cd build_amd64-gnu-9.3.0
       - make package
