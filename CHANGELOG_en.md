@@ -1,4 +1,4 @@
-== What's new ==
+# What's new
 
 - IgnoreTypeKindRank.hf  It allow Fortran compilers to ignore the rank
 type and kind of functions arguments in formal interfaces.  This is
@@ -8,7 +8,7 @@ especially useful when calling C functions that expect `void *`
 Custom homegrown tools are no longer required to build the library.
 
 
-== Breaks in backward compatibility ==
+# Breaks in backward compatibility
 
 Version 20 is a a major one and there has been a considerable code
 cleanup done.  Obsolete functions and constructs have been removed.
@@ -158,6 +158,7 @@ since we expect that they are allready no longer used.
         - unstakw
         - stkmemw
 
+## Finding deprecated functions in your code
 
 The command bellow can help identify if your code uses deprecated
 functions:
