@@ -34,6 +34,9 @@ introduced the `len_trim(str)` built-in function that should be used
 instead.  For C code handling Fortran strings, `ftnStrLen(str, maxLen)`
 can be used.
 
+- The `tell` was deleted.  Please use the corresponding POSIX function:
+`ftell`.
+
 - All the functions in DMMS are obsolete and should no longer be used:
     - memoirc
     - dmmsdbg

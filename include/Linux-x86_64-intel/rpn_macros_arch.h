@@ -11,8 +11,6 @@
 #define Little_Endian
 #endif
 
-#define tell(fdesc) lseek(fdesc,0,1)
-
 // F2Cl is an hidden parameter of Fortran compilers for string length.
 // The type of the argument is implementation specific and can be different
 // according to the compiler

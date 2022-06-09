@@ -33,6 +33,9 @@ types correspondants accessibles via `#include <stdint.h>`
 il faut utiliser `len_trim(str)` à la place. Pour le C, vous pouvez
 utiliser la fonction `ftnStrLen(str, maxLen)`
 
+- La macro `tell` a été supprimée.  Veuillez utiliser la fonction POSIX
+équivalente: `ftell`.
+
 - Toutes les fonctions de dmms sont obsolètes et ne devraient plus être
 utilisées.
     - memoirc
