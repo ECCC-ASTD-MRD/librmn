@@ -1,18 +1,18 @@
 # What's new
 
-- IgnoreTypeKindRank.hf  It allow Fortran compilers to ignore the rank
+- IgnoreTypeKindRank.hf  It allows Fortran compilers to ignore the rank
 type and kind of functions arguments in formal interfaces.  This is
 especially useful when calling C functions that expect `void *`
 
-- The code has been made more portable; homebrewed tools are no longer
-required to build the library.  Building the is now done with
+- The code has been made more portable; home-brewed tools are no longer
+required to build the library.  Building the library is now done with
 [CMake](https://cmake.org/documentation/)
 
 
 
 # Breaks in backward compatibility
 
-Version 20 is a a major one and there has been a considerable code
+Version 20 is a major one and there has been a considerable code
 cleanup done.  Obsolete functions and constructs have been removed.
 
 - The case of file names will no longer be modified; capitalization in
@@ -46,7 +46,7 @@ can be used.
     - memoir
 
 - All the following functions have already been removed from the library
-since we expect that they are allready no longer used.
+since we expect that they are already no longer used.
     - VMM
     - BMF
         - bmf_catalog
@@ -162,7 +162,7 @@ since we expect that they are allready no longer used.
 
 ## Finding deprecated functions in your code
 
-The command bellow can help identify if your code uses deprecated
+The command below can help identify if your code uses deprecated
 functions:
 
 ```
