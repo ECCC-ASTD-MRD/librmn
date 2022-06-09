@@ -207,7 +207,8 @@ deploy:staging:
    only:
       - master
       - tags
-      - schedules
+   except:
+      -schedules
    script:
       - source ci-env/latest/profile.sh
       - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn ${CI_COMMIT_TAG} ${ECCI_PROCESS}
@@ -218,7 +219,6 @@ deploy:dev:
       - dev
    except:
       - tags
-      - schedules
    script:
       - echo "...  ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn ${CI_COMMIT_REF_NAME} ${ECCI_PROCESS}"
       - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn ${CI_COMMIT_REF_NAME} ${ECCI_PROCESS}
