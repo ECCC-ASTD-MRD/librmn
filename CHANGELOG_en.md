@@ -37,6 +37,8 @@ can be used.
 - The `tell` was deleted.  Please use the corresponding POSIX function:
 `ftell`.
 
+- arch_specific.hf was deleted since it is now empty
+
 - All the functions in DMMS are obsolete and should no longer be used:
     - memoirc
     - dmmsdbg

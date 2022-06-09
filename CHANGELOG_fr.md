@@ -36,6 +36,8 @@ utiliser la fonction `ftnStrLen(str, maxLen)`
 - La macro `tell` a été supprimée.  Veuillez utiliser la fonction POSIX
 équivalente: `ftell`.
 
+- arch_specific.hf a été supprimé c'est maintenant vide
+
 - Toutes les fonctions de dmms sont obsolètes et ne devraient plus être
 utilisées.
     - memoirc
