@@ -170,17 +170,19 @@ module jar_test_procedures
                 error stop 1
             end if
 
-            success = JAR_PUT_ITEM(my_jar, char_in(1:i))
+            success = JAR_PUT_STRING(my_jar, char_in(1:i))
             if (.not. success) then
                 print *, 'ERROR: Unable to put characters in jar', i
                 error stop 1
             end if
 
             char_out = ''
-            success = JAR_GET_ITEM(my_jar, char_out(1:i))
+            success = JAR_GET_STRING(my_jar, char_out(1:i))
             ! print '(A, I2, 1X, L1, 1X, A, 1X, A, 1X, A)', 'INFO: ', i, success, char_in(1:i), char_out(1:i), char_out
             if (.not. success .or. char_in(1:i) .ne. char_out(1:i)) then
-                print '(A, I2, 1X, L1, 1X, A, 1X, A, 1X, A)', 'ERROR: Unable to correctly get characters from jar', i, success, char_in(1:i), char_out(1:i), char_out
+                print '(A, I2, 1X, L1, 1X, A, 1X, A, 1X, A)', 'ERROR: Unable to correctly get characters from jar',         &
+                    i, success, '"' // char_in(1:i) // '"', '"' // char_out(1:i) // '"', '"' // char_out // '"'
+                call my_jar % print_data(200_8)
                 error stop 1
             end if
         end do

@@ -15,7 +15,9 @@
 !> \author M. Valin,   Recherche en Prevision Numerique
 !> \author V. Magnoux, Recherche en Prevision Numerique
 !> \date 2020-2022
-!> \file serializer.hf Helper macros for Fortran data serializer
+
+!> \file serializer.hf
+!> Helper macros for Fortran data serializer
 
 ! Include guard
 #if ! defined(JAR_ELEM_COUNT)
@@ -57,6 +59,12 @@
 !> JAR_RESET(my_jar_name)
 #define JAR_RESET(jar) call jar%reset()
 
+!> \brief String-specific macro for inserting an item in the jar
+#define JAR_PUT_STRING(jar, string)         jar%insert_string( string )
+#if defined(JAR_EXTENDED_MACROS)
+#define JAR_PUT_STRING_AT(jar, string, pos) jar%insert_string( string, position=pos )
+#endif
+
 !> \brief Insert a SCALAR item into data jar at current insertion position or at a specific position
 !> beginning of data jar is at position 1
 !> item may be of any user defined type
@@ -81,6 +89,12 @@
 #define JAR_PUT_ITEMS(jar, item)          jar%insert( item, storage_size(item)*size(item) )
 #if defined(JAR_EXTENDED_MACROS)
 #define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%insert( item, storage_size(item)*size(item), position=pos )
+#endif
+
+!> \brief String-specific macro for extracting a string from the jar
+#define JAR_GET_STRING(jar, string)         jar%extract_string( string )
+#if defined(JAR_EXTENDED_MACROS)
+#define JAR_GET_STRING_AT(jar, string, pos) jar%extract_string( string, position=pos )
 #endif
 
 !> \brief Extract a SCALAR item from data jar at current extraction position or at a specific position

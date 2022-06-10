@@ -14,7 +14,9 @@
 !> \author M. Valin,   Recherche en Prevision Numerique
 !> \author V. Magnoux, Recherche en Prevision Numerique
 !> \date 2020-2022
-!> \file jar_mod.F90 Fortran data serializer module
+
+!> \file jar_mod.F90
+!> Fortran data serializer module
 
 
 ! _the Cray Fortran compiler treats loc() as a type(C_PTR), other compilers as integer(C_INTPTR_T)
@@ -68,22 +70,24 @@ module jar_module
         integer(JAR_ELEMENT) :: opt       = 0             ! option flags (0 owner of data memory, 1 not owner)
         type(C_PTR)          :: ptr       = C_NULL_PTR    ! address of actual data
     contains
-        procedure, PASS :: new          => jar_new
-        procedure, PASS :: shape_with   => jar_shape_with
-        procedure, PASS :: is_valid     => jar_is_valid
-        procedure, PASS :: free         => jar_free
-        procedure, PASS :: reset        => jar_reset
-        procedure, PASS :: raw_data     => jar_raw_pointer
-        procedure, PASS :: f_array      => jar_contents
-        procedure, PASS :: full_f_array => jar_contents_full
-        procedure, PASS :: get_size     => jar_size
-        procedure, PASS :: get_top      => jar_top
-        procedure, PASS :: get_bot      => jar_bot
-        procedure, PASS :: get_num_avail => jar_avail
-        procedure, PASS :: insert       => jar_put_into
-        procedure, PASS :: extract      => jar_get_outof
-        procedure, PASS :: print_data   => jar_print_data
-        procedure, NOPASS :: debug      => debug_jars
+        procedure, PASS :: new            => jar_new
+        procedure, PASS :: shape_with     => jar_shape_with
+        procedure, PASS :: is_valid       => jar_is_valid
+        procedure, PASS :: free           => jar_free
+        procedure, PASS :: reset          => jar_reset
+        procedure, PASS :: raw_data       => jar_raw_pointer
+        procedure, PASS :: f_array        => jar_contents
+        procedure, PASS :: full_f_array   => jar_contents_full
+        procedure, PASS :: get_size       => jar_size
+        procedure, PASS :: get_top        => jar_top
+        procedure, PASS :: get_bot        => jar_bot
+        procedure, PASS :: get_num_avail  => jar_avail
+        procedure, PASS :: insert         => jar_put_into
+        procedure, PASS :: insert_string  => jar_put_string_into
+        procedure, PASS :: extract        => jar_get_outof
+        procedure, PASS :: extract_string => jar_get_string_outof
+        procedure, PASS :: print_data     => jar_print_data
+        procedure, NOPASS :: debug        => debug_jars
         final :: jar_final
     end type
 
@@ -312,6 +316,20 @@ module jar_module
         jar_instance%size_elem = 0                 ! data jar cannot store data
     end function jar_free
 
+    !> Insert a string into a jar. This is a wrapper on jar_module::jar_put_into, a string-specific function is needed with certain
+    !> compilers (nvhpc, aocc).
+    function jar_put_string_into(jar_instance, string, position) result(success)
+        implicit none
+        class(jar),           intent(INOUT)        :: jar_instance  !> Data jar instance
+        character(len=*),     intent(IN)           :: string        !> The string we want to insert in the jar
+        integer(JAR_ELEMENT), intent(IN), optional :: position  !> Insertion point (1 = start of jar), optional
+        logical :: success                                      !> Whether the operation succeeded
+        if (present(position)) then
+            success = jar_instance % insert(string, storage_size(string), position)
+        else
+            success = jar_instance % insert(string, storage_size(string))
+        end if
+    end function jar_put_string_into
 
 #define IgnoreTypeKindRank object
 #define ExtraAttributes , target
@@ -351,6 +369,21 @@ module jar_module
 
     end function jar_put_into
 
+    !> Extract a string from a jar. This is just a wrapper on jar_module::jar_get_outof, a string-specific version is needed
+    !> with certain compilers (aocc, nvhpc)
+    function jar_get_string_outof(jar_instance, string, position) result(success)
+        implicit none
+        class(jar),           intent(INOUT)        :: jar_instance  !> Data jar instance
+        character(len=*),     intent(INOUT)        :: string        !> [out] The string we want to extract from the jar
+        integer(JAR_ELEMENT), intent(IN), optional :: position  !> Insertion point (1 = start of jar), optional
+        logical :: success                                      !> Whether the operation succeeded
+
+        if (present(position)) then
+            success = jar_instance % extract(string, int(storage_size(string), kind = 8), position)
+        else
+            success = jar_instance % extract(string, int(storage_size(string), kind = 8))
+        end if
+    end function jar_get_string_outof
 
 #define IgnoreTypeKindRank object
 #define ExtraAttributes , target

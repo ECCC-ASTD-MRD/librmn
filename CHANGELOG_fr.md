@@ -1,24 +1,24 @@
 # Ajouts
 
 - IgnoreTypeKindRank.hf permet d'indiquer aux compilateurs Fortran de ne pas se
-soucier du type, kind et rank.  C'est utilise lorsqu'il faut appeler des
+soucier du type, kind et rank. C'est utilisé lorsqu'il faut appeler des
 fonctions C qui s'attendent à un `void *`.
 
-- Les outils propre au CMC ne sont plus nécessaire pour la compilation et le
-processus est grandement simplifié grace à l'utilisation de
+- Les outils propres au CMC ne sont plus nécessaires pour la compilation et le
+processus est grandement simplifié grâce à l'utilisation de
 [CMake](https://cmake.org/documentation/)
 
 
 # Bris de compatibilité
 
 La version 20 est une version majeure et elle a fait l'objet d'un
-nettoyage considérable du code.  Des fonctions et des constructions
-désuettes ont été retirées.
+nettoyage considérable du code. Des fonctions et des constructions
+désuètes ont été retirées.
 
-- La case des nom de fichiers ne sera plus modifiée si le nom de fichier
+- La casse des noms de fichiers ne sera plus modifiée si le nom de fichier
 en entrée contient uniquement des majuscules.
 
-- Les types de données suivants ne sont plus disponible.  Il faut utiliser les
+- Les types de données suivants ne sont plus disponibles. Il faut utiliser les
 types correspondants accessibles via `#include <stdint.h>`
 
 | Ancien   | Nouveau  |
@@ -29,12 +29,17 @@ types correspondants accessibles via `#include <stdint.h>`
 | wordint  |  int32_t |
 | ftnfloat |    float |
 
-- La fonction Fortran `longueur(str)` n'est plus disponible.  En Fortran,
-il faut utiliser `len_trim(str)` à la place.  Pour le C, vous pouvez
+- La fonction Fortran `longueur(str)` n'est plus disponible. En Fortran,
+il faut utiliser `len_trim(str)` à la place. Pour le C, vous pouvez
 utiliser la fonction `ftnStrLen(str, maxLen)`
 
+- La macro `tell` a été supprimée.  Veuillez utiliser la fonction POSIX
+équivalente: `ftell`.
+
+- arch_specific.hf a été supprimé c'est maintenant vide
+
 - Toutes les fonctions de dmms sont obsolètes et ne devraient plus être
-utlisées.
+utilisées.
     - memoirc
     - dmmsdbg
     - dmmsnabt
@@ -45,7 +50,7 @@ utlisées.
     - memoirh
     - memoir
 
-- Le composants suivants ont été retirés de la bibliothèque de fonctions
+- Les composants suivants ont été retirés de la bibliothèque de fonctions,
 car ils ne devraient déjà plus être utilisés:
     - VMM
     - BMF
