@@ -34,11 +34,13 @@ build:amd64-gnu-9.3.0:
 #      - dev
 #      - tags
    script:
+      - set +e
       - source ci-env/latest/profile.sh
       - . r.env.dot --arch amd64
       - . ssmuse-sh -x main/opt/gcc/gcc-9.3.0/gcc_9.3.0_ubuntu-18.04-amd64-64
       - . r.load.dot rpn/code-tools/1.5.6
       - . /fs/ssm/main/opt/intelcomp/master/inteloneapi_2022.1.2_multi/oneapi/mpi/latest/env/vars.sh
+      - set -e
       - mkdir build_amd64-gnu-9.3.0
       - cd build_amd64-gnu-9.3.0
       - cmake ../
