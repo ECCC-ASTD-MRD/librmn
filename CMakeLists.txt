@@ -208,3 +208,8 @@ set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
+
+if(WITH_TESTS)
+    add_executable(fst_write ${CMAKE_CURRENT_SOURCE_DIR}/tests/fst_write.c)
+    target_link_libraries(fst_write rmn)
+endif()
