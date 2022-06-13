@@ -1628,10 +1628,7 @@ int c_fstfrm(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int ier;
-
-    ier = c_xdfcls(iun);
-    return ier;
+    return c_xdfcls(iun);
 }
 
 
@@ -4918,9 +4915,7 @@ int32_t f77name(fstcheck)(char *filename, F2Cl lng)
  *****************************************************************************/
 int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
 {
-  int iun = *f_iun, ier;
-  ier = c_fstouv(iun, options);
-  return (int32_t) ier;
+  return c_fstouv(*f_iun, options);
 }
 
 
