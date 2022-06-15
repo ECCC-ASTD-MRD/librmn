@@ -408,7 +408,7 @@ static void set_extra_error_message(
     }
     if (pos > 0) {
         // A message was provided
-        extra_error_buffer[pos - 1] = '\0';
+        extra_error_buffer[pos] = '\0';
         extra_error_message = extra_error_buffer;
     } else {
         // The message is empty
@@ -1022,7 +1022,7 @@ int c_wb_get(
     unsigned char *csrc;
 
 #ifdef DEBUG
-    printf("c_wb_get(wb = %p, name = %s, type = %d, size = %d, dest = %p, nbelem = %d, nameLength = %d)\n",
+    printf("c_wb_get(wb=%p, name=\"%s\", type=%d, size=%d, dest=%p, nbelem=%d, nameLength=%d)\n",
         wb, name, type, size, dest, nbelem, nameLength
     );
 #endif
@@ -1146,7 +1146,7 @@ int32_t f77_name(f_wb_get)(WhiteBoard **wb, char *name, int32_t *type, int32_t *
     int _nbelem = *nbelem;
 
 #ifdef DEBUG
-    printf("f_wb_get(wb = %p, name = '%s', type = %d, size = %d, dest = %p, nbelem = %d, nameLength = %d)\n",
+    printf("f_wb_get(wb=%p, name=\"%s\", type=%d, size=%d, dest=%p, nbelem=%d, nameLength=%d)\n",
         *wb, name, *type, *size, dest, *nbelem, nameLength
     );
 #endif
@@ -1175,16 +1175,8 @@ int c_wb_put(
     //! [in] Name Length
     int nameLength
 ){
-    wb_line *line;
-    wb_page *page;
-    int stored_type, stored_size, stored_nbelem;
-    int lookup_result;
-    int typecode, array, result;
-    int i;
-    unsigned char *dest;
-
 #ifdef DEBUG
-    printf("c_wb_put(wb = %p, name = %s, type = %d, size = %d, src = %p, nbelem = %d, options = 0x%x, nameLength = %d)\n",
+    printf("c_wb_put(wb=%p, name=\"%s\", type=%d, size=%d, src=%p, nbelem=%d, options=0x%x, nameLength=%d)\n",
         wb, name, type, size, src, nbelem, options, nameLength
     );
 #endif
@@ -1200,7 +1192,7 @@ int c_wb_put(
 
     nameLength = trim(name, nameLength);
 #ifdef DEBUG
-    printf("c_wb_put - name = %s, nameLength = %d\n", name, nameLength);
+    printf("c_wb_put - name=\"%s\", nameLength=%d\n", name, nameLength);
 #endif
     set_extra_error_message(name, nameLength);
     wb_lastputline = NULL;
@@ -1211,7 +1203,7 @@ int c_wb_put(
     }
 
     // Check validity of requested Type/Ttype combination
-    typecode = get_typecode(type, size, size);
+    int typecode = get_typecode(type, size, size);
     if (typecode < 0) {
         // Bad type/size combination
         return typecode;
@@ -1223,14 +1215,17 @@ int c_wb_put(
     }
 
     // Array if nbelem > 0 , scalar if nbelem == 0
-    array = (nbelem > 0) ? 1 : 0;
+    int array = (nbelem > 0) ? 1 : 0;
     if (nbelem == 0) {
         // Scalar
         nbelem = 1;
     }
 
+    wb_line *line;
+    wb_page *page;
+    int stored_type, stored_size, stored_nbelem;
     // No screaming if not found
-    lookup_result = c_wb_lookup(wb, name, &stored_type, &stored_size, &stored_nbelem, &line, &page, 0, nameLength);
+    int lookup_result = c_wb_lookup(wb, name, &stored_type, &stored_size, &stored_nbelem, &line, &page, 0, nameLength);
     if (lookup_result >= 0) {
         // Entry has been found, will overwrite it, the options argument is ignored,
         // Flags are checked for consistency and permissions
@@ -1288,15 +1283,18 @@ int c_wb_put(
         // Set line name
         fill_line(line, name, nameLength);
 #ifdef DEBUG
-        printf("c_wb_put - stored name = '%s'\n", line->meta.name.carr);
+        printf("c_wb_put - stored name=\"%s\"\n", line->meta.name.carr);
 #endif
         stored_size = size;
         if (typecode == WB_FORTRAN_CHAR && array == 0) {
             // Scalar string, round size up to wb_linedata size
             stored_size = ( (stored_size + sizeof(wb_linedata) - 1) / sizeof(wb_linedata) ) * sizeof(wb_linedata);
 #ifdef DEBUG
-            printf("c_wb_put - stored_size = %d\n", stored_size);
-            printf("c_wb_put - src = '%s'\n", src);
+            printf("c_wb_put - stored_size=%d\n", stored_size);
+            char tmpStr[size + 1];
+            strncpy(tmpStr, src, size);
+            tmpStr[size] = '\0';
+            printf("c_wb_put - src=\"%s\"\n", tmpStr);
 #endif
         }
         line->meta.flags.type = typecode;
@@ -1336,6 +1334,8 @@ int c_wb_put(
         page->firstFreeLine += lines;
     }
 
+    int result;
+    unsigned char *dest;
     wb_lastputline = line;
     if (options & WB_CREATE_ONLY) {
         // Create entry only, do not copy value(s)
@@ -1373,7 +1373,7 @@ int c_wb_put(
             }
         } else {
             // Character strings,  use trimmed to padded copy
-            for (i = 0 ; i < nbelem ; i++) {
+            for (int i = 0 ; i < nbelem ; i++) {
                 result = c_fortran_string_copy((char *)src, (char *)dest, size, stored_size, ' ');
                 if (result < 0) {
                     // Not enough space to store string!
@@ -1404,13 +1404,7 @@ int32_t f77_name(f_wb_put)(
     int32_t *options,
     F2Cl nameLength
 ) {
-   char _type = *type;
-   int _nameLength = nameLength;
-   int _size = *size;
-   int _nbelem = *nbelem;
-   int _options = *options;
-
-   return c_wb_put(*wb, name, _type, _size, src, _nbelem, _options, _nameLength);
+   return c_wb_put(*wb, name, *type, *size, src, *nbelem, *options, nameLength);
 }
 
 
@@ -1587,7 +1581,7 @@ static int wb_cb_read_only(
     void *blinddata
 ) {
     if (line->meta.flags.initialized == 0) {
-        // making read-only a non initialized variable ???!!!
+        // making read-only a non initialized variable !?
         wb_error(WB_MSG_ERROR, WB_ERR_NOVAL);
     }
     if (message_level <= WB_MSG_DEBUG) {
@@ -1866,12 +1860,12 @@ static int wb_ungetc(
 //! \return 
 static char wb_getc(
     //! [in] File from whic to read
-    FILE *infile
+    FILE * infile
 ) {
-    //! \todo Get rid of the goto
+    //! \todo Refactor all the functions reading to file to make the logic simpler and get rid of the goto
     //! \todo Stop using file static variables if there is not a bloody good reason to do so!
-    char cbuff;
 
+    char cbuff;
     // No buffer pointer, fill buffer
     if (current_char == NULL) {
         cbuff = wb_get_line(infile);
@@ -1881,20 +1875,17 @@ static char wb_getc(
         }
     }
 
-    while (*current_char == 0) {
+s:  if (*current_char == 0) {
         cbuff = wb_get_line(infile);
-        if (current_char == NULL) {
-            return EOF;
-        }
-        // Gget next character and bump pointer
-        cbuff = *current_char++;
-        // Get rid of newlines
-        if (cbuff == '\\' && *current_char == '\n' ) {
-            // Point to character after newline
-            current_char++;
-        } else {
-            break;
-        }
+        if (current_char == NULL) return EOF;
+    }
+    // Gget next character and bump pointer
+    cbuff = *current_char++;
+    // Get rid of newlines
+    if (cbuff == '\\' && *current_char == '\n' ) {
+        // Point to character after newline
+        current_char++;
+        goto s;
     }
 
     return cbuff;
@@ -1976,18 +1967,17 @@ static int wb_get_token(
     //! [in] If non zero, do not skip spaces
     int noskip
 ) {
-    int tokenLength = 0;
     char c;
-
     if (noskip) {
-            // Do not skip spaces
-            c = wb_getc(infile);
+        // Do not skip spaces
+        c = wb_getc(infile);
     } else {
         c = wb_get_nonblank(infile);
     }
     if (c == EOF) return WB_ERROR;
 
     // First character
+    int tokenLength = 0;
     token[tokenLength++] = toupper(c);
     maxTokenLength--;
     if (maxTokenLength < 0) {
@@ -2429,19 +2419,16 @@ error_syntax:
 
 
 //! Read a dictionary or user directive file
-int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int options, int filenameLength,
-              int packageLength, int sectionLength)
-{
-    char _filename[WB_MISC_BUFSZ];
-    char token[WB_MISC_BUFSZ];
-    char _package[WB_MAXNAMELENGTH];
-    char _section[WB_MAXNAMELENGTH];
-    int i, status;
-    FILE *infile;
-    int ntoken;
-    char temp;
-    int errors = 0;
-
+int c_wb_read(
+    WhiteBoard *wb,
+    char *filename,
+    char *package,
+    char *section,
+    int options,
+    int filenameLength,
+    int packageLength,
+    int sectionLength
+) {
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
@@ -2457,12 +2444,14 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     // Initialize definition table control
     definition_table_entries = 0;
     max_definition_table_entries = WB_MISC_BUFSZ;
+    int i;
     for (i = 0; i < WB_MISC_BUFSZ; i++) {
         definition_table[i].line = NULL;
         definition_table[i].assigned = 0;
         definition_table[i].defined = 0;
     }
 
+    char _filename[WB_MISC_BUFSZ];
     for (i = 0; i < filenameLength && i < WB_MISC_BUFSZ - 1 && filename[i] != 0; i++) {
         _filename[i] = filename[i];
     }
@@ -2472,6 +2461,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
         fprintf(stderr, "localfname='%s'\n", _filename);
     }
 
+    char _package[WB_MAXNAMELENGTH];
     for (i = 0; i < packageLength && i < WB_MAXNAMELENGTH - 1 && package[i] != 0; i++) {
         _package[i] = toupper(package[i]);
     }
@@ -2481,6 +2471,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
         fprintf(stderr, "Package='%s'\n", _package);
     }
 
+    char _section[WB_MAXNAMELENGTH];
     for (i = 0; i < sectionLength && i < WB_MAXNAMELENGTH - 1 && section[i] != 0; i++) {
         _section[i] = toupper(section[i]);
     }
@@ -2495,7 +2486,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     // Make sure that no previous input is left in buffers
     current_char = NULL;
     // Try to open file
-    infile = fopen(_filename, "r");
+    FILE * infile = fopen(_filename, "r");
     if (infile == NULL) {
         // Can't open/read file!
         wb_error(WB_MSG_ERROR, WB_ERR_READ);
@@ -2505,6 +2496,8 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
 
     // Loop until desired section "@xxxx" is found or end of directive file
     int notFound = 1;
+    char token[WB_MISC_BUFSZ];
+    char temp;
     while (notFound) {
         temp = wb_get_nonblank(infile);
         // Look for @ as first nonblank character in line (or End of file)
@@ -2519,7 +2512,7 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
             set_extra_error_message(_section, -1);
             wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
         }
-        ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 1);
+        wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 1);
         notFound = (strncmp((char *)token, _section, strlen(_section)) != 0);
     }
     if (message_level <= WB_MSG_INFO) {
@@ -2531,7 +2524,8 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     temp = wb_get_line(infile);
     // Default options = none unless there is a directive
     default_dict_option = 0;
-    ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 0);
+    int errors = 0;
+    int ntoken = wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 0);
     // Loop until end of section (beginning of next section or EOF)
     while (strncmp((char *)token, "@", 1) && ntoken != WB_ERROR ) {
         if (strncmp((char *)token, "OPTIONS", 7) == 0 ) {
@@ -2542,12 +2536,10 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
             message_level = wb_options(infile,'(',')',verb_options);
         } else if (strncmp((char *)token, "DEFINE", 6) == 0 && options != WB_FORBID_DEFINE ) {
             // Define directive (if allowed)
-            status = wb_define(wb, infile, _package);
-            if (status < 0) errors++;
+            if (wb_define(wb, infile, _package) < 0) errors++;
         } else if (isalpha(token[0])) {
             // Must be key=
-            status = wb_key(wb, infile, token, _package, options);
-            if (status < 0) errors++;
+            if (wb_key(wb, infile, token, _package, options) < 0) errors++;
         } else if (token[0] == '\n') {
             // Ignore newlines
             temp = '\n';
@@ -2570,12 +2562,10 @@ int c_wb_read(WhiteBoard *wb, char *filename, char *package, char *section, int 
     return errors == 0 ? WB_OK : WB_ERROR;
 }
 
-/* read a dictionary or user directive file (FORTRAN version) */
+//! read a dictionary or user directive file (FORTRAN version)
 int32_t f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, int32_t *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
-   int _filenameLength = filenameLength;
-   int _packageLength = packageLength;
-   int _sectionLength = sectionLength;
-   int _options = *options;
-
-   return c_wb_read(*wb, filename, package, section, _options, _filenameLength, _packageLength, _sectionLength);
+#ifdef DEBUG
+    printf("f_wb_read(wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d)\n", wb, package, filename, section, options, packageLength, filenameLength, sectionLength);
+#endif
+    return c_wb_read(*wb, filename, package, section, *options, filenameLength, packageLength, sectionLength);
 }
