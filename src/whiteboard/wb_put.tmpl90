@@ -31,13 +31,7 @@ function FNCNAME(wb_put_)(key, val, options0, wb) result(status)
 #endif
 
 #ifdef DEBUG
-#define STR_VALUE(arg)      #arg
-#define FUNCTION_NAME(name) STR_VALUE(name)
-#define TEST_FUNC_NAME FUNCTION_NAME(FNCNAME(wb_put_))
-    print *, TEST_FUNC_NAME, "(", key, ", ...)"
-#undef TEST_FUNC_NAME
-#undef FUNCTION_NAME
-#undef STR_VALUE
+    print *, "FNCNAME(wb_put_)", "(", key, "val, [wb])"
 #endif
 
     if (present(options0)) then
@@ -89,13 +83,7 @@ function NAMEA(FNCNAME(wb_put_))(key, val, options0, wb) result(status)
 #endif
 
 #ifdef DEBUG
-#define STR_VALUE(arg)      #arg
-#define FUNCTION_NAME(name) STR_VALUE(name)
-#define TEST_FUNC_NAME FUNCTION_NAME(NAMEA(FNCNAME(wb_put_)))
-    print *, TEST_FUNC_NAME, "(", key, ", ...)"
-#undef TEST_FUNC_NAME
-#undef FUNCTION_NAME
-#undef STR_VALUE
+    print *, "FNCNAME(wb_put_)", "(", key, "val, [wb])"
 #endif
 
     if (size(val) .eq. 0) then

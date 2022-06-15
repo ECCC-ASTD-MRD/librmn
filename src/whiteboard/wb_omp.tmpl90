@@ -424,7 +424,7 @@ interface wb_broadcast
 #endif
 
 #ifdef DEBUG
-    print *, wb_broadcast, "(", key, ", ...)"
+    print *, "wb_broadcast", "(", key, ", ...)"
 #endif
 
         if (present(wb)) then

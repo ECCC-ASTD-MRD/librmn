@@ -22,13 +22,7 @@ function FNCNAME(wb_get_)(key, val, wb) result(status)
 
 #ifdef DEBUG
     print *, "TYPELEN = ", TYPELEN
-#define STR_VALUE(arg)      #arg
-#define FUNCTION_NAME(name) STR_VALUE(name)
-#define TEST_FUNC_NAME FUNCTION_NAME(FNCNAME(wb_get_))
-    print *, TEST_FUNC_NAME, "(", key, ", ...)"
-#undef TEST_FUNC_NAME
-#undef FUNCTION_NAME
-#undef STR_VALUE
+    print *, "FNCNAME(wb_get_)", "(", key, "val, [wb])"
 #endif
 
 !$omp critical
@@ -67,13 +61,7 @@ function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
 #undef ARRAY
 
 #ifdef DEBUG
-#define STR_VALUE(arg)      #arg
-#define FUNCTION_NAME(name) STR_VALUE(name)
-#define FUNCTION_NAME(NAMEA(FNCNAME(wb_get_)))
-    print *, TEST_FUNC_NAME, "(", key, ", ...)"
-#undef TEST_FUNC_NAME
-#undef FUNCTION_NAME
-#undef STR_VALUE
+    print *, "FNCNAME(wb_get_)", "(", key, "val,", nbval, ", [wb])"
 #endif
 
 !$omp critical
