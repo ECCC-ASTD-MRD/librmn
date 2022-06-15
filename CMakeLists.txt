@@ -37,6 +37,11 @@ set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS OFF)
 
+option(EXTRA_DEBUG_OUTPUT "Enable extra debug output" OFF)
+if(EXTRA_DEBUG_OUTPUT)
+    add_compile_definitions(DEBUG)
+endif()
+
 # Figure out the correct ach_dependant include path
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
@@ -209,7 +214,11 @@ set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
 
+option(WITH_TESTS "Build test programs" ON)
 if(WITH_TESTS)
     add_executable(fst_write ${CMAKE_CURRENT_SOURCE_DIR}/tests/fst_write.c)
     target_link_libraries(fst_write rmn)
+
+    add_executable(wb ${CMAKE_CURRENT_SOURCE_DIR}/tests/wb.F90)
+    target_link_libraries(wb rmn)
 endif()
