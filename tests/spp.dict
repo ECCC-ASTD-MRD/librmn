@@ -1,0 +1,23 @@
+version=100
+
+@spp
+options(WB_REWRITE_UNTIL)
+define(spp_nlat[i4,0])
+define(spp_range[r4,2])
+define(spp_std[r4,0])
+define(spp_str[r4,0])
+define(spp_tau[r4,0])
+define(spp_trn[i4,2])
+define(spp_type[c16,0])
+define(spp_values[c16,10])
+spp_nlat = 8
+spp_range = 0., 0.
+spp_std = 0.
+spp_str = 0.
+spp_tau = 0.
+spp_trn = 1, 8
+spp_type = 'continuous'
+spp_values = ''
+
+@
+
