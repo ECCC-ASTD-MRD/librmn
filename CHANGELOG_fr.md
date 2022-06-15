@@ -29,6 +29,10 @@ types correspondants accessibles via `#include <stdint.h>`
 | wordint  |  int32_t |
 | ftnfloat |    float |
 
+- La macro `Amd64` a été supprimée.  Lorsque nécessaire, le code devrait
+utiliser des types dont la taille est explicite tels que `int32_t` ou
+`int64_t`.
+
 - La fonction Fortran `longueur(str)` n'est plus disponible. En Fortran,
 il faut utiliser `len_trim(str)` à la place. Pour le C, vous pouvez
 utiliser la fonction `ftnStrLen(str, maxLen)`
