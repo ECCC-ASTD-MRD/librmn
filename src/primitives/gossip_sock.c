@@ -522,7 +522,7 @@ int get_ip_address(
 
 #ifdef DEBUG
     char ipStr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &ipaddr, str, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &ipaddr, ipStr, INET_ADDRSTRLEN);
     fprintf(stderr, "get_ip_address(), IP address of %s:\"%s\"\n", hostname, ipStr);
 #endif
 
@@ -585,7 +585,7 @@ int connect_to_hostport(
     fprintf(stderr, "gossip_sock::connect_to_hostport() with ip addr: %d\n", ipaddr);
 
     char ipStr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &ipaddr, str, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &ipaddr, ipStr, INET_ADDRSTRLEN);
     fprintf(stderr, "Connecting to %s:%d\n", ipStr, portno);
 #endif
 
@@ -1441,7 +1441,7 @@ int write_stream(
     //! [in] Pointer to the data to write
     const char * const data,
     //! [in] Number of bytes to write
-    const int bytes
+    const int nBytes
 ) {
     fd_set wfds;
     struct timeval tv;
@@ -1450,7 +1450,7 @@ int write_stream(
     unsigned long long tt1, tt2, clk1, clk2;
     tt1 = time_base();
 
-    fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes a envoyer = %d\n", n);
+    fprintf(stderr, "gossip_sock::write_stream(), nombre de bytes a envoyer = %d\n", nBytes);
     fflush(stderr);
 #endif
 
@@ -1462,7 +1462,7 @@ int write_stream(
 
     int res;
     const char * ptr = data;
-    int bytesRemaining = bytes;
+    int bytesRemaining = nBytes;
     while (bytesRemaining > 0) {
         if (select(fd + 1, NULL, &wfds, NULL, &tv)) {
             res = write(fd, ptr, bytesRemaining);
@@ -1736,7 +1736,7 @@ int read_stream(
 #ifdef DEBUG
     unsigned long long clk1, clk2;
 
-    fprintf(stderr, "gossip_sock::read_stream(), bytes to be read = %d\n", n);
+    fprintf(stderr, "gossip_sock::read_stream(), bytes to be read = %d\n", nbytes);
     fprintf(stderr, "gossip_sock::read_stream(), fd = %d\n", fd);
 #endif
 
