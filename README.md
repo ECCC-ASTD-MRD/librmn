@@ -45,9 +45,6 @@ CMAKE_BUILD_TYPE
 CMAKE_INSTALL_PREFIX
 : Chemin d'accès du répertoire pour l'installation (`make install`)
 
-BUILD_SHARED_LIBS
-: `(yes|no)` Indique si les bibliothèques de fonctions dynamiques doivent être produites.  Défaut: `no`
-
 COMPILER_SUITE
 : `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Sur les systèmes d'ECCC,
 le compilateur chargé sera utilisé.  Si les vairables d'environnement propres à
