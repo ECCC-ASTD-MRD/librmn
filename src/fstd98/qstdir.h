@@ -56,25 +56,15 @@
 #endif
 
 
-/* macro definitions */
 #define upper_case(car) ( car & (~((car & 64) >> 1)) )
 #define upper_case_word(wd) ( wd & (~((wd & 0x40404040) >> 1)) )
-#define ascii64(car) ( (car > 95) ? car-32 : car)
-#define ascii6(car) ((upper_case(car)-32) & 0x3f)
-#define string_copy(dest,src,l) while(--l >= 0) dest[l]=src[l]
-#define str_cp_init(strc,lc,strf,lf)                               \
-   {                                                               \
-     int i;                                                        \
-     for (i=0; i < lc-1; i++) strc[i] = (i < lf) ? strf[i] : ' ';  \
-     strc[lc-1] = '\0';                                            \
-   }                                                               \
-
+#define ascii64(car) ( (car > 95) ? car - 32 : car)
+#define ascii6(car) ((upper_case(car) - 32) & 0x3f)
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
-#define MRBCOV(a,b,c) ((a << 14) | (b << 8) | c)
+
 #define INFOPRINT if (1 >= msg_level)
 #define WARNPRINT if (2 >= msg_level)
-/* end macro definitions */
 
 #define MAX_XDF_FILES 1024
 //! Size of a directory pages in an XDF file

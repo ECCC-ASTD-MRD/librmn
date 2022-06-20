@@ -32,6 +32,9 @@ corresponding data types accessible via `#include <stdint.h>`
 - The `Amd64` macro was removed.  Where necessary, code should use
 explicitly sized types such as `int32_t` or `int64_t`.
 
+- The `string_copy` was deleted.  The standard C function `strncpy`
+should be used instead.
+
 - The Fortran function `longueur(str)` was deleted.  Fortran 90,
 introduced the `len_trim(str)` built-in function that should be used
 instead.  For C code handling Fortran strings, `ftnStrLen(str, maxLen)`

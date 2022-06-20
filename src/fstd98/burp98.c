@@ -29,6 +29,8 @@
 #include "qstdir.h"
 #include "xdf98.h"
 
+#define MRBCOV(a, b, c) ((a << 14) | (b << 8) | c)
+
 int32_t f77name(mrfbfl)(int32_t *iun);
 
 int BurP_nele;
@@ -1332,7 +1334,7 @@ int32_t f77name(mrbhdr)(
     *f_run = (int32_t) run;
     *f_nblk = (int32_t) nblk;
     int l1 = (ll1 > 11) ? 11: ll1;
-    string_copy(f_stnid, stnid, l1);
+    strncpy(f_stnid, stnid, l1);
     return (int32_t)ier;
 }
 
