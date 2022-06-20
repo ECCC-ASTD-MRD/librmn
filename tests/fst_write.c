@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <math.h>
+#include <float.h>
 #include <rmn.h>
 
 //#include <png.h>
 
+#define DATYP 5
 #define DATATYPE float
-#define DATYP 1
-
 // #define DATATYPE double
-// #define DATYP 5
 
 int main(int argc, char** argv) {
     const int domainSz = 1024;
@@ -25,13 +24,14 @@ int main(int argc, char** argv) {
             // printf("domain[%d][%d] = %f\n", i, j, domain[i][j]);
         }
     }
-    DATATYPE min = 0.0;
+    DATATYPE min = domain[0][0];
     int mini = 0;
     int minj = 0;
 
-    DATATYPE max = 0.0;
+    DATATYPE max = domain[0][0];
     int maxi = 0;
     int maxj = 0;
+
     for (int i = 0; i < domainSz; i++) {
         for (int j = 0; j < domainSz; j++) {
             if (domain[i][j] < min) {
@@ -48,15 +48,20 @@ int main(int argc, char** argv) {
         }
     }
 
+    printf("min(domain) = %f (%d, %d)\n", min, mini, minj);
+    printf("max(domain) = %f (%d, %d)\n", max, maxi, maxj);
+
+    printf("FLT_EPSILON = %e\n", FLT_EPSILON);
+    printf("FLT_MIN = %e\n", FLT_MIN);
+    printf("DBL_EPSILON = %e\n", DBL_EPSILON);
+    printf("DBL_MIN = %e\n", DBL_MIN);
+
     int iun = 0;
     c_fnom(&iun, "test.fst", "RND,R/W", 0);
     c_fstouv(iun, "RND");
-    c_fstecr((uint32_t *) domain, NULL, sizeof(DATATYPE), iun, 20220610, 300, 0, domainSz, domainSz,
+    c_fstecr((uint32_t *) domain, NULL, 0 - (sizeof(DATATYPE) * 8), iun, 20220610, 300, 0, domainSz, domainSz,
                  1, 1, 1, 1, "P", "WAV", "TEST_WRITE", "X", 0, 0, 0, 0, DATYP, 1);
     c_fstfrm(iun);
-
-//     printf("min(domain) = %f (%d, %d)\n", min, mini, minj);
-//     printf("max(domain) = %f (%d, %d)\n", max, maxi, maxj);
 // 
 //     FILE * fp = fopen("out.png", "wb");
 //     if (!fp) return ERROR;
