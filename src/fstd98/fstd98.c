@@ -105,6 +105,7 @@ int FstCanTranslateName(char *varname);
 static str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
         dst[i] = (i < srcLen) ? src[i] : ' ';
+    }
     dst[dstLen - 1] = '\0';
 }
 
