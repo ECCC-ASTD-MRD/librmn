@@ -135,6 +135,7 @@ test:amd64-gnu-9.3.0:
       - set +e
       - source ci-env/latest/profile.sh
       - set -e
+      - cd build_amd64-gnu-9.3.0
       - make test
 
 test:icelake-gnu-12.1.0:
@@ -149,6 +150,7 @@ test:icelake-gnu-12.1.0:
       - set +e
       - source ci-env/latest/profile.sh
       - set -e
+      - cd build_icelake-gnu-12.1.0
       - make test
 
 test:icelake-inteloneapi-2022.1.2:
@@ -163,6 +165,7 @@ test:icelake-inteloneapi-2022.1.2:
       - set +e
       - source ci-env/latest/profile.sh
       - set -e
+      - cd build_icelake-inteloneapi-2022.1.2
       - make test
 
 test:amd64-inteloneapi-2022.1.2:
@@ -177,6 +180,7 @@ test:amd64-inteloneapi-2022.1.2:
       - set +e
       - source ci-env/latest/profile.sh
       - set -e
+      - cd build_amd64-inteloneapi-2022.1.2
       - make test
 
 
