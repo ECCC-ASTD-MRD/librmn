@@ -165,6 +165,7 @@ test:icelake-inteloneapi-2022.1.2:
       - set +e
       - source ci-env/latest/profile.sh
       - set -e
+      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
       - cd build_icelake-inteloneapi-2022.1.2
       - make test
 
@@ -180,6 +181,8 @@ test:amd64-inteloneapi-2022.1.2:
       - set +e
       - source ci-env/latest/profile.sh
       - set -e
+      - . r.env.dot --arch amd64
+      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
       - cd build_amd64-inteloneapi-2022.1.2
       - make test
 
