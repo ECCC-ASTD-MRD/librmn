@@ -4,6 +4,7 @@
 #include "version.h"
 #include "fnom.h"
 #include "fstd98.h"
+#include "fstdsz.h"
 #include "ezscint.h"
 #include "fst_missing.h"
 #include "burp.h"

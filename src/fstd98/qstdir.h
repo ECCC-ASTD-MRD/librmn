@@ -4,7 +4,6 @@
 #define QSTDDIR_H
 
 #include <stdint.h>
-#include <rpnmacros.h>
 #include "fnom.h"
 #define WRITE_PAGE(a,b,c)
 
@@ -468,10 +467,7 @@ typedef struct {
 #define IP2_MAX     0xFFFFFFF
 #define IP3_MAX     0xFFFFFFF
 
-#define ETIKET_LEN 13
-#define NOMVAR_LEN 5
-#define TYPVAR_LEN 3
-#define GTYP_LEN 2
+#include <fstdsz.h>
 
 //! Search tags part of standard file directory entry :  header + 8 x 64 bits
 typedef struct {
