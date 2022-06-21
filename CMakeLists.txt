@@ -214,11 +214,6 @@ set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
 
-option(WITH_TESTS "Build test programs" ON)
-if(WITH_TESTS)
-    add_executable(fst_write ${CMAKE_CURRENT_SOURCE_DIR}/tests/fst_write.c)
-    target_link_libraries(fst_write rmn)
+enable_testing()
+add_subdirectory(tests)
 
-    add_executable(wb ${CMAKE_CURRENT_SOURCE_DIR}/tests/wb.F90)
-    target_link_libraries(wb rmn)
-endif()

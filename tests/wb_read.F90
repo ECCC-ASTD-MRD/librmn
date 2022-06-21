@@ -27,4 +27,8 @@ program wb
     call f_wb_verbosity(WB_MSG_DEBUG)
 
     res = wb_read('spp/a/', filePath, 'spp', WB_STRICT_DICTIONARY)
+    if (res /= 0) then
+        print *, 'res = ', res
+        error stop
+    end if
 end program wb
