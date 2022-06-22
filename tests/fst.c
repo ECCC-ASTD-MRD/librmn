@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     int iun = 0;
     c_fnom(&iun, FILENAME, "RND,R/W", 0);
     c_fstouv(iun, "RND");
-    c_fstecr((uint32_t *) domain, NULL, 0 - (sizeof(DATATYPE) * 8), iun, 20220610, 300, 0, domainSz, domainSz,
+    c_fstecr((uint32_t *) domain, NULL, 0 - ((uint32_t)sizeof(DATATYPE) * 8), iun, 20220610, 300, 0, domainSz, domainSz,
                  1, 1, 1, 1, "P", "WAVE", DATATYPESTR, "X", 0, 0, 0, 0, DATYP, 1);
     c_fstfrm(iun);
     c_fclos(iun);
