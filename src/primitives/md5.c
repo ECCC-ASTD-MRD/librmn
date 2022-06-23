@@ -43,12 +43,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef WIN32
-#	define snprintf _snprintf
-#endif
-/*
- * 32-bit integer manipulation macros (little endian)
- */
+// 32-bit integer manipulation macros (little endian)
 #ifndef GET_ULONG_LE
 #define GET_ULONG_LE(n,b,i)                             \
 {                                                       \
@@ -69,9 +64,7 @@
 }
 #endif
 
-/*
- * MD5 context setup
- */
+// MD5 context setup
 void md5_starts( md5_context *ctx )
 {
     ctx->total[0] = 0;
@@ -206,9 +199,7 @@ static void md5_process( md5_context *ctx, unsigned char data[64] )
     ctx->state[3] += D;
 }
 
-/*
- * MD5 process buffer
- */
+// MD5 process buffer
 void md5_update( md5_context *ctx, unsigned char *input, int ilen )
 {
     int fill;
@@ -258,9 +249,7 @@ static const unsigned char md5_padding[64] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-/*
- * MD5 final digest
- */
+// MD5 final digest
 void md5_finish( md5_context *ctx, unsigned char output[16] )
 {
     unsigned long last, padn;
@@ -286,9 +275,7 @@ void md5_finish( md5_context *ctx, unsigned char output[16] )
     PUT_ULONG_LE( ctx->state[3], output, 12 );
 }
 
-/*
- * output = MD5( input buffer )
- */
+// output = MD5( input buffer )
 void md5( unsigned char *input, int ilen, unsigned char output[16] )
 {
     md5_context ctx;
@@ -300,9 +287,7 @@ void md5( unsigned char *input, int ilen, unsigned char output[16] )
     memset( &ctx, 0, sizeof( md5_context ) );
 }
 
-/*
- * output = MD5( file contents )
- */
+// output = MD5( file contents )
 int md5_file( char *path, unsigned char output[16] )
 {
     FILE *f;
@@ -342,9 +327,7 @@ int md5_ssh( unsigned char output[16] )
     return( md5_file(filename,output) );
 }
 
-/*
- * MD5 HMAC context setup
- */
+// MD5 HMAC context setup
 void md5_hmac_starts( md5_context *ctx, unsigned char *key, int keylen )
 {
     int i;
@@ -372,17 +355,13 @@ void md5_hmac_starts( md5_context *ctx, unsigned char *key, int keylen )
     memset( sum, 0, sizeof( sum ) );
 }
 
-/*
- * MD5 HMAC process buffer
- */
+// MD5 HMAC process buffer
 void md5_hmac_update( md5_context *ctx, unsigned char *input, int ilen )
 {
     md5_update( ctx, input, ilen );
 }
 
-/*
- * MD5 HMAC final digest
- */
+// MD5 HMAC final digest
 void md5_hmac_finish( md5_context *ctx, unsigned char output[16] )
 {
     unsigned char tmpbuf[16];
@@ -396,9 +375,7 @@ void md5_hmac_finish( md5_context *ctx, unsigned char output[16] )
     memset( tmpbuf, 0, sizeof( tmpbuf ) );
 }
 
-/*
- * output = HMAC-MD5( hmac key, input buffer )
- */
+// output = HMAC-MD5( hmac key, input buffer )
 void md5_hmac( unsigned char *key, int keylen, unsigned char *input, int ilen,
                unsigned char output[16] )
 {
@@ -413,9 +390,7 @@ void md5_hmac( unsigned char *key, int keylen, unsigned char *input, int ilen,
 
 #if defined(SELF_TEST)
 
-/*
- * RFC 1321 test vectors
- */
+// RFC 1321 test vectors
 static const char md5_test_str[7][81] =
 {
     { "" }, 
@@ -446,9 +421,7 @@ static const unsigned char md5_test_sum[7][16] =
       0xAC, 0x49, 0xDA, 0x2E, 0x21, 0x07, 0xB6, 0x7A }
 };
 
-/*
- * Checkup routine
- */
+// Checkup routine
 int md5_self_test( int verbose )
 {
     int i;
@@ -481,20 +454,19 @@ int md5_self_test( int verbose )
 }
 main(int argc, char **argv)
 {
-unsigned char buffer[16];
-int i;
+    unsigned char buffer[16];
 
-md5_self_test(1);
-if(argc==2) {
-  if(md5_file(argv[1],buffer)) printf("md5_file test FAILED\n");
-  printf("FILE=%s, Digest=",argv[1]);
-  for ( i=0 ; i<16 ; i++ ) printf("%x",buffer[i]);
-  printf("\n");
-  }
-if(md5_ssh(buffer)) printf("md5_ssh FAILED\n");
-printf("SSH Digest=");
-for ( i=0 ; i<16 ; i++ ) printf("%x",buffer[i]);
-printf("\n");
+    md5_self_test(1);
+    if (argc == 2) {
+        if (md5_file(argv[1],buffer)) printf("md5_file test FAILED\n");
+        printf("FILE=%s, Digest=",argv[1]);
+        for ( int i = 0 ; i < 16 ; i++ ) printf("%x",buffer[i]);
+            printf("\n");
+    }
+    if (md5_ssh(buffer)) printf("md5_ssh FAILED\n");
+    printf("SSH Digest=");
+    for (int i = 0 ; i < 16 ; i++ ) printf("%x",buffer[i]);
+        printf("\n");
 }
 #endif
 
