@@ -393,7 +393,7 @@ void f77name(hpdeallc)(
 
 //! Cache aligned allocation
 void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *abort, int32_t *fpw2) {
-#if defined (AIX)
+#if defined (_AIX)
     int alignment[3] = {128, 128, 512};
 #else
     int alignment[3] = {32, 32, 32};

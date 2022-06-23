@@ -1,4 +1,4 @@
-#ifdef AIX
+#ifdef _AIX
 
 
 /*============================================================================
@@ -11,35 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "llapi.h"
-
-void get_wall_clock_used(char *stepid,char **hostname,int *wu,int *wh,int *ws);
-
-#ifdef DEBUG
-int  main(int argc, char **argv)
-{
-    char *hostname;
-    char *stepid;
-    int wused, whard, wsoft;
-    int rc, i, step_count;
-
-    step_count = argc - 1;
-    printf("%25s %15s \n"," ","WallClockTime");
-    printf("%-15s %-20s %-5s %-5s %-5s \n","Hostname","StepId", "Used", "Hard", "Soft");
-
-    /* loop through the steplist  to find wallclock time
-       used for each step */
-
-    for ( i = 0; i < step_count; i++ ) {
-        stepid = argv[i+1];
-        hostname = NULL;
-        get_wall_clock_used(stepid, &hostname, &wused, &whard, &wsoft);
-        printf ("%-15s %-20s %-5d %-5d %-5d \n", strtok(hostname,"."), stepid, wused, whard, wsoft);
-        if (hostname != NULL) {
-            free(hostname);
-        }
-    }
-}
-#endif
 
 /*
   This function finds the actual wall clock time used by a running step
@@ -56,8 +27,7 @@ int  main(int argc, char **argv)
 
 */
 
- void get_wall_clock_used(char *stepid, char **hostname, int *wu, int *wh, int *ws )
-{
+ void get_wall_clock_used(char *stepid, char **hostname, int *wu, int *wh, int *ws ) {
     LL_element *queryObject;
     LL_element *job = NULL;
     LL_element *step = NULL;
@@ -115,73 +85,103 @@ int  main(int argc, char **argv)
     ll_deallocate(queryObject);
 }
 #else
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-void get_wall_clock_used(char *stepid,char **hostname,int *wu,int *wh,int *ws)
-{
-  time_t curtime=time(NULL);
-  char *JobStartTime=getenv("JobStartTime");
-  char *JobTimeLimit=getenv("JobTimeLimit");
-  int StartTime, TimeLimit;
-  StartTime=curtime;
-  TimeLimit=1800;
-  if( JobStartTime != NULL )
-    {
-    sscanf(JobStartTime,"%d",&StartTime);
+void get_wall_clock_used(char *stepid, char **hostname, int *wu, int *wh, int *ws) {
+    time_t curtime = time(NULL);
+    char *JobStartTime = getenv("JobStartTime");
+    char *JobTimeLimit = getenv("JobTimeLimit");
+    int StartTime, TimeLimit;
+    StartTime = curtime;
+    TimeLimit = 1800;
+    if( JobStartTime != NULL ) {
+        sscanf(JobStartTime,"%d",&StartTime);
     }
 
-  if( JobTimeLimit != NULL )
-    {
-    sscanf(JobTimeLimit,"%d",&TimeLimit);
+    if( JobTimeLimit != NULL ) {
+        sscanf(JobTimeLimit,"%d",&TimeLimit);
     }
-  *wh = *ws = TimeLimit;
-  *wu = curtime - StartTime;
-  return;
+    *wh = *ws = TimeLimit;
+    *wu = curtime - StartTime;
+    return;
 }
 #ifdef DEBUG
-int  main(int argc, char **argv)
-{
-        char *hostname;
-        char *stepid;
-        int wused, whard, wsoft;
+int  main(int argc, char **argv){
+    char *hostname;
+    char *stepid;
+    int wused, whard, wsoft;
 
+    get_wall_clock_used(stepid, &hostname, &wused, &whard, &wsoft);
+    fprintf(stderr,"used=%d, hard limit=%d, soft limit=%d\n", wused, whard, wsoft);
+}
+#endif
+#endif
+
+void c_get_my_resident_time(int *wu, int *wh, int *ws) {
+    *wu = 0;
+    *wh = 1800;
+    *ws = 1800;
+#ifdef _AIX
+    char *hostname;
+    get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
+#endif
+}
+
+f_get_my_resident_time(int *wu, int *wh, int *ws) {
+    *wu = 0;
+    *wh = 1800;
+    *ws = 1800;
+#ifdef _AIX
+    char *hostname;
+    get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
+#endif
+}
+
+f_get_my_resident_time_(int *wu, int *wh, int *ws) {
+    *wu = 0;
+    *wh = 1800;
+    *ws = 1800;
+#ifdef _AIX
+    char *hostname;
+    get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
+#endif
+}
+
+f_get_my_resident_time__(int *wu, int *wh, int *ws) {
+    *wu = 0;
+    *wh = 1800;
+    *ws = 1800;
+#ifdef _AIX
+    char *hostname;
+    get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
+#endif
+}
+
+
+#ifdef DEBUG
+int  main(int argc, char **argv) {
+    char *hostname;
+    char *stepid;
+    int wused, whard, wsoft;
+    int rc, i, step_count;
+
+    step_count = argc - 1;
+    printf("%25s %15s \n"," ","WallClockTime");
+    printf("%-15s %-20s %-5s %-5s %-5s \n","Hostname","StepId", "Used", "Hard", "Soft");
+
+    /* loop through the steplist  to find wallclock time
+       used for each step */
+
+    for ( i = 0; i < step_count; i++ ) {
+        stepid = argv[i+1];
+        hostname = NULL;
         get_wall_clock_used(stepid, &hostname, &wused, &whard, &wsoft);
-        fprintf(stderr,"used=%d, hard limit=%d, soft limit=%d\n",wused,whard,wsoft);
+        printf ("%-15s %-20s %-5d %-5d %-5d \n", strtok(hostname,"."), stepid, wused, whard, wsoft);
+        if (hostname != NULL) {
+            free(hostname);
+        }
+    }
 }
 #endif
-#endif
-
-void c_get_my_resident_time(int *wu, int *wh, int *ws )
-{
- char *hostname;
- *wu=0 ; *wh=1800 ; *ws=1800 ;
-#ifdef AIX
- get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
-#endif
-}
-
-f_get_my_resident_time(int *wu, int *wh, int *ws )
-{
- char *hostname;
- *wu=0 ; *wh=1800 ; *ws=1800 ;
-#ifdef AIX
- get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
-#endif
-}
-f_get_my_resident_time_(int *wu, int *wh, int *ws )
-{
- char *hostname;
- *wu=0 ; *wh=1800 ; *ws=1800 ;
-#ifdef AIX
- get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
-#endif
-}
-f_get_my_resident_time__(int *wu, int *wh, int *ws )
-{
- char *hostname;
- *wu=0 ; *wh=1800 ; *ws=1800 ;
-#ifdef AIX
- get_wall_clock_used(getenv("LOADL_STEP_ID"), &hostname, wu, wh, ws);
-#endif
-}

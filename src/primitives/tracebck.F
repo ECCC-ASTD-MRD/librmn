@@ -18,7 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
       subroutine tracebck
-#if defined (AIX)
+#if defined (_AIX)
       call xl__trbk()
 #else
       print *,' <<<<< TRACEBACK >>>>>'
