@@ -13,10 +13,6 @@
 
 #define F77_LOGICAL_ARG(X)   void *X
 
-#define CONCAT(A,B) A##B
-#define F77STRLEN(X) CONCAT(X,_length)
-#define HIDDENLEN(X) , F2Cl F77STRLEN(X)
-
 #if defined(_AIX)
 #define __AIX__ 
 #define AIX IBM_AIX
