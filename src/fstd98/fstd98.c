@@ -22,12 +22,8 @@
 #define use_old_signed_pack_unpack_code YES
 
 #include <stdio.h>
-#ifdef WIN32    /*CHC/NRC*/
-    #include <malloc.h>
-#else
-    #include <unistd.h>
-    #include <alloca.h>
-#endif
+#include <unistd.h>
+#include <alloca.h>
 
 #include <stdlib.h>
 #include <stdint.h>

@@ -31,11 +31,6 @@
 #include <rpnmacros.h>
 #include <ftn2c_helper.h>
 
-#ifdef WIN32
-// For Windows, the macro is called _PATH_MAX and it's defined in stdlib.h
-#define PATH_MAX _PATH_MAX
-#endif
-
 #define CLIB_OK    1
 #define CLIB_ERROR -1
 #define CLIB_SUFFIX _schhide
@@ -48,15 +43,16 @@ F77_INTEGER CLIB_F77NAME(clib_glob)(
     F77_CHARACTER *filelist,
     F77_INTEGER *nfiles,
     F77_CHARACTER *pattern,
-    F77_INTEGER *maxnfiles
-    HIDDENLEN(filelist) HIDDENLEN(pattern)
+    F77_INTEGER *maxnfiles,
+    F2Cl filelist_length,
+    F2Cl pattern_length
 ) {
     glob_t globbuf;
     char pattern_c[PATH_MAX];
     F77_INTEGER status = CLIB_ERROR;
 
     // Translate to C strings
-    if (FTN2C_FSTR2CSTR(pattern, pattern_c, F77STRLEN(pattern), PATH_MAX) < 0) {
+    if (FTN2C_FSTR2CSTR(pattern, pattern_c, pattern_length, PATH_MAX) < 0) {
         return CLIB_ERROR;
     }
 
@@ -65,7 +61,7 @@ F77_INTEGER CLIB_F77NAME(clib_glob)(
     if (!glob(pattern_c, GLOB_NOSORT, NULL, &globbuf)) {
         if ((F77_INTEGER)globbuf.gl_pathc <= *maxnfiles) {
             *nfiles = (F77_INTEGER)globbuf.gl_pathc;
-            if (FTN2C_CSTR2FSTR_A(globbuf.gl_pathv, filelist, PATH_MAX, (int)F77STRLEN(filelist), (int)*nfiles) >= 0) {
+            if (FTN2C_CSTR2FSTR_A(globbuf.gl_pathv, filelist, PATH_MAX, (int)filelist_length, (int)*nfiles) >= 0) {
                 status = CLIB_OK;
             }
         }

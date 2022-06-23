@@ -19,32 +19,23 @@
  */
 
 #include <stdio.h>
-#include <rpnmacros.h>
 
-#ifdef WIN32	/*CHC/NRC*/
-#include <Windows.h>
-void f77name(micro_sleep) (double *secs)
-{
-	DWORD dwMilliseconds = 1000 * (*secs);
-	Sleep(dwMilliseconds);
-}
-#else
 #include <sys/types.h>
 #include <sys/time.h>
-#if !defined (HP)
 #include <sys/select.h>
-#endif
+
 #include <math.h>
+
+#include <rpnmacros.h>
+
+
 void f77name(micro_sleep) (double *secs)
 {
-  int sec,usec;
-  struct timeval timeout;
-  sec = *secs / 1;
-  usec = fmod(*secs,1.0) * 1000000;
-  /*  printf("Debug sec=%d usec=%d\n",sec,usec); */
-  timeout.tv_sec=*secs / 1;
-  timeout.tv_usec=fmod(*secs,1.0) * 1000000;
-  select(0,NULL,NULL,NULL,&timeout);
+    int sec = *secs / 1;
+    int usec = fmod(*secs, 1.0) * 1000000;
+    // printf("Debug sec=%d usec=%d\n",sec,usec);
+    struct timeval timeout;
+    timeout.tv_sec = *secs / 1;
+    timeout.tv_usec = fmod(*secs, 1.0) * 1000000;
+    select(0, NULL, NULL, NULL, &timeout);
 }
-#endif
-

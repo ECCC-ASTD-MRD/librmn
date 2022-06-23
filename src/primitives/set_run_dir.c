@@ -22,21 +22,17 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifndef WIN32
 #include <unistd.h>
-#endif
 
 #include <rpnmacros.h>
 
-void f77name(set_run_dir)(int32_t *mype)
-{
+void f77name(set_run_dir)(int32_t *mype) {
     char buffer[1024];
     int pe =* mype;
-    #ifndef WIN32
+
     sprintf(buffer,"Um_set_tile.sh %d 2> /dev/null",pe);
     system(buffer);
-    #endif
+
     sprintf(buffer,"./process/%d",pe);
     if ( chdir(buffer) ) {
         perror("set_run_dir: cannot change to specidied directory");
@@ -48,11 +44,11 @@ void f77name(set_run_dir_xy)(int32_t *mypex, int32_t *mypey) {
     char buffer[1024];
     int pex =* mypex;
     int pey =* mypey;
-    #ifndef WIN32
+
     sprintf(buffer,"Um_set_tile.sh %02d-%02d 2> /dev/null",pex,pey);
     /* fprintf(stderr,"Executing:%s\n",buffer); */
     system(buffer);
-    #endif
+
     sprintf(buffer,"./process/%02d-%02d",pex,pey);
     if ( chdir(buffer) ) {
         fprintf(stderr,"cannot change to specidied directory:%s:\n",buffer);

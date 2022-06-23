@@ -21,30 +21,27 @@
 /* auteur: M. valin */
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifndef WIN32
 #include <unistd.h>
-#endif
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include <rpnmacros.h>
 
-static int fd=-1;
-void f77name(open_status_file)(){
- if( (fd=open("./status.dot",O_RDWR+O_CREAT,0755)) <0 ) {
-   fprintf(stderr,"open_status_file: ERROR : Cannot open status file \n");
-   exit(1);
- }
+static int fd = -1;
+void f77name(open_status_file)() {
+    if ( (fd=open("./status.dot",O_RDWR+O_CREAT,0755)) <0 ) {
+        fprintf(stderr,"open_status_file: ERROR : Cannot open status file \n");
+        exit(1);
+    }
 }
-void f77name(write_status_file)(char *msg, F2Cl lmsg){
-#ifdef WIN32
-  write(fd,msg,strlen(msg));
-#else
- write(fd,msg,lmsg);
-#endif
+
+
+void f77name(write_status_file)(char *msg, F2Cl lmsg) {
+    write(fd, msg, lmsg);
 }
-void f77name(close_status_file)(){
- close(fd);
+
+
+void f77name(close_status_file)() {
+    close(fd);
 }

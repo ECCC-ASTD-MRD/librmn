@@ -45,6 +45,13 @@ can be used.
 
 - arch_specific.hf was deleted since it is now empty
 
+- Support for WIN32 has been removed.  The code has not been tested on
+that platform for many years and was likely broken.
+
+- The `second()`, `_second()` et `__second()` functions which allowed to
+query the CPU time used have been deleted.  External tools allow
+retrieving that information or profiling.
+
 - All the functions in DMMS are obsolete and should no longer be used:
     - memoirc
     - dmmsdbg

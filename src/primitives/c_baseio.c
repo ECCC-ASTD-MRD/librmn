@@ -304,12 +304,6 @@ int c_fnom(
     if (fnom_initialized == 0) {
         //  Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file
         // This is a workaround for a particular case on Linux in batch mode with PBS
-#ifndef WIN32
-        int junk = open("/dev/null", O_RDONLY);
-        if (junk != 0) {
-            close(junk);
-        }
-#endif
         ARMNLIB = getenv("ARMNLIB");
         if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
         AFSISIO = getenv("AFSISIO");

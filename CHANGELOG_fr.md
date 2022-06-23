@@ -45,6 +45,15 @@ utiliser la fonction `ftnStrLen(str, maxLen)`
 
 - arch_specific.hf a été supprimé c'est maintenant vide
 
+- Le support pour WIN32 a été retiré.  Le code n'avait pas été testé sur
+cette plateforme depuis plusieurs années et était probablement
+non-fonctionnel.
+
+- Les fonctions `second()`, `_second()` et `__second()` permettant
+d'interroger le temps CPU utilisé ont été supprimmées.  Des outils
+externes permettent d'obtenir cette information ou de faire du
+profilage.
+
 - Toutes les fonctions de dmms sont obsolètes et ne devraient plus être
 utilisées.
     - memoirc

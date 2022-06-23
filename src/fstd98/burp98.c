@@ -19,12 +19,9 @@
  */
 
 #include <stdio.h>
-#ifdef WIN32    /*CHC/NRC*/
-#include <string.h>
-#else
 #include <unistd.h>
-#endif
 #include <stdlib.h>
+
 #include <burp.h>
 #include "qstdir.h"
 #include "xdf98.h"

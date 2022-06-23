@@ -1,5 +1,3 @@
-// s.cc -DWITH_TEST_PROGRAM r.file_is_type.c -lrmn
-
 /* RMNLIB - Library of useful routines for C and FORTRAN programming
  * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
  *                          Environnement Canada
@@ -105,14 +103,9 @@
 #ifdef should_never_be_true
 #include <X11/Xmd.h>
 #else
-  #ifdef WIN32    /*CHC/NRC*/
-    typedef unsigned long CARD32;
-    #define rindex(a, b) strrchr((a), (b))
-  #else
     #include <unistd.h>
     #define CARD32 unsigned int
-  #endif
-#define B32 :32
+    #define B32 :32
 #endif
 
 #include <fstd98.h>
@@ -167,7 +160,6 @@ struct rasterfile {
 #endif
 #define sz_XWDColor 12
 
-typedef CARD32 xwdval;      /* for old broken programs */
 
 typedef struct _xwd_file_header {
     CARD32 header_size B32;  /* Size of the entire file header (bytes). */
@@ -586,12 +578,10 @@ static int isps(
 static int isxwd(
     char *path
 ) {
-   FILE *fp;
+   FILE *fp = fopen( path, "rb");
+   if ( fp == NULL ) return FALSE;
+
    XWDFileHeader xwd;
-   int   flen, len;
-
-   if( (fp = fopen( path, "rb")) == NULL ) return FALSE;
-
    if (fread32 ((char *) &xwd, sizeof(XWDFileHeader), 1, fp) != 1) {
        fclose(fp);
        return FALSE;
@@ -601,13 +591,12 @@ static int isxwd(
        fclose(fp);
        return FALSE;
    }
-   flen = ftell(fp);
+   int flen = ftell(fp);
    fclose(fp);
 
    if (xwd.file_version != XWD_FILE_VERSION ) return FALSE;
 
-   len = xwd.header_size + xwd.ncolors * sz_XWDColor + xwd.bytes_per_line * xwd.pixmap_height;
-
+   int len = xwd.header_size + xwd.ncolors * sz_XWDColor + xwd.bytes_per_line * xwd.pixmap_height;
    if ( len != flen ) return FALSE;
    return TRUE;
 }
