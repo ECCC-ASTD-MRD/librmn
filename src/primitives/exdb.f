@@ -84,7 +84,6 @@
 *        DATE      POUR OBTENIR LA DATE DU SYSTEME  (RMNLIB5)
 *        DATMGP2   POUR RECONSTITUER LE DATE TIME STAMP  (RMNLIB5)
 *        TIME      POUR OBTENIR L'HEURE  (LIBRAIRIE FORTRAN)
-*        SECOND    POUR OBTENIR LE TEMPS CPU  (LIBRAIRIE FORTRAN)
 *
 *NOTES
 *        EXDB VA CHERCHER DANS RA+56 A RA+63 L'IMAGE DE LA CARTE
@@ -100,7 +99,7 @@
       CHARACTER *24 CDATIM
       CHARACTER *105 VERSION,titre,tempstring
       INTEGER IOPDATM,I,IDATIM(14)
-      REAL T1,SECOND
+      REAL T1
 *     utilise pour que EXFIN ait acces a T1
       common/exdb_t1/ T1
 
@@ -139,7 +138,7 @@
      %     /,3X,'*',107X,'*',
      %     /,3X,'*',107('*'),'*')
 
-      T1 = SECOND( )
+      CALL CPU_TIME(T1)
       EXDBPLUS = IDATIM(14)
 
 
@@ -164,16 +163,15 @@
 **
       external flush_stdout
       common/exdb_t1/ T1
-      REAL T1, SECOND
-      EXTERNAL SECOND
+      REAL T1, T2
       CHARACTER *105 titre
       CHARACTER *24 CDATIM
       call flush_stdout()
       titre = ' '
       titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
       CALL FDATE(CDATIM)
-      WRITE(6,501) TITRE,REVIS,CDATIM,'END EXECUTION       ',
-     %     SECOND( )-T1
+      CALL CPU_TIME(T2)
+      WRITE(6,501) TITRE,REVIS,CDATIM,'END EXECUTION       ',T2-T1
  501  FORMAT(
      %     /,3X,'*',107('*'),'*',
      %     /,3X,'*',107X,'*',
