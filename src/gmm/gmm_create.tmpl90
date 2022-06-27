@@ -1,6 +1,7 @@
 integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use, intrinsic :: iso_c_binding
     use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
+    use, intrinsic :: iso_fortran_env
 
     use gmm_internals
     use gmm_pointer_table_data
@@ -30,7 +31,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 
     type(gmm_attributes) :: localattr, attrs
     type(gmm_layout), dimension(4) :: dims
-    integer*8 :: key
+    integer(kind = INT64) :: key
     logical :: consistent
     integer :: i, ier
     ! name (partially redundant with attributes)
