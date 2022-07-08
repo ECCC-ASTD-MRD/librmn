@@ -107,7 +107,7 @@ void get_wall_clock_used(char *stepid, char **hostname, int *wu, int *wh, int *w
     *wu = curtime - StartTime;
     return;
 }
-#ifdef DEBUG
+#ifdef CRASH
 int  main(int argc, char **argv){
     char *hostname;
     char *stepid;
@@ -160,7 +160,7 @@ f_get_my_resident_time__(int *wu, int *wh, int *ws) {
 }
 
 
-#ifdef DEBUG
+#ifdef CRASH
 int  main(int argc, char **argv) {
     char *hostname;
     char *stepid;
