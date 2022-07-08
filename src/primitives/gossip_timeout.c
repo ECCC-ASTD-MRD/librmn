@@ -18,47 +18,44 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* =================================================================== */
- 
-/* manipulate timeout counter */
- 
-static int TIMEOUT = 0;
-static int BASE_TIMEOUT = 20;
-static int PING_INTERVAL = 15;
- 
-void reset_timeout_counter()  /*   %ENTRY%   */
-{
-  TIMEOUT = BASE_TIMEOUT;
+//! \file gossip_timeout.c Gossip timeout counter functions
+
+static int timeout = 0;
+static int baseTimeout = 20;
+static int pingInterval = 15;
+
+void reset_timeout_counter() {
+    timeout = baseTimeout;
 }
 
-void increment_timeout_counter()  /*   %ENTRY%   */
-{
-  TIMEOUT++;
+
+void increment_timeout_counter() {
+    timeout++;
 }
 
-void decrement_timeout_counter()  /*   %ENTRY%   */
-{
-  TIMEOUT--;
+
+void decrement_timeout_counter() {
+    timeout--;
 }
 
-int set_timeout_counter(int timeout_value)  /*   %ENTRY%   */
-{
-  TIMEOUT = timeout_value;
-  BASE_TIMEOUT = timeout_value;
-  return(TIMEOUT);
+
+int set_timeout_counter(int timeout_value) {
+    timeout = timeout_value;
+    baseTimeout = timeout_value;
+    return timeout;
 }
 
-int get_timeout_counter()  /*   %ENTRY%   */
-{
-  return(TIMEOUT);
+
+int get_timeout_counter() {
+    return timeout;
 }
 
-int get_ping_interval()
-{
-  return(PING_INTERVAL);
+
+int get_ping_interval() {
+    return pingInterval;
 }
 
-void set_ping_interval(int ping_interval)
-{
-  PING_INTERVAL = ping_interval;
+
+void set_ping_interval(int ping_interval) {
+    pingInterval = ping_interval;
 }

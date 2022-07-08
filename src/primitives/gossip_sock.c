@@ -26,11 +26,11 @@
 #include <strings.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -46,6 +46,12 @@
 #include <fcntl.h>
 #include <sys/param.h>
 
+#ifdef __linux__
+#include <linux/limits.h>
+#else
+#error "Unknown OS!  Don't known how to get PATH_MAX!"
+#endif
+
 #include "md5.h"
 
 /* used by inet_addr, not defined on all architectures!? */
@@ -55,9 +61,6 @@
 
 //! Size of socket buffers in KiloBytes
 #define SOCK_BUF_SIZE 1024
-
-//! Maximum path size
-#define BPATH 1024
 
 #define  IS_OK    0
 #define  NOT_OK   1
@@ -80,8 +83,7 @@ int signal_timeout( int channel );
 void set_timeout_signal( int channel, int option );
 int get_timeout_signal( int channel );
 
-int connect_with_timeout(char *ipaddress, int portno, int timeout);
-int connect_with_timeout_localport(char *ipaddress, int portno, int timeout);
+int connect_with_timeout(const char * const ipaddress, const int portno, const int timeout);
 
 void check_data(char *record, int size);
 
@@ -101,17 +103,18 @@ long long time_base() {
 //! Get the value of the GSSIPDIR environment variable
 //! \return Char pointer to the gossip directory path
 char *get_gossip_dir(
-    int display
+    //! [in] Verbose.  If > 0, print messages
+    const int verbose
 ) {
     if ( !(getenv("GOSSIPSERVER")) ) {
-        if ( display ) {
+        if (verbose) {
             fprintf(stderr,"Environment variable \"GOSSIPSERVER\" undefined, default channel \"mgi\" will be used\n");
         }
         return gossip_default_dir;
     }
 
     if ( strlen(getenv("GOSSIPSERVER") ) == 0 ) {
-        if ( display ) {
+        if (verbose) {
             fprintf(stderr,"Environment variable \"GOSSIPSERVER\" empty, default channel \"mgi\" will be used\n");
         }
         // default_dir = "mgi";
@@ -126,32 +129,29 @@ char *get_gossip_dir(
 //! Get the IP address corresponding to a channel
 //! \return The IP address in the form of a decimal string or NULL in case of failure
 char *get_server_host(
-    char *channel
+    const char * const channel
 ) {
     struct hostent *host_str;
     struct sockaddr_in addr;
-    char *host_and_port, *host_IP, *delimiter = ":";
 
-    host_and_port = get_host_and_port( channel );
+    char * host_and_port = get_host_and_port(channel);
 
-    /* Obtain pointer to host name structure, using */
-    /* inet_addr() function call to pass IP address */
-    /* in dotted decimal notation.                  */
-
-    if( ( host_IP = strtok( host_and_port, delimiter ) ) != NULL ) {
-        addr.sin_addr.s_addr = inet_addr( host_IP );
-        //! \obsolote Should use getnameinfo instead
-        host_str = gethostbyaddr( (char *)&addr.sin_addr.s_addr, sizeof( addr.sin_addr.s_addr ), AF_INET );
+    // Obtain pointer to host name structure, using inet_addr() function call to pass IP address in dotted decimal notation.
+    char * ipStr = strtok(host_and_port, ":");
+    if (ipStr != NULL) {
+        addr.sin_addr.s_addr = inet_addr(ipStr);
+        //! \obsolete Should use getnameinfo instead
+        host_str = gethostbyaddr( (char *)&addr.sin_addr.s_addr, sizeof(addr.sin_addr.s_addr), AF_INET );
 
         // If a host name structure is obtained, print the host name
-        if ( host_str ) {
+        if (host_str) {
             return host_str->h_name;
         } else {
             fprintf(stderr,"Sorry, unable to determine host name\n");
             return NULL;
         }
     } else {
-        fprintf(stderr,"gossip_sock::get_server_host(), host_IP is null\n");
+        fprintf(stderr,"gossip_sock::get_server_host(), ipStr is null\n");
         return NULL;
     }
 }
@@ -190,23 +190,22 @@ char *get_server_name(
 
 
 //! Special gethostname with IBM p690 name substitution
+//! \return 0 on success, -1 otherwise
 int GetHostName(
     char *name,
     size_t len
 ) {
-    int junk;
-
+    int res = gethostname(name, len);
 #ifdef DEBUG
     fprintf(stderr, "gossip_sock::GetHostName(), Host Name: %s\n", name);
 #endif
 
-    junk = gethostname(name, len);
-
+    //! \todo Remove this hack or even this function because without the hack, it's just a wrapper to gethostname()
     if ( name[0] == 'c' && name[2] == 'f' && name[5] == 'p' && name[7] == 'm' && name[8] == '\0' ) {
         name[7] = 's';  /* name = cxfyypzm, return cxfyypzs instead */
     }
 
-    return junk;
+    return res;
 }
 
 
@@ -214,28 +213,26 @@ int GetHostName(
 //! \return 0 on success, -1 otherwise
 int set_host_and_port(
     //! [in] Name of the channel file
-    char *channel_file,
+    const char * const channel_file,
     //! [in] Hostname and port. The host should normally be in IPV4 decimal notation (xx.yy.zz.tt)
-    char *host_and_port
+    const char * const host_and_port
 ) {
-    int fserver;
-    char buf[BPATH];
-    int nc;
-
     if ( strncmp(channel_file, "Anonym", 6) == 0 ) return 0;
 
     fprintf(stderr, "Channel Description file: %s\n", channel_file);
 
+    char buf[PATH_MAX];
     // $HOME/.broker/channel_name is the file path and name for channel descriptor
-    snprintf(buf, BPATH - 1, "%s/.gossip/%s", getenv("HOME"), channel_file);
+    snprintf(buf, PATH_MAX - 1, "%s/.gossip/%s", getenv("HOME"), channel_file);
 
-    if ( (fserver = open(buf, O_WRONLY + O_CREAT, 0700)) == -1 ) {
-        fprintf(stderr, "Can't open or create Channel Description file\n");
+    int fserver = open(buf, O_WRONLY + O_CREAT, 0700);
+    if ( fserver == -1 ) {
+        fprintf(stderr, "Can't open or create Channel Description file (%s)\n", buf);
         return -1;
     };
 
     // copy host IP and port to buf
-    nc = snprintf(buf, BPATH - 1, "%s\n", host_and_port);
+    int nc = snprintf(buf, PATH_MAX - 1, "%s\n", host_and_port);
 
     // write buf to file: $HOME/.broker/channel_name
     if ( write(fserver, buf, nc) <= 0 ) {
@@ -252,43 +249,46 @@ int set_host_and_port(
 //! \return Pointer to character string upon success, NULL pointer in case of failure. The caller must free the object designated by the returned pointer after use.
 char *get_host_and_port(
     //! [in] Name of the channel file
-    char *channel_file
+    const char * const channelName
 ) {
-    char *chan_buf;
-    int fd;
-    char buf[BPATH];
-
 #ifdef DEBUG
-    fprintf(stderr, "gossip_sock::get_host_and_port(), channel_file = %s\n", channel_file);
+    fprintf(stderr, "gossip_sock::get_host_and_port(\"%s\")\n", channelName);
 #endif
 
-    snprintf(buf, BPATH - 1, "%s/.gossip/%s", getenv("HOME"), channel_file);
-
+    char channelFilePath[PATH_MAX];
+    snprintf(channelFilePath, PATH_MAX - 1, "%s/.gossip/%s", getenv("HOME"), channelName);
 #ifdef DEBUG
-    fprintf(stderr, "gossip_sock::get_host_and_port(), buf contient = %s\n", buf);
+    fprintf(stderr, "gossip_sock::get_host_and_port(), channelFilePath = \"%s\"\n", channelFilePath);
 #endif
 
-    if ( (fd = open(buf, O_RDONLY)) == -1 ) {
+    int fd = open(channelFilePath, O_RDONLY);
+    if (fd == -1) {
        fprintf(stderr, "Can't open Channel Description file\n");
        return NULL;
     }
-    chan_buf = malloc(BPATH);
-    if (read(fd, chan_buf, BPATH) <= 0) {
-        fprintf(stderr, "Can't Read Channel Description file \"%s\" \n", channel_file);
+
+    char * hostPortStr = malloc(PATH_MAX);
+    if (read(fd, hostPortStr, PATH_MAX) <= 0) {
+        fprintf(stderr, "Can't Read Channel Description file \"%s\" \n", channelName);
         close(fd);
-        free(chan_buf);
+        free(hostPortStr);
         return NULL;
     }
     close(fd);
 
-    if ( index(chan_buf, '\n') ) {
-        *index(chan_buf,'\n') = '\0' ;
+    if (index(hostPortStr, '\n') ) {
+        *index(hostPortStr,'\n') = '\0' ;
     } else {
         fprintf(stderr, "Invalid Channel Description file\n");
-        free(chan_buf);
+        free(hostPortStr);
         return NULL;
     }
-   return chan_buf;
+
+#ifdef DEBUG
+    fprintf(stderr, "gossip_sock::get_host_and_port(), get_host_and_port() = \"%s\"\n", hostPortStr);
+#endif
+
+    return hostPortStr;
 }
 
 
@@ -296,33 +296,31 @@ char *get_host_and_port(
 //! \return Pointer to character string upon success, NULL pointer in case of failure. The caller must free the object designated by the returned pointer after use.
 char *get_broker_Authorization()
 {
-    char *auth_buf;
-    int fd;
-    char buf[BPATH];
-    char *homedir = getenv("HOME");
-
-    snprintf(buf, BPATH - 1, "%s/.gossip", homedir);
+    char buf[PATH_MAX];
+    snprintf(buf, PATH_MAX - 1, "%s/.gossip", getenv("HOME"));
 
     if ( chmod(buf, 0711) ) {
         fprintf(stderr, "Improper permissions for broker directory %s\n", buf);
         return NULL;
     }
 
-    snprintf(buf, BPATH - 1, "%s/.gossip/.Bauth", getenv("HOME"));
+    snprintf(buf, PATH_MAX - 1, "%s/.gossip/.Bauth", getenv("HOME"));
+    printf("Authorization file path is %s\n", buf);
 
     if ( chmod(buf, 0600) ) {
         fprintf(stderr, "Improper permissions for Authorization file\n");
         return NULL;
     }
 
-    if ( (fd = open(buf, O_RDONLY)) == -1 ) {
+    int fd = open(buf, O_RDONLY);
+    if ( fd == -1 ) {
         fprintf(stderr, "Can't open Authorization file\n");
         return NULL;
     };
 
-    auth_buf = malloc(BPATH);
+    char * auth_buf = malloc(PATH_MAX);
 
-    if ( read(fd, auth_buf, BPATH) <= 0 ) {
+    if ( read(fd, auth_buf, PATH_MAX) <= 0 ) {
         fprintf(stderr, "Can't read Authorization file\n");
         close( fd );
         if ( auth_buf ) {
@@ -350,16 +348,16 @@ char *get_broker_Authorization()
 //! Write the authorization token into the $HOME/.broker/.Bauth file
 void set_broker_Authorization(int auth_token) {
     int fd;
-    char buf[BPATH];
+    char buf[PATH_MAX];
     int nc;
 
-    snprintf(buf, BPATH - 1, "%s/.gossip/.Bauth", getenv("HOME"));
+    snprintf(buf, PATH_MAX - 1, "%s/.gossip/.Bauth", getenv("HOME"));
 
     if ( (fd = open(buf, O_WRONLY)) == -1 ) {
         fprintf(stderr,"Can't open Authorization file\n");
         exit(1);
     };
-    nc = snprintf(buf, BPATH - 1, "%d\n", auth_token);
+    nc = snprintf(buf, PATH_MAX - 1, "%d\n", auth_token);
     write(fd, buf, nc + 1);
     close(fd);
 }
@@ -388,7 +386,7 @@ int bind_sock_to_port(
     int sockfd
 ) {
     struct sockaddr_in server_eff;
-    socklen_t sizeserver_eff = sizeof server_eff ;
+    socklen_t sizeserver_eff = sizeof server_eff;
 
     server.sin_family = AF_INET;
     server.sin_port = htons(0);
@@ -484,17 +482,17 @@ int set_sock_opt(
 void ip_to_host_name(
     //! [out] Hostname corresponding to the provided IP address.  Space must be allocated before calling this function!
     char *hostname
-    //! \bug Thete is no size parameter to be able to prevent hostname buffer overruns!
+    //! \bug There is no size parameter to be able to prevent hostname buffer overruns!
 ) {
     struct hostent *host_str;
     struct sockaddr_in addr;
 
     // Obtain pointer to host name structure, using inet_addr() function call to pass IP address in dotted decimal notation.
-    if ( (int)( addr.sin_addr.s_addr = inet_addr( hostname ) ) == -1) {
-       /* fprintf(stderr,"IP address must be of the form a.b.c.d\n"); */
-       fprintf(stderr,"Server host: %s\n", hostname);
+    if ( (int)( addr.sin_addr.s_addr = inet_addr(hostname) ) == -1) {
+        /* fprintf(stderr,"IP address must be of the form a.b.c.d\n"); */
+        fprintf(stderr,"Server host: %s\n", hostname);
     } else {
-        host_str = gethostbyaddr( (char *)&addr.sin_addr.s_addr, sizeof( addr.sin_addr.s_addr ), AF_INET );
+        host_str = gethostbyaddr( (char *)&addr.sin_addr.s_addr, sizeof addr.sin_addr.s_addr, AF_INET );
 
         strncpy( hostname, host_str->h_name, strlen( host_str->h_name ));
         hostname[strlen( host_str->h_name )] = '\0';
@@ -505,24 +503,27 @@ void ip_to_host_name(
 //! Obtain the IPV4 adress of a host specified by name
 int get_ip_address(
     //! [in] Hostname
-    char *hostname
+    const char * const hostname
 ) {
-    int **addr_list;
-    struct hostent *answer;
-    int ipaddr = 0;
-    struct sockaddr_in addr;
-
-    if ( NULL == ( answer = gethostbyname( hostname ) ) ) {
+#ifdef DEBUG
+    fprintf(stderr, "get_ip_address(\"%s\")\n", hostname);
+#endif
+    //! \deprecated gethostbyname() is deprecated.  It should be replaced with getaddrinfo()
+    struct hostent * answer = gethostbyname(hostname);
+    if (NULL == answer) {
         fprintf(stderr, "Cannot get address for host = %s\n", hostname);
         return -1;
     }
 
-    addr_list = (int **)answer->h_addr_list;
-    ipaddr = ntohl(**addr_list);
+    int ** addr_list = (int **)answer->h_addr_list;
+    // ipaddr is in host byte order
+    int ipaddr = ntohl(**addr_list);
 
 #ifdef DEBUG
     char ipStr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &ipaddr, ipStr, INET_ADDRSTRLEN);
+    struct in_addr addr;
+    addr.s_addr = htonl(ipaddr);
+    inet_ntop(AF_INET, &addr, ipStr, INET_ADDRSTRLEN);
     fprintf(stderr, "get_ip_address(), IP address of %s:\"%s\"\n", hostname, ipStr);
 #endif
 
@@ -533,9 +534,8 @@ int get_ip_address(
 //! Get host's own IPV4 address
 int get_own_ip_address()
 {
-    char buf[BPATH];
-
-    if (GetHostName(buf, sizeof buf - 1 )) {
+    char buf[PATH_MAX];
+    if (GetHostName(buf, sizeof(buf) - 1 )) {
         fprintf(stderr, "Can't find hostname\n");
         return -1;
     }
@@ -548,58 +548,60 @@ int get_own_ip_address()
 
 //! \return value is the connected socket
 int connect_to_hostport(
-    char *target
+    const char * const target
 ) {
-    char buf[BPATH];
-    char buf2[BPATH];
-    int fserver;
-    int ipaddr;
-    int portno;
+#ifdef DEBUG
+    fprintf(stderr, "gossip_sock::connect_to_hostport(\"%s\")\n", target);
+#endif
 
     struct sockaddr_in server;
     // Why does this update the file global static def?  It's not even used in this function!
     sizeserver = sizeof server;
 
+
+    char hostName[PATH_MAX];
+    int ipaddr;
+    int portno;
     if (NULL == strstr(target, ":")) {
         // No host specified, use local host
         portno = atoi(target);
-        if (GetHostName(buf, sizeof buf)) {
+        if (GetHostName(hostName, sizeof hostName)) {
             fprintf(stderr, "Can't find hostname\n");
             return -1;
         }
 
-        ipaddr = get_ip_address(buf);
+        ipaddr = get_ip_address(hostName);
     } else {
-        /* use specified host, find address */
+        // use specified host, find address
         // This assumes characters only use 1 byte.  This may not always be true!
         char *colonChar = strstr(target, ":");
         portno = atoi(colonChar + 1);
         int hostNameLen = colonChar - target;
-        char hostName[hostNameLen + 1];
         strncpy(hostName, target, hostNameLen);
         hostName[hostNameLen] = '\0';
         ipaddr = get_ip_address(hostName);
     }
 
-#ifdef DEBUG
-    fprintf(stderr, "gossip_sock::connect_to_hostport() with ip addr: %d\n", ipaddr);
-
     char ipStr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &ipaddr, ipStr, INET_ADDRSTRLEN);
-    fprintf(stderr, "Connecting to %s:%d\n", ipStr, portno);
+    struct in_addr addr;
+    addr.s_addr = htonl(ipaddr);
+    inet_ntop(AF_INET, &addr, ipStr, INET_ADDRSTRLEN);
+#ifdef DEBUG
+    fprintf(stderr, "gossip_sock::connect_to_hostport() - Connecting to %s:%d ...\n", ipStr, portno);
 #endif
 
-      /* fserver = socket(AF_INET, SOCK_STREAM, 0); */
     // 1 second timeout for connection
-    while ((fserver = connect_with_timeout(buf, portno, 1)) < 0) {
-        fprintf(stderr, "IP = %s not working, will check using alias", buf);
-        fserver = get_server_alias(buf2, buf, BPATH);
+    char buf2[PATH_MAX];
+    int fserver;
+    while ((fserver = connect_with_timeout(hostName, portno, 1)) < 0) {
+        fprintf(stderr, "IP = %s not working, will check using alias", ipStr);
+        fserver = get_server_alias(buf2, hostName, PATH_MAX);
         fprintf(stderr, " %s\n", buf2);
         if ( fserver < 0 ) {
             // no alias found
             return fserver;
         }
-        strncpy(buf, buf2, BPATH - 1);
+        strncpy(hostName, buf2, PATH_MAX - 1);
     }
 
     return fserver;
@@ -610,34 +612,28 @@ int connect_to_hostport(
 //! \return The opened socket on success, -1 otherwise
 int connect_with_timeout(
     //! [in] Target host's IP adress
-    char *ipaddress,
+    const char * const ipaddress,
     //! [in] Port to which to connect
-    int portno,
+    const int portno,
     //! [in] Timeout for connexion in seconds
-    int timeout
+    const int timeout
 ) {
-    int res;
-    struct sockaddr_in addr;
-    long arg;
-    fd_set myset;
-    struct timeval tv;
-    int valopt;
-    socklen_t lon;
-    int soc;
 
-    /* Create socket  */
-    soc = socket(AF_INET, SOCK_STREAM, 0);
+    // Create socket
+    int soc = socket(AF_INET, SOCK_STREAM, 0);
     if (soc < 0) {
         fprintf(stderr, "Error creating socket (%d %s)\n", errno, strerror(errno));
         return -1;
     }
 
+    struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(portno);
     addr.sin_addr.s_addr = inet_addr(ipaddress);
 
-    /* Set non-blocking  */
-    if ( (arg = fcntl(soc, F_GETFL, NULL)) < 0 ) {
+    // Set non-blocking
+    long arg = fcntl(soc, F_GETFL, NULL);
+    if ( arg < 0 ) {
         fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
         close(soc);
         return -1;
@@ -650,17 +646,24 @@ int connect_with_timeout(
         return -1;
     }
 
-    res = connect(soc, (struct sockaddr *)&addr, sizeof(addr));
+    int res = connect(soc, (struct sockaddr *)&addr, sizeof(addr));
+#ifdef DEBUG
+    fprintf(stderr, "gossip_sock::connect_with_timeout() - connect(...) = %d\n", res);
+#endif
 
     if (res < 0) {
         if (errno == EINPROGRESS) {
             fprintf(stderr, "EINPROGRESS in connect() - selecting\n");
+            socklen_t lon;
+            int valopt;
+            struct timeval tv;
+            fd_set myset;
             do {
                 tv.tv_sec = timeout;
                 tv.tv_usec = 0;
                 FD_ZERO(&myset);
                 FD_SET(soc, &myset);
-                /* monitor fd socket for write operation during timeout */
+                // monitor fd socket for write operation during timeout
                 res = select(soc+1, NULL, &myset, NULL, &tv);
 
                 if (res < 0 && errno != EINTR) {
@@ -670,7 +673,7 @@ int connect_with_timeout(
                 } else if (res > 0) {
                     /* Socket selected for write  */
                     lon = sizeof(int);
-                    if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0) {
+                    if (getsockopt(soc, SOL_SOCKET, SO_ERROR, (void*)&valopt, &lon) < 0) {
                         fprintf(stderr, "Error in getsockopt() %d - %s\n", errno, strerror(errno));
                         close(soc);
                         return -1;
@@ -689,14 +692,14 @@ int connect_with_timeout(
                 }
             } while (1);
         } else {
-            /* not EINPROGRESS */
+            // not EINPROGRESS
             fprintf(stderr, "Error connecting %d - %s\n", errno, strerror(errno));
             close(soc);
             return -1;
         }
     }
 
-    /* Set to blocking mode again...  */
+    // Set to blocking mode again...
     if ( (arg = fcntl(soc, F_GETFL, NULL)) < 0) {
         fprintf(stderr, "Error fcntl(..., F_GETFL) (%s)\n", strerror(errno));
         close(soc);
@@ -709,9 +712,9 @@ int connect_with_timeout(
         close(soc);
         return -1;
     }
-    /* I hope that is all  */
+    // I hope that is all
     if (soc > 0) {
-        /*JMB   set buffer sizes for socket and disable Nagle algorithm */
+        // Set buffer sizes for socket and disable Nagle algorithm
         set_sock_opt(soc);
     }
     return soc;
@@ -722,11 +725,11 @@ int connect_with_timeout(
 //! \return The opened socket on success, -1 otherwise
 int connect_with_timeout_localport(
     //! [in] Target host's IP adress.  NOT USED!
-    char *ipaddress,
+    const char * const ipaddress,
     //! [in] Port to which to connect
-    int portno,
+    const int portno,
     //! [in] Timeout for connexion in seconds
-    int timeout
+    const int timeout
 ) {
     int res;
     struct sockaddr_in addr;
@@ -840,14 +843,14 @@ int get_server_alias(
     const char *filename,
     int maxlen
 ) {
-    char fpath[BPATH + 1];
+    char fpath[PATH_MAX + 1];
     int nchars;
     char *temp;
 
     path[0] = '\0';
     temp = getenv("GOSSIP_ALIASES");
     if (temp) {
-        snprintf(fpath, BPATH - 1, "%s/%s", temp, filename);
+        snprintf(fpath, PATH_MAX - 1, "%s/%s", temp, filename);
         nchars = readlink(fpath, path, maxlen - 1);
         if (nchars > 0) {
             path[nchars] = '\0';
@@ -857,7 +860,7 @@ int get_server_alias(
 
     temp = getenv("HOME");
     if (temp) {
-        snprintf(fpath, BPATH - 1, "%s/GossipAliases/%s", temp, filename);
+        snprintf(fpath, PATH_MAX - 1, "%s/GossipAliases/%s", temp, filename);
         nchars = readlink(fpath, path, maxlen - 1);
         if (nchars > 0) {
             path[nchars] = '\0';
@@ -867,7 +870,7 @@ int get_server_alias(
 
     temp = getenv("ARMNLIB");
     if (temp) {
-        snprintf(fpath, BPATH - 1, "%s/data/GossipAliases/%s", temp, filename);
+        snprintf(fpath, PATH_MAX - 1, "%s/data/GossipAliases/%s", temp, filename);
         nchars = readlink(fpath, path, maxlen - 1);
 
         if (nchars > 0) {
@@ -1013,10 +1016,11 @@ int get_ack_nack(
 }
 
 
-//! Send command and return 0 or -1 upon ACK or NACK
+//! Send command
+//! \return 0 or -1 upon ACK or NACK
 int send_command_to_server(
-    int fserver,
-    char *buf
+    const int fserver,
+    const char * const buf
 ) {
    int ier1, ier2;
 
@@ -1151,7 +1155,7 @@ static get_request(
     int ier;
     int len = strlen(request);
 
-    len = len > sizeof(reply)-1 ? sizeof(reply) - 1 : len ;
+    len = len > sizeof(reply) - 1 ? sizeof(reply) - 1 : len ;
 
     if ( (ier = read_ft_nonblocking_socket(channel, reply, len)) < 0) {
 #ifdef DEBUG
@@ -1173,7 +1177,7 @@ int connect_to_subchannel_by_name(
     char *mode
 ) {
     int fserver;
-    char command[BPATH];
+    char command[PATH_MAX];
 
     /* login to server, get socket descriptor */
     fserver = connect_to_channel_by_name(channel);
@@ -1200,132 +1204,121 @@ int connect_to_subchannel_by_name(
    return fserver;
 }
 
- /* connect to channel_name and send LOGIN sequence */
- /*         channel name has 2 forms :              */
- /*                               1- name           */
- /*                               2- @hostname:port */
+
  /* login sequence has the following syntax         */
  /* LOGIN uid pid Auth_token hostname               */
- int connect_to_channel_by_name_2(char *name, char * msg)  /*   %ENTRY%   */
- {
-      /* char *Auth_token = get_broker_Authorization(); */
-      int Bauth_token = 0xFFFFFFFF;
-      char buf[BPATH];
-      char host_name[BPATH];
-      int fserver;
-      char *temp;
-
-      unsigned char buffer[16];
-
-      if(!get_broker_Authorization())
-    {
-      fprintf(stderr, "Authorizartion token failure \n");
-      return -1;
-    }
-      if(GetHostName(host_name, sizeof host_name))
-    {
-      fprintf(stderr, "Can't get local hostname\n");
-      return -1;
-    }
-
-
-     /* connect to data server by channel_name or @host:port */
-      if ( *name == '@' )
-    {
-      name++;
-      fprintf(stderr, "Connecting to: \"%s\"\n", name);
-      fserver = connect_to_hostport(name);
-      if(fserver < 0)
+ //! Connect to channel and send LOGIN sequence
+int connect_to_channel_by_name_2(
+    //! [in] Channel name (name or @hostname:port)
+    const char * const name,
+    const char * const msg
+) {
+#ifdef DEBUG
+    fprintf(stderr, "%s::connect_to_channel_by_name_2(\"%s\", \"%s\")\n", __FILE__, name, msg);
+#endif
+    if (!get_broker_Authorization()) {
+        fprintf(stderr, "Authorizartion token failure \n");
         return -1;
     }
-      else
-    {
-      char *host_and_port = get_host_and_port(name);
 
-      if(host_and_port == NULL)
+    char host_name[PATH_MAX];
+    if (GetHostName(host_name, sizeof host_name)) {
+        fprintf(stderr, "Can't get local hostname\n");
         return -1;
+    }
 
-      fprintf(stderr, "Opening channel \"%s\" to name: \"%s\" and port: \"%s\"\n", name, name, host_and_port);
+    // connect to data server by channel_name or @host:port
+    int fserver;
+    const char * channelName = name;
+    if ( *channelName == '@' ) {
+        channelName++;
+        fprintf(stderr, "Connecting to: \"%s\"\n", channelName);
+        fserver = connect_to_hostport(channelName);
+        if (fserver < 0) return -1;
+    } else {
+        char * host_and_port = get_host_and_port(channelName);
+        if (host_and_port == NULL) return -1;
 
-      fserver = connect_to_hostport(host_and_port);
+        fprintf(stderr, "Opening channel \"%s\" to name: \"%s\" and port: \"%s\"\n", channelName, channelName, host_and_port);
+        fserver = connect_to_hostport(host_and_port);
 
-      if ( msg && strlen( msg ) > 0 )
-      fprintf( stderr, "Opening channel: \"%s\" with ip and port: \"%s\" using socket: %d\n", name, host_and_port, fserver );
+        if (msg && strlen(msg) > 0) {
+            fprintf(stderr, "Opening channel: \"%s\" with ip and port: \"%s\" using socket: %d\n", channelName, host_and_port, fserver);
+        }
 
-      if(host_and_port != NULL)
-        {
-          free(host_and_port);
+        if (host_and_port != NULL) {
+            free(host_and_port);
         }
 
 #ifdef DEBUG
-      fprintf(stderr, "gossip_sock::connect_to_channel_by_name_2(), fserver = %d\n", fserver);
+        fprintf(stderr, "gossip_sock::connect_to_channel_by_name_2(), fserver = %d\n", fserver);
 #endif
-      if(fserver < 0)
-        {
-          fprintf(stderr, "gossip_sock::connect_to_channel_by_name_2(), fserver = %d\n", fserver);
-          return -1;
+        if (fserver < 0) {
+            fprintf(stderr, "gossip_sock::connect_to_channel_by_name_2(), fserver = %d\n", fserver);
+            return -1;
         }
     }
 
-      /* send LOGIN command to server */
-
-      if( temp=get_broker_Authorization() ) {
-    sscanf(temp, "%u", &Bauth_token);
-    free( temp );
+    // send LOGIN command to server
+    int Bauth_token = 0xFFFFFFFF;
+    char * temp = get_broker_Authorization();
+    if (temp) {
+        sscanf(temp, "%u", &Bauth_token);
+        free(temp);
     }
 
-      /* Authentify user befor sending to the Server */
-
-      if( md5_ssh( buffer ) )
-    {
-      fprintf(stderr,"md5_ssh FAILED\n");
-      return -1;
+    // Authentify user befor sending to the Server
+    unsigned char buffer[16];
+    if (md5_ssh(buffer)) {
+        fprintf(stderr, "md5_ssh FAILED\n");
+        return -1;
     }
-      fprintf(stderr,"SSH Digest: %x\n", buffer);
+    fprintf(stderr, "SSH Digest: %x\n", buffer);
 
-      snprintf(buf, BPATH - 1, "%s %d %d %u:%s:%s", "LOGIN", getuid(), getpid(), Bauth_token, host_name, msg);
+    char buf[PATH_MAX];
+    snprintf(buf, PATH_MAX - 1, "%s %d %d %u:%s:%s", "LOGIN", getuid(), getpid(), Bauth_token, host_name, msg);
 
-      if(send_command_to_server(fserver, buf))
-    {
-      fprintf(stderr, "LOGIN rejected\n");
-      return -1;
+    if (send_command_to_server(fserver, buf)) {
+        fprintf(stderr, "LOGIN rejected\n");
+        return -1;
+    } else {
+        fprintf(stderr, "LOGIN accepted\n");
+        return fserver;
     }
-      else
-    {
-      fprintf(stderr, "LOGIN accepted\n");
-      return fserver;
+}
+
+
+//! Connect to channel and send LOGIN sequence
+int connect_to_channel_by_name(
+    const char * const name
+) {
+    if (name && strlen(name) > 0 ) {
+        return connect_to_channel_by_name_2(name, "");
     }
- }
+    return connect_to_channel_by_name_2(get_gossip_dir(1), "");
+}
 
- /* connect to channel_by_name and send LOGIN sequence */
- /*         channel name has 2 forms :              */
- /*                               1- name           */
- /*                               2- @hostname:port */
- /* login sequence has the following syntax         */
- /* LOGIN uid pid Auth_token hostname               */
- int connect_to_channel_by_name(char *name)  /*   %ENTRY%   */
- {
-   if(name && strlen(name) > 0 )
-     return connect_to_channel_by_name_2(name, "");
-   return connect_to_channel_by_name_2(get_gossip_dir(1), "");
 
- }
- /* set read/wrtie tiemout */
- void set_stream_timeout(int channel, int new_time)
- {
-   set_client_timeout(channel, new_time);
-   fprintf(stderr, "timeout = %d\n", new_time);
- }
+//! Set read/wrtie tiemout
+void set_stream_timeout(
+    const int channel,
+    const int timeout
+) {
+    set_client_timeout(channel, timeout);
+    fprintf(stderr, "timeout = %d\n", timeout);
+}
 
- /* get read/wrtie tiemout*/
- int get_stream_timeout(int channel)
- {
-   return get_client_timeout(channel);
- }
 
- // JMB - TEST  write_ft_nonblocking_socket as a replacement for write_stream
- // use in put_int32_to_channel and send_ack_nack as a safe IO compared to
- // a simple write()
+//! Get read/wrtie tiemout
+//! \return read/write timeout
+int get_stream_timeout(int channel) {
+    return get_client_timeout(channel);
+}
+
+
+// JMB - TEST  write_ft_nonblocking_socket as a replacement for write_stream
+// use in put_int32_to_channel and send_ack_nack as a safe IO compared to
+// a simple write()
 
 int write_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
 {
@@ -2125,7 +2118,7 @@ void *read_record( int fclient, void *records, int *length, int maxlength, int t
       maxsize = length1;
     }
 
-  records2 = (records == NULL)? malloc(maxsize + 2*sizeof(int)):records;
+  records2 = (records == NULL) ? malloc(maxsize + 2 * sizeof(int)) : records;
 
   if(records2 == NULL)
     {
@@ -2272,10 +2265,10 @@ int get_timeout_signal(int channel)
 int store_channel_data(char *buffer, int nbytes, char *file_name)  /*   %ENTRY%   */
 {
   int fd;
-  char buf[BPATH];
+  char buf[PATH_MAX];
 
   /* Current_Working_dir/channel_subchannel_gsave is the data file path to be stored */
-  snprintf(buf, sizeof(buf)-1, "%s_%s_gsave", get_gossip_dir(0), file_name);
+  snprintf(buf, sizeof(buf) - 1, "%s_%s_gsave", get_gossip_dir(0), file_name);
 
 
 #ifdef DEBUG
@@ -2316,39 +2309,34 @@ long fsize(FILE* fd)
   return size;
 }
 
-/* get file size using file name */
-int get_file_size(char *file_name)   /*   %ENTRY%   */
-{
-  FILE *ifp;
-  char buf[BPATH];
-  int the_size;
-
-
+//! Get file size
+//! \return File size in bytes
+int get_file_size(const char * const file_name) {
 #ifdef DEBUG
-  fprintf(stderr, "gossip_sock::get_file_size: file_name = %s\n", file_name);
+    fprintf(stderr, "gossip_sock::get_file_size: file_name = %s\n", file_name);
+#endif
+    char buf[PATH_MAX];
+    snprintf(buf, PATH_MAX - 1, "./%s", file_name);
+#ifdef DEBUG
+    fprintf(stderr, "gossip_sock::get_file_size(): buf = %s\n", buf);
 #endif
 
-  snprintf(buf, BPATH - 1, "./%s", file_name);
-#ifdef DEBUG
-  fprintf(stderr, "gossip_sock::get_file_size(): buf = %s\n", buf);
-#endif
-
-  if ((ifp = fopen(buf, "r")) == NULL)
-    {
-      fprintf(stderr, "data file: %s, doesn't exist!\n", buf);
-      return 0;
+    FILE * ifp = fopen(buf, "r");
+    if (ifp  == NULL) {
+        fprintf(stderr, "data file: %s, doesn't exist!\n", buf);
+        return 0;
     }
 
 #ifdef DEBUG
-  fprintf(stderr, "gossip_sock::get_file_size(): ifp = %d\n", ifp);
+    fprintf(stderr, "gossip_sock::get_file_size(): ifp = %d\n", ifp);
 #endif
-  the_size = fsize(ifp);
-  fclose(ifp);
+    int the_size = fsize(ifp);
+    fclose(ifp);
 
 #ifdef DEBUG
-  fprintf(stderr, "gossip_sock::get_file_size(), file size = %d\n",the_size );
+    fprintf(stderr, "gossip_sock::get_file_size(), file size = %d\n",the_size );
 #endif
-  return the_size;
+    return the_size;
 }
 
 /* read data in file channel_subchannel_gsave,              */
@@ -2357,15 +2345,14 @@ int get_file_size(char *file_name)   /*   %ENTRY%   */
 int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
 {
   int i, fd;
-  char buf[BPATH];
-  char nbuf[BPATH] = "";
+  char buf[PATH_MAX];
+  char nbuf[PATH_MAX] = "";
   char *delimiter = "_", *token;
 
 #ifdef DEBUG
   fprintf(stderr, "gossip_sock::read_data_file(): file_name = %s\n", file_name);
 #endif
 
-  /* snprintf(buf, sizeof(buf) - 1, "./%s_gsave", file_name); */
   snprintf(buf, sizeof(buf) - 1, "./%s", file_name);
 
 #ifdef DEBUG
@@ -2443,197 +2430,150 @@ int connect_to_server()
   return fserver;
 }
 
-/* send flag status to server to check active channels      */
-/* on running server with channel $GOSSIPDIR                */
-/* default = "mgi", return 0 if command accepted, -1 if not */
-int get_status(char *reply)
-{
-  int fserver = 0;
-  char buf[128], reply0[1025];
-  char *reply1;
-  int status;
 
-  reply1 = (reply == NULL) ? &reply0[0] : reply;
-  reply1[0]='\0';
-  fserver = connect_to_server();
-  if(fserver > 0)
-    {
-      sprintf(buf, "STATUS");
-      status = send_command_to_server(fserver, buf);
+//! Send flag status to server to check active channels on running server with channel $GOSSIPDIR (default: "mgi")
+//! \return 0 if command accepted, -1 otherwise
+int get_status(char * const reply) {
+    char buf[128];
+    char reply0[1025];
 
-      if(status != 0)
-    {
-      fprintf(stderr, "command \"%s\" rejected \n", buf);
-      close(fserver);
-      return status;
-    }
-      else
-    {
-      /* fprintf(stderr, "command \"%s\" accepted\n", buf); */
-      while(read(fserver, reply1, BPATH) > 0);
-      close(fserver);
-      return status;
-    }
-    }
+    char * reply1 = (reply == NULL) ? &reply0[0] : reply;
+    reply1[0] = '\0';
 
-  else
-    {
-      fprintf(stderr, "No server running on channel \"%s\"!!\n", get_gossip_dir(0));
-      return status = -1;
+    int fserver = connect_to_server();
+    if (fserver > 0) {
+        sprintf(buf, "STATUS");
+        int status = send_command_to_server(fserver, buf);
+
+        if (status != 0) {
+            fprintf(stderr, "command \"%s\" rejected \n", buf);
+        } else {
+            // fprintf(stderr, "command \"%s\" accepted\n", buf);
+            while (read(fserver, reply1, PATH_MAX) > 0);
+        }
+
+        close(fserver);
+        return status;
+    } else {
+        fprintf(stderr, "No server running on channel \"%s\"!!\n", get_gossip_dir(0));
+        return -1;
     }
 }
 
-/* send command to server running on channel $GOSSIPDIR */
-/* return 0 upon success, -1 else                       */
-int send_command(char *command)
-{
-  int fserver = 0;
-  int status;
-
-  fserver = connect_to_server();
-
-  if(fserver > 0)
-    {
-      status = send_command_to_server(fserver, command);
-
-      close(fserver);
-
+//! Send command to server running on channel $GOSSIPDIR
+//! \return 0 on success, -1 otherwise
+int send_command(const char * const command) {
+    int status;
+    int fserver = connect_to_server();
+    if (fserver > 0) {
+        status = send_command_to_server(fserver, command);
+        close(fserver);
+    } else {
+        fprintf(stderr, "No server running on channel \"%s\" !!\n", get_gossip_dir(0));
+        status = -1;
     }
-  else
-    {
-      fprintf(stderr, "No server running on channel \"%s\" !!\n", get_gossip_dir(0));
-      status = -1;
-    }
-
-  return status;
+    return status;
 }
 
 /* close channel blocked on server with read request     */
 /* identified by its name and socket descriptor fclient. */
 /* send infos with "END" flag to server, return 0 upon   */
 /* success, -1 else                                      */
-int close_channel(int fclient, char *channel)
-{
-  int ier = 0;
-  char buf[BPATH];
-
-  if(fclient != 0)
-    {
-      snprintf(buf, BPATH - 1, "%s %s", "END", channel);
-      ier = send_command(buf);
+int close_channel(
+    int fclient,
+    char *channel
+) {
+    if (fclient != 0) {
+    char buf[PATH_MAX];
+        snprintf(buf, PATH_MAX - 1, "%s %s", "END", channel);
+        return send_command(buf);
     }
 
-  return ier;
-
+    return 0;
 }
 
-/******************** command server functions **********************/
+// ******************** command server functions ***********************
 
-/* add the message size to the stream bytes */
-void pack_cmd( char *buffer, char *tmpbuf )
-{
-  int nbytes;
+//! Add the message size to the stream bytes
+void pack_cmd(char *buffer, char *tmpbuf) {
+    int nbytes = strlen(buffer);
+    bzero(tmpbuf, strlen(buffer) + sizeof(int));
 
-  bzero( tmpbuf, strlen(buffer) + sizeof(int) );
-  nbytes = strlen(buffer);
-
-  if( !*little_endian )
-    {
-      swap_4( nbytes );
+    if ( !*little_endian ) {
+        swap_4(nbytes);
     }
 
-  memcpy( tmpbuf, (char *)&nbytes, sizeof(int) );
-  memcpy( tmpbuf + sizeof(int), buffer, strlen(buffer) );
+    memcpy(tmpbuf, (char *)&nbytes, sizeof(int));
+    memcpy(tmpbuf + sizeof(int), buffer, strlen(buffer) );
 
-  fprintf(stderr, "sending command: %s\n", tmpbuf + sizeof(int));
-
+    fprintf(stderr, "sending command: %s\n", tmpbuf + sizeof(int));
 }
 
 
-/* send command to server return bytes sent
-(= 0 all command bytes sent, >0 failure)  */
-int send_command_to_server2( int fclient, char *buffer )
-{
-  int nbytes, reply;
-
-  char *tmpbuf;
-
-  tmpbuf = (char *)malloc( strlen(buffer) + sizeof(int) );
-
-  if ( !tmpbuf )
-    {
-      fprintf(stderr, "Error: cannot allocate memory for buffer command !!!\n");
-      exit(1);
+//! Send command to server return bytes sent
+//! \return 0 all command bytes sent, >0 failure
+int send_command_to_server2(int fclient, char *buffer) {
+    char * tmpbuf = (char *)malloc(strlen(buffer) + sizeof(int));
+    if (!tmpbuf) {
+        fprintf(stderr, "Error: cannot allocate memory for buffer command !!!\n");
+        exit(1);
     }
 
-  pack_cmd( buffer, tmpbuf );
-  /* nbytes = write_stream( fclient, tmpbuf, strlen(buffer) + sizeof(int) ); */
-  nbytes = write( fclient, tmpbuf, strlen(buffer) + sizeof(int) );
+    pack_cmd(buffer, tmpbuf);
+    int nbytes = write(fclient, tmpbuf, strlen(buffer) + sizeof(int));
 
-  reply = get_ack_nack(fclient);
+    int reply = get_ack_nack(fclient);
 
-  if( reply < 0 )
-    fprintf(stderr, "Problem getting ACK from server !!!\n");
-
-  if( tmpbuf )
-    free( tmpbuf );
-
-  return nbytes;
-}
-
-/* open client socket to command server */
-int cmd_open()
-{
-  int fserver;
-
-  fserver = connect_to_channel_by_name("cmd");
-  fprintf(stderr, "fserver = %d\n", fserver);
-
-  if( fserver < 0)
-    {
-      fprintf(stderr, "Error: cannot connect to server\n");
-      exit(1);
+    if (reply < 0) {
+        fprintf(stderr, "Problem getting ACK from server !!!\n");
     }
 
-  return fserver;
-
-}
-
-/* close client socket to command server */
-void cmd_close(int fclient)
-{
-  char tmpbuf[128];
-  int nbytes;
-
-  pack_cmd("quit", tmpbuf);
-  nbytes = write_stream(fclient, tmpbuf, strlen("quit") + sizeof(int));
-  fprintf(stderr, "nbytes sent for quit:  %d\n", nbytes);
-
-  if( nbytes > 0)
-    fprintf(stderr, "command \"%s\" has been rejected \n", "quit");
-
-  close(fclient);
-
-}
-
-void check_data(char *record, int size)
-{
-  int i;
-  float element;
-
-  fprintf(stderr, "check_data( ):  size = %d\n", size);
-
-  if( record && size > 1000)
-    {
-      for(i = 0; i<(size/4); i++)
-    {
-      memcpy( &element, record, sizeof( int ) );
-
-      /* swap_4(*element); */
-      fprintf(stderr, "check_data( ):  element[%d] = %f\n", i, element);
-      record += sizeof( int );
-
+    if (tmpbuf) {
+        free(tmpbuf);
     }
-      record -= (size/4 - 1) * sizeof( int );
+
+    return nbytes;
+}
+
+
+//! Open client socket to command server
+int cmd_open() {
+    int fserver = connect_to_channel_by_name("cmd");
+    fprintf(stderr, "fserver = %d\n", fserver);
+
+    if (fserver < 0) {
+        fprintf(stderr, "Error: cannot connect to server\n");
+        exit(1);
+    }
+
+    return fserver;
+}
+
+
+//! Close client socket to command server
+void cmd_close(int fclient) {
+    char tmpbuf[128];
+    pack_cmd("quit", tmpbuf);
+    int nbytes = write_stream(fclient, tmpbuf, strlen("quit") + sizeof(int));
+    fprintf(stderr, "nbytes sent for quit:  %d\n", nbytes);
+
+    if (nbytes > 0) {
+        fprintf(stderr, "command \"%s\" has been rejected \n", "quit");
+    }
+    close(fclient);
+}
+
+
+void check_data(char *record, int size) {
+    fprintf(stderr, "check_data( ):  size = %d\n", size);
+
+    if (record && size > 1000) {
+        float element;
+        for(int i = 0; i < (size / 4); i++) {
+            memcpy(&element, record, sizeof(int));
+            fprintf(stderr, "check_data( ):  element[%d] = %f\n", i, element);
+            record += sizeof( int );
+        }
+        record -= (size / 4 - 1) * sizeof(int);
     }
 }

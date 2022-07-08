@@ -38,6 +38,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -45,7 +46,7 @@
 
 #include "mgi.h"
 #include <gossip.h>
-#include "cgossip.h"
+#include <gossip_constants.h>
 
 #define CLOSE -5
 

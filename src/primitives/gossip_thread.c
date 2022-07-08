@@ -127,7 +127,6 @@ void start_client_thread_2(
     void *data,
     void (*user_server)()
 ) {
-    int slot;
     pthread_t client_thread[1];
     pthread_attr_t client_attr;
 
@@ -140,7 +139,7 @@ void start_client_thread_2(
     pthread_mutex_unlock(&mutex);
 
 
-    slot = find_client_slot();
+    int slot = find_client_slot();
     clients[slot].uid = client_uid;
     clients[slot].pid = client_pid;
     clients[slot].socket = fclient;
@@ -154,10 +153,7 @@ void start_client_thread_2(
     clients[slot].user_function = user_server;
 
     pthread_attr_init(&client_attr);
-    pthread_create(&client_thread[0],
-            &client_attr,
-            (void *(*)(void *))client_address,
-            (void *) &clients[slot]);
+    pthread_create(&client_thread[0], &client_attr, (void *(*)(void *))client_address, (void *) &clients[slot]);
 
     pthread_detach(client_thread[0]);
 }
