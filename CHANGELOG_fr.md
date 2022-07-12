@@ -43,6 +43,8 @@ utiliser la fonction `ftnStrLen(str, maxLen)`
 - La macro `tell` a été supprimée.  Veuillez utiliser la fonction POSIX
 équivalente: `ftell`.
 
+- La macro `CLIB_SUFFIX` a été supprimée.
+
 - arch_specific.hf a été supprimé c'est maintenant vide
 
 - Le support pour WIN32 a été retiré.  Le code n'avait pas été testé sur

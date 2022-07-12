@@ -43,6 +43,8 @@ can be used.
 - The `tell` was deleted.  Please use the corresponding POSIX function:
 `ftell`.
 
+- The `CLIB_SUFFIX` was deleted.
+
 - arch_specific.hf was deleted since it is now empty
 
 - Support for WIN32 has been removed.  The code has not been tested on
