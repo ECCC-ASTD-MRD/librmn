@@ -83,11 +83,12 @@
 #ifndef __CLIB_INTERFACE_CDK__
 #define __CLIB_INTERFACE_CDK__
 
+#include <template.hf>
+
 #define CLIB_OK    1
 #define CLIB_ERROR -1
 #define CLIB_SUFFIX _schhide
-#define CLIB_CAT #1#2
-#define CLIB_F77NAME(a) CLIB_CAT(a, _schhide)
+#define CLIB_F77NAME(a) CAT(a, _schhide)
 
 #endif
 

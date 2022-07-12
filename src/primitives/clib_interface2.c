@@ -33,7 +33,6 @@
 
 #define CLIB_OK    1
 #define CLIB_ERROR -1
-#define CLIB_SUFFIX _schhide
 
 #define CLIB_F77NAME(a) f77_name(a##_schhide)
 
