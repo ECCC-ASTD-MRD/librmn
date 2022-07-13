@@ -174,7 +174,6 @@ since we expect that they are already no longer used.
         - D1INT1
         - FCONW
         - mxma
-        - mxma8
         - ROSSR3
     - primitives
         - unstakw

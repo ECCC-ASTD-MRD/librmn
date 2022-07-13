@@ -177,7 +177,6 @@ car ils ne devraient déjà plus être utilisés:
         - D1INT1
         - FCONW
         - mxma
-        - mxma8
         - ROSSR3
     - primitives
         - unstakw
