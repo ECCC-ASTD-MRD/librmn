@@ -68,7 +68,7 @@ typedef struct {
 static int default_dict_option = 0;
 
 //! Table of variable creation options (used by Whiteboard read)
-static wb_symbol dict_options[] = {
+static const wb_symbol dict_options[] = {
     {WB_IS_LOCAL, "WB_IS_LOCAL"},
     {WB_REWRITE_AT_RESTART, "WB_REWRITE_AT_RESTART"},
     {WB_REWRITE_NONE, "WB_REWRITE_NONE"},
@@ -79,7 +79,7 @@ static wb_symbol dict_options[] = {
 };
 
 //! Table for verbosity options (used by Whiteboard read)
-static wb_symbol verb_options[] = {
+static const wb_symbol verb_options[] = {
     {WB_MSG_DEBUG, "WB_MSG_DEBUG"},
     {WB_MSG_INFO, "WB_MSG_INFO"},
     {WB_MSG_WARN, "WB_MSG_WARN"},
@@ -90,7 +90,7 @@ static wb_symbol verb_options[] = {
 };
 
 //! Error message table
-static wb_symbol errors[] = {
+static const wb_symbol errors[] = {
     {WB_ERR_NAMETOOLONG , "key name is too long"},
     {WB_ERR_NOTFOUND, "requested item not found"},
     {WB_ERR_READONLY, "key value cannot be redefined"},
@@ -1493,11 +1493,6 @@ int c_wb_check(
     //! [in] Pointer to be passed as the second argument of fncptr (first argument is matching line)
     void *extra_data
 ) {
-    wb_page *lookuppage;
-    int pageno = 0;
-    int match_count = 0;
-    int status;
-
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
@@ -1506,17 +1501,19 @@ int c_wb_check(
         wb = BaseWhiteboardPtr;
     }
 
-    nameLength = trim(name, nameLength);
-    lookuppage = wb->firstpage;
+    int nameLen = trim(name, nameLength);
+    wb_page * lookuppage = wb->firstpage;
 
+    int pageno = 0;
+    int match_count = 0;
     while (lookuppage != NULL) {
         int i = 0;
         int linelimit = lookuppage->firstFreeLine - 1;
-        while( i <= linelimit ) {
+        while (i <= linelimit) {
             wb_line *line = &(lookuppage->line[i]);
             char *c1 = line->meta.name.carr;
             int options = flags_to_options(line);
-            if ( (options & optionMask) && wb_match_name(c1, name, nameLength) ) {
+            if ( (options & optionMask) && wb_match_name(c1, name, nameLen) ) {
                 match_count--;
                 if (print) {
                     fprintf(stderr,
@@ -1536,7 +1533,7 @@ int c_wb_check(
                     );
                 }
                 if (fncptr != NULL) {
-                    status = (*fncptr)(line, extra_data);
+                    int status = (*fncptr)(line, extra_data);
                     if (status < 0) {
                         return status;
                     }
