@@ -176,6 +176,7 @@ car ils ne devraient déjà plus être utilisés:
         - D1INTR
         - D1INT1
         - FCONW
+        - mxma
         - ROSSR3
     - primitives
         - unstakw
@@ -203,7 +204,7 @@ for fnctName in AFIX AFIX8 ALPAS2 ALPAS8 ALPDL2 ALPDL8 ALPDR2 ALPDR8 \
     bmf_splitwritexy2 bmf_splitwritey bmf_splitwritey2 bmf_statfld \
     bmf_write bmf_write2 ca_alloc ca_deallc close_db_file dmmsdbg \
     dmmsnabt grid_to_grid grid_to_grid_coef grid_to_grid_interp \
-    hpalloc hpdeallc memoir memoirc memoirh mxma mxma8 open_db_file \
+    hpalloc hpdeallc memoir memoirc memoirh mxma open_db_file \
     read_db_file rewind_db_file slabdsc slabend slabig34 slabini \
     slabopt slabxtr slabxtr slabxtrf stkmemw unstakw write_db_file; do
     grepOut=$(grep --color=always -RinP "(?>\W)${fnctName}(?>\W)" | grep -v tests)
