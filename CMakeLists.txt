@@ -51,7 +51,7 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 
 include_directories(
    include
-   include/${BUILD_ARCH}-${COMPILER_SUITE}
+   src/PUBLIC_INCLUDES/${BUILD_ARCH}-${COMPILER_SUITE}
    src/PUBLIC_INCLUDES
 )
 
@@ -71,7 +71,6 @@ file(GLOB PROJECT_H_FILES
    src/*/*.cdk
    src/*/*.tpl*
 )
-file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 
 
 # This really isn't the ideal solution; the compiler should be called with all
@@ -136,27 +135,20 @@ add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn ${PROJECT_NAME}_build_info)
 target_link_libraries(librmn_version rmn)
 
+file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
 list(APPEND PROJECT_INCLUDE_FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
     ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
     ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
 )
-
-list(APPEND PROJECT_INCLUDE_FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/rpnmacros_global.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/ftn2c_helper.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/${BUILD_ARCH}-${COMPILER_SUITE}/rpn_macros_arch.h
-)
-
-
-string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 set_target_properties(rmn PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}"
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn)
+
+string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 set_target_properties(rmnshared PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}"
