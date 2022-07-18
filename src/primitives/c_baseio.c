@@ -50,6 +50,7 @@
 #include <rpnmacros.h>
 #include <ftn_c_protos.h>
 #include <gossip.h>
+#include <endian.h>
 
 #define FNOM_OWNER
 #include "fnom.h"
@@ -119,19 +120,6 @@ static char *LOCALDIR = "./";
 //! Seek in a file at a given word
 static off64_t wseek(fdesc, offst, posi) {
     return lseek64(fdesc, offst * sizeof(uint32_t), posi);
-}
-
-
-static inline void swap_word_endianness(uint32_t * mot) {
-    register uint32_t tmp = (uint32_t) *mot;
-    *mot = (tmp >> 24) | (tmp << 24) | ((tmp >> 8) & 0xFF00) | ((tmp & 0xFF00) << 8);
-}
-
-
-static inline void swap_buffer_endianness(uint32_t * buff, int32_t nwds) {
-    for (int32_t i = 0; i < nwds; i++) {
-        swap_word_endianness(&buff[i]);
-    }
 }
 
 
