@@ -107,9 +107,10 @@ static int init = 0;
 static int debug_mode = 0;
 static int subfile_length = 0;
 static int fnom_initialized = 0;
-static int endian_int = 1;
 static int stdoutflag = 0;
 static int stdinflag = 0;
+
+static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
 
 static char *AFSISIO = NULL;
@@ -593,7 +594,7 @@ int c_fnom(
             FGFDT[entry].file_size = -1;
             FGFDT[entry].eff_file_size = -1;
         } else {
-            off64_t dimm = lseek64(ier, dimm, SEEK_END);
+            off64_t dimm = lseek64(ier, 0, SEEK_END);
             FGFDT[entry].file_size = dimm / sizeof(uint32_t);
             FGFDT[entry].eff_file_size = dimm / sizeof(uint32_t);
             close(ier);
@@ -1784,15 +1785,7 @@ static long long filepos(
         char header[MAX_NAME];
     } HEADER_CMCARC;
 
-    typedef struct {
-        unsigned char ntotal[8];
-        unsigned char ndata[8];
-        char code;
-        char header[MAX_NAME];
-    } HEADER_CMCARC_V5;
-
     HEADER_CMCARC *cmcarc_file;
-
 
     lseek64(FGFDT[indf].fd, 0, SEEK_SET);
     int nblu = read(FGFDT[indf].fd, sign, 8);
