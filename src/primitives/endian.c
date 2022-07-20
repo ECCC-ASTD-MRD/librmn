@@ -19,14 +19,30 @@
  */
 
 
-//! \file endian.h Inline functions to swap endianess
-
-#ifndef ENDIAN_H
-#define ENDIAN_H
-
-#include <stdint.h>
+#include <stdlib.h>
 
 
-void swap_buffer_endianness(uint32_t * const buffer, const int32_t nwds);
+#include <endian.h>
 
-#endif
+
+//! Swap the endianess of a 32 bits word
+static inline void swap_word_endianness(
+    //! [in,out] Word to convert
+    uint32_t * const mot
+) {
+    register uint32_t tmp = (uint32_t) *mot;
+    *mot = (tmp >> 24) | (tmp << 24) | ((tmp >> 8) & 0xFF00) | ((tmp & 0xFF00) << 8);
+}
+
+
+//! Swap the endianess of 32 bits words in a buffer
+void swap_buffer_endianness(
+    //! [in,out] Bouffer containing the words to swap
+    uint32_t * const buffer,
+    //! [in] Number of words in buffer
+    const int32_t nwds
+) {
+    for (int32_t i = 0; i < nwds; i++) {
+        swap_word_endianness(&buffer[i]);
+    }
+}
