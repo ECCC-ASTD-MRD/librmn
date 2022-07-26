@@ -1,6 +1,10 @@
 set(CTEST_OUTPUT_ON_FAILURE ON FORCE)
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(clib_isalpha ${CMAKE_CURRENT_SOURCE_DIR}/clib_isalpha.F90)
+    target_link_libraries(clib_isalpha rmn)
+    add_test(NAME clib_isalpha COMMAND ${CMAKE_CURRENT_BINARY_DIR}/clib_isalpha ${CMAKE_CURRENT_SOURCE_DIR}/spp.dict)
+
     foreach(DATATYPE float double)
         add_executable(fst_${DATATYPE} ${CMAKE_CURRENT_SOURCE_DIR}/fst.c)
         target_compile_definitions(fst_${DATATYPE} PRIVATE DATATYPE=${DATATYPE})
