@@ -51,7 +51,6 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 
 include_directories(
    include
-   src/PUBLIC_INCLUDES/${BUILD_ARCH}-${COMPILER_SUITE}
    src/PUBLIC_INCLUDES
 )
 
