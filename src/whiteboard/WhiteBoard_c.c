@@ -25,8 +25,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// #include <rpnmacros.h>
-#include "rpnmacros.h"
+#include <rpnmacros.h>
 
 #include "WhiteBoard.h"
 
@@ -348,7 +347,7 @@ static int wb_value(
     //! [in] Symbol to search in the table
     char *symbol,
     //! [in] Table pointer
-    wb_symbol *table
+    const wb_symbol *table
 ) {
     if (message_level <= WB_MSG_DEBUG) {
         fprintf(stderr, "looking for value of '%s', ", symbol);
@@ -430,7 +429,7 @@ static int wb_error(
     //! [in] Error code
     int code
 ) {
-    wb_symbol *message = &errors[0];
+    const wb_symbol *message = &errors[0];
     int32_t Severity = severity;
     int32_t Code = code;
 
@@ -1816,10 +1815,11 @@ int32_t f77_name(f_wb_reload)(WhiteBoard **wb){
 
 
 //! Get a line from file, reset current character pointer
-//! \return The address of linebuffer on scuccess or EOF otherwise
+//! \warning Modifies current_char and linebuffer global variables
+//! \return The first character of linebuffer on scuccess or EOF otherwise
 static char wb_get_line(
     //! [in] File from which to read the line
-    FILE *infile
+    FILE * const infile
 ) {
     current_char = fgets(linebuffer, WB_MISC_BUFSZ, infile);
     if (message_level <= WB_MSG_INFO && current_char) {
@@ -1854,10 +1854,11 @@ static int wb_ungetc(
 
 
 //! Get next character from input stream, take care of newline sequence
-//! \return 
+//! \warning This modifies the current_char global variable
+//! \return The next non-newline character from the stream.  It also skips '\'
 static char wb_getc(
     //! [in] File from whic to read
-    FILE * infile
+    FILE * const infile
 ) {
     //! \todo Refactor all the functions reading to file to make the logic simpler and get rid of the goto
     //! \todo Stop using file static variables if there is not a bloody good reason to do so!
@@ -1893,7 +1894,7 @@ s:  if (*current_char == 0) {
 //! \return The last newline, semicolon or EOF character encountered
 static char wb_flush_line(
     //! [in] File from which to read
-    FILE *infile
+    FILE * const infile
 ) {
     char c = wb_getc(infile);
     while (c != '\n' && c != EOF && c != ';') {
@@ -1907,7 +1908,7 @@ static char wb_flush_line(
 //! \return The possibly converted character
 static char wb_get_nonblank(
     //! [in] File from which to read
-    FILE *infile
+    FILE * const infile
 ) {
     char c = wb_getc(infile);
     if (c == EOF) {
@@ -1929,6 +1930,7 @@ static char wb_get_nonblank(
         // treat a non quoted ; as a newline
         c = '\n';
     }
+    // printf("wb_get_nonblank(infile) = %c\n", c);
     return c;
 }
 
@@ -1964,6 +1966,9 @@ static int wb_get_token(
     //! [in] If non zero, do not skip spaces
     int noskip
 ) {
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "wb_get_token(%p, %p, %d, %d)\n", token, infile, maxTokenLength, noskip);
+    }
     char c;
     if (noskip) {
         // Do not skip spaces
@@ -2101,7 +2106,7 @@ static int wb_options(
     //! [in] Option end delimiter
     char end_delim,
     //! [in] Option table
-    wb_symbol *option_table
+    const wb_symbol * const option_table
 ) {
     char token[WB_MAXNAMELENGTH + 1];
     int options = 0;
@@ -2416,6 +2421,7 @@ error_syntax:
 
 
 //! Read a dictionary or user directive file
+//! \warning Modifies extra_error_message, definition_table_entries, max_definition_table_entries global variables
 int c_wb_read(
     WhiteBoard *wb,
     char *filename,
@@ -2426,6 +2432,10 @@ int c_wb_read(
     int packageLength,
     int sectionLength
 ) {
+    if (message_level <= WB_MSG_DEBUG) {
+        fprintf(stderr, "c_wb_read(%p, %s, %s, %s, 0x%x, %d, %d, %d)\n",
+                wb, filename, package, section, options, filenameLength, packageLength, sectionLength);
+    }
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
