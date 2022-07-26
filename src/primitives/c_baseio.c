@@ -50,7 +50,7 @@
 #include <rpnmacros.h>
 #include <ftn_c_protos.h>
 #include <gossip.h>
-#include <endian.h>
+#include <swap_buffer.h>
 
 #define FNOM_OWNER
 #include "fnom.h"

@@ -19,10 +19,10 @@
  */
 
 
-//! \file endian.h Inline functions to swap endianess
+//! \file swap_buffer.h Inline functions to swap endianess
 
-#ifndef ENDIAN_H
-#define ENDIAN_H
+#ifndef SWAP_BUFFER_H
+#define SWAP_BUFFER_H
 
 #include <stdint.h>
 
