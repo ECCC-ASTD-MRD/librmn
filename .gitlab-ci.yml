@@ -5,15 +5,16 @@ variables:
    ORD_SOUMET_M: "8G"
    ORD_SOUMET_TMPFS: "1G"
    ECCI_TRIGGER_FSTTOOLS : a1bf9df63799d00ea5acd683d28e8f
+   ECCI_TRIGGER_RPNTOOLS : 786824484e5ee7ad7afe09168f9d57
+   ECCI_TRIGGER_BURPTOOLS: 491ef78d8f9d3d842324dc9c26a327
    ECCI_TRIGGER_VGRID    : 97db9f3ad91882b866da2ec8bf4f4b
+   ECCI_TRIGGER_RDIAG    : b809c7d38d91eb5c785584c8dd852b
    ECCI_TRIGGER_LIBGRAPH : 654ff2f129d9ac50e494d47f8055b1
    ECCI_TRIGGER_IDLFSTD  : ae646b45425ea987ef473021d7f8df
    ECCI_TRIGGER_XREC     : 1575941b124a67ee15ef63d26e7d47
    ECCI_TRIGGER_XVOIR    : fadfba6698db706df64ab6d9e0255e
-   ECCI_TRIGGER_RPNTOOLS : 786824484e5ee7ad7afe09168f9d57
-   ECCI_TRIGGER_BURPTOOLS: 491ef78d8f9d3d842324dc9c26a327
    ECCI_TRIGGER_GDAL     : 49ee6127258506ff3c41b4f5d25922
-
+   
 stages:
    - build
    - test
@@ -270,11 +271,12 @@ trigger:
       - schedules
    script:
       - curl -X POST -F token=${ECCI_TRIGGER_FSTTOOLS}  -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/6032/trigger/pipeline
+      - curl -X POST -F token=${ECCI_TRIGGER_RPNTOOLS}  -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7158/trigger/pipeline
+      - curl -X POST -F token=${ECCI_TRIGGER_BURPTOOLS} -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7167/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_VGRID}     -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/114/trigger/pipeline
+      - curl -X POST -F token=${ECCI_TRIGGER_RDIAG}     -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/4300/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_LIBGRAPH}  -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/4311/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_IDLFSTD}   -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/4345/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_XREC}      -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/4350/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_XVOIR}     -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/4348/trigger/pipeline
-      - curl -X POST -F token=${ECCI_TRIGGER_RPNTOOLS}  -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7158/trigger/pipeline
-      - curl -X POST -F token=${ECCI_TRIGGER_BURPTOOLS} -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7167/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_GDAL}      -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7211/trigger/pipeline
