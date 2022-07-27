@@ -12,6 +12,7 @@ variables:
    ECCI_TRIGGER_XVOIR    : fadfba6698db706df64ab6d9e0255e
    ECCI_TRIGGER_RPNTOOLS : 786824484e5ee7ad7afe09168f9d57
    ECCI_TRIGGER_BURPTOOLS: 491ef78d8f9d3d842324dc9c26a327
+   ECCI_TRIGGER_GDAL     : 49ee6127258506ff3c41b4f5d25922
 
 stages:
    - build
@@ -276,3 +277,4 @@ trigger:
       - curl -X POST -F token=${ECCI_TRIGGER_XVOIR}     -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/4348/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_RPNTOOLS}  -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7158/trigger/pipeline
       - curl -X POST -F token=${ECCI_TRIGGER_BURPTOOLS} -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7167/trigger/pipeline
+      - curl -X POST -F token=${ECCI_TRIGGER_GDAL}      -F ref=dev -F variables[EC_TRIGGER]=${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}:${CI_BUILD_REF} -F variables[ECCI_PROCESS]=${ECCI_PROCESS} https://gitlab.science.gc.ca/api/v4/projects/7211/trigger/pipeline
