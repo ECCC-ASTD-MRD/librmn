@@ -18,7 +18,7 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
 !============================================================================
-!                       THREAD SAFE ROUTINES 
+!                       THREAD SAFE ROUTINES
 !     (they call the original ones inside a OpenMP critical region)
 !     the original routine names have been deliberately mangled
 !============================================================================
@@ -120,7 +120,7 @@
       Calendar_Adjust = Calendar_Adjust_int(tdate1,tdate2,true_date_mode,adding)
       call date_thread_lock(.false.)
       end function Calendar_Adjust
-                                       
+
       integer function CcclxDays_Adjust(tdate1,tdate2,true_date_mode,adding)
       IMPLICIT NONE
       integer, external :: CcclxDays_Adjust_int
@@ -875,7 +875,7 @@
       implicit none
       logical :: adding
       character(len=1) true_date_mode ! (B)asic or (E)xtended true dates
-      integer, parameter :: limite = 23595500 ! 23h 59m 55s 
+      integer, parameter :: limite = 23595500 ! 23h 59m 55s
       integer :: true2print,print2true
       integer :: ier,tdate1,tdate2,inc,m1,m2,dat(2)
       integer :: year,annee,y1,y1L,y2,p1a(2),p1b,p2a(2),p2b
@@ -1232,7 +1232,7 @@
 !         tdstart = base for newdates ( jan 1, 1980, 00Z)
 !         max_offset = (((jd10k-jd0)*24)/8)*10      (109572750)
 !         exception = extended truedate for jan 1, 1901, 01Z
-!         troisg = 3 000 000 000 (Integer*8, Z'B2D05E00') 
+!         troisg = 3 000 000 000 (Integer*8, Z'B2D05E00')
 !WARNING  - IF NEWDATE RETURNS 1, OUTPUTS CAN TAKE ANY VALUE
 !
 !*
