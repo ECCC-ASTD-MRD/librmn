@@ -50,6 +50,9 @@ can be used.
 - Support for WIN32 has been removed.  The code has not been tested on
 that platform for many years and was likely broken.
 
+- Removed `IOPDATM`.  The function has been broken since U2 and
+Operations will provide an alternate method to get run dates.
+
 - The `second()`, `_second()` et `__second()` functions which allowed to
 query the CPU time used have been deleted.  External tools allow
 retrieving that information or profiling.

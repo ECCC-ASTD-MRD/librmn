@@ -51,6 +51,10 @@ utiliser la fonction `ftnStrLen(str, maxLen)`
 cette plateforme depuis plusieurs années et était probablement
 non-fonctionnel.
 
+- La fonction `IOPDATM` a été supprimée.  Ça ne fonctionnait plus depuis
+le passage à U2.  Les opération vont fournir un autre moyen pour
+récupérer les dates des passes.
+
 - Les fonctions `second()`, `_second()` et `__second()` permettant
 d'interroger le temps CPU utilisé ont été supprimmées.  Des outils
 externes permettent d'obtenir cette information ou de faire du
