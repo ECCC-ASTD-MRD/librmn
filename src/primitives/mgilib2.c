@@ -67,24 +67,13 @@ static void removepidfile();
 static void strcopy(char *s, char *t, int charlen);
 static int validchan(int chan);
 static int bwrite(int chan, void *buffer, int nelem, char *dtype);
-int32_t f77name (mgi_init) (char *channel_name, F2Cl lname);
-int32_t f77name (mgi_open) (int32_t *f_chan, char *mode, F2Cl lmode);
-int32_t f77name (mgi_read) (int32_t *f_chan, void *data, int32_t *f_nelm, char *dtype, F2Cl ltype);
+int32_t f77name (mgi_init) (const char * const channel_name, F2Cl lname);
+int32_t f77name (mgi_open) (const int32_t * const f_chan, const char * const mode, F2Cl lmode);
+int32_t f77name (mgi_read) (const int32_t * const f_chan, void *data, const int32_t * const f_nelm, const char * const dtype, F2Cl ltype);
 int32_t f77name (mgi_write) (int32_t *f_chan, void *data, int32_t *f_nelm, char *dtype, F2Cl ltype);
 int32_t f77name (mgi_clos) (int32_t *f_chan);
 int32_t f77name (mgi_term) ();
 void f77name (mgi_set_timeout) (int32_t *chan, int32_t *timeout);
-
-extern int connect_to_subchannel_by_name (char *channel, char *subchannel, char *mode);
-extern int get_ack_nack (int socket);
-extern int write_record (int fclient, void *buf, int longueur, int tokensize);
-extern void *read_record (int fclient, void *buf, int *longueur, int maxlongueur, int tokensize);
-extern char *get_gossip_dir (int display);
-
-extern void init_client_table ();
-extern void set_client_timeout (int fclient, int timeout);
-extern int get_client_timeout (int fclient);
-extern int close_channel (int fclient, char *channel);
 
 int32_t f77name (mgi_read_oob) ();
 int32_t f77name (mgi_write_oob) ();
@@ -316,11 +305,9 @@ int32_t f77name (mgi_term) () {
 //! Allocate a writing buffer dynamically and if all is successful, it will return a channel number (socket descriptor).
 //! \return Number representing this channel (1 to MAX_CHANNELS - 1)
 int32_t f77name (mgi_init) (
-    char *channel_name,
+    const char * const channel_name,
     F2Cl lname
 ) {
-    int chan;
-
     if (init == 0) {
         init = 1;
     }
@@ -334,7 +321,7 @@ int32_t f77name (mgi_init) (
         return INIT_ERROR;
     }
 
-    chan = ichan;
+    int chan = ichan;
     if (lname < MAX_NAME) {
         strcopy(chn[chan].name, channel_name, lname);
     } else {
@@ -369,12 +356,12 @@ int32_t f77name (mgi_init) (
 //! \return Channel number
 int32_t f77name (mgi_open) (
     //! Channel number
-    int32_t *f_chan,
+    const int32_t * const f_chan,
     //! Channel mode
     //! 'R' for reading
     //! 'W' for writing
     //! 'S' for storing a restart
-    char *mode,
+    const char * const mode,
     F2Cl lmode
 ) {
     int chan = (int) *f_chan;
@@ -550,21 +537,19 @@ void f77name (mgi_set_timeout) (
 //! Read elements directly from the data file related to the specified channel
 int32_t f77name (mgi_read) (
     //! [in] Channel number
-    int32_t *f_chan,
+    const int32_t * const f_chan,
     //! Buffer where to place the data read
     void *buffer,
     //! [in] Number of elements to read
-    int32_t *f_nelem,
+    const int32_t * const f_nelem,
     //! [in] Data type of elements
     //! 'C': character
     //! 'I': integer (int)
     //! 'R': real    (float)
     //! 'D': real*8  (double)
-    char *dtype,
+    const char * const dtype,
     F2Cl ltype
 ) {
-    int ier;
-
     int chan = (int) *f_chan;
     int nelem = (int) *f_nelem;
 
@@ -581,7 +566,7 @@ int32_t f77name (mgi_read) (
 
     bzero(buffer, nelem);
 
-    ier = send_command_to_server(chn[chan].gchannel, "READ");
+    int ier = send_command_to_server(chn[chan].gchannel, "READ");
 
     if (ier < 0) {
 #ifdef DEBUG

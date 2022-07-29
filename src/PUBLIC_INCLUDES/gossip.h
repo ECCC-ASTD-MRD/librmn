@@ -137,7 +137,7 @@ void check_swap_records(void * const record, const int size, const int tokensize
 int write_stream(const int fd, const char * const data, const int bytes);
 int read_stream(const int fd, char * const data, const int nbytes);
 
-void * read_record(int fclient, void *records, int *length, int maxlength, int tokensize);
+void *read_record(const int fclient, void * records, int *length, const int maxlength, int tokensize);
 int write_record(int fclient, void *record, int size, int tokensize);
 char *get_server_name(char *host_ip);
 char *get_gossip_dir(const int verbose);

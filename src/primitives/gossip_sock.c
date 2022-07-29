@@ -1485,125 +1485,111 @@ int write_stream(
 }
 
 
-int read_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
-{
-  int bytesread;
-  fd_set rfds;
-  struct timeval tv;
-  int iers;
-  int iter, total;
-  int remaining;
-
- // read_ft_nonblocking_socket returns a value 0 (success) or -1 (error)
- // to match expectation of routines in mgilib2 and gossip_sock
-
+//! \return 0 (success) or -1 (error) to match expectation of routines in mgilib2 and gossip_sock
+int read_ft_nonblocking_socket(
+    int fd,
+    char *ptr,
+    int n
+) {
 #ifdef DEBUG
-  /****************end timing******************/
-  unsigned long long tt1,tt2,clk1,clk2;
-  tt1 = time_base();
-  /****************end timing******************/
-#endif
+    unsigned long long tt1, tt2, clk1, clk2;
+    tt1 = time_base();
 
-#ifdef DEBUG
-  fprintf(stderr, "\n gossip_sock:: read_ft_nonblocking_socket()   bytes to read = %d\n", n);
-  fflush(stderr);
-#endif
-  remaining=n;
-  iter=0;
-  total=0;
-  // ERROR return code on read
-  // ERROR return code on select (>0
-while (remaining > 0)
-{
-  iter++;
-
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-    tv.tv_sec = get_stream_timeout(fd);
-    tv.tv_usec = 0;
-    iers = select(fd+1, &rfds, NULL, NULL, &tv);
-
-#ifdef INFOLEVEL1
-    fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, select returns iers=%d \n",iter,iers);
+    fprintf(stderr, "\n gossip_sock:: read_ft_nonblocking_socket()   bytes to read = %d\n", n);
     fflush(stderr);
 #endif
+    int remaining = n;
+    int iter = 0;
+    int total = 0;
+    // ERROR return code on read
+    // ERROR return code on select (>0
+    while (remaining > 0) {
+        iter++;
 
-    bytesread = read (fd, ptr, remaining);
-
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(fd, &rfds);
+        struct timeval tv;
+        tv.tv_sec = get_stream_timeout(fd);
+        tv.tv_usec = 0;
+        int iers = select(fd+1, &rfds, NULL, NULL, &tv);
 
 #ifdef INFOLEVEL1
-    fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, read returns bytesread=%d \n",iter,bytesread);
-    fprintf(stderr, "\n read_ft_nonblocking_socket()  read returns bytesread=%d \n",bytesread);
-    fflush(stderr);
+        fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, select returns iers=%d \n",iter,iers);
+        fflush(stderr);
+#endif
+        int bytesread = read (fd, ptr, remaining);
+#ifdef INFOLEVEL1
+        fprintf(stderr, "\n read_ft_nonblocking_socket()  iter=%d, read returns bytesread=%d \n",iter,bytesread);
+        fprintf(stderr, "\n read_ft_nonblocking_socket()  read returns bytesread=%d \n",bytesread);
+        fflush(stderr);
 #endif
 
-    if (bytesread < 0) {
-        if (errno == EINTR) {
-               fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, error EINTR errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
-               fflush(stderr);
-            continue; /* perfectly normal; try again */
-        } else if (errno == EAGAIN) {
-            FD_ZERO(&rfds);
-            FD_SET(fd, &rfds);
-            tv.tv_sec = get_stream_timeout(fd);
-            tv.tv_usec = 0;
+        if (bytesread < 0) {
+            if (errno == EINTR) {
+                fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, error EINTR errno= (%d,%s) %d bytes bytesread\n", iter, errno, strerror(errno), total);
+                fflush(stderr);
+                // perfectly normal; try again
+                continue;
+            } else if (errno == EAGAIN) {
+                FD_ZERO(&rfds);
+                FD_SET(fd, &rfds);
+                tv.tv_sec = get_stream_timeout(fd);
+                tv.tv_usec = 0;
 
-            iers = select(fd+1, &rfds, NULL, NULL, &tv);
-            fprintf(stderr, "\n read_ft_nonblocking_socket()  select returns iers=%d \n",iers);
+                iers = select(fd + 1, &rfds, NULL, NULL, &tv);
+                fprintf(stderr, "\n read_ft_nonblocking_socket()  select returns iers=%d \n",iers);
 
-            if (iers < 0) {
-                /* error; log/die/whatever and close() socket */
-               fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d,  iers= %d FATAL error on select EAGAIN errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
-               fflush(stderr);
-               return -1;
-            } else if (iers == 0) {
-                /* timed out without receiving any data; log/die/whatever and close() */
-               fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d,  iers= %d timeout on select EAGAIN errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
-               fflush(stderr);
-               return -1;
+                if (iers < 0) {
+                    // error; log/die/whatever and close() socket
+                    fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d,  iers= %d FATAL error on select EAGAIN errno= (%d,%s) %d bytes bytesread\n", iter, iers, errno, strerror(errno), total);
+                    fflush(stderr);
+                    return -1;
+                } else if (iers == 0) {
+                    // timed out without receiving any data; log/die/whatever and close()
+                    fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d,  iers= %d timeout on select EAGAIN errno= (%d,%s) %d bytes bytesread\n", iter, iers, errno, strerror(errno), total);
+                    fflush(stderr);
+                    return -1;
+                }
+#ifdef INFOLEVEL1
+                fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, iers= %d select READABLE W errno= (%d,%s) %d bytes bytesread\n", iter, iers, errno, strerror(errno), total);
+                fflush(stderr);
+#endif
+                // Socket is now readable, so loop back up and do the read() again
+                continue;
+            } else {
+                // some real error; log/die/whatever and close() socket
+                fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket() iter=%d, FATAL read error errno= (%d,%s) %d bytes bytesread\n", iter, errno, strerror(errno), total);
+                fflush(stderr);
+                return -1;
             }
-            /* else, socket is now readable, so loop back up and do the read() again */
-#ifdef INFOLEVEL1
-               fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, iers= %d select READABLE W errno= (%d,%s) %d bytes bytesread\n",iter,iers, errno,strerror(errno),total);
-               fflush(stderr);
-#endif
-               continue;
+        } else if (bytesread == 0) {
+            // the connection has been closed by your peer; clean-up and close()
+            fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket() iter=%d, FATAL read error CONNECTION CLOSED errno= (%d,%s) %d bytes bytesread\n", iter, errno, strerror(errno), total);
+            fflush(stderr);
+            return -1;
         } else {
-            /* some real error; log/die/whatever and close() socket */
-           fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket() iter=%d, FATAL read error errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
-           fflush(stderr);
-           return -1;
-        }
-    } else if (bytesread == 0) {
-        /* the connection has been closed by your peer; clean-up and close() */
-           fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket() iter=%d, FATAL read error CONNECTION CLOSED errno= (%d,%s) %d bytes bytesread\n",iter,errno,strerror(errno),total);
-           fflush(stderr);
-           return -1;
-    } else {
-        /* you got some data; do whatever with it... */
-
-      remaining -= bytesread;
-      ptr += bytesread;
-      total += bytesread;
+            // you got some data; do whatever with it...
+            remaining -= bytesread;
+            ptr += bytesread;
+            total += bytesread;
 
 #ifdef INFOLEVEL1
-      fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, %d bytes bytesread OK \n",iter,total);
-      fflush(stderr);
+            fprintf(stderr, "\n gossip_sock::read_ft_nonblocking_socket()  iter=%d, %d bytes bytesread OK \n",iter,total);
+            fflush(stderr);
 #endif
-    }
-
-}
+        }
+    } // (remaining > 0)
 
 #ifdef DEBUG
-  /****************end timing******************/
-  tt2 = time_base() - tt1;
-  fprintf(stderr,"\n gossip_sock::read_ft_nonblocking_socket():  END read %d bytes, bytes remaining= %d, Wall Clock = %llu bigticks", total, remaining, tt2);
-  fflush(stderr);
-  /****************end timing******************/
+    tt2 = time_base() - tt1;
+    fprintf(stderr,"\n gossip_sock::read_ft_nonblocking_socket():  END read %d bytes, bytes remaining= %d, Wall Clock = %llu bigticks", total, remaining, tt2);
+    fflush(stderr);
 #endif
 
-  return remaining;
+    return remaining;
 }
+
 
 int read_ft_nonblocking_socket_count(int fd, char *ptr, int n)  /*   %ENTRY%   */
 {
@@ -2040,223 +2026,181 @@ static int swallow_data(int fd, int nbytes)
   return 0;
 }
 
-/* Read a record from socket in the format lentgth + record + length */
-/* if records == NULL allocate space for data                        */
-/* if maxlength == 0 no maximum length is specified                  */
-/* if length != 0, record length must be: (length) * tokensize       */
-void *read_record( int fclient, void *records, int *length, int maxlength, int tokensize )  /*   %ENTRY%   */
-{
-  char *records2 = NULL;
 
-  int length1, length2, length3;
+//! Read a record from socket in the format lentgth + record + length
+//! \return Pointer to buffer where data was placed
+void *read_record(
+    //! [in] Client id
+    const int fclient,
+    //! [in,out] If NULL, allocate space for data, otherwise use the provided address
+    void * records,
+    //! [in,out] Read length (in tokensize units).  Set to 0 allow an unspecified length.  Will be updated at the end of the function
+    int *length,
+    //! [in] Maximum size of records (in tokensize units). Set to 0 allow an unspecified length.
+    const int maxlength,
+    //! [in] Token size in bytes
+    int tokensize
+) {
+    set_timeout_signal(fclient, false);
 
-#ifdef DEBUG
-  /****************start timing*************/
-  unsigned long long tt1,tt2,clk1,clk2;
-  /**************** timing******************/
-#endif
-
-  set_timeout_signal(fclient, false);
-
-  tokensize = ( tokensize > 1 )?tokensize:1;
-
-#ifdef DEBUG
-  fprintf(stderr, "\n gossip_sock::read_record(), before send_request(), fclient = %d\n", fclient);
-#endif
-
-  /* send SEND request */
-  send_request( fclient, "SEND" );
-
-  /**** data delivery protocol: | length | data | length | ****/
-
-  /* read 1st length */
-#ifdef DEBUG
-  /****************start timing******************/
-  tt1 = time_base();
-  /****************start timing******************/
-#endif
-  length1 = get_int32_from_channel(fclient);
+    tokensize = ( tokensize > 1 ) ? tokensize : 1;
 
 #ifdef DEBUG
-  /****************end timing******************/
-  tt2 = time_base() - tt1;
-  fprintf(stderr,"\n read_record(): get 1st int = %d from socket Wall Clock = %llu bigticks,", length1, tt2);
-  fflush(stderr);
-  /****************end timing******************/
+    fprintf(stderr, "\n gossip_sock::read_record(), before send_request(), fclient = %d\n", fclient);
 #endif
 
+    // send SEND request
+    send_request( fclient, "SEND" );
+
+    // data delivery protocol: | length | data | length |
+
+    // read 1st length
 #ifdef DEBUG
-  fprintf(stderr, "\n gossip_sock::read_record(), 1st length tag = %d \n", length1);
-  fflush(stderr);
+    // Variables for timing
+    unsigned long long tt1, tt2, clk1, clk2;
+    tt1 = time_base();
+#endif
+    int length1 = get_int32_from_channel(fclient);
+#ifdef DEBUG
+    tt2 = time_base() - tt1;
+    fprintf(stderr, "\n read_record(): get 1st int = %d from socket Wall Clock = %llu bigticks,", length1, tt2);
+    fflush(stderr);
+
+    fprintf(stderr, "\n gossip_sock::read_record(), 1st length tag = %d \n", length1);
+    fflush(stderr);
 #endif
 
-  if( length1 == 0 )
-    {
-      swallow_data(fclient, length1);
-      send_ack_nack(fclient, NOT_OK);
-      set_timeout_signal(fclient, true);
-      fprintf(stderr, "\n gossip_sock::read_record: Problem reading TAG1 length1= %d", length1);
-      fflush(stderr);
-      return NULL;
+    if ( length1 == 0 ) {
+        swallow_data(fclient, length1);
+        send_ack_nack(fclient, NOT_OK);
+        set_timeout_signal(fclient, true);
+        fprintf(stderr, "\n gossip_sock::read_record: Problem reading TAG1 length1= %d", length1);
+        fflush(stderr);
+        return NULL;
     }
 
-  if( length1 > maxlength * tokensize && maxlength > 0 )
-    {
-      fprintf(stderr, "\n gossip_sock::read_record: Problem reading TAG1 length: \"%d\" is greater than max requested: \"%d\" \n", length1, maxlength);
-      fflush(stderr);
-      if (swallow_data(fclient, length1) != 0)
-       {
-         fprintf(stderr, "\n gossip_sock::read_record() : cannot get enough data \n");
-         fflush(stderr);
-       }
-      send_ack_nack(fclient, NOT_OK);
-      return NULL;
+    if ( length1 > maxlength * tokensize && maxlength > 0 ) {
+        fprintf(stderr, "\n gossip_sock::read_record: Problem reading TAG1 length: \"%d\" is greater than max requested: \"%d\" \n", length1, maxlength);
+        fflush(stderr);
+        if (swallow_data(fclient, length1) != 0) {
+            fprintf(stderr, "\n gossip_sock::read_record() : cannot get enough data \n");
+            fflush(stderr);
+        }
+        send_ack_nack(fclient, NOT_OK);
+        return NULL;
     }
 
-  if( length1 > maxsize)
-    {
-      maxsize = length1;
+    if ( length1 > maxsize ) {
+        maxsize = length1;
     }
 
-  records2 = (records == NULL) ? malloc(maxsize + 2 * sizeof(int)) : records;
-
-  if(records2 == NULL)
-    {
-      fprintf(stderr, "\n gossip_sock::read_record: cannot allocate memory for data with size = %d\n", length1);
-      fflush(stderr);
-      swallow_data(fclient, length1);
-      send_ack_nack(fclient, NOT_OK);
-      return NULL;
+    char *records2 = NULL;
+    records2 = (records == NULL) ? malloc(maxsize + 2 * sizeof(int)) : records;
+    if (records2 == NULL) {
+        fprintf(stderr, "\n gossip_sock::read_record: cannot allocate memory for data with size = %d\n", length1);
+        fflush(stderr);
+        swallow_data(fclient, length1);
+        send_ack_nack(fclient, NOT_OK);
+        return NULL;
     }
 
 
-  /* read data, and get received stream length */
+    // read data, and get received stream length
 #ifdef DEBUG
-  /****************start timing******************/
-  tt1 = time_base();
-  /****************start timing******************/
+    tt1 = time_base();
+#endif
+    int length2 = read_ft_nonblocking_socket_count(fclient, records2, length1);
+#ifdef DEBUG
+    tt2 = time_base() - tt1;
+    fprintf(stderr, "\n read_record(): read_stream data from socket, size = %d, Wall Clock = %llu bigticks,", length1, tt2);
+    fflush(stderr);
 #endif
 
-  length2 = read_ft_nonblocking_socket_count(fclient, records2, length1);
+    // If length2 < 0 => there was an error reading data
+    if (length2 < 0) {
+        swallow_data(fclient, length1);
+        send_ack_nack(fclient, NOT_OK);
+        set_timeout_signal(fclient, true);
+        fprintf(stderr, "\n gossip_sock::read_record: error reading DATA block length2= %d\n", length2);
+        fflush(stderr);
 
-#ifdef DEBUG
-  /****************end timing******************/
-  tt2 = time_base() - tt1;
-  fprintf(stderr,"\n read_record(): read_stream data from socket, size = %d, Wall Clock = %llu bigticks,", length1, tt2);
-  fflush(stderr);
-  /****************end timing******************/
-#endif
-
-  /* If length2 < 0 => there was an error reading data */
-  if(length2 < 0)
-    {
-      swallow_data(fclient, length1);
-      send_ack_nack(fclient, NOT_OK);
-      set_timeout_signal(fclient, true);
-      fprintf(stderr, "\n gossip_sock::read_record: error reading DATA block length2= %d\n", length2);
-      fflush(stderr);
-
-      if(records == NULL && records2 != NULL)
-    free(records2);
-      return NULL;
+        if (records == NULL && records2 != NULL) free(records2);
+        return NULL;
     }
 
-  /* read 2nd length  */
+    // read 2nd length
 
 #ifdef DEBUG
-  /****************start timing******************/
-  tt1 = time_base();
-  /****************start timing******************/
+    tt1 = time_base();
 #endif
-
-  length3 = get_int32_from_channel(fclient);
-
+  int length3 = get_int32_from_channel(fclient);
 #ifdef DEBUG
-  /****************end timing******************/
-  tt2 = time_base() - tt1;
-  fprintf(stderr,"\n read_record(): get 2nd length TAG = %d from socket Wall Clock = %llu bigticks,", length3, tt2);
-  fflush(stderr);
-  /****************end timing******************/
+    tt2 = time_base() - tt1;
+    fprintf(stderr,"\n read_record(): get 2nd length TAG = %d from socket Wall Clock = %llu bigticks,", length3, tt2);
+    fflush(stderr);
 #endif
 
+    if ( length1 != length2 ) {
+        fprintf(stderr, "\n read_record: Problem DATA bytes read  %d NOT EQUAL to TAG1= %d \n", length2, length1);
+        fflush(stderr);
+        send_ack_nack(fclient, NOT_OK);
+        set_timeout_signal(fclient, false);
 
-  if(length1 != length2)
-    {
-      fprintf(stderr, "\n read_record: Problem DATA bytes read  %d NOT EQUAL to TAG1= %d \n", length2, length1);
-      fflush(stderr);
-      send_ack_nack(fclient, NOT_OK);
-      set_timeout_signal(fclient, false);
-
-      if(records == NULL)
-      free(records2);
-      return NULL;
+        if (records == NULL) free(records2);
+        return NULL;
     }
 
-  if(*length > 0 && *length * tokensize != length2)
-    {
-      fprintf(stderr, "\n read_record: Problem requested DATA length %d != TAG2 = %d\n", *length * tokensize , length2);
-      fflush(stderr);
-      send_ack_nack(fclient, NOT_OK);
-      set_timeout_signal(fclient, true);
+    if (*length > 0 && *length * tokensize != length2) {
+        fprintf(stderr, "\n read_record: Problem requested DATA length %d != TAG2 = %d\n", *length * tokensize , length2);
+        fflush(stderr);
+        send_ack_nack(fclient, NOT_OK);
+        set_timeout_signal(fclient, true);
 
-      if(records == NULL && records2 != NULL)
-    free(records2);
-      return NULL;
+        if (records == NULL && records2 != NULL) free(records2);
+        return NULL;
     }
 
 
-  /* check length values */
-  if(length1 != length3)
-    {
-      fprintf(stderr, "\n read_record: Problem TAGS read length1 = %d NOT EQUAL to length3 = %d \n", length1, length3);
-      fflush(stderr);
-      send_ack_nack(fclient, NOT_OK);
-      /* set_timeout_signal(fclient, false); */
-      set_timeout_signal(fclient, true);
+    // check length values
+    if (length1 != length3) {
+        fprintf(stderr, "\n read_record: Problem TAGS read length1 = %d NOT EQUAL to length3 = %d \n", length1, length3);
+        fflush(stderr);
+        send_ack_nack(fclient, NOT_OK);
+        /* set_timeout_signal(fclient, false); */
+        set_timeout_signal(fclient, true);
 
-      if(records != NULL && records2 != NULL)
-    free(records2);
-      return NULL;
+        if (records != NULL && records2 != NULL) free(records2);
+        return NULL;
     }
 
-  /* check swap records */
-  check_swap_records(records2, length1/tokensize, tokensize);
+    check_swap_records(records2, length1 / tokensize, tokensize);
 
-  /************read: SEND ACK_NACK********************/
-   send_ack_nack(fclient, IS_OK);
-  /************SEND ACK_NACK********************/
-  /* return total number of bytes read */
-
-  *length = length2/tokensize;
-
-  /*****************************/
-  /* check_data(records2, length2); */
-  /*****************************/
+    send_ack_nack(fclient, IS_OK);
+    // return total number of bytes read
+    *length = length2 / tokensize;
 
 #ifdef DEBUG
-  fprintf(stderr, "\n gossip_sock::read_record(), *length = %d\n", *length);
+    fprintf(stderr, "\n gossip_sock::read_record(), *length = %d\n", *length);
 #endif
 
-  return records2;
+    return records2;
 }
 
-/* signal read timeout return special code TIMEOUT = -5 */
-int signal_timeout(int channel)
-{
-  return TIMEOUT;
+
+//! signal read timeout return special code TIMEOUT = -5
+int signal_timeout(int channel) {
+    return TIMEOUT;
 }
 
-/* set timeout option to true if read timeout expires*/
-void set_timeout_signal(int channel, int option)
-{
-  timeout = option;
+//! Set timeout option to true if read timeout expires
+void set_timeout_signal(int channel, int option) {
+    timeout = option;
 }
 
-/* return timeout option (true or false), used in case */
-/* to indicate the reason of read problem              */
+//! Get timeout option (true or false), used in case to indicate the reason of read problem
 int get_timeout_signal(int channel)
 {
-  return timeout;
+    return timeout;
 }
 
 /* before server exit after timeout store all server */
@@ -2495,7 +2439,7 @@ int close_channel(
 // ******************** command server functions ***********************
 
 //! Add the message size to the stream bytes
-void pack_cmd(char *buffer, char *tmpbuf) {
+void pack_cmd(const char * const buffer, char * const tmpbuf) {
     int nbytes = strlen(buffer);
     bzero(tmpbuf, strlen(buffer) + sizeof(int));
 
@@ -2512,7 +2456,7 @@ void pack_cmd(char *buffer, char *tmpbuf) {
 
 //! Send command to server return bytes sent
 //! \return 0 all command bytes sent, >0 failure
-int send_command_to_server2(int fclient, char *buffer) {
+int send_command_to_server2(int fclient, const char * const buffer) {
     char * tmpbuf = (char *)malloc(strlen(buffer) + sizeof(int));
     if (!tmpbuf) {
         fprintf(stderr, "Error: cannot allocate memory for buffer command !!!\n");
