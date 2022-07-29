@@ -8,6 +8,11 @@ especially useful when calling C functions that expect `void *`
 required to build the library.  Building the library is now done with
 [CMake](https://cmake.org/documentation/)
 
+- Added an explicit interface for fnom and fclos.  Add the following 
+`#include <fnom.inc>` to use it.
+
+- Added an explicit interface for MGI functions.  It can be used with
+`#include <mgi.inc>`
 
 
 # Breaks in backward compatibility

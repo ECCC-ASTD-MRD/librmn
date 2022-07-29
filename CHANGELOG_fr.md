@@ -8,6 +8,13 @@ fonctions C qui s'attendent à un `void *`.
 processus est grandement simplifié grâce à l'utilisation de
 [CMake](https://cmake.org/documentation/)
 
+- Ajout d'une interface explicite pour fnom et fclos.  Elle peut être
+utilisée avec `#include <fnom.inc>`.
+
+- Ajout d'une interface explicite pour les fonctions de MGI.  Il suffit
+d'ajouter la ligne `#include <mgi.inc>` pour l'utiliser.
+
+
 
 # Bris de compatibilité
 
