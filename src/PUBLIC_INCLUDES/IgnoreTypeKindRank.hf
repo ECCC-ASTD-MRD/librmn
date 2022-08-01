@@ -3,10 +3,22 @@
 !>
 !> usage:
 !>   #define IgnoreTypeKindRank name1 [, name2] [, name3] ...
+!>   #define ExtraAttributes attr
 !>   #include <IgnoreTypeKindRank.hf>
+!>
+!> If ExtraAttributes is not defined, no extra attributes will be added
 !>
 !> type(*) is known to be supported by gfortran and Intel Fortran compiler
 
+
+#ifndef IgnoreTypeKindRank
+#   error The IgnoreTypeKindRank macro must be defined with the names of variables for which to ignore Rank, Type and Kind
+#endif
+
+! Define ExtraAttributes to nothing if not already defined
+#ifndef ExtraAttributes
+#   define ExtraAttributes
+#endif
 
 #if defined(__GFORTRAN__) || defined(__INTEL_COMPILER)
     type(*), dimension(*) ExtraAttributes :: IgnoreTypeKindRank

@@ -8,6 +8,13 @@ fonctions C qui s'attendent à un `void *`.
 processus est grandement simplifié grâce à l'utilisation de
 [CMake](https://cmake.org/documentation/)
 
+- Ajout d'une interface explicite pour fnom et fclos.  Elle peut être
+utilisée avec `#include <fnom.inc>`.
+
+- Ajout d'une interface explicite pour les fonctions de MGI.  Il suffit
+d'ajouter la ligne `#include <mgi.inc>` pour l'utiliser.
+
+
 
 # Bris de compatibilité
 
@@ -50,6 +57,10 @@ utiliser la fonction `ftnStrLen(str, maxLen)`
 - Le support pour WIN32 a été retiré.  Le code n'avait pas été testé sur
 cette plateforme depuis plusieurs années et était probablement
 non-fonctionnel.
+
+- La fonction `IOPDATM` a été supprimée.  Ça ne fonctionnait plus depuis
+le passage à U2.  Les opération vont fournir un autre moyen pour
+récupérer les dates des passes.
 
 - Les fonctions `second()`, `_second()` et `__second()` permettant
 d'interroger le temps CPU utilisé ont été supprimmées.  Des outils

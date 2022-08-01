@@ -618,7 +618,7 @@ int c_fnom(
 int32_t f77name(fnom)(
     int32_t * const iun,
     const char * const nom,
-    const char * const type,
+    const char * const ftype,
     const int32_t * const flrec,
     F2Cl l1,
     F2Cl l2
@@ -629,23 +629,23 @@ int32_t f77name(fnom)(
 
     int lng = (l1 <= PATH_MAX) ? l1 : PATH_MAX;
 
-    /*  copy filename into a C string  */
+    // copy filename into a C string
     strncpy(filename, nom, lng);
     filename[lng] = '\0';
 
     while ((filename[lng-1] == ' ') && (lng > 1)) {
-        /* strip trailing blanks */
+        // strip trailing blanks
         lng--;
         filename[lng] = '\0';
     }
 
     lng = (l2 <= FNOM_TYPE_MAX) ? l2 : FNOM_TYPE_MAX;
-    /*  copy file type into a C string  */
-    strncpy(filetype, type, lng);
+    //  copy file type into a C string
+    strncpy(filetype, ftype, lng);
     filetype[lng] = '\0';
 
     while ((filetype[lng-1] == ' ') && (lng > 1)) {
-        /* strip trailing blanks */
+        // strip trailing blanks
         lng--;
         filetype[lng] = '\0';
     }

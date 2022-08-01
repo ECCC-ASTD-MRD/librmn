@@ -3,11 +3,9 @@ integer function gmm_checkpoint_all(read_or_write)
     use gmm_internals
     implicit none
     logical :: read_or_write
-    integer :: code, istat
+    integer :: code, istat, ier
 
-    ! FIXME include a proper prototype for this unknown external
-    integer :: fnom
-    external fnom
+#include <fnom.inc>
 
     ! Read checkpoint file one record at a time
     if (read_or_write) then
@@ -116,7 +114,7 @@ integer function gmm_checkpoint_all(read_or_write)
         call gmm_checkpoint_241(.false.)
         call gmm_checkpoint_381(.false.)
     endif
-999 call fclos(file_unit)
+999 ier = fclos(file_unit)
     file_unit = 0
     gmm_checkpoint_all = GMM_OK
 end function gmm_checkpoint_all

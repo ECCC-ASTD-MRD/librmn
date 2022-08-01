@@ -95,8 +95,8 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
 
 
     external bcast_mpi
-    integer, external :: fnom, fclos
     integer mode
+#include <fnom.inc>
 
 !NOTE
 !     SI ON AJOUTE UNE CONSTANTE (MODE=2), NE PAS OUBLIER DE

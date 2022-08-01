@@ -46,7 +46,8 @@
 subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
                   dznprf, zprofil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk)
     implicit none
-    integer, intent(in) :: ni, nj, nk, latmin, rot, iun
+    integer, intent(inout) :: iun
+    integer, intent(in) :: ni, nj, nk, latmin, rot
     integer, intent(in) :: ndeltat, deltat, mode
 
     integer, intent(in) :: rang(ni * nj), idayo
@@ -87,8 +88,10 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     logical, save :: tourne = .true.
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin, fnom
-    external fstnbr, fstouv, fstfrm, fstecr,  exfin, fnom, qqexit, strgr4a
+    integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin
+    external fstnbr, fstouv, fstfrm, fstecr, exfin, qqexit, strgr4a
+
+#include <fnom.inc>
 
     character(len = 1) :: typvar
     character(len = 4) :: etivar
@@ -457,8 +460,10 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     logical, save :: tourne = .true.
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin, fnom, fclos
-    external fstnbr, fstouv, fstfrm, fstecr, exfin, fnom, fclos, qqexit, strgr4a
+    integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin
+    external fstnbr, fstouv, fstfrm, fstecr, exfin, qqexit, strgr4a
+
+#include <fnom.inc>
 
     character(len = 1) :: typvar
     character(len = 4) :: etivar
@@ -837,8 +842,10 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     logical, save :: tourne = .true.
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    integer :: ifrm, fstfrm, iecr, fstecr, fstecr_s, inbr, fstnbr, ierr, fstouv, nil, exfin, fnom, fclos
-    external fstnbr, fstouv, fstfrm, fstecr, fstecr_s, exfin, fnom, fclos, qqexit
+    integer :: ifrm, fstfrm, iecr, fstecr, fstecr_s, inbr, fstnbr, ierr, fstouv, nil, exfin
+    external fstnbr, fstouv, fstfrm, fstecr, fstecr_s, exfin, qqexit
+
+#include <fnom.inc>
 
     character(len = 1) :: typvar
     character(len = 4) :: nomvar

@@ -39,15 +39,15 @@
 *                       de-allocation, (B) initilizes the required arrays and
 *                       constants, (C) controls the status transitions within
 *                       the package, (D) writes the zonal information to disk.
-*                       MZONOPR finds most of its control information is found 
-*                       in the standard file used for accumulating the results. 
-*                          The routine distinguishes between four operating 
+*                       MZONOPR finds most of its control information is found
+*                       in the standard file used for accumulating the results.
+*                          The routine distinguishes between four operating
 *                       states/modes as well as an information returning mode:
 *                               MOD = 0 - No initializing/allocation done
 *                               MOD = 1 - Initializing/allocation done
 *                               MOD = 2 - Timestep started
 *                               MOD = 3 - Vertical slab started
-*                       Transitions are only allowed from one line to the next 
+*                       Transitions are only allowed from one line to the next
 *                       or to the previous line, except when MOD = 3, since
 *                       multi-tasking may require that more one vertical slab
 *                       be active at once. It is important to note that until
@@ -151,7 +151,7 @@
 *                          04 unable to write incomplete somx2 quadratic accumaltor
 *                          05 unable to update control information in state 1
 *                          06 file NOUTZON does not exist at onset
-*                          07 file NOUTZON is empty 
+*                          07 file NOUTZON is empty
 *                          08 unable to read initial control information
 *                          09 unable to read SINT rotation field
 *                          10 unable to read COST rotation field
@@ -193,26 +193,26 @@
 *         003 G.Pellerin (oct92) test iluk lt 0 apres lecture
 *         004 G.Pellerin (nov92) test transit pour +3 a -3
 *         005 G.Pellerin (nov92) variable COMPLET dans common
-*         006 G.Pellerin (nov92) at kount=1 SavPas = vrai modulo()   
+*         006 G.Pellerin (nov92) at kount=1 SavPas = vrai modulo()
 *         007 G.Pellerin/B.Dugas (jan93) mvznxst pour les vents
-*         008 G.Pellerin (jan93) NIV (1 ou ka) calculer de posvar 
+*         008 G.Pellerin (jan93) NIV (1 ou ka) calculer de posvar
 *         009 G.Pellerin (jan93) temp(ii,place+jj,task) transfert Z(*)
 *         010 G.Pellerin (jan93) util(place+jj,task) position de temp
-*         011 G.Pellerin (jan93) character*2 pour NON,XNOM,YNOM 
+*         011 G.Pellerin (jan93) character*2 pour NON,XNOM,YNOM
 *         012 B.Dugas    (fev93) remplacer ",task)" par ",tranche)"
-*         013 G.Pellerin (oct93) ecriture a kount=1 pour tendances 
-*         014 G.Pellerin (nov93) permettre transit 3 a 3 (multi) 
+*         013 G.Pellerin (oct93) ecriture a kount=1 pour tendances
+*         014 G.Pellerin (nov93) permettre transit 3 a 3 (multi)
 *         015 G.Pellerin (nov93) activer le clef Control adequatement
 *         016 G.Pellerin (fev94) conversion d'entier a characteres via
 *                                r4astrg et strgr4a
 *         017 G.Pellerin (fev94) augmenter Nombrec a 14 (ROT)
-*         018 G.Pellerin (fev94) traitement differents des variables 
+*         018 G.Pellerin (fev94) traitement differents des variables
 *                                de surface et de profil
 *         019 B.Dugas    (jun94) - mzonopr devient le point d'entree
 *                                  principal du fichier
 *                                - deplacer l'initialisation des champs
 *                                  somx/somx2 au niveau de controle +2
-*         020 B.Dugas    (sep94) le mode de fonctionnement par defaut 
+*         020 B.Dugas    (sep94) le mode de fonctionnement par defaut
 *                                est de ne rien faire
 *         021 B.Dugas    (dec94) utiliser la fonction wkoffit afin de
 *                                verifier qu'un fichier noutzon de type
@@ -300,9 +300,9 @@
       Integer       KAJ(MaxTask),listej(MaxTask),tabctl(NombreC)
       Save          KAJ,         listej,         tabctl
 
-      Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK,  
+      Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK,
      +              NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
-     
+
 ***   Equivalence
 ***  +( NDELTAT, tabctl(1) ),( DELTAT, tabctl(2) ),
 ***  +( MODE,    tabctl(3) ),( NI,     tabctl(4) ),
@@ -312,7 +312,7 @@
 ***  +( ROT,     tabctl(11))
 
       Common /zontab/ NDELTAT,DELTAT,MODE,NI,NIP,NJ,NK,
-     +                NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT 
+     +                NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
 
 ***    Declaration de la variable d'etat.
 
@@ -341,12 +341,13 @@
 
       Integer       ifrm,fstfrm, iecr,fstecr, iprm,fstprm,
      +              inbr,fstnbr, inf, fstinf, iluk,fstluk,
-     +              ierr,fstouv, nil, exfin,  wkoffit,
-     +              fnom,fclos
+     +              ierr,fstouv, nil, exfin,  wkoffit
 
       External      fstnbr, fstouv, fstfrm, fstecr,  exfin,
      +              fstprm, fstluk, fstinf, qqexit,
-     +              fnom,   fclos,  wkoffit,r4astrg 
+     +              wkoffit, r4astrg
+
+#include <fnom.inc>
 
       Character     typvar*1,                nomvar*4,
      +              etiket*12,               grtyp*1
@@ -366,12 +367,12 @@
 
       Character     variab*4
       Real          echant,echantX,echantY,poids
-      Integer       NIC,NJC,NKC, bini, deb,fin,lo,DIFP, 
+      Integer       NIC,NJC,NKC, bini, deb,fin,lo,DIFP,
      +              II,JJ,J0,JJ0,KK,numero,numeroX,numeroY,
      +              place,placeX,placeY,tranche,LocVAL,
      +              val11,val11X,val11Y
 
-***    Declaration des valeurs initiales 
+***    Declaration des valeurs initiales
 
       Data          Vrai     /     .true.     /,
      +              Faux     /     .false.    /,
@@ -384,7 +385,7 @@
       Data          NDIMS    /  0  /
       Data          StartI   /  0  /
       Data          StartJ   /  0  /
-      Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  , 
+      Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  ,
      +                          3  ,  2  , -1  ,  6  , 999 , 999 ,
      +                          3  ,  3  , -2  ,  4  , 999 , 999 ,
      +                          2  ,  3  , -3  , 999 , 999 , 999 /
@@ -426,7 +427,7 @@
      +           OPR.eq.8)
      +     .and.
      +           ETAT.eq.0 ) Return
-      
+
 ***    Verifier que l'operation demandee est permise.
 
       If (Debug)                                               Then
@@ -438,7 +439,7 @@
       End IF
 
       NOTOK = Vrai
-      Do  II=2,transit( 1, ETAT ) +1 
+      Do  II=2,transit( 1, ETAT ) +1
           If (transit( II, ETAT ).eq.OPR)                      Then
               NOTOK = Faux
               GoTo 100
@@ -469,7 +470,7 @@
 ***    3) On lit les champs d'accumulation, s'il le faut.
 
               IUN = VAL
- 
+
               ierr = wkoffit( NOUTZON )
 
               If (ierr.ne.1 .and. ierr.ne.33)                  Then
@@ -486,8 +487,8 @@
 
               ierr = fnom( IUN, NOUTZON, 'STD+RND+OLD',0 )
 
-***      Verifier que IUN fait reference a un fichier de 
-***      type valide. 
+***      Verifier que IUN fait reference a un fichier de
+***      type valide.
 
               inbr = fstnbr( IUN )
               If (inbr.le. 0)                                  Then
@@ -520,17 +521,17 @@
 
               iluk = fstluk( tabctl, inf, NIC,NJC,NKC )
 
-              NDELTAT = tabctl( 1) 
-              DELTAT  = tabctl( 2) 
-              MODE    = tabctl( 3) 
+              NDELTAT = tabctl( 1)
+              DELTAT  = tabctl( 2)
+              MODE    = tabctl( 3)
               NI      = tabctl( 4)
               NJ      = tabctl( 5)
               NK      = tabctl( 6)
               NBIN    = tabctl( 7)
               SOMNK   = tabctl( 8)
-              COMPLET = tabctl( 9)  
-              LATMIN  = tabctl(10) 
-              ROT     = tabctl(11) 
+              COMPLET = tabctl( 9)
+              LATMIN  = tabctl(10)
+              ROT     = tabctl(11)
 
               NIP     = NI  +mod( NI  +1,2 )
               NBIP    = NBIN+mod( NBIN+1,2 )
@@ -556,15 +557,15 @@
 ***      Lire tous les parametres du fichier standart de controle.
 
               iprm  = fstprm( inf,
-     +                        dateo,deet,npas, NIC,NJC,NKC, 
-     +                        nbits,datyp,    ip1,ip20,ip3, 
-     +                        typvar,nomvar,etiket, 
-     +                        grtyp,ig1,ig2,ig3,ig4, 
+     +                        dateo,deet,npas, NIC,NJC,NKC,
+     +                        nbits,datyp,    ip1,ip20,ip3,
+     +                        typvar,nomvar,etiket,
+     +                        grtyp,ig1,ig2,ig3,ig4,
      +                        swa,lng,dltf,ubc,
      +                        extra1,extra2,extra3 )
 
 
-***      Allouer l'espace d'une premiere serie de champs 
+***      Allouer l'espace d'une premiere serie de champs
 ***         en fonction de cette information.
 
               allocate(sint(ni,nj))
@@ -574,7 +575,7 @@
 
 ***      Lire ces champs grilles. Commencer par SINT.
 
-              inf  = fstinf( IUN,  NIC,NJC,NKC, 
+              inf  = fstinf( IUN,  NIC,NJC,NKC,
      +                             -1,'CONTROLE ',
      +                             ip1,ip20,ip3,
      +                             '+','S/' )
@@ -595,7 +596,7 @@
 
 ***      Lire COST.
 
-              inf  = fstinf( IUN,  NIC,NJC,NKC, 
+              inf  = fstinf( IUN,  NIC,NJC,NKC,
      +                             -1,'CONTROLE ',
      +                             ip1,ip20,ip3,
      +                             '+','C/' )
@@ -675,7 +676,7 @@
 
               End If
 
-              If (inf.lt.0 
+              If (inf.lt.0
      +       .or.(nomvar.eq.'VC/' .and. NIC.gt.MaxVarP3*8)
      +       .or.(nomvar.eq.'V/'  .and. NIC.gt.MaxVarP3*4))    Then
 
@@ -735,7 +736,7 @@
      +                            ip1,ip20,ip3,
      +                            '+','P/' )
               iluk = fstluk( posvar, inf, NIC,NJC,NKC )
-       
+
               If (NIC.gt.MaxVar .or. iluk.lt.0)                Then
 
                   If (IOPrint)                                 Then
@@ -750,10 +751,10 @@
 ***       posvar(0) = 1 par definition.
 
               posvar(0) = 1
-       
+
               SOMNK = posvar(NVAR)-1
-                  
-***       Allouer la deuxieme serie de grilles. 
+
+***       Allouer la deuxieme serie de grilles.
 
               If (mod(MODE,2).eq.1)
      +        allocate( somx(SOMNK,NBIP))
@@ -782,11 +783,11 @@
 
                       inf  = fstinf( IUN,  NIC,NJC,NKC,
      +                                     -1,'MZONXST',
-     +                                     ip1,COMPLET,ip3, 
+     +                                     ip1,COMPLET,ip3,
      +                                     '+','1/' )
                       iluk = fstluk( WK, inf, NIC,NJC,NKC )
 
-                      If (inf .lt.0 .or. 
+                      If (inf .lt.0 .or.
      +                    iluk.lt.0    )                       Then
 
                           If (IOPrint)                         Then
@@ -817,11 +818,11 @@
 
                       inf  = fstinf( IUN,   NIC,NJC,NKC,
      +                                      -1,'MZONXST',
-     +                                      ip1,COMPLET,ip3, 
+     +                                      ip1,COMPLET,ip3,
      +                                      '+','2/' )
                       iluk = fstluk( WK, inf, NIC,NJC,NKC )
 
-                      If (inf .lt.0 .or. 
+                      If (inf .lt.0 .or.
      +                    iluk.lt.0    )                       Then
 
                           If (IOPrint)                         Then
@@ -854,14 +855,14 @@
 ***       Avant de proceder, mettre ETAT a jour.
 
               ETAT    = 1
-                      
+
 ************************************************************************
           Else
 ************************************************************************
 
 ***       Fin d'une tranche d'integration.
 ***
-***        1) On ecrit sur le fichier IUN ce que l'on a 
+***        1) On ecrit sur le fichier IUN ce que l'on a
 ***             accumule/echantillonne sur psomx/psomx2.
 ***        2) On de-alloue la memoire dynamique.
 
@@ -883,7 +884,7 @@
 
                   datyp  =   5
                   rewrit = Vrai
-                  npak   = -32   
+                  npak   = -32
                   etiket = 'MZONXST'
 
                   If (mod(MODE,2).eq.1)                        Then
@@ -899,17 +900,17 @@
                       End Do
 
                       nomvar = '1/'
-                      iecr   = fstecr( WK, somx, 
+                      iecr   = fstecr( WK, somx,
      +                                 npak,IUN,dateo,deet,npas,
      +                                 NBIN,SOMNK,1, ip1,ip2,ip3,
      +                                 typvar,nomvar,etiket,grtyp,
-     +                                 ig1,ig2,ig3,ig4,datyp, 
+     +                                 ig1,ig2,ig3,ig4,datyp,
      +                                 rewrit )
 
                       If (iecr.lt.0)                           Then
 
                           If (IOPrint)                         Then
-                              Write(6,6003) 
+                              Write(6,6003)
                               nil = exfin( 'Mzonopr','Erreur 3','NON' )
                           End If
 
@@ -936,13 +937,13 @@
      +                                 npak,IUN,dateo,deet,npas,
      +                                 NBIN,SOMNK,1, ip1,ip2,ip3,
      +                                 typvar,nomvar,etiket,grtyp,
-     +                                 ig1,ig2,ig3,ig4,datyp, 
+     +                                 ig1,ig2,ig3,ig4,datyp,
      +                                 rewrit )
 
                       If (iecr.lt.0)                           Then
 
                           If (IOPrint)                         Then
-                              Write(6,6004) 
+                              Write(6,6004)
                               nil = exfin( 'Mzonopr','Erreur 4','NON' )
                           End If
 
@@ -964,18 +965,18 @@
 
                   tabctl(1) = NDELTAT
                   tabctl(9) = COMPLET
- 
-                  iecr   = fstecr( tabctl, WK, 
+
+                  iecr   = fstecr( tabctl, WK,
      +                             npak,IUN,dateo,deet,npas,
      +                             nic,njc,1, ip1,ip20,ip3,
      +                             typvar,nomvar,etiket,grtyp,
-     +                             ig1,ig2,ig3,ig4,datyp, 
+     +                             ig1,ig2,ig3,ig4,datyp,
      +                             rewrit )
 
                   If (iecr.lt.0)                               Then
 
                       If (IOPrint)                             Then
-                          Write(6,6005) 
+                          Write(6,6005)
                           nil = exfin( 'Mzonopr','Erreur 5','NON' )
                       End If
 
@@ -1018,13 +1019,13 @@
 
 ***      Debut d'un pas de temps.
 
-***        1) On met KOUNT a jour. 
+***        1) On met KOUNT a jour.
 ***        2) Initialiser somx/somx2 au besoin.
 ***        3) Decider si on doit sauver quoi que
 ***               ce soit durant ce pas de temps.
 
               KOUNT = VAL
-            
+
 ***      Mettre IP2/NPAS a jour.
 
               deet = DELTAT
@@ -1059,7 +1060,7 @@
               If (COMPLET.ne.   0   .and.
      +            COMPLET.gt. KOUNT )                          Then
 
-***      La valeur du pas de temps est plus petite que celle 
+***      La valeur du pas de temps est plus petite que celle
 ***      lue sur le fichier IUN.  Il faudra alors tenter de
 ***      lire les donnees du pas precedent.
 
@@ -1075,7 +1076,7 @@
      +                                     '+','1/' )
                       iluk = fstluk( WK, inf, NIC,NJC,NKC )
 
-                      If (inf .lt.0 .or. 
+                      If (inf .lt.0 .or.
      +                    iluk.lt.0    )                       Then
 
                           If (IOPrint)                         Then
@@ -1110,7 +1111,7 @@
      +                                      '+','2/' )
                       iluk = fstluk( WK, inf, NIC,NJC,NKC )
 
-                      If (inf .lt.0 .or. 
+                      If (inf .lt.0 .or.
      +                    iluk.lt.0    )                       Then
 
                           If (IOPrint)                         Then
@@ -1156,7 +1157,7 @@
 ***     Fin d'un pas de temps. Sommes-nous en mode SavPas ?
 
               KOUNT = VAL
-*          
+*
               If (KOUNT.ne.npas)                               Then
 
                   If (IOPrint)                                 Then
@@ -1165,9 +1166,9 @@
                   End If
 
                   Call qqexit( 16 )
- 
-              End If   
-         
+
+              End If
+
               If (SavPas)                                      Then
 
 ***      Sauver ce que l'on a sur somx/somx2.
@@ -1175,7 +1176,7 @@
                   datyp  =   5
                   rewrit =  Faux
                   nkc    =   1
-                  npak   =  -32 
+                  npak   =  -32
                   etiket = 'MZONXST'
 
                   If (mod(MODE,2).eq.1)                        Then
@@ -1253,9 +1254,9 @@
                   nomvar = 'T/'
                   nic    =   nombreC
                   njc    =   1
-                 
+
                   tabctl(1) = NDELTAT
-                  tabctl(9) = COMPLET 
+                  tabctl(9) = COMPLET
 
                   iecr   = fstecr( tabctl, WK,
      +                             npak,IUN,dateo,deet,npas,
@@ -1351,7 +1352,7 @@
 ***            2) Liberer la tranche.
 
               Do  KK=1,NCPU
-     
+
                   If (listej(KK).eq.LocVAL)                    Then
 
                       listej(KK) = -1
@@ -1506,7 +1507,7 @@
 ***   (Valide seulement dans le mode de controle actif du package).
 
       If (ETAT.eq.0) Return
-      
+
       If (ETAT.ne.3)                                           Then
 
           If (IOPrint)                                         Then
@@ -1552,7 +1553,7 @@
 
           Return
 
-      Else If (.not.SavPas    .and. 
+      Else If (.not.SavPas    .and.
      +    propvar(numero).eq.1     )                           Then
 
 ***        C'est une variable echantillonnee
@@ -1629,7 +1630,7 @@
               End If
           End If
 
-***    On transfert le contenu du champs Z dans temp 
+***    On transfert le contenu du champs Z dans temp
 ***    selon la valeur trouvee dans le parametre ORD.
 
           NIC = Min( NDIM, NI )
@@ -1702,7 +1703,7 @@
 
           Else If (ORD.eq.-2)                                  Then
 
-***    Copier NIV niveaux. Mode avec normalisation 1D 
+***    Copier NIV niveaux. Mode avec normalisation 1D
 
               Do  JJ0=1,NIV
                   JJ = Min( JJ0,Abs( KAJ(tranche) ) )
@@ -1719,7 +1720,7 @@
 
           Else If (ORD.eq.-3)                                  Then
 
-***    Copier NIV niveaux. Mode avec normalisation 2D 
+***    Copier NIV niveaux. Mode avec normalisation 2D
 
               Do  JJ0=1,NIV
                   JJ = Min( JJ0,Abs( KAJ(tranche) ) )
@@ -1767,7 +1768,7 @@
       Entry MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
 
       If (ETAT.eq.0) Return
-      
+
       If (ETAT.ne.3)                                           Then
 
           If (IOPrint)                                         Then
@@ -1800,7 +1801,7 @@
      %z' )) then
               variab(4:4) = listvar(II)(5:5)
             endif
-          endif   
+          endif
 
           If (trim(variab) .eq. XNOM) GoTo 2000
           JJ     = JJ+1
@@ -1827,7 +1828,7 @@
      %z' )) then
               variab(4:4) = listvar(II)(5:5)
             endif
-          endif   
+          endif
 
           If (trim(variab) .eq. YNOM) GoTo 2050
           JJ     = JJ+1
@@ -1842,17 +1843,17 @@
 *         If (IOPrint)                                         Then
 *             Write(6,6122) XNOM,YNOM
 *             nil = exfin( 'Mvznxst', 'Erreur 2', 'NON' )
-*         End If 
+*         End If
 *         Call qqexit( 2 )
 
           Return
 
-      Else If (.not.SavPas      .and. 
+      Else If (.not.SavPas      .and.
      +    (propvar(numeroX).eq.1 .or. propvar(numeroY).eq.1 )) Then
 
 ***     Au moins une des variables est une variable echantillonnee
 ***     et on ne doit pas encore la sauver.
-        
+
           Return
 
       Else
@@ -1901,7 +1902,7 @@
           If (KAJ(tranche).lt.0) NIV = DIFP
           If (KAJ(tranche).gt.0) NIV = Min( DIFP ,KAJ(tranche) )
 
-***     Variables echantillonnees ou moyennees ? 
+***     Variables echantillonnees ou moyennees ?
 
           If (propvar(numeroX).eq.1 .or.
      +        propvar(numeroY).eq.1 )                          Then
@@ -1923,7 +1924,7 @@
               Else If (npas.le.NDELTAT)                        Then
 
 ***     Et puisque que les donnees sont aussi sauvees si npas=1 ...
- 
+
                   echantX = 1.0 / Float( NDELTAT-1 )
                   echantY = 1.0 / Float( NDELTAT-1 )
 
@@ -1954,7 +1955,7 @@
 ***     Ajuster l'orientation des composantes vectorielles.
 ***     Ceci est necessaire dans le modele EFR.  Dans le cas
 ***     du modele SEF, les champs COST et SINT contiennent
-***     respectivement des 0s et des -1s. Placer le resultat 
+***     respectivement des 0s et des -1s. Placer le resultat
 ***     dans temp selon le mode correspondant a la valeur du
 ***     parametre ORD.
 
@@ -1977,8 +1978,8 @@
      +                - echantX*X(II,JJ) * COST(II+StartI,J0)
      +                - echantY*Y(II,JJ) * SINT(II+StartI,J0)
 
-                  End Do 
-              End Do 
+                  End Do
+              End Do
 
           Else If (ORD.eq.0)                                   Then
 
@@ -2034,7 +2035,7 @@
 
           Else If (ORD.eq.-2)                                  Then
 
-***     Copier NIV niveaux. Mode avec normalisation 1D 
+***     Copier NIV niveaux. Mode avec normalisation 1D
 
               Do  JJ0=1,NIV
                   JJ = Min( JJ0,Abs( KAJ(tranche) ) )
@@ -2055,7 +2056,7 @@
 
           Else If (ORD.eq.-3)                                  Then
 
-***     Copier NIV niveaux. Mode avec normalisation 2D 
+***     Copier NIV niveaux. Mode avec normalisation 2D
 
               Do  JJ0=1,NIV
                   JJ = Min( JJ0,Abs( KAJ(tranche) ) )

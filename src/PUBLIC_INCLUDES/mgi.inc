@@ -1,0 +1,60 @@
+interface
+    !> Initialize a channel using the name given and open the socket
+    !> \return Number representing this channel (1 to MAX_CHANNELS - 1)
+    integer function mgi_init(channel_name)
+        !> Name of the channel
+        character(len = *), intent(in) :: channel_name
+    end function
+
+    !> Open a channel
+    !> \return Channel number
+    integer function mgi_open(f_chan, mode)
+        !> Channel number
+        integer, intent(in) :: f_chan
+        !> Channel mode: 'R' for reading, 'W' for writing, 'S' for storing a restart
+        character(len = *), intent(in) :: mode
+    end function
+
+    !> Read elements directly from the data file related to the specified channel
+    integer function mgi_read(f_chan, data, f_nelm, dtype)
+        !> Channel number
+        integer, intent(in) :: f_chan
+        !> Buffer for the data read
+#       define IgnoreTypeKindRank data
+#       include <IgnoreTypeKindRank.hf>
+        !> Number of elements to read
+        integer, intent(in) :: f_nelm
+        !> [in] Data type of elements
+        !> 'C': character
+        !> 'I': integer (int)
+        !> 'R': real    (float)
+        !> 'D': real*8  (double)
+        character(len = *), intent(in) :: dtype
+    end function
+
+    integer function mgi_write(f_chan, data, f_nelm, dtype)
+        integer, intent(in) :: f_chan
+#       define IgnoreTypeKindRank data
+#       include <IgnoreTypeKindRank.hf>
+        integer, intent(in) :: f_nelm
+        character(len = *), intent(in) :: dtype
+    end function
+
+    integer function mgi_clos(f_chan)
+        integer, intent(in) :: f_chan
+    end function
+
+    integer function mgi_term ()
+    end function
+
+    subroutine mgi_set_timeout(f_chan, timeout)
+        integer, intent(in) :: f_chan
+        integer, intent(in) :: timeout
+    end subroutine
+
+    integer function mgi_read_oob()
+    end function
+
+    integer function mgi_write_oob()
+    end function
+end interface

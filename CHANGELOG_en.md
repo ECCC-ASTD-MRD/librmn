@@ -8,6 +8,11 @@ especially useful when calling C functions that expect `void *`
 required to build the library.  Building the library is now done with
 [CMake](https://cmake.org/documentation/)
 
+- Added an explicit interface for fnom and fclos.  Add the following 
+`#include <fnom.inc>` to use it.
+
+- Added an explicit interface for MGI functions.  It can be used with
+`#include <mgi.inc>`
 
 
 # Breaks in backward compatibility
@@ -49,6 +54,9 @@ can be used.
 
 - Support for WIN32 has been removed.  The code has not been tested on
 that platform for many years and was likely broken.
+
+- Removed `IOPDATM`.  The function has been broken since U2 and
+Operations will provide an alternate method to get run dates.
 
 - The `second()`, `_second()` et `__second()` functions which allowed to
 query the CPU time used have been deleted.  External tools allow

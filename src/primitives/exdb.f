@@ -59,19 +59,7 @@
 *  E     REVIS     CHAINE DE CARACTERES INDIQUANT LA VERSION DU
 *                  PRODUIT (EXDB) OU UN MESSAGE DE FIN (EXFIN). SEULS LES
 *                  DIX PREMIERS CARACTERES SERONT IMPRIMES.
-*  E     FLAG      CHAINE DE CARACTERES (7), FLAG PEUT ETRE
-*                  - 'NON' AUQUEL CAS IOPDATM RENVOIE 2010101011.
-*                  - UNE CLE DE 7 CARACTERES OU MOINS CORRESPONDANT
-*                    A D'AUTRES "DATE TIME STAMP".
-*                  - UN NOMBRE DE 7 CHIFFRES YYJJJZZ OU YY EST L'ANNEE,
-*                    JJJ LE JOUR DANS L'ANNEE (1 A 366) ET ZZ L'HEURE
-*                    (00 - 24).
-*                  - IOPDATM RENVOIE ALORS LE DATE TIME STAMP QUI
-*                    CORRESPOND A CETTE DATE ET CETTE HEURE.
-*                  - UN NOM DE FICHIER. IOPDATM LIRA LE PREMIER MOT DE CE
-*                    FICHIER EN LE CONSIDERANT COMME UN DATE TIME STAMP.
-*                    SI IOPDATM RENCONTRE UNE ERREUR, LE "STAMP" RENVOYE
-*                    SERA 1010101011.
+*  E     FLAG      IGNORE.  CONSERVE POUR COMPATIBILITE ARRIERE
 *  E     SUPP      LIGNES D'INFORMATION SUPPLEMENTAIRE A IMPRIMER
 *  E     NSUP      NOMBRE DE LIGNE SUPPLEMENTAIRES A IMPRIMER
 *
@@ -80,7 +68,6 @@
 *        EST RESPONSABLE D'OUVRIR  CETTE UNITE CORRECTEMENT.
 *
 *MODULES
-*        IOPDATM   POUR OBTENIR LE DATE TIME STAMP  (RMNLIB5)
 *        DATE      POUR OBTENIR LA DATE DU SYSTEME  (RMNLIB5)
 *        DATMGP2   POUR RECONSTITUER LE DATE TIME STAMP  (RMNLIB5)
 *        TIME      POUR OBTENIR L'HEURE  (LIBRAIRIE FORTRAN)
@@ -96,29 +83,23 @@
 *
 
 
-      CHARACTER *24 CDATIM
-      CHARACTER *105 VERSION,titre,tempstring
-      INTEGER IOPDATM,I,IDATIM(14)
-      REAL T1
+      CHARACTER(len = 24) :: CDATIM
+      CHARACTER(len = 105) :: VERSION, titre, tempstring
+      INTEGER :: I
+      REAL :: T1
 *     utilise pour que EXFIN ait acces a T1
       common/exdb_t1/ T1
 
       titre = ' '
       titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
-      IDATIM(14) = IOPDATM(FLAG)
-      CALL DATMGP2(IDATIM)
       CALL FDATE(CDATIM)
 * Obtenir la version de rmnlib utilisee
-      CALL RMNLIB_version(VERSION,.false.)
-      WRITE(6,500) TITRE,REVIS,VERSION,CDATIM
-      DO I=1,NSUP
-        tempstring=SUPP(I)
-        WRITE(6,460) tempstring
+      CALL RMNLIB_version(VERSION, .false.)
+      WRITE(6,500) TITRE, REVIS, VERSION, CDATIM
+      DO I = 1, NSUP
+          tempstring = SUPP(I)
+          WRITE(6,460) tempstring
       ENDDO
-      IF (FLAG.NE.'NON') THEN
-         write(6,450) flag
-         WRITE(6,700) (IDATIM(I),I=7,14)
-      ENDIF
       WRITE(6,800) 'BEGIN  EXECUTION     '
  450  format(3X,'*',107X,'*',/3x,'*',8x,a8,t91,'*')
  460  format(3x,'*',107X,'*',/3x,'*',2x,a105,'*')
@@ -139,8 +120,7 @@
      %     /,3X,'*',107('*'),'*')
 
       CALL CPU_TIME(T1)
-      EXDBPLUS = IDATIM(14)
-
+      EXDBPLUS = 0
 
       RETURN
       END

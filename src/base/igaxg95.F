@@ -203,10 +203,10 @@
 #include "qqqcgb1.cdk"
 #include "qqqgb2.cdk"
 
+#include <fnom.inc>
       character*256 filename,armnlib
       character*512 buffer
-      external fnom,fclos,qqqlen
-      integer fnom
+      external qqqlen
       integer ier,strlen,iun,qqqlen
 
       logical once
@@ -226,7 +226,7 @@
       ier = fnom(iun, filename, 'FTN+FMT+R/O+OLD', 0)
       if (ier.ne.0) then
         print *,' <qqqgbld> no local "gribtable" file found'
-        call fclos(iun)
+        ier = fclos(iun)
         call getenvc('AFSISIO',armnlib)
         strlen = qqqlen(armnlib,len(armnlib))
         print *,len(armnlib)
@@ -243,7 +243,7 @@
             print *,' <qqqgbld> no "gribtable" file found'
             print *,' <qqqgbld> no "./gribtable" and  no "'
      &           ,filename(1:qqqlen(filename,len(filename))),'"'
-            call fclos(iun)
+            ier = fclos(iun)
             print *,' <qqqgbld> using grib table in '
      &           ,filename(1:qqqlen(filename,len(filename)))
           endif
@@ -264,19 +264,19 @@
       print *,' <qqqgbld> found ',qqqngb, ' grids'
       once = .true.
 
-      call fclos(iun)
+      ier = fclos(iun)
       qqqgbld = 0
       return
 
  110  print 80
       print *,' <qqqgbld> read error encountered in file "gribtable"'
-      call fclos(iun)
+      ier = fclos(iun)
       qqqgbld = -1
 
  111  print 80
       print *,' <qqqgbld> internal string table too small'
       print *,' <qqqgbld> modify code to allocate more space'
-      call fclos(iun)
+      ier = fclos(iun)
       qqqgbld = -1
 
  80   format(' ',79('*'))

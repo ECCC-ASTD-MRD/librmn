@@ -52,10 +52,10 @@
 * the function will return 0 upon success, -1 if there is an error
 **
 
-      integer   fstinf, fstprm, fstluk, fnom,
+      integer   fstinf, fstprm, fstluk,
      $          read_decode_hyb, hyb_to_pres,eta_to_pres,
      $          sigma_to_pres,etasef_to_pres
-      external  fstinf, fstprm, fstluk, fnom,
+      external  fstinf, fstprm, fstluk,
      $          read_decode_hyb, hyb_to_pres,eta_to_pres,
      $          sigma_to_pres,etasef_to_pres
 
