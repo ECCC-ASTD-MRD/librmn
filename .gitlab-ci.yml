@@ -27,14 +27,6 @@ before_script:
    - export CLICOLOR_FORCE=true
    - if [[ ${CI_COMMIT_REF_NAME} == "dev" && ${ECCI_PROCESS:0:3} != "dev" && ${ECCI_PROCESS} != "nightly" ]]; then ECCI_PROCESS="dev_${CI_PIPELINE_ID}"; fi
 
-#build_gpsc:
-#  stage: build
-#  script: ssh eccc-gpsc1.science.gc.ca $CI_PROJECT_DIR/ci_build $CI_PROJECT_DIR
-#  only:
-#    - master
-#    - dev
-
-
 build:amd64-gnu-9.3.0:
    stage: build
    only:
@@ -132,8 +124,8 @@ build:amd64-inteloneapi-2022.1.2:
 
 build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH=gpsc1
-      ORD_SOUMET_IMAGE=eccc/eccc_all_default_ubuntu-18.04-amd64_latest
+      ORD_SOUMET_MACH:gpsc1
+      ORD_SOUMET_IMAGE:eccc/eccc_all_default_ubuntu-18.04-amd64_latest
    stage: build
    only:
      - master
@@ -154,8 +146,8 @@ build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
 
 build:ubuntu-20.04_amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH=gpsc1
-      ORD_SOUMET_IMAGE=eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_MACH:gpsc1
+      ORD_SOUMET_IMAGE:eccc/eccc_all_default_ubuntu-20.04-amd64_latest
    stage: build
    only:
      - master
