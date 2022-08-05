@@ -35,11 +35,7 @@ build:amd64-gnu-9.3.0:
      - tags
    script:
       - set +e
-      - source ci-env/latest/profile.sh
-      - . r.env.dot --arch amd64
-      - . ssmuse-sh -x main/opt/gcc/gcc-9.3.0/gcc_9.3.0_ubuntu-18.04-amd64-64
-      - . r.load.dot rpn/code-tools/1.5.6
-      - . /fs/ssm/main/opt/intelcomp/master/inteloneapi_2022.1.2_multi/oneapi/mpi/latest/env/vars.sh
+      - source ci-env/latest/rhel-8-amd-64/gnu-9.3.0.sh 
       - set -e
       - mkdir build_amd64-gnu-9.3.0
       - cd build_amd64-gnu-9.3.0
@@ -82,13 +78,9 @@ build:icelake-inteloneapi-2022.1.2:
      - dev
      - tags
    script:
-      - source ci-env/latest/profile.sh
-      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
-      - echo "========================================================="
-      - env | sort
-      - echo "========================================================="
-      # Loading the compiler via SSM or r.load.dot does not
-      # set EC_ARCH, so we set it manually
+      - set +e
+      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
+      - set -e
       - mkdir build_icelake-inteloneapi-2022.1.2
       - cd build_icelake-inteloneapi-2022.1.2
       - cmake ../
@@ -105,14 +97,9 @@ build:amd64-inteloneapi-2022.1.2:
      - dev
      - tags
    script:
-      - source ci-env/latest/profile.sh
-      - . r.env.dot --arch amd64
-      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
-      - echo "========================================================="
-      - env | sort
-      - echo "========================================================="
-      # Loading the compiler via SSM or r.load.dot does not
-      # set EC_ARCH, so we set it manually
+      - set +e
+      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
+      - set -e
       - mkdir build_amd64-inteloneapi-2022.1.2
       - cd build_amd64-inteloneapi-2022.1.2
       - cmake ../
@@ -133,9 +120,9 @@ build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
      - dev
      - tags
    script:
-      - source ci-env/latest/profile.sh
-      - . r.env.dot --arch amd64
-      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
+      - set +e
+      - source ci-env/latest/ubuntu-18.04-amd-64/inteloneapi-2022.1.2.sh
+      - set -e
       - mkdir build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
       - cd build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
       - cmake ../
@@ -144,29 +131,6 @@ build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
       expire_in: 2 hrs
       paths:
          - build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
-
-build:ubuntu-20.04_amd64_inteloneapi-2022.1.2:
-   variables:
-      ORD_SOUMET_MACH    : gpsc1
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
-      ORD_SOUMET_PROJECT : eccc_mrd
-   stage: build
-   only:
-     - master
-     - dev
-     - tags
-   script:
-      - source ci-env/latest/profile.sh
-      - . r.env.dot --arch amd64
-      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
-      - mkdir build_ubuntu-20.04_amd64_inteloneapi-2022.1.2
-      - cd build_ubuntu-20.04_amd64_inteloneapi-2022.1.2
-      - cmake ../
-      - time make -j $NCPUS
-   artifacts:
-      expire_in: 2 hrs
-      paths:
-         - build_ubuntu-20.04_amd64_inteloneapi-2022.1.2
 
 test:amd64-gnu-9.3.0:
    stage: test
@@ -208,9 +172,8 @@ test:icelake-inteloneapi-2022.1.2:
      - build:icelake-inteloneapi-2022.1.2
    script:
       - set +e
-      - source ci-env/latest/profile.sh
+      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
       - set -e
-      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
       - cd build_icelake-inteloneapi-2022.1.2
       - make test
 
@@ -224,13 +187,10 @@ test:amd64-inteloneapi-2022.1.2:
      - build:amd64-inteloneapi-2022.1.2
    script:
       - set +e
-      - source ci-env/latest/profile.sh
+      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
       - set -e
-      - . r.env.dot --arch amd64
-      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
       - cd build_amd64-inteloneapi-2022.1.2
       - make test
-
 
 package:amd64-gnu-9.3.0:
    stage: package
@@ -286,6 +246,29 @@ package:amd64-inteloneapi-2022.1.2:
       - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
       - set -e
       - cd build_amd64-inteloneapi-2022.1.2
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
+package:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
+   variables:
+      ORD_SOUMET_MACH    : gpsc1
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
+      ORD_SOUMET_PROJECT : eccc_mrd
+   stage: package
+   only:
+      - master
+      - dev
+      - tags
+      - schedules
+   dependencies:
+      - build:ubuntu-18.04_amd64_inteloneapi-2022.1.2
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ci-env/latest/ubuntu-18.04/inteloneapi-2022.1.2.sh
+      - set -e
+      - cd build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
