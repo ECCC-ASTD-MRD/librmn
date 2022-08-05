@@ -130,6 +130,49 @@ build:amd64-inteloneapi-2022.1.2:
       paths:
          - build_amd64-inteloneapi-2022.1.2
 
+build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
+   variables:
+      ORD_SOUMET_MACH=gpsc1
+      ORD_SOUMET_IMAGE=eccc/eccc_all_default_ubuntu-18.04-amd64_latest
+   stage: build
+   only:
+     - master
+     - dev
+     - tags
+   script:
+      - source ci-env/latest/profile.sh
+      - . r.env.dot --arch amd64
+      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
+      - mkdir build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
+      - cd build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
+      - cmake ../
+      - time make -j $NCPUS
+   artifacts:
+      expire_in: 2 hrs
+      paths:
+         - build_ubuntu-18.04_amd64_inteloneapi-2022.1.2
+
+build:ubuntu-20.04_amd64_inteloneapi-2022.1.2:
+   variables:
+      ORD_SOUMET_MACH=gpsc1
+      ORD_SOUMET_IMAGE=eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+   stage: build
+   only:
+     - master
+     - dev
+     - tags
+   script:
+      - source ci-env/latest/profile.sh
+      - . r.env.dot --arch amd64
+      - . r.load.dot /fs/ssm/eccc/mrd/rpn/code-tools/ENV/cdt-1.5.7-inteloneapi-2022.1.2
+      - mkdir build_ubuntu-20.04_amd64_inteloneapi-2022.1.2
+      - cd build_ubuntu-20.04_amd64_inteloneapi-2022.1.2
+      - cmake ../
+      - time make -j $NCPUS
+   artifacts:
+      expire_in: 2 hrs
+      paths:
+         - build_ubuntu-20.04_amd64_inteloneapi-2022.1.2
 
 test:amd64-gnu-9.3.0:
    stage: test
