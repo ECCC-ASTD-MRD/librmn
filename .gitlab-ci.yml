@@ -124,8 +124,9 @@ build:amd64-inteloneapi-2022.1.2:
 
 build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH  : gpsc1
-      ORD_SOUMET_IMAGE : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
+      ORD_SOUMET_MACH    : gpsc1
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
+      ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
    only:
      - master
@@ -146,8 +147,9 @@ build:ubuntu-18.04_amd64_inteloneapi-2022.1.2:
 
 build:ubuntu-20.04_amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH  : gpsc1
-      ORD_SOUMET_IMAGE : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_MACH    : gpsc1
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
    only:
      - master
