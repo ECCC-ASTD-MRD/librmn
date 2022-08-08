@@ -316,6 +316,7 @@ build:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
    script:
       - set +e
       - source ci-env/latest/ubuntu-20.04-amd-64/inteloneapi-2022.1.2.sh
+      - export ORDENV_PLAT=ubuntu-20.04-amd64-64
       - set -e
       - mkdir build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
       - cd build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
