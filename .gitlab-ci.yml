@@ -46,7 +46,7 @@ build:rhel-8-amd64_gnu-9.3.0:
       paths:
          - build_rhel-8-amd64_gnu-9.3.0
 
-build:icelake-gnu-12.1.0:
+build:rhel-8-icelake-64_gnu-12.1.0:
    stage: build
    only:
      - master
@@ -62,14 +62,14 @@ build:icelake-gnu-12.1.0:
       - echo "========================================================="
       # Loading the compiler via SSM or r.load.dot does not
       # set EC_ARCH, so we set it manually
-      - mkdir build_icelake-gnu-12.1.0
-      - cd build_icelake-gnu-12.1.0
+      - mkdir build_rhel-8-icelake-64_gnu-12.1.0
+      - cd build_rhel-8-icelake-64_gnu-12.1.0
       - cmake ../
       - time make -j $NCPUS
    artifacts:
       expire_in: 2 hrs
       paths:
-         - build_icelake-gnu-12.1.0
+         - build_rhel-8-icelake-64_gnu-12.1.0
 
 build:rhel-8-icelake-64_inteloneapi-2022.1.2:
    stage: build
