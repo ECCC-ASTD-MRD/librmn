@@ -27,6 +27,8 @@ before_script:
    - export CLICOLOR_FORCE=true
    - if [[ ${CI_COMMIT_REF_NAME} == "dev" && ${ECCI_PROCESS:0:3} != "dev" && ${ECCI_PROCESS} != "nightly" ]]; then ECCI_PROCESS="dev_${CI_PIPELINE_ID}"; fi
 
+#----- rhel-8-amd64_gnu-9.3.0
+
 build:rhel-8-amd64_gnu-9.3.0:
    stage: build
    only:
@@ -45,6 +47,42 @@ build:rhel-8-amd64_gnu-9.3.0:
       expire_in: 2 hrs
       paths:
          - build_rhel-8-amd64_gnu-9.3.0
+
+test:rhel-8-amd64_gnu-9.3.0:
+   stage: test
+   only:
+     - master
+     - dev
+     - tags
+   dependencies:
+     - build:rhel-8-amd64_gnu-9.3.0
+   script:
+      - set +e
+      - source ci-env/latest/profile.sh
+      - set -e
+      - cd build_rhel-8-amd64_gnu-9.3.0
+      - make test
+
+package:rhel-8-amd64_gnu-9.3.0:
+   stage: package
+   only:
+      - master
+      - dev
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-amd64_gnu-9.3.0
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ci-env/latest/rhel-8-amd-64/gnu-9.3.0.sh
+      - set -e
+      - cd build_rhel-8-amd64_gnu-9.3.0
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
+#----- rhel-8-icelake-64_gnu-12.1.0
 
 build:rhel-8-icelake-64_gnu-12.1.0:
    stage: build
@@ -71,6 +109,23 @@ build:rhel-8-icelake-64_gnu-12.1.0:
       paths:
          - build_rhel-8-icelake-64_gnu-12.1.0
 
+test:rhel-8-icelake-64_gnu-12.1.0:
+   stage: test
+   only:
+     - master
+     - dev
+     - tags
+   dependencies:
+     - build:rhel-8-icelake-64_gnu-12.1.0
+   script:
+      - set +e
+      - source ci-env/latest/profile.sh
+      - set -e
+      - cd build_rhel-8-icelake-64_gnu-12.1.0
+      - make test
+
+#----- rhel-8-icelake-64_inteloneapi-2022.1.2
+
 build:rhel-8-icelake-64_inteloneapi-2022.1.2:
    stage: build
    only:
@@ -90,6 +145,42 @@ build:rhel-8-icelake-64_inteloneapi-2022.1.2:
       paths:
          - build_rhel-8-icelake-64_inteloneapi-2022.1.2
 
+test:rhel-8-icelake-64_inteloneapi-2022.1.2:
+   stage: test
+   only:
+     - master
+     - dev
+     - tags
+   dependencies:
+     - build:rhel-8-icelake-64_inteloneapi-2022.1.2
+   script:
+      - set +e
+      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
+      - set -e
+      - cd build_rhel-8-icelake-64_inteloneapi-2022.1.2
+      - make test
+
+package:rhel-8-icelake-64_inteloneapi-2022.1.2:
+   stage: package
+   only:
+      - master
+      - dev
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-icelake-64_inteloneapi-2022.1.2
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
+      - set -e
+      - cd build_rhel-8-icelake-64_inteloneapi-2022.1.2
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
+#----- rhel-8-amd64_inteloneapi-2022.1.2
+
 build:rhel-8-amd64_inteloneapi-2022.1.2:
    stage: build
    only:
@@ -108,6 +199,42 @@ build:rhel-8-amd64_inteloneapi-2022.1.2:
       expire_in: 2 hrs
       paths:
          - build_rhel-8-amd64_inteloneapi-2022.1.2
+
+test:rhel-8-amd64_inteloneapi-2022.1.2:
+   stage: test
+   only:
+     - master
+     - dev
+     - tags
+   dependencies:
+     - build:rhel-8-amd64_inteloneapi-2022.1.2
+   script:
+      - set +e
+      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
+      - set -e
+      - cd build_rhel-8-amd64_inteloneapi-2022.1.2
+      - make test
+
+package:rhel-8-amd64_inteloneapi-2022.1.2:
+   stage: package
+   only:
+      - master
+      - dev
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-amd64_inteloneapi-2022.1.2
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
+      - set -e
+      - cd build_rhel-8-amd64_inteloneapi-2022.1.2
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
+#----- ubuntu-18.04-amd64_inteloneapi-2022.1.2
 
 build:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
    variables:
@@ -132,66 +259,6 @@ build:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
       paths:
          - build_ubuntu-18.04-amd64_inteloneapi-2022.1.2
 
-test:rhel-8-amd64_gnu-9.3.0:
-   stage: test
-   only:
-     - master
-     - dev
-     - tags
-   dependencies:
-     - build:rhel-8-amd64_gnu-9.3.0
-   script:
-      - set +e
-      - source ci-env/latest/profile.sh
-      - set -e
-      - cd build_rhel-8-amd64_gnu-9.3.0
-      - make test
-
-test:rhel-8-icelake-64_gnu-12.1.0:
-   stage: test
-   only:
-     - master
-     - dev
-     - tags
-   dependencies:
-     - build:rhel-8-icelake-64_gnu-12.1.0
-   script:
-      - set +e
-      - source ci-env/latest/profile.sh
-      - set -e
-      - cd build_rhel-8-icelake-64_gnu-12.1.0
-      - make test
-
-test:rhel-8-icelake-64_inteloneapi-2022.1.2:
-   stage: test
-   only:
-     - master
-     - dev
-     - tags
-   dependencies:
-     - build:rhel-8-icelake-64_inteloneapi-2022.1.2
-   script:
-      - set +e
-      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
-      - set -e
-      - cd build_rhel-8-icelake-64_inteloneapi-2022.1.2
-      - make test
-
-test:rhel-8-amd64_inteloneapi-2022.1.2:
-   stage: test
-   only:
-     - master
-     - dev
-     - tags
-   dependencies:
-     - build:rhel-8-amd64_inteloneapi-2022.1.2
-   script:
-      - set +e
-      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
-      - set -e
-      - cd build_rhel-8-amd64_inteloneapi-2022.1.2
-      - make test
-
 test:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
    variables:
       ORD_SOUMET_MACH    : gpsc1
@@ -209,64 +276,7 @@ test:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
       - source ci-env/latest/ubuntu-18.04-amd-64/inteloneapi-2022.1.2.sh
       - set -e
       - cd build_ubuntu-18.04-amd64_inteloneapi-2022.1.2
-      - make check
-
-package:rhel-8-amd64_gnu-9.3.0:
-   stage: package
-   only:
-      - master
-      - dev
-      - tags
-      - schedules
-   dependencies:
-      - build:rhel-8-amd64_gnu-9.3.0
-   environment:
-      name: testing
-   script:
-      - set +e
-      - source ci-env/latest/rhel-8-amd-64/gnu-9.3.0.sh
-      - set -e
-      - cd build_rhel-8-amd64_gnu-9.3.0
-      - make package
-      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
-
-package:rhel-8-icelake-64_inteloneapi-2022.1.2:
-   stage: package
-   only:
-      - master
-      - dev
-      - tags
-      - schedules
-   dependencies:
-      - build:rhel-8-icelake-64_inteloneapi-2022.1.2
-   environment:
-      name: testing
-   script:
-      - set +e
-      - source ci-env/latest/rhel-8-icelake-64/inteloneapi-2022.1.2.sh
-      - set -e
-      - cd build_rhel-8-icelake-64_inteloneapi-2022.1.2
-      - make package
-      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
-
-package:rhel-8-amd64_inteloneapi-2022.1.2:
-   stage: package
-   only:
-      - master
-      - dev
-      - tags
-      - schedules
-   dependencies:
-      - build:rhel-8-amd64_inteloneapi-2022.1.2
-   environment:
-      name: testing
-   script:
-      - set +e
-      - source ci-env/latest/rhel-8-amd-64/inteloneapi-2022.1.2.sh
-      - set -e
-      - cd build_rhel-8-amd64_inteloneapi-2022.1.2
-      - make package
-      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+      - make test
 
 package:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
    variables:
