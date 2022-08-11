@@ -44,7 +44,7 @@ build:rhel-8-amd64_gnu-9.3.0:
       - cmake ../ 
       - time make -j $NCPUS
    artifacts:
-      expire_in: 2 hrs
+      expire_in: 4 hrs
       paths:
          - build_rhel-8-amd64_gnu-9.3.0
 
@@ -105,7 +105,7 @@ build:rhel-8-icelake-64_gnu-12.1.0:
       - cmake ../
       - time make -j $NCPUS
    artifacts:
-      expire_in: 2 hrs
+      expire_in: 4 hrs
       paths:
          - build_rhel-8-icelake-64_gnu-12.1.0
 
@@ -141,7 +141,7 @@ build:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - cmake ../ 
       - time make -j $NCPUS
    artifacts:
-      expire_in: 2 hrs
+      expire_in: 4 hrs
       paths:
          - build_rhel-8-icelake-64_inteloneapi-2022.1.2
 
@@ -196,7 +196,7 @@ build:rhel-8-amd64_inteloneapi-2022.1.2:
       - cmake ../ 
       - time make -j $NCPUS
    artifacts:
-      expire_in: 2 hrs
+      expire_in: 4 hrs
       paths:
          - build_rhel-8-amd64_inteloneapi-2022.1.2
 
@@ -255,7 +255,7 @@ build:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
       - cmake ../
       - time make -j $NCPUS
    artifacts:
-      expire_in: 2 hrs
+      expire_in: 4 hrs
       paths:
          - build_ubuntu-18.04-amd64_inteloneapi-2022.1.2
 
@@ -323,7 +323,7 @@ build:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
       - cmake ../
       - time make -j $NCPUS
    artifacts:
-      expire_in: 2 hrs
+      expire_in: 4 hrs
       paths:
          - build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
 
