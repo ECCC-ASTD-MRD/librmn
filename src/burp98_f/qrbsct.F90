@@ -79,10 +79,9 @@
 !        TABLEBURP A 1
          BADTBL = 1
       ELSE
-         CALL GETENV('AFSISIO', PATH)
+         CALL GETENV('CMCCONST', PATH)
          PATHLNG = LEN_TRIM( PATH )
-         PATH1   = PATH(1:PATHLNG)//'/datafiles/constants/table_b_bufr'
-!         PATH1   = PATH(1:PATHLNG)//'/datafiles/constants/tableburp'
+         PATH1   = PATH(1:PATHLNG)//'/table_b_bufr'
       ENDIF
 
       QRBSCT = -1

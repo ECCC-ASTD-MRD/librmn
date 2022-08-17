@@ -227,10 +227,10 @@
       if (ier.ne.0) then
         print *,' <qqqgbld> no local "gribtable" file found'
         ier = fclos(iun)
-        call getenvc('AFSISIO',armnlib)
+        call getenvc('CMCCONST',armnlib)
         strlen = qqqlen(armnlib,len(armnlib))
         print *,len(armnlib)
-        filename = armnlib(1:strlen)//'/datafiles/constants/'//filename
+        filename = armnlib(1:strlen)//'/'//filename
         ier = fnom(iun, filename, 'FTN+FMT+R/O+OLD', 0)
         if (ier.ne.0) then
           call getenvc('ARMNLIB',armnlib)
