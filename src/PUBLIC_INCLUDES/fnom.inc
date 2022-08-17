@@ -21,7 +21,8 @@
       interface
           integer function fnom(iun, nom, ftype, flrec)
               implicit none
-              integer, intent(inout) :: iun
+#define IgnoreTypeKindRank iun
+#include <IgnoreTypeKindRank.hf>
               character(len = *), intent(in) :: nom
               character(len = *), intent(in) :: ftype
               integer, intent(in) :: flrec

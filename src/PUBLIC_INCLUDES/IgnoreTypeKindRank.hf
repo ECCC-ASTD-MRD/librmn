@@ -21,10 +21,10 @@
 #endif
 
 #if defined(__GFORTRAN__) || defined(__INTEL_COMPILER)
-    type(*), dimension(*) ExtraAttributes :: IgnoreTypeKindRank
+      type(*), dimension(*) ExtraAttributes :: IgnoreTypeKindRank
 #else
-    ! Cray compiler, PGI/Nvidia, flang, xlf, SunStudio
-    logical, dimension(*) ExtraAttributes :: IgnoreTypeKindRank
+      ! Cray compiler, PGI/Nvidia, flang, xlf, SunStudio
+      logical, dimension(*) ExtraAttributes :: IgnoreTypeKindRank
 #endif
 
 ! Ignore type, kind, and rank through the use of compiler directives (pragmas)
