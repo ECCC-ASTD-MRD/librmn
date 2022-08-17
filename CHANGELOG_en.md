@@ -58,6 +58,10 @@ that platform for many years and was likely broken.
 - Removed `IOPDATM`.  The function has been broken since U2 and
 Operations will provide an alternate method to get run dates.
 
+- The environment variable `AFSISIO` does not exist anymore and is 
+replaced by `CMCCONST`. This variable is used to access the CMC constant 
+directory and the BURF tables
+
 - The `second()`, `_second()` et `__second()` functions which allowed to
 query the CPU time used have been deleted.  External tools allow
 retrieving that information or profiling.

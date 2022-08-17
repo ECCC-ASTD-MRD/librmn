@@ -62,6 +62,10 @@ non-fonctionnel.
 le passage à U2.  Les opération vont fournir un autre moyen pour
 récupérer les dates des passes.
 
+- La variable d'environement `AFSISIO` n'existe plus et a été remplacée par
+`CMCCONST`. Cette variable est utilisée pour accéder aux constantes du CMC
+et aux tables BURF
+
 - Les fonctions `second()`, `_second()` et `__second()` permettant
 d'interroger le temps CPU utilisé ont été supprimmées.  Des outils
 externes permettent d'obtenir cette information ou de faire du
