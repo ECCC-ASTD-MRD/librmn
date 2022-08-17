@@ -2,15 +2,12 @@
 cmake_minimum_required(VERSION 3.20)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_rpn)
-# Initialise compilers and ec specific functions
-include(ec_init)
-# Get version from git
-ec_git_version()
-# Parse MANIFEST file
-ec_parse_manifest()
+include(ec_init)           # Initialise compilers and ec specific functions
+ec_git_version()           # Get version from git state
+ec_parse_manifest()        # Parse MANIFEST file
 
 # Given our wacky compiler setups, languages must be activated after the
-# compieler has been configured
+# compiler has been configured
 project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES C Fortran)
 set(PROJECT_VERSION ${VERSION}${STATE})
 set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed for cascaded version identification
@@ -18,8 +15,8 @@ set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed 
 include(ec_compiler_presets)
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
-include(ec_openmp)
-include(ec_doxygen)
+include(ec_openmp)          # Enable OpenMP (-DWITH_OPENMP=TRUE)
+include(ec_doxygen)         # Doxygen target (-DWITH_DOC=TRUE)
 
 # Fortran compiler options required to build this project
 set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
@@ -32,9 +29,10 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
-set(CMAKE_VERBOSE_MAKEFILE TRUE)
+#set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_Fortran_PREPROCESS ON)
 
 option(EXTRA_DEBUG_OUTPUT "Enable extra debug output" OFF)
 if(EXTRA_DEBUG_OUTPUT)
@@ -109,7 +107,7 @@ add_custom_command(
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
 
-ec_build_info()
+ec_build_info()            # Generate build information
 
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -204,6 +202,5 @@ set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
 
-enable_testing()
 add_subdirectory(tests)
 
