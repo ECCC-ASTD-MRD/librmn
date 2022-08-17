@@ -96,11 +96,6 @@ build:rhel-8-icelake-64_gnu-12.1.0:
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc12
       - export EC_ARCH=rhel-8-icelake-64/gnu-12.1.0
-      - echo "========================================================="
-      - env | sort
-      - echo "========================================================="
-      # Loading the compiler via SSM or r.load.dot does not
-      # set EC_ARCH, so we set it manually
       - mkdir build_rhel-8-icelake-64_gnu-12.1.0
       - cd build_rhel-8-icelake-64_gnu-12.1.0
       - cmake ../
@@ -121,6 +116,9 @@ test:rhel-8-icelake-64_gnu-12.1.0:
    script:
       - set +e
       - source ci-env/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load gcc12
+      - export EC_ARCH=rhel-8-icelake-64/gnu-12.1.0
       - set -e
       - cd build_rhel-8-icelake-64_gnu-12.1.0
       - make check
@@ -343,6 +341,7 @@ test:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
    script:
       - set +e
       - source ci-env/latest/ubuntu-20.04-amd-64/inteloneapi-2022.1.2.sh
+      - export ORDENV_PLAT=ubuntu-20.04-amd64-64
       - set -e
       - cd build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
       - make check
