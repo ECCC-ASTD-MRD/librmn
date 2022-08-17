@@ -113,7 +113,7 @@ static int stdinflag = 0;
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
 
-static char *AFSISIO = NULL;
+static char *CMCCONST = NULL;
 static char *ARMNLIB = NULL;
 static char *LOCALDIR = "./";
 
@@ -295,8 +295,8 @@ int c_fnom(
         // This is a workaround for a particular case on Linux in batch mode with PBS
         ARMNLIB = getenv("ARMNLIB");
         if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
-        AFSISIO = getenv("AFSISIO");
-        if( AFSISIO == NULL ) AFSISIO = LOCALDIR;
+        CMCCONST = getenv("CMCCONST");
+        if( CMCCONST == NULL ) CMCCONST = LOCALDIR;
         for (int i = 0; i < MAXFILES; i++) {
             reset_file_entry(i);
         }
@@ -511,7 +511,7 @@ int c_fnom(
             // Name is of the form @some_file_name
             // Skip the @, scan later under
             cptr1++;
-            // AFSISIO & ARMNLIB if not local file
+            // CMCCONST & ARMNLIB if not local file
             lng--;
         }
         if (lnom[0] == '%') {
@@ -554,10 +554,10 @@ int c_fnom(
 
         if (access(filename, F_OK) == -1) {
             /* no local file */
-            sprintf(filename, "%s/datafiles/constants/%s", AFSISIO, FGFDT[entry].file_name);
+            sprintf(filename, "%s/%s", CMCCONST, FGFDT[entry].file_name);
 
             if (access(filename, F_OK)  == -1) {
-                /* not under AFSISIO */
+                /* not under CMCCONST */
                 sprintf(filename, "%s/data/%s", ARMNLIB, FGFDT[entry].file_name);
 
                 if (access(filename, F_OK)  == -1) {
