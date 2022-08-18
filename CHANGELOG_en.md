@@ -9,10 +9,10 @@ required to build the library.  Building the library is now done with
 [CMake](https://cmake.org/documentation/)
 
 - Added an explicit interface for fnom and fclos.  Add the following 
-`#include <fnom.inc>` to use it.
+`#include <fnom.hf>` to use it.
 
 - Added an explicit interface for MGI functions.  It can be used with
-`#include <mgi.inc>`
+`#include <mgi.hf>`
 
 
 # Breaks in backward compatibility

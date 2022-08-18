@@ -347,7 +347,7 @@
      +              fstprm, fstluk, fstinf, qqexit,
      +              wkoffit, r4astrg
 
-#include <fnom.inc>
+#include <fnom.hf>
 
       Character     typvar*1,                nomvar*4,
      +              etiket*12,               grtyp*1

@@ -1,4 +1,4 @@
-!> @brief Inform the Fortran compiler that type, kind, and rank checking should not be performed for
+!> \brief Inform the Fortran compiler that type, kind, and rank checking should not be performed for
 !> one or more formal arguments
 !>
 !> usage:
@@ -9,6 +9,8 @@
 !> If ExtraAttributes is not defined, no extra attributes will be added
 !>
 !> type(*) is known to be supported by gfortran and Intel Fortran compiler
+!>
+!> \note Indentation of Fortran code in this file is critical since it can be included in Fixed Form source files
 
 
 #ifndef IgnoreTypeKindRank

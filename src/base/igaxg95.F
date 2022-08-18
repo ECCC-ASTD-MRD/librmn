@@ -203,7 +203,7 @@
 #include "qqqcgb1.cdk"
 #include "qqqgb2.cdk"
 
-#include <fnom.inc>
+#include <fnom.hf>
       character*256 filename,armnlib
       character*512 buffer
       external qqqlen

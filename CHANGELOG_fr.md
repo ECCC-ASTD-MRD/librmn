@@ -9,10 +9,10 @@ processus est grandement simplifié grâce à l'utilisation de
 [CMake](https://cmake.org/documentation/)
 
 - Ajout d'une interface explicite pour fnom et fclos.  Elle peut être
-utilisée avec `#include <fnom.inc>`.
+utilisée avec `#include <fnom.hf>`.
 
 - Ajout d'une interface explicite pour les fonctions de MGI.  Il suffit
-d'ajouter la ligne `#include <mgi.inc>` pour l'utiliser.
+d'ajouter la ligne `#include <mgi.hf>` pour l'utiliser.
 
 
 
