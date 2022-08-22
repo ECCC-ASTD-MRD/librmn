@@ -483,7 +483,7 @@ static int get_typecode(
         return WB_FORTRAN_CHAR;
     }
     // Invalid type / length combination
-    wb_error(WB_MSG_ERROR, WB_ERR_NOTYPE);
+    return wb_error(WB_MSG_ERROR, WB_ERR_NOTYPE);
 }
 
 
@@ -645,7 +645,7 @@ static int lookup_line(
         }
     }
     if (errNotFound) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     return WB_ERR_NOTFOUND;
 }
@@ -674,7 +674,7 @@ static int new_page(
     page = (wb_page *)malloc(pagesize);
     if (page == NULL) {
         // malloc failed!
-        wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
+        return wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     // Zero page contents
     memset(page, 0, pagesize);
@@ -729,7 +729,7 @@ int c_wb_checkpoint_name(
     set_extra_error_message("Setting chekpoint file name", -1);
     WhiteBoardCheckpointFile = (char *)malloc(strlen(filename));
     if (WhiteBoardCheckpointFile == NULL) {
-        wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
+        return wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     strncpy(WhiteBoardCheckpointFile, filename, strlen(filename));
     return wb_init();
@@ -748,7 +748,7 @@ int32_t f77_name(f_wb_checkpoint_name)(
     set_extra_error_message("Setting chekpoint file name", -1);
     WhiteBoardCheckpointFile = (char *)malloc(Lfilename + 1);
     if (WhiteBoardCheckpointFile == NULL) {
-        wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
+        return wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     c_fortran_string_copy(filename, WhiteBoardCheckpointFile, Lfilename, Lfilename, '\0');
     return wb_init();
@@ -765,7 +765,7 @@ int c_wb_checkpoint_get_name(
 ) {
     set_extra_error_message("NO checkpoint file found while getting chekpoint file name", -1);
     if (WhiteBoardCheckpointFile == NULL) {
-        wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
+        return wb_error(WB_MSG_FATAL, WB_ERR_ALLOC);
     }
     strncpy(filename, WhiteBoardCheckpointFile, Lfilename);
     return wb_init();
@@ -783,7 +783,7 @@ int32_t f77_name(f_wb_checkpoint_get_name)(
     int Lfilename = filenameLength;
     set_extra_error_message("NO checkpoint file found while getting chekpoint file name", -1);
     if (WhiteBoardCheckpointFile == NULL) {
-        wb_error(WB_MSG_FATAL,WB_ERR_ALLOC);
+        return wb_error(WB_MSG_FATAL,WB_ERR_ALLOC);
     }
     c_fortran_string_copy(WhiteBoardCheckpointFile, filename, Lfilename, Lfilename, ' ');
     return wb_init();
@@ -864,7 +864,7 @@ static int options_to_flags(
     line->meta.flags.noresetafterrestart = (options & WB_READ_ONLY_ON_RESTART) ? 1 : 0;
     line->meta.flags.initialized = (options & WB_INITIALIZED) ? 1 : 0;
     if (line->meta.flags.readonly + line->meta.flags.resetmany + line->meta.flags.resetuntil > 1) {
-        wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
+        return wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
     }
     return WB_OK;
 }
@@ -926,7 +926,7 @@ static int c_wb_lookup(
 
     nameLength = trim(name, nameLength);
     if (nameLength > WB_MAXNAMELENGTH) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NAMETOOLONG);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NAMETOOLONG);
     }
 
     lookuppage = wb->firstpage;
@@ -955,7 +955,7 @@ static int c_wb_lookup(
         lookuppage = lookuppage->next;
     }
     if (errNotFound) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     return WB_ERR_NOTFOUND;
 }
@@ -1028,7 +1028,7 @@ int c_wb_get(
 
     set_extra_error_message(" invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
@@ -1050,7 +1050,7 @@ int c_wb_get(
     }
     if (nbelem < 0) {
         // A negative number of values is a bad idea
-        wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
+        return wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
     }
     array = (nbelem > 0) ? 1 : 0;
     if (nbelem == 0) {
@@ -1061,28 +1061,28 @@ int c_wb_get(
     // No screaming if not found
     status = c_wb_lookup(wb, name, &element_type, &element_size, &nb_elements, &line, &page, 0, nameLength);
     if (status < 0) {
-        wb_error(WB_MSG_INFO, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_INFO, WB_ERR_NOTFOUND);
     }
     if (line->meta.flags.badval == 1) {
-        wb_error(WB_MSG_ERROR, WB_ERR_BADVAL);
+        return wb_error(WB_MSG_ERROR, WB_ERR_BADVAL);
     }
     if (line->meta.flags.initialized != 1) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOVAL);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOVAL);
     }
 
     // Types MUST match
     if (element_type != typecode) {
-        wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
+        return wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
     }
 
     // For non character variables, element length must match
     // For character variables, the length verification will be performed when copying values
     if (element_type != WB_FORTRAN_CHAR && element_size != size ) {
-        wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
+        return wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
     }
 
     if (array && line->meta.flags.array != 1) {
-        wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
+        return wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
     }
 
     // we can now proceed to copy the value(s) from whiteboard entry
@@ -1121,7 +1121,7 @@ int c_wb_get(
             int tempstat = c_fortran_string_copy((char *)csrc, (char *)dest, element_size, size, ' ');
             if (tempstat < 0) {
                 // Not enough space to store string
-                wb_error(WB_MSG_ERROR, WB_ERR_WRONGSTRING);
+                return wb_error(WB_MSG_ERROR, WB_ERR_WRONGSTRING);
             }
             dest += size;
             csrc += element_size;
@@ -1182,7 +1182,7 @@ int c_wb_put(
 
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
@@ -1210,7 +1210,7 @@ int c_wb_put(
 
     if (nbelem < 0) {
         // A negative number of values is a bad idea
-        wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
+        return wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
     }
 
     // Array if nbelem > 0 , scalar if nbelem == 0
@@ -1230,34 +1230,34 @@ int c_wb_put(
         // Flags are checked for consistency and permissions
         if (options & WB_CREATE_ONLY) {
             // Redefinition not allowed
-            wb_error(WB_MSG_ERROR, WB_ERR_REDEFINE);
+            return wb_error(WB_MSG_ERROR, WB_ERR_REDEFINE);
         }
         // Above error has to be ignored if it was coming from a restart and create from restart flag then has to be erased
         if (line->meta.flags.readonly && line->meta.flags.initialized ) {
             // Entry is READONLY
-            wb_error(WB_MSG_ERROR, WB_ERR_READONLY);
+            return wb_error(WB_MSG_ERROR, WB_ERR_READONLY);
         }
         // Mark as bad value in case it fails
         line->meta.flags.badval = 1;
         if (line->meta.flags.array == 1 && array != 1) {
             // Array to scalar or scalar to array is a NO NO
-            wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
+            return wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
         }
 
         // Types MUST match
         if (stored_type != typecode) {
-            wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
+            return wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
         }
 
         // For non character variables, element length must match
         // For character variables, the length verification will be performed when copying values
         if (stored_type != WB_FORTRAN_CHAR && stored_size != size) {
-            wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
+            return wb_error(WB_MSG_ERROR, WB_ERR_WRONGTYPE);
         }
 
         if (array &&  line->meta.data.desc.maxElements < nbelem) {
             // Array in whiteboard is too small
-            wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
+            return wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
         }
     } else {
         // If the lookup didn't find the entry, create it, otherwise, return error code
@@ -1304,7 +1304,7 @@ int c_wb_put(
         line->meta.flags.resetmany = (options & WB_REWRITE_MANY) ? 1 : 0;
         line->meta.flags.resetuntil = (options & WB_REWRITE_UNTIL) ? 1 : 0;
         if (line->meta.flags.readonly + line->meta.flags.resetmany + line->meta.flags.resetuntil > 1) {
-            wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
+            return wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
         }
         line->meta.flags.initialized = 0;
         // Variable has the local attribute, this will be used when checkpointing
@@ -1327,7 +1327,7 @@ int c_wb_put(
         // Check if there is enough space in page
         int lines_available = page->nbLines - page->firstFreeLine;
         if (lines_available < lines) {
-            wb_error(WB_MSG_ERROR, WB_ERR_NOMEM);
+            return wb_error(WB_MSG_ERROR, WB_ERR_NOMEM);
         }
         // Allocate space for data, adjust page pointer to next available entry
         page->firstFreeLine += lines;
@@ -1349,7 +1349,7 @@ int c_wb_put(
             // One dimensional array
             if (nbelem > line->meta.data.desc.maxElements) {
                 // Not enough space to store values
-                wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
+                return wb_error(WB_MSG_ERROR, WB_ERR_WRONGDIMENSION);
             }
             // If successful, return max dimension of array
             result = line->meta.data.desc.maxElements;
@@ -1376,7 +1376,7 @@ int c_wb_put(
                 result = c_fortran_string_copy((char *)src, (char *)dest, size, stored_size, ' ');
                 if (result < 0) {
                     // Not enough space to store string!
-                    wb_error(WB_MSG_ERROR, WB_ERR_WRONGSTRING);
+                    return wb_error(WB_MSG_ERROR, WB_ERR_WRONGSTRING);
                 }
                 src += size;
                 dest += stored_size;
@@ -1418,7 +1418,7 @@ int c_wb_checkpoint()
 
     if (fd < 0) {
         // Can't open checkpoint file
-        wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+        return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
     }
     page = BaseWhiteboardPtr->firstpage;
 
@@ -1427,7 +1427,7 @@ int c_wb_checkpoint()
     if (status < 0) {
         // Write error!
         close(fd);
-        wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+        return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
     }
 
     while (page != NULL) {
@@ -1435,19 +1435,19 @@ int c_wb_checkpoint()
         status = write(fd, &(page->nbLines), 4);
         if (status < 0) {
             close(fd);
-            wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+            return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
         }
         // Write number of next entry
         status = write(fd, &(page->firstFreeLine), 4);
         if (status < 0) {
             close(fd);
-            wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+            return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
         }
         // Write page
         status = write(fd, &(page->line[0]), sizeof(wb_line) * page->nbLines);
         if (status < 0) {
             close(fd);
-            wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+            return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
         }
         if (message_level <= WB_MSG_DEBUG) {
             fprintf(stderr, "wb_checkpoint: Page %d, length %d lines, Next entry %d \n",
@@ -1461,7 +1461,7 @@ int c_wb_checkpoint()
     status = write(fd, &zero, 4);
     if (status < 0) {
         close(fd);
-        wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+        return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
     }
 
     return 0;
@@ -1494,7 +1494,7 @@ int c_wb_check(
 ) {
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
@@ -1578,7 +1578,7 @@ static int wb_cb_read_only(
 ) {
     if (line->meta.flags.initialized == 0) {
         // making read-only a non initialized variable !?
-        wb_error(WB_MSG_ERROR, WB_ERR_NOVAL);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOVAL);
     }
     if (message_level <= WB_MSG_DEBUG) {
         fprintf(stderr, "key '%s' is now read-only\n", &(line->meta.name.carr[0]));
@@ -1760,16 +1760,16 @@ int c_wb_reload()
 
     if (fd < 0) {
         // Cannot open checkpoint file
-        wb_error(WB_MSG_ERROR,WB_ERR_CKPT);
+        return wb_error(WB_MSG_ERROR,WB_ERR_CKPT);
     }
     if (BaseWhiteboardPtr->firstpage != NULL) {
-        wb_error(WB_MSG_ERROR, WB_ERROR);
+        return wb_error(WB_MSG_ERROR, WB_ERROR);
     }
     status = read(fd, signature, 8);
     signature[8] = 0;
     if (status != 8 || 0 != strncmp(signature, "WBckp100", 8)) {
         close(fd);
-        wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
+        return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
     }
 
     // Page size
@@ -1985,7 +1985,7 @@ static int wb_get_token(
     if (maxTokenLength < 0) {
         // Token is too big to be stored in supplied array
         wb_read_error() ;
-        wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+        return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
     }
     if (isalpha(c)) {
         // Collect alphanum _ token
@@ -1994,7 +1994,7 @@ static int wb_get_token(
             if (maxTokenLength < 0) {
                 // Token is too big to be stored in supplied array
                 wb_read_error();
-                wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+                return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
             }
             token[tokenLength++] = toupper(c) ;
         }
@@ -2016,7 +2016,7 @@ static int wb_get_token(
             if (maxTokenLength < 0) {
                 // Token is too big to be stored in supplied array
                 wb_read_error() ;
-                wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+                return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
             }
             token[tokenLength++] = c;
             c = wb_getc(infile);
@@ -2037,7 +2037,7 @@ static int wb_get_token(
         if (maxTokenLength < 0) {
             // Token is too big to be stored in supplied array
             wb_read_error();
-            wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+            return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
         }
         // Store end delimiter in token
         token[tokenLength++] = c;
@@ -2051,7 +2051,7 @@ static int wb_get_token(
                 if (maxTokenLength < 0) {
                     // Token is too big to be stored in supplied array
                     wb_read_error();
-                    wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+                    return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
                 }
                 token[tokenLength++] = toupper(c);\
                 c = wb_getc(infile);
@@ -2063,7 +2063,7 @@ static int wb_get_token(
                 if (maxTokenLength < 0) {
                     // Token is too big to be stored in supplied array
                     wb_read_error();
-                    wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+                    return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
                 }
                 token[tokenLength++] = toupper(c);
                 c = wb_getc(infile);
@@ -2083,7 +2083,7 @@ static int wb_get_token(
     if (maxTokenLength < 0) {
         // Token is too big to be stored in supplied array
         wb_read_error() ;
-        wb_error(WB_MSG_ERROR, WB_ERR_BIG);
+        return wb_error(WB_MSG_ERROR, WB_ERR_BIG);
     }
     // Null terminate token
     token[tokenLength] = 0;
@@ -2117,7 +2117,7 @@ static int wb_options(
     if (token[0] != start_delim || ntoken != 1) {
         wb_read_error() ;
         wb_flush_line(infile);
-        wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
+        return wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
     }
 
     while (token[0] != end_delim) {
@@ -2126,13 +2126,13 @@ static int wb_options(
         if (!isalpha(token[0]) || ntoken <= 0) {
             wb_read_error() ;
             wb_flush_line(infile);
-            wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
+            return wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
         }
         newoption = wb_value(token, option_table);
         if (newoption == 0) {
             wb_read_error() ;
             wb_flush_line(infile);
-            wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
+            return wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
         }
         options += newoption;
         if (message_level <= WB_MSG_DEBUG) {
@@ -2143,7 +2143,7 @@ static int wb_options(
         if ((token[0] != end_delim && token[0] != ',') || ntoken != 1) {
             wb_read_error() ;
             wb_flush_line(infile);
-            wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
+            return wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
         }
     }
     return options;
@@ -2264,7 +2264,7 @@ static int wb_define(
 error_syntax:
     wb_read_error() ;
     wb_flush_line(infile);
-    wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
+    return wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
 }
 
 
@@ -2416,7 +2416,7 @@ error_type:
 error_syntax:
     wb_read_error() ;
     wb_flush_line(infile);
-    wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
+    return wb_error(WB_MSG_ERROR, WB_ERR_SYNTAX);
 }
 
 
@@ -2438,7 +2438,7 @@ int c_wb_read(
     }
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
-        wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+        return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
     }
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
@@ -2496,7 +2496,7 @@ int c_wb_read(
     FILE * infile = fopen(_filename, "r");
     if (infile == NULL) {
         // Can't open/read file!
-        wb_error(WB_MSG_ERROR, WB_ERR_READ);
+        return wb_error(WB_MSG_ERROR, WB_ERR_READ);
     }
 
     extra_error_message = NULL;
@@ -2517,7 +2517,7 @@ int c_wb_read(
             fclose(infile);
             // Add searched section name to error message
             set_extra_error_message(_section, -1);
-            wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
+            return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
         }
         wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 1);
         notFound = (strncmp((char *)token, _section, strlen(_section)) != 0);
