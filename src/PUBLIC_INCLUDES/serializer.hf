@@ -69,10 +69,11 @@
 !> beginning of data jar is at position 1
 !> item may be of any user defined type
 !> the result is the position of the last filled element in the data jar (or -1 if an overflow would accur)
-!> integer :: ne, insertion_point
+!> integer :: insertion_point
+!> logical :: success
 !> type(whatever_type) :: my_item
-!> ne = JAR_PUT_ITEM(my_jar_name, my_item)                       ! or JAR_INTO_SINGLE
-!> ne = JAR_PUT_ITEM_AT(my_jar_name, my_item, insertion_point)   ! or JAR_INTO_SINGLE_AT
+!> success = JAR_PUT_ITEM(my_jar_name, my_item)                       ! or JAR_INTO_SINGLE
+!> success = JAR_PUT_ITEM_AT(my_jar_name, my_item, insertion_point)   ! or JAR_INTO_SINGLE_AT
 #define JAR_PUT_ITEM(jar, item)          jar%insert( item, storage_size(item) )
 #if defined(JAR_EXTENDED_MACROS)
 #define JAR_PUT_ITEM_AT(jar, item, pos)  jar%insert( item, storage_size(item), position=pos )
@@ -81,11 +82,13 @@
 !> \brief Insert an ARRAY or an ARRAY section into data jar at current insertion position or at a specific position
 !> beginning of data jar is at position 1
 !> ARRAY may be of any user defined type
+!> ARRAY *must* be contiguous in memory (regardless of whether is has the contiguous attribute)
 !> the result is the position of the last filled element in the data jar (or -1 if an overflow would accur)
-!> integer :: ne, insertion_point
-!> type(whatever_type), dimension(whatever_dimensions) :: my_array
-!> ne = JAR_PUT_ITEMS(my_jar_name, my_array(start:end))                      ! or JAR_INTO_MULTI
-!> ne = JAR_PUT_ITEMS_AT(my_jar_name, my_array(start:end), insertion_point)  ! or JAR_INTO_MULTI_AT
+!> integer :: insertion_point
+!> logical :: success
+!> type(whatever_type), dimension(whatever_dimensions), contiguous :: my_array
+!> success = JAR_PUT_ITEMS(my_jar_name, my_array(start:end))                      ! or JAR_INTO_MULTI
+!> success = JAR_PUT_ITEMS_AT(my_jar_name, my_array(start:end), insertion_point)  ! or JAR_INTO_MULTI_AT
 #define JAR_PUT_ITEMS(jar, item)          jar%insert( item, storage_size(item)*size(item) )
 #if defined(JAR_EXTENDED_MACROS)
 #define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%insert( item, storage_size(item)*size(item), position=pos )
@@ -101,10 +104,11 @@
 !> beginning of data jar is at position 1
 !> item may be of any user defined type
 !> the result is the position of the last extracted element in the data jar (or -1 if there is not enough data)
-!> integer :: ne, extraction_point
+!> integer :: extraction_point
+!> logical :: success
 !> type(whatever_type) :: my_item
-!> ne = JAR_GET_ITEM(my_jar_name, my_item)                       ! or JAR_OUTOF_SINGLE
-!> ne = JAR_GET_ITEM_AT(my_jar_name, my_item, extraction_point)  ! or JAR_OUTOF_SINGLE_AT
+!> success = JAR_GET_ITEM(my_jar_name, my_item)                       ! or JAR_OUTOF_SINGLE
+!> success = JAR_GET_ITEM_AT(my_jar_name, my_item, extraction_point)  ! or JAR_OUTOF_SINGLE_AT
 #define JAR_GET_ITEM(jar, item)         jar%extract( item, storage_size(item, kind=8) )
 #if defined(JAR_EXTENDED_MACROS)
 #define JAR_GET_ITEM_AT(jar, item, pos) jar%extract( item, storage_size(item, kind=8), position=pos )
@@ -114,10 +118,11 @@
 !> beginning of data jar is at position 1
 !> ARRAY may be of any user defined type
 !> the result is the position of the last extracted element in the data jar (or -1 if there is not enough data)
-!> integer :: ne, extraction_point
+!> integer :: extraction_point
+!> logical :: success
 !> type(whatever_type), dimension(whatever_dimensions) :: my_array
-!> ne = JAR_GET_ITEMS(my_jar_name, my_array(start:end))                       ! or JAR_OUTOF_MULTI
-!> ne = JAR_GET_ITEMS_AT(my_jar_name, my_array(start:end), extraction_point)  ! or JAR_OUTOF_MULTI_AT
+!> success = JAR_GET_ITEMS(my_jar_name, my_array(start:end))                       ! or JAR_OUTOF_MULTI
+!> success = JAR_GET_ITEMS_AT(my_jar_name, my_array(start:end), extraction_point)  ! or JAR_OUTOF_MULTI_AT
 #define JAR_GET_ITEMS(jar, item)         jar%extract( item, storage_size(item, kind=8) * size(item) )
 #if defined(JAR_EXTENDED_MACROS)
 #define JAR_GET_ITEMS_AT(jar, item, pos) jar%extract( item, storage_size(item, kind=8) * size(item), position=pos )

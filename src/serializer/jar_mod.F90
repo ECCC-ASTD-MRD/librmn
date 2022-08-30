@@ -334,6 +334,7 @@ module jar_module
 #define IgnoreTypeKindRank object
 #define ExtraAttributes , target
     !> Add data to jar at top of jar (or at a specific position)
+    !> _If the object is an array, it has to be contiguous in memory._
     function jar_put_into(jar_instance, object, size_bits, position) result(success)
         implicit none
         class(jar), intent(INOUT) :: jar_instance               !> Data jar instance
