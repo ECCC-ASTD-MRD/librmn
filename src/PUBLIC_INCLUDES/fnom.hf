@@ -17,12 +17,13 @@
 ! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! Boston, MA 02111-1307, USA.
 
+      ! Indentation in this file must be compatible with Fixed Format Fortran
+
       !> Fortran interface for fnom and related functions
       interface
           integer function fnom(iun, nom, ftype, flrec)
               implicit none
-#define IgnoreTypeKindRank iun
-#include <IgnoreTypeKindRank.hf>
+              integer :: iun
               character(len = *), intent(in) :: nom
               character(len = *), intent(in) :: ftype
               integer, intent(in) :: flrec
