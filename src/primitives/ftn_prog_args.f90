@@ -1,11 +1,10 @@
 integer function f_iargc()
-f_iargc=command_argument_count()
-return
+    f_iargc = command_argument_count()
 end
-subroutine f_getarg(pos,value)
-integer pos,len,stat
-character (len=*) :: value
-call get_command_argument(pos,value,len,stat)
-return
+
+subroutine f_getarg(pos, value)
+    integer :: pos, len, stat
+    character(len=*) :: value
+    call get_command_argument(pos, value, len, stat)
 end
 

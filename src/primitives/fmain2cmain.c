@@ -22,13 +22,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(HP)
-  #define IARGC iargc_
-  #define GETARG getarg_
-#else
-  #define IARGC f77_name(f_iargc)
-  #define GETARG f77_name(f_getarg)
-#endif
+#define IARGC f77_name(f_iargc)
+#define GETARG f77_name(f_getarg)
+int IARGC();
+
 
 #ifdef SELFTEST
 c_main(int argc, char **argv) {
@@ -62,7 +59,6 @@ f77name(true_main)(int argc, **argv) {
 
 */
 
-int IARGC();
 
 void f77name(fmain2cmain)(void (*the_main)() ) {
     // get number of arguments
@@ -92,6 +88,6 @@ void f77name(fmain2cmain)(void (*the_main)() ) {
     c_main(argc,argv);
 #else
     // call actual C "main" program
-    (*the_main)(argc,argv);
+    (*the_main)(argc, argv);
 #endif
 }

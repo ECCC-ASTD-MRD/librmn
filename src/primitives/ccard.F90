@@ -284,7 +284,7 @@ INTEGER FUNCTION qqqobm(arg, cltype)
         END DO
 
         IF (premier) THEN
-            narg = IARGC()
+            narg = COMMAND_ARGUMENT_COUNT()
             premier = .FALSE.
         END IF
 
