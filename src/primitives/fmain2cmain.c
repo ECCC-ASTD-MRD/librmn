@@ -18,13 +18,17 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rpnmacros.h>
 #include <string.h>
 #include <stdlib.h>
 
-#define IARGC f77_name(f_iargc)
+#include <rpnmacros.h>
+
+#define BUFSZ 4096
+
+// Prototype for Fortran functions declared in ftn_prog_args.f90
 #define GETARG f77_name(f_getarg)
-int IARGC();
+void GETARG(int * pos, const char * val, F2Cl valLen);
+int iargc();
 
 
 #ifdef SELFTEST
@@ -62,19 +66,19 @@ f77name(true_main)(int argc, **argv) {
 
 void f77name(fmain2cmain)(void (*the_main)() ) {
     // get number of arguments
-    int argc = 1 + IARGC();
-    char *argv[4096];
-    char buffer[4096];
+    int argc = 1 + iargc();
+    char *argv[BUFSZ];
+    char buffer[BUFSZ];
 
     argv[argc] = 0;
 
     // get arg[0] thru arg[argc-1]
     for (int i = 0; i < argc ; i++) {
         // get string for argument i
-        GETARG(&i, buffer, 4096);
+        GETARG(&i, buffer, BUFSZ);
 
         // get rid of trailing spaces
-        int j = 4096 - 1;
+        int j = BUFSZ - 1;
         while ((j >= 0) && (buffer[j] == ' ')) {
             buffer[j] = 0;
             j--;
@@ -85,7 +89,7 @@ void f77name(fmain2cmain)(void (*the_main)() ) {
 
 #ifdef SELFTEST
     // Call test main
-    c_main(argc,argv);
+    c_main(argc, argv);
 #else
     // call actual C "main" program
     (*the_main)(argc, argv);
