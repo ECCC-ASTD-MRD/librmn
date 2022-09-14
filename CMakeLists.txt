@@ -29,7 +29,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
-#set(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS OFF)
 
@@ -115,6 +115,9 @@ add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_dependencies(rmnshared rmn)
 
 foreach(TARGET IN ITEMS rmn rmnshared)
+    if(WITH_OPENMP)
+        target_link_libraries(${TARGET} PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)
+    endif()
     target_compile_options(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
