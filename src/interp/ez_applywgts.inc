@@ -1,14 +1,17 @@
    subroutine ez_applywgts(outfld, wts, idxs, infld, x, y, masque, ni_src, nj_src, ni_dst, nj_dst, n_wts)
 
    implicit none
-   integer ni_src, nj_src, ni_dst, nj_dst, n_wts, n
-   real :: x(ni_src,nj_src), y(ni_src,nj_src)
-   real :: infld(ni_src*nj_src), outfld(ni_dst*nj_dst)
-   real rmin, rmax
-   integer i,j,k
+   integer, intent(in) :: ni_src, nj_src, ni_dst, nj_dst, n_wts
+   real, dimension(ni_src, nj_src), intent(in) :: x, y
+   real, dimension(ni_src * nj_src), intent(in) :: infld
+   real, dimension(ni_src * nj_src), intent(out) :: outfld
+   real, dimension(ni_dst, nj_dst, n_wts), intent(in) :: wts
+   integer, dimension(ni_dst, nj_dst, n_wts), intent(in) :: idxs
+   integer, dimension(ni_dst * nj_dst), intent(in) :: masque
 
-   real :: wts(ni_dst, nj_dst, n_wts)
-   integer :: idxs(ni_dst, nj_dst, n_wts), masque(ni_dst*nj_dst)
+   real :: rmin, rmax
+   integer :: i, j, k, n
+
    integer :: ezgetval, ezgetopt, ier
 
    character(len=32) :: interopt, xtrapopt
@@ -25,19 +28,19 @@
    else
       rmin = minval(infld)
       rmax = maxval(infld)
-      rmin  = rmin - 0.1*(rmax-rmin)
+      rmin  = rmin - 0.1 * (rmax - rmin)
       outfld = rmin
    endif
 
 
-   do k=1,ni_dst*nj_dst
-     i = mod((k-1),ni_dst) + 1
-     j = 1+k/ni_dst
+   do k = 1, ni_dst * nj_dst
+     i = mod((k - 1), ni_dst) + 1
+     j = 1 + k / ni_dst
      if (masque(k) == 1) then
         outfld(k) = 0.0
-        do n=1,n_wts
-           if (idxs(i,j,n) < 1) exit
-           outfld(k) = outfld(k)+wts(i,j,n)*infld(idxs(i,j,n))
+        do n = 1, n_wts
+           if (idxs(i, j, n) < 1) exit
+           outfld(k) = outfld(k) + wts(i,j,n) * infld(idxs(i,j,n))
         enddo
      endif
    enddo
