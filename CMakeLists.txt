@@ -22,6 +22,7 @@ include(ec_doxygen)         # Doxygen target (-DWITH_DOC=TRUE)
 set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
 set(GNU_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
 set(Flang_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
+set(PGI_FFLAGS -byteswapio)
 
 # This is required when using GNU compilers without OpenMP.
 # It has no adverse effect with other compilers and/or when OpenMP is enabled.
@@ -121,7 +122,9 @@ foreach(TARGET IN ITEMS rmn rmnshared)
     target_compile_options(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>)
+               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
         add_dependencies(${TARGET}
             ${PROJECT_NAME}_build_info
             gmmFortranHeader
