@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 typedef struct {
    pthread_cond_t condition;

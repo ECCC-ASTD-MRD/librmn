@@ -4,7 +4,7 @@
 #include <dlfcn.h>
 
 #define NO_PROTOTYPES
-#include <plugins.h>
+#include <rmn/plugins.h>
 
 typedef struct {
   void *handle;       // blind pointer to plugin handle (from dlopen)

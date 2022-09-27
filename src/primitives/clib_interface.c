@@ -121,8 +121,8 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include <rpnmacros.h>
-#include <ftn2c_helper.h>
+#include <rmn/rpnmacros.h>
+#include <rmn/ftn2c_helper.h>
 
 #define CLIB_OK    1
 #define CLIB_ERROR -1

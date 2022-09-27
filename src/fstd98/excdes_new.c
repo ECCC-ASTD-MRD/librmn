@@ -40,10 +40,10 @@
 #include <math.h>
 #include <string.h>
 
-#include <rpnmacros.h>
-#include <convert_ip.h>
-#include <fstd98.h>
-#include <excdes_new.h>
+#include <rmn/rpnmacros.h>
+#include <rmn/convert_ip.h>
+#include <rmn/fstd98.h>
+#include <rmn/excdes_new.h>
 
 #include "FC_string.h"
 

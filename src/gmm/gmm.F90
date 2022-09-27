@@ -19,7 +19,7 @@
 ! argument to return the actual function name.
 
 
-#include <template.hf>
+#include <rmn/template.hf>
 #define FNCNAME(fun) CAT(fun,EXTENSION)
 
 

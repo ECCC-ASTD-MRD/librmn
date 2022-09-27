@@ -1,4 +1,4 @@
-#include <ftnStrLen.h>
+#include <rmn/ftnStrLen.h>
 
 //! Find the actual length of a Fortran string without the trailling blank padding
 //! \return Length of the Fotran string without the trailling blank padding

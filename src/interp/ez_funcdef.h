@@ -1,7 +1,7 @@
 #ifndef _ezfuncdef
 #define _ezfuncdef
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 #include "ez_def.h"
 #include "gd_key2rowcol.h"

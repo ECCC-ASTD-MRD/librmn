@@ -3,7 +3,7 @@
 
 /*! \file rpnmacros.h Platform and cmpiler specific definitions */
 
-#include <rpnmacros_global.h>
+#include "rpnmacros_global.h"
 
 /*
 All the comments in this file need to be old-style blocs comments, since

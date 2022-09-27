@@ -4,7 +4,7 @@
 !> usage:
 !>   #define IgnoreTypeKindRank name1 [, name2] [, name3] ...
 !>   #define ExtraAttributes attr
-!>   #include <IgnoreTypeKindRank.hf>
+!>   #include rmn/IgnoreTypeKindRank.hf>>
 !>
 !> If ExtraAttributes is not defined, no extra attributes will be added
 !>

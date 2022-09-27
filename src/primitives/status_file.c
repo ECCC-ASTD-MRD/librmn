@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 static int fd = -1;
 void f77name(open_status_file)() {

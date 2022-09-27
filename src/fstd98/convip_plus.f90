@@ -562,7 +562,7 @@ end subroutine test_value_to_string
 subroutine test_convip_plus() ! test routine for convip_plus
   use ISO_C_BINDING
   implicit none
-  include 'convert_ip123.inc'
+  include 'rmn/convert_ip123.inc'
   integer :: ip1, ip2, i, j, nip, nip2, k2, nip3
   real :: p,p2
   character(len=15) :: string

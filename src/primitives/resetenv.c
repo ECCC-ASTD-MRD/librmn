@@ -23,7 +23,7 @@
 #include <string.h>
 #include <fcntl.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 static char line[32768];
 

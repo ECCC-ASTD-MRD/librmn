@@ -2,7 +2,9 @@
 #define ZFSTLIB_H
 
 #include <stdint.h>
-#include <rpnmacros.h>
+
+#include <rmn/rpnmacros.h>
+
 #include <bitPacking.h>
 
 #define   COMPRESS    1

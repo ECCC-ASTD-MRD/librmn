@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 typedef union {
     int32_t i;

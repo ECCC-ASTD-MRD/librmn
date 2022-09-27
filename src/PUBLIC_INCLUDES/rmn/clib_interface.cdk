@@ -83,7 +83,7 @@
 #ifndef __CLIB_INTERFACE_CDK__
 #define __CLIB_INTERFACE_CDK__
 
-#include <template.hf>
+#include "template.hf"
 
 #define CLIB_OK    1
 #define CLIB_ERROR -1

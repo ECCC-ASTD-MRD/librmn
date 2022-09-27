@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 //! \file c_fstgrib_helper.c Routines commodes pour ecrire des records GRIB encodes dans des fichiers standars
 

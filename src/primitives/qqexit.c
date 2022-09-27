@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 //! Fortran wrapper around the exit function
 void f77name(qqexit) (int32_t *val)

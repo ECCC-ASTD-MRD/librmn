@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 int32_t f77name(rename_c)(
@@ -34,7 +34,7 @@ int32_t f77name(rename_c)(
 
     if (lng1 > 256 || lng2 > 256) {
         printf("rename_c error: oldname or newname > 256 char\n");
-        return((int32_t) -1);
+        return (int32_t) -1;
     }
     int llng1 = lng1;
     int llng2 = lng2;
@@ -46,5 +46,5 @@ int32_t f77name(rename_c)(
     new[llng2] = '\0';
     int rcode = rename(&old[0], &new[0]);
     if (rcode == -1) perror("rename_c error");
-    return((int32_t)rcode);
+    return (int32_t) rcode;
 }

@@ -39,7 +39,8 @@
 #include <time.h>
 #include <signal.h>
 #include <errno.h>
-#include <gossip.h>
+
+#include <rmn/gossip.h>
 
 #include <dirent.h>
 

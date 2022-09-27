@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include <DlInterface.h>
+#include <rmn/DlInterface.h>
 /*
   rmnlib interface to the dynamic loading functions
   if this module is compiled without -DLIVE

@@ -124,7 +124,7 @@
 
       end interface
 
-      include 'convip_plus.inc'
+      include 'rmn/convip_plus.inc'
 
       interface
 

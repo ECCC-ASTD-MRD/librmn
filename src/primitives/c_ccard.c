@@ -25,7 +25,7 @@
 #include <strings.h>
 #include <ctype.h>
 
-#include <c_ccard.h>
+#include <rmn/c_ccard.h>
 
 #define MAJUS 0
 #define MINUS 1

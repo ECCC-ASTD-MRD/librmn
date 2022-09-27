@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 #include "zfstlib.h"
 #include "armn_compress_32.h"
 

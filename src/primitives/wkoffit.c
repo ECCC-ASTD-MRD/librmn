@@ -108,7 +108,7 @@
     #define B32 :32
 #endif
 
-#include <fstd98.h>
+#include <rmn/fstd98.h>
 
 
 static int endian_int = 1;
@@ -1184,7 +1184,7 @@ int main(int argc, char **argv) {
 #else
 
 // not utility, provide Fortran callable entry point
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 int32_t f77name(wkoffit)(
     char *nom,
     F2Cl fl1

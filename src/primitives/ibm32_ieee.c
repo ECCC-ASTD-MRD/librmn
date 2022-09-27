@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 void c_ibm32_ieee (unsigned long *tab_data_IBM, int nb_data)

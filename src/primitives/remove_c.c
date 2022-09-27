@@ -23,7 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 int32_t f77name(remove_c)(

@@ -21,7 +21,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 int32_t f77name(c_time)()
 {

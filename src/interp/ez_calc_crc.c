@@ -20,7 +20,6 @@
 
 
 #include <stddef.h>
-#include "rpnmacros.h"
 
 
 unsigned int ez_calc_crc(

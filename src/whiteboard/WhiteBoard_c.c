@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 #include "WhiteBoard.h"
 

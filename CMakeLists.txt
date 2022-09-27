@@ -136,30 +136,34 @@ add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn ${PROJECT_NAME}_build_info)
 target_link_libraries(librmn_version rmn)
 
-file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/*)
-list(APPEND PROJECT_INCLUDE_FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
-    ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
-    ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
-)
-
 set_target_properties(rmn PROPERTIES
     VERSION ${PROJECT_VERSION}
-    PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}"
+    PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn)
 
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 set_target_properties(rmnshared PROPERTIES
     VERSION ${PROJECT_VERSION}
-    PUBLIC_HEADER "${PROJECT_INCLUDE_FILES}"
+    PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     SOVERSION ${SOVERSION}
     OUTPUT_NAME rmn)
 
+include(GNUInstallDirs)
+
 install(TARGETS rmn rmnshared librmn_version)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jar_module.mod TYPE INCLUDE)
+
+file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
+list(APPEND PROJECT_INCLUDE_FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
+    ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
+    ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jar_module.mod DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rmn)
+install(FILES ${PROJECT_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rmn)
 
 add_custom_target(
     cprotos

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <rpnmacros.h>
+#include "rpnmacros.h"
 
 #define MAXFILES 1024
 

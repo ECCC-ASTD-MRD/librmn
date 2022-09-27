@@ -1,7 +1,7 @@
 #ifndef XDF98_C
 #define XDF98_C
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 #include "qstdir.h"
 
 int c_xdflnk(int *liste, int n);

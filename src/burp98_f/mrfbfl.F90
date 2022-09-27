@@ -35,9 +35,6 @@
 !ARGUMENT
 !     IUN      ENTREE         NUMERO D'UNITE DU FICHIER
 !
-!IMPLICITES
-#include <ftnmacros.hf>
-!
 !MODULES 
       EXTERNAL MRFMXL
       INTEGER  MRFMXL

@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
-#include <ftnStrLen.h>
+#include <rmn/ftnStrLen.h>
 
 int32_t f77name(ezsetopt)(
     char *option,

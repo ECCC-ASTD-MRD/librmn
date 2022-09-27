@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <ezscint.h>
+#include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t ez_corrvec(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout) {

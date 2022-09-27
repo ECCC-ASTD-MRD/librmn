@@ -9,7 +9,7 @@
             USE ISO_C_BINDING
             #define __FORTRAN_CODE__
           Fortran and C:
-            #include <plugins.h>
+            #include rmn/plugins.h>>
 
   step 1: Load a plugin library
           Fortran :

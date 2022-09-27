@@ -5,7 +5,7 @@ integer function gmm_checkpoint_all(read_or_write)
     logical :: read_or_write
     integer :: code, istat, ier
 
-#include <fnom.hf>
+#include <rmn/fnom.hf>
 
     ! Read checkpoint file one record at a time
     if (read_or_write) then

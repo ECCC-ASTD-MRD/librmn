@@ -21,9 +21,9 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <ezscint.h>
+#include <rmn/ezscint.h>
 #include "ez_funcdef.h"
-#include <ftnStrLen.h>
+#include <rmn/ftnStrLen.h>
 
 int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {

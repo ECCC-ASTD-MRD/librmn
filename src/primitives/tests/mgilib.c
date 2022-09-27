@@ -78,11 +78,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <rpnmacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <ctype.h>
+
+#include <rmn/rpnmacros.h>
+
 #include "mgi_1.h"
 
 static channel chn[MAX_CHANNELS];

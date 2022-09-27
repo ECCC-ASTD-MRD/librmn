@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 #define BUFSZ 4096
 
@@ -52,7 +52,7 @@ c_main(int argc, char **argv) {
         end
 
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 f77name(true_main)(int argc, **argv) {
  . . . .
  . . . .

@@ -33,7 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -44,9 +44,9 @@
 #include <ctype.h>
 #include <sys/resource.h>
 
-#include "mgi.h"
-#include <gossip.h>
-#include <gossip_constants.h>
+#include <rmn/mgi.h>
+#include <rmn/gossip.h>
+#include <rmn/gossip_constants.h>
 
 #define CLOSE -5
 

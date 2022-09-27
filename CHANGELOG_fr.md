@@ -71,6 +71,11 @@ d'interroger le temps CPU utilisé ont été supprimmées.  Des outils
 externes permettent d'obtenir cette information ou de faire du
 profilage.
 
+- Tous les fichiers d'en-tête sauf le fichier principal, `rmn.h`, ont
+été déplacés dans le sous répertoire `rmn`.  Ainsi, il sera nécessaire
+de corriger le chemin d'accès dans les directives `#include`.  Par
+exemple, `#include <rpnmacros.h>` devient `#include <rmn/rpnmacros.h>`.
+
 - Toutes les fonctions de dmms sont obsolètes et ne devraient plus être
 utilisées.
     - memoirc

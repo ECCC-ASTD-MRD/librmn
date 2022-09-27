@@ -66,6 +66,12 @@ directory and the BURF tables
 query the CPU time used have been deleted.  External tools allow
 retrieving that information or profiling.
 
+- All header files except the main one (`rmn.h`) have been moved to the
+`rmn` sub-directory.  Therefore, you will have to fix the paths in the
+`#include` directives.  For example, `#include <rpnmacros.h>` becomes
+`#include <rmn/rpnmacros.h>`.
+
+
 - All the functions in DMMS are obsolete and should no longer be used:
     - memoirc
     - dmmsdbg

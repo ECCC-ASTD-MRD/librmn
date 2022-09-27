@@ -60,7 +60,7 @@
       DATA OUTFIL   /6/
       DATA RPETITIF / MAXREP*0/
 
-#include <fnom.hf>
+#include <rmn/fnom.hf>
 
 !     ON OBTIENT LE NOM DE LA TABLEBURP A OUVRIR
 !     SI LA VARIABLE TABLEBURP EST DEFINIE, ON OUVRE LA TABLE

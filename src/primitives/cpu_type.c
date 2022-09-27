@@ -28,7 +28,7 @@
  *        use ISO_C_BINDING
  *        implicit none
  *      #define IN_FORTRAN_CODE
- *      #include <cpu_type.h>
+ *      #include <rmn/cpu_type.h>
  *        real(C_DOUBLE) :: s1, s2
  *        integer(C_INT64_T) :: t1, t2
  *        if(cpu_has_feature(FLAG_AVX2) .ne. 0) print *,'AVX2'
@@ -64,7 +64,7 @@
  * 
  *      #include <stdint.h>
  *      #include <stdio.h>
- *      #include <cpu_type.h>
+ *      #include <rmn/cpu_type.h>
  *      int main(int argc, char** argv)
  *      {
  *       uint64_t t1, t2;
@@ -114,7 +114,7 @@
 // cc -I. -DTEST_CPUID -DTEST_RDTSC -DDEBUG cpu_type.c
 #include <stdio.h>
 
-#include <cpu_type.h>
+#include <rmn/cpu_type.h>
 
 #define HAS_FLAG(flag,flagword) (flag & flagword)
 #define X86_FLAG(flag) (flag & ProcessorCapabilities)
@@ -264,11 +264,11 @@ uint64_t get_cpu_freq(void)
  * AUTHOR
  *  M.Valin Recherche en Prevision Numerique 2016
  * ARGUMENTS
-    feature : feature symbol from cpu_type (#include <cpu_type.h>)
+    feature : feature symbol from cpu_type (#include <rmn/cpu_type.h>)
  * RESULT
  *  1 is feature is supported by CPU, 0 otherwise
  * NOTES
- * *  #include <cpu_type.h> 
+ * *  #include rmn/cpu_type.h>> 
  * *  is usable by C and Fortran programs alike
  * *  Fortran programs must use
  * *  #define IN_FORTRAN_CODE

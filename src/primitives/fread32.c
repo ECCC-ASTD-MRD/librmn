@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 static int endian_int = 1;

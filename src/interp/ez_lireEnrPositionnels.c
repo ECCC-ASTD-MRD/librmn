@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <fstd98.h>
-#include <ezscint.h>
+#include <rmn/fstd98.h>
+#include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
 

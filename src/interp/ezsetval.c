@@ -22,9 +22,9 @@
 #include <ctype.h>
 #include <string.h>
 
-#include <ftnStrLen.h>
+#include <rmn/ftnStrLen.h>
+#include <rmn/ezscint.h>
 
-#include <ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t f77name(ezsetfval)(char *option, float *fvalue, F2Cl lenoption);

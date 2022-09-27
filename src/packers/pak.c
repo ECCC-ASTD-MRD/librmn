@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 #include <armn_compress.h>
 
 

@@ -1,6 +1,7 @@
 #include <stdint.h>
-#include <rpnmacros.h>
-/* FORTRAN callable bit slicer  
+#include <rmn/rpnmacros.h>
+
+/* FORTRAN callable bit slicer
    call f_bits_get(bits,bits_per_slice,slices,nslices)
    call f_bits_put(bits,bits_per_slice,slices,nslices)
    integer bits(*)                    bit stream (IN for get) (OUT for put)
@@ -11,7 +12,7 @@
    ex: call f_bits_get(bits,(/4,8,4,8,4,8,4,8,4,8/),slices,10)
 
    Note: 32*dimension of array bits must be >= sum of bits_per_slice(i),i=1,nslices
-   
+
    esample test program:
 program test_f_bit_slicer
 integer bits(4)
@@ -33,12 +34,12 @@ stop
 end
 
 expected output:
-        -2048           15            0          255           15          248 
-            0           15           15          255           15          128 
+        -2048           15            0          255           15          248
+            0           15           15          255           15          128
             0
         -2048        -2048        -2048         1234
    0.1234000       0.1234000       0.1234000        1.234000
-   
+
 */
 
 void f77name(f_bits_get)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *slices, int32_t *nslices)
@@ -87,7 +88,7 @@ void f77name(f_bits_put)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *s
 
   while(--number_of_slices >= 0){
     int current = *bits_per_slice++;                        /* number of bits to put, min0, max 32 */
-    
+
     if(current > 32) current=32;
     if(current <= 0)                     /* 0 bit slice, do nothing */
       mybits = mybits;

@@ -24,7 +24,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 int32_t f77name(mrblocx)(int32_t * buf, int32_t * bfam, int32_t * bdesc, int32_t * bknat, int32_t * bktyp, int32_t * bkstp, int32_t * blk0);
 int32_t f77name(mrbprml)(int32_t  * buf, int32_t  * bkno, int32_t  * blprm, int32_t  * nprm, int32_t  * inblocs);

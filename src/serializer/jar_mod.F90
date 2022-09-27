@@ -338,7 +338,7 @@ module jar_module
     function jar_put_into(jar_instance, object, size_bits, position) result(success)
         implicit none
         class(jar), intent(INOUT) :: jar_instance               !> Data jar instance
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
         integer, intent(IN), value :: size_bits                 !> Size to insert in number of bits = storage_size(item) * nb_of_items
         integer(JAR_ELEMENT), intent(IN), optional :: position  !> Insertion point (1 = start of jar), optional
         logical :: success                                      !> Whether the operation succeeded
@@ -392,7 +392,7 @@ module jar_module
     function jar_get_outof(jar_instance, object, size_bits, position) result(success)
         implicit none
         class(jar), intent(INOUT) :: jar_instance               !> Data jar instance
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
         integer(C_INT64_T),   intent(IN), value :: size_bits    !> Size to insert in bits = storage_size(item) * nb_of_items
         integer(JAR_ELEMENT), intent(IN), optional :: position  !> Extraction point (1 = start of jar), optional
         logical :: success                                      !> Whether the operation succeeded

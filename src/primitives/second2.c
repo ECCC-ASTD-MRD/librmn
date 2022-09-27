@@ -19,24 +19,15 @@
  */
 
 #if defined (HP) || defined(Alpha)
-#include <rpnmacros.h>
-
 
 #include <sys/times.h>
 #include <unistd.h>
 
-/*
+#include <rmn/rpnmacros.h>
 
-   Fonction retournant la somme des temps usager et systeme d'un
-   travail sur une machine HP.   ( BD, RPN - 08 octobre 1993 )
 
-*/
-
-float
-f77name(second) ( )
-
-{
-
+//! Get user and system time on HP system
+float f77name(second)() {
    struct tms buffer;
    clock_t elapsed;
    int32_t ticks;
@@ -47,7 +38,6 @@ f77name(second) ( )
    hold = buffer.tms_utime + buffer.tms_stime ;
 
    return hold / ticks ;
-   
 }
 
 #endif

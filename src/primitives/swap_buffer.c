@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 
-#include <swap_buffer.h>
+#include <rmn/swap_buffer.h>
 
 
 //! Swap the endianess of a 32 bits word

@@ -14,9 +14,9 @@
  *   d'environnement FST_FILTER_FILE                                         *
  *                                                                           *
  *****************************************************************************/
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 #include "qstdir.h"
-#include "ip_kind.h"		/*CHC/NRC*/
+#include "ip_kind.h" /*CHC/NRC*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

@@ -1,15 +1,16 @@
 #ifndef _RMN_H
 #define _RMN_H
 
-#include "fnom.h"
-#include "fstd98.h"
-#include "fstdsz.h"
-#include "ezscint.h"
-#include "fst_missing.h"
-#include "burp.h"
-#include "ezscint.h"
-#include "c_ccard.h"
-#include "ftnStrLen.h"
+#include "rmn/fnom.h"
+#include "rmn/fstd98.h"
+#include "rmn/fstdsz.h"
+#include "rmn/ezscint.h"
+#include "rmn/fst_missing.h"
+#include "rmn/burp.h"
+#include "rmn/ezscint.h"
+#include "rmn/c_ccard.h"
+#include "rmn/ftnStrLen.h"
+#include "rmn/convert_ip.h"
 
 // To put in respective inlude file
 void f77name(cxgaig)(char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4,float *xg1,float *xg2,float *xg3,float *xg4);

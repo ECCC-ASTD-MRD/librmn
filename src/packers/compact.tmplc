@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <math.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 #include <bitPacking.h>
 
 extern double f77name(f_pow)(double *base, int32_t *i);

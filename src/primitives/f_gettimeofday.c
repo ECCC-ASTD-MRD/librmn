@@ -12,7 +12,7 @@ typedef struct {
 #include <sys/times.h>
 #include <sys/time.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 //! time of day in seconds.microseconds

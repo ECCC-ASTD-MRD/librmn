@@ -4,7 +4,7 @@
 #include <pwd.h>
 #include <ctype.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 #define MAXSTRINGS 32
 #define MAXLINELENGTH 255

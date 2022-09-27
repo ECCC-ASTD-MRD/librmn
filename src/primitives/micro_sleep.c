@@ -26,7 +26,7 @@
 
 #include <math.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 void f77name(micro_sleep) (double *secs)

@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 void f77name(set_run_dir)(int32_t *mype) {
     char buffer[1024];

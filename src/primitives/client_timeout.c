@@ -25,97 +25,92 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mgi.h"
+
+#include <rmn/mgi.h>
 
 typedef struct 
 {
-  int client_chan;
-  int timeout;
+    int client_chan;
+    int timeout;
 } client_timeout;
 
 
+//! Client timeout table
 static client_timeout ctimeout[MAX_CHANNELS];
+//! Number of channels
 static int ichan = 0;
+//! Default timeout
 static int default_timeout = 180;
 
-/* initialize client timeout table */
-/* entry: socket descriptor, value: default timeout */
 
-void init_client_table( int channel )
-{
-  
-  if ( ichan >= MAX_CHANNELS )
-    {
-      fprintf( stderr, "ERROR: Too many channels assigned; MAX = %d\n", MAX_CHANNELS );
-      exit(1);
+//! Initialize client timeout table with default timeout
+void init_client_table(
+    //! [in] Socket descriptor
+    const int channel
+) {
+    if ( ichan >= MAX_CHANNELS ) {
+        fprintf( stderr, "ERROR: Too many channels assigned; MAX = %d\n", MAX_CHANNELS );
+        exit(1);
+    } else {
+        ctimeout[ichan].client_chan = channel;
+        ctimeout[ichan].timeout = default_timeout;
+        ichan++;
     }
-  else
-    {
-      ctimeout[ichan].client_chan = channel;
-      ctimeout[ichan].timeout = default_timeout;
-      ichan++;
-    }
- 
-
 }
 
-/* set client timeout using channel descriptor fclient */
-/* and read/write wait time in seconds */
-void set_client_timeout( int fclient, int timeout )
-{
-  int i;
-  int found = -1;
 
-  for(i = 0; i < ichan; i++)
-    {
-      if( fclient == ctimeout[i].client_chan )
-	{
-	  ctimeout[i].timeout = timeout;
-	  found = i;
-	  break;
-	}
-    }
-    
-  if( found < 0 )
-    {
-      ctimeout[ichan].client_chan = fclient;
-      ctimeout[ichan].timeout = timeout > default_timeout ? default_timeout : timeout;
-      found = -1;
-      
-    }
-  }
+//! Set client timeout
+void set_client_timeout(
+    //! [in] Channel descriptor
+    const int fclient,
+    //! [in] Tiemout (read/write wait time in seconds)
+    const int timeout
+) {
+    int found = -1;
 
-/* get client timeout using channel descriptor fclient        */
-/* return positive value if setted by the user to a negative  */
-/* = unlimited wait time                                      */
-int get_client_timeout( int fclient )
-{
-  int i;
-  int new_timeout;
-  
-  for( i = 0; i < MAX_CHANNELS; i++ )
-    {
-      if( fclient == ctimeout[i].client_chan )
-	{
-	  new_timeout = ctimeout[i].timeout > 3 ? ctimeout[i].timeout : -ctimeout[i].timeout;
-	  
-	  return new_timeout;
-	}
+    for(int i = 0; i < ichan; i++) {
+        if ( fclient == ctimeout[i].client_chan ) {
+            ctimeout[i].timeout = timeout;
+            found = i;
+            break;
+        }
     }
- 
-  return default_timeout;
+
+    if ( found < 0 ) {
+        ctimeout[ichan].client_chan = fclient;
+        ctimeout[ichan].timeout = timeout > default_timeout ? default_timeout : timeout;
+    }
 }
-/* get client timeout using channel descriptor fclient   */
-/* return default timeout value if not setted by the user */
-int get_timeout_value( int fclient )
-{
-  int i;
-  for( i = 0; i < MAX_CHANNELS; i++ )
-    {
-      if( fclient == ctimeout[i].client_chan )
-	{
-	  return ctimeout[i].timeout ;
-	}
+
+
+//! Get client timeout
+//! \return Positive value if setted by the user to a negative
+int get_client_timeout(
+    //! [in] Channel descriptor
+    const int fclient
+) {
+    for (int i = 0; i < MAX_CHANNELS; i++ ) {
+        if ( fclient == ctimeout[i].client_chan ) {
+            int new_timeout = ctimeout[i].timeout > 3 ? ctimeout[i].timeout : -ctimeout[i].timeout;
+            return new_timeout;
+        }
     }
-  return default_timeout;
+
+    return default_timeout;
+}
+
+
+//! Get client timeout
+//! \return Client timeout or default timeout value if not setted by the user
+int get_timeout_value(
+    //! [in] Channel descriptor
+    const int fclient
+) {
+    for (int i = 0; i < MAX_CHANNELS; i++ ) {
+        if ( fclient == ctimeout[i].client_chan ) {
+            return ctimeout[i].timeout ;
+        }
+    }
+
+    return default_timeout;
 }

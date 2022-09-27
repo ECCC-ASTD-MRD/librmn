@@ -1,7 +1,8 @@
 //! \file version.c Version information for the project
 
 #include <stdio.h>
-#include <version.h>
+
+#include <rmn/version.h>
 
 char PROJECT_VERSION[] = VERSION;
 

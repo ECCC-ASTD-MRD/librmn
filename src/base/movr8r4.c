@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;

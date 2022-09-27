@@ -1,7 +1,7 @@
 #ifndef _ezscint
 #define _ezscint
 
-#include <rpnmacros.h>
+#include "rpnmacros.h"
 
 int32_t f77name(ezdefset)(int32_t *gdout, int32_t *gdin);
 int32_t c_ezdefset(int32_t gdout, int32_t gdin);

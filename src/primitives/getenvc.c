@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 //! Get environement variable value

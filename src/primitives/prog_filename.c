@@ -80,7 +80,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 #define FNAME_LEN 50

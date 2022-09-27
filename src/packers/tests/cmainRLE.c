@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 #define elementCount  2000

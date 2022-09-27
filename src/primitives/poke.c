@@ -19,7 +19,7 @@
  */
 
 #include <stdint.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 void f77name(poke)(int32_t **adr,int32_t *indx, int32_t *val)
 {

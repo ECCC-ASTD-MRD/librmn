@@ -1,7 +1,7 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#include <cat.h>
+#include "cat.h"
 #include <rmn_build_info.h>
 
 //! Project version

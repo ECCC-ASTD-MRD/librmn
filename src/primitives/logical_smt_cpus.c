@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 int c_logical_smt_cpus()

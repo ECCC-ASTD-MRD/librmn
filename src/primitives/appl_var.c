@@ -4,7 +4,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 #define MAX_ENTRIES 1024
 

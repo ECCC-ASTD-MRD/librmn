@@ -22,9 +22,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
-#include <ezscint.h>
+#include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
 static float *eziglat = NULL;

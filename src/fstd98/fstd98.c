@@ -35,14 +35,15 @@
 #include <ctype.h>
 
 #include <bitPacking.h>
-#include <fstd98.h>
 #include <armn_compress.h>
-#include <c_wkoffit.h>
-#include <excdes_new.h>
-#include <fst_missing.h>
+
+#include <rmn/fstd98.h>
+#include <rmn/c_wkoffit.h>
+#include <rmn/excdes_new.h>
+#include <rmn/fst_missing.h>
 
 #include "qstdir.h"
-#include "convert_ip.h"
+#include <rmn/convert_ip.h>
 #include "xdf98.h"
 
 #define Max_Ipvals 50

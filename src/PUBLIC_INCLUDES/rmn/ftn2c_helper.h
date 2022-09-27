@@ -1,7 +1,7 @@
 #if !defined(__FTN2C_HELPER__)
 #define __FTN2C_HELPER__
 
-#include <rpnmacros.h>
+#include "rpnmacros.h"
 
 #define FTN2C_FSTR2CSTR(FSTR,CSTR,LFSTR,LCSTR) ftn2c_string_copy((unsigned char *)FSTR,(unsigned char *)CSTR,LFSTR,LCSTR,0)
 #define FTN2C_CSTR2FSTR(CSTR,FSTR,LCSTR,LFSTR) ftn2c_string_copy((unsigned char *)CSTR,(unsigned char *)FSTR,LCSTR,LFSTR,' ')

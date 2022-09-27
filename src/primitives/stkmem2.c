@@ -20,7 +20,7 @@
 
 #include <stdlib.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 void f77name(stkmem2)(long long *f_nbytes,void **ptr) {

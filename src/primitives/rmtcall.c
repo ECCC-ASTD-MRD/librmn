@@ -20,7 +20,7 @@
 
 
 #include <stdint.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 //! Call a Fortran function whose address was found with LOCF.

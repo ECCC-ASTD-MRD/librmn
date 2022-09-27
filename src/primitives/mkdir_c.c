@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 int32_t f77name(mkdir_c)(
     const char * const filename,

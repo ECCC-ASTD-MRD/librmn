@@ -47,13 +47,14 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
+#include <rmn/gossip.h>
+#include <rmn/swap_buffer.h>
+
 #include <ftn_c_protos.h>
-#include <gossip.h>
-#include <swap_buffer.h>
 
 #define FNOM_OWNER
-#include "fnom.h"
+#include <rmn/fnom.h>
 #include "wafile.h"
 
 //! Maximum length of the type string for fnom

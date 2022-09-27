@@ -19,7 +19,9 @@
  */
 
 #include <stdint.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
+
+
 //! Union allowing to store an address and return it to caller using a 64 bit
 //! integer. This should work on any platform.
 typedef union {

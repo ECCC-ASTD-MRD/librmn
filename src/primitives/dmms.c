@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 #define ERROR 0
 #define STACK 0

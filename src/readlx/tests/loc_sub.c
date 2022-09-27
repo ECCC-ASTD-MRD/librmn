@@ -18,8 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 void * f77name(loc_sub)(void *x)
 {
-  return(x);
+    return x;
 }

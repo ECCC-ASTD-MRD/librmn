@@ -2157,7 +2157,7 @@
 
       EXTERNAL QLXNVAR,QLXPRNT,QLXUNDF
       INTEGER UNIT, KEND
-#include <fnom.hf>
+#include <rmn/fnom.hf>
       Integer*8 LOCCNT, LOCVAR
       Integer IICNT
       INTEGER LIMITS, ITYP

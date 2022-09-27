@@ -182,8 +182,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <DlInterface.h>
-#include <fst_missing.h>
+#include <rmn/DlInterface.h>
+#include <rmn/fst_missing.h>
 #include "qstdir.h"
 
 //! -1 not initialized, 1 active, 0 not active

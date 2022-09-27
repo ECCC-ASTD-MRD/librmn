@@ -30,9 +30,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <time.h>
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
-#include <gossip.h>
+#include <rmn/gossip.h>
 
 
 #define MAX_LOCKS 256

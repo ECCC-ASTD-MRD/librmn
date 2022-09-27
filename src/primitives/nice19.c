@@ -20,7 +20,7 @@
 
 #include <unistd.h>
 
-#include <rpnmacros.h>
+#include <rmn/rpnmacros.h>
 
 
 void f77name(nice19)()

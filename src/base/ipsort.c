@@ -19,9 +19,10 @@
  */
 
 #include <string.h>
-
 #include <stdint.h>
-#include <rpnmacros.h>
+
+#include <rmn/rpnmacros.h>
+
 #define SHRINKFACTOR 1.3
 
 

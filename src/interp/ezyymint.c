@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ezscint.h>
+#include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t c_ezyymint(int32_t gdout, int32_t gdin, int32_t ni, int32_t nj, float *maskout, float *dlat, float *dlon, float *yinlat, float *yinlon, int32_t *yyincount, float *yanlat, float *yanlon, int32_t *yyancount)
