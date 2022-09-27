@@ -22,7 +22,7 @@
 ! test extended macros
 #define JAR_EXTENDED_MACROS 1
 ! include serializer macros
-#include <serializer.hf>
+#include <rmn/serializer.hf>
 
 module jar_test_types
     implicit none

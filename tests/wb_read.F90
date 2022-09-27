@@ -1,6 +1,6 @@
 program wb
 
-#include <WhiteBoard.hf>
+#include <rmn/WhiteBoard.hf>
 
     integer :: res
     integer :: argc

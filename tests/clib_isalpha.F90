@@ -1,6 +1,6 @@
 program clib_interface
 
-#include <clib_interface.cdk>
+#include <rmn/clib_interface.cdk>
 
     character(len = 1) :: str
     integer :: res

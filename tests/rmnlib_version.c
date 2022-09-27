@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "rpnmacros.h"
-#include "rpn_macros_arch.h"
-
+#include "rmn/rpnmacros.h"
 
 extern int f77name(rmnlib_version)(char *rmn,int *print,int len);
 
