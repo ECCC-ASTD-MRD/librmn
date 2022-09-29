@@ -124,9 +124,9 @@ int32_t c_ezsetopt(
         option_ok = 1;
         value_ok = 1;
         if (0 == strcmp(local_val, "yes")) {
-            groptions.degre_interp = 1;
+            groptions.polar_correction = 1;
         } else if (0 == strcmp(local_val, "no")) {
-            groptions.degre_interp = 0;
+            groptions.polar_correction = 0;
         } else {
             value_ok = 0;
         }
