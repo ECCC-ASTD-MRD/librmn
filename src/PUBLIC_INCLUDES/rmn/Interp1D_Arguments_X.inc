@@ -16,7 +16,7 @@
 !        called from C.
 !
 !ARGUMENTS
-#include "Interp1D_Arguments.inc"
+#include <rmn/Interp1D_Arguments.inc>
 
   external flux                         ! s/r to calculate flux at one vert level
   integer, intent(in) :: numExtArraysIn ! size of the array, ExtArraysIn

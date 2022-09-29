@@ -21,7 +21,7 @@ interface
         integer, intent(in) :: f_chan
         !> Buffer for the data read
 #       define IgnoreTypeKindRank data
-#       include "IgnoreTypeKindRank.hf"
+#       include <rmn/IgnoreTypeKindRank.hf>
         !> Number of elements to read
         integer, intent(in) :: f_nelm
         !> [in] Data type of elements
@@ -35,7 +35,7 @@ interface
     integer function mgi_write(f_chan, data, f_nelm, dtype)
         integer, intent(in) :: f_chan
 #       define IgnoreTypeKindRank data
-#       include "IgnoreTypeKindRank.hf"
+#       include <rmn/IgnoreTypeKindRank.hf>
         integer, intent(in) :: f_nelm
         character(len = *), intent(in) :: dtype
     end function
