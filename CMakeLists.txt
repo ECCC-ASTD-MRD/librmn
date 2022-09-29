@@ -74,13 +74,16 @@ file(GLOB PROJECT_H_FILES
 # This really isn't the ideal solution; the compiler should be called with all
 # the definitions and options as if we it was processing a source file
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB GMM_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.inc ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/*.hf)
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/gmm.hf
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf > ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90
-    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/src/gmm -P -E ${CMAKE_CURRENT_BINARY_DIR}/gmm_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/gmm.hf
     COMMENT "Generating gmm.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/gmm/gmm.hf
     DEPENDS ${GMM_HEADER_DEPS}
@@ -88,28 +91,28 @@ add_custom_command(
     USES_TERMINAL
 )
 # Add a custom target to regenerate gmm.hf
-add_custom_target(gmmFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf)
+add_custom_target(gmmFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/gmm.hf)
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
     COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
-    COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
-    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES -I${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard -P -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 >> ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
+    COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
+    COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES -I${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard -P -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMENT "Generating WhiteBoard.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
     DEPENDS ${WHITEBOARD_HEADER_DEPS}
 
     USES_TERMINAL
 )
-
 # Add a custom target to regenerate WhiteBoard.hf
-add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf)
+add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
-ec_build_info()            # Generate build information
+# Generate build information
+ec_build_info(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -152,20 +155,13 @@ set_target_properties(rmnshared PROPERTIES
     SOVERSION ${SOVERSION}
     OUTPUT_NAME rmn)
 
-include(GNUInstallDirs)
-
 install(TARGETS rmn rmnshared librmn_version)
 
 
-file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
-list(APPEND PROJECT_INCLUDE_FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_build_info.h
-    ${CMAKE_CURRENT_BINARY_DIR}/gmm.hf
-    ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf
-)
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jar_module.mod DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rmn)
-install(FILES ${PROJECT_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rmn)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/jar_module.mod DESTINATION include/rmn)
+file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/* ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/*)
+install(FILES ${PROJECT_INCLUDE_FILES} DESTINATION include/rmn)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}_build_info.h DESTINATION include)
 
 add_custom_target(
     cprotos
