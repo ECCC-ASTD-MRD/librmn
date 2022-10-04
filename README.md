@@ -53,6 +53,9 @@ ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
 WITH_OPENMP
 : `(yes|no)` Indique si le support pour OpenMP doit être activée.  Défaut: `yes`
 
+WITH_DOC
+: `(yes|no)` Indique s'il faut générer la documentation.  Doxygen et
+graphviz sont alors nécessaires.
 
 ### Exemple de compilation
 ```
