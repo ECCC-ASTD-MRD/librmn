@@ -41,8 +41,8 @@
 //!          IADRF = LOCF(AMOI)
 //!          STATUT = RMTCALL(IADRF,LISTE)
 int32_t f77name(rmtcall)(
-    unsigned long long *entry_in,
-    unsigned long long *args_in
+    const unsigned long long * const entry_in,
+    const unsigned long long * const args_in
 ) {
     typedef int32_t *W_ptr;
     W_ptr args[41];
