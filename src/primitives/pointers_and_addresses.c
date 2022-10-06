@@ -72,6 +72,7 @@ long long f77name(get_address_from)(void *addr)
     return(myptr.address_in_64bit);
 }
 
+
 void f77name(make_cray_pointer)(void **addr, long long *c)
 {
     fakeptr myptr;
@@ -80,6 +81,7 @@ void f77name(make_cray_pointer)(void **addr, long long *c)
     // Return address to caller (addr is a Cray style pointer)
     *addr = myptr.ptr;
 }
+
 
 void f77name(pass_address_to)(long long *c, int *funct())
 {
@@ -91,9 +93,13 @@ void f77name(pass_address_to)(long long *c, int *funct())
     (void) *funct(myptr.ptr);
 }
 
-void f77name(set_content_of_location)(long long *location, int32_t *indx, int32_t *value)
+
 // Indexing of location is done in base 1 (Fortran like)
-{
+void f77name(set_content_of_location)(
+    long long * const location,
+    const int32_t * const indx,
+    const int32_t * const value
+) {
     typedef union {
         long long address_in_64bit;
         int32_t *ptr;
@@ -107,6 +113,7 @@ void f77name(set_content_of_location)(long long *location, int32_t *indx, int32_
     // set content of index address to value
     myptr.ptr[(*indx)-1] = *value;
 }
+
 
 void f77name(get_content_of_location)(long long *location, int32_t *indx, int32_t *value)
 // Indexing of location is done in base 1 (Fortran like)
