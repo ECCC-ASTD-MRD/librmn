@@ -74,9 +74,9 @@
 !> type(whatever_type) :: my_item
 !> success = JAR_PUT_ITEM(my_jar_name, my_item)                       ! or JAR_INTO_SINGLE
 !> success = JAR_PUT_ITEM_AT(my_jar_name, my_item, insertion_point)   ! or JAR_INTO_SINGLE_AT
-#define JAR_PUT_ITEM(jar, item)          jar%insert( item, storage_size(item) )
+#define JAR_PUT_ITEM(jar, item)          jar%insert( item, int(storage_size(item), kind = 8) )
 #if defined(JAR_EXTENDED_MACROS)
-#define JAR_PUT_ITEM_AT(jar, item, pos)  jar%insert( item, storage_size(item), position=pos )
+#define JAR_PUT_ITEM_AT(jar, item, pos)  jar%insert( item, int(storage_size(item), kind = 8), position=pos )
 #endif
 
 !> \brief Insert an ARRAY or an ARRAY section into data jar at current insertion position or at a specific position
@@ -89,9 +89,9 @@
 !> type(whatever_type), dimension(whatever_dimensions), contiguous :: my_array
 !> success = JAR_PUT_ITEMS(my_jar_name, my_array(start:end))                      ! or JAR_INTO_MULTI
 !> success = JAR_PUT_ITEMS_AT(my_jar_name, my_array(start:end), insertion_point)  ! or JAR_INTO_MULTI_AT
-#define JAR_PUT_ITEMS(jar, item)          jar%insert( item, storage_size(item)*size(item) )
+#define JAR_PUT_ITEMS(jar, item)          jar%insert( item, storage_size(item)*int(size(item), kind = 8) )
 #if defined(JAR_EXTENDED_MACROS)
-#define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%insert( item, storage_size(item)*size(item), position=pos )
+#define JAR_PUT_ITEMS_AT(jar, item, pos)  jar%insert( item, storage_size(item)*int(size(item), kind = 8), position=pos )
 #endif
 
 !> \brief String-specific macro for extracting a string from the jar
