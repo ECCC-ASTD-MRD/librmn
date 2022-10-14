@@ -1,19 +1,17 @@
 subroutine FNCNAME(gmm_checkpoint_)(write)
     use, intrinsic :: iso_c_binding
-    use gmm_internals
-    use gmm_pointer_table_data
+    use iso_fortran_env, only : int64
+
     implicit none
 
     !> Write to checkpoint file when true.  Otherwise, read.
     logical, intent(in) :: write
 
-    include "gmm_pointer_table_interface.inc"
-
     integer :: i, j, ier
     type(gmm_layout), dimension(1:DIM) :: siz
     type(gmm_attributes) :: attrib
-    integer(kind = 8) :: key
-    integer(kind = 8) :: ptraddr
+    integer(kind = int64) :: key
+    integer(kind = int64) :: ptraddr
 
     if (write) then
         ! Read one record from checkpoint file

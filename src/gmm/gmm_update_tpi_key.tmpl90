@@ -1,12 +1,11 @@
 !> @deprecated This function should no longer be used; it's now just a wrapper for gmm_update_table_entry
 integer function FNCNAME(gmm_update_tpi_key)(indx, key)
-    use gmm_internals
+    use iso_fortran_env, only : int64
+
     implicit none
 
-    include "gmm_pointer_table_interface.inc"
-
     integer, intent(in) :: indx
-    integer*8, intent(in) :: key
+    integer(kind = int64), intent(in) :: key
 
     FNCNAME(gmm_update_tpi_key) = FNCNAME(gmm_update_table_entry)(indx, key)
 end function FNCNAME(gmm_update_tpi_key)

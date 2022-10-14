@@ -1,5 +1,6 @@
 integer function FNCNAME(gmm_add_table_entry)(p, key)
-    use gmm_pointer_table_data
+    use iso_fortran_env, only : int64
+
     implicit none
 
 #if DIM == 1
@@ -11,7 +12,7 @@ integer function FNCNAME(gmm_add_table_entry)(p, key)
 #elif DIM == 4
         DATATYPE*DATALENGTH, pointer :: p(:,:,:,:)
 #endif
-    integer*8, intent(in) :: key
+    integer(kind = int64), intent(in) :: key
 
     FNCNAME(gmm_ptrs)(FNCNAME(gmm_p_table_size_))%p => p
     FNCNAME(gmm_ptrs)(FNCNAME(gmm_p_table_size_))%key = key
@@ -23,7 +24,6 @@ end function FNCNAME(gmm_add_table_entry)
 
 
 integer function FNCNAME(gmm_get_nxt_avail_ptr)()
-    use gmm_pointer_table_data
     implicit none
 
     FNCNAME(gmm_p_table_size_) = FNCNAME(gmm_p_table_size_) + 1
@@ -32,11 +32,10 @@ end function FNCNAME(gmm_get_nxt_avail_ptr)
 
 
 integer function FNCNAME(gmm_update_table_entry)(indx, key)
-    use gmm_pointer_table_data
     implicit none
 
     integer, intent(in) :: indx
-    integer*8, intent(in) :: key
+    integer(kind = int64), intent(in) :: key
 
     if (indx > FNCNAME(gmm_p_table_size_)) then
         if (gmm_verbose_level == GMM_MSG_DEBUG) then

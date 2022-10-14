@@ -15,7 +15,6 @@ utilisée avec `#include <fnom.hf>`.
 d'ajouter la ligne `#include <mgi.hf>` pour l'utiliser.
 
 
-
 # Bris de compatibilité
 
 La version 20 est une version majeure et elle a fait l'objet d'un
@@ -75,6 +74,9 @@ profilage.
 été déplacés dans le sous répertoire `rmn`.  Ainsi, il sera nécessaire
 de corriger le chemin d'accès dans les directives `#include`.  Par
 exemple, `#include <rpnmacros.h>` devient `#include <rmn/rpnmacros.h>`.
+
+- GMM est maintenant disponible sous forme de module (`rmn_gmm`) et non
+plus sous forme de multiples fichiers *.hf
 
 - Toutes les fonctions de dmms sont obsolètes et ne devraient plus être
 utilisées.

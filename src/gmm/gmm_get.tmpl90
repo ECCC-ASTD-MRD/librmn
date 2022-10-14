@@ -1,6 +1,6 @@
 integer function FNCNAME(gmm_get)(iname, p, m)
-    use gmm_internals
-    use gmm_pointer_table_data
+    use iso_fortran_env, only : int64
+
     implicit none
 
     character(len=*), intent(in) :: iname
@@ -15,22 +15,20 @@ integer function FNCNAME(gmm_get)(iname, p, m)
 #endif
     type(gmm_metadata), optional, intent(out) :: m
 
-    include 'gmm_directory_interface.inc'
-
     integer :: i, array_rank
     ! name (partially redundant with attributes)
     ! attributes (name in attributes is not used)
     !  integer,intent(inout) :: reqid
     type(gmm_metadata) :: m2
-    integer*8 :: key
+    integer(kind = int64) :: key
 
     key = 0
     call check_directory_entry(iname, key)
-    if (cur_page .eq. 0 .or. cur_entry .eq. 0) then
+    if (cur_page == 0 .or. cur_entry == 0) then
         ! quick check using key was not successful
         call find_directory_entry(iname,key)
     endif
-    if(cur_page .eq. 0 .or. cur_entry .eq. 0) then
+    if(cur_page == 0 .or. cur_entry == 0) then
         ! return null entry
         if (present(m)) then
             m%a = GMM_NULL_ATTRIB

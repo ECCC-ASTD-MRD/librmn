@@ -71,6 +71,8 @@ retrieving that information or profiling.
 `#include` directives.  For example, `#include <rpnmacros.h>` becomes
 `#include <rmn/rpnmacros.h>`.
 
+- GMM is now available as a module (`rmn_gmm`) and is no longer made
+available as multiple *.hf files
 
 - All the functions in DMMS are obsolete and should no longer be used:
     - memoirc

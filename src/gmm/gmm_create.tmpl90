@@ -3,9 +3,6 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
     use, intrinsic :: iso_fortran_env
 
-    use gmm_internals
-    use gmm_pointer_table_data
-
     implicit none
 
     ! name (partially redundant with attributes)
@@ -25,9 +22,6 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 
     ! Disabled since it might non longer be required
     ! external fool_optimizer
-
-    include "gmm_directory_interface.inc"
-    include "gmm_pointer_table_interface.inc"
 
     type(gmm_attributes) :: localattr, attrs
     type(gmm_layout), dimension(4) :: dims
@@ -59,7 +53,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         consistent = .true.
         ! check that all dimensions are identical
         do i = 1, DIM
-            consistent = consistent .and. size(p, i) .eq. (dims(i)%high - dims(i)%low + 1)
+            consistent = consistent .and. size(p, i) == (dims(i)%high - dims(i)%low + 1)
         enddo
         if (.not. consistent ) then
             if (gmm_verbose_level == GMM_MSG_DEBUG) then
@@ -78,7 +72,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     lcl_name = trim(iname)
     ! keep only a subset of user specified flags
     localattr%flags = iand(localattr%flags, FLAGS_KEPT_ON_CREATE)
-#ifdef DEBUG_MODE
+#ifndef NDEGUG
     print *, 'lcl_name="', lcl_name, '" has ', DIM, ' dimensions'
     do i = 1, DIM
         print *, i, dims(i)
@@ -86,13 +80,13 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 #endif
     ! is there a field with this name that exists ?
     call find_directory_entry(lcl_name, key)
-#ifdef DEBUG_MODE
+#ifndef NDEGUG
     print *, 'after find_directory: cur_page, cur_entry=', cur_page,cur_entry
 #endif
 
     ! 2- Verify if the field has already been created
     ! create may have already been called for this array
-    if (cur_page .ne. 0 .and. cur_entry .ne. 0) then
+    if (cur_page /= 0 .and. cur_entry /= 0) then
         if (associated(p)) then
             print *,'ERROR: gmm_create called with existing p and array has already been created'
             key = 0
@@ -107,7 +101,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             ! Disabled this compiler bug workaround to find out if it's still an issue and removed an undefined external
             ! Work around to prevent the corruption of size(pp) by the pgi9xx optimizer (bug)
             ! call fool_optimizer(size(pp, i))
-            consistent = consistent .and. (size(pp, i) .eq. (dims(i)%high - dims(i)%low + 1))
+            consistent = consistent .and. (size(pp, i) == (dims(i)%high - dims(i)%low + 1))
             if (.not. consistent ) then
                 print *, 'size(pp,', i, ')=', size(pp, i), ' high=', dims(i)%high, ' low=', dims(i)%low
             endif
@@ -126,7 +120,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             endif
         endif
 
-        if (iand(GMM_FLAG_CRTD, directory(cur_page)%entry(cur_entry)%a%flags) .ne. 0) then
+        if (iand(GMM_FLAG_CRTD, directory(cur_page)%entry(cur_entry)%a%flags) /= 0) then
             ! OOPS really a double create
             print *, 'ERROR: gmm_create, field ', lcl_name, ' has already been created'
             key = 0
@@ -150,7 +144,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         endif
     else
         ! array not found in table, we may need to create an entry in directory
-        if (iand(GMM_FLAG_RSTR, localattr%flags) .ne. 0 .and. restart_mode) then
+        if (iand(GMM_FLAG_RSTR, localattr%flags) /= 0 .and. restart_mode) then
             ! we are in restart mode and array should exist
             print *, 'ERROR: gmm_create field ', lcl_name, 'should have been read from restart file but was not'
             ! HOW SERIOUS AN ERROR IS THIS ?
@@ -163,7 +157,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 
     ! bump creation ordinal
     ordinal = ordinal + 1
-#ifdef DEBUG_MODE
+#ifndef NDEGUG
     print *, 'creation ordinal=', ordinal, ' cur_page, cur_entry=', cur_page,cur_entry
 #endif
     key = ishft((cur_page - 1), PAGE_NB_SHFT) + ishft((cur_entry - 1), NTRY_NB_SHFT)
@@ -188,8 +182,8 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         endif
         ! must check that certain attributes are not requested (e.g. FLAG_RSTR) and that size is consistent
     else
-#ifdef DEBUG_MODE
-        print *,'allocating array with number of dimensions=',DIM
+#ifndef NDEGUG
+        print *, 'allocating array with number of dimensions=', DIM
 #endif
         allocate(p(dims(1)%low:dims(1)%high &
 #if DIM > 1

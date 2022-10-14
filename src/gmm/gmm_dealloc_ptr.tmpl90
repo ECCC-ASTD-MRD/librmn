@@ -1,6 +1,4 @@
 subroutine FNCNAME(gmm_dealloc_ptr)()
-    use gmm_internals
-    use gmm_pointer_table_data
     implicit none
 
     deallocate (FNCNAME(gmm_ptrs)(directory(cur_page)%entry(cur_entry)%pointer_table_index)%p)
