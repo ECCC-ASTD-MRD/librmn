@@ -23,7 +23,7 @@ include(ec_doxygen)         # Doxygen target (-DWITH_DOC=TRUE)
 # Fortran compiler options required to build this project
 set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
 set(GNU_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
-set(Flang_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
+set(Flang_FFLAGS -Mbyteswapio)
 set(PGI_FFLAGS -byteswapio)
 
 # This is required when using GNU compilers without OpenMP.
