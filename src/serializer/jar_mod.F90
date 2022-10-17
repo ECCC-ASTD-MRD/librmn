@@ -26,7 +26,7 @@
 #define WHAT_TYPE integer(C_INTPTR_T)
 #endif
 
-module jar_module
+module rmn_jar
     use ISO_C_BINDING
     implicit none
 
@@ -456,4 +456,4 @@ module jar_module
 
     end function jar_get_outof
 
-end module jar_module
+end module rmn_jar
