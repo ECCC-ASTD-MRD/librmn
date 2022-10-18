@@ -505,7 +505,7 @@ package:ubuntu-20.04-amd64_gnu-9.3.0:
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
-      deploy:staging:
+deploy:staging:
    stage: deploy
    only:
       - master
