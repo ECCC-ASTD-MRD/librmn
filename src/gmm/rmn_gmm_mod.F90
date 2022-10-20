@@ -1184,7 +1184,7 @@ contains
 
         implicit none
 
-        character(len = *), intent(out) :: taglist(:)
+        character(len = *), intent(in) :: taglist(:)
 
         integer :: i, nkeys, ier
         integer(kind = int64), dimension(:), allocatable :: key_list
