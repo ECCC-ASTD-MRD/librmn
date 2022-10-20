@@ -18,11 +18,8 @@ Le code est disponible via Git aux adresse suivates:
   * Sur le réseau ECCC: git@gitlab.science.gc.ca:RPN-SI/librmn.git
   * Pour les utilisateurs à l'extérieur d'ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
 
-`cmake_rpn` et `ci-env` sont inclus via des sous-modules de Git, mais
-`ci-env` n'est pas disponible à l'extérieur d'ECCC.
-
-Veuillez exécuter la commande suivante après avoir cloné le dépôt:
-`git -c submodule."ci-env".update=none submodule update --init --recursive`
+`cmake_rpn` est inclus via des sous-modules de Git, alors veuillez exécuter la commande suivante après avoir cloné le dépôt:
+`git submodule update --init --recursive`
 pour récupérer les sous-modules.
 
 
@@ -84,7 +81,7 @@ est trop vieille, vous devez charger une version plus récente.  Par exemple:
 ### Exemple de compilation de la branche dev sur un système non-ECCC
 ```
 git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git 
-git -c submodule."ci-env".update=none submodule update --init --recursive
+git submodule update --init --recursive
 mkdir librmn_build
 cd librmn_build
 cmake ../librmn -DCMAKE_INSTALL_PREFIX=~/opt/
