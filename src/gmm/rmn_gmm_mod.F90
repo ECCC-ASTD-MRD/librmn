@@ -321,6 +321,7 @@ public
 
     ! Generic interfaces
 
+    !> Create a new entry/array
     interface gmm_create
         module procedure gmm_create184
         module procedure gmm_create144
@@ -345,6 +346,7 @@ public
     end interface
 
 
+    !>  Obtain the pointer and/or stored metadata
     interface gmm_get
         module procedure gmm_get184
         module procedure gmm_get144
@@ -1050,6 +1052,7 @@ contains
     end function gmm_decodemeta
 
 
+    !> Get the stored metadata
     integer function gmm_getmeta(varname, meta)
         use iso_fortran_env, only : int64
 
@@ -1096,6 +1099,7 @@ contains
     end function gmm_nkeys
 
 
+    !> Get the list of keys/labels
     integer function gmm_keys(taglist, pattern)
         implicit none
 
@@ -1142,6 +1146,7 @@ contains
     end function gmm_keys
 
 
+    !> Rename a GMM entry (update the label)
     integer function gmm_rename(old_varname, new_varname)
         use iso_fortran_env, only : int64
 
@@ -1179,6 +1184,7 @@ contains
     end function gmm_rename
 
 
+    !> Cycle rename a list of labels
     integer function gmm_shuffle(taglist)
         use iso_fortran_env, only : int64
 
@@ -1389,6 +1395,7 @@ contains
     end function gmm_update_tpi_key2
 
 
+    !> Set the verbosity level
     integer function gmm_verbosity(verbose_level)
         implicit none
         integer, intent(in) :: verbose_level
