@@ -24,15 +24,6 @@
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
-void f77name(ez_calcdist)(float *distance, float *lat1, float *lon1, float *lat2, float *lon2);
-void f77name(ez_calcarea)(float *area, float lats[], float lons[]);
-void f77name(ez_calcarea2)(float *area, float lats[], float lons[]);
-void c_ez_calcdist(float *distance, float lat1, float lon1, float lat2, float lon2);
-void c_ez_calcdist2(double *distance, float lat1, float lon1, float lat2, float lon2);
-void c_ez_calcarea_rect(float *area,     float lat1, float lon1, float lat2, float lon2);
-void c_ez_calcarea(float *area, float lats[], float lons[]);
-void c_ez_calcarea2(double *area, float lats[], float lons[]);
-
 void f77name(ez_calcdist)(float *distance, float *lat1, float *lon1, float *lat2, float *lon2)
 {
    c_ez_calcdist(distance, *lat1, *lon1, *lat2, *lon2);
