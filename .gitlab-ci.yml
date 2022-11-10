@@ -15,7 +15,7 @@ stages:
 before_script:
    # Force color CMake output even when output is not TTY
    - export CLICOLOR_FORCE=true
-   - source ~/ci-admin/env/stage.sh
+   - source ~/ci-admin/env/init.sh
 
 #----- rhel-8-amd64_gnu-9.3.0
 
@@ -226,7 +226,7 @@ package:rhel-8-amd64_inteloneapi-2022.1.2:
 
 build:ubuntu-18.04-amd64_gnu-9.3.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -249,7 +249,7 @@ build:ubuntu-18.04-amd64_gnu-9.3.0:
 
 test:ubuntu-18.04-amd64_gnu-9.3.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -268,7 +268,7 @@ test:ubuntu-18.04-amd64_gnu-9.3.0:
 
 package:ubuntu-18.04-amd64_gnu-9.3.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
@@ -293,7 +293,7 @@ package:ubuntu-18.04-amd64_gnu-9.3.0:
 
 build:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -316,7 +316,7 @@ build:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
 
 test:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -335,7 +335,7 @@ test:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
 
 package:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
@@ -360,7 +360,7 @@ package:ubuntu-18.04-amd64_inteloneapi-2022.1.2:
 
 build:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -384,7 +384,7 @@ build:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
 
 test:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -404,7 +404,7 @@ test:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
 
 package:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
@@ -429,7 +429,7 @@ package:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
 
 build:ubuntu-20.04-amd64_gnu-9.3.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -453,7 +453,7 @@ build:ubuntu-20.04-amd64_gnu-9.3.0:
 
 test:ubuntu-20.04-amd64_gnu-9.3.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -473,7 +473,7 @@ test:ubuntu-20.04-amd64_gnu-9.3.0:
 
 package:ubuntu-20.04-amd64_gnu-9.3.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : ${ECCI_GPSC}
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
