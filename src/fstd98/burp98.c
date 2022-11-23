@@ -1058,7 +1058,7 @@ int c_mrfapp(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -1180,7 +1180,7 @@ int c_mrfrwd(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }

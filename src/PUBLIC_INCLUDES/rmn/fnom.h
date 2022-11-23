@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "rpnmacros.h"
+#include <rsf/rsf.h>
 
 #define MAXFILES 1024
 
@@ -12,6 +13,7 @@ typedef struct {
     unsigned int
         stream:1,
         std:1,
+        rsf:1,
         burp:1,
         rnd:1,
         wa:1,
@@ -36,6 +38,8 @@ typedef struct {
     char *subname;
     //! File type and options
     char * file_type;
+    //! Handle to open file (RSF version)
+    RSF_handle rsf_fh;
     //! fnom unit number
     int32_t iun;
     //! C file descriptor

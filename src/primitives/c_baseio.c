@@ -149,15 +149,17 @@ static void dump_file_entry(
     const int idx
 ) {
       Lib_Log(APP_LIBRMN,APP_VERBATIM,"FGFDT[%d] file_name=%s subname=%s file_type=%s",idx,FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
-      Lib_Log(APP_LIBRMN,APP_VERBATIM,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
+      Lib_Log(APP_LIBRMN,APP_VERBATIM,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,rsf_handle=%p,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
               FGFDT[idx].iun,
               FGFDT[idx].fd,
               FGFDT[idx].file_size,
               FGFDT[idx].eff_file_size,
               FGFDT[idx].lrec,
+              FGFDT[idx].rsf_fh.p,
               FGFDT[idx].open_flag?"OPEN":"",
               FGFDT[idx].attr.stream?"+STREAM":"",
               FGFDT[idx].attr.std?"+STD":"",
+              FGFDT[idx].attr.rsf?"+RSF":"",
               FGFDT[idx].attr.burp?"+BURP":"",
               FGFDT[idx].attr.rnd?"+RND":"+SEQ",
               FGFDT[idx].attr.wa?"+WA":"",
@@ -192,6 +194,7 @@ static void reset_file_entry(
     FGFDT[idx].file_name      = (char *) NULL;
     FGFDT[idx].subname        = (char *) NULL;
     FGFDT[idx].file_type      = (char *) NULL;
+    FGFDT[idx].rsf_fh.p       = NULL;
     FGFDT[idx].iun            = 0;
     FGFDT[idx].fd             = -1;
     FGFDT[idx].file_size      = 0;
@@ -200,6 +203,7 @@ static void reset_file_entry(
     FGFDT[idx].open_flag      = 0;
     FGFDT[idx].attr.stream    = 0;
     FGFDT[idx].attr.std       = 0;
+    FGFDT[idx].attr.rsf       = 0;
     FGFDT[idx].attr.burp      = 0;
     FGFDT[idx].attr.rnd       = 0;
     FGFDT[idx].attr.wa        = 0;
@@ -361,6 +365,7 @@ int c_fnom(
     strncpy(FGFDT[entry].file_type, type, lngt);
     FGFDT[entry].attr.stream = 0;
     FGFDT[entry].attr.std = 0;
+    FGFDT[entry].attr.rsf = 0;
     FGFDT[entry].attr.burp = 0;
     FGFDT[entry].attr.rnd = 0;
     FGFDT[entry].attr.wa = 0;

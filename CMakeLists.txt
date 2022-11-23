@@ -62,6 +62,9 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
 
+# find_package(rsfiles REQUIRED)
+add_subdirectory(/home/vma000/ords/rsfiles rsfiles)
+
 include_directories(
    include
    src/PUBLIC_INCLUDES
@@ -113,7 +116,7 @@ set_target_properties(rmn-obj PROPERTIES
    Fortran_MODULE_DIRECTORY ${MODULE_DIR}
    POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(rmn-obj PUBLIC App)
+target_link_libraries(rmn-obj PUBLIC App rsfiles)
 add_dependencies(rmn-obj rmn_build_info)
 target_include_directories(rmn-obj INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 target_include_directories(rmn-obj PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -141,7 +144,7 @@ if(OpenMP_FOUND)
    # Object library for rmn[shared]-ompi
    add_library(rmn-obj-ompi OBJECT ${PROJECT_C_FILES} ${PROJECT_F_FILES})
    add_dependencies(rmn-obj-ompi rmn_build_info)
-   target_link_libraries(rmn-obj-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-obj-ompi PUBLIC App-ompi rsfiles OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-obj-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
    set_target_properties(rmn-obj-ompi PROPERTIES
        POSITION_INDEPENDENT_CODE ON
@@ -197,6 +200,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 install(FILES
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
+    ${MODULE_DIR}/rmn_fst.mod
     DESTINATION include)
 
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
