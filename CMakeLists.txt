@@ -139,7 +139,7 @@ set_target_properties(rmnshared PROPERTIES
     OUTPUT_NAME rmn)
 
 install(TARGETS rmn rmnshared librmn_version)
-
+ec_install_symlink(./librmn.a ${CMAKE_INSTALL_PREFIX}/lib/librmn_${PROJECT_VERSION}.a)
 
 # Fortran modules are installed in the include directory for now
 install(FILES
