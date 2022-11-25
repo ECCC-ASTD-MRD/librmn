@@ -139,7 +139,11 @@ set_target_properties(rmnshared PROPERTIES
     OUTPUT_NAME rmn)
 
 install(TARGETS rmn rmnshared librmn_version)
-ec_install_symlink(./librmn.a ${CMAKE_INSTALL_PREFIX}/lib/librmn_${PROJECT_VERSION}.a)
+
+# Symbolic link for archive numbered version
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ln -sfv lib${PROJECT_NAME}.a lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.a DESTINATION lib)
 
 # Fortran modules are installed in the include directory for now
 install(FILES
@@ -153,7 +157,6 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 install(FILES ${PROJECT_INCLUDE_FILES} DESTINATION include/rmn)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}_build_info.h DESTINATION include)
-
 add_custom_target(
     cprotos
     ${CMAKE_CURRENT_SOURCE_DIR}/extractProtos.bash ${CMAKE_CURRENT_SOURCE_DIR}/src ${PROJECT_C_FILES}
