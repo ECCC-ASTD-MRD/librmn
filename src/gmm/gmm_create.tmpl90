@@ -72,7 +72,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     lcl_name = trim(iname)
     ! keep only a subset of user specified flags
     localattr%flags = iand(localattr%flags, FLAGS_KEPT_ON_CREATE)
-#ifndef NDEBUG
+#ifdef DEBUG
     print *, 'lcl_name="', lcl_name, '" has ', DIM, ' dimensions'
     do i = 1, DIM
         print *, i, dims(i)
@@ -80,7 +80,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 #endif
     ! is there a field with this name that exists ?
     call find_directory_entry(lcl_name, key)
-#ifndef NDEBUG
+#ifdef DEBUG
     print *, 'after find_directory: cur_page, cur_entry=', cur_page,cur_entry
 #endif
 
@@ -157,7 +157,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
 
     ! bump creation ordinal
     ordinal = ordinal + 1
-#ifndef NDEBUG
+#ifdef DEBUG
     print *, 'creation ordinal=', ordinal, ' cur_page, cur_entry=', cur_page,cur_entry
 #endif
     key = ishft((cur_page - 1), PAGE_NB_SHFT) + ishft((cur_entry - 1), NTRY_NB_SHFT)
@@ -182,7 +182,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         endif
         ! must check that certain attributes are not requested (e.g. FLAG_RSTR) and that size is consistent
     else
-#ifndef NDEBUG
+#ifdef DEBUG
         print *, 'allocating array with number of dimensions=', DIM
 #endif
         allocate(p(dims(1)%low:dims(1)%high &
