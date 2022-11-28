@@ -896,7 +896,7 @@ contains
         character(len = GMM_MAXNAMELENGTH) :: l_name
 
         l_name = trim(name)
-#ifdef DEBUG_MODE
+#ifdef DEBUG
         print *, 'looking for name=', l_name, '='
 #endif
         cur_page = 1
