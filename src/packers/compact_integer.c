@@ -24,7 +24,7 @@
 
 #include <bitPacking.h>
 
-
+#include <App.h>
 
 /***********************************************************
  *                                                         *
@@ -380,9 +380,6 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     uint32_t minUnsigned;
     integer_header *theHeader;
 
-
-/*  printf("minSignedInteger=%d minUnsignedInteger=%d \n",minSignedInteger,minUnsignedInteger); */
-
     /********************************
      *                              *
      *   handle abnormal condition  *
@@ -563,7 +560,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      }
    else
      {
-       printf("\n opCode:%d is not defined \n", opCode);
+      Lib_Log(APP_ERROR,APP_LIBRMN,"%f: opCode (%d) is not defined\n",__func__,opCode);
        return 0;
      };/* if */
 
@@ -648,9 +645,6 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int  minSigned;
     uint32_t minUnsigned;
     integer_header *theHeader;
-
-
-/*  printf("minSignedInteger=%d minUnsignedInteger=%d \n",minSignedInteger,minUnsignedInteger); */
 
     /********************************
      *                              *
@@ -806,7 +800,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      }
    else
      {
-       printf("\n opCode:%d is not defined \n", opCode);
+       Lib_Log(APP_ERROR,APP_LIBRMN,"%f: opCode (%d) is not defined\n",__func__,opCode);
        return 0;
      };/* if */
 
@@ -889,9 +883,6 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int  minSigned;
     uint32_t minUnsigned;
     integer_header *theHeader;
-
-
-/*  printf("minSignedInteger=%d minUnsignedInteger=%d \n",minSignedInteger,minUnsignedInteger); */
 
     /********************************
      *                              *
@@ -1047,7 +1038,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      }
    else
      {
-       printf("\n opCode:%d is not defined \n", opCode);
+       Lib_Log(APP_ERROR,APP_LIBRMN,"%f: opCode (%d) is not defined\n",__func__,opCode);
        return 0;
      };/* if */
 

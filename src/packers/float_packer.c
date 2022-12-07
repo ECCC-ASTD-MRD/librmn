@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
+
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 typedef union {
@@ -60,7 +62,7 @@ int32_t float_unpacker_1(
 
     /* verify that the number of points is consistent with header */
     if (npts != header[2]) {
-        printf("float_unpacker_1: ERROR inconsistent number of points\n");
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: inconsistent number of points\n",__func__);
         return npts - header[2];   /* return discrepancy */
     }
 
@@ -176,8 +178,7 @@ int32_t float_packer_1(float *source, int32_t nbits, int32_t *header, int32_t *s
   header[1] = Minimum;                      /* store minimum, maxexp, shift2, npts into header (64 bits) */
   header[0] = header[0] | ((MaxExp & 0xFF) << 8) | (Shift2 & 0xFF);
 
-/* fprintf(stderr,"Debug+ MaxExp=%d\n",MaxExp);
-  fprintf(stderr,"Debug+ min=%f fmin.i=%X max=%f Minimum=%d Maximum=%d\n",fmin.f,fmin.i,fmax.f,Minimum,Maximum); */
+/* Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: axExp=%d min=%f fmin.i=%X max=%f Minimum=%d Maximum=%\n",__func__,MaxExp,fmin.f,fmin.i,fmax.f,Minimum,Maximum); */
   Store = 0;
   n=npts;
   while(n--){                               /* transform input floating point into 16 bit integers */
@@ -226,11 +227,11 @@ int32_t c_float_unpacker(
 
     *nbits = ( (header[0]>>16) & 0xF) + 1;
     if (0xEFF != ( (header[0]>>20) & 0xFFF)) {
-        printf("float_unpacker: ERROR invalid header \n");
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: Invalid header \n",__func__);
         return -1;
     }
     if (npts != header[2]) {
-        printf("float_unpacker: ERROR inconsistent number of points (header/request mismatch)\n");
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: Inconsistent number of points (header/request mismatch)\n",__func__);
         return -1;
     }
     ierror = float_unpacker_1(dest, header, stream, npts);
@@ -267,7 +268,7 @@ int32_t c_float_packer(
     int32_t npts
 ) {
     if (nbits > 16 || nbits < 1) {
-        printf("float_unpacker: ERROR nbits must be > 0 and <= 16 ,nbits = %d\n", nbits);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: nbits must be > 0 and <= 16 ,nbits = %d \n",__func__,nbits);
         return -1;
     }
     // Number of values

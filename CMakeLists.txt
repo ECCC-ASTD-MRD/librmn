@@ -45,6 +45,8 @@ endif()
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
 
+find_package(App ${App_REQ_VERSION} REQUIRED)
+
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
 
@@ -105,6 +107,7 @@ add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_dependencies(rmnshared rmn)
 
 foreach(TARGET IN ITEMS rmn rmnshared)
+    target_link_libraries(${TARGET} PUBLIC App)
     if(WITH_OPENMP)
         target_link_libraries(${TARGET} PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)
     endif()

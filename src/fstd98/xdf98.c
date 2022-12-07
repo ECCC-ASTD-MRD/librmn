@@ -35,6 +35,7 @@
 #include <sys/types.h>
 
 #define XDF_OWNER
+#include <App.h>
 #include "xdf98.h"
 #include <rmn/fstd98.h>
 
@@ -142,8 +143,8 @@ int c_xdfcheck(
     FILE *fd = fopen(filePath, "r");
 
     if (!fd) {
-        sprintf(errmsg, "Cannot open file");
-        return(error_msg("c_xdfcheck", ERR_NO_FILE, ERROR));
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Cannot open file\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     // Read the header
@@ -163,13 +164,13 @@ int c_xdfcheck(
     }
 
     if ((size_t)header.fsiz * 8 != file_size) {
-        sprintf(errmsg, "File size does not match header. Expected size: %d bytes. Actual size: %d", header.fsiz * 8, file_size);
-        return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: File size does not match header. Expected size: %d bytes. Actual size: %d\n",__func__,header.fsiz*8,file_size);
+        return(ERR_DAMAGED);
     }
 
     if (header.idtyp != 0) {
-        sprintf(errmsg, "Wrong header ID type (%d), should be %d\n", header.idtyp, 0);
-        return(error_msg("c_xdfcheck", ERR_DAMAGED, ERROR));
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: rong header ID type (%d), should be %d\n",__func__,header.idtyp,0);
+        return(ERR_DAMAGED);
     }
 
     return 0;
@@ -195,8 +196,8 @@ static int32_t add_dir_page(
 
     // check if we can add a directory page, and if memory is available
     if(fte->npages >= MAX_DIR_PAGES) {
-        sprintf(errmsg, "Too many records, no more directory pages available");
-        return error_msg("c_qdfrstr", ERR_DIR_FULL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Too many records, no more directory pages available\n",__func__);
+        return(ERR_DIR_FULL);
     }
     // primary_len is given in unit of 64bits, hence the multiplication by 8
     page_size = sizeof(full_dir_page) + 8 * (fte->primary_len) * ENTRIES_PER_PAGE;
@@ -449,8 +450,8 @@ int c_qdfdiag(
 
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_qdfrstr", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     int wasopen = 0;
@@ -462,12 +463,12 @@ int c_qdfdiag(
         c_waopen(iun);
         c_waread(iun, &header64, 1, W64TOWD(2));
         if (header64.data[0] != 'XDF0' && header64.data[0] !='xdf0') {
-            sprintf(errmsg, "file is not XDF type\n");
-            return error_msg("c_qdfdiag", ERR_NOT_XDF, ERRFATAL);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not XDF type\n",__func__);
+            return(ERR_NOT_XDF);
         }
         if ((fh = malloc(header64.lng * 8)) == NULL) {
-            sprintf(errmsg, "memory is full\n");
-            return error_msg("c_qdfdiag", ERR_MEM_FULL, ERRFATAL);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
+            return(ERR_MEM_FULL);
         }
         c_waread(iun, fh, 1, W64TOWD(header64.lng));
     } else {
@@ -509,8 +510,8 @@ int c_qdfdiag(
 
         if (addr == readpos) {
             if (header.lng < W64TOwd(1)) {
-                sprintf(errmsg, "Invalid record length=%d, addr=%d\n", header.lng, addr);
-                return error_msg("c_qdfdiag", ERR_BAD_LEN, ERRFATAL);
+                Lib_Log(APP_FATAL,APP_LIBRMN,"%s: Invalid record length=%d, addr=%d\n",__func__,header.lng,addr);
+                return(ERR_BAD_LEN);
             }
             if (header.idtyp == 0) {
                 ndirect++;
@@ -583,14 +584,14 @@ int c_qdfmsig(
 ) {
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_qdfmsig", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     int index = file_index(iun);
     if (index == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open");
-        return error_msg("c_qdfmsig", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     file_header * fh = file_table[index]->header;
@@ -634,14 +635,14 @@ int c_qdfrstr(
 
     int index_fnom = fnom_index(inp);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", inp);
-        return error_msg("c_qdfrstr", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,inp);
+        return(ERR_NO_FNOM);
     }
 
     index_fnom = fnom_index(outp);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", outp);
-        return error_msg("c_qdfrstr", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,outp);
+        return(ERR_NO_FNOM);
     }
 
     // Open file and read file header
@@ -649,15 +650,15 @@ int c_qdfrstr(
     file_record header64;
     c_waread(inp, &header64, 1, W64TOWD(2));
     if (header64.data[0] != 'XDF0' && header64.data[0] !='xdf0') {
-        sprintf(errmsg, "file is not XDF type\n");
-        return error_msg("c_qdfrstr", ERR_NOT_XDF, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file is not XDF type\n",__func__);
+        return(ERR_NOT_XDF);
     }
     int lng = W64TOWD(header64.lng);
     int nw = c_wasize(inp);
 
     if (lng > nw) {
-        sprintf(errmsg, "Invalid header file length=%d\n", header64.lng);
-        return error_msg("c_qdfrstr", ERR_BAD_LEN, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: Invalid header file length=%d\n",__func__,header64.lng);
+        return(ERR_BAD_LEN);
     }
     file_header fh;
     c_waread(inp, &fh, 1, W64TOWD(header64.lng));
@@ -701,8 +702,8 @@ int c_xdfadd(
     int datyp
 ) {
     if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
-        sprintf(errmsg, "nbits must be 8 for datyp %d", datyp);
-        return error_msg("c_xdfadd", ERR_BAD_DATYP, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        return(ERR_BAD_DATYP);
     }
 
     int nbwords = (nelm * nbits + 63) / 64;
@@ -712,8 +713,8 @@ int c_xdfadd(
     int index_word = buf->nbits / (sizeof(uint32_t) * 8);
 
     if ((index_word + nbwords - 1) > buf->nwords) {
-        sprintf(errmsg, "buffer not big enough for insertion");
-        return error_msg("c_xdfadd", ERR_BAD_DIM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: uffer not big enough for insertion\n",__func__);
+        return(ERR_BAD_DIM);
     }
 
     switch (datyp) {
@@ -764,8 +765,8 @@ int c_xdfadd(
             break;
 
         default:
-            sprintf(errmsg, "invalid datyp=%d\n", datyp);
-            return error_msg("c_xdfadd", ERR_BAD_DATYP, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid datyp=%d\n",__func__,datyp);
+            return(ERR_BAD_DATYP);
 
     } /* end switch */
 
@@ -781,9 +782,7 @@ int c_secateur(
     //! File size to set (in bytes)
     int size
 ) {
-    if (msg_level <= TRIVIAL) {
-        fprintf(stdout, "Truncating %s to \t %d Bytes\n", filePath, size);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: Truncating %s to \t %d Bytes\n",__func__,filePath,size);
 
     int ier = truncate(filePath, size);
     if (ier == -1) perror("secateur");
@@ -865,13 +864,13 @@ int c_xdfcls(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_xdfcls", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open");
-        return error_msg("c_xdfcls", ERR_NO_FILE, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
@@ -960,13 +959,13 @@ int c_xdfcut(
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
     if ((bitpos % 64) != 0) {
-        sprintf(errmsg, "bitpos must be a multiple of 64");
-        return error_msg("c_xdfcut", ERR_BAD_ADDR, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: bitpos must be a multiple of 64\n",__func__);
+        return(ERR_BAD_ADDR);
     }
 
     if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
-        sprintf(errmsg, "nbits must be 8 for datyp %d", datyp);
-        return error_msg("c_xdfcut", ERR_BAD_DATYP, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        return(ERR_BAD_DATYP);
     }
 
     nbwords = (nelm * nbits + 63) / 64;
@@ -1010,20 +1009,20 @@ int c_xdfdel(
     // validate index, page number and record number
 
     if ((index >= MAX_XDF_FILES) || (file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        sprintf(errmsg, "invalid handle, invalid file index\n");
-        return error_msg("c_xdfdel", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid file index\n",__func__);
+        return(ERR_BAD_HNDL);
     }
 
     f = file_table[index];
 
     if ((f->header->rwflg == RDMODE) || (f->header->rwflg == APPEND)) {
-        sprintf(errmsg, "file is open in read or append mode only\n");
-        return error_msg("c_xdfdel", ERR_RDONLY, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is open in read or append mode only\n",__func__);
+        return(ERR_RDONLY);
     }
 
     if (f->cur_info->attr.read_only) {
-        sprintf(errmsg, "file is read only\n");
-        return error_msg("c_xdfdel", ERR_RDONLY, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is read only\n",__func__);
+        return(ERR_RDONLY);
     }
 
     if (! f->xdf_seq) {
@@ -1033,22 +1032,22 @@ int c_xdfdel(
         } else {
             // Page is in a link file
             if (f->link == -1) {
-                sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, f->npages-1);
-                return error_msg("c_xdfdel", ERR_BAD_PAGENO, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,f->npages-1);
+                return(ERR_BAD_PAGENO);
             }
             target_page = f->dir_page[f->npages-1];
             for (i = 0; (i <= (page_number - f->npages)) && target_page; i++) {
                 target_page = (target_page)->next_page;
             }
             if (target_page == NULL) {
-                sprintf(errmsg, "invalid handle, invalid page number\n");
-                return error_msg("c_xdfdel", ERR_BAD_PAGENO, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid page number\n",__func__);
+                return(ERR_BAD_PAGENO);
             }
         }
 
         if (record_number > target_page->dir.nent) {
-            sprintf(errmsg, "invalid handle, invalid record number\n");
-            return error_msg("c_xdfdel", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid record number\n",__func__);
+            return(ERR_BAD_HNDL);
         }
 
         rec = target_page->dir.entry + record_number * W64TOWD(f->primary_len);
@@ -1063,13 +1062,13 @@ int c_xdfdel(
     }
 
     if (idtyp == 0) {
-        sprintf(errmsg, "special record idtyp=0\n");
-        return error_msg("c_xdfdel", ERR_SPECIAL, ERROR);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: special record idtyp=0\n",__func__);
+        return(ERR_SPECIAL);
     }
 
     if ((idtyp & 0x7E) == 0x7E) {
-        sprintf(errmsg, "record already deleted\n");
-        return error_msg("c_xdfdel", ERR_DELETED, WARNING);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: record already deleted\n",__func__);
+        return(ERR_DELETED);
     }
 
     if (! f->xdf_seq) {
@@ -1114,8 +1113,8 @@ int c_xdfget2(
 
     // validate index, page number and record number
     if ((index >= MAX_XDF_FILES) || (file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        sprintf(errmsg, "invalid handle, invalid file index\n");
-        return error_msg("c_xdfget", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid file index\n",__func__);
+        return(ERR_BAD_HNDL);
     }
 
     f = file_table[index];
@@ -1127,37 +1126,36 @@ int c_xdfget2(
         } else {
             // page is in a link file
             if (f->link == -1) {
-                sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, f->npages-1);
-                return error_msg("c_xdfget", ERR_BAD_PAGENO, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,f->npages-1);
+                return(ERR_BAD_PAGENO);
             }
             target_page = f->dir_page[f->npages-1];
             for (i = 0; (i <= (page_number - f->npages)) && target_page; i++) {
                 target_page = (target_page)->next_page;
             }
             if (target_page == NULL) {
-                sprintf(errmsg, "invalid handle, invalid page number\n");
-                return error_msg("c_xdfget", ERR_BAD_PAGENO, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid page number\n",__func__);
+                return(ERR_BAD_PAGENO);
             }
             f = file_table[target_page->true_file_index];
         }
 
         if (record_number > target_page->dir.nent) {
-            sprintf(errmsg, "invalid handle, invalid record number\n");
-            return error_msg("c_xdfget", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid record number\n",__func__);
+            return(ERR_BAD_HNDL);
         }
 
         rec = target_page->dir.entry + record_number * W64TOWD(f->primary_len);
         record = (file_record *) rec;
     } else {
         if (! f->valid_pos) {
-            sprintf(errmsg, "no valid file position for sequential file\n");
-            return error_msg("c_xdfget", ERR_NO_POS, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: no valid file position for sequential file\n",__func__);
+            return(ERR_NO_POS);
         }
         record = (file_record *) f->head_keys;
         if (address_from_handle(handle, f) != W64TOWD(record->addr - 1) + 1) {
-            sprintf(errmsg, "invalid handle, invalid address=%d record address=%d\n",
-                address_from_handle(handle, f), W64TOWD(record->addr - 1) + 1);
-            return error_msg("c_xdfget", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid address=%d record address=%d\n",__func__,address_from_handle(handle,f),W64TOWD(record->addr-1)+1);
+            return(ERR_BAD_HNDL);
         }
     }
 
@@ -1167,21 +1165,21 @@ int c_xdfget2(
     lngw = W64TOWD(lng);
 
     if (idtyp == 0) {
-        sprintf(errmsg, "special record idtyp=0\n");
-        return error_msg("c_xdfget", ERR_SPECIAL, ERROR);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: special record idtyp=0\n",__func__);
+        return(ERR_SPECIAL);
     }
 
     if ((idtyp & 0x7E) == 0x7E) {
-        sprintf(errmsg, "deleted record\n");
-        return error_msg("c_xdfget", ERR_DELETED, ERROR);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: deleted record\n",__func__);
+        return(ERR_DELETED);
     }
 
     nw = buf->nwords;
     offset = 0;
     if (nw < 0) {
         if (buf->nbits != -1) {
-            sprintf(errmsg, "dimension of buf is invalid = %d\n", nw);
-            return error_msg("c_xdfget", ERR_BAD_DIM, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: dimension of buf is invalid = %d\n",__func__,nw);
+            return(ERR_BAD_DIM);
         }
         // data only, no directory entry in record
         nw = -nw;
@@ -1195,8 +1193,8 @@ int c_xdfget2(
         }
     }
     if (lngw > (nw - RECADDR +1)) {
-        sprintf(errmsg, "dimension of buf (%d) < record size (%d)\n", nw, lngw);
-        return error_msg("c_xdfget", ERR_BAD_DIM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: dimension of buf (%d) < record size (%d)\n",__func__,nw,lngw);
+        return(ERR_BAD_DIM);
     }
 
     buf->nbits = lngw * 8 * sizeof(uint32_t);
@@ -1219,8 +1217,8 @@ int c_xdfget2(
 
     nread = c_waread2(buf->iun, &(buf->data), W64TOWD(addr - 1) + 1 + offset, lngw - offset);
     if (nread != lngw-offset) {
-        sprintf(errmsg, "short read, truncated record, asking for %d, got %d\n", lngw - offset, nread);
-        return error_msg("c_xdfget", ERR_SHORT_READ, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: short read, truncated record, asking for %d, got %d\n",__func__,lngw-offset,nread);
+        return(ERR_SHORT_READ);
     }
 
     return 0;
@@ -1248,38 +1246,7 @@ int c_xdfgop(
     //! [out] Value of option if type is integer
     int *optv
 ) {
-    if (strstr(optname, "ERRTOLR") || strstr(optname, "errtolr")) {
-        if (xdf_toler == TRIVIAL) {
-            strcpy(optc, "TRIVIAL");
-        } else if (xdf_toler == INFORM) {
-            strcpy(optc, "INFORM");
-        } else if (xdf_toler == WARNING) {
-            strcpy(optc, "WARNING");
-        } else if (xdf_toler == ERROR) {
-            strcpy(optc, "ERROR");
-        } else if (xdf_toler == ERRFATAL) {
-            strcpy(optc, "ERRFATAL");
-        } else if (xdf_toler == SYSTEM) {
-            strcpy(optc, "SYSTEM");
-        }
-    } else if (strstr(optname, "MSGLVL") || strstr(optname, "msglvl")) {
-        if (msg_level == TRIVIAL) {
-            strcpy(optc, "TRIVIAL");
-        } else if (msg_level == INFORM) {
-            strcpy(optc, "INFORM");
-        } else if (msg_level == WARNING) {
-            strcpy(optc, "WARNING");
-        } else if (msg_level == ERROR) {
-            strcpy(optc, "ERROR");
-        } else if (msg_level == ERRFATAL) {
-            strcpy(optc, "ERRFATAL");
-        } else if (msg_level == SYSTEM) {
-            strcpy(optc, "SYSTEM");
-        }
-    } else {
-        sprintf(errmsg, "invalid option name: %s", optname);
-        return error_msg("c_xdfgop", ERR_BAD_OPT, ERROR);
-    }
+    Lib_Log(APP_INFO,APP_LIBRMN,"%s: Theses options are deprecated\n",__func__);
     return 0;
 }
 
@@ -1317,8 +1284,8 @@ int c_xdfhdr(
     *lng = record->lng;
 
     if ((index = file_index(buf->iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open");
-        return error_msg("c_xdfhdr", ERR_NO_FILE, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
@@ -1356,8 +1323,8 @@ int c_xdfimp(
 
     ind = fnom_index(iun);
     if (ind == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_xdfimp", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     fprintf(stdout, "\n  Statistiques pour le fichier %d, Nom %s\n", iun, FGFDT[ind].file_name);
@@ -1434,13 +1401,13 @@ int c_xdfini(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_xdfini", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open");
-        return error_msg("c_xdfini", ERR_NO_FILE, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     lngbuf = buf->nwords;
@@ -1449,8 +1416,8 @@ int c_xdfini(
     }
 
     if ((idtyp < 1) || (idtyp > 126)) {
-        sprintf(errmsg, "invalid idtyp=%d, must be between 1 and 126", idtyp);
-        return error_msg("c_xdfini", ERR_BAD_DATYP, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid idtyp=%d, must be between 1 and 126\n",__func__,idtyp);
+        return(ERR_BAD_DATYP);
     }
 
     buf->record_index = RECADDR;
@@ -1492,13 +1459,13 @@ int c_xdfins(
     int  ier;
 
     if ((bitpos % 64) != 0) {
-        sprintf(errmsg, "bitpos must be a multiple of 64");
-        return error_msg("c_xdfins", ERR_BAD_ADDR, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: bitpos must be a multiple of 64\n",__func__);
+        return(ERR_BAD_ADDR);
     }
 
     if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
-        sprintf(errmsg, "nbits must be 8 for datyp %d", datyp);
-        return error_msg("c_xdfins", ERR_BAD_DATYP, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        return(ERR_BAD_DATYP);
     }
 
     nbwords = (nelm * nbits + 63) / 64;
@@ -1509,8 +1476,8 @@ int c_xdfins(
     last_ind = buf->record_index + (buf->nbits / (sizeof(uint32_t) *8));
 
     if ((last_ind + nbwords - 1) > buf->nwords) {
-        sprintf(errmsg, "buffer not big enough for insertion");
-        return error_msg("c_xdfins", ERR_BAD_DIM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: buffer not big enough for insertion\n",__func__);
+        return(ERR_BAD_DIM);
     }
 
     // Move buffer content nbwords to the right for insertion
@@ -1573,8 +1540,8 @@ int c_xdfins(
          break;
 
         default:
-            sprintf(errmsg, "invalid datyp=%d", datyp);
-            return error_msg("c_xdfins", ERR_BAD_DATYP, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid datyp=%d\n",__func__,datyp);
+            return(ERR_BAD_DATYP);
 
     } /* end switch */
 
@@ -1596,28 +1563,27 @@ int c_xdflnk(
 
     index_fnom = fnom_index(liste[0]);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_xdflnk", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(liste[0])) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open");
-        return error_msg("c_xdflnk", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
     for (i=1; i < n; i++) {
         if ((index_fnom = fnom_index(liste[i])) == -1) {
-            sprintf(errmsg, "file is not connected with fnom");
-           return error_msg("c_xdflnk", ERR_NO_FNOM, ERROR);
+           Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+           return(ERR_NO_FNOM);
         }
         if ((indnext = file_index(liste[i])) == ERR_NO_FILE) {
-            sprintf(errmsg, "file is not open");
-           return error_msg("c_xdflnk", ERR_NO_FILE, ERROR);
+           Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+           return(ERR_NO_FILE);
         }
-        if (msg_level <= TRIVIAL) {
-            fprintf(stdout, "Debug xdflink %d avec %d\n", liste[i-1], liste[i]);
-        }
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: xdflink %d avec %d\n",__func__,liste[i-1],liste[i]);
+
         fnext = file_table[indnext];
         f->link = indnext;
         (f->dir_page[f->npages-1])->next_page = fnext->dir_page[0];
@@ -1682,8 +1648,8 @@ int c_xdfloc2(
     seq_dir_keys seq_entry;
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open, iun=%d\n", iun);
-        return error_msg("c_xdfloc", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open, iun=%d\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
     f = file_table[index];
 
@@ -1707,8 +1673,8 @@ int c_xdfloc2(
         record = RECORD_FROM_HANDLE(handle) + 1;
         pageno = PAGENO_FROM_HANDLE(handle);
         if (index_h != index) {
-            sprintf(errmsg, "invalid handle=%d or iun=%d\n", handle, iun);
-            return error_msg("c_xdfloc", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle=%d or iun=%d\n",__func__,handle,iun);
+            return(ERR_BAD_HNDL);
          }
         if (f->xdf_seq) {
             f->cur_addr = address_from_handle(handle, f);
@@ -1731,12 +1697,12 @@ int c_xdfloc2(
     } else if (handle == -1) {
         //! Search from current position
         if (((f->cur_entry == NULL) || (f->cur_pageno == -1)) && (! f->xdf_seq)) {
-            sprintf(errmsg, "current file position is invalid\n");
-            return error_msg("c_xdfloc", ERR_NO_POS, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: current file position is invalid\n",__func__);
+            return(ERR_NO_POS);
         }
     } else {
-        sprintf(errmsg, "invalid handle\n");
-        return error_msg("c_xdfloc", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle\n",__func__);
+        return(ERR_BAD_HNDL);
     }
 
     // If nprim == 0 keep same search target
@@ -1759,9 +1725,9 @@ int c_xdfloc2(
             } else {
                 // Page is in a link file
                 if (f->link == -1) {
-                    sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", pageno, f->npages - 1);
+                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: page number=%d > last page=%d and file not linked\n",__func__,pageno,f->npages-1);
                     f->cur_entry = NULL;
-                    return error_msg("c_xdfloc", ERR_BAD_PAGENO, ERROR);
+                    return(ERR_BAD_PAGENO);
                 }
                 f->cur_dir_page = f->dir_page[f->npages - 1];
                 f->cur_pageno = f->npages - 1;
@@ -1770,9 +1736,9 @@ int c_xdfloc2(
                     f->cur_pageno++;
                 }
                 if (f->cur_dir_page == NULL) {
-                    sprintf(errmsg, "invalid handle, invalid page number\n");
+                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid page number\n",__func__);
                     f->cur_entry = NULL;
-                    return error_msg("c_xdfloc", ERR_BAD_PAGENO, ERROR);
+                    return(ERR_BAD_PAGENO);
                 }
             }
         } else {
@@ -1784,13 +1750,13 @@ int c_xdfloc2(
     }
 
     if (((f->cur_entry == NULL) || (f->cur_pageno == -1)) && (! f->xdf_seq)) {
-        sprintf(errmsg, "no valid current file position\n");
-        return error_msg("c_xdfloc", ERR_NO_POS, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: no valid current file position\n",__func__);
+        return(ERR_NO_POS);
     }
 
     if (! f->valid_target) {
-        sprintf(errmsg, "no valid current search target\n");
-        return error_msg("c_xdfloc", ERR_NO_TARGET, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: no valid current search target\n",__func__);
+        return(ERR_NO_TARGET);
     }
 
     new_handle = next_match(index);
@@ -1829,13 +1795,13 @@ int c_xdfopn(
     }
 
     if ((iun <= 0) || (iun > 999)) {
-        sprintf(errmsg, "invalid unit number=%d", iun);
-        return error_msg("c_xdfopn", ERR_BAD_UNIT, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid unit number=%d\n",__func__,iun);
+        return(ERR_BAD_UNIT);
     }
 
     if (file_index(iun) != ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is already open", iun);
-        return error_msg("c_xdfopn", ERR_FILE_OPN, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is already open\n",__func__,iun);
+        return(ERR_FILE_OPN);
     }
 
     int index = get_free_index();
@@ -1844,16 +1810,16 @@ int c_xdfopn(
 
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_xdfopn", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     f = file_table[index];
     f->cur_info = &FGFDT[index_fnom];
 
     if (! f->cur_info->attr.rnd) {
-        sprintf(errmsg, "file must be random\n file in error: %s\n", FGFDT[index_fnom].file_name);
-        return error_msg("c_xdfopn", -1, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file must be random\n file in error: %s\n",__func__,FGFDT[index_fnom].file_name);
+        return(-1);
     }
 
     if (strstr(appl, "BRP0")) f->cur_info->attr.burp = 1;
@@ -1878,15 +1844,12 @@ int c_xdfopn(
         // at least one seq file is opened, limit number of xdf files is now 128
         STDSEQ_opened = 1;
         if (index > 127) {
-            sprintf(errmsg, "while opening std/seq file, limit of 128 opened file reached");
-            return error_msg("c_xdfopn", -1, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: hile opening std/seq file, limit of 128 opened file reached\n",__func__);
+            return(-1);
         }
     }
 
-
-    if (msg_level <= TRIVIAL) {
-        fprintf(stdout, "Debug c_xdfopn f->xdf_seq=%d\n", f->xdf_seq);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: c_xdfopn f->xdf_seq=%d\n",__func__,f->xdf_seq);
 
     if (strstr(mode, "CREATE") || strstr(mode, "create")) {
 
@@ -1924,8 +1887,8 @@ int c_xdfopn(
         c_waread(iun, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
             if ((f->header = malloc(header64.lng * 8)) == NULL) {
-                sprintf(errmsg, "memory is full");
-                return error_msg("c_xdfopn", ERR_MEM_FULL, ERRFATAL);
+                Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
+                return(ERR_MEM_FULL);
             }
 
             // Read file header
@@ -1938,16 +1901,16 @@ int c_xdfopn(
             wdaddress += wdlng_header;
             if (f->cur_info->attr.std) {
                 if ((f->header->sign != STDR_sign) && (f->header->sign != STDS_sign)) {
-                    sprintf(errmsg, "%s is not a standard file", FGFDT[index_fnom].file_name);
-                    return error_msg("c_xdfopn", ERR_WRONG_FTYPE, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: %s is not a standard file\n",__func__,FGFDT[index_fnom].file_name);
+                    return(ERR_WRONG_FTYPE);
                 }
             }
             if (strstr(mode, "READ") || strstr(mode, "read")) {
                 f->header->rwflg = RDMODE;
             } else {
                 if (f->header->rwflg != RDMODE) {
-                    sprintf(errmsg, "file (unit=%d) currently used by another application in write mode", iun);
-                    return error_msg("c_xdfopn", ERR_STILL_OPN, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file (unit=%d) currently used by another application in write mode\n",__func__,iun);
+                    return(ERR_STILL_OPN);
                 }
 
                 if (strstr(mode, "WRITE") || strstr(mode, "write")) {
@@ -1961,8 +1924,8 @@ int c_xdfopn(
 
             if (f->header->nbd == 0) {
                 if ( (f->cur_info->attr.std) && (header64.data[1] == 'STDR' || header64.data[1] == 'stdr') ) {
-                    sprintf(errmsg, "File probably damaged\n file in error: %s\n", FGFDT[index_fnom].file_name);
-                    return error_msg("c_xdfopn", ERR_BAD_DIR, ERROR);
+                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: File probably damaged\n file in error %\n",__func__,FGFDT[index_fnom].file_name);
+                    return( ERR_BAD_DIR);
                 } else {
                     f->xdf_seq = 1;
                 }
@@ -1973,9 +1936,7 @@ int c_xdfopn(
                 }
             }
 
-            if (msg_level <= TRIVIAL) {
-                fprintf(stdout, "Debug c_xdfopn fichier existe f->xdf_seq=%d\n", f->xdf_seq);
-            }
+            Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: c_xdfopn fichier existe f->xdf_seq=%d\n",__func__,f->xdf_seq);
 
             if (! f->xdf_seq) {
                 // Read directory pages and compute checksum
@@ -1990,13 +1951,12 @@ int c_xdfopn(
                         checksum ^= check32[j];
                     }
                     if (checksum != 0) {
-                        sprintf(errmsg, " incorrect checksum in page %d, directory is probably damaged\n file in error: %s\n", i, FGFDT[index_fnom].file_name);
-                        error_msg("c_xdfopn", ERR_BAD_CHKS, ERROR);
+                        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: incorrect checksum in page %d, directory is probably damaged\n file in error %s\n",__func__,i,FGFDT[index_fnom].file_name);
                     }
                     wdaddress = W64TOWD(curpage->nxt_addr - 1) +1;
                     if (((wdaddress == 0) && (i != f->header->nbd-1)) || (wdaddress > FGFDT[index_fnom].file_size)) {
-                        sprintf(errmsg, "number of directory pages is incorrect\n file in error: %s\n", FGFDT[index_fnom].file_name);
-                        return error_msg("c_xdfopn", ERR_BAD_DIR, ERROR);
+                        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: number of directory pages is incorrect\n file in error %s \n",__func__,FGFDT[index_fnom].file_name);
+                        return(ERR_BAD_DIR);
                     }
                     nrec += curpage->nent;
                 } /* end for */
@@ -2018,8 +1978,8 @@ int c_xdfopn(
                 c_waread(iun, &header_rnd, wdaddress, lng);
                 wdaddress += lng;
                 if ((directory = calloc(header_rnd.nutil, sizeof(uint32_t) * sizeof(rnd_dir_keys))) == NULL) {
-                    sprintf(errmsg, "memory is full");
-                    return error_msg("c_xdfopn", ERR_MEM_FULL, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
+                    return(ERR_MEM_FULL);
                 }
                 lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(uint32_t);
                 c_waread(iun, directory, wdaddress, lng);
@@ -2117,8 +2077,8 @@ int c_xdfopn(
                     f->seq_bof = 1;
                     return 0;
                 } else {
-                    sprintf(errmsg, "file is not XDF type or old standard random type\n");
-                    return error_msg("c_xdfopn", ERR_NOT_XDF, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file is not XDF type or old standard random type\n",__func__);
+                    return(ERR_NOT_XDF);
                 }
             }
         }
@@ -2137,44 +2097,12 @@ int c_xdfopt(
     int optv
 ) {
     if (strstr(optname, "ERRTOLR") || strstr(optname, "errtolr")) {
-        if (strstr(optc, "TRIVIAL") || strstr(optc, "trivial")) {
-            xdf_toler = TRIVIAL;
-        } else if (strstr(optc, "INFORMATIF") || strstr(optc, "informatif")) {
-            xdf_toler = INFORM;
-        } else if (strstr(optc, "WARNING") || strstr(optc, "warning")) {
-            xdf_toler = WARNING;
-        } else if (strstr(optc, "ERROR") || strstr(optc, "error")) {
-            xdf_toler = ERROR;
-        } else if (strstr(optc, "FATAL") || strstr(optc, "fatal")) {
-            xdf_toler = ERRFATAL;
-        } else if (strstr(optc, "SYSTEM") || strstr(optc, "SYSTEM")) {
-            xdf_toler = SYSTEM;
-        } else {
-            sprintf(errmsg, "invalid option value: %s", optc);
-            return error_msg("c_xdfopt", ERR_BAD_OPT, ERROR);
-        }
     } else if (strstr(optname, "MSGLVL") || strstr(optname, "msglvl")) {
-        if (strstr(optc, "TRIVIAL") || strstr(optc, "trivial")) {
-            msg_level = TRIVIAL;
-        } else if (strstr(optc, "INFORMATIF") || strstr(optc, "informatif")) {
-            msg_level = INFORM;
-        } else if (strstr(optc, "WARNING") || strstr(optc, "warning")) {
-            msg_level = WARNING;
-        } else if (strstr(optc, "ERROR") || strstr(optc, "error")) {
-            msg_level = ERROR;
-        } else if (strstr(optc, "FATAL") || strstr(optc, "fatal")) {
-            msg_level = ERRFATAL;
-        } else if (strstr(optc, "SYSTEM") || strstr(optc, "SYSTEM")) {
-            msg_level = SYSTEM;
-        } else {
-            sprintf(errmsg, "invalid option value: %s", optc);
-            return error_msg("c_xdfopt", ERR_BAD_OPT, ERROR);
-        }
     } else if (strstr(optname, "STRIPING") || strstr(optname, "striping")) {
         xdf_nsplit = optv;
     } else {
-        sprintf(errmsg, "invalid option name: %s", optname);
-        return error_msg("c_xdfopt", ERR_BAD_OPT, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid option name: %s\n",__func__,optname);
+        return(ERR_BAD_OPT);
     }
     return 0;
 }
@@ -2210,8 +2138,8 @@ int c_xdfprm(
 
     // Validate index, page number and record number
     if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        sprintf(errmsg, "invalid handle, invalid file index\n");
-        return error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid file index\n",__func__);
+        return(ERR_BAD_HNDL);
     }
 
     fte = file_table[index];
@@ -2223,36 +2151,35 @@ int c_xdfprm(
         } else {
             // Page is in a link file
             if (fte->link == -1) {
-                sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, fte->npages - 1);
-                return error_msg("c_xdfprm", ERR_BAD_PAGENO, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,fte->npages-1);
+                return(ERR_BAD_PAGENO);
             }
             target_page = fte->dir_page[fte->npages-1];
             for (i = 0; (i <= (page_number - fte->npages)) && target_page; i++) {
                 target_page = (target_page)->next_page;
             }
             if (target_page == NULL) {
-                sprintf(errmsg, "invalid handle, invalid page number\n");
-                return error_msg("c_xdfprm", ERR_BAD_PAGENO, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid page number\n",__func__);
+                return(ERR_BAD_PAGENO);
             }
         }
 
         if (record_number > target_page->dir.nent) {
-            sprintf(errmsg, "invalid handle, invalid record number\n");
-            return error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid record number\n",__func__);
+            return(ERR_BAD_HNDL);
         }
 
         rec = target_page->dir.entry + record_number * W64TOWD(fte->primary_len);
         record = (file_record *) rec;
     } else {
         if (! fte->valid_pos) {
-            sprintf(errmsg, "no valid file position for sequential file\n");
-            return error_msg("c_xdfprm", ERR_NO_POS, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: no valid file position for sequential file\n",__func__);
+            return(ERR_NO_POS);
         }
         record = (file_record *) fte->head_keys;
         if (address_from_handle(handle, fte) != W64TOWD(record->addr - 1) + 1) {
-            sprintf(errmsg, "invalid handle=%d, invalid address=%d record address=%d\n", 
-                handle, address_from_handle(handle, fte), W64TOWD(record->addr - 1) + 1);
-            return error_msg("c_xdfprm", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle=%d, invalid address=%d record address=%d\n",__func__,handle,address_from_handle(handle,fte),W64TOWD(record->addr-1)+1);
+            return(ERR_BAD_HNDL);
         }
     }
 
@@ -2292,18 +2219,18 @@ int c_xdfput(
 
     index_fnom = fnom_index(iun);
     if ((index_from_buf = file_index(buf->iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "record not properly initialized\n");
-        return error_msg("c_xdfput", ERR_BAD_INIT, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: record not properly initialized\n",__func__);
+        return(ERR_BAD_INIT);
     }
 
     if ((index_from_iun = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "invalid iun (%d)\n", iun);
-        return error_msg("c_xdfput", ERR_BAD_UNIT, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid iun (%d)\n",__func__,iun);
+        return(ERR_BAD_UNIT);
     }
 
     if ((buf->nbits & 0x3f) != 0) {
-        sprintf(errmsg, "buf->nbits is not a multiple of 64 bits\n");
-        return error_msg("c_xdfput", ERR_BAD_ADDR, SYSTEM);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: buf->nbits is not a multiple of 64 bits\n",__func__);
+        return(ERR_BAD_ADDR);
     }
 
     nwords = buf->nbits / (8 * sizeof(uint32_t));
@@ -2312,13 +2239,13 @@ int c_xdfput(
 
     if ((f->header->rwflg == RDMODE) || (FGFDT[index_fnom].attr.read_only)) {
         // Read only mode
-        sprintf(errmsg, "file is open in read only mode or no write permission\n");
-        return error_msg("c_xdfput", ERR_NO_WRITE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ile is open in read only mode or no write permission\n",__func__);
+        return(ERR_NO_WRITE);
     }
 
     if ((handle != 0) && (f->header->rwflg == APPEND)) {
-        sprintf(errmsg, "file is open in append mode only\n");
-        return error_msg("c_xdfput", ERR_NO_WRITE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is open in append mode only\n",__func__);
+        return(ERR_NO_WRITE);
     }
 
     if (handle <= 0) write_to_end = 1;
@@ -2332,8 +2259,8 @@ int c_xdfput(
 
         // Validate index, page number and record number
         if (index != index_from_iun) {
-            sprintf(errmsg, "iun and handle do not match\n");
-            return error_msg("c_xdfput", ERR_BAD_HNDL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: iun and handle do not match\n",__func__);
+            return(ERR_BAD_HNDL);
         }
 
         // Make sure that files are the same type
@@ -2343,8 +2270,8 @@ int c_xdfput(
                 (f->header->lprm != f_buf->header->lprm) ||
                 (f->header->naux != f_buf->header->naux) ||
                 (f->header->laux != f_buf->header->laux)) {
-                sprintf(errmsg, "source and destination files are different type of file\n");
-                return error_msg("c_xdfput", ERR_NOT_COMP, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: source and destination files are different type of file\n",__func__);
+                return(ERR_NOT_COMP);
             }
         }
         if (! f->xdf_seq) {
@@ -2354,22 +2281,22 @@ int c_xdfput(
             } else {
                 // Page is in a link file
                 if (f->link == -1) {
-                    sprintf(errmsg, "page number=%d > last page=%d and file not linked\n", page_number, f->npages - 1);
-                    return error_msg("c_xdfput", ERR_BAD_PAGENO, ERROR);
+                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,f->npages-1);
+                    return(ERR_BAD_PAGENO);
                 }
                 f->cur_dir_page = f->dir_page[f->npages-1];
                 for (i = 0; ((i <= page_number - f->npages) && f->cur_dir_page); i++) {
                     f->cur_dir_page = (f->cur_dir_page)->next_page;
                 }
                 if (f->cur_dir_page == NULL) {
-                    sprintf(errmsg, "invalid handle, invalid page number\n");
-                    return error_msg("c_xdfput", ERR_BAD_PAGENO, ERROR);
+                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid page number\n",__func__);
+                    return(ERR_BAD_PAGENO);
                 }
             }
 
             if (record_number > f->cur_dir_page->dir.nent) {
-                sprintf(errmsg, "invalid handle, invalid record number\n");
-                return error_msg("c_xdfput", ERR_BAD_HNDL, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid record number\n",__func__);
+                return(ERR_BAD_HNDL);
             }
 
             f->cur_entry = f->cur_dir_page->dir.entry + record_number * W64TOWD(f->primary_len);
@@ -2390,13 +2317,13 @@ int c_xdfput(
         lngw = W64TOWD(lng);
 
         if (idtyp == 0) {
-            sprintf(errmsg, "special record idtyp=0\n");
-            return error_msg("c_xdfput", ERR_SPECIAL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: special record idtyp=0\n",__func__);
+            return(ERR_SPECIAL);
         }
 
         if ((idtyp & 0x7E) == 0x7E) {
-            sprintf(errmsg, "deleted record\n");
-            return error_msg("c_xdfput", ERR_DELETED, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: deleted record\n",__func__);
+            return(ERR_DELETED);
         }
 
         if (lngw != nwords) {
@@ -2529,13 +2456,13 @@ int c_xdfrep(
     int ier;
 
     if ((bitpos % 64) != 0) {
-        sprintf(errmsg, "bitpos must be a multiple of 64");
-        return error_msg("c_xdfrep", ERR_BAD_ADDR, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: bitpos must be a multiple of 64\n",__func__);
+        return(ERR_BAD_ADDR);
     }
 
     if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
-        sprintf(errmsg, "nbits must be 8 for datyp %d", datyp);
-        return error_msg("c_xdfrep", ERR_BAD_DATYP, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        return(ERR_BAD_DATYP);
     }
 
     nbwords = (nelm * nbits + 63) / 64;
@@ -2546,8 +2473,8 @@ int c_xdfrep(
     last_ind = buf->record_index + (buf->nbits / (sizeof(uint32_t) *8));
 
     if ((index_word + nbwords - 1) > buf->nwords) {
-        sprintf(errmsg, "buffer not big enough for replacement");
-        return error_msg("c_xdfrep", ERR_BAD_DIM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: buffer not big enough for replacemen\n",__func__);
+        return(ERR_BAD_DIM);
     }
 
     // initialize region to 0
@@ -2605,8 +2532,8 @@ int c_xdfrep(
             break;
 
         default:
-            sprintf(errmsg, "invalid datyp=%d", datyp);
-            return error_msg("c_xdfrep", ERR_BAD_DATYP, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid datyp=%d\n",__func__,datyp);
+            return(ERR_BAD_DATYP);
     }
 
    return 0;
@@ -2641,8 +2568,8 @@ int c_xdfsta(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_xdfsta", ERR_NO_FNOM, WARNING);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
@@ -2650,12 +2577,11 @@ int c_xdfsta(
         c_waopen(iun);
         c_waread(iun, &header64, 1, W64TOWD(2));
         if (header64.data[0] != 'XDF0' && header64.data[0] != 'xdf0') {
-            sprintf(errmsg, "file is not XDF type\n");
-            return error_msg("c_xdfsta", ERR_NOT_XDF, ERRFATAL);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file is not XDF type\n",__func__);
+            return(ERR_NOT_XDF);
         }
         if ((fh = malloc(header64.lng * 8)) == NULL) {
-            sprintf(errmsg, "memory is full\n");
-            return error_msg("c_xdfsta", ERR_MEM_FULL, ERRFATAL);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
         }
         c_waread(iun, fh, 1, W64TOWD(header64.lng));
     } else {
@@ -2690,8 +2616,8 @@ int c_xdfsta(
             appl[4] = '\0';
             break;
         default:
-            sprintf(errmsg, "wrong number of stat nstat=%d\n", nstat);
-            return error_msg("c_xdfsta", ERR_BAD_NSTAT, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: wrong number of stat nstat=%d\n",__func__,nstat);
+            return(ERR_BAD_NSTAT);
     }
 
     // Primary keys description
@@ -2729,12 +2655,12 @@ int c_xdfunl(
 
     for (i = 0; i < n; i++) {
         if ((index_fnom = fnom_index(liste[i])) == -1) {
-            sprintf(errmsg, "file is not connected with fnom");
-            return error_msg("c_xdfunl", ERR_NO_FNOM, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+            return(ERR_NO_FNOM);
         }
         if ((index = file_index(liste[i])) == ERR_NO_FILE) {
-            sprintf(errmsg, "file is not open");
-            return error_msg("c_xdfunl", ERR_NO_FILE, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+            return(ERR_NO_FILE);
         }
         fte = file_table[index];
         fte->link = -1;
@@ -2773,18 +2699,18 @@ int c_xdfupd(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file is not connected with fnom");
-        return error_msg("c_xdfupd", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file is not open");
-        return error_msg("c_xdfupd", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file is not open\n",__func__);
+        return(ERR_NO_FILE);
     }
 
     if ((idtyp < 1) && (idtyp != -1) || (idtyp > 126)) {
-        sprintf(errmsg, "invalid idtyp=%d, must be between 1 and 126 or -1", idtyp);
-        return error_msg("c_xdfupd", ERR_BAD_DATYP, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid idtyp=%d, must be between 1 and 126 or -1\n",__func__,idtyp);
+        return(ERR_BAD_DATYP);
     }
 
    buf->iun = iun;
@@ -2813,7 +2739,7 @@ int c_xdfuse(
     int dest_unit
 ) {
     int i, index_src, index_fnom_src, index_dest, index_fnom_dest;
-    int old_xdf_toler = 0, old_msg_level = 0, err, nprim, ninfo;
+    int err, nprim, ninfo;
     int close_src = 0, match;
     file_table_entry *f;
     max_dir_keys argument_not_used;
@@ -2823,26 +2749,16 @@ int c_xdfuse(
     int src_stat[MAX_STAT];
     char vers[5], appl[5];
 
-    if (xdf_toler > ERROR) {
-        old_xdf_toler = xdf_toler;
-        xdf_toler = ERROR;
-    }
-
-    if (msg_level > ERROR) {
-        old_msg_level = msg_level;
-        msg_level = ERROR;
-    }
-
     index_fnom_src = fnom_index(src_unit);
     if (index_fnom_src == -1) {
-        sprintf(errmsg, "source file is not connected with fnom");
-        return error_msg("c_xdfuse", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: source file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     index_fnom_dest = fnom_index(dest_unit);
     if (index_fnom_dest == -1) {
-        sprintf(errmsg, "destination file is not connected with fnom");
-        return error_msg("c_xdfuse", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: destination file is not connected with fnom\n",__func__);
+        return(ERR_NO_FNOM);
     }
 
     // Process destination file
@@ -2896,10 +2812,10 @@ int c_xdfuse(
     if (! match) {
       if (close_src)
         err = c_xdfcls(src_unit);
-        sprintf(errmsg, "incompatible source (unit %d) and destination (unit %d) files", src_unit, dest_unit);
-        return error_msg("c_xdfuse", ERR_NOT_COMP, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: incompatible source (unit %d) and destination (unit %d) files\n",__func__,src_unit,dest_unit);
+        return(ERR_NOT_COMP);
     }
-    if (msg_level <= INFORM) {
+    if (Lib_LogLevel(NULL,APP_LIBRMN)>=APP_INFO) {
         err = c_xdfimp(src_unit, (uint32_t *)&src_stat, src_stat[6], src_primk, src_info, vers, appl);
     }
 
@@ -2919,8 +2835,8 @@ int c_xdfuse(
         maxmem = WDTO64(initial_mem + RECADDR);
 
         if ((buf = malloc(maxmem * 8)) == NULL) {
-            sprintf(errmsg, "malloc can't allocate, no more memory available");
-            return error_msg("c_xdfuse", ERR_MEM_FULL, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: malloc can't allocate, no more memory availabl\n",__func__);
+            return(ERR_MEM_FULL);
         }
 
         buf->nwords = initial_mem + RECADDR;
@@ -2940,8 +2856,8 @@ int c_xdfuse(
                         // Ajout de 100 elements pour couvrir le debut du buffer buf
                         maxmem = lng + 100 + RECADDR;
                         if ((buf = realloc(buf, maxmem * 8)) == NULL) {
-                            sprintf(errmsg, "malloc can't allocate, no more memory available");
-                            return error_msg("c_xdfuse", ERR_MEM_FULL, ERROR);
+                            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: malloc can't allocate, no more memory available\n",__func__);
+                            return(ERR_MEM_FULL);
                         }
                         buf->nwords = W64TOWD(maxmem) + RECADDR;
                         }  /* end if lng > maxmem */
@@ -2968,14 +2884,10 @@ int c_xdfuse(
             nomore = 1;
         } /* end while */
         free(buf);
-        fprintf(stdout, ">>> c_xdfuse: copy of %d records from unit %d to unit %d <<<\n", nbrec, src_unit, dest_unit);
+        Lib_Log(APP_INFO,APP_LIBRMN,"%s: copy of %d records from unit %d to unit %d\n",nbrec,src_unit,dest_unit);
     } // end copy files block
 
    if (close_src) err = c_xdfcls(src_unit);
-
-   if (old_xdf_toler) xdf_toler = old_xdf_toler;
-
-   if (old_msg_level) msg_level = old_msg_level;
 
    return 0;
 }
@@ -3001,13 +2913,13 @@ int c_xdfxtr(
     int ier;
 
     if ((bitpos % 64) != 0) {
-        sprintf(errmsg, "bitpos must be a multiple of 64");
-        return error_msg("c_xdfxtr", ERR_BAD_ADDR, ERRFATAL);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: bitpos must be a multiple of 64\n",__func__);
+        return(ERR_BAD_ADDR);
     }
 
     if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
-        sprintf(errmsg, "nbits must be 8 for datyp %d", datyp);
-        return error_msg("c_xdfxtr", ERR_BAD_DATYP, ERRFATAL);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        return(ERR_BAD_DATYP);
     }
 
     nbwords = (nelm * nbits + 63) / 64;
@@ -3056,8 +2968,8 @@ int c_xdfxtr(
             break;
 
         default:
-            sprintf(errmsg, "invalid datyp=%d", datyp);
-            return error_msg("c_xdfxtr", ERR_BAD_DATYP, ERROR);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: finvalid datyp=%d\n",__func__,datyp);
+            return(ERR_BAD_DATYP);
     } // End switch (datyp)
 
     return 0;
@@ -3091,8 +3003,8 @@ static int create_new_xdf(
     int lng_header = naux + npri + 512 / 64;
 
     if ((file_table[index]->header = malloc(lng_header * 8)) == NULL) {
-        sprintf(errmsg, "memory is full\n");
-        return error_msg("create_new_xdf", ERR_MEM_FULL, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
+        return(ERR_MEM_FULL);
     }
     file = file_table[index]->header;
     file->vrsn = 'X' << 24 | 'D' << 16 | 'F' << 8 | '0';
@@ -3164,37 +3076,6 @@ static int create_new_xdf(
    return 0;
 }
 
-
-//! Write an error message to stderr and conditionally exit if the level of error is greater than the tolerance level
-//! \return Error code given in the errcode argument
-int error_msg(
-    //! [in] Name of the calling function
-    char *function_name,
-    //! [in] Error code
-    int errcode,
-    //! [in] Error level
-    int errlevel
-) {
-    static char *errtab[7] = {
-        "TRIVIAL",
-        "INFORMATION",
-        "WARNING",
-        "ERROR",
-        "FATAL ERROR",
-        "SYSTEM SOFTWARE ERROR",
-        "CATASTROPHIC"
-    };
-
-    if (errlevel >= msg_level) {
-        fprintf(stderr, "*** %s #%d from module %s: %s\n", errtab[errlevel], -errcode, function_name, errmsg);
-    }
-    if (errlevel > xdf_toler) {
-        exit(-errcode);
-    }
-    return errcode;
-}
-
-
 //! Find position of file iun in file table.
 //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
 int file_index(
@@ -3241,8 +3122,8 @@ static int get_free_index()
     for (int i = 0; i < nlimite; i++) {
         if (file_table[i] == NULL) {
             if ((file_table[i] = (file_table_entry_ptr) malloc(sizeof(file_table_entry))) == NULL) {
-                sprintf(errmsg, "can't alocate file_table_entry\n");
-                return error_msg("get_free_index", ERR_MEM_FULL, ERRFATAL);
+                 Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can't alocate file_table_entry\n",__func__);
+                return(ERR_MEM_FULL);
             }
             // assure first time use of index i
             file_table[i]->file_index = -1;
@@ -3254,8 +3135,8 @@ static int get_free_index()
             }
          }
     }
-    sprintf(errmsg, "xdf file table is full\n");
-    return error_msg("get_free_index", ERR_FTAB_FULL, ERRFATAL);
+    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: xdf file table is full\n",__func__);
+    return(ERR_FTAB_FULL);
 }
 
 
@@ -3462,8 +3343,8 @@ static uint32_t next_match(
             if (f->fstd_vintage_89) {
                 /* old sequential standard */
                 if ((stde = malloc(sizeof(stdf_dir_keys))) == NULL) {
-                    sprintf(errmsg, "memory is full");
-                    return error_msg("next_match", ERR_MEM_FULL, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
+                    return(ERR_MEM_FULL);
                 }
                 seq_entry = (seq_dir_keys *) f->head_keys;
                 if (seq_entry->dltf) {
@@ -3576,14 +3457,10 @@ static uint32_t next_match(
     if (! found) return ERR_NOT_FOUND;
 
     if (! f->xdf_seq) {
-        if (msg_level <= TRIVIAL) {
-            fprintf(stdout, "Record found at page# %d, record# %d\n", f->cur_pageno, f->page_record - 1);
-        }
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: Record found at page# %d, record# %d\n",__func__,f->cur_pageno,f->page_record-1);
         handle = MAKE_RND_HANDLE(f->cur_pageno, f->page_record-1, f->file_index);
     } else {
-        if (msg_level <= TRIVIAL) {
-            fprintf(stdout, "Record found at address %d, \n", addr_match);
-        }
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: Record found at address %d\n",__func__,addr_match);
         stde = (stdf_dir_keys *) f->head_keys;
         handle = make_seq_handle(addr_match, f->file_index, f);
     }
@@ -3615,6 +3492,7 @@ int32_t f77name(qdferr)(char *subname, char *msg, int32_t *ferrlevl,
 {
    int errlevl = *ferrlevl, errcode = *ferrcode, lng;
    char c_subname[128];
+   char errmsg[1024];
 
    errcode = (errcode > 0) ? -errcode : errcode;
    lng = (l1 < 128) ? l1 : 127;
@@ -3623,8 +3501,9 @@ int32_t f77name(qdferr)(char *subname, char *msg, int32_t *ferrlevl,
 
    lng = (l2 < 1024) ? l2 : 1023;
    strncpy(errmsg, msg, lng);
+   Lib_Log(APP_ERROR,APP_LIBRMN,"%s: %s\n",c_subname,errmsg);
 
-   return (int32_t) error_msg(c_subname, errcode, errlevl);
+   return (int32_t)errcode;
 }
 
 
@@ -3870,9 +3749,9 @@ int32_t f77name(xdfhdr)(uint32_t *buf, int32_t *addr, int32_t *lng,
    *idtyp = (int32_t) l_idtyp;
 
    if ((nprim > MAX_KEYS) || (ninfo >MAX_KEYS)) {
-      sprintf(errmsg, "nprim=%d or ninfo=%d > MAX_KEYS must recompile", nprim, ninfo);
-      return error_msg("xdfhdr", ERR_OUT_RANGE, SYSTEM);
-      }
+      Lib_Log(APP_ERROR,APP_LIBRMN,"%s: nprim=%d or ninfo=%d > MAX_KEYS must recompile\n",__func__,nprim,ninfo);
+      return(ERR_OUT_RANGE);
+    }
 
    for (i=0; i < nprim; i++)
       primk[i] = (int32_t) l_primk[i];
@@ -3971,9 +3850,9 @@ int32_t f77name(xdfloc)(int32_t *fiun, int32_t *fhandle, int32_t *primk,
    uint32_t l_primk[MAX_KEYS];
 
    if (nprim > MAX_KEYS) {
-      sprintf(errmsg, "nprim=%d > MAX_KEYS must recompile", nprim);
-      return error_msg("xdfloc", ERR_OUT_RANGE, SYSTEM);
-      }
+       Lib_Log(APP_ERROR,APP_LIBRMN,"%s: nprim=%d > MAX_KEYS must recompile\n",__func__,nprim);
+       return(ERR_OUT_RANGE);
+   }
    for (i=0; i<nprim; i++)
       l_primk[i] = primk[i];
 
@@ -4004,10 +3883,9 @@ int32_t f77name(xdfopn)(int32_t *fiun, char *mode,
    c_appl[lng] = '\0';
 
    if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
-      sprintf(errmsg, "npri=%d or naux=%d > MAX_KEYS must recompile",
-          npri, naux);
-      return error_msg("xdfopn", ERR_OUT_RANGE, SYSTEM);
-      }
+     Lib_Log(APP_ERROR,APP_LIBRMN,"%s: npri=%d or naux=%d > MAX_KEYS must recompil\n",__func__,npri,naux);
+     return(ERR_OUT_RANGE);
+   }
    for (i=0; i < npri; i++) {
      primk[i].wd1 = pri[i].wd1;
      primk[i].wd2 = pri[i].wd2;

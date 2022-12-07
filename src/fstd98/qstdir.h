@@ -62,9 +62,6 @@
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
 
-#define INFOPRINT if (1 >= msg_level)
-#define WARNPRINT if (2 >= msg_level)
-
 #define MAX_XDF_FILES 1024
 //! Size of a directory pages in an XDF file
 #define ENTRIES_PER_PAGE 256
@@ -891,12 +888,8 @@ typedef buffer_interface* buffer_interface_ptr;
 //! File table, exported symbol
 file_table_entry_ptr file_table[MAX_XDF_FILES];
 
-//! Buffer to format error messages
-char errmsg[1024];
-//! Tolerance level before messages are issued
-int msg_level = INFORM;
-//! Tolerance level before program is aborted
-int xdf_toler = ERROR;
+
+
 //! Stride
 int xdf_stride = 1;
 //! Double float indicator
@@ -969,12 +962,6 @@ key_descriptor stdf_info_keys[] = {
 //! File table , exported symbol
 extern file_table_entry_ptr file_table[MAX_XDF_FILES];
 
-//! Buffer to format error messages
-extern char errmsg[1024];
-//! Tolerance level before messages are issued
-extern int msg_level;
-//! Tolerance level before program is aborted
-extern int xdf_toler;
 //! !stride
 extern int xdf_stride;
 //! Double float indicator

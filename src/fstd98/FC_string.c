@@ -1,3 +1,4 @@
+#include <App.h>
 #include <rmn/rpnmacros.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +20,6 @@ void free_string_array(char **string_array)
 {
     int i = 0;
     while (string_array[i]) {
-        // printf("Debug free_string_array i=%d\n", i);
         free(string_array[i]);
         i++;
     }
@@ -93,13 +93,13 @@ void f77name(fs_to_cs)(char *fstring, int *rmblanks, int *ns, F2Cl fnc)
     if (*ns == 1) {
         char * cmpstring = malloc(13);
         char * cstring = fstring_to_cstring(fstring, fnc, *rmblanks);
-        printf("Debug fs_to_cs cstring-->%s<--\n", cstring);
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: cstring-->%s<--\n",__func__,cstring);
         strcpy(cmpstring, "Label01");
-        printf("Debug fs_to_cs cmpstring-->%s<--\n", cmpstring);
-        printf("Debug fs_to_cs strncmp sans blancs=%d\n", strncmp(cstring, cmpstring, 13));
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: cmpstring-->%s<--\n",__func__,cmpstring);
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: strncmp sans blancs=%d\n",__func__,strncmp(cstring, cmpstring, 13));
         strcpy(cmpstring, "Label01     ");
-        printf("Debug fs_to_cs cmpstring-->%s<--\n", cmpstring);
-        printf("Debug fs_to_cs strncmp avec blancs=%d\n", strncmp(cstring, cmpstring, 13));
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: cmpstring-->%s<--\n",__func__,cmpstring);
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: strncmp sans blancs=%d\n",__func__,strncmp(cstring, cmpstring, 13));
         free(cmpstring);
     } else {
         fill_string_array(allocate_string_array(*ns), fstring, fnc, *ns, *rmblanks);

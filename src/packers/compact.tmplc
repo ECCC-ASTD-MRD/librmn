@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <math.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 #include <bitPacking.h>
 
@@ -122,8 +123,7 @@ void *compact_FLOAT_TYPE(
     if (packedTokenBS > 64) {
         EffectivePackedTokenSize = packedTokenBS >> 6;
         packedTokenBS &= 0x3F;
-        /* fprintf(stderr, "Debug+++ compact_float nbits > 64 EffectivePackedTokenSize=%d packedTokenBS=%d opCode=%d\n",
-             EffectivePackedTokenSize, packedTokenBS, opCode); */
+
     } else {
         EffectivePackedTokenSize = packedTokenBS;
     }
@@ -162,7 +162,7 @@ void *compact_FLOAT_TYPE(
         } else {
             headerStyle = 2;
             if ( floatCount > (powerOf2s[28] - 1) ) {
-                printf("\n element count overflow in xxpack header \n");
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%f: element count overflow in xxpack header\n",__func__);
                 return NULL;
             }
         }
@@ -204,9 +204,7 @@ void *compact_FLOAT_TYPE(
         }
 
         if ((maxFloat > MAX_RANGE) || (minFloat < -MAX_RANGE)) {
-            fprintf(stderr,
-                "\n***ERROR: floating point packer, number too large minFloat=%E maxFloat=%E\n",
-                minFloat, maxFloat);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%f: floating point packer, number too large minFloat=%E maxFloat=%E\n",__func__,minFloat,maxFloat);
             exit(33);
         }
         rangeTemplate.XD = (maxFloat - minFloat)*2;
@@ -347,8 +345,7 @@ void *compact_FLOAT_TYPE(
                 // legacy data with more than 2POW(20) elements but only 120-bit header and 20-bit ninj
                 intCount = elementCount;
                 if ((intCount & 0x3777777) != (elementCount & 0x3777777)) {
-                    printf( "warning !  UNPACK: ninj from argument: %d different from ninj from header: %d\n argument ninj is used \n",
-                        elementCount, theHeader->counter);
+                    Lib_Log(APP_WARNING,APP_LIBRMN,"%f: ninj from argument: %d different from ninj from header: %d. Argument ninj is used \n\n",__func__,elementCount, theHeader->counter);
                 }
             } else {
                 intCount = theHeader->counter;
@@ -382,8 +379,7 @@ void *compact_FLOAT_TYPE(
             minFloatTemplate.M.mantis = (theHeader->minMantisa32 >> 8 ) & 0x7fffff;
             minFloat = minFloatTemplate.X;
             /*
-            printf("Debug sign=%d minExpo= %d expo=%d mantis=%x minFloat=%f mulFactor=%f \n",
-                minFloatTemplate.M.sign, theHeader->minExpo,
+            Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: sign=%d minExpo= %d expo=%d mantis=%x minFloat=%f mulFactor=%f \n",__func__,minFloatTemplate.M.sign,theHeader->minExpo,
                 minFloatTemplate.M.expo, minFloatTemplate.M.mantis, minFloat, mulFactor);
             */
         }
@@ -393,7 +389,7 @@ void *compact_FLOAT_TYPE(
         currentSlot = ( firstPackBit / wordSize );
         currentWord = arrayOfInt[currentSlot] << ( wordSize - bitPackInFirstWord );
         /*
-        printf("Debug firstPackBit=%d bitPackInFirstWord=%d currentSlot=%d currentWord=%d\n",
+        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: firstPackBit=%d bitPackInFirstWord=%d currentSlot=%d currentWord=%d\n",__func__,
                firstPackBit, bitPackInFirstWord, currentSlot, currentWord);
         */
         if ( tokenSize > wordSize ) {
@@ -408,7 +404,7 @@ void *compact_FLOAT_TYPE(
         arrayPtr = &arrayOfInt[currentSlot];
         for (int i = 0; i < intCount * stride; i += stride) {
             extract(packInt, arrayPtr, wordSize, significantBit, currentWord, bitPackInFirstWord);
-            /*            printf("Debug i=%d packInt=%X\n", i, packInt);  */
+            /*Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: i=%d packInt=%X\n",__func__,packInt);  */
 
             // Truncate extra bit if necessary
             if ( inSignificantBit > 0 ) {
@@ -429,7 +425,7 @@ void *compact_FLOAT_TYPE(
         return (uint32_t *)arrayOfFloat;
 
     } else {
-        printf("\n opCode is not defined \n");
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: opCode (%d) is not defined\n",__func__,opCode);
         return NULL;
     }
 }

@@ -37,6 +37,7 @@
 #include <bitPacking.h>
 #include <armn_compress.h>
 
+#include <App.h>
 #include <rmn/fstd98.h>
 #include <rmn/c_wkoffit.h>
 #include <rmn/excdes_new.h>
@@ -51,8 +52,8 @@
 //! Throw an error when val is not between minval and maxval
 #define VALID(val, minval, maxval, what, caller) \
     if ((val < minval) || (val > maxval)) { \
-        sprintf(errmsg, "%s = %d must be between %d and %d", what, val, minval, maxval); \
-        return error_msg(caller, ERR_OUT_RANGE, ERROR);\
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: %s = %d must be between %d and %d\n",__func__,what,val,minval,maxval);\
+        return(ERR_OUT_RANGE);\
     }
 
 
@@ -93,13 +94,11 @@ static regex_t pattern;
 
 static int turbocomp_mode = 0;
 static char *comptab[2] = {"FAST", "BEST"};
-static char *msgtab[7] = {"DEBUG", "INFORM", "WARNIN", "ERRORS", "FATALE", "SYSTEM", "CATAST"};
-static int nivmsg[7] = {0, 2, 4, 6, 8, 10, 10};
 
 int FstCanTranslateName(char *varname);
 
 
-static str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
+static void str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
         dst[i] = (i < srcLen) ? src[i] : ' ';
     }
@@ -176,8 +175,7 @@ static int ip_is_equal(
     ind--;
 
     if (target != ips_tab[ind][0]) {
-        fprintf(stderr, "ip_is_equal error: target not first element of ip table\n");
-        fprintf(stderr, "target = %d ips_tab[%d]=%d\n", target, ind, ips_tab[ind][0]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: target not first element of ip table, target = %d ips_tab[%d]=%d\n",__func__,target,ind,ips_tab[ind][0]);
         return 0;
     }
 
@@ -315,7 +313,7 @@ static void print_std_parms(
     char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5];
     int posc, posv;
 
-    /* printf("Debug+ print_std_parms option=%s\n", option); */
+    Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: option=%s\n",__func__,option);
     crack_std_parms(stdf_entry, &cracked);
 
   if (header) {
@@ -602,20 +600,20 @@ int c_fstapp(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstapp", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstapp", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
 
     if (!f->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not sequential", iun);
-        return error_msg("c_fstapp", ERR_BAD_FTYPE, WARNING);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: ile (unit=%d) is not sequential\n",__func__,iun);
+        return(ERR_BAD_FTYPE);
     }
 
     end_of_file = 0;
@@ -672,13 +670,13 @@ int c_fstckp(
 
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstckp", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstckp", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     /* checkpoint mode, not a complete close */
@@ -724,7 +722,7 @@ int c_fst_data_length(
             break;
 
         default:
-            fprintf(stderr, "c_fst_data_length invalid length type=%d", length_type);
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: c_fst_data_length invalid length type=%d\n",__func__,length_type);
             xdf_byte = 0;
             xdf_short = 0;
             xdf_double = 0;
@@ -806,7 +804,7 @@ int c_fstecr(
     int in_datyp = in_datyp_ori & 0xFFBF;
     if ( (in_datyp & 0xF) == 8) {
         if (in_datyp_ori != 8) {
-            WARNPRINT fprintf(stderr, "WARNING: compression and/or missing values not supported, data type %d reset to %d (complex)\n", in_datyp_ori, 8);
+           Lib_Log(APP_WARNING,APP_LIBRMN,"%s: compression and/or missing values not supported, data type %d reset to %d (complex)\n",__func__,in_datyp_ori,8);
         }
         /* missing values not supported for complex type */
         is_missing = 0;
@@ -826,31 +824,31 @@ int c_fstecr(
 
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstecr", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     int index = file_index(iun);
     if (index == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstecr", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     file_table_entry * fte = file_table[index];
 
     if (! fte->cur_info->attr.std) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", iun);
-        return error_msg("c_fstecr", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard file\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     if (fte->fstd_vintage_89) {
-        sprintf(errmsg, "can not write (unit=%d) on an old (version 89) RPN standard file", iun);
-        return error_msg("c_fstecr", ERR_NO_WRITE, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can not write (unit=%d) on an old (version 89) RPN standard file\n",__func__,iun);
+        return(ERR_NO_WRITE);
     }
 
     if (fte->cur_info->attr.read_only) {
-        sprintf(errmsg, "file (unit=%d) not open with write permission", iun);
-        return error_msg("c_fstecr", ERR_NO_WRITE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) not open with write permission\n",__func__,iun);
+        return(ERR_NO_WRITE);
     }
 
     int nbits;
@@ -863,7 +861,7 @@ int c_fstecr(
     int minus_nbits = -nbits;
 
     if ( (in_datyp_ori == 133) && (nbits > 32) ) {
-        WARNPRINT fprintf(stderr, "WARNING: extra compression not supported for IEEE when nbits > 32, data type 133 reset to 5 (IEEE)\n");
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: extra compression not supported for IEEE when nbits > 32, data type 133 reset to 5 (IEEE)\n",__func__);
         /* extra compression not supported */
         in_datyp = 5;
         datyp = 5;
@@ -931,7 +929,7 @@ int c_fstecr(
     /*  if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression; */
     if ((datyp == 6) && (nbits > 24)) {
         if (! dejafait_1) {
-            WARNPRINT fprintf(stderr, "c_fstecr WARNING: nbits > 16, writing E32 instead of F%2d\n", nbits);
+            Lib_Log(APP_WARNING,APP_LIBRMN,"%s: nbits > 16, writing E32 instead of F%2d\n",__func__,nbits);
             dejafait_1 = 1;
         }
         datyp = 5;
@@ -940,8 +938,7 @@ int c_fstecr(
     }
     if ((datyp == 6) && (nbits > 16)) {
         if (! dejafait_2) {
-            // printf("msg_level=%d dejafait_2=%d !dejafait_2=%d\n", msg_level, dejafait_2, !dejafait_2);
-            WARNPRINT fprintf(stderr, "c_fstecr WARNING: nbits > 16, writing R%2d instead of F%2d\n", nbits, nbits);
+            Lib_Log(APP_WARNING,APP_LIBRMN,"%s: nbits > 16, writing R%2d instead of F%2d\n",__func__,nbits,nbits);
             dejafait_2 = 1;
         }
         datyp = 1;
@@ -997,9 +994,8 @@ int c_fstecr(
     if (buffer) {
         memset(buffer, 0, (10 + keys_len + nw + 128) * sizeof(int));
     } else {
-        sprintf(errmsg, "memory is full, was trying to allocate %ld bytes",
-                (10 + keys_len + nw + 128) * sizeof(int));
-        return error_msg("c_fstecr", ERR_MEM_FULL, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full, was trying to allocate %ld bytes\n",__func__,(10 + keys_len + nw + 128) * sizeof(int));
+        return(ERR_MEM_FULL);
     }
     const int bitmot = 32;
     buffer->nwords = 10 + keys_len + nw;
@@ -1133,7 +1129,7 @@ int c_fstecr(
             field = (uint32_t *)alloca(ni * nj * nk * sizefactor);
             if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, nbits, xdf_byte, xdf_short, xdf_double) ) {
                 field = field_in;
-                INFOPRINT fprintf(stderr, "NO missing value, data type %d reset to %d\n", stdf_entry->datyp, datyp);
+                Lib_Log(APP_INFO,APP_LIBRMN,"%s: NO missing value, data type %d reset to %d\n",__func__,stdf_entry->datyp,datyp);
                 /* cancel missing data flag in data type */
                 stdf_entry->datyp = datyp;
                 is_missing = 0;
@@ -1145,7 +1141,7 @@ int c_fstecr(
             case 0: case 128:
                 /* transparent mode */
                 if (datyp == 128) {
-                    WARNPRINT fprintf(stderr, "WARNING: extra compression not available, data type %d reset to %d\n", stdf_entry->datyp, 0);
+                    Lib_Log(APP_WARNING,APP_LIBRMN,"%s: extra compression not available, data type %d reset to %d\n",__func__,stdf_entry->datyp,0);
                     datyp = 0;
                     stdf_entry->datyp = 0;
                 }
@@ -1240,7 +1236,7 @@ int c_fstecr(
                 {
                     int nc = (ni * nj + 3) / 4;
                     if (datyp == 131) {
-                        WARNPRINT fprintf(stderr, "WARNING: extra compression not available, data type %d reset to %d\n", stdf_entry->datyp, 3);
+                        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: extra compression not available, data type %d reset to %d\n",__func__,stdf_entry->datyp,3);
                         datyp = 3;
                         stdf_entry->datyp = 3;
                     }
@@ -1253,7 +1249,7 @@ int c_fstecr(
             case 4: case 132:
                 /* signed integer */
                 if (datyp == 132) {
-                    WARNPRINT fprintf(stderr, "WARNING: extra compression not supported, data type %d reset to %d\n", stdf_entry->datyp, is_missing | 4);
+                    Lib_Log(APP_WARNING,APP_LIBRMN,"%s: extra compression not supported, data type %d reset to %d\n",__func__,stdf_entry->datyp,is_missing | 4);
                     datyp = 4;
                 }
                 /* turbo compression not supported for this type, revert to normal mode */
@@ -1294,7 +1290,7 @@ int c_fstecr(
                     int32_t f_one = 1;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
                     if (datyp == 136) {
-                        WARNPRINT fprintf(stderr, "WARNING: extra compression not available, data type %d reset to %d\n", stdf_entry->datyp, 8);
+                        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: extra compression not available, data type %d reset to %d\n",__func__,stdf_entry->datyp,8);
                         datyp = 8;
                         stdf_entry->datyp = 8;
                     }
@@ -1349,7 +1345,7 @@ int c_fstecr(
             case 7: case 135:
                 /* character string */
                 if (datyp == 135) {
-                    WARNPRINT fprintf(stderr, "WARNING: extra compression not available, data type %d reset to %d\n", stdf_entry->datyp, 7);
+                    Lib_Log(APP_WARNING,APP_LIBRMN,"%s: extra compression not available, data type %d reset to %d\n",__func__,stdf_entry->datyp,7);
                     datyp = 7;
                     stdf_entry->datyp = 7;
                 }
@@ -1357,15 +1353,15 @@ int c_fstecr(
                 break;
 
             default:
-                sprintf(errmsg, "(unit=%d) invalid datyp=%d", iun, datyp);
-                return error_msg("c_fstecr", ERR_BAD_DATYP, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: (unit=%d) invalid datyp=%d\n",__func__,iun,datyp);
+                return(ERR_BAD_DATYP);
         } /* end switch */
     } /* end if image mode copy */
 
 
     /* write record to file and add entry to directory */
     int ier = c_xdfput(iun, handle, buffer);
-    if (msg_level <= INFORM) {
+    if (Lib_LogLevel(NULL,APP_LIBRMN)>=APP_INFO) {
         char string[12];
         sprintf(string, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, 0);
@@ -1417,20 +1413,20 @@ int c_fst_edit_dir_plus(
     index = INDEX_FROM_HANDLE(handle);
 
     if ((index < 0) || (index >= MAX_XDF_FILES)) {
-        sprintf(errmsg, "invalid handle=%d", handle);
-        return error_msg("c_fst_edit_dir", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle=%d\n",__func__,handle);
+        return(ERR_BAD_HNDL);
     }
 
     f = file_table[index];
 
     if (! f->cur_info->attr.std) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
-        return error_msg("c_fst_edit_dir", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard file\n",__func__,f->iun);
+        return(ERR_NO_FILE);
     }
 
     if (f->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
-        return error_msg("c_fst_edit_dir", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard file\n",__func__,f->iun);
+        return(ERR_NO_FILE);
     }
 
     l1 = strlen(in_typvar);
@@ -1446,8 +1442,8 @@ int c_fst_edit_dir_plus(
     pageno = PAGENO_FROM_HANDLE(handle);
     if (pageno > f->npages) {
         /* page is not in current file */
-        sprintf(errmsg, "invalid handle, invalid page number\n");
-        return error_msg("c_fst_edit_dir", ERR_BAD_PAGENO, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle, invalid page number\n",__func__);
+        return(ERR_BAD_PAGENO);
     }
 
     recno = RECORD_FROM_HANDLE(handle);
@@ -1505,7 +1501,7 @@ int c_fst_edit_dir_plus(
 
     crack_std_parms(stdf_entry, &cracked);
     sprintf(string, "%5d-", recno);
-    if (msg_level <= INFORM) {
+    if (Lib_LogLevel(NULL,APP_LIBRMN)>=APP_INFO) {
         print_std_parms(stdf_entry, string, "NINJNK+DATEO+IP1+IG1234", 1);
     }
     f->dir_page[pageno]->modified = 1;
@@ -1549,24 +1545,24 @@ int c_fsteff(
 
     index = INDEX_FROM_HANDLE(handle);
     if ((index < 0) || (index >= MAX_XDF_FILES)) {
-        sprintf(errmsg, "invalid handle=%d", handle);
-        return error_msg("c_fsteff", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle=%d\n",__func__,handle);
+        return(ERR_BAD_HNDL);
     }
 
     f = file_table[index];
     if (f == NULL) {
-        sprintf(errmsg, "invalid handle=%d", handle);
-        return error_msg("c_fsteff", ERR_BAD_HNDL, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle=%d\n",__func__,handle);
+        return(ERR_BAD_HNDL);
     }
 
     if (! f->cur_info->attr.std) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", f->iun);
-        return error_msg("c_fsteff", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard filed\n",__func__,f->iun);
+        return(ERR_NO_FILE);
     }
 
     if (f->fstd_vintage_89) {
-        sprintf(errmsg, "can not write (unit=%d) on an old (version 89) RPN standard file", f->iun);
-        return error_msg("c_fsteff", ERR_NO_WRITE, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can not write (unit=%d) on an old (version 89) RPN standard file\n",__func__,f->iun);
+        return(ERR_NO_WRITE);
     }
 
     ier = c_xdfdel(handle);
@@ -1586,13 +1582,13 @@ int c_fsteof(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fsteof", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fsteof", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
@@ -1693,19 +1689,17 @@ int c_fstinfx(
     strncpy(etiket, in_etiket, strlen(in_etiket));
     strncpy(typvar, in_typvar, strlen(in_typvar));
     strncpy(nomvar, in_nomvar, strlen(in_nomvar));
-    if (msg_level < INFORM) {
-        fprintf(stdout, "Debug fstinf iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n", iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
-    }
+    Lib_Log(APP_INFO,APP_LIBRMN,"%s: Debug fstinf iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstinf", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstinf", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
@@ -1805,19 +1799,17 @@ int c_fstinfx(
         if (lhandle > 0) {
             index_h = INDEX_FROM_HANDLE(lhandle);
             if (index_h != index) {
-                sprintf(errmsg, "invalid handle=%d, or iun=%d", lhandle, iun);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid handle=%d, or iun=%d\n",__func__,lhandle,iun);
                 free(stdf_entry);
                 free(search_mask);
-                return error_msg("c_fstinfx", ERR_BAD_HNDL, ERROR);
+                return(ERR_BAD_HNDL);
             }
         }
         lhandle = c_xdfloc2(iun, lhandle, pkeys, 16, pmask);
     }
 
     if (lhandle < 0) {
-        if (msg_level == TRIVIAL) {
-            fprintf(stdout, "c_fstinf: (unit=%d) record not found, errcode=%d\n", iun, lhandle);
-        }
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: c_fstinf: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
         if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
@@ -1904,10 +1896,7 @@ int c_fstinl(
     int nkmax;
     int nijkmax;
 
-    if (msg_level < INFORM) {
-        fprintf(stdout, "Debug fstinl iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",
-                iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
 
     handle = c_fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
     nijkmax = (*ni) * (*nj) * (*nk);
@@ -1931,14 +1920,12 @@ int c_fstinl(
     *nj = njmax;
     *nk = nkmax;
     *infon = nfound;
-    if (msg_level < INFORM) {
-        fprintf(stdout, "Debug fstinl nombre trouve=%d nmax=%d\n", nfound, nmax);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBRMN,"%s: nombre trouve=%d nmax=%d\n",__func__,nfound,nmax);
 
     while ( (handle = c_fstsui(iun, ni, nj, nk)) >= 0 ) nfound++;
     if (nfound > nmax) {
-        sprintf(errmsg, "number of records found (%d) > nmax specified (%d)", nfound, nmax);
-        return error_msg("FSTINL", -nfound, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: number of records found (%d) > nmax specified (%d)\n",__func__,nfound,nmax);
+        return(-nfound);
     } else {
         return 0;
     }
@@ -1993,15 +1980,12 @@ int c_fstlic(
     handle = c_fstinf(iun, &ni, &nj, &nk, datein, etiketin, ip1in, ip2in, ip3in, typvarin, nomvarin);
 
     if (handle < 0) {
-        sprintf(errmsg, "(unit=%d) record not found", iun);
-        return error_msg("c_fstlic", ERR_NOT_FOUND, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: (unit=%d) record not found\n",__func__,iun);
+        return(ERR_NOT_FOUND);
     }
 
     if ((niin != ni) || (njin != nj) || (nkin != nk)) {
-        fprintf(stderr, "c_fstlic unit=%d, ni or nj or nk error:", iun);
-        fprintf(stderr, " user ni=%d, file ni=%d\n", niin, ni);
-        fprintf(stderr, " user nj=%d, file nj=%d\n", njin, nj);
-        fprintf(stderr, " user nk=%d, file nk=%d\n", nkin, nk);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: unit=%d, ni or nj or nk error\n\tuser ni=%d, file ni=%d\n\tuser nj=%d, file nj=%d\tuser nk=%d, file nk=%d\n",__func__,iun,niin,ni,njin,nj,nkin,nk);
         return -1;
     }
 
@@ -2011,12 +1995,7 @@ int c_fstlic(
 
     if ((strcmp(grtypin, grtyp) != 0) || (ig1in != ig1) ||
         (ig2in != ig2) || (ig3in != ig3) || (ig4in != ig4)) {
-        fprintf(stderr, "c_fstlic unit=%d, grtyp ig1 ig2 ig3 ig4 error:", iun);
-        fprintf(stderr, " user grtyp=%s, file grtyp=%s\n", grtypin, grtyp);
-        fprintf(stderr, " user ig1=%d, file ig1=%d\n", ig1in, ig1);
-        fprintf(stderr, " user ig2=%d, file ig2=%d\n", ig2in, ig2);
-        fprintf(stderr, " user ig3=%d, file ig3=%d\n", ig3in, ig3);
-        fprintf(stderr, " user ig4=%d, file ig4=%d\n", ig4in, ig4);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: unit=%d, grtyp ig1 ig2 ig3 ig4 error\n\tuser grtyp=%s, file grtyp=%s\n\tuser ig1=%d, file ig1=%d\n\tuser ig2=%d, file ig2=%d\n\tuser ig3=%d, file ig3=%d\n\tuser ig4=%d, file ig4=%d\n",__func__,iun,grtypin,grtyp,ig1in,ig1,ig2in,ig2,ig3in,ig3,ig4in,ig4);
         return -1;
     }
 
@@ -2092,9 +2071,8 @@ int c_fstlirx(
 
     handle = c_fstinfx(handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
     if (handle < 0) {
-        if (msg_level <= WARNING)
-        fprintf(stdout, "c_fstlirx: (unit=%d) record not found, errcode=%d\n", iun, handle);
-        return handle;
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: c_fstlirx: (unit=%d) record not found, errcode=%d\n",__func__,iun,handle);
+         return handle;
     }
 
     ier = c_fstluk(field, handle, ni, nj, nk);
@@ -2123,23 +2101,21 @@ int c_fstlis(
 
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstlis", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     int index = file_index(iun);
     if (index == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstlis", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     // position to the next record that matches the last search criterias
     // find next with handle=-1 and nprim=0
     int handle = c_xdfloc(iun, -1, primk, 0);
     if (handle < 0) {
-        if (msg_level <= WARNING) {
-            fprintf(stdout, "c_fstlis: (unit=%d) record not found, errcode=%d\n", iun, handle);
-        }
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: (unit=%d) record not found, errcode=%d\n",__func__,iun,handle);
         return handle;
     }
 
@@ -2227,8 +2203,8 @@ int c_fstluk(
     bzero(workField, workFieldSz);
 
     // if ((workField = alloca(workFieldSz)) == NULL) {
-    //     sprintf(errmsg, "memory is full, was trying to allocate %ld bytes", lng * sizeof(int));
-    //     return error_msg("c_fstluk", ERR_MEM_FULL, ERRFATAL);
+    //     Lib_Log(APP_FATAL,APP_LIBRMN,"%s: "memory is full, was trying to allocate %ld bytes\n",__func__,lng*sizeof(int));
+    //     return(ERR_MEM_FULL);
     // } else {
     //     printf("Debug+ fstluk - &\n");
     //     printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
@@ -2250,9 +2226,8 @@ int c_fstluk(
     if (ier < 0) return ier;
 
     if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
-        printf("c_fstluk aux_keys[0]=%d, aux_keys[1]=%d\n", stdf_aux_keys[0], stdf_aux_keys[1]);
-        sprintf(errmsg, "wrong version of fstd98 (%d), recompile with a more recent version", stdf_version);
-        return error_msg("c_fstluk", ERR_STDF_VERSION, ERRFATAL);
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: wrong version of fstd98 (%d), recompile with a more recent version (aux_keys[0]=%d, aux_keys[1]=%d)\n",__func__,stdf_version,stdf_aux_keys[0],stdf_aux_keys[1]);
+        return(ERR_STDF_VERSION);
     }
 
     int nelm = stdf_entry.ni * stdf_entry.nj * stdf_entry.nk;
@@ -2460,12 +2435,12 @@ int c_fstluk(
                 break;
 
             default:
-                sprintf(errmsg, "invalid datyp=%d", stdf_entry.datyp);
-                return error_msg("c_fstluk", ERR_BAD_DATYP, ERROR);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: invalid datyp=%d\n",__func__,stdf_entry.datyp);
+                return(ERR_BAD_DATYP);
         } /* end switch */
     }
 
-    if (msg_level <= INFORM) {
+    if (Lib_LogLevel(NULL,APP_LIBRMN)>=APP_INFO) {
         char string[11];
         sprintf(string, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
@@ -2516,15 +2491,15 @@ int c_fstmsq(
 
     int index = file_index(iun);
     if (index == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstmsq", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     file_table_entry *fte = file_table[index];
 
     if (! fte->cur_info->attr.std) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", iun);
-        return error_msg("c_fstmsq", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard file\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     stdf_dir_keys * search_mask = (stdf_dir_keys *) fte->srch_mask;
@@ -2577,13 +2552,11 @@ int c_fstnbr(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstnbr", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        /*    sprintf(errmsg, "file (unit=%d) is not open", iun); */
-        /*    return error_msg("c_fstnbr", ERR_NO_FILE, ERROR); */
         c_fstouv(iun, "RND");
         index = file_index(iun);
         fte = file_table[index];
@@ -2607,8 +2580,8 @@ int c_fstnbrv(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstnbrv", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
@@ -2638,33 +2611,12 @@ int c_fstopc(
   int val = 0;
 
   if (strcmp(option, "MSGLVL") == 0) {
-    if (getmode){
-      if (getmode == 2) val = msg_level;
-    }else{
-      for (i = 0; i < 7; i++) {
-        if (strcmp(msgtab[i], value) == 0) {
-          msg_level = i;
-          break;
-        }
-      }
-      c_armn_compress_option(option, value);  /* pass msglvl option to compressor */
-    }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopc MSGLVL option = '%s' , %d\n", msgtab[msg_level], nivmsg[msg_level]);
+    Lib_Log(APP_INFO,APP_LIBRMN,"%s: MSGLVL option is deprecated\n",__func__);
     return val;
   }
 
   if (strcmp(option, "TOLRNC") == 0) {
-    if (getmode){
-      if (getmode == 2) val = xdf_toler;
-    }else{
-      for (i = 0; i < 7; i++){
-        if (strcmp(msgtab[i], value) == 0) {
-          xdf_toler = i;
-          break;
-        }
-      }
-    }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopc option %s, TOLRNC=%d\n", msgtab[xdf_toler], nivmsg[xdf_toler]);
+    Lib_Log(APP_INFO,APP_LIBRMN,"%s: TOLRNC option is deprecated\n",__func__);
     return val;
   }
 
@@ -2674,7 +2626,8 @@ int c_fstopc(
     }else{
       sprintf(prnt_options, "%s", value);
     }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopc option PRINTOPT='%s'\n", prnt_options);
+    if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+       Lib_Log(APP_INFO,APP_LIBRMN,"%s: option PRINTOPT='%s'\n",__func__,prnt_options);
     return val;
   }
 
@@ -2690,11 +2643,12 @@ int c_fstopc(
       }
       c_armn_compress_setlevel(turbocomp_mode);
     }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopc option TURBOCOMP=%s\n", comptab[turbocomp_mode]);
+    if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+       Lib_Log(APP_INFO,APP_LIBRMN,"%s: option TURBOCOMP=%s\n",__func__,comptab[turbocomp_mode]);
     return val;
   }
 
-  fprintf(stderr, "c_fstopc: unknown option %s\n", option);
+  Lib_Log(APP_ERROR,APP_LIBRMN,"%s: unknown option '%s'\n",__func__,option);
   return val;
 }
 
@@ -2711,32 +2665,12 @@ int c_fstopi(
   int val = 0;
 
   if (strcmp(option, "MSGLVL") == 0) {
-    if (getmode){
-      if (getmode == 2) val = msg_level;
-    }else{
-      for (int i = 0; i < 7; i++) {
-        if (nivmsg[i] == value) {
-          msg_level = i;
-          break;
-        }
-      }
-    }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopi  MSGLVL option = '%s' , %d\n", msgtab[msg_level], nivmsg[msg_level]);
+    Lib_Log(APP_INFO,APP_LIBRMN,"%s: MSGLVL option is deprecated\n",__func__);
     return val;
   }
 
   if (strcmp(option, "TOLRNC") == 0) {
-    if (getmode){
-      if (getmode == 2) val = xdf_toler;
-    }else{
-      for (int i = 0; i < 7; i++){
-        if (nivmsg[i] == value) {
-          xdf_toler = i;
-          break;
-        }
-      }
-    }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopi option TOLRNC=%d\n", nivmsg[xdf_toler]);
+    Lib_Log(APP_INFO,APP_LIBRMN,"%s: TOLRNC option is deprecated\n",__func__);
     return val;
   }
 
@@ -2749,11 +2683,12 @@ int c_fstopi(
         c_armn_compress_setlevel(turbocomp_mode);
       }
     }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopi option TURBOCOMP= '%s' , %d\n", comptab[turbocomp_mode], turbocomp_mode);
+   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+       Lib_Log(APP_INFO,APP_LIBRMN,"%s: option TURBOCOMP=%s , %d\n",__func__,comptab[turbocomp_mode],turbocomp_mode);
     return val;
   }
 
-  fprintf(stderr, "c_fstopi: unknown option %s\n", option);
+  Lib_Log(APP_ERROR,APP_LIBRMN,"%s: unknown option '%s'\n",__func__,option);
   return val;
 }
 
@@ -2774,7 +2709,8 @@ int c_fstopl(
       if (getmode == 2) val = 0;
     }else{
     }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopl FASTIO mode NOT ACTIVE\n");
+   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+       Lib_Log(APP_INFO,APP_LIBRMN,"%s: FASTIO mode NOT ACTIVE\n",__func__);
     return val;
   }
 
@@ -2784,7 +2720,8 @@ int c_fstopl(
     }else{
       image_mode_copy = value;
     }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopl option IMAGE_MODE_COPY=%d\n", image_mode_copy);
+   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+       Lib_Log(APP_INFO,APP_LIBRMN,"%s: option IMAGE_MODE_COPY=%d\n",__func__,image_mode_copy);
     return val;
   }
 
@@ -2794,11 +2731,12 @@ int c_fstopl(
     }else {
       downgrade_32 = value;
     }
-    if (getmode == 1 || msg_level <= INFORM) fprintf(stdout, "c_fstopl option REDUCTION32=%d\n", downgrade_32);
+   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+       Lib_Log(APP_INFO,APP_LIBRMN,"%s: option REDUCTION32=%d\n",__func__,downgrade_32);
     return val;
   }
 
-  fprintf(stderr, "c_fstopi: unknown option %s\n", option);
+  Lib_Log(APP_ERROR,APP_LIBRMN,"%s: unknown option '%s'\n",__func__,option);
   return val;
 }
 
@@ -2849,8 +2787,8 @@ int c_fstouv(
     }
     i = fnom_index(iun);
     if (i == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstouv", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((strstr(options, "RND"))  || (strstr(options, "rnd"))) {
@@ -3007,25 +2945,25 @@ int c_fstrwd(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstrwd", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstrwd", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
 
     if (! f->cur_info->attr.std) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", iun);
-        return error_msg("c_fstrwd", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard file\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     if (! f->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not sequential", iun);
-        return error_msg("c_fstrwd", ERR_BAD_FTYPE, WARNING);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: file (unit=%d) is not sequential\n",__func__,iun);
+        return(ERR_BAD_FTYPE);
     }
 
     f->cur_addr = f->seq_bof;
@@ -3049,20 +2987,20 @@ int c_fstskp(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstskp", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstskp", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
 
     if (!f->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not sequential", iun);
-        return error_msg("c_fstskp", ERR_BAD_FTYPE, WARNING);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: file (unit=%d) is not sequential\n",__func__,iun);
+        return(ERR_BAD_FTYPE);
     }
 
     if (! f->fstd_vintage_89) {
@@ -3071,9 +3009,7 @@ int c_fstskp(
             for (i = 0; i < nrec; i++) {
                 nw = c_waread2(iun, &header64, f->cur_addr, W64TOWD(1));
                 if ((nw != W64TOWD(1)) || ((header64.idtyp >= 112) && (header64.idtyp <= 127))) {
-                    if (msg_level <= INFORM) {
-                        fprintf(stdout, "c_fstskp: (unit %d) skip to end of file\n", iun);
-                    }
+                    Lib_Log(APP_INFO,APP_LIBRMN,"%s: (unit %d) skip to end of file\n",__func__,iun);
                     break;
                 }
                 cur_pos = f->cur_addr;
@@ -3083,8 +3019,8 @@ int c_fstskp(
                     /* skip postfix also */
                     f->cur_addr += W64TOWD(2);
                 } else {
-                    sprintf(errmsg, "file (unit=%d) has invalid or no record postfix", iun);
-                    return error_msg("c_fstskp", ERR_NO_POSTFIX, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file (unit=%d) has invalid or no record postfix\n",__func__,iun);
+                    return(ERR_NO_POSTFIX);
                 }
             }
         } else {
@@ -3095,14 +3031,13 @@ int c_fstskp(
                     if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
                         f->cur_addr = W64TOWD( (postfix.prev_addr - 1) )+1;
                     } else {
-                        sprintf(errmsg, "file (unit=%d) has no record postfix", iun);
-                        return error_msg("c_fstskp", ERR_NO_POSTFIX, ERRFATAL);
+                        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file (unit=%d) has no record postfix\n",__func__,iun);
+                        return(ERR_NO_POSTFIX);
                     }
                     c_waread(iun, &header64, f->cur_addr, W64TOWD(1));
                     if (header64.addr != (WDTO64( (f->cur_addr -1) )+1)) {
-                        sprintf(errmsg, "file (unit=%d), postfix address (%d) not equal to record address (%d) ",
-                            iun, (WDTO64( (f->cur_addr -1) )+1), header64.addr);
-                        return error_msg("c_fstskp", ERR_NO_POSTFIX, ERRFATAL);
+                        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: file (unit=%d), postfix address (%d) not equal to record address (%d)\n",__func__,iun,(WDTO64((f->cur_addr -1))+1),header64.addr);
+                        return(ERR_NO_POSTFIX);
                     }
                 }
             }
@@ -3115,9 +3050,7 @@ int c_fstskp(
             for (i = 0; i < nrec; i++) {
                 nw = c_waread2(iun, &seq_entry, f->cur_addr, dim);
                 if ((nw != dim) || (seq_entry.eof > 0)) {
-                    if (msg_level <= INFORM) {
-                        fprintf(stderr, "c_fstskp: (unit %d) skip to end of file\n", iun);
-                    }
+                    Lib_Log(APP_INFO,APP_LIBRMN,"%s: (unit %d) skip to end of file\n",__func__,iun);
                     break;
                 }
                 f->cur_addr += W64TOWD( (((seq_entry.lng + 3) >> 2) + 15) );
@@ -3161,8 +3094,7 @@ int c_fstsui(
     /* position to the next record that matches the last search criterias */
     int handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
     if (handle < 0) {
-        if (msg_level == TRIVIAL)
-        fprintf(stdout, "c_fstsui: record not found, errcode=%d\n", handle);
+        Lib_Log(APP_INFO,APP_LIBRMN,"%s: record not found, errcode=%d\n",__func__,handle);
         return handle;
     }
 
@@ -3196,21 +3128,21 @@ int c_fstvoi(
 ) {
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstvoi", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     int fileIdx = file_index(iun);
     if (fileIdx == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstvoi", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     file_table_entry* fte = file_table[fileIdx];
 
     if (! fte->cur_info->attr.std) {
-        sprintf(errmsg, "file (unit=%d) is not a RPN standard file", iun);
-        return error_msg("c_fstvoi", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not a RPN standard file\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     int nrec = 0;
@@ -3248,8 +3180,8 @@ int c_fstvoi(
             if (fte->fstd_vintage_89) {
                 // old sequential standard
                 if ((stdf_entry = calloc(1, sizeof(stdf_dir_keys))) == NULL) {
-                    sprintf(errmsg, "memory is full");
-                    return error_msg("c_fstvoi", ERR_MEM_FULL, ERRFATAL);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: memory is full\n",__func__);
+                    return(ERR_MEM_FULL);
                 }
                 seq_dir_keys* seq_entry = (seq_dir_keys *) fte->head_keys;
                 if (seq_entry->dltf) {
@@ -3385,20 +3317,20 @@ int c_fstweo(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_fstweo", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_fstweo", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     f = file_table[index];
 
     if (!f->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not sequential", iun);
-        return error_msg("c_fstweo", ERR_BAD_FTYPE, WARNING);
+        Lib_Log(APP_WARNING,APP_LIBRMN,"%s: file (unit=%d) is not sequential\n",__func__,iun);
+        return(ERR_BAD_FTYPE);
     }
 
     VALID(level, 1, 15, "level", "c_fstweo");
@@ -3429,11 +3361,6 @@ void c_fst_env_var(
     char *content
 ) {
     char *carac;
-
-    // fprintf(stderr, "c_fst_env_var(), fstoption: %s\n", cle);
-    // fprintf(stderr, "c_fst_env_var(),    index = %d\n", index);
-    // fprintf(stderr, "c_fst_env_var(), content  : %s\n", content);
-
 
     if (strcasecmp(cle, "TURBOCOMP") == 0) {
         carac = content;
@@ -3486,7 +3413,7 @@ int c_ip1_all(
     ips_tab[0][ip_nb[0]] = ip_new;
     ip_nb[0]++;
     if (ip_nb[0] >= Max_Ipvals) {
-        fprintf(stderr, "ip1 table full (ip_nb=%d)\n", ip_nb[0]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip1 table full (ip_nb=%d)\n",__func__,ip_nb[0]);
         return -1;
     }
 
@@ -3501,7 +3428,7 @@ int c_ip1_all(
     ip_nb[0]++;
 
     if (ip_nb[0] > Max_Ipvals) {
-        fprintf(stderr, "ip1 table full (i1_ind=%d)\n", ip_nb[0]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip1 table full (i1_ind=%d)\n",__func__,ip_nb[0]);
         return -1;
     }
     // printf("Debug+ c_ip1_all llevel=%f lkind=%d ip_new=%d ip_old=%d\n", llevel, lkind, ip_new, ip_old);
@@ -3530,7 +3457,7 @@ int c_ip2_all(
     ips_tab[1][ip_nb[1]] = ip_new;
     ip_nb[1]++;
     if (ip_nb[1] >= Max_Ipvals) {
-        fprintf(stderr, "ip2 table full (ip_nb=%d)\n", ip_nb[1]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip2 table full (ip_nb=%d)\n",__func__,ip_nb[1]);
         return -1;
     }
 
@@ -3545,7 +3472,7 @@ int c_ip2_all(
     ip_nb[1]++;
 
     if (ip_nb[1] > Max_Ipvals) {
-        fprintf(stderr, "ip2 table full (i2_ind=%d)\n", ip_nb[1]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip2 table full (i2_ind=%d)\n",__func__,ip_nb[1]);
         return -1;
     }
     return ip_new;
@@ -3573,7 +3500,7 @@ int c_ip3_all(
     ips_tab[2][ip_nb[2]] = ip_new;
     ip_nb[2]++;
     if (ip_nb[2] >= Max_Ipvals) {
-        fprintf(stderr, "ip3 table full (ip_nb=%d)\n", ip_nb[2]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip3 table full (ip_nb=%d)\n",__func__,ip_nb[2]);
         return -1;
     }
 
@@ -3588,7 +3515,7 @@ int c_ip3_all(
     ip_nb[2]++;
 
     if (ip_nb[2] > Max_Ipvals) {
-        fprintf(stderr, "ip3 table full (i3_ind=%d)\n", ip_nb[2]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip3 table full (i3_ind=%d)\n",__func__,ip_nb[2]);
         return -1;
     }
     return ip_new;
@@ -3616,7 +3543,7 @@ int c_ip1_val(
     ips_tab[0][ip_nb[0]] = ip_new;
     ip_nb[0]++;
     if (ip_nb[0] >= Max_Ipvals) {
-        fprintf(stderr, "ip1 table full (ip_nb=%d)\n", ip_nb[0]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip1 table full (ip_nb=%d)\n",__func__,ip_nb[0]);
         return -1;
     }
     return ip_new;
@@ -3644,7 +3571,7 @@ int c_ip2_val(
     ips_tab[1][ip_nb[1]] = ip_new;
     ip_nb[1]++;
     if (ip_nb[1] >= Max_Ipvals) {
-        fprintf(stderr, "ip2 table full (ip_nb=%d)\n", ip_nb[1]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip2 table full (ip_nb=%d)\n",__func__,ip_nb[1]);
         return -1;
     }
     return ip_new;
@@ -3672,7 +3599,7 @@ int c_ip3_val(
     ips_tab[2][ip_nb[2]] = ip_new;
     ip_nb[2]++;
     if (ip_nb[2] >= Max_Ipvals) {
-        fprintf(stderr, "ip3 table full (ip_nb=%d)\n", ip_nb[2]);
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ip3 table full (ip_nb=%d)\n",__func__,ip_nb[2]);
         return -1;
     }
     return ip_new;
@@ -3903,8 +3830,8 @@ int32_t ier = 0;
 
 ninjnk = Max(1, *f_ni) * Max(1, *f_nj) * Max(1, *f_nk);
 if (ninjnk > lng_string * *f_nj) {
-  sprintf(errmsg, "ni * nj * nk (%d) > string length (%d)", ninjnk, lng_string);
-  return error_msg("FSTECR_S", ERR_BAD_DIM, ERROR);
+  Lib_Log(APP_ERROR,APP_LIBRMN,"%s: ni * nj * nk (%d) > string length (%d)\n",__func__,ninjnk,lng_string);
+  return(ERR_BAD_DIM);
   }
 else
   {
@@ -5247,7 +5174,7 @@ int FstCanTranslateName(char *varname) {
             }
             if ((fileref = fopen(filename, "r")) != NULL) {
                 if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
-                fprintf(stderr, "OPENING exception file: %s\n", filename);
+                Lib_Log(APP_INFO,APP_LIBRMN,"%s: OPENING exception file: %s\n",__func__,filename);
                 fclose(fileref);
             }
         }
@@ -5256,9 +5183,7 @@ int FstCanTranslateName(char *varname) {
             for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
             exception_vars[i] = '\0';
             result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
-            if (msg_level < INFORM) {
-                fprintf(stderr, "exception pattern: '%s'\n", exception_vars + 1);
-            }
+            Lib_Log(APP_INFO,APP_LIBRMN,"%s: exception pattern: '%s'\n",__func__,exception_vars + 1);
         }
     }
     if (exception_vars[0] == '~') {
@@ -5305,24 +5230,24 @@ void c_ip_string(
 //! \warning Stub; not implemented yet
 int32_t f77name(fstabt)()
 {
-    sprintf(errmsg, "this routine is not implemented in FSTD98");
-    return error_msg("FSTABT", ERR_NOT_IMPL, ERRFATAL);
+    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: this routine is not implemented in FSTD98\n",__func__);
+    return(ERR_NOT_IMPL);
 }
 //! \warning Stub; not implemented yet
 int32_t f77name(fstsel)()
 {
-    sprintf(errmsg, "this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead");
-    return error_msg("FSTSEL", ERR_NOT_IMPL, WARNING);
+    Lib_Log(APP_WARNING,APP_LIBRMN,"%s: this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead\n",__func__);
+    return(ERR_NOT_IMPL);
 }
 //! \warning Stub; not implemented yet
 int32_t f77name(zfstcvt)()
 {
-    sprintf(errmsg, "this routine is not implemented yet in FSTD98");
-    return error_msg("FSTCVT", ERR_NOT_IMPL, ERROR);
+    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: this routine is not implemented yet in FSTD98\n",__func__);
+    return(ERR_NOT_IMPL);
 }
 //! \warning Stub; not implemented yet
 int32_t f77name(fstpos)()
 {
-    sprintf(errmsg, "this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead");
-    return error_msg("FSTPOS", ERR_NOT_IMPL, WARNING);
+    Lib_Log(APP_WARNING,APP_LIBRMN,"%s: this routine is not implemented in FSTD98\n \t\t fstinfx or fstlirx must be used instead\n",__func__);
+    return(ERR_NOT_IMPL);
 }

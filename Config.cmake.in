@@ -4,7 +4,7 @@
 # https://cmake.org/cmake/help/v3.0/command/find_package.html
 # [[DOC]] https://cmake.org/cmake/help/v3.14/manual/cmake-developer.7.html
 
-set(_supported_somponents shared static)
+set(_supported_components shared static)
 
 #----- Set include directory
 set_and_check(${CMAKE_FIND_PACKAGE_NAME}_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")

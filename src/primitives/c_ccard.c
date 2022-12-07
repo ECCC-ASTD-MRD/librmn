@@ -25,6 +25,7 @@
 #include <strings.h>
 #include <ctype.h>
 
+#include <App.h>
 #include <rmn/c_ccard.h>
 
 #define MAJUS 0
@@ -97,7 +98,7 @@ static void extractValues(
                 break;
             }
         } else {
-            fprintf(stderr, "\n***ERREUR DEBORDEMENT DE LISTE OU MODE POSITIONNEL\n");
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Debordement de liste ou mode positionnel\n",__func__);
         }
     }
 }
@@ -298,7 +299,7 @@ void c_ccard(
         // recuperer les premiers arguments positionels
         arg = posArgs(arg, keys, nbKeys, dashKeyIdx, &npos_interne, &posKeyIdx, &nbErrors);
         if (nbErrors) {
-            fprintf(stderr, "\n ***ERREUR - TROP D'ARGUMENTS POSITIONELS \n");
+            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Trop d'arguments positionels\n",__func__);
             printKeys(keys, progName, nbKeys);
             if (exitOnError) {
                 exit(-1);
@@ -317,7 +318,7 @@ void c_ccard(
                 arg++;
                 arg = posArgs(arg, keys, nbKeys, dashKeyIdx, &npos_interne, &posKeyIdx, &nbErrors);
                 if (nbErrors) {
-                    fprintf(stderr, "\n ***ERREUR - TROP D'ARGUMENTS POSITIONELS \n");
+                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Trop d'arguments positionelsl\n",__func__);
                     printKeys(keys, progName, nbKeys);
                     if (exitOnError) {
                         exit(-1);
@@ -341,7 +342,7 @@ void c_ccard(
                     strcpy(keys[keyIdx].fin , keys[keyIdx].def);
                 }
             } else {
-                fprintf(stderr, " ***ERREUR CLEF=%s INVALIDE***\n", keyName);
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Clef=%s invalide\n",__func__,keyName);
                 printKeys(keys, progName, nbKeys);
                 if (exitOnError) {
                     exit(-1);
@@ -352,7 +353,7 @@ void c_ccard(
             if ((currentKeyIdx != -1) && (strcmp(keyNames[currentKeyIdx], keyNames[keyIdx]) == 0)) {
                 extractValues(keys, arg, keyIdx, &currentKeyIdx);
             } else {
-                fprintf(stderr, "\n ***DEBORDEMENT DE LISTE \n");
+                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Débordement de liste\n",__func__);
                 printKeys(keys, progName, nbKeys);
                 if (exitOnError) {
                     exit(-1);

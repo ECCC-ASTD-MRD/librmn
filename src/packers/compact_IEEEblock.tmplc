@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <bitPacking.h>
 
+#include <App.h>
 
 // Pack IEEE floating point numbers( float and double ) into a reduced bit size "IEEE" floating point numbers
 void *compact_IEEEblock_FLOAT_TYPE(
@@ -280,7 +281,7 @@ void *compact_IEEEblock_FLOAT_TYPE(
         return (int32_t *)arrayOfFloat;
 
     } else {
-        printf("\n opCode is not defined \n");
+        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: opCode is not defined\n",__func__);
         return NULL;
     }
 }
