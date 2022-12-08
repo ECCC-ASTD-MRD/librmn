@@ -98,7 +98,7 @@ static void extractValues(
                 break;
             }
         } else {
-            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Debordement de liste ou mode positionnel\n",__func__);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Debordement de liste ou mode positionnel\n",__func__);
         }
     }
 }
@@ -299,7 +299,7 @@ void c_ccard(
         // recuperer les premiers arguments positionels
         arg = posArgs(arg, keys, nbKeys, dashKeyIdx, &npos_interne, &posKeyIdx, &nbErrors);
         if (nbErrors) {
-            Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Trop d'arguments positionels\n",__func__);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Trop d'arguments positionels\n",__func__);
             printKeys(keys, progName, nbKeys);
             if (exitOnError) {
                 exit(-1);
@@ -318,7 +318,7 @@ void c_ccard(
                 arg++;
                 arg = posArgs(arg, keys, nbKeys, dashKeyIdx, &npos_interne, &posKeyIdx, &nbErrors);
                 if (nbErrors) {
-                    Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Trop d'arguments positionelsl\n",__func__);
+                    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Trop d'arguments positionelsl\n",__func__);
                     printKeys(keys, progName, nbKeys);
                     if (exitOnError) {
                         exit(-1);
@@ -342,7 +342,7 @@ void c_ccard(
                     strcpy(keys[keyIdx].fin , keys[keyIdx].def);
                 }
             } else {
-                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Clef=%s invalide\n",__func__,keyName);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Clef=%s invalide\n",__func__,keyName);
                 printKeys(keys, progName, nbKeys);
                 if (exitOnError) {
                     exit(-1);
@@ -353,7 +353,7 @@ void c_ccard(
             if ((currentKeyIdx != -1) && (strcmp(keyNames[currentKeyIdx], keyNames[keyIdx]) == 0)) {
                 extractValues(keys, arg, keyIdx, &currentKeyIdx);
             } else {
-                Lib_Log(APP_ERROR,APP_LIBRMN,"%s: Débordement de liste\n",__func__);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Débordement de liste\n",__func__);
                 printKeys(keys, progName, nbKeys);
                 if (exitOnError) {
                     exit(-1);

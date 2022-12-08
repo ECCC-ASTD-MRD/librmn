@@ -281,7 +281,7 @@ void *compact_IEEEblock_FLOAT_TYPE(
         return (int32_t *)arrayOfFloat;
 
     } else {
-        Lib_Log(APP_ERROR,APP_LIBRMN,"%f: opCode is not defined\n",__func__);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%f: opCode is not defined\n",__func__);
         return NULL;
     }
 }

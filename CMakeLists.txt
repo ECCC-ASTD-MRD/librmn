@@ -32,9 +32,15 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
+find_package(MPI)
+#set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+#set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS OFF)
+
+add_compile_definitions(_${CMAKE_SYSTEM_NAME}_ _GNU_SOURCE)
 
 option(EXTRA_DEBUG_OUTPUT "Enable extra debug output" OFF)
 if(EXTRA_DEBUG_OUTPUT)
@@ -45,14 +51,13 @@ endif()
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
 
-find_package(App ${App_REQ_VERSION} REQUIRED)
-
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
 
 include_directories(
    include
    src/PUBLIC_INCLUDES
+   src/PUBLIC_INCLUDES/rmn
 )
 
 file(GLOB PROJECT_C_FILES
@@ -71,7 +76,6 @@ file(GLOB PROJECT_H_FILES
    src/*/*.cdk
    src/*/*.tpl*
 )
-
 
 # This really isn't the ideal solution; the compiler should be called with all
 # the definitions and options as if we it was processing a source file
@@ -102,24 +106,22 @@ ec_build_info(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_library(rmn-ompi STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_library(rmnshared-ompi SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 # Required to prevent missing Fortran modules when building in parallel
 # (make -j) with GNU compilers
 add_dependencies(rmnshared rmn)
 
-foreach(TARGET IN ITEMS rmn rmnshared)
-    target_link_libraries(${TARGET} PUBLIC App)
-    if(WITH_OPENMP)
-        target_link_libraries(${TARGET} PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)
-    endif()
+foreach(TARGET IN ITEMS rmn rmnshared rmn-ompi rmnshared-ompi)
     target_compile_options(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
-        add_dependencies(${TARGET}
-            ${PROJECT_NAME}_build_info
-            WhiteBoardFortranHeader)
+    add_dependencies(${TARGET}
+        ${PROJECT_NAME}_build_info
+        WhiteBoardFortranHeader)
 endforeach()
 
 #TODO: Could get rid of this binary a it's availble through rmn_config
@@ -133,6 +135,16 @@ set_target_properties(rmn PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn)
 
+if(OpenMP_FOUND)
+    set_target_properties(rmn-ompi PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+        POSITION_INDEPENDENT_CODE ON
+        OUTPUT_NAME rmn-ompi)
+    target_link_libraries(rmn-ompi PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+    target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
+endif()
+
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 set_target_properties(rmnshared PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -141,7 +153,18 @@ set_target_properties(rmnshared PROPERTIES
     SOVERSION ${SOVERSION}
     OUTPUT_NAME rmn)
 
-install(TARGETS rmn rmnshared librmn_version)
+if(OpenMP_FOUND)
+    set_target_properties(rmnshared-ompi PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+        POSITION_INDEPENDENT_CODE ON
+        SOVERSION ${SOVERSION}
+        OUTPUT_NAME rmn-ompi)
+    target_link_libraries(rmnshared-ompi PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+    target_compile_definitions(rmnshared-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
+endif()
+
+install(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi librmn_version)
 
 # Symbolic link for archive numbered version
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -150,6 +173,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 
 # Fortran modules are installed in the include directory for now
 install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/rmn_app.mod
     ${CMAKE_CURRENT_BINARY_DIR}/rmn_jar.mod
     ${CMAKE_CURRENT_BINARY_DIR}/rmn_gmm.mod
     DESTINATION include)

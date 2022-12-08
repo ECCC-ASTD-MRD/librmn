@@ -93,13 +93,13 @@ void f77name(fs_to_cs)(char *fstring, int *rmblanks, int *ns, F2Cl fnc)
     if (*ns == 1) {
         char * cmpstring = malloc(13);
         char * cstring = fstring_to_cstring(fstring, fnc, *rmblanks);
-        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: cstring-->%s<--\n",__func__,cstring);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%f: cstring-->%s<--\n",__func__,cstring);
         strcpy(cmpstring, "Label01");
-        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: cmpstring-->%s<--\n",__func__,cmpstring);
-        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: strncmp sans blancs=%d\n",__func__,strncmp(cstring, cmpstring, 13));
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%f: cmpstring-->%s<--\n",__func__,cmpstring);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%f: strncmp sans blancs=%d\n",__func__,strncmp(cstring, cmpstring, 13));
         strcpy(cmpstring, "Label01     ");
-        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: cmpstring-->%s<--\n",__func__,cmpstring);
-        Lib_Log(APP_DEBUG,APP_LIBRMN,"%f: strncmp sans blancs=%d\n",__func__,strncmp(cstring, cmpstring, 13));
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%f: cmpstring-->%s<--\n",__func__,cmpstring);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%f: strncmp sans blancs=%d\n",__func__,strncmp(cstring, cmpstring, 13));
         free(cmpstring);
     } else {
         fill_string_array(allocate_string_array(*ns), fstring, fnc, *ns, *rmblanks);

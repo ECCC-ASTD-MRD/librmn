@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include <App.h>
 #include <rmn/version.h>
 
 char PROJECT_VERSION[] = VERSION;

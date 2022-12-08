@@ -56,6 +56,6 @@ void unpackWrapper(
     } else if ( headerType == 0x000000f0 ) {
         compact_rle(unpackedArray, packedHeader, packedArray, -1, -1, -1, -1, 128, stride, 2);
     } else {
-        Lib_Log(APP_ERROR,APP_LIBRMN,"%s: %8.8x not a valid header\n",__func__,headerType);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %8.8x not a valid header\n",__func__,headerType);
     }
 }

@@ -208,7 +208,7 @@ static size_t fread32(
 
     if (*little_endian) {
         if ((size & 3) != 0) {
-            Lib_Log(APP_ERROR,APP_LIBRMN,"%f: size=%d must be a multiple of 4\n",__func__,size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%f: size=%d must be a multiple of 4\n",__func__,size);
             return -1;
         }
 
