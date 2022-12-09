@@ -432,7 +432,7 @@ void App_Start(void) {
  * @author Jean-Philippe Gauthier
  * @date   Septembre 2008
  *
- * @param[in] Status  User status to use
+ * @param[in] Status  User status to use (-1:Use error count)
  * 
  * @return Process exit status to be used
  */
@@ -562,6 +562,8 @@ void App_LogOpen(void) {
  * @date   Septembre 2014
 */
 void App_LogClose(void) {
+
+   fflush(App->LogStream);
 
    if (App->LogStream && App->LogStream!=stdout && App->LogStream!=stderr) {
       fclose(App->LogStream);

@@ -3,9 +3,10 @@ module rmn_app
     implicit none
 
     enum, bind(C) 
-       enumerator :: APP_MUST=-1,APP_ERROR=0,APP_WARNING=1,APP_INFO=2,APP_DEBUG=3,APP_EXTRA=4,APP_QUIET=5
-       enumerator :: APP_MAIN=0,APP_LIBRMN=1,APP_LIBVGRID=2,APP_LIBINTERPV=3,APP_LIBGEOREF=4,APP_LIBRPNMPI=5,APP_LIBIRIS=6
-       end enum
+       enumerator :: APP_MUST=-1, APP_ERROR=0, APP_WARNING=1, APP_INFO=2, APP_DEBUG=3, APP_EXTRA=4, APP_QUIET=5
+       enumerator :: APP_MAIN=0, APP_LIBRMN=1, APP_LIBVGRID=2, APP_LIBINTERPV=3, APP_LIBGEOREF=4, APP_LIBRPNMPI=5, APP_LIBIRIS=6
+       enumerator :: APP_MASTER=0, APP_THREAD=1
+    end enum
     
     type(C_PTR) :: app_ptr
     character (len=*) , parameter :: EOL = char(13)//char(11)
