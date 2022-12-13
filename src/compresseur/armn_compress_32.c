@@ -84,7 +84,7 @@ int c_armn_compress32(
 
     if (ni < 16 || nj < 16) {
         zlng = -1;
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: The dimensions of NI and NJ have to be > 16\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: The dimensions of NI and NJ have to be > 16\n",__func__);
         return zlng;
     }
 
@@ -203,7 +203,7 @@ int c_armn_compress32(
         packTokensParallelogram_8((unsigned int *)le_pointeur, &lng_exposant, exposant2, ni, nj, nbits_needed, 3);
         if (lng_exposant > (unsigned int) ni * nj) {
             zlng = -1;
-            Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Exponent range too large, original field left uncompressed",__func__);
+            Lib_Log(APP_LIBFST,APP_WARNING,"%s: Exponent range too large, original field left uncompressed",__func__);
             return zlng;
         }
 
@@ -307,27 +307,27 @@ int c_armn_uncompress32(
     npts = ni * nj;
     signe = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
     if (signe == NULL) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
         return(-1);
     }
     zsigne = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
     if (zsigne == NULL) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
         return(-1);
     }
     exposant = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
     if (exposant == NULL) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
         return(-1);
     }
     exposant2 = (unsigned char *) malloc(2 * npts * sizeof(unsigned char));
     if (exposant2 == NULL) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
         return(-1);
     }
     mantisse = (unsigned int *)   malloc(2 * npts * sizeof(unsigned int));
     if (mantisse == NULL) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Failed to allocate memory (%s:%d)",__func__,__FILE__,__LINE__);
         return(-1);
     }
 
@@ -445,7 +445,7 @@ int c_fstzip32(unsigned int *zfld, unsigned int *fld, int ni, int nj, int nk, in
 
 
     if (zlng == 0) {
-        Lib_Log(APP_LIBRMN,APP_WARNING,"%s: IEEE compressed field is larger than original, keeping original\n",__func__);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: IEEE compressed field is larger than original, keeping original\n",__func__);
         return 0;
     }
 

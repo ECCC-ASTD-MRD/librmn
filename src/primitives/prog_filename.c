@@ -80,6 +80,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 
@@ -103,12 +104,12 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
  for (i=0;i<l1 && *s;i++) f_nom[i]=*s++;
 
  if (l1 < 16) { /* length of f_nom is less than 16 */
-     fprintf(stderr,"prog_filename: length of output filename is less than 16\n");
+     Lib_Log(APP_LIBRMN,APP_ERROR,"%s: length of output filename is less than 16\n",__func__);
      return(-1);
      }
 
  if (l2 < 2) {  /* length of prefix is less than 2 */
-     fprintf(stderr,"prog_filename: length of prefix is less than 2\n");
+     Lib_Log(APP_LIBRMN,APP_ERROR,"%s: length of prefix is less than 2\n",__func__);
      return(-1);
      }
  c1=f_prefix[0];
@@ -119,15 +120,15 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
      prefix[2] = '\0';
      }
  else {
-     fprintf(stderr,"prog_filename: prefix contains improper characters\n");
+     Lib_Log(APP_LIBRMN,APP_ERROR,"%s: prefix contains improper characters\n",__func__);
      return(-1);
      }
  if (*f_date<0 || *f_date>99999999){
-     fprintf(stderr,"prog_filename: date<0 or date>99999999\n");
+     Lib_Log(APP_LIBRMN,APP_ERROR,"%s: date<0 or date>99999999\n",__func__);
      return(-1);
      }
  if (*f_hour<0 || *f_hour>23) {
-     fprintf(stderr,"prog_filename: hour<0 or hour>23\n");
+     Lib_Log(APP_LIBRMN,APP_ERROR,"%s: hour<0 or hour>23\n",__func__);
      return(-1);
      }
 
@@ -135,7 +136,7 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
  if (*f_numlen<3 || *f_numlen>9) numlen=3;
 
  if (*f_num<0) {
-     fprintf(stderr,"prog_filename: num<0\n");
+     Lib_Log(APP_LIBRMN,APP_ERROR,"%s: num<0\n",__func__);
      return(-1);
      }
 
@@ -149,11 +150,11 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
 
  if(*f_min!=-1 && *f_sec!=-1) {
     if (*f_min <0 || *f_min >59) {
-         fprintf(stderr,"prog_filename: minutes<0 or minutes>59\n");
+         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: minutes<0 or minutes>59\n",__func__);
          return(-1);
          }
     if (*f_sec <0 || *f_sec >59) {
-         fprintf(stderr,"prog_filename: seconds<0 or seconds>59\n");
+         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: seconds<0 or seconds>59\n",__func__);
          return(-1);
          }
     snprintf(s,FNAME_LEN-len,"%02d%02d",*f_min,*f_sec);
@@ -163,11 +164,11 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
 
  if(*f_npex!=-1 && *f_npey!=-1) {
     if (*f_npex <0 || *f_npex >99) {
-         fprintf(stderr,"prog_filename: npex<0 or npex>99\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: npex<0 or npex>99\n",__func__);
          return(-1);
          }
     if (*f_npey <0 || *f_npey >99) {
-         fprintf(stderr,"prog_filename: npey<0 or npey>99\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: npey<0 or npey>99\n",__func__);
          return(-1);
          }
     snprintf(s,FNAME_LEN-len,"-%02d-%02d",*f_npex,*f_npey);
@@ -184,6 +185,6 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
 
  for(i=0; i<len && i<l1 ; i++) f_nom[i]=fname[i];
  while (i<l1) f_nom[i++] = ' ';
-    /*printf("f_nom=%s length=%d\n",fname,strlen(f_nom));*/
+ 
  return(0);
 }

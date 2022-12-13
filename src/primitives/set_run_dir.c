@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 void f77name(set_run_dir)(int32_t *mype) {
@@ -51,8 +52,8 @@ void f77name(set_run_dir_xy)(int32_t *mypex, int32_t *mypey) {
 
     sprintf(buffer,"./process/%02d-%02d",pex,pey);
     if ( chdir(buffer) ) {
-        fprintf(stderr,"cannot change to specidied directory:%s:\n",buffer);
-        perror("set_run_dir_xy: cannot change to specidied directory");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot change to specified directory:%s\n",__func__,buffer);
+        perror("set_run_dir_xy: cannot change to specified directory");
         exit(1);
     }
 }

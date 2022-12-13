@@ -173,14 +173,11 @@ static void printKeys(
     //! [in] Number of key names
     int nbKeys
 ) {
-    fprintf(stderr, "\n *** SEQUENCE D'APPEL ***\n\n");
-
-    fprintf(stderr, "%s \n", name);
+    App_Log(APP_MUST,"\n *** SEQUENCE D'APPEL ***\n\n%s \n",name);
 
     for (int i = 0; i < nbKeys; i++) {
-        fprintf(stderr, "          -%s [%s:%s]\n", defo[i].name, defo[i].def, defo[i].val);
+        App_Log(APP_MUST,"\t-%s [%s:%s]\n",defo[i].name,defo[i].def,defo[i].val);
     }
-    fprintf(stderr, "\n");
 }
 
 

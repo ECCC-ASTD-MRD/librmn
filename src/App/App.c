@@ -1,8 +1,18 @@
 #define APP_BUILD
 
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <time.h>
+#include <malloc.h>
+#include <alloca.h>
+#include <errno.h>
+#include <limits.h>
+#include <float.h>
 #include <math.h>
 #include <sched.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <sys/signal.h>
 #ifndef _AIX
    #include <sys/syscall.h>
@@ -16,9 +26,9 @@ static TApp AppInstance;                             ///< Static App instance
 __thread TApp *App=&AppInstance;                     ///< Per thread App pointer
 static __thread char APP_LASTERROR[APP_ERRORSIZE];   ///< Last error is accessible through this
 
-static char* AppLibNames[]    = { "main", "rmn", "vgrid", "interpv", "georef", "rpnmpi", "iris" };
-static char* AppLibLog[]      = { "","RMN:","VGRID:","INTERPV:","GEOREF:","RPNMPI:","IRIS:" };
-static char* AppLevelNames[]  = { "FATAL","ERROR","WARNING","INFO","DEBUG","EXTRA" };
+static char* AppLibNames[]    = { "main", "rmn", "fst", "vgrid", "interpv", "georef", "rpnmpi", "iris" };
+static char* AppLibLog[]      = { "","RMN:", "FST:", "VGRID:","INTERPV:","GEOREF:","RPNMPI:","IRIS:" };
+static char* AppLevelNames[]  = { "FATAL","SYSTEM","ERROR","WARNING","INFO","DEBUG","EXTRA" };
 static char* AppLevelColors[] = { APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_YELLOW, "", APP_COLOR_LIGHTCYAN, APP_COLOR_CYAN };
 
 char* App_ErrorGet(void) {                       //< Return last error

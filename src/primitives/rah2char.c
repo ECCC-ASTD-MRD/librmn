@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 void f77name(rah2char)(char *chaine, int32_t *f_entier, const int32_t * const f_nc, F2Cl lng) {
@@ -28,14 +29,13 @@ void f77name(rah2char)(char *chaine, int32_t *f_entier, const int32_t * const f_
     int entier = *f_entier;
 
     if (nc > lng) {
-        fprintf(stderr, "rah2char ERROR: nc(%d) > lng(%d) using lng\n", nc, lng);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: nc(%d) > lng(%d) using lng\n",__func__,nc,lng);
         nc = lng;
     }
     for (int i = 0; i < nc; i++) {
         entier <<= ((8 * sizeof(entier)) - (nc * 8));
         *chaine = (entier >> 8 * sizeof(entier) - 8) & 0xFF;
         entier <<= 8;
-        // printf("DEBUG *chaine='%c'\n",*chaine);
         chaine++;
     }
 }
@@ -45,13 +45,12 @@ void f77name(char2rah)(char *chaine, int32_t *entier, const int32_t * const f_nc
     int nc = *f_nc;
 
     if (nc > lng) {
-        fprintf(stderr, "char2rah ERROR: nc(%d) > lng(%d) using lng\n", nc, lng);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: nc(%d) > lng(%d) using lng\n",__func__,nc,lng);
         nc = lng;
     }
 
     for (int i = 0; i < nc; i++) {
         *entier <<= 8;
         *entier |= chaine[i];
-        // printf("DEBUG chaine[i]='%c' *entier=%x\n",chaine[i],*entier);
     }
 }

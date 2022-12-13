@@ -33,7 +33,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <rmn/rpnmacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -44,6 +43,8 @@
 #include <ctype.h>
 #include <sys/resource.h>
 
+#include <rmn/App.h>
+#include <rmn/rpnmacros.h>
 #include <rmn/mgi.h>
 #include <rmn/gossip.h>
 #include <rmn/gossip_constants.h>
@@ -83,7 +84,7 @@ int32_t f77name (mgi_write_oob) ();
 //! \deprecated
 void f77name (mgi_nosig)() {
     /* SIG_ACTIVE = 0; */
-    fprintf(stderr, "MGI_NOSIG: deprecated call\n");
+    Lib_Log(APP_LIBRMN,APP_WARNING,"%s: deprecated call\n",__func__);
 }
 
 
@@ -148,10 +149,10 @@ static int f_strcmp(
 
 
     if (*s1 == ' ') {
-        fprintf(stderr, "mgilib2::f_strcmp(), before return if (*s1 == ' '), s1 => %s\n ", s1);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: before return if (*s1 == ' '), s1 => %s\n",__func__,s1);
         return check_ends(s1, s2, s2Len, equalLen);
     } else if (*s2 == ' ') {
-        fprintf(stderr, "mgilib2::f_strcmp(), before return if (*s2 == ' '), s2 => %s\n ", s2);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: before return if (*s2 == ' '), s2 => %s\n",__func__,s2);
         return 2 + check_ends(s2, s1, s1Len, equalLen);
     }
 
@@ -189,7 +190,7 @@ static int validchan(
 //! Get the value of the environment variable "MGI_DIR"
 static void getmgidir() {
     if ( (mgidir = getenv("MGI_DIR")) == NULL) {
-        fprintf(stderr, "Environment variable \"MGI_DIR\" undefined --\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Environment variable \"MGI_DIR\" undefined\n",__func__);
     }
 }
 
@@ -198,14 +199,14 @@ static int makepidfile() {
     char stuff[MAX_STR];
     sprintf( PID_file, "%s/%d", mgidir, getpid() );
     sprintf( stuff, "%s/%s", mgidir, "PROCS" );
-    fprintf(stderr, "linking :%s: to :%s:\n", PID_file, stuff );
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: linking :%s: to :%s:\n",__func__,PID_file,stuff);
     return link(stuff, PID_file);
 }
 
 
 //! Remove the PID file
 static void removepidfile() {
-    fprintf(stderr, "removing %s\n", PID_file );
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: removing %s\n",__func__,PID_file);
     unlink(PID_file);
 }
 
@@ -214,20 +215,12 @@ static void removepidfile() {
 static int bwrite ( int chan, void *buffer, int nelem, char *dtype ) {
     int ier;
 
-#ifdef TRACE_LEVEL1
-    fprintf(stderr, "\n bwrite: COMM1-W send_command_to_server() channel: %d", chn[chan].gchannel);
-    fflush(stderr);
-#endif
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: COMM1-W send_command_to_server() channel: %d\n",__func__,chn[chan].gchannel);
 
     ier = send_command_to_server(chn[chan].gchannel, "WRITE");
 
     if (ier < 0) {
-#ifdef DEBUG
-        fprintf(stderr, "\n bwrite send_command_to_server returns ier= %d\n", ier);
-        fprintf(stderr, "\n bwrite: COMM1-W send_command_to_server() error on channel: %d", chn[chan].gchannel);
-        fprintf(stderr, "\n bwrite, unable to send write command\n");
-        fflush(stderr);
-#endif
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Unable to send write command, send_command_to_server returns ier= %d with error on channel: %d\n",__func__,ier,chn[chan].gchannel);
         return -1;
     }
 
@@ -239,16 +232,10 @@ static int bwrite ( int chan, void *buffer, int nelem, char *dtype ) {
         ier = write_record(chn[chan].gchannel, buffer, nelem, 1);
     }
 
-#ifdef TRACE_LEVEL1
-    fprintf(stderr, "\n bwrite: COMM8-R get_ack_nack() \n");
-    fflush(stderr);
-#endif
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: COMM8-R get_ack_nack()\n",__func__);
 
     if (get_ack_nack(chn[chan].gchannel)) {
-#ifdef DEBUG
-        fprintf(stderr, "\n bwrite: COMM8-R get_ack_nack() error on channel: %d", chn[chan].gchannel);
-        fflush(stderr);
-#endif
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: COMM8-R get_ack_nack() error on channel: %d\n",__func__,chn[chan].gchannel);
         return -1;
     } else {
         return 0;
@@ -270,7 +257,7 @@ int32_t f77name (mgi_clos) (
     if (chn[chan].gchannel != 0) {
         snprintf(buf, 1023, "%s %s", "END", chn[chan].name);
         ier = send_command(buf);
-        fprintf(stderr,"MGI_CLOS: subchannel \"%s\" is closed \n", chn[chan].name);
+        Lib_Log(APP_LIBRMN,APP_INFO,"%s: subchannel \"%s\" is closed\n",__func__,chn[chan].name);
     }
 
     if (chn[chan].buffer) {
@@ -288,7 +275,7 @@ int32_t f77name (mgi_term) () {
     for (int chan = 0; chan <= ichan; chan++) {
         if (chn[chan].name && strcmp((char *)chn[chan].name, "") && chn[chan].gchannel > 0) {
             ier = send_command("END");
-            fprintf(stderr,"MGI_TERM: subchannel \"%s\" has been closed!\n", chn[chan].name);
+            Lib_Log(APP_LIBRMN,APP_INFO,"%s: bchannel \"%s\" has been closed\n",__func__,chn[chan].name);
 
             if (chn[chan].buffer) {
                 free(chn[chan].buffer);
@@ -312,12 +299,9 @@ int32_t f77name (mgi_init) (
         init = 1;
     }
 
-#ifdef DEBUG
-    fprintf(stderr,"MGI_INIT ** \n");
-#endif
     ichan++;
     if (ichan >= MAX_CHANNELS) {
-        fprintf(stderr,"MGI_INIT: ERROR, Too many channels assigned; MAX = %d\n", MAX_CHANNELS);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Too many channels assigned; MAX = %d\n",__func__,MAX_CHANNELS);
         return INIT_ERROR;
     }
 
@@ -325,12 +309,12 @@ int32_t f77name (mgi_init) (
     if (lname < MAX_NAME) {
         strcopy(chn[chan].name, channel_name, lname);
     } else {
-        fprintf(stderr,"MGI_INIT: ERROR, Length of channel name > %d chars.\n", MAX_NAME - 1);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Length of channel name > %d chars\n",__func__,MAX_NAME-1);
         return INIT_ERROR;
     }
     chn[chan].fd_data = -1;
     if (SIG_ACTIVE) {
-        fprintf(stderr,"MGI_INIT: Opening channel: \"%s\" \n", chn[chan].name);
+        Lib_Log(APP_LIBRMN,APP_INFO,"%s: Opening channel: \"%s\"\n",__func__,chn[chan].name);
     }
 
     // initialize channel
@@ -342,7 +326,7 @@ int32_t f77name (mgi_init) (
     chn[chan].gchannel = 0;
 
     if ((intBuffer = (int *) malloc(BUFSIZE * sizeof(int))) == NULL) {
-        fprintf(stderr, "MGI_INIT: ERROR on channel %s: Cannot allocate memory for intBuffer\n", chn[chan].name);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Cannot allocate memory for intBuffer on channel %s\n",__func__,chn[chan].name);
         return INIT_ERROR;
     }
 
@@ -388,7 +372,7 @@ int32_t f77name (mgi_open) (
     }
 
     if (chn[chan].gchannel < 0) {
-        fprintf(stderr, "MGI_OPEN, Connection Failed, the Server may be down !!\n" );
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Connection Failed, the Server may be down\n",__func__);
         return CONNECTION_ERROR;
     }
 
@@ -403,7 +387,7 @@ int32_t f77name (mgi_open) (
 void f77name (mgi_set_retry_connect) (
     int32_t *nbRetries
 ) {
-    printf( "MGI_OPEN, setting try to connect USER_TRY_CONNECT: \"%d\" times\n", (int) *nbRetries );
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: Setting try to connect USER_TRY_CONNECT: \"%d\" times\n",__func__,(int)*nbRetries);
     if ((int) *nbRetries > 0 && (int) *nbRetries < 10) {
         USER_TRY_CONNECT = (int) *nbRetries;
     }
@@ -428,7 +412,7 @@ int retry_connect(
 
     while ( chn[chan].gchannel < 0 && attemptsRemaining > 0 ) {
         sleep( PING_INTERVAL );
-        fprintf(stderr, "MGI_OPEN, Connection to Server Failed,  retry to connect: \"%d/%d\" \n", maxAttempts - attemptsRemaining + 1, maxAttempts );
+        Lib_Log(APP_LIBRMN,APP_INFO,"%s: Connection to Server Failed,  retry to connect: \"%d/%d\n",__func__,maxAttempts-attemptsRemaining+1,maxAttempts);
         chn[chan].gchannel = connect_to_subchannel_by_name( get_gossip_dir(0), chn[chan].name, "write" );
         attemptsRemaining--;
     }
@@ -460,17 +444,15 @@ int32_t f77name (mgi_write) (
     nelem = (int) *f_nelem;
     char *tmpstr;
 
-#ifdef DEBUG
-    fprintf(stderr,"\nMGI_WRITE JMB: data type = %c, elts Nbr = %d, subchannel = %s\n", dtype[0], nelem, chn[chan].name);
-#endif
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: data type = %c, elts Nbr = %d, subchannel = %s\n",__func__,dtype[0],nelem,chn[chan].name);
 
     if ( nelem <= 0 ) {
-        fprintf(stderr,"\nMGI_WRITE, Error, cannot write data with length = %d\n", nelem);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Cannot write data with length = %d\n",__func__,nelem);
         return WRITE_ERROR;
     }
 
     if ( chn[chan].gchannel < 0 ) {
-        fprintf(stderr,"\nMGI_WRITE, Error, cannot connect to server using descriptor: \"%d\"!!!\n", chn[chan].gchannel);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Cannot connect to server using descriptor: \"%d\"\n",__func__,chn[chan].gchannel);
         return WRITE_ERROR;
     }
 
@@ -481,12 +463,10 @@ int32_t f77name (mgi_write) (
         strncpy( tmpstr, (char *)buffer, nelem);
         tmpstr[nelem] = '\0';
 
-#ifdef DEBUG
-        fprintf(stderr,"\nMGI_WRITE CHARACTER JMB: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n", dtype[0], nelem, ltype, chn[chan].name);
-#endif
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n",__func__,dtype[0],nelem,ltype,chn[chan].name);
 
         if ((ier = bwrite(chan, (unsigned char *)tmpstr, nelem, dtype)) < 0) {
-            fprintf(stderr,"\nMGI_WRITE (C): ERROR on %s\n", chn[chan].name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Write on %s\n",__func__,chn[chan].name);
             free(tmpstr);
             return WRITE_ERROR;
         }
@@ -495,24 +475,24 @@ int32_t f77name (mgi_write) (
         chn[chan].nblks++;
 
         if ((ier = bwrite(chan, (unsigned char *)buffer, nelem, dtype)) < 0) {
-            fprintf(stderr,"\nMGI_WRITE(I || R || D) : ERROR on %s\n", chn[chan].name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: (I || R || D) error %s\n",__func__,chn[chan].name);
             return WRITE_ERROR;
         }
     } else {
-        fprintf(stderr,"\nMGI_WRITE: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Unknown data type: %c on channel %\n",__func__,*dtype,chn[chan].name);
         return WRITE_TYPE_ERROR;
     }
 
     if (ier < 0) {
         if (get_timeout_signal(chn[chan].gchannel)) {
             if (*dtype == 'C') {
-                fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Character data\" \n", nelem);
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for write %d of Character data\n",__func__,nelem);
             } else if (*dtype == 'I') {
-                fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Integer data\" \n", nelem);
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for write %d of Integer data\n",__func__,nelem);
             } else if (*dtype == 'R') {
-                fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Real data\" \n", nelem);
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for write %d of Real data\n",__func__,nelem);
             } else if (*dtype == 'D') {
-                fprintf(stderr, "\nMGI_WRITE: TIMEOUT for write \"%d of Double data\" \n", nelem);
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for write %d of Double data\n",__func__,nelem);
             }
 
             return signal_timeout(chn[chan].gchannel);
@@ -553,14 +533,10 @@ int32_t f77name (mgi_read) (
     int chan = (int) *f_chan;
     int nelem = (int) *f_nelem;
 
-#ifdef DEBUG
-    fprintf(stderr, "MGI_READ JMB: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n", dtype[0], nelem, ltype, chn[chan].name);
-#endif
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: data type = %c, elts Nbr = %d, strlen = %d,  subchannel = %s\n",__func__,dtype[0],nelem,ltype,chn[chan].name);
 
     if (nelem <= 0) {
-#ifdef DEBUG
-        fprintf(stderr,"MGI_READ, Error: cannot read data with length = %d\n", nelem);
-#endif
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Cannot read data with length = %d\n",__func__,nelem);
         return DATA_LENGTH_ERROR;
     }
 
@@ -569,9 +545,7 @@ int32_t f77name (mgi_read) (
     int ier = send_command_to_server(chn[chan].gchannel, "READ");
 
     if (ier < 0) {
-#ifdef DEBUG
-        fprintf(stderr, "MGI_READ, Error: unable to send write command for channel: \"%s\"\n", chn[chan].name);
-#endif
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Unable to send write command for channel: \"%s\"\n",__func__,chn[chan].name);
         return SEND_COMMAND_ERROR;
     }
 
@@ -583,10 +557,10 @@ int32_t f77name (mgi_read) (
             return ier = nelem;
         } else {
             if ( get_timeout_signal(chn[chan].gchannel) ) {
-                fprintf(stderr, "MGI_READ: TIMEOUT for read \"Integer\" \n" );
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for read \"Integer\"\n",__func__);
                 ier = READ_TIMEOUT;
             } else {
-                fprintf( stderr, "MGI_READ: Problem read Integer\n" );
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Problem read \"Integer\"\n",__func__);
                 return READ_ERROR;
             }
         }
@@ -600,10 +574,10 @@ int32_t f77name (mgi_read) (
             return ier = nelem;
         } else {
             if ( get_timeout_signal( chn[chan].gchannel ) ) {
-                fprintf(stderr, "MGI_READ:  TIMEOUT for read \"Real\" \n");
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for read \"Real\"\n",__func__);
                 ier = READ_TIMEOUT;
             } else {
-                fprintf( stderr, "MGI_READ: problem read Real data\n" );
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Problem read \"Real\"\n",__func__);
                 return READ_ERROR;
             }
         }
@@ -615,10 +589,10 @@ int32_t f77name (mgi_read) (
             return ier = nelem;
         } else {
             if ( get_timeout_signal( chn[chan].gchannel ) ) {
-                fprintf(stderr, "MGI_READ: TIMEOUT for read \"Double\"\n");
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for read \"Double\"\n",__func__);
                 ier = READ_TIMEOUT;
             } else {
-                fprintf( stderr, "MGI_READ: Problem read Double data\n" );
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Problem read \"Double\"\n",__func__);
                 return READ_ERROR;
             }
         }
@@ -640,15 +614,15 @@ int32_t f77name (mgi_read) (
             return ier = nelem;
         } else {
             if ( get_timeout_signal( chn[chan].gchannel ) ) {
-                fprintf(stderr, "MGI_READ: TIMEOUT for read \"Character\"\n");
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: Timeout for read \"Character\"\n",__func__);
                 ier = READ_TIMEOUT;
             } else {
-                fprintf( stderr, "MGI_READ: Problem read Character data\n" );
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Problem read \"Charactere\"\n",__func__);
                 return READ_ERROR;
             }
         }
     } else {
-        fprintf(stderr,"MGI_READ: ERROR on channel %s: Unknown data type: %c\n", chn[chan].name, *dtype);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Unknown data type: %c on channel %s",__func__,*dtype,chn[chan].name);
         return READ_TYPE_ERROR;
     }
 

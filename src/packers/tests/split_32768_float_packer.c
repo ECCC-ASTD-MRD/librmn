@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 typedef union {
@@ -60,7 +62,7 @@ int32_t float_unpacker_1(float *dest, int32_t *header, int32_t *stream, int32_t 
   MaxExp = (header[1] >> 24) & 0xFF;
   Shift2 = (header[1] >> 16) & 0xFF;
   if (npts != (header[1] & 0xFFFF)) {     /* verify that the number of points is consistent with header */
-    printf("float_unpacker_1: ERROR inconsistent number of points\n");
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: inconsistent number of points\n",__func__);
     return npts - (header[1] & 0xFFFF);   /* return discrepancy */
     }
 
@@ -115,7 +117,7 @@ int32_t float_packer_1(float *source, int32_t nbits, int32_t *header, int32_t *s
   int32_t MaxExp, Exp, Mask, Mantis, Shift, Minimum, Maximum, Src, Shift2, Store, Accu, Round;
 
   if (npts > 32768) {     /* verify that the number of points is not too large for a single block */
-    printf("float_packer_1: ERROR number of points is too large (max 32768)\n");
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: number of points is too large (max 32768)\n",__func__);
     return npts - 32768;
     }
   n=npts;
@@ -163,8 +165,8 @@ int32_t float_packer_1(float *source, int32_t nbits, int32_t *header, int32_t *s
   header[0] = Minimum;                      /* store minimum, maxexp, shift2, npts into header (64 bits) */
   header[1] = ((MaxExp & 0xFF) << 24) | ((Shift2 & 0xFF) << 16) | (0xFFFF & npts);
 
-/* fprintf(stderr,"Debug+ MaxExp=%d\n",MaxExp);
-  fprintf(stderr,"Debug+ min=%f fmin.i=%X max=%f Minimum=%d Maximum=%d\n",fmin.f,fmin.i,fmax.f,Minimum,Maximum); */
+//  Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: MaxExp=%d\n",__func__,MaxExp);
+//  Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: min=%f fmin.i=%X max=%f Minimum=%d Maximum=%d\n",__func__,fmin.f,fmin.i,fmax.f,Minimum,Maximum);
   Store = 0;
   n=npts;
   while(n--){                               /* transform input floating point into 16 bit integers */
@@ -209,12 +211,12 @@ int32_t c_float_unpacker(float *dest, int32_t *header, int32_t *stream, int32_t 
 
   *nbits = ( (header[0]>>16) & 0xF) + 1 ;
   if(0xEFF != ( (header[0]>>20) & 0xFFF)) {
-    printf("float_unpacker: ERROR invalid header \n");
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: invalid header\n",__func__);
     return -1;
     }
   npoints = (npts + 32767) / 32768;      /* number of blocks */
   if(npoints != (header[0] & 0xFFFF)) {
-    printf("float_unpacker: ERROR inconsistent number of points (header/request mismatch)\n");
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: inconsistent number of points (header/request mismatch)\n",__func__);
     return -1;
     }
   header++;
@@ -257,7 +259,7 @@ int32_t c_float_packer(float *source, int32_t nbits, int32_t *header, int32_t *s
   int32_t npoints,npointsleft;
 
   if(nbits > 16 || nbits < 1) {
-    printf("float_unpacker: ERROR nbits must be > 0 and <= 16 ,nbits = %d\n",nbits);
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: nbits must be > 0 and <= 16 ,nbits = %d\n",__func__,nbits);
     return -1;
     }
   header[0] = ((npts + 32767) / 32768) & 0xFFFF;      /* number of blocks */

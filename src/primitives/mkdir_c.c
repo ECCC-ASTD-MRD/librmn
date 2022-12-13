@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 int32_t f77name(mkdir_c)(
@@ -33,7 +34,7 @@ int32_t f77name(mkdir_c)(
     char fname[4097];
 
     if (lng1 > 4096) {
-        printf("mkdir_c error: file name > 4096 char\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file name > 4096 char\n",__func__);
         return((int32_t) -1);
     }
     int llng1 = lng1;

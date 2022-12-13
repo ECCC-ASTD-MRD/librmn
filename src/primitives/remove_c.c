@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 
@@ -33,7 +34,7 @@ int32_t f77name(remove_c)(
     char fname[256];
 
     if (lng1 > 256) {
-        printf("remove_c error: file name > 256 char\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file name > 256 char\n",__func__);
         return((int32_t) -1);
     }
     int llng1 = lng1;

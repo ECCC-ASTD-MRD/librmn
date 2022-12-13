@@ -2,16 +2,7 @@
 #define _App_h
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
 #include <sys/time.h>
-#include <time.h>
-#include <malloc.h>
-#include <alloca.h>
-#include <errno.h>
-#include <limits.h>
-#include <float.h>
 #include "App_Timer.h"
 
 #ifdef HAVE_OPENMP
@@ -63,8 +54,8 @@
 #endif
 #define APP_MAXONCE 1024
 
-typedef enum { APP_MAIN=0,APP_LIBRMN=1,APP_LIBVGRID=2,APP_LIBINTERPV=3,APP_LIBGEOREF=4,APP_LIBRPNMPI=5,APP_LIBIRIS=6  } TApp_Lib;
-typedef enum { APP_MUST=-1,APP_FATAL=0,APP_ERROR=1,APP_WARNING=2,APP_INFO=3,APP_DEBUG=4,APP_EXTRA=5,APP_QUIET=6 } TApp_LogLevel;
+typedef enum { APP_MAIN=0,APP_LIBRMN=1,APP_LIBFST=2,APP_LIBVGRID=3,APP_LIBINTERPV=4,APP_LIBGEOREF=5,APP_LIBRPNMPI=6,APP_LIBIRIS=7  } TApp_Lib;
+typedef enum { APP_MUST=-1,APP_FATAL=0,APP_SYSERROR=1,APP_ERROR=2,APP_WARNING=3,APP_INFO=4,APP_DEBUG=5,APP_EXTRA=6,APP_QUIET=7 } TApp_LogLevel;
 typedef enum { APP_NODATE=0,APP_DATETIME=1,APP_TIME=2,APP_SECOND=3,APP_MSECOND=4 } TApp_LogTime;
 typedef enum { APP_STOP,APP_RUN,APP_DONE } TApp_State;
 typedef enum { APP_NIL=0x0,APP_FLAG=0x01,APP_CHAR=0x02,APP_UINT32=0x04,APP_INT32=0x06,APP_UINT64=0x08,APP_INT64=0x0A,APP_FLOAT32=0x0C,APP_FLOAT64=0x0E } TApp_Type;

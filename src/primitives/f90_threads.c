@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 typedef struct {
@@ -122,9 +123,7 @@ event* c_create_event()
 {
    event* user_event;
    if( f77name(create_event)(&user_event) ) return(NULL);
-   /*
-   printf("c_create_event: event address=%x, lock=%x,cond=%x\n",user_event,&(user_event->mutex),&(user_event->condition));
-   */
+//   Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: event address=%x, lock=%x,cond=%x\n",_func__,user_event,&(user_event->mutex),&(user_event->condition)); 
    return(user_event);
 }
 
@@ -137,9 +136,7 @@ int32_t f77name(post_event)(event** user_event, int32_t* value)
 {
    event* the_event = *user_event;
 
-   /*
-   printf("post_event: value=%d,lock=%x,cond=%x\n",*value,&(the_event->mutex),&(the_event->condition));
-   */
+//   Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: value=%d,lock=%x,cond=%x\n",__func__*value,&(the_event->mutex),&(the_event->condition));
    pthread_mutex_lock( &(the_event->mutex) );
    the_event->value = *value;
    pthread_cond_broadcast( &(the_event->condition) );
@@ -152,9 +149,7 @@ int c_post_event(event* user_event, int value)
    event* the_event = user_event;
    int32_t f_value = value;
 
-   /*
-   printf("c_post_event: event address=%x, lock=%x,cond=%x\n",the_event,&(the_event->mutex),&(the_event->condition));
-   */
+//   Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: event address=%x, lock=%x,cond=%x\n",__func__,the_event,&(the_event->mutex),&(the_event->condition));
    return( f77name(post_event)(&the_event, &f_value) );
 }
 
@@ -184,9 +179,7 @@ int32_t f77name(wait_event)(event **user_event, int32_t *value)
 {
    event *the_event = *user_event;
 
-   /*
-   printf("wait_event: value=%d\n",*value);
-   */
+// Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: value=%d\n",__func__,*value);
    pthread_mutex_lock( &(the_event->mutex) );
    while (the_event->value != *value) pthread_cond_wait( &(the_event->condition) , &(the_event->mutex) );
    pthread_mutex_unlock( &(the_event->mutex) );
