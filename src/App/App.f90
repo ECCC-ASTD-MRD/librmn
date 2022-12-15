@@ -3,8 +3,8 @@ module rmn_app
     implicit none
 
     enum, bind(C) 
-       enumerator :: APP_MUST=-1, APP_FATAL=0, APP_SYSTEM=1, APP_ERROR=2, APP_WARNING=3, APP_INFO=4, APP_DEBUG=5, APP_EXTRA=6, APP_QUIET=7
-       enumerator :: APP_MAIN=0, APP_LIBRMN=1, APP_LIBFST=2, APP_LIBVGRID=3, APP_LIBINTERPV=4, APP_LIBGEOREF=5, APP_LIBRPNMPI=6, APP_LIBIRIS=7
+       enumerator :: APP_MUST=-1, APP_ALWAYS=0, APP_FATAL=1, APP_SYSTEM=2, APP_ERROR=3, APP_WARNING=4, APP_INFO=5, APP_DEBUG=6, APP_EXTRA=7, APP_QUIET=8
+       enumerator :: APP_MAIN=0, APP_LIBRMN=1, APP_LIBFST=2, APP_LIBWB=3, APP_LIBVGRID=4, APP_LIBINTERPV=5, APP_LIBGEOREF=6, APP_LIBRPNMPI=7, APP_LIBIRIS=8
        enumerator :: APP_MASTER=0, APP_THREAD=1
     end enum
     
@@ -77,18 +77,33 @@ module rmn_app
     integer(C_INT) FUNCTION app_loglevel(level) BIND(C, name="App_LogLevel")
         use, intrinsic :: iso_c_binding
         implicit none
-        character(C_CHAR), dimension(*) ::  level
+        character(C_CHAR), dimension(*) :: level
     end FUNCTION
 
-!   int Lib_LogLevel(TApp_Lib Lib,char *Val) {
+    !   int App_LogLevelNo(TApp_LogLevel Val) {
+    integer(C_INT) FUNCTION app_loglevelno(levelno) BIND(C, name="App_LogLevelNo")
+        use, intrinsic :: iso_c_binding
+        implicit none
+        integer(C_INT), value :: levelno
+    end FUNCTION
+
+    !   int Lib_LogLevel(TApp_Lib Lib,char *Val) {
     integer(C_INT) FUNCTION lib_loglevel(lib,level) BIND(C, name="Lib_LogLevel")
         use, intrinsic :: iso_c_binding
         implicit none
-        integer(C_INT), value :: Lib
-        character(C_CHAR), dimension(*) ::  level
+        integer(C_INT), value :: lib
+        character(C_CHAR), dimension(*) :: level
     end FUNCTION
 
-!    int   App_ParseArgs(TApp_Arg *AArgs,int argc,char *argv[],int Flags);
+    !   int Lib_LogLevelNo(TApp_Lib Lib,TApp_LogLevel Val) {
+    integer(C_INT) FUNCTION lib_loglevelno(lib,levelno) BIND(C, name="Lib_LogLevelNo")
+        use, intrinsic :: iso_c_binding
+        implicit none
+        integer(C_INT), value :: lib
+        integer(C_INT), value :: levelno
+    end FUNCTION
+
+    !    int   App_ParseArgs(TApp_Arg *AArgs,int argc,char *argv[],int Flags);
 !    int   App_ParseInput(void *Def,char *File,TApp_InputParseProc *ParseProc);
 
 !   int   App_ParseBool(char *Param,char *Value,char *Var);

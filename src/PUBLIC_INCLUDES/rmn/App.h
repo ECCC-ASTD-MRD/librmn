@@ -54,8 +54,8 @@
 #endif
 #define APP_MAXONCE 1024
 
-typedef enum { APP_MAIN=0,APP_LIBRMN=1,APP_LIBFST=2,APP_LIBVGRID=3,APP_LIBINTERPV=4,APP_LIBGEOREF=5,APP_LIBRPNMPI=6,APP_LIBIRIS=7  } TApp_Lib;
-typedef enum { APP_MUST=-1,APP_FATAL=0,APP_SYSTEM=1,APP_ERROR=2,APP_WARNING=3,APP_INFO=4,APP_DEBUG=5,APP_EXTRA=6,APP_QUIET=7 } TApp_LogLevel;
+typedef enum { APP_MAIN=0,APP_LIBRMN=1,APP_LIBFST=2,APP_LIBWB=3,APP_LIBVGRID=4,APP_LIBINTERPV=5,APP_LIBGEOREF=6,APP_LIBRPNMPI=7,APP_LIBIRIS=8  } TApp_Lib;
+typedef enum { APP_MUST=-1,APP_ALWAYS=0,APP_FATAL=1,APP_SYSTEM=2,APP_ERROR=3,APP_WARNING=4,APP_INFO=5,APP_DEBUG=6,APP_EXTRA=7,APP_QUIET=8 } TApp_LogLevel;
 typedef enum { APP_NODATE=0,APP_DATETIME=1,APP_TIME=2,APP_SECOND=3,APP_MSECOND=4 } TApp_LogTime;
 typedef enum { APP_STOP,APP_RUN,APP_DONE } TApp_State;
 typedef enum { APP_NIL=0x0,APP_FLAG=0x01,APP_CHAR=0x02,APP_UINT32=0x04,APP_INT32=0x06,APP_UINT64=0x08,APP_INT64=0x0A,APP_FLOAT32=0x0C,APP_FLOAT64=0x0E } TApp_Type;
@@ -171,7 +171,9 @@ void  App_Start(void);
 int   App_End(int Status);
 void  Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...);
 int   Lib_LogLevel(TApp_Lib Lib,char *Val);
+int   Lib_LogLevelNo(TApp_Lib Lib,TApp_LogLevel Val);
 int   App_LogLevel(char *Val);
+int   App_LogLevelNo(TApp_LogLevel Val);
 void  App_LogOpen(void);
 void  App_LogClose(void);
 int   App_LogTime(char *Val);

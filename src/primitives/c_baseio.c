@@ -148,10 +148,8 @@ static void dump_file_entry(
     //! [in] Index of the entry to dump
     const int idx
 ) {
-      fprintf(stderr, "FGFDT[%d] ", idx);
-      fprintf(stderr, "file_name=%s subname=%s file_type=%s\n",
-              FGFDT[idx].file_name, FGFDT[idx].subname, FGFDT[idx].file_type);
-      fprintf(stderr, "iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
+      Lib_Log(APP_LIBRMN,APP_MUST,"FGFDT[%d] file_name=%s subname=%s file_type=%s",idx,FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
+      Lib_Log(APP_LIBRMN,APP_MUST,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
               FGFDT[idx].iun,
               FGFDT[idx].fd,
               FGFDT[idx].file_size,
@@ -169,13 +167,12 @@ static void dump_file_entry(
               FGFDT[idx].attr.old?"+OLD":"",
               FGFDT[idx].attr.notpaged?"+NOT PAGED":"",
               FGFDT[idx].attr.scratch?"+SCRATCH":"");
-      fprintf(stderr, "\n");
 }
 
 //! Print file characteristics and attributes of in use files in the master file table(for debugging use)
 void f77name(d_fgfdt)()
 {
-    fprintf(stderr, "********** DUMP of MASTER FILE TABLE **********\n");
+    Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP of MASTER FILE TABLE\n",__func__);
     for (int i = 0 ; i < MAXFILES ; i++) {
         if(FGFDT[i].iun != 0) {
             dump_file_entry(i);
@@ -232,7 +229,7 @@ static int find_file_entry(
         }
     }
 
-    fprintf(stderr, "%s error: unit %d is not associated with any file\n", caller, iun);
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not associated with any file\n",caller,iun);
     return -1;
 }
 
@@ -2019,10 +2016,10 @@ static int qqcopen(
 //! Print wa control table
 void f77name(d_wafdt)()
 {
-    fprintf(stderr, "\n   DUMP OF WA CONTROL TABLE \n");
+    Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP OF WA CONTROL TABLE\n",__func__);
     for (int i = 0; i < MAXWAFILES; i++) {
         if (wafile[i].file_desc != -1) {
-            fprintf(stderr, "waindex=%d, fd=%d, npages=%d, offset=%lld\n",
+            Lib_Log(APP_LIBRMN,APP_MUST,"waindex=%d, fd=%d, npages=%d, offset=%lld\n",
                 i, wafile[i].file_desc, wafile[i].nb_page_in_use, wafile[i].offset);
         }
     }

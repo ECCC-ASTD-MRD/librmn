@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <rmn/App.h>
 #include <rmn/rpnmacros.h>
 
 #include "WhiteBoard.h"
@@ -195,6 +196,7 @@ int c_wb_verbosity(
 ) {
     int old_level = message_level;
     message_level = level;
+    Lib_LogLevelNo(APP_LIBWB,level);
     return old_level;
 }
 
@@ -206,6 +208,7 @@ int32_t f77_name(f_wb_verbosity)(
 ) {
    int32_t old_level = message_level;
    message_level = *level;
+   Lib_LogLevelNo(APP_LIBWB,*level);
    return old_level;
 }
 
@@ -231,9 +234,7 @@ static int wb_define_check(
 
             if ( definition_table[i].assigned ) {
                 // Already assigned to, should not be assigned again
-                if (message_level <= WB_MSG_ERROR) {
-                    fprintf(stderr, "ERROR: key value already assigned in this directive file \n");
-                }
+                Lib_Log(APP_ERROR,APP_LIBWB,"%s: key value already assigned in this directive file\n",__func__);
                 return WB_ERR_REDEFINE;
             }
             definition_table[i].assigned = 1 ;    /* flag assignation */
@@ -248,9 +249,7 @@ static int wb_define_check(
 
     if (definition_table_entries >= max_definition_table_entries) {
         // Definition table is full
-        if (message_level <= WB_MSG_ERROR) {
-            fprintf(stderr, "ERROR: too many keys appear in this directive file \n");
-        }
+        Lib_Log(APP_ERROR,APP_LIBWB,"%s: too many keys appear in this directive file\n",__func__);
         return WB_ERROR;
     }
 
@@ -349,21 +348,16 @@ static int wb_value(
     //! [in] Table pointer
     const wb_symbol *table
 ) {
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "looking for value of '%s', ", symbol);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: looking for value of '%s'\n",__func__,symbol);
     while (table->text != NULL) {
         if (strcmp(table->text, symbol) == 0) {
-            if (message_level <= WB_MSG_DEBUG) {
-                fprintf(stderr, "found %d\n", table->code);
-            }
+            Lib_Log(APP_DEBUG,APP_LIBWB,"%s: found %d\n",__func__,table->code);
             return table->code;
         }
         table++;
     }
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "found NONE\n");
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: found NONE\n",__func__);
+
     // No value found in table
     return 0;
 }
@@ -434,14 +428,14 @@ static int wb_error(
     int32_t Code = code;
 
     // Do nothing if there is no error or it's below the severity treshold
-    if (code == WB_OK || severity < message_level) {
+    if (code == WB_OK || severity > message_level) {
         return code;
     }
     while (message->text != NULL) {
         if (message->code == code) {
             snprintf(text_of_last_error, sizeof(text_of_last_error) - 1, "%s - %s",
                 message->text, (extra_error_message != NULL) ? extra_error_message : "");
-            fprintf(stderr, "ERROR: %s \n", text_of_last_error);
+            Lib_Log(APP_ERROR,APP_LIBWB,"%s: %s\n",__func__,text_of_last_error);
             extra_error_message = NULL;
             break;
         }
@@ -665,9 +659,8 @@ static int new_page(
     if (wb == NULL) {
         wb = BaseWhiteboardPtr;
     }
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "allocating new page for %d lines \n", nlines);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: allocating new page for %d lines\n",__func__,nlines);
+
     // note: sizeof(wb_page) gives the size of a page containing WB_MAXLINESPERPAGE lines
     // adjustment for actual number of lines in page has to be done to allocate correct size
     pagesize = sizeof(wb_page) + sizeof(wb_line) * (nlines - WB_MAXLINESPERPAGE);
@@ -704,9 +697,7 @@ static int wb_init()
         int fd = open(WhiteBoardCheckpointFile, O_RDONLY);
         if (fd >= 0) {
             close(fd);
-            if (message_level <= WB_MSG_INFO) {
-                fprintf(stderr, "whiteboard checkpoint file found, loading it\n");
-            }
+            Lib_Log(APP_INFO,APP_LIBWB,"%s: whiteboard checkpoint file found, loading it\n",__func__);
             return c_wb_reload();
         }
         // first time through, allocate first page
@@ -933,7 +924,7 @@ static int c_wb_lookup(
     // Put key name into local line
     fill_line(&line, name, nameLength);
 #ifdef DEBUG
-    printf("c_wb_lookup - target name = '%s'\n", &(line.meta.name.carr[0]));
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: target name = '%s'\n",__func__,&(line.meta.name.carr[0]));
 #endif
     while (lookuppage != NULL) {
         // No screaming if not found, full length match
@@ -1021,9 +1012,7 @@ int c_wb_get(
     unsigned char *csrc;
 
 #ifdef DEBUG
-    printf("c_wb_get(wb=%p, name=\"%s\", type=%d, size=%d, dest=%p, nbelem=%d, nameLength=%d)\n",
-        wb, name, type, size, dest, nbelem, nameLength
-    );
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: wb=%p, name=\"%s\", type=%d, size=%d, dest=%p, nbelem=%d, nameLength=%d\n",__func__,wb,name,type,size,dest,nbelem,nameLength);
 #endif
 
     set_extra_error_message(" invalid whiteboard instance", -1);
@@ -1115,8 +1104,7 @@ int c_wb_get(
         // Character strings,  use trimmed to padded copy
         for (i = 0; i < nbelem; i++) {
 #ifdef DEBUG
-            printf("c_fortran_string_copy((csrc = %p, dest = %p, element_size = %d, size = %d, pad = ' ');\n",
-              csrc, dest, element_size, size);
+            Lib_Log(APP_DEBUG,APP_LIBWB,"%s: csrc = %p, dest = %p, element_size = %d, size = %d, pad = ' '\n",__func__,csrc,dest,element_size,size);
 #endif
             int tempstat = c_fortran_string_copy((char *)csrc, (char *)dest, element_size, size, ' ');
             if (tempstat < 0) {
@@ -1145,9 +1133,7 @@ int32_t f77_name(f_wb_get)(WhiteBoard **wb, char *name, int32_t *type, int32_t *
     int _nbelem = *nbelem;
 
 #ifdef DEBUG
-    printf("f_wb_get(wb=%p, name=\"%s\", type=%d, size=%d, dest=%p, nbelem=%d, nameLength=%d)\n",
-        *wb, name, *type, *size, dest, *nbelem, nameLength
-    );
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: wb=%p, name=\"%s\", type=%d, size=%d, dest=%p, nbelem=%d, nameLength=%d\n",__func__,*wb,name,*type,*size,dest,*nbelem,nameLength);
 #endif
 
     return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _nameLength);
@@ -1175,9 +1161,7 @@ int c_wb_put(
     int nameLength
 ){
 #ifdef DEBUG
-    printf("c_wb_put(wb=%p, name=\"%s\", type=%d, size=%d, src=%p, nbelem=%d, options=0x%x, nameLength=%d)\n",
-        wb, name, type, size, src, nbelem, options, nameLength
-    );
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: wb=%p, name=\"%s\", type=%d, size=%d, src=%p, nbelem=%d, options=0x%x, nameLength=%d\n",__func__,wb,name,type,size,src,nbelem,options,nameLength);
 #endif
 
     set_extra_error_message("invalid whiteboard instance", -1);
@@ -1191,7 +1175,7 @@ int c_wb_put(
 
     nameLength = trim(name, nameLength);
 #ifdef DEBUG
-    printf("c_wb_put - name=\"%s\", nameLength=%d\n", name, nameLength);
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: name=\"%s\", nameLength=%d\n",__func__,name,nameLength);
 #endif
     set_extra_error_message(name, nameLength);
     wb_lastputline = NULL;
@@ -1282,18 +1266,18 @@ int c_wb_put(
         // Set line name
         fill_line(line, name, nameLength);
 #ifdef DEBUG
-        printf("c_wb_put - stored name=\"%s\"\n", line->meta.name.carr);
+        Lib_Log(APP_DEBUG,APP_LIBWB,"%s: stored name=\"%s\"\n",__func__,line->meta.name.carr);
 #endif
         stored_size = size;
         if (typecode == WB_FORTRAN_CHAR && array == 0) {
             // Scalar string, round size up to wb_linedata size
             stored_size = ( (stored_size + sizeof(wb_linedata) - 1) / sizeof(wb_linedata) ) * sizeof(wb_linedata);
 #ifdef DEBUG
-            printf("c_wb_put - stored_size=%d\n", stored_size);
+            Lib_Log(APP_DEBUG,APP_LIBWB,"%s: stored_size=%d\n",__func__,stored_size);
             char tmpStr[size + 1];
             strncpy(tmpStr, src, size);
             tmpStr[size] = '\0';
-            printf("c_wb_put - src=\"%s\"\n", tmpStr);
+            Lib_Log(APP_DEBUG,APP_LIBWB,"%s: src=\"%s\"\n",__func__,tmpStr);
 #endif
         }
         line->meta.flags.type = typecode;
@@ -1449,10 +1433,7 @@ int c_wb_checkpoint()
             close(fd);
             return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
         }
-        if (message_level <= WB_MSG_DEBUG) {
-            fprintf(stderr, "wb_checkpoint: Page %d, length %d lines, Next entry %d \n",
-                    pageno, page->nbLines, page->firstFreeLine);
-        }
+        Lib_Log(APP_DEBUG,APP_LIBWB,"%s: Page %d, length %d lines, Next entry %d\n",__func__,pageno,page->nbLines,page->firstFreeLine);
         page = page->next;
         pageno++;
     }
@@ -1474,7 +1455,7 @@ int32_t f77_name(f_wb_checkpoint)(WhiteBoard **WB){
 }
 
 
-//! Invoke the provided function on mathing lines
+//! Invoke the provided function on matching lines
 //! \return Number of matches, but as a negative number.  Why!?
 int c_wb_check(
     //! [in] WhiteBoard in which to search.  If this is null, the WhiteBoard refrenced by DummyWhiteboardPtr is used.
@@ -1515,9 +1496,8 @@ int c_wb_check(
             if ( (options & optionMask) && wb_match_name(c1, name, nameLen) ) {
                 match_count--;
                 if (print) {
-                    fprintf(stderr,
-                            "Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
-                            pageno, i, c1,
+                    Lib_Log(APP_ALWAYS,APP_LIBWB,"%s: Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
+                            __func__,pageno,i,c1,
                             datatypes[line->meta.flags.type],
                             line->meta.flags.elementsize,
                             (line->meta.flags.array) ? line->meta.data.desc.maxElements : 0,
@@ -1580,9 +1560,8 @@ static int wb_cb_read_only(
         // making read-only a non initialized variable !?
         return wb_error(WB_MSG_ERROR, WB_ERR_NOVAL);
     }
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "key '%s' is now read-only\n", &(line->meta.name.carr[0]));
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: key '%s' is now read-only\n",__func__, &(line->meta.name.carr[0]));
+
     line->meta.flags.readonly = 1;
     line->meta.flags.resetmany = 0;
     return 0;
@@ -1597,9 +1576,8 @@ static int wb_cb_read_write(
     //! [in] Unused
     void *blinddata
 ) {
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "key '%s' is now no longer read-only\n", &(line->meta.name.carr[0]));
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: key '%s' is now no longer read-only\n",__func__,&(line->meta.name.carr[0]));
+
     line->meta.flags.readonly = 0;
     return 0;
 }
@@ -1613,9 +1591,7 @@ static int wb_cb_undefined(
     //! [in] Unused
     void *blinddata
 ) {
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "key '%s' is now undefined\n", &(line->meta.name.carr[0]));
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: key '%s' is now undefined\n",__func__,&(line->meta.name.carr[0]));
     line->meta.flags.initialized = 0;
     line->meta.flags.badval = 0;
     return 0;
@@ -1630,9 +1606,7 @@ static int wb_cb_from_restart(
     //! [in] Unused
     void *blinddata
 ) {
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "key '%s' is now marked as created by a restart\n", &(line->meta.name.carr[0]));
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: key '%s' is now marked as created by a restart\n",__func__,&(line->meta.name.carr[0]));
     line->meta.flags.fromrestart = 1;
     return 0;
 }
@@ -1653,7 +1627,7 @@ void f77_name(f_wb_bcst_init)(int32_t *pe_root, int32_t *pe_me, char *domain, vo
 //! \return Always 0
 static int wb_print_bcast_line(wb_line *line, void *blinddata)
 {
-    fprintf(stderr, "Broadcasting %s :-)\n", line->meta.name.carr);
+    Lib_Log(APP_INFO,APP_LIBWB,"%s: Broadcasting %s :-)\n",__func__,line->meta.name.carr);
     return 0;
 }
 
@@ -1683,7 +1657,7 @@ int32_t f77_name(f_wb_bcst)(
         }
     }
 
-    return c_wb_check(*wb, name, -1, _nameLength, message_level <= WB_MSG_INFO, wb_print_bcast_line, &wb_broadcast_cfg);
+    return c_wb_check(*wb, name, -1, _nameLength, message_level >= WB_MSG_INFO, wb_print_bcast_line, &wb_broadcast_cfg);
 }
 
 
@@ -1719,7 +1693,7 @@ int32_t f77_name(f_wb_get_keys)(WhiteBoard **wb, char *labels, int32_t *nlabels,
    keys.userMaxLabels = *nlabels;
    keys.nameLength = llabels;
 
-   return c_wb_check(*wb, name, -1, _nameLength, message_level <= WB_MSG_INFO, wb_copy_key_name, &keys);
+   return c_wb_check(*wb, name, -1, _nameLength, message_level >= WB_MSG_INFO, wb_copy_key_name, &keys);
 }
 
 
@@ -1735,9 +1709,7 @@ int c_wb_lock(
 ) {
     char localname[WB_MAXSTRINGLENGTH];
     int llname = c_fortran_string_copy(name, localname, nameLength, sizeof(localname), '\0');
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "locking variables with name beginning with '%s'\n", localname);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: king variables with name beginning with '%s'\n",__func__,localname);
     return c_wb_check(wb, localname, WB_REWRITE_UNTIL, llname, 1, wb_cb_read_only, NULL);
 }
 
@@ -1779,10 +1751,8 @@ int c_wb_reload()
         status = new_page(BaseWhiteboardPtr, pagelen);
         // Next usable entry in page
         status = read(fd, &(BaseWhiteboardPtr->firstpage->firstFreeLine), 4);
-        if (message_level <= WB_MSG_DEBUG) {
-            fprintf(stderr,"wb_reload: Page %d, length=%d lines, next entry=%d\n",
-                    pageno, BaseWhiteboardPtr->firstpage->nbLines, BaseWhiteboardPtr->firstpage->firstFreeLine);
-        }
+        Lib_Log(APP_DEBUG,APP_LIBWB,"%s: Page %d, length=%d lines, next entry=%d\n",__func__,pageno,BaseWhiteboardPtr->firstpage->nbLines,BaseWhiteboardPtr->firstpage->firstFreeLine);
+
         // Read page
         status = read(fd, &(BaseWhiteboardPtr->firstpage->line[0]), sizeof(wb_line) * pagelen);
         // Page size of next page, 0 means no more
@@ -1800,9 +1770,7 @@ int c_wb_reload()
     // Mark all variables as having been created by a restart
     status = c_wb_check(BaseWhiteboardPtr, "", -1, 0, 0, wb_cb_from_restart, NULL);
 
-    if (message_level <= WB_MSG_INFO) {
-        fprintf(stderr, "whiteboard has been reloaded, variables read only after restart have been locked\n");
-    }
+    Lib_Log(APP_INFO,APP_LIBWB,"%s: whiteboard has been reloaded, variables read only after restart have been locked\n",__func__);
 
     return WB_OK;
 }
@@ -1822,8 +1790,8 @@ static char wb_get_line(
     FILE * const infile
 ) {
     current_char = fgets(linebuffer, WB_MISC_BUFSZ, infile);
-    if (message_level <= WB_MSG_INFO && current_char) {
-        fprintf(stderr, ">>%s", linebuffer);
+    if (current_char) {
+       Lib_Log(APP_INFO,APP_LIBWB,"%s: >>%s\n",__func__,linebuffer);
     }
     if (current_char) {
         return *current_char;
@@ -1944,13 +1912,8 @@ static void wb_read_error()
     }
     temp = *current_char;
     *current_char = 0;
-    if (message_level <= WB_MSG_ERROR) {
-        fprintf(stderr, "ERROR in directives, offending line:\n%s^^^^", linebuffer);
-    }
     *current_char = temp;
-    if (message_level <= WB_MSG_ERROR) {
-        fprintf(stderr, "%s\n", current_char);
-    }
+    Lib_Log(APP_ERROR,APP_LIBWB,"%s: offending line in directives:\n%s^^^^%s\n",__func__,linebuffer,current_char);
 }
 
 
@@ -1966,9 +1929,8 @@ static int wb_get_token(
     //! [in] If non zero, do not skip spaces
     int noskip
 ) {
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "wb_get_token(%p, %p, %d, %d)\n", token, infile, maxTokenLength, noskip);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: token=%p, infile=%p, maxTokenLenght=%d, noskip=%p\n",__func__,token,infile,maxTokenLength,noskip);
+
     char c;
     if (noskip) {
         // Do not skip spaces
@@ -2022,9 +1984,7 @@ static int wb_get_token(
             c = wb_getc(infile);
         }
         if (c == '\n') {
-            if (message_level <= WB_MSG_ERROR ) {
-                fprintf(stderr, "ERROR: improperly terminated string\n");
-            }
+            Lib_Log(APP_ERROR,APP_LIBWB,"%s: improperly terminated string\n",__func__);
             if (wb_ungetc(c) == EOF) {
                 // Push back newline that has been erroneously swallowed
                 return WB_ERROR;
@@ -2088,10 +2048,8 @@ static int wb_get_token(
     // Null terminate token
     token[tokenLength] = 0;
 
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "GetToken, maxTokenLength=%d, tokenLength=%d, nospkip=%d, token='%s'\n", 
-                maxTokenLength, tokenLength, noskip, token);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: maxTokenLength=%d, tokenLength=%d, nospkip=%d, token='%s'\n",__func__,maxTokenLength,tokenLength,noskip,token);
+
     return tokenLength;
 }
 
@@ -2135,9 +2093,8 @@ static int wb_options(
             return wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
         }
         options += newoption;
-        if (message_level <= WB_MSG_DEBUG) {
-            fprintf(stderr, "newoption=%d, options=%d\n", newoption, options);
-        }
+        Lib_Log(APP_DEBUG,APP_LIBWB,"%s: newoption=%d, options=%d\n",__func__,newoption,options);
+
         // expect end delimiter ( or ]  or comma ,
         ntoken = wb_get_token(token, infile, 2, 0);
         if ((token[0] != end_delim && token[0] != ',') || ntoken != 1) {
@@ -2220,9 +2177,8 @@ static int wb_define(
     ntoken = wb_get_token(token, infile, 2, 0);
     if ((token[0] != ')' && token[0] != ',') || ntoken != 1) goto error_syntax;
 
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "type=%c,key_type=%d,len=%d,array_length=%d\n", key_c, key_type, len_type, array_length);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: type=%c,key_type=%d,len=%d,array_length=%d\n",__func__,key_c,key_type,len_type,array_length);
+
     while (token[0] != ')') {
         // Expect subcommand name OPT or DESC
         ntoken = wb_get_token(token, infile, WB_MAXNAMELENGTH, 0);
@@ -2244,9 +2200,7 @@ static int wb_define(
             // DESC is ignored for now, just counted
             desc_cmd++;
         } else {
-            if (message_level <= WB_MSG_ERROR) {
-                fprintf(stderr, "invalid/undefined define subcommand\n");
-            }
+            Lib_Log(APP_ERROR,APP_LIBWB,"%s: invalid/undefined define subcommand\n",__func__);
             goto error_syntax ;
         }
         // expect ) or ,
@@ -2287,16 +2241,12 @@ static int wb_key(WhiteBoard *wb, FILE *infile, char *token, char *package, int 
     strncpy((char *)name + strlen(package), (char *)token, sizeof(name) - strlen(package));
     name[WB_MAXNAMELENGTH] = 0;
 
-    if (message_level <= WB_MSG_INFO) {
-        fprintf(stderr, "Assigning to '%s'\n", name);
-    }
+    Lib_Log(APP_INFO,APP_LIBWB,"%s: Assigning to '%s'\n",__func__,name);
     set_extra_error_message(name, -1);
     // Expect =
     ntoken = wb_get_token(token, infile, 2, 0);
     if (token[0] != '=' || ntoken != 1) {
-        if (message_level <= WB_MSG_ERROR) {
-            fprintf(stderr, "= sign not found where expected \n");
-        }
+        Lib_Log(APP_ERROR,APP_LIBWB,"%s: = sign not found where expected\n",__func__);
         goto error_syntax ;
     }
 
@@ -2399,20 +2349,14 @@ static int wb_key(WhiteBoard *wb, FILE *infile, char *token, char *package, int 
     line->meta.flags.badval = 0;
     return status;
 error_toomany:
-    if (message_level <= WB_MSG_ERROR) {
-        fprintf(stderr, "attempting to assign too many values to %s (type %s)\n", name, datatypes[elementtype]);
-        goto error_syntax;
-    }
+    Lib_Log(APP_ERROR,APP_LIBWB,"%s: attempting to assign too many values to %s (type %s)\n",__func__,name,datatypes[elementtype]);
+    goto error_syntax;
 error_string:
-    if (message_level <= WB_MSG_ERROR) {
-        fprintf(stderr, "string %s is too long to be assigned to %s (length=%ld>%d)\n", buffer, name, strlen(buffer) - 2, elementsize);
-        goto error_syntax;
-    }
+    Lib_Log(APP_ERROR,APP_LIBWB,"%s: string %s is too long to be assigned to %s (length=%ld>%d)\n",__func__,buffer,name,strlen(buffer)-2,elementsize);
+    goto error_syntax;
 error_type:
-    if (message_level <= WB_MSG_ERROR) {
-        fprintf(stderr, "type mismatch error while assigning value %s to %s (type %s)\n", buffer, name, datatypes[elementtype]);
-        goto error_syntax;
-    }
+    Lib_Log(APP_ERROR,APP_LIBWB,"%s: type mismatch error while assigning value %s to %s (type %s)\n",__func__,buffer,name,datatypes[elementtype]);
+    goto error_syntax;
 error_syntax:
     wb_read_error() ;
     wb_flush_line(infile);
@@ -2432,10 +2376,7 @@ int c_wb_read(
     int packageLength,
     int sectionLength
 ) {
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "c_wb_read(%p, %s, %s, %s, 0x%x, %d, %d, %d)\n",
-                wb, filename, package, section, options, filenameLength, packageLength, sectionLength);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: (%p, %s, %s, %s, 0x%x, %d, %d, %d)\n",__func__,wb,filename,package,section,options,filenameLength,packageLength,sectionLength);
     set_extra_error_message("invalid whiteboard instance", -1);
     if (wb == DummyWhiteboardPtr) {
         return wb_error(WB_MSG_ERROR, WB_ERR_NOTFOUND);
@@ -2464,9 +2405,7 @@ int c_wb_read(
     }
     // Filename collected
     _filename[i] = 0;
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "localfname='%s'\n", _filename);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: localfname='%s'\n",__func__,_filename);
 
     char _package[WB_MAXNAMELENGTH];
     for (i = 0; i < packageLength && i < WB_MAXNAMELENGTH - 1 && package[i] != 0; i++) {
@@ -2474,9 +2413,7 @@ int c_wb_read(
     }
     // Package name collected
     _package[i] = 0;
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "Package='%s'\n", _package);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: package='%s'\n",__func__,_package);
 
     char _section[WB_MAXNAMELENGTH];
     for (i = 0; i < sectionLength && i < WB_MAXNAMELENGTH - 1 && section[i] != 0; i++) {
@@ -2484,9 +2421,7 @@ int c_wb_read(
     }
     // Section_name collected
     _section[i] = 0;
-    if (message_level <= WB_MSG_DEBUG) {
-        fprintf(stderr, "Section='%s'\n", _section);
-    }
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: section='%s'\n",__func__,_section);
 
     // Add directive file name to error message
     set_extra_error_message(_filename, -1);
@@ -2522,9 +2457,7 @@ int c_wb_read(
         wb_get_token(token, infile, WB_MISC_BUFSZ - 1, 1);
         notFound = (strncmp((char *)token, _section, strlen(_section)) != 0);
     }
-    if (message_level <= WB_MSG_INFO) {
-        fprintf(stderr, "INFO: directive section %s found\n", _section);
-    }
+    Lib_Log(APP_INFO,APP_LIBWB,"%s: directive section %s found\n",__func__, _section);
 
     // Section found, process it
     // Get rid of rest of @section line
@@ -2541,6 +2474,7 @@ int c_wb_read(
         } else if (strncmp((char *)token, "MESSAGES", 8) == 0 ) {
             // Verbosity control directive
             message_level = wb_options(infile,'(',')',verb_options);
+            Lib_LogLevelNo(APP_LIBWB,message_level);
         } else if (strncmp((char *)token, "DEFINE", 6) == 0 && options != WB_FORBID_DEFINE ) {
             // Define directive (if allowed)
             if (wb_define(wb, infile, _package) < 0) errors++;
@@ -2551,9 +2485,7 @@ int c_wb_read(
             // Ignore newlines
             temp = '\n';
         } else {
-            if (message_level <= WB_MSG_ERROR) {
-                fprintf(stderr, "Unexpected token found at beginning of directive: '%s'\n", token);
-            }
+            Lib_Log(APP_ERROR,APP_LIBWB,"%s: Unexpected token found at beginning of directive: '%s'\n",__func__,token);
             errors++;
             wb_flush_line(infile);
         }
@@ -2563,8 +2495,8 @@ int c_wb_read(
 
     // We are done, close file and return success
     fclose(infile);
-    if (message_level <= WB_MSG_INFO || (message_level <= WB_MSG_ERROR && errors > 0)) {
-        fprintf(stderr, "INFO: %d error(s) detected\n", errors);
+    if (message_level >= WB_MSG_INFO || (message_level >= WB_MSG_ERROR && errors > 0)) {
+       Lib_Log(APP_DEBUG,APP_LIBWB,"%s: %d error(s) detected\n",__func__,errors);
     }
     return errors == 0 ? WB_OK : WB_ERROR;
 }
@@ -2572,7 +2504,7 @@ int c_wb_read(
 //! read a dictionary or user directive file (FORTRAN version)
 int32_t f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, int32_t *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
 #ifdef DEBUG
-    printf("f_wb_read(wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d)\n", wb, package, filename, section, options, packageLength, filenameLength, sectionLength);
+    Lib_Log(APP_DEBUG,APP_LIBWB,"%s: wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d\n",__func_,wb,package,filename,section,options,packageLength,filenameLength,sectionLength);
 #endif
     return c_wb_read(*wb, filename, package, section, *options, filenameLength, packageLength, sectionLength);
 }

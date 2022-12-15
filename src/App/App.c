@@ -26,10 +26,10 @@ static TApp AppInstance;                             ///< Static App instance
 __thread TApp *App=&AppInstance;                     ///< Per thread App pointer
 static __thread char APP_LASTERROR[APP_ERRORSIZE];   ///< Last error is accessible through this
 
-static char* AppLibNames[]    = { "main", "rmn", "fst", "vgrid", "interpv", "georef", "rpnmpi", "iris" };
-static char* AppLibLog[]      = { "","RMN:", "FST:", "VGRID:","INTERPV:","GEOREF:","RPNMPI:","IRIS:" };
-static char* AppLevelNames[]  = { "FATAL","SYSTEM","ERROR","WARNING","INFO","DEBUG","EXTRA" };
-static char* AppLevelColors[] = { APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_YELLOW, "", APP_COLOR_LIGHTCYAN, APP_COLOR_CYAN };
+static char* AppLibNames[]    = { "main", "rmn", "fst", "wb", "vgrid", "interpv", "georef", "rpnmpi", "iris" };
+static char* AppLibLog[]      = { "","RMN:", "FST:", "WB:", "VGRID:","INTERPV:","GEOREF:","RPNMPI:","IRIS:" };
+static char* AppLevelNames[]  = { "INFO", "FATAL","SYSTEM","ERROR","WARNING","INFO","DEBUG","EXTRA" };
+static char* AppLevelColors[] = { "",APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_YELLOW, "", APP_COLOR_LIGHTCYAN, APP_COLOR_CYAN };
 
 char* App_ErrorGet(void) {                       //< Return last error
    return(APP_LASTERROR);
@@ -111,11 +111,11 @@ TApp *App_Init(int Type,char *Name,char *Version,char *Desc,char* Stamp) {
    App->Seed=time(NULL);
    App->Signal=0;
    App->TimerLog=App_TimerCreate();
-   App->Tolerance=APP_MUST;
+   App->Tolerance=APP_ALWAYS;
 
    gettimeofday(&App->Time,NULL);
 
-   for(l=0;l<APP_LIBSMAX;l++) App->LogLevel[l]=APP_INFO;
+   for(l=0;l<APP_LIBSMAX;l++) App->LogLevel[l]=APP_WARNING;
 
 #ifdef HAVE_MPI
    App->Comm=MPI_COMM_WORLD;
@@ -589,7 +589,7 @@ void App_LogClose(void) {
  * @author Jean-Philippe Gauthier
  * @date   Septembre 2008
  *
- * @param[in]  Level   Niveau d'importance du message (MUST,ERROR,WARNING,INFO,DEBUG,EXTRA)
+ * @param[in]  Level   Niveau d'importance du message (MUST,ALWAYS,FATAL,SYSTEM,ERROR,WARNING,INFO,DEBUG,EXTRA)
  * @param[in]  Format  Format d'affichage du message
  * @param[in]  ...     Liste des variables du message
  *
@@ -650,6 +650,9 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
       if ((c=getenv("APP_VERBOSE_FST"))) {
          Lib_LogLevel(APP_LIBFST,c);
       }
+      if ((c=getenv("APP_VERBOSE_WB"))) {
+         Lib_LogLevel(APP_LIBWB,c);
+      }
       if (App->LibsVersion[APP_LIBVGRID] && (c=getenv("APP_VERBOSE_VGRID"))) {
          Lib_LogLevel(APP_LIBVGRID,c);
       }
@@ -666,7 +669,7 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
          Lib_LogLevel(APP_LIBIRIS,c);
       }
 
-      App->Tolerance=APP_MUST;
+      App->Tolerance=APP_ALWAYS;
   }
 
    // Check for once log flag
@@ -690,7 +693,7 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
    // If this is within the request level
    if (Level<=App->LogLevel[Lib]) {
 
-      if (Level>=0) {
+      if (Level>=APP_ALWAYS) {
          color=App->LogColor?AppLevelColors[Level]:AppLevelColors[APP_INFO];
 
          if (App->LogTime) {
@@ -828,6 +831,16 @@ int Lib_LogLevel(TApp_Lib Lib,char *Val) {
          for(l=1;l<APP_LIBSMAX;l++) App->LogLevel[l]=App->LogLevel[0];
       }
    }
+   return(App->LogLevel[Lib]);
+}
+
+int App_LogLevelNo(TApp_LogLevel Val) {
+   return(Lib_LogLevelNo(APP_MAIN,Val));
+}
+
+int Lib_LogLevelNo(TApp_Lib Lib,TApp_LogLevel Val) {
+   if (Val>=APP_FATAL && Val<=APP_QUIET)
+      App->LogLevel[Lib]=Val;
    return(App->LogLevel[Lib]);
 }
 

@@ -32,12 +32,12 @@
 #define WB_ALLOW_DEFINE 1
 #define WB_FORBID_DEFINE 0
 
-#define WB_MSG_DEBUG -1
-#define WB_MSG_INFO 0
-#define WB_MSG_WARN 1
-#define WB_MSG_ERROR 2
-#define WB_MSG_SEVERE 3
-#define WB_MSG_FATAL 4
+#define WB_MSG_DEBUG 6
+#define WB_MSG_INFO 5
+#define WB_MSG_WARN 4
+#define WB_MSG_ERROR 3
+#define WB_MSG_SEVERE 2
+#define WB_MSG_FATAL 1
 
 #define WB_OK 0
 #define WB_ERROR -1
