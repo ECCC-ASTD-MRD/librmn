@@ -28,7 +28,7 @@ int32_t c_ezsincoslatlon(
     float *lat, float *lon,
     float *sinlat, float *sinlon, float *coslat, float *coslon, int32_t npts)
 {
-    float dar = PI / 180.0;
+    float dar = M_PI / 180.0;
 
     for (int32_t i = 0; i < npts; i++) {
         sinlat[i]  = sin(dar*lat[i]);
