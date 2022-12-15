@@ -18,7 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-
+#define _GNU_SOURCE
 #include <math.h>
 #include <stdio.h>
 #include <rmn/ezscint.h>
