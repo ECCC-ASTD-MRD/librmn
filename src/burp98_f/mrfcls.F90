@@ -21,6 +21,7 @@
 !**S/P MRFCLS - FERMER UN FICHIER BURP
 !
       FUNCTION MRFCLS( IUN )
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFCLS, IUN
 !
@@ -51,9 +52,8 @@
       MRFCLS = XDFCLS( IUN )
       IF(MRFCLS .LT. 0) RETURN
 
-      IF(MESSNIV .LE. INFORM) WRITE(IOUT, 300) IUN
-      RETURN
-
- 300  FORMAT(/' UNITE = ',I3,' FICHIER RAPPORT EST FERME')
+      write(app_msg,*) 'MRFCLS: Unite ',IUN,' fichier rapport est ferme'
+      call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
+   RETURN
 
       END

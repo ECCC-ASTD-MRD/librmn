@@ -21,6 +21,7 @@
 !**S/P MRFOPN - OUVRIR UN FICHIER BURP
 !
       FUNCTION MRFOPN( IUN, INMODE)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFOPN, IUN
       CHARACTER*(*)         INMODE
@@ -48,9 +49,9 @@
 #include "enforc8.cdk"
 !
 !MODULES 
-      EXTERNAL XDFOPN, XDFCLE, XDFSTA, QDFERR, MRFOPR, MRFOPC
+      EXTERNAL XDFOPN, XDFCLE, XDFSTA, MRFOPR, MRFOPC
       external genvdt8
-      INTEGER  XDFOPN, XDFCLE, XDFSTA, QDFERR, MRFOPR, MRFOPC, IOUT,  &
+      INTEGER  XDFOPN, XDFCLE, XDFSTA, MRFOPR, MRFOPC, IOUT,  &
      &         NOMBRE, STAT,   PRII,   PRI(2,NPRITOT), AUX(2,NAUXTOT),  &
      &         IER,    AUXX
       logical initdone
@@ -78,9 +79,9 @@
       MRFOPN = -1
       MODE   = INMODE
       IF(INDEX(MODE, 'WRITE').NE.0 .OR. INDEX(MODE, 'R-W').NE.0) THEN
-         MRFOPN = QDFERR('MRFOPN',  &
-     &        'SEULS LES MODES READ, CREATE ET APPEND SONT PERMIS',  &
-     &        ERROR, ERFMOD)
+         write(app_msg,*) 'MRFOPN: Seul les modes READ, CREATE et APPEND sont permis'
+         call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+         MRFOPN = ERFMOD
          RETURN
       ENDIF
 
@@ -129,35 +130,32 @@
 !     OBTENIR LES INFORMATIONS CONCERNANT LE FICHIER.
       MRFOPN = XDFSTA(IUN, STAT, 0, PRII, 0, AUXX, 0, VERSN, APPL)
       IF((INDEX(VERSN,'XDF').EQ.0) .OR. ((INDEX(APPL,'BRP0').EQ.0) .AND. (INDEX(APPL,'bRp0') .EQ. 0))) THEN
-         MRFOPN = QDFERR('MRFOPN', 'LE FICHIER N''EST PAS UN FICHIER RAPPORT', ERROR, ERFRAP)
+         write(app_msg,*) 'MRFOPN: Le fichier n''est pas un fichier rapport'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+         MRFOPN = ERFRAP
          RETURN
       ENDIF
 
 !     S'ASSURER QUE LE FICHIER A ETE CREE EN UTILISANT LA BONNE 
 !     TABLE BURP
       IF(INDEX(APPL,'bRp0') .NE. 0) THEN
-         IF (MESSNIV .LE. WARNIN) THEN
-           WRITE(0, 700)
-           WRITE(0, 703)
-         ENDIF
-         MRFOPN = QDFERR('MRFOPN', 'FICHIER CREE AVEC TABLEBURP NON-OFFICIELLE', WARNIN, NONOFTB)
-         IF (MESSNIV .LE. WARNIN) THEN
-           WRITE(0, 703)
-           WRITE(0, 702)
-         ENDIF
+         write(app_msg,*) 'MRFOPN: Fichier cree avec TABLEBURP non-officielle'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+         MRFOPN = NONOFTB
       ENDIF
 
-      IF(MESSNIV .LE. INFORM) THEN
-         IF(INDEX(MODE,'CREATE') .NE. 0) WRITE(IOUT, 300) IUN
-         WRITE(IOUT, 400) IUN
+      IF(INDEX(MODE,'CREATE') .NE. 0) THEN
+         write(app_msg,300) IUN
+         call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
       ENDIF
+ 
+      write(app_msg,400) IUN
+      call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
+
       MRFOPN = NOMBRE
         
- 300  FORMAT(/' UNITE = ',I3,' FICHIER RAPPORT EST CREE')
- 400  FORMAT(/' UNITE = ',I3,' FICHIER RAPPORT EST OUVERT')
- 700  FORMAT(' ***********************ATTENTION***********************')
- 702  FORMAT(' *******************************************************')
- 703  FORMAT(' *')
+ 300  FORMAT(/' UNITE = ',I3,' Fichier rapport est cree')
+ 400  FORMAT(/' UNITE = ',I3,' Fichier rapport est ouvert')
 
       RETURN
       END

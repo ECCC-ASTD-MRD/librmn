@@ -22,6 +22,7 @@
 !**S/P MRBTYP - CONVERTIR BKNAT, BKTYP ET BKSTP A BTYP OU L'INVERSE
 !
       FUNCTION MRBTYP(BKNAT, BKTYP, BKSTP, BTYP)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRBTYP, BTYP, BKNAT, BKTYP, BKSTP
 !
@@ -44,8 +45,6 @@
 !                      BTYP>0 - DE BTYP -> BKNAT, BKTYP, BKSTP
 !                               FONCTION RETOURNE 0
 !MODULE
-      INTEGER  QDFERR
-      EXTERNAL QDFERR
 !
 !IMPLICITES
 #include "codes.cdk"
@@ -55,7 +54,9 @@
 !
 !*
       IF(BTYP .LT. -1) THEN
-         MRBTYP = QDFERR('MRBTYP', 'VALEUR DE BTYP INVALIDE', WARNIN, ERBTYP)
+         write(app_msg,*) 'MRBTYP: Valeur de BTYP invalide'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+         MRBTYP = ERBTYP
          RETURN
       ENDIF
 

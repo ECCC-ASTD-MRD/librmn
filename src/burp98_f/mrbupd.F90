@@ -21,6 +21,7 @@
 !**S/P MRBUPD - DONNER UNE VALEUR AUX CLEFS D'UN RAPPORT
 !
       FUNCTION MRBUPD(IUN, BUF, TEMPS, FLGS, STNID, IDTYP, LATI, LONG, DX, DY, ELEV, DRCV, DATEin, OARS, RUN, SUP, NSUP, XAUX, NXAUX)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRBUPD, NSUP, NXAUX, IUN, BUF(*), TEMPS, FLGS, IDTYP,  &
      &         LATI,   LONG, ELEV,  DX,  DY,     DRCV,  DATEin, OARS,  &
@@ -69,8 +70,8 @@
 !MODULES 
       integer getbuf8
       external getbuf8
-      EXTERNAL XDFUPD, CHAR2RAH, QDFERR
-      INTEGER  XDFUPD, QDFERR, KLPRIM(NPRITOT), NKLPRIM, I, NKLAUX, TYPREC, KLAUX(NAUXTOT)
+      EXTERNAL XDFUPD, CHAR2RAH
+      INTEGER  XDFUPD, KLPRIM(NPRITOT), NKLPRIM, I, NKLAUX, TYPREC, KLAUX(NAUXTOT)
       integer AA, MM, JJ, annee, date
       CHARACTER*9 ISTNID
 !
@@ -83,11 +84,15 @@
 
 !     POUR LA VERSION 1990, NSUP ET NXAUX DOIVENT ETRE EGAL A ZERO
       IF(NSUP .GT. NPRISUP) THEN
-         MRBUPD = QDFERR('MRBUPD','IL Y A TROP DE CLEFS PRIMAIRES', ' SUPPLEMENTAIRES', WARNIN, ERCLEF)
+         write(app_msg,*) 'MRBUPD: Il y a trop de clefs primaires supplementaires'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+         MRBUPD = ERCLEF
          NSUP = NPRISUP
       ENDIF
       IF(NXAUX .GT. NAUXSUP) THEN
-         MRBUPD = QDFERR('MRBUPD', 'IL Y A TROP DE CLEFS AUXILIAIRES', ' SUPPLEMENTAIRES', WARNIN, ERCLEF)
+         write(app_msg,*) 'MRBINI: Il y a trop de clefs auxiliaires supplementaires'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+         MRBUPD = ERCLEF
          NXAUX = NAUXSUP
       ENDIF
 
@@ -109,7 +114,9 @@
       KLPRIM(10) = FLGS
       if ((enforc8) .and. (date .ne. -1)) then
          if (date .lt. 999999) then
-         MRBUPD = QDFERR('MRBUPD', 'LA DATE DOIT ETRE EN FORMAT AAAAMMJJ', ERFATAL,ERRDAT)
+            write(app_msg,*) 'MRBUPD: La date doit etre en format AAAAMMJJ'
+            call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+            MRBUPD = ERRDAT
          endif
       endif
       if (date .gt. 999999) then

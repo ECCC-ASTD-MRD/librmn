@@ -76,22 +76,6 @@
 //! Maximum number of primary or info keys
 #define MAX_KEYS 100
 
-/* Error levels */
-//! Trivial error
-#define TRIVIAL 0
-//! Informative message
-#define INFORM 1
-//! Warning message
-#define WARNING 2
-//! Important error
-#define ERROR 3
-//! Fatal error
-#define ERRFATAL 4
-//! Internal software error
-#define SYSTEM 5
-//! Error not tolerable, automatic abort
-#define KAPUT 6
-
 /* Error codes */
 /* (codes -1 to -23 taken from previous xdf version when appliable) */
 #define ERR_OK 0

@@ -55,7 +55,7 @@
 #define APP_MAXONCE 1024
 
 typedef enum { APP_MAIN=0,APP_LIBRMN=1,APP_LIBFST=2,APP_LIBVGRID=3,APP_LIBINTERPV=4,APP_LIBGEOREF=5,APP_LIBRPNMPI=6,APP_LIBIRIS=7  } TApp_Lib;
-typedef enum { APP_MUST=-1,APP_FATAL=0,APP_SYSERROR=1,APP_ERROR=2,APP_WARNING=3,APP_INFO=4,APP_DEBUG=5,APP_EXTRA=6,APP_QUIET=7 } TApp_LogLevel;
+typedef enum { APP_MUST=-1,APP_FATAL=0,APP_SYSTEM=1,APP_ERROR=2,APP_WARNING=3,APP_INFO=4,APP_DEBUG=5,APP_EXTRA=6,APP_QUIET=7 } TApp_LogLevel;
 typedef enum { APP_NODATE=0,APP_DATETIME=1,APP_TIME=2,APP_SECOND=3,APP_MSECOND=4 } TApp_LogTime;
 typedef enum { APP_STOP,APP_RUN,APP_DONE } TApp_State;
 typedef enum { APP_NIL=0x0,APP_FLAG=0x01,APP_CHAR=0x02,APP_UINT32=0x04,APP_INT32=0x06,APP_UINT64=0x08,APP_INT64=0x0A,APP_FLOAT32=0x0C,APP_FLOAT64=0x0E } TApp_Type;
@@ -115,40 +115,42 @@ typedef struct TApp_Arg {
 
 // Application controller definition
 typedef struct TApp {
-    char*          Name;                  ///< Name of applicaton
-    char*          Version;               ///< Version of application
-    char*          Desc;                  ///< Description of application
-    char*          TimeStamp;             ///< Compilation timestamp
-    char*          LogFile;               ///< Log file
-    int            LogSplit;              ///< Split the log file per MPI rank path
-//    char*          TmpDir;               ///< Tmp directory
-    char*          Tag;                   ///< Identificateur
-    FILE*          LogStream;             ///< Log file associated stream
-    int            LogWarning;            ///< Number of warnings
-    int            LogError;              ///< Number of errors
-    int            LogColor;              ///< Use coloring in the logs
-    TApp_LogTime   LogTime;               ///< Display time in the logs
-    TApp_LogLevel  LogLevel[APP_LIBSMAX]; ///< Level of log
-    TApp_State     State;                 ///< State of application
-    TApp_Lang      Language;              ///< Language (default: $CMCLNG or APP_EN)
-    double         Percent;               ///< Percentage of execution done (0=not started, 100=finished)
-    struct timeval Time;                  ///< Timer for execution time
-    int            Type;                  ///< App object type (APP_MASTER,APP_THREAD)
-    int            Step;                  ///< Model step
+   char*          Name;                  ///< Name of applicaton
+   char*          Version;               ///< Version of application
+   char*          Desc;                  ///< Description of application
+   char*          TimeStamp;             ///< Compilation timestamp
+   char*          LogFile;               ///< Log file
+   int            LogSplit;              ///< Split the log file per MPI rank path
+//   char*          TmpDir;               ///< Tmp directory
+   char*          Tag;                   ///< Identificateur
+   FILE*          LogStream;             ///< Log file associated stream
+   int            LogWarning;            ///< Number of warnings
+   int            LogError;              ///< Number of errors
+   int            LogColor;              ///< Use coloring in the logs
+   TApp_LogTime   LogTime;               ///< Display time in the logs
+   TApp_LogLevel  LogLevel[APP_LIBSMAX]; ///< Level of log
+   TApp_LogLevel  Tolerance;             ///< Abort level
+   TApp_State     State;                 ///< State of application
+   TApp_Lang      Language;              ///< Language (default: $CMCLNG or APP_EN)
+   double         Percent;               ///< Percentage of execution done (0=not started, 100=finished)
+   struct timeval Time;                  ///< Timer for execution time
+   int            Type;                  ///< App object type (APP_MASTER,APP_THREAD)
+   int            Step;                  ///< Model step
 
-    char*          LibsVersion[APP_LIBSMAX];
+   char*          LibsVersion[APP_LIBSMAX];
 
-    int            Seed,*OMPSeed;         ///< Random number generator seed
-    int           *TotalsMPI;             ///< MPI total number of items arrays
-    int           *CountsMPI;             ///< MPI count gathering arrays
-    int           *DisplsMPI;             ///< MPI displacement gathering arrays
-    int            NbMPI,RankMPI;         ///< Number of MPI process
-    int            NbThread;              ///< Number of OpenMP threads
-    int            Signal;                ///< Trapped signal
-    TApp_Affinity  Affinity;              ///< Thread placement affinity
-    int            NbNodeMPI,NodeRankMPI; ///< Number of MPI process on the current node
+   int            Seed,*OMPSeed;         ///< Random number generator seed
+   int           *TotalsMPI;             ///< MPI total number of items arrays
+   int           *CountsMPI;             ///< MPI count gathering arrays
+   int           *DisplsMPI;             ///< MPI displacement gathering arrays
+   int            NbMPI,RankMPI;         ///< Number of MPI process
+   int            NbThread;              ///< Number of OpenMP threads
+   int            Signal;                ///< Trapped signal
+   TApp_Affinity  Affinity;              ///< Thread placement affinity
+   int            NbNodeMPI,NodeRankMPI; ///< Number of MPI process on the current node
 #ifdef HAVE_MPI
-    MPI_Comm       NodeComm,NodeHeadComm;///< Communicator for the current node and the head nodes
+   MPI_Comm       Comm;
+   MPI_Comm       NodeComm,NodeHeadComm;///< Communicator for the current node and the head nodes
 #endif //HAVE_MPI
 
    TApp_Timer     *TimerLog;             ///< Time spent on log printing

@@ -21,6 +21,7 @@
 !**S/P MRFLOC - TROUVER UN RAPPORT DANS UN FICHIER BURP
 ! 
       FUNCTION MRFLOC(IUN, HANDLE, STNID, IDTYP, LAT, LON, DATEin, TEMPS, SUP, NSUP)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFLOC, IUN, HANDLE, IDTYP, LAT, LON, DATEin, TEMPS, NSUP,  SUP(*)
       CHARACTER*(*) STNID
@@ -62,8 +63,8 @@
 #include "enforc8.cdk"
 !
 !MODULES 
-      EXTERNAL QDFERR, XDFLOC, CHAR2RAH, mrfprm
-      INTEGER  QDFERR, XDFLOC, mrfprm
+      EXTERNAL XDFLOC, CHAR2RAH, mrfprm
+      INTEGER  XDFLOC, mrfprm
 !*
       CHARACTER*9  ISTNID
       INTEGER IIDTYP, ILAT, ILON, IDATE, ITEMPS, ISUP(1), INSUP
@@ -78,7 +79,9 @@
 
 !     POUR LA VERSION 1990, LES CLEFS SUPPLEMENTAIRES NE SONT PAS PERMISES
       IF(NSUP .GT. NPRISUP) THEN
-         MRFLOC = QDFERR('MRFLOC','IL Y A TROP DE CLEFS PRIMAIRES', ' SUPPLEMENTAIRES', WARNIN, ERCLEF)
+         write(app_msg,*) 'MRFLOC: Il y a trop de clefs primaires supplementaires'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+          MRFLOC = ERCLEF
          NSUP = NPRISUP
       ENDIF
 
@@ -100,7 +103,9 @@
       PRI(12) = LON
       if ((enforc8) .and. (date .ne. -1)) then
          if (date .lt. 999999) then
-         MRFLOC = QDFERR('MRFLOC', 'LA DATE DOIT ETRE EN FORMAT AAAAMMJJ', ERFATAL,ERRDAT)
+            write(app_msg,*) 'MRFLOC: La date doit etre en format AAAAMMJJ'
+            call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+            MRFLOC = ERRDAT
          endif
       endif
       if (date .gt. 999999) then
@@ -131,14 +136,16 @@
 
 !     TROUVER L'ENREGISTREMENT
       MRFLOC = XDFLOC(IUN, HANDLE, PRI, NPRI)
-      IF (MESSNIV .LE. INFORM) THEN
+      IF (lib_loglevel(APP_LIBFST,'') .GE. APP_INFO) THEN
          IF(MRFLOC .LT. 0) THEN
-            WRITE(6,1000) STNID, IDTYP, LAT, LON, DATEin, TEMPS
+            write(app_msg,1000) STNID, IDTYP, LAT, LON, DATEin, TEMPS
+            call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
          ELSE
             IRIEN = MRFLOC
             INSUP = 0
             IRIEN = MRFPRM(IRIEN,ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS, ISUP, INSUP,ILNGR)
-            WRITE(6,1100) ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS,ILNGR
+            write(app_msg,1100) ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS,ILNGR
+            call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
          ENDIF
       ENDIF
 

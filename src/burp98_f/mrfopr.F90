@@ -21,6 +21,7 @@
 !**S/P MRFOPR - INITIALISER UNE OPTION DE TYPE REEL
 !
       FUNCTION MRFOPR(OPTNOM, OPVALR)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFOPR
       CHARACTER*(*)   OPTNOM
@@ -43,8 +44,7 @@
 #include "codes.cdk"
 !
 !MODULES
-      EXTERNAL QDFERR
-      INTEGER  QDFERR
+
       DATA     MANQUE /RMANQUE/
 !
 !*
@@ -53,7 +53,9 @@
          MANQUE = OPVALR
          MRFOPR = 0
       ELSE
-         MRFOPR = QDFERR('MRFOPR', 'NOM D''OPTION INCONNU', ERROR, EROPTN)
+         write(app_msg,*) 'MRFOPR: Nom d''option inconnu'
+         call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+         MRFOPR = EROPTN
       ENDIF
 
       RETURN

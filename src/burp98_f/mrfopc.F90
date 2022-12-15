@@ -22,6 +22,7 @@
 !**S/P MRFOPC - INITIALISER UNE OPTION DE TYPE CARACTERE
 !
       FUNCTION MRFOPC(OPTNOM, OPVALC)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFOPC
       CHARACTER*(*)   OPTNOM, OPVALC
@@ -43,41 +44,14 @@
 #include "codes.cdk"
 !
 !MODULES 
-      EXTERNAL XDFOPT
-      INTEGER  XDFOPT
-      DATA     MESSNIV /INFORM/
-!
-!*
-
-      MRFOPC = XDFOPT(OPTNOM, OPVALC, -1)
-       
-      IF(MRFOPC .LT. 0) RETURN
+      INTEGER  lvl
 
 !     INITIALISER LA VALEUR DE L'OPTION AU NIVEAU BURP
       IF(INDEX(OPTNOM, 'MSGLVL') .NE. 0) THEN
-         IF(INDEX(OPVALC, 'TRIVIAL') .NE. 0) THEN
-            MESSNIV = TRIVIA
-         ELSE
-            IF(INDEX(OPVALC, 'INFORMATIF') .NE. 0) THEN
-               MESSNIV = INFORM
-            ELSE
-               IF(INDEX(OPVALC, 'WARNING') .NE. 0) THEN
-                  MESSNIV = WARNIN
-               ELSE
-                  IF(INDEX(OPVALC, 'ERRORS') .NE. 0) THEN
-                     MESSNIV = ERROR
-                  ELSE
-                     IF(INDEX(OPVALC, 'FATAL') .NE. 0) THEN
-                        MESSNIV = ERFATAL
-                     ELSE 
-                        MESSNIV = SYSTEM
-                     ENDIF
-                  ENDIF
-               ENDIF
-            ENDIF
-         ENDIF
+          lvl=lib_loglevel(APP_LIBFST,OPVALC)
       ENDIF
 
+      MRFOPC=1
       RETURN
       END
 

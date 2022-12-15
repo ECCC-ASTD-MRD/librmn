@@ -29,7 +29,7 @@ static __thread char APP_LASTERROR[APP_ERRORSIZE];   ///< Last error is accessib
 static char* AppLibNames[]    = { "main", "rmn", "fst", "vgrid", "interpv", "georef", "rpnmpi", "iris" };
 static char* AppLibLog[]      = { "","RMN:", "FST:", "VGRID:","INTERPV:","GEOREF:","RPNMPI:","IRIS:" };
 static char* AppLevelNames[]  = { "FATAL","SYSTEM","ERROR","WARNING","INFO","DEBUG","EXTRA" };
-static char* AppLevelColors[] = { APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_YELLOW, "", APP_COLOR_LIGHTCYAN, APP_COLOR_CYAN };
+static char* AppLevelColors[] = { APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_RED, APP_COLOR_YELLOW, "", APP_COLOR_LIGHTCYAN, APP_COLOR_CYAN };
 
 char* App_ErrorGet(void) {                       //< Return last error
    return(APP_LASTERROR);
@@ -111,10 +111,14 @@ TApp *App_Init(int Type,char *Name,char *Version,char *Desc,char* Stamp) {
    App->Seed=time(NULL);
    App->Signal=0;
    App->TimerLog=App_TimerCreate();
+   App->Tolerance=APP_MUST;
+
+   gettimeofday(&App->Time,NULL);
 
    for(l=0;l<APP_LIBSMAX;l++) App->LogLevel[l]=APP_INFO;
 
 #ifdef HAVE_MPI
+   App->Comm=MPI_COMM_WORLD;
    App->NodeComm=MPI_COMM_NULL;
    App->NodeHeadComm=MPI_COMM_NULL;
 #endif
@@ -313,8 +317,8 @@ void App_Start(void) {
    MPI_Initialized(&mpi);
 
    if (mpi) {
-      MPI_Comm_size(MPI_COMM_WORLD,&App->NbMPI);
-      MPI_Comm_rank(MPI_COMM_WORLD,&App->RankMPI);
+      MPI_Comm_size(App->Comm,&App->NbMPI);
+      MPI_Comm_rank(App->Comm,&App->RankMPI);
 
       App->TotalsMPI=(int*)malloc((App->NbMPI+1)*sizeof(int));
       App->CountsMPI=(int*)malloc((App->NbMPI+1)*sizeof(int));
@@ -397,7 +401,7 @@ void App_Start(void) {
          if( nodes ) {
              // Get the physical node unique name of mpi procs
              APP_MPI_CHK( MPI_Get_processor_name(nodes,&i) );
-             APP_MPI_CHK( MPI_Gather(MPI_IN_PLACE,0,MPI_DATATYPE_NULL,nodes,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,0,MPI_COMM_WORLD) );
+             APP_MPI_CHK( MPI_Gather(MPI_IN_PLACE,0,MPI_DATATYPE_NULL,nodes,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,0,App->Comm) );
 
              // Sort the names
              qsort(nodes,App->NbMPI,MPI_MAX_PROCESSOR_NAME,App_MPIProcCmp);
@@ -425,14 +429,14 @@ void App_Start(void) {
        int i;
        char node[MPI_MAX_PROCESSOR_NAME]={'\0'};
        APP_MPI_CHK( MPI_Get_processor_name(node,&i) );
-       APP_MPI_CHK( MPI_Gather(node,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,NULL,0,MPI_DATATYPE_NULL,0,MPI_COMM_WORLD) );
+       APP_MPI_CHK( MPI_Gather(node,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,NULL,0,MPI_DATATYPE_NULL,0,App->Comm) );
 #endif //HAVE_MPI
    }
 
    // Make sure the header is printed before any other messages from other MPI tasks
 #ifdef TODO_HAVE_MPI
    if (App->NbMPI>1) {
-       MPI_Barrier(MPI_COMM_WORLD);
+       MPI_Barrier(App->Comm);
    }
 #endif //HAVE_MPI
 }
@@ -455,11 +459,11 @@ int App_End(int Status) {
    // on a MPI deadlock where we wait for a reduce and the other nodes are stuck on a BCast, for example
    if (App->NbMPI>1 && Status!=INT_MIN) {
       if( !App->RankMPI ) {
-         MPI_Reduce(MPI_IN_PLACE,&App->LogWarning,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-         MPI_Reduce(MPI_IN_PLACE,&App->LogError,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
+         MPI_Reduce(MPI_IN_PLACE,&App->LogWarning,1,MPI_INT,MPI_SUM,0,App->Comm);
+         MPI_Reduce(MPI_IN_PLACE,&App->LogError,1,MPI_INT,MPI_SUM,0,App->Comm);
       } else {
-         MPI_Reduce(&App->LogWarning,NULL,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-         MPI_Reduce(&App->LogError,NULL,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
+         MPI_Reduce(&App->LogWarning,NULL,1,MPI_INT,MPI_SUM,0,App->Comm);
+         MPI_Reduce(&App->LogError,NULL,1,MPI_INT,MPI_SUM,0,App->Comm);
       }
    }
 #endif
@@ -643,6 +647,9 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
       if ((c=getenv("APP_VERBOSE_RMN"))) {
          Lib_LogLevel(APP_LIBRMN,c);
       }
+      if ((c=getenv("APP_VERBOSE_FST"))) {
+         Lib_LogLevel(APP_LIBFST,c);
+      }
       if (App->LibsVersion[APP_LIBVGRID] && (c=getenv("APP_VERBOSE_VGRID"))) {
          Lib_LogLevel(APP_LIBVGRID,c);
       }
@@ -658,6 +665,8 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
       if (App->LibsVersion[APP_LIBIRIS] && (c=getenv("APP_VERBOSE_IRIS"))) {
          Lib_LogLevel(APP_LIBIRIS,c);
       }
+
+      App->Tolerance=APP_MUST;
   }
 
    // Check for once log flag
@@ -732,7 +741,7 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
       if (App->LogColor)
          fprintf(App->LogStream,APP_COLOR_RESET);
       
-      if (Level==APP_ERROR || Level==APP_FATAL) {
+      if (Level==APP_ERROR || Level==APP_FATAL || Level==APP_SYSTEM) {
          // On errors, save for extenal to use (ex: Tcl)
          va_start(args,Format);
          vsnprintf(APP_LASTERROR,APP_ERRORSIZE,Format,args);
@@ -743,6 +752,11 @@ void Lib_Log(TApp_Lib Lib,TApp_LogLevel Level,const char *Format,...) {
       }
    }
    App_TimerStop(App->TimerLog);
+
+   // Exit application if error above tolerance level
+   if (App->Tolerance==Level && (Level==APP_FATAL || Level==APP_SYSTEM)) {
+      App_End(-1);
+   }
 }
 
 /**----------------------------------------------------------------------------

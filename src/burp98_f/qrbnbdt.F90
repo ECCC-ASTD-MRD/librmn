@@ -22,6 +22,7 @@
 !**S/P QRBNBDT - DETERMINER NBITS ET DATYP POUR UN BLOC DE DONNEES
 !
       FUNCTION QRBNBDT( NBIT, DATYP, TBLVAL, TBLDIM)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  QRBNBDT, NBIT, DATYP, TBLDIM, TBLVAL(*)
 !
@@ -55,8 +56,7 @@
 #include "codes.cdk"
 !
 !MODULES
-      EXTERNAL QDFERR
-      INTEGER  QDFERR, I, TBLMAX, TBLMIN, ERREUR, SUPVAL(32)
+      INTEGER  I, TBLMAX, TBLMIN, ERREUR, SUPVAL(32)
 !
 !     SUPVAL:TABLEAU DE REFERENCE POUR TROUVER LE NOMBRE DE BITS REQUIS
       DATA SUPVAL /  1,          2,           4,           8,  &
@@ -138,7 +138,9 @@
               GO TO 100
             ENDIF
  20         CONTINUE
-         ERREUR = QDFERR('QDFNBDT', 'ON CODE AVEC NBIT=32 ET DATYP=2', WARNIN, ERCMPR)
+            write(app_msg,*) 'QRBNDT: On code avec NBIT=32et DATYP=2'
+            call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+            ERREUR = ERCMPR
       ENDIF
 
  100  CONTINUE
@@ -151,7 +153,9 @@
          IF(NBIT .GT. 31) THEN
             NBIT   = 32
             DATYP  = 2
-            ERREUR = QDFERR('QDFNBDT', ' ON CODE VALEURS <0  AVEC NBIT=32 ET DATYP=2', WARNIN, ERCMPR)
+            write(app_msg,*) 'QRBNDT: On code VALEURS<0 avec NBIT=32 et DATYP='
+            call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+            ERREUR = ERCMPR
          ENDIF
       ELSE
          NBIT = MIN(NBIT, 32)

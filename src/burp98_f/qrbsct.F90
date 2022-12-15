@@ -21,6 +21,7 @@
 !.S QRBSCT
 !**S/P  QRBSCT - INITIALISER LE TABLEAU DE CONVERSIONS
       FUNCTION QRBSCT( TABLEAU,           TABDIM, NELELU)
+      use rmn_app
       IMPLICIT NONE
       INTEGER TABDIM
       INTEGER  QRBSCT, TABLEAU(3,TABDIM), NELELU
@@ -54,8 +55,8 @@
 #include <ftnmacros.hf>
 !
 !MODULES
-      EXTERNAL QDFERR, MRBCOV
-      INTEGER  QDFERR, MRBCOV, MAXELM, I, IUN, PATHLNG,  OUTFIL, TRAVAIL, IER
+      EXTERNAL MRBCOV
+      INTEGER  MRBCOV, MAXELM, I, IUN, PATHLNG,  OUTFIL, TRAVAIL, IER
       CHARACTER*128 LIGNE, PATH, PATH1
       DATA OUTFIL   /6/
       DATA RPETITIF / MAXREP*0/
@@ -88,7 +89,9 @@
       IUN    = 0
       QRBSCT = FNOM(IUN, PATH1, 'FTN+FMT+R/O', 0)
       IF(QRBSCT .NE. 0) THEN
-         QRBSCT = QDFERR('QRBSCT', ' ERREUR D''OUVERTURE DU FICHIER TABLEBURP', KAPUT, ERBTAB)
+         write(app_msg,*) 'QRBSCT: Erreur d''ouverture du fichier TABLEBURP'
+         call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+         QRBSCT = ERBTAB
          RETURN
       ENDIF
 
@@ -97,9 +100,9 @@
       READ(IUN, *) MAXELM, NELELU
 
 !      IF(NELELU .GT. TABDIM) THEN
-!         QRBSCT = QDFERR('QRBSCT',
-!     $ ' TABLEAU POUR LA LECTURE EST TROP PETIT CONSULTER SPECIALISTE',
-!     $        ERROR, ERBTAB)
+!         write(app_msg,*) 'QRBSCT: Tableau pour la lecture trop petit, consulte un specialiste'
+!         call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+!         QRBSCT = ERBTAB
 !         RETURN
 !      ENDIF
 
@@ -120,7 +123,9 @@
       IF(LIGNE(51:51) .NE. '*') THEN
          I = I+1
          IF (I .GT. TABDIM) THEN
-           QRBSCT = QDFERR('QRBSCT', ' TABLEAU POUR LA LECTURE EST TROP PETIT CONSULTER SPECIALISTE', ERROR, ERBTAB)
+           write(app_msg,*) 'QRBSCT: ableau pour la lecture trop petit, consulte un specialiste'
+           call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+           QRBSCT = ERBTAB
            RETURN
          ENDIF
          TABLEAU(1,I) = TRAVAIL
@@ -132,7 +137,9 @@
  300  CONTINUE
 
       IF(NELELU .NE. I) THEN
-         QRBSCT = QDFERR('QRBSCT', 'AVERTISSEMENT- NELELU <> NOMBRE D ENTREE DANS TABLEBURP', INFORM, ERELEM)
+         write(app_msg,*) 'QRBSCT: NELELU <> nombre d''entree dans TABLEBURP'
+         call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
+         QRBSCT = ERELEM
          NELELU = I
       ENDIF
 

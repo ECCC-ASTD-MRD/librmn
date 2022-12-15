@@ -21,6 +21,7 @@
 !> Intialize report header
 !> This must be done before using the report
 function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, idrcv, datein, oars, run, sup, nsup, xaux, nxaux) result(retval)
+    use rmn_app
     implicit none
 
     !> Numéro d'unité associé au fichier
@@ -67,10 +68,10 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
 #include "codes.cdk"
 #include "enforc8.cdk"
 
-    external xdfini, char2rah, qdferr
+    external xdfini, char2rah
     ! Type d'enregistrement
     integer :: typrec
-    integer :: xdfini, qdferr, nklaux, nklprim, i
+    integer :: xdfini, nklaux, nklprim, i
     integer, dimension(npritot) :: klprim
     integer, dimension(nauxtot) :: klaux
     integer :: aa, mm, jj, annee, date
@@ -84,11 +85,15 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
 
     ! Pour la version 1990, nsup et nxaux doivent etre egal a zero
     if (nsup > nprisup) then
-        retval = qdferr('MRBINI', 'IL Y A TROP DE CLEFS PRIMAIRES SUPPLEMENTAIRES', warnin, erclef)
+        write(app_msg,*) 'MRBINI: Il y a trop de clefs primaires supplementaires'
+        call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+        retval = erclef
         nsup = nprisup
     end if
     if (nxaux > nauxsup) then
-        retval = qdferr('MRBINI', 'IL Y A TROP DE CLEFS AUXILIAIRES SUPPLEMENTAIRES', warnin, erclef)
+        write(app_msg,*) 'MRBINI: Il y a trop de clefs auxiliaires supplementaires'
+        call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+        retval = erclef
         nxaux = nauxsup
     end if
 
@@ -104,7 +109,9 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
     klprim(12) = long
     if (enforc8) then
         if (date < 999999) then
-            retval = qdferr('MRBINI', 'LA DATE DOIT ETRE EN FORMAT AAAAMMJJ', erfatal, errdat)
+            write(app_msg,*) 'MRBINI: La date doit etre en format AAAMMJJ'
+            call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+            retval = errdat
         end if
     end if
     if (date > 999999) then

@@ -21,6 +21,7 @@
 !**S/P MRFDEL - EFFACER UN ENREGISTREMENT D'UN FICHIER BURP
 !
       FUNCTION MRFDEL( HANDLE )
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFDEL, HANDLE
 !
@@ -60,7 +61,7 @@
 !
 !     Obtenir les parametres descripteurs de l'enregistrement
 !
-      IF (MESSNIV .LE. INFORM) THEN
+      IF (lib_loglevel(APP_LIBFST,'') .GE. APP_INFO) THEN
          IRIEN = handle
          INSUP = 0
          IRIEN = MRFPRM(IRIEN,ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS, ISUP, INSUP,ILNGR)
@@ -69,11 +70,12 @@
 !     EFFACER L'ENREGISTREMENT
       MRFDEL = XDFDEL( HANDLE )
 
-      IF(MESSNIV.LE.INFORM .AND. MRFDEL.GE.0) THEN
-         WRITE(6,1100) ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS,ILNGR
+      IF(MRFDEL.GE.0) THEN
+         WRITE(app_msg,1100) ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS,ILNGR
+         call Lib_Log(APP_LIBFST,APP_DEBUG,app_msg)       
       ENDIF
 
- 1100 FORMAT(' MRFDEL- EFFACE - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DX=',i4,' DY=',i4,' DATE=',I8, ' TEMPS=',I4,' FLGS=',i8,' LNGR=',i6)
+ 1100 FORMAT('MRFDEL: Efface - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DX=',i4,' DY=',i4,' DATE=',I8, ' TEMPS=',I4,' FLGS=',i8,' LNGR=',i6)
 
       RETURN
       END

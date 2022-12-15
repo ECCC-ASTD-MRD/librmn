@@ -21,6 +21,7 @@
 !**S/P MRFGOR - OBTENIR LA VALEUR D'UNE OPTION DE TYPE REEL
 !
       FUNCTION MRFGOR(OPTNOM, OPVALR)
+      use rmn_app
       IMPLICIT NONE
       INTEGER  MRFGOR
       CHARACTER*(*)  OPTNOM
@@ -43,16 +44,15 @@
 #include "codes.cdk"
 !
 !MODULE 
-      EXTERNAL QDFERR
-      INTEGER  QDFERR
-!
 !* 
       MRFGOR = -1
       IF(INDEX(OPTNOM, 'MISSING') .NE. 0) THEN
          OPVALR =  MANQUE 
          MRFGOR = 0
       ELSE
-         MRFGOR = QDFERR('MRFGOR', 'NOM D''OPTION INCONNU', ERROR, EROPTN)
+         write(app_msg,*) 'MRFGOR: Nom d;;option inconnu'
+         call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+         MRFGOR = EROPTN
       ENDIF
 
       RETURN

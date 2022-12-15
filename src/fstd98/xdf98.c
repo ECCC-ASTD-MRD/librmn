@@ -3483,29 +3483,6 @@ int32_t  f77name(qdfdiag)(int32_t *f_iun)
   ier = c_qdfdiag(iun);
   return (int32_t) ier;
 }
-/*****************************************************************************
- *                              Q D F E R R                                  *
- *****************************************************************************/
-
-int32_t f77name(qdferr)(char *subname, char *msg, int32_t *ferrlevl,
-            int32_t *ferrcode, F2Cl l1, F2Cl l2)
-{
-   int errlevl = *ferrlevl, errcode = *ferrcode, lng;
-   char c_subname[128];
-   char errmsg[1024];
-
-   errcode = (errcode > 0) ? -errcode : errcode;
-   lng = (l1 < 128) ? l1 : 127;
-   strncpy(c_subname, subname, lng);
-   c_subname[lng] = '\0';
-
-   lng = (l2 < 1024) ? l2 : 1023;
-   strncpy(errmsg, msg, lng);
-   Lib_Log(APP_LIBFST,APP_ERROR,"%s: %s\n",c_subname,errmsg);
-
-   return (int32_t)errcode;
-}
-
 
 /*****************************************************************************
  *                              Q D F I N D                                  *
