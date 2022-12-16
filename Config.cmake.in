@@ -34,18 +34,21 @@ string(TOUPPER ${CMAKE_FIND_PACKAGE_NAME} up)
 set_target_properties(${CMAKE_FIND_PACKAGE_NAME} PROPERTIES
     IMPORTED_LOCATION             ${${CMAKE_FIND_PACKAGE_NAME}_LIBRARIES}
     INTERFACE_INCLUDE_DIRECTORIES ${${CMAKE_FIND_PACKAGE_NAME}_INCLUDE_DIRS}
-    INTERFACE_COMPILE_DEFINITIONS HAVE_${up}
+    INTERFACE_COMPILE_DEFINITIONS HAVE_${up}="${${CMAKE_FIND_PACKAGE_NAME}_VERSION}"
     IMPORTED_LINK_INTERFACE_LANGUAGES "C;Fortran"
 )
+
+find_package(App)
+target_link_libraries(${CMAKE_FIND_PACKAGE_NAME} INTERFACE App)
 
 #----- If built with OpenMP, need to add as link dependency interface
 message(STATUS "Looking for ${CMAKE_FIND_PACKAGE_NAME} interface dependencies")
 # OpenMP_FOUND=@OpenMP_FOUND@
 # if(OpenMP_FOUND)
-if(@OpenMP_FOUND@ AND ${CMAKE_FIND_PACKAGE_NAME}_shared_FOUND)
+if(@OpenMP_FOUND@ AND ${CMAKE_FIND_PACKAGE_NAME}_ompi_FOUND)
     find_package(OpenMP)
 
-    target_link_libraries(${CMAKE_FIND_PACKAGE_NAME} INTERFACE
+    target_link_libraries(${CMAKE_FIND_PACKAGE_NAME} INTERFACE App-ompi
         $<$<LINK_LANGUAGE:Fortran>:OpenMP::OpenMP_Fortran>
         $<$<LINK_LANGUAGE:C>:OpenMP::OpenMP_C>)
 endif()
