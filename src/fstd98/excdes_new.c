@@ -40,7 +40,7 @@
 #include <math.h>
 #include <string.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 #include <rmn/convert_ip.h>
 #include <rmn/fstd98.h>

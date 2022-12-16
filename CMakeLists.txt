@@ -16,6 +16,8 @@ set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed 
 
 include(ec_compiler_presets)
 
+add_subdirectory(App App)
+
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)          # Enable OpenMP (-DWITH_OPENMP=TRUE)
 include(ec_doxygen)         # Doxygen target (-DWITH_DOC=TRUE)
@@ -83,6 +85,10 @@ file(GLOB PROJECT_H_FILES
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
+# App package module directory
+get_property(moduleDir TARGET App PROPERTY Fortran_MODULE_DIRECTORY)
+include_directories(${moduleDir})
+
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
@@ -106,13 +112,46 @@ ec_build_info(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_library(rmn-ompi STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-add_library(rmnshared-ompi SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+
 # Required to prevent missing Fortran modules when building in parallel
 # (make -j) with GNU compilers
+add_dependencies(rmn App)
 add_dependencies(rmnshared rmn)
 
-foreach(TARGET IN ITEMS rmn rmnshared rmn-ompi rmnshared-ompi)
+set(TARGETS rmn rmnshared)
+string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
+
+if(OpenMP_FOUND)
+   set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
+   add_library(rmn-ompi STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+   add_library(rmnshared-ompi SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+   add_dependencies(rmn-ompi App-ompi)
+   add_dependencies(rmnshared-ompi rmn-ompi)
+
+   set_target_properties(rmn-ompi PROPERTIES
+      VERSION ${PROJECT_VERSION}
+      PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+      POSITION_INDEPENDENT_CODE ON
+      OUTPUT_NAME rmn-ompi)
+   target_link_libraries(rmn-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
+
+   set_target_properties(rmnshared-ompi PROPERTIES
+      VERSION ${PROJECT_VERSION}
+      PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+      POSITION_INDEPENDENT_CODE ON
+      SOVERSION ${SOVERSION}
+      OUTPUT_NAME rmn-ompi)
+   target_link_libraries(rmnshared-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_compile_definitions(rmnshared-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
+
+   # Symbolic link for archive numbered version
+   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+       COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
+   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
+endif()
+
+foreach(TARGET IN ITEMS ${TARGETS})
     target_compile_options(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
@@ -134,37 +173,17 @@ set_target_properties(rmn PROPERTIES
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn)
+target_link_libraries(rmn PUBLIC App)
 
-if(OpenMP_FOUND)
-    set_target_properties(rmn-ompi PROPERTIES
-        VERSION ${PROJECT_VERSION}
-        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
-        POSITION_INDEPENDENT_CODE ON
-        OUTPUT_NAME rmn-ompi)
-    target_link_libraries(rmn-ompi PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-    target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
-endif()
-
-string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 set_target_properties(rmnshared PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     SOVERSION ${SOVERSION}
     OUTPUT_NAME rmn)
+target_link_libraries(rmnshared PUBLIC App)
 
-if(OpenMP_FOUND)
-    set_target_properties(rmnshared-ompi PROPERTIES
-        VERSION ${PROJECT_VERSION}
-        PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
-        POSITION_INDEPENDENT_CODE ON
-        SOVERSION ${SOVERSION}
-        OUTPUT_NAME rmn-ompi)
-    target_link_libraries(rmnshared-ompi PUBLIC OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-    target_compile_definitions(rmnshared-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
-endif()
-
-install(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi librmn_version)
+install(TARGETS ${TARGETS} librmn_version)
 
 # Symbolic link for archive numbered version
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -173,7 +192,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 
 # Fortran modules are installed in the include directory for now
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/rmn_app.mod
     ${CMAKE_CURRENT_BINARY_DIR}/rmn_jar.mod
     ${CMAKE_CURRENT_BINARY_DIR}/rmn_gmm.mod
     DESTINATION include)

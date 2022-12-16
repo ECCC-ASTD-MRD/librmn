@@ -20,7 +20,7 @@
 
 !> Extract descriptor parameters from all blocks
 integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
-    use rmn_app
+    use app
     implicit none
 
     integer, intent(in) :: buf(*)

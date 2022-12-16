@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 void f77name(rah2char)(char *chaine, int32_t *f_entier, const int32_t * const f_nc, F2Cl lng) {

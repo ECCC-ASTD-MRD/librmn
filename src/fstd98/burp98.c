@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/burp.h>
 #include "qstdir.h"
 #include "xdf98.h"

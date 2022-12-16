@@ -43,7 +43,7 @@
 #include <ctype.h>
 #include <sys/resource.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 #include <rmn/mgi.h>
 #include <rmn/gossip.h>

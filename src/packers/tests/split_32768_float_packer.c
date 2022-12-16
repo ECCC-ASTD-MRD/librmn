@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 typedef union {

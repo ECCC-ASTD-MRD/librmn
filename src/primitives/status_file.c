@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 static int fd = -1;

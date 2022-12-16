@@ -4,7 +4,7 @@
 #include <dlfcn.h>
 
 #define NO_PROTOTYPES
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/plugins.h>
 
 typedef struct {

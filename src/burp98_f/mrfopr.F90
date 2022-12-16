@@ -21,7 +21,7 @@
 !**S/P MRFOPR - INITIALISER UNE OPTION DE TYPE REEL
 !
       FUNCTION MRFOPR(OPTNOM, OPVALR)
-      use rmn_app
+      use app
       IMPLICIT NONE
       INTEGER  MRFOPR
       CHARACTER*(*)   OPTNOM

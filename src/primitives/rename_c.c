@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 

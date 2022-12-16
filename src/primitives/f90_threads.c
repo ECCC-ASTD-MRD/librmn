@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 typedef struct {

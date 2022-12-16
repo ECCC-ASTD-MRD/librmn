@@ -21,7 +21,7 @@
 !**S/P MRFOPN - OUVRIR UN FICHIER BURP
 !
       FUNCTION MRFOPN( IUN, INMODE)
-      use rmn_app
+      use app
       IMPLICIT NONE
       INTEGER  MRFOPN, IUN
       CHARACTER*(*)         INMODE

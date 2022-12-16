@@ -173,10 +173,10 @@ static void printKeys(
     //! [in] Number of key names
     int nbKeys
 ) {
-    App_Log(APP_MUST,"\n *** SEQUENCE D'APPEL ***\n\n%s \n",name);
+    App_Log(APP_VERBATIM,"\n *** SEQUENCE D'APPEL ***\n\n%s \n",name);
 
     for (int i = 0; i < nbKeys; i++) {
-        App_Log(APP_MUST,"\t-%s [%s:%s]\n",defo[i].name,defo[i].def,defo[i].val);
+        App_Log(APP_VERBATIM,"\t-%s [%s:%s]\n",defo[i].name,defo[i].def,defo[i].val);
     }
 }
 

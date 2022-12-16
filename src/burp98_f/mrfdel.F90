@@ -21,7 +21,7 @@
 !**S/P MRFDEL - EFFACER UN ENREGISTREMENT D'UN FICHIER BURP
 !
       FUNCTION MRFDEL( HANDLE )
-      use rmn_app
+      use app
       IMPLICIT NONE
       INTEGER  MRFDEL, HANDLE
 !

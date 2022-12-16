@@ -573,17 +573,17 @@ void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int n
 
    if (App_LogLevel(NULL)==APP_EXTRA) {
       entropie = 8.0*(*zlng)/(ni*nj);
-      Lib_Log(APP_MUST,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
       for (i=0; i <= 16; i++) {
-         Lib_Log(APP_MUST,APP_LIBFST,"%05d ", i);
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", i);
       }
-      Lib_Log(APP_MUST,APP_LIBFST,"\n");
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"\n");
       lsum = 0;
       for (i=0; i <= 16; i++) {
          lsum+=local_bins[i];
-         Lib_Log(APP_MUST,APP_LIBFST,"%05d ", local_bins[i]);
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", local_bins[i]);
       }
-      Lib_Log(APP_MUST,APP_LIBFST,"---- npts : %d \n", lsum);
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"---- npts : %d \n", lsum);
    }
 }
 
@@ -1118,17 +1118,17 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
    if (App_LogLevel(NULL)==APP_EXTRA) {
       entropie = 8.0*(*zlng)/(ni*nj);
 
-      Lib_Log(APP_MUST,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
       for (i=0; i <= 20; i++) {
-         Lib_Log(APP_MUST,APP_LIBFST,"%05d ", i);
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", i);
       }
-      Lib_Log(APP_MUST,APP_LIBFST,"\n");
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"\n");
       lsum = 0;
       for (i=0; i <= 20; i++) {
          lsum+=local_bins[i];
-         Lib_Log(APP_MUST,APP_LIBFST,"%05d ", local_bins[i]);
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", local_bins[i]);
       }
-      Lib_Log(APP_MUST,APP_LIBFST,"---- npts : %d \n", lsum);
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"---- npts : %d \n", lsum);
    }
 }
 

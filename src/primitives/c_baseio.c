@@ -148,8 +148,8 @@ static void dump_file_entry(
     //! [in] Index of the entry to dump
     const int idx
 ) {
-      Lib_Log(APP_LIBRMN,APP_MUST,"FGFDT[%d] file_name=%s subname=%s file_type=%s",idx,FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
-      Lib_Log(APP_LIBRMN,APP_MUST,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
+      Lib_Log(APP_LIBRMN,APP_VERBATIM,"FGFDT[%d] file_name=%s subname=%s file_type=%s",idx,FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
+      Lib_Log(APP_LIBRMN,APP_VERBATIM,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
               FGFDT[idx].iun,
               FGFDT[idx].fd,
               FGFDT[idx].file_size,
@@ -2019,7 +2019,7 @@ void f77name(d_wafdt)()
     Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP OF WA CONTROL TABLE\n",__func__);
     for (int i = 0; i < MAXWAFILES; i++) {
         if (wafile[i].file_desc != -1) {
-            Lib_Log(APP_LIBRMN,APP_MUST,"waindex=%d, fd=%d, npages=%d, offset=%lld\n",
+            Lib_Log(APP_LIBRMN,APP_VERBATIM,"waindex=%d, fd=%d, npages=%d, offset=%lld\n",
                 i, wafile[i].file_desc, wafile[i].nb_page_in_use, wafile[i].offset);
         }
     }

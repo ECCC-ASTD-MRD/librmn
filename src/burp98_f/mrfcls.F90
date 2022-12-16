@@ -21,7 +21,7 @@
 !**S/P MRFCLS - FERMER UN FICHIER BURP
 !
       FUNCTION MRFCLS( IUN )
-      use rmn_app
+      use app
       IMPLICIT NONE
       INTEGER  MRFCLS, IUN
 !

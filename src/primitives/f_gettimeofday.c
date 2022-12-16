@@ -4,7 +4,7 @@
 #include <sys/times.h>
 #include <sys/time.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 

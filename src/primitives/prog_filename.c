@@ -80,7 +80,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 

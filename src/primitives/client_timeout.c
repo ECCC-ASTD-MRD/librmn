@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/mgi.h>
 
 typedef struct 

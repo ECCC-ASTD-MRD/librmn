@@ -23,7 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 

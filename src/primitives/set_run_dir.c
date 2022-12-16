@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <rmn/App.h>
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 void f77name(set_run_dir)(int32_t *mype) {
