@@ -16,6 +16,8 @@ set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed 
 
 include(ec_compiler_presets)
 
+# Need to add HAVE_RMN definition for auto-registering librmn within App
+add_compile_definitions(HAVE_RMN=\"${PROJECT_VERSION}\")
 add_subdirectory(App App)
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
