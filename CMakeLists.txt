@@ -1,6 +1,8 @@
 # The minimum version can not be 3.16 because of the LINK_LANGUAGE generator expression in Config.cmake.in
 cmake_minimum_required(VERSION 3.20)
 
+message(STATUS "(EC) Generating librmn Makefile")
+
 # Append EC specific module path
 list(APPEND CMAKE_MODULE_PATH $ENV{EC_CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake_rpn/modules)
 
@@ -8,11 +10,10 @@ include(ec_init)           # Initialise compilers and ec specific functions
 ec_git_version()           # Get version from git state
 ec_parse_manifest()        # Parse MANIFEST file
 
-# Given our wacky compiler setups, languages must be activated after the
-# compiler has been configured
 project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES C Fortran)
 set(PROJECT_VERSION ${VERSION}${STATE})
 set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed for cascaded version identification
+message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
 
 include(ec_compiler_presets)
 
@@ -41,7 +42,7 @@ if(EXTRA_DEBUG_OUTPUT)
     add_compile_definitions(DEBUG)
 endif()
 
-# Figure out the correct ach_dependant include path
+# Figure out the correct arch_dependent include path
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
 
