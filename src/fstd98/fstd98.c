@@ -1690,7 +1690,7 @@ int c_fstinfx(
     strncpy(etiket, in_etiket, strlen(in_etiket));
     strncpy(typvar, in_typvar, strlen(in_typvar));
     strncpy(nomvar, in_nomvar, strlen(in_nomvar));
-    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: fstinf iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
+    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -1810,7 +1810,7 @@ int c_fstinfx(
     }
 
     if (lhandle < 0) {
-        Lib_Log(APP_LIBFST,APP_WARNING,"%s: c_fstinf: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
         if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
