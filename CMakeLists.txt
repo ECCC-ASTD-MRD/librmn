@@ -112,6 +112,8 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 # Generate build information
 ec_build_info(${CMAKE_CURRENT_BINARY_DIR}/include)
 
+string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
+
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 set_target_properties(rmn PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -135,7 +137,6 @@ add_dependencies(rmn App)
 add_dependencies(rmnshared rmn)
 
 set(TARGETS rmn rmnshared)
-string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 if(OpenMP_FOUND)
    set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
