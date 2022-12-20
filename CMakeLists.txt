@@ -113,7 +113,21 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 ec_build_info(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+set_target_properties(rmn PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+    POSITION_INDEPENDENT_CODE ON
+    OUTPUT_NAME rmn)
+target_link_libraries(rmn PUBLIC App)
+
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+set_target_properties(rmnshared PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+    POSITION_INDEPENDENT_CODE ON
+    SOVERSION ${SOVERSION}
+    OUTPUT_NAME rmn)
+target_link_libraries(rmnshared PUBLIC App)
 
 # Required to prevent missing Fortran modules when building in parallel
 # (make -j) with GNU compilers
@@ -169,21 +183,6 @@ endforeach()
 add_executable(librmn_version src/librmn_version.c)
 add_dependencies(librmn_version rmn ${PROJECT_NAME}_build_info)
 target_link_libraries(librmn_version rmn)
-
-set_target_properties(rmn PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
-    POSITION_INDEPENDENT_CODE ON
-    OUTPUT_NAME rmn)
-target_link_libraries(rmn PUBLIC App)
-
-set_target_properties(rmnshared PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
-    POSITION_INDEPENDENT_CODE ON
-    SOVERSION ${SOVERSION}
-    OUTPUT_NAME rmn)
-target_link_libraries(rmnshared PUBLIC App)
 
 install(TARGETS ${TARGETS} librmn_version)
 
