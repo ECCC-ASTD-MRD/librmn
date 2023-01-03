@@ -843,7 +843,7 @@ int c_fstecr(
     }
 
     if (fte->fstd_vintage_89) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: can not write (unit=%d) on an old (version 89) RPN standard file\n",__func__,iun);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: can not write (unit=%d) on an old (version 89) RPN standard file\n",__func__,iun);
         return(ERR_NO_WRITE);
     }
 
@@ -995,7 +995,7 @@ int c_fstecr(
     if (buffer) {
         memset(buffer, 0, (10 + keys_len + nw + 128) * sizeof(int));
     } else {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full, was trying to allocate %ld bytes\n",__func__,(10 + keys_len + nw + 128) * sizeof(int));
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full, was trying to allocate %ld bytes\n",__func__,(10 + keys_len + nw + 128) * sizeof(int));
         return(ERR_MEM_FULL);
     }
     const int bitmot = 32;
@@ -1562,7 +1562,7 @@ int c_fsteff(
     }
 
     if (f->fstd_vintage_89) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: can not write (unit=%d) on an old (version 89) RPN standard file\n",__func__,f->iun);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: can not write (unit=%d) on an old (version 89) RPN standard file\n",__func__,f->iun);
         return(ERR_NO_WRITE);
     }
 
@@ -2204,7 +2204,7 @@ int c_fstluk(
     bzero(workField, workFieldSz);
 
     // if ((workField = alloca(workFieldSz)) == NULL) {
-    //     Lib_Log(APP_FATAL,APP_LIBFST,"%s: "memory is full, was trying to allocate %ld bytes\n",__func__,lng*sizeof(int));
+    //     Lib_Log(APP_LIBFST,APP_FATAL,"%s: "memory is full, was trying to allocate %ld bytes\n",__func__,lng*sizeof(int));
     //     return(ERR_MEM_FULL);
     // } else {
     //     printf("Debug+ fstluk - &\n");
@@ -2227,7 +2227,7 @@ int c_fstluk(
     if (ier < 0) return ier;
 
     if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: wrong version of fstd98 (%d), recompile with a more recent version (aux_keys[0]=%d, aux_keys[1]=%d)\n",__func__,stdf_version,stdf_aux_keys[0],stdf_aux_keys[1]);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: wrong version of fstd98 (%d), recompile with a more recent version (aux_keys[0]=%d, aux_keys[1]=%d)\n",__func__,stdf_version,stdf_aux_keys[0],stdf_aux_keys[1]);
         return(ERR_STDF_VERSION);
     }
 
@@ -3034,7 +3034,7 @@ int c_fstskp(
                     /* skip postfix also */
                     f->cur_addr += W64TOWD(2);
                 } else {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: file (unit=%d) has invalid or no record postfix\n",__func__,iun);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d) has invalid or no record postfix\n",__func__,iun);
                     return(ERR_NO_POSTFIX);
                 }
             }
@@ -3046,12 +3046,12 @@ int c_fstskp(
                     if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
                         f->cur_addr = W64TOWD( (postfix.prev_addr - 1) )+1;
                     } else {
-                        Lib_Log(APP_FATAL,APP_LIBFST,"%s: file (unit=%d) has no record postfix\n",__func__,iun);
+                        Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d) has no record postfix\n",__func__,iun);
                         return(ERR_NO_POSTFIX);
                     }
                     c_waread(iun, &header64, f->cur_addr, W64TOWD(1));
                     if (header64.addr != (WDTO64( (f->cur_addr -1) )+1)) {
-                        Lib_Log(APP_FATAL,APP_LIBFST,"%s: file (unit=%d), postfix address (%d) not equal to record address (%d)\n",__func__,iun,(WDTO64((f->cur_addr -1))+1),header64.addr);
+                        Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d), postfix address (%d) not equal to record address (%d)\n",__func__,iun,(WDTO64((f->cur_addr -1))+1),header64.addr);
                         return(ERR_NO_POSTFIX);
                     }
                 }
@@ -3195,7 +3195,7 @@ int c_fstvoi(
             if (fte->fstd_vintage_89) {
                 // old sequential standard
                 if ((stdf_entry = calloc(1, sizeof(stdf_dir_keys))) == NULL) {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                     return(ERR_MEM_FULL);
                 }
                 seq_dir_keys* seq_entry = (seq_dir_keys *) fte->head_keys;
@@ -5245,7 +5245,7 @@ void c_ip_string(
 //! \warning Stub; not implemented yet
 int32_t f77name(fstabt)()
 {
-    Lib_Log(APP_FATAL,APP_LIBFST,"%s: this routine is not implemented in FSTD98\n",__func__);
+    Lib_Log(APP_LIBFST,APP_FATAL,"%s: this routine is not implemented in FSTD98\n",__func__);
     return(ERR_NOT_IMPL);
 }
 //! \warning Stub; not implemented yet
@@ -5257,7 +5257,7 @@ int32_t f77name(fstsel)()
 //! \warning Stub; not implemented yet
 int32_t f77name(zfstcvt)()
 {
-    Lib_Log(APP_FATAL,APP_LIBFST,"%s: this routine is not implemented yet in FSTD98\n",__func__);
+    Lib_Log(APP_LIBFST,APP_FATAL,"%s: this routine is not implemented yet in FSTD98\n",__func__);
     return(ERR_NOT_IMPL);
 }
 //! \warning Stub; not implemented yet

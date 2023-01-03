@@ -291,24 +291,24 @@ static int ValidateRequestForSet(int set_nb, int des_exc, int nelm, int nelm_lt,
     if (package_not_initialized) RequetesInit();
 
     if (set_nb > MAX_requetes-1) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: (C_select_%s) set_nb=%d > MAX_requetes-1=%d\n",__func__,msg,set_nb,MAX_requetes-1);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) set_nb=%d > MAX_requetes-1=%d\n",__func__,msg,set_nb,MAX_requetes-1);
         return -1;
     }
 
     if (nelm > MAX_Nlist) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: (C_select_%s) nelm=%d > limit=%d\n",__func__,msg,nelm,MAX_Nlist);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) nelm=%d > limit=%d\n",__func__,msg,nelm,MAX_Nlist);
         return -2;
     }
 
     if (nelm <= 0) {
         if (nelm != nelm_lt) {   /* if nelm <= 0, it must be equal to nelm_lt */
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: (C_select_%s) nelm invalid = %d\n",__func__,msg,nelm);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) nelm invalid = %d\n",__func__,msg,nelm);
         return -3;
         }
     }
 
     if ((Requests[set_nb].in_use) && (((des_exc == 1) ? DESIRE : EXCLURE) != Requests[set_nb].exdes)) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: (C_select_%s) des_exc value differs from previous call for set number=%d,expected %s, got %s \n",__func__,
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) des_exc value differs from previous call for set number=%d,expected %s, got %s \n",__func__,
            msg,set_nb, (Requests[set_nb].exdes==DESIRE) ? "desire":"exclure", (des_exc == 1) ? "desire":"exclure");
         return -4;
     }
@@ -745,7 +745,7 @@ int ReadRequestTable(char *filename)
         input = fopen(filename, "r");
     }
     if(input == NULL) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: cannot open directive file '%s'\n",__func__,filename);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: cannot open directive file '%s'\n",__func__,filename);
         return -1;
     }
     readnext:
@@ -803,7 +803,7 @@ int ReadRequestTable(char *filename)
         }
         status = Xc_Select_date(dirset, dex, a, nvalues);
         if(status != 0) {
-           Lib_Log(APP_ERROR,APP_LIBFST,"%s: bad value(s) in date\n",__func__);
+           Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in date\n",__func__);
            for (i=0;i<nvalues;i++) {
                fprintf(stderr, " %d", a[i]);
            }
@@ -825,7 +825,7 @@ int ReadRequestTable(char *filename)
         if(s2[2]=='2') status = Xc_Select_ip2(dirset, dex, a, nvalues);
         if(s2[2]=='3') status = Xc_Select_ip3(dirset, dex, a, nvalues);
         if(status != 0) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: bad value(s) in ip1/ip2/ip3\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in ip1/ip2/ip3\n",__func__);
         for (i=0;i<nvalues;i++) {
             fprintf(stderr, " %d", a[i]);
         }
@@ -841,7 +841,7 @@ int ReadRequestTable(char *filename)
         gtyp=*cptr;
         status = Xc_Select_suppl(dirset, dex, a[0], a[1], a[2], a[3], a[4], a[5], a[6], gtyp);
         if(status != 0) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: bad value(s) in supplementary criteria\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in supplementary criteria\n",__func__);
         for (i=0;i<8;i++) {
             fprintf(stderr, " %d", a[i]);
         }
@@ -860,19 +860,19 @@ int ReadRequestTable(char *filename)
         if(s2[0] == 'T') status = Xc_Select_typvar(dirset, dex, sarp, nvalues) ;
         if(s2[0] == 'E') status = Xc_Select_etiquette(dirset, dex, sarp, nvalues) ;
         if(status != 0) {
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: bad value(s) in nomvar/typvar/etiket\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in nomvar/typvar/etiket\n",__func__);
         for (i=0;i<nvalues;i++) {
             fprintf(stderr, " '%s'", sar[i]);
         }
         fprintf(stderr, "\n");
         }
     }else{
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: unrecognized type s2='%s' in directive file\n",__func__,s2);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: unrecognized type s2='%s' in directive file\n",__func__,s2);
         status = -1;
     }
     if(status != 0) {
         fclose(input);
-        Lib_Log(APP_ERROR,APP_LIBFST,"%s: status=%d\n",__func__,status);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: status=%d\n",__func__,status);
         return -1;
     }
     goto readnext;
@@ -896,7 +896,7 @@ int C_select_groupset(int first_set_nb, int last_set_nb)
 {
   if(package_not_initialized) RequetesInit();
   if ((first_set_nb > MAX_requetes-1) || (last_set_nb > MAX_requetes-1) || (first_set_nb > last_set_nb)) {
-    Lib_Log(APP_ERROR,APP_LIBFST,"%s: first_set_nb=%d, last_set_nb=%d, MAX allowed=%d\n",__func__,first_set_nb,last_set_nb,MAX_requetes-1);
+    Lib_Log(APP_LIBFST,APP_ERROR,"%s: first_set_nb=%d, last_set_nb=%d, MAX allowed=%d\n",__func__,first_set_nb,last_set_nb,MAX_requetes-1);
     return -1;
   }
   first_R = first_set_nb;
@@ -1059,7 +1059,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
   int nb_desire = 0;
 
   if(package_not_initialized) {
-    Lib_Log(APP_INFO,APP_LIBFST,"%s: C_fstmatch_parm, initializing request tables\n",__func__);
+    Lib_Log(APP_LIBFST,APP_INFO,"%s: C_fstmatch_parm, initializing request tables\n",__func__);
     RequetesInit();
   }
 //  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
@@ -1529,7 +1529,7 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
   int j;
 
   if (set_nb > MAX_requetes-1) {
-    Lib_Log(APP_ERROR,APP_LIBFST,"%s: set_nb=%d > MAX allowed=%d\n",__func__,set_nb,MAX_requetes-1);
+    Lib_Log(APP_LIBFST,APP_ERROR,"%s: set_nb=%d > MAX allowed=%d\n",__func__,set_nb,MAX_requetes-1);
     return -1;
   }
 

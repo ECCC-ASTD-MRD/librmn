@@ -403,7 +403,7 @@ static int burp_valid789(
         case 7:
         case 8:
             if ((nele &1) != 0) {
-                Lib_Log(APP_FATAL,APP_LIBFST,"%s: datyp=%d, nele must be even, nele=%d\n",__func__, datyp, nele);
+                Lib_Log(APP_LIBFST,APP_FATAL,"%s: datyp=%d, nele must be even, nele=%d\n",__func__, datyp, nele);
                 return(ERR_BAD_DATYP);
             }
             if (datyp == 7) {
@@ -416,7 +416,7 @@ static int burp_valid789(
                     if (lstele[i] == 0) {
                         lstele[i] = codval[0];
                     } else {
-                        Lib_Log(APP_FATAL,APP_LIBFST,"%s: invalid code for datyp %d\n",__func__,datyp);
+                        Lib_Log(APP_LIBFST,APP_FATAL,"%s: invalid code for datyp %d\n",__func__,datyp);
                         return(BURP_ERR_CODE);
                     }
                 }
@@ -425,7 +425,7 @@ static int burp_valid789(
 
         case 9:
             if ((nele & 3) != 0) {
-                Lib_Log(APP_FATAL,APP_LIBFST,"%s: datyp=%d, nele must be a multiple of 4, nele=%d\n",__func__,datyp,nele);
+                Lib_Log(APP_LIBFST,APP_FATAL,"%s: datyp=%d, nele must be a multiple of 4, nele=%d\n",__func__,datyp,nele);
                 return(ERR_BAD_DATYP);
             }
             codval[0] = MRBCOV(0, 55, 204);
@@ -437,7 +437,7 @@ static int burp_valid789(
                         if (lstele[i+j] == 0) {
                             lstele[i+j] = codval[j];
                         } else {
-                            Lib_Log(APP_FATAL,APP_LIBFST,"%s: invalid code for datyp %d\n",__func__,datyp);
+                            Lib_Log(APP_LIBFST,APP_FATAL,"%s: invalid code for datyp %d\n",__func__,datyp);
                             return(BURP_ERR_CODE);
                         }
                     }
@@ -513,7 +513,7 @@ int c_mrbadd(
     if (bdesc != 0) {
         bfamho = (bfam >> 6) & 0x3f;
         if ((bfamho != 0) && (bfamho != bdesc)) {
-            Lib_Log(APP_FATAL,APP_LIBFST,"%s: illegal use of bdesc\n",__func__);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: illegal use of bdesc\n",__func__);
             return(BURP_ERR_BDESC);
         }
         entete.bfamdesc = (bfam & 0x3f) << 6;
@@ -781,13 +781,13 @@ int c_mrbloc(
         if ((bdesc == 0) || (bdesc == -1)) {
             bfamdesc = -1;
         } else {
-            Lib_Log(APP_FATAL,APP_LIBFST,"%s: illegal use of bdesc\n",__func__);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: illegal use of bdesc\n",__func__);
             return(BURP_ERR_BDESC);
         }
     } else if ((bdesc != 0) && (bdesc != -1)) {
         bfamho = (bfam >> 6) & 0x3f;
         if ((bfamho != 0) && (bfamho != bdesc)) {
-            Lib_Log(APP_FATAL,APP_LIBFST,"%s: illegal use of bdesc\n",__func__);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: illegal use of bdesc\n",__func__);
             return(BURP_ERR_BDESC);
         }
         bfamdesc = (bfam & 0x3f) << 6;

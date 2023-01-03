@@ -467,7 +467,7 @@ int c_qdfdiag(
             return(ERR_NOT_XDF);
         }
         if ((fh = malloc(header64.lng * 8)) == NULL) {
-            Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
             return(ERR_MEM_FULL);
         }
         c_waread(iun, fh, 1, W64TOWD(header64.lng));
@@ -510,7 +510,7 @@ int c_qdfdiag(
 
         if (addr == readpos) {
             if (header.lng < W64TOwd(1)) {
-                Lib_Log(APP_FATAL,APP_LIBFST,"%s: Invalid record length=%d, addr=%d\n",__func__,header.lng,addr);
+                Lib_Log(APP_LIBFST,APP_FATAL,"%s: Invalid record length=%d, addr=%d\n",__func__,header.lng,addr);
                 return(ERR_BAD_LEN);
             }
             if (header.idtyp == 0) {
@@ -650,14 +650,14 @@ int c_qdfrstr(
     file_record header64;
     c_waread(inp, &header64, 1, W64TOWD(2));
     if (header64.data[0] != 'XDF0' && header64.data[0] !='xdf0') {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: file is not XDF type\n",__func__);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: file is not XDF type\n",__func__);
         return(ERR_NOT_XDF);
     }
     int lng = W64TOWD(header64.lng);
     int nw = c_wasize(inp);
 
     if (lng > nw) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: Invalid header file length=%d\n",__func__,header64.lng);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: Invalid header file length=%d\n",__func__,header64.lng);
         return(ERR_BAD_LEN);
     }
     file_header fh;
@@ -702,7 +702,7 @@ int c_xdfadd(
     int datyp
 ) {
     if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
         return(ERR_BAD_DATYP);
     }
 
@@ -959,12 +959,12 @@ int c_xdfcut(
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
     if ((bitpos % 64) != 0) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: bitpos must be a multiple of 64\n",__func__);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
         return(ERR_BAD_ADDR);
     }
 
     if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
         return(ERR_BAD_DATYP);
     }
 
@@ -1459,12 +1459,12 @@ int c_xdfins(
     int  ier;
 
     if ((bitpos % 64) != 0) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: bitpos must be a multiple of 64\n",__func__);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
         return(ERR_BAD_ADDR);
     }
 
     if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
         return(ERR_BAD_DATYP);
     }
 
@@ -1887,7 +1887,7 @@ int c_xdfopn(
         c_waread(iun, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
             if ((f->header = malloc(header64.lng * 8)) == NULL) {
-                Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+                Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                 return(ERR_MEM_FULL);
             }
 
@@ -1901,7 +1901,7 @@ int c_xdfopn(
             wdaddress += wdlng_header;
             if (f->cur_info->attr.std) {
                 if ((f->header->sign != STDR_sign) && (f->header->sign != STDS_sign)) {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: %s is not a standard file\n",__func__,FGFDT[index_fnom].file_name);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: %s is not a standard file\n",__func__,FGFDT[index_fnom].file_name);
                     return(ERR_WRONG_FTYPE);
                 }
             }
@@ -1909,7 +1909,7 @@ int c_xdfopn(
                 f->header->rwflg = RDMODE;
             } else {
                 if (f->header->rwflg != RDMODE) {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: file (unit=%d) currently used by another application in write mode\n",__func__,iun);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d) currently used by another application in write mode\n",__func__,iun);
                     return(ERR_STILL_OPN);
                 }
 
@@ -1936,7 +1936,7 @@ int c_xdfopn(
                 }
             }
 
-            Lib_Log(APP_LIBFST,APP_DEBUG,"%s: c_xdfopn fichier existe f->xdf_seq=%d\n",__func__,f->xdf_seq);
+            Lib_Log(APP_LIBFST,APP_DEBUG,"%s: fichier existe f->xdf_seq=%d\n",__func__,f->xdf_seq);
 
             if (! f->xdf_seq) {
                 // Read directory pages and compute checksum
@@ -1978,7 +1978,7 @@ int c_xdfopn(
                 c_waread(iun, &header_rnd, wdaddress, lng);
                 wdaddress += lng;
                 if ((directory = calloc(header_rnd.nutil, sizeof(uint32_t) * sizeof(rnd_dir_keys))) == NULL) {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                     return(ERR_MEM_FULL);
                 }
                 lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(uint32_t);
@@ -2077,7 +2077,7 @@ int c_xdfopn(
                     f->seq_bof = 1;
                     return 0;
                 } else {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: file is not XDF type or old standard random type\n",__func__);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: file is not XDF type or old standard random type\n",__func__);
                     return(ERR_NOT_XDF);
                 }
             }
@@ -2456,12 +2456,12 @@ int c_xdfrep(
     int ier;
 
     if ((bitpos % 64) != 0) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: bitpos must be a multiple of 64\n",__func__);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
         return(ERR_BAD_ADDR);
     }
 
     if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
         return(ERR_BAD_DATYP);
     }
 
@@ -2577,11 +2577,11 @@ int c_xdfsta(
         c_waopen(iun);
         c_waread(iun, &header64, 1, W64TOWD(2));
         if (header64.data[0] != 'XDF0' && header64.data[0] != 'xdf0') {
-            Lib_Log(APP_FATAL,APP_LIBFST,"%s: file is not XDF type\n",__func__);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: file is not XDF type\n",__func__);
             return(ERR_NOT_XDF);
         }
         if ((fh = malloc(header64.lng * 8)) == NULL) {
-            Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
         }
         c_waread(iun, fh, 1, W64TOWD(header64.lng));
     } else {
@@ -3003,7 +3003,7 @@ static int create_new_xdf(
     int lng_header = naux + npri + 512 / 64;
 
     if ((file_table[index]->header = malloc(lng_header * 8)) == NULL) {
-        Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+        Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
         return(ERR_MEM_FULL);
     }
     file = file_table[index]->header;
@@ -3122,7 +3122,7 @@ static int get_free_index()
     for (int i = 0; i < nlimite; i++) {
         if (file_table[i] == NULL) {
             if ((file_table[i] = (file_table_entry_ptr) malloc(sizeof(file_table_entry))) == NULL) {
-                 Lib_Log(APP_FATAL,APP_LIBFST,"%s: can't alocate file_table_entry\n",__func__);
+                 Lib_Log(APP_LIBFST,APP_FATAL,"%s: can't alocate file_table_entry\n",__func__);
                 return(ERR_MEM_FULL);
             }
             // assure first time use of index i
@@ -3135,7 +3135,7 @@ static int get_free_index()
             }
          }
     }
-    Lib_Log(APP_FATAL,APP_LIBFST,"%s: xdf file table is full\n",__func__);
+    Lib_Log(APP_LIBFST,APP_FATAL,"%s: xdf file table is full\n",__func__);
     return(ERR_FTAB_FULL);
 }
 
@@ -3343,7 +3343,7 @@ static uint32_t next_match(
             if (f->fstd_vintage_89) {
                 /* old sequential standard */
                 if ((stde = malloc(sizeof(stdf_dir_keys))) == NULL) {
-                    Lib_Log(APP_FATAL,APP_LIBFST,"%s: memory is full\n",__func__);
+                    Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                     return(ERR_MEM_FULL);
                 }
                 seq_entry = (seq_dir_keys *) f->head_keys;
