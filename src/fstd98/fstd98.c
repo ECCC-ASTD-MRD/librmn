@@ -578,7 +578,7 @@ static void print_std_parms(
     }
 
     if (header==-1) {
-       Lib_Log(APP_LIBFST,APP_INFO,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
+       Lib_Log(APP_LIBFST,APP_DEBUG,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
            pre,v_nomv,v_typv,v_etiq,v_dims,v_dateo,v_stampo,v_datev,v_level,v_decoded,v_ip1,v_ip23,v_deet,v_npas,v_dty,v_grid);
     } else {
        fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
@@ -1362,7 +1362,7 @@ int c_fstecr(
 
     /* write record to file and add entry to directory */
     int ier = c_xdfput(iun, handle, buffer);
-    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>APP_INFO) {
         char string[12];
         sprintf(string, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
@@ -2441,7 +2441,7 @@ int c_fstluk(
         } /* end switch */
     }
 
-    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>APP_INFO) {
         char string[11];
         sprintf(string, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
@@ -2612,7 +2612,6 @@ int c_fstopc(
   int val = 0;
 
   if (strcmp(option, "MSGLVL") == 0) {
-    Lib_Log(APP_LIBFST,APP_INFO,"%s: MSGLVL option is deprecated\n",__func__);
     if (getmode){
         if (getmode == 2) val = App->LogLevel[APP_LIBFST];
     }else{
@@ -2624,7 +2623,7 @@ int c_fstopc(
   }
 
   if (strcmp(option, "TOLRNC") == 0) {
-    Lib_Log(APP_LIBFST,APP_INFO,"%s: TOLRNC option is deprecated\n",__func__);
+    Lib_Log(APP_LIBFST,APP_WARNING,"%s: TOLRNC option is deprecated\n",__func__);
     return val;
   }
 
@@ -2634,7 +2633,7 @@ int c_fstopc(
     }else{
       sprintf(prnt_options, "%s", value);
     }
-    if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+    if (getmode == 1 || App_LogLevel(NULL)>APP_INFO)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option PRINTOPT='%s'\n",__func__,prnt_options);
     return val;
   }
