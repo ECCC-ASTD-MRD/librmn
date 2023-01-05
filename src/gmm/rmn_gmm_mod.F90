@@ -52,12 +52,12 @@ public
 
     !  GMM_MESSAGE_LEVELS
 
-    integer, parameter :: GMM_MSG_DEBUG  = -1
-    integer, parameter :: GMM_MSG_INFO   =  0
-    integer, parameter :: GMM_MSG_WARN   =  1
-    integer, parameter :: GMM_MSG_ERROR  =  2
-    integer, parameter :: GMM_MSG_SEVERE =  3
-    integer, parameter :: GMM_MSG_FATAL  =  4
+    integer, parameter :: GMM_MSG_DEBUG  =  6
+    integer, parameter :: GMM_MSG_INFO   =  5
+    integer, parameter :: GMM_MSG_WARN   =  4
+    integer, parameter :: GMM_MSG_ERROR  =  3
+    integer, parameter :: GMM_MSG_SEVERE =  2
+    integer, parameter :: GMM_MSG_FATAL  =  1
 
     !> Dimensioning elements
     type :: gmm_layout
@@ -657,6 +657,7 @@ contains
 
     !> Checkpoint read or write for all known types
     integer function gmm_checkpoint_all(read_or_write)
+        use app
         implicit none
 
         logical :: read_or_write
@@ -667,18 +668,15 @@ contains
         ! Read checkpoint file one record at a time
         if (read_or_write) then
             if (restart_mode) then
-                if (gmm_verbose_level <= GMM_MSG_WARN) then
-                    print *, '(GMM_CHECKPOINT_ALL) Warning: restart file already read'
-                endif
+                call lib_log(APP_LIBGMM,APP_WARNING,'gmm_checkpoint_all: Restart file already read')
                 gmm_checkpoint_all = GMM_OK
                 return
             endif
             if (file_unit == 0) then
                 ! Open checkpoint file
                 istat = fnom(file_unit, 'gmm_restart', 'SEQ+UNF+FTN+OLD', 0)
-                if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                    print *, 'open restart file, status=', istat
-                endif
+                write(app_msg,*) 'gmm_checkpoint_all: Open restart file, status=', istat
+                call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
                 if (istat < 0) then
                     file_unit = 0
                     gmm_checkpoint_all = GMM_ERROR
@@ -690,7 +688,7 @@ contains
                 ! We are in restart mode if a single record is read from restart file
                 restart_mode = .true.
                 if (-1 == code) then
-                    print *,'ERROR: gmm_checkpoint_all this cannot happen'
+                    call lib_log(APP_LIBGMM,APP_ERROR,'gmm_checkpoint_all: This cannot happen')
                 else if (code == 184) then
                     call gmm_checkpoint_184(.true.)
                 else if (code == 144) then
@@ -732,7 +730,8 @@ contains
                 else if (code == 381) then
                     call gmm_checkpoint_381(.true.)
                 else
-                    print *, 'ERROR: gmm_checkpoint_all unrecognized type=', code, ' in restart file'
+                    write(app_msg,*) 'gmm_checkpoint_all: unrecognized type=', code, ' in restart file'
+                    call lib_log(APP_LIBGMM,APP_ERROR,app_msg)
                     call qqexit(1)
                 endif
             end do
@@ -741,9 +740,9 @@ contains
             if (file_unit == 0) then
                 ! Open checkpoint file
                 istat = fnom(file_unit, 'gmm_restart', 'SEQ+UNF+FTN', 0)
-                if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                    print *, 'open restart file, status=', istat
-                endif
+                write(app_msg,*) 'gmm_checkpoint_all: Open restart file, status=', istat
+                call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
+
                 if (istat < 0) then
                     file_unit = 0
                     gmm_checkpoint_all = GMM_ERROR
@@ -965,6 +964,7 @@ contains
 
 
     subroutine gmm_dumpinfo(fldstat)
+        use app
         use iso_fortran_env, only : int64
 
         implicit none
@@ -987,7 +987,8 @@ contains
 
         l_page = 1
         l_entry = 1
-        print *, 'GMM dumpinfo, number of variables in use is', used
+        write(app_msg,*) 'gmm_dumpinfo: Number of variables in use is', used
+        call lib_log(APP_LIBGMM,APP_ALWAYS,app_msg)
         do i = 1, used
             dims = directory(l_page)%entry(l_entry)%l
             nelm = ( (dims(1)%high - dims(1)%low +1) * &
@@ -1054,6 +1055,7 @@ contains
 
     !> Get the stored metadata
     integer function gmm_getmeta(varname, meta)
+        use app
         use iso_fortran_env, only : int64
 
         implicit none
@@ -1067,9 +1069,8 @@ contains
         call find_directory_entry(varname,key)
 
         if (key == GMM_KEY_NOT_FOUND) then
-            if (gmm_verbose_level <= GMM_MSG_WARN) then
-                print *, '(GMM_GETMETA) Variable ', varname, ' not found'
-            endif
+            write(app_msg,*) 'gmm_getmeta: Variable ', varname, ' not found'
+            call lib_log(APP_LIBGMM,APP_WARNING,app_msg)
             gmm_getmeta = GMM_ERROR
             return
         endif
@@ -1148,6 +1149,7 @@ contains
 
     !> Rename a GMM entry (update the label)
     integer function gmm_rename(old_varname, new_varname)
+        use app
         use iso_fortran_env, only : int64
 
         implicit none
@@ -1159,9 +1161,8 @@ contains
         key = GMM_KEY_NOT_FOUND
         call find_directory_entry(new_varname, key)
         if (key >= 0) then
-            if (gmm_verbose_level <= GMM_MSG_WARN) then
-                print *, '(GMM_RENAME) Variable ', trim(new_varname), ' is already defined'
-            endif
+            write(app_msg,*) 'gmm_rename: Variable ', trim(new_varname), ' is already defined'
+            call lib_log(APP_LIBGMM,APP_WARNING,app_msg)
             gmm_rename = GMM_ERROR
             return
         endif
@@ -1169,23 +1170,22 @@ contains
         key = GMM_KEY_NOT_FOUND
         call find_directory_entry(old_varname, key)
         if (key == GMM_KEY_NOT_FOUND) then
-            if (gmm_verbose_level <= GMM_MSG_WARN) then
-                print *, '(GMM_RENAME) Variable ', trim(old_varname), ' not defined'
-            endif
+            write(app_msg,*) 'gmm_rename: Variable ', trim(old_varname), ' not defined'
+            call lib_log(APP_LIBGMM,APP_WARNING,app_msg)
             gmm_rename = GMM_ERROR
             return
         endif
 
         directory(cur_page)%entry(cur_entry)%name = new_varname
-        if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, '(GMM_RENAME) Variable ', trim(old_varname), ' renamed to ', trim(new_varname)
-        endif
+        write(app_msg,*) 'gmm_rename: Variable ', trim(old_varname), ' renamed to ', trim(new_varname)
+        call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
         gmm_rename = 0
     end function gmm_rename
 
 
     !> Cycle rename a list of labels
     integer function gmm_shuffle(taglist)
+        use app
         use iso_fortran_env, only : int64
 
         implicit none
@@ -1206,7 +1206,7 @@ contains
         temp_key = GMM_KEY_NOT_FOUND
         call find_directory_entry(tempname, temp_key)
         if (temp_key /= GMM_KEY_NOT_FOUND) then
-            print *, 'FATAL : (GMM_SHUFFLE) Temporary variable used for swapping should not exist'
+            call lib_log(APP_LIBGMM,APP_FATAL,'gmm_shuffle: Temporary variable used for swapping should not exist')
             gmm_shuffle = GMM_ERROR
         endif
 
@@ -1241,7 +1241,7 @@ contains
         enddo
 
         if (.not. valide) then
-            print *, '(GMM_SHUFFLE) NONE OF THE FIELDS IN THE LIST EXIST !'
+            call lib_log(APP_LIBGMM,APP_ERROR,'gmm_shuffle: None of the fields int the list exist')
             gmm_shuffle = GMM_ERROR
             deallocate(key_list)
             return
@@ -1397,33 +1397,11 @@ contains
 
     !> Set the verbosity level
     integer function gmm_verbosity(verbose_level)
+        use app
         implicit none
         integer, intent(in) :: verbose_level
 
-        select case (verbose_level)
-        case (GMM_MSG_DEBUG)
-            gmm_verbose_level = GMM_MSG_DEBUG
-            print *, '(GMM_VERBOSITY) Setting GMM Verbose level to DEBUG'
-        case (GMM_MSG_INFO)
-            gmm_verbose_level = GMM_MSG_INFO
-            print *, '(GMM_VERBOSITY) Setting GMM Verbose level to INFO'
-        case (GMM_MSG_WARN)
-            gmm_verbose_level = GMM_MSG_WARN
-            print *, '(GMM_VERBOSITY) Setting GMM Verbose level to WARN'
-        case (GMM_MSG_ERROR)
-            gmm_verbose_level = GMM_MSG_ERROR
-            print *, '(GMM_VERBOSITY) Setting GMM Verbose level to ERROR'
-        case (GMM_MSG_SEVERE)
-            gmm_verbose_level = GMM_MSG_SEVERE
-            print *, '(GMM_VERBOSITY) Setting GMM Verbose level to SEVERE'
-        case (GMM_MSG_FATAL)
-            gmm_verbose_level = GMM_MSG_FATAL
-            print *, '(GMM_VERBOSITY) Setting GMM Verbose level to FATAL'
-        case default
-            print *, '(GMM_VERBOSITY) Unknown GMM Verbose level'
-            print *, '(GMM_VERBOSITY) Please check GMM Documentation'
-        end select
-        gmm_verbosity = 0
+        gmm_verbosity=lib_loglevelno(APP_LIBGMM,verbose_level)
     end function gmm_verbosity
 
 end module rmn_gmm

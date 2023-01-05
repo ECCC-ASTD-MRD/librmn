@@ -24,6 +24,7 @@
 !> Compact or decompact real numbers
 !> For IEEE format (1 sign, 8 exponant 32 mantisse)
 subroutine ieeepak(IFLD, IPK, NI, NJ, NPAK, serpas, mode)
+    use app
     IMPLICIT NONE
     !> Size along the X axis
     integer, intent(in) :: NI
@@ -68,7 +69,8 @@ subroutine ieeepak(IFLD, IPK, NI, NJ, NPAK, serpas, mode)
 
 #if defined (ALL64)
     IF (NBITS .NE. 32) THEN
-        print *, 'IEEEPAK ERROR: NBITS MUST BE 32, NBITS=', nbits
+        write(app_msg,*) 'IEEEPAK: NBITS must be 32, NBITS=', nbits
+        call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
         stop 'IEEEPAK' 
     ENDIF
     IF (mode .EQ. 1) THEN
@@ -90,7 +92,8 @@ subroutine ieeepak(IFLD, IPK, NI, NJ, NPAK, serpas, mode)
             ELSEIF (NBITS .EQ. 64) THEN
                 CALL MOVE6432(IFLD,IPK,NINJ)
             ELSE
-                print *, 'IEEEPAK ERROR: NBITS MUST BE <= 32 OR 64, NBITS=', nbits
+                write(app_msg,*) 'IEEEPAK: NBITS must be <=32 or 64, NBITS=', nbits
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 stop 'IEEEPAK' 
             ENDIF
         ELSE
@@ -126,7 +129,8 @@ subroutine ieeepak(IFLD, IPK, NI, NJ, NPAK, serpas, mode)
             ELSEIF (NBITS .EQ. 64) THEN
                 CALL MOVE6432(IPK,IFLD,NINJ)
             ELSE
-                print *, 'IEEEPAK ERROR: NBITS MUST BE <= 32 OR 64, NBITS=', nbits
+                write(app_msg,*) 'IEEEPAK: NBITS must be <=32 or 64, NBITS=', nbits
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 stop 'IEEEPAK' 
             ENDIF
         ELSE

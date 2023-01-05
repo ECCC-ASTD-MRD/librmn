@@ -2,7 +2,7 @@
 subroutine set_user_lock(lockId, lock)
 ! call set_user_lock(lock_variable, .true. ) to acquire lock
 ! call set_user_lock(lock_variable, .false.) to release lock
-
+    use app
     implicit none
 
     integer, intent(INOUT) :: lockId !< Id of the lock, MUST be negative
@@ -39,7 +39,8 @@ subroutine set_user_lock(lockId, lock)
             ! print *,'attempt to unlock by thread',current_pid
             if (current_pid .ne. owner_pid .and. lockId > 0) then
                 ! lock is owned by another thread
-                print *,'ERROR: ', current_pid, ' attempting to release a lock owned by', owner_pid
+                write(app_msg,*) 'set_user_lock: ',current_pid, ' attempting to release a lock owned by', owner_pid
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 call qqexit(1)
             endif
             ! subtract one from depth

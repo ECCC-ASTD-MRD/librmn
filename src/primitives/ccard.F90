@@ -174,7 +174,8 @@ subroutine ccard(incle, def, val, nbkeys, ii)
 
             IF (j > nbkeys) THEN
                 cllng = len_trim(argup)
-                PRINT *, ' *** ERREUR: cle ', argup(1:cllng), ' non reconnue'
+                write(app_msg,*) 'ccard: Unknow key ', argup(1:cllng)
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 CALL qqqsap(cle, def, val, nbkeys)
                 IF (plante) THEN
                     CALL qqexit(22)
@@ -192,7 +193,7 @@ subroutine ccard(incle, def, val, nbkeys, ii)
                 call c_set_appl_var(keyname, argtemp)
                 posc = posc + 1
             ELSE
-                PRINT *, ' *** ERREUR: debordement de liste'
+                call lib_log(APP_LIBRMN,APP_ERROR,'ccard: List overflow')
                 CALL qqqsap(cle, def, val, nbkeys)
                 IF (plante) THEN
                     CALL qqexit(23)
@@ -207,8 +208,7 @@ subroutine ccard(incle, def, val, nbkeys, ii)
                 write(keyname, errorFmt) '%%' // trim(cle(posmoinc)), posmoinc - pos, '%%'
                 call c_set_appl_var(keyname, argtemp)
             ELSE
-                PRINT *,' *** ERREUR: debordement de liste'
-                PRINT *,'         ou  mode positionnel non permis'
+                call lib_log(APP_LIBRMN,APP_ERROR,'ccard: List overflow or positionnal mode not allowed')
                 CALL qqqsap(cle, def, val, nbkeys)
                 IF (plante) THEN
                     CALL qqexit(24)
