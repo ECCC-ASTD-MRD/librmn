@@ -60,6 +60,7 @@ end subroutine
 !> If there is an error in the command line, it will be printed along with the
 !> keys and their current value
 subroutine ccard(incle, def, val, nbkeys, ii)
+    use app
     use ccard_private
     IMPLICIT NONE
 
@@ -105,7 +106,8 @@ subroutine ccard(incle, def, val, nbkeys, ii)
     DO i = 1, nbkeys
         cletemp = incle(i)
         IF (TRIM(incle(i)) /= TRIM(cletemp)) THEN
-            write(*, "(a,i4,a)") 'CCARD erreur: nom de la cle #', i, ' > limite de 50 caracteres'
+            write(app_msg, "(a,i4,a)") 'ccard: key name #', i, ' > 50 character limit'
+            call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
             if (plante) call qqexit(21)
         END IF
         CALL low2up(incle(i), cleup)

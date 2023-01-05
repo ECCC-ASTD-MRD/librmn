@@ -32,6 +32,7 @@
 !
 !ARGUMENTS
   use Interp1D_Constants
+  use app
   implicit none
 #include "Interp1D_Arguments_X.inc"
 !
@@ -73,13 +74,8 @@
       if( extrapEnableDown .and. posnDestInSrc(i,vt) == lowestPossiblePosn) then
         if( vLevelDestn(i,vt) < vLevelSource(i,indexLowestLevel) ) then
           ! extrapolation is required:  abort execution
-          write(*,*)
-          write(*,*)"ERROR:  Attempting extrapolation to level ", &
-                    vLevelDestn(i,vt)
-          write(*,*)"        This is below the lowest level ", &
-                    vLevelSource(i,indexLowestLevel)
-          write(*,*)"        Abortion on extrapolation has been selected ... ", &
-                             "ABORTING"
+          write(app_msg,*) "Extrap1D_Abort: Attempting extrapolation to level ",vLevelDestn(i,vt),", this is below the lowest level ",vLevelSource(i,indexLowestLevel)
+          call lib_log(APP_LIBINTERPV,APP_ERROR,app_msg)
           call exit(2)
         endif
 
@@ -87,13 +83,8 @@
               .and. posnDestInSrc(i,vt) == highestPossiblePosn) then
         if( vLevelDestn(i,vt) > vLevelSource(i,indexHighestLevel) ) then
           ! extrapolation is required:  abort execution
-          write(*,*)
-          write(*,*)"ERROR:  Attempting extrapolation to level ", &
-                    vLevelDestn(i,vt)
-          write(*,*)"        This is above the highest level ", &
-                    vLevelSource(i,indexHighestLevel)
-          write(*,*)"        Abortion on extrapolation has been selected ... ", &
-                             "ABORTING"
+          write(app_msg,*) "Extrap1D_Abort: Attempting extrapolation to level ",vLevelDestn(i,vt),", this is above the highest level ",vLevelSource(i,indexHighestLevel)
+          call lib_log(APP_LIBINTERPV,APP_ERROR,app_msg)
           call exit(2)
         end if
       end if ! extrapEnableDown
