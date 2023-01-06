@@ -71,6 +71,10 @@ retrieving that information or profiling.
 `#include` directives.  For example, `#include <rpnmacros.h>` becomes
 `#include <rmn/rpnmacros.h>`.
 
+- The program librmn_version is not available anymore.Information about
+version, architecture and more can be retreived through the `rmn-config`
+script. ex: `rmn-config --version --arch`
+
 - GMM is now available as a module (`rmn_gmm`) and is no longer made
 available as multiple *.hf files
 

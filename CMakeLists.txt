@@ -15,6 +15,8 @@ set(PROJECT_VERSION ${VERSION}${STATE})
 set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed for cascaded version identification
 message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
 
+ec_build_info()            # Generate build information
+
 include(ec_compiler_presets)
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
@@ -73,7 +75,7 @@ file(GLOB PROJECT_H_FILES
 
 
 # This really isn't the ideal solution; the compiler should be called with all
-# the definitions and options as if we it was processing a source file
+# the definitions and options as if it was processing a source file
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -96,9 +98,6 @@ add_custom_command(
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
-# Generate build information
-ec_build_info(${CMAKE_CURRENT_BINARY_DIR}/include)
-
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 add_library(rmnshared SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 # Required to prevent missing Fortran modules when building in parallel
@@ -120,11 +119,6 @@ foreach(TARGET IN ITEMS rmn rmnshared)
             WhiteBoardFortranHeader)
 endforeach()
 
-#TODO: Could get rid of this binary a it's availble through rmn_config
-add_executable(librmn_version src/librmn_version.c)
-add_dependencies(librmn_version rmn ${PROJECT_NAME}_build_info)
-target_link_libraries(librmn_version rmn)
-
 set_target_properties(rmn PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
@@ -139,7 +133,7 @@ set_target_properties(rmnshared PROPERTIES
     SOVERSION ${SOVERSION}
     OUTPUT_NAME rmn)
 
-install(TARGETS rmn rmnshared librmn_version)
+install(TARGETS rmn rmnshared)
 
 # Symbolic link for archive numbered version
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -157,7 +151,6 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
 # It must therefore be added explicitly
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 install(FILES ${PROJECT_INCLUDE_FILES} DESTINATION include/rmn)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}_build_info.h DESTINATION include)
 add_custom_target(
     cprotos
     ${CMAKE_CURRENT_SOURCE_DIR}/extractProtos.bash ${CMAKE_CURRENT_SOURCE_DIR}/src ${PROJECT_C_FILES}

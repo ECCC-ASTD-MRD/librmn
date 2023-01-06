@@ -75,6 +75,10 @@ profilage.
 de corriger le chemin d'accès dans les directives `#include`.  Par
 exemple, `#include <rpnmacros.h>` devient `#include <rmn/rpnmacros.h>`.
 
+- L'exécutable librmn_version n'est plus disponible. L'information de 
+version, architecture et bien plus peuvent être récupéré avec le script 
+`rmn-config`. ex: `rmn-config --version --arch`
+
 - GMM est maintenant disponible sous forme de module (`rmn_gmm`) et non
 plus sous forme de multiples fichiers *.hf
 

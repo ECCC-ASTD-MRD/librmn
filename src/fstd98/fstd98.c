@@ -753,7 +753,7 @@ int c_fst_data_length(
 //! | +64   | Missing value convention used                |
 int c_fstecr(
     //! [in] Field to write to the file
-    uint32_t *field_in,
+    void *field_in,
     //! [in] Work field (kept for backward compatibility)
     void *work,
     //! [in] Number of bits kept for the elements of the field
@@ -1948,7 +1948,7 @@ int c_fstinl(
 //! Search for a record that matches the search keys and check that the remaining parmeters match the record descriptors
 int c_fstlic(
     //! [out] Field to be read
-    uint32_t *field,
+    void *field,
     //! [in] Unit number associated to the file
     int iun,
     //! [in] First of the data field
@@ -2028,7 +2028,7 @@ int c_fstlic(
 //! Reads the next record that matches the search keys
 int c_fstlir(
     //! [out] Data field to be read
-    uint32_t *field,
+    void *field,
     //! [in] Unit number associated to the file
     int iun,
     //! [out] First of the data field
@@ -2062,7 +2062,7 @@ int c_fstlir(
 //! Reads the next record that matches the search keys.  The search begins at the position given by handle.
 int c_fstlirx(
     //! [out] Field to be read
-    uint32_t *field,
+    void *field,
     //! [in] Record handle from which the search begins
     int handle,
     //! [in] Unit number associated to the file
@@ -2109,7 +2109,7 @@ int c_fstlirx(
 //! Reads the next record that matches the last search criterias
 int c_fstlis(
     //! [out] Field to be read
-    uint32_t *field,
+    void *field,
     //! [in] Unit number associated to the file
     int iun,
     //! [out] First of the data field
@@ -2150,7 +2150,7 @@ int c_fstlis(
 //! Read the record corresponding to the provided handle
 int c_fstluk(
     //! [out] Pointer to where the data read will be placed.  Must be allocated!
-    uint32_t * const field,
+    void * const vfield,
     //! [in] Handle of the record to be read
     const int handle,
     //! [out] Dimension 1 of the data field
@@ -2160,6 +2160,8 @@ int c_fstluk(
     //! [out] Dimension 3 of the data field
     int * const nk
 ) {
+    uint32_t *field=vfield;
+    
     // fprintf(stderr, "Debug+ c_fstluk(field=%p, handle=%i, ni=%i, nj=%i, nj=%i)\n", field, handle, *ni, *nj, *nk);
 
     // printf("sizeof(stdf_dir_keys) = %d\n", sizeof(stdf_dir_keys));
@@ -3776,7 +3778,7 @@ int32_t f77name(fst_data_length)(int *f_length_type)
 //! Write record to file
 int32_t f77name(fstecr)(
     //! [in] Field to write to the file
-    uint32_t *field,
+    void *field,
     //! [in] Unused, but kept for backward compatibility
     int32_t *work,
     //! [in] Number of bits kept for the elements of the field
@@ -4385,7 +4387,7 @@ int32_t f77name(fstlic)(uint32_t *field, int32_t *f_iun,
  *  IN  nomvar  variable name                                                *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstlir)(void *field, int32_t *f_iun,
+int32_t f77name(fstlir)(int32_t *field, int32_t *f_iun,
                         int32_t *f_ni, int32_t *f_nj,
                         int32_t *f_nk, int32_t *f_datev, char *f_etiket,
                         int32_t *f_ip1, int32_t *f_ip2, int32_t *f_ip3,

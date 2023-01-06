@@ -40,24 +40,24 @@ int c_fstinl(int iun, int *ni, int *nj, int *nk, int datev, char *etiket,
 int c_fstinfx(const int handle, const int iun, int * const ni, int *const nj, int *const nk,
             const int datev, const char * const in_etiket,
             const int ip1, const int ip2, const int ip3, const char * const in_typvar, const char * const in_nomvar);
-int c_fstlir(uint32_t *field, int iun, int *ni, int *nj, int *nk,
+int c_fstlir(void *field, int iun, int *ni, int *nj, int *nk,
             int datev, char *etiket,
             int ip1, int ip2, int ip3, char *typvar, char *nomvar);
-int c_fstlirx(uint32_t *field, int handle, int iun,
+int c_fstlirx(void *field, int handle, int iun,
             int *ni, int *nj, int *nk, int datev, char *etiket,
             int ip1, int ip2, int ip3, char *typvar, char *nomvar);
-int c_fstlis(uint32_t *field, int iun, int *ni, int *nj, int *nk);
-int c_fstlic(uint32_t *field, int iun, int niin, int njin, int nkin,
+int c_fstlis(void *field, int iun, int *ni, int *nj, int *nk);
+int c_fstlic(void *field, int iun, int niin, int njin, int nkin,
             int datein, char *etiketin, int ip1in, int ip2in, int ip3in,
             char *typvarin, char *nomvarin,
             int ig1in, int ig2in, int ig3in, int ig4in, char *grtypin);
-int c_fstluk(uint32_t * const field, const int handle, int * const ni, int * const nj, int * const nk);
+int c_fstluk(void * const field, const int handle, int * const ni, int * const nj, int * const nk);
 int c_fstprm(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int *nk,
             int *nbits, int *datyp, int *ip1, int *ip2, int *ip3, char *typvar,
             char *nomvar, char *etiket, char *grtyp,
             int *ig1, int *ig2, int *ig3, int *ig4, int *swa, int *lng,
             int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
-int c_fstecr(uint32_t *field_in, void * work, int npak, int iun, int date,
+int c_fstecr(void *field_in, void * work, int npak, int iun, int date,
             int deet, int npas, int ni, int nj, int nk, int ip1, int ip2, int ip3,
             char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
             int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
