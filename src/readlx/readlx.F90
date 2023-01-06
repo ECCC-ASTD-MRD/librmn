@@ -1137,6 +1137,8 @@
       SAVE SC, NSC
       INTEGER DUMMY
       character(len=8) IKEY
+      integer(kind=8) IVAR,ICOUNT
+
       SAVE DUMMY
       DATA NSC /1/
       DATA DUMMY /0/
@@ -1740,6 +1742,7 @@
       INTEGER ARGDIMS
       character(len=20) LINEFMT
       INTEGER KARMOT
+      integer(kind=8) SCRAP
       COMMON /QLXFMT/ LINEFMT
       COMMON /QLXFMT2/ KARMOT
 
@@ -1786,6 +1789,7 @@
       PARAMETER (MAXTKNS=65,MAXOPS=30)
       INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS), NTOKEN
       INTEGER NOPER
+      integer(kind=8) LOCVAR,LOCCNT
       character(len=4) PILEOP(MAXOPS)
       LOGICAL UNARY, FINI, FIRST
       INTEGER PLEV, QLXPRI
