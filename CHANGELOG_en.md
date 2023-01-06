@@ -184,10 +184,8 @@ since we expect that they are already no longer used.
         - grid_to_grid_interp
         - grid_to_grid_coef
         - DEFVEC
-        - SPD
         - FCONW
         - mxma
-        - ROSSR3
     - primitives
         - unstakw
         - stkmemw
@@ -202,7 +200,7 @@ for fnctName in AFIX AFIX8 ALPAS2 ALPAS8 ALPDL2 ALPDL8 ALPDR2 ALPDR8 \
     ALPNM2 ALPNM8 AMAX AMEAN AMIN DEFVEC \
     DIMCAL EPSIL2 EPSIL8 EWFDR2 FASP2 FASP8 FCONW GDADCN \
     GDADGD GDMPGD GDSQRT GGASP0 GGASP8 GWAQD0 GWAQD8 IOPDATM PERM \
-    ROSSR3 SCOF2 SGLO SGLOGG SLL SPAF2 SPAF8 SPAGG0 SPAGG8 SPD SPS VLL \
+    SCOF2 SGLO SGLOGG SLL SPAF2 SPAF8 SPAGG0 SPAGG8 SPS VLL \
     VPOLAGR VPS bmf_catalog bmf_char2i bmf_clear bmf_connect bmf_error \
     bmf_get bmf_get2 bmf_geth bmf_gobe bmf_i2char bmf_init bmf_list \
     bmf_perturb bmf_splitend bmf_splithalo bmf_splithole bmf_splitinit \
