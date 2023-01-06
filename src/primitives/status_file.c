@@ -26,12 +26,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 static int fd = -1;
 void f77name(open_status_file)() {
     if ( (fd=open("./status.dot",O_RDWR+O_CREAT,0755)) <0 ) {
-        fprintf(stderr,"open_status_file: ERROR : Cannot open status file \n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Cannot open status file\n",__func__);
         exit(1);
     }
 }

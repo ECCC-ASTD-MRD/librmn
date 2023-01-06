@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <App.h>
 #include <rmn/mgi.h>
 
 typedef struct 
@@ -49,7 +50,7 @@ void init_client_table(
     const int channel
 ) {
     if ( ichan >= MAX_CHANNELS ) {
-        fprintf( stderr, "ERROR: Too many channels assigned; MAX = %d\n", MAX_CHANNELS );
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Too many channels assigned; MAX = %d\n",__func__,MAX_CHANNELS);
         exit(1);
     } else {
         ctimeout[ichan].client_chan = channel;

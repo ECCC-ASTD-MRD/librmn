@@ -21,8 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
-
 
 void c_ibm32_ieee (unsigned long *tab_data_IBM, int nb_data)
 {
@@ -52,7 +52,7 @@ void c_ibm32_ieee (unsigned long *tab_data_IBM, int nb_data)
             expos = 0;
         } else {
             if (expos >= 255) {
-                fprintf(stderr,"c_ibm32_ieee ERROR: Overflow in data field\n");
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Overflow in data field\n",__func__);
                 exit(1);
             }
         }

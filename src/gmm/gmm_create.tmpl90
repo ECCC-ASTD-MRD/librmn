@@ -2,6 +2,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     use, intrinsic :: iso_c_binding
     use, intrinsic :: ieee_arithmetic, only: ieee_value, ieee_quiet_nan
     use, intrinsic :: iso_fortran_env
+    use app
 
     implicit none
 
@@ -57,7 +58,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         enddo
         if (.not. consistent ) then
             if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                print *,'ERROR: gmm_create, p has dimensions that are not consistent with dims'
+               call lib_log(APP_LIBGMM,APP_DEBUG,'gmm_create: p has dimensions that are not consistent with dims')
             endif
             key = 0
             FNCNAME(gmm_create) = GMM_INCONSISTENT_DIMS
@@ -88,7 +89,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     ! create may have already been called for this array
     if (cur_page /= 0 .and. cur_entry /= 0) then
         if (associated(p)) then
-            print *,'ERROR: gmm_create called with existing p and array has already been created'
+            call lib_log(APP_LIBGMM,APP_ERROR,'gmm_create: called with existing p and array has already been created')
             key = 0
             FNCNAME(gmm_create) = GMM_ARRAY_ALREADY_EXISTS
             ! HOW SERIOUS AN ERROR IS THIS ?
@@ -107,8 +108,8 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             endif
         enddo
         if (.not. consistent ) then
-            print *, 'ERROR: gmm_create, requested dimensions differ from previous specification (restart/create)'
-            print *, 'ERROR: gmm_create, variable name ="', lcl_name,'"'
+            write(app_msg,*) 'gmm_create: Requested dimensions differ from previous specification (restart/create), variable name ="', lcl_name,'"'
+            call lib_log(APP_LIBGMM,APP_ERROR,app_msg)
             key = 0
             nullify(p)
             FNCNAME(gmm_create) = GMM_INCONSISTENT_DIMS
@@ -116,13 +117,15 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
             return
         else
             if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                print *, 'INFO: gmm_create, variable name =', lcl_name, ' exists and is consistent'
+                write(app_msg,*) 'gmm_create: Variable name =', lcl_name, ' exists and is consistent'
+                call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
             endif
         endif
 
         if (iand(GMM_FLAG_CRTD, directory(cur_page)%entry(cur_entry)%a%flags) /= 0) then
             ! OOPS really a double create
-            print *, 'ERROR: gmm_create, field ', lcl_name, ' has already been created'
+            write(app_msg,*) 'gmm_create, field ', lcl_name, ' has already been created'
+            call lib_log(APP_LIBGMM,APP_ERROR,app_msg)
             key = 0
             nullify(p)
             FNCNAME(gmm_create) = GMM_VARIABLE_ALREADY_CREATED
@@ -146,7 +149,8 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
         ! array not found in table, we may need to create an entry in directory
         if (iand(GMM_FLAG_RSTR, localattr%flags) /= 0 .and. restart_mode) then
             ! we are in restart mode and array should exist
-            print *, 'ERROR: gmm_create field ', lcl_name, 'should have been read from restart file but was not'
+            write(app_msg,*) 'gmm_create field: ', lcl_name, 'should have been read from restart file but was not'
+            call lib_log(APP_LIBGMM,APP_ERROR,app_msg)
             ! HOW SERIOUS AN ERROR IS THIS ?
         endif
         call add_directory_entry
@@ -178,7 +182,7 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     if (associated(p)) then
         ! the user gave a non null pointer
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *,'GMM_CREATE: using user supplied array'
+            call lib_log(APP_LIBGMM,APP_DEBUG,'gmm_create: using user supplied array')
         endif
         ! must check that certain attributes are not requested (e.g. FLAG_RSTR) and that size is consistent
     else
@@ -213,17 +217,20 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     if (iand(field_meta%a%flags, GMM_FLAG_INAN) /= 0) then
 #if ((DATATYPE == real) & (DATALENGTH == 4))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, iname, ' Debug DATATYPE=real init to NaN'
+            write(app_msg,*) 'gmm_create: ',iname, ' Debug DATATYPE=real init to NaN'
+            call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
         endif
         p = ieee_value(1.0, ieee_quiet_nan)
 #else
 #if ((DATATYPE == real) & (DATALENGTH == 8))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, iname, ' Debug DATATYPE=real*8 init to NaN8'
+            write(app_msg,*) 'gmm_create: ',iname, ' Debug DATATYPE=real*8 init to NaN'
+            call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
         endif
         p = ieee_value(1d0, ieee_quiet_nan)
 #else
-        print *, 'GMM_CREATE ERROR, name=', iname, ' : init to NaN is not available for this data type'
+        write(app_msg,*) 'gmm_create: name=', iname, ' : init to NaN is not available for this data type'
+        call lib_log(APP_LIBGMM,APP_ERROR,app_msg)
         FNCNAME(gmm_create) = GMM_ERROR
         return
 #endif

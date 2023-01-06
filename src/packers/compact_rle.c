@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <bitPacking.h>
 
+#include <App.h>
 
 #define powerSpan  33
 static double powerOf2s[powerSpan];
@@ -252,7 +253,7 @@ int  compact_rle(
 
         return totalPackedElementCount;
     } else {
-        printf("\n opCode:%d is not defined \n", opCode);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%f: opCode (%d) is not defined\n",__func__,opCode);
         return NULL;
     }
 }

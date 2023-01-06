@@ -1,71 +1,53 @@
-*/* RMNLIB - Library of useful routines for C and FORTRAN programming
-* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-* *                          Environnement Canada
-* *
-* * This library is free software; you can redistribute it and/or
-* * modify it under the terms of the GNU Lesser General Public
-* * License as published by the Free Software Foundation,
-* * version 2.1 of the License.
-* *
-* * This library is distributed in the hope that it will be useful,
-* * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* * Lesser General Public License for more details.
-* *
-* * You should have received a copy of the GNU Lesser General Public
-* * License along with this library; if not, write to the
-* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-* * Boston, MA 02111-1307, USA.
-* */
-***S/P CXGAIG - PASSE DES PARAMETRES (REELS) DESCRIPTEURS DE GRILLE
-*              AUX PARAMETRES ENTIERS.
+!  S/P CXGAIG - PASSE DES PARAMETRES (REELS) DESCRIPTEURS DE GRILLE
+!              AUX PARAMETRES ENTIERS.
 
       SUBROUTINE CXGAIG(CGTYP,IG1,IG2,IG3,IG4,XG1,XG2,XG3,XG4)
-      CHARACTER * 1 CGTYP
-*
-*AUTEUR- M. VALIN  -  FEV 82
-*
-*REVISION001  C. THIBEAULT  -  MARS 83  CONVERSION AU CODE CRAY
-*     002  M. Lepine     -  fev  94  bug fix nint pour grille L
-*     003  M. Lepine     -  fev  94  introduction du type de grille E
-*     004  M. Lepine     -  nov  94  traduction de ratfor a fortran
-*     005  M. Valin      -  fev 2013 permutation de 2 enonces (ig2<0)
-*     006  M. Valin      -  mars 2018 grille +
-*
-*LANGAGE- RATFOR
-*
-*OBJET(XGAIG)
-*     - PASSE DES PARAMETRES (REELS) DESCRIPTEURS DE GRILLE
-*     AUX PARAMETRES ENTIERS.
-*
-*LIBRAIRIES
-*     - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=XGAIG
-*     - OBJET   RMNLIB,ID=RMNP
-*
-*APPEL- CALL XGAIG(CGTYP,IG1,IG2,IG3,IG4,XG1,XG2,XG3,XG4)
-*
-*ARGUMENTS
-*     IN    - CGTYP - TYPE DE GRILLE (VOIR OUVRIR)
-*     OUT   - IG1   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
-*     OUT   - IG2   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
-*     OUT   - IG3   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
-*     OUT   - IG4   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
-*     IN    - XG1   - ** DESCRIPTEUR DE GRILLE (REEL),
-*     IN    - XG2   -    CGTYP = 'N', PI, PJ, D60, DGRW
-*     IN    - XG3   -    CGTYP = 'L', LAT0, LON0, DLAT, DLON,
-*     IN    - XG4   -    CGTYP = 'A', 'B', 'G', XG1 = 0, GLOBAL
-*     = 1, NORD
-*     = 2, SUD **
-*     CGTYP = 'E', LAT1, LON1, LAT2, LON2
-*     CGTYP = '+', LAT, LON, dummy, dummy
-*
-*MESSAGES- "ERREUR DANS LA DESCRIPTION DE LA GRILLE (IG1) (XGAIG)"
-*     "ERREUR, MAUVAISE SPECIFICATION (LAT0) (XGAIG)"
-*     "ERREUR, GRILLE INCONNUE (TYPE) (XGAIG)"
-*
-*------------------------------------------------------------------
-*
-*
+         use app
+      CHARACTER(len=1) CGTYP
+!
+!AUTEUR- M. VALIN  -  FEV 82
+!
+!REVISION001  C. THIBEAULT  -  MARS 83  CONVERSION AU CODE CRAY
+!     002  M. Lepine     -  fev  94  bug fix nint pour grille L
+!     003  M. Lepine     -  fev  94  introduction du type de grille E
+!     004  M. Lepine     -  nov  94  traduction de ratfor a fortran
+!     005  M. Valin      -  fev 2013 permutation de 2 enonces (ig2<0)
+!     006  M. Valin      -  mars 2018 grille +
+!
+!LANGAGE- RATFOR
+!
+!OBJET(XGAIG)
+!     - PASSE DES PARAMETRES (REELS) DESCRIPTEURS DE GRILLE
+!     AUX PARAMETRES ENTIERS.
+!
+!LIBRAIRIES
+!     - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=XGAIG
+!     - OBJET   RMNLIB,ID=RMNP
+!
+!APPEL- CALL XGAIG(CGTYP,IG1,IG2,IG3,IG4,XG1,XG2,XG3,XG4)
+!
+!ARGUMENTS
+!     IN    - CGTYP - TYPE DE GRILLE (VOIR OUVRIR)
+!     OUT   - IG1   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
+!     OUT   - IG2   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
+!     OUT   - IG3   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
+!     OUT   - IG4   - DESCRIPTEUR DE GRILLE (ENTIER) VOIR OUVRIR
+!     IN    - XG1   - ** DESCRIPTEUR DE GRILLE (REEL),
+!     IN    - XG2   -    CGTYP = 'N', PI, PJ, D60, DGRW
+!     IN    - XG3   -    CGTYP = 'L', LAT0, LON0, DLAT, DLON,
+!     IN    - XG4   -    CGTYP = 'A', 'B', 'G', XG1 = 0, GLOBAL
+!     = 1, NORD
+!     = 2, SUD
+!     CGTYP = 'E', LAT1, LON1, LAT2, LON2
+!     CGTYP = '+', LAT, LON, dummy, dummy
+!
+!MESSAGES- "ERREUR DANS LA DESCRIPTION DE LA GRILLE (IG1) (XGAIG)"
+!     "ERREUR, MAUVAISE SPECIFICATION (LAT0) (XGAIG)"
+!     "ERREUR, GRILLE INCONNUE (TYPE) (XGAIG)"
+!
+!------------------------------------------------------------------
+!
+!
       REAL XXG2, XXG4
       REAL*8 :: XLON8, XLAT8
       INTEGER I2B
@@ -82,8 +64,7 @@
             IG3 = IG3 + 36000
             GOTO 100
          ENDIF
-         IF(IG1.LT.0.OR.IG2.LT.0.OR.IG1.GT.2047.OR.
-     %        IG2.GT.2047.OR.IG4.GT.32000) THEN
+         IF(IG1.LT.0.OR.IG2.LT.0.OR.IG1.GT.2047.OR. IG2.GT.2047.OR.IG4.GT.32000) THEN
             IG1 = 0
             IG2 = 0
             IG3 = 0
@@ -113,8 +94,7 @@
             IG4 = IG4 + NINT(DLAT*16383./180.)
          ENDIF
 
-      ELSE IF (CGTYP .EQ. 'A' .OR. CGTYP .EQ. 'B' .OR.
-     %        CGTYP .EQ. 'G')  THEN
+      ELSE IF (CGTYP .EQ. 'A' .OR. CGTYP .EQ. 'B' .OR. CGTYP .EQ. 'G')  THEN
          IG1 = XG1
          IG2 = XG2
          IG3 = 0
@@ -132,7 +112,8 @@
            IG4 = IG4 + 36000
            GOTO 200
         ENDIF
-        IF (IG3 .LT. 0) WRITE(6,601)
+        IF (IG3 .LT. 0) call lib_log(APP_LIBRMN,APP_ERROR,'cxgaig: Bad specification (LAT0)')
+
 
       ELSE IF (CGTYP .EQ. 'H')  THEN   ! LAMBERT CONFORME CENTREE
         IG1 = NINT(5.*XG4)             ! LAMBDA0 EN 5EME DE DEGRE
@@ -155,7 +136,7 @@
            IG4 = IG4 + 36000
            GOTO 400
         ENDIF
-        IF (IG3 .LT. 0) WRITE(6,601)
+        IF (IG3 .LT. 0) call lib_log(APP_LIBRMN,APP_ERROR,'cxgaig: Bad specification (LAT0)')
 
       ELSE IF (CGTYP .EQ. 'E')  THEN          !  GRILLE LAT,LON (GEF)
         STATUS = VALIDE("XG1",NINT(XG1),-90,90)
@@ -175,10 +156,10 @@
         IG1 = NINT((XG1+90.) * 40.)
         IG2 = NINT(XG3 * 40.)
         IG3 = NINT((XXG2+90.) * 40.)
-C
-C       bug de code, le +90 est de trop, ce qui peut causer un
-C       debordement pour ig3
-C
+!
+!       bug de code, le +90 est de trop, ce qui peut causer un
+!       debordement pour ig3
+!
         if(ig3 .ge. 16384) ig3=ig3-16384
         IG4 = NINT(XXG4 * 40.)
         I2B = IAND(IG1,3)
@@ -208,12 +189,9 @@ C
         IG2  = IG2 + 1000
 
       ELSE
-        WRITE(6,602)
+         call lib_log(APP_LIBRMN,APP_ERROR,'cxgaig: Unknown grid (TYPE)')
       ENDIF
 
-
-  601 FORMAT(1H0,' ERREUR, MAUVAISE SPECIFICATION (LAT0) (XGAIG)')
-  602 FORMAT(1H0,' ERREUR, GRILLE INCONNUE (TYPE) (XGAIG)')
       RETURN
       END
 

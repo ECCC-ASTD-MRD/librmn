@@ -9,6 +9,5 @@ int32_t f77name(get_max_rss)() {
     struct rusage mydata;
 
     getrusage(RUSAGE_SELF, &mydata);
-    // printf("maxrss=%d\n",mydata.ru_maxrss);
     return (mydata.ru_maxrss);
 }

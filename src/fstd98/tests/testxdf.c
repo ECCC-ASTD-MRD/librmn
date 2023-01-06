@@ -26,9 +26,6 @@
 
 file_table_entry_ptr file_table[MAX_XDF_FILES]; /* file table , exported symbol */
 
-static char errmsg[1024];     /* buffer to format error messages */
-static int msg_level=INFORM;  /* error tolerance before error message is issued */
-static int xdf_toler=ERROR;   /* error tolerance before program is aborted */
 static stdf_rec_parms params; /* collection area for record parameters */
 static key_descriptor truc[] = {
    { 'STI1', 7,7,33,0},

@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 #define ERROR 0
@@ -54,13 +55,12 @@ static int32_t con;
 
 static int ptrsize;
 static int *pointer;
-static int debug_mode = 0;
 static int dejala = 0;
 static int dmms_noabort = 0;
 
 #define single() {\
     if (dejala) {\
-        fprintf(stderr, " * * * ERROR * * *: more than one task in dmms\n");\
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: more than one task in dmms\n",__func__);\
         f77name(tracebck)();\
         exit(50);\
     } else {\
@@ -116,8 +116,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
         if (dmms_noabort) {
             return (struct blocmem *) NULL;
         } else {
-            perror("bloc_alloc error can't allocate");
-            fprintf(stderr,"bloc_alloc trying to allocate lng=%d bytes\n",lng);
+            Lib_Log(APP_LIBRMN,APP_ERROR,":%s bloc_alloc trying to allocate lng=%d bytes\n",__func__,lng);
             f77name(tracebck)();
             exit(7);
         }
@@ -148,7 +147,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
         if (value != NULL) {
             n = sscanf(value,"%x", &errptr);
             badptr = (struct blocmem *) errptr;
-            fprintf(stderr,"Debug bad_pointer to look for is %#p\n", badptr);
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: bad_pointer to look for is %#p\n",__func__,badptr);
         } else {
             badptr = (struct blocmem *) 0;
         }
@@ -164,21 +163,12 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
             }
         }
 
-        value = getenv("DEBUG_MODE");
-        debug_mode = ((value != NULL) && (strcmp(value,"OFF") != 0) && (strcmp(value,"0") != 0));
-        init = 1;
-        if (debug_mode) {
-            fprintf(stdout,"DEBUG_MODE %s\n",value);
-            fprintf(stdout,"Debug &heap_first =%#p\n", &heap_first);
-            fprintf(stdout,"Debug &heap_last =%#p\n", &heap_last);
-            fprintf(stdout,"Debug &stack_first =%#p\n", &stack_first);
-            fprintf(stdout,"Debug &stack_last =%#p\n", &stack_last);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:\n\t&heap_first =%#p\n\t&heap_last =%#p\n\t&stack_first =%#p\n\t&stack_last =%#p\n",__func__,&heap_first,&heap_last,&stack_first,&stack_last);
     }
 
     if (badptr != (struct blocmem *) 0) {
         if (badptr ==  ptbloc) {
-            fprintf(stderr,"bloc_alloc bad_pointer %#x\n",ptbloc);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: bloc_alloc bad_pointer %#x\n",__func__,ptbloc);
             f77name(tracebck)();
             exit(10);
         }
@@ -198,15 +188,14 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
 
     ptbloc->data[0] = (int *) &(ptbloc->data[nitem+1]);
     ptbloc->data[nitem+1] = (int *) &(ptbloc->data[0]);
-    if (debug_mode) {
-        fprintf(stdout, "\n");
-        fprintf(stdout, "Debug alloc_bloc nitem = %d\n", nitem);
-        fprintf(stdout, "Debug alloc_bloc lng = %d\n", lng);
-        fprintf(stdout, "Debug alloc_bloc ptbloc =%#p\n", ptbloc);
-        fprintf(stdout, "Debug alloc_bloc ptbloc->bwd =%#p\n", ptbloc->bwd);
-        fprintf(stdout, "Debug alloc_bloc ptbloc->fwd =%#p\n", ptbloc->fwd);
-        fprintf(stdout, "Debug alloc_bloc ptbloc->data[0] =%#p\n", ptbloc->data[0]);
-        fprintf(stdout, "Debug alloc_bloc ptbloc->data[nitem+1] =%#p\n", ptbloc->data[nitem+1]);
+    if (Lib_LogLevel(APP_LIBRMN,NULL)>=APP_DEBUG) {
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc nitem = %d\n",__func__,nitem);
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: c_bloc lng = %d\n",__func__,lng);
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc ptbloc =%#p\n",__func__,ptbloc);
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc ptbloc->bwd =%#p\n",__func__,ptbloc->bwd);
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc ptbloc->fwd =%#p\n",__func__,ptbloc->fwd);
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc ptbloc->data[0] =%#p\\n",__func__,ptbloc->data[0]);
+         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc ptbloc->data[nitem+1] =%#p\n",__func__,ptbloc->data[nitem+1]);
     }
 
     if (initmem) {
@@ -226,36 +215,28 @@ int bloc_check(
     struct blocmem * ptbloc,
     int msg_level
 ) {
-    if ((debug_mode) || (msg_level > 1)) {
-        fprintf(stdout, "\n");
-        fprintf(stdout, "Debug check ptbloc =%#p\n", ptbloc);
-        fprintf(stdout, "Debug check ptbloc->bwd =%#p\n", ptbloc->bwd);
-        fprintf(stdout, "Debug check ptbloc->fwd =%#p\n", ptbloc->fwd);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:\n\tcheck ptbloc =%#p\n\tcheck ptbloc->bwd =%#p\n\tcheck ptbloc->fwd =%#p\n",__func__,ptbloc,ptbloc->bwd,ptbloc->fwd);
 
     if (ptbloc->bwd == NULL) {
-        fprintf(stderr, "block_check error: NULL backward pointer ptbloc=%#p\n", ptbloc);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: NULL backward pointer ptbloc=%#p\n",__func__,ptbloc);
         return -1;
     }
 
     if (ptbloc->fwd == NULL) {
-        fprintf(stderr, "block_check error: NULL forward pointer ptbloc=%#p\n", ptbloc);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: NULL forward pointer ptbloc=%#p\n",__func__,ptbloc);
         return -2;
     }
 
     int ** pt = (int **) ptbloc->data[0];
 
-    if ((debug_mode) || (msg_level > 1)) {
-        fprintf(stdout, "Debug check ptbloc->data[0] =%#p\n", ptbloc->data[0]);
-        fprintf(stdout, "Debug check ptbloc->data[nitem+1] =%#p\n", *pt);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: \n\tcheck ptbloc->data[0] =%#p\n\tcheck ptbloc->data[nitem+1] =%#p\n",__func__,ptbloc->data[0],*pt);
 
     if (*pt != (int *) &(ptbloc->data[0])) {
-        fprintf(stderr, "block_check error: internal pointers destroyed ptbloc=%#p\n", ptbloc);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: internal pointers destroyed ptbloc=%#p\n",__func__,ptbloc);
         return -3;
     }
 
-    if (msg_level > ERROR) fprintf(stderr,"block_check OK \n");
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: block_check OK\n",__func__);
 
     return 0;
 }
@@ -267,10 +248,8 @@ int bloc_dealloc(
     int mode
 ){
     single();
-    if (debug_mode) {
-        fprintf(stdout, "\n");
-        fprintf(stdout, "Debug bloc_dealloc ptbloc =%#p\n", ptbloc);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: bloc_dealloc ptbloc =%#p\n",__func__,ptbloc);
+ 
     if (mode == HEAP) {
         int err = bloc_check(ptbloc, 0);
         if (err < 0) {
@@ -329,14 +308,10 @@ int f77name(memoirc)(
     if (! init) return 0;
 
     if (stack_first.fwd != &stack_last) {
-        fprintf(stderr,"memoirc warning: stack not empty \n");
+        Lib_Log(APP_LIBRMN,APP_WARNING,"%s: stack not empty\n",__func__);
     }
-    if (*msg_level > 1) {
-        fprintf(stdout,"Debug &heap_first =%#p\n",&heap_first);
-        fprintf(stdout,"Debug &heap_last =%#p\n",&heap_last);
-        fprintf(stdout,"Debug &stack_first =%#p\n",&stack_first);
-        fprintf(stdout,"Debug &stack_last =%#p\n",&stack_last);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:\n\t&heap_first =%#p\n\t&heap_last =%#p\n\t&stack_first =%#p\n\t&stack_last =%#p\n",__func__,&heap_first,&heap_last,&stack_first,&stack_last);
+
     int errh = mem_check(HEAP,*msg_level);
     int errs = mem_check(STACK,*msg_level);
     return (errh !=0) ? errh : (errs != 0) ? errs : 0;
@@ -345,7 +320,6 @@ int f77name(memoirc)(
 
 //! Enable or disable debug messages
 void f77name(dmmsdbg)(int32_t * dbgr) {
-    debug_mode = (*dbgr == 1) ? 1 : 0;
 }
 
 
@@ -367,7 +341,7 @@ void f77name(hpalloc)(
     int32_t * abort
 ) {
     if (*length == 0) {
-        fprintf(stderr, "HPALLOC error: 0 length\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: 0 length\n",__func__);
         f77name(tracebck)();
         exit(13);
     }
@@ -400,7 +374,7 @@ void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *
 #endif
 
     if (*length == 0) {
-        fprintf(stderr,"CA_ALLOC error: 0 length\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: 0 length\n",__func__);
         f77name(tracebck)();
         exit(13);
     }
@@ -410,7 +384,7 @@ void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *
     if (pw2 < 0) {
         pw2 = -pw2;
         if ((pw2 < 1) || (pw2 > 3)) {
-            fprintf(stderr,"ca_alloc wrong value for alignment:%d\n",-pw2);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: wrong value for alignment:%d\n",__func__,-pw2);
             exit(33);
         }
         nbytes = alignment[pw2-1];

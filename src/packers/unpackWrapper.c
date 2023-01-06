@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <App.h>
 #include <armn_compress.h>
 
 #include "compact_IEEEblock.h"
@@ -55,6 +56,6 @@ void unpackWrapper(
     } else if ( headerType == 0x000000f0 ) {
         compact_rle(unpackedArray, packedHeader, packedArray, -1, -1, -1, -1, 128, stride, 2);
     } else {
-        printf("\n %8.8x not a valid header \n", headerType);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %8.8x not a valid header\n",__func__,headerType);
     }
 }

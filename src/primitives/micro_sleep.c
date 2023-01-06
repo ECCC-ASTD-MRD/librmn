@@ -33,7 +33,7 @@ void f77name(micro_sleep) (double *secs)
 {
     int sec = *secs / 1;
     int usec = fmod(*secs, 1.0) * 1000000;
-    // printf("Debug sec=%d usec=%d\n",sec,usec);
+
     struct timeval timeout;
     timeout.tv_sec = *secs / 1;
     timeout.tv_usec = fmod(*secs, 1.0) * 1000000;

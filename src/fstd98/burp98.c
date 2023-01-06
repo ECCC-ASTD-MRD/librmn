@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <App.h>
 #include <rmn/burp.h>
 #include "qstdir.h"
 #include "xdf98.h"
@@ -348,8 +349,8 @@ static int burp_nbit_datyp(
         if (*nbits > 31) {
         *nbits = 32;
         *datyp = 2;
-        sprintf(errmsg, "encoding values < 0 with nbit=32 and datyp=2");
-        return error_msg("burp_nbit_datyp", BURP_ERR_CMPR, WARNING);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: encoding values < 0 with nbit=32 and datyp=2\n",__func__);
+        return(BURP_ERR_CMPR);
         }
     }
     *nbits = (*nbits > 32) ? 32 : *nbits;
@@ -402,8 +403,8 @@ static int burp_valid789(
         case 7:
         case 8:
             if ((nele &1) != 0) {
-                sprintf(errmsg, "datyp=%d, nele must be even, nele=%d", datyp, nele);
-                return error_msg("burp_valid789", ERR_BAD_DATYP, ERRFATAL);
+                Lib_Log(APP_LIBFST,APP_FATAL,"%s: datyp=%d, nele must be even, nele=%d\n",__func__, datyp, nele);
+                return(ERR_BAD_DATYP);
             }
             if (datyp == 7) {
                 codval[0] = MRBCOV(0, 55, 204);
@@ -415,8 +416,8 @@ static int burp_valid789(
                     if (lstele[i] == 0) {
                         lstele[i] = codval[0];
                     } else {
-                        sprintf(errmsg, "invalid code for datyp %d", datyp);
-                        return error_msg("burp_valid789", BURP_ERR_CODE, ERRFATAL);
+                        Lib_Log(APP_LIBFST,APP_FATAL,"%s: invalid code for datyp %d\n",__func__,datyp);
+                        return(BURP_ERR_CODE);
                     }
                 }
             }
@@ -424,8 +425,8 @@ static int burp_valid789(
 
         case 9:
             if ((nele & 3) != 0) {
-                sprintf(errmsg, "datyp=%d, nele must be a multiple of 4, nele=%d", datyp, nele);
-                return error_msg("burp_valid789", ERR_BAD_DATYP, ERRFATAL);
+                Lib_Log(APP_LIBFST,APP_FATAL,"%s: datyp=%d, nele must be a multiple of 4, nele=%d\n",__func__,datyp,nele);
+                return(ERR_BAD_DATYP);
             }
             codval[0] = MRBCOV(0, 55, 204);
             codval[1] = MRBCOV(0, 55, 206);
@@ -436,8 +437,8 @@ static int burp_valid789(
                         if (lstele[i+j] == 0) {
                             lstele[i+j] = codval[j];
                         } else {
-                            sprintf(errmsg, "invalid code for datyp %d", datyp);
-                            return error_msg("burp_valid789", BURP_ERR_CODE, ERRFATAL);
+                            Lib_Log(APP_LIBFST,APP_FATAL,"%s: invalid code for datyp %d\n",__func__,datyp);
+                            return(BURP_ERR_CODE);
                         }
                     }
                 }
@@ -492,8 +493,8 @@ int c_mrbadd(
     }
 
     if (((datyp == 3) || (datyp == 5)) && (nbit != 8)) {
-        sprintf(errmsg, "nbits must be 8 for datyp 3 or 5");
-        return error_msg("c_mrbadd", ERR_BAD_DATYP, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: nbits must be 8 for datyp 3 or 5\n",__func__);
+        return(ERR_BAD_DATYP);
     }
 
     /* validate (possibly modify) nbit and datyp */
@@ -512,8 +513,8 @@ int c_mrbadd(
     if (bdesc != 0) {
         bfamho = (bfam >> 6) & 0x3f;
         if ((bfamho != 0) && (bfamho != bdesc)) {
-            sprintf(errmsg, "illegal use of bdesc");
-            return error_msg("c_mrbadd", BURP_ERR_BDESC, ERRFATAL);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: illegal use of bdesc\n",__func__);
+            return(BURP_ERR_BDESC);
         }
         entete.bfamdesc = (bfam & 0x3f) << 6;
         entete.bfamdesc |= (bdesc & 0x3f);
@@ -580,11 +581,10 @@ int c_mrbadd(
     buf->buf9 += NBENTB;
     *bkno = buf->buf78.buf8;
 
-    if (msg_level <= INFORM) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
         err = c_mrbprm((uint32_t *)buf, *bkno, &r_nele, &r_nval, &r_nt, &r_bfam, &r_bdesc,
             &r_btyp, &r_nbit, &r_bit0, &r_datyp);
-        fprintf(stdout, "MRBADD - write block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",
-            *bkno, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
+        Lib_Log(APP_LIBFST,APP_INFO,"%s: write block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",__func__,*bkno, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
       }
     return 0;
 }
@@ -604,8 +604,8 @@ int c_mrbdel(
     burp_record *burprec;
 
     if ((number < 1) || (number > buf->buf78.buf8)) {
-        sprintf(errmsg, "invalid block number");
-        return error_msg("c_mrbdel", BURP_ERR_BNUM, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid block number\n",__func__);
+        return(BURP_ERR_BNUM);
     }
 
    bitpos = NBENTB * (number -1);
@@ -693,12 +693,10 @@ int c_mrbhdr(
     int mois;
 
     if (nsup > NPRISUP) {
-        sprintf(errmsg, "there is too many supplementary prim keys");
-        error_msg("c_mrbhdr", BURP_ERR_CLEF, WARNING);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: there is too many supplementary prim keys\n",__func__);
     }
     if (nxaux > NAUXSUP) {
-        sprintf(errmsg, "there is too many supplementary aux keys");
-        error_msg("c_mrbhdr", BURP_ERR_CLEF, WARNING);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: there is too many supplementary aux key\n",__func__);
     }
 
     burprec = (burp_record *) buffer->data;
@@ -783,14 +781,14 @@ int c_mrbloc(
         if ((bdesc == 0) || (bdesc == -1)) {
             bfamdesc = -1;
         } else {
-            sprintf(errmsg, "illegal use of bdesc");
-            return error_msg("c_mrbloc", BURP_ERR_BDESC, ERRFATAL);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: illegal use of bdesc\n",__func__);
+            return(BURP_ERR_BDESC);
         }
     } else if ((bdesc != 0) && (bdesc != -1)) {
         bfamho = (bfam >> 6) & 0x3f;
         if ((bfamho != 0) && (bfamho != bdesc)) {
-            sprintf(errmsg, "illegal use of bdesc");
-            return error_msg("c_mrbloc", BURP_ERR_BDESC, ERRFATAL);
+            Lib_Log(APP_LIBFST,APP_FATAL,"%s: illegal use of bdesc\n",__func__);
+            return(BURP_ERR_BDESC);
         }
         bfamdesc = (bfam & 0x3f) << 6;
         bfamdesc |= (bdesc & 0x3f);
@@ -821,21 +819,17 @@ int c_mrbloc(
         match = ((((bfamdesc ^ block[i].bfamdesc) & mskfamdesc) == 0) &&
                 (((btyp ^ block[i].btyp) & mskbtyp) == 0));
         if (match) {
-            if (msg_level <= INFORM) {
+            if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
                 bno = i + 1;
                 c_mrbprm(buf, bno, &r_nele, &r_nval, &r_nt,
                         &r_bfam, &r_bdesc, &r_btyp, &r_nbit,
                         &r_bit0, &r_datyp);
-                fprintf(stdout, "MRBLOC - find block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",
-                    i + 1, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
+                Lib_Log(APP_LIBFST,APP_INFO,"%s: find block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",__func__,i + 1, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
             }
             return i + 1;
         }
     }
-    if (msg_level <= INFORM) {
-        fprintf(stdout, "MRBLOC - block not found bfam=%d, bdesc=%d, btyp=%d\n",
-            bfam, bdesc, btyp);
-    }
+    Lib_Log(APP_LIBFST,APP_INFO,"%s: block not found bfam=%d, bdesc=%d, btyp=%d\n",__func__,bfam,bdesc,btyp);
     return -1;
 }
 
@@ -913,8 +907,8 @@ int c_mrbrep(
     burp_record *burprec;
 
     if ((blkno < 1) || (blkno > buf->buf78.buf8)) {
-        sprintf(errmsg, "invalid block number");
-        return error_msg("c_mrbrep", BURP_ERR_BNUM, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid block number\n",__func__);
+        return(BURP_ERR_BNUM);
     }
 
     burprec = (burp_record *) buf->data;
@@ -991,8 +985,8 @@ int c_mrbxtr(
 
     err = 0;
     if ((bkno < 1) || (bkno > buf->buf78.buf8)) {
-        sprintf(errmsg, "invalid block number");
-        return error_msg("c_mrbxtr", BURP_ERR_BNUM, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid block number\n",__func__);
+        return(BURP_ERR_BNUM);
     }
 
     bitpos = NBENTB * (bkno - 1);
@@ -1060,20 +1054,20 @@ int c_mrfapp(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_mrfapp", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_mrfapp", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     fte = file_table[index];
 
     if (!fte->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not sequential", iun);
-        return error_msg("c_mrfapp", ERR_BAD_FTYPE, WARNING);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: file (unit=%d) is not sequential\n",__func__,iun);
+        return(ERR_BAD_FTYPE);
     }
 
     end_of_file = 0;
@@ -1121,10 +1115,7 @@ int c_mrfget(
 
     err = c_xdfget(handle, buf);
     if (err < 0) {
-        return error_msg("c_mrfget", err, ERROR);
-    }
-    if (msg_level <= INFORM) {
-        fprintf(stdout, "RECORD READ\n");
+        return(err);
     }
 
     burprec = (burp_record *)buf->data;
@@ -1161,15 +1152,14 @@ int c_mrfput(
 
     new_handle = (handle > 0) ? -handle : handle;
     c_xdfput(iun, new_handle, buf);
-    if (msg_level <= INFORM) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
         nsup = 0;
         nxaux = 0;
         c_mrbhdr((uint32_t *)buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
                 &dx, &dy, &elev, &drnd, &date, &oars, &runn, &nblk,
                 (uint32_t *)&sup, nsup, (uint32_t *)&xaux, nxaux);
         stnid[9] = '\0';
-        fprintf(stdout, "MRFPUT - WRITE - STNID=%s IDTYP=%3d LAT=%5d LON=%5d DX=%4d DY=%4d DATE=%8d TEMPS=%4d, FLGS=%8d\n",
-            stnid, idtyp, lat, lon, dx, dy, date, temps, flgs);
+        Lib_Log(APP_LIBFST,APP_INFO,"%s: STNID=%s IDTYP=%3d LAT=%5d LON=%5d DX=%4d DY=%4d DATE=%8d TEMPS=%4d, FLGS=%8d\n",__func__,stnid, idtyp, lat, lon, dx, dy, date, temps, flgs);
     }
     return 0;
 }
@@ -1186,25 +1176,25 @@ int c_mrfrwd(
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
-        sprintf(errmsg, "file (unit=%d) is not connected with fnom", iun);
-        return error_msg("c_mrfrwd", ERR_NO_FNOM, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
     }
 
     if ((index = file_index(iun)) == ERR_NO_FILE) {
-        sprintf(errmsg, "file (unit=%d) is not open", iun);
-        return error_msg("c_mrfrwd", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     fte = file_table[index];
 
     if (! fte->cur_info->attr.burp) {
-        sprintf(errmsg, "file (unit=%d) is not a BURP file", iun);
-        return error_msg("c_mrfrwd", ERR_NO_FILE, ERROR);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not a BURP file\n",__func__,iun);
+        return(ERR_NO_FILE);
     }
 
     if (! fte->xdf_seq) {
-        sprintf(errmsg, "file (unit=%d) is not sequential", iun);
-        return error_msg("c_mrfrwd", ERR_BAD_FTYPE, WARNING);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: file (unit=%d) is not sequential\n",__func__,iun);
+        return(ERR_BAD_FTYPE);
     }
 
     fte->cur_addr = fte->seq_bof;

@@ -20,6 +20,7 @@
 
 !> Extract descriptor parameters from all blocks
 integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
+    use app
     implicit none
 
     integer, intent(in) :: buf(*)
@@ -62,8 +63,8 @@ integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
 #include "codes.cdk"
 #include <ftnmacros.hf>
 
-    EXTERNAL XDFXTR, QDFERR, getbuf8
-    INTEGER  XDFXTR, QDFERR, getbuf8
+    EXTERNAL XDFXTR, getbuf8
+    INTEGER  XDFXTR, getbuf8
 
     integer :: ENTETE(DIMENT), BITPOS, nblocs, bkno, nobl
     integer :: famdesc
@@ -72,7 +73,9 @@ integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
 
     !  S'ASSURER QUE LES DIMENSIONS DU TABLEAU SONT ADEQUATES
     IF (nprm .NE. NPRMMAX) THEN
-        mrbprml = QDFERR('MRBPRML', 'DIMENSIONS DE TBLPRM INCORRECTES', ERROR, ERNPRM)
+        write(app_msg,*) 'MRBPRML: Dimensions de TBLPRM incorrectes'
+        call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
+        mrbprml = ERNPRM
         RETURN
     ENDIF
 

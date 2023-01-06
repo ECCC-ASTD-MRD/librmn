@@ -182,6 +182,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <App.h>
 #include <rmn/DlInterface.h>
 #include <rmn/fst_missing.h>
 #include "qstdir.h"
@@ -263,7 +264,7 @@ int missing_value_used() {
         }
         text = getenv("MISSING_VALUE_PLUGINS");
         if (text != NULL) {
-            fprintf(stderr, "INFO: opening plugin library '%s'\n", text);
+            Lib_Log(APP_LIBFST,APP_INFO,"%s: opening plugin library '%s\n",__func__,text);
             handle = DlOpen(text, RTLD_NOW);
             if (handle != NULL) {
                 SetMissingValueMapping(1, 1, DlSym(handle, "float_decode"), 0, 0, 0);
@@ -285,7 +286,7 @@ int missing_value_used() {
                 SetMissingValueMapping(2, 4, DlSym(handle, "short_encode"), 0, 1, 0);
                 set_plugin_missing_value_flags = (void(*)()) DlSym(handle, "set_plugin_missing_value_flags");
             } else {
-                fprintf(stderr, "WARNING: plugin library '%s' not found\n", text);
+                Lib_Log(APP_LIBFST,APP_WARNING,"%s: plugin library '%s' not found\n",__func__,text);
             }
         }
         if (set_plugin_missing_value_flags != NULL) {
@@ -986,7 +987,7 @@ static int fst_int_encode_missing(
     if (plug > max) {
         plug = max + 1;
     } else {
-        WARNPRINT fprintf(stderr, "fst_int_encode_missing: << WARNING >> MAXIMUM VALUE >= ENCODED MISSING VALUE FLAG\n");
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value >= encoded missing value flag\n",__func__);
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == int_missing_val) {
@@ -1047,7 +1048,7 @@ static int fst_short_encode_missing(
     if (plug > max) {
         plug = max + 1;
     } else {
-        WARNPRINT fprintf(stderr, "fst_short_encode_missing: << WARNING >> MAXIMUM VALUE >= ENCODED MISSING VALUE FLAG\n");
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value >= encoded missing value flag\n",__func__);
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == short_missing_val) {
@@ -1108,7 +1109,7 @@ static int fst_byte_encode_missing(
     if (plug > max) {
         plug = max + 1;
     } else {
-        WARNPRINT fprintf(stderr, "fst_byte_encode_missing: << WARNING >> MAXIMUM VALUE >= ENCODED MISSING VALUE FLAG\n");
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value >= encoded missing value flag\n",__func__);
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == byte_missing_val) {
@@ -1143,7 +1144,7 @@ static int fst_uint_encode_missing(
     if (plug > max) {
         plug = max + 1;
     } else {
-        WARNPRINT fprintf(stderr, "fst_uint_encode_missing: << WARNING >> MAXIMUM VALUE %u >= ENCODED MISSING VALUE FLAG %u\n", max, plug);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value %u >= encoded missing value flag %u\n",__func__,max,plug);
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == uint_missing_val) {
@@ -1198,7 +1199,7 @@ static int fst_ushort_encode_missing(
     if (plug > max) {
         plug = max + 1;
     } else {
-        WARNPRINT fprintf(stderr, "fst_ushort_encode_missing: << WARNING >> MAXIMUM VALUE %hu >= ENCODED MISSING VALUE FLAG %hu\n", max, plug);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value %hu >= encoded missing value flag %hu\n",__func__,max,plug);
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == ushort_missing_val) {
@@ -1253,7 +1254,7 @@ static int fst_ubyte_encode_missing(
     if (plug > max) {
         plug = max + 1;
     } else {
-        WARNPRINT fprintf(stderr, "fst_ubyte_encode_missing: << WARNING >> MAXIMUM VALUE %hu >= ENCODED MISSING VALUE FLAG %hu\n", max, plug);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value %hu >= encoded missing value flag %hu\n",__func__,max,plug);
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == ubyte_missing_val) {
@@ -1531,9 +1532,7 @@ int EncodeMissingValue(
             missing = (*__fst_uint_encode_missing)(dst, src, nElems, nbits);
         }
     }
-    if (0 >= msg_level) {
-        fprintf(stderr, "DEBUG: %d missing values in %d data values replaced, base datatype=%d\n", missing, nElems, ldatatype);
-    }
+    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: %d missing values in %d data values replaced, base datatype=%d\n",__func__,missing,nElems,ldatatype);
 
     return missing;
 }

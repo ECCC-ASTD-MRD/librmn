@@ -30,6 +30,7 @@
        return
        end
        subroutine run_non_preempt_clock
+          use app
 !
 !       auxiliary thread used by the non preempt/suspend clock
 !
@@ -43,7 +44,8 @@
 !
         sleep_tick = 1.0
        is_running = 1
-       print *,'non preempt/suspend clock started, id=',id_thread()
+       write(app_msg,*) 'non_preempt_clock: Clock started, id=',id_thread()
+       call lib_log(APP_LIBRMN,APP_INFO,app_msg)
        time1=f_gettimeofday()
 1      call micro_sleep(sleep_tick)
        time2=f_gettimeofday()
@@ -59,7 +61,8 @@
 !       if run flag has been zeroed, stop
 !
        if(is_running .eq. 1) goto 1
-       print *, 'non preempt/suspend clock stopping'
+       write(app_msg,*) 'non_preempt_clock: Clock stopped'
+       call lib_log(APP_LIBRMN,APP_INFO,app_msg)
        return
        end
        subroutine do_non_preempt_clock(start_stop)

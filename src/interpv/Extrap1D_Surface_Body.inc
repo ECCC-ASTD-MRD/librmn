@@ -39,6 +39,7 @@
 !
 !ARGUMENTS
   use Interp1D_Constants
+  use app
   implicit none
 #include "Interp1D_Arguments_X.inc"
 !
@@ -75,18 +76,19 @@
   ! Verify the number of extension arguments that were supplied
   if(     numExtArraysIn  > MAX_EXT_ARRAYS_IN &
      .or. numExtArraysOut > MAX_EXT_ARRAYS_OUT) then
-    write(6,*)'ERROR:  too many extension arrays supplied for this revision.'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,'Extrap1D_Surface: Too many extension arrays supplied for this revision')
     return
   end if
 
   if(numExtArraysIn < 4) then
-    write(6,*)'ERROR:  too few extension arrays supplied:  ', numExtArraysIn
+    write(app_msg,*)'Extrap1D_Surface: Too few extension arrays supplied: ', numExtArraysIn
+    call lib_log(APP_LIBINTERPV,APP_ERROR,app_msg)
     return
   end if
 
   ! Verify that enough source levels are supplied; the algorithm requires 2
   if(srcNumlevels < 2) then
-    write(6,*)'ERROR:  the surface algorithm requires 2 source points.'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,'Extrap1D_Surface: The surface algorithm requires 2 source points')
     return
   end if
 

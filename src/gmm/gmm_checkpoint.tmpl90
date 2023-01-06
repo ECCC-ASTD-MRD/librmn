@@ -1,5 +1,6 @@
 subroutine FNCNAME(gmm_checkpoint_)(write)
     use, intrinsic :: iso_c_binding
+    use app
     use iso_fortran_env, only : int64
 
     implicit none
@@ -65,13 +66,15 @@ subroutine FNCNAME(gmm_checkpoint_)(write)
     else
         ! Write to checkpoint file (records with FLAG_RSTR property)
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
-            print *, 'checkpointing type ', EXTENSION
+            write(app_msg,*) 'gmm_checkpoint: checkpointing type ', EXTENSION
+            call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
         endif
         do i = 1, table_size
             do j = 1, PAGE_SIZE
                 if (iand(GMM_FLAG_RSTR, directory(i)%entry(j)%a%flags) .ne. 0 .and. directory(i)%entry(j)%data_type == EXTENSION) then
                     if (gmm_verbose_level == GMM_MSG_DEBUG) then
-                        print *, 'writing field ', directory(i)%entry(j)%name
+                       write(app_msg,*) 'gmm_checkpoint: writing field ', directory(i)%entry(j)%name
+                       call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
                     endif
                     write(file_unit)EXTENSION
                     write(file_unit)directory(i)%entry(j)%name

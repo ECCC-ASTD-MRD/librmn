@@ -23,6 +23,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 static char line[32768];
@@ -37,16 +38,15 @@ void f77name(resetenv)()
 
   stream = fopen(".resetenv","r");   /* open file containing environment to restore */
   if (stream == NULL) {
-    fprintf(stdout,"Debug resetenv: fichier .resetenv inexistant\n");
-    return;
+     Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: fichier .resetenv inexistant\n",__func__);
+     return;
   }
   while (fgets(var,32768-lng_in,stream)) {
     lng = strlen(var);
     lng_in += lng;  /* update number of characters already in buffer */
     if (lng_in >= 32768) {    /* OOPS */
-      fprintf(stderr,
-	      "*** ERREUR: resetenv, debordement du buffer lng=%d\n",lng);
-      fclose(stream);
+      Lib_Log(APP_LIBRMN,APP_ERROR,"%s: debordement du buffer lng=%d\n",__func__,lng);
+       fclose(stream);
       exit(22);
     }
     var[lng-1]='\0';  /* replace newline/EOF with NULL */
@@ -55,6 +55,4 @@ void f77name(resetenv)()
     var += lng;
   }
   fclose(stream);
-  /*   newvar = getenv("ARMNLIB");
-  fprintf(stdout,"Debug ARMNLIB=%s\n",newvar); */
 }

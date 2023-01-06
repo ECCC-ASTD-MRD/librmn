@@ -43,6 +43,7 @@
 !
 !ARGUMENTS
   use Interp1D_Constants
+  use app
   implicit none
 #include "Interp1D_Arguments_X.inc"
 !
@@ -90,26 +91,25 @@
   ! Verify the number of extension arguments that were supplied
   if(     numExtArraysIn  > MAX_EXT_ARRAYS_IN &
      .or. numExtArraysOut > MAX_EXT_ARRAYS_OUT) then
-    write(6,*)'ERROR:  too many extension arrays supplied for this revision.'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,'Extrap1D_SurfaceWind: Too many extension arrays supplied for this revision')
     return
   end if
 
   if(numExtArraysIn < 6) then
-    write(6,*)'ERROR:  too few input extension arrays supplied:  ',numExtArraysIn
-    write(6,*)'        The number required is 7'
+    write(app_msg,*)'Extrap1D_SurfaceWind: Too few input extension arrays supplied: ',numExtArraysIn,', 7 are required'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,app_msg)
     return
   end if
 
   if(numExtArraysOut < 2*destNumLevels) then
-    write(6,*)'ERROR:  too few output extension arrays supplied:  ', &
-                                                                  numExtArraysOut
-    write(6,*)'        The number required is 2*destNumLevels = ',2*destNumLevels
+    write(app_msg,*)'Extrap1D_SurfaceWind: Too few output extension arrays supplied: ',numExtArraysOut,', 2*destNumLevels=',2*destNumLevels,' are required'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,app_msg)
     return
   end if
 
   ! Verify that enough source levels are supplied; the algorithm requires 2
   if(srcNumlevels < 2) then
-    write(6,*)'ERROR:  the surface algorithm requires 2 source points.'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,'Extrap1D_SurfaceWind: he surface algorithm requires 2 source points')
     return
   end if
 

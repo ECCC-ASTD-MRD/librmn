@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 #include "zfstlib.h"
 #include "armn_compress_32.h"
@@ -38,7 +39,6 @@ void c_armn_compress_setlevel(int level);
 int c_armn_compress_getlevel();
 void c_armn_compress_setswap(int swapState);
 int  c_armn_compress_getswap();
-void c_armn_compress_option(char *option, char *value);
 void c_fstzip(unsigned int *zfld, int *zlng, unsigned int *fld, int ni, int nj, int code_methode, int degre, int step, int nbits, int bzip);
 void c_fstunzip(unsigned int *fld, unsigned int *zfld, int ni, int nj, int nbits);
 void c_fstzip_minimum(unsigned int *zfld, int *zlng, unsigned short *fld, int ni, int nj, int step, int nbits, uint32_t *header);
@@ -62,9 +62,6 @@ static int fstcompression_level = -1;
 static int swapStream           =  1;
 static unsigned char fastlog[256];
 static int once = 0;
-int zfst_msglevel = 2;
-
-
 
 //! Main entry point to the compression routines
 int armn_compress(
@@ -111,9 +108,7 @@ int armn_compress(
     switch (op_code) {
         case COMPRESS:
             if (nbits > 16 || ni == 1 || nj == 1) {
-                if (zfst_msglevel <= 2) {
-                    fprintf(stderr, "Can not compress if nbits>16 or ni=1 or nj=1 ... Returning original field\n\n");
-                }
+                Lib_Log(APP_LIBFST,APP_WARNING,"%f: Cannot compress if nbits>16 or ni=1 or nj=1. Returning original field\n",__func__);
                 return -1;
             }
 
@@ -144,9 +139,8 @@ int armn_compress(
                         }
                     }
 #endif
-                    if (zfst_msglevel <= 2) {
-                        fprintf(stderr, "Compressed field is larger than original... Returning original\n\n");
-                    }
+                    Lib_Log(APP_LIBFST,APP_WARNING,"%f: Compressed field is larger than original. Returning original \n",__func__);
+
                     free(zfld_minimum);
                     free(zfld_lle);
                     return -1;
@@ -154,17 +148,13 @@ int armn_compress(
                     memcpy(fld, zfld_minimum, zlng_minimum);
                     free(zfld_minimum);
                     free(zfld_lle);
-                    // printf("zlng_minimum: %d\n", zlng_minimum);
                     return zlng_minimum;
                 }
             }
 
             c_fstzip(zfld_lle, &zlng_lle, us_fld, ni, nj, PARALLELOGRAM, 1, 3, nbits, 0);
 
-            // if (debug) {
-            //     printf("Entropie theorique:\t%f\tbps - minimum:\t %f\tbps - parallele:\t %f\tbps - sample:\t%f\n", entropie, 8.0 * zlng_minimum / ((ni * nj * nk) * 1.0), 8.0 * zlng_lle / ((ni * nj * nk) * 1.0), 8.0 * zlng_sample / ((ni * nj * nk) * 1.0));
-            // }
-
+            //Lib_Log(APP_LIBFST,APP_DEBUG,"%f: Entropie theorique:%f\tbps - minimum:%f\tbps - parallele:%f\tbps - sample:%f\n",__func__, entropie, 8.0 * zlng_minimum / ((ni * nj * nk) * 1.0), 8.0 * zlng_lle / ((ni * nj * nk) * 1.0), 8.0 * zlng_sample / ((ni * nj * nk) * 1.0));
 
             if (zlng_lle >= lng_origin) {
 #if defined (Little_Endian)
@@ -174,9 +164,8 @@ int armn_compress(
                     }
                 }
 #endif
-                if (zfst_msglevel <= 2) {
-                    fprintf(stderr, "Compressed field is larger than original... Returning original\n\n");
-                }
+                Lib_Log(APP_LIBFST,APP_WARNING,"%f: Compressed field is larger than original. Returning original\n",__func__);
+
                 free(zfld_minimum);
                 free(zfld_lle);
                 return -1;
@@ -185,7 +174,7 @@ int armn_compress(
             memcpy(fld, zfld_lle, zlng_lle);
             free(zfld_minimum);
             free(zfld_lle);
-            // printf("zlng_lle: %d\n", zlng_lle);
+
             return zlng_lle;
             break;
 
@@ -259,7 +248,7 @@ void c_fstzip(
             break;
 
         case SAMPLE:
-            fprintf(stderr, "The SAMPLE option has been deactivated as of April 2006. This is an error and should never happen.\n");
+            Lib_Log(APP_LIBFST,APP_ERROR,"%f: The SAMPLE option has been deactivated as of April 2006. This is an error and should never happen\n",__func__);
             exit(13);
             break;
 
@@ -296,14 +285,7 @@ void c_fstunzip(
             break;
 
         default:
-            fprintf(stderr, "**************************************************************************\n");
-            fprintf(stderr, "****                                                                  ****\n");
-            fprintf(stderr, "****  Unknown compression algorithm...                                ****\n");
-            fprintf(stderr, "****  Contact MRB computer support for advice...                      ****\n");
-            fprintf(stderr, "****  ec.service.rpn.ec@canada.ca                                     ****\n");
-            fprintf(stderr, "****  Exiting now...                                                  ****\n");
-            fprintf(stderr, "****                                                                  ****\n");
-            fprintf(stderr, "**************************************************************************\n");
+            Lib_Log(APP_LIBFST,APP_ERROR,"%f: Unknown compression algorithm\n");
             exit(13);
             break;
     }
@@ -583,29 +565,26 @@ void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int n
     }
 
 
-  lcl = 0;
-  stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
-  stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
+   lcl = 0;
+   stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
+   stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
 
    *zlng = 1 + (int) (cur-z) * 4;
- debug=0;
-if (debug)
-  {
-  entropie = 8.0*(*zlng)/(ni*nj);
-  printf("total_space:\t%d\tentropie:\t%f\n", *zlng,entropie );
-  for (i=0; i <= 16; i++)
-    {
-    printf("%05d ", i);
-    }
-  printf("\n");
-  lsum = 0;
-  for (i=0; i <= 16; i++)
-    {
-    lsum+=local_bins[i];
-    printf("%05d ", local_bins[i]);
-    }
-  printf("---- npts : %d \n", lsum);
-  }
+
+   if (App_LogLevel(NULL)==APP_EXTRA) {
+      entropie = 8.0*(*zlng)/(ni*nj);
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
+      for (i=0; i <= 16; i++) {
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", i);
+      }
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"\n");
+      lsum = 0;
+      for (i=0; i <= 16; i++) {
+         lsum+=local_bins[i];
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", local_bins[i]);
+      }
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"---- npts : %d \n", lsum);
+   }
 }
 
 
@@ -807,26 +786,6 @@ static void packTokensParallelogram(
 
    *zlng = 1 + (int) (cur-z) * 4;
     free(ufld_dst);
-
-    // float entropie = 8.0*(*zlng)/(ni*nj);
-    // int debug = 0;
-    // unsigned int local_bins[24];
-    // if (debug) {
-    //     for (int i = 0; i < 24; i++) {
-    //         local_bins[i] = 0;
-    //     }
-    //     printf("total_space:\t%d\tentropie:\t%f\n", *zlng, entropie);
-    //     for (i=0; i <= 20; i++) {
-    //         printf("%05d ", i);
-    //     }
-    //     printf("\n");
-    //     unsigned int lsum = 0;
-    //     for (i=0; i <= 20; i++) {
-    //         lsum += local_bins[i];
-    //         printf("%05d ", local_bins[i]);
-    //     }
-    //     printf("---- npts : %d\n", lsum);
-    // }
 }
 
 
@@ -1154,25 +1113,23 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
     stuff(lcl, cur, 32, 16, lastWordShifted, spaceInLastWord);
     }
 
-   *zlng = 1 + (int) (cur-z) * 4;
-   entropie = 8.0*(*zlng)/(ni*nj);
-debug=0;
-if (debug)
-  {
-  printf("total_space:\t%d\tentropie:\t%f\n", *zlng,entropie );
-  for (i=0; i <= 20; i++)
-    {
-    printf("%05d ", i);
-    }
-  printf("\n");
-  lsum = 0;
-  for (i=0; i <= 20; i++)
-    {
-    lsum+=local_bins[i];
-    printf("%05d ", local_bins[i]);
-    }
-  printf("---- npts : %d\n", lsum);
-  }
+    *zlng = 1 + (int) (cur-z) * 4;
+
+   if (App_LogLevel(NULL)==APP_EXTRA) {
+      entropie = 8.0*(*zlng)/(ni*nj);
+
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
+      for (i=0; i <= 20; i++) {
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", i);
+      }
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"\n");
+      lsum = 0;
+      for (i=0; i <= 20; i++) {
+         lsum+=local_bins[i];
+         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", local_bins[i]);
+      }
+      Lib_Log(APP_VERBATIM,APP_LIBFST,"---- npts : %d \n", lsum);
+   }
 }
 
 
@@ -1208,7 +1165,7 @@ void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int ni
     }
 
     extract(nbits_req_container, cur, 32, 3, curword, bitPackInWord);
-    //  printf("Apres nicoarse*njcoarse (cur-z) = %d\n", cur-z);
+
     for (int j = 1; j <= nj; j+=step) {
         int lcl_n = ((j + step - 1) >= nj ? nj - j : step - 1);
         for (int i = 1; i <= ni; i+=step) {
@@ -1255,24 +1212,6 @@ void unpackTokensSample(unsigned int zc[], int diffs[], unsigned int z[], int ni
         }
     }
 }
-
-
-void c_armn_compress_option(
-    char *option,
-    char *value
-) {
-    static char *msgtab[7] = {"DEBUG","INFORM","WARNIN","ERRORS","FATALE","SYSTEM","CATAST"};
-
-    if (strcmp(option,"MSGLVL") == 0) {
-        for (int i = 0; i < 7; i++) {
-            if (strcmp(msgtab[i], value) == 0) {
-                zfst_msglevel = i;
-                break;
-            }
-        }
-    }
-}
-
 
 //! Compute how many points are leftover on the east/north sides of the grid
 void calcul_ajusxy(
@@ -1352,7 +1291,6 @@ void calcule_entropie(
 
     range = (float)(imax - imin);
     nbits_local = 1 + (int)(log(1.0 * (imax - imin)) / log(2.0));
-    // printf("imin : %d imax : %d range: %d, nbits : %d\n", imin, imax, imax-imin, nbits_local);
 
     sizebins = 1 << nbits_local;
     bins = (unsigned int *) calloc(sizebins,sizeof(unsigned int));
@@ -1365,14 +1303,12 @@ void calcule_entropie(
     for (int i = 0; i < (int)(range); i++) {
         if (bins[i] != 0) {
             prob = (float)bins[i] / (float)(npts);
-            // printf("i: %d count: %d prob: %f contrib : %f \n", i, bins[i], prob, (prob * log(prob)/log(2.0)));
             *entropie += (prob * log(prob) / log(2.0));
         }
     }
 
     *entropie = -1.0 * (*entropie);
     free(bins);
-    // printf("Entropie totale : %f\n", *entropie);
 }
 
 
@@ -1391,19 +1327,18 @@ void c_armn_compress_setlevel(int level)
   switch(level)
     {
     case BEST:
-    fstcompression_level = BEST;
-    fprintf(stdout, "Setting level to BEST : %d\n", level);
-    break;
+       fstcompression_level = BEST;
+       Lib_Log(APP_LIBFST,APP_INFO,"%f: Setting level to BEST (%d)\n",__func__,level);
+       break;
 
     case FAST:
-    fstcompression_level = FAST;
-    fprintf(stdout, "Setting level to FAST : %d\n", level);
-    break;
+       fstcompression_level = FAST;
+       Lib_Log(APP_LIBFST,APP_INFO,"%f: Setting level to FAST (%d)\n",__func__,level);
+       break;
 
     default:
-    fprintf(stdout, "Wrong compression level : %d\n", level);
-    fprintf(stdout, "Setting level to fast : %d\n", level);
-    fstcompression_level = FAST;
+       Lib_Log(APP_LIBFST,APP_ERROR,"%f: Wrong compression level (%d), reverting to FAST\n",__func__,level);
+       fstcompression_level = FAST;
     }
 }
 
@@ -1436,12 +1371,10 @@ void c_armn_compress_setswap(int swapState)
         case 0:
         case 1:
             swapStream = swapState;
-            /*fprintf(stdout, "Setting swapState to : %d\n", swapState);*/
             break;
 
         default:
-            fprintf(stdout, "Wrong swapState : %d -- should be 0 (no swap) or 1 (swap)\n", swapState);
-            fprintf(stdout, "Current swap state unchanged\n");
+            Lib_Log(APP_LIBFST,APP_ERROR,"%f: Wrong swapState (%d), should be 0 (no swap) or 1 (swap)\n",__func__,swapState);
     }
 }
 

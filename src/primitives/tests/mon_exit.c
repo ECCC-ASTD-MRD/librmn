@@ -1,6 +1,6 @@
 void monexit(int err)
 {
-  printf(" sortie cote jardin code %d\n",err);
+   Lib_Log(APP_LIBRMN,APP_INFO,"%f: sortie cote jardin code %d\n",__func__,err);
 }
 
 main()

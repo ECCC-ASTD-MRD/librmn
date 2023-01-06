@@ -47,6 +47,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 #include <rmn/gossip.h>
 #include <rmn/swap_buffer.h>
@@ -105,7 +106,6 @@ static int WA_PAGE_LIMIT = 0;
 static int global_count = 0;
 static int nfree = -1;
 static int init = 0;
-static int debug_mode = 0;
 static int subfile_length = 0;
 static int fnom_initialized = 0;
 static int stdoutflag = 0;
@@ -148,10 +148,8 @@ static void dump_file_entry(
     //! [in] Index of the entry to dump
     const int idx
 ) {
-      fprintf(stderr, "FGFDT[%d] ", idx);
-      fprintf(stderr, "file_name=%s subname=%s file_type=%s\n",
-              FGFDT[idx].file_name, FGFDT[idx].subname, FGFDT[idx].file_type);
-      fprintf(stderr, "iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
+      Lib_Log(APP_LIBRMN,APP_VERBATIM,"FGFDT[%d] file_name=%s subname=%s file_type=%s",idx,FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
+      Lib_Log(APP_LIBRMN,APP_VERBATIM,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
               FGFDT[idx].iun,
               FGFDT[idx].fd,
               FGFDT[idx].file_size,
@@ -169,13 +167,12 @@ static void dump_file_entry(
               FGFDT[idx].attr.old?"+OLD":"",
               FGFDT[idx].attr.notpaged?"+NOT PAGED":"",
               FGFDT[idx].attr.scratch?"+SCRATCH":"");
-      fprintf(stderr, "\n");
 }
 
 //! Print file characteristics and attributes of in use files in the master file table(for debugging use)
 void f77name(d_fgfdt)()
 {
-    fprintf(stderr, "********** DUMP of MASTER FILE TABLE **********\n");
+    Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP of MASTER FILE TABLE\n",__func__);
     for (int i = 0 ; i < MAXFILES ; i++) {
         if(FGFDT[i].iun != 0) {
             dump_file_entry(i);
@@ -232,7 +229,7 @@ static int find_file_entry(
         }
     }
 
-    fprintf(stderr, "%s error: unit %d is not associated with any file\n", caller, iun);
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not associated with any file\n",caller,iun);
     return -1;
 }
 
@@ -315,7 +312,7 @@ int c_fnom(
             *iun = c_qqqfscr(type);
         }
         if (*iun == -1) {
-            fprintf(stderr, "C_FNOM ERROR: no more units available\n");
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: no more units available\n",__func__);
             return -1;
         }
         liun = *iun;
@@ -371,7 +368,7 @@ int c_fnom(
     }
     for (int i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == liun) {
-            fprintf(stderr, "c_fnom error: unit %d is already in use\n", liun);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is already in use\n",__func__,liun);
             return -1;
         }
     }
@@ -382,7 +379,7 @@ int c_fnom(
     if (FGFDT[entry].iun == 0) {
         FGFDT[entry].iun = liun;
     } else {
-        fprintf(stderr, "c_fnom error: too many files, file table is full\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: too many files, file table is full\n",__func__);
         return -1;
     }
 
@@ -466,20 +463,19 @@ int c_fnom(
     char remote_mach[HOST_NAME_MAX];
     if (FGFDT[entry].attr.scratch) {
         if (strstr(lnom, "/")) {
-            fprintf(stderr, "c_fnom error: / is illegal in scratch file name\n");
-            fprintf(stderr, "              specified name was %s\n", lnom);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: / is illegal in scratch file name, specified name was %s\n",__func__,lnom);
             return -1;
         }
         int pid = getpid();
         char *tmpdir = getenv("TMPDIR");
         if (tmpdir == NULL) {
-            fprintf(stderr, "c_fnom warning: TMPDIR environment variable is not defined, /tmp is used\n");
+            Lib_Log(APP_LIBRMN,APP_WARNING,"%s: TMPDIR environment variable is not defined, /tmp is used\n",__func__);
             tmpdir = "/tmp";
         }
         // Espace tampon supplementaire
         lng = strlen(lnom) + strlen(tmpdir) + 10 + 3 + 128;
         if ((FGFDT[entry].file_name = malloc(lng)) == NULL) {
-            fprintf(stderr, "c_fnom error: can't allocate memory for file name\n");
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can't allocate memory for file name\n",__func__);
             perror("c_fnom");
             exit(1);
         }
@@ -495,7 +491,7 @@ int c_fnom(
                     strncpy(remote_mach, lnom, pos2p - lnom);
                     remote_mach[pos2p - lnom] = '\0';
                     lnom = ++pos2p;
-                    printf("Debug+ remote_mach=%s file name=%s\n", remote_mach, lnom);
+                    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: remote_mach=%s file name=%s\n",__func__,remote_mach,lnom);
                     lng = strlen(lnom);
                 }
             } else {
@@ -575,7 +571,7 @@ int c_fnom(
 
     if ((FGFDT[entry].attr.old || FGFDT[entry].attr.read_only) && ! FGFDT[entry].attr.remote) {
         if (!f77name(existe)(FGFDT[entry].file_name, (F2Cl) strlen(FGFDT[entry].file_name))) {
-            fprintf(stderr, "c_fnom error: file %s should exist and does not\n", FGFDT[entry].file_name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file %s should exist and does not\n",__func__,FGFDT[entry].file_name);
             c_fclos(liun);
             return -1;
         }
@@ -767,7 +763,7 @@ static int qqcclos(
         ind++;
     }
     if (ind == MAXWAFILES) {
-        fprintf(stderr, "qqcclos error: file is not open, fd=%d, name=%s\n", lfd, FGFDT[indf].file_name);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file is not open, fd=%d, name=%s\n",__func__,lfd,FGFDT[indf].file_name);
         return 1;
     }
 
@@ -787,24 +783,21 @@ static int qqcclos(
         check_swap_records(demande, 5, sizeof(int));
         int nc = write_stream(FGFDT[indf].fd, (char *)demande, 5 * sizeof(int));
         if (nc == 0) {
-            printf("socket qqcclos wrote to server OK\n");
+            Lib_Log(APP_LIBRMN,APP_INFO,"%s: socket wrote to server OK\n",__func__);
             fflush(stdout);
         } else {
-            fprintf(stderr, "socket qqcclos error: wrote only %d bytes to server\n", nc);
-            fflush(stderr);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: socket wrote only %d bytes to server\n",__func__,nc);
         }
     } else {
         if (WA_PAGE_SIZE != 0) {
             wa_pages_flush(ind);
             if (wafile[ind].nb_page_in_use != 0) {
-                fprintf(stderr, "qqcclos error: nb_page_in_use = %d\n", wafile[ind].nb_page_in_use);
+               Lib_Log(APP_LIBRMN,APP_ERROR,"%s: nb_page_in_use = %d\n",__func__,wafile[ind].nb_page_in_use);
             }
             FGFDT[indf].file_size = 0;
             FGFDT[indf].eff_file_size = 0;
             wafile[ind].nb_page_in_use = 0;
-            if (debug_mode > 1) {
-                fprintf(stderr, "Debug fermeture du fichier ind=%d, fd=%d\n", ind, lfd);
-                }
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: fermeture du fichier ind=%d, fd=%d\n",__func__,ind,lfd);
         }
     }
     wafile[ind].file_desc = -1;
@@ -831,7 +824,7 @@ int c_waopen2(
             entry++;
         }
         if (entry == MAXFILES) {
-            fprintf(stderr, "c_waopen error: file table is full\n");
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file table is full\n",__func__);
             return -1;
         } else {
             FGFDT[entry].iun = iun;
@@ -844,13 +837,13 @@ int c_waopen2(
         FGFDT[entry].attr.rnd = 1;
     } else {
         if (FGFDT[entry].attr.rnd == 0) {
-            fprintf(stderr, "c_waopen error: waopen needs a file with the RND or WA type\n");
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: waopen needs a file with the RND or WA type\n",__func__);
             return -1;
         }
         if (FGFDT[entry].open_flag) {
             if (FGFDT[entry].attr.wa == 1){
                 // fnom opened the file but does not set wa flag
-                fprintf(stderr, "c_waopen warning: unit %d already open as %s\n", iun, FGFDT[entry].file_name);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d already open as %\n",__func__,iun,FGFDT[entry].file_name);
             }
             FGFDT[entry].attr.wa = 1;
             return FGFDT[entry].fd;
@@ -905,7 +898,7 @@ int c_waclos2(
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].open_flag) {
-        fprintf(stderr, "c_waclos error: unit %d is not open\n", iun);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not open\n",__func__,iun);
         return -1;
         }
 
@@ -962,17 +955,15 @@ int c_wawrit2(
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].open_flag) {
-        fprintf(stderr, "c_wawrit error: unit %d is not open\n", iun);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not open\n",__func__,iun);
         return -1;
     }
     if ( FGFDT[entry].attr.read_only != 0 ) {
-        fprintf(stderr, "c_wawrit error: unit %d , file= %s is READ ONLY\n", iun, FGFDT[entry].file_name);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d , file= %s is READ ONLY\n",__func__,iun,FGFDT[entry].file_name);
         return -1;
     }
     if ( offset > FGFDT[entry].file_size + WA_HOLE ) {
-        fprintf(stderr, "c_wawrit error: attempt to write beyond EOF+%d\n", WA_HOLE);
-        fprintf(stderr, "                unit = %d, adr=%u > file_size=%d\n", iun, offset, FGFDT[entry].file_size);
-        fprintf(stderr, "                filename=%s\n", FGFDT[entry].file_name);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s:  attempt to write beyond EOF+%d\n\tunit = %d, adr=%u > file_size=%d\n\tfilename=%s\n",__func__,WA_HOLE,iun,offset,FGFDT[entry].file_size,FGFDT[entry].file_name);
         exit(1);
     }
     if ( offset > FGFDT[entry].file_size + 1 ){
@@ -1049,7 +1040,7 @@ int c_waread2(
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].open_flag) {
-        fprintf(stderr, "c_waread error: unit %d is not open\n", iun);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not open\n",__func__,iun);
         return -1;
     }
 
@@ -1100,8 +1091,7 @@ void c_waread(
 ) {
     if (c_waread2(iun, buf, offset, nwords) == -2) {
         int entry = find_file_entry("c_waread", iun);
-        fprintf(stderr, "c_waread error: attempt to read beyond EOF, of file %s\n", FGFDT[entry].file_name);
-        fprintf(stderr, "                addr = %u, EOF = %d\n", offset, FGFDT[entry].eff_file_size);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: attempt to read beyond EOF, of file %s, addr = %u, EOF = %d\n",__func__,FGFDT[entry].file_name,offset,FGFDT[entry].eff_file_size);
     }
 }
 
@@ -1277,7 +1267,7 @@ void c_readda(
 
     if ( pt <= &dastat[MAXWAFILES] ) {
         if (*pt == iun) {
-            fprintf(stderr, "readda error: consecutive calls to readda without call to checda, iun=%d \n", iun);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: consecutive calls to readda without call to checda, iun=%d\n",__func__,iun);
             return;
         }
     }
@@ -1285,7 +1275,7 @@ void c_readda(
     for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
         if ( *pt == 0 ) break ;
         if (  pt >= &dastat[MAXWAFILES] ) {
-            fprintf(stderr, " *** readda error: recompiler avec MAXWAFILES++ \n");
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: recompiler avec MAXWAFILES++\n",__func__);
             return;
         }
     }
@@ -1324,7 +1314,7 @@ void c_writda(
     }
     if ( pt <= &dastat[MAXWAFILES] ) {
         if (*pt == iun) {
-            fprintf(stderr, "writda error: consecutive calls to writda without call to checda, iun=%d \n", iun);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: consecutive calls to writda without call to checda, iun=%d\n",__func__,iun);
             return;
         }
     }
@@ -1332,7 +1322,7 @@ void c_writda(
     for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
         if( *pt == 0 ) break ;
         if (  pt >= &dastat[MAXWAFILES] ) {
-            fprintf(stderr, " *** writda error: recompiler avec MAXWAFILES++ \n");
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: recompiler avec MAXWAFILES++\n",__func__);
             return;
         }
     }
@@ -1364,11 +1354,11 @@ int c_getfdsc(
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].attr.stream) {
-        fprintf(stderr, "c_getfdsc error: unit %d does not have the STREAM attribute\n", iun);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d does not have the STREAM attribute\n",__func__,iun);
         return -1;
     }
     if (! FGFDT[entry].open_flag) {
-        fprintf(stderr, "c_getfdsc error: unit %d is not open\n", iun);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not open\n",__func__,iun);
         return -1;
     }
 
@@ -1643,17 +1633,13 @@ static void scrap_page(
     int pg0 = 0;
     int age0 = 0x7fffffff;
     int found_a_page = 0;
-    if (debug_mode > 4) {
-        fprintf(stderr, "Debug SCRAP_PAGE ind0=%d, ind1=%d \n", ind0, ind1);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:ind0=%d, ind1=%d\n",__func__,ind0,ind1);
 
     // Trouver la page la moins utile
     for (int j = ind0; j <= ind1; j++) {
         for (int i = 0; i < wafile[j].nb_page_in_use; i++) {
-            if (debug_mode > 5) {
-                fprintf(stderr, "Debug SCRAP_PAGE j=%d, i=%d age0=%d\n", j, i, wafile[j].page[i].access_count);
-            }
-            if (wafile[j].page[i].access_count < age0) {
+             Lib_Log(APP_LIBRMN,APP_EXTRA,"%s: j=%d, i=%d age0=%d\n",__func__,j,i,wafile[j].page[i].access_count);
+             if (wafile[j].page[i].access_count < age0) {
                 age0 = wafile[j].page[i].access_count;
                 found_a_page = 1;
                 pg0 = i;
@@ -1662,12 +1648,10 @@ static void scrap_page(
         }
     }
     if (found_a_page == 0) {
-        fprintf(stderr, "scrap_page error: cannot find a page to scrap\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot find a page to scrap\n",__func__);
         exit(1);
     }
-    if (debug_mode > 4) {
-      fprintf(stderr, "Debug SCRAP_PAGE fl0=%d, pg0=%d, age0=%d\n", fl0, pg0, age0);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: fl0=%d, pg0=%d, age0=%d\n",__func__,fl0,pg0,age0);
 
     // Réécrire la page si ce n'est pas une page read-only
     if (wafile[fl0].page[pg0].touch_flag) {
@@ -1675,16 +1659,13 @@ static void scrap_page(
         wseek(wafile[fl0].file_desc, wafile[fl0].page[pg0].wa0 - 1, SEEK_SET);
         int ier = write(wafile[fl0].file_desc, wafile[fl0].page[pg0].page_adr, sizeof(uint32_t) * nm);
         if (ier != sizeof(uint32_t) * nm) {
-            fprintf(stderr, "scrap_page error: cannot write page, fd=%d\n", wafile[fl0].file_desc);
-            fprintf(stderr, "scrap_page error: trying to write %d words buffer=%p, fileadr=%d\n", nm,
-                             (void *)wafile[fl0].page[pg0].page_adr, wafile[fl0].page[pg0].wa0 - 1);
-            fprintf(stderr, "scrap_page error: ier=%d,fl0=%d,ind0=%d,ind1=%d\n", ier, fl0, ind0, ind1);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: cannot write page, fd=%d\n",__func__,wafile[fl0].file_desc);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: trying to write %d words buffer=%p, fileadr=%d\n",__func__,nm,(void *)wafile[fl0].page[pg0].page_adr,wafile[fl0].page[pg0].wa0-1);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: ier=%d,fl0=%d,ind0=%d,ind1=%d\n",__func__,ier,fl0,ind0,ind1);
             perror("FATAL WA ERROR");
             exit(1);
         }
-        if (debug_mode > 4) {
-            fprintf(stderr, "Debug SCRAP_PAGE ecriture disque adr=%d, nmots=%d \n", wafile[fl0].page[pg0].wa0, nm);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: ecriture disque adr=%d, nmots=%d\n",__func__,wafile[fl0].page[pg0].wa0,nm);
     }
     wafile[fl0].nb_page_in_use--;
     free_list[++nfree] = wafile[fl0].page[pg0].page_adr;
@@ -1719,7 +1700,7 @@ static void get_new_page(
     if (wafile[fileIdx].nb_page_in_use >= WA_PAGE_NB) {
         scrap_page(fileIdx, fileIdx);
         if (wafile[fileIdx].nb_page_in_use >= WA_PAGE_NB) {
-            fprintf(stderr, "get_new_page error: no page left !??");
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: no page left !??\n",__func__);
             exit(1);
         }
     }
@@ -1729,12 +1710,10 @@ static void get_new_page(
             global_count++;
             free_list[++nfree] = (uint32_t *) malloc(WA_PAGE_SIZE * sizeof(uint32_t));
             if (free_list[nfree] == NULL) {
-                fprintf(stderr, "WA get_new_page error: can't allocate (not enough memory)\n");
+                Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can't allocate (not enough memory)\n",__func__);
                 exit(1);
             }
-            if (debug_mode > 4) {
-                fprintf(stderr, "Debug GET_NEW_PAGE nfree=%d malloc=%p \n", nfree, (void *)free_list[nfree]);
-            }
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: nfree=%d malloc=%p\n",__func__,nfree,(void *)free_list[nfree]);
         }
     }
     if (nfree < 0) {
@@ -1742,7 +1721,7 @@ static void get_new_page(
     }
 
     if (nfree < 0) {
-        fprintf(stderr, "get_new_page error: no page left !??");
+        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: o page left !??\n",__func__);
         exit(1);
     }
 
@@ -1754,9 +1733,7 @@ static void get_new_page(
     wafile[fileIdx].page[pg0].access_count = 0;
     wafile[fileIdx].page[pg0].last_access = 0;
     wafile[fileIdx].page[pg0].touch_flag = 0;
-    if (debug_mode > 4) {
-        fprintf(stderr, "Debug GET_NEW_PAGE pg0=%d, page_adr=%d \n", pg0, wafile[fileIdx].page[pg0].page_adr);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: pg0=%d, page_adr=%d\n",__func__,pg0,wafile[fileIdx].page[pg0].page_adr);
 }
 
 
@@ -1796,12 +1773,10 @@ static long long filepos(
         if (strncmp(&sign[9], CMCARC_SIGN, 8) == 0) {
             // skip to beginning of next file
             version = 4;
-            // printf("Debug+ signature version 4 trouvee\n");
         } else if (strncmp(&sign[17], CMCARC_SIGN_V5, 8) == 0) {
             version = 5;
-            // printf("Debug+ signature version 5 trouvee\n");
         } else {
-            fprintf(stderr, "%s is not a CMCARC type file\n", FGFDT[indf].file_name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s is not a CMCARC type file\n",__func__,FGFDT[indf].file_name);
             return -1;
         }
 
@@ -1820,8 +1795,7 @@ static long long filepos(
             nt = nd;
         } else {
             if (nd != 0) {
-                fprintf(stderr,
-                        "%s is a CMCARC file but nd=%d\n", FGFDT[indf].file_name, nd);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s is a CMCARC file but nd=%d\n",__func__,FGFDT[indf].file_name,nd);
                 return -1;
             }
         }
@@ -1873,13 +1847,11 @@ static long long filepos(
             nd64 = (nd64 << 8) | cmcarc.ndc[3];
             lng64 = (nt64 - nd64 - 4) * 8;
             if (nt64 < nd64 + 6) {
-                fprintf(stderr, "%s is a CMCARC file but nt=%ld nd=%ld\n", FGFDT[indf].file_name, nt64, nd64);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s is a CMCARC file but nt=%ld nd=%ld\n",__func__,FGFDT[indf].file_name,nt64,nd64);
                 return -1;
             }
         }
-        // printf("Debug+ nt64=%Ld nd64=%Ld lng64=%Ld\n", nt64, nd64, lng64);
         nblu64 = read(FGFDT[indf].fd, cmcarc.cmcarc_name, lng64);
-        // printf("Debug cmcarc.cmcarc_name=%s\n", &cmcarc.cmcarc_name[1]);
         if (nblu64 != lng64) return -3;
         if (strcmp(FGFDT[indf].subname, &cmcarc.cmcarc_name[1]) == 0) {
             found = 1;
@@ -1914,8 +1886,6 @@ static int qqcopen(
 
         switch (nset) {
             case 4:
-                debug_mode = n4;
-
             case 3:
                 WA_PAGE_LIMIT = n3;
 
@@ -1936,9 +1906,7 @@ static int qqcopen(
             WA_PAGE_LIMIT = WA_PAGE_NB * MAXWAFILES;
         }
         if (WA_PAGE_SIZE > 0) {
-            fprintf(stderr, "WA_PAGE_SZ = %ld Bytes ", WA_PAGE_SIZE * sizeof(uint32_t));
-            fprintf(stderr, "WA_PAGE_NB = %d ", WA_PAGE_NB);
-            fprintf(stderr, "WA_PAGE_LIMIT = %d\n", WA_PAGE_LIMIT);
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: WA_PAGE_SZ=%ld Bytes WA_PAGE_NB=%d WA_PAGE_LIMIT=%d\n",__func__,WA_PAGE_SIZE*sizeof(uint32_t),WA_PAGE_NB,WA_PAGE_LIMIT);
         }
         for (int ind = 0; ind < MAXWAFILES; ind++) {
             wafile[ind].file_desc = -1;
@@ -1960,32 +1928,28 @@ static int qqcopen(
         ind++;
     }
     if (ind == MAXWAFILES) {
-        fprintf(stderr, "qqcopen error: too many open files\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: too many open files\n",__func__);
         return -1;
     }
 
     FILE* fd;
     if (FGFDT[indf].subname) {
         // cmcarc file
-        if (debug_mode > 4) {
-            fprintf(stderr, "Debug opening subfile %s from file %s\n", FGFDT[indf].subname, FGFDT[indf].file_name);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  opening subfile %s from file %s\n",__func__,FGFDT[indf].subname,FGFDT[indf].file_name);
         FGFDT[indf].attr.read_only = 1;
         fd = open64(FGFDT[indf].file_name, O_RDONLY);
         if (fd == -1) {
-            fprintf(stderr, "qqcopen error: cannot open file %s\n", FGFDT[indf].file_name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot open file %s\n",__func__,FGFDT[indf].file_name);
             return -1;
         }
         wafile[ind].file_desc = fd;
         FGFDT[indf].fd = fd;
         if ((wafile[ind].offset = filepos(indf)) <= 0) {
-            fprintf(stderr, "qqcopen error: subfile %s not found in %s\n", FGFDT[indf].subname, FGFDT[indf].file_name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: subfile %s not found in %s\n",__func__, FGFDT[indf].subname,FGFDT[indf].file_name);
             return -1;
         }
         FGFDT[indf].open_flag = 1;
-        if (debug_mode > 4) {
-            fprintf(stderr, "Debug subfile found at position %llu\n", wafile[ind].offset);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: subfile found at position %llu\n",__func__,wafile[ind].offset);
     } else {
         // Not a cmcarc file
         char *errmsg = "";
@@ -2015,7 +1979,7 @@ static int qqcopen(
             }
         }
         if (fd == -1) {
-            fprintf(stderr, "qqcopen error: %s filename=(%s) !\n", errmsg, FGFDT[indf].file_name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s filename=(%s) !\n",__func__,errmsg,FGFDT[indf].file_name);
             return -1;
         }
         wafile[ind].file_desc = fd;
@@ -2043,10 +2007,7 @@ static int qqcopen(
             wafile[ind].page[i].touch_flag = 0;
         }
         wafile[ind].nb_page_in_use = 0;
-        if (debug_mode > 1) {
-            fprintf(stderr, "Debug ouverture du fichier %s ind=%d, fd=%d\n", FGFDT[indf].file_name, ind, fd);
-            fprintf(stderr, "Debug longueur du fichier =%lld Bytes\n", dim);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: ouverture du fichier %s ind=%d, fd=%d longueur=%lld Bytes\n",__func__,FGFDT[indf].file_name,ind,fd,dim);
     }
     return fd;
 }
@@ -2055,10 +2016,10 @@ static int qqcopen(
 //! Print wa control table
 void f77name(d_wafdt)()
 {
-    fprintf(stderr, "\n   DUMP OF WA CONTROL TABLE \n");
+    Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP OF WA CONTROL TABLE\n",__func__);
     for (int i = 0; i < MAXWAFILES; i++) {
         if (wafile[i].file_desc != -1) {
-            fprintf(stderr, "waindex=%d, fd=%d, npages=%d, offset=%lld\n",
+            Lib_Log(APP_LIBRMN,APP_VERBATIM,"waindex=%d, fd=%d, npages=%d, offset=%lld\n",
                 i, wafile[i].file_desc, wafile[i].nb_page_in_use, wafile[i].offset);
         }
     }
@@ -2085,11 +2046,9 @@ static void wa_page_read(
     while ((wafile[fileIdx].file_desc != fd) && (fileIdx < MAXWAFILES)) {
         fileIdx++;
     }
-    if (debug_mode > 4) {
-        fprintf(stderr, "Debug WA_PAGE_READ requete adr=%u, nmots=%d ind=%d\n", adr, nmots, fileIdx);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: requete adr=%u, nmots=%d ind=%de\n",__func__,adr,nmots,fileIdx);
     if (fileIdx == MAXWAFILES) {
-        fprintf(stderr, "wa_page_read error: file is not open\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file is not open\n",__func__);
         exit(1);
     }
 
@@ -2111,9 +2070,8 @@ static void wa_page_read(
         int wa0 = adr - (adr % WA_PAGE_SIZE) + 1;
         wafile[fileIdx].page[pageIdx].wa0 = (wa0 > 1) ? wa0 : 1;
         wafile[fileIdx].page[pageIdx].access_count++;
-        if (debug_mode > 4) {
-            fprintf(stderr, "Debug WA_PAGE_READ obtention d'une page %d\n", pageIdx);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: obtention d'une page %d\n",__func__,pageIdx);
+
         wseek(fd, wafile[fileIdx].page[pageIdx].wa0 - 1, SEEK_SET);
         uint32_t readbytes;
         if (WA_PAGE_SIZE + wafile[fileIdx].page[pageIdx].wa0 > FGFDT[indf].file_size) {
@@ -2123,8 +2081,7 @@ static void wa_page_read(
         }
         int nbytes = read(fd, wafile[fileIdx].page[pageIdx].page_adr, sizeof(uint32_t) * WA_PAGE_SIZE);
         if ( nbytes < readbytes ) {
-            fprintf(stderr, "wa_page_read error: cannot read page from file %d,fd=%d\n", fileIdx, fd);
-            fprintf(stderr, "  tried to get %ld bytes, got %d\n", sizeof(uint32_t) * WA_PAGE_SIZE, nbytes);
+            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: cannot read page from file %d,fd=%d, tried to get %ld bytes, got %d\n",__func__,fileIdx,sizeof(uint32_t)*WA_PAGE_SIZE,nbytes);
             perror("WA_PAGE_READ");
             exit(1);
         }
@@ -2133,9 +2090,7 @@ static void wa_page_read(
             arrayZero(wafile[fileIdx].page[pageIdx].page_adr + (nbytes / sizeof(uint32_t)), lnmots);
         }
         wafile[fileIdx].page[pageIdx].walast = wafile[fileIdx].page[pageIdx].wa0 + nbytes / sizeof(uint32_t) - 1;
-        if (debug_mode > 4) {
-            fprintf(stderr, "Debug WA_PAGE_READ lecture disque adr=%d\n", wafile[fileIdx].page[pageIdx].wa0);
-        }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: lecture disque adr=%d\n",__func__,wafile[fileIdx].page[pageIdx].wa0);
     }
 
     // Copier la section désirée dans buf
@@ -2150,10 +2105,7 @@ static void wa_page_read(
             if (j != i) {
                 if ((wafile[fileIdx].page[j].wa0 >= wafile[fileIdx].page[pageIdx].wa0) &&
                     (wafile[fileIdx].page[j].wa0 <= wafile[fileIdx].page[pageIdx].wa0 + WA_PAGE_SIZE - 1)) {
-                    fprintf(stderr, "WA_PAGE_READ error: overlapping pages i=%d\n", i);
-                    fprintf(stderr, "page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%d\n",
-                              wafile[fileIdx].page[j].wa0, wafile[fileIdx].page[pageIdx].wa0,
-                              wafile[fileIdx].page[pageIdx].wa0 + WA_PAGE_SIZE - 1);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: overlapping pages i=%d, page[j].wa0=%d, page[i].wa0=%d, page[i].wa0+WA_PAGE_SIZE=%d\n",__func__,i,wafile[fileIdx].page[j].wa0,wafile[fileIdx].page[pageIdx].wa0,wafile[fileIdx].page[pageIdx].wa0+WA_PAGE_SIZE-1);
                     f77name(tracebck)();
                     exit(1);
                 }
@@ -2206,11 +2158,9 @@ static void wa_page_write(
     while ((wafile[ind].file_desc != fd) && (ind < MAXWAFILES)) {
         ind++;
     }
-    if (debug_mode > 4) {
-        fprintf(stderr, "Debug WA_PAGE_WRITE requete adr=%u, nmots=%d ind=%d\n", offset, nmots, ind);
-    }
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: requete adr=%u, nmots=%d ind=%d\n",__func__, offset,nmots,ind);
     if (ind == MAXWAFILES) {
-        fprintf(stderr, "wa_page_write error: file is not open\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file is not open\n",__func__);
         exit(1);
     }
 
@@ -2228,9 +2178,7 @@ static void wa_page_write(
     if (! found) {
         get_new_page(ind);
         pageIdx = wafile[ind].nb_page_in_use - 1;
-        if (debug_mode > 4) {
-            fprintf(stderr, "Debug WA_PAGE_WRITE obtention d'une page %d\n", pageIdx);
-         }
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: obtention d'une page %d\n",__func__,pageIdx);
         int wa0 = offset - (offset % WA_PAGE_SIZE) + 1;
         wafile[ind].page[pageIdx].wa0 = (wa0 > 1) ? wa0 : 1;
         wafile[ind].page[pageIdx].access_count++;
@@ -2251,10 +2199,8 @@ static void wa_page_write(
             }
             int nbytes = read(fd, wafile[ind].page[pageIdx].page_adr, readbytes);
             if ( nbytes < readbytes ) {
-                fprintf(stderr, "wa_page_write error: cannot read page on file %s\n", FGFDT[indf].file_name);
-                fprintf(stderr, " tried to get %d bytes, got %d\n", readbytes, nbytes);
-                fprintf(stderr, "WA_PAGE_SIZE=%d wa0=%d file_size=%d\n", WA_PAGE_SIZE, wafile[ind].page[pageIdx].wa0,
-                    FGFDT[indf].file_size);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot read page on file %s\n",__func__,FGFDT[indf].file_name);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: tried to get %d bytes, got %d. WA_PAGE_SIZE=%d wa0=%d file_size=%d\n",__func__,readbytes,nbytes,WA_PAGE_SIZE,wafile[ind].page[pageIdx].wa0,FGFDT[indf].file_size);
                 perror("WA_PAGE_WRITE");
                 exit(1);
             }
@@ -2263,10 +2209,7 @@ static void wa_page_write(
                 arrayZero(wafile[ind].page[pageIdx].page_adr + (nbytes / sizeof(uint32_t)), lnmots);
             }
             wafile[ind].page[pageIdx].walast = wafile[ind].page[pageIdx].wa0 + nbytes / sizeof(uint32_t) - 1;
-            if (debug_mode > 4) {
-                fprintf(stderr, "Debug WA_PAGE_WRITE relecture disque de la page %d a l'adresse %d\n",
-                           pageIdx, wafile[ind].page[pageIdx].wa0);
-            }
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: relecture disque de la page %d a l'adresse %d\n",__func__,pageIdx,wafile[ind].page[pageIdx].wa0);
         }
     }
 
@@ -2277,8 +2220,7 @@ static void wa_page_write(
     wafile[ind].page[pageIdx].access_count = new_age_wr(wafile[ind].page[pageIdx].access_count);
     wafile[ind].page[pageIdx].touch_flag = 1;
     if (offset > FGFDT[indf].file_size + 1) {
-        fprintf(stderr, "WA_PAGE_WRITE error: ind = %d, adr=%u > file_size=%d\n", ind, offset, FGFDT[indf].file_size);
-        fprintf(stderr, "                     filename=%s\n", FGFDT[indf].file_name);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: ind = %d, adr=%u > file_size=%d filename=%s\n",__func__,ind,offset,FGFDT[indf].file_size,FGFDT[indf].file_name);
         exit(1);
     }
 
@@ -2295,10 +2237,7 @@ static void wa_page_write(
             if (j != i) {
                 if ((wafile[ind].page[j].wa0 >= wafile[ind].page[i].wa0) &&
                            (wafile[ind].page[j].wa0 <= wafile[ind].page[i].wa0 + WA_PAGE_SIZE - 1)) {
-                    fprintf(stderr, "WA_PAGE_WRITE error: overlapping pages i=%d\n", i);
-                    fprintf(stderr, "page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%d\n",
-                              wafile[ind].page[j].wa0, wafile[ind].page[i].wa0,
-                              wafile[ind].page[i].wa0 + WA_PAGE_SIZE - 1);
+                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: overlapping pages i=%d page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%\n",__func__,i,wafile[ind].page[j].wa0,wafile[ind].page[i].wa0,wafile[ind].page[i].wa0+WA_PAGE_SIZE-1);
                     f77name(tracebck)();
                     exit(1);
                 }
@@ -2326,7 +2265,7 @@ static void qqcwawr(
         ind++;
     }
     if (ind == MAXWAFILES) {
-        fprintf(stderr, "qqcwawr error: filename=%s , fd=%d not found in table\n", FGFDT[indf].file_name, lfd);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: filename=%s, fd=%d not found in table\n",__func__,FGFDT[indf].file_name,lfd);
         exit(1);
     }
 
@@ -2336,7 +2275,7 @@ static void qqcwawr(
     }
 
     if (FGFDT[indf].attr.read_only) {
-        fprintf(stderr, "qqcwawr error: no write permission for file %s\n", FGFDT[indf].file_name);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: no write permission for file %s\n",__func__,FGFDT[indf].file_name);
         exit(1);
     }
 
@@ -2356,12 +2295,11 @@ static void qqcwawr(
         check_swap_records(demande, 5, sizeof(int));
         int nc = write_stream(FGFDT[indf].fd, (const char *)demande, 5 * sizeof(int));
         if (nc != 0) {
-            fprintf(stderr, "socket qqcwawr error: wrote only %i bytes to server\n", nc);
-            fflush(stderr);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: socket wrote only %i bytes to server\n",__func__,nc);
         }
         int nelm = write_stream(FGFDT[indf].fd, (const char *)buf, nwords * sizeof(int));
 #if defined (DEBUG)
-        if (nelm == 0) printf("socket qqcwawr wrote %d bytes\n", nwords * sizeof(int));
+        if (nelm == 0) Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: socket wrote %d bytes\n",__func__,nwords*sizeof(int));
 #endif
         if (ladr + nwords - 1 > FGFDT[indf].file_size) {
             FGFDT[indf].file_size = ladr + nwords - 1;
@@ -2374,11 +2312,8 @@ static void qqcwawr(
             int nwritten = write(lfd, buf, sizeof(uint32_t) * nwords);
             if (nwritten != sizeof(uint32_t) * nwords) {
                 if (errno == 14) {
-                    fprintf(stderr, "qqcwawr error: write error for file %s\n", FGFDT[indf].file_name);
-                    fprintf(stderr, "qqcwawr: filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
-                            FGFDT[indf].file_name, buf, ladr, nwords, nwritten, errno);
-                    fprintf(stderr, "*** Contactez un membre de la section informatique de RPN ***\n");
-                    fprintf(stderr, "*** Seek support from RPN informatic section ***\n");
+                    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: write error for file %s, filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",__func__,FGFDT[indf].file_name,FGFDT[indf].file_name,buf,ladr,nwords,nwritten,errno);
+                    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Contactez un membre de la section informatique de RPN / Seek support from RPN informatic section\n",__func__);
                     /*            memorymap(1); */
                     perror("qqcwawr");
                     exit(1);
@@ -2386,19 +2321,14 @@ static void qqcwawr(
                 if (nwritten >= 0) {
                     int togo = (nwords * sizeof(uint32_t)) - nwritten;
                     nwritten = write(lfd, buf, togo);
-                    fprintf(stderr, "qqcwawr WARNING: multiple write attempt of file %s last write=%d bytes, total needed=%ld bytes\n",
-                            FGFDT[indf].file_name, togo, nwords * sizeof(uint32_t));
+                    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: multiple write attempt of file %s last write=%d bytes, total needed=%ld bytes\n",__func__,FGFDT[indf].file_name,togo,nwords*sizeof(uint32_t));
                     if (nwritten != togo) {
-                        fprintf(stderr, "qqcwawr error: write error for file %s\n", FGFDT[indf].file_name);
-                        fprintf(stderr, "qqcwawr: filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
-                                FGFDT[indf].file_name, buf, ladr, nwords, nwritten, errno);
+                        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: write error for file %s, filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",__func__,FGFDT[indf].file_name,FGFDT[indf].file_name,buf,ladr,nwords,nwritten,errno);
                         perror("qqcwawr");
                         exit(1);
                     }
                 } else {
-                    fprintf(stderr, "qqcwawr error: write error or file not open for write!\n");
-                    fprintf(stderr, "qqcwawr: filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",
-                            FGFDT[indf].file_name, buf, ladr, nwords, nwritten, errno);
+                    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: write error or file not open for write, filename=%s, buf=%p adr=%u, nmots=%d, nwritten=%d, errno=%d\n",__func__,FGFDT[indf].file_name,buf,ladr,nwords,nwritten,errno);
                     perror("qqcwawr");
                     exit(1);
                 }
@@ -2447,7 +2377,7 @@ static void qqcward(
     int ind = 0;
     while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES)) ind++;
     if (ind == MAXWAFILES) {
-        fprintf(stderr, "qqcward error: fd=%d not found in table\n", lfd);
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: fd=%d not found in table\n",__func__,lfd);
         exit(1);
     }
     if (FGFDT[indf].attr.remote) {
@@ -2467,12 +2397,11 @@ static void qqcward(
         check_swap_records(demande, 5, sizeof(int));
         int nc = write_stream(FGFDT[indf].fd, (const char *)demande, 5 * sizeof(int));
         if (nc != 0) {
-            fprintf(stderr, "socket qqcward error: wrote only %d bytes to server\n", nc);
-            fflush(stderr);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: socket wrote only %d bytes to server\n",__func__,nc);
         }
         int nelm = read_stream(FGFDT[indf].fd, (char *)buf, lnmots * sizeof(int));
 #       if defined (DEBUG)
-            printf("qqcward read %d bytes\n", nelm);
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: read %d bytes\n",__func__,nelm);
 #       endif
     } else {
         if (ladr != 0) {
@@ -2485,9 +2414,7 @@ static void qqcward(
             }
             int reste = read(lfd, buf, sizeof(uint32_t) * lnmots);
             if (reste != sizeof(uint32_t) * lnmots) {
-                    fprintf(stderr, "qqcward error: tried to read %d words, only read %d\n",
-                            sizeof(uint32_t) * lnmots, reste);
-                fprintf(stderr, "qqcward: wafile[ind].offset=%d ladr=%Ld\n", wafile[ind].offset, ladr);
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: tried to read %d words, only read %d, wafile[ind].offset=%d ladr=%Ld\n",__func__,sizeof(uint32_t)*lnmots,reste,wafile[ind].offset,ladr);
                 f77name(tracebck)();
                 exit(1);
             }
@@ -2527,20 +2454,15 @@ static int fnom_rem_connect(
     char cbuf[1024];
     int fserver = bind_to_localport(&server_port, cbuf, sizeof(cbuf)-1);
     listen(fserver, 5);
-    printf("bound to #%s#\n", cbuf);
-    fflush(stdout);
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: bound to #%s#\n",__func__,cbuf);
 
     char pbuf[1024];
-    snprintf(pbuf, sizeof(pbuf)-1, "echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'",
-            FGFDT[ind].file_name, (FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W", cbuf, remote_host);
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1)?"R/O":"R/W",cbuf,remote_host);
 
     char remote_command[1024];
-    snprintf(remote_command, sizeof(remote_command)-1, "r.remote_wa_server %s %s %s %s",
-        FGFDT[ind].file_name, (FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W", cbuf, remote_host);
-    printf("Debug+ commande passee =\n%s\n", remote_command);
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: r.remote_wa_server %s %s %s %s\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only==1)?"R/O":"R/W",cbuf,remote_host);
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: commande passee =%s\n",__func__,remote_command);
     system(remote_command);
-
-    fflush(stdout);
 
     fd_set rfds;
     FD_ZERO(&rfds);
@@ -2554,14 +2476,13 @@ static int fnom_rem_connect(
     int isel = select(fserver + 1, &rfds, NULL, NULL, &tv);
     if (isel) {
         fclient = accept_from_sock(fserver);
-        printf("connected to server\n");
-        fflush(stdout);
+        Lib_Log(APP_LIBRMN,APP_INFO,"%s: connected to server\n",__func__);
         FGFDT[ind].fd = -1;
         while ((wafile[indx].file_desc != -1) && (indx < MAXWAFILES)) {
             indx++;
         }
         if (indx == MAXWAFILES) {
-            fprintf(stderr, "fnom_rem_connect error: too many open files\n");
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: too many open files\n",__func__);
             return -1;
         }
 
@@ -2580,11 +2501,9 @@ static int fnom_rem_connect(
         int nc = write_stream(fclient, (const char *)demande, 5*sizeof(int));
 
         if (nc == 0) {
-            printf("fnom_rem_connect wrote to server OK\n");
-            fflush(stdout);
+            Lib_Log(APP_LIBRMN,APP_INFO,"%s: wrote to server OK\n",__func__);
         } else {
-            fprintf(stderr, "fnom_rem_connect error: wrote only %d bytes to server\n", nc);
-            fflush(stderr);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: wrote only %d bytes to server\n",__func__,nc);
             close(fclient);
             return -1;
         }
@@ -2592,8 +2511,7 @@ static int fnom_rem_connect(
         demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
         nc = read_stream(fclient, demande, 5 * sizeof(int));
         if (nc !=  5 * sizeof(int)) {
-            fprintf(stderr, "fnom_rem_connect error: read only %d bytes from server\n", nc);
-            fflush(stderr);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: read only %d bytes from server\n",__func__,nc);
             close(fclient);
             return -1;
         }
@@ -2601,17 +2519,15 @@ static int fnom_rem_connect(
         check_swap_records(demande, 5, sizeof(int));
         int new_checksum = *s_ID ^ *addr ^ *RW_mode;
         if (new_checksum != *checksum) {
-            fprintf(stderr, "fnom_rem_connect error: invalid checksum=%X not %X\n", new_checksum, checksum);
-            fflush(stderr);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: invalid checksum=%X not %X\n",__func__,new_checksum,checksum);
             close(fclient);
             return -1;
         }
-        printf("Debug+ fnom_rem_connect wasize=%d\n", *nw);
-        fflush(stdout);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: wasize=%d\n",__func__,*nw);
         FGFDT[ind].file_size = *nw;
         FGFDT[ind].eff_file_size = *nw;
     } else {
-        fprintf(stderr, "fnom_rem_connect error: cannot connect to server\n");
+        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot connect to server\n",__func__);
         return -1;
     }
 

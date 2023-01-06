@@ -65,6 +65,7 @@
     #define B32 :32
 #endif
 
+#include <App.h>
 #include <rmn/fstd98.h>
 #include <rmn/c_wkoffit.h>
 
@@ -207,7 +208,7 @@ static size_t fread32(
 
     if (*little_endian) {
         if ((size & 3) != 0) {
-            fprintf(stderr, "fread64 error: size=%d must be a multiple of 4\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%f: size=%d must be a multiple of 4\n",__func__,size);
             return -1;
         }
 
@@ -595,9 +596,7 @@ static int get_mode(
 
     // Verifie dans les 350 premiers caracteres si on trouve la chaine PLOT$Z qui indique un fichier KMW
     while ( (*data = getc(fp)) != EOF && cpt++ < 350) {
-        // printf("Debug cpt=%d \n", cpt);
         if ( *data == sigkmw[kmwndx] ) {
-            // printf("Debug kmwndx=%d\n", kmwndx);
             if ( kmwndx == strlen(sigkmw) - 1) {
                 mode = 1;
                 break;

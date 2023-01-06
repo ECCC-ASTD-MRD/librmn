@@ -22,6 +22,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
+
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 
@@ -47,7 +49,7 @@ size_t fread16(
 
     if (*little_endian) {
         if ((size & 1) != 0) {
-            fprintf(stderr, "fread16 error: size=%d must be a multiple of 2\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: size=%d must be a multiple of 2\n",__func__,size);
             return -1;
         }
 
@@ -82,7 +84,7 @@ size_t fread32(
 
     if (*little_endian) {
         if ((size & 3) != 0) {
-            fprintf(stderr, "fread64 error: size=%d must be a multiple of 4\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: size=%d must be a multiple of 4\n",__func__,size);
             return -1;
         }
 
@@ -119,7 +121,7 @@ size_t fread64(
 
     if (*little_endian) {
         if ((size & 3) != 0) {
-            fprintf(stderr, "fread64 error: size=%d must be a multiple of 4\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: size=%d must be a multiple of 4\n",__func__,size);
             return -1;
         }
 
@@ -164,7 +166,7 @@ size_t fwrite16(
 
     if (*little_endian) {
         if ((size & 1) != 0) {
-            fprintf(stderr, "fwrite16 error: size=%d must be a multiple of 2\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: size=%d must be a multiple of 2\n",__func__,size);
             return -1;
         }
 
@@ -206,7 +208,7 @@ size_t fwrite32(
 
     if (*little_endian) {
         if ((size & 3) != 0) {
-            fprintf(stderr, "fwrite64 error: size=%d must be a multiple of 4\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: size=%d must be a multiple of 4\n",__func__,size);
             return -1;
         }
 
@@ -249,7 +251,7 @@ size_t fwrite64(
 
     if (*little_endian) {
         if ((size & 3) != 0) {
-            fprintf(stderr, "fwrite64 error: size=%d must be a multiple of 4\n", size);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: size=%d must be a multiple of 4\n",__func__,size);
             return -1;
         }
 

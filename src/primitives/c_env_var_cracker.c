@@ -27,12 +27,12 @@ static void call_user_function(
     if (strcmp(lang, "C") == 0)  {
         /* option: user function in C */
 #ifdef DEBUG
-        fprintf(stderr, " Call user C function\n");
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Call user C function\n",__func__);
 #endif
         user_function(name, index, value);
     } else if (strcmp(lang, "F") == 0)  {
 #ifdef DEBUG
-        fprintf(stderr, "Call user Fortran function\n");
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Call user Fortran function\n",__func__);
 #endif
         /* option: user function in Fortran */
         char * fp1 = _cptofcd(name, strlen(name));
@@ -210,7 +210,7 @@ void c_env_var_cracker(
     }
 
 #ifdef DEBUG
-    fprintf(stderr, "option: %s\n", option);
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: option: %s\n",__func__,option);
 #endif
 
     /* parse options (extract variable name and values) using ";" separator */
@@ -248,7 +248,7 @@ void c_env_var_cracker(
         trimright(name);
 
 #ifdef DEBUG
-        fprintf(stderr, "name: %s\n", name);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: name=%s\n",__func__,name);
 #endif
 
         /* parse variable name and values using "=" separator */
@@ -262,7 +262,7 @@ void c_env_var_cracker(
             values[strlen(token)] = '\0';
 
 #ifdef DEBUG
-            fprintf(stderr, "Values: %s\n", values);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Values=%s\n",__func__,values);
 #endif
 
             /* remove leading whitespace */
@@ -283,7 +283,7 @@ void c_env_var_cracker(
             }
 
 #ifdef DEBUG
-            fprintf(stderr, "Value(s) without white space and parentheses: %s, result = %d \n", values, result);
+            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Value(s) without white space and parentheses: %s, result = %d \n",__func__,values,result);
 #endif
             index++;
 
@@ -299,7 +299,7 @@ void c_env_var_cracker(
                 value[strlen(token)] = '\0';
 
 #ifdef DEBUG
-                fprintf(stderr, "Value, without white space and parentheses: %s, token = %s\n", value, token);
+                Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Value, without white space and parentheses: %s, token = %s\n",__func__,value,token);
 #endif
 
                 /* remove leading whitespace */

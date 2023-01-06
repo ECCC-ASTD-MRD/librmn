@@ -84,7 +84,6 @@ int get_appl_var(char* varname,char *value, int ln, int lng) {
 
     if (ln != 0) {
         for (i = 0; i < In_Used;  i++) {
-            //printf("i=%d appl_var_table[i].name=%s varname=%s\n",i,appl_var_table[i].name,varname);
             if (strncasecmp(varname,appl_var_table[i].name,ln) == 0) {
                 ind = i;
                 break;

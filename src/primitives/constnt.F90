@@ -49,7 +49,7 @@ end subroutine dummy_do_nothing_routine
 !> à ses partenaires.
 subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, ierror)
     use, intrinsic :: iso_fortran_env, only : real64
-
+    use app
     implicit none
 
     !> Valeur de la constante demandée, ajoutée ou modifiée
@@ -204,8 +204,9 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
         ! verifier si constante existe deja
         do i = 1, ncns
             if (tname == name(i)) then
-                write(6, 620) tname
-620             format(/, 5X, '**** LA CTE', 1X, A8, 1X, 'EXISTE DEJA', /)
+                write(app_msg, 620) tname
+                call lib_log(APP_LIBRMN,APP_WARNING,app_msg)
+620             format(/, 5X, 'constnt_x: LA CTE', 1X, A8, 1X, 'EXISTE DEJA', /)
                 ! return avec flag = 0 ?
                 stop
             end if
@@ -220,8 +221,9 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
             end if
             name(ncns) = tname
          else
-            write(6, 625)
-625         FORMAT(/, 5X, '**** NB DE CONSTANTES DEPASSE LA LIMITE', /)
+            write(app_msg, 625)
+            call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
+625         FORMAT(/, 5X, 'constnt_x: NB DE CONSTANTES DEPASSE LA LIMITE', /)
             ! return avec flag = 0 ?
             stop
         end if
@@ -242,7 +244,8 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
                 end if
             end do
             if (flag == 0) then
-                write(6, 630) tname
+                write(app_msg, 630) tname
+                call lib_log(APP_LIBRMN,APP_WARNING,app_msg)
                 stop
             endif
       endif
@@ -250,5 +253,5 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
 600   FORMAT(1H1, 10X, 'LISTE DES CONSTANTES COMMUNES CMC-RPN', ///)
 602   FORMAT(2X, 'NOM', 17X, 'VALEUR', 8X, 'DESCRIPTION', 10X, 'UNITE', //)
 605   FORMAT(2X, A8, 2X, E20. 13, 2X, A42)
-630   FORMAT(/, 5X, '**** LA CTE A MODIFIER', 1X, A8, 1X, "N'EXISTE PAS", /)
+630   FORMAT(/, 5X, 'constnt_x: LA CTE A MODIFIER', 1X, A8, 1X, "N'EXISTE PAS", /)
 end

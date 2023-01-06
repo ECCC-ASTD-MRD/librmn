@@ -4,6 +4,7 @@
 #include <dlfcn.h>
 
 #define NO_PROTOTYPES
+#include <App.h>
 #include <rmn/plugins.h>
 
 typedef struct {
@@ -18,7 +19,6 @@ typedef struct {
 #define MAX_PLUGINS 256
 static plugin plugin_table[MAX_PLUGINS];
 static int last_plugin=0;
-static int verbose = 0;
 
 int unload_plugin(plugin *p){
   if(p == NULL) return(-1) ; // bad handle
@@ -31,18 +31,12 @@ int unload_plugin(plugin *p){
   p->handle = NULL;
   p->ordinal = -1;
   p->nentries = 0;
-  if(verbose) printf("INFO: plugin %s has been closed (slot %ld)\n",p->name,p-plugin_table);
+  Lib_Log(APP_LIBRMN,APP_INFO,"%s: plugin %s has been closed (slot %ld)\n",__func__,p->name,p-plugin_table);
   if(p->name) free(p->name);
   p->name = NULL;
   return (0);   // entry has been freed
 }
 
-// set diagnostic level
-// 0 = silent
-// 1 = verbose
-void set_plugin_diag(int diag){
-  verbose = diag;
-}
 //----------------------------------------------------------------------------------------
 //
 //  load a plugin (shared object)
@@ -62,12 +56,11 @@ plugin *load_plugin(const char *lib, int diag){
   fnptr func_nb;
   int slot ;
 
-  verbose = diag;
   for (slot=0 ; slot < MAX_PLUGINS ; slot++){
     if(plugin_table[slot].name == NULL) break;  // free slot
   }
   if(slot >= MAX_PLUGINS) {
-    fprintf(stderr,"ERROR: plugin table is full\n");
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: plugin table is full\n",__func__);
     return(NULL);   // table is full
   }
 
@@ -76,10 +69,10 @@ plugin *load_plugin(const char *lib, int diag){
 
   p->name = (char *)malloc(strlen(lib)+1);
   strncpy(p->name, lib, strlen(lib)+1);
-  if(verbose) fprintf(stderr,"\nINFO: attempting to load plugin %s (slot %d)\n",p->name,slot);
+  Lib_Log(APP_LIBRMN,APP_INFO,"%s: attempting to load plugin %s (slot %d)\n",__func__,p->name,slot);
   p->handle = dlopen(p->name,RTLD_LAZY);
   if( p->handle == NULL ) {
-    fprintf(stderr,"ERROR: load plugin failed for %s\n",p->name);
+    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: load plugin failed for %s\n",__func__,p->name);
     free(p->name);
     p->name = NULL;
     return(NULL);
@@ -91,7 +84,7 @@ plugin *load_plugin(const char *lib, int diag){
   if(func_nb) nsym = (*func_nb)();                        // optional function (mainly for Fortran usage)
 
   if( (temp == NULL) && (func_nb == NULL)) {
-    if(verbose) fprintf(stderr,"WARNING: no function table found in plugin %s\n",p->name);
+    Lib_Log(APP_LIBRMN,APP_WARNING,"%s: no function table found in plugin %s\n",__func__,p->name);
     dlclose(p->handle);     // nothing useful, close
     free(p->name);
     p->name = NULL;
@@ -103,7 +96,7 @@ plugin *load_plugin(const char *lib, int diag){
   }
 
   if (nsym == 0) {
-    if(verbose) fprintf(stderr,"WARNING: no functions advertised in plugin %s\n",p->name);
+    Lib_Log(APP_LIBRMN,APP_WARNING,"%s: no function advertised found in plugin %s\n",__func__,p->name);
     dlclose(p->handle);     // nothing useful, close
     free(p->name);
     p->name = NULL;
@@ -112,13 +105,13 @@ plugin *load_plugin(const char *lib, int diag){
 
   p->symbol = temp;                                       // symbol table is at address of symbol entry_list
   p->nentries = nsym;
-  if(verbose) fprintf(stderr,"INFO: %d functions advertised in plugin %s\n",p->nentries,p->name);
+  Lib_Log(APP_LIBRMN,APP_INFO,"%s: %d functions advertised in plugin %s\n",__func__,p->nentries,p->name);
   p->addr = (void *)malloc(nsym*sizeof(void *));   // allocate address table
   if(slot >= last_plugin) last_plugin = slot + 1;
 
   for(i=0 ; i<nsym ; i++){
     p->addr[i] =  dlsym(p->handle,p->symbol[i]);   // fill address table
-    if(verbose) fprintf(stderr,"INFO:   %p %s\n",p->addr[i],p->symbol[i]);
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: %p %s\n",__func__,p->addr[i],p->symbol[i]);
   }
   return(p);
 }

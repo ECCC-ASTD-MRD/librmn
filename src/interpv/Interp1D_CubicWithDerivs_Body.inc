@@ -43,6 +43,7 @@
 !
 !ARGUMENTS
   use Interp1D_Constants
+  use app
   implicit none
 #include "Interp1D_Arguments_X.inc"
 
@@ -125,7 +126,7 @@
 
   ! Verify that enough source levels are supplied; the algorithm requires 2
   if(srcNumlevels < 2) then
-    write(6,*)'ERROR:  the cubic algorithm with derivatives requires 2 source points.'
+    call lib_log(APP_LIBINTERPV,APP_ERROR,'Interp1D_CubicWithDerivs: The cubic algorithm with derivatives requires 2 source points')
     return
   end if
 

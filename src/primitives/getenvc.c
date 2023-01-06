@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <App.h>
 #include <rmn/rpnmacros.h>
 
 
@@ -49,7 +50,7 @@ void f77name(getenvc2) (
         temp[realNameLen] = name[realNameLen];
     }
     temp[realNameLen] = '\0';
-    // printf("getenvc() - EnvVarName=\"%s\" \n", temp);
+    //Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  EnvVarName=\"%s\"\n",__func__,temp);
 
     char *envVal = getenv( temp );
 
@@ -67,9 +68,7 @@ void f77name(getenvc2) (
             }
         }
     } else {
-        if (!quiet) {
-            printf("getenvc - %s Not found in environment!\n", temp);
-        }
+        Lib_Log(APP_LIBRMN,APP_INFO,"%s: %s Not found in environment\n",__func__,temp);
     }
     free( temp );
 }

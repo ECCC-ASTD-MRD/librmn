@@ -7,6 +7,7 @@
 !> \author Michel Valin
 SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
     use convert_ip123_int
+    use app
     implicit none
     include 'convip_plus.inc'
 
@@ -138,8 +139,8 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   if (mode.gt.0) then  ! .... Conversion P,KIND a IP  ....
 
       if ( is_invalid_kind(kind) ) then
-          write(6,6004) kind
-!           call qqexit(1)    !  force excessive ?
+          write(app_msg,6004) kind
+          call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
           ip = -999999
           return  ! erreur si kind pas valide
       endif
@@ -155,7 +156,8 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
             return
           endif
           if (p .lt. low_val(kind) .or. p .gt. hi_val(kind)) then
-              write(6,6006) p,low_val(kind),hi_val(kind)
+              write(app_msg,6006) p,low_val(kind),hi_val(kind)
+              call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
               ip = -999999
               return
           endif
@@ -199,14 +201,16 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
               ip = max( 12001,min( 32000,nint( p/5.0 + 12001 ) ) )
           elseif (kind.eq.1) then  ! ...  sigma ...
               if ( .not. (  0.0 .le. p .and. p .le. 1.0 ) ) then
-                write(6,6001) p
+                write(app_msg,6001) p
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 ip = -999999
                 return
               endif
               ip = nint( p * 10000. ) + 2000
           elseif (kind.eq.2) then  ! ...  pression ...
               if (  .not. (0.0 .le. p .and. p .lt. 1100. ) ) then
-                write(6,6002) p
+                write(app_msg,6002) p
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 ip = -999999
                 return
               endif
@@ -230,12 +234,14 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
               if ( 0 .le. ip .and. ip .le. 100 ) then
                 ip = 1200 - ip
               else
-                write(6,6003) p
+                write(app_msg,6003) p
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 ip = -999999
                 return
               endif
           else  !  OLD encoding not valid for this kind
-              write(6,6004) kind
+              write(app_msg,6004) kind
+              call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
               ip = -999999
               return
           endif

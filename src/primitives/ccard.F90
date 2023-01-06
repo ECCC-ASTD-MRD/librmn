@@ -60,6 +60,7 @@ end subroutine
 !> If there is an error in the command line, it will be printed along with the
 !> keys and their current value
 subroutine ccard(incle, def, val, nbkeys, ii)
+    use app
     use ccard_private
     IMPLICIT NONE
 
@@ -105,7 +106,8 @@ subroutine ccard(incle, def, val, nbkeys, ii)
     DO i = 1, nbkeys
         cletemp = incle(i)
         IF (TRIM(incle(i)) /= TRIM(cletemp)) THEN
-            write(*, "(a,i4,a)") 'CCARD erreur: nom de la cle #', i, ' > limite de 50 caracteres'
+            write(app_msg, "(a,i4,a)") 'ccard: key name #', i, ' > 50 character limit'
+            call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
             if (plante) call qqexit(21)
         END IF
         CALL low2up(incle(i), cleup)
@@ -172,7 +174,8 @@ subroutine ccard(incle, def, val, nbkeys, ii)
 
             IF (j > nbkeys) THEN
                 cllng = len_trim(argup)
-                PRINT *, ' *** ERREUR: cle ', argup(1:cllng), ' non reconnue'
+                write(app_msg,*) 'ccard: Unknow key ', argup(1:cllng)
+                call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
                 CALL qqqsap(cle, def, val, nbkeys)
                 IF (plante) THEN
                     CALL qqexit(22)
@@ -190,7 +193,7 @@ subroutine ccard(incle, def, val, nbkeys, ii)
                 call c_set_appl_var(keyname, argtemp)
                 posc = posc + 1
             ELSE
-                PRINT *, ' *** ERREUR: debordement de liste'
+                call lib_log(APP_LIBRMN,APP_ERROR,'ccard: List overflow')
                 CALL qqqsap(cle, def, val, nbkeys)
                 IF (plante) THEN
                     CALL qqexit(23)
@@ -205,8 +208,7 @@ subroutine ccard(incle, def, val, nbkeys, ii)
                 write(keyname, errorFmt) '%%' // trim(cle(posmoinc)), posmoinc - pos, '%%'
                 call c_set_appl_var(keyname, argtemp)
             ELSE
-                PRINT *,' *** ERREUR: debordement de liste'
-                PRINT *,'         ou  mode positionnel non permis'
+                call lib_log(APP_LIBRMN,APP_ERROR,'ccard: List overflow or positionnal mode not allowed')
                 CALL qqqsap(cle, def, val, nbkeys)
                 IF (plante) THEN
                     CALL qqexit(24)

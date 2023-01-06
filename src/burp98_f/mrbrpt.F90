@@ -21,6 +21,7 @@
 !.S MRBRPT
 !**S/P  MRBRPT - VERIFIER SI UN ELEMENT EST REPETITIF OU NON
       FUNCTION MRBRPT( ELEMENT )
+      use app
       IMPLICIT NONE
       INTEGER  MRBRPT, ELEMENT
 !
@@ -45,12 +46,12 @@
 #include <ftnmacros.hf>
 !
 !MODULE
-      EXTERNAL QDFERR
-      INTEGER  QDFERR
 !
 !*
       IF(ELEMENT.LT.1 .OR. ELEMENT .GT. MAXREP*BITMOT) THEN
-         MRBRPT = QDFERR('MRBRPT', 'NOM D''ELEMENT NON VALIDE', WARNIN, ERELEM)
+         write(app_msg,*) 'MRBRPT: Nom d''element non valide'
+         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+         MRBRPT = ERELEM
       ELSE
          MRBRPT = GETBIT(RPETITIF, ELEMENT, 1)
       ENDIF
