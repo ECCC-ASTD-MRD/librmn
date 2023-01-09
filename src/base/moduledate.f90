@@ -272,7 +272,8 @@
 !**S/R INCDATR - INCREASE IDATE2 BY NHOURS
 !
       SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
-      IMPLICIT NONE
+         use app
+         IMPLICIT NONE
 !
 ! ENTRY INCDATI - SAME AS INCDATR BUT IDATE2 AND NHOURS ARE ROUNDED
 ! ENTRY DIFDATI - SAME AS DIFDATR BUT DATE-TIME STAMPS ARE ROUNDED
@@ -390,12 +391,14 @@
         if (idate1 .gt. -1) then
           result=naetwed(idate1,pdate1,pdate2,-3)
           if(result.ne.0) then
-             print *,'label 1,idate1:',idate1
+             write(app_msg,*) 'ddiaft: label 1,idate1:',idate1
+             call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
              goto 2
           endif
           result=naetwed(tdate1,pdate1,pdate2,+7)
           if(result.ne.0) then
-             print *,'label 2,pdate1,pdate2:',pdate1(1),pdate2
+             write(app_msg,*) 'ddiaft: label 2,pdate1,pdate2:',pdate1(1),pdate2
+             call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
              goto 2
           endif
         else
@@ -405,7 +408,8 @@
         idate(1)=idate1 ; result=naetwed(tdate1,idate,runnum,1)
       endif
       if(result.ne.0) then
-         print *,'label 3,idate1:',idate1
+         write(app_msg,*) 'ddiaft: label 3,idate1:',idate1
+         call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
          goto 2
       endif
 
@@ -416,19 +420,22 @@
         if (idate2 .gt.-1) then
            result=naetwed(idate2,pdate1,pdate2,-3)
            if(result.ne.0) then
-              print *,'label 4,idate2:',idate2
-              goto 2
+             write(app_msg,*) 'ddiaft: label 4,idate2:',idate2
+             call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
+             goto 2
            endif
            result=naetwed(tdate2,pdate1,pdate2,+7)
            if(result.ne.0) then
-              print *,'label 5,pdate1,pdate2:',pdate1(1),pdate2
+              write(app_msg,*) 'ddiaft: label 5,pdate1,pdate2:',pdate1(1),pdate2
+              call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
               goto 2
            endif
         else
            idate(1)=idate2 ; result=naetwed(tdate2,idate,runnum,6)
         endif
         if(result.ne.0) then
-           print *,'label 6,idate2:',idate2
+           write(app_msg,*) 'ddiaft: label 6,idate2:',idate2
+           call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
            goto 2
         endif
         if (adding) then
@@ -439,7 +446,8 @@
           endif
           result=naetwed(tdate1,idate,runnum,-6) ; idate1=idate(1)
           if (result.ne.0)  then
-             print *,'after if adding,if rounding',tdate1
+             write(app_msg,*) 'ddiaft: after if adding,if rounding',tdate1
+             call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
              goto 2
           endif
         else
@@ -452,7 +460,8 @@
       else
         idate(1)=idate2 ; result=naetwed(tdate2,idate,runnum,1)
         if(result.ne.0) then
-           print *,'label 1,idate2:',idate2
+           write(app_msg,*) 'ddiaft: label 1,idate2:',idate2
+           call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
            goto 2
         endif
         if (adding) then
@@ -479,12 +488,14 @@
            if (goextend) then  ! exiting regular date range for extended range
              result=naetwed(idate2,pdate1,pdate2,-3)
              if(result.ne.0) then
-               print *,'label 7,idate2:',idate2
-               goto 2
+                write(app_msg,*) 'ddiaft: label 7,idate2:',idate2
+                call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
+                goto 2
              endif
              result=naetwed(tdate2,pdate1,pdate2,+7)
              if(result.ne.0) then
-                print *,'label 8,pdate1,pdate2:',pdate1(1),pdate2
+                write(app_msg,*) 'ddiaft: label 8,pdate1,pdate2:',pdate1(1),pdate2
+                call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
                 goto 2
              endif
              tdate1=tdate2+nint(nhours)
@@ -497,7 +508,8 @@
              result=naetwed(tdate1,idate,runnum,-1) ; idate1=idate(1)
            endif
            if (result.ne.0)  then
-              print *,'after if adding,if rounding',tdate1
+              write(app_msg,*) 'ddiaft: after if adding,if rounding',tdate1
+              call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
               goto 2
            endif
         else
@@ -871,6 +883,7 @@
 
       integer function LeapYear_Adjust_int(tdate1,tdate2, &
                                        true_date_mode,adding)
+      use app
 
       implicit none
       logical :: adding
@@ -920,7 +933,7 @@
           dat(1) = annee*10000+0229
           if (inc > 0) then
             ier = naetwed(tdate29f,dat,0,print2true)
-            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+            if (tdate29f <= tdate28f) call lib_log(APP_LIBRMN,APP_ERROR,'LeapYear_Adjust_int: tdate29f < tdate28f')
             if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
@@ -930,7 +943,7 @@
             endif
           else
             ier = naetwed(tdate29f,dat,limite,print2true)
-            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+            if (tdate29f <= tdate28f) call lib_log(APP_LIBRMN,APP_ERROR,'LeapYear_Adjust_int: tdate29f < tdate28f')
             if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
@@ -947,14 +960,14 @@
           dat(1) = annee*10000+0229
           if (inc > 0) then
             ier = naetwed(tdate29f,dat,0,print2true)
-            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+            if (tdate29f <= tdate28f) call lib_log(APP_LIBRMN,APP_ERROR,'LeapYear_Adjust_int: tdate29f < tdate28f')
             if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
             endif
           else
             ier = naetwed(tdate29f,dat,limite,print2true)
-            if (tdate29f <= tdate28f) print *,'Error tdate29f < tdate28f'
+            if (tdate29f <= tdate28f) call lib_log(APP_LIBRMN,APP_ERROR,'LeapYear_Adjust_int: tdate29f < tdate28f')
             if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
               ndays = ndays+inc
               tdate1L = tdate1L+addit*inc
@@ -973,7 +986,7 @@
 !     Calculate correction (in days) to account for "360-day
 !     calendar" difdatr and incdatr calculation errors, which
 !     are by default always done with the gregorian calendar.
-
+      use app
       implicit none
 
       ! arguments
@@ -1016,8 +1029,8 @@
 
       if ((da2 > 28 .and. mo2 == 2) .or. &  ! sanity check: make sure that
           (da2 > 30 .and. mo2 >  4)) then   ! tdate2 conforms to a 360-day
-         print *,'Illegal date for 360-day calendar ', & ! calendar
-                  p2a(1),' in CcclxDays_Adjust'
+         write(app_msg,*) 'CcclxDays_Adjust_int: Illegal date for 360-day calendar ',p2a(1)
+         call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
          CcclxDays_Adjust_int = 89478485 ! * 24 = 2^31 - 8, a LARGE number
          if (.not.adding) CcclxDays_Adjust_int = -CcclxDays_Adjust_int
          return                      ! and should cause a quick abort
@@ -1134,7 +1147,7 @@
          CcclxDays_Adjust_int = ( tdateL - tdate1 ) / addit
 
          ier = mod( tdateL - tdate1 , addit )
-         if (ier /= 0) print *,'probleme 1 dans CcclxDays_Adjust'
+         if (ier /= 0) call lib_log(APP_LIBRMN,APP_ERROR,'CcclxDays_Adjust_int: probleme 1 dans CcclxDays_Adjust')
 
       else ! difdatr mode
 
@@ -1148,8 +1161,8 @@
 
          if ((da1 > 28 .and. mo1 == 2) .or.  & ! sanity check: make sure that
              (da1 > 30 .and. mo1 >  4)) then   ! tdate1 conforms to a 360-day
-            print *,'Illegal date for 360-day calendar ', & ! calendar
-                     p1a(1),' in CcclxDays_Adjust'
+            write(app_msg,*) 'Illegal date for 360-day calendar ',p1a(1)
+            call lib_log(APP_LIBRMN,APP_ERROR,'CcclxDays_Adjust_int: probleme 1 dans CcclxDays_Adjust')
             CcclxDays_Adjust_int = 89478485 ! * 24 = 2^31 - 8, a LARGE number
             return                      ! and should cause a quick abort
          endif
@@ -1187,7 +1200,7 @@
          CcclxDays_Adjust_int = nint( (nhoursi - nhours) / 24.0 )
 
          ier = mod( nint( (nhoursi - nhours)*10000.0, 8 ),240000_8 )
-         if (ier /= 0) print *,'probleme 2 dans CcclxDays_Adjust'
+         if (ier /= 0) call lib_log(APP_LIBRMN,APP_ERROR,'CcclxDays_Adjust_int: probleme 2 dans CcclxDays_Adjust')
 
       endif
 
@@ -1199,6 +1212,7 @@
 !FORMATS: PRINTABLE DATE, CMC DATE-TIME STAMP, TRUE DATE
 !
       INTEGER FUNCTION naetwed(DAT1,DAT2,DAT3,MODE)  ! NEWDATE
+      use app
       IMPLICIT NONE
       INTEGER DAT1,DAT2(*),DAT3,MODE
 !
@@ -1427,7 +1441,7 @@
          tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart,10)
          runnb=0
       else if (stamp .lt. -1) then
-        print *,'newdate error: mode 1, negative stamp'
+        call lib_log(APP_LIBRMN,APP_ERROR,'naetwed: newdate error mode 1, negative stamp')
         goto 4
       else
 !     stamp is an old date-time stamp
@@ -1472,8 +1486,8 @@
       endif
       tdate=jd(year,month,day)
       if (tdate < jd0 .or. tdate >= jd10k) then
-         print *,'newdate error: date outside of supported range, ', &
-                 'date =',dtpr
+         write(app_msg,*)'naetwed: newdate error, date outside of supported range, date =',dtpr
+         call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
          goto 4
       endif
       tdate=(tdate-jd0)*24+zulu+minute/60
@@ -1493,7 +1507,8 @@
 !!!   if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
       if (date_unsigned <  troisg .or. &
           date_unsigned >= troisg + max_offset) then
-        print *,'newdate error: invalid stamp for mode -5, stamp=',stamp
+        write(app_msg,*)'naetwed: newdate error, invalid stamp for mode -5, stamp=',stamp
+        call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
         goto 4
       endif
       stamp=date_unsigned - troisg
@@ -1540,8 +1555,8 @@
 !!!     if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
         if (date_unsigned < troisg .or. &
            date_unsigned > troisg + max_offset) then
-           print *,'newdate error: invalid stamp for mode -6, ', &
-                   'stamp=',stamp
+           write(app_msg,*)'naetwed: newdate error, nvalid stamp for mode -6, stamp=',stamp
+           call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
            goto 4
         endif
         stamp=date_unsigned - troisg
@@ -1595,8 +1610,8 @@
       tmpr=dat3
       year=mod(dtpr/10000,10000)
       if (year < 0 .or. year >= 10000) then
-         print *,'newdate error: date outside of supported range, ', &
-                 'date =',dtpr
+         write(app_msg,*)'naetwed: newdate error, date outside of supported range, date =',dtpr
+         call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
          goto 4
       endif
       month=mod(dtpr/100,100)
