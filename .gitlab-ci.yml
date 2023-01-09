@@ -1,7 +1,7 @@
 variables:
    GIT_SUBMODULE_STRATEGY: recursive
    ORD_SOUMET_W: "10"
-   ORD_SOUMET_C: "4"
+   ORD_SOUMET_C: "5"
    ORD_SOUMET_M: "8G"
    ORD_SOUMET_TMPFS: "1G"
    
@@ -229,6 +229,7 @@ build:ubuntu-18.04-amd64_gnu-9.3.0:
       ORD_SOUMET_MACH    : gpsc5
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
+      ORD_SOUMET_C: "1"
    stage: build
    only:
      - master
@@ -432,6 +433,7 @@ build:ubuntu-20.04-amd64_gnu-9.3.0:
       ORD_SOUMET_MACH    : gpsc5
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
+      ORD_SOUMET_C: "1"
    stage: build
    only:
      - master
