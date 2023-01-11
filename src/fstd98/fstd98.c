@@ -1810,7 +1810,7 @@ int c_fstinfx(
     }
 
     if (lhandle < 0) {
-        Lib_Log(APP_LIBFST,APP_WARNING,"%s: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
+        Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
         if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
@@ -3110,7 +3110,7 @@ int c_fstsui(
     /* position to the next record that matches the last search criterias */
     int handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
     if (handle < 0) {
-        Lib_Log(APP_LIBFST,APP_INFO,"%s: record not found, errcode=%d\n",__func__,handle);
+        Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: record not found, errcode=%d\n",__func__,handle);
         return handle;
     }
 

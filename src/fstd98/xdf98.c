@@ -782,7 +782,7 @@ int c_secateur(
     //! File size to set (in bytes)
     int size
 ) {
-    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Truncating %s to \t %d Bytes\n",__func__,filePath,size);
+    Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: Truncating %s to \t %d Bytes\n",__func__,filePath,size);
 
     int ier = truncate(filePath, size);
     if (ier == -1) perror("secateur");
@@ -3457,10 +3457,10 @@ static uint32_t next_match(
     if (! found) return ERR_NOT_FOUND;
 
     if (! f->xdf_seq) {
-        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Record found at page# %d, record# %d\n",__func__,f->cur_pageno,f->page_record-1);
+        Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: Record found at page# %d, record# %d\n",__func__,f->cur_pageno,f->page_record-1);
         handle = MAKE_RND_HANDLE(f->cur_pageno, f->page_record-1, f->file_index);
     } else {
-        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Record found at address %d\n",__func__,addr_match);
+        Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: Record found at address %d\n",__func__,addr_match);
         stde = (stdf_dir_keys *) f->head_keys;
         handle = make_seq_handle(addr_match, f->file_index, f);
     }
