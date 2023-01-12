@@ -68,7 +68,7 @@ void f77name(getenvc2) (
             }
         }
     } else {
-        Lib_Log(APP_LIBRMN,APP_INFO,"%s: %s Not found in environment\n",__func__,temp);
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: %s Not found in environment\n",__func__,temp);
     }
     free( temp );
 }
