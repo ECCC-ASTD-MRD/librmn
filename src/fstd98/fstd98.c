@@ -2619,7 +2619,7 @@ int c_fstopc(
     }else{
        val=Lib_LogLevel(APP_LIBFST,value);
     }
-    if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+    if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option 'MSGLVL' , %d\n",__func__,App->LogLevel[APP_LIBFST]);
     return val;
   }
@@ -2635,7 +2635,7 @@ int c_fstopc(
     }else{
       sprintf(prnt_options, "%s", value);
     }
-    if (getmode == 1 || App_LogLevel(NULL)>APP_INFO)
+    if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option PRINTOPT='%s'\n",__func__,prnt_options);
     return val;
   }
@@ -2652,7 +2652,7 @@ int c_fstopc(
       }
       c_armn_compress_setlevel(turbocomp_mode);
     }
-    if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+    if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option TURBOCOMP=%s\n",__func__,comptab[turbocomp_mode]);
     return val;
   }
@@ -2680,7 +2680,7 @@ int c_fstopi(
     }else{
       App->LogLevel[APP_LIBFST]=value;
     }
-    if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+    if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option 'MSGLVL' , %d\n",__func__,App->LogLevel[APP_LIBFST]);
     return val;
   }
@@ -2699,7 +2699,7 @@ int c_fstopi(
         c_armn_compress_setlevel(turbocomp_mode);
       }
     }
-   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+   if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option TURBOCOMP=%s , %d\n",__func__,comptab[turbocomp_mode],turbocomp_mode);
     return val;
   }
@@ -2725,7 +2725,7 @@ int c_fstopl(
       if (getmode == 2) val = 0;
     }else{
     }
-   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+   if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: FASTIO mode NOT ACTIVE\n",__func__);
     return val;
   }
@@ -2736,7 +2736,7 @@ int c_fstopl(
     }else{
       image_mode_copy = value;
     }
-   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+   if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option IMAGE_MODE_COPY=%d\n",__func__,image_mode_copy);
     return val;
   }
@@ -2747,7 +2747,7 @@ int c_fstopl(
     }else {
       downgrade_32 = value;
     }
-   if (getmode == 1 || App_LogLevel(NULL)>=APP_INFO)
+   if (getmode == 1)
        Lib_Log(APP_LIBFST,APP_INFO,"%s: option REDUCTION32=%d\n",__func__,downgrade_32);
     return val;
   }

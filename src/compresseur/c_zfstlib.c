@@ -571,19 +571,19 @@ void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int n
 
    *zlng = 1 + (int) (cur-z) * 4;
 
-   if (App_LogLevel(NULL)==APP_EXTRA) {
+   if (Lib_LogLevel(APP_LIBFST,NULL)==APP_EXTRA) {
       entropie = 8.0*(*zlng)/(ni*nj);
-      Lib_Log(APP_VERBATIM,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
+      Lib_Log(APP_LIBFST,APP_VERBATIM,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
       for (i=0; i <= 16; i++) {
-         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", i);
+         Lib_Log(APP_LIBFST,APP_VERBATIM,"%05d ", i);
       }
-      Lib_Log(APP_VERBATIM,APP_LIBFST,"\n");
+      Lib_Log(APP_LIBFST,APP_VERBATIM,"\n");
       lsum = 0;
       for (i=0; i <= 16; i++) {
          lsum+=local_bins[i];
-         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", local_bins[i]);
+         Lib_Log(APP_LIBFST,APP_VERBATIM,"%05d ", local_bins[i]);
       }
-      Lib_Log(APP_VERBATIM,APP_LIBFST,"---- npts : %d \n", lsum);
+      Lib_Log(APP_LIBFST,APP_VERBATIM,"---- npts : %d \n", lsum);
    }
 }
 
@@ -1115,20 +1115,20 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
 
     *zlng = 1 + (int) (cur-z) * 4;
 
-   if (App_LogLevel(NULL)==APP_EXTRA) {
+   if (Lib_LogLevel(APP_LIBFST,NULL)==APP_EXTRA) {
       entropie = 8.0*(*zlng)/(ni*nj);
 
-      Lib_Log(APP_VERBATIM,APP_LIBFST,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
+      Lib_Log(APP_LIBFST,APP_VERBATIM,"total_space:\t%d\tentropie:\t%f\n",*zlng,entropie);
       for (i=0; i <= 20; i++) {
-         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", i);
+         Lib_Log(APP_LIBFST,APP_VERBATIM,"%05d ", i);
       }
-      Lib_Log(APP_VERBATIM,APP_LIBFST,"\n");
+      Lib_Log(APP_LIBFST,APP_VERBATIM,"\n");
       lsum = 0;
       for (i=0; i <= 20; i++) {
          lsum+=local_bins[i];
-         Lib_Log(APP_VERBATIM,APP_LIBFST,"%05d ", local_bins[i]);
+         Lib_Log(APP_LIBFST,APP_VERBATIM,"%05d ", local_bins[i]);
       }
-      Lib_Log(APP_VERBATIM,APP_LIBFST,"---- npts : %d \n", lsum);
+      Lib_Log(APP_LIBFST,APP_VERBATIM,"---- npts : %d \n", lsum);
    }
 }
 

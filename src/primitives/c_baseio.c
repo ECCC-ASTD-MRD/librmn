@@ -475,7 +475,7 @@ int c_fnom(
         // Espace tampon supplementaire
         lng = strlen(lnom) + strlen(tmpdir) + 10 + 3 + 128;
         if ((FGFDT[entry].file_name = malloc(lng)) == NULL) {
-            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can't allocate memory for file name\n",__func__);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: can't allocate memory for file name\n",__func__);
             perror("c_fnom");
             exit(1);
         }
@@ -1659,9 +1659,9 @@ static void scrap_page(
         wseek(wafile[fl0].file_desc, wafile[fl0].page[pg0].wa0 - 1, SEEK_SET);
         int ier = write(wafile[fl0].file_desc, wafile[fl0].page[pg0].page_adr, sizeof(uint32_t) * nm);
         if (ier != sizeof(uint32_t) * nm) {
-            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: cannot write page, fd=%d\n",__func__,wafile[fl0].file_desc);
-            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: trying to write %d words buffer=%p, fileadr=%d\n",__func__,nm,(void *)wafile[fl0].page[pg0].page_adr,wafile[fl0].page[pg0].wa0-1);
-            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: ier=%d,fl0=%d,ind0=%d,ind1=%d\n",__func__,ier,fl0,ind0,ind1);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: cannot write page, fd=%d\n",__func__,wafile[fl0].file_desc);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: trying to write %d words buffer=%p, fileadr=%d\n",__func__,nm,(void *)wafile[fl0].page[pg0].page_adr,wafile[fl0].page[pg0].wa0-1);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: ier=%d,fl0=%d,ind0=%d,ind1=%d\n",__func__,ier,fl0,ind0,ind1);
             perror("FATAL WA ERROR");
             exit(1);
         }
@@ -1700,7 +1700,7 @@ static void get_new_page(
     if (wafile[fileIdx].nb_page_in_use >= WA_PAGE_NB) {
         scrap_page(fileIdx, fileIdx);
         if (wafile[fileIdx].nb_page_in_use >= WA_PAGE_NB) {
-            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: no page left !??\n",__func__);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: no page left !??\n",__func__);
             exit(1);
         }
     }
@@ -1710,7 +1710,7 @@ static void get_new_page(
             global_count++;
             free_list[++nfree] = (uint32_t *) malloc(WA_PAGE_SIZE * sizeof(uint32_t));
             if (free_list[nfree] == NULL) {
-                Lib_Log(APP_FATAL,APP_LIBRMN,"%s: can't allocate (not enough memory)\n",__func__);
+                Lib_Log(APP_LIBRMN,APP_FATAL,"%s: can't allocate (not enough memory)\n",__func__);
                 exit(1);
             }
             Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: nfree=%d malloc=%p\n",__func__,nfree,(void *)free_list[nfree]);
@@ -1721,7 +1721,7 @@ static void get_new_page(
     }
 
     if (nfree < 0) {
-        Lib_Log(APP_FATAL,APP_LIBRMN,"%s: o page left !??\n",__func__);
+        Lib_Log(APP_LIBRMN,APP_FATAL,"%s: o page left !??\n",__func__);
         exit(1);
     }
 
@@ -2081,7 +2081,7 @@ static void wa_page_read(
         }
         int nbytes = read(fd, wafile[fileIdx].page[pageIdx].page_adr, sizeof(uint32_t) * WA_PAGE_SIZE);
         if ( nbytes < readbytes ) {
-            Lib_Log(APP_FATAL,APP_LIBRMN,"%s: cannot read page from file %d,fd=%d, tried to get %ld bytes, got %d\n",__func__,fileIdx,sizeof(uint32_t)*WA_PAGE_SIZE,nbytes);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: cannot read page from file %d,fd=%d, tried to get %ld bytes, got %d\n",__func__,fileIdx,sizeof(uint32_t)*WA_PAGE_SIZE,nbytes);
             perror("WA_PAGE_READ");
             exit(1);
         }
@@ -2105,7 +2105,7 @@ static void wa_page_read(
             if (j != i) {
                 if ((wafile[fileIdx].page[j].wa0 >= wafile[fileIdx].page[pageIdx].wa0) &&
                     (wafile[fileIdx].page[j].wa0 <= wafile[fileIdx].page[pageIdx].wa0 + WA_PAGE_SIZE - 1)) {
-                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: overlapping pages i=%d, page[j].wa0=%d, page[i].wa0=%d, page[i].wa0+WA_PAGE_SIZE=%d\n",__func__,i,wafile[fileIdx].page[j].wa0,wafile[fileIdx].page[pageIdx].wa0,wafile[fileIdx].page[pageIdx].wa0+WA_PAGE_SIZE-1);
+                    Lib_Log(APP_LIBRMN,APP_FATAL,"%s: overlapping pages i=%d, page[j].wa0=%d, page[i].wa0=%d, page[i].wa0+WA_PAGE_SIZE=%d\n",__func__,i,wafile[fileIdx].page[j].wa0,wafile[fileIdx].page[pageIdx].wa0,wafile[fileIdx].page[pageIdx].wa0+WA_PAGE_SIZE-1);
                     f77name(tracebck)();
                     exit(1);
                 }
@@ -2237,7 +2237,7 @@ static void wa_page_write(
             if (j != i) {
                 if ((wafile[ind].page[j].wa0 >= wafile[ind].page[i].wa0) &&
                            (wafile[ind].page[j].wa0 <= wafile[ind].page[i].wa0 + WA_PAGE_SIZE - 1)) {
-                    Lib_Log(APP_FATAL,APP_LIBRMN,"%s: overlapping pages i=%d page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%\n",__func__,i,wafile[ind].page[j].wa0,wafile[ind].page[i].wa0,wafile[ind].page[i].wa0+WA_PAGE_SIZE-1);
+                    Lib_Log(APP_LIBRMN,APP_FATAL,"%s: overlapping pages i=%d page[j].wa0 =%d, page[i].wa0 =%d, page[i].wa0+WA_PAGE_SIZE =%\n",__func__,i,wafile[ind].page[j].wa0,wafile[ind].page[i].wa0,wafile[ind].page[i].wa0+WA_PAGE_SIZE-1);
                     f77name(tracebck)();
                     exit(1);
                 }
