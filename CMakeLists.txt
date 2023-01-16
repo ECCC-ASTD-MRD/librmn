@@ -25,7 +25,7 @@ add_subdirectory(App App)
 
 set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
 include(ec_openmp)          # Enable OpenMP (-DWITH_OPENMP=TRUE)
-include(ec_doxygen)         # Doxygen target (-DWITH_DOC=TRUE)
+include(ec_doxygen)         # Doxygen target doc
 
 # Fortran compiler options required to build this project
 set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
