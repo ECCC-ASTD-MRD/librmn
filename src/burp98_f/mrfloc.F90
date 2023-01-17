@@ -136,7 +136,7 @@
 
 !     TROUVER L'ENREGISTREMENT
       MRFLOC = XDFLOC(IUN, HANDLE, PRI, NPRI)
-      IF (lib_loglevel(APP_LIBFST,'') .GE. APP_INFO) THEN
+      IF (lib_loglevel(APP_LIBFST,' ') .GE. APP_INFO) THEN
          IF(MRFLOC .LT. 0) THEN
             write(app_msg,1000) STNID, IDTYP, LAT, LON, DATEin, TEMPS
             call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       

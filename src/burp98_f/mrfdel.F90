@@ -61,7 +61,7 @@
 !
 !     Obtenir les parametres descripteurs de l'enregistrement
 !
-      IF (lib_loglevel(APP_LIBFST,'') .GE. APP_INFO) THEN
+      IF (lib_loglevel(APP_LIBFST,' ') .GE. APP_INFO) THEN
          IRIEN = handle
          INSUP = 0
          IRIEN = MRFPRM(IRIEN,ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS, ISUP, INSUP,ILNGR)
