@@ -1924,7 +1924,7 @@ int c_xdfopn(
 
             if (f->header->nbd == 0) {
                 if ( (f->cur_info->attr.std) && (header64.data[1] == 'STDR' || header64.data[1] == 'stdr') ) {
-                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: File probably damaged\n file in error %\n",__func__,FGFDT[index_fnom].file_name);
+                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: File probably damaged\n file in error %s\n",__func__,FGFDT[index_fnom].file_name);
                     return( ERR_BAD_DIR);
                 } else {
                     f->xdf_seq = 1;
@@ -1955,7 +1955,7 @@ int c_xdfopn(
                     }
                     wdaddress = W64TOWD(curpage->nxt_addr - 1) +1;
                     if (((wdaddress == 0) && (i != f->header->nbd-1)) || (wdaddress > FGFDT[index_fnom].file_size)) {
-                        Lib_Log(APP_LIBFST,APP_ERROR,"%s: number of directory pages is incorrect\n file in error %s \n",__func__,FGFDT[index_fnom].file_name);
+                        Lib_Log(APP_LIBFST,APP_ERROR,"%s: number of directory pages is incorrect\n file in error %s\n",__func__,FGFDT[index_fnom].file_name);
                         return(ERR_BAD_DIR);
                     }
                     nrec += curpage->nent;
