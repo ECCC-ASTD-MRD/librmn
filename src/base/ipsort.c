@@ -121,8 +121,8 @@ void f77name(csortr) (
 
 void f77name(ipsort) (
     int32_t *index,
-    int32_t *size,
-    float *list
+    float *list,
+    int32_t *size
 ) {
     *index = -1 ;
     f77name(csortr) ( list, index, size ) ;
@@ -180,8 +180,8 @@ void f77name(csortd) (
 
 void f77name(ipsort8) (
     int32_t *index,
-    int32_t *size,
-    double  *list
+    double  *list,
+    int32_t *size
 ) {
     *index = -1;
     f77name(csortd) ( list, index, size );
@@ -297,9 +297,9 @@ void f77name(csortc) (
 
 void f77name(ipsortc) (
     int32_t *index,
+    char *list
     int32_t *size,
     int32_t len,
-    char *list
 ) {
     *index = -1 ;
     f77name(csortc) ( list, index, size, len ) ;
