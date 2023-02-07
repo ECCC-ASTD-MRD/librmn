@@ -7,5 +7,6 @@
 #define T_Height_G   4          /* IP is in height [M] (metres) with respect to ground level */
 #define T_Hybrid     5          /* IP is in hybrid coordinates [hy] */
 #define T_Theta      6          /* IP is in theta */
+#define T_Depth      7          /* IP is in meters below sea level */
 #define T_Time      10          /* IP represents a time in hour */
 #define T_GalChen   15          /* IP is in GalChen */

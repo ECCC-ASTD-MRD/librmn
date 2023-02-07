@@ -18,6 +18,7 @@
 #define KIND_ABOVE_GND 4
 #define KIND_HYBRID 5
 #define KIND_THETA 6
+#define KIND_BELOW_SEA 7
 #define KIND_HOURS 10
 #define KIND_SAMPLES 15
 #define KIND_MTX_IND 17
@@ -42,7 +43,8 @@ typedef struct { /*  */
         |    3 | Arbitrary code                            | -4.8e8, 1.0e10 |
         |    4 | Height above ground level (m)             | -20000, 100000 |
         |    5 | Hybrid coordinate                         |       0.0, 1.0 |
-        |    5 | Theta coordinate                          |      1, 200000 |
+        |    6 | Theta coordinate                          |      1, 200000 |
+        |    7 | Height below sea level                    |      0, 20000  |
         |   10 | Time (h)                                  |  0.0, 200000.0 |
         |   15 | Reserved (integer)                        |                |
         |   17 | X index of the conversion matrix          |    1.0, 1.0e10 |
