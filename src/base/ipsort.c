@@ -297,9 +297,9 @@ void f77name(csortc) (
 
 void f77name(ipsortc) (
     int32_t *index,
-    char *list
+    char *list,
     int32_t *size,
-    int32_t len,
+    int32_t len
 ) {
     *index = -1 ;
     f77name(csortc) ( list, index, size, len ) ;
