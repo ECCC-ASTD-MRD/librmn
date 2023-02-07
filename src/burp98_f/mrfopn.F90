@@ -154,13 +154,8 @@
 
       MRFOPN = NOMBRE
         
-<<<<<<< HEAD
  300  FORMAT('MRFOPN: UNITE = ',I3,' Fichier rapport est cree')
  400  FORMAT('MRFOPN: UNITE = ',I3,' Fichier rapport est ouvert')
-=======
- 300  FORMAT(' UNITE = ',I3,' Fichier rapport est cree')
- 400  FORMAT(' UNITE = ',I3,' Fichier rapport est ouvert')
->>>>>>> bugfix_mrfopn.F90
 
       RETURN
       END
