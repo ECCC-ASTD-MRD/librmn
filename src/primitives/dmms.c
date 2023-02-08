@@ -215,7 +215,8 @@ int bloc_check(
     struct blocmem * ptbloc,
     int msg_level
 ) {
-    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:\n\tcheck ptbloc =%#p\n\tcheck ptbloc->bwd =%#p\n\tcheck ptbloc->fwd =%#p\n",__func__,ptbloc,ptbloc->bwd,ptbloc->fwd);
+ 
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:check ptbloc =%#p\n\tcheck ptbloc->bwd =%#p\n\tcheck ptbloc->fwd =%#p\n",__func__,ptbloc,ptbloc->bwd,ptbloc->fwd);
 
     if (ptbloc->bwd == NULL) {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: NULL backward pointer ptbloc=%#p\n",__func__,ptbloc);
@@ -229,7 +230,7 @@ int bloc_check(
 
     int ** pt = (int **) ptbloc->data[0];
 
-    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: \n\tcheck ptbloc->data[0] =%#p\n\tcheck ptbloc->data[nitem+1] =%#p\n",__func__,ptbloc->data[0],*pt);
+    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: check ptbloc->data[0] =%#p\n\tcheck ptbloc->data[nitem+1] =%#p\n",__func__,ptbloc->data[0],*pt);
 
     if (*pt != (int *) &(ptbloc->data[0])) {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: internal pointers destroyed ptbloc=%#p\n",__func__,ptbloc);
@@ -332,7 +333,7 @@ void f77name(dmmsnabt)(int32_t * abort) {
 //! Dynamically allocates memory on the heap
 void f77name(hpalloc)(
     //! [out] Pointer to the allocated memory (cray_f_pointer)
-    int32_t ** addr,
+    void ** addr,
     //! [in] Number of words to allocate
     int32_t * length,
     //! [out] 0 on succes, 1 on error
@@ -354,7 +355,7 @@ void f77name(hpalloc)(
 //! Free allocated memory
 void f77name(hpdeallc)(
     //! [in] Pointer to the allocated memory (cray_f_pointer)
-    int32_t ** addr,
+    char ** addr,
     //! [out] Always 0
     int32_t * errcode,
     //! [in] Not used
