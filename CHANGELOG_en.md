@@ -14,7 +14,22 @@ required to build the library.  Building the library is now done with
 - Added an explicit interface for MGI functions.  It can be used with
 `#include <mgi.hf>`
 
+- Added a new vertical coordinate type for IP1 (KIND=7) for depth
+in meters below sea level
 
+- Verbosity control is now managed through the [App](https://gitlab.science.gc.ca/RPN-SI/App) package and can be 
+controled for the different components with the following methods:
+
+  - C & Fortran: 
+     - previous=Lib_LogLevel(APP_LIB`[lib]`,"`[niveau]`")  
+     - previous=Lib_LogLevelNo(APP_LIB`[lib]`,`[niveau]`)
+  
+  - Environment: 
+     - export APP_VERBOSE_LIB`[lib]`=`[niveau]`
+    
+  - Where: 
+     - `[lib]` = RMN,FST,WB,GMM,VGRID or INTERPV
+     - `[niveau]` = ERROR,WARNING,INFO,DEBUG,TRIVIAL,EXTRA or QUIET
 # Breaks in backward compatibility
 
 Version 20 is a major one and there has been a considerable code

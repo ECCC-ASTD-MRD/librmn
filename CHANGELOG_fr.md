@@ -14,6 +14,22 @@ utilisée avec `#include <fnom.hf>`.
 - Ajout d'une interface explicite pour les fonctions de MGI.  Il suffit
 d'ajouter la ligne `#include <mgi.hf>` pour l'utiliser.
 
+- Ajout d'un nouveau type de coordonnée vertical pour IP1 (KIND=7) pour la profondeur
+en metres sous le niveau de la mer
+
+- Le contrôle du niveau de verbosité se fait maintenant a travers le package [App](https://gitlab.science.gc.ca/RPN-SI/App) et 
+on peut controler le niveau pour les différentes composantes avec les méthodes suivantes:
+
+  - C & Fortran: 
+     - previous=Lib_LogLevel(APP_LIB`[lib]`,"`[niveau]`")  
+     - previous=Lib_LogLevelNo(APP_LIB`[lib]`,`[niveau]`)
+  
+  - Environment: 
+     - export APP_VERBOSE_LIB`[lib]`=`[niveau]`
+    
+  - Où: 
+     - `[lib]` = RMN,FST,WB,GMM,VGRID ou INTERPV
+     - `[niveau]` = ERROR,WARNING,INFO,DEBUG,TRIVIAL,EXTRA ou QUIET
 
 # Bris de compatibilité
 
