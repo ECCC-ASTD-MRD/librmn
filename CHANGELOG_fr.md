@@ -29,7 +29,7 @@ on peut controler le niveau pour les différentes composantes avec les méthodes
     
   - Où: 
      - `[lib]` = RMN,FST,WB,GMM,VGRID ou INTERPV
-     - `[niveau]` = ERROR,WARNING,INFO,DEBUG,TRIVIAL,EXTRA ou QUIET
+     - `[niveau]` = ERROR,WARNING,INFO,TRIVIAL,DEBUG,EXTRA ou QUIET
 
 # Bris de compatibilité
 

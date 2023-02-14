@@ -29,7 +29,7 @@ controled for the different components with the following methods:
     
   - Where: 
      - `[lib]` = RMN,FST,WB,GMM,VGRID or INTERPV
-     - `[niveau]` = ERROR,WARNING,INFO,DEBUG,TRIVIAL,EXTRA or QUIET
+     - `[niveau]` = ERROR,WARNING,INFO,TRIVIAL,DEBUG,EXTRA or QUIET
 # Breaks in backward compatibility
 
 Version 20 is a major one and there has been a considerable code
