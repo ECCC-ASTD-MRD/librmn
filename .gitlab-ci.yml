@@ -483,12 +483,12 @@ package:ubuntu-18.04-amd64_inteloneapi-2021.4.0:
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
-#----- ubuntu-20.04-amd64_inteloneapi-2022.1.2
+#----- ubuntu-22.04-amd64_inteloneapi-2022.1.2
 
-build:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
+build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
       ORD_SOUMET_MACH    : gpsc5
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
    only:
@@ -497,22 +497,22 @@ build:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
      - tags
    script:
       - set +e
-      - source ~/ci-env/latest/ubuntu-20.04-amd-64/inteloneapi-2022.1.2.sh
-      - export ORDENV_PLAT=ubuntu-20.04-amd64-64
+      - source ~/ci-env/latest/ubuntu-22.04-amd-64/inteloneapi-2022.1.2.sh
+      - export ORDENV_PLAT=ubuntu-22.04-amd64-64
       - set -e
-      - mkdir build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
-      - cd build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
+      - mkdir build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
+      - cd build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - cmake ../
       - time make -j $NCPUS
    artifacts:
       expire_in: 4 hrs
       paths:
-         - build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
+         - build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
 
-test:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
+test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
       ORD_SOUMET_MACH    : gpsc5
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
    only:
@@ -520,19 +520,19 @@ test:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
       - dev
       - tags
    dependencies:
-      - build:ubuntu-20.04-amd64_inteloneapi-2022.1.2
+      - build:ubuntu-22.04-amd64_inteloneapi-2022.1.2
    script:
       - set +e
-      - source ~/ci-env/latest/ubuntu-20.04-amd-64/inteloneapi-2022.1.2.sh
-      - export ORDENV_PLAT=ubuntu-20.04-amd64-64
+      - source ~/ci-env/latest/ubuntu-22.04-amd-64/inteloneapi-2022.1.2.sh
+      - export ORDENV_PLAT=ubuntu-22.04-amd64-64
       - set -e
-      - cd build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
+      - cd build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - make check
 
-package:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
+package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
       ORD_SOUMET_MACH    : gpsc5
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
    only:
@@ -541,23 +541,23 @@ package:ubuntu-20.04-amd64_inteloneapi-2022.1.2:
       - tags
       - schedules
    dependencies:
-      - build:ubuntu-20.04-amd64_inteloneapi-2022.1.2
+      - build:ubuntu-22.04-amd64_inteloneapi-2022.1.2
    environment:
       name: testing
    script:
       - set +e
-      - source ~/ci-env/latest/ubuntu-20.04-amd-64/inteloneapi-2022.1.2.sh
+      - source ~/ci-env/latest/ubuntu-22.04-amd-64/inteloneapi-2022.1.2.sh
       - set -e
-      - cd build_ubuntu-20.04-amd64_inteloneapi-2022.1.2
+      - cd build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
-#----- ubuntu-20.04-amd64_gnu-9.3.0
+#----- ubuntu-22.04-amd64_gnu-11.3.0
 
-build:ubuntu-20.04-amd64_gnu-9.3.0:
+build:ubuntu-22.04-amd64_gnu-11.3.0:
    variables:
       ORD_SOUMET_MACH    : gpsc5
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
       ORD_SOUMET_C       : "1"
    stage: build
@@ -567,22 +567,22 @@ build:ubuntu-20.04-amd64_gnu-9.3.0:
      - tags
    script:
       - set +e
-      - source ~/ci-env/latest/ubuntu-20.04-amd-64/gnu-9.3.0.sh
-      - export ORDENV_PLAT=ubuntu-20.04-amd64-64
+      - source ~/ci-env/latest/ubuntu-22.04-amd-64/gnu.sh
+      - export ORDENV_PLAT=ubuntu-22.04-amd64-64
       - set -e
-      - mkdir build_ubuntu-20.04-amd64_gnu-9.3.0
-      - cd build_ubuntu-20.04-amd64_gnu-9.3.0
+      - mkdir build_ubuntu-22.04-amd64_gnu-11.3.0
+      - cd build_ubuntu-22.04-amd64_gnu-11.3.0
       - cmake ../
       - time make
    artifacts:
       expire_in: 4 hrs
       paths:
-         - build_ubuntu-20.04-amd64_gnu-9.3.0
+         - build_ubuntu-22.04-amd64_gnu-11.3.0
 
-test:ubuntu-20.04-amd64_gnu-9.3.0:
+test:ubuntu-22.04-amd64_gnu-11.3.0:
    variables:
       ORD_SOUMET_MACH    : gpsc5
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
    only:
@@ -590,19 +590,19 @@ test:ubuntu-20.04-amd64_gnu-9.3.0:
       - dev
       - tags
    dependencies:
-      - build:ubuntu-20.04-amd64_gnu-9.3.0
+      - build:ubuntu-22.04-amd64_gnu-11.3.0
    script:
       - set +e
-      - source ~/ci-env/latest/ubuntu-20.04-amd-64/gnu-9.3.0.sh
-      - export ORDENV_PLAT=ubuntu-20.04-amd64-64
+      - source ~/ci-env/latest/ubuntu-22.04-amd-64/gnu.sh
+      - export ORDENV_PLAT=ubuntu-22.04-amd64-64
       - set -e
-      - cd build_ubuntu-20.04-amd64_gnu-9.3.0
+      - cd build_ubuntu-22.04-amd64_gnu-11.3.0
       - make check
 
-package:ubuntu-20.04-amd64_gnu-9.3.0:
+package:ubuntu-22.04-amd64_gnu-11.3.0:
    variables:
       ORD_SOUMET_MACH    : gpsc5
-      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-20.04-amd64_latest
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
    only:
@@ -611,14 +611,14 @@ package:ubuntu-20.04-amd64_gnu-9.3.0:
       - tags
       - schedules
    dependencies:
-      - build:ubuntu-20.04-amd64_gnu-9.3.0
+      - build:ubuntu-22.04-amd64_gnu-11.3.0
    environment:
       name: testing
    script:
       - set +e
-      - source ~/ci-env/latest/ubuntu-20.04-amd-64/gnu-9.3.0.sh
+      - source ~/ci-env/latest/ubuntu-22.04-amd-64/gnu.sh
       - set -e
-      - cd build_ubuntu-20.04-amd64_gnu-9.3.0
+      - cd build_ubuntu-22.04-amd64_gnu-11.3.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
