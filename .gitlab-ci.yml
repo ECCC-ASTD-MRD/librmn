@@ -254,15 +254,15 @@ build:rhel-8-amd64_gnu-12.1.0:
       - source ~/ci-env/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc12
-      - export EC_ARCH=rhel-8-amd64-64/gnu-12.1.0
-      - mkdir build_rhel-8-amd-64_gnu-12.1.0
-      - cd build_rhel-8-amd-64_gnu-12.1.0
+      - export EC_ARCH=Linux_x86-64/gnu-12.1.0
+      - mkdir build_rhel-8-amd64_gnu-12.1.0
+      - cd build_rhel-8-amd64_gnu-12.1.0
       - cmake ../
       - time make -j $NCPUS
    artifacts:
       expire_in: 4 hrs
       paths:
-         - build_rhel-8-amd-64_gnu-12.1.0
+         - build_rhel-8-amd64_gnu-12.1.0
 
 test:rhel-8-amd64_gnu-12.1.0:
    stage: test
@@ -277,7 +277,7 @@ test:rhel-8-amd64_gnu-12.1.0:
       - source ~/ci-env/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc12
-      - export EC_ARCH=rhel-8-amd64-64/gnu-12.1.0
+      - export EC_ARCH=Linux_x86-64/gnu-12.1.0
       - set -e
       - cd build_rhel-8-amd64_gnu-12.1.0
       - make check
