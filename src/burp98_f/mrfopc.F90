@@ -51,7 +51,7 @@
           lvl=lib_loglevel(APP_LIBFST,OPVALC)
       ENDIF
 
-      MRFOPC=1
+      MRFOPC=0
       RETURN
       END
 
