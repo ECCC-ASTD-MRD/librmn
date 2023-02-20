@@ -253,7 +253,6 @@ int c_fnom(
     //!   the RPN standard file and BURP files are. It then instructs the package to perform I/O
     //!   with the use of UNIX sockets instead of conventional NFS. This feature could be useful
     //!   for files that are not accessible via NFS.
-    //! - If the file name is all capital letters, it will be down-cased. 
     const char * const nom,
     //! [in] String that contains the desired file attributes
     //! - 'STREAM' : BYTE STREAM file type (a la C)
@@ -331,13 +330,13 @@ int c_fnom(
 
     if (liun == 6) {
         fclose(stdout);
-            freopen(nom, "a" , stdout);
+        freopen(nom, "a" , stdout);
         stdoutflag = 1;
         return 0;
     } else if (liun == -2) {
         fclose(stderr);
-            freopen(nom, "a", stderr);
-         return 0;
+        freopen(nom, "a", stderr);
+        return 0;
     }
     for (int i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == liun) {
