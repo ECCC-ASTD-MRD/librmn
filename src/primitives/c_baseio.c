@@ -329,42 +329,15 @@ int c_fnom(
         return 0;
     }
 
-    int minus = 0;
-    int majus = 0;
-    char nom2[PATH_MAX];
-    if ((liun == 6) || (liun == -2)) {
-        const char * cptr1 = nom;
-        char * cptr2 = nom2;
-        nom2[strlen(nom)] = '\0';
-        for (unsigned int j = 0; j < strlen(nom) && j < PATH_MAX; j++, cptr1++, cptr2++) {
-            if (islower(*cptr1)) {
-                minus = 1;
-                *cptr2 = *cptr1;
-            } else if (isupper(*cptr1)) {
-                majus = 1;
-                *cptr2 = tolower(*cptr1);
-            } else {
-                *cptr2 = *cptr1;
-            }
-        }
-    }
     if (liun == 6) {
         fclose(stdout);
-        if (minus && majus) {
             freopen(nom, "a" , stdout);
-        } else {
-            freopen(nom2, "a", stdout);
-        }
         stdoutflag = 1;
         return 0;
     } else if (liun == -2) {
         fclose(stderr);
-        if (minus && majus) {
             freopen(nom, "a", stderr);
-        } else {
-            freopen(nom2, "a", stderr);
-        }
-        return 0;
+         return 0;
     }
     for (int i = 0; i < MAXFILES; i++) {
         if (FGFDT[i].iun == liun) {
