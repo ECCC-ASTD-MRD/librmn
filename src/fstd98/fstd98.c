@@ -1362,7 +1362,7 @@ int c_fstecr(
 
     /* write record to file and add entry to directory */
     int ier = c_xdfput(iun, handle, buffer);
-    if (Lib_LogLevel(APP_LIBFST,NULL)>APP_INFO) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_TRIVIAL) {
         char string[12];
         sprintf(string, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
@@ -1810,7 +1810,7 @@ int c_fstinfx(
     }
 
     if (lhandle < 0) {
-        Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
+        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: (unit=%d) record not found, errcode=%d\n",__func__,iun,lhandle);
         if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
@@ -2443,7 +2443,7 @@ int c_fstluk(
         } /* end switch */
     }
 
-    if (Lib_LogLevel(APP_LIBFST,NULL)>APP_INFO) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_TRIVIAL) {
         char string[11];
         sprintf(string, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
@@ -3110,7 +3110,7 @@ int c_fstsui(
     /* position to the next record that matches the last search criterias */
     int handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
     if (handle < 0) {
-        Lib_Log(APP_LIBFST,APP_TRIVIAL,"%s: record not found, errcode=%d\n",__func__,handle);
+        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: record not found, errcode=%d\n",__func__,handle);
         return handle;
     }
 
