@@ -1,3 +1,5 @@
+set(rmn_VERSION @PROJECT_VERSION@ CACHE INTERNAL "rmn version")
+
 @PACKAGE_INIT@
 
 # [[DOC]] for find_package (lists variables that are set automatically by CMake)
