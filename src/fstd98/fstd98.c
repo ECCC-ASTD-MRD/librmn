@@ -1362,7 +1362,7 @@ int c_fstecr(
 
     /* write record to file and add entry to directory */
     int ier = c_xdfput(iun, handle, buffer);
-    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_TRIVIAL) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
         char string[12];
         sprintf(string, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
@@ -2443,7 +2443,7 @@ int c_fstluk(
         } /* end switch */
     }
 
-    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_TRIVIAL) {
+    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
         char string[11];
         sprintf(string, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
