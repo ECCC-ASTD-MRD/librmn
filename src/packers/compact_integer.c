@@ -560,7 +560,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      }
    else
      {
-      Lib_Log(APP_LIBRMN,APP_ERROR,"%f: opCode (%d) is not defined\n",__func__,opCode);
+      Lib_Log(APP_LIBRMN,APP_ERROR,"%s: opCode (%d) is not defined\n",__func__,opCode);
        return 0;
      };/* if */
 
@@ -800,7 +800,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      }
    else
      {
-       Lib_Log(APP_LIBRMN,APP_ERROR,"%f: opCode (%d) is not defined\n",__func__,opCode);
+       Lib_Log(APP_LIBRMN,APP_ERROR,"%s: opCode (%d) is not defined\n",__func__,opCode);
        return 0;
      };/* if */
 
@@ -1038,7 +1038,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
      }
    else
      {
-       Lib_Log(APP_LIBRMN,APP_ERROR,"%f: opCode (%d) is not defined\n",__func__,opCode);
+       Lib_Log(APP_LIBRMN,APP_ERROR,"%s: opCode (%d) is not defined\n",__func__,opCode);
        return 0;
      };/* if */
 
