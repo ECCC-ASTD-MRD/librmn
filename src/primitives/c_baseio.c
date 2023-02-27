@@ -495,10 +495,8 @@ int c_fnom(
             // skip the +, do not convert to lowercase
             cptr1++;
             lng--;
-            strncpy(FGFDT[entry].file_name, lnom + 1, lng);
-        } else {
-            strncpy(FGFDT[entry].file_name, lnom, lng);
-        }
+        } 
+        strncpy(FGFDT[entry].file_name, cptr1, lng);
         FGFDT[entry].file_name[lng] = '\0';
     }
 
@@ -524,7 +522,6 @@ int c_fnom(
         if (access(filename, F_OK) == -1) {
             /* no local file */
             sprintf(filename, "%s/%s", CMCCONST, FGFDT[entry].file_name);
-
             if (access(filename, F_OK)  == -1) {
                 /* not under CMCCONST */
                 sprintf(filename, "%s/data/%s", ARMNLIB, FGFDT[entry].file_name);
