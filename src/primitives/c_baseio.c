@@ -789,6 +789,7 @@ int c_waopen2(
     }
     if (entry == MAXFILES) {
         // iun not found; search again for an available entry
+        entry=0;
         while (entry < MAXFILES && FGFDT[entry].iun != 0) {
             entry++;
         }
