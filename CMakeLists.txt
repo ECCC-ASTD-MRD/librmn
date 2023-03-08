@@ -119,6 +119,7 @@ add_library(rmn-obj OBJECT ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 set_target_properties(rmn-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(rmn-obj PUBLIC App)
 add_dependencies(rmn-obj rmn_build_info)
+target_include_directories(rmn-obj INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 # Build static library from object collection
 add_library(rmn STATIC)
@@ -151,6 +152,7 @@ if(OpenMP_FOUND)
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rmn-ompi
    )
+   target_include_directories(rmn-obj-ompi INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rmn-ompi>)
 
    # Build static library from object collection
    add_library(rmn-ompi STATIC)
