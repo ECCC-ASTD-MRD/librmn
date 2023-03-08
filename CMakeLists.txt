@@ -91,10 +91,6 @@ file(GLOB PROJECT_H_FILES
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
-# App package module directory
-get_property(moduleDir TARGET App PROPERTY Fortran_MODULE_DIRECTORY)
-include_directories(${moduleDir})
-
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
