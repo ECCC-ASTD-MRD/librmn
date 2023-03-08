@@ -287,6 +287,7 @@ static int isftnbin(
      35 NETCDF
      36 FICHIER CMCARC v4
      37 FICHIER CMCARC v5
+     38 HDF5
  */
 int32_t c_wkoffit(
     //! Path of the file to examine
@@ -422,6 +423,11 @@ int32_t c_wkoffit(
         /* NetCDF 64-bit offset format */
         if (*(ptbuf) == 'CDF\002') {
             return retour(pf, WKF_NETCDF);
+        }
+
+        /* HDF5 format */
+        if (*(ptbuf) == '\x89HDF' && *(ptbuf + 1) == '\x0d\x0a\x1a\x0a') {
+            return retour(pf, WKF_HDF5);
         }
 
         /* BLOK */
