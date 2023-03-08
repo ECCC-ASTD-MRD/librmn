@@ -133,7 +133,6 @@ target_link_libraries(rmnshared PUBLIC App)
 
 # Required to prevent missing Fortran modules when building in parallel
 # (make -j) with GNU compilers
-add_dependencies(rmn App)
 add_dependencies(rmnshared rmn)
 
 set(TARGETS rmn rmnshared)
@@ -142,7 +141,6 @@ if(OpenMP_FOUND)
    set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
    add_library(rmn-ompi STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
    add_library(rmnshared-ompi SHARED ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-   add_dependencies(rmn-ompi App-ompi)
    add_dependencies(rmnshared-ompi rmn-ompi)
 
    set_target_properties(rmn-ompi PROPERTIES
