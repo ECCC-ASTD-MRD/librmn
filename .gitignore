@@ -7,5 +7,6 @@
 *~
 
 #----- buil directory at the root path
-/build/
+/build*
 /.vscode/
+/*.code-workspace
