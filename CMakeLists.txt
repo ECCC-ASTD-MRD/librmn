@@ -14,6 +14,7 @@ project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES C Fortran)
 set(PROJECT_VERSION ${VERSION}${STATE})
 set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed for cascaded version identification
 message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
+string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 ec_build_info()            # Generate build information
 
@@ -111,8 +112,6 @@ add_custom_command(
 )
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
-
-string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 # Object collection for rmn[shared]
 add_library(rmn-obj OBJECT ${PROJECT_C_FILES} ${PROJECT_F_FILES})
