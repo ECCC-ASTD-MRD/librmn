@@ -1,7 +1,3 @@
-if (EC_INIT_DONE LESS 2)
-   include(CTest)
-endif()
-
 if(BUILD_TESTING)
     add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=true ${CMAKE_CTEST_COMMAND})
 
@@ -34,4 +30,9 @@ if(BUILD_TESTING)
     target_link_libraries(gmm rmn)
     add_test(NAME gmm COMMAND ${CMAKE_CURRENT_BINARY_DIR}/gmm)
     add_dependencies(check gmm)
+
+    add_executable(c_ccard EXCLUDE_FROM_ALL c_ccard.c)
+    target_link_libraries(c_ccard rmn)
+    add_test(NAME c_ccard COMMAND ${CMAKE_CURRENT_BINARY_DIR}/c_ccard)
+    add_dependencies(check c_ccard)
 endif()

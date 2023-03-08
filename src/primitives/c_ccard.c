@@ -307,10 +307,12 @@ void c_ccard(
     int keyIdx = -1;
     int currentKeyIdx = -1;
     while (*arg) {
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: *arg='%s'\n", __func__, *arg);
         if (**arg == '-') {
             // un nom de clef
             if (*((*arg) + 1) == '-') {
                 // fin des clefs
+                Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: fin des clefs\n", __func__);
                 // Recuperer le reste des arguments positionels
                 arg++;
                 arg = posArgs(arg, keys, nbKeys, dashKeyIdx, &npos_interne, &posKeyIdx, &nbErrors);
@@ -325,7 +327,12 @@ void c_ccard(
             }
 
             char * equalChr = (strchr(*arg, '='));
-            char * const keyName = calloc(equalChr - *arg + 1, sizeof(char));
+            size_t nbmemb = equalChr - *arg + 1;
+            char * const keyName = calloc(nbmemb, sizeof(char));
+            if(keyName == NULL){
+                Lib_Log(APP_LIBRMN, APP_ERROR, "%s():%d: calloc(nbmemb=%lu, size=%lu)\n", __func__, __LINE__, equalChr - *arg + 1, sizeof(char));
+                Lib_Log(APP_LIBRMN, APP_ERROR, "equalChr = %p, *arg=%p\n", equalChr, *arg);
+            }
             strncpy(keyName, *arg, (equalChr - *arg));
             int keyIdx = findKey(keyName, keys, nbKeys);
             if (keyIdx > -1) {
