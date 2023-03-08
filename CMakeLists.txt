@@ -176,9 +176,18 @@ foreach(TARGET IN ITEMS ${TARGETS})
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
+    target_include_directories(${TARGET} INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> # Fortran modules
+    )
+    add_library(rmn::${TARGET} ALIAS ${TARGET})
 endforeach()
 
-install(TARGETS ${TARGETS})
+install(TARGETS ${TARGETS}
+    EXPORT rmn-targets
+    INCLUDES DESTINATION include
+    PUBLIC_HEADER DESTINATION include)
+
 
 # Symbolic link for archive numbered version
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -207,6 +216,10 @@ add_custom_target(
 set(INCLUDE_INSTALL_DIR include)
 set(LIB_INSTALL_DIR lib)
 set(CONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
+
+install(EXPORT rmn-targets
+    NAMESPACE rmn::
+    DESTINATION ${CONFIG_INSTALL_DIR})
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
