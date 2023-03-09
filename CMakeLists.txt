@@ -85,10 +85,8 @@ file(GLOB PROJECT_H_FILES
    src/*/*.tpl*
 )
 
-# This really isn't the ideal solution; the compiler should be called with all
-# the definitions and options as if it was processing a source file
-
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
