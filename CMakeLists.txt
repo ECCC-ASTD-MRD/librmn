@@ -89,7 +89,6 @@ file(GLOB PROJECT_H_FILES
 # the definitions and options as if it was processing a source file
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
@@ -177,6 +176,11 @@ foreach(TARGET IN ITEMS ${TARGETS})
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
+
+    # Control where the Fortran modules *.mod will end up
+    set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include/modules/${TARGET})
+    set_target_properties(${TARGET} PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIR})
+    target_include_directories(${TARGET} INTERFACE ${MODULE_DIR})
 endforeach()
 
 install(TARGETS ${TARGETS})
@@ -188,8 +192,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 
 # Fortran modules are installed in the include directory for now
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/rmn_jar.mod
-    ${CMAKE_CURRENT_BINARY_DIR}/rmn_gmm.mod
+    ${MODULE_DIR}/rmn_jar.mod
+    ${MODULE_DIR}/rmn_gmm.mod
     DESTINATION include)
 
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
