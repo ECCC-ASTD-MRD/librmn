@@ -87,6 +87,7 @@ file(GLOB PROJECT_H_FILES
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
@@ -108,10 +109,13 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 # Object collection for rmn[shared]
 add_library(rmn-obj OBJECT ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-set_target_properties(rmn-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(rmn-obj PROPERTIES 
+   Fortran_MODULE_DIRECTORY ${MODULE_DIR}
+   POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(rmn-obj PUBLIC App)
 add_dependencies(rmn-obj rmn_build_info)
-target_include_directories(rmn-obj INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+target_include_directories(rmn-obj INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 
 # Build static library from object collection
 add_library(rmn STATIC)
@@ -140,9 +144,9 @@ if(OpenMP_FOUND)
    target_compile_definitions(rmn-obj-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
    set_target_properties(rmn-obj-ompi PROPERTIES
        POSITION_INDEPENDENT_CODE ON
-       Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rmn-ompi
+       Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_include_directories(rmn-obj-ompi INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rmn-ompi>)
+   target_include_directories(rmn-obj-ompi INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
 
    # Build static library from object collection
    add_library(rmn-ompi STATIC)
@@ -176,7 +180,6 @@ foreach(TARGET IN ITEMS ${TARGETS})
         WhiteBoardFortranHeader)
 
     # Control where the Fortran modules *.mod will end up
-    set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include/modules/${TARGET})
     set_target_properties(${TARGET} PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIR})
     target_include_directories(${TARGET} INTERFACE ${MODULE_DIR})
 endforeach()
