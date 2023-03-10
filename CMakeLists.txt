@@ -116,6 +116,7 @@ set_target_properties(rmn-obj PROPERTIES
 target_link_libraries(rmn-obj PUBLIC App)
 add_dependencies(rmn-obj rmn_build_info)
 target_include_directories(rmn-obj INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
+target_include_directories(rmn-obj PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Build static library from object collection
 add_library(rmn STATIC)
@@ -147,6 +148,7 @@ if(OpenMP_FOUND)
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
    target_include_directories(rmn-obj-ompi INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
+   target_include_directories(rmn-obj-ompi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
    # Build static library from object collection
    add_library(rmn-ompi STATIC)

@@ -22,21 +22,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "packers.h"
+
 #define myElementCount 2100
 #define myElementCount2 6300
 #define strideElementCount 6300
 #define maxBit            64
 
-
 static double powerOf2s[65];
 
-int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packedArrayOfInt, 
-                       int elementCount, int bitSizeOfPackedToken, int off_set, 
-                       int stride, int opCode);
-int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packedArrayOfInt, 
-                       int elementCount, int bitSizeOfPackedToken, int off_set, 
-                       int stride, int opCode);
-                      
 
 void f77name(cmainii)()
 {

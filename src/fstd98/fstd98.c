@@ -38,29 +38,21 @@
 #include <armn_compress.h>
 
 #include <App.h>
-#include <rmn/fstd98.h>
 #include <rmn/c_wkoffit.h>
 #include <rmn/excdes_new.h>
 #include <rmn/fst_missing.h>
 
-#include "qstdir.h"
+#include "fstd98_internal.h"
 #include <rmn/convert_ip.h>
 #include "xdf98.h"
 
 #define Max_Ipvals 50
 
-//! Throw an error when val is not between minval and maxval
-#define VALID(val, minval, maxval, what, caller) \
-    if ((val < minval) || (val > maxval)) { \
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: %s = %d must be between %d and %d\n",__func__,what,val,minval,maxval);\
-        return(ERR_OUT_RANGE);\
-    }
-
 
 static int ip_nb[3] = {0, 0, 0};
-static int ip1s_flag = 0;
-static int ip2s_flag = 0;
-static int ip3s_flag = 0;
+int ip1s_flag = 0;
+int ip2s_flag = 0;
+int ip3s_flag = 0;
 static int dejafait_1 = 0;
 static int dejafait_2 = 0;
 
@@ -78,11 +70,11 @@ static char *debug_filename = NULL;
 //! Filter file, desire/exclure
 static char *requetes_filename = NULL;
 //! Used for datatype remapping
-static int remap_table[2][10];
+int remap_table[2][10];
 //! Number of datatype remapping,  0 = no remapping
-static int nb_remap = 0;
+int nb_remap = 0;
 //! What is printed with fstecr
-static char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
+char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
 
 static int kinds_table_init = 1;
 static char kind_chars[96];
@@ -106,28 +98,28 @@ static void str_cp_init(char * const dst, const int dstLen, const char * const s
 }
 
 
-static void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
+void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
     }
 }
 
 
-static void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
+void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
     for (int i = 0; i < nb; i++) {
         *p8++ = *p16++;
     }
 }
 
 
-static void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
+void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
     int16_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p32++ = *p16++ & mask;
     }
 }
 
-static void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
+void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
     int32_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p16++ = *p32++ & mask;
@@ -137,7 +129,7 @@ static void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
 
 //! Reset to zeros ip1-2-3 tables and counters
 //! \return Always 0
-static int init_ip_vals()
+int init_ip_vals()
 {
     for (int i = 0; i < Max_Ipvals; i++) {
         for (int j = 0; j < 3; j++) {
@@ -157,7 +149,7 @@ static int init_ip_vals()
 
 
 //! Compares different coded values of an ip for equality
-static int ip_is_equal(
+int ip_is_equal(
     //! [in] First value in the table of coded value to compare with
     int target,
     //! [in] Current ip record value to compare
@@ -288,7 +280,7 @@ static char *kinds(
 
 
 //! Prints the standard file record descriptors
-static void print_std_parms(
+void print_std_parms(
     //! [in] Directory entry that contains the descriptors
     const stdf_dir_keys * const stdf_entry,
     //! [in] Preamble string
