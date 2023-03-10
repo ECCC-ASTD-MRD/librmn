@@ -1142,16 +1142,16 @@ int32_t f77name(existe)(
     //! [in] File path length
     F2Cl llng
 ) {
-    int lng = llng;
+    F2Cl lng = llng;
     char filename[PATH_MAX + 1];
 
     int l2 = (lng <= PATH_MAX) ? lng : PATH_MAX;
     strncpy(filename, nom, l2);
-    filename[lng] = '\0';
+    filename[l2] = '\0';
 
-    while ((filename[lng-1] == ' ') && (lng > 1)) {
-        lng--;
-        filename[lng] = '\0';
+    while ((filename[l2-1] == ' ') && (l2 > 1)) {
+        l2--;
+        filename[l2] = '\0';
     }
 
     if (access(filename, F_OK) == -1) {
