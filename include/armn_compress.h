@@ -5,13 +5,13 @@ typedef void *(*PackFunctionPointer)(
     void *unpackedArrayOfFloat,
     void *packedHeader,
     void *packedArrayOfInt,
-    int elementCount,
-    int bitSizeOfPackedToken,
-    int off_set,
-    int stride,
-    int opCode,
-    int hasMissing,
-    void *missingTag
+    const int elementCount,
+    const int bitSizeOfPackedToken,
+    const int off_set,
+    const int stride,
+    const int opCode,
+    const int hasMissing,
+    const void * const missingTag
 );
 
 int armn_compress(unsigned char *fld, int ni, int nj, int nk, int nbits, int op_code);

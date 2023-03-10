@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n) {
@@ -61,7 +62,7 @@ int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, 
 
             f77name(ez_ll2rgd)(x, y,
                 lat, tmplons, &npts,
-                &ni_in, &nj_in, &gr.grtyp,
+                &ni_in, &nj_in, gr.grtyp,
                 &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],
                 &sym, gr.ay);
             free(tmplons);
@@ -73,7 +74,7 @@ int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, 
             coordonnee = RELATIF;
             nj_in =  gr.j2;
             f77name(ez_ll2igd)(x, y, lat, lon, &npts,
-                &ni_in,&nj_in,&gr.grtyp, &gr.grref,
+                &ni_in,&nj_in,gr.grtyp, gr.grref,
                 &gr.fst.igref[IG1], &gr.fst.igref[IG2],
                 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
                 gr.ax, gr.ay,&coordonnee);
@@ -130,7 +131,7 @@ int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon,
             int32_t sym = groptions.symmetrie;
             f77name(ez_ll2rgd)(x, y,
                 lat, tmplons, &npts,
-                &ni_in, &nj_in, &gr.grtyp,
+                &ni_in, &nj_in, gr.grtyp,
                 &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],
                 &sym, gr.ay);
             free(tmplons);
@@ -141,7 +142,7 @@ int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon,
         case 'G':
             nj_in =  gr.j2;
             f77name(ez_ll2igd)(x, y, lat, lon, &npts,
-                &ni_in,&nj_in,&gr.grtyp, &gr.grref,
+                &ni_in,&nj_in,gr.grtyp, gr.grref,
                 &gr.fst.igref[IG1], &gr.fst.igref[IG2],
                 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
                 gr.ax, gr.ay, &coordonnee);

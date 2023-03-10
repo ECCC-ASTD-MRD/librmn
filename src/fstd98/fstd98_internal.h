@@ -4,9 +4,10 @@
 #include <rmn/fstd98.h>
 
 #include "armn_compress.h"
-#include "base/moduledate.h"
+#include "base/base.h"
 #include "compresseur/armn_compress_32.h"
 #include "compresseur/c_zfstlib.h"
+#include "convip.h"
 #include "qstdir.h"
 #include "packers/packers.h"
 #include "primitives/primitives.h"

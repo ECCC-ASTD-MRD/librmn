@@ -22,6 +22,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
@@ -42,7 +43,7 @@ int32_t c_ezgdef_fll(int32_t ni, int32_t nj,float *lat, float *lon)
    strcpy(grref, "L");
 
    int32_t ig1, ig2, ig3, ig4;
-   f77name(cxgaig)(grref, &ig1, &ig2, &ig3, &ig4, &swlat, &swlon, &dlat, &dlon);
+   f77name(cxgaig)(grref, &ig1, &ig2, &ig3, &ig4, &swlat, &swlon, &dlat, &dlon, 1);
 
    return c_ezgdef_fmem(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, lon, lat);
 }

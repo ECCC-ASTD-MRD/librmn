@@ -22,6 +22,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) {
@@ -46,7 +47,7 @@ int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) 
         float * vals = (float *) malloc(npts * sizeof(float));
 
         float poleval;
-        f77name(ez_calcpoleval)(&poleval, &zin[(nj-1)*ni], &ni, lgd->ax, &(lgd->grtyp), &(lgd->grref),1,1);
+        f77name(ez_calcpoleval)(&poleval, &zin[(nj-1)*ni], &ni, lgd->ax, lgd->grtyp, lgd->grref,1,1);
         f77name(ez_fillnpole)(temp, zin, &ni, &(lgd->j1), &(lgd->j2), &poleval);
 
         switch (groptions.degre_interp) {
@@ -89,7 +90,7 @@ int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) 
                 for (int32_t i = 0; i < npts; i++) {
                     temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (lgd->j2-3));
                 }
-                f77name(ez_rgdint_1_w)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre, &(lgd->extension));
+                f77name(ez_rgdint_1_w)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, (int32_t *)&un, (int32_t *)&quatre, &(lgd->extension));
                 free(temp_y);
                 break;
             }
@@ -99,7 +100,7 @@ int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) 
                 for (int32_t i = 0; i < npts; i++) {
                     temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (lgd->j2-3));
                 }
-                f77name(ez_rgdint_0)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, &un, &quatre);
+                f77name(ez_rgdint_0)(vals,gset->zones[AU_NORD].x,temp_y,&npts,temp,&ni, (int32_t *)&un, (int32_t *)&quatre);
                 free(temp_y);
                 break;
             }

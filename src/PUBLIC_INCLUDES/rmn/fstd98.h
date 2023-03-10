@@ -17,6 +17,8 @@
 
 #include <stdint.h>
 
+#include <rmn/rpnmacros.h>
+
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);
 int c_ip1_val(const float level, const int kind);
@@ -85,3 +87,16 @@ int c_fst_edit_dir(int handle, unsigned int date, int deet, int npas,
                 int ig1, int ig2, int ig3, int ig4, int datyp);
 
 void c_ip_string(char * const buffer, const int size, const int ip1, const int ip2, const int ip3);
+
+int32_t f77name(fstluk)(uint32_t *field, int32_t *f_handle, int32_t *f_ni, int32_t *f_nj, int32_t *f_nk);
+int32_t f77name(fstprm)(int32_t *f_handle,
+                        int32_t *f_dateo, int32_t *f_deet, int32_t *f_npas,
+                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk,
+                        int32_t *f_nbits, int32_t *f_datyp, int32_t *f_ip1,
+                        int32_t *f_ip2, int32_t *f_ip3, char *f_typvar,
+                        char *f_nomvar, char *f_etiket, char *f_grtyp,
+                        int32_t *f_ig1, int32_t *f_ig2, int32_t *f_ig3,
+                        int32_t *f_ig4, int32_t *f_swa, int32_t *f_lng,
+                        int32_t *f_dltf, int32_t *f_ubc, int32_t *f_extra1,
+                        int32_t *f_extra2, int32_t *f_extra3,
+                        F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4);

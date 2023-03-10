@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
@@ -79,9 +80,9 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
                 default:
                     f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
                                 &ni,&nj,
-                                &Grille[gdrow_id][gdcol_id].grref,
+                                Grille[gdrow_id][gdcol_id].grref,
                                 &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
-                                &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
+                                &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4], 1);
                     break;
             }
             break;
@@ -89,9 +90,9 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
             default:
                 f77name(ez_llwfgdw)(spd_out,wd_out,lonin,
                         &ni,&nj,
-                        &Grille[gdrow_id][gdcol_id].grtyp,
+                        Grille[gdrow_id][gdcol_id].grtyp,
                         &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
-                        &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4]);
+                        &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4], 1);
                 break;
     }
 
