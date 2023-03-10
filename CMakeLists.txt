@@ -122,20 +122,20 @@ add_library(rmn STATIC)
 target_link_libraries(rmn PUBLIC rmn-obj)
 
 # Build shared library from object collection
-add_library(rmnshared SHARED)
-target_link_libraries(rmnshared PUBLIC rmn-obj)
+add_library(rmn-shared SHARED)
+target_link_libraries(rmn-shared PUBLIC rmn-obj)
 
-set_target_properties(rmn rmnshared PROPERTIES
+set_target_properties(rmn rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
     SOVERSION ${SOVERSION})
 
-set(TARGETS rmn rmnshared)
+set(TARGETS rmn rmn-shared)
 
 if(OpenMP_FOUND)
-   set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
+   set(TARGETS rmn rmn-shared rmn-ompi rmn-shared-ompi)
 
    # Object library for rmn[shared]-ompi
    add_library(rmn-obj-ompi OBJECT ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -153,10 +153,10 @@ if(OpenMP_FOUND)
    target_link_libraries(rmn-ompi PUBLIC rmn-obj-ompi)
 
    # Build shared library from object collection
-   add_library(rmnshared-ompi SHARED)
-   target_link_libraries(rmnshared-ompi PUBLIC rmn-obj-ompi)
+   add_library(rmn-shared-ompi SHARED)
+   target_link_libraries(rmn-shared-ompi PUBLIC rmn-obj-ompi)
 
-   set_target_properties(rmn-ompi rmnshared-ompi PROPERTIES
+   set_target_properties(rmn-ompi rmn-shared-ompi PROPERTIES
       VERSION ${PROJECT_VERSION}
       PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
       OUTPUT_NAME rmn-ompi

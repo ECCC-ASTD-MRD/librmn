@@ -5,7 +5,6 @@ Ses principaux composants sont les fichiers Standard RPN et
 l'interpolateur EZ.
 
 
-
 ## Documentation
   * [Référence des fonctions accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
@@ -50,15 +49,10 @@ ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
 WITH_OPENMP
 : `(yes|no)` Indique si le support pour OpenMP doit être activée.  Défaut: `yes`
 
-WITH_DOC
-: `(yes|no)` Indique s'il faut générer la documentation.  Doxygen et
-graphviz sont alors nécessaires.
-
 ### Exemple de compilation
 ```
 cmake \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
-    -DWITH_DOC=no \
     -DWITH_OPENMP=no \
     $src_dir_path
 make -j $a_resonable_number
@@ -86,6 +80,13 @@ mkdir librmn_build
 cd librmn_build
 cmake ../librmn -DCMAKE_INSTALL_PREFIX=~/opt/
 make -j4 install
+```
+
+### Documentation
+une cible `doc` est crée par cmake pour généré la documentation. Ceci nécessite cependant
+Doxygen et graphviz.
+```
+make doc
 ```
 
 ### Changement de compilateur
