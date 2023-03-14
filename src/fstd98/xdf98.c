@@ -2968,7 +2968,7 @@ int c_xdfxtr(
             break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: finvalid datyp=%d\n",__func__,datyp);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid datyp=%d\n",__func__,datyp);
             return(ERR_BAD_DATYP);
     } // End switch (datyp)
 
