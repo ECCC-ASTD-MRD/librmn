@@ -22,15 +22,6 @@
 
 
 */
-
-  extern int c_mrfcls(), c_mrfget(), c_mrfloc(), c_mrfopn(), c_mrfprm(),
-             c_mrfput(), c_mrbadd(), c_mrbdel(), c_mrbhdr(), c_mrbini(),
-             c_mrblen(), c_mrbloc(), c_rbmprm(), c_mrbrep(), c_mrbxtr(),
-             c_mrbupd(), c_mrfvoi(), c_mrfmxl(), c_mrbcov(), c_mrbdcv(),
-             c_mrfopr(), c_mrfgor(), c_mrfopc(), c_mrfgoc(), c_mrbrpt();
-  extern int c_mrbcvt(), c_mrbcol(), c_mrbdcl(), c_mrbsct(), c_mrfnbr();
-  extern int c_mrblocx(), c_mrbtyp(), c_mrbtbl(), c_mrbprml();
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
