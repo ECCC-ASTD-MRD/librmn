@@ -743,14 +743,17 @@ int c_fstouv_rsf(
     char appl[5]
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
-    int32_t meta_dim = 1;
+    int32_t meta_dim = sizeof(stdf_dir_keys) / sizeof(int32_t);
     FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, &meta_dim, appl, NULL);
     
     if (RSF_Valid_handle(FGFDT[index_fnom].rsf_fh)) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opened file %s, mode %d, fnom index %d\n", __func__,
-                FGFDT[index_fnom].file_name, mode, index_fnom);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opened file %s, mode %d, fnom index %d, meta dim 0x%x\n", __func__,
+                FGFDT[index_fnom].file_name, mode, index_fnom, meta_dim);
         return 0;
     }
+
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Failed to open file %s, mode %d, fnom index %d, meta dim 0x%x\n",
+            __func__, FGFDT[index_fnom].file_name, mode, index_fnom, meta_dim);
 
     return -1;
 }
@@ -891,6 +894,7 @@ int c_fstinfx_rsf(
     // pmask += W64TOWD(1);
     // int lhandle = handle;
     int64_t rsf_key = -1;
+    const int num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     if (handle == -2) {
         /* means handle not specified */
         // TODO Check if we can have "seq" RSF files
@@ -898,7 +902,7 @@ int c_fstinfx_rsf(
         //     lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
         // } else {
         // lhandle = c_xdfloc2(iun, 0, pkeys, 16, pmask);
-        rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, 18);
+        rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, num_criteria);
         // }
     } else {
         // Verify that the given handle (record key) belongs to the given file
@@ -913,7 +917,7 @@ int c_fstinfx_rsf(
         }
 
         // lhandle = c_xdfloc2(iun, lhandle, pkeys, 16, pmask);
-        rsf_key = RSF_Lookup(file_handle, handle, pkeys, pmask, 18);
+        rsf_key = RSF_Lookup(file_handle, handle, pkeys, pmask, num_criteria);
     }
     const int32_t lhandle = RSF_Key32(rsf_key);
 
@@ -950,7 +954,7 @@ int c_fstinfx_rsf(
             }
             if (nomatch) {
                 // lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
-                rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, 16);
+                rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, num_criteria);
                 
                 // if (lhandle >= 0) c_xdfprm(lhandle, &addr, &lng, &idtyp, pkeys, 16);
                 if (rsf_key >= 0) {

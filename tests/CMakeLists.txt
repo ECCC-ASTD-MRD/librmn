@@ -35,4 +35,16 @@ if(BUILD_TESTING)
     target_link_libraries(c_ccard rmn)
     add_test(NAME c_ccard COMMAND ${CMAKE_CURRENT_BINARY_DIR}/c_ccard)
     add_dependencies(check c_ccard)
+
+    add_executable(fst_missing_rsf fst_missing.F90)
+    target_link_libraries(fst_missing_rsf rmn)
+    add_test(NAME fst_missing_rsf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_rsf)
+    add_dependencies(check fst_missing_rsf)
+
+    add_executable(fst_missing_xdf fst_missing.F90)
+    target_compile_definitions(fst_missing_xdf PRIVATE FST_TEST_IS_RSF=.false.)
+    target_link_libraries(fst_missing_xdf rmn)
+    add_test(NAME fst_missing_xdf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_xdf)
+    add_dependencies(check fst_missing_xdf)
+
 endif()
