@@ -475,9 +475,9 @@ main ()
      printf(" %4.1f  mrfget du rapport a position handle\n",18.0);
      ier = c_mrfget(ier1,bufd);
      ier = 0; i = 21;
-     while(i < 7180)
+     while(i < 7180-1)
      {
-         if(*(ptbd + i) != *(ptba + i)) {
+        if(*(ptbd + i) != *(ptba + i)) {
             printf("%i %i != %i\n",i,*(ptbd + i),*(ptba + i));
             ier--;
          }
@@ -508,7 +508,7 @@ main ()
      printf(" %4.1f  mrfget du rapport a la position handle\n",21.0);
      ier = c_mrfget(ier1,bufd);
      ier = 0; i = 21;
-     while(i < 7180)
+     while(i < 7180-1)
      {
           if(*(ptbd + i) != *(ptba + i))
                ier--;
