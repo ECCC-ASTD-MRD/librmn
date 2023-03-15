@@ -139,6 +139,12 @@ set(TARGETS rmn rmnshared)
 set(shared_targets rmnshared)
 set(static_targets rmn)
 
+if(BUILD_SHARED_LIBS OR rmn_SHARED_LIBS)
+    add_library(rmn::rmn ALIAS rmnshared)
+else()
+    add_library(rmn::rmn ALIAS rmn)
+endif()
+
 if(OpenMP_FOUND)
    set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
    add_library(rmn-ompi STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -168,6 +174,12 @@ if(OpenMP_FOUND)
    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
    list(APPEND shared_targets rmnshared-ompi)
    list(APPEND static_targets rmn-ompi)
+
+   if(BUILD_SHARED_LIBS OR rmn_SHARED_LIBS)
+       add_library(rmn::rmn-ompi ALIAS rmnshared-ompi)
+   else()
+       add_library(rmn::rmn-ompi ALIAS rmn-ompi)
+   endif()
 endif()
 
 foreach(TARGET IN ITEMS ${TARGETS})
@@ -184,7 +196,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> # Fortran modules
     )
-    add_library(rmn::${TARGET} ALIAS ${TARGET})
+
 endforeach()
 
 install(TARGETS ${shared_targets}
@@ -233,14 +245,6 @@ install(EXPORT rmn-shared-targets
 install(EXPORT rmn-static-targets
     NAMESPACE rmn::
     DESTINATION ${CONFIG_INSTALL_DIR})
-
-if(BUILD_SHARED_LIBS or rmn_SHARED_LIBS)
-    add_library(rmn::rmn ALIAS rmnshared)
-    add_library(rmn::rmn-ompi ALIAS rmnshared-ompi)
-else()
-    add_library(rmn::rmn ALIAS rmn)
-    add_library(rmn::rmn-ompi ALIAS rmn-ompi)
-endif()
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
