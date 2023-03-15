@@ -3332,7 +3332,7 @@ int c_fstouv(
     //! [in] Random or sequential access
     char *options
 ) {
-    int ier, nrec, i, iwko;
+    int ier, nrec, i;
     static int premiere_fois = 1;
     char appl[5];
 
@@ -3360,6 +3360,7 @@ int c_fstouv(
 
     // force attribute to standard file
     FGFDT[i].attr.std = 1;
+    const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
             if ((strstr(options, "RSF")) || (strstr(options, "rsf"))) {
@@ -3370,11 +3371,16 @@ int c_fstouv(
             }
 
         } else {
-            //TODO open and check whether it's an old XDF or RSF file
-            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            if (iwko == WKF_STDRSF) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Should open as RSF, but this branch is not implemented.......\n", __func__);
+                ier = -1;
+            }
+            else {
+                ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            }
         }
     } else {
-        if (((iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name))) == -2) && (! FGFDT[i].attr.old)) {
+        if ((iwko == -2) && (! FGFDT[i].attr.old)) {
             if ((strstr(options, "RSF")) || (strstr(options, "rsf"))) {
                 ier = c_fstouv_rsf(i, RSF_RW, appl);
             }
@@ -3382,11 +3388,11 @@ int c_fstouv(
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
         } else {
-            //TODO open and check whether it's an old XDF or RSF file
-            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
-            if (ier < 0) {
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: Unable to open file with iun %d as XDF, trying RSF instead\n", __func__, iun);
+            if (iwko == WKF_STDRSF) {
                 ier = c_fstouv_rsf(i, RSF_RW, appl);
+            }
+            else {
+                ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
         }
     }
