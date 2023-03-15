@@ -172,10 +172,6 @@ foreach(TARGET IN ITEMS ${TARGETS})
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
-
-    # Control where the Fortran modules *.mod will end up
-    set_target_properties(${TARGET} PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIR})
-    target_include_directories(${TARGET} INTERFACE ${MODULE_DIR})
 endforeach()
 
 install(TARGETS ${TARGETS})
