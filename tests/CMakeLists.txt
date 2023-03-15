@@ -47,4 +47,13 @@ if(BUILD_TESTING)
     add_test(NAME fst_missing_xdf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_xdf)
     add_dependencies(check fst_missing_xdf)
 
+    add_executable(burp_f EXCLUDE_FROM_ALL burp_f.f)
+    target_link_libraries(burp_f rmn)
+    add_test(NAME burp_f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/burp_f)
+    add_dependencies(check burp_f)
+
+    add_executable(burp_c EXCLUDE_FROM_ALL burp_c.c)
+    target_link_libraries(burp_c rmn)
+    add_test(NAME burp_c COMMAND ${CMAKE_CURRENT_BINARY_DIR}/burp_c)
+    add_dependencies(check burp_c)
 endif()

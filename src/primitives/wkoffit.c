@@ -393,6 +393,11 @@ int32_t c_wkoffit(
             }
         }
 
+        /* STANDARD with RSF backend */
+        if (*(ptbuf + 4) == 'RSF0' && *(ptbuf + 5) == 'STDR') {
+            return retour(pf, WKF_STDRSF);
+        }
+
         /* STANDARD 98 SEQUENTIEL */
         if (*(ptbuf + 3) == 'STDS') {
             return retour(pf, WKF_SEQUENTIEL98);

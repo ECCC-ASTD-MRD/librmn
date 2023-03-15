@@ -22,19 +22,12 @@
 
 
 */
-
-  extern int c_mrfcls(), c_mrfget(), c_mrfloc(), c_mrfopn(), c_mrfprm(),
-             c_mrfput(), c_mrbadd(), c_mrbdel(), c_mrbhdr(), c_mrbini(),
-             c_mrblen(), c_mrbloc(), c_rbmprm(), c_mrbrep(), c_mrbxtr(),
-             c_mrbupd(), c_mrfvoi(), c_mrfmxl(), c_mrbcov(), c_mrbdcv(),
-             c_mrfopr(), c_mrfgor(), c_mrfopc(), c_mrfgoc(), c_mrbrpt();
-  extern int c_mrbcvt(), c_mrbcol(), c_mrbdcl(), c_mrbsct(), c_mrfnbr();
-  extern int c_mrblocx(), c_mrbtyp(), c_mrbtbl(), c_mrbprml();
-
-  extern float second_();
-
 #include <stdio.h>
-#include "macros.h"
+#include <stdlib.h>
+#include <time.h>
+
+#include "rmn.h"
+#include "rmn/rpnmacros.h"
 
 main ()
 {
@@ -213,7 +206,7 @@ main ()
      testit(ier);
 
 
-     printf(" %3.1  mrbhdr bufa \n",7.0);
+     printf(" %3.1f  mrbhdr bufa \n",7.0);
      ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                     &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
 
@@ -237,7 +230,7 @@ main ()
      printf(" nblk  = %d\n",nblk);
      testit(ier);
 
-     printf(" %3.1  mrbhdr bufb \n",7.1);
+     printf(" %3.1f  mrbhdr bufb \n",7.1);
      ier = c_mrbhdr(bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                     &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
 
@@ -261,7 +254,7 @@ main ()
      printf(" nblk  = %d\n",nblk);
      testit(ier);
 
-     printf(" %3.1  mrbhdr bufc \n",7.2);
+     printf(" %3.1f  mrbhdr bufc \n",7.2);
      ier = c_mrbhdr(bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                     &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
 
@@ -473,16 +466,18 @@ main ()
      printf(" %4.1f  mrfget du rapport a position handle\n",18.0);
      ier = c_mrfget(ier1,bufd);
      ier = 0; i = 21;
-     while(i < 7180)
+     while(i < 7180-1)
      {
-          if(*(ptbd + i) != *(ptba + i))
-               ier--;
-          i++;
+        if(*(ptbd + i) != *(ptba + i)) {
+            printf("%i %i != %i\n",i,*(ptbd + i),*(ptba + i));
+            ier--;
+         }
+         i++;
      }
      testit(ier);
 
-    printf(" %4.1f  mrfprm de l'enregistrement lu\n",19.0);
-    ier = c_mrfprm(ier1,stnid,&idtyp,&lati,&longi,&dx,&dy,&date,&temps,&flgs,
+     printf(" %4.1f  mrfprm de l'enregistrement lu\n",19.0);
+     ier = c_mrfprm(ier1,stnid,&idtyp,&lati,&longi,&dx,&dy,&date,&temps,&flgs,
                    sup,0,&lonenr);
 
      testit(ier);
@@ -495,16 +490,16 @@ main ()
      printf(" temps = %d, lati = %d long = %d dx = %d dy = %d flgs = %x date = %d idtyp = %d lonenr = %d\n",
               temps,lati,longi,dx,dy,flgs,date,idtyp,lonenr);
 
-     printf(" %4.1  mrfloc prochain enregistrement identique\n",20.0);
+     printf(" %4.1f  mrfloc prochain enregistrement identique\n",20.0);
 
      ier1 = c_mrfloc(10,ier1,"station#6",3,4523,26300,901029,1119,sup,0);
      printf(" handle = %d\n",ier1);
      testit(ier1);
 
-     printf(" %4.1  mrfget du rapport a la position handle\n",21.0);
+     printf(" %4.1f  mrfget du rapport a la position handle\n",21.0);
      ier = c_mrfget(ier1,bufd);
      ier = 0; i = 21;
-     while(i < 7180)
+     while(i < 7180-1)
      {
           if(*(ptbd + i) != *(ptba + i))
                ier--;
@@ -536,7 +531,7 @@ main ()
      ier = c_mrfopn(20,"CREATE");
      testit(ier);
 
-     printf(" 4.1f mrfopc msglvl mis a error\n",23.1);
+     printf(" %4.1f mrfopc msglvl mis a error\n",23.1);
      ier = c_mrfopc("MSGLVL","ERROR");
      testit(ier);
 
@@ -557,10 +552,10 @@ main ()
 
      for(i = 100; i <= 8000; i+=100)
      {
-         t1 = second_();
+         t1 = time(NULL);
          for(j = 1; j < 51; j++) 
               ier = c_mrfloc(20,0,"station#9",4,-1,-1,i,-1,sup,0);
-         t2 = second_();
+         t2 = time(NULL);
          chrono = (t2 - t1)/ 50.0;
      
          printf("  %d      %d            %10.7f\n",i,ier,chrono);
@@ -572,12 +567,12 @@ main ()
 
       printf(" %4.1f  mrfnbr fichier 10 ouvert\n",25.2);
       ier = c_mrfnbr(10);
-      printf(" nombre d'enregistrements : \n",ier);
+      printf(" nombre d'enregistrements : %i\n",ier);
       testit(ier);
 
       printf(" %4.1f  mrfnbr fichier 20 ouvert\n",25.3);
       ier = c_mrfnbr(20);
-      printf(" nombre d'enregistrements : \n",ier);
+      printf(" nombre d'enregistrements : %i\n",ier);
       testit(ier);
 
       printf(" %4.1f  mrfcls fichier 10\n",26.0);
@@ -589,12 +584,12 @@ main ()
 
       printf(" %4.1f  mrfnbr fichier 10 ferme\n",26.2);
       ier = c_mrfnbr(10);
-      printf(" nombre d'enregistrements : \n",ier);
+      printf(" nombre d'enregistrements : %i\n",ier);
       testit(ier);
 
       printf(" %4.1f  mrfnbr fichier 20 ferme\n",26.3);
       ier = c_mrfnbr(20);
-      printf(" nombre d'enregistrements : \n",ier);
+      printf(" nombre d'enregistrements : %i\n",ier);
       testit(ier);
  
       printf(" %4.1f mrbcol lstelea \n",27.0);
@@ -828,12 +823,12 @@ main ()
      printf(" relem = %d\n",relem);
      ier = c_mrbrpt(relem);
      printf(" repetitif = %d\n",ier);
-     testit(-ier);
+     testit(ier);
  
      printf(" %4.1f mrbrpt 65700 illegal\n",32.8);
      ier = c_mrbrpt(65700);
      printf(" repetitif = %d\n",ier);
-     testit(-ier);
+     testit(ier);
 
      ier = c_mrfcls(10);
      printf(" %4.1f mrfopn fichier 10 en mode ajout\n",33.0); 

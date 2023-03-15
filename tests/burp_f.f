@@ -98,6 +98,7 @@
 *     PROGRAMME POUR TESTER LE PROGICIEL DES FICHIERS BURP
 *
 *MODULES
+      INTEGER*4 time
       INTEGER FNOM,MRFCLS,MRFGET,MRFLOC,MRFOPN,MRFPRM,MRFPUT,MRBCVT
       INTEGER MRBADD,MRBDEL,MRBHDR,MRBINI,MRBLEN,MRBLOC,MRBPRM
       INTEGER MRBREP,MRBXTR,MRBUPD,HRJUST,MRFVOI,HLJUST, MRBRPT,
@@ -106,8 +107,7 @@
      %MRFGOC, qrbnbdt
       INTEGER MRBCOL, MRBDCL,MRFNBR, MRBLOCX, MRBTYP, MRBTBL,
      % MRBPRML
-      REAL SECOND
-      EXTERNAL REMPLI,TESTIT,SECOND, qrbnbdt
+      EXTERNAL REMPLI,TESTIT, qrbnbdt
       EXTERNAL FNOM,MRFCLS,MRFGET,MRFLOC,MRFOPN,MRFPRM,MRFPUT,
      % MRBTBL
       EXTERNAL MRBADD,MRBDEL,MRBHDR,MRBINI,MRBLEN,MRBLOC,MRBPRM,
@@ -611,11 +611,11 @@
      %      'MRFLOC DATE =100,8000 INCR=100 BOUCLE=50'
             WRITE(6,*)'   DATE       HANDLE        CHRONO'
             DO 23084 I=100,8000,100
-               T1 = SECOND()
+               T1 = time()
                DO 23086 J = 1,50
                   IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
 23086          CONTINUE 
-               T2 = SECOND()
+               T2 = time()
                CHRONO = (T2-T1)/50.0
                WRITE(6,1202)I,IER,CHRONO
 23084       CONTINUE 
@@ -637,11 +637,11 @@
      %      'MRFLOC DATE =100,200 INCR=100 BOUCLE=50'
             WRITE(6,*)'   DATE       HANDLE        CHRONO'
             DO 23092 I=100,200,100
-               T1 = SECOND()
+               T1 = time()
                DO 23094 J = 1,50
                   IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
 23094          CONTINUE 
-               T2 = SECOND()
+               T2 = time()
                CHRONO = (T2-T1)/50.0
                WRITE(6,1202)I,IER,CHRONO
 23092       CONTINUE 

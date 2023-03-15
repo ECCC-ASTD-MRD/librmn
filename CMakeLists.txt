@@ -116,52 +116,57 @@ set_target_properties(rmn-obj PROPERTIES
    Fortran_MODULE_DIRECTORY ${MODULE_DIR}
    POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(rmn-obj PUBLIC App rsfiles)
-add_dependencies(rmn-obj rmn_build_info)
-target_include_directories(rmn-obj INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
+target_link_libraries(rmn-obj PRIVATE App rsfiles)
 target_include_directories(rmn-obj PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_dependencies(rmn-obj rmn_build_info)
 
 # Build static library from object collection
-add_library(rmn STATIC)
-target_link_libraries(rmn PUBLIC rmn-obj)
+add_library(rmn STATIC $<TARGET_OBJECTS:rmn-obj>)
+target_link_libraries(rmn PUBLIC App rsfiles)
+target_include_directories(rmn INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 
 # Build shared library from object collection
-add_library(rmnshared SHARED)
-target_link_libraries(rmnshared PUBLIC rmn-obj)
+add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-obj>)
+target_link_libraries(rmn-shared PUBLIC App rsfiles)
+target_include_directories(rmn-shared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 
-set_target_properties(rmn rmnshared PROPERTIES
+set_target_properties(rmn rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
     SOVERSION ${SOVERSION})
 
-set(TARGETS rmn rmnshared)
+set(TARGETS rmn rmn-shared)
 
 if(OpenMP_FOUND)
-   set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
+   set(TARGETS rmn rmn-shared rmn-ompi rmn-ompi-shared)
 
    # Object library for rmn[shared]-ompi
    add_library(rmn-obj-ompi OBJECT ${PROJECT_C_FILES} ${PROJECT_F_FILES})
    add_dependencies(rmn-obj-ompi rmn_build_info)
-   target_link_libraries(rmn-obj-ompi PUBLIC App-ompi rsfiles OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-   target_compile_definitions(rmn-obj-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
    set_target_properties(rmn-obj-ompi PROPERTIES
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_include_directories(rmn-obj-ompi INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
+   target_link_libraries(rmn-obj-ompi PRIVATE App rsfiles)
    target_include_directories(rmn-obj-ompi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
    # Build static library from object collection
-   add_library(rmn-ompi STATIC)
-   target_link_libraries(rmn-ompi PUBLIC rmn-obj-ompi)
+   add_library(rmn-ompi STATIC $<TARGET_OBJECTS:rmn-obj-ompi>)
+   target_link_libraries(rmn-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
+   target_include_directories(rmn-ompi INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
+   target_link_libraries(rmn-ompi INTERFACE rsfiles)
 
    # Build shared library from object collection
-   add_library(rmnshared-ompi SHARED)
-   target_link_libraries(rmnshared-ompi PUBLIC rmn-obj-ompi)
+   add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-obj-ompi>)
+   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
+   target_include_directories(rmn-ompi-shared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
+   target_link_libraries(rmn-ompi-shared INTERFACE rsfiles)
 
-   set_target_properties(rmn-ompi rmnshared-ompi PROPERTIES
+   set_target_properties(rmn-ompi rmn-ompi-shared PROPERTIES
       VERSION ${PROJECT_VERSION}
       PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
       OUTPUT_NAME rmn-ompi
