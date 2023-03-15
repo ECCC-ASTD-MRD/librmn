@@ -117,21 +117,21 @@ target_include_directories(rmn INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 add_dependencies(rmn rmn_build_info)
 
 # Build shared library from object of rmn
-add_library(rmnshared SHARED $<TARGET_OBJECTS:rmn>)
-target_link_libraries(rmnshared PUBLIC App)
-target_include_directories(rmnshared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
+add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn>)
+target_link_libraries(rmn-shared PUBLIC App)
+target_include_directories(rmn-shared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 
-set_target_properties(rmn rmnshared PROPERTIES
+set_target_properties(rmn rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
     SOVERSION ${SOVERSION})
 
-set(TARGETS rmn rmnshared)
+set(TARGETS rmn rmn-shared)
 
 if(OpenMP_FOUND)
-   set(TARGETS rmn rmnshared rmn-ompi rmnshared-ompi)
+   set(TARGETS rmn rmn-shared rmn-ompi rmn-ompi-shared)
 
    # Build static library from source files
    add_library(rmn-ompi STATIC  ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -145,12 +145,12 @@ if(OpenMP_FOUND)
    add_dependencies(rmn-ompi rmn_build_info)
 
    # Build shared library from objects of rmn-ompi
-   add_library(rmnshared-ompi SHARED $<TARGET_OBJECTS:rmn-ompi>)
-   target_link_libraries(rmnshared-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-   target_compile_definitions(rmnshared-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
-   target_include_directories(rmnshared-ompi INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
+   add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi>)
+   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
+   target_include_directories(rmn-ompi-shared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
 
-   set_target_properties(rmn-ompi rmnshared-ompi PROPERTIES
+   set_target_properties(rmn-ompi rmn-ompi-shared PROPERTIES
       VERSION ${PROJECT_VERSION}
       PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
       OUTPUT_NAME rmn-ompi

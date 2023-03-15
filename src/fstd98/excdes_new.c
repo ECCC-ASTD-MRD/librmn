@@ -765,11 +765,11 @@ int ReadRequestTable(char *filename)
     cptr=line;
     while(*cptr != '\'' ) cptr++ ; cptr++ ;
     sscanf(cptr, "%s", s1);
-    while(*cptr != ', ' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    while(*cptr != ',' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
     sscanf(cptr, "%s", s2);
-    while(*cptr != ', ' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    while(*cptr != ',' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
     sscanf(cptr, "%s", s3);
-    while(*cptr != ', ' ) cptr++ ; cptr++ ;
+    while(*cptr != ',' ) cptr++ ; cptr++ ;
     sscanf(cptr, "%d", &nvalues);
     //  fprintf(stderr, "%d, '%s', '%s', '%s', %d\n", dirset, s1, s2, s3, nvalues);
     rvd = 0 ; /* not used */
@@ -785,7 +785,7 @@ int ReadRequestTable(char *filename)
     if(s2[0]=='D') {                            /*  Date */
         sscanf(cptr, "%d", a);
         for (i=1;i<nvalues;i++) {
-        while(*cptr != ', ' ) cptr++ ; cptr++ ;
+        while(*cptr != ',' ) cptr++ ; cptr++ ;
         sscanf(cptr, "%d", a+i);
         }
         if(rvd == RANGE && a[0] >= 0 && a[1] >= 0) {
@@ -812,7 +812,7 @@ int ReadRequestTable(char *filename)
     }else if(s2[0]=='I') {                       /* IP1/2/3 */
         sscanf(cptr, "%d", a);
         for (i=1;i<nvalues;i++) {
-        while(*cptr != ', ' ) cptr++ ; cptr++ ;
+        while(*cptr != ',' ) cptr++ ; cptr++ ;
         sscanf(cptr, "%d", a+i);
         }
         if(rvd == RANGE) {
@@ -834,7 +834,7 @@ int ReadRequestTable(char *filename)
     }else if(s2[0]=='X'){                           /* Xtra  */
         sscanf(cptr, "%d", a);
         for (i=1;i<8;i++) {
-        while(*cptr != ', ' ) cptr++ ; cptr++ ;
+        while(*cptr != ',' ) cptr++ ; cptr++ ;
         sscanf(cptr, "%d", a+i);
         }
         while(*cptr != '\'' ) cptr++ ; cptr++ ;
@@ -1281,10 +1281,10 @@ int C_fstmatch_req(int handle)
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
   int nbits, swa, ubc, lng, dltf, datevalid, xtra2, xtra3, datyp;
-  char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-  char typvar[3]={' ', ' ', '\0'};
-  char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
-  char grtyp[2]={' ', '\0'};
+  char etiket[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','\0'};
+  char typvar[3]={' ',' ','\0'};
+  char nomvar[5]={' ',' ',' ',' ','\0'};
+  char grtyp[2]={' ','\0'};
   int status;
 //  return 1;
   if(DeactivateAllFilters) return 1;  /* filtering deactivated */
@@ -1306,10 +1306,10 @@ int C_fst_match_req(int handle)
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
   int nbits, swa, ubc, lng, dltf, datevalid, xtra2, xtra3, datyp;
-  char etiket[13]={' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-  char typvar[3]={' ', ' ', '\0'};
-  char nomvar[5]={' ', ' ', ' ', ' ', '\0'};
-  char grtyp[2]={' ', '\0'};
+  char etiket[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','\0'};
+  char typvar[3]={' ',' ','\0'};
+  char nomvar[5]={' ',' ',' ',' ','\0'};
+  char grtyp[2]={' ','\0'};
   int status;
 
   if(DeactivateAllFilters) return 1;  /* filtering deactivated */

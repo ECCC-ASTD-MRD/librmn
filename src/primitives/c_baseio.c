@@ -120,7 +120,7 @@ static char *LOCALDIR = "./";
 
 
 //! Seek in a file at a given word
-static off64_t wseek(fdesc, offst, posi) {
+static off64_t wseek(int fdesc,off64_t offst, int posi) {
     return lseek64(fdesc, offst * sizeof(uint32_t), posi);
 }
 
