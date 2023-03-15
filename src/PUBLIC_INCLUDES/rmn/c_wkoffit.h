@@ -43,6 +43,7 @@
 #define WKF_CMCARC4               36
 #define WKF_CMCARC5               37
 #define WKF_HDF5                  38
+#define WKF_STDRSF                39
 
 int32_t c_wkoffit(
     const char * const filePath,
