@@ -19,6 +19,10 @@ ec_build_info()            # Generate build information
 
 include(ec_compiler_presets)
 
+if(NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    set(RMN_IS_ADD_SUBDIRECTORY TRUE)
+endif()
+
 # Need to add HAVE_RMN definition for auto-registering librmn within App
 add_compile_definitions(HAVE_RMN=\"${PROJECT_VERSION}\")
 add_subdirectory(App App)
@@ -196,7 +200,9 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> # Fortran modules
     )
-
+    if(RMN_IS_ADD_SUBDIRECTORY)
+        set_target_properties(${TARGET} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    endif()
 endforeach()
 
 install(TARGETS ${shared_targets}
