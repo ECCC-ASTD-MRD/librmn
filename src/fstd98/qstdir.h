@@ -218,7 +218,7 @@
 //! Number of bits for burp block header
 #define NBENTB 128
 //! Maximum number for nele with 7 bits
-#define GROSNELE 127
+#define GROSNELE 128
 //! Maximum number for nval and nt (8 bits)
 #define GROSDIM 256
 //! Maximum number of primary keys

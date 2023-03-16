@@ -41,8 +41,6 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
 find_package(MPI)
-#set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-#set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
