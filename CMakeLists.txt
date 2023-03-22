@@ -129,6 +129,14 @@ set_target_properties(rmn rmn-shared PROPERTIES
     SOVERSION ${SOVERSION})
 
 set(TARGETS rmn rmn-shared)
+set(shared_targets rmn-shared)
+set(static_targets rmn)
+
+if(BUILD_SHARED_LIBS)
+    add_library(rmn::rmn ALIAS rmn-shared)
+else()
+    add_library(rmn::rmn ALIAS rmn)
+endif()
 
 if(OpenMP_FOUND)
    set(TARGETS rmn rmn-shared rmn-ompi rmn-ompi-shared)
@@ -160,6 +168,15 @@ if(OpenMP_FOUND)
    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
        COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
+
+   list(APPEND shared_targets rmn-ompi-shared)
+   list(APPEND static_targets rmn-ompi)
+
+   if(BUILD_SHARED_LIBS)
+       add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
+   else()
+       add_library(rmn::rmn-ompi ALIAS rmn-ompi)
+   endif()
 endif()
 
 foreach(TARGET IN ITEMS ${TARGETS})
@@ -172,9 +189,21 @@ foreach(TARGET IN ITEMS ${TARGETS})
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
+    target_include_directories(${TARGET} INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
+    )
 endforeach()
 
-install(TARGETS ${TARGETS})
+install(TARGETS ${shared_targets}
+    EXPORT rmn-shared-targets
+    INCLUDES DESTINATION include
+    PUBLIC_HEADER DESTINATION include)
+
+install(TARGETS ${static_targets}
+    EXPORT rmn-static-targets
+    INCLUDES DESTINATION include
+    PUBLIC_HEADER DESTINATION include)
 
 # Symbolic link for archive numbered version
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -203,6 +232,14 @@ add_custom_target(
 set(INCLUDE_INSTALL_DIR include)
 set(LIB_INSTALL_DIR lib)
 set(CONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
+
+install(EXPORT rmn-shared-targets
+    NAMESPACE rmn::
+    DESTINATION ${CONFIG_INSTALL_DIR})
+
+install(EXPORT rmn-static-targets
+    NAMESPACE rmn::
+    DESTINATION ${CONFIG_INSTALL_DIR})
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
