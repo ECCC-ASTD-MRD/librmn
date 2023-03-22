@@ -17,8 +17,8 @@ macro(rmn_load_targets type)
     # so we create aliases here, and we just won't tell anyone that
     # the rmn::rmnshared and rmn::rmnshared-ompi versions exist
     if(${type} STREQUAL shared)
-        add_library(rmn::rmn ALIAS rmn::rmnshared)
-        add_library(rmn::rmn-ompi ALIAS rmn::rmnshared-ompi)
+        add_library(rmn::rmn ALIAS rmn::rmn-shared)
+        add_library(rmn::rmn-ompi ALIAS rmn::rmn-ompi-shared)
     endif()
 endmacro()
 
