@@ -2426,8 +2426,8 @@ int c_xdfrep(
                 for (i = 0; i < nbwords; i++) {
                     buf->data[index_word + i] = donnees[i];
                 }
-                break;
             }
+            break;
 
         case 5:
             // Upper char only
