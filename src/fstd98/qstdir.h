@@ -872,8 +872,6 @@ typedef buffer_interface* buffer_interface_ptr;
 //! File table, exported symbol
 file_table_entry_ptr file_table[MAX_XDF_FILES];
 
-
-
 //! Stride
 int xdf_stride = 1;
 //! Double float indicator

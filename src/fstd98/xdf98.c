@@ -648,29 +648,22 @@ int c_xdfadd(
     int index_word = buf->nbits / (sizeof(uint32_t) * 8);
 
     if ((index_word + nbwords - 1) > buf->nwords) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: uffer not big enough for insertion\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: buffer not big enough for insertion\n",__func__);
         return(ERR_BAD_DIM);
     }
 
     switch (datyp) {
         case 0:
             // transparent mode
-
         case 3:
-            for (int i = 0; i < nbwords; i++) {
-                buf->data[index_word+i] = donnees[i];
-            }
-            break;
-
         case 6:
-
         case 8:
             for (int i = 0; i < nbwords; i++) {
                 buf->data[index_word+i] = donnees[i];
             }
             break;
-        case 7:
 
+        case 7:
         case 9:
             if (*little_endian) {
                 for (int i = 0; i < nbwords; i+=2) {
@@ -1427,15 +1420,8 @@ int c_xdfins(
     switch (datyp) {
         case 0:
             // transparent mode
-
         case 3:
-            for (i = 0; i < nbwords; i++) {
-                buf->data[index_word+i] = donnees[i];
-            }
-            break;
-
         case 6:
-
         case 8:
             for (i = 0; i < nbwords; i++) {
                 buf->data[index_word + i] = donnees[i];
@@ -1443,7 +1429,6 @@ int c_xdfins(
             break;
 
         case 7:
-
         case 9:
             if (*little_endian) {
                 for (i=0; i < nbwords; i += 2) {
@@ -1821,7 +1806,7 @@ int c_xdfopn(
 
         c_waread(iun, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
-            if ((f->header = malloc(header64.lng * 8)) == NULL) {
+            if ((f->header = calloc(1,header64.lng * 8)) == NULL) {
                 Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                 return(ERR_MEM_FULL);
             }
@@ -2422,11 +2407,6 @@ int c_xdfrep(
         case 0:
             // Transparent mode
         case 3:
-            for (i=0; i < nbwords; i++) {
-                buf->data[index_word+i] = donnees[i];
-            }
-            break;
-
         case 6:
         case 8:
             for (i=0; i < nbwords; i++) {
@@ -2867,11 +2847,6 @@ int c_xdfxtr(
         case 0:
         case 3:
         case 5:
-            for (i = 0; i < nbwords; i++) {
-                donnees[i] = buf->data[index_word+i];
-            }
-            break;
-
         case 6:
         case 8:
             for (i = 0; i < nbwords; i++)
@@ -3683,7 +3658,7 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
                     ftnword_2 *pri, ftnword_2 *aux,
                     char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
-   int iun = *fiun, nstat = *fnstat, lng, ier, i, nkeys, ninfo;
+   int iun = *fiun, nstat = *fnstat, lng, i, nkeys, ninfo;
    char c_vers[257], c_appl[257];
    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
    uint32_t lstat[12];
@@ -3696,9 +3671,7 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    strncpy(c_appl, appl, lng);
    c_appl[lng] = '\0';
 
-   ier = c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
 }
 
 
@@ -3707,15 +3680,11 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
  *****************************************************************************/
 
 int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
-            int32_t *keys, int32_t *fnkeys, int32_t *info,
-            int32_t *fninfo)
+            int32_t *keys, int32_t *fnkeys, int32_t *info,int32_t *fninfo)
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
-   int ier, i;
 
-   ier = c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
 }
 
 
@@ -3728,11 +3697,8 @@ int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
             int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
-   int ier;
 
-   ier = c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
 }
 
 
@@ -3742,10 +3708,9 @@ int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
 
 int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn)
 {
-   int n = *fn, ier;
+   int n = *fn;
 
-   ier = c_xdflnk(liste, n);
-   return (int32_t) ier;
+   return (int32_t) c_xdflnk(liste, n);
 
 }
 
