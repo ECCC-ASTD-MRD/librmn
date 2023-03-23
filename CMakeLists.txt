@@ -107,9 +107,6 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 # Build static library from source files
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-set_target_properties(rmn PROPERTIES
-   Fortran_MODULE_DIRECTORY ${MODULE_DIR}
-   POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(rmn PUBLIC App)
 target_include_directories(rmn INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 add_dependencies(rmn rmn_build_info)
@@ -117,11 +114,13 @@ add_dependencies(rmn rmn_build_info)
 # Build shared library from object of rmn
 add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn>)
 target_link_libraries(rmn-shared PUBLIC App)
-target_include_directories(rmn-shared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 
 set_target_properties(rmn rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
+    Fortran_MODULE_DIRECTORY ${MODULE_DIR}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
+    INTERFACE_COMPILE_DEFINITIONS HAVE_RMN=${PROJECT_VERSION}
+    INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}>
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
     SOVERSION ${SOVERSION})
@@ -147,19 +146,19 @@ if(OpenMP_FOUND)
    )
    target_link_libraries(rmn-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
-   target_include_directories(rmn-ompi INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
    add_dependencies(rmn-ompi rmn_build_info)
 
    # Build shared library from objects of rmn-ompi
    add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi>)
    target_link_libraries(rmn-ompi-shared PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
-   target_include_directories(rmn-ompi-shared INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}/ompi>)
 
    set_target_properties(rmn-ompi rmn-ompi-shared PROPERTIES
       VERSION ${PROJECT_VERSION}
       PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
-      OUTPUT_NAME rmn-ompi
+      INTERFACE_COMPILE_DEFINITIONS HAVE_RMN=${PROJECT_VERSION}
+      INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}/ompi>
+        OUTPUT_NAME rmn-ompi
       SOVERSION ${SOVERSION})
 
    # Symbolic link for archive numbered version
