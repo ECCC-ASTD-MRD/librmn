@@ -24,8 +24,12 @@ include(ec_compiler_presets)
 add_compile_definitions(HAVE_RMN=\"${PROJECT_VERSION}\")
 add_subdirectory(App App)
 
-set(WITH_OPENMP TRUE CACHE BOOL "Control whether to use OpenMP")
-include(ec_openmp)          # Enable OpenMP (-DWITH_OPENMP=TRUE)
+option(WITH_OMPI "Compile with OpenMP/MPI support" TRUE) # Enable with(-DWITH_OMPI=TRUE)
+if (WITH_OMPI)
+   find_package(MPI REQUIRED)
+   find_package(OpenMP REQUIRED)
+endif()
+
 include(ec_doxygen)         # Doxygen target doc
 
 # Fortran compiler options required to build this project
@@ -39,8 +43,6 @@ set(PGI_FFLAGS -byteswapio)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
-
-find_package(MPI)
 
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
@@ -135,7 +137,7 @@ else()
     add_library(rmn::rmn ALIAS rmn)
 endif()
 
-if(OpenMP_FOUND)
+if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
    set(TARGETS rmn rmn-shared rmn-ompi rmn-ompi-shared)
 
    # Build static library from source files
@@ -158,7 +160,7 @@ if(OpenMP_FOUND)
       PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
       INTERFACE_COMPILE_DEFINITIONS HAVE_RMN=${PROJECT_VERSION}
       INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}/ompi>
-        OUTPUT_NAME rmn-ompi
+      OUTPUT_NAME rmn-ompi
       SOVERSION ${SOVERSION})
 
    # Symbolic link for archive numbered version
