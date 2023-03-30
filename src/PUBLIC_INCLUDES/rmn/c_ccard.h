@@ -4,14 +4,15 @@
 #define CCARD_NCARMAX 256
 #define CCARD_NKLEMAX 100
 
+
 void c_ccard(
-    const char ** const argv,
-    const int argc,
-    const char ** const keyNames,
+    char ** argv,
+    int argc,
+    char **  keyNames,
     char val[][CCARD_NCARMAX],
-    const char ** const def,
-    const int nbKeys,
-    int * const npos
+    char **  def,
+    int nbKeys,
+    int *  npos
 );
 
 #endif
