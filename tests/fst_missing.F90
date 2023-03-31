@@ -18,9 +18,36 @@ contains
     call validate_status(status, line)
     s = status
   end function vs
+
+  subroutine print_values(header, status, fm, dm, im, sm, bm, uim, usm, ubm, ca, za, fa, da)
+    use app
+    implicit none
+    character(len=*), intent(in) :: header
+    integer, intent(in) :: status
+    real(kind = 4), intent(in) :: fm
+    real(kind = 8), intent(in) :: dm
+    integer(kind = 4), intent(in) :: im, uim
+    integer(kind = 2), intent(in) :: sm, usm
+    integer(kind = 1), intent(in) :: bm, ubm
+    real(kind = 4), intent(in), optional :: ca, fa
+    real(kind = 8), intent(in), optional :: za, da
+
+201 format(A, 1X, I2, ', ', 2(G14.5, ', '), I11, ', ', 5I7, ', ', 4G14.5)
+
+    if (present(ca) .and. present(za) .and. present(fa) .and. present(da)) then
+      write(app_msg, 201) trim(header), status, fm, dm, im, sm, bm, uim, usm, ubm, ca, za, fa, da
+    else if (present(ca) .and. present(za)) then
+      write(app_msg, 201) trim(header), status, fm, dm, im, sm, bm, uim, usm, ubm, ca, za
+    else
+      write(app_msg, 201) trim(header), status, fm, dm, im, sm, bm, uim, usm, ubm
+    end if
+    call App_Log(APP_DEBUG, app_msg)
+
+  end subroutine print_values
 end module helpers
 
 program test_missing_values
+  use app
   use helpers
   ! use rmn_fst
   ! use rmn_jar
@@ -82,11 +109,11 @@ ubm = -1
 102 format(                           I2, ': ', 2(G14.5, ', '), I11, ', ', 5I7, ', ', 4G14.5)
 
 CHECK_STATUS(get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm))
-if (verbose) print 101, status, fm, dm, im, sm, bm, uim, usm, ubm
+call print_values('Missing values: status', s, fm, dm, im, sm, bm, uim, usm, ubm)
 
 call set_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm)
 CHECK_STATUS(get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm))
-if (verbose) print 101, status, fm, dm, im, sm, bm, uim, usm, ubm
+call print_values('Missing values: status', s, fm, dm, im, sm, bm, uim, usm, ubm)
 
 ! ---------------
 ! Initialize data
@@ -119,14 +146,10 @@ uia(ASIZE/2) = 113      ! set to 255 to force error message
 usa(ASIZE/2) = 112      ! set to 255 to force error message
 uba(ASIZE/2) = 111      ! set to 255 to force error message
 
-if (verbose) then
-  print *, '======================================'
-  print *, 'Test data:'
-  do i = 1, ASIZE
-    print 102, i, fa(i), da(i), ia(i), sa(i), ba(i), uia(i), usa(i), uba(i), ca(i), za(i)
-  enddo
-  print *, '======================================'
-end if
+call App_Log(APP_DEBUG, 'Test data:')
+do i = 1, ASIZE
+  call print_values('', i, fa(i), da(i), ia(i), sa(i), ba(i), uia(i), usa(i), uba(i), ca(i), za(i))
+enddo
 
 ! Reset status
 status = -1
@@ -137,7 +160,7 @@ status = -1
 ! if (status == 0) close(1234, status='delete')
 inquire(file = test_file_name, EXIST = file_exists)
 if (.not. file_exists) then
-  if (verbose) print *,'============= writing into standard file with and without missing values ============'
+  call App_Log(APP_INFO, '============= writing into standard file with and without missing values ============')
   CHECK_STATUS(fnom(11, test_file_name, 'STD+RND', 0))
   if (is_rsf) then
     CHECK_STATUS(fstouv(11, 'RND+RSF'))
@@ -195,7 +218,7 @@ if (.not. file_exists) then
   CHECK_STATUS(fstfrm(11))
 
 else
-  if (verbose) print *,"============= missing.fst exists, write test will be skipped ============"
+  call App_Log(APP_INFO, "============= missing.fst exists, write test will be skipped ============")
 end if
 
 ! ----------------------------
@@ -203,16 +226,16 @@ end if
 
 !  set new flag values before reading so we can see the difference 'type n' vs 'type n+64'
 fm=-999.99; dm=-888.88; im=-999999; sm=-32768 ; bm=-128; uim=999999 ; usm=32767; ubm=127
-if (verbose) print *,'============================== missing values ============================='
-if (verbose) print *,'#     float        double            int  short   byte   uint ushort  ubyte'
+call App_Log(APP_DEBUG, '============================== missing values =============================')
+call App_Log(APP_DEBUG, '#     float        double            int  short   byte   uint ushort  ubyte')
 call set_missing_value_flags(fm,im,uim,dm,sm,usm,bm,ubm)
-if (verbose) print 101,status,fm,dm,im,sm,bm,uim,usm,ubm
+call print_values('',status,fm,dm,im,sm,bm,uim,usm,ubm)
 
-if (verbose) print *,'============= reading from standard file with and without missing values ============'
+call App_Log(APP_INFO, '============= reading from standard file with and without missing values ============')
 CHECK_STATUS(fnom(12, test_file_name, 'STD+RND+OLD', 0))
 CHECK_STATUS(fstouv(12,'RND'))
 
-if (verbose) print *,'=========== WITHOUT missing value =========='
+call App_Log(APP_INFO, '=========== WITHOUT missing value ==========')
 CHECK_STATUS(fstlir(ia2,12,ni,nj,nk,-1,' ',1,-1,-1,' ',' '))     ! integer
 CHECK_STATUS(fstlir(uia2,12,ni,nj,nk,-1,' ',5,-1,-1,' ',' '))    ! unsigned integer
 
@@ -222,7 +245,8 @@ CHECK_STATUS(fstlir(fa3,12,ni,nj,nk,-1,' ',19,-1,-1,' ',' '))     ! IEEE 32
 ca3 = -1.0
 CHECK_STATUS(fstlir(ca3,12,ni,nj,nk,-1,' ',119,-1,-1,' ',' '))     ! complex IEEE 32
 if (ni /= ASIZE/2) then
-  print *,'ERROR: complex32 expected ni=',ASIZE/2,' got:',ni
+  write(app_msg, '(A, I8, 1X, A, I8)') 'complex32 expected ni=', ASIZE / 2, 'got: ', ni
+  call App_Log(APP_ERROR, app_msg)
   error stop 1
 end if
 
@@ -232,7 +256,8 @@ CHECK_STATUS(fstlir(da3,12,ni,nj,nk,-1,' ',17,-1,-1,' ',' '))     ! IEEE 64
 za3 = -1.0
 CHECK_STATUS(fstlir(za3,12,ni,nj,nk,-1,' ',117,-1,-1,' ',' '))     ! complex IEEE 64
 if (ni /= ASIZE/2) then
-  print *,'ERROR: complex64 expected ni=',ASIZE/2,' got:',ni
+  write(app_msg, '(A, I8, 1X, A, I8)') 'complex64 expected ni=', ASIZE / 2, 'got: ', ni
+  call App_Log(APP_ERROR, app_msg)
   error stop 1
 end if
 
@@ -246,16 +271,15 @@ CHECK_STATUS(fstlir(ba2,12,ni,nj,nk,-1,' ',13,-1,-1,' ',' '))    ! signed byte
 CHECK_STATUS(fst_data_length(1))
 CHECK_STATUS(fstlir(uba2,12,ni,nj,nk,-1,' ',15,-1,-1,' ',' '))   ! unsigned byte
 
-if (verbose) then
-  print *,'---------------------------------------------------------------------------------------------------'
-  print *,'#       float  <16> double          int  short   byte   uint ushort  ubyte    float  <IEEE> double&
-          &     complex 32    complex 64'
-  print *,'---------------------------------------------------------------------------------------------------'
-  do i=1,ASIZE
-    print 102,i,fa2(i),da2(i),ia2(i),sa2(i),ba2(i),uia2(i),usa2(i),uba2(i),fa3(i),da3(i),ca3(i),za3(i)
-  enddo
-  print *,'============= WITH possible missing value(s) ======'
-end if
+call App_Log(APP_DEBUG, '---------------------------------------------------------------------------------------------------')
+call App_Log(APP_DEBUG, '#       float  <16> double          int  short   byte   uint ushort  ubyte    float  <IEEE> double&
+                   &     complex 32    complex 64')
+call App_Log(APP_DEBUG, '---------------------------------------------------------------------------------------------------')
+do i=1,ASIZE
+  call print_values('',i,fa2(i),da2(i),ia2(i),sa2(i),ba2(i),uia2(i),usa2(i),uba2(i),fa3(i),da3(i),ca3(i),za3(i))
+enddo
+call App_Log(APP_INFO, '============= WITH possible missing value(s) ======')
+
 CHECK_STATUS(fstlir(ia2,12,ni,nj,nk,-1,' ',2,-1,-1,' ',' '))     ! integer with missing
 CHECK_STATUS(fstlir(uia2,12,ni,nj,nk,-1,' ',6,-1,-1,' ',' '))    ! unsigned integer with missing
 
@@ -275,16 +299,15 @@ CHECK_STATUS(fstlir(ba2,12,ni,nj,nk,-1,' ',14,-1,-1,' ',' '))   ! signed byte wi
 CHECK_STATUS(fst_data_length(1))
 CHECK_STATUS(fstlir(uba2,12,ni,nj,nk,-1,' ',16,-1,-1,' ',' '))  ! unsigned byte with missing
 
-if (verbose) then
-  print *,'---------------------------------------------------------------------------------------------------'
-  print *,'#    float  <f16> double             int  short   byte   uint ushort  ubyte     float  <IEEE> double&
-          &     complex 32    complex 64'
-  print *,'---------------------------------------------------------------------------------------------------'
-  do i=1,ASIZE
-    print 101,i,fa2(i),da2(i),ia2(i),sa2(i),ba2(i),uia2(i),usa2(i),uba2(i),fa3(i),da3(i),ca3(i),za3(i)
-  enddo
-end if
+call App_Log(APP_DEBUG, '---------------------------------------------------------------------------------------------------')
+call App_Log(APP_DEBUG, '#    float  <f16> double             int  short   byte   uint ushort  ubyte     float  <IEEE> double&
+                   &     complex 32    complex 64')
+call App_Log(APP_DEBUG, '---------------------------------------------------------------------------------------------------')
+do i=1,ASIZE
+  call print_values('',i,fa2(i),da2(i),ia2(i),sa2(i),ba2(i),uia2(i),usa2(i),uba2(i),fa3(i),da3(i),ca3(i),za3(i))
+enddo
 
 CHECK_STATUS(fstfrm(12))
+call App_Log(APP_INFO, 'Test is a success')
 stop
-end
+end program

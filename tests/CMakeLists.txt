@@ -38,12 +38,16 @@ if(BUILD_TESTING)
 
     add_executable(fst_missing_rsf fst_missing.F90)
     target_link_libraries(fst_missing_rsf rmn)
+    target_compile_options(fst_missing_rsf PRIVATE
+        $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
     add_test(NAME fst_missing_rsf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_rsf)
     add_dependencies(check fst_missing_rsf)
 
     add_executable(fst_missing_xdf fst_missing.F90)
     target_compile_definitions(fst_missing_xdf PRIVATE FST_TEST_IS_RSF=.false.)
     target_link_libraries(fst_missing_xdf rmn)
+    target_compile_options(fst_missing_xdf PRIVATE
+        $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
     add_test(NAME fst_missing_xdf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_xdf)
     add_dependencies(check fst_missing_xdf)
 

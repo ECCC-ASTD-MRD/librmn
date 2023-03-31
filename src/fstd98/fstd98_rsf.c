@@ -706,7 +706,8 @@ int c_fstecr_rsf(
 
     /* write record to file and add entry to directory */
     // int ier = c_xdfput(iun, handle, buffer);
-    const int ier = RSF_Put_record(file_handle, record, num_data_bytes);
+    const int64_t record_handle = RSF_Put_record(file_handle, record, num_data_bytes);
+    // Lib_Log(APP_LIBFST, APP_INFO, "%s: new record handle = %ld\n", __func__, record_handle);
     if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
         char string[12];
         sprintf(string, "Write(%d)", iun);
@@ -716,7 +717,7 @@ int c_fstecr_rsf(
     xdf_double = 0;
     xdf_short = 0;
     xdf_byte = 0;
-    return ier;
+    return record_handle > 0 ? 0 : -1;
 }
 
 //! \copydoc c_fstnbr
