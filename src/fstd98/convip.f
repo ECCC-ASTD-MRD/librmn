@@ -74,9 +74,9 @@
 *                                                                             (0 -> 1,000,000) fact=1e4
 *               STRING = valeur de P formattee
 **********************************************************************
-      real *8 TEN
+      real(kind = 8) :: TEN
       parameter (TEN=10.0)
-      real *8 limit1, limit2, temp
+      real(kind = 8) :: limit1, limit2, temp
       real abs_p
       integer iexp,  offset, itemp, lstring
       character *128 var_fmt
@@ -84,7 +84,7 @@
       INTEGER, PARAMETER :: Max_Kind = 31
       integer maxkind
       logical NEWSTYLE, NEWENCODING
-      real *8 exptab(0:15)
+      real(kind = 8) :: exptab(0:15)
       character *2 kinds(0:Max_Kind)
 
       INTEGER :: i

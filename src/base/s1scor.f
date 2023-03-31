@@ -65,7 +65,7 @@
 *
 *------------------------------------------------------------------------
 *
-      REAL*8 A, B, VIJ, FIJ, FI1J, VI1J, FIJ1, VIJ1
+      REAL(kind = 8) :: A, B, VIJ, FIJ, FI1J, VI1J, FIJ1, VIJ1
       integer :: I, J, I2, J2
       S1 = 99999.
 *

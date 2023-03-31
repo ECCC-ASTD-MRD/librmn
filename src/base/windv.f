@@ -67,7 +67,7 @@
 *-----------------------------------------------------------------------
 *
 *
-      real *8 :: FUMVU, FVMVV, WIJ, Y, FTW
+      real(kind = 8) :: FUMVU, FVMVV, WIJ, Y, FTW
       integer :: I, J
       RMS  = 99999.
 *

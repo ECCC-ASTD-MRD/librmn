@@ -5,13 +5,13 @@ integer function FNCNAME(gmm_add_table_entry)(p, key)
     implicit none
 
 #if DIM == 1
-        DATATYPE*DATALENGTH, pointer :: p(:)
+        DATATYPE(kind = DATAKIND), pointer :: p(:)
 #elif DIM == 2
-        DATATYPE*DATALENGTH, pointer :: p(:,:)
+        DATATYPE(kind = DATAKIND), pointer :: p(:,:)
 #elif DIM == 3
-        DATATYPE*DATALENGTH, pointer :: p(:,:,:)
+        DATATYPE(kind = DATAKIND), pointer :: p(:,:,:)
 #elif DIM == 4
-        DATATYPE*DATALENGTH, pointer :: p(:,:,:,:)
+        DATATYPE(kind = DATAKIND), pointer :: p(:,:,:,:)
 #endif
     integer(kind = int64), intent(in) :: key
 

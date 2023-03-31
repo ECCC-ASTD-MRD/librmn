@@ -47,7 +47,7 @@ C     de commentaires (desactivation de code).
 *
       Integer     jour,mois,annee
       Integer     jdebut,jfin,datim(14),is1,is2
-      Real*8      heures
+      Real(kind = 8) :: heures
 *
       External    datmgp,incdatr,jdatec
 *

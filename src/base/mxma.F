@@ -61,7 +61,7 @@ C     General Electric CRD, Information System Operation.
 C
       integer na,iad,nb,ibd,nc,icd,nar,nac,nbc
       integer ac,ar,bc,br,cc,cr,i,j,k
-      real*8 a(1,1),b(1,1),c(1,1)
+      real(8) a(1,1),b(1,1),c(1,1)
 
       bc = 1
       cc = 1

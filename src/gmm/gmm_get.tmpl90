@@ -5,13 +5,13 @@ integer function FNCNAME(gmm_get)(iname, p, m)
 
     character(len=*), intent(in) :: iname
 #if DIM == 1
-    DATATYPE*DATALENGTH, pointer  :: p(:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:)
 #elif DIM == 2
-    DATATYPE*DATALENGTH, pointer  :: p(:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:,:)
 #elif DIM == 3
-    DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:,:,:)
 #elif DIM == 4
-    DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:,:,:,:)
 #endif
     type(gmm_metadata), optional, intent(out) :: m
 

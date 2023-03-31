@@ -35,7 +35,7 @@
       subroutine INCDATi(idate1,idate2,nhours)
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(8) :: nhours
       call date_thread_lock(.true.)
       call IDNACTi(idate1,idate2,nhours)
       call date_thread_lock(.false.)
@@ -44,7 +44,7 @@
       subroutine INCDATr(idate1,idate2,nhours)
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(8) :: nhours
       call date_thread_lock(.true.)
       call IDNACTr(idate1,idate2,nhours)
       call date_thread_lock(.false.)
@@ -53,7 +53,7 @@
       subroutine DIFDATi(idate1,idate2,nhours)
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(8) :: nhours
       call date_thread_lock(.true.)
       call DDIAFTi(idate1,idate2,nhours)
       call date_thread_lock(.false.)
@@ -62,7 +62,7 @@
       subroutine DIFDATr(idate1,idate2,nhours)
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(8) :: nhours
       call date_thread_lock(.true.)
       call DDIAFTr(idate1,idate2,nhours)
       call date_thread_lock(.false.)
@@ -352,7 +352,7 @@
 !--------------------------------------------------------------------
 !
       integer idate1,idate2
-      real*8 nhours
+      real(kind = 8) :: nhours
       logical  adding,rounding
       integer, external :: Calendar_Adjust_int, naetwed
       external Get_Calendar_Status_int

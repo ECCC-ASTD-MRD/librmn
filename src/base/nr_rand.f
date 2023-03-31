@@ -78,16 +78,16 @@ C     REAL mj,mk,ma(55)
       implicit none
       integer nr_rand_i
       external nr_rand_i
-      real *8 FAC,MBIG
+      real(kind = 8) :: FAC,MBIG
       PARAMETER (MBIG=1000000000,FAC=1./MBIG)
       nr_rand_r=FAC*nr_rand_i()
       return
       END
-      real*8 function nr_rand_d()
+      real(kind = 8) function nr_rand_d()
       implicit none
       integer nr_rand_i
       external nr_rand_i
-      real *8 FAC,MBIG
+      real(kind = 8) :: FAC,MBIG
       PARAMETER (MBIG=1000000000,FAC=1./MBIG)
       nr_rand_d=FAC*nr_rand_i()
       return

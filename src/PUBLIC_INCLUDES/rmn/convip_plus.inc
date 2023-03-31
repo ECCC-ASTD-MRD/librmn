@@ -9,7 +9,7 @@
          integer function value_to_string(val,string,maxlen)  
             integer, intent(IN) :: maxlen
             character (len=*), intent(OUT) :: string
-            real *4, intent(IN) :: val
+            real(kind = 4), intent(IN) :: val
          end function value_to_string
 
       end interface

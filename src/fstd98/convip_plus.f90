@@ -78,14 +78,14 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !              (partage avec kind=5 a cause du range exclusif)
 !    KIND =23, reserve pour usage futur (partage avec kind=7)
 
-  real *8 limit1, limit2, temp
+  real(kind = 8) :: limit1, limit2, temp
   real abs_p
   integer iexp,  offset, itemp, lstring
 
   INTEGER, PARAMETER :: Max_Kind = 31
   integer maxkind
   logical NEWSTYLE, NEWENCODING
-  real *8 exptab(0:15)
+  real(kind = 8) :: exptab(0:15)
   character (len=12) :: string2
   integer :: status
 
@@ -410,7 +410,7 @@ integer function value_to_string(val, string, maxlen)
     implicit none
 
     !> The real value to be encoded into string (left aligned)
-    real *4, intent(IN) :: val
+    real(kind = 4), intent(IN) :: val
     !> Encoded representation
     character (len=*), intent(OUT) :: string
     !> Maximum number of characters to use to represent the value
@@ -418,7 +418,7 @@ integer function value_to_string(val, string, maxlen)
 
     character (len=32) :: fstring
     character (len=128) :: tempstring
-    real *4 :: value
+    real(kind = 4) :: value
     integer :: after, before
     integer :: grosint, maxc, intdig
     integer :: i
@@ -527,7 +527,7 @@ subroutine test_value_to_string
   character (len=15) :: stringc
   integer :: i
   integer :: status
-  real *4 :: value
+  real(kind = 4) :: value
 
   value=1.000001
   do i=1,9
