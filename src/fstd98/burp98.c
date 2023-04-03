@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <App.h>
 #include <rmn/burp.h>
@@ -30,9 +31,6 @@
 #define MRBCOV(a, b, c) ((a << 14) | (b << 8) | c)
 
 int32_t f77name(mrfbfl)(int32_t *iun);
-
-int BurP_nele;
-int BurP_ntot;
 
 void c_buf89a0(uint32_t *buffer)
 {
@@ -486,25 +484,22 @@ int c_mrbadd(
     uint32_t r_nele, r_nval, r_nt, r_bfam, r_bdesc;
     uint32_t r_btyp, r_nbit, r_bit0, r_datyp;
 
-    /* initialize block header to 0 */
-    pos = (uint32_t *)&entete;
-    for (i = 0; i < (sizeof(entete) / sizeof(uint32_t)); i++) {
-        *pos = 0;
-    }
+    // initialize block header to 0
+    memset(&entete,sizeof(entete),0x0);
 
     if (((datyp == 3) || (datyp == 5)) && (nbit != 8)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: nbits must be 8 for datyp 3 or 5\n",__func__);
         return(ERR_BAD_DATYP);
     }
 
-    /* validate (possibly modify) nbit and datyp */
+    // validate (possibly modify) nbit and datyp
     inbit = nbit;
     idatyp = datyp;
     nombre = nele * nval * nt;
     err = burp_nbit_datyp(&inbit, &idatyp, tblval, nombre, xdf_stride);
     if (err < 0) return err;
 
-    /* validates lstele for datyp 7,8 or 9 */
+    // validates lstele for datyp 7,8 or 9
     if (datyp >= 7) {
         err = burp_valid789(lstele, nele, datyp);
         if (err < 0) return err;
@@ -958,7 +953,6 @@ int c_mrbrep(
             }
         }
     }
-
     /* replace block */
     err = c_xdfrep((uint32_t *)buf, tblval, bitpos, nombre, new_nbit, new_datyp);
     return err;
@@ -1011,8 +1005,7 @@ int c_mrbxtr(
         lstele += in_header;
         done = (nele < in_header) ? nele : in_header;
     }
-    BurP_nele = nele;
-    BurP_ntot = nele * nval * nt;
+
     nbit = entete.nbit + 1;
     datyp = entete.datyp;
     bit0 = entete.bit0;

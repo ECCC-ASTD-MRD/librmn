@@ -84,7 +84,7 @@ int c_armn_compress32(
 
     if (ni < 16 || nj < 16) {
         zlng = -1;
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: The dimensions of NI and NJ have to be > 16\n",__func__);
+        Lib_Log(APP_LIBFST,APP_WARNING,"%s: The dimensions of NI and NJ have to be > 16\n",__func__);
         return zlng;
     }
 

@@ -48,72 +48,7 @@
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
 static int req_no = 0;
-
 static int init_package_done = 0;
-static key_descriptor truc[] = {
-   {'STI1',   7, 7,  33, 0},
-   {'STI2',  15, 7,  33, 0},
-   {'STI3',  23, 7,  33, 0},
-   {'STI4',  31, 7,  33, 0},
-   {'STI5',  39, 7,  33, 0},
-   {'STI6',  47, 7,  33, 0},
-   {'STI7',  55, 7,  33, 0},
-   {'STI8',  63, 7,  33, 0},
-   {'STI9',  71, 7,  33, 0},
-   {'FLGS',  95, 23,  0, 0},
-   {'LATI', 111, 15,  0, 0},
-   {'LONG', 127, 15,  0, 0},
-   {'DATE', 147, 19,  0, 0},
-   {'DX  ', 159, 11,  0, 0},
-   {'IDTP', 167, 7,   0, 0},
-   {'DY  ', 179, 11,  0, 0},
-   {'HEUR', 185, 5,   0, 0},
-   {'MIN ', 191, 5,   0, 0}
-};
-
-static key_descriptor auxkey[] = {
-   {'NBLK', 15, 15, 0, 0},
-   {'OARS', 31, 15, 0, 0},
-   {'ELEV', 44, 12, 0, 0},
-   {'DRCV', 55, 10, 0, 0},
-   {'RUNN', 63,  7, 0, 0}
-};
-
-static key_descriptor fstcles[] = {
-  {'DEET',  23, 23,  0, 0},
-  {'NBIT',  31,  7,  0, 0},
-  {'NI  ',  55, 23,  0, 0},
-  {'GTYP',  63,  7,  0, 0},
-  {'NJ  ',  87, 23,  0, 0},
-  {'DTYP',  95,  7,  1, 0},
-  {'NK  ', 115, 19,  0, 0},
-  {'UBC ', 127, 11,  0, 0},
-  {'NPAS', 153, 25,  0, 0},
-  {'PAD7', 159,  5,  0, 0},
-  {'IG4 ', 183, 23,  0, 0},
-  {'IG2A', 191,  7,  0, 0},
-  {'IG1 ', 215, 23,  0, 0},
-  {'IG2B', 223,  7,  0, 0},
-  {'IG3 ', 247, 23,  0, 0},
-  {'IG2C', 255,  7,  0, 0},
-  {'ET15', 285, 29, 21, 0},
-  {'PAD1', 287,  1,  0, 0},
-  {'ET6A', 317, 29, 21, 0},
-  {'PAD2', 319,  1,  0, 0},
-  {'ETBC', 331, 11, 18, 0},
-  {'TVAR', 343, 11, 18, 0},
-  {'PAD3', 351,  7,  0, 0},
-  {'NVAR', 375, 23, 20, 0},
-  {'PAD4', 383,  7,  0, 0},
-  {'IP1 ', 411, 27,  0, 0},
-  {'LTYP', 415,  3,  0, 0},
-  {'IP2 ', 443, 27,  0, 0},
-  {'PAD5', 447,  3,  0, 0},
-  {'IP3 ', 475, 27,  0, 0},
-  {'PAD6', 479,  3,  0, 0},
-  {'DATE', 511, 31,  0, 0}
-};
-
 
 // prototypes declarations
 static int get_free_index();
@@ -714,29 +649,22 @@ int c_xdfadd(
     int index_word = buf->nbits / (sizeof(uint32_t) * 8);
 
     if ((index_word + nbwords - 1) > buf->nwords) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: uffer not big enough for insertion\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: buffer not big enough for insertion\n",__func__);
         return(ERR_BAD_DIM);
     }
 
     switch (datyp) {
         case 0:
             // transparent mode
-
         case 3:
-            for (int i = 0; i < nbwords; i++) {
-                buf->data[index_word+i] = donnees[i];
-            }
-            break;
-
         case 6:
-
         case 8:
             for (int i = 0; i < nbwords; i++) {
                 buf->data[index_word+i] = donnees[i];
             }
             break;
-        case 7:
 
+        case 7:
         case 9:
             if (*little_endian) {
                 for (int i = 0; i < nbwords; i+=2) {
@@ -1493,15 +1421,8 @@ int c_xdfins(
     switch (datyp) {
         case 0:
             // transparent mode
-
         case 3:
-            for (i = 0; i < nbwords; i++) {
-                buf->data[index_word+i] = donnees[i];
-            }
-            break;
-
         case 6:
-
         case 8:
             for (i = 0; i < nbwords; i++) {
                 buf->data[index_word + i] = donnees[i];
@@ -1509,7 +1430,6 @@ int c_xdfins(
             break;
 
         case 7:
-
         case 9:
             if (*little_endian) {
                 for (i=0; i < nbwords; i += 2) {
@@ -1887,7 +1807,7 @@ int c_xdfopn(
 
         c_waread(iun, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
-            if ((f->header = malloc(header64.lng * 8)) == NULL) {
+            if ((f->header = calloc(1,header64.lng * 8)) == NULL) {
                 Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                 return(ERR_MEM_FULL);
             }
@@ -2488,11 +2408,6 @@ int c_xdfrep(
         case 0:
             // Transparent mode
         case 3:
-            for (i=0; i < nbwords; i++) {
-                buf->data[index_word+i] = donnees[i];
-            }
-            break;
-
         case 6:
         case 8:
             for (i=0; i < nbwords; i++) {
@@ -2512,8 +2427,8 @@ int c_xdfrep(
                 for (i = 0; i < nbwords; i++) {
                     buf->data[index_word + i] = donnees[i];
                 }
-                break;
             }
+            break;
 
         case 5:
             // Upper char only
@@ -2933,11 +2848,6 @@ int c_xdfxtr(
         case 0:
         case 3:
         case 5:
-            for (i = 0; i < nbwords; i++) {
-                donnees[i] = buf->data[index_word+i];
-            }
-            break;
-
         case 6:
         case 8:
             for (i = 0; i < nbwords; i++)
@@ -2969,7 +2879,7 @@ int c_xdfxtr(
             break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: finvalid datyp=%d\n",__func__,datyp);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid datyp=%d\n",__func__,datyp);
             return(ERR_BAD_DATYP);
     } // End switch (datyp)
 
@@ -3749,7 +3659,7 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
                     ftnword_2 *pri, ftnword_2 *aux,
                     char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
-   int iun = *fiun, nstat = *fnstat, lng, ier, i, nkeys, ninfo;
+   int iun = *fiun, nstat = *fnstat, lng, i, nkeys, ninfo;
    char c_vers[257], c_appl[257];
    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
    uint32_t lstat[12];
@@ -3762,9 +3672,7 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    strncpy(c_appl, appl, lng);
    c_appl[lng] = '\0';
 
-   ier = c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
 }
 
 
@@ -3773,15 +3681,11 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
  *****************************************************************************/
 
 int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
-            int32_t *keys, int32_t *fnkeys, int32_t *info,
-            int32_t *fninfo)
+            int32_t *keys, int32_t *fnkeys, int32_t *info,int32_t *fninfo)
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
-   int ier, i;
 
-   ier = c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
 }
 
 
@@ -3794,11 +3698,8 @@ int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
             int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
-   int ier;
 
-   ier = c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
-
-   return (int32_t) ier;
+   return (int32_t) c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
 }
 
 
@@ -3808,10 +3709,9 @@ int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
 
 int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn)
 {
-   int n = *fn, ier;
+   int n = *fn;
 
-   ier = c_xdflnk(liste, n);
-   return (int32_t) ier;
+   return (int32_t) c_xdflnk(liste, n);
 
 }
 

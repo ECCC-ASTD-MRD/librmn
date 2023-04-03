@@ -27,7 +27,7 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
     !> Numéro d'unité associé au fichier
     integer, intent(in) :: iun
     integer, intent(in) :: temps
-    !> Marqueures globaux
+    !> Marqueurs globaux
     integer, intent(in) :: flgs
     !> Indentificateur de la station
     character(len = *), intent(in) :: stnid
