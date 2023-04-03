@@ -275,7 +275,7 @@ end subroutine swap
   type(FLOAT_IP), intent(IN)  :: RP1,RP2,RP3
 !******
 
-  real*4, dimension(3) :: P
+  real(kind = 4), dimension(3) :: P
   integer, dimension(3) ::kind
   character(len=1) :: dummy
   integer :: i
@@ -364,7 +364,7 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
   type(FLOAT_IP), intent(OUT) :: RP1,RP2,RP3
 !******
 
-  real*4, dimension(3) :: P
+  real(kind = 4), dimension(3) :: P
   integer, dimension(3) ::kind
   character(len=1) :: dummy
   integer :: IP1, IP2, IP3

@@ -68,7 +68,7 @@
 *
 *--------------------------------------------------------------------------
 *
-      REAL *8 BIAS2, x, y, FTW, FMV, WIJ
+      REAL(kind = 8) :: BIAS2, x, y, FTW, FMV, WIJ
       integer :: I, J
 
       BIAS = 99999.

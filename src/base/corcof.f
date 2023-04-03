@@ -71,7 +71,7 @@
 *
 *-----------------------------------------------------------------------
 *
-      REAL *8 R(5), FFI, DA, DF, DW, FTW, X, Y, A, B, C
+      REAL(kind = 8) :: R(5), FFI, DA, DF, DW, FTW, X, Y, A, B, C
       integer :: I, J
       CC = 99999.
       DO 10 I=1,5

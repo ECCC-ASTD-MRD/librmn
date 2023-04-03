@@ -17,7 +17,7 @@ C
 	subroutine ffft_m8(a, n, inc, jump, lot, isign )
 	implicit none
 	integer n,inc, jump, lot, isign
-	real*8  a(*)
+	real(kind = 8) :: a(*)
 
 	call setfft_M8( n )
 	call fft_M8( a, inc, jump, lot, isign )
@@ -38,7 +38,7 @@ C
 	external set99_m8
 
 	integer npts
-	real *8, pointer, dimension(:) :: trigs
+	real(kind = 8), pointer, dimension(:) :: trigs
 	integer, parameter :: maxfac=20
 	integer, dimension(maxfac) :: ifac
 	common /QQQ_FFFT8_QQQ/ trigs,ifac,npts
@@ -60,7 +60,7 @@ C
 	subroutine ffft8( a, inc, jump, lot, isign )
 	implicit none
 	integer inc, jump, lot, isign
-	real*8  a(*)
+	real(kind = 8) :: a(*)
 	call fft_m8(a, inc, jump, lot, isign )
 	return
 	end
@@ -68,10 +68,10 @@ C
 	subroutine fft_M8( a, inc, jump, lot, isign )
 	implicit none
 	integer inc, jump, lot, isign
-	real*8  a(*)
+	real(kind = 8) :: a(*)
 
 	integer npts
-	real *8, pointer, dimension(:) :: trigs
+	real(kind = 8), pointer, dimension(:) :: trigs
 	integer, parameter :: maxfac=20
 	integer, dimension(maxfac) :: ifac
 	common /QQQ_FFFT8_QQQ/ trigs,ifac,npts
@@ -81,7 +81,7 @@ C
 C  CHANGE maxlot ON VECTOR MACHINES
 C
 	integer, parameter :: maxlot=16
-	real *8 work(npts+2,maxlot)
+	real(kind = 8) :: work(npts+2,maxlot)
 	integer i,slice
 
 	do i=1,lot,maxlot
@@ -95,7 +95,7 @@ C
       SUBROUTINE FFT991_M8(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
 	implicit none
 	integer INC,JUMP,N,ILOT,ISIGN
-      REAL*8 A(*),WORK(*), TRIGS(*)
+      REAL(kind = 8) :: A(*),WORK(*), TRIGS(*)
       INTEGER IFAX(*)
 	integer nx,nblox,nvex,i,ia
 	integer nfax,istart,nb,j,ila,igo,k,ifac,ierr
@@ -140,7 +140,7 @@ C
 C     ISIGN=-1: A(K)=(1/N)*SUM(J=0,...,N-1)(X(J)*COS(2*J*K*PI/N))
 C               B(K)=-(1/N)*SUM(J=0,...,N-1)(X(J)*SIN(2*J*K*PI/N))
 C
-      real*8  zero, haf, two
+      real(kind = 8) :: zero, haf, two
       parameter( zero  = 0.0D0 )
       parameter( haf  = 0.5D0 )
       parameter( two   = 2.0D0 )
@@ -319,15 +319,15 @@ C
       SUBROUTINE QPASSM_M8(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
 	implicit none
-      REAL *8  A(*),B(*),C(*),D(*),TRIGS(*)
+      REAL(kind = 8) :: A(*),B(*),C(*),D(*),TRIGS(*)
 	integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
 	integer ijump,jl,m,iink,jink,kstop,ibad,ibase,jbase,igo
 	integer i,j,k,ijk,ia,ib,ja,jb,kb,ic,jc,kc,id,jd,kd
 	integer ie,je,ke,if,jf,kf,ig,ih
-	real *8  c1,s1,c2,s2,c3,s3,c4,s4,c5,s5,z
-	real *8  zsin60,sin45,zqrt5,zsin36,zsin72,zsin45
-	real *8  a1,b1,a2,b2,a3,b3,a0,b0,a4,b4,a5,b5,a6,b6,a10,b10
-	real *8  a11,b11,a20,b20,a21,b21
+	real(kind = 8) :: c1,s1,c2,s2,c3,s3,c4,s4,c5,s5,z
+	real(kind = 8) :: zsin60,sin45,zqrt5,zsin36,zsin72,zsin45
+	real(kind = 8) :: a1,b1,a2,b2,a3,b3,a0,b0,a4,b4,a5,b5,a6,b6,a10,b10
+	real(kind = 8) :: a11,b11,a20,b20,a21,b21
 C
 C     SUBROUTINE 'QPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART
 C     OF MULTIPLE REAL FFT (FOURIER ANALYSIS) ROUTINE
@@ -353,12 +353,12 @@ C              3 - IFAC ONLY CATERED FOR IF ILA=N/IFAC
 C
 C-----------------------------------------------------------------------
 C
-	real *8  SIN36, SIN72, QRT5, SIN60
+	real(kind = 8) :: SIN36, SIN72, QRT5, SIN60
       parameter( sin36 = 0.587785252292473D0)
       parameter( sin72 = 0.951056516295154D0)
       parameter( qrt5  = 0.559016994374947D0)
       parameter( sin60 = 0.866025403784437D0)
-      real*8  zero, haf, two
+      real(kind = 8) :: zero, haf, two
       parameter( zero  = 0.0D0 )
       parameter( haf  = 0.5D0 )
       parameter( two   = 2.0D0 )
@@ -1111,12 +1111,12 @@ C
       SUBROUTINE RPASSM_M8(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
 	implicit none
-      REAL *8 A(*),B(*),C(*),D(*),TRIGS(*)
+      REAL(kind = 8) :: A(*),B(*),C(*),D(*),TRIGS(*)
 	integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
 	integer m,iink,jink,jump,kstop,ibad,ibase,jbase,igo
 	integer ia,ib,ja,jb,il,i,j,ijk,k,kb,ic,jc,kc
-	real *8 c1,c2,s1,s2,ssin60,c3,s3,c4,s4,c5,s5,sin45
-	real *8 qqrt5,ssin45,ssin36,ssin72
+	real(kind = 8) :: c1,c2,s1,s2,ssin60,c3,s3,c4,s4,c5,s5,sin45
+	real(kind = 8) :: qqrt5,ssin45,ssin36,ssin72
 	integer id,jd,kd,ie,je,ke,if,jf,kf,jg,jh
 C
 C     SUBROUTINE 'RPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART
@@ -1143,15 +1143,15 @@ C              3 - IFAC ONLY CATERED FOR IF ILA=N/IFAC
 C
 C-----------------------------------------------------------------------
 C
-      REAL *8 A10(ILOT),A11(ILOT),
+      REAL(kind = 8) :: A10(ILOT),A11(ILOT),
      *     A20(ILOT),A21(ILOT),
      *     B10(ILOT),B11(ILOT),B20(ILOT),B21(ILOT)
-	real *8  SIN36, SIN72, QRT5, SIN60
+	real(kind = 8) :: SIN36, SIN72, QRT5, SIN60
       parameter( sin36 = 0.587785252292473D0)
       parameter( sin72 = 0.951056516295154D0)
       parameter( qrt5  = 0.559016994374947D0)
       parameter( sin60 = 0.866025403784437D0)
-      real*8  zero, haf, two
+      real(kind = 8) :: zero, haf, two
       parameter( zero  = 0.0D0 )
       parameter( haf  = 0.5D0 )
       parameter( two   = 2.0D0 )
@@ -1911,10 +1911,10 @@ C
       SUBROUTINE SET99_M8(TRIGS,IFAX,N)
 	implicit none
 	integer N, IFAX(N)
-	real  *8 TRIGS(N)
+	real(kind = 8) :: TRIGS(N)
       INTEGER JFAX(10),LFAX(7)
 	integer ixxx, nil,nhl,k,nu,ifac,l,nfax,i
-	real  *8 del, angle
+	real(kind = 8) :: del, angle
 C
 C     SUBROUTINE 'SET99' - COMPUTES FACTORS OF N & TRIGONOMETRIC
 C     FUNCTIONS REQUIRED BY FFT99 & FFT991

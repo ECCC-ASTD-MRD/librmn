@@ -47,7 +47,7 @@
 !
 !-------------------------------------------------------------------
 !
-      real*8 :: XG18, XG28
+      real(kind = 8) :: XG18, XG28
 
       IF ((CGTYP .EQ. 'N') .OR. (CGTYP .EQ.'S')) THEN
         IF(IG4 .LT. 32768) THEN    ! ANCIEN STYLE DE CODAGE

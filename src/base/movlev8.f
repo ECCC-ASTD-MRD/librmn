@@ -21,7 +21,7 @@
 *
            subroutine movlev8(src,dest,n)
            integer n
-           real*8 src(*),dest(*)
+           real(kind = 8) :: src(*),dest(*)
 
 *auteur:  J. Caveen - septembre 1993
 *
@@ -38,7 +38,7 @@
 ***
 
             real z1(2)
-            real*8 z2(2)
+            real(kind = 8) :: z2(2)
 
             integer difz1,difz2, inn, i
 

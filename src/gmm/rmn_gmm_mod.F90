@@ -404,7 +404,7 @@ contains
 
 ! Integer functions:
 #define DATATYPE integer
-#define DATALENGTH 4
+#define DATAKIND 4
 
 ! 141
 #define DIM 1
@@ -450,8 +450,8 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
-#define DATALENGTH 8
+#undef DATAKIND
+#define DATAKIND 8
 
 ! 181
 #define DIM 1
@@ -497,13 +497,13 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
+#undef DATAKIND
 #undef DATATYPE
 
 
 ! Real Functions:
 #define DATATYPE real
-#define DATALENGTH 4
+#define DATAKIND 4
 
 ! 241
 #define DIM 1
@@ -549,8 +549,8 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
-#define DATALENGTH 8
+#undef DATAKIND
+#define DATAKIND 8
 
 ! 281
 #define DIM 1
@@ -596,13 +596,13 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
+#undef DATAKIND
 #undef DATATYPE
 
 ! Complex functions:
 
 #define DATATYPE complex
-#define DATALENGTH 8
+#define DATAKIND 4
 
 ! 381
 #define DIM 1
@@ -648,7 +648,7 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
+#undef DATAKIND
 #undef DATATYPE
 
 

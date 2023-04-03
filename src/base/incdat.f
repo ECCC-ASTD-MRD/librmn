@@ -19,7 +19,7 @@
 * */
 	subroutine incdat(id1,id2,nh)
 	integer id1,id2
-	real *8 rnh
+	real(kind = 8) :: rnh
 	rnh=nh
 	call incdatr(id1,id2,rnh)
 	return

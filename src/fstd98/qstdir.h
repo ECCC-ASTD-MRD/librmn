@@ -218,7 +218,7 @@
 //! Number of bits for burp block header
 #define NBENTB 128
 //! Maximum number for nele with 7 bits
-#define GROSNELE 127
+#define GROSNELE 128
 //! Maximum number for nval and nt (8 bits)
 #define GROSDIM 256
 //! Maximum number of primary keys
@@ -871,8 +871,6 @@ typedef buffer_interface* buffer_interface_ptr;
 #if defined(XDF_OWNER)
 //! File table, exported symbol
 file_table_entry_ptr file_table[MAX_XDF_FILES];
-
-
 
 //! Stride
 int xdf_stride = 1;

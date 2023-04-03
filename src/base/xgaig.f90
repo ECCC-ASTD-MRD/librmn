@@ -49,7 +49,7 @@
 !
 !
       REAL XXG2, XXG4
-      REAL*8 :: XLON8, XLAT8
+      REAL(kind = 8) :: XLON8, XLAT8
       INTEGER I2B
       LOGICAL, EXTERNAL :: VALIDE
       LOGICAL STATUS
