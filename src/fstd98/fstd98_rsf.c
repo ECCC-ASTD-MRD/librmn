@@ -190,7 +190,6 @@ int c_fstecr_rsf(
         for (int i = 0; i < nb_remap; i++) {
             if (datyp == remap_table[0][i]) {
                 datyp = remap_table[1][i];
-                // printf("Debug+ remapping %d to %d\n", remap_table[0][i], datyp);
             }
         }
     }
@@ -273,28 +272,8 @@ int c_fstecr_rsf(
         return(ERR_MEM_FULL);
     }
 
-    // printf("record->data = 0x%016x (1), meta = 0x%016x\n", record->data, record->meta);
-
-    // const int keys_len = W64TOWD((fte->primary_len + fte->info_len));
-    // buffer_interface_ptr buffer = (buffer_interface_ptr) alloca((10 + keys_len + nw + 128) * sizeof(int));
-    // if (buffer) {
-    //     memset(buffer, 0, (10 + keys_len + nw + 128) * sizeof(int));
-    // } else {
-    //     Lib_Log(APP_LIBFST, APP_FATAL, "%s: memory is full, was trying to allocate %ld bytes\n", __func__, (10 + keys_len + nw + 128) * sizeof(int));
-    //     return(ERR_MEM_FULL);
-    // }
-
     const int num_bits_per_word = 32;
-    // const int bitmot = 32;
-    // buffer->nwords = 10 + keys_len + nw;
-    // buffer->nbits = (keys_len + nw) * bitmot;
     const int64_t result = RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
-    // buffer->record_index = RECADDR;
-    // buffer->data_index = buffer->record_index + keys_len;
-    // buffer->iun = iun;
-    // buffer->aux_index = buffer->record_index + W64TOWD(fte->primary_len);
-    // buffer->data[buffer->aux_index] = 0;
-    // buffer->data[buffer->aux_index+1] = 0;
 
     char typvar[3] = {' ', ' ', '\0'};
     strncpy(typvar, in_typvar, strlen(in_typvar));
@@ -367,7 +346,6 @@ int c_fstecr_rsf(
     stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
 
     int handle = 0;
-    // TODO: CHECK IF WE CAN HAVE SEQUENTIAL FILES
     // TODO: Be able to mark a record as "deleted"
     if ((rewrit)) {
         // find handle for rewrite operation
@@ -383,17 +361,9 @@ int c_fstecr_rsf(
     if (image_mode_copy) {
         /* no pack/unpack, used by editfst */
         if (datyp > 128) {
-            // int lngw = field[0];
-            // fprintf(stderr, "Debug+ datyp=%d ecriture mode image lngw=%d\n", datyp, lngw);
-            // buffer->nbits = (keys_len + lngw) * bitmot;
             /* first element is length */
             const int num_field_words32 = field[0];
-            // RSF_Record_add_elements(record, (void*)field, num_field_words32 + 1, sizeof(uint32_t));
             memcpy(record->data, field, (num_field_words32 + 1) * sizeof(uint32_t));
-            // for (int i = 0; i < num_field_words + 1; i++) {
-            //     // buffer->data[keys_len + i] = field[i];
-            //     record->data[i] = field[i];
-            // }
         } else {
             int num_field_bits;
             if (datyp == 6) {
@@ -407,11 +377,7 @@ int c_fstecr_rsf(
             if (datyp == 1) num_field_bits += 120;
             if (datyp == 3) num_field_bits = ni * nj * 8;
             const int num_field_words32 = (num_field_bits + num_bits_per_word - 1) / num_bits_per_word;
-            // for (int i = 0; i < num_field_words32; i++) {
-            //     buffer->data[keys_len+i] = field[i];
-            // }
 
-            // RSF_Record_add_elements(record, (void*)field, num_field_words32, sizeof(uint32_t));
             memcpy(record->data, field, num_field_words32 * sizeof(uint32_t));
         }
     } else {
@@ -448,11 +414,7 @@ int c_fstecr_rsf(
                     stdf_entry->datyp = 0;
                 }
                 const int num_words32 = ((ni * nj * nk * nbits) + num_bits_per_word - 1) / num_bits_per_word;
-                // RSF_Record_add_elements(record, (void*)field, num_words32, sizeof(uint32_t));
                 memcpy(record->data, field, num_word32 * sizeof(uint32_t));
-                // for (int i = 0; i < lngw; i++) {
-                //     buffer->data[keys_len+i] = field[i];
-                // }
                 break;
 
             case 1: case 129: {
@@ -471,18 +433,12 @@ int c_fstecr_rsf(
                             ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
                     } else {
                         int nbytes = 16 + compressed_lng;
-                        // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
                         const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
                         const uint32_t num_word32 = W64TOWD(num_word64);
                         ((uint32_t*)record->data)[0] = num_word32;
                         RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
-                        // buffer->data[keys_len] = nw;
-                        // // fprintf(stderr, "Debug+ pack buffer->data[keys_len]=%d\n", buffer->data[keys_len]);
-                        // buffer->nbits = (keys_len + nw) * bitmot;
                     }
                 } else {
-                    // packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
-                    //     ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
                     packfunc(field, (void*)record->data, (void*)&((uint32_t*)record->data)[3],
                         ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
                 }
@@ -497,33 +453,26 @@ int c_fstecr_rsf(
                         if (xdf_short) {
                             stdf_entry->nbits = Min(16, nbits);
                             nbits = stdf_entry->nbits;
-                            // memcpy(&(buffer->data[keys_len+offset]), field, ni * nj * nk * 2);
                             memcpy(&((uint32_t *)record->data)[offset], (void *)field, ni * nj * nk * 2);
                         } else if (xdf_byte) {
                             stdf_entry->nbits = Min(8, nbits);
                             nbits = stdf_entry->nbits;
-                            // memcpy_8_16(&(buffer->data[keys_len+offset]), (void *)field, ni * nj * nk);
                             memcpy_8_16((int16_t *)&((uint32_t *)record->data)[offset], (void *)field, ni * nj * nk);
                         } else {
-                            // memcpy_32_16(&(buffer->data[keys_len+offset]), (void *)field, nbits, ni * nj * nk);
                             memcpy_32_16((short *)&((uint32_t *)record->data)[offset], (void *)field, nbits, ni * nj * nk);
                         }
                         c_armn_compress_setswap(0);
-                        // int compressed_lng = armn_compress(&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1);
-                        int compressed_lng = armn_compress((unsigned char *)&((uint32_t *)record->data)[offset], ni, nj, nk, nbits, 1);
+                        const int compressed_lng = armn_compress((unsigned char *)&((uint32_t *)record->data)[offset],
+                                                                 ni, nj, nk, nbits, 1);
                         c_armn_compress_setswap(1);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = 2;
-                            // compact_integer((void *)field, (void *) NULL, &(buffer->data[keys_len+offset]),
                             compact_integer((void *)field, (void *) NULL, &((uint32_t *)record->data)[offset],
                                 ni * nj * nk, nbits, 0, xdf_stride, 1);
                         } else {
                             const int nbytes = 4 + compressed_lng;
-                            // fprintf(stderr, "Debug+ fstecr armn_compress compressed_lng=%d\n", compressed_lng);
                             const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
                             const uint32_t num_word32 = W64TOWD(num_word64);
-                            // buffer->data[keys_len] = nw;
-                            // buffer->nbits = (keys_len + nw) * bitmot;
                             ((uint32_t *)record->data)[0] = num_word32;
                             RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
                         }
@@ -531,17 +480,14 @@ int c_fstecr_rsf(
                         if (xdf_short) {
                             stdf_entry->nbits = Min(16, nbits);
                             nbits = stdf_entry->nbits;
-                            // compact_short((void *)field, (void *) NULL, &(buffer->data[keys_len+offset]),
                             compact_short((void *)field, (void *) NULL, &((uint32_t *)record->data)[offset],
                                 ni * nj * nk, nbits, 0, xdf_stride, 5);
                         } else if (xdf_byte) {
-                            // compact_char((void *)field, (void *) NULL, &(buffer->data[keys_len]),
                             compact_char((void *)field, (void *) NULL, record->data,
                                 ni * nj * nk, Min(8, nbits), 0, xdf_stride, 9);
                             stdf_entry->nbits = Min(8, nbits);
                             nbits = stdf_entry->nbits;
                         } else {
-                            // compact_integer((void *)field, (void *) NULL, &(buffer->data[keys_len+offset]),
                             compact_integer((void *)field, (void *) NULL, &((uint32_t *)record->data)[offset],
                                 ni * nj * nk, nbits, 0, xdf_stride, 1);
                         }
@@ -561,8 +507,6 @@ int c_fstecr_rsf(
                         datyp = 3;
                         stdf_entry->datyp = 3;
                     }
-                    // compact_integer(field, (void *) NULL, &(buffer->data[keys_len]), nc,
-                    //     32, 0, xdf_stride, 1);
                     compact_integer(field, (void *) NULL, record->data, nc, 32, 0, xdf_stride, 1);
                     stdf_entry->nbits = 8;
                 }
@@ -578,7 +522,6 @@ int c_fstecr_rsf(
                 /* turbo compression not supported for this type, revert to normal mode */
                 stdf_entry->datyp = is_missing | 4;
 #ifdef use_old_signed_pack_unpack_code
-                // fprintf(stderr, "OLD PACK CODE======================================\n");
                 uint32_t * field3 = field;
                 if (xdf_short || xdf_byte) {
                     field3 = (int *)alloca(ni * nj * nk*sizeof(int));
@@ -587,22 +530,13 @@ int c_fstecr_rsf(
                     if (xdf_short) for (int i = 0; i < ni * nj * nk;i++) { field3[i] = s_field[i]; };
                     if (xdf_byte)  for (int i = 0; i < ni * nj * nk;i++) { field3[i] = b_field[i]; };
                 }
-                // compact_integer(field3, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
-                //     nbits, 0, xdf_stride, 3);
                 compact_integer(field3, (void *) NULL, record->data, ni * nj * nk, nbits, 0, xdf_stride, 3);
 #else
-                // fprintf(stderr, "NEW PACK CODE======================================\n");
                 if (xdf_short) {
-                    // compact_short(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
-                    //     nbits, 0, xdf_stride, 7);
                     compact_short(field, (void *) NULL, record->data, ni * nj * nk, nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
-                    // compact_char(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
-                    //     nbits, 0, xdf_stride, 11);
                     compact_char(field, (void *) NULL, record->data, ni * nj * nk, nbits, 0, xdf_stride, 11);
                 } else {
-                    // compact_integer(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
-                    //     nbits, 0, xdf_stride, 3);
                     compact_integer(field, (void *) NULL, record->data, ni * nj * nk, nbits, 0, xdf_stride, 3);
                 }
 #endif
@@ -625,27 +559,20 @@ int c_fstecr_rsf(
                     }
                     if (datyp == 133) {
                         /* use an additionnal compression scheme */
-                        // int compressed_lng = c_armn_compress32(&(buffer->data[keys_len+1]), (void *)field, ni, nj, nk, nbits);
                         const int compressed_lng = c_armn_compress32(
                             (unsigned char *)&((uint32_t *)record->data)[1], (void *)field, ni, nj, nk, nbits);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = 5;
-                            // f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
-                            //                  &f_zero, &f_one);
                             f77name(ieeepak)(field, record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                         } else {
                             const int nbytes = 16 + compressed_lng;
                             const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
                             const uint32_t num_word32 = W64TOWD(num_word64);
-                            // buffer->data[keys_len] = nw;
-                            // buffer->nbits = (keys_len + nw) * bitmot;
                             ((uint32_t *)record->data)[0] = num_word32;
                             RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
                         }
                     } else {
                         if (datyp == 8) f_ni = f_ni * 2;
-                        // f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
-                        //                  &f_zero, &f_one);
                         f77name(ieeepak)(field, record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                     }
                 }
@@ -656,32 +583,23 @@ int c_fstecr_rsf(
 
                 if ((datyp > 128) && (nbits <= 16)) {
                     /* use an additional compression scheme */
-                    // c_float_packer((void *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
                     c_float_packer((void *)field, nbits, &((uint32_t *)record->data)[1],
                                    &((uint32_t *)record->data)[1+header_size], ni * nj * nk);
-                    // int compressed_lng = armn_compress(&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1);
                     const int compressed_lng = armn_compress(
                         (unsigned char *)&((uint32_t *)record->data)[1+header_size], ni, nj, nk, nbits, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 6;
-                        // c_float_packer((void *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
                         c_float_packer((void *)field, nbits, record->data, &((uint32_t *)record->data)[header_size], ni * nj * nk);
                     } else {
                         const int nbytes = 16 + (header_size*4) + compressed_lng;
-                        // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
                         const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
                         const uint32_t num_word32 = W64TOWD(num_word64);
-                        // buffer->data[keys_len] = nw;
-                        // // fprintf(stderr, "Debug+ pack buffer->data[keys_len]=%d\n", buffer->data[keys_len]);
-                        // buffer->nbits = (keys_len + nw) * bitmot;
                         ((uint32_t *)record->data)[0] = num_word32;
                         RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
                     }
                 } else {
-                    // c_float_packer((void *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
                     c_float_packer((void *)field, nbits, record->data,
                                    &((uint32_t *)record->data)[header_size], ni * nj * nk);
-                    // fprintf(stderr, "Debug+ fstecr apres float_packer buffer->data=%8X\n", buffer->data[keys_len]);
                 }
                 break;
 
@@ -694,7 +612,6 @@ int c_fstecr_rsf(
                     datyp = 7;
                     stdf_entry->datyp = 7;
                 }
-                // compact_char(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk, 8, 0, xdf_stride, 9);
                 compact_char(field, (void *) NULL, record->data, ni * nj * nk, 8, 0, xdf_stride, 9);
                 break;
 
@@ -705,9 +622,7 @@ int c_fstecr_rsf(
     } /* end if image mode copy */
 
     /* write record to file and add entry to directory */
-    // int ier = c_xdfput(iun, handle, buffer);
     const int64_t record_handle = RSF_Put_record(file_handle, record, num_data_bytes);
-    // Lib_Log(APP_LIBFST, APP_INFO, "%s: new record handle = %ld\n", __func__, record_handle);
     if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
         char string[12];
         sprintf(string, "Write(%d)", iun);
@@ -891,20 +806,11 @@ int c_fstinfx_rsf(
         search_mask->etik6a = 0;
         search_mask->etikbc = 0;
     }
-    // pkeys += W64TOWD(1);
-    // pmask += W64TOWD(1);
-    // int lhandle = handle;
     int64_t rsf_key = -1;
     const int num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     if (handle == -2) {
         /* means handle not specified */
-        // TODO Check if we can have "seq" RSF files
-        // if (f->xdf_seq) {
-        //     lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
-        // } else {
-        // lhandle = c_xdfloc2(iun, 0, pkeys, 16, pmask);
         rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, num_criteria);
-        // }
     } else {
         // Verify that the given handle (record key) belongs to the given file
         if (handle > 0) {
@@ -917,7 +823,6 @@ int c_fstinfx_rsf(
             }
         }
 
-        // lhandle = c_xdfloc2(iun, lhandle, pkeys, 16, pmask);
         rsf_key = RSF_Lookup(file_handle, handle, pkeys, pmask, num_criteria);
     }
     const int32_t lhandle = RSF_Key32(rsf_key);
@@ -933,7 +838,6 @@ int c_fstinfx_rsf(
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
     }
 
-    // c_xdfprm(lhandle, &addr, &lng, &idtyp, pkeys, 16);
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
@@ -954,10 +858,8 @@ int c_fstinfx_rsf(
                 }
             }
             if (nomatch) {
-                // lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
                 rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, num_criteria);
                 
-                // if (lhandle >= 0) c_xdfprm(lhandle, &addr, &lng, &idtyp, pkeys, 16);
                 if (rsf_key >= 0) {
                     record_info = RSF_Get_record_info(file_handle, rsf_key);
                 }
@@ -971,7 +873,6 @@ int c_fstinfx_rsf(
         if (ip1s_flag) search_mask->ip1 = 0xFFFFFFF;
         if (ip2s_flag) search_mask->ip2 = 0xFFFFFFF;
         if (ip3s_flag) search_mask->ip3 = 0xFFFFFFF;
-        // f->build_primary(f->target, pkeys, f->cur_mask, pmask, index, 1);
         init_ip_vals();
     }
 
@@ -1075,22 +976,6 @@ int c_fstluk_rsf(
 ) {
     uint32_t *field=vfield;
     
-    // fprintf(stderr, "Debug+ c_fstluk(field=%p, handle=%i, ni=%i, nj=%i, nj=%i)\n", field, handle, *ni, *nj, *nk);
-
-    // printf("sizeof(stdf_dir_keys) = %d\n", sizeof(stdf_dir_keys));
-
-    // printf("Debug+ c_fstluk - &stdf_entry = %p\n", &stdf_entry);
-    // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
-    // pkeys += W64TOWD(1);
-    // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
-
-    // printf("Debug+ c_fstluk - c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);\n");
-
-    // int addr, lng, idtyp;
-    // int ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
-    // if (ier < 0) return ier;
-    // const RSF_record_info record_info = RSF_Get_record_info(file_handle, RSF_Key64(key32));
-
     RSF_record* record = RSF_Get_record(file_handle, RSF_Key64(key32));
 
     if (record == NULL) {
@@ -1099,7 +984,6 @@ int c_fstluk_rsf(
         return ERR_BAD_HNDL;
     }
 
-    // uint32_t * pkeys = (uint32_t *) &stdf_entry;
     stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record->meta;
 
     *ni = stdf_entry->ni;
@@ -1118,11 +1002,9 @@ int c_fstluk_rsf(
         packfunc = &compact_float;
     }
 
-    // // lng = W64TOWD(lng);
     const size_t record_size_32 = record->rsz / 4;
     size_t record_size = record_size_32;
     if ((xdf_datatyp == 1) || (xdf_datatyp == 5)) {
-        // lng = (xdf_double) ? 2*lng : lng;
         record_size = (xdf_double) ? 2*record_size : record_size;
     }
 
@@ -1130,7 +1012,6 @@ int c_fstluk_rsf(
     int header_size, stream_size, p1out, p2out;
     if ((xdf_datatyp == 6) || (xdf_datatyp == 134)) {
         // New packer
-        // printf("Debug+ fstluk - c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, (*ni) * (*nj) * (*nk))\n");
         c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, (*ni) * (*nj) * (*nk));
         header_size /= sizeof(int32_t);
         lng2 = 1 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + header_size + 20;
@@ -1140,55 +1021,13 @@ int c_fstluk_rsf(
     } else if (xdf_datatyp > 128) {
         // 16 for 16 bits armn_compress
         lng2 = 4 + ((*ni * *nj * *nk * 16 + 32 + 31) / 32) + 20;
-        // fprintf(stderr, "Debug+ fstluk ni=%d nj=%d nk=%d record_size=%d lng2=%d\n", *ni, *nj, *nk, record_size, lng2);
     } else {
         lng2 = record_size;
 
     }
 
-    // // printf("Debug+ fstluk lng2 = %d\n", lng2);
-
-    // // Allocate 8 more bytes in case of realingment for 64 bit data
-    // int workFieldSz = 8 + (lng2 + 10) * sizeof(int);
-    // // printf("Debug+ fstluk - workFieldSz = %d\n", workFieldSz);
-    // char workField[workFieldSz];
-    // // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
-    // bzero(workField, workFieldSz);
-
-    // // if ((workField = alloca(workFieldSz)) == NULL) {
-    // //     Lib_Log(APP_LIBFST,APP_FATAL,"%s: "memory is full, was trying to allocate %ld bytes\n",__func__,lng*sizeof(int));
-    // //     return(ERR_MEM_FULL);
-    // // } else {
-    // //     printf("Debug+ fstluk - &\n");
-    // //     printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
-    // //     memset(workField, 0, workFieldSz);
-    // // }
-
-    // // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
-    // buffer_interface_ptr buf = (buffer_interface_ptr) workField;
-    // if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7) != 0 ) {
-    //     // Realign buf to make sure that buf->data is 64bit align
-    //     buf = (buffer_interface_ptr) (workField + 1);
-    // }
-    // // negative value means get data only
-    // buf->nwords = -(lng + 10);
-    // buf->nbits = -1;
-    // // printf("Debug+ fstluk - c_xdfget2(handle, buf, stdf_aux_keys)\n");
-    // int stdf_aux_keys[2];
-    // ier = c_xdfget2(handle, buf, stdf_aux_keys);
-    
-    // if (ier < 0) return ier;
-
-
-    // if ((stdf_aux_keys[0] != 0) && (stdf_aux_keys[1] != 0)) {
-    //     Lib_Log(APP_LIBFST, APP_FATAL,
-    //             "%s: wrong version of fstd98 (%d), recompile with a more recent version "
-    //             "(aux_keys[0]=%d, aux_keys[1]=%d)\n", __func__, stdf_version, stdf_aux_keys[0], stdf_aux_keys[1]);
-    //     return(ERR_STDF_VERSION);
-    // }
-
-    int nelm = stdf_entry->ni * stdf_entry->nj * stdf_entry->nk;
-    if (stdf_entry->datyp == 8) nelm *= 2;
+    const int multiplier = (stdf_entry->datyp == 8) ? 2 : 1;
+    int nelm = stdf_entry->ni * stdf_entry->nj * stdf_entry->nk * multiplier;
 
     int npak = -(stdf_entry->nbits);
     const int bitmot = 32;
@@ -1218,7 +1057,6 @@ int c_fstluk_rsf(
         switch (stdf_entry->datyp) {
             case 0: {
                 // Raw binary
-                // printf("Debug+ fstluk - Raw binary\n");
                 int lngw = ((nelm * stdf_entry->nbits) + bitmot - 1) / bitmot;
                 for (int i = 0; i < lngw; i++) {
                     field[i] = ((uint32_t*)record->data)[i];
@@ -1229,12 +1067,9 @@ int c_fstluk_rsf(
             case 1:
             case 129: {
                 // Floating Point
-                // printf("Debug+ fstluk - Floating Point\n");
                 double tempfloat = 99999.0;
                 if (stdf_entry->datyp > 128) {
-                    // fprintf(stderr, "Debug+ unpack record->data=%d\n", *(record->data));
                     int nbytes = armn_compress((unsigned char *)(record->data + 5), *ni, *nj, *nk, stdf_entry->nbits, 2);
-                    // fprintf(stderr, "Debug+ record->data + 4 + (nbytes / 4) - 1 = %X record->data + 4 + (nbytes / 4) = %X \n", *(record->data + 4 + (nbytes / 4) - 1), *(record->data + 4 + (nbytes / 4)));
                     packfunc(field, record->data + 1, record->data + 5, nelm, stdf_entry->nbits + 64 * Max(16, stdf_entry->nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
                 } else {
@@ -1247,13 +1082,11 @@ int c_fstluk_rsf(
             case 130:
                 {
                     // Integer, short integer or byte stream
-                    // printf("Debug+ fstluk - Integer, short integer or byte stream\n");
                     int offset = stdf_entry->datyp > 128 ? 1 : 0;
                     if (xdf_short) {
                         if (stdf_entry->datyp > 128) {
                             c_armn_compress_setswap(0);
                             int nbytes = armn_compress((unsigned char *)(record->data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2);
-                            // printf("Debug+ fstluk mode short compress nbytes=%d\n", nbytes);
                             c_armn_compress_setswap(1);
                             memcpy(field, record->data + offset, nbytes);
                         } else {
@@ -1264,7 +1097,6 @@ int c_fstluk_rsf(
                             c_armn_compress_setswap(0);
                             int nbytes = armn_compress((unsigned char *)(record->data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2);
                             c_armn_compress_setswap(1);
-                            // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n", nbytes, nelm);
                             memcpy_16_8((int8_t *)field, (int16_t *)(record->data + offset), nelm);
                         } else {
                             ier = compact_char(field, (void *) NULL, record->data, nelm, 8, 0, xdf_stride, 10);
@@ -1274,7 +1106,6 @@ int c_fstluk_rsf(
                             c_armn_compress_setswap(0);
                             int nbytes = armn_compress((unsigned char *)(record->data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2);
                             c_armn_compress_setswap(1);
-                            // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
                             memcpy_16_32(field, (int16_t *)(record->data + offset), stdf_entry->nbits, nelm);
                         } else {
                             ier = compact_integer(field, (void *) NULL, record->data + offset, nelm, stdf_entry->nbits, 0, xdf_stride, 2);
@@ -1285,18 +1116,15 @@ int c_fstluk_rsf(
 
             case 3: {
                 // Character
-                // printf("Debug+ fstluk - Character\n");
                 int nc = (nelm + 3) / 4;
                 ier = compact_integer(field, (void *) NULL, record->data, nc, 32, 0, xdf_stride, 2);
                 break;
             }
 
 
-            case 4:
+            case 4: {
                 // Signed integer
-                // printf("Debug+ fstluk - Signed integer\n");
-#ifdef use_old_signed_pack_unpack_code
-                !! fprintf(stderr, "OLD UNPACK CODE ======================================\n");
+#if defined(use_old_signed_pack_unpack_code)
                 int *field_out;
                 short *s_field_out;
                 signed char *b_field_out;
@@ -1319,7 +1147,6 @@ int c_fstluk_rsf(
                     }
                 }
 #else
-                !! fprintf(stderr, "NEW UNPACK CODE ======================================\n");
                 if (xdf_short) {
                     ier = compact_short(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 8);
                 } else if (xdf_byte) {
@@ -1329,11 +1156,11 @@ int c_fstluk_rsf(
                 }
 #endif
                 break;
+            }
 
             case 5:
             case 8: {
                 // IEEE representation
-                // printf("Debug+ fstluk - IEEE representation\n");
                 register int32_t temp32, *src, *dest;
                 if ((downgrade_32) && (stdf_entry->nbits == 64)) {
                     // Downgrade 64 bit to 32 bit
@@ -1364,12 +1191,9 @@ int c_fstluk_rsf(
             case 6:
             case 134: {
                 // Floating point, new packers
-                // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (stdf_entry->datyp > 128) {
                     int nbytes = armn_compress((unsigned char *)(record->data + 1 + header_size), *ni, *nj, *nk, stdf_entry->nbits, 2);
-                    // fprintf(stderr, "Debug+ record->data+4+(nbytes/4)-1=%X record->data+4+(nbytes/4)=%X \n",
-                    //    *(record->data+4+(nbytes/4)-1), *(record->data+4+(nbytes/4)));
 
                     c_float_unpacker((float *)field, record->data + 1, record->data + 1 + header_size, nelm, &nbits);
                 } else {
@@ -1380,15 +1204,12 @@ int c_fstluk_rsf(
 
             case 133: {
                 // Floating point, new packers
-                // printf("Debug+ fstluk - Floating point, new packers (133)\n");
                 int nbytes = c_armn_uncompress32((float *)field, (unsigned char *)(record->data + 1), *ni, *nj, *nk, stdf_entry->nbits);
                 break;
             }
 
             case 7:
                 // Character string
-                // printf("Debug+ fstluk - Character string\n");
-                // printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n", xdf_stride, nelm);
                 ier = compact_char(field, (void *) NULL, record->data, nelm, 8, 0, xdf_stride, 10);
                 break;
 
@@ -1401,7 +1222,6 @@ int c_fstluk_rsf(
     if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_TRIVIAL) {
         char string[11];
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, key32);
-        // sprintf(string, "Read(%d)", buf->iun);
         stdf_entry->datyp = stdf_entry->datyp | has_missing;
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
@@ -1409,7 +1229,6 @@ int c_fstluk_rsf(
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
         // if nbits = 64 and IEEE , set xdf_double
         if ((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) xdf_double = 1;
-        // printf("Debug+ fstluk - DecodeMissingValue\n");
         DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, xdf_byte, xdf_short, xdf_double);
     }
 
