@@ -23,6 +23,7 @@ include(ec_compiler_presets)
 # Need to add HAVE_RMN definition for auto-registering librmn within App
 add_compile_definitions(HAVE_RMN=\"${PROJECT_VERSION}\")
 add_subdirectory(App App)
+add_subdirectory(src/fstd98/rsfiles)
 
 option(WITH_OMPI "Compile with OpenMP/MPI support" TRUE) # Enable with(-DWITH_OMPI=TRUE)
 if (WITH_OMPI)
@@ -62,8 +63,6 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
 
-# find_package(rsfiles REQUIRED)
-add_subdirectory(/home/vma000/ords/rsfiles rsfiles)
 
 include_directories(
    include
