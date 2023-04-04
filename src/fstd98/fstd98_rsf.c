@@ -659,8 +659,8 @@ int c_fstouv_rsf(
     char appl[5]
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
-    int32_t meta_dim = sizeof(stdf_dir_keys) / sizeof(int32_t);
-    FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, &meta_dim, appl, NULL);
+    const int32_t meta_dim = (sizeof(stdf_dir_keys) + 3)/ sizeof(int32_t); // In 32-bit units
+    FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, NULL);
     
     if (RSF_Valid_handle(FGFDT[index_fnom].rsf_fh)) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opened file %s, mode %d, fnom index %d, meta dim 0x%x\n", __func__,
@@ -902,7 +902,9 @@ int c_fstfrm_rsf(
         return ERR_NO_FILE;
     }
 
-    return RSF_Close_file(file_handle);
+    const int32_t status = RSF_Close_file(file_handle);
+
+    return status == 1 ? 0 : -1;
 }
 
 //! \copydoc c_fstlirx
