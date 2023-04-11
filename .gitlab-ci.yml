@@ -185,8 +185,6 @@ package:rhel-8-amd64_inteloneapi-2022.1.2:
 #----- rhel-8-amd64_gnu-9.3.0
 
 build:rhel-8-amd64_gnu-9.3.0:
-   variables:
-      ORD_SOUMET_C: "1"
    stage: build
    only:
       - master
@@ -242,8 +240,6 @@ package:rhel-8-amd64_gnu-9.3.0:
 #----- rhel-8-amd64_gnu-12.1.0
 
 build:rhel-8-amd64_gnu-12.1.0:
-   variables:
-      ORD_SOUMET_C: "1"
    stage: build
    only:
      - master
@@ -422,7 +418,6 @@ build:ubuntu-18.04-amd64_gnu-9.3.0:
       ORD_SOUMET_MACH    : gpsc5
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-18.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
-      ORD_SOUMET_C       : "1"
    stage: build
    only:
      - master
@@ -559,7 +554,6 @@ build:ubuntu-22.04-amd64_gnu-11.3.0:
       ORD_SOUMET_MACH    : gpsc5
       ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
       ORD_SOUMET_PROJECT : eccc_mrd
-      ORD_SOUMET_C       : "1"
    stage: build
    only:
      - master
