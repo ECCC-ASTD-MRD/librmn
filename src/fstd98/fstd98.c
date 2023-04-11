@@ -2337,7 +2337,7 @@ int c_fstluk(
             }
 
 
-            case 4:
+            case 4: {
                 // Signed integer
                 // printf("Debug+ fstluk - Signed integer\n");
 #ifdef use_old_signed_pack_unpack_code
@@ -2374,7 +2374,7 @@ int c_fstluk(
                 }
 #endif
                 break;
-
+            }
             case 5:
             case 8: {
                 // IEEE representation
