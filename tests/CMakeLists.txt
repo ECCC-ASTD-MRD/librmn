@@ -3,6 +3,10 @@ if(BUILD_TESTING)
 
     message(STATUS "(EC) Generating librmn tests")
 
+    # Helper module
+    add_library(test_helper rmn_test_helper.F90)
+    target_link_libraries(test_helper rmn)
+
     add_executable(clib_isalpha EXCLUDE_FROM_ALL ${CMAKE_CURRENT_SOURCE_DIR}/clib_isalpha.F90)
     target_link_libraries(clib_isalpha rmn)
     add_test(NAME clib_isalpha COMMAND ${CMAKE_CURRENT_BINARY_DIR}/clib_isalpha ${CMAKE_CURRENT_SOURCE_DIR}/spp.dict)
@@ -36,20 +40,24 @@ if(BUILD_TESTING)
     add_test(NAME c_ccard COMMAND ${CMAKE_CURRENT_BINARY_DIR}/c_ccard)
     add_dependencies(check c_ccard)
 
-    add_executable(fst_missing_rsf fst_missing.F90)
-    target_link_libraries(fst_missing_rsf rmn)
-    target_compile_options(fst_missing_rsf PRIVATE
-        $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
-    add_test(NAME fst_missing_rsf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_rsf)
-    add_dependencies(check fst_missing_rsf)
+    foreach(FST_BACKEND rsf xdf)
+        add_executable(fst_missing_${FST_BACKEND} fst_missing.F90)
+        target_link_libraries(fst_missing_${FST_BACKEND} rmn test_helper)
+        target_compile_options(fst_missing_${FST_BACKEND} PRIVATE
+            $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
+        add_test(NAME fst_missing_${FST_BACKEND} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_${FST_BACKEND})
+        add_dependencies(check fst_missing_${FST_BACKEND})
 
-    add_executable(fst_missing_xdf fst_missing.F90)
-    target_compile_definitions(fst_missing_xdf PRIVATE FST_TEST_IS_RSF=.false.)
-    target_link_libraries(fst_missing_xdf rmn)
-    target_compile_options(fst_missing_xdf PRIVATE
-        $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
-    add_test(NAME fst_missing_xdf COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_xdf)
-    add_dependencies(check fst_missing_xdf)
+        add_executable(fst_interface_${FST_BACKEND} fst_interface.F90)
+        target_link_libraries(fst_interface_${FST_BACKEND} rmn test_helper)
+        add_test(NAME fst_interface_${FST_BACKEND} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_interface_${FST_BACKEND})
+        add_dependencies(check fst_interface_${FST_BACKEND})
+
+        if (${FST_BACKEND} STREQUAL xdf)
+            target_compile_definitions(fst_missing_xdf PRIVATE FST_TEST_IS_RSF=.false.)
+            target_compile_definitions(fst_interface_xdf PRIVATE FST_TEST_IS_RSF=.false.)
+        endif()
+    endforeach()
 
     add_executable(burp_f EXCLUDE_FROM_ALL burp_f.f)
     target_link_libraries(burp_f rmn)

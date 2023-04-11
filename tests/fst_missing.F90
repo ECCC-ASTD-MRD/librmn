@@ -49,8 +49,7 @@ end module helpers
 program test_missing_values
   use app
   use helpers
-  ! use rmn_fst
-  ! use rmn_jar
+  use rmn_test_helper
 !
 !  rm -f missing.fst ; MISSING_VALUE_FLAGS="99.0 127 255" ./a.out
 !
@@ -108,11 +107,13 @@ ubm = -1
 101 format('Missing values: status ', I2, ', ', 2(G14.5, ', '), I11, ', ', 5I7, ', ', 4G14.5)
 102 format(                           I2, ': ', 2(G14.5, ', '), I11, ', ', 5I7, ', ', 4G14.5)
 
-CHECK_STATUS(get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm))
+status = get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm)
+call check_status(status, expected = 0, fail_message = 'get_missing_value_flags')
 call print_values('Missing values: status', s, fm, dm, im, sm, bm, uim, usm, ubm)
 
 call set_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm)
-CHECK_STATUS(get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm))
+status = get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm)
+call check_status(status, expected = 1, fail_message = 'get_missing_value_flags')
 call print_values('Missing values: status', s, fm, dm, im, sm, bm, uim, usm, ubm)
 
 ! ---------------
@@ -161,11 +162,14 @@ status = -1
 inquire(file = test_file_name, EXIST = file_exists)
 if (.not. file_exists) then
   call App_Log(APP_INFO, '============= writing into standard file with and without missing values ============')
-  CHECK_STATUS(fnom(11, test_file_name, 'STD+RND', 0))
+  status = (fnom(11, test_file_name, 'STD+RND', 0))
+  call check_status(status, expected = 0, fail_message = 'fnom')
   if (is_rsf) then
-    CHECK_STATUS(fstouv(11, 'RND+RSF'))
+    status = (fstouv(11, 'RND+RSF'))
+    call check_status(status, expected_min = 0, fail_message = 'fstouv (RSF)')
   else
-    CHECK_STATUS(fstouv(11,'RND'))
+    status = (fstouv(11,'RND'))
+    call check_status(status, expected = 0, fail_message = 'fstouv (XDF)')
   end if
   
   ! Line limit is 127 columns (for gfortran)

@@ -1,0 +1,1000 @@
+! Copyright (C) 2021  Environnement et Changement climatique Canada
+!
+! This is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This software is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! Author:
+!     M. Valin,   Recherche en Prevision Numerique, 2021
+!
+! interfaces to the fstxxx and c_fstxxx entry points in librmn
+! MUTUALLY EXCLUSIVE with : use fstd98_mod
+!
+! include interface to the c_fstxxx functions
+!
+#include <fstd98/c_fstd98_interface.hf>
+!
+! do not include the interface to the Fortran functions if C_INTERFACE_ONLY is defined
+! (used by fstd98_mod.F90 to avoid duplicate interfaces)
+!
+#if ! defined(C_INTERFACE_ONLY)
+
+interface
+! /*****************************************************************************
+!  *                              F S T O U V                                  *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Opens a RPN standard file.                                              *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *  IN  iun     unit number associated to the file                           *
+!  *  IN  options random or sequential access                                  *
+!  *                                                                           *
+!  *****************************************************************************/
+  function fstouv(iun, options) result (status)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    character(len=*), intent(IN) :: options
+    integer :: status
+  end function fstouv
+! /***************************************************************************** 
+!  *                              F S T F R M                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Closes a RPN standard file.                                             *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstfrm(iun) result (status)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer :: status
+  end function fstfrm
+! /***************************************************************************** 
+!  *                              F S T N B R                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Returns the number of records of the file associated with unit number.  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstnbr(iun) result (nrec)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer :: nrec
+  end function fstnbr
+! /***************************************************************************** 
+!  *                              F S T N B R V                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Returns the number of valid records (excluding deleted records) of the  *
+!  *   file associated with unit number.                                       *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstnbrv(iun) result (status)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer :: status
+  end function fstnbrv
+! /***************************************************************************** 
+!  *                                F S T C K P                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Checkpoint. Clear buffers, rewrite headers.                             *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstckp(iun) result (status)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer :: status
+  end function fstckp
+! /***************************************************************************** 
+!  *                              F S T I N F                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Locate the next record that matches the research keys.                  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *  IN  datev   valid date                                                   * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field                                                * 
+!  *  IN  nomvar  variable name                                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer :: handle
+    character(len=5)  :: nom
+    character(len=3)  :: typ
+    character(len=13) :: eti
+  end function fstinf
+!  /***************************************************************************** 
+!  *                            F S T S U I                                    *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Finds the next record that matches the last search criterias            *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstsui(iun, ni, nj, nk) result(handle)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer :: handle
+  end function fstsui
+! /***************************************************************************** 
+!  *                              F S T I N F X                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Locate the next record that matches the research keys.                  *
+!  *   The search begins at the position given by the start handle.            * 
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  start   handle from which the search begins                          *
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *  IN  datev   valid date                                                   * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field                                                * 
+!  *  IN  nomvar  variable name                                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstinfx(start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+
+    implicit none
+    integer, intent(IN), value :: iun, start
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer :: handle
+    character(len=5)  :: nom
+    character(len=3)  :: typ
+    character(len=13) :: eti
+  end function fstinfx
+! /***************************************************************************** 
+!  *                              F S T I N L                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Locates all the records that match the research keys.                   *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *  IN  datev   valid date                                                   * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field                                                * 
+!  *  IN  nomvar  variable name                                                *
+!  *  OUT liste   list of handles to the records                               *
+!  *  OUT infon   number of elements for the list (number of records found)    *
+!  *  OUT nmax    dimension of list as given by caller                         *
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstinl(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax) result(status)
+
+    implicit none
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3, nmax
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer, intent(OUT) :: infon
+    integer, dimension(nmax), intent(OUT) :: liste
+    integer :: status
+    character(len=5)  :: nom
+    character(len=3)  :: typ
+    character(len=13) :: eti
+  end function fstinl
+! /*****************************************************************************
+!  *                              F S T P R M                                  *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Get all the description informations of the record.                     *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *  IN  handle  positioning information to the record                        *
+!  *  OUT date    date time stamp                                              *
+!  *  OUT deet    length of a time step in seconds                             *
+!  *  OUT npas    time step number                                             *
+!  *  OUT ni      first dimension of the data field                            *
+!  *  OUT nj      second dimension of the data field                           *
+!  *  OUT nk      third dimension of the data field                            * 
+!  *  OUT nbits   number of bits kept for the elements of the field            * 
+!  *  OUT datyp   data type of the elements                                    * 
+!  *  OUT ip1     vertical level                                               * 
+!  *  OUT ip2     forecast hour                                                * 
+!  *  OUT ip3     user defined identifier                                      * 
+!  *  OUT typvar  type of field (forecast, analysis, climatology)              * 
+!  *  OUT nomvar  variable name                                                * 
+!  *  OUT etiket  label                                                        * 
+!  *  OUT grtyp   type of geographical projection                              * 
+!  *  OUT ig1     first grid descriptor                                        * 
+!  *  OUT ig2     second grid descriptor                                       * 
+!  *  OUT ig3     third grid descriptor                                        * 
+!  *  OUT ig4     fourth grid descriptor                                       * 
+!  *  OUT swa     starting word address                                        * 
+!  *  OUT lng     record length                                                * 
+!  *  OUT dltf    delete flag                                                  * 
+!  *  OUT ubc     unused bit count                                             * 
+!  *  OUT extra1  extra parameter                                              * 
+!  *  OUT extra2  extra parameter                                              * 
+!  *  OUT extra3  extra parameter                                              * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  subroutine fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+                    typvar, nomvar, etiket, grtyp, &
+                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
+    implicit none
+    integer, intent(IN), value :: handle
+    integer, intent(OUT) :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
+    integer, intent(OUT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+    character(len=*), intent(OUT) :: typvar, nomvar, etiket, grtyp
+  end subroutine fstprm
+! /***************************************************************************** 
+!  *                              F S T L I R X                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Reads the next record that matches the research keys.                   *
+!  *   The search begins at the position given by the start handle.            * 
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  OUT field   data field to be read                                        * 
+!  *  IN  start   handle from which the search begins                          *
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *  IN  datev   valid date                                                   * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field                                                * 
+!  *  IN  nomvar  variable name                                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstlirx(field, start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun, start
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer :: handle
+  end function fstlirx
+! /***************************************************************************** 
+!  *                              F S T L I R                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Reads the next record that matches the research keys.                   *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT field   data field to be read                                        * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *  IN  datev   valid date                                                   * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field                                                * 
+!  *  IN  nomvar  variable name                                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstlir(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer :: handle
+  end function fstlir
+! /***************************************************************************** 
+!  *                              F S T L I R _ S                              *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Reads the next record that matches the research keys.                   *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT string  character string to be read                                  * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *  IN  datev   valid date                                                   * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field                                                * 
+!  *  IN  nomvar  variable name                                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+! ftnword f77name(fstlir_s)(void *string, ftnword *f_iun,
+!                         ftnword *f_ni, ftnword *f_nj,
+!                         ftnword *f_nk, ftnword *f_datev, char *f_etiket,
+!                         ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
+!                         char *f_typvar, char *f_nomvar,
+!                         int lng_string, F2Cl ll1, F2Cl ll2, F2Cl ll3)
+  function fstlir_s(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, lngstr) result(handle)
+
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes ,target
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3, lngstr
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer :: handle
+  end function fstlir_s
+! /***************************************************************************** 
+!  *                            F S T L I S                                    *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Reads the next record that matches the last search criterias            *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  OUT field   data field to be read                                        * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+! int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
+! ftnword f77name(fstlis)(word *field, ftnword *f_iun,
+!                         ftnword *f_ni, ftnword *f_nj, ftnword *f_nk)
+  function fstlis(field, iun, ni, nj, nk) result(handle)
+
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer :: handle
+  end function fstlis
+! /***************************************************************************** 
+!  *                             F S T L I C                                   *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Search for a record that matches the research keys and check that the   *
+!  *   remaining parmeters match the record descriptors                        *
+!  *                                                                           *
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  OUT field    data field to be read                                       * 
+!  *  IN  iun      unit number associated to the file                          * 
+!  *  IN  niin     dimension 1 of the data field                               * 
+!  *  IN  njin     dimension 2 of the data field                               * 
+!  *  IN  nkin     dimension 3 of the data field                               * 
+!  *  IN  datev    valid date                                                  * 
+!  *  IN  etiket   label                                                       * 
+!  *  IN  ip1      vertical level                                              * 
+!  *  IN  ip2      forecast hour                                               * 
+!  *  IN  ip3      user defined identifier                                     * 
+!  *  IN  typvar   type of field                                               * 
+!  *  IN  nomvar   variable name                                               * 
+!  *  IN  ig1      first grid descriptor                                       * 
+!  *  IN  ig2      second grid descriptor                                      * 
+!  *  IN  ig3      third grid descriptor                                       * 
+!  *  IN  ig4      fourth grid descriptor                                      * 
+!  *  IN  grtyp    type of geographical projection                             * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstlic(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, &
+                  ig1, ig2, ig3, ig4, grtyp) result(handle)
+
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun
+    integer, intent(OUT) :: ni, nj, nk
+    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer, intent(IN)  :: ig1, ig2, ig3, ig4
+    integer :: handle
+  end function fstlic
+
+! /***************************************************************************** 
+!  *                              F S T E C R                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Writes a record into a file.                                                  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  field   field to write to the file                                   * 
+!  *  IN  work    work field (kept for backward compatibility)                 * 
+!  *  IN  npak    number of bits kept for the elements of the field (-npak)    * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  date    date time stamp                                              * 
+!  *  IN  deet    length of a time step in seconds                             * 
+!  *  IN  npas    time step number                                             * 
+!  *  IN  ni      first dimension of the data field                            * 
+!  *  IN  nj      second dimension of the data field                           * 
+!  *  IN  nk      third dimension of the data field                            * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field (forecast, analysis, climatology)              * 
+!  *  IN  nomvar  variable name                                                * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  grtyp   type of geographical projection                              * 
+!  *  IN  ig1     first grid descriptor                                        * 
+!  *  IN  ig2     second grid descriptor                                       * 
+!  *  IN  ig3     third grid descriptor                                        * 
+!  *  IN  ig4     fourth grid descriptor                                       * 
+!  *  IN  datyp   data type of the elements                                    * 
+!  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+!  *                                                                           * 
+!  *****************************************************************************/
+  subroutine fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                    ip1, ip2, ip3, typvar, nomvar, etiket, &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+
+    implicit none
+#define IgnoreTypeKindRank field, work
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun
+    integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+  end subroutine fstecr
+! /***************************************************************************** 
+!  *                              F S T E C R _ S                              *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Writes record to file.                                                  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  string  character string to write to the file                        * 
+!  *  IN  work    work field (kept for backward compatibility)                 * 
+!  *  IN  npak    number of bits kept for the elements of the field (-npak)    * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  date    date time stamp                                              * 
+!  *  IN  deet    length of a time step in seconds                             * 
+!  *  IN  npas    time step number                                             * 
+!  *  IN  ni      first dimension of the data field                            * 
+!  *  IN  nj      second dimension of the data field                           * 
+!  *  IN  nk      third dimension of the data field                            * 
+!  *  IN  ip1     vertical level                                               * 
+!  *  IN  ip2     forecast hour                                                * 
+!  *  IN  ip3     user defined identifier                                      * 
+!  *  IN  typvar  type of field (forecast, analysis, climatology)              * 
+!  *  IN  nomvar  variable name                                                * 
+!  *  IN  etiket  label                                                        * 
+!  *  IN  grtyp   type of geographical projection                              * 
+!  *  IN  ig1     first grid descriptor                                        * 
+!  *  IN  ig2     second grid descriptor                                       * 
+!  *  IN  ig3     third grid descriptor                                        * 
+!  *  IN  ig4     fourth grid descriptor                                       * 
+!  *  IN  datyp   data type of the elements                                    * 
+!  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                    ip1, ip2, ip3, typvar, nomvar, etiket, &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
+
+    implicit none
+#define IgnoreTypeKindRank field, work
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: iun
+    integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer :: status
+  end function fstecr_s
+! /***************************************************************************** 
+!  *                             F S T E F F                                   *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Deletes the record associated to handle.                                *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  handle  handle to the record to delete                               * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fsteff(handle) result (status)
+
+    implicit none
+    integer, intent(IN), value :: handle
+    integer :: status
+  end function fsteff
+
+! /***************************************************************************** 
+!  *                              F S T L U K                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Read the record at position given by handle.                            *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  OUT field   data field to be read                                        * 
+!  *  IN  handle  positioning information to the record                        * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstluk(field, handle, ni, nj, nk) result(handle_out)
+
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes 
+#include <IgnoreTypeKindRank.hf>
+    integer, intent(IN), value :: handle
+    integer, intent(OUT) :: ni, nj, nk
+    integer :: handle_out
+  end function fstluk
+
+! /***************************************************************************** 
+!  *                              F S T L N K                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Links a list of files together for search purpose.                      *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  liste   list of unit numbers associated to the files                 * 
+!  *  IN  n       number of files to link                                      * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstlnk(link_list,n) result(status) bind(C,name='c_fstlnk')
+
+    implicit none
+    integer, intent(IN), value :: n
+    integer, dimension(n) :: link_list
+    integer :: status
+  end function fstlnk
+
+!  /***************************************************************************** 
+!  *                              F S T U N L                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Unlinks a list of files previously linked by fstlnk.                    *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  liste   list of unit numbers associated to the files                 * 
+!  *  IN  n       number of files to link                                      * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fstunl() result(status) bind(C,name='c_fstunl')
+
+    implicit none
+    integer :: status
+  end function fstunl
+
+! /***************************************************************************** 
+!  *                      F S T _ D A T A _ L E N G T H                        *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Gives information on data lenght of the elements passed to fstecr       *
+!  *   and fstlir (double, short integer, byte ...)                            *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  length_type     data length kind                                     * 
+!  *                      1: byte                                              *
+!  *                      2: short (16 bits)                                   *
+!  *                      4: regular 32 bits                                   *
+!  *                      8: double (64 bits)                                  *
+!  *                                                                           * 
+!  *****************************************************************************/
+  function fst_data_length(l) result(status)
+
+    implicit none
+    integer, intent(IN), value :: l
+    integer :: status
+  end function fst_data_length
+
+! /***************************************************************************** 
+!  *                            F S T M S Q                                    *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Mask a portion of the research keys.                                    *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *   IN    iun     unit number associated to the file                        * 
+!  * IN/OUT  mip1    mask for vertical level                                   * 
+!  * IN/OUT  mip2    mask for forecast hour                                    * 
+!  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    * 
+!  * IN/OUT  metiket mask for label                                            * 
+!  *   IN    getmode logical (1: getmode 0:set mode)                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+! ftnword f77name(fstmsq)(ftnword *f_iun, ftnword *f_mip1, ftnword *f_mip2,
+!                         ftnword *f_mip3, char *f_metiket, ftnword *f_getmode,
+! int c_fstmsq(int iun, int *mip1, int *mip2, int *mip3, char *metiket,
+!                      int getmode)
+  function fstmsq(iun, mip1, mpi2, mpi3, metiket, getmode) result(status)
+
+      implicit none
+      integer, intent(IN), value :: iun, getmode
+      integer, intent(INOUT) :: mip1, mpi2, mpi3
+      character(len=*), intent(INOUT) :: metiket
+      integer :: status
+  end function fstmsq
+! /***************************************************************************** 
+!  *                             I P n _ A L L                                 *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Generates all possible coded ip1 values for a given level               *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  level          ip1 level (float value)                               * 
+!  *  IN  kind           level kind as defined in convip_plus                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function ip1_all(level, vkind) result(ip_new)
+
+      implicit none
+      real, intent(IN), value :: level
+      integer, intent(IN), value :: vkind
+      integer :: ip_new
+    end function ip1_all
+    function ip2_all(level, vkind) result(ip_new)
+
+      implicit none
+      real, intent(IN), value :: level
+      integer, intent(IN), value :: vkind
+      integer :: ip_new
+    end function ip2_all
+    function ip3_all(level, vkind) result(ip_new)
+
+      implicit none
+      real, intent(IN), value :: level
+      integer, intent(IN), value :: vkind
+      integer :: ip_new
+    end function ip3_all
+
+! /***************************************************************************** 
+!  *                             I P n _ V A L                                 *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Generates all possible coded ip1 values for a given level               *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  level          ip1 level (float value)                               * 
+!  *  IN  kind           level kind as defined in convip_plus                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function ip1_val(level, vkind) result(ip_new)
+
+      implicit none
+      real, intent(IN), value :: level
+      integer, intent(IN), value :: vkind
+      integer :: ip_new
+    end function ip1_val
+    function ip2_val(level, vkind) result(ip_new)
+
+      implicit none
+      real, intent(IN), value :: level
+      integer, intent(IN), value :: vkind
+      integer :: ip_new
+    end function ip2_val
+    function ip3_val(level, vkind) result(ip_new)
+
+      implicit none
+      real, intent(IN), value :: level
+      integer, intent(IN), value :: vkind
+      integer :: ip_new
+    end function ip3_val
+
+!  /*****************************************************************************
+!  *                              F S T C H E C K                              *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Checks if an RPN standard file is valid.                                *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *  IN  filename Path of the file to be checked                              *
+!  *                                                                           *
+!  *****************************************************************************/
+    function fstcheck(path) result(status)
+
+      implicit none
+      character(len=*), intent(IN) :: path
+      integer :: status
+    end function fstcheck
+
+!  /***************************************************************************** 
+!  *                   F S T R E S E T _ I P _ F L A G S                       *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Reset all the flags previously set by ip(1-3)_val                       *
+!  *                                                                           * 
+!  *****************************************************************************/
+    subroutine fstreset_ip_flags()
+    end subroutine fstreset_ip_flags
+
+!  /***************************************************************************** 
+!  *                               F S T R W D                                 *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Rewinds a RPN standard sequential file.                                 *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+    function fstrwd(iun) result(status)
+
+      implicit none
+      integer, intent(IN), value :: iun
+      integer :: status
+    end function fstrwd
+!  /***************************************************************************** 
+!  *                                F S T S K P                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Skip nrec records forward or backward in the sequential file.           *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  nrec    number of records to skip (negative nrec means backward)     * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fstskp(iun, nrec) result(status)
+
+      implicit none
+      integer, intent(IN), value :: iun, nrec
+      integer :: status
+    end function fstskp
+! /***************************************************************************** 
+!  *                           F S T  _ V E R S I O N                          *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Returns package version number.                                          *
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fst_version() result(version)
+
+      implicit none
+      integer :: version
+    end function fst_version
+
+! /***************************************************************************** 
+!  *                              F S T V O I                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Opens a RPN standard file.                                              *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  options random or sequential access                                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fstvoi(iun, options) result(status)
+
+      implicit none
+      integer, intent(IN), value :: iun
+      character(len=*), intent(IN) :: options
+      integer :: status
+    end function fstvoi
+!  /***************************************************************************** 
+!  *                             F S T W E O                                   *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Writes a logical end of file on a sequential file.                      *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  level   level of logical end of file                                 * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fstweo(iun, level) result(status)
+
+      implicit none
+      integer, intent(IN), value :: iun, level
+      integer :: status
+    end function fstweo
+! /***************************************************************************** 
+!  *                             F S T A P P                                   *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Position at the end of a sequential file for an append.                 *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  option  kept for backward compatibility (not used)                   * 
+!  *                                                                           * 
+!  *****************************************************************************/
+    function fstapp(iun, option) result(status)
+
+      implicit none
+      integer, intent(IN), value :: iun
+      character(len=*), intent(IN) :: option
+      integer :: status
+    end function fstapp
+end interface
+
+! generic interface for options
+interface fstoption
+
+!  /*****************************************************************************
+!  *                              F S T O P I                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Print out or set a fstd or xdf global variable option.                  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *   IN     option   option name to be set/printed                           * 
+!  *   IN     value    option value                                            * 
+!  *   IN     getmode  logical (1: get option, 0: set option)                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fstopi(option, val, getmode) result(status)
+
+      implicit none
+      character(len=*), intent(IN) :: option
+      integer, intent(IN), value :: val, getmode
+      integer :: status
+    end function fstopi
+
+!  /***************************************************************************** 
+!  *                              F S T O P L                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Print out or set a fstd or xdf global variable option.                  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *   IN     option   option name to be set/printed                           * 
+!  *   IN     value    option value                                            * 
+!  *   IN     getmode  logical (1: get option, 0: set option)                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fstopl(option, val, getmode) result(status)
+
+      implicit none
+      character(len=*), intent(IN) :: option
+      logical, intent(IN), value :: val
+      integer, intent(IN), value :: getmode
+      integer :: status
+    end function fstopl
+
+!  /***************************************************************************** 
+!  *                              F S T O P R                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Print out or set a fstd or xdf global variable option.                  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *   IN     option   option name to be set/printed                           * 
+!  *   IN     value    option value                                            * 
+!  *   IN     getmode  logical (1: get option, 0: set option)                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+    function fstopr(option, val, getmode) result(status)
+
+      implicit none
+      character(len=*), intent(IN) :: option
+      real, intent(IN), value :: val
+      integer, intent(IN), value :: getmode
+      integer :: status
+    end function fstopr
+
+! /*****************************************************************************
+!  *                              F S T O P C                                  *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Print out or set a fstd or xdf global variable option.                  *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *   IN     option   option name to be set/printed                           *
+!  *   IN     value    option value                                            *
+!  *   IN     getmode  logical (1: get option, 0: set option)                  *
+!  *                                                                           *
+!  *****************************************************************************/
+
+    function fstopc(option, val, getmode) result(status)
+
+      implicit none
+      character(len=*), intent(IN) :: option
+      character(len=*), intent(IN) :: val
+      integer, intent(IN), value :: getmode
+      integer :: status
+    end function fstopc
+end interface
+
+#endif
