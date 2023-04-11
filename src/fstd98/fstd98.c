@@ -1757,6 +1757,7 @@ int c_fsteff_xdf(
 }
 
 //! Delete a record
+//! \return 0 on success, negative number on failure
 int c_fsteff(
     //! Handle of the record to delete
     int handle
@@ -2232,7 +2233,7 @@ int c_fstinl_xdf(
 }
 
 //! Locates all the records that matches the search keys
-//! \return 0 on scuccess, error code otherwise
+//! \return 0 on success, error code otherwise
 int c_fstinl(
     //! [in] Unit number associated to the file in which to search
     int iun,
@@ -2355,6 +2356,7 @@ int c_fstlic(
 
 
 //! Reads the next record that matches the search keys
+//! \return Record key on success, a negative number on error.
 int c_fstlir(
     //! [out] Data field to be read
     void *field,
@@ -2435,6 +2437,7 @@ int c_fstlirx_xdf(
 }
 
 //! Reads the next record that matches the search keys.  The search begins at the position given by handle.
+//! \return Record key on success, a negative number on error.
 int c_fstlirx(
     //! [out] Field to be read
     void *field,
@@ -3320,8 +3323,14 @@ int c_fstcheck(
     //! [in]  Path to the file
     const char *filePath
 ) {
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Not implemented for RSF files\n", __func__);
-    return c_fstcheck_xdf(filePath);
+    const int32_t type = c_wkoffit(filePath, strlen(filePath));
+    if (type == WKF_STDRSF) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Not implemented for RSF files\n", __func__);
+        return 0;
+    }
+    else {
+        return c_fstcheck_xdf(filePath);
+    }
 }
 
 

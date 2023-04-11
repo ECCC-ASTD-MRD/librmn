@@ -642,7 +642,7 @@ int c_fstnbr_rsf(
     const int index_fnom
 ) {
     if (FGFDT[index_fnom].rsf_fh.p != NULL)
-        return RSF_Get_num_records(FGFDT[index_fnom].rsf_fh);
+        return RSF_Get_num_records_at_open(FGFDT[index_fnom].rsf_fh);
 
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: file at index %d is not open\n", __func__, index_fnom);
     return ERR_NO_FILE;
@@ -1249,8 +1249,8 @@ int c_fsteff_rsf(
     //! Handle of the record to delete
     int handle
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet\n", __func__);
-    return ERR_WRONG_FTYPE;
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot delete a record from a RSF-type file\n", __func__);
+    return 0;
 }
 
 //! \copydoc c_fstinl
@@ -1382,7 +1382,11 @@ int c_fstnbrv_rsf(
     //! [in] Index of the file given by fnom
     const int index_fnom
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet\n", __func__);
+    if (FGFDT[index_fnom].rsf_fh.p != NULL)
+        return RSF_Get_num_records_at_open(FGFDT[index_fnom].rsf_fh);
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: file at index %d is not open\n", __func__, index_fnom);
+
     return ERR_WRONG_FTYPE;
 }
 

@@ -24,7 +24,8 @@ program fst_interface
     integer, parameter :: REWRITE = 0
 
     integer :: ni, nj, nk
-    integer :: num_records, new_num_records
+    integer :: num_records, new_num_records, expected_num_records
+    integer :: record_key
 
     type(fstd98) :: test_file
 
@@ -45,17 +46,19 @@ program fst_interface
     num_records = status
 
     ! --- fstecr ---
-    status = test_file % ecr(data_array, work_array, -8, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,             &
-                             NUM_DATA, 1, 1,                                                            &
-                             1, 0, 0,                                                                   &
-                             'XX', 'YYYY', 'ETIKET', 'X',                                               &
-                             0, 0, 0, 0,                                                                &
-                             DATATYPE,  REWRITE)
-    call check_status(status, expected = 0, fail_message = 'ecr')
+    do i = 1, 3
+        status = test_file % ecr(data_array, work_array, -8, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,            &
+                                NUM_DATA, 1, 1,                                                            &
+                                1, 0, 0,                                                                   &
+                                'XX', 'YYYY', 'ETIKET', 'X',                                               &
+                                0, 0, 0, 0,                                                                &
+                                DATATYPE,  REWRITE)
+        call check_status(status, expected = 0, fail_message = 'ecr')
+    end do
 
     ! --- fstnbr ---
     new_num_records = test_file % nbr()
-    call check_status(new_num_records, expected = num_records + 1, fail_message = 'nbr')
+    call check_status(new_num_records, expected = num_records, fail_message = 'nbr')
 
     ! --- fstfrm ---
     status = test_file % frm()
@@ -67,17 +70,21 @@ program fst_interface
 
     ! --- fstnbr ---
     new_num_records = test_file % nbr()
-    call check_status(new_num_records, expected = num_records + 1, fail_message = 'nbr')
+    call check_status(new_num_records, expected = num_records + 3, fail_message = 'nbr (second one)')
 
-    ! --- fstlir ---
+    ! --- fstlir --- (includes fstinf and fstluk)
     work_array(:) = 0
-    status = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
-    call check_status(status, expected_min = 1, fail_message = 'lir')
+    record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
+    call check_status(record_key, expected_min = 1, fail_message = 'lir')
     if (.not. all(work_array == data_array)) then
         write(app_msg, '(A, 2(5X, 8I3))') 'Got different data!!!', work_array, data_array
         call App_Log(APP_ERROR, app_msg)
         error stop 1
     end if
+
+    ! --- fsteff ---
+    status = test_file % eff(record_key)
+    call check_status(status, expected = 0, fail_message = 'eff')
 
     ! --- fstfrm ---
     status = test_file % frm()

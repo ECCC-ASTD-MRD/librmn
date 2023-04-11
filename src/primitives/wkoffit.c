@@ -386,7 +386,7 @@ int32_t c_wkoffit(
 
         /* STANDARD 98 RANDOM */
         if (*(ptbuf + 3) == 'STDR') {
-            if (c_fstcheck(nom2) < 0) {
+            if (c_fstcheck_xdf(nom2) < 0) {
                 return retour(pf, WKF_CORROMPU);
             } else {
                 return retour(pf, WKF_RANDOM98);
