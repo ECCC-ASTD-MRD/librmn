@@ -35,14 +35,14 @@
 #include "ez_qqqxtrp.cdk"
 #include "ez_gaussgd.cdk"
 
-      integer i,j
-      real*8 x2,y2,xy,x3,y3,x2y,xy2
-      real pi,pj,dlon
-      real*8 a(6,6),b(6),vpole,det,deta,detb,detc
-      integer l(6),m(6)
-      integer n, nglat
-      real lat1,lat2,dlat,xla0
-      integer ilat1,ilat2
+      integer        :: i,j
+      real(kind = 8) :: x2,y2,xy,x3,y3,x2y,xy2
+      real(kind = 4) :: pi,pj,dlon
+      real(kind = 8) :: a(6,6),b(6),vpole,det,deta,detb,detc
+      integer        :: l(6),m(6)
+      integer        :: n, nglat
+      real           :: lat1,lat2,dlat,xla0
+      integer        :: ilat1,ilat2
 
 !      if (vecteur) then
 !         return

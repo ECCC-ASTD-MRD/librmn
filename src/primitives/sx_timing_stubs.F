@@ -19,43 +19,43 @@
 * */
 
 
-      complex *16 function r8ivecc()
+      complex(kind = 8) function r8ivecc()
       r8ivecc=0
       return
       end
-      complex *16 function r8ifpec()
+      complex(kind = 8) function r8ifpec()
       r8ifpec=0
       return
       end
-      complex *16 function r8irtc()
+      complex(kind = 8) function r8irtc()
       r8irtc=0
       return
       end
-      complex *16 function r8icpc()
+      complex(kind = 8) function r8icpc()
       r8icpc=0
       return
       end
-      complex *16 function r8iitm()
+      complex(kind = 8) function r8iitm()
       r8iitm=0
       return
       end
-      complex *16 function r8icmcc()
+      complex(kind = 8) function r8icmcc()
       r8icmcc=0
       return
       end
-      complex *16 function r8ibccc()
+      complex(kind = 8) function r8ibccc()
       r8ibccc=0
       return
       end
-      complex *16 function r8isex()
+      complex(kind = 8) function r8isex()
       r8isex=0
       return
       end
-      complex *16 function r8isvx()
+      complex(kind = 8) function r8isvx()
       r8isvx=0
       return
       end
-      complex *16 function r8imvl()
+      complex(kind = 8) function r8imvl()
       r8imvl=1
       return
       end

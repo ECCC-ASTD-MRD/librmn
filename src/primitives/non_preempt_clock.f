@@ -17,12 +17,12 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-       real *8 function non_preempt_clock()
+       real(kind = 8) function non_preempt_clock()
 !
 !       read the current value of the non preempt/suspend clock
 !
-       real *8 the_clock
-       integer is_running
+       real(kind = 8) :: the_clock
+       integer        :: is_running
        common /qqq_the_clock/ the_clock, is_running
        data the_clock /0.0/
        data is_running /0/
@@ -34,10 +34,10 @@
 !
 !       auxiliary thread used by the non preempt/suspend clock
 !
-       real *8 the_clock
-       integer is_running
+       real(kind = 8) :: the_clock
+       integer        :: is_running
        common /qqq_the_clock/ the_clock, is_running
-       real *8 time1, time2, f_gettimeofday, sleep_tick, elapsed
+       real(kind = 8) :: time1, time2, f_gettimeofday, sleep_tick, elapsed
 !
 !       set micro sleep interval
 !       set running flag
@@ -70,13 +70,13 @@
 !       start / stop non preemption real time counter
 !       start_stop=1 means start, start_stop=0 means stop
 !
-       integer start_stop
-       integer running
-       integer taskid, create_thread, join_thread
-       external create_thread, join_thread
-       external run_non_preempt_clock
-       real *8 the_clock
-       integer is_running
+       integer        :: start_stop
+       integer        :: running
+       integer        :: taskid, create_thread, join_thread
+       external       :: create_thread, join_thread
+       external       :: run_non_preempt_clock
+       real(kind = 8) :: the_clock
+       integer        :: is_running
        common /qqq_the_clock/ the_clock, is_running
        save running,taskid
        data running /0/

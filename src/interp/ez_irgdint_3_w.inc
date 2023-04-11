@@ -68,15 +68,15 @@
 !     
 !  structure identique pour cy(j,1..6)
 
-      integer i, j, n
-      real*8 a11,a12,a13,a14,a21,a22,a23,a24
-      real*8 a31,a32,a33,a34,a41,a42,a43,a44
-      real*8 b1,b2,b3,b4,b11,b12,b13,b14
-      real x1,x2,x3,x4,y1,y2,y3,y4
-      real*8 z1,z2,z3,z4
+      integer        :: i, j, n
+      real(kind = 8) :: a11,a12,a13,a14,a21,a22,a23,a24
+      real(kind = 8) :: a31,a32,a33,a34,a41,a42,a43,a44
+      real(kind = 8) :: b1,b2,b3,b4,b11,b12,b13,b14
+      real(kind = 4) :: x1,x2,x3,x4,y1,y2,y3,y4
+      real(kind = 8) :: z1,z2,z3,z4
       
-      real*8 fa, fa2, fa3, fa4
-      real*8 a1,a2,a3,a4,x,y,c1,c2,c3,c4,c5,c6
+      real(kind = 8) :: fa, fa2, fa3, fa4
+      real(kind = 8) :: a1,a2,a3,a4,x,y,c1,c2,c3,c4,c5,c6
       
 #include "ez_qqqxtrp.cdk"
 
