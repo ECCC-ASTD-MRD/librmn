@@ -60,10 +60,10 @@ module rmn_fstd98
     procedure, PASS(this) :: ecr_b
     procedure, PASS(this) :: ecr_s
     procedure, PASS(this) :: frm
-!     procedure, PASS(this) :: skp
-!     procedure, PASS(this) :: rwd
+    ! procedure, PASS(this) :: skp
+    ! procedure, PASS(this) :: rwd
     procedure, PASS(this) :: voi
-!     procedure, PASS(this) :: weo
+    ! procedure, PASS(this) :: weo
     procedure, NOPASS     :: ver => fst_version
     procedure, NOPASS     :: opi => fstopi
     procedure, NOPASS     :: opl => fstopl
@@ -168,7 +168,7 @@ module rmn_fstd98
 !  *  IN  n       number of files to link                                      * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  module function fstlnk(link_list,n) result(status) bind(C,name='c_fstlnk')
+  module function fstlnk(link_list,n) result(status) !bind(C,name='c_fstlnk')
     implicit none
     integer(C_INT), intent(IN) :: n
     integer(C_INT), dimension(n) :: link_list
@@ -187,7 +187,7 @@ module rmn_fstd98
 !  *  IN  n       number of files to link                                      * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  module function fstunl(link_list,n) result(status) bind(C,name='c_fstunl')
+  module function fstunl(link_list,n) result(status) !bind(C,name='c_fstunl')
     implicit none
     integer(C_INT), intent(IN) :: n
     integer(C_INT), dimension(n) :: link_list
