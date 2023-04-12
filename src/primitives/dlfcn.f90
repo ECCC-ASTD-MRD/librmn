@@ -35,8 +35,8 @@ SUBROUTINE DLFCN_Test_Shared_Lib
    TYPE(C_PTR) :: handle=C_NULL_PTR
    TYPE(C_FUNPTR) :: funptr=C_NULL_FUNPTR
    INTEGER(C_INT) :: status
-   integer :: iname
-   real*8 :: one
+   integer        :: iname
+   real(kind = 8) :: one
 
    ! The dynamic subroutine has a simple interface:
    ABSTRACT INTERFACE

@@ -339,7 +339,8 @@ C
 	integer ie,je,ke,if,jf,kf,ig,ih
 	real(kind = 8) :: c1,s1,c2,s2,c3,s3,c4,s4,c5,s5,z
 	real(kind = 8) :: zsin60,sin45,zqrt5,zsin36,zsin72,zsin45
-	real(kind = 8) :: a1,b1,a2,b2,a3,b3,a0,b0,a4,b4,a5,b5,a6,b6,a10,b10
+	real(kind = 8) :: a1,b1,a2,b2,a3,b3
+	real(kind = 8) :: a0,b0,a4,b4,a5,b5,a6,b6,a10,b10
 	real(kind = 8) :: a11,b11,a20,b20,a21,b21
 C
 C     SUBROUTINE 'QPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART

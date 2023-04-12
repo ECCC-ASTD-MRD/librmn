@@ -22,9 +22,9 @@
 !
       subroutine ez_lac_8( xyz,lon,lat,n)
       implicit none
-      integer n
-      real*8 xyz(3,n)
-      real lon(n),lat(n) 
+      integer        :: n
+      real(kind = 8) :: xyz(3,n)
+      real(kind = 4) :: lon(n),lat(n) 
 !
 !author michel roch - april 90
 !

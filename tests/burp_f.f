@@ -98,7 +98,7 @@
 *     PROGRAMME POUR TESTER LE PROGICIEL DES FICHIERS BURP
 *
 *MODULES
-      INTEGER*4 time
+      INTEGER(kind = 4) time
       INTEGER FNOM,MRFCLS,MRFGET,MRFLOC,MRFOPN,MRFPRM,MRFPUT,MRBCVT
       INTEGER MRBADD,MRBDEL,MRBHDR,MRBINI,MRBLEN,MRBLOC,MRBPRM
       INTEGER MRBREP,MRBXTR,MRBUPD,HRJUST,MRFVOI,HLJUST, MRBRPT,
@@ -124,9 +124,9 @@
       INTEGER BUFE(20000),ETBLVAL(8000)
       REAL RVAL(500)
       REAL rtablo(10), rtabloc(10)
-      REAL*8 rtablo8(10), rtablo8c(10)
+      REAL(kind = 8) rtablo8(10), rtablo8c(10)
       complex ctablo(10), ctabloc(10)
-      complex*16 ctablo8(10), ctablo8c(10)
+      complex(kind = 8) ctablo8(10), ctablo8c(10)
       integer rliste8(20),cliste(20),cliste8(40)
       integer rliste8c(20),clistec(20),cliste8c(40)
       INTEGER BIT0,BLKNO,LSTELEA(10),LSTELEB(4),LSTELEC(3),LSTELEE(

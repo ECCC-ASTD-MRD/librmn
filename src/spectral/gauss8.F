@@ -44,13 +44,13 @@
 *     ***************************************************************** 
 
 *     -----------------------------------------------------------------
-      IMPLICIT REAL*8 (A-H,O-Z), INTEGER (I-N)
+      IMPLICIT REAL(kind = 8) (A-H,O-Z), INTEGER (I-N)
 *     ----------------------------------------------------------------- 
-      INTEGER  NRACP
-      REAL*8   RACP(NRACP),  PG(NRACP),      SIA(NRACP)
-      REAL*8   SINM1(NRACP), SINM2(NRACP),   SIN2(NRACP)
-      REAL*8   RAD(NRACP),   PGSSIN2(NRACP)
-      EXTERNAL ORDLEG8
+      INTEGER        :: NRACP
+      REAL(kind = 8) :: RACP(NRACP),  PG(NRACP),      SIA(NRACP)
+      REAL(kind = 8) :: SINM1(NRACP), SINM2(NRACP),   SIN2(NRACP)
+      REAL(kind = 8) :: RAD(NRACP),   PGSSIN2(NRACP)
+      EXTERNAL       :: ORDLEG8
 *     --------------------------------------------------------------
 
 *     ON DEMANDE UNE PRECISION DE 1.E-13 POUR LES RACINES DE PN.

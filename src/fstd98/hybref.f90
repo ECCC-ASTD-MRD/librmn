@@ -223,8 +223,8 @@
 ! the function will return 0 upon success, -1 if there is an error
 
       integer i,k
-      real*8 hybm_8(nk),prpref,pr1,pibb(nk),pia(nk)
-      real*8 conv,fact
+      real(kind = 8) :: hybm_8(nk),prpref,pr1,pibb(nk),pia(nk)
+      real(kind = 8) :: conv,fact
 
       hybrid_to_pres=-1
       call lib_log(APP_LIBRMN,APP_WARNING,'hybrid_to_pres: function hybrid_to_pres will calculate only a NORMALIZED (kind=1) hybrid coordinate')
@@ -688,7 +688,7 @@
 
 
       integer i,k
-      real*8 hybm_8(nk),pr1,pibb(nk),pia(nk)
+      real(kind = 8) :: hybm_8(nk),pr1,pibb(nk),pia(nk)
 
       hyb_to_pres=-1
 
@@ -750,8 +750,8 @@
 ! ----------------------------------------------------------------
 ! the function will return 0 upon success, -1 if there is an error
 
-      integer i,k
-      real*8 pibb(nk),pia(nk)
+      integer        :: i,k
+      real(kind = 8) :: pibb(nk),pia(nk)
 
       eta_to_pres=-1
 
@@ -802,8 +802,8 @@
 ! ----------------------------------------------------------------
 ! the function will return 0 upon success, -1 if there is an error
 
-      integer i,k
-      real*8 pibb(nk),pia(nk),eta1
+      integer        :: i,k
+      real(kind = 8) :: pibb(nk),pia(nk),eta1
 
       etasef_to_pres=-1
 

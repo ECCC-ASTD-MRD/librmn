@@ -113,7 +113,6 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 target_link_libraries(rmn PUBLIC App rsfiles)
 target_include_directories(rmn INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
-target_include_directories(rmn PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_dependencies(rmn rmn_build_info)
 
 # Build shared library from object of rmn

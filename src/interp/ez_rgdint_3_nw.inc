@@ -53,8 +53,8 @@
 !
 !===========================================
 
-      real*8 y1, y2, y3, y4
-      integer n, i, j
+      real(kind = 8) :: y1, y2, y3, y4
+      integer        :: n, i, j
 
 #include "cubic8.cdk"
 

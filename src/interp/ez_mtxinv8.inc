@@ -21,9 +21,9 @@
 ! 
       SUBROUTINE  EZ_MTXINV8 (A,L,M,N) 
       implicit none
-      INTEGER N 
-      REAL*8 A(N,N) 
-      INTEGER L(N), M(N)
+      INTEGER        :: N 
+      REAL(kind = 8) :: A(N,N) 
+      INTEGER        :: L(N), M(N)
 ! 
 !Author
 !          R. Sarrazin (1992)REAL*8 version for MTXINV
@@ -54,8 +54,8 @@
 !          terminated.
 !
 !*
-      INTEGER I, J, K 
-      REAL*8 HOLD, BIGA 
+      INTEGER        :: I, J, K 
+      REAL(kind = 8) :: HOLD, BIGA 
 ! 
 !        SEARCH FOR LARGEST ELEMENT 
 ! 

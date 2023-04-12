@@ -26,8 +26,8 @@
 ***    DESCRIPTION : Retourne la taille d'un mot REAL*8 en
 ***                  unites de mots REALs.
 
-      REAL*8     ZD(2)
-      REAL       ZS(2)
+      REAL(kind = 8) :: ZD(2)
+      REAL(kind = 4) :: ZS(2)
 
       qqqr8sz = ( LOC( ZD(2) ) - LOC( ZD(1) ) )
      +        / ( LOC( ZS(2) ) - LOC( ZS(1) ) )

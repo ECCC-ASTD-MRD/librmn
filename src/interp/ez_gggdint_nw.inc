@@ -55,13 +55,13 @@
 !  *   *   *   *
 !
 !
-      integer i, j, n
-      real*8 x, x1, x2, x3
-      real*8 y,y1,y2,y3,y4
-      real*8 y11, y12, y13, y14
-      real*8 ay1, ay2, ay3, ay4
-      real*8 fa, fa2, fa3, fa4
-      real*8 a1,a2,a3,a4,c1,c2,c3,c4,c5,c6
+      integer        :: i, j, n
+      real(kind = 8) :: x, x1, x2, x3
+      real(kind = 8) :: y,y1,y2,y3,y4
+      real(kind = 8) :: y11, y12, y13, y14
+      real(kind = 8) :: ay1, ay2, ay3, ay4
+      real(kind = 8) :: fa, fa2, fa3, fa4
+      real(kind = 8) :: a1,a2,a3,a4,c1,c2,c3,c4,c5,c6
       
 #include "cubic8.cdk"
 

@@ -78,4 +78,6 @@ extern "C" {
 }
 #endif
 
+void f77name(convip_plus)(int32_t *ipnew,float *level,int32_t *fkind,int32_t *fmode,char *strg,int32_t *flag,int32_t strglen);
+
 #endif

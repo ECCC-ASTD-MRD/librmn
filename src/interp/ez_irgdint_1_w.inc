@@ -25,7 +25,7 @@
       real ax(ni), ay(j1:j2)
       real z(ni, j1:j2)
 
-      real*8 x, y, x1, x2, y1, y2, dx, dy
+      real(kind = 8) :: x, y, x1, x2, y1, y2, dx, dy
 
 #include "zlin8.cdk"
       do n=1,npts
