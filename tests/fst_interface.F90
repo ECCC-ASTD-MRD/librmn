@@ -13,7 +13,7 @@ program fst_interface
 
     integer :: status, i
     logical :: is_rsf
-    character(len=*), parameter :: test_file_name = 'fst_interface.fst'
+    character(len=:), allocatable :: test_file_name
 
     integer, parameter :: NUM_DATA = 8
     integer, dimension(NUM_DATA) :: data_array, work_array
@@ -26,10 +26,16 @@ program fst_interface
     integer :: ni, nj, nk
     integer :: num_records, new_num_records, expected_num_records
     integer :: record_key
+    integer :: expected
 
     type(fstd98) :: test_file
 
     is_rsf = FST_TEST_IS_RSF
+    if (is_rsf) then
+        test_file_name = 'fst_interface_rsf.fst'
+    else
+        test_file_name = 'fst_interface_xdf.fst'
+    end if
 
     do i = 1, NUM_DATA
         data_array(i) = i
@@ -84,7 +90,11 @@ program fst_interface
 
     ! --- fsteff ---
     status = test_file % eff(record_key)
-    call check_status(status, expected = 0, fail_message = 'eff')
+    if (is_rsf) then
+        call check_status(status, expected_max = -1, fail_message = 'eff')
+    else
+        call check_status(status, expected = 0, fail_message = 'eff')
+    end if
 
     ! --- fstfrm ---
     status = test_file % frm()
