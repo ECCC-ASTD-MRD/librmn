@@ -3127,7 +3127,7 @@ int c_fstnbrv(
     }
 
     if (rsf_status == 1) {
-        return c_fstnbrv_rsf(iun, index_fnom);
+        return c_fstnbrv_rsf(index_fnom);
     }
     else if (rsf_status == 0) {
         return c_fstnbrv_xdf(iun);
