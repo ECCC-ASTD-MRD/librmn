@@ -461,4 +461,12 @@
       integer(C_INT) :: status
     end function c_fst_edit_dir
 
+    function c_is_rsf(iun, out_index) result(is_rsf_result) bind(C, name = 'is_rsf')
+      import :: C_INT32_T
+      implicit none
+      integer(C_INT32_T), intent(IN), value :: iun
+      integer(C_INT32_T), intent(OUT)       :: out_index
+      integer(C_INT32_T) :: is_rsf_result
+    end function c_is_rsf
+
   end interface

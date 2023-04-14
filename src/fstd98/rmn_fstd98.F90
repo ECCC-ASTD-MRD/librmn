@@ -64,6 +64,7 @@ module rmn_fstd98
     ! procedure, PASS(this) :: rwd
     procedure, PASS(this) :: voi
     ! procedure, PASS(this) :: weo
+    procedure, PASS(this) :: is_rsf => fstd98_is_rsf
     procedure, NOPASS     :: ver => fst_version
     procedure, NOPASS     :: opi => fstopi
     procedure, NOPASS     :: opl => fstopl
@@ -427,6 +428,14 @@ module rmn_fstd98
     character(len=*), intent(IN) :: options
     integer(C_INT) :: status
   end function voi
+
+  ! /*****************************************************************************
+  !> \return Whether the associated file is open and of type RSF
+  module function fstd98_is_rsf(this) result(is_rsf)
+    implicit none
+    class(fstd98), intent(IN) :: this
+    logical :: is_rsf
+  end function fstd98_is_rsf
 
 ! /***************************************************************************** 
 !  *                           F S T  _ V E R S I O N                          *

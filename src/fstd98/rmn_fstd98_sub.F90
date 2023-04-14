@@ -1028,6 +1028,17 @@ contains
     status = fstvoi(this%iun, f_c_string(options))
   end procedure
 
+  ! /**************************************************************************/
+  module procedure fstd98_is_rsf
+    implicit none
+    integer :: is_rsf_status
+    integer :: dummy_arg
+
+    is_rsf = .false.
+    is_rsf_status = c_is_rsf(this % iun, dummy_arg)
+    if (is_rsf_status == 1) is_rsf = .true.
+  end procedure
+
 ! /***************************************************************************** 
 !  *                           F S T  _ V E R S I O N                          *
 !  *                                                                           * 

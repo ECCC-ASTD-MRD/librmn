@@ -6,11 +6,11 @@
 
 //! Checks whether the given unit corresponds to an RSF file
 //! \return 1 if the unit is an RSF, 0 if not, something else if there was an error
-int is_rsf(
+int32_t is_rsf(
     //! [in] Unit number associated to the file
-    const int iun,
+    const int32_t iun,
     //! [out] (Optional) The index given to this file by fnom
-    int* out_index_fnom
+    int32_t* out_index_fnom
 ) {
     const int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
