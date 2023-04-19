@@ -11,12 +11,13 @@ program fst_interface
 
     integer, external :: fnom
 
-    integer :: status, i
+    integer :: status, i, j
     logical :: is_rsf
     character(len=*), parameter :: test_file_name = 'fst_interface.fst'
 
     integer, parameter :: NUM_DATA = 8
-    integer, dimension(NUM_DATA) :: data_array, work_array
+    integer, dimension(NUM_DATA, 3) :: data_array
+    integer, dimension(NUM_DATA)    :: work_array
 
     integer, parameter :: UNIT_NUMBER = 11
     integer, parameter :: DATE = 0, TIMESTEP_SIZE = 0, TIMESTEP_NUM = 0
@@ -37,8 +38,10 @@ program fst_interface
     !     test_file_name = 'fst_interface_xdf.fst'
     ! end if
 
-    do i = 1, NUM_DATA
-        data_array(i) = i
+    do j = 1, 3
+        do i = 1, NUM_DATA
+            data_array(i, j) = i + j * 100
+        end do
     end do
 
     ! --- fstouv ---
@@ -53,7 +56,7 @@ program fst_interface
 
     ! --- fstecr ---
     do i = 1, 3
-        status = test_file % ecr(data_array, work_array, -8, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,            &
+        status = test_file % ecr(data_array(:, i), work_array, -8, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,      &
                                 NUM_DATA, 1, 1,                                                            &
                                 1, 0, 0,                                                                   &
                                 'XX', 'YYYY', 'ETIKET', 'X',                                               &
@@ -79,14 +82,29 @@ program fst_interface
     call check_status(new_num_records, expected = num_records + 3, fail_message = 'nbr (second one)')
 
     ! --- fstlir --- (includes fstinf and fstluk)
+    ! Not found
+    record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
+    call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
+
+    ! Found
     work_array(:) = 0
     record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
-    call check_status(record_key, expected_min = 1, fail_message = 'lir')
-    if (.not. all(work_array == data_array)) then
-        write(app_msg, '(A, 2(5X, 8I3))') 'Got different data!!!', work_array, data_array
+    call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
+    if (.not. all(work_array == data_array(:, 1))) then
+        write(app_msg, '(A, 2(5X, 8I3))') 'Got different data!!!', work_array, data_array(:, 1)
         call App_Log(APP_ERROR, app_msg)
         error stop 1
     end if
+
+    ! --- fstinl ---
+    ! block
+    !     ! integer, parameter :: max_num_records = 10
+    !     integer, dimension(num_records) :: record_keys
+    !     integer :: num_record_found
+    !     status = test_file % inl(ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ',          &
+    !                              record_keys, num_record_found, num_records)
+    !     call check_status(status, expected = 0, fail_message = 'fstinl')
+    ! end block
 
     ! --- fsteff ---
     status = test_file % eff(record_key)

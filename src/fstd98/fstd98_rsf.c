@@ -829,12 +829,12 @@ int c_fstinfx_rsf(
     }
     const int32_t lhandle = RSF_Key32(rsf_key);
 
-    if (lhandle < 0) {
-        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%d\n", __func__, iun, lhandle);
+    if (rsf_key < 0) {
+        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
         if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
-        return lhandle;
+        return (int32_t)rsf_key;
     }
     else {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
@@ -1458,8 +1458,37 @@ int c_fstsui_rsf(
     //! [out] Dimension 3 of the data field
     int *nk
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet\n", __func__);
-    return ERR_WRONG_FTYPE;
+    // uint32_t *primk = NULL;
+
+    RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
+
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        return ERR_NO_FILE;
+    }
+
+    /* position to the next record that matches the last search criterias */
+    // int handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
+    const int64_t rsf_key = RSF_Lookup(file_handle, -1, NULL, NULL, -1);
+    if (rsf_key < 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
+        return (int32_t)rsf_key;
+    }
+
+    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+    const int32_t xdf_handle = RSF_Key32(rsf_key);
+
+    // stdf_dir_keys * stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    // uint32_t * pkeys = (uint32_t *) stdf_entry;
+    // pkeys += W64TOWD(1);
+
+    // int addr, lng, idtyp;
+    // c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
+    // *ni = stdf_entry->ni;
+    // *nj = stdf_entry->nj;
+    // *nk = stdf_entry->nk;
+    // free(stdf_entry);
+    return xdf_handle;
 }
 
 //! \copydoc c_fstvoi
