@@ -219,7 +219,7 @@
       implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
       integer(C_INT), intent(IN), value :: iun, datev, ip1, ip2, ip3
       integer(C_INT), intent(OUT)       :: ni, nj, nk
       character(C_CHAR), dimension(*), intent(IN) :: typvar, nomvar, etiket
@@ -235,7 +235,7 @@
       implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
       integer(C_INT), intent(IN), value :: handle, iun, datev, ip1, ip2, ip3
       integer(C_INT), intent(OUT)       :: ni, nj, nk
       character(C_CHAR), dimension(*), intent(IN) :: typvar, nomvar, etiket
@@ -249,7 +249,7 @@
       implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
       integer(C_INT), intent(IN), value :: iun
       integer(C_INT), intent(OUT)       :: ni, nj, nk
       integer(C_INT) :: handle
@@ -266,7 +266,7 @@
       implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
       integer(C_INT), intent(IN), value :: iun, datev, ip1, ip2, ip3, ig1, ig2, ig3, ig4
       integer(C_INT), intent(OUT)       :: ni, nj, nk
       character(C_CHAR), dimension(*), intent(IN) :: typvar, nomvar, etiket, grtyp
@@ -279,7 +279,7 @@
       implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
       integer(C_INT), intent(IN), value :: handle
       integer(C_INT), intent(OUT) :: ni, nj, nk
       integer(C_INT) :: handle_out
@@ -314,7 +314,7 @@
       implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
       integer(C_INT), intent(IN), value :: iun, npak, date, deet, npas, ni, nj, nk, datyp, rewrite
       integer(C_INT), intent(IN), value :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
       character(C_CHAR), dimension(*), intent(IN) :: typvar, nomvar, etiket, grtyp

@@ -541,7 +541,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: handle
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT) :: handle_out
@@ -574,7 +574,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun, start
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -586,7 +586,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: start
     integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -621,7 +621,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -633,7 +633,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -645,7 +645,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank dblewords
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -657,7 +657,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank dblewords
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -669,7 +669,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank halfwords
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -681,7 +681,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank halfwords
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -693,7 +693,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank bytes
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -705,7 +705,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank bytes
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -745,7 +745,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes ,target
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3, lngstr
@@ -757,7 +757,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes ,target
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3, lngstr
@@ -787,7 +787,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT) :: handle
@@ -797,7 +797,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT) :: handle
@@ -836,7 +836,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
@@ -887,7 +887,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -900,7 +900,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -914,7 +914,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -928,7 +928,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank dblewords, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -941,7 +941,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank dblewords, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -954,7 +954,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank halfwords, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -967,7 +967,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank halfwords, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -980,7 +980,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank bytes, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -993,7 +993,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank bytes, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -1039,7 +1039,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
@@ -1053,7 +1053,7 @@ module rmn_fstd98
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
@@ -1068,7 +1068,7 @@ module rmn_fstd98
     character(len=*), intent(IN) :: string
 #define IgnoreTypeKindRank work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer(C_INT), intent(IN) :: iun
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -1083,7 +1083,7 @@ module rmn_fstd98
     character(len=*), intent(IN) :: string
 #define IgnoreTypeKindRank work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     class(fstd98), intent(IN) :: this
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4

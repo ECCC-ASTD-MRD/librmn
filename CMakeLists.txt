@@ -67,7 +67,6 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 include_directories(
    include
    src/PUBLIC_INCLUDES
-   src/PUBLIC_INCLUDES/rmn
 )
 
 file(GLOB PROJECT_C_FILES

@@ -48,7 +48,7 @@ contains
         implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include "rmn/IgnoreTypeKindRank.hf"
+#include <rmn/IgnoreTypeKindRank.hf>
         integer(C_INT), intent(IN), value :: iun
         integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp
         integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -88,7 +88,7 @@ contains
         implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
         integer(C_INT), intent(IN), value :: iun
         integer(C_INT), intent(OUT) :: ni, nj, nk
         integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
