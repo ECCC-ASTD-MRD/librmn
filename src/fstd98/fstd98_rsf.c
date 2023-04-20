@@ -1225,6 +1225,8 @@ int c_fstluk_rsf(
     xdf_short = 0;
     xdf_byte = 0;
 
+    free(record);
+
     if (ier < 0) return ier;
 
     return key32;
@@ -1478,16 +1480,12 @@ int c_fstsui_rsf(
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
     const int32_t xdf_handle = RSF_Key32(rsf_key);
 
-    // stdf_dir_keys * stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-    // uint32_t * pkeys = (uint32_t *) stdf_entry;
-    // pkeys += W64TOWD(1);
+    stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record_info.meta;
 
-    // int addr, lng, idtyp;
-    // c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
-    // *ni = stdf_entry->ni;
-    // *nj = stdf_entry->nj;
-    // *nk = stdf_entry->nk;
-    // free(stdf_entry);
+    *ni = stdf_entry->ni;
+    *nj = stdf_entry->nj;
+    *nk = stdf_entry->nk;
+
     return xdf_handle;
 }
 

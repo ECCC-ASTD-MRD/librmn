@@ -56,9 +56,9 @@ program fst_interface
 
     ! --- fstecr ---
     do i = 1, 3
-        status = test_file % ecr(data_array(:, i), work_array, -8, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,      &
+        status = test_file % ecr(data_array(:, i), work_array, -32, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
                                 NUM_DATA, 1, 1,                                                            &
-                                1, 0, 0,                                                                   &
+                                i, 0, 0,                                                                   &
                                 'XX', 'YYYY', 'ETIKET', 'X',                                               &
                                 0, 0, 0, 0,                                                                &
                                 DATATYPE,  REWRITE)
@@ -90,21 +90,24 @@ program fst_interface
     work_array(:) = 0
     record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
     call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
-    if (.not. all(work_array == data_array(:, 1))) then
-        write(app_msg, '(A, 2(5X, 8I3))') 'Got different data!!!', work_array, data_array(:, 1)
+    if (.not. all(work_array == data_array(:, 1)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 1)
+        call App_Log(APP_ERROR, app_msg)
+        write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
+            'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
         call App_Log(APP_ERROR, app_msg)
         error stop 1
     end if
 
-    ! --- fstinl ---
-    ! block
-    !     ! integer, parameter :: max_num_records = 10
-    !     integer, dimension(num_records) :: record_keys
-    !     integer :: num_record_found
-    !     status = test_file % inl(ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ',          &
-    !                              record_keys, num_record_found, num_records)
-    !     call check_status(status, expected = 0, fail_message = 'fstinl')
-    ! end block
+    ! --- fstinl --- (includes fstsui)
+    block
+        integer, dimension(num_records + 3) :: record_keys
+        integer :: num_record_found
+        status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                 record_keys, num_record_found, num_records + 3)
+        call check_status(status, expected = 0, fail_message = 'fstinl status')
+        call check_status(num_record_found, expected = num_records + 3, fail_message = 'fstinl count')
+    end block
 
     ! --- fsteff ---
     status = test_file % eff(record_key)
