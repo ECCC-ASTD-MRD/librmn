@@ -1130,4 +1130,31 @@ contains
       implicit none
       status = c_fstcheck(f_c_string(path))
     end procedure
+
+! /*****************************************************************************
+!  *                            F S T M S Q                                    *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Mask a portion of the research keys.                                    *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *   IN    iun     unit number associated to the file                        *
+!  * IN/OUT  mip1    mask for vertical level                                   *
+!  * IN/OUT  mip2    mask for forecast hour                                    *
+!  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    *
+!  * IN/OUT  metiket mask for label                                            *
+!  *   IN    getmode logical (1: getmode 0:set mode)                           *
+!  *                                                                           *
+!  *****************************************************************************/
+  module procedure fstmsq
+    implicit none
+    status = c_fstmsq(iun, ip1, ip2, ip3, etiket, getmode)
+  end procedure
+
+  module procedure msq
+    implicit none
+    status = c_fstmsq(this % iun, ip1, ip2, ip3, etiket, getmode)
+  end procedure
+
 end submodule

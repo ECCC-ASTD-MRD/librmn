@@ -1360,6 +1360,17 @@ int c_fstlis_rsf(
     return c_fstluk_rsf(field, file_handle, RSF_Key32(rsf_key), ni, nj, nk);
 }
 
+//! Helper function for c_fstmsq
+static inline char isignore(const char chr) {
+    return (chr == '*') ? 0 : 0x3f;
+}
+
+
+//! Helper function for c_fstmsq
+static inline char inv_isignore(const char chr) {
+    return (chr == 0x3f) ? ' ' : '*';
+}
+
 //! \copydoc c_fstmsq
 //! RSF version
 int c_fstmsq_rsf(
@@ -1375,11 +1386,55 @@ int c_fstmsq_rsf(
     int *mip3,
     //! [in,out] Mask for the label
     char *metiket,
-    //! [in] Operation: Get when 1, Set when 2
+    //! [in] Operation: Set when 0, Get otherwise
     const int getmode
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet (will it ever be?)\n", __func__);
-    return ERR_WRONG_FTYPE;
+    RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
+
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        return ERR_NO_FILE;
+    }
+
+    stdf_dir_keys * search_mask = (stdf_dir_keys *) RSF_Get_search_mask(file_handle);
+
+    if (getmode == 0) {
+        search_mask->ip1 = ~(*mip1) & 0xfffffff;
+        search_mask->ip2 = ~(*mip2) & 0xfffffff;
+        search_mask->ip3 = ~(*mip3) & 0xfffffff;
+        search_mask->etik15 =
+            (isignore(metiket[0]) << 24) |
+            (isignore(metiket[1]) << 18) |
+            (isignore(metiket[2]) << 12) |
+            (isignore(metiket[3]) <<  6) |
+            (isignore(metiket[4]));
+        search_mask->etik6a =
+            (isignore(metiket[5]) << 24) |
+            (isignore(metiket[6]) << 18) |
+            (isignore(metiket[7]) << 12) |
+            (isignore(metiket[8]) <<  6) |
+            (isignore(metiket[9]));
+        search_mask->etikbc =
+            (isignore(metiket[10]) <<  6) |
+            (isignore(metiket[11]));
+    } else {
+        *mip1 = ~(search_mask->ip1) & 0xfffffff;
+        *mip2 = ~(search_mask->ip2) & 0xfffffff;
+        *mip3 = ~(search_mask->ip3) & 0xfffffff;
+        for (int i = 0; i <= 4; i++) {
+            metiket[i] = inv_isignore( ((search_mask->etik15 >> ((4-i)*6)) & 0x3f) );
+        }
+
+        for (int i = 5; i <= 9; i++) {
+            metiket[i] = inv_isignore( ((search_mask->etik6a >> ((9-i)*6)) & 0x3f) );
+        }
+
+        metiket[10] = inv_isignore( ((search_mask->etikbc >> 6) & 0x3f) );
+        metiket[11] = inv_isignore((search_mask->etikbc  & 0x3f));
+        metiket[12] = '\0';
+    }
+
+    return 0;
 }
 
 //! Get the number of valid records (excluding deleted records) in a file

@@ -65,6 +65,7 @@ module rmn_fstd98
     procedure, PASS(this) :: voi
     ! procedure, PASS(this) :: weo
     procedure, PASS(this) :: is_rsf => fstd98_is_rsf
+    procedure, PASS(this) :: msq
     procedure, NOPASS     :: ver => fst_version
     procedure, NOPASS     :: opi => fstopi
     procedure, NOPASS     :: opl => fstopl
@@ -1323,6 +1324,41 @@ module rmn_fstd98
     class(fstd98), intent(IN) :: this
     integer(C_INT) :: status
   end function ckp
+
+! /*****************************************************************************
+!  *                            F S T M S Q                                    *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Mask a portion of the research keys.                                    *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *   IN    iun     unit number associated to the file                        *
+!  * IN/OUT  mip1    mask for vertical level                                   *
+!  * IN/OUT  mip2    mask for forecast hour                                    *
+!  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    *
+!  * IN/OUT  metiket mask for label                                            *
+!  *   IN    getmode logical (1: getmode 0:set mode)                           *
+!  *                                                                           *
+!  *****************************************************************************/
+  module function fstmsq(iun, ip1, ip2, ip3, etiket, getmode) result(status)
+    implicit none
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(INOUT) :: ip1, ip2, ip3
+    character(len=*), intent(INOUT) :: etiket
+    integer(C_INT), intent(IN) :: getmode
+    integer(C_INT) :: status
+  end function fstmsq
+
+  module function msq(this, ip1, ip2, ip3, etiket, getmode) result(status)
+    implicit none
+    class(fstd98), intent(INOUT) :: this
+    integer(C_INT), intent(INOUT) :: ip1, ip2, ip3
+    character(len=*), intent(INOUT) :: etiket
+    integer(C_INT), intent(IN) :: getmode
+    integer(C_INT) :: status
+  end function msq
+
   end interface
 
 end module rmn_fstd98

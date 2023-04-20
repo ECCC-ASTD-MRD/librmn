@@ -5,6 +5,7 @@
 
 program fst_interface
     use app
+    use iso_c_binding
     use rmn_test_helper
     use rmn_fstd98
     implicit none
@@ -28,6 +29,8 @@ program fst_interface
     integer :: num_records, new_num_records, expected_num_records
     integer :: record_key
     integer :: expected
+    integer :: ip1, ip2, ip3
+    character(len=20) :: etiket
 
     type(fstd98) :: test_file
 
@@ -90,13 +93,29 @@ program fst_interface
 
     ! Found
     work_array(:) = 0
-    record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
+    record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 2, -1, -1, ' ', ' ')
     call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
-    if (.not. all(work_array == data_array(:, 1)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
-        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 1)
+    if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
         call App_Log(APP_ERROR, app_msg)
         write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
             'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+
+    ! ----- fstmsq -----
+    status = test_file % msq(ip1, ip2, ip3, etiket, 1)
+    call check_status(status, expected = 0, fail_message = 'msq (status)')
+    ! write(app_msg, '(A, 3I11)') 'Got IPs ', ip1, ip2, ip3
+    ! call App_Log(APP_WARNING, app_msg)
+    call check_status(ip1, expected = 0, fail_message = 'msq (ip1)')
+    call check_status(ip2, expected = int(z'fffffff', kind=4), fail_message = 'msq (ip2)')
+    call check_status(ip3, expected = int(z'fffffff', kind=4), fail_message = 'msq (ip3)')
+    if (etiket(1:12) /= '************') then
+        write(app_msg, '(A, A, A, A)') 'Wrong etiket, got ', etiket(1:12)
+        call App_Log(APP_ERROR, app_msg)
+        write(app_msg, '(A, A)') 'but expected      ', '************' // C_NULL_CHAR
         call App_Log(APP_ERROR, app_msg)
         error stop 1
     end if
@@ -105,8 +124,8 @@ program fst_interface
     work_array(:) = 0
     record_key = test_file % lis(work_array, ni, nj, nk)
     call check_status(record_key, expected_min = 1, fail_message = 'lis')
-    if (.not. all(work_array == data_array(:, 1)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
-        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 1)
+    if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
         call App_Log(APP_ERROR, app_msg)
         write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
             'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1

@@ -2950,7 +2950,7 @@ int c_fstmsq_xdf(
     int *mip3,
     //! [in,out] Mask for the label
     char *metiket,
-    //! [in] Operation: Get when 1, Set when 2
+    //! [in] Operation: Set when 0, Get otherwise
     const int getmode
 ) {
 
@@ -3018,7 +3018,7 @@ int c_fstmsq(
     int *mip3,
     //! [in,out] Mask for the label
     char *metiket,
-    //! [in] Operation: Get when 1, Set when 2
+    //! [in] Operation: Set when 0, Get otherwise
     const int getmode
 ) {
     int index_fnom;
