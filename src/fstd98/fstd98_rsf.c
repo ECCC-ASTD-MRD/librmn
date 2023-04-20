@@ -1343,8 +1343,21 @@ int c_fstlis_rsf(
     //! [out] Third of the data field
     int *nk
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet\n", __func__);
-    return ERR_WRONG_FTYPE;
+    RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
+
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        return ERR_NO_FILE;
+    }
+
+    /* Get the next record that matches the last search criterias */
+    const int64_t rsf_key = RSF_Lookup(file_handle, -1, NULL, NULL, -1);
+    if (rsf_key < 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
+        return (int32_t)rsf_key;
+    }
+
+    return c_fstluk_rsf(field, file_handle, RSF_Key32(rsf_key), ni, nj, nk);
 }
 
 //! \copydoc c_fstmsq
@@ -1470,7 +1483,6 @@ int c_fstsui_rsf(
     }
 
     /* position to the next record that matches the last search criterias */
-    // int handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
     const int64_t rsf_key = RSF_Lookup(file_handle, -1, NULL, NULL, -1);
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);

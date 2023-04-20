@@ -55,33 +55,35 @@ program fst_interface
     num_records = status
 
     ! --- fstecr ---
-    do i = 1, 3
-        status = test_file % ecr(data_array(:, i), work_array, -32, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
-                                NUM_DATA, 1, 1,                                                            &
-                                i, 0, 0,                                                                   &
-                                'XX', 'YYYY', 'ETIKET', 'X',                                               &
-                                0, 0, 0, 0,                                                                &
-                                DATATYPE,  REWRITE)
-        call check_status(status, expected = 0, fail_message = 'ecr')
+    do j = 1, 2
+        do i = 1, 3
+            status = test_file % ecr(data_array(:, i), work_array, -32, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
+                                    NUM_DATA, 1, 1,                                                            &
+                                    i, 0, 0,                                                                   &
+                                    'XX', 'YYYY', 'ETIKET', 'X',                                               &
+                                    0, 0, 0, 0,                                                                &
+                                    DATATYPE,  REWRITE)
+            call check_status(status, expected = 0, fail_message = 'ecr')
+        end do
     end do
 
-    ! --- fstnbr ---
+    ! ----- fstnbr -----
     new_num_records = test_file % nbr()
     call check_status(new_num_records, expected = num_records, fail_message = 'nbr')
 
-    ! --- fstfrm ---
+    ! ----- fstfrm -----
     status = test_file % frm()
     call check_status(status,expected = 0, fail_message = 'frm')
 
-    ! --- fstouv ---
+    ! ----- fstouv -----
     status = test_file % ouv(test_file_name, 'STD+RND')
     call check_status(status, expected_min = 1, fail_message = 'ouv (second one)')
 
-    ! --- fstnbr ---
+    ! ----- fstnbr -----
     new_num_records = test_file % nbr()
-    call check_status(new_num_records, expected = num_records + 3, fail_message = 'nbr (second one)')
+    call check_status(new_num_records, expected = num_records + 6, fail_message = 'nbr (second one)')
 
-    ! --- fstlir --- (includes fstinf and fstluk)
+    ! ----- fstlir ----- (includes fstinf and fstluk)
     ! Not found
     record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
     call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
@@ -99,17 +101,32 @@ program fst_interface
         error stop 1
     end if
 
-    ! --- fstinl --- (includes fstsui)
+    ! ----- fstlis -----
+    work_array(:) = 0
+    record_key = test_file % lis(work_array, ni, nj, nk)
+    call check_status(record_key, expected_min = 1, fail_message = 'lis')
+    if (.not. all(work_array == data_array(:, 1)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 1)
+        call App_Log(APP_ERROR, app_msg)
+        write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
+            'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+
+    ! ----- fstinl ----- (includes fstsui)
     block
-        integer, dimension(num_records + 3) :: record_keys
+        integer, dimension(num_records + 6) :: record_keys
         integer :: num_record_found
         status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
-                                 record_keys, num_record_found, num_records + 3)
+                                 record_keys, num_record_found, num_records + 6)
         call check_status(status, expected = 0, fail_message = 'fstinl status')
-        call check_status(num_record_found, expected = num_records + 3, fail_message = 'fstinl count')
+        call check_status(num_record_found, expected = num_records + 6, fail_message = 'fstinl count')
     end block
 
-    ! --- fsteff ---
+    ! ----- fsteff -----
+    ! Better put this test (second-to-)last, because after it the state will be different depending on type of
+    ! standard file (RSF or XDF)
     status = test_file % eff(record_key)
     if (test_file % is_rsf()) then
         call check_status(status, expected_max = -1, fail_message = 'eff')
@@ -117,7 +134,7 @@ program fst_interface
         call check_status(status, expected = 0, fail_message = 'eff')
     end if
 
-    ! --- fstfrm ---
+    ! ----- fstfrm -----
     status = test_file % frm()
     call check_status(status,expected = 0, fail_message = 'frm (second one)')
 
