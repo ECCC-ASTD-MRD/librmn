@@ -3913,7 +3913,7 @@ int c_fstvoi_xdf(
                 entry += width;
             }
         }
-   } else {
+    } else {
         // xdf sequential
         int end_of_file = 0;
         while (! end_of_file) {
@@ -4030,6 +4030,7 @@ int c_fstvoi_xdf(
             }
         } /* end while */
     }
+
     fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
     if (fte->fstd_vintage_89) {
         sprintf(string, "Version 1989");
@@ -4049,6 +4050,7 @@ int c_fstvoi_xdf(
         }
         fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
     }
+
     return 0;
 }
 

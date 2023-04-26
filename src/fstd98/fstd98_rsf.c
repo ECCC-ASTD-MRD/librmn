@@ -1642,6 +1642,26 @@ int c_fstvoi_rsf(
     //! [in] List of fields to print
     const char * const options
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet\n", __func__);
-    return ERR_WRONG_FTYPE;
+    RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
+
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        return ERR_NO_FILE;
+    }
+
+    const uint32_t num_records = RSF_Get_num_records(file_handle);
+    size_t total_file_size = 0;
+    
+    for (unsigned int i = 0; i < num_records; i++) {
+        const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
+        const stdf_dir_keys* metadata = (const stdf_dir_keys *) info.meta;
+        total_file_size += info.rl;
+        char string[20];
+        sprintf(string, "%5d-", i);
+        print_std_parms(metadata, string, options, ((i % 70) == 0));
+    }
+
+    fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %d bytes.\n", num_records, total_file_size);
+
+    return 0;
 }

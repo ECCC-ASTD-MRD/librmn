@@ -210,6 +210,10 @@ program fst_interface
         call check_status(num_record_found, expected = real_num_records, fail_message = 'fstinl count')
     end block
 
+    ! ----- fstvoi -----
+    status = test_file % voi(' ')
+    call check_status(status, expected = 0, fail_message = 'fstvoi')
+
     ! ----- fsteff -----
     ! Better put this test (second-to-)last, because after it the state will be different depending on type of
     ! standard file (RSF or XDF)
