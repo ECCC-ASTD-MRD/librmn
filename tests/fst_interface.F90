@@ -26,11 +26,9 @@ program fst_interface
     integer, parameter :: REWRITE = 0
 
     integer :: ni, nj, nk
-    integer :: num_records, new_num_records, expected_num_records
+    integer :: num_records, real_num_records, new_num_records, expected_num_records
     integer :: record_key
     integer :: expected
-    integer :: ip1, ip2, ip3
-    character(len=20) :: etiket
 
     type(fstd98) :: test_file
 
@@ -74,6 +72,14 @@ program fst_interface
     new_num_records = test_file % nbr()
     call check_status(new_num_records, expected = num_records, fail_message = 'nbr')
 
+    ! ----- fstnbrv -----
+    real_num_records = test_file % nbrv()
+    if (test_file % is_rsf()) then
+        call check_status(real_num_records, expected = num_records + 6, fail_message = 'nbrv')
+    else
+        call check_status(real_num_records, expected_max = num_records + 6, fail_message = 'nbrv')
+    end if
+
     ! ----- fstfrm -----
     status = test_file % frm()
     call check_status(status,expected = 0, fail_message = 'frm')
@@ -105,20 +111,26 @@ program fst_interface
     end if
 
     ! ----- fstmsq -----
-    status = test_file % msq(ip1, ip2, ip3, etiket, 1)
-    call check_status(status, expected = 0, fail_message = 'msq (status)')
-    ! write(app_msg, '(A, 3I11)') 'Got IPs ', ip1, ip2, ip3
-    ! call App_Log(APP_WARNING, app_msg)
-    call check_status(ip1, expected = 0, fail_message = 'msq (ip1)')
-    call check_status(ip2, expected = int(z'fffffff', kind=4), fail_message = 'msq (ip2)')
-    call check_status(ip3, expected = int(z'fffffff', kind=4), fail_message = 'msq (ip3)')
-    if (etiket(1:12) /= '************') then
-        write(app_msg, '(A, A, A, A)') 'Wrong etiket, got ', etiket(1:12)
-        call App_Log(APP_ERROR, app_msg)
-        write(app_msg, '(A, A)') 'but expected      ', '************' // C_NULL_CHAR
-        call App_Log(APP_ERROR, app_msg)
-        error stop 1
-    end if
+    block
+        integer :: ip1, ip2, ip3
+        character(len=20) :: etiket
+        etiket(1:20) = 'abcdefghijklmnopqrst'
+        status = test_file % msq(ip1, ip2, ip3, etiket, 1)
+        ! status = fstmsq(test_file % iun, ip1, ip2, ip3, etiket, 1)
+        call check_status(status, expected = 0, fail_message = 'msq (status)')
+        ! write(app_msg, '(A, 3I11)') 'Got IPs ', ip1, ip2, ip3
+        ! call App_Log(APP_WARNING, app_msg)
+        call check_status(ip1, expected = 0, fail_message = 'msq (ip1)')
+        call check_status(ip2, expected = 0, fail_message = 'msq (ip2)')
+        call check_status(ip3, expected = 0, fail_message = 'msq (ip3)')
+        if (etiket(1:12) /= '            ') then
+            write(app_msg, '(A, A, A, A)') 'Wrong etiket, got ', '"' // etiket(1:12) // '"'
+            call App_Log(APP_ERROR, app_msg)
+            write(app_msg, '(A, A)') 'but expected      ', '"' // '            ' // '"'
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+    end block
 
     ! ----- fstlis -----
     work_array(:) = 0
@@ -135,12 +147,12 @@ program fst_interface
 
     ! ----- fstinl ----- (includes fstsui)
     block
-        integer, dimension(num_records + 6) :: record_keys
+        integer, dimension(real_num_records) :: record_keys
         integer :: num_record_found
         status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
-                                 record_keys, num_record_found, num_records + 6)
+                                 record_keys, num_record_found, real_num_records)
         call check_status(status, expected = 0, fail_message = 'fstinl status')
-        call check_status(num_record_found, expected = num_records + 6, fail_message = 'fstinl count')
+        call check_status(num_record_found, expected = real_num_records, fail_message = 'fstinl count')
     end block
 
     ! ----- fsteff -----

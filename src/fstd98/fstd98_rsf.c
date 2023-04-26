@@ -4,6 +4,13 @@
 #include <App.h>
 #include "fstd98_internal.h"
 
+static inline size_t strlen_up_to(const char* string, const size_t max_length) {
+    for (size_t i = 0; i < max_length; i++) {
+        if (string[i] == '\0') return i;
+    }
+    return max_length;
+}
+
 //! Checks whether the given unit corresponds to an RSF file
 //! \return 1 if the unit is an RSF, 0 if not, something else if there was an error
 int32_t is_rsf(
@@ -21,6 +28,26 @@ int32_t is_rsf(
     if (out_index_fnom != NULL) *out_index_fnom = index_fnom;
 
     return FGFDT[index_fnom].attr.rsf == 1 ? 1 : 0;
+}
+
+//! Find the next record in a given file, according to the given parameters
+//! \return Key of the record found (negative if error or nothing found)
+static int64_t find_next_record(RSF_handle file_handle, fstd_usage_info* search_params) {
+
+    stdf_dir_keys actual_mask;
+    uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;
+    uint32_t* mask_u32            = (uint32_t *)&search_params->search_mask;
+    uint32_t* background_mask_u32 = (uint32_t *)&search_params->background_search_mask;
+    for (int i = 0; i < search_params->num_criteria; i++) {
+        actual_mask_u32[i] = mask_u32[i] & background_mask_u32[i];
+    }
+    const int64_t rsf_key = RSF_Lookup(file_handle,
+                                       search_params->search_start_key,
+                          (uint32_t *)&search_params->search_criteria,
+                                       actual_mask_u32,
+                                       search_params->num_criteria);
+    if (rsf_key > 0) search_params->search_start_key = rsf_key;
+    return rsf_key;
 }
 
 //! \copydoc c_fstecr
@@ -279,13 +306,13 @@ int c_fstecr_rsf(
     RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
 
     char typvar[3] = {' ', ' ', '\0'};
-    strncpy(typvar, in_typvar, strlen(in_typvar));
+    strncpy(typvar, in_typvar, strlen_up_to(in_typvar, 2));
     char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
-    strncpy(nomvar, in_nomvar, strlen(in_nomvar));
+    strncpy(nomvar, in_nomvar, strlen_up_to(in_nomvar, 4));
     char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' , ' ' , '\0'};
-    strncpy(etiket, in_etiket, strlen(in_etiket));
+    strncpy(etiket, in_etiket, strlen_up_to(in_etiket, 12));
     char grtyp[2] = {' ', '\0'};
-    strncpy(grtyp, in_grtyp, strlen(in_grtyp));
+    strncpy(grtyp, in_grtyp, strlen_up_to(in_grtyp, 1));
 
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) record->meta;
@@ -348,16 +375,10 @@ int c_fstecr_rsf(
     stdf_entry->pad6 = 0;
     stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
 
-    int handle = 0;
-    // TODO: Be able to mark a record as "deleted"
-    if ((rewrit)) {
-        // find handle for rewrite operation
-        int niout, njout, nkout;
-        handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
-        if (handle < 0) {
-            /* append mode for xdfput */
-            handle = 0;
-        }
+    if (rewrit) {
+        Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: The \"rewrite\" option is not available for RSF files. It will be ignored. "
+                "(Set rewrit param to 0 if you don't want to see this warning)\n", __func__);
     }
 
     uint32_t * field = field_in;
@@ -714,9 +735,9 @@ int c_fstinfx_rsf(
     char typvar[3] = {' ', ' ', '\0'};
     char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
 
-    strncpy(etiket, in_etiket, strlen(in_etiket));
-    strncpy(typvar, in_typvar, strlen(in_typvar));
-    strncpy(nomvar, in_nomvar, strlen(in_nomvar));
+    strncpy(etiket, in_etiket, strlen_up_to(in_etiket, 12));
+    strncpy(typvar, in_typvar, strlen_up_to(in_typvar, 2));
+    strncpy(nomvar, in_nomvar, strlen_up_to(in_nomvar, 4));
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] "
             "nomvar=[%s]\n", __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
@@ -727,14 +748,17 @@ int c_fstinfx_rsf(
         return ERR_NO_FILE;
     }
 
-    stdf_dir_keys *stdf_entry  = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-    stdf_dir_keys *search_mask = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    // Initialize search parameters
+    fstd_open_files[index_fnom].search_start_key = 0;
+    stdf_dir_keys *search_criteria  = &fstd_open_files[index_fnom].search_criteria;
+    stdf_dir_keys *search_mask = &fstd_open_files[index_fnom].search_mask;
 
-    uint32_t *pkeys = (uint32_t *) stdf_entry;
-    uint32_t *pmask = (uint32_t *) search_mask;
-
-    for (uint i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
-        pmask[i] = -1;
+    // Reset search mask for initialization
+    {
+        uint32_t *pmask = (uint32_t *) search_mask;
+        for (uint i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
+            pmask[i] = -1;
+        }
     }
 
     search_mask->pad1 = 0;
@@ -765,103 +789,100 @@ int c_fstinfx_rsf(
     search_mask->ig2c = 0;
     search_mask->levtyp = 0;
 
-    stdf_entry->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
+    search_criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
     search_mask->date_stamp &= ~(0x7);
     if (datev == -1) search_mask->date_stamp = 0;
 
-    stdf_entry->ip1 = ip1;
+    search_criteria->ip1 = ip1;
     if ((ip1 == -1) || (ip1s_flag)) search_mask->ip1 = 0;
 
-    stdf_entry->ip2 = ip2;
+    search_criteria->ip2 = ip2;
     if ((ip2 == -1) || (ip2s_flag)) search_mask->ip2 = 0;
 
-    stdf_entry->ip3 = ip3;
+    search_criteria->ip3 = ip3;
     if ((ip3 == -1) || (ip3s_flag)) search_mask->ip3 = 0;
 
-    stdf_entry->nomvar = (ascii6(nomvar[0]) << 18) |
-                         (ascii6(nomvar[1]) << 12) |
-                         (ascii6(nomvar[2]) <<  6) |
-                         (ascii6(nomvar[3]));
-    if (stdf_entry->nomvar == 0) search_mask->nomvar = 0;
+    search_criteria->nomvar = (ascii6(nomvar[0]) << 18) |
+                              (ascii6(nomvar[1]) << 12) |
+                              (ascii6(nomvar[2]) <<  6) |
+                              (ascii6(nomvar[3]));
+    if (search_criteria->nomvar == 0) search_mask->nomvar = 0;
 
-    stdf_entry->typvar = (ascii6(typvar[0]) << 6) |
-                         (ascii6(typvar[1]));
-    if (stdf_entry->typvar == 0) search_mask->typvar = 0;
+    search_criteria->typvar = (ascii6(typvar[0]) << 6) |
+                              (ascii6(typvar[1]));
+    if (search_criteria->typvar == 0) search_mask->typvar = 0;
 
-    stdf_entry->etik15 = (ascii6(etiket[0]) << 24) |
-                         (ascii6(etiket[1]) << 18) |
-                         (ascii6(etiket[2]) << 12) |
-                         (ascii6(etiket[3]) <<  6) |
-                         (ascii6(etiket[4]));
+    search_criteria->etik15 = (ascii6(etiket[0]) << 24) |
+                              (ascii6(etiket[1]) << 18) |
+                              (ascii6(etiket[2]) << 12) |
+                              (ascii6(etiket[3]) <<  6) |
+                              (ascii6(etiket[4]));
 
-    stdf_entry->etik6a = (ascii6(etiket[5]) << 24) |
-                         (ascii6(etiket[6]) << 18) |
-                         (ascii6(etiket[7]) << 12) |
-                         (ascii6(etiket[8]) <<  6) |
-                         (ascii6(etiket[9]));
+    search_criteria->etik6a = (ascii6(etiket[5]) << 24) |
+                              (ascii6(etiket[6]) << 18) |
+                              (ascii6(etiket[7]) << 12) |
+                              (ascii6(etiket[8]) <<  6) |
+                              (ascii6(etiket[9]));
 
-    stdf_entry->etikbc = (ascii6(etiket[10]) <<  6) |
-                         (ascii6(etiket[11]));
+    search_criteria->etikbc = (ascii6(etiket[10]) <<  6) |
+                              (ascii6(etiket[11]));
 
-    if ((stdf_entry->etik15 == 0) && (stdf_entry->etik6a == 0)) {
+    if ((search_criteria->etik15 == 0) && (search_criteria->etik6a == 0)) {
         search_mask->etik15 = 0;
         search_mask->etik6a = 0;
         search_mask->etikbc = 0;
     }
+
+    // Perform the search itself
     int64_t rsf_key = -1;
-    const int num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     if (handle == -2) {
         /* means handle not specified */
-        rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, num_criteria);
+        rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
     } else {
         // Verify that the given handle (record key) belongs to the given file
         if (handle > 0) {
             const uint32_t file_slot = RSF_Key64_to_file_slot(handle);
             if ((int32_t)file_slot != RSF_File_slot(file_handle)) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d, or iun=%d\n", __func__, handle, iun);
-                free(stdf_entry);
-                free(search_mask);
                 return(ERR_BAD_HNDL);
             }
         }
 
-        rsf_key = RSF_Lookup(file_handle, handle, pkeys, pmask, num_criteria);
+        rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
     }
-    const int32_t lhandle = RSF_Key32(rsf_key);
+    int32_t lhandle = RSF_Key32(rsf_key);
 
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
         if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
-        free(stdf_entry);
-        free(search_mask);
         return (int32_t)rsf_key;
     }
-    else {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
-    }
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
 
+    // Continue looking until we have a match. Why is this not part of the RSF lookup function????
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
         int nomatch = 1;
         while ((lhandle >=  0) && (nomatch)) {
             nomatch = 0;
             if ((ip1s_flag) && (ip1 >= 0)) {
-                if (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0) {
+                if (ip_is_equal(ip1, search_criteria->ip1, 1) == 0) {
                     nomatch = 1;
                 } else if ((ip2s_flag) && (ip2 >= 0)) {
-                    if (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0) {
+                    if (ip_is_equal(ip2, search_criteria->ip2, 2) == 0) {
                         nomatch = 1;
                     } else if ((ip3s_flag) && (ip3 >= 0)) {
-                        if (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0) {
+                        if (ip_is_equal(ip3, search_criteria->ip3, 3) == 0) {
                             nomatch = 1;
                         }
                     }
                 }
             }
             if (nomatch) {
-                rsf_key = RSF_Lookup(file_handle, 0, pkeys, pmask, num_criteria);
-                
+                rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+                lhandle = RSF_Key32(rsf_key);
                 if (rsf_key >= 0) {
                     record_info = RSF_Get_record_info(file_handle, rsf_key);
                 }
@@ -884,8 +905,6 @@ int c_fstinfx_rsf(
     *nj = record_meta->nj;
     *nk = record_meta->nk;
 
-    free(stdf_entry);
-    free(search_mask);
     return lhandle;
 }
 
@@ -1351,7 +1370,8 @@ int c_fstlis_rsf(
     }
 
     /* Get the next record that matches the last search criterias */
-    const int64_t rsf_key = RSF_Lookup(file_handle, -1, NULL, NULL, -1);
+    const int64_t rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
         return (int32_t)rsf_key;
@@ -1396,7 +1416,7 @@ int c_fstmsq_rsf(
         return ERR_NO_FILE;
     }
 
-    stdf_dir_keys * search_mask = (stdf_dir_keys *) RSF_Get_search_mask(file_handle);
+    stdf_dir_keys* search_mask = &fstd_open_files[index_fnom].background_search_mask;
 
     if (getmode == 0) {
         search_mask->ip1 = ~(*mip1) & 0xfffffff;
@@ -1437,17 +1457,17 @@ int c_fstmsq_rsf(
     return 0;
 }
 
-//! Get the number of valid records (excluding deleted records) in a file
+//! Get the number of valid records (excluding deleted records, including ones added since opening) in a file
 //! RSF version
 int c_fstnbrv_rsf(
     //! [in] Index of the file given by fnom
     const int index_fnom
 ) {
-    Lib_Log(APP_LIBFST, APP_INFO, 
-        "%s: This function requests the number of records in a file, *excluding* deleted records. "
-        "However, records cannot be deleted from RSF files. Please use fstnbr/c_fstnbr instead.\n",
-        __func__);
-    return c_fstnbr_rsf(index_fnom);
+    if (FGFDT[index_fnom].rsf_fh.p != NULL)
+        return RSF_Get_num_records(FGFDT[index_fnom].rsf_fh);
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: file at index %d is not open\n", __func__, index_fnom);
+    return ERR_NO_FILE;
 }
 
 //! Get all the descriptors of a record
@@ -1538,21 +1558,19 @@ int c_fstsui_rsf(
     }
 
     /* position to the next record that matches the last search criterias */
-    const int64_t rsf_key = RSF_Lookup(file_handle, -1, NULL, NULL, -1);
+    const int64_t rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
         return (int32_t)rsf_key;
     }
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    const int32_t xdf_handle = RSF_Key32(rsf_key);
-
     stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record_info.meta;
-
     *ni = stdf_entry->ni;
     *nj = stdf_entry->nj;
     *nk = stdf_entry->nk;
 
+    const int32_t xdf_handle = RSF_Key32(rsf_key);
     return xdf_handle;
 }
 

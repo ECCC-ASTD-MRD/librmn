@@ -24,6 +24,14 @@
         return(ERR_OUT_RANGE);\
     }
 
+typedef struct {
+    stdf_dir_keys search_criteria;
+    stdf_dir_keys search_mask;
+    stdf_dir_keys background_search_mask;
+    int64_t search_start_key;
+    int32_t num_criteria;
+} fstd_usage_info;
+
 extern int remap_table[2][10];
 extern int nb_remap;
 extern char prnt_options[128];
@@ -31,6 +39,7 @@ extern int ip1s_flag;
 extern int ip2s_flag;
 extern int ip3s_flag;
 extern int downgrade_32;
+extern fstd_usage_info fstd_open_files[MAXFILES];
 
 // Signatures from fstd98.c
 int init_ip_vals();

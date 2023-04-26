@@ -82,7 +82,7 @@ static regex_t pattern;
 static int turbocomp_mode = 0;
 static char *comptab[2] = {"FAST", "BEST"};
 
-// static RSF_handle rsf_handles[MAXFILES];
+fstd_usage_info fstd_open_files[MAXFILES];
 
 int FstCanTranslateName(char *varname);
 
@@ -3085,7 +3085,7 @@ int c_fstnbr(
 }
 
 
-//! Get the number of valid records (excluding deleted records) in a file
+//! Get the number of valid records (excluding deleted records, including ones that were added since opening) in a file
 //! XDF version
 int c_fstnbrv_xdf(
     //! [in] Unit number associated to the file
@@ -3113,7 +3113,7 @@ int c_fstnbrv_xdf(
     return f->header->nrec;
 }
 
-//! Get the number of valid records (excluding deleted records) in a file
+//! Get the number of valid records (excluding deleted records, including ones that were added since opening) in a file
 int c_fstnbrv(
     //! [in] Unit number associated to the file
     int iun
@@ -3405,6 +3405,11 @@ int c_fstouv(
             }
         }
     }
+
+    memset(&fstd_open_files[i], 0, sizeof(fstd_usage_info));
+    memset(&fstd_open_files[i].search_mask, 0xff, sizeof(stdf_dir_keys));
+    memset(&fstd_open_files[i].background_search_mask, 0xff, sizeof(stdf_dir_keys));
+    fstd_open_files[i].num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
 
     if (ier < 0) return ier;
     nrec = c_fstnbr(iun);
