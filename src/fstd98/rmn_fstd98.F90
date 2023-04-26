@@ -393,15 +393,18 @@ module rmn_fstd98
 !  *  OUT extra3  extra parameter                                              * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  module subroutine fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+  module function fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
                     typvar, nomvar, etiket, grtyp, &
-                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
+                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)        &
+                  result(status)
     implicit none
     integer, intent(IN) :: handle
     integer, intent(OUT) :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
     integer, intent(OUT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
     character(len=*), intent(OUT) :: typvar, nomvar, etiket, grtyp
-  end subroutine fstprm
+    integer(C_INT32_T) :: status
+
+  end function fstprm
 
 ! /***************************************************************************** 
 !  *                              F S T V O I                                  *
@@ -430,7 +433,6 @@ module rmn_fstd98
     integer(C_INT) :: status
   end function voi
 
-  ! /*****************************************************************************
   !> \return Whether the associated file is open and of type RSF
   module function fstd98_is_rsf(this) result(is_rsf)
     implicit none
@@ -1361,4 +1363,5 @@ module rmn_fstd98
 
   end interface
 
+contains
 end module rmn_fstd98

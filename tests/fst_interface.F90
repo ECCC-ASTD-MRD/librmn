@@ -25,7 +25,6 @@ program fst_interface
     integer, parameter :: DATATYPE = 4 ! 4 = integer
     integer, parameter :: REWRITE = 0
 
-    integer :: ni, nj, nk
     integer :: num_records, real_num_records, new_num_records, expected_num_records
     integer :: record_key
     integer :: expected
@@ -60,7 +59,7 @@ program fst_interface
         do i = 1, 3
             status = test_file % ecr(data_array(:, i), work_array, -32, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
                                     NUM_DATA, 1, 1,                                                            &
-                                    i, 0, 0,                                                                   &
+                                    i, j, 0,                                                                   &
                                     'XX', 'YYYY', 'ETIKET', 'X',                                               &
                                     0, 0, 0, 0,                                                                &
                                     DATATYPE,  REWRITE)
@@ -94,21 +93,73 @@ program fst_interface
 
     ! ----- fstlir ----- (includes fstinf and fstluk)
     ! Not found
-    record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
-    call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
+    block
+        integer :: ni, nj, nk
+        record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
+        call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
 
-    ! Found
-    work_array(:) = 0
-    record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 2, -1, -1, ' ', ' ')
-    call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
-    if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
-        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
-        call App_Log(APP_ERROR, app_msg)
-        write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
-            'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
-        call App_Log(APP_ERROR, app_msg)
-        error stop 1
-    end if
+        ! Found
+        work_array(:) = 0
+        record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 2, -1, -1, ' ', ' ')
+        call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
+        if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+            write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
+            call App_Log(APP_ERROR, app_msg)
+            write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
+                'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+    end block
+
+    ! ----- fstprm -----
+    block
+        integer :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
+        character(len=20) :: typvar, nomvar, etiket, grtyp
+        integer :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+        status = fstprm(record_key, date, deet, npas, ni, nj, nk, nbits, datyp,                     &
+                        ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,                               &
+                        ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
+
+        call check_status(status, expected = 0, fail_message = 'prm')
+
+        ! print *, record_key
+        ! print *, date, deet, npas
+        ! print *, ni, nj, nk
+        ! print *, nbits, datyp
+        ! print *, ip1, ip2, ip3
+        ! print '(4(A, ", "))', trim(typvar), trim(nomvar), trim(etiket), trim(grtyp)
+        ! print *, ig1, ig2, ig3, ig4
+        ! print *, swa, lng, dlft, ubc
+        ! print *, extra1, extra2, extra3
+
+        call check_status(ni, expected = NUM_DATA, fail_message = 'prm (ni)')
+        call check_status(nj, expected = 1, fail_message = 'prm (nj)')
+        call check_status(nk, expected = 1, fail_message = 'prm (nk)')
+        call check_status(nbits, expected = 32, fail_message = 'prm (nbits)')
+        call check_status(datyp, expected = DATATYPE, fail_message = 'prm (datyp)')
+        call check_status(ip1, expected = 2, fail_message = 'prm (ip1)')
+        call check_status(ig1, expected = 0, fail_message = 'prm (ig1)')
+        call check_status(ig2, expected = 0, fail_message = 'prm (ig2)')
+        call check_status(ig3, expected = 0, fail_message = 'prm (ig3)')
+        call check_status(ig4, expected = 0, fail_message = 'prm (ig4)')
+
+        call check_status(dlft, expected = 0, fail_message = 'prm (dlft)')
+        call check_status(ubc, expected = 0, fail_message = 'prm (ubc)')
+        call check_status(extra1, expected = 0, fail_message = 'prm (extra1)')
+        call check_status(extra2, expected = 0, fail_message = 'prm (extra2)')
+        call check_status(extra3, expected = 0, fail_message = 'prm (extra3)')
+
+        if (typvar(1:2) /= 'XX' .or. nomvar(1:4) /= 'YYYY' .or. etiket(1:6) /= 'ETIKET' .or. grtyp(1:1) /= 'X') then
+            write(app_msg, '(6A)') 'Unexpected names for typvar, nomvar, etiket, grtyp: ',          &
+                               trim(typvar), trim(nomvar), trim(etiket), trim(grtyp),               &
+                               '. Should be XX, YYYY, ETIKET and X'
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+
+    end block
+
 
     ! ----- fstmsq -----
     block
@@ -133,22 +184,26 @@ program fst_interface
     end block
 
     ! ----- fstlis -----
-    work_array(:) = 0
-    record_key = test_file % lis(work_array, ni, nj, nk)
-    call check_status(record_key, expected_min = 1, fail_message = 'lis')
-    if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
-        write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
-        call App_Log(APP_ERROR, app_msg)
-        write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
-            'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
-        call App_Log(APP_ERROR, app_msg)
-        error stop 1
-    end if
+    block
+        integer :: ni, nj, nk
+        work_array(:) = 0
+        record_key = test_file % lis(work_array, ni, nj, nk)
+        call check_status(record_key, expected_min = 1, fail_message = 'lis')
+        if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+            write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
+            call App_Log(APP_ERROR, app_msg)
+            write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
+                'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+    end block
 
     ! ----- fstinl ----- (includes fstsui)
     block
         integer, dimension(real_num_records) :: record_keys
         integer :: num_record_found
+        integer :: ni, nj, nk
         status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
                                  record_keys, num_record_found, real_num_records)
         call check_status(status, expected = 0, fail_message = 'fstinl status')

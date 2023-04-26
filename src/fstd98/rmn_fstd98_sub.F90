@@ -949,43 +949,43 @@ submodule(rmn_fstd98) fstd_98_util
   use f_c_strings_mod
   implicit none
 contains
-! /*****************************************************************************
-!  *                              F S T P R M                                  *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Get all the description informations of the record.                     *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *  IN  handle  positioning information to the record                        *
-!  *  OUT date    date time stamp                                              *
-!  *  OUT deet    length of a time step in seconds                             *
-!  *  OUT npas    time step number                                             *
-!  *  OUT ni      first dimension of the data field                            *
-!  *  OUT nj      second dimension of the data field                           *
-!  *  OUT nk      third dimension of the data field                            * 
-!  *  OUT nbits   number of bits kept for the elements of the field            * 
-!  *  OUT datyp   data type of the elements                                    * 
-!  *  OUT ip1     vertical level                                               * 
-!  *  OUT ip2     forecast hour                                                * 
-!  *  OUT ip3     user defined identifier                                      * 
-!  *  OUT typvar  type of field (forecast, analysis, climatology)              * 
-!  *  OUT nomvar  variable name                                                * 
-!  *  OUT etiket  label                                                        * 
-!  *  OUT grtyp   type of geographical projection                              * 
-!  *  OUT ig1     first grid descriptor                                        * 
-!  *  OUT ig2     second grid descriptor                                       * 
-!  *  OUT ig3     third grid descriptor                                        * 
-!  *  OUT ig4     fourth grid descriptor                                       * 
-!  *  OUT swa     starting word address                                        * 
-!  *  OUT lng     record length                                                * 
-!  *  OUT dltf    delete flag                                                  * 
-!  *  OUT ubc     unused bit count                                             * 
-!  *  OUT extra1  extra parameter                                              * 
-!  *  OUT extra2  extra parameter                                              * 
-!  *  OUT extra3  extra parameter                                              * 
-!  *                                                                           * 
-!  *****************************************************************************/
+  ! /*****************************************************************************
+  !  *                              F S T P R M                                  *
+  !  *                                                                           *
+  !  *Object                                                                     *
+  !  *   Get all the description informations of the record.                     *
+  !  *                                                                           *
+  !  *Arguments                                                                  *
+  !  *                                                                           *
+  !  *  IN  handle  positioning information to the record                        *
+  !  *  OUT date    date time stamp                                              *
+  !  *  OUT deet    length of a time step in seconds                             *
+  !  *  OUT npas    time step number                                             *
+  !  *  OUT ni      first dimension of the data field                            *
+  !  *  OUT nj      second dimension of the data field                           *
+  !  *  OUT nk      third dimension of the data field                            * 
+  !  *  OUT nbits   number of bits kept for the elements of the field            * 
+  !  *  OUT datyp   data type of the elements                                    * 
+  !  *  OUT ip1     vertical level                                               * 
+  !  *  OUT ip2     forecast hour                                                * 
+  !  *  OUT ip3     user defined identifier                                      * 
+  !  *  OUT typvar  type of field (forecast, analysis, climatology)              * 
+  !  *  OUT nomvar  variable name                                                * 
+  !  *  OUT etiket  label                                                        * 
+  !  *  OUT grtyp   type of geographical projection                              * 
+  !  *  OUT ig1     first grid descriptor                                        * 
+  !  *  OUT ig2     second grid descriptor                                       * 
+  !  *  OUT ig3     third grid descriptor                                        * 
+  !  *  OUT ig4     fourth grid descriptor                                       * 
+  !  *  OUT swa     starting word address                                        * 
+  !  *  OUT lng     record length                                                * 
+  !  *  OUT dltf    delete flag                                                  * 
+  !  *  OUT ubc     unused bit count                                             * 
+  !  *  OUT extra1  extra parameter                                              * 
+  !  *  OUT extra2  extra parameter                                              * 
+  !  *  OUT extra3  extra parameter                                              * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module procedure fstprm
     implicit none
     character(len=5)  :: nom
@@ -996,8 +996,8 @@ contains
     typ = ' ' ; typ(3:3) = achar(0)
     gty = ' ' ; gty(2:2) = achar(0)
     eti = ' ' ; eti(13:13) = achar(0)
-    call c_fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
-                  typ, nom, eti, gty, &
+    status = c_fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3,  &
+                  typ, nom, eti, gty,                                                     &
                   ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
     typvar = typ(1:2)
     nomvar = nom(1:4)
@@ -1005,19 +1005,18 @@ contains
     etiket = eti(1:12)
   end procedure
 
-! /***************************************************************************** 
-!  *                              F S T V O I                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Opens a RPN standard file.                                              *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  options random or sequential access                                  * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
+  ! /***************************************************************************** 
+  !  *                              F S T V O I                                  *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Opens a RPN standard file.                                              *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *  IN  iun     unit number associated to the file                           * 
+  !  *  IN  options random or sequential access                                  * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module procedure fstvoi
     implicit none
     status = c_fstvoi(iun, f_c_string(options))
@@ -1028,7 +1027,6 @@ contains
     status = fstvoi(this%iun, f_c_string(options))
   end procedure
 
-  ! /**************************************************************************/
   module procedure fstd98_is_rsf
     implicit none
     integer :: is_rsf_status
@@ -1039,30 +1037,29 @@ contains
     if (is_rsf_status == 1) is_rsf = .true.
   end procedure
 
-! /***************************************************************************** 
-!  *                           F S T  _ V E R S I O N                          *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns package version number.                                          *
-!  *                                                                           * 
-!  *****************************************************************************/
-
+  ! /***************************************************************************** 
+  !  *                           F S T  _ V E R S I O N                          *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Returns package version number.                                          *
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module procedure fst_version
     implicit none
     vers = c_fst_version()
   end procedure
 
-! /***************************************************************************** 
-!  *                              F S T N B R                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns the number of records of the file associated with unit number.  *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
+  ! /***************************************************************************** 
+  !  *                              F S T N B R                                  *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Returns the number of records of the file associated with unit number.  *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *  IN  iun     unit number associated to the file                           * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module procedure fstnbr
     implicit none
     nrec = c_fstnbr(iun)
@@ -1073,18 +1070,18 @@ contains
     nrec = c_fstnbr(this%iun)
   end procedure
 
-! /***************************************************************************** 
-!  *                              F S T N B R V                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns the number of valid records (excluding deleted records) of the  *
-!  *   file associated with unit number.                                       *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
+  ! /***************************************************************************** 
+  !  *                              F S T N B R V                                *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Returns the number of valid records (excluding deleted records) of the  *
+  !  *   file associated with unit number.                                       *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *  IN  iun     unit number associated to the file                           * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module procedure fstnbrv
     implicit none
     status = c_fstnbrv(iun)
@@ -1095,17 +1092,17 @@ contains
     nrecv = c_fstnbrv(this%iun)
   end procedure
 
-! /***************************************************************************** 
-!  *                                F S T C K P                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Checkpoint. Clear buffers, rewrite headers.                             *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
+  ! /***************************************************************************** 
+  !  *                                F S T C K P                                *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Checkpoint. Clear buffers, rewrite headers.                             *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *  IN  iun     unit number associated to the file                           * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module procedure fstckp
     implicit none
     status = c_fstckp(iun)
@@ -1115,38 +1112,38 @@ contains
     status = fstckp(this%iun)
   end procedure
 
-!  /*****************************************************************************
-!  *                              F S T C H E C K                              *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Checks if an RPN standard file is valid.                                *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *  IN  filename Path of the file to be checked                              *
-!  *                                                                           *
-!  *****************************************************************************/
-    module procedure fstcheck
-      implicit none
-      status = c_fstcheck(f_c_string(path))
-    end procedure
+  !  /*****************************************************************************
+  !  *                              F S T C H E C K                              *
+  !  *                                                                           *
+  !  *Object                                                                     *
+  !  *   Checks if an RPN standard file is valid.                                *
+  !  *                                                                           *
+  !  *Arguments                                                                  *
+  !  *                                                                           *
+  !  *  IN  filename Path of the file to be checked                              *
+  !  *                                                                           *
+  !  *****************************************************************************/
+  module procedure fstcheck
+    implicit none
+    status = c_fstcheck(f_c_string(path))
+  end procedure
 
-! /*****************************************************************************
-!  *                            F S T M S Q                                    *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Mask a portion of the research keys.                                    *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *   IN    iun     unit number associated to the file                        *
-!  * IN/OUT  mip1    mask for vertical level                                   *
-!  * IN/OUT  mip2    mask for forecast hour                                    *
-!  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    *
-!  * IN/OUT  metiket mask for label                                            *
-!  *   IN    getmode logical (1: getmode 0:set mode)                           *
-!  *                                                                           *
-!  *****************************************************************************/
+  ! /*****************************************************************************
+  !  *                            F S T M S Q                                    *
+  !  *                                                                           *
+  !  *Object                                                                     *
+  !  *   Mask a portion of the research keys.                                    *
+  !  *                                                                           *
+  !  *Arguments                                                                  *
+  !  *                                                                           *
+  !  *   IN    iun     unit number associated to the file                        *
+  !  * IN/OUT  mip1    mask for vertical level                                   *
+  !  * IN/OUT  mip2    mask for forecast hour                                    *
+  !  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    *
+  !  * IN/OUT  metiket mask for label                                            *
+  !  *   IN    getmode logical (1: getmode 0:set mode)                           *
+  !  *                                                                           *
+  !  *****************************************************************************/
   module procedure fstmsq
     implicit none
     status = c_fstmsq(iun, ip1, ip2, ip3, etiket, getmode)

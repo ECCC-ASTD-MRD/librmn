@@ -1530,8 +1530,66 @@ int c_fstprm_rsf(
     //! [out] Extra parameter
     int *extra3
 ) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: function not implemented yet\n", __func__);
-    return ERR_WRONG_FTYPE;
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file is not open\n", __func__);
+        return ERR_NO_FILE;
+    }
+
+    // Get record information from handle
+    int64_t rsf_key = RSF_Key64(handle);
+    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+    if (record_info.rl <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with key %ld\n", __func__, rsf_key);
+        return -1;
+    }
+
+    stdf_dir_keys *stdf_entry = (stdf_dir_keys *)record_info.meta;
+    stdf_special_parms cracked;
+    crack_std_parms(stdf_entry, &cracked);
+
+    *ni = stdf_entry->ni;
+    *nj = stdf_entry->nj;
+    *nk = stdf_entry->nk;
+    *dateo = cracked.date_stamp;
+    *deet = stdf_entry->deet;
+    *npas = stdf_entry->npas;
+    *nbits = stdf_entry->nbits;
+    *datyp = stdf_entry->datyp;
+    *ip1 = stdf_entry->ip1;
+    *ip2 = stdf_entry->ip2;
+    *ip3 = stdf_entry->ip3;
+    *ig1 = stdf_entry->ig1;
+    *ig2 = cracked.ig2;
+    *ig3 = stdf_entry->ig3;
+    *ig4 = stdf_entry->ig4;
+    *dltf = stdf_entry->deleted;
+    *ubc = stdf_entry->ubc;
+
+    // Address and size in 64-bit units
+    const uint64_t max_val = 0x8fffffff;
+    const uint64_t addr_word64        = ((record_info.wa - 1) >> 3) + 1;
+    const uint64_t record_size_word64 = ((record_info.rl - 1) >> 3) + 1;
+    *swa = addr_word64 <= max_val ? (int32_t)addr_word64 : 0;
+    *lng = record_size_word64 & max_val;
+
+    if (addr_word64 > max_val || record_size_word64 > max_val) {
+        Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: record address or size (in 64-bit units) is larger than what can be handled by this interface. "
+                "Address = %lu, size = %lu, max = %d\n",
+                __func__, addr_word64, record_size_word64, (int32_t)max_val);
+    }
+
+    /* new, use to be undefined */
+    *extra1 = cracked.date_valid;
+    *extra2 = 0;
+    *extra3 = 0;
+
+    strncpy(typvar, cracked.typvar, strlen_up_to(typvar, 2));
+    strncpy(nomvar, cracked.nomvar, strlen_up_to(nomvar, 4));
+    strncpy(etiket, cracked.etiket, strlen_up_to(etiket, 12));
+    strncpy(grtyp, cracked.gtyp, strlen_up_to(grtyp, 1));
+
+    return 0;
 }
 
 //! \copydoc c_fstsui

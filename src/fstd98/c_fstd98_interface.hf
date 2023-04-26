@@ -290,17 +290,18 @@
     !              char *nomvar, char *etiket, char *grtyp,
     !              int *ig1, int *ig2, int *ig3, int *ig4, int *swa, int *lng,
     !              int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
-    subroutine c_fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+    function c_fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
                         typvar, nomvar, etiket, grtyp, &
                         ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3) &
-                        bind(C,name='c_fstprm')
+                        bind(C,name='c_fstprm') result(status)
       import :: C_INT, C_CHAR
       implicit none
       integer(C_INT), intent(IN), value :: handle
       integer(C_INT), intent(OUT) :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
       integer(C_INT), intent(OUT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
       character(C_CHAR), dimension(*), intent(OUT) :: typvar, nomvar, etiket, grtyp
-    end subroutine c_fstprm
+      integer(C_INT) :: status
+    end function c_fstprm
 
     ! int c_fstecr(int *field_in, void * work, int npak, int iun, int date,
     !              int deet, int npas, int ni, int nj, int nk, int ip1, int ip2, int ip3,

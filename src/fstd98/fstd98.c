@@ -224,7 +224,7 @@ int ip_is_equal(
 
 
 //! Reassembles split variables
-static void crack_std_parms(
+void crack_std_parms(
     //! [in] Directory entry that contains the parameters
     const stdf_dir_keys * const stdf_entry,
     //! [out] Reassembled parameters

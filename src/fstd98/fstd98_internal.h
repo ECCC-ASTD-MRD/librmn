@@ -51,6 +51,7 @@ void memcpy_32_16(short *p16, int *p32, int nbits, int nb);
 int fnom_index(const int iun);
 void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const pre, const char * const option,
                      const int header);
+void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
