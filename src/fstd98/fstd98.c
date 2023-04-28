@@ -56,6 +56,8 @@ static int ips_tab[3][Max_Ipvals];
 static uint32_t link_list[1024];
 static int link_n;
 static int stdf_version = 200001;
+static int first_linked_file = -1;
+
 //! Downgrade 64 bit field to 32 bit field when reading
 int downgrade_32 = 0;
 //! ARMNLIB environment variable
@@ -123,6 +125,13 @@ void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
     }
 }
 
+static void init_open_file(fstd_usage_info* info) {
+    memset(info, 0, sizeof(fstd_usage_info));
+    memset(&info->search_mask, 0xff, sizeof(stdf_dir_keys));
+    memset(&info->background_search_mask, 0xff, sizeof(stdf_dir_keys));
+    info->num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
+    info->next_file = -1;
+}
 
 // //! Find position of file iun in file table.
 // //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
@@ -2264,23 +2273,34 @@ int c_fstinl(
     //! [in] List size (maximum number of matches)
     int nmax
 ) {
-    int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
-
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return(ERR_NO_FNOM);
     }
 
-    if (rsf_status == 1) {
-        return c_fstinl_rsf(iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste,
-                            infon, nmax);
-    }
-    else if (rsf_status == 0) {
-        return c_fstinl_xdf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax);
+    int status = -1;
+    int total_found = 0;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstinl_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3,
+                                  typvar, nomvar, liste + total_found, infon, nmax - total_found);
+        }
+        else {
+            status = c_fstinl_xdf(FGFDT[index_fnom].iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar,
+                                  liste + total_found, infon, nmax - total_found);
+        }
+
+        if (status < 0) return status;
+
+        total_found += *infon;
+        index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
-    return rsf_status;
+    *infon = total_found;
+    return status;
 }
 
 //! Search for a record that matches the search keys and check that the remaining parmeters match the record descriptors
@@ -3406,10 +3426,7 @@ int c_fstouv(
         }
     }
 
-    memset(&fstd_open_files[i], 0, sizeof(fstd_usage_info));
-    memset(&fstd_open_files[i].search_mask, 0xff, sizeof(stdf_dir_keys));
-    memset(&fstd_open_files[i].background_search_mask, 0xff, sizeof(stdf_dir_keys));
-    fstd_open_files[i].num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
+    init_open_file(&fstd_open_files[i]);
 
     if (ier < 0) return ier;
     nrec = c_fstnbr(iun);
@@ -5345,20 +5362,47 @@ int32_t f77name(fstlis)(uint32_t *field, int32_t *f_iun,
   return (int32_t) ier;
 }
 
+int32_t c_fstlnk(
+    //! [in] List of unit numbers associated to the files
+    const int32_t *liste,
+    //! [in] Number of files to link
+    const int32_t n
+) {
+    int previous_index = -1;
+    for (int i = 0; i < n; i++) {
+        const int index_fnom = fnom_index(liste[i]);
+        if (index_fnom == -1) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, liste[i]);
+            return ERR_NO_FNOM;
+        }
+
+        if (previous_index >= 0) {
+            if (fstd_open_files[previous_index].next_file >= 0) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: file index %d is already linked with another one\n", __func__, previous_index);
+                return ERR_BAD_LINK;
+            }
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: linking file %d to %d\n", __func__, index_fnom, previous_index);
+            fstd_open_files[previous_index].next_file = index_fnom;
+        }
+
+        previous_index = index_fnom;
+    }
+
+    first_linked_file = liste[0];
+
+    return 0;
+}
+
 
 //! Link files together for search purpose
+//! \return 0 on success, error code otherwise
 int32_t f77name(fstlnk)(
     //! [in] List of unit numbers associated to the files
     int32_t *liste,
     //! [in] Number of files to link
     int32_t *f_n
 ) {
-    link_n = *f_n;
-    for (int i = 0; i < link_n; i++) {
-        link_list[i] = liste[i];
-    }
-
-    return (int32_t) c_xdflnk(link_list, link_n);;
+    return c_fstlnk(liste, *f_n);
 }
 
 
@@ -5805,6 +5849,28 @@ int32_t f77name(fstsui)(int32_t *f_iun,
 }
 
 
+int32_t c_fstunl() {
+    if (first_linked_file < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: No list to unlink\n", __func__);
+        return ERR_BAD_LINK;
+    }
+
+    const int start_index = fnom_index(first_linked_file);
+    if (start_index < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File to unlink (iun %d) is not connected with fnom\n", __func__, link_list[0]);
+        return ERR_NO_FNOM;
+    }
+
+    int index = start_index;
+    while (index >= 0) {
+        const int next_index = fstd_open_files[index].next_file;
+        fstd_open_files[index].next_file = -1;
+        index = next_index;
+    }
+
+    return 0;
+}
+
 /*****************************************************************************
  *                              F S T U N L                                  *
  *                                                                           *
@@ -5819,7 +5885,7 @@ int32_t f77name(fstsui)(int32_t *f_iun,
  *****************************************************************************/
 int32_t f77name(fstunl)()
 {
-    return (int32_t) c_xdfunl(link_list, link_n);
+    return c_fstunl();
 }
 
 

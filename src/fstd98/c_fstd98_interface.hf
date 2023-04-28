@@ -79,23 +79,21 @@
       integer(C_INT) :: ip_new
     end function c_ip3_val
 
-    ! int c_xdflnk(int *liste, int n);
-    function c_xdflnk(list,n) result(status) bind(C, name='c_xdflnk')
+    ! int c_fstlnk(int *liste, int n);
+    function c_fstlnk(list,n) result(status) bind(C, name='c_fstlnk')
       import :: C_INT
       implicit none
       integer(C_INT), intent(IN), value :: n
       integer(C_INT), dimension(n) :: list
       integer(C_INT) :: status
-    end function c_xdflnk
+    end function c_fstlnk
 
-    ! int c_xdfunl(int *liste, int n);
-    function c_xdfunl(list,n) result(status) bind(C, name='c_xdfunl')
+    ! int c_fstunl();
+    function c_fstunl() result(status) bind(C, name='c_fstunl')
       import :: C_INT
       implicit none
-      integer(C_INT), intent(IN), value :: n
-      integer(C_INT), dimension(n) :: list
       integer(C_INT) :: status
-    end function c_xdfunl
+    end function c_fstunl
 
     ! int c_fstckp(int iun);
     function c_fstckp(iun) result (status) bind(C,name='c_fstckp')

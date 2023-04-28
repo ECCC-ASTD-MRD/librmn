@@ -12,7 +12,7 @@ static inline size_t strlen_up_to(const char* string, const size_t max_length) {
 }
 
 //! Checks whether the given unit corresponds to an RSF file
-//! \return 1 if the unit is an RSF, 0 if not, something else if there was an error
+//! \return 1 if the unit is an RSF, 0 if not, something else (negative) if there was an error
 int32_t is_rsf(
     //! [in] Unit number associated to the file
     const int32_t iun,

@@ -30,6 +30,7 @@ typedef struct {
     stdf_dir_keys background_search_mask;
     int64_t search_start_key;
     int32_t num_criteria;
+    int32_t next_file;
 } fstd_usage_info;
 
 extern int remap_table[2][10];

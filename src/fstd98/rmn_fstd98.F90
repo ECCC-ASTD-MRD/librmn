@@ -158,42 +158,37 @@ module rmn_fstd98
   end interface
 
   interface
-! /***************************************************************************** 
-!  *                              F S T L N K                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Links a list of files together for search purpose.                      *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  liste   list of unit numbers associated to the files                 * 
-!  *  IN  n       number of files to link                                      * 
-!  *                                                                           * 
-!  *****************************************************************************/
+  ! /***************************************************************************** 
+  !  *                              F S T L N K                                  *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Links a list of files together for search purpose.                      *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *  IN  liste   list of unit numbers associated to the files                 * 
+  !  *  IN  n       number of files to link                                      * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
   module function fstlnk(link_list,n) result(status) !bind(C,name='c_fstlnk')
     implicit none
-    integer(C_INT), intent(IN) :: n
-    integer(C_INT), dimension(n) :: link_list
-    integer(C_INT) :: status
+    integer(C_INT32_T), intent(IN) :: n
+    integer(C_INT32_T), dimension(n) :: link_list
+    integer(C_INT32_T) :: status
   end function fstlnk
 
-!  /***************************************************************************** 
-!  *                              F S T U N L                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Unlinks a list of files previously linked by fstlnk.                    *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  liste   list of unit numbers associated to the files                 * 
-!  *  IN  n       number of files to link                                      * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  module function fstunl(link_list,n) result(status) !bind(C,name='c_fstunl')
+  !  /***************************************************************************** 
+  !  *                              F S T U N L                                  *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Unlinks a list of files previously linked by fstlnk.                    *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
+  module function fstunl() result(status) !bind(C,name='c_fstunl')
     implicit none
-    integer(C_INT), intent(IN) :: n
-    integer(C_INT), dimension(n) :: link_list
-    integer(C_INT) :: status
+    integer(C_INT32_T) :: status
   end function fstunl
   end interface
 

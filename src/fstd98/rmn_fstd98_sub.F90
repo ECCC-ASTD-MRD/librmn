@@ -126,12 +126,7 @@ contains
 !  *****************************************************************************/
   module procedure fstlnk
     implicit none
-    integer(C_INT), dimension(:), allocatable :: links_list
-    integer(C_INT) :: link_n
-    allocate(links_list(n))
-    link_n = n
-    links_list(1:n) = link_list(1:n)
-    status = c_xdflnk(links_list, link_n)
+    status = c_fstlnk(link_list, n)
   end procedure
 
 !  /***************************************************************************** 
@@ -148,7 +143,7 @@ contains
 !  *****************************************************************************/
   module procedure fstunl
     implicit none
-    status = c_xdfunl(link_list,n)
+    status = c_fstunl()
   end procedure
 end
 ! ==============================================================================

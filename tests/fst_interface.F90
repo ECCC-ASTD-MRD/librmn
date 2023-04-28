@@ -15,6 +15,8 @@ program fst_interface
     integer :: status, i, j
     logical :: is_rsf
     character(len=*), parameter :: test_file_name = 'fst_interface.fst'
+    character(len=*), parameter :: test_file_name_2 = 'fst_interface_2.fst'
+    character(len=2000) :: cmd
 
     integer, parameter :: NUM_DATA = 8
     integer, dimension(NUM_DATA, 3) :: data_array
@@ -25,19 +27,19 @@ program fst_interface
     integer, parameter :: DATATYPE = 4 ! 4 = integer
     integer, parameter :: REWRITE = 0
 
-    integer :: num_records, real_num_records, new_num_records, expected_num_records
+    integer :: old_num_records, new_num_records, expected_num_records, num_records
     integer :: record_key
     integer :: expected
 
     type(fstd98) :: test_file
 
     is_rsf = FST_TEST_IS_RSF
-    ! if (is_rsf) then
-    !     test_file_name = 'fst_interface_rsf.fst'
-    ! else
-    !     test_file_name = 'fst_interface_xdf.fst'
-    ! end if
 
+    ! Remove file(s) so that we have a fresh start
+    write(cmd, '(A, 2(1X, A))') 'rm -fv ', test_file_name, test_file_name_2
+    call execute_command_line(trim(cmd))
+
+    ! Initialize data
     do j = 1, 3
         do i = 1, NUM_DATA
             data_array(i, j) = i + j * 100
@@ -52,7 +54,8 @@ program fst_interface
     end if
     call check_status(status, expected_min = 0, fail_message = 'ouv')
 
-    num_records = status
+    old_num_records = status
+    new_num_records = old_num_records + 6
 
     ! --- fstecr ---
     do j = 1, 2
@@ -68,28 +71,28 @@ program fst_interface
     end do
 
     ! ----- fstnbr -----
-    new_num_records = test_file % nbr()
-    call check_status(new_num_records, expected = num_records, fail_message = 'nbr')
+    num_records = test_file % nbr()
+    call check_status(num_records, expected = old_num_records, fail_message = 'nbr')
 
     ! ----- fstnbrv -----
-    real_num_records = test_file % nbrv()
-    if (test_file % is_rsf()) then
-        call check_status(real_num_records, expected = num_records + 6, fail_message = 'nbrv')
-    else
-        call check_status(real_num_records, expected_max = num_records + 6, fail_message = 'nbrv')
-    end if
+    num_records = test_file % nbrv()
+    call check_status(num_records, expected = new_num_records, fail_message = 'nbrv')
 
     ! ----- fstfrm -----
     status = test_file % frm()
     call check_status(status,expected = 0, fail_message = 'frm')
 
+    ! Copy file to have multiple ones to link together
+    write(cmd, '(A, 2(1X,A))') 'cp -v ', test_file_name, test_file_name_2
+    call execute_command_line(trim(cmd))
+
     ! ----- fstouv -----
     status = test_file % ouv(test_file_name, 'STD+RND')
-    call check_status(status, expected_min = 1, fail_message = 'ouv (second one)')
+    call check_status(status, expected = new_num_records, fail_message = 'ouv (second one)')
 
     ! ----- fstnbr -----
-    new_num_records = test_file % nbr()
-    call check_status(new_num_records, expected = num_records + 6, fail_message = 'nbr (second one)')
+    num_records = test_file % nbr()
+    call check_status(num_records, expected = new_num_records, fail_message = 'nbr (second one)')
 
     ! ----- fstlir ----- (includes fstinf and fstluk)
     ! Not found
@@ -160,7 +163,6 @@ program fst_interface
 
     end block
 
-
     ! ----- fstmsq -----
     block
         integer :: ip1, ip2, ip3
@@ -201,13 +203,53 @@ program fst_interface
 
     ! ----- fstinl ----- (includes fstsui)
     block
-        integer, dimension(real_num_records) :: record_keys
+        integer, dimension(new_num_records) :: record_keys
         integer :: num_record_found
         integer :: ni, nj, nk
         status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
-                                 record_keys, num_record_found, real_num_records)
+                                 record_keys, num_record_found, new_num_records)
         call check_status(status, expected = 0, fail_message = 'fstinl status')
-        call check_status(num_record_found, expected = real_num_records, fail_message = 'fstinl count')
+        call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count')
+    end block
+
+    ! ----- fstlnk -----
+    block
+        type(fstd98) :: test_file_2
+        integer(C_INT32_T), dimension(2) :: unit_list
+        integer, dimension(new_num_records * 2) :: record_keys
+        integer :: num_record_found
+        integer :: ni, nj, nk
+
+        status = test_file_2 % ouv(test_file_name_2, 'STD+RND')
+        call check_status(status, expected = new_num_records, fail_message = 'ouv (second file)')
+
+        unit_list(1) = test_file % iun
+        unit_list(2) = test_file_2 % iun
+
+        status = fstlnk(unit_list, 2)
+        call check_status(status, expected = 0, fail_message = 'fstlnk')
+
+        ! num_records = test_file % nbr()
+        ! call check_status(num_records, expected = new_num_records * 2, fail_message = 'nbr (linked)')
+
+        status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                 record_keys, num_record_found, new_num_records * 2)
+        call check_status(status, expected = 0, fail_message = 'fstinl status (linked)')
+        call check_status(num_record_found, expected = new_num_records * 2, fail_message = 'fstinl count (linked)')
+
+        status = fstunl()
+        call check_status(status, expected = 0, fail_message = 'fstunl')
+
+        status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                 record_keys, num_record_found, new_num_records * 2)
+        call check_status(status, expected = 0, fail_message = 'fstinl status (unlinked)')
+        call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count (unlinked)')
+
+        status = test_file_2 % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                   record_keys, num_record_found, new_num_records * 2)
+        call check_status(status, expected = 0, fail_message = 'fstinl status (unlinked, file 2)')
+        call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count (unlinked, file 2)')
+
     end block
 
     ! ----- fstvoi -----
