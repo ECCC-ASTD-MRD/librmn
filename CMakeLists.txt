@@ -214,6 +214,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 install(FILES
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
+    ${MODULE_DIR}/convert_ip123_int.mod
     DESTINATION include)
 
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)

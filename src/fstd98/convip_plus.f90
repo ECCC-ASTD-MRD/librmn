@@ -5,6 +5,7 @@
 !> \author Bernard Dugas
 !> \author Mario Lepine
 !> \author Michel Valin
+
 SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
     use convert_ip123_int
     use app
@@ -642,7 +643,7 @@ function kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 chara
     character(len=2) :: string
     integer, parameter :: Max_Kind=31
     character(len=2), save, dimension(0:Max_Kind) :: kinds = &
-        (/    ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
+        (/  ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
             '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
             '??', '[]', '??', '??', '??', 'mp', '??', '??',                       &
             '??', '??', '??', '??', '??', '??', '??', '_1' /)

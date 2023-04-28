@@ -188,8 +188,8 @@ integer, private, save, dimension(0:Max_Kind) :: islevel = &
   (/  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0, &
       0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0  /)
 
-private :: swap, swapi, is_level, ascending, descending
-public :: is_invalid_kind
+private :: swap, swapi, ascending, descending
+public :: is_invalid_kind,is_level
 contains
 !=========================== start of private functions ========================================
 !===============================================================================================
