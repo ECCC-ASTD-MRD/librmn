@@ -18,6 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
       SUBROUTINE CONVIP( ip, p, kind, mode, string, flag )
+          use rmn_common
       implicit none
       integer ip, kind, mode
       real p
@@ -74,9 +75,9 @@
 *                                                                             (0 -> 1,000,000) fact=1e4
 *               STRING = valeur de P formattee
 **********************************************************************
-      real(kind = 8) :: TEN
+      real(kind = real64) :: TEN
       parameter (TEN=10.0)
-      real(kind = 8) :: limit1, limit2, temp
+      real(kind = real64) :: limit1, limit2, temp
       real abs_p
       integer iexp,  offset, itemp, lstring
       character *128 var_fmt
@@ -84,7 +85,7 @@
       INTEGER, PARAMETER :: Max_Kind = 31
       integer maxkind
       logical NEWSTYLE, NEWENCODING
-      real(kind = 8) :: exptab(0:15)
+      real(kind = real64) :: exptab(0:15)
       character *2 kinds(0:Max_Kind)
 
       INTEGER :: i

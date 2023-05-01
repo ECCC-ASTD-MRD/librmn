@@ -79,7 +79,8 @@ module jar_test_procedures
     contains
 
     subroutine test_pickling
-        use jar_module
+        use rmn_common
+        use rmn_jar
         use jar_test_types
         implicit none
         logical :: old_debug
@@ -266,7 +267,7 @@ module jar_test_procedures
 
     !> Create jar with given array as data (no copy/reallocation) and extract the data in a separate function
     subroutine pass_through(blind_array, n)    !  integer array inbound, jar outbound
-        use jar_module
+        use rmn_jar
         implicit none
         integer, intent(IN) :: n
         integer(JAR_ELEMENT), dimension(n), intent(IN) :: blind_array
@@ -286,7 +287,7 @@ module jar_test_procedures
 
     !> Extract 1 machin1 and 2 machin2 from the given jar
     subroutine level2(my_jar)    ! receives jar, recreated from integer array by pass_through
-        use jar_module
+        use rmn_jar
         use jar_test_types
         implicit none
         type(jar), intent(INOUT) :: my_jar
@@ -310,7 +311,7 @@ module jar_test_procedures
     end subroutine level2
 
     subroutine test_free
-        use jar_module
+        use rmn_jar
         implicit none
         type(jar) :: myjar
         logical :: old_debug, scrap
@@ -348,7 +349,7 @@ module jar_test_procedures
     end subroutine test_free
 
     subroutine test_jar_1
-        use jar_module
+        use rmn_jar
         implicit none
         logical :: ok
         type(jar) :: myjar
@@ -378,7 +379,7 @@ module jar_test_procedures
     end subroutine test_jar_1
 
     subroutine test_jar_finalize
-        use jar_module
+        use rmn_jar
         implicit none
         type(jar) :: myjar
         logical :: ok

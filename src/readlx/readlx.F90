@@ -1,6 +1,7 @@
 !  FONCTION ARGDIMS LONGUEUR D'ARGUMENTS (APPEL VIA READLX)
 !
       FUNCTION ARGDIMS(N)
+      use rmn_common
       INTEGER ARGDIMS
       INTEGER N
 !
@@ -16,7 +17,7 @@
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
       INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
-      integer(kind=8) ADR
+      integer(kind = int64) ADR
 
       IF((N .LE. NARG))THEN
          ARGDIMS = DOPE(N)
@@ -30,6 +31,7 @@
 !  FONCTION ARGDOPE - GET DOPE LIST OF ARGUMENT NARG
 !
       FUNCTION ARGDOPE(N,LISTE,ND)
+      use rmn_common
       INTEGER ARGDOPE
       INTEGER N,ND
       INTEGER LISTE(ND)
@@ -47,7 +49,7 @@
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
       INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
-      integer(kind=8) ADR
+      integer(kind = int64) ADR
 !
       INTEGER I,BASE
       IF( (N.GT. NARG))THEN
@@ -85,13 +87,14 @@
 !
 !  S/P QLXADI GET VALUE OF INDEXED ARRAY COMPONENT
       SUBROUTINE QLXADI(KLE,IND,VALEUR,TYPE,ERR)
+      use rmn_common
       INTEGER IND,VALEUR,TYPE
       LOGICAL ERR
       character(len=*) KLE
 
       INTEGER  QLXDTYP
       EXTERNAL QLXDTYP
-      integer(kind=8) LOCVAR,LOCCNT
+      integer(kind = int64) LOCVAR,LOCCNT
       INTEGER LIMITE,ITYP,IZ,INDX
       REAL Z
       EQUIVALENCE(Z,IZ)
@@ -116,13 +119,14 @@
 
 !
 !!S/P GET SUBSCRIPT THEN BUILD MACHINE ADDRESS
-      integer(kind=8) FUNCTION QLXADR(KLE,ERR)
+      integer(kind = int64) FUNCTION QLXADR(KLE,ERR)
+      use rmn_common
 
       character(len=*) KLE
       LOGICAL ERR
       INTEGER LIMITS, ITYP
-      integer(kind=8) LOCCNT, locvar8
-      integer(kind=8) get_address_from
+      integer(kind = int64) :: LOCCNT, locvar8
+      integer(kind = int64) :: get_address_from
       EXTERNAL get_address_from
       POINTER (LOCVAR,VARI(*))
 
@@ -149,7 +153,8 @@
 
 !  S/P QLXASG ASSIGNATION D'UNE OU PLUSIEURS VALEURS
       SUBROUTINE QLXASG(VAL,ICOUNT,LIMIT,ERR)
-      integer(kind=8) VAL
+      use rmn_common
+      integer(kind = int64) VAL
       INTEGER ICOUNT,LIMIT
       LOGICAL ERR
 !
@@ -316,8 +321,9 @@
       END
 
       SUBROUTINE QLXCALL(SUB,ICOUNT,LIMITS,ERR)
-      integer(kind=8) SUB,ICOUNT
-      integer(kind=8) get_address_from
+      use rmn_common
+      integer(kind = int64) :: SUB,ICOUNT
+      integer(kind = int64) :: get_address_from
       EXTERNAL get_address_from
 
 
@@ -333,7 +339,7 @@
       COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
       COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
       INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
-      integer(kind=8) ADR
+      integer(kind = int64) ADR
       character(len=20) LINEFMT
       INTEGER KARMOT
       COMMON /QLXFMT/ LINEFMT
@@ -342,7 +348,7 @@
       EXTERNAL RMTCALL, QLXADR, QLXVAL
       INTEGER  RMTCALL, QLXVAL
       INTEGER LIM1,LIM2,JLEN,PREVI
-      integer(kind=8) LOCDUM, QLXADR
+      integer(kind = int64) LOCDUM, QLXADR
       character(len=8) KLE
 
       LOGICAL ERR,FIN,INLIST
@@ -700,7 +706,8 @@
       END
 
       SUBROUTINE QLXFND(KEY,LOCVAR,LOCCNT,LIMITS,ITYP)
-      integer(kind=8) LOCVAR,LOCCNT,get_address_from
+      use rmn_common
+      integer(kind = int64) :: LOCVAR,LOCCNT,get_address_from
       EXTERNAL get_address_from
       INTEGER LIMITS,ITYP
       character(len=*) KEY
@@ -870,6 +877,7 @@
 !  S/P QQLXINS DECLARATION DES CLES ET DE LEUR TYPE
 
       SUBROUTINE QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,XTERN)
+      use rmn_common
       Integer IVAR,ICOUNT
       EXTERNAL XTERN
       INTEGER ITYP,LIMITS
@@ -886,7 +894,7 @@
 
       character(len=8) IKEY
       INTEGER ITAB(3:3,256),NENTRY,IPNT
-      integer(kind=8) IPTADR(2,256),get_address_from
+      integer(kind = int64) IPTADR(2,256),get_address_from
       EXTERNAL get_address_from
       character(len=8) NAMES(256)
       COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
@@ -939,13 +947,14 @@
       END
 
       SUBROUTINE QLXLOOK(IVAR,KEY,ICOUNT,LIMITS,ITYP)
-      integer(kind=8) ivar,icount
-      INTEGER ITYP,LIMITS
-      character(len=*) KEY
+      use rmn_common
+      integer(kind = int64) :: ivar,icount
+      INTEGER               :: ITYP,LIMITS
+      character(len=*)      :: KEY
 
-      INTEGER ITAB(3:3,256),NENTRY,IPNT
-      integer(kind=8) IPTADR(2,256)
-      character(len=8) NAMES(256)
+      INTEGER               :: ITAB(3:3,256),NENTRY,IPNT
+      integer(kind = int64) :: IPTADR(2,256)
+      character(len=8)      :: NAMES(256)
       COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
       COMMON /qqq_nrdlx2/ IPTADR
 
@@ -1125,6 +1134,7 @@
       END
 
       SUBROUTINE QLXNVAR(KEY,NW)
+      use rmn_common
       INTEGER NW
       INTEGER KEY(*)
       EXTERNAL ARGDIMS
@@ -1137,7 +1147,7 @@
       SAVE SC, NSC
       INTEGER DUMMY
       character(len=8) IKEY
-      integer(kind=8) IVAR,ICOUNT
+      integer(kind = int64) IVAR,ICOUNT
 
       SAVE DUMMY
       DATA NSC /1/
@@ -1159,11 +1169,12 @@
 
 !  S/P QLXOPR APPLIQUER UN OPERATEUR NUMERIQUE OU LOGIQUE
       SUBROUTINE QLXOPR(TOKENS,NTOKEN,TOKTYPE,OPRTR,ERR)
+      use rmn_common
       INTEGER NTOKEN,OPRTR,TOKENS(NTOKEN),TOKTYPE(NTOKEN)
       LOGICAL ERR
 !      EXTERNAL QLXMAD
 !      INTEGER  QLXMAD
-      integer(kind=8) get_address_from
+      integer(kind = int64) :: get_address_from
       EXTERNAL get_address_from
 
 
@@ -1571,6 +1582,7 @@
 
 !  S/P QLXTOK
       SUBROUTINE QLXTOK
+      use rmn_common
 !
 !
 !AUTEUR   M.VALIN   RPN   JUIN 1983
@@ -1606,7 +1618,7 @@
       COMMON /QLXFMT/ LINEFMT
       COMMON /QLXFMT2/ KARMOT
 
-      integer(kind=8) LOCVAR,LOCCNT
+      integer(kind = int64) :: LOCVAR,LOCCNT
       EXTERNAL QLXCHR, QLXNUM
       character(len=1) IC, QLXCHR
       INTEGER  QLXNUM
@@ -1737,12 +1749,13 @@
       END
 
       SUBROUTINE QLXUNDF(IKEY)
+         use rmn_common
       INTEGER IKEY(*)
       character(len=8) CKEY
       INTEGER ARGDIMS
       character(len=20) LINEFMT
       INTEGER KARMOT
-      integer(kind=8) SCRAP
+      integer(kind = int64) :: SCRAP
       COMMON /QLXFMT/ LINEFMT
       COMMON /QLXFMT2/ KARMOT
 
@@ -1775,6 +1788,7 @@
 !  S/P QLXXPR TRAITER UNE EXPRESSION ARITHMETIQUE OU LOGIQUE
       SUBROUTINE QLXXPR(ERR)
          use app
+         use rmn_common
 
       LOGICAL ERR
       COMMON/QLXTOK1/LEN,TYPE,ZVAL,INEXPR
@@ -1789,7 +1803,7 @@
       PARAMETER (MAXTKNS=65,MAXOPS=30)
       INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS), NTOKEN
       INTEGER NOPER
-      integer(kind=8) LOCVAR,LOCCNT
+      integer(kind = int64) :: LOCVAR,LOCCNT
       character(len=4) PILEOP(MAXOPS)
       LOGICAL UNARY, FINI, FIRST
       INTEGER PLEV, QLXPRI
@@ -1909,6 +1923,7 @@
 
       SUBROUTINE READLX(UNIT,KEND,KERR)
          use app
+         use rmn_common
 !
 !  S/R READLX - INTERPRETE DE DIRECTIVES
 !
@@ -1951,7 +1966,7 @@
       EXTERNAL QLXNVAR,QLXPRNT,QLXUNDF
       INTEGER UNIT, KEND
 #include <rmn/fnom.hf>
-      integer(kind=8) LOCCNT, LOCVAR
+      integer(kind = int64) :: LOCCNT, LOCVAR
       Integer IICNT
       INTEGER LIMITS, ITYP
       LOGICAL FIN, ERR

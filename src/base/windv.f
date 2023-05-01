@@ -20,6 +20,7 @@
 ***S/R WINDV - COMPUTES WEIGHT R.M.S. ERROR
 *
       SUBROUTINE WINDV(RMS,FU,FV,VU,VV,W,NI,NJ,IW1,IW2,NW1,NW2)
+          use rmn_common
       implicit none
       integer :: NI,NJ,IW1,IW2,NW1,NW2
       REAL FU(NI,NJ),FV(NI,NJ),VU(NI,NJ),VV(NI,NJ),W(NI,NJ)
@@ -67,7 +68,7 @@
 *-----------------------------------------------------------------------
 *
 *
-      real(kind = 8) :: FUMVU, FVMVV, WIJ, Y, FTW
+      real(kind = real64) :: FUMVU, FVMVV, WIJ, Y, FTW
       integer :: I, J
       RMS  = 99999.
 *

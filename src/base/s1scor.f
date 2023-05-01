@@ -20,6 +20,7 @@
 ***S/R S1SCOR - COMPUTES THE S1 (GRADIENT) SCORE
 *
       SUBROUTINE S1SCOR(S1,F,V,NI,NJ,IW1,IW2,NW1,NW2,IGL)
+          use rmn_common
       implicit none
       REAL F(NI,NJ), V(NI,NJ)
       integer :: NI,NJ,IW1,IW2,NW1,NW2,IGL
@@ -65,7 +66,7 @@
 *
 *------------------------------------------------------------------------
 *
-      REAL(kind = 8) :: A, B, VIJ, FIJ, FI1J, VI1J, FIJ1, VIJ1
+      REAL(kind = real64) :: A, B, VIJ, FIJ, FI1J, VI1J, FIJ1, VIJ1
       integer :: I, J, I2, J2
       S1 = 99999.
 *

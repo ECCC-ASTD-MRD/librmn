@@ -21,6 +21,7 @@
 *               R.M.S. DEVIATION FROM THE MEAN
 *
       SUBROUTINE MWERMS(BIAS,STD,F,V,W,NI,NJ,IW1,IW2,NW1,NW2)
+          use rmn_common
       implicit none
       integer :: NI,NJ,IW1,IW2,NW1,NW2
       REAL F(NI,NJ), V(NI,NJ), W(NI,NJ)
@@ -68,7 +69,7 @@
 *
 *--------------------------------------------------------------------------
 *
-      REAL(kind = 8) :: BIAS2, x, y, FTW, FMV, WIJ
+      REAL(kind = real64) :: BIAS2, x, y, FTW, FMV, WIJ
       integer :: I, J
 
       BIAS = 99999.

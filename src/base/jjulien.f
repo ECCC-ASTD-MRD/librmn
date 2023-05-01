@@ -19,6 +19,7 @@
 * */
       Real Function jjulien( DEET,NPAS,IDATE )
 *
+      use rmn_common
       Implicit    none
 *
       Integer     NPAS,IDATE
@@ -45,9 +46,9 @@ C     de commentaires (desactivation de code).
 *      Si DEET et/ou NPAS sont nuls, le jour correspondant
 *      a IDATE est tout de meme retourne.
 *
-      Integer     jour,mois,annee
-      Integer     jdebut,jfin,datim(14),is1,is2
-      Real(kind = 8) :: heures
+      Integer             :: jour,mois,annee
+      Integer             :: jdebut,jfin,datim(14),is1,is2
+      Real(kind = real64) :: heures
 *
       External    datmgp,incdatr,jdatec
 *

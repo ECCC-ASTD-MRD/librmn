@@ -18,7 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
       INTEGER FUNCTION qqqr8sz( )
-
+          use rmn_common
       IMPLICIT   none
 
 ***    AUTEUR : B.Dugas - 14 juillet 1993.
@@ -26,8 +26,8 @@
 ***    DESCRIPTION : Retourne la taille d'un mot REAL*8 en
 ***                  unites de mots REALs.
 
-      REAL(kind = 8) :: ZD(2)
-      REAL(kind = 4) :: ZS(2)
+      REAL(kind = real64) :: ZD(2)
+      REAL(kind = real32) :: ZS(2)
 
       qqqr8sz = ( LOC( ZD(2) ) - LOC( ZD(1) ) )
      +        / ( LOC( ZS(2) ) - LOC( ZS(1) ) )
