@@ -561,7 +561,7 @@ void print_std_parms(
     }
 
     /* m will be added to data type if there are missing values in record */
-    if (stdf_entry->datyp & 64) cmsgp = 'm';
+    if (stdf_entry->datyp & FSTD_MISSING_FLAG) cmsgp = 'm';
     if (strstr(option, "NODTY")) {
         v_dty[0] = '\0';
     } else {
@@ -867,9 +867,9 @@ int c_fstecr_xdf(
 ) {
     // will be cancelled later if not supported or no missing values detected
     //  missing value feature used flag
-    int is_missing = in_datyp_ori & 64;
+    int is_missing = in_datyp_ori & FSTD_MISSING_FLAG;
     // suppress missing value flag (64)
-    int in_datyp = in_datyp_ori & 0xFFBF;
+    int in_datyp = in_datyp_ori & ~FSTD_MISSING_FLAG;
     if ( (in_datyp & 0xF) == 8) {
         if (in_datyp_ori != 8) {
            Lib_Log(APP_LIBFST,APP_WARNING,"%s: compression and/or missing values not supported, data type %d reset to %d (complex)\n",__func__,in_datyp_ori,8);
@@ -2611,9 +2611,9 @@ int c_fstluk_xdf(
     *nj = stdf_entry.nj;
     *nk = stdf_entry.nk;
     // Get missing data flag
-    int has_missing = stdf_entry.datyp & 64;
+    int has_missing = stdf_entry.datyp & FSTD_MISSING_FLAG;
     // Suppress missing data flag
-    stdf_entry.datyp = stdf_entry.datyp & 0xBF;
+    stdf_entry.datyp = stdf_entry.datyp & ~FSTD_MISSING_FLAG;
     xdf_datatyp = stdf_entry.datyp;
 
     PackFunctionPointer packfunc;
