@@ -59,6 +59,10 @@ if(BUILD_TESTING)
         endif()
     endforeach()
 
+    add_executable(rsf_dump test_rsf.c)
+    target_link_libraries(rsf_dump rmn)
+    target_compile_definitions(rsf_dump PRIVATE RSF_DUMP)
+
     add_executable(burp_f EXCLUDE_FROM_ALL burp_f.f)
     target_link_libraries(burp_f rmn)
     add_test(NAME burp_f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/burp_f)
