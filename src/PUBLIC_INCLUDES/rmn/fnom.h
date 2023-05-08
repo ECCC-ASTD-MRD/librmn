@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "rpnmacros.h"
-#include <rsf/rsf.h>
+#include <rmn/rsf.h>
 
 #define MAXFILES 1024
 

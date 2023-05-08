@@ -13,7 +13,7 @@
 #include "packers/packers.h"
 #include "primitives/primitives.h"
 #include <rmn/fst_missing.h>
-#include <rsf/rsf.h>
+#include <rmn/rsf.h>
 
 #define use_old_signed_pack_unpack_code YES
 

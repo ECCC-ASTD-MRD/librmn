@@ -23,7 +23,6 @@ include(ec_compiler_presets)
 # Need to add HAVE_RMN definition for auto-registering librmn within App
 add_compile_definitions(HAVE_RMN=\"${PROJECT_VERSION}\")
 add_subdirectory(App App)
-add_subdirectory(src/fstd98/rsfiles)
 
 option(WITH_OMPI "Compile with OpenMP/MPI support" TRUE) # Enable with(-DWITH_OMPI=TRUE)
 if (WITH_OMPI)
@@ -110,13 +109,13 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 # Build static library from source files
 add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-target_link_libraries(rmn PUBLIC App rsfiles)
+target_link_libraries(rmn PUBLIC App)
 target_include_directories(rmn INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 add_dependencies(rmn rmn_build_info)
 
 # Build shared library from object of rmn
 add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn>)
-target_link_libraries(rmn-shared PUBLIC App rsfiles)
+target_link_libraries(rmn-shared PUBLIC App)
 
 set_target_properties(rmn rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -147,13 +146,13 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_link_libraries(rmn-ompi PUBLIC App-ompi rsfiles OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi rmn_build_info)
 
    # Build shared library from objects of rmn-ompi
    add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi>)
-   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi rsfiles OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
 
    set_target_properties(rmn-ompi rmn-ompi-shared PROPERTIES
