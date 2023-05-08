@@ -219,7 +219,7 @@ install(FILES
     ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
-    ${MODULE_DIR}/rmn_fst.mod
+    ${MODULE_DIR}/rmn_fstd98.mod
     ${MODULE_DIR}/convert_ip123_int.mod
     DESTINATION include)
 
