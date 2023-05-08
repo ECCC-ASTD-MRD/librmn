@@ -22,7 +22,7 @@
 
       integer li,lj
       real z1(li*lj), z2(li*lj), xlon(li*lj)
-      character*1 grtyp
+      character(len = 1) :: grtyp
       integer ig1,ig2,ig3,ig4   
       real x1(li*lj,2),y1(li*lj,2),xlat(li*lj,2)
 

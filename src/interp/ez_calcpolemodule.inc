@@ -22,7 +22,7 @@
 
       integer ni
       real polemod,uu(ni),vv(ni), ax(ni), module
-      character*1 grtyp, grref
+      character(len = 1) :: grtyp, grref
 
       integer i
 

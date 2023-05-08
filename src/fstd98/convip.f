@@ -18,10 +18,11 @@
 * * Boston, MA 02111-1307, USA.
 * */
       SUBROUTINE CONVIP( ip, p, kind, mode, string, flag )
+          use rmn_common
       implicit none
       integer ip, kind, mode
       real p
-      character *(*) string
+      character(len = *) :: string
       logical flag
 
 **********************************************************************
@@ -74,18 +75,18 @@
 *                                                                             (0 -> 1,000,000) fact=1e4
 *               STRING = valeur de P formattee
 **********************************************************************
-      real(kind = 8) :: TEN
+      real(kind = real64) :: TEN
       parameter (TEN=10.0)
-      real(kind = 8) :: limit1, limit2, temp
+      real(kind = real64) :: limit1, limit2, temp
       real abs_p
       integer iexp,  offset, itemp, lstring
-      character *128 var_fmt
+      character(len = 128) :: var_fmt
 
       INTEGER, PARAMETER :: Max_Kind = 31
       integer maxkind
       logical NEWSTYLE, NEWENCODING
-      real(kind = 8) :: exptab(0:15)
-      character *2 kinds(0:Max_Kind)
+      real(kind = real64) :: exptab(0:15)
+      character(len = 2) :: kinds(0:Max_Kind)
 
       INTEGER :: i
 
@@ -337,7 +338,7 @@ c     %         goto 101
                   if(abs_p .eq. int(abs_p).and. abs_p.lt.1000000.) then
                      write(var_fmt,'(i12,1x,a2)')int(p),kinds(kind)
                   elseif (abs_p.ge. 1000000.) then
-                     write(var_fmt,'(e12.6,1x,a2)')p,kinds(kind)
+                     write(var_fmt,'(e13.6,1x,a2)')p,kinds(kind)
                   elseif (abs_p.ge. 100000.) then
                      write(var_fmt,'(f12.0,1x,a2)')p,kinds(kind)
                   elseif (abs_p.ge. 10000.) then
@@ -357,13 +358,13 @@ c     %         goto 101
                   elseif (abs_p.ge. 0.001) then
                      write(var_fmt,'(f12.8,1x,a2)')p,kinds(kind)
                   else
-                     write(var_fmt,'(e12.6,1x,a2)')p,kinds(kind)
+                     write(var_fmt,'(e13.6,1x,a2)')p,kinds(kind)
                   endif
                else
                   if(abs_p .eq. int(abs_p).and. abs_p.lt.1000000.) then
                      write(var_fmt,'(i6,1x,a2)')int(abs_p),kinds(kind)
                   elseif (abs_p.gt. 1000000.) then
-                     write(var_fmt,'(e9.4,1x,a2)')p,kinds(kind)
+                     write(var_fmt,'(e11.4,1x,a2)')p,kinds(kind)
                   elseif (abs_p.gt. 100.) then
                      write(var_fmt,'(f6.2,1x,a2)')p,kinds(kind)
                   elseif (abs_p.gt. 10.) then
@@ -373,7 +374,7 @@ c     %         goto 101
                   elseif (abs_p.ge. 0.001) then
                      write(var_fmt,'(f6.5,1x,a2)')p,kinds(kind)
                   else
-                     write(var_fmt,'(e9.4,1x,a2)')p,kinds(kind)
+                     write(var_fmt,'(e11.4,1x,a2)')p,kinds(kind)
                   endif
                endif
                string=var_fmt
@@ -442,25 +443,25 @@ c     %         goto 101
       return
 
 **********************************************************************
- 6001 format(' Error in convip: sigma value =',e10.5,
+ 6001 format(' Error in convip: sigma value =',e12.5,
      %       ' returned ip is -999999')
- 6002 format(' Error in convip: pressure value =',e10.5,
+ 6002 format(' Error in convip: pressure value =',e12.5,
      %       ' returned ip is -999999')
- 6003 format(' Error in convip: arbitrairy value=',e10.5,
+ 6003 format(' Error in convip: arbitrairy value=',e12.5,
      %       ' returned ip is -999999')
  6004 format(' Error in convip: invalid kind =',I10)
  6005 format(' Error in convip: kind=10 (oldstyle) value out of range='
-     %       ,e10.5,' returned ip is -999999')
- 6006 format(' Error in convip: p is out of bounds =',e10.5,' min=',
-     %       e10.5,' max=',e10.5,' returned ip is -999999')
+     %       ,e12.5,' returned ip is -999999')
+ 6006 format(' Error in convip: p is out of bounds =',e12.5,' min=',
+     %       e12.5,' max=',e12.5,' returned ip is -999999')
  6007 format(' Warning in convip: undetermined kind used =',I10)
 
       end
 
       subroutine igapg(grtyp,pg1,pg2,pg3,pg4,ig1,ig2,ig3,ig4)
       implicit none
-      character *1 grtyp
-      character *(*) pg1,pg2,pg3,pg4
+      character(len = 1) :: grtyp
+      character(len = *) :: pg1,pg2,pg3,pg4
       integer ig1,ig2,ig3,ig4
 *
       real xg1,xg2,xg3,xg4

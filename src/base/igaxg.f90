@@ -4,7 +4,8 @@
 
       SUBROUTINE CIGAXG(CGTYP,XG1,XG2,XG3,XG4,IG1,IG2,IG3,IG4)
         use app
-      CHARACTER * 1 CGTYP
+        use rmn_common
+      CHARACTER(len = 1) :: CGTYP
 !
 !AUTEUR   - M. VALIN  -  FEV 82
 !
@@ -47,7 +48,7 @@
 !
 !-------------------------------------------------------------------
 !
-      real(kind = 8) :: XG18, XG28
+      real(kind = real64) :: XG18, XG28
 
       IF ((CGTYP .EQ. 'N') .OR. (CGTYP .EQ.'S')) THEN
         IF(IG4 .LT. 32768) THEN    ! ANCIEN STYLE DE CODAGE

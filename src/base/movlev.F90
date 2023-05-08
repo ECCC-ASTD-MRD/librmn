@@ -24,6 +24,7 @@ end subroutine movlev
 !> @param[out] dst Destination pour la copie
 !> @param[in] Taille du tableau
 subroutine move3216(src, dst, nb)
+    use rmn_common
     implicit none
 
     integer, intent(in) :: nb
@@ -32,8 +33,8 @@ subroutine move3216(src, dst, nb)
 
     integer :: i
 
-    integer(kind = 4) :: litend = 1
-    integer(kind = 2), dimension(2) :: little
+    integer(kind = int32) :: litend = 1
+    integer(kind = int16), dimension(2) :: little
     equivalence (little(1), litend)
 
     if (little(1) == 1) then
@@ -54,6 +55,7 @@ end subroutine
 !> @param[out] dst Destination pour la copie
 !> @param[in] Taille du tableau
 subroutine move832(src, dst, nb)
+    use rmn_common
     implicit none
 
     integer, intent(in) :: nb
@@ -62,8 +64,8 @@ subroutine move832(src, dst, nb)
 
     integer :: i
 
-    integer(kind = 4) :: litend = 1
-    integer(kind = 2), dimension(2) :: little
+    integer(kind = int32) :: litend = 1
+    integer(kind = int16), dimension(2) :: little
     equivalence (little(1), litend)
 
     if (little(1) == 1) then

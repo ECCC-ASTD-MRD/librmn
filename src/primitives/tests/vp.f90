@@ -1,7 +1,8 @@
 subroutine vspownn(r,x,y,n)
+use rmn_common
 integer n
 real*4 x(*),y(*),r(*)
-real (kind=8), dimension(n) :: t8,x8,y8,r8
+real (kind = real64), dimension(n) :: t8,x8,y8,r8
 do i = 1,n
   x8(i) = x(i)
   y8(i) = y(i)

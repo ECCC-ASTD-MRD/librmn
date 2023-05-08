@@ -26,6 +26,7 @@
 !        source reguliere.
 !
 !*******
+          use rmn_common
       implicit none
 
       integer npts, ni, j1, j2
@@ -53,8 +54,8 @@
 !
 !===========================================
 
-      real(kind = 8) :: y1, y2, y3, y4
-      integer        :: n, i, j
+      real(kind = real64) :: y1, y2, y3, y4
+      integer             :: n, i, j
 
 #include "cubic8.cdk"
 

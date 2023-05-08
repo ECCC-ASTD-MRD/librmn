@@ -21,10 +21,11 @@
 !             coordinate system to cartesian space
 !
       subroutine ez_lac_8( xyz,lon,lat,n)
+          use rmn_common
       implicit none
       integer        :: n
-      real(kind = 8) :: xyz(3,n)
-      real(kind = 4) :: lon(n),lat(n) 
+      real(kind = real64) :: xyz(3,n)
+      real(kind = real32) :: lon(n),lat(n) 
 !
 !author michel roch - april 90
 !

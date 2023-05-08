@@ -20,8 +20,9 @@
 **s/p movlev8 - deplacer un bloc memoire par tranches de 8 octets
 *
            subroutine movlev8(src,dest,n)
+           use rmn_common
            integer n
-           real(kind = 8) :: src(*),dest(*)
+           real(kind = real64) :: src(*),dest(*)
 
 *auteur:  J. Caveen - septembre 1993
 *
@@ -38,7 +39,7 @@
 ***
 
             real z1(2)
-            real(kind = 8) :: z2(2)
+            real(kind = real64) :: z2(2)
 
             integer difz1,difz2, inn, i
 

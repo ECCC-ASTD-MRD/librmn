@@ -22,7 +22,7 @@
       integer npts
       real xlat(npts),xlon(npts)
       real x(npts),y(npts) 
-      character*1 grtyp,gtypout
+      character(len = 1) :: grtyp,gtypout
       integer ig1,ig2,ig3,ig4,nxg
 
       real xg(15)

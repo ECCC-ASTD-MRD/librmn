@@ -21,6 +21,7 @@
 !                coordinates from the winds in the rotated cartesian space
 !
       SUBROUTINE ez_CARTAUV(U, V, UVCART, LON, LAT, NI, NJ)
+          use rmn_common
       implicit none
       INTEGER NI, NJ 
       REAL    UVCART(3,NI*NJ), U(NI,NJ), V(NI,NJ), LON(NI,nj), LAT(ni,NJ)
@@ -38,8 +39,8 @@
 !
 !*
 
-      INTEGER        :: I, J, K 
-      REAL(kind = 8) :: A, B, C, D, E, F, DAR
+      INTEGER             :: I, J, K 
+      REAL(kind = real64) :: A, B, C, D, E, F, DAR
 
       DAR = ACOS(-1.)/180.
       K   = 0

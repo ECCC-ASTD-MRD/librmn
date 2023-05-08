@@ -53,6 +53,7 @@ C
       end
 
       subroutine mxma8(a,na,iad,b,nb,ibd,c,nc,icd,nar,nac,nbc)
+          use rmn_common
 C
 C     Computes a matrix, A, times a matrix, B, and allows for
 C          arbitrary spacing of matrix elements.
@@ -61,7 +62,7 @@ C     General Electric CRD, Information System Operation.
 C
       integer na,iad,nb,ibd,nc,icd,nar,nac,nbc
       integer ac,ar,bc,br,cc,cr,i,j,k
-      real(8) a(1,1),b(1,1),c(1,1)
+      real(kind = real64) :: a(1,1),b(1,1),c(1,1)
 
       bc = 1
       cc = 1

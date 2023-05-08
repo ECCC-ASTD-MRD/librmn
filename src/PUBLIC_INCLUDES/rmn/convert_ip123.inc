@@ -132,7 +132,7 @@
         integer, intent(INOUT) :: ip, kind
         integer, intent(IN) :: mode
         real, intent(INOUT) :: p
-        character *(*), intent(OUT) :: string 
+        character(len = *), intent(OUT) :: string 
         logical, intent(IN) :: flagv
       end subroutine convip_plus
 

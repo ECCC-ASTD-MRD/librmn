@@ -18,6 +18,7 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
       subroutine ez_irgdint_1_w(zo,px,py,npts,ax,ay,z,ni,j1,j2,wrap)
+          use rmn_common
       implicit none
       integer npts, ni, wrap, limite
       integer i, j, j1, j2, n, iplus1
@@ -25,7 +26,7 @@
       real ax(ni), ay(j1:j2)
       real z(ni, j1:j2)
 
-      real(kind = 8) :: x, y, x1, x2, y1, y2, dx, dy
+      real(kind = real64) :: x, y, x1, x2, y1, y2, dx, dy
 
 #include "zlin8.cdk"
       do n=1,npts

@@ -50,10 +50,10 @@
      &         NKLPRIM, NCPRM,  XDFLOC, PRIDEF(2,NPRIDEF),   XDFCLS,  &
      &         NBPAGES, LENGR,  XDFOPN, AUXDEF(2,NAUXDEF),       &
      &         KLPRIM(NPRIDEF), CPRM(NPRIDEF)
-      CHARACTER*9  STNID
-      CHARACTER*4  VERS, APPLIC
-      CHARACTER*50 NOMFIC,  TYPFIC
-      LOGICAL      ONFERME
+      CHARACTER(len = 9)  :: STNID
+      CHARACTER(len = 4)  :: VERS, APPLIC
+      CHARACTER(len = 50) :: NOMFIC,  TYPFIC
+      LOGICAL             :: ONFERME
       integer date, mois, annee, AA, MM, JJ
 !
 !*

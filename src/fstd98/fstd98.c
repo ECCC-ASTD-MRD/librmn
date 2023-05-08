@@ -2789,11 +2789,11 @@ int c_fstluk_xdf(
             }
 
 
-            case 4:
+            case 4: {
                 // Signed integer
                 // printf("Debug+ fstluk - Signed integer\n");
 #ifdef use_old_signed_pack_unpack_code
-                !! fprintf(stderr, "OLD UNPACK CODE ======================================\n");
+                // fprintf(stderr, "OLD UNPACK CODE ======================================\n");
                 int *field_out;
                 short *s_field_out;
                 signed char *b_field_out;
@@ -2816,7 +2816,7 @@ int c_fstluk_xdf(
                     }
                 }
 #else
-                !! fprintf(stderr, "NEW UNPACK CODE ======================================\n");
+                // fprintf(stderr, "NEW UNPACK CODE ======================================\n");
                 if (xdf_short) {
                     ier = compact_short(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 8);
                 } else if (xdf_byte) {
@@ -2826,7 +2826,7 @@ int c_fstluk_xdf(
                 }
 #endif
                 break;
-
+            }
             case 5:
             case 8: {
                 // IEEE representation

@@ -18,6 +18,7 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
       subroutine ez_gggdint_nw(zo,px,py,npts,ay,z,i1,i2,j1,j2)
+          use rmn_common
       implicit none
 !*******
 !Auteur: Y.Chartier, drpn
@@ -56,12 +57,12 @@
 !
 !
       integer        :: i, j, n
-      real(kind = 8) :: x, x1, x2, x3
-      real(kind = 8) :: y,y1,y2,y3,y4
-      real(kind = 8) :: y11, y12, y13, y14
-      real(kind = 8) :: ay1, ay2, ay3, ay4
-      real(kind = 8) :: fa, fa2, fa3, fa4
-      real(kind = 8) :: a1,a2,a3,a4,c1,c2,c3,c4,c5,c6
+      real(kind = real64) :: x, x1, x2, x3
+      real(kind = real64) :: y,y1,y2,y3,y4
+      real(kind = real64) :: y11, y12, y13, y14
+      real(kind = real64) :: ay1, ay2, ay3, ay4
+      real(kind = real64) :: fa, fa2, fa3, fa4
+      real(kind = real64) :: a1,a2,a3,a4,c1,c2,c3,c4,c5,c6
       
 #include "cubic8.cdk"
 

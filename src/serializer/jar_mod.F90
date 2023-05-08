@@ -27,7 +27,7 @@
 #endif
 
 module rmn_jar
-    use ISO_C_BINDING
+    use rmn_common
     implicit none
 
     private
@@ -114,7 +114,7 @@ module rmn_jar
         integer(C_INT32_T), intent(IN), value :: data_size    !> Number of elements in jar
         logical :: ok                             !> .true. if jar was successfully created, .false. otherwise
 
-        ok = jar_instance % new_i8(int(data_size, kind = 8))
+        ok = jar_instance % new_i8(int(data_size, kind = int64))
     end function jar_new_i4
 
 
@@ -149,16 +149,15 @@ module rmn_jar
         implicit none
         class(jar), intent(INOUT) :: jar_instance                       !> Data jar instance
         integer(C_INT), intent(IN), value :: array_size_elem            !> Number of elements in array
-        integer(JAR_ELEMENT), dimension(array_size_elem), intent(IN) :: array !> Input array
+        integer(JAR_ELEMENT), dimension(array_size_elem), target, intent(IN) :: array !> Input array
         logical :: ok                                                   !> .true. if O.K., .false. if error
 
-        integer(C_INTPTR_T) :: temp
+        type(C_PTR) :: temp
 
         ok = .false.
         if (C_ASSOCIATED(jar_instance%ptr)) return          ! error, there is already an allocated data container
 
-        temp = LOC(array)
-        jar_instance%ptr = transfer(temp, jar_instance%ptr)
+        jar_instance%ptr = C_LOC(array)
         ok = .true.
 
         jar_instance%top       = array_size_elem              ! data jar is full
@@ -338,9 +337,9 @@ module rmn_jar
         integer(JAR_ELEMENT), intent(IN), optional :: position  !> Insertion point (1 = start of jar), optional
         logical :: success                                      !> Whether the operation succeeded
         if (present(position)) then
-            success = jar_instance % insert(string, int(storage_size(string), kind = 8), position)
+            success = jar_instance % insert(string, int(storage_size(string), kind = int64), position)
         else
-            success = jar_instance % insert(string, int(storage_size(string), kind = 8))
+            success = jar_instance % insert(string, int(storage_size(string), kind = int64))
         end if
     end function jar_put_string_into
 
@@ -392,9 +391,9 @@ module rmn_jar
         logical :: success                                      !> Whether the operation succeeded
 
         if (present(position)) then
-            success = jar_instance % extract(string, int(storage_size(string), kind = 8), position)
+            success = jar_instance % extract(string, int(storage_size(string), kind = int64), position)
         else
-            success = jar_instance % extract(string, int(storage_size(string), kind = 8))
+            success = jar_instance % extract(string, int(storage_size(string), kind = int64))
         end if
     end function jar_get_string_outof
 

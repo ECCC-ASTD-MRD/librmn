@@ -262,13 +262,13 @@
 
 ***    Declaration des parametres specifiques a mzonxst.
 
-      Real          Z(NDIM,*)
-      Character *(*) NOM
+      Real                :: Z(NDIM,*)
+      Character (len = *) :: NOM
 
 ***    Declaration des parametres specifiques a mvznxst.
 
-      Character *(*) XNOM, YNOM
-      Real          X(NDIM,*),Y(NDIM,*)
+      Character (len = *) :: XNOM, YNOM
+      Real                :: X(NDIM,*),Y(NDIM,*)
 
 ***    Declaration des parametres d'appel de mzonopr.
 
@@ -276,12 +276,12 @@
 
 ***    Declaration du parametre d'appel de mzonfil.
 
-      Character*(*) NAME
+      Character (len = *) :: NAME
 
 ***    Nom/propiete/position des variables a traiter.
 
       Integer       var(MaxVarP3),NVAR
-      Character*8   listvar(MaxVarP3)
+      Character(len = 8) :: listvar(MaxVarP3)
       Integer       propvar(MaxVar), posvar(0:MaxVar)
 
       Save          listvar,propvar,posvar,NVAR
@@ -293,7 +293,7 @@
 
       Logical       IOPrint
       Save          IOPrint
-      Character*256 NOUTZON
+      Character(len = 256) :: NOUTZON
       Save          NOUTZON
       Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
       Save          IUN,KA,NCPU,StartI,StartJ,NDIMS

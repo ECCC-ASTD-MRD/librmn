@@ -23,6 +23,7 @@
 
 
       SUBROUTINE ORDLEG8(SX,COA,IR)
+          use rmn_common
 
 *AUTEUR   - D. ROBERTSON
 
@@ -46,7 +47,7 @@
 *     Version codee en REAL*8 par Bernard Dugas, 7 janvier 1994.
 
 *     -----------------------------------------------------------------
-      IMPLICIT REAL(kind = 8) (A-H,O-Z), INTEGER (I-N)
+      IMPLICIT REAL(kind = real64) (A-H,O-Z), INTEGER (I-N)
 *     -----------------------------------------------------------------
 
 *   RDTODG = 180/PIE ; DGTORD = PIE/180

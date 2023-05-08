@@ -26,7 +26,7 @@ FUNCTION C_F_STRING_CONVERT(CPTR) RESULT(FPTR)
 END FUNCTION C_F_STRING_CONVERT
 
 SUBROUTINE DLFCN_Test_Shared_Lib
-   USE ISO_C_BINDING
+   use rmn_common
    IMPLICIT NONE
    include 'dlfcn.inc'
 
@@ -36,7 +36,7 @@ SUBROUTINE DLFCN_Test_Shared_Lib
    TYPE(C_FUNPTR) :: funptr=C_NULL_FUNPTR
    INTEGER(C_INT) :: status
    integer        :: iname
-   real(kind = 8) :: one
+   real(C_DOUBLE) :: one
 
    ! The dynamic subroutine has a simple interface:
    ABSTRACT INTERFACE

@@ -188,8 +188,8 @@ integer, private, save, dimension(0:Max_Kind) :: islevel = &
   (/  1,  1,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0, &
       0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0  /)
 
-private :: swap, swapi, is_level, ascending, descending
-public :: is_invalid_kind
+private :: swap, swapi, ascending, descending
+public :: is_invalid_kind,is_level
 contains
 !=========================== start of private functions ========================================
 !===============================================================================================
@@ -268,6 +268,7 @@ end subroutine swap
 !    use ISO_C_BINDING
 !    include 'convert_ip123.inc'
 ! in order to access this function
+  use rmn_common
   implicit none  ! coupled (rp1,rp2,rp3) to (ip1,ip2,ip3) conversion with type enforcement
 ! ARGUMENTS
   integer(C_INT) :: status
@@ -275,7 +276,7 @@ end subroutine swap
   type(FLOAT_IP), intent(IN)  :: RP1,RP2,RP3
 !******
 
-  real(kind = 4), dimension(3) :: P
+  real(kind = real32), dimension(3) :: P
   integer, dimension(3) ::kind
   character(len=1) :: dummy
   integer :: i
@@ -357,6 +358,7 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
 !    use ISO_C_BINDING
 !    include 'convert_ip123.inc'
 ! in order to access this function
+  use rmn_common
   implicit none ! coupled (ip1,ip2,ip3) to (rp1,rp2,rp3) conversion with type enforcement
 ! ARGUMENTS
   integer(C_INT) :: status
@@ -364,7 +366,7 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
   type(FLOAT_IP), intent(OUT) :: RP1,RP2,RP3
 !******
 
-  real(kind = 4), dimension(3) :: P
+  real(C_FLOAT), dimension(3) :: P
   integer, dimension(3) ::kind
   character(len=1) :: dummy
   integer :: IP1, IP2, IP3

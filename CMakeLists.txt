@@ -195,6 +195,10 @@ foreach(TARGET IN ITEMS ${TARGETS})
     target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endforeach()
 
+# Compilation options for specific files
+set_source_files_properties(src/fstd98/xdf98.c       PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
+set_source_files_properties(src/primitives/wkoffit.c PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
+
 install(TARGETS ${shared_targets}
     EXPORT rmn-shared-targets
     INCLUDES DESTINATION include
@@ -212,9 +216,11 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 
 # Fortran modules are installed in the include directory for now
 install(FILES
+    ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
     ${MODULE_DIR}/rmn_fst.mod
+    ${MODULE_DIR}/convert_ip123_int.mod
     DESTINATION include)
 
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)

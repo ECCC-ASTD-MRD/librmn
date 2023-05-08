@@ -23,7 +23,7 @@
         FUNCTION MRFGOC(OPTNOM,OPVALC)
         implicit none
         INTEGER MRFGOC
-        CHARACTER*(*) OPTNOM,OPVALC
+        CHARACTER(len = *) :: OPTNOM,OPVALC
         
 !
 !AUTEUR           J. CAVEEN AVRIL 1991

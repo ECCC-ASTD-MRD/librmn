@@ -24,8 +24,8 @@
       use app
       IMPLICIT NONE
       INTEGER  MRFGOR
-      CHARACTER*(*)  OPTNOM
-      REAL                   OPVALR
+      CHARACTER(len = *) :: OPTNOM
+      REAL                  OPVALR
 !
 !AUTEUR  J. CAVEEN   AVRIL 1991
 !REV 001 Y. BOURASSA MARS  1995 RATFOR @ FTN77

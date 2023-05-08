@@ -18,7 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
       SUBROUTINE GAUSS8(NRACP,RACP,PG,SIA,RAD,PGSSIN2,SINM1,SINM2,SIN2)
-
+          use rmn_common
 *     ***************************************************************** 
 *     CALCULE LES NRACP RACINES POSITIVES DU POLYNOME DE LEGENDRE DE
 *     DEGRE 2*NRACP (ICI-APRES NOTE PN) DEFINI SUR L INTERVALLE DES 
@@ -44,13 +44,13 @@
 *     ***************************************************************** 
 
 *     -----------------------------------------------------------------
-      IMPLICIT REAL(kind = 8) (A-H,O-Z), INTEGER (I-N)
+      IMPLICIT REAL(kind = real64) (A-H,O-Z), INTEGER (I-N)
 *     ----------------------------------------------------------------- 
-      INTEGER        :: NRACP
-      REAL(kind = 8) :: RACP(NRACP),  PG(NRACP),      SIA(NRACP)
-      REAL(kind = 8) :: SINM1(NRACP), SINM2(NRACP),   SIN2(NRACP)
-      REAL(kind = 8) :: RAD(NRACP),   PGSSIN2(NRACP)
-      EXTERNAL       :: ORDLEG8
+      INTEGER             :: NRACP
+      REAL(kind = real64) :: RACP(NRACP),  PG(NRACP),      SIA(NRACP)
+      REAL(kind = real64) :: SINM1(NRACP), SINM2(NRACP),   SIN2(NRACP)
+      REAL(kind = real64) :: RAD(NRACP),   PGSSIN2(NRACP)
+      EXTERNAL            :: ORDLEG8
 *     --------------------------------------------------------------
 
 *     ON DEMANDE UNE PRECISION DE 1.E-13 POUR LES RACINES DE PN.

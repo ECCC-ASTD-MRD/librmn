@@ -81,9 +81,9 @@ subroutine ccard(incle, def, val, nbkeys, ii)
     INTEGER i, pos, j, posc, idx, cllng, posmoin, posmoinc
     ! TYPE DE CLE -1=MINUS, 1=MAJUS, 0=PAREIL
     INTEGER cltype(NKLEMAX)
-    CHARACTER * 50 cleup, cle(NKLEMAX), cletemp
-    CHARACTER * 8192 argup, ARG, ccard_args, ARGtemp
-    CHARACTER * 60 keyName
+    CHARACTER(len = 50)   :: cleup, cle(NKLEMAX), cletemp
+    CHARACTER(len = 8192) :: argup, ARG, ccard_args, ARGtemp
+    CHARACTER(len = 60)   :: keyName
     LOGICAL pasfini, plante
     INTEGER status, interne
     Integer largenv
@@ -299,7 +299,7 @@ INTEGER FUNCTION qqqobm(arg, cltype)
                 argup(I:I) = ' '
             END DO
 
-            CALL GETARG(argnum, argup)
+            CALL GET_COMMAND_ARGUMENT(argnum, argup)
             IF (((narg == 1) .AND. ((INDEX(argup, '-H ') /= 0) .OR. (INDEX(argup,'-h ') /= 0) &
         &          .OR. (INDEX(argup,'-HELP') /= 0) .OR. (INDEX(argup,'-help') /= 0) ))) THEN
                 qqqobm = 5
@@ -361,8 +361,8 @@ END
 
 INTEGER FUNCTION QQQOENV(ARGP,ccard_args,L)
         IMPLICIT NONE
-        CHARACTER * 8192 ARGP, ccard_args
-        INTEGER L
+        CHARACTER(len = 8192) :: ARGP, ccard_args
+        INTEGER :: L
 
 !AUTEUR          M. Lepine,  Fevrier 2003
 
@@ -384,7 +384,7 @@ INTEGER FUNCTION QQQOENV(ARGP,ccard_args,L)
         Integer pos, i, ic, indfin
         Logical debut, pudcle
         character c, quotechar
-        character * 8192 arg
+        character(len = 8192) :: arg
         SAVE        pos,debut
         DATA        debut, pudcle /.true., .false./
 
@@ -500,7 +500,7 @@ SUBROUTINE qqqsap(cle, def, val, nbkeys)
     INTEGER :: repcle
 
     ! ON OBTIENT LE NOM DU PROGRAMME APPELANT
-    CALL GETARG(0, lenom)
+    CALL GET_COMMAND_ARGUMENT(0, lenom)
 
     WRITE(6, *) ' *** SEQUENCE D''APPEL ***'
 
