@@ -26,7 +26,7 @@
       real vpolnor,vpolsud
       integer ni,nj
       real fld(ni,nj)
-      character*1 grtyp       
+      character(len = 1) :: grtyp       
       logical vecteur   
       integer hem,ordint
       real x(2,ni),y(2,ni),z(2,ni),lat(2,ni),lon(2,ni),glat(*)

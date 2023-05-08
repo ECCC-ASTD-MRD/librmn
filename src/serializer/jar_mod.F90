@@ -149,16 +149,15 @@ module rmn_jar
         implicit none
         class(jar), intent(INOUT) :: jar_instance                       !> Data jar instance
         integer(C_INT), intent(IN), value :: array_size_elem            !> Number of elements in array
-        integer(JAR_ELEMENT), dimension(array_size_elem), intent(IN) :: array !> Input array
+        integer(JAR_ELEMENT), dimension(array_size_elem), target, intent(IN) :: array !> Input array
         logical :: ok                                                   !> .true. if O.K., .false. if error
 
-        integer(C_INTPTR_T) :: temp
+        type(C_PTR) :: temp
 
         ok = .false.
         if (C_ASSOCIATED(jar_instance%ptr)) return          ! error, there is already an allocated data container
 
-        temp = LOC(array)
-        jar_instance%ptr = transfer(temp, jar_instance%ptr)
+        jar_instance%ptr = C_LOC(array)
         ok = .true.
 
         jar_instance%top       = array_size_elem              ! data jar is full

@@ -25,7 +25,7 @@
       implicit none
       integer li,lj
       real spd(li,lj), dir(li,lj), xlat(li,lj),xlon(li,lj)
-      character*1 grtyp
+      character(len = 1) :: grtyp
       integer ig1,ig2,ig3,ig4
       external cigaxg
 !

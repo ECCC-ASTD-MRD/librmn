@@ -100,7 +100,7 @@
 
       subroutine NewDate_Options( value,command )
       IMPLICIT NONE
-      character*(*) value,command
+      character(len = *) :: value,command
       call date_thread_lock(.true.)
       call NewDate_Options_int( value,command )
       call date_thread_lock(.false.)
@@ -118,7 +118,7 @@
       IMPLICIT NONE
       integer, external :: Calendar_Adjust_int
       integer :: tdate1,tdate2
-      character(len=1) true_date_mode
+      character(len=1) :: true_date_mode
       logical :: adding
       call date_thread_lock(.true.)
       Calendar_Adjust = Calendar_Adjust_int(tdate1,tdate2,true_date_mode,adding)
@@ -129,7 +129,7 @@
       IMPLICIT NONE
       integer, external :: CcclxDays_Adjust_int
       integer :: tdate1,tdate2 ! input TrueDates
-      character(len=1) true_date_mode ! (B)asic or (E)xtended TrueDates
+      character(len=1) :: true_date_mode ! (B)asic or (E)xtended TrueDates
       logical :: adding ! operating mode (T=incadtr, F=difdatr)
       call date_thread_lock(.true.)
       CcclxDays_Adjust = CcclxDays_Adjust_int(tdate1,tdate2,true_date_mode,adding)
@@ -140,7 +140,7 @@
       IMPLICIT NONE
       integer, external :: LeapYear_Adjust_int
       logical :: adding
-      character(len=1) true_date_mode ! (B)asic or (E)xtended true dates
+      character(len=1) :: true_date_mode ! (B)asic or (E)xtended true dates
       integer :: tdate1,tdate2
       call date_thread_lock(.true.)
       LeapYear_Adjust = LeapYear_Adjust_int(tdate1,tdate2,true_date_mode,adding)
@@ -648,8 +648,8 @@
 !
       integer idate(14),dtpr,tmpr,result,tpr(2)
       integer i,j,k,iday,idt,mon,jd
-      character * 3   xmonth(12),xday(7), amonth,aday
-      character * 128 wrk
+      character(len = 3)   :: xmonth(12),xday(7), amonth,aday
+      character(len = 128) :: wrk
       integer, external :: naetwed
       data xmonth / 'JAN','FEB','MAR','APR','MAY','JUN', &
                     'JUL','AUG','SEP','OCT','NOV','DEC' /
@@ -736,7 +736,7 @@
 !     365_day (no leap years) and 360_day
 
       implicit none
-      character*(*) value,command
+      character(len=*) :: value,command
 
       integer   ii
       logical   NoLeapYears,CcclxDays

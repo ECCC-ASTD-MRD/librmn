@@ -20,11 +20,11 @@
       subroutine ez_lambfll(x,y,xlat,xlon,npts,grtyp,ig1,ig2,ig3,ig4)
       implicit none
       integer npts
-      character*1 grtyp
+      character(len = 1) :: grtyp
       real x(npts),y(npts),xlat(npts),xlon(npts)
       integer ig1,ig2,ig3,ig4
       real xg(15)
-      character*1 gtypout
+      character(len = 1) :: gtypout
 
       real xlat11,xlon11,xlatninj,xlonninj,dx,dy,latin1,latin2
       real yaxislat,yaxislon

@@ -22,7 +22,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
     !> When -1, IP -> P; When 0, force 31 bit conversion; When 1, P -> IP; When 2, P -> IP Force NEWSTYLE, When 3, P -> IP Force OLD STYLE
     integer, intent(IN) :: mode
     !> String representation of ip or p
-    character *(*), intent(OUT) :: string
+    character(len = *), intent(OUT) :: string
     !> If true, print P with the format in string
     logical, intent(IN) :: flagv
 
@@ -88,7 +88,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   integer maxkind
   logical NEWSTYLE, NEWENCODING
   real(kind = real64) :: exptab(0:15)
-  character (len=12) :: string2
+  character(len=12)   :: string2
   integer :: status
 
   INTEGER :: i

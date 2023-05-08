@@ -52,7 +52,7 @@
       integer IOUT
       DATA     IOUT /6/
 !
-      CHARACTER*9  ISTNID
+      CHARACTER(len = 9) :: ISTNID
       INTEGER IIDTYP, ILAT, ILON, IDATE, ITEMPS, ISUP(1), INSUP
       INTEGER IDX,IDY,IFLGS,ILNGR,irien
 

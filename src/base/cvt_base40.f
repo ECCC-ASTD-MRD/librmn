@@ -18,7 +18,7 @@
 * * Boston, MA 02111-1307, USA.
 * */
 ***FONCTION   B40TOC  BASE40 TO CHARACTER CONVERSION
-      CHARACTER*8  FUNCTION  B40TOC  ( IWRD )
+      CHARACTER(len = 8)  FUNCTION  B40TOC  ( IWRD )
 *
 *AUTEUR       GASTON BOISVERT - DDO - DORVAL - 683-8221
 *                             - NOV. 1985 -
@@ -34,7 +34,7 @@
 *
 **
       PARAMETER    ( IBASE=40 )
-      CHARACTER*1  BSE40( 0:IBASE-1 ), ICAR
+      CHARACTER(len = 1) :: BSE40( 0:IBASE-1 ), ICAR
 *
       INTEGER  WORD
 *
@@ -86,8 +86,8 @@
 *
 **
       PARAMETER      ( IBASE=40 )
-      CHARACTER*1    BSE40( 0:IBASE-1 ), ICAR
-      CHARACTER*(*)  STRING
+      CHARACTER(len = 1) :: BSE40( 0:IBASE-1 ), ICAR
+      CHARACTER(len = *) :: STRING
 *
       INTEGER  POWER, VALUE
 *

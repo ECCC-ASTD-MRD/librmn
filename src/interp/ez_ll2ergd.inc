@@ -28,7 +28,7 @@
 
       integer npts, ni, nj
       real px(npts),py(npts),xlat(npts),xlon(npts)
-      character*1 grtyp
+      character(len = 1) :: grtyp
       integer ig1,ig2,ig3,ig4
       real dellat, dellon, xlat0, xlon0
       real xlat1,xlat2,xlon1,xlon2

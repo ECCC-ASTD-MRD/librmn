@@ -5,7 +5,7 @@
       SUBROUTINE CIGAXG(CGTYP,XG1,XG2,XG3,XG4,IG1,IG2,IG3,IG4)
         use app
         use rmn_common
-      CHARACTER * 1 CGTYP
+      CHARACTER(len = 1) :: CGTYP
 !
 !AUTEUR   - M. VALIN  -  FEV 82
 !
