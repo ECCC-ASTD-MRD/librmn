@@ -108,16 +108,16 @@ add_custom_command(
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
 # Build static library from source files
-add_library(rmn STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-target_link_libraries(rmn PUBLIC App)
-target_include_directories(rmn INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
-add_dependencies(rmn rmn_build_info)
+add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+target_link_libraries(rmn-static PUBLIC App-static)
+target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
+add_dependencies(rmn-static rmn_build_info)
 
 # Build shared library from object of rmn
-add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn>)
-target_link_libraries(rmn-shared PUBLIC App)
+add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
+target_link_libraries(rmn-shared PUBLIC App-shared)
 
-set_target_properties(rmn rmn-shared PROPERTIES
+set_target_properties(rmn-static rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
     Fortran_MODULE_DIRECTORY ${MODULE_DIR}
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
@@ -127,35 +127,35 @@ set_target_properties(rmn rmn-shared PROPERTIES
     OUTPUT_NAME rmn
     SOVERSION ${SOVERSION})
 
-set(TARGETS rmn rmn-shared)
+set(TARGETS rmn-static rmn-shared)
 set(shared_targets rmn-shared)
-set(static_targets rmn)
+set(static_targets rmn-static)
 
 if(BUILD_SHARED_LIBS)
     add_library(rmn::rmn ALIAS rmn-shared)
 else()
-    add_library(rmn::rmn ALIAS rmn)
+    add_library(rmn::rmn ALIAS rmn-static)
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
-   set(TARGETS rmn rmn-shared rmn-ompi rmn-ompi-shared)
+   set(TARGETS rmn-static rmn-shared rmn-ompi-static rmn-ompi-shared)
 
    # Build static library from source files
-   add_library(rmn-ompi STATIC  ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-   set_target_properties(rmn-ompi PROPERTIES
+   add_library(rmn-ompi-static STATIC  ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+   set_target_properties(rmn-ompi-static PROPERTIES
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_link_libraries(rmn-ompi PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-   target_compile_definitions(rmn-ompi PUBLIC HAVE_MPI HAVE_OPENMP)
-   add_dependencies(rmn-ompi rmn_build_info)
+   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
+   add_dependencies(rmn-ompi-static rmn_build_info)
 
    # Build shared library from objects of rmn-ompi
-   add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi>)
-   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
+   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
 
-   set_target_properties(rmn-ompi rmn-ompi-shared PROPERTIES
+   set_target_properties(rmn-ompi-static rmn-ompi-shared PROPERTIES
       VERSION ${PROJECT_VERSION}
       PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
       INTERFACE_COMPILE_DEFINITIONS HAVE_RMN="${PROJECT_VERSION}"
@@ -164,17 +164,17 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
       SOVERSION ${SOVERSION})
 
    # Symbolic link for archive numbered version
-   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+   add_custom_command(TARGET rmn-static POST_BUILD
        COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
 
    list(APPEND shared_targets rmn-ompi-shared)
-   list(APPEND static_targets rmn-ompi)
+   list(APPEND static_targets rmn-ompi-static)
 
    if(BUILD_SHARED_LIBS)
        add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
    else()
-       add_library(rmn::rmn-ompi ALIAS rmn-ompi)
+       add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)
    endif()
 endif()
 
@@ -205,7 +205,7 @@ install(TARGETS ${static_targets}
     PUBLIC_HEADER DESTINATION include)
 
 # Symbolic link for archive numbered version
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+add_custom_command(TARGET rmn-static POST_BUILD
     COMMAND ln -sfv lib${PROJECT_NAME}.a lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.a DESTINATION lib)
 
