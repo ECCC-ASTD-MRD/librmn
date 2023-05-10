@@ -131,6 +131,8 @@ set(TARGETS rmn-static rmn-shared)
 set(shared_targets rmn-shared)
 set(static_targets rmn-static)
 
+add_library(rmn::rmn-shared ALIAS rmn-shared)
+add_library(rmn::rmn-static ALIAS rmn-static)
 if(BUILD_SHARED_LIBS)
     add_library(rmn::rmn ALIAS rmn-shared)
 else()
