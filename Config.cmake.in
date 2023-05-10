@@ -18,9 +18,6 @@ if(NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND)
          return()
       endif ()
       include("${${CMAKE_FIND_PACKAGE_NAME}_${type}_targets}")
-      # Painful, can't control the names of the auto-generated targets
-      # so we create aliases here, and we just won't tell anyone that
-      # the xxx::xxx-shared versions exist
    endmacro()
 
    include(CMakeFindDependencyMacro)
