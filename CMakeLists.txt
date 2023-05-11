@@ -131,6 +131,7 @@ set(TARGETS rmn-static rmn-shared)
 set(shared_targets rmn-shared)
 set(static_targets rmn-static)
 
+#----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-shared ALIAS rmn-shared)
 add_library(rmn::rmn-static ALIAS rmn-static)
 if(BUILD_SHARED_LIBS)
@@ -173,6 +174,9 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
    list(APPEND shared_targets rmn-ompi-shared)
    list(APPEND static_targets rmn-ompi-static)
 
+   #----- Needed when used as sbumodule/subtree
+   add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
+   add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
    if(BUILD_SHARED_LIBS)
        add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
    else()
