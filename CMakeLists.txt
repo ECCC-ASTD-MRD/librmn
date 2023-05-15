@@ -62,12 +62,6 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
 
-include_directories(
-   include
-   src/PUBLIC_INCLUDES
-   src/PUBLIC_INCLUDES/rmn
-)
-
 file(GLOB PROJECT_C_FILES
    src/*/*.c
 )
@@ -86,7 +80,6 @@ file(GLOB PROJECT_H_FILES
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
@@ -110,7 +103,6 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 target_link_libraries(rmn-static PUBLIC App-static)
-target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 add_dependencies(rmn-static rmn_build_info)
 
 # Build shared library from object of rmn
@@ -194,8 +186,14 @@ foreach(TARGET IN ITEMS ${TARGETS})
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
-    target_include_directories(${TARGET} INTERFACE
+
+    target_include_directories(${TARGET} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+    target_include_directories(${TARGET} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
+    )
+    target_include_directories(${TARGET} INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
     )
 endforeach()
