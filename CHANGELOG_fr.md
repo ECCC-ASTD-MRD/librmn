@@ -162,9 +162,7 @@ car ils ne devraient déjà plus être utilisés:
         - ALPDL2
         - ALPDL8
         - ALPDR8
-        - ALPNM2
         - ALPNM8
-        - EPSIL2
         - EPSIL8
         - FASP8
         - GGASP0
@@ -215,8 +213,7 @@ des appels aux fonctions et sous-routines qui ont été identifiées pour
 
 ```
 for fnctName in AFIX AFIX8 ALPAS8 ALPDL2 ALPDL8 ALPDR8 \
-    ALPNM2 ALPNM8 AMAX AMEAN AMIN DEFVEC \
-    EPSIL2 EPSIL8 FASP8 FCONW GDADCN \
+    ALPNM8 AMAX AMEAN AMIN DEFVEC EPSIL8 FASP8 FCONW GDADCN \
     GDADGD GDMPGD GDSQRT GGASP0 GGASP8 GWAQD0 GWAQD8 IOPDATM PERM \
     SCOF2 SLL SPAF8 SPAGG0 SPAGG8 SPS VLL \
     VPOLAGR VPS bmf_catalog bmf_char2i bmf_clear bmf_connect bmf_error \
