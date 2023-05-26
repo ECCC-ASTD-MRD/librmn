@@ -158,19 +158,14 @@ car ils ne devraient déjà plus être utilisés:
         - slabxtr
         - slabend
     - Spectral
-        - ALPAS2
         - ALPAS8
         - ALPDL2
         - ALPDL8
-        - ALPDR2
         - ALPDR8
         - ALPNM2
         - ALPNM8
-        - DIMCAL
         - EPSIL2
         - EPSIL8
-        - EWFDR2
-        - FASP2
         - FASP8
         - GGASP0
         - GGASP8
@@ -178,7 +173,6 @@ car ils ne devraient déjà plus être utilisés:
         - GWAQD8
         - PERM
         - SCOF2
-        - SPAF2
         - SPAF8
         - SPAGG0
         - SPAGG8
@@ -220,11 +214,11 @@ des appels aux fonctions et sous-routines qui ont été identifiées pour
 être retirées de la librmn:
 
 ```
-for fnctName in AFIX AFIX8 ALPAS2 ALPAS8 ALPDL2 ALPDL8 ALPDR2 ALPDR8 \
+for fnctName in AFIX AFIX8 ALPAS8 ALPDL2 ALPDL8 ALPDR8 \
     ALPNM2 ALPNM8 AMAX AMEAN AMIN DEFVEC \
-    DIMCAL EPSIL2 EPSIL8 EWFDR2 FASP2 FASP8 FCONW GDADCN \
+    EPSIL2 EPSIL8 FASP8 FCONW GDADCN \
     GDADGD GDMPGD GDSQRT GGASP0 GGASP8 GWAQD0 GWAQD8 IOPDATM PERM \
-    SCOF2 SLL SPAF2 SPAF8 SPAGG0 SPAGG8 VLL \
+    SCOF2 SLL SPAF8 SPAGG0 SPAGG8 SPS VLL \
     VPOLAGR VPS bmf_catalog bmf_char2i bmf_clear bmf_connect bmf_error \
     bmf_get bmf_get2 bmf_geth bmf_gobe bmf_i2char bmf_init bmf_list \
     bmf_perturb bmf_splitend bmf_splithalo bmf_splithole bmf_splitinit \
