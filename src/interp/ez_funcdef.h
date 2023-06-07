@@ -110,6 +110,10 @@ void  c_ezllwfgfw(float *uullout, float *vvllout, float *latin, float *lonin,
                   float *xlatingf, float *xloningf,
                  int32_t *ni,int32_t *nj,
                   char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4);
+void  c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
+                  float *xlatingf, float *xloningf,
+                 int32_t *ni,int32_t *nj,
+                  char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4);
 
 void c_ez_manageGrillesMemory();
 
@@ -196,6 +200,9 @@ int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin);
 int32_t c_gdxyvval_orig(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n);
 
 int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
+              float *latin, float *lonin, int32_t npts);
+
+int32_t c_gdlluvfuv_orig(int32_t gdid, float *uullout, float *vvllout, float *uuin, float *vvin,
               float *latin, float *lonin, int32_t npts);
 
 int32_t ez_find_gdin_in_gset(int32_t gdin, int32_t gdout);
