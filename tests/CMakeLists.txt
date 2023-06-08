@@ -27,11 +27,18 @@ if(BUILD_TESTING)
     add_test(NAME wb_putget COMMAND ${CMAKE_CURRENT_BINARY_DIR}/wb_putget)
     add_dependencies(check wb_putget)
 
+    execute_process(COMMAND rm -f -r ${CMAKE_BINARY_DIR}/Whiteboard.ckpt)
     add_executable(wb_test EXCLUDE_FROM_ALL wb_test.c)
     target_link_libraries(wb_test rmn::rmn)
     target_include_directories(wb_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/whiteboard)
     add_test(NAME wb_test COMMAND ${CMAKE_CURRENT_BINARY_DIR}/wb_test)
     add_dependencies(check wb_test)
+
+    add_executable(wb_test_f90 EXCLUDE_FROM_ALL wb_test.F90)
+    target_link_libraries(wb_test_f90 rmn::rmn)
+    target_include_directories(wb_test_f90 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/whiteboard)
+    add_test(NAME wb_test_f90  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/wb_test_f90)
+    add_dependencies(check wb_test_f90)
 
 # This test is weird and I need moretime to understand it
 #    add_executable(wb_get EXCLUDE_FROM_ALL wb_get.c)

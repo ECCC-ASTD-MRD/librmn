@@ -52,6 +52,8 @@ int main() {
    char string2[32];
    WhiteBoard *WB=NULL;
 
+   remove("Whiteboard.ckpt");
+
    message_level = WB_MSG_INFO;
    status = WB_PUT_C(WB, "string1", string1, strlen(string1), 0 + WB_REWRITE_UNTIL);
    printf("status=%d\n", status);

@@ -710,6 +710,10 @@ static int wb_init()
     return 0;
 }
 
+int32_t f77_name(wb_reset)(){
+   BaseWhiteboardPtr->firstpage = NULL;
+   return(1);
+}
 
 //! Set checkpoint file name
 //! \return 0 on success or error code otherwise
@@ -1734,9 +1738,11 @@ int c_wb_reload()
         // Cannot open checkpoint file
         return wb_error(WB_MSG_ERROR,WB_ERR_CKPT);
     }
+    
     if (BaseWhiteboardPtr->firstpage != NULL) {
         return wb_error(WB_MSG_ERROR, WB_ERROR);
     }
+   
     status = read(fd, signature, 8);
     signature[8] = 0;
     if (status != 8 || 0 != strncmp(signature, "WBckp100", 8)) {
