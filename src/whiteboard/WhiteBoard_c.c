@@ -626,7 +626,7 @@ static int lookup_line(
         int i = 0;
         while (i < page->firstFreeLine) {
             pageline = &(page->line[i]);
-            if (wb_match_name(line->meta.name.carr, pageline->meta.name.carr, WB_MAXNAMELENGTH)) {
+            if (wb_match_name(pageline->meta.name.carr,line->meta.name.carr,WB_MAXNAMELENGTH)) {
                 // Found, return it's position in page
                 return i;
             }
@@ -1138,7 +1138,7 @@ int32_t f77_name(f_wb_get)(WhiteBoard **wb, char *name, int32_t *type, int32_t *
 
     return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _nameLength);
 }
-
+#define DEBUG
 
 //! Store entry in a WhiteBoard
 //! \return Smaller than 0 in case of error.  0 for non character scalars, string length if string, max size of array if array
@@ -1496,7 +1496,7 @@ int c_wb_check(
             if ( (options & optionMask) && wb_match_name(c1, name, nameLen) ) {
                 match_count--;
                 if (print) {
-                    Lib_Log(APP_ALWAYS,APP_LIBWB,"%s: Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
+                    Lib_Log(APP_LIBWB,APP_ALWAYS,"%s: Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
                             __func__,pageno,i,c1,
                             datatypes[line->meta.flags.type],
                             line->meta.flags.elementsize,
@@ -2504,7 +2504,7 @@ int c_wb_read(
 //! read a dictionary or user directive file (FORTRAN version)
 int32_t f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, int32_t *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
 #ifdef DEBUG
-    Lib_Log(APP_LIBWB,APP_DEBUG,"%s: wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d\n",__func_,wb,package,filename,section,options,packageLength,filenameLength,sectionLength);
+    Lib_Log(APP_LIBWB,APP_DEBUG,"%s: wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d\n",__func__,wb,package,filename,section,options,packageLength,filenameLength,sectionLength);
 #endif
     return c_wb_read(*wb, filename, package, section, *options, filenameLength, packageLength, sectionLength);
 }
