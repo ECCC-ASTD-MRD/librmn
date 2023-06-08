@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <WhiteBoard.h>
-#include "WhiteBoard_proto.h"
 
 #ifndef NULL
 #define NULL ((char *)0)
@@ -107,6 +106,7 @@ int main (int argc, char **argv) {
             testParams[i].nbelem,
             strlen(testParams[i].name)
         );
+        // printf("Name = '%s', len = %d\n", testParams[i].name, strlen(testParams[i].name));
         if (!WB_IS_OK(status)) {
             printf("Status = %d\n", status);
         }
@@ -114,7 +114,7 @@ int main (int argc, char **argv) {
         for (int j = 0; j < bufferSize; j++) {
             if (buffer[j] != 255) {
                 isGood = 1;
-                printf("Did not retrive expected value for %s! Got %d at %d!\n", testParams[i].name, buffer[j], j);
+                printf("Did not retrieve expected value for %s! Got %d at %d!\n", testParams[i].name, buffer[j], j);
             }
         }
     }

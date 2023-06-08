@@ -1,4 +1,4 @@
-#include "../WhiteBoard_c.c"
+#include "WhiteBoard_c.c"
 
 //! @todo Should these really be macros?  Wouldn't it be better to call functions that the compiler can inline?
 
@@ -41,8 +41,8 @@ static int Action1(wb_line *line, void *blinddata) {
 }
 
 
-void f77_name(c_wb_test)() {
-   int status, myint, myint2;
+int main() {
+   int status, myint, myint2,code=0;
    long long myll, myll2;
    float myreal, myreal2;
    double mydouble, mydouble2;
@@ -55,95 +55,150 @@ void f77_name(c_wb_test)() {
    message_level = WB_MSG_INFO;
    status = WB_PUT_C(WB, "string1", string1, strlen(string1), 0 + WB_REWRITE_UNTIL);
    printf("status=%d\n", status);
+   code+=(status<0);
+
    myint = 12; myll=1212;
    myreal=12.12; mydouble=2424.68;
    status=WB_PUT_I4(WB,"valeur1",&myint,WB_CREATE_ONLY);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    status=WB_PUT_I8(WB,"ll1",&myll,0+WB_READ_ONLY_ON_RESTART);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    status=WB_PUT_R4(WB,"reel1",&myreal,0+WB_READ_ONLY_ON_RESTART);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    status=WB_PUT_R8(WB,"dble1",&mydouble,0+WB_REWRITE_UNTIL);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    myint = -134;myll=-134431;
    myreal=-13.45; mydouble=-12345.6789;
    status=WB_PUT_I4(WB,"valeur2",&myint,0+WB_REWRITE_UNTIL);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    status=WB_PUT_I8(WB,"ll2",&myll,0);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    status=WB_PUT_R4(WB,"reel2",&myreal,0);
    printf("status=%d\n",status);
+   code+=(status<0);
+
    status=WB_PUT_R8(WB,"dble2",&mydouble,0);
    printf("status=%d\n",status);
+   code+=(status<0);
+
 printf("========\n");
-   status=c_wb_check(WB,(unsigned char *)"", -1, 0, 1, NULL,NULL);
+   status=c_wb_check(WB,(char *)"", -1, 0, 1, NULL,NULL);
    printf("c_wb_check printed %d entries\n",status);
+   code+=(status<0);
+
 printf("========\n");
    printf("before c_wb_lock\n");
-   c_wb_lock(WB,(unsigned char *)"D",1);
+   c_wb_lock(WB,(char *)"D",1);
 
    c_wb_checkpoint();
-
    BaseWhiteboardPtr->firstpage=NULL;
    c_wb_reload();
 
    status=WB_GET_C(WB,"string1",string2,32);
    string2[31]=0;
    printf("status=%d, string2='%s'\n",status,string2);
+   code+=(status<0);
+
    myint2 = -1; myll2=-1;
    myreal2=-1.0; mydouble2=-1.1111111111;
+
+printf("======== This should fail\n");
    status=WB_GET_I4(WB,"valeur1",&myint2);
    printf("status=%d, myint2=%d\n",status,myint2);
+   code+=(status>=0);
+
    status=WB_GET_I8(WB,"ll1",&myll2);
    printf("status=%d, myll2=%lld\n",status,myll2);
+   code+=(status<0);
+
    status=WB_GET_R4(WB,"reel1",&myreal2);
    printf("status=%d, myreal2=%lf\n",status,myreal2);
+   code+=(status<0);
+
    status=WB_GET_R8(WB,"dble1",&mydouble2);
    printf("status=%d, mydouble2=%f\n",status,mydouble2);
+   code+=(status<0);
+
    myint2 = -1; myll2=-1;
    myreal2=-1.0; mydouble2=-1.1111111111;
    status=WB_GET_I4(WB,"valeur2",&myint2);
+   code+=(status<0);
+
    printf("status=%d, myint2=%d\n",status,myint2);
    status=WB_GET_I8(WB,"ll2",&myll2);
    printf("status=%d, myll2=%lld\n",status,myll2);
+   code+=(status<0);
+
    status=WB_GET_R4(WB,"reel2",&myreal2);
    printf("status=%d, myreal2=%f\n",status,myreal2);
+   code+=(status<0);
+
    status=WB_GET_R8(WB,"dble2",&mydouble2);
    printf("status=%d, mydouble2=%lf\n",status,mydouble2);
+   code+=(status<0);
+
 printf("========\n");
    status=WB_PUT_I4V(WB,"intarray1",integer_array,25,0);
    printf("status=%d\n",status);
-printf("========\n");
+   code+=(status<0);
+
    status=WB_GET_I4V(WB,"intarray1",integer_array2,5);
    printf("status=%d, integer_array2[4]=%d\n",status,integer_array2[4]);
+   code+=(status<0);
 
    c_wb_checkpoint();
-
    BaseWhiteboardPtr->firstpage=NULL;
    c_wb_reload();
 
-printf("========\n");
+printf("======== This should fail\n");
    status=WB_PUT_I4V(WB,"intarray1",integer_array,31,0);
    printf("status=%d\n",status);
-printf("========\n");
+   code+=(status>=0);
+
    status=WB_GET_I4V(WB,"intarray1",integer_array2,5);
    printf("status=%d, integer_array2[4]=%d\n",status,integer_array2[4]);
+   code+=(status>=0);
+
    status=c_wb_check(WB,(unsigned char *)"", -1, 0, 1, NULL,NULL);
    printf("c_wb_check printed %d entries\n",status);
+   code+=(status<0);
+
 printf("========\n");
    status=WB_PUT_I4V(WB,"intarray1",integer_array,10,0);
    printf("status=%d\n",status);
-printf("========\n");
+   code+=(status<0);
+
    status=WB_GET_I4V(WB,"intarray1",integer_array2,5);
    printf("status=%d, integer_array2[4]=%d\n",status,integer_array2[4]);
-printf("========\n");
+   code+=(status<0);
+
    status=WB_GET_I4V(WB,"intarray1",integer_array2,15);
    printf("status=%d, integer_array2[14]=%d\n",status,integer_array2[14]);
+   code+=(status<0);
+
 printf("==== Locking Test ====\n");
    status=c_wb_check(WB,(unsigned char *)"V", -1, 1, 1, Action1,NULL);
    printf("c_wb_check printed %d entries\n",status);
+   code+=(status<0);
+
    c_wb_lock(WB,"V",1);
    status=c_wb_check(WB,(unsigned char *)"V", -1, 1, 1, Action1,NULL);
    printf("c_wb_check printed %d entries\n",status);
+   code+=(status<0);
+
 printf("==== END of Locking Test ====\n");
+
+   return(code);
 }
