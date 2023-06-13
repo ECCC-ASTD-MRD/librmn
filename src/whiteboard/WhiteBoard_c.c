@@ -108,6 +108,7 @@ static const wb_symbol errors[] = {
     {WB_ERR_SYNTAX, "syntax error in directive"},
     {WB_ERR_OPTION, "invalid option or combination of options"},
     {WB_ERR_READ, "open/read error in file"},
+    {WB_ERR_INITRESTART, "whiteboard already initialized"},
     {WB_ERROR, ""},
     {0, NULL}
 };
@@ -1740,7 +1741,7 @@ int c_wb_reload()
     }
     
     if (BaseWhiteboardPtr->firstpage != NULL) {
-        return wb_error(WB_MSG_ERROR, WB_ERROR);
+        return wb_error(WB_MSG_ERROR,WB_ERR_INITRESTART);
     }
    
     status = read(fd, signature, 8);
