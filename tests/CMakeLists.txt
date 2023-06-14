@@ -27,7 +27,6 @@ if(BUILD_TESTING)
     add_test(NAME wb_putget COMMAND ${CMAKE_CURRENT_BINARY_DIR}/wb_putget)
     add_dependencies(check wb_putget)
 
-    execute_process(COMMAND rm -f -r ${CMAKE_BINARY_DIR}/Whiteboard.ckpt)
     add_executable(wb_test EXCLUDE_FROM_ALL wb_test.c)
     target_link_libraries(wb_test rmn::rmn)
     target_include_directories(wb_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/whiteboard)
