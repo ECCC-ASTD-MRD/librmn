@@ -545,6 +545,75 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
+#----- ubuntu-22.04-amd64_inteloneapi-2023.0.0
+
+build:ubuntu-22.04-amd64_inteloneapi-2023.0.0:
+   variables:
+      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
+      ORD_SOUMET_PROJECT : eccc_mrd
+   stage: build
+   only:
+     - master
+     - dev
+     - tags
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/ubuntu-22.04-amd-64/inteloneapi-2023.0.0.sh
+      - export ORDENV_PLAT=ubuntu-22.04-amd64-64
+      - set -e
+      - mkdir build_ubuntu-22.04-amd64_inteloneapi-2023.0.0
+      - cd build_ubuntu-22.04-amd64_inteloneapi-2023.0.0
+      - cmake ../
+      - time make -j $NCPUS
+   artifacts:
+      expire_in: 4 hrs
+      paths:
+         - build_ubuntu-22.04-amd64_inteloneapi-2023.0.0
+
+test:ubuntu-22.04-amd64_inteloneapi-2023.0.0:
+   variables:
+      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
+      ORD_SOUMET_PROJECT : eccc_mrd
+   stage: test
+   only:
+      - master
+      - dev
+      - tags
+   dependencies:
+      - build:ubuntu-22.04-amd64_inteloneapi-2023.0.0
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/ubuntu-22.04-amd-64/inteloneapi-2023.0.0.sh
+      - export ORDENV_PLAT=ubuntu-22.04-amd64-64
+      - set -e
+      - cd build_ubuntu-22.04-amd64_inteloneapi-2023.0.0
+      - make check
+
+package:ubuntu-22.04-amd64_inteloneapi-2023.0.0:
+   variables:
+      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_IMAGE   : eccc/eccc_all_default_ubuntu-22.04-amd64_latest
+      ORD_SOUMET_PROJECT : eccc_mrd
+   stage: package
+   only:
+      - master
+      - dev
+      - tags
+      - schedules
+   dependencies:
+      - build:ubuntu-22.04-amd64_inteloneapi-2023.0.0
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/ubuntu-22.04-amd-64/inteloneapi-2023.0.0.sh
+      - set -e
+      - cd build_ubuntu-22.04-amd64_inteloneapi-2023.0.0
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
 #----- ubuntu-22.04-amd64_gnu-11.3.0
 
 build:ubuntu-22.04-amd64_gnu-11.3.0:
