@@ -3092,16 +3092,31 @@ int c_fstnbr(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
-    if (rsf_status == 1) {
-        return c_fstnbr_rsf(index_fnom);
-    }
-    else if (rsf_status == 0) {
-        return c_fstnbr_xdf(iun);
+    int index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
     }
 
-    return rsf_status;
+    int status = -1;
+    int total_num_records = 0;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstnbr_rsf(index_fnom);
+        }
+        else {
+            status = c_fstnbr_xdf(FGFDT[index_fnom].iun);
+        }
+
+        if (status < 0) return status;
+
+        total_num_records += status;
+        index_fnom = fstd_open_files[index_fnom].next_file;
+    }
+
+    return total_num_records;
 }
 
 
@@ -3138,22 +3153,31 @@ int c_fstnbrv(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
-
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return(ERR_NO_FNOM);
     }
 
-    if (rsf_status == 1) {
-        return c_fstnbrv_rsf(index_fnom);
-    }
-    else if (rsf_status == 0) {
-        return c_fstnbrv_xdf(iun);
+    int status = -1;
+    int total_num_records = 0;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstnbrv_rsf(index_fnom);
+        }
+        else {
+            status = c_fstnbrv_xdf(FGFDT[index_fnom].iun);
+        }
+
+        if (status < 0) return status;
+
+        total_num_records += status;
+        index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
-    return rsf_status;
+    return total_num_records;
 }
 
 
@@ -5369,26 +5393,27 @@ int32_t c_fstlnk(
     const int32_t n
 ) {
     int previous_index = -1;
+    first_linked_file = liste[0];
     for (int i = 0; i < n; i++) {
         const int index_fnom = fnom_index(liste[i]);
         if (index_fnom == -1) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, liste[i]);
+            c_fstunl();
             return ERR_NO_FNOM;
         }
 
         if (previous_index >= 0) {
             if (fstd_open_files[previous_index].next_file >= 0) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: file index %d is already linked with another one\n", __func__, previous_index);
+                c_fstunl();
                 return ERR_BAD_LINK;
             }
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: linking file %d to %d\n", __func__, index_fnom, previous_index);
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: linking file %d to %d\n", __func__, index_fnom, previous_index);
             fstd_open_files[previous_index].next_file = index_fnom;
         }
 
         previous_index = index_fnom;
     }
-
-    first_linked_file = liste[0];
 
     return 0;
 }

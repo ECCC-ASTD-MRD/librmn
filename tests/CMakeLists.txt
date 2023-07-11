@@ -4,7 +4,7 @@ if(BUILD_TESTING)
     message(STATUS "(EC) Generating librmn tests")
 
     # Helper module
-    add_library(test_helper rmn_test_helper.F90)
+    add_library(test_helper rmn_test_helper.F90 generate_fstd_module.F90)
     target_link_libraries(test_helper rmn)
 
     add_executable(clib_isalpha EXCLUDE_FROM_ALL ${CMAKE_CURRENT_SOURCE_DIR}/clib_isalpha.F90)
@@ -58,6 +58,14 @@ if(BUILD_TESTING)
             target_compile_definitions(fst_interface_xdf PRIVATE FST_TEST_IS_RSF=.false.)
         endif()
     endforeach()
+
+    add_executable(generate_fstd generate_fstd.F90)
+    target_link_libraries(generate_fstd test_helper)
+
+    add_executable(fst_thorough fst_thorough.F90)
+    target_link_libraries(fst_thorough rmn test_helper)
+    add_test(NAME fst_thorough COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_thorough)
+    add_dependencies(check fst_thorough)
 
     add_executable(rsf_dump test_rsf.c)
     target_link_libraries(rsf_dump rmn)

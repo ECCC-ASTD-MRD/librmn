@@ -43,7 +43,7 @@ extern int downgrade_32;
 extern fstd_usage_info fstd_open_files[MAXFILES];
 
 // Signatures from fstd98.c
-int init_ip_vals();
+int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);
 void memcpy_16_8(int8_t *p8, int16_t *p16, int nb);
@@ -53,6 +53,7 @@ int fnom_index(const int iun);
 void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const pre, const char * const option,
                      const int header);
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
+int32_t c_fstunl(void);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
