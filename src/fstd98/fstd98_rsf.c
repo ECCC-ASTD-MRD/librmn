@@ -194,7 +194,6 @@ int c_fstecr_rsf(
     VALID(ip1, 0, IP1_MAX, "ip1")
     VALID(ip2, 0, IP2_MAX, "ip2")
     VALID(ip3, 0, IP3_MAX, "ip3")
-    VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
     /* Increment date by timestep size */
     unsigned int datev = date;
@@ -250,7 +249,7 @@ int c_fstecr_rsf(
     int header_size;
     int stream_size;
     // int nw;
-    int num_word64;
+    size_t num_word64;
     switch (datyp) {
         case 6: {
             int p1out;
@@ -292,9 +291,9 @@ int c_fstecr_rsf(
     }
 
     /* Allocate new record */
-    const int num_word32 = W64TOWD(num_word64);
+    const size_t num_word32 = W64TOWD(num_word64);
     const size_t num_data_bytes = num_word32 * 4;
-    const int32_t dir_metadata_size = (sizeof(stdf_dir_keys) + 3) / 4; // In 32-bit units
+    const size_t dir_metadata_size = (sizeof(stdf_dir_keys) + 3) / 4; // In 32-bit units
     RSF_record* record = RSF_New_record(file_handle, dir_metadata_size, dir_metadata_size, num_data_bytes, NULL, 0);
     if (record == NULL) {
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new record with %ld bytes\n", __func__, num_data_bytes);
