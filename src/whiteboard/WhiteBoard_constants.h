@@ -58,6 +58,7 @@
 #define WB_ERR_SYNTAX -1014
 #define WB_ERR_OPTION -1015
 #define WB_ERR_READ -1016
+#define WB_ERR_INITRESTART -1017
 
 #define WB_IS_OK(errcode) (errcode >= WB_OK)
 #define WB_IS_ERROR(errcode) (errcode <= WB_ERROR)

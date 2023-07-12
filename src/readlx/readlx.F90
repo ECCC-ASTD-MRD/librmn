@@ -483,6 +483,7 @@
 
 !  FONCTION QLXCHR     RETOURNE UN CARACTERE A LA FOIS D'UNE LIGNE
       FUNCTION QLXCHR()
+         use App
          character(len=1) QLXCHR
 !
 !
@@ -540,7 +541,8 @@
                   COMMENT = .TRUE.
                ENDIF
             ENDIF
-            WRITE(6,'(1X,A8,1X,A80)')   SKIPMSG(PRTFLAG),INLINE(21:100)
+            WRITE(app_msg,'(1X,A8,1X,A80)')   SKIPMSG(PRTFLAG),INLINE(21:100)
+            call Lib_Log(APP_LIBRMN,APP_INFO,app_msg)
             IF( ((INLINE.EQ.' ') .OR. (COMMENT)))THEN
                GOTO 1
             ENDIF

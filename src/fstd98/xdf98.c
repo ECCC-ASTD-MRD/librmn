@@ -884,32 +884,35 @@ int c_xdfcut(
     //! [in] Data type
     int datyp
 ) {
-    int nbwords, index_word, last_ind, i;
-    buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
+   int nbwords, index_word, last_ind, i;
+   buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
-    if ((bitpos % 64) != 0) {
-        Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
-        return(ERR_BAD_ADDR);
-    }
+   if ((bitpos % 64) != 0) {
+      Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
+      return(ERR_BAD_ADDR);
+   }
 
-    if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
-        Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
-        return(ERR_BAD_DATYP);
-    }
+   if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
+      Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
+      return(ERR_BAD_DATYP);
+   }
 
-    nbwords = (nelm * nbits + 63) / 64;
-    nbwords = W64TOWD(nbwords);
+   nbwords = (nelm * nbits + 63) / 64;
+   nbwords = W64TOWD(nbwords);
 
-    index_word = buf->data_index + (bitpos / (sizeof(uint32_t) * 8));
+   index_word = buf->data_index + (bitpos / (sizeof(uint32_t) * 8));
 
-    last_ind = buf->record_index + (buf->nbits / (sizeof(uint32_t) *8));
+   last_ind = buf->record_index + (buf->nbits / (sizeof(uint32_t) *8));
 
-    // Move buffer content nbwords to the left
-    if (last_ind != index_word) {
-        for (i=index_word; i <= last_ind; i++) {
-            buf->data[i] = buf->data[i+nbwords];
-        }
-    }
+   // Move buffer content nbwords to the left
+   if (last_ind != index_word) {
+      for (i=index_word; i <= last_ind-nbwords; i++) {
+         buf->data[i] = buf->data[i+nbwords];
+      }
+      for( ; i <= last_ind; i++) {
+         buf->data[i] = 0 ;
+      }
+   }
 
    buf->nbits -= nbwords * sizeof(uint32_t) * 8;
    return 0;

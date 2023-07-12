@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <WhiteBoard.h>
-#include "WhiteBoard_proto.h"
 
 #ifndef NULL
 #define NULL ((char *)0)
@@ -18,6 +17,10 @@ typedef struct {
     int options;
 } TestParams;
 
+//#define WB_FORTRAN_REAL 1
+//#define WB_FORTRAN_INT  2
+//#define WB_FORTRAN_CHAR 3
+//#define WB_FORTRAN_BOOL 4
 
 int main (int argc, char **argv) {
     TestParams testParams[] = {
@@ -67,6 +70,7 @@ int main (int argc, char **argv) {
     };
     int isGood = 0;
 
+    remove("Whiteboard.ckpt");
 
     for (int i = 0; i < sizeof(testParams)/sizeof(testParams[0]); i++) {
         int bufferSize = testParams[i].size * testParams[i].nbelem > 0 ? testParams[i].nbelem : 1;
@@ -107,6 +111,8 @@ int main (int argc, char **argv) {
             testParams[i].nbelem,
             strlen(testParams[i].name)
         );
+        buffer[testParams[i].size+1]='\0';
+        printf("Name = '%s', len = %d buffer=%s\n", testParams[i].name, strlen(testParams[i].name),buffer);
         if (!WB_IS_OK(status)) {
             printf("Status = %d\n", status);
         }
@@ -114,7 +120,7 @@ int main (int argc, char **argv) {
         for (int j = 0; j < bufferSize; j++) {
             if (buffer[j] != 255) {
                 isGood = 1;
-                printf("Did not retrive expected value for %s! Got %d at %d!\n", testParams[i].name, buffer[j], j);
+                printf("Did not retrieve expected value for %s! Got %d at %d!\n", testParams[i].name, buffer[j], j);
             }
         }
     }

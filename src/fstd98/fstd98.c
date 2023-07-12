@@ -571,7 +571,7 @@ void print_std_parms(
     }
 
     if (header==-1) {
-       Lib_Log(APP_LIBFST,APP_DEBUG,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
+       Lib_Log(APP_LIBFST,APP_INFO,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
            pre,v_nomv,v_typv,v_etiq,v_dims,v_dateo,v_stampo,v_datev,v_level,v_decoded,v_ip1,v_ip23,v_deet,v_npas,v_dty,v_grid);
     } else {
        fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
@@ -4633,6 +4633,9 @@ int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
     *f_mip1 = (int32_t) mip1;
     *f_mip2 = (int32_t) mip2;
     *f_mip3 = (int32_t) mip3;
+
+    const int num_chars = Min(12, l1);
+    strncpy(f_metiket, metiket, num_chars);
   }
   return err;
 }
