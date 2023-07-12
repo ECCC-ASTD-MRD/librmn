@@ -70,6 +70,8 @@ static char *requetes_filename = NULL;
 int remap_table[2][10];
 //! Number of datatype remapping,  0 = no remapping
 int nb_remap = 0;
+//! backend type (XDF or RSF)
+static char *fst_backend = NULL;
 //! What is printed with fstecr
 char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
 
@@ -3416,7 +3418,7 @@ int c_fstouv(
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
-            if ((strstr(options, "RSF")) || (strstr(options, "rsf"))) {
+            if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
                 ier = c_fstouv_rsf(i, RSF_RW, appl);
             }
             else {
@@ -3434,8 +3436,8 @@ int c_fstouv(
         }
     } else {
         if ((iwko == -2) && (! FGFDT[i].attr.old)) {
-            if ((strstr(options, "RSF")) || (strstr(options, "rsf"))) {
-                ier = c_fstouv_rsf(i, RSF_RW, appl);
+            if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
+               ier = c_fstouv_rsf(i, RSF_RW, appl);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -4224,6 +4226,10 @@ void c_fst_env_var(
         requetes_filename = malloc(256);
         strncpy(requetes_filename, content, 256);
         // fprintf(stderr, "Debug+ requetes_filename=%s\n", requetes_filename);
+    } else if (strcasecmp(cle, "BACKEND") == 0) {
+        fst_backend = malloc(4);
+        strncpy(fst_backend, content, 4);
+        // fprintf(stderr, "Debug+ fst_backend=%s\n", fst_backend);
     } else {
         fprintf(stderr, "c_fst_env_var(), cle %s non reconnue, index=%d valeur=%s\n", cle, index, content);
     }
