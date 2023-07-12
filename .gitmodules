@@ -5,7 +5,7 @@
 [submodule "App"]
 	path = App
 	url = ../App.git
-	branch = dev
+	branch = master
 [submodule "src/fstd98/rsfiles"]
 	path = src/fstd98/rsfiles
 	url = git@github.com:mfvalin/rsfiles.git

@@ -108,6 +108,7 @@ static const wb_symbol errors[] = {
     {WB_ERR_SYNTAX, "syntax error in directive"},
     {WB_ERR_OPTION, "invalid option or combination of options"},
     {WB_ERR_READ, "open/read error in file"},
+    {WB_ERR_INITRESTART, "whiteboard already initialized"},
     {WB_ERROR, ""},
     {0, NULL}
 };
@@ -626,7 +627,7 @@ static int lookup_line(
         int i = 0;
         while (i < page->firstFreeLine) {
             pageline = &(page->line[i]);
-            if (wb_match_name(line->meta.name.carr, pageline->meta.name.carr, WB_MAXNAMELENGTH)) {
+            if (wb_match_name(pageline->meta.name.carr,line->meta.name.carr,WB_MAXNAMELENGTH)) {
                 // Found, return it's position in page
                 return i;
             }
@@ -710,6 +711,10 @@ static int wb_init()
     return 0;
 }
 
+int32_t f77_name(wb_reset)(){
+   BaseWhiteboardPtr->firstpage = NULL;
+   return(1);
+}
 
 //! Set checkpoint file name
 //! \return 0 on success or error code otherwise
@@ -1138,7 +1143,7 @@ int32_t f77_name(f_wb_get)(WhiteBoard **wb, char *name, int32_t *type, int32_t *
 
     return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _nameLength);
 }
-
+#define DEBUG
 
 //! Store entry in a WhiteBoard
 //! \return Smaller than 0 in case of error.  0 for non character scalars, string length if string, max size of array if array
@@ -1496,7 +1501,7 @@ int c_wb_check(
             if ( (options & optionMask) && wb_match_name(c1, name, nameLen) ) {
                 match_count--;
                 if (print) {
-                    Lib_Log(APP_ALWAYS,APP_LIBWB,"%s: Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
+                    Lib_Log(APP_LIBWB,APP_ALWAYS,"%s: Page %2d, Line %3d, KEY=%s Datatype=%s[%4d] Size=%4d %s %s %s %s %s %s %s %s\n",
                             __func__,pageno,i,c1,
                             datatypes[line->meta.flags.type],
                             line->meta.flags.elementsize,
@@ -1734,9 +1739,11 @@ int c_wb_reload()
         // Cannot open checkpoint file
         return wb_error(WB_MSG_ERROR,WB_ERR_CKPT);
     }
+    
     if (BaseWhiteboardPtr->firstpage != NULL) {
-        return wb_error(WB_MSG_ERROR, WB_ERROR);
+        return wb_error(WB_MSG_ERROR,WB_ERR_INITRESTART);
     }
+   
     status = read(fd, signature, 8);
     signature[8] = 0;
     if (status != 8 || 0 != strncmp(signature, "WBckp100", 8)) {
@@ -2504,7 +2511,7 @@ int c_wb_read(
 //! read a dictionary or user directive file (FORTRAN version)
 int32_t f77_name(f_wb_read)(WhiteBoard **wb, char *package, char *filename, char *section, int32_t *options, F2Cl packageLength, F2Cl filenameLength,  F2Cl sectionLength){
 #ifdef DEBUG
-    Lib_Log(APP_LIBWB,APP_DEBUG,"%s: wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d\n",__func_,wb,package,filename,section,options,packageLength,filenameLength,sectionLength);
+    Lib_Log(APP_LIBWB,APP_DEBUG,"%s: wb=%p, package=\"%s\", filename=\"%s\", section=\"%s\", options=0x%x, packageLength=%d, filenameLength=%d, sectionLength=%d\n",__func__,wb,package,filename,section,options,packageLength,filenameLength,sectionLength);
 #endif
     return c_wb_read(*wb, filename, package, section, *options, filenameLength, packageLength, sectionLength);
 }

@@ -516,8 +516,8 @@ integer function value_to_string(val, string, maxlen)
     value_to_string=0
     return
 
-10 format(2H(F,I2,1H.,I1,1H))
-11 format(2H(G,I2,1H.,I1,1H))
+10 format('(F', I2, '.', I1, ')')
+11 format('(G', I2, '.', I1, ')')
 12 format(A,I2,A)
 end function value_to_string
 
@@ -564,7 +564,7 @@ subroutine test_value_to_string
     value=value*0.1
   enddo
 
-101 format(1H|,A15,1H|,A15,1H|,1X,A2,3X,f6.2)
+101 format('|', A15, '|', A15, '|', 1X, A2, 3X, f6.2)
 return
 end subroutine test_value_to_string
 
