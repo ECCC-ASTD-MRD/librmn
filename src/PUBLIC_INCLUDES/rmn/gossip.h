@@ -102,6 +102,10 @@ typedef struct {
 } gossip_stream;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int set_host_and_port(const char * const channel_file, const char * const host_and_port);
 char *get_host_and_port(const char * const channel_file);
 char *get_broker_Authorization();
@@ -156,5 +160,9 @@ void start_client_thread_2(
     void *data,
     void (*user_server)()
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

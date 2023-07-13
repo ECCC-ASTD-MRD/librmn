@@ -14,10 +14,18 @@
 */
 #define ERR_NOT_ACTIVE "ERROR: this is the dummy dynamic loader\n"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void *DlOpen(const char *filename, int flag);
 void *DlSym(void *handle, const char *symbol);
 char *DlError(void);
 int DlClose(void *handle);
 void DlRegister(void *open, void *sym, void *error, void *close);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
