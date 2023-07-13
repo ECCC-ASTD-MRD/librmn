@@ -3,7 +3,7 @@
 
 /*! \file gossip_constant.h Gossip constants meant to be used by C and Fortran applications */
 
-#ifdef __c
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -19,7 +19,7 @@ extern "C" {
 #define DATA_LENGTH_ERROR (-10)
 #define SEND_COMMAND_ERROR (-11)
 
-#ifdef __c
+#ifdef __cplusplus
 }
 #endif
 

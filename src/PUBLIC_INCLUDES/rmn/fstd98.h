@@ -14,8 +14,14 @@
  * Lesser General Public License for more details.
  *
  */
+#ifndef FSTD98_H
+#define FSTD98_H
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);
@@ -85,3 +91,9 @@ int c_fst_edit_dir(int handle, unsigned int date, int deet, int npas,
                 int ig1, int ig2, int ig3, int ig4, int datyp);
 
 void c_ip_string(char * const buffer, const int size, const int ip1, const int ip2, const int ip3);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

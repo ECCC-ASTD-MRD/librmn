@@ -210,6 +210,10 @@ end interface
 
 #else
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef const char * charptr;       // pointer to char string
 typedef int (*fnptr)();             // pointer to function
 typedef void * (*fnpptr)();         // pointer to subroutine
@@ -222,6 +226,10 @@ charptr *plugin_function_names(const void *p);
 charptr plugin_function_name(const void *p, int ordinal);
 int plugin_n_functions(const void *p);
 void set_plugin_diag(int diag);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
