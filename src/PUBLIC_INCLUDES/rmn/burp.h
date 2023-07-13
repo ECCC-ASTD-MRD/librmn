@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+int c_mrblocx(int buf[], int bfam, int bdesc, int bknat, int bktyp, int bkstp, int blk0);
+
 int c_mrbprml(int buf[], int bkno, int tblprm[], int nprm, int inblocs);
 
 int c_mrbadd(void *buffer, int *bkno, int nele, int nval, int nt, int bfam, int bdesc, int btyp, int nbit, int *bit0, int datyp, uint32_t *lstele, uint32_t *tblval);
