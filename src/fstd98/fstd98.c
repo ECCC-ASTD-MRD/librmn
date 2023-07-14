@@ -3413,8 +3413,17 @@ int c_fstouv(
         sprintf(appl, "%s", "STDS");
     }
 
-    // force attribute to standard file
-    FGFDT[i].attr.std = 1;
+    // Determine if we're opening in read or write mode
+    int read_only = FGFDT[i].attr.read_only;
+    if (strstr(options, "R/O") || strstr(options, "r/o")) {
+        read_only = 1;
+    }
+    if (strstr(options, "R/W") || strstr(options, "r/w")) {
+        read_only = 0;
+    }
+    const int open_mode = read_only ? RSF_RO : RSF_RW;
+
+    FGFDT[i].attr.std = 1; // force attribute to standard file
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
@@ -3424,7 +3433,7 @@ int c_fstouv(
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-
+            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: Should open as RSF, but this branch is not implemented.......\n", __func__);
@@ -3442,14 +3451,25 @@ int c_fstouv(
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
+            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
-                ier = c_fstouv_rsf(i, RSF_RW, appl);
+                ier = c_fstouv_rsf(i, open_mode, appl);
             }
             else {
                 ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
         }
+    }
+
+    // Update file attribute, in case we just contradicted it
+    if (read_only == 0) {
+        FGFDT[i].attr.read_only = 0;
+        FGFDT[i].attr.write_mode = 1;
+    }
+    else {
+        FGFDT[i].attr.read_only = 1;
+        FGFDT[i].attr.write_mode = 0;
     }
 
     init_open_file(&fstd_open_files[i]);
