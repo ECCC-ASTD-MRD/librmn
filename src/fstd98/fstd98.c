@@ -3525,7 +3525,7 @@ int c_fstprm_xdf(
     int *ig4,
     //! [out] Starting word address
     int *swa,
-    //! [out] Record length
+    //! [out] Record length in 32-bit units
     int *lng,
     //! [out] Delete flag
     int *dltf,
@@ -3631,7 +3631,7 @@ int c_fstprm(
     int *ig4,
     //! [out] Starting word address
     int *swa,
-    //! [out] Record length
+    //! [out] Record length in 32-bit units
     int *lng,
     //! [out] Delete flag
     int *dltf,

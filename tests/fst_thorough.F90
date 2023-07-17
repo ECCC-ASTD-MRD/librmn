@@ -129,6 +129,7 @@ contains
 
         ! ---------------------------------------------
         ! fstvoi
+        call app_log(APP_INFO, 'testing fstvoi')
         status = rsf1 % voi(' ')
         call check_status(status, expected = 0, fail_message = 'fstvoi')
 
@@ -138,6 +139,43 @@ contains
         status = xdf2 % frm()
 
     end subroutine test_fst_link
+
+    subroutine test_fst_prm()
+        implicit none
+        type(fstd98) :: rsf_file
+        integer      :: status, num_records, handle
+
+        integer(C_INT) :: ni, nj, nk, ni_prm, nj_prm, nk_prm
+        integer(C_INT) :: date, deet, npas, nbits, datyp, ip1, ip2, ip3
+        integer(C_INT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+        character(len=:), allocatable :: typvar, nomvar, etiket, grtyp
+
+        call App_Log(APP_INFO, 'test_fst_prm')
+
+        num_records = rsf_file % ouv(rsf_name_1, 'STD+RND+RSF+R/O')
+        call check_status(num_records, expected_min = 1, fail_message = 'fstouv num records')
+
+        handle = rsf_file % inf(ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
+        call check_status(handle, expected_min = 0, fail_message = 'fstinf handle')
+
+        status = fstprm(handle, date, deet, npas, ni_prm, nj_prm, nk_prm, nbits, datyp,     &
+                        ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,   &
+                        swa, lng, dlft, ubc, extra1, extra2, extra3)
+
+        ! write(app_msg, '(A, 5I6)') 'ni, nj, nk, nbits, lng = ', ni, nj, nk, nbits, lng
+        ! call app_log(APP_INFO, app_msg)
+
+        if (ni * nj * nk * nbits / 32 < 50) then
+            call app_log(APP_WARNING, 'Size of record is too small for test to work, it should be at least 50 32-bit words')
+        end if
+
+        call check_status(ni_prm, expected = ni, fail_message = 'fstprm ni')
+        call check_status(nj_prm, expected = nj, fail_message = 'fstprm nj')
+        call check_status(nk_prm, expected = nk, fail_message = 'fstprm nk')
+        call check_status(lng, expected_min = ni * nj * nk * nbits / 32, fail_message = 'fstprm lng')
+
+        status = rsf_file % frm()
+    end subroutine test_fst_prm
 
 end module fst_thorough_mod
 
@@ -151,5 +189,6 @@ program fst_thorough
     call generate_file(xdf_name_2, .false.)
 
     call test_fst_link()
+    call test_fst_prm()
 
 end program fst_thorough

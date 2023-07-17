@@ -1516,7 +1516,7 @@ int c_fstprm_rsf(
     int *ig4,
     //! [out] Starting word address
     int *swa,
-    //! [out] Record length
+    //! [out] Record length in 32-bit units
     int *lng,
     //! [out] Delete flag
     int *dltf,
@@ -1566,16 +1566,16 @@ int c_fstprm_rsf(
 
     // Address and size in 64-bit units
     const uint64_t max_val = 0x8fffffff;
-    const uint64_t addr_word64        = ((record_info.wa - 1) >> 3) + 1;
-    const uint64_t record_size_word64 = ((record_info.rl - 1) >> 3) + 1;
-    *swa = addr_word64 <= max_val ? (int32_t)addr_word64 : 0;
-    *lng = record_size_word64 & max_val;
+    const uint64_t addr_word32        = ((record_info.wa - 1) >> 2) + 1; // wa / 4, rounded up
+    const uint64_t record_size_word32 = ((record_info.rl - 1) >> 2) + 1; // rl / 4, rounded up
+    *swa = addr_word32 <= max_val ? (int32_t)addr_word32 : 0;
+    *lng = record_size_word32 & max_val;
 
-    if (addr_word64 > max_val || record_size_word64 > max_val) {
+    if (addr_word32 > max_val || record_size_word32 > max_val) {
         Lib_Log(APP_LIBFST, APP_WARNING,
-                "%s: record address or size (in 64-bit units) is larger than what can be handled by this interface. "
+                "%s: record address or size (in 32-bit units) is larger than what can be handled by this interface. "
                 "Address = %lu, size = %lu, max = %d\n",
-                __func__, addr_word64, record_size_word64, (int32_t)max_val);
+                __func__, addr_word32, record_size_word32, (int32_t)max_val);
     }
 
     /* new, use to be undefined */

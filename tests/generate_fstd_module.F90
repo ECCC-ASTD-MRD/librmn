@@ -3,7 +3,7 @@ module generate_fstd_mod
     use rmn_common
     use rmn_fstd98
 
-    integer, parameter :: NUM_DATA = 20
+    integer, parameter :: NUM_DATA = 50
 
     integer(kind = int8),   dimension(NUM_DATA) :: array_int8, array_uint8
     integer(kind = int16),  dimension(NUM_DATA) :: array_int16, array_uint16
