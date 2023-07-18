@@ -4,6 +4,9 @@
 #define CCARD_NCARMAX 256
 #define CCARD_NKLEMAX 100
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void c_ccard(
     char ** argv,
@@ -14,5 +17,9 @@ void c_ccard(
     int nbKeys,
     int *  npos
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

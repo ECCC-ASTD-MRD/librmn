@@ -45,9 +45,17 @@
 #define WKF_HDF5                  38
 #define WKF_STDRSF                39
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int32_t c_wkoffit(
     const char * const filePath,
     const int l1
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -26,7 +26,14 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void swap_buffer_endianness(uint32_t * const buffer, const int32_t nwds);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
