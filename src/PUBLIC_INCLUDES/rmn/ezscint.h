@@ -3,6 +3,10 @@
 
 #include "rpnmacros.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int32_t f77name(ezdefset)(int32_t *gdout, int32_t *gdin);
 int32_t c_ezdefset(int32_t gdout, int32_t gdin);
 
@@ -178,5 +182,9 @@ void c_ez_calcdist2(double *distance, float lat1, float lon1, float lat2, float 
 void c_ez_calcarea_rect(float *area,     float lat1, float lon1, float lat2, float lon2);
 void c_ez_calcarea(float *area, float lats[], float lons[]);
 void c_ez_calcarea2(double *area, float lats[], float lons[]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

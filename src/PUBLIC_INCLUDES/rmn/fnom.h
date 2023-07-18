@@ -59,6 +59,10 @@ extern general_file_info FGFDT[MAXFILES];
 #endif
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int c_fretour(
     const int iun
 );
@@ -268,5 +272,9 @@ void f77name(d_wafdt)();
 uint32_t f77name(hrjust) (uint32_t *str, const int32_t * const ncar);
 
 uint32_t f77name(hljust) (uint32_t *str, const int32_t * const ncar);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

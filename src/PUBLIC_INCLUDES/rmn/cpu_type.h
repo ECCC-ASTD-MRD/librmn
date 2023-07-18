@@ -92,6 +92,10 @@
     end subroutine set_fp_status_ctl
   end interface
 #else
+#ifdef __cplusplus
+extern "C" {
+#endif
+
   int cpu_has_feature(int feature);
   int get_cpu_cores();
   int get_cpu_hyperthreads();
@@ -104,4 +108,8 @@
   double rdtscp_seconds(void);
   void set_fp_status_ctl(int fpstat);
   int get_fp_status_ctl(void);
+#ifdef __cplusplus
+}
+#endif
+
 #endif

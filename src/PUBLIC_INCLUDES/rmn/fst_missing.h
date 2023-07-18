@@ -1,6 +1,10 @@
 #ifndef FST_MISSING_H
 #define FST_MISSING_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int missing_value_used();
 
 int ForceMissingValueUsage(
@@ -57,5 +61,9 @@ void DecodeMissingValue(
     const int is_short,
     const int is_double
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
