@@ -190,8 +190,6 @@ car ils ne devraient déjà plus être utilisés:
         - GDADGD
         - GDMPGD
         - GDSQRT
-        - SLL
-        - VLL
         - VPOLAGR
         - VPS
         - grid_to_grid

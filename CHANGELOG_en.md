@@ -184,8 +184,6 @@ since we expect that they are already no longer used.
         - GDADGD
         - GDMPGD
         - GDSQRT
-        - SLL
-        - VLL
         - VPOLAGR
         - VPS
         - grid_to_grid
