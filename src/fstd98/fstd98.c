@@ -2073,7 +2073,7 @@ int c_fstlirx(
     handle = c_fstinfx(handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
     if (handle < 0) {
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: c_fstlirx: (unit=%d) record not found, errcode=%d\n",__func__,iun,handle);
-         return handle;
+        return handle;
     }
 
     ier = c_fstluk(field, handle, ni, nj, nk);
