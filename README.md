@@ -43,7 +43,7 @@ CMAKE_INSTALL_PREFIX
 
 COMPILER_SUITE
 : `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Sur les systèmes d'ECCC,
-le compilateur chargé sera utilisé.  Si les vairables d'environnement propres à
+le compilateur chargé sera utilisé.  Si les variables d'environnement propres à
 ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
 
 WITH_OPENMP
@@ -73,9 +73,11 @@ est trop vieille, vous devez charger une version plus récente.  Par exemple:
 
 
 ### Exemple de compilation de la branche dev sur un système non-ECCC
-```
-git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git 
+```bash
+git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git
+cd librmn
 git submodule update --init --recursive
+cd ..
 mkdir librmn_build
 cd librmn_build
 cmake ../librmn -DCMAKE_INSTALL_PREFIX=~/opt/
