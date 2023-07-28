@@ -67,9 +67,9 @@ de spécifier explicitement la suite de compilateurs à utiliser
 (`-DCOMPILER_SUITE=...`).  Vous devez toutefois charger le compilateur désiré
 avant d'effectuer la configuration de la compilation.
 
-Puisque la version par défaut de CMake disponible sur les systèmes Ubuntu 18.04
-est trop vieille, vous devez charger une version plus récente.  Par exemple:
-`. ssmuse-sh -d /fs/ssm/main/opt/cmake/cmake-3.16.4/`
+Puisque la version par défaut de CMake disponible sur les systèmes
+d'ECCC est probablement trop vieille, vous devez charger une version
+plus récente que 3.20.  Par exemple: `. ssmuse-sh -d main/opt/cmake/cmake-3.21.1`.
 
 
 ### Exemple de compilation de la branche dev sur un système non-ECCC
