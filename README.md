@@ -85,7 +85,8 @@ make -j4 install
 ```
 
 ### Documentation
-une cible `doc` est crée par cmake pour généré la documentation. Ceci nécessite cependant
+
+Une cible `doc` est crée par cmake pour généré la documentation. Ceci nécessite cependant
 Doxygen et graphviz.
 ```
 make doc
