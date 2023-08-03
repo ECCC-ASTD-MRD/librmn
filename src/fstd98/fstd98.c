@@ -3421,6 +3421,9 @@ int c_fstouv(
     if (strstr(options, "R/W") || strstr(options, "r/w")) {
         read_only = 0;
     }
+    if (strstr(options, "VOLATILE") || strstr(options, "VOLATILE")) {
+        FGFDT[i].attr.volatil = 1; // force attribute volatile;
+    }
     const int open_mode = read_only ? RSF_RO : RSF_RW;
 
     FGFDT[i].attr.std = 1; // force attribute to standard file
@@ -3444,7 +3447,7 @@ int c_fstouv(
             }
         }
     } else {
-        if ((iwko == -2) && (! FGFDT[i].attr.old)) {
+        if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
             if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
                ier = c_fstouv_rsf(i, RSF_RW, appl);
             }

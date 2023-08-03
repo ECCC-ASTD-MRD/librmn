@@ -686,11 +686,21 @@ int c_fstouv_rsf(
     const int32_t meta_dim = (sizeof(stdf_dir_keys) + 3)/ sizeof(int32_t); // In 32-bit units
     FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, NULL);
     
+    // VOLATILE mode, unlink the file so it gets erased ate end of process
+    if (FGFDT[index_fnom].attr.volatil) {
+        if (mode == RSF_RW) {
+           unlink(FGFDT[index_fnom].file_name);
+        } else {
+           Lib_Log(APP_LIBFST,APP_WARNING,"%s: File %s opened read only, VOLATILE mode not used\n", __func__,FGFDT[index_fnom].file_name);
+        }
+    }
+    
     if (RSF_Valid_handle(FGFDT[index_fnom].rsf_fh)) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opened file %s, mode %d, fnom index %d, meta dim 0x%x\n", __func__,
                 FGFDT[index_fnom].file_name, mode, index_fnom, meta_dim);
         return 0;
     }
+
 
     Lib_Log(APP_LIBFST, APP_WARNING, "%s: Failed to open file %s, mode %d, fnom index %d, meta dim 0x%x\n",
             __func__, FGFDT[index_fnom].file_name, mode, index_fnom, meta_dim);

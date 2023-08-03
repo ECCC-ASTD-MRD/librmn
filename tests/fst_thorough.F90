@@ -183,6 +183,9 @@ program fst_thorough
     use fst_thorough_mod
     implicit none
 
+    type(fstd98) :: xdf_file,rsf_file
+    integer :: status
+
     call generate_file(rsf_name_1, .true.)
     call generate_file(rsf_name_2, .true.)
     call generate_file(xdf_name_1, .false.)
@@ -190,5 +193,12 @@ program fst_thorough
 
     call test_fst_link()
     call test_fst_prm()
+
+    ! These files should diseapear at test end
+    status = rsf_file % ouv('rsf_volatile', 'STD+RND+RSF+VOLATILE')
+    call check_status(status, expected = 0, fail_message = 'fstouv rsf VOLATILE')
+    status = xdf_file % ouv('xdf_volatile', 'STD+RND+VOLATILE')
+    call check_status(status, expected = 0, fail_message = 'fstouv xdf VOLATILE')
+
 
 end program fst_thorough

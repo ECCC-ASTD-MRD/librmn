@@ -26,7 +26,8 @@ typedef struct {
         pipe:1,
         write_mode:1,
         remote:1,
-        padding:18;
+        volatil:1,
+        padding:17;
 } attributs;
 
 

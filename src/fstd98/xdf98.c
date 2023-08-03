@@ -1768,7 +1768,7 @@ int c_xdfopn(
         // at least one seq file is opened, limit number of xdf files is now 128
         STDSEQ_opened = 1;
         if (index > 127) {
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: hile opening std/seq file, limit of 128 opened file reached\n",__func__);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: while opening std/seq file, limit of 128 opened file reached\n",__func__);
             return(-1);
         }
     }
