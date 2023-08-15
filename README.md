@@ -36,18 +36,18 @@ Les options pour configurer la compilation doivent être ajoutées lors de
 l'appel de la commande `cmake` avec le préfix `-D`.
 
 CMAKE_BUILD_TYPE
-: `(Release|RelWithDebInfo|Debug)` Mode de compilation.  Défaut: `RelWithDebInfo`
+: `(Release|RelWithDebInfo|Debug)` Mode de compilation. Défaut: `RelWithDebInfo`
 
 CMAKE_INSTALL_PREFIX
 : Chemin d'accès du répertoire pour l'installation (`make install`)
 
 COMPILER_SUITE
-: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser.  Sur les systèmes d'ECCC,
-le compilateur chargé sera utilisé.  Si les variables d'environnement propres à
+: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser. Sur les systèmes d'ECCC,
+le compilateur chargé sera utilisé. Si les variables d'environnement propres à
 ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
 
 WITH_OPENMP
-: `(yes|no)` Indique si le support pour OpenMP doit être activée.  Défaut: `yes`
+: `(yes|no)` Indique si le support pour OpenMP doit être activée. Défaut: `yes`
 
 ### Exemple de compilation
 ```
@@ -62,14 +62,14 @@ make install
 ### Compilation dans l'environnement d'ECCC
 
 Les scripts CMake de __cmake_rpn__ vont automatiquement détecter le compilateur
-chargé via la variable d'environement __EC_ARCH__.  Il n'est donc pas nécessaire
+chargé via la variable d'environnement __EC_ARCH__. Il n'est donc pas nécessaire
 de spécifier explicitement la suite de compilateurs à utiliser
-(`-DCOMPILER_SUITE=...`).  Vous devez toutefois charger le compilateur désiré
+(`-DCOMPILER_SUITE=...`). Vous devez toutefois charger le compilateur désiré
 avant d'effectuer la configuration de la compilation.
 
 Puisque la version par défaut de CMake disponible sur les systèmes
 d'ECCC est probablement trop vieille, vous devez charger une version
-plus récente que 3.20.  Par exemple: `. ssmuse-sh -d main/opt/cmake/cmake-3.21.1`.
+plus récente que 3.20. Par exemple: `. ssmuse-sh -d main/opt/cmake/cmake-3.21.1`.
 
 
 ### Exemple de compilation de la branche dev sur un système non-ECCC
@@ -86,7 +86,7 @@ make -j4 install
 
 ### Documentation
 
-Une cible `doc` est crée par cmake pour généré la documentation. Ceci nécessite cependant
+Une cible `doc` est créée par cmake pour générer la documentation. Ceci nécessite cependant
 Doxygen et graphviz.
 ```
 make doc
