@@ -616,8 +616,9 @@ int32_t f77name(fnom)(
         filetype[lng] = '\0';
     }
 
+    int iun0 = liun;
     int tmp = c_fnom(&liun, filename, filetype, *flrec);
-    if (*iun == 0) *iun = liun;
+    if (iun0 == 0) *iun = liun;
     return tmp;
 }
 
