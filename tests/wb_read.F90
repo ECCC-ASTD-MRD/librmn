@@ -1,4 +1,5 @@
 program wb
+use ISO_FORTRAN_ENV
 
 #include <rmn/WhiteBoard.hf>
 
