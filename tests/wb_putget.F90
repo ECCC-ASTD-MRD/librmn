@@ -1,5 +1,5 @@
 program test_wb
-#include <WhiteBoard.hf>
+#include <rmn/WhiteBoard.hf>
 
     character(len = *), parameter :: key = 'Something'
     character(len = WB_MAXSTRINGLENGTH) :: inbuff, outbuff

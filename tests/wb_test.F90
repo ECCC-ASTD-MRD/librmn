@@ -2,7 +2,7 @@
 
 program wb_test
 
-#include <WhiteBoard.hf>
+#include <rmn/WhiteBoard.hf>
     
    character(len=32) :: list_S(4)
 
