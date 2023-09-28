@@ -50,6 +50,7 @@ module rmn_jar
     logical, save, private :: debug_mode = .false.
 
     integer, parameter, public :: JAR_ELEMENT = C_INT64_T !< We want 64-bit elements in the jars
+    public :: int64  ! From iso_fortran_env, needed to use macros
 
     !> C interoperable version of jar
     type, public, BIND(C) :: c_jar
