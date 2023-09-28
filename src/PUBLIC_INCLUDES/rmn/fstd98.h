@@ -14,10 +14,16 @@
  * Lesser General Public License for more details.
  *
  */
+#ifndef FSTD98_H
+#define FSTD98_H
 
 #include <stdint.h>
 
 #include <rmn/rpnmacros.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);
@@ -100,3 +106,9 @@ int32_t f77name(fstprm)(int32_t *f_handle,
                         int32_t *f_dltf, int32_t *f_ubc, int32_t *f_extra1,
                         int32_t *f_extra2, int32_t *f_extra3,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // FSTD98_H

@@ -9,10 +9,18 @@
 #define MAX_requetes 50
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int XC_get_MAX_Nlist();
 int XC_get_MAX_requetes();
 
 //! \todo Déterminer si cette fonction est interne ou publique
 void C_requetes_init(char *requetes_filename, const char * const debug_filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

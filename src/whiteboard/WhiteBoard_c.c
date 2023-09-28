@@ -1143,7 +1143,6 @@ int32_t f77_name(f_wb_get)(WhiteBoard **wb, char *name, int32_t *type, int32_t *
 
     return c_wb_get(*wb, name, _type, _size, dest, _nbelem, _nameLength);
 }
-#define DEBUG
 
 //! Store entry in a WhiteBoard
 //! \return Smaller than 0 in case of error.  0 for non character scalars, string length if string, max size of array if array
