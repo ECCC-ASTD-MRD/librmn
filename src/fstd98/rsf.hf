@@ -1,1 +1,3 @@
-rsfiles/src/public_include/rsf/rsf.hf
+
+#define IN_FORTRAN_CODE
+#include <rmn/rsf.h>
