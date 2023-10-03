@@ -73,9 +73,10 @@ utiliser la fonction `ftnStrLen(str, maxLen)`.
 cette plateforme depuis plusieurs années et était probablement non
 fonctionnel.
 
-- La fonction `IOPDATM` a été supprimée. Ça ne fonctionnait plus depuis
+- La fonction `IOPDATM` a été modifiée. Ça ne fonctionnait plus depuis
 le passage à U2. Les Opérations vont fournir un autre moyen pour
-récupérer les dates des passes.
+récupérer les dates des passes. En attendant, nous acceptons en entrée
+uniquement des dates en format `AAJJJHH`.
 
 - La variable d'environnement `AFSISIO` n'existe plus et a été remplacée par
 `CMCCONST`. Cette variable est utilisée pour accéder aux constantes du CMC
