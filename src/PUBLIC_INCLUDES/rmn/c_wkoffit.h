@@ -44,6 +44,8 @@
 #define WKF_CMCARC5               37
 #define WKF_HDF5                  38
 #define WKF_STDRSF                39
+#define WKF_RSF                   40
+#define WKF_SQLITE3               41
 
 #ifdef __cplusplus
 extern "C" {
