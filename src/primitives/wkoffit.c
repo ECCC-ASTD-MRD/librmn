@@ -391,9 +391,13 @@ int32_t c_wkoffit(
             }
         }
 
-        /* STANDARD with RSF backend */
-        if (*(ptbuf + 4) == 'RSF0' && *(ptbuf + 5) == 'STDR') {
-            return retour(pf, WKF_STDRSF);
+        /* RSF backend */
+        if (*(ptbuf + 4) == 'RSF0') {
+            // STANDARD
+            if (*(ptbuf + 5) == 'STDR') return retour(pf, WKF_STDRSF);
+
+            // Generic RSF
+            return retour(pf, WKF_RSF);
         }
 
         /* STANDARD 98 SEQUENTIEL */
@@ -438,6 +442,13 @@ int32_t c_wkoffit(
         /* BLOK */
         if (*(ptbuf) == 0x424c4f4b) {
             return retour(pf, WKF_BLOK);
+        }
+
+        /* SQLite 3 */
+        // https://www.sqlite.org/fileformat.html
+        if (*(ptbuf) == 0x53514c69 && *(ptbuf + 1) == 0x74652066 &&
+            *(ptbuf + 2) == 0x6f726d61 && *(ptbuf + 3) == 0x74203300) {
+            return retour(pf, WKF_SQLITE3);
         }
 
         /* FORTRAN */
