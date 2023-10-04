@@ -3,6 +3,7 @@
 
       SUBROUTINE CXGAIG(CGTYP,IG1,IG2,IG3,IG4,XG1,XG2,XG3,XG4)
          use app
+         use rmn_common
       CHARACTER(len=1) CGTYP
 !
 !AUTEUR- M. VALIN  -  FEV 82
@@ -49,7 +50,7 @@
 !
 !
       REAL XXG2, XXG4
-      REAL*8 :: XLON8, XLAT8
+      REAL(kind = real64) :: XLON8, XLAT8
       INTEGER I2B
       LOGICAL, EXTERNAL :: VALIDE
       LOGICAL STATUS

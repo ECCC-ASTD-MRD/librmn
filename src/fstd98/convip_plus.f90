@@ -7,8 +7,9 @@
 !> \author Michel Valin
 
 SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
-    use convert_ip123_int
     use app
+    use convert_ip123_int
+    use rmn_common
     implicit none
     include 'convip_plus.inc'
 
@@ -21,7 +22,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
     !> When -1, IP -> P; When 0, force 31 bit conversion; When 1, P -> IP; When 2, P -> IP Force NEWSTYLE, When 3, P -> IP Force OLD STYLE
     integer, intent(IN) :: mode
     !> String representation of ip or p
-    character *(*), intent(OUT) :: string
+    character(len = *), intent(OUT) :: string
     !> If true, print P with the format in string
     logical, intent(IN) :: flagv
 
@@ -79,15 +80,15 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
 !              (partage avec kind=5 a cause du range exclusif)
 !    KIND =23, reserve pour usage futur (partage avec kind=7)
 
-  real *8 limit1, limit2, temp
+  real(kind = real64) :: limit1, limit2, temp
   real abs_p
   integer iexp,  offset, itemp, lstring
 
   INTEGER, PARAMETER :: Max_Kind = 31
   integer maxkind
   logical NEWSTYLE, NEWENCODING
-  real *8 exptab(0:15)
-  character (len=12) :: string2
+  real(kind = real64) :: exptab(0:15)
+  character(len=12)   :: string2
   integer :: status
 
   INTEGER :: i
@@ -408,18 +409,19 @@ end SUBROUTINE CONVIP_plus
 !>  if a floating format (F/G) is used, return value =- 100*field_width + nb_of_significant_digits
 !>  ex: if F8.3 is used, the result will be 803, if I6 is used, the result will be 6
 integer function value_to_string(val, string, maxlen)
+    use rmn_common
     implicit none
 
     !> The real value to be encoded into string (left aligned)
-    real *4, intent(IN) :: val
+    real(kind = real32), intent(IN) :: val
     !> Encoded representation
     character (len=*), intent(OUT) :: string
     !> Maximum number of characters to use to represent the value
     integer, intent(IN) :: maxlen
 
-    character (len=32) :: fstring
+    character (len=32)  :: fstring
     character (len=128) :: tempstring
-    real *4 :: value
+    real(kind = real32) :: value
     integer :: after, before
     integer :: grosint, maxc, intdig
     integer :: i
@@ -514,13 +516,14 @@ integer function value_to_string(val, string, maxlen)
     value_to_string=0
     return
 
-10 format(2H(F,I2,1H.,I1,1H))
-11 format(2H(G,I2,1H.,I1,1H))
+10 format('(F', I2, '.', I1, ')')
+11 format('(G', I2, '.', I1, ')')
 12 format(A,I2,A)
 end function value_to_string
 
 
 subroutine test_value_to_string
+  use rmn_common
   implicit none
   include 'convip_plus.inc'
   character (len=8) :: stringa
@@ -528,7 +531,7 @@ subroutine test_value_to_string
   character (len=15) :: stringc
   integer :: i
   integer :: status
-  real *4 :: value
+  real(kind = real32) :: value
 
   value=1.000001
   do i=1,9
@@ -561,13 +564,13 @@ subroutine test_value_to_string
     value=value*0.1
   enddo
 
-101 format(1H|,A15,1H|,A15,1H|,1X,A2,3X,f6.2)
+101 format('|', A15, '|', A15, '|', 1X, A2, 3X, f6.2)
 return
 end subroutine test_value_to_string
 
 
 subroutine test_convip_plus() ! test routine for convip_plus
-  use ISO_C_BINDING
+  use rmn_common
   implicit none
   include 'rmn/convert_ip123.inc'
   integer :: ip1, ip2, i, j, nip, nip2, k2, nip3
@@ -622,7 +625,7 @@ end subroutine test_convip_plus
 
 subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')  ! interface for C routines
     ! translate kind integer code to 2 character string, gateway to Fortran kind_to_string
-    use ISO_C_BINDING
+    use rmn_common
     implicit none
     include 'convip_plus.inc'
 

@@ -291,15 +291,15 @@ int32_t f77name(float_packer)(float *source, int32_t *nbits, int32_t *header, in
 
 //! Get lengths of various elements of packed data
 void c_float_packer_params(
-    //! Pointer to size of header part
+    //! [out] Pointer to size of header part
     int32_t *header_size,
-    //! Pointer to size of stream part
+    //! [out] Pointer to size of stream part
     int32_t *stream_size,
     //! Reserved for future expansion, a value of zero is returned now
     int32_t *p1,
     //! Reserved for future expansion, a value of zero is returned now
     int32_t *p2,
-    //! Pointer to number of values
+    //! [in] Pointer to number of values
     int32_t npts
 ) {
     *header_size = 3;

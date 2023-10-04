@@ -24,7 +24,7 @@
       use app
       IMPLICIT NONE
       INTEGER  MRFOPN, IUN
-      CHARACTER*(*)         INMODE
+      CHARACTER(len = *) :: INMODE
 !
 !AUTEUR  J. CAVEEN   OCTOBRE 1990
 !REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
@@ -55,8 +55,8 @@
      &         NOMBRE, STAT,   PRII,   PRI(2,NPRITOT), AUX(2,NAUXTOT),  &
      &         IER,    AUXX
       logical initdone
-      CHARACTER*4 APPL, VERSN
-      CHARACTER*6 MODE
+      CHARACTER(len = 4) :: APPL, VERSN
+      CHARACTER(len = 6) :: MODE
       DATA        IOUT /6/
       DATA        BADTBL /0/
       data initdone /.false./

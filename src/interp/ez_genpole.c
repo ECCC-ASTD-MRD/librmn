@@ -22,6 +22,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t f77name(ezgenpole)(float *vpolnor, float *vpolsud, float *fld,

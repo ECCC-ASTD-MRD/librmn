@@ -22,6 +22,8 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "base/base.h"
+#include "f_ezscint.h"
 
 
 int32_t ez_calcspolarwind(
@@ -93,10 +95,10 @@ int32_t ez_calcspolarwind(
     c_gduvfwd(gdps, polar_uu, polar_vv, polar_spd,  polar_wd, polar_lat, polar_lon, ni);
 
     f77name(ez_calcpoleval)(&uupole, polar_uu, &ni, Grille[gdrow][gdcol].ax,
-                &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref,1,1);
+                Grille[gdrow][gdcol].grtyp, Grille[gdrow][gdcol].grref,1,1);
 
     f77name(ez_calcpoleval)(&vvpole, polar_vv, &ni, Grille[gdrow][gdcol].ax,
-                &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].grref,1,1);
+                Grille[gdrow][gdcol].grtyp, Grille[gdrow][gdcol].grref,1,1);
 
     quatrevingtdix = -90.0;
     zero = 0.0;

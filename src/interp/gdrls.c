@@ -71,7 +71,7 @@ void EliminerGrille(int32_t gdid) {
         }
 
         gr_list[Grille[gdrow_id][gdcol_id].grid_index] = (_Grille *) NULL;
-        memset(&(Grille[gdrow_id][gdcol_id]),(int)NULL, sizeof(_Grille));
+        memset(&(Grille[gdrow_id][gdcol_id]), 0, sizeof(_Grille));
         nGrilles--;
     }
 

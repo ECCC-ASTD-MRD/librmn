@@ -21,11 +21,12 @@
 !**
 !**
       subroutine ez_genpole(vpolnor,vpolsud,fld,ni,nj,vecteur,grtyp,hem,      x,y,z,lat,lon,glat,ordint)
+          use rmn_common
       implicit none
       real vpolnor,vpolsud
       integer ni,nj
       real fld(ni,nj)
-      character*1 grtyp       
+      character(len = 1) :: grtyp       
       logical vecteur   
       integer hem,ordint
       real x(2,ni),y(2,ni),z(2,ni),lat(2,ni),lon(2,ni),glat(*)
@@ -35,14 +36,14 @@
 #include "ez_qqqxtrp.cdk"
 #include "ez_gaussgd.cdk"
 
-      integer i,j
-      real*8 x2,y2,xy,x3,y3,x2y,xy2
-      real pi,pj,dlon
-      real*8 a(6,6),b(6),vpole,det,deta,detb,detc
-      integer l(6),m(6)
-      integer n, nglat
-      real lat1,lat2,dlat,xla0
-      integer ilat1,ilat2
+      integer             :: i,j
+      real(kind = real64) :: x2,y2,xy,x3,y3,x2y,xy2
+      real(kind = real32) :: pi,pj,dlon
+      real(kind = real64) :: a(6,6),b(6),vpole,det,deta,detb,detc
+      integer             :: l(6),m(6)
+      integer             :: n, nglat
+      real                :: lat1,lat2,dlat,xla0
+      integer             :: ilat1,ilat2
 
 !      if (vecteur) then
 !         return

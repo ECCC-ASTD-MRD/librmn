@@ -259,7 +259,7 @@ module f_c_strings_mod
         character(len=:), pointer :: fptr
 
         nc = c_strlen(cstrptr)
-        nc = min(nc,nchars)
+        nc = min(nc, int(nchars, kind=C_SIZE_T))
         call c_f_pointer(cstrptr, fptr)
         fstrptr => fptr(1:nc)
     end subroutine c_f_strpointer2

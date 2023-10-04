@@ -24,6 +24,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 void c_ez_manageGrillesMemory() {
@@ -174,7 +175,7 @@ int32_t c_ezidentify_irreg_grid(
             break;
 
         case 'Z':
-            f77name(cigaxg)(&(newgr.grref),
+            f77name(cigaxg)(newgr.grref,
                 &newgr.fst.xgref[XLAT1], &newgr.fst.xgref[XLON1], &newgr.fst.xgref[XLAT2], &newgr.fst.xgref[XLON2],
                 &newgr.fst.igref[IG1],   &newgr.fst.igref[IG2],   &newgr.fst.igref[IG3],   &newgr.fst.igref[IG4],1);
             grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, ni, nj);

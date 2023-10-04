@@ -23,6 +23,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 void ez_calcntncof(int32_t gdid)

@@ -17,8 +17,9 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-      real *8 FUNCTION f_pow(base,i)
-      real *8 base
+      real(kind = real64) FUNCTION f_pow(base,i)
+          use rmn_common
+      real(kind = real64) :: base
       integer i
       f_pow = base**i
       return

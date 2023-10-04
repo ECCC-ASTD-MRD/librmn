@@ -20,6 +20,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 int32_t ez_calcxpncof(int32_t gdid) {
@@ -73,7 +74,7 @@ void ez_xpncof(int32_t *i1, int32_t *i2, int32_t *j1, int32_t *j2, int32_t *exte
 
 
          f77name(cigaxg)(&lcl_grtyp,&first_lat, &first_lon, &dlat, &dlon,
-                         &lcl_ig1, &lcl_ig2, &lcl_ig3, &lcl_ig4);
+                         &lcl_ig1, &lcl_ig2, &lcl_ig3, &lcl_ig4, 1);
 
          if ((first_lat - dlat) > (-90.0+0.01*dlat))
             {

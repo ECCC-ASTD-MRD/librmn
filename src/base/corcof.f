@@ -20,6 +20,7 @@
 ***S/R CORCOF - FINDS THE CORRELATION COEFFICIENT
 *
       SUBROUTINE CORCOF(CC,FI,FF,FV,W,NI,NJ,IW1,IW2,NW1,NW2)
+      use rmn_common
       implicit none
       integer :: NI,NJ,IW1,IW2,NW1,NW2
       REAL FI(NI,NJ),FF(NI,NJ),FV(NI,NJ),W(NI,NJ)
@@ -71,7 +72,7 @@
 *
 *-----------------------------------------------------------------------
 *
-      REAL *8 R(5), FFI, DA, DF, DW, FTW, X, Y, A, B, C
+      REAL(kind = real64) :: R(5), FFI, DA, DF, DW, FTW, X, Y, A, B, C
       integer :: I, J
       CC = 99999.
       DO 10 I=1,5

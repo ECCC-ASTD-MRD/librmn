@@ -20,6 +20,7 @@
 !**s/r ez_vxyfll - computes the grid co-ordinates of a point
 !
       subroutine ez_vxyfll(x,y,dlat,dlon,npts,d60,dgrw,pi,pj,nhem)
+          use rmn_common
       implicit none
 
 !author   - j.d. henderson  -  feb 75
@@ -61,11 +62,11 @@
 #include "pi.cdk"
 #include "qqqpar.cdk"
 
-      integer npts, nhem
-      real x(npts), y(npts), dlat(npts), dlon(npts)
-      real d60, dgrw, pi, pj
-      real*8 re,rlon,rlat,sinlat,r
-      integer i
+      integer             :: npts, nhem
+      real                :: x(npts), y(npts), dlat(npts), dlon(npts)
+      real                :: d60, dgrw, pi, pj
+      real(kind = real64) :: re,rlon,rlat,sinlat,r
+      integer             :: i
       
       re=1.866025d0*6.371d+6/d60
 !     

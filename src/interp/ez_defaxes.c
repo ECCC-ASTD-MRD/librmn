@@ -24,6 +24,8 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
+#include "base/base.h"
 
 
 void c_ezdefaxes(int32_t gdid, float *ax, float *ay)
@@ -41,7 +43,7 @@ void c_ezdefaxes(int32_t gdid, float *ax, float *ay)
     switch (gr->grtyp[0]) {
         case '#':
         case 'Z':
-            f77name(cigaxg)(&gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
+            f77name(cigaxg)(gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
                 &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
 
             Grille[gdrow_id][gdcol_id].ax = (float *) malloc(gr->ni*sizeof(float));
@@ -68,7 +70,7 @@ void c_ezdefaxes(int32_t gdid, float *ax, float *ay)
             gr->fst.xgref[SWLON] = 0.0;
             gr->fst.xgref[DLAT] = 1.0;
             gr->fst.xgref[DLON] = 1.0;
-            f77name(cxgaig)(&gr->grref,&gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],
+            f77name(cxgaig)(gr->grref,&gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],
                 &gr->fst.xgref[SWLAT], &gr->fst.xgref[SWLON], &gr->fst.xgref[DLAT], &gr->fst.xgref[DLON],1);
 
             Grille[gdrow_id][gdcol_id].ax = (float *) malloc(gr->ni*sizeof(float));

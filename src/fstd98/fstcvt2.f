@@ -24,9 +24,9 @@
      % CGRTP, HOLACAR)
       IMPLICIT NONE
       INTEGER NOM, TYP, ETIK(2), GRTP
-      CHARACTER *(*) CNOM
-      CHARACTER *(*) CTYP, CGRTP
-      CHARACTER *(*) CETIK
+      CHARACTER(len = *) :: CNOM
+      CHARACTER(len = *) :: CTYP, CGRTP
+      CHARACTER(len = *) :: CETIK
       LOGICAL HOLACAR
 
 *AUTEUR  P. SARRAZIN   NOV  1989

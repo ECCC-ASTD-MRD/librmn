@@ -19,7 +19,7 @@
 ! */
       subroutine ez_rgoptc(op, val, flag)
       implicit none
-      character *8 op, val
+      character(len = 8) :: op, val
       logical flag
 
       integer ier,ezsetopt, ezgetopt
@@ -29,7 +29,7 @@
 
 #include "ez_qqqxtrp0.cdk"
 
-      character*3 localop,localval
+      character(len = 3) :: localop,localval
 
       localop =op(1:3)
       localval=val(1:3)
@@ -98,7 +98,7 @@
 
       subroutine ez_rgopti(op, val, flag)
       implicit none
-      character*8 op
+      character(len = 8) :: op
       integer val
       logical flag
       integer ier,ezsetval,ezgetval,ezsetopt,ezgetopt
@@ -113,8 +113,8 @@
       data ordint   / 3 /
       real rval
       
-      character*3 localop
-      character*16 local_val
+      character(len = 3)  :: localop
+      character(len = 16) :: local_val
       
       localop=op(1:3)
       call up2low(localop,localop)
@@ -166,7 +166,7 @@
       
       subroutine ez_rgoptr(op, val, flag)
       implicit none
-      character*8 op
+      character(len = 8) :: op
       real val
       logical flag
       integer ier, ezsetval,ezgetval
@@ -176,7 +176,7 @@
       
 #include "ez_qqqxtrp0.cdk"
       
-      character*3 localop
+      character(len = 3) :: localop
       
       localop=op(1:3)
       call up2low(localop,localop)

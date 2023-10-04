@@ -20,6 +20,7 @@
 !**s/r ez_vllfxy(i) - computes the grid co-ordinates of a point
 !
       subroutine ez_vllfxy(dlat,dlon,x,y,ni,nj,d60,dgrw,pi,pj,nhem)
+          use rmn_common
       implicit none
 
 !arguments                                                              
@@ -45,12 +46,12 @@
 #include "pi.cdk"
 #include "qqqpar.cdk"
       
-      integer ni,nj, nhem
-      real x(ni,nj), y(ni,nj), dlat(ni,nj), dlon(ni,nj)
-      real d60, dgrw, pi, pj
-      real*8 x1, y1
-      real*8 re,re2,r2,rlat, rlon
-      integer i,j
+      integer             :: ni,nj, nhem
+      real                :: x(ni,nj), y(ni,nj), dlat(ni,nj), dlon(ni,nj)
+      real                :: d60, dgrw, pi, pj
+      real(kind = real64) :: x1, y1
+      real(kind = real64) :: re,re2,r2,rlat, rlon
+      integer             :: i,j
       
       re=1.866025d0*6.371e+6/d60
       re2=re**2

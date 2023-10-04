@@ -25,7 +25,7 @@
       integer ni,nj,hem
       real zi(ni,nj)
       real ax(ni),ay(nj)
-      character*1 grtyp,grref
+      character(len = 1) :: grtyp,grref
       logical vecteur      
       real vpolnor, vpolsud, sum
 

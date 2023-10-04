@@ -9,16 +9,16 @@ required to build the library.  Building the library is now done with
 [CMake](https://cmake.org/documentation/)
 
 - Added an explicit interface for fnom and fclos.  Add the following 
-`#include <fnom.hf>` to use it.
+`#include <rmn/fnom.hf>` to use it.
 
 - Added an explicit interface for MGI functions.  It can be used with
-`#include <mgi.hf>`
+`#include <rmn/mgi.hf>`
 
 - Added a new vertical coordinate type for IP1 (KIND=7) for depth
 in meters below sea level
 
 - Verbosity control is now managed through the [App](https://gitlab.science.gc.ca/RPN-SI/App) package and can be 
-controled for the different components with the following methods:
+controlled for the different components with the following methods:
 
   - C & Fortran: 
      - previous=Lib_LogLevel(APP_LIB`[lib]`,"`[niveau]`")  
@@ -30,15 +30,16 @@ controled for the different components with the following methods:
   - Where: 
      - `[lib]` = RMN,FST,WB,GMM,VGRID or INTERPV
      - `[niveau]` = ERROR,WARNING,INFO,TRIVIAL,DEBUG,EXTRA or QUIET
+
 # Breaks in backward compatibility
 
 Version 20 is a major one and there has been a considerable code
 cleanup done.  Obsolete functions and constructs have been removed.
 
 - The case of file names will no longer be modified; capitalization in
-file names will be kept as-is.
+file names will be kept as is.
 
-- The following data types will no longer be available.  Please use the
+- The following data types are no longer available.  Please use the
 corresponding data types accessible via `#include <stdint.h>`
 
 | Old      | New      |
@@ -55,7 +56,7 @@ explicitly sized types such as `int32_t` or `int64_t`.
 - The `string_copy` was deleted.  The standard C function `strncpy`
 should be used instead.
 
-- The Fortran function `longueur(str)` was deleted.  Fortran 90,
+- The Fortran function `longueur(str)` was deleted.  Fortran 90
 introduced the `len_trim(str)` built-in function that should be used
 instead.  For C code handling Fortran strings, `ftnStrLen(str, maxLen)`
 can be used.
@@ -65,33 +66,34 @@ can be used.
 
 - The `CLIB_SUFFIX` was deleted.
 
-- arch_specific.hf was deleted since it is now empty
+- arch_specific.hf was deleted since it is now empty.
 
 - Support for WIN32 has been removed.  The code has not been tested on
 that platform for many years and was likely broken.
 
-- Removed `IOPDATM`.  The function has been broken since U2 and
-Operations will provide an alternate method to get run dates.
+- Changed content of `IOPDATM`.  The function has been broken since U2 and
+Operations will provide an alternate method to get run dates. In the meantime,
+we only accept date in the `YYDDDHH` format as input.
 
 - The environment variable `AFSISIO` does not exist anymore and is 
 replaced by `CMCCONST`. This variable is used to access the CMC constant 
-directory and the BURF tables
+directory and the BURF tables.
 
-- The `second()`, `_second()` et `__second()` functions which allowed to
-query the CPU time used have been deleted.  External tools allow
-retrieving that information or profiling.
+- The `second()`, `_second()` et `__second()` functions which were used to
+query the CPU time used have been deleted.  External tools exist for
+retrieving that information or for profiling.
 
 - All header files except the main one (`rmn.h`) have been moved to the
 `rmn` sub-directory.  Therefore, you will have to fix the paths in the
 `#include` directives.  For example, `#include <rpnmacros.h>` becomes
 `#include <rmn/rpnmacros.h>`.
 
-- The program librmn_version is not available anymore.Information about
-version, architecture and more can be retreived through the `rmn-config`
+- The program librmn_version is not available anymore.  Information about
+version, architecture and more can be retrieved through the `rmn-config`
 script. ex: `rmn-config --version --arch`
 
 - GMM is now available as a module (`rmn_gmm`) and is no longer made
-available as multiple *.hf files
+available as multiple *.hf files.
 
 - All the functions in DMMS are obsolete and should no longer be used:
     - memoirc
@@ -191,7 +193,6 @@ since we expect that they are already no longer used.
         - grid_to_grid_coef
         - DEFVEC
         - FCONW
-        - mxma
     - primitives
         - unstakw
         - stkmemw
@@ -215,7 +216,7 @@ for fnctName in AFIX AFIX8 ALPAS8 ALPDL2 ALPDL8 ALPDR8 \
     bmf_splitwritexy2 bmf_splitwritey bmf_splitwritey2 bmf_statfld \
     bmf_write bmf_write2 ca_alloc ca_deallc close_db_file dmmsdbg \
     dmmsnabt grid_to_grid grid_to_grid_coef grid_to_grid_interp \
-    hpalloc hpdeallc memoir memoirc memoirh mxma open_db_file \
+    hpalloc hpdeallc memoir memoirc memoirh open_db_file \
     read_db_file rewind_db_file slabdsc slabend slabig34 slabini \
     slabopt slabxtr slabxtr slabxtrf stkmemw unstakw write_db_file; do
     grepOut=$(grep --color=always -RinP "(?>\W)${fnctName}(?>\W)" | grep -v tests)

@@ -18,8 +18,9 @@
 * * Boston, MA 02111-1307, USA.
 * */
 	subroutine incdat(id1,id2,nh)
+		use rmn_common
 	integer id1,id2
-	real *8 rnh
+	real(kind = real64) :: rnh
 	rnh=nh
 	call incdatr(id1,id2,rnh)
 	return

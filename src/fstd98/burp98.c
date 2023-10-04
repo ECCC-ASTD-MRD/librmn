@@ -816,7 +816,7 @@ int c_mrbloc(
         if (match) {
             if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
                 bno = i + 1;
-                c_mrbprm((uint32_t*)buf, bno, &r_nele, &r_nval, &r_nt,
+                c_mrbprm((uint32_t *)buf, bno, &r_nele, &r_nval, &r_nt,
                         &r_bfam, &r_bdesc, &r_btyp, &r_nbit,
                         &r_bit0, &r_datyp);
                 Lib_Log(APP_LIBFST,APP_INFO,"%s: find block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",__func__,i + 1, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
@@ -1051,7 +1051,7 @@ int c_mrfapp(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -1173,7 +1173,7 @@ int c_mrfrwd(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }

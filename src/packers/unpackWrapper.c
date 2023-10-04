@@ -25,6 +25,7 @@
 #include <armn_compress.h>
 
 #include "compact_IEEEblock.h"
+#include "packers.h"
 
 
 //! Convinience function to unpack data

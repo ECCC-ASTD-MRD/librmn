@@ -9,13 +9,13 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     ! name (partially redundant with attributes)
     character(len = *), intent(in) :: iname
 #if DIM == 1
-    DATATYPE*DATALENGTH, pointer  :: p(:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:)
 #elif DIM == 2
-    DATATYPE*DATALENGTH, pointer  :: p(:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:,:)
 #elif DIM == 3
-    DATATYPE*DATALENGTH, pointer  :: p(:,:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:,:,:)
 #elif DIM == 4
-    DATATYPE*DATALENGTH, pointer  :: p(:,:,:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: p(:,:,:,:)
 #endif
     ! attributes (name in attributes is not used)
     type(gmm_metadata), intent(inout) :: field_meta
@@ -33,13 +33,13 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     character(len = GMM_MAXNAMELENGTH) :: lcl_name
 
 #if DIM == 1
-    DATATYPE*DATALENGTH, pointer  :: pp(:)
+    DATATYPE(kind = DATAKIND), pointer  :: pp(:)
 #elif DIM == 2
-    DATATYPE*DATALENGTH, pointer  :: pp(:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: pp(:,:)
 #elif DIM == 3
-    DATATYPE*DATALENGTH, pointer  :: pp(:,:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: pp(:,:,:)
 #elif DIM == 4
-    DATATYPE*DATALENGTH, pointer  :: pp(:,:,:,:)
+    DATATYPE(kind = DATAKIND), pointer  :: pp(:,:,:,:)
 #endif
 
     if (present(flags_arg)) then
@@ -215,14 +215,14 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     endif
 
     if (iand(field_meta%a%flags, GMM_FLAG_INAN) /= 0) then
-#if ((DATATYPE == real) & (DATALENGTH == 4))
+#if ((DATATYPE == real) & (DATAKIND == 4))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             write(app_msg,*) 'gmm_create: ',iname, ' Debug DATATYPE=real init to NaN'
             call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
         endif
         p = ieee_value(1.0, ieee_quiet_nan)
 #else
-#if ((DATATYPE == real) & (DATALENGTH == 8))
+#if ((DATATYPE == real) & (DATAKIND == 8))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             write(app_msg,*) 'gmm_create: ',iname, ' Debug DATATYPE=real*8 init to NaN'
             call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)

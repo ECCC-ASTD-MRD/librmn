@@ -62,10 +62,10 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
 
+
 include_directories(
    include
    src/PUBLIC_INCLUDES
-   src/PUBLIC_INCLUDES/rmn
 )
 
 file(GLOB PROJECT_C_FILES
@@ -198,7 +198,12 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
     )
+    target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endforeach()
+
+# Compilation options for specific files
+set_source_files_properties(src/fstd98/xdf98.c       PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
+set_source_files_properties(src/primitives/wkoffit.c PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
 
 install(TARGETS ${shared_targets}
     EXPORT rmn-shared-targets
@@ -217,8 +222,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 
 # Fortran modules are installed in the include directory for now
 install(FILES
+    ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
+    ${MODULE_DIR}/rmn_fstd98.mod
     ${MODULE_DIR}/convert_ip123_int.mod
     DESTINATION include)
 
