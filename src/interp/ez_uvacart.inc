@@ -22,6 +22,7 @@
 
 !
       SUBROUTINE EZ_UVACART( XYZ, U, V, LON, LAT, NI, NJ)
+          use rmn_common
       implicit none
       INTEGER NI, NJ 
       REAL    U(NI,NJ), V(NI,NJ), XYZ(3,NI*NJ), LON(NI,NJ), LAT(NI,NJ)
@@ -39,8 +40,8 @@
 !
 !*
 
-      INTEGER I, J, K 
-      REAL*8    A, B, C, D, DAR
+      INTEGER             :: I, J, K 
+      REAL(kind = real64) :: A, B, C, D, DAR
 
       DAR = ACOS(-1.)/180.
       K   = 0

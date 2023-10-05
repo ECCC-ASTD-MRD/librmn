@@ -22,12 +22,12 @@
 *
       INTEGER FUNCTION EXDB(in_TITRE,REVIS,FLAG)
       IMPLICIT NONE
-      CHARACTER*(*) in_TITRE,REVIS,FLAG
+      CHARACTER(len = *) :: in_TITRE,REVIS,FLAG
 *
       INTEGER EXDBPLUS
       EXTERNAL EXDBPLUS
 
-      CHARACTER *90 UNUSEDSTRING
+      CHARACTER(len = 90) :: UNUSEDSTRING
       EXDB=EXDBPLUS(in_TITRE,REVIS,FLAG,UNUSEDSTRING,0)
       RETURN
       END
@@ -37,7 +37,7 @@
       INTEGER FUNCTION EXDBPLUS(in_TITRE,REVIS,FLAG,SUPP,NSUP)
       IMPLICIT NONE
       INTEGER NSUP
-      CHARACTER*(*) in_TITRE,REVIS,FLAG,SUPP(NSUP)
+      CHARACTER(len = *) :: in_TITRE,REVIS,FLAG,SUPP(NSUP)
 *
 *AUTEUR  M.VALIN RPN MARS 1983
 *Revision 002 M. Lepine Octobre 1998 - Ajout de la signature RMNLIB
@@ -103,7 +103,7 @@
       WRITE(6,800) 'BEGIN  EXECUTION     '
  450  format(3X,'*',107X,'*',/3x,'*',8x,a8,t91,'*')
  460  format(3x,'*',107X,'*',/3x,'*',2x,a105,'*')
- 500  FORMAT(1H1,
+ 500  FORMAT('1',
      %     /,3X,'*',107('*'),'*',
      %     /,3X,'*',107X,'*',
      %     /,3X,'*',3X,A57,10X,A10,27X,'*',
@@ -128,7 +128,7 @@
 ***FONCTION EXDBPLUS    IMPRESSION DE BOITE DE FIN D'EXECUTION
       INTEGER FUNCTION EXFIN(in_TITRE,REVIS,FLAG)
       IMPLICIT NONE
-      CHARACTER*(*) in_TITRE,REVIS,FLAG
+      CHARACTER(len = *) :: in_TITRE,REVIS,FLAG
 *AUTEUR  M.VALIN RPN MARS 2022
 *
 *OBJET(EXFIN)
@@ -144,8 +144,8 @@
       external flush_stdout
       common/exdb_t1/ T1
       REAL T1, T2
-      CHARACTER *105 titre
-      CHARACTER *24 CDATIM
+      CHARACTER(len = 105) :: titre
+      CHARACTER(len = 24)  :: CDATIM
       call flush_stdout()
       titre = ' '
       titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))

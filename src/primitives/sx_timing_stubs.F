@@ -19,43 +19,53 @@
 * */
 
 
-      complex *16 function r8ivecc()
+      complex(kind = real64) function r8ivecc()
+          use rmn_common
       r8ivecc=0
       return
       end
-      complex *16 function r8ifpec()
+      complex(kind = real64) function r8ifpec()
+          use rmn_common
       r8ifpec=0
       return
       end
-      complex *16 function r8irtc()
+      complex(kind = real64) function r8irtc()
+          use rmn_common
       r8irtc=0
       return
       end
-      complex *16 function r8icpc()
+      complex(kind = real64) function r8icpc()
+          use rmn_common
       r8icpc=0
       return
       end
-      complex *16 function r8iitm()
+      complex(kind = real64) function r8iitm()
+          use rmn_common
       r8iitm=0
       return
       end
-      complex *16 function r8icmcc()
+      complex(kind = real64) function r8icmcc()
+          use rmn_common
       r8icmcc=0
       return
       end
-      complex *16 function r8ibccc()
+      complex(kind = real64) function r8ibccc()
+          use rmn_common
       r8ibccc=0
       return
       end
-      complex *16 function r8isex()
+      complex(kind = real64) function r8isex()
+          use rmn_common
       r8isex=0
       return
       end
-      complex *16 function r8isvx()
+      complex(kind = real64) function r8isvx()
+          use rmn_common
       r8isvx=0
       return
       end
-      complex *16 function r8imvl()
+      complex(kind = real64) function r8imvl()
+          use rmn_common
       r8imvl=1
       return
       end

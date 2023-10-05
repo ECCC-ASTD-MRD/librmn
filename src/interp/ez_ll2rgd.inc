@@ -30,7 +30,7 @@
       
       integer npts, ni, nj
       real px(npts),py(npts),xlat(npts),xlon(npts)
-      character*1 grtyp
+      character(len = 1) :: grtyp
       integer ig1,ig2,ig3,ig4
       logical sym
       real pi,pj,dgrw,d60

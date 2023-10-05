@@ -18,13 +18,14 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
       subroutine ez_irgdint_1_nw(zo, px, py, npts, ax, ay, z, ni, nj)
+          use rmn_common
       implicit none
-      integer npts, ni, nj
-      integer i, j, n
-      real zo(npts), px(npts), py(npts)
-      real ax(ni),ay(nj)
-      real z(ni,nj)
-      real*8 x, y, x1, x2, y1, y2, dx, dy
+      integer             :: npts, ni, nj
+      integer             :: i, j, n
+      real                :: zo(npts), px(npts), py(npts)
+      real                :: ax(ni),ay(nj)
+      real                :: z(ni,nj)
+      real(kind = real64) :: x, y, x1, x2, y1, y2, dx, dy
 
 #include "zlin8.cdk"
 

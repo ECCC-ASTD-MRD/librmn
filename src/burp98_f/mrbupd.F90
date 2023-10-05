@@ -26,7 +26,7 @@
       INTEGER  MRBUPD, NSUP, NXAUX, IUN, BUF(*), TEMPS, FLGS, IDTYP,  &
      &         LATI,   LONG, ELEV,  DX,  DY,     DRCV,  DATEin, OARS,  &
      &         RUN,    SUP(*), XAUX(*)
-      CHARACTER*(*) STNID
+      CHARACTER(len = *) :: STNID
 !
 !AUTEUR  J. CAVEEN   OCTOBRE 1990
 !REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
@@ -73,7 +73,7 @@
       EXTERNAL XDFUPD, CHAR2RAH
       INTEGER  XDFUPD, KLPRIM(NPRITOT), NKLPRIM, I, NKLAUX, TYPREC, KLAUX(NAUXTOT)
       integer AA, MM, JJ, annee, date
-      CHARACTER*9 ISTNID
+      CHARACTER(len = 9) :: ISTNID
 !
 !*
       date = DATEin

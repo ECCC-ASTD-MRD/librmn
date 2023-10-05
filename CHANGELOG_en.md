@@ -71,8 +71,9 @@ can be used.
 - Support for WIN32 has been removed.  The code has not been tested on
 that platform for many years and was likely broken.
 
-- Removed `IOPDATM`.  The function has been broken since U2 and
-Operations will provide an alternate method to get run dates.
+- Changed content of `IOPDATM`.  The function has been broken since U2 and
+Operations will provide an alternate method to get run dates. In the meantime,
+we only accept date in the `YYDDDHH` format as input.
 
 - The environment variable `AFSISIO` does not exist anymore and is 
 replaced by `CMCCONST`. This variable is used to access the CMC constant 

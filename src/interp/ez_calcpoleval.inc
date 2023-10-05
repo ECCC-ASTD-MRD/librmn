@@ -23,7 +23,7 @@
       
       integer ni
       real poleval,z(ni),ax(ni)
-      character*1 grtyp, grref
+      character(len = 1) :: grtyp, grref
       
       integer i
       

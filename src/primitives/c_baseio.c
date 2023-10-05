@@ -149,15 +149,17 @@ static void dump_file_entry(
     const int idx
 ) {
       Lib_Log(APP_LIBRMN,APP_VERBATIM,"FGFDT[%d] file_name=%s subname=%s file_type=%s",idx,FGFDT[idx].file_name,FGFDT[idx].subname,FGFDT[idx].file_type);
-      Lib_Log(APP_LIBRMN,APP_VERBATIM,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,flags=%s%s%s%s%s%s%s%s%s%s%s%s\n",
+      Lib_Log(APP_LIBRMN,APP_VERBATIM,"iun=%d,fd=%d,size=%d,esize=%d,lrec=%d,rsf_handle=%p,flags=%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
               FGFDT[idx].iun,
               FGFDT[idx].fd,
               FGFDT[idx].file_size,
               FGFDT[idx].eff_file_size,
               FGFDT[idx].lrec,
+              FGFDT[idx].rsf_fh.p,
               FGFDT[idx].open_flag?"OPEN":"",
               FGFDT[idx].attr.stream?"+STREAM":"",
               FGFDT[idx].attr.std?"+STD":"",
+              FGFDT[idx].attr.rsf?"+RSF":"",
               FGFDT[idx].attr.burp?"+BURP":"",
               FGFDT[idx].attr.rnd?"+RND":"+SEQ",
               FGFDT[idx].attr.wa?"+WA":"",
@@ -166,7 +168,8 @@ static void dump_file_entry(
               FGFDT[idx].attr.read_only?"+R/O":"+R/W",
               FGFDT[idx].attr.old?"+OLD":"",
               FGFDT[idx].attr.notpaged?"+NOT PAGED":"",
-              FGFDT[idx].attr.scratch?"+SCRATCH":"");
+              FGFDT[idx].attr.scratch?"+SCRATCH":"",
+              FGFDT[idx].attr.volatil?"+VOLATILE":"");
 }
 
 //! Print file characteristics and attributes of in use files in the master file table(for debugging use)
@@ -192,6 +195,7 @@ static void reset_file_entry(
     FGFDT[idx].file_name      = (char *) NULL;
     FGFDT[idx].subname        = (char *) NULL;
     FGFDT[idx].file_type      = (char *) NULL;
+    FGFDT[idx].rsf_fh.p       = NULL;
     FGFDT[idx].iun            = 0;
     FGFDT[idx].fd             = -1;
     FGFDT[idx].file_size      = 0;
@@ -200,6 +204,7 @@ static void reset_file_entry(
     FGFDT[idx].open_flag      = 0;
     FGFDT[idx].attr.stream    = 0;
     FGFDT[idx].attr.std       = 0;
+    FGFDT[idx].attr.rsf       = 0;
     FGFDT[idx].attr.burp      = 0;
     FGFDT[idx].attr.rnd       = 0;
     FGFDT[idx].attr.wa        = 0;
@@ -210,6 +215,7 @@ static void reset_file_entry(
     FGFDT[idx].attr.scratch   = 0;
     FGFDT[idx].attr.notpaged  = 0;
     FGFDT[idx].attr.write_mode= 0;
+    FGFDT[idx].attr.volatil   = 0;
     // Remote file, socket wa file
     FGFDT[idx].attr.remote    = 0;
 }
@@ -268,6 +274,7 @@ int c_fnom(
     //! - 'R/W' : file to be opened in read/write mode
     //! - 'R/O' : file to be opened in read only mode
     //! - 'REMOTE' : remote file (file name must end with ':', all I/O will be performed using UNIX sockets) 
+    //! - 'VOLATILE' : file will be automatically removed when process ends (unlink at open) 
     //!
     //! Attribute can be combined as shown blow:
     //!       +--------STREAM-------+
@@ -280,7 +287,7 @@ int c_fnom(
     //!       |                     |                 |          |
     //!       |          +--RND--+  |  +----OLD----+  +---R/W----+
     //!       |          |       |  |  |           |  |          |
-    //!    >--+---STD----+--SEQ--+--+--+-----------+--+---R/O----+--+----->
+    //!    >--+---STD----+--SEQ--+--+--+-----------+--+---R/O----+--+---VOLATILE-->
     //!                  |       |     |                            |
     //!                  +--FTN--+     +--SCRATCH-------------------+
     const char * const type,
@@ -361,6 +368,7 @@ int c_fnom(
     strncpy(FGFDT[entry].file_type, type, lngt);
     FGFDT[entry].attr.stream = 0;
     FGFDT[entry].attr.std = 0;
+    FGFDT[entry].attr.rsf = 0;
     FGFDT[entry].attr.burp = 0;
     FGFDT[entry].attr.rnd = 0;
     FGFDT[entry].attr.wa = 0;
@@ -372,6 +380,7 @@ int c_fnom(
     FGFDT[entry].attr.scratch = 0;
     FGFDT[entry].attr.pipe = 0;
     FGFDT[entry].attr.remote = 0;
+    FGFDT[entry].attr.volatil = 0;
 
     if (strstr(type, "STREAM") || strstr(type, "stream")) {
         FGFDT[entry].attr.stream = 1;
@@ -421,6 +430,9 @@ int c_fnom(
     }
     if (strstr(type, "REMOTE") || strstr(type, "remote")) {
         FGFDT[entry].attr.remote = 1;
+    }
+    if (strstr(type, "VOLATILE") || strstr(type, "volatile")) {
+        FGFDT[entry].attr.volatil = 1;
     }
 
     if (!FGFDT[entry].attr.std && !FGFDT[entry].attr.burp && !FGFDT[entry].attr.wa && !FGFDT[entry].attr.rnd  && !FGFDT[entry].attr.stream) {
@@ -1956,6 +1968,15 @@ static int qqcopen(
         wafile[ind].file_desc = fd;
         FGFDT[indf].fd = fd;
         FGFDT[indf].open_flag = 1;
+    }
+    
+    // VOLATILE mode, unlink the file so it gets erased ate end of process
+    if (FGFDT[indf].attr.volatil) {
+        if (FGFDT[indf].attr.read_only) {
+           Lib_Log(APP_LIBFST,APP_WARNING,"%s: File %s opened read only, VOLATILE mode not used\n", __func__,FGFDT[indf].file_name);
+        } else {
+           unlink(FGFDT[indf].file_name);
+        }
     }
 
     off64_t dim = lseek64(fd, 0, SEEK_END);

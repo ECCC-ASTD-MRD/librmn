@@ -448,6 +448,8 @@ typedef struct {
 #define IP2_MAX     0xFFFFFFF
 #define IP3_MAX     0xFFFFFFF
 
+#define FSTD_MISSING_FLAG 64 //!< When this flag is ON in a datatype, it indicates that some data points are missing
+
 #include <rmn/fstdsz.h>
 
 //! Search tags part of standard file directory entry :  header + 8 x 64 bits

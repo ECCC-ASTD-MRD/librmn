@@ -19,8 +19,8 @@
 * */
       integer function igagds95(gds,gtyin,ig1,ig2,ig3,ig4)
       implicit none
-      character*1 gtyin,gtyout
-      character*256 gds
+      character(len = 1)  :: gtyin,gtyout
+      character(len =256) :: gds
       integer ig1,ig2,ig3,ig4
 
       integer qqqgbld,qgblukig
@@ -62,7 +62,7 @@
 
       subroutine igaxg95(grtypout,xglst,nxg,grtypin,ig1,ig2,ig3,ig4)
       implicit none
-      character*1 grtypout,grtypin
+      character(len = 1) :: grtypout,grtypin
       integer nxg
       real xglst(nxg)
       integer ig1,ig2,ig3,ig4
@@ -109,7 +109,7 @@
       integer function qgblukig(gtyout,xglst,nxg,gtyin,ig1,ig2,ig3,ig4)
       implicit none
       integer nxg
-      character*1 gtyin,gtyout
+      character(len = 1) :: gtyin,gtyout
       real xglst(nxg)
       integer ig1,ig2,ig3,ig4
 
@@ -204,8 +204,8 @@
 #include "qqqgb2.cdk"
 
 #include <rmn/fnom.hf>
-      character*256 filename,armnlib
-      character*512 buffer
+      character(len = 256) :: filename,armnlib
+      character(len = 512) :: buffer
       external qqqlen
       integer ier,strlen,iun,qqqlen
 

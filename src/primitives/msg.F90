@@ -316,7 +316,7 @@ subroutine msg(F_msgLevel,F_Message)
       msgLevel = max(MSG_NBLEVELS0,min(F_msgLevel,MSG_NBLEVELS))
       !TODO: use C's fprintf so that it can be called from C
       write(msgUnit(msgLevel),trim(msgFormat(msgLevel))) trim(F_Message)
-      call flush(msgUnit(msgLevel))
+      flush(msgUnit(msgLevel))
    endif
    !---------------------------------------------------------------------
    return

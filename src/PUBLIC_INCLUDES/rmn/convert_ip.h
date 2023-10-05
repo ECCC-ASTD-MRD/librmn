@@ -74,8 +74,12 @@ extern "C" {
     int ConvertIPtoPK_v(float p[3],int kind[3],int ip[3]);
 
     void KindToString(int code, char *s1, char *s2) ;
+
+    void f77name(convip_plus)(int32_t *ipnew,float *level,int32_t *fkind,int32_t *fmode,char *strg,int32_t *flag, F2Cl strglen);
+
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif

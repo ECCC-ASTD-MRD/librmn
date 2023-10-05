@@ -20,10 +20,11 @@
 !**S/R MTXINV - INVERT A MATRIX 
 ! 
       SUBROUTINE  EZ_MTXINV8 (A,L,M,N) 
+          use rmn_common
       implicit none
-      INTEGER N 
-      REAL*8 A(N,N) 
-      INTEGER L(N), M(N)
+      INTEGER             :: N 
+      REAL(kind = real64) :: A(N,N) 
+      INTEGER             :: L(N), M(N)
 ! 
 !Author
 !          R. Sarrazin (1992)REAL*8 version for MTXINV
@@ -54,8 +55,8 @@
 !          terminated.
 !
 !*
-      INTEGER I, J, K 
-      REAL*8 HOLD, BIGA 
+      INTEGER             :: I, J, K 
+      REAL(kind = real64) :: HOLD, BIGA 
 ! 
 !        SEARCH FOR LARGEST ELEMENT 
 ! 

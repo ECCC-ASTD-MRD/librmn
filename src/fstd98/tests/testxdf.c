@@ -59,7 +59,7 @@ static key_descriptor auxkey[] = {
 /* prototypes declaration */
 
 static int error_msg(char *function_name, int errcode, int errlevel);
-static int file_index(int iun);
+static int file_index_xdf(int iun);
 static int get_free_index();
 static int fnom_index(int iun);
 static void init_file(int i);

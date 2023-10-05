@@ -55,6 +55,8 @@
 
 #include "md5.h"
 
+#include "primitives.h"
+
 /* used by inet_addr, not defined on all architectures!? */
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long) -1)
@@ -80,15 +82,16 @@ static struct sockaddr_in server;
 static socklen_t sizeserver = sizeof server;
 
 
-int signal_timeout( int channel );
 void set_timeout_signal( int channel, int option );
-int get_timeout_signal( int channel );
 
 int connect_with_timeout(const char * const ipaddress, const int portno, const int timeout);
 
 void check_data(char *record, int size);
 
 char *get_link_address(char *path, const char *filename);
+int read_ft_nonblocking_socket(int fd, char *ptr, int n);
+int write_ft_nonblocking_socket(int fd, char *ptr, int n);
+int get_server_alias(char *path, const char *filename, int maxlen);
 
 
 //! \bug When buiding with -DDEBUG, the time_base() function is called, but it's not defined

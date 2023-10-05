@@ -33,36 +33,40 @@
       end subroutine date_thread_lock
 
       subroutine INCDATi(idate1,idate2,nhours)
+      use rmn_common
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(kind = real64) :: nhours
       call date_thread_lock(.true.)
       call IDNACTi(idate1,idate2,nhours)
       call date_thread_lock(.false.)
       end subroutine INCDATi
 
       subroutine INCDATr(idate1,idate2,nhours)
+      use rmn_common
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(kind = real64) :: nhours
       call date_thread_lock(.true.)
       call IDNACTr(idate1,idate2,nhours)
       call date_thread_lock(.false.)
       end subroutine INCDATr
 
       subroutine DIFDATi(idate1,idate2,nhours)
+      use rmn_common
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(kind = real64) :: nhours
       call date_thread_lock(.true.)
       call DDIAFTi(idate1,idate2,nhours)
       call date_thread_lock(.false.)
       end subroutine DIFDATi
 
       subroutine DIFDATr(idate1,idate2,nhours)
+      use rmn_common
       IMPLICIT NONE
       integer :: idate1,idate2
-      real *8 :: nhours
+      real(kind = real64) :: nhours
       call date_thread_lock(.true.)
       call DDIAFTr(idate1,idate2,nhours)
       call date_thread_lock(.false.)
@@ -96,7 +100,7 @@
 
       subroutine NewDate_Options( value,command )
       IMPLICIT NONE
-      character*(*) value,command
+      character(len = *) :: value,command
       call date_thread_lock(.true.)
       call NewDate_Options_int( value,command )
       call date_thread_lock(.false.)
@@ -114,7 +118,7 @@
       IMPLICIT NONE
       integer, external :: Calendar_Adjust_int
       integer :: tdate1,tdate2
-      character(len=1) true_date_mode
+      character(len=1) :: true_date_mode
       logical :: adding
       call date_thread_lock(.true.)
       Calendar_Adjust = Calendar_Adjust_int(tdate1,tdate2,true_date_mode,adding)
@@ -125,7 +129,7 @@
       IMPLICIT NONE
       integer, external :: CcclxDays_Adjust_int
       integer :: tdate1,tdate2 ! input TrueDates
-      character(len=1) true_date_mode ! (B)asic or (E)xtended TrueDates
+      character(len=1) :: true_date_mode ! (B)asic or (E)xtended TrueDates
       logical :: adding ! operating mode (T=incadtr, F=difdatr)
       call date_thread_lock(.true.)
       CcclxDays_Adjust = CcclxDays_Adjust_int(tdate1,tdate2,true_date_mode,adding)
@@ -136,7 +140,7 @@
       IMPLICIT NONE
       integer, external :: LeapYear_Adjust_int
       logical :: adding
-      character(len=1) true_date_mode ! (B)asic or (E)xtended true dates
+      character(len=1) :: true_date_mode ! (B)asic or (E)xtended true dates
       integer :: tdate1,tdate2
       call date_thread_lock(.true.)
       LeapYear_Adjust = LeapYear_Adjust_int(tdate1,tdate2,true_date_mode,adding)
@@ -273,6 +277,7 @@
 !
       SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
          use app
+         use rmn_common
          IMPLICIT NONE
 !
 ! ENTRY INCDATI - SAME AS INCDATR BUT IDATE2 AND NHOURS ARE ROUNDED
@@ -352,7 +357,7 @@
 !--------------------------------------------------------------------
 !
       integer idate1,idate2
-      real*8 nhours
+      real(kind = real64) :: nhours
       logical  adding,rounding
       integer, external :: Calendar_Adjust_int, naetwed
       external Get_Calendar_Status_int
@@ -360,7 +365,7 @@
 
       logical :: no_leap_years,ccclx_days,goextend
 
-      integer(8) addit
+      integer(kind = int64) addit
       integer tdate1,tdate2,runnum,ndays,pdate2
       integer idate(2),pdate1(2)
       integer td1900, td2235
@@ -643,8 +648,8 @@
 !
       integer idate(14),dtpr,tmpr,result,tpr(2)
       integer i,j,k,iday,idt,mon,jd
-      character * 3   xmonth(12),xday(7), amonth,aday
-      character * 128 wrk
+      character(len = 3)   :: xmonth(12),xday(7), amonth,aday
+      character(len = 128) :: wrk
       integer, external :: naetwed
       data xmonth / 'JAN','FEB','MAR','APR','MAY','JUN', &
                     'JUL','AUG','SEP','OCT','NOV','DEC' /
@@ -731,7 +736,7 @@
 !     365_day (no leap years) and 360_day
 
       implicit none
-      character*(*) value,command
+      character(len=*) :: value,command
 
       integer   ii
       logical   NoLeapYears,CcclxDays
@@ -987,6 +992,7 @@
 !     calendar" difdatr and incdatr calculation errors, which
 !     are by default always done with the gregorian calendar.
       use app
+      use rmn_common
       implicit none
 
       ! arguments
@@ -997,7 +1003,7 @@
 
       ! local variables
 
-      real(8) :: nhours,nhoursi,td2h
+      real(kind = real64) :: nhours,nhoursi,td2h
       integer :: true2print,print2true,ier
       integer :: ye1,mo1,da1,ho1,mi1,se1,p1a(2),p1b
       integer :: ye2,mo2,da2,ho2,mi2,se2,p2a(2),p2b
@@ -1213,6 +1219,7 @@
 !
       INTEGER FUNCTION naetwed(DAT1,DAT2,DAT3,MODE)  ! NEWDATE
       use app
+      use rmn_common
       IMPLICIT NONE
       INTEGER DAT1,DAT2(*),DAT3,MODE
 !
@@ -1254,9 +1261,9 @@
       integer year,month,day,zulu,second,minute, max_offset
       integer tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
       integer , dimension(12) :: mdays
-      integer(8) date_unsigned,stamp8,masque32
-      integer(8), save :: troisg=3000000000_8
-!!!   integer(8), save :: troisg=transfer(Z'B2D05E00',1_8)
+      integer(kind = int64) :: date_unsigned,stamp8,masque32
+      integer(kind = int64), save :: troisg=3000000000_8
+!!!   integer(kind = int64), save :: troisg=transfer(Z'B2D05E00',1_8)
 !!!   equivalence (stamp,stamp8)
       external itdmag2, dmagtp2
       integer itdmag2
@@ -1269,8 +1276,8 @@
       integer :: jd
       logical :: bissextile,validtd,validtm,validtme
 !
-!!!   integer(4), save :: w32=1
-!!!   integer(2)    w16(2)
+!!!   integer(kind = int32), save :: w32=1
+!!!   integer(kind = int16)    w16(2)
 !!!   equivalence ( w16(1) , w32 )
 !!!   data          w32/1/
 !

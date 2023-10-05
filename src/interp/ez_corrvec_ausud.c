@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t ez_corrvec_ausud(float *uuout, float *vvout,

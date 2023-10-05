@@ -287,7 +287,7 @@ public
     integer, private :: gmm_p_table_size_284 = 0
 
     type, private :: gmm_p_381
-        complex(kind = 4), pointer :: p(:)
+        complex(kind = real32), pointer :: p(:)
         integer(kind = int64) :: key
     end type
     type(gmm_p_381), private, dimension(MAX_PAGES * PAGE_SIZE) :: gmm_ptrs381
@@ -295,7 +295,7 @@ public
     integer, private :: gmm_p_table_size_381 = 0
 
     type, private :: gmm_p_382
-        complex(kind = 4), pointer :: p(:,:)
+        complex(kind = real32), pointer :: p(:,:)
         integer(kind = int64) :: key
     end type
     type(gmm_p_382), private, dimension(MAX_PAGES * PAGE_SIZE) :: gmm_ptrs382
@@ -303,7 +303,7 @@ public
     integer, private :: gmm_p_table_size_382 = 0
 
     type, private :: gmm_p_383
-        complex(kind = 4), pointer :: p(:,:,:)
+        complex(kind = real32), pointer :: p(:,:,:)
         integer(kind = int64) :: key
     end type
     type(gmm_p_383), private, dimension(MAX_PAGES * PAGE_SIZE) :: gmm_ptrs383
@@ -311,7 +311,7 @@ public
     integer, private :: gmm_p_table_size_383 = 0
 
     type, private :: gmm_p_384
-        complex(kind = 4), pointer :: p(:,:,:,:)
+        complex(kind = real32), pointer :: p(:,:,:,:)
         integer(kind = int64) :: key
     end type
     type(gmm_p_384), private, dimension(MAX_PAGES * PAGE_SIZE) :: gmm_ptrs384
@@ -404,7 +404,7 @@ contains
 
 ! Integer functions:
 #define DATATYPE integer
-#define DATALENGTH 4
+#define DATAKIND int32
 
 ! 141
 #define DIM 1
@@ -450,8 +450,8 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
-#define DATALENGTH 8
+#undef DATAKIND
+#define DATAKIND int64
 
 ! 181
 #define DIM 1
@@ -497,13 +497,13 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
+#undef DATAKIND
 #undef DATATYPE
 
 
 ! Real Functions:
 #define DATATYPE real
-#define DATALENGTH 4
+#define DATAKIND real32
 
 ! 241
 #define DIM 1
@@ -549,8 +549,8 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
-#define DATALENGTH 8
+#undef DATAKIND
+#define DATAKIND real64
 
 ! 281
 #define DIM 1
@@ -596,13 +596,13 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
+#undef DATAKIND
 #undef DATATYPE
 
 ! Complex functions:
 
 #define DATATYPE complex
-#define DATALENGTH 8
+#define DATAKIND real32
 
 ! 381
 #define DIM 1
@@ -648,7 +648,7 @@ contains
 #include "gmm_update_tpi_key.tmpl90"
 #include "undefiner.tmpl90"
 
-#undef DATALENGTH
+#undef DATAKIND
 #undef DATATYPE
 
 

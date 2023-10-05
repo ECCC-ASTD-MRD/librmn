@@ -49,6 +49,9 @@
 #include <rmn/gossip.h>
 #include <rmn/gossip_constants.h>
 
+#include "primitives.h"
+#include "gossip_sock.h"
+
 #define CLOSE -5
 
 static channel chn[MAX_CHANNELS];
@@ -68,6 +71,7 @@ static void removepidfile();
 static void strcopy(char *s, char *t, int charlen);
 static int validchan(int chan);
 static int bwrite(int chan, void *buffer, int nelem, char *dtype);
+int retry_connect(int chan);
 int32_t f77name (mgi_init) (const char * const channel_name, F2Cl lname);
 int32_t f77name (mgi_open) (const int32_t * const f_chan, const char * const mode, F2Cl lmode);
 int32_t f77name (mgi_read) (const int32_t * const f_chan, void *data, const int32_t * const f_nelm, const char * const dtype, F2Cl ltype);

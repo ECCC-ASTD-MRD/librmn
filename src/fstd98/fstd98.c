@@ -18,9 +18,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-
-#define use_old_signed_pack_unpack_code YES
-
 #include <stdio.h>
 #include <unistd.h>
 #include <alloca.h>
@@ -34,43 +31,35 @@
 #include <regex.h>
 #include <ctype.h>
 
-#include <bitPacking.h>
-#include <armn_compress.h>
-
 #include <App.h>
-#include <rmn/fstd98.h>
 #include <rmn/c_wkoffit.h>
 #include <rmn/excdes_new.h>
 #include <rmn/fst_missing.h>
 
-#include "qstdir.h"
+#include "fstd98_internal.h"
+#include "fstcvt2.h"
 #include <rmn/convert_ip.h>
 #include "xdf98.h"
 
 #define Max_Ipvals 50
 
-//! Throw an error when val is not between minval and maxval
-#define VALID(val, minval, maxval, what, caller) \
-    if ((val < minval) || (val > maxval)) { \
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: %s = %d must be between %d and %d\n",__func__,what,val,minval,maxval);\
-        return(ERR_OUT_RANGE);\
-    }
-
 
 static int ip_nb[3] = {0, 0, 0};
-static int ip1s_flag = 0;
-static int ip2s_flag = 0;
-static int ip3s_flag = 0;
-static int dejafait_1 = 0;
-static int dejafait_2 = 0;
+int ip1s_flag = 0;
+int ip2s_flag = 0;
+int ip3s_flag = 0;
+static int dejafait_xdf_1 = 0;
+static int dejafait_xdf_2 = 0;
 
 static int ips_tab[3][Max_Ipvals];
 
 static uint32_t link_list[1024];
 static int link_n;
 static int stdf_version = 200001;
+static int first_linked_file = -1;
+
 //! Downgrade 64 bit field to 32 bit field when reading
-static int downgrade_32 = 0;
+int downgrade_32 = 0;
 //! ARMNLIB environment variable
 static char *ARMNLIB = NULL;
 //! Print on debug file when available
@@ -78,11 +67,13 @@ static char *debug_filename = NULL;
 //! Filter file, desire/exclure
 static char *requetes_filename = NULL;
 //! Used for datatype remapping
-static int remap_table[2][10];
+int remap_table[2][10];
 //! Number of datatype remapping,  0 = no remapping
-static int nb_remap = 0;
+int nb_remap = 0;
+//! backend type (XDF or RSF)
+static char *fst_backend = NULL;
 //! What is printed with fstecr
-static char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
+char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
 
 static int kinds_table_init = 1;
 static char kind_chars[96];
@@ -95,6 +86,8 @@ static regex_t pattern;
 static int turbocomp_mode = 0;
 static char *comptab[2] = {"FAST", "BEST"};
 
+fstd_usage_info fstd_open_files[MAXFILES];
+
 int FstCanTranslateName(char *varname);
 
 
@@ -106,38 +99,62 @@ static void str_cp_init(char * const dst, const int dstLen, const char * const s
 }
 
 
-static void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
+void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
     }
 }
 
 
-static void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
+void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
     for (int i = 0; i < nb; i++) {
         *p8++ = *p16++;
     }
 }
 
 
-static void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
+void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
     int16_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p32++ = *p16++ & mask;
     }
 }
 
-static void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
+void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
     int32_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p16++ = *p32++ & mask;
     }
 }
 
+static void init_open_file(fstd_usage_info* info) {
+    memset(info, 0, sizeof(fstd_usage_info));
+    memset(&info->search_mask, 0xff, sizeof(stdf_dir_keys));
+    memset(&info->background_search_mask, 0xff, sizeof(stdf_dir_keys));
+    info->num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
+    info->next_file = -1;
+}
+
+// //! Find position of file iun in file table.
+// //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
+int file_index_xdf(
+    //! [in] Unit number associated to the file
+    const int iun
+) {
+    for (int i = 0; i < MAX_XDF_FILES; i++) {
+        if (file_table[i] != NULL) {
+            if (file_table[i]->iun == iun) {
+                return i;
+            }
+        }
+    }
+    return ERR_NO_FILE;
+}
+
 
 //! Reset to zeros ip1-2-3 tables and counters
 //! \return Always 0
-static int init_ip_vals()
+int init_ip_vals()
 {
     for (int i = 0; i < Max_Ipvals; i++) {
         for (int j = 0; j < 3; j++) {
@@ -157,7 +174,7 @@ static int init_ip_vals()
 
 
 //! Compares different coded values of an ip for equality
-static int ip_is_equal(
+int ip_is_equal(
     //! [in] First value in the table of coded value to compare with
     int target,
     //! [in] Current ip record value to compare
@@ -218,7 +235,7 @@ static int ip_is_equal(
 
 
 //! Reassembles split variables
-static void crack_std_parms(
+void crack_std_parms(
     //! [in] Directory entry that contains the parameters
     const stdf_dir_keys * const stdf_entry,
     //! [out] Reassembled parameters
@@ -288,7 +305,7 @@ static char *kinds(
 
 
 //! Prints the standard file record descriptors
-static void print_std_parms(
+void print_std_parms(
     //! [in] Directory entry that contains the descriptors
     const stdf_dir_keys * const stdf_entry,
     //! [in] Preamble string
@@ -546,7 +563,7 @@ static void print_std_parms(
     }
 
     /* m will be added to data type if there are missing values in record */
-    if (stdf_entry->datyp & 64) cmsgp = 'm';
+    if (stdf_entry->datyp & FSTD_MISSING_FLAG) cmsgp = 'm';
     if (strstr(option, "NODTY")) {
         v_dty[0] = '\0';
     } else {
@@ -587,8 +604,23 @@ static void print_std_parms(
 }
 
 
-//! Position at the end of a sequential file for an append
-int c_fstapp(
+//! Find index position in master file table (fnom file table).
+//! \return Index of the provided unit number in the file table or -1 if not found.
+int fnom_index(
+    //! [in] Unit number associated to the file
+    const int iun
+) {
+    for (int i = 0; i < MAXFILES; i++) {
+        if (FGFDT[i].iun == iun) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+//! \copydoc c_fstapp
+//! XDF version
+int c_fstapp_xdf(
     //! [in] Unit number associated to the file
     int iun,
     //! [in] Kept for backward compatibility, but unused
@@ -605,7 +637,7 @@ int c_fstapp(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -662,8 +694,36 @@ int c_fstapp(
 }
 
 
+//! Position at the end of a sequential file for an append
+int c_fstapp(
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [in] Kept for backward compatibility, but unused
+    char *option
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: \"Append\" operation does not make sense on an RSF file (unit %d).\n",
+                __func__, iun);
+        return 0;
+    }
+    else if (rsf_status == 0) {
+        return c_fstapp_xdf(iun, option);
+    }
+
+    return rsf_status;
+}
+
 //! Checkpoint. Clear buffers, rewrite headers.
-int c_fstckp(
+//! XDF version.
+int c_fstckp_xdf(
     //! [in] Unit number associated to the file
     const int iun
 ) {
@@ -675,7 +735,7 @@ int c_fstckp(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -684,6 +744,31 @@ int c_fstckp(
     xdf_checkpoint = 1;
     ier = c_xdfcls(iun);
     return ier;
+}
+
+//! Checkpoint. Clear buffers, rewrite headers.
+int c_fstckp(
+    //! [in] Unit number associated to the file
+    const int iun
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Can't do a checkpoint on an RSF file (unit %d).\n",
+                __func__, iun);
+        return 0;
+    }
+    else if (rsf_status == 0) {
+        return c_fstckp(iun);
+    }
+
+    return rsf_status;
 }
 
 
@@ -732,25 +817,9 @@ int c_fst_data_length(
     return 0;
 }
 
-
-//! Write a field into a rpn file
-//! | datyp | Description                                  |
-//! | ----: | :------------------------------------------- |
-//! |     0 | Binary, transparent                          |
-//! |     1 | Floating point                               |
-//! |     2 | Unsigned integer                             |
-//! |     3 | Character (R4A in an integer)                |
-//! |     4 | Signed integer                               |
-//! |     5 | IEEE floating point                          |
-//! |     6 | Floating point (16 bit, made for compressor) |
-//! |     7 | Character string                             |
-//! |     8 | Complex IEEE                                 |
-//! |   130 | Compressed short integer  (128+2)            |
-//! |   133 | Compressed IEEE           (128+5)            |
-//! |   134 | Compressed floating point (128+6)            |
-//! | +128  | Second stage packer active                   |
-//! | +64   | Missing value convention used                |
-int c_fstecr(
+//! \copydoc c_fstecr
+//! XDF version
+int c_fstecr_xdf(
     //! [in] Field to write to the file
     void *field_in,
     //! [in] Work field (kept for backward compatibility)
@@ -800,9 +869,9 @@ int c_fstecr(
 ) {
     // will be cancelled later if not supported or no missing values detected
     //  missing value feature used flag
-    int is_missing = in_datyp_ori & 64;
+    int is_missing = in_datyp_ori & FSTD_MISSING_FLAG;
     // suppress missing value flag (64)
-    int in_datyp = in_datyp_ori & 0xFFBF;
+    int in_datyp = in_datyp_ori & ~FSTD_MISSING_FLAG;
     if ( (in_datyp & 0xF) == 8) {
         if (in_datyp_ori != 8) {
            Lib_Log(APP_LIBFST,APP_WARNING,"%s: compression and/or missing values not supported, data type %d reset to %d (complex)\n",__func__,in_datyp_ori,8);
@@ -829,7 +898,7 @@ int c_fstecr(
         return(ERR_NO_FNOM);
     }
 
-    int index = file_index(iun);
+    int index = file_index_xdf(iun);
     if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
@@ -883,20 +952,20 @@ int c_fstecr(
     if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) IEEE_64 = 1;
 
     /* validate range of arguments */
-    VALID(ni, 1, NI_MAX, "ni", "c_fstecr")
-    VALID(nj, 1, NJ_MAX, "nj", "c_fstecr")
-    VALID(nk, 1, NK_MAX, "nk", "c_fstecr")
-    VALID(deet, 0, DEET_MAX, "deet", "c_fstecr")
-    VALID(npas, 0, NPAS_MAX, "npas", "c_fstecr")
-    VALID(nbits, 1, NBITS_MAX, "nbits", "c_fstecr")
-    VALID(ig1, 0, IG1_MAX, "ig1", "c_fstecr")
-    VALID(ig2, 0, IG2_MAX, "ig2", "c_fstecr")
-    VALID(ig3, 0, IG3_MAX, "ig3", "c_fstecr")
-    VALID(ig4, 0, IG4_MAX, "ig4", "c_fstecr")
-    VALID(ip1, 0, IP1_MAX, "ip1", "c_fstecr")
-    VALID(ip2, 0, IP2_MAX, "ip2", "c_fstecr")
-    VALID(ip3, 0, IP3_MAX, "ip3", "c_fstecr")
-    VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB", "c_fstecr");
+    VALID(ni, 1, NI_MAX, "ni")
+    VALID(nj, 1, NJ_MAX, "nj")
+    VALID(nk, 1, NK_MAX, "nk")
+    VALID(deet, 0, DEET_MAX, "deet")
+    VALID(npas, 0, NPAS_MAX, "npas")
+    VALID(nbits, 1, NBITS_MAX, "nbits")
+    VALID(ig1, 0, IG1_MAX, "ig1")
+    VALID(ig2, 0, IG2_MAX, "ig2")
+    VALID(ig3, 0, IG3_MAX, "ig3")
+    VALID(ig4, 0, IG4_MAX, "ig4")
+    VALID(ip1, 0, IP1_MAX, "ip1")
+    VALID(ip2, 0, IP2_MAX, "ip2")
+    VALID(ip3, 0, IP3_MAX, "ip3")
+    VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
     unsigned int datev = date;
     int32_t f_datev = (int32_t) datev;
@@ -929,18 +998,18 @@ int c_fstecr(
     if ((nbits > 16) && (datyp != 133)) datyp &= 0x7F;
     /*  if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression; */
     if ((datyp == 6) && (nbits > 24)) {
-        if (! dejafait_1) {
+        if (! dejafait_xdf_1) {
             Lib_Log(APP_LIBFST,APP_WARNING,"%s: nbits > 16, writing E32 instead of F%2d\n",__func__,nbits);
-            dejafait_1 = 1;
+            dejafait_xdf_1 = 1;
         }
         datyp = 5;
         nbits = 32;
         minus_nbits = -32;
     }
     if ((datyp == 6) && (nbits > 16)) {
-        if (! dejafait_2) {
+        if (! dejafait_xdf_2) {
             Lib_Log(APP_LIBFST,APP_WARNING,"%s: nbits > 16, writing R%2d instead of F%2d\n",__func__,nbits,nbits);
-            dejafait_2 = 1;
+            dejafait_xdf_2 = 1;
         }
         datyp = 1;
     }
@@ -1160,7 +1229,7 @@ int c_fstecr(
                     /* nbits>64 flags a different packing */
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat);
-                    int compressed_lng = armn_compress(&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
@@ -1193,12 +1262,12 @@ int c_fstecr(
                         } else if (xdf_byte) {
                             stdf_entry->nbits = Min(8, nbits);
                             nbits = stdf_entry->nbits;
-                            memcpy_8_16(&(buffer->data[keys_len+offset]), field, ni * nj * nk);
+                            memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field, ni * nj * nk);
                         } else {
-                            memcpy_32_16(&(buffer->data[keys_len+offset]), field, nbits, ni * nj * nk);
+                            memcpy_32_16((short *)&(buffer->data[keys_len+offset]), field, nbits, ni * nj * nk);
                         }
                         c_armn_compress_setswap(0);
-                        int compressed_lng = armn_compress(&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1);
+                        int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1);
                         c_armn_compress_setswap(1);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = 2;
@@ -1297,7 +1366,7 @@ int c_fstecr(
                     }
                     if (datyp == 133) {
                         /* use an additionnal compression scheme */
-                        int compressed_lng = c_armn_compress32(&(buffer->data[keys_len+1]), field, ni, nj, nk, nbits);
+                        int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field, ni, nj, nk, nbits);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = 5;
                             f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
@@ -1322,11 +1391,11 @@ int c_fstecr(
 
                 if ((datyp > 128) && (nbits <= 16)) {
                     /* use an additional compression scheme */
-                    c_float_packer(field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
-                    int compressed_lng = armn_compress(&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1);
+                    c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 6;
-                        c_float_packer(field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
+                        c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
                     } else {
                         int nbytes = 16 + (header_size*4) + compressed_lng;
                         // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
@@ -1337,7 +1406,7 @@ int c_fstecr(
                         buffer->nbits = (keys_len + nw) * bitmot;
                     }
                 } else {
-                    c_float_packer(field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
+                    c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
                     // fprintf(stderr, "Debug+ fstecr apres float_packer buffer->data=%8X\n", buffer->data[keys_len]);
                 }
                 break;
@@ -1375,8 +1444,94 @@ int c_fstecr(
 }
 
 
+//! Write a field into a rpn file
+//! | datyp | Description                                  |
+//! | ----: | :------------------------------------------- |
+//! |     0 | Binary, transparent                          |
+//! |     1 | Floating point                               |
+//! |     2 | Unsigned integer                             |
+//! |     3 | Character (R4A in an integer)                |
+//! |     4 | Signed integer                               |
+//! |     5 | IEEE floating point                          |
+//! |     6 | Floating point (16 bit, made for compressor) |
+//! |     7 | Character string                             |
+//! |     8 | Complex IEEE                                 |
+//! |   130 | Compressed short integer  (128+2)            |
+//! |   133 | Compressed IEEE           (128+5)            |
+//! |   134 | Compressed floating point (128+6)            |
+//! | +128  | Second stage packer active                   |
+//! | +64   | Missing value convention used                |
+int c_fstecr(
+    //! [in] Field to write to the file
+    void *field_in,
+    //! [in] Work field (kept for backward compatibility)
+    void *work,
+    //! [in] Number of bits kept for the elements of the field
+    int npak,
+    //! [in] Unit number associated to the file in which to write the field
+    int iun,
+    //! [in] Date timestamp
+    int date,
+    //! [in] Length of the time steps in seconds
+    int deet,
+    //! [in] Time step number
+    int npas,
+    //! [in] First dimension of the data field
+    int ni,
+    //! [in] Second dimension of the data field
+    int nj,
+    //! [in] Thierd dimension of the data field
+    int nk,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field (forecast, analysis, climatology)
+    char *in_typvar,
+    //! [in] Variable name
+    char *in_nomvar,
+    //! [in] Label
+    char *in_etiket,
+    //! [in] Type of geographical projection
+    char *in_grtyp,
+    //! [in] First grid descriptor
+    int ig1,
+    //! [in] Second grid descriptor
+    int ig2,
+    //! [in] Third grid descriptor
+    int ig3,
+    //! [in] Fourth grid descriptor
+    int ig4,
+    //! [in] Data type of elements
+    int in_datyp_ori,
+    //! [in] Rewrite existing record, append otherwise
+    int rewrit
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+                            in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, in_datyp_ori, rewrit);
+    }
+    else if (rsf_status == 0) {
+        return c_fstecr_xdf(field_in, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+                            in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, in_datyp_ori, rewrit);
+    }
+
+    return rsf_status;
+}
+
+
 //! Edits the directory content of a RPN standard file
-int c_fst_edit_dir_plus(
+int c_fst_edit_dir_plus_xdf(
     //! [in] Handle of the directory entry to edit
     int handle,
     unsigned int date,
@@ -1510,6 +1665,47 @@ int c_fst_edit_dir_plus(
     return 0;
 }
 
+//! Edits the directory content of a RPN standard file
+int c_fst_edit_dir_plus(
+    //! [in] Handle of the directory entry to edit
+    int handle,
+    unsigned int date,
+    int deet,
+    int npas,
+    int ni,
+    int nj,
+    int nk,
+    int ip1,
+    int ip2,
+    int ip3,
+    char *in_typvar,
+    char *in_nomvar,
+    char *in_etiket,
+    char *in_grtyp,
+    int ig1,
+    int ig2,
+    int ig3,
+    int ig4,
+    int datyp
+) {
+    const int32_t key_type = RSF_Key32_type(handle);
+
+    if (key_type == 1) {
+        RSF_handle file_handle = RSF_Key32_to_handle(handle);
+        Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: You can't just edit a directory entry once a record has been written to an RSF file\n",
+                __func__);
+        return ERR_WRONG_FTYPE;
+    }
+    else if (key_type == 0) {
+        return c_fst_edit_dir_plus_xdf(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+                                       in_typvar, in_nomvar, in_etiket, in_grtyp,
+                                       ig1, ig2, ig3, ig4, datyp);
+    }
+
+    return ERR_BAD_HNDL;
+}
+
 //! Wrapper of \link c_fst_edit_dir_plus \endlink for backward compatibility
 int c_fst_edit_dir(
     int handle,
@@ -1537,7 +1733,8 @@ int c_fst_edit_dir(
 
 
 //! Delete a record
-int c_fsteff(
+//! XDF version
+int c_fsteff_xdf(
     //! Handle of the record to delete
     int handle
 ) {
@@ -1570,9 +1767,29 @@ int c_fsteff(
     return ier;
 }
 
+//! Delete a record
+//! \return 0 on success, negative number on failure
+int c_fsteff(
+    //! Handle of the record to delete
+    int handle
+) {
+    const int32_t key_type = RSF_Key32_type(handle);
+
+    if (key_type == 1) {
+        RSF_handle file_handle = RSF_Key32_to_handle(handle);
+        return c_fsteff_rsf(file_handle, handle);
+    }
+    else if (key_type == 0) {
+        return c_fsteff_xdf(handle);
+    }
+
+    return ERR_BAD_HNDL;
+}
+
 
 //! Get the level of end of file for the sequential file
-int c_fsteof(
+//! XDF version
+int c_fsteof_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
@@ -1587,7 +1804,7 @@ int c_fsteof(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -1610,15 +1827,62 @@ int c_fsteof(
     return eof;
 }
 
+//! Get the level of end of file for the sequential file
+int c_fsteof(
+    //! [in] Unit number associated to the file
+    int iun
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
 
-//! Close a RPN standard file
-int c_fstfrm(
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Operation does not make sense on an RSF file\n", __func__);
+        return 0;
+    }
+    else if (rsf_status == 0) {
+        return c_fsteof_xdf(iun);
+    }
+
+    return rsf_status;
+}
+
+//! \copydoc c_fstfrm
+//! XDF version
+int c_fstfrm_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
     return c_xdfcls(iun);
 }
 
+//! Close a RPN standard file
+//! \return -1 if there's an error
+int c_fstfrm(
+    //! [in] Unit number associated to the file
+    int iun
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstfrm_rsf(iun, index_fnom);
+    }
+    else if (rsf_status == 0) {
+        return c_fstfrm_xdf(iun);
+    }
+
+    return rsf_status;
+}
 
 //! Locate the next record that matches the search keys
 int c_fstinf(
@@ -1649,8 +1913,9 @@ int c_fstinf(
 }
 
 
-//! Locate the next record that matches the search keys continuing from the position corresponding to the provided handle
-int c_fstinfx(
+//! \copydoc c_fstinfx
+//! XDF version
+int c_fstinfx_xdf(
     //! [in] Handle from which the search begins.  Start from the beginning when handle = -2
     const int handle,
     //! [in] Unit number associated to the file
@@ -1698,7 +1963,7 @@ int c_fstinfx(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -1857,10 +2122,56 @@ int c_fstinfx(
     return lhandle;
 }
 
+//! Locate the next record that matches the search keys continuing from the position corresponding to the provided handle
+int c_fstinfx(
+    //! [in] Handle from which the search begins.  Start from the beginning when handle = -2
+    const int handle,
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [out] Dimension 1 of the data field
+    int * const ni,
+    //! [out] Dimension 2 of the data field
+    int * const nj,
+    //! [out] Dimension 3 of the data field
+    int * const nk,
+    //! [in] Validity date
+    const int datev,
+    //! [in] Label
+    const char * const in_etiket,
+    //! [in] Vertical level
+    const int ip1,
+    //! [in] Forecast hour
+    const int ip2,
+    //! [in] User defined identifier
+    const int ip3,
+    //! [in] Type of field
+    const char * const in_typvar,
+    //! [in] Variable name
+    const char * const in_nomvar
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
 
-//! Locates all the records that matches the search keys
-//! \return 0 on scuccess, error code otherwise
-int c_fstinl(
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstinfx_rsf(handle, iun, index_fnom, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar,
+                            in_nomvar);
+    }
+    else if (rsf_status == 0) {
+        return c_fstinfx_xdf(handle, iun, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar, in_nomvar);
+    }
+
+    return rsf_status;
+}
+
+
+//! \copydoc c_fstinl
+//! XDF version
+int c_fstinl_xdf(
     //! [in] Unit number associated to the file in which to search
     int iun,
     //! [out] First dimension of the field
@@ -1932,6 +2243,67 @@ int c_fstinl(
     }
 }
 
+//! Locates all the records that matches the search keys
+//! \return 0 on success, error code otherwise
+int c_fstinl(
+    //! [in] Unit number associated to the file in which to search
+    int iun,
+    //! [out] First dimension of the field
+    int *ni,
+    //! [out] Second dimension of the field
+    int *nj,
+    //! [out] Third dimension of the field
+    int *nk,
+    //! [in] Validity date
+    int datev,
+    //! [in] Label
+    char *etiket,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field
+    char *typvar,
+    //! [in] Variable name
+    char *nomvar,
+    //! [out] List of handles of the matching records
+    int *liste,
+    //! [out] Number of elements for the list (number of matching records)
+    int *infon,
+    //! [in] List size (maximum number of matches)
+    int nmax
+) {
+    int index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    int status = -1;
+    int total_found = 0;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstinl_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3,
+                                  typvar, nomvar, liste + total_found, infon, nmax - total_found);
+        }
+        else {
+            status = c_fstinl_xdf(FGFDT[index_fnom].iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar,
+                                  liste + total_found, infon, nmax - total_found);
+        }
+
+        if (status < 0) return status;
+
+        total_found += *infon;
+        index_fnom = fstd_open_files[index_fnom].next_file;
+    }
+
+    *infon = total_found;
+    return status;
+}
 
 //! Search for a record that matches the search keys and check that the remaining parmeters match the record descriptors
 int c_fstlic(
@@ -2006,6 +2378,7 @@ int c_fstlic(
 
 
 //! Reads the next record that matches the search keys
+//! \return Record key on success, a negative number on error.
 int c_fstlir(
     //! [out] Data field to be read
     void *field,
@@ -2039,8 +2412,9 @@ int c_fstlir(
 }
 
 
-//! Reads the next record that matches the search keys.  The search begins at the position given by handle.
-int c_fstlirx(
+//! \copydoc c_fstlirx
+//! XDF version
+int c_fstlirx_xdf(
     //! [out] Field to be read
     void *field,
     //! [in] Record handle from which the search begins
@@ -2070,7 +2444,7 @@ int c_fstlirx(
 ) {
     int ier;
 
-    handle = c_fstinfx(handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    handle = c_fstinfx_xdf(handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
     if (handle < 0) {
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: c_fstlirx: (unit=%d) record not found, errcode=%d\n",__func__,iun,handle);
         return handle;
@@ -2084,9 +2458,57 @@ int c_fstlirx(
     }
 }
 
+//! Reads the next record that matches the search keys.  The search begins at the position given by handle.
+//! \return Record key on success, a negative number on error.
+int c_fstlirx(
+    //! [out] Field to be read
+    void *field,
+    //! [in] Record handle from which the search begins
+    int handle,
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [out] First of the data field
+    int *ni,
+    //! [out] Second of the data field
+    int *nj,
+    //! [out] Third of the data field
+    int *nk,
+    //! [in] Validity date
+    int datev,
+    //! [in] Label
+    char *etiket,
+    //! [in] Vertical level
+    int ip1,
+    //! [in] Forecast hour
+    int ip2,
+    //! [in] User defined identifier
+    int ip3,
+    //! [in] Type of field
+    char *typvar,
+    //! [in] Variable name
+    char *nomvar
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
 
-//! Reads the next record that matches the last search criterias
-int c_fstlis(
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstlirx_rsf(field, handle, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    }
+    else if (rsf_status == 0) {
+        return c_fstlirx_xdf(field, handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    }
+
+    return rsf_status;
+}
+
+//! \copydoc c_fstlis
+//! XDF version
+int c_fstlis_xdf(
     //! [out] Field to be read
     void *field,
     //! [in] Unit number associated to the file
@@ -2106,7 +2528,7 @@ int c_fstlis(
         return(ERR_NO_FNOM);
     }
 
-    int index = file_index(iun);
+    int index = file_index_xdf(iun);
     if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
@@ -2123,9 +2545,41 @@ int c_fstlis(
     return c_fstluk(field, handle, ni, nj, nk);
 }
 
+//! Reads the next record that matches the last search criterias
+int c_fstlis(
+    //! [out] Field to be read
+    void *field,
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [out] First of the data field
+    int *ni,
+    //! [out] Second of the data field
+    int *nj,
+    //! [out] Third of the data field
+    int *nk
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
 
-//! Read the record corresponding to the provided handle
-int c_fstluk(
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstlis_rsf(field, iun, index_fnom, ni, nj, nk);
+    }
+    else if (rsf_status == 0) {
+        return c_fstlis_xdf(field, iun, ni, nj, nk);
+    }
+
+    return rsf_status;
+}
+
+
+//! \copydoc c_fstluk
+//! XDF version
+int c_fstluk_xdf(
     //! [out] Pointer to where the data read will be placed.  Must be allocated!
     void * const vfield,
     //! [in] Handle of the record to be read
@@ -2159,9 +2613,9 @@ int c_fstluk(
     *nj = stdf_entry.nj;
     *nk = stdf_entry.nk;
     // Get missing data flag
-    int has_missing = stdf_entry.datyp & 64;
+    int has_missing = stdf_entry.datyp & FSTD_MISSING_FLAG;
     // Suppress missing data flag
-    stdf_entry.datyp = stdf_entry.datyp & 0xBF;
+    stdf_entry.datyp = stdf_entry.datyp & ~FSTD_MISSING_FLAG;
     xdf_datatyp = stdf_entry.datyp;
 
     PackFunctionPointer packfunc;
@@ -2278,7 +2732,7 @@ int c_fstluk(
                 double tempfloat = 99999.0;
                 if (stdf_entry.datyp > 128) {
                     // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
-                    int nbytes = armn_compress(buf->data + 5, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    int nbytes = armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
@@ -2297,7 +2751,7 @@ int c_fstluk(
                     if (xdf_short) {
                         if (stdf_entry.datyp > 128) {
                             c_armn_compress_setswap(0);
-                            int nbytes = armn_compress(buf->data + offset, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2);
                             // printf("Debug+ fstluk mode short compress nbytes=%d\n", nbytes);
                             c_armn_compress_setswap(1);
                             memcpy(field, buf->data + offset, nbytes);
@@ -2307,20 +2761,20 @@ int c_fstluk(
                     }  else if (xdf_byte) {
                         if (stdf_entry.datyp > 128) {
                             c_armn_compress_setswap(0);
-                            int nbytes = armn_compress(buf->data + offset, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2);
                             c_armn_compress_setswap(1);
                             // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n", nbytes, nelm);
-                            memcpy_16_8(field, buf->data + offset, nelm);
+                            memcpy_16_8((int8_t *)field, (int16_t *)(buf->data + offset), nelm);
                         } else {
                             ier = compact_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride, 10);
                         }
                     } else {
                         if (stdf_entry.datyp > 128) {
                             c_armn_compress_setswap(0);
-                            int nbytes = armn_compress(buf->data + offset, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2);
                             c_armn_compress_setswap(1);
                             // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
-                            memcpy_16_32(field, buf->data + offset, stdf_entry.nbits, nelm);
+                            memcpy_16_32(field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
                         } else {
                             ier = compact_integer(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 2);
                         }
@@ -2412,13 +2866,13 @@ int c_fstluk(
                 // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (stdf_entry.datyp > 128) {
-                    int nbytes = armn_compress(buf->data + 1 + header_size, *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    int nbytes = armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2);
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
-                    c_float_unpacker(field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);
+                    c_float_unpacker((float *)field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);
                 } else {
-                    c_float_unpacker(field, buf->data, buf->data + header_size, nelm, &nbits);
+                    c_float_unpacker((float *)field, buf->data, buf->data + header_size, nelm, &nbits);
                 }
                 break;
             }
@@ -2426,7 +2880,7 @@ int c_fstluk(
             case 133: {
                 // Floating point, new packers
                 // printf("Debug+ fstluk - Floating point, new packers (133)\n");
-                int nbytes = c_armn_uncompress32(field, buf->data + 1, *ni, *nj, *nk, stdf_entry.nbits);
+                int nbytes = c_armn_uncompress32((float *)field, (unsigned char *)(buf->data + 1), *ni, *nj, *nk, stdf_entry.nbits);
                 break;
             }
 
@@ -2465,6 +2919,35 @@ int c_fstluk(
 }
 
 
+//! Read the record corresponding to the provided handle
+int c_fstluk(
+    //! [out] Pointer to where the data read will be placed.  Must be allocated!
+    void * const vfield,
+    //! [in] Handle of the record to be read
+    const int handle,
+    //! [out] Dimension 1 of the data field
+    int * const ni,
+    //! [out] Dimension 2 of the data field
+    int * const nj,
+    //! [out] Dimension 3 of the data field
+    int * const nk
+) {
+    const int32_t key_type = RSF_Key32_type(handle);
+
+    if (key_type == 1) {
+        RSF_handle file_handle = RSF_Key32_to_handle(handle);
+        return c_fstluk_rsf(vfield, file_handle, handle, ni, nj, nk);
+    }
+    else if (key_type == 0) {
+        return c_fstluk_xdf(vfield, handle, ni, nj, nk);
+    }
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Key 0x%x does not seem to be valid (for either XDF or RSF)\n", __func__, handle);
+
+    return ERR_BAD_HNDL;
+}
+
+
 //! Helper function for c_fstmsq
 static inline char isignore(const char chr) {
     return (chr == '*') ? 0 : 0x3f;
@@ -2476,8 +2959,9 @@ static inline char inv_isignore(const char chr) {
     return (chr == 0x3f) ? ' ' : '*';
 }
 
-//! Mask a portion of the research keys
-int c_fstmsq(
+//! \copydoc c_fstmsq
+//! XDF version
+int c_fstmsq_xdf(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in,out] Mask for vertical level
@@ -2488,11 +2972,11 @@ int c_fstmsq(
     int *mip3,
     //! [in,out] Mask for the label
     char *metiket,
-    //! [in] Operation: Get when 1, Set when 2
+    //! [in] Operation: Set when 0, Get otherwise
     const int getmode
 ) {
 
-    int index = file_index(iun);
+    int index = file_index_xdf(iun);
     if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
@@ -2544,9 +3028,42 @@ int c_fstmsq(
     return 0;
 }
 
+//! Mask a portion of the research keys
+int c_fstmsq(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in,out] Mask for vertical level
+    int *mip1,
+    //! [in,out] Mask for the forecast hour
+    int *mip2,
+    //! [in,out] Mask for the user defined identifier
+    int *mip3,
+    //! [in,out] Mask for the label
+    char *metiket,
+    //! [in] Operation: Set when 0, Get otherwise
+    const int getmode
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
 
-//! Get the number of records of the file
-int c_fstnbr(
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstmsq_rsf(iun, index_fnom, mip1, mip2, mip3, metiket, getmode);
+    }
+    else if (rsf_status == 0) {
+        return c_fstmsq_xdf(iun, mip1, mip2, mip3, metiket, getmode);
+    }
+
+    return rsf_status;
+}
+
+//! \copydoc c_fstnbr
+//! XDF version
+int c_fstnbr_xdf(
     //! [in] Unit number associated to the file
     const int iun
 ) {
@@ -2559,9 +3076,9 @@ int c_fstnbr(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         c_fstouv(iun, "RND");
-        index = file_index(iun);
+        index = file_index_xdf(iun);
         fte = file_table[index];
         nrec = fte->nrecords;
         c_fstfrm(iun);
@@ -2572,9 +3089,42 @@ int c_fstnbr(
     return fte->nrecords;
 }
 
+//! Get the number of records of the file
+int c_fstnbr(
+    //! [in] Unit number associated to the file
+    const int iun
+) {
+    int index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
 
-//! Get the number of valid records (excluding deleted records) in a file
-int c_fstnbrv(
+    int status = -1;
+    int total_num_records = 0;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstnbr_rsf(index_fnom);
+        }
+        else {
+            status = c_fstnbr_xdf(FGFDT[index_fnom].iun);
+        }
+
+        if (status < 0) return status;
+
+        total_num_records += status;
+        index_fnom = fstd_open_files[index_fnom].next_file;
+    }
+
+    return total_num_records;
+}
+
+
+//! Get the number of valid records (excluding deleted records, including ones that were added since opening) in a file
+//! XDF version
+int c_fstnbrv_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
@@ -2587,9 +3137,9 @@ int c_fstnbrv(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         c_fstouv(iun, "RND");
-        index = file_index(iun);
+        index = file_index_xdf(iun);
         f = file_table[index];
         nrec = f->header->nrec;
         c_fstfrm(iun);
@@ -2598,6 +3148,38 @@ int c_fstnbrv(
 
     f = file_table[index];
     return f->header->nrec;
+}
+
+//! Get the number of valid records (excluding deleted records, including ones that were added since opening) in a file
+int c_fstnbrv(
+    //! [in] Unit number associated to the file
+    int iun
+) {
+    int index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    int status = -1;
+    int total_num_records = 0;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstnbrv_rsf(index_fnom);
+        }
+        else {
+            status = c_fstnbrv_xdf(FGFDT[index_fnom].iun);
+        }
+
+        if (status < 0) return status;
+
+        total_num_records += status;
+        index_fnom = fstd_open_files[index_fnom].next_file;
+    }
+
+    return total_num_records;
 }
 
 
@@ -2774,11 +3356,27 @@ int c_fstopr(
 
 //! Check FSTD file for corruption
 //! @return 0 when valid; -1 otherwise
-int c_fstcheck(
+int c_fstcheck_xdf(
     //! [in]  Path to the file
     const char *filePath
 ) {
     return c_xdfcheck(filePath);
+}
+
+//! Check FSTD file for corruption
+//! @return 0 when valid; -1 otherwise
+int c_fstcheck(
+    //! [in]  Path to the file
+    const char *filePath
+) {
+    const int32_t type = c_wkoffit(filePath, strlen(filePath));
+    if (type == WKF_STDRSF) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Not implemented for RSF files\n", __func__);
+        return 0;
+    }
+    else {
+        return c_fstcheck_xdf(filePath);
+    }
 }
 
 
@@ -2789,7 +3387,7 @@ int c_fstouv(
     //! [in] Random or sequential access
     char *options
 ) {
-    int ier, nrec, i, iwko;
+    int ier, nrec, i;
     static int premiere_fois = 1;
     char appl[5];
 
@@ -2815,21 +3413,69 @@ int c_fstouv(
         sprintf(appl, "%s", "STDS");
     }
 
-    // force attribute to standard file
-    FGFDT[i].attr.std = 1;
+    // Determine if we're opening in read or write mode
+    int read_only = FGFDT[i].attr.read_only;
+    if (strstr(options, "R/O") || strstr(options, "r/o")) {
+        read_only = 1;
+    }
+    if (strstr(options, "R/W") || strstr(options, "r/w")) {
+        read_only = 0;
+    }
+    if (strstr(options, "VOLATILE") || strstr(options, "VOLATILE")) {
+        FGFDT[i].attr.volatil = 1; // force attribute volatile;
+    }
+    const int open_mode = read_only ? RSF_RO : RSF_RW;
+
+    FGFDT[i].attr.std = 1; // force attribute to standard file
+    const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
-            ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
+                ier = c_fstouv_rsf(i, RSF_RW, appl);
+            }
+            else {
+                ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            }
+            read_only = 0;
         } else {
-            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            if (iwko == WKF_STDRSF) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Should open as RSF, but this branch is not implemented.......\n", __func__);
+                ier = -1;
+            }
+            else {
+                ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            }
         }
     } else {
-        if (((iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name))) == -2) && (! FGFDT[i].attr.old)) {
-            ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+        if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
+            if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
+               ier = c_fstouv_rsf(i, RSF_RW, appl);
+            }
+            else {
+                ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            }
+            read_only = 0;
         } else {
-            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            if (iwko == WKF_STDRSF) {
+                ier = c_fstouv_rsf(i, open_mode, appl);
+            }
+            else {
+                ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            }
         }
     }
+
+    // Update file attribute, in case we just contradicted it
+    if (read_only == 0) {
+        FGFDT[i].attr.read_only = 0;
+        FGFDT[i].attr.write_mode = 1;
+    }
+    else {
+        FGFDT[i].attr.read_only = 1;
+        FGFDT[i].attr.write_mode = 0;
+    }
+
+    init_open_file(&fstd_open_files[i]);
 
     if (ier < 0) return ier;
     nrec = c_fstnbr(iun);
@@ -2838,7 +3484,8 @@ int c_fstouv(
 
 
 //! Get all the descriptors of a record
-int c_fstprm(
+//! XDF version
+int c_fstprm_xdf(
     //! [in] Handle of the record from which to retreive the descriptors
     int handle,
     //! [out] Origin date time stamp
@@ -2881,7 +3528,7 @@ int c_fstprm(
     int *ig4,
     //! [out] Starting word address
     int *swa,
-    //! [out] Record length
+    //! [out] Record length in 32-bit units
     int *lng,
     //! [out] Delete flag
     int *dltf,
@@ -2943,6 +3590,78 @@ int c_fstprm(
     return ier;
 }
 
+//! Get all the descriptors of a record
+int c_fstprm(
+    //! [in] Handle of the record from which to retreive the descriptors
+    int handle,
+    //! [out] Origin date time stamp
+    int *dateo,
+    //! [out] Duration of time steps in seconds
+    int *deet,
+    //! [out] Time step number
+    int *npas,
+    //! [out] First dimension of the data field
+    int *ni,
+    //! [out] Second dimension of the data field
+    int *nj,
+    //! [out] Third dimension of the data field
+    int *nk,
+    //! [out] Number of bits kept for each elements of the field
+    int *nbits,
+    //! [out] Data type of the elements
+    int *datyp,
+    //! [out] Vertical level
+    int *ip1,
+    //! [out] Forecast hour
+    int *ip2,
+    //! [out] User defined identifier
+    int *ip3,
+    //! [out] Type of field (forecast, analysis, climatology)
+    char *typvar,
+    //! [out] Variable name
+    char *nomvar,
+    //! [out] Label
+    char *etiket,
+    //! [out] Type of geographical projection
+    char *grtyp,
+    //! [out] First grid descriptor
+    int *ig1,
+    //! [out] Second grid descriptor
+    int *ig2,
+    //! [out] Third grid descriptor
+    int *ig3,
+    //! [out] Fourth grid descriptor
+    int *ig4,
+    //! [out] Starting word address
+    int *swa,
+    //! [out] Record length in 32-bit units
+    int *lng,
+    //! [out] Delete flag
+    int *dltf,
+    //! [out] Unused bit count
+    int *ubc,
+    //! [out] Extra parameter
+    int *extra1,
+    //! [out] Extra parameter
+    int *extra2,
+    //! [out] Extra parameter
+    int *extra3
+) {
+    const int32_t key_type = RSF_Key32_type(handle);
+
+    if (key_type == 1) {
+        RSF_handle file_handle = RSF_Key32_to_handle(handle);
+        return c_fstprm_rsf(file_handle, handle, dateo, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, typvar,
+                            nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3);
+    }
+    else if (key_type == 0) {
+        return c_fstprm_xdf(handle, dateo, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, typvar, nomvar,
+                            etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3);
+    }
+
+    return ERR_BAD_HNDL;
+}
+
 
 //! Reset all the flags previously set by ip(1-3)_val
 void c_fstreset_ip_flags()
@@ -2952,7 +3671,7 @@ void c_fstreset_ip_flags()
 
 
 //! Rewinds a RPN standard sequential file
-int c_fstrwd(
+int c_fstrwd_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
@@ -2965,7 +3684,7 @@ int c_fstrwd(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -2987,9 +3706,33 @@ int c_fstrwd(
     return 0;
 }
 
+//! Rewinds a RPN standard sequential file
+int c_fstrwd(
+    //! [in] Unit number associated to the file
+    int iun
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Can't rewind an RSF file\n", __func__);
+        return 0;
+    }
+    else if (rsf_status == 0) {
+        return c_fstrwd_xdf(iun);
+    }
+
+    return rsf_status;
+}
+
 
 //! Skip nrec records forward or backward in the sequential file
-int c_fstskp(
+int c_fstskp_xdf(
     //! [in] Unit number associated to the file
     int iun,
     //! Number of records to skip.  A negative number means backward.
@@ -3007,7 +3750,7 @@ int c_fstskp(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -3093,9 +3836,36 @@ int c_fstskp(
     return 0;
 }
 
+//! Skip nrec records forward or backward in the sequential file
+int c_fstskp(
+    //! [in] Unit number associated to the file
+    int iun,
+    //! Number of records to skip.  A negative number means backward.
+    int nrec
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
 
-//! Find the next record that matches the last search criterias
-int c_fstsui(
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Can't \"skip\" records in an RSF file\n", __func__);
+        return 0;
+    }
+    else if (rsf_status == 0) {
+        return c_fstskp_xdf(iun, nrec);
+    }
+
+    return rsf_status;
+}
+
+
+//! \copydoc c_fstsui
+//! XDF version
+int c_fstsui_xdf(
     //! [in] Unit number associated to the file
     int iun,
     //! [out] Dimension 1 of the data field
@@ -3127,6 +3897,35 @@ int c_fstsui(
     return handle;
 }
 
+//! Find the next record that matches the last search criterias
+int c_fstsui(
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [out] Dimension 1 of the data field
+    int *ni,
+    //! [out] Dimension 2 of the data field
+    int *nj,
+    //! [out] Dimension 3 of the data field
+    int *nk
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstsui_rsf(iun, index_fnom, ni, nj, nk);
+    }
+    else if (rsf_status == 0) {
+        return c_fstsui_xdf(iun, ni, nj, nk);
+    }
+
+    return rsf_status;
+}
+
 
 //! Get the version number
 int c_fst_version()
@@ -3135,8 +3934,8 @@ int c_fst_version()
 }
 
 
-//! Print the directory of a RPN standard file
-int c_fstvoi(
+//! \copydoc c_fstvoi
+int c_fstvoi_xdf(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in] List of fields to print
@@ -3148,7 +3947,7 @@ int c_fstvoi(
         return(ERR_NO_FNOM);
     }
 
-    int fileIdx = file_index(iun);
+    int fileIdx = file_index_xdf(iun);
     if (fileIdx == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
@@ -3180,7 +3979,7 @@ int c_fstvoi(
                 entry += width;
             }
         }
-   } else {
+    } else {
         // xdf sequential
         int end_of_file = 0;
         while (! end_of_file) {
@@ -3297,6 +4096,7 @@ int c_fstvoi(
             }
         } /* end while */
     }
+
     fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
     if (fte->fstd_vintage_89) {
         sprintf(string, "Version 1989");
@@ -3316,12 +4116,38 @@ int c_fstvoi(
         }
         fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
     }
+
     return 0;
+}
+
+//! Print the directory of a RPN standard file
+int c_fstvoi(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in] List of fields to print
+    const char * const options
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        return c_fstvoi_rsf(iun, index_fnom, options);
+    }
+    else if (rsf_status == 0) {
+        return c_fstvoi_xdf(iun, options);
+    }
+
+    return rsf_status;
 }
 
 
 //! Write a logical end of file on a sequential file
-int c_fstweo(
+int c_fstweo_xdf(
     //! [in] Unit number associated to the file
     int iun,
     //! [in] Level of logical end of file
@@ -3337,7 +4163,7 @@ int c_fstweo(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not open\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -3349,7 +4175,7 @@ int c_fstweo(
         return(ERR_BAD_FTYPE);
     }
 
-    VALID(level, 1, 15, "level", "c_fstweo");
+    VALID(level, 1, 15, "level");
     if (level < 15) {
         header64.idtyp = 112 + level;
         header64.lng = 1;
@@ -3364,6 +4190,32 @@ int c_fstweo(
     c_wawrit(iun, &header64, f->cur_addr, W64TOWD(1));
     f->nxtadr = f->cur_addr;
     return 0;
+}
+
+//! Write a logical end of file on a sequential file
+int c_fstweo(
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [in] Level of logical end of file
+    int level
+) {
+    int index_fnom;
+    const int rsf_status = is_rsf(iun, &index_fnom);
+
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
+        return(ERR_NO_FNOM);
+    }
+
+    if (rsf_status == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: This function does nothing on an RSF file\n", __func__);
+        return 0;
+    }
+    else if (rsf_status == 0) {
+        return c_fstweo_xdf(iun, level);
+    }
+
+    return rsf_status;
 }
 
 
@@ -3397,6 +4249,10 @@ void c_fst_env_var(
         requetes_filename = malloc(256);
         strncpy(requetes_filename, content, 256);
         // fprintf(stderr, "Debug+ requetes_filename=%s\n", requetes_filename);
+    } else if (strcasecmp(cle, "BACKEND") == 0) {
+        fst_backend = malloc(4);
+        strncpy(fst_backend, content, 4);
+        // fprintf(stderr, "Debug+ fst_backend=%s\n", fst_backend);
     } else {
         fprintf(stderr, "c_fst_env_var(), cle %s non reconnue, index=%d valeur=%s\n", cle, index, content);
     }
@@ -4559,20 +5415,48 @@ int32_t f77name(fstlis)(uint32_t *field, int32_t *f_iun,
   return (int32_t) ier;
 }
 
+int32_t c_fstlnk(
+    //! [in] List of unit numbers associated to the files
+    const int32_t *liste,
+    //! [in] Number of files to link
+    const int32_t n
+) {
+    int previous_index = -1;
+    first_linked_file = liste[0];
+    for (int i = 0; i < n; i++) {
+        const int index_fnom = fnom_index(liste[i]);
+        if (index_fnom == -1) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, liste[i]);
+            c_fstunl();
+            return ERR_NO_FNOM;
+        }
+
+        if (previous_index >= 0) {
+            if (fstd_open_files[previous_index].next_file >= 0) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: file index %d is already linked with another one\n", __func__, previous_index);
+                c_fstunl();
+                return ERR_BAD_LINK;
+            }
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: linking file %d to %d\n", __func__, index_fnom, previous_index);
+            fstd_open_files[previous_index].next_file = index_fnom;
+        }
+
+        previous_index = index_fnom;
+    }
+
+    return 0;
+}
+
 
 //! Link files together for search purpose
+//! \return 0 on success, error code otherwise
 int32_t f77name(fstlnk)(
     //! [in] List of unit numbers associated to the files
     int32_t *liste,
     //! [in] Number of files to link
     int32_t *f_n
 ) {
-    link_n = *f_n;
-    for (int i = 0; i < link_n; i++) {
-        link_list[i] = liste[i];
-    }
-
-    return (int32_t) c_xdflnk(link_list, link_n);;
+    return c_fstlnk(liste, *f_n);
 }
 
 
@@ -5019,6 +5903,28 @@ int32_t f77name(fstsui)(int32_t *f_iun,
 }
 
 
+int32_t c_fstunl() {
+    if (first_linked_file < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: No list to unlink\n", __func__);
+        return ERR_BAD_LINK;
+    }
+
+    const int start_index = fnom_index(first_linked_file);
+    if (start_index < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File to unlink (iun %d) is not connected with fnom\n", __func__, link_list[0]);
+        return ERR_NO_FNOM;
+    }
+
+    int index = start_index;
+    while (index >= 0) {
+        const int next_index = fstd_open_files[index].next_file;
+        fstd_open_files[index].next_file = -1;
+        index = next_index;
+    }
+
+    return 0;
+}
+
 /*****************************************************************************
  *                              F S T U N L                                  *
  *                                                                           *
@@ -5033,7 +5939,7 @@ int32_t f77name(fstsui)(int32_t *f_iun,
  *****************************************************************************/
 int32_t f77name(fstunl)()
 {
-    return (int32_t) c_xdfunl(link_list, link_n);
+    return c_fstunl();
 }
 
 

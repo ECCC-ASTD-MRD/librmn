@@ -1,11 +1,12 @@
   subroutine ez_crot_2010( r, ri, Grd_xlon1, Grd_xlat1, Grd_xlon2, Grd_xlat2 )
+    use rmn_common
   implicit none
 
   integer i,j
   real r(3,3), ri(3,3)
   real Grd_xlat1, Grd_xlon1,Grd_xlon2, Grd_xlat2
      
-  real*8 Grd_rot_8(3,3),xyz1_8(3),xyz2_8(3),xyz3_8(3),b_8
+  real(kind = real64) :: Grd_rot_8(3,3),xyz1_8(3),xyz2_8(3),xyz3_8(3),b_8
 
 !   Grd_xlat1 = 45.
 !   Grd_xlon1 = 0.

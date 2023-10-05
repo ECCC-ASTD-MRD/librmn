@@ -1,5 +1,6 @@
 program test_large_jar
-    use jar_module
+    use rmn_common
+    use rmn_jar
     implicit none
 
 #include "serializer.hf"
@@ -9,7 +10,7 @@ program test_large_jar
 
     integer, dimension(:), allocatable :: large_array_in, large_array_out
 
-    integer(kind=8) :: i
+    integer(kind = int64) :: i
 
     print *, 'Testing very large jar. This might take a minute or two.'
 

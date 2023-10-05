@@ -26,6 +26,7 @@
 !        source reguliere.
 !
 !*******
+          use rmn_common
       implicit none
 
 
@@ -60,9 +61,9 @@
 !
 !===========================================
 
-      real*8 y1, y2, y3, y4
-      integer n, i, j
-      integer imoins1, iplus1, iplus2, limite
+      real(kind = real64) :: y1, y2, y3, y4
+      integer             :: n, i, j
+      integer             :: imoins1, iplus1, iplus2, limite
 
 #include "ez_qqqxtrp.cdk"
 #include "cubic8.cdk"

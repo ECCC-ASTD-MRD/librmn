@@ -250,7 +250,7 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
             endif
       endif
 
-600   FORMAT(1H1, 10X, 'LISTE DES CONSTANTES COMMUNES CMC-RPN', ///)
+600   FORMAT('1', 10X, 'LISTE DES CONSTANTES COMMUNES CMC-RPN', ///)
 602   FORMAT(2X, 'NOM', 17X, 'VALEUR', 8X, 'DESCRIPTION', 10X, 'UNITE', //)
 605   FORMAT(2X, A8, 2X, E20. 13, 2X, A42)
 630   FORMAT(/, 5X, 'constnt_x: LA CTE A MODIFIER', 1X, A8, 1X, "N'EXISTE PAS", /)

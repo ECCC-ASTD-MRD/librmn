@@ -31,6 +31,8 @@
 #include <App.h>
 #include <rmn/rpnmacros.h>
 
+#include "ftn_c_protos.h"
+
 #define ERROR 0
 #define STACK 0
 #define HEAP  1

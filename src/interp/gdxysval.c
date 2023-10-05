@@ -22,7 +22,9 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "gdxysint.h"
 
+int32_t c_gdxysval_orig(int32_t gdin, float *zout, float *zin, float *x, float *y, int32_t n);
 
 void ez_freezones(_gridset *gdset)
 {

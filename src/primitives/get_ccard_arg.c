@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "primitives.h"
+
 char* get_ccard_arg_m(
     char* nom,
     int ord

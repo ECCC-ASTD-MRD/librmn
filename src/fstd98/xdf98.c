@@ -40,6 +40,7 @@
 #include <rmn/fstd98.h>
 
 #include <armn_compress.h>
+#include "base/base.h"
 
 #include "qstdir.h"
 #include "burp98.h"
@@ -390,7 +391,7 @@ int c_qdfdiag(
     }
 
     int wasopen = 0;
-    int index = file_index(iun);
+    int index = file_index_xdf(iun);
     file_record header64;
     file_header *fh;
     if (index == ERR_NO_FILE) {
@@ -523,7 +524,7 @@ int c_qdfmsig(
         return(ERR_NO_FNOM);
     }
 
-    int index = file_index(iun);
+    int index = file_index_xdf(iun);
     if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
@@ -796,7 +797,7 @@ int c_xdfcls(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
@@ -1214,7 +1215,7 @@ int c_xdfhdr(
     *addr = record->addr;
     *lng = record->lng;
 
-    if ((index = file_index(buf->iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(buf->iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
@@ -1336,7 +1337,7 @@ int c_xdfini(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
@@ -1490,7 +1491,7 @@ int c_xdflnk(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(liste[0])) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(liste[0])) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
@@ -1501,7 +1502,7 @@ int c_xdflnk(
            Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
            return(ERR_NO_FNOM);
         }
-        if ((indnext = file_index(liste[i])) == ERR_NO_FILE) {
+        if ((indnext = file_index_xdf(liste[i])) == ERR_NO_FILE) {
            Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
            return(ERR_NO_FILE);
         }
@@ -1570,7 +1571,7 @@ int c_xdfloc2(
     xdf_record_header header;
     seq_dir_keys seq_entry;
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open, iun=%d\n",__func__,iun);
         return(ERR_NO_FILE);
     }
@@ -1722,7 +1723,7 @@ int c_xdfopn(
         return(ERR_BAD_UNIT);
     }
 
-    if (file_index(iun) != ERR_NO_FILE) {
+    if (file_index_xdf(iun) != ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is already open\n",__func__,iun);
         return(ERR_FILE_OPN);
     }
@@ -1767,7 +1768,7 @@ int c_xdfopn(
         // at least one seq file is opened, limit number of xdf files is now 128
         STDSEQ_opened = 1;
         if (index > 127) {
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: hile opening std/seq file, limit of 128 opened file reached\n",__func__);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: while opening std/seq file, limit of 128 opened file reached\n",__func__);
             return(-1);
         }
     }
@@ -2141,12 +2142,12 @@ int c_xdfput(
     postfix_seq postfix;
 
     index_fnom = fnom_index(iun);
-    if ((index_from_buf = file_index(buf->iun)) == ERR_NO_FILE) {
+    if ((index_from_buf = file_index_xdf(buf->iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: record not properly initialized\n",__func__);
         return(ERR_BAD_INIT);
     }
 
-    if ((index_from_iun = file_index(iun)) == ERR_NO_FILE) {
+    if ((index_from_iun = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid iun (%d)\n",__func__,iun);
         return(ERR_BAD_UNIT);
     }
@@ -2490,7 +2491,7 @@ int c_xdfsta(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         // Open file and read file header
         c_waopen(iun);
         c_waread(iun, &header64, 1, W64TOWD(2));
@@ -2576,7 +2577,7 @@ int c_xdfunl(
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
             return(ERR_NO_FNOM);
         }
-        if ((index = file_index(liste[i])) == ERR_NO_FILE) {
+        if ((index = file_index_xdf(liste[i])) == ERR_NO_FILE) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
             return(ERR_NO_FILE);
         }
@@ -2621,7 +2622,7 @@ int c_xdfupd(
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index(iun)) == ERR_NO_FILE) {
+    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
@@ -2680,7 +2681,7 @@ int c_xdfuse(
     }
 
     // Process destination file
-    if ((index_dest = file_index(dest_unit)) == ERR_NO_FILE) {
+    if ((index_dest = file_index_xdf(dest_unit)) == ERR_NO_FILE) {
         if (FGFDT[index_fnom_dest].file_size > 0) {
             // Destination file exists
             err = c_xdfsta(dest_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
@@ -2704,7 +2705,7 @@ int c_xdfuse(
     ninfo = stat[8];
 
     // Process source file
-    if ((index_src = file_index(src_unit)) == ERR_NO_FILE) {
+    if ((index_src = file_index_xdf(src_unit)) == ERR_NO_FILE) {
         close_src = 1;
         err = c_xdfopn(src_unit, "READ", src_primk, 0, src_info, 0, appl);
         if (err < 0) return err;
@@ -2987,37 +2988,6 @@ static int create_new_xdf(
         }
    }
    return 0;
-}
-
-//! Find position of file iun in file table.
-//! \return Index of the unit number in the file table or ERR_NO_FILE if not found
-int file_index(
-    //! [in] Unit number associated to the file
-    const int iun
-) {
-    for (int i = 0; i < MAX_XDF_FILES; i++) {
-        if (file_table[i] != NULL) {
-            if (file_table[i]->iun == iun) {
-                return i;
-            }
-        }
-    }
-    return ERR_NO_FILE;
-}
-
-
-//! Find index position in master file table (fnom file table).
-//! \return Index of the provided unit number in the file table or -1 if not found.
-int fnom_index(
-    //! [in] Unit number associated to the file
-    const int iun
-) {
-    for (int i = 0; i < MAXFILES; i++) {
-        if (FGFDT[i].iun == iun) {
-            return i;
-        }
-    }
-    return -1;
 }
 
 
@@ -3404,7 +3374,7 @@ int32_t  f77name(qdfdiag)(int32_t *f_iun)
 int32_t f77name(qdfind)(int32_t *iun)
 {
    int ind;
-   ind = file_index(*iun);
+   ind = file_index_xdf(*iun);
    ind = (ind != ERR_NO_FILE) ? ind : 9999;
 
    return (int32_t) ind;

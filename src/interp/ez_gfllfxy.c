@@ -22,6 +22,8 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
+#include "base/base.h"
 
 
 void f77name(ezgfllfxy)(

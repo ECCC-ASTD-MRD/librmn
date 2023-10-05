@@ -69,6 +69,8 @@
 #include <rmn/fstd98.h>
 #include <rmn/c_wkoffit.h>
 
+#include "fstd98/burp98.h"
+
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
 
@@ -384,16 +386,20 @@ int32_t c_wkoffit(
 
         /* STANDARD 98 RANDOM */
         if (*(ptbuf + 3) == 'STDR') {
-            if (c_fstcheck(nom2) < 0) {
+            if (c_fstcheck_xdf(nom2) < 0) {
                 return retour(pf, WKF_CORROMPU);
             } else {
                 return retour(pf, WKF_RANDOM98);
             }
         }
 
-        /* STANDARD with RSF backend */
-        if (*(ptbuf + 4) == 'RSF0' && *(ptbuf + 5) == 'STDR') {
-            return retour(pf, WKF_STDRSF);
+        /* RSF backend */
+        if (*(ptbuf + 4) == 'RSF0') {
+            // STANDARD
+            if (*(ptbuf + 5) == 'STDR') return retour(pf, WKF_STDRSF);
+
+            // Generic RSF
+            return retour(pf, WKF_RSF);
         }
 
         /* STANDARD 98 SEQUENTIEL */
@@ -438,6 +444,13 @@ int32_t c_wkoffit(
         /* BLOK */
         if (*(ptbuf) == 0x424c4f4b) {
             return retour(pf, WKF_BLOK);
+        }
+
+        /* SQLite 3 */
+        // https://www.sqlite.org/fileformat.html
+        if (*(ptbuf) == 0x53514c69 && *(ptbuf + 1) == 0x74652066 &&
+            *(ptbuf + 2) == 0x6f726d61 && *(ptbuf + 3) == 0x74203300) {
+            return retour(pf, WKF_SQLITE3);
         }
 
         /* FORTRAN */
