@@ -1,4 +1,14 @@
 #ifdef INTERFACEONLY
+interface wb_reset
+  function wb_reset() result(status)
+    import :: int32
+    implicit none
+    integer(kind = int32) :: status
+  end function
+end interface
+#endif
+
+#ifdef INTERFACEONLY
 interface wb_read
 #endif
     !> \brief Read a dictionary or namelist into the whiteboard

@@ -1,10 +1,14 @@
 
 
 program wb_test
+use ISO_FORTRAN_ENV
+use whiteboard_mod
+implicit none
 
-#include <rmn/WhiteBoard.hf>
+! #include <rmn/WhiteBoard.hf>
     
    character(len=32) :: list_S(4)
+   integer :: ier, istat, nitems
 
     list_S = (/'a123', 'b2  ', 'c34 ', 'd   '/)
     istat = wb_put('test/wb',list_S,WB_REWRITE_MANY)

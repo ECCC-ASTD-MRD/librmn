@@ -1,8 +1,9 @@
 program wb_read_test
-use ISO_FORTRAN_ENV
+! use ISO_FORTRAN_ENV
+use whiteboard_mod
 implicit none
 
-#include <rmn/WhiteBoard.hf>
+! #include <rmn/WhiteBoard.hf>
 
 
     integer :: res
