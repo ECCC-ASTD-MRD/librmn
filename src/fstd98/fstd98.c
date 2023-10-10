@@ -2655,7 +2655,7 @@ int c_fstluk_xdf(
     // Allocate 8 more bytes in case of realingment for 64 bit data
     int workFieldSz = 8 + (lng2 + 10) * sizeof(int);
     // printf("Debug+ fstluk - workFieldSz = %d\n", workFieldSz);
-    char workField[workFieldSz];
+    int workField[workFieldSz/4];
     // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
     bzero(workField, workFieldSz);
 

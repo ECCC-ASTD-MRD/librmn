@@ -1,5 +1,8 @@
 program test_wb
-#include <WhiteBoard.hf>
+use ISO_FORTRAN_ENV
+use whiteboard_mod
+implicit none
+!#include <rmn/WhiteBoard.hf>
 
     character(len = *), parameter :: key = 'Something'
     character(len = WB_MAXSTRINGLENGTH) :: inbuff, outbuff
