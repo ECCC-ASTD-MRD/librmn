@@ -519,6 +519,8 @@ deploy:staging:
 
 trigger:
    stage: trigger
+   tags:
+      - U2
    only:
       - master
       - dev
