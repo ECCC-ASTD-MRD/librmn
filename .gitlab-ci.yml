@@ -14,7 +14,15 @@ stages:
 
 before_script:
    - source ~/ci-admin/env/init.sh
-   - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}
+   - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/precaution/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}
+
+#----- TODO : cleanup builds more than 14-day-old
+# cleanup:u2:
+#    stage: cleanup
+#    tags:
+#       - concurrent
+#    script:
+#       - find ${ECCI_BUILD_DIR}/precaution -type d -ctime +14 -exec rm -rfv {} \; || true
 
 #----- rhel-8-icelake-64_inteloneapi-2022.1.2
 
