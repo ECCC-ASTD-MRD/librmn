@@ -231,7 +231,7 @@ package:rhel-8-amd64_gnu-9.3.0:
       - set +e
       - source ${ECCI_ENV}/latest/rhel-8-amd-64/gnu-9.3.0.sh
       - set -e
-      - cd build_rhel-8-amd64_gnu-9.3.0
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-9.3.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
