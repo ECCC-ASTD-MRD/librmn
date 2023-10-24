@@ -17,17 +17,18 @@
 !  - the fstdxxx and c_fstdxxx interfaces
 !  - the fstd98 user defined type and associated type bound procedures
 !
-! use fstd_98
+! use rmn_fstd98
 !
 ! WARNING : this is MUTUALLY EXCLUSIVE with
 ! #include <fstd98_interface.hf>
 ! (will only get the direct fstdxxx and c_fstdxxx interfaces to librmn functions/subprograms)
 !
-! use fstd_98 will cause the direct fstxxx entry points from librmn to be ignored
+! use rmn_fstd98 will cause the direct fstxxx entry points from librmn to be ignored
 ! and use instead the equivalent procedures from the module and associated sub modules
 !
 module rmn_fstd98
-  use ISO_C_BINDING
+  use rmn_common
+  use rmn_fst_record
   implicit none
 #define C_INTERFACE_ONLY
 #include <fstd98/fstd98_interface.hf>

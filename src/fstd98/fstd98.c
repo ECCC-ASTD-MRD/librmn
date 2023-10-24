@@ -867,6 +867,8 @@ int c_fstecr_xdf(
     //! [in] Rewrite existing record, append otherwise
     int rewrit
 ) {
+    (void)work; // unused
+
     // will be cancelled later if not supported or no missing values detected
     //  missing value feature used flag
     int is_missing = in_datyp_ori & FSTD_MISSING_FLAG;
