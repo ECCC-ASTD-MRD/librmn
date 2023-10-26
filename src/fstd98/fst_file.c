@@ -35,20 +35,18 @@ void fst23_close(fst_file* file) {
 int32_t fst23_write(fst_file* file, const fst_record* record) {
     if (!is_record_valid(record)) return ERR_BAD_INIT;
 
-    char field_type[FT_LENGTH];
-    char var_name[VN_LENGTH];
-    char label[LB_LENGTH];
-    char projection_type[PT_LENGTH];
+    char typvar[FT_LENGTH];
+    char nomvar[VN_LENGTH];
+    char etiket[LB_LENGTH];
+    char grtyp[PT_LENGTH];
 
-    strncpy(field_type, record->field_type, FT_LENGTH);
-    strncpy(var_name, record->var_name, VN_LENGTH);
-    strncpy(label, record->label, LB_LENGTH);
-    strncpy(projection_type, record->projection_type, PT_LENGTH);
+    strncpy(typvar, record->typvar, FT_LENGTH);
+    strncpy(nomvar, record->nomvar, VN_LENGTH);
+    strncpy(etiket, record->etiket, LB_LENGTH);
+    strncpy(grtyp, record->grtyp, PT_LENGTH);
 
-    return
-    c_fstecr(record->data, NULL, record->num_packed_bits, file->iun, record->date, record->timestep_length,
-             record->timestep_num, record->num_elem_i, record->num_elem_j, record->num_elem_k, record->ip1,
-             record->ip2, record->ip3, field_type, var_name, label,
-             projection_type, record->grid_desc_1, record->grid_desc_2, record->grid_desc_3,
-             record->grid_desc_4, record->datatype, 0);
+    return c_fstecr(
+        record->data, NULL, record->npak, file->iun, record->date, record->deet, record->npas,
+        record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+        typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
 }
