@@ -32,7 +32,7 @@ int32_t is_rsf(
 
 //! Find the next record in a given file, according to the given parameters
 //! \return Key of the record found (negative if error or nothing found)
-static int64_t find_next_record(RSF_handle file_handle, fstd_usage_info* search_params) {
+int64_t find_next_record(RSF_handle file_handle, fstd_usage_info* search_params) {
 
     stdf_dir_keys actual_mask;
     uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;

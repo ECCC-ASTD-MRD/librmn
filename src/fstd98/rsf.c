@@ -2242,8 +2242,8 @@ RSF_handle RSF_Open_file(
     close(fp->fd) ;
     goto ERROR ;  // invalid SOS (too short)
   }
-  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: SOS:\n", __func__);
-  print_start_of_segment(&fp->sos0);
+  // Lib_Log(APP_LIBFST, APP_DEBUG, "%s: SOS:\n", __func__);
+  // print_start_of_segment(&fp->sos0);
 
   fp->dir_meta = fp->sos0.head.rlmd ;
   fp->rec_meta = fp->dir_meta ;
@@ -2614,7 +2614,7 @@ RESET_WRITE_FLAG:
   // Rewrite first start of segment to indicate that we will no longer write to this file
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = read(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;
-  print_start_of_segment(&fp->sos0);
+  // print_start_of_segment(&fp->sos0);
 
   // Set to zero if exclusive (compact mode), decrement if sparse
   if (fp->sos0.head.rlm == RSF_EXCLUSIVE_WRITE) {
@@ -2627,7 +2627,7 @@ RESET_WRITE_FLAG:
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %d\n", __func__, fp->sos0.head.rlm);
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = write(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;  // rewrite start of segment 0
-  print_start_of_segment(&fp->sos0);
+  // print_start_of_segment(&fp->sos0);
   usleep(10000) ;
   RSF_File_lock(fp, 0) ;
   // --------- Unlock file --------- //

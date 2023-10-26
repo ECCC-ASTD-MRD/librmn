@@ -4,15 +4,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "rmn/fstdsz.h"
+
 // What belongs to the record? To the writing function?
 // Should data be compressed or not?
 // Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
 // Include NULL character in names? Yes
 
-static const int FT_LENGTH = 2;
-static const int VN_LENGTH = 4;
-static const int LB_LENGTH = 12;
-static const int PT_LENGTH = 1;
 
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 
@@ -24,6 +22,7 @@ typedef struct {
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata.         TODO JSON object?
     int64_t date;     //!< Date timestamp
+    int64_t handle;   //!< Handle to specific record (if stored in a file)
 
     // 32-bit elements
     int32_t datyp; //!< Data type of elements
@@ -44,10 +43,10 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
-    char typvar[ALIGN_TO_4(FT_LENGTH + 1)]; //!< Type of field (forecast, analysis, climatology)
-    char grtyp [ALIGN_TO_4(PT_LENGTH + 1)]; //!< Type of geographical projection
-    char nomvar[ALIGN_TO_4(VN_LENGTH + 1)]; //!< Variable name
-    char etiket[ALIGN_TO_4(LB_LENGTH + 1)]; //!< Label
+    char typvar[ALIGN_TO_4(TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
+    char grtyp [ALIGN_TO_4(GTYP_LEN + 1)];   //!< Type of geographical projection
+    char nomvar[ALIGN_TO_4(NOMVAR_LEN + 1)]; //!< Variable name
+    char etiket[ALIGN_TO_4(ETIKET_LEN + 1)]; //!< Label
 
 } fst_record;
 
@@ -56,6 +55,7 @@ static const fst_record default_fst_record = (fst_record){
         .data     = NULL,
         .metadata = NULL,
         .date     = -1,
+        .handle   = -1,
 
         .datyp = -1,
         .npak = -1,
@@ -86,6 +86,7 @@ static const fst_record default_fst_record = (fst_record){
     };
 
 
-int32_t is_record_valid(const fst_record* record);
+int32_t fst_record_is_valid(const fst_record* record);
+void fst_record_print(const fst_record* record);
 
 #endif // RMN_FST_RECORD_H__
