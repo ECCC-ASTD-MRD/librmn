@@ -16,6 +16,8 @@
  */
 #include "fstd98/rsf_internal.h"
 
+#include <App.h>
+
 static int32_t verbose = RSF_DIAG_WARN ;
 static char *diag_text[RSF_DIAG_DEBUG2+1] ;
 static int diag_init = 1 ;
@@ -97,8 +99,7 @@ static int32_t RSF_Set_file_slot(
     if(rsf_files[i] == NULL) {
       rsf_files[i] = p ;
       rsf_files_open ++ ;     // one more open file
-      if(verbose >= RSF_DIAG_DEBUG2) 
-        fprintf(stderr,"RSF_Set_file_slot DEBUG2: rsf file table slot %d assigned, p = %p\n", i, p);
+      Lib_Log(APP_LIBFST, APP_EXTRA, "%s: RSF file table slot %d assigned, p = %p\n", __func__, i, p);
       return i ;              // slot number
     }
   }
@@ -118,8 +119,7 @@ static int32_t RSF_Purge_file_slot(void *p)
     if(rsf_files[i] == p) {
       rsf_files[i] = (void *) NULL ;
       rsf_files_open-- ;     // one less open file
-      if(verbose >= RSF_DIAG_DEBUG2) 
-        fprintf(stderr,"RSF_Purge_file_slot DEBUG2: rsf file table slot %d freed, p = %p\n", i, p);
+      Lib_Log(APP_LIBFST, APP_EXTRA,"%s: RSF file table slot %d freed, p = %p\n", __func__, i, p);
       return i ;             // slot number
     }
   }
@@ -218,26 +218,23 @@ RSF_handle RSF_Key32_to_handle(int32_t key32) {
 //! return slot number + 1 if valid structure, otherwise return 0
 static int32_t RSF_Valid_file(RSF_File *fp){
   if(fp == NULL) {
-    if(verbose >= RSF_DIAG_ERROR) 
-      fprintf(stderr,"RSF_Valid_file ERROR: file handle is NULL\n");
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: file handle is NULL\n", __func__);
     return 0 ;                   // fp is a NULL pointer
   }
   if(fp->fd < 0) {
-    if(verbose >= RSF_DIAG_ERROR) 
-      fprintf(stderr,"RSF_Valid_file ERROR: invalid fd < 0 (%d)\n", fp->fd);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid fd < 0 (%d)\n", __func__, fp->fd);
     return 0 ;                   // file is not open, ERROR
   }
   // get file slot from file handle table if not initialized
   if(fp->slot < 0) fp->slot = RSF_Find_file_slot(fp) ;
   // check validity of fp->slot
   if((fp->slot < 0) || (fp->slot >= max_rsf_files_open)) {
-    if(verbose >= RSF_DIAG_ERROR) 
-      fprintf(stderr,"RSF_Valid_file ERROR: slot number found in file handle is invalid\n");
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: slot number found in file handle is invalid\n", __func__);
     return 0 ;                   // not in file handle table
   }
   if(fp != rsf_files[fp->slot] ) {
-    if(verbose >= RSF_DIAG_ERROR) 
-      fprintf(stderr,"RSF_Valid_file ERROR: inconsistent slot data %p %p, slot = %d\n", fp, rsf_files[fp->slot], fp->slot);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent slot data %p %p, slot = %d\n",
+            fp, __func__, rsf_files[fp->slot], fp->slot);
     return 0 ;                   // inconsistent slot
   }
   return fp->slot + 1;
@@ -282,8 +279,8 @@ static directory_block *RSF_Add_vdir_block(RSF_File *fp, uint32_t min_block)
   dd->cur = dd->entries ;                // beginning of entries storage area (insertion point)
   dd->top = (uint8_t *)p + sz ;                     // last usable addess in block is dd->top -1
   fp->dirblocks = dd ;                   // new start of blocks list
-  if(verbose >= RSF_DIAG_DEBUG1) 
-    fprintf(stderr,"RSF_Add_vdir_block DEBUG: added block of size %ld, next = %p, fp->dir = %p\n", sz, dd->next, fp->dirblocks) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: added block of size %ld, next = %p, fp->dir = %p\n",
+          __func__, sz, dd->next, fp->dirblocks);
   return dd ;
 }
 
@@ -337,8 +334,8 @@ static int64_t RSF_Add_vdir_entry(RSF_File *fp, uint32_t *meta, uint32_t mlr, ui
   needed = sizeof(vdir_entry) +        // base size for entry to be added
            mld * sizeof(uint32_t) ;    // directory metadata size
   if(dd->top - dd->cur < needed) {     // add a new block if no room for entry in current block
-    if(verbose >= RSF_DIAG_DEBUG1) 
-      fprintf(stderr,"RSF_Add_vdir_entry DEBUG2: need %d, have %ld, allocating a new block\n", needed, dd->top - dd->cur) ;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: need %d, have %ld, allocating a new block\n",
+            __func__, needed, dd->top - dd->cur);
     dd = RSF_Add_vdir_block(fp, needed) ;
   }
   if(dd == NULL) goto ERROR ;          // new block creation failed
@@ -398,8 +395,7 @@ static int32_t RSF_Get_vdir_entry(RSF_File *fp, int64_t key, uint64_t *wa, uint6
   return DIR_ML(ventry->ml) ;        // return directory metadata length
 
 ERROR :
-  if(verbose >= RSF_DIAG_ERROR) 
-    fprintf(stderr,"RSF_Get_vdir_entry ERROR : %s\n", error) ;
+  Lib_Log(APP_LIBFST, APP_ERROR, "%s: %s\n", __func__, error);
   return -1 ;
 }
 
@@ -489,7 +485,7 @@ static int64_t RSF_Scan_vdir(
 //   if(scan_match == NULL)
 //     scan_match = &RSF_Default_match ;       // no function associated, use default function
 
-  if(verbose >= RSF_DIAG_DEBUG2) {
+  if (App_LogLevel(NULL) >= APP_EXTRA) {
     int i ;
     fprintf(stderr,"DEBUG2: RSF_Scan_vdir\n") ;
     fprintf(stderr,"criteria ") ;
@@ -539,8 +535,7 @@ static int64_t RSF_Scan_vdir(
 //  using appropriate error code borrowed from XDF for consistency purposes
 //     badkey = ERR_NOT_FOUND ;
 ERROR :
-  if(verbose >= RSF_DIAG_DEBUG0) 
-    fprintf(stderr,"RSF_Scan_vdir ERROR : key = %16.16lx, len = %d,  %s\n", key0, lcrit, error) ;
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: key = %16.16lx, len = %d,  %s\n", __func__, key0, lcrit, error);  // Should be DEBUG?
   return badkey ;
 
 MATCH:
@@ -548,8 +543,7 @@ MATCH:
   key = key + index + 1 ;               // add record number (origin 1) to key
   *wa = RSF_32_to_64(ventry->wa) ;      // address of record in file
   *rl = RSF_32_to_64(ventry->rl) ;      // record length
-  if(verbose >= RSF_DIAG_DEBUG2) 
-    fprintf(stderr,"RSF_Scan_vdir SUCCESS : key = %16.16lx\n\n", key);
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: SUCCESS, key = %16.16lx\n\n", __func__, key);
   return key ;                          // return key value containing file "slot" and record index
 }
 
@@ -574,8 +568,7 @@ static int32_t RSF_Read_directory(RSF_File *fp){
   char *errmsg = "" ;
 
   if(fp->dir_read > 0){  // redundant call, directory already read
-  if(verbose >= RSF_DIAG_DEBUG0) 
-    fprintf(stderr,"RSF_Read_directory DEBUG : directory ALREADY READ %d entries\n", fp->dir_read) ;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: directory ALREADY READ %d entries\n", __func__, fp->dir_read);
     return fp->dir_read ;
   }
 // fprintf(stderr,"read directory, file '%s', slot = %d\n",fp->name, RSF_Valid_file(fp)) ;
@@ -600,18 +593,16 @@ static int32_t RSF_Read_directory(RSF_File *fp){
     // remember free space in non open sparse segments
     if(sos_seg == 0 && sos.head.rlm == 0) {                 // ONLY process sparse segments NOT currently open for write
       if(fp->sparse_segs == NULL){                          // sparse segments table not allocated yet
-        fprintf(stderr,"RSF_Read_directory DEBUG : allocating sparse_segs table\n") ;
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: allocating sparse_segs table\n", __func__) ;
         fp->sparse_segs = malloc(1024 * sizeof(sparse_entry)) ;
         fp->sparse_table_size = 1024 ;
         fp->sparse_table_used = 0 ;
       }
       fp->sparse_segs[fp->sparse_table_used].base = off_seg ;
       fp->sparse_segs[fp->sparse_table_used].size = size_seg - sizeof(start_of_segment) ;
-      if(verbose >= RSF_DIAG_DEBUG0) {
-        fprintf(stderr,"RSF_Read_directory DEBUG : segment %d sparse at %12.12lx, space available = %ld, rlm = %d\n", 
-                segments-1, fp->sparse_segs[fp->sparse_table_used].base, fp->sparse_segs[fp->sparse_table_used].size,
-                sos.head.rlm) ;
-      }
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: segment %d sparse at %12.12lx, space available = %ld, rlm = %d\n", 
+              __func__, segments-1, fp->sparse_segs[fp->sparse_table_used].base,
+              fp->sparse_segs[fp->sparse_table_used].size, sos.head.rlm) ;
       if(fp->sparse_table_used < fp->sparse_table_size-1)
         fp->sparse_table_used++ ;  // do not overflow table
     }
@@ -638,18 +629,17 @@ static int32_t RSF_Read_directory(RSF_File *fp){
       }
       if(vdir) free(vdir) ;                                 // free memory used to read segment directory from file
       vdir = NULL ;                                         // to avoid a potential double free
-      if(verbose >= RSF_DIAG_DEBUG0) 
-        fprintf(stderr,"RSF_Read_directory DEBUG: found %d entries in segment %d\n", l_entries, segments-1) ;
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: found %d entries in segment %d\n", __func__, l_entries, segments-1) ;
     }
     off_seg += size_seg ;                                   // offset of the start of the next segment
   }  // while(1) loop over segments
-  if(verbose >= RSF_DIAG_DEBUG0) 
-    fprintf(stderr,"RSF_Read_directory DEBUG: directory entries = %d, segments = %d, directories = %d \n", entries, segments, directories) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: directory entries = %d, segments = %d, directories = %d \n",
+          __func__, entries, segments, directories) ;
   fp->dir_read = entries ;
   return entries ;                                          // return number of records found in segment directories
 
 ERROR:
-  fprintf(stderr,"RSF_Read_directory ERROR %s, %d entries, %d segments\n", errmsg, entries, segments);
+  Lib_Log(APP_LIBFST, APP_ERROR, "%s: %s, %d entries, %d segments\n", __func__, errmsg, entries, segments);
 //   if(ddir != NULL) free(ddir) ;
   return -1 ;  
 }
@@ -665,8 +655,7 @@ static size_t RSF_Vdir_record_size(RSF_File *fp){
     ml = DIR_ML(fp->vdir[i]->ml) ;
     dir_rec_size += ( sizeof(vdir_entry) + ml * sizeof(uint32_t) );  // fixed part + metadata
   }
-  if(verbose >= RSF_DIAG_DEBUG0) 
-    fprintf(stderr, "RSF_Vdir_record_size DEBUG : dir rec size = %ld %ld\n", dir_rec_size, fp->vdir_size);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: dir rec size = %ld %ld\n", __func__, dir_rec_size, fp->vdir_size);
   return dir_rec_size ;
 }
 
@@ -711,11 +700,9 @@ static int64_t RSF_Write_vdir(RSF_File *fp){
 
   // do not start at entry # 0, but entry # fp->dir_read (only write entries from "active" segment)
   // when "fusing" segments, fp->dir_read will be reset to 0
-  if(verbose >= RSF_DIAG_DEBUG0) {
-    fprintf(stderr,"RSF_Write_vdir DEBUG : skipping %d records, segment base = %lx", fp->dir_read, fp->seg_base) ;
-    fprintf(stderr,", dir_rec_size = %ld ", dir_rec_size) ;
-    fprintf(stderr,", dir_read = %d, vdir_used = %d\n", fp->dir_read, fp->vdir_used) ;
-  }
+  Lib_Log(APP_LIBFST, APP_DEBUG,
+          "%s: skipping %d records, segment base = %lx, dir_rec_size = %ld, dir_read = %d, vdir_used = %d\n",
+          __func__, fp->dir_read, fp->seg_base, dir_rec_size, fp->dir_read, fp->vdir_used);
 
   for(i = fp->dir_read ; i < fp->vdir_used ; i++){             // fill from in memory directory
     entry = (vdir_entry *) e ;
@@ -734,8 +721,8 @@ static int64_t RSF_Write_vdir(RSF_File *fp){
   fp->next_write += n_written ;                     // update last write position
   fp->current_pos = fp->next_write ;                // update file current position
   fp->last_op = OP_WRITE ;                          // last operation was a write
-  if(verbose >= RSF_DIAG_DEBUG2)
-    fprintf(stderr,"RSF_Write_vdir DEBUG2 : fp->next_write = %lx, vdir record size = %ld \n", fp->next_write, dir_rec_size) ;
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fp->next_write = %lx, vdir record size = %ld \n",
+          __func__, fp->next_write, dir_rec_size) ;
   if(n_written != dir_rec_size) {                   // everything written ?
     dir_rec_size = 0 ;                              // error, return 0 as directory size
   }
@@ -775,16 +762,14 @@ int32_t RSF_Default_match(uint32_t *criteria, uint32_t *meta, uint32_t *mask, in
   if(ncrit <= 0) return 1 ;    // no criteria, we assume a match
 
   if(mask != NULL) {           // caller supplied a mask
-    if(verbose >= RSF_DIAG_DEBUG2) {
+    if (App_LogLevel(NULL) >= APP_EXTRA) {
       int j ;
       fprintf(stderr,"criteria, meta = ["); for(j=0 ; j<ncrit ; j++) fprintf(stderr,", %8.8x %8.8x", criteria[j], meta[j]); fprintf(stderr,"]\n");
     }
     for(i = 0 ; i < ncrit ; i++){
       if( (criteria[i] & mask[i]) != (meta[i] & mask[i]) ) {
-      if(verbose >= RSF_DIAG_DEBUG2) {
-        fprintf(stderr,"DEBUG2: rsf_default_match, MISMATCH at %d, criteria = %8.8x, meta = %8.8x, mask = %8.8x, ncrit = %d, nmeta = %d\n",
-                i, criteria[i], meta[i], mask[i], ncrit, nmeta) ;
-      }
+        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: MISMATCH at %d, criteria = %8.8x, meta = %8.8x, mask = %8.8x, ncrit = %d, nmeta = %d\n",
+                __func__, i, criteria[i], meta[i], mask[i], ncrit, nmeta) ;
       return 0 ;  // mismatch, no need to go any further
       }
     }
@@ -793,10 +778,7 @@ int32_t RSF_Default_match(uint32_t *criteria, uint32_t *meta, uint32_t *mask, in
       if( criteria[i] != meta[i] ) return 0 ;  // mismatch, no need to go any further
     }
   }
-  if(verbose >= RSF_DIAG_DEBUG2) {
-    fprintf(stderr,"DEBUG2: rsf_default_match, ncrit = %d, MATCH\n", ncrit);
-    fprintf(stderr,"DEBUG2: rsf_default_match, MATCH O.K.\n");
-  }
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: ncrit = %d, MATCH O.K.\n", __func__, ncrit);
   return 1 ;   // if we get here, there is a match
 }
 
@@ -1072,8 +1054,7 @@ size_t RSF_Adjust_data_record(RSF_handle h, RSF_record *r){
 
   sor = r->sor ;
   if(sor->dul == 0) return 0L ;                         // uninitialized data element size
-  if(verbose >= RSF_DIAG_DEBUG0)
-    fprintf(stderr,"RSF_Adjust_data_record DEBUG : data_bytes = %ld, element size = %d bytes\n", data_bytes,sor->dul ) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: data_bytes = %ld, element size = %d bytes\n", __func__, data_bytes,sor->dul ) ;
   new_size = RSF_Record_size(r->rec_meta, data_bytes) ; // properly rounded up size
   eor = r->sor + new_size - sizeof(end_of_record) ;
 
@@ -1142,13 +1123,9 @@ uint64_t RSF_Put_null_record(
   needed = record_size ;
   if (fp->seg_max > 0) {
     free_space = RSF_Available_space(h) ;
-    if (verbose >= RSF_DIAG_DEBUG0) {
-      fprintf(stderr, "RSF_Put_null_record DEBUG : free = %ld, needed = %ld\n", free_space, needed);
-    }
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: free = %ld, needed = %ld\n", __func__, free_space, needed);
     if( free_space < needed ) {
-      if(verbose >= RSF_DIAG_DEBUG0) {
-        fprintf(stderr,"RSF_Put_null_record DEBUG : segment overflow\n") ;
-      }
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: segment overflow\n", __func__) ;
       return 0 ;
     }
   }
@@ -1228,8 +1205,7 @@ int64_t RSF_Put_chunks(RSF_handle h, RSF_record *record,
     record_size = RSF_Record_size(rec_meta, data_bytes) ;
   }
 
-  if(verbose >= RSF_DIAG_DEBUG2)
-    fprintf(stderr,"RSF_Put_chunks DEBUG2 : data_bytes = %ld, record_size = %ld %lx\n", data_bytes, record_size, record_size) ;
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: data_bytes = %ld, record_size = %ld %lx\n", __func__, data_bytes, record_size, record_size) ;
   // write record if enough room left in segment (always O.K. if compact segment)
   if(fp->seg_max > 0){                                                 // write into a sparse segment
     available = RSF_Available_space(h) ;           // available space in sparse segment according to current conditions
@@ -1237,16 +1213,14 @@ int64_t RSF_Put_chunks(RSF_handle h, RSF_record *record,
                 sizeof(vdir_entry) +               // directory space needed for this record
                 rec_meta * sizeof(uint32_t) ;
     if(desired > available) {
-      if(verbose >= RSF_DIAG_INFO)
-        fprintf(stderr,"RSF_Put_chunks INFO : sparse segment OVERFLOW, switching to new segment\n");
+      Lib_Log(APP_LIBFST, APP_INFO, "%s: sparse segment OVERFLOW, switching to new segment\n", __func__);
       extra = desired +                          // extra space needed for this record and associated dir entry
               NEW_SEGMENT_OVERHEAD ;             // extra space needed for closing sparse segment
       RSF_Switch_sparse_segment(h, extra) ;      // switch to a new segment (minimum size = extra)
     }
   }
   lseek(fp->fd , fp->next_write , SEEK_SET) ; // position file at fp->next_write
-  if(verbose >= RSF_DIAG_DEBUG2)
-    fprintf(stderr,"RSF_Put_chunks DEBUG2 : write at %lx\n", fp->next_write) ;
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: write at %lx\n", __func__, fp->next_write) ;
 
   // write record into file
   if( record != NULL){                                              // using a pre allocated, pre filled record structure
@@ -1380,7 +1354,7 @@ int64_t RSF_Put_bytes(
                 sizeof(vdir_entry) +               // directory space needed for this record
                 rec_meta * sizeof(uint32_t) ;
     if(desired > available) {
-      fprintf(stderr,"RSF_Put_bytes DEBUG : sparse segment OVERFLOW, switching to new segment\n");
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: sparse segment OVERFLOW, switching to new segment\n", __func__);
       extra = desired +                          // extra space needed for this record and associated dir entry
               NEW_SEGMENT_OVERHEAD ;             // extra space needed for closing sparse segment
       RSF_Switch_sparse_segment(h, extra) ;      // switch to a new segment (minimum size = extra)
@@ -1527,10 +1501,10 @@ int64_t RSF_Get_file(RSF_handle h, int64_t key, char *alias, uint32_t **meta, ui
   nread = 0 ; nwritten = 0 ;
   fd = open(filename, O_WRONLY | O_CREAT | O_EXCL, 0777) ;
   if(fd == -1) {
-    fprintf(stderr,"RSF_Get_file ERROR : failed to create file '%s'\n", filename) ;
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: failed to create file '%s'\n", __func__, filename) ;
     goto ERROR ;
   }else{
-//     fprintf(stderr,"RSF_Get_file DEBUG : successfully created file '%s'\n", filename) ;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: successfully created file '%s'\n", __func__, filename) ;
   }
   towrite = file_size ;
   while(towrite > 0) {
@@ -1544,7 +1518,7 @@ int64_t RSF_Get_file(RSF_handle h, int64_t key, char *alias, uint32_t **meta, ui
 //   fprintf(stderr,"RSF_Get_file DEBUG : read %ld, written %ld \n", nread, nwritten) ;
   close(fd) ;
   if(nread != nwritten) goto ERROR ;
-  fprintf(stderr,"RSF_Get_file INFO : successfully copied image of '%s' into '%s'\n", temp, filename) ;
+  Lib_Log(APP_LIBFST, APP_INFO, "%s: successfully copied image of '%s' into '%s'\n", __func__, temp, filename) ;
 
   *meta = vmeta ;       // address of directory metadata
   *meta_size = ml ;     // directory metadata length
@@ -1639,7 +1613,7 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
              (meta_size + extra_meta) * sizeof(uint32_t) +
              extra ;                               // for this record and segment overhead
     if(needed > fp->seg_max + fp->seg_base) {
-      fprintf(stderr,"RSF_Put_file ERROR : sparse segment OVERFLOW\n") ;
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: sparse segment OVERFLOW\n", __func__) ;
       // switch to a new segment
       RSF_Switch_sparse_segment(h, extra) ;
       // goto ERROR ;
@@ -1652,8 +1626,8 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
   sor.ubc = unused << 3 ;                     // unused bits in data part of record
   sor.dul = 1 ;                               // record contents is bytes (endianness management)
   RSF_64_to_32(sor.rl, record_size) ;
-  fprintf(stderr,"RSF_Put_file DEBUG : name = '%s', size = %ld(%ld), vdir_meta = %d, extra_meta = %d, meta_size = %d, record_size = %ld\n", 
-        filename, file_size0, file_size2, vdir_meta, extra_meta, meta_size, record_size);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: name = '%s', size = %ld(%ld), vdir_meta = %d, extra_meta = %d, meta_size = %d, record_size = %ld\n", 
+          __func__, filename, file_size0, file_size2, vdir_meta, extra_meta, meta_size, record_size);
   nc = write(fp->fd, &sor, sizeof(start_of_record)) ;
 
   meta0 = RT_FILE + (RT_FILE_CLASS << 8) ;          // record type and class
@@ -1674,7 +1648,8 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
   }
   if(nwritten < file_size2){
     nc = write(fp->fd, copy_buf, file_size2 - nwritten) ;  // pad
-    fprintf(stderr,"RSF_Put_file DEBUG : read %ld bytes, wrote %ld bytes, padded with %ld bytes\n", nread, nwritten, file_size2 - nwritten) ;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: read %ld bytes, wrote %ld bytes, padded with %ld bytes\n",
+            __func__, nread, nwritten, file_size2 - nwritten) ;
   }
 
   eor.rt = RT_FILE ;
@@ -1737,14 +1712,14 @@ RSF_record_info RSF_Get_record_info_by_index(
 
   const int32_t fslot = RSF_Valid_file(fp);
   if (fslot == 0) {
-    fprintf(stderr, "RSF_Get_record_info ERROR: invalid file pointer\n");
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid file pointer\n", __func__);
     return info0;
   }
 
   if (index >= fp->vdir_used) {
-    fprintf(stderr, "RSF_Get_record_info ERROR: that record index does not exist (%d), "
-                    "there are only %d available records\n",
-            index, fp->vdir_used);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: that record index does not exist (%d), "
+            "there are only %d available records\n",
+            __func__, index, fp->vdir_used);
     return info0;
   }
 
@@ -1791,7 +1766,7 @@ RSF_record_info RSF_Get_record_info(
   const int32_t fslot = RSF_Valid_file(fp);
   const int32_t slot  = key >> 32 ;
   if (slot != fslot) {
-    fprintf(stderr,"RSF_Get_record_info ERROR: inconsistent file slot\n");
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot\n", __func__);
     return info0;
   }
 
@@ -1917,7 +1892,7 @@ RSF_record *RSF_Get_record(RSF_handle h, int64_t key){
 
   return record ;
 ERROR:
-  if(errmsg) fprintf(stderr,"RSF_Get_record ERROR, %s\n",errmsg);
+  if(errmsg) Lib_Log(APP_LIBFST, APP_ERROR, "%s: %s\n", __func__, errmsg);
   if(record) free(record) ;
   return NULL ;
 }
@@ -1965,16 +1940,16 @@ static int32_t RSF_File_lock(RSF_File *fp, int lock){
     status = fcntl(fp->fd, F_SETLK, &file_lock) ;    // do not wait
     while ( status != 0) {
       status = fcntl(fp->fd, F_GETLK, &file_lock) ;  // find which process holds the lock
-      fprintf(stderr,"RSF_File_lock DEBUG : %d owned by pid = %d\n", getpid(), file_lock.l_pid) ;
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %d owned by pid = %d\n", __func__, getpid(), file_lock.l_pid) ;
       usleep(5000) ;                             // wait 1 millisecond
       status = fcntl(fp->fd, F_SETLK, &file_lock) ;  // try again
     }
-    fprintf(stderr,"RSF_File_lock DEBUG : locked by pid %d\n", getpid());
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: locked by pid %d\n", __func__, getpid());
 
   }else{                                         // UNLOCK file
     file_lock.l_type = F_UNLCK ;                 // release lock
     status = fcntl(fp->fd, F_SETLK, &file_lock) ;
-    fprintf(stderr,"RSF_File_lock DEBUG : released by pid %d\n", getpid());
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: released by pid %d\n", __func__, getpid());
   }
   return status ;                                // 0 if successful, -1 in case of error
 }
@@ -2000,7 +1975,7 @@ static int RSF_Lock_for_write(
 
   if (num_bytes_read == 0) { // File does not exist yet
     // Create an empty first segment
-    fprintf(stderr, "RSF_Lock_for_write: Creating a new, empty segment\n");
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: Creating a new, empty segment\n", __func__);
 
     for (int i = 0; i < 4; i++) { // Set application code
       first_sos.sig1[4+i] = fp->appl_code[i];
@@ -2022,12 +1997,12 @@ static int RSF_Lock_for_write(
   else {
     // Check if anyone else is writing in this file
     if (first_sos.head.rlm == RSF_EXCLUSIVE_WRITE) {
-      fprintf(stderr, "RSF_Lock_for_write: WARNING, file %s is already open for exclusive write\n", fp->name);
+      Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write\n", __func__, fp->name);
       goto RETURN;
     }
     else if (first_sos.head.rlm > 0 && fp->seg_max_hint <= 0) {
-      fprintf(stderr, "RSF_Lock_for_write: WARNING, file %s is already open for shared write. "
-              "Cannot lock it for exclusive write\n", fp->name);
+      Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for shared write. "
+              "Cannot lock it for exclusive write\n", __func__, fp->name);
       goto RETURN;
     }
 
@@ -2046,7 +2021,7 @@ static int RSF_Lock_for_write(
 
   lseek(fp->fd, 0, SEEK_SET);
   return_value = 0;
-  fprintf(stderr, "RSF_Lock_for_write: DEBUG: Successfully locked file %s for writing\n", fp->name);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Successfully locked file %s for writing\n", __func__, fp->name);
 
 RETURN:
   RSF_File_lock(fp, 0) ;
@@ -2075,7 +2050,7 @@ static int32_t RSF_Ensure_new_segment(
   // If mode is RSF_RW, we know that this process has already marked the file as being open and reserved
   // for writing, so that flag is the only check needed to go on with creating the new segment
   if ((fp->mode & RSF_RW) != RSF_RW) {
-    fprintf(stderr, "RSF_Ensure_new_segment ERROR: File is not open in write mode\n");
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is not open in write mode\n", __func__);
     return -1;
   }
 
@@ -2098,7 +2073,7 @@ static int32_t RSF_Ensure_new_segment(
 
   // Check that last EOS (high part) looks valid
   if(RSF_Rl_eosh(last_eos.h) == 0) {
-    fprintf(stderr, "RSF_New_empty_segment: ERROR, bad end of segment in file\n");
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: bad end of segment in file\n", __func__);
     goto RETURN ;
   }
 
@@ -2156,8 +2131,8 @@ static int32_t RSF_Ensure_new_segment(
 
   fp->seg_base   = new_segment_start ;                                     // base offset of active segment
   fp->next_write = new_segment_start + sizeof(start_of_segment) ;
-  fprintf(stderr,"RSF_New_empty_segment DEBUG : %s EOF at %lx\n",
-          (fp->seg_max_hint > 0) ? "sparse" : "compact", lseek(fp->fd, 0L, SEEK_END)) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %s EOF at %lx\n",
+          __func__, (fp->seg_max_hint > 0) ? "sparse" : "compact", lseek(fp->fd, 0L, SEEK_END)) ;
   fp->current_pos = lseek(fp->fd, fp->next_write, SEEK_SET) ;
   fp->last_op = OP_WRITE ;
 
@@ -2267,7 +2242,7 @@ RSF_handle RSF_Open_file(
     close(fp->fd) ;
     goto ERROR ;  // invalid SOS (too short)
   }
-  fprintf(stderr, "RSF_Open_file, SOS:\n");
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: SOS:\n", __func__);
   print_start_of_segment(&fp->sos0);
 
   fp->dir_meta = fp->sos0.head.rlmd ;
@@ -2279,7 +2254,8 @@ RSF_handle RSF_Open_file(
   if( check_application_code(fp, &fp->sos0) < 0 ) goto ERROR ;
 
   fp->slot = RSF_Set_file_slot(fp) ;        // insert into file table
-  fprintf(stderr,"RSF_Open_file DEBUG : %s mode, slot %d, reading directory\n", open_mode_to_str(fp->mode), fp->slot);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %s mode, slot %d, reading directory\n",
+          __func__, open_mode_to_str(fp->mode), fp->slot);
   if( RSF_Read_directory(fp) < 0 ){         // read directory from all segments
     RSF_Purge_file_slot(fp) ;               // remove from file table in case of error
     goto ERROR ;
@@ -2295,7 +2271,7 @@ RSF_handle RSF_Open_file(
   return handle ;
 
 ERROR:
-  fprintf(stderr,"RSF_Open_file ERROR : '%s' %s\n", fname, errmsg);
+  Lib_Log(APP_LIBFST, APP_ERROR, "%s: '%s' %s\n", __func__, fname, errmsg);
   if(fp != NULL) {
     if(fp->name != NULL) free(fp->name) ;  // free allocated string for file name
     free(fp) ;                             // free allocated structure
@@ -2328,7 +2304,7 @@ int32_t RSF_Close_compact_segment(RSF_handle h){
       nc = write(fp->fd, &sos, sizeof(start_of_segment)) ;      // nullify original start_of_segment
       fp->seg_base = 0 ;                                        // segment 0 will become the only segment in file
       fp->dir_read = 0 ;                                        // all directory entries will be written
-      fprintf(stderr,"RSF_Close_compact_segment DEBUG : fusing all segments into one\n") ;
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: fusing all segments into one\n", __func__) ;
     }
     return 1 ;   // NO ERROR
   }
@@ -2472,7 +2448,7 @@ int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size){
   sparse_size = sparse_top - sparse_start ;
   fp->seg_max = sparse_size ;                                        // actual segment size
   rl_sparse = sparse_size - sizeof(start_of_segment) ;               // end of sparse segment record length
-  fprintf(stderr,"RSF_Switch_sparse_segment DEBUG: sparse segment size = %ld\n",sparse_size) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: sparse segment size = %ld\n", __func__, sparse_size) ;
 
   // new sparse segment SOS    ( from RSF_New_empty_segment)
   // sos2.meta_dim = fp->meta_dim ;
@@ -2502,7 +2478,7 @@ int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size){
   RSF_64_to_32(eos2.h.tail.rl, rl_sparse) ;
   lseek(fp->fd, sparse_start + sparse_size - sizeof(end_of_segment_hi), SEEK_SET) ;
   nc = write(fp->fd, &eos2.h, sizeof(end_of_segment_hi)) ;
-  fprintf(stderr,"RSF_Switch DEBUG : sparse EOF at %8.8lx\n", sparse_start + sparse_size) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: sparse EOF at %8.8lx\n", __func__, sparse_start + sparse_size) ;
   fp->current_pos = sparse_top ;
 
   RSF_File_lock(fp, 0) ;    // unlock file
@@ -2544,7 +2520,7 @@ int32_t RSF_Close_file(RSF_handle h){
   // fprintf(stderr,"RSF_Close_file DEBUG : beginning of close ");
 
   if ((fp->mode & RSF_RW) == RSF_RW && fp->next_write < 0) {
-    fprintf(stderr, "RSF_Close_file WARNING: Closing a file that was opened in write mode, but nothing was written!\n");
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Closing a file that was opened in write mode, but nothing was written!\n", __func__);
     goto RESET_WRITE_FLAG;
   }
 
@@ -2555,7 +2531,7 @@ int32_t RSF_Close_file(RSF_handle h){
     // fp->current_pos = lseek(fp->fd, fp->next_write , SEEK_SET) ;  // reset position of write pointer
     fp->seg_base = 0 ;                                        // segment 0 will become the only segment in file
     fp->dir_read = 0 ;                                        // all directory entries will be written
-    fprintf(stderr,"RSF_Close_file DEBUG : fusing segments into one\n") ;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: fusing segments into one\n", __func__) ;
   }
 
   offset_vdir = fp->next_write - fp->seg_base ;                    // vdir offset into segment
@@ -2586,8 +2562,8 @@ int32_t RSF_Close_file(RSF_handle h){
   nc = write(fp->fd, &eos, sizeof(end_of_segment)) ;    // write end of compact segment
   sparse_start = lseek(fp->fd, 0L, SEEK_CUR) ;
 
-  fprintf(stderr,"RSF_Close_file DEBUG : '%s' EOS, rt = %d, zr = %d, rl = %8.8x %8.8x, rlm = %d\n", 
-          fp->name, eos.h.tail.rt, eos.h.tail.zr, eos.h.tail.rl[0], eos.h.tail.rl[1], eos.h.tail.rlm);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: '%s' EOS, rt = %d, zr = %d, rl = %8.8x %8.8x, rlm = %d\n", 
+          __func__, fp->name, eos.h.tail.rt, eos.h.tail.zr, eos.h.tail.rl[0], eos.h.tail.rl[1], eos.h.tail.rlm);
   // fprintf(stderr,"RSF_Close_file DEBUG : middle of close, segmax = %ld, sparse_start = %ld, sparse_top = %ld\n",fp->seg_max, sparse_start, sparse_top);
   // system("ls -l demo0.rsf");
 
@@ -2648,7 +2624,7 @@ RESET_WRITE_FLAG:
     fp->sos0.head.rlm = fp->sos0.head.rlm -1 ;
   }
 
-  fprintf(stderr,"RSF_Close_file DEBUG : rewriting segment 0 header, rlm = %d\n", fp->sos0.head.rlm);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %d\n", __func__, fp->sos0.head.rlm);
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = write(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;  // rewrite start of segment 0
   print_start_of_segment(&fp->sos0);
@@ -2950,7 +2926,7 @@ void RSF_Dump(char *name, int verbose){
 END :
   // fprintf(stderr,"DEBUG: DUMP: EOF at %lx\n", eof) ;
   close(fd) ;
-  fprintf(stderr,"RSF_Dump DEBUG: file '%s' closed, fd = %d, EOF = %lx\n", name, fd, eof) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file '%s' closed, fd = %d, EOF = %lx\n", __func__, name, fd, eof) ;
 }
 
 //! \return File slot of given file handle
@@ -2960,16 +2936,18 @@ int32_t RSF_File_slot(RSF_handle h) {
 }
 
 void print_start_of_record(start_of_record* sor) {
-  fprintf(stderr, "type %s, rec meta length %d, zr %x, length %d, dir meta length %d, unused bits %d, elem length %d\n",
+  Lib_Log(APP_LIBFST, APP_DEBUG,
+          "type %s, rec meta length %d, zr %x, length %d, dir meta length %d, unused bits %d, elem length %d\n",
           rt_to_str(sor->rt), sor->rlm, sor->zr, RSF_32_to_64(sor->rl), sor->rlmd, sor->ubc, sor->dul);
 }
 
 void print_start_of_segment(start_of_segment* sos) {
-  fprintf(stderr, "head: "); print_start_of_record(&sos->head);
+  Lib_Log(APP_LIBFST, APP_DEBUG, "head: "); print_start_of_record(&sos->head);
   unsigned char marker[9];
   strncpy(marker, sos->sig1, 8);
   marker[8] = '\0';
-  fprintf(stderr, "sig1 %s, sign %x, size (exc) %lu, size (inc) %lu, dir record offset %lu, dir record size %lu\n",
+  Lib_Log(APP_LIBFST, APP_DEBUG,
+         "sig1 %s, sign %x, size (exc) %lu, size (inc) %lu, dir record offset %lu, dir record size %lu\n",
          marker, sos->sign, RSF_32_to_64(sos->seg), RSF_32_to_64(sos->sseg), RSF_32_to_64(sos->vdir),
          RSF_32_to_64(sos->vdirs));
 }
