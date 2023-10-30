@@ -1,15 +1,15 @@
 !!!s/r Shell - a general shell to support the pre-extension interface
 !subroutine RoutineWithOldInterface  &
-                      (numInterpSets, srcNumLevels, destNumLevels, &
-                       src_ijDim, dst_ijDim, &
+                      ! (numInterpSets, srcNumLevels, destNumLevels, &
+                      !  src_ijDim, dst_ijDim, &
 
-                       vLevelSource, stateSource, stateDerivSource, &
+                      !  vLevelSource, stateSource, stateDerivSource, &
 
-                       posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+                      !  posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
 
-                       extrapEnableDown, extrapEnableUp, &
-                       extrapGuideDown, extrapGuideUp &
-                      )
+                      !  extrapEnableDown, extrapEnableUp, &
+                      !  extrapGuideDown, extrapGuideUp &
+                      ! )
 !
 !AUTHOR
 !     J.W. Blezius OCT 2003 support the old interface
@@ -62,4 +62,4 @@
                  ExtArraysIn, ExtArraysOut &
                 )
 
-end subroutine
+! end subroutine
