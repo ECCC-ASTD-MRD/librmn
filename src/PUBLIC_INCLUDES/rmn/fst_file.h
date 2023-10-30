@@ -29,5 +29,6 @@ fst_file* fst23_open(const char* file_name, const char* options);
 int32_t fst23_close(fst_file* file);
 int32_t fst23_write(fst_file* file, const fst_record* record);
 fst_record fst23_find_record(fst_file* file, const fst_record* criteria);
+int32_t fst23_get_iun(fst_file* file);
 
 #endif // RMN_FST_FILE_H__

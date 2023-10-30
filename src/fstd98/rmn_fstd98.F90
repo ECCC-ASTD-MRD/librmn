@@ -28,14 +28,12 @@
 !
 module rmn_fstd98
   use rmn_common
-  use rmn_fst_record
   implicit none
 #define C_INTERFACE_ONLY
 #include <fstd98/fstd98_interface.hf>
 
   type :: fstd98
     integer     :: iun = -1                  ! Fortran unit number
-    type(C_PTR) :: rsf_struct = C_NULL_PTR   ! pointer to RSF file control structure
   contains
 
     procedure, PASS(this) :: ckp

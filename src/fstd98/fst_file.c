@@ -8,8 +8,17 @@
 #include "rmn/fnom.h"
 #include "xdf98.h"
 
+//! Verify that the file pointer is valid and the file is open
+//! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst_file_is_open(const fst_file* file) {
     return (file != NULL && file->type != FST_NONE && file->file_index >= 0 && file->iun != 0);
+}
+
+//! To be called from Fortran
+//! \return The iun of the input file struct. -1 if NULL pointer
+int32_t fst23_get_iun(fst_file* file) {
+    if (file != NULL) return file->iun;
+    return -1;
 }
 
 //! Open a standard file (FST). Will create it if it does not already exist
@@ -66,6 +75,7 @@ int32_t fst23_close(fst_file* file) {
 //! Write the given record into the given standard file
 //! \return 0 if everything was a success, a negative error code otherwise
 int32_t fst23_write(fst_file* file, const fst_record* record) {
+    if (!fst_file_is_open(file)) return ERR_NO_FILE;
     if (!fst_record_is_valid(record)) return ERR_BAD_INIT;
 
     char typvar[TYPVAR_LEN];
