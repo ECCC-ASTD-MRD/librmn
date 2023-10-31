@@ -86,6 +86,7 @@ static const fst_record default_fst_record = (fst_record){
 
 
 int32_t fst_record_is_valid(const fst_record* record);
+int32_t fst_record_validate_params(const fst_record* record);
 void fst_record_print(const fst_record* record);
 
 #else

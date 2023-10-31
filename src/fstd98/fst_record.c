@@ -17,6 +17,24 @@ int32_t fst_record_is_valid(const fst_record* record) {
     return 1;
 }
 
+int32_t fst_record_validate_params(const fst_record* record) {
+    VALID(record->ni, 1, NI_MAX, "ni")
+    VALID(record->nj, 1, NJ_MAX, "nj")
+    VALID(record->nk, 1, NK_MAX, "nk")
+    VALID(record->deet, 0, DEET_MAX, "deet")
+    VALID(record->npas, 0, NPAS_MAX, "npas")
+    // VALID(record->nbits, 1, NBITS_MAX, "nbits")
+    VALID(record->ig1, 0, IG1_MAX, "ig1")
+    VALID(record->ig2, 0, IG2_MAX, "ig2")
+    VALID(record->ig3, 0, IG3_MAX, "ig3")
+    VALID(record->ig4, 0, IG4_MAX, "ig4")
+    VALID(record->ip1, 0, IP1_MAX, "ip1")
+    VALID(record->ip2, 0, IP2_MAX, "ip2")
+    VALID(record->ip3, 0, IP3_MAX, "ip3")
+
+    return 0;
+}
+
 void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, stdf_dir_keys** mask) {
     *criteria = (stdf_dir_keys *)calloc(1, sizeof(stdf_dir_keys));
     *mask     = (stdf_dir_keys *)calloc(1, sizeof(stdf_dir_keys));
