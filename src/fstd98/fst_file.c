@@ -8,7 +8,7 @@
 #include "rmn/fnom.h"
 #include "xdf98.h"
 
-int32_t fst_file_is_open(const fst_file* file) {
+int32_t fst23_file_is_open(const fst_file* file) {
     return (file != NULL && file->type != FST_NONE && file->file_index >= 0 && file->iun != 0);
 }
 
@@ -65,33 +65,33 @@ int32_t fst23_close(fst_file* file) {
 
 //! Write the given record into the given standard file
 //! \return 0 if everything was a success, a negative error code otherwise
-int32_t fst23_write(fst_file* file, const fst_record* record) {
-    if (!fst_record_is_valid(record)) return ERR_BAD_INIT;
+int32_t fst23_write(fst_file* file, const fst_record* record,int rewrit) {
+    if (!fst23_record_is_valid(record)) return ERR_BAD_INIT;
 
-    char typvar[TYPVAR_LEN];
-    char nomvar[NOMVAR_LEN];
-    char etiket[ETIKET_LEN];
-    char grtyp[GTYP_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char grtyp[FST_GTYP_LEN];
 
-    strncpy(typvar, record->typvar, TYPVAR_LEN);
-    strncpy(nomvar, record->nomvar, NOMVAR_LEN);
-    strncpy(etiket, record->etiket, ETIKET_LEN);
-    strncpy(grtyp, record->grtyp, GTYP_LEN);
+    strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
+    strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
+    strncpy(etiket, record->etiket, FST_ETIKET_LEN);
+    strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
 
     return c_fstecr(
         record->data, NULL, record->npak, file->iun, record->date, record->deet, record->npas,
         record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-        typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
+        typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, rewrit);
 }
 
 //! Look for a record in the given file matching certain criteria
 //! The criteria are given as a fst_record struct, with the value of -1 acting as a wildcard.
 //! For the character-type variables, the wildcard is a space
-fst_record fst23_find_record(fst_file* file, const fst_record* criteria) {
+fst_record fst23_find(fst_file* file, const fst_record* criteria) {
     fst_record result = default_fst_record;
 
-    if (!fst_file_is_open(file)) return result;
-    if (!fst_record_is_valid(criteria)) return result;
+    if (!fst23_file_is_open(file)) return result;
+    if (!fst23_record_is_valid(criteria)) return result;
 
     // Pack criteria into format used by both backends
     stdf_dir_keys* search_criteria;

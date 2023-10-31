@@ -43,10 +43,10 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
-    char typvar[ALIGN_TO_4(TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
-    char grtyp [ALIGN_TO_4(GTYP_LEN + 1)];   //!< Type of geographical projection
-    char nomvar[ALIGN_TO_4(NOMVAR_LEN + 1)]; //!< Variable name
-    char etiket[ALIGN_TO_4(ETIKET_LEN + 1)]; //!< Label
+    char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
+    char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
+    char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
+    char etiket[ALIGN_TO_4(FST_ETIKET_LEN + 1)]; //!< Label
 
 } fst_record;
 
@@ -86,7 +86,7 @@ static const fst_record default_fst_record = (fst_record){
     };
 
 
-int32_t fst_record_is_valid(const fst_record* record);
-void fst_record_print(const fst_record* record);
+int32_t fst23_record_is_valid(const fst_record* record);
+void    fst23_record_print(const fst_record* record);
 
 #endif // RMN_FST_RECORD_H__

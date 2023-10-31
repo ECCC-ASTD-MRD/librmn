@@ -5089,13 +5089,13 @@ int32_t f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
                         int32_t *liste, int32_t *f_infon, int32_t *f_nmax,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3)
 {
-    char etiket[ETIKET_LEN];
-    char typvar[TYPVAR_LEN];
-    char nomvar[NOMVAR_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
 
-    str_cp_init(etiket, ETIKET_LEN, f_etiket, ll1);
-    str_cp_init(typvar, TYPVAR_LEN, f_typvar, ll2);
-    str_cp_init(nomvar, NOMVAR_LEN, f_nomvar, ll3);
+    str_cp_init(etiket, FST_ETIKET_LEN, f_etiket, ll1);
+    str_cp_init(typvar, FST_TYPVAR_LEN, f_typvar, ll2);
+    str_cp_init(nomvar, FST_NOMVAR_LEN, f_nomvar, ll3);
 
     return (int32_t) c_fstinl(*f_iun, f_ni, f_nj, f_nk, *f_datev, etiket, *f_ip1, *f_ip2, *f_ip3, typvar, nomvar,
                  (uint32_t *)liste, f_infon, *f_nmax);

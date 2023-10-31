@@ -4,12 +4,12 @@
 #define FSTDSZ_H
 
 //! Size/length of the eiket attribute (Includes space for the string terminaison)
-#define ETIKET_LEN 13
+#define FST_ETIKET_LEN 64
 //! Size/length of the nomvar attribute (Includes space for the string terminaison)
-#define NOMVAR_LEN 5
+#define FST_NOMVAR_LEN 128
 //! Size/length of the typvar attribute (Includes space for the string terminaison)
-#define TYPVAR_LEN 3
+#define FST_TYPVAR_LEN 64
 //! Size/length of the gtyp attribute (Includes space for the string terminaison)
-#define GTYP_LEN 2
+#define FST_GTYP_LEN 2
 
 #endif

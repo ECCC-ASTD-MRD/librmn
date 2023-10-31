@@ -102,10 +102,10 @@ int main(int argc, char** argv) {
     }
 
     int dateo, deet, npas, nbits, datyp, ip1, ip2, ip3;
-    char typvar[TYPVAR_LEN];
-    char nomvar[NOMVAR_LEN];
-    char etiket[ETIKET_LEN];
-    char grtyp[GTYP_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char grtyp[FST_GTYP_LEN];
     int ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3;
     int res = c_fstprm(handle,
         &dateo, &deet, &npas, &ni, &nj, &nk, &nbits, &datyp, &ip1, &ip2, &ip3,

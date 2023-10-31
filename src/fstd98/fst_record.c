@@ -2,7 +2,7 @@
 
 #include <App.h>
 
-int32_t fst_record_is_valid(const fst_record* record) {
+int32_t fst23_record_is_valid(const fst_record* record) {
     if (record == NULL) {
         Lib_Log(APP_ERROR, APP_LIBFST, "%s: Record pointer is NULL\n", __func__);
         return 0;
@@ -25,7 +25,7 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, st
     stdf_dir_keys* new_mask = *mask;
 
     // Check for error
-    if (!fst_record_is_valid(record) || *criteria == NULL || *mask == NULL) {
+    if (!fst23_record_is_valid(record) || *criteria == NULL || *mask == NULL) {
         *criteria = NULL;
         *mask = NULL;
         return;
@@ -131,10 +131,10 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
     result.deet = keys->deet;
     result.npas = keys->npas;
 
-    strncpy(result.nomvar, cracked.nomvar, NOMVAR_LEN);
-    strncpy(result.typvar, cracked.typvar, TYPVAR_LEN);
-    strncpy(result.etiket, cracked.etiket, ETIKET_LEN);
-    strncpy(result.grtyp,  cracked.gtyp,   GTYP_LEN);
+    strncpy(result.nomvar, cracked.nomvar, FST_NOMVAR_LEN);
+    strncpy(result.typvar, cracked.typvar, FST_TYPVAR_LEN);
+    strncpy(result.etiket, cracked.etiket, FST_ETIKET_LEN);
+    strncpy(result.grtyp,  cracked.gtyp,   FST_GTYP_LEN);
 
     result.ip1 = keys->ip1;
     result.ip2 = keys->ip2;
@@ -148,7 +148,7 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
     return result;
 }
 
-void fst_record_print(const fst_record* record) {
+void fst23_record_print(const fst_record* record) {
     Lib_Log(APP_LIBFST, APP_INFO,
         "\n"
         "  Version: %ld\n"

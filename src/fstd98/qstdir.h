@@ -493,10 +493,10 @@ typedef struct {
 
 //! Cracked record parameter values
 typedef struct {
-    char etiket[ETIKET_LEN];
-    char nomvar[NOMVAR_LEN];
-    char typvar[TYPVAR_LEN];
-    char gtyp[GTYP_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char nomvar[FST_NOMVAR_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char gtyp[FST_GTYP_LEN];
     char extra;
     uint32_t lng;
     uint32_t addr;
@@ -508,10 +508,10 @@ typedef struct {
 
 //! Special cracked record parameters that need to be reassembled
 typedef struct {
-    char etiket[ETIKET_LEN];
-    char nomvar[NOMVAR_LEN];
-    char typvar[TYPVAR_LEN];
-    char gtyp[GTYP_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char nomvar[FST_NOMVAR_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char gtyp[FST_GTYP_LEN];
     int32_t date_stamp;
     int32_t aammjj;
     int32_t hhmmss;

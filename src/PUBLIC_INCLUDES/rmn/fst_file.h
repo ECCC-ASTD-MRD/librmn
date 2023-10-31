@@ -24,10 +24,10 @@ static fst_file default_fst_file = (fst_file) {
     .type       = FST_NONE
 };
 
-int32_t fst_file_is_open(const fst_file* file);
-fst_file* fst23_open(const char* file_name, const char* options);
-int32_t fst23_close(fst_file* file);
-int32_t fst23_write(fst_file* file, const fst_record* record);
-fst_record fst23_find_record(fst_file* file, const fst_record* criteria);
+int32_t    fst23_file_is_open(const fst_file* file);
+fst_file*  fst23_open(const char* file_name, const char* options);
+int32_t    fst23_close(fst_file* file);
+int32_t    fst23_write(fst_file* file, const fst_record* record, int rewrite);
+fst_record fst23_find(fst_file* file, const fst_record* criteria);
 
 #endif // RMN_FST_FILE_H__
