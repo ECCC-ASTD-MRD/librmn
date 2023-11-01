@@ -771,6 +771,27 @@ fst_record fst23_read_record(fst_file* file, const int64_t key) {
                 result.handle = key;
                 break;
             }
+        case FST_XDF: {
+                const int32_t key32 = key & 0xffffffff;
+                stdf_dir_keys stdf_entry;
+                uint32_t * pkeys = (uint32_t *) &stdf_entry;
+                pkeys += W64TOWD(1);
+
+                {
+                    int addr, lng, idtyp;
+                    int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
+                    if (ier < 0) return result;
+                }
+
+                int ni = stdf_entry.ni;
+                int nj = stdf_entry.nj;
+                int nk = stdf_entry.nk;
+
+                result.data = malloc(ni * nj * nk * 16 + 500); //TODO allocate the right amount
+                c_fstluk_xdf(result.data, key32, &ni, &nj, &nk);
+                result.handle = key;
+                break;
+            }
         default:
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
             break;

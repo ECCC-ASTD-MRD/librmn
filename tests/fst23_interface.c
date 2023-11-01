@@ -119,8 +119,8 @@ int main(void) {
     App_Log(APP_INFO, "Testing RSF\n");
     if (test_fst23_interface(1) != 0) return -1; // RSF files
 
-    // App_Log(APP_INFO, "Testing XDF\n");
-    // if (test_fst23_interface(0) != 0) return -1; // XDF files
+    App_Log(APP_INFO, "Testing XDF\n");
+    if (test_fst23_interface(0) != 0) return -1; // XDF files
 
     App_Log(APP_INFO, "Tests successful\n");
     return 0;
