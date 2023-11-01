@@ -5,10 +5,7 @@
 #include "fstd98_internal.h"
 
 static inline size_t strlen_up_to(const char* string, const size_t max_length) {
-    for (size_t i = 0; i < max_length; i++) {
-        if (string[i] == '\0') return i;
-    }
-    return max_length;
+    return Min(strlen(string), Max(max_length, 0));
 }
 
 //! Checks whether the given unit corresponds to an RSF file

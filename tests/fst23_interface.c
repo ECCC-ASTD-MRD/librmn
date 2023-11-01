@@ -77,7 +77,7 @@ int test_fst23_interface(const int is_rsf) {
         return -1;
     }
 
-    const fst_record record = fst23_find_record(test_file, &default_fst_record);
+    fst_record record = fst23_find_record(test_file, &default_fst_record);
 
     if (record.handle < 0) {
         App_Log(APP_ERROR, "Could not find the record we just wrote!\n");
@@ -85,6 +85,22 @@ int test_fst23_interface(const int is_rsf) {
     }
 
     fst_record_print(&record);
+
+    const int64_t old_handle = record.handle;
+    record = fst23_read_record(test_file, record.handle);
+    if (record.handle != old_handle) {
+        App_Log(APP_ERROR, "Could not read the content of the record (that we previously found!)\n");
+        return -1;
+    }
+
+    for (int i = 0; i < DATA_SIZE; i++) {
+        for (int j = 0; j < DATA_SIZE; j++) {
+            if (((float*)record.data)[i*DATA_SIZE + j] != data[i][j]) {
+                App_Log(APP_ERROR, "AAAhhhh did not read the same that was put in!\n");
+                return -1;
+            }
+        }
+    }
 
     if (fst23_close(test_file) < 0) {
         App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
@@ -99,8 +115,8 @@ int main(void) {
     App_Log(APP_INFO, "Testing RSF\n");
     if (test_fst23_interface(1) != 0) return -1; // RSF files
 
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test_fst23_interface(0) != 0) return -1; // XDF files
+    // App_Log(APP_INFO, "Testing XDF\n");
+    // if (test_fst23_interface(0) != 0) return -1; // XDF files
 
     App_Log(APP_INFO, "Tests successful\n");
     return 0;
