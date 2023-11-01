@@ -265,7 +265,11 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     const size_t num_word32 = W64TOWD(num_word64);
     const size_t num_data_bytes = num_word32 * 4;
     const size_t dir_metadata_size = (sizeof(stdf_dir_keys) + 3) / 4; // In 32-bit units
-    RSF_record* new_record = RSF_New_record(file_handle, dir_metadata_size, dir_metadata_size, num_data_bytes, NULL, 0);
+
+    //TODO new metadata
+    const size_t rec_metadata_size = dir_metadata_size + (record->metadata ? sizeof(tmp_meta_struct) : 0);
+
+    RSF_record* new_record = RSF_New_record(file_handle, rec_metadata_size, dir_metadata_size, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
         return(ERR_MEM_FULL);
@@ -285,7 +289,13 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     strncpy(grtyp, record->grtyp, strlen_up_to(record->grtyp, GTYP_LEN - 1));
 
     /* set stdf_entry to address of buffer->data for building keys */
-    stdf_dir_keys * stdf_entry = (stdf_dir_keys *) new_record->meta;
+    stdf_dir_keys* stdf_entry = (stdf_dir_keys *) new_record->meta;
+
+    //TODO Use actual new Meta
+    if (record->metadata) {
+        tmp_meta_struct* new_meta_entry = (tmp_meta_struct *)(stdf_entry + 1); // Just after directory metadata
+        *new_meta_entry = *record->metadata; // Copy metadata into RSF record struct
+    }
     
     stdf_entry->deleted = 0; // Unused by RSF
     stdf_entry->select = 0;  // Unused by RSF

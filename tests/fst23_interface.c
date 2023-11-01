@@ -57,6 +57,10 @@ int test_fst23_interface(const int is_rsf) {
         record.ig4   = 0;
         record.datyp = FSTD_TYPE_IEEE;
 
+        tmp_meta_struct meta;
+        meta.some_metadata = 12345;
+        record.metadata = &meta;
+
         if (fst23_write(test_file, &record) < 0) {
             App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
             return -1;

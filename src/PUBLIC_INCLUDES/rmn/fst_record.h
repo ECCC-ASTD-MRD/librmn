@@ -13,13 +13,18 @@
 // What belongs to the record? To the writing function?
 // Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
 
-// This struct should only be modified by ADDING member at the end
+//TODO Replace with actual Meta package!
+typedef struct {
+    int64_t some_metadata;
+} tmp_meta_struct;
+
+// This struct should only be modified by ADDING member at the end (once we're stable)
 typedef struct {
     int64_t version;
 
     // 64-bit elements first
     void*   data;     //!< Record data
-    void*   metadata; //!< Record metadata.         TODO JSON object?
+    tmp_meta_struct*   metadata; //!< Record metadata.         TODO JSON object?
     int64_t date;     //!< Date timestamp
     int64_t handle;   //!< Handle to specific record (if stored in a file)
 
