@@ -1,18 +1,17 @@
 #ifndef RMN_FST_RECORD_H__
 #define RMN_FST_RECORD_H__
 
+#ifndef IN_FORTRAN_CODE
+
 #include <stdint.h>
 #include <stdlib.h>
 
 #include "rmn/fstdsz.h"
 
-// What belongs to the record? To the writing function?
-// Should data be compressed or not?
-// Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
-// Include NULL character in names? Yes
-
-
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
+
+// What belongs to the record? To the writing function?
+// Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
 
 // This struct should only be modified by ADDING member at the end
 typedef struct {
@@ -88,5 +87,43 @@ static const fst_record default_fst_record = (fst_record){
 
 int32_t fst23_record_is_valid(const fst_record* record);
 void    fst23_record_print(const fst_record* record);
+
+#else
+    type, bind(C) :: fst_record
+        integer(C_INT64_T) :: VERSION  = 128            ! Must be the number of bytes in the struct
+        type(C_PTR)        :: data     = C_NULL_PTR
+        type(C_PTR)        :: metadata = C_NULL_PTR
+        integer(C_INT64_T) :: date     = -1
+        integer(C_INT64_T) :: handle   = -1
+
+        integer(C_INT32_T) :: datyp = -1
+        integer(C_INT32_T) :: npak  = -1
+        integer(C_INT32_T) :: ni    = -1
+        integer(C_INT32_T) :: nj    = -1
+        integer(C_INT32_T) :: nk    = -1
+
+        integer(C_INT32_T) :: deet  = -1
+        integer(C_INT32_T) :: npas  = -1
+
+        integer(C_INT32_T) :: ip1   = -1
+        integer(C_INT32_T) :: ip2   = -1
+        integer(C_INT32_T) :: ip3   = -1
+
+        integer(C_INT32_T) :: ig1   = -1
+        integer(C_INT32_T) :: ig2   = -1
+        integer(C_INT32_T) :: ig3   = -1
+        integer(C_INT32_T) :: ig4   = -1
+
+        character(len=1), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
+        character(len=1), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]
+        character(len=1), dimension(8)  :: nomvar = [' ', ' ', ' ', ' ',        &
+                                                     c_null_char, c_null_char, c_null_char, c_null_char]
+        character(len=1), dimension(16) :: etiket = [' ', ' ', ' ', ' ',        &
+                                                     ' ', ' ', ' ', ' ',        &
+                                                     ' ', ' ', ' ', ' ',        &
+                                                     c_null_char, c_null_char, c_null_char, c_null_char]
+    end type fst_record
+
+#endif // IN_FORTRAN_CODE
 
 #endif // RMN_FST_RECORD_H__

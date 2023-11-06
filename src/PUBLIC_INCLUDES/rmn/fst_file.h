@@ -27,7 +27,8 @@ static fst_file default_fst_file = (fst_file) {
 int32_t    fst23_file_is_open(const fst_file* file);
 fst_file*  fst23_open(const char* file_name, const char* options);
 int32_t    fst23_close(fst_file* file);
-int32_t    fst23_write(fst_file* file, const fst_record* record, int rewrite);
+int32_t    fst23_write(fst_file* file, const fst_record* record,int rewrit);
 fst_record fst23_find(fst_file* file, const fst_record* criteria);
+int32_t    fst23_get_iun(fst_file* file);
 
 #endif // RMN_FST_FILE_H__

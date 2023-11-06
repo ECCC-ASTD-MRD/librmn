@@ -19,8 +19,6 @@ module rmn_fst_record
     implicit none
     private
 
-    type, public :: fst_record
-        private
-        type(C_PTR) :: p = C_NULL_PTR
-    end type fst_record
+#include "fst_record.hf"
+
 end module rmn_fst_record
