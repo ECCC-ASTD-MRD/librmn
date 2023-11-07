@@ -15,6 +15,7 @@ module rmn_fstd23
         procedure, pass :: open => fstd23_open
         procedure, pass :: is_open => fstd23_is_open
         procedure, pass :: close => fstd23_close
+        procedure, pass :: frm => fstd23_frm            ! Override frm from fstd98 to avoid issues
         final :: fstd23_final
     end type fstd23
 
@@ -27,7 +28,7 @@ contains
         character(len=:), allocatable :: c_options
 
         if (present(options)) then
-            c_options = options // achar(0)
+            c_options = trim(options) // achar(0)
         else
             c_options = 'RND+RSF+R/O' // achar(0)    ! Open a read-only RSF file by default
         end if
@@ -67,6 +68,14 @@ contains
             this % iun = -1
         end if
     end subroutine fstd23_close
+
+    function fstd23_frm(this) result(status)
+        implicit none
+        class(fstd23), intent(inout) :: this
+        integer(C_INT32_T) :: status
+        call this % close()
+        status = 0
+    end function fstd23_frm
 
     subroutine fstd23_final(this)
         implicit none

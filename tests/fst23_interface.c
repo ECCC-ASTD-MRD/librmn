@@ -57,6 +57,9 @@ int test_fst23_interface(const int is_rsf) {
         record.ig4   = 0;
         record.datyp = FSTD_TYPE_IEEE;
 
+        char *meta= "testing metadata";
+        record.metadata = meta;
+
         if (fst23_write(test_file, &record,FALSE) < 0) {
             App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
             return -1;
@@ -77,7 +80,7 @@ int test_fst23_interface(const int is_rsf) {
         return -1;
     }
 
-    const fst_record record = fst23_find(test_file, &default_fst_record);
+    fst_record record = fst23_find(test_file, &default_fst_record);
 
     if (record.handle < 0) {
         App_Log(APP_ERROR, "Could not find the record we just wrote!\n");
@@ -85,6 +88,22 @@ int test_fst23_interface(const int is_rsf) {
     }
 
     fst23_record_print(&record);
+
+    const int64_t old_handle = record.handle;
+    record = fst23_read_record(test_file, record.handle);
+    if (record.handle != old_handle) {
+        App_Log(APP_ERROR, "Could not read the content of the record (that we previously found!)\n");
+        return -1;
+    }
+
+    for (int i = 0; i < DATA_SIZE; i++) {
+        for (int j = 0; j < DATA_SIZE; j++) {
+            if (((float*)record.data)[i*DATA_SIZE + j] != data[i][j]) {
+                App_Log(APP_ERROR, "AAAhhhh did not read the same that was put in!\n");
+                return -1;
+            }
+        }
+    }
 
     if (fst23_close(test_file) < 0) {
         App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);

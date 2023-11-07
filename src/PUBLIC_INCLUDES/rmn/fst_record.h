@@ -13,13 +13,13 @@
 // What belongs to the record? To the writing function?
 // Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
 
-// This struct should only be modified by ADDING member at the end
+// This struct should only be modified by ADDING member at the end (once we're stable)
 typedef struct {
     int64_t version;
 
     // 64-bit elements first
     void*   data;     //!< Record data
-    void*   metadata; //!< Record metadata.         TODO JSON object?
+    char*   metadata; //!< Record metadata.         TODO JSON object?
     int64_t date;     //!< Date timestamp
     int64_t handle;   //!< Handle to specific record (if stored in a file)
 
@@ -86,6 +86,7 @@ static const fst_record default_fst_record = (fst_record){
 
 
 int32_t fst23_record_is_valid(const fst_record* record);
+int32_t fst23_record_validate_params(const fst_record* record);
 void    fst23_record_print(const fst_record* record);
 
 #else
