@@ -254,6 +254,6 @@ int  compact_rle(
         return totalPackedElementCount;
     } else {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%f: opCode (%d) is not defined\n",__func__,opCode);
-        return NULL;
+        return 0;
     }
 }
