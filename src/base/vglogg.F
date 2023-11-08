@@ -18,15 +18,33 @@
 * * Boston, MA 02111-1307, USA.
 * */
 *
+      SUBROUTINE VGLOGG(SPEED, PSI,CLAMDA, PHI,U,V,LI,LJ ,ROOTS)
+        implicit none
+        integer :: LI, LJ
+        REAL U(LI,LJ), V(LI,LJ), SPEED, PSI,CLAMDA, PHI, ROOTS(LJ)
+        call VGLOGG_0(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,ROOTS,0)
+        return
+      end
+
+      SUBROUTINE VWNHGG(SPEED, PSI,CLAMDA, PHI,U,V,LI,LJ ,ROOTS)
+        implicit none
+        integer :: LI, LJ
+        REAL U(LI,LJ), V(LI,LJ), SPEED, PSI,CLAMDA, PHI, ROOTS(LJ)
+        call VGLOGG_0(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,ROOTS,1)
+        return
+      end
+
 ***S/P VGLOGG - RETURN 2  SCALAR QUANTITIES FROM U AND V FIELD
 *             AT POINT CLAMDA (LONGITUDE) AND PHI(LATITUDE)
 *
-      SUBROUTINE VGLOGG(SPEED , PSI ,CLAMDA, PHI ,U,V,LI,LJ ,ROOTS)
+      SUBROUTINE VGLOGG_0(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,ROOTS,mode)
       REAL U(LI,LJ), V(LI,LJ)
+      integer :: mode
 *
 *AUTEUR   - M. VALIN  -  MODIFICATION DE VGLO
 *
 *REVISION 001  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*              M. VALIN      -  OCT 2023 elimination de entry
 *
 *LANGUAGE - FORTRAN
 *
@@ -99,17 +117,22 @@
 
 #include "cubic.cdk"
 #include "lagrange.cdk"
-       KASE = GLOBAL
-      NPOLY = LJ
-      SIGN0 = 1.0
-      GOTO 11
+      if(mode .eq. 0) then
+        KASE = GLOBAL
+        NPOLY = LJ
+        SIGN0 = 1.0
+        GOTO 11
+      endif
 *
 * HEMISPHERIC, WALL AT THE EQUATOR
 *
-      ENTRY VWNHGG(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,ROOTS)
-      KASE = NORTH
-      NPOLY = 2*LJ
-      SIGN0 = -1.0
+*     E N T R Y VWNHGG(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,ROOTS)
+      if(mode .ne. 0) then
+        KASE = NORTH
+        NPOLY = 2*LJ
+        SIGN0 = -1.0
+      endif
+
 11     LILJ = LI * LJ
 *
 *                   CHECK LIMIT OF PHI AND CLAMDA
