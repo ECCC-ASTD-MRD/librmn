@@ -90,7 +90,7 @@ int test_fst23_interface(const int is_rsf) {
     fst23_record_print(&record);
 
     const int64_t old_handle = record.handle;
-    record = fst23_read_record(test_file, record.handle);
+    record = fst23_read(test_file, record.handle);
     if (record.handle != old_handle) {
         App_Log(APP_ERROR, "Could not read the content of the record (that we previously found!)\n");
         return -1;

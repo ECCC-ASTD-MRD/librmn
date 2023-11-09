@@ -742,7 +742,7 @@ fst_record fst23_find(fst_file* file, const fst_record* criteria) {
     return result;
 }
 
-fst_record fst23_read_record(fst_file* file, const int64_t key) {
+fst_record fst23_read(fst_file* file, const int64_t key) {
     fst_record result = default_fst_record;
 
     if (!fst23_file_is_open(file)) return result;
