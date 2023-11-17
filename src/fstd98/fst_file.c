@@ -649,15 +649,14 @@ int32_t fst23_write(fst_file* file, const fst_record* record,int rewrit) {
     char etiket[FST_ETIKET_LEN];
     char grtyp[FST_GTYP_LEN];
 
-    strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
-    strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
-    strncpy(etiket, record->etiket, FST_ETIKET_LEN);
-    strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
-
     switch (file->type) {
         case FST_RSF:
             return fst23_write_rsf(file, record);
         case FST_XDF:
+            strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
+            strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
+            strncpy(etiket, record->etiket, FST_ETIKET_LEN);
+            strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
             return c_fstecr_xdf(
                 record->data, NULL, record->npak, file->iun, record->dateo, record->deet, record->npas,
                 record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
@@ -804,7 +803,86 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
     return result;
 }
 
-int64_t fst23_read_new(fst_file* file,fst_record* record) {
+//! Look for a record in the given file matching certain criteria
+//! The criteria are given as a fst_record struct, with the value of -1 acting as a wildcard.
+//! For the character-type variables, the wildcard is a space
+int32_t fst23_find_new(fst_file* file,fst_record* criteria) {
+
+    stdf_dir_keys* search_criteria=NULL;
+    stdf_dir_keys* search_mask=NULL;
+
+    if (!fst23_file_is_open(file)) {
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: File not openned\n",__func__);
+       return(FALSE);
+    }
+    if (!fst23_record_is_valid(criteria)) {
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Invalid criteria\n",__func__);        
+       return(FALSE);
+    }
+
+    if (record->handle<0) {
+        // Pack criteria into format used by both backends
+        make_search_criteria(criteria, &search_criteria, &search_mask);
+    }
+
+    int64_t key = -1;
+    const stdf_dir_keys* record_meta = NULL;
+
+    // Look for the record in the file, depending on backend
+    switch (file->type) {
+    case FST_RSF:
+        {
+            RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+            if (record->handle<0) {
+               fstd_open_files[file->file_index].search_start_key = 0;
+               fstd_open_files[file->file_index].search_criteria = *search_criteria;
+               fstd_open_files[file->file_index].search_mask = *search_mask;
+            }
+            key = find_next_record(file_handle, &fstd_open_files[file->file_index]);
+
+            if (key >= 0) {
+                const RSF_record_info record_info = RSF_Get_record_info(file_handle, key);
+                record_meta = (const stdf_dir_keys*)record_info.meta;
+            }
+        }
+        break;
+    case FST_XDF:
+        {
+            uint32_t* pkeys = (uint32_t *) search_criteria;
+            uint32_t* pmask = (uint32_t *) search_mask;
+
+            pkeys += W64TOWD(1);
+            pmask += W64TOWD(1);
+
+            key = c_xdfloc2(file->iun, 0, pkeys, 16, pmask);
+
+            if (key >= 0) {
+                int addr, lng, idtyp;
+                c_xdfprm(key, &addr, &lng, &idtyp, pkeys, 16);
+                record_meta = search_criteria;
+            }
+        }
+        break;
+    default:
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+        return(FALSE);
+        break;
+    } // end switch
+
+    if (key >= 0) {
+        // Got the record. Now unpack it into a more convenient format
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, file->iun, key);
+        criteria = record_from_dir_keys(record_meta);
+        criteria.handle = key;
+    }
+
+    if (search_criteria) free(search_criteria);
+    if (search_mask) free(search_mask);
+
+    return(TRUE);
+}
+
+int32_t fst23_read_new(fst_file* file,fst_record* record) {
 
     fst_record     result = default_fst_record;
     stdf_dir_keys* stdf_entry=NULL;
