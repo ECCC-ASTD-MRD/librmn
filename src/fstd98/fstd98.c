@@ -1138,7 +1138,7 @@ int c_fstecr_xdf(
         (ascii6(nomvar[1]) << 12) |
         (ascii6(nomvar[2]) <<  6) |
         (ascii6(nomvar[3]));
-    stdf_entry->pad4 = 0;
+    stdf_entry->dasiz = 0;
     stdf_entry->ip1 = ip1;
     stdf_entry->levtyp = 0;
     stdf_entry->ip2 = ip2;
@@ -1985,7 +1985,7 @@ int c_fstinfx_xdf(
     search_mask->pad1 = 0;
     search_mask->pad2 = 0;
     search_mask->pad3 = 0;
-    search_mask->pad4 = 0;
+    search_mask->dasiz = 0;
     search_mask->pad5 = 0;
     search_mask->pad6 = 0;
     search_mask->pad7 = 0;
@@ -3650,10 +3650,11 @@ int c_fstprm(
     int *extra3
 ) {
     const int32_t key_type = RSF_Key32_type(handle);
+    int dasiz;
 
     if (key_type == 1) {
         RSF_handle file_handle = RSF_Key32_to_handle(handle);
-        return c_fstprm_rsf(file_handle, handle, dateo, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, typvar,
+        return c_fstprm_rsf(file_handle, handle, dateo, deet, npas, ni, nj, nk, nbits, datyp, &dasiz, ip1, ip2, ip3, typvar,
                             nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3);
     }
     else if (key_type == 0) {
@@ -4053,7 +4054,7 @@ int c_fstvoi_xdf(
                 stdf_entry->nomvar =
                 (ascii6((seq_entry->nomvar >>  8) & 0xff) << 18) |
                 (ascii6((seq_entry->nomvar      ) & 0xff) << 12);
-                stdf_entry->pad4 = 0;
+                stdf_entry->dasiz = 0;
                 stdf_entry->ip1 = seq_entry->ip1;
                 stdf_entry->levtyp = 0;
                 stdf_entry->ip2 = seq_entry->ip2;

@@ -41,7 +41,7 @@ int test_fst23_interface(const int is_rsf) {
         record.ni   = DATA_SIZE;
         record.nj   = DATA_SIZE;
         record.nk   = 1;
-        record.date = 20220610;
+        record.dateo= 20220610;
         record.deet = 300;
         record.npas = 0;
         record.ip1  = 1;
@@ -55,7 +55,7 @@ int test_fst23_interface(const int is_rsf) {
         record.ig2   = 0;
         record.ig3   = 0;
         record.ig4   = 0;
-        record.datyp = FSTD_TYPE_IEEE;
+        record.datyp = FST_TYPE_IEEE;
 
         char *meta= "testing metadata";
         record.metadata = meta;

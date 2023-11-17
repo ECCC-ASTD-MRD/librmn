@@ -84,7 +84,7 @@ int c_fstmsq_rsf(const int iun, const int index_fnom, int *mip1, int *mip2, int 
                  const int getmode);
 int c_fstnbrv_rsf(const int index_fnom);
 int c_fstprm_rsf(RSF_handle file_handle, int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int *nk,
-                 int *nbits, int *datyp, int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket,
+                 int *nbits, int *datyp, int *dasiz, int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket,
                  char *grtyp, int *ig1, int *ig2, int *ig3, int *ig4,  int *swa, int *lng, int *dltf, int *ubc,
                  int *extra1, int *extra2, int *extra3);
 int c_fstsui_rsf(int iun, const int index_fnom, int *ni, int *nj, int *nk);

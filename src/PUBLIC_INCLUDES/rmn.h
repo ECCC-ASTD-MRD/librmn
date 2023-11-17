@@ -3,6 +3,7 @@
 
 #include "rmn/base.h"
 #include "rmn/fnom.h"
+#include "rmn/fst_file.h"
 #include "rmn/fstd98.h"
 #include "rmn/fstdsz.h"
 #include "rmn/ezscint.h"

@@ -362,7 +362,7 @@ int c_fstecr_rsf(
         (ascii6(nomvar[1]) << 12) |
         (ascii6(nomvar[2]) <<  6) |
         (ascii6(nomvar[3]));
-    stdf_entry->pad4 = 0;
+    stdf_entry->dasiz = 0;
     stdf_entry->ip1 = ip1;
     stdf_entry->levtyp = 0;
     stdf_entry->ip2 = ip2;
@@ -770,7 +770,7 @@ int c_fstinfx_rsf(
     search_mask->pad1 = 0;
     search_mask->pad2 = 0;
     search_mask->pad3 = 0;
-    search_mask->pad4 = 0;
+    search_mask->dasiz = 0;
     search_mask->pad5 = 0;
     search_mask->pad6 = 0;
     search_mask->pad7 = 0;
@@ -1500,6 +1500,8 @@ int c_fstprm_rsf(
     //! [out] Data type of the elements
     int *datyp,
     //! [out] Vertical level
+    int *dasiz,
+    //! [out] Vertical level
     int *ip1,
     //! [out] Forecast hour
     int *ip2,
@@ -1561,6 +1563,7 @@ int c_fstprm_rsf(
     *npas = stdf_entry->npas;
     *nbits = stdf_entry->nbits;
     *datyp = stdf_entry->datyp;
+    *dasiz = stdf_entry->dasiz;
     *ip1 = stdf_entry->ip1;
     *ip2 = stdf_entry->ip2;
     *ip3 = stdf_entry->ip3;
@@ -1590,10 +1593,10 @@ int c_fstprm_rsf(
     *extra2 = 0;
     *extra3 = 0;
 
-    strncpy(typvar, cracked.typvar, strlen_up_to(typvar, 2));
-    strncpy(nomvar, cracked.nomvar, strlen_up_to(nomvar, 4));
-    strncpy(etiket, cracked.etiket, strlen_up_to(etiket, 12));
-    strncpy(grtyp, cracked.gtyp, strlen_up_to(grtyp, 1));
+    strncpy(typvar, cracked.typvar, strlen_up_to(typvar, FST_TYPVAR_LEN));
+    strncpy(nomvar, cracked.nomvar, strlen_up_to(nomvar, FST_NOMVAR_LEN));
+    strncpy(etiket, cracked.etiket, strlen_up_to(etiket, FST_ETIKET_LEN));
+    strncpy(grtyp, cracked.gtyp, strlen_up_to(grtyp, FST_GTYP_LEN));
 
     return 0;
 }

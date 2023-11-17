@@ -25,19 +25,19 @@
 extern "C" {
 #endif
 
-static const int32_t FSTD_TYPE_BINARY    = 0;
-static const int32_t FSTD_TYPE_BAD_FLOAT = 1;
-static const int32_t FSTD_TYPE_UNSIGNED  = 2;
-static const int32_t FSTD_TYPE_CHAR      = 3;
-static const int32_t FSTD_TYPE_SIGNED    = 4;
-static const int32_t FSTD_TYPE_IEEE      = 5;
-static const int32_t FSTD_TYPE_IEEE_16   = 6;
-static const int32_t FSTD_TYPE_STRING    = 7;
-static const int32_t FSTD_TYPE_COMPLEX   = 8;
+static const int32_t FST_TYPE_BINARY    = 0;
+static const int32_t FST_TYPE_BAD_FLOAT = 1;
+static const int32_t FST_TYPE_UNSIGNED  = 2;
+static const int32_t FST_TYPE_CHAR      = 3;
+static const int32_t FST_TYPE_SIGNED    = 4;
+static const int32_t FST_TYPE_IEEE      = 5;
+static const int32_t FST_TYPE_IEEE_16   = 6;
+static const int32_t FST_TYPE_STRING    = 7;
+static const int32_t FST_TYPE_COMPLEX   = 8;
 
-// static const int32_t FSTD_TYPE_MISSING   = FSTD_MISSING_FLAG;
-static const int32_t FSTD_TYPE_TURBOPACK = 128;
-static const int32_t FSTD_TYPE_MAGIC     = 801; // No idea what this is. Seems to reduce to BAD_FLOAT and double precision packer...
+// static const int32_t FST_TYPE_MISSING   = FSTD_MISSING_FLAG;
+static const int32_t FST_TYPE_TURBOPACK = 128;
+static const int32_t FST_TYPE_MAGIC     = 801; // No idea what this is. Seems to reduce to BAD_FLOAT and double precision packer...
 
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);

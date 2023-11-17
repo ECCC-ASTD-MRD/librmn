@@ -2,6 +2,35 @@
 
 #include <App.h>
 
+//! Creates a new record and assign the data pointer or allocate data memory
+//! \return new record
+fst_record fst23_record_new(
+    void   *data,   //!< Data pointer to assign, or allocate inernal array in NULL
+    int32_t type,   //!< Data type
+    int32_t nbits,  //!< Number of bits per data element
+    int32_t ni,     //!< I horizontal size
+    int32_t nj,     //!< J horizontal size
+    int32_t nk      //!< K vertical size
+) {
+
+    fst_record result = default_fst_record;
+
+    result.ni=ni;
+    result.nj=nj;
+    result.nk=nk;
+    result.dasiz=nbits;
+    result.datyp=type;
+
+    if (!(result.data=data)) {
+       // No data pointer passed, allocate data array
+       if (!(result.data=(void*)malloc(FST_REC_SIZE((&result))))) {
+          Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
+       }
+    }
+
+    return(result);
+}
+
 int32_t fst23_record_is_valid(const fst_record* record) {
     if (record == NULL) {
         Lib_Log(APP_ERROR, APP_LIBFST, "%s: Record pointer is NULL\n", __func__);
@@ -49,7 +78,7 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, st
         return;
     }
 
-    const unsigned int u_datev = (unsigned int) record->date;
+    const unsigned int u_datev = (unsigned int) record->dateo;
 
     // Reset search mask
     {
@@ -62,7 +91,7 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, st
     new_mask->pad1 = 0;
     new_mask->pad2 = 0;
     new_mask->pad3 = 0;
-    new_mask->pad4 = 0;
+    new_mask->dasiz = 0;
     new_mask->pad5 = 0;
     new_mask->pad6 = 0;
     new_mask->pad7 = 0;
@@ -89,7 +118,7 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, st
 
     new_criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
     new_mask->date_stamp &= ~(0x7);
-    if (record->date == -1) (*mask)->date_stamp = 0;
+    if (record->dateo == -1) (*mask)->date_stamp = 0;
 
     new_criteria->ip1 = record->ip1;
     if ((record->ip1 == -1)) new_mask->ip1 = 0;
@@ -138,12 +167,13 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
     stdf_special_parms cracked;
     crack_std_parms(keys, &cracked);
 
-    result.date = cracked.date_valid;
+    result.dateo = cracked.date_valid;
 
     result.ni = keys->ni;
     result.nj = keys->nj;
     result.nk = keys->nk;
     result.datyp = keys->datyp;
+    result.dasiz = keys->dasiz;
     result.npak = -keys->nbits;
 
     result.deet = keys->deet;
@@ -175,6 +205,7 @@ void fst23_record_print(const fst_record* record) {
         "  Handle: 0x%x\n"
         "  date (v?): %ld\n"
         "  datyp: %d\n"
+        "  dasiz: %d\n"
         "  npak: %d\n"
         "  ni x nj x nk: %d x %d x %d (%d) elements\n"
         "  deet: %d, npas: %d\n"
@@ -185,7 +216,7 @@ void fst23_record_print(const fst_record* record) {
         "  nomvar: %s\n"
         "  etiket: %s\n",
         record->version, record->data, record->metadata, record->handle, 
-        record->date, record->datyp, record->npak,
+        record->dateo, record->datyp, record->dasiz, record->npak,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,
         record->ig1, record->ig2, record->ig3, record->ig4,

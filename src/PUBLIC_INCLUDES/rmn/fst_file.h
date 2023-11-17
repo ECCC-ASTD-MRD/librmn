@@ -32,5 +32,6 @@ fst_record fst23_find(fst_file* file, const fst_record* criteria);
 int32_t    fst23_get_iun(fst_file* file);
 
 fst_record fst23_read(fst_file* file, const int64_t handle);
+int64_t fst23_read_new(fst_file* file,fst_record* record);
 
 #endif // RMN_FST_FILE_H__

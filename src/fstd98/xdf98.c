@@ -1958,7 +1958,7 @@ int c_xdfopn(
                         stdf_entry->nomvar =
                             (ascii6((directory[i].nomvar >>  8) & 0xff) << 18) |
                             (ascii6((directory[i].nomvar      ) & 0xff) << 12);
-                        stdf_entry->pad4 = 0;
+                        stdf_entry->dasiz = 0;
                         stdf_entry->ip1 = directory[i].ip1;
                         stdf_entry->levtyp = 0;
                         stdf_entry->ip2 = directory[i].ip2;
@@ -3279,7 +3279,7 @@ static uint32_t next_match(
                 stde->nomvar =
                     (ascii6((seq_entry->nomvar >>  8) & 0xff) << 18) |
                     (ascii6((seq_entry->nomvar      ) & 0xff) << 12);
-                stde->pad4 = 0;
+                stde->dasiz = 0;
                 stde->ip1 = seq_entry->ip1;
                 stde->levtyp = 0;
                 stde->ip2 = seq_entry->ip2;

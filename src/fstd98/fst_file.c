@@ -78,11 +78,6 @@ int32_t fst23_close(fst_file* file) {
 }
 
 static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
-    // return c_fstecr_rsf(
-    //     record->data, NULL, record->npak, file->iun, file->file_index, record->date, record->deet, record->npas,
-    //     record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-    //     record->typvar, record->nomvar, record->etiket, record->grtyp,
-    //     record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
 
     RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
 
@@ -168,7 +163,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     }
 
     /* Increment date by timestep size */
-    unsigned int datev = record->date;
+    unsigned int datev = record->dateo;
     int32_t f_datev = (int32_t) datev;
     if (( (long long) record->deet * record->npas) > 0) {
         long long deltat = (long long) record->deet * record->npas;
@@ -351,7 +346,6 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         (ascii6(nomvar[1]) << 12) |
         (ascii6(nomvar[2]) <<  6) |
         (ascii6(nomvar[3]));
-    stdf_entry->pad4 = 0;
     stdf_entry->ip1 = record->ip1;
     stdf_entry->levtyp = 0;
     stdf_entry->ip2 = record->ip2;
@@ -359,6 +353,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     stdf_entry->ip3 = record->ip3;
     stdf_entry->pad6 = 0;
     stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+    stdf_entry->dasiz = record->dasiz;
 
     uint32_t * field = record->data;
     if (image_mode_copy) {
@@ -664,7 +659,7 @@ int32_t fst23_write(fst_file* file, const fst_record* record,int rewrit) {
             return fst23_write_rsf(file, record);
         case FST_XDF:
             return c_fstecr_xdf(
-                record->data, NULL, record->npak, file->iun, record->date, record->deet, record->npas,
+                record->data, NULL, record->npak, file->iun, record->dateo, record->deet, record->npas,
                 record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
                 typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
         default:
@@ -744,35 +739,37 @@ fst_record fst23_find(fst_file* file, const fst_record* criteria) {
 
 fst_record fst23_read(fst_file* file, const int64_t key) {
     fst_record result = default_fst_record;
+    int        idum;
 
     if (!fst23_file_is_open(file)) return result;
-
 
     switch(file->type) {
         case FST_RSF: {
                 const int32_t key32 = RSF_Key32(key);
-                RSF_handle file_handle = RSF_Key32_to_handle(key32);
-                RSF_record* rec = RSF_Get_record(file_handle, key);
+                RSF_handle    file_handle = RSF_Key32_to_handle(key32);
+                RSF_record*   rec = RSF_Get_record(file_handle, key);
+
                 if (rec == NULL) {
-                    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x (0x%x)\n",
-                            __func__, key32, key);
+                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x (0x%x)\n",__func__,key32,key);
                     return result;
                 }
 
                 stdf_dir_keys* stdf_entry = (stdf_dir_keys*)rec->meta;
-                //TODO use actual new Meta
+
                 if (rec->rec_meta > rec->dir_meta) {
                     result.metadata = (char*)(stdf_entry + 1); // Right after directory metadata
-                    Lib_Log(APP_LIBFST, APP_INFO, "%s: Retrieved metadata with value '%s' for record 0x%x\n",
-                            __func__, result.metadata, key);
+                    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record 0x%x\n",__func__,result.metadata,key);
                 }
 
                 //TODO This is reading it a second time!!!! Should unpack right here rather than using fstluk!!!!
                 result.data = malloc(stdf_entry->ni * stdf_entry->nj * stdf_entry->nk * 16 + 500); //TODO allocate the right amount
 
                 c_fstluk_rsf(result.data, file_handle, key32, &result.ni, &result.nj, &result.nk);
-
                 result.handle = key;
+                c_fstprm_rsf(file_handle,key32,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
+                   &result.datyp,&result.dasiz,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
+                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+
                 break;
             }
         case FST_XDF: {
@@ -794,6 +791,9 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
                 result.data = malloc(ni * nj * nk * 16 + 500); //TODO allocate the right amount
                 c_fstluk_xdf(result.data, key32, &ni, &nj, &nk);
                 result.handle = key;
+                c_fstprm_xdf(result.handle,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
+                   &result.datyp,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
+                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
                 break;
             }
         default:
@@ -802,4 +802,109 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
     }
 
     return result;
+}
+
+int64_t fst23_read_new(fst_file* file,fst_record* record) {
+
+    fst_record     result = default_fst_record;
+    stdf_dir_keys* stdf_entry=NULL;
+    int            idum;
+
+    if (!fst23_file_is_open(file)) {
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: File not openned\n",__func__);
+       return(FALSE);
+    }
+
+    if (!record) {
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Invalid record\n",__func__);
+       return(FALSE);
+    }
+
+    if (record->handle<0) {
+       // No handle, find field
+       result=fst23_find(file,record);
+    } else if (record->dateo!=-1 || record->deet!=-1 || record->npas!=-1 || record->ip1!=-1 || record->ip2!=-1 || record->ip3!=-1 ||
+           record->typvar[0]!=' ' || record->nomvar[0]!=' ' || record->etiket[0]!=' ') {
+        // Got a handle and search params, find next field
+        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+        result.handle=find_next_record(file_handle, &fstd_open_files[file->file_index]);
+        if (result.handle>=0) {
+            RSF_record_info record_info = RSF_Get_record_info(file_handle,result.handle);
+            stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record_info.meta;
+            result.ni = stdf_entry->ni;
+            result.nj = stdf_entry->nj;
+            result.nk = stdf_entry->nk;
+            result.dasiz = stdf_entry->dasiz;
+        }
+    } else {
+        // Only a handle, read the field
+        result.handle=record->handle; 
+    }
+
+    if (result.handle<0) {
+       return(FALSE);
+    }
+
+    // Allocate data array
+    if (record->data) {
+       // Resize if needed
+       if (FST_REC_SIZE(record)!=FST_REC_SIZE((&result))) {
+          record->data = realloc(record->data,FST_REC_SIZE((&result)));
+       }
+    } else {
+       record->data = malloc(FST_REC_SIZE((&result)));
+    }
+    result.data=record->data;
+
+    switch(file->type) {
+        case FST_RSF: {
+                const int32_t key32 = RSF_Key32(result.handle);
+                RSF_handle    file_handle = RSF_Key32_to_handle(key32);
+                RSF_record*   rec = RSF_Get_record(file_handle,result.handle);
+                
+                if (!rec) {
+                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x (0x%x)\n",__func__,key32,result.handle);
+                    return(FALSE);
+                }
+
+                stdf_entry = (stdf_dir_keys*)rec->meta;
+
+                if (rec->rec_meta > rec->dir_meta) {
+                    result.metadata = (char*)(stdf_entry + 1); // Right after directory metadata
+                    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record 0x%x\n",__func__,result.metadata,result.handle);
+                }
+
+                //TODO This is reading it a second time!!!! Should unpack right here rather than using fstluk!!!!
+                c_fstluk_rsf(result.data, file_handle, key32, &result.ni, &result.nj, &result.nk);
+                c_fstprm_rsf(file_handle,key32,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
+                   &result.datyp,&result.dasiz,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
+                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+
+                break;
+            }
+        case FST_XDF: {
+                const int32_t key32 = result.handle & 0xffffffff;
+                uint32_t * pkeys = (uint32_t *) &stdf_entry;
+                pkeys += W64TOWD(1);
+
+                {
+                    int addr, lng, idtyp;
+                    int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
+                    if (ier < 0) return(FALSE);
+                }
+
+                c_fstluk_xdf(result.data, key32, &result.ni, &result.nj, &result.nk);
+                c_fstprm_xdf(result.handle,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
+                   &result.datyp,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
+                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+                break;
+            }
+        default:
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+            break;
+    }
+
+    memcpy(record,&result,sizeof(fst_record));
+
+    return(TRUE);
 }

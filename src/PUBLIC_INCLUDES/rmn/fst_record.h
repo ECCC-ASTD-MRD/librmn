@@ -9,6 +9,8 @@
 #include "rmn/fstdsz.h"
 
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
+#define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*(REC->dasiz>>3))  //TODO define right size
+//#define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*16 + 500)  //TODO define right size
 
 // What belongs to the record? To the writing function?
 // Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
@@ -20,12 +22,14 @@ typedef struct {
     // 64-bit elements first
     void*   data;     //!< Record data
     char*   metadata; //!< Record metadata.         TODO JSON object?
-    int64_t date;     //!< Date timestamp
+    int64_t dateo;    //!< Origin Date timestamp
+    int64_t datev;    //!< Valid Date timestamp
     int64_t handle;   //!< Handle to specific record (if stored in a file)
 
     // 32-bit elements
-    int32_t datyp; //!< Data type of elements
-    int32_t npak;  //!< Compression factor (none if 0 or 1). Number of bit if negative
+    int32_t datyp;//!< Data type of elements
+    int32_t dasiz;//!< Number of bits per elements
+    int32_t npak; //!< Compression factor (none if 0 or 1). Number of bit if negative
     int32_t ni;   //!< First dimension of the data field (number of elements)
     int32_t nj;   //!< Second dimension of the data field (number of elements)
     int32_t nk;   //!< Thierd dimension of the data field (number of elements)
@@ -53,7 +57,8 @@ static const fst_record default_fst_record = (fst_record){
         .version = sizeof(fst_record),
         .data     = NULL,
         .metadata = NULL,
-        .date     = -1,
+        .dateo     = -1,
+        .datev     = -1,
         .handle   = -1,
 
         .datyp = -1,
@@ -85,19 +90,22 @@ static const fst_record default_fst_record = (fst_record){
     };
 
 
-int32_t fst23_record_is_valid(const fst_record* record);
-int32_t fst23_record_validate_params(const fst_record* record);
-void    fst23_record_print(const fst_record* record);
+int32_t    fst23_record_is_valid(const fst_record* record);
+int32_t    fst23_record_validate_params(const fst_record* record);
+void       fst23_record_print(const fst_record* record);
+fst_record fst23_record_new(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
 
 #else
     type, bind(C) :: fst_record
         integer(C_INT64_T) :: VERSION  = 128            ! Must be the number of bytes in the struct
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
-        integer(C_INT64_T) :: date     = -1
+        integer(C_INT64_T) :: dateo    = -1
+        integer(C_INT64_T) :: datev    = -1
         integer(C_INT64_T) :: handle   = -1
 
         integer(C_INT32_T) :: datyp = -1
+        integer(C_INT32_T) :: dasiz = -1
         integer(C_INT32_T) :: npak  = -1
         integer(C_INT32_T) :: ni    = -1
         integer(C_INT32_T) :: nj    = -1

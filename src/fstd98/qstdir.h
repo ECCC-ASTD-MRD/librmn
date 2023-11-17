@@ -462,7 +462,7 @@ typedef struct {
     uint32_t npas: 26, pad7: 6, ig4: 24, ig2a:  8;
     uint32_t ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
     uint32_t etik15:30, pad1:2, etik6a:30, pad2:2;
-    uint32_t etikbc:12, typvar:12, pad3:8, nomvar:24, pad4:8;
+    uint32_t etikbc:12, typvar:12, pad3:8, nomvar:24, dasiz:8;
     uint32_t ip1:28, levtyp:4, ip2:28, pad5:4;
     uint32_t ip3:28, pad6:4, date_stamp:32;
 #else
@@ -472,7 +472,7 @@ typedef struct {
     uint32_t pad7: 6, npas: 26, ig2a:  8, ig4: 24;
     uint32_t ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
     uint32_t pad1:2, etik15:30, pad2:2, etik6a:30;
-    uint32_t pad3:8, typvar:12, etikbc:12, pad4:8, nomvar:24;
+    uint32_t pad3:8, typvar:12, etikbc:12, dasiz:8, nomvar:24;
     uint32_t levtyp:4, ip1:28, pad5:4, ip2:28;
     uint32_t pad6:4, ip3:28, date_stamp:32;
 #endif
