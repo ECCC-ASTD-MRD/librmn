@@ -309,29 +309,14 @@ int32_t c_wkoffit(
         /* garder le nom de fichier tel quel */
         longnom--;
         strncpy(nom2, filePath + 1, longnom);
-        nom2[longnom] = '\0';
-        while (nom2[--longnom] == ' ') {
-            nom2[longnom] = '\0';
-        }
     } else {
         strncpy(nom2, filePath, longnom);
-        nom2[longnom] = '\0';
-        pn2 = &nom2[0];
-        pn3 = &nom3[0];
-        while ((*pn2 != ' ') && (*pn2 != '\0')) {
-            if (islower(*pn2)) {
-                *pn3 = *pn2;
-                lowc = 1;
-            } else {
-                *pn3 = tolower(*pn2);
-            }
-            pn2++;
-            pn3++;
-        }
-        *pn2 = '\0';
-        *pn3 = '\0';
-        if (lowc == 0) strcpy(nom2, nom3);
     }
+    nom2[longnom] = '\0';
+    while (nom2[--longnom] == ' ') {
+        nom2[longnom] = '\0';
+    }
+    
     pf = fopen(nom2, "rb");
     if (pf == (FILE *) NULL) {
         return WKF_INEXISTANT;
