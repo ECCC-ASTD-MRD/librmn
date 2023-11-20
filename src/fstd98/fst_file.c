@@ -820,7 +820,7 @@ int32_t fst23_find_new(fst_file* file,fst_record* criteria) {
        return(FALSE);
     }
 
-    if (record->handle<0) {
+    if (criteria->handle<0) {
         // Pack criteria into format used by both backends
         make_search_criteria(criteria, &search_criteria, &search_mask);
     }
@@ -833,7 +833,7 @@ int32_t fst23_find_new(fst_file* file,fst_record* criteria) {
     case FST_RSF:
         {
             RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-            if (record->handle<0) {
+            if (criteria->handle<0) {
                fstd_open_files[file->file_index].search_start_key = 0;
                fstd_open_files[file->file_index].search_criteria = *search_criteria;
                fstd_open_files[file->file_index].search_mask = *search_mask;
@@ -869,15 +869,17 @@ int32_t fst23_find_new(fst_file* file,fst_record* criteria) {
         break;
     } // end switch
 
+    if (search_criteria) free(search_criteria);
+    if (search_mask) free(search_mask);
+
     if (key >= 0) {
         // Got the record. Now unpack it into a more convenient format
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, file->iun, key);
-        criteria = record_from_dir_keys(record_meta);
-        criteria.handle = key;
+        *criteria = record_from_dir_keys(record_meta);
+        criteria->handle = key;
+    } else {
+        return(FALSE);
     }
-
-    if (search_criteria) free(search_criteria);
-    if (search_mask) free(search_mask);
 
     return(TRUE);
 }

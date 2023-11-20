@@ -26,11 +26,11 @@ extern "C" {
 #endif
 
 static const int32_t FST_TYPE_BINARY    = 0;
-static const int32_t FST_TYPE_BAD_FLOAT = 1;
+static const int32_t FST_TYPE_FREAL     = 1;
 static const int32_t FST_TYPE_UNSIGNED  = 2;
-static const int32_t FST_TYPE_CHAR      = 3;
+static const int32_t FST_TYPE_FCHAR     = 3;
 static const int32_t FST_TYPE_SIGNED    = 4;
-static const int32_t FST_TYPE_IEEE      = 5;
+static const int32_t FST_TYPE_FLOAT     = 5;
 static const int32_t FST_TYPE_IEEE_16   = 6;
 static const int32_t FST_TYPE_STRING    = 7;
 static const int32_t FST_TYPE_COMPLEX   = 8;

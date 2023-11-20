@@ -55,7 +55,7 @@ int test_fst23_interface(const int is_rsf) {
         record.ig2   = 0;
         record.ig3   = 0;
         record.ig4   = 0;
-        record.datyp = FST_TYPE_IEEE;
+        record.datyp = FST_TYPE_FLOAT;
 
         char *meta= "testing metadata";
         record.metadata = meta;
