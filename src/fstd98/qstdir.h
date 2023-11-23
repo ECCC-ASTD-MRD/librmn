@@ -876,6 +876,8 @@ file_table_entry_ptr file_table[MAX_XDF_FILES];
 
 //! Stride
 int xdf_stride = 1;
+//! Data size indicator
+int xdf_size = 0;
 //! Double float indicator
 int xdf_double = 0;
 //! Short integer indicator

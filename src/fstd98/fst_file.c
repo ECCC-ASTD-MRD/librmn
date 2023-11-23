@@ -98,17 +98,17 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
 
 
     const int num_elements = record->ni * record->nj * record->nk;
-    const int in_datyp_ori = record->datyp;
+    int in_dasiz = record->dasiz;
 
     // will be cancelled later if not supported or no missing values detected
     // missing value feature used flag
-    int is_missing = in_datyp_ori & FSTD_MISSING_FLAG;
+    int is_missing = record->datyp & FSTD_MISSING_FLAG;
     // suppress missing value flag (64)
-    int in_datyp = in_datyp_ori & ~FSTD_MISSING_FLAG;
+    int in_datyp = record->datyp & ~FSTD_MISSING_FLAG;
     if ( (in_datyp & 0xF) == 8) {
-        if (in_datyp_ori != 8) {
+        if (record->datyp != 8) {
            Lib_Log(APP_LIBFST, APP_WARNING, "%s: compression and/or missing values not supported, "
-                   "data type %d reset to %d (complex)\n", __func__, in_datyp_ori, 8);
+                   "data type %d reset to %d (complex)\n", __func__, record->datyp, 8);
         }
         /* missing values not supported for complex type */
         is_missing = 0;
@@ -120,7 +120,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     int datyp = in_datyp == 801 ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
-    if ((xdf_double) || (in_datyp == 801)) {
+    if (in_dasiz == 64 || in_datyp == 801) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
         packfunc = (PackFunctionPointer) &compact_float;
@@ -134,7 +134,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     }
     int minus_nbits = -nbits;
 
-    if ( (in_datyp_ori == 133) && (nbits > 32) ) {
+    if ( (record->datyp == 133) && (nbits > 32) ) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
                 "data type 133 reset to 5 (IEEE)\n", __func__);
         /* extra compression not supported */
@@ -150,11 +150,10 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     }
 
     /* flag 64 bit IEEE (type 5 or 8) */
-    int IEEE_64 = 0;
     /* 64 bits real IEEE */
-    if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) IEEE_64 = 1;
+    if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) in_dasiz=64;
     /* 64 bits complex IEEE */
-    if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) IEEE_64 = 1;
+    if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) in_dasiz=64;
 
     /* validate range of arguments */
     if (fst23_record_validate_params(record) != 0) {
@@ -353,7 +352,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     stdf_entry->ip3 = record->ip3;
     stdf_entry->pad6 = 0;
     stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
-    stdf_entry->dasiz = record->dasiz;
+    stdf_entry->dasiz = in_dasiz;
 
     uint32_t * field = record->data;
     if (image_mode_copy) {
@@ -382,19 +381,13 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         // not image mode copy
         // time to fudge field if missing value feature is used
 
-        // number of bytes per data item
-        int sizefactor = 4;
-        if (xdf_byte)  sizefactor = 1;
-        if (xdf_short) sizefactor = 2;
-        if (xdf_double | IEEE_64) sizefactor = 8;
         /* put appropriate values into field after allocating it */
         if (is_missing) {
             // allocate self deallocating scratch field
-            field = (uint32_t *)alloca(num_elements * sizefactor);
-            if ( 0 == EncodeMissingValue(field, record->data, num_elements, in_datyp, nbits, xdf_byte, xdf_short, xdf_double) ) {
+            field = (uint32_t *)alloca(num_elements * stdf_entry->dasiz/8);
+            if ( 0 == EncodeMissingValue(field, record->data, num_elements, in_datyp, stdf_entry->dasiz, nbits) ) {
                 field = record->data;
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__,
-                        stdf_entry->datyp, datyp);
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
                 /* cancel missing data flag in data type */
                 stdf_entry->datyp = datyp;
                 is_missing = 0;
@@ -632,9 +625,6 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
 
-    xdf_double = 0;
-    xdf_short = 0;
-    xdf_byte = 0;
     return record_handle > 0 ? 0 : -1;
 }
 
@@ -903,9 +893,8 @@ int32_t fst23_read_new(fst_file* file,fst_record* record) {
     if (record->handle<0) {
        // No handle, find field
        result=fst23_find(file,record);
-    } else if (record->dateo!=-1 || record->deet!=-1 || record->npas!=-1 || record->ip1!=-1 || record->ip2!=-1 || record->ip3!=-1 ||
-           record->typvar[0]!=' ' || record->nomvar[0]!=' ' || record->etiket[0]!=' ') {
-        // Got a handle and search params, find next field
+    } else if (record->data) {
+        // Got a handle and data pointer, find next field
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         result.handle=find_next_record(file_handle, &fstd_open_files[file->file_index]);
         if (result.handle>=0) {
@@ -919,6 +908,10 @@ int32_t fst23_read_new(fst_file* file,fst_record* record) {
     } else {
         // Only a handle, read the field
         result.handle=record->handle; 
+        result.ni = record->ni;
+        result.nj = record->nj;
+        result.nk = record->nk;
+        result.dasiz = record->dasiz;
     }
 
     if (result.handle<0) {
@@ -941,7 +934,7 @@ int32_t fst23_read_new(fst_file* file,fst_record* record) {
                 const int32_t key32 = RSF_Key32(result.handle);
                 RSF_handle    file_handle = RSF_Key32_to_handle(key32);
                 RSF_record*   rec = RSF_Get_record(file_handle,result.handle);
-                
+
                 if (!rec) {
                     Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x (0x%x)\n",__func__,key32,result.handle);
                     return(FALSE);
