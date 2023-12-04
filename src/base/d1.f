@@ -17,9 +17,22 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+      module d1_dn
+*
+* CONSTANTS
+*
+      real, parameter ::  C1 = -21.0  ,
+     1      C2 = +13.0  ,
+     2      C3 = +17.0  ,
+     3      C4 = - 9.0  ,
+     4     R20 = 0.05 
+      end
+
 ***S/R D1 - ROUTINE USED IN SPLINE INTERPOLATION.
 *
-      FUNCTION D1 (Y,H,N)
+      real FUNCTION D1 (Y,H,N)
+      use d1_dn
+      implicit none
 *
 * ENTRY D1
 * ENTRY DN
@@ -27,6 +40,7 @@
 *AUTHOR   - D. ROBERTSON
 *
 *REVISION 001   C. THIBEAULT - FEB 80 - DOCUMENTATION
+*               M. VALIN     - OCT 2023 removed entry statement
 *
 *LANGUAGE - fortran
 *
@@ -66,15 +80,10 @@
 *
 *---------------------------------------------------------------------------
 *
-      REAL Y(N)
-*
-* CONSTANTS
-*
-      DATA  C1 /-21.0/  ,
-     1      C2 /+13.0/  ,
-     2      C3 /+17.0/  ,
-     3      C4 /- 9.0/  ,
-     4     R20 /0.05 /
+      integer :: N
+      REAL Y(N), H
+      integer :: i, ip
+      real :: sign
 *
 *---------------------------------------------------------------------
 *
@@ -83,17 +92,28 @@
       I = 1
       IP = 1
       SIGN = 1.0
-      GO TO 10
+*     GO TO 10
+   10 D1 = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
+     1                  * R20/H
+      return
+      end
 *
 * DN
 *
-      ENTRY DN(Y,H,N)
+*    E N T R Y DN(Y,H,N)
+      real function dn(Y,H,N)
+      use d1_dn
+      implicit none
+      integer :: N
+      REAL Y(N), H
+      integer :: i, ip
+      real :: sign
 *
       I = -1
       IP = N
       SIGN = -1.0
 *
-   10 D1 = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
+   10 DN = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
      1                  * R20/H
 *
 *-------------------------------------------------------------------

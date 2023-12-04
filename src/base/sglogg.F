@@ -18,31 +18,57 @@
 * * Boston, MA 02111-1307, USA.
 * */
 *
-***FONCTION SGLOGG - INTERPOLATION A PARTIR D'UNE GRILLE GAUSSIENNE
+      real function SGLOGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+      implicit none
+      integer :: LI, LJ
+      REAL G(LI,LJ), ROOTS(LJ),LAMBDA,PHI
+      real, external :: SGLOGG0
+      SGLOGG = SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI,0)
+      end
+
+      real function SSNHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+      implicit none
+      integer :: LI, LJ
+      REAL G(LI,LJ), ROOTS(LJ),LAMBDA,PHI
+      real, external :: SGLOGG0
+      SSNHGG = SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI,1)
+      end
+
+      real function SANHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+      implicit none
+      integer :: LI, LJ
+      REAL G(LI,LJ), ROOTS(LJ),LAMBDA,PHI
+      real, external :: SGLOGG0
+      SANHGG = SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI,2)
+      end
+
+***FONCTION SGLOGG0 - INTERPOLATION A PARTIR D'UNE GRILLE GAUSSIENNE
 
 
-      FUNCTION SGLOGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+      FUNCTION SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI, mode)
       REAL G(LI,LJ)
+      integer :: mode
 *
 *AUTEUR   - D.ROBERTSON RPN 1981
 *
 *REVISION 001   M. VALIN  -  1981  SYMETRIES ET COMMENTAIRES
 *REVISION 002   C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*               M. VALIN      - OCT 2023  removed entry statements
 *
 *LANGAGE  - FORTRAN
 *
-*OBJET(SGLOGG)
+*OBJET(SGLOGG0)
 *         - TROUVER LA VALEUR D'UNE FONCTION EN UN POINT QUELCONQUE D'UNE
 *           GRILLE GAUSSIENNE
 *
 *LIBRAIRIES
-*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SGLOGG
+*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SGLOGG0
 *         - OBJET   RMNLIB,ID=RMNP
 *
-*APPEL    - R=SGLOGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+*APPEL    - R=SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI)
 *
 *ARGUMENTS
-*   OUT   - SGLOGG - VALEUR INTERPOLEE AU POINT DEMANDE
+*   OUT   - SGLOGG0 - VALEUR INTERPOLEE AU POINT DEMANDE
 *   IN    - G      - CHAMP SOURCE
 *   IN    - LI     - PREMIERE DIMENSION DE G
 *   IN    - LJ     - DEUXIEME DIMENSION DE G
@@ -69,26 +95,33 @@
 *
 #include "cubic.cdk"
 *
-      ORDINT = 3
-      KASE = GLOBAL
-      SIGN = 1.0
-      NPOLY = LJ
-      GO TO 99
+      if(mode .eq. 0) then
+        ORDINT = 3
+        KASE = GLOBAL
+        SIGN = 1.0
+        NPOLY = LJ
+        GO TO 99
+      endif
 *
 *     SCALAR SYMMETRIC NORTHERN HEMISPHERE
 *
-      ENTRY SSNHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
-      KASE = NORTH
-      SIGN = 1.0
-      NPOLY = 2*LJ
-      GO TO 99
+*     E N T R Y SSNHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+      if(mode .eq. 1) then
+        KASE = NORTH
+        SIGN = 1.0
+        NPOLY = 2*LJ
+        GO TO 99
+      endif
 *
 *     SCALAR ANTISYMMETRIC NORTHERN HEMISPHERE
 *
-      ENTRY SANHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
-      KASE = NORTH
-      NPOLY = 2*LJ
-      SIGN = -1.0
+*     E N T R Y SANHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
+      if(mode .eq. 2) then
+        KASE = NORTH
+        NPOLY = 2*LJ
+        SIGN = -1.0
+        GO TO 99
+      endif
 *
 * START OF ACTUAL INTERPOLATION
 * TAKE ABS(MU) IF HEMISPHERIC
@@ -195,19 +228,20 @@
       IF(ORDINT.EQ.0) THEN
          II = NINT(DX+2.0)
          JJ = NINT((MU-B)/(C-B)+2.0)
-         SGLOGG = G(IDX(II,JJ),ABS(JDX(JJ)))
-         IF(JDX(JJ).LT.0) SGLOGG = SGLOGG*SIGN
+         SGLOGG0 = G(IDX(II,JJ),ABS(JDX(JJ)))
+         IF(JDX(JJ).LT.0) SGLOGG0 = SGLOGG0*SIGN
       ELSE IF(ORDINT.EQ.1) THEN
          DO 90 JJ = 2 , 3
             DO 80 II = 2 , 3
-80             P(II) = G(IDX(II,JJ),ABS(JDX(JJ)))
+               P(II) = G(IDX(II,JJ),ABS(JDX(JJ)))
+80          continue
             IF(JDX(JJ).LT.0) THEN
                T(JJ) = SIGN * ZLIN(P(2),P(3),DX)
             ELSE
                T(JJ) = ZLIN(P(2),P(3),DX)
             ENDIF
 90       CONTINUE
-         SGLOGG = ZLIN(T(2),T(3),(MU-B)/(C-B))
+         SGLOGG0 = ZLIN(T(2),T(3),(MU-B)/(C-B))
       ELSE
 *
 *     FOUR INTERPOLATIONS WITH CONSTANT GRID LENGTH IN THE E-W
@@ -221,11 +255,11 @@
          T(J)=CUBIC(P(1),P(2),P(3),P(4),DX)
    47    CONTINUE
 *
-      SGLOGG = POLY(T(1),T(2),T(3),T(4),MU,A,B,C,D)
+      SGLOGG0 = POLY(T(1),T(2),T(3),T(4),MU,A,B,C,D)
       ENDIF
 *
 *     APPLY SYMMETRIES IF NECESSARY
 *
-      IF(KASE.EQ.NORTH .AND. SIGN.LT.0) SGLOGG = SIGN2*SGLOGG
+      IF(KASE.EQ.NORTH .AND. SIGN.LT.0) SGLOGG0 = SIGN2*SGLOGG0
       RETURN
       END

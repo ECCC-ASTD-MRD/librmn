@@ -273,16 +273,49 @@
 !         - AN EXTENDED TRUE DATE IS AN INTEGER THAT CONTAINS
 !           THE NUMBER OF 3 HOURLY INTERVALS SINCE YEAR 00/01/01
 !         - SEE INCDATR FOR DETAIL ON CMC DATE-TIME STAMP
+      SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
+      IMPLICIT NONE
+      integer idate1,idate2
+      real*8 nhours                         ! add    round
+      call date_add_sub(IDATE1,IDATE2,NHOURS,.TRUE.,.FALSE.)
+      return
+      end
+
+      SUBROUTINE IDNACTi (IDATE1,IDATE2,NHOURS)   ! INCDATI
+      IMPLICIT NONE
+      integer idate1,idate2
+      real*8 nhours                         ! add    round
+      call date_add_sub(IDATE1,IDATE2,NHOURS,.TRUE.,.TRUE.)
+      return
+      end
+
+      SUBROUTINE DDIAFTr(idate1,idate2,nhours) ! DIFDATR
+      IMPLICIT NONE
+      integer idate1,idate2
+      real*8 nhours                         ! add     round
+      call date_add_sub(IDATE1,IDATE2,NHOURS,.FALSE.,.FALSE.)
+      return
+      end
+
+      SUBROUTINE DDIAFTi(idate1,idate2,nhours) ! DIFDATI
+      IMPLICIT NONE
+      integer idate1,idate2
+      real*8 nhours                         ! add     round
+      call date_add_sub(IDATE1,IDATE2,NHOURS,.FALSE.,.TRUE.)
+      return
+      end
+
 !**S/R INCDATR - INCREASE IDATE2 BY NHOURS
 !
-      SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
+!       SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
+      SUBROUTINE date_add_sub (IDATE1,IDATE2,NHOURS, adding, rounding)   ! INCDATR
          use app
          use rmn_common
          IMPLICIT NONE
 !
-! ENTRY INCDATI - SAME AS INCDATR BUT IDATE2 AND NHOURS ARE ROUNDED
-! ENTRY DIFDATI - SAME AS DIFDATR BUT DATE-TIME STAMPS ARE ROUNDED
-! ENTRY DIFDATR - COMPUTES THE DIFFERENCE IN HOURS BETWEEN
+! E N T R Y INCDATI - SAME AS INCDATR BUT IDATE2 AND NHOURS ARE ROUNDED
+! E N T R Y DIFDATI - SAME AS DIFDATR BUT DATE-TIME STAMPS ARE ROUNDED
+! E N T R Y DIFDATR - COMPUTES THE DIFFERENCE IN HOURS BETWEEN
 !                 IDATE1 AND IDATE2.
 !
 !AUTHOR   - G. ALEXANDER  -  APR 75
@@ -306,6 +339,7 @@
 !                  pour lesquels DAT2 doit etre un vecteur.
 !                  Ceci elimine plusieurs avertissements a
 !                  la compilation (GFORTRAN).
+!REVISION       M. VALIN - Octobre 2023 elimination des enonces entry
 !
 !LANGUAGE - fortran
 !
@@ -371,26 +405,32 @@
       integer td1900, td2235
       data td1900 /-504904320/, td2235 /1615714548/
 
-      rounding=.false.
-      goto 4
+      if(adding)       go to 1   ! incdat1/incdatr
+      if(.not. adding) go to 3   ! difdati/difdatr
+!       rounding=.false.
+!       adding=.true.
+!       goto 1
+! 
+!       e n t r y IDNACTi(idate1,idate2,nhours) ! INCDATI
+!       rounding=.true.
+!       adding=.true.
+!       goto 1
+! 
+! !
+! !  difdat computes nhours = idate1 - idate2
+! !
+!       e n t r y DDIAFTi(idate1,idate2,nhours) ! DIFDATI
+!       rounding=.true.
+!       adding=.false.
+!       goto 3
+! 
+!       e n t r y DDIAFTr(idate1,idate2,nhours) ! DIFDATR
+!       rounding=.false.
+!       adding=.false.
+!       goto 3
+! 
+ 3    continue
 
-      entry IDNACTi(idate1,idate2,nhours) ! INCDATI
-      rounding=.true.
-
- 4    adding=.true.
-      goto 1
-
-!
-!  difdat computes nhours = idate1 - idate2
-!
-      entry DDIAFTi(idate1,idate2,nhours) ! DIFDATI
-      rounding=.true.
-      goto 3
-
-      entry DDIAFTr(idate1,idate2,nhours) ! DIFDATR
-      rounding=.false.
-
- 3    adding=.false.
 !      print *,'Debug+ difdat ',idate1,idate2
       if (idate2 .lt. -1 .or. idate1 .lt. -1) then
         if (idate1 .gt. -1) then
@@ -698,19 +738,25 @@
       end
 
       subroutine Ignore_LeapYear_int()
-
-      character(len=512) :: value
-      logical :: no_leap_year_status
+      implicit none
 
       call NewDate_Options_int( 'year=365_day','set' )
       return
+      end
 
-      entry Accept_LeapYear_int()
+!       e n t r y Accept_LeapYear_int()
+      subroutine Accept_LeapYear_int()
+      implicit none
 
       call NewDate_Options_int( 'year=gregorian','set' )
       return
+      end
 
-      entry Get_LeapYear_Status_int( no_leap_year_status )
+!       e n t r y Get_LeapYear_Status_int( no_leap_year_status )
+      subroutine Get_LeapYear_Status_int( no_leap_year_status )
+      implicit none
+      logical :: no_leap_year_status
+      character(len=512) :: value
 
       value='year' ; call NewDate_Options_int( value,'get' )
 
@@ -724,6 +770,14 @@
 
       end
 
+      module calendar_status_info
+        logical,  save :: called_newdate_options=.false.
+        logical,  save :: no_newdate_env_options=.true.
+        logical,  save :: no_leap_years=.false.
+        logical,  save :: ccclx_days=.false.
+        logical,  save :: debug=.false.
+      end
+
       subroutine NewDate_Options_int( value,command )  ! NewDate_Options
 
 !     A) Permits alternative calendar options, via either
@@ -735,16 +789,11 @@
 !     The known calendars options are currently: gregorian,
 !     365_day (no leap years) and 360_day
 
+      use calendar_status_info
       implicit none
       character(len=*) :: value,command
 
       integer   ii
-      logical   NoLeapYears,CcclxDays
-      logical,  save :: called_newdate_options=.false.
-      logical,  save :: no_newdate_env_options=.true.
-      logical,  save :: no_leap_years=.false.
-      logical,  save :: ccclx_days=.false.
-      logical,  save :: debug=.false.
       character(512) :: evalue,string
 
       if (.not.called_newdate_options) then ! check environment once
@@ -817,8 +866,15 @@
       endif
 
       return
+      end
 
-      entry Get_Calendar_Status_int( NoLeapYears,CcclxDays )
+!       e n t r y Get_Calendar_Status_int( NoLeapYears,CcclxDays )
+      subroutine Get_Calendar_Status_int( NoLeapYears,CcclxDays )
+      use calendar_status_info
+      implicit none
+      logical   NoLeapYears,CcclxDays
+      character(len = 512) :: evalue
+      integer   ii
 
       if (.not.called_newdate_options) then ! check environment once
          call getenvc( 'NEWDATE_OPTIONS',evalue )

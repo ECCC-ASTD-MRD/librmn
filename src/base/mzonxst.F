@@ -17,6 +17,105 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+      module mzonxst_mod
+***    Section DECLARATIONS
+
+      Integer       MaxTask,      MaxVar
+      Parameter   ( MaxTask = 32, MaxVar = 1024 )
+
+      Integer       MaxVarP3
+      Parameter   ( MaxVarP3 = MaxVar +3 )
+
+      Real          GrosNb
+      Parameter   ( GrosNb = 1.E+18 )
+
+***    Declarations des variables statiques.
+
+      Integer       NombreC
+      Parameter   ( NombreC = 14)
+
+      Logical       IOPrint
+      Save          IOPrint
+      Character*256 NOUTZON
+      Save          NOUTZON
+      Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
+      Save          IUN,KA,NCPU,StartI,StartJ,NDIMS
+      Integer       KAJ(MaxTask),listej(MaxTask),tabctl(NombreC)
+      Save          KAJ,         listej,         tabctl
+
+      Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK,
+     +              NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
+
+***   Equivalence
+***  +( NDELTAT, tabctl(1) ),( DELTAT, tabctl(2) ),
+***  +( MODE,    tabctl(3) ),( NI,     tabctl(4) ),
+***  +( NJ,      tabctl(5) ),( NK,     tabctl(6) ),
+***  +( NBIN,    tabctl(7) ),( SOMNK,  tabctl(8) ),
+***  +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
+***  +( ROT,     tabctl(11))
+
+      Common /zontab/ NDELTAT,DELTAT,MODE,NI,NIP,NJ,NK,
+     +                NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
+
+***    Declaration de la variable d'etat.
+
+      Integer       ETAT, transit(6,0:3)
+      Save          ETAT, transit
+
+***    Parametres servant a l'allocation de memoire dynamique.
+
+      Integer       sizWK
+      save          sizWK
+
+      real, dimension(:,:), save, pointer :: sint, cost, pds
+      integer, dimension(:,:), save, pointer :: bin
+      real, dimension(:,:), save, pointer :: somx, somx2
+
+      real, dimension(:,:,:), save, pointer :: temp
+      integer, dimension(:,:), save, pointer :: util
+      real, dimension(:), save, pointer :: WK
+
+***    Drapeaux logiques.
+
+      Logical       Vrai,Faux, NOTOK, SavPas, Hard, Debug
+      Save          Vrai,Faux,        SavPas, Hard, Debug
+
+      Character*8   listvar(MaxVarP3)
+      Integer       propvar(MaxVar), posvar(0:MaxVar),NVAR
+
+      Save          listvar,propvar,posvar,NVAR
+
+      Character     typvar*1,
+     +              etiket*12,               grtyp*1
+
+      Integer       dateo,deet,npas,
+     +              ip1,ip2,ip20,ip3,        datyp,nbits,
+     +              ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
+
+      Save          dateo,deet,npas,         typvar,etiket,grtyp,
+     +              ip1,ip2,ip20,ip3,        datyp,nbits,
+     +              ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
+
+***    Declaration des valeurs initiales
+
+      Data          Vrai     /     .true.     /,
+     +              Faux     /     .false.    /,
+     +              Hard     /     .false.    /,
+     +              Debug    /     .false.    /
+      Data          IOPrint  /     .true.     /
+      Data          listej   /  MaxTask * -1  /
+      Data          IUN,ETAT / -1  ,  0  /
+      Data          NCPU     /  1  /
+      Data          NDIMS    /  0  /
+      Data          StartI   /  0  /
+      Data          StartJ   /  0  /
+      Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  ,
+     +                          3  ,  2  , -1  ,  6  , 999 , 999 ,
+     +                          3  ,  3  , -2  ,  4  , 999 , 999 ,
+     +                          2  ,  3  , -3  , 999 , 999 , 999 /
+      Data          NOUTZON  / 'noutzon' /
+      end
+
 ***S/P  MZONXST
 #     if defined(AUTO_DOC)
 *
@@ -241,101 +340,18 @@
 *         036 M.Valin    (mai22) eliminer hpalloc, utiliser des pointeurs Fortran
 ***
 
+      use mzonxst_mod
       IMPLICIT NONE
 
 *---------------------------------------------------------------------
-***    Section DECLARATIONS
-
-      Integer       MaxTask,      MaxVar
-      Parameter   ( MaxTask = 32, MaxVar = 1024 )
-
-      Integer       MaxVarP3
-      Parameter   ( MaxVarP3 = MaxVar +3 )
-
-      Real          GrosNb
-      Parameter   ( GrosNb = 1.E+18 )
-
-***    Declaration des parametres communs a mzonxst/mvznxst.
-
-      Integer       J,NDIM,hhhh,ORD,tttt
-      Real          FACF3D(NDIM,*)
-
-***    Declaration des parametres specifiques a mzonxst.
-
-      Real                :: Z(NDIM,*)
-      Character (len = *) :: NOM
-
-***    Declaration des parametres specifiques a mvznxst.
-
-      Character (len = *) :: XNOM, YNOM
-      Real                :: X(NDIM,*),Y(NDIM,*)
 
 ***    Declaration des parametres d'appel de mzonopr.
 
       Integer       OPR,VAL,NIV
 
-***    Declaration du parametre d'appel de mzonfil.
-
-      Character (len = *) :: NAME
-
 ***    Nom/propiete/position des variables a traiter.
 
-      Integer       var(MaxVarP3),NVAR
-      Character(len = 8) :: listvar(MaxVarP3)
-      Integer       propvar(MaxVar), posvar(0:MaxVar)
-
-      Save          listvar,propvar,posvar,NVAR
-
-***    Declarations des variables statiques.
-
-      Integer       NombreC
-      Parameter   ( NombreC = 14)
-
-      Logical       IOPrint
-      Save          IOPrint
-      Character(len = 256) :: NOUTZON
-      Save          NOUTZON
-      Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
-      Save          IUN,KA,NCPU,StartI,StartJ,NDIMS
-      Integer       KAJ(MaxTask),listej(MaxTask),tabctl(NombreC)
-      Save          KAJ,         listej,         tabctl
-
-      Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK,
-     +              NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
-
-***   Equivalence
-***  +( NDELTAT, tabctl(1) ),( DELTAT, tabctl(2) ),
-***  +( MODE,    tabctl(3) ),( NI,     tabctl(4) ),
-***  +( NJ,      tabctl(5) ),( NK,     tabctl(6) ),
-***  +( NBIN,    tabctl(7) ),( SOMNK,  tabctl(8) ),
-***  +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
-***  +( ROT,     tabctl(11))
-
-      Common /zontab/ NDELTAT,DELTAT,MODE,NI,NIP,NJ,NK,
-     +                NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
-
-***    Declaration de la variable d'etat.
-
-      Integer       ETAT, transit(6,0:3)
-      Save          ETAT, transit
-
-***    Parametres servant a l'allocation de memoire dynamique.
-
-      Integer       sizWK
-      save          sizWK
-
-      real, dimension(:,:), save, pointer :: sint, cost, pds
-      integer, dimension(:,:), save, pointer :: bin
-      real, dimension(:,:), save, pointer :: somx, somx2
-
-      real, dimension(:,:,:), save, pointer :: temp
-      integer, dimension(:,:), save, pointer :: util
-      real, dimension(:), save, pointer :: WK
-
-***    Drapeaux logiques.
-
-      Logical       Vrai,Faux, NOTOK, SavPas, Hard, Debug
-      Save          Vrai,Faux,        SavPas, Hard, Debug
+      Integer       var(MaxVarP3)
 
 ***    Declaration des fonctions fstxxx et de leurs parametres.
 
@@ -349,47 +365,17 @@
 
 #include <rmn/fnom.hf>
 
-      Character     typvar*1,                nomvar*4,
-     +              etiket*12,               grtyp*1
-
-      Integer       dateo,deet,npas,         kount,
-     +              ip1,ip2,ip20,ip3,        datyp,nbits,npak,
-     +              ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc,
-     +              extra1,extra2,extra3
+      Integer       extra1,extra2,extra3,npak,kount
+      Character     nomvar*4
 
       Logical       rewrit
 
-      Save          dateo,deet,npas,         typvar,etiket,grtyp,
-     +              ip1,ip2,ip20,ip3,        datyp,nbits,
-     +              ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
 
 ***    Variables de travail non statiques.
+      Integer :: bini, deb, fin, ii, jj, kk, lo, LocVAL
+      Integer :: NIC,NJC,NKC, place,placeX,placeY
+      Real :: poids
 
-      Character     variab*4
-      Real          echant,echantX,echantY,poids
-      Integer       NIC,NJC,NKC, bini, deb,fin,lo,DIFP,
-     +              II,JJ,J0,JJ0,KK,numero,numeroX,numeroY,
-     +              place,placeX,placeY,tranche,LocVAL,
-     +              val11,val11X,val11Y
-
-***    Declaration des valeurs initiales
-
-      Data          Vrai     /     .true.     /,
-     +              Faux     /     .false.    /,
-     +              Hard     /     .false.    /,
-     +              Debug    /     .false.    /
-      Data          IOPrint  /     .true.     /
-      Data          listej   /  MaxTask * -1  /
-      Data          IUN,ETAT / -1  ,  0  /
-      Data          NCPU     /  1  /
-      Data          NDIMS    /  0  /
-      Data          StartI   /  0  /
-      Data          StartJ   /  0  /
-      Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  ,
-     +                          3  ,  2  , -1  ,  6  , 999 , 999 ,
-     +                          3  ,  3  , -2  ,  4  , 999 , 999 ,
-     +                          2  ,  3  , -3  , 999 , 999 , 999 /
-      Data          NOUTZON  / 'noutzon' /
 *---------------------------------------------------------------------
 *=====================================================================
 *---------------------------------------------------------------------
@@ -1496,12 +1482,59 @@
       End If
 
       Return
-
+ 6001 Format(' Illegal transition ',I3,' from state ',I3)
+ 6002 Format(' User requests closing of I/O unit ',I3,
+     +       ' while only unit ',I3,' should be open.')
+ 6003 Format(' Unable to write "1/" somx before closing down.')
+ 6004 Format(' Unable to write "2/" somx2 before closing down.')
+ 6005 Format(' Unable to write "T/" control table before closing down.')
+ 6006 Format(" noutzon n'est pas un fichier standard.")
+ 6007 Format(' File xxxxxx is empty according to fstnbr.')
+ 6008 Format(' Unable to read "T/" control table or',
+     +       ' Incorrect control table sizes :',3I5)
+ 6009 Format(' Unable to read "S/" sin array or',
+     +       ' mismatch between expected and real dimensions.')
+ 6010 Format(' Unable to read "C/" cos array or',
+     +       ' mismatch between expected and real dimensions.')
+ 6011 Format(' Unable to read "B/" bin array or',
+     +       ' mismatch between expected and real dimensions.')
+ 6012 Format(' Unable to read "W/" weights array or',
+     +       ' mismatch between expected and real dimensions.')
+ 6013 Format(' Unable to read "VC/" variable list or',
+     +       ' mismatch between expected and real dimensions.')
+ 6014 Format(' Unable to read "1/" somx for KOUNT =',I5,' at startup.')
+ 6015 Format(' Unable to read "2/" somx2 for KOUNT =',I5,' at startup.')
+ 6016 Format(' Non-recognized value: KOUNT =',I5,', while npas =',I5)
+ 6017 Format(' Unable to write "1/" somx at KOUNT =',I5)
+ 6018 Format(' Unable to write "2/" somx2 at KOUNT =',I5)
+ 6019 Format(' Unable to write "T/" control table at KOUNT =',I5)
+ 6020 Format(' Unable to read "1/" somx at KOUNT =',I5)
+ 6021 Format(' Unable to read "2/" somx2 at KOUNT =',I5)
+ 6022 Format(' Unknown latitude ',I5,'; unable to desallocate.')
+ 6023 Format(' No more available slices at this point.')
+ 6024 Format(' MaxTask set to ',I2,', maximum value is ',I2)
+ 6033 Format(' Unable to read "P/" position list or',
+     +       ' mismatch between expected and real dimensions.')
+ 6201 Format(' MzonOPR: OPR,VAl =',2I5,',and StartI =',I5)
+ 6202 Format(' MzonOPR: OPR,VAl =',2I5)
+      end
 *---------------------------------------------------------------------
 *=====================================================================
 *---------------------------------------------------------------------
 
-      Entry mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
+c       E n t r y mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
+      subroutine mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
+      use mzonxst_mod
+      implicit none
+      Integer       J,NDIM,hhhh,ORD,tttt
+      Real          FACF3D(NDIM,*)
+      Real          Z(NDIM,*)
+      Character *(*) NOM
+      Character     variab*4
+      Real          echant !,echantX,echantY,poids
+      Integer :: difp, ii, jj, j0, jj0, nic, nil, niv, numero
+      Integer :: place, tranche, val11
+      integer, external :: exfin
 
 ***    Section mise-a-jour de la routine pour les champs scalaire
 ***   (Valide seulement dans le mode de controle actif du package).
@@ -1757,6 +1790,13 @@
       End If
 
       Return
+ 6101 Format(' Not in a state to execute command, STATE=',I1)
+ 6102 Format(' Latitude ',I3,' is not being currently processed.')
+ 6103 Format(' Nothing to save, NOM=',A)
+ 6104 Format(' StartI+NDIM-1 > NI, as StartI,NDIM,NI =',3I5)
+ 6105 Format(' Non-recognized value: ORD =',I5,', while KA =',I5)
+ 6205 Format(' Mzonxst/Mvznxst: NDIM =',I5)
+      end
 
 *---------------------------------------------------------------------
 *=====================================================================
@@ -1765,7 +1805,20 @@
 ***    Section mise-a-jour de la routine pour les champs vectoriels
 ***   (Valide seulement dans le mode de controle actif du package).
 
-      Entry MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
+c       E n t r y MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
+      subroutine MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
+      use mzonxst_mod
+      implicit none
+      Integer       J,NDIM,ORD,tttt
+      Real          FACF3D(NDIM,*)
+      Character *(*) XNOM, YNOM
+      Real          X(NDIM,*),Y(NDIM,*)
+      Character     variab*4
+      integer :: DIFP
+      Real :: echantX,echantY,poids
+      Integer :: ii, j0, jj, jj0, nic, nil, numeroX, numeroY, niv
+      Integer :: placeX, placeY, tranche, val11X, val11Y
+      integer, external :: exfin
 
       If (ETAT.eq.0) Return
 
@@ -2098,6 +2151,12 @@
       End If
 
       Return
+ 6101 Format(' Not in a state to execute command, STATE=',I1)
+ 6102 Format(' Latitude ',I3,' is not being currently processed.')
+ 6104 Format(' StartI+NDIM-1 > NI, as StartI,NDIM,NI =',3I5)
+ 6105 Format(' Non-recognized value: ORD =',I5,', while KA =',I5)
+ 6205 Format(' Mzonxst/Mvznxst: NDIM =',I5)
+      end
 
 *---------------------------------------------------------------------
 *=====================================================================
@@ -2106,7 +2165,12 @@
 ***    Section de modification du KA local KAJ (encore une fois, ceci
 ***    n'est valide que dans le mode de controle actif du package).
 
-      Entry MZONIV ( J,VAL )
+c       E n t r y MZONIV ( J,VAL )
+      subroutine MZONIV ( J,VAL )
+      use mzonxst_mod
+      implicit none
+      integer j, val, ii, jj, nil, tranche
+      integer, external :: exfin
 
       If (ETAT.eq.0) Return
 
@@ -2158,9 +2222,26 @@
 *=====================================================================
 *---------------------------------------------------------------------
 
+    4 Format(A4)
+
+ 6101 Format(' Not in a state to execute command, STATE=',I1)
+ 6102 Format(' Latitude ',I3,' is not being currently processed.')
+ 6203 Format(' MzonNIV: J,VAL =',2I5)
+ 6205 Format(' Mzonxst/Mvznxst: NDIM =',I5)
+
+      End
+
+*---------------------------------------------------------------------
+*=====================================================================
+*---------------------------------------------------------------------
+
 ***    Section de modification de NOUTZON.
 
-      Entry MZONFIL ( NAME )
+*       E n t r y MZONFIL ( NAME )
+      subroutine MZONFIL ( NAME )
+      use mzonxst_mod
+      implicit none
+      Character*(*) NAME
 
       If (ETAT.ne.0) Return
 
@@ -2169,58 +2250,6 @@
       NOUTZON = NAME
 
       Return
-
-*---------------------------------------------------------------------
-*=====================================================================
-*---------------------------------------------------------------------
-
-    4 Format(A4)
-
- 6001 Format(' Illegal transition ',I3,' from state ',I3)
- 6002 Format(' User requests closing of I/O unit ',I3,
-     +       ' while only unit ',I3,' should be open.')
- 6003 Format(' Unable to write "1/" somx before closing down.')
- 6004 Format(' Unable to write "2/" somx2 before closing down.')
- 6005 Format(' Unable to write "T/" control table before closing down.')
- 6006 Format(" noutzon n'est pas un fichier standard.")
- 6007 Format(' File xxxxxx is empty according to fstnbr.')
- 6008 Format(' Unable to read "T/" control table or',
-     +       ' Incorrect control table sizes :',3I5)
- 6009 Format(' Unable to read "S/" sin array or',
-     +       ' mismatch between expected and real dimensions.')
- 6010 Format(' Unable to read "C/" cos array or',
-     +       ' mismatch between expected and real dimensions.')
- 6011 Format(' Unable to read "B/" bin array or',
-     +       ' mismatch between expected and real dimensions.')
- 6012 Format(' Unable to read "W/" weights array or',
-     +       ' mismatch between expected and real dimensions.')
- 6013 Format(' Unable to read "VC/" variable list or',
-     +       ' mismatch between expected and real dimensions.')
- 6033 Format(' Unable to read "P/" position list or',
-     +       ' mismatch between expected and real dimensions.')
- 6014 Format(' Unable to read "1/" somx for KOUNT =',I5,' at startup.')
- 6015 Format(' Unable to read "2/" somx2 for KOUNT =',I5,' at startup.')
- 6016 Format(' Non-recognized value: KOUNT =',I5,', while npas =',I5)
- 6017 Format(' Unable to write "1/" somx at KOUNT =',I5)
- 6018 Format(' Unable to write "2/" somx2 at KOUNT =',I5)
- 6019 Format(' Unable to write "T/" control table at KOUNT =',I5)
- 6020 Format(' Unable to read "1/" somx at KOUNT =',I5)
- 6021 Format(' Unable to read "2/" somx2 at KOUNT =',I5)
- 6022 Format(' Unknown latitude ',I5,'; unable to desallocate.')
- 6023 Format(' No more available slices at this point.')
- 6024 Format(' MaxTask set to ',I2,', maximum value is ',I2)
-
- 6101 Format(' Not in a state to execute command, STATE=',I1)
- 6102 Format(' Latitude ',I3,' is not being currently processed.')
- 6103 Format(' Nothing to save, NOM=',A)
- 6104 Format(' StartI+NDIM-1 > NI, as StartI,NDIM,NI =',3I5)
- 6105 Format(' Non-recognized value: ORD =',I5,', while KA =',I5)
-
- 6201 Format(' MzonOPR: OPR,VAl =',2I5,',and StartI =',I5)
- 6202 Format(' MzonOPR: OPR,VAl =',2I5)
- 6203 Format(' MzonNIV: J,VAL =',2I5)
  6204 Format(' MzonFIL: NAME =',A)
- 6205 Format(' Mzonxst/Mvznxst: NDIM =',I5)
-
-      End
+      end
 #     endif
