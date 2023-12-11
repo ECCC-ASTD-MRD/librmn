@@ -1593,10 +1593,10 @@ int c_fstprm_rsf(
     *extra2 = 0;
     *extra3 = 0;
 
-    strncpy(typvar, cracked.typvar, strlen_up_to(typvar, 2));
-    strncpy(nomvar, cracked.nomvar, strlen_up_to(nomvar, 4));
-    strncpy(etiket, cracked.etiket, strlen_up_to(etiket, 12));
-    strncpy(grtyp, cracked.gtyp, strlen_up_to(grtyp, 1));
+    strncpy(typvar, cracked.typvar, TYPVAR_LEN);
+    strncpy(nomvar, cracked.nomvar, NOMVAR_LEN);
+    strncpy(etiket, cracked.etiket, ETIKET_LEN);
+    strncpy(grtyp, cracked.gtyp, GTYP_LEN);
 
     return 0;
 }
