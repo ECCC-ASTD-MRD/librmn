@@ -92,7 +92,7 @@ if(BUILD_TESTING)
     add_test(NAME fst_thorough COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_thorough)
     add_dependencies(check fst_thorough)
 
-    add_executable(rsf_dump EXCLUDE_FROM_ALL test_rsf.c)
+    add_executable(rsf_dump test_rsf.c)
     target_link_libraries(rsf_dump rmn::rmn)
     target_compile_definitions(rsf_dump PRIVATE RSF_DUMP)
 
@@ -115,4 +115,9 @@ if(BUILD_TESTING)
     target_link_libraries(serializer_large rmn::rmn)
     # add_test(NAME serializer_large COMMAND ${CMAKE_CURRENT_BINARY_DIR}/serializer_large)
     # add_dependencies(check serializer_large)
+
+    add_executable(moduledate EXCLUDE_FROM_ALL moduledate.F90)
+    target_link_libraries(moduledate rmn::rmn)
+    add_test(NAME moduledate COMMAND $<TARGET_FILE:moduledate>)
+    add_dependencies(check moduledate)
 endif()

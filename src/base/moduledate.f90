@@ -308,7 +308,7 @@
 !**S/R INCDATR - INCREASE IDATE2 BY NHOURS
 !
 !       SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
-      SUBROUTINE date_add_sub (IDATE1,IDATE2,NHOURS, adding, rounding)   ! INCDATR
+      SUBROUTINE date_add_sub (IDATE1,IDATE2,NHOURS, want_adding, want_rounding)   ! INCDATR
          use app
          use rmn_common
          IMPLICIT NONE
@@ -392,12 +392,13 @@
 !
       integer idate1,idate2
       real(kind = real64) :: nhours
-      logical  adding,rounding
+      logical, intent(in) :: want_adding, want_rounding
       integer, external :: Calendar_Adjust_int, naetwed
       external Get_Calendar_Status_int
       integer  result
 
       logical :: no_leap_years,ccclx_days,goextend
+      logical :: rounding
 
       integer(kind = int64) addit
       integer tdate1,tdate2,runnum,ndays,pdate2
@@ -405,30 +406,11 @@
       integer td1900, td2235
       data td1900 /-504904320/, td2235 /1615714548/
 
-      if(adding)       go to 1   ! incdat1/incdatr
-      if(.not. adding) go to 3   ! difdati/difdatr
-!       rounding=.false.
-!       adding=.true.
-!       goto 1
-! 
-!       e n t r y IDNACTi(idate1,idate2,nhours) ! INCDATI
-!       rounding=.true.
-!       adding=.true.
-!       goto 1
-! 
-! !
-! !  difdat computes nhours = idate1 - idate2
-! !
-!       e n t r y DDIAFTi(idate1,idate2,nhours) ! DIFDATI
-!       rounding=.true.
-!       adding=.false.
-!       goto 3
-! 
-!       e n t r y DDIAFTr(idate1,idate2,nhours) ! DIFDATR
-!       rounding=.false.
-!       adding=.false.
-!       goto 3
-! 
+      rounding = .false.
+
+      if(want_adding)       go to 1   ! incdat1/incdatr
+      if(.not. want_adding) go to 3   ! difdati/difdatr
+
  3    continue
 
 !      print *,'Debug+ difdat ',idate1,idate2
@@ -461,7 +443,7 @@
  1    continue
       call Get_calendar_Status_int( no_leap_years,ccclx_days )
       if (idate2 .lt. -1 .or. &
-         (idate1 .lt. -1 .and. .not.adding)) then
+         (idate1 .lt. -1 .and. .not.want_adding)) then
         if (idate2 .gt.-1) then
            result=naetwed(idate2,pdate1,pdate2,-3)
            if(result.ne.0) then
@@ -483,10 +465,10 @@
            call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
            goto 2
         endif
-        if (adding) then
+        if (want_adding) then
           tdate1=tdate2+nint(nhours)
           if (no_leap_years .or. ccclx_days) then
-            ndays = Calendar_Adjust_int(tdate1,tdate2,'E',adding)
+            ndays = Calendar_Adjust_int(tdate1,tdate2,'E',want_adding)
             tdate1 = tdate1 + (ndays*24)
           endif
           result=naetwed(tdate1,idate,runnum,-6) ; idate1=idate(1)
@@ -498,7 +480,7 @@
         else
           nhours=(tdate1-tdate2)
           if (no_leap_years .or. ccclx_days) then
-            ndays = Calendar_Adjust_int(tdate1,tdate2,'E',adding)
+            ndays = Calendar_Adjust_int(tdate1,tdate2,'E',want_adding)
             nhours = nhours - (ndays*24)
           endif
         endif
@@ -509,9 +491,9 @@
            call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
            goto 2
         endif
-        if (adding) then
+        if (want_adding) then
            goextend=.false.
-           rounding=rounding.or.(tdate2.lt.0)
+           rounding=want_rounding.or.(tdate2.lt.0)
            if (rounding) then
               tdate2=(tdate2+sign(360,tdate2))/720*720
               addit = 720*nint(nhours,8)
@@ -522,7 +504,7 @@
                (td2235-tdate2)*1_8 >= addit) then   ! tdate2 + addit <= td2235, where
               tdate1=tdate2+addit                   ! addit can be a very large
               if (no_leap_years.or.ccclx_days) then ! integer*8 number
-                 ndays = Calendar_Adjust_int(tdate1,tdate2,'B',adding)
+                 ndays = Calendar_Adjust_int(tdate1,tdate2,'B',want_adding)
                  tdate1 = tdate1 + (ndays*24*720)
                endif
               if ((tdate1 > td2235) &
@@ -545,7 +527,7 @@
              endif
              tdate1=tdate2+nint(nhours)
              if (no_leap_years .or. ccclx_days) then
-               ndays = Calendar_Adjust_int(tdate1,tdate2,'E',adding)
+               ndays = Calendar_Adjust_int(tdate1,tdate2,'E',want_adding)
                tdate1 = tdate1 + (ndays*24)
              endif
              result=naetwed(tdate1,idate,runnum,-6) ; idate1=idate(1)
@@ -558,7 +540,7 @@
               goto 2
            endif
         else
-           if (rounding) then
+           if (want_rounding) then
               tdate1=(tdate1+sign(360,tdate1))/720*720
               tdate2=(tdate2+sign(360,tdate2))/720*720
               nhours=nint((tdate1-tdate2)/720.0)
@@ -567,20 +549,20 @@
               nhours=nhours/720.0
            endif
            if (no_leap_years .or. ccclx_days) then
-             ndays = Calendar_Adjust_int(tdate1,tdate2,'B',adding)
+             ndays = Calendar_Adjust_int(tdate1,tdate2,'B',want_adding)
              nhours = nhours - (ndays*24)
            endif
         endif
       endif
       return
 
- 2    if (adding) then
+ 2    if (want_adding) then
          idate1=101010101
       else
          nhours=2.0**30
       endif
       return
-      end
+      end subroutine date_add_sub
 !**FUNCTION IDATMG2 - CONSTRUCTS A CANADIAN METEOROLOGICAL CENTRE DATE-
 !                    TIME STAMP USING THE OPERATIONAL CMC DATE-TIME
 !                    GROUP.
