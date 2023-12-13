@@ -628,8 +628,9 @@ int32_t f77name(fnom)(
         filetype[lng] = '\0';
     }
 
+    int iun0 = liun;
     int tmp = c_fnom(&liun, filename, filetype, *flrec);
-    if (*iun == 0) *iun = liun;
+    if (iun0 == 0) *iun = liun;
     return tmp;
 }
 
@@ -1914,7 +1915,7 @@ static int qqcopen(
         return -1;
     }
 
-    FILE* fd;
+    int fd;
     if (FGFDT[indf].subname) {
         // cmcarc file
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  opening subfile %s from file %s\n",__func__,FGFDT[indf].subname,FGFDT[indf].file_name);

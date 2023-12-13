@@ -21,12 +21,40 @@
 
 !version that accepts real(single) arguments, with the extended interface
 subroutine Extrap1D_Surface_X  &
+    (numInterpSets, srcNumLevels, destNumLevels, &
+    src_ijDim, dst_ijDim, &
+
+    vLevelSource, stateSource, stateDerivSource, &
+
+    posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+
+    extrapEnableDown, extrapEnableUp, &
+    extrapGuideDown, extrapGuideUp, &
+
+    flux, numExtArraysIn, numExtArraysOut, &
+    ExtArraysIn, ExtArraysOut &
+   )
 #define real48 single
 #include "Extrap1D_Surface_Body.inc"
 #undef real48
+end subroutine
 
 !version that accepts real(double) arguments, with the extended interface
 subroutine Extrap1D_Surface_X8  &
+    (numInterpSets, srcNumLevels, destNumLevels, &
+    src_ijDim, dst_ijDim, &
+
+    vLevelSource, stateSource, stateDerivSource, &
+
+    posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+
+    extrapEnableDown, extrapEnableUp, &
+    extrapGuideDown, extrapGuideUp, &
+
+    flux, numExtArraysIn, numExtArraysOut, &
+    ExtArraysIn, ExtArraysOut &
+   )
 #define real48 double
 #include "Extrap1D_Surface_Body.inc"
 #undef real48
+end subroutine

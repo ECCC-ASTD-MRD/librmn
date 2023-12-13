@@ -1,12 +1,27 @@
 #ifdef INTERFACEONLY
+interface wb_reset
+  function wb_reset() result(status)
+    import :: int32
+    implicit none
+    integer(kind = int32) :: status
+  end function
+end interface
+#endif
+
+#ifdef INTERFACEONLY
 interface wb_read
 #endif
     !> \brief Read a dictionary or namelist into the whiteboard
     function wb_read(prefix_name, file, section, mode, wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> Prefix to add to var name found in the config file as WB keyname
         character(len = *), intent(in) :: prefix_name
         !> Config filename to read
@@ -50,9 +65,14 @@ interface wb_keys
     !> \brief Retreive all key names in the wahitboard starting with key_pattern
     function wb_keys(keys, nkeys, key_pattern, wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> List of found WB key names that start with key_pattern
         character(len = *), dimension(:), intent(out) :: keys
         !> Number of found key name
@@ -89,9 +109,14 @@ interface wb_get_meta
     !> \brief Retreive meta data of WB entry conresponding to provided key name
     function wb_get_meta(key, type1, typelen, array_size, options, wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> String identifying the whiteboard entry to get meta from
         character(len = *), intent(in) :: key
         !> Fortran type [WB_FORTRAN_*]
@@ -175,9 +200,14 @@ interface wb_checkpoint
     !> \brief Save a copy of the whiteboard to disk for re-start purpose
     function wb_checkpoint(wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> WhiteBoard instance.  The global instance is used if one ins't provided
         type(whiteboard), intent(in), optional :: wb
         !> Status; use WB_IS_OK(status) to check
@@ -215,9 +245,14 @@ interface wb_reload
     !> If ant, as written by wb_checkpoint; normally done first thing on re-start
     function wb_reload(wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> WhiteBoard instance.  The global instance is used if one ins't provided
         type(whiteboard), intent(in), optional :: wb
         !> Status; use WB_IS_OK(status) to check
@@ -252,9 +287,14 @@ interface wb_check
     !> \brief Check all whiteboard entries for the gien instatus, return number of entries that match
     function wb_check(prefix_match, instatus, wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> Prefix string to match to WB entry key name
         character(len = *), intent(in) :: prefix_match
         !> Status code to check for
@@ -290,9 +330,14 @@ interface wb_lock
     !> This is normally done after a wb_read of a config file
     function wb_lock(prefix_match, wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> Prefix string to match to WB entry key name
         character(len = *), intent(in) :: prefix_match
         !> WhiteBoard instance.  The global instance is used if one ins't provided
@@ -399,9 +444,14 @@ interface wb_broadcast
     !> \brief Perform an MPI broadcast
     function wb_broadcast(key, ispattern, wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> String identifying the whiteboard entry to broadcast
         character(len = *), intent(in)   :: key
         !> If not 0, key is a pattern to match
@@ -480,9 +530,14 @@ interface wb_new
     !> \brief Create a new whiteboard instance
     function wb_new(wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> New WhiteBoard
         type(whiteboard), intent(out) :: wb
         !> Status; use WB_IS_OK(status) to check
@@ -511,9 +566,14 @@ interface wb_free
     !> \brief Delete a WhiteBoard instance
     function wb_free(wb) result(status)
         use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+        import :: whiteboard
+#endif
         implicit none
 
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
         !> The WhiteBoard to delete
         type(whiteboard), intent(inout) :: wb
         !> Status; use WB_IS_OK(status) to check

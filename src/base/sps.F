@@ -18,31 +18,48 @@
 * * Boston, MA 02111-1307, USA.
 * */
 
+      real function SPS(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM)
+      implicit none
+      integer :: LI,LJ,HEM
+      REAL F(LI,LJ),LAMBDA,PHI,PI,PJ,D60,DGRW
+      real, external :: SPS_SLC
+      SPS = SPS_SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,0)
+      end
 
-***FONCTION SPS - INTERPOLATION A PARTIR D'UNE GRILLE POLAIRE STEREOGRAPHIQUE
+      real function SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM)
+      implicit none
+      integer :: LI,LJ,HEM
+      REAL F(LI,LJ),LAMBDA,PHI,PI,PJ,D60,DGRW
+      real, external :: SPS_SLC
+      SLC = SPS_SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,111)
+      end
+
+***FONCTION SPS_SLC - INTERPOLATION A PARTIR D'UNE GRILLE POLAIRE STEREOGRAPHIQUE
 *
-      FUNCTION SPS(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM)
+      real FUNCTION SPS_SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,mode)
       REAL F(LI,LJ), T(4)
+      integer :: mode
 *
 *AUTEUR   - M. VALIN, DRPN
 *
 *REVISION 001  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*              M. VALIN      -  OCT 2023 elimination de entry
 *
 *LANGAGE  - FORTRAN
 *
-*OBJET(SPS)
+*OBJET(SPS_SLC)
 *         - EXTRAIRE LA VALEUR DE LA FONCTION F AU POINT DE COORDONNEES
 *           LAMBDA(LONGITUDE) ET PHI(COLATITUDE) DANS UNE GRILLE
 *           POLAIRE STEREOGRAPHIQUE.
 *
-*APPEL    - R=SPS(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM)
+*APPEL    - R=SPS_SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,mode)
 *
 *LIBRAIRIES
-*         - RMNSOURCELIB,ID=RMNP     DECK=SPS
+*         - RMNSOURCELIB,ID=RMNP     DECK=SPS_SLC
 *         - RMNLIB,ID=RMNP
 *
 *ARGUMENTS
-*   OUT   - SPS    - VALEUR DE LA FONCTION AU POINT DEMANDE
+*   OUT   - SPS_SLC    - VALEUR DE LA FONCTION AU POINT DEMANDE
 *   IN    - LAMBDA - LONGITUDE DU POINT  (REEL)
 *   IN    - PHI    - COLATITUDE(LATITUDE-90.0) DU POINT (REEL)
 *   IN    - F      - CHAMP SOURCE  (LI,LJ)
@@ -54,6 +71,7 @@
 *                    A 60 DEGRES DE LATITUDE
 *   IN    - DGRW   - ANGLE ENTRE L'AXE X ET LE MERIDIEN DE GRENWICH
 *   IN    - HEM    - CODE D'HEMISPHERE  (1=NORD , 2=SUD)
+*   in    - mode   - 0 : sps, 111 : slc
 *
 *MODULES  - XYFLL
 *
@@ -66,7 +84,7 @@
 #include "lagrange.cdk"
 #include "cubic.cdk"
 
-
+      if(mode .eq. 111) goto 111
 *
       ORDINT = 3
       CALL XYFLL(X,Y,90.0-PHI,LAMBDA,D60,DGRW,HEM)
@@ -75,14 +93,14 @@
       IF(ORDINT.EQ.0) THEN
          I = NINT(X)
          J = NINT(Y)
-         SPS = F(MAX(1,MIN(I,LI)),MAX(1,MIN(J,LJ)))
+         SPS_SLC = F(MAX(1,MIN(I,LI)),MAX(1,MIN(J,LJ)))
          RETURN
       ELSE IF(ORDINT.EQ.1) THEN
          I = X
          I = MAX(1,MIN(I,LI-1))
          J = Y
          J = MAX(1,MIN(J,LJ-1))
-         SPS = ZLIN( ZLIN(F(I,J),F(I+1,J),X-I),
+         SPS_SLC = ZLIN( ZLIN(F(I,J),F(I+1,J),X-I),
      %               ZLIN(F(I,J+1),F(I+1,J+1),X-I),
      %               Y-J)
          RETURN
@@ -107,12 +125,12 @@
 *
 * A L'INTERIEUR DE LA GRILLE DANS LA DIRECTION Y.
 *
-          SPS=CUBIC(T(1),T(2),T(3),T(4),DY)
+          SPS_SLC=CUBIC(T(1),T(2),T(3),T(4),DY)
           RETURN
 *
 * A L'EXTERIEUR DE LA GRILLE DANS LA DIRECTION Y.
 *
-5         SPS=POLY(T(1),T(2),T(3),T(4),Y,FLOAT(J-1),FLOAT(J),
+5         SPS_SLC=POLY(T(1),T(2),T(3),T(4),Y,FLOAT(J-1),FLOAT(J),
      X          FLOAT(J+1),FLOAT(J+2))
           RETURN
 
@@ -140,12 +158,13 @@
 *
 * PAS A L'INTERIEUR DE LA GRILLE DANS LA DIRECTION X
 *
-20      SPS=POLY(T(1),T(2),T(3),T(4),X,
+20      SPS_SLC=POLY(T(1),T(2),T(3),T(4),X,
      X           FLOAT(I-1),FLOAT(I),FLOAT(I+1),FLOAT(I+2))
 
 
       RETURN
-      ENTRY SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,PHI1,PHI2)
+*      E N T R Y SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,PHI1,PHI2)
+111   continue
       CALL XYFLCC(X,Y,90.-PHI,LAMBDA,D60,DGRW,1.,PHI1,PHI2)
       GOTO 1
       END

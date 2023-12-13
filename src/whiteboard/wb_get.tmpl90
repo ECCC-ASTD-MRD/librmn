@@ -4,8 +4,13 @@
 !> \brief Retrieve a copy of the value associated with key stored in the whiteboard saclar form
 function FNCNAME(wb_get_)(key, val, wb) result(status)
     use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+    import :: whiteboard
+#endif
     implicit none
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
 
     !> Key identifying the whiteboard entry to get
     character (len = *), intent(in) :: key
@@ -40,8 +45,13 @@ end function
 !> \brief Retrieve a copy of the value associated with key stored in the whiteboard array form
 function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
     use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+    import :: whiteboard
+#endif
     implicit none
+#ifndef INTERFACEONLY
 #include "whiteboard_type.hf"
+#endif
 
     !> Key identifying the whiteboard entry to get
     character (len = *), intent(in) :: key

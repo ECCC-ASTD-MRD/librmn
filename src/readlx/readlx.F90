@@ -954,6 +954,8 @@
       INTEGER               :: ITYP,LIMITS
       character(len=*)      :: KEY
 
+      integer(kind=8), external :: get_address_from
+
       INTEGER               :: ITAB(3:3,256),NENTRY,IPNT
       integer(kind = int64) :: IPTADR(2,256)
       character(len=8)      :: NAMES(256)
@@ -961,6 +963,7 @@
       COMMON /qqq_nrdlx2/ IPTADR
 
       character(len=8) ikey
+      integer :: i
 
 !
 !     TROUVER LA CLE
@@ -988,8 +991,22 @@
       LIMITS=IAND(ITAB(3,IPNT),ishft(-1,-(32-(24))))
       ITYP=ishft(ITAB(3,IPNT),-(24))
       RETURN
+      end
 
-      ENTRY QLXUDF(IVAR,KEY)
+      subroutine QLXUDF(IVAR,KEY)
+      use rmn_common
+      implicit none
+      integer(kind = int64) :: ivar
+      character(len=*) KEY
+
+      INTEGER ITAB(3:3,256),NENTRY,IPNT
+      integer(kind=8) IPTADR(2,256)
+      character(len=8) NAMES(256)
+      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
+      COMMON /qqq_nrdlx2/ IPTADR
+
+      integer :: i
+      character(len=8) IKEY
 !
 !     TROUVER LA CLE
 !
@@ -1011,7 +1028,19 @@
 23020 CONTINUE
       NENTRY = NENTRY - 1
       RETURN
-      ENTRY QLXDTB
+      END
+
+      subroutine QLXDTB
+      use rmn_common
+      implicit none
+
+      INTEGER ITAB(3:3,256),NENTRY,IPNT
+      integer(kind = int64) IPTADR(2,256)
+      character(len=8) NAMES(256)
+      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
+      COMMON /qqq_nrdlx2/ IPTADR
+
+      integer :: i
       PRINT *,' NAMES, LOCVAR, TYPE/LIMITS, LOCCOUNT'
       DO 23022 I=1,NENTRY
          PRINT 101, NAMES(I),IPTADR(1,I),ITAB(3,I),IPTADR(2,I)
@@ -1427,15 +1456,14 @@
          RETURN
       END
 
-!  FONCTION  QLXPRI EVALUER LA PRIORITE D'UN OPERATEUR
-      FUNCTION QLXPRI(OPR)
-      INTEGER QLXPRI
+!  FONCTION  QLXPRI_L EVALUER LA PRIORITE D'UN OPERATEUR
+      INTEGER FUNCTION QLXPRI_L(OPR, LEFTPRI)
       character(len=*) OPR
+      LOGICAL LEFTPRI
       INTEGER QLXPRIL
       PARAMETER (MAXOPER=23)
       INTEGER PRI(MAXOPER)
       character(len=4) LISTE(MAXOPER), OPRTR
-      LOGICAL LEFTPRI
       SAVE LISTE, PRI
       DATA LISTE/   ')' ,   ']' ,   'U+' ,   'U-','**' ,   '*' ,     &
         '/' ,   '+','-' ,   '<' ,   '>' ,   '==','<=' ,   '>=' ,     &
@@ -1445,25 +1473,41 @@
          71,71 ,   61 ,   61  ,   61,61 ,   61 ,   61  ,   61,51 ,   &
          41 ,   41  ,   41,10 ,   1 ,   1   /
       OPRTR = OPR
-      LEFTPRI = .FALSE.
+!       LEFTPRI = .FALSE.
 1     CONTINUE
       DO 23000 I = 1,MAXOPER
          IF((OPRTR.EQ.LISTE(I)))THEN
             IF((LEFTPRI))THEN
-               QLXPRI = I + PRI(I)*100
+               QLXPRI_L = I + PRI(I)*100
             ELSE
-               QLXPRI = I + (PRI(I)-MOD(PRI(I),2))*100
+               QLXPRI_L = I + (PRI(I)-MOD(PRI(I),2))*100
             ENDIF
             RETURN
          ENDIF
 23000 CONTINUE
-      QLXPRI = 0
+      QLXPRI_L = 0
       RETURN
-      ENTRY QLXPRIL(OPR)
-      OPRTR = OPR
-      LEFTPRI = .TRUE.
-      GOTO 1
+!       E N T R Y QLXPRIL(OPR)
+!       OPRTR = OPR
+!       LEFTPRI = .TRUE.
+!       GOTO 1
       END
+
+!  FONCTION  QLXPRI EVALUER LA PRIORITE D'UN OPERATEUR (right priority)
+      integer function qlxpri(opr)
+      implicit none
+      character(len=*) opr
+      integer, external :: qlxpri_l
+      qlxpri = qlxpri_l(opr, .FALSE.)
+      end
+
+!  FONCTION  QLXPRIL EVALUER LA PRIORITE D'UN OPERATEUR (left priority)
+      integer function qlxpril(opr)
+      implicit none
+      character(len=*) opr
+      integer, external :: qlxpri_l
+      qlxpril = qlxpri_l(opr, .TRUE.)
+      end
 
       SUBROUTINE QLXPRNT(QUOI,COMMENT)
       INTEGER QUOI(*), COMMENT(*)
