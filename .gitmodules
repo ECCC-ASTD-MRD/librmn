@@ -5,4 +5,10 @@
 [submodule "App"]
 	path = App
 	url = ../App.git
-	branch = master
+	branch = dev
+[submodule "dep/json-c"]
+	path = dep/json-c
+	url = ../json-c.git
+[submodule "dep/udunits2"]
+	path = dep/udunits2
+	url = ../udunits2.git

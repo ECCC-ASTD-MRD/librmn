@@ -9,10 +9,6 @@
 #include "rmn/fnom.h"
 #include "xdf98.h"
 
-static inline size_t strlen_up_to(const char* string, const size_t max_length) {
-    return Min(strlen(string), Max(max_length, 0));
-}
-
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst23_file_is_open(const fst_file* file) {
