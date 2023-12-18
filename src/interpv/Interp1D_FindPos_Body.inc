@@ -2,11 +2,11 @@
 !                         occur
 !subroutine Interp1D_FindPos  &
 !subroutine Interp1D_FindPos8 &
-                      (numInterpSets, srcNumLevels, destNumLevels, &
-                       src_ijDim, dst_ijDim, &
+                      ! (numInterpSets, srcNumLevels, destNumLevels, &
+                      !  src_ijDim, dst_ijDim, &
 
-                       vLevelSource, posnDestInSrc, vLevelDestn &
-                      )
+                      !  vLevelSource, posnDestInSrc, vLevelDestn &
+                      ! )
 !
 !AUTHOR
 !     J.W. Blezius MAY 2002 first library to replace duplicate interpolation
@@ -143,4 +143,4 @@
   end do ! t
 !$OMP END parallel do
 
-end subroutine ! Interp1D_FindPos
+!end subroutine ! Interp1D_FindPos

@@ -21,12 +21,24 @@
 
 !version that accepts real(single) arguments
 subroutine Interp1D_FindPos  &
+                      (numInterpSets, srcNumLevels, destNumLevels, &
+                       src_ijDim, dst_ijDim, &
+
+                       vLevelSource, posnDestInSrc, vLevelDestn &
+                      )
 #define real48 single
 #include "Interp1D_FindPos_Body.inc"
 #undef real48
+end subroutine
 
 !version that accepts real(double) arguments
 subroutine Interp1D_FindPos8  &
+                      (numInterpSets, srcNumLevels, destNumLevels, &
+                       src_ijDim, dst_ijDim, &
+
+                       vLevelSource, posnDestInSrc, vLevelDestn &
+                      )
 #define real48 double
 #include "Interp1D_FindPos_Body.inc"
 #undef real48
+end subroutine
