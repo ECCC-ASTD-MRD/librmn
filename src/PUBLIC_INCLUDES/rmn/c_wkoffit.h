@@ -51,10 +51,6 @@
 extern "C" {
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 int32_t c_wkoffit(
     const char * const filePath,
     const int l1
