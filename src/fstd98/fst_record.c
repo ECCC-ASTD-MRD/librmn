@@ -4,7 +4,7 @@
 
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
-fst_record fst23_record_new(
+fst_record fst23_record_init(
     void   *data,   //!< Data pointer to assign, or allocate inernal array in NULL
     int32_t type,   //!< Data type
     int32_t nbits,  //!< Number of bits per data element
@@ -26,9 +26,49 @@ fst_record fst23_record_new(
        if (!(result.data=(void*)malloc(FST_REC_SIZE((&result))))) {
           Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
        }
+    } else {
+       // Using an assigned pointer
+       result.flags!=FST_REC_ASSIGNED;
     }
 
     return(result);
+}
+
+int32_t fst23_record_free(fst_record* record) {
+
+   if (record->data && record->flags&FST_REC_ASSIGNED) {
+      free(record->data);
+      record->data=NULL; 
+   }
+   return(TRUE);
+}
+
+void fst23_record_print(const fst_record* record) {
+    Lib_Log(APP_LIBFST, APP_ALWAYS,
+        "\n"
+        "  Version: %ld\n"
+        "  Data: 0x%x\n"
+        "  Metadata: 0x%x\n"
+        "  Handle: 0x%x\n"
+        "  date (v?): %ld\n"
+        "  datyp: %d\n"
+        "  dasiz: %d\n"
+        "  npak: %d\n"
+        "  ni x nj x nk: %d x %d x %d (%d) elements\n"
+        "  deet: %d, npas: %d\n"
+        "  ip1-3: %d, %d, %d\n"
+        "  ig1-4: %d, %d, %d, %d\n"
+        "  typvar: %s\n"
+        "  grtyp:  %s\n"
+        "  nomvar: %s\n"
+        "  etiket: %s\n",
+        record->version, record->data, record->metadata, record->handle, 
+        record->dateo, record->datyp, record->dasiz, record->npak,
+        record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
+        record->deet, record->npas, record->ip1, record->ip2, record->ip3,
+        record->ig1, record->ig2, record->ig3, record->ig4,
+        record->typvar, record->grtyp, record->nomvar, record->etiket
+    );
 }
 
 int32_t fst23_record_is_valid(const fst_record* record) {
@@ -194,32 +234,4 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
     result.ig4 = keys->ig4;
 
     return result;
-}
-
-void fst23_record_print(const fst_record* record) {
-    Lib_Log(APP_LIBFST, APP_INFO,
-        "\n"
-        "  Version: %ld\n"
-        "  Data: 0x%x\n"
-        "  Metadata: 0x%x\n"
-        "  Handle: 0x%x\n"
-        "  date (v?): %ld\n"
-        "  datyp: %d\n"
-        "  dasiz: %d\n"
-        "  npak: %d\n"
-        "  ni x nj x nk: %d x %d x %d (%d) elements\n"
-        "  deet: %d, npas: %d\n"
-        "  ip1-3: %d, %d, %d\n"
-        "  ig1-4: %d, %d, %d, %d\n"
-        "  typvar: %s\n"
-        "  grtyp:  %s\n"
-        "  nomvar: %s\n"
-        "  etiket: %s\n",
-        record->version, record->data, record->metadata, record->handle, 
-        record->dateo, record->datyp, record->dasiz, record->npak,
-        record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
-        record->deet, record->npas, record->ip1, record->ip2, record->ip3,
-        record->ig1, record->ig2, record->ig3, record->ig4,
-        record->typvar, record->grtyp, record->nomvar, record->etiket
-    );
 }

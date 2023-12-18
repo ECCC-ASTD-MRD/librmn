@@ -14,11 +14,9 @@ int ForceMissingValueUsage(
 void SetMissingValueMapping(
     const int mode,
     const int datatype,
-    const void * const processor_,
-    const int is_byte,
-    const int is_short,
-    const int is_double
-);
+    const int datasize,
+    const void * const processor_
+ );
 
 void set_missing_value_flags(
     const float * const missingFloatVal,
@@ -47,19 +45,15 @@ int EncodeMissingValue(
     const void * const src,
     const int nElems,
     const int datatype,
-    const int nbits,
-    const int is_byte,
-    const int is_short,
-    const int is_double
+    const int datasize,
+    const int npak
 );
 
 void DecodeMissingValue(
     void * const field,
     const int nElems,
     const int datatype,
-    const int is_byte,
-    const int is_short,
-    const int is_double
+    const int datasize
 );
 
 #ifdef __cplusplus

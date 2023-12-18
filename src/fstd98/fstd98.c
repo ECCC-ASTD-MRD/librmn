@@ -781,6 +781,15 @@ int c_fst_data_length(
     //! 8: double (64 bits)
     const int length_type
 ) {
+/*
+    xdf_size = 4;
+    if (length_type==1 || length_type==2 || length_type==4 || length_type==4) {
+       xdf_size=length_type;
+    } else {
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: c_fst_data_length invalid length type=%d\n",__func__,length_type);
+    }
+    return 0;
+*/
     switch (length_type) {
 
         case 1:
@@ -1199,7 +1208,7 @@ int c_fstecr_xdf(
         if (is_missing) {
             // allocate self deallocating scratch field
             field = (uint32_t *)alloca(ni * nj * nk * sizefactor);
-            if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, nbits, xdf_byte, xdf_short, xdf_double) ) {
+            if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, sizefactor*8, nbits) ) {
                 field = field_in;
                 Lib_Log(APP_LIBFST,APP_INFO,"%s: NO missing value, data type %d reset to %d\n",__func__,stdf_entry->datyp,datyp);
                 /* cancel missing data flag in data type */
@@ -2909,8 +2918,9 @@ int c_fstluk_xdf(
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
         // if nbits = 64 and IEEE , set xdf_double
         if ((stdf_entry.datyp & 0xF) == 5 && stdf_entry.nbits == 64 ) xdf_double = 1;
+        int sz=(xdf_double?64:(xdf_short?16:(xdf_byte?8:32)));
         // printf("Debug+ fstluk - DecodeMissingValue\n");
-        DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, xdf_byte, xdf_short, xdf_double);
+        DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, sz);
     }
 
     xdf_double = 0;

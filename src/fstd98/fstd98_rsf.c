@@ -405,18 +405,17 @@ int c_fstecr_rsf(
         // time to fudge field if missing value feature is used
 
         // number of bytes per data item
-        int sizefactor = 4;
-        if (xdf_byte)  sizefactor = 1;
-        if (xdf_short) sizefactor = 2;
-        if (xdf_double | IEEE_64) sizefactor = 8;
+        stdf_entry->dasiz = 32;
+        if (xdf_byte)  stdf_entry->dasiz = 8;
+        if (xdf_short) stdf_entry->dasiz = 16;
+        if (xdf_double | IEEE_64) stdf_entry->dasiz = 64;
         /* put appropriate values into field after allocating it */
         if (is_missing) {
             // allocate self deallocating scratch field
-            field = (uint32_t *)alloca(ni * nj * nk * sizefactor);
-            if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, nbits, xdf_byte, xdf_short, xdf_double) ) {
+            field = (uint32_t *)alloca(ni * nj * nk * stdf_entry->dasiz/8);
+            if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, stdf_entry->dasiz, nbits) ) {
                 field = field_in;
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__,
-                        stdf_entry->datyp, datyp);
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__,stdf_entry->datyp,datyp);
                 /* cancel missing data flag in data type */
                 stdf_entry->datyp = datyp;
                 is_missing = 0;
@@ -1026,7 +1025,7 @@ int c_fstluk_rsf(
     xdf_datatyp = stdf_entry->datyp;
 
     PackFunctionPointer packfunc;
-    if (xdf_double) {
+    if (stdf_entry->dasiz==64) {
         packfunc = &compact_double;
     } else {
         packfunc = &compact_float;
@@ -1035,7 +1034,7 @@ int c_fstluk_rsf(
     const size_t record_size_32 = record->rsz / 4;
     size_t record_size = record_size_32;
     if ((xdf_datatyp == 1) || (xdf_datatyp == 5)) {
-        record_size = (xdf_double) ? 2*record_size : record_size;
+        record_size = (stdf_entry->dasiz==64) ? 2*record_size : record_size;
     }
 
     const int multiplier = (stdf_entry->datyp == 8) ? 2 : 1;
@@ -1096,7 +1095,7 @@ int c_fstluk_rsf(
                 {
                     // Integer, short integer or byte stream
                     int offset = stdf_entry->datyp > 128 ? 1 : 0;
-                    if (xdf_short) {
+                    if (stdf_entry->dasiz==16) {
                         if (stdf_entry->datyp > 128) {
                             c_armn_compress_setswap(0);
                             int nbytes = armn_compress((unsigned char *)(record_data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2);
@@ -1105,7 +1104,7 @@ int c_fstluk_rsf(
                         } else {
                             ier = compact_short(field, (void *) NULL, record_data + offset, nelm, stdf_entry->nbits, 0, xdf_stride, 6);
                         }
-                    }  else if (xdf_byte) {
+                    }  else if (stdf_entry->dasiz==8) {
                         if (stdf_entry->datyp > 128) {
                             c_armn_compress_setswap(0);
                             armn_compress((unsigned char *)(record_data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2);
@@ -1141,7 +1140,7 @@ int c_fstluk_rsf(
                 int *field_out;
                 short *s_field_out;
                 signed char *b_field_out;
-                if (xdf_short || xdf_byte) {
+                if (stdf_entry->dasiz==16 || stdf_entry->dasiz==8) {
                     field_out = alloca(nelm * sizeof(int));
                     s_field_out = (short *)field;
                     b_field_out = (signed char *)field;
@@ -1149,20 +1148,20 @@ int c_fstluk_rsf(
                     field_out = (int32_t *)field;
                 }
                 ier = compact_integer(field_out, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 4);
-                if (xdf_short) {
+                if (stdf_entry->dasiz==16) {
                     for (int i = 0; i < nelm; i++) {
                         s_field_out[i] = field_out[i];
                     }
                 }
-                if (xdf_byte) {
+                if (stdf_entry->dasiz==8) {
                     for (int i = 0; i < nelm; i++) {
                         b_field_out[i] = field_out[i];
                     }
                 }
 #else
-                if (xdf_short) {
+                if (stdf_entry->dasiz==16) {
                     ier = compact_short(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 8);
-                } else if (xdf_byte) {
+                } else if (stdf_entry->dasiz==8) {
                     ier = compact_char(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 12);
                 } else {
                     ier = compact_integer(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 4);
@@ -1241,18 +1240,19 @@ int c_fstluk_rsf(
     }
     if (has_missing) {
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
-        // if nbits = 64 and IEEE , set xdf_double
-        if ((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) xdf_double = 1;
-        DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, xdf_byte, xdf_short, xdf_double);
+        // if nbits = 64 and IEEE , set double
+        int sz=stdf_entry->dasiz;
+        if ((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) sz=64;
+        DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, sz);
     }
-
-    xdf_double = 0;
-    xdf_short = 0;
-    xdf_byte = 0;
 
     free(record);
 
     if (ier < 0) return ier;
+
+    xdf_double = 0;
+    xdf_short = 0;
+    xdf_byte = 0;
 
     return key32;
 }

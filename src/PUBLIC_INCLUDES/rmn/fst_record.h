@@ -11,6 +11,7 @@
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 #define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*(REC->dasiz>>3))  //TODO define right size
 //#define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*16 + 500)  //TODO define right size
+#define FST_REC_ASSIGNED 0x1
 
 // What belongs to the record? To the writing function?
 // Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
@@ -22,6 +23,7 @@ typedef struct {
     // 64-bit elements first
     void*   data;     //!< Record data
     char*   metadata; //!< Record metadata.         TODO JSON object?
+    int64_t flags;    //!< Record status flags
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp
     int64_t handle;   //!< Handle to specific record (if stored in a file)
@@ -57,6 +59,7 @@ static const fst_record default_fst_record = (fst_record){
         .version = sizeof(fst_record),
         .data     = NULL,
         .metadata = NULL,
+        .flags = 0x0,
         .dateo     = -1,
         .datev     = -1,
         .handle   = -1,
@@ -93,7 +96,8 @@ static const fst_record default_fst_record = (fst_record){
 int32_t    fst23_record_is_valid(const fst_record* record);
 int32_t    fst23_record_validate_params(const fst_record* record);
 void       fst23_record_print(const fst_record* record);
-fst_record fst23_record_new(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
+fst_record fst23_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
+int32_t    fst23_record_free(fst_record* record);
 
 #else
     type, bind(C) :: fst_record
