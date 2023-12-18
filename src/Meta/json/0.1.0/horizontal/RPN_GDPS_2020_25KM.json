@@ -1,0 +1,13 @@
+{   "identifier" : "RPN_GDPS_2020_25KM", 
+    "standard_name" : "cylindrical",
+    "long_name" : "Equidistant Cylindrical",
+    "rpn_name": "ZE",
+    "IG1" : 68839,
+    "IG2" : 90098,
+    "IG3" : 0,
+    "IG4" : 0,
+    "REFIG1" : 900,
+    "REFIG2" : 0,
+    "REFIG3" : 43200,
+    "REFIG4" : 43200
+}

@@ -1,0 +1,9 @@
+{  "identifier" : "SIGMA",
+   "standard_name" : "atmosphere_sigma_coordinate",
+   "long_name" : "sigma level", 
+   "positive" : "down",
+   "unit" : "None",
+   "formula_terms" : "",
+   "rpn_kind" : 1,
+   "rpn_vcode" : 1001
+}

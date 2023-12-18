@@ -1,0 +1,34 @@
+{  "version" : "",
+   "standard_name" : "",
+   "rpn_name" : "",
+   "long_name" : "",
+   "description" : "",
+   "size" : [],
+   "bounds" : {
+       "min" : NaN,
+       "max" : NaN
+   },
+   "unit" : "",
+   "cell_methods" : [],
+   "qualifiers" : [],
+   "missing_values" : [],
+   "mask"  : "",
+   "vertical_level" : {
+      "value" : [],
+      "vertical_reference" : ""
+   },
+   "horizontal_reference" : "",
+   "forecast_reference_datetime" : "",
+   "forecast_datetime" : "",
+   "forecast_period" : {
+      "step"  : -1,
+      "value" : NaN,
+      "unit"  : ""
+   },
+   "data" : {
+      "type" : "",
+      "size" : 0,
+      "pack" : 0,
+      "compression" : ""
+   }
+}

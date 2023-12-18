@@ -1,0 +1,18 @@
+if (EC_INIT_DONE LESS 2)
+   include(CTest)
+   add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=true ${CMAKE_CTEST_COMMAND})
+
+   if(BUILD_TESTING)
+      add_executable(meta_test_c EXCLUDE_FROM_ALL ${CMAKE_CURRENT_SOURCE_DIR}/meta_test.c)
+      target_link_libraries(meta_test_c Meta)
+      target_include_directories(meta_test_c PRIVATE ${CMAKE_SOURCE_DIR}/src)
+      add_test(NAME meta_test_c COMMAND ${CMAKE_CURRENT_BINARY_DIR}/meta_test_c)
+      add_dependencies(check meta_test_c)
+
+      add_executable(meta_test_f EXCLUDE_FROM_ALL ${CMAKE_CURRENT_SOURCE_DIR}/meta_test.f90)
+      target_link_libraries(meta_test_f Meta)
+      target_include_directories(meta_test_f PRIVATE ${MODULE_DIR})
+      add_test(NAME meta_test_f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/meta_test_f)
+      add_dependencies(check meta_test_f)
+    endif()
+endif()

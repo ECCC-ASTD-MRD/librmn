@@ -1,0 +1,10 @@
+{  "identifier" :  "HYBRID_UNSTAGGERED_LEVELS_OF_UNKOWN_SOURCE",
+   "standard_name" : "A FAIRE",
+   "long_name" : " Hybrid unstaggered levels of unkown source",
+   "positive" : "down",
+   "unit" : "None",
+   "formula_terms" : "",
+   "rpn_kind" : 5,
+   "rpn_vcode" : 5999,
+   "description" : "Hybrid unstaggered levels of unkown source.\nCan be used to encode any hybbrid unstaggered levels e.g. ECMWF."
+}

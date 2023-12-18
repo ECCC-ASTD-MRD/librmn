@@ -1,0 +1,9 @@
+{  "identifier" : "HYBRID",
+   "standard_name" : "A FAIRE",
+   "long_name" : "hybrid level unstaggered", 
+   "positive" : "down",
+   "unit" : "None",
+   "formula_terms" : "",
+   "rpn_kind" : 5,
+   "rpn_vcode" : 5001
+}

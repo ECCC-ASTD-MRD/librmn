@@ -1,0 +1,10 @@
+{  "identifier" : "HYBRID_STAGGERED_CP_SLEVE",
+   "standard_name" : "A FAIRE",
+   "long_name" : "hybride staggered (Charney–Phillips) SLEVE level",
+   "positive" : "down",
+   "unit" : "None",
+   "formula_terms" : "",
+   "rpn_kind" : 5,
+   "rpn_vcode" : 5100,
+   "description" : "Hybrid staggered SLEVE levels, same number of momentum and themro levels.\nThe SLEVE coordinate needs surface reference fields:\n\tP0   surface pressure\n\tP0LS large scale surface pressure.\nFirst level at top is a momentum level.\nDiag level heights (m AGL) encoded."
+}

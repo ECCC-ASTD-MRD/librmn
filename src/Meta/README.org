@@ -1,0 +1,102 @@
+* Environment variable
+META_VERSION
+META_VALIDATE
+ARMNLIB
+
+* Grammar
+** Field level
+
+| Previously   | Now                                                          |                            
+|--------------+--------------------------------------------------------------|
+|              |version = [semantic version]                                  |
+|              |standard_name = [cf convention]                               |
+|NOMVAR        |rpn_name = [dict]                                             |
+|              |long_name = "…“                                               |
+|              |description ="…"                                              |
+|              |bounds= [lower(double)] [higher(double)] [vertical reference] |
+|GRTYP         |horizontal_reference= [horizontal reference]                  |
+|              |units = [udunits]                                             |
+|IP2-3         |cell_methods = [cell_method]*                                 |
+|              |missing_values = [reason value]*                              |
+|              |mask = "…"                                                    |
+|IP1           |level = value [level_def]                                     |
+|ETIKET+TYPVAR |qualifiers = [qualifier]*                                     |
+|DATEO         |forecast_reference_datetime = [datetime]                      |
+|DATEV         |forecast_datetime  = [datetime]                               |
+|DEET+NPAS     |forecast_period = [size time_unit step]                       |
+|NPACK         |precision = [nbits]                                           |
+|              |compression = [compression_type]                              |
+  
+- axis          = [time, level, latitude, longitude, x, y, z]
+- process       = [average, sum, minimum, maximum, median, standard_deviation, error, …]
+- time_unit     = [seconds, minutes, hours, days, weeks, years]
+- datetime      = ISO8601 formatted, but seconds internally
+- qualifier     = [analysis, climatology, raw_station, error, constants, verification_matrix, observation, prognostic, diagnostic, analysis_increment, scores, timeseries, operational, parallel, experimental, member:n, centile[<,<=,=,>,>=]value, …]
+- unit          = [udunit] | [time_unit] 
+- filter        = [gaussian, …]
+- interpolator  = [nearest, linear, cubic, …]
+- cell_method   = interpolation:[interpolator] | filter:[filter] | [axis]:[process]([interval [n]|[value_0 value_1] [unit])*
+
+*** json template 0.1.0
+#+begin_src
+{  "version" : "0.1.0",
+   "standard_name" : "",
+   "rpn_name" : "",
+   "long_name" : "",
+   "description" : "",
+   "size" : [],
+   "bounds" : {
+       "min" : NaN,
+       "max" : NaN
+   },
+   "unit" : "",
+   "cell_methods" : [],
+   "qualifiers" : [],
+   "missing_values" : [],
+   "mask"  : "",
+   "vertical_level" : {
+      "value" : [],
+      "vertical_reference" : ""
+   },
+   "horizontal_reference" : "",
+   "forecast_reference_datetime" : "",
+   "forecast_datetime" : "",
+   "forecast_period" : {
+      "step"  : 0,
+      "value" : NaN,
+      "unit"  : ""
+   },
+   "type" : "",
+   "packing" : 0,
+   "compression" : ""
+}
+
+#+end_src
+
+** File level
+
+| Previously   | Now                                      |                            
+|--------------+------------------------------------------|
+|              | version : [semantic version]             |
+|              | institution : "CMC"                      |
+|              | discipline" : [climatology,meteorology,…]|              |
+|              | title" : "run id"                        |
+|              | source" : [GDPS, RDPS, HRDPS, …][version]|
+|              | description" : ""                        |
+|              | vertical_references" : []                |
+|              | horizontal_references" : []              |
+
+*** json template 0.1.0
+
+#+begin_src
+{
+   "version" : "0.1.0",
+   "institution" : "CMC",
+   "discipline" : "",
+   "title" : "",
+   "source" : "",
+   "description" : "",
+   "vertical_references" : [],
+   "horizontal_references" : []
+}
+#+end_src

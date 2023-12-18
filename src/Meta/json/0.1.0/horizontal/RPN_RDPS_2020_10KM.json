@@ -1,0 +1,13 @@
+{   "identifier" : "RPN_RDPS_2020_10KM", 
+    "standard_name" : "rotated polar stereographic",
+    "long_name" : "Rotated Polar Stereographic",
+    "rpn_name": "ZE",
+    "IG1" : 86086,
+    "IG2" : 77806,
+    "IG3" : 1,
+    "IG4" : 0,
+    "REFIG1" : 1470,
+    "REFIG2" : 560,
+    "REFIG3" : 5440,
+    "REFIG4" : 46560
+}

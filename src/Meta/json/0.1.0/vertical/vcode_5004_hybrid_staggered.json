@@ -1,0 +1,10 @@
+{  "identifier" : "HYBRID_STAGGERED_CP_5004",
+   "standard_name" : "A FAIRE",
+   "long_name" : "hybride staggered (Charney–Phillips) level 5004",
+   "positive" : "down",
+   "unit" : "None",
+   "formula_terms" : "",
+   "rpn_kind" : 5,
+   "rpn_vcode" : 5004,
+   "description" :  "Hybrid staggered levels, same number of momentum and themro levels.\nFirst level at top is a momentum level."
+}

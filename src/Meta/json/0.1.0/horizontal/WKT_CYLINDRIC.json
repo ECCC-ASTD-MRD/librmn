@@ -1,0 +1,6 @@
+{   "identifier" : "WKT_CYLINDRIC", 
+    "standard_name" : "cylindrical",
+    "long_name" : "Equidistant Cylindrical",
+    "transform" : [],
+    "crs_wkt" : "EPSG:4326"
+}

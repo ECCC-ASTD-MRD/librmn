@@ -1,0 +1,10 @@
+{  "identifier" : "HYBRID_STAGGERED_CP_5003",
+   "standard_name" : "A FAIRE",
+   "long_name" : "hybride staggered (Charney–Phillips) level 5003",
+   "positive" : "down",
+   "unit" : "None",
+   "formula_terms" : "",
+   "rpn_kind" : 5,
+   "rpn_vcode" : 5003,
+   "description" : "Hybrid staggered levels, nk momentum levels, nk+1 thermo levels.\nFirst level at top is a thermo level.\nLast thermo level is unstaggered (tlift)."
+}

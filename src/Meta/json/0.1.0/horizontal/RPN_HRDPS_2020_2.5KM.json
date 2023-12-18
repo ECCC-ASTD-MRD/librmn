@@ -1,0 +1,13 @@
+{   "identifier" : "RPN_HRDPS_2020_2.5KM", 
+    "standard_name" : "rotated cylindrical",
+    "long_name" : "Rotated Equidistant Cylindrical",
+    "rpn_name": "ZE",
+    "IG1" : 76826,
+    "IG2" : 74520,
+    "IG3" : 1,
+    "IG4" : 0,
+    "REFIG1" : 1430,
+    "REFIG2" : 500,
+    "REFIG3" : 56000,
+    "REFIG4" : 44000
+}

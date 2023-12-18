@@ -1,0 +1,11 @@
+{  "identifier" :  "HYBRID_HEIGHT_LEVELS_GAL_CHEN",
+   "standard_name" : "A FAIRE",
+   "long_name" : "Hybrid height levels (Gal-Chen) (momentum/thermo levels) may be SLEVE",
+   "positive" : "up",
+   "unit" : "m",
+   "formula_terms" : "",
+   "rpn_kind" : 21,
+   "rpn_vcode" : 21001,
+   "description" : "The coordinate needs surface reference fields:\n\tME   surface pressure.\nThe SLEVE version also needs surface reference fields:\n\tMELS large scale surface pressure.\nDiag level heights (m AGL) encoded."
+}
+
