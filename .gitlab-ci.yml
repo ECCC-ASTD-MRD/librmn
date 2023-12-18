@@ -32,7 +32,8 @@ build:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -50,7 +51,8 @@ test:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-icelake-64_inteloneapi-2022.1.2
@@ -67,7 +69,8 @@ package:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -90,7 +93,8 @@ build:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -108,7 +112,8 @@ test:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-icelake-64_inteloneapi-2021.4.0
@@ -125,7 +130,8 @@ package:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -148,7 +154,8 @@ build:rhel-8-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -166,6 +173,7 @@ test:rhel-8-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
      - master
+     - alpha
      - /^dev_.*/
      - tags
    dependencies:
@@ -183,7 +191,8 @@ package:rhel-8-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -206,7 +215,8 @@ build:rhel-8-amd64_gnu-9.3.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -224,7 +234,8 @@ test:rhel-8-amd64_gnu-9.3.0:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-amd64_gnu-9.3.0
@@ -241,7 +252,8 @@ package:rhel-8-amd64_gnu-9.3.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -264,7 +276,8 @@ build:rhel-8-amd64_gnu-12.1.0:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
@@ -283,7 +296,8 @@ test:rhel-8-amd64_gnu-12.1.0:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-amd64_gnu-12.1.0
@@ -309,7 +323,8 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - set +e
@@ -332,7 +347,8 @@ test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    dependencies:
       - build:ubuntu-22.04-amd64_inteloneapi-2022.1.2
@@ -354,7 +370,8 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -381,7 +398,8 @@ build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - set +e
@@ -404,7 +422,8 @@ test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    dependencies:
       - build:ubuntu-22.04-amd64_inteloneapi-2023.2.0
@@ -426,7 +445,8 @@ package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -453,7 +473,8 @@ build:ubuntu-22.04-amd64_gnu-11.4.0:
       - concurrent
    only:
      - master
-     - /^dev_20\.[0-9]$/
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - set +e
@@ -476,7 +497,8 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
    dependencies:
       - build:ubuntu-22.04-amd64_gnu-11.4.0
@@ -498,7 +520,8 @@ package:ubuntu-22.04-amd64_gnu-11.4.0:
       - concurrent
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -519,8 +542,9 @@ deploy:staging:
       - concurrent
    only:
       - master
+      - alpha
       - tags
-      - /^dev_20\.[0-9]$/
+      - /^dev.*$/
       - schedules
    script:
       - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn "${CI_COMMIT_TAG}" "${ECCI_PROCESS}"
@@ -531,7 +555,8 @@ trigger:
       - U2
    only:
       - master
-      - /^dev_20\.[0-9]$/
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    script:
