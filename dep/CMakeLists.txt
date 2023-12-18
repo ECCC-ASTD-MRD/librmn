@@ -7,7 +7,9 @@ project(ExternalDependencies NONE)
 include(ExternalProject)
 
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
+message(STATUS "(EC) Generating json-c dependency")
 add_subdirectory(json-c json-c)
+message(STATUS "(EC) Generating udunits2 dependency")
 add_subdirectory(udunits2 udunits2)
 
 #option(BUILD_JSON "Build json-c dependency" ON)

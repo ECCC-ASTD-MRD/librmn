@@ -122,7 +122,7 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
 target_link_libraries(rmn-static PUBLIC App-static json-c libudunits2)
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
-add_dependencies(rmn-static rmn_build_info json-c)
+add_dependencies(rmn-static rmn_build_info json-c libudunits2)
 
 # Build shared library from object of rmn
 add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
