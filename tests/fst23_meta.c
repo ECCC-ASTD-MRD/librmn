@@ -37,7 +37,7 @@ int test_fst23_interface(const int is_rsf) {
         return -1;
     }
 
-   Meta_Init();
+   if (Meta_Init() != 1) return -1;
 
    // Load metadata template
    prof_fld=Meta_LoadProfile("field",NULL);
@@ -62,7 +62,7 @@ int test_fst23_interface(const int is_rsf) {
 
     // Write a record
     {
-        fst_record record = fst23_record_new(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
+        fst_record record = fst23_record_init(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
         record.npak = -32;
         Meta_StampEncode(&record.dateo,2022,06,10,0,0,0);
         record.deet = 300;

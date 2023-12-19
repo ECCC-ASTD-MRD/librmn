@@ -110,6 +110,8 @@ int test_fst23_interface(const int is_rsf) {
         return -1;
     }
 
+    free(test_file);
+
     return 0;
 }
 

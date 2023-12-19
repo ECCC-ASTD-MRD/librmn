@@ -271,17 +271,17 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     char typvar[FST_TYPVAR_LEN];
-    strblank2end(typvar,FST_TYPVAR_LEN);
-    strncpy(typvar, record->typvar, strlen_up_to(record->typvar, FST_TYPVAR_LEN - 1));
+    strblank_full(typvar, FST_TYPVAR_LEN);
+    strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
     char nomvar[FST_NOMVAR_LEN];
-    strblank2end(nomvar,FST_NOMVAR_LEN);
-    strncpy(nomvar, record->nomvar, strlen_up_to(record->nomvar, FST_NOMVAR_LEN - 1));
+    strblank_full(nomvar, FST_NOMVAR_LEN);
+    strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
     char etiket[FST_ETIKET_LEN];
-    strblank2end(etiket,FST_ETIKET_LEN);
-    strncpy(etiket, record->etiket, strlen_up_to(record->etiket, FST_ETIKET_LEN - 1));
+    strblank_full(etiket, FST_ETIKET_LEN);
+    strncpy(etiket, record->etiket, FST_ETIKET_LEN);
     char grtyp[FST_GTYP_LEN];
-    strblank2end(grtyp,FST_GTYP_LEN);
-    strncpy(grtyp, record->grtyp, strlen_up_to(record->grtyp, FST_GTYP_LEN - 1));
+    strblank_full(grtyp, FST_GTYP_LEN);
+    strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
 
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys* stdf_entry = (stdf_dir_keys *) new_record->meta;
@@ -621,6 +621,8 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
 
+    RSF_Free_record(new_record);
+
     return record_handle > 0 ? 0 : -1;
 }
 
@@ -754,6 +756,9 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
                 c_fstprm_rsf(file_handle,key32,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
                    &result.datyp,&result.dasiz,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
                    &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+
+                //TODO Need to free the record. But the metadata has to be copied first!
+                // free(rec);
 
                 break;
             }
