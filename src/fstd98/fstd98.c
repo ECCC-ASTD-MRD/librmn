@@ -2166,9 +2166,9 @@ int c_fstluk(
 
     PackFunctionPointer packfunc;
     if (xdf_double) {
-        packfunc = &compact_double;
+        packfunc = (PackFunctionPointer) &compact_double;
     } else {
-        packfunc = &compact_float;
+        packfunc = (PackFunctionPointer) &compact_float;
     }
 
     lng = W64TOWD(lng);

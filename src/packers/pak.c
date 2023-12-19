@@ -183,7 +183,7 @@ void f77name(xxpak) (
     }
 
     // determine function pointer and make oper uniform for pack and unpack
-    PackFunctionPointer pfp = oper > 3 ? &compact_double : &compact_float;
+    PackFunctionPointer pfp = oper > 3 ? (PackFunctionPointer) &compact_double : (PackFunctionPointer) &compact_float;
     oper = oper > 3 ? oper - 4 : oper;
 
     uint32_t *ptrXpacked = xpacked;
