@@ -35,25 +35,25 @@ cd $build_dir_path
 Les options pour configurer la compilation doivent être ajoutées lors de
 l'appel de la commande `cmake` avec le préfix `-D`.
 
-CMAKE_BUILD_TYPE
+`CMAKE_BUILD_TYPE`
 : `(Release|RelWithDebInfo|Debug)` Mode de compilation. Défaut: `RelWithDebInfo`
 
-CMAKE_INSTALL_PREFIX
+`CMAKE_INSTALL_PREFIX`
 : Chemin d'accès du répertoire pour l'installation (`make install`)
 
-COMPILER_SUITE
+`COMPILER_SUITE`
 : `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser. Sur les systèmes d'ECCC,
 le compilateur chargé sera utilisé. Si les variables d'environnement propres à
 ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
 
-WITH_OPENMP
-: `(yes|no)` Indique si le support pour OpenMP doit être activée. Défaut: `yes`
+`WITH_OMPI`
+: `(yes|no)` Indique si le support OpenMP/MPI est activé. Défaut: `yes`
 
 ### Exemple de compilation
 ```
 cmake \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
-    -DWITH_OPENMP=no \
+    -DWITH_OMPI=no \
     $src_dir_path
 make -j $a_resonable_number
 make install
