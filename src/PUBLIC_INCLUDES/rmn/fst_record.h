@@ -48,6 +48,8 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
+    int32_t dummy; // To make explicit the fact that the strings start at a 64-bit boundary
+
     char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
     char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
     char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
@@ -65,6 +67,7 @@ static const fst_record default_fst_record = (fst_record){
         .handle   = -1,
 
         .datyp = -1,
+        .dasiz = -1,
         .npak = -1,
         .ni = -1,
         .nj = -1,
@@ -101,9 +104,10 @@ int32_t    fst23_record_free(fst_record* record);
 
 #else
     type, bind(C) :: fst_record
-        integer(C_INT64_T) :: VERSION  = 128            ! Must be the number of bytes in the struct
+        integer(C_INT64_T) :: VERSION  = 152            ! Must be the number of bytes in the struct
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
+        integer(C_INT64_T) :: flags    = 0
         integer(C_INT64_T) :: dateo    = -1
         integer(C_INT64_T) :: datev    = -1
         integer(C_INT64_T) :: handle   = -1
@@ -126,6 +130,8 @@ int32_t    fst23_record_free(fst_record* record);
         integer(C_INT32_T) :: ig2   = -1
         integer(C_INT32_T) :: ig3   = -1
         integer(C_INT32_T) :: ig4   = -1
+
+        integer(C_INT32_T) :: dummy = -1
 
         character(len=1), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
         character(len=1), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]

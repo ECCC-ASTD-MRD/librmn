@@ -61,7 +61,19 @@ int test_fst23_interface(const int is_rsf) {
         record.metadata = meta;
 
         if (fst23_write(test_file, &record,FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+            App_Log(APP_ERROR, "Unable to write record (1) to new file %s\n", test_file_name);
+            return -1;
+        }
+
+        record.ip3 = 2;
+        if (fst23_write(test_file, &record,FALSE) < 0) {
+            App_Log(APP_ERROR, "Unable to write record (2) to new file %s\n", test_file_name);
+            return -1;
+        }
+
+        record.ip3 = 3;
+        if (fst23_write(test_file, &record,FALSE) < 0) {
+            App_Log(APP_ERROR, "Unable to write record (3) to new file %s\n", test_file_name);
             return -1;
         }
     }
@@ -81,17 +93,17 @@ int test_fst23_interface(const int is_rsf) {
     }
 
     fst_record record;
-    if (!fst23_find(test_file, &default_fst_record, &record)) {
-        App_Log(APP_ERROR, "Could not find the record we just wrote!\n");
-        return -1;
+    int num_found = 0;
+    fst23_set_search_criteria(test_file, &default_fst_record);
+    while (fst23_find_next(test_file, &record)) {
+        num_found++;
+        fst23_record_print(&record);
     }
 
-    if (record.handle < 0) {
-        App_Log(APP_ERROR, "Record handle is invalid!\n");
+    if (num_found != 3) {
+        App_Log(APP_ERROR, "Found %d of the 3 records we wrote!\n", num_found);
         return -1;
     }
-
-    fst23_record_print(&record);
 
     const int64_t old_handle = record.handle;
     record = fst23_read(test_file, record.handle);

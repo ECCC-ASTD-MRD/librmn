@@ -128,13 +128,20 @@ int test_fst23_interface(const int is_rsf) {
  
         // Test find loop
         fprintf(stdout,"\nfind loop:\n");
+        int num_found = 0;
         fst23_set_search_criteria(test_file, &search_criteria);
         while(fst23_find_next(test_file, &record_find)) {
             fst23_record_print(&record_find);
+            num_found++;
+        }
+
+        if (num_found < 3) {
+            fprintf(stderr, "Could not find all (3) records we should\n");
+            return -1;
         }
 
         fprintf(stdout,"\nread found:\n");
-        fst23_read_new(test_file,&record_find);
+        fst23_read_new(test_file, &record_find);
         fst23_record_print(&record_find);
 
         meta=Meta_LoadProfile("field",NULL);

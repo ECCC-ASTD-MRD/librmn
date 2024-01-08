@@ -162,16 +162,22 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
     criteria->ip3 = record->ip3;
     if ((record->ip3 == -1)) mask->ip3 = 0;
 
-    criteria->nomvar = (ascii6(record->nomvar[0]) << 18) |
-                       (ascii6(record->nomvar[1]) << 12) |
-                       (ascii6(record->nomvar[2]) <<  6) |
-                       (ascii6(record->nomvar[3]));
+    char nomvar[FST_NOMVAR_LEN];
+    copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
+    criteria->nomvar = (ascii6(nomvar[0]) << 18) |
+                       (ascii6(nomvar[1]) << 12) |
+                       (ascii6(nomvar[2]) <<  6) |
+                       (ascii6(nomvar[3]));
     if (criteria->nomvar == 0) mask->nomvar = 0;
 
-    criteria->typvar = (ascii6(record->typvar[0]) << 6) |
-                       (ascii6(record->typvar[1]));
+    char typvar[FST_TYPVAR_LEN];
+    copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
+    criteria->typvar = (ascii6(typvar[0]) << 6) |
+                       (ascii6(typvar[1]));
     if (criteria->typvar == 0) mask->typvar = 0;
 
+    char etiket[FST_ETIKET_LEN];
+    copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
     criteria->etik15 = (ascii6(record->etiket[0]) << 24) |
                        (ascii6(record->etiket[1]) << 18) |
                        (ascii6(record->etiket[2]) << 12) |
@@ -192,6 +198,10 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
         mask->etik6a = 0;
         mask->etikbc = 0;
     }
+
+    char grtyp[FST_GTYP_LEN];
+    copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
+    criteria->gtyp = grtyp[0];
 }
 
 fst_record record_from_dir_keys(const stdf_dir_keys* keys) {

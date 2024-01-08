@@ -742,9 +742,6 @@ int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria) {
     const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
     fstd_open_files[file->file_index].search_start_key = start_key;
 
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: just set start key to %d (0x%x) for file %d\n",
-        __func__, start_key, start_key, file->file_index);
-
     return TRUE;
 }
 
@@ -789,6 +786,8 @@ int32_t fst23_find_next(fst_file* file, fst_record* result) {
                 pkeys += W64TOWD(1);
                 c_xdfprm(key, &addr, &lng, &idtyp, pkeys, 16);
                 record_meta = &record_meta_xdf;
+
+                fstd_open_files[file->file_index].search_start_key = key;
             }
         }
         break;
