@@ -122,13 +122,15 @@ int test_fst23_interface(const int is_rsf) {
     }
 
     {
+        fst_record search_criteria = default_fst_record;
         fst_record record_find = default_fst_record;
-        strcpy(record_find.typvar, "P ");
+        strcpy(search_criteria.typvar, "P ");
  
         // Test find loop
         fprintf(stdout,"\nfind loop:\n");
-        while(fst23_find_new(test_file,&record_find)) {
-           fst23_record_print(&record_find);
+        fst23_set_search_criteria(test_file, &search_criteria);
+        while(fst23_find_next(test_file, &record_find)) {
+            fst23_record_print(&record_find);
         }
 
         fprintf(stdout,"\nread found:\n");

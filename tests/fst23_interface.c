@@ -80,10 +80,14 @@ int test_fst23_interface(const int is_rsf) {
         return -1;
     }
 
-    fst_record record = fst23_find(test_file, &default_fst_record);
+    fst_record record;
+    if (!fst23_find(test_file, &default_fst_record, &record)) {
+        App_Log(APP_ERROR, "Could not find the record we just wrote!\n");
+        return -1;
+    }
 
     if (record.handle < 0) {
-        App_Log(APP_ERROR, "Could not find the record we just wrote!\n");
+        App_Log(APP_ERROR, "Record handle is invalid!\n");
         return -1;
     }
 

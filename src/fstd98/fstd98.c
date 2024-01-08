@@ -98,6 +98,17 @@ static void str_cp_init(char * const dst, const int dstLen, const char * const s
     dst[dstLen - 1] = '\0';
 }
 
+void copy_record_string(char* const dest, const char* const src, const int32_t max_length) {
+    int i;
+    const size_t src_length = strlen(src);
+    for (i = 0; i < max_length && i < src_length; i++) {
+        dest[i] = src[i];
+    }
+    for (; i < max_length - 1; i++) {
+        dest[i] = ' ';
+    }
+    dest[max_length - 1] = '\0';
+}
 
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {

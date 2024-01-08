@@ -43,6 +43,7 @@ extern int downgrade_32;
 extern fstd_usage_info fstd_open_files[MAXFILES];
 
 // Signatures from fstd98.c
+void copy_record_string(char* const dest, const char* const src, const int32_t max_length);
 int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);
@@ -58,6 +59,9 @@ int c_fstecr_xdf(void *field_in, void *work, int npak, int iun, int date, int de
     int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
     char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
 int c_fstluk_xdf(void * const vfield, const int handle, int * const ni, int * const nj, int * const nk);
+int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int *nk, int *nbits, int *datyp,
+    int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket, char *grtyp, int *ig1, int *ig2, int *ig3,
+    int *ig4, int *swa, int *lng, int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);

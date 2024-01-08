@@ -1566,7 +1566,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
             Rec->typvar[1]='I';
          } else if (!strncmp(c1,"tag:",4)) {
             strncpy(Rec->etiket,&c1[4],strlen(c1)-4);
-            strblank2end(Rec->etiket,FST_ETIKET_LEN-1);
+            strblank2end(Rec->etiket,FST_ETIKET_LEN);
          }
       };
 

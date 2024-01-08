@@ -6,7 +6,7 @@
 #include "fstd98_internal.h"
 #include "qstdir.h"
 
-void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, stdf_dir_keys** mask);
+void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, stdf_dir_keys* mask);
 fst_record record_from_dir_keys(const stdf_dir_keys* keys);
 
 #endif // RMN_FST_RECORD_INTERNAL_H__

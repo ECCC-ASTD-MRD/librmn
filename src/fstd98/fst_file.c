@@ -271,17 +271,13 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     char typvar[FST_TYPVAR_LEN];
-    strblank_full(typvar, FST_TYPVAR_LEN);
-    strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
+    copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
     char nomvar[FST_NOMVAR_LEN];
-    strblank_full(nomvar, FST_NOMVAR_LEN);
-    strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
+    copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
     char etiket[FST_ETIKET_LEN];
-    strblank_full(etiket, FST_ETIKET_LEN);
-    strncpy(etiket, record->etiket, FST_ETIKET_LEN);
+    copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
     char grtyp[FST_GTYP_LEN];
-    strblank_full(grtyp, FST_GTYP_LEN);
-    strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
+    copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
 
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys* stdf_entry = (stdf_dir_keys *) new_record->meta;
@@ -326,7 +322,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         (ascii6(etiket[5]) << 24) |
         (ascii6(etiket[6]) << 18) |
         (ascii6(etiket[7]) << 12) |
-        (ascii6(etiket[8])<<  6) |
+        (ascii6(etiket[8]) <<  6) |
         (ascii6(etiket[9]));
     stdf_entry->pad2 = 0;
     stdf_entry->etikbc =
@@ -616,8 +612,8 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     /* write new_record to file and add entry to directory */
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);
     if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
-        char string[12];
-        sprintf(string, "Write(%d)", file->iun);
+        char string[18];
+        sprintf(string, "fst23 Write(%d)", file->iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
 
@@ -641,6 +637,10 @@ int32_t fst23_write(fst_file* file, const fst_record* record,int rewrit) {
         case FST_RSF:
             return fst23_write_rsf(file, record);
         case FST_XDF:
+            if (record->metadata != NULL) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
+                        " This is not supported, we will ignore that metadata.\n", __func__);
+            }
             strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
             strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
             strncpy(etiket, record->etiket, FST_ETIKET_LEN);
@@ -653,75 +653,6 @@ int32_t fst23_write(fst_file* file, const fst_record* record,int rewrit) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
             return -1;
     } // End switch
-}
-
-//! Look for a record in the given file matching certain criteria
-//! The criteria are given as a fst_record struct, with the value of -1 acting as a wildcard.
-//! For the character-type variables, the wildcard is a space
-fst_record fst23_find(fst_file* file, const fst_record* criteria) {
-    fst_record result = default_fst_record;
-
-    if (!fst23_file_is_open(file)) return result;
-    if (!fst23_record_is_valid(criteria)) return result;
-
-    // Pack criteria into format used by both backends
-    stdf_dir_keys* search_criteria;
-    stdf_dir_keys* search_mask;
-    make_search_criteria(criteria, &search_criteria, &search_mask);
-
-    int64_t key = -1;
-    const stdf_dir_keys* record_meta = NULL;
-
-    // Look for the record in the file, depending on backend
-    switch (file->type) {
-    case FST_RSF:
-        {
-            RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-            fstd_open_files[file->file_index].search_start_key = 0;
-            fstd_open_files[file->file_index].search_criteria = *search_criteria;
-            fstd_open_files[file->file_index].search_mask = *search_mask;
-
-            key = find_next_record(file_handle, &fstd_open_files[file->file_index]);
-
-            if (key >= 0) {
-                const RSF_record_info record_info = RSF_Get_record_info(file_handle, key);
-                record_meta = (const stdf_dir_keys*)record_info.meta;
-            }
-        }
-        break;
-    case FST_XDF:
-        {
-            uint32_t* pkeys = (uint32_t *) search_criteria;
-            uint32_t* pmask = (uint32_t *) search_mask;
-
-            pkeys += W64TOWD(1);
-            pmask += W64TOWD(1);
-
-            key = c_xdfloc2(file->iun, 0, pkeys, 16, pmask);
-
-            if (key >= 0) {
-                int addr, lng, idtyp;
-                c_xdfprm(key, &addr, &lng, &idtyp, pkeys, 16);
-                record_meta = search_criteria;
-            }
-        }
-        break;
-    default:
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
-        break;
-    } // end switch
-
-    if (key >= 0) {
-        // Got the record. Now unpack it into a more convenient format
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, file->iun, key);
-        result = record_from_dir_keys(record_meta);
-        result.handle = key;
-    }
-
-    free(search_criteria);
-    free(search_mask);
-
-    return result;
 }
 
 fst_record fst23_read(fst_file* file, const int64_t key) {
@@ -794,41 +725,44 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
     return result;
 }
 
-//! Look for a record in the given file matching certain criteria
-//! The criteria are given as a fst_record struct, with the value of -1 acting as a wildcard.
-//! For the character-type variables, the wildcard is a space
-int32_t fst23_find_new(fst_file* file,fst_record* criteria) {
-
-    stdf_dir_keys* search_criteria=NULL;
-    stdf_dir_keys* search_mask=NULL;
-
+int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria) {
     if (!fst23_file_is_open(file)) {
-       Lib_Log(APP_LIBFST,APP_ERROR,"%s: File not openned\n",__func__);
-       return(FALSE);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       return FALSE;
     }
     if (!fst23_record_is_valid(criteria)) {
-       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Invalid criteria\n",__func__);        
-       return(FALSE);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
+       return FALSE;
     }
 
-    if (criteria->handle<0) {
-        // Pack criteria into format used by both backends
-        make_search_criteria(criteria, &search_criteria, &search_mask);
+    make_search_criteria(criteria,
+                         &fstd_open_files[file->file_index].search_criteria,
+                         &fstd_open_files[file->file_index].search_mask);
+
+    const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
+    fstd_open_files[file->file_index].search_start_key = start_key;
+
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: just set start key to %d (0x%x) for file %d\n",
+        __func__, start_key, start_key, file->file_index);
+
+    return TRUE;
+}
+
+int32_t fst23_find_next(fst_file* file, fst_record* result) {
+    if (!fst23_file_is_open(file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       return FALSE;
     }
 
     int64_t key = -1;
     const stdf_dir_keys* record_meta = NULL;
+    stdf_dir_keys record_meta_xdf;
 
     // Look for the record in the file, depending on backend
     switch (file->type) {
     case FST_RSF:
         {
             RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-            if (criteria->handle<0) {
-               fstd_open_files[file->file_index].search_start_key = 0;
-               fstd_open_files[file->file_index].search_criteria = *search_criteria;
-               fstd_open_files[file->file_index].search_mask = *search_mask;
-            }
             key = find_next_record(file_handle, &fstd_open_files[file->file_index]);
 
             if (key >= 0) {
@@ -839,43 +773,53 @@ int32_t fst23_find_new(fst_file* file,fst_record* criteria) {
         break;
     case FST_XDF:
         {
-            uint32_t* pkeys = (uint32_t *) search_criteria;
-            uint32_t* pmask = (uint32_t *) search_mask;
+            uint32_t* pkeys = (uint32_t *) &fstd_open_files[file->file_index].search_criteria;
+            uint32_t* pmask = (uint32_t *) &fstd_open_files[file->file_index].search_mask;
 
             pkeys += W64TOWD(1);
             pmask += W64TOWD(1);
 
-            key = c_xdfloc2(file->iun, 0, pkeys, 16, pmask);
+            const int32_t start_key = fstd_open_files[file->file_index].search_start_key & 0xffffffff;
+
+            key = c_xdfloc2(file->iun, start_key, pkeys, 16, pmask);
 
             if (key >= 0) {
                 int addr, lng, idtyp;
+                pkeys = (uint32_t *) &record_meta_xdf;
+                pkeys += W64TOWD(1);
                 c_xdfprm(key, &addr, &lng, &idtyp, pkeys, 16);
-                record_meta = search_criteria;
+                record_meta = &record_meta_xdf;
             }
         }
         break;
     default:
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
-        return(FALSE);
-        break;
-    } // end switch
-
-    if (search_criteria) free(search_criteria);
-    if (search_mask) free(search_mask);
+        return FALSE;
+    } // end switch (file type)
 
     if (key >= 0) {
         // Got the record. Now unpack it into a more convenient format
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, file->iun, key);
-        *criteria = record_from_dir_keys(record_meta);
-        criteria->handle = key;
+        *result = record_from_dir_keys(record_meta);
+        result->handle = key;
     } else {
-        return(FALSE);
+        return FALSE;
     }
 
-    return(TRUE);
+    return TRUE;
 }
 
-int32_t fst23_read_new(fst_file* file,fst_record* record) {
+int32_t fst23_find(
+    fst_file* file,         //!< [in] File in which we are looking
+    fst_record* criteria,   //!< [in,out] Search criteria. Its handle will be updated if a record is found.
+    fst_record* result      //!< [out] First record in the file that matches the criteria
+) {
+    fst23_set_search_criteria(file, criteria);
+    return fst23_find_next(file, result);
+}
+
+
+int32_t fst23_read_new(fst_file* file, fst_record* record) {
 
     fst_record     result = default_fst_record;
     stdf_dir_keys* stdf_entry=NULL;
@@ -893,7 +837,7 @@ int32_t fst23_read_new(fst_file* file,fst_record* record) {
 
     if (record->handle<0) {
        // No handle, find field
-       result=fst23_find(file,record);
+       fst23_find_next(file, record);
     } else if (record->data) {
         // Got a handle and data pointer, find next field
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;

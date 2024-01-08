@@ -104,17 +104,10 @@ int32_t fst23_record_validate_params(const fst_record* record) {
     return 0;
 }
 
-void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, stdf_dir_keys** mask) {
-    *criteria = (stdf_dir_keys *)calloc(1, sizeof(stdf_dir_keys));
-    *mask     = (stdf_dir_keys *)calloc(1, sizeof(stdf_dir_keys));
-
-    stdf_dir_keys* new_criteria = *criteria;
-    stdf_dir_keys* new_mask = *mask;
-
+void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, stdf_dir_keys* mask) {
     // Check for error
-    if (!fst23_record_is_valid(record) || *criteria == NULL || *mask == NULL) {
-        *criteria = NULL;
-        *mask = NULL;
+    if (!fst23_record_is_valid(record) || criteria == NULL || mask == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or criteria/mask pointers\n", __func__);
         return;
     }
 
@@ -122,82 +115,82 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys** criteria, st
 
     // Reset search mask
     {
-        uint32_t *pmask = (uint32_t *) new_mask;
-        for (uint i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
+        uint32_t *pmask = (uint32_t *) mask;
+        for (uint32_t i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
             pmask[i] = -1;
         }
     }
 
-    new_mask->pad1 = 0;
-    new_mask->pad2 = 0;
-    new_mask->pad3 = 0;
-    new_mask->dasiz = 0;
-    new_mask->pad5 = 0;
-    new_mask->pad6 = 0;
-    new_mask->pad7 = 0;
-    new_mask->deleted = 0;
-    new_mask->select = 0;
-    new_mask->lng = 0;
-    new_mask->addr = 0;
-    new_mask->deet = 0;
-    new_mask->nbits = 0;
-    new_mask->ni = 0;
-    new_mask->gtyp = 0;
-    new_mask->nj = 0;
-    new_mask->datyp = 0;
-    new_mask->nk = 0;
-    new_mask->ubc = 0;
-    new_mask->npas = 0;
-    new_mask->ig4 = 0;
-    new_mask->ig2a = 0;
-    new_mask->ig1 = 0;
-    new_mask->ig2b = 0;
-    new_mask->ig3 = 0;
-    new_mask->ig2c = 0;
-    new_mask->levtyp = 0;
+    mask->pad1 = 0;
+    mask->pad2 = 0;
+    mask->pad3 = 0;
+    mask->dasiz = 0;
+    mask->pad5 = 0;
+    mask->pad6 = 0;
+    mask->pad7 = 0;
+    mask->deleted = 0;
+    mask->select = 0;
+    mask->lng = 0;
+    mask->addr = 0;
+    mask->deet = 0;
+    mask->nbits = 0;
+    mask->ni = 0;
+    mask->gtyp = 0;
+    mask->nj = 0;
+    mask->datyp = 0;
+    mask->nk = 0;
+    mask->ubc = 0;
+    mask->npas = 0;
+    mask->ig4 = 0;
+    mask->ig2a = 0;
+    mask->ig1 = 0;
+    mask->ig2b = 0;
+    mask->ig3 = 0;
+    mask->ig2c = 0;
+    mask->levtyp = 0;
 
-    new_criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
-    new_mask->date_stamp &= ~(0x7);
-    if (record->dateo == -1) (*mask)->date_stamp = 0;
+    criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
+    mask->date_stamp &= ~(0x7);
+    if (record->dateo == -1) mask->date_stamp = 0;
 
-    new_criteria->ip1 = record->ip1;
-    if ((record->ip1 == -1)) new_mask->ip1 = 0;
+    criteria->ip1 = record->ip1;
+    if ((record->ip1 == -1)) mask->ip1 = 0;
 
-    new_criteria->ip2 = record->ip2;
-    if ((record->ip2 == -1)) new_mask->ip2 = 0;
+    criteria->ip2 = record->ip2;
+    if ((record->ip2 == -1)) mask->ip2 = 0;
 
-    new_criteria->ip3 = record->ip3;
-    if ((record->ip3 == -1)) new_mask->ip3 = 0;
+    criteria->ip3 = record->ip3;
+    if ((record->ip3 == -1)) mask->ip3 = 0;
 
-    new_criteria->nomvar = (ascii6(record->nomvar[0]) << 18) |
-                           (ascii6(record->nomvar[1]) << 12) |
-                           (ascii6(record->nomvar[2]) <<  6) |
-                           (ascii6(record->nomvar[3]));
-    if (new_criteria->nomvar == 0) new_mask->nomvar = 0;
+    criteria->nomvar = (ascii6(record->nomvar[0]) << 18) |
+                       (ascii6(record->nomvar[1]) << 12) |
+                       (ascii6(record->nomvar[2]) <<  6) |
+                       (ascii6(record->nomvar[3]));
+    if (criteria->nomvar == 0) mask->nomvar = 0;
 
-    new_criteria->typvar = (ascii6(record->typvar[0]) << 6) |
-                           (ascii6(record->typvar[1]));
-    if (new_criteria->typvar == 0) new_mask->typvar = 0;
+    criteria->typvar = (ascii6(record->typvar[0]) << 6) |
+                       (ascii6(record->typvar[1]));
+    if (criteria->typvar == 0) mask->typvar = 0;
 
-    new_criteria->etik15 = (ascii6(record->etiket[0]) << 24) |
-                           (ascii6(record->etiket[1]) << 18) |
-                           (ascii6(record->etiket[2]) << 12) |
-                           (ascii6(record->etiket[3]) <<  6) |
-                           (ascii6(record->etiket[4]));
+    criteria->etik15 = (ascii6(record->etiket[0]) << 24) |
+                       (ascii6(record->etiket[1]) << 18) |
+                       (ascii6(record->etiket[2]) << 12) |
+                       (ascii6(record->etiket[3]) <<  6) |
+                       (ascii6(record->etiket[4]));
 
-    new_criteria->etik6a = (ascii6(record->etiket[5]) << 24) |
-                           (ascii6(record->etiket[6]) << 18) |
-                           (ascii6(record->etiket[7]) << 12) |
-                           (ascii6(record->etiket[8]) <<  6) |
-                           (ascii6(record->etiket[9]));
+    criteria->etik6a = (ascii6(record->etiket[5]) << 24) |
+                       (ascii6(record->etiket[6]) << 18) |
+                       (ascii6(record->etiket[7]) << 12) |
+                       (ascii6(record->etiket[8]) <<  6) |
+                       (ascii6(record->etiket[9]));
 
-    new_criteria->etikbc = (ascii6(record->etiket[10]) <<  6) |
-                           (ascii6(record->etiket[11]));
+    criteria->etikbc = (ascii6(record->etiket[10]) <<  6) |
+                       (ascii6(record->etiket[11]));
 
-    if ((new_criteria->etik15 == 0) && (new_criteria->etik6a == 0)) {
-        new_mask->etik15 = 0;
-        new_mask->etik6a = 0;
-        new_mask->etikbc = 0;
+    if ((criteria->etik15 == 0) && (criteria->etik6a == 0)) {
+        mask->etik15 = 0;
+        mask->etik6a = 0;
+        mask->etikbc = 0;
     }
 }
 

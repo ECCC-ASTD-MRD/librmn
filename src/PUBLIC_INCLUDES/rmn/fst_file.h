@@ -28,11 +28,12 @@ int32_t    fst23_file_is_open(const fst_file* file);
 fst_file*  fst23_open(const char* file_name, const char* options);
 int32_t    fst23_close(fst_file* file);
 int32_t    fst23_write(fst_file* file, const fst_record* record,int rewrit);
-fst_record fst23_find(fst_file* file, const fst_record* criteria);
 int32_t    fst23_get_iun(fst_file* file);
 
 fst_record fst23_read(fst_file* file, const int64_t handle);
 int32_t fst23_read_new(fst_file* file,fst_record* record);
-int32_t fst23_find_new(fst_file* file,fst_record* criteria) ;
+int32_t fst23_find(fst_file* file, fst_record* criteria, fst_record* result);
+int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria);
+int32_t fst23_find_next(fst_file* file, fst_record* result);
 
 #endif // RMN_FST_FILE_H__
