@@ -18,15 +18,33 @@
 * * Boston, MA 02111-1307, USA.
 * */
 *
+      SUBROUTINE VGLO(SPEED ,  PSI , CLAMDA,  PHI , U, V, LI, LJ )
+        implicit none
+        integer :: LI, LJ
+        REAL U(LI,LJ), V(LI,LJ), SPEED ,  PSI , CLAMDA,  PHI
+        call VGLO_VWNH(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,0)
+        return
+      end
+
+      SUBROUTINE VWNH(SPEED ,  PSI , CLAMDA,  PHI , U, V, LI, LJ )
+        implicit none
+        integer :: LI, LJ
+        REAL U(LI,LJ), V(LI,LJ), SPEED ,  PSI , CLAMDA,  PHI
+        call VGLO_VWNH(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,1)
+        return
+      end
+
 ***S/P VGLO - RETURN 2  SCALAR QUANTITIES FROM U AND V FIELD
 *             AT POINT CLAMDA (LONGITUDE) AND PHI(LATITUDE)
 *
-      SUBROUTINE VGLO(SPEED ,  PSI , CLAMDA,  PHI , U, V, LI, LJ )
+      SUBROUTINE VGLO_VWNH(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,mode)
       REAL U(LI,LJ), V(LI,LJ)
+      integer :: mode
 *
 *AUTEUR   - P.SARRAZIN DEC 78 DRPN DORVAL QUEBEC CANADA
 *
 *REVISION 001  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*              M. VALIN      -  OCT 2023 elimination de entry
 *
 *LANGUAGE - FORTRAN
 *
@@ -89,17 +107,22 @@
 #include "cubic.cdk"
 
 
-       KASE = GLOBAL
-      SIGN0 = 1.0
-      NLATS = LJ
-      GOTO 1
+      if(mode .eq. 0) then
+        KASE = GLOBAL
+        SIGN0 = 1.0
+        NLATS = LJ
+        GOTO 1
+      endif
 *
 * HEMISPHERIC, WALL AT THE EQUATOR
 *
-      ENTRY VWNH(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ)
-      KASE = NORTH
-      SIGN0 = -1.0
-      NLATS = LJ*2
+*     E N T R Y VWNH(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ)
+      if(mode .ne. 0) then
+        KASE = NORTH
+        SIGN0 = -1.0
+        NLATS = LJ*2
+      endif
+
 1      LILJ = LI * LJ
 
 

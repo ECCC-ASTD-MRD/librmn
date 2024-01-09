@@ -19,31 +19,81 @@
 
 !version that accepts real(single) arguments, with the extended interface
 subroutine Interp1D_CubicWithDerivs_X  &
+    (numInterpSets, srcNumLevels, destNumLevels, &
+    src_ijDim, dst_ijDim, &
+
+    vLevelSource, stateSource, stateDerivSource, &
+
+    posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+
+    extrapEnableDown, extrapEnableUp, &
+    extrapGuideDown, extrapGuideUp, &
+
+    flux, numExtArraysIn, numExtArraysOut, &
+    ExtArraysIn, ExtArraysOut &
+   )
 #define real48 single
 #include "Interp1D_CubicWithDerivs_Body.inc"
 #undef real48
+end subroutine
 
 !version that accepts real(double) arguments, with the extended interface
 subroutine Interp1D_CubicWithDerivs_X8  &
+    (numInterpSets, srcNumLevels, destNumLevels, &
+    src_ijDim, dst_ijDim, &
+
+    vLevelSource, stateSource, stateDerivSource, &
+
+    posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+
+    extrapEnableDown, extrapEnableUp, &
+    extrapGuideDown, extrapGuideUp, &
+
+    flux, numExtArraysIn, numExtArraysOut, &
+    ExtArraysIn, ExtArraysOut &
+   )
 #define real48 double
 #include "Interp1D_CubicWithDerivs_Body.inc"
 #undef real48
+end subroutine
 
 
 
 
 !version that accepts real(single) arguments
 subroutine Interp1D_CubicWithDerivs  &
+    (numInterpSets, srcNumLevels, destNumLevels, &
+     src_ijDim, dst_ijDim, &
+
+     vLevelSource, stateSource, stateDerivSource, &
+
+     posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+
+     extrapEnableDown, extrapEnableUp, &
+     extrapGuideDown, extrapGuideUp &
+    )
 #define real48 single
 #define DestnFunc Interp1D_CubicWithDerivs_X
 #include "Interp1D_PreX_Shell.inc"
 #undef DestnFunc
 #undef real48
+end subroutine
 
 !version that accepts real(double) arguments
 subroutine Interp1D_CubicWithDerivs8  &
+    (numInterpSets, srcNumLevels, destNumLevels, &
+     src_ijDim, dst_ijDim, &
+
+     vLevelSource, stateSource, stateDerivSource, &
+
+     posnDestInSrc, vLevelDestn, stateDestn, stateDerivDestn, &
+
+     extrapEnableDown, extrapEnableUp, &
+     extrapGuideDown, extrapGuideUp &
+    )
 #define DestnFunc Interp1D_CubicWithDerivs_X8
 #define real48 double
 #include "Interp1D_PreX_Shell.inc"
 #undef DestnFunc
 #undef real48
+end subroutine

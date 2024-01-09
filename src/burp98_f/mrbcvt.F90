@@ -18,13 +18,24 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
 !.S MRBCVT
+module mrb_cvt_sct_tbl
+#include "codes.cdk"
+#include "defi.cdk"
+#include "burpopt.cdk"
+#include <ftnmacros.hf>
+      LOGICAL PREMIER
+      INTEGER TABLEAU(3,MAXNELE), NELELU
+      DATA    PREMIER /.TRUE./
+      SAVE    TABLEAU, NELELU, PREMIER
+end module
+
 !**S/PMRBCVT - FAIRE UNE CONVERSION D'UNITES
-      FUNCTION MRBCVT( LISTE,  TBLVAL, RVAL, NELE, NVAL, NT, MODE)
+      integer FUNCTION MRBCVT( LISTE,  TBLVAL, RVAL, NELE, NVAL, NT, MODE)
       use app
+      use mrb_cvt_sct_tbl
       IMPLICIT NONE
-      INTEGER  MRBCVT, MRBSCT, MRBTBL, NELE, NVAL, NT, MODE,  &
-     &         LISTE(NELE), TBLVAL(NELE, NVAL, NT), NSLOTS,  &
-     &         NELEUSR, TBLUSR(3, NELEUSR), TBLBURP(NSLOTS, NELE)
+      INTEGER  NELE, NVAL, NT, MODE,  &
+     &         LISTE(NELE), TBLVAL(NELE, NVAL, NT), NSLOTS
       REAL     RVAL(NELE, NVAL, NT)
 !
 !AUTEUR: J. CAVEEN   JANVIER 1991
@@ -51,16 +62,11 @@
 !     RVAL               TABLEAU DE VALEURS REELLES
 !
 !IMPLICITES 
-#include "codes.cdk"
-#include "defi.cdk"
-#include "burpopt.cdk"
-#include <ftnmacros.hf>
 !
 !MODULES
       EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
       INTEGER  QRBSCT, BUFRCHR
 
-      INTEGER TABLEAU(3,MAXNELE), NELELU
 !
 !*
 
@@ -86,9 +92,6 @@
 !
 !
 !*****************************************************************************
-      LOGICAL PREMIER
-      DATA    PREMIER /.TRUE./
-      SAVE    TABLEAU, NELELU, PREMIER 
       INTEGER I, J, K, L, REFEREN, ZEROCPL
       REAL    ECHELE
 
@@ -146,9 +149,14 @@
 
       MRBCVT = 0
       RETURN
+      end
 
 !**S/P - MRBSCT - INITIALISER LE TABLEAU DE CONVERSION DE L'USAGER
-      ENTRY MRBSCT(TBLUSR, NELEUSR)
+      integer FUNCTION MRBSCT (TBLUSR, NELEUSR)
+      use app
+      use mrb_cvt_sct_tbl
+      IMPLICIT NONE
+      INTEGER NELEUSR, TBLUSR(3, NELEUSR)
 !
 !OBJET( MRBSCT ) 
 !     SOUS-PROGRAMME SERVANT A AJOUTER AU TABLEAU DE
@@ -158,6 +166,10 @@
 !     ON APPELLE QRBSCT POUR EN FAIRE L'INITIALISATION.
 !     ON AJOUTE LE TABLEAU DE L'USAGER A LA FIN.
 !
+      EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
+      INTEGER  QRBSCT, BUFRCHR
+      integer :: i, j
+
       MRBSCT = -1
       IF( PREMIER ) THEN
           MRBSCT = QRBSCT(TABLEAU,MAXNELE,NELELU)
@@ -182,9 +194,14 @@
       MRBSCT = 0
 
       RETURN
+      end
 
 !**S/P - MRBTBL - REMPLIR UN TABLEAU A PARTIR DE TABLEBURP
-      ENTRY MRBTBL(TBLBURP, NSLOTS, NELE)
+      integer FUNCTION MRBTBL(TBLBURP, NSLOTS, NELE)
+      use app
+      use mrb_cvt_sct_tbl
+      IMPLICIT NONE
+      INTEGER  NELE, NSLOTS,TBLBURP(NSLOTS, NELE)
 !
 !OBJET( MRBTBL )
 !     SOUS-PROGRAMME SERVANT A REMPLIR LE TABLEAU TBLBURP
@@ -212,7 +229,9 @@
 !              .               .          .             .
 !
 !*
-
+      EXTERNAL QRBSCT, BUFRCHR
+      INTEGER  QRBSCT, BUFRCHR
+      integer :: i, j
 
       MRBTBL = -1
 

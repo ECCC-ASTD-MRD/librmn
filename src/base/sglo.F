@@ -23,12 +23,37 @@
 *                  PHI, LONGITUDE LAMBDA.
 
 
-      FUNCTION SGLO (LAMBDA,PHI,F,LI,LJ)
+      real FUNCTION SGLO (LAMBDA,PHI,F,LI,LJ)
+      implicit none
+      REAL F(LI,LJ), LAMBDA, PHI
+      integer :: LI, LJ
+      real, external :: SGLO_SSNH_SANH
+      SGLO = SGLO_SSNH_SANH(LAMBDA,PHI,F,LI,LJ,0)
+      end
+
+      real FUNCTION SSNH (LAMBDA,PHI,F,LI,LJ)
+      implicit none
+      REAL F(LI,LJ), LAMBDA, PHI
+      integer :: LI, LJ
+      real, external :: SGLO_SSNH_SANH
+      SSNH = SGLO_SSNH_SANH(LAMBDA,PHI,F,LI,LJ,1)
+      end
+
+      real FUNCTION SANH (LAMBDA,PHI,F,LI,LJ)
+      implicit none
+      REAL F(LI,LJ), LAMBDA, PHI
+      integer :: LI, LJ
+      real, external :: SGLO_SSNH_SANH
+      SANH = SGLO_SSNH_SANH(LAMBDA,PHI,F,LI,LJ,2)
+      end
+
+      real FUNCTION SGLO_SSNH_SANH (LAMBDA,PHI,F,LI,LJ, mode)
       REAL F(LI,LJ)
 *
 *AUTEUR   - D. ROBERTSON
 *
 *REVISION 001  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
+*              M. VALIN      -  OCT 2023 removed entry statements
 *
 *LANGAGE  - FORTRAN
 *
@@ -58,6 +83,7 @@
 *                    CIRCLE IS DISPLACED FROM THE NORTH POLE BY
 *                    OFFSET = 90.0 / LJ DEG.
 *         - LJ     - NUMBER OF LATITUDE CIRCLES
+*         - mode   - 0/1/2 global, symmetric north, antisymmetric north
 *
 *MODULES  - ABORT,IDXES
 *
@@ -94,26 +120,34 @@
 #include "kases.cdk"
 *
       DATA  EPSPHI /1.0E-8/
+      DATA ORDINT /3/
 *      DATA ORDINT /3/
 #include "cubic.cdk"
 *
-      ORDINT = 3
-      KASE = GLOBAL
-      SIGN =+1.0
+*     original sglo
+      if(mode == 0) then
+        ORDINT = 3
+        KASE = GLOBAL
+        SIGN =+1.0
+      endif
       GO TO 5
 *
 *     SCALAR SYMMETRIC NORTHERN HEMISPHERE
 *
-      ENTRY SSNH(LAMBDA,PHI,F,LI,LJ)
-      KASE = NORTH
-      SIGN =+1.0
+!     E N T R Y SSNH(LAMBDA,PHI,F,LI,LJ)
+      if(mode == 1) then
+        KASE = NORTH
+        SIGN =+1.0
+      endif
       GO TO 5
 *
 *     SCALAR ANTISYMMETRIC NORTHERN HEMISPHERE
 *
-      ENTRY SANH(LAMBDA,PHI,F,LI,LJ)
-      KASE = NORTH
-      SIGN =-1.0
+!     E N T R Y SANH(LAMBDA,PHI,F,LI,LJ)
+      if(mode == 2) then
+        KASE = NORTH
+        SIGN =-1.0
+      endif
     5 CONTINUE
 *    -------------------------------------------------------------------
 *
@@ -142,7 +176,8 @@
       SUM2 = 0.
       DO 65 I = 1,LI
       SUM1 = SUM1 + F(I,J1)
-65    SUM2 = SUM2 + F(I,J2)
+      SUM2 = SUM2 + F(I,J2)
+65    continue
       SGLO = (SUM1*1.125 - SUM2*.125)/LI
        IF(KASE.EQ.NORTH.AND.PHI.GT.90.0)  SGLO = SIGN * SGLO
       RETURN
@@ -183,7 +218,8 @@
       ELSE IF(ORDINT.EQ.1) THEN
          DO 90 JJ = 2 , 3
             DO 80 II = 2 , 3
-80             P(II) = F(IDX(II,JJ),ABS(JDX(JJ)))
+               P(II) = F(IDX(II,JJ),ABS(JDX(JJ)))
+80             continue
             IF(JDX(JJ).LT.0) THEN
                Z(JJ) = SIGN * ZLIN(P(2),P(3),DX)
             ELSE

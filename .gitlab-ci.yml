@@ -16,13 +16,13 @@ before_script:
    - source ~/ci-admin/env/init.sh
    - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/precaution/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}
 
-#----- TODO : cleanup builds more than 14-day-old
+# ----- TODO : cleanup builds more than 7-day old
 # cleanup:u2:
 #    stage: cleanup
 #    tags:
 #       - concurrent
 #    script:
-#       - find ${ECCI_BUILD_DIR}/precaution -type d -ctime +14 -exec rm -rfv {} \; || true
+#       - find ${ECCI_BUILD_DIR}/precaution -type d -mtime +7 -exec rm -rfv {} \; || true
 
 #----- rhel-8-icelake-64_inteloneapi-2022.1.2
 
@@ -32,7 +32,8 @@ build:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -50,7 +51,8 @@ test:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-icelake-64_inteloneapi-2022.1.2
@@ -67,7 +69,8 @@ package:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -90,7 +93,8 @@ build:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -108,7 +112,8 @@ test:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-icelake-64_inteloneapi-2021.4.0
@@ -125,7 +130,8 @@ package:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -148,7 +154,8 @@ build:rhel-8-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -166,7 +173,8 @@ test:rhel-8-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev_.*/
      - tags
    dependencies:
      - build:rhel-8-amd64_inteloneapi-2022.1.2
@@ -183,7 +191,8 @@ package:rhel-8-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -206,7 +215,8 @@ build:rhel-8-amd64_gnu-9.3.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    script:
       - set +e
@@ -224,7 +234,8 @@ test:rhel-8-amd64_gnu-9.3.0:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-amd64_gnu-9.3.0
@@ -241,7 +252,8 @@ package:rhel-8-amd64_gnu-9.3.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -264,7 +276,8 @@ build:rhel-8-amd64_gnu-12.1.0:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
@@ -283,7 +296,8 @@ test:rhel-8-amd64_gnu-12.1.0:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    dependencies:
      - build:rhel-8-amd64_gnu-12.1.0
@@ -301,7 +315,7 @@ test:rhel-8-amd64_gnu-12.1.0:
 
 build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -309,7 +323,8 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - set +e
@@ -324,7 +339,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
 
 test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -332,7 +347,8 @@ test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    dependencies:
       - build:ubuntu-22.04-amd64_inteloneapi-2022.1.2
@@ -346,7 +362,7 @@ test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
 
 package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
@@ -354,7 +370,8 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -373,7 +390,7 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
 
 build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -381,7 +398,8 @@ build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - set +e
@@ -396,7 +414,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
 
 test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -404,7 +422,8 @@ test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    dependencies:
       - build:ubuntu-22.04-amd64_inteloneapi-2023.2.0
@@ -418,7 +437,7 @@ test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
 
 package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
@@ -426,7 +445,8 @@ package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -445,7 +465,7 @@ package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
 
 build:ubuntu-22.04-amd64_gnu-11.4.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: build
@@ -453,7 +473,8 @@ build:ubuntu-22.04-amd64_gnu-11.4.0:
       - concurrent
    only:
      - master
-     - dev
+     - alpha
+     - /^dev.*$/
      - tags
    script:
       - set +e
@@ -468,7 +489,7 @@ build:ubuntu-22.04-amd64_gnu-11.4.0:
 
 test:ubuntu-22.04-amd64_gnu-11.4.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: test
@@ -476,7 +497,8 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
    dependencies:
       - build:ubuntu-22.04-amd64_gnu-11.4.0
@@ -490,7 +512,7 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
 
 package:ubuntu-22.04-amd64_gnu-11.4.0:
    variables:
-      ORD_SOUMET_MACH    : gpsc5
+      ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
    stage: package
@@ -498,7 +520,8 @@ package:ubuntu-22.04-amd64_gnu-11.4.0:
       - concurrent
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    dependencies:
@@ -519,8 +542,9 @@ deploy:staging:
       - concurrent
    only:
       - master
+      - alpha
       - tags
-      - dev
+      - /^dev.*$/
       - schedules
    script:
       - ~/ci-admin-bundle/bin/ci-stage-ssm.sh libs rmn "${CI_COMMIT_TAG}" "${ECCI_PROCESS}"
@@ -531,7 +555,8 @@ trigger:
       - U2
    only:
       - master
-      - dev
+      - alpha
+      - /^dev.*$/
       - tags
       - schedules
    script:

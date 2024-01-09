@@ -17,29 +17,34 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+      module nr_rand_data
+      integer, save :: iseed = -1
+      integer, save :: iff = 0
+      integer, save :: inext,inextp,ma(55)
+      end
+
       INTEGER FUNCTION nr_rand_seed(idum)
+      use nr_rand_data
       implicit none
-      integer nr_rand_i
       integer idum
-      SAVE iseed
-      INTEGER iseed
+
+      iseed=idum
+      nr_rand_seed=idum
+      return
+      end
+
+c      e n t r y nr_rand_i()
+      integer function nr_rand_i()
+      use nr_rand_data
+      implicit none
       INTEGER MBIG,MSEED,MZ
 C     REAL MBIG,MSEED,MZ
       REAL FAC
       PARAMETER (MBIG=1000000000,MSEED=161803398,MZ=0,FAC=1./MBIG)
 C     PARAMETER (MBIG=4000000.,MSEED=1618033.,MZ=0.,FAC=1./MBIG)
-      INTEGER i,iff,ii,inext,inextp,k
-      INTEGER mj,mk,ma(55)
-C     REAL mj,mk,ma(55)
-      SAVE iff,inext,inextp,ma
-      DATA iff /0/
-      DATA iseed /-1/
-
-      iseed=idum
-      nr_rand_seed=idum
-      return
-
-      entry nr_rand_i()
+      INTEGER i,ii,k
+      INTEGER mj,mk
+C     REAL mj,mk
 
       if(iseed.lt.0.or.iff.eq.0)then
         iff=1

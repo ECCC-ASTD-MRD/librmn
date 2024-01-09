@@ -18,10 +18,16 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
 !.S MRBCOL
+module mrb_col_dcl
+#include <ftnmacros.hf>
+#include "defi.cdk"
+#include "masques.cdk"
+end module
 !**S/P - MRBCOL - CODER LES ELEMENTS D'UNE LISTE
-      FUNCTION MRBCOL( LISTE,       CLISTE,       NELE)
+      integer FUNCTION MRBCOL( LISTE,       CLISTE,       NELE)
+      use mrb_col_dcl
       IMPLICIT NONE
-      INTEGER  MRBCOL, NELE, LISTE(NELE), CLISTE(NELE), MRBDCL 
+      INTEGER  NELE, LISTE(NELE), CLISTE(NELE)
 
 !AUTEUR:  J. CAVEEN   FEVRIER 1991
 !REV 001  Y. BOURASSA MARS    1995 RATFOR & FTN77
@@ -42,9 +48,6 @@
 !
 !IMPLICITES
 !#include "codes.cdk"
-#include <ftnmacros.hf>
-#include "defi.cdk"
-#include "masques.cdk"
 !
 !*
       MRBCOL = -1
@@ -61,10 +64,13 @@
 
       MRBCOL = 0
       RETURN
-
+      end
 
 !**S/P MRBDCL - DECODER LES ELEMENTS D'UNE LISTE
-      ENTRY   MRBDCL(CLISTE, LISTE, NELE)
+      integer function   MRBDCL(CLISTE, LISTE, NELE)
+      use mrb_col_dcl
+      IMPLICIT NONE
+      INTEGER  NELE, LISTE(NELE), CLISTE(NELE)
 !
 !OBJET(MRBDCL)
 !     RETOURNE UNE LISTE D'ELEMENTS DECODES
@@ -80,6 +86,7 @@
 !     LISTE    SORTIE    LISTE DES ELEMENTS CODES
 !     NELE     ENTREE    NOMBRE D'ELEMENTS A CODER
 !*
+      INTEGER I, IIBIT, VIBIT, VIIIBIT, IELEM
 
       MRBDCL = -1
       DO 20 I = 1, NELE
