@@ -95,6 +95,9 @@ static const fst_record default_fst_record = (fst_record){
                    '\0', '\0', '\0', '\0'},
     };
 
+inline int64_t fst23_record_data_size(const fst_record* record) {
+    return record->ni * record->nj * record->nk * (record->dasiz / 8);
+}
 
 int32_t    fst23_record_is_valid(const fst_record* record);
 int32_t    fst23_record_validate_params(const fst_record* record);

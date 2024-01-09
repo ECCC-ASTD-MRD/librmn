@@ -124,7 +124,7 @@ int test_fst23_interface(const int is_rsf) {
     {
         fst_record search_criteria = default_fst_record;
         fst_record record_find = default_fst_record;
-        strcpy(search_criteria.typvar, "P ");
+        strcpy(search_criteria.typvar, "P");
  
         // Test find loop
         fprintf(stdout,"\nfind loop:\n");
