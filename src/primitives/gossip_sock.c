@@ -1128,7 +1128,7 @@ void put_int32_to_channel(
 
 
 //! Send special message through a network stream socket
-static send_request(
+static int32_t send_request(
     int channel,
     char *request
 ) {
@@ -1151,7 +1151,7 @@ static send_request(
 
 
 //! Get special message from a network stream socket
-static get_request(
+static int32_t get_request(
     int channel,
     char *request
 ) {

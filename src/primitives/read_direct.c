@@ -191,32 +191,32 @@ static unsigned int Current_Char(){
 }
 
 /* initialize table containing syntactic character types */
-static init_char_table(){
-int i;
+static void init_char_table(){
+    int i;
 
-char_type[0] = 0xFF;
-for (i=1;i<31;i++) char_type[i]=0;        /* control characters */
-for (i=32;i<126;i++) char_type[i]=128;    /* regular ASCII chars */
-for (i=127;i<254;i++) char_type[i]=0;     /* accented and special characters, ignore */
+    char_type[0] = 0xFF;
+    for (i=1;i<31;i++) char_type[i]=0;        /* control characters */
+    for (i=32;i<126;i++) char_type[i]=128;    /* regular ASCII chars */
+    for (i=127;i<254;i++) char_type[i]=0;     /* accented and special characters, ignore */
 
-for (i='a';i<='z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
-for (i='A';i<='Z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
-for (i='0';i<='9';i++) char_type[i] = 4+2;  /* TOKEN + DIGIT */
+    for (i='a';i<='z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
+    for (i='A';i<='Z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
+    for (i='0';i<='9';i++) char_type[i] = 4+2;  /* TOKEN + DIGIT */
 
-char_type[255] = 0xFF;
-char_type[' '] = 0;                         /* SPACE */
-char_type['('] = 32;                        /* START OF CMD */
-char_type['='] = 32;                        /* START OF CMD */
-char_type['.'] = 4+16;                      /* TOKEN + NUM */
-char_type['-'] = 4+16;                      /* TOKEN + NUM */
-char_type['+'] = 4+16;                      /* TOKEN + NUM */
-char_type['_'] = 4+1;                       /* TOKEN + LETTER */
+    char_type[255] = 0xFF;
+    char_type[' '] = 0;                         /* SPACE */
+    char_type['('] = 32;                        /* START OF CMD */
+    char_type['='] = 32;                        /* START OF CMD */
+    char_type['.'] = 4+16;                      /* TOKEN + NUM */
+    char_type['-'] = 4+16;                      /* TOKEN + NUM */
+    char_type['+'] = 4+16;                      /* TOKEN + NUM */
+    char_type['_'] = 4+1;                       /* TOKEN + LETTER */
 
-char_type['%'] = 8; char_type['@'] = 8;     /* OPER */
-char_type['"'] = 4+64;                      /* TOKEN + SEPAR */
-char_type['<'] = 4+64;                      /* TOKEN + SEPAR */
-char_type['['] = 4+64;                      /* TOKEN + SEPAR */
-char_type['\''] = 4+64;                     /* TOKEN + SEPAR */
+    char_type['%'] = 8; char_type['@'] = 8;     /* OPER */
+    char_type['"'] = 4+64;                      /* TOKEN + SEPAR */
+    char_type['<'] = 4+64;                      /* TOKEN + SEPAR */
+    char_type['['] = 4+64;                      /* TOKEN + SEPAR */
+    char_type['\''] = 4+64;                     /* TOKEN + SEPAR */
 }
 
 /* collect an argument for a command ,return token and length */

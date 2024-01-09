@@ -201,6 +201,8 @@ foreach(TARGET IN ITEMS ${TARGETS})
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
+               $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
+            #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
                $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
