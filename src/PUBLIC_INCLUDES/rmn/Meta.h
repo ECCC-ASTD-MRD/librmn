@@ -13,7 +13,7 @@
 // Generic json manipulation calls
 int32_t      Meta_Free(json_object *Obj);
 char*        Meta_Stringify(json_object *Obj);
-json_object* Meta_Parse(char *MetaString);
+json_object* Meta_Parse(const char *MetaString);
 int32_t      Meta_ArrayLength(json_object *Obj);
 json_object* Meta_ArrayGetObject(json_object *Obj,int32_t Idx);
 json_object* Meta_ArrayFind(json_object *Obj,char *Token);

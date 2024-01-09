@@ -1106,7 +1106,7 @@ char *Meta_Stringify(json_object *Obj) {
  *
  *    @return                    json object
 */
-json_object* Meta_Parse(char *MetaString) {
+json_object* Meta_Parse(const char *MetaString) {
 
    struct json_object *obj=NULL;
    enum json_tokener_error jerr;

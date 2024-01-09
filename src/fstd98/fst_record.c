@@ -204,39 +204,71 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
     criteria->gtyp = grtyp[0];
 }
 
-fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
-    fst_record result = default_fst_record;
-
+void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
     stdf_special_parms cracked;
     crack_std_parms(keys, &cracked);
 
-    result.dateo = cracked.date_valid;
+    record->dateo = cracked.date_valid;
 
-    result.ni = keys->ni;
-    result.nj = keys->nj;
-    result.nk = keys->nk;
-    result.datyp = keys->datyp;
-    result.dasiz = keys->dasiz;
-    result.npak = -keys->nbits;
+    record->ni = keys->ni;
+    record->nj = keys->nj;
+    record->nk = keys->nk;
+    record->datyp = keys->datyp;
+    record->dasiz = keys->dasiz;
+    record->npak = -keys->nbits;
 
-    result.deet = keys->deet;
-    result.npas = keys->npas;
+    record->deet = keys->deet;
+    record->npas = keys->npas;
 
-    strncpy(result.nomvar, cracked.nomvar, FST_NOMVAR_LEN);
-    strncpy(result.typvar, cracked.typvar, FST_TYPVAR_LEN);
-    strncpy(result.etiket, cracked.etiket, FST_ETIKET_LEN);
-    strncpy(result.grtyp,  cracked.gtyp,   FST_GTYP_LEN);
+    strncpy(record->nomvar, cracked.nomvar, FST_NOMVAR_LEN);
+    strncpy(record->typvar, cracked.typvar, FST_TYPVAR_LEN);
+    strncpy(record->etiket, cracked.etiket, FST_ETIKET_LEN);
+    strncpy(record->grtyp,  cracked.gtyp,   FST_GTYP_LEN);
 
-    result.ip1 = keys->ip1;
-    result.ip2 = keys->ip2;
-    result.ip3 = keys->ip3;
+    record->ip1 = keys->ip1;
+    record->ip2 = keys->ip2;
+    record->ip3 = keys->ip3;
 
-    result.ig1 = keys->ig1;
-    result.ig2 = cracked.ig2;
-    result.ig3 = keys->ig3;
-    result.ig4 = keys->ig4;
+    record->ig1 = keys->ig1;
+    record->ig2 = cracked.ig2;
+    record->ig3 = keys->ig3;
+    record->ig4 = keys->ig4;
+}
 
+fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
+    fst_record result = default_fst_record;
+    fill_with_dir_keys(&result, keys);
     return result;
+}
+
+int32_t fst23_record_is_same(const fst_record* a, const fst_record* b) {
+    if (a == NULL || b == NULL) return 0;
+    if (a->version != b->version) return 0;
+    if (a->flags != b->flags) return 0;
+    if (a->dateo != b->dateo) return 0;
+    if (a->datev != b->datev) return 0;
+    if (a->handle != b->handle) return 0;
+    if (a->datyp != b->datyp) return 0;
+    if (a->dasiz != b->dasiz) return 0;
+    if (a->npak != b->npak) return 0;
+    if (a->ni != b->ni) return 0;
+    if (a->nj != b->nj) return 0;
+    if (a->nk != b->nk) return 0;
+    if (a->deet != b->deet) return 0;
+    if (a->npas != b->npas) return 0;
+    if (a->ip1 != b->ip1) return 0;
+    if (a->ip2 != b->ip2) return 0;
+    if (a->ip3 != b->ip3) return 0;
+    if (a->ig1 != b->ig1) return 0;
+    if (a->ig2 != b->ig2) return 0;
+    if (a->ig3 != b->ig3) return 0;
+    if (a->ig4 != b->ig4) return 0;
+    if (!is_same_record_string(a->typvar, b->typvar, FST_TYPVAR_LEN)) return 0;
+    if (!is_same_record_string(a->grtyp, b->grtyp, FST_GTYP_LEN)) return 0;
+    if (!is_same_record_string(a->nomvar, b->nomvar, FST_NOMVAR_LEN)) return 0;
+    if (!is_same_record_string(a->etiket, b->etiket, FST_ETIKET_LEN)) return 0;
+
+    return 1;
 }
 
 void fst23_record_diff(const fst_record* a, const fst_record* b) {
@@ -289,12 +321,12 @@ void fst23_record_diff(const fst_record* a, const fst_record* b) {
     if (a->ig4 != b->ig4)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: ig4:     a = %d, b = %d)\n", __func__, a->ig4, b->ig4);
 
-    if (strncmp(a->typvar, b->typvar, FST_TYPVAR_LEN) != 0)
+    if (!is_same_record_string(a->typvar, b->typvar, FST_TYPVAR_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: typvar:  a = \"%3s\", b = \"%3s\"\n", __func__, a->typvar, b->typvar);
-    if (strncmp(a->grtyp, b->grtyp, FST_GTYP_LEN) != 0)
+    if (!is_same_record_string(a->grtyp, b->grtyp, FST_GTYP_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: grtyp:   a = \"%3s\", b = \"%3s\"\n", __func__, a->grtyp, b->grtyp);
-    if (strncmp(a->nomvar, b->nomvar, FST_NOMVAR_LEN) != 0)
+    if (!is_same_record_string(a->nomvar, b->nomvar, FST_NOMVAR_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: nomvar:  a = \"%3s\", b = \"%3s\"\n", __func__, a->nomvar, b->nomvar);
-    if (strncmp(a->etiket, b->etiket, FST_ETIKET_LEN) != 0)
+    if (!is_same_record_string(a->etiket, b->etiket, FST_ETIKET_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: etiket:  a = \"%3s\", b = \"%3s\"\n", __func__, a->etiket, b->etiket);
 }

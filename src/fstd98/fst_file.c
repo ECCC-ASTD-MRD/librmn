@@ -82,7 +82,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         return ERR_NO_FILE;
     }
 
-    if (! FGFDT[file->file_index].attr.std) {
+    if (!FGFDT[file->file_index].attr.std) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, file->iun);
         return ERR_NO_FILE;
     }
@@ -91,7 +91,6 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) not open with write permission\n", __func__, file->iun);
         return ERR_NO_WRITE;
     }
-
 
     const int num_elements = record->ni * record->nj * record->nk;
     int in_dasiz = record->dasiz;
@@ -506,17 +505,6 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
                 }
                 /* turbo compression not supported for this type, revert to normal mode */
                 stdf_entry->datyp = is_missing | 4;
-#ifdef use_old_signed_pack_unpack_code
-                uint32_t * field3 = field;
-                if (xdf_short || xdf_byte) {
-                    field3 = (uint32_t *)alloca(num_elements * sizeof(int));
-                    short * s_field = (short *)field;
-                    signed char * b_field = (signed char *)field;
-                    if (xdf_short) for (int i = 0; i < num_elements;i++) { field3[i] = s_field[i]; };
-                    if (xdf_byte)  for (int i = 0; i < num_elements;i++) { field3[i] = b_field[i]; };
-                }
-                compact_integer(field3, (void *) NULL, new_record->data, num_elements, nbits, 0, xdf_stride, 3);
-#else
                 if (xdf_short) {
                     compact_short(field, (void *) NULL, new_record->data, num_elements, nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
@@ -524,7 +512,6 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
                 } else {
                     compact_integer(field, (void *) NULL, new_record->data, num_elements, nbits, 0, xdf_stride, 3);
                 }
-#endif
                 break;
 
             case 5: case 8: case 133:  case 136:
@@ -660,15 +647,15 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
     int        idum;
 
     if (!fst23_file_is_open(file)) return result;
+    if (key < 0) return result;
 
     switch(file->type) {
         case FST_RSF: {
-                const int32_t key32 = RSF_Key32(key);
-                RSF_handle    file_handle = RSF_Key32_to_handle(key32);
+                RSF_handle    file_handle = RSF_Key64_to_handle(key);
                 RSF_record*   rec = RSF_Get_record(file_handle, key);
 
                 if (rec == NULL) {
-                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x (0x%x)\n",__func__,key32,key);
+                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x \n",__func__,key);
                     return result;
                 }
 
@@ -682,11 +669,9 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
                 //TODO This is reading it a second time!!!! Should unpack right here rather than using fstluk!!!!
                 result.data = malloc(stdf_entry->ni * stdf_entry->nj * stdf_entry->nk * 16 + 500); //TODO allocate the right amount
 
-                c_fstluk_rsf(result.data, file_handle, key32, &result.ni, &result.nj, &result.nk);
+                c_fstluk_rsf(result.data, file_handle, RSF_Key32(key), &result.ni, &result.nj, &result.nk);
                 result.handle = key;
-                c_fstprm_rsf(file_handle,key32,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
-                   &result.datyp,&result.dasiz,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
-                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+                fill_with_dir_keys(&result, stdf_entry);
 
                 //TODO Need to free the record. But the metadata has to be copied first!
                 // free(rec);
@@ -712,9 +697,7 @@ fst_record fst23_read(fst_file* file, const int64_t key) {
                 result.data = malloc(ni * nj * nk * 16 + 500); //TODO allocate the right amount
                 c_fstluk_xdf(result.data, key32, &ni, &nj, &nk);
                 result.handle = key;
-                c_fstprm_xdf(result.handle,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
-                   &result.datyp,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
-                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+                fill_with_dir_keys(&result, &stdf_entry);
                 break;
             }
         default:
@@ -742,11 +725,13 @@ int32_t fst23_get_record_from_key(
         return FALSE;
     }
 
+    record->handle = key;
+
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         const RSF_record_info record_info = RSF_Get_record_info(file_handle, key);
-        *record = record_from_dir_keys(record_info.meta);
-        record->handle = key;
+        fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
+        return TRUE;
     }
     else if (file->type == FST_XDF) {
         int addr, lng, idtyp;
@@ -755,16 +740,12 @@ int32_t fst23_get_record_from_key(
         pkeys += W64TOWD(1);
         c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
 
-        *record = record_from_dir_keys(&record_meta_xdf);
-    }
-    else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
-        return FALSE;
+        fill_with_dir_keys(record, &record_meta_xdf);
+        return TRUE;
     }
 
-    record->handle = key;
-
-    return TRUE;
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+    return FALSE;
 }
 
 //! Indicate a set of criteria that will be used whenever we will use "find next record" 
@@ -805,6 +786,8 @@ int32_t fst23_find_next(
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
+
+    *result = default_fst_record;
 
     int64_t key = -1;
     const stdf_dir_keys* record_meta = NULL;
@@ -848,6 +831,38 @@ int32_t fst23_find(
     return fst23_find_next(file, result);
 }
 
+//! Read data from file, for a given record
+int32_t fst23_read_data(
+    fst_file* file,
+    fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
+) {
+    if (!fst23_file_is_open(file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+       return FALSE;
+    }
+
+    if (!fst23_record_is_valid(record)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
+       return FALSE;
+    }
+
+    if (record->data == NULL) {
+        record->data = malloc(fst23_record_data_size(record) + 500);
+    }
+
+    switch (file->type)
+    {
+    case FST_RSF:
+        /* code */
+        break;
+    
+    default:
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        return FALSE;
+    } // end switch (file type)
+
+    return FALSE;
+}
 
 int32_t fst23_read_new(fst_file* file, fst_record* record) {
 
@@ -924,9 +939,7 @@ int32_t fst23_read_new(fst_file* file, fst_record* record) {
 
                 //TODO This is reading it a second time!!!! Should unpack right here rather than using fstluk!!!!
                 c_fstluk_rsf(result.data, file_handle, key32, &result.ni, &result.nj, &result.nk);
-                c_fstprm_rsf(file_handle,key32,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
-                   &result.datyp,&result.dasiz,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
-                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+                fill_with_dir_keys(&result, stdf_entry);
 
                 break;
             }
@@ -942,9 +955,7 @@ int32_t fst23_read_new(fst_file* file, fst_record* record) {
                 }
 
                 c_fstluk_xdf(result.data, key32, &result.ni, &result.nj, &result.nk);
-                c_fstprm_xdf(result.handle,&result.dateo,&result.deet,&result.npas,&result.ni,&result.nj,&result.nk,&result.npak,
-                   &result.datyp,&result.ip1,&result.ip2,&result.ip3,&result.typvar,&result.nomvar,&result.etiket,&result.grtyp,
-                   &result.ig1,&result.ig2,&result.ig3,&result.ig4,&idum,&idum,&idum,&idum,&idum,&idum,&idum);
+                fill_with_dir_keys(&result, stdf_entry);
                 break;
             }
         default:

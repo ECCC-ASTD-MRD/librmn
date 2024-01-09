@@ -44,6 +44,7 @@ extern fstd_usage_info fstd_open_files[MAXFILES];
 
 // Signatures from fstd98.c
 void copy_record_string(char* const dest, const char* const src, const int32_t max_length);
+int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length);
 int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);

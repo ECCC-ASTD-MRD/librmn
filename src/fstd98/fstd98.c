@@ -110,6 +110,19 @@ void copy_record_string(char* const dest, const char* const src, const int32_t m
     dest[max_length - 1] = '\0';
 }
 
+//! This function is slow and possibly not perfect
+int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length) {
+    char copy_a[max_length];
+    char copy_b[max_length];
+    copy_record_string(copy_a, str_a, max_length);
+    copy_record_string(copy_b, str_b, max_length);
+    for (int i = 0; i < max_length; i++) {
+        if (toupper(copy_a[i]) != toupper(copy_b[i])) return 0;
+    }
+
+    return 1;
+}
+
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;

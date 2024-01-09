@@ -213,6 +213,14 @@ RSF_handle RSF_Key32_to_handle(int32_t key32) {
   return h;
 }
 
+//! Retrieve a handle to the file to which the given key belongs
+RSF_handle RSF_Key64_to_handle(int64_t key64) {
+  RSF_handle h;
+  const uint32_t slot  = key64_to_file_slot(key64);
+  h.p = rsf_files[slot - 1];
+  return h;
+}
+
 //! Check if given file points to a valid RSF_File structure
 //! fp     pointer to RSF_File structure
 //! return slot number + 1 if valid structure, otherwise return 0

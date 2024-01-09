@@ -22,7 +22,7 @@ typedef struct {
 
     // 64-bit elements first
     void*   data;     //!< Record data
-    char*   metadata; //!< Record metadata.         TODO JSON object?
+    const char* metadata; //!< Record metadata.         TODO JSON object?
     int64_t flags;    //!< Record status flags
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp
@@ -104,6 +104,9 @@ int32_t    fst23_record_validate_params(const fst_record* record);
 void       fst23_record_print(const fst_record* record);
 fst_record fst23_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
 int32_t    fst23_record_free(fst_record* record);
+int32_t    fst23_record_is_same(const fst_record* a, const fst_record* b);
+void       fst23_record_diff(const fst_record* a, const fst_record* b);
+
 
 #else
     type, bind(C) :: fst_record
