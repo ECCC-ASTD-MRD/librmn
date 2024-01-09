@@ -70,7 +70,7 @@ int32_t c_gdxyzfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int
                 &ni_in,&nj_in,grEntree.grtyp, grEntree.grref,
                 &grEntree.fst.igref[IG1], &grEntree.fst.igref[IG2],
                 &grEntree.fst.igref[IG3], &grEntree.fst.igref[IG4],
-                grEntree.ax, grEntree.ay, &coordonnee);
+                grEntree.ax, grEntree.ay, &coordonnee, 1, 1);
             break;
 
         default:

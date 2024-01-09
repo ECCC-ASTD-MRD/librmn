@@ -69,8 +69,11 @@ int main (int argc, char* argv[])
         if (verbose > 0) printf("verbose = %d\n", verbose);
     }
 
-    ier = c_fnom(10,"brpfil1","RND",0);
-    ier = c_fnom(20,"brpfil2","RND",0);
+    int iun1 = 10;
+    int iun2 = 20;
+
+    ier = c_fnom(&iun1,"brpfil1","RND",0);
+    ier = c_fnom(&iun2,"brpfil2","RND",0);
 
     ptba = bufa; ptbb = bufb; ptbc = bufc; ptbd = bufd;
     pttval = tblval; pttcmp = tblcomp; ptlcmp = lstcomp;
@@ -409,7 +412,7 @@ int main (int argc, char* argv[])
 
     printf(" %4.1f mrbprml bufa tous les blocl\n",9.1);
 
-    ier = c_mrbprml(bufa,0,tblprm,10,30);
+    ier = c_mrbprml(bufa,0,tblprm[0],10,30);
     printf(" nombre de blocs retournes %d\n",ier);
 
     printf(" bkno    nele   nval  nt  bfam  bdesc  btyp  nbit  bit0  datyp\n");
@@ -427,7 +430,7 @@ int main (int argc, char* argv[])
 
     printf(" %4.1f mrbprml bufa 10 blocs a partir de bkno=3\n",9.1);
 
-    ier = c_mrbprml(bufa,3,tblprm,10,10);
+    ier = c_mrbprml(bufa,3,tblprm[0],10,10);
     printf(" nombre de blocs retournes %d\n",ier);
 
     printf(" bkno    nele   nval  nt  bfam  bdesc  btyp  nbit  bit0  datyp\n");
@@ -718,7 +721,7 @@ int main (int argc, char* argv[])
         tblusr[i][0] = lsteusr[i];
     }
 
-    ier = c_mrbsct(tblusr,5);
+    ier = c_mrbsct(tblusr[0],5);
     testit(ier);
 
     printf(" %4.1f mrbcvt lsteleb du bufr a reel\n",30.2);
@@ -1076,7 +1079,7 @@ int main (int argc, char* argv[])
     for(i=0; i <=9; i++)
         tblburp[i][0] = c_mrbcov(lstelea[i]);
 
-    ier = c_mrbtbl(tblburp,4,10);
+    ier = c_mrbtbl(tblburp[0],4,10);
 
     if (verbose > 1) {
         printf(" contenu du vecteur tblburp \n");
@@ -1110,7 +1113,7 @@ int main (int argc, char* argv[])
         printf("\n");
     }
 
-    ier = c_mrbtbl(tblburp,4,5);
+    ier = c_mrbtbl(tblburp[0],4,5);
 
     if (verbose > 1) {
         printf(" element elem-code echelle reference transformable\n");

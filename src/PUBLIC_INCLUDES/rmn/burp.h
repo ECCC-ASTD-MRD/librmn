@@ -73,6 +73,10 @@ int c_mrbdcv(int elem);
 
 int c_mrbsct(int tablusr[], int neleusr);
 
+int c_mrbrpt(int elem);
+
+int c_mrbtbl(int tablusr[], int nslots, int neleusr);
+
 #ifdef __cplusplus
 }
 #endif

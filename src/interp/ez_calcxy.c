@@ -71,7 +71,7 @@ int32_t ez_calcxy(int32_t gdin, int32_t gdout)
                             &ni_in, &nj_in, Grille[gdrow_in][gdcol_in].grtyp,
                             &Grille[gdrow_in][gdcol_in].fst.ig[IG1], &Grille[gdrow_in][gdcol_in].fst.ig[IG2],
                             &Grille[gdrow_in][gdcol_in].fst.ig[IG3], &Grille[gdrow_in][gdcol_in].fst.ig[IG4],
-                            &groptions.symmetrie, Grille[gdrow_in][gdcol_in].ay);
+                            &groptions.symmetrie, Grille[gdrow_in][gdcol_in].ay, 1);
             break;
 
 
@@ -86,7 +86,7 @@ int32_t ez_calcxy(int32_t gdin, int32_t gdout)
                                 &Grille[gdrow_in][gdcol_in].fst.igref[IG1], &Grille[gdrow_in][gdcol_in].fst.igref[IG2],
                                 &Grille[gdrow_in][gdcol_in].fst.igref[IG3], &Grille[gdrow_in][gdcol_in].fst.igref[IG4],
                                 Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,
-                                &coordonnee);
+                                &coordonnee, 1, 1);
             if (Grille[gdrow_in][gdcol_in].grtyp[0] == 'G') {
                 if (Grille[gdrow_in][gdcol_in].fst.ig[IG1] == NORD) {
                     for (int32_t j=0; j < ni_out*nj_out; j++) {

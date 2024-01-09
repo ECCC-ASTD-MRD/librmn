@@ -238,7 +238,7 @@ int32_t ez_calclatlon(int32_t gdid) {
           }
         }
       f77name(ez_llflamb)(Grille[gdrow][gdcol].lat,Grille[gdrow][gdcol].lon,x,y,&npts,
-                &Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.ig[IG1],&Grille[gdrow][gdcol].fst.ig[IG2],
+                Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.ig[IG1],&Grille[gdrow][gdcol].fst.ig[IG2],
                 &Grille[gdrow][gdcol].fst.ig[IG3],&Grille[gdrow][gdcol].fst.ig[IG4],1);
       for (i=0; i < npts; i++)
         {

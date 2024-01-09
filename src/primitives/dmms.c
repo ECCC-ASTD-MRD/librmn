@@ -364,7 +364,7 @@ void f77name(hpdeallc)(
     int32_t * abort
 ) {
     int offset = 4 * sizeof(addr);
-    *errcode = bloc_dealloc((*addr) - offset, HEAP);
+    *errcode = bloc_dealloc((struct blocmem *)((*addr) - offset), HEAP);
 }
 
 
@@ -412,7 +412,7 @@ void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *
 void f77name(ca_deallc)(int32_t ** addr, int32_t * errcode, int32_t * abort) {
    int **ptr;
    ptr = *addr - sizeof(addr);
-   *errcode = bloc_dealloc(*ptr,HEAP);
+   *errcode = bloc_dealloc((struct blocmem *)(*ptr),HEAP);
 }
 
 
@@ -474,7 +474,7 @@ void f77name(memoir)(int32_t buf[], int32_t * ind, int32_t * nw) {
 
 
 void f77name(bkcheck)(int32_t ** addr, int32_t * errcode) {
-    *errcode = bloc_check((*addr)-4, 1);
+    *errcode = bloc_check((struct blocmem *)((*addr)-4), 1);
 }
 
 

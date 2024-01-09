@@ -45,12 +45,12 @@ void f77name(ez_irgdint_3_wnnc)(float *zo, float *px, float *py, int32_t *npts, 
 void f77name(ez_lac)(float *xyz, float *lon, float *lat, int32_t *nbpts);
 void f77name(ez_ll2igd)(float *px, float *py, float *xlat, float *xlon, int32_t *npts, int32_t *ni, int32_t *nj,
                         char grtyp[], char grref[], int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
-                        float *ax, float *ay, int32_t *coordflag); // Missing F2Cl param?? 
+                        float *ax, float *ay, int32_t *coordflag, F2Cl, F2Cl);
 void f77name(ez_ll2rgd)(float *px, float *py, float *xlat, float *xlon, int32_t *npts, int32_t *ni, int32_t *nj,
                         char grtyp[], int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
-                        int32_t *sym, float *lroots); // Missing F2Cl param??
+                        int32_t *sym, float *lroots, F2Cl);
 void f77name(ez_llflamb)(float *lat, float *lon, float *x, float *y, int32_t *npts,
-                         char grtyp[][4], int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, F2Cl);
+                         char grtyp[], int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, F2Cl);
 void f77name(ez_llwfgdw)(float *z1, float *z2, float *xlon, int32_t *li, int32_t *lj, char grtyp[],
                          int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, F2Cl);
 void f77name(ez_nwtncof)(float *cx, float *cy, float *ax, float *ay, int32_t *ni, int32_t *nj,

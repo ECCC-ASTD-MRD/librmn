@@ -64,7 +64,9 @@ int test_fst23_interface(const int is_rsf) {
     {
         fst_record record = fst23_record_init(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
         record.npak = -32;
-        Meta_StampEncode(&record.dateo,2022,06,10,0,0,0);
+        int32_t date;
+        Meta_StampEncode(&date,2022,06,10,0,0,0);
+        record.dateo = date;
         record.deet = 300;
         record.npas = 0;
         record.ip1  = 1;

@@ -70,6 +70,7 @@
 #include <rmn/c_wkoffit.h>
 
 #include "fstd98/burp98.h"
+#include "fstd98/fstd98_internal.h"
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
