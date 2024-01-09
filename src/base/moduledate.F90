@@ -274,33 +274,37 @@
 !           THE NUMBER OF 3 HOURLY INTERVALS SINCE YEAR 00/01/01
 !         - SEE INCDATR FOR DETAIL ON CMC DATE-TIME STAMP
       SUBROUTINE IDNACTr (IDATE1,IDATE2,NHOURS)   ! INCDATR
+      use rmn_common
       IMPLICIT NONE
       integer idate1,idate2
-      real*8 nhours                         ! add    round
+      real(real64) nhours                         ! add    round
       call date_add_sub(IDATE1,IDATE2,NHOURS,.TRUE.,.FALSE.)
       return
       end
 
       SUBROUTINE IDNACTi (IDATE1,IDATE2,NHOURS)   ! INCDATI
+      use rmn_common
       IMPLICIT NONE
       integer idate1,idate2
-      real*8 nhours                         ! add    round
+      real(real64) nhours                         ! add    round
       call date_add_sub(IDATE1,IDATE2,NHOURS,.TRUE.,.TRUE.)
       return
       end
 
       SUBROUTINE DDIAFTr(idate1,idate2,nhours) ! DIFDATR
+      use rmn_common
       IMPLICIT NONE
       integer idate1,idate2
-      real*8 nhours                         ! add     round
+      real(real64) nhours                         ! add     round
       call date_add_sub(IDATE1,IDATE2,NHOURS,.FALSE.,.FALSE.)
       return
       end
 
       SUBROUTINE DDIAFTi(idate1,idate2,nhours) ! DIFDATI
+      use rmn_common
       IMPLICIT NONE
       integer idate1,idate2
-      real*8 nhours                         ! add     round
+      real(real64) nhours                         ! add     round
       call date_add_sub(IDATE1,IDATE2,NHOURS,.FALSE.,.TRUE.)
       return
       end
@@ -1546,7 +1550,7 @@
 !     mode=-5 : from extended stamp to printable
 !
 103   continue
-      stamp8=dat1 ; stamp8=and(masque32,stamp8)
+      stamp8=dat1 ; stamp8=iand(masque32,stamp8)
       dat2(1)= 0 ; dat3=0
       date_unsigned = stamp8
 !!!   if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
@@ -1593,7 +1597,7 @@
 105   continue
       stamp=dat2(1)
       if (stamp .lt. -1) then
-        stamp8=stamp ; stamp8=and(masque32,stamp8)
+        stamp8=stamp ; stamp8=iand(masque32,stamp8)
         dat1=0
         dat3=0
         date_unsigned = stamp8

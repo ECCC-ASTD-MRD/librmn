@@ -19,11 +19,11 @@
 ! */
 !**function cherche
 !
-	integer function ez_cherche(val, tableau, nbelem)
+      integer function ez_cherche(val, tableau, nbelem)
       implicit none
-	real val
-	integer nbelem
-	real tableau(nbelem)
+      real val
+      integer nbelem
+      real tableau(nbelem)
 !
 !AUTHOR     Yves Chartier               Jan 1991
 !
@@ -50,24 +50,23 @@
 !MODULES
 !
 !*
-	integer debut, milieu, fin
+      integer debut, milieu, fin
+      
+      debut = 1
+      fin = nbelem
+      milieu = (debut+fin)*0.5
 
-	debut = 1
-	fin = nbelem
-	milieu = (debut+fin)*0.5
-
-10	if (milieu.ne.debut) then
+10    if (milieu.ne.debut) then
           if (val.le.tableau(milieu)) then
-	      fin   = milieu
+          fin   = milieu
           else
-	      debut = milieu
-	   endif
+          debut = milieu
+      endif
           milieu = (debut+fin)*0.5
           goto 10
-	endif
+      endif
 
-	ez_cherche = milieu
-
-	return
-	end
-
+      ez_cherche = milieu
+      
+      return
+      end

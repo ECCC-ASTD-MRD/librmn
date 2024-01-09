@@ -53,7 +53,7 @@
                DEBUT = MILIEU
             ELSE
                FIN   = MILIEU 
-	    ENDIF
+            ENDIF
             GO TO 10
          ENDIF
          BUFRCHR = MILIEU

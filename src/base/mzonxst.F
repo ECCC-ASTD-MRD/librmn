@@ -36,7 +36,7 @@
 
       Logical       IOPrint
       Save          IOPrint
-      Character*256 NOUTZON
+      Character(len=256) NOUTZON
       Save          NOUTZON
       Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
       Save          IUN,KA,NCPU,StartI,StartJ,NDIMS
@@ -80,7 +80,7 @@
       Logical       Vrai,Faux, NOTOK, SavPas, Hard, Debug
       Save          Vrai,Faux,        SavPas, Hard, Debug
 
-      Character*8   listvar(MaxVarP3)
+      Character(len=8)   listvar(MaxVarP3)
       Integer       propvar(MaxVar), posvar(0:MaxVar),NVAR
 
       Save          listvar,propvar,posvar,NVAR
@@ -1529,7 +1529,7 @@ c       E n t r y mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
       Integer       J,NDIM,hhhh,ORD,tttt
       Real          FACF3D(NDIM,*)
       Real          Z(NDIM,*)
-      Character *(*) NOM
+      Character(len=*) NOM
       Character     variab*4
       Real          echant !,echantX,echantY,poids
       Integer :: difp, ii, jj, j0, jj0, nic, nil, niv, numero
@@ -1811,7 +1811,7 @@ c       E n t r y MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
       implicit none
       Integer       J,NDIM,ORD,tttt
       Real          FACF3D(NDIM,*)
-      Character *(*) XNOM, YNOM
+      Character(len=*) XNOM, YNOM
       Real          X(NDIM,*),Y(NDIM,*)
       Character     variab*4
       integer :: DIFP
@@ -2241,7 +2241,7 @@ c       E n t r y MZONIV ( J,VAL )
       subroutine MZONFIL ( NAME )
       use mzonxst_mod
       implicit none
-      Character*(*) NAME
+      Character(len=*) NAME
 
       If (ETAT.ne.0) Return
 

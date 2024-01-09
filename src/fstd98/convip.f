@@ -147,9 +147,9 @@
 *        Conversion P a IP
 *
        if ( kind.lt.0 .or. kind.gt.maxkind ) then
-	  write(6,6004) kind
-	  call qqexit(1)
-	  return
+          write(6,6004) kind
+          call qqexit(1)
+          return
        elseif ( .not. validkind(kind) ) then
 *          write(6,6007) kind
           ip = -999999
@@ -252,7 +252,7 @@ c     %         goto 101
 
 *           ... ou de code arbitraire
 
-	    ip = nint( p )
+            ip = nint( p )
             if ( 0 .le. ip .and. ip .le. 100 ) then
                ip = 1200 - ip
             else
@@ -277,7 +277,7 @@ c     %         goto 101
 
             write(6,6004) kind
             ip = -999999
-	    return
+            return
          endif
 
        endif

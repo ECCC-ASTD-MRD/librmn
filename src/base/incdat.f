@@ -17,16 +17,16 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-	subroutine incdat(id1,id2,nh)
-		use rmn_common
-	integer id1,id2
-	real(kind = real64) :: rnh
-	rnh=nh
-	call incdatr(id1,id2,rnh)
-	return
-
-	entry difdat(id1,id2,nh)
-	call difdatr(id1,id2,rnh)
-	nh=nint(rnh)
-	return
-	end
+      subroutine incdat(id1,id2,nh)
+      use rmn_common
+      integer id1,id2
+      real(kind = real64) :: rnh
+      rnh=nh
+      call incdatr(id1,id2,rnh)
+      return
+      
+      entry difdat(id1,id2,nh)
+      call difdatr(id1,id2,rnh)
+      nh=nint(rnh)
+      return
+      end

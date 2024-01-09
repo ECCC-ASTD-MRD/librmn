@@ -17,10 +17,10 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-	subroutine datmgp(idate)
-	integer idate(14)
-	call datmgp2(idate)
-	idate(4)=mod(idate(4),100)
-	idate(6)=mod(idate(6),10)
-	return
-	end
+      subroutine datmgp(idate)
+      integer idate(14)
+      call datmgp2(idate)
+      idate(4)=mod(idate(4),100)
+      idate(6)=mod(idate(6),10)
+      return
+      end
