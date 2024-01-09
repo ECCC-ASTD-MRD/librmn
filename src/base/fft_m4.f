@@ -15,117 +15,117 @@ C
 C  provided substitutes for FFT91A and fft771
 C
 C
-	subroutine FFT91A (A,WORK,INC,N,ISIGN)
-	use rmn_common
-	implicit none
-	integer n,inc, isign
-	real(kind = real32) :: a(*)
-	real(kind = real32) :: WORK(*)
-	call ffft_m4(a,n,inc,1,1,isign)
-	return
-	end
+      subroutine FFT91A (A,WORK,INC,N,ISIGN)
+      use rmn_common
+      implicit none
+      integer n,inc, isign
+      real(kind = real32) :: a(*)
+      real(kind = real32) :: WORK(*)
+      call ffft_m4(a,n,inc,1,1,isign)
+      return
+      end
 
-	subroutine ffft_m4(a, n, inc, jump, lot, isign )
-	use rmn_common
-	implicit none
-	integer n,inc, jump, lot, isign
-	real(kind = real32) :: a(*)
+      subroutine ffft_m4(a, n, inc, jump, lot, isign )
+      use rmn_common
+      implicit none
+      integer n,inc, jump, lot, isign
+      real(kind = real32) :: a(*)
+      
+      call setfft_M4( n )
+      call fft_M4( a, inc, jump, lot, isign )
+      return
+      end
+      
+      subroutine setfft4( n )
+      implicit none
+      integer  n
+      external set99_m4
+      call setfft_M4( n )
+      return
+      end
+      
+      subroutine setfft_M4( n )
+          use rmn_common
+      implicit none
+      integer  n
+      external set99_m4
+      
+      integer npts
+      real(kind = real32), pointer, dimension(:) :: trigs
+      integer, parameter :: maxfac=20
+      integer, dimension(maxfac) :: ifac
+      common /QQQ_FFFT4_QQQ/ trigs,ifac,npts
+      
+      data npts /-1/
+      
+      if(n .eq. npts) return
+      if(n .gt. npts) then
+          if(npts .gt. 0) deallocate(trigs)
+          allocate(trigs(n+2))
+      endif
+      npts = n
+      ifac=0
+      call set99_m4(trigs,ifac,npts)
+      
+      return
+      end
+      
+      subroutine ffft4( a, inc, jump, lot, isign )
+          use rmn_common
+      implicit none
+      integer inc, jump, lot, isign
+      real(kind = real32) :: a(*)
+      call fft_m4(a, inc, jump, lot, isign )
+      return
+      end
+      
+      subroutine fft_M4( a, inc, jump, lot, isign )
+          use rmn_common
+      implicit none
+      integer inc, jump, lot, isign
+      real(kind = real32) :: a(*)
+      
+      integer npts
+      real(kind = real32), pointer, dimension(:) :: trigs
+      integer, parameter :: maxfac=20
+      integer, dimension(maxfac) :: ifac
+      common /QQQ_FFFT4_QQQ/ trigs,ifac,npts
 
-	call setfft_M4( n )
-	call fft_M4( a, inc, jump, lot, isign )
-	return
-	end
-
-	subroutine setfft4( n )
-	implicit none
-	integer  n
-	external set99_m4
-	call setfft_M4( n )
-	return
-	end
-
-	subroutine setfft_M4( n )
-        use rmn_common
-	implicit none
-	integer  n
-	external set99_m4
-
-	integer npts
-	real(kind = real32), pointer, dimension(:) :: trigs
-	integer, parameter :: maxfac=20
-	integer, dimension(maxfac) :: ifac
-	common /QQQ_FFFT4_QQQ/ trigs,ifac,npts
-
-	data npts /-1/
-
-	if(n .eq. npts) return
-	if(n .gt. npts) then
-	  if(npts .gt. 0) deallocate(trigs)
-	  allocate(trigs(n+2))
-	endif
-	npts = n
-	ifac=0
-	call set99_m4(trigs,ifac,npts)
-
-	return
-	end
-
-	subroutine ffft4( a, inc, jump, lot, isign )
-        use rmn_common
-	implicit none
-	integer inc, jump, lot, isign
-	real(kind = real32) :: a(*)
-	call fft_m4(a, inc, jump, lot, isign )
-	return
-	end
-
-	subroutine fft_M4( a, inc, jump, lot, isign )
-        use rmn_common
-	implicit none
-	integer inc, jump, lot, isign
-	real(kind = real32) :: a(*)
-
-	integer npts
-	real(kind = real32), pointer, dimension(:) :: trigs
-	integer, parameter :: maxfac=20
-	integer, dimension(maxfac) :: ifac
-	common /QQQ_FFFT4_QQQ/ trigs,ifac,npts
-
-	external fft991_m4
+      external fft991_m4
 C
 C  CHANGE maxlot ON VECTOR MACHINES
 C
-	integer, parameter :: maxlot=16
-	real(kind = real32) :: work(npts+2,maxlot)
-	integer i,slice
-
-	do i=1,lot,maxlot
-	  slice=min(maxlot,lot+1-i)
-	  call fft991_m4( a(1+(i-1)*jump), work,
+      integer, parameter :: maxlot=16
+      real(kind = real32) :: work(npts+2,maxlot)
+      integer i,slice
+      
+      do i=1,lot,maxlot
+          slice=min(maxlot,lot+1-i)
+          call fft991_m4( a(1+(i-1)*jump), work,
      %                   trigs, ifac, inc, jump, npts, slice, isign)
-	enddo
-	return
-	end
-
-	subroutine fft771(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
-        use rmn_common
-	implicit none
-	integer INC,JUMP,N,ILOT,ISIGN
-        REAL(kind = real32) :: A(*),WORK(*), TRIGS(*)
-        INTEGER IFAX(*)
-	call FFT991_M4(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
-	return
-	end
-
-      SUBROUTINE FFT991_M4(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
-        use rmn_common
-	implicit none
-	integer INC,JUMP,N,ILOT,ISIGN
+      enddo
+      return
+      end
+      
+      subroutine fft771(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
+      use rmn_common
+      implicit none
+      integer INC,JUMP,N,ILOT,ISIGN
       REAL(kind = real32) :: A(*),WORK(*), TRIGS(*)
       INTEGER IFAX(*)
-	integer nx,nblox,nvex,i,ia
-	integer nfax,istart,nb,j,ila,igo,k,ifac,ierr
-	integer ibase,jbase,jj,ii,ix,iz
+      call FFT991_M4(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
+      return
+      end
+      
+      SUBROUTINE FFT991_M4(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
+      use rmn_common
+      implicit none
+      integer INC,JUMP,N,ILOT,ISIGN
+      REAL(kind = real32) :: A(*),WORK(*), TRIGS(*)
+      INTEGER IFAX(*)
+      integer nx,nblox,nvex,i,ia
+      integer nfax,istart,nb,j,ila,igo,k,ifac,ierr
+      integer ibase,jbase,jj,ii,ix,iz
 C
 C     SUBROUTINE 'FFT991' - MULTIPLE FAST REAL PERIODIC TRANSFORM
 C     SUPERSEDES PREVIOUS ROUTINE 'FFT991'
@@ -340,19 +340,19 @@ C
 
       SUBROUTINE QPASSM_M4(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
-	use rmn_common
-	implicit none
+      use rmn_common
+      implicit none
       REAL(kind = real32) :: A(*),B(*),C(*),D(*),TRIGS(*)
-	integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
-	real(kind = real64) :: SIN36, SIN72, QRT5, SIN60
-	integer ijump,jl,m,iink,jink,kstop,ibad,ibase,jbase,igo
-	integer i,j,k,ijk,ia,ib,ja,jb,kb,ic,jc,kc,id,jd,kd
-	integer ie,je,ke,if,jf,kf,ig,ih
-	real(kind = real64) :: c1,s1,c2,s2,c3,s3,c4,s4,c5,s5,z
-	real(kind = real64) :: zsin60,sin45,zqrt5,zsin36,zsin72,zsin45
-	real(kind = real64) :: a1,b1,a2,b2,a3,b3
-	real(kind = real64) :: a0,b0,a4,b4,a5,b5,a6,b6,a10,b10
-	real(kind = real64) :: a11,b11,a20,b20,a21,b21
+      integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
+      real(kind = real64) :: SIN36, SIN72, QRT5, SIN60
+      integer ijump,jl,m,iink,jink,kstop,ibad,ibase,jbase,igo
+      integer i,j,k,ijk,ia,ib,ja,jb,kb,ic,jc,kc,id,jd,kd
+      integer ie,je,ke,if,jf,kf,ig,ih
+      real(kind = real64) :: c1,s1,c2,s2,c3,s3,c4,s4,c5,s5,z
+      real(kind = real64) :: zsin60,sin45,zqrt5,zsin36,zsin72,zsin45
+      real(kind = real64) :: a1,b1,a2,b2,a3,b3
+      real(kind = real64) :: a0,b0,a4,b4,a5,b5,a6,b6,a10,b10
+      real(kind = real64) :: a11,b11,a20,b20,a21,b21
 C
 C     SUBROUTINE 'QPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART
 C     OF MULTIPLE REAL FFT (FOURIER ANALYSIS) ROUTINE
@@ -1132,16 +1132,16 @@ C
 
       SUBROUTINE RPASSM_M4(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
-	use rmn_common
-	implicit none
+      use rmn_common
+      implicit none
       REAL(kind = real32) :: A(*),B(*),C(*),D(*),TRIGS(*)
-	integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
-	real(kind = real64) ::  SIN36, SIN72, QRT5, SIN60
-	integer m,iink,jink,jump,kstop,ibad,ibase,jbase,igo
-	integer ia,ib,ja,jb,il,i,j,ijk,k,kb,ic,jc,kc
-	real(kind = real64) :: c1,c2,s1,s2,ssin60,c3,s3,c4,s4,c5,s5,sin45
-	real(kind = real64) :: qqrt5,ssin45,ssin36,ssin72
-	integer id,jd,kd,ie,je,ke,if,jf,kf,jg,jh
+      integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
+      real(kind = real64) ::  SIN36, SIN72, QRT5, SIN60
+      integer m,iink,jink,jump,kstop,ibad,ibase,jbase,igo
+      integer ia,ib,ja,jb,il,i,j,ijk,k,kb,ic,jc,kc
+      real(kind = real64) :: c1,c2,s1,s2,ssin60,c3,s3,c4,s4,c5,s5,sin45
+      real(kind = real64) :: qqrt5,ssin45,ssin36,ssin72
+      integer id,jd,kd,ie,je,ke,if,jf,kf,jg,jh
 C
 C     SUBROUTINE 'RPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART
 C     OF MULTIPLE REAL FFT (FOURIER SYNTHESIS) ROUTINE
@@ -1930,22 +1930,23 @@ C General Public License.
 C See LICENSE and gpl-3.0.txt for details.
 C
 
-	subroutine set77( TRIGS,IFAX,N )
-	use rmn_common
-	implicit none
-	integer N, IFAX(*)
-	real(kind = real32) :: TRIGS(N)
-	call SET99_M4(TRIGS,IFAX,N)
-	return
-	end
+      subroutine set77( TRIGS,IFAX,N )
+      use rmn_common
+      implicit none
+      integer N, IFAX(*)
+      real(kind = real32) :: TRIGS(N)
+      call SET99_M4(TRIGS,IFAX,N)
+      return
+      end
+
       SUBROUTINE SET99_M4(TRIGS,IFAX,N)
-	use rmn_common
-	implicit none
-	integer N, IFAX(*)
-	real(kind = real32) :: TRIGS(N)
+      use rmn_common
+      implicit none
+      integer N, IFAX(*)
+      real(kind = real32) :: TRIGS(N)
       INTEGER JFAX(10),LFAX(7)
-	integer ixxx, nil,nhl,k,nu,ifac,l,nfax,i
-	real(kind = real64) :: del, angle
+      integer ixxx, nil,nhl,k,nu,ifac,l,nfax,i
+      real(kind = real64) :: del, angle
 C
 C     SUBROUTINE 'SET99' - COMPUTES FACTORS OF N & TRIGONOMETRIC
 C     FUNCTIONS REQUIRED BY FFT99 & FFT991
