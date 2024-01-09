@@ -725,6 +725,7 @@ int32_t fst23_get_record_from_key(
         return FALSE;
     }
 
+    *record = default_fst_record;
     record->handle = key;
 
     if (file->type == FST_RSF) {
@@ -786,8 +787,6 @@ int32_t fst23_find_next(
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
-
-    *result = default_fst_record;
 
     int64_t key = -1;
     const stdf_dir_keys* record_meta = NULL;
