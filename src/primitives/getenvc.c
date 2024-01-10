@@ -30,7 +30,7 @@
 //! Get environement variable value
 void f77name(getenvc2) (
     //! [in] Name of the environment variable to get
-    char *name,
+    const char *name,
     //! [out] Value of the environement variable if found.  Blank otherwise.
     char *value,
     //! [in] If non-zero, don't print message when variable not found

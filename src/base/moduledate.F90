@@ -1358,7 +1358,24 @@
 !
       if (abs(mode).gt.7 .or. mode.eq.0) goto 4
       naetwed=0 ; stamp8 = 0 ; stamp = 0
-      goto (106,104,103,101,1,2,3,4,5,6,7,100,102,105,107),(mode+8)
+      ! Just complaining about the spaghetti
+      ! It should be a case statement, but there are gotos inside some sections
+      ! so it will require thinking
+      if (mode == -7) goto 106
+      if (mode == -6) goto 104
+      if (mode == -5) goto 103
+      if (mode == -4) goto 101
+      if (mode == -3) goto 1
+      if (mode == -2) goto 2
+      if (mode == -1) goto 3
+      if (mode ==  0) goto 4
+      if (mode ==  1) goto 5
+      if (mode ==  2) goto 6
+      if (mode ==  3) goto 7
+      if (mode ==  4) goto 100
+      if (mode ==  5) goto 102
+      if (mode ==  6) goto 105
+      if (mode ==  7) goto 107
 !
 !     mode=-3 : from stamp(old or new) to printable
 !

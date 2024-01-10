@@ -738,55 +738,43 @@
          ENDIF
 23000 CONTINUE
 05    CONTINUE
-      GOTO (10,20,30,40,50,60,70,80,90,100,110,120,130) POS+1
-10    CONTINUE
-      CALL QLXLOOK(LOCVAR,IKEY,LOCCNT,LIMITS,ITYP)
-      GOTO 200
-20    CONTINUE
-      ITYP = 10
-      GOTO 200
-30    CONTINUE
-      ITYP = 3
-      GOTO 200
-40    CONTINUE
-      ITYP = 4
-      GOTO 200
-50    CONTINUE
-      ITYP = 5
-      GOTO 200
-60    CONTINUE
-      ITYP = 6
-      GOTO 200
-70    CONTINUE
-      ITYP = 7
-      GOTO 200
-80    CONTINUE
-      ITYP = 11
-      GOTO 200
-90    CONTINUE
-      ITYP = 12
-      GOTO 200
-100   CONTINUE
-      ITYP = 13
-      GOTO 200
-110   CONTINUE
-      ITYP = 2
-      LOCVAR = get_address_from(QLXPRNT)
-      LOCCNT =get_address_from(DUMMY)
-      LIMITS = 202
-      GOTO 200
-120   CONTINUE
-      ITYP = 2
-      LOCVAR = get_address_from(QLXNVAR)
-      LOCCNT =get_address_from(DUMMY)
-      LIMITS = 202
-      GOTO 200
-130   CONTINUE
-      ITYP = 2
-      LOCVAR = get_address_from(QLXUNDF)
-      LOCCNT =get_address_from(DUMMY)
-      LIMITS = 101
-200   CONTINUE
+      select case (POS)
+      case(0)
+         CALL QLXLOOK(LOCVAR,IKEY,LOCCNT,LIMITS,ITYP)
+      case(1)
+         ITYP = 10
+      case(2)
+         ITYP = 3
+      case(3)
+         ITYP = 4
+      case(4)
+         ITYP = 5
+      case(5)
+         ITYP = 6
+      case(6)
+         ITYP = 7
+      case(7)
+         ITYP = 11
+      case(8)
+         ITYP = 12
+      case(9)
+         ITYP = 13
+      case(10)
+         ITYP = 2
+         LOCVAR = get_address_from(QLXPRNT)
+         LOCCNT =get_address_from(DUMMY)
+         LIMITS = 202
+      case(11)
+         ITYP = 2
+         LOCVAR = get_address_from(QLXNVAR)
+         LOCCNT =get_address_from(DUMMY)
+         LIMITS = 202
+      case(12)
+         ITYP = 2
+         LOCVAR = get_address_from(QLXUNDF)
+         LOCCNT =get_address_from(DUMMY)
+         LIMITS = 101
+      end select
       RETURN
       END
 
@@ -1251,181 +1239,167 @@
          ENDIF
       ENDIF
       IR1 = 0
-      GOTO (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21) OPRTR
-1     ERR = .TRUE.
-      RETURN
-2     CONTINUE
-      IF((TOKENS(NTOKEN).LE.0 .OR. TOKTYPE(NTOKEN-1).LE.0 .OR. REALOP))THEN
+      select case(OPRTR)
+      case(1)
          ERR = .TRUE.
          RETURN
-      ENDIF
-      IF((TOKENS(NTOKEN).GE.TOKTYPE(NTOKEN-1)))THEN
-         ERR = .TRUE.
-         RETURN
+      case(2)
+         IF((TOKENS(NTOKEN).LE.0 .OR. TOKTYPE(NTOKEN-1).LE.0 .OR. REALOP))THEN
+            ERR = .TRUE.
+            RETURN
+         ENDIF
+         IF((TOKENS(NTOKEN).GE.TOKTYPE(NTOKEN-1)))THEN
+            ERR = .TRUE.
+            RETURN
 
-!temporaire      TOKENS(NTOKEN-1)=QLXMAD(TOKENS(NTOKEN-1),TOKENS(NTOKEN))
-      ENDIF
-      PTOK = get_address_from(TOKENS(NTOKEN-1))
-      TOKENS(NTOKEN-1) = TOK(TOKENS(NTOKEN))
-      NTOKEN = NTOKEN - 1
-      TOKTYPE(NTOKEN) = 1
-      RETURN
-3     RETURN
-4     CONTINUE
-      IF((REALOP))THEN
-         R1 = -Z1
-      ELSE
-         IR1 = -IZ1
-      ENDIF
-      GOTO 1000
-5     CONTINUE
-      IF((REALOP))THEN
-         R1 = Z2**Z1
-      ELSE
-         IR1 = IZ2**IZ1
-      ENDIF
-      GOTO 1000
-6     CONTINUE
-      IF((REALOP))THEN
-         R1 = Z2*Z1
-      ELSE
-         IR1 = IZ2*IZ1
-      ENDIF
-      GOTO 1000
-7     CONTINUE
-      IF((REALOP))THEN
-         R1 = Z2/Z1
-      ELSE
-         IR1 = IZ2/IZ1
-      ENDIF
-      GOTO 1000
-8     CONTINUE
-      IF((REALOP))THEN
-         R1 = Z2+Z1
-      ELSE
-         IR1 = IZ2+IZ1
-      ENDIF
-      GOTO 1000
-9     CONTINUE
-      IF((REALOP))THEN
-         R1 = Z2-Z1
-      ELSE
-         IR1 = IZ2-IZ1
-      ENDIF
-      GOTO 1000
-10    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.LT.Z1))THEN
-            IR1 =ishft(-1,32-(32))
+   !temporaire      TOKENS(NTOKEN-1)=QLXMAD(TOKENS(NTOKEN-1),TOKENS(NTOKEN))
          ENDIF
-      ELSE
-         IF((IZ2.LT.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-11    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.GT.Z1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ELSE
-         IF((IZ2.GT.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-12    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.EQ.Z1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ELSE
-         IF((IZ2.EQ.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-13    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.LE.Z1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ELSE
-         IF((IZ2.LE.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-14    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.GE.Z1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ELSE
-         IF((IZ2.GE.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-15    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.NE.Z1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ELSE
-         IF((IZ2.NE.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-16    CONTINUE
-      IF((REALOP))THEN
-         IF((Z2.NE.Z1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ELSE
-         IF((IZ2.NE.IZ1))THEN
-            IR1 =ishft(-1,32-(32))
-         ENDIF
-      ENDIF
-      GOTO 1000
-17    CONTINUE
-      IF((REALOP))THEN
-         ERR = .TRUE.
-      ELSE
-         IR1 =NOT(IZ1)
-      ENDIF
-      GOTO 1000
-18    CONTINUE
-      IF((REALOP))THEN
-         ERR = .TRUE.
-      ELSE
-         IR1 = IAND(IZ2,IZ1)
-      ENDIF
-      GOTO 1000
-19    CONTINUE
-      IF((REALOP))THEN
-         ERR = .TRUE.
-      ELSE
-         IR1 = IOR(IZ2,IZ1)
-      ENDIF
-      GOTO 1000
-20    CONTINUE
-      IF((REALOP))THEN
-         ERR = .TRUE.
-      ELSE
-         IR1 = IEOR(IZ2,IZ1)
-      ENDIF
-      GOTO 1000
-21    CONTINUE
-      IF((TOKTYPE(NTOKEN-1).LE.0))THEN
-         ERR = .TRUE.
+         PTOK = get_address_from(TOKENS(NTOKEN-1))
+         TOKENS(NTOKEN-1) = TOK(TOKENS(NTOKEN))
+         NTOKEN = NTOKEN - 1
+         TOKTYPE(NTOKEN) = 1
          RETURN
-      ENDIF
-      call set_content_of_location(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN))
-      NTOKEN = NTOKEN - 1
-      RETURN
+      case(3)
+         RETURN
+      case(4)
+         IF((REALOP))THEN
+            R1 = -Z1
+         ELSE
+            IR1 = -IZ1
+         ENDIF
+      case(5)
+         IF((REALOP))THEN
+            R1 = Z2**Z1
+         ELSE
+            IR1 = IZ2**IZ1
+         ENDIF
+      case(6)
+         IF((REALOP))THEN
+            R1 = Z2*Z1
+         ELSE
+            IR1 = IZ2*IZ1
+         ENDIF
+      case(7)
+         IF((REALOP))THEN
+            R1 = Z2/Z1
+         ELSE
+            IR1 = IZ2/IZ1
+         ENDIF
+      case(8)
+         IF((REALOP))THEN
+            R1 = Z2+Z1
+         ELSE
+            IR1 = IZ2+IZ1
+         ENDIF
+      case(9)
+         IF((REALOP))THEN
+            R1 = Z2-Z1
+         ELSE
+            IR1 = IZ2-IZ1
+         ENDIF
+      case(10)
+         IF((REALOP))THEN
+            IF((Z2.LT.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.LT.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(11)
+         IF((REALOP))THEN
+            IF((Z2.GT.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.GT.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(12)
+         IF((REALOP))THEN
+            IF((Z2.EQ.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.EQ.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(13)
+         IF((REALOP))THEN
+            IF((Z2.LE.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.LE.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(14)
+         IF((REALOP))THEN
+            IF((Z2.GE.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.GE.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(15)
+         IF((REALOP))THEN
+            IF((Z2.NE.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.NE.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(16)
+         IF((REALOP))THEN
+            IF((Z2.NE.Z1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ELSE
+            IF((IZ2.NE.IZ1))THEN
+               IR1 =ishft(-1,32-(32))
+            ENDIF
+         ENDIF
+      case(17)
+         IF((REALOP))THEN
+            ERR = .TRUE.
+         ELSE
+            IR1 =NOT(IZ1)
+         ENDIF
+      case(18)
+         IF((REALOP))THEN
+            ERR = .TRUE.
+         ELSE
+            IR1 = IAND(IZ2,IZ1)
+         ENDIF
+      case(19)
+         IF((REALOP))THEN
+            ERR = .TRUE.
+         ELSE
+            IR1 = IOR(IZ2,IZ1)
+         ENDIF
+      case(20)
+         IF((REALOP))THEN
+            ERR = .TRUE.
+         ELSE
+            IR1 = IEOR(IZ2,IZ1)
+         ENDIF
+      case(21)
+         IF((TOKTYPE(NTOKEN-1).LE.0))THEN
+            ERR = .TRUE.
+            RETURN
+         ENDIF
+         call set_content_of_location(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN))
+         NTOKEN = NTOKEN - 1
+         RETURN
+      end select
 1000  NTOKEN = NTOKEN + 1 - MINOPER
       TOKENS(NTOKEN) = IR1
       TOKTYPE(NTOKEN) = 0

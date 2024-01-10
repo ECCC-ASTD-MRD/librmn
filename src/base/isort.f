@@ -69,7 +69,7 @@
       IF (N.LE.3) GO TO 30
       II = N/2+1
       NN = N
-      ASSIGN 20 TO IRETRN
+      IRETRN = 20
 *
    20 II = II-1
       IF (II.GE.2) GO TO 60
@@ -78,7 +78,7 @@
 *
    30 II = 1
       NN = N+1
-      ASSIGN 50 TO IRETRN
+      IRETRN = 50
 *
    40 NN = NN-1
       GO TO 60
@@ -106,7 +106,8 @@
       I    =   J
       GO TO 70
   100 A(I) = ASAVE
-      GO TO IRETRN,(20,50)
+      IF (IRETRN .EQ. 20) GO TO 20
+      IF (IRETRN .EQ. 50) GO TO 50
 *
 *-----------------------------------------------------------------------
 *

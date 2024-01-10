@@ -179,7 +179,11 @@
       IF(MU.LE.ROOTS(2).AND.MU.GT.ROOTS(NPOLY-1)) ICASE = 3
       IF(MU.LE.ROOTS(NPOLY-1).AND.MU.GT.ROOTS(NPOLY)) ICASE = 4
       IF(MU.LE.ROOTS(NPOLY)) ICASE = 5
-      GO TO (1,2,3,4,5),ICASE
+      if (icase == 1) goto 1
+      if (icase == 2) goto 2
+      if (icase == 3) goto 3
+      if (icase == 4) goto 4
+      if (icase == 5) goto 5
 *
 * BETWEEN POLE AND FIRST ROW
 *
