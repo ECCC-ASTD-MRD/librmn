@@ -41,7 +41,8 @@ C
       NS=MS+N-1 
       FNUM=FLOAT(NS**2 - MS**2) 
       FDEN=FLOAT(4*NS**2 - 1) 
-   30 EPSI(MN) = SQRT(FNUM/FDEN)
+      EPSI(MN) = SQRT(FNUM/FDEN)
+   30 CONTINUE
       MR = MR+LR
    20 CONTINUE
       EPSI(1) = 0.

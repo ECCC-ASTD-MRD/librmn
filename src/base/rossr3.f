@@ -102,14 +102,16 @@
       I1=I+1
       X = 1. / (1.+A(I1)*P(I))
       P(I1)=-C(I1)*X
-    1 DELTA(I1)=(D(I1)-A(I1)*DELTA(I))*X
+      DELTA(I1)=(D(I1)-A(I1)*DELTA(I))*X
+    1 CONTINUE
 *
 *
       P(M)=DELTA(M)
 *
       DO 2 I=1,M1
       II=M-I
-    2 P(II)=P(II)*P(II+1)+DELTA(II)
+      P(II)=P(II)*P(II+1)+DELTA(II)
+    2 CONTINUE
 *
 *-----------------------------------------------------------------------
 *

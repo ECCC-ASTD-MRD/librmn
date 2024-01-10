@@ -88,7 +88,8 @@
       X2=H(I)/H(I1)
       A(I)=H(I)*X1
       C(I)=H(I1)*X1
-    1 D(I)=3.*((S(I)-S(I1))*X2+(S(I+1)-S(I))/X2)*X1
+      D(I)=3.*((S(I)-S(I1))*X2+(S(I+1)-S(I))/X2)*X1
+    1 CONTINUE
 *
       C(1)=CMU1
       A(M)=CLMDAM

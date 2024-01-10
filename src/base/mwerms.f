@@ -87,19 +87,20 @@
       Y = 0.
 *
         DO 10 J=IW2,NW2
-        DO 10 I=IW1,NW1
+        DO 11 I=IW1,NW1
         WIJ = W(I,J)
         FMV = F(I,J)
         FMV = FMV-V(I,J)
         X = X + FMV*WIJ
         Y = Y + FMV*FMV*WIJ
         FTW = FTW + WIJ
+   11   CONTINUE
    10   CONTINUE
 *
       IF (FTW.EQ.0.) RETURN
       BIAS2 = X / FTW
       Y = Y / FTW
-      STD = SQRT(max(0.0,Y-BIAS2*BIAS2))
+      STD = SQRT(max(0.0_real64,Y-BIAS2*BIAS2))
       BIAS = BIAS2
 *
 *---------------------------------------------------------------------------

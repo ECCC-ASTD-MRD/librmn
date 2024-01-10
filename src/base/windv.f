@@ -83,12 +83,13 @@
       Y = 0.
 *
         DO 10 J=IW2,NW2
-        DO 10 I=IW1,NW1
+        DO 11 I=IW1,NW1
         FUMVU = FU(I,J) - VU(I,J)
         FVMVV = FV(I,J) - VV(I,J)
         WIJ   = W(I,J)
         Y = Y + FUMVU * FUMVU * WIJ + FVMVV * FVMVV * WIJ
         FTW = FTW + WIJ
+   11   CONTINUE
    10   CONTINUE
 *
       IF (FTW.EQ.0.) RETURN

@@ -57,9 +57,10 @@
       Y0 = (NJ+1)*.5 - Y0
 
       DO 10 I=1,NI
-      DO 10 J=1,NI
+      DO 11 J=1,NI
         CALL LCCFXY(X0+I,Y0+J,XLAT(I,J),XLON(I,J),
      %              PHI1,PHI2,LAMBDA0,DS,1.)
+ 11   CONTINUE
  10   CONTINUE
       RETURN
       END

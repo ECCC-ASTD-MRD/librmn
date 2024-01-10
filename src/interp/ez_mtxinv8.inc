@@ -65,12 +65,13 @@
         M(K)=K
         BIGA=A(K,K) 
         DO 20 J=K,N 
-        DO 20 I=K,N 
+        DO 21 I=K,N 
           IF( ABS(BIGA).LT.ABS(A(I,J))) THEN
             BIGA=A(I,J) 
             L(K)=I
             M(K)=J
           ENDIF 
+21      CONTINUE
 20      CONTINUE
 ! 
 !     INTERCHANGE ROWS
@@ -80,7 +81,8 @@
         DO 30 I=1,N 
           HOLD=-A(K,I)
           A(K,I)=A(J,I) 
-30        A(J,I) =HOLD
+          A(J,I) =HOLD
+30      CONTINUE
       ENDIF 
 ! 
 !     INTERCHANGE COLUMNS 
@@ -90,7 +92,8 @@
         DO 40 J=1,N 
           HOLD=-A(J,K)
           A(J,K)=A(J,I) 
-40        A(J,I) =HOLD
+          A(J,I) =HOLD
+40      CONTINUE
       ENDIF 
 ! 
 !     DIVIDE COLUMN BY MINUS PIVOT (VALUE OF PIVOT ELEMENT IS 
@@ -101,9 +104,11 @@
         STOP
       ENDIF 
       DO 51 I=1,K-1 
-51    A(I,K)=A(I,K)/(-BIGA) 
+      A(I,K)=A(I,K)/(-BIGA) 
+51    CONTINUE
       DO 52 I=K+1,N 
-52    A(I,K)=A(I,K)/(-BIGA) 
+      A(I,K)=A(I,K)/(-BIGA) 
+52    CONTINUE
 ! 
 !        REDUCE MATRIX
 ! 
@@ -111,18 +116,22 @@
         HOLD=A(I,K) 
         IF(I.NE.K)THEN
           DO 61 J=1,K-1 
-61        A(I,J)=HOLD*A(K,J)+A(I,J) 
+          A(I,J)=HOLD*A(K,J)+A(I,J) 
+61        CONTINUE
           DO 62 J=K+1,N 
-62        A(I,J)=HOLD*A(K,J)+A(I,J) 
+          A(I,J)=HOLD*A(K,J)+A(I,J) 
+62        CONTINUE
         ENDIF 
 65    CONTINUE
 ! 
 !     DIVIDE ROW BY PIVOT 
 ! 
       DO 71 J=1,K-1 
-71    A(K,J)=A(K,J)/BIGA
+      A(K,J)=A(K,J)/BIGA
+71    CONTINUE
       DO 72 J=K+1,N 
-72    A(K,J)=A(K,J)/BIGA
+      A(K,J)=A(K,J)/BIGA
+72    CONTINUE
 ! 
 !     REPLACE PIVOT BY RECIPROCAL 
 ! 
@@ -137,14 +146,16 @@
           DO 110 J=1,N
             HOLD=A(J,K) 
             A(J,K)=-A(J,I)
-110         A(J,I) =HOLD
+            A(J,I) =HOLD
+110       CONTINUE
         ENDIF 
         J=M(K)
         IF(J.GT.K) THEN 
           DO 130 I=1,N
             HOLD=A(K,I) 
             A(K,I)=-A(J,I)
-130         A(J,I) =HOLD
+            A(J,I) =HOLD
+130       CONTINUE
         ENDIF 
 150   CONTINUE
       RETURN

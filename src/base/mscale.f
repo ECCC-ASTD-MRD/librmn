@@ -72,10 +72,11 @@
       DO 10 J=1,NJ
       Y = FLOAT(J) - PJ
       Y2= Y*Y
-      DO 10 I=1,NI
+      DO 11 I=1,NI
       X = FLOAT(I) - PI
       R2= X*X + Y2
       R(I,J)=CM*(R2+RE2)
+   11 CONTINUE
    10 CONTINUE
 *
 *-----------------------------------------------------------------------

@@ -88,13 +88,16 @@
       IF (CONA.EQ.1.AND.CONB.EQ.1.) GO TO 20
 *
       DO 10 J=JB,JT
-      DO 10 I=IL,IR
-   10 R(I,J)=CONA*A(I,J)**2+CONB*B(I,J)**2
+      DO 11 I=IL,IR
+      R(I,J)=CONA*A(I,J)**2+CONB*B(I,J)**2
+   11 CONTINUE
+   10 CONTINUE
       RETURN
 *
    20 DO 30 J=JB,JT
-      DO 30 I=IL,IR
+      DO 31 I=IL,IR
       R(I,J) = A(I,J) * A(I,J) + B(I,J) * B(I,J)
+   31 CONTINUE
    30 CONTINUE
       RETURN
 *

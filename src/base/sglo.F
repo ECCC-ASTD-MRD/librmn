@@ -25,24 +25,24 @@
 
       real FUNCTION SGLO (LAMBDA,PHI,F,LI,LJ)
       implicit none
-      REAL F(LI,LJ), LAMBDA, PHI
       integer :: LI, LJ
+      REAL F(LI,LJ), LAMBDA, PHI
       real, external :: SGLO_SSNH_SANH
       SGLO = SGLO_SSNH_SANH(LAMBDA,PHI,F,LI,LJ,0)
       end
 
       real FUNCTION SSNH (LAMBDA,PHI,F,LI,LJ)
       implicit none
-      REAL F(LI,LJ), LAMBDA, PHI
       integer :: LI, LJ
+      REAL F(LI,LJ), LAMBDA, PHI
       real, external :: SGLO_SSNH_SANH
       SSNH = SGLO_SSNH_SANH(LAMBDA,PHI,F,LI,LJ,1)
       end
 
       real FUNCTION SANH (LAMBDA,PHI,F,LI,LJ)
       implicit none
-      REAL F(LI,LJ), LAMBDA, PHI
       integer :: LI, LJ
+      REAL F(LI,LJ), LAMBDA, PHI
       real, external :: SGLO_SSNH_SANH
       SANH = SGLO_SSNH_SANH(LAMBDA,PHI,F,LI,LJ,2)
       end
@@ -248,7 +248,7 @@
       RETURN
 *    -------------------------------------------------------------------
 *
-  620 FORMAT(/66H LAMDA PHI, LI LJ IN FUNCTION SGLO(SSNH,SANH)
-     1WRONG VALUE, 2E12.4,2I7)
+  620 FORMAT(/' LAMDA PHI, LI LJ IN FUNCTION SGLO(SSNH,SANH)
+     &WRONG VALUE', 2E12.4,2I7)
 *    -------------------------------------------------------------------
       END

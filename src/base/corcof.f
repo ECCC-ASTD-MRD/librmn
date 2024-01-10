@@ -90,7 +90,7 @@
       FTW = 0.
 *
         DO 20 J=IW2,NW2
-        DO 20 I=IW1,NW1
+        DO 21 I=IW1,NW1
         FFI= FI(I,J)
         DA = FV(I,J)-FFI
         DF = FF(I,J)-FFI
@@ -103,6 +103,7 @@
         R(3) = R(3) + (X*DA)
         R(4) = R(4) + (Y)
         R(5) = R(5) + (X)
+   21   CONTINUE
    20   CONTINUE
 *
       IF (FTW.EQ.0) RETURN

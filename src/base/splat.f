@@ -82,10 +82,11 @@
       AMAX=AMIN
 *
       DO 12 J=1,NC
-      DO 12 I=1,II,INC
+      DO 11 I=1,II,INC
       T=A(I,J)
       IF(T.LT.AMIN) AMIN=T
       IF(T.GT.AMAX) AMAX=T
+   11 CONTINUE
    12 CONTINUE
 *
       IF(AMIN.EQ.AMAX) AMAX=AMIN+1.
@@ -98,7 +99,8 @@
 *
       DO 24 I=1,II,INC
       DO 15 K=1,101
-   15 NG(K)=S(1)
+      NG(K)=S(1)
+   15 CONTINUE
       NG(51)=S(2)
       IF(I/10*10.EQ.I) NG(51)=S(3)
 *

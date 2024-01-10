@@ -30,9 +30,9 @@
 !> @date 1990
 subroutine ez_lac(xyz, lon, lat, nbpts)
    implicit none
+   integer, intent(in) :: nbpts
    real, dimension(3, nbpts), intent(out) :: xyz
    real, dimension(nbpts), intent(in) :: lon, lat
-   integer, intent(in) :: nbpts
 
    integer :: i
    real :: dar, cosdar

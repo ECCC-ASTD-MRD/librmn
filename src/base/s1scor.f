@@ -22,8 +22,8 @@
       SUBROUTINE S1SCOR(S1,F,V,NI,NJ,IW1,IW2,NW1,NW2,IGL)
           use rmn_common
       implicit none
-      REAL F(NI,NJ), V(NI,NJ)
       integer :: NI,NJ,IW1,IW2,NW1,NW2,IGL
+      REAL F(NI,NJ), V(NI,NJ)
       REAL :: S1
 
 *
@@ -86,7 +86,7 @@
       J2 = NW2-IGL
 *
       DO 10 J = IW2,J2,IGL
-      DO 10 I = IW1,I2,IGL
+      DO 11 I = IW1,I2,IGL
       VIJ  = V(I,J)
       FIJ  = F(I,J)
       FI1J = F(I+1,J)
@@ -97,6 +97,7 @@
      1      + ABS(FIJ-FIJ1-VIJ+VIJ1)
       B = B + MAX( ABS(FIJ-FI1J), ABS(VIJ-VI1J))
      1      + MAX( ABS(FIJ-FIJ1), ABS(VIJ-VIJ1))
+   11 CONTINUE
    10 CONTINUE
 *
       IF (B.NE.0.) S1 = (A/B) * 100.
