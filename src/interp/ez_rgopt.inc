@@ -18,6 +18,7 @@
 ! * Boston, MA 02111-1307, USA.
 ! */
       subroutine ez_rgoptc(op, val, flag)
+      use rmn_ez_qqqxtrp0
       implicit none
       character(len = 8) :: op, val
       logical flag
@@ -26,8 +27,6 @@
 
 !flag = .true.  mode set
 !flag = .false. mode get
-
-#include "ez_qqqxtrp0.cdk"
 
       character(len = 3) :: localop,localval
 
@@ -97,6 +96,7 @@
       end
 
       subroutine ez_rgopti(op, val, flag)
+      use rmn_ez_qqqxtrp0
       implicit none
       character(len = 8) :: op
       integer val
@@ -106,11 +106,6 @@
 !     flag = .true.  mode set
 !     flag = .false. mode get
       
-#include "ez_qqqxtrp0.cdk"
-      
-      data codxtrap / oui /
-      data flgxtrap / .false. /
-      data ordint   / 3 /
       real rval
       
       character(len = 3)  :: localop
@@ -165,6 +160,7 @@
       end
       
       subroutine ez_rgoptr(op, val, flag)
+      use rmn_ez_qqqxtrp0
       implicit none
       character(len = 8) :: op
       real val
@@ -172,9 +168,6 @@
       integer ier, ezsetval,ezgetval
 !     flag = .true.  mode set
 !     flag = .false. mode get
-      
-      
-#include "ez_qqqxtrp0.cdk"
       
       character(len = 3) :: localop
       

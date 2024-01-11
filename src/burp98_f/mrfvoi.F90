@@ -21,6 +21,7 @@
 !**S/P MRFVOI - VOIR LE CONTENU D'UN FICHER BURP
 !
       FUNCTION MRFVOI( IUN )
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRFVOI, IUN
 !
@@ -40,7 +41,6 @@
 !     IUN   ENTREE   NUMERO D'UNITE DU FICHIER
 !
 !IMPLICIT
-#include "defi.cdk"
 #include "enforc8.cdk"
 !
 !MODULES

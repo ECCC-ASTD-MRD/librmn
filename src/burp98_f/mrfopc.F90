@@ -23,6 +23,8 @@
 !
       FUNCTION MRFOPC(OPTNOM, OPVALC)
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFOPC
       CHARACTER(len = *) :: OPTNOM, OPVALC
@@ -39,8 +41,6 @@
 !     OPVALR     "     VALEUR A DONNER A L'OPTION
 !
 !IMPLICITES
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 !
 !MODULES 

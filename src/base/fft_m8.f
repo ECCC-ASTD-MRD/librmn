@@ -14,6 +14,17 @@ C     no work array and/or no explicit factor/trig constants initialization
 C  made code work with 8 byte reals
 C
 C
+      module fft_m8_helper
+        use rmn_common
+        implicit none
+        save
+
+        integer :: npts = -1
+        real(kind = real64), pointer, dimension(:) :: trigs
+        integer, parameter :: maxfac=20
+        integer, dimension(maxfac) :: ifac
+      end module fft_m8_helper
+
       subroutine ffft_m8(a, n, inc, jump, lot, isign )
       use rmn_common
       implicit none
@@ -34,18 +45,11 @@ C
       end
       
       subroutine setfft_M8( n )
+      use fft_m8_helper
       use rmn_common
       implicit none
       integer  n
       external set99_m8
-      
-      integer npts
-      real(kind = real64), pointer, dimension(:) :: trigs
-      integer, parameter :: maxfac=20
-      integer, dimension(maxfac) :: ifac
-      common /QQQ_FFFT8_QQQ/ trigs,ifac,npts
-      
-      data npts /-1/
       
       if(n .eq. npts) return
       if(n .gt. npts) then
@@ -69,16 +73,11 @@ C
       end
       
       subroutine fft_M8( a, inc, jump, lot, isign )
+      use fft_m8_helper
       use rmn_common
       implicit none
       integer inc, jump, lot, isign
       real(kind = real64) :: a(*)
-      
-      integer npts
-      real(kind = real64), pointer, dimension(:) :: trigs
-      integer, parameter :: maxfac=20
-      integer, dimension(maxfac) :: ifac
-      common /QQQ_FFFT8_QQQ/ trigs,ifac,npts
       
       external fft991_m8
 C

@@ -20,6 +20,8 @@
 
 !> Create search key for mrbloc from bknat, bktyp and bkstp
 integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
+    use rmn_burp_defi
+    use rmn_burpopt
     implicit none
 
     integer :: buf(*)
@@ -41,9 +43,7 @@ integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
     ! QUE SI LES CLEFS D'ENTREE SON MISE A -1)
 
 #include "masques.cdk"
-#include "defi.cdk"
 #include "bpl.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 #include <ftnmacros.hf>
 

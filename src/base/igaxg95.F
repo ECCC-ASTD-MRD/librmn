@@ -17,6 +17,13 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+      module igaxg95_helper
+         implicit none
+         save
+
+         integer :: qqqngb = 0
+      end module igaxg95_helper
+
       integer function igagds95(gds,gtyin,ig1,ig2,ig3,ig4)
       implicit none
       character(len = 1)  :: gtyin,gtyout
@@ -107,6 +114,7 @@
 
 
       integer function qgblukig(gtyout,xglst,nxg,gtyin,ig1,ig2,ig3,ig4)
+      use igaxg95_helper
       implicit none
       integer nxg
       character(len = 1) :: gtyin,gtyout
@@ -115,7 +123,6 @@
 
 
 #include "qqqcgb1.cdk"
-#include "qqqgb2.cdk"
 
       integer i,gribcode,ni,nj,centercode,subcentercode,projcode
       real xlat00,xlon00,xlatninj,xlonninj,dx,dy,
@@ -199,9 +206,9 @@
       end
 
       integer function qqqgbld()
+      use igaxg95_helper
       implicit none
 #include "qqqcgb1.cdk"
-#include "qqqgb2.cdk"
 
 #include <rmn/fnom.hf>
       character(len = 256) :: filename,armnlib
@@ -212,8 +219,6 @@
       logical once
       data once /.false./
       save once
-
-      data qqqngb /0/
 
 
       if (once) then

@@ -15,6 +15,18 @@ C
 C  provided substitutes for FFT91A and fft771
 C
 C
+      module fft_m4_helper
+        use rmn_common
+        implicit none
+        save
+
+        integer :: npts = -1
+        real(kind = real32), pointer, dimension(:) :: trigs
+        integer, parameter :: maxfac=20
+        integer, dimension(maxfac) :: ifac
+
+      end module fft_m4_helper
+
       subroutine FFT91A (A,WORK,INC,N,ISIGN)
       use rmn_common
       implicit none
@@ -45,18 +57,11 @@ C
       end
       
       subroutine setfft_M4( n )
+          use fft_m4_helper
           use rmn_common
       implicit none
       integer  n
       external set99_m4
-      
-      integer npts
-      real(kind = real32), pointer, dimension(:) :: trigs
-      integer, parameter :: maxfac=20
-      integer, dimension(maxfac) :: ifac
-      common /QQQ_FFFT4_QQQ/ trigs,ifac,npts
-      
-      data npts /-1/
       
       if(n .eq. npts) return
       if(n .gt. npts) then
@@ -80,17 +85,12 @@ C
       end
       
       subroutine fft_M4( a, inc, jump, lot, isign )
+          use fft_m4_helper
           use rmn_common
       implicit none
       integer inc, jump, lot, isign
       real(kind = real32) :: a(*)
       
-      integer npts
-      real(kind = real32), pointer, dimension(:) :: trigs
-      integer, parameter :: maxfac=20
-      integer, dimension(maxfac) :: ifac
-      common /QQQ_FFFT4_QQQ/ trigs,ifac,npts
-
       external fft991_m4
 C
 C  CHANGE maxlot ON VECTOR MACHINES

@@ -22,6 +22,8 @@
 !
       FUNCTION MRFGOR(OPTNOM, OPVALR)
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFGOR
       CHARACTER(len = *) :: OPTNOM
@@ -39,8 +41,6 @@
 !     OPVALR     SORTIE     VALEUR  DONNEE A L'OPTION
 !
 !IMPLICITES
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 !
 !MODULE 

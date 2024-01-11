@@ -22,6 +22,8 @@
 !
       FUNCTION MRFCLS( IUN )
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFCLS, IUN
 !
@@ -32,8 +34,6 @@
 !     FERMER UN FICHIER BURP
 !                                                                       
 !IMPLICITES
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 !
 !ARGUMENT

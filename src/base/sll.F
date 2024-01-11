@@ -22,6 +22,7 @@
 
 
       FUNCTION SLL(LAMBDA,PHI,F,LI,LJ,XLA0,XLO0,DLAT,DLON)
+      use rmn_ordr
       REAL F(LI,LJ), T(4)
 *
 *AUTEUR   - M. VALIN, DRPN
@@ -55,9 +56,7 @@
 *
 *--------------------------------------------------------------------------
 *
-#include "ordr.cdk"
       REAL LAMBDA
-*      DATA ORDINT /3/
 *
       ORDINT = 3
       X = 1 + (LAMBDA-XLO0) / DLON

@@ -46,6 +46,7 @@
 
 
       FUNCTION SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI, mode)
+      use rmn_ordr
       REAL G(LI,LJ)
       integer :: mode
 *
@@ -84,13 +85,11 @@
 *
 *----------------------------------------------------------------
 *
-#include "ordr.cdk"
       REAL LAMBDA,MU
       REAL ROOTS(LJ) , T(4) , P(4)
       INTEGER IDX(4,4), JDX(4)
 #include "kases.cdk"
 #include "pi.cdk"
-*      DATA ORDINT /3/
 *
       if(mode .eq. 0) then
         ORDINT = 3

@@ -1,7 +1,56 @@
+
+! TODO A lot of global variables in theses modules are not initialized. Is that OK?
+! (there was no "DATA" statement for them in the common blocks)
+module readlx_parmadr
+   use rmn_common
+   implicit none
+   save
+
+   INTEGER :: NARG, NPRM, NDOPES
+   integer, dimension(41)  :: DOPE
+   integer, dimension(42)  :: DOPEA
+   integer, dimension(101) :: DOPES
+   integer, dimension(101) :: PARM = 0
+   integer(kind = int64), dimension(41)  :: ADR = 0
+end module readlx_parmadr
+
+module readlx_qlxbuff
+   implicit none
+   save
+
+   integer :: NC = 1
+   integer :: LAST = 0
+   integer :: INPFILE = 5
+   integer :: NERR, SKIPFLG, CURREC, READREC, TMPFILE
+   logical :: EOFL = .false.
+
+   character(len=101) :: INLINE = ' '
+end module readlx_qlxbuff
+
+module readlx_qlxfmt
+   implicit none
+   save
+
+   character(len=20) :: LINEFMT
+   integer :: KARMOT = 04
+end module readlx_qlxfmt
+
+module readlx_nrdlx
+   use rmn_common
+   implicit none
+   save
+
+   INTEGER, dimension(3:3, 256) :: ITAB(3:3,256) = 0
+   integer :: NENTRY = 0
+   character(len=8), dimension(256) :: NAMES = ' '
+   integer(kind = int64), dimension(2,256) :: IPTADR = 0
+end module readlx_nrdlx
+
 !  FONCTION ARGDIMS LONGUEUR D'ARGUMENTS (APPEL VIA READLX)
 !
       FUNCTION ARGDIMS(N)
       use rmn_common
+      use readlx_parmadr
       INTEGER ARGDIMS
       INTEGER N
 !
@@ -13,11 +62,6 @@
 ! IN      N     NUMERO D'ORDRE DE L'ARGUMENT DANS LA LISTE
 !
 !IMPLICITES
-
-      COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
-      COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
-      INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
-      integer(kind = int64) ADR
 
       IF((N .LE. NARG))THEN
          ARGDIMS = DOPE(N)
@@ -32,6 +76,7 @@
 !
       FUNCTION ARGDOPE(N,LISTE,ND)
       use rmn_common
+      use readlx_parmadr
       INTEGER ARGDOPE
       INTEGER N,ND
       INTEGER LISTE(ND)
@@ -44,12 +89,6 @@
 !     M. VALIN
 !
 !IMPLICITE
-!
-
-      COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
-      COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
-      INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
-      integer(kind = int64) ADR
 !
       INTEGER I,BASE
       IF( (N.GT. NARG))THEN
@@ -154,6 +193,7 @@
 !  S/P QLXASG ASSIGNATION D'UNE OU PLUSIEURS VALEURS
       SUBROUTINE QLXASG(VAL,ICOUNT,LIMIT,ERR)
       use rmn_common
+      use readlx_qlxfmt
       integer(kind = int64) VAL
       INTEGER ICOUNT,LIMIT
       LOGICAL ERR
@@ -177,10 +217,6 @@
 
       COMMON/QLXTOK2/TOKEN
       character(len=80) TOKEN
-      character(len=20) LINEFMT
-      INTEGER KARMOT
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
 
       INTEGER IND,JLEN,QLXVAL
       INTEGER OLDTYP,ITEMP(80),IREPCN
@@ -289,6 +325,7 @@
 
 !  S/P QLXBAK     RENVOYER UN CARACTERE
       SUBROUTINE QLXBAK(ICAR)
+         use readlx_qlxbuff
          character(len=1) ICAR
 !
 !
@@ -303,13 +340,6 @@
 !         E
 !
 
-      COMMON /QLXBUFF/ NC,LAST,INPFILE,EOFL,NERR,SKIPFLG
-      COMMON /QLXBUFF/ CURREC,READREC,TMPFILE
-      INTEGER NC,LAST,INPFILE,NERR,SKIPFLG,CURREC,READREC,TMPFILE
-      LOGICAL EOFL
-      COMMON /QLXBUF2/ INLINE
-      character(len=101) INLINE
-
       IF((NC.GT.1))THEN
          INLINE(NC-1:NC-1)=ICAR
          NC=NC-1
@@ -322,6 +352,9 @@
 
       SUBROUTINE QLXCALL(SUB,ICOUNT,LIMITS,ERR)
       use rmn_common
+      use readlx_parmadr
+      use readlx_qlxfmt
+
       integer(kind = int64) :: SUB,ICOUNT
       integer(kind = int64) :: get_address_from
       EXTERNAL get_address_from
@@ -336,15 +369,6 @@
       COMMON/QLXTOK2/TOKEN
       character(len=80) TOKEN
 
-      COMMON /PARMADR/NPRM,NARG,DOPE(41),PARM(101)
-      COMMON /PARMADR/NDOPES,DOPEA(42),DOPES(101),ADR(41)
-      INTEGER NARG, NPRM, DOPE, DOPEA, DOPES, PARM
-      integer(kind = int64) ADR
-      character(len=20) LINEFMT
-      INTEGER KARMOT
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
-
       EXTERNAL RMTCALL, QLXADR, QLXVAL
       INTEGER  RMTCALL, QLXVAL
       INTEGER LIM1,LIM2,JLEN,PREVI
@@ -352,9 +376,6 @@
       character(len=8) KLE
 
       LOGICAL ERR,FIN,INLIST
-
-      DATA ADR  /41*0/
-      DATA PARM /101*0/
 
       FIN  = .FALSE.
       INLIST = .FALSE.
@@ -484,6 +505,7 @@
 !  FONCTION QLXCHR     RETOURNE UN CARACTERE A LA FOIS D'UNE LIGNE
       FUNCTION QLXCHR()
          use App
+         use readlx_qlxbuff
          character(len=1) QLXCHR
 !
 !
@@ -496,22 +518,10 @@
 !        QLXCHR    CARACTERE RENVOYE(1 CARACTERE HOLLERITH)
 !      S
 !
-
-      COMMON /QLXBUFF/ NC,LAST,INPFILE,EOFL,NERR,SKIPFLG
-      COMMON /QLXBUFF/ CURREC,READREC,TMPFILE
-      INTEGER NC,LAST,INPFILE,NERR,SKIPFLG,CURREC,READREC,TMPFILE
-      LOGICAL EOFL
-      COMMON /QLXBUF2/ INLINE
-      character(len=101) INLINE
-
       character(len=8) SKIPMSG(0:3)
       LOGICAL COMMENT
       INTEGER PRTFLAG
       DATA SKIPMSG/'<<    >>','<<SKIP>>','<<SKIP>>','<< ** >>'/
-      DATA NC,LAST/1,0/
-      DATA INPFILE/5/
-      DATA EOFL/.FALSE./
-      DATA INLINE/' '/
 
       IF((NC.LE.LAST))THEN
          QLXCHR=INLINE(NC:NC)
@@ -578,13 +588,8 @@
 
       SUBROUTINE QLXDBG
          use app
+         use readlx_qlxbuff
 
-         COMMON /QLXBUFF/ NC,LAST,INPFILE,EOFL,NERR,SKIPFLG
-         COMMON /QLXBUFF/ CURREC,READREC,TMPFILE
-         INTEGER NC,LAST,INPFILE,NERR,SKIPFLG,CURREC,READREC,TMPFILE
-         LOGICAL EOFL
-         COMMON /QLXBUF2/ INLINE
-         character(len=101) INLINE
          WRITE(app_msg,*) 'qlxdbg: NC=',NC,'LAST=',LAST,'INPFILE=',INPFILE
          call lib_log(APP_LIBRMN,APP_DEBUG,app_msg)
          WRITE(app_msg,'(1X,A101)')INLINE(1:101)
@@ -608,6 +613,7 @@
 !  S/P QLXERR     IMPRIME DES MESSAGES D'ERREUR
       SUBROUTINE QLXERR(CODE,MODULE)
       use app
+      use readlx_qlxbuff
       INTEGER CODE
       character(len=*) MODULE
 
@@ -622,13 +628,6 @@
 !        CODE
 !        MODULE    DE TYPE CARACTERE. DESIGNE LE MODULE DANS LEQUEL L'ERREUR  ES
 !
-
-      COMMON /QLXBUFF/ NC,LAST,INPFILE,EOFL,NERR,SKIPFLG
-      COMMON /QLXBUFF/ CURREC,READREC,TMPFILE
-      INTEGER NC,LAST,INPFILE,NERR,SKIPFLG,CURREC,READREC,TMPFILE
-      LOGICAL EOFL
-      COMMON /QLXBUF2/ INLINE
-      character(len=101) INLINE
 
       INTEGER DESTI,MT,ME
       INTEGER TYPE(9)
@@ -868,6 +867,7 @@
 
       SUBROUTINE QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,XTERN)
       use rmn_common
+      use readlx_nrdlx
       Integer IVAR,ICOUNT
       EXTERNAL XTERN
       INTEGER ITYP,LIMITS
@@ -878,22 +878,10 @@
 !        LE NOMBRE MAXIMUM DE VALEURS,ET LE TYPE DE SYMBOLES.
 !
 
-!
-!     TABLES STATIQUES CONTENANT LES CLES, LEURS ADRESSES, ET LES LIMITES
-!
-
       character(len=8) IKEY
-      INTEGER ITAB(3:3,256),NENTRY,IPNT
-      integer(kind = int64) IPTADR(2,256),get_address_from
+      INTEGER IPNT
+      integer(kind = int64) get_address_from
       EXTERNAL get_address_from
-      character(len=8) NAMES(256)
-      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
-      COMMON /qqq_nrdlx2/ IPTADR
-
-      DATA ITAB /256 * 0/
-      DATA IPTADR /256 * 0,256 * 0/
-      DATA NAMES /256 * ' '/
-      DATA NENTRY /0/
 !
 !     TROUVER LA CLE
 !
@@ -938,17 +926,14 @@
 
       SUBROUTINE QLXLOOK(IVAR,KEY,ICOUNT,LIMITS,ITYP)
       use rmn_common
+      use readlx_nrdlx
       integer(kind = int64) :: ivar,icount
       INTEGER               :: ITYP,LIMITS
       character(len=*)      :: KEY
 
       integer(kind=8), external :: get_address_from
 
-      INTEGER               :: ITAB(3:3,256),NENTRY,IPNT
-      integer(kind = int64) :: IPTADR(2,256)
-      character(len=8)      :: NAMES(256)
-      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
-      COMMON /qqq_nrdlx2/ IPTADR
+      INTEGER               :: IPNT
 
       character(len=8) ikey
       integer :: i
@@ -983,15 +968,12 @@
 
       subroutine QLXUDF(IVAR,KEY)
       use rmn_common
+      use readlx_nrdlx
       implicit none
       integer(kind = int64) :: ivar
       character(len=*) KEY
 
-      INTEGER ITAB(3:3,256),NENTRY,IPNT
-      integer(kind=8) IPTADR(2,256)
-      character(len=8) NAMES(256)
-      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
-      COMMON /qqq_nrdlx2/ IPTADR
+      INTEGER IPNT
 
       integer :: i
       character(len=8) IKEY
@@ -1020,13 +1002,10 @@
 
       subroutine QLXDTB
       use rmn_common
+      use readlx_nrdlx
       implicit none
 
-      INTEGER ITAB(3:3,256),NENTRY,IPNT
-      integer(kind = int64) IPTADR(2,256)
-      character(len=8) NAMES(256)
-      COMMON /qqq_nrdlx/ NAMES, ITAB, NENTRY
-      COMMON /qqq_nrdlx2/ IPTADR
+      INTEGER IPNT
 
       integer :: i
       PRINT *,' NAMES, LOCVAR, TYPE/LIMITS, LOCCOUNT'
@@ -1154,15 +1133,12 @@
 
       SUBROUTINE QLXNVAR(KEY,NW)
       use rmn_common
+      use readlx_qlxfmt
       INTEGER NW
       INTEGER KEY(*)
       EXTERNAL ARGDIMS
       INTEGER  ARGDIMS
       INTEGER SC(1024),NSC
-      character(len=20) LINEFMT
-      INTEGER KARMOT
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
       SAVE SC, NSC
       INTEGER DUMMY
       character(len=8) IKEY
@@ -1411,14 +1387,10 @@
 !
       SUBROUTINE QLXOPT(OPTION,VAL)
          use app
+         use readlx_qlxfmt
 
          character(len=*) OPTION
          INTEGER VAL
-
-         character(len=20) LINEFMT
-         INTEGER KARMOT
-         COMMON /QLXFMT/ LINEFMT
-         COMMON /QLXFMT2/ KARMOT
 
          IF( (OPTION(1:6).EQ. 'CARMOT'))THEN
             KARMOT = VAL
@@ -1484,13 +1456,11 @@
       end
 
       SUBROUTINE QLXPRNT(QUOI,COMMENT)
+      use readlx_qlxfmt
+
       INTEGER QUOI(*), COMMENT(*)
       character(len=120) FMT
       INTEGER ARGDIMS
-      character(len=20) LINEFMT
-      INTEGER KARMOT
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
       L1 = ARGDIMS(1)
       L2 = MIN(120/KARMOT,ARGDIMS(2))
       IF((L1.LT.1 .OR. L2.LT.1))THEN
@@ -1603,6 +1573,7 @@
 !  S/P QLXTOK
       SUBROUTINE QLXTOK
       use rmn_common
+      use readlx_qlxfmt
 !
 !
 !AUTEUR   M.VALIN   RPN   JUIN 1983
@@ -1633,10 +1604,6 @@
 
       COMMON/QLXTOK2/TOKEN
       character(len=80) TOKEN
-      character(len=20) LINEFMT
-      INTEGER KARMOT
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
 
       integer(kind = int64) :: LOCVAR,LOCCNT
       EXTERNAL QLXCHR, QLXNUM
@@ -1770,14 +1737,11 @@
 
       SUBROUTINE QLXUNDF(IKEY)
          use rmn_common
+         use readlx_qlxfmt
       INTEGER IKEY(*)
       character(len=8) CKEY
       INTEGER ARGDIMS
-      character(len=20) LINEFMT
-      INTEGER KARMOT
       integer(kind = int64) :: SCRAP
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
 
 !      WRITE(CKEY,LINFMT)(IKEY(I),I=1,ARGDIMS(1))
 
@@ -1944,6 +1908,8 @@
       SUBROUTINE READLX(UNIT,KEND,KERR)
          use app
          use rmn_common
+         use readlx_qlxbuff
+         use readlx_qlxfmt
 !
 !  S/R READLX - INTERPRETE DE DIRECTIVES
 !
@@ -1972,17 +1938,6 @@
       COMMON/QLXTOK2/TOKEN
       character(len=80) TOKEN
 
-      COMMON /QLXBUFF/ NC,LAST,INPFILE,EOFL,NERR,SKIPFLG
-      COMMON /QLXBUFF/ CURREC,READREC,TMPFILE
-      INTEGER NC,LAST,INPFILE,NERR,SKIPFLG,CURREC,READREC,TMPFILE
-      LOGICAL EOFL
-      COMMON /QLXBUF2/ INLINE
-      character(len=101) INLINE
-      character(len=20) LINEFMT
-      INTEGER KARMOT
-      COMMON /QLXFMT/ LINEFMT
-      COMMON /QLXFMT2/ KARMOT
-
       EXTERNAL QLXNVAR,QLXPRNT,QLXUNDF
       INTEGER UNIT, KEND
 #include <rmn/fnom.hf>
@@ -1998,8 +1953,6 @@
 
       DATA NXTELSE / 1, 0, 2/
       DATA NEXTIF  / 0, 2, 2/
-
-      DATA KARMOT /04/
 
       WRITE(LINEFMT,'(A,I2,A)') '(25 A',KARMOT,')'
       KERRMAX = 999999

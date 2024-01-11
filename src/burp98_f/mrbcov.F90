@@ -20,6 +20,7 @@
 !.S MRBCOV
 !**S/P MRBCOV - RETOURNER LA VALEUR D'UN ELEMENT EN SEIZE BITS
       FUNCTION MRBCOV( ELEM )
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRBCOV, ELEM
 
@@ -35,7 +36,6 @@
 !
 !IMPLICITES
 #include <ftnmacros.hf>
-#include "defi.cdk"
 #include "masques.cdk"
 !
 !ARGUMENT

@@ -21,6 +21,7 @@
 !**S/P MRFPRM - OBTENIR LES PARAMETRES PRINCIPAUX D'UN RAPPORT
       FUNCTION MRFPRM(HANDLE, STNID, IDTYP, LAT, LON, DX, DY, DATE, TEMPS,  FLGS,  SUP,   NSUP,     LONENR)
       use app
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRFPRM, NSUP, IDTYP, LAT, DX, DATE, SUP(*), LONENR, HANDLE, FLGS, TEMPS, LON, DY 
       CHARACTER(len = 9) :: STNID
@@ -53,7 +54,6 @@
 !
 !IMPLICITES
 #include "codes.cdk"
-#include "defi.cdk"
 #include <ftnmacros.hf>
 #include "enforc8.cdk"
 !

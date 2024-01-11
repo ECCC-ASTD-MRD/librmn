@@ -22,6 +22,7 @@
 !> This must be done before using the report
 function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, idrcv, datein, oars, run, sup, nsup, xaux, nxaux) result(retval)
     use app
+    use rmn_burp_defi
     implicit none
 
     !> Numéro d'unité associé au fichier
@@ -64,7 +65,6 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
 
     integer :: retval
 
-#include "defi.cdk"
 #include "codes.cdk"
 #include "enforc8.cdk"
 

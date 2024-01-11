@@ -37,6 +37,7 @@
 ***FONCTION SPS_SLC - INTERPOLATION A PARTIR D'UNE GRILLE POLAIRE STEREOGRAPHIQUE
 *
       real FUNCTION SPS_SLC(LAMBDA,PHI,F,LI,LJ,PI,PJ,D60,DGRW,HEM,mode)
+      use rmn_ordr
       REAL F(LI,LJ), T(4)
       integer :: mode
 *
@@ -77,10 +78,8 @@
 *
 *--------------------------------------------------------------------------
 *
-#include "ordr.cdk"
       REAL LAMBDA
       INTEGER HEM
-*      DATA ORDINT /3/
 
       if(mode .eq. 111) goto 111
 *

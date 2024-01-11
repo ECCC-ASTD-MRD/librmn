@@ -21,6 +21,7 @@
 !**S/P MRFMXL - OBTENIR LES PARAMETRES PRINCIPAUX D'UN RAPPORT
 !
       FUNCTION MRFMXL( IUN )
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRFMXL, IUN
 !
@@ -35,7 +36,6 @@
 !     IUN      ENTREE         NUMERO D'UNITE DU FICHIER
 !
 !IMPLICITES
-#include "defi.cdk"
 #include <ftnmacros.hf>
 !
 !MODULES 

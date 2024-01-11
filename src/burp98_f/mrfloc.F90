@@ -22,6 +22,8 @@
 ! 
       FUNCTION MRFLOC(IUN, HANDLE, STNID, IDTYP, LAT, LON, DATEin, TEMPS, SUP, NSUP)
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFLOC, IUN, HANDLE, IDTYP, LAT, LON, DATEin, TEMPS, NSUP,  SUP(*)
       CHARACTER(len = *) :: STNID
@@ -58,8 +60,6 @@
 !
 !IMPLICITES
 #include "codes.cdk"
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "enforc8.cdk"
 !
 !MODULES 

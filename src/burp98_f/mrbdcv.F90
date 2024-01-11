@@ -21,6 +21,7 @@
 !.S MRBDCV
 !**S/P MRBDCV - RETOURNER LA VALEUR DECODEE D'UN ELEMENT
       FUNCTION MRBDCV( ELEM )
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRBDCV, ELEM
 
@@ -39,7 +40,6 @@
 !
 !IMPLICITES
 #include <ftnmacros.hf>
-#include "defi.cdk"
 #include "masques.cdk"
 !
 !ARGUMENT

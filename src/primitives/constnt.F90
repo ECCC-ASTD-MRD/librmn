@@ -115,18 +115,16 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
 
     real(kind = real64) :: valeur8
     pointer (pv8, valeur8)
-    integer :: i, ncns, ier, iunread, count, dsize
-    integer, dimension(2) :: istrt, iend
+    integer :: i, ier, iunread, count, dsize
+    integer, save :: ncns
+    integer, dimension(2), save :: istrt, iend
     logical :: fexist
 
-    real(kind = real64), dimension(maxcns) :: val
+    real(kind = real64), dimension(maxcns), save :: val
 
     character(len = 8) :: tname
-    character(len = 8), dimension(maxcns) :: name
+    character(len = 8), dimension(maxcns), save :: name = ' '
     character(len = 42) :: text
-
-    common /constnt_pdata/ istrt, name, val, ncns, iend
-    data name /maxcns * ' '/
 
     flag = 0
 

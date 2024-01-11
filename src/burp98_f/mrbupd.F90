@@ -22,6 +22,7 @@
 !
       FUNCTION MRBUPD(IUN, BUF, TEMPS, FLGS, STNID, IDTYP, LATI, LONG, DX, DY, ELEV, DRCV, DATEin, OARS, RUN, SUP, NSUP, XAUX, NXAUX)
       use app
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRBUPD, NSUP, NXAUX, IUN, BUF(*), TEMPS, FLGS, IDTYP,  &
      &         LATI,   LONG, ELEV,  DX,  DY,     DRCV,  DATEin, OARS,  &
@@ -63,7 +64,6 @@
 !     BUF       "     VECTEUR QUI CONTIENDRA LES ENREGISTREMENTS
 !
 !IMPLICITES
-#include "defi.cdk"
 #include "codes.cdk"
 #include "enforc8.cdk"
 !

@@ -48,6 +48,7 @@
       end
 
       real FUNCTION SGLO_SSNH_SANH (LAMBDA,PHI,F,LI,LJ, mode)
+      use rmn_ordr
       REAL F(LI,LJ)
 *
 *AUTEUR   - D. ROBERTSON
@@ -100,7 +101,6 @@
 * THE CORRESPONDING VALUES IN JDX, GIVES 4 POINTS ON LINE OF CONSTANT
 * LONGITUDE.
 *
-#include "ordr.cdk"
       DIMENSION IDX(4,4) , JDX(4)
 *
 * USED TO HOLD THE 4 POINTS ALONG A LINE OF CONSTANT LONGITUDE, USED
@@ -120,8 +120,6 @@
 #include "kases.cdk"
 *
       DATA  EPSPHI /1.0E-8/
-      DATA ORDINT /3/
-*      DATA ORDINT /3/
 *
 *     original sglo
       if(mode == 0) then

@@ -22,6 +22,8 @@
 !
       FUNCTION MRFOPR(OPTNOM, OPVALR)
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFOPR
       CHARACTER(len = *) :: OPTNOM
@@ -39,14 +41,10 @@
 !     OPVALR     "     VALEUR A DONNER A L'OPTION
 !
 !IMPLICITES
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 !
 !MODULES
 
-      DATA     MANQUE /RMANQUE/
-!
 !*
       MRFOPR = -1
       IF(INDEX(OPTNOM, 'MISSING') .NE. 0) THEN

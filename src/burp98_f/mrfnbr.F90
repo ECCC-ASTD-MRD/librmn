@@ -21,6 +21,7 @@
 !**S/P MRFNBR -  OBTENIR LE NOMBRE D'ENREGISTREMENTS DANS UN FICHIER
 !
       FUNCTION MRFNBR( IUN )
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRFNBR, IUN
 !
@@ -36,7 +37,6 @@
 !     IUN      ENTREE  NUMERO DU FICHIER A OUVRIR
 !                                                         
 !IMPLICITES
-#include "defi.cdk"
 !
 !MODULES 
       EXTERNAL XDFSTA

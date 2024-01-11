@@ -22,6 +22,8 @@
 !**S/P  QRBSCT - INITIALISER LE TABLEAU DE CONVERSIONS
       FUNCTION QRBSCT( TABLEAU,           TABDIM, NELELU)
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER TABDIM
       INTEGER  QRBSCT, TABLEAU(3,TABDIM), NELELU
@@ -50,8 +52,6 @@
 !
 !IMPLICITES
 #include "codes.cdk"
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include <ftnmacros.hf>
 !
 !MODULES
@@ -60,7 +60,6 @@
       CHARACTER(len=128) LIGNE
       CHARACTER(len=256) PATH, PATH1
       DATA OUTFIL   /6/
-      DATA RPETITIF / MAXREP*0/
 
 #include <rmn/fnom.hf>
 

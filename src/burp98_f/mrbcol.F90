@@ -19,8 +19,8 @@
 ! */
 !.S MRBCOL
 module mrb_col_dcl
+      use rmn_burp_defi
 #include <ftnmacros.hf>
-#include "defi.cdk"
 #include "masques.cdk"
 end module
 !**S/P - MRBCOL - CODER LES ELEMENTS D'UNE LISTE

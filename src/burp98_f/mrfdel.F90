@@ -22,6 +22,8 @@
 !
       FUNCTION MRFDEL( HANDLE )
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFDEL, HANDLE
 !
@@ -39,8 +41,6 @@
 !     HANDLE  ENTREE  POINTEUR A L'ENREGISTREMENT A EFFACER
 !                                                         
 !IMPLICITES
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 !
 !MODULE 

@@ -21,6 +21,7 @@
 !**S/P MRBPRM - EXTRAIRE LES PARAMETRES DESCRIPTEURS D'UN BLOC
 !
       FUNCTION MRBPRM(BUF,  BKNO, NELE, NVAL, NT, BFAM, BDESC, BTYP, NBIT, BIT0, DATYP)
+      use rmn_burp_defi
       IMPLICIT NONE
       INTEGER  MRBPRM, BUF(*), BKNO, NELE, NVAL, NT, BFAM, BDESC, BTYP, NBIT,   BIT0,   DATYP
 !
@@ -46,7 +47,6 @@
 !     DATYP      "    TYPE DE COMPACTION
 !
 !IMPLICITES
-#include "defi.cdk"
 #include "bpl.cdk"
 #include <ftnmacros.hf>
 !

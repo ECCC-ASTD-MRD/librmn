@@ -21,6 +21,7 @@
 !> Extract descriptor parameters from all blocks
 integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
     use app
+    use rmn_burp_defi
     implicit none
 
     integer, intent(in) :: buf(*)
@@ -58,7 +59,6 @@ integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
 !     tblprm(10,I)- TYPE DE DONNEES POUR COMPACTION   (DATYP)
 !
 !IMPLICITES
-#include "defi.cdk"
 #include "bpl.cdk"
 #include "codes.cdk"
 #include <ftnmacros.hf>

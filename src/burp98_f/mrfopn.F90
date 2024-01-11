@@ -22,6 +22,8 @@
 !
       FUNCTION MRFOPN( IUN, INMODE)
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRFOPN, IUN
       CHARACTER(len = *) :: INMODE
@@ -42,9 +44,7 @@
 !     INMODE    "     MODE D'OUVERTURE (READ,CREATE,APPEND)
 !                                                         
 !IMPLICITES
-#include "defi.cdk"
 #include "codes.cdk"
-#include "burpopt.cdk"
 #include "bpl.cdk"
 #include "enforc8.cdk"
 !
@@ -58,7 +58,6 @@
       CHARACTER(len = 4) :: APPL, VERSN
       CHARACTER(len = 6) :: MODE
       DATA        IOUT /6/
-      DATA        BADTBL /0/
       data initdone /.false./
       SAVE initdone
 !

@@ -22,6 +22,8 @@
 !**S/P  MRBRPT - VERIFIER SI UN ELEMENT EST REPETITIF OU NON
       FUNCTION MRBRPT( ELEMENT )
       use app
+      use rmn_burp_defi
+      use rmn_burpopt
       IMPLICIT NONE
       INTEGER  MRBRPT, ELEMENT
 !
@@ -40,8 +42,6 @@
 !     ELEMENT  ENTREE  CODE DE L'ELEMENT A VERIFIER
 !
 !IMPLICITES
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include "codes.cdk"
 #include <ftnmacros.hf>
 !

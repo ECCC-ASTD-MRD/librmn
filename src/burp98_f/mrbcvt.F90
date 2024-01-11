@@ -19,9 +19,9 @@
 ! */
 !.S MRBCVT
 module mrb_cvt_sct_tbl
+      use rmn_burp_defi
+      use rmn_burpopt
 #include "codes.cdk"
-#include "defi.cdk"
-#include "burpopt.cdk"
 #include <ftnmacros.hf>
       LOGICAL PREMIER
       INTEGER TABLEAU(3,MAXNELE), NELELU
