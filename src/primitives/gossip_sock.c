@@ -90,7 +90,7 @@ void check_data(char *record, int size);
 
 char *get_link_address(char *path, const char *filename);
 int read_ft_nonblocking_socket(int fd, char *ptr, int n);
-int write_ft_nonblocking_socket(int fd, char *ptr, int n);
+int write_ft_nonblocking_socket(int fd, const char *ptr, int n);
 int get_server_alias(char *path, const char *filename, int maxlen);
 
 
@@ -1324,7 +1324,7 @@ int get_stream_timeout(int channel) {
 // use in put_int32_to_channel and send_ack_nack as a safe IO compared to
 // a simple write()
 
-int write_ft_nonblocking_socket(int fd, char *ptr, int n)  /*   %ENTRY%   */
+int write_ft_nonblocking_socket(int fd, const char *ptr, int n)  /*   %ENTRY%   */
 {
   int written;
   fd_set wfds;
