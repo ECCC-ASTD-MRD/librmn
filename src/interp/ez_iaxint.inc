@@ -60,19 +60,9 @@
       real x1,x2,x3
       integer i, n
 
-      real a1,a2,a3,a4,x,c1,c2,c3,c4,c5,c6
-      real fa, fa2, fa3, fa4
-      real dx
-
-!     definition des fonctions in-line
+      real x, dx
 
 #include "ez_qqqxtrp.cdk"
-#include "zlin.cdk"
-
-      fa(a1,a2,a3,a4,x,x1,x2,x3)=a1+(x-x1)*(a2+(x-x2)*(a3+a4*(x-x3)))
-      fa2(c1,a1,a2)=c1*(a2-a1)
-      fa3(c1,c2,c3,a1,a2,a3)=c2*(c3*(a3-a2)-c1*(a2-a1))
-      fa4(c1,c2,c3,c4,c5,c6,a1,a2,a3,a4)=c4*(c5*(c6*(a4-a3)-      c3*(a3-a2)) - c2*(c3*(a3-a2)-c1*(a2-a1)))
 
       if (ordint.eq.cubique) then
          do 10 n=1,npts
@@ -110,5 +100,8 @@
          endif
 
          return
+         contains
+#include "fa4.cdk"
+#include "zlin.cdk"
          end
 

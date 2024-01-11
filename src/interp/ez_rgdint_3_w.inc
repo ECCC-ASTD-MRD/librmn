@@ -62,9 +62,8 @@
       real(kind = real64) :: y1, y2, y3, y4
       integer             :: n, i, j
       integer             :: imoins1, iplus1, iplus2, limite
+      real(kind = real64) :: dx, dy
 
-
-#include "cubic8.cdk"
 
       limite = ni+2-wrap
 
@@ -106,4 +105,6 @@
 !zzzzzz$OMP END DO
 !zzzzzz$OMP END PARALLEL
       return
+      contains
+#include "cubic8.cdk"
       end

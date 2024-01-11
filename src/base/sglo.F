@@ -122,7 +122,6 @@
       DATA  EPSPHI /1.0E-8/
       DATA ORDINT /3/
 *      DATA ORDINT /3/
-#include "cubic.cdk"
 *
 *     original sglo
       if(mode == 0) then
@@ -251,4 +250,6 @@
   620 FORMAT(/' LAMDA PHI, LI LJ IN FUNCTION SGLO(SSNH,SANH)
      &WRONG VALUE', 2E12.4,2I7)
 *    -------------------------------------------------------------------
+      CONTAINS
+#include "cubic.cdk"
       END

@@ -10,13 +10,9 @@ subroutine ibicubic_int4(izo, ni, nj, step, ajus_x, ajus_y)
     real(kind = REAL64), parameter :: fac2 = 1944.0D0
     real(kind = REAL64), parameter :: unsurfac2 = 1.0D0 / fac2
 
-    real(kind = REAL64) :: z, z12, z21, z22, z23, z24, z32, z42
+    real(kind = REAL64) :: z12, z21, z22, z23, z24, z32, z42
     integer :: i, j, iref, jref, nimax, njmax, nilim, njlim
-    real(kind = REAL64) :: icubic, dx, dy, z1, z2, z3, z4
-    integer :: my_nint
-
-    icubic(z1, z2, z3, z4, dx) = z2 + (dx * (6 * (dx * (2 * (dx * ((z4 - z1) + 3 * (z2 - z3))) + 18 * ((z1 + z3) - 2 * z2))) + fac1  *  (6 * z3 - z4 - 3 * z2 - 2 * z1)))  *  unsurfac2
-    my_nint(z) = (z + sign(0.5001D0, z))
+    real(kind = REAL64) :: dx, dy
 
     if (ajus_x ==  0) then
         nimax = ni - 3
@@ -91,7 +87,25 @@ subroutine ibicubic_int4(izo, ni, nj, step, ajus_x, ajus_y)
         enddo
     endif
     return
-end
+
+    contains
+
+    pure function my_nint(z) result(i_out)
+        implicit none
+        real(kind = real64), intent(in) :: z
+        integer :: i_out
+        i_out = int(z + sign(0.5001D0, z), kind=int32)
+    end function my_nint
+
+    pure function icubic(z1, z2, z3, z4, dx_in) result(z_out)
+        implicit none
+        real(kind = real64), intent(in) :: z1, z2, z3, z4, dx_in
+        real(kind = real64) :: z_out
+
+        z_out = z2 + (dx_in * (6 * (dx_in * (2 * (dx_in * ((z4 - z1) + 3 * (z2 - z3))) + 18 * ((z1 + z3) - 2 * z2))) + &
+                            fac1  *  (6 * z3 - z4 - 3 * z2 - 2 * z1)))  *  unsurfac2
+    end function icubic
+end subroutine ibicubic_int4
 
 
 subroutine ibicubic_int3(izo, ni, nj, izc, nic, njc, step)
@@ -110,14 +124,9 @@ subroutine ibicubic_int3(izo, ni, nj, izc, nic, njc, step)
 
     real(kind = REAL64), parameter :: one = 1.0D0
     real(kind = REAL64), parameter :: three = 3.0D0
-    real(kind = REAL64), parameter :: six = 6.0D0
-    real(kind = REAL64), parameter :: sixth = one / six
     real(kind = REAL64), parameter :: third = one / three
+    real(kind = REAL64) :: dx, dy
 
-    real(kind = REAL64) :: cubic, dx, dy, z1, z2, z3, z4
-
-    cubic(z1, z2, z3, z4, dx) = ((((z4 - z1) * sixth + 0.5 * (z2 - z3)) * dx + 0.5 * (z1 + z3) - z2) * dx + &
-        z3 - sixth * z4 - 0.5 * z2 - third * z1) * dx + z2
     do j = 1, njc
         do i = 1, nic
             zc(i, j) = real(izc(i, j))
@@ -183,7 +192,10 @@ subroutine ibicubic_int3(izo, ni, nj, izc, nic, njc, step)
             izo(step * (ic - 1) + 3, step * (jc - 1) + 3) = nint(cubic(y1, y2, y3, y4, dy))
         enddo
     enddo
-end
+    
+    contains
+#include "interp/cubic8.cdk"
+end subroutine ibicubic_int3
 
 
 subroutine fill_coarse_grid(zc, nicoarse, njcoarse, z, ni, nj, istep)

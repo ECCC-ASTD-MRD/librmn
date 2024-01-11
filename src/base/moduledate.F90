@@ -17,6 +17,76 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+!> This module is meant to be private to this file
+!> Helper functions that were previously defined inside individual functions (sometimes
+!> defined several times)
+module rmn_md_helpers
+   implicit none
+
+   integer, parameter :: td1900 = -504904320    !< truedate of jan 1, 1900
+   integer, parameter :: td2235 = 1615714548    !< truedate of dec 31, 2235, 23h59
+
+   !> Number of days for each month of the year
+   integer , dimension(12), parameter :: mdays = [31,29,31,30,31,30,31,31,30,31,30,31]
+
+contains
+   !> Calculates julian calendar day
+   !> (number of days since day 1 -> jan 1, year 1?)
+   !> see CACM letter to editor by Fliegel and Flandern 1968
+   !> page 657
+   pure function julian_day(year, month, day) result(jd)
+      implicit none
+      integer, intent(in) :: year, month, day
+      integer :: jd
+      jd = day - 32075 + 1461 * (year + 4800 + (month-14)/12) / 4    &
+            + 367 * (month - 2 - (month-14)/12 * 12) / 12             &
+            - 3 * ((year + 4900 + (month-14)/12) / 100) / 4
+   end function julian_day
+
+   pure function is_bissextile(year) result(res)
+      implicit none
+      integer, intent(in) :: year
+      logical :: res
+      res = ( ( (MOD(year,4)   == 0).and.(MOD(year,100) /= 0) ) &
+         .or. (MOD(year,400) == 0) )
+   end function is_bissextile
+
+   !> Check whether the given truedate is valid (date > jan 1, 1980 if 5 sec interval, else > jan 1,1900)
+   pure function is_validtd(tdate) result(is_valid)
+      implicit none 
+      integer, intent(in) :: tdate
+      logical :: is_valid
+      is_valid = ((tdate.ge.0) .or.                                                             &
+                  ((tdate.lt.0) .and. (tdate >= td1900).and.(mod(tdate-td1900,720) == 0)))
+   end function is_validtd
+
+   !> check that year,month,day,zulu have valid values (for what?)
+   pure function is_validtm(year, month, day, zulu) result(is_valid)
+      implicit none
+      integer, intent(in) :: year, month, day, zulu
+      logical :: is_valid
+      is_valid = (                                             &
+           (year.ge.1900) .and. (year.lt.2236) .and.           &
+           (month.le.12) .and. (day.le.mdays(month))           &
+           .and. (zulu.le.23) .and.                            &
+           (month.gt.0) .and. (day.gt.0) .and. (zulu.ge.0))
+   end function is_validtm
+
+   !> Not sure, there was no comment to say what this verifies
+   pure function is_validtme(year, month, day, zulu) result(is_valid)
+      implicit none
+      integer, intent(in) :: year, month, day, zulu
+      logical :: is_valid
+      is_valid = (                                             &
+           (year  >= 0) .and. (year  <  10000) .and.           &
+           (month >  0) .and. (month <= 12)    .and.           &
+           (day   >  0) .and. (day   <= mdays(month))    .and. &
+           (zulu  >= 0) .and. (zulu  <= 23) )
+   end function is_validtme
+end module rmn_md_helpers
+
+
 !============================================================================
 !                       THREAD SAFE ROUTINES
 !     (they call the original ones inside a OpenMP critical region)
@@ -168,6 +238,7 @@
       call Get_LeapYear_Status_int(no_leap_year_status)
       call date_thread_lock(.false.)
       end subroutine Get_LeapYear_Status
+
 !============================================================================
 !     END OF THREAD SAFE ROUTINES
 !============================================================================
@@ -315,6 +386,7 @@
       SUBROUTINE date_add_sub (IDATE1,IDATE2,NHOURS, want_adding, want_rounding)   ! INCDATR
          use app
          use rmn_common
+         use rmn_md_helpers
          IMPLICIT NONE
 !
 ! E N T R Y INCDATI - SAME AS INCDATR BUT IDATE2 AND NHOURS ARE ROUNDED
@@ -390,8 +462,6 @@
 !               EXT_TRUE_DATE=(EXT_FALSE_DATE/10)*8+MOD(EXT_FALSE_DATE,10)
 !             AS THIS EXTENDED DATE IS STORED IN A SIGNED INTEGER,
 !             THE STORED VALUE WILL BE A LARGE NEGATIVE ONE.
-!         - td2235 = truedate of dec 31, 2235, 23h59
-!         - td1900 = -504904320 = truedate of jan 1, 1900
 !--------------------------------------------------------------------
 !
       integer idate1,idate2
@@ -407,8 +477,6 @@
       integer(kind = int64) addit
       integer tdate1,tdate2,runnum,ndays,pdate2
       integer idate(2),pdate1(2)
-      integer td1900, td2235
-      data td1900 /-504904320/, td2235 /1615714548/
 
       rounding = .false.
 
@@ -626,6 +694,7 @@
 !**S/R DATMGP2 - CREATES A DATE TIME GROUP.
 !
       SUBROUTINE dmagtp2 (IDATE)  ! DATMGP2
+      use rmn_md_helpers
       IMPLICIT NONE
 !
 !AUTHOR   - D. SHANTZ
@@ -673,7 +742,7 @@
 !--------------------------------------------------------------------
 !
       integer idate(14),dtpr,tmpr,result,tpr(2)
-      integer i,j,k,iday,idt,mon,jd
+      integer i,iday,idt,mon
       character(len = 3)   :: xmonth(12),xday(7), amonth,aday
       character(len = 128) :: wrk
       integer, external :: naetwed
@@ -683,10 +752,6 @@
                     'FRI','SAT' /
 !
 !---------------------------------------------------------------------
-!
-      jd(i,j,k) =k-32075+1461*(i+4800+(j-14)/12)/4 &
-           +367*(j-2-(j-14)/12*12)/12              &
-           -3*((i+4900+(j-14)/12)/100)/4
 !
       idt = idate(14)
 !
@@ -707,7 +772,7 @@
 
       mon = idate(2)
       amonth = xmonth(mon)
-      idate(1) = jd(idate(4),idate(2),idate(3))
+      idate(1) = julian_day(idate(4),idate(2),idate(3))
       idate(1) = 1 + mod(idate(1)+1,7)
       iday = idate(1)
       aday = xday(iday)
@@ -721,7 +786,7 @@
 !---------------------------------------------------------------------
 !
       return
-      end
+      end subroutine dmagtp2
 
       subroutine Ignore_LeapYear_int()
       implicit none
@@ -931,6 +996,7 @@
       integer function LeapYear_Adjust_int(tdate1,tdate2, &
                                        true_date_mode,adding)
       use app
+      use rmn_md_helpers
 
       implicit none
       logical :: adding
@@ -938,15 +1004,10 @@
       integer, parameter :: limite = 23595500 ! 23h 59m 55s
       integer :: true2print,print2true
       integer :: ier,tdate1,tdate2,inc,m1,m2,dat(2)
-      integer :: year,annee,y1,y1L,y2,p1a(2),p1b,p2a(2),p2b
+      integer :: annee,y1,y1L,y2,p1a(2),p1b,p2a(2),p2b
       integer :: ndays,tdate1L,tdate28f,tdate29f,addit
-      logical :: bissextile
       integer :: naetwed
       external naetwed
-
-      bissextile(year) =  ( ( (MOD(year,4)   == 0)   &
-                         .and.(MOD(year,100) /= 0) ) &
-                         .or. (MOD(year,400) == 0) )
 
       addit=0 ! If adding, will hold a day in units of True Dates
 
@@ -975,7 +1036,7 @@
       ndays = 0 ; inc = 1
       if (y2 > y1 .or. (y1 == y2 .and. m2 > m1)) inc=-1
       do annee = y2,y1,inc
-        if (bissextile(annee)) then
+        if (is_bissextile(annee)) then
           dat(1) = annee*10000+0228 ; ier = naetwed(tdate28f,dat,limite,print2true)
           dat(1) = annee*10000+0229
           if (inc > 0) then
@@ -1002,7 +1063,7 @@
       y1L = p1a(1) / 10000
 !!!   print *,'FinL =',mod(p1a,100),mod(p1a/100,100),y1L
       do annee = y1+inc,y1L,inc
-        if (bissextile(annee)) then
+        if (is_bissextile(annee)) then
           dat(1) = annee*10000+0228 ; ier = naetwed(tdate28f,dat,limite,print2true)
           dat(1) = annee*10000+0229
           if (inc > 0) then
@@ -1025,7 +1086,7 @@
 
       LeapYear_Adjust_int = ndays
       return
-      end
+      end function LeapYear_Adjust_int
 
       integer function CcclxDays_Adjust_int(tdate1,tdate2, &
                                 true_date_mode,adding)
@@ -1262,6 +1323,7 @@
       INTEGER FUNCTION naetwed(DAT1,DAT2,DAT3,MODE)  ! NEWDATE
       use app
       use rmn_common
+      use rmn_md_helpers
       IMPLICIT NONE
       INTEGER DAT1,DAT2(*),DAT3,MODE
 !
@@ -1282,7 +1344,7 @@
 !
 !NOTE: see top of file for usage documentation
 !
-!         useful constants
+!         useful constants -> see rmn_md_helpers
 !         17280 = nb of 5 sec intervals in a day
 !         288   = nb of 5 min intervals in a day
 !         jd1900 = julian day for jan 1, 1900       (2415021)
@@ -1290,7 +1352,6 @@
 !         jd2236 = julian day for jan 1, 2236       (2537742)
 !         jd0    = julian day for jan 1, 0          (1721060)
 !         jd10k  = julian day for jan 1, 10,000     (5373485)
-!         td1900 = truedate  for  jan 1, 1900 , 00Z (-504904320)
 !         td2000 = truedate  for  jan 1, 2000 , 00Z (+126230400)
 !         tdstart = base for newdates ( jan 1, 1980, 00Z)
 !         max_offset = (((jd10k-jd0)*24)/8)*10      (109572750)
@@ -1299,10 +1360,9 @@
 !WARNING  - IF NEWDATE RETURNS 1, OUTPUTS CAN TAKE ANY VALUE
 !
 !*
-      integer tdate,runnb,stamp,tmpr,dtpr,td1900,td2000
+      integer tdate,runnb,stamp,tmpr,dtpr,td2000
       integer year,month,day,zulu,second,minute, max_offset
       integer tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
-      integer , dimension(12) :: mdays
       integer(kind = int64) :: date_unsigned,stamp8,masque32
       integer(kind = int64), save :: troisg=3000000000_8
 !!!   integer(kind = int64), save :: troisg=transfer(Z'B2D05E00',1_8)
@@ -1312,47 +1372,13 @@
       data tdstart /123200000/,jd1980 /2444240/,jd1900 /2415021/
       data jd0 /1721060/,jd10k /5373485/, max_offset /109572750/
       data jd2236 /2537742/, exception /16663825/
-      data td2000 /126230400/, td1900 /-504904320/
-      data mdays /31,29,31,30,31,30,31,31,30,31,30,31/
-!
-      integer :: jd
-      logical :: bissextile,validtd,validtm,validtme
+      data td2000 /126230400/
 !
 !!!   integer(kind = int32), save :: w32=1
 !!!   integer(kind = int16)    w16(2)
 !!!   equivalence ( w16(1) , w32 )
 !!!   data          w32/1/
 !
-!     calculates julian calendar day
-!     see CACM letter to editor by Fliegel and Flandern 1968
-!     page 657
-!
-      jd(year,month,day)=day-32075+1461*(year+4800+(month-14)/12)/4 &
-           +367*(month-2-(month-14)/12*12)/12 &
-           -3*((year+4900+(month-14)/12)/100)/4
-!
-!     check that date > jan 1, 1980 if 5 sec interval, else > jan 1,1900
-!
-      validtd(tdate)=((tdate.ge.0) .or. ((tdate.lt.0) .and.  &
-           (tdate >= td1900).and.(mod(tdate-td1900,720) == 0)))
-!
-!     check that year,month,day,zulu have valid values
-!
-      validtm(year,month,day,zulu)=(                  &
-           (year.ge.1900) .and. (year.lt.2236) .and.  &
-           (month.le.12) .and. (day.le.mdays(month))  &
-           .and. (zulu.le.23) .and.                   &
-           (month.gt.0) .and. (day.gt.0) .and. (zulu.ge.0))
-!
-      validtme(year,month,day,zulu)=(                 &
-           (year  >= 0) .and. (year  <  10000) .and.  &
-           (month >  0) .and. (month <= 12)    .and.  &
-           (day   >  0) .and. (day   <= mdays(month))    .and. &
-           (zulu  >= 0) .and. (zulu  <= 23) )
-!
-      bissextile(year) =  ( ( (MOD(year,4)   == 0)   &
-                         .and.(MOD(year,100) /= 0) ) &
-                         .or. (MOD(year,400) == 0) )
 !
       masque32=ishft(-1_8,-32) ! = Z'00000000FFFFFFFF'
 !
@@ -1401,9 +1427,9 @@
          dtpr=year*10000+month*100+day
          tmpr=zulu*1000000
       endif
-      if (.not.validtm(year,month,day,zulu)) goto 4
+      if (.not.is_validtm(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
       dat2(1)=dtpr
       dat3=tmpr
@@ -1426,11 +1452,11 @@
       day=mod(dtpr,100)
       zulu=mod(tmpr/1000000,100)
       second=mod(tmpr/10000,100)*60+mod(tmpr/100,100)
-      if (.not.validtm(year,month,day,zulu)) goto 4
+      if (.not.is_validtm(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
-      tdate=(jd(year,month,day)-jd1980)*17280+zulu*720+second/5
+      tdate=(julian_day(year,month,day)-jd1980)*17280+zulu*720+second/5
       if (year.ge.2000 .or. (year.ge.1980 .and. second.ne.0)) then
 !        encode it in a new date-time stamp
          stamp=tdstart+(tdate/8)*10+mod(tdate,8)
@@ -1448,7 +1474,7 @@
 !     mode=-2 : from true_date to printable
 !
  2    tdate=dat1
-      if (.not.validtd(tdate)) goto 4
+      if (.not.is_validtd(tdate)) goto 4
       call datec(jd1900+(tdate-td1900)/17280,year,month,day)
       zulu=mod(tdate-td1900,17280)/720
       second=(mod(tdate-td1900,17280)-zulu*720)*5
@@ -1470,11 +1496,11 @@
       day=mod(dtpr,100)
       zulu=mod(tmpr/1000000,100)
       second=mod(tmpr/10000,100)*60+mod(tmpr/100,100)
-      if (.not.validtm(year,month,day,zulu)) goto 4
+      if (.not.is_validtm(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
-      dat1=(jd(year,month,day)-jd1980)*17280+zulu*720+second/5
+      dat1=(julian_day(year,month,day)-jd1980)*17280+zulu*720+second/5
       return
 
 !
@@ -1482,7 +1508,7 @@
 !
  3    tdate=dat1
       runnb=dat3
- 33   if((runnb.gt.9) .or. (.not.validtd(tdate))) goto 4
+ 33   if((runnb.gt.9) .or. (.not.is_validtd(tdate))) goto 4
 !     use new stamp if > jan 1, 2000 or fractional hour
       if (tdate.ge.td2000 .or. mod(tdate,720).ne.0) then
 !     encode it in a new date-time stamp, ignore run nb
@@ -1516,9 +1542,9 @@
          year=mod(stamp/1000,100)+1900
          day=mod(stamp/100000,100)
          month=mod(stamp/10000000,100)
-         tdate=(jd(year,month,day)-jd1980)*17280+zulu*720
+         tdate=(julian_day(year,month,day)-jd1980)*17280+zulu*720
       endif
-      if (.not.validtd(tdate)) goto 4
+      if (.not.is_validtd(tdate)) goto 4
       dat1=tdate
       dat3=runnb
       return
@@ -1546,11 +1572,11 @@
       day=mod(dtpr,100)
       zulu=mod(tmpr/1000000,100)
       minute=mod(tmpr/10000,100)
-      if (.not.validtme(year,month,day,zulu)) goto 4
+      if (.not.is_validtme(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
-      tdate=jd(year,month,day)
+      tdate=julian_day(year,month,day)
       if (tdate < jd0 .or. tdate >= jd10k) then
          write(app_msg,*)'naetwed: newdate error, date outside of supported range, date =',dtpr
          call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
@@ -1582,9 +1608,9 @@
       call datec(jd0+tdate/24,year,month,day)
       zulu=mod(tdate,24)
       minute=0
-      if (.not.validtme(year,month,day,zulu)) goto 4
+      if (.not.is_validtme(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
       dat2(1)=year*10000+month*100+day
       dat3=zulu*1000000+minute*10000
@@ -1636,7 +1662,7 @@
           call datec(jd1900+(tdate-td1900)/17280,year,month,day)
           zulu=mod(tdate-td1900,17280)/720
           runnb=0
-          tdate=(jd(year,month,day)-jd0)*24+zulu
+          tdate=(julian_day(year,month,day)-jd0)*24+zulu
 !         print *,'Debug stamp > tdstart tdate=',tdate,
 !     %           ' zulu=',zulu
         else
@@ -1646,10 +1672,10 @@
            year=mod(stamp/1000,100)+1900
            day=mod(stamp/100000,100)
            month=mod(stamp/10000000,100)
-           tdate=(jd(year,month,day)-jd0)*24+zulu
+           tdate=(julian_day(year,month,day)-jd0)*24+zulu
 !           print *,'Debug old date stamp tdate=',tdate
         endif
-        if (.not.validtd(tdate)) goto 4
+        if (.not.is_validtd(tdate)) goto 4
         dat1=tdate
         dat3=runnb
       endif
@@ -1658,12 +1684,12 @@
 !     mode=-7 : from extended true_date to printable
 !
 106   tdate=dat1
-      if (.not.validtd(tdate)) goto 4
+      if (.not.is_validtd(tdate)) goto 4
       call datec(jd0+tdate/24,year,month,day)
       zulu=mod(tdate,24)
-      if (.not.validtme(year,month,day,zulu)) goto 4
+      if (.not.is_validtme(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
       minute=0
       dat2(1)=year*10000+month*100+day
@@ -1684,11 +1710,11 @@
       day=mod(dtpr,100)
       zulu=mod(tmpr/1000000,100)
       second=mod(tmpr/10000,100)*60+mod(tmpr/100,100)
-      if (.not.validtme(year,month,day,zulu)) goto 4
+      if (.not.is_validtme(year,month,day,zulu)) goto 4
       if ((month .eq. 2) .and. (day .eq. 29)) then
-         if (.not. bissextile(year)) goto 4
+         if (.not. is_bissextile(year)) goto 4
       endif
-      dat1=(jd(year,month,day)-jd0)*24+zulu
+      dat1=(julian_day(year,month,day)-jd0)*24+zulu
       return
 !
 !     error: bad mode or bad arguments
