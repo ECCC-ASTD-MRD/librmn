@@ -98,7 +98,14 @@ static void str_cp_init(char * const dst, const int dstLen, const char * const s
     dst[dstLen - 1] = '\0';
 }
 
-void copy_record_string(char* const dest, const char* const src, const int32_t max_length) {
+//! Copy a FSTD record string into the given buffer. The buffer has to have at least max_length bytes.
+//! Any character beyond the input string (up to max_length) will be set to ' '
+//! The destination string will be NULL-terminated
+void copy_record_string(
+    char* const dest,           //!< Buffer into which the string will be copied
+    const char* const src,      //!< The string to copy
+    const int32_t max_length    //!< Maximum size of the final string
+) {
     int i;
     const size_t src_length = strlen(src);
     for (i = 0; i < max_length && i < src_length; i++) {
@@ -1112,14 +1119,14 @@ int c_fstecr_xdf(
     buffer->data[buffer->aux_index] = 0;
     buffer->data[buffer->aux_index+1] = 0;
 
-    char typvar[3] = {' ', ' ', '\0'};
-    strncpy(typvar, in_typvar, strlen(in_typvar));
-    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
-    strncpy(nomvar, in_nomvar, strlen(in_nomvar));
-    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' , ' ' , '\0'};
-    strncpy(etiket, in_etiket, strlen(in_etiket));
-    char grtyp[2] = {' ', '\0'};
-    strncpy(grtyp, in_grtyp, strlen(in_grtyp));
+    char typvar[FST_TYPVAR_LEN];
+    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
+    char nomvar[FST_NOMVAR_LEN];
+    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
+    char etiket[FST_ETIKET_LEN];
+    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
+    char grtyp[FST_GTYP_LEN];
+    copy_record_string(grtyp, in_grtyp, FST_GTYP_LEN);
 
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) &(buffer->data);
@@ -1589,17 +1596,11 @@ int c_fst_edit_dir_plus_xdf(
     int datyp
 ) {
     int index, width, pageno, recno;
-    int l1, l2, l3, l4;
     file_table_entry *f;
     uint32_t *entry;
     stdf_dir_keys *stdf_entry;
     stdf_special_parms cracked;
     char string[20];
-    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-    char typvar[3] = {' ', ' ', '\0'};
-    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
-    char grtyp[2] = {' ', '\0'};
-
 
     index = INDEX_FROM_HANDLE(handle);
 
@@ -1620,15 +1621,14 @@ int c_fst_edit_dir_plus_xdf(
         return(ERR_NO_FILE);
     }
 
-    l1 = strlen(in_typvar);
-    l2 = strlen(in_nomvar);
-    l3 = strlen(in_etiket);
-    l4 = strlen(in_grtyp);
-
-    strncpy(typvar, in_typvar, l1);
-    strncpy(nomvar, in_nomvar, l2);
-    strncpy(etiket, in_etiket, l3);
-    strncpy(grtyp, in_grtyp, l4);
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char grtyp[FST_GTYP_LEN];
+    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
+    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
+    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
+    copy_record_string(grtyp, in_grtyp, FST_GTYP_LEN);
 
     pageno = PAGENO_FROM_HANDLE(handle);
     if (pageno > f->npages) {
@@ -1983,13 +1983,13 @@ int c_fstinfx_xdf(
     int addr, lng, idtyp, l1, l2, l3;
     unsigned int u_datev = datev;
 
-    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-    char typvar[3] = {' ', ' ', '\0'};
-    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
+    char etiket[FST_ETIKET_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
 
-    strncpy(etiket, in_etiket, strlen(in_etiket));
-    strncpy(typvar, in_typvar, strlen(in_typvar));
-    strncpy(nomvar, in_nomvar, strlen(in_nomvar));
+    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
+    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
+    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
     Lib_Log(APP_LIBFST,APP_DEBUG,"%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
 
     index_fnom = fnom_index(iun);

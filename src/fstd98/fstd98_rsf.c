@@ -301,14 +301,14 @@ int c_fstecr_rsf(
     const int num_bits_per_word = 32;
     RSF_Record_set_num_elements(record, num_word32, sizeof(uint32_t));
 
-    char typvar[3] = {' ', ' ', '\0'};
-    strncpy(typvar, in_typvar, strlen_up_to(in_typvar, 2));
-    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
-    strncpy(nomvar, in_nomvar, strlen_up_to(in_nomvar, 4));
-    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' , ' ' , '\0'};
-    strncpy(etiket, in_etiket, strlen_up_to(in_etiket, 12));
-    char grtyp[2] = {' ', '\0'};
-    strncpy(grtyp, in_grtyp, strlen_up_to(in_grtyp, 1));
+    char typvar[FST_TYPVAR_LEN];
+    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
+    char nomvar[FST_NOMVAR_LEN];
+    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
+    char etiket[FST_ETIKET_LEN];
+    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
+    char grtyp[FST_GTYP_LEN];
+    copy_record_string(grtyp, in_grtyp, FST_GTYP_LEN);
 
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) record->meta;
@@ -736,13 +736,13 @@ int c_fstinfx_rsf(
 ) {
     unsigned int u_datev = datev;
 
-    char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-    char typvar[3] = {' ', ' ', '\0'};
-    char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
+    char etiket[FST_ETIKET_LEN];
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
 
-    strncpy(etiket, in_etiket, strlen_up_to(in_etiket, 12));
-    strncpy(typvar, in_typvar, strlen_up_to(in_typvar, 2));
-    strncpy(nomvar, in_nomvar, strlen_up_to(in_nomvar, 4));
+    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
+    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
+    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] "
             "nomvar=[%s]\n", __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
