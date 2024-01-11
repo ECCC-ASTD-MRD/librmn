@@ -40,7 +40,7 @@
 #endif
 
 
-#ifdef __APPLE__ && __MACH__
+#if defined(__APPLE__) && defined(__MACH__)
 #   include <sys/limits.h>
 #endif
 
@@ -62,6 +62,7 @@
 #define FNOM_TYPE_MAX 256
 
 // _SC_HOST_NAME_MAX is defined by POSIX in unistd.h
+#undef HOST_NAME_MAX
 #ifdef _SC_HOST_NAME_MAX
 #   define HOST_NAME_MAX _SC_HOST_NAME_MAX
 #else
