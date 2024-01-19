@@ -72,8 +72,8 @@ void    Meta_StampDecode(int32_t Stamp,int32_t *YYYY,int32_t *MM,int32_t *DD,int
 void    Meta_StampEncode(int32_t *Stamp,int32_t YYYY,int32_t MM,int32_t DD,int32_t H,int32_t M,int32_t S);
 time_t  Meta_Stamp2Seconds(int32_t Stamp);
 int32_t Meta_Seconds2Stamp(time_t Sec);
-int32_t      Meta_To89(json_object *Obj,fst_record *Rec);
-int32_t      Meta_From89(json_object *Obj,fst_record *Rec);
+int32_t Meta_To89(json_object *Obj,fst_record *Rec);
+int32_t Meta_From89(json_object *Obj,const fst_record* const Rec);
 
 #endif
 

@@ -124,16 +124,19 @@ int test_fst23_interface(const int is_rsf) {
     }
 
     {
+        int32_t key;
         fst_record search_criteria = default_fst_record;
         fst_record record_find = default_fst_record;
+        fst_record record;
         strcpy(search_criteria.typvar, "P");
  
         // Test find loop
         fprintf(stdout,"\nfind loop:\n");
         int num_found = 0;
         fst23_set_search_criteria(test_file, &search_criteria);
-        while(fst23_find_next(test_file, &record_find)) {
+        while(key=fst23_find_next(test_file, &record_find)) {
             fst23_record_print(&record_find);
+            fst23_read_new(test_file,&record_find);
             num_found++;
         }
 
@@ -153,7 +156,7 @@ int test_fst23_interface(const int is_rsf) {
         // Test read loop
         fprintf(stdout,"\nread loop:\n");
         fst_record record_read = default_fst_record;
-        strcpy(record_read.typvar, "P ");
+        strcpy(record_read.typvar, "P");
         while(fst23_read_new(test_file,&record_read)) {
            fst23_record_print(&record_read);
            meta=Meta_Parse(record_read.metadata);

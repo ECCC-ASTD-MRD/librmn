@@ -1437,20 +1437,32 @@ int32_t Meta_Seconds2Stamp(time_t Sec) {
  *    ...
  *    @return                    Status (TRUE or FALSE)
 */
-int32_t Meta_From89(json_object *Obj,fst_record *Rec)	{
+int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
 
-   char tmp[64],*c=NULL;
+   char tmp[FST_ETIKET_LEN+4],*c=NULL;
+   char typvar[FST_TYPVAR_LEN];
+   char nomvar[FST_NOMVAR_LEN];
+   char etiket[FST_ETIKET_LEN];
+
+   strncpy(typvar,Rec->typvar,FST_TYPVAR_LEN);
+   strncpy(nomvar,Rec->nomvar,FST_NOMVAR_LEN);
+   strncpy(etiket,Rec->etiket,FST_ETIKET_LEN);
+  
+   strtrim(nomvar,' ');
+   strtrim(typvar,' ');
+   strtrim(etiket,' ');
 
    // NOMVAR
 // Dict
-   Meta_DefVar(Obj,"",Rec->nomvar,"","");
+   Meta_DefVar(Obj,"",nomvar,"","");
+
 //   Meta_DefBound(Obj,-60,50,"celsius");
 
    // DATEO,DEET,NPAS
    Meta_DefForecastTime(Obj,Meta_Stamp2Seconds(Rec->dateo),Rec->npas,Rec->deet,"second");
 
    // TYPVAR
-   switch(Rec->typvar[0]) {
+   switch(typvar[0]) {
       case 'C': Meta_AddQualifier(Obj,"climatology");                                                
       case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations                                
           case 'A': Meta_AddQualifier(Obj,"analysis");                                                   
@@ -1467,7 +1479,7 @@ int32_t Meta_From89(json_object *Obj,fst_record *Rec)	{
 //      case 'X': Meta_AddQualifier(Obj,""); break;    // Divers  
    };
 
-   switch(Rec->typvar[1]) {                                                    
+   switch(typvar[1]) {                                                    
       case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné                                                      
       case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré                                                     
 //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes                                         
@@ -1491,7 +1503,7 @@ int32_t Meta_From89(json_object *Obj,fst_record *Rec)	{
    Meta_DefData(Obj,c,"",Rec->npak,Rec->dasiz);
  
    // ETIKET
-   snprintf(tmp,64,"tag:%s",Rec->etiket);
+   snprintf(tmp,FST_ETIKET_LEN+4,"tag:%s",etiket);
    Meta_AddQualifier(Obj,tmp);
 
    // IP1,IP2,IP3
@@ -1511,6 +1523,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    json_object *obj=NULL,*objval=NULL;
 
    // NOMVAR
+   Rec->nomvar[0]='\0';
    if (Meta_GetVar(Obj,NULL,&c1,NULL,NULL)) {
       strncpy(Rec->nomvar,c1,FST_NOMVAR_LEN-1);
       strblank2end(Rec->nomvar,FST_NOMVAR_LEN);
