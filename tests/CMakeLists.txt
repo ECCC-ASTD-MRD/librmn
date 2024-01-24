@@ -2,7 +2,7 @@ if(BUILD_TESTING)
     add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=true ${CMAKE_CTEST_COMMAND})
 
     message(STATUS "(EC) Generating librmn tests")
-
+    
     # Helper module
     add_library(test_helper EXCLUDE_FROM_ALL rmn_test_helper.F90 generate_fstd_module.F90)
     target_link_libraries(test_helper rmn::rmn)
@@ -130,6 +130,13 @@ if(BUILD_TESTING)
     target_link_libraries(fst23_meta_c rmn::rmn)
     add_test(NAME fst23_meta_c COMMAND $<TARGET_FILE:fst23_meta_c>)
     add_dependencies(check fst23_meta_c)
+    set_property(TEST fst23_meta_c PROPERTY ENVIRONMENT "ARMNLIB=/fs/homeu2/eccc/cmd/cmds/nil000/Projects/RPN/Meta")
+
+    add_executable(fst23_meta_f90 fst23_meta.F90)
+    target_link_libraries(fst23_meta_f90 rmn::rmn)
+    add_test(NAME fst23_meta_f90 COMMAND $<TARGET_FILE:fst23_meta_f90>)
+    add_dependencies(check fst23_meta_f90)
+    set_property(TEST fst23_meta_f90 PROPERTY ENVIRONMENT "ARMNLIB=/fs/homeu2/eccc/cmd/cmds/nil000/Projects/RPN/Meta" "META_VALIDATE=TRUE")
 
     add_executable(moduledate EXCLUDE_FROM_ALL moduledate.F90)
     target_link_libraries(moduledate rmn::rmn)

@@ -172,19 +172,20 @@ json_object *Meta_LoadProfile(char *Name,char *Version) {
    char        path[META_PATH_MAXLEN],*version=NULL;
    json_object *prof=NULL,*objval=NULL;
 
-   version=Version?Version:MetaVersion;
+   version=(Version && strlen(Version))?Version:MetaVersion;
    snprintf(path,META_PATH_MAXLEN,"%s/json/%s/%s.json",ARMNLIB,version,Name);
    if (!(prof=json_object_from_file(path))) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load profile %s",__func__,path);
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load profile %s\n",__func__,path);
       return(NULL);
    }
 
    if (json_pointer_get(prof,"/version",&objval)<0){ 
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid profile %s",__func__,path);
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid profile %s\n",__func__,path);
       return(NULL);
    }
    json_object_set_string(objval,version);
-
+   fprintf(stderr,"1--- %p\n",prof);
+   
    return(prof);
 }
 
@@ -299,7 +300,7 @@ json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,cha
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Define daat dimensions
+ * @brief  Define data dimensions
 
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
@@ -565,7 +566,7 @@ json_object *Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,doub
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_ResolveRef(json_object *Obj) {
+json_object *Meta_Resolve(json_object *Obj) {
 
    char *id=NULL;
    json_object *obj=NULL,*objref=NULL;
@@ -824,6 +825,7 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
    json_object *objval=NULL;
    char *c;
 
+   fprintf(stderr,"2---- %p\n",Obj);
    if (MetaValidate) {
       if (!(c=Meta_ValidateToken(MetaCellMethods,Method))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell method: %s\n",__func__,Method);
@@ -834,7 +836,12 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
          return(NULL);
       }
    }
+
    json_pointer_get(Obj,"/cell_methods",&objval);
+   if (!objval) {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Undefined objet array: cell_methods\n",__func__);
+      return(NULL);
+   }
    json_object_array_add(objval,json_object_new_string(Method));
   
    return(Obj);
@@ -872,7 +879,12 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid qualifier: %s\n",__func__,Qualifier);
       return(NULL);
    }
+
    json_pointer_get(Obj,"/qualifiers",&objval);
+   if (!objval) {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Undefined objet array: qualifiers\n",__func__);
+      return(NULL);
+   }
    json_object_array_add(objval,json_object_new_string(Qualifier));
   
    return(Obj);
@@ -911,7 +923,12 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid reason: %s\n",__func__,Reason);
       return(NULL);
    }
+   
    json_pointer_get(Obj,"/missing_values",&objval);
+   if (!objval) {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Undefined objet array: missing_values\n",__func__);
+      return(NULL);
+   }
    objmis=json_object_new_object();
    json_object_object_add(objmis,"reason",json_object_new_string(Reason));
    json_object_object_add(objmis,"value",json_object_new_double(Value));

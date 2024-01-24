@@ -22,7 +22,7 @@ char*        Meta_GetObjectString(json_object *Obj);
 json_object* Meta_Copy(json_object *Obj);
 int32_t      Meta_Equivalent(json_object *Obj1,json_object *Obj2);
 
-json_object* Meta_ResolveRef(json_object *Obj);
+json_object* Meta_Resolve(json_object *Obj);
 
 // Metadata specific functions
 int32_t      Meta_Init();

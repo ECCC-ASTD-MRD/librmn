@@ -160,7 +160,7 @@ int test_fst23_interface(const int is_rsf) {
         while(fst23_read_new(test_file,&record_read)) {
            fst23_record_print(&record_read);
            meta=Meta_Parse(record_read.metadata);
-           Meta_ResolveRef(meta);
+           Meta_Resolve(meta);
            fprintf(stderr,"JSON: %p %s\n",record_read.metadata,Meta_Stringify(meta));
         }
     }
@@ -174,8 +174,6 @@ int test_fst23_interface(const int is_rsf) {
 }
 
 int main(void) {
-
-   setenv("ARMNLIB","/fs/homeu2/eccc/cmd/cmds/nil000/Projects/RPN/Meta",1);
 
    App_Log(APP_INFO, "Testing RSF\n");
    if (test_fst23_interface(1) != 0) return -1; // RSF files
