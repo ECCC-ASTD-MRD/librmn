@@ -184,7 +184,6 @@ json_object *Meta_LoadProfile(char *Name,char *Version) {
       return(NULL);
    }
    json_object_set_string(objval,version);
-   fprintf(stderr,"1--- %p\n",prof);
    
    return(prof);
 }
@@ -825,7 +824,6 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
    json_object *objval=NULL;
    char *c;
 
-   fprintf(stderr,"2---- %p\n",Obj);
    if (MetaValidate) {
       if (!(c=Meta_ValidateToken(MetaCellMethods,Method))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell method: %s\n",__func__,Method);
