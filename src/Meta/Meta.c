@@ -299,52 +299,6 @@ json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,cha
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Define data dimensions
-
- * @date   July 2023
- *    @param[in]   Obj           Profile json object
- *    @param[in]   NI            I dimension
- *    @param[in]   NJ            J dimension
- *    @param[in]   NK            K dimension
- *
- *    @return                    json_object pointer (NULL if error)
-*/
-json_object* Meta_DefSize(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK) {
-
-   json_object *objval=NULL;
-
-   json_pointer_get(Obj,"/size",&objval);
-   json_object_array_add(objval,json_object_new_int(NI));
-   json_object_array_add(objval,json_object_new_int(NJ));
-   json_object_array_add(objval,json_object_new_int(NK));
-
-   return(Obj);
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Extract variable information
-
- * @date   July 2023
- *    @param[in]   Obj           Profile json object
- *    @param[out]  NI            I dimension
- *    @param[out]  NJ            J dimension
- *    @param[out]  NK            K dimension
- *
- *    @return                    json_object pointer (NULL if error)
-*/
-json_object* Meta_GetSize(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK){
-
-   json_object *objval=NULL;
-
-   json_pointer_get(Obj,"/size",&objval);
-   *NI=json_object_get_int(json_object_array_get_idx(objval,0));
-   *NJ=json_object_get_int(json_object_array_get_idx(objval,1));
-   *NK=json_object_get_int(json_object_array_get_idx(objval,2));
-      
-   return(Obj);
-}
-
-/**----------------------------------------------------------------------------
  * @brief  Define data bounds and unit
 
  * @date   July 2023
@@ -985,6 +939,9 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
 
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
+ *    @param[in]   NI            I dimension
+ *    @param[in]   NJ            J dimension
+ *    @param[in]   NK            K dimension
  *    @param[in]  Type          Data type
  *    @param[in]  Compression   Compression type
  *    @param[in]  Pack          Number of bit of precision (packing)
@@ -992,7 +949,7 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefData(json_object *Obj,char *Type,char *Compression,int32_t Pack,int32_t Size) {
+json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Size) {
 
    json_object *obj=NULL,*objval=NULL;
    int32_t i;
@@ -1017,6 +974,11 @@ json_object *Meta_DefData(json_object *Obj,char *Type,char *Compression,int32_t 
    json_pointer_get(obj,"/size",&objval);
    json_object_set_int(objval,Size);
 
+   json_pointer_get(Obj,"/size",&objval);
+   json_object_array_add(objval,json_object_new_int(NI));
+   json_object_array_add(objval,json_object_new_int(NJ));
+   json_object_array_add(objval,json_object_new_int(NK));
+
    return(Obj);
 }
 
@@ -1025,6 +987,9 @@ json_object *Meta_DefData(json_object *Obj,char *Type,char *Compression,int32_t 
 
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
+ *    @param[out]  NI            I dimension
+ *    @param[out]  NJ            J dimension
+ *    @param[out]  NK            K dimension
  *    @param[out]  Type          Data type
  *    @param[out]  Compression   Compression type
  *    @param[out]  Pack          Number of bit of precision (packing)
@@ -1032,9 +997,14 @@ json_object *Meta_DefData(json_object *Obj,char *Type,char *Compression,int32_t 
  *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_GetData(json_object *Obj,char **Type,char **Compression,int32_t *Pack,int32_t *Size) {
+json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Size) {
 
    json_object *obj=NULL,*objval=NULL;
+
+   json_pointer_get(Obj,"/size",&objval);
+   if (NI) *NI=json_object_get_int(json_object_array_get_idx(objval,0));
+   if (NJ) *NJ=json_object_get_int(json_object_array_get_idx(objval,1));
+   if (NK) *NK=json_object_get_int(json_object_array_get_idx(objval,2));
 
    json_pointer_get(Obj,"/data",&obj);
 
@@ -1504,9 +1474,6 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
 //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé                                                      
    }
 
-   // NI,NJ,NK
-   Meta_DefSize(Obj,Rec->ni,Rec->nj,Rec->nk);
-
    // NPACK,DATYP,DASIZ
    switch(Rec->datyp) {
       case FST_TYPE_BINARY:   c="bit"; break;
@@ -1515,7 +1482,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
       case FST_TYPE_FLOAT:    c="float"; break;
       case FST_TYPE_COMPLEX:  c="complex"; break;
    }
-   Meta_DefData(Obj,c,"",Rec->npak,Rec->dasiz);
+   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,c,"",Rec->npak,Rec->dasiz);
  
    // ETIKET
    snprintf(tmp,FST_ETIKET_LEN+4,"tag:%s",etiket);
@@ -1607,11 +1574,8 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    //   }
    }
 
-   // NI,NJ,NK
-   Meta_GetSize(Obj,&Rec->ni,&Rec->nj,&Rec->nk);
-
-   // NPACK,DATYP,DASIZ
-   Meta_GetData(Obj,&c1,NULL,&Rec->npak,&Rec->dasiz);
+   //  NI,NJ,NK,NPACK,DATYP,DASIZ
+   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz);
    // TODO: define datyp
    Rec->npak=-Rec->npak;
    switch(c1[0]) {

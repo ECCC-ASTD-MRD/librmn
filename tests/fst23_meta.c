@@ -45,13 +45,12 @@ int test_fst23_interface(const int is_rsf) {
 
    /// Define metadata
    Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
-   Meta_DefSize(prof_fld,DATA_SIZE,DATA_SIZE,1);
    Meta_DefBound(prof_fld,-60,50,"celsius");
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",false);
 
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,false);
-   Meta_DefData(prof_fld,"float","lorenzo",16,32);
+   Meta_DefData(prof_fld,DATA_SIZE,DATA_SIZE,1,"float","lorenzo",16,32);
    Meta_AddCellMethod(prof_fld,"interpolation:linear");
    Meta_AddCellMethod(prof_fld,"filter:gaussian");
    Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");

@@ -117,13 +117,13 @@ interface
       logical(kind=C_BOOL), value :: copy
    end FUNCTION
 
-!  json_object *Meta_DefData(json_object *Obj,char *Type,char *Compression,int32_t Pack,int32_t Size) {
-   type(C_PTR) FUNCTION meta_defdata(obj,type,compression,pack,size) BIND(C, name="Meta_DefData")
+!  json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Size) {
+   type(C_PTR) FUNCTION meta_defdata(obj,ni,nj,nk,type,compression,pack,size) BIND(C, name="Meta_DefData")
       import :: C_PTR, C_CHAR, C_INT32_T
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*) :: type,compression
-      integer(C_INT32_T),  value :: pack,size
+      integer(C_INT32_T),  value :: ni,nj,nk,pack,size
    end FUNCTION
        
 !  json_object *Meta_AddCellMethod(json_object *Obj,char *Method);
@@ -432,13 +432,13 @@ contains
       status = meta_defhorizontalref(this%json_obj,identifier//C_NULL_CHAR,copy)
    end FUNCTION
 
-   FUNCTION tmeta_defdata(this,type,compression,pack,size) result(status)
+   FUNCTION tmeta_defdata(this,ni,nj,nk,type,compression,pack,size) result(status)
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
       character(len=*) :: type,compression
-      integer(kind=INT32),  value :: pack,size
+      integer(kind=INT32),  value :: ni,nj,nk,pack,size
 
-      status = meta_defdata(this%json_obj,type//C_NULL_CHAR,compression//C_NULL_CHAR,pack,size)
+      status = meta_defdata(this%json_obj,ni,nj,nk,type//C_NULL_CHAR,compression//C_NULL_CHAR,pack,size)
    end FUNCTION
 
    FUNCTION tmeta_getobject(this,path) result(obj)
