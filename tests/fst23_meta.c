@@ -43,6 +43,9 @@ int test_fst23_interface(const int is_rsf) {
    prof_fld=Meta_LoadProfile("field",NULL);
    prof_file=Meta_LoadProfile("file",NULL);
 
+   fprintf(stderr,"Valid json:   %i\n", Meta_Is(prof_fld));
+   fprintf(stderr,"Invalid json: %i\n", Meta_Is((json_object*)test_file));
+
    /// Define metadata
    Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
    Meta_DefBound(prof_fld,-60,50,"celsius");

@@ -60,6 +60,13 @@ inline static int32_t Meta_TokenEnd(char* Token,int32_t *IsSplit) {
     return ((int)(e-Token));
 }
 
+int32_t Meta_Is(json_object *Obj) {
+
+   json_object *obj=NULL;
+
+   return(json_pointer_get(Obj,"/version",&obj)==0);
+}
+
 /**----------------------------------------------------------------------------
  * @brief  Initialise Meta package environment
 

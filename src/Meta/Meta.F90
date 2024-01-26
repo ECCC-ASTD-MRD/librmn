@@ -18,6 +18,13 @@ interface
       type(C_PTR), intent(in), value  :: obj
    end FUNCTION
 
+!  int32_t Meta_Is(json_object *Obj) {
+   integer(C_INT32_T) FUNCTION meta_is(obj) BIND(C, name="Meta_Is")
+      import :: C_PTR, C_INT32_T
+
+      type(C_PTR), intent(in), value  :: obj
+   end FUNCTION
+
 !  int Meta_Free(json_object *Obj);
    integer(C_INT32_T) FUNCTION meta_free(obj) BIND(C, name="Meta_Free")
       import :: C_PTR, C_INT32_T
