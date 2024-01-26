@@ -974,6 +974,7 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
    json_pointer_get(obj,"/size",&objval);
    json_object_set_int(objval,Size);
 
+   json_object_object_add(Obj,"size",json_object_new_array());
    json_pointer_get(Obj,"/size",&objval);
    json_object_array_add(objval,json_object_new_int(NI));
    json_object_array_add(objval,json_object_new_int(NJ));

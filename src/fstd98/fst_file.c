@@ -262,6 +262,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     int   metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
+       Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,in_dasiz);
        if ((metastr = Meta_Stringify(record->metadata))) {
           metalen = strlen(metastr);
           rec_metadata_size += ((metastr?metalen:0)+3)/4;

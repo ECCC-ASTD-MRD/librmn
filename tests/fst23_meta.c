@@ -50,7 +50,6 @@ int test_fst23_interface(const int is_rsf) {
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",false);
 
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,false);
-   Meta_DefData(prof_fld,DATA_SIZE,DATA_SIZE,1,"float","lorenzo",16,32);
    Meta_AddCellMethod(prof_fld,"interpolation:linear");
    Meta_AddCellMethod(prof_fld,"filter:gaussian");
    Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
