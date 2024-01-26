@@ -32,9 +32,9 @@ program test_meta_fortran
     obj=meta_fld%AddMissingValue("out of domain",-999.0d0)
     obj=meta_fld%AddMissingValue("bad value",-998.0d0)
  
-    obj=meta_fld%ClearCellMethods()
-    obj=meta_fld%ClearQualifiers()
-    obj=meta_fld%ClearMissingValues()
+!    obj=meta_fld%ClearCellMethods()
+!    obj=meta_fld%ClearQualifiers()
+!    obj=meta_fld%ClearMissingValues()
  
 !    Output formatted
      write(6,*) 'JSON:',meta_fld%Stringify()

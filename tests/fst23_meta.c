@@ -80,9 +80,7 @@ int test_fst23_interface(const int is_rsf) {
         strcpy(record.etiket, "float");
         strcpy(record.grtyp, "X");
 
-        char *ptr;
-        ptr=Meta_Stringify(prof_fld);
-        record.metadata = ptr;
+        record.metadata = prof_fld;
 
         if (fst23_write(test_file, &record,FALSE) < 0) {
             App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);

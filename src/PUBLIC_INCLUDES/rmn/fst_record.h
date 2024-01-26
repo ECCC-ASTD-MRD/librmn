@@ -22,7 +22,7 @@ typedef struct {
 
     // 64-bit elements first
     void*   data;     //!< Record data
-    const char* metadata; //!< Record metadata.         TODO JSON object?
+    void*   metadata; //!< Record metadata
     int64_t flags;    //!< Record status flags
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp

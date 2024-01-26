@@ -8,6 +8,7 @@
 #include "qstdir.h"
 #include "rmn/fnom.h"
 #include "xdf98.h"
+#include "rmn/Meta.h"
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
@@ -256,8 +257,16 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     const size_t num_data_bytes = num_word32 * 4;
     const size_t dir_metadata_size = (sizeof(stdf_dir_keys) + 3) / 4; // In 32-bit units
 
-    //TODO new metadata
-    const size_t rec_metadata_size = dir_metadata_size + ((record->metadata?strlen(record->metadata):0)+3)/4;
+    // New json metadata
+    char *metastr = NULL;
+    int   metalen = 0;
+    size_t rec_metadata_size = dir_metadata_size;
+    if (record->metadata) {
+       if ((metastr = Meta_Stringify(record->metadata))) {
+          metalen = strlen(metastr);
+          rec_metadata_size += ((metastr?metalen:0)+3)/4;
+       }
+    }
 
     RSF_record* new_record = RSF_New_record(file_handle, rec_metadata_size, dir_metadata_size, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
@@ -281,10 +290,9 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys* stdf_entry = (stdf_dir_keys *) new_record->meta;
 
-    //TODO Use actual new Meta
-    if (record->metadata) {
-        char* new_meta_entry = (char *)(stdf_entry + 1);                  // Just after directory metadata
-        memcpy(new_meta_entry,record->metadata,strlen(record->metadata)); // Copy metadata into RSF record struct
+    // Insert json metadata
+    if (metastr) {
+        memcpy((char *)(stdf_entry + 1),metastr,metalen); // Copy metadata into RSF record struct, just after directory metadata
     }
     
     stdf_entry->deleted = 0; // Unused by RSF

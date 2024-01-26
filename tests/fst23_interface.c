@@ -7,7 +7,7 @@
 #include <App.h>
 
 const char* test_file_name = "fst23_interface.fst";
-const char* test_meta = "testing metadata";
+//const char* test_meta = "testing metadata";
 
 const int DATA_SIZE = 1024;
 float* test_data = NULL;
@@ -60,7 +60,7 @@ void make_test_record() {
     test_record.ig4   = 0;
     test_record.datyp = FST_TYPE_FLOAT;
 
-    test_record.metadata = test_meta;
+//    test_record.metadata = test_meta;
 }
 
 int test_fst23_interface(const int is_rsf) {
