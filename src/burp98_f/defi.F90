@@ -2,36 +2,35 @@ module rmn_burp_defi
     implicit none
     save
 
-    real,    parameter :: RMANQUE   = 1.0E30    !< VALEUR REELLE POUR DONNEES MANQUANTES
-    integer, parameter :: MAXNELE   = 4000      !< LONGUEUR MAXIMALE DE LA LISTE D'ELEMENTS
-    integer, parameter :: NSTATMAX  = 12        !< LONGUEUR DU VECTEUR CONTENANT LES STATISTIQUES
-    integer, parameter :: NPRIDEF   = 18        !< NOMBRE DE CLEFS PRIMAIRES
-    integer, parameter :: NAUXDEF   = 5         !< NOMBRE DE CLEFS AUXILIAIRES
-    integer, parameter :: NPRITOT   = 18        !< NOMBRE TOTAL DE CLEFS PRIMAIRES (PRIM+SUP)
-    integer, parameter :: NAUXTOT   = 5         !< NOMBRE TOTAL DE CLEFS AUXILIAIRES
-    integer, parameter :: NPRISUP   = 0         !< NOMBRE DE CLEFS PRIMAIRES SUPPLEMENTAIRES
-    integer, parameter :: NAUXSUP   = 0         !< NOMBRE DE CLEFS AUXILIAIRES SUPPLEMENTAIRES
-    integer, parameter :: NBENTR    = 320       !< NOMBRE DE BITS DANS ENTETE GENERALE DE RAPPORT
-    integer, parameter :: NBENTB    = 128       !< NOMBRE DE BITS DANS ENTETE DE BLOC DE DONNEES
-    integer, parameter :: MAXFIL    = 16
-    integer, parameter :: GRONELE   = 128       !< DIMENSION MAX POUR NELE EN 7 BITS
-    integer, parameter :: GROSDIM   = 256       !< DIMENSION MAX POUR NVALE ET NT EN 8 BITS 
-    integer, parameter :: UNITES    = 64
-    integer, parameter :: LDESCB    = 27
-    integer, parameter :: PAGSIZ    = 255
-    integer, parameter :: NCELLMAX  = 4
-    integer, parameter :: LBKSTP    = 4         !< LONGUEUR DU SOUS-TYPE DE BTYP
-    integer, parameter :: NPRMMAX   = 10
-    integer, parameter :: TROIELM   = 3         !< nombre d'elements dans l'entete du bloc
-    integer, parameter :: BP6B      = 8
-    integer, parameter :: BP2B      = 14
-!     LDESCB   = LONGUEUR TOTALE DES TROIS DESCRIPTEURS DE BLOC
+    real,    parameter :: rmanque  = 1.0E30    !< Valeur reelle pour donnees manquantes
+    integer, parameter :: maxnele  = 4000      !< Longueur maximale de la liste d'elements
+    integer, parameter :: nstatmax = 12        !< Longueur du vecteur contenant les statistiques
+    integer, parameter :: npridef  = 18        !< Nombre de clefs primaires
+    integer, parameter :: nauxdef  = 5         !< Nombre de clefs auxiliaires
+    integer, parameter :: npritot  = 18        !< Nombre total de clefs primaires (prim+sup)
+    integer, parameter :: nauxtot  = 5         !< Nombre total de clefs auxiliaires
+    integer, parameter :: nprisup  = 0         !< Nombre de clefs primaires supplementaires
+    integer, parameter :: nauxsup  = 0         !< Nombre de clefs auxiliaires supplementaires
+    integer, parameter :: nbentr   = 320       !< Nombre de bits dans entete generale de rapport
+    integer, parameter :: nbentb   = 128       !< Nombre de bits dans entete de bloc de donnees
+    integer, parameter :: maxfil   = 16
+    integer, parameter :: gronele  = 128       !< Dimension max pour nele en 7 bits
+    integer, parameter :: grosdim  = 256       !< Dimension max pour nvale et nt en 8 bits 
+    integer, parameter :: unites   = 64
+    integer, parameter :: ldescb   = 27        !< Longueur totale des trois descripteurs de bloc
+    integer, parameter :: pagsiz   = 255
+    integer, parameter :: ncellmax = 4
+    integer, parameter :: lbkstp   = 4         !< Longueur du sous-type de btyp
+    integer, parameter :: nprmmax  = 10
+    integer, parameter :: troielm  = 3         !< Nombre d'elements dans l'entete du bloc
+    integer, parameter :: bp6b     = 8
+    integer, parameter :: bp2b     = 14
 #if defined (ALL64)
-    integer, parameter :: DIMENT    = 2
-    integer, parameter :: MAXREP    = 1024      !< NOMBRE DE MOTS POUR LE VECTEUR DE BITS DES REPETITIFS
+    integer, parameter :: diment   = 2
+    integer, parameter :: maxrep   = 1024      !< Nombre de mots pour le vecteur de bits des repetitifs
 #else
-    integer, parameter :: DIMENT    = 4
-    integer, parameter :: MAXREP    = 2048      !< NOMBRE DE MOTS POUR LE VECTEUR DE BITS DES REPETITIFS
+    integer, parameter :: diment   = 4
+    integer, parameter :: maxrep   = 2048      !< Nombre de mots pour le vecteur de bits des repetitifs
 #endif
 
 end module rmn_burp_defi
