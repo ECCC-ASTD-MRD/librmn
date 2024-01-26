@@ -46,7 +46,10 @@ int test_fst23_interface(const int is_rsf) {
    fprintf(stderr,"Valid json:   %i\n", Meta_Is(prof_fld));
    fprintf(stderr,"Invalid json: %i\n", Meta_Is((json_object*)test_file));
 
-   /// Define metadata
+   // Define file metadata
+   Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
+
+   // Define field metadata
    Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
    Meta_DefBound(prof_fld,-60,50,"celsius");
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
@@ -63,6 +66,29 @@ int test_fst23_interface(const int is_rsf) {
 
     // Write a record
     {
+
+        fst_record file_meta = fst23_record_init(data,FST_TYPE_FLOAT,32,1,1,1);
+        file_meta.npak = -32;
+        file_meta.dateo = 0;
+        file_meta.deet = 0;
+        file_meta.npas = 0;
+        file_meta.ip1  = 0;
+        file_meta.ip2  = 0;
+        file_meta.ip3  = 0;
+        file_meta.ig1   = 0;
+        file_meta.ig2   = 0;
+        file_meta.ig3   = 0;
+        file_meta.ig4   = 0;
+        strcpy(file_meta.typvar, "X");
+        strcpy(file_meta.nomvar, "JSON");
+        strcpy(file_meta.etiket, "FILE_META");
+        strcpy(file_meta.grtyp, "X");
+        file_meta.metadata = prof_file;
+        if (fst23_write(test_file, &file_meta,FALSE) < 0) {
+            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+            return -1;
+        }
+        
         fst_record record = fst23_record_init(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
         record.npak = -32;
         int32_t date;
@@ -73,10 +99,10 @@ int test_fst23_interface(const int is_rsf) {
         record.ip1  = 1;
         record.ip2  = 1;
         record.ip3  = 1;
-        record.ig1   = 0;
-        record.ig2   = 0;
-        record.ig3   = 0;
-        record.ig4   = 0;
+        record.ig1   = 1;
+        record.ig2   = 2;
+        record.ig3   = 3;
+        record.ig4   = 4;
         strcpy(record.typvar, "P");
         strcpy(record.nomvar, "WAVE");
         strcpy(record.etiket, "float");
@@ -127,6 +153,12 @@ int test_fst23_interface(const int is_rsf) {
         fst_record search_criteria = default_fst_record;
         fst_record record_find = default_fst_record;
         fst_record record;
+
+        fprintf(stderr,"%i\n",fst23_read_new(test_file, &record_find));
+        meta=Meta_Parse(record_find.metadata);
+        Meta_Resolve(meta);
+        fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
+       
         strcpy(search_criteria.typvar, "P");
  
         // Test find loop

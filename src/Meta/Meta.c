@@ -1044,6 +1044,7 @@ json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,c
  *    @param[in]   Title         ex: G100
  *    @param[in]   Source        ex: GDPS-5.2.0
  *    @param[in]   Description   ex: Global system ...
+ *    @param[in]   State         ex: Experimental,Parallel,Operational, ...
  *
  *    @return                    object reference
 */
@@ -1052,7 +1053,7 @@ json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,c
 //   "title" : "",
 //   "source" : "",
 //   "description" : "",
-json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description) {
+json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description,char *State) {
 
    json_object *objval=NULL;
 

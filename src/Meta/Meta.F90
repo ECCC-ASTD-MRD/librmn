@@ -54,15 +54,20 @@ interface
       character(C_CHAR), dimension(*), intent(in) :: version
    end FUNCTION
 
+!  json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description,char *State);
+   type(C_PTR) FUNCTION meta_deffile(obj,institution,discipline,title,source,description,state) BIND(C, name="Meta_DefVar")
+      import :: C_PTR, C_CHAR
+
+      type(C_PTR), intent(in), value :: obj
+      character(C_CHAR), dimension(*), intent(in) :: institution,discipline,title,source,description,state        
+   end FUNCTION
+
 !  json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description);
    type(C_PTR) FUNCTION meta_defvar(obj,standardname,rpnname,longname,description) BIND(C, name="Meta_DefVar")
       import :: C_PTR, C_CHAR
 
       type(C_PTR), intent(in), value :: obj
-      character(C_CHAR), dimension(*), intent(in) :: standardname
-      character(C_CHAR), dimension(*), intent(in):: rpnname
-      character(C_CHAR), dimension(*), intent(in) :: longname
-      character(C_CHAR), dimension(*), intent(in) :: description
+      character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description
    end FUNCTION
 
 !  json_object *Meta_DefBound(json_object *Obj,double Min,double Max,const char* Unit);
@@ -264,6 +269,7 @@ end interface
       procedure, pass :: addcellmethod => tmeta_addcellmethod
       procedure, pass :: clearcellmethods => tmeta_clearcellmethods
       procedure, pass :: stringify => tmeta_stringify
+      procedure, pass :: deffile => tmeta_deffile
       procedure, pass :: defvar => tmeta_defvar
       procedure, pass :: defbound => tmeta_defbound
       procedure, pass :: defforecasttime => tmeta_defforecasttime
@@ -389,6 +395,14 @@ contains
 
       fstring = C_F_STRING_CONVERT(meta_stringify(this%json_obj))
    end FUNCTION tmeta_stringify
+
+   FUNCTION tmeta_deffile(this,institution,discipline,title,source,description,state) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: institution,discipline,title,source,description,state
+
+      status = meta_deffile(this%json_obj,institution//C_NULL_CHAR,discipline//C_NULL_CHAR,title//C_NULL_CHAR,source//C_NULL_CHAR,description//C_NULL_CHAR,state//C_NULL_CHAR)
+   end FUNCTION
 
    FUNCTION tmeta_defvar(this,standardname,rpnname,longname,description) result(status)
       class(meta), intent(inout) :: this
