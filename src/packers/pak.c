@@ -168,6 +168,7 @@ void f77name(xxpak) (
     const int ninj = ((*ni) * (*nj));
     int oper = *mode;
     const double tempFloat = 9999.0000;
+    double dmin=0.0,dmax=0.0;
 
     int lnBits = (*nBits);
     if (*nBits > 1) {
@@ -196,7 +197,7 @@ void f77name(xxpak) (
 
       if (oper == 1) {
             // Pack
-            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat);
+            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat, &dmin, &dmax);
             for (int i = 0; i < lengthOfIntArray; i++) {
                 ptrXpacked[i] = tempIntArray[i];
             }
@@ -205,11 +206,11 @@ void f77name(xxpak) (
             for (int i = 0; i < lengthOfIntArray; i++) {
                 tempIntArray[i] = ptrXpacked[i] ;
             }
-            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat);
+            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat, &dmin, &dmax);
         }
 
         free(tempIntArray);
     } else {
-        (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat);
+        (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat, &dmin, &dmax);
     }
 }

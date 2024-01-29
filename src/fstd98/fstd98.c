@@ -928,6 +928,7 @@ int c_fstecr_xdf(
     int datyp = in_datyp == 801 ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
+    double dmin=0.0,dmax=0.0;
     if ((xdf_double) || (in_datyp == 801)) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
@@ -1270,12 +1271,12 @@ int c_fstecr_xdf(
                     /* use an additional compression scheme */
                     /* nbits>64 flags a different packing */
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
-                        ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat);
+                        ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
-                            ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
+                            ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                     } else {
                         int nbytes = 16 + compressed_lng;
                         // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
@@ -1287,7 +1288,7 @@ int c_fstecr_xdf(
                     }
                 } else {
                     packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
-                        ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
+                        ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                 }
                 break;
             }
@@ -2654,10 +2655,11 @@ int c_fstluk_xdf(
     xdf_datatyp = stdf_entry.datyp;
 
     PackFunctionPointer packfunc;
+    double dmin=0.0,dmax=0.0;
     if (xdf_double) {
-        packfunc = &compact_double;
+        packfunc = (PackFunctionPointer) &compact_double;
     } else {
-        packfunc = &compact_float;
+        packfunc = (PackFunctionPointer) &compact_float;
     }
 
     lng = W64TOWD(lng);
@@ -2770,9 +2772,9 @@ int c_fstluk_xdf(
                     int nbytes = armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
-                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
+                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
                 } else {
-                    packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
+                    packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
                 }
                 break;
             }

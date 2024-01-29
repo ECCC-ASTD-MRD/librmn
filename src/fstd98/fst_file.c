@@ -116,6 +116,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     int datyp = in_datyp == 801 ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
+    double dmin=0.0,dmax=0.0;
     if (in_dasiz == 64 || in_datyp == 801) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
@@ -417,13 +418,13 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
                     /* nbits>64 flags a different packing */
                     // Use data pointer as uint32_t for compatibility with XDF format
                     packfunc(field, (void *)&((uint32_t *)new_record->data)[1], (void *)&((uint32_t *)new_record->data)[5],
-                        num_elements, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat);
+                        num_elements, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                     const int compressed_lng = armn_compress((unsigned char *)((uint32_t *)new_record->data + 5),
                                                              record->ni, record->nj, record->nk, nbits, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
-                            num_elements, nbits, 24, xdf_stride, 1, 0, &tempfloat);
+                            num_elements, nbits, 24, xdf_stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                     } else {
                         int nbytes = 16 + compressed_lng;
                         const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
@@ -433,7 +434,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
                     }
                 } else {
                     packfunc(field, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
-                        num_elements, nbits, 24, xdf_stride, 1, 0, &tempfloat);
+                        num_elements, nbits, 24, xdf_stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                 }
                 break;
             }
@@ -604,6 +605,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
                 return ERR_BAD_DATYP;
         } /* end switch */
     } /* end if image mode copy */
+
 
     /* write new_record to file and add entry to directory */
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);

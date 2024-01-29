@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-static const char*   FST_TYPE_NAMES[]   = { "bit","fortran real","unsigned int","byte","signed int","float","float16","string","complex" };
+static char*   FST_TYPE_NAMES[]   = { "bit","fortran real","unsigned int","byte","signed int","float","float16","string","complex" };
 static const int32_t FST_TYPE_BINARY    = 0;
 static const int32_t FST_TYPE_FREAL     = 1;
 static const int32_t FST_TYPE_UNSIGNED  = 2;

@@ -105,7 +105,7 @@ int c_xdfcheck(
     }
 
     if (header.idtyp != 0) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: rong header ID type (%d), should be %d\n",__func__,header.idtyp,0);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Wrong header ID type (%d), should be %d\n",__func__,header.idtyp,0);
         return(ERR_DAMAGED);
     }
 

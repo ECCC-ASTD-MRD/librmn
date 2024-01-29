@@ -55,7 +55,11 @@ void *compact_FLOAT_TYPE(
     //! [in] Set to 1 when there are missing values, 0 otherwise
     const int hasMissing,
     //! [in] Missing value identifier
-    const void * const missingTag
+    const void * const missingTag,
+    //! [out] Minimun value in array
+    double *min,
+    //! [out] Maximum value in array
+    double *max
 ) {
     // Declare header type
     typedef struct {
@@ -207,6 +211,9 @@ void *compact_FLOAT_TYPE(
             Lib_Log(APP_LIBRMN,APP_ERROR,"%f: floating point packer, number too large minFloat=%E maxFloat=%E\n",__func__,minFloat,maxFloat);
             exit(33);
         }
+        *min=minFloat;
+        *max=maxFloat;
+
         rangeTemplate.XD = (maxFloat - minFloat)*2;
         minFloatTemplate.XD = minFloat;
 

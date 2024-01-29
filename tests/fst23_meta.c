@@ -69,144 +69,152 @@ int test_fst23_interface(const int is_rsf) {
    Meta_AddMissingValue(prof_fld,"out_of_domain",-999);
 
     // Write a record
-    {
+   {
 
-        fst_record file_meta = fst23_record_init(data,FST_TYPE_FLOAT,32,1,1,1);
-        file_meta.npak = -32;
-        file_meta.dateo = 0;
-        file_meta.deet = 0;
-        file_meta.npas = 0;
-        file_meta.ip1  = 0;
-        file_meta.ip2  = 0;
-        file_meta.ip3  = 0;
-        file_meta.ig1   = 0;
-        file_meta.ig2   = 0;
-        file_meta.ig3   = 0;
-        file_meta.ig4   = 0;
-        strcpy(file_meta.typvar, "X");
-        strcpy(file_meta.nomvar, "JSON");
-        strcpy(file_meta.etiket, "FILE_META");
-        strcpy(file_meta.grtyp, "X");
-        file_meta.metadata = prof_file;
-        if (fst23_write(test_file, &file_meta,FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
-            return -1;
-        }
+      fst_record file_meta = fst23_record_init(data,FST_TYPE_FLOAT,32,1,1,1);
+      file_meta.npak = -32;
+      file_meta.dateo = 0;
+      file_meta.deet = 0;
+      file_meta.npas = 0;
+      file_meta.ip1  = 0;
+      file_meta.ip2  = 0;
+      file_meta.ip3  = 0;
+      file_meta.ig1   = 0;
+      file_meta.ig2   = 0;
+      file_meta.ig3   = 0;
+      file_meta.ig4   = 0;
+      strcpy(file_meta.typvar, "X");
+      strcpy(file_meta.nomvar, "JSON");
+      strcpy(file_meta.etiket, "FILE_META");
+      strcpy(file_meta.grtyp, "X");
+      file_meta.metadata = prof_file;
+      if (fst23_write(test_file, &file_meta,FALSE) < 0) {
+         App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+         return -1;
+      }
         
-        fst_record record = fst23_record_init(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
-        record.npak = -32;
-        int32_t date;
-        Meta_StampEncode(&date,2022,06,10,0,0,0);
-        record.dateo = date;
-        record.deet = 300;
-        record.npas = 0;
-        record.ip1  = 1;
-        record.ip2  = 1;
-        record.ip3  = 1;
-        record.ig1   = 1;
-        record.ig2   = 2;
-        record.ig3   = 3;
-        record.ig4   = 4;
-        strcpy(record.typvar, "P");
-        strcpy(record.nomvar, "WAVE");
-        strcpy(record.etiket, "float");
-        strcpy(record.grtyp, "X");
+      fst_record record = fst23_record_init(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
+      record.npak = -32;
+      int32_t date;
+      Meta_StampEncode(&date,2022,06,10,0,0,0);
+      record.dateo = date;
+      record.deet = 300;
+      record.npas = 0;
+      record.ip1  = 1;
+      record.ip2  = 1;
+      record.ip3  = 1;
+      record.ig1   = 1;
+      record.ig2   = 2;
+      record.ig3   = 3;
+      record.ig4   = 4;
+      strcpy(record.typvar, "P");
+      strcpy(record.nomvar, "WAVE");
+      strcpy(record.etiket, "float");
+      strcpy(record.grtyp, "X");
 
-        record.metadata = prof_fld;
+      record.metadata = prof_fld;
 
-        if (fst23_write(test_file, &record,FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
-            return -1;
-        }
-        strcpy(record.nomvar, "Sun ");
-        if (fst23_write(test_file, &record,FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
-            return -1;
-        }
+      if (fst23_write(test_file, &record,FALSE) < 0) {
+         App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+         return -1;
+      }
+      strcpy(record.nomvar, "Sun ");
+      if (fst23_write(test_file, &record,FALSE) < 0) {
+         App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+         return -1;
+      }
 
-        strcpy(record.nomvar, "Not ");
-        strcpy(record.typvar, "A");
-        if (fst23_write(test_file, &record,FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
-            return -1;
-        }
+      strcpy(record.nomvar, "Not ");
+      strcpy(record.typvar, "A");
+      if (fst23_write(test_file, &record,FALSE) < 0) {
+         App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+         return -1;
+      }
 
-        Meta_To89(prof_fld,&record);
-        if (fst23_write(test_file, &record,FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
-            return -1;
-        }
-    }
+      Meta_To89(prof_fld,&record);
+      if (fst23_write(test_file, &record,FALSE) < 0) {
+         App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
+         return -1;
+      }
+   }
 
     // Close the new file
-    if (fst23_close(test_file) < 0) {
-        App_Log(APP_ERROR, "Unable to close new file %s\n", test_file_name);
-        return -1;
-    }
+   if (fst23_close(test_file) < 0) {
+      App_Log(APP_ERROR, "Unable to close new file %s\n", test_file_name);
+      return -1;
+   }
 
-    // Open existing file
-    const char* options2 = "RND+R/O";
-    test_file = fst23_open(test_file_name, options2);
-    if (test_file == NULL) {
-        App_Log(APP_ERROR, "Unable to open newly-created test file with name %s and options %s\n", test_file_name, options2);
-        return -1;
-    }
+   // Open existing file
+   const char* options2 = "RND+R/O";
+   test_file = fst23_open(test_file_name, options2);
+   if (test_file == NULL) {
+      App_Log(APP_ERROR, "Unable to open newly-created test file with name %s and options %s\n", test_file_name, options2);
+      return -1;
+   }
 
-    {
-        int32_t key;
-        fst_record search_criteria = default_fst_record;
-        fst_record record_find = default_fst_record;
-        fst_record record;
+   {
+      int32_t key;
+      fst_record search_criteria = default_fst_record;
+      fst_record search_extra = default_fst_record;
+      fst_record record_find = default_fst_record;
+      fst_record record;
 
-        fst23_set_search_criteria(test_file, &record_find);
-        fst23_find_next(test_file, &record_find);
-        key=fst23_read_new(test_file, &record_find);
-        meta=Meta_Parse(record_find.metadata);
-        fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
+      search_extra.ig1=68839;
+      search_extra.ni=1024;
+      search_extra.grtyp[0]='Z';
+      fst23_set_search_criteria(test_file, &search_extra);
+      fst23_find_next(test_file, &record_find);
+      key=fst23_read_new(test_file, &record_find);
 
-        strcpy(search_criteria.typvar, "P");
- 
-        // Test find loop
-        fprintf(stdout,"\nfind loop:\n");
-        int num_found = 0;
-        fst23_set_search_criteria(test_file, &search_criteria);
-        while(key=fst23_find_next(test_file, &record_find)) {
-            fst23_record_print(&record_find);
-            fst23_read_new(test_file,&record_find);
-            num_found++;
-        }
+      fst23_set_search_criteria(test_file, &record_find);
+      fst23_find_next(test_file, &record_find);
+      key=fst23_read_new(test_file, &record_find);
+      meta=Meta_Parse(record_find.metadata);
+      fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
 
-        if (num_found < 3) {
-            fprintf(stderr, "Could not find all (3) records we should\n");
-            return -1;
-        }
+      strcpy(search_criteria.typvar, "P");
 
-        fprintf(stdout,"\nread found:\n");
-        fst23_read_new(test_file, &record_find);
-        fst23_record_print(&record_find);
+      // Test find loop
+      fprintf(stdout,"\nfind loop:\n");
+      int num_found = 0;
+      fst23_set_search_criteria(test_file, &search_criteria);
+      while(key=fst23_find_next(test_file, &record_find)) {
+         fst23_record_print(&record_find);
+         fst23_read_new(test_file,&record_find);
+         num_found++;
+      }
 
-        meta=Meta_LoadProfile("field",NULL);
-        Meta_From89(meta,&record_find);
-        fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
-       
-        // Test read loop
-        fprintf(stdout,"\nread loop:\n");
-        fst_record record_read = default_fst_record;
-        strcpy(record_read.typvar, "P");
-        while(fst23_read_new(test_file,&record_read)) {
-           fst23_record_print(&record_read);
-           meta=Meta_Parse(record_read.metadata);
-           Meta_Resolve(meta,prof_file);
-           fprintf(stderr,"JSON: %p %s\n",record_read.metadata,Meta_Stringify(meta));
-        }
-    }
+      if (num_found < 3) {
+         fprintf(stderr, "Could not find all (3) records we should\n");
+         return -1;
+      }
 
-    if (fst23_close(test_file) < 0) {
-        App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
-        return -1;
-    }
+      fprintf(stdout,"\nread found:\n");
+      fst23_read_new(test_file, &record_find);
+      fst23_record_print(&record_find);
 
-    return 0;
+      meta=Meta_LoadProfile("field",NULL);
+      Meta_From89(meta,&record_find);
+      fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
+
+      // Test read loop
+      fprintf(stdout,"\nread loop:\n");
+      fst_record record_read = default_fst_record;
+      strcpy(record_read.typvar, "P");
+      while(fst23_read_new(test_file,&record_read)) {
+         fst23_record_print(&record_read);
+         meta=Meta_Parse(record_read.metadata);
+         Meta_Resolve(meta,prof_file);
+         fprintf(stderr,"JSON: %p %s\n",record_read.metadata,Meta_Stringify(meta));
+      }
+   }
+
+   if (fst23_close(test_file) < 0) {
+      App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
+      return -1;
+   }
+
+   return 0;
 }
 
 int main(void) {

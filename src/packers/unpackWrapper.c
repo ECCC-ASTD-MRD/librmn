@@ -43,13 +43,14 @@ void unpackWrapper(
 ) {
     uint32_t *packHeader = (uint32_t *)packedHeader;
     uint32_t headerType = packHeader[0] >> 24;
+    double dmin=0.0,dmax=0.0;
 
     if (( headerType == 0x0000007f ) || ( headerType == 0x000000ff )) {
         // Floating point, without missing value
-        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 0, missingValueTag);
+        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 0, missingValueTag, &dmin, &dmax);
     } else if (( headerType == 0x0000007e ) || ( headerType == 0x000000fe )) {
         // Floating point, with missing value
-        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 1, missingValueTag);
+        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 1, missingValueTag, &dmin, &dmax);
     } else if ( headerType == 0x000000fb ) {
         compact_IEEEblock_float(unpackedArray, packedHeader, packedArray, -1, -1, -1, 0, stride, 2, 0, missingValueTag);
     } else if ( headerType == 0x000000fd ) {

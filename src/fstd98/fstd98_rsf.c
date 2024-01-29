@@ -121,6 +121,7 @@ int c_fstecr_rsf(
     int datyp = in_datyp == 801 ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
+    double dmin=0.0,dmax=0.0;
     if ((xdf_double) || (in_datyp == 801)) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
@@ -445,12 +446,12 @@ int c_fstecr_rsf(
                     /* nbits>64 flags a different packing */
                     // Use data pointer as uint32_t for compatibility with XDF format
                     packfunc(field, (void *)&((uint32_t *)record->data)[1], (void *)&((uint32_t *)record->data)[5],
-                        ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat);
+                        ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                     const int compressed_lng = armn_compress((unsigned char *)((uint32_t *)record->data + 5), ni, nj, nk, nbits, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field, (void*)record->data, (void*)&((uint32_t*)record->data)[3],
-                            ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
+                            ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                     } else {
                         int nbytes = 16 + compressed_lng;
                         const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
@@ -460,7 +461,7 @@ int c_fstecr_rsf(
                     }
                 } else {
                     packfunc(field, (void*)record->data, (void*)&((uint32_t*)record->data)[3],
-                        ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat);
+                        ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                 }
                 break;
             }
@@ -1025,10 +1026,11 @@ int c_fstluk_rsf(
     xdf_datatyp = stdf_entry->datyp;
 
     PackFunctionPointer packfunc;
+    double dmin=0.0,dmax=0.0;
     if (stdf_entry->dasiz==64) {
-        packfunc = &compact_double;
+        packfunc = (PackFunctionPointer) &compact_double;
     } else {
-        packfunc = &compact_float;
+        packfunc = (PackFunctionPointer) &compact_float;
     }
 
     const size_t record_size_32 = record->rsz / 4;
@@ -1083,9 +1085,9 @@ int c_fstluk_rsf(
                 if (stdf_entry->datyp > 128) {
                     armn_compress((unsigned char *)(record_data + 5), *ni, *nj, *nk, stdf_entry->nbits, 2);
                     packfunc(field, record_data + 1, record_data + 5, nelm, stdf_entry->nbits + 64 * Max(16, stdf_entry->nbits),
-                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
+                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
                 } else {
-                    packfunc(field, record_data, record_data + 3, nelm, stdf_entry->nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat);
+                    packfunc(field, record_data, record_data + 3, nelm, stdf_entry->nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
                 }
                 break;
             }

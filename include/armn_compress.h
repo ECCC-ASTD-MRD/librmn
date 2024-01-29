@@ -11,7 +11,9 @@ typedef void *(*PackFunctionPointer)(
     const int stride,
     const int opCode,
     const int hasMissing,
-    const void * const missingTag
+    const void * const missingTag,
+    void *min,
+    void *max
 );
 
 int armn_compress(unsigned char *fld, int ni, int nj, int nk, int nbits, int op_code);
@@ -37,7 +39,9 @@ void *compact_float(
     const int stride,
     const int opCode,
     const int hasMissing,
-    const void * const missingTag
+    const void * const missingTag,
+    void *min,
+    void *max
 );
 
 void *compact_double(
@@ -50,7 +54,9 @@ void *compact_double(
     const int stride,
     const int opCode,
     const int hasMissing,
-    const void * const missingTag
+    const void * const missingTag,
+    void *min,
+    void *max
 );
 
 #endif
