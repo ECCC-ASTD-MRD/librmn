@@ -41,7 +41,7 @@
 !     OPVALR     SORTIE     VALEUR  DONNEE A L'OPTION
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 !
 !MODULE 
 !* 

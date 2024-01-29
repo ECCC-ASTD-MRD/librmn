@@ -41,7 +41,7 @@
 !     HANDLE  ENTREE  POINTEUR A L'ENREGISTREMENT A EFFACER
 !                                                         
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 !
 !MODULE 
       EXTERNAL XDFDEL, mrfprm

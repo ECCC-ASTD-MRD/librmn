@@ -41,7 +41,7 @@
 !     OPVALR     "     VALEUR A DONNER A L'OPTION
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 !
 !MODULES
 

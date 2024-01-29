@@ -44,7 +44,7 @@
 !     INMODE    "     MODE D'OUVERTURE (READ,CREATE,APPEND)
 !                                                         
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include "bpl.cdk"
 #include "enforc8.cdk"
 !

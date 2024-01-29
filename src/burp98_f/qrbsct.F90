@@ -51,7 +51,7 @@
 !     NELELU   SORTI   NOMBRE D'ELEMENTS LUS
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include <ftnmacros.hf>
 !
 !MODULES

@@ -55,7 +55,7 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
 !REV 004 M. Lepine   Avr     2000 appel a char2rah au lieu de read et hrjust
 !REV 005 M. Lepine   Jan     2003 date est un argument d'entree seulement
 
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include "enforc8.cdk"
 
     EXTERNAL char2rah

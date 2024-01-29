@@ -21,7 +21,7 @@
 module mrb_cvt_sct_tbl
       use rmn_burp_defi
       use rmn_burpopt
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include <ftnmacros.hf>
       LOGICAL PREMIER
       INTEGER TABLEAU(3,MAXNELE), NELELU
@@ -67,8 +67,6 @@ end module
       EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
       INTEGER  QRBSCT, BUFRCHR
 
-!
-!*
 
 !******************************************************************************
 !       LA MATRICE TABLEAU CONTIENT:

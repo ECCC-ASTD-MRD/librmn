@@ -65,7 +65,7 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
 
     integer :: retval
 
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include "enforc8.cdk"
 
     external xdfini, char2rah

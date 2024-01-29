@@ -64,9 +64,9 @@
 !     BUF       "     VECTEUR QUI CONTIENDRA LES ENREGISTREMENTS
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include "enforc8.cdk"
-!
+
 !MODULES 
       integer getbuf8
       external getbuf8

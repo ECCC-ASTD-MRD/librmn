@@ -60,7 +60,7 @@ integer function mrbprml(buf, inbkno, tblprm, nprm, inblocs)
 !
 !IMPLICITES
 #include "bpl.cdk"
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include <ftnmacros.hf>
 
     EXTERNAL XDFXTR, getbuf8
