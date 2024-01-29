@@ -71,7 +71,7 @@ int test_fst23_interface(const int is_rsf) {
     // Write a record
    {
 
-      fst_record file_meta = fst23_record_init(data,FST_TYPE_FLOAT,32,1,1,1);
+      fst_record file_meta = fst23_record_init(data,FST_TYPE_REAL,32,1,1,1);
       file_meta.npak = -32;
       file_meta.dateo = 0;
       file_meta.deet = 0;
@@ -93,7 +93,7 @@ int test_fst23_interface(const int is_rsf) {
          return -1;
       }
         
-      fst_record record = fst23_record_init(data,FST_TYPE_FLOAT,32,DATA_SIZE,DATA_SIZE,1);
+      fst_record record = fst23_record_init(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);
       record.npak = -32;
       int32_t date;
       Meta_StampEncode(&date,2022,06,10,0,0,0);

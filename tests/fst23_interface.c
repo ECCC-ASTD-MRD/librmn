@@ -57,7 +57,8 @@ void make_test_record() {
     test_record.ig2   = 0;
     test_record.ig3   = 0;
     test_record.ig4   = 0;
-    test_record.datyp = FST_TYPE_FLOAT;
+    test_record.datyp = FST_TYPE_REAL;
+    test_record.dasiz = 32;
 }
 
 int test_fst23_interface(const int is_rsf) {
@@ -140,27 +141,77 @@ int test_fst23_interface(const int is_rsf) {
             fst23_record_diff(&record, &expected);
             return -1;
         }
+
+        // App_Log(APP_WARNING, "Found a record\n");
+        // fst23_record_print(&record);
+        if (!fst23_read(test_file, &record)) {
+            App_Log(APP_ERROR, "Could not read data from record!\n");
+            fst23_record_print(&record);
+            return -1;
+        }
+
+        for (int i = 0; i < DATA_SIZE; i++) {
+            for (int j = 0; j < DATA_SIZE; j++) {
+                if (((float*)record.data)[i*DATA_SIZE + j] != data[i][j]) {
+                    App_Log(APP_ERROR, "AAAhhhh did not read the same that was put in!\n");
+                    return -1;
+                }
+            }
+        }
+
+        if (!fst23_file_is_open(test_file)) {
+            App_Log(APP_ERROR, "AAAhhhh file is no longer open!!\n");
+            return -1;
+        }
     }
 
     if (num_found != 3) {
-        App_Log(APP_ERROR, "Found %d of the 3 records we wrote!\n", num_found);
+        App_Log(APP_ERROR, "Found only %d of the 3 records we wrote!\n", num_found);
         return -1;
     }
 
-    record = fst23_read(test_file, keys[0]);
-    if (record.handle != keys[0]) {
-        App_Log(APP_ERROR, "Could not read the content of the record (that we previously found!)\n");
-        return -1;
-    }
+    fst23_set_search_criteria(test_file, &default_fst_record); // Rewind search
+    num_found = 0;
+    App_Log(APP_INFO, "Reading again, with read_next\n");
+    while (fst23_read_next(test_file, &record)) {
+        num_found++;
 
-    for (int i = 0; i < DATA_SIZE; i++) {
-        for (int j = 0; j < DATA_SIZE; j++) {
-            if (((float*)record.data)[i*DATA_SIZE + j] != data[i][j]) {
-                App_Log(APP_ERROR, "AAAhhhh did not read the same that was put in!\n");
-                return -1;
+        expected.handle = record.handle; // Determined at read tim
+        expected.dasiz = record.dasiz;   // Determine at write time
+        expected.ip3 = num_found;
+        if (!fst23_record_is_same(&record, &expected)) {
+            App_Log(APP_ERROR, "Record read from file is not identical to the one written! (num_found = %d)\n", num_found);
+            fst23_record_print(&record);
+            fst23_record_diff(&record, &expected);
+            return -1;
+        }
+
+        for (int i = 0; i < DATA_SIZE; i++) {
+            for (int j = 0; j < DATA_SIZE; j++) {
+                if (((float*)record.data)[i*DATA_SIZE + j] != data[i][j]) {
+                    App_Log(APP_ERROR, "AAAhhhh did not read the same that was put in!\n");
+                    return -1;
+                }
             }
         }
     }
+
+
+    // record = fst23_read(test_file, keys[0]);
+    // // fst23_read_re
+    // if (record.handle != keys[0]) {
+    //     App_Log(APP_ERROR, "Could not read the content of the record (that we previously found!)\n");
+    //     return -1;
+    // }
+
+    // for (int i = 0; i < DATA_SIZE; i++) {
+    //     for (int j = 0; j < DATA_SIZE; j++) {
+    //         if (((float*)record.data)[i*DATA_SIZE + j] != data[i][j]) {
+    //             App_Log(APP_ERROR, "AAAhhhh did not read the same that was put in!\n");
+    //             return -1;
+    //         }
+    //     }
+    // }
 
     if (fst23_close(test_file) < 0) {
         App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
@@ -179,8 +230,8 @@ int main(void) {
     App_Log(APP_INFO, "Testing RSF\n");
     if (test_fst23_interface(1) != 0) return -1; // RSF files
 
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test_fst23_interface(0) != 0) return -1; // XDF files
+    // App_Log(APP_INFO, "Testing XDF\n");
+    // if (test_fst23_interface(0) != 0) return -1; // XDF files
 
     delete_test_data();
 

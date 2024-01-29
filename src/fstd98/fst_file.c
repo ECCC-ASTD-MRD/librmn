@@ -94,7 +94,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     }
 
     const int num_elements = record->ni * record->nj * record->nk;
-    int in_dasiz = record->dasiz;
+    // int in_dasiz = record->dasiz;
 
     // will be cancelled later if not supported or no missing values detected
     // missing value feature used flag
@@ -117,7 +117,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
 
     PackFunctionPointer packfunc;
     double dmin=0.0,dmax=0.0;
-    if (in_dasiz == 64 || in_datyp == 801) {
+    if (record->dasiz == 64 || in_datyp == 801) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
         packfunc = (PackFunctionPointer) &compact_float;
@@ -146,11 +146,10 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
         minus_nbits = -32;
     }
 
-    /* flag 64 bit IEEE (type 5 or 8) */
-    /* 64 bits real IEEE */
-    if ( ((in_datyp & 0xF) == 5) && (nbits == 64) ) in_dasiz=64;
-    /* 64 bits complex IEEE */
-    if ( ((in_datyp & 0xF) == 8) && (nbits == 64) ) in_dasiz=64;
+
+    /* flag 64 bit IEEE */
+    const int force_64 = (nbits == 64 && (is_type_real(in_datyp) || is_type_complex(in_datyp)));
+    const int8_t elem_size = force_64 ? 64 : record->dasiz;
 
     /* validate range of arguments */
     if (fst23_record_validate_params(record) != 0) {
@@ -263,7 +262,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     int   metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
-       Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,in_dasiz);
+       Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz);
        if ((metastr = Meta_Stringify(record->metadata))) {
           metalen = strlen(metastr);
           rec_metadata_size += ((metastr?metalen:0)+3)/4;
@@ -353,7 +352,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     stdf_entry->ip3 = record->ip3;
     stdf_entry->pad6 = 0;
     stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
-    stdf_entry->dasiz = in_dasiz;
+    stdf_entry->dasiz = elem_size;
 
     uint32_t * field = record->data;
     if (image_mode_copy) {
@@ -653,72 +652,6 @@ int32_t fst23_write(fst_file* file, const fst_record* record,int rewrit) {
     } // End switch
 }
 
-fst_record fst23_read(fst_file* file, const int64_t key) {
-    fst_record result = default_fst_record;
-    int        idum;
-
-    if (!fst23_file_is_open(file)) return result;
-    if (key < 0) return result;
-
-    switch(file->type) {
-        case FST_RSF: {
-                RSF_handle    file_handle = RSF_Key64_to_handle(key);
-                RSF_record*   rec = RSF_Get_record(file_handle, key);
-
-                if (rec == NULL) {
-                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x \n",__func__,key);
-                    return result;
-                }
-
-                stdf_dir_keys* stdf_entry = (stdf_dir_keys*)rec->meta;
-
-                if (rec->rec_meta > rec->dir_meta) {
-                    result.metadata = (char*)(stdf_entry + 1); // Right after directory metadata
-                    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record 0x%x\n",__func__,result.metadata,key);
-                }
-
-                //TODO This is reading it a second time!!!! Should unpack right here rather than using fstluk!!!!
-                result.data = malloc(stdf_entry->ni * stdf_entry->nj * stdf_entry->nk * 16 + 500); //TODO allocate the right amount
-
-                c_fstluk_rsf(result.data, file_handle, RSF_Key32(key), &result.ni, &result.nj, &result.nk);
-                result.handle = key;
-                fill_with_dir_keys(&result, stdf_entry);
-
-                //TODO Need to free the record. But the metadata has to be copied first!
-                // free(rec);
-
-                break;
-            }
-        case FST_XDF: {
-                const int32_t key32 = key & 0xffffffff;
-                stdf_dir_keys stdf_entry;
-                uint32_t * pkeys = (uint32_t *) &stdf_entry;
-                pkeys += W64TOWD(1);
-
-                {
-                    int addr, lng, idtyp;
-                    int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
-                    if (ier < 0) return result;
-                }
-
-                int ni = stdf_entry.ni;
-                int nj = stdf_entry.nj;
-                int nk = stdf_entry.nk;
-
-                result.data = malloc(ni * nj * nk * 16 + 500); //TODO allocate the right amount
-                c_fstluk_xdf(result.data, key32, &ni, &nj, &nk);
-                result.handle = key;
-                fill_with_dir_keys(&result, &stdf_entry);
-                break;
-            }
-        default:
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
-            break;
-    }
-
-    return result;
-}
-
 //! Get basic information about the record with the given key (search or "directory" metadata)
 //! \return TRUE if we were able to get the info, FALSE otherwise
 int32_t fst23_get_record_from_key(
@@ -841,8 +774,282 @@ int32_t fst23_find(
     return fst23_find_next(file, result);
 }
 
+
+int32_t fst23_unpack_data(
+    void* dest,
+    void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
+    const fst_record* record, //!< [in] Record information
+    const int32_t skip_unpack,//!< Whether to just copy the data rather than unpacking it
+    const int32_t stride      //!< Kept for compatibility with the XDF backend. Should be 1 if file is not XDF
+) {
+    uint32_t* dest_u32 = dest;
+    uint32_t* source_u32 = source;
+
+    // Get missing data flag
+    const int has_missing = has_type_missing(record->datyp);
+    // Suppress missing data flag
+    const int32_t simple_datyp = record->datyp & ~FSTD_MISSING_FLAG;
+
+    PackFunctionPointer packfunc;
+    if (record->dasiz == 64) {
+        packfunc = &compact_double;
+    } else {
+        packfunc = &compact_float;
+    }
+
+    // const size_t record_size_32 = record->rsz / 4;
+    // size_t record_size = record_size_32;
+    // if ((simple_datyp == FST_TYPE_FREAL) || (simple_datyp == FST_TYPE_REAL)) {
+    //     record_size = (record->dasiz == 64) ? 2*record_size : record_size;
+    // }
+
+    const int multiplier = (simple_datyp == FST_TYPE_COMPLEX) ? 2 : 1;
+    const int nelm = fst23_record_num_elem(record) * multiplier;
+
+    double dmin = 0.0;
+    double dmax = 0.0;
+
+    const int bitmot = 32;
+    int ier = 0;
+    if (skip_unpack) {
+        if (is_type_turbopack(simple_datyp)) {
+            int lngw = ((int *)source)[0];
+            // fprintf(stderr, "Debug+ lecture mode image lngw=%d\n", lngw);
+            memcpy(dest, source, (lngw + 1) * sizeof(uint32_t));
+        } else {
+            int lngw = nelm * record->dasiz;
+            if (simple_datyp == FST_TYPE_FREAL) lngw += 120;
+            if (simple_datyp == FST_TYPE_FCHAR) lngw = record->ni * record->nj * 8;
+            if (simple_datyp == FST_TYPE_IEEE_16) {
+                int header_size, stream_size, p1out, p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
+                lngw = (header_size + stream_size) * 8;
+            }
+            lngw = (lngw + bitmot - 1) / bitmot;
+            memcpy(dest, source, lngw * sizeof(uint32_t));
+        }
+    } else {
+        switch (simple_datyp) {
+            case FST_TYPE_BINARY:
+            {
+                // Raw binary
+                const int lngw = ((nelm * record->dasiz) + bitmot - 1) / bitmot;
+                memcpy(dest, source, lngw * sizeof(uint32_t));
+                break;
+            }
+
+            case FST_TYPE_FREAL:
+            case FST_TYPE_FREAL | FST_TYPE_TURBOPACK:
+            {
+                // Floating Point
+                double tempfloat = 99999.0;
+                if (is_type_turbopack(record->datyp)) {
+                    armn_compress((unsigned char *)(source_u32+ 5), record->ni, record->nj, record->nk,
+                                  record->dasiz, 2);
+                    packfunc(dest_u32, source_u32 + 1, source_u32 + 5, nelm, record->dasiz + 64 * Max(16, record->dasiz),
+                             0, stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
+                } else {
+                    packfunc(dest_u32, source_u32, source_u32 + 3, nelm, record->dasiz, 24, stride, FLOAT_UNPACK,
+                             0, &tempfloat, &dmin, &dmax);
+                }
+                break;
+            }
+
+            case FST_TYPE_UNSIGNED:
+            case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
+            {
+                // Integer, short integer or byte stream
+                const int offset = is_type_turbopack(record->datyp) ? 1 : 0;
+                if (record->dasiz == 16) {
+                    if (is_type_turbopack(record->datyp)) {
+                        c_armn_compress_setswap(0);
+                        const int nbytes = armn_compress((unsigned char *)(source_u32 + offset), record->ni,
+                                                    record->nj, record->nk, record->dasiz, 2);
+                        c_armn_compress_setswap(1);
+                        memcpy(dest, source_u32 + offset, nbytes);
+                    } else {
+                        ier = compact_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->dasiz,
+                                            0, stride, 6);
+                    }
+                }  else if (record->dasiz == 8) {
+                    if (is_type_turbopack(record->datyp)) {
+                        c_armn_compress_setswap(0);
+                        armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj,
+                                        record->nk, record->dasiz, 2);
+                        c_armn_compress_setswap(1);
+                        memcpy_16_8((int8_t *)dest, (int16_t *)(source_u32 + offset), nelm);
+                    } else {
+                        ier = compact_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride, 10);
+                    }
+                } else {
+                    if (is_type_turbopack(record->datyp)) {
+                        c_armn_compress_setswap(0);
+                        armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj,
+                                        record->nk, record->dasiz, 2);
+                        c_armn_compress_setswap(1);
+                        memcpy_16_32((int32_t *)dest, (int16_t *)(source_u32 + offset), record->dasiz, nelm);
+                    } else {
+                        ier = compact_integer(dest, (void *)NULL, source_u32 + offset, nelm, record->dasiz,
+                                                0, stride, 2);
+                    }
+                }
+                break;
+            }
+
+            case FST_TYPE_FCHAR:
+            {
+                // Character
+                const int num_ints = (nelm + 3) / 4;
+                ier = compact_integer(dest, (void *)NULL, source, num_ints, 32, 0, stride, 2);
+                break;
+            }
+
+            case FST_TYPE_SIGNED: {
+                // Signed integer
+                if (record->dasiz == 16) {
+                    ier = compact_short(dest, (void *)NULL, source, nelm, record->dasiz, 0, stride, 8);
+                } else if (record->dasiz == 8) {
+                    ier = compact_char(dest, (void *)NULL, source, nelm, record->dasiz, 0, stride, 12);
+                } else {
+                    ier = compact_integer(dest, (void *)NULL, source, nelm, record->dasiz, 0, stride, 4);
+                }
+                break;
+            }
+
+            case FST_TYPE_REAL:
+            case FST_TYPE_COMPLEX: {
+                // IEEE representation
+                if ((downgrade_32) && (record->dasiz == 64)) {
+                    // Downgrade 64 bit to 32 bit
+#if defined(Little_Endian)
+                    swap_words(source_u32, nelm);
+#endif
+                    float * ptr_real = (float *) dest;
+                    double * ptr_double = (double *) source;
+                    for (int i = 0; i < nelm; i++) {
+                        *ptr_real++ = *ptr_double++;
+                    }
+                } else {
+                    const int32_t f_one = 1;
+                    const int32_t f_zero = 0;
+                    const int32_t f_mode = 2;
+                    const int32_t npak = -record->dasiz;
+                    f77name(ieeepak)((int32_t *)dest, source, &nelm, &f_one, &npak, &f_zero, &f_mode);
+                }
+
+                break;
+            }
+
+            case FST_TYPE_IEEE_16:
+            case FST_TYPE_IEEE_16 | FST_TYPE_TURBOPACK:
+            {
+                int nbits;
+                int header_size, stream_size, p1out, p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
+                if (is_type_turbopack(record->datyp)) {
+                    armn_compress((unsigned char *)(source_u32 + 1 + header_size), record->ni, record->nj,
+                                  record->nk, record->dasiz, 2);
+                    c_float_unpacker((float *)dest, (int32_t *)(source_u32 + 1),
+                                     (int32_t *)(source_u32 + 1 + header_size), nelm, &nbits);
+                } else {
+                    c_float_unpacker((float *)dest, (int32_t *)source, (int32_t *)(source_u32 + header_size),
+                                     nelm, &nbits);
+                }
+                break;
+            }
+
+            case FST_TYPE_REAL | FST_TYPE_TURBOPACK:
+            {
+                // Floating point, new packers
+                c_armn_uncompress32((float *)dest, (unsigned char *)(source_u32 + 1), record->ni, record->nj,
+                                    record->nk, record->dasiz);
+                break;
+            }
+
+            case FST_TYPE_STRING:
+                // Character string
+                ier = compact_char(dest, (void *)NULL, source, nelm, 8, 0, stride, 10);
+                break;
+
+            default:
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid datyp=%d\n", __func__, simple_datyp);
+                return(ERR_BAD_DATYP);
+        } /* end switch */
+    }
+
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_TRIVIAL) {
+        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, record->handle);
+        fst23_record_print(record);
+    }
+
+    if (has_missing) {
+        // Replace "missing" data points with the appropriate values given the type of data (int/float)
+        // if nbits = 64 and IEEE , set double
+        // TODO review this logic
+        int sz = record->dasiz;
+        if (is_type_real(record->datyp) && record->dasiz == 64 ) sz = 64;
+        DecodeMissingValue(dest, fst23_record_num_elem(record), record->datyp & 0x3F, sz);
+    }
+
+    return 0;
+}
+
+int32_t fst23_read_rsf(
+    fst_file* file,
+    //!> [in,out] Record for which we want to read data.
+    //!> Must have a valid handle!
+    //!> Must have already allocated its data buffer
+    fst_record* record_fst,
+    const int32_t skip_unpack //!< Whether to skip the unpacking process (e.g. if we just want to copy the record)
+) {
+    RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle);
+
+    if (record_rsf == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x\n",
+                __func__, record_fst->handle);
+        return ERR_BAD_HNDL;
+    }
+
+    fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
+
+    // fst23_record_print(record_fst)
+
+    const int32_t ier = fst23_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
+
+    free(record_rsf);
+
+    if (ier < 0) return FALSE;
+
+    return TRUE;
+}
+
+int32_t fst23_read_xdf(
+    fst_file* file,
+    //!> [in,out] Record for which we want to read data.
+    //!> Must have a valid handle!
+    //!> Must have already allocated its data buffer
+    fst_record* record
+) {
+    const int32_t key32 = record->handle & 0xffffffff;
+    stdf_dir_keys stdf_entry;
+    uint32_t * pkeys = (uint32_t *) &stdf_entry;
+    pkeys += W64TOWD(1);
+
+    {
+        int addr, lng, idtyp;
+        int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
+        if (ier < 0) return FALSE;
+    }
+
+    const int32_t h = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
+    if (h != key32) return FALSE;
+    fill_with_dir_keys(record, &stdf_entry);
+    return TRUE;
+}
+
 //! Read data from file, for a given record
-int32_t fst23_read_data(
+int32_t fst23_read(
     fst_file* file,
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
@@ -851,8 +1058,8 @@ int32_t fst23_read_data(
        return FALSE;
     }
 
-    if (!fst23_record_is_valid(record)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
+    if (!fst23_record_is_valid(record) || record->handle < 0) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);        
        return FALSE;
     }
 
@@ -860,18 +1067,34 @@ int32_t fst23_read_data(
         record->data = malloc(fst23_record_data_size(record) + 500);
     }
 
-    switch (file->type)
-    {
-    case FST_RSF:
-        /* code */
-        break;
-    
-    default:
+    int32_t ret = FALSE;
+    if (file->type == FST_RSF) {
+        ret = fst23_read_rsf(file, record, 0);
+    }
+    else if (file->type == FST_XDF) {
+        ret = fst23_read_xdf(file, record);
+    }
+    else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
-        return FALSE;
-    } // end switch (file type)
+        ret = FALSE;
+    }
 
-    return FALSE;
+    if (!ret) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not read record\n", __func__);
+        free(record->data);
+        record->data = NULL;
+    }
+
+    return ret;
+}
+
+int32_t fst23_read_next(fst_file* file, fst_record* record) {
+    if (!fst23_find_next(file, record)) {
+        Lib_Log(APP_LIBFST, APP_INFO, "%s: No more record found matching the criteria\n", __func__);
+        return FALSE;
+    }
+
+    return fst23_read(file, record);
 }
 
 int32_t fst23_read_new(fst_file* file, fst_record* record) {

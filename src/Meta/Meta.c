@@ -1,6 +1,7 @@
 #include <App.h>
 #include "rmn.h"
 #include "rmn/Meta.h"
+#include "fstd98/fstd98_internal.h"
 #include <str.h>
 
 #include <stdio.h>
@@ -1495,7 +1496,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
       case FST_TYPE_BINARY:   c="bit"; break;
       case FST_TYPE_SIGNED:   c="unsigned integer"; break;
       case FST_TYPE_UNSIGNED: c="signed integer"; break;
-      case FST_TYPE_FLOAT:    c="float"; break;
+      case FST_TYPE_REAL:     c="real"; break;
       case FST_TYPE_COMPLEX:  c="complex"; break;
    }
    Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,c,"",Rec->npak,Rec->dasiz);
@@ -1598,7 +1599,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
       case 'b': Rec->datyp=FST_TYPE_BINARY; break;
       case 's': Rec->datyp=FST_TYPE_SIGNED; break;
       case 'u': Rec->datyp=FST_TYPE_UNSIGNED; break;
-      case 'f': Rec->datyp=FST_TYPE_FLOAT; break;
+      case 'r': Rec->datyp=FST_TYPE_REAL; break;
       case 'c': Rec->datyp=FST_TYPE_COMPLEX; break;
    }
 

@@ -1175,19 +1175,12 @@ int c_fstluk_rsf(
             case 5:
             case 8: {
                 // IEEE representation
-                register int32_t temp32, *src, *dest;
                 if ((downgrade_32) && (stdf_entry->nbits == 64)) {
                     // Downgrade 64 bit to 32 bit
                     float * ptr_real = (float *) field;
                     double * ptr_double = (double *) record->data;
 #if defined(Little_Endian)
-                    src = (int32_t *) record->data;
-                    dest = (int32_t *) record->data;
-                    for (int i = 0; i < nelm; i++) {
-                        temp32 = *src++;
-                        *dest++ = *src++;
-                        *dest++ = temp32;
-                    }
+                    swap_words(record->data, nelm);
 #endif
                     for (int i = 0; i < nelm; i++) {
                         *ptr_real++ = *ptr_double++;

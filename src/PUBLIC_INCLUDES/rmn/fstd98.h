@@ -28,13 +28,13 @@ extern "C" {
 static char*   FST_TYPE_NAMES[]   = { "bit","fortran real","unsigned int","byte","signed int","float","float16","string","complex" };
 static const int32_t FST_TYPE_BINARY    = 0;
 static const int32_t FST_TYPE_FREAL     = 1;
-static const int32_t FST_TYPE_UNSIGNED  = 2;
-static const int32_t FST_TYPE_FCHAR     = 3;
+static const int32_t FST_TYPE_UNSIGNED  = 2; //!< Unsigned integer (8, 16 or 32 bits)
+static const int32_t FST_TYPE_FCHAR     = 3; //!< Characters (not compressed)
 static const int32_t FST_TYPE_SIGNED    = 4;
-static const int32_t FST_TYPE_FLOAT     = 5;
+static const int32_t FST_TYPE_REAL      = 5; //!< Real number (32 or 64 bits)
 static const int32_t FST_TYPE_IEEE_16   = 6;
-static const int32_t FST_TYPE_STRING    = 7;
-static const int32_t FST_TYPE_COMPLEX   = 8;
+static const int32_t FST_TYPE_STRING    = 7; //!< Characters (compressed)
+static const int32_t FST_TYPE_COMPLEX   = 8; //!< Complex number (32 or 64 bits)
 
 // static const int32_t FST_TYPE_MISSING   = FSTD_MISSING_FLAG;
 static const int32_t FST_TYPE_TURBOPACK = 128;

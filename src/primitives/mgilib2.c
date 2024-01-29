@@ -68,7 +68,7 @@ int USER_TRY_CONNECT = 10;
 static void getmgidir();
 static int makepidfile();
 static void removepidfile();
-static void strcopy(char *s, char *t, int charlen);
+static void strcopy(char *s, const char *t, const int charlen);
 static int validchan(int chan);
 static int bwrite(int chan, void *buffer, int nelem, char *dtype);
 int retry_connect(int chan);
@@ -167,9 +167,9 @@ static int f_strcmp(
 
 //! Copy a string given by a fortran routine and place the NULL character at the end of the true (charlen) length of the string
 static void strcopy(
-    char *s,
-    char *t,
-    int charlen
+    char *s,        //!< Dest string
+    const char *t,  //!< String to copy
+    const int charlen
 ) {
     int i = 0;
 
