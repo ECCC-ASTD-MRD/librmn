@@ -48,6 +48,10 @@ int test_fst23_interface(const int is_rsf) {
 
    // Define file metadata
    Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
+   Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
+   Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
+
+   fprintf(stderr,"JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field metadata
    Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
@@ -154,11 +158,12 @@ int test_fst23_interface(const int is_rsf) {
         fst_record record_find = default_fst_record;
         fst_record record;
 
-        fprintf(stderr,"%i\n",fst23_read_new(test_file, &record_find));
+        fst23_set_search_criteria(test_file, &record_find);
+        fst23_find_next(test_file, &record_find);
+        key=fst23_read_new(test_file, &record_find);
         meta=Meta_Parse(record_find.metadata);
-        Meta_Resolve(meta);
-        fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
-       
+        fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
+
         strcpy(search_criteria.typvar, "P");
  
         // Test find loop
@@ -191,7 +196,7 @@ int test_fst23_interface(const int is_rsf) {
         while(fst23_read_new(test_file,&record_read)) {
            fst23_record_print(&record_read);
            meta=Meta_Parse(record_read.metadata);
-           Meta_Resolve(meta);
+           Meta_Resolve(meta,prof_file);
            fprintf(stderr,"JSON: %p %s\n",record_read.metadata,Meta_Stringify(meta));
         }
     }

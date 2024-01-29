@@ -22,7 +22,7 @@ char*        Meta_GetObjectString(json_object *Obj);
 json_object* Meta_Copy(json_object *Obj);
 int32_t      Meta_Equivalent(json_object *Obj1,json_object *Obj2);
 
-json_object* Meta_Resolve(json_object *Obj);
+json_object* Meta_Resolve(json_object *Obj,json_object *ObjMaster);
 
 // Metadata specific functions
 int32_t      Meta_Init();
@@ -59,8 +59,8 @@ json_object *Meta_ClearCellMethods(json_object *Obj);
 json_object *Meta_ClearQualifiers(json_object *Obj);
 json_object *Meta_ClearMissingValues(json_object *Obj);
 
-json_object *Meta_FindVerticalObj(char* Identifier);
-json_object *Meta_FindHorizontalObj(char* Identifier);
+json_object *Meta_FindVerticalObj(char* Identifier,json_object *ObjMaster);
+json_object *Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster);
 
 json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description,char *State);
 

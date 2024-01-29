@@ -39,11 +39,11 @@ interface
       character(C_CHAR), dimension(*) :: str
    end FUNCTION
 
-!  json_object* Meta_Resolve(json_object *Obj);
-   type(C_PTR) FUNCTION meta_resolve(obj) BIND(C, name="Meta_Resolve")
+!  json_object* Meta_Resolve(json_object *Obj,json_object *ObjMaster);
+   type(C_PTR) FUNCTION meta_resolve(obj,objmaster) BIND(C, name="Meta_Resolve")
       import :: C_PTR
 
-      type(C_PTR), intent(in), value :: obj
+      type(C_PTR), intent(in), value :: obj,objmaster
    end FUNCTION
    
 !  json_object *Meta_LoadProfile(char *Name,char *Version);
@@ -273,6 +273,8 @@ end interface
       procedure, pass :: defvar => tmeta_defvar
       procedure, pass :: defbound => tmeta_defbound
       procedure, pass :: defforecasttime => tmeta_defforecasttime
+      procedure, pass :: addverticalref => tmeta_addverticalref
+      procedure, pass :: addhorizontalref => tmeta_addhorizontalref
       procedure, pass :: defverticalref => tmeta_defverticalref
       procedure, pass :: defhorizontalref => tmeta_defhorizontalref
       procedure, pass :: defdata => tmeta_defdata
@@ -316,13 +318,12 @@ contains
       endif
    end FUNCTION tmeta_parse
 
-   FUNCTION tmeta_resolve(this,obj) result(status)
-      class(meta), intent(inout) :: this
+   FUNCTION tmeta_resolve(this,objmaster) result(status)
+      class(meta), intent(inout) :: this, objmaster
       integer(kind=INT32) :: status
-      type(C_PTR), intent(in) :: obj
       type(C_PTR) :: objr
 
-      objr = meta_resolve(this%json_obj)
+      objr = meta_resolve(this%json_obj,objmaster%json_obj)
       status=1
       if (.not. c_associated(objr)) then
          status=0
@@ -430,6 +431,24 @@ contains
       character(len=*) :: unit
 
       status = meta_defforecasttime(this%json_obj,t0,step,duration,unit//C_NULL_CHAR)
+   end FUNCTION
+
+   FUNCTION tmeta_addverticalref(this,identifier,copy) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: identifier
+      logical :: copy
+
+      status = meta_addverticalref(this%json_obj,identifier//C_NULL_CHAR,copy)
+   end FUNCTION
+
+   FUNCTION tmeta_addhorizontalref(this,identifier,copy) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: identifier
+      logical :: copy
+
+      status = meta_addhorizontalref(this%json_obj,identifier//C_NULL_CHAR,copy)
    end FUNCTION
 
    FUNCTION tmeta_defverticalref(this,identifier,values,nb,copy) result(status)

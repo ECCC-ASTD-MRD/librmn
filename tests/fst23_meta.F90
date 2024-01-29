@@ -13,6 +13,12 @@ program test_meta_fortran
     ok=meta_fld%LoadProfile("field","")
     ok=meta_file%LoadProfile("file","")
 
+    obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
+    obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
+    obj=meta_file%AddVerticalRef("PRESSURE",.true.)
+
+    write(6,*) 'JSON:',meta_file%Stringify()
+ 
     obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature")
     obj=meta_fld%DefBound(-60.0d0,50.0d0,"celsius")
     obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"minutes")
@@ -37,6 +43,8 @@ program test_meta_fortran
 !    obj=meta_fld%ClearMissingValues()
  
 !    Output formatted
+     ok=meta_fld%Resolve(meta_file);
+
      write(6,*) 'JSON:',meta_fld%Stringify()
   
 end

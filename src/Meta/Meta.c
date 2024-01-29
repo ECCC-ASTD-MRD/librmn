@@ -519,71 +519,78 @@ json_object *Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,doub
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Resolve references by insrting definitions in place
+ * @brief  Resolve references by in string definitions in place
 
  * @date   Novembre 2023
  *    @param[in]  Obj           Profile json object
+ *    @param[in]  ObjMaster     Reference json object
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_Resolve(json_object *Obj) {
+json_object *Meta_Resolve(json_object *Obj,json_object *ObjMaster) {
 
    char *id=NULL;
    json_object *obj=NULL,*objref=NULL;
 
    json_pointer_get(Obj,"/horizontal_reference",&obj);
-   id=(char*)json_object_get_string(obj);
-   if (!(objref=Meta_FindHorizontalObj(id))) {
-      Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Could not resolve horizontal reference %s",__func__,id);
+   if (obj) {
+      id=(char*)json_object_get_string(obj);
+      if (!(objref=Meta_FindHorizontalObj(id,ObjMaster))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Could not resolve horizontal reference %s",__func__,id);
+      }
+      json_object_object_add(Obj,"horizontal_reference",json_object_get(objref));
    }
-   json_object_object_add(Obj,"horizontal_reference",json_object_get(objref));
 
    json_pointer_get(Obj,"/vertical_level/vertical_reference",&obj);
-   id=(char*)json_object_get_string(obj);
-   if (!(objref=Meta_FindVerticalObj(id))) {
-      Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Could not find horizontal reference %s",__func__,id);
+   if (obj) {
+      id=(char*)json_object_get_string(obj);
+      if (!(objref=Meta_FindVerticalObj(id,ObjMaster))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Could not find horizontal reference %s",__func__,id);
+      }
+      json_pointer_get(Obj,"/vertical_level",&obj);
+      json_object_object_add(obj,"vertical_reference",json_object_get(objref));
    }
-   json_pointer_get(Obj,"/vertical_level",&obj);
-   json_object_object_add(obj,"vertical_reference",json_object_get(objref));
-
+   
    return(Obj);
 }
 
-json_object *Meta_FindVerticalObj(char* Identifier) {
+json_object *Meta_FindVerticalObj(char* Identifier,json_object *ObjMaster) {
 
    json_object *obj=NULL,*obj_id=NULL,*obj_it=NULL;
    int32_t          nb=0,i=0;
 
-   json_pointer_get(MetaProfileZ,"/vertical_references",&obj);
+   json_pointer_get(ObjMaster?ObjMaster:MetaProfileZ,"/vertical_references",&obj);
 
-   nb=json_object_array_length(obj);
-   for(i=0;i<nb;i++) {
-      obj_it=json_object_array_get_idx(obj,i);
-      json_pointer_get(obj_it,"/identifier",&obj_id);
-      if (strncmp(Identifier,json_object_get_string(obj_id),64)==0) {
-         break;
+   if (obj) {
+      nb=json_object_array_length(obj);
+      for(i=0;i<nb;i++) {
+         obj_it=json_object_array_get_idx(obj,i);
+         json_pointer_get(obj_it,"/identifier",&obj_id);
+         if (strncmp(Identifier,json_object_get_string(obj_id),64)==0) {
+            break;
+         }
       }
    }
-
    return(i<nb?obj_it:NULL);
 }
 
-json_object *Meta_FindHorizontalObj(char* Identifier) {
+json_object *Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster) {
 
    json_object *obj=NULL,*obj_id=NULL,*obj_it=NULL;
    int32_t          nb=0,i=0;
 
-   json_pointer_get(MetaProfileXY,"/horizontal_references",&obj);
+   json_pointer_get(ObjMaster?ObjMaster:MetaProfileXY,"/horizontal_references",&obj);
 
-   nb=json_object_array_length(obj);
-   for(i=0;i<nb;i++) {
-      obj_it=json_object_array_get_idx(obj,i);
-      json_pointer_get(obj_it,"/identifier",&obj_id);
-      if (strncmp(Identifier,json_object_get_string(obj_id),64)==0) {
-         break;
+   if (obj) {
+      nb=json_object_array_length(obj);
+      for(i=0;i<nb;i++) {
+         obj_it=json_object_array_get_idx(obj,i);
+         json_pointer_get(obj_it,"/identifier",&obj_id);
+         if (strncmp(Identifier,json_object_get_string(obj_id),64)==0) {
+            break;
+         }
       }
    }
-
    return(i<nb?obj_it:NULL);
 }
 
@@ -609,7 +616,7 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,bool Copy) {
    // Do we copy the reference or just define the Identifier
    if (Copy) {
       // Find the vertical reference
-      if (!(objref=Meta_FindVerticalObj(Identifier))) {
+      if (!(objref=Meta_FindVerticalObj(Identifier,NULL))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find vertical reference %s",__func__,Identifier);
          return(NULL);
       }
@@ -642,7 +649,7 @@ json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value
    // Do we copy the reference or just define the Identifier
    if (Copy) {
       // Find the vertical reference
-      if (!(objref=Meta_FindVerticalObj(Identifier))) {
+      if (!(objref=Meta_FindVerticalObj(Identifier,NULL))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find vertical reference %s",__func__,Identifier);
          return(NULL);
       }
@@ -709,7 +716,7 @@ json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,bool Copy) 
    // Do we copy the reference or just define the Identifier
    if (Copy) {
       // Find the vertical reference
-      if (!(objref=Meta_FindHorizontalObj(Identifier))) {
+      if (!(objref=Meta_FindHorizontalObj(Identifier,NULL))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find horizontal reference %s\n",__func__,Identifier);
          return(NULL);
       }
@@ -738,7 +745,7 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,bool Copy) 
    // Do we copy the reference or just define the Identifier
    if (Copy) {
       // Find the vertical reference
-      if (!(objref=Meta_FindHorizontalObj(Identifier))) {
+      if (!(objref=Meta_FindHorizontalObj(Identifier,NULL))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find horizontal reference %s",__func__,Identifier);
          return(NULL);
       }
@@ -1597,7 +1604,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
 
    // IP1
    Rec->ip1=-1;
-   if (Meta_GetVerticalRef(Obj,0,&c1,&d1) && (obj=Meta_FindVerticalObj(c1))) {
+   if (Meta_GetVerticalRef(Obj,0,&c1,&d1) && (obj=Meta_FindVerticalObj(c1,NULL))) {
       json_pointer_get(obj,"/rpn_kind",&objval);
       kind=json_object_get_int(objval);
 
@@ -1611,7 +1618,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to find vertical reference: %s\n",__func__,c1);
    }
 
-   if (Meta_GetHorizontalRef(Obj,&c1) && (obj=Meta_FindHorizontalObj(c1))) {
+   if (Meta_GetHorizontalRef(Obj,&c1) && (obj=Meta_FindHorizontalObj(c1,NULL))) {
       json_pointer_get(obj,"/rpn_name",&objval);
       if ((c1=(char*)json_object_get_string(objval))) {
          strncpy(Rec->grtyp,c1,FST_GTYP_LEN);
