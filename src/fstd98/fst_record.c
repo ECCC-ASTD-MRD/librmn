@@ -124,7 +124,6 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
     mask->pad1 = 0;
     mask->pad2 = 0;
     mask->pad3 = 0;
-    mask->dasiz = 0;
     mask->pad5 = 0;
     mask->pad6 = 0;
     mask->pad7 = 0;
@@ -132,26 +131,25 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
     mask->select = 0;
     mask->lng = 0;
     mask->addr = 0;
-    mask->deet = 0;
-    mask->nbits = 0;
-    mask->ni = 0;
-    mask->gtyp = 0;
-    mask->nj = 0;
+    mask->dasiz = 0;
     mask->datyp = 0;
-    mask->nk = 0;
+    mask->nbits = 0;
     mask->ubc = 0;
-    mask->npas = 0;
-    mask->ig4 = 0;
-    mask->ig2a = 0;
-    mask->ig1 = 0;
-    mask->ig2b = 0;
-    mask->ig3 = 0;
-    mask->ig2c = 0;
+
     mask->levtyp = 0;
 
     criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
     mask->date_stamp &= ~(0x7);
     if (record->dateo == -1) mask->date_stamp = 0;
+
+    criteria->ni = record->ni;
+    if ((record->ni == -1)) mask->ni = 0;
+
+    criteria->nj = record->nj;
+    if ((record->nj == -1)) mask->nj = 0;
+
+    criteria->nk = record->nk;
+    if ((record->nk == -1)) mask->nk = 0;
 
     criteria->ip1 = record->ip1;
     if ((record->ip1 == -1)) mask->ip1 = 0;
@@ -161,6 +159,12 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
 
     criteria->ip3 = record->ip3;
     if ((record->ip3 == -1)) mask->ip3 = 0;
+
+    criteria->npas = record->npas;
+    if ((record->npas == -1)) mask->npas = 0;
+
+    criteria->deet = record->deet;
+    if ((record->deet == -1)) mask->deet = 0;
 
     char nomvar[FST_NOMVAR_LEN];
     copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
@@ -199,9 +203,21 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
         mask->etikbc = 0;
     }
 
+    criteria->ig4 = record->ig4;
+    criteria->ig2a = record->ig2 >> 16;
+    criteria->ig1 = record->ig1;
+    criteria->ig2b = record->ig2 >> 8;
+    criteria->ig3 = record->ig3;
+    criteria->ig2c = record->ig2 & 0xff;
+    if (record->ig1 == -1) mask->ig1 = 0;
+    if (record->ig2 == -1) mask->ig2a =  mask->ig2b =  mask->ig2c = 0;
+    if (record->ig3 == -1) mask->ig3 = 0;
+    if (record->ig4 == -1) mask->ig4 = 0;
+
     char grtyp[FST_GTYP_LEN];
     copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
     criteria->gtyp = grtyp[0];
+    if (record->grtyp[0] == ' ') mask->gtyp = 0;
 }
 
 void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
