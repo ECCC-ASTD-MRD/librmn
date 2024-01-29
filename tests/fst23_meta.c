@@ -58,14 +58,17 @@ int test_fst23_interface(const int is_rsf) {
    Meta_DefBound(prof_fld,-60,50,"celsius");
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
-
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
-   Meta_AddCellMethod(prof_fld,"interpolation:linear");
-   Meta_AddCellMethod(prof_fld,"filter:gaussian");
-   Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
-   Meta_AddQualifier(prof_fld,"prognosis");
-   Meta_AddQualifier(prof_fld,"operational");
-   Meta_AddQualifier(prof_fld,"tag:ETKGG22");
+
+   Meta_SetCellMethods(prof_fld,(char*[4]){ "interpolation:linear","filter:gaussian","time:mean(interval 5 minute)",NULL });
+//   Meta_AddCellMethod(prof_fld,"interpolation:linear");
+//   Meta_AddCellMethod(prof_fld,"filter:gaussian");
+//   Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
+
+   Meta_SetQualifiers(prof_fld,(char*[4]){ "prognosis","operational","tag:ETKGG22",NULL });
+//   Meta_AddQualifier(prof_fld,"prognosis");
+//   Meta_AddQualifier(prof_fld,"operational");
+//   Meta_AddQualifier(prof_fld,"tag:ETKGG22");
    Meta_AddMissingValue(prof_fld,"out_of_domain",-999);
 
     // Write a record
@@ -157,19 +160,19 @@ int test_fst23_interface(const int is_rsf) {
       fst_record search_criteria = default_fst_record;
       fst_record search_extra = default_fst_record;
       fst_record record_find = default_fst_record;
-      fst_record record;
-
+      fst_record record = default_fst_record;
+/*
       search_extra.ig1=68839;
       search_extra.ni=1024;
       search_extra.grtyp[0]='Z';
       fst23_set_search_criteria(test_file, &search_extra);
-      fst23_find_next(test_file, &record_find);
-      key=fst23_read_new(test_file, &record_find);
-
-      fst23_set_search_criteria(test_file, &record_find);
-      fst23_find_next(test_file, &record_find);
-      key=fst23_read_new(test_file, &record_find);
-      meta=Meta_Parse(record_find.metadata);
+      fst23_find_next(test_file, &record);
+      key=fst23_read_new(test_file, &record);
+*/
+      fst23_set_search_criteria(test_file, &record);
+      fst23_find_next(test_file, &record);
+      key=fst23_read_new(test_file, &record);
+      meta=Meta_Parse(record.metadata);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
 
       // Test find loop
@@ -178,8 +181,13 @@ int test_fst23_interface(const int is_rsf) {
       strcpy(search_criteria.typvar, "P");
       fst23_set_search_criteria(test_file, &search_criteria);
       while(key=fst23_find_next(test_file, &record_find)) {
-         fst23_record_print(&record_find);
          fst23_read_new(test_file,&record_find);
+         if (!(meta=Meta_Parse(record_find.metadata)))  {
+            App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);
+            return -1; 
+         }          
+         Meta_Resolve(meta,prof_file);
+         fprintf(stderr,"JSON: %p %s\n",record_find.metadata,Meta_Stringify(meta));
          num_found++;
       }
 
@@ -188,24 +196,9 @@ int test_fst23_interface(const int is_rsf) {
          return -1;
       }
 
-      fprintf(stdout,"\nread found:\n");
-      fst23_read_new(test_file, &record_find);
-      fst23_record_print(&record_find);
-
       meta=Meta_LoadProfile("field",NULL);
       Meta_From89(meta,&record_find);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
-
-      // Test read loop
-      fprintf(stdout,"\nread loop:\n");
-      fst_record record_read = default_fst_record;
-      strcpy(record_read.typvar, "P");
-      while(fst23_read_new(test_file,&record_read)) {
-         fst23_record_print(&record_read);
-         meta=Meta_Parse(record_read.metadata);
-         Meta_Resolve(meta,prof_file);
-         fprintf(stderr,"JSON: %p %s\n",record_read.metadata,Meta_Stringify(meta));
-      }
    }
 
    if (fst23_close(test_file) < 0) {

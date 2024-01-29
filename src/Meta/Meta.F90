@@ -140,10 +140,25 @@ interface
        
 !  json_object *Meta_AddCellMethod(json_object *Obj,char *Method);
    type(C_PTR) FUNCTION meta_addcellmethod(obj,method) BIND(C, name="Meta_AddCellMethod")
-      import :: C_PTR,C_CHAR
+      import :: C_PTR, C_CHAR
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*) :: method
+   end FUNCTION
+
+!  json_object *Meta_SetCellMethods(json_object *Obj,char **Methods);
+   type(C_PTR) FUNCTION meta_setcellmethods(obj,methods) BIND(C, name="Meta_SetCellMethods")
+      import :: C_PTR
+
+      type(C_PTR), intent(in), value :: obj, methods
+   end FUNCTION
+
+!  json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers);
+   type(C_PTR) FUNCTION meta_setqualifiers(obj,qualifiers) BIND(C, name="Meta_SetQualifiers")
+      import :: C_PTR
+
+      type(C_PTR), intent(in), value :: obj
+      type(C_PTR), intent(in), dimension(*) :: qualifiers
    end FUNCTION
 
 !  json_object *Meta_ClearCellMethods(json_object *Obj);
@@ -265,6 +280,7 @@ end interface
       procedure, pass :: addmissingvalue => tmeta_addmissingvalue
       procedure, pass :: clearmissingvalues => tmeta_clearmissingvalues
       procedure, pass :: addqualifier => tmeta_addqualifier
+      procedure, pass :: setqualifiers => tmeta_setqualifiers
       procedure, pass :: clearqualifiers => tmeta_clearqualifiers
       procedure, pass :: addcellmethod => tmeta_addcellmethod
       procedure, pass :: clearcellmethods => tmeta_clearcellmethods
@@ -382,6 +398,27 @@ contains
 
       status = meta_addqualifier(this%json_obj,qualifier//C_NULL_CHAR)
    end FUNCTION tmeta_addqualifier
+
+   FUNCTION tmeta_setqualifiers(this,qualifiers) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      type(C_PTR), dimension(:), allocatable :: qptr
+      character(len=*), dimension(:) :: qualifiers
+      character(len=64,kind=C_CHAR), allocatable, target :: farray(:)
+      integer :: q
+
+      allocate(qptr(SIZE(qualifiers)))
+      allocate(farray(SIZE(qualifiers)+1))
+      do q=1,SIZE(qualifiers)
+         farray(q)=qualifiers(q)//C_NULL_CHAR
+         qptr(q)=C_LOC(farray(q))
+      end do
+      qptr(q)=C_NULL_PTR
+
+      deallocate(qptr)
+      deallocate(farray)
+      status = meta_setqualifiers(this%json_obj,qptr)
+   end FUNCTION tmeta_setqualifiers
 
    FUNCTION tmeta_clearqualifiers(this) result(status)
       class(meta), intent(inout) :: this

@@ -50,6 +50,8 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char *Identifier,int Copy);
 json_object *Meta_AddHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object *Meta_AddCellMethod(json_object *Obj,char *Method);
 json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier);
+json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]);
+json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers);
 
 json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value);
 json_object *Meta_GetMissingValue(json_object *Obj,int32_t Index,char **Reason,double *Value);

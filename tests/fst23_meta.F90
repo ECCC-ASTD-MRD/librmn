@@ -25,9 +25,11 @@ program test_meta_fortran
     obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
     obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)
     obj=meta_fld%DefData(100,100,1,"float","lorenzo",16,32)
+
     obj=meta_fld%AddCellMethod("interpolation:linear")
     obj=meta_fld%AddCellMethod("filter:gaussian")
     obj=meta_fld%AddCellMethod("time:mean(interval 5 minute)")
+
     obj=meta_fld%AddQualifier("prognosis")
     obj=meta_fld%AddQualifier("operational")
     obj=meta_fld%AddQualifier("member:12")

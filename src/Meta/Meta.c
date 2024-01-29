@@ -61,6 +61,14 @@ inline static int32_t Meta_TokenEnd(char* Token,int32_t *IsSplit) {
     return ((int)(e-Token));
 }
 
+/**----------------------------------------------------------------------------
+ * @brief  Check if object is a valid JSON metadata object 
+
+ * @date   July 2023
+ *    @param[in]   Obj     Profile json object
+ *
+ *    @return              Object validity (TRUE,1 of FALSE,0)
+*/
 int32_t Meta_Is(json_object *Obj) {
 
    json_object *obj=NULL;
@@ -780,7 +788,7 @@ json_object *Meta_GetHorizontalRef(json_object *Obj,char **Identifier) {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Add a cell method
+ * @brief  Add a single cell method
 
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
@@ -815,6 +823,42 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
 }
 
 /**----------------------------------------------------------------------------
+ * @brief  Set methods from a list 
+
+ * @date   July 2023
+ *    @param[in]  Obj           Profile json object
+ *    @param[in]  Qualifiers    Qualifiers (NULL terminated list)
+ *
+ *    @return                   json_object pointer (NULL if error)
+*/
+json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
+
+   json_object *objval=NULL;
+   int   nb=0;
+   char *c,*method=NULL;
+
+   objval=json_object_new_array();
+   json_object_object_add(Obj,"cell_methods",objval);
+
+   while((method=Methods[nb++])) {
+      if (MetaValidate) {
+         if (!(c=Meta_ValidateToken(MetaCellMethods,method))) {
+            Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell method: %s\n",__func__,method);
+            return(NULL);
+         }
+         if (!(c=Meta_ValidateToken(MetaCellProcesses,++c))) {
+            Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell process: %s\n",__func__,method);
+            return(NULL);
+         }
+      }
+
+      json_object_array_add(objval,json_object_new_string(method));
+   }
+  
+   return(Obj);
+}
+
+/**----------------------------------------------------------------------------
  * @brief  Clear cell method list
 
  * @date   July 2023
@@ -830,11 +874,11 @@ json_object *Meta_ClearCellMethods(json_object *Obj) {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Add a data qualifier
+ * @brief  Add a single data qualifier
 
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
- *    @param[in]  Method        Qualifier
+ *    @param[in]  Qualifier     Qualifier
  *
  *    @return                   json_object pointer (NULL if error)
 */
@@ -853,6 +897,36 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
       return(NULL);
    }
    json_object_array_add(objval,json_object_new_string(Qualifier));
+  
+   return(Obj);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Set qualifiers from a list
+
+ * @date   July 2023
+ *    @param[in]  Obj           Profile json object
+ *    @param[in]  Qualifiers    Qualifiers (NULL terminated list)
+ *
+ *    @return                   json_object pointer (NULL if error)
+*/
+json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers) {
+
+   json_object *objval=NULL;
+   int   nb=0;
+   char *qualifier=NULL;
+
+   objval=json_object_new_array();
+   json_object_object_add(Obj,"qualifiers",objval);
+
+   while((qualifier=Qualifiers[nb++])) {
+      if (MetaValidate && !Meta_ValidateToken(MetaQualifiers,qualifier)) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid qualifier: %s\n",__func__,qualifier);
+         return(NULL);
+      }
+
+      json_object_array_add(objval,json_object_new_string(qualifier));
+   }
   
    return(Obj);
 }
