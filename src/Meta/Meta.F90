@@ -93,40 +93,40 @@ interface
 
 !  json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,bool Copy);
    type(C_PTR) FUNCTION meta_addverticalref(obj,identifier,copy) BIND(C, name="Meta_AddVerticalRef")
-      import :: C_PTR, C_CHAR, C_BOOL
+      import :: C_PTR, C_CHAR, C_INT
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*), intent(in) :: identifier
-      logical(kind=C_BOOL),    value :: copy
+      integer(kind=C_INT),    value :: copy
    end FUNCTION
 
 !  json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,bool Copy);
    type(C_PTR) FUNCTION meta_addhorizontalref(obj,identifier,copy) BIND(C, name="Meta_AddHorizontalRef")
-      import :: C_PTR, C_CHAR, C_BOOL
+      import :: C_PTR, C_CHAR, C_INT
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*), intent(in) :: identifier
-      logical(kind=C_BOOL),    value :: copy
+      integer(kind=C_INT),    value :: copy
    end FUNCTION
 
 !  json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double* Values,int32_t Nb,bool Copy);
    type(C_PTR) FUNCTION meta_defverticalref(obj,identifier,values,nb,copy) BIND(C, name="Meta_DefVerticalRef")
-      import :: C_PTR, C_CHAR, C_BOOL, C_INT32_T, C_DOUBLE
+      import :: C_PTR, C_CHAR, C_INT, C_INT32_T, C_DOUBLE
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*), intent(in) :: identifier
       real(C_DOUBLE), dimension(*), intent(in) :: values
       integer(kind=C_INT32_T), value :: nb
-      logical(kind=C_BOOL),    value :: copy
+      integer(kind=C_INT),     value :: copy
    end FUNCTION
 
 !  json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,bool Copy);
    type(C_PTR) FUNCTION meta_defhorizontalref(obj,identifier,copy) BIND(C, name="Meta_DefHorizontalRef")
-      import :: C_PTR, C_CHAR, C_BOOL
+      import :: C_PTR, C_CHAR, C_INT
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*) :: identifier
-      logical(kind=C_BOOL), value :: copy
+      integer(kind=C_INT), value :: copy
    end FUNCTION
 
 !  json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Size) {
@@ -437,18 +437,26 @@ contains
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
       character(len=*) :: identifier
+      integer(kind=C_INT) :: icopy = 0
       logical :: copy
 
-      status = meta_addverticalref(this%json_obj,identifier//C_NULL_CHAR,copy)
+      if (copy) then
+         icopy=1
+      endif
+      status = meta_addverticalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
    end FUNCTION
 
    FUNCTION tmeta_addhorizontalref(this,identifier,copy) result(status)
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
       character(len=*) :: identifier
+      integer(kind=C_INT) :: icopy = 0
       logical :: copy
 
-      status = meta_addhorizontalref(this%json_obj,identifier//C_NULL_CHAR,copy)
+       if (copy) then
+         icopy=1
+      endif
+      status = meta_addhorizontalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
    end FUNCTION
 
    FUNCTION tmeta_defverticalref(this,identifier,values,nb,copy) result(status)
@@ -457,19 +465,26 @@ contains
       character(len=*) :: identifier
       real(kind=REAL64), dimension(:) :: values
       integer(kind=INT32), value :: nb
+      integer(kind=C_INT) :: icopy = 0
       logical :: copy
 
-      status = meta_defverticalref(this%json_obj,identifier//C_NULL_CHAR,values,nb,copy)
+      if (copy) then
+         icopy=1
+      endif
+      status = meta_defverticalref(this%json_obj,identifier//C_NULL_CHAR,values,nb,icopy)
    end FUNCTION
 
    FUNCTION tmeta_defhorizontalref(this,identifier,copy) result(status)
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
       character(len=*) :: identifier
-!TODO: convert to int
+      integer(kind=C_INT) :: icopy = 0
       logical :: copy 
 
-      status = meta_defhorizontalref(this%json_obj,identifier//C_NULL_CHAR,copy)
+      if (copy) then
+         icopy=1
+      endif
+      status = meta_defhorizontalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
    end FUNCTION
 
    FUNCTION tmeta_defdata(this,ni,nj,nk,type,compression,pack,size) result(status)

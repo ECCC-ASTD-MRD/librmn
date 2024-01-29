@@ -57,9 +57,9 @@ int test_fst23_interface(const int is_rsf) {
    Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
    Meta_DefBound(prof_fld,-60,50,"celsius");
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
-   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",false);
+   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
 
-   Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,false);
+   Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
    Meta_AddCellMethod(prof_fld,"interpolation:linear");
    Meta_AddCellMethod(prof_fld,"filter:gaussian");
    Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
@@ -172,11 +172,10 @@ int test_fst23_interface(const int is_rsf) {
       meta=Meta_Parse(record_find.metadata);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
 
-      strcpy(search_criteria.typvar, "P");
-
       // Test find loop
       fprintf(stdout,"\nfind loop:\n");
       int num_found = 0;
+      strcpy(search_criteria.typvar, "P");
       fst23_set_search_criteria(test_file, &search_criteria);
       while(key=fst23_find_next(test_file, &record_find)) {
          fst23_record_print(&record_find);

@@ -18,7 +18,7 @@ static ut_system   *MetaProfileUnit=NULL;   ///< UDUnits references
 static char        *ARMNLIB;
 
 static char        *MetaVersion=NULL;       ///< Metadata version
-static char         MetaValidate=true;      ///< Enable token validation
+static char         MetaValidate=TRUE;      ///< Enable token validation
 static json_object *MetaProfileZ=NULL;      ///< Vertical references
 static json_object *MetaProfileXY=NULL;     ///< Horizontal references (grid)
 static json_object *MetaProfileDefs=NULL;   ///< Valid token definitions
@@ -81,11 +81,11 @@ int32_t Meta_Init(){
    int32_t    j;
    json_object *obj=NULL,*obja=NULL;
 
-   MetaValidate=false;
+   MetaValidate=FALSE;
 
    // Check the log parameters in the environment 
    if ((c=getenv("META_VALIDATE"))) {
-      MetaValidate=true;
+      MetaValidate=TRUE;
    }
 
    // Get metadata version to use
@@ -604,7 +604,7 @@ json_object *Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster) {
  *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,bool Copy) {
+json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
 
@@ -639,7 +639,7 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,bool Copy) {
  *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value,int32_t Nb,bool Copy) {
+json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value,int32_t Nb,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
    int32_t l;
@@ -704,7 +704,7 @@ json_object *Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifie
  *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,bool Copy) {
+json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
 
@@ -738,7 +738,7 @@ json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,bool Copy) 
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,bool Copy) {
+json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
 

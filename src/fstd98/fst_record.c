@@ -135,7 +135,6 @@ void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, std
     mask->datyp = 0;
     mask->nbits = 0;
     mask->ubc = 0;
-
     mask->levtyp = 0;
 
     criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);

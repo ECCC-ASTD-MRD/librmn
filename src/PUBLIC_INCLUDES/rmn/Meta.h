@@ -2,7 +2,6 @@
 #define _Meta
 
 #include <time.h>
-#include <stdbool.h>
 #include <json-c/json.h>
 #ifdef HAVE_RMN
    #include <rmn.h>
@@ -38,17 +37,17 @@ json_object* Meta_GetBound(json_object *Obj,double *Min,double *Max,char **Unit)
 json_object* Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double Duration,char *Unit);
 json_object* Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,double *Duration,char **Unit);
 
-json_object* Meta_DefVerticalRef(json_object *Obj,char *Identifier,double *Value,int32_t Nb,bool Copy);
+json_object* Meta_DefVerticalRef(json_object *Obj,char *Identifier,double *Value,int32_t Nb,int Copy);
 json_object* Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifier,double *Value);
 
-json_object* Meta_DefHorizontalRef(json_object *Obj,char *Identifier,bool Copy);
+json_object* Meta_DefHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object* Meta_GetHorizontalRef(json_object *Obj,char **Identifier);
 
 json_object* Meta_DefData(json_object *Node,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Size);
 json_object* Meta_GetData(json_object *Node,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Size);
 
-json_object *Meta_AddVerticalRef(json_object *Obj,char *Identifier,bool Copy);
-json_object *Meta_AddHorizontalRef(json_object *Obj,char *Identifier,bool Copy);
+json_object *Meta_AddVerticalRef(json_object *Obj,char *Identifier,int Copy);
+json_object *Meta_AddHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object *Meta_AddCellMethod(json_object *Obj,char *Method);
 json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier);
 
