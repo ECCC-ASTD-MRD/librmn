@@ -1,7 +1,7 @@
 * Environment variable
-META_VERSION
-META_VALIDATE
-ARMNLIB
+META_VERSION  : Version of metadata to be used (Default: latest)
+META_VALIDATE : Enable validation of json values (default: False)
+ARMNLIB       : Use to find location of metadata templates ans definitions ($ARMNLIB/json/${META_VERSION})
 
 * Grammar
 ** Field level
@@ -36,9 +36,11 @@ ARMNLIB
 - datetime      = ISO8601 formatted, but seconds internally
 - qualifier     = [analysis, climatology, raw_station, error, constants, verification_matrix, observation, prognostic, diagnostic, analysis_increment, scores, timeseries, operational, parallel, experimental, member:n, centile[<,<=,=,>,>=]value, …]
 - unit          = [udunit] | [time_unit] 
-- filter        = [gaussian, …]
+- filter        = [gaussian, …] 
 - interpolator  = [nearest, linear, cubic, …]
 - cell_method   = interpolation:[interpolator] | filter:[filter] | [axis]:[process]([interval [n]|[value_0 value_1] [unit])*
+
+(For all accepted and up to date values of these parameters see $ARMNLIB/json/[version]/definitions.json)
 
 *** json template 0.1.0
 #+begin_src

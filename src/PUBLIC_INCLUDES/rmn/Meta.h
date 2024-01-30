@@ -19,13 +19,14 @@ json_object* Meta_ArrayFind(json_object *Obj,char *Token);
 json_object* Meta_GetObject(json_object *Obj,char *Path);
 char*        Meta_GetObjectString(json_object *Obj);
 json_object* Meta_Copy(json_object *Obj);
-int32_t      Meta_Equivalent(json_object *Obj1,json_object *Obj2);
+int32_t      Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp);
 
 json_object* Meta_Resolve(json_object *Obj,json_object *ObjMaster);
 
 // Metadata specific functions
 int32_t      Meta_Init();
 int32_t      Meta_Is(json_object *Obj);
+json_object *Meta_New();
 json_object* Meta_LoadProfile(char *Name,char *Version);
 
 json_object* Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description);

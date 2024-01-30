@@ -62,6 +62,18 @@ inline static int32_t Meta_TokenEnd(char* Token,int32_t *IsSplit) {
 }
 
 /**----------------------------------------------------------------------------
+ * @brief  Create new Meta object
+
+ * @date   July 2023
+ *
+ *    @return              Metadata object pointer
+*/
+json_object *Meta_New() {
+
+   return(json_object_new_object());
+}
+
+/**----------------------------------------------------------------------------
  * @brief  Check if object is a valid JSON metadata object 
 
  * @date   July 2023
@@ -1300,20 +1312,21 @@ json_object *Meta_Copy(json_object *Obj) {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Check if objects are equivalent
+ * @brief  Check if objects match
  * @date   July 2023
  *    @param[in]   Obj1          Profile json object
  *    @param[in]   Obj2          Profile json object
+ *    @param[in]   RegExp        Use regular expression for string comparisons
  *
- *    @return                    True:Equivalent or False
+ *    @return                    True:match or False
 */
-int32_t Meta_Equivalent(json_object *Obj1,json_object *Obj2) {
+int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
 
    double       val1,val2;
    const char  *str1,*str2;
    json_object *obj2=NULL,*objval1=NULL,*objval2=NULL;
    regex_t      re;
-   int32_t          l1,l2,found,regi=FALSE;
+   int32_t      l1,l2,found,regi=FALSE;
 
    json_object_object_foreach(Obj1, key, obj1) { 
       if (!(obj2=json_object_object_get(Obj2,key))) {
@@ -1336,15 +1349,18 @@ int32_t Meta_Equivalent(json_object *Obj1,json_object *Obj2) {
          case json_type_string: 
             str1=json_object_get_string(obj1);
             str2=json_object_get_string(obj2);
+
             if (str1 && str2) {
                if (strcmp(str1,str2)!=0)  {
-                  if (regcomp(&re,str1,REG_EXTENDED|REG_NOSUB|REG_ICASE)!=0)  {
-                     Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid comparison token: %s\n",__func__,str1);
-                     return(FALSE);
-                  }
-                  if (regexec(&re,str2,(size_t)0,NULL,0)!=0) {
-                     regfree(&re);
-                     return(FALSE);
+                  if (RegExp) {
+                     if (regcomp(&re,str1,REG_EXTENDED|REG_NOSUB|REG_ICASE)!=0)  {
+                        Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid comparison token: %s\n",__func__,str1);
+                        return(FALSE);
+                     }
+                     if (regexec(&re,str2,(size_t)0,NULL,0)!=0) {
+                        regfree(&re);
+                        return(FALSE);
+                     }
                   }
                }
             }
@@ -1352,14 +1368,13 @@ int32_t Meta_Equivalent(json_object *Obj1,json_object *Obj2) {
 
          // Recurse on objects
          case json_type_object: 
-            if (!Meta_Equivalent(obj1,obj2)) {
+            if (!Meta_Match(obj1,obj2,RegExp)) {
                return(FALSE);
             }
             break;
 
          // For array, we make sure each of array1 values is included within array2 values
          case json_type_array: 
-
             found=0;
             regi=FALSE;
             l1=json_object_array_length(obj1);
@@ -1371,11 +1386,13 @@ int32_t Meta_Equivalent(json_object *Obj1,json_object *Obj2) {
                         found++;
                         break;
                      }
-                     if (regcomp(&re,str1,REG_EXTENDED|REG_NOSUB|REG_ICASE)!=0)  {
-                        Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid comparison token: %s\n",__func__,str1);
-                        return(FALSE);
+                     if (RegExp) {
+                        if (regcomp(&re,str1,REG_EXTENDED|REG_NOSUB|REG_ICASE)!=0)  {
+                           Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid comparison token: %s\n",__func__,str1);
+                           return(FALSE);
+                        }
+                        regi=TRUE;
                      }
-                     regi=TRUE;
                   }
                } else {
                   val1=json_object_get_double(objval1);
@@ -1391,8 +1408,16 @@ int32_t Meta_Equivalent(json_object *Obj1,json_object *Obj2) {
                    
                   if (json_object_get_type(objval2)==json_type_string) {      
                      if (str2=json_object_get_string(objval2)) {
-                        if (regexec(&re,str2,(size_t)0,NULL,0)==0) {
-                           found++;    
+                        if (RegExp) {
+                           if (regexec(&re,str2,(size_t)0,NULL,0)==0) {
+                              found++;
+                              break;  
+                           }
+                        } else {
+                           if (strncmp(str1,str2,strlen(str1))==0) {
+                              found++;
+                              break;  
+                           }
                         }
                      }
                   } else {

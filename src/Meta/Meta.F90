@@ -25,6 +25,11 @@ interface
       type(C_PTR), intent(in), value  :: obj
    end FUNCTION
 
+!  json_object *Meta_New();
+   type(C_PTR) FUNCTION meta_new() BIND(C, name="Meta_New")
+      import :: C_PTR
+   end FUNCTION
+
 !  int Meta_Free(json_object *Obj);
    integer(C_INT32_T) FUNCTION meta_free(obj) BIND(C, name="Meta_Free")
       import :: C_PTR, C_INT32_T
@@ -245,11 +250,12 @@ interface
       type(C_PTR), intent(in), value :: obj
    end FUNCTION
 
-!  int Meta_Equivalent(json_object *Obj1,json_object *Obj2);
-   integer(kind=C_INT) FUNCTION meta_equivalent(obj1,obj2) BIND(C, name="Meta_Equivalent")
+!  int Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp);
+   integer(kind=C_INT) FUNCTION meta_match(obj1,obj2,regexp) BIND(C, name="Meta_Match")
       import :: C_PTR, C_INT
 
       type(C_PTR), intent(in), value :: obj1, obj2
+      integer(kind=C_INT), intent(in), value :: regexp
    end FUNCTION
 
 !TODO: fortran rec call
@@ -276,6 +282,7 @@ end interface
       procedure, pass :: loadprofile => tmeta_loadprofile
       procedure, pass :: resolve => tmeta_resolve
       procedure, pass :: parse => tmeta_parse
+      procedure, pass :: new => tmeta_new
       procedure, pass :: free => tmeta_free
       procedure, pass :: addmissingvalue => tmeta_addmissingvalue
       procedure, pass :: clearmissingvalues => tmeta_clearmissingvalues
@@ -296,6 +303,7 @@ end interface
       procedure, pass :: defdata => tmeta_defdata
       procedure, pass :: getobject => tmeta_getobject
       procedure, pass :: copy => tmeta_copy
+      procedure, pass :: match => tmeta_match
       final :: meta_final
    end type meta
 
@@ -345,6 +353,14 @@ contains
          status=0
       endif
    end FUNCTION tmeta_resolve
+
+   FUNCTION tmeta_new(this) result(status)
+      class(meta), intent(inout)   :: this
+      type(C_PTR) :: status
+ 
+      this%json_obj = meta_new()
+      status = this%json_obj
+   end FUNCTION
 
    FUNCTION tmeta_free(this) result(status)
       class(meta), intent(inout) :: this
@@ -531,6 +547,15 @@ contains
       integer(kind=INT32),  value :: ni,nj,nk,pack,size
 
       status = meta_defdata(this%json_obj,ni,nj,nk,type//C_NULL_CHAR,compression//C_NULL_CHAR,pack,size)
+   end FUNCTION
+
+   FUNCTION tmeta_match(this,match,regexp) result(status)
+      class(meta), intent(inout) :: this
+      type(meta), intent(inout) :: match
+      integer(kind=INT32) :: status
+      integer,  value :: regexp
+
+      status=meta_match(match%json_obj,this%json_obj,regexp)
    end FUNCTION
 
    FUNCTION tmeta_getobject(this,path) result(obj)

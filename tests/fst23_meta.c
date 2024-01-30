@@ -8,7 +8,7 @@
 #include <rmn/Meta.h>
 
 const char* test_file_name = "fst123_meta.fst";
-json_object *prof_file,*prof_fld,*meta=NULL;
+json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
 double levels[1]= { 1000.0 };
 
 
@@ -43,6 +43,11 @@ int test_fst23_interface(const int is_rsf) {
    prof_fld=Meta_LoadProfile("field",NULL);
    prof_file=Meta_LoadProfile("file",NULL);
 
+   search_meta=Meta_New();
+   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
+//   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
+//   search_meta=Meta_Parse("{ \"rpn_name\" : \"TT\" }");
+
    fprintf(stderr,"Valid json:   %i\n", Meta_Is(prof_fld));
    fprintf(stderr,"Invalid json: %i\n", Meta_Is((json_object*)test_file));
 
@@ -54,16 +59,15 @@ int test_fst23_interface(const int is_rsf) {
    fprintf(stderr,"JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field metadata
-   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
    Meta_DefBound(prof_fld,-60,50,"celsius");
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
 
-   Meta_SetCellMethods(prof_fld,(char*[4]){ "interpolation:linear","filter:gaussian","time:mean(interval 5 minute)",NULL });
+   Meta_SetCellMethods(prof_fld,(char*[4]){ "interpolation:linear","time:mean(interval 5 minute)","filter:gaussian",NULL });
 //   Meta_AddCellMethod(prof_fld,"interpolation:linear");
-//   Meta_AddCellMethod(prof_fld,"filter:gaussian");
 //   Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
+//   Meta_AddCellMethod(prof_fld,"filter:gaussian");
 
    Meta_SetQualifiers(prof_fld,(char*[4]){ "prognosis","operational","tag:ETKGG22",NULL });
 //   Meta_AddQualifier(prof_fld,"prognosis");
@@ -122,18 +126,21 @@ int test_fst23_interface(const int is_rsf) {
          return -1;
       }
       strcpy(record.nomvar, "Sun ");
+      Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus");
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
       strcpy(record.nomvar, "Not ");
+      Meta_DefVar(prof_fld,"Not qquechose","Not","fuiosdfsdf","sdfsd sef encore plus");
       strcpy(record.typvar, "A");
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
+      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
       Meta_To89(prof_fld,&record);
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
@@ -185,14 +192,16 @@ int test_fst23_interface(const int is_rsf) {
          if (!(meta=Meta_Parse(record_find.metadata)))  {
             App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);
             return -1; 
-         }          
-         Meta_Resolve(meta,prof_file);
-         fprintf(stderr,"JSON: %p %s\n",record_find.metadata,Meta_Stringify(meta));
-         num_found++;
+         }
+         if (Meta_Match(search_meta,meta,TRUE)) {      
+            Meta_Resolve(meta,prof_file);
+            fprintf(stderr,"JSON: %i %s\n",num_found,Meta_Stringify(meta));
+            num_found++;
+         }
       }
 
       if (num_found < 3) {
-         fprintf(stderr, "Could not find all (3) records we should\n");
+         fprintf(stderr, "Could not find all (3) records we should, found %i\n",num_found);
          return -1;
       }
 
