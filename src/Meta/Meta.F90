@@ -51,6 +51,13 @@ interface
       type(C_PTR), intent(in), value :: obj,objmaster
    end FUNCTION
    
+!  json_object *Meta_Load(char *Path );
+   type(C_PTR) FUNCTION meta_load(path) BIND(C, name="Meta_Load")
+      import :: C_PTR, C_CHAR
+
+      character(C_CHAR), dimension(*), intent(in) :: path
+   end FUNCTION
+
 !  json_object *Meta_LoadProfile(char *Name,char *Version);
    type(C_PTR) FUNCTION meta_loadprofile(name,version) BIND(C, name="Meta_LoadProfile")
       import :: C_PTR, C_CHAR
@@ -279,6 +286,7 @@ end interface
       private
       type(C_PTR) :: json_obj = c_null_ptr
    contains
+      procedure, pass :: load => tmeta_load
       procedure, pass :: loadprofile => tmeta_loadprofile
       procedure, pass :: resolve => tmeta_resolve
       procedure, pass :: parse => tmeta_parse
@@ -315,6 +323,19 @@ contains
 
       status = meta_free(this%json_obj)
    end SUBROUTINE meta_final
+
+   FUNCTION tmeta_load(this,path) result(status)
+      class(meta), intent(inout)   :: this
+      integer(kind=INT32)          :: status
+      character(len=*), intent(in) :: path
+ 
+      this%json_obj = meta_load(path//C_NULL_CHAR)
+
+      status=0
+      if (c_associated(this%json_obj)) then
+         status=1
+      endif
+   end FUNCTION
 
    FUNCTION tmeta_loadprofile(this,name,version) result(status)
       class(meta), intent(inout)   :: this

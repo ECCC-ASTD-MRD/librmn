@@ -187,7 +187,7 @@ int32_t Meta_Free(json_object *Obj) {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Load a json profile
+ * @brief  Load a standard json profile from the environment
 
  * @date   July 2023
  *    @param[in]  Name     Profile name
@@ -214,6 +214,27 @@ json_object *Meta_LoadProfile(char *Name,char *Version) {
    json_object_set_string(objval,version);
    
    return(prof);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Load a user json file
+
+ * @date   July 2023
+ *    @param[in]  Name     Profile name
+ *    @param[in]  Version  Profile version (if NULL, use env defined)
+ *
+ *    @return              json object
+*/
+json_object *Meta_Load(char *Path) {
+   
+   json_object *obj=NULL;
+
+   if (!(obj=json_object_from_file(Path))) {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load json file %s\n",__func__,Path);
+      return(NULL);
+   }
+  
+   return(obj);
 }
 
 /**----------------------------------------------------------------------------
