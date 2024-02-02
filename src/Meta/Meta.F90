@@ -249,7 +249,6 @@ interface
       type(C_PTR), intent(in), value :: obj
    end FUNCTION
 
-!TODO: objectify
 !  json_object* Meta_Copy(json_object *Obj);
    type(C_PTR) FUNCTION meta_copy(obj) BIND(C, name="Meta_Copy")
       import :: C_PTR
