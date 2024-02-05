@@ -715,6 +715,7 @@ int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria) {
 
     const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
     fstd_open_files[file->file_index].search_start_key = start_key;
+    fstd_open_files[file->file_index].search_meta = criteria->metadata;
 
     return TRUE;
 }
@@ -733,13 +734,29 @@ int32_t fst23_find_next(
     }
 
     int64_t key = -1;
-    const stdf_dir_keys* record_meta = NULL;
-    stdf_dir_keys record_meta_xdf;
+    void *meta=NULL;
 
-    // Look for the record in the file, depending on backend
+    // Depending on backend
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        key = find_next_record(file_handle, &fstd_open_files[file->file_index]);
+
+        while(key == -1) {
+            // Look for the record in the file
+            if ((key=find_next_record(file_handle, &fstd_open_files[file->file_index])) < 0) {
+                break;
+            }
+            
+            // If metadata search is specified, look for a match or carry on looking
+            if (fstd_open_files[file->file_index].search_meta) {
+//TODO:                meta=fst23_read_meta();
+                if (Meta_Match(fstd_open_files[file->file_index].search_meta,meta,FALSE)) {
+                    result->metadata=meta;
+                    break;
+                } else {
+                    key=-1;
+                }
+            }  
+        }    
     }
     else if (file->type == FST_XDF) {
         uint32_t* pkeys = (uint32_t *) &fstd_open_files[file->file_index].search_criteria;
