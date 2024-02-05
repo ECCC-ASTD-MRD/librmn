@@ -1,12 +1,18 @@
+* Introduction
+The new metadata now available in FST23 allows the storage of much more information while being flexible, extensible and future proof.
+This metadata is in addition to the previous NOMVAR,TYPVAR,IP,... indexable metadata already available and will garantee backward compatibility with previous FST89 and FST98
+It uses a grammar for token/value pair definitions implemented as JSON, and versionned through JSON profiles. 
+Management of the profiles and accetep value pair shall be managed by the [[https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC] Data Governance Commitee (DGC/CGD)]
+
 * Environment variable
 META_VERSION  : Version of metadata to be used (Default: latest)
-META_VALIDATE : Enable validation of json values (default: False)
+META_VALIDATE : Enable validation of json values (default: FALSE)
 ARMNLIB       : Use to find location of metadata templates ans definitions ($ARMNLIB/json/${META_VERSION})
 
 * Grammar
-** Field level
+** Field level metadata and FST98 RPN correspondance
 
-| Previously   | Now                                                          |                            
+| RPN          | Extended metadata                                                         |                            
 |--------------+--------------------------------------------------------------|
 |              |version = [semantic version]                                  |
 |              |standard_name = [cf convention]                               |
@@ -32,7 +38,7 @@ ARMNLIB       : Use to find location of metadata templates ans definitions ($ARM
   
 - axis          = [time, level, latitude, longitude, x, y, z]
 - process       = [average, sum, minimum, maximum, median, standard_deviation, error, …]
-- time_unit     = [seconds, minutes, hours, days, weeks, years]
+- time_unit     = [seconds, minutes, hours, days, weeks, years, ...]
 - datetime      = ISO8601 formatted, but seconds internally
 - qualifier     = [analysis, climatology, raw_station, error, constants, verification_matrix, observation, prognostic, diagnostic, analysis_increment, scores, timeseries, operational, parallel, experimental, member:n, centile[<,<=,=,>,>=]value, …]
 - unit          = [udunit] | [time_unit] 
@@ -73,7 +79,7 @@ ARMNLIB       : Use to find location of metadata templates ans definitions ($ARM
    },
    "data" : {
       "type" : "",
-      "size" : 0,
+      "bits" : 0,
       "pack" : 0,
       "compression" : ""
    }
@@ -82,17 +88,17 @@ ARMNLIB       : Use to find location of metadata templates ans definitions ($ARM
 
 ** File level
 
-| Previously   | Now                                              |                            
-|--------------+--------------------------------------------------|
-|              | version : [semantic version]                     |
-|              | institution : "CMC"                              |
-|              | discipline" : [climatology,meteorology,…]        |
-|              | title" : "run id"                                |
-|              | source" : [GDPS, RDPS, HRDPS, …][version]        |
-|              | description" : ""                                |
-|              | state : [Operational, parallel, experimenta, ...]|
-|              | vertical_references" : []                        |
-|              | horizontal_references" : []                      |
+| Now                                              |                            
+|--------------------------------------------------|
+| version : [semantic version]                     |
+| institution : "CMC"                              |
+| discipline" : [climatology,meteorology,…]        |
+| title" : "run id"                                |
+| source" : [GDPS, RDPS, HRDPS, …][version]        |
+| description" : ""                                |
+| state : [Operational, parallel, experimenta, ...]|
+| vertical_references" : []                        |
+| horizontal_references" : []                      |
 
 *** json template 0.1.0
 #+begin_src
@@ -157,7 +163,6 @@ int main(int argc, char **argv) {
 }
 #+END_SRC
 
-
 ** Fortran
 #+BEGIN_SRC Fortran
 program meta_fortran
@@ -204,7 +209,6 @@ program meta_fortran
    write(6,*) 'Field JSON:',meta_fld%Stringify()
   
 end
-
 
 
 #+END_SRC

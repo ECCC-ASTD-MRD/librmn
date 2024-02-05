@@ -179,7 +179,7 @@ int32_t Meta_Init(){
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *
- *    @return                    Has memory been freed (NULL if error)
+ *    @return                    Has memory been freed
 */
 int32_t Meta_Free(json_object *Obj) {
 
@@ -561,7 +561,7 @@ json_object *Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,doub
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Resolve references by in string definitions in place
+ * @brief  Resolve references of identifiers by string definitions in place
 
  * @date   Novembre 2023
  *    @param[in]  Obj           Profile json object
@@ -1066,12 +1066,12 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
  *    @param[in]   NK            K dimension
  *    @param[in]  Type          Data type
  *    @param[in]  Compression   Compression type
- *    @param[in]  Pack          Number of bit of precision (packing)
- *    @param[in]  Size          Data size pet value
+ *    @param[in]  Pack          Number of stored bits of precision (packing)
+ *    @param[in]  Bits          Number of in memory bits
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Size) {
+json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit) {
 
    json_object *obj=NULL,*objval=NULL;
    int32_t i;
@@ -1093,8 +1093,8 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
    json_object_set_string(objval,Compression);
    json_pointer_get(obj,"/pack",&objval);
    json_object_set_int(objval,Pack);
-   json_pointer_get(obj,"/size",&objval);
-   json_object_set_int(objval,Size);
+   json_pointer_get(obj,"/bits",&objval);
+   json_object_set_int(objval,Bit);
 
    json_object_object_add(Obj,"size",json_object_new_array());
    json_pointer_get(Obj,"/size",&objval);
@@ -1115,12 +1115,12 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
  *    @param[out]  NK            K dimension
  *    @param[out]  Type          Data type
  *    @param[out]  Compression   Compression type
- *    @param[out]  Pack          Number of bit of precision (packing)
- *    @param[out]  Size          Data size pet value
+ *    @param[in]   Pack          Number of stored bits of precision (packing)
+ *    @param[in]   Bits          Number of in memory bits
  *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Size) {
+json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit) {
 
    json_object *obj=NULL,*objval=NULL;
 
@@ -1143,9 +1143,9 @@ json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,c
       json_pointer_get(obj,"/pack",&objval);
       *Pack=json_object_get_int(objval);
    }
-   if (Size) {
-      json_pointer_get(obj,"/size",&objval);
-      *Size=json_object_get_int(objval);
+   if (Bit) {
+      json_pointer_get(obj,"/bits",&objval);
+      *Bit=json_object_get_int(objval);
    }
    return(Obj);
 }
@@ -1163,11 +1163,6 @@ json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,c
  *
  *    @return                    object reference
 */
-//   "institution" : "CMC",
-//   "discipline" : "",
-//   "title" : "",
-//   "source" : "",
-//   "description" : "",
 json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description,char *State) {
 
    json_object *objval=NULL;
@@ -1209,7 +1204,7 @@ char *Meta_Stringify(json_object *Obj) {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Format an object for output
+ * @brief  Parse a string into a metadata object
  * @date   July 2023
  *    @param[in]   MetaString    metadat json string
  *
@@ -1612,19 +1607,13 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    }
 
    // NPACK,DATYP,DASIZ
-   switch(Rec->datyp) {
-      case FST_TYPE_BINARY:   c="bit"; break;
-      case FST_TYPE_SIGNED:   c="unsigned integer"; break;
-      case FST_TYPE_UNSIGNED: c="signed integer"; break;
-      case FST_TYPE_REAL:     c="real"; break;
-      case FST_TYPE_COMPLEX:  c="complex"; break;
-   }
-   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,c,"",Rec->npak,Rec->dasiz);
+   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->datyp],"",Rec->npak,Rec->dasiz);
  
    // ETIKET
    snprintf(tmp,FST_ETIKET_LEN+4,"tag:%s",etiket);
    Meta_AddQualifier(Obj,tmp);
 
+//TODO:
    // IP1,IP2,IP3
 //   Meta_DefVerticalRef(prof_fld,"LEVEL_PRESSURE",1000.0,false);
 
