@@ -2,7 +2,7 @@
 - The new metadata now available in FST23 allows the storage of much more information while being flexible, extensible and future proof.
 - This metadata is in addition to the previous indexable metadata already available (NOMVAR,TYPVAR,IP,...) and will keep backward compatibility with previous FST89 and FST98.
 - It uses a grammar for token/value pair definitions implemented as JSON, and versionned through JSON profiles. 
-- Management of the profiles and accetpted value pair shall be managed by the [[https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC][Data Governance Commitee (DGC/CGD)]
+- Management of the profiles and accetpted value pair shall be managed by the [[https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC][Data Governance Commitee (DGC/CGD)]]
 
 * Environment variable
 META_VERSION  : Version of metadata to be used (Default: latest)
@@ -49,7 +49,7 @@ ARMNLIB       : Use to find location of metadata templates ans definitions ($ARM
 (For all accepted and up to date values of these parameters see $ARMNLIB/json/[version]/definitions.json)
 
 *** json template 0.1.0
-#+begin_src
+#+begin_src JSON
 {  "version" : "",
    "standard_name" : "",
    "rpn_name" : "",
@@ -101,7 +101,7 @@ ARMNLIB       : Use to find location of metadata templates ans definitions ($ARM
 | horizontal_references" : []                      |
 
 *** json template 0.1.0
-#+begin_src
+#+begin_src JSON
 {
    "version" : "",
    "institution" : "CMC",
