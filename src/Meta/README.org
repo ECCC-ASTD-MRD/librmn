@@ -5,9 +5,9 @@
 - Management of the profiles and accetpted value pair shall be managed by the [[https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC][Data Governance Commitee (DGC/CGD)]]
 
 * Environment variable
-META_VERSION  : Version of metadata to be used (Default: latest)
-META_VALIDATE : Enable validation of json values (default: FALSE)
-ARMNLIB       : Use to find location of metadata templates ans definitions ($ARMNLIB/json/${META_VERSION})
+- META_VERSION  : Version of metadata to be used (Default: latest)
+- META_VALIDATE : Enable validation of json values (default: FALSE)
+- ARMNLIB       : Use to find location of metadata templates ans definitions ($ARMNLIB/json/${META_VERSION})
 
 * Grammar
 ** Field level metadata and FST98 RPN correspondance

@@ -203,7 +203,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
+            #   $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
             #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
                $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
     add_dependencies(${TARGET}
@@ -222,7 +222,7 @@ set_source_files_properties(src/primitives/wkoffit.c PROPERTIES COMPILE_FLAGS "$
 set_source_files_properties(src/base/fft_m4.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable=6477,7342>")
 set_source_files_properties(src/base/fft_m8.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable=7342>")
 
-install(TARGETS ${shared_targets} libudunits2
+install(TARGETS ${shared_targets}
     EXPORT rmn-shared-targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -278,6 +278,11 @@ install(EXPORT rmn-static-targets
     NAMESPACE rmn::
     DESTINATION ${CONFIG_INSTALL_DIR})
 
+# udunits2 does not saves it's targets configuration correctly
+install(EXPORT udunits2-targets
+        NAMESPACE udunits2::
+        DESTINATION ${CONFIG_INSTALL_DIR})
+    
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "Config.cmake.in"
