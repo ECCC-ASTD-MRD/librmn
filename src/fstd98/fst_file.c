@@ -74,6 +74,72 @@ int32_t fst23_close(fst_file* file) {
     return 0;
 }
 
+#include <float.h>
+#include <math.h>
+//! Retreive record's data minimum and maximum value
+void fst23_bounds(const fst_record *record,
+    double *Min,  //!< Mimimum value (NaNif not retreivable)
+    double *Max   //!< Maximum value (NaNif not retreivable)
+) {
+
+    uint64_t n,sz=(record->ni*record->nj*record->nk);
+    double dmin=DBL_MAX,dmax=DBL_MIN,dval;
+    uint64_t  umin=ULONG_MAX,umax=0,uval;
+    char cmin=CHAR_MAX,cmax=CHAR_MIN,cval;
+    int64_t lmin=LONG_MAX,lmax=0,lval;
+
+    *Min=*Max=NAN;
+
+    // Loop on data type to avoid type casting as much as possible
+    switch (record->datyp) {
+
+        case 0: case 128:
+            /* binary */
+            *Min=0;*Max=1;
+            break;
+
+        case 1: case 5: case 6: 
+            /* floating point */
+            for(n=0;n<sz;n++) {
+                dval=record->dasiz==32?((float*)record->data)[n]:((double*)record->data)[n];
+                if (dval<dmin) dmin=dval; else if (dval>dmax) dmax=dval;
+            }
+            *Min=dmin;*Max=dmax;
+            break;
+
+        case 2:
+            /* integer, short integer or byte stream */
+            for(n=0;n<sz;n++) {
+                uval=record->dasiz==32?((uint32_t*)record->data)[n]:record->dasiz==64?((uint64_t*)record->data)[n]:((uint8_t*)record->data)[n];
+                if (uval<umin) umin=uval; else if (uval>umax) umax=uval;
+            }
+            *Min=umin;*Max=umax;
+            break;
+
+
+        case 3: //TODO: WTF is character
+            /* character */
+            for(n=0;n<sz;n++) {
+                cval=((char*)record->data)[n];
+                if (cval<cmin) cmin=cval; else if (cval>cmax) cmax=cval;
+            }
+            *Min=cmin;*Max=cmax;
+            break;
+
+        case 4: case 132:
+            /* signed integer */
+            for(n=0;n<sz;n++) {
+                lval=record->dasiz==32?((int32_t*)record->data)[n]:record->dasiz==64?((int64_t*)record->data)[n]:((int8_t*)record->data)[n];
+                if (lval<lmin) lmin=lval; else if (lval>lmax) lmax=lval;
+            }
+            *Min=lmin;*Max=lmax;
+            break;
+
+        case 7: case 135:
+            break;
+    }
+}
+
 static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
 
     RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
@@ -262,7 +328,8 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     int   metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
-       Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz);
+       fst23_bounds(record,&dmin,&dmax);
+       Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax);
        if ((metastr = Meta_Stringify(record->metadata))) {
           metalen = strlen(metastr);
           rec_metadata_size += ((metastr?metalen:0)+3)/4;

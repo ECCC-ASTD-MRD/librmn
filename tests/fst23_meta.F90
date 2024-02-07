@@ -19,12 +19,11 @@ program test_meta_fortran
 
     write(6,*) 'JSON:',meta_file%Stringify()
  
-    obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature")
-    obj=meta_fld%DefBound(-60.0d0,50.0d0,"celsius")
+    obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
     obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"minutes")
     obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
     obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)
-    obj=meta_fld%DefData(100,100,1,"float","lorenzo",16,32)
+    obj=meta_fld%DefData(100,100,1,"float","lorenzo",16,32,-60.0d0,50.0d0)
 
     obj=meta_fld%AddCellMethod("interpolation:linear")
     obj=meta_fld%AddCellMethod("filter:gaussian")

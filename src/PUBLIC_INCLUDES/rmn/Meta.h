@@ -29,11 +29,8 @@ json_object *Meta_New();
 json_object *Meta_Load(char *Path);
 json_object* Meta_LoadProfile(char *Name,char *Version);
 
-json_object* Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description);
-json_object* Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description);
-
-json_object* Meta_DefBound(json_object *Obj,double Min,double Max,const char* Unit);
-json_object* Meta_GetBound(json_object *Obj,double *Min,double *Max,char **Unit);
+json_object* Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,char* Unit);
+json_object* Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description,char **Unit);
 
 json_object* Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double Duration,char *Unit);
 json_object* Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,double *Duration,char **Unit);
@@ -44,8 +41,8 @@ json_object* Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifie
 json_object* Meta_DefHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object* Meta_GetHorizontalRef(json_object *Obj,char **Identifier);
 
-json_object* Meta_DefData(json_object *Node,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit);
-json_object* Meta_GetData(json_object *Node,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit);
+json_object* Meta_DefData(json_object *Node,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit,double Min,double Max);
+json_object* Meta_GetData(json_object *Node,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit,double *Min,double *Max);
 
 json_object *Meta_AddVerticalRef(json_object *Obj,char *Identifier,int Copy);
 json_object *Meta_AddHorizontalRef(json_object *Obj,char *Identifier,int Copy);

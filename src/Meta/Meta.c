@@ -284,12 +284,16 @@ inline static char* Meta_ValidateToken(json_object *TokenList,char *Token) {
  *    @param[in]  RPNName       RPN nomvar
  *    @param[in]  LongName      Long name
  *    @param[in]  Description   Varibale description
+ *    @param[in]  Unit          Data unit (udunits)
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description) {
+json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,char *Unit) {
 
    json_object *objval=NULL;
+#ifdef HAVE_UDUNITS2
+   ut_unit     *unit=NULL;
+#endif
 
    if (StandardName) {
       json_pointer_get(Obj,"/standard_name",&objval);
@@ -308,6 +312,20 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
       json_object_set_string(objval,Description);
    }
 
+   if (Unit) {
+      json_pointer_get(Obj,"/unit",&objval);
+#ifdef HAVE_UDUNITS2
+      if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,Unit))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,Unit);
+         return(NULL);
+      } else {
+         json_object_set_string(objval,Unit);
+      }
+#else
+      json_object_set_string(objval,Unit);
+#endif
+   }
+
    return(Obj);
 }
 
@@ -320,10 +338,11 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
  *    @param[out]  RPNName       RPN nomvar
  *    @param[out]  LongName      Long name
  *    @param[out]  Description   Varibale description
+ *    @param[out]  Unit          Data unit (udunits)
  *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description) {
+json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description,char **Unit) {
 
    json_object *objval=NULL;
 
@@ -343,78 +362,9 @@ json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,cha
       json_pointer_get(Obj,"/description",&objval);
       *Description=(char*)json_object_get_string(objval);
    }
-
-   return(Obj);
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Define data bounds and unit
-
- * @date   July 2023
- *    @param[in]  Obj           Profile json object
- *    @param[in]  Min           Minimum value
- *    @param[in]  Max           Maximum value
- *    @param[in]  Unit          Data unit (udunits)
- *
- *    @return                   json_object pointer (NULL if error)
-*/
-json_object *Meta_DefBound(json_object *Obj,double Min,double Max,const char* Unit) {
-
-   json_object *obj=NULL,*objval=NULL;
-#ifdef HAVE_UDUNITS2
-   ut_unit     *unit=NULL;
-#endif
-
-   json_pointer_get(Obj,"/unit",&objval);
-
    if (Unit) {
-#ifdef HAVE_UDUNITS2
-      if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,Unit))) {
-         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,Unit);
-         return(NULL);
-      } else {
-         json_object_set_string(objval,Unit);
-      }
-#else
-      json_object_set_string(objval,Unit);
-#endif
-   }
-
-   json_pointer_get(Obj,"/bounds/min",&objval);
-   json_object_set_double(objval,Min);
-   json_pointer_get(Obj,"/bounds/max",&objval);
-   json_object_set_double(objval,Max);
-
-   return(Obj);
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Exract data bounds and unit
-
- * @date   July 2023
- *    @param[in]   Obj           Profile json object
- *    @param[out]  Min           Minimum value
- *    @param[out]  Max           Maximum value
- *    @param[out]  Unit          Data unit (udunits)
- *
- *    @return                    json_object pointer (NULL if error)
-*/
-json_object *Meta_GetBound(json_object *Obj,double *Min,double *Max,char **Unit) {
-
-   json_object *objval=NULL;
-
-   json_pointer_get(Obj,"/unit",&objval);
-
-   if (Unit) {
+      json_pointer_get(Obj,"/unit",&objval);
       *Unit=(char*)json_object_get_string(objval);
-   }
-   if (Min) {
-      json_pointer_get(Obj,"/bounds/min",&objval);
-      *Min=json_object_get_double(objval);
-   }
-   if (Max) {
-      json_pointer_get(Obj,"/bounds/max",&objval);
-      *Max=json_object_get_double(objval);
    }
 
    return(Obj);
@@ -1068,10 +1018,12 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
  *    @param[in]  Compression   Compression type
  *    @param[in]  Pack          Number of stored bits of precision (packing)
  *    @param[in]  Bits          Number of in memory bits
+ *    @param[in]  Min           Minimum value
+ *    @param[in]  Max           Maximum value
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit) {
+json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit,double Min,double Max) {
 
    json_object *obj=NULL,*objval=NULL;
    int32_t i;
@@ -1102,6 +1054,11 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
    json_object_array_add(objval,json_object_new_int(NJ));
    json_object_array_add(objval,json_object_new_int(NK));
 
+   json_pointer_get(obj,"/bounds/min",&objval);
+   json_object_set_double(objval,Min);
+   json_pointer_get(obj,"/bounds/max",&objval);
+   json_object_set_double(objval,Max);
+
    return(Obj);
 }
 
@@ -1117,10 +1074,11 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
  *    @param[out]  Compression   Compression type
  *    @param[in]   Pack          Number of stored bits of precision (packing)
  *    @param[in]   Bits          Number of in memory bits
- *
+ *    @param[out]  Min           Minimum value
+ *    @param[out]  Max           Maximum value *
  *    @return                    json_object pointer (NULL if error)
 */
-json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit) {
+json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit,double *Min,double *Max) {
 
    json_object *obj=NULL,*objval=NULL;
 
@@ -1146,6 +1104,14 @@ json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,c
    if (Bit) {
       json_pointer_get(obj,"/bits",&objval);
       *Bit=json_object_get_int(objval);
+   }
+   if (Min) {
+      json_pointer_get(Obj,"/bounds/min",&objval);
+      *Min=json_object_get_double(objval);
+   }
+   if (Max) {
+      json_pointer_get(Obj,"/bounds/max",&objval);
+      *Max=json_object_get_double(objval);
    }
    return(Obj);
 }
@@ -1571,7 +1537,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
 
    // NOMVAR
 // Dict
-   Meta_DefVar(Obj,"",nomvar,"","");
+   Meta_DefVar(Obj,"",nomvar,"","","");
 
 //   Meta_DefBound(Obj,-60,50,"celsius");
 
@@ -1606,8 +1572,8 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
 //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé                                                      
    }
 
-   // NPACK,DATYP,DASIZ
-   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->datyp],"",Rec->npak,Rec->dasiz);
+   // NPACK,DATYP,DASIZ will be done internally at write
+//   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->datyp],"",Rec->npak,Rec->dasiz,0,0);
  
    // ETIKET
    snprintf(tmp,FST_ETIKET_LEN+4,"tag:%s",etiket);
@@ -1632,7 +1598,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
 
    // NOMVAR
    Rec->nomvar[0]='\0';
-   if (Meta_GetVar(Obj,NULL,&c1,NULL,NULL)) {
+   if (Meta_GetVar(Obj,NULL,&c1,NULL,NULL,NULL)) {
       strncpy(Rec->nomvar,c1,FST_NOMVAR_LEN-1);
       strblank2end(Rec->nomvar,FST_NOMVAR_LEN);
    }
@@ -1700,8 +1666,8 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    //   }
    }
 
-   //  NI,NJ,NK,NPACK,DATYP,DASIZ
-   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz);
+   //  NI,NJ,NK,NPACK,DATYP,DASIZ Will be done internally at read
+//   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
    // TODO: define datyp
    Rec->npak=-Rec->npak;
    switch(c1[0]) {

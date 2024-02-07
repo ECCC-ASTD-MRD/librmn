@@ -3,12 +3,8 @@
    "rpn_name" : "",
    "long_name" : "",
    "description" : "",
-   "size" : [],
-   "bounds" : {
-       "min" : NaN,
-       "max" : NaN
-   },
    "unit" : "",
+   "size" : [],
    "cell_methods" : [],
    "qualifiers" : [],
    "missing_values" : [],
@@ -27,8 +23,12 @@
    },
    "data" : {
       "type" : "",
-      "size" : 0,
+      "bits" : 0,
       "pack" : 0,
-      "compression" : ""
+      "compression" : "",
+      "bounds" : {
+         "min" : NaN,
+         "max" : NaN
+      }
    }
 }

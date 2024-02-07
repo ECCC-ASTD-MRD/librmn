@@ -24,7 +24,6 @@ int test_fst23_interface(const int is_rsf) {
             const float numerator = 1 + cos(12 * sqrt( powi + powj ));
             const float denominator = 0.5 * ( powi + powj ) + 2;
             data[i][j] = numerator / denominator;
-            // printf("domain[%d][%d] = %f\n", i, j, domain[i][j]);
         }
     }
 
@@ -59,7 +58,6 @@ int test_fst23_interface(const int is_rsf) {
    fprintf(stderr,"JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field metadata
-   Meta_DefBound(prof_fld,-60,50,"celsius");
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
@@ -126,21 +124,21 @@ int test_fst23_interface(const int is_rsf) {
          return -1;
       }
       strcpy(record.nomvar, "Sun ");
-      Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus");
+      Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus","hot");
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
       strcpy(record.nomvar, "Not ");
-      Meta_DefVar(prof_fld,"Not qquechose","Not","fuiosdfsdf","sdfsd sef encore plus");
+      Meta_DefVar(prof_fld,"Not qquechose","Not","fuiosdfsdf","sdfsd sef encore plus","cold");
       strcpy(record.typvar, "A");
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
-      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature");
+      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
       Meta_To89(prof_fld,&record);
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);

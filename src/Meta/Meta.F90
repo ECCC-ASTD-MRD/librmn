@@ -74,22 +74,12 @@ interface
       character(C_CHAR), dimension(*), intent(in) :: institution,discipline,title,source,description,state        
    end FUNCTION
 
-!  json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description);
-   type(C_PTR) FUNCTION meta_defvar(obj,standardname,rpnname,longname,description) BIND(C, name="Meta_DefVar")
+!  json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,const char* Unit);
+   type(C_PTR) FUNCTION meta_defvar(obj,standardname,rpnname,longname,description,unit) BIND(C, name="Meta_DefVar")
       import :: C_PTR, C_CHAR
 
       type(C_PTR), intent(in), value :: obj
-      character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description
-   end FUNCTION
-
-!  json_object *Meta_DefBound(json_object *Obj,double Min,double Max,const char* Unit);
-   type(C_PTR) FUNCTION meta_defbound(obj,min,max,unit) BIND(C, name="Meta_DefBound")
-      import :: C_PTR, C_CHAR, C_DOUBLE
-
-      type(C_PTR), intent(in), value :: obj
-      real(C_DOUBLE), value :: min
-      real(C_DOUBLE), value :: max
-      character(C_CHAR), dimension(*), intent(in) :: unit
+      character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description,unit
    end FUNCTION
 
 !  json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int Step,double Duration,char *Unit);
@@ -141,13 +131,14 @@ interface
       integer(kind=C_INT), value :: copy
    end FUNCTION
 
-!  json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit) {
-   type(C_PTR) FUNCTION meta_defdata(obj,ni,nj,nk,type,compression,pack,bit) BIND(C, name="Meta_DefData")
-      import :: C_PTR, C_CHAR, C_INT32_T
+!  json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit,double Min,double Max)
+   type(C_PTR) FUNCTION meta_defdata(obj,ni,nj,nk,type,compression,pack,bit,min,max) BIND(C, name="Meta_DefData")
+      import :: C_PTR, C_CHAR, C_INT32_T, C_DOUBLE
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*) :: type,compression
       integer(C_INT32_T),  value :: ni,nj,nk,pack,bit
+      real(C_DOUBLE), value :: min, max
    end FUNCTION
        
 !  json_object *Meta_AddCellMethod(json_object *Obj,char *Method);
@@ -301,7 +292,6 @@ end interface
       procedure, pass :: stringify => tmeta_stringify
       procedure, pass :: deffile => tmeta_deffile
       procedure, pass :: defvar => tmeta_defvar
-      procedure, pass :: defbound => tmeta_defbound
       procedure, pass :: defforecasttime => tmeta_defforecasttime
       procedure, pass :: addverticalref => tmeta_addverticalref
       procedure, pass :: addhorizontalref => tmeta_addhorizontalref
@@ -478,21 +468,12 @@ contains
       status = meta_deffile(this%json_obj,institution//C_NULL_CHAR,discipline//C_NULL_CHAR,title//C_NULL_CHAR,source//C_NULL_CHAR,description//C_NULL_CHAR,state//C_NULL_CHAR)
    end FUNCTION
 
-   FUNCTION tmeta_defvar(this,standardname,rpnname,longname,description) result(status)
+   FUNCTION tmeta_defvar(this,standardname,rpnname,longname,description,unit) result(status)
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
-      character(len=*) :: standardname, rpnname, longname, description
+      character(len=*) :: standardname, rpnname, longname, description, unit
 
-      status = meta_defvar(this%json_obj,standardname//C_NULL_CHAR,rpnname//C_NULL_CHAR,longname//C_NULL_CHAR,description//C_NULL_CHAR)
-   end FUNCTION
-
-   FUNCTION tmeta_defbound(this,min,max,unit) result(status)
-      class(meta), intent(inout) :: this
-      type(C_PTR) :: status
-      real(kind=REAL64), value :: min, max
-      character(len=*) :: unit
-
-      status = meta_defbound(this%json_obj,min,max,unit//C_NULL_CHAR)
+      status = meta_defvar(this%json_obj,standardname//C_NULL_CHAR,rpnname//C_NULL_CHAR,longname//C_NULL_CHAR,description//C_NULL_CHAR,unit//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defforecasttime(this,t0,step,duration,unit) result(status)
@@ -560,13 +541,14 @@ contains
       status = meta_defhorizontalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
    end FUNCTION
 
-   FUNCTION tmeta_defdata(this,ni,nj,nk,type,compression,pack,bit) result(status)
+   FUNCTION tmeta_defdata(this,ni,nj,nk,type,compression,pack,bit,min,max) result(status)
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
       character(len=*) :: type,compression
       integer(kind=INT32),  value :: ni,nj,nk,pack,bit
+      real(kind=REAL64), value :: min,max
 
-      status = meta_defdata(this%json_obj,ni,nj,nk,type//C_NULL_CHAR,compression//C_NULL_CHAR,pack,bit)
+      status = meta_defdata(this%json_obj,ni,nj,nk,type//C_NULL_CHAR,compression//C_NULL_CHAR,pack,bit,min,max)
    end FUNCTION
 
    FUNCTION tmeta_match(this,match,regexp) result(status)
