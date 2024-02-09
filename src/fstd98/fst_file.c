@@ -793,7 +793,7 @@ int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria) {
 //! \return TRUE if a record was found, FALSE otherwise (not found, file not open, etc.)
 int32_t fst23_find_next(
     fst_file* file,     //!< File we are searching. Must be open
-    fst_record* result  //!< [out] Record information if found (no data or advanced metadata)
+    fst_record* result  //!< [out] Record information if found (no data or advanced metadata, unless included in search)
 ) {
     if (!fst23_file_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);

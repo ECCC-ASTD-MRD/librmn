@@ -1,6 +1,7 @@
 #include <App.h>
 #include "rmn.h"
 #include "rmn/Meta.h"
+#include "Dict.h"
 #include "fstd98/fstd98_internal.h"
 #include <str.h>
 
@@ -96,7 +97,7 @@ int32_t Meta_Is(json_object *Obj) {
 */
 int32_t Meta_Init(){
 
-   char   path[META_PATH_MAXLEN];
+   char   path[APP_BUFMAX];
    char  *c;
    glob_t globs;
    int32_t    j;
@@ -123,10 +124,14 @@ int32_t Meta_Init(){
    }
 #endif
 
+   // Will not load again if already loaded
+   Dict_Load(DICT_UTF8);
+
    // Load metadata references 
+   // TODO: move to CMCCONST
    if ((ARMNLIB=getenv("ARMNLIB"))) {
 
-      snprintf(path,META_PATH_MAXLEN,"%s/json/%s/vertical/*.json",ARMNLIB,MetaVersion);
+      snprintf(path,APP_BUFMAX,"%s/json/%s/vertical/*.json",ARMNLIB,MetaVersion);
       MetaProfileZ=json_object_new_object();
       obja=json_object_new_array();
       json_object_object_add(MetaProfileZ,"vertical_references",obja);
@@ -141,7 +146,7 @@ int32_t Meta_Init(){
       }
       globfree(&globs);
 
-      snprintf(path,META_PATH_MAXLEN,"%s/json/%s/horizontal/*.json",ARMNLIB,MetaVersion);
+      snprintf(path,APP_BUFMAX,"%s/json/%s/horizontal/*.json",ARMNLIB,MetaVersion);
       MetaProfileXY=json_object_new_object();
       obja=json_object_new_array();
       json_object_object_add(MetaProfileXY,"horizontal_references",obja);
@@ -156,7 +161,7 @@ int32_t Meta_Init(){
       }
       globfree(&globs);
 
-      snprintf(path,META_PATH_MAXLEN,"%s/json/%s/definitions.json",ARMNLIB,MetaVersion);
+      snprintf(path,APP_BUFMAX,"%s/json/%s/definitions.json",ARMNLIB,MetaVersion);
       if (!(MetaProfileDefs=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load token definitions: %s\n",__func__,path);
          return(0);
@@ -197,11 +202,11 @@ int32_t Meta_Free(json_object *Obj) {
 */
 json_object *Meta_LoadProfile(char *Name,char *Version) {
    
-   char        path[META_PATH_MAXLEN],*version=NULL;
+   char        path[APP_BUFMAX],*version=NULL;
    json_object *prof=NULL,*objval=NULL;
 
    version=(Version && strlen(Version))?Version:MetaVersion;
-   snprintf(path,META_PATH_MAXLEN,"%s/json/%s/%s.json",ARMNLIB,version,Name);
+   snprintf(path,APP_BUFMAX,"%s/json/%s/%s.json",ARMNLIB,version,Name);
    if (!(prof=json_object_from_file(path))) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load profile %s\n",__func__,path);
       return(NULL);
@@ -323,6 +328,58 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
       }
 #else
       json_object_set_string(objval,Unit);
+#endif
+   }
+
+   return(Obj);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Define variable information based on $CMCCONST dictionnary to extract
+ *         the StandardName, LongName and Unit
+ *
+ * @date   July 2023
+ *    @param[in]  Obj           Profile json object
+ *    @param[in]  RPNName       RPN nomvar
+ *
+ *    @return                   json_object pointer (NULL if error)
+*/
+json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
+
+   TDictVar *var;
+   json_object *objval=NULL;
+#ifdef HAVE_UDUNITS2
+   ut_unit     *unit=NULL;
+#endif
+
+   if (!RPNName) {
+      return(NULL);
+   }
+   json_pointer_get(Obj,"/rpn_name",&objval);
+   json_object_set_string(objval,RPNName);
+   
+   if ((var=Dict_GetVar(RPNName))) {
+      json_pointer_get(Obj,"/standard_name",&objval);
+      json_object_set_string(objval,var->Short[0]);
+   
+      json_pointer_get(Obj,"/long_name",&objval);
+      json_object_set_string(objval,var->Long[0]);
+   
+//      json_pointer_get(Obj,"/description",&objval);
+//      json_object_set_string(objval,Description);
+
+      if (var->Units) {
+         json_pointer_get(Obj,"/unit",&objval);
+#ifdef HAVE_UDUNITS2
+         if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,var->Units))) {
+            Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,var->Units);
+            return(NULL);
+         } else {
+            json_object_set_string(objval,var->Units);
+         }
+#else
+         json_object_set_string(objval,var->Units);
+      }
 #endif
    }
 
@@ -1513,11 +1570,47 @@ int32_t Meta_Seconds2Stamp(time_t Sec) {
 }
 
 /**----------------------------------------------------------------------------
+ * @brief  Convert a date/time to seconds
+ * @date   July 2023
+ *    @param[in]   YYYY         Year
+ *    @param[in]   MM           Month
+ *    @param[in]   DD           Day
+ *    @param[in]   hh           Hour
+ *    @param[in]   mm           Minute
+ *    @param[in]   ss           Second
+ *    @param[in]   GMT          GMT (GMT or local time)
+ *   
+ *    @return                   System seconds
+*/
+time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT) {
+
+   struct tm date;
+
+   extern long timezone;
+
+   date.tm_sec=ss;         /*seconds apres la minute [0,61]*/
+   date.tm_min=mm;         /*minutes apres l'heure [0,59]*/
+   date.tm_hour=hh;        /*heures depuis minuit [0,23]*/
+
+   date.tm_mday=DD;        /*jour du mois [1,31]*/
+   date.tm_mon=MM-1;       /*mois apres Janvier [0,11]*/
+   date.tm_year=YYYY-1900; /*annee depuis 1900*/
+   date.tm_isdst=0;        /*Flag de l'heure avancee*/
+
+   /* Force GMT and set back to original TZ after*/
+   if (GMT) {
+      return(mktime(&date)-timezone);
+   } else {
+      return(mktime(&date));
+   }
+}
+
+/**----------------------------------------------------------------------------
  * @brief  Encode new JSON metadata from old metadata format
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[in]   Var           Variable name
- *    ...
+ *    
  *    @return                    Status (TRUE or FALSE)
 */
 int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
@@ -1536,10 +1629,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    strtrim(etiket,' ');
 
    // NOMVAR
-// Dict
-   Meta_DefVar(Obj,"",nomvar,"","","");
-
-//   Meta_DefBound(Obj,-60,50,"celsius");
+   Meta_DefVarFromDict(Obj,nomvar);
 
    // DATEO,DEET,NPAS
    Meta_DefForecastTime(Obj,Meta_Stamp2Seconds(Rec->dateo),Rec->npas,Rec->deet,"second");
@@ -1666,8 +1756,9 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    //   }
    }
 
-   //  NI,NJ,NK,NPACK,DATYP,DASIZ Will be done internally at read
-//   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+   //  NI,NJ,NK,NPACK,DATYP,DASIZ 
+   //Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+
    // TODO: define datyp
    Rec->npak=-Rec->npak;
    switch(c1[0]) {

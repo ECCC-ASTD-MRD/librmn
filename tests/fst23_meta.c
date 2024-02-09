@@ -138,7 +138,8 @@ int test_fst23_interface(const int is_rsf) {
          return -1;
       }
 
-      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+//      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+      Meta_DefVarFromDict(prof_fld,"TT");
       Meta_To89(prof_fld,&record);
       if (fst23_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);

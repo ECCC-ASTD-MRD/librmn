@@ -82,6 +82,14 @@ interface
       character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description,unit
    end FUNCTION
 
+!  json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName);
+   type(C_PTR) FUNCTION meta_defvarfromdict(obj,rpnname) BIND(C, name="Meta_DefVar")
+      import :: C_PTR, C_CHAR
+
+      type(C_PTR), intent(in), value :: obj
+      character(C_CHAR), dimension(*), intent(in) :: rpnname
+   end FUNCTION
+
 !  json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int Step,double Duration,char *Unit);
    type(C_PTR) FUNCTION meta_defforecasttime(obj,t0,step,duration,unit) BIND(C, name="Meta_DefForecastTime")
       import :: C_PTR, C_CHAR, C_LONG, C_INT, C_DOUBLE
@@ -292,6 +300,7 @@ end interface
       procedure, pass :: stringify => tmeta_stringify
       procedure, pass :: deffile => tmeta_deffile
       procedure, pass :: defvar => tmeta_defvar
+      procedure, pass :: defvarfromdict => tmeta_defvarfromdict
       procedure, pass :: defforecasttime => tmeta_defforecasttime
       procedure, pass :: addverticalref => tmeta_addverticalref
       procedure, pass :: addhorizontalref => tmeta_addhorizontalref
@@ -474,6 +483,14 @@ contains
       character(len=*) :: standardname, rpnname, longname, description, unit
 
       status = meta_defvar(this%json_obj,standardname//C_NULL_CHAR,rpnname//C_NULL_CHAR,longname//C_NULL_CHAR,description//C_NULL_CHAR,unit//C_NULL_CHAR)
+   end FUNCTION
+
+   FUNCTION tmeta_defvarfromdict(this,rpnname) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: rpnname
+
+      status = meta_defvarfromdict(this%json_obj,rpnname//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defforecasttime(this,t0,step,duration,unit) result(status)

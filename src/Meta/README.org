@@ -19,14 +19,13 @@
 |NOMVAR        |rpn_name = [dict]                                             |
 |              |long_name = "…“                                               |
 |              |description ="…"                                              |
-|              |bounds= [lower(double)] [higher(double)] [vertical reference] |
 |              |units = [udunits]                                             |
 |NI.NJ,NK      |size=[ni,nj,nk]                                               |
-|GRTYP         |horizontal_reference= [horizontal reference]                  |
+|GRTYP         |horizontal_reference= [horizontal_reference id]               |
 |IP2-3         |cell_methods = [cell_method]*                                 |
 |              |missing_values = [reason value]*                              |
 |              |mask = "…"                                                    |
-|IP1           |level = value [level_def]                                     |
+|IP1           |vertical_level = value [vertical_reference id]                |
 |ETIKET+TYPVAR |qualifiers = [qualifier]*                                     |
 |DATEO         |forecast_reference_datetime = [datetime]                      |
 |DATEV         |forecast_datetime  = [datetime]                               |
@@ -35,6 +34,7 @@
 |              |bits = [nunmber of bits]                                      |
 |              |pack = [number of packed bits]                                |
 |              |compression = [compression type]                              |
+|              |bounds= [lower, higher]                                       |
   
 - axis          = [time, level, latitude, longitude, x, y, z]
 - process       = [average, sum, minimum, maximum, median, standard_deviation, error, …]
@@ -143,7 +143,8 @@ int main(int argc, char **argv) {
    fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field metadata
-   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+//   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+   Meta_DefVarFromDict(prof_fld,"TT");
    Meta_DefForecastTime(prof_fld,1672556400,2,60,"second");
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
@@ -187,7 +188,8 @@ program meta_fortran
 
    write(6,*) 'File JSON:',meta_file%Stringify()
  
-   obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
+!   obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
+   obj=meta_fld%DefVarFromDict("TT")
    obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"seconds")
    obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
    obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)

@@ -36,6 +36,7 @@ endif()
 #set(FIND_LIBRARY_USE_LIB64_PATHS TRUE)
 #find_package(json-c CONFIG REQUIRED)
 #find_package(UDUNITS2)
+find_package(LibXml2 REQUIRED)
 
 include(ec_doxygen)         # Doxygen target doc
 
@@ -122,13 +123,13 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-target_link_libraries(rmn-static PUBLIC App-static json-c libudunits2)
+target_link_libraries(rmn-static PUBLIC App-static json-c libudunits2 LibXml2::LibXml2)
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2)
 
 # Build shared library from object of rmn
 add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
-target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2)
+target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2 LibXml2::LibXml2)
 
 set_target_properties(rmn-static rmn-shared PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -162,13 +163,13 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c libudunits2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c libudunits2 LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2)
 
    # Build shared library from objects of rmn-ompi
    add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
-   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2 LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
 
    set_target_properties(rmn-ompi-static rmn-ompi-shared PROPERTIES

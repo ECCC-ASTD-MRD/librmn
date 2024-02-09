@@ -7,7 +7,6 @@
    #include <rmn.h>
 #endif
 #define META_TOKEN_MAXLEN 1024
-#define META_PATH_MAXLEN 2048
 
 // Generic json manipulation calls
 char*        Meta_Stringify(json_object *Obj);
@@ -29,6 +28,7 @@ json_object *Meta_New();
 json_object *Meta_Load(char *Path);
 json_object* Meta_LoadProfile(char *Name,char *Version);
 
+json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName);
 json_object* Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,char* Unit);
 json_object* Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description,char **Unit);
 
@@ -65,6 +65,7 @@ json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,ch
 
 #ifdef HAVE_RMN
 
+time_t  Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT);
 void    Meta_StampDecode(int32_t Stamp,int32_t *YYYY,int32_t *MM,int32_t *DD,int32_t *H,int32_t *M,int32_t *S);
 void    Meta_StampEncode(int32_t *Stamp,int32_t YYYY,int32_t MM,int32_t DD,int32_t H,int32_t M,int32_t S);
 time_t  Meta_Stamp2Seconds(int32_t Stamp);
