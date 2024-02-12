@@ -39,7 +39,7 @@
 - axis          = [time, level, latitude, longitude, x, y, z]
 - process       = [average, sum, minimum, maximum, median, standard_deviation, error, …]
 - time_unit     = [seconds, minutes, hours, days, weeks, years, ...]
-- datetime      = ISO8601 formatted
+- datetime      = [[https://en.wikipedia.org/wiki/ISO_8601][ISO8601]] formatted
 - qualifier     = [analysis, climatology, raw_station, error, constants, verification_matrix, observation, prognostic, diagnostic, analysis_increment, scores, timeseries, operational, parallel, experimental, member:n, centile[<,<=,=,>,>=]value, …]
 - unit          = [udunit] | [time_unit] 
 - filter        = [gaussian, …] 
