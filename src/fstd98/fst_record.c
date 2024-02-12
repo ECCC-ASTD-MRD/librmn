@@ -1,6 +1,9 @@
 #include "fst_record_internal.h"
 
+#include <ctype.h>
+
 #include <App.h>
+#include "rmn/convert_ip.h"
 
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
@@ -69,6 +72,210 @@ void fst23_record_print(const fst_record* record) {
         record->ig1, record->ig2, record->ig3, record->ig4,
         record->typvar, record->grtyp, record->nomvar, record->etiket
     );
+}
+
+char* add_str(char* buffer, const char* string, const size_t length) {
+    const char format[10] = {' ', '%', '0' + length / 10, '0' + length % 10, 's', '\0'};
+    snprintf(buffer, length + 2, format, string);
+    return buffer + length + 1;
+}
+
+char* add_int(char* buffer, const int64_t num, const size_t length, const int with_zeros) {
+
+    if (length > 10 || with_zeros) {
+        const char format[10]   = {' ', '%', '0' + length / 10, '0' + length % 10, 'l', 'd', '\0'};
+        snprintf(buffer, length + 2, format, num);
+    }
+    else {
+        const char format[10] = {' ', '%', '0' + length, 'l', 'd', '\0'};
+        snprintf(buffer, length + 2, format, num);
+    }
+
+    return buffer + length + 1;
+}
+
+char* add_date(char* buffer, const int64_t datestamp) {
+    char* result = buffer;
+    int32_t dat2, dat3;
+    int32_t minus3 = -3;
+    int32_t small_date = datestamp;
+    f77name(newdate)(&small_date, &dat2, &dat3, &minus3);
+
+    result = add_int(result, dat2, 8, 1);
+    result = add_int(result, dat3 / 100, 6, 1);
+    result = add_str(result, "", 0);
+    return result;
+}
+
+char* add_level(char* buffer, const char* varname, const int32_t ip1, const size_t length) {
+
+    if (!FstCanTranslateName(varname)) return add_str(buffer, "---", length);
+
+    // good old level option
+    char c_level[16];
+    // char v_level[16];
+    int mode = -1;
+    int flag = 1;
+    int32_t ip1_f = ip1;
+    float level;
+    int kind, posc, posv;
+    f77name(convip_plus)(&ip1_f, &level, &kind, &mode, c_level, &flag, (F2Cl) 15);
+    c_level[15] = '\0';
+    /* blank initialisation */
+    snprintf(buffer, length, "%s", "                      ");
+    posc = 14;
+    posv = 14;
+    /* skip blanks and right justify string */
+    while ((posc >= 0) && (isspace(c_level[posc]))) {
+        posc--;
+    }
+    if (isdigit(c_level[posc])) {
+        posv -= 3;
+    }
+    while ((posv >= 0) && (posc >= 0)) {
+        buffer[posv] = c_level[posc];
+        posv--;
+        posc--;
+    }
+
+    return buffer + length + 1;
+}
+
+char* add_ips(char* buffer, const char* varname, const int32_t ip1, const int32_t ip2, const int32_t ip3, const size_t length) {
+    if (!FstCanTranslateName(varname)) {
+        char* result = buffer;
+        result = add_int(result, ip1, 10, 0);
+        result = add_int(result, ip2, 10, 0);
+        result = add_int(result, ip3, 10, 0);
+        return result;
+    }
+
+    // full IP1/IP2/IP3 triplet decoding
+    float p1, p2, p3;
+    int kind1, kind2, kind3;
+    int StatusIP = ConvertIPtoPK(&p1, &kind1, &p2, &kind2, &p3, &kind3, ip1, ip2, ip3);
+    if (kind1 < 0 || kind2 < 0 || kind3 < 0 || (StatusIP & CONVERT_ERROR) ) {
+        /* decode error somewhere */
+        kind1 = 15; kind2 = 15; kind3 = 15;  /* integer code P = IP */
+        p1 = ip1; p2 = ip2; p3 = ip3;
+    }
+    kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;   /* force modulo 32 */
+    const int num_written = snprintf(buffer, length + 2, " %10g%s %10g%s %10g%s", p1, kinds(kind1), p2, kinds(kind2), p3, kinds(kind3));
+    if (num_written < length) {
+        memset(buffer + num_written, ' ', length - num_written);
+        buffer[length + 1] = '\0';
+    }
+
+    return buffer + length + 1;
+}
+
+char* add_datatype(char* buffer, const int32_t datatype) {
+    // char m = ' ';
+    // if (has_type_missing(datatype)) m = 'm';
+
+    // if (strstr(option, "NODTY")) {
+    //     v_dty[0] = '\0';
+    // } else {
+    //     /* force lower case data type code if compressed */
+    //     if (stdf_entry->datyp > 128) {
+    //         /* suppress bits for 64 and 128 */
+    //         snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits);
+    //     } else {
+    //         /* suppress bits for 64 and 128 */
+    //         snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits);
+    //     }
+    // }
+    return NULL;
+}
+
+void fst23_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header) {
+    const fst_record_fields width = (fst_record_fields) {
+        .nomvar = 4,
+        .typvar = 2,
+        .etiket = 12,
+
+        .deet = 8,
+        .npas = 8,
+
+        .ni = 9,
+        .nj = 9,
+        .nk = 8,
+
+        .ip1 = 9,
+        .ip2 = 9,
+        .ip3 = 9,
+        .decoded_ip = 38,
+        
+        .dateo = 16,
+        .datev = 16,
+        .datestamps = 9,
+        .level = 15,
+
+        .datyp = 4
+    };
+
+    fst_record_fields to_print = default_fields;
+    if (fields != NULL) to_print = *fields;
+
+    char buffer[2048];
+    if (print_header) {
+        char* current = buffer;
+
+        if (to_print.nomvar > 0) current = add_str(current, "nomv", width.nomvar);
+        if (to_print.typvar > 0) current = add_str(current, "tv", width.typvar);
+        if (to_print.etiket > 0) current = add_str(current, "etiquette   ", width.etiket);
+        if (to_print.ni > 0) current = add_str(current, "ni", width.ni);
+        if (to_print.nj > 0) current = add_str(current, "nj", width.nj);
+        if (to_print.nk > 0) current = add_str(current, "nk", width.nk);
+
+        if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-O", width.datestamps);
+        if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-O  h m s) ", width.dateo);
+        if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-V", width.datestamps);
+        if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-V  h m s) ", width.datev);
+
+        if (to_print.level > 0) current = add_str(current, "level", width.level);
+        if (to_print.decoded_ip > 0) current = add_str(current, " ------ ips ------    ", width.decoded_ip);
+
+        if (to_print.ip1) current = add_str(current, "ip1", width.ip1);
+        if (to_print.ip2) current = add_str(current, "ip2", width.ip2);
+        if (to_print.ip3) current = add_str(current, "ip3", width.ip3);
+
+        if (to_print.deet) current = add_str(current, "deet", width.deet);
+        if (to_print.npas) current = add_str(current, "npas", width.npas);
+
+        if (to_print.datyp) current = add_str(current, "dtyp", width.datyp);
+
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
+    }
+    
+    {
+        char* current = buffer;
+        if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
+        if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
+        if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
+        if (to_print.ni > 0) current = add_int(current, record->ni, width.ni, 0);
+        if (to_print.nj > 0) current = add_int(current, record->nj, width.nj, 0);
+        if (to_print.nk > 0) current = add_int(current, record->nk, width.nk, 0);
+
+        if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
+        if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
+        if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
+        if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_date(current, record->datev);
+
+        if (to_print.level > 0) current = add_level(current, record->nomvar, record->ip1, width.level);
+        if (to_print.decoded_ip > 0) current = add_ips(current, record->nomvar, record->ip1, record->ip2, record->ip3, width.decoded_ip);
+
+        if (to_print.ip1) current = add_int(current, record->ip1, width.ip1, 0);
+        if (to_print.ip2) current = add_int(current, record->ip2, width.ip2, 0);
+        if (to_print.ip3) current = add_int(current, record->ip3, width.ip3, 0);
+
+        if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
+        if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
+
+        if (to_print.datyp) current = add_str(current, "todo", width.datyp);
+
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
+    }
 }
 
 int32_t fst23_record_is_valid(const fst_record* record) {
@@ -230,6 +437,7 @@ void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
     record->nk = keys->nk;
     record->datyp = keys->datyp;
     record->dasiz = keys->dasiz;
+    if (record->dasiz == 0) record->dasiz = keys->nbits;
     record->npak = -keys->nbits;
 
     record->deet = keys->deet;

@@ -158,6 +158,20 @@ static inline uint32_t key64_to_index(int64_t key64) {
   return key64 & 0xFFFFFFFFl ;
 }
 
+static inline int64_t make_key(
+  const int32_t slot,      //!< starts at 0
+  const int32_t record_id  //!< starts at 0
+) {
+  return (((int64_t)(slot + 1) << 32) + record_id + 1);
+}
+
+int64_t RSF_Make_key(
+  const int32_t slot,     //!< starts at 0
+  const int32_t record_id //!< Starts at 0
+) {
+  return make_key(slot, record_id);
+}
+
 //! Generate a 32 bit record key (sign:1, one:1 , index : 20, slot:10)
 //! from a 64 bit key (slot:32, index:32)
 //! code may have to be added to deal properly with negative key64 values
@@ -224,7 +238,7 @@ RSF_handle RSF_Key64_to_handle(int64_t key64) {
 //! Check if given file points to a valid RSF_File structure
 //! fp     pointer to RSF_File structure
 //! return slot number + 1 if valid structure, otherwise return 0
-static int32_t RSF_Valid_file(RSF_File *fp){
+static uint32_t RSF_Valid_file(RSF_File *fp){
   if(fp == NULL) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: file handle is NULL\n", __func__);
     return 0 ;                   // fp is a NULL pointer
@@ -439,23 +453,20 @@ static int64_t RSF_Scan_vdir(
   // uint32_t mask0 = 0xFFFFFFFF ;   // default mask0 is all bits active
   uint32_t mask0 = (~0) ;   // default mask0 is all bits active
   char *error ;
-  // int64_t badkey = ERR_NOT_FOUND ;
-  int64_t badkey = -1 ;
+  const int64_t badkey = -1 ;
   int reject_a_priori ;
 
   const int64_t slot = RSF_Valid_file(fp);
   if (!slot) {
     // something wrong with fp
-    error = "invalid file reference" ;
-    badkey = ERR_NO_FILE ;
-    goto ERROR ;
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: key = %16.16lx, invalid file reference\n", __func__, key0);
+    return ERR_NO_FILE ;
   }
 
-  if( (key0 != 0) && ((key0 >> 32) != slot) ) {
+  if( (key0 != 0) && (key64_to_file_slot(key0) != slot) ) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: key = %16.16lx, inconsistent file slot\n", __func__, key0);
     // slot in key different from file table slot
-    error = "inconsistent file slot" ;
-    badkey = ERR_BAD_UNIT ;
-    goto ERROR ;
+    return ERR_BAD_UNIT ;
   }
 
   // slot is origin 1 (zero is invalid)
@@ -463,10 +474,8 @@ static int64_t RSF_Scan_vdir(
   if( key0 < -1 ) key0 = 0 ;                // first record position for this file
   index = key0 & 0x7FFFFFFF ;               // starting ordinal for search (one more than what key0 points to)
   if(index >= fp->vdir_used) {
-    error = "beyond last record" ;
-//  using appropriate error code borrowed from XDF for consistency purposes
-//     badkey = ERR_NOT_FOUND ;
-    goto ERROR ;   // beyond last record
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: key = %16.16lx, beyond last record\n", __func__, key0);
+    return badkey;
   }
 
   if(criteria == NULL){                     // no criteria specified, anything matches
@@ -518,11 +527,11 @@ static int64_t RSF_Scan_vdir(
     // fprintf(stderr,"\n") ;
     // the first element of meta, mask, criteria is pre-processed here, and sent to matching function
     reject_a_priori = (rt0 != 0) && ( rt0 != (meta[0] & 0xFF) ) ;    // record type mismatch ?
-//     if( reject_a_priori )      continue ;    // record type mismatch
+    //     if( reject_a_priori )      continue ;    // record type mismatch
 
     class_meta = meta[0] >> 8 ;                                        // get class of record from meta[0]
     reject_a_priori = reject_a_priori | ( (class0 != 0) && ( (class0 & class_meta) == 0 ) ) ;   // class mismatch ?
-//     if( reject_a_priori ) continue ;   // class mismatch, no bit in common
+    //     if( reject_a_priori ) continue ;   // class mismatch, no bit in common
 
     dir_meta = DIR_ML(ventry->ml) ;                    // length of directory metadata
     // more criteria than metadata or less criteria than metadata will be dealt with by the matching function
@@ -534,17 +543,14 @@ static int64_t RSF_Scan_vdir(
     if((*scan_match)(criteria, meta, mask , lcrit, dir_meta, reject_a_priori) == 1 ){   // do we have a match ?
       goto MATCH ;
     }
-//     if((*scan_match)(criteria+1, meta+1, mask ? mask+1 : NULL, lcrit-1, dir_meta-1, reject_a_priori) == 1 ){   // do we have a match ?
-//       goto MATCH ;
-//     }
+    // if((*scan_match)(criteria+1, meta+1, mask ? mask+1 : NULL, lcrit-1, dir_meta-1, reject_a_priori) == 1 ){   // do we have a match ?
+    //   goto MATCH ;
+    // }
   }
+
   // falling through, return an invalid key
-  error = "no match found" ;
-//  using appropriate error code borrowed from XDF for consistency purposes
-//     badkey = ERR_NOT_FOUND ;
-ERROR :
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: key = %16.16lx, len = %d,  %s\n", __func__, key0, lcrit, error);  // Should be DEBUG?
-  return badkey ;
+  Lib_Log(APP_LIBFST, APP_INFO, "%s: key = %16.16lx, no match found\n", __func__, key0);
+  return badkey;
 
 MATCH:
   // upper 32 bits of key contain the file "slot" number (origin 1)
@@ -1761,6 +1767,13 @@ RSF_record_info RSF_Get_record_info_by_index(
 //     fprintf(stderr,"RSF_Get_record_info DEBUG: file container %s detected\n", temp);
   }
   return info ;
+}
+
+//! Determine whether the given record key is found in the given file
+int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) {
+  const uint32_t record_slot = key64_to_file_slot(key);
+  const uint32_t file_slot = RSF_Valid_file(h.p);
+  return (file_slot == record_slot);
 }
 
 //! Get information about a record

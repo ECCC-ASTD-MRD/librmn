@@ -67,6 +67,12 @@ static void build_gen_info_keys(uint32_t *buf, uint32_t *keys, int index,
 int C_fst_match_req(int set_nb, int handle);
 
 
+//! Check whether the given handle belongs to an open XDF file
+int32_t c_xdf_handle_in_file(const int32_t handle) {
+    const int32_t index = INDEX_FROM_HANDLE(handle);
+    return ((file_table[index] != NULL) && (file_table[index]->iun >= 0));
+}
+
 //! Check XDF file for corruption
 //! @return              Valid(0) or not(-1)
 int c_xdfcheck(

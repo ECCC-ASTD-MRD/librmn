@@ -315,6 +315,7 @@ interface
   RSF_record *RSF_Get_record(RSF_handle h, int64_t key) ;
   uint32_t RSF_Get_num_records(RSF_handle) ;
   uint32_t RSF_Get_num_records_at_open(RSF_handle h) ;
+  int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) ;
 #endif
 
 #if defined(IN_FORTRAN_CODE)
@@ -546,6 +547,7 @@ int64_t RSF_Key64(int32_t key32) ;
 uint32_t RSF_Key64_to_file_slot(int64_t key64) ;
 int32_t RSF_Key32_type(int32_t key32) ;
 int32_t RSF_File_slot(RSF_handle h) ;
+int64_t RSF_Make_key(const int32_t slot, const int32_t record_id) ;
 RSF_handle RSF_Key32_to_handle(int32_t key32) ;
 RSF_handle RSF_Key64_to_handle(int64_t key64) ;
 #endif

@@ -57,6 +57,7 @@ typedef struct {
 
 } fst_record;
 
+
 static const fst_record default_fst_record = (fst_record){
         .version = sizeof(fst_record),
         .data     = NULL,
@@ -95,6 +96,47 @@ static const fst_record default_fst_record = (fst_record){
                    '\0', '\0', '\0', '\0'},
     };
 
+
+typedef struct {
+    int32_t dateo, datev, datestamps;
+    int32_t level;
+    int32_t datyp, dasiz, npak, ni, nj, nk;
+    int32_t deet, npas;
+    int32_t ip1, ip2, ip3, decoded_ip;
+    int32_t ig1, ig2, ig3, ig4;
+    int32_t typvar, grtyp, nomvar, etiket;
+} fst_record_fields;
+
+static const fst_record_fields default_fields = (fst_record_fields) {
+    .dateo = 1,
+    .datev = 0,
+    .datestamps = 1,
+
+    .level = 0,
+
+    .deet = 0,
+    .npas = 0,
+
+    .nomvar = 1,
+    .typvar = 1,
+    .etiket = 1,
+    .grtyp  = 0,
+
+    .ni = 1,
+    .nj = 1,
+    .nk = 1,
+
+    .decoded_ip = 0,
+    .ip1 = 1,
+    .ip2 = 0,
+    .ip3 = 0,
+
+    .ig1 = 1,
+    .ig2 = 1,
+    .ig3 = 1,
+    .ig4 = 1
+};
+
 inline int64_t fst23_record_num_elem(const fst_record* record) {
     return record->ni * record->nj * record->nk;
 }
@@ -107,6 +149,7 @@ inline int64_t fst23_record_data_size(const fst_record* record) {
 int32_t    fst23_record_is_valid(const fst_record* record);
 int32_t    fst23_record_validate_params(const fst_record* record);
 void       fst23_record_print(const fst_record* record);
+void       fst23_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header);
 fst_record fst23_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
 int32_t    fst23_record_free(fst_record* record);
 int32_t    fst23_record_is_same(const fst_record* a, const fst_record* b);

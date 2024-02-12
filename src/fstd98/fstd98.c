@@ -88,9 +88,6 @@ static char *comptab[2] = {"FAST", "BEST"};
 
 fstd_usage_info fstd_open_files[MAXFILES];
 
-int FstCanTranslateName(char *varname);
-
-
 static void str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
         dst[i] = (i < srcLen) ? src[i] : ' ';
@@ -319,7 +316,7 @@ void crack_std_parms(
 
 //! Translate kind code to 2 char string
 //! \return corresponding kind string
-static char *kinds(
+char *kinds(
     //! [in] Kind code
     int kind
 ) {
@@ -6111,7 +6108,7 @@ int32_t f77name(ip3_val)(float *f_level, int32_t *f_kind)
 
 
 //! Check if name is in the translation table
-int FstCanTranslateName(char *varname) {
+int FstCanTranslateName(const char *varname) {
     FILE *fileref;
     static char filename[256];
     int result;

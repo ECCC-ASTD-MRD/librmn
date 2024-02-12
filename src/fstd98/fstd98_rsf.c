@@ -43,7 +43,14 @@ int64_t find_next_record(RSF_handle file_handle, fstd_usage_info* search_params)
                           (uint32_t *)&search_params->search_criteria,
                                        actual_mask_u32,
                                        search_params->num_criteria);
-    if (rsf_key > 0) search_params->search_start_key = rsf_key;
+    if (rsf_key > 0) {
+        // Found it. Next search will start here
+        search_params->search_start_key = rsf_key;
+    }
+    else {
+        // Did not find it. Mark this search as finished
+        search_params->search_done = 1;
+    }
     return rsf_key;
 }
 
@@ -756,6 +763,7 @@ int c_fstinfx_rsf(
 
     // Initialize search parameters
     fstd_open_files[index_fnom].search_start_key = 0;
+    fstd_open_files[index_fnom].search_done = 0;
     stdf_dir_keys *search_criteria  = &fstd_open_files[index_fnom].search_criteria;
     stdf_dir_keys *search_mask = &fstd_open_files[index_fnom].search_mask;
 
@@ -1665,7 +1673,7 @@ int c_fstvoi_rsf(
         print_std_parms(metadata, string, options, ((i % 70) == 0));
     }
 
-    fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %d bytes.\n", num_records, total_file_size);
+    fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, total_file_size);
 
     return 0;
 }
