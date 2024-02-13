@@ -15,20 +15,20 @@
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
-int32_t fst23_file_is_open(const fst_file* file) {
+int32_t fst24_is_open(const fst_file* file) {
     return (file != NULL && file->type != FST_NONE && file->file_index >= 0 && file->iun != 0);
 }
 
 //! To be called from Fortran
 //! \return The iun of the input file struct. -1 if NULL pointer
-int32_t fst23_get_iun(fst_file* file) {
+int32_t fst24_get_iun(fst_file* file) {
     if (file != NULL) return file->iun;
     return -1;
 }
 
 //! Open a standard file (FST). Will create it if it does not already exist
 //! \return A handle to the opened file. NULL if there was an error
-fst_file* fst23_open(
+fst_file* fst24_open(
     const char* file_name,  //!< Path of the file to open
     const char* options     //!< A list of options, as a string, with each pair of options separated by a comma or a '+'
 ) {
@@ -66,8 +66,8 @@ fst_file* fst23_open(
 //TODO what happens if closing a linked file?
 //! Close the given standard file
 //! \return 0 if no error, a negative number otherwise
-int32_t fst23_close(fst_file* file) {
-    if (!fst23_file_is_open(file)) return ERR_NO_FILE;
+int32_t fst24_close(fst_file* file) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     int status;
     status = c_fstfrm(file->iun);   // Close the actual file
@@ -81,8 +81,8 @@ int32_t fst23_close(fst_file* file) {
     return 0;
 }
 
-int64_t fst23_get_num_records(const fst_file* file) {
-    if (!fst23_file_is_open(file)) return 0;
+int64_t fst24_get_num_records(const fst_file* file) {
+    if (!fst24_is_open(file)) return 0;
 
     int64_t total_num_records = 0;
 
@@ -100,13 +100,13 @@ int64_t fst23_get_num_records(const fst_file* file) {
         return 0;
     }
 
-    if (file->next != NULL) total_num_records += fst23_get_num_records(file->next);
+    if (file->next != NULL) total_num_records += fst24_get_num_records(file->next);
 
     return total_num_records;
 }
 
-int64_t fst23_get_num_records_single(const fst_file* file) {
-    if (!fst23_file_is_open(file)) return ERR_NO_FILE;
+int64_t fst24_get_num_records_single(const fst_file* file) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
@@ -121,20 +121,20 @@ int64_t fst23_get_num_records_single(const fst_file* file) {
     return 0;
 }
 
-int32_t fst23_print_summary(const fst_file* file, const fst_record_fields* fields) {
-    if (!fst23_file_is_open(file)) return ERR_NO_FILE;
+int32_t fst24_print_summary(const fst_file* file, const fst_record_fields* fields) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
 
-    const int64_t num_records = fst23_get_num_records(file);
+    const int64_t num_records = fst24_get_num_records(file);
     size_t total_file_size = 0;
     
     fst_record rec;
     for (unsigned int i = 0; i < num_records; i++) {
-        fst23_get_record_by_index(file, i, &rec);
+        fst24_get_record_by_index(file, i, &rec);
         // total_file_size += info.rl;
         // char string[20];
         // sprintf(string, "%5d-", i);
         // print_std_parms(metadata, string, options, ((i % 70) == 0));
-        fst23_record_print_short(&rec, fields, ((i % 70) == 0));
+        fst24_record_print_short(&rec, fields, ((i % 70) == 0));
     }
 
     fprintf(stdout, "\n%d records in RPN standard file(s). Total size %ld bytes.\n", num_records, total_file_size);
@@ -143,7 +143,7 @@ int32_t fst23_print_summary(const fst_file* file, const fst_record_fields* field
 }
 
 //! Retreive record's data minimum and maximum value
-void fst23_bounds(const fst_record *record,
+void fst24_bounds(const fst_record *record,
     double *Min,  //!< Mimimum value (NaNif not retreivable)
     double *Max   //!< Maximum value (NaNif not retreivable)
 ) {
@@ -206,7 +206,7 @@ void fst23_bounds(const fst_record *record,
     }
 }
 
-static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
+static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
     RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
 
@@ -284,7 +284,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     const int8_t elem_size = force_64 ? 64 : record->dasiz;
 
     /* validate range of arguments */
-    if (fst23_record_validate_params(record) != 0) {
+    if (fst24_record_validate_params(record) != 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid value for certain parameters\n", __func__);
         return ERR_OUT_RANGE;
     }
@@ -394,7 +394,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     int   metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
-       fst23_bounds(record,&dmin,&dmax);
+       fst24_bounds(record,&dmin,&dmax);
        Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax);
        if ((metastr = Meta_Stringify(record->metadata))) {
           metalen = strlen(metastr);
@@ -743,7 +743,7 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);
     if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
         char string[18];
-        sprintf(string, "fst23 Write(%d)", file->iun);
+        sprintf(string, "fst24 Write(%d)", file->iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
 
@@ -754,9 +754,9 @@ static int32_t fst23_write_rsf(fst_file* file, const fst_record* record) {
 
 //! Write the given record into the given standard file
 //! \return 0 if everything was a success, a negative error code otherwise
-int32_t fst23_write(fst_file* file, const fst_record* record, int rewrit) {
-    if (!fst23_file_is_open(file)) return ERR_NO_FILE;
-    if (!fst23_record_is_valid(record)) return ERR_BAD_INIT;
+int32_t fst24_write(fst_file* file, const fst_record* record, int rewrit) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
+    if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
     char typvar[FST_TYPVAR_LEN];
     char nomvar[FST_NOMVAR_LEN];
@@ -765,7 +765,7 @@ int32_t fst23_write(fst_file* file, const fst_record* record, int rewrit) {
 
     switch (file->type) {
         case FST_RSF:
-            return fst23_write_rsf(file, record);
+            return fst24_write_rsf(file, record);
         case FST_XDF:
             if (record->metadata != NULL) {
                 Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
@@ -787,12 +787,12 @@ int32_t fst23_write(fst_file* file, const fst_record* record, int rewrit) {
 
 //! Get basic information about the record with the given key (search or "directory" metadata)
 //! \return TRUE if we were able to get the info, FALSE otherwise
-int32_t fst23_get_record_from_key(
+int32_t fst24_get_record_from_key(
     const fst_file* file, //!< File to which the record belongs. Must be open
     const int64_t key,    //!< Key of the record we are looking for. Must be valid
     fst_record* record    //!< [out] Record information (no data or advanced metadata)
 ) {
-    if (!fst23_file_is_open(file)) {
+    if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
@@ -832,12 +832,12 @@ int32_t fst23_get_record_from_key(
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
 //! XDF backend.
 //! \return TRUE if the inputs are valid (open file, OK criteria struct), FALSE otherwise
-int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria) {
-    if (!fst23_file_is_open(file)) {
+int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
+    if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
-    if (!fst23_record_is_valid(criteria)) {
+    if (!fst24_record_is_valid(criteria)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
        return FALSE;
     }
@@ -854,14 +854,14 @@ int32_t fst23_set_search_criteria(fst_file* file, const fst_record* criteria) {
     return TRUE;
 }
 
-int32_t fst23_get_record_by_index(const fst_file* file, const int64_t index, fst_record* record) {
-    if (!fst23_file_is_open(file)) return ERR_NO_FILE;
+int32_t fst24_get_record_by_index(const fst_file* file, const int64_t index, fst_record* record) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     *record = default_fst_record;
 
-    const int64_t num_records = fst23_get_num_records_single(file);
+    const int64_t num_records = fst24_get_num_records_single(file);
     if (index >= num_records) {
-        if (file->next != NULL) return fst23_get_record_by_index(file->next, index - num_records, record);
+        if (file->next != NULL) return fst24_get_record_by_index(file->next, index - num_records, record);
         return ERR_OUT_RANGE;
     }
 
@@ -892,14 +892,14 @@ int32_t fst23_get_record_by_index(const fst_file* file, const int64_t index, fst
 }
 
 //! Find the next record in the given file that matches the previously set
-//! criteria (either with a call to fst23_set_search_criteria or a search with explicit
+//! criteria (either with a call to fst24_set_search_criteria or a search with explicit
 //! criteria)
 //! \return TRUE if a record was found, FALSE otherwise (not found, file not open, etc.)
-int32_t fst23_find_next(
+int32_t fst24_find_next(
     fst_file* file,     //!< File we are searching. Must be open
     fst_record* result  //!< [out] Record information if found (no data or advanced metadata)
 ) {
-    if (!fst23_file_is_open(file)) {
+    if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
@@ -907,7 +907,7 @@ int32_t fst23_find_next(
     // Skip search, or search next file in linked list, if we were already done searching this file
     if (fstd_open_files[file->file_index].search_done == 1) {
         if (file->next != NULL) {
-            return fst23_find_next(file->next, result);
+            return fst24_find_next(file->next, result);
         }
         return FALSE;
     } 
@@ -927,7 +927,7 @@ int32_t fst23_find_next(
             
             // If metadata search is specified, look for a match or carry on looking
             if (fstd_open_files[file->file_index].search_meta) {
-    //TODO:                meta=fst23_read_meta();
+    //TODO:                meta=fst24_read_meta();
                 if (Meta_Match(fstd_open_files[file->file_index].search_meta, meta, FALSE)) {
                     result->metadata = meta;
                     break;
@@ -964,7 +964,7 @@ int32_t fst23_find_next(
     if (key >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, file->iun, key, file);
-        return fst23_get_record_from_key(file, key, result);
+        return fst24_get_record_from_key(file, key, result);
     }
 
     if (file->next != NULL) {
@@ -978,7 +978,7 @@ int32_t fst23_find_next(
 
         //TODO also copy search metadata!
 
-        return fst23_find_next(file->next, result);
+        return fst24_find_next(file->next, result);
     }
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: No (more) record found matching the criteria\n", __func__);
@@ -987,23 +987,23 @@ int32_t fst23_find_next(
 }
 
 //! Find the next record in a file that matches the given criteria
-int32_t fst23_find(
+int32_t fst24_find(
     fst_file* file,             //!< [in] File in which we are looking. Must be open
     const fst_record* criteria, //!< [in] Search criteria
     fst_record* result          //!< [out] First record in the file that matches the criteria
 ) {
-    fst23_set_search_criteria(file, criteria);
-    return fst23_find_next(file, result);
+    fst24_set_search_criteria(file, criteria);
+    return fst24_find_next(file, result);
 }
 
-//! Find all record that match the criteria specified with fst23_set_search_criteria
+//! Find all record that match the criteria specified with fst24_set_search_criteria
 //! \return Number of records found, 0 if none or if error.
-int32_t fst23_find_all(
+int32_t fst24_find_all(
     fst_file* file,               //!< File to search
     fst_record* results,          //!< [in,out] List of records found. Must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
-    if (!fst23_file_is_open(file)) {
+    if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
@@ -1013,13 +1013,13 @@ int32_t fst23_find_all(
     fstd_open_files[file->file_index].search_done = 0;
 
     for (int i = 0; i < max_num_results; i++) {
-        if (!fst23_find_next(file, &(results[i]))) return i;
+        if (!fst24_find_next(file, &(results[i]))) return i;
     }
     return max_num_results;
 }
 
 
-int32_t fst23_unpack_data(
+int32_t fst24_unpack_data(
     void* dest,
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
     const fst_record* record, //!< [in] Record information
@@ -1048,7 +1048,7 @@ int32_t fst23_unpack_data(
     // }
 
     const int multiplier = (simple_datyp == FST_TYPE_COMPLEX) ? 2 : 1;
-    const int nelm = fst23_record_num_elem(record) * multiplier;
+    const int nelm = fst24_record_num_elem(record) * multiplier;
 
     double dmin = 0.0;
     double dmax = 0.0;
@@ -1223,7 +1223,7 @@ int32_t fst23_unpack_data(
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_TRIVIAL) {
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, record->handle);
-        fst23_record_print(record);
+        fst24_record_print(record);
     }
 
     if (has_missing) {
@@ -1232,13 +1232,13 @@ int32_t fst23_unpack_data(
         // TODO review this logic
         int sz = record->dasiz;
         if (is_type_real(record->datyp) && record->dasiz == 64 ) sz = 64;
-        DecodeMissingValue(dest, fst23_record_num_elem(record), record->datyp & 0x3F, sz);
+        DecodeMissingValue(dest, fst24_record_num_elem(record), record->datyp & 0x3F, sz);
     }
 
     return 0;
 }
 
-int32_t fst23_read_rsf(
+int32_t fst24_read_rsf(
     fst_file* file,
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
@@ -1264,16 +1264,16 @@ int32_t fst23_read_rsf(
         memcpy(record_fst->metadata,(char*)((stdf_dir_keys*)record_rsf->meta+1),(record_rsf->rec_meta-record_rsf->dir_meta)*sizeof(uint32_t)); // Right after directory metadata
         Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,record_fst->metadata,record_fst->handle);
     }
-    // fst23_record_print(record_fst)
+    // fst24_record_print(record_fst)
 
-    const int32_t ier = fst23_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
+    const int32_t ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
 
     free(record_rsf);
 
     return ier;
 }
 
-int32_t fst23_read_xdf(
+int32_t fst24_read_xdf(
     fst_file* file,
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
@@ -1301,31 +1301,31 @@ int32_t fst23_read_xdf(
 }
 
 //! Read data from file, for a given record
-int32_t fst23_read(
+int32_t fst24_read(
     fst_file* file,
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
-    if (!fst23_file_is_open(file)) {
+    if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
        return ERR_NO_FILE;
     }
 
-    if (!fst23_record_is_valid(record) || record->handle < 0) {
+    if (!fst24_record_is_valid(record) || record->handle < 0) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);        
        return -1;
     }
 
     if (record->data == NULL) {
-        record->data = malloc(fst23_record_data_size(record) + 500);
+        record->data = malloc(fst24_record_data_size(record) + 500);
         if (record->data == NULL) return ERR_MEM_FULL;
     }
 
     int32_t ret = -1;
     if (file->type == FST_RSF) {
-            ret = fst23_read_rsf(file, record, 0);
+            ret = fst24_read_rsf(file, record, 0);
     }
     else if (file->type == FST_XDF) {
-        ret = fst23_read_xdf(file, record);
+        ret = fst24_read_xdf(file, record);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
@@ -1334,7 +1334,7 @@ int32_t fst23_read(
 
     // Record in not in this file, so look in the next one (if present)
     if (ret == ERR_BAD_HNDL && file->next != NULL) {
-        return fst23_read(file->next, record);
+        return fst24_read(file->next, record);
     }
 
     if (ret < 0) {
@@ -1347,15 +1347,15 @@ int32_t fst23_read(
     return TRUE;
 }
 
-int32_t fst23_read_next(fst_file* file, fst_record* record) {
-    if (!fst23_find_next(file, record)) {
+int32_t fst24_read_next(fst_file* file, fst_record* record) {
+    if (!fst24_find_next(file, record)) {
         return FALSE;
     }
 
-    return fst23_read(file, record);
+    return fst24_read(file, record);
 }
 
-int32_t fst23_link(fst_file** file, const int32_t num_files) {
+int32_t fst24_link(fst_file** file, const int32_t num_files) {
     if (num_files <= 1) {
         Lib_Log(APP_LIBFST, APP_INFO, "%s: only passed %d files, nothing to link\n", __func__, num_files);
         return FALSE;
@@ -1363,7 +1363,7 @@ int32_t fst23_link(fst_file** file, const int32_t num_files) {
 
     // Perform checks on all files before doing anything
     for (int i = 0; i < num_files; i++) {
-        if (!fst23_file_is_open(file[i])) {
+        if (!fst24_is_open(file[i])) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: File %d not open. We won't link anything.\n", __func__, i);
             return FALSE;
         }
@@ -1383,8 +1383,8 @@ int32_t fst23_link(fst_file** file, const int32_t num_files) {
 }
 
 
-int32_t fst23_unlink(fst_file* file) {
-    if (!fst23_file_is_open(file)) {
+int32_t fst24_unlink(fst_file* file) {
+    if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }

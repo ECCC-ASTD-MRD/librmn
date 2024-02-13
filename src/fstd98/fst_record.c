@@ -7,7 +7,7 @@
 
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
-fst_record fst23_record_init(
+fst_record fst24_record_init(
     void   *data,   //!< Data pointer to assign, or allocate inernal array in NULL
     int32_t type,   //!< Data type
     int32_t nbits,  //!< Number of bits per data element
@@ -37,7 +37,7 @@ fst_record fst23_record_init(
     return(result);
 }
 
-int32_t fst23_record_free(fst_record* record) {
+int32_t fst24_record_free(fst_record* record) {
 
    if (record->data && record->flags&FST_REC_ASSIGNED) {
       free(record->data);
@@ -46,7 +46,7 @@ int32_t fst23_record_free(fst_record* record) {
    return(TRUE);
 }
 
-void fst23_record_print(const fst_record* record) {
+void fst24_record_print(const fst_record* record) {
     Lib_Log(APP_LIBFST, APP_ALWAYS,
         "\n"
         "  Version: %ld\n"
@@ -188,7 +188,7 @@ char* add_datatype(char* buffer, const int32_t datatype) {
     return NULL;
 }
 
-void fst23_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header) {
+void fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header) {
     const fst_record_fields width = (fst_record_fields) {
         .nomvar = 4,
         .typvar = 2,
@@ -278,7 +278,7 @@ void fst23_record_print_short(const fst_record* record, const fst_record_fields*
     }
 }
 
-int32_t fst23_record_is_valid(const fst_record* record) {
+int32_t fst24_record_is_valid(const fst_record* record) {
     if (record == NULL) {
         Lib_Log(APP_ERROR, APP_LIBFST, "%s: Record pointer is NULL\n", __func__);
         return 0;
@@ -293,7 +293,7 @@ int32_t fst23_record_is_valid(const fst_record* record) {
     return 1;
 }
 
-int32_t fst23_record_validate_params(const fst_record* record) {
+int32_t fst24_record_validate_params(const fst_record* record) {
     VALID(record->ni, 1, NI_MAX, "ni")
     VALID(record->nj, 1, NJ_MAX, "nj")
     VALID(record->nk, 1, NK_MAX, "nk")
@@ -313,7 +313,7 @@ int32_t fst23_record_validate_params(const fst_record* record) {
 
 void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, stdf_dir_keys* mask) {
     // Check for error
-    if (!fst23_record_is_valid(record) || criteria == NULL || mask == NULL) {
+    if (!fst24_record_is_valid(record) || criteria == NULL || mask == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or criteria/mask pointers\n", __func__);
         return;
     }
@@ -464,7 +464,7 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
     return result;
 }
 
-int32_t fst23_record_is_same(const fst_record* a, const fst_record* b) {
+int32_t fst24_record_is_same(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
     if (a->version != b->version) return 0;
     if (a->flags != b->flags) return 0;
@@ -494,7 +494,7 @@ int32_t fst23_record_is_same(const fst_record* a, const fst_record* b) {
     return 1;
 }
 
-void fst23_record_diff(const fst_record* a, const fst_record* b) {
+void fst24_record_diff(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: One of the records is NULL! (a = 0x%x, b = 0x%x)\n", __func__, a, b);
     }

@@ -12,7 +12,7 @@ json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
 double levels[1]= { 1000.0 };
 
 
-int test_fst23_interface(const int is_rsf) {
+int test_fst24_interface(const int is_rsf) {
 
     // Create some arbitrary data field
     const int DATA_SIZE = 1024;
@@ -30,7 +30,7 @@ int test_fst23_interface(const int is_rsf) {
     // Create file
     remove(test_file_name);
     const char* options1 = is_rsf ? "RND+R/W+RSF" : "RND+R/W";
-    fst_file* test_file = fst23_open(test_file_name, options1);
+    fst_file* test_file = fst24_open(test_file_name, options1);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_file_name, options1);
         return -1;
@@ -76,7 +76,7 @@ int test_fst23_interface(const int is_rsf) {
     // Write a record
    {
 
-      fst_record file_meta = fst23_record_init(data,FST_TYPE_REAL,32,1,1,1);
+      fst_record file_meta = fst24_record_init(data,FST_TYPE_REAL,32,1,1,1);
       file_meta.npak = -32;
       file_meta.dateo = 0;
       file_meta.deet = 0;
@@ -93,12 +93,12 @@ int test_fst23_interface(const int is_rsf) {
       strcpy(file_meta.etiket, "FILE_META");
       strcpy(file_meta.grtyp, "X");
       file_meta.metadata = prof_file;
-      if (fst23_write(test_file, &file_meta,FALSE) < 0) {
+      if (fst24_write(test_file, &file_meta,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
         
-      fst_record record = fst23_record_init(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);
+      fst_record record = fst24_record_init(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);
       record.npak = -32;
       int32_t date;
       Meta_StampEncode(&date,2022,06,10,0,0,0);
@@ -119,13 +119,13 @@ int test_fst23_interface(const int is_rsf) {
 
       record.metadata = prof_fld;
 
-      if (fst23_write(test_file, &record,FALSE) < 0) {
+      if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
       strcpy(record.nomvar, "Sun ");
       Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus","hot");
-      if (fst23_write(test_file, &record,FALSE) < 0) {
+      if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
@@ -133,28 +133,28 @@ int test_fst23_interface(const int is_rsf) {
       strcpy(record.nomvar, "Not ");
       Meta_DefVar(prof_fld,"Not qquechose","Not","fuiosdfsdf","sdfsd sef encore plus","cold");
       strcpy(record.typvar, "A");
-      if (fst23_write(test_file, &record,FALSE) < 0) {
+      if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
       Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
       Meta_To89(prof_fld,&record);
-      if (fst23_write(test_file, &record,FALSE) < 0) {
+      if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
    }
 
     // Close the new file
-   if (fst23_close(test_file) < 0) {
+   if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close new file %s\n", test_file_name);
       return -1;
    }
 
    // Open existing file
    const char* options2 = "RND+R/O";
-   test_file = fst23_open(test_file_name, options2);
+   test_file = fst24_open(test_file_name, options2);
    if (test_file == NULL) {
       App_Log(APP_ERROR, "Unable to open newly-created test file with name %s and options %s\n", test_file_name, options2);
       return -1;
@@ -170,13 +170,13 @@ int test_fst23_interface(const int is_rsf) {
       search_extra.ig1=68839;
       search_extra.ni=1024;
       search_extra.grtyp[0]='Z';
-      fst23_set_search_criteria(test_file, &search_extra);
-      fst23_find_next(test_file, &record);
-      key=fst23_read(test_file, &record);
+      fst24_set_search_criteria(test_file, &search_extra);
+      fst24_find_next(test_file, &record);
+      key=fst24_read(test_file, &record);
 */
-      fst23_set_search_criteria(test_file, &record);
-      fst23_find_next(test_file, &record);
-      key=fst23_read(test_file, &record);
+      fst24_set_search_criteria(test_file, &record);
+      fst24_find_next(test_file, &record);
+      key=fst24_read(test_file, &record);
       meta=Meta_Parse(record.metadata);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
 
@@ -184,10 +184,10 @@ int test_fst23_interface(const int is_rsf) {
       fprintf(stdout,"\nfind loop:\n");
       int num_found = 0;
       strcpy(search_criteria.typvar, "P");
-      fst23_set_search_criteria(test_file, &search_criteria);
-      while(key=fst23_find_next(test_file, &record_find)) {
-         fst23_read(test_file,&record_find);
-//         fst23_read_meta(test_file,&record_find);
+      fst24_set_search_criteria(test_file, &search_criteria);
+      while(key=fst24_find_next(test_file, &record_find)) {
+         fst24_read(test_file,&record_find);
+//         fst24_read_meta(test_file,&record_find);
          if (!(meta=Meta_Parse(record_find.metadata)))  {
             App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);
             return -1; 
@@ -209,7 +209,7 @@ int test_fst23_interface(const int is_rsf) {
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
    }
 
-   if (fst23_close(test_file) < 0) {
+   if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
       return -1;
    }
@@ -220,10 +220,10 @@ int test_fst23_interface(const int is_rsf) {
 int main(void) {
 
    App_Log(APP_INFO, "Testing RSF\n");
-   if (test_fst23_interface(1) != 0) return -1; // RSF files
+   if (test_fst24_interface(1) != 0) return -1; // RSF files
 
 //    App_Log(APP_INFO, "Testing XDF\n");
-//    if (test_fst23_interface(0) != 0) return -1; // XDF files
+//    if (test_fst24_interface(0) != 0) return -1; // XDF files
 
    App_Log(APP_INFO, "Tests successful\n");
    return 0;

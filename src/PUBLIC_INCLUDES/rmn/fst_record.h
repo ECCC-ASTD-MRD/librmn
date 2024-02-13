@@ -137,23 +137,23 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .ig4 = 1
 };
 
-inline int64_t fst23_record_num_elem(const fst_record* record) {
+inline int64_t fst24_record_num_elem(const fst_record* record) {
     return record->ni * record->nj * record->nk;
 }
 
 //!> Number of data bytes in record
-inline int64_t fst23_record_data_size(const fst_record* record) {
-    return fst23_record_num_elem(record) * (record->dasiz / 8);
+inline int64_t fst24_record_data_size(const fst_record* record) {
+    return fst24_record_num_elem(record) * (record->dasiz / 8);
 }
 
-int32_t    fst23_record_is_valid(const fst_record* record);
-int32_t    fst23_record_validate_params(const fst_record* record);
-void       fst23_record_print(const fst_record* record);
-void       fst23_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header);
-fst_record fst23_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
-int32_t    fst23_record_free(fst_record* record);
-int32_t    fst23_record_is_same(const fst_record* a, const fst_record* b);
-void       fst23_record_diff(const fst_record* a, const fst_record* b);
+int32_t    fst24_record_is_valid(const fst_record* record);
+int32_t    fst24_record_validate_params(const fst_record* record);
+void       fst24_record_print(const fst_record* record);
+void       fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header);
+fst_record fst24_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
+int32_t    fst24_record_free(fst_record* record);
+int32_t    fst24_record_is_same(const fst_record* a, const fst_record* b);
+void       fst24_record_diff(const fst_record* a, const fst_record* b);
 
 
 #else

@@ -1,16 +1,16 @@
 
-module test_fst23_interface_module
+module test_fst24_interface_module
     use App
     use rmn_fstd23
     implicit none
 contains
 
-function test_fst23_interface(is_rsf) result(success)
+function test_fst24_interface(is_rsf) result(success)
     implicit none
     logical, intent(in) :: is_rsf
     logical :: success
 
-    character(len=*), parameter :: test_file_name = 'fst23_interface.fst'
+    character(len=*), parameter :: test_file_name = 'fst24_interface.fst'
     character(len=2000) :: cmd
 
     type(fstd23) :: test_file
@@ -33,13 +33,13 @@ function test_fst23_interface(is_rsf) result(success)
     end if
 
     success = .true.
-end function test_fst23_interface
+end function test_fst24_interface
 
-end module test_fst23_interface_module
+end module test_fst24_interface_module
 
 
-program fst23_interface
-    use test_fst23_interface_module
-    if (.not. test_fst23_interface(.true.)) error stop 1
-    if (.not. test_fst23_interface(.false.)) error stop 1
-end program fst23_interface
+program fst24_interface
+    use test_fst24_interface_module
+    if (.not. test_fst24_interface(.true.)) error stop 1
+    if (.not. test_fst24_interface(.false.)) error stop 1
+end program fst24_interface

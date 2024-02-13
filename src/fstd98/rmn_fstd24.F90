@@ -6,7 +6,7 @@ module rmn_fstd23
     use rmn_fstd98
     implicit none
 
-    include 'fst23_interface.inc'
+    include 'fst24_interface.inc'
 
     type, extends(fstd98) :: fstd23
         private
@@ -33,11 +33,11 @@ contains
             c_options = 'RND+RSF+R/O' // achar(0)    ! Open a read-only RSF file by default
         end if
 
-        this % file_struct = fst23_open(filename//achar(0), c_options)
+        this % file_struct = fst24_open(filename//achar(0), c_options)
 
         if (c_associated(this % file_struct)) then
             ! Query iun, to be able to use the old interface
-            this % iun = fst23_get_iun(this % file_struct)
+            this % iun = fst24_get_iun(this % file_struct)
 
             write(app_msg, '(A, A, A, I6)') 'Opened file ', filename, ', iun = ', this % iun
             call lib_log(APP_LIBFST, APP_DEBUG, app_msg)
@@ -52,7 +52,7 @@ contains
         integer(C_INT32_T) :: c_is_open
 
         is_open = .false.
-        c_is_open = fst23_file_is_open(this % file_struct)
+        c_is_open = fst24_is_open(this % file_struct)
 
         if (c_is_open == 1) is_open = .true.
     end function fstd23_is_open
@@ -64,7 +64,7 @@ contains
         integer(C_INT32_T) :: status
         
         if (this % is_open()) then
-            status = fst23_close(this % file_struct)
+            status = fst24_close(this % file_struct)
             this % iun = -1
         end if
     end subroutine fstd23_close
