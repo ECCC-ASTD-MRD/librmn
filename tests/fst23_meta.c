@@ -4,8 +4,8 @@
 #include <string.h>
 
 #include <App.h>
+#include <Meta.h>
 #include <rmn/fst_file.h>
-#include <rmn/Meta.h>
 
 const char* test_file_name = "fst123_meta.fst";
 json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;

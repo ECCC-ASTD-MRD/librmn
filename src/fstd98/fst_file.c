@@ -8,7 +8,7 @@
 #include "qstdir.h"
 #include "rmn/fnom.h"
 #include "xdf98.h"
-#include "rmn/Meta.h"
+#include "Meta.h"
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise

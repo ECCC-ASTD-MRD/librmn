@@ -1,6 +1,6 @@
 #include <App.h>
 #include "rmn.h"
-#include "rmn/Meta.h"
+#include "Meta.h"
 #include "Dict.h"
 #include "fstd98/fstd98_internal.h"
 #include <str.h>
