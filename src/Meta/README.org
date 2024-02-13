@@ -132,8 +132,8 @@ int main(int argc, char **argv) {
    if (!Meta_Init()) exit(EXIT_FAILURE);
 
    // Load metadata template
-   prof_fld=Meta_LoadProfile("field",NULL);
-   prof_file=Meta_LoadProfile("file",NULL);
+   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
+   prof_file=Meta_New(META_TYPE_FILE,NULL);
 
    // Define file metadata
    Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
@@ -179,8 +179,8 @@ program meta_fortran
    call Meta_Init()
  
 !   Load metadata template
-   ok=meta_fld%LoadProfile("field","")
-   ok=meta_file%LoadProfile("file","")
+   ok=meta_fld%New(META_TYPE_FIELD,"")
+   ok=meta_file%New(META_TYPE_FILE,"")
 
    obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
    obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)

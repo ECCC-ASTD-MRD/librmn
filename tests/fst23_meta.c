@@ -39,10 +39,10 @@ int test_fst23_interface(const int is_rsf) {
    if (Meta_Init() != 1) return -1;
 
    // Load metadata template
-   prof_fld=Meta_LoadProfile("field",NULL);
-   prof_file=Meta_LoadProfile("file",NULL);
+   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
+   prof_file=Meta_New(META_TYPE_FILE,NULL);
 
-   search_meta=Meta_New();
+   search_meta=Meta_NewObject();
    Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
 //   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
 //   search_meta=Meta_Parse("{ \"rpn_name\" : \"TT\" }");
@@ -205,7 +205,7 @@ int test_fst23_interface(const int is_rsf) {
          return -1;
       }
 
-      meta=Meta_LoadProfile("field",NULL);
+      meta=Meta_New(META_TYPE_FIELD,NULL);
       Meta_From89(meta,&record_find);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
    }

@@ -10,8 +10,8 @@ program test_meta_fortran
     call Meta_Init()
  
 !   Load metadata template
-    ok=meta_fld%LoadProfile("field","")
-    ok=meta_file%LoadProfile("file","")
+    ok=meta_fld%new(META_TYPE_FIELD,C_NULL_CHAR)
+    ok=meta_file%new(META_TYPE_FILE,C_NULL_CHAR)
 
     obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
     obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
@@ -19,7 +19,8 @@ program test_meta_fortran
 
     write(6,*) 'JSON:',meta_file%Stringify()
  
-    obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
+!    obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
+    obj=meta_fld%DefVarFromDict("TT")
     obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"minutes")
     obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
     obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)
