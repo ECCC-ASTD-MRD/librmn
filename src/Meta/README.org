@@ -7,7 +7,7 @@
 * Environment variable
 - META_VERSION  : Version of metadata to be used (Default: latest)
 - META_VALIDATE : Enable validation of json values (default: FALSE)
-- ARMNLIB       : Use to find location of metadata templates ans definitions ($ARMNLIB/json/${META_VERSION})
+- ARMNLIB       : Use to find location of metadata templates and definitions ($ARMNLIB/json/${META_VERSION})
 
 * Grammar
 ** Field level metadata and FST98 RPN correspondance
@@ -21,7 +21,7 @@
 |              |description ="…"                                              |
 |              |bounds= [lower(double)] [higher(double)] [vertical reference] |
 |              |units = [udunits]                                             |
-|NI.NJ,NK      |size=[ni,nj,nk]                                               |
+|NI,NJ,NK      |size=[ni,nj,nk]                                               |
 |GRTYP         |horizontal_reference= [horizontal reference]                  |
 |IP2-3         |cell_methods = [cell_method]*                                 |
 |              |missing_values = [reason value]*                              |
