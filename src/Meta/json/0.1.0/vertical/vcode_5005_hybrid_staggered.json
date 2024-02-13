@@ -6,5 +6,5 @@
    "formula_terms" : "",
    "rpn_kind" : 5,
    "rpn_vcode" : 5005,
-   "description" :  " Hybrid staggered levels, same number of momentum and themro levels.\nFirst level at top is a momentum level.\nDiag level heights (m AGL) encoded."
+   "description" :  " Hybrid staggered levels, same number of momentum and thermo levels.\nFirst level at top is a momentum level.\nDiag level heights (m AGL) encoded."
 }
