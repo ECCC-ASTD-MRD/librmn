@@ -291,17 +291,17 @@ int test_fst23_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst23_link_files(file_list, 1)) {
+    if (fst23_link(file_list, 1)) {
         App_Log(APP_ERROR, "Should not succeed linking only 1 file\n");
         return -1;
     }
 
-    if (!fst23_link_files(file_list, 3)) {
+    if (!fst23_link(file_list, 3)) {
         App_Log(APP_ERROR, "Error trying to link 3 files\n");
         return -1;
     }
 
-    if (fst23_link_files(file_list, 2)) {
+    if (fst23_link(file_list, 2)) {
         App_Log(APP_ERROR, "Should not succeed linking already-linked file\n");
         return -1;
     }
@@ -386,7 +386,7 @@ int test_fst23_interface(const int is_rsf) {
         }
     }
 
-    if (!fst23_unlink_files(test_file)) {
+    if (!fst23_unlink(test_file)) {
         App_Log(APP_ERROR, "Error unlinking 3 files\n");
         return -1;
     }
@@ -397,12 +397,12 @@ int test_fst23_interface(const int is_rsf) {
     }
 
     App_Log(APP_INFO, "A few calls that should fail\n");
-    if (fst23_link_files(file_list, 3)) {
+    if (fst23_link(file_list, 3)) {
         App_Log(APP_ERROR, "Should not be able to link closed files\n");
         return -1;
     }
 
-    if (fst23_unlink_files(test_file)) {
+    if (fst23_unlink(test_file)) {
         App_Log(APP_ERROR, "Should not be able to unlink closed file\n");
         return -1;
     }

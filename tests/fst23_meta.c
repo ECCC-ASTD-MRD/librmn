@@ -172,11 +172,11 @@ int test_fst23_interface(const int is_rsf) {
       search_extra.grtyp[0]='Z';
       fst23_set_search_criteria(test_file, &search_extra);
       fst23_find_next(test_file, &record);
-      key=fst23_read_new(test_file, &record);
+      key=fst23_read(test_file, &record);
 */
       fst23_set_search_criteria(test_file, &record);
       fst23_find_next(test_file, &record);
-      key=fst23_read_new(test_file, &record);
+      key=fst23_read(test_file, &record);
       meta=Meta_Parse(record.metadata);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
 
@@ -186,7 +186,7 @@ int test_fst23_interface(const int is_rsf) {
       strcpy(search_criteria.typvar, "P");
       fst23_set_search_criteria(test_file, &search_criteria);
       while(key=fst23_find_next(test_file, &record_find)) {
-         fst23_read_new(test_file,&record_find);
+         fst23_read(test_file,&record_find);
 //         fst23_read_meta(test_file,&record_find);
          if (!(meta=Meta_Parse(record_find.metadata)))  {
             App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);

@@ -1258,6 +1258,12 @@ int32_t fst23_read_rsf(
 
     fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
 
+    // Extract metadata form record if present
+    if (record_rsf->rec_meta > record_rsf->dir_meta) {
+        record_fst->metadata=(char*)malloc((record_rsf->rec_meta-record_rsf->dir_meta)*sizeof(uint32_t));
+        memcpy(record_fst->metadata,(char*)((stdf_dir_keys*)record_rsf->meta+1),(record_rsf->rec_meta-record_rsf->dir_meta)*sizeof(uint32_t)); // Right after directory metadata
+        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,record_fst->metadata,record_fst->handle);
+    }
     // fst23_record_print(record_fst)
 
     const int32_t ier = fst23_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
@@ -1349,111 +1355,7 @@ int32_t fst23_read_next(fst_file* file, fst_record* record) {
     return fst23_read(file, record);
 }
 
-int32_t fst23_read_new(fst_file* file, fst_record* record) {
-
-    fst_record     result = default_fst_record;
-    stdf_dir_keys* stdf_entry=NULL;
-    int            idum;
-
-    if (!fst23_file_is_open(file)) {
-       Lib_Log(APP_LIBFST,APP_ERROR,"%s: File not open\n",__func__);
-       return(FALSE);
-    }
-
-    if (!record) {
-       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Invalid record\n",__func__);
-       return(FALSE);
-    }
-
-    if (record->handle<0) {
-       // No handle, find field
-       fst23_find_next(file, record);
-    } else if (record->data) {
-        // Got a handle and data pointer, find next field
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        result.handle=find_next_record(file_handle, &fstd_open_files[file->file_index]);
-        if (result.handle>=0) {
-            RSF_record_info record_info = RSF_Get_record_info(file_handle,result.handle);
-            stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record_info.meta;
-            result.ni = stdf_entry->ni;
-            result.nj = stdf_entry->nj;
-            result.nk = stdf_entry->nk;
-            result.dasiz = stdf_entry->dasiz;
-        }
-    } else {
-        // Only a handle, read the field
-        result.handle=record->handle; 
-        result.ni = record->ni;
-        result.nj = record->nj;
-        result.nk = record->nk;
-        result.dasiz = record->dasiz;
-    }
-
-    if (result.handle<0) {
-       return(FALSE);
-    }
-
-    // Allocate data array
-    if (record->data) {
-       // Resize if needed
-       if (FST_REC_SIZE(record)!=FST_REC_SIZE((&result))) {
-          record->data = realloc(record->data,FST_REC_SIZE((&result)));
-       }
-    } else {
-       record->data = malloc(FST_REC_SIZE((&result)));
-    }
-    result.data=record->data;
-
-    switch(file->type) {
-        case FST_RSF: {
-                const int32_t key32 = RSF_Key32(result.handle);
-                RSF_handle    file_handle = RSF_Key32_to_handle(key32);
-                RSF_record*   rec = RSF_Get_record(file_handle,result.handle);
-
-                if (!rec) {
-                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: Could not get record corresponding to key 0x%x (0x%x)\n",__func__,key32,result.handle);
-                    return(FALSE);
-                }
-
-                stdf_entry = (stdf_dir_keys*)rec->meta;
-
-                if (rec->rec_meta > rec->dir_meta) {
-                    result.metadata = (char*)(stdf_entry + 1); // Right after directory metadata
-                    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record 0x%x\n",__func__,result.metadata,result.handle);
-                }
-
-                //TODO This is reading it a second time!!!! Should unpack right here rather than using fstluk!!!!
-                c_fstluk_rsf(result.data, file_handle, key32, &result.ni, &result.nj, &result.nk);
-                fill_with_dir_keys(&result, stdf_entry);
-
-                break;
-            }
-        case FST_XDF: {
-                const int32_t key32 = result.handle & 0xffffffff;
-                uint32_t * pkeys = (uint32_t *) &stdf_entry;
-                pkeys += W64TOWD(1);
-
-                {
-                    int addr, lng, idtyp;
-                    int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
-                    if (ier < 0) return(FALSE);
-                }
-
-                c_fstluk_xdf(result.data, key32, &result.ni, &result.nj, &result.nk);
-                fill_with_dir_keys(&result, stdf_entry);
-                break;
-            }
-        default:
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
-            break;
-    }
-
-    memcpy(record,&result,sizeof(fst_record));
-
-    return(TRUE);
-}
-
-int32_t fst23_link_files(fst_file** file, const int32_t num_files) {
+int32_t fst23_link(fst_file** file, const int32_t num_files) {
     if (num_files <= 1) {
         Lib_Log(APP_LIBFST, APP_INFO, "%s: only passed %d files, nothing to link\n", __func__, num_files);
         return FALSE;
@@ -1481,7 +1383,7 @@ int32_t fst23_link_files(fst_file** file, const int32_t num_files) {
 }
 
 
-int32_t fst23_unlink_files(fst_file* file) {
+int32_t fst23_unlink(fst_file* file) {
     if (!fst23_file_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
