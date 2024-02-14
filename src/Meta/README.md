@@ -51,7 +51,7 @@
 - interpolator  = [nearest, linear, cubic, …]
 - cell_method   = interpolation:[interpolator] | filter:[filter] | [axis]:[process]([interval [n]|[value_0 value_1] [unit])*
 
-(For all accepted and up to date values of these parameters see $ARMNLIB/json/[version]/definitions.json)
+(For all accepted and up to date values of these parameters see ```${CMCCONST}/json/[version]/definitions.json```)
 
 ### json template 0.1.0
 ``` json
@@ -140,23 +140,23 @@ int main(int argc, char **argv) {
 
    if (!Meta_Init()) exit(EXIT_FAILURE);
 
-   // Load metadata template
+   // Create metadata object from template
    prof_fld=Meta_New(META_TYPE_FIELD,NULL);
    prof_file=Meta_New(META_TYPE_FILE,NULL);
 
-   // Define file metadata
+   // Define file level metadata
    Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
    Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
    Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
 
    fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
 
-   // Define field metadata
+   // Define field level metadata
 //   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
    Meta_DefVarFromDict(prof_fld,"TT");
    Meta_DefForecastTime(prof_fld,1672556400,2,60,"second");
-   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
-   Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
+   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE); // RPN_GDPS_2020_25KM has to be defined in profile of file metadata
+   Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);    // PRESSURE has to be defined in profile of file metadata
    Meta_AddCellMethod(prof_fld,"interpolation:linear");
    Meta_AddCellMethod(prof_fld,"filter:gaussian");
    Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
@@ -187,21 +187,23 @@ program meta_fortran
 
    call Meta_Init()
  
-!   Load metadata template
+!  Create metadata object from template
    ok=meta_fld%New(META_TYPE_FIELD,"")
    ok=meta_file%New(META_TYPE_FILE,"")
 
+!  Define file level metadata
    obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
    obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
    obj=meta_file%AddVerticalRef("PRESSURE",.true.)
 
    write(6,*) 'File JSON:',meta_file%Stringify()
  
+!  Define file level metadata
 !   obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
    obj=meta_fld%DefVarFromDict("TT")
-   obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"seconds")
-   obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
-   obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)
+   obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"seconds") 
+   obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)        ! RPN_GDPS_2020_25KM has to be defined in profile of file metadata
+   obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)           ! PRESSURE has to be defined in profile of file metadata
    obj=meta_fld%AddCellMethod("interpolation:linear")
    obj=meta_fld%AddCellMethod("filter:gaussian")
    obj=meta_fld%AddCellMethod("time:mean(interval 5 minute)")
