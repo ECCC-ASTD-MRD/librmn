@@ -1,20 +1,24 @@
-* Introduction
+# Table of Contents
+1. [Introduction](#Introduction)
+2. [Grammar](#Grammar)
+   1. [Field](#field-level-metadata-and-fst98-rpn-correspondance)
+   2. [File](#file-level)
+3. [Enviroment variables](#Environment_variables)
+4. [Code Example](#Code_Example)
+   1. [C](#C)
+   2. [Fortran](#Fortran)
+   
+# Introduction
 - The new metadata now available in fst24 allows the storage of much more information while being flexible, extensible and future proof.
 - This metadata is in addition to the previous indexable metadata already available (NOMVAR,TYPVAR,IP,...) and will keep backward compatibility with previous FST89 and FST98.
 - It uses a grammar for token/value pair definitions implemented as JSON, and versionned through JSON profiles. 
-- Management of the profiles and accetpted value pair shall be managed by the [[https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC][Data Governance Commitee (DGC/CGD)]]
+- Management of the profiles and accepted value pair shall be managed by the [Data Governance Commitee (DGC/CGD)](https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC)
 
-* Environment variable
-- CMCCONST      : Use to find location of standard metadata templates and definitions (${CMCCONST}/json/${META_VERSION})
-- META_PROFPATH : Use to find location of user defined metadata templates ans definitions (${META_PROFPATH}/json/${META_VERSION})
-- META_VERSION  : Version of metadata to be used (Default: latest)
-- META_VALIDATE : Enable validation of json values (default: FALSE)
-
-* Grammar
-** Field level metadata and FST98 RPN correspondance
+# Grammar
+## Field level metadata and FST98 RPN correspondance
 
 | RPN          | Extended metadata                                                         |                            
-|--------------+--------------------------------------------------------------|
+|--------------|--------------------------------------------------------------|
 |              |version = [semantic version]                                  |
 |              |standard_name = [cf convention]                               |
 |NOMVAR        |rpn_name = [dict]                                             |
@@ -49,8 +53,8 @@
 
 (For all accepted and up to date values of these parameters see $ARMNLIB/json/[version]/definitions.json)
 
-*** json template 0.1.0
-#+begin_src JSON
+### json template 0.1.0
+``` json
 {  "version" : "",
    "standard_name" : "",
    "rpn_name" : "",
@@ -85,12 +89,11 @@
       }
    }
 }
+```
 
-#+end_src
-
-** File level
-
-| Now                                              |                            
+## File level
+                          
+| Extended metadata                                |                            
 |--------------------------------------------------|
 | version : [semantic version]                     |
 | institution : "CMC"                              |
@@ -102,8 +105,8 @@
 | vertical_references" : []                        |
 | horizontal_references" : []                      |
 
-*** json template 0.1.0
-#+begin_src JSON
+### json template 0.1.0
+```json
 {
    "version" : "",
    "institution" : "CMC",
@@ -115,12 +118,17 @@
    "vertical_references" : [],
    "horizontal_references" : []
 }
-#+end_src
+```
 
+# Environment variables
+- CMCCONST      : Use to find location of standard metadata templates and definitions (```${CMCCONST}/json/${META_VERSION}```)
+- META_PROFPATH : Use to find location of user defined metadata templates ans definitions (```${META_PROFPATH}/json/${META_VERSION}```)
+- META_VERSION  : Version of metadata to be used (Default: latest)
+- META_VALIDATE : Enable validation of json values (Default: FALSE)
 
-* Code example
-** C
-#+BEGIN_SRC C
+# Code example
+## C
+```C
 #include <rmn/Meta.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -163,10 +171,10 @@ int main(int argc, char **argv) {
 
 	exit(EXIT_SUCCESS);
 }
-#+END_SRC
+```
 
-** Fortran
-#+BEGIN_SRC Fortran
+## Fortran
+``` Fortran
 program meta_fortran
 
    use rmn_meta
@@ -210,6 +218,4 @@ program meta_fortran
    write(6,*) 'Field JSON:',meta_fld%Stringify()
   
 end
-
-
-#+END_SRC
+```
