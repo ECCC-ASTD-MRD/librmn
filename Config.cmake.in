@@ -27,6 +27,9 @@ if(NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND)
    maybe_message(STATUS "Finding dependency json-c for ${CMAKE_FIND_PACKAGE_NAME}")
    find_dependency(json-c REQUIRED PATHS $ENV{${CMAKE_FIND_PACKAGE_NAME}_DIR} ${CMAKE_CURRENT_LIST_DIR}/.. ${${CMAKE_FIND_PACKAGE_NAME}_ROOT})
 
+   maybe_message(STATUS "Finding dependency LibXml2 for ${CMAKE_FIND_PACKAGE_NAME}")
+   find_dependency(LibXml2 REQUIRED)
+
    maybe_message(STATUS "Finding dependency udunits2 for ${CMAKE_FIND_PACKAGE_NAME}")
    include(${CMAKE_CURRENT_LIST_DIR}/udunits2-targets.cmake)
    
