@@ -4,8 +4,8 @@
 #include <string.h>
 
 #include <App.h>
+#include <Meta.h>
 #include <rmn/fst_file.h>
-#include <rmn/Meta.h>
 
 const char* test_file_name = "fst123_meta.fst";
 json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
@@ -39,10 +39,10 @@ int test_fst24_interface(const int is_rsf) {
    if (Meta_Init() != 1) return -1;
 
    // Load metadata template
-   prof_fld=Meta_LoadProfile("field",NULL);
-   prof_file=Meta_LoadProfile("file",NULL);
+   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
+   prof_file=Meta_New(META_TYPE_FILE,NULL);
 
-   search_meta=Meta_New();
+   search_meta=Meta_NewObject();
    Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
 //   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
 //   search_meta=Meta_Parse("{ \"rpn_name\" : \"TT\" }");
@@ -138,7 +138,8 @@ int test_fst24_interface(const int is_rsf) {
          return -1;
       }
 
-      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+//      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+      Meta_DefVarFromDict(prof_fld,"TT");
       Meta_To89(prof_fld,&record);
       if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
@@ -204,7 +205,7 @@ int test_fst24_interface(const int is_rsf) {
          return -1;
       }
 
-      meta=Meta_LoadProfile("field",NULL);
+      meta=Meta_New(META_TYPE_FIELD,NULL);
       Meta_From89(meta,&record_find);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
    }

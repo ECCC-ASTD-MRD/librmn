@@ -1,32 +1,36 @@
-* Introduction
-- The new metadata now available in FST23 allows the storage of much more information while being flexible, extensible and future proof.
+# Table of Contents
+1. [Introduction](#Introduction)
+2. [Grammar](#Grammar)
+   1. [Field](#field-level-metadata-and-fst98-rpn-correspondance)
+   2. [File](#file-level)
+3. [Enviroment variables](#Environment_variables)
+4. [Code Example](#Code_Example)
+   1. [C](#C)
+   2. [Fortran](#Fortran)
+   
+# Introduction
+- The new metadata now available in fst24 allows the storage of much more information while being flexible, extensible and future proof.
 - This metadata is in addition to the previous indexable metadata already available (NOMVAR,TYPVAR,IP,...) and will keep backward compatibility with previous FST89 and FST98.
 - It uses a grammar for token/value pair definitions implemented as JSON, and versionned through JSON profiles. 
-- Management of the profiles and accetpted value pair shall be managed by the [[https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC][Data Governance Commitee (DGC/CGD)]]
+- Management of the profiles and accepted value pair shall be managed by the [Data Governance Commitee (DGC/CGD)](https://wiki.cmc.ec.gc.ca/wiki/Comit%C3%A9_de_gouvernance_des_donn%C3%A9es_du_CMC)
 
-* Environment variable
-- META_VERSION  : Version of metadata to be used (Default: latest)
-- META_VALIDATE : Enable validation of json values (default: FALSE)
-- ARMNLIB       : Use to find location of metadata templates and definitions ($ARMNLIB/json/${META_VERSION})
-
-* Grammar
-** Field level metadata and FST98 RPN correspondance
+# Grammar
+## Field level metadata and FST98 RPN correspondance
 
 | RPN          | Extended metadata                                                         |                            
-|--------------+--------------------------------------------------------------|
+|--------------|--------------------------------------------------------------|
 |              |version = [semantic version]                                  |
 |              |standard_name = [cf convention]                               |
 |NOMVAR        |rpn_name = [dict]                                             |
 |              |long_name = "…“                                               |
 |              |description ="…"                                              |
-|              |bounds= [lower(double)] [higher(double)] [vertical reference] |
 |              |units = [udunits]                                             |
 |NI,NJ,NK      |size=[ni,nj,nk]                                               |
-|GRTYP         |horizontal_reference= [horizontal reference]                  |
+|GRTYP         |horizontal_reference= [horizontal_reference id]               |
 |IP2-3         |cell_methods = [cell_method]*                                 |
 |              |missing_values = [reason value]*                              |
 |              |mask = "…"                                                    |
-|IP1           |level = value [level_def]                                     |
+|IP1           |vertical_level = value [vertical_reference id]                |
 |ETIKET+TYPVAR |qualifiers = [qualifier]*                                     |
 |DATEO         |forecast_reference_datetime = [datetime]                      |
 |DATEV         |forecast_datetime  = [datetime]                               |
@@ -35,11 +39,12 @@
 |              |bits = [nunmber of bits]                                      |
 |              |pack = [number of packed bits]                                |
 |              |compression = [compression type]                              |
+|              |bounds= [lower, higher]                                       |
   
 - axis          = [time, level, latitude, longitude, x, y, z]
 - process       = [average, sum, minimum, maximum, median, standard_deviation, error, …]
 - time_unit     = [seconds, minutes, hours, days, weeks, years, ...]
-- datetime      = [[https://en.wikipedia.org/wiki/ISO_8601][ISO8601]] formatted
+- datetime      = [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) formatted
 - qualifier     = [analysis, climatology, raw_station, error, constants, verification_matrix, observation, prognostic, diagnostic, analysis_increment, scores, timeseries, operational, parallel, experimental, member:n, centile[<,<=,=,>,>=]value, …]
 - unit          = [udunit] | [time_unit] 
 - filter        = [gaussian, …] 
@@ -48,8 +53,8 @@
 
 (For all accepted and up to date values of these parameters see $ARMNLIB/json/[version]/definitions.json)
 
-*** json template 0.1.0
-#+begin_src JSON
+### json template 0.1.0
+``` json
 {  "version" : "",
    "standard_name" : "",
    "rpn_name" : "",
@@ -84,12 +89,11 @@
       }
    }
 }
+```
 
-#+end_src
-
-** File level
-
-| Now                                              |                            
+## File level
+                          
+| Extended metadata                                |                            
 |--------------------------------------------------|
 | version : [semantic version]                     |
 | institution : "CMC"                              |
@@ -101,8 +105,8 @@
 | vertical_references" : []                        |
 | horizontal_references" : []                      |
 
-*** json template 0.1.0
-#+begin_src JSON
+### json template 0.1.0
+```json
 {
    "version" : "",
    "institution" : "CMC",
@@ -114,12 +118,17 @@
    "vertical_references" : [],
    "horizontal_references" : []
 }
-#+end_src
+```
 
+# Environment variables
+- CMCCONST      : Use to find location of standard metadata templates and definitions (```${CMCCONST}/json/${META_VERSION}```)
+- META_PROFPATH : Use to find location of user defined metadata templates ans definitions (```${META_PROFPATH}/json/${META_VERSION}```)
+- META_VERSION  : Version of metadata to be used (Default: latest)
+- META_VALIDATE : Enable validation of json values (Default: FALSE)
 
-* Code example
-** C
-#+BEGIN_SRC C
+# Code example
+## C
+```C
 #include <rmn/Meta.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,8 +141,8 @@ int main(int argc, char **argv) {
    if (!Meta_Init()) exit(EXIT_FAILURE);
 
    // Load metadata template
-   prof_fld=Meta_LoadProfile("field",NULL);
-   prof_file=Meta_LoadProfile("file",NULL);
+   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
+   prof_file=Meta_New(META_TYPE_FILE,NULL);
 
    // Define file metadata
    Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
@@ -143,7 +152,8 @@ int main(int argc, char **argv) {
    fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field metadata
-   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+//   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
+   Meta_DefVarFromDict(prof_fld,"TT");
    Meta_DefForecastTime(prof_fld,1672556400,2,60,"second");
    Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
@@ -161,10 +171,10 @@ int main(int argc, char **argv) {
 
 	exit(EXIT_SUCCESS);
 }
-#+END_SRC
+```
 
-** Fortran
-#+BEGIN_SRC Fortran
+## Fortran
+``` Fortran
 program meta_fortran
 
    use rmn_meta
@@ -178,8 +188,8 @@ program meta_fortran
    call Meta_Init()
  
 !   Load metadata template
-   ok=meta_fld%LoadProfile("field","")
-   ok=meta_file%LoadProfile("file","")
+   ok=meta_fld%New(META_TYPE_FIELD,"")
+   ok=meta_file%New(META_TYPE_FILE,"")
 
    obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
    obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
@@ -187,7 +197,8 @@ program meta_fortran
 
    write(6,*) 'File JSON:',meta_file%Stringify()
  
-   obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
+!   obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
+   obj=meta_fld%DefVarFromDict("TT")
    obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"seconds")
    obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
    obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)
@@ -207,6 +218,4 @@ program meta_fortran
    write(6,*) 'Field JSON:',meta_fld%Stringify()
   
 end
-
-
-#+END_SRC
+```

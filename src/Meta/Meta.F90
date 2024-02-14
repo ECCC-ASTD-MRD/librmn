@@ -5,6 +5,9 @@ module rmn_meta
 
 #include "rmn/dlfcn.inc"
 
+    integer, parameter :: META_TYPE_FIELD=1
+    integer, parameter :: META_TYPE_FILE=2
+
 interface
 
 !  void Meta_Init();
@@ -25,8 +28,8 @@ interface
       type(C_PTR), intent(in), value  :: obj
    end FUNCTION
 
-!  json_object *Meta_New();
-   type(C_PTR) FUNCTION meta_new() BIND(C, name="Meta_New")
+!  json_object *Meta_NewObject();
+   type(C_PTR) FUNCTION meta_newobject() BIND(C, name="Meta_NewObject")
       import :: C_PTR
    end FUNCTION
 
@@ -58,11 +61,11 @@ interface
       character(C_CHAR), dimension(*), intent(in) :: path
    end FUNCTION
 
-!  json_object *Meta_LoadProfile(char *Name,char *Version);
-   type(C_PTR) FUNCTION meta_loadprofile(name,version) BIND(C, name="Meta_LoadProfile")
-      import :: C_PTR, C_CHAR
+!  json_object *Meta_New(int Type,char *Version);
+   type(C_PTR) FUNCTION meta_new(type,version) BIND(C, name="Meta_New")
+      import :: C_PTR, C_CHAR, C_INT
 
-      character(C_CHAR), dimension(*), intent(in) :: name
+      integer(C_INT),  value :: type
       character(C_CHAR), dimension(*), intent(in) :: version
    end FUNCTION
 
@@ -80,6 +83,14 @@ interface
 
       type(C_PTR), intent(in), value :: obj
       character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description,unit
+   end FUNCTION
+
+!  json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName);
+   type(C_PTR) FUNCTION meta_defvarfromdict(obj,rpnname) BIND(C, name="Meta_DefVarFromDict")
+      import :: C_PTR, C_CHAR
+
+      type(C_PTR), intent(in), value :: obj
+      character(C_CHAR), dimension(*), intent(in) :: rpnname
    end FUNCTION
 
 !  json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int Step,double Duration,char *Unit);
@@ -277,10 +288,10 @@ end interface
       type(C_PTR) :: json_obj = c_null_ptr
    contains
       procedure, pass :: load => tmeta_load
-      procedure, pass :: loadprofile => tmeta_loadprofile
+      procedure, pass :: new => tmeta_new
       procedure, pass :: resolve => tmeta_resolve
       procedure, pass :: parse => tmeta_parse
-      procedure, pass :: new => tmeta_new
+      procedure, pass :: newobject => tmeta_newobject
       procedure, pass :: free => tmeta_free
       procedure, pass :: addmissingvalue => tmeta_addmissingvalue
       procedure, pass :: clearmissingvalues => tmeta_clearmissingvalues
@@ -292,6 +303,7 @@ end interface
       procedure, pass :: stringify => tmeta_stringify
       procedure, pass :: deffile => tmeta_deffile
       procedure, pass :: defvar => tmeta_defvar
+      procedure, pass :: defvarfromdict => tmeta_defvarfromdict
       procedure, pass :: defforecasttime => tmeta_defforecasttime
       procedure, pass :: addverticalref => tmeta_addverticalref
       procedure, pass :: addhorizontalref => tmeta_addhorizontalref
@@ -326,13 +338,13 @@ contains
       endif
    end FUNCTION
 
-   FUNCTION tmeta_loadprofile(this,name,version) result(status)
+   FUNCTION tmeta_new(this,type,version) result(status)
       class(meta), intent(inout)   :: this
       integer(kind=INT32)          :: status
-      character(len=*), intent(in) :: name
+      integer(kind=INT32)          :: type
       character(len=*), intent(in) :: version
  
-      this%json_obj = meta_loadprofile(name//C_NULL_CHAR,version//C_NULL_CHAR)
+      this%json_obj = meta_new(type,version//C_NULL_CHAR)
 
       status=0
       if (c_associated(this%json_obj)) then
@@ -364,11 +376,11 @@ contains
       endif
    end FUNCTION tmeta_resolve
 
-   FUNCTION tmeta_new(this) result(status)
+   FUNCTION tmeta_newobject(this) result(status)
       class(meta), intent(inout)   :: this
       type(C_PTR) :: status
  
-      this%json_obj = meta_new()
+      this%json_obj = meta_newobject()
       status = this%json_obj
    end FUNCTION
 
@@ -474,6 +486,14 @@ contains
       character(len=*) :: standardname, rpnname, longname, description, unit
 
       status = meta_defvar(this%json_obj,standardname//C_NULL_CHAR,rpnname//C_NULL_CHAR,longname//C_NULL_CHAR,description//C_NULL_CHAR,unit//C_NULL_CHAR)
+   end FUNCTION
+
+   FUNCTION tmeta_defvarfromdict(this,rpnname) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: rpnname
+
+      status = meta_defvarfromdict(this%json_obj,rpnname//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defforecasttime(this,t0,step,duration,unit) result(status)

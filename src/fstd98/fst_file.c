@@ -10,8 +10,8 @@
 #include "fstd98_internal.h"
 #include "qstdir.h"
 #include "rmn/fnom.h"
-#include "rmn/Meta.h"
 #include "xdf98.h"
+#include "Meta.h"
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
@@ -897,7 +897,7 @@ int32_t fst24_get_record_by_index(const fst_file* file, const int64_t index, fst
 //! \return TRUE if a record was found, FALSE otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_file* file,     //!< File we are searching. Must be open
-    fst_record* result  //!< [out] Record information if found (no data or advanced metadata)
+    fst_record* result  //!< [out] Record information if found (no data or advanced metadata, unless included in search)
 ) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);

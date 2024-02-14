@@ -9,6 +9,9 @@ l'interpolateur EZ.
   * [Référence des fonctions accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
+### Composantes
+  * [Standard files](src/fst98/README.md)
+  * [Extended metadata](src/Meta/README.md)
 
 ## Obtenir le code
 

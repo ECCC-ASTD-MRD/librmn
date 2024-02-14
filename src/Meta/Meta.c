@@ -1,6 +1,7 @@
 #include <App.h>
 #include "rmn.h"
-#include "rmn/Meta.h"
+#include "Meta.h"
+#include "Dict.h"
 #include "fstd98/fstd98_internal.h"
 #include <str.h>
 
@@ -16,20 +17,26 @@
 static ut_system   *MetaProfileUnit=NULL;   ///< UDUnits references
 #endif
 
-static char        *ARMNLIB;
+typedef struct {
+   char        *Version;
+   json_object *Field,*File;        ///< Field and File profiles
+   json_object *Z;                  ///< Vertical references
+   json_object *XY;                 ///< Horizontal references (grid)
+   json_object *Defs;               ///< Valid token definitions
+   json_object *Types;              ///< 
+   json_object *Compressions;       ///< 
+   json_object *Qualifiers;         ///< 
+   json_object *CellMethods;        ///< 
+   json_object *CellProcesses;      ///< 
+   json_object *Reasons;            ///< 
+} TMetaProfile;
 
-static char        *MetaVersion=NULL;       ///< Metadata version
-static char         MetaValidate=TRUE;      ///< Enable token validation
-static json_object *MetaProfileZ=NULL;      ///< Vertical references
-static json_object *MetaProfileXY=NULL;     ///< Horizontal references (grid)
-static json_object *MetaProfileDefs=NULL;   ///< Valid token definitions
+static TMetaProfile MetaProfiles[64];
+static int MetaProfileNb;
 
-static json_object *MetaTypes=NULL;         ///< 
-static json_object *MetaCompressions=NULL;  ///< 
-static json_object *MetaQualifiers=NULL;    ///< 
-static json_object *MetaCellMethods=NULL;   ///< 
-static json_object *MetaCellProcesses=NULL; ///< 
-static json_object *MetaReasons=NULL;       ///< 
+static char *MetaVersion=NULL;       ///< Metadata version
+static char  MetaValidate=TRUE;      ///< Enable token validation
+static char *MetaPaths[2];           ///< Profile definition path
 
 static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","month","year","decade","centenary","millenia" };
 
@@ -68,7 +75,7 @@ inline static int32_t Meta_TokenEnd(char* Token,int32_t *IsSplit) {
  *
  *    @return              Metadata object pointer
 */
-json_object *Meta_New() {
+json_object *Meta_NewObject() {
 
    return(json_object_new_object());
 }
@@ -88,6 +95,43 @@ int32_t Meta_Is(json_object *Obj) {
    return(json_pointer_get(Obj,"/version",&obj)==0);
 }
 
+inline static char* Meta_Version(json_object *Obj) {
+
+   json_object *obj=NULL;
+
+   json_pointer_get(Obj,"/version",&obj);
+   return((char*)json_object_get_string(obj));
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Find a profile from the availabel list by its version number
+
+ * @date   February 2024
+ *    @param[in]  Version  Profile version (if NULL, use env defined)
+ *
+ *    @return              json profile object
+*/
+static inline TMetaProfile *Meta_GetProfile(char *Version) {
+
+   int          m;
+   char        *version=NULL;
+
+   version=Version&&Version[0]!='\0'?Version:MetaVersion;
+
+   // Look for profile version
+   for(m=0;m<MetaProfileNb;m++) {
+      if (!strcmp(MetaProfiles[m].Version,version)) {
+         break;
+      }
+   }
+
+   // If not found, try to load it
+   if (m==MetaProfileNb && !Meta_LoadProfile(version))
+      return(NULL);
+
+   return(&MetaProfiles[m]);
+}
+
 /**----------------------------------------------------------------------------
  * @brief  Initialise Meta package environment
 
@@ -96,12 +140,13 @@ int32_t Meta_Is(json_object *Obj) {
 */
 int32_t Meta_Init(){
 
-   char   path[META_PATH_MAXLEN];
+   char   path[APP_BUFMAX];
    char  *c;
    glob_t globs;
    int32_t    j;
    json_object *obj=NULL,*obja=NULL;
 
+   MetaProfileNb=0;
    MetaValidate=FALSE;
 
    // Check the log parameters in the environment 
@@ -109,69 +154,130 @@ int32_t Meta_Init(){
       MetaValidate=TRUE;
    }
 
+   // Ger metadata definitions path
+   MetaPaths[0]=getenv("CMCCONST");       // Standard definitions
+   MetaPaths[1]=getenv("META_PROFPATH");  // User definitions
+
+   if (!MetaPaths[0]) {
+      if (!MetaPaths[1]) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined\n",__func__);
+      } else {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to initialize standard profiles, CMCCONST variable not defined\n",__func__);     
+      }
+   }
+
    // Get metadata version to use
    if (!(MetaVersion=getenv("META_VERSION"))) {
       MetaVersion="0.1.0";
    }
-   Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Meta data profile version: %s\n",__func__,MetaVersion);
+   Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Meta data default profile version: %s\n",__func__,MetaVersion);
 
 #ifdef HAVE_UDUNITS2
    // Load units data, should use UDUNITS2_XML_PATH var
    if (!(MetaProfileUnit=ut_read_xml(NULL))) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load udunits profile\n",__func__);
-      return(0);
+      return(FALSE);
    }
 #endif
 
-   // Load metadata references 
-   if ((ARMNLIB=getenv("ARMNLIB"))) {
+   // Will not load again if already loaded
+   Dict_Load(DICT_UTF8);
 
-      snprintf(path,META_PATH_MAXLEN,"%s/json/%s/vertical/*.json",ARMNLIB,MetaVersion);
-      MetaProfileZ=json_object_new_object();
-      obja=json_object_new_array();
-      json_object_object_add(MetaProfileZ,"vertical_references",obja);
+   return(TRUE);
+}
 
-      glob(path,0x0,NULL,&globs);
-      for(j=0;j<globs.gl_pathc;j++) {
-         if (!(obj=json_object_from_file(globs.gl_pathv[j]))) {
-            Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load vertical profile: %s\n",__func__,globs.gl_pathv[j]);
-         }
-         Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Reading vertical profile: %s\n",__func__,globs.gl_pathv[j]);
-         json_object_array_add(obja,obj);
-      }
-      globfree(&globs);
+/**----------------------------------------------------------------------------
+ * @brief  Load a profile from file
 
-      snprintf(path,META_PATH_MAXLEN,"%s/json/%s/horizontal/*.json",ARMNLIB,MetaVersion);
-      MetaProfileXY=json_object_new_object();
-      obja=json_object_new_array();
-      json_object_object_add(MetaProfileXY,"horizontal_references",obja);
+ * @date   February 2024
+ *    @param[in]  Version  Profile version
+ *
+ *    @return              Found or not (TRUE or FALSE)
+*/
+int32_t Meta_LoadProfile(char *Version) {
 
-      glob(path,0x0,NULL,&globs);
-      for(j=0;j<globs.gl_pathc;j++) {
-         if (!(obj=json_object_from_file(globs.gl_pathv[j]))) {
-            Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
-         }
-         Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Reading horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
-         json_object_array_add(obja,obj);
-      }
-      globfree(&globs);
+   TMetaProfile *prof;
+   json_object  *obj=NULL,*obja=NULL;
+   glob_t        globs;
+   char          path[APP_BUFMAX];
+   int32_t       i,j;
 
-      snprintf(path,META_PATH_MAXLEN,"%s/json/%s/definitions.json",ARMNLIB,MetaVersion);
-      if (!(MetaProfileDefs=json_object_from_file(path))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load token definitions: %s\n",__func__,path);
-         return(0);
-      }
-      json_pointer_get(MetaProfileDefs,"/types",&MetaTypes);
-      json_pointer_get(MetaProfileDefs,"/compressions",&MetaCompressions);
-      json_pointer_get(MetaProfileDefs,"/qualifiers",&MetaQualifiers);
-      json_pointer_get(MetaProfileDefs,"/cell_methods",&MetaCellMethods);
-      json_pointer_get(MetaProfileDefs,"/cell_processes",&MetaCellProcesses);
-      json_pointer_get(MetaProfileDefs,"/reasons",&MetaReasons);
-   } else {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to initialize, ARMNLIB variable not defined\n",__func__);
-      return(0);
+   if (!Version) {
+      return(FALSE);
    }
-   return(1);
+
+   for(i=0;i<2;i++) {
+
+      if (!MetaPaths[i]) {
+         continue;
+      }
+
+      prof=&MetaProfiles[MetaProfileNb];
+
+      snprintf(path,APP_BUFMAX,"%s/json/%s/field.json",MetaPaths[i],Version);
+      if (!(prof->Field=json_object_from_file(path))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load field profile %s\n",__func__,path);
+         continue;
+      }
+      snprintf(path,APP_BUFMAX,"%s/json/%s/file.json",MetaPaths[i],Version);
+      if (!(prof->File=json_object_from_file(path))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load file profile %s\n",__func__,path);
+         continue;
+      } 
+
+      // Load vertical reference definitions
+      snprintf(path,APP_BUFMAX,"%s/json/%s/vertical/*.json",MetaPaths[i],Version);
+      glob(path,0x0,NULL,&globs);
+      if (globs.gl_pathc) {
+         prof->Z=json_object_new_object();
+         obja=json_object_new_array();
+         json_object_object_add(prof->Z,"vertical_references",obja);
+
+         for(j=0;j<globs.gl_pathc;j++) {
+            if (!(obj=json_object_from_file(globs.gl_pathv[j]))) {
+               Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load vertical profile: %s\n",__func__,globs.gl_pathv[j]);
+            }
+            Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Reading vertical profile: %s\n",__func__,globs.gl_pathv[j]);
+            json_object_array_add(obja,obj);
+         }
+      }
+      globfree(&globs);
+
+      // Load horizontal definitions
+      snprintf(path,APP_BUFMAX,"%s/json/%s/horizontal/*.json",MetaPaths[i],Version);
+      glob(path,0x0,NULL,&globs);
+      if (globs.gl_pathc) {
+         prof->XY=json_object_new_object();
+         obja=json_object_new_array();
+         json_object_object_add(prof->XY,"horizontal_references",obja);
+
+         for(j=0;j<globs.gl_pathc;j++) {
+            if (!(obj=json_object_from_file(globs.gl_pathv[j]))) {
+               Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
+            }
+            Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Reading horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
+            json_object_array_add(obja,obj);
+         }
+      }
+      globfree(&globs);
+
+      // Load token definitions
+      snprintf(path,APP_BUFMAX,"%s/json/%s/definitions.json",MetaPaths[i],MetaVersion);
+      if (!(obja=json_object_from_file(path))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load token definitions: %s\n",__func__,path);
+      }
+      json_pointer_get(obja,"/types",&prof->Types);
+      json_pointer_get(obja,"/compressions",&prof->Compressions);
+      json_pointer_get(obja,"/qualifiers",&prof->Qualifiers);
+      json_pointer_get(obja,"/cell_methods",&prof->CellMethods);
+      json_pointer_get(obja,"/cell_processes",&prof->CellProcesses);
+      json_pointer_get(obja,"/reasons",&prof->Reasons);
+   
+      prof->Version=strdup(Version);
+      MetaProfileNb++;
+   }
+
+   return(TRUE);
 }
 
 /**----------------------------------------------------------------------------
@@ -195,25 +301,17 @@ int32_t Meta_Free(json_object *Obj) {
  *
  *    @return              json object
 */
-json_object *Meta_LoadProfile(char *Name,char *Version) {
+json_object *Meta_New(int Type,char *Version) {
    
-   char        path[META_PATH_MAXLEN],*version=NULL;
-   json_object *prof=NULL,*objval=NULL;
+   TMetaProfile *prof=NULL;;
+   json_object  *obj=NULL;
 
-   version=(Version && strlen(Version))?Version:MetaVersion;
-   snprintf(path,META_PATH_MAXLEN,"%s/json/%s/%s.json",ARMNLIB,version,Name);
-   if (!(prof=json_object_from_file(path))) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load profile %s\n",__func__,path);
+   if (!(prof=Meta_GetProfile(Version))) {
       return(NULL);
    }
-
-   if (json_pointer_get(prof,"/version",&objval)<0){ 
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid profile %s\n",__func__,path);
-      return(NULL);
-   }
-   json_object_set_string(objval,version);
    
-   return(prof);
+   obj=(Type==META_TYPE_FIELD?prof->Field:prof->File);
+   return(Meta_Copy(obj));
 }
 
 /**----------------------------------------------------------------------------
@@ -323,6 +421,58 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
       }
 #else
       json_object_set_string(objval,Unit);
+#endif
+   }
+
+   return(Obj);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Define variable information based on $CMCCONST dictionnary to extract
+ *         the StandardName, LongName and Unit
+ *
+ * @date   July 2023
+ *    @param[in]  Obj           Profile json object
+ *    @param[in]  RPNName       RPN nomvar
+ *
+ *    @return                   json_object pointer (NULL if error)
+*/
+json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
+
+   TDictVar *var;
+   json_object *objval=NULL;
+#ifdef HAVE_UDUNITS2
+   ut_unit     *unit=NULL;
+#endif
+
+   if (!RPNName) {
+      return(NULL);
+   }
+   json_pointer_get(Obj,"/rpn_name",&objval);
+   json_object_set_string(objval,RPNName);
+   
+   if ((var=Dict_GetVar(RPNName))) {
+      json_pointer_get(Obj,"/standard_name",&objval);
+      json_object_set_string(objval,var->Short[0]);
+   
+      json_pointer_get(Obj,"/long_name",&objval);
+      json_object_set_string(objval,var->Long[0]);
+   
+//      json_pointer_get(Obj,"/description",&objval);
+//      json_object_set_string(objval,Description);
+
+      if (var->Units) {
+         json_pointer_get(Obj,"/unit",&objval);
+#ifdef HAVE_UDUNITS2
+         if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,var->Units))) {
+            Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,var->Units);
+            return(NULL);
+         } else {
+            json_object_set_string(objval,var->Units);
+         }
+#else
+         json_object_set_string(objval,var->Units);
+      }
 #endif
    }
 
@@ -548,10 +698,18 @@ json_object *Meta_Resolve(json_object *Obj,json_object *ObjMaster) {
 
 json_object *Meta_FindVerticalObj(char* Identifier,json_object *ObjMaster) {
 
-   json_object *obj=NULL,*obj_id=NULL,*obj_it=NULL;
+   TMetaProfile *prof=NULL;
+   json_object  *obj=NULL,*obj_id=NULL,*obj_it=NULL;
    int32_t          nb=0,i=0;
 
-   json_pointer_get(ObjMaster?ObjMaster:MetaProfileZ,"/vertical_references",&obj);
+   if (ObjMaster) {
+      json_pointer_get(ObjMaster,"/vertical_references",&obj);
+   } else {
+      if (!(prof=Meta_GetProfile(NULL))) {
+         return(NULL);
+      }
+      json_pointer_get(prof->Z,"/vertical_references",&obj);
+   }
 
    if (obj) {
       nb=json_object_array_length(obj);
@@ -568,10 +726,18 @@ json_object *Meta_FindVerticalObj(char* Identifier,json_object *ObjMaster) {
 
 json_object *Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster) {
 
-   json_object *obj=NULL,*obj_id=NULL,*obj_it=NULL;
+   TMetaProfile *prof=NULL;
+   json_object  *obj=NULL,*obj_id=NULL,*obj_it=NULL;
    int32_t          nb=0,i=0;
 
-   json_pointer_get(ObjMaster?ObjMaster:MetaProfileXY,"/horizontal_references",&obj);
+   if (ObjMaster) {
+      json_pointer_get(ObjMaster,"/horizontal_references",&obj);
+   } else {
+      if (!(prof=Meta_GetProfile(NULL))) {
+         return(NULL);
+      }
+      json_pointer_get(prof->XY,"/horizontal_references",&obj);
+   }
 
    if (obj) {
       nb=json_object_array_length(obj);
@@ -609,7 +775,7 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,int Copy) {
    if (Copy) {
       // Find the vertical reference
       if (!(objref=Meta_FindVerticalObj(Identifier,NULL))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find vertical reference %s",__func__,Identifier);
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find vertical reference %s\n",__func__,Identifier);
          return(NULL);
       }
 
@@ -642,7 +808,7 @@ json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value
    if (Copy) {
       // Find the vertical reference
       if (!(objref=Meta_FindVerticalObj(Identifier,NULL))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find vertical reference %s",__func__,Identifier);
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find vertical reference %s\n",__func__,Identifier);
          return(NULL);
       }
 
@@ -738,7 +904,7 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
    if (Copy) {
       // Find the vertical reference
       if (!(objref=Meta_FindHorizontalObj(Identifier,NULL))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find horizontal reference %s",__func__,Identifier);
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find horizontal reference %s\n",__func__,Identifier);
          return(NULL);
       }
 
@@ -781,15 +947,20 @@ json_object *Meta_GetHorizontalRef(json_object *Obj,char **Identifier) {
 */
 json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
 
+   TMetaProfile *prof=NULL;
    json_object *objval=NULL;
    char *c;
 
+   if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
+      return(NULL);
+   }
+
    if (MetaValidate) {
-      if (!(c=Meta_ValidateToken(MetaCellMethods,Method))) {
+      if (!(c=Meta_ValidateToken(prof->CellMethods,Method))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell method: %s\n",__func__,Method);
          return(NULL);
       }
-      if (!(c=Meta_ValidateToken(MetaCellProcesses,++c))) {
+      if (!(c=Meta_ValidateToken(prof->CellProcesses,++c))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell process: %s\n",__func__,Method);
          return(NULL);
       }
@@ -816,20 +987,25 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
 */
 json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
 
+   TMetaProfile *prof=NULL;
    json_object *objval=NULL;
    int   nb=0;
    char *c,*method=NULL;
+
+   if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
+      return(NULL);
+   }
 
    objval=json_object_new_array();
    json_object_object_add(Obj,"cell_methods",objval);
 
    while((method=Methods[nb++])) {
       if (MetaValidate) {
-         if (!(c=Meta_ValidateToken(MetaCellMethods,method))) {
+         if (!(c=Meta_ValidateToken(prof->CellMethods,method))) {
             Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell method: %s\n",__func__,method);
             return(NULL);
          }
-         if (!(c=Meta_ValidateToken(MetaCellProcesses,++c))) {
+         if (!(c=Meta_ValidateToken(prof->CellProcesses,++c))) {
             Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid cell process: %s\n",__func__,method);
             return(NULL);
          }
@@ -867,9 +1043,14 @@ json_object *Meta_ClearCellMethods(json_object *Obj) {
 */
 json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
 
+   TMetaProfile *prof=NULL;
    json_object *objval=NULL;
    
-   if (MetaValidate && !Meta_ValidateToken(MetaQualifiers,Qualifier)) {
+   if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
+      return(NULL);
+   }
+
+   if (MetaValidate && !Meta_ValidateToken(prof->Qualifiers,Qualifier)) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid qualifier: %s\n",__func__,Qualifier);
       return(NULL);
    }
@@ -895,15 +1076,20 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
 */
 json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers) {
 
+   TMetaProfile *prof=NULL;
    json_object *objval=NULL;
    int   nb=0;
    char *qualifier=NULL;
+
+   if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
+      return(NULL);
+   }
 
    objval=json_object_new_array();
    json_object_object_add(Obj,"qualifiers",objval);
 
    while((qualifier=Qualifiers[nb++])) {
-      if (MetaValidate && !Meta_ValidateToken(MetaQualifiers,qualifier)) {
+      if (MetaValidate && !Meta_ValidateToken(prof->Qualifiers,qualifier)) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid qualifier: %s\n",__func__,qualifier);
          return(NULL);
       }
@@ -941,9 +1127,14 @@ json_object *Meta_ClearQualifiers(json_object *Obj) {
 */
 json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
 
+   TMetaProfile *prof=NULL;
    json_object *objval=NULL,*objmis=NULL;
 
-   if (MetaValidate && !(Meta_ValidateToken(MetaReasons,Reason))) {
+   if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
+      return(NULL);
+   }
+
+   if (MetaValidate && !(Meta_ValidateToken(prof->Reasons,Reason))) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid reason: %s\n",__func__,Reason);
       return(NULL);
    }
@@ -1025,14 +1216,19 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
 */
 json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit,double Min,double Max) {
 
+   TMetaProfile *prof=NULL;
    json_object *obj=NULL,*objval=NULL;
    int32_t i;
 
-   if (MetaValidate && !(Meta_ValidateToken(MetaCompressions,Compression))) {
+   if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
+      return(NULL);
+   }
+
+   if (MetaValidate && !(Meta_ValidateToken(prof->Compressions,Compression))) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid compression: %s\n",__func__,Compression);
       return(NULL);
    }
-   if (MetaValidate && !(Meta_ValidateToken(MetaTypes,Type))) {
+   if (MetaValidate && !(Meta_ValidateToken(prof->Types,Type))) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid data type: %s\n",__func__,Type);
       return(NULL);
    }
@@ -1513,11 +1709,47 @@ int32_t Meta_Seconds2Stamp(time_t Sec) {
 }
 
 /**----------------------------------------------------------------------------
+ * @brief  Convert a date/time to seconds
+ * @date   July 2023
+ *    @param[in]   YYYY         Year
+ *    @param[in]   MM           Month
+ *    @param[in]   DD           Day
+ *    @param[in]   hh           Hour
+ *    @param[in]   mm           Minute
+ *    @param[in]   ss           Second
+ *    @param[in]   GMT          GMT (GMT or local time)
+ *   
+ *    @return                   System seconds
+*/
+time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT) {
+
+   struct tm date;
+
+   extern long timezone;
+
+   date.tm_sec=ss;         /*seconds apres la minute [0,61]*/
+   date.tm_min=mm;         /*minutes apres l'heure [0,59]*/
+   date.tm_hour=hh;        /*heures depuis minuit [0,23]*/
+
+   date.tm_mday=DD;        /*jour du mois [1,31]*/
+   date.tm_mon=MM-1;       /*mois apres Janvier [0,11]*/
+   date.tm_year=YYYY-1900; /*annee depuis 1900*/
+   date.tm_isdst=0;        /*Flag de l'heure avancee*/
+
+   /* Force GMT and set back to original TZ after*/
+   if (GMT) {
+      return(mktime(&date)-timezone);
+   } else {
+      return(mktime(&date));
+   }
+}
+
+/**----------------------------------------------------------------------------
  * @brief  Encode new JSON metadata from old metadata format
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[in]   Var           Variable name
- *    ...
+ *    
  *    @return                    Status (TRUE or FALSE)
 */
 int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
@@ -1536,10 +1768,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    strtrim(etiket,' ');
 
    // NOMVAR
-// Dict
-   Meta_DefVar(Obj,"",nomvar,"","","");
-
-//   Meta_DefBound(Obj,-60,50,"celsius");
+   Meta_DefVarFromDict(Obj,nomvar);
 
    // DATEO,DEET,NPAS
    Meta_DefForecastTime(Obj,Meta_Stamp2Seconds(Rec->dateo),Rec->npas,Rec->deet,"second");
@@ -1666,8 +1895,9 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    //   }
    }
 
-   //  NI,NJ,NK,NPACK,DATYP,DASIZ Will be done internally at read
-//   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+   //  NI,NJ,NK,NPACK,DATYP,DASIZ 
+   //Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+
    // TODO: define datyp
    Rec->npak=-Rec->npak;
    switch(c1[0]) {
