@@ -72,6 +72,7 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 
 include_directories(
    include
+   ${CMAKE_CURRENT_BINARY_DIR}/dep
    src/PUBLIC_INCLUDES
    src/Struct
    src/Meta
