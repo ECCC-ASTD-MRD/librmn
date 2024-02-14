@@ -1,12 +1,12 @@
 # Table of Contents
-1. [Introduction](#Introduction)
-2. [Grammar](#Grammar)
+1. [Introduction](#introduction)
+2. [Grammar](#grammar)
    1. [Field](#field-level-metadata-and-fst98-rpn-correspondance)
    2. [File](#file-level)
-3. [Enviroment variables](#Environment_variables)
-4. [Code Example](#Code_Example)
-   1. [C](#C)
-   2. [Fortran](#Fortran)
+3. [Enviroment variables](#environment_variables)
+4. [Code Example](#code_example)
+   1. [C](#c)
+   2. [Fortran](#fortran)
    
 # Introduction
 - The new metadata now available in fst24 allows the storage of much more information while being flexible, extensible and future proof.
