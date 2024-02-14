@@ -48,5 +48,4 @@ program test_meta_fortran
      ok=meta_fld%Resolve(meta_file);
 
      write(6,*) 'JSON:',meta_fld%Stringify()
-  
 end

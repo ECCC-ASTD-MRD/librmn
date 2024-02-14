@@ -17,8 +17,6 @@
 static ut_system   *MetaProfileUnit=NULL;   ///< UDUnits references
 #endif
 
-static char        *ARMNLIB;
-
 typedef struct {
    char        *Version;
    json_object *Field,*File;        ///< Field and File profiles
@@ -36,9 +34,9 @@ typedef struct {
 static TMetaProfile MetaProfiles[64];
 static int MetaProfileNb;
 
-
 static char *MetaVersion=NULL;       ///< Metadata version
 static char  MetaValidate=TRUE;      ///< Enable token validation
+static char *MetaPaths[2];           ///< Profile definition path
 
 static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","month","year","decade","centenary","millenia" };
 
@@ -156,11 +154,23 @@ int32_t Meta_Init(){
       MetaValidate=TRUE;
    }
 
+   // Ger metadata definitions path
+   MetaPaths[0]=getenv("CMCCONST");       // Standard definitions
+   MetaPaths[1]=getenv("META_PROFPATH");  // User definitions
+
+   if (!MetaPaths[0]) {
+      if (!MetaPaths[1]) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined\n",__func__);
+      } else {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to initialize standard profiles, CMCCONST variable not defined\n",__func__);     
+      }
+   }
+
    // Get metadata version to use
    if (!(MetaVersion=getenv("META_VERSION"))) {
       MetaVersion="0.1.0";
    }
-   Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Meta data profile version: %s\n",__func__,MetaVersion);
+   Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Meta data default profile version: %s\n",__func__,MetaVersion);
 
 #ifdef HAVE_UDUNITS2
    // Load units data, should use UDUNITS2_XML_PATH var
@@ -190,31 +200,33 @@ int32_t Meta_LoadProfile(char *Version) {
    json_object  *obj=NULL,*obja=NULL;
    glob_t        globs;
    char          path[APP_BUFMAX];
-   int32_t       j;
+   int32_t       i,j;
 
    if (!Version) {
       return(FALSE);
    }
 
-   prof=&MetaProfiles[MetaProfileNb];
+   for(i=0;i<2;i++) {
 
-   // Load metadata references 
-   // TODO: move to CMCCONST
-   if ((ARMNLIB=getenv("ARMNLIB"))) {
-
-      snprintf(path,APP_BUFMAX,"%s/json/%s/field.json",ARMNLIB,Version);
-      if (!(prof->Field=json_object_from_file(path))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load field profile %s\n",__func__,path);
-         return(FALSE);
+      if (!MetaPaths[i]) {
+         continue;
       }
-      snprintf(path,APP_BUFMAX,"%s/json/%s/file.json",ARMNLIB,Version);
+
+      prof=&MetaProfiles[MetaProfileNb];
+
+      snprintf(path,APP_BUFMAX,"%s/json/%s/field.json",MetaPaths[i],Version);
+      if (!(prof->Field=json_object_from_file(path))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load field profile %s\n",__func__,path);
+         continue;
+      }
+      snprintf(path,APP_BUFMAX,"%s/json/%s/file.json",MetaPaths[i],Version);
       if (!(prof->File=json_object_from_file(path))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load file profile %s\n",__func__,path);
-         return(FALSE);
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load file profile %s\n",__func__,path);
+         continue;
       } 
 
       // Load vertical reference definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/vertical/*.json",ARMNLIB,Version);
+      snprintf(path,APP_BUFMAX,"%s/json/%s/vertical/*.json",MetaPaths[i],Version);
       glob(path,0x0,NULL,&globs);
       if (globs.gl_pathc) {
          prof->Z=json_object_new_object();
@@ -223,7 +235,7 @@ int32_t Meta_LoadProfile(char *Version) {
 
          for(j=0;j<globs.gl_pathc;j++) {
             if (!(obj=json_object_from_file(globs.gl_pathv[j]))) {
-               Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load vertical profile: %s\n",__func__,globs.gl_pathv[j]);
+               Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load vertical profile: %s\n",__func__,globs.gl_pathv[j]);
             }
             Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Reading vertical profile: %s\n",__func__,globs.gl_pathv[j]);
             json_object_array_add(obja,obj);
@@ -232,7 +244,7 @@ int32_t Meta_LoadProfile(char *Version) {
       globfree(&globs);
 
       // Load horizontal definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/horizontal/*.json",ARMNLIB,Version);
+      snprintf(path,APP_BUFMAX,"%s/json/%s/horizontal/*.json",MetaPaths[i],Version);
       glob(path,0x0,NULL,&globs);
       if (globs.gl_pathc) {
          prof->XY=json_object_new_object();
@@ -241,7 +253,7 @@ int32_t Meta_LoadProfile(char *Version) {
 
          for(j=0;j<globs.gl_pathc;j++) {
             if (!(obj=json_object_from_file(globs.gl_pathv[j]))) {
-               Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
+               Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
             }
             Lib_Log(APP_LIBMETA,APP_DEBUG,"%s: Reading horizontal profile: %s\n",__func__,globs.gl_pathv[j]);
             json_object_array_add(obja,obj);
@@ -250,10 +262,9 @@ int32_t Meta_LoadProfile(char *Version) {
       globfree(&globs);
 
       // Load token definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/definitions.json",ARMNLIB,MetaVersion);
+      snprintf(path,APP_BUFMAX,"%s/json/%s/definitions.json",MetaPaths[i],MetaVersion);
       if (!(obja=json_object_from_file(path))) {
-         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to load token definitions: %s\n",__func__,path);
-         return(0);
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load token definitions: %s\n",__func__,path);
       }
       json_pointer_get(obja,"/types",&prof->Types);
       json_pointer_get(obja,"/compressions",&prof->Compressions);
@@ -261,13 +272,10 @@ int32_t Meta_LoadProfile(char *Version) {
       json_pointer_get(obja,"/cell_methods",&prof->CellMethods);
       json_pointer_get(obja,"/cell_processes",&prof->CellProcesses);
       json_pointer_get(obja,"/reasons",&prof->Reasons);
-   } else {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to initialize, ARMNLIB variable not defined\n",__func__);
-      return(FALSE);
+   
+      prof->Version=strdup(Version);
+      MetaProfileNb++;
    }
-
-   prof->Version=strdup(Version);
-   MetaProfileNb++;
 
    return(TRUE);
 }

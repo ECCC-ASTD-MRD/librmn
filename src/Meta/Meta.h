@@ -6,6 +6,7 @@
 #ifdef HAVE_RMN
    #include <rmn.h>
 #endif
+
 #define META_TOKEN_MAXLEN 1024
 #define META_TYPE_FIELD   1
 #define META_TYPE_FILE    2

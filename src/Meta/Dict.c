@@ -40,6 +40,7 @@
 #include "rmn.h"
 #include "str.h"
 #include "Dict.h"
+#include "Meta.h"
 #include <float.h>
 
 char *TSHORT[]      = { "Description courte ","Short Description  " };

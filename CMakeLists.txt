@@ -313,6 +313,8 @@ install(
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
+add_subdirectory(tests)
+
 # Packaging
 ec_package_name()                 # Define package prefix  
 ec_build_config()                 # Create build configuration script
@@ -329,9 +331,5 @@ set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
 
-if (EC_INIT_DONE LESS 2)
-   include(CTest)
-   add_subdirectory(tests)
-endif()
 
 
