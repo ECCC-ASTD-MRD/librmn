@@ -652,15 +652,13 @@ int c_fstecr_rsf(
     /* write record to file and add entry to directory */
     const int64_t record_handle = RSF_Put_record(file_handle, record, num_data_bytes);
     if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
-        char string[12];
-        sprintf(string, "Write(%d)", iun);
-        print_std_parms(stdf_entry, string, prnt_options, -1);
+        print_std_parms(stdf_entry, "Write", prnt_options, -1);
     }
 
     xdf_double = 0;
     xdf_short = 0;
     xdf_byte = 0;
-    return record_handle > 0 ? 0 : -1;
+    return record_handle >= 0 ? 0 : -1;
 }
 
 //! \copydoc c_fstnbr
@@ -1236,10 +1234,9 @@ int c_fstluk_rsf(
     }
 
     if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_TRIVIAL) {
-        char string[11];
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, key32);
         stdf_entry->datyp = stdf_entry->datyp | has_missing;
-        print_std_parms(stdf_entry, string, prnt_options, -1);
+        print_std_parms(stdf_entry, "Read", prnt_options, -1);
     }
     if (has_missing) {
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
