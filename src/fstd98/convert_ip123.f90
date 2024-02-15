@@ -268,6 +268,7 @@ end subroutine swap
 !    use ISO_C_BINDING
 !    include 'convert_ip123.inc'
 ! in order to access this function
+  use rmn_common
   implicit none  ! coupled (rp1,rp2,rp3) to (ip1,ip2,ip3) conversion with type enforcement
 ! ARGUMENTS
   integer(C_INT) :: status
@@ -275,7 +276,7 @@ end subroutine swap
   type(FLOAT_IP), intent(IN)  :: RP1,RP2,RP3
 !******
 
-  real*4, dimension(3) :: P
+  real(kind = real32), dimension(3) :: P
   integer, dimension(3) ::kind
   character(len=1) :: dummy
   integer :: i
@@ -357,6 +358,7 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
 !    use ISO_C_BINDING
 !    include 'convert_ip123.inc'
 ! in order to access this function
+  use rmn_common
   implicit none ! coupled (ip1,ip2,ip3) to (rp1,rp2,rp3) conversion with type enforcement
 ! ARGUMENTS
   integer(C_INT) :: status
@@ -364,7 +366,7 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
   type(FLOAT_IP), intent(OUT) :: RP1,RP2,RP3
 !******
 
-  real*4, dimension(3) :: P
+  real(C_FLOAT), dimension(3) :: P
   integer, dimension(3) ::kind
   character(len=1) :: dummy
   integer :: IP1, IP2, IP3
@@ -390,13 +392,8 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
 
   if(IP3 < 32768) then                          ! IP3 is old style,
     RP3%lo = IP3 ; RP3%hi = IP3
-    if(IP3 <= 240) then                         ! time in hours ?
-      RP3%kind = 10 
-      status = ior(status,CONVERT_BAD_GUESS)      ! unreliable guess
-    else                                        ! arbitraty value ?
-      RP3%kind = 3
-      status = ior(status,CONVERT_TERRIBLE_GUESS)  ! highly unreliable guess
-    endif
+    RP3%kind = 3
+    status = ior(status,CONVERT_TERRIBLE_GUESS)  ! highly unreliable guess
   else
     call convip_plus(IP3,P(3),kind(3),-1,dummy,.false.)  ! kind of ip3 may be anything new style
     if(kind(3)==-1) goto 777
@@ -614,13 +611,8 @@ implicit none
   endif
   if(IP3 < 32768) then                          ! IP3 is old style,
     RP3 = IP3
-    if(IP3 <= 240) then                         ! time in hours ?
-      kind3 = 10 
-      status = ior(status,CONVERT_BAD_GUESS)    ! unreliable guess
-    else                                        ! arbitraty value ?
-      kind3 = 3
-      status = ior(status,CONVERT_TERRIBLE_GUESS) ! highly unreliable guess
-    endif
+    kind3 = 3
+    status = ior(status,CONVERT_TERRIBLE_GUESS) ! highly unreliable guess
   else
     call convip_plus(IP3,RP3,kind3,-1,dummy,.false.)
     if(is_invalid_kind(kind3)) goto 777  ! bad kind
