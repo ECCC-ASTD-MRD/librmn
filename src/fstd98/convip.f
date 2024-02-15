@@ -460,9 +460,9 @@ c     %         goto 101
 
       subroutine igapg(grtyp,pg1,pg2,pg3,pg4,ig1,ig2,ig3,ig4)
       implicit none
-      character(len = 1) :: grtyp
+      character(len = 1), intent(in) :: grtyp
       character(len = *) :: pg1,pg2,pg3,pg4
-      integer ig1,ig2,ig3,ig4
+      integer, intent(in) :: ig1,ig2,ig3,ig4
 *
       real xg1,xg2,xg3,xg4
       external cigaxg

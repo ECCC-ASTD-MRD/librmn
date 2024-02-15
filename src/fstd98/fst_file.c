@@ -125,19 +125,17 @@ int32_t fst24_print_summary(const fst_file* file, const fst_record_fields* field
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     const int64_t num_records = fst24_get_num_records(file);
-    size_t total_file_size = 0;
+    size_t total_data_size = 0;
     
     fst_record rec;
     for (unsigned int i = 0; i < num_records; i++) {
         fst24_get_record_by_index(file, i, &rec);
-        // total_file_size += info.rl;
-        // char string[20];
-        // sprintf(string, "%5d-", i);
-        // print_std_parms(metadata, string, options, ((i % 70) == 0));
+        total_data_size += fst24_record_data_size(&rec);
         fst24_record_print_short(&rec, fields, ((i % 70) == 0));
     }
 
-    fprintf(stdout, "\n%d records in RPN standard file(s). Total size %ld bytes.\n", num_records, total_file_size);
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
+            num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
     return 0;
 }

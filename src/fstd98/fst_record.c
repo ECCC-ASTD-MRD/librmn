@@ -141,6 +141,15 @@ char* add_level(char* buffer, const char* varname, const int32_t ip1, const size
     return buffer + length + 1;
 }
 
+char* pad(char* buffer, const int num_written, const size_t target_length) {
+    if (target_length > num_written) {
+        memset(buffer + num_written, ' ', target_length - num_written);
+        buffer[target_length] = '\0';
+    }
+
+    return buffer;
+}
+
 char* add_ips(char* buffer, const char* varname, const int32_t ip1, const int32_t ip2, const int32_t ip3, const size_t length) {
     if (!FstCanTranslateName(varname)) {
         char* result = buffer;
@@ -161,31 +170,43 @@ char* add_ips(char* buffer, const char* varname, const int32_t ip1, const int32_
     }
     kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;   /* force modulo 32 */
     const int num_written = snprintf(buffer, length + 2, " %10g%s %10g%s %10g%s", p1, kinds(kind1), p2, kinds(kind2), p3, kinds(kind3));
-    if (num_written < length) {
-        memset(buffer + num_written, ' ', length - num_written);
-        buffer[length + 1] = '\0';
-    }
+    pad(buffer, num_written, length + 1);
 
     return buffer + length + 1;
 }
 
-char* add_datatype(char* buffer, const int32_t datatype) {
-    // char m = ' ';
-    // if (has_type_missing(datatype)) m = 'm';
+char* add_datatype(char* buffer, const int32_t datatype, const int32_t nbits, const size_t length) {
+    const char m = has_type_missing(datatype) ? 'm' : ' ';
+    const char cdt[9] = {'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
+    const char letter = cdt[datatype & 0x3f]; // Suppress bits 64 and 128
+    const char datatype_c = is_type_turbopack(datatype) ? tolower(letter) : letter;
 
-    // if (strstr(option, "NODTY")) {
-    //     v_dty[0] = '\0';
-    // } else {
-    //     /* force lower case data type code if compressed */
-    //     if (stdf_entry->datyp > 128) {
-    //         /* suppress bits for 64 and 128 */
-    //         snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits);
-    //     } else {
-    //         /* suppress bits for 64 and 128 */
-    //         snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits);
-    //     }
-    // }
-    return NULL;
+    const int num_written = snprintf(buffer, 6, " %1c%1c%2d", tolower(cdt[datatype & 0x3F]), m, nbits);
+    pad(buffer, num_written, length + 1);
+
+    return buffer + length + 1;
+}
+
+char* add_grid_info(char* buffer, const char* grtyp, const int32_t ig1, const int32_t ig2, const int32_t ig3,
+                    const int32_t ig4, const size_t length) {
+    F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
+    char pg1[7], pg2[7], pg3[8], pg4[8];
+    f77name(igapg)(grtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4, lc1, lc2, lc3, lc4, lc5);
+    pg1[6] = '\0'; pg2[6] = '\0'; pg3[7] = '\0'; pg4[7] = '\0';
+    const int num_written = snprintf(buffer, 33, " %1s %6s %6s %7s %7s", grtyp, pg1, pg2, pg3, pg4);
+    pad(buffer, num_written, length + 1);
+
+    return buffer + length + 1;
+}
+
+char* add_ig1234(char* buffer, const char* grtyp, const int32_t ig1, const int32_t ig2, const int32_t ig3,
+                 const int32_t ig4, const size_t length) {
+    buffer = add_str(buffer, grtyp, 1);
+    buffer = add_int(buffer, ig1, 5, 0);
+    buffer = add_int(buffer, ig2, 5, 0);
+    buffer = add_int(buffer, ig3, 5, 0);
+    buffer = add_int(buffer, ig4, 5, 0);
+    return buffer;
 }
 
 void fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header) {
@@ -211,7 +232,9 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
         .datestamps = 9,
         .level = 15,
 
-        .datyp = 4
+        .datyp = 4,
+        .grid_info = 31,
+        .ig1234 = 25
     };
 
     fst_record_fields to_print = default_fields;
@@ -245,6 +268,9 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
 
         if (to_print.datyp) current = add_str(current, "dtyp", width.datyp);
 
+        if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
+        else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
+
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
     }
     
@@ -272,7 +298,12 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
         if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
         if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
 
-        if (to_print.datyp) current = add_str(current, "todo", width.datyp);
+        if (to_print.datyp) current = add_datatype(current, record->datyp, record->dasiz, width.datyp);
+
+        if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
+                                                        record->ig3, record->ig4, width.grid_info);
+        else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
+                                                       record->ig3, record->ig4, width.ig1234);
 
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
     }

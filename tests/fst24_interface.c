@@ -148,14 +148,15 @@ int test_fst24_interface(const int is_rsf) {
 
     fst_record_fields fields = default_fields;
     // fields.datev = 1;
-    fields.datestamps = 0;
+    // fields.datestamps = 0;
     // fields.ip2 = 1;
     // fields.ip3 = 1;
     // fields.level = 1;
     // fields.deet = 1;
     // fields.npas = 1;
     // fields.decoded_ip = 1;
-    fields.datyp = 1;
+    // fields.datyp = 0;
+    fields.grid_info = 1;
     fst24_print_summary(test_file, &fields);
 
     fst_record record;
@@ -305,6 +306,8 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Should not succeed linking already-linked file\n");
         return -1;
     }
+
+    fst24_print_summary(test_file, NULL);
 
     {
         const int64_t num_rec = fst24_get_num_records(test_file);
