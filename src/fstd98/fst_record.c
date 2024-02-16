@@ -50,6 +50,7 @@ void fst24_record_print(const fst_record* record) {
     Lib_Log(APP_LIBFST, APP_ALWAYS,
         "\n"
         "  Version: %ld\n"
+        "  File: 0x%x\n"
         "  Data: 0x%x\n"
         "  Metadata: 0x%x\n"
         "  Handle: 0x%x\n"
@@ -65,7 +66,7 @@ void fst24_record_print(const fst_record* record) {
         "  grtyp:  %s\n"
         "  nomvar: %s\n"
         "  etiket: %s\n",
-        record->version, record->data, record->metadata, record->handle, 
+        record->version, record->file, record->data, record->metadata, record->handle, 
         record->dateo, record->datyp, record->dasiz, record->npak,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,

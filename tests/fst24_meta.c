@@ -173,11 +173,11 @@ int test_fst24_interface(const int is_rsf) {
       search_extra.grtyp[0]='Z';
       fst24_set_search_criteria(test_file, &search_extra);
       fst24_find_next(test_file, &record);
-      key=fst24_read(test_file, &record);
+      key=fst24_read(&record);
 */
       fst24_set_search_criteria(test_file, &record);
       fst24_find_next(test_file, &record);
-      key=fst24_read(test_file, &record);
+      key=fst24_read(&record);
       meta=Meta_Parse(record.metadata);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
 
@@ -187,7 +187,7 @@ int test_fst24_interface(const int is_rsf) {
       strcpy(search_criteria.typvar, "P");
       fst24_set_search_criteria(test_file, &search_criteria);
       while(key=fst24_find_next(test_file, &record_find)) {
-         fst24_read(test_file,&record_find);
+         fst24_read(&record_find);
 //         fst24_read_meta(test_file,&record_find);
          if (!(meta=Meta_Parse(record_find.metadata)))  {
             App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);

@@ -153,7 +153,7 @@ static inline uint32_t key64_to_file_slot(int64_t key64) {
 
 //! Extract record index from a 64-bit record key (it's in the lower 32 bits).
 static inline uint32_t key64_to_index(int64_t key64) {
-  return key64 & 0xFFFFFFFFl ;
+  return (key64 & 0xFFFFFFFFl) - 1 ;
 }
 
 static inline int64_t make_key(
@@ -185,7 +185,7 @@ int32_t RSF_Key32(int64_t key64){
   if(slot > 0x3FF)                    // ERROR, slot number larger than 10 bits
     return (1 << 31) ;                // return huge negative value
 
-  return (index << 10) | slot | (1 << 30) ;  // index, slot, and bit 30 set to 1 to indicate RSF handle
+  return ((index + 1) << 10) | slot | (1 << 30) ;  // index, slot, and bit 30 set to 1 to indicate RSF handle
 }
 
 //! Check whether the given 32-bit key is a valid RSF key and whether it _could_ be a valid XDF key
@@ -1832,13 +1832,14 @@ ssize_t RSF_Read(RSF_handle h, void *buf, int64_t address, int64_t nelem, int it
 //   return nbytes / itemsize ;
 // }
 
-// key from RSF_Lookup, RSF_Scan_vdir
-// returns a RSF_record_handle (NULL in case or error)
-// size of data and metadata returned if corresponding pointers are not NULL
-// it is up to the caller to free the space
-// in case of error, the function returns NULL, datasize, metasize, data, and meta are IGNORED
-// the caller is responsible for freeing the allocated space
-RSF_record *RSF_Get_record(RSF_handle h, int64_t key){
+//! Read the content of the specified record from the file. Option to only read metadata
+//! The caller is responsible for freeing the allocated space
+//! \return a RSF_record_handle if everyting went fine, NULL in case or error
+RSF_record *RSF_Get_record(
+    RSF_handle h,               //!< Handle to open file in which record is located
+    const int64_t key,          //!< from RSF_Lookup, RSF_Scan_vdir
+    const int32_t metadata_only //!< [in] 1 if we only want to read the metadata, 0 otherwise
+){
   RSF_File *fp = (RSF_File *) h.p ;
   RSF_record *record = NULL;
   void *p ;
@@ -1848,7 +1849,7 @@ RSF_record *RSF_Get_record(RSF_handle h, int64_t key){
   uint64_t recsize, wa, payload ;
   off_t offset ;
   char *errmsg ;
-  int32_t slot, fslot ;
+  int32_t fslot ;
   RSF_record_info info = RSF_Get_record_info(h, key) ;
 
   errmsg = NULL ;                     // error message already printed
@@ -1857,17 +1858,23 @@ RSF_record *RSF_Get_record(RSF_handle h, int64_t key){
   errmsg = "invalid fp" ;
   if( (fslot = RSF_Valid_file(fp)) == 0 ) goto ERROR ;             // something wrong with fp
 
-  slot = key >> 32 ;
+  const int32_t slot = key64_to_file_slot(key);
   // fprintf(stderr,"RSF_Get_record DEBUG: keyslot = %d, file slot = %d, fslot = %d\n", slot, fp->slot, fslot) ;
   errmsg = "inconsistent file slot" ;
   if(slot != fslot) goto ERROR ;
   // get wa and rl from vdir, using key
-  key &= 0xFFFFFFFFul ;                               // lower 32 bits
-  key = key - 1 ;                                     // origin 0
-  wa = RSF_32_to_64( fp->vdir[key]->wa ) ;            // record position in file
-  rlm0 = REC_ML(fp->vdir[key]->ml) ;                  // record metadata length from directory
-  rlmd0 = DIR_ML(fp->vdir[key]->ml) ;                 // directory metadata length from directory
-  recsize = RSF_32_to_64( fp->vdir[key]->rl ) ;       // record size
+  const uint32_t record_id = key64_to_index(key);
+  wa = RSF_32_to_64( fp->vdir[record_id]->wa ) ;            // record position in file
+  rlm0 = REC_ML(fp->vdir[record_id]->ml) ;                  // record metadata length from directory
+  rlmd0 = DIR_ML(fp->vdir[record_id]->ml) ;                 // directory metadata length from directory
+  
+  // Determine size to read
+  if (metadata_only == 1) {
+    recsize = sizeof(start_of_record) + rlm0 *sizeof(uint32_t);
+  }
+  else {
+    recsize = RSF_32_to_64( fp->vdir[record_id]->rl ) ;
+  }
 
   recsize = info.rl ;
   wa = info.wa ;
@@ -1895,18 +1902,25 @@ RSF_record *RSF_Get_record(RSF_handle h, int64_t key){
     record->rec_meta = rlm ;
     record->dir_meta = rlmd ;
     record->meta = record->sor + sizeof(start_of_record) ;
-    record->eor = p + sizeof(RSF_record) + recsize - sizeof(end_of_record) ;
-    record->data = record->sor + sizeof(start_of_record) + sizeof(uint32_t) * rlm ;
-    record->data_size = (char *)(record->eor) - (char *)(record->data) ;
-    record->max_data = record->data_size ;
-    // for(i=0 ; i<rlm ; i++)fprintf(stderr," %8.8x", record->meta[i]) ;
-    // fprintf(stderr,"\n");
+
+    if (metadata_only == 1) {
+      record->eor = NULL;
+      record->data = NULL;
+      record->data_size = 0;
+      record->max_data = 0;
+    }
+    else {
+      record->eor = p + sizeof(RSF_record) + recsize - sizeof(end_of_record) ;
+      record->data = record->sor + sizeof(start_of_record) + sizeof(uint32_t) * rlm ;
+      record->data_size = (char *)(record->eor) - (char *)(record->data) ;
+      record->max_data = record->data_size ;
+    }
   }else{
     errmsg = "error allocating memory for record" ;
   }
 
-
   return record ;
+
 ERROR:
   if(errmsg) Lib_Log(APP_LIBFST, APP_ERROR, "%s: %s\n", __func__, errmsg);
   if(record) free(record) ;
