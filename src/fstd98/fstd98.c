@@ -788,12 +788,10 @@ int c_fstckp(
     }
 
     if (rsf_status == 1) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Can't do a checkpoint on an RSF file (unit %d).\n",
-                __func__, iun);
-        return 0;
+        return c_fstckp_rsf(iun, index_fnom);
     }
     else if (rsf_status == 0) {
-        return c_fstckp(iun);
+        return c_fstckp_xdf(iun);
     }
 
     return rsf_status;

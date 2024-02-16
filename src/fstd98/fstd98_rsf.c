@@ -1678,3 +1678,14 @@ int c_fstvoi_rsf(
 
     return 0;
 }
+
+int32_t c_fstckp_rsf(const int iun, const int index_fnom) {
+    RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
+
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        return ERR_NO_FILE;
+    }
+
+    return RSF_Checkpoint(file_handle);
+}

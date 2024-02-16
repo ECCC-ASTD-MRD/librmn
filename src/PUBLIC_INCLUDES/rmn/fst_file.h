@@ -44,5 +44,6 @@ int32_t   fst24_find_all(fst_file* file, fst_record* results, const int32_t max_
 int32_t   fst24_link(fst_file** file, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* file);
 int32_t   fst24_print_summary(fst_file* file, const fst_record_fields* fields);
+int32_t   fst24_checkpoint(fst_file* file);
 
 #endif // RMN_FST_FILE_H__

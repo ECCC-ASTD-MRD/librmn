@@ -91,6 +91,21 @@ int32_t fst24_close(fst_file* file) {
     return 0;
 }
 
+int32_t fst24_checkpoint(fst_file* file) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
+
+    if (file->type == FST_RSF) {
+        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+        return RSF_Checkpoint(file_handle);
+    }
+    else if (file->type == FST_XDF) {
+        return c_fstckp_xdf(file->iun);
+    }
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, file->type);
+    return -1;
+}
+
 int64_t fst24_get_num_records(const fst_file* file) {
     if (!fst24_is_open(file)) return 0;
 
