@@ -692,7 +692,7 @@ int c_fstouv_rsf(
     const int32_t meta_dim = (sizeof(stdf_dir_keys) + 3)/ sizeof(int32_t); // In 32-bit units
     FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, NULL);
     
-    // VOLATILE mode, unlink the file so it gets erased ate end of process
+    // VOLATILE mode, unlink the file so it gets erased at end of process
     if (FGFDT[index_fnom].attr.volatil) {
         if (mode == RSF_RW) {
            unlink(FGFDT[index_fnom].file_name);

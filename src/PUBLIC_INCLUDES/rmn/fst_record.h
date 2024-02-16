@@ -100,11 +100,11 @@ static const fst_record default_fst_record = (fst_record){
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, dasiz, npak, ni, nj, nk;
+    int32_t datyp, npak, ni, nj, nk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
-    int32_t ig1, ig2, ig3, ig4;
-    int32_t typvar, grtyp, nomvar, etiket;
+    int32_t grid_info, ig1234;
+    int32_t typvar, nomvar, etiket;
 } fst_record_fields;
 
 static const fst_record_fields default_fields = (fst_record_fields) {
@@ -113,6 +113,7 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .datestamps = 1,
 
     .level = 0,
+    .datyp = 1,
 
     .deet = 0,
     .npas = 0,
@@ -120,7 +121,6 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .nomvar = 1,
     .typvar = 1,
     .etiket = 1,
-    .grtyp  = 0,
 
     .ni = 1,
     .nj = 1,
@@ -131,10 +131,8 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .ip2 = 0,
     .ip3 = 0,
 
-    .ig1 = 1,
-    .ig2 = 1,
-    .ig3 = 1,
-    .ig4 = 1
+    .grid_info = 0,
+    .ig1234 = 1
 };
 
 inline int64_t fst24_record_num_elem(const fst_record* record) {

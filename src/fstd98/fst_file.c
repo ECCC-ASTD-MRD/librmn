@@ -20,10 +20,24 @@ int32_t fst24_is_open(const fst_file* file) {
 }
 
 //! To be called from Fortran
-//! \return The iun of the input file struct. -1 if NULL pointer
+//! \return The iun of the input file struct. 0 if file is not open or struct is not valid.
 int32_t fst24_get_iun(fst_file* file) {
-    if (file != NULL) return file->iun;
-    return -1;
+    if (fst24_is_open(file)) return file->iun;
+    return 0;
+}
+
+//! Check whether the given file path is a readable FST file
+//! \return TRUE (1) if the file makes sense, FALSE (0) if an error is detected
+int32_t fst24_is_valid(const char* filename) {
+    const int32_t type = c_wkoffit(filename, strlen(filename));
+    if (type == WKF_STDRSF) {
+        return RSF_Basic_check(filename);
+    }
+    else {
+        if (c_fstcheck_xdf(filename) == 0) return TRUE;
+    }
+
+    return FALSE;
 }
 
 //! Open a standard file (FST). Will create it if it does not already exist
@@ -39,11 +53,7 @@ fst_file* fst24_open(
 
     const int MAX_LENGTH = 1024;
     char local_options[MAX_LENGTH];
-    if (options == NULL) {
-        strncpy(local_options, "", MAX_LENGTH);
-    } else {
-        strncpy(local_options, options, MAX_LENGTH);
-    }
+    snprintf(local_options, MAX_LENGTH, "RND+RSF+%s", options);
 
     if (c_fnom(&(the_file->iun), file_name, local_options, 0) != 0) return NULL;
     if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
@@ -125,19 +135,17 @@ int32_t fst24_print_summary(const fst_file* file, const fst_record_fields* field
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     const int64_t num_records = fst24_get_num_records(file);
-    size_t total_file_size = 0;
+    size_t total_data_size = 0;
     
     fst_record rec;
     for (unsigned int i = 0; i < num_records; i++) {
         fst24_get_record_by_index(file, i, &rec);
-        // total_file_size += info.rl;
-        // char string[20];
-        // sprintf(string, "%5d-", i);
-        // print_std_parms(metadata, string, options, ((i % 70) == 0));
+        total_data_size += fst24_record_data_size(&rec);
         fst24_record_print_short(&rec, fields, ((i % 70) == 0));
     }
 
-    fprintf(stdout, "\n%d records in RPN standard file(s). Total size %ld bytes.\n", num_records, total_file_size);
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
+            num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
     return 0;
 }
@@ -1223,7 +1231,7 @@ int32_t fst24_unpack_data(
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_TRIVIAL) {
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, record->handle);
-        fst24_record_print(record);
+        if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print(record);
     }
 
     if (has_missing) {
@@ -1341,7 +1349,7 @@ int32_t fst24_read(
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not read record, ier = %d\n", __func__, ret);
         free(record->data);
         record->data = NULL;
-        return -1;
+        return ret;
     }
 
     return TRUE;

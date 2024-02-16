@@ -26,6 +26,7 @@ static fst_file default_fst_file = (fst_file) {
     .next       = NULL
 };
 
+int32_t   fst24_is_valid(const char* file_name);
 int32_t   fst24_is_open(const fst_file* file);
 fst_file* fst24_open(const char* file_name, const char* options);
 int32_t   fst24_close(fst_file* file);
