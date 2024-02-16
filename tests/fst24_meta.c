@@ -74,26 +74,8 @@ int test_fst24_interface(const int is_rsf) {
     // Write a record
    {
 
-      fst_record file_meta = fst24_record_init(data,FST_TYPE_REAL,32,1,1,1);
-      file_meta.npak = -32;
-      file_meta.dateo = 0;
-      file_meta.deet = 0;
-      file_meta.npas = 0;
-      file_meta.ip1  = 0;
-      file_meta.ip2  = 0;
-      file_meta.ip3  = 0;
-      file_meta.ig1   = 0;
-      file_meta.ig2   = 0;
-      file_meta.ig3   = 0;
-      file_meta.ig4   = 0;
-      strcpy(file_meta.typvar, "X");
-      strcpy(file_meta.nomvar, "JSON");
-      strcpy(file_meta.etiket, "FILE_META");
-      strcpy(file_meta.grtyp, "X");
-      file_meta.metadata = prof_file;
-      if (fst24_write(test_file, &file_meta,FALSE) < 0) {
-         App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
-         return -1;
+      if (!Meta_WriteFile(test_file,prof_file)) {
+         return(-1);
       }
         
       fst_record record = fst24_record_init(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);

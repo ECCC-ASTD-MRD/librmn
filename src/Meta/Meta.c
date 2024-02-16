@@ -119,7 +119,7 @@ static inline TMetaProfile *Meta_GetProfile(char *Version) {
    if (!MetaVersion) {
       Meta_Init();
    }
-   
+
    version=Version&&Version[0]!='\0'?Version:MetaVersion;
 
    // Look for profile version
@@ -2071,6 +2071,47 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to find horizontal reference: %s\n",__func__,c1);
    }
 
+   return(TRUE);
+}
+
+#include "Meta_Flag.h"
+int Meta_WriteFile(fst_file *file,json_object *Obj) {
+
+   fst_record rec;
+
+   if (!Obj) {
+      return(FALSE);
+   }
+
+   rec = fst24_record_init(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1);
+   rec.npak = 1;
+   rec.dateo = 0;
+   rec.deet = 0;
+   rec.npas = 0;
+   rec.ip1  = 0;
+   rec.ip2  = 0;
+   rec.ip3  = 0;
+   rec.ig1   = 100;
+   rec.ig2   = 100;
+   rec.ig3   = 0;
+   rec.ig4   = 0;
+   strcpy(rec.typvar, "X");
+   strcpy(rec.nomvar, "META");
+   strcpy(rec.etiket, "FILE_JSON");
+   strcpy(rec.grtyp, "L");
+   rec.metadata = Obj;
+
+/*
+   int ig1,ig2,ig3,ig4;
+   float xg1=-90.0,xg2=0.0,xg3=1.0,xg4=1.0;
+   char t[2];t[0]='L';
+   f77name(cxgaig)(t, &ig1, &ig2, &ig3, &ig4,&xg1,&xg2,&xg3,&xg4, 1);
+   fprintf(stderr,"---- %i %i %i %i\n",ig1,ig2,ig3,ig4);
+*/
+   if (fst24_write(file,&rec,FALSE)<0) {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to write file metadata record\n",__func__);
+      return(FALSE);
+   }
    return(TRUE);
 }
 

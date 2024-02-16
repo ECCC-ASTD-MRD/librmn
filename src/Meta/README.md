@@ -138,8 +138,6 @@ int main(int argc, char **argv) {
    json_object *prof_file=NULL,*prof_fld=NULL;
    double levels[1]= { 1000.0 };
 
-   if (!Meta_Init()) exit(EXIT_FAILURE);
-
    // Create metadata object from template
    prof_fld=Meta_New(META_TYPE_FIELD,NULL);
    prof_file=Meta_New(META_TYPE_FILE,NULL);
@@ -184,8 +182,6 @@ program meta_fortran
    type(C_PTR) obj
    real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
    integer(kind=INT32) :: ok
-
-   call Meta_Init()
  
 !  Create metadata object from template
    ok=meta_fld%New(META_TYPE_FIELD,"")
