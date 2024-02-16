@@ -105,7 +105,6 @@ inline static char* Meta_Version(json_object *Obj) {
 
 /**----------------------------------------------------------------------------
  * @brief  Find a profile from the availabel list by its version number
-
  * @date   February 2024
  *    @param[in]  Version  Profile version (if NULL, use env defined)
  *
@@ -134,7 +133,6 @@ static inline TMetaProfile *Meta_GetProfile(char *Version) {
 
 /**----------------------------------------------------------------------------
  * @brief  Initialise Meta package environment
-
  * @date   June 2023
  *    @return              Error code (1=ok)
 */
@@ -188,7 +186,6 @@ int32_t Meta_Init(){
 
 /**----------------------------------------------------------------------------
  * @brief  Load a profile from file
-
  * @date   February 2024
  *    @param[in]  Version  Profile version
  *
@@ -337,7 +334,6 @@ json_object *Meta_Load(char *Path) {
 
 /**----------------------------------------------------------------------------
  * @brief  Validate a token from a token list
-
  * @date   July 2023
  *    @param[in]  TokenList Valid token name list
  *    @param[in]  Token     Token name
@@ -375,7 +371,6 @@ inline static char* Meta_ValidateToken(json_object *TokenList,char *Token) {
 
 /**----------------------------------------------------------------------------
  * @brief  Define variable information
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  StandardName  Standard name (CF table)
@@ -392,6 +387,9 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
 #ifdef HAVE_UDUNITS2
    ut_unit     *unit=NULL;
 #endif
+   if (!Obj) {
+      return(NULL);
+   }
 
    if (StandardName) {
       json_pointer_get(Obj,"/standard_name",&objval);
@@ -430,7 +428,6 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
 /**----------------------------------------------------------------------------
  * @brief  Define variable information based on $CMCCONST dictionnary to extract
  *         the StandardName, LongName and Unit
- *
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  RPNName       RPN nomvar
@@ -445,9 +442,10 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
    ut_unit     *unit=NULL;
 #endif
 
-   if (!RPNName) {
+   if (!Obj || !RPNName) {
       return(NULL);
    }
+
    json_pointer_get(Obj,"/rpn_name",&objval);
    json_object_set_string(objval,RPNName);
    
@@ -481,7 +479,6 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
 
 /**----------------------------------------------------------------------------
  * @brief  Extract variable information
-
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[out]  StandardName  Standard name (CF table)
@@ -495,6 +492,10 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
 json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description,char **Unit) {
 
    json_object *objval=NULL;
+
+   if (!Obj) {
+      return(NULL);
+   }
 
    if (StandardName) {
       json_pointer_get(Obj,"/standard_name",&objval);
@@ -552,7 +553,6 @@ double Meta_DurationToSeconds(char *Unit) {
 
 /**----------------------------------------------------------------------------
  * @brief  Define temporal information
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  T0            Forecast reference time
@@ -569,6 +569,10 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double
    uint32_t milli=0,sec=0;
    char timestr[32],timemil[32];
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    gmtime_r(&T0,&t0);
    strftime(timestr,32,"%FT%TZ",&t0);
    json_pointer_get(Obj,"/forecast_reference_datetime",&objval);
@@ -638,6 +642,10 @@ json_object *Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,doub
    struct tm t0;
    char *timestr;
 
+   if (!Obj) {
+      return(NULL);
+   }
+
    if (Step) {
       json_pointer_get(Obj,"/forecast_period/step",&objval);
       *Step=json_object_get_int(objval);
@@ -662,7 +670,6 @@ json_object *Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,doub
 
 /**----------------------------------------------------------------------------
  * @brief  Resolve references of identifiers by string definitions in place
-
  * @date   Novembre 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  ObjMaster     Reference json object
@@ -674,6 +681,10 @@ json_object *Meta_Resolve(json_object *Obj,json_object *ObjMaster) {
    char *id=NULL;
    json_object *obj=NULL,*objref=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    json_pointer_get(Obj,"/horizontal_reference",&obj);
    if (obj) {
       id=(char*)json_object_get_string(obj);
@@ -754,7 +765,6 @@ json_object *Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster) {
 
 /**----------------------------------------------------------------------------
  * @brief  Add vertical reference
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Identifier    Identifier of the vertical reference
@@ -766,6 +776,10 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (json_pointer_get(Obj,"/vertical_references",&objval)!=0) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/vertical_references");
       return(NULL);
@@ -788,7 +802,6 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,int Copy) {
 
 /**----------------------------------------------------------------------------
  * @brief  Define vertical reference
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Identifier    Identifier of the vertical reference
@@ -802,7 +815,14 @@ json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
    int32_t l;
 
-   json_pointer_get(Obj,"/vertical_level",&obj);
+   if (!Obj) {
+      return(NULL);
+   }
+
+   if (json_pointer_get(Obj,"/vertical_level",&obj)!=0) {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/vertical_level");
+      return(NULL);
+   }
 
    // Do we copy the reference or just define the Identifier
    if (Copy) {
@@ -841,6 +861,10 @@ json_object *Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifie
 
    json_object *objval=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (Identifier) {
       json_pointer_get(Obj,"/vertical_level/vertical_reference",&objval);
       *Identifier=(char*)json_object_get_string(objval);
@@ -854,7 +878,6 @@ json_object *Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifie
 
 /**----------------------------------------------------------------------------
  * @brief  Add horizontal reference
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Identifier    Identifier of the horizontal reference
@@ -866,6 +889,10 @@ json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (json_pointer_get(Obj,"/horizontal_references",&objval)!=0) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/horizontal_references");
       return(NULL);
@@ -888,7 +915,6 @@ json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
 /**----------------------------------------------------------------------------
  * @brief  Define horizontal reference
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Identifier    Identifier of the horizontal reference
@@ -900,6 +926,10 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
    json_object *obj=NULL,*objval=NULL,*objref=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    // Do we copy the reference or just define the Identifier
    if (Copy) {
       // Find the vertical reference
@@ -918,7 +948,6 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
 /**----------------------------------------------------------------------------
  * @brief  Extract horizontal reference
-
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[out]  Identifier    Identifier of the horizontal reference
@@ -929,6 +958,10 @@ json_object *Meta_GetHorizontalRef(json_object *Obj,char **Identifier) {
 
    json_object *objval=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (Identifier) {
       json_pointer_get(Obj,"/horizontal_reference",&objval);
       *Identifier=(char*)json_object_get_string(objval);
@@ -938,7 +971,6 @@ json_object *Meta_GetHorizontalRef(json_object *Obj,char **Identifier) {
 
 /**----------------------------------------------------------------------------
  * @brief  Add a single cell method
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Method        Cell method to add
@@ -951,6 +983,10 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
    json_object *objval=NULL;
    char *c;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -978,7 +1014,6 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
 
 /**----------------------------------------------------------------------------
  * @brief  Set methods from a list 
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Qualifiers    Qualifiers (NULL terminated list)
@@ -992,6 +1027,10 @@ json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
    int   nb=0;
    char *c,*method=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -1019,7 +1058,6 @@ json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
 
 /**----------------------------------------------------------------------------
  * @brief  Clear cell method list
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *
@@ -1027,6 +1065,9 @@ json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
 */
 json_object *Meta_ClearCellMethods(json_object *Obj) {
 
+   if (!Obj) {
+      return(NULL);
+   }
    json_object_object_add(Obj,"cell_methods",json_object_new_array());
   
    return(Obj);
@@ -1034,7 +1075,6 @@ json_object *Meta_ClearCellMethods(json_object *Obj) {
 
 /**----------------------------------------------------------------------------
  * @brief  Add a single data qualifier
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Qualifier     Qualifier
@@ -1045,6 +1085,10 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
 
    TMetaProfile *prof=NULL;
    json_object *objval=NULL;
+   
+   if (!Obj) {
+      return(NULL);
+   }
    
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
@@ -1067,7 +1111,6 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
 
 /**----------------------------------------------------------------------------
  * @brief  Set qualifiers from a list
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Qualifiers    Qualifiers (NULL terminated list)
@@ -1080,6 +1123,10 @@ json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers) {
    json_object *objval=NULL;
    int   nb=0;
    char *qualifier=NULL;
+
+   if (!Obj) {
+      return(NULL);
+   }
 
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
@@ -1102,7 +1149,6 @@ json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers) {
 
 /**----------------------------------------------------------------------------
  * @brief  Clear data qualifier list
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *
@@ -1110,6 +1156,10 @@ json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers) {
 */
 json_object *Meta_ClearQualifiers(json_object *Obj) {
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    json_object_object_add(Obj,"qualifiers",json_object_new_array());
   
    return(Obj);
@@ -1117,7 +1167,6 @@ json_object *Meta_ClearQualifiers(json_object *Obj) {
 
 /**----------------------------------------------------------------------------
  * @brief  Add a missing value
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Reason        Reason for/Definition of the mising value
@@ -1130,6 +1179,10 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
    TMetaProfile *prof=NULL;
    json_object *objval=NULL,*objmis=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+   
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -1153,8 +1206,7 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Add a missing value
-
+ * @brief  Get missing value
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[in]   Idx           Index of the missing value
@@ -1166,6 +1218,10 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
 json_object *Meta_GetMissingValue(json_object *Obj,int32_t Idx,char **Reason,double *Value) {
 
    json_object *objval=NULL,*objmis=NULL,*obj=NULL;
+
+   if (!Obj) {
+      return(NULL);
+   }
 
    json_pointer_get(Obj,"/missing_values",&obj);
    objmis=json_object_array_get_idx(obj,Idx);
@@ -1184,7 +1240,6 @@ json_object *Meta_GetMissingValue(json_object *Obj,int32_t Idx,char **Reason,dou
 
 /**----------------------------------------------------------------------------
  * @brief  Clear missing value list
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *
@@ -1192,6 +1247,9 @@ json_object *Meta_GetMissingValue(json_object *Obj,int32_t Idx,char **Reason,dou
 */
 json_object *Meta_ClearMissingValues(json_object *Obj) {
 
+   if (!Obj) {
+      return(NULL);
+   }
    json_object_object_add(Obj,"missing_values",json_object_new_array());
   
    return(Obj);
@@ -1199,7 +1257,6 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
 
 /**----------------------------------------------------------------------------
  * @brief  Define data specification
-
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]   NI            I dimension
@@ -1219,6 +1276,10 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
    TMetaProfile *prof=NULL;
    json_object *obj=NULL,*objval=NULL;
    int32_t i;
+
+   if (!Obj) {
+      return(NULL);
+   }
 
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
@@ -1260,7 +1321,6 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
 
 /**----------------------------------------------------------------------------
  * @brief  Extract data specification
-
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[out]  NI            I dimension
@@ -1268,15 +1328,19 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
  *    @param[out]  NK            K dimension
  *    @param[out]  Type          Data type
  *    @param[out]  Compression   Compression type
- *    @param[in]   Pack          Number of stored bits of precision (packing)
- *    @param[in]   Bits          Number of in memory bits
+ *    @param[out]   Pack          Number of stored bits of precision (packing)
+ *    @param[out]   Bits          Number of in memory bits
  *    @param[out]  Min           Minimum value
- *    @param[out]  Max           Maximum value *
+ *    @param[out]  Max           Maximum value
  *    @return                    json_object pointer (NULL if error)
 */
 json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit,double *Min,double *Max) {
 
    json_object *obj=NULL,*objval=NULL;
+
+   if (!Obj) {
+      return(NULL);
+   }
 
    json_pointer_get(Obj,"/size",&objval);
    if (NI) *NI=json_object_get_int(json_object_array_get_idx(objval,0));
@@ -1329,6 +1393,10 @@ json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,ch
 
    json_object *objval=NULL;
 
+   if (!Obj) {
+      return(NULL);
+   }
+
    if (Institution) {
       json_pointer_get(Obj,"/institution",&objval);
       json_object_set_string(objval,Institution);
@@ -1348,6 +1416,51 @@ json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,ch
    if (Description) {
       json_pointer_get(Obj,"/description",&objval);
       json_object_set_string(objval,Description);
+   }
+
+   return(Obj);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Define File level metadata
+ * @date   July 2023
+ *    @param[in]   Obj           Array json object
+ *    @param[in]   Institution   ex:CMC
+ *    @param[in]   Discipline    ex:Meteorology
+ *    @param[in]   Title         ex: G100
+ *    @param[in]   Source        ex: GDPS-5.2.0
+ *    @param[in]   Description   ex: Global system ...
+ *    @param[in]   State         ex: Experimental,Parallel,Operational, ...
+ *
+ *    @return                    object reference
+*/
+json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,char **Title,char **Source,char **Description,char **State) {
+
+   json_object *objval=NULL;
+
+   if (!Obj) {
+      return(NULL);
+   }
+
+   if (Institution) {
+      json_pointer_get(Obj,"/institution",&objval);
+      *Institution=(char*)json_object_get_string(objval);
+   }
+   if (Discipline) {
+      json_pointer_get(Obj,"/discipline",&objval);
+      *Discipline=(char*)json_object_get_string(objval);
+   }
+   if (Title) {
+      json_pointer_get(Obj,"/title",&objval);
+      *Title=(char*)json_object_get_string(objval);
+   }
+   if (Source) {
+      json_pointer_get(Obj,"/source",&objval);
+      *Source=(char*)json_object_get_string(objval);
+   }
+   if (Description) {
+      json_pointer_get(Obj,"/description",&objval);
+      *Description=(char*)json_object_get_string(objval);
    }
 
    return(Obj);
@@ -1505,6 +1618,10 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
    json_object *obj2=NULL,*objval1=NULL,*objval2=NULL;
    regex_t      re;
    int32_t      l1,l2,found,regi=FALSE;
+
+   if (!Obj1 || !Obj2) {
+      return(FALSE);
+   }
 
    json_object_object_foreach(Obj1, key, obj1) { 
       if (!(obj2=json_object_object_get(Obj2,key))) {
@@ -1759,6 +1876,10 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    char nomvar[FST_NOMVAR_LEN];
    char etiket[FST_ETIKET_LEN];
 
+   if (!Obj) {
+      return(FALSE);
+   }
+
    strncpy(typvar,Rec->typvar,FST_TYPVAR_LEN);
    strncpy(nomvar,Rec->nomvar,FST_NOMVAR_LEN);
    strncpy(etiket,Rec->etiket,FST_ETIKET_LEN);
@@ -1824,6 +1945,10 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    int32_t     i,i1,kind;
    time_t  t0;
    json_object *obj=NULL,*objval=NULL;
+
+   if (!Obj) {
+      return(FALSE);
+   }
 
    // NOMVAR
    Rec->nomvar[0]='\0';

@@ -55,7 +55,7 @@ int test_fst24_interface(const int is_rsf) {
    Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
    Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
 
-   fprintf(stderr,"JSON: %s\n",Meta_Stringify(prof_file));
+   fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field metadata
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
@@ -123,7 +123,7 @@ int test_fst24_interface(const int is_rsf) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
-      strcpy(record.nomvar, "Sun ");
+     strcpy(record.nomvar, "Sun ");
       Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus","hot");
       if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
@@ -147,7 +147,7 @@ int test_fst24_interface(const int is_rsf) {
       }
    }
 
-    // Close the new file
+   // Close the new file
    if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close new file %s\n", test_file_name);
       return -1;
@@ -175,11 +175,11 @@ int test_fst24_interface(const int is_rsf) {
       fst24_find_next(test_file, &record);
       key=fst24_read(test_file, &record);
 */
+      strcpy(record.nomvar, "TT");
       fst24_set_search_criteria(test_file, &record);
       fst24_find_next(test_file, &record);
       key=fst24_read(test_file, &record);
-      meta=Meta_Parse(record.metadata);
-      fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));    
+      fprintf(stderr,"Field JSON: %s\n",Meta_Stringify(record.metadata));    
 
       // Test find loop
       fprintf(stdout,"\nfind loop:\n");
@@ -188,14 +188,13 @@ int test_fst24_interface(const int is_rsf) {
       fst24_set_search_criteria(test_file, &search_criteria);
       while(key=fst24_find_next(test_file, &record_find)) {
          fst24_read(test_file,&record_find);
-//         fst24_read_meta(test_file,&record_find);
-         if (!(meta=Meta_Parse(record_find.metadata)))  {
+         if (!record_find.metadata)  {
             App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);
             return -1; 
          }
-         if (Meta_Match(search_meta,meta,TRUE)) {      
+         if (Meta_Match(search_meta,record_find.metadata,TRUE)) {      
             Meta_Resolve(meta,prof_file);
-            fprintf(stderr,"JSON: %i %s\n",num_found,Meta_Stringify(meta));
+            fprintf(stderr,"Matched JSON: %i %s\n",num_found,Meta_Stringify(record_find.metadata));
             num_found++;
          }
       }

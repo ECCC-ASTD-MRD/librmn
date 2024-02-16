@@ -65,6 +65,7 @@ json_object* Meta_AddMissingValue(json_object *Obj,char *Reason,double Value);
 json_object* Meta_GetMissingValue(json_object *Obj,int32_t Index,char **Reason,double *Value);
 
 json_object* Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description,char *State);
+json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,char **Title,char **Source,char **Description,char **State);
 
 #ifdef HAVE_RMN
 

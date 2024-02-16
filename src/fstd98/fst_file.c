@@ -1259,10 +1259,10 @@ int32_t fst24_read_rsf(
     fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
 
     // Extract metadata form record if present
+    record_fst->metadata=NULL;
     if (record_rsf->rec_meta > record_rsf->dir_meta) {
-        record_fst->metadata=(char*)malloc((record_rsf->rec_meta-record_rsf->dir_meta)*sizeof(uint32_t));
-        memcpy(record_fst->metadata,(char*)((stdf_dir_keys*)record_rsf->meta+1),(record_rsf->rec_meta-record_rsf->dir_meta)*sizeof(uint32_t)); // Right after directory metadata
-        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,record_fst->metadata,record_fst->handle);
+        record_fst->metadata=Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,(char*)((stdf_dir_keys*)record_rsf->meta+1),record_fst->handle);
     }
     // fst24_record_print(record_fst)
 

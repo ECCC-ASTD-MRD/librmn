@@ -1354,13 +1354,14 @@ int64_t RSF_Put_bytes(
     dir_meta = record->dir_meta ;                  // should never be 0
     rec_meta = record->rec_meta ;                  // should never be 0
   }
+
   if(rec_meta == 0) rec_meta = fp->rec_meta ;      // get default metadata length from file structure
   if(rec_meta < fp->rec_meta) goto ERROR ;         // metadata too small, must be at least fp->rec_meta
   if(dir_meta == 0) dir_meta = rec_meta ;          // default size of directory metadata (record metadata size)
   if(dir_meta > rec_meta) dir_meta = rec_meta ;    // directory metadata size vannot be larger than record metadata size
 
   record_size = RSF_Record_size(rec_meta, data_bytes) ;
-  //   fprintf(stderr,"RSF_Put_bytes DEBUG : data_bytes = %ld, record_size = %ld %lx\n", data_bytes, record_size, record_size) ;
+  // fprintf(stderr,"RSF_Put_bytes DEBUG : data_bytes = %ld, record_size = %ld %lx\n", data_bytes, record_size, record_size) ;
   // write record if enough room left in segment (always O.K. if compact segment)
   if(fp->seg_max > 0){                                                 // write into a sparse segment
     available = RSF_Available_space(h) ;           // available space in sparse segment according to current conditions

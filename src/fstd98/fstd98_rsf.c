@@ -115,7 +115,7 @@ int c_fstecr_rsf(
     int in_datyp = in_datyp_ori & ~FSTD_MISSING_FLAG;
     if ( (in_datyp & 0xF) == 8) {
         if (in_datyp_ori != 8) {
-           Lib_Log(APP_LIBFST, APP_WARNING, "%s: compression and/or missing values not supported, "
+           Lib_Log(APP_LIBFST, APP_WARNING, "%s: Compression and/or missing values not supported, "
                    "data type %d reset to %d (complex)\n", __func__, in_datyp_ori, 8);
         }
         /* missing values not supported for complex type */
@@ -138,19 +138,19 @@ int c_fstecr_rsf(
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
     if (file_handle.p == NULL) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File (unit=%d) is not open\n", __func__, iun);
         return ERR_NO_FILE;
     }
 
     // file_table_entry * fte = file_table[index];
 
     if (! FGFDT[index_fnom].attr.std) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File (unit=%d) is not a RPN standard file\n", __func__, iun);
         return ERR_NO_FILE;
     }
 
     if ((RSF_Get_mode(file_handle) & RSF_RO) == RSF_RO) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) not open with write permission\n", __func__, iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File (unit=%d) not open with write permission\n", __func__, iun);
         return ERR_NO_WRITE;
     }
 
@@ -164,7 +164,7 @@ int c_fstecr_rsf(
     int minus_nbits = -nbits;
 
     if ( (in_datyp_ori == 133) && (nbits > 32) ) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extra compression not supported for IEEE when nbits > 32, "
                 "data type 133 reset to 5 (IEEE)\n", __func__);
         /* extra compression not supported */
         in_datyp = 5;
@@ -423,7 +423,7 @@ int c_fstecr_rsf(
             field = (uint32_t *)alloca(ni * nj * nk * stdf_entry->dasiz/8);
             if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, stdf_entry->dasiz, nbits) ) {
                 field = field_in;
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__,stdf_entry->datyp,datyp);
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: No missing value, data type %d reset to %d\n", __func__,stdf_entry->datyp,datyp);
                 /* cancel missing data flag in data type */
                 stdf_entry->datyp = datyp;
                 is_missing = 0;
@@ -435,7 +435,7 @@ int c_fstecr_rsf(
             case 0: case 128: {
                 /* transparent mode */
                 if (datyp == 128) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extra compression not available, data type %d reset to %d\n",
                             __func__, stdf_entry->datyp, 0);
                     datyp = 0;
                     stdf_entry->datyp = 0;
@@ -530,7 +530,7 @@ int c_fstecr_rsf(
                     int nc = (ni * nj + 3) / 4;
                     if (datyp == 131) {
                         Lib_Log(
-                            APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
+                            APP_LIBFST, APP_WARNING, "%s: Extra compression not available, data type %d reset to %d\n",
                             __func__, stdf_entry->datyp, 3);
                         datyp = 3;
                         stdf_entry->datyp = 3;
@@ -543,7 +543,7 @@ int c_fstecr_rsf(
             case 4: case 132:
                 /* signed integer */
                 if (datyp == 132) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported, data type %d reset to %d\n",
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extra compression not supported, data type %d reset to %d\n",
                             __func__, stdf_entry->datyp, is_missing | 4);
                     datyp = 4;
                 }
@@ -580,7 +580,7 @@ int c_fstecr_rsf(
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
                     if (datyp == 136) {
                         Lib_Log(
-                            APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
+                            APP_LIBFST, APP_WARNING, "%s: Extra compression not available, data type %d reset to %d\n",
                             __func__, stdf_entry->datyp, 8);
                         datyp = 8;
                         stdf_entry->datyp = 8;
@@ -635,7 +635,7 @@ int c_fstecr_rsf(
             case 7: case 135:
                 /* character string */
                 if (datyp == 135) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extra compression not available, data type %d reset to %d\n",
                             __func__, stdf_entry->datyp, 7);
                     datyp = 7;
                     stdf_entry->datyp = 7;
@@ -651,14 +651,18 @@ int c_fstecr_rsf(
 
     /* write record to file and add entry to directory */
     const int64_t record_handle = RSF_Put_record(file_handle, record, num_data_bytes);
-    if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
-        print_std_parms(stdf_entry, "Write", prnt_options, -1);
+    if (!record_handle) {
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Error writing record\n", __func__);
+    } else { 
+       if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
+           print_std_parms(stdf_entry, "Write", prnt_options, -1);
+       }
     }
 
     xdf_double = 0;
     xdf_short = 0;
     xdf_byte = 0;
-    return record_handle >= 0 ? 0 : -1;
+    return record_handle > 0 ? 0 : -1;
 }
 
 //! \copydoc c_fstnbr

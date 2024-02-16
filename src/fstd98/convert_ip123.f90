@@ -392,13 +392,8 @@ function decode_ip_0(RP1,RP2,RP3,IP1V,IP2V,IP3V) result(status) BIND (C,name='De
 
   if(IP3 < 32768) then                          ! IP3 is old style,
     RP3%lo = IP3 ; RP3%hi = IP3
-    if(IP3 <= 240) then                         ! time in hours ?
-      RP3%kind = 10 
-      status = ior(status,CONVERT_BAD_GUESS)      ! unreliable guess
-    else                                        ! arbitraty value ?
-      RP3%kind = 3
-      status = ior(status,CONVERT_TERRIBLE_GUESS)  ! highly unreliable guess
-    endif
+    RP3%kind = 3
+    status = ior(status,CONVERT_TERRIBLE_GUESS)  ! highly unreliable guess
   else
     call convip_plus(IP3,P(3),kind(3),-1,dummy,.false.)  ! kind of ip3 may be anything new style
     if(kind(3)==-1) goto 777
@@ -615,14 +610,8 @@ implicit none
     endif
   endif
   if(IP3 < 32768) then                          ! IP3 is old style,
-    RP3 = IP3
-    if(IP3 <= 240) then                         ! time in hours ?
-      kind3 = 10 
-      status = ior(status,CONVERT_BAD_GUESS)    ! unreliable guess
-    else                                        ! arbitraty value ?
-      kind3 = 3
-      status = ior(status,CONVERT_TERRIBLE_GUESS) ! highly unreliable guess
-    endif
+    kind3 = 3
+    status = ior(status,CONVERT_TERRIBLE_GUESS) ! highly unreliable guess
   else
     call convip_plus(IP3,RP3,kind3,-1,dummy,.false.)
     if(is_invalid_kind(kind3)) goto 777  ! bad kind
