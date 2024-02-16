@@ -36,8 +36,6 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-   if (Meta_Init() != 1) return -1;
-
    // Load metadata template
    prof_fld=Meta_New(META_TYPE_FIELD,NULL);
    prof_file=Meta_New(META_TYPE_FILE,NULL);

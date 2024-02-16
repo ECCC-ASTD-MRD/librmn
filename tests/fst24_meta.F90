@@ -7,7 +7,6 @@ program test_meta_fortran
     type(C_PTR) obj
     real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
     integer(kind=INT32) :: ok
-    call Meta_Init()
  
 !   Load metadata template
     ok=meta_fld%new(META_TYPE_FIELD,C_NULL_CHAR)

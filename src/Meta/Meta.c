@@ -115,6 +115,11 @@ static inline TMetaProfile *Meta_GetProfile(char *Version) {
    int          m;
    char        *version=NULL;
 
+   // Do package initialisation if not done yet
+   if (!MetaVersion) {
+      Meta_Init();
+   }
+   
    version=Version&&Version[0]!='\0'?Version:MetaVersion;
 
    // Look for profile version
