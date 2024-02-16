@@ -121,6 +121,11 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
 
     free(new_file);
 
+    if (!fst24_is_valid(name)) {
+        App_Log(APP_ERROR, "Newly created file \"%s\" is not valid\n", name);
+        return -1;
+    }
+
     return 0;
 }
 

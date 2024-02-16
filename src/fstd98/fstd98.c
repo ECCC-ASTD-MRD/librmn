@@ -3406,8 +3406,8 @@ int c_fstcheck(
 ) {
     const int32_t type = c_wkoffit(filePath, strlen(filePath));
     if (type == WKF_STDRSF) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Not implemented for RSF files\n", __func__);
-        return 0;
+        if (RSF_Basic_check(filePath)) return 0;
+        return 1;
     }
     else {
         return c_fstcheck_xdf(filePath);

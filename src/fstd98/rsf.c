@@ -16,8 +16,6 @@
  */
 #include "fstd98/rsf_internal.h"
 
-#include <App.h>
-
 static int32_t verbose = RSF_DIAG_WARN ;
 static char *diag_text[RSF_DIAG_DEBUG2+1] ;
 static int diag_init = 1 ;
@@ -474,7 +472,7 @@ static int64_t RSF_Scan_vdir(
   if( key0 < -1 ) key0 = 0 ;                // first record position for this file
   index = key0 & 0x7FFFFFFF ;               // starting ordinal for search (one more than what key0 points to)
   if(index >= fp->vdir_used) {
-    Lib_Log(APP_LIBFST, APP_INFO, "%s: key = %16.16lx, beyond last record\n", __func__, key0);
+    Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: key = %16.16lx, beyond last record\n", __func__, key0);
     return badkey;
   }
 
@@ -561,23 +559,23 @@ MATCH:
   return key ;                          // return key value containing file "slot" and record index
 }
 
-// read file directory (all segments) into memory directory
-// fp  pointer to file control struct
-// return number of records found in segment directories (-1 upon error)
-// this function reads both FIXED and VARIABLE metadata directories
-static int32_t RSF_Read_directory(RSF_File *fp){
+//! read file directory (all segments) into memory directory
+//! this function reads both FIXED and VARIABLE metadata directories
+//! \return number of records found in segment directories (-1 upon error)
+static int32_t RSF_Read_directory(
+    RSF_File *fp //!< pointer to file control struct
+){
   int32_t entries = 0 ;
-  int32_t l_entries, directories ;
-  int32_t segments = 0 ;
-  uint64_t size_seg, vdir_off, vdir_size, sos_seg ;
+  int32_t l_entries, num_directories ;
+  int32_t num_segments = 0 ;
+  uint64_t sos_seg ;
   uint64_t wa, rl ;
   start_of_segment sos ;
-  off_t off_seg ;
+  off_t segment_offset ;
   ssize_t nc ;
   disk_vdir *vdir = NULL ;
   vdir_entry *ventry ;
   char *e ;
-  int i, ml ;
   uint32_t *meta ;
   char *errmsg = "" ;
 
@@ -585,25 +583,24 @@ static int32_t RSF_Read_directory(RSF_File *fp){
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: directory ALREADY READ %d entries\n", __func__, fp->dir_read);
     return fp->dir_read ;
   }
-// fprintf(stderr,"read directory, file '%s', slot = %d\n",fp->name, RSF_Valid_file(fp)) ;
-// the check that follows is not really necessary
-//   if( ! (slot = RSF_Valid_file(fp)) ) return -1 ;           // something not O.K. with fp
-  off_seg = 0 ;                                             // first segment at beginning of file
 
-  directories = 0 ;
+  segment_offset = 0 ;                                             // first segment at beginning of file
+  num_directories = 0 ;
   while(1){                                                 // loop over segments
-    lseek(fp->fd, off_seg , SEEK_SET) ;                     // start of segment
+    lseek(fp->fd, segment_offset , SEEK_SET) ;              // go to start of segment
 
     nc = read(fp->fd, &sos, sizeof(start_of_segment)) ;     // try to read start of segment record
     if(nc < sizeof(start_of_segment)) break ;               // end of file reached, done
-    segments++ ;                                            // bump segment count
+    num_segments++ ;                                        // bump segment count
 
-    errmsg = "invalid start of record" ;
-    if( RSF_Rl_sor(sos.head, RT_SOS) == 0) goto ERROR ;     // invalid SOS record (wrong record type)
+    if (RSF_Rl_sor(sos.head, RT_SOS) == 0) {
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid start of segment, %d entries, %d segments\n", __func__, errmsg, entries, num_segments);
+      return -1;
+    }
 
-    size_seg = RSF_32_to_64(sos.sseg) ;                     // segment size
+    const uint64_t segment_size = RSF_32_to_64(sos.sseg) ;
     sos_seg  = RSF_32_to_64(sos.seg) ;                      // would be 0 for a sparse segment
-    if(size_seg == 0) break ;                               // open, compact segment, this is the last segment
+    if(segment_size == 0) break ;                               // open, compact segment, this is the last segment
     // remember free space in non open sparse segments
     if(sos_seg == 0 && sos.head.rlm == 0) {                 // ONLY process sparse segments NOT currently open for write
       if(fp->sparse_segs == NULL){                          // sparse segments table not allocated yet
@@ -612,50 +609,48 @@ static int32_t RSF_Read_directory(RSF_File *fp){
         fp->sparse_table_size = 1024 ;
         fp->sparse_table_used = 0 ;
       }
-      fp->sparse_segs[fp->sparse_table_used].base = off_seg ;
-      fp->sparse_segs[fp->sparse_table_used].size = size_seg - sizeof(start_of_segment) ;
+      fp->sparse_segs[fp->sparse_table_used].base = segment_offset ;
+      fp->sparse_segs[fp->sparse_table_used].size = segment_size - sizeof(start_of_segment) ;
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: segment %d sparse at %12.12lx, space available = %ld, rlm = %d\n", 
-              __func__, segments-1, fp->sparse_segs[fp->sparse_table_used].base,
+              __func__, num_segments-1, fp->sparse_segs[fp->sparse_table_used].base,
               fp->sparse_segs[fp->sparse_table_used].size, sos.head.rlm) ;
       if(fp->sparse_table_used < fp->sparse_table_size-1)
         fp->sparse_table_used++ ;  // do not overflow table
     }
-    vdir_off  = RSF_32_to_64(sos.vdir) ;                    // offset of vdir in segment
-    vdir_size = RSF_32_to_64(sos.vdirs) ;                   // vdir size from start of segment
+    const uint64_t vdir_offset  = RSF_32_to_64(sos.vdir) ;  // offset of vdir within segment
+    const uint64_t vdir_size    = RSF_32_to_64(sos.vdirs) ; // vdir size from start of record
 
-    if(vdir_size > 0 && vdir_off > 0) {                     // non empty VARIABLE metadata segment
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: segment %d (size %ld) dir offset: %ld (size %ld)\n",
+            __func__, num_segments - 1, segment_size, vdir_offset, vdir_size);
+
+    if(vdir_size > 0 && vdir_offset > 0) {                     // non empty VARIABLE metadata segment
       l_entries = 0 ;
-      directories++ ;
+      num_directories++ ;
       vdir = (disk_vdir *) malloc(vdir_size) ;              // allocate space to read segment directory
-      lseek(fp->fd, off_seg + vdir_off, SEEK_SET) ;
+      lseek(fp->fd, segment_offset + vdir_offset, SEEK_SET) ;
       nc = read(fp->fd, vdir, vdir_size) ;                  // read segment directory
       e = (char *) &(vdir->entry[0]) ;
-      for(i=0 ; i < vdir->entries ; i++){
+      for(int i = 0 ; i < vdir->entries ; i++){
         l_entries++ ;
         entries++ ;
         ventry = (vdir_entry *) e ;
-        wa = RSF_32_to_64(ventry->wa) + off_seg ;
+        wa = RSF_32_to_64(ventry->wa) + segment_offset ;
         rl = RSF_32_to_64(ventry->rl) ;
         meta = &(ventry->meta[0]) ;
         RSF_Add_vdir_entry(fp, meta, ventry->ml, wa, rl, ventry->dul) ;    // add entry into in memory directory
-        ml = DIR_ML(ventry->ml) ;
-        e = e + sizeof(vdir_entry) + ml * sizeof(uint32_t) ;
+        const int meta_length = DIR_ML(ventry->ml) ;
+        e = e + sizeof(vdir_entry) + meta_length * sizeof(uint32_t) ;
       }
       if(vdir) free(vdir) ;                                 // free memory used to read segment directory from file
       vdir = NULL ;                                         // to avoid a potential double free
-      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: found %d entries in segment %d\n", __func__, l_entries, segments-1) ;
+      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: found %d entries in segment %d\n", __func__, l_entries, num_segments-1) ;
     }
-    off_seg += size_seg ;                                   // offset of the start of the next segment
+    segment_offset += segment_size ;                        // offset of the start of the next segment
   }  // while(1) loop over segments
-  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: directory entries = %d, segments = %d, directories = %d \n",
-          __func__, entries, segments, directories) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: directory entries = %d, num_segments = %d, num_directories = %d \n",
+          __func__, entries, num_segments, num_directories) ;
   fp->dir_read = entries ;
   return entries ;                                          // return number of records found in segment directories
-
-ERROR:
-  Lib_Log(APP_LIBFST, APP_ERROR, "%s: %s, %d entries, %d segments\n", __func__, errmsg, entries, segments);
-//   if(ddir != NULL) free(ddir) ;
-  return -1 ;  
 }
 
 //! Compute the size of the (combined) in-memory directory record. This is the sum of what is
@@ -710,7 +705,7 @@ static int64_t RSF_Write_vdir(RSF_File *fp){
   RSF_64_to_32(eorp->rl, dir_rec_size) ;             // record length
   eorp->zr = ZR_EOR ;                                // EOR marker
 
-  e = (uint8_t *) &(vdir->entry[0]) ;                  // start of directory metadata portion
+  e = (uint8_t *) &(vdir->entry[0]) ;                // start of directory metadata portion
 
   // do not start at entry # 0, but entry # fp->dir_read (only write entries from "active" segment)
   // when "fusing" segments, fp->dir_read will be reset to 0
@@ -1996,7 +1991,7 @@ static int RSF_Lock_for_write(
 
   if (num_bytes_read == 0) { // File does not exist yet
     // Create an empty first segment
-    Lib_Log(APP_LIBFST, APP_INFO, "%s: Creating a new, empty segment\n", __func__);
+    Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Creating a new, empty segment\n", __func__);
 
     for (int i = 0; i < 4; i++) { // Set application code
       first_sos.sig1[4+i] = fp->appl_code[i];
@@ -2167,6 +2162,68 @@ RETURN :
   return status ;
 }
 
+//! Check that the beginning of the file makes sense for an RSF
+//! \return 1 if it makes sense, 0 if not
+int32_t RSF_Basic_check(const char* filename) {
+
+  int32_t result = 0;
+  int32_t fd = open(filename, O_RDONLY);
+
+  if (fd == -1) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to open file %s\n", __func__, filename);
+    return 0;
+  }
+
+  size_t segment_offset = 0;
+
+  int num_segments = 0;
+  // Check all segments one by one
+  while (1) {
+    start_of_segment sos;
+    lseek(fd, segment_offset, SEEK_SET);
+    size_t num_bytes_read = read(fd, &sos, sizeof(start_of_segment));
+    if (num_bytes_read < sizeof(start_of_segment)) {
+      // Only a problem if it's the first segment
+      if (num_segments == 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read start of first segment of file %s\n", __func__, filename);
+        goto END;
+      }
+      break;
+    }
+
+    // Validate start-of-segment record
+    if (RSF_Rl_sor(sos.head, RT_SOS) == 0 || RSF_Rl_eor(sos.tail, RT_SOS) == 0 ||
+        RSF_Rl_sos(sos) == 0) {
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid start of segment for file %s\n", __func__, filename);
+      goto END;
+    }
+
+    // Check start of directory (if there is one)
+    const uint64_t vdir_offset = RSF_32_to_64(sos.vdir);
+    const uint64_t vdir_size   = RSF_32_to_64(sos.vdirs);
+    if (vdir_size > 0) {
+      disk_vdir vdir;
+      lseek(fd, segment_offset + vdir_offset, SEEK_SET);
+      num_bytes_read = read(fd, &vdir, sizeof(disk_vdir));
+      if (num_bytes_read != sizeof(disk_vdir) || RSF_Rl_sor(vdir.sor, RT_VDIR) == 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid start of directory for file %s\n", __func__, filename);
+        goto END;
+      }
+    }
+
+    const uint64_t segment_size = RSF_32_to_64(sos.sseg) ;
+    segment_offset += segment_size;
+    num_segments++;
+  }
+
+  result = 1;
+
+END:
+  close(fd) ;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %d segments in file\n", __func__, num_segments);
+  return result;
+}
+
 //! Open a file (file segment)
 //!
 //! Even if a file is open in write mode, its previous contents (but no new records) will remain available
@@ -2194,6 +2251,8 @@ RSF_handle RSF_Open_file(
     //!>    Segment N to open is *segsizep & 0xFF
     int64_t *segsizep
 ) {
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening file %s\n", __func__, fname);
+
   RSF_File *fp = (RSF_File *) malloc(sizeof(RSF_File)) ;   // allocate a new RSF_File structure
   RSF_handle handle ;
   char *errmsg = "" ;
@@ -2286,6 +2345,7 @@ RSF_handle RSF_Open_file(
   fp->seg_max = 0 ;
   if (segsizep) *segsizep = segsize ;
 
+  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) print_start_of_segment(&fp->sos0);
   // fprintf(stderr,"RSF_Open_file: 4, fp = %p\n", fp);
   // fprintf(stderr,"after open %ld, next write = %ld\n", lseek(fp->fd, 0L , SEEK_CUR), fp->next_write);
   handle.p = fp ;
@@ -2648,7 +2708,7 @@ RESET_WRITE_FLAG:
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %d\n", __func__, fp->sos0.head.rlm);
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = write(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;  // rewrite start of segment 0
-  // print_start_of_segment(&fp->sos0);
+  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) print_start_of_segment(&fp->sos0);
   usleep(10000) ;
   RSF_File_lock(fp, 0) ;
   // --------- Unlock file --------- //
@@ -2957,17 +3017,17 @@ int32_t RSF_File_slot(RSF_handle h) {
 }
 
 void print_start_of_record(start_of_record* sor) {
-  Lib_Log(APP_LIBFST, APP_DEBUG,
+  Lib_Log(APP_LIBFST, APP_ALWAYS,
           "type %s, rec meta length %d, zr %x, length %d, dir meta length %d, unused bits %d, elem length %d\n",
           rt_to_str(sor->rt), sor->rlm, sor->zr, RSF_32_to_64(sor->rl), sor->rlmd, sor->ubc, sor->dul);
 }
 
 void print_start_of_segment(start_of_segment* sos) {
-  Lib_Log(APP_LIBFST, APP_DEBUG, "head: "); print_start_of_record(&sos->head);
+  Lib_Log(APP_LIBFST, APP_ALWAYS, "head: "); print_start_of_record(&sos->head);
   unsigned char marker[9];
   strncpy(marker, sos->sig1, 8);
   marker[8] = '\0';
-  Lib_Log(APP_LIBFST, APP_DEBUG,
+  Lib_Log(APP_LIBFST, APP_ALWAYS,
          "sig1 %s, sign %x, size (exc) %lu, size (inc) %lu, dir record offset %lu, dir record size %lu\n",
          marker, sos->sign, RSF_32_to_64(sos->seg), RSF_32_to_64(sos->sseg), RSF_32_to_64(sos->vdir),
          RSF_32_to_64(sos->vdirs));

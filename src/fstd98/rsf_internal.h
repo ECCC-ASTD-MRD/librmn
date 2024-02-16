@@ -17,6 +17,7 @@
 
 #include "rmn/rsf.h"
 
+#include <App.h>
 #include "fstd98/qstdir.h"
 
 int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size) ;
@@ -183,6 +184,21 @@ static inline void RSF_64_to_32(uint32_t u32[2], uint64_t u64){
   u32[1] = (u64 & 0xFFFFFFFFu) ;
 }
 
+static inline const char* rt_to_str(const int record_type) {
+  switch (record_type) {
+    case RT_NULL:   return "RT_NULL";
+    case RT_DATA:   return "RT_DATA";
+    case RT_XDAT:   return "RT_XDAT";
+    case RT_SOS:    return "RT_SOS";
+    case RT_EOS:    return "RT_EOS";
+    case RT_VDIR:   return "RT_VDIR";
+    case RT_FILE:   return "RT_FILE";
+    case RT_CUSTOM: return "RT_CUSTOM";
+    case RT_DEL:    return "RT_DEL";
+    default:        return "<unknown>";
+  }
+}
+
 //! Record header. Describes the type and size of a record and is located at the start of it.
 typedef struct {
   uint32_t rt:8  ,  //!< Record type
@@ -204,11 +220,13 @@ static inline uint64_t RSF_Rl_sor(
 ) {
   uint64_t rl ;
   if(sor.zr != ZR_SOR ) {
-    fprintf(stderr,"invalid sor, bad ZR marker, expected %4.4x, got %4.4x\n", ZR_SOR, sor.zr);
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: Invalid start-of-record, bad record_start marker, expected %4.4x, got %4.4x\n",
+            __func__, ZR_SOR, sor.zr);
     return 0 ;               // invalid sor, bad ZR marker
   }
   if(sor.rt != rt && rt != 0 ) {
-    fprintf(stderr,"invalid sor, bad RT, expected %d, got %d\n", rt, sor.rt) ;
+    Lib_Log(APP_LIBFST, APP_INFO,"%s: Invalid start-of-record, bad record types, expected %s, got %s\n",
+            __func__, rt_to_str(rt), rt_to_str(sor.rt)) ;
     return 0 ;        // invalid sor, not expected RT
   }
   rl = RSF_32_to_64(sor.rl) ;                    // record length
@@ -527,21 +545,6 @@ static inline uint64_t RSF_Record_size(uint32_t rec_meta, size_t data_size){
   return record_size ;
 }
 
-static inline const char* rt_to_str(const int record_type) {
-  switch (record_type) {
-    case RT_NULL:   return "RT_NULL";
-    case RT_DATA:   return "RT_DATA";
-    case RT_XDAT:   return "RT_XDAT";
-    case RT_SOS:    return "RT_SOS";
-    case RT_EOS:    return "RT_EOS";
-    case RT_VDIR:   return "RT_VDIR";
-    case RT_FILE:   return "RT_FILE";
-    case RT_CUSTOM: return "RT_CUSTOM";
-    case RT_DEL:    return "RT_DEL";
-    default:        return "<unknown>";
-  }
-}
-
 static inline const char* open_mode_to_str(const int mode) {
   switch (mode) {
     case RSF_RO:   return "RSF_RO";
@@ -556,3 +559,4 @@ static inline const char* open_mode_to_str(const int mode) {
 static int32_t RSF_File_lock(RSF_File *fp, int lock);
 static int32_t RSF_Ensure_new_segment(RSF_File *fp);
 void print_start_of_segment(start_of_segment* sos);
+void print_start_of_record(start_of_record* sor);
