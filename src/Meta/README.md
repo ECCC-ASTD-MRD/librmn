@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
    Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
    Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
    Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
-
+   
    fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
 
    // Define field level metadata

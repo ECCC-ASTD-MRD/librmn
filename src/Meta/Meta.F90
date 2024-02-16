@@ -77,6 +77,14 @@ interface
       character(C_CHAR), dimension(*), intent(in) :: institution,discipline,title,source,description,state        
    end FUNCTION
 
+!  int Meta_WriteFile(fst_file *file,json_object *Obj) ;
+   integer(C_INT32_T) FUNCTION meta_writefile(file,obj) BIND(C, name="Meta_WriteFile")
+      import :: C_PTR, C_INT32_T
+
+      type(C_PTR), intent(in), value  :: file,obj
+   end FUNCTION
+
+
 !  json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,const char* Unit);
    type(C_PTR) FUNCTION meta_defvar(obj,standardname,rpnname,longname,description,unit) BIND(C, name="Meta_DefVar")
       import :: C_PTR, C_CHAR
@@ -302,6 +310,7 @@ end interface
       procedure, pass :: clearcellmethods => tmeta_clearcellmethods
       procedure, pass :: stringify => tmeta_stringify
       procedure, pass :: deffile => tmeta_deffile
+      procedure, pass :: writefile => tmeta_writefile
       procedure, pass :: defvar => tmeta_defvar
       procedure, pass :: defvarfromdict => tmeta_defvarfromdict
       procedure, pass :: defforecasttime => tmeta_defforecasttime
@@ -478,6 +487,14 @@ contains
       character(len=*) :: institution,discipline,title,source,description,state
 
       status = meta_deffile(this%json_obj,institution//C_NULL_CHAR,discipline//C_NULL_CHAR,title//C_NULL_CHAR,source//C_NULL_CHAR,description//C_NULL_CHAR,state//C_NULL_CHAR)
+   end FUNCTION
+
+   FUNCTION tmeta_writefile(this,file) result(status)
+      class(meta), intent(inout) :: this
+      integer(kind=INT32) :: status
+      type(C_PTR), intent(in), value :: file
+
+      status = meta_writefile(this%json_obj,file)
    end FUNCTION
 
    FUNCTION tmeta_defvar(this,standardname,rpnname,longname,description,unit) result(status)
