@@ -72,9 +72,10 @@ int test_fst24_interface(const int is_rsf) {
 //   Meta_AddQualifier(prof_fld,"tag:ETKGG22");
    Meta_AddMissingValue(prof_fld,"out_of_domain",-999);
 
-    // Write a record
+    // Write records
    {
 
+      // Write file level metadata
       if (!Meta_WriteFile(test_file,prof_file)) {
          return(-1);
       }
@@ -149,6 +150,7 @@ int test_fst24_interface(const int is_rsf) {
       fst_record record_find = default_fst_record;
       fst_record record = default_fst_record;
 
+      // Read file level metadata
       if (Meta_ReadFile(test_file,&meta)) {
          fprintf(stderr,"File JSON: %s\n",Meta_Stringify(meta));    
       } else {
@@ -156,6 +158,7 @@ int test_fst24_interface(const int is_rsf) {
          return -1;    
       }
 
+      // Test search on all keys
       search_extra.ig1=68839;
       search_extra.ni=1024;
       search_extra.grtyp[0]='Z';
@@ -170,7 +173,7 @@ int test_fst24_interface(const int is_rsf) {
          return -1;    
       }
 
-      // Test find loop
+      // Test find on extended metadata
       fprintf(stdout,"\nfind loop:\n");
       int num_found = 0;
       strcpy(search_criteria.typvar, "P");

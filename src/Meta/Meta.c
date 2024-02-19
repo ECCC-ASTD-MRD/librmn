@@ -35,7 +35,8 @@ static TMetaProfile MetaProfiles[64];
 static int MetaProfileNb;
 
 static char *MetaVersion=NULL;       ///< Metadata version
-static char  MetaValidate=TRUE;      ///< Enable token validation
+static char  MetaValidate=FALSE;     ///< Enable token validation
+static char  MetaRegExp=FALSE;       ///< Force regexp matching in json metadata comparisons
 static char *MetaPaths[2];           ///< Profile definition path
 
 static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","month","year","decade","centenary","millenia" };
@@ -151,10 +152,17 @@ int32_t Meta_Init(){
 
    MetaProfileNb=0;
    MetaValidate=FALSE;
+   MetaRegExp=FALSE;
 
    // Check the log parameters in the environment 
    if ((c=getenv("META_VALIDATE"))) {
       MetaValidate=TRUE;
+   }
+   // Check the log parameters in the environment 
+   if ((c=getenv("META_MATCH"))) {
+      if (strncmp(c,"REGEXP",6)==0) {
+         MetaRegExp=TRUE;
+      }
    }
 
    // Ger metadata definitions path
@@ -1628,6 +1636,11 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
       return(FALSE);
    }
 
+   // Do package initialisation if not done yet
+   if (!MetaVersion) {
+      Meta_Init();
+   }
+
    json_object_object_foreach(Obj1, key, obj1) { 
       if (!(obj2=json_object_object_get(Obj2,key))) {
          return(FALSE);
@@ -1652,7 +1665,7 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
 
             if (str1 && str2) {
                if (strcmp(str1,str2)!=0)  {
-                  if (RegExp) {
+                  if (MetaRegExp || RegExp) {
                      if (regcomp(&re,str1,REG_EXTENDED|REG_NOSUB|REG_ICASE)!=0)  {
                         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid comparison token: %s\n",__func__,str1);
                         return(FALSE);
