@@ -180,7 +180,7 @@ int test_fst24_interface(const int is_rsf) {
 //         fst24_read_metadata(&record_find);
       
          if (!record_find.metadata)  {
-            App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);
+            App_Log(APP_ERROR, "Metadata not found in file %s\n", test_file_name);
             return -1; 
          }
          if (TRUE || Meta_Match(search_meta,record_find.metadata,FALSE)) {

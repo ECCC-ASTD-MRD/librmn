@@ -923,8 +923,9 @@ int32_t fst24_find_next(
         return FALSE;
     } 
 
-    int64_t key = -1;
-    void *meta = NULL;
+    int64_t key  = -1;
+    int     rkey = 0;
+    void   *meta = NULL;
 
     // Depending on backend
     if (file->type == FST_RSF) {
@@ -937,7 +938,7 @@ int32_t fst24_find_next(
             }
             // If metadata search is specified, look for a match or carry on looking
             if (fstd_open_files[file->file_index].search_meta) {
-                fst24_get_record_from_key(file, key, result); 
+                rkey=fst24_get_record_from_key(file, key, result); 
                 if (fst24_read_metadata(result) && Meta_Match(fstd_open_files[file->file_index].search_meta,result->metadata,FALSE)) {
                      break;
                 } else {
@@ -974,9 +975,8 @@ int32_t fst24_find_next(
     if (key >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, file->iun, key, file);
-
         // If search included extended metadata, the key will already be extracted
-        if (!result->file) {
+        if (!rkey) {
            return fst24_get_record_from_key(file, key, result);
         } else {
             return(TRUE);
