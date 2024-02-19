@@ -3,7 +3,7 @@
 2. [Grammar](#grammar)
    1. [Field](#field-level-metadata-and-fst98-rpn-correspondance)
    2. [File](#file-level)
-3. [Enviroment variables](#environment_variables)
+3. [Environment variables](#environment_variables)
 4. [Code Example](#code_example)
    1. [C](#c)
    2. [Fortran](#fortran)
@@ -121,8 +121,8 @@
 ```
 
 # Environment variables
-- CMCCONST      : Use to find location of standard metadata templates and definitions (```${CMCCONST}/json/${META_VERSION}```)
-- META_PROFPATH : Use to find location of user defined metadata templates ans definitions (```${META_PROFPATH}/json/${META_VERSION}```)
+- CMCCONST      : Location of standard metadata templates and definitions (```${CMCCONST}/json/${META_VERSION}```)
+- META_PROFPATH : Location of user defined metadata templates and definitions (```${META_PROFPATH}/json/${META_VERSION}```)
 - META_VERSION  : Version of metadata to be used (Default: latest)
 - META_VALIDATE : Enable validation of json values (Default: FALSE)
 

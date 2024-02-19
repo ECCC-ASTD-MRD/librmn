@@ -41,9 +41,10 @@ int test_fst24_interface(const int is_rsf) {
    prof_file=Meta_New(META_TYPE_FILE,NULL);
 
    search_meta=Meta_NewObject();
-   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
-//   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
+//   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
+   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
 //   search_meta=Meta_Parse("{ \"rpn_name\" : \"TT\" }");
+   fprintf(stderr,"Search JSON: %s\n",Meta_Stringify(search_meta));
 
    fprintf(stderr,"Valid json:   %i\n", Meta_Is(prof_fld));
    fprintf(stderr,"Invalid json: %i\n", Meta_Is((json_object*)test_file));
@@ -147,33 +148,42 @@ int test_fst24_interface(const int is_rsf) {
       fst_record search_extra = default_fst_record;
       fst_record record_find = default_fst_record;
       fst_record record = default_fst_record;
-/*
+
+      if (Meta_ReadFile(test_file,&meta)) {
+         fprintf(stderr,"File JSON: %s\n",Meta_Stringify(meta));    
+      } else {
+         App_Log(APP_ERROR, "Failed reading file metadata\n");
+         return -1;    
+      }
+
       search_extra.ig1=68839;
       search_extra.ni=1024;
       search_extra.grtyp[0]='Z';
       fst24_set_search_criteria(test_file, &search_extra);
-      fst24_find_next(test_file, &record);
-      key=fst24_read(&record);
-*/
-      strcpy(record.nomvar, "TT");
-      fst24_set_search_criteria(test_file, &record);
-      fst24_find_next(test_file, &record);
-      key=fst24_read(test_file, &record);
-      fprintf(stderr,"Field JSON: %s\n",Meta_Stringify(record.metadata));    
+      if (fst24_find_next(test_file, &record)) {
+         fprintf(stderr,"Found search extra\n");    
+         fst24_read_metadata(&record);
+         Meta_Resolve(record.metadata,prof_file);
+         fprintf(stderr,"Extra JSON: %s\n",Meta_Stringify(record.metadata));    
+      } else {
+         App_Log(APP_ERROR, "Failed search extra test\n");
+         return -1;    
+      }
 
       // Test find loop
       fprintf(stdout,"\nfind loop:\n");
       int num_found = 0;
       strcpy(search_criteria.typvar, "P");
+      search_criteria.metadata=search_meta;
       fst24_set_search_criteria(test_file, &search_criteria);
       while(key=fst24_find_next(test_file, &record_find)) {
-         fst24_read(test_file,&record_find);
+//         fst24_read_metadata(&record_find);
+      
          if (!record_find.metadata)  {
             App_Log(APP_ERROR, "Metadata not found %s\n", test_file_name);
             return -1; 
          }
-         if (Meta_Match(search_meta,record_find.metadata,TRUE)) {      
-            Meta_Resolve(meta,prof_file);
+         if (TRUE || Meta_Match(search_meta,record_find.metadata,FALSE)) {
             fprintf(stderr,"Matched JSON: %i %s\n",num_found,Meta_Stringify(record_find.metadata));
             num_found++;
          }

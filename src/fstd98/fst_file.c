@@ -935,14 +935,13 @@ int32_t fst24_find_next(
             if ((key = find_next_record(file_handle, &fstd_open_files[file->file_index])) < 0) {
                 break;
             }
-            
             // If metadata search is specified, look for a match or carry on looking
             if (fstd_open_files[file->file_index].search_meta) {
-    //TODO:                meta=fst24_read_meta();
-                if (Meta_Match(fstd_open_files[file->file_index].search_meta, meta, FALSE)) {
-                    result->metadata = meta;
-                    break;
+                fst24_get_record_from_key(file, key, result); 
+                if (fst24_read_metadata(result) && Meta_Match(fstd_open_files[file->file_index].search_meta,result->metadata,FALSE)) {
+                     break;
                 } else {
+                    result->metadata = NULL;
                     key = -1;
                 }
             }  
@@ -975,7 +974,13 @@ int32_t fst24_find_next(
     if (key >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, file->iun, key, file);
-        return fst24_get_record_from_key(file, key, result);
+
+        // If search included extended metadata, the key will already be extracted
+        if (!result->file) {
+           return fst24_get_record_from_key(file, key, result);
+        } else {
+            return(TRUE);
+        }
     }
 
     if (file->next != NULL) {

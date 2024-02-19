@@ -1610,7 +1610,7 @@ json_object *Meta_Copy(json_object *Obj) {
 /**----------------------------------------------------------------------------
  * @brief  Check if objects match
  * @date   July 2023
- *    @param[in]   Obj1          Profile json object
+ *    @param[in]   Obj1          Search json object
  *    @param[in]   Obj2          Profile json object
  *    @param[in]   RegExp        Use regular expression for string comparisons
  *
@@ -2074,8 +2074,16 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    return(TRUE);
 }
 
+/**----------------------------------------------------------------------------
+ * @brief  Save file level metadata as FST record in FST file
+ * @date   July 2023
+ *    @param[in]   File          FST file
+ *    @param[in]   Obj           Profile json object
+ *    
+ *    @return                    Status (TRUE or FALSE)
+*/
 #include "Meta_Flag.h"
-int Meta_WriteFile(fst_file *file,json_object *Obj) {
+int Meta_WriteFile(fst_file *File,json_object *Obj) {
 
    fst_record rec;
 
@@ -2084,13 +2092,13 @@ int Meta_WriteFile(fst_file *file,json_object *Obj) {
    }
 
    rec = fst24_record_init(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1);
-   rec.npak = 1;
+   rec.npak  = 1;
    rec.dateo = 0;
-   rec.deet = 0;
-   rec.npas = 0;
-   rec.ip1  = 0;
-   rec.ip2  = 0;
-   rec.ip3  = 0;
+   rec.deet  = 0;
+   rec.npas  = 0;
+   rec.ip1   = 0;
+   rec.ip2   = 0;
+   rec.ip3   = 0;
    rec.ig1   = 100;
    rec.ig2   = 100;
    rec.ig3   = 0;
@@ -2108,8 +2116,39 @@ int Meta_WriteFile(fst_file *file,json_object *Obj) {
    f77name(cxgaig)(t, &ig1, &ig2, &ig3, &ig4,&xg1,&xg2,&xg3,&xg4, 1);
    fprintf(stderr,"---- %i %i %i %i\n",ig1,ig2,ig3,ig4);
 */
-   if (fst24_write(file,&rec,FALSE)<0) {
+   if (fst24_write(File,&rec,FALSE)<0) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to write file metadata record\n",__func__);
+      return(FALSE);
+   }
+   return(TRUE);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Read file level metadata from an FST file
+ * @date   July 2023
+ *    @param[in]   File          FST file
+ *    @param[out]  Obj           Profile json object
+ *    
+ *    @return                    Status (TRUE or FALSE)
+*/
+int Meta_ReadFile(fst_file *file,json_object **Obj) {
+
+   fst_record rec=default_fst_record;
+
+   if (!Obj) {
+      return(FALSE);
+   }
+
+   strcpy(rec.typvar, "X ");
+   strcpy(rec.nomvar, "META");
+   strcpy(rec.etiket, "FILE_JSON   ");
+ 
+   fst24_set_search_criteria(file,&rec);
+   if (fst24_find_next(file,&rec)) {
+      fst24_read_metadata(&rec);
+      *Obj=rec.metadata;
+   } else {
+      Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to find file metadata record\n",__func__);
       return(FALSE);
    }
    return(TRUE);
