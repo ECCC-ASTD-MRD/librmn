@@ -13,14 +13,16 @@
 //#define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*16 + 500)  //TODO define right size
 #define FST_REC_ASSIGNED 0x1
 
-// What belongs to the record? To the writing function?
-// Should have members directly accessible from Fortran? Yes, double up struct definition (in same C/Fortran header)
+
+// Forward declare, to be able to point to it
+typedef struct fst24_file_ fst_file;
 
 // This struct should only be modified by ADDING member at the end (once we're stable)
 typedef struct {
     int64_t version;
 
     // 64-bit elements first
+    fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
     int64_t flags;    //!< Record status flags
@@ -60,6 +62,7 @@ typedef struct {
 
 static const fst_record default_fst_record = (fst_record){
         .version = sizeof(fst_record),
+        .file     = NULL,
         .data     = NULL,
         .metadata = NULL,
         .flags = 0x0,
@@ -156,7 +159,8 @@ void       fst24_record_diff(const fst_record* a, const fst_record* b);
 
 #else
     type, bind(C) :: fst_record
-        integer(C_INT64_T) :: VERSION  = 152            ! Must be the number of bytes in the struct
+        integer(C_INT64_T) :: VERSION  = 160            ! Must be the number of bytes in the struct
+        type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
         integer(C_INT64_T) :: flags    = 0

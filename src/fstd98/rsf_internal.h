@@ -380,7 +380,8 @@ struct directory_block{
 #define DIR_ML(DRML) ( ((DRML) >> 16) == 0 ? (DRML) : ((DRML) >> 16) )
 //!> Extract record metadata length from int32: lower 16 bits
 #define REC_ML(DRML) ( (DRML) & 0xFFFF)
-//!> Build composite ml field: directory metadata in upper 16 bits, record metadata in lower 16 bits
+//!> Build composite ml field: number of directory metadata elements in upper 16 bits,
+//!> number of record metadata elements in lower 16 bits. All elements are in 32-bit units
 #define DRML_32(ml_dir, ml_rec)  ( ( (ml_dir) << 16 ) | ( (ml_rec) & 0xFFFF ) )
 // propagate lower 16 bits into upper 16 bits if upper 16 are zero
 // #define DRML_FIX(ML) ( ((ML) >> 16) == 0 ? ((ML) <<16) | (ML) : (ML) )
@@ -388,7 +389,7 @@ struct directory_block{
 typedef struct{           // directory entry (both file and memory)
   uint32_t wa[2] ;        // upper[0], lower[1] 32 bits of offset in segment (or file)
   uint32_t rl[2] ;        // upper[0], lower[1] 32 bits of record length (bytes)
-  uint32_t ml ;           // upper 16 bits directory metadata length, lower 16 record metadata length
+  uint32_t ml ;           // upper 16 bits directory metadata length (in 32-bit elements), lower 16 record metadata length (in 32-bit elements)
   uint32_t dul:8, reserved:24 ;  // data element length (use part of "reserved" for data map length ?)
   uint32_t meta[] ;       // open array for metadata    (put data map length in meta[1] ?)
 } vdir_entry ;
@@ -530,11 +531,11 @@ static inline uint64_t RSF_Round_size(size_t data_size){
   return data_size ;
 }
 
-// size of rsf record
-// rec_meta  : number of metadata elements in record
-// data_size : data payload in bytes
-
-static inline uint64_t RSF_Record_size(uint32_t rec_meta, size_t data_size){
+//! Compute size of rsf record
+static inline uint64_t RSF_Record_size(
+    const uint32_t rec_meta, //!< number of 32-bit metadata elements in record (including directory metadata)
+    const size_t data_size   //!< data payload in bytes
+){
   int64_t record_size ;
 
   record_size = sizeof(start_of_record) +             // sor

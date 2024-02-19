@@ -278,11 +278,12 @@ interface
 #endif
 
 #if defined(IN_FORTRAN_CODE)
-  function RSF_Get_record(handle, key) result(rh) bind(C,name='RSF_Get_record')
+  function RSF_Get_record(handle, key, metadata_only) result(rh) bind(C,name='RSF_Get_record')
     import :: RSF_handle, C_INT32_T, C_INT64_T, RSF_record_handle
     implicit none
     type(RSF_handle), intent(IN), value :: handle
     integer(C_INT64_T), intent(IN), value :: key
+    integer(C_INT32_T), intent(IN), value :: metadata_only
     type(RSF_record_handle) :: rh
   end function RSF_Get_record
   function RSF_Get_record_info_by_index(fh, index) result(info) BIND(C, name='RSF_Get_record_info')
@@ -312,7 +313,7 @@ interface
 #else
   RSF_record_info RSF_Get_record_info_by_index(RSF_handle h, uint32_t key) ;
   RSF_record_info RSF_Get_record_info(RSF_handle h, int64_t key) ;
-  RSF_record *RSF_Get_record(RSF_handle h, int64_t key) ;
+  RSF_record *RSF_Get_record(RSF_handle h, const int64_t key, const int32_t metadata_only) ;
   uint32_t RSF_Get_num_records(RSF_handle) ;
   uint32_t RSF_Get_num_records_at_open(RSF_handle h) ;
   int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) ;

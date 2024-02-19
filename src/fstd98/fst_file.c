@@ -131,7 +131,7 @@ int64_t fst24_get_num_records_single(const fst_file* file) {
     return 0;
 }
 
-int32_t fst24_print_summary(const fst_file* file, const fst_record_fields* fields) {
+int32_t fst24_print_summary(fst_file* file, const fst_record_fields* fields) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     const int64_t num_records = fst24_get_num_records(file);
@@ -798,7 +798,7 @@ int32_t fst24_write(fst_file* file, const fst_record* record, int rewrit) {
 //! Get basic information about the record with the given key (search or "directory" metadata)
 //! \return TRUE if we were able to get the info, FALSE otherwise
 int32_t fst24_get_record_from_key(
-    const fst_file* file, //!< File to which the record belongs. Must be open
+    fst_file* file,       //!< File to which the record belongs. Must be open
     const int64_t key,    //!< Key of the record we are looking for. Must be valid
     fst_record* record    //!< [out] Record information (no data or advanced metadata)
 ) {
@@ -819,7 +819,6 @@ int32_t fst24_get_record_from_key(
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         const RSF_record_info record_info = RSF_Get_record_info(file_handle, key);
         fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
-        return TRUE;
     }
     else if (file->type == FST_XDF) {
         int addr, lng, idtyp;
@@ -827,13 +826,15 @@ int32_t fst24_get_record_from_key(
         uint32_t* pkeys = (uint32_t *) &record_meta_xdf;
         pkeys += W64TOWD(1);
         c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
-
         fill_with_dir_keys(record, &record_meta_xdf);
-        return TRUE;
+    }
+    else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+        return FALSE;
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
-    return FALSE;
+    record->file = file;
+    return TRUE;
 }
 
 //! Indicate a set of criteria that will be used whenever we will use "find next record" 
@@ -864,7 +865,7 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
     return TRUE;
 }
 
-int32_t fst24_get_record_by_index(const fst_file* file, const int64_t index, fst_record* record) {
+int32_t fst24_get_record_by_index(fst_file* file, const int64_t index, fst_record* record) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     *record = default_fst_record;
@@ -1248,17 +1249,18 @@ int32_t fst24_unpack_data(
     return 0;
 }
 
+//! \return 0 for success, negative for error
 int32_t fst24_read_rsf(
-    fst_file* file,
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
     //!> Must have already allocated its data buffer
     fst_record* record_fst,
-    const int32_t skip_unpack //!< Whether to skip the unpacking process (e.g. if we just want to copy the record)
+    const int32_t skip_unpack,  //!< Whether to skip the unpacking process (e.g. if we just want to copy the record)
+    const int32_t metadata_only //!< Whether we want to only read metadata, rather than including everything
 ) {
-    RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+    RSF_handle file_handle = FGFDT[record_fst->file->file_index].rsf_fh;
     if (!RSF_Is_record_in_file(file_handle, record_fst->handle)) return ERR_BAD_HNDL;
-    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle);
+    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle, metadata_only);
 
     if (record_rsf == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x\n",
@@ -1276,7 +1278,10 @@ int32_t fst24_read_rsf(
     }
     // fst24_record_print(record_fst)
 
-    const int32_t ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
+    // Extract data
+    int32_t ier = 0;
+    if (metadata_only != 1)
+        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
 
     free(record_rsf);
 
@@ -1284,7 +1289,6 @@ int32_t fst24_read_rsf(
 }
 
 int32_t fst24_read_xdf(
-    fst_file* file,
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
     //!> Must have already allocated its data buffer
@@ -1310,12 +1314,41 @@ int32_t fst24_read_xdf(
     return h;
 }
 
+//! Read only meta for the given record
+void* fst24_read_metadata(
+    fst_record* record //!< [in,out] Record for which we want to read metadata. Must have a valid handle!
+) {
+    if (!fst24_record_is_valid(record) || record->handle < 0) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);        
+       return NULL;
+    }
+
+    if (!fst24_is_open(record->file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+       return NULL;
+    }
+
+    if (record->file->type == FST_RSF) {
+        if (fst24_read_rsf(record, 0, 1) != 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file\n", __func__);
+            return NULL;
+        }
+        return record->metadata;
+    }
+    else if (record->file->type == FST_XDF) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files\n", __func__);
+        return NULL;
+    }
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, record->file->type);
+    return NULL;
+}
+
 //! Read data from file, for a given record
 int32_t fst24_read(
-    fst_file* file,
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
-    if (!fst24_is_open(file)) {
+    if (!fst24_is_open(record->file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
        return ERR_NO_FILE;
     }
@@ -1331,20 +1364,15 @@ int32_t fst24_read(
     }
 
     int32_t ret = -1;
-    if (file->type == FST_RSF) {
-            ret = fst24_read_rsf(file, record, 0);
+    if (record->file->type == FST_RSF) {
+        ret = fst24_read_rsf(record, 0, 0);
     }
-    else if (file->type == FST_XDF) {
-        ret = fst24_read_xdf(file, record);
+    else if (record->file->type == FST_XDF) {
+        ret = fst24_read_xdf(record);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
         ret = -1;
-    }
-
-    // Record in not in this file, so look in the next one (if present)
-    if (ret == ERR_BAD_HNDL && file->next != NULL) {
-        return fst24_read(file->next, record);
     }
 
     if (ret < 0) {
@@ -1362,7 +1390,7 @@ int32_t fst24_read_next(fst_file* file, fst_record* record) {
         return FALSE;
     }
 
-    return fst24_read(file, record);
+    return fst24_read(record);
 }
 
 int32_t fst24_link(fst_file** file, const int32_t num_files) {

@@ -1015,7 +1015,7 @@ int c_fstluk_rsf(
 ) {
     uint32_t *field=vfield;
     
-    RSF_record* record = RSF_Get_record(file_handle, RSF_Key64(key32));
+    RSF_record* record = RSF_Get_record(file_handle, RSF_Key64(key32), 0);
 
     if (record == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x (0x%x)\n",

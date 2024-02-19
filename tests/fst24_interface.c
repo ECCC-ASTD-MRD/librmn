@@ -5,6 +5,7 @@
 
 #include <rmn/fst_file.h>
 #include <App.h>
+#include <Meta.h>
 
 const char* test_file_names[3] = {
     "fst24_interface.fst",
@@ -63,6 +64,7 @@ void make_test_record() {
     test_record.ig4   = 0;
     test_record.datyp = FST_TYPE_REAL;
     test_record.dasiz = 32;
+    test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
 }
 
 int check_content(const float* content, const float* expected, const int num_elem) {
@@ -189,7 +191,19 @@ int test_fst24_interface(const int is_rsf) {
 
         // App_Log(APP_WARNING, "Found a record\n");
         // fst24_record_print(&record);
-        if (fst24_read(test_file, &record) <= 0) {
+
+        if (fst24_read_metadata(&record) != NULL) {
+            if (num_found == 1)
+                App_Log(APP_INFO, "Metadata: %s\n", record.metadata);
+        }
+        else {
+            if (is_rsf == 1) {
+                App_Log(APP_ERROR, "Should have been able to read metadata!\n");
+                return -1;
+            }
+        }
+
+        if (fst24_read(&record) <= 0) {
             App_Log(APP_ERROR, "Could not read data from record!\n");
             fst24_record_print(&record);
             return -1;
@@ -366,7 +380,7 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
         while (fst24_find_next(test_file, &result)) {
             num_found++;
-            if (fst24_read(test_file, &result) <= 0) {
+            if (fst24_read(&result) <= 0) {
                 App_Log(APP_ERROR, "Unable to read record from linked files\n");
                 fst24_record_print(&result);
                 return -1;

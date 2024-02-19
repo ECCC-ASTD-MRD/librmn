@@ -153,7 +153,7 @@ int test_fst24_interface(const int is_rsf) {
       search_extra.grtyp[0]='Z';
       fst24_set_search_criteria(test_file, &search_extra);
       fst24_find_next(test_file, &record);
-      key=fst24_read(test_file, &record);
+      key=fst24_read(&record);
 */
       strcpy(record.nomvar, "TT");
       fst24_set_search_criteria(test_file, &record);
