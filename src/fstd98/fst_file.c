@@ -403,7 +403,9 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
        fst24_bounds(record,&dmin,&dmax);
-       Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax);
+       if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax)) {
+          Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
+       }
        if ((metastr = Meta_Stringify(record->metadata))) {
           metalen = strlen(metastr);
           rec_metadata_size += ((metastr?metalen:0)+3)/4;
