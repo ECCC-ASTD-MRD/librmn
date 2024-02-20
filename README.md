@@ -16,9 +16,8 @@ Le code est disponible via Git aux adresses suivantes:
   * Sur le réseau ECCC: git@gitlab.science.gc.ca:RPN-SI/librmn.git
   * Pour les utilisateurs à l'extérieur d'ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
 
-`cmake_rpn` est inclus via des sous-modules de Git, veuillez donc exécuter la commande suivante après avoir cloné le dépôt:
+`cmake_rpn` est inclus via un sous-module de Git. Veuillez cloner avec l'option `--recursive` ou bien exécuter la commande suivante après avoir cloné le dépôt, pour récupérer les sous-modules:
 `git submodule update --init --recursive`
-pour récupérer les sous-modules.
 
 
 ## Instructions d'installation
@@ -65,6 +64,23 @@ chargé via la variable d'environnement __EC_ARCH__. Il n'est donc pas nécessai
 de spécifier explicitement la suite de compilateurs à utiliser
 (`-DCOMPILER_SUITE=...`). Vous devez toutefois charger le compilateur désiré
 avant d'effectuer la configuration de la compilation.
+
+Utilisez le bon fichier à partir de la variable $ECCI_ENV variable, selon
+l'architecture souhaitée, afin de charger le compilateur spécifié, définir
+la variable `ECCI_DATA_DIR` pour la série de tests et définir la variable
+`EC_CMAKE_MODULE_PATH` pour les modules cmake_rpn.
+
+- Exemple pour PPP5:
+
+#+begin_src
+. $ECCI_ENV/latest/ppp5/inteloneapi-2022.1.2.sh
+#+end_src
+
+- Example pour le réseau CMC et gnu 11.4.0:
+
+#+begin_src
+. $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
+#+end_src
 
 Puisque la version par défaut de CMake disponible sur les systèmes
 d'ECCC est probablement trop vieille, vous devez charger une version
