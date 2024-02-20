@@ -72,15 +72,15 @@ architecture.  This will load the specified compiler, set the
 
 - Example for PPP5:
 
-#+begin_src
+```
 . $ECCI_ENV/latest/ppp5/inteloneapi-2022.1.2.sh
-#+end_src
+```
 
 - Example for CMC network and gnu 11.4.0:
 
-#+begin_src
+```
 . $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
-#+end_src
+```
 
 Since the default version of CMake available on ECCC systems is probably too
 old, you need to load a version newer than 3.20.  For example: `. ssmuse-sh

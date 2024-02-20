@@ -72,15 +72,15 @@ la variable `ECCI_DATA_DIR` pour la série de tests et définir la variable
 
 - Exemple pour PPP5:
 
-#+begin_src
+```
 . $ECCI_ENV/latest/ppp5/inteloneapi-2022.1.2.sh
-#+end_src
+```
 
 - Example pour le réseau CMC et gnu 11.4.0:
 
-#+begin_src
+```
 . $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
-#+end_src
+```
 
 Puisque la version par défaut de CMake disponible sur les systèmes
 d'ECCC est probablement trop vieille, vous devez charger une version
