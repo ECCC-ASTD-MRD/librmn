@@ -9,15 +9,14 @@ l'interpolateur EZ.
   * [Référence des fonctions accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
-
 ## Obtenir le code
 
 Le projet est hébergé à l'adresse https://gitlab.science.gc.ca/RPN-SI/librmn
-Le code est disponible via Git aux adresse suivates:
+Le code est disponible via Git aux adresses suivantes:
   * Sur le réseau ECCC: git@gitlab.science.gc.ca:RPN-SI/librmn.git
   * Pour les utilisateurs à l'extérieur d'ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
 
-`cmake_rpn` est inclus via des sous-modules de Git, alors veuillez exécuter la commande suivante après avoir cloné le dépôt:
+`cmake_rpn` est inclus via des sous-modules de Git, veuillez donc exécuter la commande suivante après avoir cloné le dépôt:
 `git submodule update --init --recursive`
 pour récupérer les sous-modules.
 
@@ -42,9 +41,9 @@ l'appel de la commande `cmake` avec le préfix `-D`.
 : Chemin d'accès du répertoire pour l'installation (`make install`)
 
 `COMPILER_SUITE`
-: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser. Sur les systèmes d'ECCC,
+: `(gnu|intel|xl|nvhpc|...)` Suite de compilateurs à utiliser. Sur les systèmes d'ECCC,
 le compilateur chargé sera utilisé. Si les variables d'environnement propres à
-ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
+ECCC ne sont pas trouvées, la valeur par défaut est `gnu`.
 
 `WITH_OMPI`
 : `(yes|no)` Indique si le support OpenMP/MPI est activé. Défaut: `yes`
@@ -112,3 +111,10 @@ la librmn.
 Il peut être consulté aux adresses suivantes:
 - [https://gitlab.science.gc.ca/RPN-SI/librmn-client-example](https://gitlab.science.gc.ca/RPN-SI/librmn-client-example) (Sur le réseau d'ECCC)
 - [https://github.com/ECCC-ASTD-MRD/librmn-client-example](https://github.com/ECCC-ASTD-MRD/librmn-client-example) (Public)
+
+La version statique de la librairie sera celle utilisée par défaut lors de la recherche du package rmn, à moins de le spécifier. Exemples:
+
+```
+find_package(rmn [version] REQUIRED)
+find_package(rmn [version] REQUIRED COMPONENTS shared)
+```
