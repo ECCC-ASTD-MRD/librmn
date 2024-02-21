@@ -48,7 +48,7 @@ void make_test_record() {
     test_record.ni   = DATA_SIZE;
     test_record.nj   = DATA_SIZE;
     test_record.nk   = 1;
-    test_record.dateo= 20220610;
+    test_record.dateo= 458021600;
     test_record.deet = 300;
     test_record.npas = 0;
     test_record.ip1  = 1;
@@ -82,7 +82,7 @@ int check_content(const float* content, const float* expected, const int num_ele
 
 int32_t create_file(const char* name, const int is_rsf, const int ip2, const int ip3) {
     remove(name);
-    const char* options = is_rsf ? "RND+R/W+RSF" : "RND+R/W";
+    const char* options = is_rsf ? "RND+R/W+RSF" : "RND+R/W+XDF";
     fst_file* new_file = fst24_open(name, options);
     if (new_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", name, options);
@@ -154,16 +154,16 @@ int test_fst24_interface(const int is_rsf) {
     }
 
     fst_record_fields fields = default_fields;
-    // fields.datev = 1;
-    // fields.datestamps = 0;
-    // fields.ip2 = 1;
-    // fields.ip3 = 1;
-    // fields.level = 1;
-    // fields.deet = 1;
-    // fields.npas = 1;
-    // fields.decoded_ip = 1;
-    // fields.datyp = 0;
-    fields.grid_info = 1;
+    // fields.datev = TRUE;
+    // fields.datestamps = FALSE;
+    // fields.ip2 = TRUE;
+    // fields.ip3 = TRUE;
+    // fields.level = TRUE;
+    // fields.deet = TRUE;
+    // fields.npas = TRUE;
+    // fields.decoded_ip = TRUE;
+    // fields.datyp = FALSE;
+    fields.grid_info = TRUE;
     fst24_print_summary(test_file, &fields);
 
     fst_record record;
@@ -466,8 +466,8 @@ int main(void) {
     App_Log(APP_INFO, "Testing RSF\n");
     if (test_fst24_interface(1) != 0) return -1; // RSF files
 
-    // App_Log(APP_INFO, "Testing XDF\n");
-    // if (test_fst24_interface(0) != 0) return -1; // XDF files
+    App_Log(APP_INFO, "Testing XDF\n");
+    if (test_fst24_interface(0) != 0) return -1; // XDF files
 
     delete_test_data();
 

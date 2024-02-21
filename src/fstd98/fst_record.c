@@ -245,12 +245,12 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
     if (print_header) {
         char* current = buffer;
 
-        if (to_print.nomvar > 0) current = add_str(current, "nomv", width.nomvar);
-        if (to_print.typvar > 0) current = add_str(current, "tv", width.typvar);
-        if (to_print.etiket > 0) current = add_str(current, "etiquette   ", width.etiket);
-        if (to_print.ni > 0) current = add_str(current, "ni", width.ni);
-        if (to_print.nj > 0) current = add_str(current, "nj", width.nj);
-        if (to_print.nk > 0) current = add_str(current, "nk", width.nk);
+        if (to_print.nomvar > 0) current = add_str(current, "NOMV", width.nomvar);
+        if (to_print.typvar > 0) current = add_str(current, "TV", width.typvar);
+        if (to_print.etiket > 0) current = add_str(current, "ETIQUETTE   ", width.etiket);
+        if (to_print.ni > 0) current = add_str(current, "NI", width.ni);
+        if (to_print.nj > 0) current = add_str(current, "NJ", width.nj);
+        if (to_print.nk > 0) current = add_str(current, "NK", width.nk);
 
         if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-O", width.datestamps);
         if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-O  h m s) ", width.dateo);
@@ -260,14 +260,14 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
         if (to_print.level > 0) current = add_str(current, "level", width.level);
         if (to_print.decoded_ip > 0) current = add_str(current, " ------ ips ------    ", width.decoded_ip);
 
-        if (to_print.ip1) current = add_str(current, "ip1", width.ip1);
-        if (to_print.ip2) current = add_str(current, "ip2", width.ip2);
-        if (to_print.ip3) current = add_str(current, "ip3", width.ip3);
+        if (to_print.ip1) current = add_str(current, "IP1", width.ip1);
+        if (to_print.ip2) current = add_str(current, "IP2", width.ip2);
+        if (to_print.ip3) current = add_str(current, "IP3", width.ip3);
 
-        if (to_print.deet) current = add_str(current, "deet", width.deet);
-        if (to_print.npas) current = add_str(current, "npas", width.npas);
+        if (to_print.deet) current = add_str(current, "DEET", width.deet);
+        if (to_print.npas) current = add_str(current, "NPAS", width.npas);
 
-        if (to_print.datyp) current = add_str(current, "dtyp", width.datyp);
+        if (to_print.datyp) current = add_str(current, "DTYPp", width.datyp);
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);

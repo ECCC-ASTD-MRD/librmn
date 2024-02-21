@@ -310,12 +310,18 @@ interface
     type(RSF_handle), intent(IN), value :: handle
     integer(C_INT32_T) :: num_records
   end function RSF_Get_num_records_at_open
+  function RSF_Get_next(handle) result(next) bind(C, name = 'RSF_Get_next')
+    import :: RSF_handle, C_INT32_T, C_PTR
+    type(RSF_handle), intent(IN), value :: handle
+    type(C_PTR) :: next
+  end function RSF_Get_next
 #else
   RSF_record_info RSF_Get_record_info_by_index(RSF_handle h, uint32_t key) ;
   RSF_record_info RSF_Get_record_info(RSF_handle h, int64_t key) ;
   RSF_record *RSF_Get_record(RSF_handle h, const int64_t key, const int32_t metadata_only) ;
   uint32_t RSF_Get_num_records(RSF_handle) ;
   uint32_t RSF_Get_num_records_at_open(RSF_handle h) ;
+  void* RSF_Get_next(RSF_handle h) ;
   int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) ;
 #endif
 

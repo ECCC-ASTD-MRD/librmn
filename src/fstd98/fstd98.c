@@ -3422,7 +3422,7 @@ int c_fstouv(
     //! [in] Random or sequential access
     char *options
 ) {
-    int ier, nrec, i;
+    int ier, nrec, i, is_rsf=FALSE;
     static int premiere_fois = 1;
     char appl[5];
 
@@ -3440,7 +3440,7 @@ int c_fstouv(
         return(ERR_NO_FNOM);
     }
 
-    if ((strstr(options, "RND"))  || (strstr(options, "rnd"))) {
+    if (strcasestr(options, "RND")) {
         // standard random
         sprintf(appl, "%s", "STDR");
     } else {
@@ -3450,22 +3450,35 @@ int c_fstouv(
 
     // Determine if we're opening in read or write mode
     int read_only = FGFDT[i].attr.read_only;
-    if (strstr(options, "R/O") || strstr(options, "r/o")) {
+    if (strcasestr(options, "R/O")) {
         read_only = 1;
     }
-    if (strstr(options, "R/W") || strstr(options, "r/w")) {
+    if (strcasestr(options, "R/W")) {
         read_only = 0;
     }
-    if (strstr(options, "VOLATILE") || strstr(options, "VOLATILE")) {
-        FGFDT[i].attr.volatil = 1; // force attribute volatile;
+    // Look for attribute volatile (file will be erased on process end)
+    if (strcasestr(options, "VOLATILE")) {
+        FGFDT[i].attr.volatil = 1; 
     }
+
+    // Check for backend type
+    if (strcasestr(options, "RSF")) {
+        is_rsf=TRUE;
+    } else if (strcasestr(options, "XDF")) {
+        is_rsf=FALSE;
+    } else if (fst_backend && strncasecmp("RSF",fst_backend,3)==0) {
+       is_rsf=TRUE;
+    } else if (fst_backend && strncasecmp("XDF",fst_backend,3)==0)  {
+        is_rsf=FALSE;
+    }
+
     const int open_mode = read_only ? RSF_RO : RSF_RW;
 
     FGFDT[i].attr.std = 1; // force attribute to standard file
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
-            if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
+            if (is_rsf) {
                 ier = c_fstouv_rsf(i, RSF_RW, appl);
             }
             else {
@@ -3483,7 +3496,7 @@ int c_fstouv(
         }
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
-            if ((strstr(options, "RSF")) || (strstr(options, "rsf")) || (fst_backend && strncasecmp("RSF",fst_backend,3)==0)) {
+            if (is_rsf) {
                ier = c_fstouv_rsf(i, RSF_RW, appl);
             }
             else {

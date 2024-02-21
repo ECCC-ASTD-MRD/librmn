@@ -1647,7 +1647,7 @@ int c_fstsui_rsf(
 
 //! \copydoc c_fstvoi
 //! RSF version
-int c_fstvoi_rsf(
+int c_fstvoi_rsf_ori(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in] Index of the file given by fnom
@@ -1672,6 +1672,43 @@ int c_fstvoi_rsf(
         char string[20];
         sprintf(string, "%5d-", i);
         print_std_parms(metadata, string, options, ((i % 70) == 0));
+    }
+
+    fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, total_file_size);
+
+    return 0;
+}
+
+int c_fstvoi_rsf(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in] Index of the file given by fnom
+    const int index_fnom,
+    //! [in] List of fields to print
+    const char * const options
+) {
+    RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
+    uint32_t   nr,num_records=0;
+    size_t     total_file_size = 0;
+
+    if (file_handle.p == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+        return ERR_NO_FILE;
+    }
+
+    while(file_handle.p) {
+        nr=RSF_Get_num_records(file_handle);
+        num_records += nr;
+        
+        for (unsigned int i = 0; i < nr; i++) {
+            const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
+            const stdf_dir_keys* metadata = (const stdf_dir_keys *) info.meta;
+            total_file_size += info.rl;
+            char string[20];
+            sprintf(string, "%5d-", i);
+            print_std_parms(metadata, string, options, ((i % 70) == 0));
+        }
+        file_handle.p=RSF_Get_next(file_handle);
     }
 
     fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, total_file_size);

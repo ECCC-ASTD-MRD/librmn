@@ -1945,6 +1945,11 @@ int32_t RSF_Get_mode(RSF_handle h) {
   return (int32_t)fp->mode;
 }
 
+void *RSF_Get_next(RSF_handle h) {
+  RSF_File *fp = (RSF_File *) h.p ;
+  return (RSF_File *)fp->next;
+}
+
 //! Check whether the given handle points to a valid RSF file
 //! \return 1 if the file is valid, 0 if not
 //! \sa RSF_Valid_file

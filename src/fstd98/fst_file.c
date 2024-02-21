@@ -51,12 +51,8 @@ fst_file* fst24_open(
 
     *the_file = default_fst_file;
 
-    const int MAX_LENGTH = 1024;
-    char local_options[MAX_LENGTH];
-    snprintf(local_options, MAX_LENGTH, "RND+RSF+%s", options);
-
-    if (c_fnom(&(the_file->iun), file_name, local_options, 0) != 0) return NULL;
-    if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
+    if (c_fnom(&(the_file->iun), file_name, options, 0) != 0) return NULL;
+    if (c_fstouv(the_file->iun, (char*)options) < 0) return NULL;
 
     // Find type of newly-opened file (RSF or XDF)
     int index_fnom;
@@ -69,7 +65,7 @@ fst_file* fst24_open(
         the_file->file_index = file_index_xdf(the_file->iun);
         the_file->type = FST_XDF;
     }
-
+fprintf(stderr,"----- %i %i\n",the_file->iun,the_file->file_index);
     return the_file;
 }
 
@@ -862,6 +858,16 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
     fstd_open_files[file->file_index].search_meta = criteria->metadata;
     fstd_open_files[file->file_index].search_done = 0;
 
+    fst_file *loop=file->next;
+    while(loop) {
+        fstd_open_files[loop->file_index].search_criteria = fstd_open_files[file->file_index].search_criteria;
+        fstd_open_files[loop->file_index].search_mask = fstd_open_files[file->file_index].search_mask;
+        fstd_open_files[loop->file_index].search_meta = fstd_open_files[file->file_index].search_meta;
+        fstd_open_files[loop->file_index].background_search_mask = fstd_open_files[file->file_index].background_search_mask;
+        fstd_open_files[loop->file_index].search_start_key = 0;
+        fstd_open_files[loop->file_index].search_done = 0;
+        loop=loop->next;
+    }
     return TRUE;
 }
 
@@ -917,7 +923,7 @@ int32_t fst24_find_next(
 
     // Skip search, or search next file in linked list, if we were already done searching this file
     if (fstd_open_files[file->file_index].search_done == 1) {
-        if (file->next != NULL) {
+        if (file->next) {
             return fst24_find_next(file->next, result);
         }
         return FALSE;
@@ -925,7 +931,6 @@ int32_t fst24_find_next(
 
     int64_t key  = -1;
     int     rkey = 0;
-    void   *meta = NULL;
 
     // Depending on backend
     if (file->type == FST_RSF) {
@@ -956,14 +961,11 @@ int32_t fst24_find_next(
         pmask += W64TOWD(1);
 
         const int32_t start_key = fstd_open_files[file->file_index].search_start_key & 0xffffffff;
-
         key = c_xdfloc2(file->iun, start_key, pkeys, 16, pmask);
 
         if (key >= 0) {
             fstd_open_files[file->file_index].search_start_key = key;
-        }
-        else {
-            // Mark search as finished in this file if no record is found
+        } else {
             fstd_open_files[file->file_index].search_done = 1;
         }
     }
@@ -979,21 +981,13 @@ int32_t fst24_find_next(
         if (!rkey) {
            return fst24_get_record_from_key(file, key, result);
         } else {
-            return(TRUE);
+           return(TRUE);
         }
     }
 
-    if (file->next != NULL) {
+    if (file->next) {
         // We're done searching this file, but there's another one in the linked list, so 
         // we need to setup the search in that one
-        fstd_open_files[file->next->file_index].search_criteria = fstd_open_files[file->file_index].search_criteria;
-        fstd_open_files[file->next->file_index].search_mask = fstd_open_files[file->file_index].search_mask;
-        fstd_open_files[file->next->file_index].background_search_mask = fstd_open_files[file->file_index].background_search_mask;
-        fstd_open_files[file->next->file_index].search_start_key = 0;
-        fstd_open_files[file->next->file_index].search_done = 0;
-
-        //TODO also copy search metadata!
-
         return fst24_find_next(file->next, result);
     }
 
@@ -1028,12 +1022,20 @@ int32_t fst24_find_all(
     fstd_open_files[file->file_index].search_start_key = 0;
     fstd_open_files[file->file_index].search_done = 0;
 
+    fst_file *loop=file->next;
+    while(loop) {
+        // We're done searching this file, but there's another one in the linked list, so 
+        // we need to setup the search in that one
+        fstd_open_files[loop->file_index].search_start_key = 0;
+        fstd_open_files[loop->file_index].search_done = 0;
+        loop=loop->next;
+    }
+
     for (int i = 0; i < max_num_results; i++) {
         if (!fst24_find_next(file, &(results[i]))) return i;
     }
     return max_num_results;
 }
-
 
 int32_t fst24_unpack_data(
     void* dest,
@@ -1424,7 +1426,6 @@ int32_t fst24_link(fst_file** file, const int32_t num_files) {
 
     return TRUE;
 }
-
 
 int32_t fst24_unlink(fst_file* file) {
     if (!fst24_is_open(file)) {

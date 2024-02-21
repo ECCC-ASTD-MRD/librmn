@@ -121,11 +121,11 @@
 ```
 
 # Environment variables
-- CMCCONST      : Location of standard metadata templates and definitions (```${CMCCONST}/json/${META_VERSION}```)
-- META_PROFPATH : Location of user defined metadata templates and definitions (```${META_PROFPATH}/json/${META_VERSION}```)
-- META_VERSION  : Version of metadata to be used (Default: latest)
-- META_VALIDATE : Enable validation of json values (TRUE or FALSE, Default: FALSE)
-- META_MATCH    : Define matching mode when comparing two metadat set (EQUAL,REGEXP, Default: EQUAL)
+- **CMCCONST**      : Location of standard metadata templates and definitions (```${CMCCONST}/json/${META_VERSION}```)
+- **META_PROFPATH** : Location of user defined metadata templates and definitions (```${META_PROFPATH}/json/${META_VERSION}```)
+- **META_VERSION**  : Version of metadata to be used (Default: **latest**)
+- **META_VALIDATE** : Enable validation of json values (**TRUE** or **FALSE**, Default: **FALSE**)
+- **META_MATCH**    : Define matching mode when comparing two metadata set (**EQUAL** or **REGEXP**, Default: **EQUAL**)
 
 # Code example
 ## C
