@@ -131,11 +131,11 @@ static const fst_record_fields default_fields = (fst_record_fields) {
 
     .decoded_ip = 0,
     .ip1 = 1,
-    .ip2 = 0,
-    .ip3 = 0,
+    .ip2 = 1,
+    .ip3 = 1,
 
     .grid_info = 0,
-    .ig1234 = 1
+    .ig1234 = 0
 };
 
 inline int64_t fst24_record_num_elem(const fst_record* record) {
