@@ -119,6 +119,12 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         }
     }
 
+    if ((new_file->type == FST_RSF) != is_rsf) {
+        App_Log(APP_ERROR, "File has wrong type! %s, but should be %s\n",
+                fst_file_type_name[new_file->type], is_rsf ? fst_file_type_name[FST_RSF] : fst_file_type_name[FST_XDF]);
+        return -1;
+    }
+
     ///////////////////////////
     // Close the new file
     if (fst24_close(new_file) <= 0) {
@@ -127,6 +133,15 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
     }
 
     free(new_file);
+
+    const int32_t type = c_wkoffit(name, strlen(name));
+    if ((type == WKF_STDRSF && is_rsf) || (type == WKF_RANDOM98 && !is_rsf)) {
+        // we're good
+    }
+    else {
+        App_Log(APP_ERROR, "wkoffit gives wrong file type (%s vs %d)\n", is_rsf ? "rsf" : "xdf", type);
+        return -1;
+    }
 
     if (!fst24_is_valid(name)) {
         App_Log(APP_ERROR, "Newly created file \"%s\" is not valid\n", name);
@@ -397,11 +412,13 @@ int test_fst24_interface(const int is_rsf) {
             return -1;
         }
 
+        App_Log(APP_INFO, "Find all (should be 9)\n");
         if (fst24_find_all(test_file, results, 10) != 6) {
             App_Log(APP_ERROR, "Find all should have found 3\n");
             return -1;
         }
 
+        App_Log(APP_INFO, "Read all, one by one\n");
         fst24_set_search_criteria(test_file, &default_fst_record); // Rewind search
         num_found = 0;
         while (fst24_read_next(test_file, &record) > 0) {
@@ -471,8 +488,8 @@ int main(void) {
     App_Log(APP_INFO, "Testing RSF\n");
     if (test_fst24_interface(1) != 0) return -1; // RSF files
 
-    // App_Log(APP_INFO, "Testing XDF\n");
-    // if (test_fst24_interface(0) != 0) return -1; // XDF files
+    App_Log(APP_INFO, "Testing XDF\n");
+    if (test_fst24_interface(0) != 0) return -1; // XDF files
 
     delete_test_data();
 

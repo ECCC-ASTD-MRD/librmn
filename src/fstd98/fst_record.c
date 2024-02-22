@@ -210,7 +210,7 @@ char* add_ig1234(char* buffer, const char* grtyp, const int32_t ig1, const int32
     return buffer;
 }
 
-void fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header) {
+void fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header, const char* prefix) {
     const fst_record_fields width = (fst_record_fields) {
         .nomvar = 4,
         .typvar = 2,
@@ -245,6 +245,7 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
     if (print_header) {
         char* current = buffer;
 
+        if (prefix != NULL) current = add_str(current, "", strlen(prefix));
         if (to_print.nomvar > 0) current = add_str(current, "nomv", width.nomvar);
         if (to_print.typvar > 0) current = add_str(current, "tv", width.typvar);
         if (to_print.etiket > 0) current = add_str(current, "etiquette   ", width.etiket);
@@ -277,6 +278,7 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
     
     {
         char* current = buffer;
+        if (prefix != NULL) current = add_str(current, prefix, strlen(prefix));
         if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
         if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
         if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);

@@ -16,7 +16,11 @@
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* file) {
-    return (file != NULL && file->type != FST_NONE && file->file_index >= 0 && file->iun != 0);
+    return (file != NULL &&
+            file->type != FST_NONE &&
+            file->file_index >= 0 &&
+            file->file_index_backend >= 0 &&
+            file->iun != 0);
 }
 
 //! To be called from Fortran
@@ -53,7 +57,7 @@ fst_file* fst24_open(
 
     const int MAX_LENGTH = 1024;
     char local_options[MAX_LENGTH];
-    snprintf(local_options, MAX_LENGTH, "RND+RSF+%s", options);
+    snprintf(local_options, MAX_LENGTH, "RND+%s", options);
 
     if (c_fnom(&(the_file->iun), file_name, local_options, 0) != 0) return NULL;
     if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
@@ -61,13 +65,15 @@ fst_file* fst24_open(
     // Find type of newly-opened file (RSF or XDF)
     int index_fnom;
     const int rsf_status = is_rsf(the_file->iun, &index_fnom);
+    the_file->file_index = index_fnom;
     if (rsf_status == 1) {
-        the_file->file_index = index_fnom;
         the_file->type = FST_RSF;
+        RSF_handle file_handle = FGFDT[the_file->file_index].rsf_fh;
+        the_file->file_index_backend = RSF_File_slot(file_handle);
     }
     else {
-        the_file->file_index = file_index_xdf(the_file->iun);
         the_file->type = FST_XDF;
+        the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
     return the_file;
@@ -170,7 +176,7 @@ int32_t fst24_print_summary(
     for (unsigned int i = 0; i < num_records; i++) {
         fst24_get_record_by_index(file, i, &rec);
         total_data_size += fst24_record_data_size(&rec);
-        fst24_record_print_short(&rec, fields, ((i % 70) == 0));
+        fst24_record_print_short(&rec, fields, ((i % 70) == 0), NULL);
     }
 
     Lib_Log(APP_LIBFST, APP_ALWAYS, "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
@@ -921,13 +927,13 @@ int32_t fst24_get_record_by_index(
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
         fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
-        record->handle = RSF_Make_key(RSF_File_slot(file_handle), index);
+        record->handle = RSF_Make_key(file->file_index_backend, index);
         return TRUE;
     }
     else if (file->type == FST_XDF) {
         const int page_id = index / ENTRIES_PER_PAGE;
         const int record_id = index - (page_id * ENTRIES_PER_PAGE);
-        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index);
+        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
 
         int addr, lng, idtyp;
         stdf_dir_keys record_meta_xdf;
@@ -1333,6 +1339,10 @@ int32_t fst24_read_rsf(
     int32_t ier = 0;
     if (metadata_only != 1)
         ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
+
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
+        fst24_record_print_short(record_fst, NULL, 0, "Read    ");
+    }
 
     free(record_rsf);
 
