@@ -44,7 +44,7 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     !> Heure de l'observation, ignoré si -1
     INTEGER, INTENT(IN) :: temps
     !> Nombre de clés supplémentaires
-    INTEGER, INTENT(IN) :: nsup
+    INTEGER, INTENT(INOUT) :: nsup
     !> Tableau de clés de recherche supplémentaires
     INTEGER, DIMENSION(*), INTENT(IN) :: sup
 
@@ -70,19 +70,17 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     INTEGER, DIMENSION(npritot) :: pri
     INTEGER :: npri, i
     INTEGER :: annee, aa, mm, jj, date
-    INTEGER :: lnsup
 
     date = datein
     mrfloc = -1
     npri = npridef
-    lnsup = nsup
 
     ! Pour la version 1990, les clés supplementaires ne sont pas permises
-    IF (lnsup > nprisup) THEN
+    IF (nsup > nprisup) THEN
         write(app_msg, *) 'MRFLOC: Il y a trop de clefs primaires supplementaires'
         call Lib_Log(app_libfst, app_warning, app_msg)
         mrfloc = erclef
-        lnsup = nprisup
+        nsup = nprisup
     END IF
 
     ! Composer les clefs a partir du stnid
@@ -127,11 +125,11 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     pri(18) = -1
 
     ! Inclure les clefs supplementaires
-    IF (lnsup > 0) THEN
-        DO i = 1, lnsup
+    IF (nsup > 0) THEN
+        DO i = 1, nsup
             pri(npridef + i) = sup(i)
         END DO
-        npri = npri + lnsup
+        npri = npri + nsup
     END IF
 
     ! Trouver l'enregistrement
