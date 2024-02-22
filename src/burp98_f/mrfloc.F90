@@ -99,14 +99,14 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     pri(10) = -1
     pri(11) = lat
     pri(12) = lon
-    IF ((enforc8) .AND. (date /= -1)) then
-        IF (date < 999999) then
+    IF ((enforc8) .AND. (date /= -1)) THEN
+        IF (date < 999999) THEN
             write(app_msg,*) 'MRFLOC: La date doit etre en format AAAAMMJJ'
             call lib_log(app_libfst, app_error, app_msg)
             mrfloc = errdat
         END IF
     END IF
-    IF (date < 999999) then
+    IF (date > 999999) THEN
         annee = date / 10000
         aa = mod((date / 10000), 100)
         mm = (((annee - 1900) / 100) * 12) + mod((date / 100),100)
