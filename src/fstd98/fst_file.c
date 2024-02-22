@@ -75,7 +75,7 @@ fst_file* fst24_open(
 
 //TODO what happens if closing a linked file?
 //! Close the given standard file
-//! \return 0 if no error, a negative number otherwise
+//! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* file) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
@@ -88,10 +88,15 @@ int32_t fst24_close(fst_file* file) {
 
     *file = default_fst_file;
 
-    return 0;
+    return TRUE;
 }
 
-int32_t fst24_checkpoint(fst_file* file) {
+//! Perform a checkpoint on the given file:
+//! commit (meta)data to disk if the file has changed in memory
+//! \return A negative number if there was an error, 0 or positive otherwise
+int32_t fst24_checkpoint(
+    fst_file* file //!< Handle to the open file we want to checkpoint
+) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     if (file->type == FST_RSF) {
@@ -106,7 +111,10 @@ int32_t fst24_checkpoint(fst_file* file) {
     return -1;
 }
 
-int64_t fst24_get_num_records(const fst_file* file) {
+//! \return The number of (non-erased) records in the given file, including any linked files
+int64_t fst24_get_num_records(
+    const fst_file* file    //!< Handle to an open file
+) {
     if (!fst24_is_open(file)) return 0;
 
     int64_t total_num_records = 0;
@@ -130,6 +138,7 @@ int64_t fst24_get_num_records(const fst_file* file) {
     return total_num_records;
 }
 
+//! \return The number of records in the given file, ignoring any linked files
 int64_t fst24_get_num_records_single(const fst_file* file) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
@@ -146,7 +155,12 @@ int64_t fst24_get_num_records_single(const fst_file* file) {
     return 0;
 }
 
-int32_t fst24_print_summary(fst_file* file, const fst_record_fields* fields) {
+//! Print a summary of the records found in the given file (including any linked files)
+//! \return a negative number if there was an error, TRUE (1) if all was OK
+int32_t fst24_print_summary(
+    fst_file* file,                     //!< Handle to an open file
+    const fst_record_fields* fields     //!< [optional] What fields we want to see printed
+) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     const int64_t num_records = fst24_get_num_records(file);
@@ -162,13 +176,14 @@ int32_t fst24_print_summary(fst_file* file, const fst_record_fields* fields) {
     Lib_Log(APP_LIBFST, APP_ALWAYS, "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
             num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
-    return 0;
+    return TRUE;
 }
 
 //! Retreive record's data minimum and maximum value
-void fst24_bounds(const fst_record *record,
-    double *Min,  //!< Mimimum value (NaNif not retreivable)
-    double *Max   //!< Maximum value (NaNif not retreivable)
+void fst24_bounds(
+    const fst_record *record, //!< [in] Record with its data already available in memory
+    double *Min,  //!< [out] Mimimum value (NaN if not retreivable)
+    double *Max   //!< [out] Maximum value (NaN if not retreivable)
 ) {
 
     uint64_t n,sz=(record->ni*record->nj*record->nk);
@@ -229,6 +244,8 @@ void fst24_bounds(const fst_record *record,
     }
 }
 
+//! Write a record to an RSF file
+//! \return TRUE (1) if writing was successful, 0 or a negative number otherwise
 static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
     RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
@@ -774,11 +791,11 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
     RSF_Free_record(new_record);
 
-    return record_handle > 0 ? 0 : -1;
+    return record_handle > 0 ? TRUE : -1;
 }
 
 //! Write the given record into the given standard file
-//! \return 0 if everything was a success, a negative error code otherwise
+//! \return TRUE (1) if everything was a success, a negative error code otherwise
 int32_t fst24_write(fst_file* file, const fst_record* record, int rewrit) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
@@ -788,30 +805,33 @@ int32_t fst24_write(fst_file* file, const fst_record* record, int rewrit) {
     char etiket[FST_ETIKET_LEN];
     char grtyp[FST_GTYP_LEN];
 
-    switch (file->type) {
-        case FST_RSF:
-            return fst24_write_rsf(file, record);
-        case FST_XDF:
-            if (record->metadata != NULL) {
-                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
-                        " This is not supported, we will ignore that metadata.\n", __func__);
-            }
-            strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
-            strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
-            strncpy(etiket, record->etiket, FST_ETIKET_LEN);
-            strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
-            return c_fstecr_xdf(
-                record->data, NULL, record->npak, file->iun, record->dateo, record->deet, record->npas,
-                record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-                typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
-        default:
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
-            return -1;
-    } // End switch
+    if  (file->type == FST_RSF) {
+        return fst24_write_rsf(file, record);
+    }
+    else {
+        if (record->metadata != NULL) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
+                    " This is not supported, we will ignore that metadata.\n", __func__);
+        }
+        strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
+        strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
+        strncpy(etiket, record->etiket, FST_ETIKET_LEN);
+        strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
+        const int ier = c_fstecr_xdf(
+            record->data, NULL, record->npak, file->iun, record->dateo, record->deet, record->npas,
+            record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
+        
+        if (ier < 0) return ier;
+        return TRUE;
+    }
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+    return -1;
 }
 
 //! Get basic information about the record with the given key (search or "directory" metadata)
-//! \return TRUE if we were able to get the info, FALSE otherwise
+//! \return TRUE (1) if we were able to get the info, FALSE (0) or a negative number otherwise
 int32_t fst24_get_record_from_key(
     fst_file* file,       //!< File to which the record belongs. Must be open
     const int64_t key,    //!< Key of the record we are looking for. Must be valid
@@ -853,11 +873,11 @@ int32_t fst24_get_record_from_key(
 }
 
 //! Indicate a set of criteria that will be used whenever we will use "find next record" 
-//! for the given file, within the FST 23 implementation.
+//! for the given file, within the FST 24 implementation.
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
 //! XDF backend.
-//! \return TRUE if the inputs are valid (open file, OK criteria struct), FALSE otherwise
+//! \return TRUE (1) if the inputs are valid (open file, OK criteria struct), FALSE (0) or a negative number otherwise
 int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
@@ -880,7 +900,13 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
     return TRUE;
 }
 
-int32_t fst24_get_record_by_index(fst_file* file, const int64_t index, fst_record* record) {
+//! Retrieve record information for a given index. The index is continuous among a list of linked files.
+//! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
+int32_t fst24_get_record_by_index(
+    fst_file* file,         //!< Handle to an open file
+    const int64_t index,
+    fst_record* record
+) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     *record = default_fst_record;
@@ -920,7 +946,8 @@ int32_t fst24_get_record_by_index(fst_file* file, const int64_t index, fst_recor
 //! Find the next record in the given file that matches the previously set
 //! criteria (either with a call to fst24_set_search_criteria or a search with explicit
 //! criteria)
-//! \return TRUE if a record was found, FALSE otherwise (not found, file not open, etc.)
+//! Search through linked files, if any.
+//! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_file* file,     //!< File we are searching. Must be open
     fst_record* result  //!< [out] Record information if found (no data or advanced metadata, unless included in search)
@@ -1018,6 +1045,8 @@ int32_t fst24_find_next(
 }
 
 //! Find the next record in a file that matches the given criteria
+//! Search through linked files, if any.
+//! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_find(
     fst_file* file,             //!< [in] File in which we are looking. Must be open
     const fst_record* criteria, //!< [in] Search criteria
@@ -1027,7 +1056,8 @@ int32_t fst24_find(
     return fst24_find_next(file, result);
 }
 
-//! Find all record that match the criteria specified with fst24_set_search_criteria
+//! Find all record that match the criteria specified with fst24_set_search_criteria.
+//! Search through linked files, if any.
 //! \return Number of records found, 0 if none or if error.
 int32_t fst24_find_all(
     fst_file* file,               //!< File to search
@@ -1049,7 +1079,7 @@ int32_t fst24_find_all(
     return max_num_results;
 }
 
-
+//! Unpack the given data array, according to the given record information
 int32_t fst24_unpack_data(
     void* dest,
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
@@ -1269,6 +1299,7 @@ int32_t fst24_unpack_data(
     return 0;
 }
 
+//! Read a record from an RSF file
 //! \return 0 for success, negative for error
 int32_t fst24_read_rsf(
     //!> [in,out] Record for which we want to read data.
@@ -1308,6 +1339,8 @@ int32_t fst24_read_rsf(
     return ier;
 }
 
+//! Read a record from an XDF file
+//! \return 0 for success, negative for error
 int32_t fst24_read_xdf(
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
@@ -1334,7 +1367,8 @@ int32_t fst24_read_xdf(
     return h;
 }
 
-//! Read only meta for the given record
+//! Read only metadata for the given record
+//! \return A pointer to the metadata, NULL if error (or no metadata)
 void* fst24_read_metadata(
     fst_record* record //!< [in,out] Record for which we want to read metadata. Must have a valid handle!
 ) {
@@ -1364,7 +1398,8 @@ void* fst24_read_metadata(
     return NULL;
 }
 
-//! Read data from file, for a given record
+//! Read record data from file
+//! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
 int32_t fst24_read(
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
@@ -1405,7 +1440,13 @@ int32_t fst24_read(
     return TRUE;
 }
 
-int32_t fst24_read_next(fst_file* file, fst_record* record) {
+//! Read the next record (data and all) that corresponds to the previously-set search criteria
+//! Search through linked files, if any
+//! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
+int32_t fst24_read_next(
+    fst_file* file,     //!< Handle to open file we want to search
+    fst_record* record  //!< [out] Record content and info, if found
+) {
     if (!fst24_find_next(file, record)) {
         return FALSE;
     }
@@ -1413,7 +1454,14 @@ int32_t fst24_read_next(fst_file* file, fst_record* record) {
     return fst24_read(record);
 }
 
-int32_t fst24_link(fst_file** file, const int32_t num_files) {
+//! Link the given list of files together, so that they are treated as one for the purpose
+//! of searching and reading. Once linked, the user can use the first file in the list
+//! as a replacement for all the given files.
+//! \return TRUE (1) if files were linked, FALSE (0) or a negative number otherwise
+int32_t fst24_link(
+    fst_file** file,            //!< List of handles to open files
+    const int32_t num_files     //!< How many files are in the list
+) {
     if (num_files <= 1) {
         Lib_Log(APP_LIBFST, APP_INFO, "%s: only passed %d files, nothing to link\n", __func__, num_files);
         return FALSE;
@@ -1440,7 +1488,9 @@ int32_t fst24_link(fst_file** file, const int32_t num_files) {
     return TRUE;
 }
 
-
+//! Unlink the given file(s). The files are assumed to have been linked by
+//! a previous call to fst24_link, so only the first one should be given as input
+//! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(fst_file* file) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);

@@ -121,7 +121,7 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
 
     ///////////////////////////
     // Close the new file
-    if (fst24_close(new_file) < 0) {
+    if (fst24_close(new_file) <= 0) {
         App_Log(APP_ERROR, "Unable to close new file %s\n", name);
         return -1;
     }
@@ -418,7 +418,7 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_close(test_file) < 0 || fst24_close(file_list[1]) < 0 || fst24_close(file_list[2]) < 0) {
+    if (fst24_close(test_file) <= 0 || fst24_close(file_list[1]) <= 0 || fst24_close(file_list[2]) <= 0) {
         App_Log(APP_ERROR, "Unable to close file %s\n", test_file_names[0]);
         return -1;
     }
