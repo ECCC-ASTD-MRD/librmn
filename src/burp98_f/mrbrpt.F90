@@ -42,7 +42,7 @@
 !     ELEMENT  ENTREE  CODE DE L'ELEMENT A VERIFIER
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include <ftnmacros.hf>
 !
 !MODULE

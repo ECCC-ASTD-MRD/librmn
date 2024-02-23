@@ -520,7 +520,7 @@ int c_qdfdiag(
 //! This is used for example in conjuncture with burp files when the table used is not the official one.
 int c_qdfmsig(
     //! [in] unit number associated to the file
-    int iun,
+    const int iun,
     //! [in] new application signature
     char *newappl
 ) {

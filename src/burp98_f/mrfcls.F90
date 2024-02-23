@@ -17,43 +17,39 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-!.S MRFCLS
-!**S/P MRFCLS - FERMER UN FICHIER BURP
-!
-      FUNCTION MRFCLS( IUN )
-      use app
-      use rmn_burp_defi
-      use rmn_burpopt
-      IMPLICIT NONE
-      INTEGER  MRFCLS, IUN
-!
-!AUTEUR  J. CAVEEN   OCTOBRE 1990
-!REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
-!
-!OBJET( MRFCLS )
-!     FERMER UN FICHIER BURP
-!                                                                       
-!IMPLICITES
-#include "codes.cdk"
-!
-!ARGUMENT
-!     IUN    ENTREE     NUMERO D'UNITE ASSOCIE AU FICHIER
-!
-!MODULES 
-      EXTERNAL XDFCLS, QDFMSIG
-      INTEGER  XDFCLS, QDFMSIG, IOUT
-      DATA     IOUT /6/
-!
-!*
-      MRFCLS = 0 
-      IF(BADTBL .NE. 0) MRFCLS = QDFMSIG(IUN, 'bRp0')
-      IF(MRFCLS .LT. 0) RETURN
 
-      MRFCLS = XDFCLS( IUN )
-      IF(MRFCLS .LT. 0) RETURN
 
-      write(app_msg,*) 'MRFCLS: Unite ',IUN,' fichier rapport est ferme'
-      call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
-   RETURN
+!> \brief Fermer un fichier BURP
+!! \author Jame Caveen
+!! \date 1990
+INTEGER FUNCTION mrfcls( iun )
 
-      END
+    use app
+    use rmn_burp_defi
+    use rmn_burpopt
+    IMPLICIT NONE
+
+    !> Numéro d'unité associé au fichier
+    INTEGER, INTENT(IN) :: iun
+
+#include <rmn/codes.cdk>
+
+    integer, external :: qdfmsig
+    integer, external :: xdfcls
+
+    mrfcls = 0
+    IF (badtbl /= 0) THEN
+        mrfcls = qdfmsig(iun, 'bRp0')
+    END IF
+    IF (mrfcls < 0) THEN
+        RETURN
+    END IF
+
+    mrfcls = xdfcls( iun )
+    IF (mrfcls < 0) THEN 
+        RETURN
+    END IF
+
+    write(app_msg, *) 'MRFCLS: Unite ', iun, ' fichier rapport est ferme'
+    call lib_log(app_libfst, app_info, app_msg)
+END

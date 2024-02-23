@@ -53,7 +53,7 @@
 !     LONENR      "    LONGUEUR DE L'ENREGISTREMENT EN MOTS HOTE
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include <ftnmacros.hf>
 #include "enforc8.cdk"
 !

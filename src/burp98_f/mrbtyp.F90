@@ -47,7 +47,7 @@
 !MODULE
 !
 !IMPLICITES
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 #include "bpl.cdk"
 #include "masques.cdk"
 #include <ftnmacros.hf>

@@ -53,7 +53,7 @@
 !     TBLDIM      "     NOMBRE D'ELEMENTS DANS TBLVAL
 !
 !IMPLICITE
-#include "codes.cdk"
+#include <rmn/codes.cdk>
 !
 !MODULES
       INTEGER  I, TBLMAX, TBLMIN, ERREUR, SUPVAL(32)

@@ -47,7 +47,7 @@ end module
       INTEGER I, IIBIT, VIBIT, VIIIBIT, IELEM
 !
 !IMPLICITES
-!#include "codes.cdk"
+
 !
 !*
       MRBCOL = -1

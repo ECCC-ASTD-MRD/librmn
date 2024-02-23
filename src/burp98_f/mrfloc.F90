@@ -17,139 +17,136 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-!.S MRFLOC
-!**S/P MRFLOC - TROUVER UN RAPPORT DANS UN FICHIER BURP
-! 
-      FUNCTION MRFLOC(IUN, HANDLE, STNID, IDTYP, LAT, LON, DATEin, TEMPS, SUP, NSUP)
-      use app
-      use rmn_burp_defi
-      use rmn_burpopt
-      IMPLICIT NONE
-      INTEGER  MRFLOC, IUN, HANDLE, IDTYP, LAT, LON, DATEin, TEMPS, NSUP,  SUP(*)
-      CHARACTER(len = *) :: STNID
-!
+
+
+!> \brief Trouver un rapport
+INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup, nsup)
+    use app
+    use rmn_burp_defi
+    use rmn_burpopt
+
+    IMPLICIT NONE
+
+    !> Numéro d'unité du fichier
+    INTEGER, INTENT(IN) :: iun
+    !> Pointeur de l'enregistrement d'où part la recherche, commencer la recherche au début du fichier si 0
+    INTEGER, INTENT(IN) :: handle
+    !> Identificateur de la station, ignoré si '*'
+    CHARACTER(len = *), INTENT(IN) :: stnid
+    !> Type de rapport, ignoré si -1
+    INTEGER, INTENT(IN) :: idtyp
+    !> Latitude de la station, ignoré si -1
+    INTEGER, INTENT(IN) :: lat
+    !> Longitude de la station, ignoré si -1
+    INTEGER, INTENT(IN) :: lon
+    !> Date de validité du rapport, ignoré si -1
+    INTEGER, INTENT(IN) :: datein
+    !> Heure de l'observation, ignoré si -1
+    INTEGER, INTENT(IN) :: temps
+    !> Nombre de clés supplémentaires
+    INTEGER, INTENT(INOUT) :: nsup
+    !> Tableau de clés de recherche supplémentaires
+    INTEGER, DIMENSION(*), INTENT(IN) :: sup
+
 !AUTEUR  J. CAVEEN   OCTOBRE 1990
 !REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
-!REV 002 j. caveen   sept.   1995 ajout d'un appel a mrfprm pour produire 
-!                                 un message plus explicite
+!REV 002 j. caveen   sept.   1995 ajout d'un appel a mrfprm pour produire un message plus explicite
 !REV 003 M. Lepine   sept    1997 nouveau format de date AAAAMMJJ (an 2000)
 !REV 004 M. Lepine   Avr     2000 appel a char2rah au lieu de read et hrjust
 !REV 005 M. Lepine   Jan     2003 date est un argument d'entree seulement
-!
-!OBJET( MRFLOC )
-!     TROUVER LE POINTEUR DU RAPPORT DECRIT PAR LES PARAMETRES STNID,
-!     IDTYP,LAT,LON,DATE ET LE CONTENU DU TABLEAU SUP.  LA RECHERCHE SE
-!     FAIT A PARTIR DE L'ENREGISTREMENT DONT LE POINTEUR EST HANDLE.
-!     SI UN ELEMENT DE STNID = '*', CET ELEMENT SERA IGNORE POUR LA
-!     RECHERCHE.  UNE VALEUR DE -1 POUR LES AUTRES ARGUMENTS A LE
-!     MEME EFFET.  SI LA VALEUR DE HANDLE EST ZERO, ON AFFECTUE LA
-!     RECHERCHE A PARTIR DU DEBUT DU FICHIER.
-!       
-!ARGUMENTS
-!     IUN     ENTREE   NUMERO D'UNITE DU FICHIER
-!     HANDLE    "      POINTEUR A L'ENREGISTREMENT D'OU PART LA RECHERCHE
-!     STNID     "      IDENTIFICATEUR DE LA STATION
-!     IDTYP     "      TYPE DE RAPPORT
-!     LAT       "      LATITUDE DE LA STATION
-!     LON       "      LONGITUDE DE LA STATION
-!     DATE      "      DATE DE VALIDITE DU RAPPORT
-!     TEMPS     "      HEURE DE L'OBSERVATION
-!     SUP       "      TABLEAU DE CLEFS DE RECHERCHES SUPPLEMENTAIRES
-!     NSUP      "      NOMBRE DE CLEFS SUPPLEMENTAIRES
-!
-!
-!IMPLICITES
-#include "codes.cdk"
+
+#include <rmn/codes.cdk>
 #include "enforc8.cdk"
-!
-!MODULES 
-      EXTERNAL XDFLOC, CHAR2RAH, mrfprm
-      INTEGER  XDFLOC, mrfprm
-!*
-      CHARACTER(len = 9) :: ISTNID
-      INTEGER IIDTYP, ILAT, ILON, IDATE, ITEMPS, ISUP(1), INSUP
-      INTEGER IDX,IDY,IFLGS,ILNGR,irien
 
-      INTEGER PRI(NPRITOT), NPRI, I
-      integer annee, AA, MM, JJ, date
+    EXTERNAL char2rah
+    INTEGER, EXTERNAL :: xdfloc
+    INTEGER, EXTERNAL :: mrfprm
 
-      date = DATEin
-      MRFLOC = -1
-      NPRI   = NPRIDEF
+    CHARACTER(len = 9) :: istnid
+    INTEGER :: iidtyp, ilat, ilon, idate, itemps, insup
+    INTEGER, DIMENSION(1) :: isup
+    INTEGER :: idx, idy, iflgs, ilngr, irien
 
-!     POUR LA VERSION 1990, LES CLEFS SUPPLEMENTAIRES NE SONT PAS PERMISES
-      IF(NSUP .GT. NPRISUP) THEN
-         write(app_msg,*) 'MRFLOC: Il y a trop de clefs primaires supplementaires'
-         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
-          MRFLOC = ERCLEF
-         NSUP = NPRISUP
-      ENDIF
+    INTEGER, DIMENSION(npritot) :: pri
+    INTEGER :: npri, i
+    INTEGER :: annee, aa, mm, jj, date
 
-!     COMPOSER LES CLEFS A PARTIR DU STNID
-      ISTNID = STNID
-      DO 10 I=1,9
-         IF(ISTNID(I:I) .NE. '*') THEN
-!            READ(ISTNID(I:I),'(A1)') PRI(I)
-!            PRI(I) = HRJUST(PRI(I), 1)
-            CALL CHAR2RAH(ISTNID(I:I),PRI(I),1)
-         ELSE
-            PRI(I) = -1
-         ENDIF
- 10      CONTINUE
+    date = datein
+    mrfloc = -1
+    npri = npridef
 
-!     COMPOSER LE RESTE DES CLEFS DE RECHERCHE
-      PRI(10) = -1
-      PRI(11) = LAT
-      PRI(12) = LON
-      if ((enforc8) .and. (date .ne. -1)) then
-         if (date .lt. 999999) then
+    ! Pour la version 1990, les clés supplementaires ne sont pas permises
+    IF (nsup > nprisup) THEN
+        write(app_msg, *) 'MRFLOC: Il y a trop de clefs primaires supplementaires'
+        call Lib_Log(app_libfst, app_warning, app_msg)
+        mrfloc = erclef
+        nsup = nprisup
+    END IF
+
+    ! Composer les clefs a partir du stnid
+    istnid = stnid
+    DO i = 1,9
+        IF (istnid(i:i) /= '*') THEN
+            ! READ(istnid(i:i),'(a1)') pri(i)
+            ! pri(i) = hrjust(pri(i), 1)
+            CALL char2rah(istnid(i:i), pri(i), 1)
+        ELSE
+            pri(i) = -1
+        ENDIF
+    END DO
+
+    ! Composer le reste des clefs de recherche
+    pri(10) = -1
+    pri(11) = lat
+    pri(12) = lon
+    IF ((enforc8) .AND. (date /= -1)) THEN
+        IF (date < 999999) THEN
             write(app_msg,*) 'MRFLOC: La date doit etre en format AAAAMMJJ'
-            call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
-            MRFLOC = ERRDAT
-         endif
-      endif
-      if (date .gt. 999999) then
-         annee = date/10000
-         AA = mod((date/10000),100)
-         MM = (((annee - 1900) /100) * 12) + mod((date/100),100)
-         JJ = mod(date,100)
-         date = (AA * 10000) + (MM * 100) + JJ
-      endif
-      PRI(13) = DATE
-      PRI(14) = -1
-      PRI(15) = IDTYP
-      PRI(16) = -1
-      IF(TEMPS .EQ. -1) THEN
-         PRI(17) = -1
-      ELSE
-         PRI(17) = TEMPS/100
-      ENDIF
-      PRI(18) = -1
+            call lib_log(app_libfst, app_error, app_msg)
+            mrfloc = errdat
+        END IF
+    END IF
+    IF (date > 999999) THEN
+        annee = date / 10000
+        aa = mod((date / 10000), 100)
+        mm = (((annee - 1900) / 100) * 12) + mod((date / 100),100)
+        jj = mod(date, 100)
+        date = (aa * 10000) + (mm * 100) + jj
+    END IF
+    pri(13) = date
+    pri(14) = -1
+    pri(15) = idtyp
+    pri(16) = -1
+    IF (temps == -1) THEN
+        pri(17) = -1
+    ELSE
+        pri(17) = temps / 100
+    END IF
+    pri(18) = -1
 
-!     INCLURE LES CLEFS SUPPLEMENTAIRES
-      IF(NSUP .GT. 0) THEN
-         DO 20 I=1,NSUP
-            PRI(NPRIDEF+I) = SUP(I)
- 20      CONTINUE
-         NPRI = NPRI + NSUP
-      ENDIF
+    ! Inclure les clefs supplementaires
+    IF (nsup > 0) THEN
+        DO i = 1, nsup
+            pri(npridef + i) = sup(i)
+        END DO
+        npri = npri + nsup
+    END IF
 
-!     TROUVER L'ENREGISTREMENT
-      MRFLOC = XDFLOC(IUN, HANDLE, PRI, NPRI)
-      IF (lib_loglevel(APP_LIBFST,' ') .GE. APP_INFO) THEN
-         IF(MRFLOC .LT. 0) THEN
-            write(app_msg,1000) STNID, IDTYP, LAT, LON, DATEin, TEMPS
-            call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
-         ELSE
-            IRIEN = MRFLOC
-            INSUP = 0
-            IRIEN = MRFPRM(IRIEN,ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS, ISUP, INSUP,ILNGR)
-            write(app_msg,1100) ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS,ILNGR
-            call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
-         ENDIF
-      ENDIF
+    ! Trouver l'enregistrement
+    mrfloc = xdfloc(iun, handle, pri, npri)
+    IF (lib_loglevel(APP_LIBFST,' ') >= APP_INFO) THEN
+        IF (mrfloc < 0) THEN
+            WRITE(app_msg, 1000) stnid, idtyp, lat, lon, datein, temps
+            call lib_log(app_libfst,app_info,app_msg)       
+        ELSE
+            irien = mrfloc
+            insup = 0
+            irien = mrfprm(irien,istnid, iidtyp, ilat, ilon, idx,idy, idate, itemps,iflgs, isup, insup,ilngr)
+            write(app_msg, 1100) istnid, iidtyp, ilat, ilon, idx, idy, idate, itemps, iflgs, ilngr
+            call lib_log(app_libfst, app_info, app_msg)
+        END IF
+    END IF
 
- 1000 FORMAT('MRFLOC: INEXISTANT - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DATE=',I8,' TEMPS=',I4)
- 1100 FORMAT('MRFLOC: TROUVE - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DX=',i4,' DY=',i4,' DATE=',I8, ' TEMPS=',I4,' FLGS=',i8,' LNGR=',i6)
-      RETURN
-      END
+    1000 FORMAT('MRFLOC: INEXISTANT - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DATE=',I8,' TEMPS=',I4)
+    1100 FORMAT('MRFLOC: TROUVE - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DX=',i4,' DY=',i4,' DATE=',I8, ' TEMPS=',I4,' FLGS=',i8,' LNGR=',i6)
+END

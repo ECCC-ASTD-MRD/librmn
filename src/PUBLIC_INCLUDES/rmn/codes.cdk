@@ -1,36 +1,25 @@
-!TRIVIA   1  ERREUR TRIVIALE
-!INFORM   2  MESSAGE INFORMATIF POUR L'USAGER
-!WARNIN   3  WARNING ERREUR
-!ERROR    4  ERREUR D'IMPORTANCE PRIMORDIALE
-!ERFATAL  5  ERREUR QUE L'USAGER DEVRAIT SAVOIR
-!SYSTEM   6  ERREUR DE DESCRIPTION D'UN SABORDAGE DU PROGRAMME
-!KAPUT    7  ERREUR INTOLERABLE - PGM PLANTE
-!EREDAT  16  DATYP INVALIDE
-!ERFRAP  30  PAS UN FICHIER RAPPORT
-!ERFMOD  31  ERREUR DE MODE D'OUVERTURE
-!ERCLEF  32  TROP DE CLEFS SUPPLEMENTAIRES
-!ERBNUM  33  NUMERO DE BLOC INVALIDE
-!EROPTN  34  NOM D'OPTION INCONNU
-!ERBTAB  35  ERREUR FATALE CONCERNANT LE FICHIER TABLEBURP
-!ERBDOM  36  ERREUR TRIVIALE CONCERNANT LE FICHIER TABLEBURP
-!ERELEM  37  NOM D'ELEMENT INVALIDE
-!ERBTYP  38  BTYP INVALIDE (PLUS PETIT QUE ZERO)
-!ERRCELL 39
-!ERNPRM  40
-!ERCMPR  41  ERREUR - VALEUR TROP GRANDE POUR 32 BITS ET DATYP DE 2
-!NONOFTB 42  FICHIER N'UTILISANT PAS LA TABLEBURP OFFICIELLE
-!EREBDSC 43  MAUVAISE UTILISATION DE BDESC
-!EREIVC  44  CODE D'ELEMENT INVALIDE POUR DATYP 7 a 9
-!ERRDAT  45  MAUVAIS FORMAT DE DATE (6 CHIFFRES AU LIEU DE 8)
-      INTEGER  TRIVIA, INFORM, WARNIN, NONOFTB, ERFATAL, SYSTEM, KAPUT,  &
-     &         EREDAT, ERFRAP, ERFMOD, ERCLEF,  ERBNUM,  EROPTN, ERBTAB,  &
-     &         ERBDOM, ERELEM, ERBTYP, ERRCELL, ERNPRM,  ERCMPR, ERROR,  &
-     &         EREBDSC,EREIVC, ERRDAT
-      PARAMETER(  &
-     &         TRIVIA = 0, INFORM = 1, WARNIN= 2, ERROR  = 3,  &
-     &         ERFATAL= 4, SYSTEM = 5, KAPUT = 6, EREDAT =16,  &
-     &         ERFRAP =30, ERFMOD =31, ERCLEF=32, ERBNUM =33,  &
-     &         EROPTN =34, ERBTAB =35, ERBDOM=36, ERELEM =37,  &
-     &         ERBTYP =38, ERRCELL=39, ERNPRM=40, ERCMPR =41,  &
-     &         NONOFTB=42, EREBDSC=43, EREIVC=44, ERRDAT =45)
-
+      !> \file codes.cdk Constantes des codes d'erreur pour BURP
+      INTEGER, PARAMETER :: TRIVIA = 0   !< Erreur triviale
+      INTEGER, PARAMETER :: INFORM = 1   !< Message informatif pour l'usager
+      INTEGER, PARAMETER :: WARNIN = 2   !< Warning erreur
+      INTEGER, PARAMETER :: ERROR = 3    !< Erreur d'importance primordiale
+      INTEGER, PARAMETER :: ERFATAL = 4  !< Erreur que l'usager devrait savoir
+      INTEGER, PARAMETER :: SYSTEM = 5   !< Erreur de description d'un sabordage du programme
+      INTEGER, PARAMETER :: KAPUT = 6    !< Erreur intolerable - pgm plante
+      INTEGER, PARAMETER :: EREDAT = 16  !< Datyp invalide
+      INTEGER, PARAMETER :: ERFRAP = 30  !< Pas un fichier rapport
+      INTEGER, PARAMETER :: ERFMOD = 31  !< Erreur de mode d'ouverture
+      INTEGER, PARAMETER :: ERCLEF = 32  !< Trop de clefs supplementaires
+      INTEGER, PARAMETER :: ERBNUM = 33  !< Numero de bloc invalide
+      INTEGER, PARAMETER :: EROPTN = 34  !< Nom d'option inconnu
+      INTEGER, PARAMETER :: ERBTAB = 35  !< Erreur fatale concernant le fichier tableburp
+      INTEGER, PARAMETER :: ERBDOM = 36  !< Erreur triviale concernant le fichier tableburp
+      INTEGER, PARAMETER :: ERELEM = 37  !< Nom d'element invalide
+      INTEGER, PARAMETER :: ERBTYP = 38  !< Btyp invalide (plus petit que zero)
+      INTEGER, PARAMETER :: ERRCELL = 39 !<
+      INTEGER, PARAMETER :: ERNPRM = 40  !<
+      INTEGER, PARAMETER :: ERCMPR = 41  !< Erreur - valeur trop grande pour 32 bits et datyp de 2
+      INTEGER, PARAMETER :: NONOFTB = 42 !< Fichier n'utilisant pas la tableburp officielle
+      INTEGER, PARAMETER :: EREBDSC = 43 !< Mauvaise utilisation de bdesc
+      INTEGER, PARAMETER :: EREIVC = 44  !< Code d'element invalide pour datyp 7 a 9
+      INTEGER, PARAMETER :: ERRDAT = 45  !< Mauvais format de date (6 chiffres au lieu de 8)

@@ -44,8 +44,6 @@ integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
 
 #include "masques.cdk"
 #include "bpl.cdk"
-#include "codes.cdk"
-#include <ftnmacros.hf>
 
     external mrbloc
     integer :: mrbloc
