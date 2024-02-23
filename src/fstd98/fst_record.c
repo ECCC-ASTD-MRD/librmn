@@ -1,6 +1,7 @@
 #include "fst_record_internal.h"
 
 #include <ctype.h>
+#include <string.h>
 
 #include <App.h>
 #include "rmn/convert_ip.h"
@@ -54,7 +55,8 @@ void fst24_record_print(const fst_record* record) {
         "  Data: 0x%x\n"
         "  Metadata: 0x%x\n"
         "  Handle: 0x%x\n"
-        "  date (v?): %ld\n"
+        "  dateo: %ld\n"
+        "  datev: %ld\n"
         "  datyp: %d\n"
         "  dasiz: %d\n"
         "  npak: %d\n"
@@ -62,12 +64,12 @@ void fst24_record_print(const fst_record* record) {
         "  deet: %d, npas: %d\n"
         "  ip1-3: %d, %d, %d\n"
         "  ig1-4: %d, %d, %d, %d\n"
-        "  typvar: %s\n"
-        "  grtyp:  %s\n"
-        "  nomvar: %s\n"
-        "  etiket: %s\n",
+        "  typvar: \"%s\"\n"
+        "  grtyp:  \"%s\"\n"
+        "  nomvar: \"%s\"\n"
+        "  etiket: \"%s\"\n",
         record->version, record->file, record->data, record->metadata, record->handle, 
-        record->dateo, record->datyp, record->dasiz, record->npak,
+        record->dateo, record->datev, record->datyp, record->dasiz, record->npak,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,
         record->ig1, record->ig2, record->ig3, record->ig4,
@@ -210,7 +212,13 @@ char* add_ig1234(char* buffer, const char* grtyp, const int32_t ig1, const int32
     return buffer;
 }
 
-void fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header, const char* prefix) {
+//! Print record information on one line
+void fst24_record_print_short(
+    const fst_record* record,           //!< The record we want to print
+    const fst_record_fields* fields,    //!< [optional] What fields should we print (default choice if NULL)
+    const int print_header,             //!< Whether we also print a header to name the fields
+    const char* prefix                  //!< [optional] Text we might want to add at the beginning of the line
+) {
     const fst_record_fields width = (fst_record_fields) {
         .nomvar = 4,
         .typvar = 2,
@@ -259,7 +267,7 @@ void fst24_record_print_short(const fst_record* record, const fst_record_fields*
         if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-V  h m s) ", width.datev);
 
         if (to_print.level > 0) current = add_str(current, "level", width.level);
-        if (to_print.decoded_ip > 0) current = add_str(current, " ------ ips ------    ", width.decoded_ip);
+        if (to_print.decoded_ip > 0) current = add_str(current, " ------------- ips -------------    ", width.decoded_ip);
 
         if (to_print.ip1) current = add_str(current, "ip1", width.ip1);
         if (to_print.ip2) current = add_str(current, "ip2", width.ip2);
@@ -498,13 +506,14 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
     return result;
 }
 
-int32_t fst24_record_is_same(const fst_record* a, const fst_record* b) {
+//! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
+//!         0 otherwise
+int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
     if (a->version != b->version) return 0;
     if (a->flags != b->flags) return 0;
     if (a->dateo != b->dateo) return 0;
     if (a->datev != b->datev) return 0;
-    if (a->handle != b->handle) return 0;
     if (a->datyp != b->datyp) return 0;
     if (a->dasiz != b->dasiz) return 0;
     if (a->npak != b->npak) return 0;
@@ -578,6 +587,9 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
     if (a->ig4 != b->ig4)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: ig4:     a = %d, b = %d)\n", __func__, a->ig4, b->ig4);
 
+    if (a->dummy != b->dummy)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: dummy:   a = %d, b = %d)\n", __func__, a->dummy, b->dummy);
+
     if (!is_same_record_string(a->typvar, b->typvar, FST_TYPVAR_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: typvar:  a = \"%3s\", b = \"%3s\"\n", __func__, a->typvar, b->typvar);
     if (!is_same_record_string(a->grtyp, b->grtyp, FST_GTYP_LEN))
@@ -586,4 +598,41 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: nomvar:  a = \"%3s\", b = \"%3s\"\n", __func__, a->nomvar, b->nomvar);
     if (!is_same_record_string(a->etiket, b->etiket, FST_ETIKET_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: etiket:  a = \"%3s\", b = \"%3s\"\n", __func__, a->etiket, b->etiket);
+}
+
+//! To be called from fortran. Determine whether the given FST record pointer matches the default
+//! fst_record struct.
+//! \return 0 if they match, -1 if not
+int32_t fst24_validate_default_record(
+    const fst_record* fortran_record, //!< Pointer to a default-initialized fst_record[_c] struct
+    const size_t fortran_size         //!< Size of the fst_record_c struct in Fortran
+) {
+    if (fortran_record == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Called with NULL pointer\n", __func__);
+        return -1;
+    }
+
+    if (sizeof(fst_record) != fortran_size) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Size C != size Fortran (%d != %d)\n",
+                __func__, sizeof(fst_record), fortran_size);
+        return -1;
+    }
+
+    if (memcmp(&default_fst_record, fortran_record, sizeof(fst_record)) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Doing record diff!\n", __func__);
+        if (fst24_record_has_same_info(&default_fst_record, fortran_record)) {
+            for (int i = 0; i < sizeof(fst_record) / 4; i += 4) {
+                const uint32_t* c = (const uint32_t*)&default_fst_record;
+                const uint32_t* f = (const uint32_t*)fortran_record;
+                fprintf(stderr, "c 0x %.8x %.8x %.8x %.8x\n", c[i], c[i+1], c[i+2], c[i+3]);
+                fprintf(stderr, "f 0x %.8x %.8x %.8x %.8x\n", f[i], f[i+1], f[i+2], f[i+3]);
+            }
+        }
+        fst24_record_diff(&default_fst_record, fortran_record);
+        fst24_record_print(&default_fst_record);
+        fst24_record_print(fortran_record);
+        return -1;
+    }
+
+    return 0;
 }

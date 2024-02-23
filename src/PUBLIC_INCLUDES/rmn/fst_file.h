@@ -45,11 +45,12 @@ void*     fst24_read_metadata(fst_record* record /* in, out */); // read only me
 int32_t   fst24_read_next(fst_file* file, fst_record* record /* out only */); // read data + metadata for the next record to be found
 int32_t   fst24_write(fst_file* file, const fst_record* record, int rewrit);
 int32_t   fst24_set_search_criteria(fst_file* file, const fst_record* criteria);
+int32_t   fst24_rewind_search(fst_file* file);
 int32_t   fst24_find(fst_file* file,const fst_record* criteria, fst_record* result);
 int32_t   fst24_find_next(fst_file* file, fst_record* result);
 int32_t   fst24_find_all(fst_file* file, fst_record* results, const int32_t max_num_results);
 
-int32_t   fst24_link(fst_file** file, const int32_t num_files);
+int32_t   fst24_link(fst_file** files, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* file);
 int32_t   fst24_print_summary(fst_file* file, const fst_record_fields* fields);
 int32_t   fst24_checkpoint(fst_file* file);

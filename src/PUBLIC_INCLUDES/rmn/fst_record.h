@@ -89,6 +89,8 @@ static const fst_record default_fst_record = (fst_record){
         .ig3 = -1,
         .ig4 = -1,
 
+        .dummy = -1,
+
         .typvar = {' ' , ' ' , '\0', '\0'},
         .grtyp  = {' ' , '\0', '\0', '\0'},
         .nomvar = {' ' , ' ' , ' ' , ' ',
@@ -103,7 +105,7 @@ static const fst_record default_fst_record = (fst_record){
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, npak, ni, nj, nk;
+    int32_t datyp, ni, nj, nk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
@@ -154,12 +156,13 @@ void       fst24_record_print_short(const fst_record* record, const fst_record_f
                                     const char* prefix);
 fst_record fst24_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
 int32_t    fst24_record_free(fst_record* record);
-int32_t    fst24_record_is_same(const fst_record* a, const fst_record* b);
+int32_t    fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 void       fst24_record_diff(const fst_record* a, const fst_record* b);
 
+int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
 
 #else
-    type, bind(C) :: fst_record
+    type, bind(C) :: fst_record_c
         integer(C_INT64_T) :: VERSION  = 160            ! Must be the number of bytes in the struct
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
@@ -198,7 +201,17 @@ void       fst24_record_diff(const fst_record* a, const fst_record* b);
                                                      ' ', ' ', ' ', ' ',        &
                                                      ' ', ' ', ' ', ' ',        &
                                                      c_null_char, c_null_char, c_null_char, c_null_char]
-    end type fst_record
+    end type fst_record_c
+
+    type, bind(C) :: fst_record_fields
+        integer(C_INT32_T) :: dateo = 1, datev = 0, datestamps = 1
+        integer(C_INT32_T) :: level = 0
+        integer(C_INT32_T) :: datyp = 1, ni = 1, nj = 1, nk = 1
+        integer(C_INT32_T) :: deet = 0, npas = 0
+        integer(C_INT32_T) :: ip1 = 1, ip2 = 0, ip3 = 0, decoded_ip = 0
+        integer(C_INT32_T) :: grid_info = 0, ig1234 = 1
+        integer(C_INT32_T) :: typvar = 1, nomvar = 1, etiket = 1
+    end type fst_record_fields
 
 #endif // IN_FORTRAN_CODE
 

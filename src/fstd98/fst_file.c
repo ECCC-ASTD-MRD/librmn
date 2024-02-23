@@ -789,10 +789,14 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
     /* write new_record to file and add entry to directory */
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);
-    if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
-        char string[18];
-        sprintf(string, "fst24 Write(%d)", file->iun);
-        print_std_parms(stdf_entry, string, prnt_options, -1);
+    if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
+        fst_record_fields f = default_fields;
+        f.ip2 = 1;
+        f.ip3 = 1;
+        f.grid_info = 1;
+        f.deet = 1;
+        f.npas = 1;
+        fst24_record_print_short(record, &f, 0, "Write");
     }
 
     RSF_Free_record(new_record);
@@ -901,6 +905,20 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
     const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
     fstd_open_files[file->file_index].search_start_key = start_key;
     fstd_open_files[file->file_index].search_meta = criteria->metadata;
+    fstd_open_files[file->file_index].search_done = 0;
+
+    return TRUE;
+}
+
+//! Reset start index of search without changing the criteria
+//! \return TRUE (1) if file is valid and open, FALSE (0) otherwise
+int32_t fst24_rewind_search(fst_file* file) {
+    if (!fst24_is_open(file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       return FALSE;
+    }
+
+    fstd_open_files[file->file_index].search_start_key = 0;
     fstd_open_files[file->file_index].search_done = 0;
 
     return TRUE;
@@ -1070,14 +1088,7 @@ int32_t fst24_find_all(
     fst_record* results,          //!< [in,out] List of records found. Must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
-    if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
-       return FALSE;
-    }
-
-    // Reset start of search, because we want all
-    fstd_open_files[file->file_index].search_start_key = 0;
-    fstd_open_files[file->file_index].search_done = 0;
+    if (fst24_rewind_search(file) != TRUE) return 0;
 
     for (int i = 0; i < max_num_results; i++) {
         if (!fst24_find_next(file, &(results[i]))) return i;
@@ -1469,7 +1480,7 @@ int32_t fst24_read_next(
 //! as a replacement for all the given files.
 //! \return TRUE (1) if files were linked, FALSE (0) or a negative number otherwise
 int32_t fst24_link(
-    fst_file** file,            //!< List of handles to open files
+    fst_file** files,           //!< List of handles to open files
     const int32_t num_files     //!< How many files are in the list
 ) {
     if (num_files <= 1) {
@@ -1479,12 +1490,12 @@ int32_t fst24_link(
 
     // Perform checks on all files before doing anything
     for (int i = 0; i < num_files; i++) {
-        if (!fst24_is_open(file[i])) {
+        if (!fst24_is_open(files[i])) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: File %d not open. We won't link anything.\n", __func__, i);
             return FALSE;
         }
 
-        if (file[i]->next != NULL) {
+        if (files[i]->next != NULL) {
             Lib_Log(APP_LIBFST, APP_ERROR,
                     "%s: File %d is already linked to another one. We won't link anything (else).\n", __func__, i);
             return FALSE;
@@ -1492,7 +1503,7 @@ int32_t fst24_link(
     }
 
     for (int i = 0; i < num_files - 1; i++) {
-        file[i]->next = file[i + 1];
+        files[i]->next = files[i + 1];
     }
 
     return TRUE;
