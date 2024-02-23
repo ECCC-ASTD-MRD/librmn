@@ -151,7 +151,7 @@ int32_t    fst24_record_is_valid(const fst_record* record);
 int32_t    fst24_record_validate_params(const fst_record* record);
 void       fst24_record_print(const fst_record* record);
 void       fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header);
-fst_record fst24_record_init(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
+fst_record fst24_record_new(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
 int32_t    fst24_record_free(fst_record* record);
 int32_t    fst24_record_is_same(const fst_record* a, const fst_record* b);
 void       fst24_record_diff(const fst_record* a, const fst_record* b);

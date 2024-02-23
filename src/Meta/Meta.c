@@ -2104,7 +2104,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
       return(FALSE);
    }
 
-   rec = fst24_record_init(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1);
+   rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1);
    rec.npak  = 1;
    rec.dateo = 0;
    rec.deet  = 0;

@@ -15,7 +15,9 @@
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
-int32_t fst24_is_open(const fst_file* file) {
+int32_t fst24_is_open(
+    const fst_file* file //!< [in] file pointer
+) {
     return (file != NULL && file->type != FST_NONE && file->file_index >= 0 && file->iun != 0);
 }
 
@@ -28,7 +30,9 @@ int32_t fst24_get_iun(fst_file* file) {
 
 //! Check whether the given file path is a readable FST file
 //! \return TRUE (1) if the file makes sense, FALSE (0) if an error is detected
-int32_t fst24_is_valid(const char* filename) {
+int32_t fst24_is_valid(
+    const char* filename //!< [in] Path of the file to open
+) {
     const int32_t type = c_wkoffit(filename, strlen(filename));
     if (type == WKF_STDRSF) {
         return RSF_Basic_check(filename);
@@ -43,8 +47,8 @@ int32_t fst24_is_valid(const char* filename) {
 //! Open a standard file (FST). Will create it if it does not already exist
 //! \return A handle to the opened file. NULL if there was an error
 fst_file* fst24_open(
-    const char* file_name,  //!< Path of the file to open
-    const char* options     //!< A list of options, as a string, with each pair of options separated by a comma or a '+'
+    const char* file_name,  //!< [in] Path of the file to open
+    const char* options     //!< [in] A list of options, as a string, with each pair of options separated by a comma or a '+'
 ) {
     fst_file* the_file = (fst_file *)malloc(sizeof(fst_file));
     if (the_file == NULL) return NULL;
@@ -72,7 +76,9 @@ fprintf(stderr,"----- %i %i\n",the_file->iun,the_file->file_index);
 //TODO what happens if closing a linked file?
 //! Close the given standard file
 //! \return 0 if no error, a negative number otherwise
-int32_t fst24_close(fst_file* file) {
+int32_t fst24_close(
+    fst_file* file    //!< [in] file pointer
+) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     int status;
@@ -87,7 +93,11 @@ int32_t fst24_close(fst_file* file) {
     return 0;
 }
 
-int64_t fst24_get_num_records(const fst_file* file) {
+//! Get the number of records in a standard file
+//! \return Number of records
+int64_t fst24_get_num_records(
+    const fst_file* file   //!< [in] file pointer
+) {
     if (!fst24_is_open(file)) return 0;
 
     int64_t total_num_records = 0;
@@ -127,7 +137,13 @@ int64_t fst24_get_num_records_single(const fst_file* file) {
     return 0;
 }
 
-int32_t fst24_print_summary(fst_file* file, const fst_record_fields* fields) {
+//! Print information on the file's records (as the voir utility does)
+//! which metadata information to print can be specified, default is NOMVAR,TYPVAR,ETIKET,NI,NJ,NK,IP1,IP2,IP3,DATEO,STAMP,DATYP,
+//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+int32_t fst24_print_summary(
+    fst_file* file,                   //!< [in] file pointer
+    const fst_record_fields* fields   //!< [in] descriptions of metadata fields to display
+) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     const int64_t num_records = fst24_get_num_records(file);
@@ -143,7 +159,7 @@ int32_t fst24_print_summary(fst_file* file, const fst_record_fields* fields) {
     Lib_Log(APP_LIBFST, APP_ALWAYS, "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
             num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
-    return 0;
+    return(TRUE);
 }
 
 //! Retreive record's data minimum and maximum value
@@ -760,7 +776,12 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
 //! Write the given record into the given standard file
 //! \return 0 if everything was a success, a negative error code otherwise
-int32_t fst24_write(fst_file* file, const fst_record* record, int rewrit) {
+int32_t fst24_write(
+    fst_file* file,            //!< [in] file pointer
+    const fst_record* record,  //!< [in] Record to be written
+    int rewrit                 //!< [in] Rewrite flag
+) {
+
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
@@ -834,12 +855,15 @@ int32_t fst24_get_record_from_key(
 }
 
 //! Indicate a set of criteria that will be used whenever we will use "find next record" 
-//! for the given file, within the FST 23 implementation.
+//! for the given file, within the FST 24 implementation.
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
 //! XDF backend.
 //! \return TRUE if the inputs are valid (open file, OK criteria struct), FALSE otherwise
-int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
+int32_t fst24_set_search_criteria(
+    fst_file* file,              //!< [in] file pointer
+    const fst_record* criteria   //!< [in] record with metadata values to search for
+) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
@@ -913,7 +937,7 @@ int32_t fst24_get_record_by_index(fst_file* file, const int64_t index, fst_recor
 //! criteria)
 //! \return TRUE if a record was found, FALSE otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
-    fst_file* file,     //!< File we are searching. Must be open
+    fst_file* file,     //!< [in[ File we are searching. Must be open
     fst_record* result  //!< [out] Record information if found (no data or advanced metadata, unless included in search)
 ) {
     if (!fst24_is_open(file)) {
@@ -997,6 +1021,7 @@ int32_t fst24_find_next(
 }
 
 //! Find the next record in a file that matches the given criteria
+//! \return TRUE if a record was found, FALSE otherwise (not found, file not open, etc.)
 int32_t fst24_find(
     fst_file* file,             //!< [in] File in which we are looking. Must be open
     const fst_record* criteria, //!< [in] Search criteria
@@ -1009,7 +1034,7 @@ int32_t fst24_find(
 //! Find all record that match the criteria specified with fst24_set_search_criteria
 //! \return Number of records found, 0 if none or if error.
 int32_t fst24_find_all(
-    fst_file* file,               //!< File to search
+    fst_file* file,               //!< [in] File to search
     fst_record* results,          //!< [in,out] List of records found. Must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
@@ -1352,6 +1377,7 @@ void* fst24_read_metadata(
 }
 
 //! Read data from file, for a given record
+//! \return TRUE (1) if no error, FALSE (0) if an error is detected
 int32_t fst24_read(
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
@@ -1392,7 +1418,12 @@ int32_t fst24_read(
     return TRUE;
 }
 
-int32_t fst24_read_next(fst_file* file, fst_record* record) {
+//! Read data from file, for the next record fitting search parameters
+//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+int32_t fst24_read_next(
+    fst_file* file,    //!< [in] file pointer
+    fst_record* record //!< [in,out] Record for which we want to read data
+) {
     if (!fst24_find_next(file, record)) {
         return FALSE;
     }
@@ -1400,7 +1431,13 @@ int32_t fst24_read_next(fst_file* file, fst_record* record) {
     return fst24_read(record);
 }
 
-int32_t fst24_link(fst_file** file, const int32_t num_files) {
+//! Link multiple files together that will be seen as a singel file by other fst24 functions
+//! Passing either file pointer from the link list to search function wil parse the following file in the list
+//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+int32_t fst24_link(
+    fst_file** file,         //!< [in] List of file pointer
+    const int32_t num_files  //!< [in] number of file pointer in the list
+) {
     if (num_files <= 1) {
         Lib_Log(APP_LIBFST, APP_INFO, "%s: only passed %d files, nothing to link\n", __func__, num_files);
         return FALSE;
@@ -1427,7 +1464,12 @@ int32_t fst24_link(fst_file** file, const int32_t num_files) {
     return TRUE;
 }
 
-int32_t fst24_unlink(fst_file* file) {
+//! Unlink previously linked files
+//! Passing either file pointer from the link will unlink the following file in the list
+//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+int32_t fst24_unlink(
+    fst_file* file     //!< [in] File to unlink
+) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;

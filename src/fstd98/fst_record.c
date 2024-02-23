@@ -7,8 +7,8 @@
 
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
-fst_record fst24_record_init(
-    void   *data,   //!< Data pointer to assign, or allocate inernal array in NULL
+fst_record fst24_record_new(
+    void   *data,   //!< Data pointer to assign, or allocate internal array if NULL
     int32_t type,   //!< Data type
     int32_t nbits,  //!< Number of bits per data element
     int32_t ni,     //!< I horizontal size
@@ -37,7 +37,11 @@ fst_record fst24_record_init(
     return(result);
 }
 
-int32_t fst24_record_free(fst_record* record) {
+//! Free a record
+//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+int32_t fst24_record_free(
+    fst_record* record      //!< [in] record pointer
+) {
 
    if (record->data && record->flags&FST_REC_ASSIGNED) {
       free(record->data);
