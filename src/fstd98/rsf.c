@@ -743,6 +743,12 @@ static int64_t RSF_Write_vdir(RSF_File *fp){
 
 // =================================  user callable rsf file functions =================================
 
+//! Write to disk everything that's only in memory.
+//! TODO is it only the directory?
+int64_t RSF_Checkpoint(RSF_handle h) {
+  return RSF_Write_vdir((RSF_File *) h.p);
+}
+
 // default directory match function (user overridable)
 //
 // match the first ncrit words of criteria and meta where mask has bits set to 1

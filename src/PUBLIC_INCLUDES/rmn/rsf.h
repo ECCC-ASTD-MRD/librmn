@@ -558,6 +558,7 @@ int64_t RSF_Make_key(const int32_t slot, const int32_t record_id) ;
 RSF_handle RSF_Key32_to_handle(int32_t key32) ;
 RSF_handle RSF_Key64_to_handle(int64_t key64) ;
 int32_t RSF_Basic_check(const char* filename) ;
+int64_t RSF_Checkpoint(RSF_handle h) ;
 #endif
 
 #if defined(IN_FORTRAN_CODE)

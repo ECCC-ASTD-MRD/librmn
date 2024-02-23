@@ -181,7 +181,7 @@ module f_c_strings_mod
         ok = associated(this%string)
     end function is_string_valid
 
-    !> Copy a Fortran string into a NULL terminated character array of at most n characters
+    !> Copy a Fortran string into a NULL terminated character array of at most n characters (*including* the NULL terminating character)
     subroutine strncpy_f2c(f_str, c_str, n)
         implicit none
         character(len=*), intent(IN) :: f_str
@@ -193,7 +193,7 @@ module f_c_strings_mod
         do i = 1, clen
             c_str(i) = f_str(i:i)                  ! copy string
         enddo
-        c_str(clen:clen) = achar(0)              ! add terminating null
+        c_str(clen+1 : clen+1) = achar(0)              ! add terminating null
     end subroutine strncpy_f2c
 
     !> Copy a NULL terminated character array of up to n characters into a Fortran string

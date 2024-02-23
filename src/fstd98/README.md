@@ -152,11 +152,12 @@ void* fst24_read_metadata(
     fst_record* record //!< [in,out] Record for which we want to read metadata. Must have a valid handle!
 );
 
-//! Read data from file, for the next record fitting search parameters
-//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+//! Read the next record (data and all) that corresponds to the previously-set search criteria
+//! Search through linked files, if any
+//! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
-    fst_file* file,    //!< [in] file pointer
-    fst_record* record //!< [in,out] Record for which we want to read data
+    fst_file* file,     //!< Handle to open file we want to search
+    fst_record* record  //!< [out] Record content and info, if found
 );
 
 //! Write the given record into the given standard file
@@ -172,7 +173,7 @@ int32_t fst24_write(
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
 //! XDF backend.
-//! \return TRUE if the inputs are valid (open file, OK criteria struct), FALSE otherwise
+//! \return TRUE (1) if the inputs are valid (open file, OK criteria struct), FALSE (0) or a negative number otherwise
 int32_t fst24_set_search_criteria(
     fst_file* file,              //!< [in] file pointer
     const fst_record* criteria   //!< [in] record with metadata values to search for
@@ -203,27 +204,27 @@ int32_t fst24_find_all(
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 );
 
-//! Link multiple files together that will be seen as a singel file by other fst24 functions
-//! Passing either file pointer from the link list to search function wil parse the following file in the list
-//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+//! Link the given list of files together, so that they are treated as one for the purpose
+//! of searching and reading. Once linked, the user can use the first file in the list
+//! as a replacement for all the given files.
+//! \return TRUE (1) if files were linked, FALSE (0) or a negative number otherwise
 int32_t fst24_link(
     fst_file** file,         //!< [in] List of file pointer
     const int32_t num_files  //!< [in] number of file pointer in the list
 );   
 
-//! Unlink previously linked files
-//! Passing either file pointer from the link will unlink the following file in the list
-//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+//! Unlink the given file(s). The files are assumed to have been linked by
+//! a previous call to fst24_link, so only the first one should be given as input
+//! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(
     fst_file* file     //!< [in] File to unlink
 ); 
 
-//! Print information on the file's records (as the voir utility does)
-//! which metadata information to print can be specified, default is NOMVAR,TYPVAR,ETIKET,NI,NJ,NK,IP1,IP2,IP3,DATEO,STAMP,DATYP,
-//! \return TRUE (1) if no error, FALSE (0) if an error is detected
+//! Print a summary of the records found in the given file (including any linked files)
+//! \return a negative number if there was an error, TRUE (1) if all was OK
 int32_t fst24_print_summary(
-    fst_file* file,                   //!< [in] file pointer
-    const fst_record_fields* fields   //!< [in] descriptions of metadata fields to display
+    fst_file* file,                     //!< Handle to an open file
+    const fst_record_fields* fields     //!< [optional] What fields we want to see printed
 );
 ```
 

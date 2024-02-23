@@ -94,6 +94,7 @@ int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj,
 int c_fstcheck_xdf(const char *filePath);
 int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
+int c_fstckp_xdf(const int iun);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
@@ -125,5 +126,6 @@ int c_fstprm_rsf(RSF_handle file_handle, int handle, int *dateo, int *deet, int 
                  int *extra1, int *extra2, int *extra3);
 int c_fstsui_rsf(int iun, const int index_fnom, int *ni, int *nj, int *nk);
 int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options);
+int32_t c_fstckp_rsf(const int iun, const int index_fnom);
 
 #endif // FSTD98_INTERNAL_H__

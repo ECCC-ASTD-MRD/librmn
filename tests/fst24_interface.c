@@ -3,12 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <rmn/fst_file.h>
+#include <rmn.h>
 #include <App.h>
 #include <Meta.h>
 
 const char* test_file_names[3] = {
-    "fst24_interface.fst",
+    "fst24_interface1.fst",
     "fst24_interface2.fst",
     "fst24_interface3.fst"
 };
@@ -101,6 +101,11 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
             return -1;
         }
 
+        if (fst24_checkpoint(new_file) < 0) {
+            App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
+            return -1;
+        }
+
         record.ip1++;
         if (fst24_write(new_file, &record, FALSE) < 0) {
             App_Log(APP_ERROR, "Unable to write record (2) to new file %s\n", name);
@@ -114,14 +119,29 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         }
     }
 
+    if ((new_file->type == FST_RSF) != is_rsf) {
+        App_Log(APP_ERROR, "File has wrong type! %s, but should be %s\n",
+                fst_file_type_name[new_file->type], is_rsf ? fst_file_type_name[FST_RSF] : fst_file_type_name[FST_XDF]);
+        return -1;
+    }
+
     ///////////////////////////
     // Close the new file
-    if (fst24_close(new_file) < 0) {
+    if (fst24_close(new_file) <= 0) {
         App_Log(APP_ERROR, "Unable to close new file %s\n", name);
         return -1;
     }
 
     free(new_file);
+
+    const int32_t type = c_wkoffit(name, strlen(name));
+    if ((type == WKF_STDRSF && is_rsf) || (type == WKF_RANDOM98 && !is_rsf)) {
+        // we're good
+    }
+    else {
+        App_Log(APP_ERROR, "wkoffit gives wrong file type (%s vs %d)\n", is_rsf ? "rsf" : "xdf", type);
+        return -1;
+    }
 
     if (!fst24_is_valid(name)) {
         App_Log(APP_ERROR, "Newly created file \"%s\" is not valid\n", name);
@@ -179,10 +199,8 @@ int test_fst24_interface(const int is_rsf) {
         keys[num_found] = record.handle;
         num_found++;
 
-        expected.handle = record.handle; // Determined at read time
-        expected.dasiz = record.dasiz;   // Determined at write time
         expected.ip1 = num_found;
-        if (!fst24_record_is_same(&record, &expected)) {
+        if (!fst24_record_has_same_info(&record, &expected)) {
             App_Log(APP_ERROR, "Record read from file is not identical to the one written! (num_found = %d)\n", num_found);
             fst24_record_print(&record);
             fst24_record_diff(&record, &expected);
@@ -230,10 +248,8 @@ int test_fst24_interface(const int is_rsf) {
     while (fst24_read_next(test_file, &record) > 0) {
         num_found++;
 
-        expected.handle = record.handle; // Determined at read time
-        expected.dasiz = record.dasiz;   // Determined at write time
         expected.ip1 = num_found;
-        if (!fst24_record_is_same(&record, &expected)) {
+        if (!fst24_record_has_same_info(&record, &expected)) {
             App_Log(APP_ERROR, "Record read from file is not identical to the one written! (num_found = %d)\n", num_found);
             fst24_record_print(&record);
             fst24_record_diff(&record, &expected);
@@ -259,11 +275,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    expected.handle = all_records[0].handle; // Determined at read time
-    expected.dasiz = all_records[0].dasiz;   // Determined at write time
     expected.ip1 = 1;
-
-    if (!fst24_record_is_same(&all_records[0], &expected)) {
+    if (!fst24_record_has_same_info(&all_records[0], &expected)) {
         App_Log(APP_ERROR, "Record read from file is not identical to the one written! (num_found = %d)\n", num_found);
         fst24_record_print(&all_records[0]);
         fst24_record_diff(&all_records[0], &expected);
@@ -278,11 +291,8 @@ int test_fst24_interface(const int is_rsf) {
     }
 
     for (int i = 0; i < 3; i++) {
-        expected.handle = all_records[i].handle; // Determined at read time
-        expected.dasiz = all_records[i].dasiz;   // Determined at write time
         expected.ip1 = i + 1;
-
-        if (!fst24_record_is_same(&all_records[i], &expected)) {
+        if (!fst24_record_has_same_info(&all_records[i], &expected)) {
             App_Log(APP_ERROR, "Record read from file is not identical to the one written! (num_found = %d)\n", num_found);
             fst24_record_print(&all_records[i]);
             fst24_record_diff(&all_records[i], &expected);
@@ -307,7 +317,7 @@ int test_fst24_interface(const int is_rsf) {
     file_list[2] = fst24_open(test_file_names[2], options2);
 
     if (file_list[1] == NULL || file_list[2] == NULL) {
-        App_Log(APP_ERROR, "Unable to create other files for link tests\n");
+        App_Log(APP_ERROR, "Unable to open other files for link tests\n");
         return -1;
     }
 
@@ -349,12 +359,10 @@ int test_fst24_interface(const int is_rsf) {
         while (fst24_find_next(test_file, &result)) {
             num_found++;
 
-            expected.handle = result.handle; // Determined at read time
-            expected.dasiz = result.dasiz;   // Determined at write time
             expected.ip1 = num_found;
             expected.ip2 = test_record.ip2 + 1;
             expected.ip3 = test_record.ip3 + 1;
-            if (!fst24_record_is_same(&result, &expected)) {
+            if (!fst24_record_has_same_info(&result, &expected)) {
                 App_Log(APP_ERROR, "Record read from file is not identical to the one written! (num_found = %d)\n", num_found);
                 fst24_record_print(&result);
                 fst24_record_diff(&result, &expected);
@@ -392,12 +400,14 @@ int test_fst24_interface(const int is_rsf) {
             return -1;
         }
 
+        App_Log(APP_INFO, "Find all (should be 6)\n");
         if (fst24_find_all(test_file, results, 10) != 6) {
-            App_Log(APP_ERROR, "Find all should have found 3\n");
+            App_Log(APP_ERROR, "Find all should have found 6\n");
             return -1;
         }
 
-        fst24_set_search_criteria(test_file, &default_fst_record); // Rewind search
+        App_Log(APP_INFO, "Read all, one by one\n");
+        fst24_set_search_criteria(test_file, &default_fst_record); // Reset search
         num_found = 0;
         while (fst24_read_next(test_file, &record) > 0) {
             num_found++;
@@ -413,12 +423,17 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_close(test_file) < 0 || fst24_close(file_list[1]) < 0 || fst24_close(file_list[2]) < 0) {
+    if (fst24_close(test_file) <= 0 || fst24_close(file_list[1]) <= 0 || fst24_close(file_list[2]) <= 0) {
         App_Log(APP_ERROR, "Unable to close file %s\n", test_file_names[0]);
         return -1;
     }
 
     App_Log(APP_INFO, "A few calls that should fail\n");
+    if (fst24_read(&record) > 0) {
+        App_Log(APP_ERROR, "Should not be able to read record data when file is closed\n");
+        return -1;
+    }
+
     if (fst24_link(file_list, 3)) {
         App_Log(APP_ERROR, "Should not be able to link closed files\n");
         return -1;
