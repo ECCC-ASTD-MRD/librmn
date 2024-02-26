@@ -53,7 +53,8 @@ int32_t fst24_is_valid(const char* filename) {
 //! \return A handle to the opened file. NULL if there was an error
 fst_file* fst24_open(
     const char* file_name,  //!< Path of the file to open
-    const char* options     //!< A list of options, as a string, with each pair of options separated by a comma or a '+'
+    const char* options,    //!< A list of options, as a string, with each pair of options separated by a comma or a '+'
+    const int32_t parallel_segment_size_mb //!< If > 0, open this file for parallel write, with segments of that size (in MB)
 ) {
     fst_file* the_file = (fst_file *)malloc(sizeof(fst_file));
     if (the_file == NULL) return NULL;
@@ -66,7 +67,7 @@ fst_file* fst24_open(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
 
     if (c_fnom(&(the_file->iun), file_name, local_options, 0) != 0) return NULL;
-    if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
+    if (c_fstouv_2(the_file->iun, local_options, parallel_segment_size_mb) < 0) return NULL;
 
     // Find type of newly-opened file (RSF or XDF)
     int index_fnom;
@@ -81,6 +82,9 @@ fst_file* fst24_open(
         the_file->type = FST_XDF;
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
+
+    // Reset search criteria, so that we can just start reading everyting
+    fst24_set_search_criteria(the_file, &default_fst_record);
 
     return the_file;
 }

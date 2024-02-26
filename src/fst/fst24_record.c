@@ -16,7 +16,6 @@ fst_record fst24_record_new(
     int32_t nj,     //!< J horizontal size
     int32_t nk      //!< K vertical size
 ) {
-
     fst_record result = default_fst_record;
 
     result.ni=ni;

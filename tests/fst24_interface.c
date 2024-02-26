@@ -83,7 +83,7 @@ int check_content(const float* content, const float* expected, const int num_ele
 int32_t create_file(const char* name, const int is_rsf, const int ip2, const int ip3) {
     remove(name);
     const char* options = is_rsf ? "RND+R/W+RSF" : "RND+R/W+XDF";
-    fst_file* new_file = fst24_open(name, options);
+    fst_file* new_file = fst24_open(name, options, 0);
     if (new_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", name, options);
         return -1;
@@ -159,7 +159,7 @@ int test_fst24_interface(const int is_rsf) {
     /////////////////////////////
     // Open existing file
     const char* options2 = "RND+R/O";
-    fst_file* test_file = fst24_open(test_file_names[0], options2);
+    fst_file* test_file = fst24_open(test_file_names[0], options2, 0);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open newly-created test file with name %s and options %s\n", test_file_names[0], options2);
         return -1;
@@ -313,8 +313,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    file_list[1] = fst24_open(test_file_names[1], options2);
-    file_list[2] = fst24_open(test_file_names[2], options2);
+    file_list[1] = fst24_open(test_file_names[1], options2, 0);
+    file_list[2] = fst24_open(test_file_names[2], options2, 0);
 
     if (file_list[1] == NULL || file_list[2] == NULL) {
         App_Log(APP_ERROR, "Unable to open other files for link tests\n");
