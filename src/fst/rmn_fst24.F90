@@ -10,7 +10,7 @@ module rmn_fst24
     include 'fst24_interface.inc'
 
 
-    type :: fst24_file
+    type :: fst_file
         private
         type(C_PTR) :: file_ptr = c_null_ptr ! Pointer to C file control structure
     contains
@@ -30,7 +30,7 @@ module rmn_fst24
         procedure, pass :: checkpoint => fst24_file_checkpoint
         procedure, pass :: print_summary => fst24_file_print_summary
         procedure, pass :: unlink => fst24_file_unlink
-    end type fst24_file
+    end type fst_file
 
     interface
         subroutine libc_free(ptr) BIND(C, name='free')
@@ -58,7 +58,7 @@ contains
     !> \result Check whether this file is open
     function fst24_file_is_open(this) result(is_open)
         implicit none
-        class(fst24_file), intent(in) :: this !< fst24_file instance
+        class(fst_file), intent(in) :: this !< fst24_file instance
         logical :: is_open !< Whether this file is open
         
         integer(C_INT32_T) :: c_is_open
@@ -70,7 +70,7 @@ contains
     end function fst24_file_is_open
 
     function fst24_file_open(this, filename, options) result(could_open)
-        class(fst24_file),intent(inout)        :: this     !< fst24_file instance
+        class(fst_file),intent(inout)        :: this     !< fst24_file instance
         character(len=*), intent(in)           :: filename !< Name of the file we want to open
         character(len=*), intent(in), optional :: options  !< Additional options to pass
 
@@ -95,7 +95,7 @@ contains
 
     function fst24_file_close(this) result(could_close)
         implicit none
-        class(fst24_file), intent(inout) :: this
+        class(fst_file), intent(inout) :: this
         logical :: could_close
 
         integer(C_INT32_T) :: c_could_close
@@ -111,7 +111,7 @@ contains
     !> \sa fst24_get_num_records
     function fst24_file_get_num_records(this) result(num_records)
         implicit none
-        class(fst24_file), intent(in) :: this
+        class(fst_file), intent(in) :: this
         integer(C_INT64_T) :: num_records
         num_records = fst24_get_num_records(this % file_ptr)
     end function fst24_file_get_num_records
@@ -120,7 +120,7 @@ contains
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket) result(success)
         implicit none
-        class(fst24_file), intent(inout) :: this
+        class(fst_file), intent(inout) :: this
         integer(C_INT64_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -165,8 +165,8 @@ contains
 
     function fst24_file_find_next(this, record) result(found)
         implicit none
-        class(fst24_file), intent(in) :: this
-        type(fst24_record), intent(inout) :: record
+        class(fst_file), intent(in) :: this
+        type(fst_record), intent(inout) :: record
         logical :: found
 
         integer(C_INT32_T) :: c_result
@@ -183,8 +183,8 @@ contains
 
     function fst24_file_find_all(this, records) result(num_found)
         implicit none
-        class(fst24_file), intent(in) :: this
-        type(fst24_record), dimension(:), intent(inout) :: records
+        class(fst_file), intent(in) :: this
+        type(fst_record), dimension(:), intent(inout) :: records
         integer(C_INT32_T) :: num_found
 
         integer(C_INT32_T) :: max_num_records, c_status
@@ -204,8 +204,8 @@ contains
 
     function fst24_file_read_next(this, record) result(found)
         implicit none
-        class(fst24_file), intent(in) :: this
-        type(fst24_record), intent(inout) :: record
+        class(fst_file), intent(in) :: this
+        type(fst_record), intent(inout) :: record
         logical :: found
 
         integer(C_INT32_T) :: c_result
@@ -221,8 +221,8 @@ contains
 
     function fst24_file_write(this, record, rewrite) result(success)
         implicit none
-        class(fst24_file),  intent(inout) :: this
-        type(fst24_record), intent(inout) :: record
+        class(fst_file),  intent(inout) :: this
+        type(fst_record), intent(inout) :: record
         logical, intent(in), optional     :: rewrite
         logical :: success
 
@@ -243,7 +243,7 @@ contains
 
     function fst24_file_checkpoint(this) result(success)
         implicit none
-        class(fst24_file), intent(inout) :: this
+        class(fst_file), intent(inout) :: this
         logical :: success
 
         integer(C_INT32_T) :: c_status
@@ -257,7 +257,7 @@ contains
             dateo, datev, datestamps, level, datyp, ni, nj, nk,                                                     &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
         implicit none
-        class(fst24_file), intent(in) :: this
+        class(fst_file), intent(in) :: this
         logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket
@@ -274,7 +274,7 @@ contains
 
     function fst24_link(files) result(success)
         implicit none
-        type(fst24_file), dimension(:), intent(inout) :: files
+        type(fst_file), dimension(:), intent(inout) :: files
         logical :: success
 
         type(C_PTR), dimension(size(files)), target :: c_files
@@ -295,7 +295,7 @@ contains
 
     function fst24_file_unlink(this) result(success)
         implicit none
-        class(fst24_file), intent(inout) :: this
+        class(fst_file), intent(inout) :: this
         logical :: success
 
         integer(C_INT32_T) :: c_status

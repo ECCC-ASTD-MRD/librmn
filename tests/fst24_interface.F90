@@ -15,7 +15,7 @@ module test_fst24_interface_module
     integer, parameter :: DATA_SIZE = 1024
 
     real(real32), dimension(:,:), pointer :: test_data
-    type(fst24_record) :: test_record
+    type(fst_record) :: test_record
 
 contains
 
@@ -109,8 +109,8 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
     logical :: success
 
     character(len=:), allocatable :: options
-    type(fst24_file) :: new_file
-    type(fst24_record) :: new_record
+    type(fst_file) :: new_file
+    type(fst_record) :: new_record
 
     success = .false.
 
@@ -193,9 +193,9 @@ function test_fst24_interface(is_rsf) result(success)
     logical, intent(in) :: is_rsf
     logical :: success
 
-    type(fst24_file) :: test_file
+    type(fst_file) :: test_file
     type(fst_record_fields) :: fields
-    type(fst24_record) :: expected, record
+    type(fst_record) :: expected, record
     integer :: num_found
     real(kind = real32), dimension(:, :), pointer :: data
 
@@ -311,7 +311,7 @@ function test_fst24_interface(is_rsf) result(success)
     ! // Find all
     call app_log(APP_INFO, 'Testing find_all')
     block
-        type(fst24_record), dimension(5) :: all_records
+        type(fst_record), dimension(5) :: all_records
         integer :: i
 
         num_found = test_file % find_all(all_records(1:1))
@@ -359,8 +359,8 @@ function test_fst24_interface(is_rsf) result(success)
     ! /////////////////////////////////////////
     ! // Everything again, with linked files
     block
-        type(fst24_file), dimension(3) :: file_list
-        type(fst24_record), dimension(10) :: results
+        type(fst_file), dimension(3) :: file_list
+        type(fst_record), dimension(10) :: results
         integer(C_INT64_T) :: num_records
 
         file_list(1) = test_file

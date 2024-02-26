@@ -24,8 +24,8 @@ subroutine generate_file(filename, is_rsf)
     character(len=4000) :: cmd
     character(len=3) :: filetype
     integer :: i
-    type(fst24_file) :: the_file
-    type(fst24_record) :: record
+    type(fst_file) :: the_file
+    type(fst_record) :: record
     logical :: success
 
     ! Remove file so that we have a fresh start

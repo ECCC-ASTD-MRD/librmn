@@ -14,7 +14,7 @@ module rmn_fst24_record
     public :: fst_record_fields, fst_record_c
     public :: fst24_is_default_record_valid, fst24_make_fields
 
-    type, public :: fst24_record
+    type, public :: fst_record
         type(fst_record_c), private :: c_self !< bind(C) version of this struct, to interface with C implementation
 
         type(C_PTR) :: data     = C_NULL_PTR
@@ -60,14 +60,14 @@ module rmn_fst24_record
         procedure, pass :: print        => fst24_record_print
         procedure, pass :: print_short  => fst24_record_print_short
 
-    end type fst24_record
+    end type fst_record
 
 contains
 
     !> Fill the fields of c_self with current values
     subroutine fst24_record_make_c_self(this)
         implicit none
-        class(fst24_record), intent(inout) :: this
+        class(fst_record), intent(inout) :: this
 
         this % c_self % data     = this % data
         this % c_self % metadata = this % metadata
@@ -104,7 +104,7 @@ contains
     !> Retrieve values from c_self into this
     subroutine fst24_record_from_c_self(this)
         implicit none
-        class(fst24_record), intent(inout) :: this
+        class(fst_record), intent(inout) :: this
 
         this % data     = this % c_self % data
         this % metadata = this % c_self % metadata
@@ -140,15 +140,15 @@ contains
 
     function fst24_record_get_c_ptr(this) result(ptr)
         implicit none
-        class(fst24_record), intent(in), target :: this
+        class(fst_record), intent(in), target :: this
         type(C_PTR) :: ptr
         ptr = c_loc(this % c_self)
     end function fst24_record_get_c_ptr
 
     function fst24_record_has_same_info(this, other) result(has_same_info)
         implicit none
-        class(fst24_record), intent(inout) :: this
-        type(fst24_record),  intent(inout) :: other
+        class(fst_record), intent(inout) :: this
+        type(fst_record),  intent(inout) :: other
         logical :: has_same_info
 
         integer(C_INT32_T) :: c_status
@@ -162,7 +162,7 @@ contains
 
     function fst24_record_read(this) result(success)
         implicit none
-        class(fst24_record), intent(inout) :: this
+        class(fst_record), intent(inout) :: this
         logical :: success
 
         integer(C_INT32_T) :: c_status
@@ -177,7 +177,7 @@ contains
 
     function fst24_record_read_metadata(this) result(success)
         implicit none
-        class(fst24_record), intent(inout) :: this
+        class(fst_record), intent(inout) :: this
         logical :: success
 
         type(C_PTR) :: metadata
@@ -209,7 +209,7 @@ contains
 
     subroutine fst24_record_print(this)
         implicit none
-        class(fst24_record), intent(inout) :: this
+        class(fst_record), intent(inout) :: this
         call this % make_c_self()
         call fst24_record_print_c(this % get_c_ptr())
     end subroutine fst24_record_print
@@ -218,7 +218,7 @@ contains
             this, prefix, print_header, dateo, datev, datestamps, level, datyp, ni, nj, nk,                         &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
         implicit none
-        class(fst24_record), intent(inout) :: this
+        class(fst_record), intent(inout) :: this
         character(len=*), intent(in), optional :: prefix
         logical, intent(in), optional :: print_header
         logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
