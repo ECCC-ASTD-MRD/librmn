@@ -12,7 +12,7 @@ json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
 double levels[1]= { 1000.0 };
 
 
-int test_fst24_interface(const int is_rsf) {
+int test_fst24_meta(void) {
 
     // Create some arbitrary data field
     const int DATA_SIZE = 1024;
@@ -29,7 +29,7 @@ int test_fst24_interface(const int is_rsf) {
 
     // Create file
     remove(test_file_name);
-    const char* options1 = is_rsf ? "RND+R/W+RSF" : "RND+R/W";
+    const char* options1 = "RND+R/W+RSF";
     fst_file* test_file = fst24_open(test_file_name, options1);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_file_name, options1);
@@ -105,7 +105,7 @@ int test_fst24_interface(const int is_rsf) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
-     strcpy(record.nomvar, "Sun ");
+      strcpy(record.nomvar, "Sun ");
       Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus","hot");
       if (fst24_write(test_file, &record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
@@ -213,10 +213,7 @@ int test_fst24_interface(const int is_rsf) {
 int main(void) {
 
    App_Log(APP_INFO, "Testing RSF\n");
-   if (test_fst24_interface(1) != 0) return -1; // RSF files
-
-//    App_Log(APP_INFO, "Testing XDF\n");
-//    if (test_fst24_interface(0) != 0) return -1; // XDF files
+   if (test_fst24_meta() != 0) return -1; // RSF files
 
    App_Log(APP_INFO, "Tests successful\n");
    return 0;
