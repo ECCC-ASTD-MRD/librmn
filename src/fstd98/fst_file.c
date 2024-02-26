@@ -58,6 +58,7 @@ fst_file* fst24_open(
     const int MAX_LENGTH = 1024;
     char local_options[MAX_LENGTH];
     snprintf(local_options, MAX_LENGTH, "RND+%s", options);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
 
     if (c_fnom(&(the_file->iun), file_name, local_options, 0) != 0) return NULL;
     if (c_fstouv(the_file->iun, local_options) < 0) return NULL;

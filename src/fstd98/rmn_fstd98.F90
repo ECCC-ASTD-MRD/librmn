@@ -17,60 +17,6 @@ module rmn_fstd98
 #define C_INTERFACE_ONLY
 #include <fstd98/fstd98_interface.hf>
 
-  type :: fstd98
-    integer     :: iun = -1                  ! Fortran unit number
-  contains
-
-    procedure, PASS(this) :: ckp
-    procedure, PASS(this) :: ouviun
-    procedure, PASS(this) :: ouvauto
-    GENERIC :: ouv => ouviun, ouvauto
-    procedure, PASS(this) :: nbr
-    procedure, PASS(this) :: nbrv
-    procedure, PASS(this) :: inf
-    procedure, PASS(this) :: sui
-    procedure, PASS(this) :: inl
-    procedure, PASS(this) :: infx
-    procedure, PASS(this) :: lir
-    procedure, PASS(this) :: lir_d
-    procedure, PASS(this) :: lir_h
-    procedure, PASS(this) :: lir_b
-    procedure, PASS(this) :: lir_s
-    procedure, PASS(this) :: lirx
-    procedure, PASS(this) :: lis
-    procedure, PASS(this) :: ecr
-    procedure, PASS(this) :: ecr_d
-    procedure, PASS(this) :: ecr_h
-    procedure, PASS(this) :: ecr_b
-    procedure, PASS(this) :: ecr_s
-    procedure, PASS(this) :: frm
-    ! procedure, PASS(this) :: skp
-    ! procedure, PASS(this) :: rwd
-    procedure, PASS(this) :: voi
-    ! procedure, PASS(this) :: weo
-    procedure, PASS(this) :: is_rsf => fstd98_is_rsf
-    procedure, PASS(this) :: msq
-    procedure, NOPASS     :: ver => fst_version
-    procedure, NOPASS     :: opi => fstopi
-    procedure, NOPASS     :: opl => fstopl
-    procedure, NOPASS     :: opr => fstopr
-    procedure, NOPASS     :: opc => fstopc
-    procedure, NOPASS     :: eff => fsteff
-    procedure, NOPASS     :: prm => fstprm
-    procedure, NOPASS     :: luk => fstluk
-    procedure, NOPASS     :: lnk => fstlnk
-    procedure, NOPASS     :: unl => fstunl
-    procedure, NOPASS     :: data_length => fst_data_length
-    procedure, NOPASS     :: check => fstcheck
-    procedure, NOPASS     :: reset_ip_flags => fstreset_ip_flags
-    procedure, NOPASS     :: ip1_all
-    procedure, NOPASS     :: ip2_all
-    procedure, NOPASS     :: ip3_all
-    procedure, NOPASS     :: ip1_val
-    procedure, NOPASS     :: ip2_val
-    procedure, NOPASS     :: ip3_val
-  end type
-
   interface
     function memset(s, byte, n) result(p) bind(C, name='memset')
       import :: C_PTR, C_SIZE_T, C_INT
@@ -111,34 +57,11 @@ module rmn_fstd98
   end interface
 
   interface
-  module function ouviun(this, iun, options) result (status) ! calls fstouv
-    implicit none
-    class(fstd98), intent(INOUT) :: this
-    integer(C_INT), intent(IN) :: iun
-    character(len=*), intent(IN) :: options
-    integer(C_INT) :: status
-  end function ouviun
-  module function ouvauto(this, name, options) result (status) ! calls fnom and fstouv
-    implicit none
-    class(fstd98), intent(INOUT) :: this
-    character(len=*), intent(IN) :: name
-    character(len=*), intent(IN), optional :: options
-    integer(C_INT) :: status
-  end function ouvauto
-  end interface
-
-  interface
   module function fstfrm(iun) result (status)
 !     implicit none
     integer(C_INT), intent(IN) :: iun
     integer(C_INT) :: status
   end function fstfrm
-
-  module function frm(this) result (status)
-    implicit none
-    class(fstd98), intent(INOUT) :: this
-    integer(C_INT) :: status
-  end function frm
   end interface
 
   interface
@@ -207,15 +130,6 @@ module rmn_fstd98
     integer(C_INT) :: handle
   end function fstinf
 
-  module function inf(this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function inf
-
 !  /***************************************************************************** 
 !  *                            F S T S U I                                    *
 !  *                                                                           * 
@@ -236,13 +150,6 @@ module rmn_fstd98
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT) :: handle
   end function fstsui
-
-  module function sui(this, ni, nj, nk) result(handle)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT) :: handle
-  end function sui
 
 ! /***************************************************************************** 
 !  *                              F S T I N F X                                *
@@ -276,16 +183,6 @@ module rmn_fstd98
     character(len=*), intent(IN) :: typvar, nomvar, etiket
     integer(C_INT) :: handle
   end function fstinfx
-
-  module function infx(this, start, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: start
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function infx
 
 ! /***************************************************************************** 
 !  *                              F S T I N L                                  *
@@ -322,16 +219,6 @@ module rmn_fstd98
     integer(C_INT) :: status
   end function fstinl
 
-  module function inl(this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax) result(status)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3, nmax
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: status
-    integer(C_INT), intent(OUT) :: infon
-    integer(C_INT), dimension(nmax), intent(OUT) :: liste
-  end function inl
   end interface
 
   interface
@@ -405,20 +292,6 @@ module rmn_fstd98
     integer(C_INT) :: status
   end function fstvoi
 
-  module function voi(this, options) result(status)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    character(len=*), intent(IN) :: options
-    integer(C_INT) :: status
-  end function voi
-
-  !> \return Whether the associated file is open and of type RSF
-  module function fstd98_is_rsf(this) result(is_rsf)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    logical :: is_rsf
-  end function fstd98_is_rsf
-
 ! /***************************************************************************** 
 !  *                           F S T  _ V E R S I O N                          *
 !  *                                                                           * 
@@ -454,12 +327,6 @@ module rmn_fstd98
     integer(C_INT) :: nrec
   end function fstnbr
 
-  module function nbr(this) result (nrec)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT) :: nrec
-  end function nbr
-
 ! /***************************************************************************** 
 !  *                              F S T N B R V                                *
 !  *                                                                           * 
@@ -477,12 +344,6 @@ module rmn_fstd98
     integer(C_INT), intent(IN) :: iun
     integer(C_INT) :: status
   end function fstnbrv
-
-  module function nbrv(this) result (nrecv)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT) :: nrecv
-  end function nbrv
 
 !  /*****************************************************************************
 !  *                              F S T C H E C K                              *
@@ -564,19 +425,6 @@ module rmn_fstd98
     integer(C_INT) :: handle
   end function fstlirx
 
-  module function lirx(field, start, this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-#define IgnoreTypeKindRank field
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: start
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function lirx
-
 ! /***************************************************************************** 
 !  *                              F S T L I R                                  *
 !  *                                                                           * 
@@ -611,18 +459,6 @@ module rmn_fstd98
     integer(C_INT) :: handle
   end function fstlir
 
-  module function lir(field, this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-#define IgnoreTypeKindRank field
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function lir
-
   module function fstlir_d(dblewords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
 #define IgnoreTypeKindRank dblewords
@@ -634,18 +470,6 @@ module rmn_fstd98
     character(len=*), intent(IN) :: typvar, nomvar, etiket
     integer(C_INT) :: handle
   end function fstlir_d
-
-  module function lir_d(dblewords, this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-#define IgnoreTypeKindRank dblewords
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function lir_d
 
   module function fstlir_h(halfwords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
@@ -659,18 +483,6 @@ module rmn_fstd98
     integer(C_INT) :: handle
   end function fstlir_h
 
-  module function lir_h(halfwords, this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-#define IgnoreTypeKindRank halfwords
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function lir_h
-
   module function fstlir_b(bytes, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
 #define IgnoreTypeKindRank bytes
@@ -682,18 +494,6 @@ module rmn_fstd98
     character(len=*), intent(IN) :: typvar, nomvar, etiket
     integer(C_INT) :: handle
   end function fstlir_b
-
-  module function lir_b(bytes, this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-    implicit none
-#define IgnoreTypeKindRank bytes
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function lir_b
 
 ! /***************************************************************************** 
 !  *                              F S T L I R _ S                              *
@@ -735,18 +535,6 @@ module rmn_fstd98
     integer(C_INT) :: handle
   end function fstlir_s
 
-  module function lir_s(field, this, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, lngstr) result(handle)
-    implicit none
-#define IgnoreTypeKindRank field
-#define ExtraAttributes ,target
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3, lngstr
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer(C_INT) :: handle
-  end function lir_s
-
 ! /***************************************************************************** 
 !  *                            F S T L I S                                    *
 !  *                                                                           * 
@@ -774,16 +562,6 @@ module rmn_fstd98
     integer(C_INT), intent(OUT) :: ni, nj, nk
     integer(C_INT) :: handle
   end function fstlis
-
-  module function lis(field, this, ni, nj, nk) result(handle)
-    implicit none
-#define IgnoreTypeKindRank field
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(OUT) :: ni, nj, nk
-    integer(C_INT) :: handle
-  end function lis
 
 ! /***************************************************************************** 
 !  *                             F S T L I C                                   *
@@ -890,20 +668,6 @@ module rmn_fstd98
     integer(C_INT) :: status
   end function fstecr_fn
 
-  module function ecr(field, work, npak, this, date, deet, npas, ni, nj, nk, &
-                  ip1, ip2, ip3, typvar, nomvar, etiket, &
-                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
-    implicit none
-#define IgnoreTypeKindRank field, work
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
-    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-    integer(C_INT) :: status
-  end function ecr
-
   module subroutine fstecr_d(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                       ip1, ip2, ip3, typvar, nomvar, etiket, &
                       grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
@@ -916,19 +680,6 @@ module rmn_fstd98
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
   end subroutine fstecr_d
-
-  module subroutine ecr_d(dblewords, work, npak, this, date, deet, npas, ni, nj, nk, &
-                  ip1, ip2, ip3, typvar, nomvar, etiket, &
-                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
-    implicit none
-#define IgnoreTypeKindRank dblewords, work
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
-    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-  end subroutine ecr_d
 
   module subroutine fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                       ip1, ip2, ip3, typvar, nomvar, etiket, &
@@ -943,19 +694,6 @@ module rmn_fstd98
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
   end subroutine fstecr_h
 
-  module subroutine ecr_h(halfwords, work, npak, this, date, deet, npas, ni, nj, nk, &
-                  ip1, ip2, ip3, typvar, nomvar, etiket, &
-                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
-    implicit none
-#define IgnoreTypeKindRank halfwords, work
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
-    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-  end subroutine ecr_h
-
   module subroutine fstecr_b(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
                       ip1, ip2, ip3, typvar, nomvar, etiket, &
                       grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
@@ -968,19 +706,6 @@ module rmn_fstd98
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
   end subroutine fstecr_b
-
-  module subroutine ecr_b(bytes, work, npak, this, date, deet, npas, ni, nj, nk, &
-                  ip1, ip2, ip3, typvar, nomvar, etiket, &
-                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
-    implicit none
-#define IgnoreTypeKindRank bytes, work
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
-    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-  end subroutine ecr_b
 
 ! /***************************************************************************** 
 !  *                              F S T E C R _ S                              *
@@ -1029,20 +754,6 @@ module rmn_fstd98
     integer(C_INT) :: status
   end function fstecr_s
 
-  module function ecr_s(field, work, npak, this, date, deet, npas, ni, nj, nk, &
-                 ip1, ip2, ip3, typvar, nomvar, etiket, &
-                 grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
-    implicit none
-#define IgnoreTypeKindRank field, work
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
-    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-    integer(C_INT) :: status
-  end function ecr_s
-
   module function fstecr_str(string, work, npak, iun, date, deet, npas, ni, nj, nk, &
                       ip1, ip2, ip3, typvar, nomvar, etiket, &
                       grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
@@ -1057,21 +768,6 @@ module rmn_fstd98
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
     integer(C_INT) :: status
   end function fstecr_str
-
-  module function ecr_str(string, work, npak, this, date, deet, npas, ni, nj, nk, &
-                   ip1, ip2, ip3, typvar, nomvar, etiket, &
-                   grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
-    implicit none
-    character(len=*), intent(IN) :: string
-#define IgnoreTypeKindRank work
-#define ExtraAttributes 
-#include <rmn/IgnoreTypeKindRank.hf>
-    class(fstd98), intent(IN) :: this
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
-    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-    integer(C_INT) :: status
-  end function ecr_str
 
 ! /***************************************************************************** 
 !  *                             F S T E F F                                   *
@@ -1300,11 +996,6 @@ module rmn_fstd98
     integer(C_INT), intent(IN) :: iun
     integer(C_INT) :: status
   end function fstckp
-  module function ckp(this) result (status)
-    implicit none
-    class(fstd98), intent(IN) :: this
-    integer(C_INT) :: status
-  end function ckp
 
 ! /*****************************************************************************
 !  *                            F S T M S Q                                    *
@@ -1330,15 +1021,6 @@ module rmn_fstd98
     integer(C_INT), intent(IN) :: getmode
     integer(C_INT) :: status
   end function fstmsq
-
-  module function msq(this, ip1, ip2, ip3, etiket, getmode) result(status)
-    implicit none
-    class(fstd98), intent(INOUT) :: this
-    integer(C_INT), intent(INOUT) :: ip1, ip2, ip3
-    character(len=*), intent(INOUT) :: etiket
-    integer(C_INT), intent(IN) :: getmode
-    integer(C_INT) :: status
-  end function msq
 
   end interface
 
