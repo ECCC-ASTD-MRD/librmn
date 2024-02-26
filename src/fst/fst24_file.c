@@ -1,17 +1,22 @@
-#include "fst_file_internal.h"
-
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
 
 #include <App.h>
 #include <str.h>
-#include "fst_record_internal.h"
-#include "fstd98_internal.h"
+#include "fst24_record_internal.h"
+#include "fst98_internal.h"
 #include "qstdir.h"
 #include "rmn/fnom.h"
+#include "rmn/fst24_file.h"
 #include "xdf98.h"
 #include "Meta.h"
+
+int32_t fst24_get_iun(fst_file* file);
+int32_t fst24_find(fst_file* file, const fst_record* criteria, fst_record* result);
+int64_t fst24_get_num_records_single(const fst_file* file);
+int32_t fst24_get_record_from_key(fst_file* file, const int64_t key, fst_record* record);
+int32_t fst24_get_record_by_index(fst_file* file, const int64_t index, fst_record* record);
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise

@@ -9,7 +9,7 @@ module rmn_fst24_record
     private
 
     include 'fst24_interface.inc'
-#include "fst_record.hf"
+#include "fst24_record.hf"
 
     public :: fst_record_fields, fst_record_c
     public :: fst24_is_default_record_valid, fst24_make_fields

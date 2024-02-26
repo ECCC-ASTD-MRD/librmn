@@ -2,7 +2,7 @@
 //! Implementation of the FSTD98 interface to RSF files
 
 #include <App.h>
-#include "fstd98_internal.h"
+#include "fst98_internal.h"
 
 static inline size_t strlen_up_to(const char* string, const size_t max_length) {
     return Min(strlen(string), Max(max_length, 0));

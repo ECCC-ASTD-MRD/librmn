@@ -2,6 +2,6 @@
 #define RMN_FST_RECORD_HF__
 
 #define IN_FORTRAN_CODE
-#include "rmn/fst_record.h"
+#include "rmn/fst24_record.h"
 
 #endif // RMN_FST_RECORD_HF__

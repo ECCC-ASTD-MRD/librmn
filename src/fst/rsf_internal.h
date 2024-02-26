@@ -1,7 +1,7 @@
 #include "rmn/rsf.h"
 
 #include <App.h>
-#include "fstd98/qstdir.h"
+#include "qstdir.h"
 
 int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size) ;
 

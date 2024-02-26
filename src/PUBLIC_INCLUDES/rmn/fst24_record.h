@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "rmn/fstdsz.h"
+#include "rmn/fst_sz.h"
 
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 #define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*(REC->dasiz>>3))  //TODO define right size

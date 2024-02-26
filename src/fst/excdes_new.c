@@ -23,7 +23,7 @@
 #include <App.h>
 #include <rmn/rpnmacros.h>
 #include <rmn/convert_ip.h>
-#include <rmn/fstd98.h>
+#include <rmn/fst98.h>
 #include <rmn/excdes_new.h>
 
 #include "base/base.h"
@@ -36,7 +36,7 @@
   #define dbprint ;
 #endif
 
-// Defined in fstd98.c, but isn't public so it can't go in fstd98.h
+// Defined in fstd98.c, but isn't public so it can't go in fst98.h
 int FstCanTranslateName(char *varname);
 
 void RequetesInit() {

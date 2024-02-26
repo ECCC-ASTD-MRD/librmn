@@ -1,7 +1,7 @@
 ! this file contains several submodules and could possibly be split into several files
 ! the F2C_CHAR and F2C_TRIM macros might be needed in more thatn 1 file
 !
-submodule(rmn_fstd98) fstd98_file
+submodule(rmn_fst98) fst98_file
   implicit none
 ! #define F2C_CHAR(fstr)  (fstr//achar(0))
 ! #define F2C_TRIM(fstr) (trim(fstr)//achar(0))
@@ -97,7 +97,7 @@ contains
   end procedure
 end
 ! ==============================================================================
-submodule(rmn_fstd98) fstd_98_optn
+submodule(rmn_fst98) fstd_98_optn
   use f_c_strings_mod
   implicit none
 contains
@@ -265,7 +265,7 @@ contains
     end procedure
 end
 ! ==============================================================================
-submodule(rmn_fstd98) fstd_98_inf
+submodule(rmn_fst98) fstd_98_inf
   use f_c_strings_mod
   implicit none
 contains
@@ -391,7 +391,7 @@ contains
 
 end
 ! ==============================================================================
-submodule(rmn_fstd98) fstd_98_lir
+submodule(rmn_fst98) fstd_98_lir
   use f_c_strings_mod
   implicit none
 contains
@@ -612,7 +612,7 @@ contains
 
 end
 ! ==============================================================================
-submodule(rmn_fstd98) fstd_98_ecr
+submodule(rmn_fst98) fstd_98_ecr
   use f_c_strings_mod
   implicit none
 contains
@@ -786,7 +786,7 @@ contains
 
 end
 ! ==============================================================================
-submodule(rmn_fstd98) fstd_98_util
+submodule(rmn_fst98) fstd_98_util
   use f_c_strings_mod
   implicit none
 contains

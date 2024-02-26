@@ -1,4 +1,4 @@
-#include "fstd98/rsf_internal.h"
+#include "rsf_internal.h"
 
 static int32_t verbose = RSF_DIAG_WARN ;
 static char *diag_text[RSF_DIAG_DEBUG2+1] ;

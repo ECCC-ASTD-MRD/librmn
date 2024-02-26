@@ -66,11 +66,11 @@
 #endif
 
 #include <App.h>
-#include <rmn/fstd98.h>
+#include <rmn/fst98.h>
 #include <rmn/c_wkoffit.h>
 
-#include "fstd98/burp98.h"
-#include "fstd98/fstd98_internal.h"
+#include "fst/burp98.h"
+#include "fst/fst98_internal.h"
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;

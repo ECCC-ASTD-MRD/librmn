@@ -1,7 +1,7 @@
-#ifndef FSTD98_INTERNAL_H__
-#define FSTD98_INTERNAL_H__
+#ifndef fst98_internaL_H__
+#define fst98_internaL_H__
 
-#include <rmn/fstd98.h>
+#include <rmn/fst98.h>
 
 #include "armn_compress.h"
 #include "base/base.h"
@@ -128,4 +128,4 @@ int c_fstsui_rsf(int iun, const int index_fnom, int *ni, int *nj, int *nk);
 int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options);
 int32_t c_fstckp_rsf(const int iun, const int index_fnom);
 
-#endif // FSTD98_INTERNAL_H__
+#endif // fst98_internaL_H__

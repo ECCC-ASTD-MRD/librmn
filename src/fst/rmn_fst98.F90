@@ -1,11 +1,34 @@
-#include <fstd98/c_fstd98_interface.hf>
+! to use in Fortran code
+!  - the fstdxxx and c_fstdxxx interfaces
+!  - the fstd98 user defined type and associated type bound procedures
 !
-! do not include the interface to the Fortran functions if C_INTERFACE_ONLY is defined
-! (used by fstd98_mod.F90 to avoid duplicate interfaces)
+! use rmn_fst98
 !
-#if ! defined(C_INTERFACE_ONLY)
+! WARNING : this is MUTUALLY EXCLUSIVE with
+! #include <fst98_interface.hf>
+! (will only get the direct fstdxxx and c_fstdxxx interfaces to librmn functions/subprograms)
+!
+! use rmn_fst98 will cause the direct fstxxx entry points from librmn to be ignored
+! and use instead the equivalent procedures from the module and associated sub modules
+!
+module rmn_fst98
+  use rmn_common
+  implicit none
+#define C_INTERFACE_ONLY
+#include "fst98_interface.hf"
 
-interface
+  interface
+    function memset(s, byte, n) result(p) bind(C, name='memset')
+      import :: C_PTR, C_SIZE_T, C_INT
+      implicit none
+      type(C_PTR), intent(IN), VALUE :: s
+      integer(C_INT), intent(IN), VALUE :: byte
+      integer(C_SIZE_T), intent(IN), VALUE :: n
+      type(C_PTR) :: p
+    end function memset
+  end interface
+
+  interface fstouv
 ! /*****************************************************************************
 !  *                              F S T O U V                                  *
 !  *                                                                           *
@@ -18,82 +41,65 @@ interface
 !  *  IN  options random or sequential access                                  *
 !  *                                                                           *
 !  *****************************************************************************/
-  function fstouv(iun, options) result (status)
-
+  module function fstouv_iun(iun, options) result (status)
     implicit none
-    integer, intent(IN), value :: iun
+    integer(C_INT), intent(IN) :: iun
     character(len=*), intent(IN) :: options
-    integer :: status
-  end function fstouv
-! /***************************************************************************** 
-!  *                              F S T F R M                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Closes a RPN standard file.                                             *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstfrm(iun) result (status)
-
+    integer(C_INT) :: status
+  end function fstouv_iun
+  module function fstouv_auto(name, iun, options) result (status) ! calls fnom and fstouv
     implicit none
-    integer, intent(IN), value :: iun
-    integer :: status
+    integer(C_INT), intent(OUT) :: iun
+    character(len=*), intent(IN) :: name
+    character(len=*), intent(IN), optional :: options
+    integer(C_INT) :: status
+  end function fstouv_auto
+  end interface
+
+  interface
+  module function fstfrm(iun) result (status)
+!     implicit none
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT) :: status
   end function fstfrm
-! /***************************************************************************** 
-!  *                              F S T N B R                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns the number of records of the file associated with unit number.  *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstnbr(iun) result (nrec)
+  end interface
 
+  interface
+  ! /***************************************************************************** 
+  !  *                              F S T L N K                                  *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Links a list of files together for search purpose.                      *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *  IN  liste   list of unit numbers associated to the files                 * 
+  !  *  IN  n       number of files to link                                      * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
+  module function fstlnk(link_list,n) result(status) !bind(C,name='c_fstlnk')
     implicit none
-    integer, intent(IN), value :: iun
-    integer :: nrec
-  end function fstnbr
-! /***************************************************************************** 
-!  *                              F S T N B R V                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns the number of valid records (excluding deleted records) of the  *
-!  *   file associated with unit number.                                       *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstnbrv(iun) result (status)
+    integer(C_INT32_T), intent(IN) :: n
+    integer(C_INT32_T), dimension(n) :: link_list
+    integer(C_INT32_T) :: status
+  end function fstlnk
 
+  !  /***************************************************************************** 
+  !  *                              F S T U N L                                  *
+  !  *                                                                           * 
+  !  *Object                                                                     * 
+  !  *   Unlinks a list of files previously linked by fstlnk.                    *
+  !  *                                                                           * 
+  !  *Arguments                                                                  * 
+  !  *                                                                           * 
+  !  *****************************************************************************/
+  module function fstunl() result(status) !bind(C,name='c_fstunl')
     implicit none
-    integer, intent(IN), value :: iun
-    integer :: status
-  end function fstnbrv
-! /***************************************************************************** 
-!  *                                F S T C K P                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Checkpoint. Clear buffers, rewrite headers.                             *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstckp(iun) result (status)
+    integer(C_INT32_T) :: status
+  end function fstunl
+  end interface
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer :: status
-  end function fstckp
+  interface
 ! /***************************************************************************** 
 !  *                              F S T I N F                                  *
 !  *                                                                           * 
@@ -115,18 +121,15 @@ interface
 !  *  IN  nomvar  variable name                                                * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-
+  module function fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
     character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
-    character(len=5)  :: nom
-    character(len=3)  :: typ
-    character(len=13) :: eti
+    integer(C_INT) :: handle
   end function fstinf
+
 !  /***************************************************************************** 
 !  *                            F S T S U I                                    *
 !  *                                                                           * 
@@ -141,13 +144,13 @@ interface
 !  *  OUT nk      dimension 3 of the data field                                * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstsui(iun, ni, nj, nk) result(handle)
-
+  module function fstsui(iun, ni, nj, nk) result(handle)
     implicit none
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer :: handle
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT) :: handle
   end function fstsui
+
 ! /***************************************************************************** 
 !  *                              F S T I N F X                                *
 !  *                                                                           * 
@@ -171,18 +174,16 @@ interface
 !  *  IN  nomvar  variable name                                                * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstinfx(start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-
+  module function fstinfx(start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
-    integer, intent(IN), value :: iun, start
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: start
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
     character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
-    character(len=5)  :: nom
-    character(len=3)  :: typ
-    character(len=13) :: eti
+    integer(C_INT) :: handle
   end function fstinfx
+
 ! /***************************************************************************** 
 !  *                              F S T I N L                                  *
 !  *                                                                           * 
@@ -207,20 +208,20 @@ interface
 !  *  OUT nmax    dimension of list as given by caller                         *
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstinl(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax) result(status)
-
+  module function fstinl(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax) result(status)
     implicit none
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3, nmax
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3, nmax
     character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer, intent(OUT) :: infon
-    integer, dimension(nmax), intent(OUT) :: liste
-    integer :: status
-    character(len=5)  :: nom
-    character(len=3)  :: typ
-    character(len=13) :: eti
+    integer(C_INT), intent(OUT) :: infon
+    integer(C_INT), dimension(nmax), intent(OUT) :: liste
+    integer(C_INT) :: status
   end function fstinl
+
+  end interface
+
+  interface
 ! /*****************************************************************************
 !  *                              F S T P R M                                  *
 !  *                                                                           *
@@ -258,15 +259,136 @@ interface
 !  *  OUT extra3  extra parameter                                              * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  subroutine fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+  module function fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
                     typvar, nomvar, etiket, grtyp, &
-                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
+                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)        &
+                  result(status)
     implicit none
-    integer, intent(IN), value :: handle
+    integer, intent(IN) :: handle
     integer, intent(OUT) :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
     integer, intent(OUT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
     character(len=*), intent(OUT) :: typvar, nomvar, etiket, grtyp
-  end subroutine fstprm
+    integer(C_INT32_T) :: status
+
+  end function fstprm
+
+! /***************************************************************************** 
+!  *                              F S T V O I                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Opens a RPN standard file.                                              *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *  IN  options random or sequential access                                  * 
+!  *                                                                           * 
+!  *****************************************************************************/
+
+  module function fstvoi(iun, options) result(status)
+    implicit none
+    integer(C_INT), intent(IN) :: iun
+    character(len=*), intent(IN) :: options
+    integer(C_INT) :: status
+  end function fstvoi
+
+! /***************************************************************************** 
+!  *                           F S T  _ V E R S I O N                          *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Returns package version number.                                          *
+!  *                                                                           * 
+!  *****************************************************************************/
+
+  module function fst_version(dummy) result(vers)
+    implicit none
+    integer(C_INT), intent(IN), optional :: dummy
+    integer(C_INT) :: vers
+  end function fst_version
+!   module function fst_version() result(vers)
+!     implicit none
+!     integer(C_INT) :: vers
+!   end function fst_version
+
+! /***************************************************************************** 
+!  *                              F S T N B R                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Returns the number of records of the file associated with unit number.  *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  module function fstnbr(iun) result (nrec)
+    implicit none
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT) :: nrec
+  end function fstnbr
+
+! /***************************************************************************** 
+!  *                              F S T N B R V                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Returns the number of valid records (excluding deleted records) of the  *
+!  *   file associated with unit number.                                       *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  module function fstnbrv(iun) result (status)
+    implicit none
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT) :: status
+  end function fstnbrv
+
+!  /*****************************************************************************
+!  *                              F S T C H E C K                              *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Checks if an RPN standard file is valid.                                *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *  IN  filename Path of the file to be checked                              *
+!  *                                                                           *
+!  *****************************************************************************/
+  module function fstcheck(path) result(status)
+    implicit none
+    character(len=*), intent(IN) :: path
+    integer(C_INT) :: status
+  end function fstcheck
+  end interface
+
+  interface
+
+! /***************************************************************************** 
+!  *                              F S T L U K                                  *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Read the record at position given by handle.                            *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  OUT field   data field to be read                                        * 
+!  *  IN  handle  positioning information to the record                        * 
+!  *  OUT ni      dimension 1 of the data field                                * 
+!  *  OUT nj      dimension 2 of the data field                                * 
+!  *  OUT nk      dimension 3 of the data field                                * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  module function fstluk(field, handle, ni, nj, nk) result(handle_out)
+    implicit none
+#define IgnoreTypeKindRank field
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: handle
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT) :: handle_out
+  end function fstluk
 ! /***************************************************************************** 
 !  *                              F S T L I R X                                *
 !  *                                                                           * 
@@ -291,18 +413,18 @@ interface
 !  *  IN  nomvar  variable name                                                * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstlirx(field, start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-
+  module function fstlirx(field, start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun, start
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun, start
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
     character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
+    integer(C_INT) :: handle
   end function fstlirx
+
 ! /***************************************************************************** 
 !  *                              F S T L I R                                  *
 !  *                                                                           * 
@@ -325,18 +447,54 @@ interface
 !  *  IN  nomvar  variable name                                                * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstlir(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-
+  module function fstlir(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
     character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
+    integer(C_INT) :: handle
   end function fstlir
+
+  module function fstlir_d(dblewords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+    implicit none
+#define IgnoreTypeKindRank dblewords
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer(C_INT) :: handle
+  end function fstlir_d
+
+  module function fstlir_h(halfwords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+    implicit none
+#define IgnoreTypeKindRank halfwords
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer(C_INT) :: handle
+  end function fstlir_h
+
+  module function fstlir_b(bytes, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+    implicit none
+#define IgnoreTypeKindRank bytes
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
+    character(len=*), intent(IN) :: typvar, nomvar, etiket
+    integer(C_INT) :: handle
+  end function fstlir_b
+
 ! /***************************************************************************** 
 !  *                              F S T L I R _ S                              *
 !  *                                                                           * 
@@ -365,18 +523,18 @@ interface
 !                         ftnword *f_ip1, ftnword *f_ip2, ftnword *f_ip3,
 !                         char *f_typvar, char *f_nomvar,
 !                         int lng_string, F2Cl ll1, F2Cl ll2, F2Cl ll3)
-  function fstlir_s(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, lngstr) result(handle)
-
+  module function fstlir_s(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, lngstr) result(handle)
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes ,target
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3, lngstr
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3, lngstr
     character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
+    integer(C_INT) :: handle
   end function fstlir_s
+
 ! /***************************************************************************** 
 !  *                            F S T L I S                                    *
 !  *                                                                           * 
@@ -395,16 +553,16 @@ interface
 ! int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
 ! ftnword f77name(fstlis)(word *field, ftnword *f_iun,
 !                         ftnword *f_ni, ftnword *f_nj, ftnword *f_nk)
-  function fstlis(field, iun, ni, nj, nk) result(handle)
-
+  module function fstlis(field, iun, ni, nj, nk) result(handle)
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer :: handle
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT) :: handle
   end function fstlis
+
 ! /***************************************************************************** 
 !  *                             F S T L I C                                   *
 !  *                                                                           * 
@@ -433,20 +591,22 @@ interface
 !  *  IN  grtyp    type of geographical projection                             * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstlic(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, &
+  module function fstlic(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, &
                   ig1, ig2, ig3, ig4, grtyp) result(handle)
-
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(OUT) :: ni, nj, nk
+    integer(C_INT), intent(IN)  :: datev, ip1, ip2, ip3
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-    integer, intent(IN)  :: ig1, ig2, ig3, ig4
-    integer :: handle
+    integer(C_INT), intent(IN)  :: ig1, ig2, ig3, ig4
+    integer(C_INT) :: handle
   end function fstlic
+  end interface
+
+  interface
 
 ! /***************************************************************************** 
 !  *                              F S T E C R                                  *
@@ -481,19 +641,72 @@ interface
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  subroutine fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+  module subroutine fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                     ip1, ip2, ip3, typvar, nomvar, etiket, &
                     grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
-
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun
-    integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
   end subroutine fstecr
+
+  module function fstecr_fn(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                            ip1, ip2, ip3, typvar, nomvar, etiket, &
+                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+    implicit none
+#define IgnoreTypeKindRank field, work
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer(C_INT) :: status
+  end function fstecr_fn
+
+  module subroutine fstecr_d(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                      ip1, ip2, ip3, typvar, nomvar, etiket, &
+                      grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+    implicit none
+#define IgnoreTypeKindRank dblewords, work
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+  end subroutine fstecr_d
+
+  module subroutine fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                      ip1, ip2, ip3, typvar, nomvar, etiket, &
+                      grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+    implicit none
+#define IgnoreTypeKindRank halfwords, work
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+  end subroutine fstecr_h
+
+  module subroutine fstecr_b(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                      ip1, ip2, ip3, typvar, nomvar, etiket, &
+                      grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+    implicit none
+#define IgnoreTypeKindRank bytes, work
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+  end subroutine fstecr_b
+
 ! /***************************************************************************** 
 !  *                              F S T E C R _ S                              *
 !  *                                                                           * 
@@ -527,20 +740,35 @@ interface
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+  module function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                     ip1, ip2, ip3, typvar, nomvar, etiket, &
                     grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
-
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: iun
-    integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-    integer :: status
+    integer(C_INT) :: status
   end function fstecr_s
+
+  module function fstecr_str(string, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                      ip1, ip2, ip3, typvar, nomvar, etiket, &
+                      grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+    implicit none
+    character(len=*), intent(IN) :: string
+#define IgnoreTypeKindRank work
+#define ExtraAttributes 
+#include <rmn/IgnoreTypeKindRank.hf>
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer(C_INT) :: status
+  end function fstecr_str
+
 ! /***************************************************************************** 
 !  *                             F S T E F F                                   *
 !  *                                                                           * 
@@ -552,77 +780,14 @@ interface
 !  *  IN  handle  handle to the record to delete                               * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fsteff(handle) result (status)
-
+  module function fsteff(handle) result (status)
     implicit none
-    integer, intent(IN), value :: handle
-    integer :: status
+    integer(C_INT), intent(IN) :: handle
+    integer(C_INT) :: status
   end function fsteff
+  end interface
 
-! /***************************************************************************** 
-!  *                              F S T L U K                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Read the record at position given by handle.                            *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  OUT field   data field to be read                                        * 
-!  *  IN  handle  positioning information to the record                        * 
-!  *  OUT ni      dimension 1 of the data field                                * 
-!  *  OUT nj      dimension 2 of the data field                                * 
-!  *  OUT nk      dimension 3 of the data field                                * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstluk(field, handle, ni, nj, nk) result(handle_out)
-
-    implicit none
-#define IgnoreTypeKindRank field
-#define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
-    integer, intent(IN), value :: handle
-    integer, intent(OUT) :: ni, nj, nk
-    integer :: handle_out
-  end function fstluk
-
-! /***************************************************************************** 
-!  *                              F S T L N K                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Links a list of files together for search purpose.                      *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  liste   list of unit numbers associated to the files                 * 
-!  *  IN  n       number of files to link                                      * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstlnk(link_list,n) result(status) bind(C,name='c_fstlnk')
-
-    implicit none
-    integer, intent(IN), value :: n
-    integer, dimension(n) :: link_list
-    integer :: status
-  end function fstlnk
-
-!  /***************************************************************************** 
-!  *                              F S T U N L                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Unlinks a list of files previously linked by fstlnk.                    *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  liste   list of unit numbers associated to the files                 * 
-!  *  IN  n       number of files to link                                      * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstunl() result(status) bind(C,name='c_fstunl')
-
-    implicit none
-    integer :: status
-  end function fstunl
-
+  interface
 ! /***************************************************************************** 
 !  *                      F S T _ D A T A _ L E N G T H                        *
 !  *                                                                           * 
@@ -639,41 +804,13 @@ interface
 !  *                      8: double (64 bits)                                  *
 !  *                                                                           * 
 !  *****************************************************************************/
-  function fst_data_length(l) result(status)
+  module function fst_data_length(l) result(status)
 
     implicit none
-    integer, intent(IN), value :: l
+    integer, intent(IN) :: l
     integer :: status
   end function fst_data_length
 
-! /***************************************************************************** 
-!  *                            F S T M S Q                                    *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Mask a portion of the research keys.                                    *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *   IN    iun     unit number associated to the file                        * 
-!  * IN/OUT  mip1    mask for vertical level                                   * 
-!  * IN/OUT  mip2    mask for forecast hour                                    * 
-!  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    * 
-!  * IN/OUT  metiket mask for label                                            * 
-!  *   IN    getmode logical (1: getmode 0:set mode)                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-! ftnword f77name(fstmsq)(ftnword *f_iun, ftnword *f_mip1, ftnword *f_mip2,
-!                         ftnword *f_mip3, char *f_metiket, ftnword *f_getmode,
-! int c_fstmsq(int iun, int *mip1, int *mip2, int *mip3, char *metiket,
-!                      int getmode)
-  function fstmsq(iun, mip1, mpi2, mpi3, metiket, getmode) result(status)
-
-      implicit none
-      integer, intent(IN), value :: iun, getmode
-      integer, intent(INOUT) :: mip1, mpi2, mpi3
-      character(len=*), intent(INOUT) :: metiket
-      integer :: status
-  end function fstmsq
 ! /***************************************************************************** 
 !  *                             I P n _ A L L                                 *
 !  *                                                                           * 
@@ -687,27 +824,24 @@ interface
 !  *                                                                           * 
 !  *****************************************************************************/
 
-    function ip1_all(level, vkind) result(ip_new)
-
-      implicit none
-      real, intent(IN), value :: level
-      integer, intent(IN), value :: vkind
-      integer :: ip_new
-    end function ip1_all
-    function ip2_all(level, vkind) result(ip_new)
-
-      implicit none
-      real, intent(IN), value :: level
-      integer, intent(IN), value :: vkind
-      integer :: ip_new
-    end function ip2_all
-    function ip3_all(level, vkind) result(ip_new)
-
-      implicit none
-      real, intent(IN), value :: level
-      integer, intent(IN), value :: vkind
-      integer :: ip_new
-    end function ip3_all
+  module function ip1_all(level, vkind) result(ip_new)
+    implicit none
+    real(C_FLOAT), intent(IN) :: level
+    integer(C_INT), intent(IN) :: vkind
+    integer(C_INT) :: ip_new
+  end function ip1_all
+  module function ip2_all(level, vkind) result(ip_new)
+    implicit none
+    real(C_FLOAT), intent(IN) :: level
+    integer(C_INT), intent(IN) :: vkind
+    integer(C_INT) :: ip_new
+  end function ip2_all
+  module function ip3_all(level, vkind) result(ip_new)
+    implicit none
+    real(C_FLOAT), intent(IN) :: level
+    integer(C_INT), intent(IN) :: vkind
+    integer(C_INT) :: ip_new
+  end function ip3_all
 
 ! /***************************************************************************** 
 !  *                             I P n _ V A L                                 *
@@ -722,168 +856,24 @@ interface
 !  *                                                                           * 
 !  *****************************************************************************/
 
-    function ip1_val(level, vkind) result(ip_new)
-
-      implicit none
-      real, intent(IN), value :: level
-      integer, intent(IN), value :: vkind
-      integer :: ip_new
-    end function ip1_val
-    function ip2_val(level, vkind) result(ip_new)
-
-      implicit none
-      real, intent(IN), value :: level
-      integer, intent(IN), value :: vkind
-      integer :: ip_new
-    end function ip2_val
-    function ip3_val(level, vkind) result(ip_new)
-
-      implicit none
-      real, intent(IN), value :: level
-      integer, intent(IN), value :: vkind
-      integer :: ip_new
-    end function ip3_val
-
-!  /*****************************************************************************
-!  *                              F S T C H E C K                              *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Checks if an RPN standard file is valid.                                *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *  IN  filename Path of the file to be checked                              *
-!  *                                                                           *
-!  *****************************************************************************/
-    function fstcheck(path) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: path
-      integer :: status
-    end function fstcheck
-
-!  /***************************************************************************** 
-!  *                   F S T R E S E T _ I P _ F L A G S                       *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Reset all the flags previously set by ip(1-3)_val                       *
-!  *                                                                           * 
-!  *****************************************************************************/
-    subroutine fstreset_ip_flags()
-    end subroutine fstreset_ip_flags
-
-!  /***************************************************************************** 
-!  *                               F S T R W D                                 *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Rewinds a RPN standard sequential file.                                 *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-    function fstrwd(iun) result(status)
-
-      implicit none
-      integer, intent(IN), value :: iun
-      integer :: status
-    end function fstrwd
-!  /***************************************************************************** 
-!  *                                F S T S K P                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Skip nrec records forward or backward in the sequential file.           *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  nrec    number of records to skip (negative nrec means backward)     * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
-    function fstskp(iun, nrec) result(status)
-
-      implicit none
-      integer, intent(IN), value :: iun, nrec
-      integer :: status
-    end function fstskp
-! /***************************************************************************** 
-!  *                           F S T  _ V E R S I O N                          *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns package version number.                                          *
-!  *                                                                           * 
-!  *****************************************************************************/
-
-    function fst_version() result(version)
-
-      implicit none
-      integer :: version
-    end function fst_version
-
-! /***************************************************************************** 
-!  *                              F S T V O I                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Opens a RPN standard file.                                              *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  options random or sequential access                                  * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
-    function fstvoi(iun, options) result(status)
-
-      implicit none
-      integer, intent(IN), value :: iun
-      character(len=*), intent(IN) :: options
-      integer :: status
-    end function fstvoi
-!  /***************************************************************************** 
-!  *                             F S T W E O                                   *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Writes a logical end of file on a sequential file.                      *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  level   level of logical end of file                                 * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
-    function fstweo(iun, level) result(status)
-
-      implicit none
-      integer, intent(IN), value :: iun, level
-      integer :: status
-    end function fstweo
-! /***************************************************************************** 
-!  *                             F S T A P P                                   *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Position at the end of a sequential file for an append.                 *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  option  kept for backward compatibility (not used)                   * 
-!  *                                                                           * 
-!  *****************************************************************************/
-    function fstapp(iun, option) result(status)
-
-      implicit none
-      integer, intent(IN), value :: iun
-      character(len=*), intent(IN) :: option
-      integer :: status
-    end function fstapp
-end interface
-
-! generic interface for options
-interface fstoption
+  module function ip1_val(level, vkind) result(ip_new)
+    implicit none
+    real(C_FLOAT), intent(IN) :: level
+    integer(C_INT), intent(IN) :: vkind
+    integer(C_INT) :: ip_new
+  end function ip1_val
+  module function ip2_val(level, vkind) result(ip_new)
+    implicit none
+    real(C_FLOAT), intent(IN) :: level
+    integer(C_INT), intent(IN) :: vkind
+    integer(C_INT) :: ip_new
+  end function ip2_val
+  module function ip3_val(level, vkind) result(ip_new)
+    implicit none
+    real(C_FLOAT), intent(IN) :: level
+    integer(C_INT), intent(IN) :: vkind
+    integer(C_INT) :: ip_new
+  end function ip3_val
 
 !  /*****************************************************************************
 !  *                              F S T O P I                                  *
@@ -899,13 +889,12 @@ interface fstoption
 !  *                                                                           * 
 !  *****************************************************************************/
 
-    function fstopi(option, val, getmode) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: option
-      integer, intent(IN), value :: val, getmode
-      integer :: status
-    end function fstopi
+  module function fstopi(option, val, getmode) result(status)
+    implicit none
+    character(len=*), intent(IN) :: option
+    integer(C_INT), intent(IN) :: val, getmode
+    integer(C_INT) :: status
+  end function fstopi
 
 !  /***************************************************************************** 
 !  *                              F S T O P L                                  *
@@ -921,14 +910,13 @@ interface fstoption
 !  *                                                                           * 
 !  *****************************************************************************/
 
-    function fstopl(option, val, getmode) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: option
-      logical, intent(IN), value :: val
-      integer, intent(IN), value :: getmode
-      integer :: status
-    end function fstopl
+  module function fstopl(option, val, getmode) result(status)
+    implicit none
+    character(len=*), intent(IN) :: option
+    logical, intent(IN) :: val
+    integer(C_INT), intent(IN) :: getmode
+    integer(C_INT) :: status
+  end function fstopl
 
 !  /***************************************************************************** 
 !  *                              F S T O P R                                  *
@@ -944,14 +932,13 @@ interface fstoption
 !  *                                                                           * 
 !  *****************************************************************************/
 
-    function fstopr(option, val, getmode) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: option
-      real, intent(IN), value :: val
-      integer, intent(IN), value :: getmode
-      integer :: status
-    end function fstopr
+  module function fstopr(option, val, getmode) result(status)
+    implicit none
+    character(len=*), intent(IN) :: option
+    real(C_FLOAT), intent(IN) :: val
+    integer(C_INT), intent(IN) :: getmode
+    integer(C_INT) :: status
+  end function fstopr
 
 ! /*****************************************************************************
 !  *                              F S T O P C                                  *
@@ -967,14 +954,75 @@ interface fstoption
 !  *                                                                           *
 !  *****************************************************************************/
 
-    function fstopc(option, val, getmode) result(status)
+  module function fstopc(option, val, getmode) result(status)
+    implicit none
+    character(len=*), intent(IN) :: option
+    character(len=*), intent(IN) :: val
+    integer(C_INT), intent(IN) :: getmode
+    integer(C_INT) :: status
+  end function fstopc
 
-      implicit none
-      character(len=*), intent(IN) :: option
-      character(len=*), intent(IN) :: val
-      integer, intent(IN), value :: getmode
-      integer :: status
-    end function fstopc
-end interface
+!  /***************************************************************************** 
+!  *                   F S T R E S E T _ I P _ F L A G S                       *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Reset all the flags previously set by ip(1-3)_val                       *
+!  *                                                                           * 
+!  *****************************************************************************/
+  module subroutine fstreset_ip_flags(dummy) ! aocc
+    implicit none
+    integer, optional :: dummy
+  end subroutine fstreset_ip_flags
+!   module subroutine fstreset_ip_flags()
+!     implicit none
+!   end subroutine fstreset_ip_flags
+  end interface
 
-#endif
+  interface
+
+! /***************************************************************************** 
+!  *                                F S T C K P                                *
+!  *                                                                           * 
+!  *Object                                                                     * 
+!  *   Checkpoint. Clear buffers, rewrite headers.                             *
+!  *                                                                           * 
+!  *Arguments                                                                  * 
+!  *                                                                           * 
+!  *  IN  iun     unit number associated to the file                           * 
+!  *                                                                           * 
+!  *****************************************************************************/
+  module function fstckp(iun) result (status)
+    implicit none
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT) :: status
+  end function fstckp
+
+! /*****************************************************************************
+!  *                            F S T M S Q                                    *
+!  *                                                                           *
+!  *Object                                                                     *
+!  *   Mask a portion of the research keys.                                    *
+!  *                                                                           *
+!  *Arguments                                                                  *
+!  *                                                                           *
+!  *   IN    iun     unit number associated to the file                        *
+!  * IN/OUT  mip1    mask for vertical level                                   *
+!  * IN/OUT  mip2    mask for forecast hour                                    *
+!  * IN/OUT  mip3    mask for ip3 (user defined identifier)                    *
+!  * IN/OUT  metiket mask for label                                            *
+!  *   IN    getmode logical (1: getmode 0:set mode)                           *
+!  *                                                                           *
+!  *****************************************************************************/
+  module function fstmsq(iun, ip1, ip2, ip3, etiket, getmode) result(status)
+    implicit none
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(INOUT) :: ip1, ip2, ip3
+    character(len=*), intent(INOUT) :: etiket
+    integer(C_INT), intent(IN) :: getmode
+    integer(C_INT) :: status
+  end function fstmsq
+
+  end interface
+
+contains
+end module rmn_fst98

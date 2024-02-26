@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include "rmn/fst_record.h"
-#include "rmn/fstd98.h"
+#include "rmn/fst24_record.h"
+#include "rmn/fst98.h"
 
 typedef enum {
     FST_NONE = 0,

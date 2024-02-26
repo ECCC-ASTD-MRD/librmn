@@ -2,7 +2,7 @@
 #include "rmn.h"
 #include "Meta.h"
 #include "Dict.h"
-#include "fstd98/fstd98_internal.h"
+#include "fst/fst98_internal.h"
 #include <str.h>
 
 #include <stdio.h>

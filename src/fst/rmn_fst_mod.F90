@@ -9,7 +9,7 @@ module rmn_fst
     public :: fst_data_length, fstapp, fstckp
     public :: set_missing_value_flags
 
-#include <fstd98/c_fstd98_interface.hf>
+#include "c_fst98_interface.hf"
 
     interface
     subroutine set_missing_value_flags(missingFloatVal, missingIntVal, missingUIntVal, missingDoubleVal,    &

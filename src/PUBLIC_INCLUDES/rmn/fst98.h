@@ -14,8 +14,8 @@
  * Lesser General Public License for more details.
  *
  */
-#ifndef FSTD98_H
-#define FSTD98_H
+#ifndef rmn_fst98H
+#define rmn_fst98H
 
 #include <stdint.h>
 
@@ -126,4 +126,4 @@ int32_t f77name(fstprm)(int32_t *f_handle,
 }
 #endif
 
-#endif // FSTD98_H
+#endif // rmn_fst98H

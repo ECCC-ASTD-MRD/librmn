@@ -16,7 +16,7 @@
 #include <rmn/excdes_new.h>
 #include <rmn/fst_missing.h>
 
-#include "fstd98_internal.h"
+#include "fst98_internal.h"
 #include "fstcvt2.h"
 #include <rmn/convert_ip.h>
 #include "xdf98.h"
@@ -4505,7 +4505,7 @@ int c_ip3_val(
 }
 
 
-// Everything past this point used to be in if_fstd98.h
+// Everything past this point used to be in if_fst98.h
 // It has been moved here since this is the only place where it was used
 
 

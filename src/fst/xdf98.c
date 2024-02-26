@@ -17,7 +17,7 @@
 #define XDF_OWNER
 #include <App.h>
 #include "xdf98.h"
-#include <rmn/fstd98.h>
+#include <rmn/fst98.h>
 
 #include <armn_compress.h>
 #include "base/base.h"

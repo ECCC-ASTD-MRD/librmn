@@ -450,7 +450,7 @@ typedef struct {
 
 #define FSTD_MISSING_FLAG 64 //!< When this flag is ON in a datatype, it indicates that some data points are missing
 
-#include <rmn/fstdsz.h>
+#include <rmn/fst_sz.h>
 
 //! Search tags part of standard file directory entry :  header + 8 x 64 bits
 typedef struct {
