@@ -229,7 +229,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
 endforeach()
 
 # Compilation options for specific files
-set_source_files_properties(src/fstd98/xdf98.c       PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
+set_source_files_properties(src/fst98/xdf98.c        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
 set_source_files_properties(src/primitives/wkoffit.c PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
 set_source_files_properties(src/base/fft_m4.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable=6477,7342>")
 set_source_files_properties(src/base/fft_m8.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable=7342>")
