@@ -1430,6 +1430,9 @@ void* fst24_read_metadata(
 int32_t fst24_read(
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
+
+    int64_t sz=0;
+
     if (!fst24_is_open(record->file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
        return ERR_NO_FILE;
@@ -1440,9 +1443,18 @@ int32_t fst24_read(
        return -1;
     }
 
-    if (record->data == NULL) {
-        record->data = malloc(fst24_record_data_size(record) + 500);
-        if (record->data == NULL) return ERR_MEM_FULL;
+    // Allocate buffer if not already done or big enough
+    sz=fst24_record_data_size(record);
+
+    if (!record->data || sz>record->alloc) {
+        if (record->flags&FST_REC_ASSIGNED) {
+           Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);        
+           return -1;
+        }
+        record->data = malloc(sz);
+        if (record->data == NULL) 
+            return ERR_MEM_FULL;
+        record->alloc=sz;    
     }
 
     int32_t ret = -1;

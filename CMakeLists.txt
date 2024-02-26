@@ -257,10 +257,12 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 
 # Fortran modules are installed in the include directory for now
 install(FILES
+    ${MODULE_DIR}/f_c_strings_mod.mod
     ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
     ${MODULE_DIR}/rmn_fst24.mod
+    ${MODULE_DIR}/rmn_fst24_record.mod
     ${MODULE_DIR}/rmn_fst98.mod
     ${MODULE_DIR}/convert_ip123_int.mod
     ${MODULE_DIR}/whiteboard_mod.mod

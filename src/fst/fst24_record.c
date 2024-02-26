@@ -24,10 +24,11 @@ fst_record fst24_record_new(
     result.nk=nk;
     result.dasiz=nbits;
     result.datyp=type;
+    result.alloc=fst24_record_data_size(&result);
 
     if (!(result.data=data)) {
        // No data pointer passed, allocate data array
-       if (!(result.data=(void*)malloc(FST_REC_SIZE((&result))))) {
+       if (!(result.data=(void*)malloc(result.alloc))) {
           Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
        }
     } else {
@@ -44,8 +45,10 @@ int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
 
-   if (record->data && record->flags&FST_REC_ASSIGNED) {
-      free(record->data);
+   if (record->data) {
+      record->alloc=0;
+      if (!(record->flags&FST_REC_ASSIGNED))
+         free(record->data);
       record->data=NULL; 
    }
    return(TRUE);
@@ -476,7 +479,8 @@ void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
     stdf_special_parms cracked;
     crack_std_parms(keys, &cracked);
 
-    record->dateo = cracked.date_valid;
+    record->dateo = cracked.date_stamp;
+    record->datev = cracked.date_valid;
 
     record->ni = keys->ni;
     record->nj = keys->nj;
@@ -502,6 +506,15 @@ void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
     record->ig2 = cracked.ig2;
     record->ig3 = keys->ig3;
     record->ig4 = keys->ig4;
+
+//    *swa = addr;
+//    *lng = W64TOWD(xdflng);
+//    *dltf = stdf_entry->deleted;
+//    *ubc = stdf_entry->ubc;
+//    /* new, use to be undefined */
+//    *extra1 = cracked.date_valid;
+//    *extra2 = 0;
+//    *extra3 = 0;
 }
 
 fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
@@ -517,7 +530,7 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a->version != b->version) return 0;
     if (a->flags != b->flags) return 0;
     if (a->dateo != b->dateo) return 0;
-    if (a->datev != b->datev) return 0;
+//    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
     if (a->datyp != b->datyp) return 0;
     if (a->dasiz != b->dasiz) return 0;
     if (a->npak != b->npak) return 0;

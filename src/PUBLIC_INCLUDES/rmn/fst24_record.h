@@ -29,6 +29,7 @@ typedef struct {
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp
     int64_t handle;   //!< Handle to specific record (if stored in a file)
+    int64_t alloc;    //!< Size of allocated memody for data
 
     // 32-bit elements
     int32_t datyp;//!< Data type of elements
@@ -69,6 +70,7 @@ static const fst_record default_fst_record = (fst_record){
         .dateo     = -1,
         .datev     = -1,
         .handle   = -1,
+        .alloc    = 0,
 
         .datyp = -1,
         .dasiz = -1,
@@ -146,7 +148,7 @@ inline int64_t fst24_record_num_elem(const fst_record* record) {
 
 //!> Number of data bytes in record
 inline int64_t fst24_record_data_size(const fst_record* record) {
-    return fst24_record_num_elem(record) * (record->dasiz / 8);
+    return fst24_record_num_elem(record) * (record->dasiz>>3);
 }
 
 int32_t    fst24_record_is_valid(const fst_record* record);
@@ -163,7 +165,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
 
 #else
     type, bind(C) :: fst_record_c
-        integer(C_INT64_T) :: VERSION  = 160            ! Must be the number of bytes in the struct
+        integer(C_INT64_T) :: VERSION  = 168            ! Must be the number of bytes in the struct
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
@@ -171,6 +173,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT64_T) :: dateo    = -1
         integer(C_INT64_T) :: datev    = -1
         integer(C_INT64_T) :: handle   = -1
+        integer(C_INT64_T) :: alloc    = 0
 
         integer(C_INT32_T) :: datyp = -1
         integer(C_INT32_T) :: dasiz = -1
