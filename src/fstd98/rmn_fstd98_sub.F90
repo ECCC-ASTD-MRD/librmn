@@ -61,36 +61,6 @@ contains
     endif
   end function
 
-  module function ouviun(this, iun, options) result (status) ! calls fstouv
-    implicit none
-    class(fstd98), intent(INOUT) :: this
-    integer(C_INT), intent(IN) :: iun
-    character(len=*), intent(IN) :: options
-    integer(C_INT) :: status
-    this%iun = iun
-    status = fstouv(iun, options)
-  end function
-
-  module function ouvauto(this, name, options) result (status) ! calls fnom and fstouv
-    implicit none
-    class(fstd98), intent(INOUT) :: this
-    character(len=*), intent(IN) :: name
-    character(len=*), intent(IN), optional :: options
-    integer(C_INT) :: status
-    integer(C_INT) :: iun
-    integer, external :: fnom
-
-    iun = 0
-    if(present(options)) then
-      status = fnom(iun, trim(name), trim(options), 0)
-      status = fstouv(iun, trim(options))
-    else
-      status = fnom(iun, trim(name),'STD+RND',0)
-      status = fstouv(iun, 'RND')
-    endif
-    this%iun = iun
-  end function
-
 ! /***************************************************************************** 
 !  *                              F S T F R M                                  *
 !  *                                                                           * 
@@ -105,11 +75,6 @@ contains
   module procedure fstfrm
     implicit none
     status = c_fstfrm(iun)
-  end procedure
-  module procedure frm
-    implicit none
-    status = fstfrm(this%iun)
-    this%iun = -1
   end procedure
 
 ! /***************************************************************************** 
@@ -351,11 +316,6 @@ contains
     handle = c_fstinf(iun, ni, nj, nk, datev, eti, ip1, ip2, ip3, typ, nom)
   end procedure
 
-  module procedure inf
-    implicit none
-    handle = fstinf(this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
-  end procedure
-
 !  /***************************************************************************** 
 !  *                            F S T S U I                                    *
 !  *                                                                           * 
@@ -373,11 +333,6 @@ contains
   module procedure fstsui
     implicit none
     handle = c_fstsui(iun, ni, nj, nk)
-  end procedure
-
-  module procedure sui
-    implicit none
-    handle = c_fstsui(this%iun, ni, nj, nk)
   end procedure
 
 ! /***************************************************************************** 
@@ -414,11 +369,6 @@ contains
     handle = c_fstinfx(start, iun, ni, nj, nk, datev, eti, ip1, ip2, ip3, typ, nom)
   end procedure
 
-  module procedure infx
-    implicit none
-    handle = fstinfx(start, this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
-  end procedure
-
 ! /***************************************************************************** 
 !  *                              F S T I N L                                  *
 !  *                                                                           * 
@@ -452,11 +402,6 @@ contains
     call strncpy_f2c(nomvar, nom, 5)
     call strncpy_f2c(etiket, eti, 13)
     status = c_fstinl(iun, ni, nj, nk, datev, eti, ip1, ip2, ip3, typ, nom, liste, infon, nmax)
-  end procedure
-
-  module procedure inl
-    implicit none
-    status = fstinl(this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax)
   end procedure
 
 end
@@ -521,17 +466,6 @@ contains
     handle = c_fstlirx(field, start, iun, ni, nj, nk, datev, eti, ip1, ip2, ip3, typ, nom)
   end procedure
 
-  module procedure lirx
-    implicit none
-    character(len=5)  :: nom
-    character(len=3)  :: typ
-    character(len=13) :: eti
-    call strncpy_f2c(typvar, typ, 3)
-    call strncpy_f2c(nomvar, nom, 5)
-    call strncpy_f2c(etiket, eti, 13)
-    handle = c_fstlirx(field, start, this%iun, ni, nj, nk, datev, eti, ip1, ip2, ip3, typ, nom)
-  end procedure
-
 ! /***************************************************************************** 
 !  *                              F S T L I R                                  *
 !  *                                                                           * 
@@ -565,22 +499,12 @@ contains
     handle = c_fstlir(field, iun, ni, nj, nk, datev, eti, ip1, ip2, ip3, typ, nom)
   end procedure
 
-  module procedure lir
-    implicit none
-    handle = fstlir(field, this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
-  end procedure
-
   module procedure fstlir_d
     implicit none
     integer :: status
     status = fst_data_length(8)
     handle = fstlir(dblewords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
     status = fst_data_length(4)
-  end procedure
-
-  module procedure lir_d
-    implicit none
-    handle = fstlir_d(dblewords, this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
   end procedure
 
   module procedure fstlir_h
@@ -591,22 +515,12 @@ contains
     status = fst_data_length(4)
   end procedure
 
-  module procedure lir_h
-    implicit none
-    handle = fstlir_h(halfwords, this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
-  end procedure
-
   module procedure fstlir_b
     implicit none
     integer :: status
     status = fst_data_length(1)
     handle = fstlir(bytes, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
     status = fst_data_length(4)
-  end procedure
-
-  module procedure lir_b
-    implicit none
-    handle = fstlir_b(bytes, this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
   end procedure
 
 ! /***************************************************************************** 
@@ -646,11 +560,6 @@ contains
     handle = fstlir(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
   end procedure
 
-  module procedure lir_s
-    implicit none
-    handle = fstlir_s(field, this%iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, lngstr)
-  end procedure
-
 ! /***************************************************************************** 
 !  *                            F S T L I S                                    *
 !  *                                                                           * 
@@ -672,11 +581,6 @@ contains
   module procedure fstlis
     implicit none
     handle = c_fstlis(field, iun, ni, nj, nk)
-  end procedure
-
-  module procedure lis
-    implicit none
-    handle = c_fstlis(field, this%iun, ni, nj, nk)
   end procedure
 
 ! /***************************************************************************** 
@@ -784,13 +688,6 @@ contains
                       ig1, ig2, ig3, ig4, datyp, rewrite)
   end procedure fstecr_fn
 
-  module procedure ecr
-    implicit none
-    status = fstecr_fn(field, work, npak, this%iun, date, deet, npas, ni, nj, nk, &
-                ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                ig1, ig2, ig3, ig4, datyp, rewrite)
-  end procedure
-
   module procedure fstecr_d
     implicit none
     integer :: status
@@ -799,13 +696,6 @@ contains
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
     status = fst_data_length(4)
-  end procedure
-
-  module procedure ecr_d
-    implicit none
-    call fstecr_d(dblewords, work, npak, this%iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite)
   end procedure
 
   module procedure fstecr_h
@@ -818,13 +708,6 @@ contains
     status = fst_data_length(4)
   end procedure
 
-  module procedure ecr_h
-    implicit none
-    call fstecr_h(halfwords, work, npak, this%iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite)
-  end procedure
-
   module procedure fstecr_b
     implicit none
     integer :: status
@@ -833,13 +716,6 @@ contains
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
     status = fst_data_length(4)
-  end procedure
-
-  module procedure ecr_b
-    implicit none
-    call fstecr_b(bytes, work, npak, this%iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite)
   end procedure
 
 ! /***************************************************************************** 
@@ -896,14 +772,6 @@ contains
     status = 0
   end procedure
 
-  module procedure ecr_s
-    implicit none
-    status = fstecr_s(field, work, npak, this%iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite, lngstr)
-    status = 0
-  end procedure
-
   module procedure fstecr_str
     implicit none
     integer ninjnk
@@ -913,13 +781,6 @@ contains
     status = fstecr_s(string, work, npak, iun, date, deet, npas, ni, nj, nk, &
                       ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                       ig1, ig2, ig3, ig4, datyp, rewrite, len(string))
-  end procedure
-
-  module procedure ecr_str
-    implicit none
-    status = fstecr_str(string, work, npak, this%iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite)
   end procedure
 
 ! /***************************************************************************** 
@@ -1017,21 +878,6 @@ contains
     status = c_fstvoi(iun, f_c_string(options))
   end procedure
 
-  module procedure voi
-    implicit none
-    status = fstvoi(this%iun, f_c_string(options))
-  end procedure
-
-  module procedure fstd98_is_rsf
-    implicit none
-    integer :: is_rsf_status
-    integer :: dummy_arg
-
-    is_rsf = .false.
-    is_rsf_status = c_is_rsf(this % iun, dummy_arg)
-    if (is_rsf_status == 1) is_rsf = .true.
-  end procedure
-
   ! /***************************************************************************** 
   !  *                           F S T  _ V E R S I O N                          *
   !  *                                                                           * 
@@ -1060,11 +906,6 @@ contains
     nrec = c_fstnbr(iun)
   end procedure
 
-  module procedure nbr
-    implicit none
-    nrec = c_fstnbr(this%iun)
-  end procedure
-
   ! /***************************************************************************** 
   !  *                              F S T N B R V                                *
   !  *                                                                           * 
@@ -1082,11 +923,6 @@ contains
     status = c_fstnbrv(iun)
   end procedure
 
-  module procedure nbrv
-    implicit none
-    nrecv = c_fstnbrv(this%iun)
-  end procedure
-
   ! /***************************************************************************** 
   !  *                                F S T C K P                                *
   !  *                                                                           * 
@@ -1101,10 +937,6 @@ contains
   module procedure fstckp
     implicit none
     status = c_fstckp(iun)
-  end procedure
-  module procedure ckp
-    implicit none
-    status = fstckp(this%iun)
   end procedure
 
   !  /*****************************************************************************
@@ -1142,11 +974,6 @@ contains
   module procedure fstmsq
     implicit none
     status = c_fstmsq(iun, ip1, ip2, ip3, etiket, getmode)
-  end procedure
-
-  module procedure msq
-    implicit none
-    status = c_fstmsq(this % iun, ip1, ip2, ip3, etiket, getmode)
   end procedure
 
 end submodule
