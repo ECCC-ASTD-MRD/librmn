@@ -686,11 +686,19 @@ int c_fstouv_rsf(
     //!> [in] Opening mode (read/write/append)
     const int mode,
     //!> [in] I don't know what "appl" is
-    char appl[5]
+    char appl[5],
+    //!> [in] Size in MB of segments, if open for parallel write (not parallel if <= 0)
+    const int32_t parallel_segment_size_mb
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
     const int32_t meta_dim = (sizeof(stdf_dir_keys) + 3)/ sizeof(int32_t); // In 32-bit units
-    FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, NULL);
+    int64_t segment_size = 0;
+    if (parallel_segment_size_mb > 0) {
+        segment_size = ((int64_t)parallel_segment_size_mb) << 20;
+    }
+    
+    // Lib_Log(APP_LIBFST, APP_WARNING, "%s: segment size = %ld\n", __func__, segment_size);
+    FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, &segment_size);
     
     // VOLATILE mode, unlink the file so it gets erased at end of process
     if (FGFDT[index_fnom].attr.volatil) {

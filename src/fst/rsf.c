@@ -2023,7 +2023,7 @@ static int RSF_Lock_for_write(
   else {
     // Check if anyone else is writing in this file
     if (first_sos.head.rlm == RSF_EXCLUSIVE_WRITE) {
-      Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write\n", __func__, fp->name);
+      Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write. Will be READ-ONLY\n", __func__, fp->name);
       goto RETURN;
     }
     else if (first_sos.head.rlm > 0 && fp->seg_max_hint <= 0) {
@@ -2289,7 +2289,7 @@ RSF_handle RSF_Open_file(
   if(fp->mode == 0) fp->mode = RSF_RW ;  // automatic mode, try to open for read+write with RO fallback
 
   // Open file and determine actual mode, based on whether we were able to open the file in the requested mode.
-  switch(fp->mode & (RSF_RO | RSF_RW | RSF_AP)){
+  switch(fp->mode & (RSF_RO | RSF_RW | RSF_AP | RSF_FUSE)){
 
     case RSF_RO:                         // open for read only
       errmsg = " file not found" ;
@@ -2315,6 +2315,17 @@ RSF_handle RSF_Open_file(
       errmsg = " cannot open in write mode" ;
       if( (fp->fd = open(fname, O_RDWR, 0777)) == -1) goto ERROR ;  // cannot open in write mode
       break ;
+
+    case RSF_FUSE:
+      fp->fd = open(fname, O_RDWR, 0777);
+      fp->mode = RSF_FUSE;
+
+      errmsg = " unable to open file in write mode";
+      if (fp->fd == -1) goto ERROR;
+
+      errmsg = " unable to lock for writing ";
+      if (RSF_Lock_for_write(fp) < 0) goto ERROR;
+      break;
 
     default:
       errmsg = " opening mode is not valid" ;
@@ -2765,6 +2776,30 @@ void RSF_Dump_vdir(RSF_handle h) {
   }
 }
 
+const char* readable_size(char* buffer, const int64_t val, const int num_char) {
+  const char suffix[] = {' ', 'k', 'M', 'G', 'T', 'P', 'E'};
+  int num_div = 0;
+  int64_t printed_val = val;
+  int64_t threshold = 1;
+  for (int i = 0; i < num_char - 1; i++) threshold *= 10;
+  while (printed_val > threshold) {
+    printed_val /= 1000;
+    num_div++;
+  }
+  if (num_div > 0) {
+    const char format[] = {'%', '0' + num_char - 1, 'l', 'd', '%', 'c', '\0'};
+    snprintf(buffer, num_char + 2, format, printed_val, suffix[num_div]);
+    // fprintf(stderr, "format = %s\n", format);
+    // fprintf(stderr, "result = %s\n", buffer);
+    // fprintf(stderr, "initial num = %ld, new num = %ld, num div = %d, threshold = %d\n", val, printed_val, num_div, threshold);
+  }
+  else {
+    const char format[] = {'%', '0' + num_char, 'l', 'd', '\0'};
+    snprintf(buffer, num_char + 1, format, printed_val);
+  }
+  return buffer;
+}
+
 // dump the contents of a file in condensed format
 void RSF_Dump(char *name, int verbose){
   int fd = open(name, O_RDONLY) ;
@@ -2796,7 +2831,7 @@ void RSF_Dump(char *name, int verbose){
   uint32_t nmeta ;
   uint64_t temps ;
 
-  const int max_num_meta = 12;
+  const int max_num_meta = 8;
 
   if(fd < 0) return ;
   eof = lseek(fd, 0L, SEEK_END) ;
@@ -2836,13 +2871,15 @@ void RSF_Dump(char *name, int verbose){
     datalen = reclen - sizeof(sor) - sizeof(eor) ;
     // tabplus = ((rec_offset < seg_dir) && (rec_offset < seg_vdir)) ? 8 : 0 ;  // only effective for sos, eos, dir records
     tabplus = (rec_offset < seg_vdir) ? 8 : 0 ;  // only effective for sos, eos, dir records
+    char buf1[32];
+    char buf2[32];
     if (sor.rt > 7) {
-      snprintf(buffer,sizeof(buffer),"%2.2x %5d [%12.12lx], %6ld(%6ld),",
-               sor.rt, rec_index, rec_offset, reclen, datalen) ;
+      snprintf(buffer,sizeof(buffer),"%2.2x %5d [%12.12lx], %s(%s),",
+               sor.rt, rec_index, rec_offset, readable_size(buf1, reclen, 6), readable_size(buf2, datalen, 6)) ;
       sor.rt = 0 ;
     } else {
-      snprintf(buffer, sizeof(buffer), "%s %5d [%12.12lx], %6ld(%6ld),",
-               tab[sor.rt+tabplus], rec_index, rec_offset, reclen, datalen) ;
+      snprintf(buffer, sizeof(buffer), "%s %5d [%12.12lx], %s(%s),",
+               tab[sor.rt+tabplus], rec_index, rec_offset, readable_size(buf1, reclen, 5), readable_size(buf2, datalen, 5)) ;
     }
 
     // ---------- Specific record info ----------

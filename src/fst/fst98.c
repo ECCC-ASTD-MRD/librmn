@@ -3400,6 +3400,18 @@ int c_fstouv(
     //! [in] Random or sequential access
     char *options
 ) {
+    return c_fstouv_2(iun, options, 0);
+}
+
+//! Opens a RPN standard file
+int c_fstouv_2(
+    //! [in] Unit number associated to the file
+    int iun,
+    //! [in] Random or sequential access
+    char *options,
+    //! [in] Size in MB of each segment of an RSF file open for parallel write
+    const int32_t parallel_segment_size_mb
+) {
     int ier, nrec, i, is_rsf=FALSE;
     static int premiere_fois = 1;
     char appl[5];
@@ -3445,19 +3457,20 @@ int c_fstouv(
     } else if (strcasestr(options, "XDF")) {
         is_rsf=FALSE;
     } else if (fst_backend && strncasecmp("RSF",fst_backend,3)==0) {
-       is_rsf=TRUE;
+        is_rsf=TRUE;
     } else if (fst_backend && strncasecmp("XDF",fst_backend,3)==0)  {
         is_rsf=FALSE;
     }
 
     const int open_mode = read_only ? RSF_RO : RSF_RW;
+    //  (strcasestr(options, "FUSE") != NULL) ? RSF_FUSE : RSF_RW;
 
     FGFDT[i].attr.std = 1; // force attribute to standard file
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
             if (is_rsf) {
-                ier = c_fstouv_rsf(i, RSF_RW, appl);
+                ier = c_fstouv_rsf(i, RSF_RW, appl, parallel_segment_size_mb);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3475,7 +3488,7 @@ int c_fstouv(
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
             if (is_rsf) {
-               ier = c_fstouv_rsf(i, RSF_RW, appl);
+               ier = c_fstouv_rsf(i, RSF_RW, appl, parallel_segment_size_mb);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3483,7 +3496,7 @@ int c_fstouv(
             read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
-                ier = c_fstouv_rsf(i, open_mode, appl);
+                ier = c_fstouv_rsf(i, open_mode, appl, parallel_segment_size_mb);
             }
             else {
                 ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
