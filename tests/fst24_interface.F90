@@ -3,7 +3,6 @@ module test_fst24_interface_module
     use App
     use rmn_common
     use rmn_fst24
-    use rmn_fst24_record
     use rmn_meta
     implicit none
 
