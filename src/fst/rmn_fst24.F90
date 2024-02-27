@@ -102,6 +102,7 @@ contains
             return
         end if
 
+        c_options=options
         if (.not. present(options)) then
             c_options = 'RND+RSF+R/O' // achar(0)    ! Open a read-only RSF file by default
         end if
