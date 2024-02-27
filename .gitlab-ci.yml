@@ -241,7 +241,7 @@ test:rhel-8-amd64_gnu-9.3.0:
      - build:rhel-8-amd64_gnu-9.3.0
    script:
       - set +e
-      - source ${ECCI_ENV}/latest/profile.sh
+      - source ${ECCI_ENV}/latest/rhel-8-amd-64/gnu-9.3.0.sh 
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-9.3.0
       - make check

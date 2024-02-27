@@ -52,6 +52,8 @@ int remap_table[2][10];
 int nb_remap = 0;
 //! backend type (XDF or RSF)
 static char *fst_backend = NULL;
+//! Segment size for RSF, when writing in parallel (in MB)
+static int32_t segment_size_mb = 1;
 //! What is printed with fstecr
 char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
 
@@ -3392,25 +3394,12 @@ int c_fstcheck(
     }
 }
 
-
 //! Opens a RPN standard file
 int c_fstouv(
     //! [in] Unit number associated to the file
     int iun,
     //! [in] Random or sequential access
     char *options
-) {
-    return c_fstouv_2(iun, options, 0);
-}
-
-//! Opens a RPN standard file
-int c_fstouv_2(
-    //! [in] Unit number associated to the file
-    int iun,
-    //! [in] Random or sequential access
-    char *options,
-    //! [in] Size in MB of each segment of an RSF file open for parallel write
-    const int32_t parallel_segment_size_mb
 ) {
     int ier, nrec, i, is_rsf=FALSE;
     static int premiere_fois = 1;
@@ -3453,14 +3442,17 @@ int c_fstouv_2(
 
     // Check for backend type
     if (strcasestr(options, "RSF")) {
-        is_rsf=TRUE;
+        is_rsf = TRUE;
     } else if (strcasestr(options, "XDF")) {
-        is_rsf=FALSE;
+        is_rsf = FALSE;
     } else if (fst_backend && strncasecmp("RSF",fst_backend,3)==0) {
-        is_rsf=TRUE;
+        is_rsf = TRUE;
     } else if (fst_backend && strncasecmp("XDF",fst_backend,3)==0)  {
-        is_rsf=FALSE;
+        is_rsf = FALSE;
     }
+
+    // Determine whether we open for parallel write, if RSF
+    const int32_t seg_size = (strcasestr(options, "PARALLEL") != NULL) ? segment_size_mb : 0;
 
     const int open_mode = read_only ? RSF_RO : RSF_RW;
     //  (strcasestr(options, "FUSE") != NULL) ? RSF_FUSE : RSF_RW;
@@ -3470,7 +3462,7 @@ int c_fstouv_2(
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
             if (is_rsf) {
-                ier = c_fstouv_rsf(i, RSF_RW, appl, parallel_segment_size_mb);
+                ier = c_fstouv_rsf(i, RSF_RW, appl, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3488,7 +3480,7 @@ int c_fstouv_2(
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
             if (is_rsf) {
-               ier = c_fstouv_rsf(i, RSF_RW, appl, parallel_segment_size_mb);
+               ier = c_fstouv_rsf(i, RSF_RW, appl, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3496,7 +3488,7 @@ int c_fstouv_2(
             read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
-                ier = c_fstouv_rsf(i, open_mode, appl, parallel_segment_size_mb);
+                ier = c_fstouv_rsf(i, open_mode, appl, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -4292,9 +4284,18 @@ void c_fst_env_var(
     } else if (strcasecmp(cle, "BACKEND") == 0) {
         fst_backend = malloc(4);
         strncpy(fst_backend, content, 4);
-        // fprintf(stderr, "Debug+ fst_backend=%s\n", fst_backend);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: fst_backend = %s\n", __func__, fst_backend);
+    } else if (strcasecmp(cle, "SEGMENT_SIZE_MB") == 0) {
+        const int32_t seg_size_tmp = atoi(content);
+        if (seg_size_tmp > 0) {
+            segment_size_mb = seg_size_tmp;
+        }
+        else {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Invalid value for key %s (%s). Must be a positive integer."
+                    " Keeping default value %d\n", __func__, cle, content, segment_size_mb);
+        }
     } else {
-        fprintf(stderr, "c_fst_env_var(), cle %s non reconnue, index=%d valeur=%s\n", cle, index, content);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: cle %s non reconnue, index=%d valeur=%s\n", __func__, cle, index, content);
     }
 
     // for (int i = 0; i < nb_remap; i++) {

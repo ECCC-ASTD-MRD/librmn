@@ -59,7 +59,7 @@ int test_parallel_write(const int rank) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     const char* options = "RSF+R/W+PARALLEL";
-    fst_file* test_file = fst24_open(test_filename, options, 1);
+    fst_file* test_file = fst24_open(test_filename, options);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_filename, options);
         return -1;
@@ -111,7 +111,7 @@ int test_parallel_write(const int rank) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 1) {
-        test_file = fst24_open(test_filename, "R/W", 0);
+        test_file = fst24_open(test_filename, "R/W");
         if (test_file == NULL) {
             App_Log(APP_ERROR, "Unable to open file after it was closed\n");
             return -1;

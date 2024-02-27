@@ -36,7 +36,7 @@ static fst_file default_fst_file = (fst_file) {
 
 int32_t   fst24_is_valid(const char* file_name);
 int32_t   fst24_is_open(const fst_file* file);
-fst_file* fst24_open(const char* file_name, const char* options, const int32_t parallel_segment_size_mb);
+fst_file* fst24_open(const char* file_name, const char* options);
 int32_t   fst24_close(fst_file* file);
 int64_t   fst24_get_num_records(const fst_file* file);
 int32_t   fst24_eof(fst_file* file);
