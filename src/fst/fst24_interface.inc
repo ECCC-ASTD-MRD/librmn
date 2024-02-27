@@ -167,4 +167,11 @@ function fst24_unlink(file) result(status) bind(C, name = 'fst24_unlink')
   integer(C_INT32_T) :: status
 end function fst24_unlink
 
+function fst24_get_unit(file) result(iun) bind(C, name = 'fst24_get_unit')
+  import :: C_PTR, C_INT32_T
+  implicit none
+  type(C_PTR), intent(in), value :: file
+  integer(C_INT32_T) :: iun
+end function fst24_get_unit
+
 end interface

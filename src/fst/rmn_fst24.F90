@@ -7,6 +7,7 @@ module rmn_fst24
     implicit none
 
     include 'fst24_interface.inc'
+#include "c_fst98_interface.hf"
 
     ! character(len=32), dimension(9), parameter :: FST_TYPE_NAMES = ['bit', 'fortran real', 'unsigned int', 'byte', 'signed int', 'real', 'float16', 'string', 'complex']
     integer(C_INT32_T), parameter :: FST_TYPE_BINARY    = 0
@@ -31,6 +32,7 @@ module rmn_fst24
         procedure, pass   :: open => fst24_file_open
         procedure, pass   :: close => fst24_file_close
         procedure, pass   :: get_num_records => fst24_file_get_num_records
+        procedure, pass   :: get_unit => fst24_file_get_unit
 
         procedure, pass :: set_search_criteria => fst24_file_set_search_criteria
         procedure, pass :: find_next => fst24_file_find_next
@@ -42,6 +44,11 @@ module rmn_fst24
         procedure, pass :: checkpoint => fst24_file_checkpoint
         procedure, pass :: print_summary => fst24_file_print_summary
         procedure, pass :: unlink => fst24_file_unlink
+
+        ! Sequential files
+        procedure, pass :: eof => fst24_file_eof
+        procedure, pass :: weo => fst24_file_weo
+        procedure, pass :: rewind => fst24_file_rwd
     end type fst_file
 
     interface
@@ -95,13 +102,10 @@ contains
             return
         end if
 
-        if (present(options)) then
-            c_options = 'RND+RSF+' // trim(options) // achar(0)
-        else
+        if (.not. present(options)) then
             c_options = 'RND+RSF+R/O' // achar(0)    ! Open a read-only RSF file by default
         end if
-
-        this % file_ptr = fst24_open(filename//achar(0), c_options)
+        this % file_ptr = fst24_open(trim(filename)//achar(0), c_options)
         could_open = this % is_open()
     end function fst24_file_open
 
@@ -127,6 +131,15 @@ contains
         integer(C_INT64_T) :: num_records
         num_records = fst24_get_num_records(this % file_ptr)
     end function fst24_file_get_num_records
+
+    function fst24_file_get_unit(this) result(status)
+        implicit none
+        class(fst_file), intent(inout) :: this
+
+        integer(C_INT32_T) :: status
+
+        status = fst24_get_unit(this % file_ptr)
+    end function fst24_file_get_unit
 
     function fst24_file_set_search_criteria(this,                                                                   &
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
@@ -178,13 +191,19 @@ contains
     function fst24_file_find_next(this, record) result(found)
         implicit none
         class(fst_file), intent(in) :: this
-        type(fst_record), intent(inout) :: record
+        type(fst_record), intent(inout), optional :: record
+        type(C_PTR) :: c_record
         logical :: found
 
         integer(C_INT32_T) :: c_result
 
-        found = .false.
-        c_result = fst24_find_next(this % file_ptr, record % get_c_ptr())
+        c_record= C_NULL_PTR;
+        if (present(record)) then
+            c_record = record % get_c_ptr()
+        end if
+
+       found = .false.
+        c_result = fst24_find_next(this % file_ptr, c_record)
 
         if (c_result > 0) then
             call record % from_c_self()
@@ -317,4 +336,31 @@ contains
         if (c_status > 0) success = .true.
     end function fst24_file_unlink
 
+    function fst24_file_eof(this) result(status)
+        implicit none
+        class(fst_file), intent(inout) :: this
+
+        integer(C_INT32_T) :: status
+
+        status = c_fsteof(fst24_get_unit(this % file_ptr))
+    end function fst24_file_eof
+
+    function fst24_file_weo(this,level) result(status)
+        implicit none
+        class(fst_file), intent(inout) :: this
+        integer, intent(in) :: level 
+
+        integer(C_INT32_T) :: status
+
+        status = c_fstweo(fst24_get_unit(this % file_ptr), level)
+    end function fst24_file_weo
+
+    function fst24_file_rwd(this) result(status)
+        implicit none
+        class(fst_file), intent(inout) :: this
+
+        integer(C_INT32_T) :: status
+
+        status = c_fstrwd(fst24_get_unit(this % file_ptr))
+    end function fst24_file_rwd
 end module rmn_fst24

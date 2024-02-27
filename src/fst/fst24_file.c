@@ -12,7 +12,7 @@
 #include "xdf98.h"
 #include "Meta.h"
 
-int32_t fst24_get_iun(fst_file* file);
+int32_t fst24_get_unit(fst_file* file);
 int32_t fst24_find(fst_file* file, const fst_record* criteria, fst_record* result);
 int64_t fst24_get_num_records_single(const fst_file* file);
 int32_t fst24_get_record_from_key(fst_file* file, const int64_t key, fst_record* record);
@@ -30,7 +30,7 @@ int32_t fst24_is_open(const fst_file* file) {
 
 //! To be called from Fortran
 //! \return The iun of the input file struct. 0 if file is not open or struct is not valid.
-int32_t fst24_get_iun(fst_file* file) {
+int32_t fst24_get_unit(fst_file* file) {
     if (fst24_is_open(file)) return file->iun;
     return 0;
 }
@@ -984,7 +984,7 @@ int32_t fst24_get_record_by_index(
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_file* file,     //!< File we are searching. Must be open
-    fst_record* result  //!< [out] Record information if found (no data or advanced metadata, unless included in search)
+    fst_record* result  //!< [out] Record information if found, optional (no data or advanced metadata, unless included in search)
 ) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
@@ -1013,7 +1013,7 @@ int32_t fst24_find_next(
                 break;
             }
             // If metadata search is specified, look for a match or carry on looking
-            if (fstd_open_files[file->file_index].search_meta) {
+            if (result && fstd_open_files[file->file_index].search_meta) {
                 rkey=fst24_get_record_from_key(file, key, result); 
                 if (fst24_read_metadata(result) && Meta_Match(fstd_open_files[file->file_index].search_meta,result->metadata,FALSE)) {
                      break;
@@ -1052,7 +1052,7 @@ int32_t fst24_find_next(
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, file->iun, key, file);
         // If search included extended metadata, the key will already be extracted
-        if (!rkey) {
+        if (result && !rkey) {
            return fst24_get_record_from_key(file, key, result);
         } else {
             return(TRUE);
@@ -1546,6 +1546,20 @@ int32_t fst24_unlink(fst_file* file) {
         current->next = NULL;
         current = tmp;
     }
+
+    return TRUE;
+}
+
+//! Unlink the given file(s). The files are assumed to have been linked by
+//! a previous call to fst24_link, so only the first one should be given as input
+//! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
+int32_t fst24_eof(fst_file* file) {
+    if (!fst24_is_open(file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       return FALSE;
+    }
+
+    return (c_fsteof(fst24_get_unit(file)));
 
     return TRUE;
 }

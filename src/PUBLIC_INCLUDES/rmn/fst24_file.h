@@ -39,6 +39,7 @@ int32_t   fst24_is_open(const fst_file* file);
 fst_file* fst24_open(const char* file_name, const char* options, const int32_t parallel_segment_size_mb);
 int32_t   fst24_close(fst_file* file);
 int64_t   fst24_get_num_records(const fst_file* file);
+int32_t   fst24_eof(fst_file* file);
 
 int32_t   fst24_read(fst_record* record /* in,out */);  // read data for a record that was already found
 void*     fst24_read_metadata(fst_record* record /* in, out */); // read only meta for the given record
