@@ -30,7 +30,7 @@ int test_fst24_meta(void) {
     // Create file
     remove(test_file_name);
     const char* options1 = "RND+R/W+RSF";
-    fst_file* test_file = fst24_open(test_file_name, options1, 0);
+    fst_file* test_file = fst24_open(test_file_name, options1);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_file_name, options1);
         return -1;
@@ -137,7 +137,7 @@ int test_fst24_meta(void) {
 
    // Open existing file
    const char* options2 = "RND+R/O";
-   test_file = fst24_open(test_file_name, options2, 0);
+   test_file = fst24_open(test_file_name, options2);
    if (test_file == NULL) {
       App_Log(APP_ERROR, "Unable to open newly-created test file with name %s and options %s\n", test_file_name, options2);
       return -1;
