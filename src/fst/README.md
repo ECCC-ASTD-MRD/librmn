@@ -1,6 +1,10 @@
 # Table of Contents
 1. [Introduction](#introduction)
-2. [API](#api)
+2. [Examples](#examples)
+    1. [Opening and closing](#ex-open-close)
+    2. [Searching and reading](#ex-search-read)
+    3. [Writing](#ex-write)
+3. [API](#api)
    1. [C](#c)
       1. [Struct](#c-structs)
       2. [File Functions](#c-file-functions)
@@ -16,20 +20,20 @@
 
 ## New features of RSF
 * RSF are implemented on the concept of sparse files
-* The size limit of file and records has been removed (more exactly pushed to the exabyte realm)
-* RSF can file can be concatenated and still be a valid RSF file (ie: cat file1.rsf >> file2.rsf)
-* Parallel write by multiple processes into the same file
+* The size limit of files and records has been removed (more exactly pushed to the exabyte realm)
+* RSF files can be concatenated and still be a valid RSF file (ie: `cat file1.rsf >> file2.rsf`)
+* [Parallel write](#parallel-write) by multiple processes into the same file
 * RSF files may be used as containers for other files
 
-## Upcomming features of RSF
+## Upcoming features of RSF
 * New compression schemes
 * Sub tile reading of larger records
 * Multiple no data values
 
 ## Old Interface 
-* The old API is still supported and can manage the new RSF backend. A new module has been created and we recommend its use:
+* The old `fst98` API is still supported and can manage the new RSF backend. In Fortran, a new module has been created and we recommend its use:
 ```Fortran
-use rmn_fstd98
+use rmn_fst98
 ```
 * To create a file in the RSF format, you can specify it during the opening call: 
 ```Fortran
@@ -41,7 +45,305 @@ export FST_OPTIONS="BACKEND=RSF"
 ```
 
 ## New interface
-*
+
+* In the `fst24` interface, Standard Files are manipulated trough two derived types (or structs, in C)
+    * `fst_file` is an opaque handle to a file, and allows for file operations like opening, searching, reading and writing.
+    * `fst_record` encapsulates all attributes of a record, as well as its data. It represents an item that be written to or read from a file.
+
+<a id="parallel-write"></a>
+
+## Parallel write
+
+Several processes can open the same RSF file and write to it simultaneously. This can be done with either the `fst24` or the `fst98` interface,
+ by adding `PARALLEL` to the options when opening the RSF file. There are a few things to be aware of:
+* Parallel write is only available for RSF-type files, so if the file being opened is new, it must have `RSF` in addition to `PARALLEL`, or the `FST_OPTIONS` environment variable must contain `BACKEND=RSF`
+* If a file is already open in read-only mode (`R/O` or no option) or in exclusive-write mode (`R/W` without `PARALLEL`), it has to be closed first before it can be open for parallel write.
+* Each process that opens a file for parallel write reserves a _segment_ of a given size, *which will take that much space on disk regardless of how much data that process writes to the file*. The size of the segments should be chosen so as to minimize the amount of unused space.
+    * Desired segment size is controlled by `SEGMENT_SIZE_MB` within `FST_OPTIONS`. It takes an integer, and the units are megabytes (MB). For example:
+        ```bash
+        export FST_OPTIONS="BACKEND=RSF;SEGMENT_SIZE_MB=4"
+        ```
+    * When a process writes a record, it goes into the segment
+    * If a segment is full or too small to hold a record, the segment is closed and committed to disk, and a new one is opened
+    * New segments have the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
+    * When a segment is committed to the file, any unfilled space in it will also be written to disk.
+
+# Examples
+
+<a id="ex-open-close"></a>
+## Opening and closing a file
+
+<table><tr><td style="width:50%">
+
+ **Fortran** </td><td style="width:50%">
+ **C**</td></tr>
+<tr>
+<td>
+
+```fortran
+program fst24_interface
+    use rmn_fst24
+    implicit none
+
+    type(fst_file) :: my_file
+    logical :: success
+  
+    success = my_file % open('my_file.fst')
+  
+    if (.not. success) then
+        ! Deal with error
+    end if
+  
+    success = my_file % close()
+
+end program
+```
+</td><td>
+
+```c
+#include <rmn.h>
+
+int main(void)
+{
+
+
+
+    fst_file* my_file = fst24_open("my_file.fst", NULL);
+  
+    if (my_file == NULL) {
+        // Deal with error
+    }
+  
+    fst24_close(my_file);
+    free(my_file);
+}
+```
+</td>
+</tr>
+<tr><td>
+
+```fortran
+! Open specifically as RSF
+success = my_file % open('my_file.fst', 'RSF')
+
+! Open for parallel write
+success = my_file % open('my_file.fst', 'RSF+PARALLEL')
+```
+</td><td>
+
+```c
+// Open specifically as RSF
+my_file = fst24_open("my_file.fst", "RSF");
+
+// Open for parallel write
+my_file = fst24_open("my_file.fst", "RSF+PARALLEL");
+```
+</td></tr>
+</table>
+
+<a id="ex-search-read"></a>
+## Finding and reading a record
+
+<table><tr><td style="width:50%">
+
+**Fortran**
+
+</td><td style="width:50%">
+
+**C**
+
+</td></tr>
+<tr><td>
+
+```fortran
+use rmn_fst24
+
+type(fst_file)   :: my_file
+type(fst_record) :: my_record
+type(fst_record), dimension(100) :: many_records
+logical :: success
+integer :: num_records, i
+
+success = my_file % open('my_file.fst')
+
+!-----------------------------
+! Looking for a single record and reading its data
+if (my_file % find_next(my_record)) then ! First record
+    success = my_record % read()   ! Read data from disk
+
+    if (my_record % ip1 > 10) then
+        print *, record % data
+    end if
+end if
+
+!-----------------------------
+! Searching in a loop
+
+
+success = my_file %                                    &
+    set_search_criteria(nomvar = 'ABC', ip3 = 25)
+do while (my_file % find_next(my_record))
+    ! Do stuff with this record
+end do
+
+!-----------------------------
+! Reading in a loop
+
+
+success = my_file %                                    &
+    set_search_criteria(ip1 = 200, ig2 = 2)
+do while (my_file % read_next(my_record))
+    ! Do stuff with the data
+end do
+
+!-----------------------------
+! Find several records at once
+success = my_file % set_search_criteria(typvar = 'P')
+
+! Find up to [size(many_records)] records
+num_records = my_file % find_all(many_records)
+
+do i = 1, num_records
+    success = many_records(i) % read()
+    ! Do stuff with the content
+end do
+
+
+success = my_file % close()
+```
+</td><td>
+
+```c
+#include <rmn.h>
+
+fst_record result;
+fst_record criteria;
+
+
+
+
+fst_file * my_file = fst24_open("my_file.fst", NULL);
+
+//----------------------------
+// Looking for a single record and reading its data
+if (fst24_find_next(my_file, &result)) { // First record
+    fst24_read(&result);    // Read data from disk
+    float* data = (float*)result.data;
+    for (int i = 0; i < result.ni; i++) {
+        printf("data %d = %f\n", i, data[i]);
+    }
+}
+
+//----------------------------
+// Searching in a loop
+criteria = default_fst_record; // Wildcard for all param
+strcpy(criteria.nomvar, "ABC");
+criteria.ip3 = 25;
+fst24_set_search_criteria(my_file, &criteria);
+while (fst24_find_next(my_file, &result)) {
+    // Do stuff with the record
+}
+
+//----------------------------
+// Reading in a loop
+criteria = default_fst_record; // Wildcard for all param
+criteria.ip1 = 200;
+criteria.ig2 = 2;
+fst24_set_search_criteria(my_file, &criteria);
+while (fst24_read_next(my_file, &result)) {
+    // Do stuff with the data
+}
+
+//----------------------------
+// Find several records at once
+strcpy(criteria.typvar, "P"); // Add 1 criteria
+fst_record many_records[100];
+// Find up to 100 records
+const int num_records = fst24_find_all(
+        my_file, many_records, 100);
+for (int i = 0; i < num_records; i++) {
+    fst24_read(many_records[i]);
+    // Do stuff with the content
+}
+
+fst24_close(my_file);
+free(my_file);
+```
+</td>
+</table>
+
+<a id="ex-write"></a>
+
+## Creating and writing a record
+
+<table><tr><td style="width:50%">
+
+**Fortran**
+
+</td><td style="width:50%">
+
+**C**
+
+</td></tr>
+<tr><td>
+
+```fortran
+use fst24
+
+type(fst_file)   :: my_file
+type(fst_record) :: my_record
+logical :: success
+
+real, dimension(100, 200), target :: my_data
+
+! Initialize data
+[...]
+
+success = my_file % open('my_file.fst', 'RSF')
+
+my_record % data => c_loc(my_data)
+my_record % ni = 100
+my_record % nj = 200
+my_record % nk = 1
+my_record % datyp = FST_TYPE_REAL
+my_record % dasiz = 32
+my_record % npak  = -32
+[...]
+
+success = my_file % write(my_record)
+
+success = my_file % close()
+```
+</td><td>
+
+```c
+#include <rmn.h>
+
+fst_record my_record;
+
+
+
+float my_data[100][200];
+
+// Initialize data
+[...]
+
+fst_file* my_file = fst24_open("my_file.fst", "RSF");
+
+my_record.data = my_data;
+my_record.ni = 100;
+my_record.nj = 200;
+my_record.nk = 1;
+my_record.datyp = FST_TYPE_REAL;
+my_record.dasiz = 32;
+my_record.npak  = -32;
+[...]
+
+fst24_write(my_file, &my_record, 0);
+fst24_close(my_file);
+free(my_file);
+```
+</td></tr></table>
 
 # API
 
