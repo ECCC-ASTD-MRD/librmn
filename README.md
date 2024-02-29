@@ -10,7 +10,7 @@ l'interpolateur EZ.
   * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
 ### Composantes
-  * [Standard files](src/fst98/README.md)
+  * [Standard files](src/fst/README.md)
   * [Extended metadata](src/Meta/README.md)
 
 ## Obtenir le code

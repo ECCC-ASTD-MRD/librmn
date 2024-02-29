@@ -50,6 +50,12 @@ export FST_OPTIONS="BACKEND=RSF"
     * `fst_file` is an opaque handle to a file, and allows for file operations like opening, searching, reading and writing.
     * `fst_record` encapsulates all attributes of a record, as well as its data. It represents an item that be written to or read from a file.
 
+### Searching
+Most attributes of `fst_record` are considered _directory metadata_ and are searchable (for both `RSF` and `XDF`). Search criteria are specified differently
+depending on whether you are using the Fortran or the C interface. [Examples are available below](#ex-search-read).
+* In Fortran: Search parameters are specified directly (and individually) as function parameters. Any unspecified parameter will be ignored during the search.
+* In C: Search parameters are specified as a set, represented by an `fst_record` instance. Any attribute of `fst_record` that is left at its default value will be ignored during the search.
+
 <a id="parallel-write"></a>
 
 ## Parallel write
