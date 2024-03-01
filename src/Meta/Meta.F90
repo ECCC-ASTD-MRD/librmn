@@ -283,20 +283,36 @@ interface
    end FUNCTION
 
 !  int Meta_From89(json_object *Obj,fst_record *Rec);
-  integer(kind=C_INT) FUNCTION meta_from89(obj,rec) BIND(C, name="Meta_From89")
+   integer(kind=C_INT) FUNCTION meta_from89(obj,rec) BIND(C, name="Meta_From89")
       import :: C_PTR, C_INT
 
       type(C_PTR), intent(in), value :: obj, rec
    end FUNCTION
 
+!  json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar)
+   type(C_PTR) FUNCTION meta_deffromtypvar(obj,typvar) BIND(C, name="Meta_DefFromTypVar")
+      import :: C_PTR, C_CHAR
+
+      type(C_PTR), intent(in), value :: obj
+      character(C_CHAR), dimension(*) :: typvar
+   end FUNCTION
+
+!  json_object* Meta_DefFromEtiket(json_object *Obj,const char* Etiket)
+   type(C_PTR) FUNCTION meta_deffrometiket(obj,etiket) BIND(C, name="Meta_DefFromEtiket")
+      import :: C_PTR, C_CHAR
+
+      type(C_PTR), intent(in), value :: obj
+      character(C_CHAR), dimension(*) :: etiket
+   end FUNCTION
+
 end interface
 
-   type :: meta
-      private
+   type, public :: meta
       type(C_PTR) :: json_obj = c_null_ptr
    contains
+      procedure, pass :: is => tmeta_is
       procedure, pass :: load => tmeta_load
-      procedure, pass :: new => tmeta_new
+      procedure, pass :: init => tmeta_init
       procedure, pass :: resolve => tmeta_resolve
       procedure, pass :: parse => tmeta_parse
       procedure, pass :: newobject => tmeta_newobject
@@ -313,6 +329,8 @@ end interface
       procedure, pass :: writefile => tmeta_writefile
       procedure, pass :: defvar => tmeta_defvar
       procedure, pass :: defvarfromdict => tmeta_defvarfromdict
+      procedure, pass :: deffromtypvar => tmeta_deffromtypvarref
+      procedure, pass :: deffrometiket => tmeta_deffrometiket
       procedure, pass :: defforecasttime => tmeta_defforecasttime
       procedure, pass :: addverticalref => tmeta_addverticalref
       procedure, pass :: addhorizontalref => tmeta_addhorizontalref
@@ -334,6 +352,20 @@ contains
       status = meta_free(this%json_obj)
    end SUBROUTINE meta_final
 
+   FUNCTION tmeta_is(this) result(status)
+      class(meta), intent(inout) :: this
+      logical                    :: status
+      
+      integer(C_INT32_T)         :: c_valid
+
+      c_valid = meta_is(this%json_obj)
+
+      status=.false.
+      if (c_valid>0) then
+         status=.true.
+      endif
+   end FUNCTION
+
    FUNCTION tmeta_load(this,path) result(status)
       class(meta), intent(inout)   :: this
       integer(kind=INT32)          :: status
@@ -347,7 +379,7 @@ contains
       endif
    end FUNCTION
 
-   FUNCTION tmeta_new(this,type,version) result(status)
+   FUNCTION tmeta_init(this,type,version) result(status)
       class(meta), intent(inout)   :: this
       integer(kind=INT32)          :: status
       integer(kind=INT32)          :: type
@@ -516,12 +548,29 @@ contains
    FUNCTION tmeta_defforecasttime(this,t0,step,duration,unit) result(status)
       class(meta), intent(inout) :: this
       type(C_PTR) :: status
-      integer(kind=INT64), value :: t0
-      integer(kind=INT32),  value :: step
-      real(kind=REAL64),  value :: duration
-      character(len=*) :: unit
+      integer(kind=INT64), value, optional :: t0
+      integer(kind=INT32),  value, optional :: step
+      real(kind=REAL64),  value, optional :: duration
+      character(len=*), optional :: unit
 
-      status = meta_defforecasttime(this%json_obj,t0,step,duration,unit//C_NULL_CHAR)
+      integer(kind=INT64) :: tt0
+      integer(kind=INT32) :: tstep
+      real(kind=REAL64)   :: tduration
+
+      tt0=-1
+      if (present(t0)) then
+         tt0=t0
+      endif
+      tstep=-1
+      if (present(step)) then
+         tstep=step
+      endif
+      tduration=-1
+      if (present(duration)) then
+         tduration=duration
+      endif
+ 
+      status = meta_defforecasttime(this%json_obj,tt0,tstep,tduration,unit//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_addverticalref(this,identifier,copy) result(status)
@@ -576,6 +625,22 @@ contains
          icopy=1
       endif
       status = meta_defhorizontalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
+   end FUNCTION
+
+   FUNCTION tmeta_deffromtypvarref(this,typvar) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: typvar
+
+      status = meta_deffromtypvar(this%json_obj,typvar//C_NULL_CHAR)
+   end FUNCTION
+
+   FUNCTION tmeta_deffrometiket(this,etiket) result(status)
+      class(meta), intent(inout) :: this
+      type(C_PTR) :: status
+      character(len=*) :: etiket
+
+      status = meta_deffrometiket(this%json_obj,etiket//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defdata(this,ni,nj,nk,type,compression,pack,bit,min,max) result(status)
