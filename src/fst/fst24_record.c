@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <App.h>
+#include "Meta.h"
 #include "rmn/convert_ip.h"
 
 //! Creates a new record and assign the data pointer or allocate data memory
@@ -233,9 +234,7 @@ void fst24_record_print_short(
         .deet = 8,
         .npas = 8,
 
-        .ni = 9,
-        .nj = 9,
-        .nk = 8,
+        .nijk = 9,
 
         .ip1 = 9,
         .ip2 = 9,
@@ -263,10 +262,11 @@ void fst24_record_print_short(
         if (to_print.nomvar > 0) current = add_str(current, "NOMV", width.nomvar);
         if (to_print.typvar > 0) current = add_str(current, "TV", width.typvar);
         if (to_print.etiket > 0) current = add_str(current, "ETIQUETTE   ", width.etiket);
-        if (to_print.ni > 0) current = add_str(current, "NI", width.ni);
-        if (to_print.nj > 0) current = add_str(current, "NJ", width.nj);
-        if (to_print.nk > 0) current = add_str(current, "NK", width.nk);
-
+        if (to_print.nijk > 0) {
+            current = add_str(current, "NI", width.nijk);
+            current = add_str(current, "NJ", width.nijk);
+            current = add_str(current, "NK", width.nijk);
+        }
         if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-O", width.datestamps);
         if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-O  h m s) ", width.dateo);
         if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-V", width.datestamps);
@@ -286,8 +286,8 @@ void fst24_record_print_short(
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
-
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
+        
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", buffer);
     }
     
     {
@@ -296,10 +296,11 @@ void fst24_record_print_short(
         if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
         if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
         if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
-        if (to_print.ni > 0) current = add_int(current, record->ni, width.ni, 0);
-        if (to_print.nj > 0) current = add_int(current, record->nj, width.nj, 0);
-        if (to_print.nk > 0) current = add_int(current, record->nk, width.nk, 0);
-
+        if (to_print.nijk > 0) {
+            current = add_int(current, record->ni, width.nijk, 0);
+            current = add_int(current, record->nj, width.nijk, 0);
+            current = add_int(current, record->nk, width.nijk, 0);
+        }
         if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
         if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
         if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
@@ -322,7 +323,12 @@ void fst24_record_print_short(
         else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
                                                        record->ig3, record->ig4, width.ig1234);
 
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", buffer);
+
+        if (to_print.metadata > 0) {
+            fst24_read_metadata((fst_record*)record);
+            Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", Meta_Stringify(record->metadata));
+        }
     }
 }
 

@@ -286,21 +286,26 @@ contains
     end function fst24_file_checkpoint
 
     subroutine fst24_file_print_summary(this,                                                                       &
-            dateo, datev, datestamps, level, datyp, ni, nj, nk,                                                     &
-            deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
+            dateo, datev, datestamps, level, datyp, nijk,                                                     &
+            deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata, string)
         implicit none
         class(fst_file), intent(in) :: this
-        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
-        logical, intent(in), optional :: typvar, nomvar, etiket
+        logical, intent(in), optional :: typvar, nomvar, etiket, metadata
+        character(len=*), intent(in), optional :: string
 
         type(fst_record_fields), target :: fields
         integer(C_INT32_T) :: c_status
 
-        fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, datyp=datyp,           &
-                                   ni=ni, nj=nj, nk=nk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3,                &
+        if (present(string)) then
+            fields = fst24_make_fields_from_string(string)
+        else 
+            fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, datyp=datyp,           &
+                                   nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3,                &
                                    decoded_ip=decoded_ip, grid_info=grid_info, ig1234=ig1234, typvar=typvar,            &
-                                   nomvar=nomvar, etiket=etiket)
+                                   nomvar=nomvar, etiket=etiket, metadata=metadata)
+        end if
         c_status = fst24_print_summary(this % file_ptr, c_loc(fields))
     end subroutine fst24_file_print_summary
 

@@ -800,14 +800,12 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);
     if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
-        f.ip2 = 1;
-        f.ip3 = 1;
         f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
-        fst24_record_print_short(record, &f, 0, "Write");
+        fst24_record_print_short(record, &f, 0, "Write: ");
     }
-
+    
     RSF_Free_record(new_record);
 
     return record_handle > 0 ? TRUE : -1;
@@ -949,6 +947,7 @@ int32_t fst24_get_record_by_index(
         if (file->next != NULL) return fst24_get_record_by_index(file->next, index - num_records, record);
         return ERR_OUT_RANGE;
     }
+    record->file = file;
 
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
@@ -1361,7 +1360,11 @@ int32_t fst24_read_rsf(
         ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        fst24_record_print_short(record_fst, NULL, 0, "Read    ");
+        fst_record_fields f = default_fields;
+        f.grid_info = 1;
+        f.deet = 1;
+        f.npas = 1;
+        fst24_record_print_short(record_fst, &f, 0, "Read : ");
     }
 
     free(record_rsf);

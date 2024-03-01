@@ -107,11 +107,12 @@ static const fst_record default_fst_record = (fst_record){
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, ni, nj, nk;
+    int32_t datyp, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
     int32_t typvar, nomvar, etiket;
+    int32_t metadata;
 } fst_record_fields;
 
 static const fst_record_fields default_fields = (fst_record_fields) {
@@ -129,9 +130,7 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .typvar = 1,
     .etiket = 1,
 
-    .ni = 1,
-    .nj = 1,
-    .nk = 1,
+    .nijk = 1,
 
     .decoded_ip = 0,
     .ip1 = 1,
@@ -139,7 +138,9 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .ip3 = 1,
 
     .grid_info = 0,
-    .ig1234 = 0
+    .ig1234 = 0,
+
+    .metadata = 0
 };
 
 inline int64_t fst24_record_num_elem(const fst_record* record) {
@@ -209,11 +210,12 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
     type, bind(C) :: fst_record_fields
         integer(C_INT32_T) :: dateo = 1, datev = 0, datestamps = 1
         integer(C_INT32_T) :: level = 0
-        integer(C_INT32_T) :: datyp = 1, ni = 1, nj = 1, nk = 1
+        integer(C_INT32_T) :: datyp = 1, nijk = 1
         integer(C_INT32_T) :: deet = 0, npas = 0
-        integer(C_INT32_T) :: ip1 = 1, ip2 = 0, ip3 = 0, decoded_ip = 0
+        integer(C_INT32_T) :: ip1 = 1, ip2 = 1, ip3 = 1, decoded_ip = 0
         integer(C_INT32_T) :: grid_info = 0, ig1234 = 1
         integer(C_INT32_T) :: typvar = 1, nomvar = 1, etiket = 1
+        integer(C_INT32_T) :: metadata = 0
     end type fst_record_fields
 
 #endif // IN_FORTRAN_CODE

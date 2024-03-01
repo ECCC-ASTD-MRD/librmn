@@ -9,8 +9,8 @@ program test_meta_fortran
     integer(kind=INT32) :: ok
  
 !   Load metadata template
-    ok=meta_fld%new(META_TYPE_FIELD,C_NULL_CHAR)
-    ok=meta_file%new(META_TYPE_FILE,C_NULL_CHAR)
+    ok=meta_fld%init(META_TYPE_FIELD,C_NULL_CHAR)
+    ok=meta_file%init(META_TYPE_FILE,C_NULL_CHAR)
 
     obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
     obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)

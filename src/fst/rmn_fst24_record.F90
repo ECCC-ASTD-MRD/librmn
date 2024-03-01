@@ -5,6 +5,7 @@ module rmn_fst24_record
     use App
     use f_c_strings_mod
     use rmn_common
+    use rmn_meta
     implicit none
     private
 
@@ -12,7 +13,7 @@ module rmn_fst24_record
 #include "fst24_record.hf"
 
     public :: fst_record_fields, fst_record_c
-    public :: fst24_is_default_record_valid, fst24_make_fields
+    public :: fst24_is_default_record_valid, fst24_make_fields, fst24_make_fields_from_string
 
     type, public :: fst_record
         type(fst_record_c), private :: c_self !< bind(C) version of this struct, to interface with C implementation
@@ -56,6 +57,8 @@ module rmn_fst24_record
         procedure, pass :: has_same_info => fst24_record_has_same_info
         procedure, pass :: read          => fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata
+        procedure, pass :: get_metadata => fst24_record_get_metadata
+        procedure, pass :: set_metadata => fst24_record_set_metadata
 
         procedure, pass :: print        => fst24_record_print
         procedure, pass :: print_short  => fst24_record_print_short
@@ -145,6 +148,25 @@ contains
         ptr = c_loc(this % c_self)
     end function fst24_record_get_c_ptr
 
+    function fst24_record_get_metadata(this) result(meta)
+        implicit none
+        class(fst_record), intent(in), target :: this
+        type(meta) :: meta
+
+        if (c_associated(this%metadata)) CALL c_f_pointer(c_loc(this%metadata),meta%json_obj)
+    end function fst24_record_get_metadata
+
+    function fst24_record_set_metadata(this,meta_ptr) result(status)
+        implicit none
+        class(fst_record), intent(inout), target :: this
+        type(meta), intent(in) :: meta_ptr
+        type(C_PTR) :: status
+        
+        this%metadata=meta_ptr%json_obj
+
+        status=this%metadata
+    end function fst24_record_set_metadata
+
     function fst24_record_has_same_info(this, other) result(has_same_info)
         implicit none
         class(fst_record), intent(inout) :: this
@@ -215,13 +237,13 @@ contains
     end subroutine fst24_record_print
 
     subroutine fst24_record_print_short(                                                                            &
-            this, prefix, print_header, dateo, datev, datestamps, level, datyp, ni, nj, nk,                         &
+            this, prefix, print_header, dateo, datev, datestamps, level, datyp, nijk,                         &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
         implicit none
         class(fst_record), intent(inout) :: this
         character(len=*), intent(in), optional :: prefix
         logical, intent(in), optional :: print_header
-        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket
 
@@ -241,19 +263,19 @@ contains
             if (print_header) print_header_c = 1
         end if
 
-        fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, datyp=datyp, ni=ni,    &
-                                   nj=nj, nk=nk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3, decoded_ip=decoded_ip,&
+        fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, datyp=datyp, nijk=nijk, &
+                                   deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3, decoded_ip=decoded_ip,&
                                    grid_info=grid_info, ig1234=ig1234, typvar=typvar, nomvar=nomvar, etiket=etiket)
 
         call fst24_record_print_short_c(this % get_c_ptr(), c_loc(fields), print_header_c, prefix_c)
     end subroutine fst24_record_print_short
 
-    function fst24_make_fields(dateo, datev, datestamps, level, datyp, ni, nj, nk,                         &
-            deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket) result(fields)
+    function fst24_make_fields(dateo, datev, datestamps, level, datyp, nijk,                         &
+            deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata) result(fields)
         implicit none
-        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
-        logical, intent(in), optional :: typvar, nomvar, etiket
+        logical, intent(in), optional :: typvar, nomvar, etiket, metadata
         type(fst_record_fields) :: fields
 
         if (present(dateo)) then
@@ -281,19 +303,9 @@ contains
             if (datyp) fields % datyp = 1
         end if
 
-        if (present(ni)) then
-            fields % ni = 0
-            if (ni) fields % ni = 1
-        end if
-
-        if (present(nj)) then
-            fields % nj = 0
-            if (nj) fields % nj = 1
-        end if
-
-        if (present(nk)) then
-            fields % nk = 0
-            if (nk) fields % nk = 1
+        if (present(nijk)) then
+            fields % nijk = 0
+            if (nijk) fields % nijk = 1
         end if
 
         if (present(deet)) then
@@ -351,6 +363,116 @@ contains
             if (etiket) fields % etiket = 1
         end if
 
+        if (present(metadata)) then
+            fields % metadata = 0
+            if (metadata) fields % metadata = 1
+        end if
     end function fst24_make_fields
+
+    function fst24_make_fields_from_string(string) result(fields)
+        implicit none
+        type(fst_record_fields) :: fields
+        character(len=*)        :: string
+
+        if (len_trim(string)>0) then
+           fields % dateo=0
+            fields % datev = 0
+            fields % datestamps = 0
+            fields % level = 0
+            fields % datyp = 0
+            fields % nijk = 0
+            fields % deet = 0
+            fields % npas = 0
+            fields % ip1 = 0
+            fields % ip2 = 0
+            fields % ip3 = 0
+            fields % decoded_ip = 0
+            fields % ig1234 = 0
+            fields % grid_info = 0
+            fields % typvar = 0
+            fields % nomvar = 0
+            fields % etiket = 0
+            fields % metadata = 0
+        endif
+        
+        if (index(string,'DATEO')>0) then
+            fields % dateo = 1
+        end if
+
+        if (index(string,'DATEV')>0) then
+           fields % datev = 1
+        end if
+
+        if (index(string,'STAMP')>0) then
+            fields % datestamps = 1
+        end if
+
+        if (index(string,'LEVEL')>0) then
+           fields % level = 1
+        end if
+
+        if (index(string,'DATYP')>0) then
+           fields % datyp = 1
+        end if
+
+        if (index(string,'NIJK')>0) then
+            fields % nijk = 1
+        end if
+
+        if (index(string,'DEET')>0) then
+            fields % deet = 1
+        end if
+
+        if (index(string,'NPAS')>0) then
+            fields % npas = 1
+        end if
+
+        if (index(string,'IP1')>0) then
+            fields % ip1 = 1
+        end if
+
+        if (index(string,'IP2')>0) then
+            fields % ip2 = 1
+        end if
+
+        if (index(string,'IP3')>0) then
+            fields % ip3 = 1
+        end if
+
+        if (index(string,'IPS')>0) then
+            fields % ip1 = 1
+            fields % ip2 = 1
+            fields % ip3 = 1
+        end if 
+
+        if (index(string,'DECODE')>0) then
+            fields % decoded_ip = 1
+        end if
+
+        if (index(string,'GRID')>0) then
+            fields % grid_info = 1
+        end if
+
+        if (index(string,'IGS')>0) then
+            fields % ig1234 = 1
+        end if
+
+        if (index(string,'TYPVAR')>0) then
+            fields % typvar = 1
+        end if
+
+        if (index(string,'NOMVAR')>0) then
+            fields % nomvar = 1
+        end if
+
+        if (index(string,'ETIKET')>0) then
+            fields % etiket = 1
+        end if
+
+        if (index(string,'META')>0) then
+            fields % metadata = 1
+        end if
+
+    end function fst24_make_fields_from_string
 
 end module rmn_fst24_record
