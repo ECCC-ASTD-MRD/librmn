@@ -61,7 +61,7 @@ module rmn_fst24
 
 contains
 
-    !> Check whether the given path is a valid standard file
+    !> Check whether the file at the given path is a valid standard file
     !> \return .true. if the given path is a valid standard file, .false. otherwise
     function fst24_file_is_valid(filename) result(is_valid)
         implicit none
@@ -76,7 +76,6 @@ contains
     end function fst24_file_is_valid
 
     !> Check whether this file is open
-    !> \return .true. if the file is open, .false. if not or if something is wrong
     function fst24_file_is_open(this) result(is_open)
         implicit none
         class(fst_file), intent(in) :: this !< fst24_file instance
@@ -117,8 +116,8 @@ contains
     !> \copybrief fst24_close
     function fst24_file_close(this) result(could_close)
         implicit none
-        class(fst_file), intent(inout) :: this
-        logical :: could_close
+        class(fst_file), intent(inout) :: this  !< fst_file instance we want to close
+        logical :: could_close                  !< Whether we were actually able to close it
 
         integer(C_INT32_T) :: c_could_close
         could_close = .false.
@@ -202,8 +201,8 @@ contains
     !> \return .true. if we found a record, .false. if not or if error
     function fst24_file_find_next(this, record) result(found)
         implicit none
-        class(fst_file), intent(in) :: this
-        type(fst_record), intent(inout), optional :: record
+        class(fst_file), intent(in) :: this                 !< File we are searching
+        type(fst_record), intent(inout), optional :: record !< Information of the record found. Left unchanged if nothing found
         type(C_PTR) :: c_record
         logical :: found
 
@@ -253,8 +252,8 @@ contains
     !> \return .true. if we read a record, .false. if none found or if error
     function fst24_file_read_next(this, record) result(found)
         implicit none
-        class(fst_file), intent(in) :: this
-        type(fst_record), intent(inout) :: record
+        class(fst_file), intent(in) :: this         !< File to search
+        type(fst_record), intent(inout) :: record   !< Record that was read (left unchanged if nothing was found)
         logical :: found
 
         integer(C_INT32_T) :: c_result
@@ -272,9 +271,9 @@ contains
     !> \return Whether the write was successful
     function fst24_file_write(this, record, rewrite) result(success)
         implicit none
-        class(fst_file),  intent(inout) :: this
-        type(fst_record), intent(inout) :: record
-        logical, intent(in), optional     :: rewrite
+        class(fst_file),  intent(inout) :: this     !< File where we want to write
+        type(fst_record), intent(inout) :: record   !< Record we want to write
+        logical, intent(in), optional     :: rewrite!< Whether we want to rewrite an existing record (default .false.)
         logical :: success
 
         integer(C_INT32_T) :: c_rewrite, c_status
@@ -365,6 +364,7 @@ contains
     end function fst24_file_unlink
 
     !> \copydoc c_fsteof
+    !> Only works with sequential files
     function fst24_file_eof(this) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
@@ -375,6 +375,7 @@ contains
     end function fst24_file_eof
 
     !> \copydoc c_fstweo
+    !> Only works with sequential files
     function fst24_file_weo(this,level) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
@@ -386,6 +387,7 @@ contains
     end function fst24_file_weo
 
     !> \copydoc c_fstrwd
+    !> Only works with sequential files
     function fst24_file_rwd(this) result(status)
         implicit none
         class(fst_file), intent(inout) :: this

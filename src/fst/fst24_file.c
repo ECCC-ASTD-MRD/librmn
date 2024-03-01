@@ -891,7 +891,7 @@ int32_t fst24_get_record_from_key(
     return TRUE;
 }
 
-//! Indicate a set of criteria that will be used whenever we will use "find next record" 
+//! Indicate a set of criteria that will be used whenever we use "find next record" 
 //! for the given file, within the FST 24 implementation.
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the

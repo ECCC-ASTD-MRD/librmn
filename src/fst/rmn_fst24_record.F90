@@ -167,7 +167,7 @@ contains
     end function fst24_record_has_same_info
 
     !> \copybrief fst24_read
-    !> \return Whether it was able to do the reading
+    !> \return Whether we were able to do the reading
     function fst24_record_read(this) result(success)
         implicit none
         class(fst_record), intent(inout) :: this  !< fst_record instance. If must be a valid record already found in a file
