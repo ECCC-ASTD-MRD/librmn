@@ -1465,7 +1465,7 @@ int32_t fst24_read(
 
     int32_t ret = -1;
     if (record->file->type == FST_RSF) {
-        ret = fst24_read_rsf(record, 0, 0);
+        ret = fst24_read_rsf(record,image_mode_copy, 0);
     }
     else if (record->file->type == FST_XDF) {
         ret = fst24_read_xdf(record);
