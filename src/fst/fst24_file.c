@@ -889,7 +889,7 @@ int32_t fst24_get_record_from_key(
     return TRUE;
 }
 
-//! Indicate a set of criteria that will be used whenever we will use "find next record" 
+//! Indicate a set of criteria that will be used whenever we use "find next record" 
 //! for the given file, within the FST 24 implementation.
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
@@ -1431,7 +1431,7 @@ void* fst24_read_metadata(
     return NULL;
 }
 
-//! Read record data from file
+//! Read the data and metadata of a given record from its corresponding file
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
 int32_t fst24_read(
     fst_record* record //!< [in,out] Record for which we want to read data. Must have a valid handle!
@@ -1452,8 +1452,8 @@ int32_t fst24_read(
     // Allocate buffer if not already done or big enough
     sz=fst24_record_data_size(record);
 
-    if (!record->data || sz>record->alloc) {
-        if (record->flags&FST_REC_ASSIGNED) {
+    if (!record->data || sz > record->alloc) {
+        if (record->flags & FST_REC_ASSIGNED) {
            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);        
            return -1;
         }
@@ -1552,9 +1552,8 @@ int32_t fst24_unlink(fst_file* file) {
     return TRUE;
 }
 
-//! Unlink the given file(s). The files are assumed to have been linked by
-//! a previous call to fst24_link, so only the first one should be given as input
-//! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
+//! Move to the end of the given sequential file
+//! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(fst_file* file) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
@@ -1562,6 +1561,4 @@ int32_t fst24_eof(fst_file* file) {
     }
 
     return (c_fsteof(fst24_get_unit(file)));
-
-    return TRUE;
 }

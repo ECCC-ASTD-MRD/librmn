@@ -34,6 +34,8 @@ static fst_file default_fst_file = (fst_file) {
     .next               = NULL
 };
 
+//! @defgroup public_fst Public FST C API
+//! @{
 int32_t   fst24_is_valid(const char* file_name);
 int32_t   fst24_is_open(const fst_file* file);
 fst_file* fst24_open(const char* file_name, const char* options);
@@ -55,5 +57,6 @@ int32_t   fst24_link(fst_file** files, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* file);
 int32_t   fst24_print_summary(fst_file* file, const fst_record_fields* fields);
 int32_t   fst24_checkpoint(fst_file* file);
+//! @}
 
 #endif // RMN_FST_FILE_H__

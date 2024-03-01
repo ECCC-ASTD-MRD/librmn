@@ -492,6 +492,7 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
       ORD_SOUMET_MACH    : gpsc7
       ORD_SOUMET_IMAGE   : registry.maze.science.gc.ca/ssc-hpcs/generic-job:ubuntu22.04
       ORD_SOUMET_PROJECT : eccc_mrd
+      ORD_SOUMET_MPI     :
    stage: test
    tags:
       - concurrent

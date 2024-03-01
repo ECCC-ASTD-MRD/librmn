@@ -27,28 +27,28 @@ module rmn_fst24
         private
         type(C_PTR) :: file_ptr = c_null_ptr ! Pointer to C file control structure
     contains
-        procedure, nopass :: is_valid => fst24_file_is_valid
-        procedure, pass   :: is_open => fst24_file_is_open
-        procedure, pass   :: open => fst24_file_open
-        procedure, pass   :: close => fst24_file_close
-        procedure, pass   :: get_num_records => fst24_file_get_num_records
-        procedure, pass   :: get_unit => fst24_file_get_unit
+        procedure, nopass :: is_valid => fst24_file_is_valid    !< \copydoc fst24_file_is_valid
+        procedure, pass   :: is_open  => fst24_file_is_open     !< \copydoc fst24_file_is_open
+        procedure, pass   :: open     => fst24_file_open        !< \copydoc fst24_file_open
+        procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
+        procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
+        procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
 
-        procedure, pass :: set_search_criteria => fst24_file_set_search_criteria
-        procedure, pass :: find_next => fst24_file_find_next
-        procedure, pass :: find_all  => fst24_file_find_all
-        procedure, pass :: read_next => fst24_file_read_next
+        procedure, pass :: set_search_criteria => fst24_file_set_search_criteria !< \copydoc fst24_file_set_search_criteria
+        procedure, pass :: find_next => fst24_file_find_next    !< \copydoc fst24_file_find_next
+        procedure, pass :: find_all  => fst24_file_find_all     !< \copydoc fst24_file_find_all
+        procedure, pass :: read_next => fst24_file_read_next    !< \copydoc fst24_file_read_next
 
-        procedure, pass :: write => fst24_file_write
+        procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
-        procedure, pass :: checkpoint => fst24_file_checkpoint
-        procedure, pass :: print_summary => fst24_file_print_summary
-        procedure, pass :: unlink => fst24_file_unlink
+        procedure, pass :: checkpoint => fst24_file_checkpoint !< \copydoc fst24_file_checkpoint
+        procedure, pass :: print_summary => fst24_file_print_summary !< \copydoc fst24_file_print_summary
+        procedure, pass :: unlink => fst24_file_unlink  !< \copydoc fst24_file_unlink  
 
         ! Sequential files
-        procedure, pass :: eof => fst24_file_eof
-        procedure, pass :: weo => fst24_file_weo
-        procedure, pass :: rewind => fst24_file_rwd
+        procedure, pass :: eof    => fst24_file_eof !< \copydoc fst24_file_eof
+        procedure, pass :: weo    => fst24_file_weo !< \copydoc fst24_file_weo
+        procedure, pass :: rewind => fst24_file_rwd !< \copydoc fst24_file_rwd
     end type fst_file
 
     interface
@@ -61,7 +61,8 @@ module rmn_fst24
 
 contains
 
-    !> \result Check whether the given path is a valid standard file
+    !> Check whether the file at the given path is a valid standard file
+    !> \return .true. if the given path is a valid standard file, .false. otherwise
     function fst24_file_is_valid(filename) result(is_valid)
         implicit none
         character(len=*), intent(in) :: filename
@@ -74,7 +75,7 @@ contains
         if (c_is_valid == 1) is_valid = .true.
     end function fst24_file_is_valid
 
-    !> \result Check whether this file is open
+    !> Check whether this file is open
     function fst24_file_is_open(this) result(is_open)
         implicit none
         class(fst_file), intent(in) :: this !< fst24_file instance
@@ -88,8 +89,10 @@ contains
         if (c_is_open == 1) is_open = .true.
     end function fst24_file_is_open
 
+
+    !> \copybrief fst24_open
     function fst24_file_open(this, filename, options) result(could_open)
-        class(fst_file),intent(inout)        :: this     !< fst24_file instance
+        class(fst_file),intent(inout)        :: this     !< fst_file instance. Must not be an already-open file
         character(len=*), intent(in)           :: filename !< Name of the file we want to open
         character(len=*), intent(in), optional :: options  !< Additional options to pass
 
@@ -110,10 +113,11 @@ contains
         could_open = this % is_open()
     end function fst24_file_open
 
+    !> \copybrief fst24_close
     function fst24_file_close(this) result(could_close)
         implicit none
-        class(fst_file), intent(inout) :: this
-        logical :: could_close
+        class(fst_file), intent(inout) :: this  !< fst_file instance we want to close
+        logical :: could_close                  !< Whether we were actually able to close it
 
         integer(C_INT32_T) :: c_could_close
         could_close = .false.
@@ -124,8 +128,8 @@ contains
         if (c_could_close == 1) could_close = .true.
     end function fst24_file_close
 
+    !> \copybrief fst24_get_num_records
     !> \return Number of record in file (including linked files). 0 if file is invalid or not open.
-    !> \sa fst24_get_num_records
     function fst24_file_get_num_records(this) result(num_records)
         implicit none
         class(fst_file), intent(in) :: this
@@ -133,6 +137,8 @@ contains
         num_records = fst24_get_num_records(this % file_ptr)
     end function fst24_file_get_num_records
 
+    !> \copybrief fst24_get_unit
+    !> \return Unit of the file if open, 0 otherwise
     function fst24_file_get_unit(this) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
@@ -142,6 +148,8 @@ contains
         status = fst24_get_unit(this % file_ptr)
     end function fst24_file_get_unit
 
+    !> \copybrief fst24_set_search_criteria
+    !> \return .true. if we were able to set the criteria, .false. if file was not open (or other error)
     function fst24_file_set_search_criteria(this,                                                                   &
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket) result(success)
@@ -189,10 +197,12 @@ contains
 
     end function fst24_file_set_search_criteria
 
+    !> \copybrief fst24_find_next
+    !> \return .true. if we found a record, .false. if not or if error
     function fst24_file_find_next(this, record) result(found)
         implicit none
-        class(fst_file), intent(in) :: this
-        type(fst_record), intent(inout), optional :: record
+        class(fst_file), intent(in) :: this                 !< File we are searching
+        type(fst_record), intent(inout), optional :: record !< Information of the record found. Left unchanged if nothing found
         type(C_PTR) :: c_record
         logical :: found
 
@@ -213,9 +223,13 @@ contains
         end if
     end function fst24_file_find_next
 
+    !> \copybrief fst24_find_all
+    !> \return Number of records found, up to size(records)
     function fst24_file_find_all(this, records) result(num_found)
         implicit none
-        class(fst_file), intent(in) :: this
+        class(fst_file), intent(in) :: this     !< File we are searching. Must be open
+        !> [in,out] Array where the records found will be put.
+        !> We stop searching after we found enough records to fill it.
         type(fst_record), dimension(:), intent(inout) :: records
         integer(C_INT32_T) :: num_found
 
@@ -234,10 +248,12 @@ contains
         end do
     end function fst24_file_find_all
 
+    !> \copybrief fst24_read_next
+    !> \return .true. if we read a record, .false. if none found or if error
     function fst24_file_read_next(this, record) result(found)
         implicit none
-        class(fst_file), intent(in) :: this
-        type(fst_record), intent(inout) :: record
+        class(fst_file), intent(in) :: this         !< File to search
+        type(fst_record), intent(inout) :: record   !< Record that was read (left unchanged if nothing was found)
         logical :: found
 
         integer(C_INT32_T) :: c_result
@@ -251,11 +267,13 @@ contains
         end if
     end function fst24_file_read_next
 
+    !> \copybrief fst24_write
+    !> \return Whether the write was successful
     function fst24_file_write(this, record, rewrite) result(success)
         implicit none
-        class(fst_file),  intent(inout) :: this
-        type(fst_record), intent(inout) :: record
-        logical, intent(in), optional     :: rewrite
+        class(fst_file),  intent(inout) :: this     !< File where we want to write
+        type(fst_record), intent(inout) :: record   !< Record we want to write
+        logical, intent(in), optional     :: rewrite!< Whether we want to rewrite an existing record (default .false.)
         logical :: success
 
         integer(C_INT32_T) :: c_rewrite, c_status
@@ -273,6 +291,8 @@ contains
         if (c_status > 0) success = .true.
     end function fst24_file_write
 
+    !> \copybrief fst24_checkpoint
+    !> \return Whether the underlying call was successful
     function fst24_file_checkpoint(this) result(success)
         implicit none
         class(fst_file), intent(inout) :: this
@@ -285,6 +305,8 @@ contains
         if (c_status >= 0) success = .true.
     end function fst24_file_checkpoint
 
+    !> \copybrief fst24_print_summary
+    !> All optional parameters are booleans determining whether we print the corresponding field.
     subroutine fst24_file_print_summary(this,                                                                       &
             dateo, datev, datestamps, level, datyp, nijk,                                                     &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata, string)
@@ -309,6 +331,8 @@ contains
         c_status = fst24_print_summary(this % file_ptr, c_loc(fields))
     end subroutine fst24_file_print_summary
 
+    !> Link the given files so that they can be searched and read as one.
+    !> \return Whether the linking was successful
     function fst24_link(files) result(success)
         implicit none
         type(fst_file), dimension(:), intent(inout) :: files
@@ -330,9 +354,11 @@ contains
         if (c_status > 0) success = .true.
     end function fst24_link
 
+    !> Unlink files that are linked into the given file
+    !> \return Whether the unlinking was successful
     function fst24_file_unlink(this) result(success)
         implicit none
-        class(fst_file), intent(inout) :: this
+        class(fst_file), intent(inout) :: this !< File to unlink. Must be the first in the list when linking occurred
         logical :: success
 
         integer(C_INT32_T) :: c_status
@@ -342,6 +368,8 @@ contains
         if (c_status > 0) success = .true.
     end function fst24_file_unlink
 
+    !> \copydoc c_fsteof
+    !> Only works with sequential files
     function fst24_file_eof(this) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
@@ -351,6 +379,8 @@ contains
         status = c_fsteof(fst24_get_unit(this % file_ptr))
     end function fst24_file_eof
 
+    !> \copydoc c_fstweo
+    !> Only works with sequential files
     function fst24_file_weo(this,level) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
@@ -361,6 +391,8 @@ contains
         status = c_fstweo(fst24_get_unit(this % file_ptr), level)
     end function fst24_file_weo
 
+    !> \copydoc c_fstrwd
+    !> Only works with sequential files
     function fst24_file_rwd(this) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
