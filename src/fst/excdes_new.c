@@ -1262,7 +1262,6 @@ int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,c
   int status;
 
   if(DeactivateAllFilters) return 1;  /* filtering deactivated */
-  if(package_not_initialized) RequetesInit();
 
   status = C_fstmatch_parm(0, datev, ni, nj, nk, ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
 //  fprintf(stderr, "C_fstmatch_req/fstd status=%d\n", status);

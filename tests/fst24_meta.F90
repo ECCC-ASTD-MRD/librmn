@@ -1,9 +1,11 @@
 program test_meta_fortran
 
+    use rmn_fst24
     use rmn_meta
     use rmn_common
 
-    type(meta) :: meta_fld, meta_file
+    type(meta) :: meta_fld, meta_file, meta_tmp
+    type(fst_record) :: record
     type(C_PTR) obj
     real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
     integer(kind=INT32) :: ok
@@ -46,5 +48,10 @@ program test_meta_fortran
 !    Output formatted
      ok=meta_fld%Resolve(meta_file);
 
-     write(6,*) 'JSON:',meta_fld%Stringify()
+!     write(6,*) 'JSON:',meta_fld%Stringify()
+
+     obj=record%set_metadata(meta_fld)
+     meta_tmp=record%get_metadata()
+     write(6,*) 'JSON:',meta_tmp%Stringify()
+     
 end

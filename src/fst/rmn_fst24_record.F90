@@ -24,11 +24,11 @@ module rmn_fst24_record
     type, public :: fst_record
         type(fst_record_c), private :: c_self !< bind(C) version of this struct, to interface with C implementation
 
-        type(C_PTR) :: data     = C_NULL_PTR    !< Pointer to the data
-        type(C_PTR) :: metadata = C_NULL_PTR    !< Pointer to the metadata
-
-        integer(C_INT64_T) :: dateo    = -1 !< Origin Date timestamp
-        integer(C_INT64_T) :: datev    = -1 !< Valid Date timestamp
+        type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
+        type(C_PTR) :: metadata = C_NULL_PTR  !< Pointer to the metadata
+    
+        integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
+        integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
 
         integer(C_INT32_T) :: datyp = -1    !< Data type of elements
         integer(C_INT32_T) :: dasiz = -1    !< Number of bits per elements
@@ -152,12 +152,12 @@ contains
         ptr = c_loc(this % c_self)
     end function fst24_record_get_c_ptr
 
-    function fst24_record_get_metadata(this) result(meta)
+    function fst24_record_get_metadata(this) result(meta_ptr)
         implicit none
         class(fst_record), intent(in), target :: this
-        type(meta) :: meta
+        type(meta) :: meta_ptr
 
-        if (c_associated(this%metadata)) CALL c_f_pointer(c_loc(this%metadata),meta%json_obj)
+        meta_ptr%json_obj=this%metadata
     end function fst24_record_get_metadata
 
     function fst24_record_set_metadata(this,meta_ptr) result(status)
@@ -167,6 +167,7 @@ contains
         type(C_PTR) :: status
         
         this%metadata=meta_ptr%json_obj
+        call this % make_c_self()
 
         status=this%metadata
     end function fst24_record_set_metadata
