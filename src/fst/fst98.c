@@ -605,7 +605,7 @@ void print_std_parms(
     }
 
     if (header==-1) {
-       Lib_Log(APP_LIBFST,APP_INFO,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
+       Lib_Log(APP_LIBFST,APP_ALWAYS,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
            pre,v_nomv,v_typv,v_etiq,v_dims,v_dateo,v_stampo,v_datev,v_level,v_decoded,v_ip1,v_ip23,v_deet,v_npas,v_dty,v_grid);
     } else {
        fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
@@ -2297,7 +2297,7 @@ int c_fstinl(
     int status = -1;
     int total_found = 0;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Looking at file %d (iun %d), type %d, next %d\n",
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
                 __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinl_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3,
