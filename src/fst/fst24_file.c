@@ -449,12 +449,14 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     int   metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
-       fst24_bounds(record,&dmin,&dmax);
-       if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax)) {
-          Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
+       if (!image_mode_copy) {
+          fst24_bounds(record,&dmin,&dmax);
+          if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax)) {
+             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
+          }
        }
        if ((metastr = Meta_Stringify(record->metadata))) {
-          metalen = strlen(metastr);
+          metalen = strlen(metastr)+1;
           rec_metadata_size += ((metastr?metalen:0)+3)/4;
        }
     }
@@ -483,7 +485,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
     // Insert json metadata
     if (metastr) {
-        memcpy((char *)(stdf_entry + 1),metastr,metalen); // Copy metadata into RSF record struct, just after directory metadata
+        memcpy((char *)(stdf_entry + 1),metastr,metalen+1); // Copy metadata into RSF record struct, just after directory metadata
     }
     
     stdf_entry->deleted = 0; // Unused by RSF
@@ -1352,7 +1354,6 @@ int32_t fst24_read_rsf(
         record_fst->metadata=Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
         Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,(char*)((stdf_dir_keys*)record_rsf->meta+1),record_fst->handle);
     }
-    // fst24_record_print(record_fst)
 
     // Extract data
     int32_t ier = 0;
@@ -1450,14 +1451,16 @@ int32_t fst24_read(
     }
 
     // Allocate buffer if not already done or big enough
-    sz=fst24_record_data_size(record);
+    if (!(sz=fst24_record_data_size(record))) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: NULL size buffer \n", __func__);        
+    }
 
     if (!record->data || sz > record->alloc) {
         if (record->flags & FST_REC_ASSIGNED) {
            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);        
            return -1;
         }
-        record->data = malloc(sz);
+        record->data = realloc(record->data,sz);
         if (record->data == NULL) 
             return ERR_MEM_FULL;
         record->alloc=sz;    

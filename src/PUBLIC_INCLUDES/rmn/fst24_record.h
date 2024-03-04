@@ -158,7 +158,7 @@ inline int64_t fst24_record_num_elem(const fst_record* record) {
 
 //! Number of data bytes in record
 inline int64_t fst24_record_data_size(const fst_record* record) {
-    return fst24_record_num_elem(record) * (record->dasiz>>3);
+    return (fst24_record_num_elem(record) * record->dasiz)>>3;
 }
 
 int32_t    fst24_record_is_valid(const fst_record* record);
