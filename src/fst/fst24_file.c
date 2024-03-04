@@ -983,7 +983,6 @@ int32_t fst24_get_record_by_index(
 //! Search through linked files, if any.
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
-
 int32_t fst24_find_next(
     fst_file* file,     //!< File we are searching. Must be open
     fst_record* result  //!< [out] Record information if found, optional (no data or advanced metadata, unless included in search)
@@ -1014,9 +1013,9 @@ int32_t fst24_find_next(
             if ((key = find_next_record(file_handle, &fstd_open_files[file->file_index])) < 0) {
                 break;
             }
-
             if (result) {
                 // Check on excdes desire/exclure clauses
+                result->metadata = NULL;
                 rkey=fst24_get_record_from_key(file, key, result); 
                 if (!C_fst_rsf_match_req(result->datev, result->ni, result->nj, result->nk, result->ip1, result->ip2, result->ip3,
                        result->typvar, result->nomvar, result->etiket, result->grtyp, result->ig1, result->ig2, result->ig3, result->ig4)) {
@@ -1028,7 +1027,6 @@ int32_t fst24_find_next(
                     if (fst24_read_metadata(result) && Meta_Match(fstd_open_files[file->file_index].search_meta,result->metadata,FALSE)) {
                         break;
                     } else {
-                        result->metadata = NULL;
                         key = -1;
                     }
                 }
@@ -1040,6 +1038,7 @@ int32_t fst24_find_next(
         uint32_t* pmask = (uint32_t *) &fstd_open_files[file->file_index].search_mask;
 
         pkeys += W64TOWD(1);
+        pmask += W64TOWD(1);
 
         const int32_t start_key = fstd_open_files[file->file_index].search_start_key & 0xffffffff;
 
@@ -1062,7 +1061,7 @@ int32_t fst24_find_next(
                 __func__, file->iun, key, file);
         // If search included extended metadata, the key will already be extracted
         if (result && !rkey) {
-           return fst24_get_record_from_key(file, key, result);
+            return fst24_get_record_from_key(file, key, result);
         } else {
             return(TRUE);
         }
