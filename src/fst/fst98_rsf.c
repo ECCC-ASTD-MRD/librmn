@@ -652,11 +652,12 @@ int c_fstecr_rsf(
     /* write record to file and add entry to directory */
     const int64_t record_handle = RSF_Put_record(file_handle, record, num_data_bytes);
     if (!record_handle) {
-       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Error writing record\n", __func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: Error writing record\n", __func__);
+        print_std_parms(stdf_entry, "Write", prnt_options, -1);
     } else { 
-       if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
-           print_std_parms(stdf_entry, "Write", prnt_options, -1);
-       }
+        if (Lib_LogLevel(APP_LIBFST,NULL) > APP_INFO) {
+            print_std_parms(stdf_entry, "Write", prnt_options, -1);
+        }
     }
 
     xdf_double = 0;
