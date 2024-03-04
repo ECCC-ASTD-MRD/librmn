@@ -82,7 +82,7 @@ fst_file* fst24_open(
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
-    // Reset search criteria, so that we can just start reading everyting
+    // Reset search criteria, so that we can just start reading everything
     fst24_set_search_criteria(the_file, &default_fst_record);
 
     return the_file;
@@ -982,6 +982,8 @@ int32_t fst24_get_record_by_index(
 //! criteria)
 //! Search through linked files, if any.
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
+int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
+
 int32_t fst24_find_next(
     fst_file* file,     //!< File we are searching. Must be open
     fst_record* result  //!< [out] Record information if found, optional (no data or advanced metadata, unless included in search)
@@ -1012,14 +1014,23 @@ int32_t fst24_find_next(
             if ((key = find_next_record(file_handle, &fstd_open_files[file->file_index])) < 0) {
                 break;
             }
-            // If metadata search is specified, look for a match or carry on looking
-            if (result && fstd_open_files[file->file_index].search_meta) {
+
+            if (result) {
+                // Check on excdes desire/exclure clauses
                 rkey=fst24_get_record_from_key(file, key, result); 
-                if (fst24_read_metadata(result) && Meta_Match(fstd_open_files[file->file_index].search_meta,result->metadata,FALSE)) {
-                     break;
-                } else {
-                    result->metadata = NULL;
-                    key = -1;
+                if (!C_fst_rsf_match_req(result->datev, result->ni, result->nj, result->nk, result->ip1, result->ip2, result->ip3,
+                       result->typvar, result->nomvar, result->etiket, result->grtyp, result->ig1, result->ig2, result->ig3, result->ig4)) {
+                    key = -1;    
+                } else 
+
+                // If metadata search is specified, look for a match or carry on looking
+                if (fstd_open_files[file->file_index].search_meta) {
+                    if (fst24_read_metadata(result) && Meta_Match(fstd_open_files[file->file_index].search_meta,result->metadata,FALSE)) {
+                        break;
+                    } else {
+                        result->metadata = NULL;
+                        key = -1;
+                    }
                 }
             }  
         }    
@@ -1029,7 +1040,6 @@ int32_t fst24_find_next(
         uint32_t* pmask = (uint32_t *) &fstd_open_files[file->file_index].search_mask;
 
         pkeys += W64TOWD(1);
-        pmask += W64TOWD(1);
 
         const int32_t start_key = fstd_open_files[file->file_index].search_start_key & 0xffffffff;
 
@@ -1037,8 +1047,7 @@ int32_t fst24_find_next(
 
         if (key >= 0) {
             fstd_open_files[file->file_index].search_start_key = key;
-        }
-        else {
+        } else {
             // Mark search as finished in this file if no record is found
             fstd_open_files[file->file_index].search_done = 1;
         }
@@ -1348,11 +1357,10 @@ int32_t fst24_read_rsf(
 
     fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
 
-    // Extract metadata form record if present
+    // Extract metadata from record if present
     record_fst->metadata=NULL;
     if (record_rsf->rec_meta > record_rsf->dir_meta) {
         record_fst->metadata=Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
-        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,(char*)((stdf_dir_keys*)record_rsf->meta+1),record_fst->handle);
     }
 
     // Extract data
