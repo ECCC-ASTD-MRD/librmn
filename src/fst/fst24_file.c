@@ -911,6 +911,11 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
                          &fstd_open_files[file->file_index].search_criteria,
                          &fstd_open_files[file->file_index].search_mask);
 
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Setting search criteria\n", __func__);
+        print_non_wildcards(criteria);
+    }
+
     const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
     fstd_open_files[file->file_index].search_start_key = start_key;
     fstd_open_files[file->file_index].search_meta = criteria->metadata;
@@ -1040,6 +1045,7 @@ int32_t fst24_find_next(
         uint32_t* pmask = (uint32_t *) &fstd_open_files[file->file_index].search_mask;
 
         pkeys += W64TOWD(1);
+        pmask += W64TOWD(1);
 
         const int32_t start_key = fstd_open_files[file->file_index].search_start_key & 0xffffffff;
 

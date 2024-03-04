@@ -747,3 +747,40 @@ int32_t fst24_validate_default_record(
 
     return 0;
 }
+
+void print_non_wildcards(const fst_record* record) {
+    char buffer[1024];
+    char* ptr = buffer;
+
+    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
+    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%d ", record->datev);
+    if (record->datyp != default_fst_record.datyp) ptr += snprintf(ptr, 20, "datyp=%d ", record->datyp);
+    if (record->dasiz != default_fst_record.dasiz) ptr += snprintf(ptr, 20, "dasiz=%d ", record->dasiz);
+    if (record->npak != default_fst_record.npak)   ptr += snprintf(ptr, 20, "npak=%d ", record->npak);
+    if (record->ni != default_fst_record.ni)       ptr += snprintf(ptr, 20, "ni=%d ", record->ni);
+    if (record->nj != default_fst_record.nj)       ptr += snprintf(ptr, 20, "nj=%d ", record->nj);
+    if (record->nk != default_fst_record.nk)       ptr += snprintf(ptr, 20, "nk=%d ", record->nk);
+    if (record->deet != default_fst_record.deet)   ptr += snprintf(ptr, 30, "deet=%d ", record->deet);
+    if (record->npas != default_fst_record.npas)   ptr += snprintf(ptr, 30, "npas=%d ", record->npas);
+    if (record->ip1 != default_fst_record.ip1)     ptr += snprintf(ptr, 30, "ip1=%d ", record->ip1);
+    if (record->ip2 != default_fst_record.ip2)     ptr += snprintf(ptr, 30, "ip2=%d ", record->ip2);
+    if (record->ip3 != default_fst_record.ip3)     ptr += snprintf(ptr, 30, "ip3=%d ", record->ip3);
+    if (record->ig1 != default_fst_record.ig1)     ptr += snprintf(ptr, 30, "ig1=%d ", record->ig1);
+    if (record->ig2 != default_fst_record.ig2)     ptr += snprintf(ptr, 30, "ig2=%d ", record->ig2);
+    if (record->ig3 != default_fst_record.ig3)     ptr += snprintf(ptr, 30, "ig3=%d ", record->ig3);
+    if (record->ig4 != default_fst_record.ig4)     ptr += snprintf(ptr, 30, "ig4=%d ", record->ig4);
+
+    if (strncasecmp(record->typvar, default_fst_record.typvar, FST_TYPVAR_LEN) != 0)
+        ptr += snprintf(ptr, 30, "typvar='%s' ", record->typvar);
+    if (strncasecmp(record->grtyp, default_fst_record.grtyp, FST_GTYP_LEN) != 0)
+        ptr += snprintf(ptr, 30, "grtyp='%s' ", record->grtyp);
+    if (strncasecmp(record->nomvar, default_fst_record.nomvar, FST_NOMVAR_LEN) != 0)
+        ptr += snprintf(ptr, 30, "nomvar='%s' ", record->nomvar);
+    if (strncasecmp(record->etiket, default_fst_record.etiket, FST_ETIKET_LEN) != 0)
+        ptr += snprintf(ptr, 30, "etiket='%s' ", record->etiket);
+
+    ptr[0] = '\0';
+    if (ptr == buffer) sprintf(ptr, "[none]");
+
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "criteria: %s\n", buffer);
+}
