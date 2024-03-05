@@ -5,9 +5,9 @@
    2. [File](#file-level)
 3. [Environment variables](#environment_variables)
 4. [Code Example](#code_example)
-   1. [C](#c)
+   1. [C](#C)
    2. [Fortran](#fortran)
-   
+
 # Introduction
 - The new metadata now available in fst24 allows the storage of much more information while being flexible, extensible and future proof.
 - This metadata is in addition to the previous indexable metadata already available (NOMVAR,TYPVAR,IP,...) and will keep backward compatibility with previous FST89 and FST98.
@@ -92,8 +92,8 @@
 ```
 
 ## File level
-                          
-| Extended metadata                                |                            
+
+| Extended metadata                                |
 |--------------------------------------------------|
 | version : [semantic version]                     |
 | institution : "CMC"                              |
@@ -135,86 +135,84 @@
 #include <stdlib.h>
 
 int main(int argc, char **argv) {
+    json_object *prof_file = NULL;
+    json_object *prof_fld = NULL;
+    double levels[1]= { 1000.0 };
 
-   json_object *prof_file=NULL,*prof_fld=NULL;
-   double levels[1]= { 1000.0 };
+    // Create metadata object from template
+    prof_fld = Meta_New(META_TYPE_FIELD, NULL);
+    prof_file = Meta_New(META_TYPE_FILE, NULL);
 
-   // Create metadata object from template
-   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
-   prof_file=Meta_New(META_TYPE_FILE,NULL);
+    // Define file level metadata
+    Meta_DefFile(prof_file, "CMC", "Weather", "G100", "GDPS-5.2.0", "Global forecast at 15km", "Operational");
+    Meta_AddHorizontalRef(prof_file, "RPN_GDPS_2020_25KM", TRUE);
+    Meta_AddVerticalRef(prof_file, "PRESSURE", TRUE);
 
-   // Define file level metadata
-   Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
-   Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
-   Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
-   
-   fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
+    fprintf(stderr, "File JSON: %s\n", Meta_Stringify(prof_file));
 
-   // Define field level metadata
-//   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
-   Meta_DefVarFromDict(prof_fld,"TT");
-   Meta_DefForecastTime(prof_fld,1672556400,2,60,"second");
-   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE); // RPN_GDPS_2020_25KM has to be defined in profile of file metadata
-   Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);    // PRESSURE has to be defined in profile of file metadata
-   Meta_AddCellMethod(prof_fld,"interpolation:linear");
-   Meta_AddCellMethod(prof_fld,"filter:gaussian");
-   Meta_AddCellMethod(prof_fld,"time:mean(interval 5 minute)");
-   Meta_AddQualifier(prof_fld,"prognosis");
-   Meta_AddQualifier(prof_fld,"tag:ETKGG22");
-   Meta_AddQualifier(prof_fld,"member:12");
-   Meta_AddQualifier(prof_fld,"centile>15");
+    // Define field level metadata
+    // Meta_DefVar(prof_fld, "air_temperature", "TT", "air temperature", "Air temperature is the bulk temperature of the air, not the surface (skin) temperature", "celsius");
+    Meta_DefVarFromDict(prof_fld, "TT");
+    Meta_DefForecastTime(prof_fld, 1672556400, 2, 60, "second");
+    Meta_DefHorizontalRef(prof_fld, "RPN_GDPS_2020_25KM", FALSE); // RPN_GDPS_2020_25KM has to be defined in profile of file metadata
+    Meta_DefVerticalRef(prof_fld, "PRESSURE", levels, 1, FALSE);    // PRESSURE has to be defined in profile of file metadata
+    Meta_AddCellMethod(prof_fld, "interpolation:linear");
+    Meta_AddCellMethod(prof_fld, "filter:gaussian");
+    Meta_AddCellMethod(prof_fld, "time:mean(interval 5 minute)");
+    Meta_AddQualifier(prof_fld, "prognosis");
+    Meta_AddQualifier(prof_fld, "tag:ETKGG22");
+    Meta_AddQualifier(prof_fld, "member:12");
+    Meta_AddQualifier(prof_fld, "centile>15");
 
-   Meta_AddMissingValue(prof_fld,"out_of_domain",-999);
+    Meta_AddMissingValue(prof_fld, "out_of_domain", -999);
 
-   fprintf(stderr,"Field JSON: %s\n",Meta_Stringify(prof_file));
+    fprintf(stderr, "Field JSON: %s\n", Meta_Stringify(prof_file));
 
 	exit(EXIT_SUCCESS);
 }
 ```
 
 ## Fortran
-``` Fortran
+```Fortran
 program meta_fortran
+    use rmn_meta
+    use rmn_common
 
-   use rmn_meta
-   use rmn_common
-
-   type(meta) :: meta_fld, meta_file
-   type(C_PTR) obj
-   real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
-   integer(kind=INT32) :: ok
+    type(meta) :: meta_fld, meta_file
+    type(C_PTR) obj
+    real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
+    integer(kind=INT32) :: ok
  
-!  Create metadata object from template
-   ok=meta_fld%New(META_TYPE_FIELD,"")
-   ok=meta_file%New(META_TYPE_FILE,"")
+    ! Create metadata object from template
+    ok = meta_fld%New(META_TYPE_FIELD,"")
+    ok = meta_file%New(META_TYPE_FILE,"")
 
-!  Define file level metadata
-   obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
-   obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
-   obj=meta_file%AddVerticalRef("PRESSURE",.true.)
+    ! Define file level metadata
+    obj = meta_file%DefFile("CMC", "Weather", "G100", "GDPS-5.2.0", "Global forecast at 15km", "Operational")
+    obj = meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM", .true.)
+    obj = meta_file%AddVerticalRef("PRESSURE", .true.)
 
-   write(6,*) 'File JSON:',meta_file%Stringify()
+    write(6,*) 'File JSON:',meta_file%Stringify()
  
-!  Define file level metadata
-!   obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
-   obj=meta_fld%DefVarFromDict("TT")
-   obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"seconds") 
-   obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)        ! RPN_GDPS_2020_25KM has to be defined in profile of file metadata
-   obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)           ! PRESSURE has to be defined in profile of file metadata
-   obj=meta_fld%AddCellMethod("interpolation:linear")
-   obj=meta_fld%AddCellMethod("filter:gaussian")
-   obj=meta_fld%AddCellMethod("time:mean(interval 5 minute)")
-   obj=meta_fld%AddQualifier("prognosis")
-   obj=meta_fld%AddQualifier("tag:ETKGG22");
-   obj=meta_fld%AddQualifier("member:12")
-   obj=meta_fld%AddQualifier("centile>75")
+    ! Define file level metadata
+    ! obj = meta_fld%DefVar("air_temperature", "TT", "air temperature", "Air temperature is the bulk temperature of the air, not the surface (skin) temperature", "celsius")
+    obj = meta_fld%DefVarFromDict("TT")
+    obj = meta_fld%DefForecastTime(1672556400_C_LONG, 2, 60.0d0, "seconds") 
+    obj = meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM", .false.)        ! RPN_GDPS_2020_25KM has to be defined in profile of file metadata
+    obj = meta_fld%DefVerticalRef("PRESSURE", levels, 1, .false.)           ! PRESSURE has to be defined in profile of file metadata
+    obj = meta_fld%AddCellMethod("interpolation:linear")
+    obj = meta_fld%AddCellMethod("filter:gaussian")
+    obj = meta_fld%AddCellMethod("time:mean(interval 5 minute)")
+    obj = meta_fld%AddQualifier("prognosis")
+    obj = meta_fld%AddQualifier("tag:ETKGG22");
+    obj = meta_fld%AddQualifier("member:12")
+    obj = meta_fld%AddQualifier("centile>75")
 
-   obj=meta_fld%AddMissingValue("out of domain",-999.0d0)
+    obj = meta_fld%AddMissingValue("out of domain", -999.0d0)
   
-!  Output formatted
-   ok=meta_fld%Resolve(meta_file);
+    ! Output formatted
+    ok = meta_fld%Resolve(meta_file);
 
-   write(6,*) 'Field JSON:',meta_fld%Stringify()
-  
+    write(6,*) 'Field JSON:',meta_fld%Stringify()
 end
 ```

@@ -58,54 +58,63 @@
 
 #define DICT_LEN_MEANING 128
 
-typedef enum { DICT_ASCII=0,DICT_UTF8=1,DICT_ISO8859_1=2 } TDict_Encoding;
+typedef enum {
+    DICT_ASCII = 0,
+    DICT_UTF8 = 1,
+    DICT_ISO8859_1 = 2
+} TDict_Encoding;
 
 typedef struct {
-   time_t Date;                                      // Date of creation
-   double Min,Max,Magnitude,Factor,Delta,Precision;  // Range of values and applied factor
-   char   Origin[32];                                // Origin of the variable
-   char   Name[8];                                   // NOMVAR
-   char   Short[2][256];                             // Short description in both language (128 def + 128 modifier)
-   char   Long[2][DICT_MAXLEN];                      // Long description in both language
-   char   Units[32];                                 // Units
-   int    Nature;                                    // Mask for state and nature of variable
-   int    Pack;                                      // Optimum packing number of bits
-   int    Codes[64];                                 // List of codes for coded variable
-   char   Meanings[64][2][DICT_LEN_MEANING];         // List of associated meanings
-   int    NCodes;                                    // Number of codes
-   int    IP1,IP2,IP3;                               // Specific IP values
-   float  Level;                                     // Level (decoded IP1)
-   int    Kind;                                      // Kind (decoded IP1)_
-   char   ETIKET[13];                                // Specific etiket value
+    time_t Date;                                      //! Date of creation
+    double Min;                                       //! Range of values and applied factor
+    double Max;
+    double Magnitude;
+    double Factor;
+    double Delta;
+    double Precision;  
+    char   Origin[32];                                //! Origin of the variable
+    char   Name[8];                                   //! NOMVAR
+    char   Short[2][256];                             //! Short description in both language (128 def + 128 modifier)
+    char   Long[2][DICT_MAXLEN];                      //! Long description in both language
+    char   Units[32];                                 //! Units
+    int    Nature;                                    //! Mask for state and nature of variable
+    int    Pack;                                      //! Optimum packing number of bits
+    int    Codes[64];                                 //! List of codes for coded variable
+    char   Meanings[64][2][DICT_LEN_MEANING];         //! List of associated meanings
+    int    NCodes;                                    //! Number of codes
+    int    IP1,IP2,IP3;                               //! Specific IP values
+    float  Level;                                     //! Level (decoded IP1)
+    int    Kind;                                      //! Kind (decoded IP1)_
+    char   ETIKET[13];                                //! Specific etiket value
 } TDictVar;
 
 typedef struct {
-   time_t Date;                 // Date of creation
-   int  Nature;                 // Mask for state and nature of type
-   char Origin[32];             // Origin ot the type
-   char Name[3];                // TYPVAR
-   char Short[2][128];          // Short description in both language
-   char Long[2][DICT_MAXLEN];   // Long description in both language
+    time_t Date;                 //! Date of creation
+    int  Nature;                 //! Mask for state and nature of type
+    char Origin[32];             //! Origin ot the type
+    char Name[3];                //! TYPVAR
+    char Short[2][128];          //! Short description in both language
+    char Long[2][DICT_MAXLEN];   //! Long description in both language
 } TDictType;
 
 int        Dict_Load(TDict_Encoding Encoding);
 char*      Dict_Loaded(void);
 char*      Dict_Version(void);
-int        Dict_Parse(char *Filename,TDict_Encoding Encoding);
-void       Dict_SetSearch(int SearchMode,int SearchState,char *SearchOrigin,int SearchIP1,int SearchIP2,int SearchIP3,char *SearchETIKET);
+int        Dict_Parse(char *Filename, TDict_Encoding Encoding);
+void       Dict_SetSearch(int SearchMode, int SearchState, char *SearchOrigin, int SearchIP1, int SearchIP2, int SearchIP3, char *SearchETIKET);
 void       Dict_SetModifier(char *Modifier);
 void       Dict_AddVar(TDictVar *Var);
 void       Dict_AddType(TDictType *Type);
 TDictVar  *Dict_GetVar(char *Var);
 TDictType *Dict_GetType(char *Type);
-TDictVar  *Dict_IterateVar(TList **Iterator,char *Var);
-TDictType *Dict_IterateType(TList **Iterator,char *Type);
-void       Dict_PrintVar(TDictVar *DVar,int Format,TApp_Lang Lang);
-void       Dict_PrintVars(char *Var,int Format,TApp_Lang Lang);
-void       Dict_PrintType(TDictType *DType,int Format,TApp_Lang Lang);
-void       Dict_PrintTypes(char *Type,int Format,TApp_Lang Lang);
-int        Dict_SortVar(void *Data0,void *Data1);
-int        Dict_SortType(void *Data0,void *Data1);
-int        Dict_CheckVar(void *Data0,void *Data1);
-int        Dict_CheckType(void *Data0,void *Data1);
-TDictVar*  Dict_ApplyModifier(TDictVar *Var,char *Modifier);
+TDictVar  *Dict_IterateVar(TList **Iterator, char *Var);
+TDictType *Dict_IterateType(TList **Iterator, char *Type);
+void       Dict_PrintVar(TDictVar *DVar, int Format, TApp_Lang Lang);
+void       Dict_PrintVars(char *Var, int Format, TApp_Lang Lang);
+void       Dict_PrintType(TDictType *DType, int Format, TApp_Lang Lang);
+void       Dict_PrintTypes(char *Type, int Format, TApp_Lang Lang);
+int        Dict_SortVar(void *Data0, void *Data1);
+int        Dict_SortType(void *Data0, void *Data1);
+int        Dict_CheckVar(void *Data0, void *Data1);
+int        Dict_CheckType(void *Data0, void *Data1);
+TDictVar*  Dict_ApplyModifier(TDictVar *Var, char *Modifier);

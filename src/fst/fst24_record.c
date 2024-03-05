@@ -220,10 +220,10 @@ char* add_ig1234(char* buffer, const char* grtyp, const int32_t ig1, const int32
 
 //! Print record information on one line
 void fst24_record_print_short(
-    const fst_record* record,           //!< The record we want to print
-    const fst_record_fields* fields,    //!< [optional] What fields should we print (default choice if NULL)
-    const int print_header,             //!< Whether we also print a header to name the fields
-    const char* prefix                  //!< [optional] Text we might want to add at the beginning of the line
+    const fst_record* const record, //!< [in] The record we want to print
+    const fst_record_fields* const fields, //!< [in,optional] What fields should we print (default choice if NULL)
+    const int print_header, //!< [in] Print header if not 0
+    const char* const prefix //!< [in,optional] Line prefix
 ) {
     const fst_record_fields width = (fst_record_fields) {
         .nomvar = 4,
@@ -241,7 +241,7 @@ void fst24_record_print_short(
         .ip2 = 9,
         .ip3 = 9,
         .decoded_ip = 38,
-        
+
         .dateo = 16,
         .datev = 16,
         .datestamps = 9,
@@ -289,41 +289,39 @@ void fst24_record_print_short(
 
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
     }
-    
-    {
-        char* current = buffer;
-        if (prefix != NULL) current = add_str(current, prefix, strlen(prefix));
-        if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
-        if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
-        if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
-        if (to_print.ni > 0) current = add_int(current, record->ni, width.ni, 0);
-        if (to_print.nj > 0) current = add_int(current, record->nj, width.nj, 0);
-        if (to_print.nk > 0) current = add_int(current, record->nk, width.nk, 0);
 
-        if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
-        if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
-        if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
-        if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_date(current, record->datev);
+    char* current = buffer;
+    if (prefix != NULL) current = add_str(current, prefix, strlen(prefix));
+    if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
+    if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
+    if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
+    if (to_print.ni > 0) current = add_int(current, record->ni, width.ni, 0);
+    if (to_print.nj > 0) current = add_int(current, record->nj, width.nj, 0);
+    if (to_print.nk > 0) current = add_int(current, record->nk, width.nk, 0);
 
-        if (to_print.level > 0) current = add_level(current, record->nomvar, record->ip1, width.level);
-        if (to_print.decoded_ip > 0) current = add_ips(current, record->nomvar, record->ip1, record->ip2, record->ip3, width.decoded_ip);
+    if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
+    if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
+    if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
+    if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_date(current, record->datev);
 
-        if (to_print.ip1) current = add_int(current, record->ip1, width.ip1, 0);
-        if (to_print.ip2) current = add_int(current, record->ip2, width.ip2, 0);
-        if (to_print.ip3) current = add_int(current, record->ip3, width.ip3, 0);
+    if (to_print.level > 0) current = add_level(current, record->nomvar, record->ip1, width.level);
+    if (to_print.decoded_ip > 0) current = add_ips(current, record->nomvar, record->ip1, record->ip2, record->ip3, width.decoded_ip);
 
-        if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
-        if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
+    if (to_print.ip1) current = add_int(current, record->ip1, width.ip1, 0);
+    if (to_print.ip2) current = add_int(current, record->ip2, width.ip2, 0);
+    if (to_print.ip3) current = add_int(current, record->ip3, width.ip3, 0);
 
-        if (to_print.datyp) current = add_datatype(current, record->datyp, record->dasiz, width.datyp);
+    if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
+    if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
 
-        if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
-                                                        record->ig3, record->ig4, width.grid_info);
-        else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
-                                                       record->ig3, record->ig4, width.ig1234);
+    if (to_print.datyp) current = add_datatype(current, record->datyp, record->dasiz, width.datyp);
 
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
-    }
+    if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
+                                                    record->ig3, record->ig4, width.grid_info);
+    else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
+                                                    record->ig3, record->ig4, width.ig1234);
+
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
 }
 
 int32_t fst24_record_is_valid(const fst_record* record) {
