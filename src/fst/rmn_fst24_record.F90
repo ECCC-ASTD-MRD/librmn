@@ -169,26 +169,6 @@ contains
         end if
     end function
 
-!    function fst24_record_get_metadata(this) result(meta_ptr)
-!        implicit none
-!        class(fst_record), intent(in), target :: this
-!        type(meta) :: meta_ptr
-
-!        meta_ptr%json_obj=this%metadata
-!    end function fst24_record_get_metadata
-
-!    function fst24_record_set_metadata(this,meta_ptr) result(status)
-!        implicit none
-!        class(fst_record), intent(inout), target :: this
-!        type(meta), intent(in) :: meta_ptr
-!        type(C_PTR) :: status
-        
-!        this%metadata=meta_ptr%json_obj
-!        call this % make_c_self()
-
-!        status=this%metadata
-!    end function fst24_record_set_metadata
-
     !> Check whether two records have identical information (except data). This will sync the underlying C struct
     !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise
     function fst24_record_has_same_info(this, other) result(has_same_info)
