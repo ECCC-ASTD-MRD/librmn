@@ -453,6 +453,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
           fst24_bounds(record,&dmin,&dmax);
           if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax)) {
              Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
+             return(ERR_METADATA);
           }
        }
        if ((metastr = Meta_Stringify(record->metadata))) {

@@ -323,7 +323,7 @@ json_object *Meta_New(int Type,char *Version) {
       return(NULL);
    }
    
-   obj=(Type==META_TYPE_FIELD?prof->Field:prof->File);
+   obj=(Type==META_TYPE_RECORD?prof->Field:prof->File);
    return(Meta_Copy(obj));
 }
 
@@ -1317,28 +1317,29 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid data type: %s\n",__func__,Type);
       return(NULL);
    }
-
+  
    json_pointer_get(Obj,"/data",&obj);
+   if (obj) {
+      json_pointer_get(obj,"/type",&objval);
+      json_object_set_string(objval,Type);
+      json_pointer_get(obj,"/compression",&objval);
+      json_object_set_string(objval,Compression);
+      json_pointer_get(obj,"/pack",&objval);
+      json_object_set_int(objval,Pack);
+      json_pointer_get(obj,"/bits",&objval);
+      json_object_set_int(objval,Bit);
 
-   json_pointer_get(obj,"/type",&objval);
-   json_object_set_string(objval,Type);
-   json_pointer_get(obj,"/compression",&objval);
-   json_object_set_string(objval,Compression);
-   json_pointer_get(obj,"/pack",&objval);
-   json_object_set_int(objval,Pack);
-   json_pointer_get(obj,"/bits",&objval);
-   json_object_set_int(objval,Bit);
+      json_object_object_add(Obj,"size",json_object_new_array());
+      json_pointer_get(Obj,"/size",&objval);
+      json_object_array_add(objval,json_object_new_int(NI));
+      json_object_array_add(objval,json_object_new_int(NJ));
+      json_object_array_add(objval,json_object_new_int(NK));
 
-   json_object_object_add(Obj,"size",json_object_new_array());
-   json_pointer_get(Obj,"/size",&objval);
-   json_object_array_add(objval,json_object_new_int(NI));
-   json_object_array_add(objval,json_object_new_int(NJ));
-   json_object_array_add(objval,json_object_new_int(NK));
-
-   json_pointer_get(obj,"/bounds/min",&objval);
-   json_object_set_double(objval,Min);
-   json_pointer_get(obj,"/bounds/max",&objval);
-   json_object_set_double(objval,Max);
+      json_pointer_get(obj,"/bounds/min",&objval);
+      json_object_set_double(objval,Min);
+      json_pointer_get(obj,"/bounds/max",&objval);
+      json_object_set_double(objval,Max);
+   }
 
    return(Obj);
 }
@@ -1499,6 +1500,7 @@ json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,
 */
 char *Meta_Stringify(json_object *Obj) {
 
+   //return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PLAIN));
    return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PRETTY));
 }
 
@@ -2124,42 +2126,47 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
 #include "Meta_Flag.h"
 int Meta_WriteFile(fst_file *File,json_object *Obj) {
 
-   fst_record rec;
+   fst_record *rec=NULL;
 
    if (!Obj) {
       return(FALSE);
    }
 
-   rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1);
-   rec.npak  = 1;
-   rec.dateo = 0;
-   rec.deet  = 0;
-   rec.npas  = 0;
-   rec.ip1   = 0;
-   rec.ip2   = 0;
-   rec.ip3   = 0;
-   rec.ig1   = 100;
-   rec.ig2   = 100;
-   rec.ig3   = 0;
-   rec.ig4   = 0;
-   strcpy(rec.typvar, "X");
-   strcpy(rec.nomvar, "META");
-   strcpy(rec.etiket, "FILE_JSON");
-   strcpy(rec.grtyp, "L");
-   rec.metadata = Obj;
+   if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
+      rec->npak  = 1;
+      rec->dateo = 0;
+      rec->deet  = 0;
+      rec->npas  = 0;
+      rec->ip1   = 0;
+      rec->ip2   = 0;
+      rec->ip3   = 0;
+      rec->ig1   = 100;
+      rec->ig2   = 100;
+      rec->ig3   = 0;
+      rec->ig4   = 0;
+      strcpy(rec->typvar, "X");
+      strcpy(rec->nomvar, "META");
+      strcpy(rec->etiket, "FILE_JSON");
+      strcpy(rec->grtyp, "L");
+      rec->metadata = Obj;
 
-/*
-   int ig1,ig2,ig3,ig4;
-   float xg1=-90.0,xg2=0.0,xg3=1.0,xg4=1.0;
-   char t[2];t[0]='L';
-   f77name(cxgaig)(t, &ig1, &ig2, &ig3, &ig4,&xg1,&xg2,&xg3,&xg4, 1);
-   fprintf(stderr,"---- %i %i %i %i\n",ig1,ig2,ig3,ig4);
-*/
-   if (fst24_write(File,&rec,FALSE)<0) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to write file metadata record\n",__func__);
+   /*
+      int ig1,ig2,ig3,ig4;
+      float xg1=-90.0,xg2=0.0,xg3=1.0,xg4=1.0;
+      char t[2];t[0]='L';
+      f77name(cxgaig)(t, &ig1, &ig2, &ig3, &ig4,&xg1,&xg2,&xg3,&xg4, 1);
+      fprintf(stderr,"---- %i %i %i %i\n",ig1,ig2,ig3,ig4);
+   */
+      if (fst24_write(File,rec,FALSE)<0) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to write file metadata record\n",__func__);
+         free(rec);
+         return(FALSE);
+      }
+      free(rec);
+      return(TRUE);
+   } else {
       return(FALSE);
    }
-   return(TRUE);
 }
 
 /**----------------------------------------------------------------------------

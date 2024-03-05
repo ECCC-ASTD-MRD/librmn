@@ -5,7 +5,7 @@ module rmn_meta
 
 #include "rmn/dlfcn.inc"
 
-    integer, parameter :: META_TYPE_FIELD=1
+    integer, parameter :: META_TYPE_RECORD=1
     integer, parameter :: META_TYPE_FILE=2
 
 interface

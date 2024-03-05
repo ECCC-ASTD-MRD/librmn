@@ -9,7 +9,7 @@
 
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
-fst_record fst24_record_new(
+fst_record* fst24_record_new(
     void   *data,   //!< Data pointer to assign, or allocate internal array if NULL
     int32_t type,   //!< Data type
     int32_t nbits,  //!< Number of bits per data element
@@ -17,25 +17,30 @@ fst_record fst24_record_new(
     int32_t nj,     //!< J horizontal size
     int32_t nk      //!< K vertical size
 ) {
-    fst_record result = default_fst_record;
+    fst_record* result = (fst_record*)malloc(sizeof(fst_record));
 
-    result.ni=ni;
-    result.nj=nj;
-    result.nk=nk;
-    result.dasiz=nbits;
-    result.datyp=type;
-    result.alloc=fst24_record_data_size(&result);
+    if (result) {
+        memcpy(result,&default_fst_record,sizeof(fst_record));
 
-    if (!(result.data=data)) {
-       // No data pointer passed, allocate data array
-       if (!(result.data=(void*)malloc(result.alloc))) {
-          Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
-       }
+        result->ni=ni;
+        result->nj=nj;
+        result->nk=nk;
+        result->dasiz=nbits;
+        result->datyp=type;
+        result->alloc=fst24_record_data_size(result);
+
+        if (!(result->data=data)) {
+            // No data pointer passed, allocate data array
+            if (!(result->data=(void*)malloc(result->alloc))) {
+                Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
+            }
+        } else {
+          // Using an assigned pointer
+         result->flags = FST_REC_ASSIGNED;
+        }
     } else {
-       // Using an assigned pointer
-       result.flags = FST_REC_ASSIGNED;
+        Lib_Log(APP_LIBFST,APP_ERROR,"Unable to allocate record\n",__func__);
     }
-
     return(result);
 }
 

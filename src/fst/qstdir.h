@@ -156,6 +156,8 @@
 #define ERR_WRONG_FTYPE -41
 //! File probably damaged
 #define ERR_DAMAGED -45
+//! Extended metadata issues
+#define ERR_METADATA -46
 
 //! Too many supplementary keys
 #define BURP_ERR_CLEF -32

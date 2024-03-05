@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
    double levels[1]= { 1000.0 };
 
    // Create metadata object from template
-   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
+   prof_fld=Meta_New(META_TYPE_RECORD,NULL);
    prof_file=Meta_New(META_TYPE_FILE,NULL);
 
    // Define file level metadata
@@ -185,7 +185,7 @@ program meta_fortran
    integer(kind=INT32) :: ok
  
 !  Create metadata object from template
-   ok=meta_fld%New(META_TYPE_FIELD,"")
+   ok=meta_fld%New(META_TYPE_RECORD,"")
    ok=meta_file%New(META_TYPE_FILE,"")
 
 !  Define file level metadata

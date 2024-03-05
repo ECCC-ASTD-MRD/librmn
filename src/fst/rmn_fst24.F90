@@ -3,6 +3,7 @@ module rmn_fst24
     use App
     use f_c_strings_mod
     use rmn_common
+    use rmn_meta
     use rmn_fst24_record
     implicit none
 
@@ -152,7 +153,7 @@ contains
     !> \return .true. if we were able to set the criteria, .false. if file was not open (or other error)
     function fst24_file_set_search_criteria(this,                                                                   &
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
-            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket) result(success)
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(success)
         implicit none
         class(fst_file), intent(inout) :: this
         integer(C_INT64_T), intent(in), optional :: dateo, datev
@@ -162,6 +163,7 @@ contains
         character(len=1),  intent(in), optional :: grtyp
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
+        type(meta), intent(in), optional :: metadata
         logical :: success
 
         type(fst_record_c), target :: criteria
@@ -190,6 +192,7 @@ contains
         if (present(grtyp)) call strncpy_f2c(grtyp, criteria % grtyp, 1)
         if (present(nomvar)) call strncpy_f2c(nomvar, criteria % nomvar, 4)
         if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 12)
+        if (present(metadata)) criteria % metadata = metadata % json_obj
 
         c_status = fst24_set_search_criteria(this % file_ptr, c_loc(criteria))
 

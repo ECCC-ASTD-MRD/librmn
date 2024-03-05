@@ -4,6 +4,15 @@ interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! FST record functions
 
+function fst24_record_new_c(data, type, nbits, ni, nj, nk) result(record) bind(C, name = 'fst24_record_new')
+  import :: C_PTR, C_INT32_T
+  implicit none
+  type(C_PTR), intent(in), value :: data
+  type(C_PTR) :: record
+  integer(C_INT32_T), intent(in), value :: type, nbits, ni, nj, nk
+  integer(C_INT32_T) :: status
+end function fst24_record_new_c
+
 function fst24_validate_default_record(fortran_record, fortran_size) result(status) &
     bind(C, name = 'fst24_validate_default_record')
   import :: C_PTR, C_INT32_T, C_SIZE_T

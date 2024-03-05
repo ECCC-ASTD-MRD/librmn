@@ -11,7 +11,7 @@ program test_meta_fortran
     integer(kind=INT32) :: ok
  
 !   Load metadata template
-    ok=meta_fld%init(META_TYPE_FIELD,C_NULL_CHAR)
+    ok=meta_fld%init(META_TYPE_RECORD,C_NULL_CHAR)
     ok=meta_file%init(META_TYPE_FILE,C_NULL_CHAR)
 
     obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
@@ -50,8 +50,8 @@ program test_meta_fortran
 
 !     write(6,*) 'JSON:',meta_fld%Stringify()
 
-     obj=record%set_metadata(meta_fld)
-     meta_tmp=record%get_metadata()
+     record%metadata=meta_fld
+     meta_tmp=record%metadata
      write(6,*) 'JSON:',meta_tmp%Stringify()
      
 end

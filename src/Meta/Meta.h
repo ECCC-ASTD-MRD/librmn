@@ -8,7 +8,7 @@
 #endif
 
 #define META_TOKEN_MAXLEN 1024
-#define META_TYPE_FIELD   1
+#define META_TYPE_RECORD   1
 #define META_TYPE_FILE    2
 
 // Generic json manipulation calls

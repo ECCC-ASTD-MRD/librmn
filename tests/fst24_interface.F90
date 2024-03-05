@@ -47,7 +47,11 @@ end subroutine delete_test_data
 
 subroutine make_test_record()
     implicit none
+    logical :: success
+    type(meta) :: meta_rec
+
     call make_test_data()
+
     test_record % data = c_loc(test_data)
     test_record % npak = -32
     test_record % ni   = DATA_SIZE
@@ -69,8 +73,9 @@ subroutine make_test_record()
     test_record % ig4   = 0
     test_record % datyp = FST_TYPE_REAL
     test_record % dasiz = 32
-    test_record % metadata = Meta_NewObject()
-    ! test_record % metadata = Meta_NewObject(META_TYPE_FILE, NULL)
+
+    success = meta_rec % init(META_TYPE_RECORD,"")
+    test_record % metadata = meta_rec
 end subroutine make_test_record
 
 function check_content(content, expected) result(success)

@@ -37,7 +37,7 @@ int test_fst24_meta(void) {
     }
 
    // Load metadata template
-   prof_fld=Meta_New(META_TYPE_FIELD,NULL);
+   prof_fld=Meta_New(META_TYPE_RECORD,NULL);
    prof_file=Meta_New(META_TYPE_FILE,NULL);
 
    search_meta=Meta_NewObject();
@@ -80,50 +80,50 @@ int test_fst24_meta(void) {
          return(-1);
       }
         
-      fst_record record = fst24_record_new(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);
-      record.npak = -32;
+      fst_record *record = fst24_record_new(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);
+      record->npak = -32;
       int32_t date;
       Meta_StampEncode(&date,2022,06,10,0,0,0);
-      record.dateo = date;
-      record.deet = 300;
-      record.npas = 0;
-      record.ip1  = 1;
-      record.ip2  = 1;
-      record.ip3  = 1;
-      record.ig1   = 1;
-      record.ig2   = 2;
-      record.ig3   = 3;
-      record.ig4   = 4;
-      strcpy(record.typvar, "P");
-      strcpy(record.nomvar, "WAVE");
-      strcpy(record.etiket, "float");
-      strcpy(record.grtyp, "X");
+      record->dateo = date;
+      record->deet = 300;
+      record->npas = 0;
+      record->ip1  = 1;
+      record->ip2  = 1;
+      record->ip3  = 1;
+      record->ig1   = 1;
+      record->ig2   = 2;
+      record->ig3   = 3;
+      record->ig4   = 4;
+      strcpy(record->typvar, "P");
+      strcpy(record->nomvar, "WAVE");
+      strcpy(record->etiket, "float");
+      strcpy(record->grtyp, "X");
 
-      record.metadata = prof_fld;
+      record->metadata = prof_fld;
 
-      if (fst24_write(test_file, &record,FALSE) < 0) {
+      if (fst24_write(test_file, record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
-      strcpy(record.nomvar, "Sun ");
+      strcpy(record->nomvar, "Sun ");
       Meta_DefVar(prof_fld,"sun qquechose","Sun","fuiosdfsdf","sdfsd sef encore plus","hot");
-      if (fst24_write(test_file, &record,FALSE) < 0) {
+      if (fst24_write(test_file, record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
-      strcpy(record.nomvar, "Not ");
+      strcpy(record->nomvar, "Not ");
       Meta_DefVar(prof_fld,"Not qquechose","Not","fuiosdfsdf","sdfsd sef encore plus","cold");
-      strcpy(record.typvar, "A");
-      if (fst24_write(test_file, &record,FALSE) < 0) {
+      strcpy(record->typvar, "A");
+      if (fst24_write(test_file, record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
 
 //      Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
       Meta_DefVarFromDict(prof_fld,"TT");
-      Meta_To89(prof_fld,&record);
-      if (fst24_write(test_file, &record,FALSE) < 0) {
+      Meta_To89(prof_fld,record);
+      if (fst24_write(test_file, record,FALSE) < 0) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
@@ -197,7 +197,7 @@ int test_fst24_meta(void) {
          return -1;
       }
 
-      meta=Meta_New(META_TYPE_FIELD,NULL);
+      meta=Meta_New(META_TYPE_RECORD,NULL);
       Meta_From89(meta,&record_find);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
    }

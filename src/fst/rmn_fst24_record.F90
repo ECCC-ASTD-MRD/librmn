@@ -25,7 +25,7 @@ module rmn_fst24_record
         type(fst_record_c), private :: c_self !< bind(C) version of this struct, to interface with C implementation
 
         type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
-        type(C_PTR) :: metadata = C_NULL_PTR  !< Pointer to the metadata
+        type(meta)  :: metadata               !< Metadata object
     
         integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
         integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
@@ -59,11 +59,12 @@ module rmn_fst24_record
         procedure, pass :: from_c_self => fst24_record_from_c_self !< \private \copydoc fst24_record_from_c_self
         procedure, pass :: get_c_ptr => fst24_record_get_c_ptr     !< \private \copydoc fst24_record_get_c_ptr
 
+        procedure, pass :: new => fst24_record_new                      !< \copydoc fst24_record_new
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
-        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
-        procedure, pass :: set_metadata => fst24_record_set_metadata    !< \copydoc fst24_record_set_metadata
+!        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
+!        procedure, pass :: set_metadata => fst24_record_set_metadata    !< \copydoc fst24_record_set_metadata
 
         procedure, pass :: print        => rmn_fst24_record_print           !< \copydoc rmn_fst24_record_print
         procedure, pass :: print_short  => rmn_fst24_record_print_short     !< \copydoc rmn_fst24_record_print_short
@@ -78,7 +79,7 @@ contains
         class(fst_record), intent(inout) :: this
 
         this % c_self % data     = this % data
-        this % c_self % metadata = this % metadata
+        this % c_self % metadata = this % metadata % json_obj
 
         this % c_self % dateo = this % dateo
         this % c_self % datev = this % datev
@@ -114,7 +115,7 @@ contains
         class(fst_record), intent(inout) :: this
 
         this % data     = this % c_self % data
-        this % metadata = this % c_self % metadata
+        this % metadata % json_obj = this % c_self % metadata
 
         this % dateo = this % c_self % dateo
         this % datev = this % c_self % datev
@@ -152,25 +153,41 @@ contains
         ptr = c_loc(this % c_self)
     end function fst24_record_get_c_ptr
 
-    function fst24_record_get_metadata(this) result(meta_ptr)
-        implicit none
-        class(fst_record), intent(in), target :: this
-        type(meta) :: meta_ptr
-
-        meta_ptr%json_obj=this%metadata
-    end function fst24_record_get_metadata
-
-    function fst24_record_set_metadata(this,meta_ptr) result(status)
+    function fst24_record_new(this,data,type,size,ni,nj,nk) result(success)
         implicit none
         class(fst_record), intent(inout), target :: this
-        type(meta), intent(in) :: meta_ptr
-        type(C_PTR) :: status
-        
-        this%metadata=meta_ptr%json_obj
-        call this % make_c_self()
+        integer(C_INT32_T), intent(in) :: type, size, ni, nj, nk
+        type(C_PTR), intent(in) :: data
+        type(C_PTR) :: c_record
+        logical :: success
 
-        status=this%metadata
-    end function fst24_record_set_metadata
+        c_record = fst24_record_new_c(data,type,size,ni,nj,nk)
+        success = .false.
+        if (c_associated(c_record)) then
+            call this % from_c_self()
+            success = .true.
+        end if
+    end function
+
+!    function fst24_record_get_metadata(this) result(meta_ptr)
+!        implicit none
+!        class(fst_record), intent(in), target :: this
+!        type(meta) :: meta_ptr
+
+!        meta_ptr%json_obj=this%metadata
+!    end function fst24_record_get_metadata
+
+!    function fst24_record_set_metadata(this,meta_ptr) result(status)
+!        implicit none
+!        class(fst_record), intent(inout), target :: this
+!        type(meta), intent(in) :: meta_ptr
+!        type(C_PTR) :: status
+        
+!        this%metadata=meta_ptr%json_obj
+!        call this % make_c_self()
+
+!        status=this%metadata
+!    end function fst24_record_set_metadata
 
     !> Check whether two records have identical information (except data). This will sync the underlying C struct
     !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise
