@@ -278,6 +278,7 @@ int c_fnom(
     //! - 'R/O'      : file to be opened in read only mode
     //! - 'REMOTE'   : remote file (file name must end with ':', all I/O will be performed using UNIX sockets) 
     //! - 'VOLATILE' : file will be automatically removed when process ends (unlink at open) 
+    //! - 'PARALLEL' : Enable paralle write into the file(RSF only) 
     //!
     //! Attribute can be combined as shown blow:
     //!       +-----------STREAM----------------------+

@@ -93,6 +93,9 @@ int32_t Meta_Is(json_object *Obj) {
 
    json_object *obj=NULL;
 
+   if (!Obj)
+      return(FALSE);
+
    return(json_pointer_get(Obj,"/version",&obj)==0);
 }
 
@@ -320,7 +323,7 @@ json_object *Meta_New(int Type,char *Version) {
       return(NULL);
    }
    
-   obj=(Type==META_TYPE_FIELD?prof->Field:prof->File);
+   obj=(Type==META_TYPE_RECORD?prof->Field:prof->File);
    return(Meta_Copy(obj));
 }
 
@@ -461,13 +464,13 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
 
    json_pointer_get(Obj,"/rpn_name",&objval);
    json_object_set_string(objval,RPNName);
-   
+
    if ((var=Dict_GetVar(RPNName))) {
       json_pointer_get(Obj,"/standard_name",&objval);
-      json_object_set_string(objval,var->Short[0]);
+      json_object_set_string(objval,var->Short[1]);
    
       json_pointer_get(Obj,"/long_name",&objval);
-      json_object_set_string(objval,var->Long[0]);
+      json_object_set_string(objval,var->Long[1]);
    
 //      json_pointer_get(Obj,"/description",&objval);
 //      json_object_set_string(objval,Description);
@@ -568,72 +571,82 @@ double Meta_DurationToSeconds(char *Unit) {
  * @brief  Define temporal information
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
- *    @param[in]  T0            Forecast reference time
+ *    @param[in]  T0            Forecast reference time (datetimestamp)
  *    @param[in]  Step          Timestep number
  *    @param[in]  Duration      Timestep duration
  *    @param[in]  Unit          Timestep step unit
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double Duration,char *Unit) {
+json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double Duration,char *Unit) {
  
    json_object *obj=NULL,*objval=NULL;
    struct tm t0;
+   time_t    ts;
    uint32_t milli=0,sec=0;
    char timestr[32],timemil[32];
 
    if (!Obj) {
       return(NULL);
    }
-   
-   gmtime_r(&T0,&t0);
-   strftime(timestr,32,"%FT%TZ",&t0);
-   json_pointer_get(Obj,"/forecast_reference_datetime",&objval);
-   json_object_set_string(objval,timestr);
 
-   if (!strncmp(MetaTimeUnits[0],Unit,11)) {
-      milli=Duration*Step;
-      sec=(int)milli/1000;
-      t0.tm_sec+=sec;
-      milli=milli-(sec*1000);
-   } else if (!strncmp(MetaTimeUnits[1],Unit,6)) {
-      t0.tm_sec+=Duration*Step;
-   } else if (!strncmp(MetaTimeUnits[2],Unit,6)) {
-      t0.tm_min+=Duration*Step;
-   } else if (!strncmp(MetaTimeUnits[3],Unit,4)) {
-      t0.tm_hour+=Duration*Step;
-   } else if (!strncmp(MetaTimeUnits[4],Unit,3)) {
-      t0.tm_mday+=Duration*Step;
-   } else if (!strncmp(MetaTimeUnits[5],Unit,5)) {
-      t0.tm_mon+=Duration*Step;
-   } else if (!strncmp(MetaTimeUnits[6],Unit,4)) {
-      t0.tm_year+=Duration*Step;
-   } else if (!strncmp(MetaTimeUnits[7],Unit,6)) {
-      t0.tm_year+=Duration*Step*10;
-   } else if (!strncmp(MetaTimeUnits[8],Unit,10)) {
-      t0.tm_year+=Duration*Step*100;
-   } else {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid time unit: %s\n",__func__,Unit);
-      return(NULL);
+   if (TS>0) {  
+      ts=Meta_Stamp2Seconds(TS); 
+      gmtime_r(&ts,&t0);
+      strftime(timestr,32,"%FT%TZ",&t0);
+      json_pointer_get(Obj,"/forecast_reference_datetime",&objval);
+      json_object_set_string(objval,timestr);
+   }
+   if (Step>0) {   
+      json_pointer_get(Obj,"/forecast_period/step",&objval);
+      json_object_set_int(objval,Step);
+   }
+   if (Duration>0) {   
+      json_pointer_get(Obj,"/forecast_period/value",&objval);
+      json_object_set_double(objval,Duration);
    }
 
-   json_pointer_get(Obj,"/forecast_period/unit",&objval);
-   json_object_set_string(objval,Unit);
-   json_pointer_get(Obj,"/forecast_period/step",&objval);
-   json_object_set_int(objval,Step);
-   json_pointer_get(Obj,"/forecast_period/value",&objval);
-   json_object_set_double(objval,Duration);
+   if (Unit) {
+      if (!strncmp(MetaTimeUnits[0],Unit,11)) {
+         milli=Duration*Step;
+         sec=(int)milli/1000;
+         t0.tm_sec+=sec;
+         milli=milli-(sec*1000);
+      } else if (!strncmp(MetaTimeUnits[1],Unit,6)) {
+         t0.tm_sec+=Duration*Step;
+      } else if (!strncmp(MetaTimeUnits[2],Unit,6)) {
+         t0.tm_min+=Duration*Step;
+      } else if (!strncmp(MetaTimeUnits[3],Unit,4)) {
+         t0.tm_hour+=Duration*Step;
+      } else if (!strncmp(MetaTimeUnits[4],Unit,3)) {
+         t0.tm_mday+=Duration*Step;
+      } else if (!strncmp(MetaTimeUnits[5],Unit,5)) {
+         t0.tm_mon+=Duration*Step;
+      } else if (!strncmp(MetaTimeUnits[6],Unit,4)) {
+         t0.tm_year+=Duration*Step;
+      } else if (!strncmp(MetaTimeUnits[7],Unit,6)) {
+         t0.tm_year+=Duration*Step*10;
+      } else if (!strncmp(MetaTimeUnits[8],Unit,10)) {
+         t0.tm_year+=Duration*Step*100;
+      } else {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid time unit: %s\n",__func__,Unit);
+         return(NULL);
+      }
 
-   json_pointer_get(Obj,"/forecast_datetime",&objval);
+      json_pointer_get(Obj,"/forecast_period/unit",&objval);
+      json_object_set_string(objval,Unit);
+      
+      json_pointer_get(Obj,"/forecast_datetime",&objval);
 
-   T0=timegm(&t0);
-   strftime(timestr,32,"%FT%T",&t0);
-   if (milli) {
-      snprintf(timemil,32,"%s.%03iZ",timestr,milli);
-   } else {
-      snprintf(timemil,32,"%sZ",timestr);
+      ts=timegm(&t0);
+      strftime(timestr,32,"%FT%T",&t0);
+      if (milli) {
+         snprintf(timemil,32,"%s.%03iZ",timestr,milli);
+      } else {
+         snprintf(timemil,32,"%sZ",timestr);
+      }
+      json_object_set_string(objval,timemil);
    }
-   json_object_set_string(objval,timemil);
    return(Obj);
 }
 
@@ -1306,28 +1319,29 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid data type: %s\n",__func__,Type);
       return(NULL);
    }
-
+  
    json_pointer_get(Obj,"/data",&obj);
+   if (obj) {
+      json_pointer_get(obj,"/type",&objval);
+      json_object_set_string(objval,Type);
+      json_pointer_get(obj,"/compression",&objval);
+      json_object_set_string(objval,Compression);
+      json_pointer_get(obj,"/pack",&objval);
+      json_object_set_int(objval,Pack);
+      json_pointer_get(obj,"/bits",&objval);
+      json_object_set_int(objval,Bit);
 
-   json_pointer_get(obj,"/type",&objval);
-   json_object_set_string(objval,Type);
-   json_pointer_get(obj,"/compression",&objval);
-   json_object_set_string(objval,Compression);
-   json_pointer_get(obj,"/pack",&objval);
-   json_object_set_int(objval,Pack);
-   json_pointer_get(obj,"/bits",&objval);
-   json_object_set_int(objval,Bit);
+      json_object_object_add(Obj,"size",json_object_new_array());
+      json_pointer_get(Obj,"/size",&objval);
+      json_object_array_add(objval,json_object_new_int(NI));
+      json_object_array_add(objval,json_object_new_int(NJ));
+      json_object_array_add(objval,json_object_new_int(NK));
 
-   json_object_object_add(Obj,"size",json_object_new_array());
-   json_pointer_get(Obj,"/size",&objval);
-   json_object_array_add(objval,json_object_new_int(NI));
-   json_object_array_add(objval,json_object_new_int(NJ));
-   json_object_array_add(objval,json_object_new_int(NK));
-
-   json_pointer_get(obj,"/bounds/min",&objval);
-   json_object_set_double(objval,Min);
-   json_pointer_get(obj,"/bounds/max",&objval);
-   json_object_set_double(objval,Max);
+      json_pointer_get(obj,"/bounds/min",&objval);
+      json_object_set_double(objval,Min);
+      json_pointer_get(obj,"/bounds/max",&objval);
+      json_object_set_double(objval,Max);
+   }
 
    return(Obj);
 }
@@ -1488,6 +1502,7 @@ json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,
 */
 char *Meta_Stringify(json_object *Obj) {
 
+   //return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PLAIN));
    return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PRETTY));
 }
 
@@ -1887,66 +1902,76 @@ time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT
  *    
  *    @return                    Status (TRUE or FALSE)
 */
+json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar)	{
+
+   switch(TypVar[0]) {
+         case 'C': Meta_AddQualifier(Obj,"climatology");                                                
+         case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations                                
+         case 'A': Meta_AddQualifier(Obj,"analysis");                                                   
+         case 'E': Meta_AddQualifier(Obj,"error"); break;  //    Erreur mensuelle                                            
+         case 'K': Meta_AddQualifier(Obj,"constant"); break;   // Constantes variées                                         
+         case 'M': Meta_AddQualifier(Obj,"verification"); break;  //    Matrice de vérification (table contingente)                
+   //      case 'N': Meta_AddCellMethod(Obj,"member:"); break;  //  N@ Nombre de membres utilisés pour le calcul du champ         
+         case 'O': Meta_AddQualifier(Obj,"observation");  break;                                                
+         case 'P': Meta_AddQualifier(Obj,"prognosis");  break;                                                  
+         case 'Q': Meta_AddQualifier(Obj,"diagnostic");  break;                                            
+         case 'R': Meta_AddQualifier(Obj,"increment"); break;                                        
+         case 'S': Meta_AddQualifier(Obj,"score"); break;                                            
+         case 'T': Meta_AddQualifier(Obj,"timeserie"); break;                                          
+   //      case 'X': Meta_AddQualifier(Obj,""); break;    // Divers  
+   }
+
+   switch(TypVar[1]) {                                                    
+      case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné                                                      
+      case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré                                                     
+   //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes                                         
+      case 'I': Meta_AddCellMethod(Obj,"interpolation:"); break; //Interpolé                                                 
+   //      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples                                     
+   //      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties                                          
+   //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé
+   }
+
+   return(Obj);
+}
+
+json_object* Meta_DefFromEtiket(json_object *Obj,const char* Etiket)	{
+
+   char etiket[FST_ETIKET_LEN+5];
+
+   snprintf(etiket,FST_ETIKET_LEN+4,"tag:%s",Etiket);
+   strtrim(etiket,' ');
+
+   return(Meta_AddQualifier(Obj,etiket));
+}
+
 int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
 
    char tmp[FST_ETIKET_LEN+4],*c=NULL;
-   char typvar[FST_TYPVAR_LEN];
    char nomvar[FST_NOMVAR_LEN];
-   char etiket[FST_ETIKET_LEN];
 
    if (!Obj) {
       return(FALSE);
    }
 
-   strncpy(typvar,Rec->typvar,FST_TYPVAR_LEN);
    strncpy(nomvar,Rec->nomvar,FST_NOMVAR_LEN);
-   strncpy(etiket,Rec->etiket,FST_ETIKET_LEN);
   
    strtrim(nomvar,' ');
-   strtrim(typvar,' ');
-   strtrim(etiket,' ');
 
    // NOMVAR
    Meta_DefVarFromDict(Obj,nomvar);
 
    // DATEO,DEET,NPAS
-   Meta_DefForecastTime(Obj,Meta_Stamp2Seconds(Rec->dateo),Rec->npas,Rec->deet,"second");
+   Meta_DefForecastTime(Obj,Rec->dateo,Rec->npas,Rec->deet,"second");
 
    // TYPVAR
-   switch(typvar[0]) {
-      case 'C': Meta_AddQualifier(Obj,"climatology");                                                
-      case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations                                
-          case 'A': Meta_AddQualifier(Obj,"analysis");                                                   
-  case 'E': Meta_AddQualifier(Obj,"error"); break;  //    Erreur mensuelle                                            
-      case 'K': Meta_AddQualifier(Obj,"constant"); break;   // Constantes variées                                         
-      case 'M': Meta_AddQualifier(Obj,"verification"); break;  //    Matrice de vérification (table contingente)                
-//      case 'N': Meta_AddCellMethod(Obj,"member:"); break;  //  N@ Nombre de membres utilisés pour le calcul du champ         
-      case 'O': Meta_AddQualifier(Obj,"observation");  break;                                                
-      case 'P': Meta_AddQualifier(Obj,"prognosis");  break;                                                  
-      case 'Q': Meta_AddQualifier(Obj,"diagnostic");  break;                                            
-      case 'R': Meta_AddQualifier(Obj,"increment"); break;                                        
-      case 'S': Meta_AddQualifier(Obj,"score"); break;                                            
-      case 'T': Meta_AddQualifier(Obj,"timeserie"); break;                                          
-//      case 'X': Meta_AddQualifier(Obj,""); break;    // Divers  
-   };
+   Meta_DefFromTypVar(Obj,Rec->typvar);
 
-   switch(typvar[1]) {                                                    
-      case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné                                                      
-      case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré                                                     
-//      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes                                         
-      case 'I': Meta_AddCellMethod(Obj,"interpolation:"); break; //Interpolé                                                 
-//      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples                                     
-//      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties                                          
-//      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé                                                      
-   }
+   // ETIKET
+   Meta_DefFromEtiket(Obj,Rec->etiket);
 
-   // NPACK,DATYP,DASIZ will be done internally at write
+  // NPACK,DATYP,DASIZ will be done internally at write
 //   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->datyp],"",Rec->npak,Rec->dasiz,0,0);
  
-   // ETIKET
-   snprintf(tmp,FST_ETIKET_LEN+4,"tag:%s",etiket);
-   Meta_AddQualifier(Obj,tmp);
-
 //TODO:
    // IP1,IP2,IP3
 //   Meta_DefVerticalRef(prof_fld,"LEVEL_PRESSURE",1000.0,false);
@@ -2098,42 +2123,47 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
 #include "Meta_Flag.h"
 int Meta_WriteFile(fst_file *File,json_object *Obj) {
 
-   fst_record rec;
+   fst_record *rec=NULL;
 
    if (!Obj) {
       return(FALSE);
    }
 
-   rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1);
-   rec.npak  = 1;
-   rec.dateo = 0;
-   rec.deet  = 0;
-   rec.npas  = 0;
-   rec.ip1   = 0;
-   rec.ip2   = 0;
-   rec.ip3   = 0;
-   rec.ig1   = 100;
-   rec.ig2   = 100;
-   rec.ig3   = 0;
-   rec.ig4   = 0;
-   strcpy(rec.typvar, "X");
-   strcpy(rec.nomvar, "META");
-   strcpy(rec.etiket, "FILE_JSON");
-   strcpy(rec.grtyp, "L");
-   rec.metadata = Obj;
+   if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
+      rec->npak  = 1;
+      rec->dateo = 0;
+      rec->deet  = 0;
+      rec->npas  = 0;
+      rec->ip1   = 0;
+      rec->ip2   = 0;
+      rec->ip3   = 0;
+      rec->ig1   = 100;
+      rec->ig2   = 100;
+      rec->ig3   = 0;
+      rec->ig4   = 0;
+      strcpy(rec->typvar, "X");
+      strcpy(rec->nomvar, "META");
+      strcpy(rec->etiket, "FILE_JSON");
+      strcpy(rec->grtyp, "L");
+      rec->metadata = Obj;
 
-/*
-   int ig1,ig2,ig3,ig4;
-   float xg1=-90.0,xg2=0.0,xg3=1.0,xg4=1.0;
-   char t[2];t[0]='L';
-   f77name(cxgaig)(t, &ig1, &ig2, &ig3, &ig4,&xg1,&xg2,&xg3,&xg4, 1);
-   fprintf(stderr,"---- %i %i %i %i\n",ig1,ig2,ig3,ig4);
-*/
-   if (fst24_write(File,&rec,FALSE)<0) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to write file metadata record\n",__func__);
+   /*
+      int ig1,ig2,ig3,ig4;
+      float xg1=-90.0,xg2=0.0,xg3=1.0,xg4=1.0;
+      char t[2];t[0]='L';
+      f77name(cxgaig)(t, &ig1, &ig2, &ig3, &ig4,&xg1,&xg2,&xg3,&xg4, 1);
+      fprintf(stderr,"---- %i %i %i %i\n",ig1,ig2,ig3,ig4);
+   */
+      if (fst24_write(File,rec,FALSE)<0) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to write file metadata record\n",__func__);
+         free(rec);
+         return(FALSE);
+      }
+      free(rec);
+      return(TRUE);
+   } else {
       return(FALSE);
    }
-   return(TRUE);
 }
 
 /**----------------------------------------------------------------------------

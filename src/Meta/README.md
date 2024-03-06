@@ -137,10 +137,10 @@
 int main(int argc, char **argv) {
     json_object *prof_file = NULL;
     json_object *prof_fld = NULL;
-    double levels[1]= { 1000.0 };
+    double levels[1] = { 1000.0 };
 
     // Create metadata object from template
-    prof_fld = Meta_New(META_TYPE_FIELD, NULL);
+    prof_fld = Meta_New(META_TYPE_RECORD, NULL);
     prof_file = Meta_New(META_TYPE_FILE, NULL);
 
     // Define file level metadata
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "File JSON: %s\n", Meta_Stringify(prof_file));
 
     // Define field level metadata
-    // Meta_DefVar(prof_fld, "air_temperature", "TT", "air temperature", "Air temperature is the bulk temperature of the air, not the surface (skin) temperature", "celsius");
+    //   Meta_DefVar(prof_fld,"air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius");
     Meta_DefVarFromDict(prof_fld, "TT");
     Meta_DefForecastTime(prof_fld, 1672556400, 2, 60, "second");
     Meta_DefHorizontalRef(prof_fld, "RPN_GDPS_2020_25KM", FALSE); // RPN_GDPS_2020_25KM has to be defined in profile of file metadata
@@ -180,12 +180,12 @@ program meta_fortran
 
     type(meta) :: meta_fld, meta_file
     type(C_PTR) obj
-    real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
-    integer(kind=INT32) :: ok
+    real(kind = REAL64), dimension(1) :: levels = [ 1.0 ]
+    integer(kind = INT32) :: ok
  
     ! Create metadata object from template
-    ok = meta_fld%New(META_TYPE_FIELD,"")
-    ok = meta_file%New(META_TYPE_FILE,"")
+    ok = meta_fld%Init(META_TYPE_RECORD, "")
+    ok = meta_file%Init(META_TYPE_FILE, "")
 
     ! Define file level metadata
     obj = meta_file%DefFile("CMC", "Weather", "G100", "GDPS-5.2.0", "Global forecast at 15km", "Operational")
@@ -209,10 +209,11 @@ program meta_fortran
     obj = meta_fld%AddQualifier("centile>75")
 
     obj = meta_fld%AddMissingValue("out of domain", -999.0d0)
-  
-    ! Output formatted
+
+    ! Resolve references
     ok = meta_fld%Resolve(meta_file);
 
-    write(6,*) 'Field JSON:',meta_fld%Stringify()
+    ! Output formatted
+    write(6,*) 'Field JSON:', meta_fld%Stringify()
 end
 ```

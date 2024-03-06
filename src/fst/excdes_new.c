@@ -1257,6 +1257,17 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
  *  IN  handle     handle de l'enregistrement a valider                      *
  *                                                                           *
  *****************************************************************************/
+int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4)
+{
+  int status;
+
+  if(DeactivateAllFilters) return 1;  /* filtering deactivated */
+
+  status = C_fstmatch_parm(0, datev, ni, nj, nk, ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
+//  fprintf(stderr, "C_fstmatch_req/fstd status=%d\n", status);
+  return status ;
+}
+
 int C_fstmatch_req(int handle)
 {
   int ier;

@@ -613,6 +613,19 @@ static int32_t RSF_Read_directory(
       vdir = (disk_vdir *) malloc(vdir_size) ;              // allocate space to read segment directory
       lseek(fp->fd, segment_offset + vdir_offset, SEEK_SET) ;
       nc = read(fp->fd, vdir, vdir_size) ;                  // read segment directory
+      if (nc != vdir_size) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read entire directory, only %lu / %lu bytes\n",
+                __func__, nc, vdir_size);
+        return -1;
+      }
+
+      if (RSF_Rl_sor(vdir->sor, RT_VDIR) == 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record type for directory. Looks like this file is corrupted.\n", __func__);
+        if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG)
+          print_start_of_record(&vdir->sor);
+        return -1;
+      }
+
       e = (char *) &(vdir->entry[0]) ;
       for(int i = 0 ; i < vdir->entries ; i++){
         l_entries++ ;
@@ -854,11 +867,7 @@ RSF_record *RSF_New_record(
   if(dir_meta < fp->dir_meta) dir_meta = fp->dir_meta ;
   if(dir_meta > rec_meta)     dir_meta = rec_meta ;
 
-  const size_t record_size =
-      sizeof(start_of_record) +                         // start of record marker
-      sizeof(uint32_t) * rec_meta +                     // metadata size in bytes
-      max_data +                                        // maximum data payload size
-      sizeof(end_of_record) ;                           // end of record marker
+  const size_t record_size = RSF_Record_size(rec_meta, max_data);
 
   if(t != NULL){                                        // caller supplied space
 
@@ -1053,7 +1062,7 @@ size_t RSF_Adjust_data_record(RSF_handle h, RSF_record *r){
 
   sor = r->sor ;
   if(sor->dul == 0) return 0L ;                         // uninitialized data element size
-  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: data_bytes = %ld, element size = %d bytes\n", __func__, data_bytes,sor->dul ) ;
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: data_bytes = %ld, element size = %d bytes\n", __func__, data_bytes,sor->dul ) ;
   new_size = RSF_Record_size(r->rec_meta, data_bytes) ; // properly rounded up size
   eor = r->sor + new_size - sizeof(end_of_record) ;
 
@@ -1320,7 +1329,7 @@ int64_t RSF_Put_bytes(
     int element_size    //!< [in]     [Optional] Size of data elements (in bytes). Ignored if [record] is non-NULL.
 ) {
   RSF_File *fp = (RSF_File *) h.p ;
-  uint64_t record_size, total_size, extra ;
+  uint64_t extra ;
   int64_t slot, available, desired ;
   start_of_record sor = SOR ;      // start of data record
   end_of_record   eor = EOR ;      // end of data record
@@ -1345,7 +1354,9 @@ int64_t RSF_Put_bytes(
   if(dir_meta == 0) dir_meta = rec_meta ;          // default size of directory metadata (record metadata size)
   if(dir_meta > rec_meta) dir_meta = rec_meta ;    // directory metadata size vannot be larger than record metadata size
 
-  record_size = RSF_Record_size(rec_meta, data_bytes) ;
+  const uint64_t record_size = (record == NULL) ? 
+                               RSF_Record_size(rec_meta, data_bytes) :
+                               RSF_Adjust_data_record(h, record) ;
   // fprintf(stderr,"RSF_Put_bytes DEBUG : data_bytes = %ld, record_size = %ld %lx\n", data_bytes, record_size, record_size) ;
   // write record if enough room left in segment (always O.K. if compact segment)
   if(fp->seg_max > 0){                                                 // write into a sparse segment
@@ -1365,9 +1376,11 @@ int64_t RSF_Put_bytes(
   // write record 
   if( record != NULL){                                              // using a pre allocated, pre filled record structure
 
-    total_size = RSF_Adjust_data_record(h, record) ;                // adjust to actual data size (rec_meta assumed already set)
-    if(total_size != record_size) goto ERROR ;
-    if(((start_of_record *) record->sor)->dul == 0) goto ERROR ;    // uninitialized data element size
+    if(((start_of_record *) record->sor)->dul == 0) {
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: Uninitialized data element size\n");
+      return 0;
+    }
+
     dir_meta = record->dir_meta ;                                   // get metadata sizes from record
     rec_meta = record->rec_meta ;
     if(dir_meta == 0) dir_meta = rec_meta ;
@@ -1383,10 +1396,9 @@ int64_t RSF_Put_bytes(
     ((start_of_record *) record->sor)->rt = rt0 ;                   // alter record type in start_of_record
     ((end_of_record *)   record->eor)->rt = rt0 ;                   // alter record type in end_of_record
     // data element size taken from record, element_size ignored
-    nc = write(fp->fd, record->sor, total_size) ;                   // write record structure to disk
+    nc = write(fp->fd, record->sor, record_size) ;                  // write record structure to disk
 
   }else{                                                            // using meta and data
-
     meta0 = meta[0] ;                                               // save meta[0]
     rt0 = meta0 & 0xFF ;                                            // record type in lower 8 bits
     class0 = meta0 >> 8 ;                                           // record class in upper 24 bits

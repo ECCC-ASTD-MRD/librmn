@@ -8,7 +8,7 @@
 #endif
 
 #define META_TOKEN_MAXLEN 1024
-#define META_TYPE_FIELD   1
+#define META_TYPE_RECORD   1
 #define META_TYPE_FILE    2
 
 // Generic json manipulation calls
@@ -32,6 +32,8 @@ json_object* Meta_New(int Type,char *Version);
 json_object* Meta_Load(char *Path);
 int32_t      Meta_LoadProfile(char *Version);
 
+json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar);
+json_object* Meta_DefFromEtiket(json_object *Obj,const char* Etiket);
 json_object* Meta_DefVarFromDict(json_object *Obj,char* RPNName);
 json_object* Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,char* Unit);
 json_object* Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,char **LongName,char **Description,char **Unit);

@@ -1,16 +1,18 @@
 program test_meta_fortran
 
+    use rmn_fst24
     use rmn_meta
     use rmn_common
 
-    type(meta) :: meta_fld, meta_file
+    type(meta) :: meta_fld, meta_file, meta_tmp
+    type(fst_record) :: record
     type(C_PTR) obj
     real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
     integer(kind=INT32) :: ok
  
 !   Load metadata template
-    ok=meta_fld%new(META_TYPE_FIELD,C_NULL_CHAR)
-    ok=meta_file%new(META_TYPE_FILE,C_NULL_CHAR)
+    ok=meta_fld%init(META_TYPE_RECORD,C_NULL_CHAR)
+    ok=meta_file%init(META_TYPE_FILE,C_NULL_CHAR)
 
     obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
     obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
@@ -46,5 +48,12 @@ program test_meta_fortran
 !    Output formatted
      ok=meta_fld%Resolve(meta_file);
 
-     write(6,*) 'JSON:',meta_fld%Stringify()
+!     write(6,*) 'JSON:',meta_fld%Stringify()
+
+     record%metadata=meta_fld
+     call record % make_c_self()
+     call record % from_c_self()
+      meta_tmp=record%metadata
+     write(6,*) 'JSON:',meta_tmp%Stringify()
+     
 end

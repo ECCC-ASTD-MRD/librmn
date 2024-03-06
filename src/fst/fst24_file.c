@@ -7,8 +7,8 @@
 #include "fst24_record_internal.h"
 #include "fst98_internal.h"
 #include "qstdir.h"
-#include "rmn/fnom.h"
-#include "rmn/fst24_file.h"
+#include <rmn/fnom.h>
+#include <rmn/fst24_file.h>
 #include "xdf98.h"
 #include "Meta.h"
 
@@ -86,7 +86,7 @@ fst_file* fst24_open(
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
-    // Reset search criteria, so that we can just start reading everyting
+    // Reset search criteria, so that we can just start reading everything
     fst24_set_search_criteria(the_file, &default_fst_record);
 
     return the_file;
@@ -486,12 +486,15 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     int  metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
     if (record->metadata) {
-       fst24_bounds(record,&dmin,&dmax);
-       if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax)) {
-          Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
+       if (!image_mode_copy) {
+          fst24_bounds(record,&dmin,&dmax);
+          if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[datyp],"lorenzo",nbits,record->dasiz,dmin,dmax)) {
+             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
+             return(ERR_METADATA);
+          }
        }
        if ((metastr = Meta_Stringify(record->metadata))) {
-          metalen = strlen(metastr);
+          metalen = strlen(metastr)+1;
           rec_metadata_size += ((metastr?metalen:0)+3)/4;
        }
     }
@@ -521,7 +524,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
-        memcpy((char *)(stdf_entry + 1), metastr, metalen);
+        memcpy((char *)(stdf_entry + 1), metastr, metalen + 1);
     }
 
     stdf_entry->deleted = 0; // Unused by RSF
@@ -838,14 +841,12 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);
     if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
-        f.ip2 = 1;
-        f.ip3 = 1;
         f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
-        fst24_record_print_short(record, &f, 0, "Write");
+        fst24_record_print_short(record, &f, 0, "Write: ");
     }
-
+    
     RSF_Free_record(new_record);
 
     return record_handle > 0 ? TRUE : -1;
@@ -929,7 +930,7 @@ int32_t fst24_get_record_from_key(
     return TRUE;
 }
 
-//! Indicate a set of criteria that will be used whenever we will use "find next record" 
+//! Indicate a set of criteria that will be used whenever we use "find next record" 
 //! for the given file, within the FST 24 implementation.
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
@@ -948,6 +949,11 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
     make_search_criteria(criteria,
                          &fstd_open_files[file->file_index].search_criteria,
                          &fstd_open_files[file->file_index].search_mask);
+
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Setting search criteria\n", __func__);
+        print_non_wildcards(criteria);
+    }
 
     const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
     fstd_open_files[file->file_index].search_start_key = start_key;
@@ -987,6 +993,7 @@ int32_t fst24_get_record_by_index(
         if (file->next != NULL) return fst24_get_record_by_index(file->next, index - num_records, record);
         return ERR_OUT_RANGE;
     }
+    record->file = file;
 
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
@@ -1019,6 +1026,7 @@ int32_t fst24_get_record_by_index(
 //! Searches through linked files, if any.
 //! Criteria set either with a call to fst24_set_search_criteria or a search with explicit criteria
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
+int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
 int32_t fst24_find_next(
     fst_file* const file, //!< [in] File we are searching. Must be open
     fst_record* record //!< [out] Record information if found, optional (no data or advanced metadata, unless included in search)
@@ -1048,14 +1056,23 @@ int32_t fst24_find_next(
             if ((key = find_next_record(file_handle, &fstd_open_files[file->file_index])) < 0) {
                 break;
             }
-            // If metadata search is specified, look for a match or carry on looking
-            if (record && fstd_open_files[file->file_index].search_meta) {
+            if (record) {
+                // Check on excdes desire/exclure clauses
+                record->metadata = NULL;
                 rkey = fst24_get_record_from_key(file, key, record); 
-                if (fst24_read_metadata(record) && Meta_Match(fstd_open_files[file->file_index].search_meta, record->metadata, FALSE)) {
-                     break;
-                } else {
-                    record->metadata = NULL;
-                    key = -1;
+                if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+                       record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
+                    key = -1;    
+                } else 
+
+                // If metadata search is specified, look for a match or carry on looking
+                if (fstd_open_files[file->file_index].search_meta) {
+                    if (fst24_read_metadata(record) &&
+                        Meta_Match(fstd_open_files[file->file_index].search_meta, record->metadata, FALSE)) {
+                        break;
+                    } else {
+                        key = -1;
+                    }
                 }
             }
         }
@@ -1073,8 +1090,7 @@ int32_t fst24_find_next(
 
         if (key >= 0) {
             fstd_open_files[file->file_index].search_start_key = key;
-        }
-        else {
+        } else {
             // Mark search as finished in this file if no record is found
             fstd_open_files[file->file_index].search_done = 1;
         }
@@ -1384,13 +1400,11 @@ int32_t fst24_read_rsf(
 
     fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
 
-    // Extract metadata form record if present
+    // Extract metadata from record if present
     record_fst->metadata=NULL;
     if (record_rsf->rec_meta > record_rsf->dir_meta) {
         record_fst->metadata=Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
-        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Retrieved metadata with value '%s' for record key 0x%x\n",__func__,(char*)((stdf_dir_keys*)record_rsf->meta+1),record_fst->handle);
     }
-    // fst24_record_print(record_fst)
 
     // Extract data
     int32_t ier = 0;
@@ -1398,7 +1412,11 @@ int32_t fst24_read_rsf(
         ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        fst24_record_print_short(record_fst, NULL, 0, "Read    ");
+        fst_record_fields f = default_fields;
+        f.grid_info = 1;
+        f.deet = 1;
+        f.npas = 1;
+        fst24_record_print_short(record_fst, &f, 0, "Read : ");
     }
 
     free(record_rsf);
@@ -1465,7 +1483,7 @@ void* fst24_read_metadata(
     return NULL;
 }
 
-//! Read record data from file
+//! Read the data and metadata of a given record from its corresponding file
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
 int32_t fst24_read(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
@@ -1482,13 +1500,16 @@ int32_t fst24_read(
 
     // Allocate buffer if not already done or big enough
     int64_t sz = fst24_record_data_size(record);
+    if (!sz) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: NULL size buffer \n", __func__);        
+    }
 
     if (!record->data || sz > record->alloc) {
-        if (record->flags&FST_REC_ASSIGNED) {
-           Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);
+        if (record->flags & FST_REC_ASSIGNED) {
+           Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);        
            return -1;
         }
-        record->data = malloc(sz);
+        record->data = realloc(record->data,sz);
         if (record->data == NULL) 
             return ERR_MEM_FULL;
         record->alloc = sz;
@@ -1496,7 +1517,7 @@ int32_t fst24_read(
 
     int32_t ret = -1;
     if (record->file->type == FST_RSF) {
-        ret = fst24_read_rsf(record, 0, 0);
+        ret = fst24_read_rsf(record,image_mode_copy, 0);
     }
     else if (record->file->type == FST_XDF) {
         ret = fst24_read_xdf(record);
@@ -1584,9 +1605,8 @@ int32_t fst24_unlink(fst_file* const file) {
     return TRUE;
 }
 
-//! Unlink the given file(s). The files are assumed to have been linked by
-//! a previous call to fst24_link, so only the first one should be given as input
-//! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
+//! Move to the end of the given sequential file
+//! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(const fst_file* const file) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
@@ -1594,6 +1614,4 @@ int32_t fst24_eof(const fst_file* const file) {
     }
 
     return (c_fsteof(fst24_get_unit(file)));
-
-    return TRUE;
 }

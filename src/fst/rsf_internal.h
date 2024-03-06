@@ -514,7 +514,7 @@ static inline uint64_t RSF_Round_size(size_t data_size){
   return data_size ;
 }
 
-//! Compute size of rsf record
+//! Compute size of rsf record in bytes
 static inline uint64_t RSF_Record_size(
     const uint32_t rec_meta, //!< number of 32-bit metadata elements in record (including directory metadata)
     const size_t data_size   //!< data payload in bytes

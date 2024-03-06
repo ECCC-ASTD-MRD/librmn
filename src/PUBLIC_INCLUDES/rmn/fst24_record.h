@@ -8,16 +8,17 @@
 
 #include "rmn/fst_sz.h"
 
+//! Smallest amount of bytes in multiples of 4 that can contain the given number of bytes
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
-#define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*(REC->dasiz>>3))  //TODO define right size
-//#define FST_REC_SIZE(REC) (REC->ni*REC->nj*REC->nk*16 + 500)  //TODO define right size
-#define FST_REC_ASSIGNED 0x1
+
+static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by 
 
 
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
 
 // This struct should only be modified by ADDING member at the end (once we're stable)
+//! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
     int64_t version;
 
@@ -61,6 +62,8 @@ typedef struct {
 } fst_record;
 
 
+//! Default values for all members of an fst_record.
+//! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
         .version = sizeof(fst_record),
         .file     = NULL,
@@ -104,16 +107,20 @@ static const fst_record default_fst_record = (fst_record){
     };
 
 
+//! A set of (boolean) parameters to indicate which information to print or not.
+//! See \ref default_fields for their default values
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, ni, nj, nk;
+    int32_t datyp, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
     int32_t typvar, nomvar, etiket;
+    int32_t metadata;
 } fst_record_fields;
 
+//! A set of default values for fst_record_fields
 static const fst_record_fields default_fields = (fst_record_fields) {
     .dateo = 1,
     .datev = 0,
@@ -129,9 +136,7 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .typvar = 1,
     .etiket = 1,
 
-    .ni = 1,
-    .nj = 1,
-    .nk = 1,
+    .nijk = 1,
 
     .decoded_ip = 0,
     .ip1 = 1,
@@ -139,27 +144,32 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .ip3 = 1,
 
     .grid_info = 0,
-    .ig1234 = 0
+    .ig1234 = 0,
+
+    .metadata = 0
 };
 
+//! \addtogroup public_fst
+//! \{
+//! Number of elements contained in the given record
 inline int64_t fst24_record_num_elem(const fst_record* record) {
     return record->ni * record->nj * record->nk;
 }
 
-//!> Number of data bytes in record
+//! Number of data bytes in record
 inline int64_t fst24_record_data_size(const fst_record* record) {
-    return fst24_record_num_elem(record) * (record->dasiz>>3);
+    return (fst24_record_num_elem(record) * record->dasiz)>>3;
 }
 
-int32_t    fst24_record_is_valid(const fst_record* record);
-int32_t    fst24_record_validate_params(const fst_record* record);
-void       fst24_record_print(const fst_record* record);
-void       fst24_record_print_short(const fst_record* const record, const fst_record_fields* const fields, const int print_header,
-                                    const char* const prefix);
-fst_record fst24_record_new(void *data,int32_t type,int32_t nbits,int32_t ni,int32_t nj,int32_t nk);
-int32_t    fst24_record_free(fst_record* record);
-int32_t    fst24_record_has_same_info(const fst_record* a, const fst_record* b);
-void       fst24_record_diff(const fst_record* a, const fst_record* b);
+int32_t     fst24_record_is_valid(const fst_record* record);
+int32_t     fst24_record_validate_params(const fst_record* record);
+void        fst24_record_print(const fst_record* record);
+void        fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header, const char* prefix);
+fst_record* fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni, int32_t nj, int32_t nk);
+int32_t     fst24_record_free(fst_record* record);
+int32_t     fst24_record_has_same_info(const fst_record* a, const fst_record* b);
+void        fst24_record_diff(const fst_record* a, const fst_record* b);
+//! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
 
@@ -209,11 +219,12 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
     type, bind(C) :: fst_record_fields
         integer(C_INT32_T) :: dateo = 1, datev = 0, datestamps = 1
         integer(C_INT32_T) :: level = 0
-        integer(C_INT32_T) :: datyp = 1, ni = 1, nj = 1, nk = 1
+        integer(C_INT32_T) :: datyp = 1, nijk = 1
         integer(C_INT32_T) :: deet = 0, npas = 0
-        integer(C_INT32_T) :: ip1 = 1, ip2 = 0, ip3 = 0, decoded_ip = 0
+        integer(C_INT32_T) :: ip1 = 1, ip2 = 1, ip3 = 1, decoded_ip = 0
         integer(C_INT32_T) :: grid_info = 0, ig1234 = 1
         integer(C_INT32_T) :: typvar = 1, nomvar = 1, etiket = 1
+        integer(C_INT32_T) :: metadata = 0
     end type fst_record_fields
 
 #endif // IN_FORTRAN_CODE

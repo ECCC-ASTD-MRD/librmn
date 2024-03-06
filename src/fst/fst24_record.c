@@ -4,11 +4,12 @@
 #include <string.h>
 
 #include <App.h>
+#include "Meta.h"
 #include "rmn/convert_ip.h"
 
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
-fst_record fst24_record_new(
+fst_record* fst24_record_new(
     void   *data,   //!< Data pointer to assign, or allocate internal array if NULL
     int32_t type,   //!< Data type
     int32_t nbits,  //!< Number of bits per data element
@@ -16,29 +17,34 @@ fst_record fst24_record_new(
     int32_t nj,     //!< J horizontal size
     int32_t nk      //!< K vertical size
 ) {
-    fst_record result = default_fst_record;
+    fst_record* result = (fst_record*)malloc(sizeof(fst_record));
 
-    result.ni=ni;
-    result.nj=nj;
-    result.nk=nk;
-    result.dasiz=nbits;
-    result.datyp=type;
-    result.alloc=fst24_record_data_size(&result);
+    if (result) {
+        memcpy(result,&default_fst_record,sizeof(fst_record));
 
-    if (!(result.data=data)) {
-       // No data pointer passed, allocate data array
-       if (!(result.data=(void*)malloc(result.alloc))) {
-          Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
-       }
+        result->ni=ni;
+        result->nj=nj;
+        result->nk=nk;
+        result->dasiz=nbits;
+        result->datyp=type;
+        result->alloc=fst24_record_data_size(result);
+
+        if (!(result->data=data)) {
+            // No data pointer passed, allocate data array
+            if (!(result->data=(void*)malloc(result->alloc))) {
+                Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
+            }
+        } else {
+          // Using an assigned pointer
+         result->flags = FST_REC_ASSIGNED;
+        }
     } else {
-       // Using an assigned pointer
-       result.flags!=FST_REC_ASSIGNED;
+        Lib_Log(APP_LIBFST,APP_ERROR,"Unable to allocate record\n",__func__);
     }
-
     return(result);
 }
 
-//! Free a record
+//! Free a record. Its data will only be freed if it is *not* managed by the user.
 //! \return TRUE (1) if no error, FALSE (0) if an error is detected
 int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
@@ -53,6 +59,7 @@ int32_t fst24_record_free(
    return(TRUE);
 }
 
+//! Print all members of the given record struct
 void fst24_record_print(const fst_record* record) {
     Lib_Log(APP_LIBFST, APP_ALWAYS,
         "\n"
@@ -60,6 +67,8 @@ void fst24_record_print(const fst_record* record) {
         "  File: 0x%x\n"
         "  Data: 0x%x\n"
         "  Metadata: 0x%x\n"
+        "  Flags:  %ld\n"
+        "  Alloc:  %ld\n"
         "  Handle: 0x%x\n"
         "  dateo: %ld\n"
         "  datev: %ld\n"
@@ -74,7 +83,8 @@ void fst24_record_print(const fst_record* record) {
         "  grtyp:  \"%s\"\n"
         "  nomvar: \"%s\"\n"
         "  etiket: \"%s\"\n",
-        record->version, record->file, record->data, record->metadata, record->handle, 
+        record->version, record->file, record->data, record->metadata, record->flags,
+        record->alloc, record->handle, 
         record->dateo, record->datev, record->datyp, record->dasiz, record->npak,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,
@@ -83,14 +93,43 @@ void fst24_record_print(const fst_record* record) {
     );
 }
 
-char* add_str(char* buffer, const char* string, const size_t length) {
+//! Pad the given string buffer with spaces. See \ref fst24_record_print_short
+//! \return pointer to the buffer
+char* pad(
+    char* buffer,               //!< [in,out] String we want to pad
+    const int num_written,      //!< From what offset to start the padding
+    const size_t target_length  //!< Final desired length of the string
+) {
+    if (target_length > num_written) {
+        memset(buffer + num_written, ' ', target_length - num_written);
+        buffer[target_length] = '\0';
+    }
+
+    return buffer;
+}
+
+//! Add a character string to the line to be printed. If the string is shorter than
+//! the requested length, it will be padded with spaces. See \ref fst24_record_print_short
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_str(
+    char* buffer,       //!< [in,out] buffer containing the line to be printed
+    const char* string, //!< [in] The string we are adding to the line
+    const size_t length //!< [in] The width (in number of characters) that will be added to the line.
+) {
     const char format[10] = {' ', '%', '0' + length / 10, '0' + length % 10, 's', '\0'};
-    snprintf(buffer, length + 2, format, string);
+    const int num_written = snprintf(buffer, length + 2, format, string);
+    pad(buffer, num_written, length + 1);
     return buffer + length + 1;
 }
 
-char* add_int(char* buffer, const int64_t num, const size_t length, const int with_zeros) {
-
+//! Add an integer to the line to be printed. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_int(
+    char* buffer,           //!< [in,out] Buffer containing the line to be printed
+    const int64_t num,      //!< Value that we want to print
+    const size_t length,    //!< Width (in characters) that we want to add to the line
+    const int with_zeros    //!< Whether we want the printed number to be left-padded with zeros
+) {
     if (length > 10 || with_zeros) {
         const char format[10]   = {' ', '%', '0' + length / 10, '0' + length % 10, 'l', 'd', '\0'};
         snprintf(buffer, length + 2, format, num);
@@ -103,7 +142,12 @@ char* add_int(char* buffer, const int64_t num, const size_t length, const int wi
     return buffer + length + 1;
 }
 
-char* add_date(char* buffer, const int64_t datestamp) {
+//! Add a date (from a timestamp) to the line to be printed. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_date(
+    char* buffer,           //!< [in,out] Buffer containing the line to be printed
+    const int64_t datestamp //!< Timestamp to be translated and added to the line
+) {
     char* result = buffer;
     int32_t dat2, dat3;
     int32_t minus3 = -3;
@@ -116,7 +160,16 @@ char* add_date(char* buffer, const int64_t datestamp) {
     return result;
 }
 
-char* add_level(char* buffer, const char* varname, const int32_t ip1, const size_t length) {
+//! A a "level" (?) to the line to be printed. If the variable cannot be
+//! correctly translated, only dashes will be printed.
+//! See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_level(
+    char* buffer,           //!< [in,out] Buffer containing the line to be printed
+    const char* varname,    //!< [in] Name of the variable for which we are printing the level
+    const int32_t ip1,      //!< IP1 associated with the record
+    const size_t length     //!< Width of the text we are adding. Will pad with spaces if necessary
+) {
 
     if (!FstCanTranslateName(varname)) return add_str(buffer, "---", length);
 
@@ -150,16 +203,16 @@ char* add_level(char* buffer, const char* varname, const int32_t ip1, const size
     return buffer + length + 1;
 }
 
-char* pad(char* buffer, const int num_written, const size_t target_length) {
-    if (target_length > num_written) {
-        memset(buffer + num_written, ' ', target_length - num_written);
-        buffer[target_length] = '\0';
-    }
-
-    return buffer;
-}
-
-char* add_ips(char* buffer, const char* varname, const int32_t ip1, const int32_t ip2, const int32_t ip3, const size_t length) {
+//! Add the 3 IPs to the line to be printed, decoded if possible. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_ips(
+    char* buffer,           //!< [in,out] Buffer containing the line to be printed
+    const char* varname,    //!< Name of the corresponding variable
+    const int32_t ip1,
+    const int32_t ip2,
+    const int32_t ip3,
+    const size_t length     //!< Width of the text we are adding. Will pad with spaces if necessary
+) {
     if (!FstCanTranslateName(varname)) {
         char* result = buffer;
         result = add_int(result, ip1, 10, 0);
@@ -184,7 +237,14 @@ char* add_ips(char* buffer, const char* varname, const int32_t ip1, const int32_
     return buffer + length + 1;
 }
 
-char* add_datatype(char* buffer, const int32_t datatype, const int32_t nbits, const size_t length) {
+//! Add a datatype to the line we are printing. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_datatype(
+    char* buffer,           //!< [in,out] Buffer containing the line to be printed
+    const int32_t datatype, //!< ID of the datatype
+    const int32_t nbits,    //!< Size in bits of the type
+    const size_t length     //!< Width of the text we are adding. Will pad with spaces if necessary
+) {
     const char m = has_type_missing(datatype) ? 'm' : ' ';
     const char cdt[9] = {'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
     const char letter = cdt[datatype & 0x3f]; // Suppress bits 64 and 128
@@ -196,8 +256,17 @@ char* add_datatype(char* buffer, const int32_t datatype, const int32_t nbits, co
     return buffer + length + 1;
 }
 
-char* add_grid_info(char* buffer, const char* grtyp, const int32_t ig1, const int32_t ig2, const int32_t ig3,
-                    const int32_t ig4, const size_t length) {
+//! Add grid information to the line we are printing. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_grid_info(
+    char* buffer,       //!< [in,out] Buffer containing the line to be printed
+    const char* grtyp,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const size_t length //!< Width of the text we are adding. Will pad with spaces if necessary
+) {
     F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
     char pg1[7], pg2[7], pg3[8], pg4[8];
     f77name(igapg)(grtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4, lc1, lc2, lc3, lc4, lc5);
@@ -208,8 +277,17 @@ char* add_grid_info(char* buffer, const char* grtyp, const int32_t ig1, const in
     return buffer + length + 1;
 }
 
-char* add_ig1234(char* buffer, const char* grtyp, const int32_t ig1, const int32_t ig2, const int32_t ig3,
-                 const int32_t ig4, const size_t length) {
+//! Add the 4 IGs to the line we are printing. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_ig1234(
+    char* buffer,       //!< [in,out] Buffer containing the line to be printed
+    const char* grtyp,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const size_t length //!< Width of the text we are adding. Will pad with spaces if necessary
+) {
     buffer = add_str(buffer, grtyp, 1);
     buffer = add_int(buffer, ig1, 5, 0);
     buffer = add_int(buffer, ig2, 5, 0);
@@ -218,7 +296,7 @@ char* add_ig1234(char* buffer, const char* grtyp, const int32_t ig1, const int32
     return buffer;
 }
 
-//! Print record information on one line
+//! Print record information on one line (with an optional header)
 void fst24_record_print_short(
     const fst_record* const record, //!< [in] The record we want to print
     const fst_record_fields* const fields, //!< [in,optional] What fields should we print (default choice if NULL)
@@ -233,9 +311,7 @@ void fst24_record_print_short(
         .deet = 8,
         .npas = 8,
 
-        .ni = 9,
-        .nj = 9,
-        .nk = 8,
+        .nijk = 9,
 
         .ip1 = 9,
         .ip2 = 9,
@@ -263,10 +339,11 @@ void fst24_record_print_short(
         if (to_print.nomvar > 0) current = add_str(current, "NOMV", width.nomvar);
         if (to_print.typvar > 0) current = add_str(current, "TV", width.typvar);
         if (to_print.etiket > 0) current = add_str(current, "ETIQUETTE   ", width.etiket);
-        if (to_print.ni > 0) current = add_str(current, "NI", width.ni);
-        if (to_print.nj > 0) current = add_str(current, "NJ", width.nj);
-        if (to_print.nk > 0) current = add_str(current, "NK", width.nk);
-
+        if (to_print.nijk > 0) {
+            current = add_str(current, "NI", width.nijk);
+            current = add_str(current, "NJ", width.nijk);
+            current = add_str(current, "NK", width.nijk);
+        }
         if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-O", width.datestamps);
         if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-O  h m s) ", width.dateo);
         if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-V", width.datestamps);
@@ -287,7 +364,7 @@ void fst24_record_print_short(
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
 
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
+        Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
     }
 
     char* current = buffer;
@@ -295,10 +372,11 @@ void fst24_record_print_short(
     if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
     if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
     if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
-    if (to_print.ni > 0) current = add_int(current, record->ni, width.ni, 0);
-    if (to_print.nj > 0) current = add_int(current, record->nj, width.nj, 0);
-    if (to_print.nk > 0) current = add_int(current, record->nk, width.nk, 0);
-
+    if (to_print.nijk > 0) {
+        current = add_int(current, record->ni, width.nijk, 0);
+        current = add_int(current, record->nj, width.nijk, 0);
+        current = add_int(current, record->nk, width.nijk, 0);
+    }
     if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
     if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
     if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
@@ -321,9 +399,16 @@ void fst24_record_print_short(
     else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
                                                     record->ig3, record->ig4, width.ig1234);
 
-    Lib_Log(APP_LIBFST, APP_ALWAYS, "%s\n", buffer);
+    Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
+
+    if (to_print.metadata > 0) {
+        fst24_read_metadata((fst_record*)record);
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", Meta_Stringify(record->metadata));
+    }
+
 }
 
+//! Check whether the given record struct is valid (does not check its content, just its version token)
 int32_t fst24_record_is_valid(const fst_record* record) {
     if (record == NULL) {
         Lib_Log(APP_ERROR, APP_LIBFST, "%s: Record pointer is NULL\n", __func__);
@@ -339,6 +424,8 @@ int32_t fst24_record_is_valid(const fst_record* record) {
     return 1;
 }
 
+//! Validate the parameters of the given record.
+//! Will exit with an error if they are not valid.
 int32_t fst24_record_validate_params(const fst_record* record) {
     VALID(record->ni, 1, NI_MAX, "ni")
     VALID(record->nj, 1, NJ_MAX, "nj")
@@ -357,7 +444,13 @@ int32_t fst24_record_validate_params(const fst_record* record) {
     return 0;
 }
 
-void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, stdf_dir_keys* mask) {
+//! Encode the information of the given record into a directory metadata struct, that
+//! will directly be used for searching in a file
+void make_search_criteria(
+    const fst_record* record,   //!< [in] The information we are looking for
+    stdf_dir_keys* criteria,    //!< [out] The encoded information keys
+    stdf_dir_keys* mask         //!< [out] The corresponding search mask
+) {
     // Check for error
     if (!fst24_record_is_valid(record) || criteria == NULL || mask == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or criteria/mask pointers\n", __func__);
@@ -514,7 +607,11 @@ void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
 //    *extra3 = 0;
 }
 
-fst_record record_from_dir_keys(const stdf_dir_keys* keys) {
+//! Decode the given directory metadata into an fst_record struct
+//! \return The decoded directory metadata
+fst_record record_from_dir_keys(
+    const stdf_dir_keys* keys   //!< Encoded directory metadata (as read from file)
+) {
     fst_record result = default_fst_record;
     fill_with_dir_keys(&result, keys);
     return result;
@@ -526,6 +623,7 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
     if (a->version != b->version) return 0;
     if (a->flags != b->flags) return 0;
+    // if (a->alloc != b->alloc) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
     if (a->datyp != b->datyp) return 0;
@@ -551,6 +649,7 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     return 1;
 }
 
+//! Print every difference between the attributes of the given 2 fst_struct
 void fst24_record_diff(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: One of the records is NULL! (a = 0x%x, b = 0x%x)\n", __func__, a, b);
@@ -564,6 +663,8 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Metadata:a = 0x%x, b = 0x%x)\n", __func__, a->metadata, b->metadata);
     if (a->flags != b->flags)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->flags, b->flags);
+    if (a->alloc != b->alloc)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->alloc, b->alloc);
     if (a->dateo != b->dateo)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dateo:   a = %d, b = %d)\n", __func__, a->dateo, b->dateo);
     if (a->datev != b->datev)
@@ -649,4 +750,41 @@ int32_t fst24_validate_default_record(
     }
 
     return 0;
+}
+
+void print_non_wildcards(const fst_record* record) {
+    char buffer[1024];
+    char* ptr = buffer;
+
+    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
+    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%d ", record->datev);
+    if (record->datyp != default_fst_record.datyp) ptr += snprintf(ptr, 20, "datyp=%d ", record->datyp);
+    if (record->dasiz != default_fst_record.dasiz) ptr += snprintf(ptr, 20, "dasiz=%d ", record->dasiz);
+    if (record->npak != default_fst_record.npak)   ptr += snprintf(ptr, 20, "npak=%d ", record->npak);
+    if (record->ni != default_fst_record.ni)       ptr += snprintf(ptr, 20, "ni=%d ", record->ni);
+    if (record->nj != default_fst_record.nj)       ptr += snprintf(ptr, 20, "nj=%d ", record->nj);
+    if (record->nk != default_fst_record.nk)       ptr += snprintf(ptr, 20, "nk=%d ", record->nk);
+    if (record->deet != default_fst_record.deet)   ptr += snprintf(ptr, 30, "deet=%d ", record->deet);
+    if (record->npas != default_fst_record.npas)   ptr += snprintf(ptr, 30, "npas=%d ", record->npas);
+    if (record->ip1 != default_fst_record.ip1)     ptr += snprintf(ptr, 30, "ip1=%d ", record->ip1);
+    if (record->ip2 != default_fst_record.ip2)     ptr += snprintf(ptr, 30, "ip2=%d ", record->ip2);
+    if (record->ip3 != default_fst_record.ip3)     ptr += snprintf(ptr, 30, "ip3=%d ", record->ip3);
+    if (record->ig1 != default_fst_record.ig1)     ptr += snprintf(ptr, 30, "ig1=%d ", record->ig1);
+    if (record->ig2 != default_fst_record.ig2)     ptr += snprintf(ptr, 30, "ig2=%d ", record->ig2);
+    if (record->ig3 != default_fst_record.ig3)     ptr += snprintf(ptr, 30, "ig3=%d ", record->ig3);
+    if (record->ig4 != default_fst_record.ig4)     ptr += snprintf(ptr, 30, "ig4=%d ", record->ig4);
+
+    if (strncasecmp(record->typvar, default_fst_record.typvar, FST_TYPVAR_LEN) != 0)
+        ptr += snprintf(ptr, 30, "typvar='%s' ", record->typvar);
+    if (strncasecmp(record->grtyp, default_fst_record.grtyp, FST_GTYP_LEN) != 0)
+        ptr += snprintf(ptr, 30, "grtyp='%s' ", record->grtyp);
+    if (strncasecmp(record->nomvar, default_fst_record.nomvar, FST_NOMVAR_LEN) != 0)
+        ptr += snprintf(ptr, 30, "nomvar='%s' ", record->nomvar);
+    if (strncasecmp(record->etiket, default_fst_record.etiket, FST_ETIKET_LEN) != 0)
+        ptr += snprintf(ptr, 30, "etiket='%s' ", record->etiket);
+
+    ptr[0] = '\0';
+    if (ptr == buffer) sprintf(ptr, "[none]");
+
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "criteria: %s\n", buffer);
 }
