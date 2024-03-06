@@ -48,7 +48,6 @@ end subroutine delete_test_data
 subroutine make_test_record()
     implicit none
     logical :: success
-    type(meta) :: meta_rec
 
     call make_test_data()
 
@@ -74,8 +73,8 @@ subroutine make_test_record()
     test_record % datyp = FST_TYPE_REAL
     test_record % dasiz = 32
 
-    success = meta_rec % init(META_TYPE_RECORD,"")
-    test_record % metadata = meta_rec
+    success = test_record % metadata % init(META_TYPE_RECORD,"")
+    write(6,*) test_record % metadata % stringify()
 end subroutine make_test_record
 
 function check_content(content, expected) result(success)

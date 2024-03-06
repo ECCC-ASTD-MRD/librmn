@@ -349,7 +349,7 @@ contains
       type(meta), intent(inout) :: this
       integer(kind=INT32) :: status
 
-      status = meta_free(this%json_obj)
+!TODO: Freed when should not      status = meta_free(this%json_obj)
    end SUBROUTINE meta_final
 
    FUNCTION tmeta_is(this) result(status)
@@ -385,7 +385,7 @@ contains
       integer(kind=INT32)          :: type
       character(len=*), intent(in) :: version
  
-      this%json_obj = meta_new(type,version//C_NULL_CHAR)
+      this%json_obj = meta_new(type,trim(version)//C_NULL_CHAR)
 
       status=0
       if (c_associated(this%json_obj)) then
@@ -445,7 +445,7 @@ contains
       character(len=*) :: reason
       real(kind=REAL64), value :: value
 
-      status = meta_addmissingvalue(this%json_obj,reason//C_NULL_CHAR,value)
+      status = meta_addmissingvalue(this%json_obj,trim(reason)//C_NULL_CHAR,value)
    end FUNCTION tmeta_addmissingvalue
 
    FUNCTION tmeta_clearmissingvalues(this) result(status)
@@ -460,7 +460,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: method
 
-      status = meta_addcellmethod(this%json_obj,method//C_NULL_CHAR)
+      status = meta_addcellmethod(this%json_obj,trim(method)//C_NULL_CHAR)
    end FUNCTION tmeta_addcellmethod
 
    FUNCTION tmeta_clearcellmethods(this) result(status)
@@ -475,7 +475,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: qualifier
 
-      status = meta_addqualifier(this%json_obj,qualifier//C_NULL_CHAR)
+      status = meta_addqualifier(this%json_obj,trim(qualifier)//C_NULL_CHAR)
    end FUNCTION tmeta_addqualifier
 
    FUNCTION tmeta_setqualifiers(this,qualifiers) result(status)
@@ -518,7 +518,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: institution,discipline,title,source,description,state
 
-      status = meta_deffile(this%json_obj,institution//C_NULL_CHAR,discipline//C_NULL_CHAR,title//C_NULL_CHAR,source//C_NULL_CHAR,description//C_NULL_CHAR,state//C_NULL_CHAR)
+      status = meta_deffile(this%json_obj,trim(institution)//C_NULL_CHAR,trim(discipline)//C_NULL_CHAR,trim(title)//C_NULL_CHAR,trim(source)//C_NULL_CHAR,trim(description)//C_NULL_CHAR,trim(state)//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_writefile(this,file) result(status)
@@ -534,7 +534,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: standardname, rpnname, longname, description, unit
 
-      status = meta_defvar(this%json_obj,standardname//C_NULL_CHAR,rpnname//C_NULL_CHAR,longname//C_NULL_CHAR,description//C_NULL_CHAR,unit//C_NULL_CHAR)
+      status = meta_defvar(this%json_obj,trim(standardname)//C_NULL_CHAR,trim(rpnname)//C_NULL_CHAR,trim(longname)//C_NULL_CHAR,trim(description)//C_NULL_CHAR,trim(unit)//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defvarfromdict(this,rpnname) result(status)
@@ -542,7 +542,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: rpnname
 
-      status = meta_defvarfromdict(this%json_obj,rpnname//C_NULL_CHAR)
+      status = meta_defvarfromdict(this%json_obj,trim(rpnname)//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defforecasttime(this,t0,step,duration,unit) result(status)
@@ -570,7 +570,7 @@ contains
          tduration=duration
       endif
  
-      status = meta_defforecasttime(this%json_obj,tt0,tstep,tduration,unit//C_NULL_CHAR)
+      status = meta_defforecasttime(this%json_obj,tt0,tstep,tduration,trim(unit)//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_addverticalref(this,identifier,copy) result(status)
@@ -583,7 +583,7 @@ contains
       if (copy) then
          icopy=1
       endif
-      status = meta_addverticalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
+      status = meta_addverticalref(this%json_obj,trim(identifier)//C_NULL_CHAR,icopy)
    end FUNCTION
 
    FUNCTION tmeta_addhorizontalref(this,identifier,copy) result(status)
@@ -596,7 +596,7 @@ contains
        if (copy) then
          icopy=1
       endif
-      status = meta_addhorizontalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
+      status = meta_addhorizontalref(this%json_obj,trim(identifier)//C_NULL_CHAR,icopy)
    end FUNCTION
 
    FUNCTION tmeta_defverticalref(this,identifier,values,nb,copy) result(status)
@@ -611,7 +611,7 @@ contains
       if (copy) then
          icopy=1
       endif
-      status = meta_defverticalref(this%json_obj,identifier//C_NULL_CHAR,values,nb,icopy)
+      status = meta_defverticalref(this%json_obj,trim(identifier)//C_NULL_CHAR,values,nb,icopy)
    end FUNCTION
 
    FUNCTION tmeta_defhorizontalref(this,identifier,copy) result(status)
@@ -624,7 +624,7 @@ contains
       if (copy) then
          icopy=1
       endif
-      status = meta_defhorizontalref(this%json_obj,identifier//C_NULL_CHAR,icopy)
+      status = meta_defhorizontalref(this%json_obj,trim(identifier)//C_NULL_CHAR,icopy)
    end FUNCTION
 
    FUNCTION tmeta_deffromtypvarref(this,typvar) result(status)
@@ -632,7 +632,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: typvar
 
-      status = meta_deffromtypvar(this%json_obj,typvar//C_NULL_CHAR)
+      status = meta_deffromtypvar(this%json_obj,trim(typvar)//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_deffrometiket(this,etiket) result(status)
@@ -640,7 +640,7 @@ contains
       type(C_PTR) :: status
       character(len=*) :: etiket
 
-      status = meta_deffrometiket(this%json_obj,etiket//C_NULL_CHAR)
+      status = meta_deffrometiket(this%json_obj,trim(etiket)//C_NULL_CHAR)
    end FUNCTION
 
    FUNCTION tmeta_defdata(this,ni,nj,nk,type,compression,pack,bit,min,max) result(status)
@@ -650,7 +650,7 @@ contains
       integer(kind=INT32),  value :: ni,nj,nk,pack,bit
       real(kind=REAL64), value :: min,max
 
-      status = meta_defdata(this%json_obj,ni,nj,nk,type//C_NULL_CHAR,compression//C_NULL_CHAR,pack,bit,min,max)
+      status = meta_defdata(this%json_obj,ni,nj,nk,trim(type)//C_NULL_CHAR,trim(compression)//C_NULL_CHAR,pack,bit,min,max)
    end FUNCTION
 
    FUNCTION tmeta_match(this,match,regexp) result(status)

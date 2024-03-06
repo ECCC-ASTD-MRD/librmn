@@ -464,13 +464,13 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
 
    json_pointer_get(Obj,"/rpn_name",&objval);
    json_object_set_string(objval,RPNName);
-   
+
    if ((var=Dict_GetVar(RPNName))) {
       json_pointer_get(Obj,"/standard_name",&objval);
-      json_object_set_string(objval,var->Short[0]);
+      json_object_set_string(objval,var->Short[1]);
    
       json_pointer_get(Obj,"/long_name",&objval);
-      json_object_set_string(objval,var->Long[0]);
+      json_object_set_string(objval,var->Long[1]);
    
 //      json_pointer_get(Obj,"/description",&objval);
 //      json_object_set_string(objval,Description);
@@ -571,17 +571,18 @@ double Meta_DurationToSeconds(char *Unit) {
  * @brief  Define temporal information
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
- *    @param[in]  T0            Forecast reference time
+ *    @param[in]  T0            Forecast reference time (datetimestamp)
  *    @param[in]  Step          Timestep number
  *    @param[in]  Duration      Timestep duration
  *    @param[in]  Unit          Timestep step unit
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double Duration,char *Unit) {
+json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double Duration,char *Unit) {
  
    json_object *obj=NULL,*objval=NULL;
    struct tm t0;
+   time_t    ts;
    uint32_t milli=0,sec=0;
    char timestr[32],timemil[32];
 
@@ -589,8 +590,9 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double
       return(NULL);
    }
 
-   if (T0>0) {   
-      gmtime_r(&T0,&t0);
+   if (TS>0) {  
+      ts=Meta_Stamp2Seconds(TS); 
+      gmtime_r(&ts,&t0);
       strftime(timestr,32,"%FT%TZ",&t0);
       json_pointer_get(Obj,"/forecast_reference_datetime",&objval);
       json_object_set_string(objval,timestr);
@@ -636,7 +638,7 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double
       
       json_pointer_get(Obj,"/forecast_datetime",&objval);
 
-      T0=timegm(&t0);
+      ts=timegm(&t0);
       strftime(timestr,32,"%FT%T",&t0);
       if (milli) {
          snprintf(timemil,32,"%s.%03iZ",timestr,milli);
@@ -1902,12 +1904,7 @@ time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT
 */
 json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar)	{
 
-   char typvar[FST_TYPVAR_LEN];
-
-   strncpy(typvar,TypVar,FST_TYPVAR_LEN);
-   strtrim(typvar,' ');
-
-   switch(typvar[0]) {
+   switch(TypVar[0]) {
          case 'C': Meta_AddQualifier(Obj,"climatology");                                                
          case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations                                
          case 'A': Meta_AddQualifier(Obj,"analysis");                                                   
@@ -1922,26 +1919,26 @@ json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar)	{
          case 'S': Meta_AddQualifier(Obj,"score"); break;                                            
          case 'T': Meta_AddQualifier(Obj,"timeserie"); break;                                          
    //      case 'X': Meta_AddQualifier(Obj,""); break;    // Divers  
-      };
+   }
 
-      switch(typvar[1]) {                                                    
-         case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné                                                      
-         case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré                                                     
+   switch(TypVar[1]) {                                                    
+      case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné                                                      
+      case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré                                                     
    //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes                                         
-         case 'I': Meta_AddCellMethod(Obj,"interpolation:"); break; //Interpolé                                                 
+      case 'I': Meta_AddCellMethod(Obj,"interpolation:"); break; //Interpolé                                                 
    //      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples                                     
    //      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties                                          
    //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé
-      }
+   }
 
    return(Obj);
 }
 
 json_object* Meta_DefFromEtiket(json_object *Obj,const char* Etiket)	{
 
-   char etiket[FST_ETIKET_LEN+4];
+   char etiket[FST_ETIKET_LEN+5];
 
-   snprintf(etiket,FST_ETIKET_LEN+4,"tag:%s",etiket);
+   snprintf(etiket,FST_ETIKET_LEN+4,"tag:%s",Etiket);
    strtrim(etiket,' ');
 
    return(Meta_AddQualifier(Obj,etiket));
@@ -1964,7 +1961,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    Meta_DefVarFromDict(Obj,nomvar);
 
    // DATEO,DEET,NPAS
-   Meta_DefForecastTime(Obj,Meta_Stamp2Seconds(Rec->dateo),Rec->npas,Rec->deet,"second");
+   Meta_DefForecastTime(Obj,Rec->dateo,Rec->npas,Rec->deet,"second");
 
    // TYPVAR
    Meta_DefFromTypVar(Obj,Rec->typvar);

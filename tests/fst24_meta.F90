@@ -51,7 +51,9 @@ program test_meta_fortran
 !     write(6,*) 'JSON:',meta_fld%Stringify()
 
      record%metadata=meta_fld
-     meta_tmp=record%metadata
+     call record % make_c_self()
+     call record % from_c_self()
+      meta_tmp=record%metadata
      write(6,*) 'JSON:',meta_tmp%Stringify()
      
 end

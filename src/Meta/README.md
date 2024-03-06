@@ -185,8 +185,8 @@ program meta_fortran
    integer(kind=INT32) :: ok
  
 !  Create metadata object from template
-   ok=meta_fld%New(META_TYPE_RECORD,"")
-   ok=meta_file%New(META_TYPE_FILE,"")
+   ok=meta_fld%Init(META_TYPE_RECORD,"")
+   ok=meta_file%Init(META_TYPE_FILE,"")
 
 !  Define file level metadata
    obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
@@ -211,9 +211,10 @@ program meta_fortran
 
    obj=meta_fld%AddMissingValue("out of domain",-999.0d0)
   
-!  Output formatted
+!  Resolve references
    ok=meta_fld%Resolve(meta_file);
 
+!  Output formatted
    write(6,*) 'Field JSON:',meta_fld%Stringify()
   
 end
