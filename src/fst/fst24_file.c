@@ -903,11 +903,15 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
-    if (!fst24_record_is_valid(criteria)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
-       return FALSE;
-    }
 
+    if (!criteria) {
+       criteria=&default_fst_record;
+    } else {
+        if (!fst24_record_is_valid(criteria)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
+        return FALSE;
+        }
+    }
     make_search_criteria(criteria,
                          &fstd_open_files[file->file_index].search_criteria,
                          &fstd_open_files[file->file_index].search_mask);

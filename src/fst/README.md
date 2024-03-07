@@ -389,12 +389,13 @@ typedef struct {
     int64_t handle;   //!< Handle to specific record (if stored in a file)
 
     // 32-bit elements
-    int32_t datyp;//!< Data type of elements
-    int32_t dasiz;//!< Number of bits per elements
-    int32_t npak; //!< Compression factor (none if 0 or 1). Number of bit if negative
-    int32_t ni;   //!< First dimension of the data field (number of elements)
-    int32_t nj;   //!< Second dimension of the data field (number of elements)
-    int32_t nk;   //!< Thierd dimension of the data field (number of elements)
+    int32_t datyp; //!< Data type of elements
+    int32_t dasiz; //!< Number of bits per elements
+    int32_t npak;  //!< Compression factor (none if 0 or 1). Number of bit if negative
+    int32_t ni;    //!< First dimension of the data field (number of elements)
+    int32_t nj;    //!< Second dimension of the data field (number of elements)
+    int32_t nk;    //!< Thierd dimension of the data field (number of elements)
+    int64_t alloc; //!< Size of allocated memory for data
 
     int32_t deet; //!< Length of the time steps in seconds (deet)
     int32_t npas; //!< Time step number
