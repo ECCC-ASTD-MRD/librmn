@@ -1,7 +1,7 @@
 #ifndef RMN_FST_RECORD_INTERNAL_H__
 #define RMN_FST_RECORD_INTERNAL_H__
 
-#include "rmn/fst24_record.h"
+#include <rmn/fst24_record.h>
 
 #include "fst98_internal.h"
 #include "qstdir.h"

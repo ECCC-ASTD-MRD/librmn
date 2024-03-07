@@ -298,10 +298,10 @@ char* add_ig1234(
 
 //! Print record information on one line (with an optional header)
 void fst24_record_print_short(
-    const fst_record* record,           //!< The record we want to print
-    const fst_record_fields* fields,    //!< [optional] What fields should we print (default choice if NULL)
-    const int print_header,             //!< Whether we also print a header to name the fields
-    const char* prefix                  //!< [optional] Text we might want to add at the beginning of the line
+    const fst_record* const record, //!< [in] The record we want to print
+    const fst_record_fields* const fields, //!< [in,optional] What fields should we print (default choice if NULL)
+    const int print_header, //!< [in] Print header if not 0
+    const char* const prefix //!< [in,optional] Line prefix
 ) {
     const fst_record_fields width = (fst_record_fields) {
         .nomvar = 4,
@@ -317,7 +317,7 @@ void fst24_record_print_short(
         .ip2 = 9,
         .ip3 = 9,
         .decoded_ip = 38,
-        
+
         .dateo = 16,
         .datev = 16,
         .datestamps = 9,
@@ -363,50 +363,49 @@ void fst24_record_print_short(
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
-        
-        Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
-    }
-    
-    {
-        char* current = buffer;
-        if (prefix != NULL) current = add_str(current, prefix, strlen(prefix));
-        if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
-        if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
-        if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
-        if (to_print.nijk > 0) {
-            current = add_int(current, record->ni, width.nijk, 0);
-            current = add_int(current, record->nj, width.nijk, 0);
-            current = add_int(current, record->nk, width.nijk, 0);
-        }
-        if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
-        if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
-        if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
-        if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_date(current, record->datev);
-
-        if (to_print.level > 0) current = add_level(current, record->nomvar, record->ip1, width.level);
-        if (to_print.decoded_ip > 0) current = add_ips(current, record->nomvar, record->ip1, record->ip2, record->ip3, width.decoded_ip);
-
-        if (to_print.ip1) current = add_int(current, record->ip1, width.ip1, 0);
-        if (to_print.ip2) current = add_int(current, record->ip2, width.ip2, 0);
-        if (to_print.ip3) current = add_int(current, record->ip3, width.ip3, 0);
-
-        if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
-        if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
-
-        if (to_print.datyp) current = add_datatype(current, record->datyp, record->dasiz, width.datyp);
-
-        if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
-                                                        record->ig3, record->ig4, width.grid_info);
-        else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
-                                                       record->ig3, record->ig4, width.ig1234);
 
         Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
-
-        if (to_print.metadata > 0) {
-            fst24_read_metadata((fst_record*)record);
-            Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", Meta_Stringify(record->metadata));
-        }
     }
+
+    char* current = buffer;
+    if (prefix != NULL) current = add_str(current, prefix, strlen(prefix));
+    if (to_print.nomvar > 0) current = add_str(current, record->nomvar, width.nomvar);
+    if (to_print.typvar > 0) current = add_str(current, record->typvar, width.typvar);
+    if (to_print.etiket > 0) current = add_str(current, record->etiket, width.etiket);
+    if (to_print.nijk > 0) {
+        current = add_int(current, record->ni, width.nijk, 0);
+        current = add_int(current, record->nj, width.nijk, 0);
+        current = add_int(current, record->nk, width.nijk, 0);
+    }
+    if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
+    if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
+    if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
+    if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_date(current, record->datev);
+
+    if (to_print.level > 0) current = add_level(current, record->nomvar, record->ip1, width.level);
+    if (to_print.decoded_ip > 0) current = add_ips(current, record->nomvar, record->ip1, record->ip2, record->ip3, width.decoded_ip);
+
+    if (to_print.ip1) current = add_int(current, record->ip1, width.ip1, 0);
+    if (to_print.ip2) current = add_int(current, record->ip2, width.ip2, 0);
+    if (to_print.ip3) current = add_int(current, record->ip3, width.ip3, 0);
+
+    if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
+    if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
+
+    if (to_print.datyp) current = add_datatype(current, record->datyp, record->dasiz, width.datyp);
+
+    if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
+                                                    record->ig3, record->ig4, width.grid_info);
+    else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
+                                                    record->ig3, record->ig4, width.ig1234);
+
+    Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
+
+    if (to_print.metadata > 0) {
+        fst24_read_metadata((fst_record*)record);
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", Meta_Stringify(record->metadata));
+    }
+
 }
 
 //! Check whether the given record struct is valid (does not check its content, just its version token)

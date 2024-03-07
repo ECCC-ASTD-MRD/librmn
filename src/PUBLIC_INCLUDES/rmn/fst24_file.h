@@ -18,12 +18,13 @@ static const char* fst_file_type_name[] = {
     [FST_RSF]  = "FST_RSF"
 };
 
+//! Base type to refrerence a FST file
 typedef struct fst24_file_ {
     int32_t       iun;                  //!< File unit, used by fnom
     int32_t       file_index;           //!< File index in list of open FST files (the list is different for RSF and XDF)
     int32_t       file_index_backend;   //!< File index in one of the lists of either RSF or XDF open files
     fst_file_type type;                 //!< Type of file (RSF, XDF, etc.)
-    struct fst24_file_* next;           //!< Next file in linked list of files (if any)
+    struct fst24_file_ *next;           //!< Next file in linked list of files (if any)
 } fst_file;
 
 static fst_file default_fst_file = (fst_file) {
@@ -36,27 +37,27 @@ static fst_file default_fst_file = (fst_file) {
 
 //! @defgroup public_fst Public FST C API
 //! @{
-int32_t   fst24_is_valid(const char* file_name);
+int32_t   fst24_is_valid(const char* const filePath);
 int32_t   fst24_is_open(const fst_file* file);
-fst_file* fst24_open(const char* file_name, const char* options);
-int32_t   fst24_close(fst_file* file);
-int64_t   fst24_get_num_records(const fst_file* file);
-int32_t   fst24_eof(fst_file* file);
+fst_file* fst24_open(const char* const filePath, const char* const options);
+int32_t   fst24_close(fst_file* const file);
+int64_t   fst24_get_num_records(const fst_file* const file);
+int32_t   fst24_eof(const fst_file* const file);
 
-int32_t   fst24_read(fst_record* record /* in,out */);  // read data for a record that was already found
-void*     fst24_read_metadata(fst_record* record /* in, out */); // read only meta for the given record
-int32_t   fst24_read_next(fst_file* file, fst_record* record /* out only */); // read data + metadata for the next record to be found
+int32_t   fst24_read(fst_record* const record);
+void*     fst24_read_metadata(fst_record* record);
+int32_t   fst24_read_next(fst_file* file, fst_record* record);
 int32_t   fst24_write(fst_file* file, const fst_record* record, int rewrit);
 int32_t   fst24_set_search_criteria(fst_file* file, const fst_record* criteria);
 int32_t   fst24_rewind_search(fst_file* file);
 int32_t   fst24_find(fst_file* file,const fst_record* criteria, fst_record* result);
-int32_t   fst24_find_next(fst_file* file, fst_record* result);
+int32_t   fst24_find_next(fst_file* const file, fst_record* result);
 int32_t   fst24_find_all(fst_file* file, fst_record* results, const int32_t max_num_results);
 
 int32_t   fst24_link(fst_file** files, const int32_t num_files);
-int32_t   fst24_unlink(fst_file* file);
-int32_t   fst24_print_summary(fst_file* file, const fst_record_fields* fields);
-int32_t   fst24_checkpoint(fst_file* file);
+int32_t   fst24_unlink(fst_file* const file);
+int32_t   fst24_print_summary(const fst_file* const file, const fst_record_fields* const fields);
+int32_t   fst24_checkpoint(const fst_file* const file);
 //! @}
 
 #endif // RMN_FST_FILE_H__
