@@ -242,7 +242,8 @@ char* add_ips(
 char* add_datatype(
     char* buffer,           //!< [in,out] Buffer containing the line to be printed
     const int32_t datatype, //!< ID of the datatype
-    const int32_t nbits,    //!< Size in bits of the type
+    const int32_t nbits_compressed,   //!< Size in bits of the type (compressed)
+    const int32_t nbits_uncompressed, //!< Size in bits of the type (uncompressed)
     const size_t length     //!< Width of the text we are adding. Will pad with spaces if necessary
 ) {
     const char m = has_type_missing(datatype) ? 'm' : ' ';
@@ -250,7 +251,7 @@ char* add_datatype(
     const char letter = cdt[datatype & 0x3f]; // Suppress bits 64 and 128
     const char datatype_c = is_type_turbopack(datatype) ? tolower(letter) : letter;
 
-    const int num_written = snprintf(buffer, 6, " %1c%1c%2d", tolower(cdt[datatype & 0x3F]), m, nbits);
+    const int num_written = snprintf(buffer, 10, " %1c%1c%2d %3d", datatype_c, m, nbits_compressed, nbits_uncompressed);
     pad(buffer, num_written, length + 1);
 
     return buffer + length + 1;
@@ -323,7 +324,7 @@ void fst24_record_print_short(
         .datestamps = 9,
         .level = 15,
 
-        .datyp = 4,
+        .datyp = 8,
         .grid_info = 31,
         .ig1234 = 25
     };
@@ -359,7 +360,7 @@ void fst24_record_print_short(
         if (to_print.deet) current = add_str(current, "DEET", width.deet);
         if (to_print.npas) current = add_str(current, "NPAS", width.npas);
 
-        if (to_print.datyp) current = add_str(current, "DTYP", width.datyp);
+        if (to_print.datyp) current = add_str(current, "DTYP SIZ", width.datyp);
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
@@ -392,7 +393,7 @@ void fst24_record_print_short(
     if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
     if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
 
-    if (to_print.datyp) current = add_datatype(current, record->datyp, record->dasiz, width.datyp);
+    if (to_print.datyp) current = add_datatype(current, record->datyp, -record->npak, record->dasiz, width.datyp);
 
     if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
                                                     record->ig3, record->ig4, width.grid_info);

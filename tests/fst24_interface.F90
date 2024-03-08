@@ -201,7 +201,11 @@ function test_fst24_interface(is_rsf) result(success)
     type(fst_record_fields) :: fields
     type(fst_record) :: expected, record
     integer :: num_found
-    real(kind = real32), dimension(:, :), pointer :: data
+    real(kind = real32), dimension(:, :), pointer :: data_array
+    integer(kind = int32), dimension(:, :), pointer :: bad_type
+    real(kind = real64), dimension(:, :), pointer :: bad_size_64
+    real(kind = real32), dimension(:), pointer :: bad_dim
+    real(kind = real32), dimension(:, :, :), pointer :: ok_dim
 
     success = .false.
 
@@ -262,8 +266,30 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        call c_f_pointer(record % data, data, [DATA_SIZE, DATA_SIZE])
-        success = check_content(data, test_data)
+        success = .false.
+        call record % get_data_array(bad_type)
+        if (associated(bad_type)) then
+            call app_log(APP_ERROR, 'Pointer should not be associated!')
+            return
+        end if
+        call record % get_data_array(bad_size_64)
+        if (associated(bad_size_64)) then
+            call app_log(APP_ERROR, 'Pointer should not be associated!')
+            return
+        end if
+        call record % get_data_array(bad_dim)
+        if (associated(bad_dim)) then
+            call app_log(APP_ERROR, 'Pointer should not be associated!')
+            return
+        end if
+        call record % get_data_array(ok_dim)
+        if (.not. associated(ok_dim)) then
+            call app_log(APP_ERROR, 'Pointer should be associated!')
+            return
+        end if
+
+        call record % get_data_array(data_array)
+        success = check_content(data_array, test_data)
         if (.not. success) return
 
         success = test_file % is_open()
@@ -299,8 +325,9 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        call c_f_pointer(record % data, data, [DATA_SIZE, DATA_SIZE])
-        success = check_content(data, test_data)
+        ! call c_f_pointer(record % data, data, [DATA_SIZE, DATA_SIZE])
+        call record % get_data_array(data_array)
+        success = check_content(data_array, test_data)
         if (.not. success) return
     end do
     

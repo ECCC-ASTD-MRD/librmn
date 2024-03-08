@@ -290,6 +290,26 @@ free(my_file);
 </td>
 </table>
 
+### Obtaining a Fortran pointer to the data
+
+In Fortran, it is possible to obtain a pointer to the record data for easier manipulation
+```fortran
+type(fst_record) :: my_record
+logical :: success
+integer,             dimension(:, :),    pointer :: data_i4
+real(kind = real64), dimension(:, :, :), pointer :: data_r8
+
+[...]
+success = my_record % read()   ! Read data from disk
+call my_record % get_data_array(data_i4)    ! Only works if the record contains 2D integer data
+print *, data_i4(1:4, :)
+
+[...]
+call my_record % get_data_array(data_r8)    ! Only works if the record contains 3D real (double) data
+print *, data_r8(3, 2:5, 1)
+```
+
+
 <a id="ex-write"></a>
 
 ## Creating and writing a record
@@ -831,6 +851,14 @@ end function rwd
 ### Record Functions
 
 ```fortran
+!> Obtain a fortran array pointer to the data. If the pointer does not match the type, size and rank of the
+!> data stored in the record, it will be nullified
+subroutine get_data_array(this, array_pointer)
+    implicit none
+    class(fst_record), intent(in) :: this
+    type(*), dimension(*), pointer, intent(out) :: array_pointer
+end subroutine get_data_array
+
 !> Check whether two records have identical information (except data). This will sync the underlying C struct
 !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise
 function fst24_record_has_same_info(this, other) result(has_same_info)

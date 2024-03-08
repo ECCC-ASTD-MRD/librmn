@@ -145,6 +145,11 @@ if (EC_INIT_DONE LESS 2)
         add_dependencies(check fst_parallel_write)
         set_property(TEST fst_parallel_write PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
 
+        add_executable(fst_compression fst_compression.c)
+        target_link_libraries(fst_compression rmn::rmn)
+        add_test(NAME fst_compression COMMAND $<TARGET_FILE:fst_compression>)
+        add_dependencies(check fst_compression)
+
         add_executable(moduledate EXCLUDE_FROM_ALL moduledate.F90)
         target_link_libraries(moduledate rmn::rmn)
         add_test(NAME moduledate COMMAND $<TARGET_FILE:moduledate>)
