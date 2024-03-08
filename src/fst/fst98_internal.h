@@ -25,16 +25,20 @@
     }
 
 static inline int32_t is_type_real(const int32_t type_flag) {
-    return ((type_flag & FST_TYPE_REAL) == FST_TYPE_REAL);
+    return ((type_flag & 0x2f) == FST_TYPE_REAL);
 }
 static inline int32_t is_type_complex(const int32_t type_flag) {
-    return ((type_flag & FST_TYPE_COMPLEX) == FST_TYPE_COMPLEX);
+    return ((type_flag & 0x2f) == FST_TYPE_COMPLEX);
 }
 static inline int32_t is_type_turbopack(const int32_t type_flag) {
     return ((type_flag & FST_TYPE_TURBOPACK) == FST_TYPE_TURBOPACK);
 }
 static inline int32_t has_type_missing(const int32_t type_flag) {
     return ((type_flag & FSTD_MISSING_FLAG) == FSTD_MISSING_FLAG);
+}
+static inline int32_t is_type_integer(const int32_t type_flag) {
+    return (((type_flag & 0x2f) == FST_TYPE_SIGNED) ||
+            ((type_flag & 0x2f) == FST_TYPE_UNSIGNED));
 }
 
 //! Swap (in-place) the two halves of each 64-bit element in the given array

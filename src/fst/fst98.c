@@ -336,8 +336,8 @@ void print_std_parms(
     char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
     char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
     char h_decoded[39], v_decoded[39];
-    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5];
-    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5];
+    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[9];
+    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[9];
     int posc, posv;
 
     Lib_Log(APP_LIBFST,APP_DEBUG,"%s: option=%s\n",__func__,option);
@@ -429,7 +429,7 @@ void print_std_parms(
         if (strstr(option, "NODTY")) {
             h_dty[0] = '\0';
         } else {
-            snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
+            snprintf(h_dty, sizeof(h_dty), "%s", "DTY SIZ");
         }
 
         if (strstr(option, "GRIDINFO")) {
@@ -580,10 +580,10 @@ void print_std_parms(
         /* force lower case data type code if compressed */
         if (stdf_entry->datyp > 128) {
             /* suppress bits for 64 and 128 */
-            snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits);
+            snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d %3d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits, stdf_entry->dasiz);
         } else {
             /* suppress bits for 64 and 128 */
-            snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits);
+            snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d %3d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits, stdf_entry->dasiz);
         }
     }
 
@@ -1034,6 +1034,18 @@ int c_fstecr_xdf(
         datyp = 1;
     }
 
+    // Determine data_nbits (uncompressed datatype size)
+    int8_t data_nbits = 0;
+    if (is_type_real(datyp) || is_type_complex(datyp)) {
+        data_nbits = (xdf_double || IEEE_64) ? 64 : 32;
+    }
+    else if (is_type_integer(datyp)) {
+        data_nbits = xdf_byte   ?  8 :
+                        xdf_short  ? 16 :
+                        xdf_double ? 64 :
+                                    32;
+    }
+
     int header_size;
     int stream_size;
     int nw;
@@ -1156,7 +1168,7 @@ int c_fstecr_xdf(
         (ascii6(nomvar[1]) << 12) |
         (ascii6(nomvar[2]) <<  6) |
         (ascii6(nomvar[3]));
-    stdf_entry->dasiz = 0;
+    stdf_entry->dasiz = data_nbits;
     stdf_entry->ip1 = ip1;
     stdf_entry->levtyp = 0;
     stdf_entry->ip2 = ip2;

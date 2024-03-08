@@ -1503,20 +1503,20 @@ int32_t fst24_read(
     }
 
     // Allocate buffer if not already done or big enough
-    int64_t sz = fst24_record_data_size(record);
-    if (!sz) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: NULL size buffer \n", __func__);        
+    const int64_t size = fst24_record_data_size(record);
+    if (size == 0) {
+       Lib_Log(APP_LIBFST, APP_INFO, "%s: NULL size buffer \n", __func__);        
     }
 
-    if (!record->data || sz > record->alloc) {
+    if (!record->data || size > record->alloc) {
         if (record->flags & FST_REC_ASSIGNED) {
            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);        
            return -1;
         }
-        record->data = realloc(record->data,sz);
+        record->data = realloc(record->data, size * 2);
         if (record->data == NULL) 
             return ERR_MEM_FULL;
-        record->alloc = sz;
+        record->alloc = size;
     }
 
     int32_t ret = -1;
