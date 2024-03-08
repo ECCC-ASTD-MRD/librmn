@@ -105,7 +105,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
     struct blocmem *ptbloc;
     unsigned int errptr;
     int lng, nitem, n;
-    char *value, *getenv();
+    char *value;
 
     single();
     ptrsize = sizeof(pointer);
@@ -203,7 +203,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
     if (initmem) {
         lng = (nitem-2) * ptrsize / sizeof(int32_t);
         for (int i = 0; i < lng; i++) {
-            ptbloc->data[2 + i] = con;
+            ptbloc->data[2 + i] = (int*)con;
         }
     }
 
