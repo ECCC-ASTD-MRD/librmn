@@ -366,9 +366,9 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
         datyp = 5;
     }
 
-    if ((in_datyp == 1) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    if ((in_datyp == FST_TYPE_FREAL) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
-        datyp = 5;
+        datyp = FST_TYPE_REAL;
         nbits = 32;
         minus_nbits = -32;
     }
@@ -414,22 +414,22 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     static int dejafait_rsf_2 = 0;
 
     // no extra compression if nbits > 16
-    if ((nbits > 16) && (datyp != 133)) datyp &= 0x7F;
-    if ((datyp == 6) && (nbits > 24)) {
+    if ((nbits > 16) && (datyp != (FST_TYPE_REAL | FST_TYPE_TURBOPACK))) datyp &= 0x7F;
+    if ((datyp == FST_TYPE_IEEE_16) && (nbits > 24)) {
         if (! dejafait_rsf_1) {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing E32 instead of F%2d\n", __func__, nbits);
             dejafait_rsf_1 = 1;
         }
-        datyp = 5;
+        datyp = FST_TYPE_REAL;
         nbits = 32;
         minus_nbits = -32;
     }
-    if ((datyp == 6) && (nbits > 16)) {
+    if ((datyp == FST_TYPE_IEEE_16) && (nbits > 16)) {
         if (! dejafait_rsf_2) {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
             dejafait_rsf_2 = 1;
         }
-        datyp = 1;
+        datyp = FST_TYPE_FREAL;
     }
 
     // Determine size of data to be stored
@@ -437,7 +437,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     int stream_size;
     size_t num_word64;
     switch (datyp) {
-        case 6: {
+        case FST_TYPE_IEEE_16: {
             int p1out;
             int p2out;
             c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
@@ -447,21 +447,21 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
             break;
         }
 
-        case 8:
+        case FST_TYPE_COMPLEX:
             num_word64 = 2 * ((num_elements *nbits + 63) / 64);
             break;
 
-        case 129:
+        case FST_TYPE_FREAL | FST_TYPE_TURBOPACK:
             // 120 bits (floatpack header)+8, 32 bits (extra header)
             num_word64 = (num_elements * Max(nbits, 16) + 128 + 32 + 63) / 64;
             break;
 
-        case 130:
+        case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
             // 32 bits (extra header)
             num_word64 = (num_elements * Max(nbits, 16) + 32 + 63) / 64;
             break;
 
-        case 134: {
+        case FST_TYPE_IEEE_16 | FST_TYPE_TURBOPACK: {
             int p1out;
             int p2out;
             c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
