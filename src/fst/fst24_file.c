@@ -300,8 +300,10 @@ void fst24_bounds(
 }
 
 //! Write a record to an RSF file
+//! Sometimes the requested writing parameters are not compatible and are changed. If that is
+//! the case, the given fst_record struct will be updated.
 //! \return TRUE (1) if writing was successful, 0 or a negative number otherwise
-static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
+static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
 
     RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
 
@@ -358,12 +360,17 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
     }
     int minus_nbits = -nbits;
 
-    if ( (record->datyp == 133) && (nbits > 32) ) {
+    if ( (record->datyp == (FST_TYPE_REAL | FST_TYPE_TURBOPACK)) && (nbits > 32) ) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
                 "data type 133 reset to 5 (IEEE)\n", __func__);
         // extra compression not supported
-        in_datyp = 5;
-        datyp = 5;
+        in_datyp = FST_TYPE_REAL;
+        datyp = FST_TYPE_REAL;
+    }
+
+    if (is_type_turbopack(datyp) && record->nk > 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.", __func__);
+        datyp &= ~FST_TYPE_TURBOPACK;
     }
 
     if ((in_datyp == FST_TYPE_FREAL) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
@@ -430,6 +437,13 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
             dejafait_rsf_2 = 1;
         }
         datyp = FST_TYPE_FREAL;
+    }
+
+    if (is_type_real(datyp) && record->dasiz == 32 && (nbits < 10)) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits = %d, but anything less than 10 is not available for IEEE 32-bit float\n",
+                __func__, nbits);
+        nbits = 10;
+        minus_nbits = -nbits;
     }
 
     // Determine size of data to be stored
@@ -660,7 +674,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
                         const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
                         const uint32_t num_word32 = W64TOWD(num_word64);
                         ((uint32_t*)new_record->data)[0] = num_word32;
-                        RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
+                        RSF_Record_set_num_elements(new_record, num_word32 + 1, sizeof(uint32_t));
                     }
                 } else {
                     packfunc(field, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
@@ -774,6 +788,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
                         const int compressed_lng = c_armn_compress32(
                             (unsigned char *)&((uint32_t *)new_record->data)[1], (void *)field, record->ni, record->nj,
                             record->nk, nbits);
+
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = 5;
                             f77name(ieeepak)((int32_t *)field, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
@@ -836,12 +851,14 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
         } // end switch
     } // end if image mode copy
 
+    record->datyp = stdf_entry->datyp;
+    record->npak  = -stdf_entry->nbits;
 
     // write new_record to file and add entry to directory
     const int64_t record_handle = RSF_Put_record(file_handle, new_record, num_data_bytes);
     if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
-        f.grid_info = 1;
+        // f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
         fst24_record_print_short(record, &f, 0, "Write: ");
@@ -854,7 +871,7 @@ static int32_t fst24_write_rsf(fst_file* file, const fst_record* record) {
 
 //! Write the given record into the given standard file
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
-int32_t fst24_write(fst_file* file, const fst_record* record, int rewrit) {
+int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
@@ -1333,6 +1350,7 @@ int32_t fst24_unpack_data(
                 int bits;
                 int header_size, stream_size, p1out, p2out;
                 c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
+                header_size /= 4;
                 if (is_type_turbopack(record->datyp)) {
                     armn_compress((unsigned char *)(source_u32 + 1 + header_size), record->ni, record->nj, record->nk, nbits, 2);
                     c_float_unpacker((float *)dest, (int32_t *)(source_u32 + 1), (int32_t *)(source_u32 + 1 + header_size), nelm, &bits);
@@ -1412,7 +1430,7 @@ int32_t fst24_read_rsf(
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
-        f.grid_info = 1;
+        // f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
         fst24_record_print_short(record_fst, &f, 0, "Read : ");

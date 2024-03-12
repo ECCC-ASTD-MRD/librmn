@@ -47,7 +47,7 @@ int32_t   fst24_eof(const fst_file* const file);
 int32_t   fst24_read(fst_record* const record);
 void*     fst24_read_metadata(fst_record* record);
 int32_t   fst24_read_next(fst_file* file, fst_record* record);
-int32_t   fst24_write(fst_file* file, const fst_record* record, int rewrit);
+int32_t   fst24_write(fst_file* file, fst_record* record, int rewrit);
 int32_t   fst24_set_search_criteria(fst_file* file, const fst_record* criteria);
 int32_t   fst24_rewind_search(fst_file* file);
 int32_t   fst24_find(fst_file* file,const fst_record* criteria, fst_record* result);

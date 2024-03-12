@@ -28,7 +28,9 @@ static inline int32_t base_fst_type(const int32_t type_flag) {
     return type_flag & 0x2f;
 }
 static inline int32_t is_type_real(const int32_t type_flag) {
-    return (base_fst_type(type_flag) == FST_TYPE_REAL);
+    return ((base_fst_type(type_flag) == FST_TYPE_REAL) ||
+            (base_fst_type(type_flag) == FST_TYPE_FREAL) ||
+            (base_fst_type(type_flag) == FST_TYPE_IEEE_16));
 }
 static inline int32_t is_type_complex(const int32_t type_flag) {
     return (base_fst_type(type_flag) == FST_TYPE_COMPLEX);
@@ -45,7 +47,7 @@ static inline int32_t is_type_integer(const int32_t type_flag) {
 }
 
 //! Swap (in-place) the two halves of each 64-bit element in the given array
-inline void swap_words(void* array, const int32_t num_elem64) {
+static inline void swap_words(void* array, const int32_t num_elem64) {
     register int32_t temp32, *src, *dest;
     src = (int32_t *) array;
     dest = (int32_t *) array;

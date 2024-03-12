@@ -171,6 +171,11 @@ int c_fstecr_rsf(
         datyp = 5;
     }
 
+    if (datyp >= 128 && nk > 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.\n", __func__);
+        datyp -= 128;
+    }
+
     if ((in_datyp == 1) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         /* R32 to E32 automatic conversion */
         datyp = 5;

@@ -152,12 +152,12 @@ static const fst_record_fields default_fields = (fst_record_fields) {
 //! \addtogroup public_fst
 //! \{
 //! Number of elements contained in the given record
-inline int64_t fst24_record_num_elem(const fst_record* record) {
+static inline int64_t fst24_record_num_elem(const fst_record* record) {
     return record->ni * record->nj * record->nk;
 }
 
 //! Number of data bytes in record
-inline int64_t fst24_record_data_size(const fst_record* record) {
+static inline int64_t fst24_record_data_size(const fst_record* record) {
     return (fst24_record_num_elem(record) * record->dasiz) / 8;
 }
 
