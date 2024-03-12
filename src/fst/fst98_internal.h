@@ -24,11 +24,16 @@
         return(ERR_OUT_RANGE);\
     }
 
+static inline int32_t base_fst_type(const int32_t type_flag) {
+    return type_flag & 0x2f;
+}
 static inline int32_t is_type_real(const int32_t type_flag) {
-    return ((type_flag & 0x2f) == FST_TYPE_REAL);
+    return ((base_fst_type(type_flag) == FST_TYPE_REAL) ||
+            (base_fst_type(type_flag) == FST_TYPE_FREAL) ||
+            (base_fst_type(type_flag) == FST_TYPE_IEEE_16));
 }
 static inline int32_t is_type_complex(const int32_t type_flag) {
-    return ((type_flag & 0x2f) == FST_TYPE_COMPLEX);
+    return (base_fst_type(type_flag) == FST_TYPE_COMPLEX);
 }
 static inline int32_t is_type_turbopack(const int32_t type_flag) {
     return ((type_flag & FST_TYPE_TURBOPACK) == FST_TYPE_TURBOPACK);
@@ -37,12 +42,12 @@ static inline int32_t has_type_missing(const int32_t type_flag) {
     return ((type_flag & FSTD_MISSING_FLAG) == FSTD_MISSING_FLAG);
 }
 static inline int32_t is_type_integer(const int32_t type_flag) {
-    return (((type_flag & 0x2f) == FST_TYPE_SIGNED) ||
-            ((type_flag & 0x2f) == FST_TYPE_UNSIGNED));
+    return ((base_fst_type(type_flag) == FST_TYPE_SIGNED) ||
+            (base_fst_type(type_flag) == FST_TYPE_UNSIGNED));
 }
 
 //! Swap (in-place) the two halves of each 64-bit element in the given array
-inline void swap_words(void* array, const int32_t num_elem64) {
+static inline void swap_words(void* array, const int32_t num_elem64) {
     register int32_t temp32, *src, *dest;
     src = (int32_t *) array;
     dest = (int32_t *) array;

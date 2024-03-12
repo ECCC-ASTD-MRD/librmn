@@ -15,6 +15,30 @@ module rmn_fst24_record
     public :: fst_record_fields, fst_record_c
     public :: fst24_is_default_record_valid, fst24_make_fields, fst24_make_fields_from_string
 
+    integer(C_INT32_T), parameter, public :: FST_TYPE_BINARY    = 0
+    integer(C_INT32_T), parameter, public :: FST_TYPE_FREAL     = 1
+    integer(C_INT32_T), parameter, public :: FST_TYPE_UNSIGNED  = 2
+    integer(C_INT32_T), parameter, public :: FST_TYPE_FCHAR     = 3
+    integer(C_INT32_T), parameter, public :: FST_TYPE_SIGNED    = 4
+    integer(C_INT32_T), parameter, public :: FST_TYPE_REAL      = 5
+    integer(C_INT32_T), parameter, public :: FST_TYPE_IEEE_16   = 6
+    integer(C_INT32_T), parameter, public :: FST_TYPE_STRING    = 7
+    integer(C_INT32_T), parameter, public :: FST_TYPE_COMPLEX   = 8
+
+    integer(C_INT32_T), parameter, public :: FST_TYPE_TURBOPACK = 128
+    integer(C_INT32_T), parameter, public :: FST_TYPE_MAGIC     = 810
+
+    character(len=18), dimension(0:8), parameter :: FST_TYPE_NAMES = [      &
+        'FST_TYPE_BINARY  ',    &
+        'FST_TYPE_FREAL   ',    &
+        'FST_TYPE_UNSIGNED',    &
+        'FST_TYPE_FCHAR   ',    &
+        'FST_TYPE_SIGNED  ',    &
+        'FST_TYPE_REAL    ',    &
+        'FST_TYPE_IEEE_16 ',    &
+        'FST_TYPE_STRING  ',    &
+        'FST_TYPE_COMPLEX ']
+
     !> Representation of an FST record. It allows to get and set basic information about the record and its data,
     !> and to easily read, write, search a file
     !>
@@ -69,9 +93,66 @@ module rmn_fst24_record
         procedure, pass :: print        => rmn_fst24_record_print           !< \copydoc rmn_fst24_record_print
         procedure, pass :: print_short  => rmn_fst24_record_print_short     !< \copydoc rmn_fst24_record_print_short
 
+        !> Obtain a fortran array pointer to the data. If the pointer does not match the type, size and rank of the
+        !> data stored in the record, it will be nullified
+        generic :: get_data_array => &
+            fst24_record_get_data_array_i1_1d, fst24_record_get_data_array_i1_2d, fst24_record_get_data_array_i1_3d,    &
+            fst24_record_get_data_array_i2_1d, fst24_record_get_data_array_i2_2d, fst24_record_get_data_array_i2_3d,    &
+            fst24_record_get_data_array_i4_1d, fst24_record_get_data_array_i4_2d, fst24_record_get_data_array_i4_3d,    &
+            fst24_record_get_data_array_i8_1d, fst24_record_get_data_array_i8_2d, fst24_record_get_data_array_i8_3d,    &
+            fst24_record_get_data_array_r4_1d, fst24_record_get_data_array_r4_2d, fst24_record_get_data_array_r4_3d,    &
+            fst24_record_get_data_array_r8_1d, fst24_record_get_data_array_r8_2d, fst24_record_get_data_array_r8_3d
+
+        procedure, pass, private ::  &
+            fst24_record_get_data_array_i1_1d, fst24_record_get_data_array_i1_2d, fst24_record_get_data_array_i1_3d,    &
+            fst24_record_get_data_array_i2_1d, fst24_record_get_data_array_i2_2d, fst24_record_get_data_array_i2_3d,    &
+            fst24_record_get_data_array_i4_1d, fst24_record_get_data_array_i4_2d, fst24_record_get_data_array_i4_3d,    &
+            fst24_record_get_data_array_i8_1d, fst24_record_get_data_array_i8_2d, fst24_record_get_data_array_i8_3d,    &
+            fst24_record_get_data_array_r4_1d, fst24_record_get_data_array_r4_2d, fst24_record_get_data_array_r4_3d,    &
+            fst24_record_get_data_array_r8_1d, fst24_record_get_data_array_r8_2d, fst24_record_get_data_array_r8_3d
     end type fst_record
 
+    interface
+        pure function base_fst_type(type_flag) result(base_type) bind(C, name = 'base_fst_type_f')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T), intent(in), value :: type_flag
+            integer(C_INT32_T) :: base_type
+        end function base_fst_type
+        pure function is_type_real(type_flag) result(is_real) bind(C, name = 'is_type_real_f')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T), intent(in), value :: type_flag
+            integer(C_INT32_T) :: is_real
+        end function is_type_real
+        pure function is_type_complex(type_flag) result(is_complex) bind(C, name = 'is_type_complex_f')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T), intent(in), value :: type_flag
+            integer(C_INT32_T) :: is_complex
+        end function is_type_complex
+        pure function is_type_turbopack(type_flag) result(is_turbopack) bind(C, name = 'is_type_turbopack_f')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T), intent(in), value :: type_flag
+            integer(C_INT32_T) :: is_turbopack
+        end function is_type_turbopack
+        pure function is_type_integer(type_flag) result(is_integer) bind(C, name = 'is_type_integer_f')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T), intent(in), value :: type_flag
+            integer(C_INT32_T) :: is_integer
+        end function is_type_integer
+        pure function has_type_missing(type_flag) result(has_missing) bind(C, name = 'has_type_missing_f')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T), intent(in), value :: type_flag
+            integer(C_INT32_T) :: has_missing
+        end function has_type_missing
+    end interface
+
 contains
+#include "rmn/rmn_fst24_record_get_data_array.hf"
 
     !> Update c_self with current values from this
     subroutine fst24_record_make_c_self(this)

@@ -107,6 +107,18 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
+# A bunch of fst_record functions (generated)
+set(ARRAY_GETTER_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/rmn_fst24_record_get_data_array.hf)
+set(GEN_ARRAY_GETTER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/src/fst/gen_array_getters.sh)
+add_custom_command(
+    OUTPUT ${ARRAY_GETTER_SOURCE}
+    PRE_BUILD
+    COMMAND ${GEN_ARRAY_GETTER_SCRIPT} > ${ARRAY_GETTER_SOURCE}
+    DEPENDS ${GEN_ARRAY_GETTER_SCRIPT}
+    COMMENT "Generating array include rmn_fst24_record_get_data_array.hf")
+list(APPEND PROJECT_H_FILES ${ARRAY_GETTER_SOURCE})
+add_custom_target(ArrayGetter DEPENDS ${ARRAY_GETTER_SOURCE})
+
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
 add_custom_command(
@@ -133,7 +145,7 @@ add_custom_command(
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
 # Build static library from source files
-add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
 target_link_libraries(rmn-static PUBLIC App-static json-c libudunits2 LibXml2::LibXml2)
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}> ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2)

@@ -70,6 +70,14 @@ static char *comptab[2] = {"FAST", "BEST"};
 
 fstd_usage_info fstd_open_files[MAXFILES];
 
+// Callable from Fortran
+int32_t is_type_real_f(const int32_t type_flag) { return is_type_real(type_flag); }
+int32_t is_type_complex_f(const int32_t type_flag) { return is_type_complex(type_flag); }
+int32_t is_type_turbopack_f(const int32_t type_flag) { return is_type_turbopack(type_flag); }
+int32_t has_type_missing_f(const int32_t type_flag) { return has_type_missing(type_flag); }
+int32_t is_type_integer_f(const int32_t type_flag) { return is_type_integer(type_flag); }
+int32_t base_fst_type_f(const int32_t type_flag) { return base_fst_type(type_flag); }
+
 static void str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
         dst[i] = (i < srcLen) ? src[i] : ' ';
@@ -955,6 +963,11 @@ int c_fstecr_xdf(
         /* extra compression not supported */
         in_datyp = 5;
         datyp = 5;
+    }
+
+    if (datyp >= 128 && nk > 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.\n", __func__);
+        datyp -= 128;
     }
 
     if ((in_datyp == 1) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {

@@ -53,7 +53,7 @@ static struct blocmem *badptr;
 static int init = 0;
 static int initmem = 0;
 
-static int32_t con;
+static intptr_t con;
 
 static int ptrsize;
 static int *pointer;
@@ -105,7 +105,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
     struct blocmem *ptbloc;
     unsigned int errptr;
     int lng, nitem, n;
-    char *value, *getenv();
+    char *value;
 
     single();
     ptrsize = sizeof(pointer);
@@ -161,7 +161,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
             if (strcmp(value,"ON") == 0) {
                 con = 0xFFFA5A5A;
             } else {
-                n = sscanf(value,"%x",&con);
+                n = sscanf(value,"%lx",&con);
             }
         }
 

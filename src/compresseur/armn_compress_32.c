@@ -88,6 +88,11 @@ int c_armn_compress32(
         return zlng;
     }
 
+    if (znbits < 9) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Number of compressed bits needs to be at least 9 (asked %d)\n", __func__, znbits);
+        return -1;
+    }
+
     nbits = znbits - 9;
     memset(&zfstzip, 0, sizeof(_fstzip));
 
