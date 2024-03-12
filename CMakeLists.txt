@@ -112,9 +112,12 @@ set(ARRAY_GETTER_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/rmn_fst24_record
 set(GEN_ARRAY_GETTER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/src/fst/gen_array_getters.sh)
 add_custom_command(
     OUTPUT ${ARRAY_GETTER_SOURCE}
+    PRE_BUILD
     COMMAND ${GEN_ARRAY_GETTER_SCRIPT} > ${ARRAY_GETTER_SOURCE}
-    DEPENDS ${GEN_ARRAY_GETTER_SCRIPT})
+    DEPENDS ${GEN_ARRAY_GETTER_SCRIPT}
+    COMMENT "Generating array include rmn_fst24_record_get_data_array.hf")
 list(APPEND PROJECT_H_FILES ${ARRAY_GETTER_SOURCE})
+add_custom_target(ArrayGetter DEPENDS ${ARRAY_GETTER_SOURCE})
 
 # We need to create a file here because gfortran won't process a file nammmed *.hf
 file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tmpl90 ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.hf)
