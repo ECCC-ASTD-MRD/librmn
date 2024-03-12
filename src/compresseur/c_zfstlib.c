@@ -107,7 +107,7 @@ int armn_compress(
     switch (op_code) {
         case COMPRESS:
             if (nbits > 16 || ni == 1 || nj == 1) {
-                Lib_Log(APP_LIBFST,APP_WARNING,"%f: Cannot compress if nbits>16 or ni=1 or nj=1. Returning original field\n",__func__);
+                Lib_Log(APP_LIBFST,APP_WARNING,"%s: Cannot compress if nbits>16 or ni=1 or nj=1. Returning original field\n",__func__);
                 return -1;
             }
 
@@ -138,7 +138,7 @@ int armn_compress(
                         }
                     }
 #endif
-                    Lib_Log(APP_LIBFST,APP_WARNING,"%f: Compressed field is larger than original. Returning original \n",__func__);
+                    Lib_Log(APP_LIBFST,APP_WARNING,"%s: Compressed field is larger than original. Returning original \n",__func__);
 
                     free(zfld_minimum);
                     free(zfld_lle);
@@ -153,7 +153,7 @@ int armn_compress(
 
             c_fstzip(zfld_lle, &zlng_lle, us_fld, ni, nj, PARALLELOGRAM, 1, 3, nbits, 0);
 
-            //Lib_Log(APP_LIBFST,APP_DEBUG,"%f: Entropie theorique:%f\tbps - minimum:%f\tbps - parallele:%f\tbps - sample:%f\n",__func__, entropie, 8.0 * zlng_minimum / ((ni * nj * nk) * 1.0), 8.0 * zlng_lle / ((ni * nj * nk) * 1.0), 8.0 * zlng_sample / ((ni * nj * nk) * 1.0));
+            //Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Entropie theorique:%f\tbps - minimum:%f\tbps - parallele:%f\tbps - sample:%f\n",__func__, entropie, 8.0 * zlng_minimum / ((ni * nj * nk) * 1.0), 8.0 * zlng_lle / ((ni * nj * nk) * 1.0), 8.0 * zlng_sample / ((ni * nj * nk) * 1.0));
 
             if (zlng_lle >= lng_origin) {
 #if defined (Little_Endian)
@@ -163,7 +163,7 @@ int armn_compress(
                     }
                 }
 #endif
-                Lib_Log(APP_LIBFST,APP_WARNING,"%f: Compressed field is larger than original. Returning original\n",__func__);
+                Lib_Log(APP_LIBFST,APP_WARNING,"%s: Compressed field is larger than original. Returning original\n",__func__);
 
                 free(zfld_minimum);
                 free(zfld_lle);
@@ -247,7 +247,7 @@ void c_fstzip(
             break;
 
         case SAMPLE:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%f: The SAMPLE option has been deactivated as of April 2006. This is an error and should never happen\n",__func__);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: The SAMPLE option has been deactivated as of April 2006. This is an error and should never happen\n",__func__);
             exit(13);
             break;
 
@@ -284,7 +284,7 @@ void c_fstunzip(
             break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%f: Unknown compression algorithm\n");
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: Unknown compression algorithm\n", __func__);
             exit(13);
             break;
     }
@@ -1327,16 +1327,16 @@ void c_armn_compress_setlevel(int level)
     {
     case BEST:
        fstcompression_level = BEST;
-       Lib_Log(APP_LIBFST,APP_INFO,"%f: Setting level to BEST (%d)\n",__func__,level);
+       Lib_Log(APP_LIBFST,APP_INFO,"%s: Setting level to BEST (%d)\n",__func__,level);
        break;
 
     case FAST:
        fstcompression_level = FAST;
-       Lib_Log(APP_LIBFST,APP_INFO,"%f: Setting level to FAST (%d)\n",__func__,level);
+       Lib_Log(APP_LIBFST,APP_INFO,"%s: Setting level to FAST (%d)\n",__func__,level);
        break;
 
     default:
-       Lib_Log(APP_LIBFST,APP_ERROR,"%f: Wrong compression level (%d), reverting to FAST\n",__func__,level);
+       Lib_Log(APP_LIBFST,APP_ERROR,"%s: Wrong compression level (%d), reverting to FAST\n",__func__,level);
        fstcompression_level = FAST;
     }
 }
@@ -1373,7 +1373,7 @@ void c_armn_compress_setswap(int swapState)
             break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%f: Wrong swapState (%d), should be 0 (no swap) or 1 (swap)\n",__func__,swapState);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: Wrong swapState (%d), should be 0 (no swap) or 1 (swap)\n",__func__,swapState);
     }
 }
 
