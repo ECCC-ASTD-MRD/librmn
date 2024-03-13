@@ -1336,9 +1336,8 @@ int32_t fst24_unpack_data(
                     const int32_t f_one = 1;
                     const int32_t f_zero = 0;
                     const int32_t f_mode = 2;
-                    const int32_t npack = -nbits;
 
-                    f77name(ieeepak)((int32_t *)dest, source, &nelm, &f_one, &npack, &f_zero, &f_mode);
+                    f77name(ieeepak)((int32_t *)dest, source, &nelm, &f_one, &record->npak, &f_zero, &f_mode);
                 }
 
                 break;

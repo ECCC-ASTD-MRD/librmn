@@ -333,6 +333,7 @@ void fst24_record_print_short(
     if (fields != NULL) to_print = *fields;
 
     char buffer[2048];
+    buffer[0]='\0';
     if (print_header) {
         char* current = buffer;
 
