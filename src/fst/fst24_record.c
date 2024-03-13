@@ -578,7 +578,7 @@ void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
     record->nk = keys->nk;
     record->datyp = keys->datyp;
     record->dasiz = keys->dasiz;
-    if (record->dasiz == 0) record->dasiz = keys->nbits;
+    if (record->dasiz == 0) record->dasiz = 32;
     record->npak = -keys->nbits;
 
     record->deet = keys->deet;

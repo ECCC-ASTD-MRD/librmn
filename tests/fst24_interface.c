@@ -321,8 +321,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_link(file_list, 1)) {
-        App_Log(APP_ERROR, "Should not succeed linking only 1 file\n");
+    if (!fst24_link(file_list, 1)) {
+        App_Log(APP_ERROR, "Should succeed linking only 1 file\n");
         return -1;
     }
 

@@ -1126,7 +1126,7 @@ int32_t fst24_find_next(
                 __func__, file->iun, key, file);
         // If search included extended metadata, the key will already be extracted
         if (record && !rkey) {
-           return fst24_get_record_from_key(file, key, record);
+            return fst24_get_record_from_key(file, key, record);
         } else {
             return(TRUE);
         }
@@ -1581,7 +1581,7 @@ int32_t fst24_link(
 ) {
     if (num_files <= 1) {
         Lib_Log(APP_LIBFST, APP_INFO, "%s: only passed %d files, nothing to link\n", __func__, num_files);
-        return FALSE;
+        return TRUE;
     }
 
     // Perform checks on all files before doing anything

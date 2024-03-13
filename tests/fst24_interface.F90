@@ -412,9 +412,9 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        success = .not. fst24_link(file_list(1:1)) ! Link only 1 (should fail)
+        success = fst24_link(file_list(1:1)) ! Link only 1 (should work)
         if (.not. success) then 
-            call app_log(APP_ERROR, 'Should not succeed linking only 1 file')
+            call app_log(APP_ERROR, 'Should succeed linking only 1 file')
             return
         end if
 
