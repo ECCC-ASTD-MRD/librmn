@@ -1,4 +1,3 @@
-
 ! TODO A lot of global variables in theses modules are not initialized. Is that OK?
 ! (there was no "DATA" statement for them in the common blocks)
 module readlx_parmadr
@@ -46,66 +45,52 @@ module readlx_nrdlx
    integer(kind = int64), dimension(2,256) :: IPTADR = 0
 end module readlx_nrdlx
 
-!  FONCTION ARGDIMS LONGUEUR D'ARGUMENTS (APPEL VIA READLX)
-!
-      FUNCTION ARGDIMS(N)
+!> LONGUEUR D'ARGUMENTS (APPEL VIA READLX)
+FUNCTION ARGDIMS(N)
       use rmn_common
       use readlx_parmadr
       INTEGER ARGDIMS
       INTEGER N
-!
+
 !OBJET(ARGDIMS)
 !         RENVOYER LA LONGUEUR EN NOMBRE DE MOTS DE L'ARGUMENT
 !         N DU DERNIER APPEL EFFECTUE VIA READLX
-!
+
 !ARGUMENTS
 ! IN      N     NUMERO D'ORDRE DE L'ARGUMENT DANS LA LISTE
-!
-!IMPLICITES
 
-      IF((N .LE. NARG))THEN
-         ARGDIMS = DOPE(N)
-      ELSE
-         ARGDIMS = 0
-      ENDIF
-      RETURN
-      END
+    IF (N  <=  NARG) THEN
+        ARGDIMS = DOPE(N)
+    ELSE
+        ARGDIMS = 0
+    ENDIF
+END
 
-!
-!  FONCTION ARGDOPE - GET DOPE LIST OF ARGUMENT NARG
-!
-      FUNCTION ARGDOPE(N,LISTE,ND)
-      use rmn_common
-      use readlx_parmadr
-      INTEGER ARGDOPE
-      INTEGER N,ND
-      INTEGER LISTE(ND)
-!
-!
-!OBJET(ARGDOPE)
-!      GET DOPE LIST OF ARGUMENT NARG
-!
-!AUTEUR
-!     M. VALIN
-!
-!IMPLICITE
-!
-      INTEGER I,BASE
-      IF( (N.GT. NARG))THEN
-         ARGDOPE = 0
-      ELSE
-         BASE = DOPEA(N)
-         ARGDOPE = DOPEA(N+1) - DOPEA(N)
-         DO 23002 I = 1,MIN(DOPEA(N+1)-DOPEA(N),ND)
-            LISTE(I) = DOPES(BASE+I-1)
-23002    CONTINUE
-      ENDIF
-      RETURN
-      END
 
-!
+!> GET DOPE LIST OF ARGUMENT NARG
+FUNCTION ARGDOPE(N, LISTE, ND)
+    use rmn_common
+    use readlx_parmadr
+
+    INTEGER ARGDOPE
+    INTEGER N, ND
+    INTEGER LISTE(ND)
+
+    INTEGER I, BASE
+
+    IF( (N >  NARG))THEN
+        ARGDOPE = 0
+    ELSE
+        BASE = DOPEA(N)
+        ARGDOPE = DOPEA(N+1) - DOPEA(N)
+        DO I = 1, MIN(DOPEA(N + 1) - DOPEA(N), ND)
+            LISTE(I) = DOPES(BASE + I - 1)
+        END DO
+    ENDIF
+END
+
+
 !  S/P LEXINS  -  INTERFACE DE QLXINS
-!
       SUBROUTINE LEXINS(IVAR,ICLE,NB,LIMIT,TYP)
       INTEGER IVAR,ICLE,NB,LIMIT,TYP
 !
@@ -116,7 +101,6 @@ end module readlx_nrdlx
 !     QLXINS
 
       character(len=8) KLE
-!
 
       WRITE(KLE,'(A8)') ICLE
       CALL QLXINS(IVAR,KLE,NB,LIMIT,TYP)
@@ -138,7 +122,7 @@ end module readlx_nrdlx
       REAL Z
       EQUIVALENCE(Z,IZ)
       IZ = IND
-      IF((QLXDTYP(IZ).EQ.1))THEN
+      IF((QLXDTYP(IZ) == 1))THEN
          INDX = IZ
       ELSE
          INDX = NINT(Z)
@@ -147,7 +131,7 @@ end module readlx_nrdlx
       IF((ITYP.NE.0 .AND. ITYP.NE.1))THEN
          ERR = .TRUE.
       ENDIF
-      IF((INDX.GT.LIMITE .OR. INDX.LE.0))THEN
+      IF((INDX > LIMITE .OR. INDX <= 0))THEN
          ERR = .TRUE.
       ENDIF
       IF((.NOT.ERR))THEN
@@ -174,7 +158,7 @@ end module readlx_nrdlx
       IF((.NOT. ERR))THEN
          CALL QLXFND(KLE,LOCVAR8,LOCCNT,LIMITS,ITYP)
          call make_cray_pointer(LOCVAR,locvar8)
-         IF((IND.LE.LIMITS .AND. ITYP.GE.0 .AND. ITYP.LE.1))THEN
+         IF((IND <= LIMITS .AND. ITYP.GE.0 .AND. ITYP <= 1))THEN
 
 !            QLXADR = QLXMAD(LOCVAR,IND)
             QLXADR = get_address_from(VARI(IND))
@@ -235,36 +219,36 @@ end module readlx_nrdlx
       IF((.NOT.ERR))THEN
          CALL QLXTOK
       ENDIF
-      IF((TOKEN(1:2).EQ.'= ' .AND. TYPE.EQ.4 .AND. .NOT. ERR))THEN
+      IF((TOKEN(1:2) == '= ' .AND. TYPE == 4 .AND. .NOT. ERR))THEN
 23004    IF((.NOT.ERR .AND. .NOT.FIN))THEN
             CALL QLXTOK
-            IF( ((TYPE.EQ.4) .AND. (TOKEN(1:1).EQ.'(')))THEN
+            IF( ((TYPE == 4) .AND. (TOKEN(1:1) == '(')))THEN
                CALL QLXXPR(ERR)
                IF((ERR))THEN
                   GOTO 23005
                ENDIF
             ENDIF
-            IF((TYPE.EQ.8))THEN
+            IF((TYPE == 8))THEN
                call get_content_of_location(JVAL,1,JVAL)
             ELSE
-               IF((TYPE.EQ.1 .AND. OLDTYP.EQ.4))THEN
+               IF((TYPE == 1 .AND. OLDTYP == 4))THEN
                   ITEMP(1)=JVAL
                   JLEN=1
                ELSE
-                  IF((TYPE.EQ.2 .AND. OLDTYP.EQ.4))THEN
+                  IF((TYPE == 2 .AND. OLDTYP == 4))THEN
                      TEMP(1)=ZVAL
                      JLEN=1
                   ELSE
-                     IF((TYPE.EQ.3 .AND. OLDTYP.EQ.4))THEN
+                     IF((TYPE == 3 .AND. OLDTYP == 4))THEN
                         JLEN=(LEN+KARMOT-1)/KARMOT
                         READ(TOKEN,LINEFMT)(ITEMP(J),J=1,JLEN)
 101                     FORMAT(20A4)
                      ELSE
-                        IF((TYPE.EQ.4))THEN
-                           IF((TOKEN(1:2).EQ.'% '))THEN
-                              IF((OLDTYP.EQ.1 .AND.(.NOT.IAREP)))THEN
+                        IF((TYPE == 4))THEN
+                           IF((TOKEN(1:2) == '% '))THEN
+                              IF((OLDTYP == 1 .AND.(.NOT.IAREP)))THEN
                                  IREPCN=ITEMP(1)
-                                 IF((IREPCN.GT.0))THEN
+                                 IF((IREPCN > 0))THEN
                                     IAREP=.TRUE.
                                     JLEN=0
                                  ELSE
@@ -276,8 +260,8 @@ end module readlx_nrdlx
                                  ERR=.TRUE.
                               ENDIF
                            ELSE
-                              IF((TOKEN(1:2).EQ.', ' .OR.TOKEN(1:2).EQ.'$ '))THEN
-                                 IF(((IREPCN*MAX(JLEN,1)+IND).GT.LIMIT+1))THEN
+                              IF((TOKEN(1:2) == ', ' .OR.TOKEN(1:2) == '$ '))THEN
+                                 IF(((IREPCN*MAX(JLEN,1)+IND) > LIMIT+1))THEN
                                     CALL QLXERR(21003,'QLXASG')
                                     ERR=.TRUE.
                                  ELSE
@@ -292,14 +276,14 @@ end module readlx_nrdlx
                                     JLEN=0
                                     ICOUNT = IND-1
                                  ENDIF
-                                 FIN=TOKEN(1:1).EQ.'$'
+                                 FIN=TOKEN(1:1) == '$'
                               ELSE
                                  CALL QLXERR(21004,'QLXASG')
                                  ERR=.TRUE.
                               ENDIF
                            ENDIF
                         ELSE
-                           IF((TYPE.EQ.0 .AND. OLDTYP.EQ.4))THEN
+                           IF((TYPE == 0 .AND. OLDTYP == 4))THEN
                               JLEN=1
                               ITEMP(1)=QLXVAL(TOKEN(1:8),ERR)
                            ELSE
@@ -340,7 +324,7 @@ end module readlx_nrdlx
 !         E
 !
 
-      IF((NC.GT.1))THEN
+      IF((NC > 1))THEN
          INLINE(NC-1:NC-1)=ICAR
          NC=NC-1
       ELSE
@@ -398,8 +382,8 @@ end module readlx_nrdlx
       ENDIF
 23004 IF( (.NOT. ERR .AND. .NOT.FIN))THEN
          CALL QLXTOK
-         IF( (PREVI .EQ.4))THEN
-            IF( (TYPE .EQ.0))THEN
+         IF( (PREVI  == 4))THEN
+            IF( (TYPE  == 0))THEN
                KLE = TOKEN(1:8)
                PREVI =7
                IF((INLIST))THEN
@@ -415,7 +399,7 @@ end module readlx_nrdlx
                DOPES(NDOPES) = TYPE + 1 * 256 + (NPRM-NPRM0)*256*256
                DOPE(NARG) = DOPE(NARG) + 1
             ELSE
-               IF( (TYPE.EQ.1 .OR. TYPE.EQ.2))THEN
+               IF( (TYPE == 1 .OR. TYPE == 2))THEN
                   NPRM = MIN(NPRM+1,101)
                   PARM(NPRM) = JVAL
                   PREVI =7
@@ -429,7 +413,7 @@ end module readlx_nrdlx
                   DOPES(NDOPES) = TYPE + 1 * 256 + (NPRM-NPRM0)*256*256
                   DOPE(NARG) = DOPE(NARG) + 1
                ELSE
-                  IF( (TYPE .EQ.3))THEN
+                  IF( (TYPE  == 3))THEN
                      JLEN = MIN((LEN+KARMOT-1) / KARMOT , 101 - NPRM)
                      IF((.NOT. INLIST))THEN
                         NARG = MIN(NARG+1,41)
@@ -446,7 +430,7 @@ end module readlx_nrdlx
                      DOPE(NARG) = DOPE(NARG) + JLEN
                      PREVI =7
                   ELSE
-                     IF((TYPE.EQ.4 .AND. TOKEN(1:1).EQ.'[' .AND. .NOT.INLIST))THEN
+                     IF((TYPE == 4 .AND. TOKEN(1:1) == '[' .AND. .NOT.INLIST))THEN
                         INLIST = .TRUE.
                         PREVI =4
                         NARG = MIN(NARG+1,41)
@@ -454,7 +438,7 @@ end module readlx_nrdlx
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM
                      ELSE
-                        IF((TYPE.EQ.4 .AND. TOKEN(1:1).EQ.')' .AND.NARG.EQ.0))THEN
+                        IF((TYPE == 4 .AND. TOKEN(1:1) == ')' .AND.NARG == 0))THEN
                            FIN = .TRUE.
                         ELSE
                            CALL QLXERR(81019,'QLXCALL')
@@ -465,11 +449,11 @@ end module readlx_nrdlx
                ENDIF
             ENDIF
          ELSE
-            IF( (TYPE.EQ.4 .AND. (TOKEN(1:1).EQ.',' .OR. TOKEN(1:1).EQ.')')))THEN
-               FIN = TOKEN(1:1).EQ.')'
+            IF( (TYPE == 4 .AND. (TOKEN(1:1) == ',' .OR. TOKEN(1:1) == ')')))THEN
+               FIN = TOKEN(1:1) == ')'
                PREVI =4
             ELSE
-               IF((TYPE.EQ.4 .AND. TOKEN(1:1).EQ.']' .AND. INLIST))THEN
+               IF((TYPE == 4 .AND. TOKEN(1:1) == ']' .AND. INLIST))THEN
                   INLIST = .FALSE.
                ELSE
                   CALL QLXERR(81020,'QLXCALL')
@@ -484,11 +468,11 @@ end module readlx_nrdlx
       IF( (.NOT. ERR))THEN
          LIM1 = LIMITS/100
          LIM2 = MOD(LIMITS,100)
-         IF( (NARG.GT.40 .OR. NPRM.GT.100 .OR. NDOPES .GT. 100))THEN
+         IF( (NARG > 40 .OR. NPRM > 100 .OR. NDOPES  >  100))THEN
             CALL QLXERR(81021,'QLXCALL')
             ERR = .TRUE.
          ELSE
-            IF( (NARG.LT.LIM1 .OR. NARG.GT.LIM2))THEN
+            IF( (NARG < LIM1 .OR. NARG > LIM2))THEN
                CALL QLXERR(81022,'QLXCALL')
                ERR = .TRUE.
             ELSE
@@ -523,16 +507,16 @@ end module readlx_nrdlx
       INTEGER PRTFLAG
       DATA SKIPMSG/'<<    >>','<<SKIP>>','<<SKIP>>','<< ** >>'/
 
-      IF((NC.LE.LAST))THEN
+      IF((NC <= LAST))THEN
          QLXCHR=INLINE(NC:NC)
          NC=NC+1
       ELSE
          IF( (.NOT. EOFL))THEN
 1           CONTINUE
-            IF((READREC.GT.CURREC))THEN
+            IF((READREC > CURREC))THEN
                READREC=0
             ENDIF
-            IF((READREC.EQ.0))THEN
+            IF((READREC == 0))THEN
                READ(INPFILE,'(A80)',END=10)INLINE(21:100)
                CURREC = CURREC + 1
                WRITE(TMPFILE,'(A80)',REC=CURREC)INLINE(21:100)
@@ -543,8 +527,8 @@ end module readlx_nrdlx
             INLINE(1:20) = ' '
             COMMENT = .FALSE.
             PRTFLAG = SKIPFLG
-            IF( (INLINE(21:21).EQ.'C' .OR. INLINE(21:21).EQ.'*' .OR.INLINE(21:21) .EQ.'#'))THEN
-               IF( (PRTFLAG.EQ. 0))THEN
+            IF( (INLINE(21:21) == 'C' .OR. INLINE(21:21) == '*' .OR.INLINE(21:21)  == '#'))THEN
+               IF( (PRTFLAG ==  0))THEN
                   COMMENT = .TRUE.
                   PRTFLAG=3
                ELSE
@@ -553,15 +537,15 @@ end module readlx_nrdlx
             ENDIF
             WRITE(app_msg,'(1X,A8,1X,A80)')   SKIPMSG(PRTFLAG),INLINE(21:100)
             call Lib_Log(APP_LIBRMN,APP_INFO,app_msg)
-            IF( ((INLINE.EQ.' ') .OR. (COMMENT)))THEN
+            IF( ((INLINE == ' ') .OR. (COMMENT)))THEN
                GOTO 1
             ENDIF
             LAST=100
-23014       IF((LAST.GT.21 .AND.INLINE(LAST:LAST).EQ.' '))THEN
+23014       IF((LAST > 21 .AND.INLINE(LAST:LAST) == ' '))THEN
                LAST=LAST-1
                GOTO 23014
             ENDIF
-            IF( (INLINE(LAST:LAST) .EQ.'_'))THEN
+            IF( (INLINE(LAST:LAST)  == '_'))THEN
                LAST = LAST-1
             ELSE
                IF( (INLINE(LAST:LAST) .NE.','))THEN
@@ -602,7 +586,7 @@ end module readlx_nrdlx
       FUNCTION QLXDTYP(ITEM)
       INTEGER QLXDTYP
       INTEGER ITEM
-      IF((ABS(ITEM).LE.2147483647))THEN
+      IF((ABS(ITEM) <= 2147483647))THEN
          QLXDTYP =1
       ELSE
          QLXDTYP =2
@@ -731,7 +715,7 @@ end module readlx_nrdlx
 
       POS = 0
       DO 23000 I = 1,12
-         IF( (IKEY.EQ. CLEF(I)))THEN
+         IF( (IKEY ==  CLEF(I)))THEN
             POS = I
             GOTO 05
          ENDIF
@@ -797,9 +781,9 @@ end module readlx_nrdlx
       IND=1
       IC=QLXSKP(' ')
 
-      IF((IC.EQ.'['))THEN
+      IF((IC == '['))THEN
          CALL QLXTOK
-         IF((((TYPE.EQ.1) .OR.(TYPE.EQ.0)) .AND. JVAL.GT.0))THEN
+         IF((((TYPE == 1) .OR.(TYPE == 0)) .AND. JVAL > 0))THEN
             IND=JVAL
          ELSE
             CALL QLXERR(21009,'QLXIND')
@@ -818,111 +802,107 @@ end module readlx_nrdlx
       RETURN
       END
 
-!
-!  S/P QLXINX DECLARATION DES ROUTINES
-!
-      SUBROUTINE QLXINX(XTERN,KEY,ICOUNT,LIMITS,ITYP)
-      use app
-      EXTERNAL XTERN
-      INTEGER ITYP,LIMITS
-      Integer ICOUNT
-      character(len=*) KEY
-      INTEGER IDUM
+!> DECLARATION DES ROUTINES
+SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
+    use app
 
-      IF( (ITYP.NE. 2))THEN
-         call lib_log(APP_LIBRMN,APP_ERROR,'QLXINX ne peut etre utilise pour ityp <> 2')
-         CALL QLXERR(81013,'QLXINS')
-         STOP
-      ENDIF
-      CALL QQLXINS(IDUM,KEY,ICOUNT,LIMITS,ITYP,XTERN)
-      RETURN
-      END
+    EXTERNAL xtern
 
-!  S/P QLXINS DECLARATION DES CLES
+    CHARACTER(LEN = *) :: key
+    INTEGER, INTENT(OUT) :: icount
+    INTEGER :: limits
+    INTEGER :: ityp
 
-      SUBROUTINE QLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP)
-      use app
-      Integer IVAR,ICOUNT
-      INTEGER ITYP,LIMITS
-      character(len=*) KEY
+    INTEGER :: idum
 
-      EXTERNAL READLX
+    IF (ityp /= 2) THEN
+        CALL lib_log(APP_LIBRMN,APP_ERROR, 'QLXINX ne peut etre utilise pour ityp <> 2')
+        CALL QLXERR(81013, 'QLXINS')
+        STOP
+    ENDIF
+    CALL qqlxins(idum, key, icount, limits, ityp, xtern)
+END
 
-      IF( (ITYP.EQ. 2))THEN
-         call lib_log(APP_LIBRMN,APP_ERROR,'QLXINX doit etre utilise quand ityp = 2,au lieu de QLXINS')
-         CALL QLXERR(81013,'QLXINS')
-         STOP
-!           PRINT !,' !   QLXINX doit etre utilise quand ityp = 2',
-!                   ' au lieu de QLXINS'
-!           CALL QLXERR(10013,'QLXINS')
-!           CALL QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,IVAR)
+!> DECLARATION DES CLES
+SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
+    use app
 
-      ELSE
-         CALL QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,READLX)
-      ENDIF
-      RETURN
-      END
+    IMPLICIT NONE
 
-!  S/P QQLXINS DECLARATION DES CLES ET DE LEUR TYPE
+    INTEGER :: ivar
+    CHARACTER(LEN = *) :: key
+    INTEGER, INTENT(OUT) :: icount
+    INTEGER :: limits
+    INTEGER :: ityp
 
-      SUBROUTINE QQLXINS(IVAR,KEY,ICOUNT,LIMITS,ITYP,XTERN)
-      use rmn_common
-      use readlx_nrdlx
-      Integer IVAR,ICOUNT
-      EXTERNAL XTERN
-      INTEGER ITYP,LIMITS
-      character(len=*) KEY
-!
-!        CONSTRUIT UNE TABLE CONTENANT LA CLE(IKEY), L'ADRESSE DES
-!        VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
-!        LE NOMBRE MAXIMUM DE VALEURS,ET LE TYPE DE SYMBOLES.
-!
+    EXTERNAL readlx
 
-      character(len=8) IKEY
-      INTEGER IPNT
-      integer(kind = int64) get_address_from
-      EXTERNAL get_address_from
-!
-!     TROUVER LA CLE
-!
+    IF (ityp == 2) THEN
+        CALL lib_log(APP_LIBRMN, APP_ERROR, 'QLXINX doit etre utilise quand ityp = 2,au lieu de QLXINS')
+        CALL QLXERR(81013, 'QLXINS')
+        STOP
+    ELSE
+        CALL qqlxins(ivar, key, icount, limits, ityp, readlx)
+    ENDIF
+END
 
-      CALL LOW2UP(KEY,IKEY)
-      IPNT=NENTRY
-23000 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
-         IPNT = IPNT - 1
-         GOTO 23000
-      ENDIF
+!> DECLARATION DES CLES ET DE LEUR TYPE
+SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
+    use rmn_common
+    use readlx_nrdlx
 
-      IF((IPNT.EQ.0))THEN
-         NENTRY=NENTRY+1
-         IPNT=NENTRY
-      ENDIF
+    INTEGER, INTENT(IN) :: ivar
+    CHARACTER(len = *) :: key
+    INTEGER, INTENT(OUT) :: icount
+    INTEGER, INTENT(IN) :: limits
+    INTEGER, INTENT(IN) :: ityp
 
-      IF((IPNT.EQ.256))THEN
-         CALL QLXERR(10011,'QLXINS')
-      ENDIF
+    EXTERNAL xtern
 
-      IF((LIMITS.LT.0 .OR. LIMITS.GT.99999))THEN
-         CALL QLXERR(20012,'QLXINS')
-         RETURN
-      ENDIF
+    ! CONSTRUIT UNE TABLE CONTENANT LA CLE(IKEY), L'ADRESSE DES
+    ! VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
+    ! LE NOMBRE MAXIMUM DE VALEURS,ET LE TYPE DE SYMBOLES.
 
-      IF((ITYP.LT.0 .OR.ITYP.GT.13))THEN
-         CALL QLXERR(20013,'QLXINS')
-         RETURN
-      ENDIF
+    CHARACTER(len = 8) :: ikey
+    INTEGER :: ipnt
+    INTEGER(KIND = int64), EXTERNAL :: get_address_from
 
-      ICOUNT=0
-      NAMES(IPNT)=IKEY
-      IF( (ITYP.EQ. 2))THEN
-         IPTADR(1,IPNT)=get_address_from(XTERN)
-      ELSE
-         IPTADR(1,IPNT)=get_address_from(IVAR)
-      ENDIF
-      ITAB(3,IPNT)=IOR(LIMITS,ishft(ITYP,24))
-      IPTADR(2,IPNT)=get_address_from(ICOUNT)
-      RETURN
-      END
+    ! TROUVER LA CLE
+    CALL low2up(key, ikey)
+    ipnt = NENTRY
+    DO WHILE (ipnt >  0 .AND. ikey /= NAMES(ipnt))
+        ipnt = ipnt - 1
+    END DO
+
+    IF (ipnt == 0) THEN
+        nentry = nentry + 1
+        ipnt = nentry
+    ENDIF
+
+    IF (ipnt == 256) THEN
+        CALL QLXERR(10011, 'QLXINS')
+    ENDIF
+
+    IF (limits < 0 .OR. limits > 99999) THEN
+        CALL QLXERR(20012, 'QLXINS')
+        RETURN
+    ENDIF
+
+    IF (ityp < 0 .OR. ityp > 13)THEN
+        CALL QLXERR(20013, 'QLXINS')
+        RETURN
+    ENDIF
+
+    icount = 0
+    NAMES(ipnt) = ikey
+    IF (ityp ==  2) THEN
+        IPTADR(1, ipnt) = get_address_from(xtern)
+    ELSE
+        IPTADR(1, ipnt) = get_address_from(ivar)
+    ENDIF
+    ITAB(3, ipnt) = IOR(limits, ishft(ityp, 24))
+    IPTADR(2, ipnt) = get_address_from(icount)
+END SUBROUTINE qqlxins
 
       SUBROUTINE QLXLOOK(IVAR,KEY,ICOUNT,LIMITS,ITYP)
       use rmn_common
@@ -944,11 +924,11 @@ end module readlx_nrdlx
 
       CALL LOW2UP(KEY,IKEY)
       IPNT=NENTRY
-23012 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
+23012 IF((IPNT >  0 .AND. IKEY.NE.NAMES(IPNT)))THEN
          IPNT = IPNT - 1
          GOTO 23012
       ENDIF
-      IF((IPNT.EQ. 0))THEN
+      IF((IPNT ==  0))THEN
          ITYP = -1
          IVAR = 0
          ICOUNT = 0
@@ -983,11 +963,11 @@ end module readlx_nrdlx
 
       IKEY = KEY
       IPNT=NENTRY
-23016 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
+23016 IF((IPNT >  0 .AND. IKEY.NE.NAMES(IPNT)))THEN
          IPNT = IPNT - 1
          GOTO 23016
       ENDIF
-      IF((IPNT .EQ. 0))THEN
+      IF((IPNT  ==  0))THEN
          RETURN
       ENDIF
       DO 23020 I=IPNT, NENTRY-1
@@ -1043,26 +1023,26 @@ end module readlx_nrdlx
       EXTERNAL QLXCHR
       character(len=1) I, CTMP, QLXCHR
 
-      IF((IB(1:1).EQ.'.'))THEN
+      IF((IB(1:1) == '.'))THEN
          ILX=1
       ELSE
          ILX=0
       ENDIF
       I=QLXCHR()
 
-23002 IF((I.GE.'0' .AND. I.LE.'9' ))THEN
+23002 IF((I.GE.'0' .AND. I <= '9' ))THEN
          LENG=MIN(21,LENG+1)
          IB(LENG:LENG)=I
          I=QLXCHR()
 
          GOTO 23002
       ENDIF
-      IF((I.EQ.'.' .AND. IB(1:1).NE.'.'))THEN
+      IF((I == '.' .AND. IB(1:1).NE.'.'))THEN
          ILX=1
          LENG=MIN(21,LENG+1)
          IB(LENG:LENG)=I
          I=QLXCHR()
-23006    IF((I.GE.'0' .AND. I.LE.'9'))THEN
+23006    IF((I.GE.'0' .AND. I <= '9'))THEN
             LENG=MIN(21,LENG+1)
             IB(LENG:LENG)=I
             I=QLXCHR()
@@ -1070,8 +1050,8 @@ end module readlx_nrdlx
          ENDIF
       ENDIF
 
-      IF((I.EQ.'E' ))THEN
-         IF((ILX.EQ.0))THEN
+      IF((I == 'E' ))THEN
+         IF((ILX == 0))THEN
             LENG=MIN(21,LENG+1)
             IB(LENG:LENG)='.'
          ENDIF
@@ -1079,11 +1059,11 @@ end module readlx_nrdlx
          LENG=MIN(21,LENG+1)
          IB(LENG:LENG)=I
          I=QLXCHR()
-         IF(((I.GE.'0' .AND. I.LE.'9').OR.(I.EQ.'+')   .OR.(I.EQ.'-')))THEN
+         IF(((I.GE.'0' .AND. I <= '9').OR.(I == '+')   .OR.(I == '-')))THEN
 6           LENG=MIN(21,LENG+1)
             IB(LENG:LENG)=I
             I=QLXCHR()
-            IF((I.GE.'0' .AND. I.LE.'9'))THEN
+            IF((I.GE.'0' .AND. I <= '9'))THEN
                GOTO 6
             ENDIF
          ENDIF
@@ -1092,14 +1072,14 @@ end module readlx_nrdlx
       IF((LENG.GE.21))THEN
          QLXNUM=5
       ELSE
-         IF((ILX.EQ.0))THEN
+         IF((ILX == 0))THEN
             IF((I.NE.'B'))THEN
                QLXNUM=1
             ELSE
                QLXNUM=6
                I=QLXCHR()
                DO 23022  J=LENG,1,-1
-                  IF((IB(J:J).GT.'7'))THEN
+                  IF((IB(J:J) > '7'))THEN
                      QLXNUM=5
                   ENDIF
                   CTMP = IB(J:J)
@@ -1111,11 +1091,11 @@ end module readlx_nrdlx
                LENG=20
             ENDIF
          ELSE
-            IF((LENG.GT.1))THEN
-               IF((IB(LENG:LENG).EQ.'.'))THEN
+            IF((LENG > 1))THEN
+               IF((IB(LENG:LENG) == '.'))THEN
                   QLXNUM=2
                ELSE
-                  IF((IB(LENG:LENG).GE.'0' .AND. IB(LENG:LENG).LE.'9'))THEN
+                  IF((IB(LENG:LENG).GE.'0' .AND. IB(LENG:LENG) <= '9'))THEN
                      QLXNUM=2
                   ELSE
                      QLXNUM=5
@@ -1153,7 +1133,7 @@ end module readlx_nrdlx
       IF((ITYP.NE.-1))THEN
          RETURN
       ENDIF
-      IF((NSC+NW .GT.1024+1))THEN
+      IF((NSC+NW  > 1024+1))THEN
          CALL QLXERR(21011,'QLXNVAR')
          RETURN
       ENDIF
@@ -1181,35 +1161,35 @@ end module readlx_nrdlx
       IF((ERR))THEN
          RETURN
       ENDIF
-      IF((OPRTR.EQ.4 .OR. OPRTR.EQ.17))THEN
+      IF((OPRTR == 4 .OR. OPRTR == 17))THEN
          MINOPER = 1
       ELSE
          MINOPER = 2
       ENDIF
-      IF((NTOKEN.LT.MINOPER))THEN
+      IF((NTOKEN < MINOPER))THEN
          ERR = .TRUE.
          RETURN
       ENDIF
-      IF((TOKTYPE(NTOKEN).GT.0))THEN
+      IF((TOKTYPE(NTOKEN) > 0))THEN
          call get_content_of_location(TOKENS(NTOKEN),1,TOKENS(NTOKEN))
          TOKTYPE(NTOKEN) = 0
       ENDIF
       IF((OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND. OPRTR.NE.4))THEN
-         IF((TOKTYPE(NTOKEN-1).GT.0))THEN
+         IF((TOKTYPE(NTOKEN-1) > 0))THEN
             call get_content_of_location(TOKENS(NTOKEN-1),1,TOKENS(NTOKEN-1))
             TOKTYPE(NTOKEN-1) = 0
          ENDIF
       ENDIF
-      REALOP = ABS(TOKENS(NTOKEN)).GT.2147483647
+      REALOP = ABS(TOKENS(NTOKEN)) > 2147483647
       IZ1 = TOKENS(NTOKEN)
       IF((OPRTR.NE.2 .AND. OPRTR.NE.17 .AND. OPRTR.NE.4))THEN
-         REALOP = REALOP .OR. ABS(TOKENS(NTOKEN-1)).GT.2147483647
+         REALOP = REALOP .OR. ABS(TOKENS(NTOKEN-1)) > 2147483647
          IZ2 = TOKENS(NTOKEN-1)
          IF((REALOP))THEN
-            IF((ABS(IZ1).LE.2147483647))THEN
+            IF((ABS(IZ1) <= 2147483647))THEN
                Z1 = TOKENS(NTOKEN)
             ENDIF
-            IF((ABS(IZ2).LE.2147483647))THEN
+            IF((ABS(IZ2) <= 2147483647))THEN
                Z2 = TOKENS(NTOKEN-1)
             ENDIF
          ENDIF
@@ -1220,7 +1200,7 @@ end module readlx_nrdlx
          ERR = .TRUE.
          RETURN
       case(2)
-         IF((TOKENS(NTOKEN).LE.0 .OR. TOKTYPE(NTOKEN-1).LE.0 .OR. REALOP))THEN
+         IF((TOKENS(NTOKEN) <= 0 .OR. TOKTYPE(NTOKEN-1) <= 0 .OR. REALOP))THEN
             ERR = .TRUE.
             RETURN
          ENDIF
@@ -1275,41 +1255,41 @@ end module readlx_nrdlx
          ENDIF
       case(10)
          IF((REALOP))THEN
-            IF((Z2.LT.Z1))THEN
+            IF((Z2 < Z1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ELSE
-            IF((IZ2.LT.IZ1))THEN
+            IF((IZ2 < IZ1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ENDIF
       case(11)
          IF((REALOP))THEN
-            IF((Z2.GT.Z1))THEN
+            IF((Z2 > Z1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ELSE
-            IF((IZ2.GT.IZ1))THEN
+            IF((IZ2 > IZ1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ENDIF
       case(12)
          IF((REALOP))THEN
-            IF((Z2.EQ.Z1))THEN
+            IF((Z2 == Z1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ELSE
-            IF((IZ2.EQ.IZ1))THEN
+            IF((IZ2 == IZ1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ENDIF
       case(13)
          IF((REALOP))THEN
-            IF((Z2.LE.Z1))THEN
+            IF((Z2 <= Z1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ELSE
-            IF((IZ2.LE.IZ1))THEN
+            IF((IZ2 <= IZ1))THEN
                IR1 =ishft(-1,32-(32))
             ENDIF
          ENDIF
@@ -1368,7 +1348,7 @@ end module readlx_nrdlx
             IR1 = IEOR(IZ2,IZ1)
          ENDIF
       case(21)
-         IF((TOKTYPE(NTOKEN-1).LE.0))THEN
+         IF((TOKTYPE(NTOKEN-1) <= 0))THEN
             ERR = .TRUE.
             RETURN
          ENDIF
@@ -1392,7 +1372,7 @@ end module readlx_nrdlx
          character(len=*) OPTION
          INTEGER VAL
 
-         IF( (OPTION(1:6).EQ. 'CARMOT'))THEN
+         IF( (OPTION(1:6) ==  'CARMOT'))THEN
             KARMOT = VAL
             WRITE(LINEFMT,'(A,I2,A)') '(25 A',KARMOT,')'
          ELSE
@@ -1422,7 +1402,7 @@ end module readlx_nrdlx
 !       LEFTPRI = .FALSE.
 1     CONTINUE
       DO 23000 I = 1,MAXOPER
-         IF((OPRTR.EQ.LISTE(I)))THEN
+         IF((OPRTR == LISTE(I)))THEN
             IF((LEFTPRI))THEN
                QLXPRI_L = I + PRI(I)*100
             ELSE
@@ -1463,7 +1443,7 @@ end module readlx_nrdlx
       INTEGER ARGDIMS
       L1 = ARGDIMS(1)
       L2 = MIN(120/KARMOT,ARGDIMS(2))
-      IF((L1.LT.1 .OR. L2.LT.1))THEN
+      IF((L1 < 1 .OR. L2 < 1))THEN
          RETURN
       ENDIF
       WRITE(FMT,LINEFMT)(COMMENT(I),I=1,L2)
@@ -1486,48 +1466,48 @@ end module readlx_nrdlx
          RETURN
       ENDIF
       TOKEN = TOK
-      IF((TOKEN.EQ.'(' .OR. TOKEN.EQ.'['))THEN
+      IF((TOKEN == '(' .OR. TOKEN == '['))THEN
          NOPER = MIN(NOPER+1 , MAXOPS)
          PILEOP(NOPER) = TOKEN
       ELSE
-         IF((TOKEN.EQ.')'))THEN
+         IF((TOKEN == ')'))THEN
 23006       IF((PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE.'[' .AND. PILEOP(NOPER) .NE.'$'))THEN
                CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(PILEOP(NOPER)),100),ERR)
                NOPER = NOPER - 1
                GOTO 23006
             ENDIF
-            IF((PILEOP(NOPER).EQ.'('))THEN
+            IF((PILEOP(NOPER) == '('))THEN
                NOPER = NOPER-1
             ELSE
                ERR = .TRUE.
             ENDIF
          ELSE
-            IF((TOKEN.EQ.']'))THEN
+            IF((TOKEN == ']'))THEN
 23012          IF((PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE. '[' .AND. PILEOP(NOPER) .NE.'$'))THEN
                   CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(PILEOP(NOPER)),100),ERR)
                   NOPER = NOPER - 1
                   GOTO 23012
                ENDIF
-               IF((PILEOP(NOPER).EQ.'['))THEN
+               IF((PILEOP(NOPER) == '['))THEN
                   CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(']'),100),ERR)
                   NOPER = NOPER-1
                ELSE
                   ERR = .TRUE.
                ENDIF
             ELSE
-               IF((TOKEN.EQ.'$'))THEN
+               IF((TOKEN == '$'))THEN
 23018             IF((PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE.'[' .AND. PILEOP(NOPER) .NE.'$'))THEN
                      CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(PILEOP(NOPER)),100),ERR)
                      NOPER = NOPER - 1
                      GOTO 23018
                   ENDIF
-                  IF((PILEOP(NOPER).EQ.'$'))THEN
+                  IF((PILEOP(NOPER) == '$'))THEN
                      NOPER = NOPER-1
                   ELSE
                      ERR = .TRUE.
                   ENDIF
                ELSE
-23022             IF((QLXPRIL(PILEOP(NOPER)).GT.QLXPRI(TOKEN)))THEN
+23022             IF((QLXPRIL(PILEOP(NOPER)) > QLXPRI(TOKEN)))THEN
                      CALL QLXOPR(TOKENS,NTOKEN,TOKTYPE,MOD(QLXPRI(PILEOP(NOPER)),100),ERR)
                      NOPER = NOPER -1
                      GOTO 23022
@@ -1620,49 +1600,49 @@ end module readlx_nrdlx
       ENDIF
       LENG=1
       TOKEN(1:1)=IC
-      IF(((IC.GE.'A'.AND.IC.LE.'Z').OR.IC.EQ.'@'.OR.IC.EQ.'_' .OR. (IC.GE. 'a' .AND. IC.LE. 'z')))THEN
+      IF(((IC.GE.'A'.AND.IC <= 'Z').OR.IC == '@'.OR.IC == '_' .OR. (IC.GE. 'a' .AND. IC <=  'z')))THEN
          IC=QLXCHR()
-23005    IF(((IC.GE.'A' .AND.IC .LE.'Z').OR. (IC.GE.'0' .AND. IC.LE.'9') .OR. (IC.GE. 'a' .AND. IC.LE. 'z')))THEN
+23005    IF(((IC.GE.'A' .AND.IC  <= 'Z').OR. (IC.GE.'0' .AND. IC <= '9') .OR. (IC.GE. 'a' .AND. IC <=  'z')))THEN
             LENG=MIN(81,LENG+1)
             TOKEN(LENG:LENG)=IC
             IC=QLXCHR()
             GOTO 23005
          ENDIF
-         IF((LENG.GT.8))THEN
+         IF((LENG > 8))THEN
             TYPE=3
          ELSE
             TYPE=0
          ENDIF
          CALL QLXBAK(IC)
       ELSE
-         IF((IC.EQ.'''' .OR. IC.EQ.'"'))THEN
+         IF((IC == '''' .OR. IC == '"'))THEN
             LENG=0
 23011       IF(.TRUE.)THEN
                LENG=MIN(80,LENG+1)
                TOKEN(LENG:LENG)=QLXCHR()
-23012          IF(.NOT.(TOKEN(LENG:LENG).EQ. IC))THEN
+23012          IF(.NOT.(TOKEN(LENG:LENG) ==  IC))THEN
                   GOTO 23011
                ENDIF
             ENDIF
             TOKEN(LENG:LENG) = ' '
             LENG = LENG -1
-            IF( (IC .EQ.'"'))THEN
+            IF( (IC  == '"'))THEN
                LENG = MIN(LENG,KARMOT)
             ENDIF
             TYPE=3
          ELSE
-            IF(((IC.GE.'0' .AND. IC.LE.'9') .OR.(IC.EQ.'.')))THEN
+            IF(((IC.GE.'0' .AND. IC <= '9') .OR.(IC == '.')))THEN
                TYPE=QLXNUM(TOKEN,LENG)
                ISIGN=1
             ELSE
-               IF(((IC.EQ.'+' .OR. IC.EQ.'-').AND.(.NOT.INEXPR)))THEN
-                  IF((IC.EQ.'+'))THEN
+               IF(((IC == '+' .OR. IC == '-').AND.(.NOT.INEXPR)))THEN
+                  IF((IC == '+'))THEN
                      ISIGN=1
                   ELSE
                      ISIGN=-1
                   ENDIF
                   IC=QLXCHR()
-                  IF(((IC.GE.'0' .AND. IC.LE.'9').OR. IC.EQ.'.'))THEN
+                  IF(((IC.GE.'0' .AND. IC <= '9').OR. IC == '.'))THEN
                      TOKEN(1:1)=IC
                      TYPE=QLXNUM(TOKEN,LENG)
                   ELSE
@@ -1670,20 +1650,20 @@ end module readlx_nrdlx
                      TYPE=4
                   ENDIF
                ELSE
-                  IF((IC.EQ.'*'))THEN
+                  IF((IC == '*'))THEN
                      TYPE =4
                      IC=QLXCHR()
-                     IF((IC.EQ.'*'))THEN
+                     IF((IC == '*'))THEN
                         LENG = 2
                         TOKEN = '**'
                      ELSE
                         CALL QLXBAK(IC)
                      ENDIF
                   ELSE
-                     IF((IC.EQ.'<' .OR. IC.EQ.'>' .OR. IC.EQ.'=' .OR. IC.EQ.':'))THEN
+                     IF((IC == '<' .OR. IC == '>' .OR. IC == '=' .OR. IC == ':'))THEN
                         TYPE =4
                         IC=QLXCHR()
-                        IF((IC.EQ.'<' .OR. IC.EQ.'>' .OR. IC.EQ.'='))THEN
+                        IF((IC == '<' .OR. IC == '>' .OR. IC == '='))THEN
                            LENG = 2
                            TOKEN(2:2) = IC
                         ELSE
@@ -1697,33 +1677,33 @@ end module readlx_nrdlx
             ENDIF
          ENDIF
       ENDIF
-      IF(((LENG.GT.80) .OR. (TYPE.EQ.5)))THEN
+      IF(((LENG > 80) .OR. (TYPE == 5)))THEN
          TOKEN = 'SCRAP'
          TYPE=5
          CALL QLXERR(21014,'QLXTOK')
       ENDIF
-      IF((TYPE.EQ.1))THEN
+      IF((TYPE == 1))THEN
          READ(TOKEN,'(I20)')JVAL
          JVAL=SIGN(JVAL,ISIGN)
       ELSE
-         IF((TYPE.EQ.2))THEN
+         IF((TYPE == 2))THEN
             READ(TOKEN,'(G20.3)')ZVAL
             ZVAL=SIGN(ZVAL,FLOAT(ISIGN))
          ELSE
-            IF((TYPE.EQ.6))THEN
+            IF((TYPE == 6))THEN
                READ(TOKEN,'(O20)')JVAL
                TYPE=1
                JVAL=SIGN(JVAL,ISIGN)
             ENDIF
          ENDIF
       ENDIF
-      IF((TYPE.EQ.0))THEN
+      IF((TYPE == 0))THEN
          CALL QLXFND(TOKEN(1:8),LOCVAR,LOCCNT,LIMITS,ITYP)
-         IF( (ITYP .EQ. -1))THEN
+         IF( (ITYP  ==  -1))THEN
             TYPE =3
             LENG = MIN(LENG,KARMOT)
          ELSE
-            IF( ((ITYP .EQ. 0) .OR. (ITYP .EQ. 1)))THEN
+            IF( ((ITYP  ==  0) .OR. (ITYP  ==  1)))THEN
                call get_content_of_location(LOCVAR,1,JVAL)
             ELSE
                JVAL = -1
@@ -1803,12 +1783,12 @@ end module readlx_nrdlx
       FIRST = .TRUE.
       NOPER = 1
       PILEOP(1) ='$'
-23000 IF(( .NOT.FINI .AND. NTOKEN.LT.MAXTKNS   .AND. NOPER.LT.MAXOPS .AND. .NOT.ERR))THEN
+23000 IF(( .NOT.FINI .AND. NTOKEN < MAXTKNS   .AND. NOPER < MAXOPS .AND. .NOT.ERR))THEN
          IF((.NOT.FIRST))THEN
             CALL QLXTOK
          ENDIF
          FIRST = .FALSE.
-         IF((TYPE.EQ.0))THEN
+         IF((TYPE == 0))THEN
             NTOKEN = NTOKEN + 1
             CALL QLXFND(TOKEN(1:8),LOCVAR,LOCCNT,LIMITES,ITYP)
             IF((ITYP.NE.0 .AND. ITYP.NE.1))THEN
@@ -1821,7 +1801,7 @@ end module readlx_nrdlx
             ENDIF
             UNARY = .FALSE.
          ELSE
-            IF((TYPE.EQ.1 .OR. TYPE.EQ.2))THEN
+            IF((TYPE == 1 .OR. TYPE == 2))THEN
                NTOKEN = NTOKEN + 1
                TOKENS(NTOKEN) = JVAL
                TOKTYPE(NTOKEN) = 0
@@ -1830,32 +1810,32 @@ end module readlx_nrdlx
                ENDIF
                UNARY = .FALSE.
             ELSE
-               IF((QLXPRI(TOKEN(1:4)).GT.0))THEN
-                  IF((TOKEN(1:2).EQ.'( '))THEN
+               IF((QLXPRI(TOKEN(1:4)) > 0))THEN
+                  IF((TOKEN(1:2) == '( '))THEN
                      PLEV = PLEV + 1
                   ELSE
-                     IF((TOKEN(1:2).EQ.') '))THEN
+                     IF((TOKEN(1:2) == ') '))THEN
                         PLEV = PLEV - 1
                      ELSE
-                        IF((TOKEN(1:2).EQ.'[ '))THEN
+                        IF((TOKEN(1:2) == '[ '))THEN
                            BLEV = BLEV + 1
                         ELSE
-                           IF((TOKEN(1:2).EQ.'] '))THEN
+                           IF((TOKEN(1:2) == '] '))THEN
                               BLEV = BLEV - 1
                            ENDIF
                         ENDIF
                      ENDIF
                   ENDIF
-                  IF((PLEV.LT.0 .OR. BLEV.LT.0))THEN
+                  IF((PLEV < 0 .OR. BLEV < 0))THEN
                      FINI = .TRUE.
                      CALL QLXBAK(TOKEN(1:1))
                      GOTO 23001
                   ENDIF
                   IF((UNARY))THEN
-                     IF((TOKEN(1:2).EQ.'+ '))THEN
+                     IF((TOKEN(1:2) == '+ '))THEN
                         TOKEN(1:2) = 'U+'
                      ELSE
-                        IF((TOKEN(1:2).EQ.'- '))THEN
+                        IF((TOKEN(1:2) == '- '))THEN
                            TOKEN(1:2) = 'U-'
                         ELSE
                            IF((TOKEN(1:2).NE.'( ' .AND. TOKEN(1:2).NE.'[ '))THEN
@@ -1867,7 +1847,7 @@ end module readlx_nrdlx
                   UNARY = TOKEN(1:1).NE.')' .AND. TOKEN(1:1).NE.']'
                   CALL QLXRPN(TOKEN,TOKENS,MAXTKNS,NTOKEN,TOKTYPE,PILEOP,MAXOPS,NOPER,ERR)
                ELSE
-                  IF((TOKEN(1:1).EQ.',' .OR. TOKEN(1:1).EQ.'$' .OR. TOKEN(1:2).EQ.':='))THEN
+                  IF((TOKEN(1:1) == ',' .OR. TOKEN(1:1) == '$' .OR. TOKEN(1:2) == ':='))THEN
                      CALL QLXRPN('$',TOKENS,MAXTKNS,NTOKEN,TOKTYPE,PILEOP,MAXOPS,NOPER,ERR)
                      FINI = .TRUE.
                      CALL QLXBAK(TOKEN(1:1))
@@ -1882,17 +1862,17 @@ end module readlx_nrdlx
          GOTO 23000
       ENDIF
 23001 CONTINUE
-      IF( (PLEV.GT.0 .OR. .NOT.FINI .OR. BLEV.GT.0   .OR. NTOKEN.NE.1 ))THEN
+      IF( (PLEV > 0 .OR. .NOT.FINI .OR. BLEV > 0   .OR. NTOKEN.NE.1 ))THEN
          ERR = .TRUE.
       ENDIF
       INEXPR = .FALSE.
       IF((.NOT.ERR))THEN
          TOKEN   = ' '
          JVAL   = TOKENS(1)
-         IF((TOKTYPE(1).GT.0))THEN
+         IF((TOKTYPE(1) > 0))THEN
             TYPE =8
          ELSE
-            IF((ABS(JVAL).LE.2147483647))THEN
+            IF((ABS(JVAL) <= 2147483647))THEN
                TYPE =1
             ELSE
                TYPE =2
@@ -1956,7 +1936,7 @@ end module readlx_nrdlx
 
       WRITE(LINEFMT,'(A,I2,A)') '(25 A',KARMOT,')'
       KERRMAX = 999999
-      IF((KERR.LT.0 ))THEN
+      IF((KERR < 0 ))THEN
          KERRMAX = MIN(ABS(KERR),KERRMAX)
       ENDIF
       NC=1
@@ -1978,35 +1958,35 @@ end module readlx_nrdlx
       CALL QLXINX(QLXPRNT,'PRINT',IDUM,0202,2)
       CALL QLXINX(QLXNVAR,'DEFINE',IDUM,0202,2)
       CALL QLXINX(QLXUNDF,'UNDEF',IDUM,0101,2)
-23002 IF((.NOT.FIN .AND. NERR.LT.KERRMAX .AND. NSTRUC.LT.MAXSTRU))THEN
+23002 IF((.NOT.FIN .AND. NERR < KERRMAX .AND. NSTRUC < MAXSTRU))THEN
          SKIPFLG = SKIPF(NSTRUC)
          ERR=.FALSE.
          CALL QLXTOK
-         IF((TYPE.EQ.0))THEN
+         IF((TYPE == 0))THEN
             CALL QLXFND(TOKEN,LOCVAR,LOCCNT,LIMITS,ITYP)
-            IF((ITYP.EQ.1 .AND. SKIPF(NSTRUC).EQ.0))THEN
+            IF((ITYP == 1 .AND. SKIPF(NSTRUC) == 0))THEN
                call get_content_of_location(LOCCNT,1,IICNT)
                CALL QLXASG(LOCVAR,IICNT,LIMITS,ERR)
                call set_content_of_location(LOCCNT,1,IICNT)
             ELSE
-               IF((ITYP.EQ.2 .AND. SKIPF(NSTRUC).EQ.0))THEN
+               IF((ITYP == 2 .AND. SKIPF(NSTRUC) == 0))THEN
                   CALL QLXCALL(LOCVAR,LOCCNT,LIMITS,ERR)
                ELSE
-                  IF((ITYP.EQ.3))THEN
+                  IF((ITYP == 3))THEN
                      NSTRUC = NSTRUC + 1
                      STYPE(NSTRUC) = ITYP
                      SKIPF(NSTRUC) = NEXTIF(SKIPF(NSTRUC-1))
-                     IF((SKIPF(NSTRUC).EQ.0))THEN
+                     IF((SKIPF(NSTRUC) == 0))THEN
                         CALL QLXTOK
                         IF((TOKEN(1:1).NE.'$'))THEN
                            CALL QLXXPR(ERR)
                            IF((ERR))THEN
                               GOTO 23003
                            ENDIF
-                           IF((TYPE.EQ.8))THEN
+                           IF((TYPE == 8))THEN
                               call get_content_of_location(JVAL,1,JVAL)
                            ENDIF
-                           IF((IAND(JVAL,ishft(-1,32-(16))).EQ.0))THEN
+                           IF((IAND(JVAL,ishft(-1,32-(16))) == 0))THEN
                               SKIPF(NSTRUC) = 1
                            ENDIF
                         ELSE
@@ -2015,7 +1995,7 @@ end module readlx_nrdlx
                      ENDIF
                      CALL QLXFLSH('$')
                   ELSE
-                     IF((ITYP.EQ.4))THEN
+                     IF((ITYP == 4))THEN
                         IF((STYPE(NSTRUC).NE.3))THEN
                            GOTO 23003
                         ENDIF
@@ -2023,7 +2003,7 @@ end module readlx_nrdlx
                         SKIPF(NSTRUC) = NXTELSE(SKIPF(NSTRUC))
                         CALL QLXFLSH('$')
                      ELSE
-                        IF((ITYP.EQ.5))THEN
+                        IF((ITYP == 5))THEN
                            IF((STYPE(NSTRUC).NE.3 .AND. STYPE(NSTRUC).NE.4))THEN
                               GOTO 23003
                            ENDIF
@@ -2031,7 +2011,7 @@ end module readlx_nrdlx
                            NSTRUC = NSTRUC - 1
                            CALL QLXFLSH('$')
                         ELSE
-                           IF((ITYP.EQ.6))THEN
+                           IF((ITYP == 6))THEN
                               NSTRUC = NSTRUC + 1
                               STYPE(NSTRUC) = ITYP
                               SKIPF(NSTRUC) = NEXTIF(SKIPF(NSTRUC-1))
@@ -2040,17 +2020,17 @@ end module readlx_nrdlx
                               ELSE
                                  READBSE(NSTRUC) = CURREC
                               ENDIF
-                              IF((SKIPF(NSTRUC).EQ.0))THEN
+                              IF((SKIPF(NSTRUC) == 0))THEN
                                  CALL QLXTOK
                                  IF((TOKEN(1:1).NE.'$'))THEN
                                     CALL QLXXPR(ERR)
                                     IF((ERR))THEN
                                        GOTO 23003
                                     ENDIF
-                                    IF((TYPE.EQ.8))THEN
+                                    IF((TYPE == 8))THEN
                              call get_content_of_location(JVAL,1,JVAL)
                                     ENDIF
-                                    IF((IAND(JVAL,ishft(-1,32-(16))).EQ.0))THEN
+                                    IF((IAND(JVAL,ishft(-1,32-(16))) == 0))THEN
                                        SKIPF(NSTRUC) = 1
                                     ENDIF
                                  ELSE
@@ -2059,18 +2039,18 @@ end module readlx_nrdlx
                               ENDIF
                               CALL QLXFLSH('$')
                            ELSE
-                              IF((ITYP.EQ.7))THEN
+                              IF((ITYP == 7))THEN
                                  IF((STYPE(NSTRUC).NE.6))THEN
                                     GOTO 23003
                                  ENDIF
-                                 IF( (SKIPF(NSTRUC) .EQ. 0))THEN
+                                 IF( (SKIPF(NSTRUC)  ==  0))THEN
                                     READREC = READBSE(NSTRUC)
                                  ENDIF
                                  SKIPF(NSTRUC) = 0
                                  NSTRUC = NSTRUC - 1
                                  CALL QLXFLSH('$')
                               ELSE
-                                 IF((ITYP.GE.10 .AND. ITYP.LE.13 .AND. SKIPF(NSTRUC).EQ.0))THEN
+                                 IF((ITYP.GE.10 .AND. ITYP <= 13 .AND. SKIPF(NSTRUC) == 0))THEN
                                     KERR=NERR
                                     KEND=ITYP-10
                                     FIN=.TRUE.
@@ -2099,7 +2079,7 @@ end module readlx_nrdlx
          GOTO 23002
       ENDIF
 23003 CONTINUE
-      IF((NSTRUC.GT.1))THEN
+      IF((NSTRUC > 1))THEN
          call lib_log(APP_LIBRMN,APP_ERROR,'readlx: Error within if then else bloc structure')
          KERR = NERR + 1
          KEND = -1
