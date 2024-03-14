@@ -465,7 +465,7 @@ int c_mrbadd(
     uint32_t r_btyp, r_nbit, r_bit0, r_datyp;
 
     // initialize block header to 0
-    memset(&entete,sizeof(entete),0x0);
+    memset(&entete, 0, sizeof(entete));
 
     if (((datyp == 3) || (datyp == 5)) && (nbit != 8)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: nbits must be 8 for datyp 3 or 5\n",__func__);
