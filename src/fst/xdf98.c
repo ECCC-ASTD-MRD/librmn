@@ -2149,7 +2149,7 @@ int c_xdfput(
 
     if ((f->header->rwflg == RDMODE) || (FGFDT[index_fnom].attr.read_only)) {
         // Read only mode
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: ile is open in read only mode or no write permission\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is open in read only mode or no write permission\n",__func__);
         return(ERR_NO_WRITE);
     }
 
