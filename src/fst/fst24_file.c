@@ -16,7 +16,7 @@ int32_t fst24_get_unit(const fst_file* const file);
 int32_t fst24_find(fst_file* file, const fst_record* criteria, fst_record* result);
 static int64_t fst24_get_num_records_single(const fst_file* file);
 int32_t fst24_get_record_from_key(fst_file* const file, const int64_t key, fst_record* const record);
-int32_t fst24_get_record_by_index(const fst_file* const file, const int64_t index, fst_record* const record);
+int32_t fst24_get_record_by_index(fst_file* const file, const int64_t index, fst_record* const record);
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
@@ -179,7 +179,7 @@ static int64_t fst24_get_num_records_single(const fst_file* file) {
 //! Print a summary of the records found in the given file (including any linked files)
 //! \return a negative number if there was an error, TRUE (1) if all was OK
 int32_t fst24_print_summary(
-    const fst_file* const file, //!< [in] Handle to an open file
+    fst_file* const file, //!< [in] Handle to an open file
     const fst_record_fields* const fields //!< [optional] What fields we want to see printed
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
@@ -1001,7 +1001,7 @@ int32_t fst24_rewind_search(fst_file* file) {
 //! Retrieve record handle of a given index
 //! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
 int32_t fst24_get_record_by_index(
-    const fst_file* const file, //!< [in] File handle
+    fst_file* const file, //!< [in] File handle
     const int64_t index, //! [in] Record index. Continuous among a list of linked files.
     fst_record* const record //! [out] Record handle
 ) {
