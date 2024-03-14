@@ -802,15 +802,20 @@ END
       RETURN
       END
 
-!> DECLARATION DES ROUTINES
+!> Déclaration des routines
 SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
     use app
 
+    !> Nom de la fonction à appeler
     EXTERNAL xtern
 
+    !> Chaine de caractères du jetton
     CHARACTER(LEN = *) :: key
+    !> Nombre d'occurences
     INTEGER, INTENT(OUT) :: icount
+    !> Limites? Doit être entre 0 et 99999
     INTEGER :: limits
+    !> Option mystère devant être entre 0 et 13
     INTEGER :: ityp
 
     INTEGER :: idum
