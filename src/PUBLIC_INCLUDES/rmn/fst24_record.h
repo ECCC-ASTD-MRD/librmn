@@ -20,25 +20,27 @@ typedef struct fst24_file_ fst_file;
 // This struct should only be modified by ADDING member at the end (once we're stable)
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
-    int64_t version;
+    int64_t version;  //!< Version marker
+    int64_t handle;   //!< Handle to specific record (if stored in a file)
+    int64_t flags;    //!< Record status flags
+    int64_t alloc;    //!< Size of allocated memody for data
 
     // 64-bit elements first
     fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
-    int64_t flags;    //!< Record status flags
+
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp
-    int64_t handle;   //!< Handle to specific record (if stored in a file)
-    int64_t alloc;    //!< Size of allocated memody for data
 
     // 32-bit elements
-    int32_t datyp;//!< Data type of elements
-    int32_t dasiz;//!< Number of bits per elements
-    int32_t npak; //!< Compression factor (none if 0 or 1). Number of bit if negative
-    int32_t ni;   //!< First dimension of the data field (number of elements)
-    int32_t nj;   //!< Second dimension of the data field (number of elements)
-    int32_t nk;   //!< Thierd dimension of the data field (number of elements)
+    int32_t datyp;  //!< Data type of elements
+    int32_t dasiz;  //!< Number of bits per elements
+    int32_t npak;   //!< Compression factor (none if 0 or 1). Number of bit if negative
+    int32_t ni;     //!< First dimension of the data field (number of elements)
+    int32_t nj;     //!< Second dimension of the data field (number of elements)
+    int32_t nk;     //!< Third dimension of the data field (number of elements)
+    int32_t num_meta_bytes; //!< Size of the metadata in bytes
 
     int32_t deet; //!< Length of the time steps in seconds (deet)
     int32_t npas; //!< Time step number
@@ -52,8 +54,6 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
-    int32_t dummy; // To make explicit the fact that the strings start at a 64-bit boundary
-
     char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
     char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
     char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
@@ -66,14 +66,15 @@ typedef struct {
 //! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
         .version = sizeof(fst_record),
+        .handle   = -1,
+        .flags = 0x0,
+        .alloc    = 0,
+
         .file     = NULL,
         .data     = NULL,
         .metadata = NULL,
-        .flags = 0x0,
         .dateo     = -1,
         .datev     = -1,
-        .handle   = -1,
-        .alloc    = 0,
 
         .datyp = -1,
         .dasiz = -1,
@@ -81,6 +82,7 @@ static const fst_record default_fst_record = (fst_record){
         .ni = -1,
         .nj = -1,
         .nk = -1,
+        .num_meta_bytes = 0,
 
         .deet = -1,
         .npas = -1,
@@ -93,8 +95,6 @@ static const fst_record default_fst_record = (fst_record){
         .ig2 = -1,
         .ig3 = -1,
         .ig4 = -1,
-
-        .dummy = -1,
 
         .typvar = {' ' , ' ' , '\0', '\0'},
         .grtyp  = {' ' , '\0', '\0', '\0'},
@@ -128,23 +128,22 @@ static const fst_record_fields default_fields = (fst_record_fields) {
 
     .level = 0,
     .datyp = 1,
+    .nijk = 1,
 
     .deet = 0,
     .npas = 0,
 
-    .nomvar = 1,
-    .typvar = 1,
-    .etiket = 1,
-
-    .nijk = 1,
-
-    .decoded_ip = 0,
     .ip1 = 1,
     .ip2 = 1,
     .ip3 = 1,
+    .decoded_ip = 0,
 
     .grid_info = 0,
     .ig1234 = 0,
+
+    .typvar = 1,
+    .nomvar = 1,
+    .etiket = 1,
 
     .metadata = 0
 };
@@ -176,14 +175,15 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
 #else
     type, bind(C) :: fst_record_c
         integer(C_INT64_T) :: VERSION  = 168            ! Must be the number of bytes in the struct
+        integer(C_INT64_T) :: handle   = -1
+        integer(C_INT64_T) :: flags    = 0
+        integer(C_INT64_T) :: alloc    = 0
+
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
-        integer(C_INT64_T) :: flags    = 0
         integer(C_INT64_T) :: dateo    = -1
         integer(C_INT64_T) :: datev    = -1
-        integer(C_INT64_T) :: handle   = -1
-        integer(C_INT64_T) :: alloc    = 0
 
         integer(C_INT32_T) :: datyp = -1
         integer(C_INT32_T) :: dasiz = -1
@@ -191,6 +191,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT32_T) :: ni    = -1
         integer(C_INT32_T) :: nj    = -1
         integer(C_INT32_T) :: nk    = -1
+        integer(C_INT32_T) :: num_meta_bytes = 0
 
         integer(C_INT32_T) :: deet  = -1
         integer(C_INT32_T) :: npas  = -1
@@ -203,8 +204,6 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT32_T) :: ig2   = -1
         integer(C_INT32_T) :: ig3   = -1
         integer(C_INT32_T) :: ig4   = -1
-
-        integer(C_INT32_T) :: dummy = -1
 
         character(len=1), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
         character(len=1), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]

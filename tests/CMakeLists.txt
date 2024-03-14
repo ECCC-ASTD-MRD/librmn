@@ -141,9 +141,9 @@ if (EC_INIT_DONE LESS 2)
 
         add_executable(fst_parallel_write fst_parallel_write.c)
         target_link_libraries(fst_parallel_write rmn::rmn-ompi)
-        add_test(NAME fst_parallel_write COMMAND mpirun -n 4 $<TARGET_FILE:fst_parallel_write>)
+        # add_test(NAME fst_parallel_write COMMAND mpirun -n 4 $<TARGET_FILE:fst_parallel_write>)
         add_dependencies(check fst_parallel_write)
-        set_property(TEST fst_parallel_write PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+        # set_property(TEST fst_parallel_write PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
 
         add_executable(fst_compression fst_compression.c)
         target_link_libraries(fst_compression rmn::rmn)

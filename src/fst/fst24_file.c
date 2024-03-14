@@ -368,8 +368,12 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
         datyp = FST_TYPE_REAL;
     }
 
+    if (is_type_real(datyp) && nbits <= 32 && record->dasiz == 64) {
+        record->dasiz = 32;
+    }
+
     if (is_type_turbopack(datyp) && record->nk > 1) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.", __func__);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.\n", __func__);
         datyp &= ~FST_TYPE_TURBOPACK;
     }
 
@@ -507,12 +511,13 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
              return(ERR_METADATA);
           }
        }
-       if ((metastr = Meta_Stringify(record->metadata))) {
-          metalen = strlen(metastr)+1;
-          rec_metadata_size += ((metastr?metalen:0)+3)/4;
+       if ((metastr = Meta_Stringify(record->metadata)) != NULL) {
+          metalen = strlen(metastr) + 1;
+          rec_metadata_size += (metalen + 3) / 4;
        }
     }
 
+    record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
     RSF_record* new_record = RSF_New_record(file_handle, rec_metadata_size, dir_metadata_size, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
@@ -922,13 +927,14 @@ int32_t fst24_get_record_from_key(
         return FALSE;
     }
 
-    *record = default_fst_record;
+    fst_record_set_to_default(record);
     record->handle = key;
 
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         const RSF_record_info record_info = RSF_Get_record_info(file_handle, key);
         fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
+        record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
     }
     else if (file->type == FST_XDF) {
         int addr, lng, idtyp;
@@ -1007,7 +1013,7 @@ int32_t fst24_get_record_by_index(
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
-    *record = default_fst_record;
+    fst_record_set_to_default(record);
 
     const int64_t num_records = fst24_get_num_records_single(file);
     if (index >= num_records) {
@@ -1021,6 +1027,7 @@ int32_t fst24_get_record_by_index(
         const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
         fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
         record->handle = RSF_Make_key(file->file_index_backend, index);
+        record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
         return TRUE;
     }
     else if (file->type == FST_XDF) {
@@ -1042,7 +1049,7 @@ int32_t fst24_get_record_by_index(
     return FALSE;
 }
 
-//! Find the next record in the given file that matches the previously set criteria
+//! Find the next record in the given file that matches the previously set criteria.
 //!
 //! Searches through linked files, if any.
 //! Criteria set either with a call to fst24_set_search_criteria or a search with explicit criteria
@@ -1050,11 +1057,18 @@ int32_t fst24_get_record_by_index(
 int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
 int32_t fst24_find_next(
     fst_file* const file, //!< [in] File we are searching. Must be open
-    fst_record* record //!< [out] Record information if found, optional (no data or advanced metadata, unless included in search)
+    //!> [in,out] Record information if found, optional (no data or advanced metadata, unless included in search).
+    //!> Must point to a valid record struct (i.e. initialized)
+    fst_record* record
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
-       return FALSE;
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+        return FALSE;
+    }
+
+    if (!fst24_record_is_valid(record)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must give a valid record into which information will be put\n", __func__);
+        return FALSE;
     }
 
     // Skip search, or search next file in linked list, if we were already done searching this file
@@ -1174,6 +1188,7 @@ int32_t fst24_find_all(
     if (fst24_rewind_search(file) != TRUE) return 0;
 
     for (int i = 0; i < max_num_results; i++) {
+        results[i] = default_fst_record;
         if (!fst24_find_next(file, &(results[i]))) return i;
     }
     return max_num_results;
@@ -1407,9 +1422,19 @@ int32_t fst24_read_rsf(
 ) {
     RSF_handle file_handle = FGFDT[record_fst->file->file_index].rsf_fh;
     if (!RSF_Is_record_in_file(file_handle, record_fst->handle)) return ERR_BAD_HNDL;
-    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle, metadata_only);
 
-    if (record_rsf == NULL) {
+    const size_t work_size_bytes = fst24_record_data_size(record_fst) +     // The data itself
+                                   record_fst->num_meta_bytes +             // The metadata
+                                   sizeof(RSF_record) +                     // Space for the RSF struct itself
+                                   128 * sizeof(uint32_t);                  // Enough space for the largest compression scheme + rounding up for alignment
+
+    uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
+    memset(work_space, 0, sizeof(work_space));
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: We have a workspace of %d bytes\n", __func__, sizeof(work_space));
+
+    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle, metadata_only, (void*)work_space);
+
+    if (record_rsf != work_space) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x\n",
                 __func__, record_fst->handle);
         return ERR_BAD_HNDL;
@@ -1418,9 +1443,9 @@ int32_t fst24_read_rsf(
     fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
 
     // Extract metadata from record if present
-    record_fst->metadata=NULL;
+    record_fst->metadata = NULL;
     if (record_rsf->rec_meta > record_rsf->dir_meta) {
-        record_fst->metadata=Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+        record_fst->metadata = Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
     }
 
     // Extract data
@@ -1435,8 +1460,6 @@ int32_t fst24_read_rsf(
         f.npas = 1;
         fst24_record_print_short(record_fst, &f, 0, "Read : ");
     }
-
-    free(record_rsf);
 
     return ier;
 }

@@ -1029,11 +1029,26 @@ int c_fstluk_rsf(
 ) {
     uint32_t *field=vfield;
     
-    RSF_record* record = RSF_Get_record(file_handle, RSF_Key64(key32), 0);
+    int64_t rsf_key = RSF_Key64(key32);
+    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+    if (record_info.rl <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with key %ld\n", __func__, rsf_key);
+        return ERR_BAD_HNDL;
+    }
+
+    const size_t work_size_bytes = record_info.data_size +                  // The data itself
+                                   record_info.rec_meta * sizeof(uint32_t) +// The metadata
+                                   sizeof(RSF_record) +                     // Space for the RSF struct itself
+                                   128 * sizeof(uint32_t);                  // Enough space for the largest compression scheme + rounding up for alignment
+
+    uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
+    memset(work_space, 0, sizeof(work_space));
+
+    RSF_record* record = RSF_Get_record(file_handle, rsf_key, 0, work_space);
 
     if (record == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x (0x%x)\n",
-                __func__, key32, RSF_Key64(key32));
+                __func__, key32, rsf_key);
         return ERR_BAD_HNDL;
     }
 
@@ -1225,6 +1240,7 @@ int c_fstluk_rsf(
                 int nbits;
                 int header_size, stream_size, p1out, p2out;
                 c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
+                header_size /= 4;
                 if (stdf_entry->datyp > 128) {
                     armn_compress((unsigned char *)(record_data + 1 + header_size), *ni, *nj, *nk, stdf_entry->nbits, 2);
                     c_float_unpacker((float *)field, (int32_t *)(record_data + 1), (int32_t *)(record_data + 1 + header_size), nelm, &nbits);
@@ -1263,8 +1279,6 @@ int c_fstluk_rsf(
         if ((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) sz=64;
         DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, sz);
     }
-
-    free(record);
 
     if (ier < 0) return ier;
 

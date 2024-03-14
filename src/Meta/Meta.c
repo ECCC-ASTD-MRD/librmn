@@ -2064,7 +2064,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    }
 
    //  NI,NJ,NK,NPACK,DATYP,DASIZ 
-   //Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
 
    // TODO: define datyp
    Rec->npak=-Rec->npak;
@@ -2130,7 +2130,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
    }
 
    if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
-      rec->npak  = 1;
+      rec->npak  = -1; // 1 bit
       rec->dateo = 0;
       rec->deet  = 0;
       rec->npas  = 0;
