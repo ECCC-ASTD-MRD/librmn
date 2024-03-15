@@ -174,10 +174,10 @@ contains
         if (present(ig2)) criteria % ig2 = ig2
         if (present(ig3)) criteria % ig3 = ig3
         if (present(ig4)) criteria % ig4 = ig4
-        if (present(typvar)) call strncpy_f2c(typvar, criteria % typvar, 2)
-        if (present(grtyp)) call strncpy_f2c(grtyp, criteria % grtyp, 1)
-        if (present(nomvar)) call strncpy_f2c(nomvar, criteria % nomvar, 4)
-        if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 12)
+        if (present(typvar)) call strncpy_f2c(typvar, criteria % typvar, 3)
+        if (present(grtyp)) call strncpy_f2c(grtyp, criteria % grtyp, 2)
+        if (present(nomvar)) call strncpy_f2c(nomvar, criteria % nomvar, 5)
+        if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 13)
         if (present(metadata)) criteria % metadata = metadata % json_obj
 
         c_status = fst24_set_search_criteria(this % file_ptr, c_loc(criteria))
