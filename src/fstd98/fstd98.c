@@ -2807,12 +2807,21 @@ int c_fstouv(
         return(ERR_NO_FNOM);
     }
 
-    if ((strstr(options, "RND"))  || (strstr(options, "rnd"))) {
+    if ((strcasestr(options, "RND"))) {
         // standard random
         sprintf(appl, "%s", "STDR");
     } else {
         // standard sequential
         sprintf(appl, "%s", "STDS");
+    }
+
+    // Determine if we're opening in read or write mode
+    int read_only = FGFDT[i].attr.read_only;
+    if (strcasestr(options, "R/O")) {
+        read_only = 1;
+    }
+    if (strcasestr(options, "R/W")) {
+        read_only = 0;
     }
 
     // force attribute to standard file
@@ -2821,13 +2830,13 @@ int c_fstouv(
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
             ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
         } else {
-            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            ier = c_xdfopn(iun, read_only?"READ":"R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
         }
     } else {
         if (((iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name))) == -2) && (! FGFDT[i].attr.old)) {
             ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
         } else {
-            ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            ier = c_xdfopn(iun, read_only?"READ":"R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
         }
     }
 
