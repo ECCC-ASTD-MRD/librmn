@@ -3499,7 +3499,7 @@ int c_fstouv(
                 ier = -1;
             }
             else {
-                ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+                ier = c_xdfopn(iun, read_only?"READ":"R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
         }
     } else {
@@ -3516,7 +3516,7 @@ int c_fstouv(
                 ier = c_fstouv_rsf(i, open_mode, appl, seg_size);
             }
             else {
-                ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+                ier = c_xdfopn(iun, read_only?"READ":"R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
         }
     }
