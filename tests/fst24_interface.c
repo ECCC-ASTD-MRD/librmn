@@ -101,7 +101,7 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
             return -1;
         }
 
-        if (fst24_checkpoint(new_file) < 0) {
+        if (fst24_flush(new_file) < 0) {
             App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
             return -1;
         }

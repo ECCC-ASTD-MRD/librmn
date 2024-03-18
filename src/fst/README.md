@@ -611,7 +611,7 @@ contains
 
     procedure, pass :: write
 
-    procedure, pass :: checkpoint
+    procedure, pass :: flush
     procedure, pass :: print_summary
     procedure, pass :: unlink
 
@@ -786,11 +786,11 @@ end function write
 !> Perform a checkpoint on the given file:
 !> commit (meta)data to disk if the file has changed in memory
 !> Return Whether the underlying call was successful
-function checkpoint(this) result(success)
+function flush(this) result(success)
     implicit none
     class(fst_file), intent(inout) :: this
     logical :: success
-end function checkpoint
+end function flush
 
 !> Print a summary of the records found in the given file (including any linked files)
 !> All optional parameters are booleans determining whether we print the corresponding field.

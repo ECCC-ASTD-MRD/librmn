@@ -28,7 +28,7 @@ module rmn_fst24
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
-        procedure, pass :: checkpoint => fst24_file_checkpoint !< \copydoc fst24_file_checkpoint
+        procedure, pass :: flush => fst24_file_flush !< \copydoc fst24_file_flush
         procedure, pass :: print_summary => fst24_file_print_summary !< \copydoc fst24_file_print_summary
         procedure, pass :: unlink => fst24_file_unlink  !< \copydoc fst24_file_unlink  
 
@@ -280,9 +280,9 @@ contains
         if (c_status > 0) success = .true.
     end function fst24_file_write
 
-    !> \copybrief fst24_checkpoint
+    !> \copybrief fst24_flush
     !> \return Whether the underlying call was successful
-    function fst24_file_checkpoint(this) result(success)
+    function fst24_file_flush(this) result(success)
         implicit none
         class(fst_file), intent(inout) :: this
         logical :: success
@@ -290,9 +290,9 @@ contains
         integer(C_INT32_T) :: c_status
 
         success = .false.
-        c_status = fst24_checkpoint(this % file_ptr)
+        c_status = fst24_flush(this % file_ptr)
         if (c_status >= 0) success = .true.
-    end function fst24_file_checkpoint
+    end function fst24_file_flush
 
     !> \copybrief fst24_print_summary
     !> All optional parameters are booleans determining whether we print the corresponding field.

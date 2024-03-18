@@ -38,7 +38,7 @@ for RI in I R ; do
         
         integer :: num_dims
 
-!        nullify(array)
+        nullify(array)
 
         num_dims = 1
         if (this % nj > 1) num_dims = 2

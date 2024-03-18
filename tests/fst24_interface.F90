@@ -151,9 +151,9 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
         return
     end if
 
-    success = new_file % checkpoint()
+    success = new_file % flush()
     if (.not. success) then
-        call app_log(APP_ERROR, 'Checkpoint failed')
+        call app_log(APP_ERROR, 'Flush failed')
         return
     end if
 

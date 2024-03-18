@@ -113,7 +113,7 @@ int32_t fst24_close(fst_file* const file) {
 
 //! Commit data and metadata to disk if the file has changed in memory
 //! \return A negative number if there was an error, 0 or positive otherwise
-int32_t fst24_checkpoint(
+int32_t fst24_flush(
     const fst_file* const file //!< Handle to the open file we want to checkpoint
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
