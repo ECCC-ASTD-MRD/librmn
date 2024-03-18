@@ -32,14 +32,14 @@ fst_record* fst24_record_new(
         if (!(result->data=data)) {
             // No data pointer passed, allocate data array
             if (!(result->data=(void*)malloc(result->alloc))) {
-                Lib_Log(APP_ERROR,APP_LIBFST, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
             }
         } else {
           // Using an assigned pointer
          result->flags = FST_REC_ASSIGNED;
         }
     } else {
-        Lib_Log(APP_LIBFST,APP_ERROR,"Unable to allocate record\n",__func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate record\n",__func__);
     }
     return(result);
 }
@@ -758,7 +758,7 @@ int32_t fst24_validate_default_record(
     return 0;
 }
 
-void print_non_wildcards(const fst_record* record) {
+void print_non_wildcards(const fst_record* const record) {
     char buffer[1024];
     char* ptr = buffer;
 
@@ -793,4 +793,10 @@ void print_non_wildcards(const fst_record* record) {
     if (ptr == buffer) sprintf(ptr, "[none]");
 
     Lib_Log(APP_LIBFST, APP_ALWAYS, "criteria: %s\n", buffer);
+}
+
+void print_dir_keys(const stdf_dir_keys* const keys) {
+    fst_record r;
+    fill_with_dir_keys(&r, keys);
+    print_non_wildcards(&r);
 }

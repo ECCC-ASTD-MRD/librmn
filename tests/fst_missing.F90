@@ -88,6 +88,7 @@ integer :: ni, nj, nk
 logical :: file_exists
 
 character(len=*), parameter :: test_file_name = 'missing.fst'
+character(len=2000) :: cmd
 logical :: is_rsf
 logical, parameter :: verbose = .false.
 
@@ -155,6 +156,8 @@ enddo
 ! Reset status
 status = -1
 
+write(cmd, '(A, (1X, A))') 'rm -fv ', test_file_name
+call execute_command_line(trim(cmd))
 ! -----------------------------
 ! Write data into standard file
 ! open(unit=1234, iostat=status, file=test_file_name, status='old')

@@ -26,7 +26,7 @@ typedef struct {
     int64_t alloc;    //!< Size of allocated memody for data
 
     // 64-bit elements first
-    fst_file* file;   //!< FST file where the record is stored
+    const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 

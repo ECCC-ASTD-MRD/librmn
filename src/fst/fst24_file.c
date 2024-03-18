@@ -4,19 +4,19 @@
 
 #include <App.h>
 #include <str.h>
+#include "fst_internal.h"
 #include "fst24_record_internal.h"
 #include "fst98_internal.h"
-#include "qstdir.h"
 #include <rmn/fnom.h>
-#include <rmn/fst24_file.h>
 #include "xdf98.h"
 #include "Meta.h"
 
 int32_t fst24_get_unit(const fst_file* const file);
-int32_t fst24_find(fst_file* file, const fst_record* criteria, fst_record* result);
 static int64_t fst24_get_num_records_single(const fst_file* file);
-int32_t fst24_get_record_from_key(fst_file* const file, const int64_t key, fst_record* const record);
-int32_t fst24_get_record_by_index(fst_file* const file, const int64_t index, fst_record* const record);
+int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
+int32_t fst24_get_record_by_index(const fst_file* const file, const int64_t index, fst_record* const record);
+
+int32_t is_query_valid_f(const fst_query* const q) { return is_query_valid(q); }
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
@@ -78,16 +78,13 @@ fst_file* fst24_open(
     the_file->file_index = index_fnom;
     if (rsf_status == 1) {
         the_file->type = FST_RSF;
-        RSF_handle file_handle = FGFDT[the_file->file_index].rsf_fh;
-        the_file->file_index_backend = RSF_File_slot(file_handle);
+        the_file->rsf_handle = FGFDT[the_file->file_index].rsf_fh;
+        the_file->file_index_backend = RSF_File_slot(the_file->rsf_handle);
     }
     else {
         the_file->type = FST_XDF;
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
-
-    // Reset search criteria, so that we can just start reading everything
-    fst24_set_search_criteria(the_file, &default_fst_record);
 
     return the_file;
 }
@@ -913,9 +910,9 @@ int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
 //! Get basic information about the record with the given key (search or "directory" metadata)
 //! \return TRUE (1) if we were able to get the info, FALSE (0) or a negative number otherwise
 int32_t fst24_get_record_from_key(
-    fst_file* const file, //!< [in] File to which the record belongs. Must be open
-    const int64_t key, //!< [in] Key of the record we are looking for. Must be valid
-    fst_record* const record //!< [out] Record information (no data or advanced metadata)
+    const fst_file* const file, //!< [in] File to which the record belongs. Must be open
+    const int64_t key,          //!< [in] Key of the record we are looking for. Must be valid
+    fst_record* const record    //!< [in,out] Record information (no data or advanced metadata)
 ) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
@@ -953,63 +950,76 @@ int32_t fst24_get_record_from_key(
     return TRUE;
 }
 
-//! Indicate a set of criteria that will be used whenever we use "find next record" 
-//! for the given file, within the FST 24 implementation.
-//! If for some reason the user also makes calls to the old interface (FST 98) for the
-//! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
-//! XDF backend.
-//! \return TRUE (1) if the inputs are valid (open file, OK criteria struct), FALSE (0) or a negative number otherwise
-int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
+//! Create a search query that will apply the given criteria during a search in a file.
+//! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
+fst_query* fst24_make_search_query(
+    const fst_file* const file, //!< File that will be searched with the query
+    const fst_record* criteria  //!< Criteria to be used for the search. If NULL, will look for any record
+) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
 
-    if (!criteria) {
-       criteria=&default_fst_record;
-    } else {
+    if (criteria == NULL) {
+       criteria = &default_fst_record;
+    }
+    else {
         if (!fst24_record_is_valid(criteria)) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
-        return FALSE;
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
+            return NULL;
         }
     }
-    make_search_criteria(criteria,
-                         &fstd_open_files[file->file_index].search_criteria,
-                         &fstd_open_files[file->file_index].search_mask);
+
+    fst_query* query = (fst_query*)malloc(sizeof(fst_query));
+
+    if (query == NULL) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to allocate space for a new query\n", __func__);
+        return NULL;
+    }
+
+    *query = new_fst_query();
+    make_search_criteria(criteria, &(query->criteria), &(query->mask));
+    query->num_criteria = sizeof(query->criteria) / sizeof(uint32_t);
+    query->search_index = criteria->handle > 0 ? criteria->handle : 0;
+    query->search_meta  = criteria->metadata;
+    query->file         = file;
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Setting search criteria\n", __func__);
         print_non_wildcards(criteria);
     }
 
-    const int64_t start_key = criteria->handle > 0 ? criteria->handle : 0;
-    fstd_open_files[file->file_index].search_start_key = start_key;
-    fstd_open_files[file->file_index].search_meta = criteria->metadata;
-    fstd_open_files[file->file_index].search_done = 0;
-
-    return TRUE;
+    return query;
 }
 
 //! Reset start index of search without changing the criteria
 //! \return TRUE (1) if file is valid and open, FALSE (0) otherwise
-int32_t fst24_rewind_search(fst_file* file) {
-    if (!fst24_is_open(file)) {
+int32_t fst24_rewind_search(fst_query* const query) {
+    if (!fst24_is_open(query->file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
        return FALSE;
     }
 
-    fstd_open_files[file->file_index].search_start_key = 0;
-    fstd_open_files[file->file_index].search_done = 0;
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Rewinding query %p\n", __func__, query);
+    print_dir_keys(&query->criteria);
+
+    query->search_index = 0;
+    query->search_done  = 0;
+
+    if (query->next != NULL) {
+        return fst24_rewind_search(query->next);
+    }
 
     return TRUE;
 }
 
-//! Retrieve record handle of a given index
+//! Retrieve record information at a given index
 //! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
 int32_t fst24_get_record_by_index(
-    fst_file* const file, //!< [in] File handle
-    const int64_t index, //! [in] Record index. Continuous among a list of linked files.
-    fst_record* const record //! [out] Record handle
+    const fst_file* const file, //!< [in] File handle
+    const int64_t index,        //!< [in] Record index. Continuous among a list of linked files.
+    fst_record* const record    //!< [in,out] Record information
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
@@ -1049,19 +1059,71 @@ int32_t fst24_get_record_by_index(
     return FALSE;
 }
 
+//! Find the next record in a given file, according to the given parameters
+//! \return Key of the record found (negative if error or nothing found)
+int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
+
+    stdf_dir_keys actual_mask;
+    uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;
+    uint32_t* mask_u32            = (uint32_t *)&query->mask;
+    uint32_t* background_mask_u32 = (uint32_t *)&query->background_mask;
+    for (int i = 0; i < query->num_criteria; i++) {
+        actual_mask_u32[i] = mask_u32[i] & background_mask_u32[i];
+    }
+    const int64_t rsf_key = RSF_Lookup(file_handle,
+                                       query->search_index,
+                          (uint32_t *)&query->criteria,
+                                       actual_mask_u32,
+                                       query->num_criteria);
+    if (rsf_key > 0) {
+        // Found it. Next search will start here
+        query->search_index = rsf_key;
+    }
+    else {
+        // Did not find it. Mark this search as finished
+        query->search_done = 1;
+    }
+    return rsf_key;
+}
+
+//! Make sure that the (next) query linked to this given query will
+//! search in the (next) file linked to this given query's file
+//! It's slightly complicated because we want to be able to search in the
+//! correct file(s) even if they were unlinked and re-linked differently
+static void ensure_next_query(fst_query* query) {
+    if (query->file->next == NULL) return;
+    if (query->next != NULL && query->next->file == query->file->next) return;
+
+    if (query->next != NULL) fst24_query_free(query->next);
+
+    query->next = (fst_query*)malloc(sizeof(fst_query));
+    if (query->next == NULL) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to allocate space (%d bytes) for a new fst_query\n",
+                __func__, sizeof(fst_query));
+    }
+    *(query->next) = fst_query_copy(query);
+    query->next->file = query->file->next;
+}
+
+int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,
+                        char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
+
 //! Find the next record in the given file that matches the previously set criteria.
 //!
 //! Searches through linked files, if any.
-//! Criteria set either with a call to fst24_set_search_criteria or a search with explicit criteria
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
-int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
 int32_t fst24_find_next(
-    fst_file* const file, //!< [in] File we are searching. Must be open
-    //!> [in,out] Record information if found, optional (no data or advanced metadata, unless included in search).
+    fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
+    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
     //!> Must point to a valid record struct (i.e. initialized)
     fst_record* record
 ) {
-    if (!fst24_is_open(file)) {
+    if (!is_query_valid(query)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Query at %p is not valid\n", __func__, query);
+        return FALSE;
+    }
+
+    if (!fst24_is_open(query->file)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
         return FALSE;
     }
@@ -1072,9 +1134,10 @@ int32_t fst24_find_next(
     }
 
     // Skip search, or search next file in linked list, if we were already done searching this file
-    if (fstd_open_files[file->file_index].search_done == 1) {
-        if (file->next != NULL) {
-            return fst24_find_next(file->next, record);
+    if (query->search_done == 1) {
+        if (query->file->next != NULL) {
+            ensure_next_query(query);
+            return fst24_find_next(query->next, record);
         }
         return FALSE;
     } 
@@ -1083,81 +1146,71 @@ int32_t fst24_find_next(
     int rkey = 0;
 
     // Depending on backend
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+    if (query->file->type == FST_RSF) {
+        RSF_handle file_handle = query->file->rsf_handle;
 
         while (key == -1) {
             // Look for the record in the file
-            if ((key = find_next_record(file_handle, &fstd_open_files[file->file_index])) < 0) {
-                break;
-            }
-            if (record) {
-                // Check on excdes desire/exclure clauses
-                record->metadata = NULL;
-                rkey = fst24_get_record_from_key(file, key, record); 
-                if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-                       record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
-                    key = -1;    
-                } else 
+            key = find_next_rsf(file_handle, query);
+            if (key < 0) break; // Not in this file
 
-                // If metadata search is specified, look for a match or carry on looking
-                if (fstd_open_files[file->file_index].search_meta) {
-                    if (fst24_read_metadata(record) &&
-                        Meta_Match(fstd_open_files[file->file_index].search_meta, record->metadata, FALSE)) {
-                        break;
-                    } else {
-                        key = -1;
-                    }
+            // Check on excdes desire/exclure clauses
+            record->metadata = NULL;
+            rkey = fst24_get_record_from_key(query->file, key, record); 
+            if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+                    record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
+                key = -1; // Continue looking
+            }
+            // If metadata search is specified, look for a match or carry on looking
+            else if (query->search_meta != NULL) {
+                if (fst24_read_metadata(record) &&
+                    Meta_Match(query->search_meta, record->metadata, FALSE)) {
+                    break; // Found it
+                } else {
+                    key = -1; // Continue looking
                 }
             }
         }
     }
-    else if (file->type == FST_XDF) {
-        uint32_t* pkeys = (uint32_t *) &fstd_open_files[file->file_index].search_criteria;
-        uint32_t* pmask = (uint32_t *) &fstd_open_files[file->file_index].search_mask;
+    else if (query->file->type == FST_XDF) {
+        uint32_t* pkeys = (uint32_t *) &query->criteria;
+        uint32_t* pmask = (uint32_t *) &query->mask;
 
         pkeys += W64TOWD(1);
         pmask += W64TOWD(1);
 
-        const int32_t start_key = fstd_open_files[file->file_index].search_start_key & 0xffffffff;
+        const int32_t start_key = query->search_index & 0xffffffff;
 
-        key = c_xdfloc2(file->iun, start_key, pkeys, 16, pmask);
+        key = c_xdfloc2(query->file->iun, start_key, pkeys, 16, pmask);
 
         if (key >= 0) {
-            fstd_open_files[file->file_index].search_start_key = key;
+            query->search_index = key;
         } else {
             // Mark search as finished in this file if no record is found
-            fstd_open_files[file->file_index].search_done = 1;
+            query->search_done = 1;
         }
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, query->file->type);
         return FALSE;
     }
 
     if (key >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
-                __func__, file->iun, key, file);
+                __func__, query->file->iun, key, query->file);
         // If search included extended metadata, the key will already be extracted
-        if (record && !rkey) {
-            return fst24_get_record_from_key(file, key, record);
+        if (rkey == 0) {
+            return fst24_get_record_from_key(query->file, key, record);
         } else {
-            return(TRUE);
+            return TRUE;
         }
     }
 
-    if (file->next != NULL) {
+    if (query->file->next != NULL) {
         // We're done searching this file, but there's another one in the linked list, so 
         // we need to setup the search in that one
-        fstd_open_files[file->next->file_index].search_criteria = fstd_open_files[file->file_index].search_criteria;
-        fstd_open_files[file->next->file_index].search_mask = fstd_open_files[file->file_index].search_mask;
-        fstd_open_files[file->next->file_index].background_search_mask = fstd_open_files[file->file_index].background_search_mask;
-        fstd_open_files[file->next->file_index].search_start_key = 0;
-        fstd_open_files[file->next->file_index].search_done = 0;
-
-        //! \todo also copy search metadata!
-
-        return fst24_find_next(file->next, record);
+        ensure_next_query(query);
+        return fst24_find_next(query->next, record);
     }
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: No (more) record found matching the criteria\n", __func__);
@@ -1165,31 +1218,19 @@ int32_t fst24_find_next(
     return FALSE;
 }
 
-//! Find the next record in a file that matches the given criteria
-//! Search through linked files, if any.
-//! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found or error)
-int32_t fst24_find(
-    fst_file* file,             //!< [in] File in which we are looking. Must be open
-    const fst_record* criteria, //!< [in] Search criteria
-    fst_record* result          //!< [out] First record in the file that matches the criteria
-) {
-    fst24_set_search_criteria(file, criteria);
-    return fst24_find_next(file, result);
-}
-
-//! Find all record that match the criteria specified with fst24_set_search_criteria.
+//! Find all record that match the given query.
 //! Search through linked files, if any.
 //! \return Number of records found, 0 if none or if error.
 int32_t fst24_find_all(
-    fst_file* file,               //!< File to search
+    fst_query* query,             //!< Query used for the search
     fst_record* results,          //!< [in,out] List of records found. Must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
-    if (fst24_rewind_search(file) != TRUE) return 0;
+    if (fst24_rewind_search(query) != TRUE) return 0;
 
     for (int i = 0; i < max_num_results; i++) {
         results[i] = default_fst_record;
-        if (!fst24_find_next(file, &(results[i]))) return i;
+        if (!fst24_find_next(query, &(results[i]))) return i;
     }
     return max_num_results;
 }
@@ -1433,7 +1474,7 @@ int32_t fst24_read_rsf(
 
     RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle, metadata_only, (void*)work_space);
 
-    if (record_rsf != work_space) {
+    if ((uint64_t*)record_rsf != work_space) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x\n",
                 __func__, record_fst->handle);
         return ERR_BAD_HNDL;
@@ -1583,10 +1624,10 @@ int32_t fst24_read(
 //! Search through linked files, if any
 //! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
-    fst_file* file,     //!< Handle to open file we want to search
-    fst_record* record  //!< [out] Record content and info, if found
+    fst_query* const query,   //!< Query used for the search
+    fst_record* const record  //!< [out] Record content and info, if found
 ) {
-    if (!fst24_find_next(file, record)) {
+    if (!fst24_find_next(query, record)) {
         return FALSE;
     }
 
@@ -1656,4 +1697,11 @@ int32_t fst24_eof(const fst_file* const file) {
     }
 
     return (c_fsteof(fst24_get_unit(file)));
+}
+
+void fst24_query_free(fst_query* const query) {
+    if (query != NULL) {
+        fst24_query_free(query->next);
+        free(query);
+    }
 }

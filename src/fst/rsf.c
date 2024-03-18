@@ -249,7 +249,11 @@ static uint32_t RSF_Valid_file(RSF_File *fp){
 //! \return 0 if they match, -1 if they don't
 static inline int check_application_code(RSF_File *fp, start_of_segment* sos) {
   for (int i = 0; i < 4; i++) {
-    if (fp->appl_code[i] != sos->sig1[4+i]) return -1;
+    if (fp->appl_code[i] != sos->sig1[4+i]) {
+      Lib_Log(APP_LIBFST, APP_INFO, "%s: Given app code (%4c) does not match the one in file (%4c)\n",
+              __func__, fp->appl_code, &sos->sig1[4]);
+      return -1;
+    }
   }
   return 0;
 }
@@ -2286,7 +2290,7 @@ RSF_handle RSF_Open_file(
   char *errmsg = "" ;
 
   if(fp == NULL) {
-    errmsg = " allocation failed" ;
+    errmsg = "allocation failed" ;
     goto ERROR ;
   }
 
@@ -2310,7 +2314,7 @@ RSF_handle RSF_Open_file(
   switch(fp->mode & (RSF_RO | RSF_RW | RSF_AP | RSF_FUSE)){
 
     case RSF_RO:                         // open for read only
-      errmsg = " file not found" ;
+      errmsg = "file not found" ;
       if( (fp->fd = open(fname, O_RDONLY)) == -1 ) goto ERROR ;  // file does not exist or is not readable
       break ;
 
@@ -2318,7 +2322,7 @@ RSF_handle RSF_Open_file(
       fp->fd = open(fname, O_RDWR | O_CREAT, 0777) ;
       if(fp->fd == -1){                  // fallback, try to open in read only mode
         fp->mode = RSF_RO ;
-        errmsg = " file does not exist or is not readable" ;
+        errmsg = "file does not exist or is not readable" ;
         if( (fp->fd = open(fname, O_RDONLY)) == -1 ) goto ERROR ;  // file does not exist or is not readable
       }
       // Try to lock the file for writing. If that doesn't work, set it to read-only.
@@ -2330,7 +2334,7 @@ RSF_handle RSF_Open_file(
 
     case RSF_AP:                         // to be added later
       fp->mode = RSF_RW ;                    // open existing file for read+write, no fallback
-      errmsg = " cannot open in write mode" ;
+      errmsg = "cannot open in write mode" ;
       if( (fp->fd = open(fname, O_RDWR, 0777)) == -1) goto ERROR ;  // cannot open in write mode
       break ;
 
@@ -2338,15 +2342,15 @@ RSF_handle RSF_Open_file(
       fp->fd = open(fname, O_RDWR, 0777);
       fp->mode = RSF_FUSE;
 
-      errmsg = " unable to open file in write mode";
+      errmsg = "unable to open file in write mode";
       if (fp->fd == -1) goto ERROR;
 
-      errmsg = " unable to lock for writing ";
+      errmsg = "unable to lock for writing ";
       if (RSF_Lock_for_write(fp) < 0) goto ERROR;
       break;
 
     default:
-      errmsg = " opening mode is not valid" ;
+      errmsg = "opening mode is not valid" ;
       goto ERROR ;
       break ;
   }
@@ -2357,7 +2361,7 @@ RSF_handle RSF_Open_file(
   // Verify that there is something to read in the file
   lseek(fp->fd, fp->seg_base, SEEK_SET) ;               // first segment of the file
   if (read(fp->fd, &fp->sos0, sizeof(start_of_segment)) < sizeof(start_of_segment)) {
-    errmsg = " file is empty" ;
+    errmsg = "file is empty" ;
     close(fp->fd) ;
     goto ERROR ;  // invalid SOS (too short)
   }
@@ -2367,15 +2371,28 @@ RSF_handle RSF_Open_file(
   fp->dir_meta = fp->sos0.head.rlmd ;
   fp->rec_meta = fp->dir_meta ;
 
-  if( RSF_Rl_sor(fp->sos0.head, RT_SOS) == 0 ) goto ERROR ;      // invalid SOS (wrong record type)
-  if( RSF_Rl_eor(fp->sos0.tail, RT_SOS) == 0 ) goto ERROR ;      // invalid SOS (wrong record type)
-  if( RSF_Rl_sos(fp->sos0) == 0 ) goto ERROR ;
-  if( check_application_code(fp, &fp->sos0) < 0 ) goto ERROR ;
+  if( RSF_Rl_sor(fp->sos0.head, RT_SOS) == 0 ) {
+    errmsg = "invalid SOS head (wrong record type)";
+    goto ERROR;
+  }
+  if( RSF_Rl_eor(fp->sos0.tail, RT_SOS) == 0 ) {
+    errmsg = "invalid SOS tail (wrong record type)";
+    goto ERROR;
+  }
+  if( RSF_Rl_sos(fp->sos0) == 0 ) {
+    errmsg = "invalid SOS (head and tail sizes don't match)";
+    goto ERROR ;
+  }
+  if( check_application_code(fp, &fp->sos0) < 0 ) {
+    errmsg = "wrong application code";
+    goto ERROR ;
+  }
 
   fp->slot = RSF_Set_file_slot(fp) ;        // insert into file table
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %s mode, slot %d, reading directory\n",
           __func__, open_mode_to_str(fp->mode), fp->slot);
-  if( RSF_Read_directory(fp) < 0 ){         // read directory from all segments
+  if( RSF_Read_directory(fp) < 0 ) {         // read directory from all segments
+    errmsg = " error while reading directory";
     RSF_Purge_file_slot(fp) ;               // remove from file table in case of error
     goto ERROR ;
   }

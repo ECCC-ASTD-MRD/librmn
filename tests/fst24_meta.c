@@ -135,6 +135,9 @@ int test_fst24_meta(void) {
       return -1;
    }
 
+   free(test_file);
+   test_file = NULL;
+
    // Open existing file
    const char* options2 = "RND+R/O";
    test_file = fst24_open(test_file_name, options2);
@@ -144,7 +147,6 @@ int test_fst24_meta(void) {
    }
 
    {
-      int32_t key;
       fst_record search_criteria = default_fst_record;
       fst_record search_extra = default_fst_record;
       fst_record record_find = default_fst_record;
@@ -162,8 +164,8 @@ int test_fst24_meta(void) {
       search_extra.ig1=68839;
       search_extra.ni=1024;
       search_extra.grtyp[0]='Z';
-      fst24_set_search_criteria(test_file, &search_extra);
-      if (fst24_find_next(test_file, &record)) {
+      fst_query* query = fst24_make_search_query(test_file, &search_extra);
+      if (fst24_find_next(query, &record)) {
          fprintf(stderr,"Found search extra\n");    
          fst24_read_metadata(&record);
          Meta_Resolve(record.metadata,prof_file);
@@ -178,8 +180,9 @@ int test_fst24_meta(void) {
       int num_found = 0;
       strcpy(search_criteria.typvar, "P");
       search_criteria.metadata=search_meta;
-      fst24_set_search_criteria(test_file, &search_criteria);
-      while(key=fst24_find_next(test_file, &record_find)) {
+      fst24_query_free(query);
+      query = fst24_make_search_query(test_file, &search_criteria);
+      while(fst24_find_next(query, &record_find) > 0) {
 //         fst24_read_metadata(&record_find);
       
          if (!record_find.metadata)  {
@@ -200,12 +203,16 @@ int test_fst24_meta(void) {
       meta=Meta_New(META_TYPE_RECORD,NULL);
       Meta_From89(meta,&record_find);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
+      fst24_query_free(query);
    }
 
    if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
       return -1;
    }
+
+   free(test_file);
+   test_file = NULL;
 
    return 0;
 }
