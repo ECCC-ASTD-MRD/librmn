@@ -38,13 +38,13 @@ for RI in I R ; do
         
         integer :: num_dims
 
-        nullify(array)
+!        nullify(array)
 
         num_dims = 1
         if (this % nj > 1) num_dims = 2
         if (this % nk > 1) num_dims = 3
 
-        if (${D} < num_dims) then
+        if (${D}>1 .and. ${D} < num_dims) then
             write(app_msg, '(A, I2, A)') 'Record data has ', num_dims, ' dimensions, so your pointer (${D}-D) needs at least that to work'
             call lib_log(APP_LIBFST, APP_ERROR, app_msg)
             return
