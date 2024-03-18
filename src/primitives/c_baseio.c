@@ -242,10 +242,6 @@ static int find_file_entry(
 
 
 //! Open a file and make the connection with a unit number and process record file attributes
-//! \return 0 if connection is successful, non-zero otherwise.
-//
-//! If name is all in upper case it will be converted to lower case.
-//! c_fnom is intended to be called from C. fnom is intended to be called from Fortran.
 int c_fnom(
     //! [in,out] Unit number
     int * const iun,
@@ -278,28 +274,37 @@ int c_fnom(
     //! - 'R/O'      : file to be opened in read only mode
     //! - 'REMOTE'   : remote file (file name must end with ':', all I/O will be performed using UNIX sockets) 
     //! - 'VOLATILE' : file will be automatically removed when process ends (unlink at open) 
-    //! - 'PARALLEL' : Enable paralle write into the file(RSF only) 
-    //!
-    //! Attribute can be combined as shown blow:
-    //!       +-----------STREAM----------------------+
-    //!       |                                       |
-    //!       +-------------RND-----------------------+
-    //!       |                                       |
-    //!       +--FTN--+  +--FMT--+                    |
-    //!       |       |  |       |                    |
-    //!       +--D77--+--+-------+--------------------+                
-    //!       |                                       |                
-    //!       |          +--RND--+--XDF------------+  |                 +--APPEND--+
-    //!       |          |       |                 |  |                 |          |
-    //!       |          |       +--RSF--PARALLEL--+  |  +----OLD----+  +---R/W----+
-    //!       |          |                         |  |  |           |  |          |
-    //!    >--+---STD----+--SEQ----------+---------+--+--+-----------+--+---R/O----+--+--VOLATILE-->
-    //!                  |               |               |                            |
-    //!                  +--FTN----------+               +--SCRATCH-------------------+
+    //! - 'PARALLEL' : Enable paralle write into the file(RSF only)
+    //! Attributes can be combined as shown blow:
+/*! \verbatim
+   +-----------STREAM----------------------+
+   |                                       |
+   +-------------RND-----------------------+
+   |                                       |
+   +--FTN--+  +--FMT--+                    |
+   |       |  |       |                    |
+   +--D77--+--+-------+--------------------+
+   |                                       |
+   |          +--RND--+--XDF------------+  |                 +--APPEND--+
+   |          |       |                 |  |                 |          |
+   |          |       +--RSF--PARALLEL--+  |  +----OLD----+  +---R/W----+
+   |          |                         |  |  |           |  |          |
+>--+---STD----+--SEQ----------+---------+--+--+-----------+--+---R/O----+--+--VOLATILE-->
+              |               |               |                            |
+              +--FTN----------+               +--SCRATCH-------------------+
+ \endverbatim */
     const char * const type,
     //! [in] Length of record (must be 0 except if type contains D77)
     const int lrec
 ) {
+    //! \return 0 if connection is successful, non-zero otherwise.
+    //!
+    //! If name is all in upper case it will be converted to lower case.
+    //!
+    //! c_fnom is intended to be called from C. \ref fnom is intended to be called from Fortran.
+    //!
+    //! \see c_fclos
+
     if (fnom_initialized == 0) {
         //  Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file
         // This is a workaround for a particular case on Linux in batch mode with PBS

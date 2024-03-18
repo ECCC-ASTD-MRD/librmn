@@ -186,7 +186,7 @@ int test_fst24_interface(const int is_rsf) {
     fields.grid_info = TRUE;
     fst24_print_summary(test_file, &fields);
 
-    fst_record record;
+    fst_record record = default_fst_record;
     fst_record expected = test_record;
 
     ///////////////////////////////////////////////
@@ -348,7 +348,7 @@ int test_fst24_interface(const int is_rsf) {
 
     {
         fst_record criteria = default_fst_record;
-        fst_record result;
+        fst_record result = default_fst_record;
         fst_record results[10];
 
         // Should find the 3 records in the second file only

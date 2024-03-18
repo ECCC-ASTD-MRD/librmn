@@ -8,7 +8,7 @@
 const char* test_filename = "parallel.fst";
 
 const size_t NUM_ELEM = 1000;
-float* data;
+float* data = NULL;
 
 void gen_data(float* buffer, const int size_x, const int rank, const int record_count) {
     for (int i = 0; i < size_x; i++) {
@@ -153,14 +153,15 @@ int test_parallel_write(const int rank) {
         test_file = NULL;
     }
 
-    if (data) free(data);
+    if (data != NULL) free(data);
     return 0;
 }
 
 int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
 
-    int rank, num_processes;
+    int rank = 0;
+    int num_processes = 1;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
 
@@ -171,9 +172,9 @@ int main(int argc, char* argv[]) {
 
     const int status = test_parallel_write(rank);
 
-    int all_status;
+    int all_status = status;
     MPI_Allreduce(&status, &all_status, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
 
     MPI_Finalize();
-    return status;
+    return all_status;
 }

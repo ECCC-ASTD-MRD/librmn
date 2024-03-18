@@ -80,7 +80,7 @@ int the_test(int argc, char **argv){
     for(i = 0 ; i < 5 ; i++) {
       key = i + 1 ;
       key += 0x100000000ul ;         // simulate file slot 0 for this file
-      p = RSF_Get_record(h1, key, 0) ;
+      p = RSF_Get_record(h1, key, 0, NULL) ;
       if(p) free(p) ;
     }
     RSF_Dump_vdir(h1) ;                                             // dump memory directoey

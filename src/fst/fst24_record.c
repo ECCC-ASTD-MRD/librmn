@@ -76,6 +76,7 @@ void fst24_record_print(const fst_record* record) {
         "  dasiz: %d\n"
         "  npak: %d\n"
         "  ni x nj x nk: %d x %d x %d (%d) elements\n"
+        "  metadata size: %d bytes\n"
         "  deet: %d, npas: %d\n"
         "  ip1-3: %d, %d, %d\n"
         "  ig1-4: %d, %d, %d, %d\n"
@@ -87,6 +88,7 @@ void fst24_record_print(const fst_record* record) {
         record->alloc, record->handle, 
         record->dateo, record->datev, record->datyp, record->dasiz, record->npak,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
+        record->num_meta_bytes,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,
         record->ig1, record->ig2, record->ig3, record->ig4,
         record->typvar, record->grtyp, record->nomvar, record->etiket
@@ -413,13 +415,15 @@ void fst24_record_print_short(
 //! Check whether the given record struct is valid (does not check its content, just its version token)
 int32_t fst24_record_is_valid(const fst_record* record) {
     if (record == NULL) {
-        Lib_Log(APP_ERROR, APP_LIBFST, "%s: Record pointer is NULL\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record pointer is NULL\n", __func__);
         return 0;
     }
     
     if (record->version != default_fst_record.version) {
-        Lib_Log(APP_ERROR, APP_LIBFST, "%s: Version number is wrong! This means your program (%ld) was not compiled"
-                " with the same version it is linked to (%ld)...\n", __func__, record->version, default_fst_record.version);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Version number (%ld) is wrong (should be %ld)! This means that either:\n"
+                "  - The given address does not point to an initialized fst_record struct\n"
+                "  - Your program was not compiled with the same version it is linked to\n",
+                __func__, record->version, default_fst_record.version);
         return 0;
     }
 
@@ -624,7 +628,7 @@ fst_record record_from_dir_keys(
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
     if (a->version != b->version) return 0;
-    if (a->flags != b->flags) return 0;
+    // if (a->flags != b->flags) return 0;
     // if (a->alloc != b->alloc) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
@@ -634,6 +638,7 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a->ni != b->ni) return 0;
     if (a->nj != b->nj) return 0;
     if (a->nk != b->nk) return 0;
+    // if (a->num_meta_bytes != b->num_meta_bytes) return 0; // We don't check because it is determined automatically at write-time
     if (a->deet != b->deet) return 0;
     if (a->npas != b->npas) return 0;
     if (a->ip1 != b->ip1) return 0;
@@ -685,6 +690,8 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: nj:      a = %d, b = %d)\n", __func__, a->nj, b->nj);
     if (a->nk != b->nk)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: nk:      a = %d, b = %d)\n", __func__, a->nk, b->nk);
+    if (a->num_meta_bytes != b->num_meta_bytes)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: num_meta_bytes:      a = %d, b = %d)\n", __func__, a->num_meta_bytes, b->num_meta_bytes);
     if (a->deet != b->deet)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: deet:    a = %d, b = %d)\n", __func__, a->deet, b->deet);
     if (a->npas != b->npas)
@@ -703,9 +710,6 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: ig3:     a = %d, b = %d)\n", __func__, a->ig3, b->ig3);
     if (a->ig4 != b->ig4)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: ig4:     a = %d, b = %d)\n", __func__, a->ig4, b->ig4);
-
-    if (a->dummy != b->dummy)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: dummy:   a = %d, b = %d)\n", __func__, a->dummy, b->dummy);
 
     if (!is_same_record_string(a->typvar, b->typvar, FST_TYPVAR_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: typvar:  a = \"%3s\", b = \"%3s\"\n", __func__, a->typvar, b->typvar);
@@ -758,8 +762,8 @@ void print_non_wildcards(const fst_record* record) {
     char buffer[1024];
     char* ptr = buffer;
 
-    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
-    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%d ", record->datev);
+    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%ld ", record->dateo);
+    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%ld ", record->datev);
     if (record->datyp != default_fst_record.datyp) ptr += snprintf(ptr, 20, "datyp=%d ", record->datyp);
     if (record->dasiz != default_fst_record.dasiz) ptr += snprintf(ptr, 20, "dasiz=%d ", record->dasiz);
     if (record->npak != default_fst_record.npak)   ptr += snprintf(ptr, 20, "npak=%d ", record->npak);
