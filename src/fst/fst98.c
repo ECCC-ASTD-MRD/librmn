@@ -146,10 +146,8 @@ void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
 }
 
 static void init_open_file(fstd_usage_info* info) {
-    memset(info, 0, sizeof(fstd_usage_info));
-    memset(&info->search_mask, 0xff, sizeof(stdf_dir_keys));
-    memset(&info->background_search_mask, 0xff, sizeof(stdf_dir_keys));
-    info->num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
+    info->query = new_fst_query();
+    info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     info->next_file = -1;
 }
 
@@ -3487,7 +3485,7 @@ int c_fstouv(
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
             if (is_rsf) {
-                ier = c_fstouv_rsf(i, RSF_RW, appl, seg_size);
+                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3505,7 +3503,7 @@ int c_fstouv(
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
             if (is_rsf) {
-               ier = c_fstouv_rsf(i, RSF_RW, appl, seg_size);
+               ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3513,7 +3511,7 @@ int c_fstouv(
             read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
-                ier = c_fstouv_rsf(i, open_mode, appl, seg_size);
+                ier = c_fstouv_rsf(i, open_mode, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);

@@ -2186,14 +2186,17 @@ int Meta_ReadFile(fst_file *file,json_object **Obj) {
    strcpy(rec.nomvar, "META");
    strcpy(rec.etiket, "FILE_JSON   ");
  
-   fst24_set_search_criteria(file,&rec);
-   if (fst24_find_next(file,&rec)) {
+   fst_query* query = fst24_make_search_query(file, &rec);
+   if (fst24_find_next(query,&rec)) {
       fst24_read_metadata(&rec);
       *Obj=rec.metadata;
    } else {
       Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to find file metadata record\n",__func__);
+      fst24_query_free(query);
       return(FALSE);
    }
+
+   fst24_query_free(query);
    return(TRUE);
 }
 

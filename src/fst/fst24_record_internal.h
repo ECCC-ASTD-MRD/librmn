@@ -9,7 +9,8 @@
 void make_search_criteria(const fst_record* record, stdf_dir_keys* criteria, stdf_dir_keys* mask);
 void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys);
 fst_record record_from_dir_keys(const stdf_dir_keys* keys);
-void print_non_wildcards(const fst_record* record);
+void print_non_wildcards(const fst_record* const record);
+void print_dir_keys(const stdf_dir_keys* const keys);
 
 //! Set most members of the given fst_record struct to their default value, while preserving
 //! the data pointer and the allocation flag and status;

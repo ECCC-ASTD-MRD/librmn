@@ -27,33 +27,6 @@ int32_t is_rsf(
     return FGFDT[index_fnom].attr.rsf == 1 ? 1 : 0;
 }
 
-//! Find the next record in a given file, according to the given parameters
-//! \return Key of the record found (negative if error or nothing found)
-int64_t find_next_record(RSF_handle file_handle, fstd_usage_info* search_params) {
-
-    stdf_dir_keys actual_mask;
-    uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;
-    uint32_t* mask_u32            = (uint32_t *)&search_params->search_mask;
-    uint32_t* background_mask_u32 = (uint32_t *)&search_params->background_search_mask;
-    for (int i = 0; i < search_params->num_criteria; i++) {
-        actual_mask_u32[i] = mask_u32[i] & background_mask_u32[i];
-    }
-    const int64_t rsf_key = RSF_Lookup(file_handle,
-                                       search_params->search_start_key,
-                          (uint32_t *)&search_params->search_criteria,
-                                       actual_mask_u32,
-                                       search_params->num_criteria);
-    if (rsf_key > 0) {
-        // Found it. Next search will start here
-        search_params->search_start_key = rsf_key;
-    }
-    else {
-        // Did not find it. Mark this search as finished
-        search_params->search_done = 1;
-    }
-    return rsf_key;
-}
-
 //! \copydoc c_fstecr
 //! RSF version
 int c_fstecr_rsf(
@@ -665,6 +638,8 @@ int c_fstecr_rsf(
         }
     }
 
+    RSF_Free_record(record);
+
     xdf_double = 0;
     xdf_short = 0;
     xdf_byte = 0;
@@ -691,8 +666,6 @@ int c_fstouv_rsf(
     const int index_fnom,
     //!> [in] Opening mode (read/write/append)
     const int mode,
-    //!> [in] I don't know what "appl" is
-    char appl[5],
     //!> [in] Size in MB of segments, if open for parallel write (not parallel if <= 0)
     const int32_t parallel_segment_size_mb
 ) {
@@ -703,6 +676,8 @@ int c_fstouv_rsf(
         segment_size = ((int64_t)parallel_segment_size_mb) << 20;
     }
     
+    const char appl[4] = {'S', 'T', 'D', 'F'};
+
     // Lib_Log(APP_LIBFST, APP_WARNING, "%s: segment size = %ld\n", __func__, segment_size);
     FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, &segment_size);
     
@@ -778,10 +753,10 @@ int c_fstinfx_rsf(
     }
 
     // Initialize search parameters
-    fstd_open_files[index_fnom].search_start_key = 0;
-    fstd_open_files[index_fnom].search_done = 0;
-    stdf_dir_keys *search_criteria  = &fstd_open_files[index_fnom].search_criteria;
-    stdf_dir_keys *search_mask = &fstd_open_files[index_fnom].search_mask;
+    fstd_open_files[index_fnom].query.search_index = 0;
+    fstd_open_files[index_fnom].query.search_done = 0;
+    stdf_dir_keys *search_criteria  = &fstd_open_files[index_fnom].query.criteria;
+    stdf_dir_keys *search_mask = &fstd_open_files[index_fnom].query.mask;
 
     // Reset search mask for initialization
     {
@@ -867,7 +842,7 @@ int c_fstinfx_rsf(
     int64_t rsf_key = -1;
     if (handle == -2) {
         /* means handle not specified */
-        rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+        rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
     } else {
         // Verify that the given handle (record key) belongs to the given file
         if (handle > 0) {
@@ -878,7 +853,7 @@ int c_fstinfx_rsf(
             }
         }
 
-        rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+        rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
     }
     int32_t lhandle = RSF_Key32(rsf_key);
 
@@ -911,7 +886,7 @@ int c_fstinfx_rsf(
                 }
             }
             if (nomatch) {
-                rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+                rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
                 lhandle = RSF_Key32(rsf_key);
                 if (rsf_key >= 0) {
                     record_info = RSF_Get_record_info(file_handle, rsf_key);
@@ -1408,7 +1383,7 @@ int c_fstlis_rsf(
     }
 
     /* Get the next record that matches the last search criterias */
-    const int64_t rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+    const int64_t rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
 
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
@@ -1454,7 +1429,7 @@ int c_fstmsq_rsf(
         return ERR_NO_FILE;
     }
 
-    stdf_dir_keys* search_mask = &fstd_open_files[index_fnom].background_search_mask;
+    stdf_dir_keys* search_mask = &fstd_open_files[index_fnom].query.background_mask;
 
     if (getmode == 0) {
         search_mask->ip1 = ~(*mip1) & 0xfffffff;
@@ -1657,7 +1632,7 @@ int c_fstsui_rsf(
     }
 
     /* position to the next record that matches the last search criterias */
-    const int64_t rsf_key = find_next_record(file_handle, &fstd_open_files[index_fnom]);
+    const int64_t rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
         return (int32_t)rsf_key;

@@ -283,8 +283,9 @@ int test_compression(const int is_rsf) {
     }
 
     fst_record rec_read = default_fst_record;
+    fst_query* query = fst24_make_search_query(test_file, NULL);
     for (int i = 0; i < NUM_CASES; i++) {
-        if (fst24_read_next(test_file, &rec_read) <= 0) {
+        if (fst24_read_next(query, &rec_read) <= 0) {
             App_Log(APP_ERROR, "Unable to read record from file\n");
             return -1;
         }
@@ -313,6 +314,7 @@ int test_compression(const int is_rsf) {
 
     // fst24_record_free(&rec);
     fst24_record_free(&rec_read);
+    fst24_query_free(query);
 
     if (fst24_close(test_file) <= 0) {
         App_Log(APP_ERROR, "Unable to close new file %s\n", test_filename);

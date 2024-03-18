@@ -47,7 +47,7 @@ end subroutine delete_test_data
 
 subroutine make_test_record()
     implicit none
-    logical :: success
+    integer(C_INT32_T) :: status
 
     call make_test_data()
 
@@ -73,7 +73,7 @@ subroutine make_test_record()
     test_record % datyp = FST_TYPE_REAL
     test_record % dasiz = 32
 
-    success = test_record % metadata % init(META_TYPE_RECORD,"")
+    status = test_record % metadata % init(META_TYPE_RECORD,"")
     write(6,*) test_record % metadata % stringify()
 end subroutine make_test_record
 
@@ -200,12 +200,14 @@ function test_fst24_interface(is_rsf) result(success)
     type(fst_file) :: test_file
     type(fst_record_fields) :: fields
     type(fst_record) :: expected, record
+    type(fst_query) :: query
     integer :: num_found
     real(kind = real32), dimension(:, :), pointer :: data_array
     integer(kind = int32), dimension(:, :), pointer :: bad_type
     real(kind = real64), dimension(:, :), pointer :: bad_size_64
     real(kind = real32), dimension(:), pointer :: bad_dim
     real(kind = real32), dimension(:, :, :), pointer :: ok_dim
+    integer(C_INT32_T) :: status
 
     success = .false.
 
@@ -238,8 +240,9 @@ function test_fst24_interface(is_rsf) result(success)
     ! ///////////////////////////////////////////////
     ! // Find next + read
     num_found = 0
-    success = test_file % set_search_criteria() ! Default search criteria (wildcard everywhere)
-    do while (test_file % find_next(record))
+    query = test_file % make_search_query() ! Default search criteria (wildcard everywhere)
+    success = query % is_valid()
+    do while (query % find_next(record))
         ! call record % print_short(print_header = (num_found == 0))
         num_found = num_found + 1
 
@@ -308,10 +311,10 @@ function test_fst24_interface(is_rsf) result(success)
 
     ! ////////////////////////////////////////////////////////////
     ! // Read next
-    success = test_file % set_search_criteria() ! Rewind search
+    call query % rewind()
     num_found = 0
     call app_log(APP_INFO, 'Reading again, with read_next')
-    do while (test_file % read_next(record))
+    do while (query % read_next(record))
         num_found = num_found + 1
         expected % ip1 = num_found
 
@@ -345,7 +348,7 @@ function test_fst24_interface(is_rsf) result(success)
         type(fst_record), dimension(5) :: all_records
         integer :: i
 
-        num_found = test_file % find_all(all_records(1:1))
+        num_found = query % find_all(all_records(1:1))
 
         success = (num_found == 1)
         if (.not. success) then
@@ -365,7 +368,7 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        num_found = test_file % find_all(all_records)
+        num_found = query % find_all(all_records)
         success = (num_found == 3)
         if (.not. success) then
             write(app_msg, '(A, I4, A)') 'Found only ', num_found, ' of the 3 records we wrote!'
@@ -386,6 +389,8 @@ function test_fst24_interface(is_rsf) result(success)
             end if
         end do
     end block
+
+    call query % free()
 
     ! /////////////////////////////////////////
     ! // Everything again, with linked files
@@ -440,7 +445,8 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        success = test_file % set_search_criteria(ip2 = test_record % ip2 + 1)
+        query = test_file % make_search_query(ip2 = test_record % ip2 + 1)
+        success = query % is_valid()
         if (.not. success) then
             call app_log(APP_ERROR, 'Unable to set search criteria!')
             return
@@ -450,7 +456,7 @@ function test_fst24_interface(is_rsf) result(success)
         call app_log(APP_INFO, 'Looking for 3 records (should be in second file)')
 
         ! Should find the 3 records in the second file only
-        do while(test_file % find_next(record))
+        do while(query % find_next(record))
             num_found = num_found + 1
             expected % ip1 = num_found
             expected % ip2 = test_record % ip2 + 1
@@ -474,7 +480,7 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        num_found = test_file % find_all(results)
+        num_found = query % find_all(results)
         success = (num_found == 3)
         if (.not. success) then
             write(app_msg, '(A, I4)') 'Find all should have found 3 rather than ', num_found
@@ -483,10 +489,12 @@ function test_fst24_interface(is_rsf) result(success)
         end if
 
         ! Should find the 6 records in second + third file
-        success = test_file % set_search_criteria(ip3 = test_record % ip3 + 1)
+        call query % free()
+        query = test_file % make_search_query(ip3 = test_record % ip3 + 1)
+        success = query % is_valid()
         num_found = 0
         call app_log(APP_INFO, 'Looking for 6 records (should be in second + third files)')
-        do while (test_file % find_next(record))
+        do while (query % find_next(record))
             num_found = num_found + 1
             success = record % read()
             if (.not. success) then
@@ -503,7 +511,17 @@ function test_fst24_interface(is_rsf) result(success)
         end if
 
         call app_log(APP_INFO, 'Find all (should be 6)')
-        num_found = test_file % find_all(results)
+        num_found = query % find_all(results)
+        success = (num_found == 6)
+        if (.not. success) then
+            write(app_msg, '(A, I4)') 'Find all should have found 6 rather than ', num_found
+            call app_log(APP_ERROR, app_msg)
+            return
+        end if
+
+        call app_log(APP_INFO, 'Testing rewind')
+        call query % rewind()
+        num_found = query % find_all(results)
         success = (num_found == 6)
         if (.not. success) then
             write(app_msg, '(A, I4)') 'Find all should have found 6 rather than ', num_found
@@ -512,9 +530,11 @@ function test_fst24_interface(is_rsf) result(success)
         end if
 
         call app_log(APP_INFO, 'Read all, one by one')
-        success = test_file % set_search_criteria() ! Reset search
+        call query % free()
+        query = test_file % make_search_query()
+        success = query % is_valid()
         num_found = 0
-        do while (test_file % read_next(record))
+        do while (query % read_next(record))
             num_found = num_found + 1
         end do
 
@@ -558,19 +578,21 @@ function test_fst24_interface(is_rsf) result(success)
         return
     end if
     
-    success = .not. test_file % find_next(record)    
+    success = .not. query % find_next(record)    
     if (.not. success) then
         call App_Log(APP_ERROR, 'Should not be able to search a closed file')
         return
     end if
 
-    success = .not. test_file % read_next(record)    
+    success = .not. query % read_next(record)    
     if (.not. success) then
         call App_Log(APP_ERROR, 'Should not be able to search a closed file')
         return
     end if
 
-    success = .not. test_file % set_search_criteria()
+    call query % free()
+    query = test_file % make_search_query()
+    success = .not. query % is_valid()
     if (.not. success) then
         call App_Log(APP_ERROR, 'Should not be able to set search criteria on a closed file')
         return

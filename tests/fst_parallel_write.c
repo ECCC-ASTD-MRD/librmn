@@ -127,15 +127,17 @@ int test_parallel_write(const int rank) {
             return -1;
         }
 
-        while (fst24_read_next(test_file, &rec)) {
+        fst_record read_rec = default_fst_record;
+        fst_query* query = fst24_make_search_query(test_file, NULL);
+        while (fst24_read_next(query, &read_rec)) {
             num_read++;
 
-            gen_data(expected_data, NUM_ELEM, rec.ip2, rec.ip3);
-            if (compare_data((float*)rec.data, expected_data, NUM_ELEM * NUM_ELEM) < 0) {
+            gen_data(expected_data, NUM_ELEM, read_rec.ip2, read_rec.ip3);
+            if (compare_data((float*)read_rec.data, expected_data, NUM_ELEM * NUM_ELEM) < 0) {
                 App_Log(APP_ERROR, "Data is not the same!\n");
-                fst24_record_print(&rec);
+                fst24_record_print(&read_rec);
                 print_data(expected_data, NUM_ELEM);
-                print_data((float*)rec.data, NUM_ELEM);
+                print_data((float*)read_rec.data, NUM_ELEM);
                 return -1;
             }
 
@@ -148,6 +150,8 @@ int test_parallel_write(const int rank) {
             return -1;
         }
 
+        fst24_record_free(&read_rec);
+        fst24_query_free(query);
         fst24_close(test_file);
         free(test_file);
         test_file = NULL;
