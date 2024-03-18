@@ -38,6 +38,7 @@ static char *MetaVersion=NULL;       ///< Metadata version
 static char  MetaValidate=FALSE;     ///< Enable token validation
 static char  MetaRegExp=FALSE;       ///< Force regexp matching in json metadata comparisons
 static char *MetaPaths[2];           ///< Profile definition path
+static char  MetaQualifiers=NULL;    ///< Force adding of env defined qualifiers
 
 static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","month","year","decade","centenary","millenia" };
 
