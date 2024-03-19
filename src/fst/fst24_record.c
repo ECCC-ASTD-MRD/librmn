@@ -272,7 +272,7 @@ char* add_grid_info(
 ) {
     F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
     char pg1[7], pg2[7], pg3[8], pg4[8];
-    f77name(igapg)(grtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4, lc1, lc2, lc3, lc4, lc5);
+    igapg_c(grtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4);
     pg1[6] = '\0'; pg2[6] = '\0'; pg3[7] = '\0'; pg4[7] = '\0';
     const int num_written = snprintf(buffer, 33, " %1s %6s %6s %7s %7s", grtyp, pg1, pg2, pg3, pg4);
     pad(buffer, num_written, length + 1);
