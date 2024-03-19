@@ -1001,9 +1001,6 @@ int32_t fst24_rewind_search(fst_query* const query) {
        return FALSE;
     }
 
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Rewinding query %p\n", __func__, query);
-    print_dir_keys(&query->criteria);
-
     query->search_index = 0;
     query->search_done  = 0;
 
