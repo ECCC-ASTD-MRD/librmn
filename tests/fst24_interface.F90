@@ -281,8 +281,8 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
         call record % get_data_array(bad_dim)
-        if (associated(bad_dim)) then
-            call app_log(APP_ERROR, 'Pointer should not be associated!')
+        if (.not. associated(bad_dim)) then
+            call app_log(APP_ERROR, 'Single array request should have worked!')
             return
         end if
         call record % get_data_array(ok_dim)
