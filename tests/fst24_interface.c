@@ -192,7 +192,7 @@ int test_fst24_interface(const int is_rsf) {
     ///////////////////////////////////////////////
     // Find next + read
     int num_found = 0;
-    fst_query* query = fst24_make_search_query(test_file, NULL);
+    fst_query* query = fst24_new_query(test_file, NULL);
     int64_t keys[3];
     while (fst24_find_next(query, &record)) {
         // fst24_record_print(&record);
@@ -354,7 +354,7 @@ int test_fst24_interface(const int is_rsf) {
         // Should find the 3 records in the second file only
         criteria.ip2 = test_record.ip2 + 1;
         fst24_query_free(query);
-        query = fst24_make_search_query(test_file, &criteria);
+        query = fst24_new_query(test_file, &criteria);
         num_found = 0;
         App_Log(APP_INFO, "Looking for 3 records (should be in second file)\n");
         while (fst24_find_next(query, &result)) {
@@ -385,7 +385,7 @@ int test_fst24_interface(const int is_rsf) {
         fst24_query_free(query);
         criteria = default_fst_record;
         criteria.ip3 = test_record.ip3 + 1;
-        query = fst24_make_search_query(test_file, &criteria);
+        query = fst24_new_query(test_file, &criteria);
         num_found = 0;
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
         while (fst24_find_next(query, &result)) {
@@ -410,7 +410,7 @@ int test_fst24_interface(const int is_rsf) {
 
         App_Log(APP_INFO, "Read all, one by one\n");
         fst24_query_free(query);
-        query = fst24_make_search_query(test_file, &default_fst_record); // Reset search
+        query = fst24_new_query(test_file, &default_fst_record); // Reset search
         num_found = 0;
         while (fst24_read_next(query, &record) > 0) {
             num_found++;
@@ -457,7 +457,7 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_make_search_query(test_file, &record) != NULL) {
+    if (fst24_new_query(test_file, &record) != NULL) {
         App_Log(APP_ERROR, "Should not be able to set search criteria on a closed file\n");
         return -1;
     }

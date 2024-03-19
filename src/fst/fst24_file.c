@@ -952,7 +952,7 @@ int32_t fst24_get_record_from_key(
 
 //! Create a search query that will apply the given criteria during a search in a file.
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
-fst_query* fst24_make_search_query(
+fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
     const fst_record* criteria  //!< Criteria to be used for the search. If NULL, will look for any record
 ) {

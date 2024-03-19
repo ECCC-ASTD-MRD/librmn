@@ -164,7 +164,7 @@ int test_fst24_meta(void) {
       search_extra.ig1=68839;
       search_extra.ni=1024;
       search_extra.grtyp[0]='Z';
-      fst_query* query = fst24_make_search_query(test_file, &search_extra);
+      fst_query* query = fst24_new_query(test_file, &search_extra);
       if (fst24_find_next(query, &record)) {
          fprintf(stderr,"Found search extra\n");    
          fst24_read_metadata(&record);
@@ -181,7 +181,7 @@ int test_fst24_meta(void) {
       strcpy(search_criteria.typvar, "P");
       search_criteria.metadata=search_meta;
       fst24_query_free(query);
-      query = fst24_make_search_query(test_file, &search_criteria);
+      query = fst24_new_query(test_file, &search_criteria);
       while(fst24_find_next(query, &record_find) > 0) {
 //         fst24_read_metadata(&record_find);
       

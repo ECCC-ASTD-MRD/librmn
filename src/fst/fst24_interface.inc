@@ -97,13 +97,13 @@ function fst24_get_num_records(file) result(num_records) bind(C, name = 'fst24_g
   integer(C_INT64_T) :: num_records
 end function fst24_get_num_records
 
-function fst24_make_search_query(file, criteria) result(query) bind(C, name = 'fst24_make_search_query')
+function fst24_new_query(file, criteria) result(query) bind(C, name = 'fst24_new_query')
   import :: C_PTR
   implicit none
   type(C_PTR), intent(in), value :: file
   type(C_PTR), intent(in), value :: criteria
   type(C_PTR) :: query
-end function fst24_make_search_query
+end function fst24_new_query
 
 function fst24_rewind_search(query) result(status) bind(C, name = 'fst24_rewind_search')
   import :: C_PTR, C_INT32_T

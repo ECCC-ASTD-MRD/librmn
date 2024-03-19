@@ -21,7 +21,7 @@ module rmn_fst24
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
 
-        procedure, pass :: make_search_query => fst24_file_make_search_query !< \copydoc fst24_file_make_search_query
+        procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
@@ -145,9 +145,9 @@ contains
         status = fst24_get_unit(this % file_ptr)
     end function fst24_file_get_unit
 
-    !> \copybrief fst24_make_search_query
+    !> \copybrief fst24_new_query
     !> \return .true. if we were able to set the criteria, .false. if file was not open (or other error)
-    function fst24_file_make_search_query(this,                                                                     & 
+    function fst24_file_new_query(this,                                                                     & 
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
         implicit none
@@ -187,9 +187,9 @@ contains
         if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 13)
         if (present(metadata)) criteria % metadata = metadata % json_obj
 
-        query % query_ptr = fst24_make_search_query(this % file_ptr, c_loc(criteria))
+        query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria))
 
-    end function fst24_file_make_search_query
+    end function fst24_file_new_query
 
     !> \copybrief fst24_find_next
     !> \return .true. if we found a record, .false. if not or if error

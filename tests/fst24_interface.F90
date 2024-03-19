@@ -240,7 +240,7 @@ function test_fst24_interface(is_rsf) result(success)
     ! ///////////////////////////////////////////////
     ! // Find next + read
     num_found = 0
-    query = test_file % make_search_query() ! Default search criteria (wildcard everywhere)
+    query = test_file % new_query() ! Default search criteria (wildcard everywhere)
     success = query % is_valid()
     do while (query % find_next(record))
         ! call record % print_short(print_header = (num_found == 0))
@@ -445,7 +445,7 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        query = test_file % make_search_query(ip2 = test_record % ip2 + 1)
+        query = test_file % new_query(ip2 = test_record % ip2 + 1)
         success = query % is_valid()
         if (.not. success) then
             call app_log(APP_ERROR, 'Unable to set search criteria!')
@@ -490,7 +490,7 @@ function test_fst24_interface(is_rsf) result(success)
 
         ! Should find the 6 records in second + third file
         call query % free()
-        query = test_file % make_search_query(ip3 = test_record % ip3 + 1)
+        query = test_file % new_query(ip3 = test_record % ip3 + 1)
         success = query % is_valid()
         num_found = 0
         call app_log(APP_INFO, 'Looking for 6 records (should be in second + third files)')
@@ -531,7 +531,7 @@ function test_fst24_interface(is_rsf) result(success)
 
         call app_log(APP_INFO, 'Read all, one by one')
         call query % free()
-        query = test_file % make_search_query()
+        query = test_file % new_query()
         success = query % is_valid()
         num_found = 0
         do while (query % read_next(record))
@@ -591,7 +591,7 @@ function test_fst24_interface(is_rsf) result(success)
     end if
 
     call query % free()
-    query = test_file % make_search_query()
+    query = test_file % new_query()
     success = .not. query % is_valid()
     if (.not. success) then
         call App_Log(APP_ERROR, 'Should not be able to set search criteria on a closed file')
