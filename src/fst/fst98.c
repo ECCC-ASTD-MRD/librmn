@@ -597,9 +597,7 @@ void print_std_parms(
         F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
         ig1 = stdf_entry->ig1; ig2 = cracked.ig2;
         ig3 = stdf_entry->ig3; ig4 = stdf_entry->ig4;
-        f77name(igapg)(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4,
-                    lc1, lc2, lc3, lc4, lc5);
-                /*     1, 7, 7, 8, 8);       */
+        igapg_c(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4);
         pg1[6] = '\0'; pg2[6] = '\0'; pg3[7] = '\0'; pg4[7] = '\0';
         snprintf(v_grid, sizeof(v_grid), "%1s %6s %6s %7s %7s", cracked.gtyp, pg1, pg2, pg3, pg4);
     } else {
