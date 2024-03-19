@@ -20,7 +20,7 @@ for RI in I R ; do
                 [[ $L == 4 ]] && KIND='C_FLOAT'
                 [[ $L == 8 ]] && KIND='C_DOUBLE'
                 TYPE_CONDITION='is_type_real(this % datyp) == 1'
-                ACCEPTED_TYPES='FST_TYPE_REAL'
+                ACCEPTED_TYPES='FST_TYPE_REAL, FST_TYPE_REAL_IEEE or FST_TYPE_REAL_OLD_QUANT'
             fi
             [[ $D == 3 ]] && DIMENSION=':,:,:'
             [[ $D == 2 ]] && DIMENSION=':,:'

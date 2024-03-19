@@ -26,12 +26,12 @@
     }
 
 static inline int32_t base_fst_type(const int32_t type_flag) {
-    return type_flag & 0x2f;
+    return type_flag & 0x3f;
 }
 static inline int32_t is_type_real(const int32_t type_flag) {
-    return ((base_fst_type(type_flag) == FST_TYPE_REAL) ||
-            (base_fst_type(type_flag) == FST_TYPE_FREAL) ||
-            (base_fst_type(type_flag) == FST_TYPE_IEEE_16));
+    return ((base_fst_type(type_flag) == FST_TYPE_REAL_IEEE) ||
+            (base_fst_type(type_flag) == FST_TYPE_REAL_OLD_QUANT) ||
+            (base_fst_type(type_flag) == FST_TYPE_REAL));
 }
 static inline int32_t is_type_complex(const int32_t type_flag) {
     return (base_fst_type(type_flag) == FST_TYPE_COMPLEX);

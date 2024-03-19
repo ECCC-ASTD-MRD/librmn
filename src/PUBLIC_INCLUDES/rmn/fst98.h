@@ -25,20 +25,63 @@
 extern "C" {
 #endif
 
-static char*   FST_TYPE_NAMES[]   = { "bit","fortran real","unsigned int","byte","signed int","float","float16","string","complex" };
-static const int32_t FST_TYPE_BINARY    = 0; //!< X
-static const int32_t FST_TYPE_FREAL     = 1; //!< R, not reversible (not cyclic), REAL_OLD_QUANTIFIER
-static const int32_t FST_TYPE_UNSIGNED  = 2; //!< Unsigned integer
-static const int32_t FST_TYPE_FCHAR     = 3; //!< Characters (not compressed)
-static const int32_t FST_TYPE_SIGNED    = 4; //!< Signed integer
-static const int32_t FST_TYPE_REAL      = 5; //!< E, no quantification Real number (32 or 64 bits), IEEE
-static const int32_t FST_TYPE_IEEE_16   = 6; //!< F, Quantify differently from R. Lossy, but cyclic, REAL
-static const int32_t FST_TYPE_STRING    = 7; //!< Characters (compressed)
-static const int32_t FST_TYPE_COMPLEX   = 8; //!< Complex number (32 or 64 bits)
+//!> Raw binary data. Its elements can have any size, and it is not subject to interpretation by the FST layer.
+//!> Identified with X.
+static const int32_t FST_TYPE_BINARY    = 0;
+
+//!> Real-valued data using the old quantification scheme.
+//!> Identified with R.
+//!> This quantification is lossy and not reversible (non-cyclic)
+//!> If trying to store with [31-32] bits, automatically converted to FST_TYPE_REAL_IEEE
+static const int32_t FST_TYPE_REAL_OLD_QUANT = 1;
+
+//!> Unsigned integer data
+static const int32_t FST_TYPE_UNSIGNED  = 2;
+
+//!> Characters (not compressed)
+static const int32_t FST_TYPE_CHAR     = 3;
+
+//!> Signed integer data
+static const int32_t FST_TYPE_SIGNED    = 4;
+
+//!> Real-valued data using IEEE format (no quantification), in 32 or 64 bits. Identified with E.
+//!> When trying to store data with number of bits in the range [33-63], the original data size is
+//!> preserved (either 32 or 64 bits).
+//!> When trying to store 64-bit (double) data with 32 bits or less, it is first converted to 32-bit IEEE (float)
+//!> When trying to store 32-bit (float) data with less than 32 bits, the extra bits are simply truncated from the
+//!> mantissa (so don't go too low).
+static const int32_t FST_TYPE_REAL_IEEE = 5;
+
+//!> Real-valued data using a new quantification scheme.
+//!> *This is the recommended REAL type to use.*
+//!> This quantification scheme is lossy, but reversible (cyclic)
+//!> Depending on number of bits requested for storage, a conversion may be performed at write-time.
+//!>   if > 24 -> use FST_TYPE_REAL_IEEE with 32 bits
+//!>   if [17-23] -> use FST_TYPE_REAL_OLD_QUANT with that number of bits
+//!>   if < 16 -> quantify to 16, then truncate any extra bit from the new mantissa
+static const int32_t FST_TYPE_REAL   = 6;
+
+//!> Characters (compressed)
+static const int32_t FST_TYPE_STRING    = 7;
+
+//!> Complex number (32 or 64 bits)
+static const int32_t FST_TYPE_COMPLEX   = 8;
+
+static char* FST_TYPE_NAMES[] = {
+    "FST_TYPE_BINARY",
+    "FST_TYPE_OLD_QUANT",
+    "FST_TYPE_UNSIGNED",
+    "FST_TYPE_CHAR",
+    "FST_TYPE_SIGNED",
+    "FST_TYPE_REAL_IEEE",
+    "FST_TYPE_REAL",
+    "FST_TYPE_STRING",
+    "FST_TYPE_COMPLEX"
+};
 
 // static const int32_t FST_TYPE_MISSING   = FSTD_MISSING_FLAG;
 static const int32_t FST_TYPE_TURBOPACK = 128;
-static const int32_t FST_TYPE_MAGIC     = 801; // No idea what this is. Seems to reduce to BAD_FLOAT and double precision packer...
+static const int32_t FST_TYPE_MAGIC     = 801; // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
 
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);

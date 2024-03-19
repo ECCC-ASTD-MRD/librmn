@@ -68,7 +68,7 @@ int test_parallel_write(const int rank) {
 
     fst_record rec = default_fst_record;
     rec.data = data;
-    rec.datyp = FST_TYPE_REAL;
+    rec.datyp = FST_TYPE_REAL_IEEE;
     rec.dasiz = 32;
     rec.npak = -32;
     rec.ni = NUM_ELEM;

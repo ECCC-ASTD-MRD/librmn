@@ -912,12 +912,12 @@ end subroutine short
 These are also available in Fortran
 ```C
 static const int32_t FST_TYPE_BINARY    = 0;
-static const int32_t FST_TYPE_FREAL     = 1;
+static const int32_t FST_TYPE_OLD_QUANT = 1;
 static const int32_t FST_TYPE_UNSIGNED  = 2; //!< Unsigned integer
-static const int32_t FST_TYPE_FCHAR     = 3; //!< Characters (not compressed)
+static const int32_t FST_TYPE_CHAR      = 3; //!< Characters (not compressed)
 static const int32_t FST_TYPE_SIGNED    = 4; //!< Signed integer
-static const int32_t FST_TYPE_REAL      = 5; //!< Real number (32 or 64 bits)
-static const int32_t FST_TYPE_IEEE_16   = 6;
+static const int32_t FST_TYPE_REAL_IEEE = 5; //!< Real number (32 or 64 bits)
+static const int32_t FST_TYPE_REAL      = 6;
 static const int32_t FST_TYPE_STRING    = 7; //!< Characters (compressed)
 static const int32_t FST_TYPE_COMPLEX   = 8; //!< Complex number (32 or 64 bits)
 

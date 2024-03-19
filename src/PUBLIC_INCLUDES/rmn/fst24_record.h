@@ -34,9 +34,9 @@ typedef struct {
     int64_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
-    int32_t datyp;  //!< Data type of elements
-    int32_t dasiz;  //!< Number of bits per elements
-    int32_t npak;   //!< Compression factor (none if 0 or 1). Number of bit if negative
+    int32_t datyp;  //!< Data type of elements. See FST_TYPE_* constants.
+    int32_t dasiz;  //!< Number of bits per input elements
+    int32_t npak;   //!< Requested compression factor (none if 0 or 1). Number of stored bits if negative
     int32_t ni;     //!< First dimension of the data field (number of elements)
     int32_t nj;     //!< Second dimension of the data field (number of elements)
     int32_t nk;     //!< Third dimension of the data field (number of elements)

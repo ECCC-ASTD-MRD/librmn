@@ -84,7 +84,7 @@ subroutine generate_file(filename, is_rsf)
 
     record % data = c_loc(array_real32)
     record % ip1 = 2
-    record % datyp = FST_TYPE_REAL
+    record % datyp = FST_TYPE_REAL_IEEE
     record % etiket = 'REAL32'
     success = the_file % write(record)
 
@@ -100,7 +100,7 @@ subroutine generate_file(filename, is_rsf)
     record % ip1 = 3
     record % ip2 = 1
     record % etiket = 'REAL64'
-    record % datyp = FST_TYPE_REAL
+    record % datyp = FST_TYPE_REAL_IEEE
     success = the_file % write(record)
 
     record % data = c_loc(array_uint16)

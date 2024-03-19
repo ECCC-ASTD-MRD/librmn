@@ -6,5 +6,5 @@
                         "observation","score","timeserie","operational","parallel","experimental","member","centile","tag" ],
    "compressions"   : [ "lorenzo","szip" ],
    "reasons"        : [ "out_of_domain","bad","masked","missing" ],
-   "types"          : [ "bit","signed integer","unsigned integer","float","complex" ]
+   "types"          : [ "FST_TYPE_BINARY","FST_TYPE_CHAR","FST_TYPE_STRING","FST_TYPE_SIGNED", "FST_TYPE_UNSIGNED","FST_TYPE_REAL","FST_TYPE_COMPLEX", "FST_TYPE_REAL_IEEE", "FST_TYPE_REAL_OLD_QUANT" ]
 }

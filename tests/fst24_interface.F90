@@ -70,7 +70,7 @@ subroutine make_test_record()
     test_record % ig2   = 0
     test_record % ig3   = 0
     test_record % ig4   = 0
-    test_record % datyp = FST_TYPE_REAL
+    test_record % datyp = FST_TYPE_REAL_IEEE
     test_record % dasiz = 32
 
     status = test_record % metadata % init(META_TYPE_RECORD,"")

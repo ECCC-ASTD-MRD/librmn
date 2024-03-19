@@ -326,15 +326,15 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
     int is_missing = record->datyp & FSTD_MISSING_FLAG;
     // suppress missing value flag (64)
     int in_datyp = record->datyp & ~FSTD_MISSING_FLAG;
-    if ( (in_datyp & 0xF) == 8) {
-        if (record->datyp != 8) {
+    if (is_type_complex(in_datyp)) {
+        if (record->datyp != FST_TYPE_COMPLEX) {
            Lib_Log(APP_LIBFST, APP_WARNING, "%s: compression and/or missing values not supported, "
                    "data type %d reset to %d (complex)\n", __func__, record->datyp, 8);
         }
         // missing values not supported for complex type
         is_missing = 0;
         // extra compression not supported for complex type
-        in_datyp = 8;
+        in_datyp = FST_TYPE_COMPLEX;
     }
 
     // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
@@ -357,12 +357,12 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
     }
     int minus_nbits = -nbits;
 
-    if ( (record->datyp == (FST_TYPE_REAL | FST_TYPE_TURBOPACK)) && (nbits > 32) ) {
+    if ( (record->datyp == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) && (nbits > 32) ) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
                 "data type 133 reset to 5 (IEEE)\n", __func__);
         // extra compression not supported
-        in_datyp = FST_TYPE_REAL;
-        datyp = FST_TYPE_REAL;
+        in_datyp = FST_TYPE_REAL_IEEE;
+        datyp = FST_TYPE_REAL_IEEE;
     }
 
     if (is_type_real(datyp) && nbits <= 32 && record->dasiz == 64) {
@@ -374,9 +374,9 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
         datyp &= ~FST_TYPE_TURBOPACK;
     }
 
-    if ((in_datyp == FST_TYPE_FREAL) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
-        datyp = FST_TYPE_REAL;
+        datyp = FST_TYPE_REAL_IEEE;
         nbits = 32;
         minus_nbits = -32;
     }
@@ -405,11 +405,12 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
 
     if ((record->npak == 0) || (record->npak == 1)) {
         // no compaction
-        datyp = 0;
+        datyp = FST_TYPE_BINARY;
     }
 
     // allocate and initialize a buffer interface for RSF_Put
     // an extra 512 bytes are allocated for cluster alignment purpose (seq). Are they???
+    //TODO Remove any reference to remap_table
     if (! image_mode_copy) {
         for (int i = 0; i < nb_remap; i++) {
             if (datyp == remap_table[0][i]) {
@@ -422,22 +423,22 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
     static int dejafait_rsf_2 = 0;
 
     // no extra compression if nbits > 16
-    if ((nbits > 16) && (datyp != (FST_TYPE_REAL | FST_TYPE_TURBOPACK))) datyp &= 0x7F;
-    if ((datyp == FST_TYPE_IEEE_16) && (nbits > 24)) {
+    if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
+    if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
         if (! dejafait_rsf_1) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing E32 instead of F%2d\n", __func__, nbits);
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
             dejafait_rsf_1 = 1;
         }
-        datyp = FST_TYPE_REAL;
+        datyp = FST_TYPE_REAL_IEEE;
         nbits = 32;
         minus_nbits = -32;
     }
-    if ((datyp == FST_TYPE_IEEE_16) && (nbits > 16)) {
+    if ((datyp == FST_TYPE_REAL) && (nbits > 16)) {
         if (! dejafait_rsf_2) {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
             dejafait_rsf_2 = 1;
         }
-        datyp = FST_TYPE_FREAL;
+        datyp = FST_TYPE_REAL_OLD_QUANT;
     }
 
     if (is_type_real(datyp) && record->dasiz == 32 && (nbits < 10)) {
@@ -452,7 +453,7 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
     int stream_size;
     size_t num_word64;
     switch (datyp) {
-        case FST_TYPE_IEEE_16: {
+        case FST_TYPE_REAL: {
             int p1out;
             int p2out;
             c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
@@ -466,7 +467,7 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
             num_word64 = 2 * ((num_elements *nbits + 63) / 64);
             break;
 
-        case FST_TYPE_FREAL | FST_TYPE_TURBOPACK:
+        case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
             // 120 bits (floatpack header)+8, 32 bits (extra header)
             num_word64 = (num_elements * Max(nbits, 16) + 128 + 32 + 63) / 64;
             break;
@@ -476,7 +477,7 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
             num_word64 = (num_elements * Max(nbits, 16) + 32 + 63) / 64;
             break;
 
-        case FST_TYPE_IEEE_16 | FST_TYPE_TURBOPACK: {
+        case FST_TYPE_REAL | FST_TYPE_TURBOPACK: {
             int p1out;
             int p2out;
             c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
@@ -604,13 +605,13 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
     uint32_t * field = record->data;
     if (image_mode_copy) {
         // no pack/unpack, used by editfst
-        if (datyp > 128) {
+        if (is_type_turbopack(datyp)) {
             // first element is length
             const int num_field_words32 = field[0];
             memcpy(new_record->data, field, (num_field_words32 + 1) * sizeof(uint32_t));
         } else {
             int num_field_bits;
-            if (datyp == 6) {
+            if (datyp == FST_TYPE_REAL) {
                 int p1out;
                 int p2out;
                 c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
@@ -618,8 +619,8 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
             } else {
                 num_field_bits = num_elements * nbits;
             }
-            if (datyp == 1) num_field_bits += 120;
-            if (datyp == 3) num_field_bits = record->ni * record->nj * 8;
+            if (datyp == FST_TYPE_REAL_OLD_QUANT) num_field_bits += 120;
+            if (datyp == FST_TYPE_CHAR) num_field_bits = record->ni * record->nj * 8;
             const int num_field_words32 = (num_field_bits + num_bits_per_word - 1) / num_bits_per_word;
 
             memcpy(new_record->data, field, num_field_words32 * sizeof(uint32_t));
@@ -643,23 +644,25 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
 
         switch (datyp) {
 
-            case 0: case 128: {
+            case FST_TYPE_BINARY:
+            case FST_TYPE_BINARY | FST_TYPE_TURBOPACK: {
                 // transparent mode
-                if (datyp == 128) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
-                            __func__, stdf_entry->datyp, 0);
-                    datyp = 0;
-                    stdf_entry->datyp = 0;
+                if (is_type_turbopack(datyp)) {
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_BINARY (%d)\n",
+                            __func__, stdf_entry->datyp, FST_TYPE_BINARY);
+                    datyp = FST_TYPE_BINARY;
+                    stdf_entry->datyp = datyp;
                 }
                 const int32_t num_word32 = ((num_elements * nbits) + num_bits_per_word - 1) / num_bits_per_word;
                 memcpy(new_record->data, field, num_word32 * sizeof(uint32_t));
                 break;
             }
 
-            case 1: case 129: {
+            case FST_TYPE_REAL_OLD_QUANT:
+            case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK: {
                 // floating point
                 double tempfloat = 99999.0;
-                if ((datyp > 128) && (nbits <= 16)) {
+                if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     // nbits>64 flags a different packing
                     // Use data pointer as uint32_t for compatibility with XDF format
@@ -685,11 +688,12 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                 break;
             }
 
-            case 2: case 130:
+            case FST_TYPE_UNSIGNED:
+            case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
                 // integer, short integer or byte stream
                 {
-                    int offset = (datyp > 128) ? 1 :0;
-                    if (datyp > 128) {
+                    int offset = is_type_turbopack(datyp) ? 1 :0;
+                    if (is_type_turbopack(datyp)) {
                         if (xdf_short) {
                             stdf_entry->nbits = Min(16, nbits);
                             nbits = stdf_entry->nbits;
@@ -706,7 +710,7 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                                                                  record->ni, record->nj, record->nk, nbits, 1);
                         c_armn_compress_setswap(1);
                         if (compressed_lng < 0) {
-                            stdf_entry->datyp = 2;
+                            stdf_entry->datyp = FST_TYPE_UNSIGNED;
                             compact_integer((void *)field, (void *) NULL, &((uint32_t *)new_record->data)[offset],
                                 num_elements, nbits, 0, xdf_stride, 1);
                         } else {
@@ -736,31 +740,33 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                 break;
 
 
-            case 3: case 131:
+            case FST_TYPE_CHAR:
+            case FST_TYPE_CHAR | FST_TYPE_TURBOPACK:
                 // character
                 {
                     int nc = (record->ni * record->nj + 3) / 4;
-                    if (datyp == 131) {
+                    if (is_type_turbopack(datyp)) {
                         Lib_Log(
-                            APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
-                            __func__, stdf_entry->datyp, 3);
-                        datyp = 3;
-                        stdf_entry->datyp = 3;
+                            APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_CHAR (%d)\n",
+                            __func__, stdf_entry->datyp, FST_TYPE_CHAR);
+                        datyp = FST_TYPE_CHAR;
+                        stdf_entry->datyp = datyp;
                     }
                     compact_integer(field, (void *) NULL, new_record->data, nc, 32, 0, xdf_stride, 1);
                     stdf_entry->nbits = 8;
                 }
                 break;
 
-            case 4: case 132:
+            case FST_TYPE_SIGNED:
+            case FST_TYPE_SIGNED | FST_TYPE_TURBOPACK:
                 // signed integer
-                if (datyp == 132) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported, data type %d reset to %d\n",
-                            __func__, stdf_entry->datyp, is_missing | 4);
-                    datyp = 4;
+                if (is_type_turbopack(datyp)) {
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported, data type %d reset to FST_TYPE_SIGNED (%d)\n",
+                            __func__, stdf_entry->datyp, is_missing | FST_TYPE_SIGNED);
+                    datyp = FST_TYPE_SIGNED;
                 }
                 // turbo compression not supported for this type, revert to normal mode
-                stdf_entry->datyp = is_missing | 4;
+                stdf_entry->datyp = is_missing | FST_TYPE_SIGNED;
                 if (xdf_short) {
                     compact_short(field, (void *) NULL, new_record->data, num_elements, nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
@@ -770,7 +776,10 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                 }
                 break;
 
-            case 5: case 8: case 133:  case 136:
+            case FST_TYPE_REAL_IEEE:
+            case FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK:
+            case FST_TYPE_COMPLEX:
+            case FST_TYPE_COMPLEX | FST_TYPE_TURBOPACK:
                 // IEEE and IEEE complex representation
                 {
                     int32_t f_ni = record->ni;
@@ -778,21 +787,21 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                     int32_t f_zero = 0;
                     int32_t f_one = 1;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
-                    if (datyp == 136) {
+                    if (datyp == (FST_TYPE_COMPLEX | FST_TYPE_TURBOPACK)) {
                         Lib_Log(
-                            APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
-                            __func__, stdf_entry->datyp, 8);
-                        datyp = 8;
-                        stdf_entry->datyp = 8;
+                            APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_COMPLEX (%d)\n",
+                            __func__, stdf_entry->datyp, FST_TYPE_COMPLEX);
+                        datyp = FST_TYPE_COMPLEX;
+                        stdf_entry->datyp = datyp;
                     }
-                    if (datyp == 133) {
+                    if (datyp == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) {
                         // use an additionnal compression scheme
                         const int compressed_lng = c_armn_compress32(
                             (unsigned char *)&((uint32_t *)new_record->data)[1], (void *)field, record->ni, record->nj,
                             record->nk, nbits);
 
                         if (compressed_lng < 0) {
-                            stdf_entry->datyp = 5;
+                            stdf_entry->datyp = FST_TYPE_REAL_IEEE;
                             f77name(ieeepak)((int32_t *)field, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                         } else {
                             const int nbytes = 16 + compressed_lng;
@@ -802,16 +811,17 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                             RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
                         }
                     } else {
-                        if (datyp == 8) f_ni = f_ni * 2;
+                        if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
                         f77name(ieeepak)((int32_t *)field, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                     }
                 }
                 break;
 
-            case 6: case 134:
+            case FST_TYPE_REAL:
+            case FST_TYPE_REAL | FST_TYPE_TURBOPACK:
                 // floating point, new packers
 
-                if ((datyp > 128) && (nbits <= 16)) {
+                if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     c_float_packer((void *)field, nbits, &((int32_t *)new_record->data)[1],
                                    &((int32_t *)new_record->data)[1+header_size], num_elements);
@@ -836,13 +846,14 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
                 break;
 
 
-            case 7: case 135:
+            case FST_TYPE_STRING:
+            case FST_TYPE_STRING | FST_TYPE_TURBOPACK:
                 // character string
-                if (datyp == 135) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to %d\n",
-                            __func__, stdf_entry->datyp, 7);
-                    datyp = 7;
-                    stdf_entry->datyp = 7;
+                if (is_type_turbopack(datyp)) {
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_STRING (%d)\n",
+                            __func__, stdf_entry->datyp, FST_TYPE_STRING);
+                    datyp = FST_TYPE_STRING;
+                    stdf_entry->datyp = datyp;
                 }
                 compact_char(field, (void *) NULL, new_record->data, num_elements, 8, 0, xdf_stride, 9);
                 break;
@@ -1260,7 +1271,7 @@ int32_t fst24_unpack_data(
 
     // const size_t record_size_32 = record->rsz / 4;
     // size_t record_size = record_size_32;
-    // if ((simple_datyp == FST_TYPE_FREAL) || (simple_datyp == FST_TYPE_REAL)) {
+    // if ((simple_datyp == FST_TYPE_OLD_QUANT) || (simple_datyp == FST_TYPE_REAL_IEEE)) {
     //     record_size = (record->dasiz == 64) ? 2*record_size : record_size;
     // }
 
@@ -1279,9 +1290,9 @@ int32_t fst24_unpack_data(
             memcpy(dest, source, (lngw + 1) * sizeof(uint32_t));
         } else {
             int lngw = nelm * nbits;
-            if (simple_datyp == FST_TYPE_FREAL) lngw += 120;
-            if (simple_datyp == FST_TYPE_FCHAR) lngw = record->ni * record->nj * 8;
-            if (simple_datyp == FST_TYPE_IEEE_16) {
+            if (simple_datyp == FST_TYPE_REAL_OLD_QUANT) lngw += 120;
+            if (simple_datyp == FST_TYPE_CHAR) lngw = record->ni * record->nj * 8;
+            if (simple_datyp == FST_TYPE_REAL) {
                 int header_size, stream_size, p1out, p2out;
                 c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
                 lngw = (header_size + stream_size) * 8;
@@ -1299,8 +1310,8 @@ int32_t fst24_unpack_data(
                 break;
             }
 
-            case FST_TYPE_FREAL:
-            case FST_TYPE_FREAL | FST_TYPE_TURBOPACK:
+            case FST_TYPE_REAL_OLD_QUANT:
+            case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
             {
                 // Floating Point
                 double tempfloat = 99999.0;
@@ -1351,7 +1362,7 @@ int32_t fst24_unpack_data(
                 break;
             }
 
-            case FST_TYPE_FCHAR:
+            case FST_TYPE_CHAR:
             {
                 // Character
                 const int num_ints = (nelm + 3) / 4;
@@ -1371,7 +1382,7 @@ int32_t fst24_unpack_data(
                 break;
             }
 
-            case FST_TYPE_REAL:
+            case FST_TYPE_REAL_IEEE:
             case FST_TYPE_COMPLEX: {
 
                 // IEEE representation
@@ -1396,8 +1407,8 @@ int32_t fst24_unpack_data(
                 break;
             }
 
-            case FST_TYPE_IEEE_16:
-            case FST_TYPE_IEEE_16 | FST_TYPE_TURBOPACK:
+            case FST_TYPE_REAL:
+            case FST_TYPE_REAL | FST_TYPE_TURBOPACK:
             {
                 int bits;
                 int header_size, stream_size, p1out, p2out;
@@ -1412,7 +1423,7 @@ int32_t fst24_unpack_data(
                 break;
             }
 
-            case FST_TYPE_REAL | FST_TYPE_TURBOPACK:
+            case FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK:
             {
                 // Floating point, new packers
                 c_armn_uncompress32((float *)dest, (unsigned char *)(source_u32 + 1), record->ni, record->nj, record->nk, nbits);
@@ -1467,7 +1478,6 @@ int32_t fst24_read_rsf(
 
     uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
     memset(work_space, 0, sizeof(work_space));
-    Lib_Log(APP_LIBFST, APP_INFO, "%s: We have a workspace of %d bytes\n", __func__, sizeof(work_space));
 
     RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle, metadata_only, (void*)work_space);
 

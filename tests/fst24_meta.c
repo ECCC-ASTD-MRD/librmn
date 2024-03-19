@@ -80,7 +80,7 @@ int test_fst24_meta(void) {
          return(-1);
       }
         
-      fst_record *record = fst24_record_new(data,FST_TYPE_REAL,32,DATA_SIZE,DATA_SIZE,1);
+      fst_record *record = fst24_record_new(data,FST_TYPE_REAL_IEEE,32,DATA_SIZE,DATA_SIZE,1);
       record->npak = -32;
       int32_t date;
       Meta_StampEncode(&date,2022,06,10,0,0,0);
