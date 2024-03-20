@@ -79,7 +79,7 @@ static char* FST_TYPE_NAMES[] = {
     "FST_TYPE_COMPLEX"
 };
 
-// static const int32_t FST_TYPE_MISSING   = FSTD_MISSING_FLAG;
+//!> When added or |'d to a base type, indicate that we want to apply additional lossless compression to the data
 static const int32_t FST_TYPE_TURBOPACK = 128;
 static const int32_t FST_TYPE_MAGIC     = 801; // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
 

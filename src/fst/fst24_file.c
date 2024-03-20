@@ -35,7 +35,7 @@ int32_t fst24_get_unit(const fst_file* const file) {
     return 0;
 }
 
-//! Test if it's a readable FST file
+//! Test if the given path is a readable FST file
 //! \return TRUE (1) if the file makes sense, FALSE (0) if an error is detected
 int32_t fst24_is_valid(
     const char* const filePath
@@ -338,12 +338,12 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
     }
 
     // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
-    int datyp = in_datyp == 801 ? 1 : in_datyp;
+    int datyp = in_datyp == FST_TYPE_MAGIC ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
     double dmin = 0.0;
     double dmax = 0.0;
-    if (record->dasiz == 64 || in_datyp == 801) {
+    if (record->dasiz == 64 || in_datyp == FST_TYPE_MAGIC) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
         packfunc = (PackFunctionPointer) &compact_float;
@@ -1706,6 +1706,7 @@ int32_t fst24_eof(const fst_file* const file) {
     return (c_fsteof(fst24_get_unit(file)));
 }
 
+//! Free memory used by the given query
 void fst24_query_free(fst_query* const query) {
     if (query != NULL) {
         fst24_query_free(query->next);

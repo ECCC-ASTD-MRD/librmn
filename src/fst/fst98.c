@@ -906,11 +906,11 @@ int c_fstecr_xdf(
     }
 
     /* 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags */
-    int datyp = in_datyp == 801 ? 1 : in_datyp;
+    int datyp = in_datyp == FST_TYPE_MAGIC ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
     double dmin=0.0,dmax=0.0;
-    if ((xdf_double) || (in_datyp == 801)) {
+    if ((xdf_double) || (in_datyp == FST_TYPE_MAGIC)) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
         packfunc = (PackFunctionPointer) &compact_float;
@@ -968,7 +968,7 @@ int c_fstecr_xdf(
         datyp &= FST_TYPE_TURBOPACK;
     }
 
-    if ((in_datyp == 1) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         /* R32 to E32 automatic conversion */
         datyp = FST_TYPE_REAL_IEEE;
         nbits = 32;
