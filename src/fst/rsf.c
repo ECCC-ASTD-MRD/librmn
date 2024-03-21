@@ -1646,7 +1646,7 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
           __func__, filename, file_size0, file_size2, vdir_meta, extra_meta, meta_size, record_size);
   nc = write(fp->fd, &sor, sizeof(start_of_record)) ;
 
-  meta0 = RT_FILE + (RT_FILE_CLASS << 8) ;          // record type and class
+  meta0 = RT_FILE + (RC_FILE << 8) ;          // record type and class
   file_meta[0] = meta0 ;
   meta[0] = meta0 ;                                 // update caller's meta[0]
   nc = write(fp->fd, file_meta, (meta_size + extra_meta) * sizeof(uint32_t)) ;
