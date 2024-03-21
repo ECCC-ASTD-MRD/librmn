@@ -16,8 +16,6 @@ static int64_t fst24_get_num_records_single(const fst_file* file);
 int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
 int32_t fst24_get_record_by_index(const fst_file* const file, const int64_t index, fst_record* const record);
 
-int32_t is_query_valid_f(const fst_query* const q) { return is_query_valid(q); }
-
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file) {
@@ -1007,9 +1005,9 @@ fst_query* fst24_new_query(
 //! Reset start index of search without changing the criteria
 //! \return TRUE (1) if file is valid and open, FALSE (0) otherwise
 int32_t fst24_rewind_search(fst_query* const query) {
-    if (!fst24_is_open(query->file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
-       return FALSE;
+    if (!fst24_query_is_valid(query)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Query is not valid\n", __func__);
+        return FALSE;
     }
 
     query->search_index = 0;
@@ -1116,7 +1114,7 @@ static void ensure_next_query(fst_query* query) {
 int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,
                         char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
 
-//! Find the next record in the given file that matches the previously set criteria.
+//! Find the next record in the given file that matches the given query criteria.
 //!
 //! Searches through linked files, if any.
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
@@ -1126,13 +1124,8 @@ int32_t fst24_find_next(
     //!> Must point to a valid record struct (i.e. initialized)
     fst_record* record
 ) {
-    if (!is_query_valid(query)) {
+    if (!fst24_query_is_valid(query)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Query at %p is not valid\n", __func__, query);
-        return FALSE;
-    }
-
-    if (!fst24_is_open(query->file)) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
         return FALSE;
     }
 
@@ -1627,7 +1620,7 @@ int32_t fst24_read(
     return TRUE;
 }
 
-//! Read the next record (data and all) that corresponds to the previously-set search criteria
+//! Read the next record (data and all) that corresponds to the given query criteria
 //! Search through linked files, if any
 //! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
@@ -1706,10 +1699,17 @@ int32_t fst24_eof(const fst_file* const file) {
     return (c_fsteof(fst24_get_unit(file)));
 }
 
+//! \return Whether the given query pointer is a valid query. A query's file must be
+//! open for the query to be valid.
+int32_t fst24_query_is_valid(const fst_query* const q) {
+    return (q != NULL && fst24_is_open(q->file) && q->num_criteria > 0);
+}
+
 //! Free memory used by the given query
 void fst24_query_free(fst_query* const query) {
     if (query != NULL) {
         fst24_query_free(query->next);
+        query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
         free(query);
     }
 }

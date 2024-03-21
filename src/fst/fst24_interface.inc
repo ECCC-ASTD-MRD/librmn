@@ -189,11 +189,11 @@ subroutine fst24_query_free(query) bind(C, name = 'fst24_query_free')
   type(C_PTR), intent(in), value :: query
 end subroutine fst24_query_free
 
-pure function is_query_valid(query) result(is_valid) bind(C, name = 'is_query_valid_f')
+pure function fst24_query_is_valid(query) result(is_valid) bind(C, name = 'fst24_query_is_valid')
   import :: C_PTR, C_INT32_T
   implicit none
   type(C_PTR), intent(in), value :: query
   integer(C_INT32_T) :: is_valid
-end function is_query_valid
+end function fst24_query_is_valid
 
 end interface

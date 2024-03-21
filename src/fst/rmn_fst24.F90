@@ -39,7 +39,7 @@ module rmn_fst24
         private
         type(C_PTR) :: query_ptr = c_null_ptr ! Pointer to C fst_query structure
     contains
-        procedure, pass :: is_valid  => fst_query_is_valid
+        procedure, pass :: is_valid  => fst_query_is_valid     !< \copydoc fst_query_is_valid
         procedure, pass :: find_next => fst_query_find_next    !< \copydoc fst_query_find_next
         procedure, pass :: find_all  => fst_query_find_all     !< \copydoc fst_query_find_all
         procedure, pass :: read_next => fst_query_read_next    !< \copydoc fst_query_read_next
@@ -146,8 +146,8 @@ contains
     end function fst24_file_get_unit
 
     !> \copybrief fst24_new_query
-    !> \return .true. if we were able to set the criteria, .false. if file was not open (or other error)
-    function fst24_file_new_query(this,                                                                     & 
+    !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
+    function fst24_file_new_query(this,                                                                             & 
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
         implicit none
@@ -402,11 +402,12 @@ contains
         integer(C_INT32_T) :: is_valid_c
         is_valid = .false.
         if (c_associated(this % query_ptr)) then
-            is_valid_c = is_query_valid(this % query_ptr)
+            is_valid_c = fst24_query_is_valid(this % query_ptr)
             if (is_valid_c == 1) is_valid = .true.
         end if
     end function fst_query_is_valid
 
+    !> \copydoc fst24_rewind_search
     subroutine fst_query_rewind(this)
         implicit none
         class(fst_query), intent(inout) :: this
@@ -414,6 +415,7 @@ contains
         if (this % is_valid()) c_status = fst24_rewind_search(this % query_ptr)
     end subroutine fst_query_rewind
 
+    !> \copydoc fst24_query_free
     subroutine fst_query_free(this)
         implicit none
         class(fst_query), intent(inout) :: this

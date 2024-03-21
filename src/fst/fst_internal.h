@@ -50,9 +50,7 @@ static inline fst_query fst_query_copy(const fst_query* const query) {
     return result;
 }
 
-static inline int32_t is_query_valid(const fst_query* const q) {
-    return (q != NULL && q->file != NULL && q->num_criteria > 0);
-}
+int32_t fst24_query_is_valid(const fst_query* const q);
 
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query); // RSF only
 
