@@ -12,8 +12,6 @@ fst_record record_from_dir_keys(const stdf_dir_keys* keys);
 void print_non_wildcards(const fst_record* const record);
 void print_dir_keys(const stdf_dir_keys* const keys);
 
-typedef struct {
-} search_metadata;
 
 //! Set most members of the given fst_record struct to their default value, while preserving
 //! the data pointer and the allocation flag and status;

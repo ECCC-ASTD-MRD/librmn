@@ -8,6 +8,32 @@
 
 typedef struct fst24_file_ fst_file;  // Forward declare the fst_file type
 
+#define FST24_META_RESERVED 1
+
+//! Object that encodes the criteria for a search into an FST file
+//! It is meant to be compatible with both RSF and XDF files, and to remain backward-compatible
+//! when the criteria change (they can only be added)
+typedef struct {
+    union {
+        struct {
+            uint32_t rsf_reserved[RSF_META_RESERVED];       //!< Reserved for RSF backend usage
+            uint32_t fst24_reserved[FST24_META_RESERVED];   //!< Reserved RSF fst24 interface
+        };
+
+        // Elements that are inherited from the fst98 interface
+        struct {
+            //!> Additional space reserved for RSF backend or fst24 interface
+            uint32_t fst98_reserved[RSF_META_RESERVED + FST24_META_RESERVED - 2];
+            //!> Elements inherited from the fst98 interface. The first two 32-bit elements
+            //!> were not used as search criteria, so we will be using them as reserved space in
+            //!> RSF files
+            stdf_dir_keys fst98_meta;
+        };
+    };
+    // From this point, any additional search criteria (keys) will only be available in RSF files
+    // Every time criteria are added to the search_metadata struct, FST24_ME
+} search_metadata;
+
 //! Object used to describe a search query into a standard file.
 //! Used for FST24 (both RSF and XDF) and for FST98 RSF
 typedef struct fst_query_ {

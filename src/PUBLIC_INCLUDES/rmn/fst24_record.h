@@ -2,6 +2,16 @@
 #define RMN_FST_RECORD_H__
 
 #ifndef IN_FORTRAN_CODE
+//! Version identifier that needs to be incremented when we make
+//! changes in the way records are stored and interpreted, so that it
+//! can be recognized when read by a different version of the library
+#endif
+#define FST24_VERSION_COUNT  0
+
+#define FST24_VERSION_OFFSET_C 1010101010101000ull
+#define FST24_VERSION_OFFSET_F 1010101010101000_int64
+
+#ifndef IN_FORTRAN_CODE
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,7 +22,6 @@
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 
 static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by 
-
 
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
@@ -65,7 +74,7 @@ typedef struct {
 //! Default values for all members of an fst_record.
 //! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
-        .version = sizeof(fst_record),
+        .version = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
         .handle   = -1,
         .flags = 0x0,
         .alloc    = 0,
@@ -173,8 +182,9 @@ void        fst24_record_diff(const fst_record* a, const fst_record* b);
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
 
 #else
+
     type, bind(C) :: fst_record_c
-        integer(C_INT64_T) :: VERSION  = 168            ! Must be the number of bytes in the struct
+        integer(C_INT64_T) :: version  = FST24_VERSION_OFFSET_F + FST24_VERSION_COUNT
         integer(C_INT64_T) :: handle   = -1
         integer(C_INT64_T) :: flags    = 0
         integer(C_INT64_T) :: alloc    = 0

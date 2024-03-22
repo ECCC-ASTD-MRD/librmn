@@ -70,7 +70,7 @@ DT_08 ... DT_64  : length of data elements in record (for endianness management)
 //! Number of 32-bit elements at the beginning of the search metadata of
 //! every record.
 //! The first one is used to hold RSF version, record type and record class
-static const int32_t RSF_META_RESERVED = 1;
+#define RSF_META_RESERVED 1
 
 //! \{
 //! \name Record types
