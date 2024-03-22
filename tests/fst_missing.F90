@@ -239,7 +239,7 @@ call set_missing_value_flags(fm,im,uim,dm,sm,usm,bm,ubm)
 call print_values('',status,fm,dm,im,sm,bm,uim,usm,ubm)
 
 call App_Log(APP_INFO, '============= reading from standard file with and without missing values ============')
-CHECK_STATUS(fnom(12, test_file_name, 'STD+RND+OLD', 0))
+CHECK_STATUS(fnom(12, test_file_name, 'STD+RND+OLD+R/O', 0))
 CHECK_STATUS(fstouv(12,'RND'))
 
 call App_Log(APP_INFO, '=========== WITHOUT missing value ==========')

@@ -16,7 +16,7 @@ typedef void *(*PackFunctionPointer)(
     void *max
 );
 
-int armn_compress(unsigned char *fld, int ni, int nj, int nk, int nbits, int op_code);
+int armn_compress(unsigned char *fld, int ni, int nj, int nk, int nbits, int op_code, const int swap_stream);
 
 int compact_integer(
     void *unpackedArrayOfInt,

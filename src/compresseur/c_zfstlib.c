@@ -58,7 +58,6 @@ static void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short 
 static void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header);
 
 static int fstcompression_level = -1;
-static int swapStream           =  1;
 static unsigned char fastlog[256];
 static int once = 0;
 
@@ -69,7 +68,9 @@ int armn_compress(
     int nj,
     int nk,
     int nbits,
-    int op_code
+    int op_code,
+    //!> When in little-endian configuration, whether to swap the upper and lower 16 bits of each field element
+    const int swap_stream
 ) {
     unsigned short *unzfld;
     unsigned int *us_fld;
@@ -116,7 +117,7 @@ int armn_compress(
             zfld_lle     = (unsigned int *) malloc(sizeof(unsigned int) * ni * nj * nk);
 
 #if defined (Little_Endian)
-            if (swapStream == 1) {
+            if (swap_stream == 1) {
                 limite = (1 + ni * nj) / 2;
                 for (int i = 0; i < limite; i++) {
                     us_fld[i] = (us_fld[i] >> 16) | (us_fld[i] << 16);
@@ -132,7 +133,7 @@ int armn_compress(
                 c_fstzip(zfld_minimum, &zlng_minimum, us_fld, ni, nj, MINIMUM, 0, 5, nbits, 0);
                 if (zlng_minimum >= lng_origin) {
 #if defined (Little_Endian)
-                    if (swapStream == 1) {
+                    if (swap_stream == 1) {
                         for (int i = 0; i < limite; i++){
                             us_fld[i] = (us_fld[i] >> 16) | (us_fld[i] << 16);
                         }
@@ -157,7 +158,7 @@ int armn_compress(
 
             if (zlng_lle >= lng_origin) {
 #if defined (Little_Endian)
-                if (swapStream == 1) {
+                if (swap_stream == 1) {
                     for (int i = 0; i < limite; i++) {
                         us_fld[i] = (us_fld[i] >> 16) | (us_fld[i] << 16);
                     }
@@ -187,7 +188,7 @@ int armn_compress(
             c_fstunzip((unsigned int *)unzfld, (unsigned int *)fld, ni, nj, nbits);
             memcpy(fld, unzfld, (1+ni*nj/2)*sizeof(unsigned int));
 #if defined (Little_Endian)
-            if (swapStream == 1) {
+            if (swap_stream == 1) {
                 limite = (1 + ni * nj) / 2;
                 for (int i = 0; i < limite; i++) {
                     us_fld[i] = (us_fld[i] >> 16) | (us_fld[i] << 16);
@@ -1351,40 +1352,4 @@ int f77name(armn_compress_getlevel)()
 int c_armn_compress_getlevel()
 {
     return fstcompression_level;
-}
-
-
-void f77name(armn_compress_setswap)(int32_t *swap)
-{
-    int local_swap;
-
-    local_swap = *swap;
-
-    c_armn_compress_setlevel(local_swap);
-}
-
-
-void c_armn_compress_setswap(int swapState)
-{
-    switch(swapState) {
-        case 0:
-        case 1:
-            swapStream = swapState;
-            break;
-
-        default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: Wrong swapState (%d), should be 0 (no swap) or 1 (swap)\n",__func__,swapState);
-    }
-}
-
-
-int f77name(armn_compress_getswap)()
-{
-    return c_armn_compress_getswap();
-}
-
-
-int c_armn_compress_getswap()
-{
-    return swapStream;
 }

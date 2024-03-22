@@ -1274,7 +1274,7 @@ int c_fstecr_xdf(
                     /* nbits>64 flags a different packing */
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 0);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
                         packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
@@ -1312,9 +1312,7 @@ int c_fstecr_xdf(
                         } else {
                             memcpy_32_16((short *)&(buffer->data[keys_len+offset]), field, nbits, ni * nj * nk);
                         }
-                        c_armn_compress_setswap(0);
-                        int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1);
-                        c_armn_compress_setswap(1);
+                        int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1, 0);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_UNSIGNED;
                             compact_integer(field, (void *) NULL, &(buffer->data[keys_len+offset]),
@@ -1446,7 +1444,7 @@ int c_fstecr_xdf(
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     /* use an additional compression scheme */
                     c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 0);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
@@ -2782,7 +2780,7 @@ int c_fstluk_xdf(
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(stdf_entry.datyp)) {
                     // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
-                    int nbytes = armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    int nbytes = armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
@@ -2800,19 +2798,15 @@ int c_fstluk_xdf(
                     int offset = is_type_turbopack(stdf_entry.datyp) ? 1 : 0;
                     if (xdf_short) {
                         if (is_type_turbopack(stdf_entry.datyp)) {
-                            c_armn_compress_setswap(0);
-                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2);
+                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                             // printf("Debug+ fstluk mode short compress nbytes=%d\n", nbytes);
-                            c_armn_compress_setswap(1);
                             memcpy(field, buf->data + offset, nbytes);
                         } else {
                             ier = compact_short(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 6);
                         }
                     }  else if (xdf_byte) {
                         if (is_type_turbopack(stdf_entry.datyp)) {
-                            c_armn_compress_setswap(0);
-                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2);
-                            c_armn_compress_setswap(1);
+                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                             // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n", nbytes, nelm);
                             memcpy_16_8((int8_t *)field, (int16_t *)(buf->data + offset), nelm);
                         } else {
@@ -2820,9 +2814,7 @@ int c_fstluk_xdf(
                         }
                     } else {
                         if (is_type_turbopack(stdf_entry.datyp)) {
-                            c_armn_compress_setswap(0);
-                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2);
-                            c_armn_compress_setswap(1);
+                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                             // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
                             memcpy_16_32(field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
                         } else {
@@ -2916,7 +2908,7 @@ int c_fstluk_xdf(
                 // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (is_type_turbopack(stdf_entry.datyp)) {
-                    int nbytes = armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2);
+                    int nbytes = armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
