@@ -3,8 +3,8 @@
 
 #include <App.h>
 #include "fst98_internal.h"
-#include "rmn/fst24_record.h"
 #include "fst24_file_internal.h"
+#include "fst24_record_internal.h"
 
 static inline size_t strlen_up_to(const char* string, const size_t max_length) {
     return Min(strlen(string), Max(max_length, 0));
@@ -482,258 +482,67 @@ int c_fstluk_rsf(
     //! [out] Dimension 3 of the data field
     int * const nk
 ) {
-    uint32_t *field=vfield;
-    
+    uint32_t *field = vfield;
+
     int64_t rsf_key = RSF_Key64(key32);
-    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    if (record_info.rl <= 0) {
+    fst_record rec = default_fst_record;
+    rec.data = vfield;
+
+    if (get_record_from_key_rsf(file_handle, rsf_key, &rec) <= 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with key %ld\n", __func__, rsf_key);
         return ERR_BAD_HNDL;
     }
 
-    const size_t work_size_bytes = record_info.data_size +                  // The data itself
-                                   record_info.rec_meta * sizeof(uint32_t) +// The metadata
-                                   sizeof(RSF_record) +                     // Space for the RSF struct itself
-                                   128 * sizeof(uint32_t);                  // Enough space for the largest compression scheme + rounding up for alignment
+    const size_t work_size_bytes = fst24_record_data_size(&rec) +     // The data itself
+                                   rec.num_meta_bytes +               // The metadata
+                                   sizeof(RSF_record) +               // Space for the RSF struct itself
+                                   128 * sizeof(uint32_t);            // Enough space for the largest compression scheme + rounding up for alignment
 
     uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
     memset(work_space, 0, sizeof(work_space));
 
-    RSF_record* record = RSF_Get_record(file_handle, rsf_key, 0, work_space);
+    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.handle, 0, (void*)work_space);
 
-    if (record == NULL) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x (0x%x)\n",
-                __func__, key32, rsf_key);
+    if ((uint64_t*)record_rsf != work_space) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%lx\n",
+                __func__, rec.handle);
         return ERR_BAD_HNDL;
     }
 
-    stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record->meta;
-    uint32_t* record_data = record->data;
+    fill_with_dir_keys(&rec, (stdf_dir_keys*)record_rsf->meta);
 
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
-    *nk = stdf_entry->nk;
-    // Get missing data flag
-    int has_missing = stdf_entry->datyp & FSTD_MISSING_FLAG;
-    // Suppress missing data flag
-    stdf_entry->datyp = stdf_entry->datyp & ~FSTD_MISSING_FLAG;
-    xdf_datatyp = stdf_entry->datyp;
+    *ni = rec.ni;
+    *nj = rec.nj;
+    *nk = rec.nk;
 
-    PackFunctionPointer packfunc;
-    double dmin=0.0,dmax=0.0;
-    if (stdf_entry->dasiz==64) {
-        packfunc = (PackFunctionPointer) &compact_double;
-    } else {
-        packfunc = (PackFunctionPointer) &compact_float;
-    }
+    xdf_datatyp = rec.datyp & ~FSTD_MISSING_FLAG;
 
-    const size_t record_size_32 = record->rsz / 4;
-    size_t record_size = record_size_32;
-    if ((xdf_datatyp == 1) || (xdf_datatyp == 5)) {
-        record_size = (stdf_entry->dasiz==64) ? 2*record_size : record_size;
-    }
-
-    const int multiplier = (stdf_entry->datyp == 8) ? 2 : 1;
-    int nelm = stdf_entry->ni * stdf_entry->nj * stdf_entry->nk * multiplier;
-
-    int npak = -(stdf_entry->nbits);
-    const int bitmot = 32;
-    int ier = 0;
-    if (image_mode_copy) {
-        // No pack/unpack, used by editfst
-        if (stdf_entry->datyp > 128) {
-            int lngw = ((int *)record->data)[0];
-            // fprintf(stderr, "Debug+ lecture mode image lngw=%d\n", lngw);
-            for (int i = 0; i < lngw + 1; i++) {
-                field[i] =  ((uint32_t*)record->data)[i];
-            }
-        } else {
-            int lngw = nelm * stdf_entry->nbits;
-            if (stdf_entry->datyp == 1) lngw += 120;
-            if (stdf_entry->datyp == 3) lngw = *ni * *nj * 8;
-            if (stdf_entry->datyp == 6) {
-                int header_size, stream_size, p1out, p2out;
-                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
-                lngw = (header_size + stream_size) * 8;
-            }
-            lngw = (lngw + bitmot - 1) / bitmot;
-            for (int i = 0; i < lngw; i++) {
-                field[i] =  ((uint32_t*)record->data)[i];
-            }
-        }
-    } else {
-        switch (stdf_entry->datyp) {
-            case 0: {
-                // Raw binary
-                int lngw = ((nelm * stdf_entry->nbits) + bitmot - 1) / bitmot;
-                for (int i = 0; i < lngw; i++) {
-                    field[i] = record_data[i];
-                }
-                break;
-            }
-
-            case 1:
-            case 129: {
-                // Floating Point
-                double tempfloat = 99999.0;
-                if (stdf_entry->datyp > 128) {
-                    armn_compress((unsigned char *)(record_data + 5), *ni, *nj, *nk, stdf_entry->nbits, 2, 0);
-                    packfunc(field, record_data + 1, record_data + 5, nelm, stdf_entry->nbits + 64 * Max(16, stdf_entry->nbits),
-                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
-                } else {
-                    packfunc(field, record_data, record_data + 3, nelm, stdf_entry->nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat ,&dmin ,&dmax);
-                }
-                break;
-            }
-
-            case 2:
-            case 130:
-                {
-                    // Integer, short integer or byte stream
-                    int offset = stdf_entry->datyp > 128 ? 1 : 0;
-                    if (stdf_entry->dasiz==16) {
-                        if (stdf_entry->datyp > 128) {
-                            int nbytes = armn_compress((unsigned char *)(record_data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2, 0);
-                            memcpy(field, record_data + offset, nbytes);
-                        } else {
-                            ier = compact_short(field, (void *) NULL, record_data + offset, nelm, stdf_entry->nbits, 0, xdf_stride, 6);
-                        }
-                    }  else if (stdf_entry->dasiz==8) {
-                        if (stdf_entry->datyp > 128) {
-                            armn_compress((unsigned char *)(record_data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2, 0);
-                            memcpy_16_8((int8_t *)field, (int16_t *)(record_data + offset), nelm);
-                        } else {
-                            ier = compact_char(field, (void *) NULL, record_data, nelm, 8, 0, xdf_stride, 10);
-                        }
-                    } else {
-                        if (stdf_entry->datyp > 128) {
-                            armn_compress((unsigned char *)(record_data + offset), *ni, *nj, *nk, stdf_entry->nbits, 2, 0);
-                            memcpy_16_32((int32_t *)field, (int16_t *)(record_data + offset), stdf_entry->nbits, nelm);
-                        } else {
-                            ier = compact_integer(field, (void *) NULL, record_data + offset, nelm, stdf_entry->nbits, 0, xdf_stride, 2);
-                        }
-                    }
-                    break;
-                }
-
-            case 3: {
-                // Character
-                int nc = (nelm + 3) / 4;
-                ier = compact_integer(field, (void *) NULL, record->data, nc, 32, 0, xdf_stride, 2);
-                break;
-            }
-
-
-            case 4: {
-                // Signed integer
-#if defined(use_old_signed_pack_unpack_code)
-                int *field_out;
-                short *s_field_out;
-                signed char *b_field_out;
-                if (stdf_entry->dasiz==16 || stdf_entry->dasiz==8) {
-                    field_out = alloca(nelm * sizeof(int));
-                    s_field_out = (short *)field;
-                    b_field_out = (signed char *)field;
-                } else {
-                    field_out = (int32_t *)field;
-                }
-                ier = compact_integer(field_out, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 4);
-                if (stdf_entry->dasiz==16) {
-                    for (int i = 0; i < nelm; i++) {
-                        s_field_out[i] = field_out[i];
-                    }
-                }
-                if (stdf_entry->dasiz==8) {
-                    for (int i = 0; i < nelm; i++) {
-                        b_field_out[i] = field_out[i];
-                    }
-                }
-#else
-                if (stdf_entry->dasiz==16) {
-                    ier = compact_short(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 8);
-                } else if (stdf_entry->dasiz==8) {
-                    ier = compact_char(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 12);
-                } else {
-                    ier = compact_integer(field, (void *) NULL, record->data, nelm, stdf_entry->nbits, 0, xdf_stride, 4);
-                }
-#endif
-                break;
-            }
-
-            case 5:
-            case 8: {
-                // IEEE representation
-                if ((downgrade_32) && (stdf_entry->nbits == 64)) {
-                    // Downgrade 64 bit to 32 bit
-                    float * ptr_real = (float *) field;
-                    double * ptr_double = (double *) record->data;
-#if defined(Little_Endian)
-                    swap_words(record->data, nelm);
-#endif
-                    for (int i = 0; i < nelm; i++) {
-                        *ptr_real++ = *ptr_double++;
-                    }
-                } else {
-                    int32_t f_one = 1;
-                    int32_t f_zero = 0;
-                    int32_t f_mode = 2;
-                    f77name(ieeepak)((int32_t *)field, record->data, &nelm, &f_one, &npak, &f_zero, &f_mode);
-                }
-
-                break;
-            }
-
-            case 6:
-            case 134: {
-                // Floating point, new packers
-                int nbits;
-                int header_size, stream_size, p1out, p2out;
-                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
-                header_size /= 4;
-                if (stdf_entry->datyp > 128) {
-                    armn_compress((unsigned char *)(record_data + 1 + header_size), *ni, *nj, *nk, stdf_entry->nbits, 2, 0);
-                    c_float_unpacker((float *)field, (int32_t *)(record_data + 1), (int32_t *)(record_data + 1 + header_size), nelm, &nbits);
-                } else {
-                    c_float_unpacker((float *)field, (int32_t *)record_data, (int32_t *)(record_data + header_size), nelm, &nbits);
-                }
-                break;
-            }
-
-            case 133: {
-                // Floating point, new packers
-                c_armn_uncompress32((float *)field, (unsigned char *)(record_data + 1), *ni, *nj, *nk, stdf_entry->nbits);
-                break;
-            }
-
-            case 7:
-                // Character string
-                ier = compact_char(field, (void *) NULL, record->data, nelm, 8, 0, xdf_stride, 10);
-                break;
-
-            default:
-                Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid datyp=%d\n", __func__, stdf_entry->datyp);
-                return(ERR_BAD_DATYP);
-        } /* end switch */
-    }
-
-    if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
-        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, key32);
-        stdf_entry->datyp = stdf_entry->datyp | has_missing;
-        print_std_parms(stdf_entry, "Read", prnt_options, -1);
-    }
-    if (has_missing) {
-        // Replace "missing" data points with the appropriate values given the type of data (int/float)
-        // if nbits = 64 and IEEE , set double
-        int sz=stdf_entry->dasiz;
-        if ((stdf_entry->datyp & 0xF) == 5 && stdf_entry->nbits == 64 ) sz=64;
-        DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, sz);
-    }
-
-    if (ier < 0) return ier;
+    if (xdf_double) rec.dasiz = 64;
+    else if (xdf_short) rec.dasiz = 16;
+    else if (xdf_byte) rec.dasiz = 8;
 
     xdf_double = 0;
     xdf_short = 0;
     xdf_byte = 0;
+
+    // // Extract metadata from record if present
+    // rec.metadata = NULL;
+    // if (record_rsf->rec_meta > record_rsf->dir_meta) {
+    //     rec.metadata = Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+    // }
+
+    // Extract data
+    const int32_t ier = fst24_unpack_data(rec.data, record_rsf->data, &rec, image_mode_copy, 1);
+
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
+        fst_record_fields f = default_fields;
+        // f.grid_info = 1;
+        f.deet = 1;
+        f.npas = 1;
+        fst24_record_print_short(&rec, &f, 0, "Read : ");
+    }
+
+    if (ier < 0) return ier;
 
     return key32;
 }

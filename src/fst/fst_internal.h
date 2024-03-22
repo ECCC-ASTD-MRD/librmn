@@ -78,6 +78,4 @@ static inline fst_query fst_query_copy(const fst_query* const query) {
 
 int32_t fst24_query_is_valid(const fst_query* const q);
 
-int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query); // RSF only
-
 #endif // RMN_FST_INTERNAL_H_

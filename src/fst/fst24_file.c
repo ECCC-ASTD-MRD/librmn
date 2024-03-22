@@ -922,6 +922,26 @@ int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
     return -1;
 }
 
+//! \return TRUE (1) if we were able to get the information, a negative number otherwise
+int32_t get_record_from_key_rsf(
+    const RSF_handle rsf_file,  //!< [in] File to which the record belongs. Must be open
+    const int64_t key,          //!< [in] Key of the record we are looking for. Must be valid
+    fst_record* const record    //!< [in,out] Record information (no data or advanced metadata)
+) {
+    const RSF_record_info record_info = RSF_Get_record_info(rsf_file, key);
+
+    if (record_info.rl <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with key %ld\n", __func__, key);
+        return ERR_BAD_HNDL;
+    }
+
+    fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
+    record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
+    record->handle = key;
+
+    return TRUE;
+}
+
 //! Get basic information about the record with the given key (search or "directory" metadata)
 //! \return TRUE (1) if we were able to get the info, FALSE (0) or a negative number otherwise
 int32_t fst24_get_record_from_key(
@@ -944,9 +964,10 @@ int32_t fst24_get_record_from_key(
 
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        const RSF_record_info record_info = RSF_Get_record_info(file_handle, key);
-        fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
-        record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
+        if (get_record_from_key_rsf(file_handle, key, record) <= 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to get record with key %lx\n", __func__, key);
+            return FALSE;
+        }
     }
     else if (file->type == FST_XDF) {
         int addr, lng, idtyp;
@@ -1248,7 +1269,7 @@ int32_t fst24_unpack_data(
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
     const fst_record* record, //!< [in] Record information
     const int32_t skip_unpack,//!< Only copy data if non-zero
-    const int32_t stride      //!< Kept for compatibility with the XDF backend. Should be 1 if file is not XDF
+    const int32_t stride      //!< Kept for compatibility with fst98 interface
 ) {
     uint32_t* dest_u32 = dest;
     uint32_t* source_u32 = source;
@@ -1258,7 +1279,7 @@ int32_t fst24_unpack_data(
     // Suppress missing data flag
     const int32_t simple_datyp = record->datyp & ~FSTD_MISSING_FLAG;
     // number of packed bits per element 
-    int nbits=abs(record->npak);
+    int nbits = abs(record->npak);
 
     // Unpack function son output element size
     PackFunctionPointer packfunc;
@@ -1364,13 +1385,20 @@ int32_t fst24_unpack_data(
             }
 
             case FST_TYPE_SIGNED: {
-                // Signed integer
+                const int use32 = !(record->dasiz == 16 || record->dasiz == 8);
+                int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
+                short*       s_field_out = (short*)dest;
+                signed char* b_field_out = (signed char*)dest;
+                ier = compact_integer(field_out, (void *) NULL, source, nelm, nbits, 0, stride, 4);
                 if (record->dasiz == 16) {
-                    ier = compact_short(dest, (void *)NULL, source, nelm, nbits, 0, stride, 8);
-                } else if (record->dasiz == 8) {
-                    ier = compact_char(dest, (void *)NULL, source, nelm, nbits, 0, stride, 12);
-                } else {
-                    ier = compact_integer(dest, (void *)NULL, source, nelm, nbits, 0, stride, 4);
+                    for (int i = 0; i < nelm; i++) {
+                        s_field_out[i] = field_out[i];
+                    }
+                }
+                else if (record->dasiz == 8) {
+                    for (int i = 0; i < nelm; i++) {
+                        b_field_out[i] = field_out[i];
+                    }
                 }
                 break;
             }
@@ -1454,6 +1482,7 @@ int32_t fst24_unpack_data(
 //! Read a record from an RSF file
 //! \return 0 for success, negative for error
 int32_t fst24_read_rsf(
+    const RSF_handle rsf_file,  //!< Handle to the file where the record is stored
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
     //!> Must have already allocated its data buffer
@@ -1548,7 +1577,7 @@ void* fst24_read_metadata(
     }
 
     if (record->file->type == FST_RSF) {
-        if (fst24_read_rsf(record, 0, 1) != 0) {
+        if (fst24_read_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file\n", __func__);
             return NULL;
         }
@@ -1600,7 +1629,7 @@ int32_t fst24_read(
 
     int32_t ret = -1;
     if (record->file->type == FST_RSF) {
-        ret = fst24_read_rsf(record,image_mode_copy, 0);
+        ret = fst24_read_rsf(record->file->rsf_handle, record, image_mode_copy, 0);
     }
     else if (record->file->type == FST_XDF) {
         ret = fst24_read_xdf(record);
