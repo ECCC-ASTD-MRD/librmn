@@ -7,18 +7,6 @@
 #include "rmn/fst98.h"
 #include "rmn/rsf.h"
 
-typedef enum {
-    FST_NONE = 0,
-    FST_XDF  = 1,
-    FST_RSF  = 2
-} fst_file_type;
-
-static const char* fst_file_type_name[] = {
-    [FST_NONE] = "FST_NONE",
-    [FST_XDF]  = "FST_XDF",
-    [FST_RSF]  = "FST_RSF"
-};
-
 //! Base type to reference a FST file
 typedef struct fst24_file_ {
     int32_t       iun;                  //!< File unit, used by fnom
