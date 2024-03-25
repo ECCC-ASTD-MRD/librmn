@@ -65,10 +65,10 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
 
 * Parallel write is only available for RSF-type files, so if the file being opened is new, it must have `RSF` in addition to `PARALLEL` (or the `FST_OPTIONS` environment variable must contain `BACKEND=RSF`)
 
-    | Fortran | C |
-    | ------- | - |
-    | `my_file % open('file_name.fst', 'RSF+PARALLEL')` | `my_file = fst24_open("file_name.fst", "RSF+PARALLEL");` |
-    | `fstouv(iun, 'RSF+PARALLEL')`                     | `c_fstouv(iun, "RSF+PARALLEL");` |
+  |       | Fortran | C |
+  | ----- | ------- | - |
+  | fst24 | `my_file % open('file_name.fst', 'RSF+PARALLEL')` | `my_file = fst24_open("file_name.fst", "RSF+PARALLEL");` |
+  | fst98 | `fstouv(iun, 'RSF+PARALLEL')`                     | `c_fstouv(iun, "RSF+PARALLEL");` |
 
 * If a file is already open in read-only mode (`R/O` or no option) or in exclusive-write mode (`R/W` without `PARALLEL`), it has to be closed first before it can be open for parallel write.
 * Each process that opens a file for parallel write reserves a _segment_ of a given size, *which will take that much space on disk regardless of how much data that process writes to the file*. The size of the segments should be chosen so as to minimize the amount of unused space.
