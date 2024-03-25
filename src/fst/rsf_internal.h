@@ -572,7 +572,7 @@ static inline uint32_t make_meta0(
   extract_meta0(initial_meta, &init_version, &init_class, &init_type);
   if(init_type != RT_XDAT) {
     if(init_type < RT_CUSTOM || init_type >= RT_DEL)
-      init_type = RT_DATA ;    // RT_DATA (normal data record) by default
+      init_type = record_type ;
   }
 
   if (record_type != 0) init_type = record_type;

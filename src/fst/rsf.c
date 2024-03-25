@@ -1312,6 +1312,7 @@ int64_t RSF_Put_bytes_new(RSF_handle h, RSF_record *record,
 //! record is a pointer to a RSF_record struct. if record is not NULL, data and meta are ignored
 //! meta is a pointer to record metadata
 //! meta[0] is not really part of the record metadata, it is used to pass optional extra record type information
+//! meta[0] is updated by this function, if necessary
 //! meta_size is the size (in 32 bit elements) of the metadata (must be >= file metadata dimension)
 //! data is a pointer to record data (if NULL, a gap will be inserted in the file)
 //! data_bytes is the size (in bytes) of the data portion
@@ -1324,8 +1325,8 @@ int64_t RSF_Put_bytes_new(RSF_handle h, RSF_record *record,
 //! \return Record handle (index) if successful, 0 otherwise
 int64_t RSF_Put_bytes(
     RSF_handle h,       //!< [in,out] Handle to the file where to write
-    RSF_record *record, //!< [in]     [Optional] Record to write. If non-NULL, data and meta are ignored.
-    uint32_t *meta,     //!< [in]     [Optional] Pointer to record metadata to write. Ignored if [record] is non-NULL.
+    RSF_record *record, //!< [in,out] [Optional] Record to write. If non-NULL, data and meta are ignored.
+    uint32_t *meta,     //!< [in,out] [Optional] Pointer to record metadata to write. Ignored if [record] is non-NULL.
     uint32_t rec_meta,  //!< [in]     [Optional] Size of record metadata. Ignored if [record] is non-NULL.
     uint32_t dir_meta,  //!< [in]     [Optional] Size of directory metadata. Ignored if [record] is non-NULL.
     void *data,         //!< [in]     [Optional] Data to write to the file. Ignored if [record] is non-NULL.
@@ -1338,7 +1339,6 @@ int64_t RSF_Put_bytes(
   start_of_record sor = SOR ;      // start of data record
   end_of_record   eor = EOR ;      // end of data record
   ssize_t nc ;
-  uint32_t meta0, rt0, class0 ;
   off_t gap ;
 
   if( ! RSF_Valid_file(fp) ) goto ERROR ;          // something not O.K. with fp
@@ -1377,6 +1377,12 @@ int64_t RSF_Put_bytes(
   }
   lseek(fp->fd , fp->next_write , SEEK_SET) ; // position file at fp->next_write
   // fprintf(stderr,"RSF_Put_bytes DEBUG : write at %lx\n", fp->next_write) ;
+
+  uint8_t rt0, class0, version0 ;
+  if (record != NULL) meta = record->meta;
+  meta[0] = make_meta0(meta[0], fp->rec_class, RT_DATA);
+  extract_meta0(meta[0], &version0, &class0, &rt0);
+
   // write record 
   if( record != NULL){                                              // using a pre allocated, pre filled record structure
 
@@ -1389,27 +1395,12 @@ int64_t RSF_Put_bytes(
     rec_meta = record->rec_meta ;
     if(dir_meta == 0) dir_meta = rec_meta ;
     if(dir_meta > rec_meta) dir_meta = rec_meta ;
-    meta = record->meta ;                                           // set meta to address of metadata from record
-    meta0 = meta[0] ;                                               // save meta[0]
-    rt0 = meta0 & 0xFF ;                                            // lower 8 bits
-    class0 = meta0 >> 8 ;                                           // upper 24 bits
-    if(rt0 != RT_XDAT)
-      if(rt0 < RT_CUSTOM || rt0 >= RT_DEL) rt0 = RT_DATA ;          // RT_DATA (normal data record) by default
-    if(class0 == 0) class0 = (fp->rec_class & 0xFFFFFF) ;           // fp->rec_class if unspecified
-    meta[0] = (class0 << 8) | ( rt0 & 0xFF) ;                       // RT + record class
     ((start_of_record *) record->sor)->rt = rt0 ;                   // alter record type in start_of_record
     ((end_of_record *)   record->eor)->rt = rt0 ;                   // alter record type in end_of_record
     // data element size taken from record, element_size ignored
     nc = write(fp->fd, record->sor, record_size) ;                  // write record structure to disk
 
-  }else{                                                            // using meta and data
-    meta0 = meta[0] ;                                               // save meta[0]
-    rt0 = meta0 & 0xFF ;                                            // record type in lower 8 bits
-    class0 = meta0 >> 8 ;                                           // record class in upper 24 bits
-    if(rt0 != RT_XDAT)
-      if(rt0 < RT_CUSTOM || rt0 >= RT_DEL) rt0 = RT_DATA ;          // RT_DATA (normal data record) by default
-    if(class0 == 0) class0 = (fp->rec_class & 0xFFFFFF) ;           // fp->rec_class if unspecified
-    meta[0] = (class0 << 8) | ( rt0 & 0xFF) ;                       // RT + record class
+  } else {                                                          // using meta and data
     sor.rlm = DIR_ML(rec_meta) ;
     sor.rt = rt0 ;                                                  // alter record type in start_of_record
     sor.rlmd = dir_meta ;
@@ -1432,7 +1423,6 @@ int64_t RSF_Put_bytes(
 
   // update directory in memory
   slot = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size ) ;
-  meta[0] = meta0 ;                                                 // restore meta[0] to original value
 
   fp->next_write += record_size ;         // update fp->next_write and fp->current_pos
   fp->current_pos = fp->next_write ;
@@ -1739,6 +1729,16 @@ RSF_record_info RSF_Get_record_info_by_index(
     return info0;
   }
 
+  uint8_t version, record_class, record_type;
+  extract_meta0(fp->vdir[index]->meta[0], &version, &record_class, &record_type);
+
+  if (version > RSF_VERSION_COUNT) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to get record information for a record "
+            "written by a newer version of the library (%d vs %d)\n",
+            __func__, version, RSF_VERSION_COUNT);
+    return info0;
+  }
+
   RSF_record_info info ;
   info.wa = RSF_32_to_64( fp->vdir[index]->wa ) ;     // record address in file
   info.rl = RSF_32_to_64( fp->vdir[index]->rl ) ;     // record size
@@ -1756,7 +1756,7 @@ RSF_record_info RSF_Get_record_info_by_index(
                    info.rec_meta * sizeof(int32_t) ;
   info.fname = NULL ;                                 // if not a file container
   info.file_size = 0 ;                                // if not a file container
-  if((info.meta[0] & 0xFF) == RT_FILE){                      // file container detected
+  if(record_type == RT_FILE){                         // file container detected
     char *temp0 = (char *) info.meta ;
     char *temp = (char *) &info.meta[info.dir_meta] ;             // end of metadata
     while((temp[ 0] == '\0') && (temp > temp0)) temp-- ;    // skip trailing nulls
