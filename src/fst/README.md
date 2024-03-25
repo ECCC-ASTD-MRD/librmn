@@ -1,32 +1,30 @@
 # Table of Contents
 1. [Introduction](#introduction)
-    1. [RSF Features](#rsf-features)
-    1. [New Interface - `fst24`](#new-interface-fst24)
+    1. [RSF Features](#new-features-of-rsf)
+    1. [New Interface: `fst24`](#new-interface-fst24)
     1. [Parallel Write](#parallel-write)
     1. [Data Types](#data-types)
-    1. [Old Interface - `fst98`](#old-interface---fst98)
+    1. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
-    1. [Opening and Closing](#ex-open-close)
-    2. [Searching and Reading](#ex-search-read)
-    3. [Writing](#ex-write)
+    1. [Opening and Closing](#opening-and-closing-a-file)
+    2. [Searching and Reading](#finding-and-reading-a-record)
+    3. [Writing](#creating-and-writing-a-record)
 3. [API](#api)
    1. [C](#c)
-      1. [Structs](#c-structs)
-      2. [File Functions](#c-file-functions)
-      2. [Query Functions](#c-query-functions)
-      3. [Record Functions](#c-record-functions)
+      1. [Structs](#structs)
+      2. [File Functions](#file-functions)
+      2. [Query Functions](#query-functions)
+      3. [Record Functions](#record-functions)
    2. [Fortran](#fortran)
-      1. [Structs](#fortran-structs)
-      2. [File Functions](#fortran-file-functions)
-      2. [Query Functions](#fortran-query-functions)
-      3. [Record Functions](#fortran-record-functions)
+      1. [Structs](#structs-1)
+      2. [File Functions](#file-functions-1)
+      2. [Query Functions](#query-functions-1)
+      3. [Record Functions](#record-functions-1)
    
 # Introduction
 * A new backend called RSF (Random Segment Files) has been implemented for standard files (FSTD, or FST). It can be used through the [old interface](#ols-interface), while removing some of the limitations related to the previous backend (XDF). 
 * [A new interface](#new-interface) called `fst24` (in contrast to the old `fst98`) has also been implemented. It provides a more modern way to access and manipulate standard files, whether they are in the RSF or XDF format.
 * New [extended metadata](../Meta/README.md) is now available, but note that you will have to switch to the new API to use it
-
-<a id="rsf-features"></a>
 
 ## New features of RSF
 * RSF are implemented on the concept of sparse files
@@ -40,8 +38,6 @@
 * New compression schemes
 * Sub tile reading of larger records
 * Multiple no data values
-
-<a id="new-interface"></a>
 
 ## New interface: fst24
 
@@ -164,9 +160,7 @@ static const int32_t FST_TYPE_TURBOPACK = 128;
 #define FSTD_MISSING_FLAG 64 //!< When this flag is ON in a datatype, it indicates that some data points are missing
 ```
 
-<a id="old-interface"></a>
-
-## Old Interface - fst98
+## Old Interface: fst98
 
 * The old `fst98` API is still supported and can manage the new RSF backend. In Fortran, a new module has been created and we recommend its use:
 ```Fortran
@@ -183,7 +177,6 @@ export FST_OPTIONS="BACKEND=RSF"
 
 # Examples
 
-<a id="ex-open-close"></a>
 ## Opening and Closing a File
 
 <table><tr><td style="width:50%">
@@ -687,7 +680,9 @@ fst24_write(my_file, &my_record, 0);
 # API
 
 ## C
+
 <a id="c-struct"></a>
+
 ### Structs
 
 ```c
@@ -913,7 +908,9 @@ int32_t fst24_record_free(
 ```
 
 ## Fortran
+
 <a id="fortran-structs"></a>
+
 ### Structs
 
 ```fortran
