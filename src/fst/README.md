@@ -1,7 +1,7 @@
 # Table of Contents
 1. [Introduction](#introduction)
     1. [RSF Features](#rsf-features)
-    1. [New Interface - `fst24`](#new-interface)
+    1. [New Interface - `fst24`](#new-interface-fst24)
     1. [Parallel Write](#parallel-write)
     1. [Data Types](#data-types)
     1. [Old Interface - `fst98`](#old-interface---fst98)
@@ -43,7 +43,7 @@
 
 <a id="new-interface"></a>
 
-## New interface - fst24
+## New interface: fst24
 
 * In the `fst24` interface, Standard Files are manipulated trough two derived types (or structs, in C)
    * `fst_file` is an opaque handle to a file, and allows for file operations like opening, searching, reading and writing.
