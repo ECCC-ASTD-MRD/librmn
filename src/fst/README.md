@@ -22,8 +22,8 @@
       3. [Record Functions](#record-functions-1)
    
 # Introduction
-* A new backend called RSF (Random Segment Files) has been implemented for standard files (FSTD, or FST). It can be used through the [old interface](#ols-interface), while removing some of the limitations related to the previous backend (XDF). 
-* [A new interface](#new-interface) called `fst24` (in contrast to the old `fst98`) has also been implemented. It provides a more modern way to access and manipulate standard files, whether they are in the RSF or XDF format.
+* A new backend called RSF (Random Segment Files) has been implemented for standard files (FSTD, or FST). It can be used through the [old interface](#old-interface-fst98), while removing some of the limitations related to the previous backend (XDF). 
+* [A new interface](#new-interface-fst24) called `fst24` (in contrast to the old `fst98`) has also been implemented. It provides a more modern way to access and manipulate standard files, whether they are in the RSF or XDF format.
 * New [extended metadata](../Meta/README.md) is now available, but note that you will have to switch to the new API to use it
 
 ## New features of RSF
@@ -56,7 +56,7 @@ depending on whether you are using the Fortran or the C interface:
 * In **Fortran**: Search parameters are specified directly (and individually) as function parameters. Any unspecified parameter will be ignored during the search.
 * In **C**: Search parameters are specified as a set, represented by an `fst_record` instance. Any attribute of `fst_record` that is left at its default value will be ignored during the search.
 
-[Examples are available below](#ex-search-read).
+[Examples are available below](#finding-and-reading-a-record).
 
 ## Parallel write
 
