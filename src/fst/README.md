@@ -1221,12 +1221,12 @@ end subroutine get_data_array
 
 !> Check whether two records have identical information (except data). This will sync the underlying C struct
 !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise
-function fst24_record_has_same_info(this, other) result(has_same_info)
+function has_same_info(this, other) result(has_same_info)
     implicit none
     class(fst_record), intent(inout) :: this
     type(fst_record),  intent(inout) :: other
     logical :: has_same_info
-end function fst24_record_has_same_info
+end function has_same_info
 
 !> Read the data and metadata of a given record from its corresponding file
 !> Return Whether we were able to do the reading
