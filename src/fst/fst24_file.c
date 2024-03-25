@@ -319,7 +319,7 @@ int32_t fst24_write_rsf(
 
     // will be cancelled later if not supported or no missing values detected
     // missing value feature used flag
-    int is_missing = record->datyp & FSTD_MISSING_FLAG;
+    int has_missing = record->datyp & FSTD_MISSING_FLAG;
     // suppress missing value flag (64)
     int in_datyp = record->datyp & ~FSTD_MISSING_FLAG;
     if (is_type_complex(in_datyp)) {
@@ -328,7 +328,7 @@ int32_t fst24_write_rsf(
                    "data type %d reset to %d (complex)\n", __func__, record->datyp, 8);
         }
         // missing values not supported for complex type
-        is_missing = 0;
+        has_missing = 0;
         // extra compression not supported for complex type
         in_datyp = FST_TYPE_COMPLEX;
     }
@@ -550,7 +550,7 @@ int32_t fst24_write_rsf(
     stdf_entry->gtyp = grtyp[0];
     stdf_entry->nj = record->nj;
     // propagate missing values flag
-    stdf_entry->datyp = datyp | is_missing;
+    stdf_entry->datyp = datyp | has_missing;
     // this value may be changed later in the code to eliminate improper flags
     stdf_entry->nk = record->nk;
     stdf_entry->ubc = 0;
@@ -625,7 +625,7 @@ int32_t fst24_write_rsf(
         // time to fudge field if missing value feature is used
 
         // put appropriate values into field after allocating it
-        if (is_missing) {
+        if (has_missing) {
             // allocate self deallocating scratch field
             field = (uint32_t *)alloca(num_elements * stdf_entry->dasiz/8);
             if ( 0 == EncodeMissingValue(field, record->data, num_elements, in_datyp, stdf_entry->dasiz, nbits) ) {
@@ -633,7 +633,7 @@ int32_t fst24_write_rsf(
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
                 // cancel missing data flag in data type
                 stdf_entry->datyp = datyp;
-                is_missing = 0;
+                has_missing = 0;
             }
         }
 
@@ -755,11 +755,11 @@ int32_t fst24_write_rsf(
                 // signed integer
                 if (is_type_turbopack(datyp)) {
                     Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported, data type %d reset to FST_TYPE_SIGNED (%d)\n",
-                            __func__, stdf_entry->datyp, is_missing | FST_TYPE_SIGNED);
+                            __func__, stdf_entry->datyp, has_missing | FST_TYPE_SIGNED);
                     datyp = FST_TYPE_SIGNED;
                 }
                 // turbo compression not supported for this type, revert to normal mode
-                stdf_entry->datyp = is_missing | FST_TYPE_SIGNED;
+                stdf_entry->datyp = has_missing | FST_TYPE_SIGNED;
 
 
                 uint32_t * field3 = field;
@@ -775,7 +775,7 @@ int32_t fst24_write_rsf(
                     if (record->dasiz == 16) for (int i = 0; i < num_elem;i++) { field3[i] = s_field[i]; };
                     if (record->dasiz == 8)  for (int i = 0; i < num_elem;i++) { field3[i] = b_field[i]; };
                 }
-                compact_integer(field3, (void *) NULL, record->data, num_elem, nbits, 0, stride, 3);
+                compact_integer(field3, (void *) NULL, new_record->data, num_elem, nbits, 0, stride, 3);
 
                 break;
             }
