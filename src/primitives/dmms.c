@@ -40,7 +40,7 @@
 struct blocmem {
     struct blocmem *fwd;
     struct blocmem *bwd;
-    int *data[4];
+    intptr_t *data[4];
 };
 
 static struct blocmem stack_first;
@@ -103,7 +103,7 @@ static int dmms_noabort = 0;
 
 struct blocmem *bloc_alloc(int nbytes, int mode) {
     struct blocmem *ptbloc;
-    unsigned int errptr;
+    intptr_t errptr;
     int lng, nitem, n;
     char *value;
 
@@ -135,19 +135,19 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
         stack_last.bwd = &stack_first;
         stack_last.fwd = (struct blocmem *) NULL;
 
-        heap_first.data[0] = (int *) &(heap_first.data[1]);
-        heap_first.data[1] = (int *) &(heap_first.data[0]);
-        heap_last.data[0] = (int *) &(heap_last.data[1]);
-        heap_last.data[1] = (int *) &(heap_last.data[0]);
+        heap_first.data[0] = (intptr_t *) &(heap_first.data[1]);
+        heap_first.data[1] = (intptr_t *) &(heap_first.data[0]);
+        heap_last.data[0] = (intptr_t *) &(heap_last.data[1]);
+        heap_last.data[1] = (intptr_t *) &(heap_last.data[0]);
 
-        stack_first.data[0] = (int *) &(stack_first.data[1]);
-        stack_first.data[1] = (int *) &(stack_first.data[0]);
-        stack_last.data[0] = (int *) &(stack_last.data[1]);
-        stack_last.data[1] = (int *) &(stack_last.data[0]);
+        stack_first.data[0] = (intptr_t *) &(stack_first.data[1]);
+        stack_first.data[1] = (intptr_t *) &(stack_first.data[0]);
+        stack_last.data[0] = (intptr_t *) &(stack_last.data[1]);
+        stack_last.data[1] = (intptr_t *) &(stack_last.data[0]);
 
         value = getenv("BAD_POINTER");
         if (value != NULL) {
-            n = sscanf(value,"%x", &errptr);
+            n = sscanf(value,"%lx", &errptr);
             badptr = (struct blocmem *) errptr;
             Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: bad_pointer to look for is %#p\n",__func__,badptr);
         } else {
@@ -188,8 +188,8 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
         (ptbloc->bwd)->fwd = ptbloc;
     }
 
-    ptbloc->data[0] = (int *) &(ptbloc->data[nitem+1]);
-    ptbloc->data[nitem+1] = (int *) &(ptbloc->data[0]);
+    ptbloc->data[0] = (intptr_t *) &(ptbloc->data[nitem+1]);
+    ptbloc->data[nitem+1] = (intptr_t *) &(ptbloc->data[0]);
     if (Lib_LogLevel(APP_LIBRMN,NULL)>=APP_DEBUG) {
          Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: alloc_bloc nitem = %d\n",__func__,nitem);
          Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: c_bloc lng = %d\n",__func__,lng);
@@ -203,7 +203,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
     if (initmem) {
         lng = (nitem-2) * ptrsize / sizeof(int32_t);
         for (int i = 0; i < lng; i++) {
-            ptbloc->data[2 + i] = con;
+            ptbloc->data[2 + i] = (intptr_t*)con;
         }
     }
 
@@ -395,14 +395,14 @@ void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *
         nbytes = 1 << pw2;
     }
     struct blocmem * ptbloc = bloc_alloc(nbytes + 8 + *length * sizeof(int32_t) * ((*abort==8) ? 2 : 1),HEAP);
-    int ** pt_data1 = &(ptbloc->data[1]);
-    int ** pt_aligned = &(ptbloc->data[2]) + (nbytes / sizeof(pt_aligned));
+    intptr_t ** pt_data1 = &(ptbloc->data[1]);
+    intptr_t ** pt_aligned = &(ptbloc->data[2]) + (nbytes / sizeof(pt_aligned));
     pt_aligned = (void *) (( (intptr_t)pt_aligned) >> pw2);
     pt_aligned = (void *) (( (intptr_t)pt_aligned) << pw2);
     int ajout =  pt_aligned -  pt_data1;
-    ptbloc->data[1] = (int *) ptbloc;
+    ptbloc->data[1] = (intptr_t *) ptbloc;
     for (int i=0; i <= ajout; i++) {
-        ptbloc->data[1+i] = (int *) ptbloc;
+        ptbloc->data[1+i] = (intptr_t *) ptbloc;
     }
     *addr =  (void *) pt_aligned;
     *errcode = (ptbloc == (struct blocmem *) NULL) ? 1 : 0;
@@ -410,7 +410,7 @@ void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *
 
 
 void f77name(ca_deallc)(int32_t ** addr, int32_t * errcode, int32_t * abort) {
-   int **ptr;
+   intptr_t **ptr;
    ptr = *addr - sizeof(addr);
    *errcode = bloc_dealloc((struct blocmem *)(*ptr),HEAP);
 }
