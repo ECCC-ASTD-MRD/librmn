@@ -788,26 +788,18 @@ int c_fstckp(
 }
 
 
-//! Gives information on data length of the elements passed to fstecr and fstlir (double, short integer, byte ...)
+//! Set data size for the elements passed to fstecr and fstlir
 int c_fst_data_length(
     //! [in] Data length and kind
-    //! 1: byte
-    //! 2: short (16 bits)
-    //! 4: regular 32 bits
-    //! 8: double (64 bits)
+    //! | length_type | Description       |
+    //! | ----------: | :---------------- |
+    //! |           1 | Byte              |
+    //! |           2 | Short (16 bits)   |
+    //! |           3 | Regular (32 bits) |
+    //! |           4 | Double (64 bits)  |
     const int length_type
 ) {
-/*
-    xdf_size = 4;
-    if (length_type==1 || length_type==2 || length_type==4 || length_type==4) {
-       xdf_size=length_type;
-    } else {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: c_fst_data_length invalid length type=%d\n", __func__, length_type);
-    }
-    return 0;
-*/
     switch (length_type) {
-
         case 1:
             xdf_byte = 1;
             xdf_short = 0;
@@ -1490,22 +1482,6 @@ int c_fstecr_xdf(
 
 
 //! Write a field into a rpn file
-//! | datyp | Description                                  |
-//! | ----: | :------------------------------------------- |
-//! |     0 | Binary, transparent                          |
-//! |     1 | Floating point                               |
-//! |     2 | Unsigned integer                             |
-//! |     3 | Character (R4A in an integer)                |
-//! |     4 | Signed integer                               |
-//! |     5 | IEEE floating point                          |
-//! |     6 | Floating point (16 bit, made for compressor) |
-//! |     7 | Character string                             |
-//! |     8 | Complex IEEE                                 |
-//! |   130 | Compressed short integer  (128+2)            |
-//! |   133 | Compressed IEEE           (128+5)            |
-//! |   134 | Compressed floating point (128+6)            |
-//! | +128  | Second stage packer active                   |
-//! | +64   | Missing value convention used                |
 int c_fstecr(
     //! [in] Field to write to the file
     void *field_in,
@@ -1550,7 +1526,23 @@ int c_fstecr(
     //! [in] Fourth grid descriptor
     int ig4,
     //! [in] Data type of elements
-    int in_datyp_ori,
+    //! | datyp | Description                                  |
+    //! | ----: | :------------------------------------------- |
+    //! |     0 | Binary, transparent                          |
+    //! |     1 | Floating point                               |
+    //! |     2 | Unsigned integer                             |
+    //! |     3 | Character (R4A in an integer)                |
+    //! |     4 | Signed integer                               |
+    //! |     5 | IEEE floating point                          |
+    //! |     6 | Floating point (16 bit, made for compressor) |
+    //! |     7 | Character string                             |
+    //! |     8 | Complex IEEE                                 |
+    //! |   130 | Compressed short integer  (128+2)            |
+    //! |   133 | Compressed IEEE           (128+5)            |
+    //! |   134 | Compressed floating point (128+6)            |
+    //! | +128  | Second stage packer active                   |
+    //! | +64   | Missing value convention used                |
+    int datyp,
     //! [in] Rewrite existing record, append otherwise
     int rewrit
 ) {
@@ -1564,11 +1556,11 @@ int c_fstecr(
 
     if (rsf_status == 1) {
         return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
-                            in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, in_datyp_ori, rewrit);
+                            in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
     else if (rsf_status == 0) {
         return c_fstecr_xdf(field_in, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
-                            in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, in_datyp_ori, rewrit);
+                            in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
 
     return rsf_status;
@@ -1776,33 +1768,29 @@ int c_fsteff_xdf(
     //! Handle of the record to delete
     int handle
 ) {
-    int ier, index;
-    file_table_entry *f;
-
-    index = INDEX_FROM_HANDLE(handle);
+    int index = INDEX_FROM_HANDLE(handle);
     if ((index < 0) || (index >= MAX_XDF_FILES)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d\n", __func__, handle);
         return ERR_BAD_HNDL;
     }
 
-    f = file_table[index];
-    if (f == NULL) {
+    file_table_entry *fte = file_table[index];
+    if (fte == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d\n", __func__, handle);
         return ERR_BAD_HNDL;
     }
 
-    if (! f->cur_info->attr.std) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard filed\n", __func__, f->iun);
+    if (! fte->cur_info->attr.std) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard filed\n", __func__, fte->iun);
         return ERR_NO_FILE;
     }
 
-    if (f->fstd_vintage_89) {
-        Lib_Log(APP_LIBFST, APP_FATAL, "%s: can not write (unit=%d) on an old (version 89) RPN standard file\n", __func__, f->iun);
+    if (fte->fstd_vintage_89) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: can not write (unit=%d) on an old (version 89) RPN standard file\n", __func__, fte->iun);
         return ERR_NO_WRITE;
     }
 
-    ier = c_xdfdel(handle);
-    return ier;
+    return c_xdfdel(handle);
 }
 
 //! Delete a record
@@ -1831,34 +1819,30 @@ int c_fsteof_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom, index, eof;
-    file_table_entry *f;
-    xdf_record_header *header;
-    seq_dir_keys *seq_entry;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
         return ERR_NO_FILE;
     }
 
-    f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-    if (!f->xdf_seq) {
+    if (!fte->xdf_seq) {
         return 0;
     }
 
-    eof = 0;
-    if (!f->fstd_vintage_89) {
-        header = (xdf_record_header *) f->head_keys;
+    int eof = 0;
+    if (!fte->fstd_vintage_89) {
+        xdf_record_header *header = (xdf_record_header *) fte->head_keys;
         if ((header->idtyp >= 112) && (header->idtyp <= 127)) eof = header->idtyp - 112;
     } else {
-        seq_entry = (seq_dir_keys *) f->head_keys;
+        seq_dir_keys *seq_entry = (seq_dir_keys *) fte->head_keys;
         if (seq_entry->eof > 0) eof = (seq_entry->eof == 31) ? 15 : seq_entry->eof;
     }
 
@@ -2629,8 +2613,8 @@ int c_fstluk_xdf(
     //! [out] Dimension 3 of the data field
     int * const nk
 ) {
-    uint32_t *field=vfield;
-    
+    uint32_t *field = vfield;
+
     // fprintf(stderr, "Debug+ c_fstluk(field=%p, handle=%i, ni=%i, nj=%i, nj=%i)\n", field, handle, *ni, *nj, *nk);
 
     // printf("sizeof(stdf_dir_keys) = %d\n", sizeof(stdf_dir_keys));
@@ -2933,10 +2917,10 @@ int c_fstluk_xdf(
             default:
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid datyp=%d\n", __func__, stdf_entry.datyp);
                 return ERR_BAD_DATYP;
-        } /* end switch */
+        } // switch
     }
 
-    if (Lib_LogLevel(APP_LIBFST, NULL)>=APP_INFO) {
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         char string[11];
         sprintf(string, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
@@ -2977,8 +2961,7 @@ int c_fstluk(
     if (key_type == 1) {
         RSF_handle file_handle = RSF_Key32_to_handle(handle);
         return c_fstluk_rsf(vfield, file_handle, handle, ni, nj, nk);
-    }
-    else if (key_type == 0) {
+    } else if (key_type == 0) {
         return c_fstluk_xdf(vfield, handle, ni, nj, nk);
     }
 
@@ -4724,12 +4707,7 @@ int32_t f77name(fstecr)(
 }
 
 
-/*****************************************************************************
- *                              F S T E C R _ S                              *
- *                                                                           *
- *Object                                                                     *
- *   Writes record to file.                                                  *
- *                                                                           *
+/*
  *Arguments                                                                  *
  *                                                                           *
  *  IN  string  character string to write to the file                        *
@@ -4757,6 +4735,7 @@ int32_t f77name(fstecr)(
  *  IN  rewrit  rewrite flag (true = rewrite existing record, false = append)*
  *                                                                           *
  *****************************************************************************/
+//! Write string to file
 int32_t f77name(fstecr_s)(void *string, int32_t *work, int32_t *f_npak,
                         int32_t *f_iun, int32_t *f_date,
                         int32_t *f_deet, int32_t *f_npas,
@@ -5480,6 +5459,7 @@ int32_t f77name(fstlis)(uint32_t *field, int32_t *f_iun,
   return (int32_t) ier;
 }
 
+//! Link files together for searches
 int32_t c_fstlnk(
     //! [in] List of unit numbers associated to the files
     const int32_t *liste,
@@ -5944,6 +5924,7 @@ int32_t f77name(fstsui)(int32_t *f_iun,
 }
 
 
+//! Unlinks files previously linked with fstlnk
 int32_t c_fstunl() {
     if (first_linked_file < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: No list to unlink\n", __func__);
@@ -5966,18 +5947,7 @@ int32_t c_fstunl() {
     return 0;
 }
 
-/*****************************************************************************
- *                              F S T U N L                                  *
- *                                                                           *
- *Object                                                                     *
- *   Unlinks a list of files previously linked by fstlnk.                    *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  liste   list of unit numbers associated to the files                 *
- *  IN  n       number of files to link                                      *
- *                                                                           *
- *****************************************************************************/
+
 int32_t f77name(fstunl)()
 {
     return c_fstunl();
