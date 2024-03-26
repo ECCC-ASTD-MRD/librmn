@@ -90,11 +90,22 @@ contains
         ! fstlir
         block
             integer :: ni, nj, nk
+            call App_Log(APP_INFO, 'Testing fstlir')
+
             record_key = fstlir(work_array, unit_list(1), ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
             call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
+
             work_array(:) = 0
             record_key = fstlir(work_array, unit_list(1), ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
             call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
+
+            work_array(:) = 0
+            record_key = fstlir(work_array, unit_list(2), ni, nj, nk, -1, ' ', -1, -1, 1234, ' ', ' ')
+            call check_status(record_key, expected_min = 1, fail_message = 'lir (second file in link, record in third file)')
+
+            work_array(:) = 0
+            record_key = fstlir(work_array, unit_list(2), ni, nj, nk, -1, ' ', -1, -1, 30, ' ', ' ')
+            call check_status(record_key, expected_min = 1, fail_message = 'lir (second file in link, record in fourth file)')
         end block
 
         ! ---------------------------------------------
@@ -103,30 +114,54 @@ contains
             integer, dimension(single_num_records * 4) :: record_keys
             integer :: num_record_found
             integer :: ni, nj, nk
-            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+            
+            call App_Log(APP_INFO, 'Testing fstinl')
+
+            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
                                 record_keys, num_record_found, single_num_records * 4)
             call check_status(status, expected = 0, fail_message = 'fstinl status')
-            call check_status(num_record_found, expected = single_num_records * 4, fail_message = 'fstinl count (1st file)')
+            ! call check_status(num_record_found, expected = single_num_records * 4, fail_message = 'fstinl count (1st file)')
+            call check_status(num_record_found, expected = 4, fail_message = 'fstinl count (1st file)')
 
             print *, 'num rec found = ', num_record_found
 
-            status = fstinl(unit_list(2), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+            status = fstinl(unit_list(2), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
                                 record_keys, num_record_found, single_num_records * 3)
             call check_status(status, expected = 0, fail_message = 'fstinl status')
-            call check_status(num_record_found, expected = single_num_records * 3, fail_message = 'fstinl count (2nd file)')
+            ! call check_status(num_record_found, expected = single_num_records * 3, fail_message = 'fstinl count (2nd file)')
+            call check_status(num_record_found, expected = 3, fail_message = 'fstinl count (2nd file)')
 
             print *, 'num rec found = ', num_record_found
-            status = fstinl(unit_list(3), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+            status = fstinl(unit_list(3), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
                                 record_keys, num_record_found, single_num_records * 3)
             call check_status(status, expected = 0, fail_message = 'fstinl status')
-            call check_status(num_record_found, expected = single_num_records * 2, fail_message = 'fstinl count (3rd file)')
+            ! call check_status(num_record_found, expected = single_num_records * 2, fail_message = 'fstinl count (3rd file)')
+            call check_status(num_record_found, expected = 2, fail_message = 'fstinl count (3rd file)')
             print *, 'num rec found = ', num_record_found
 
-            status = fstinl(unit_list(4), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+            status = fstinl(unit_list(4), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
                                 record_keys, num_record_found, single_num_records * 3)
             call check_status(status, expected = 0, fail_message = 'fstinl status')
-            call check_status(num_record_found, expected = single_num_records * 1, fail_message = 'fstinl count (4th file)')
+            ! call check_status(num_record_found, expected = single_num_records * 1, fail_message = 'fstinl count (4th file)')
+            call check_status(num_record_found, expected = 1, fail_message = 'fstinl count (4th file)')
             print *, 'num rec found = ', num_record_found
+
+            call App_Log(APP_INFO, 'Testing fstinl (second batch)')
+
+            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 2, ' ', ' ',          &
+                                record_keys, num_record_found, single_num_records * 4)
+            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 1st file)')
+            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 30, ' ', ' ',          &
+                                record_keys, num_record_found, single_num_records * 4)
+            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 2nd file)')
+            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 100, ' ', ' ',          &
+                                record_keys, num_record_found, single_num_records * 4)
+            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 3rd file)')
+            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 1234, ' ', ' ',          &
+                                record_keys, num_record_found, single_num_records * 4)
+            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 4th file)')
+
+
         end block
 
         ! ---------------------------------------------
@@ -202,10 +237,10 @@ program fst98_interface
     integer :: status
     integer :: iun
 
-    call generate_file(rsf_name_1, .true.)
-    call generate_file(rsf_name_2, .true.)
-    call generate_file(xdf_name_1, .false.)
-    call generate_file(xdf_name_2, .false.)
+    call generate_file(rsf_name_1, .true., ip3_offset = 2)
+    call generate_file(rsf_name_2, .true., ip3_offset = 30)
+    call generate_file(xdf_name_1, .false., ip3_offset = 100)
+    call generate_file(xdf_name_2, .false., ip3_offset = 1234)
 
     call test_fst_link()
     call test_fst_prm()
@@ -215,6 +250,5 @@ program fst98_interface
     call check_status(status, expected = 0, fail_message = 'fstouv rsf VOLATILE')
     status = fstouv('xdf_volatile', iun, 'STD+RND+VOLATILE')
     call check_status(status, expected = 0, fail_message = 'fstouv xdf VOLATILE')
-
 
 end program fst98_interface

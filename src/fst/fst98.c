@@ -2002,7 +2002,8 @@ int c_fstinfx_xdf(
     copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
     copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
     copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
-    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d)\n",
+            __func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar, handle);
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -2330,9 +2331,12 @@ int c_fstinl(
 
     int status = -1;
     int total_found = 0;
+    int num_files = 0;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+        num_files++;
+
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinl_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3,
                                   typvar, nomvar, liste + total_found, infon, nmax - total_found);
@@ -2347,6 +2351,8 @@ int c_fstinl(
         total_found += *infon;
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Found %d records in %d files\n", __func__, total_found, num_files);
 
     *infon = total_found;
     return status;
@@ -2543,14 +2549,27 @@ int c_fstlirx(
         return(ERR_NO_FNOM);
     }
 
-    if (rsf_status == 1) {
-        return c_fstlirx_rsf(field, handle, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
-    }
-    else if (rsf_status == 0) {
-        return c_fstlirx_xdf(field, handle, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    int status = -1;
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstlirx_rsf(field, handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+        }
+        else if (FGFDT[index_fnom].attr.rsf == 0) {
+            status = c_fstlirx_xdf(field, handle, FGFDT[index_fnom].iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+        }
+
+        if (status > 0) return status; // Found it!
+
+        // Stop if error, but we continue looking if it's just because we didn't find a match
+        if (status < 0 && status != ERR_NOT_FOUND) return status;
+
+        index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
-    return rsf_status;
+    return status;
 }
 
 //! \copydoc c_fstlis
@@ -3146,8 +3165,8 @@ int c_fstnbr(
     int status = -1;
     int total_num_records = 0;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbr_rsf(index_fnom);
         }
@@ -3207,8 +3226,8 @@ int c_fstnbrv(
     int status = -1;
     int total_num_records = 0;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %d, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf, fstd_open_files[index_fnom].next_file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbrv_rsf(index_fnom);
         }

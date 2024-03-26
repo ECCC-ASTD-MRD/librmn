@@ -412,7 +412,7 @@ ERROR :
 //! if a matching function has been associated with the file, it is used insteaad of the default match function
 //!
 //! \return  key for record file slot(index) in upper 32 bits, record index in lower 32 bits (both in origin 1)
-//!          -1 in case of error (or no match?)
+//!          a negative number in case of error (or no match?)
 static int64_t RSF_Scan_vdir(
     //!> Handle to open file
     RSF_File *fp,
@@ -535,8 +535,8 @@ static int64_t RSF_Scan_vdir(
   }
 
   // falling through, return an invalid key
-  Lib_Log(APP_LIBFST, APP_INFO, "%s: key = %16.16lx, no match found\n", __func__, key0);
-  return badkey;
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: key = %16.16lx, no match found\n", __func__, key0);
+  return ERR_NOT_FOUND;
 
 MATCH:
   // upper 32 bits of key contain the file "slot" number (origin 1)
@@ -1682,7 +1682,7 @@ ERROR:
 }
 
 //! Get key to record from file fp, matching criteria & mask
-//! \return Key to the first record found that matches the criteria/mask
+//! \return Key to the first record found that matches the criteria/mask, a negative error code if not found or error
 //! \sa RSF_Scan_vdir
 int64_t RSF_Lookup(
     RSF_handle h,       //!< Handle to file to search
