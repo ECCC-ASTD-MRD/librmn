@@ -770,40 +770,34 @@ int c_xdfcls(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index, index_fnom, i, j, lng64, width, open_mode;
-    file_table_entry *f;
-    xdf_dir_page *curpage;
-    uint32_t *check32, checksum;
-    uint32_t *entry;
-    xdf_record_header *rec;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
 
-    f = file_table[index];
+    file_table_entry * fte = file_table[index];
 
-    if ((f->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only)) {
+    if ((fte->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only)) {
         // Rewrite file header
-        c_wawrit(iun, f->header, 1, W64TOWD(f->header->lng));
+        c_wawrit(iun, fte->header, 1, W64TOWD(fte->header->lng));
     }
 
-    if (f->modified) {
+    if (fte->modified) {
         // File has been modified rewrite dir. pages
-        for (i = 0; i < f->header->nbd; i++) {
-            if (f->dir_page[i]->modified) {
+        for (int i = 0; i < fte->header->nbd; i++) {
+            if (fte->dir_page[i]->modified) {
                 // Reset idtyp entries to original value if modified by scan_dir_page
-                width = W64TOWD(f->primary_len);
-                entry = (f->dir_page[i])->dir.entry;
-                for (j = 0; j < (f->dir_page[i])->dir.nent; j++) {
-                    rec = (xdf_record_header *) entry;
+                int width = W64TOWD(fte->primary_len);
+                uint32_t *entry = (fte->dir_page[i])->dir.entry;
+                for (int j = 0; j < (fte->dir_page[i])->dir.nent; j++) {
+                    xdf_record_header * rec = (xdf_record_header *) entry;
                     if ((rec->idtyp | 0x80) == 254) {
                         rec->idtyp = 255;
                         c_wawrit(iun, rec, W64TOWD(rec->addr - 1) + 1, W64TOWD(1));
@@ -812,40 +806,38 @@ int c_xdfcls(
                     entry += width;
                 }
                 // Compute checksum and rewrite page
-                lng64 = f->primary_len * ENTRIES_PER_PAGE + 4;
-                curpage = &((f->dir_page[i])->dir);
-                checksum = curpage->chksum;
-                check32 = (uint32_t *) curpage;
-                for (j = 4; j < W64TOWD(lng64); j++) {
+                int lng64 = fte->primary_len * ENTRIES_PER_PAGE + 4;
+                xdf_dir_page * curpage = &((fte->dir_page[i])->dir);
+                uint32_t checksum = curpage->chksum;
+                uint32_t *check32 = (uint32_t *) curpage;
+                for (int j = 4; j < W64TOWD(lng64); j++) {
                     checksum ^= check32[j];
                 }
                 curpage->chksum = checksum;
                 c_wawrit(iun, curpage, W64TOWD(curpage->addr - 1) + 1, W64TOWD(lng64));
-                f->dir_page[i]->modified = 0;
-            } /* end if page modified */
-         } /* end for i */
-        if (f->xdf_seq) {
-            {
-                int trunc_to;
-                trunc_to = FGFDT[index_fnom].file_size * sizeof(uint32_t);
-                c_secateur(FGFDT[index_fnom].file_name, trunc_to);
-            }
+                fte->dir_page[i]->modified = 0;
+            } // end if page modified
+         } // end for i
+        if (fte->xdf_seq) {
+            int trunc_to;
+            trunc_to = FGFDT[index_fnom].file_size * sizeof(uint32_t);
+            c_secateur(FGFDT[index_fnom].file_name, trunc_to);
         }
-        f->modified = 0;
+        fte->modified = 0;
     } // end if file modified
 
     if (!xdf_checkpoint) {
-        if ((f->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only)) {
+        if ((fte->header->rwflg != RDMODE) && (!FGFDT[index_fnom].attr.read_only)) {
             // Rewrite file header
-            f->header->rwflg = 0;
-            c_wawrit(iun, f->header, 1, W64TOWD(f->header->lng));
+            fte->header->rwflg = 0;
+            c_wawrit(iun, fte->header, 1, W64TOWD(fte->header->lng));
         }
 
         c_waclos(iun);
 
         // Free allocated pages
-        for (i = 0; i < f->npages; i++) {
-            free(f->dir_page[i]);
+        for (int i = 0; i < fte->npages; i++) {
+            free(fte->dir_page[i]);
         }
 
         // Reset file informations
@@ -913,16 +905,9 @@ int c_xdfdel(
     //! [in] File index, page number and record number to record
     const int handle
 ) {
-    int index, page_number, record_number, idtyp, i, addr;
-    file_table_entry *f;
-    file_record *record;
-    uint32_t *rec;
-    page_ptr target_page;
-    xdf_record_header header;
-
-    index =         INDEX_FROM_HANDLE(handle);
-    page_number =   PAGENO_FROM_HANDLE(handle);
-    record_number = RECORD_FROM_HANDLE(handle);
+    int index = INDEX_FROM_HANDLE(handle);
+    int page_number = PAGENO_FROM_HANDLE(handle);
+    int record_number = RECORD_FROM_HANDLE(handle);
 
     // validate index, page number and record number
 
@@ -931,30 +916,35 @@ int c_xdfdel(
         return(ERR_BAD_HNDL);
     }
 
-    f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-    if ((f->header->rwflg == RDMODE) || (f->header->rwflg == APPEND)) {
+    if ((fte->header->rwflg == RDMODE) || (fte->header->rwflg == APPEND)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is open in read or append mode only\n",__func__);
         return(ERR_RDONLY);
     }
 
-    if (f->cur_info->attr.read_only) {
+    if (fte->cur_info->attr.read_only) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is read only\n",__func__);
         return(ERR_RDONLY);
     }
 
-    if (! f->xdf_seq) {
-        if (page_number < f->npages) {
+    int idtyp;
+    int addr;
+    file_record *record;
+    xdf_record_header header;
+    page_ptr target_page;
+    if (! fte->xdf_seq) {
+        if (page_number < fte->npages) {
             // Page is in current file
-            target_page = f->dir_page[page_number];
+            target_page = fte->dir_page[page_number];
         } else {
             // Page is in a link file
-            if (f->link == -1) {
-                Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,f->npages-1);
+            if (fte->link == -1) {
+                Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,fte->npages-1);
                 return(ERR_BAD_PAGENO);
             }
-            target_page = f->dir_page[f->npages-1];
-            for (i = 0; (i <= (page_number - f->npages)) && target_page; i++) {
+            target_page = fte->dir_page[fte->npages-1];
+            for (int i = 0; (i <= (page_number - fte->npages)) && target_page; i++) {
                 target_page = (target_page)->next_page;
             }
             if (target_page == NULL) {
@@ -968,14 +958,14 @@ int c_xdfdel(
             return(ERR_BAD_HNDL);
         }
 
-        rec = target_page->dir.entry + record_number * W64TOWD(f->primary_len);
+        uint32_t *rec = target_page->dir.entry + record_number * W64TOWD(fte->primary_len);
         record = (file_record *) rec;
 
         idtyp = record->idtyp;
     } else {
         // xdf sequential
-        addr = address_from_handle(handle, f);
-        c_waread(f->iun, &header, addr, W64TOWD(1));
+        addr = address_from_handle(handle, fte);
+        c_waread(fte->iun, &header, addr, W64TOWD(1));
         idtyp = header.idtyp;
     }
 
@@ -989,7 +979,7 @@ int c_xdfdel(
         return(ERR_DELETED);
     }
 
-    if (! f->xdf_seq) {
+    if (! fte->xdf_seq) {
         // update directory entry
         record->idtyp = 254;
         target_page->modified = 1;
@@ -997,14 +987,14 @@ int c_xdfdel(
         // xdf sequential
         // deleted
         header.idtyp = 255;
-        c_wawrit(f->iun, &header, addr, W64TOWD(1));
+        c_wawrit(fte->iun, &header, addr, W64TOWD(1));
     }
 
     // Update file header
-    f->header->neff++;
-    f->header->nrec--;
+    fte->header->neff++;
+    fte->header->nrec--;
 
-    f->modified = 1;
+    fte->modified = 1;
     return 0;
 }
 
@@ -1017,17 +1007,9 @@ int c_xdfget2(
     buffer_interface_ptr buf,
     int * const aux_ptr
 ) {
-    int index, record_number, page_number, i, idtyp, addr, lng, lngw;
-    int offset, nw, nread;
-    file_table_entry *f;
-    file_record *record;
-    uint32_t *rec;
-    max_dir_keys argument_not_used;
-    page_ptr target_page;
-
-    index =         INDEX_FROM_HANDLE(handle);
-    page_number =   PAGENO_FROM_HANDLE(handle);
-    record_number = RECORD_FROM_HANDLE(handle);
+    int index = INDEX_FROM_HANDLE(handle);
+    int page_number = PAGENO_FROM_HANDLE(handle);
+    int record_number = RECORD_FROM_HANDLE(handle);
 
     // validate index, page number and record number
     if ((index >= MAX_XDF_FILES) || (file_table[index] == NULL) || (file_table[index]->iun < 0)) {
@@ -1035,27 +1017,29 @@ int c_xdfget2(
         return(ERR_BAD_HNDL);
     }
 
-    f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-    if (! f->xdf_seq) {
+    file_record *record;
+    if (! fte->xdf_seq) {
         // Page is in current file
-        if (page_number < f->npages) {
-            target_page = f->dir_page[page_number];
+        page_ptr target_page;
+        if (page_number < fte->npages) {
+            target_page = fte->dir_page[page_number];
         } else {
             // page is in a link file
-            if (f->link == -1) {
-                Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,f->npages-1);
+            if (fte->link == -1) {
+                Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,fte->npages-1);
                 return(ERR_BAD_PAGENO);
             }
-            target_page = f->dir_page[f->npages-1];
-            for (i = 0; (i <= (page_number - f->npages)) && target_page; i++) {
+            target_page = fte->dir_page[fte->npages-1];
+            for (int i = 0; (i <= (page_number - fte->npages)) && target_page; i++) {
                 target_page = (target_page)->next_page;
             }
             if (target_page == NULL) {
                 Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid page number\n",__func__);
                 return(ERR_BAD_PAGENO);
             }
-            f = file_table[target_page->true_file_index];
+            fte = file_table[target_page->true_file_index];
         }
 
         if (record_number > target_page->dir.nent) {
@@ -1063,24 +1047,24 @@ int c_xdfget2(
             return(ERR_BAD_HNDL);
         }
 
-        rec = target_page->dir.entry + record_number * W64TOWD(f->primary_len);
+        uint32_t *rec = target_page->dir.entry + record_number * W64TOWD(fte->primary_len);
         record = (file_record *) rec;
     } else {
-        if (! f->valid_pos) {
+        if (! fte->valid_pos) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: no valid file position for sequential file\n",__func__);
             return(ERR_NO_POS);
         }
-        record = (file_record *) f->head_keys;
-        if (address_from_handle(handle, f) != W64TOWD(record->addr - 1) + 1) {
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid address=%d record address=%d\n",__func__,address_from_handle(handle,f),W64TOWD(record->addr-1)+1);
+        record = (file_record *) fte->head_keys;
+        if (address_from_handle(handle, fte) != W64TOWD(record->addr - 1) + 1) {
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid address=%d record address=%d\n",__func__,address_from_handle(handle,fte),W64TOWD(record->addr-1)+1);
             return(ERR_BAD_HNDL);
         }
     }
 
-    idtyp = record->idtyp;
-    addr = record->addr;
-    lng = record->lng;
-    lngw = W64TOWD(lng);
+    int idtyp = record->idtyp;
+    int addr = record->addr;
+    int lng = record->lng;
+    int lngw = W64TOWD(lng);
 
     if (idtyp == 0) {
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: special record idtyp=0\n",__func__);
@@ -1092,8 +1076,8 @@ int c_xdfget2(
         return(ERR_DELETED);
     }
 
-    nw = buf->nwords;
-    offset = 0;
+    int nw = buf->nwords;
+    int offset = 0;
     if (nw < 0) {
         if (buf->nbits != -1) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: dimension of buf is invalid = %d\n",__func__,nw);
@@ -1101,10 +1085,10 @@ int c_xdfget2(
         }
         // data only, no directory entry in record
         nw = -nw;
-        if (! f->fstd_vintage_89) {
-            offset = W64TOWD(f->primary_len + f->info_len);
+        if (! fte->fstd_vintage_89) {
+            offset = W64TOWD(fte->primary_len + fte->info_len);
         } else {
-            if (f->xdf_seq) {
+            if (fte->xdf_seq) {
                 // old standard sequential
                 offset = 30;
             }
@@ -1117,23 +1101,23 @@ int c_xdfget2(
 
     buf->nbits = lngw * 8 * sizeof(uint32_t);
     buf->record_index = RECADDR;
-    buf->data_index = buf->record_index + W64TOWD(f->primary_len + f->info_len);
-    buf->iun = f->iun;
-    buf->aux_index = buf->record_index + W64TOWD(f->primary_len);
+    buf->data_index = buf->record_index + W64TOWD(fte->primary_len + fte->info_len);
+    buf->iun = fte->iun;
+    buf->aux_index = buf->record_index + W64TOWD(fte->primary_len);
 
     if (aux_ptr != NULL) {
         *aux_ptr = 0;
         *(aux_ptr + 1) = 0;
     }
-    if ( (aux_ptr != NULL) && (!f->fstd_vintage_89) && (!f->xdf_seq) ) {
-        c_waread(buf->iun, aux_ptr, W64TOWD(addr-1) + 1 + W64TOWD(f->primary_len), W64TOWD(f->info_len));
+    if ( (aux_ptr != NULL) && (!fte->fstd_vintage_89) && (!fte->xdf_seq) ) {
+        c_waread(buf->iun, aux_ptr, W64TOWD(addr-1) + 1 + W64TOWD(fte->primary_len), W64TOWD(fte->info_len));
     }
 
-    for(i = 0; i < lngw; i++) {
+    for(int i = 0; i < lngw; i++) {
         buf->data[i] = 0;
     }
 
-    nread = c_waread2(buf->iun, &(buf->data), W64TOWD(addr - 1) + 1 + offset, lngw - offset);
+    int nread = c_waread2(buf->iun, &(buf->data), W64TOWD(addr - 1) + 1 + offset, lngw - offset);
     if (nread != lngw-offset) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: short read, truncated record, asking for %d, got %d\n",__func__,lngw-offset,nread);
         return(ERR_SHORT_READ);
@@ -1189,28 +1173,25 @@ int c_xdfhdr(
     //! [in] Number of info keys
     int ninfo
 ) {
-    int index, record_number, page_number, i;
-    file_table_entry *f;
-    file_record *record;
-    max_dir_keys argument_not_used;
-    uint32_t *mskkeys = NULL;
-
-    record = (file_record *) buf->data;
+    file_record *record = (file_record *) buf->data;
 
     *idtyp = record->idtyp;
     *addr = record->addr;
     *lng = record->lng;
 
-    if ((index = file_index_xdf(buf->iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(buf->iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
 
-    f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-    f->build_primary(buf->data, primk, argument_not_used, mskkeys, index, RDMODE);
+    max_dir_keys argument_not_used;
+    uint32_t *mskkeys = NULL;
+    fte->build_primary(buf->data, primk, argument_not_used, mskkeys, index, RDMODE);
     if (ninfo > 0) {
-        f->build_info(buf->data + W64TOWD(f->primary_len), info, index, RDMODE);
+        fte->build_info(buf->data + W64TOWD(fte->primary_len), info, index, RDMODE);
     }
 
     return 0;
@@ -1310,26 +1291,20 @@ int c_xdfini(
     //! [in] Number of info keys
     int ninfo
 ) {
-    int lngbuf, i, index, index_fnom;
-    file_record *record;
-    file_table_entry *f;
-    max_dir_keys mask;
-    uint32_t *mskkeys = NULL;
-    uint32_t *buffer = (uint32_t *) buf;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
 
-    lngbuf = buf->nwords;
-    for (i = 1; i < lngbuf; i++) {
+    uint32_t *buffer = (uint32_t *) buf;
+    for (int i = 1; i < buf->nwords; i++) {
         buffer[i] = 0;
     }
 
@@ -1341,16 +1316,18 @@ int c_xdfini(
     buf->record_index = RECADDR;
     buf->iun = iun;
 
-    record = (file_record *) buf->data;
+    file_record *record = (file_record *) buf->data;
     record->idtyp = idtyp;
 
-    f = file_table[index];
-    buf->data_index = buf->record_index + W64TOWD(f->primary_len + f->info_len);
-    buf->nbits = (f->primary_len + f->info_len) * 64;
-    buf->aux_index = buf->record_index + W64TOWD(f->primary_len);
+    file_table_entry *fte = file_table[index];
+    buf->data_index = buf->record_index + W64TOWD(fte->primary_len + fte->info_len);
+    buf->nbits = (fte->primary_len + fte->info_len) * 64;
+    buf->aux_index = buf->record_index + W64TOWD(fte->primary_len);
 
-    if (nkeys > 0) f->build_primary(buf->data, keys, mask, mskkeys, index, WMODE);
-    if (ninfo > 0) f->build_info(buf->data + W64TOWD(f->primary_len), info, index, WMODE);
+    max_dir_keys mask;
+    uint32_t *mskkeys = NULL;
+    if (nkeys > 0) fte->build_primary(buf->data, keys, mask, mskkeys, index, WMODE);
+    if (ninfo > 0) fte->build_info(buf->data + W64TOWD(fte->primary_len), info, index, WMODE);
 
    return 0;
 }
@@ -1466,39 +1443,38 @@ int c_xdflnk(
     //! List of files indexes for the files to be linked
     int *liste,
     //! Number of files to be linked
-    int n
+    int nbLinkFiles
 ) {
-    int index, indnext, i, index_fnom;
-    file_table_entry *f, *fnext;
-
-    index_fnom = fnom_index(liste[0]);
+    int index_fnom = fnom_index(liste[0]);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index_xdf(liste[0])) == ERR_NO_FILE) {
+    int index = file_index_xdf(liste[0]);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
 
-    f = file_table[index];
-    for (i=1; i < n; i++) {
+    file_table_entry *fte = file_table[index];
+    for (int i = 1; i < nbLinkFiles; i++) {
         if ((index_fnom = fnom_index(liste[i])) == -1) {
            Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
            return(ERR_NO_FNOM);
         }
-        if ((indnext = file_index_xdf(liste[i])) == ERR_NO_FILE) {
+        int indnext = file_index_xdf(liste[i]);
+        if (indnext == ERR_NO_FILE) {
            Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
            return(ERR_NO_FILE);
         }
         Lib_Log(APP_LIBFST,APP_DEBUG,"%s: xdflink %d avec %d\n",__func__,liste[i-1],liste[i]);
 
-        fnext = file_table[indnext];
-        f->link = indnext;
-        (f->dir_page[f->npages-1])->next_page = fnext->dir_page[0];
+        file_table_entry *fnext = file_table[indnext];
+        fte->link = indnext;
+        (fte->dir_page[fte->npages-1])->next_page = fnext->dir_page[0];
         index = indnext;
-        f = file_table[index];
+        fte = file_table[index];
     }
 
     return 0;
@@ -1550,24 +1526,18 @@ int c_xdfloc2(
     //! [in] Search mask
     uint32_t *mskkeys
 ) {
-    int i, record, pageno;
-    int index, index_h, was_allocated, new_handle;
-    uint32_t *pmask, *psmask;
-    file_table_entry *f;
-    xdf_record_header header;
-    seq_dir_keys seq_entry;
-
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open, iun=%d\n",__func__,iun);
         return(ERR_NO_FILE);
     }
-    f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-    was_allocated = 0;
+    int was_allocated = 0;
     if ((mskkeys == NULL) && (nprim != 0)) {
         mskkeys = malloc(nprim * sizeof(uint32_t));
         was_allocated = 1;
-        for (i = 0; i < nprim; i++) {
+        for (int i = 0; i < nprim; i++) {
             if (*primk == -1) {
                 *mskkeys = 0;
             } else {
@@ -1576,9 +1546,11 @@ int c_xdfloc2(
         }
     }
 
+    int record;
+    int pageno;
     if (handle > 0) {
         // search begins from handle given position
-        index_h = INDEX_FROM_HANDLE(handle);
+        int index_h = INDEX_FROM_HANDLE(handle);
         // Search from next record
         record = RECORD_FROM_HANDLE(handle) + 1;
         pageno = PAGENO_FROM_HANDLE(handle);
@@ -1586,27 +1558,29 @@ int c_xdfloc2(
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle=%d or iun=%d\n",__func__,handle,iun);
             return(ERR_BAD_HNDL);
          }
-        if (f->xdf_seq) {
-            f->cur_addr = address_from_handle(handle, f);
-            if (f->fstd_vintage_89) {
-                c_waread(iun, &seq_entry, f->cur_addr, sizeof(seq_entry) / sizeof(uint32_t));
+        if (fte->xdf_seq) {
+            fte->cur_addr = address_from_handle(handle, fte);
+            xdf_record_header header;
+            if (fte->fstd_vintage_89) {
+                seq_dir_keys seq_entry;
+                c_waread(iun, &seq_entry, fte->cur_addr, sizeof(seq_entry) / sizeof(uint32_t));
                 header.lng = ((seq_entry.lng + 3) >> 2) + 15;
             } else {
-                c_waread(iun, &header, f->cur_addr, W64TOWD(1));
+                c_waread(iun, &header, fte->cur_addr, W64TOWD(1));
             }
-            f->cur_addr += W64TOWD(header.lng);
+            fte->cur_addr += W64TOWD(header.lng);
         }
     } else if (handle == 0) {
         //! Search from beginning of file
         record = 0;
         pageno = 0;
-        f->cur_pageno = -1;
-        if (f->xdf_seq) {
-            f->cur_addr = f->seq_bof;
+        fte->cur_pageno = -1;
+        if (fte->xdf_seq) {
+            fte->cur_addr = fte->seq_bof;
         }
     } else if (handle == -1) {
         //! Search from current position
-        if (((f->cur_entry == NULL) || (f->cur_pageno == -1)) && (! f->xdf_seq)) {
+        if (((fte->cur_entry == NULL) || (fte->cur_pageno == -1)) && (! fte->xdf_seq)) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: current file position is invalid\n",__func__);
             return(ERR_NO_POS);
         }
@@ -1617,59 +1591,59 @@ int c_xdfloc2(
 
     // If nprim == 0 keep same search target
     if (nprim) {
-        f->build_primary(f->target, primk, f->cur_mask, mskkeys, index, WMODE);
-        pmask = (uint32_t *) f->cur_mask;
-        psmask = (uint32_t *) f->srch_mask;
-        for (i = 0; i < W64TOWD(f->primary_len); i++, pmask++, psmask++) {
+        fte->build_primary(fte->target, primk, fte->cur_mask, mskkeys, index, WMODE);
+        uint32_t *pmask = (uint32_t *) fte->cur_mask;
+        uint32_t *psmask = (uint32_t *) fte->srch_mask;
+        for (int i = 0; i < W64TOWD(fte->primary_len); i++, pmask++, psmask++) {
             *pmask &= *psmask;
         }
-        f->valid_target = 1;
+        fte->valid_target = 1;
     }
 
-    if ((handle != -1) && (! f->xdf_seq)) {
-        if (pageno != f->cur_pageno) {
-            if (pageno < f->npages) {
+    if ((handle != -1) && (! fte->xdf_seq)) {
+        if (pageno != fte->cur_pageno) {
+            if (pageno < fte->npages) {
                 // Page is in current file
-                f->cur_dir_page = f->dir_page[pageno];
-                f->cur_pageno = pageno;
+                fte->cur_dir_page = fte->dir_page[pageno];
+                fte->cur_pageno = pageno;
             } else {
                 // Page is in a link file
-                if (f->link == -1) {
-                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,pageno,f->npages-1);
-                    f->cur_entry = NULL;
+                if (fte->link == -1) {
+                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,pageno,fte->npages-1);
+                    fte->cur_entry = NULL;
                     return(ERR_BAD_PAGENO);
                 }
-                f->cur_dir_page = f->dir_page[f->npages - 1];
-                f->cur_pageno = f->npages - 1;
-                for (i = 0; (i <= pageno - f->cur_pageno) && (f->cur_dir_page); i++) {
-                    f->cur_dir_page = (f->cur_dir_page)->next_page;
-                    f->cur_pageno++;
+                fte->cur_dir_page = fte->dir_page[fte->npages - 1];
+                fte->cur_pageno = fte->npages - 1;
+                for (int i = 0; (i <= pageno - fte->cur_pageno) && (fte->cur_dir_page); i++) {
+                    fte->cur_dir_page = (fte->cur_dir_page)->next_page;
+                    fte->cur_pageno++;
                 }
-                if (f->cur_dir_page == NULL) {
+                if (fte->cur_dir_page == NULL) {
                     Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid page number\n",__func__);
-                    f->cur_entry = NULL;
+                    fte->cur_entry = NULL;
                     return(ERR_BAD_PAGENO);
                 }
             }
         } else {
             // Just to make sure
-            f->cur_dir_page = f->dir_page[f->cur_pageno];
+            fte->cur_dir_page = fte->dir_page[fte->cur_pageno];
         }
-        f->cur_entry = (f->cur_dir_page)->dir.entry + record * W64TOWD(f->primary_len);
-        f->page_record = record;
+        fte->cur_entry = (fte->cur_dir_page)->dir.entry + record * W64TOWD(fte->primary_len);
+        fte->page_record = record;
     }
 
-    if (((f->cur_entry == NULL) || (f->cur_pageno == -1)) && (! f->xdf_seq)) {
+    if (((fte->cur_entry == NULL) || (fte->cur_pageno == -1)) && (! fte->xdf_seq)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: no valid current file position\n",__func__);
         return(ERR_NO_POS);
     }
 
-    if (! f->valid_target) {
+    if (! fte->valid_target) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: no valid current search target\n",__func__);
         return(ERR_NO_TARGET);
     }
 
-    new_handle = next_match(index);
+    int new_handle = next_match(index);
     if (was_allocated) free(mskkeys);
     return new_handle;
 }
@@ -1692,7 +1666,6 @@ int c_xdfopn(
     //! [in] Application signature
     char *appl
 ) {
-    file_table_entry *f;
     int32_t f_datev;
     double nhours;
     int deet, npas, i_nhours, run, datexx;
@@ -1724,33 +1697,33 @@ int c_xdfopn(
         return(ERR_NO_FNOM);
     }
 
-    f = file_table[index];
-    f->cur_info = &FGFDT[index_fnom];
+    file_table_entry *fte = file_table[index];
+    fte->cur_info = &FGFDT[index_fnom];
 
-    if (! f->cur_info->attr.rnd) {
+    if (! fte->cur_info->attr.rnd) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file must be random\n file in error: %s\n",__func__,FGFDT[index_fnom].file_name);
         return(-1);
     }
 
-    if (strstr(appl, "BRP0")) f->cur_info->attr.burp = 1;
-    if (strstr(appl, "STD"))  f->cur_info->attr.std = 1;
+    if (strstr(appl, "BRP0")) fte->cur_info->attr.burp = 1;
+    if (strstr(appl, "STD"))  fte->cur_info->attr.std = 1;
 
-    if (f->cur_info->attr.burp) {
-        f->build_primary = (fn_b_p *) build_burp_prim_keys;
-        f->build_info = (fn_ptr *) build_burp_info_keys;
+    if (fte->cur_info->attr.burp) {
+        fte->build_primary = (fn_b_p *) build_burp_prim_keys;
+        fte->build_info = (fn_ptr *) build_burp_info_keys;
     } else {
-        if (f->cur_info->attr.std) {
-            f->build_primary = (fn_b_p *) build_fstd_prim_keys;
-            f->build_info = (fn_ptr *) build_fstd_info_keys;
-            f->file_filter = (fn_ptr *) C_fst_match_req;
+        if (fte->cur_info->attr.std) {
+            fte->build_primary = (fn_b_p *) build_fstd_prim_keys;
+            fte->build_info = (fn_ptr *) build_fstd_info_keys;
+            fte->file_filter = (fn_ptr *) C_fst_match_req;
         } else {
-            f->build_primary = (fn_b_p *) build_gen_prim_keys;
-            f->build_info = (fn_ptr *) build_gen_info_keys;
+            fte->build_primary = (fn_b_p *) build_gen_prim_keys;
+            fte->build_info = (fn_ptr *) build_gen_info_keys;
         }
     }
 
-    if ((strstr(f->cur_info->file_type, "SEQ")) || (strstr(f->cur_info->file_type, "seq"))) {
-        f->xdf_seq = 1;
+    if ((strstr(fte->cur_info->file_type, "SEQ")) || (strstr(fte->cur_info->file_type, "seq"))) {
+        fte->xdf_seq = 1;
         // at least one seq file is opened, limit number of xdf files is now 128
         STDSEQ_opened = 1;
         if (index > 127) {
@@ -1759,21 +1732,21 @@ int c_xdfopn(
         }
     }
 
-    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: c_xdfopn f->xdf_seq=%d\n",__func__,f->xdf_seq);
+    Lib_Log(APP_LIBFST,APP_DEBUG,"%s: c_xdfopn fte->xdf_seq=%d\n",__func__,fte->xdf_seq);
 
     if (strstr(mode, "CREATE") || strstr(mode, "create")) {
 
         // Create new xdf file
         c_waopen(iun);
         int ier = create_new_xdf(index, iun, pri, npri, aux, naux, appl);
-        if (! f->xdf_seq) {
+        if (! fte->xdf_seq) {
             add_dir_page(index, WMODE);
         } else {
-            f->cur_addr = f->nxtadr;
-            f->header->fsiz = WDTO64(f->nxtadr -1);
+            fte->cur_addr = fte->nxtadr;
+            fte->header->fsiz = WDTO64(fte->nxtadr -1);
         }
-        f->header->rwflg = CREATE;
-        f->modified = 1;
+        fte->header->rwflg = CREATE;
+        fte->modified = 1;
         return ier;
     }
 
@@ -1796,64 +1769,64 @@ int c_xdfopn(
 
         c_waread(iun, &header64, wdaddress, W64TOWD(2));
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
-            if ((f->header = calloc(1,header64.lng * 8)) == NULL) {
+            if ((fte->header = calloc(1,header64.lng * 8)) == NULL) {
                 Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                 return(ERR_MEM_FULL);
             }
 
             // Read file header
             int wdlng_header = W64TOWD(header64.lng);
-            c_waread(iun, f->header, wdaddress, wdlng_header);
-            f->primary_len = f->header->lprm;
-            f->info_len = f->header->laux;
+            c_waread(iun, fte->header, wdaddress, wdlng_header);
+            fte->primary_len = fte->header->lprm;
+            fte->info_len = fte->header->laux;
             // nxtadr = fsiz +1
-            f->nxtadr = W64TOWD(f->header->fsiz) + 1;
+            fte->nxtadr = W64TOWD(fte->header->fsiz) + 1;
             wdaddress += wdlng_header;
-            if (f->cur_info->attr.std) {
-                if ((f->header->sign != STDR_sign) && (f->header->sign != STDS_sign)) {
+            if (fte->cur_info->attr.std) {
+                if ((fte->header->sign != STDR_sign) && (fte->header->sign != STDS_sign)) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: %s is not a standard file\n",__func__,FGFDT[index_fnom].file_name);
                     return(ERR_WRONG_FTYPE);
                 }
             }
             if (strstr(mode, "READ") || strstr(mode, "read")) {
-                f->header->rwflg = RDMODE;
+                fte->header->rwflg = RDMODE;
             } else {
-                if (f->header->rwflg != RDMODE) {
+                if (fte->header->rwflg != RDMODE) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d) currently used by another application in write mode\n",__func__,iun);
                     return(ERR_STILL_OPN);
                 }
 
                 if (strstr(mode, "WRITE") || strstr(mode, "write")) {
-                    f->header->rwflg = WMODE;
+                    fte->header->rwflg = WMODE;
                 } else if (strstr(mode, "R-W") || strstr(mode, "r-w")) {
-                    f->header->rwflg = RWMODE;
+                    fte->header->rwflg = RWMODE;
                 } else if (strstr(mode, "APPEND") || strstr(mode, "append")) {
-                    f->header->rwflg = APPEND;
+                    fte->header->rwflg = APPEND;
                 }
             }
 
-            if (f->header->nbd == 0) {
-                if ( (f->cur_info->attr.std) && (header64.data[1] == 'STDR' || header64.data[1] == 'stdr') ) {
+            if (fte->header->nbd == 0) {
+                if ( (fte->cur_info->attr.std) && (header64.data[1] == 'STDR' || header64.data[1] == 'stdr') ) {
                     Lib_Log(APP_LIBFST,APP_ERROR,"%s: File probably damaged\n file in error %s\n",__func__,FGFDT[index_fnom].file_name);
                     return( ERR_BAD_DIR);
                 } else {
-                    f->xdf_seq = 1;
+                    fte->xdf_seq = 1;
                 }
             } else {
-                if (f->xdf_seq == 1) {
+                if (fte->xdf_seq == 1) {
                     // Random file opened in seqential mode
-                    f->header->rwflg = RDMODE;
+                    fte->header->rwflg = RDMODE;
                 }
             }
 
-            Lib_Log(APP_LIBFST,APP_DEBUG,"%s: fichier existe f->xdf_seq=%d\n",__func__,f->xdf_seq);
+            Lib_Log(APP_LIBFST,APP_DEBUG,"%s: fichier existe fte->xdf_seq=%d\n",__func__,fte->xdf_seq);
 
-            if (! f->xdf_seq) {
+            if (! fte->xdf_seq) {
                 // Read directory pages and compute checksum
-                for (int i = 0; i < f->header->nbd; i++) {
+                for (int i = 0; i < fte->header->nbd; i++) {
                     add_dir_page(index, RDMODE);
-                    int lng64 = f->primary_len * ENTRIES_PER_PAGE + 4;
-                    curpage = &((f->dir_page[f->npages-1])->dir);
+                    int lng64 = fte->primary_len * ENTRIES_PER_PAGE + 4;
+                    curpage = &((fte->dir_page[fte->npages-1])->dir);
                     c_waread(iun, curpage, wdaddress, W64TOWD(lng64));
                     checksum = 0;
                     check32 = (uint32_t *) curpage;
@@ -1864,26 +1837,26 @@ int c_xdfopn(
                         Lib_Log(APP_LIBFST,APP_ERROR,"%s: incorrect checksum in page %d, directory is probably damaged\n file in error %s\n",__func__,i,FGFDT[index_fnom].file_name);
                     }
                     wdaddress = W64TOWD(curpage->nxt_addr - 1) +1;
-                    if (((wdaddress == 0) && (i != f->header->nbd-1)) || (wdaddress > FGFDT[index_fnom].file_size)) {
+                    if (((wdaddress == 0) && (i != fte->header->nbd-1)) || (wdaddress > FGFDT[index_fnom].file_size)) {
                         Lib_Log(APP_LIBFST,APP_ERROR,"%s: number of directory pages is incorrect\n file in error %s\n",__func__,FGFDT[index_fnom].file_name);
                         return(ERR_BAD_DIR);
                     }
                     nrec += curpage->nent;
                 } /* end for */
 
-                f->nrecords = nrec;
+                fte->nrecords = nrec;
             } else {
                 // File is xdf sequential, position address to first record
-                f->cur_addr = wdaddress;
-                f->seq_bof = wdaddress;
+                fte->cur_addr = wdaddress;
+                fte->seq_bof = wdaddress;
             }
         } else {
             // Signature != XDF0
             check32 = (uint32_t *) &header64;
             if (*check32 == STDF_RND_SIGN) {
                 // Old random standard file
-                f->cur_info->attr.read_only = 1;
-                f->fstd_vintage_89 = 1;
+                fte->cur_info->attr.read_only = 1;
+                fte->fstd_vintage_89 = 1;
                 lng = sizeof(header_rnd) / sizeof(uint32_t);
                 c_waread(iun, &header_rnd, wdaddress, lng);
                 wdaddress += lng;
@@ -1895,16 +1868,16 @@ int c_xdfopn(
                 c_waread(iun, directory, wdaddress, lng);
                 create_new_xdf(index, iun, (word_2 *)&stdfkeys, 16, aux, 0, "STDF");
                 add_dir_page(index, RDMODE);
-                f->cur_dir_page = f->dir_page[f->npages-1];
+                fte->cur_dir_page = fte->dir_page[fte->npages-1];
                 for (int i = 0; i < header_rnd.nutil; i++) {
-                    if (f->cur_dir_page->dir.nent >= ENTRIES_PER_PAGE) {
-                        f->nrecords += f->page_nrecords;
+                    if (fte->cur_dir_page->dir.nent >= ENTRIES_PER_PAGE) {
+                        fte->nrecords += fte->page_nrecords;
                         add_dir_page(index, RDMODE);
-                        f->cur_dir_page = f->dir_page[f->npages-1];
+                        fte->cur_dir_page = fte->dir_page[fte->npages-1];
                     }
-                    f->cur_entry = f->cur_dir_page->dir.entry + f->cur_dir_page->dir.nent * W64TOWD(f->primary_len);
-                    stdf_entry = (stdf_dir_keys *) f->cur_entry;
-                    f->page_nrecords = ++f->cur_dir_page->dir.nent;
+                    fte->cur_entry = fte->cur_dir_page->dir.entry + fte->cur_dir_page->dir.nent * W64TOWD(fte->primary_len);
+                    stdf_entry = (stdf_dir_keys *) fte->cur_entry;
+                    fte->page_nrecords = ++fte->cur_dir_page->dir.nent;
                     if (! directory[i].dltf) {
                         stdf_entry->deleted = 0;
                         stdf_entry->select = 1;
@@ -1972,19 +1945,19 @@ int c_xdfopn(
                         stdf_entry->deleted = 1;
                     }
                 } /* end for */
-                f->nrecords += f->page_nrecords;
+                fte->nrecords += fte->page_nrecords;
                 free(directory);
             } else {
                 // Sequential
                 c_waread(iun, &header_seq, 1, 30);
                 if (header_seq[896/32] == STDF_SEQ_SIGN) {
                     // old sequential stdf
-                    f->cur_info->attr.read_only = 1;
-                    f->fstd_vintage_89 = 1;
-                    f->xdf_seq = 1;
+                    fte->cur_info->attr.read_only = 1;
+                    fte->fstd_vintage_89 = 1;
+                    fte->xdf_seq = 1;
                     create_new_xdf(index, iun, (word_2 *)&stdfkeys, 16, aux, 0, "STDF");
-                    f->cur_addr = 1;
-                    f->seq_bof = 1;
+                    fte->cur_addr = 1;
+                    fte->seq_bof = 1;
                     return 0;
                 } else {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: file is not XDF type or old standard random type\n",__func__);
@@ -1993,7 +1966,7 @@ int c_xdfopn(
             }
         }
     }
-    return f->header->nrec;
+    return fte->header->nrec;
 }
 
 
@@ -2034,17 +2007,9 @@ int c_xdfprm(
     //! [in] Number of primary keys
     int nprim
 ) {
-    int index, record_number, page_number, i;
-    file_table_entry *fte;
-    file_record *record;
-    uint32_t *rec;
-    max_dir_keys argument_not_used;
-    uint32_t *mskkeys = NULL;
-    page_ptr target_page;
-
-    index =         INDEX_FROM_HANDLE(handle);
-    page_number =   PAGENO_FROM_HANDLE(handle);
-    record_number = RECORD_FROM_HANDLE(handle);
+    int index = INDEX_FROM_HANDLE(handle);
+    int page_number = PAGENO_FROM_HANDLE(handle);
+    int record_number = RECORD_FROM_HANDLE(handle);
 
     // Validate index, page number and record number
     if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
@@ -2052,9 +2017,11 @@ int c_xdfprm(
         return(ERR_BAD_HNDL);
     }
 
-    fte = file_table[index];
+    file_table_entry * fte = file_table[index];
 
+    file_record *record;
     if (! fte->xdf_seq) {
+        page_ptr target_page;
         if (page_number < fte->npages) {
             // Page is in current file
             target_page = fte->dir_page[page_number];
@@ -2065,7 +2032,7 @@ int c_xdfprm(
                 return(ERR_BAD_PAGENO);
             }
             target_page = fte->dir_page[fte->npages-1];
-            for (i = 0; (i <= (page_number - fte->npages)) && target_page; i++) {
+            for (int i = 0; (i <= (page_number - fte->npages)) && target_page; i++) {
                 target_page = (target_page)->next_page;
             }
             if (target_page == NULL) {
@@ -2079,7 +2046,7 @@ int c_xdfprm(
             return(ERR_BAD_HNDL);
         }
 
-        rec = target_page->dir.entry + record_number * W64TOWD(fte->primary_len);
+        uint32_t * rec = target_page->dir.entry + record_number * W64TOWD(fte->primary_len);
         record = (file_record *) rec;
     } else {
         if (! fte->valid_pos) {
@@ -2097,6 +2064,8 @@ int c_xdfprm(
     *addr = record->addr;
     *lng = record->lng;
 
+    uint32_t *mskkeys = NULL;
+    max_dir_keys argument_not_used;
     fte->build_primary((uint32_t *) record, primk, argument_not_used, mskkeys, index, RDMODE);
 
     return 0;
@@ -2117,23 +2086,15 @@ int c_xdfput(
     //! [in] Buffer to contain record
     buffer_interface_ptr buf)
 {
-    int index, record_number, page_number, i, idtyp, addr, lng, lngw;
-    int index_from_buf, index_from_iun, write_to_end = 0, nwords;
-    int write_addr, err, index_fnom, cluster_size, next_cluster_addr;
-    file_table_entry *f, *f_buf;
-    file_record *record, *bufrec;
-    max_dir_keys primk, argument_not_used, mskkeys;
-    xdf_record_header header64;
-    burp_record *debug_record;
-    postfix_seq postfix;
-
-    index_fnom = fnom_index(iun);
-    if ((index_from_buf = file_index_xdf(buf->iun)) == ERR_NO_FILE) {
+    int index_fnom = fnom_index(iun);
+    int index_from_buf = file_index_xdf(buf->iun);
+    if (index_from_buf == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: record not properly initialized\n",__func__);
         return(ERR_BAD_INIT);
     }
 
-    if ((index_from_iun = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index_from_iun = file_index_xdf(iun);
+    if (index_from_iun == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid iun (%d)\n",__func__,iun);
         return(ERR_BAD_UNIT);
     }
@@ -2143,29 +2104,30 @@ int c_xdfput(
         return(ERR_BAD_ADDR);
     }
 
-    nwords = buf->nbits / (8 * sizeof(uint32_t));
-    index = index_from_iun;
-    f = file_table[index_from_iun];
-
-    if ((f->header->rwflg == RDMODE) || (FGFDT[index_fnom].attr.read_only)) {
+    file_table_entry *fte = file_table[index_from_iun];
+    if ((fte->header->rwflg == RDMODE) || (FGFDT[index_fnom].attr.read_only)) {
         // Read only mode
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: ile is open in read only mode or no write permission\n",__func__);
         return(ERR_NO_WRITE);
     }
 
-    if ((handle != 0) && (f->header->rwflg == APPEND)) {
+    if ((handle != 0) && (fte->header->rwflg == APPEND)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is open in append mode only\n",__func__);
         return(ERR_NO_WRITE);
     }
 
-    if (handle <= 0) write_to_end = 1;
+    int write_addr;
+    int write_to_end = (handle <= 0) ? 1 : 0;
+    int nwords = buf->nbits / (8 * sizeof(uint32_t));
+    int index = index_from_iun;
+    file_record *record;
 
     if (handle != 0) {
         if (handle < 0 ) handle = -handle;
 
-        index =         INDEX_FROM_HANDLE(handle);
-        page_number =   PAGENO_FROM_HANDLE(handle);
-        record_number = RECORD_FROM_HANDLE(handle);
+        index = INDEX_FROM_HANDLE(handle);
+        int page_number = PAGENO_FROM_HANDLE(handle);
+        int record_number = RECORD_FROM_HANDLE(handle);
 
         // Validate index, page number and record number
         if (index != index_from_iun) {
@@ -2175,106 +2137,105 @@ int c_xdfput(
 
         // Make sure that files are the same type
         if (index_from_iun != index_from_buf) {
-            f_buf = file_table[index_from_buf];
-            if ((f->header->nprm != f_buf->header->nprm) ||
-                (f->header->lprm != f_buf->header->lprm) ||
-                (f->header->naux != f_buf->header->naux) ||
-                (f->header->laux != f_buf->header->laux)) {
+            file_table_entry * f_buf = file_table[index_from_buf];
+            if ((fte->header->nprm != f_buf->header->nprm) ||
+                (fte->header->lprm != f_buf->header->lprm) ||
+                (fte->header->naux != f_buf->header->naux) ||
+                (fte->header->laux != f_buf->header->laux)) {
                 Lib_Log(APP_LIBFST,APP_ERROR,"%s: source and destination files are different type of file\n",__func__);
                 return(ERR_NOT_COMP);
             }
         }
-        if (! f->xdf_seq) {
-            if (page_number < f->npages) {
+
+        if (! fte->xdf_seq) {
+            if (page_number < fte->npages) {
                 // Page is in current file
-                f->cur_dir_page = f->dir_page[page_number];
+                fte->cur_dir_page = fte->dir_page[page_number];
             } else {
                 // Page is in a link file
-                if (f->link == -1) {
-                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,f->npages-1);
+                if (fte->link == -1) {
+                    Lib_Log(APP_LIBFST,APP_ERROR,"%s: page number=%d > last page=%d and file not linked\n",__func__,page_number,fte->npages-1);
                     return(ERR_BAD_PAGENO);
                 }
-                f->cur_dir_page = f->dir_page[f->npages-1];
-                for (i = 0; ((i <= page_number - f->npages) && f->cur_dir_page); i++) {
-                    f->cur_dir_page = (f->cur_dir_page)->next_page;
+                fte->cur_dir_page = fte->dir_page[fte->npages-1];
+                for (int i = 0; ((i <= page_number - fte->npages) && fte->cur_dir_page); i++) {
+                    fte->cur_dir_page = (fte->cur_dir_page)->next_page;
                 }
-                if (f->cur_dir_page == NULL) {
+                if (fte->cur_dir_page == NULL) {
                     Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid page number\n",__func__);
                     return(ERR_BAD_PAGENO);
                 }
             }
 
-            if (record_number > f->cur_dir_page->dir.nent) {
+            if (record_number > fte->cur_dir_page->dir.nent) {
                 Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid record number\n",__func__);
                 return(ERR_BAD_HNDL);
             }
 
-            f->cur_entry = f->cur_dir_page->dir.entry + record_number * W64TOWD(f->primary_len);
+            fte->cur_entry = fte->cur_dir_page->dir.entry + record_number * W64TOWD(fte->primary_len);
 
-            record = (file_record *) f->cur_entry;
+            record = (file_record *) fte->cur_entry;
         } else {
             // file is xdf sequential
             if (handle > 0) {
                 // Rewrite record
-                addr = address_from_handle(handle, f);
-                c_waread(iun, f->head_keys, addr, MAX_PRIMARY_LNG);
-                record = (file_record *) f->head_keys;
+                int addr = address_from_handle(handle, fte);
+                c_waread(iun, fte->head_keys, addr, MAX_PRIMARY_LNG);
+                record = (file_record *) fte->head_keys;
             }
         }
-        idtyp = record->idtyp;
-        addr = record->addr;
-        lng = record->lng;
-        lngw = W64TOWD(lng);
 
-        if (idtyp == 0) {
+        if (record->idtyp == 0) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: special record idtyp=0\n",__func__);
             return(ERR_SPECIAL);
         }
 
-        if ((idtyp & 0x7E) == 0x7E) {
+        if ((record->idtyp & 0x7E) == 0x7E) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: deleted record\n",__func__);
             return(ERR_DELETED);
         }
 
+        int lng = record->lng;
+        int lngw = W64TOWD(lng);
         if (lngw != nwords) {
-            /* enforce rewrite to end of file */
+            // enforce rewrite to end of file
             write_to_end = 1;
         } else {
-            write_addr = W64TOWD(addr-1)+1;
+            write_addr = W64TOWD(record->addr - 1) + 1;
         }
 
     } // end if handle != 0
 
-    if ((write_to_end) && (! f->xdf_seq)) {
-        f->cur_dir_page = f->dir_page[f->npages - 1];
-        f->cur_pageno = f->npages - 1;
-        if (f->cur_dir_page->dir.nent >= ENTRIES_PER_PAGE) {
-            f->cur_dir_page->modified = 1;
-            err = add_dir_page(index, WMODE);
+    if ((write_to_end) && (! fte->xdf_seq)) {
+        fte->cur_dir_page = fte->dir_page[fte->npages - 1];
+        fte->cur_pageno = fte->npages - 1;
+        if (fte->cur_dir_page->dir.nent >= ENTRIES_PER_PAGE) {
+            fte->cur_dir_page->modified = 1;
+            int err = add_dir_page(index, WMODE);
             if (err < 0) return err;
-            f->cur_dir_page = f->dir_page[f->npages-1];
-            f->cur_entry = f->cur_dir_page->dir.entry;
+            fte->cur_dir_page = fte->dir_page[fte->npages-1];
+            fte->cur_entry = fte->cur_dir_page->dir.entry;
         } else {
-            f->cur_entry = f->cur_dir_page->dir.entry + f->cur_dir_page->dir.nent * W64TOWD(f->primary_len);
+            fte->cur_entry = fte->cur_dir_page->dir.entry + fte->cur_dir_page->dir.nent * W64TOWD(fte->primary_len);
         }
-        f->page_nrecords = f->cur_dir_page->dir.nent++;
-        write_addr = f->nxtadr;
+        fte->page_nrecords = fte->cur_dir_page->dir.nent++;
+        write_addr = fte->nxtadr;
     }
 
-    if ((write_to_end) && (f->xdf_seq)) write_addr = f->cur_addr;
+    if ((write_to_end) && (fte->xdf_seq)) write_addr = fte->cur_addr;
 
     if (handle != 0) {
         // Rewrite, delete old record
-        err = c_xdfdel(handle);
+        int err = c_xdfdel(handle);
         if (err < 0) return err;
     }
 
-
     // update record header
-    bufrec = (file_record *) buf->data;
+    file_record * bufrec = (file_record *) buf->data;
     bufrec->addr = WDTO64(write_addr - 1) + 1;
-    if (f->xdf_seq) {
-        next_cluster_addr = f->cur_addr -1 + nwords + W64TOwd(2);
+    if (fte->xdf_seq) {
+        int next_cluster_addr = fte->cur_addr -1 + nwords + W64TOwd(2);
+        int cluster_size;
         if ((next_cluster_addr >> 18) >= 512) {
             cluster_size = 128;
         } else if ((next_cluster_addr >> 18) >= 128) {
@@ -2285,61 +2246,63 @@ int c_xdfput(
             cluster_size = 2;
         }
         next_cluster_addr = ((next_cluster_addr + cluster_size - 1) / cluster_size) * cluster_size;
-        nwords = next_cluster_addr - f->cur_addr - W64TOwd(2) + 1;
+        nwords = next_cluster_addr - fte->cur_addr - W64TOwd(2) + 1;
     }
     bufrec->lng = WDTO64(nwords);
 
     // Write record to file
     c_wawrit(iun, &(buf->data), write_addr, nwords);
-    if (f->xdf_seq) {
-        f->cur_addr += nwords;
+    if (fte->xdf_seq) {
+        fte->cur_addr += nwords;
     }
 
-    if (! f->xdf_seq) {
+    if (! fte->xdf_seq) {
         // Update directory entry
-        debug_record = (burp_record *) f->cur_entry;
         // Get keys
-        f->build_primary(buf->data, primk, argument_not_used, mskkeys, index, RDMODE);
-        f->build_primary(f->cur_entry, primk, argument_not_used, mskkeys, index, WMODE);
-        record = (file_record *) f->cur_entry;
+        max_dir_keys primk, argument_not_used, mskkeys;
+        fte->build_primary(buf->data, primk, argument_not_used, mskkeys, index, RDMODE);
+        fte->build_primary(fte->cur_entry, primk, argument_not_used, mskkeys, index, WMODE);
+        record = (file_record *) fte->cur_entry;
         record->idtyp = bufrec->idtyp;
         record->addr = WDTO64(write_addr - 1) + 1;
         record->lng = WDTO64(nwords);
     }
 
     // Update file header
-    f->header->nrec++;
+    fte->header->nrec++;
     if (write_to_end) {
-        f->header->nxtn++;
-        f->header->fsiz += WDTO64(nwords);
-        f->nxtadr = W64TOWD(f->header->fsiz) + 1;
-        f->header->nbig = (WDTO64(nwords) > f->header->nbig) ? WDTO64(nwords) : f->header->nbig;
-        if (f->xdf_seq) {
+        fte->header->nxtn++;
+        fte->header->fsiz += WDTO64(nwords);
+        fte->nxtadr = W64TOWD(fte->header->fsiz) + 1;
+        fte->header->nbig = (WDTO64(nwords) > fte->header->nbig) ? WDTO64(nwords) : fte->header->nbig;
+        if (fte->xdf_seq) {
             // Add postfix and eof marker
+            xdf_record_header header64;
+            postfix_seq postfix;
             postfix.idtyp = 0;
             postfix.lng = 2;
             postfix.addr = -1;
             postfix.prev_idtyp = bufrec->idtyp;
             postfix.prev_lng = bufrec->lng;
             postfix.prev_addr = WDTO64(write_addr -1) + 1;
-            c_wawrit(iun, &postfix, f->cur_addr, W64TOWD(2));
-            f->cur_addr += W64TOWD(2);
+            c_wawrit(iun, &postfix, fte->cur_addr, W64TOWD(2));
+            fte->cur_addr += W64TOWD(2);
             // 112 + 15, 15 means EOF
             header64.idtyp = 127;
             header64.lng = 1;
-            header64.addr = WDTO64(f->cur_addr - 1) + 1;
-            f->nxtadr = f->cur_addr;
-            c_wawrit(iun, &header64, f->cur_addr, W64TOWD(1));
-            FGFDT[index_fnom].file_size = f->nxtadr + W64TOWD(1) - 1;
+            header64.addr = WDTO64(fte->cur_addr - 1) + 1;
+            fte->nxtadr = fte->cur_addr;
+            c_wawrit(iun, &header64, fte->cur_addr, W64TOWD(1));
+            FGFDT[index_fnom].file_size = fte->nxtadr + W64TOWD(1) - 1;
         }
     }
     if (handle != 0) {
-        f->header->nrwr++;
+        fte->header->nrwr++;
     }
 
-    f->modified = 1;
-    if (! f->xdf_seq) {
-        f->cur_dir_page->modified = 1;
+    fte->modified = 1;
+    if (! fte->xdf_seq) {
+        fte->cur_dir_page->modified = 1;
     }
     return 0;
 }
@@ -2553,21 +2516,20 @@ int c_xdfunl(
     //! [in] Unit number associated to the file
     int *liste,
     //! [in] Number of files to be unlinked
-    int n
+    int nbLinkedFiles
 ) {
-    int index, index_fnom, i;
-    file_table_entry *fte;
-
-    for (i = 0; i < n; i++) {
-        if ((index_fnom = fnom_index(liste[i])) == -1) {
+    for (int i = 0; i < nbLinkedFiles; i++) {
+        int index_fnom = fnom_index(liste[i]);
+        if (index_fnom  == -1) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
             return(ERR_NO_FNOM);
         }
-        if ((index = file_index_xdf(liste[i])) == ERR_NO_FILE) {
+        int index = file_index_xdf(liste[i]);
+        if (index == ERR_NO_FILE) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
             return(ERR_NO_FILE);
         }
-        fte = file_table[index];
+        file_table_entry *fte = file_table[index];
         fte->link = -1;
         (fte->dir_page[fte->npages-1])->next_page = NULL;
     }
@@ -2596,19 +2558,14 @@ int c_xdfupd(
     //! [in] Number of secondary keys
     int ninfo
 ) {
-    int index, index_fnom;
-    file_record *record;
-    file_table_entry *f;
-    max_dir_keys argument_not_used;
-    uint32_t *mskkeys = NULL;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
         return(ERR_NO_FILE);
     }
@@ -2618,17 +2575,19 @@ int c_xdfupd(
         return(ERR_BAD_DATYP);
     }
 
-   buf->iun = iun;
+    buf->iun = iun;
 
-   record = (file_record *) buf->data;
-   if (idtyp > -1) record->idtyp = idtyp;
+    file_record *record = (file_record *) buf->data;
+    if (idtyp > -1) record->idtyp = idtyp;
 
-   f = file_table[index];
+    file_table_entry *fte = file_table[index];
 
-   if (nkeys > 0) f->build_primary(buf->data, keys, argument_not_used, mskkeys, index, WMODE);
-   if (ninfo > 0) f->build_info(buf->data + W64TOWD(f->primary_len), info, index, WMODE);
+    max_dir_keys argument_not_used;
+    uint32_t *mskkeys = NULL;
+    if (nkeys > 0) fte->build_primary(buf->data, keys, argument_not_used, mskkeys, index, WMODE);
+    if (ninfo > 0) fte->build_info(buf->data + W64TOWD(fte->primary_len), info, index, WMODE);
 
-   return 0;
+    return 0;
 }
 
 
@@ -2643,73 +2602,73 @@ int c_xdfuse(
     //! [in] Unit number associated to the destination file
     int dest_unit
 ) {
-    int i, index_src, index_fnom_src, index_dest, index_fnom_dest;
-    int err, nprim, ninfo;
-    int close_src = 0, match;
-    file_table_entry *f;
-    max_dir_keys argument_not_used;
-    static int stat[MAX_STAT];
-    static word_2 primk[MAX_KEYS], info[MAX_KEYS];
-    word_2 src_primk[MAX_KEYS], src_info[MAX_KEYS];
-    int src_stat[MAX_STAT];
-    char vers[5], appl[5];
-
-    index_fnom_src = fnom_index(src_unit);
+    int index_fnom_src = fnom_index(src_unit);
     if (index_fnom_src == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: source file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
-    index_fnom_dest = fnom_index(dest_unit);
+    int index_fnom_dest = fnom_index(dest_unit);
     if (index_fnom_dest == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: destination file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
     // Process destination file
-    if ((index_dest = file_index_xdf(dest_unit)) == ERR_NO_FILE) {
+    int index_dest = file_index_xdf(dest_unit);
+    static int stat[MAX_STAT];
+    static word_2 primk[MAX_KEYS];
+    static word_2 info[MAX_KEYS];
+    char vers[5];
+    char appl[5];
+    if (index_dest == ERR_NO_FILE) {
         if (FGFDT[index_fnom_dest].file_size > 0) {
             // Destination file exists
-            err = c_xdfsta(dest_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
+            int err = c_xdfsta(dest_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
             if (err < 0) return err;
             err = c_xdfopn(dest_unit, "APPEND", primk, stat[6], info, stat[8], appl);
             if (err < 0) return err;
         } else {
-            err = c_xdfsta(src_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
+            int err = c_xdfsta(src_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
             if (err < 0) return err;
-            for (i = 0; i < xdf_nsplit; i++) {
+            for (int i = 0; i < xdf_nsplit; i++) {
                 err = c_xdfopn(dest_unit + i, "CREATE", primk, stat[6], info, stat[8], appl);
                 if (err < 0) return err;
             }
         }
     } else {
-        /* file is open */
-        err = c_xdfsta(dest_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
+        // file is open
+        int err = c_xdfsta(dest_unit, (uint32_t *)&stat, MAX_STAT, primk, MAX_KEYS, info, MAX_KEYS, vers, appl);
         if (err < 0) return err;
     }
-    nprim = stat[6];
-    ninfo = stat[8];
+    int nprim = stat[6];
+    int ninfo = stat[8];
 
     // Process source file
-    if ((index_src = file_index_xdf(src_unit)) == ERR_NO_FILE) {
+    int index_src = file_index_xdf(src_unit);
+    int close_src = 0;
+    word_2 src_primk[MAX_KEYS];
+    word_2 src_info[MAX_KEYS];
+    if (index_src == ERR_NO_FILE) {
         close_src = 1;
-        err = c_xdfopn(src_unit, "READ", src_primk, 0, src_info, 0, appl);
+        int err = c_xdfopn(src_unit, "READ", src_primk, 0, src_info, 0, appl);
         if (err < 0) return err;
     }
 
-    err = c_xdfsta(src_unit, (uint32_t *)&src_stat, MAX_STAT, src_primk, MAX_KEYS, src_info, MAX_KEYS, vers, appl);
+    int src_stat[MAX_STAT];
+    int err = c_xdfsta(src_unit, (uint32_t *)&src_stat, MAX_STAT, src_primk, MAX_KEYS, src_info, MAX_KEYS, vers, appl);
     if (err < 0) return err;
 
     // Make sure that source file and destination file are the same type
-    match = 1;
-    for (i = 6; i <= 9; i++) {
+    int match = 1;
+    for (int i = 6; i <= 9; i++) {
         match = match && (stat[i] == src_stat[i]);
     }
-    for (i = 0; i < nprim; i++) {
+    for (int i = 0; i < nprim; i++) {
         match = match && (primk[i].wd1 == src_primk[i].wd1)
                       && (primk[i].wd2 == src_primk[i].wd2);
     }
-    for (i = 0; i < ninfo; i++) {
+    for (int i = 0; i < ninfo; i++) {
         match = match && (info[i].wd1 == src_info[i].wd1)
                       && (info[i].wd2 == src_info[i].wd2);
     }
@@ -2770,7 +2729,7 @@ int c_xdfuse(
                     last_word = readpos + nbwords - 1;
                     if (last_word <= file_size) {
                         buf->nbits = nbwords * sizeof(uint32_t) * 8;
-                        for (i=0; i < nbwords; i++) {
+                        for (int i = 0; i < nbwords; i++) {
                             buf->data[i] = 0;
                         }
                         c_waread(src_unit, &(buf->data), readpos, nbwords);
@@ -2781,13 +2740,14 @@ int c_xdfuse(
                         }
                         nbrec++;
                     }
-                } /* end valid regular record */
+                } // end valid regular record
                 readpos += W64TOWD(lng);
                 if (readpos >= file_size) nomore = 1;
-            } /* end valid address */
-            else
-            nomore = 1;
-        } /* end while */
+            } // end valid address
+            else {
+                nomore = 1;
+            }
+        } // end while
         free(buf);
         Lib_Log(APP_LIBFST,APP_INFO,"%s: copy of %d records from unit %d to unit %d\n",nbrec,src_unit,dest_unit);
     } // end copy files block
@@ -3066,13 +3026,11 @@ static void init_file(
 //! Initialize all file table entries
 static void init_package()
 {
-    int i, ind;
-
-    for (i = 0; i < MAX_XDF_FILES; i++) {
+    for (int i = 0; i < MAX_XDF_FILES; i++) {
         file_table[i] = NULL;
     }
     // Init first entry to start with file index = 1
-    ind = get_free_index();
+    int ind = get_free_index();
     file_table[ind]->iun = 1234567;
     init_package_done = 1;
 }
@@ -3086,14 +3044,15 @@ static int32_t make_seq_handle(
     //! [in] File index in table
     int file_index,
     //! [in] Pointer to xdf file information structure
-    file_table_entry *fte)
-{
-    int cluster, addr;
+    file_table_entry *fte
+) {
     static int MB512 = 0x4000000, MB128 = 0x1000000, MB32 = 0x400000;
     // MB512 , MB128 and MB32 are represented in 64 bit unit
 
     // 32 bit word to 64 bit unit address
     address = (address - 1) >> 1;
+    int cluster;
+    int addr;
     if (fte->fstd_vintage_89) {
         cluster = 0;
         address = address / 15;
@@ -3128,10 +3087,8 @@ static uint32_t next_match(
     //! [in] index of file in the file table
     int file_index
 ) {
-    register file_table_entry *f;
-    int found, i, record_in_page, page_no, j, width, match;
-    int end_of_file, nw, iun, addr_match;
-    /*   xdf_record_header *rec; */
+    int record_in_page, page_no, match;
+    int end_of_file, nw, addr_match;
     uint32_t *entry, *search, *mask, handle;
     stdf_dir_keys *stds, *stdm, *stde;
     seq_dir_keys *seq_entry;
@@ -3141,83 +3098,84 @@ static uint32_t next_match(
     int deet, npas, i_nhours, run, datexx;
 
     // check if file exists
-    if ( (f = file_table[file_index]) == NULL) return (ERR_NO_FILE);
+    register file_table_entry *fte = file_table[file_index];
+    if (fte  == NULL) return ERR_NO_FILE;
 
-    iun = file_table[file_index]->iun;
-    width = W64TOWD(f->primary_len);
-    found = 0;
-    f->valid_pos = 0;
+    int iun = file_table[file_index]->iun;
+    int width = W64TOWD(fte->primary_len);
+    int found = 0;
+    fte->valid_pos = 0;
 
-    if (! f->xdf_seq) {
+    if (! fte->xdf_seq) {
         // Check if there is a valid current page
-        if (f->cur_dir_page == NULL) return (ERR_NO_POS);
-        if (f->cur_entry == NULL) return (ERR_NO_POS);
-        if (f->cur_entry - (f->cur_dir_page)->dir.entry != f->page_record *W64TOWD(f->primary_len)) {
+        if (fte->cur_dir_page == NULL) return (ERR_NO_POS);
+        if (fte->cur_entry == NULL) return (ERR_NO_POS);
+        if (fte->cur_entry - (fte->cur_dir_page)->dir.entry != fte->page_record *W64TOWD(fte->primary_len)) {
             return (ERR_NO_POS);
         }
 
-        f->page_nrecords = (f->cur_dir_page)->dir.nent;
+        fte->page_nrecords = (fte->cur_dir_page)->dir.nent;
         while (! found) {
-            if (f->page_record >= f->page_nrecords ) {
+            if (fte->page_record >= fte->page_nrecords ) {
                 // No more records in page
-                f->page_record = 0;
-                f->page_nrecords = 0;
+                fte->page_record = 0;
+                fte->page_nrecords = 0;
                 // Position to next dir page
-                f->cur_dir_page = (f->cur_dir_page)->next_page;
-                if (f->cur_dir_page == NULL) {
+                fte->cur_dir_page = (fte->cur_dir_page)->next_page;
+                if (fte->cur_dir_page == NULL) {
                     // No more pages, end of file
                     break;
                 }
-                f->cur_pageno++;
-                f->page_nrecords = (f->cur_dir_page)->dir.nent;
-                f->cur_entry = (f->cur_dir_page)->dir.entry;
+                fte->cur_pageno++;
+                fte->page_nrecords = (fte->cur_dir_page)->dir.nent;
+                fte->cur_entry = (fte->cur_dir_page)->dir.entry;
             } else {
-                for (j = f->page_record; (j < f->page_nrecords) && !found; j++) {
-                    entry = f->cur_entry;
+                for (int j = fte->page_record; (j < fte->page_nrecords) && !found; j++) {
+                    entry = fte->cur_entry;
                     header = (xdf_record_header *) entry;
                     if (header->idtyp < 127) {
-                        search = (uint32_t *) f->target;
-                        mask = (uint32_t *) f->cur_mask;
+                        search = (uint32_t *) fte->target;
+                        mask = (uint32_t *) fte->cur_mask;
                         stde = (stdf_dir_keys *) entry;
                         stdm = (stdf_dir_keys *) mask;
                         stds = (stdf_dir_keys *) search;
                         match = 0;
-                        for (i = 0; i < width; i++, mask++, search++, entry++) {
+                        for (int i = 0; i < width; i++, mask++, search++, entry++) {
                             match |= (((*entry) ^ (*search)) & (*mask));
                         }
                         found = (match == 0);
-                        if ( (f->file_filter != NULL) && found ) {
+                        if ( (fte->file_filter != NULL) && found ) {
                             // No need to call filter if not 'found'
-                            handle= MAKE_RND_HANDLE( f->cur_pageno, f->page_record, f->file_index );
-                            found = found && f->file_filter(handle);
+                            handle= MAKE_RND_HANDLE( fte->cur_pageno, fte->page_record, fte->file_index );
+                            found = found && fte->file_filter(handle);
                         }
                     }
                     // Position to next record for next search
-                    f->page_record++;
-                    f->cur_entry += width;
+                    fte->page_record++;
+                    fte->cur_entry += width;
                 }
             }
-        } /* end while */
+        } // end while
     } else {
         while (! found) {
-            nw = c_waread2(iun, f->head_keys, f->cur_addr, width);
-            header = (xdf_record_header *) f->head_keys;
+            nw = c_waread2(iun, fte->head_keys, fte->cur_addr, width);
+            header = (xdf_record_header *) fte->head_keys;
             if ((header->idtyp >= 112) || (nw < width)) {
                 if ((header->idtyp >= 112) && (header->idtyp < 127)) {
-                    f->cur_addr += W64TOWD(1);
+                    fte->cur_addr += W64TOWD(1);
                 }
                 end_of_file = 1;
                 break;
             }
-            if (f->fstd_vintage_89) {
+            if (fte->fstd_vintage_89) {
                 /* old sequential standard */
                 if ((stde = malloc(sizeof(stdf_dir_keys))) == NULL) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
                     return(ERR_MEM_FULL);
                 }
-                seq_entry = (seq_dir_keys *) f->head_keys;
+                seq_entry = (seq_dir_keys *) fte->head_keys;
                 if (seq_entry->dltf) {
-                    f->cur_addr += W64TOWD(((seq_entry->lng + 3) >> 2)+15);
+                    fte->cur_addr += W64TOWD(((seq_entry->lng + 3) >> 2)+15);
                     continue;
                 }
                 if (seq_entry->eof > 0) {
@@ -3290,50 +3248,50 @@ static uint32_t next_match(
                 }
 
                 entry = (uint32_t *) stde;
-                search = (uint32_t *) f->head_keys;
-                for (i = 0; i < width; i++, entry++, search++) {
+                search = (uint32_t *) fte->head_keys;
+                for (int i = 0; i < width; i++, entry++, search++) {
                     *search = *entry;
                 }
                 free(stde);
-            } /* end if fstd_vintage_89 */
+            } // end if fstd_vintage_89
 
             if ((header->idtyp < 1) || (header->idtyp > 127)) {
-                f->cur_addr += W64TOWD(header->lng);
+                fte->cur_addr += W64TOWD(header->lng);
                 continue;
             }
-            entry = (uint32_t *) f->head_keys;
-            search = (uint32_t *) f->target;
-            mask = (uint32_t *) f->cur_mask;
+            entry = (uint32_t *) fte->head_keys;
+            search = (uint32_t *) fte->target;
+            mask = (uint32_t *) fte->cur_mask;
             match = 0;
-            for (i = 0; i < width; i++, mask++, search++, entry++) {
+            for (int i = 0; i < width; i++, mask++, search++, entry++) {
                 match |= (((*entry) ^ (*search)) & (*mask));
             }
             found = (match == 0);
 
             if (found) {
-                f->valid_pos = 1;
-                addr_match = f->cur_addr;
+                fte->valid_pos = 1;
+                addr_match = fte->cur_addr;
             }
             // Position to next record
-            f->cur_addr += W64TOWD(header->lng);
-            if (! f->fstd_vintage_89) {
+            fte->cur_addr += W64TOWD(header->lng);
+            if (! fte->fstd_vintage_89) {
                 // Skip postfix
-                f->cur_addr += W64TOWD(2);
+                fte->cur_addr += W64TOWD(2);
             }
         }
     }
 
     if (! found) return ERR_NOT_FOUND;
 
-    if (! f->xdf_seq) {
-        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Record found at page# %d, record# %d\n",__func__,f->cur_pageno,f->page_record-1);
-        handle = MAKE_RND_HANDLE(f->cur_pageno, f->page_record-1, f->file_index);
+    if (! fte->xdf_seq) {
+        Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Record found at page# %d, record# %d\n",__func__,fte->cur_pageno,fte->page_record-1);
+        handle = MAKE_RND_HANDLE(fte->cur_pageno, fte->page_record-1, fte->file_index);
     } else {
         Lib_Log(APP_LIBFST,APP_DEBUG,"%s: Record found at address %d\n",__func__,addr_match);
-        stde = (stdf_dir_keys *) f->head_keys;
-        handle = make_seq_handle(addr_match, f->file_index, f);
+        stde = (stdf_dir_keys *) fte->head_keys;
+        handle = make_seq_handle(addr_match, fte->file_index, fte);
     }
-   return handle;
+    return handle;
 }
 
 
@@ -3341,302 +3299,213 @@ static uint32_t next_match(
 // This is the only place where it was used
 
 
-/*****************************************************************************
- *                             Q D F D I A G                                 *
- *****************************************************************************/
-
 int32_t  f77name(qdfdiag)(int32_t *f_iun)
 {
-  int iun = *f_iun, ier;
+    int iun = *f_iun, ier;
 
-  ier = c_qdfdiag(iun);
-  return (int32_t) ier;
+    return (int32_t) c_qdfdiag(iun);
 }
 
-/*****************************************************************************
- *                              Q D F I N D                                  *
- *****************************************************************************/
 
 int32_t f77name(qdfind)(int32_t *iun)
 {
-   int ind;
-   ind = file_index_xdf(*iun);
-   ind = (ind != ERR_NO_FILE) ? ind : 9999;
+    int ind = file_index_xdf(*iun);
+    ind = (ind != ERR_NO_FILE) ? ind : 9999;
 
-   return (int32_t) ind;
+    return (int32_t) ind;
 }
 
-
-/*****************************************************************************
- *                            Q D F M S I G                                  *
- *****************************************************************************/
 
 int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1)
 {
-   int iun = *fiun, lng;
-   char c_appl[257];
+    int iun = *fiun;
+    char c_appl[257];
 
-   lng = (l1 <= 256) ? l1 : 256;
-   strncpy(c_appl, appl, lng);
-   c_appl[lng] = '\0';
+    int lng = (l1 <= 256) ? l1 : 256;
+    strncpy(c_appl, appl, lng);
+    c_appl[lng] = '\0';
 
-   return c_qdfmsig(iun, c_appl);
+    return c_qdfmsig(iun, c_appl);
 }
 
-
-/*****************************************************************************
- *                              Q D F P U T                                  *
- *****************************************************************************/
 
 int32_t f77name(qdfput)(uint32_t *buf, int32_t *felem, int32_t *fderbit,
             int32_t *fnbits)
 {
-   int elem = *felem, nbits = *fnbits, derbit = *fderbit;
-   int ier;
+    int elem = *felem, nbits = *fnbits, derbit = *fderbit;
 
-   ier = c_qdfput(buf, elem, derbit, nbits);
-
-   return (int32_t) ier;
+    return (int32_t) c_qdfput(buf, elem, derbit, nbits);
 }
-/*****************************************************************************
- *                             Q D F R S T R                                 *
- *****************************************************************************/
 
 int32_t  f77name(qdfrstr)(int32_t *f_inp, int32_t *f_outp)
 {
-  int inp = *f_inp, outp = *f_outp, ier;
+    int inp = *f_inp, outp = *f_outp;
 
-  ier = c_qdfrstr(inp, outp);
-  return (int32_t) ier;
+    return (int32_t) c_qdfrstr(inp, outp);
 }
 
+//! Set file position, if handle=-1, rewind file
+static int32_t rewind_file(
+    int file_index,
+    int handle
+) {
+    // check if file exists
+    register file_table_entry *fte = file_table[file_index];
+    if ( fte == NULL) return ERR_NO_FILE;
 
-/*****************************************************************************
- *                          R E W I N D _ F I L E                            *
- *****************************************************************************/
-
-/* set file position, if handle=-1, rewind file */
-static int32_t rewind_file(int file_index, int handle)
-{
-   register file_table_entry *f, *f2;
-   int linked=0, file_index2;
-
-   /* check if file exists */
-   if( (f = file_table[file_index]) == NULL) return (ERR_NO_FILE);
-
-   if (handle==-1){
-      f->cur_dir_page = f->dir_page[0];
-      f->cur_entry = (f->cur_dir_page)->dir.entry;
-      f->page_nrecords = (f->cur_dir_page)->dir.nent;
-      f->page_record = 0;
-   }
-   else{
-      file_index2=INDEX_FROM_HANDLE(handle);
-
-      if(file_index!=file_index2){
-         /* check if file2 exists and is linked to file */
-         if( (f2 = file_table[file_index2]) == NULL) return (ERR_NO_FILE);
-         f2=f;
-         linked=f2->link;
-         while((linked>0) && (linked!=file_index2)){
-            f2=file_table[linked];
-            linked=f2->link;
-         };
-         if(linked!=file_index2) return (ERR_BAD_LINK);
-      }
-      f2=file_table[file_index2];
-      f->cur_dir_page = f2->dir_page[PAGENO_FROM_HANDLE(handle)];
-      f->page_record = RECORD_FROM_HANDLE(handle);
-      f->page_nrecords = (f->cur_dir_page)->dir.nent;
-      f->cur_entry = (f->cur_dir_page)->dir.entry + (f->page_record)*(f->primary_len);
-   }
-   return 0;
+    if (handle == -1) {
+        fte->cur_dir_page = fte->dir_page[0];
+        fte->cur_entry = (fte->cur_dir_page)->dir.entry;
+        fte->page_nrecords = (fte->cur_dir_page)->dir.nent;
+        fte->page_record = 0;
+    } else {
+        int file_index2 = INDEX_FROM_HANDLE(handle);
+        register file_table_entry *fte2 = file_table[file_index2];
+        if (file_index != file_index2) {
+            // check if file2 exists and is linked to file
+            if (fte2 == NULL) return ERR_NO_FILE;
+            fte2 = fte;
+            int linked = fte2->link;
+            while ((linked > 0) && (linked != file_index2)) {
+                fte2 = file_table[linked];
+                linked = fte2->link;
+            }
+            if (linked != file_index2) return ERR_BAD_LINK;
+        }
+        fte2 = file_table[file_index2];
+        fte->cur_dir_page = fte2->dir_page[PAGENO_FROM_HANDLE(handle)];
+        fte->page_record = RECORD_FROM_HANDLE(handle);
+        fte->page_nrecords = (fte->cur_dir_page)->dir.nent;
+        fte->cur_entry = (fte->cur_dir_page)->dir.entry + (fte->page_record)*(fte->primary_len);
+    }
+    return 0;
 }
-
-
-/*****************************************************************************
- *                              X D F A D D                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfadd)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fnelm, int32_t *fnbits, int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp;
-   int ier;
-
-   ier = c_xdfadd(buf, donnees, nelm, nbits, datyp);
+   int ier = c_xdfadd(buf, donnees, nelm, nbits, datyp);
 
    return (int32_t) ier;
-
 }
 
-
-
-/*****************************************************************************
- *                                X D F C L E                                *
- *****************************************************************************/
 int32_t f77name(xdfcle)(char *fkeyname, int32_t *fbit1, int32_t *flkey,
             int32_t *ftkey, int32_t *fdesc1, int32_t *fdesc2, F2Cl l1)
 {
-   char keyname[5]={' ', ' ', ' ', ' ', '\0'};
-   int lkey = *flkey, tkey = *ftkey, bit1 = *fbit1;
-   int desc1, desc2;
-   int lng, err;
+    char keyname[5] = {' ', ' ', ' ', ' ', '\0'};
 
-   lng = (l1 <= 4) ? l1 : 4;
-   strncpy(keyname, fkeyname, lng);
+    int lng = (l1 <= 4) ? l1 : 4;
+    strncpy(keyname, fkeyname, lng);
 
-   err = c_xdfcle(keyname, bit1, lkey, tkey, &desc1, &desc2);
+    int desc1, desc2;
+    int lkey = *flkey, tkey = *ftkey, bit1 = *fbit1;
+    int err = c_xdfcle(keyname, bit1, lkey, tkey, &desc1, &desc2);
 
-   *fdesc1 = (int32_t) desc1;
-   *fdesc2 = (int32_t) desc2;
+    *fdesc1 = (int32_t) desc1;
+    *fdesc2 = (int32_t) desc2;
 
-   return err;
+    return err;
 }
 
 
-/*****************************************************************************
- *                              X D F C L S                                  *
- *****************************************************************************/
-
-int32_t f77name(xdfcls)(int32_t *fiun)
-{
-   int iun = *fiun;
-
-   return c_xdfcls(iun);
+int32_t f77name(xdfcls)(int32_t *fiun) {
+    int iun = *fiun;
+    return c_xdfcls(iun);
 }
 
-
-/*****************************************************************************
- *                              X D F C U T                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfcut)(uint32_t *buf,
             int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp)
-{
-   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
-   int ier;
-
-   ier = c_xdfcut(buf, bitpos, nelm, nbits, datyp);
-
-   return (int32_t) ier;
+            int32_t *fnbits, int32_t *fdatyp
+) {
+    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+    return (int32_t)c_xdfcut(buf, bitpos, nelm, nbits, datyp);
 }
 
 
-/*****************************************************************************
- *                              X D F D E L                                  *
- *****************************************************************************/
-
-int32_t f77name(xdfdel)(int32_t *fhandle)
-{
-   int handle = *fhandle;
-
-   return (int32_t) c_xdfdel(handle);
+int32_t f77name(xdfdel)(int32_t *fhandle) {
+    int handle = *fhandle;
+    return (int32_t) c_xdfdel(handle);
 }
 
 
-/*****************************************************************************
- *                              X D F G E T                                  *
- *****************************************************************************/
-
-int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf)
-{
-   int handle = *fhandle, ier;
-
-   ier = c_xdfget(handle, (buffer_interface_ptr) buf);
-
-   return (int32_t) ier;
+int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf) {
+    int handle = *fhandle;
+    return (int32_t) c_xdfget(handle, (buffer_interface_ptr) buf);
 }
 
 
-/*****************************************************************************
- *                              X D F G O P                                  *
- *****************************************************************************/
+int32_t f77name(xdfgop)(char *foptname, char *foptc, int32_t *foptv, F2Cl ll1, F2Cl ll2) {
+    int optv, err, l1=ll1, l2=ll2;
+    char optname[257], optc[257];
 
-int32_t f77name(xdfgop)(char *foptname, char *foptc, int32_t *foptv,
-            F2Cl ll1, F2Cl ll2)
-{
-   int optv, err, l1=ll1, l2=ll2;
-   char optname[257], optc[257];
+    l1 = (l1 <= 256) ? l1 : 256;
+    strncpy(optname, foptname, l1);
+    optname[l1] = '\0';
 
-   l1 = (l1 <= 256) ? l1 : 256;
-   strncpy(optname, foptname, l1);
-   optname[l1] = '\0';
+    err = c_xdfgop(optname, optc, &optv);
 
-   err = c_xdfgop(optname, optc, &optv);
+    l2 = (l2 <= 256) ? l2 : 256;
+    strncpy(foptc, optc, l2);
 
-   l2 = (l2 <= 256) ? l2 : 256;
-   strncpy(foptc, optc, l2);
-
-   *foptv = (int32_t) optv;
-   return (int32_t) err;
-
+    *foptv = (int32_t) optv;
+    return (int32_t) err;
 }
 
-
-/*****************************************************************************
- *                              X D F H D R                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfhdr)(uint32_t *buf, int32_t *addr, int32_t *lng,
                         int32_t *idtyp, int32_t *primk, int32_t *fnprim,
             int32_t *info, int32_t *fninfo)
 {
-   int nprim = *fnprim, ninfo = *fninfo, ier, i;
-   int l_addr, l_lng, l_idtyp;
-   uint32_t l_primk[MAX_KEYS];
-   uint32_t l_info[MAX_KEYS];
+    int nprim = *fnprim, ninfo = *fninfo;
+    int l_addr, l_lng, l_idtyp;
+    uint32_t l_primk[MAX_KEYS];
+    uint32_t l_info[MAX_KEYS];
 
-   ier = c_xdfhdr((buffer_interface_ptr)buf, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
+    int ier = c_xdfhdr((buffer_interface_ptr)buf, &l_addr, &l_lng, &l_idtyp, l_primk, nprim, l_info, ninfo);
 
-   *addr =  (int32_t) l_addr;
-   *lng =   (int32_t) l_lng;
-   *idtyp = (int32_t) l_idtyp;
+    *addr =  (int32_t) l_addr;
+    *lng =   (int32_t) l_lng;
+    *idtyp = (int32_t) l_idtyp;
 
-   if ((nprim > MAX_KEYS) || (ninfo >MAX_KEYS)) {
-      Lib_Log(APP_LIBFST,APP_ERROR,"%s: nprim=%d or ninfo=%d > MAX_KEYS must recompile\n",__func__,nprim,ninfo);
-      return(ERR_OUT_RANGE);
+    if ((nprim > MAX_KEYS) || (ninfo >MAX_KEYS)) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: nprim=%d or ninfo=%d > MAX_KEYS must recompile\n",__func__,nprim,ninfo);
+        return ERR_OUT_RANGE;
     }
 
-   for (i=0; i < nprim; i++)
-      primk[i] = (int32_t) l_primk[i];
+    for (int i = 0; i < nprim; i++) {
+        primk[i] = (int32_t) l_primk[i];
+    }
 
-   for (i=0; i < ninfo; i++)
-      info[i] = (int32_t) l_info[i];
+    for (int i = 0; i < ninfo; i++) {
+        info[i] = (int32_t) l_info[i];
+    }
 
-   return ((int32_t) ier);
+    return (int32_t) ier;
 }
 
-
-/*****************************************************************************
- *                              X D F I M P                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
                     ftnword_2 *pri, ftnword_2 *aux,
                     char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
-   int iun = *fiun, nstat = *fnstat, lng, i, nkeys, ninfo;
-   char c_vers[257], c_appl[257];
-   word_2 primk[MAX_KEYS], infok[MAX_KEYS];
-   uint32_t lstat[12];
+    int iun = *fiun, nstat = *fnstat;
+    char c_vers[257], c_appl[257];
+    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
+    uint32_t lstat[12];
 
-   lng = (l1 <= 256) ? l1 : 256;
-   strncpy(c_vers, vers, lng);
-   c_vers[lng] = '\0';
+    int lng = (l1 <= 256) ? l1 : 256;
+    strncpy(c_vers, vers, lng);
+    c_vers[lng] = '\0';
 
-   lng = (l2 <= 256) ? l2 : 256;
-   strncpy(c_appl, appl, lng);
-   c_appl[lng] = '\0';
+    lng = (l2 <= 256) ? l2 : 256;
+    strncpy(c_appl, appl, lng);
+    c_appl[lng] = '\0';
 
-   return (int32_t) c_xdfimp(iun, stat, nstat, (word_2 *)pri, (word_2 *)aux, c_vers, c_appl);
+    return (int32_t) c_xdfimp(iun, stat, nstat, (word_2 *)pri, (word_2 *)aux, c_vers, c_appl);
 }
 
-
-/*****************************************************************************
- *                              X D F I N I                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
             int32_t *keys, int32_t *fnkeys, int32_t *info,int32_t *fninfo)
@@ -3647,147 +3516,125 @@ int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
 }
 
 
-/*****************************************************************************
- *                              X D F I N S                                  *
- *****************************************************************************/
-
 int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fbitpos, int32_t *fnelm,
             int32_t *fnbits, int32_t *fdatyp)
 {
-   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
 
-   return (int32_t) c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
+    return (int32_t) c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
 }
 
-
-/*****************************************************************************
- *                              X D F L N K                                  *
- *****************************************************************************/
 
 int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn)
 {
-   int n = *fn;
+    int n = *fn;
 
-   return (int32_t) c_xdflnk(liste, n);
-
+    return (int32_t) c_xdflnk(liste, n);
 }
 
-
-/*****************************************************************************
- *                              X D F L O C                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfloc)(int32_t *fiun, int32_t *fhandle, int32_t *primk,
             int32_t *fnprim)
 {
-   int iun = *fiun, nprim = *fnprim, i;
-   int handle = *fhandle;
-   uint32_t l_primk[MAX_KEYS];
+    int iun = *fiun;
+    int nprim = *fnprim;
+    int handle = *fhandle;
+    uint32_t l_primk[MAX_KEYS];
 
-   if (nprim > MAX_KEYS) {
-       Lib_Log(APP_LIBFST,APP_ERROR,"%s: nprim=%d > MAX_KEYS must recompile\n",__func__,nprim);
-       return(ERR_OUT_RANGE);
-   }
-   for (i=0; i<nprim; i++)
-      l_primk[i] = primk[i];
+    if (nprim > MAX_KEYS) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: nprim=%d > MAX_KEYS must recompile\n",__func__,nprim);
+        return(ERR_OUT_RANGE);
+    }
+    for (int i = 0; i < nprim; i++) {
+        l_primk[i] = primk[i];
+    }
 
-   return (int32_t) c_xdfloc(iun, handle, l_primk, nprim);
-
+    return (int32_t) c_xdfloc(iun, handle, l_primk, nprim);
 }
 
-
-/*****************************************************************************
- *                              X D F O P N                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfopn)(int32_t *fiun, char *mode,
             ftnword_2 *pri, int32_t *fnpri,
             ftnword_2 *aux, int32_t *fnaux,
             char *appl, F2Cl l1, F2Cl l2)
 {
-   int iun = *fiun, npri = *fnpri, naux = *fnaux, lng, i, ier;
-   char c_mode[257], c_appl[257];
-   word_2 primk[MAX_KEYS], infok[MAX_KEYS];
+    int iun = *fiun, npri = *fnpri, naux = *fnaux;
+    char c_mode[257];
+    char c_appl[257];
+    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
 
-   lng = (l1 <= 256) ? l1 : 256;
-   strncpy(c_mode, mode, lng);
-   c_mode[lng] = '\0';
+    int lng = (l1 <= 256) ? l1 : 256;
+    strncpy(c_mode, mode, lng);
+    c_mode[lng] = '\0';
 
-   lng = (l2 <= 256) ? l2 : 256;
-   strncpy(c_appl, appl, lng);
-   c_appl[lng] = '\0';
+    lng = (l2 <= 256) ? l2 : 256;
+    strncpy(c_appl, appl, lng);
+    c_appl[lng] = '\0';
 
-   if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
-     Lib_Log(APP_LIBFST,APP_ERROR,"%s: npri=%d or naux=%d > MAX_KEYS must recompil\n",__func__,npri,naux);
-     return(ERR_OUT_RANGE);
-   }
-   for (i=0; i < npri; i++) {
-     primk[i].wd1 = pri[i].wd1;
-     primk[i].wd2 = pri[i].wd2;
-     }
-   for (i=0; i < naux; i++) {
-     infok[i].wd1 = aux[i].wd1;
-     infok[i].wd2 = aux[i].wd2;
-     }
-   ier = c_xdfopn(iun, c_mode, primk, npri, infok, naux, c_appl);
-   return (int32_t) ier;
+    if ((npri > MAX_KEYS) || (naux >MAX_KEYS)) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: npri=%d or naux=%d > MAX_KEYS must recompil\n",__func__,npri,naux);
+        return(ERR_OUT_RANGE);
+    }
+    for (int i=0; i < npri; i++) {
+        primk[i].wd1 = pri[i].wd1;
+        primk[i].wd2 = pri[i].wd2;
+    }
+    for (int i=0; i < naux; i++) {
+        infok[i].wd1 = aux[i].wd1;
+        infok[i].wd2 = aux[i].wd2;
+    }
+
+    return (int32_t) c_xdfopn(iun, c_mode, primk, npri, infok, naux, c_appl);
 }
 
-
-/*****************************************************************************
- *                              X D F O P T                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfopt)(char *foptname, char *foptc, int32_t *foptv,
             F2Cl ll1, F2Cl ll2)
 {
-   int optv = *foptv, l1=ll1, l2=ll2;
-   char optname[257], optc[257];
+    int optv = *foptv, l1=ll1, l2=ll2;
+    char optname[257], optc[257];
 
-   l1 = (l1 <= 256) ? l1 : 256;
-   strncpy(optname, foptname, l1);
-   optname[l1] = '\0';
+    l1 = (l1 <= 256) ? l1 : 256;
+    strncpy(optname, foptname, l1);
+    optname[l1] = '\0';
 
-   l2 = (l2 <= 256) ? l2 : 256;
-   strncpy(optc, foptc, l2);
-   optc[l2] = '\0';
+    l2 = (l2 <= 256) ? l2 : 256;
+    strncpy(optc, foptc, l2);
+    optc[l2] = '\0';
 
-   return (int32_t) c_xdfopt(optname, optc, optv);
+    return (int32_t) c_xdfopt(optname, optc, optv);
 }
 
-
-/*****************************************************************************
- *                              X D F P R M                                  *
- *****************************************************************************/
 
 int32_t f77name(xdfprm)(int32_t *fhandle, int32_t *addr, int32_t *lng,
                         int32_t *idtyp, int32_t *primk, int32_t *fnprim)
 {
-   int nprim = *fnprim, ier, i;
-   int handle = *fhandle;
-   int l_addr, l_lng, l_idtyp;
-   uint32_t l_primk[MAX_KEYS];
+    int nprim = *fnprim;
+    int handle = *fhandle;
+    int l_addr, l_lng, l_idtyp;
+    uint32_t l_primk[MAX_KEYS];
 
-   ier = c_xdfprm(handle, &l_addr, &l_lng, &l_idtyp, l_primk, nprim);
-   *addr =  (int32_t) l_addr;
-   *lng =   (int32_t) l_lng;
-   *idtyp = (int32_t) l_idtyp;
+    int ier = c_xdfprm(handle, &l_addr, &l_lng, &l_idtyp, l_primk, nprim);
+    *addr =  (int32_t) l_addr;
+    *lng =   (int32_t) l_lng;
+    *idtyp = (int32_t) l_idtyp;
 
-   for (i=0; i < nprim; i++)
-      primk[i] = (int32_t) l_primk[i];
+    for (int i=0; i < nprim; i++) {
+        primk[i] = (int32_t) l_primk[i];
+    }
 
-   return ((int32_t) ier);
+    return (int32_t) ier;
 }
 
 
 int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
             uint32_t *buf)
 {
-   int handle = *fhandle;
-   int iun = *fiun;
+    int handle = *fhandle;
+    int iun = *fiun;
 
-   return (int32_t) c_xdfput(iun, handle, (buffer_interface_ptr)buf);
+    return (int32_t) c_xdfput(iun, handle, (buffer_interface_ptr)buf);
 }
 
 
@@ -3795,9 +3642,9 @@ int32_t f77name(xdfrep)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fbitpos, int32_t *fnelm,
             int32_t *fnbits, int32_t *fdatyp)
 {
-   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
 
-   return (int32_t) c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
+    return (int32_t) c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
 }
 
 
@@ -3806,12 +3653,12 @@ int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
             ftnword_2 *aux, int32_t *fnaux,
             char *vers, char *appl, F2Cl l1, F2Cl l2)
 {
-   int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat, lng, ier;
+   int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat;
    char c_vers[257], c_appl[257];
 
-   ier = c_xdfsta(iun, stat, nstat, (word_2 *)pri, npri, (word_2 *)aux, naux, c_vers, c_appl);
+   int ier = c_xdfsta(iun, stat, nstat, (word_2 *)pri, npri, (word_2 *)aux, naux, c_vers, c_appl);
 
-   lng = (l1 <= 256) ? l1 : 256;
+   int lng = (l1 <= 256) ? l1 : 256;
    c_vers[lng] = '\0';
    strncpy(vers, c_vers, lng);
 
@@ -3827,18 +3674,17 @@ int32_t f77name(xdfupd)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
             int32_t *keys, int32_t *fnkeys,
             int32_t *info, int32_t *fninfo)
 {
-   int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
+    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
 
-   return (int32_t) c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
+    return (int32_t) c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
 }
 
 
 int32_t f77name(xdfuse)(int32_t *fsrc_unit, int32_t *fdest_unit)
 {
-   int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
+    int src_unit = *fsrc_unit, dest_unit = *fdest_unit;
 
-   return (int32_t) c_xdfuse(src_unit, dest_unit);
-
+    return (int32_t) c_xdfuse(src_unit, dest_unit);
 }
 
 
@@ -3846,7 +3692,7 @@ int32_t f77name(xdfxtr)(uint32_t *buf, uint32_t *donnees,
                         int32_t *fbitpos, int32_t *fnelm,
             int32_t *fnbits, int32_t *fdatyp)
 {
-   int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
+    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
 
-   return (int32_t) c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
+    return (int32_t) c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
 }
