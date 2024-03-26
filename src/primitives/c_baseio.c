@@ -70,7 +70,7 @@
 #   define HOST_NAME_MAX 256
 #endif
 
-static int c_qqqfscr(const char * const type);
+static int get_free_unit_number(const char * const type);
 static int fnom_rem_connect( const int ind, const char * const remote_host);
 static void wa_pages_flush(const int fileIdx);
 static int qqcopen(const int indf);
@@ -326,7 +326,7 @@ int c_fnom(
     } else {
         // a pointer has been passed to c_fnom as iun
         if (*iun == 0) {
-            *iun = c_qqqfscr(type);
+            *iun = get_free_unit_number(type);
         }
         if (*iun == -1) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: no more units available\n",__func__);
@@ -681,9 +681,9 @@ int32_t f77name(fclos)(
 }
 
 
-//! Generate unit number
-//! \return Valid unit number
-static int c_qqqfscr(
+//! Get free unit number
+//! \return Valid unit number if available, -1 otherwise
+static int get_free_unit_number(
     //! File attributes (see FNOM)
     const char * const type
 ) {
@@ -695,14 +695,14 @@ static int c_qqqfscr(
         start = 999;
     }
     for (int j = start; j > 10; j--) {
-        int inused = 0;
+        int inUse = 0;
         for (int i = 0; i < MAXFILES; i++) {
             if (FGFDT[i].iun == j) {
-                inused = 1;
+                inUse = 1;
                 break;
             }
         }
-        if (! inused) {
+        if (! inUse) {
             iun = j;
             break;
         }
