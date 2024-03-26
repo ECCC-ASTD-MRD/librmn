@@ -6,183 +6,128 @@
 #if ! defined(C_INTERFACE_ONLY)
 
 interface
-! /*****************************************************************************
-!  *                              F S T O U V                                  *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Opens a RPN standard file.                                              *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *  IN  iun     unit number associated to the file                           *
-!  *  IN  options random or sequential access                                  *
-!  *                                                                           *
-!  *****************************************************************************/
-  function fstouv(iun, options) result (status)
+    !> Open a RPN file
+    function fstouv(iun, options) result (status)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> Options: RND, (R/O|R/W), VOLATILE, (XDF|RSF), PARALLEL
+        character(len=*), intent(IN) :: options
+        !> Number of records in the file
+        integer :: status
+    end function fstouv
 
-    implicit none
-    integer, intent(IN), value :: iun
-    character(len=*), intent(IN) :: options
-    integer :: status
-  end function fstouv
-! /***************************************************************************** 
-!  *                              F S T F R M                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Closes a RPN standard file.                                             *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstfrm(iun) result (status)
+    !> Close a RPN file
+    function fstfrm(iun) result (status)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> \return -1 On error
+        integer :: status
+    end function fstfrm
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer :: status
-  end function fstfrm
-! /***************************************************************************** 
-!  *                              F S T N B R                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns the number of records of the file associated with unit number.  *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstnbr(iun) result (nrec)
+    !> Get the number of records in file
+    function fstnbr(iun) result (nrec)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> \return Number of records or ERR_NO_FNOM if there is no file corresponding to the unit number provided
+        integer :: nrec
+    end function fstnbr
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer :: nrec
-  end function fstnbr
-! /***************************************************************************** 
-!  *                              F S T N B R V                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns the number of valid records (excluding deleted records) of the  *
-!  *   file associated with unit number.                                       *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstnbrv(iun) result (status)
+    !> Get number of valid records
+    function fstnbrv(iun) result (status)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> \return Number of records and the file excluding deleted records
+        integer :: status
+    end function fstnbrv
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer :: status
-  end function fstnbrv
-! /***************************************************************************** 
-!  *                                F S T C K P                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Checkpoint. Clear buffers, rewrite headers.                             *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstckp(iun) result (status)
+    !> To write all on your written data to disk
+    function fstckp(iun) result (status)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> \return 0 on success, error code otherwise
+        integer :: status
+    end function fstckp
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer :: status
-  end function fstckp
-! /***************************************************************************** 
-!  *                              F S T I N F                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Locate the next record that matches the research keys.                  *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  OUT ni      dimension 1 of the data field                                * 
-!  *  OUT nj      dimension 2 of the data field                                * 
-!  *  OUT nk      dimension 3 of the data field                                * 
-!  *  IN  datev   valid date                                                   * 
-!  *  IN  etiket  label                                                        * 
-!  *  IN  ip1     vertical level                                               * 
-!  *  IN  ip2     forecast hour                                                * 
-!  *  IN  ip3     user defined identifier                                      * 
-!  *  IN  typvar  type of field                                                * 
-!  *  IN  nomvar  variable name                                                * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+    !> Locate the next record that matches the search keys
+    function fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> First dimension of the field found
+        integer, intent(OUT) :: ni
+        !> Second dimension of the field found
+        integer, intent(OUT) :: nj
+        !> Third dimension of the field found
+        integer, intent(OUT) :: nk
+        !> Validity date
+        integer, intent(IN) :: datev
+        !> Vertical level
+        integer, intent(IN) :: ip1
+        !> Forecast hour
+        integer, intent(IN) :: ip2
+        !> User defined identifier
+        integer, intent(IN) :: ip3
+        !> Field type
+        character(len = 3), intent(IN) :: typvar
+        !> Variable name
+        character(len = 5), intent(IN) :: nomvar
+        !> Label
+        character(len = 13), intent(IN) :: etiket
+        !> \return Field handle
+        integer :: handle
+    end function fstinf
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
-    character(len=5)  :: nom
-    character(len=3)  :: typ
-    character(len=13) :: eti
-  end function fstinf
-!  /***************************************************************************** 
-!  *                            F S T S U I                                    *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Finds the next record that matches the last search criterias            *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  OUT ni      dimension 1 of the data field                                * 
-!  *  OUT nj      dimension 2 of the data field                                * 
-!  *  OUT nk      dimension 3 of the data field                                * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstsui(iun, ni, nj, nk) result(handle)
+    !> Find init record that matches the latest search keys
+    function fstsui(iun, ni, nj, nk) result(handle)
+        implicit none
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> First dimension of the field found
+        integer, intent(OUT) :: ni
+        !> Second dimension of the field found
+        integer, intent(OUT) :: nj
+        !> Third dimension of the field found
+        integer, intent(OUT) :: nk
+        !> \return Field handle
+        integer :: handle
+    end function fstsui
 
-    implicit none
-    integer, intent(IN), value :: iun
-    integer, intent(OUT) :: ni, nj, nk
-    integer :: handle
-  end function fstsui
-! /***************************************************************************** 
-!  *                              F S T I N F X                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Locate the next record that matches the research keys.                  *
-!  *   The search begins at the position given by the start handle.            * 
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  start   handle from which the search begins                          *
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  OUT ni      dimension 1 of the data field                                * 
-!  *  OUT nj      dimension 2 of the data field                                * 
-!  *  OUT nk      dimension 3 of the data field                                * 
-!  *  IN  datev   valid date                                                   * 
-!  *  IN  etiket  label                                                        * 
-!  *  IN  ip1     vertical level                                               * 
-!  *  IN  ip2     forecast hour                                                * 
-!  *  IN  ip3     user defined identifier                                      * 
-!  *  IN  typvar  type of field                                                * 
-!  *  IN  nomvar  variable name                                                * 
-!  *                                                                           * 
-!  *****************************************************************************/
-  function fstinfx(start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
-
-    implicit none
-    integer, intent(IN), value :: iun, start
-    integer, intent(OUT) :: ni, nj, nk
-    integer, intent(IN)  :: datev, ip1, ip2, ip3
-    character(len=*), intent(IN) :: typvar, nomvar, etiket
-    integer :: handle
-    character(len=5)  :: nom
-    character(len=3)  :: typ
-    character(len=13) :: eti
+    !> Locate the next records matching the search keys starting at the specified record
+    function fstinfx(start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
+        implicit none
+        !> Handle of the records from where to begin the search
+        integer, intent(IN), value :: start
+        !> Unit number of the file
+        integer, intent(IN), value :: iun
+        !> First dimension of the field found
+        integer, intent(OUT) :: ni
+        !> Second dimension of the field found
+        integer, intent(OUT) :: nj
+        !> Third dimension of the field found
+        integer, intent(OUT) :: nk
+        !> Validity date
+        integer, intent(IN) :: datev
+        !> Vertical level
+        integer, intent(IN) :: ip1
+        !> Forecast hour
+        integer, intent(IN) :: ip2
+        !> User defined identifier
+        integer, intent(IN) :: ip3
+        !> Field type
+        character(len = 3), intent(IN) :: typvar
+        !> Variable name
+        character(len = 5), intent(IN) :: nomvar
+        !> Label
+        character(len = 13), intent(IN) :: etiket
+        !> \return Field handle
+        integer :: handle
   end function fstinfx
+
 ! /***************************************************************************** 
 !  *                              F S T I N L                                  *
 !  *                                                                           * 
@@ -744,140 +689,75 @@ interface
       integer :: ip_new
     end function ip3_val
 
-!  /*****************************************************************************
-!  *                              F S T C H E C K                              *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Checks if an RPN standard file is valid.                                *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *  IN  filename Path of the file to be checked                              *
-!  *                                                                           *
-!  *****************************************************************************/
+    !> Checks if an RPN standard file is valid
     function fstcheck(path) result(status)
-
       implicit none
-      character(len=*), intent(IN) :: path
+      !> Path of the file to check
+      character(len = *), intent(IN) :: path
+      !> \return 0 when valid; -1 otherwise
       integer :: status
     end function fstcheck
 
-!  /***************************************************************************** 
-!  *                   F S T R E S E T _ I P _ F L A G S                       *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Reset all the flags previously set by ip(1-3)_val                       *
-!  *                                                                           * 
-!  *****************************************************************************/
+    !> Reset all the flags previously set by ip(1-3)_val
     subroutine fstreset_ip_flags()
     end subroutine fstreset_ip_flags
 
-!  /***************************************************************************** 
-!  *                               F S T R W D                                 *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Rewinds a RPN standard sequential file.                                 *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *                                                                           * 
-!  *****************************************************************************/
+    !> Rewinds a RPN standard sequential file
     function fstrwd(iun) result(status)
-
       implicit none
+      !> Unit number associated to the file
       integer, intent(IN), value :: iun
       integer :: status
     end function fstrwd
-!  /***************************************************************************** 
-!  *                                F S T S K P                                *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Skip nrec records forward or backward in the sequential file.           *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  nrec    number of records to skip (negative nrec means backward)     * 
-!  *                                                                           * 
-!  *****************************************************************************/
 
+    !> Skip nrec records forward or backward in the sequential file
     function fstskp(iun, nrec) result(status)
-
       implicit none
-      integer, intent(IN), value :: iun, nrec
+      !> Unit number associated to the file
+      integer, intent(IN), value :: iun
+      !> Number of records to skip (negative nrec means backward)
+      integer, intent(IN), value :: nrec
+      !> \return 0 on success, error code otherwise
       integer :: status
     end function fstskp
-! /***************************************************************************** 
-!  *                           F S T  _ V E R S I O N                          *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Returns package version number.                                          *
-!  *                                                                           * 
-!  *****************************************************************************/
 
+    !> Get version number
     function fst_version() result(version)
-
       implicit none
+      !> \return Version number
       integer :: version
     end function fst_version
 
-! /***************************************************************************** 
-!  *                              F S T V O I                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Opens a RPN standard file.                                              *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  options random or sequential access                                  * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
+    !> Print directory content of the file
     function fstvoi(iun, options) result(status)
-
       implicit none
+      !> Unit number of the file
       integer, intent(IN), value :: iun
+      !> 'NEWSTYLE' or 'SHORT'. The default is the long format which includes ig*
       character(len=*), intent(IN) :: options
+      !> \return 0 on success, non-zero error code otherwise
       integer :: status
     end function fstvoi
-!  /***************************************************************************** 
-!  *                             F S T W E O                                   *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Writes a logical end of file on a sequential file.                      *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  level   level of logical end of file                                 * 
-!  *                                                                           * 
-!  *****************************************************************************/
 
+    !> Write a logical end of file
     function fstweo(iun, level) result(status)
-
       implicit none
-      integer, intent(IN), value :: iun, level
+      !> Unit number of the file
+      integer, intent(IN), value :: iun
+      !> Level of logical end of file [1, 14]
+      integer, intent(IN), value :: level
+      !> \return 0 on success, non-zero error code otherwise
       integer :: status
     end function fstweo
-! /***************************************************************************** 
-!  *                             F S T A P P                                   *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Position at the end of a sequential file for an append.                 *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *  IN  iun     unit number associated to the file                           * 
-!  *  IN  option  kept for backward compatibility (not used)                   * 
-!  *                                                                           * 
-!  *****************************************************************************/
-    function fstapp(iun, option) result(status)
 
+    !> Position at the end of a sequential file for an append
+    function fstapp(iun, option) result(status)
       implicit none
+      !> Unit number of the file
       integer, intent(IN), value :: iun
+      !> Unused; kept for backward compatibility
       character(len=*), intent(IN) :: option
+      !> \return 0 on success, non-zero error code otherwise
       integer :: status
     end function fstapp
 end interface
@@ -907,73 +787,44 @@ interface fstoption
       integer :: status
     end function fstopi
 
-!  /***************************************************************************** 
-!  *                              F S T O P L                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Print out or set a fstd or xdf global variable option.                  *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *   IN     option   option name to be set/printed                           * 
-!  *   IN     value    option value                                            * 
-!  *   IN     getmode  logical (1: get option, 0: set option)                  * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
+    !> Print, get, or set a fstd or xdf global option
     function fstopl(option, val, getmode) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: option
-      logical, intent(IN), value :: val
-      integer, intent(IN), value :: getmode
-      integer :: status
+        implicit none
+        !> Option name (FASTIO, IMAGE, REDUCTION32)
+        character(len=*), intent(IN) :: option
+        !> Value
+        logical, intent(IN), value :: val
+        !> Operation mode (1: print option, 0: set option, 2: get option)
+        integer, intent(IN), value :: getmode
+        !> Value if getmode = 2, 0 on success for other modes or error code
+        integer :: status
     end function fstopl
 
-!  /***************************************************************************** 
-!  *                              F S T O P R                                  *
-!  *                                                                           * 
-!  *Object                                                                     * 
-!  *   Print out or set a fstd or xdf global variable option.                  *
-!  *                                                                           * 
-!  *Arguments                                                                  * 
-!  *                                                                           * 
-!  *   IN     option   option name to be set/printed                           * 
-!  *   IN     value    option value                                            * 
-!  *   IN     getmode  logical (1: get option, 0: set option)                  * 
-!  *                                                                           * 
-!  *****************************************************************************/
-
+    !> Print, get, or set a fstd or xdf REAL global option
     function fstopr(option, val, getmode) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: option
-      real, intent(IN), value :: val
-      integer, intent(IN), value :: getmode
-      integer :: status
+        !> Currently there are no REAL options!
+        implicit none
+        !> Option name
+        character(len=*), intent(IN) :: option
+        !> Value
+        real, intent(IN), value :: val
+        !> Operation mode (0: set option, 1: print option, 2: get option)
+        integer, intent(IN), value :: getmode
+        !> 0 on success, error code otherwise
+        integer :: status
     end function fstopr
 
-! /*****************************************************************************
-!  *                              F S T O P C                                  *
-!  *                                                                           *
-!  *Object                                                                     *
-!  *   Print out or set a fstd or xdf global variable option.                  *
-!  *                                                                           *
-!  *Arguments                                                                  *
-!  *                                                                           *
-!  *   IN     option   option name to be set/printed                           *
-!  *   IN     value    option value                                            *
-!  *   IN     getmode  logical (1: get option, 0: set option)                  *
-!  *                                                                           *
-!  *****************************************************************************/
-
-    function fstopc(option, val, getmode) result(status)
-
-      implicit none
-      character(len=*), intent(IN) :: option
-      character(len=*), intent(IN) :: val
-      integer, intent(IN), value :: getmode
-      integer :: status
+    !> Print, get, or set a fstd or xdf global option
+    function fstopc(option, val, getmode) result(varVal)
+        implicit none
+        !> Option name
+        character(len=*), intent(IN) :: option
+        !> Value
+        character(len=*), intent(IN) :: val
+        !> Operation mode (0: set option, 1: print option, 2: get option)
+        integer, intent(IN), value :: getmode
+        !> \return Value of the variable if getmode = 2
+        integer :: varVal
     end function fstopc
 end interface
 
