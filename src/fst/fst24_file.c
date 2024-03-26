@@ -863,7 +863,7 @@ static int32_t fst24_write_rsf(fst_file* file, fst_record* record) {
         f.npas = 1;
         fst24_record_print_short(record, &f, 0, "Write: ");
     }
-    
+
     RSF_Free_record(new_record);
 
     return record_handle > 0 ? TRUE : -1;
@@ -896,7 +896,7 @@ int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
             record->data, NULL, record->npak, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
             typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, 0);
-        
+
         if (ier < 0) return ier;
         return TRUE;
     }
@@ -947,7 +947,7 @@ int32_t fst24_get_record_from_key(
     return TRUE;
 }
 
-//! Indicate a set of criteria that will be used whenever we use "find next record" 
+//! Indicate a set of criteria that will be used whenever we use "find next record"
 //! for the given file, within the FST 24 implementation.
 //! If for some reason the user also makes calls to the old interface (FST 98) for the
 //! same file (they should NOT), these criteria will be used if the file is RSF, but not with the
@@ -963,7 +963,7 @@ int32_t fst24_set_search_criteria(fst_file* file, const fst_record* criteria) {
        criteria=&default_fst_record;
     } else {
         if (!fst24_record_is_valid(criteria)) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);        
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid criteria\n", __func__);
         return FALSE;
         }
     }
@@ -1063,7 +1063,7 @@ int32_t fst24_find_next(
             return fst24_find_next(file->next, record);
         }
         return FALSE;
-    } 
+    }
 
     int64_t key = -1;
     int rkey = 0;
@@ -1080,25 +1080,24 @@ int32_t fst24_find_next(
             if (record) {
                 // Check on excdes desire/exclure clauses
                 record->metadata = NULL;
-                rkey = fst24_get_record_from_key(file, key, record); 
+                rkey = fst24_get_record_from_key(file, key, record);
                 if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
                        record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
-                    key = -1;    
-                } else 
-
-                // If metadata search is specified, look for a match or carry on looking
-                if (fstd_open_files[file->file_index].search_meta) {
-                    if (fst24_read_metadata(record) &&
-                        Meta_Match(fstd_open_files[file->file_index].search_meta, record->metadata, FALSE)) {
-                        break;
-                    } else {
-                        key = -1;
+                    key = -1;
+                } else {
+                    // If metadata search is specified, look for a match or carry on looking
+                    if (fstd_open_files[file->file_index].search_meta) {
+                        if (fst24_read_metadata(record) &&
+                            Meta_Match(fstd_open_files[file->file_index].search_meta, record->metadata, FALSE)) {
+                            break;
+                        } else {
+                            key = -1;
+                        }
                     }
                 }
             }
         }
-    }
-    else if (file->type == FST_XDF) {
+    } else if (file->type == FST_XDF) {
         uint32_t* pkeys = (uint32_t *) &fstd_open_files[file->file_index].search_criteria;
         uint32_t* pmask = (uint32_t *) &fstd_open_files[file->file_index].search_mask;
 
@@ -1115,8 +1114,7 @@ int32_t fst24_find_next(
             // Mark search as finished in this file if no record is found
             fstd_open_files[file->file_index].search_done = 1;
         }
-    }
-    else {
+    } else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
         return FALSE;
     }
@@ -1128,12 +1126,12 @@ int32_t fst24_find_next(
         if (record && !rkey) {
             return fst24_get_record_from_key(file, key, record);
         } else {
-            return(TRUE);
+            return TRUE;
         }
     }
 
     if (file->next != NULL) {
-        // We're done searching this file, but there's another one in the linked list, so 
+        // We're done searching this file, but there's another one in the linked list, so
         // we need to setup the search in that one
         fstd_open_files[file->next->file_index].search_criteria = fstd_open_files[file->file_index].search_criteria;
         fstd_open_files[file->next->file_index].search_mask = fstd_open_files[file->file_index].search_mask;
@@ -1189,12 +1187,12 @@ int32_t fst24_unpack_data(
 ) {
     uint32_t* dest_u32 = dest;
     uint32_t* source_u32 = source;
-    
+
     // Get missing data flag
     const int has_missing = has_type_missing(record->datyp);
     // Suppress missing data flag
     const int32_t simple_datyp = record->datyp & ~FSTD_MISSING_FLAG;
-    // number of packed bits per element 
+    // number of packed bits per element
     int nbits=abs(record->npak);
 
     // Unpack function son output element size
@@ -1475,7 +1473,7 @@ void* fst24_read_metadata(
     fst_record* record //!< [in,out] Record for which we want to read metadata. Must have a valid handle!
 ) {
     if (!fst24_record_is_valid(record) || record->handle < 0) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);        
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);
        return NULL;
     }
 
@@ -1516,14 +1514,14 @@ int32_t fst24_read(
     }
 
     if (record->flags & FST_REC_ASSIGNED) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);        
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);
        return -1;
     }
 
     // Allocate buffer if not already done or big enough
     const int64_t size = fst24_record_data_size(record);
     if (size == 0) {
-       Lib_Log(APP_LIBFST, APP_INFO, "%s: NULL size buffer \n", __func__);        
+       Lib_Log(APP_LIBFST, APP_INFO, "%s: NULL size buffer \n", __func__);
        return -1;
     }
 

@@ -50,9 +50,9 @@ int c_ip3_val(const float level, const int kind);
 int c_fstckp(const int iun);
 int c_fstmsq(const int iun, int *mip1, int *mip2, int *mip3, char *metiket, const int getmode);
 int c_fstopi(const char * const option, const int value, const int getmode);
-int c_fstopl(char *option, int value, int getmode);
+int c_fstopl(const char * const option, const int value, const int getmode);
 int c_fstopr(char *option, float value, int getmode);
-int c_fstopc(char *option, char *value, int getmode);
+int c_fstopc(const char * const option, const char * const value, const int getmode);
 int c_fstcheck(const char *filePath);
 int c_fstinf(const int iun, int * const ni, int * const nj, int * const nk, const int datev, const char * const in_etiket,
             const int ip1, const int ip2, const int ip3, const char * const in_typvar, const char * const in_nomvar);
