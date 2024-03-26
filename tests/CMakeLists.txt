@@ -68,25 +68,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME c_ccard COMMAND ${CMAKE_CURRENT_BINARY_DIR}/c_ccard)
         add_dependencies(check c_ccard)
 
-        foreach(FST_BACKEND rsf xdf)
-            add_executable(fst_missing_${FST_BACKEND} EXCLUDE_FROM_ALL fst_missing.F90)
-            target_link_libraries(fst_missing_${FST_BACKEND} rmn::rmn test_helper)
-            target_compile_options(fst_missing_${FST_BACKEND} PRIVATE
-                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
-            add_test(NAME fst_missing_${FST_BACKEND} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_missing_${FST_BACKEND})
-            add_dependencies(check fst_missing_${FST_BACKEND})
-
-            #TODO Fix that test
-            # add_executable(fst_interface_${FST_BACKEND} EXCLUDE_FROM_ALL fst_interface.F90)
-            # target_link_libraries(fst_interface_${FST_BACKEND} rmn::rmn test_helper)
-            # add_test(NAME fst_interface_${FST_BACKEND} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_interface_${FST_BACKEND})
-            # add_dependencies(check fst_interface_${FST_BACKEND})
-
-            if (${FST_BACKEND} STREQUAL xdf)
-                target_compile_definitions(fst_missing_xdf PRIVATE FST_TEST_IS_RSF=.false.)
-                # target_compile_definitions(fst_interface_xdf PRIVATE FST_TEST_IS_RSF=.false.)
-            endif()
-        endforeach()
+        add_executable(fst98_missing fst98_missing.F90)
+        target_link_libraries(fst98_missing rmn::rmn test_helper)
+        target_compile_options(fst98_missing PRIVATE $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable 5268>)
+        add_test(NAME fst98_missing COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst98_missing)
+        add_dependencies(check fst98_missing)
 
         add_executable(generate_fstd EXCLUDE_FROM_ALL generate_fstd.F90)
         target_link_libraries(generate_fstd test_helper)
@@ -126,6 +112,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_interface_f COMMAND $<TARGET_FILE:fst24_interface_f>)
         add_dependencies(check fst24_interface_f)
         set_property(TEST fst24_interface_f PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+
+        add_executable(fst98_interface fst98_interface.F90)
+        target_link_libraries(fst98_interface rmn::rmn test_helper)
+        add_test(NAME fst98_interface COMMAND $<TARGET_FILE:fst98_interface>)
+        add_dependencies(check fst98_interface)
 
         add_executable(fst24_meta_c fst24_meta.c)
         target_link_libraries(fst24_meta_c rmn::rmn)
