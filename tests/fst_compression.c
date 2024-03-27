@@ -14,6 +14,8 @@ const int NUM_DATA_Z = 2;
 
 static float* data_f = NULL;
 static double* data_d = NULL;
+static int32_t* data_i = NULL;
+static int64_t* data_l = NULL;
 
 typedef struct {
     void** data;
@@ -45,6 +47,8 @@ static const test_params params[] = {
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 1e-5, .max_tol = 2e-3},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 12, .nk = NUM_DATA_Z, .tol = 2e-4, .max_tol = 0.06},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 2e-5, .max_tol = 2e-3},
+    {.data = (void*)&data_i, .data_type = FST_TYPE_SIGNED, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 1e-5, .max_tol = 2e-3},
+    {.data = (void*)&data_l, .data_type = FST_TYPE_SIGNED, .data_size = 64, .pack_size = 64, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0},
 };
 
 const int NUM_CASES = sizeof(params) / sizeof(test_params);
@@ -65,8 +69,10 @@ void make_data() {
     if (data_f != NULL || data_d != NULL) return;
     data_f = (float*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(float));
     data_d = (double*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(double));
+    data_i = (int32_t*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(int32_t));
+    data_l = (int64_t*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(int64_t));
 
-    if (data_f == NULL || data_d == NULL) {
+    if (data_f == NULL || data_d == NULL || data_i == NULL || data_l == NULL) {
         App_Log(APP_ERROR, "%s: Unable to allocated enough space\n", __func__);
         exit(-1);
     }
@@ -77,6 +83,8 @@ void make_data() {
                 const int index = (i * NUM_DATA_Y + j) * NUM_DATA_Z + k;
                 data_d[index] = gen_value_real(i, j, k, NUM_DATA_X, NUM_DATA_Y, NUM_DATA_Z);
                 data_f[index] = (float)data_d[index];
+                data_i[index] = (int32_t)data_d[index];
+                data_l[index] = (int64_t)data_d[index];
                 // fprintf(stderr, "%6.3f ", data_f[index]);
                 // if (index % 16 == 15) fprintf(stderr, "\n");
             }
@@ -290,24 +298,26 @@ int test_compression(const int is_rsf) {
             return -1;
         }
 
-        if (rec_read.dasiz == 64) {
-            if (compare_data_d(data_d, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params[i].nk,
-                            params[i].tol, params[i].max_tol)
-                != 0)
-            {
-                App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                        __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
-                return -1;
+        if (rec.datyp != FST_TYPE_SIGNED) {
+            if (rec_read.dasiz == 64) {
+                if (compare_data_d(data_d, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params[i].nk,
+                                params[i].tol, params[i].max_tol)
+                    != 0)
+                {
+                    App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
+                            __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                    return -1;
+                }
             }
-        }
-        else {
-            if (compare_data_f(data_f, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params[i].nk,
-                            params[i].tol, params[i].max_tol)
-                != 0)
-            {
-                App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                        __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
-                return -1;
+            else {
+                if (compare_data_f(data_f, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params[i].nk,
+                                params[i].tol, params[i].max_tol)
+                    != 0)
+                {
+                    App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
+                            __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                    return -1;
+                }
             }
         }
     }
@@ -337,6 +347,8 @@ int main(void) {
 
     free(data_f);
     free(data_d);
+    free(data_i);
+    free(data_l);
 
     App_Log(APP_ALWAYS, "Test successful\n");
 

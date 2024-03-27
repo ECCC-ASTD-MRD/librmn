@@ -17,7 +17,7 @@ message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 include(GNUInstallDirs)
-set (CMAKE_INSTALL_LIBDIR lib)
+set (CMAKE_INSTALL_LIBDIR lib)  # Avoid using lib64
 
 ec_build_info()            # Generate build information
 include(ec_compiler_presets)
@@ -338,15 +338,17 @@ ec_build_config()                 # Create build configuration script
 ec_prepare_ssm()                  # Prepare ssm packaging files
 
 set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_VENDOR "ECCC")
+set(CPACK_PACKAGE_VENDOR "ECCC-ASTD-MRD")
 set(CPACK_PACKAGE_CONTACT "${MAINTAINER}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/package")
 set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+#set(CPACK_PACKAGE_VERSION     "${PROJECT_VERSION}")
+#set(CPACK_PACKAGE_VERSION_MAJOR     "${PROJECT_VERSION_MAJOR}")
+#set(CPACK_PACKAGE_VERSION_MINOR     "${PROJECT_VERSION_MINOR}")
+#set(CPACK_PACKAGE_VERSION_PATCH     "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
-
-
 
