@@ -454,8 +454,8 @@ int32_t fst24_record_validate_params(const fst_record* record) {
 //! will directly be used for searching in a file
 void make_search_criteria(
     const fst_record* record,   //!< [in] The information we are looking for
-    stdf_dir_keys* criteria,    //!< [out] The encoded information keys
-    stdf_dir_keys* mask         //!< [out] The corresponding search mask
+    search_metadata* criteria,  //!< [out] The encoded information keys
+    search_metadata* mask       //!< [out] The corresponding search mask
 ) {
     // Check for error
     if (!fst24_record_is_valid(record) || criteria == NULL || mask == NULL) {
@@ -468,158 +468,183 @@ void make_search_criteria(
     // Reset search mask
     {
         uint32_t *pmask = (uint32_t *) mask;
-        for (uint32_t i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
+        for (uint32_t i = 0; i < (sizeof(search_metadata) / sizeof(uint32_t)); i++) {
             pmask[i] = -1;
         }
     }
 
-    mask->pad1 = 0;
-    mask->pad2 = 0;
-    mask->pad3 = 0;
-    mask->pad5 = 0;
-    mask->pad6 = 0;
-    mask->pad7 = 0;
-    mask->deleted = 0;
-    mask->select = 0;
-    mask->lng = 0;
-    mask->addr = 0;
-    mask->dasiz = 0;
-    mask->datyp = 0;
-    mask->nbits = 0;
-    mask->ubc = 0;
-    mask->levtyp = 0;
+    // fst98 criteria
+    {
+        stdf_dir_keys* fst98_meta = &criteria->fst98_meta;
+        stdf_dir_keys* fst98_mask = &mask->fst98_meta;
 
-    criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
-    mask->date_stamp &= ~(0x7);
-    if (record->dateo == -1) mask->date_stamp = 0;
+        fst98_mask->pad1 = 0;
+        fst98_mask->pad2 = 0;
+        fst98_mask->pad3 = 0;
+        fst98_mask->pad5 = 0;
+        fst98_mask->pad6 = 0;
+        fst98_mask->pad7 = 0;
+        fst98_mask->deleted = 0;
+        fst98_mask->select = 0;
+        fst98_mask->lng = 0;
+        fst98_mask->addr = 0;
+        fst98_mask->dasiz = 0;
+        fst98_mask->datyp = 0;
+        fst98_mask->nbits = 0;
+        fst98_mask->ubc = 0;
+        fst98_mask->levtyp = 0;
 
-    criteria->ni = record->ni;
-    if ((record->ni == -1)) mask->ni = 0;
 
-    criteria->nj = record->nj;
-    if ((record->nj == -1)) mask->nj = 0;
+        fst98_meta->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
+        fst98_mask->date_stamp &= ~(0x7);
+        if (record->dateo == -1) fst98_mask->date_stamp = 0;
 
-    criteria->nk = record->nk;
-    if ((record->nk == -1)) mask->nk = 0;
+        fst98_meta->ni = record->ni;
+        if ((record->ni == -1)) fst98_mask->ni = 0;
 
-    criteria->ip1 = record->ip1;
-    if ((record->ip1 == -1)) mask->ip1 = 0;
+        fst98_meta->nj = record->nj;
+        if ((record->nj == -1)) fst98_mask->nj = 0;
 
-    criteria->ip2 = record->ip2;
-    if ((record->ip2 == -1)) mask->ip2 = 0;
+        fst98_meta->nk = record->nk;
+        if ((record->nk == -1)) fst98_mask->nk = 0;
 
-    criteria->ip3 = record->ip3;
-    if ((record->ip3 == -1)) mask->ip3 = 0;
+        fst98_meta->ip1 = record->ip1;
+        if ((record->ip1 == -1)) fst98_mask->ip1 = 0;
 
-    criteria->npas = record->npas;
-    if ((record->npas == -1)) mask->npas = 0;
+        fst98_meta->ip2 = record->ip2;
+        if ((record->ip2 == -1)) fst98_mask->ip2 = 0;
 
-    criteria->deet = record->deet;
-    if ((record->deet == -1)) mask->deet = 0;
+        fst98_meta->ip3 = record->ip3;
+        if ((record->ip3 == -1)) fst98_mask->ip3 = 0;
 
-    char nomvar[FST_NOMVAR_LEN];
-    copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
-    criteria->nomvar = (ascii6(nomvar[0]) << 18) |
-                       (ascii6(nomvar[1]) << 12) |
-                       (ascii6(nomvar[2]) <<  6) |
-                       (ascii6(nomvar[3]));
-    if (criteria->nomvar == 0) mask->nomvar = 0;
+        fst98_meta->npas = record->npas;
+        if ((record->npas == -1)) fst98_mask->npas = 0;
 
-    char typvar[FST_TYPVAR_LEN];
-    copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
-    criteria->typvar = (ascii6(typvar[0]) << 6) |
-                       (ascii6(typvar[1]));
-    if (criteria->typvar == 0) mask->typvar = 0;
+        fst98_meta->deet = record->deet;
+        if ((record->deet == -1)) fst98_mask->deet = 0;
 
-    char etiket[FST_ETIKET_LEN];
-    copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
-    criteria->etik15 = (ascii6(record->etiket[0]) << 24) |
-                       (ascii6(record->etiket[1]) << 18) |
-                       (ascii6(record->etiket[2]) << 12) |
-                       (ascii6(record->etiket[3]) <<  6) |
-                       (ascii6(record->etiket[4]));
+        char nomvar[FST_NOMVAR_LEN];
+        copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
+        fst98_meta->nomvar =
+            (ascii6(nomvar[0]) << 18) |
+            (ascii6(nomvar[1]) << 12) |
+            (ascii6(nomvar[2]) <<  6) |
+            (ascii6(nomvar[3]));
+        if (fst98_meta->nomvar == 0) fst98_mask->nomvar = 0;
 
-    criteria->etik6a = (ascii6(record->etiket[5]) << 24) |
-                       (ascii6(record->etiket[6]) << 18) |
-                       (ascii6(record->etiket[7]) << 12) |
-                       (ascii6(record->etiket[8]) <<  6) |
-                       (ascii6(record->etiket[9]));
+        char typvar[FST_TYPVAR_LEN];
+        copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
+        fst98_meta->typvar =
+            (ascii6(typvar[0]) << 6) |
+            (ascii6(typvar[1]));
+        if (fst98_meta->typvar == 0) fst98_mask->typvar = 0;
 
-    criteria->etikbc = (ascii6(record->etiket[10]) <<  6) |
-                       (ascii6(record->etiket[11]));
+        char etiket[FST_ETIKET_LEN];
+        copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
+        fst98_meta->etik15 =
+            (ascii6(record->etiket[0]) << 24) |
+            (ascii6(record->etiket[1]) << 18) |
+            (ascii6(record->etiket[2]) << 12) |
+            (ascii6(record->etiket[3]) <<  6) |
+            (ascii6(record->etiket[4]));
 
-    if ((criteria->etik15 == 0) && (criteria->etik6a == 0)) {
-        mask->etik15 = 0;
-        mask->etik6a = 0;
-        mask->etikbc = 0;
-    }
+        fst98_meta->etik6a =
+            (ascii6(record->etiket[5]) << 24) |
+            (ascii6(record->etiket[6]) << 18) |
+            (ascii6(record->etiket[7]) << 12) |
+            (ascii6(record->etiket[8]) <<  6) |
+            (ascii6(record->etiket[9]));
 
-    criteria->ig4 = record->ig4;
-    criteria->ig2a = record->ig2 >> 16;
-    criteria->ig1 = record->ig1;
-    criteria->ig2b = record->ig2 >> 8;
-    criteria->ig3 = record->ig3;
-    criteria->ig2c = record->ig2 & 0xff;
-    if (record->ig1 == -1) mask->ig1 = 0;
-    if (record->ig2 == -1) mask->ig2a =  mask->ig2b =  mask->ig2c = 0;
-    if (record->ig3 == -1) mask->ig3 = 0;
-    if (record->ig4 == -1) mask->ig4 = 0;
+        fst98_meta->etikbc =
+            (ascii6(record->etiket[10]) <<  6) |
+            (ascii6(record->etiket[11]));
 
-    char grtyp[FST_GTYP_LEN];
-    copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
-    criteria->gtyp = grtyp[0];
-    if (record->grtyp[0] == ' ') mask->gtyp = 0;
+        if ((fst98_meta->etik15 == 0) && (fst98_meta->etik6a == 0)) {
+            fst98_mask->etik15 = 0;
+            fst98_mask->etik6a = 0;
+            fst98_mask->etikbc = 0;
+        }
+
+        fst98_meta->ig4  = record->ig4;
+        fst98_meta->ig2a = record->ig2 >> 16;
+        fst98_meta->ig1  = record->ig1;
+        fst98_meta->ig2b = record->ig2 >> 8;
+        fst98_meta->ig3  = record->ig3;
+        fst98_meta->ig2c = record->ig2 & 0xff;
+        if (record->ig1 == -1) fst98_mask->ig1 = 0;
+        if (record->ig2 == -1) fst98_mask->ig2a =  fst98_mask->ig2b =  fst98_mask->ig2c = 0;
+        if (record->ig3 == -1) fst98_mask->ig3 = 0;
+        if (record->ig4 == -1) fst98_mask->ig4 = 0;
+
+        char grtyp[FST_GTYP_LEN];
+        copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
+        fst98_meta->gtyp = grtyp[0];
+        if (record->grtyp[0] == ' ') fst98_mask->gtyp = 0;
+    } // fst98 criteria
 }
 
-void fill_with_dir_keys(fst_record* record, const stdf_dir_keys* keys) {
-    stdf_special_parms cracked;
-    crack_std_parms(keys, &cracked);
+void fill_with_search_meta(fst_record* record, const search_metadata* meta, const fst_file_type type) {
 
-    record->dateo = cracked.date_stamp;
-    record->datev = cracked.date_valid;
+    // Check version first
+    uint8_t version = 0;
+    uint8_t num_criteria = sizeof(stdf_dir_keys) / sizeof(uint32_t);
 
-    record->ni = keys->ni;
-    record->nj = keys->nj;
-    record->nk = keys->nk;
-    record->datyp = keys->datyp;
-    record->dasiz = keys->dasiz;
-    if (record->dasiz == 0) record->dasiz = 32;
-    record->npak = -keys->nbits;
+    if (type != FST_XDF) {
+        decode_fst24_reserved_0(meta->fst24_reserved[0], &version, &num_criteria);
+    }
 
-    record->deet = keys->deet;
-    record->npas = keys->npas;
+    if (version > FST24_VERSION_COUNT) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Interpreting search metadata with a library from an earlier version (%d)"
+                " than the one used to write the record (%d). We might run into issues (or not).\n",
+                __func__, FST24_VERSION_COUNT, version);
+    }
 
-    strncpy(record->nomvar, cracked.nomvar, FST_NOMVAR_LEN);
-    strncpy(record->typvar, cracked.typvar, FST_TYPVAR_LEN);
-    strncpy(record->etiket, cracked.etiket, FST_ETIKET_LEN);
-    strncpy(record->grtyp,  cracked.gtyp,   FST_GTYP_LEN);
+    // fst98 metadata
+    {
+        const stdf_dir_keys* fst98_meta = &(meta->fst98_meta);
+        stdf_special_parms cracked;
+        crack_std_parms(fst98_meta, &cracked);
 
-    record->ip1 = keys->ip1;
-    record->ip2 = keys->ip2;
-    record->ip3 = keys->ip3;
+        record->dateo = cracked.date_stamp;
+        record->datev = cracked.date_valid;
 
-    record->ig1 = keys->ig1;
-    record->ig2 = cracked.ig2;
-    record->ig3 = keys->ig3;
-    record->ig4 = keys->ig4;
+        record->ni = fst98_meta->ni;
+        record->nj = fst98_meta->nj;
+        record->nk = fst98_meta->nk;
+        record->datyp = fst98_meta->datyp;
+        record->dasiz = fst98_meta->dasiz;
+        if (record->dasiz == 0) record->dasiz = 32;
+        record->npak = -fst98_meta->nbits;
 
-//    *swa = addr;
-//    *lng = W64TOWD(xdflng);
-//    *dltf = stdf_entry->deleted;
-//    *ubc = stdf_entry->ubc;
-//    /* new, use to be undefined */
-//    *extra1 = cracked.date_valid;
-//    *extra2 = 0;
-//    *extra3 = 0;
+        record->deet = fst98_meta->deet;
+        record->npas = fst98_meta->npas;
+
+        strncpy(record->nomvar, cracked.nomvar, FST_NOMVAR_LEN);
+        strncpy(record->typvar, cracked.typvar, FST_TYPVAR_LEN);
+        strncpy(record->etiket, cracked.etiket, FST_ETIKET_LEN);
+        strncpy(record->grtyp,  cracked.gtyp,   FST_GTYP_LEN);
+
+        record->ip1 = fst98_meta->ip1;
+        record->ip2 = fst98_meta->ip2;
+        record->ip3 = fst98_meta->ip3;
+
+        record->ig1 = fst98_meta->ig1;
+        record->ig2 = cracked.ig2;
+        record->ig3 = fst98_meta->ig3;
+        record->ig4 = fst98_meta->ig4;
+    } // fst98 metadata
+
+    // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
 }
 
 //! Decode the given directory metadata into an fst_record struct
 //! \return The decoded directory metadata
-fst_record record_from_dir_keys(
-    const stdf_dir_keys* keys   //!< Encoded directory metadata (as read from file)
+fst_record record_from_search_meta(
+    const search_metadata* meta,  //!< Encoded search (directory) metadata (as read from file)
+    const fst_file_type type
 ) {
     fst_record result = default_fst_record;
-    fill_with_dir_keys(&result, keys);
+    fill_with_search_meta(&result, meta, type);
     return result;
 }
 
@@ -795,8 +820,8 @@ void print_non_wildcards(const fst_record* const record) {
     Lib_Log(APP_LIBFST, APP_ALWAYS, "criteria: %s\n", buffer);
 }
 
-void print_dir_keys(const stdf_dir_keys* const keys) {
+void print_search_meta(const search_metadata* const keys, const fst_file_type type) {
     fst_record r;
-    fill_with_dir_keys(&r, keys);
+    fill_with_search_meta(&r, keys, type);
     print_non_wildcards(&r);
 }

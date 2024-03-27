@@ -1,32 +1,30 @@
 # Table of Contents
 1. [Introduction](#introduction)
-    1. [RSF Features](#rsf-features)
-    1. [New Interface - `fst24`](#new-interface---fst24)
+    1. [RSF Features](#new-features-of-rsf)
+    1. [New Interface: `fst24`](#new-interface-fst24)
     1. [Parallel Write](#parallel-write)
     1. [Data Types](#data-types)
-    1. [Old Interface - `fst98`](#old-interface---fst98)
+    1. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
-    1. [Opening and Closing](#ex-open-close)
-    2. [Searching and Reading](#ex-search-read)
-    3. [Writing](#ex-write)
+    1. [Opening and Closing](#opening-and-closing-a-file)
+    2. [Searching and Reading](#finding-and-reading-a-record)
+    3. [Writing](#creating-and-writing-a-record)
 3. [API](#api)
    1. [C](#c)
-      1. [Structs](#c-structs)
-      2. [File Functions](#c-file-functions)
-      2. [Query Functions](#c-query-functions)
-      3. [Record Functions](#c-record-functions)
+      1. [Structs](#structs)
+      2. [File Functions](#file-functions)
+      2. [Query Functions](#query-functions)
+      3. [Record Functions](#record-functions)
    2. [Fortran](#fortran)
-      1. [Structs](#fortran-structs)
-      2. [File Functions](#fortran-file-functions)
-      2. [Query Functions](#fortran-query-functions)
-      3. [Record Functions](#fortran-record-functions)
+      1. [Structs](#structs-1)
+      2. [File Functions](#file-functions-1)
+      2. [Query Functions](#query-functions-1)
+      3. [Record Functions](#record-functions-1)
    
 # Introduction
-* A new backend called RSF (Random Segment Files) has been implemented for standard files (FSTD). It can be used through the [old interface](#ols-interface), while removing some of the limitations related to the previous backend (XDF). 
-* [A new interface](#new-interface) called FST24 (in contrast to the old FST98) has also been implemented. It provides a more modern way to access and manipulate standard files, whether they are in the RSF or XDF format.
+* A new backend called RSF (Random Segment Files) has been implemented for standard files (FSTD, or FST). It can be used through the [old interface](#old-interface-fst98), while removing some of the limitations related to the previous backend (XDF). 
+* [A new interface](#new-interface-fst24) called `fst24` (in contrast to the old `fst98`) has also been implemented. It provides a more modern way to access and manipulate standard files, whether they are in the RSF or XDF format.
 * New [extended metadata](../Meta/README.md) is now available, but note that you will have to switch to the new API to use it
-
-<a id="rsf-features"></a>
 
 ## New features of RSF
 * RSF are implemented on the concept of sparse files
@@ -41,9 +39,7 @@
 * Sub tile reading of larger records
 * Multiple no data values
 
-<a id="new-interface"></a>
-
-## New interface - fst24
+## New interface: fst24
 
 * In the `fst24` interface, Standard Files are manipulated trough two derived types (or structs, in C)
    * `fst_file` is an opaque handle to a file, and allows for file operations like opening, searching, reading and writing.
@@ -52,15 +48,15 @@
 
 ### Searching and Reading
 Searches are made through a query (`fst_query`). Several queries can be made concurrently. Each of them retains its own index within the searched file,
-so that they can progress in their search, even if another query has been run between different searches. See **TODO** examples.
+so that they can progress in their search, even if another query has been run between different searches.
 
 Most attributes of `fst_record` are considered _directory metadata_ and are searchable (for both `RSF` and `XDF`). Search criteria are specified differently
-depending on whether you are using the Fortran or the C interface.
-Criteria are set on a file before performing the search. [Examples are available below](#ex-search-read).
-* In Fortran: Search parameters are specified directly (and individually) as function parameters. Any unspecified parameter will be ignored during the search.
-* In C: Search parameters are specified as a set, represented by an `fst_record` instance. Any attribute of `fst_record` that is left at its default value will be ignored during the search.
+depending on whether you are using the Fortran or the C interface:
 
-<a id="parallel-write"></a>
+* In **Fortran**: Search parameters are specified directly (and individually) as function parameters. Any unspecified parameter will be ignored during the search.
+* In **C**: Search parameters are specified as a set, represented by an `fst_record` instance. Any attribute of `fst_record` that is left at its default value will be ignored during the search.
+
+[Examples are available below](#finding-and-reading-a-record).
 
 ## Parallel write
 
@@ -68,10 +64,12 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
  by adding `PARALLEL` to the options when opening the RSF file. There are a few things to be aware of:
 
 * Parallel write is only available for RSF-type files, so if the file being opened is new, it must have `RSF` in addition to `PARALLEL` (or the `FST_OPTIONS` environment variable must contain `BACKEND=RSF`)
-    | Fortran | C |
-    |----------|---|
-    | `my_file % open('file_name.fst', 'RSF+PARALLEL')` | `my_file = fst24_open("file_name.fst", "RSF+PARALLEL");` |
-    | `fstouv(iun, 'RSF+PARALLEL')`                     | `c_fstouv(iun, "RSF+PARALLEL");` |
+
+  |       | Fortran | C |
+  | ----- | ------- | - |
+  | fst24 | `my_file % open('file_name.fst', 'RSF+PARALLEL')` | `my_file = fst24_open("file_name.fst", "RSF+PARALLEL");` |
+  | fst98 | `fstouv(iun, 'RSF+PARALLEL')`                     | `c_fstouv(iun, "RSF+PARALLEL");` |
+
 * If a file is already open in read-only mode (`R/O` or no option) or in exclusive-write mode (`R/W` without `PARALLEL`), it has to be closed first before it can be open for parallel write.
 * Each process that opens a file for parallel write reserves a _segment_ of a given size, *which will take that much space on disk regardless of how much data that process writes to the file*. The size of the segments should be chosen so as to minimize the amount of unused space.
     * Desired segment size is controlled by `SEGMENT_SIZE_MB` within `FST_OPTIONS`. It takes an integer, and the units are megabytes (MB). For example:
@@ -99,7 +97,7 @@ There are 3 different types for storing real-valued data. We recommend the use o
 what you want or if your data covers a *wide* range of values (several orders of magnitude).
 When storing 32-bit values into 16 bits or less, it uses the 16-bit IEEE format, which usually preserves more information than simply truncating a 32-bit IEEE number.
 When storing into 17-24 bits, it reverts to the `FST_TYPE_REAL_OLD_QUANT` (`R`) scheme, *which is not reversible*, meaning that repeatedly compacting and uncompacting the same data may lead to (small) differences.
-When storing into 25-32 bits, it reverts to the `FST_TYPE_REAL_IEEE` (`E`) scheme, and will thus be stored as 32-bit IEEE floats.
+When storing into 25-32 bits, it reverts to the `FST_TYPE_REAL_IEEE` (`E`) scheme, and will be stored as untruncated 32-bit IEEE floats.
 
 If you really want truncated IEEE floats, you may select it directly with `FST_TYPE_REAL_IEEE` and a desired number of stored bits. The same holds for
 truncating `FST_TYPE_REAL_OLD_QUANT` numbers.
@@ -109,7 +107,7 @@ but this will affect compression performance (size gains) at the border between 
 
 ### Type Names
 
-```C
+```c
 //!> Raw binary data. Its elements can have any size, and it is not subject to interpretation by the FST layer.
 //!> Identified with X.
 static const int32_t FST_TYPE_BINARY = 0;
@@ -162,9 +160,7 @@ static const int32_t FST_TYPE_TURBOPACK = 128;
 #define FSTD_MISSING_FLAG 64 //!< When this flag is ON in a datatype, it indicates that some data points are missing
 ```
 
-<a id="old-interface"></a>
-
-## Old Interface - fst98
+## Old Interface: fst98
 
 * The old `fst98` API is still supported and can manage the new RSF backend. In Fortran, a new module has been created and we recommend its use:
 ```Fortran
@@ -181,7 +177,6 @@ export FST_OPTIONS="BACKEND=RSF"
 
 # Examples
 
-<a id="ex-open-close"></a>
 ## Opening and Closing a File
 
 <table><tr><td style="width:50%">
@@ -669,7 +664,7 @@ success = my_file % write(my_record)
 
 </td><td>
 
-```C
+```c
 // With turbocompression
 
 my_record.datyp = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
@@ -685,10 +680,12 @@ fst24_write(my_file, &my_record, 0);
 # API
 
 ## C
+
 <a id="c-struct"></a>
+
 ### Structs
 
-```C
+```c
 typedef struct {
     int32_t       iun;          //!< File unit, used by fnom
     int32_t       file_index;   //!< File index in list of open files (the list is different for RSF vs XDF)
@@ -872,7 +869,7 @@ void fst24_query_free(fst_query* const query);
 <a id="c-record-functions"></a>
 ### Record Functions
 
-```C
+```c
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
 fst_record fst24_record_new(
@@ -911,7 +908,9 @@ int32_t fst24_record_free(
 ```
 
 ## Fortran
+
 <a id="fortran-structs"></a>
+
 ### Structs
 
 ```fortran
@@ -1222,12 +1221,12 @@ end subroutine get_data_array
 
 !> Check whether two records have identical information (except data). This will sync the underlying C struct
 !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise
-function fst24_record_has_same_info(this, other) result(has_same_info)
+function has_same_info(this, other) result(has_same_info)
     implicit none
     class(fst_record), intent(inout) :: this
     type(fst_record),  intent(inout) :: other
     logical :: has_same_info
-end function fst24_record_has_same_info
+end function has_same_info
 
 !> Read the data and metadata of a given record from its corresponding file
 !> Return Whether we were able to do the reading

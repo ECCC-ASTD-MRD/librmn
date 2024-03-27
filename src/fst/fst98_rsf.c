@@ -215,15 +215,19 @@ int c_fstinfx_rsf(
 ) {
     unsigned int u_datev = datev;
 
-    char etiket[FST_ETIKET_LEN];
-    char typvar[FST_TYPVAR_LEN];
-    char nomvar[FST_NOMVAR_LEN];
+    fst_record criteria = default_fst_record;
 
-    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
-    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
-    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
+    copy_record_string(criteria.etiket, in_etiket, FST_ETIKET_LEN);
+    copy_record_string(criteria.typvar, in_typvar, FST_TYPVAR_LEN);
+    copy_record_string(criteria.nomvar, in_nomvar, FST_NOMVAR_LEN);
+
+    criteria.ip1 = ip1;
+    criteria.ip2 = ip2;
+    criteria.ip3 = ip3;
+    criteria.datev = datev;
+
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] "
-            "nomvar=[%s]\n", __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+            "nomvar=[%s]\n", __func__, iun, datev, criteria.etiket, ip1, ip2, ip3, criteria.typvar, criteria.nomvar);
 
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -235,88 +239,9 @@ int c_fstinfx_rsf(
     // Initialize search parameters
     fstd_open_files[index_fnom].query.search_index = 0;
     fstd_open_files[index_fnom].query.search_done = 0;
-    stdf_dir_keys *search_criteria  = &fstd_open_files[index_fnom].query.criteria;
-    stdf_dir_keys *search_mask = &fstd_open_files[index_fnom].query.mask;
-
-    // Reset search mask for initialization
-    {
-        uint32_t *pmask = (uint32_t *) search_mask;
-        for (uint32_t i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
-            pmask[i] = -1;
-        }
-    }
-
-    search_mask->pad1 = 0;
-    search_mask->pad2 = 0;
-    search_mask->pad3 = 0;
-    search_mask->dasiz = 0;
-    search_mask->pad5 = 0;
-    search_mask->pad6 = 0;
-    search_mask->pad7 = 0;
-    search_mask->deleted = 0;
-    search_mask->select = 0;
-    search_mask->lng = 0;
-    search_mask->addr = 0;
-    search_mask->deet = 0;
-    search_mask->nbits = 0;
-    search_mask->ni = 0;
-    search_mask->gtyp = 0;
-    search_mask->nj = 0;
-    search_mask->datyp = 0;
-    search_mask->nk = 0;
-    search_mask->ubc = 0;
-    search_mask->npas = 0;
-    search_mask->ig4 = 0;
-    search_mask->ig2a = 0;
-    search_mask->ig1 = 0;
-    search_mask->ig2b = 0;
-    search_mask->ig3 = 0;
-    search_mask->ig2c = 0;
-    search_mask->levtyp = 0;
-
-    search_criteria->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
-    search_mask->date_stamp &= ~(0x7);
-    if (datev == -1) search_mask->date_stamp = 0;
-
-    search_criteria->ip1 = ip1;
-    if ((ip1 == -1) || (ip1s_flag)) search_mask->ip1 = 0;
-
-    search_criteria->ip2 = ip2;
-    if ((ip2 == -1) || (ip2s_flag)) search_mask->ip2 = 0;
-
-    search_criteria->ip3 = ip3;
-    if ((ip3 == -1) || (ip3s_flag)) search_mask->ip3 = 0;
-
-    search_criteria->nomvar = (ascii6(nomvar[0]) << 18) |
-                              (ascii6(nomvar[1]) << 12) |
-                              (ascii6(nomvar[2]) <<  6) |
-                              (ascii6(nomvar[3]));
-    if (search_criteria->nomvar == 0) search_mask->nomvar = 0;
-
-    search_criteria->typvar = (ascii6(typvar[0]) << 6) |
-                              (ascii6(typvar[1]));
-    if (search_criteria->typvar == 0) search_mask->typvar = 0;
-
-    search_criteria->etik15 = (ascii6(etiket[0]) << 24) |
-                              (ascii6(etiket[1]) << 18) |
-                              (ascii6(etiket[2]) << 12) |
-                              (ascii6(etiket[3]) <<  6) |
-                              (ascii6(etiket[4]));
-
-    search_criteria->etik6a = (ascii6(etiket[5]) << 24) |
-                              (ascii6(etiket[6]) << 18) |
-                              (ascii6(etiket[7]) << 12) |
-                              (ascii6(etiket[8]) <<  6) |
-                              (ascii6(etiket[9]));
-
-    search_criteria->etikbc = (ascii6(etiket[10]) <<  6) |
-                              (ascii6(etiket[11]));
-
-    if ((search_criteria->etik15 == 0) && (search_criteria->etik6a == 0)) {
-        search_mask->etik15 = 0;
-        search_mask->etik6a = 0;
-        search_mask->etikbc = 0;
-    }
+    stdf_dir_keys *search_criteria = &fstd_open_files[index_fnom].query.criteria.fst98_meta;
+    stdf_dir_keys *search_mask     = &fstd_open_files[index_fnom].query.mask.fst98_meta;
+    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query.criteria, &fstd_open_files[index_fnom].query.mask);
 
     // Perform the search itself
     int64_t rsf_key = -1;
@@ -509,7 +434,7 @@ int c_fstluk_rsf(
         return ERR_BAD_HNDL;
     }
 
-    fill_with_dir_keys(&rec, (stdf_dir_keys*)record_rsf->meta);
+    fill_with_search_meta(&rec, (search_metadata*)record_rsf->meta, FST_RSF);
 
     *ni = rec.ni;
     *nj = rec.nj;
@@ -712,7 +637,7 @@ int c_fstmsq_rsf(
         return ERR_NO_FILE;
     }
 
-    stdf_dir_keys* search_mask = &fstd_open_files[index_fnom].query.background_mask;
+    stdf_dir_keys* search_mask = &fstd_open_files[index_fnom].query.background_mask.fst98_meta;
 
     if (getmode == 0) {
         search_mask->ip1 = ~(*mip1) & 0xfffffff;

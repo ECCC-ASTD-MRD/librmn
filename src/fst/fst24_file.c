@@ -65,7 +65,9 @@ fst_file* fst24_open(
 
     const int MAX_LENGTH = 1024;
     char local_options[MAX_LENGTH];
-    snprintf(local_options, MAX_LENGTH, "RND+%s", options);
+    snprintf(local_options, MAX_LENGTH, "RND+%s%s",
+             !(strcasestr(options, "R/W") || strcasestr(options, "R/O")) ? "R/O+" : "",
+             options);
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
 
     if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) return NULL;
@@ -490,7 +492,7 @@ int32_t fst24_write_rsf(
     // Allocate new record
     const size_t num_word32 = W64TOWD(num_word64);
     const size_t num_data_bytes = num_word32 * 4;
-    const size_t dir_metadata_size = (sizeof(stdf_dir_keys) + 3) / 4; // In 32-bit units
+    const size_t dir_metadata_size = (sizeof(search_metadata) + 3) / 4; // In 32-bit units
 
     // New json metadata
     char *metastr = NULL;
@@ -531,71 +533,81 @@ int32_t fst24_write_rsf(
     copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
 
     // set stdf_entry to address of buffer->data for building keys
-    stdf_dir_keys* stdf_entry = (stdf_dir_keys *) new_record->meta;
+    search_metadata* meta = (search_metadata *) new_record->meta;
+    stdf_dir_keys* stdf_entry = (stdf_dir_keys *) &meta->fst98_meta;
 
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
-        memcpy((char *)(stdf_entry + 1), metastr, metalen + 1);
+        memcpy((char *)(meta + 1), metastr, metalen + 1);
     }
 
-    stdf_entry->deleted = 0; // Unused by RSF
-    stdf_entry->select = 0;  // Unused by RSF
-    stdf_entry->lng = 0;     // Unused by RSF
-    stdf_entry->addr = 0;    // Unused by RSF
+    // Reserved metadata
+    for (int i = 0; i < RSF_META_RESERVED; i++) {
+        meta->rsf_reserved[i] = 0;
+    }
+    meta->fst24_reserved[0] = FST24_META_RESERVED_0;
 
-    stdf_entry->deet = record->deet;
-    stdf_entry->nbits = nbits;
-    stdf_entry->ni = record->ni;
-    stdf_entry->gtyp = grtyp[0];
-    stdf_entry->nj = record->nj;
-    // propagate missing values flag
-    stdf_entry->datyp = datyp | has_missing;
-    // this value may be changed later in the code to eliminate improper flags
-    stdf_entry->nk = record->nk;
-    stdf_entry->ubc = 0;
-    stdf_entry->npas = record->npas;
-    stdf_entry->pad7 = 0;
-    stdf_entry->ig4 = record->ig4;
-    stdf_entry->ig2a = record->ig2 >> 16;
-    stdf_entry->ig1 = record->ig1;
-    stdf_entry->ig2b = record->ig2 >> 8;
-    stdf_entry->ig3 = record->ig3;
-    stdf_entry->ig2c = record->ig2 & 0xff;
-    stdf_entry->etik15 =
-        (ascii6(etiket[0]) << 24) |
-        (ascii6(etiket[1]) << 18) |
-        (ascii6(etiket[2]) << 12) |
-        (ascii6(etiket[3]) <<  6) |
-        (ascii6(etiket[4]));
-    stdf_entry->pad1 = 0;
-    stdf_entry->etik6a =
-        (ascii6(etiket[5]) << 24) |
-        (ascii6(etiket[6]) << 18) |
-        (ascii6(etiket[7]) << 12) |
-        (ascii6(etiket[8]) <<  6) |
-        (ascii6(etiket[9]));
-    stdf_entry->pad2 = 0;
-    stdf_entry->etikbc =
-        (ascii6(etiket[10]) <<  6) |
-        (ascii6(etiket[11]));
-    stdf_entry->typvar =
-        (ascii6(typvar[0]) <<  6) |
-        (ascii6(typvar[1]));
-    stdf_entry->pad3 = 0;
-    stdf_entry->nomvar =
-        (ascii6(nomvar[0]) << 18) |
-        (ascii6(nomvar[1]) << 12) |
-        (ascii6(nomvar[2]) <<  6) |
-        (ascii6(nomvar[3]));
-    stdf_entry->ip1 = record->ip1;
-    stdf_entry->levtyp = 0;
-    stdf_entry->ip2 = record->ip2;
-    stdf_entry->pad5 = 0;
-    stdf_entry->ip3 = record->ip3;
-    stdf_entry->pad6 = 0;
-    stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
-    stdf_entry->dasiz = elem_size;
+    // fst98 metadata 
+    {
+        stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
+        stdf_entry->select;  // Reserved by RSF. Don't write anything here!
+        stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
+        stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
+
+        stdf_entry->deet = record->deet;
+        stdf_entry->nbits = nbits;
+        stdf_entry->ni = record->ni;
+        stdf_entry->gtyp = grtyp[0];
+        stdf_entry->nj = record->nj;
+        // propagate missing values flag
+        stdf_entry->datyp = datyp | has_missing;
+        // this value may be changed later in the code to eliminate improper flags
+        stdf_entry->nk = record->nk;
+        stdf_entry->ubc = 0;
+        stdf_entry->npas = record->npas;
+        stdf_entry->pad7 = 0;
+        stdf_entry->ig4 = record->ig4;
+        stdf_entry->ig2a = record->ig2 >> 16;
+        stdf_entry->ig1 = record->ig1;
+        stdf_entry->ig2b = record->ig2 >> 8;
+        stdf_entry->ig3 = record->ig3;
+        stdf_entry->ig2c = record->ig2 & 0xff;
+        stdf_entry->etik15 =
+            (ascii6(etiket[0]) << 24) |
+            (ascii6(etiket[1]) << 18) |
+            (ascii6(etiket[2]) << 12) |
+            (ascii6(etiket[3]) <<  6) |
+            (ascii6(etiket[4]));
+        stdf_entry->pad1 = 0;
+        stdf_entry->etik6a =
+            (ascii6(etiket[5]) << 24) |
+            (ascii6(etiket[6]) << 18) |
+            (ascii6(etiket[7]) << 12) |
+            (ascii6(etiket[8]) <<  6) |
+            (ascii6(etiket[9]));
+        stdf_entry->pad2 = 0;
+        stdf_entry->etikbc =
+            (ascii6(etiket[10]) <<  6) |
+            (ascii6(etiket[11]));
+        stdf_entry->typvar =
+            (ascii6(typvar[0]) <<  6) |
+            (ascii6(typvar[1]));
+        stdf_entry->pad3 = 0;
+        stdf_entry->nomvar =
+            (ascii6(nomvar[0]) << 18) |
+            (ascii6(nomvar[1]) << 12) |
+            (ascii6(nomvar[2]) <<  6) |
+            (ascii6(nomvar[3]));
+        stdf_entry->ip1 = record->ip1;
+        stdf_entry->levtyp = 0;
+        stdf_entry->ip2 = record->ip2;
+        stdf_entry->pad5 = 0;
+        stdf_entry->ip3 = record->ip3;
+        stdf_entry->pad6 = 0;
+        stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+        stdf_entry->dasiz = elem_size;
+    }
 
     uint32_t * field = record->data;
     if (image_mode_copy) {
@@ -935,7 +947,7 @@ int32_t get_record_from_key_rsf(
         return ERR_BAD_HNDL;
     }
 
-    fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
+    fill_with_search_meta(record, (search_metadata*)record_info.meta, FST_RSF);
     record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
     record->handle = key;
 
@@ -971,11 +983,12 @@ int32_t fst24_get_record_from_key(
     }
     else if (file->type == FST_XDF) {
         int addr, lng, idtyp;
-        stdf_dir_keys record_meta_xdf;
-        uint32_t* pkeys = (uint32_t *) &record_meta_xdf;
+        search_metadata record_meta;
+        stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
+        uint32_t* pkeys = (uint32_t *) record_meta_xdf;
         pkeys += W64TOWD(1);
         c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
-        fill_with_dir_keys(record, &record_meta_xdf);
+        fill_with_search_meta(record, &record_meta, file->type);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
@@ -1068,7 +1081,7 @@ int32_t fst24_get_record_by_index(
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
-        fill_with_dir_keys(record, (stdf_dir_keys*)record_info.meta);
+        fill_with_search_meta(record, (search_metadata*)record_info.meta, file->type);
         record->handle = RSF_Make_key(file->file_index_backend, index);
         record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
         return TRUE;
@@ -1079,12 +1092,13 @@ int32_t fst24_get_record_by_index(
         const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
 
         int addr, lng, idtyp;
-        stdf_dir_keys record_meta_xdf;
-        uint32_t* pkeys = (uint32_t *) &record_meta_xdf;
+        search_metadata record_meta;
+        stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
+        uint32_t* pkeys = (uint32_t *) record_meta_xdf;
         pkeys += W64TOWD(1);
         c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
 
-        fill_with_dir_keys(record, &record_meta_xdf);
+        fill_with_search_meta(record, &record_meta, file->type);
         record->handle = key;
         return TRUE;
     }
@@ -1509,7 +1523,7 @@ int32_t fst24_read_rsf(
         return ERR_BAD_HNDL;
     }
 
-    fill_with_dir_keys(record_fst, (stdf_dir_keys*)record_rsf->meta);
+    fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF);
 
     // Extract metadata from record if present
     record_fst->metadata = NULL;
@@ -1545,8 +1559,9 @@ int32_t fst24_read_xdf(
 
     if (!c_xdf_handle_in_file(key32)) return ERR_BAD_HNDL;
 
-    stdf_dir_keys stdf_entry;
-    uint32_t * pkeys = (uint32_t *) &stdf_entry;
+    search_metadata meta;
+    stdf_dir_keys* stdf_entry = &meta.fst98_meta;
+    uint32_t * pkeys = (uint32_t *) stdf_entry;
     pkeys += W64TOWD(1);
 
     {
@@ -1557,7 +1572,7 @@ int32_t fst24_read_xdf(
 
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
     if (handle != key32) return ERR_NOT_FOUND;
-    fill_with_dir_keys(record, &stdf_entry);
+    fill_with_search_meta(record, &meta, FST_XDF);
     return handle;
 }
 

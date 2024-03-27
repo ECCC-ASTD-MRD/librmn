@@ -458,7 +458,8 @@ typedef struct {
 typedef struct {
     // Each line is 64 bits long
 #if !defined(Little_Endian)
-    uint32_t deleted:1, select:7, lng:24, addr:32;
+    uint32_t deleted:1, select:7, lng:24;
+    uint32_t addr:32;
     uint32_t deet:24, nbits: 8, ni:   24, gtyp:  8;
     uint32_t nj:24,  datyp: 8, nk:   20, ubc:  12;
     uint32_t npas: 26, pad7: 6, ig4: 24, ig2a:  8;
@@ -468,7 +469,8 @@ typedef struct {
     uint32_t ip1:28, levtyp:4, ip2:28, pad5:4;
     uint32_t ip3:28, pad6:4, date_stamp:32;
 #else
-    uint32_t lng:24, select:7, deleted:1, addr:32;
+    uint32_t lng:24, select:7, deleted:1;
+    uint32_t addr:32;
     uint32_t nbits: 8, deet:24, gtyp:  8, ni:   24;
     uint32_t datyp: 8, nj:24, ubc:  12, nk:   20;
     uint32_t pad7: 6, npas: 26, ig2a:  8, ig4: 24;

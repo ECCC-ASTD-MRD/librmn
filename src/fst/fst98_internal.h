@@ -96,6 +96,7 @@ int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj,
     int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket, char *grtyp, int *ig1, int *ig2, int *ig3,
     int *ig4, int *swa, int *lng, int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
 int c_fstcheck_xdf(const char *filePath);
+int c_fstsui_xdf(int iun, int *ni, int *nj, int *nk);
 int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);

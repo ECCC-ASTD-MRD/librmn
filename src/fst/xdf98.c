@@ -3150,7 +3150,7 @@ static uint32_t next_match(
 
     if (! f->xdf_seq) {
         // Check if there is a valid current page
-        if (f->cur_dir_page == NULL) return (ERR_NO_POS);
+        if (f->cur_dir_page == NULL) return (ERR_NOT_FOUND); // We consider an entry as "not found" if we have already reached the end of the file
         if (f->cur_entry == NULL) return (ERR_NO_POS);
         if (f->cur_entry - (f->cur_dir_page)->dir.entry != f->page_record *W64TOWD(f->primary_len)) {
             return (ERR_NO_POS);

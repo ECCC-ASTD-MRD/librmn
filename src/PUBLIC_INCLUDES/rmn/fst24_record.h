@@ -26,6 +26,19 @@ static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data h
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
 
+typedef enum {
+    FST_NONE = 0,
+    FST_XDF  = 1,
+    FST_RSF  = 2
+} fst_file_type;
+
+static const char* fst_file_type_name[] = {
+    [FST_NONE] = "FST_NONE",
+    [FST_XDF]  = "FST_XDF",
+    [FST_RSF]  = "FST_RSF"
+};
+
+
 // This struct should only be modified by ADDING member at the end (once we're stable)
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
