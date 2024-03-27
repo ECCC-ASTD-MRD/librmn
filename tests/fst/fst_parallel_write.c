@@ -8,7 +8,7 @@
 const char* test_filename = "parallel.fst";
 
 const size_t NUM_ELEM = 1000;
-float* data;
+float* data = NULL;
 
 void gen_data(float* buffer, const int size_x, const int rank, const int record_count) {
     for (int i = 0; i < size_x; i++) {
@@ -68,7 +68,7 @@ int test_parallel_write(const int rank) {
 
     fst_record rec = default_fst_record;
     rec.data = data;
-    rec.datyp = FST_TYPE_REAL;
+    rec.datyp = FST_TYPE_REAL_IEEE;
     rec.dasiz = 32;
     rec.npak = -32;
     rec.ni = NUM_ELEM;
@@ -127,15 +127,17 @@ int test_parallel_write(const int rank) {
             return -1;
         }
 
-        while (fst24_read_next(test_file, &rec)) {
+        fst_record read_rec = default_fst_record;
+        fst_query* query = fst24_new_query(test_file, NULL);
+        while (fst24_read_next(query, &read_rec)) {
             num_read++;
 
-            gen_data(expected_data, NUM_ELEM, rec.ip2, rec.ip3);
-            if (compare_data((float*)rec.data, expected_data, NUM_ELEM * NUM_ELEM) < 0) {
+            gen_data(expected_data, NUM_ELEM, read_rec.ip2, read_rec.ip3);
+            if (compare_data((float*)read_rec.data, expected_data, NUM_ELEM * NUM_ELEM) < 0) {
                 App_Log(APP_ERROR, "Data is not the same!\n");
-                fst24_record_print(&rec);
+                fst24_record_print(&read_rec);
                 print_data(expected_data, NUM_ELEM);
-                print_data((float*)rec.data, NUM_ELEM);
+                print_data((float*)read_rec.data, NUM_ELEM);
                 return -1;
             }
 
@@ -148,19 +150,22 @@ int test_parallel_write(const int rank) {
             return -1;
         }
 
+        fst24_record_free(&read_rec);
+        fst24_query_free(query);
         fst24_close(test_file);
         free(test_file);
         test_file = NULL;
     }
 
-    if (data) free(data);
+    if (data != NULL) free(data);
     return 0;
 }
 
 int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
 
-    int rank, num_processes;
+    int rank = 0;
+    int num_processes = 1;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
 
@@ -171,9 +176,9 @@ int main(int argc, char* argv[]) {
 
     const int status = test_parallel_write(rank);
 
-    int all_status;
+    int all_status = status;
     MPI_Allreduce(&status, &all_status, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
 
     MPI_Finalize();
-    return status;
+    return all_status;
 }

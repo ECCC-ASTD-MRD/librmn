@@ -20,7 +20,7 @@ for RI in I R ; do
                 [[ $L == 4 ]] && KIND='C_FLOAT'
                 [[ $L == 8 ]] && KIND='C_DOUBLE'
                 TYPE_CONDITION='is_type_real(this % datyp) == 1'
-                ACCEPTED_TYPES='FST_TYPE_REAL'
+                ACCEPTED_TYPES='FST_TYPE_REAL, FST_TYPE_REAL_IEEE or FST_TYPE_REAL_OLD_QUANT'
             fi
             [[ $D == 3 ]] && DIMENSION=':,:,:'
             [[ $D == 2 ]] && DIMENSION=':,:'
@@ -44,7 +44,7 @@ for RI in I R ; do
         if (this % nj > 1) num_dims = 2
         if (this % nk > 1) num_dims = 3
 
-        if (${D} < num_dims) then
+        if (${D}>1 .and. ${D} < num_dims) then
             write(app_msg, '(A, I2, A)') 'Record data has ', num_dims, ' dimensions, so your pointer (${D}-D) needs at least that to work'
             call lib_log(APP_LIBFST, APP_ERROR, app_msg)
             return

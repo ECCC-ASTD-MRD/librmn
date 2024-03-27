@@ -15,29 +15,29 @@ module rmn_fst24_record
     public :: fst_record_fields, fst_record_c
     public :: fst24_is_default_record_valid, fst24_make_fields, fst24_make_fields_from_string
 
-    integer(C_INT32_T), parameter, public :: FST_TYPE_BINARY    = 0
-    integer(C_INT32_T), parameter, public :: FST_TYPE_FREAL     = 1
-    integer(C_INT32_T), parameter, public :: FST_TYPE_UNSIGNED  = 2
-    integer(C_INT32_T), parameter, public :: FST_TYPE_FCHAR     = 3
-    integer(C_INT32_T), parameter, public :: FST_TYPE_SIGNED    = 4
-    integer(C_INT32_T), parameter, public :: FST_TYPE_REAL      = 5
-    integer(C_INT32_T), parameter, public :: FST_TYPE_IEEE_16   = 6
-    integer(C_INT32_T), parameter, public :: FST_TYPE_STRING    = 7
-    integer(C_INT32_T), parameter, public :: FST_TYPE_COMPLEX   = 8
+    integer(C_INT32_T), parameter, public :: FST_TYPE_BINARY         = 0
+    integer(C_INT32_T), parameter, public :: FST_TYPE_REAL_OLD_QUANT = 1
+    integer(C_INT32_T), parameter, public :: FST_TYPE_UNSIGNED       = 2
+    integer(C_INT32_T), parameter, public :: FST_TYPE_CHAR           = 3
+    integer(C_INT32_T), parameter, public :: FST_TYPE_SIGNED         = 4
+    integer(C_INT32_T), parameter, public :: FST_TYPE_REAL_IEEE      = 5
+    integer(C_INT32_T), parameter, public :: FST_TYPE_REAL           = 6
+    integer(C_INT32_T), parameter, public :: FST_TYPE_STRING         = 7
+    integer(C_INT32_T), parameter, public :: FST_TYPE_COMPLEX        = 8
 
-    integer(C_INT32_T), parameter, public :: FST_TYPE_TURBOPACK = 128
-    integer(C_INT32_T), parameter, public :: FST_TYPE_MAGIC     = 810
+    integer(C_INT32_T), parameter, public :: FST_TYPE_TURBOPACK      = 128
+    integer(C_INT32_T), parameter, public :: FST_TYPE_MAGIC          = 810
 
-    character(len=18), dimension(0:8), parameter :: FST_TYPE_NAMES = [      &
-        'FST_TYPE_BINARY  ',    &
-        'FST_TYPE_FREAL   ',    &
-        'FST_TYPE_UNSIGNED',    &
-        'FST_TYPE_FCHAR   ',    &
-        'FST_TYPE_SIGNED  ',    &
-        'FST_TYPE_REAL    ',    &
-        'FST_TYPE_IEEE_16 ',    &
-        'FST_TYPE_STRING  ',    &
-        'FST_TYPE_COMPLEX ']
+    character(len=23), dimension(0:8), parameter :: FST_TYPE_NAMES = [      &
+        'FST_TYPE_BINARY        ',    &
+        'FST_TYPE_REAL_OLD_QUANT',    &
+        'FST_TYPE_UNSIGNED      ',    &
+        'FST_TYPE_CHAR          ',    &
+        'FST_TYPE_SIGNED        ',    &
+        'FST_TYPE_REAL_IEEE     ',    &
+        'FST_TYPE_REAL          ',    &
+        'FST_TYPE_STRING        ',    &
+        'FST_TYPE_COMPLEX       ']
 
     !> Representation of an FST record. It allows to get and set basic information about the record and its data,
     !> and to easily read, write, search a file

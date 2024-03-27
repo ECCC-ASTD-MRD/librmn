@@ -28,7 +28,7 @@ contains
         end if
 
         if (error) then
-            write(app_msg, '(A, 1X, A, I12, A, 3I3)') fail_message, 'Got status = ', status, ', but expected ', expected_range
+            write(app_msg, '(A, 1X, A, I12, A, 3I12)') fail_message, 'Got status = ', status, ', but expected ', expected_range
             call App_Log(APP_ERROR, app_msg)
             error stop 1
         end if

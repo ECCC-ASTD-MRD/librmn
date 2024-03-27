@@ -2107,7 +2107,7 @@ int c_xdfput(
     file_table_entry *fte = file_table[index_from_iun];
     if ((fte->header->rwflg == RDMODE) || (FGFDT[index_fnom].attr.read_only)) {
         // Read only mode
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: ile is open in read only mode or no write permission\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is open in read only mode or no write permission\n",__func__);
         return(ERR_NO_WRITE);
     }
 
@@ -3108,10 +3108,11 @@ static uint32_t next_match(
 
     if (! fte->xdf_seq) {
         // Check if there is a valid current page
-        if (fte->cur_dir_page == NULL) return (ERR_NO_POS);
+        // We consider an entry as "not found" if we have already reached the end of the file
+        if (fte->cur_dir_page == NULL) return (ERR_NOT_FOUND);
         if (fte->cur_entry == NULL) return (ERR_NO_POS);
         if (fte->cur_entry - (fte->cur_dir_page)->dir.entry != fte->page_record *W64TOWD(fte->primary_len)) {
-            return (ERR_NO_POS);
+            return ERR_NO_POS;
         }
 
         fte->page_nrecords = (fte->cur_dir_page)->dir.nent;

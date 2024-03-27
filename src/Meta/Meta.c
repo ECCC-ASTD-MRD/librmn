@@ -38,6 +38,7 @@ static char *MetaVersion=NULL;       ///< Metadata version
 static char  MetaValidate=FALSE;     ///< Enable token validation
 static char  MetaRegExp=FALSE;       ///< Force regexp matching in json metadata comparisons
 static char *MetaPaths[2];           ///< Profile definition path
+static char *MetaQualifiers=NULL;    ///< Force adding of env defined qualifiers
 
 static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","month","year","decade","centenary","millenia" };
 
@@ -2064,7 +2065,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    }
 
    //  NI,NJ,NK,NPACK,DATYP,DASIZ 
-   //Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
 
    // TODO: define datyp
    Rec->npak=-Rec->npak;
@@ -2130,7 +2131,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
    }
 
    if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
-      rec->npak  = 1;
+      rec->npak  = -1; // 1 bit
       rec->dateo = 0;
       rec->deet  = 0;
       rec->npas  = 0;
@@ -2186,14 +2187,17 @@ int Meta_ReadFile(fst_file *file,json_object **Obj) {
    strcpy(rec.nomvar, "META");
    strcpy(rec.etiket, "FILE_JSON   ");
  
-   fst24_set_search_criteria(file,&rec);
-   if (fst24_find_next(file,&rec)) {
+   fst_query* query = fst24_new_query(file, &rec);
+   if (fst24_find_next(query,&rec)) {
       fst24_read_metadata(&rec);
       *Obj=rec.metadata;
    } else {
       Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to find file metadata record\n",__func__);
+      fst24_query_free(query);
       return(FALSE);
    }
+
+   fst24_query_free(query);
    return(TRUE);
 }
 

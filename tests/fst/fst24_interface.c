@@ -62,7 +62,7 @@ void make_test_record() {
     test_record.ig2   = 0;
     test_record.ig3   = 0;
     test_record.ig4   = 0;
-    test_record.datyp = FST_TYPE_REAL;
+    test_record.datyp = FST_TYPE_REAL_IEEE;
     test_record.dasiz = 32;
     test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
 }
@@ -101,7 +101,7 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
             return -1;
         }
 
-        if (fst24_checkpoint(new_file) < 0) {
+        if (fst24_flush(new_file) < 0) {
             App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
             return -1;
         }
@@ -186,15 +186,15 @@ int test_fst24_interface(const int is_rsf) {
     fields.grid_info = TRUE;
     fst24_print_summary(test_file, &fields);
 
-    fst_record record;
+    fst_record record = default_fst_record;
     fst_record expected = test_record;
 
     ///////////////////////////////////////////////
     // Find next + read
     int num_found = 0;
-    fst24_set_search_criteria(test_file, &default_fst_record);
+    fst_query* query = fst24_new_query(test_file, NULL);
     int64_t keys[3];
-    while (fst24_find_next(test_file, &record)) {
+    while (fst24_find_next(query, &record)) {
         // fst24_record_print(&record);
         keys[num_found] = record.handle;
         num_found++;
@@ -242,10 +242,10 @@ int test_fst24_interface(const int is_rsf) {
 
     ////////////////////////////////////////////////////////////
     // Read next
-    fst24_set_search_criteria(test_file, &default_fst_record); // Rewind search
+    fst24_rewind_search(query);
     num_found = 0;
     App_Log(APP_INFO, "Reading again, with read_next\n");
-    while (fst24_read_next(test_file, &record) > 0) {
+    while (fst24_read_next(query, &record) > 0) {
         num_found++;
 
         expected.ip1 = num_found;
@@ -268,7 +268,7 @@ int test_fst24_interface(const int is_rsf) {
     // Find all
     App_Log(APP_INFO, "Testing find_all\n");
     fst_record all_records[5];
-    num_found = fst24_find_all(test_file, all_records, 1);
+    num_found = fst24_find_all(query, all_records, 1);
 
     if (num_found != 1) {
         App_Log(APP_ERROR, "Find all with a max of 1 actually found %d record(s)\n", num_found);
@@ -283,7 +283,7 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    num_found = fst24_find_all(test_file, all_records, 5);
+    num_found = fst24_find_all(query, all_records, 5);
 
     if (num_found != 3) {
         App_Log(APP_ERROR, "Find all with a max of 5 actually found %d record(s)\n", num_found);
@@ -348,15 +348,16 @@ int test_fst24_interface(const int is_rsf) {
 
     {
         fst_record criteria = default_fst_record;
-        fst_record result;
+        fst_record result = default_fst_record;
         fst_record results[10];
 
         // Should find the 3 records in the second file only
         criteria.ip2 = test_record.ip2 + 1;
-        fst24_set_search_criteria(test_file, &criteria);
+        fst24_query_free(query);
+        query = fst24_new_query(test_file, &criteria);
         num_found = 0;
         App_Log(APP_INFO, "Looking for 3 records (should be in second file)\n");
-        while (fst24_find_next(test_file, &result)) {
+        while (fst24_find_next(query, &result)) {
             num_found++;
 
             expected.ip1 = num_found;
@@ -375,18 +376,19 @@ int test_fst24_interface(const int is_rsf) {
             return -1;
         }
 
-        if (fst24_find_all(test_file, results, 10) != 3) {
+        if (fst24_find_all(query, results, 10) != 3) {
             App_Log(APP_ERROR, "Find all should have found 3\n");
             return -1;
         }
 
         // Should find the 6 records in second + third file
+        fst24_query_free(query);
         criteria = default_fst_record;
         criteria.ip3 = test_record.ip3 + 1;
-        fst24_set_search_criteria(test_file, &criteria);
+        query = fst24_new_query(test_file, &criteria);
         num_found = 0;
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
-        while (fst24_find_next(test_file, &result)) {
+        while (fst24_find_next(query, &result)) {
             num_found++;
             if (fst24_read(&result) <= 0) {
                 App_Log(APP_ERROR, "Unable to read record from linked files\n");
@@ -401,21 +403,24 @@ int test_fst24_interface(const int is_rsf) {
         }
 
         App_Log(APP_INFO, "Find all (should be 6)\n");
-        if (fst24_find_all(test_file, results, 10) != 6) {
+        if (fst24_find_all(query, results, 10) != 6) {
             App_Log(APP_ERROR, "Find all should have found 6\n");
             return -1;
         }
 
         App_Log(APP_INFO, "Read all, one by one\n");
-        fst24_set_search_criteria(test_file, &default_fst_record); // Reset search
+        fst24_query_free(query);
+        query = fst24_new_query(test_file, &default_fst_record); // Reset search
         num_found = 0;
-        while (fst24_read_next(test_file, &record) > 0) {
+        while (fst24_read_next(query, &record) > 0) {
             num_found++;
         }
         if (num_found != 9) {
             App_Log(APP_ERROR, "Read next should have read 9\n");
             return -1;
         }
+
+        fst24_record_free(&result);
     }
 
     if (!fst24_unlink(test_file)) {
@@ -444,17 +449,17 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_find_next(test_file, &record)) {
+    if (fst24_find_next(query, &record)) {
         App_Log(APP_ERROR, "Should not be able to search a closed file\n");
         return -1;
     }
 
-    if (fst24_read_next(test_file, &record) > 0) {
+    if (fst24_read_next(query, &record) > 0) {
         App_Log(APP_ERROR, "Should not be able to search a closed file\n");
         return -1;
     }
 
-    if (fst24_set_search_criteria(test_file, &record)) {
+    if (fst24_new_query(test_file, &record) != NULL) {
         App_Log(APP_ERROR, "Should not be able to set search criteria on a closed file\n");
         return -1;
     }
@@ -469,7 +474,12 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    free(test_file);
+    free(test_file); test_file = NULL;
+    free(file_list[1]); file_list[1] = NULL;
+    free(file_list[2]); file_list[2] = NULL;
+
+    fst24_record_free(&record);
+    fst24_query_free(query);
 
     return 0;
 }

@@ -3,17 +3,21 @@
 #define FST_TEST_IS_RSF .true.
 #endif
 
-program fst_interface
+module test_fst98_interface_module
     use app
     use iso_c_binding
+    use rmn_fst98
     use rmn_test_helper
-    use rmn_fstd98
     implicit none
 
     integer, external :: fnom
+contains
+
+subroutine test_fst98_interface(is_rsf)
+    implicit none
+    logical, intent(in) :: is_rsf
 
     integer :: status, i, j
-    logical :: is_rsf
     character(len=*), parameter :: test_file_name = 'fst_interface.fst'
     character(len=*), parameter :: test_file_name_2 = 'fst_interface_2.fst'
     character(len=2000) :: cmd
@@ -22,7 +26,6 @@ program fst_interface
     integer, dimension(NUM_DATA, 3) :: data_array
     integer, dimension(NUM_DATA)    :: work_array
 
-    integer, parameter :: UNIT_NUMBER = 11
     integer, parameter :: DATE = 0, TIMESTEP_SIZE = 0, TIMESTEP_NUM = 0
     integer, parameter :: DATATYPE = 4 ! 4 = integer
     integer, parameter :: REWRITE = 0
@@ -30,10 +33,13 @@ program fst_interface
     integer :: old_num_records, new_num_records, expected_num_records, num_records
     integer :: record_key
     integer :: expected
+    integer :: iun
 
-    type(fstd98) :: test_file
-
-    is_rsf = FST_TEST_IS_RSF
+    if (is_rsf) then
+        call App_Log(APP_INFO, 'Testing RSF')
+    else
+        call App_Log(APP_INFO, 'Testing XDF')
+    end if
 
     ! Remove file(s) so that we have a fresh start
     write(cmd, '(A, 2(1X, A))') 'rm -fv ', test_file_name, test_file_name_2
@@ -47,10 +53,11 @@ program fst_interface
     end do
 
     ! --- fstouv ---
+    iun = 0
     if (is_rsf) then
-        status = test_file % ouv(test_file_name, 'STD+RND+RSF')
+        status = fstouv(test_file_name, iun, 'STD+RND+RSF')
     else
-        status = test_file % ouv(test_file_name, 'STD+RND')
+        status = fstouv(test_file_name, iun, 'STD+RND+XDF')
     end if
     call check_status(status, expected_min = 0, fail_message = 'ouv')
 
@@ -60,7 +67,7 @@ program fst_interface
     ! --- fstecr ---
     do j = 1, 2
         do i = 1, 3
-            status = test_file % ecr(data_array(:, i), work_array, -32, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
+            status = fstecr_fn(data_array(:, i), work_array, -32, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
                                     NUM_DATA, 1, 1,                                                            &
                                     i, j, 0,                                                                   &
                                     'XX', 'YYYY', 'ETIKET', 'X',                                               &
@@ -71,15 +78,15 @@ program fst_interface
     end do
 
     ! ----- fstnbr -----
-    num_records = test_file % nbr()
+    num_records = fstnbr(iun)
     call check_status(num_records, expected = old_num_records, fail_message = 'nbr')
 
     ! ----- fstnbrv -----
-    num_records = test_file % nbrv()
+    num_records = fstnbrv(iun)
     call check_status(num_records, expected = new_num_records, fail_message = 'nbrv')
 
     ! ----- fstfrm -----
-    status = test_file % frm()
+    status = fstfrm(iun)
     call check_status(status,expected = 0, fail_message = 'frm')
 
     ! Copy file to have multiple ones to link together
@@ -87,23 +94,24 @@ program fst_interface
     call execute_command_line(trim(cmd))
 
     ! ----- fstouv -----
-    status = test_file % ouv(test_file_name, 'STD+RND')
+    iun = 0
+    status = fstouv(test_file_name, iun, 'STD+RND')
     call check_status(status, expected = new_num_records, fail_message = 'ouv (second one)')
 
     ! ----- fstnbr -----
-    num_records = test_file % nbr()
+    num_records = fstnbr(iun)
     call check_status(num_records, expected = new_num_records, fail_message = 'nbr (second one)')
 
     ! ----- fstlir ----- (includes fstinf and fstluk)
     ! Not found
     block
         integer :: ni, nj, nk
-        record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
+        record_key = fstlir(work_array, iun, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
         call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
 
         ! Found
         work_array(:) = 0
-        record_key = test_file % lir(work_array, ni, nj, nk, -1, ' ', 2, -1, -1, ' ', ' ')
+        record_key = fstlir(work_array, iun, ni, nj, nk, -1, ' ', 2, -1, -1, ' ', ' ')
         call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
         if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
             write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
@@ -168,7 +176,7 @@ program fst_interface
         integer :: ip1, ip2, ip3
         character(len=20) :: etiket
         etiket(1:20) = 'abcdefghijklmnopqrst'
-        status = test_file % msq(ip1, ip2, ip3, etiket, 1)
+        status = fstmsq(iun, ip1, ip2, ip3, etiket, 1)
         ! status = fstmsq(test_file % iun, ip1, ip2, ip3, etiket, 1)
         call check_status(status, expected = 0, fail_message = 'msq (status)')
         ! write(app_msg, '(A, 3I11)') 'Got IPs ', ip1, ip2, ip3
@@ -189,7 +197,7 @@ program fst_interface
     block
         integer :: ni, nj, nk
         work_array(:) = 0
-        record_key = test_file % lis(work_array, ni, nj, nk)
+        record_key = fstlis(work_array, iun, ni, nj, nk)
         call check_status(record_key, expected_min = 1, fail_message = 'lis')
         if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
             write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
@@ -206,7 +214,7 @@ program fst_interface
         integer, dimension(new_num_records) :: record_keys
         integer :: num_record_found
         integer :: ni, nj, nk
-        status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+        status = fstinl(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
                                  record_keys, num_record_found, new_num_records)
         call check_status(status, expected = 0, fail_message = 'fstinl status')
         call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count')
@@ -214,17 +222,14 @@ program fst_interface
 
     ! ----- fstlnk -----
     block
-        type(fstd98) :: test_file_2
         integer(C_INT32_T), dimension(2) :: unit_list
         integer, dimension(new_num_records * 2) :: record_keys
         integer :: num_record_found
         integer :: ni, nj, nk
 
-        status = test_file_2 % ouv(test_file_name_2, 'STD+RND')
+        unit_list(1) = iun
+        status = fstouv(test_file_name_2, unit_list(2), 'STD+RND')
         call check_status(status, expected = new_num_records, fail_message = 'ouv (second file)')
-
-        unit_list(1) = test_file % iun
-        unit_list(2) = test_file_2 % iun
 
         status = fstlnk(unit_list, 2)
         call check_status(status, expected = 0, fail_message = 'fstlnk')
@@ -232,7 +237,7 @@ program fst_interface
         ! num_records = test_file % nbr()
         ! call check_status(num_records, expected = new_num_records * 2, fail_message = 'nbr (linked)')
 
-        status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+        status = fstinl(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
                                  record_keys, num_record_found, new_num_records * 2)
         call check_status(status, expected = 0, fail_message = 'fstinl status (linked)')
         call check_status(num_record_found, expected = new_num_records * 2, fail_message = 'fstinl count (linked)')
@@ -240,12 +245,12 @@ program fst_interface
         status = fstunl()
         call check_status(status, expected = 0, fail_message = 'fstunl')
 
-        status = test_file % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+        status = fstinl(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
                                  record_keys, num_record_found, new_num_records * 2)
         call check_status(status, expected = 0, fail_message = 'fstinl status (unlinked)')
         call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count (unlinked)')
 
-        status = test_file_2 % inl(ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+        status = fstinl(unit_list(2), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
                                    record_keys, num_record_found, new_num_records * 2)
         call check_status(status, expected = 0, fail_message = 'fstinl status (unlinked, file 2)')
         call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count (unlinked, file 2)')
@@ -253,23 +258,36 @@ program fst_interface
     end block
 
     ! ----- fstvoi -----
-    status = test_file % voi(' ')
+    status = fstvoi(iun, ' ')
     call check_status(status, expected = 0, fail_message = 'fstvoi')
 
     ! ----- fsteff -----
     ! Better put this test (second-to-)last, because after it the state will be different depending on type of
     ! standard file (RSF or XDF)
-    status = test_file % eff(record_key)
-    if (test_file % is_rsf()) then
+    status = fsteff(record_key)
+    if (is_rsf) then
         call check_status(status, expected_max = -1, fail_message = 'eff')
     else
         call check_status(status, expected = 0, fail_message = 'eff')
     end if
 
     ! ----- fstfrm -----
-    status = test_file % frm()
+    status = fstfrm(iun)
     call check_status(status,expected = 0, fail_message = 'frm (second one)')
 
     call App_Log(APP_INFO, 'done')
+
+end subroutine test_fst98_interface
+
+end module test_fst98_interface_module
+
+program fst_interface
+    use test_fst98_interface_module
+    implicit none
+
+    call test_fst98_interface(.false.)
+    call test_fst98_interface(.true.)
+
+    call App_Log(APP_INFO, 'Test successful')
 
 end program fst_interface

@@ -9,6 +9,7 @@
 #include "compresseur/armn_compress_32.h"
 #include "compresseur/c_zfstlib.h"
 #include "convip.h"
+#include "fst_internal.h"
 #include "qstdir.h"
 #include "packers/packers.h"
 #include "primitives/primitives.h"
@@ -24,13 +25,10 @@
         return(ERR_OUT_RANGE);\
     }
 
-static inline int32_t base_fst_type(const int32_t type_flag) {
-    return type_flag & 0x2f;
-}
 static inline int32_t is_type_real(const int32_t type_flag) {
-    return ((base_fst_type(type_flag) == FST_TYPE_REAL) ||
-            (base_fst_type(type_flag) == FST_TYPE_FREAL) ||
-            (base_fst_type(type_flag) == FST_TYPE_IEEE_16));
+    return ((base_fst_type(type_flag) == FST_TYPE_REAL_IEEE) ||
+            (base_fst_type(type_flag) == FST_TYPE_REAL_OLD_QUANT) ||
+            (base_fst_type(type_flag) == FST_TYPE_REAL));
 }
 static inline int32_t is_type_complex(const int32_t type_flag) {
     return (base_fst_type(type_flag) == FST_TYPE_COMPLEX);
@@ -59,14 +57,8 @@ static inline void swap_words(void* array, const int32_t num_elem64) {
 }
 
 typedef struct {
-    stdf_dir_keys search_criteria;
-    stdf_dir_keys search_mask;
-    stdf_dir_keys background_search_mask;
-    int64_t search_start_key;
-    int32_t num_criteria;
+    fst_query query;
     int32_t next_file;
-    void *search_meta;
-    int32_t search_done; //!< Whether we are done searching the whole file (with a certain criteria)
 } fstd_usage_info;
 
 extern int remap_table[2][10];
@@ -92,7 +84,6 @@ void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const 
                      const int header);
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
 int32_t c_fstunl(void);
-int c_fstouv_2(int iun, char *options, const int32_t parallel_segment_size_mb);
 int c_fstnbr_xdf(const int iun);
 int c_fstecr_xdf(void *field_in, void *work, int npak, int iun, int date, int deet, int npas, int ni,
     int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
@@ -102,13 +93,14 @@ int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj,
     int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket, char *grtyp, int *ig1, int *ig2, int *ig3,
     int *ig4, int *swa, int *lng, int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
 int c_fstcheck_xdf(const char *filePath);
+int c_fstsui_xdf(int iun, int *ni, int *nj, int *nk);
 int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
-int64_t find_next_record(RSF_handle file_handle, fstd_usage_info* search_params);
+int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const search_params);
 int c_fstecr_rsf(void *field_in, void *work, int npak, int iun, int index_fnom, int date, int deet, int npas, int ni,
                  int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
                  char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
@@ -119,7 +111,7 @@ int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * c
 int c_fstlirx_rsf(void *field, int handle, int iun, const int index_fnom, int *ni, int *nj, int *nk, int datev,
                   char *etiket, int ip1, int ip2, int ip3, char *typvar, char *nomvar);
 int c_fstnbr_rsf(const int index_fnom);
-int c_fstouv_rsf(const int index_fnom, const int mode, char appl[5], const int32_t parallel_segment_size_mb);
+int c_fstouv_rsf(const int index_fnom, const int mode, const int32_t parallel_segment_size_mb);
 int c_fstluk_rsf(void * const vfield, const RSF_handle file_handle,
                  const int key, int * const ni, int * const nj, int * const nk);
 int c_fsteff_rsf(RSF_handle file_handle, int handle);

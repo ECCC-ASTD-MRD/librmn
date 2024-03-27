@@ -16,10 +16,11 @@ module generate_fstd_mod
 
 contains
 
-subroutine generate_file(filename, is_rsf)
+subroutine generate_file(filename, is_rsf, ip3_offset)
     implicit none
     character(len = *), intent(in) :: filename
     logical,            intent(in) :: is_rsf
+    integer, optional,  intent(in) :: ip3_offset
 
     character(len=4000) :: cmd
     character(len=3) :: filetype
@@ -27,6 +28,10 @@ subroutine generate_file(filename, is_rsf)
     type(fst_file) :: the_file
     type(fst_record) :: record
     logical :: success
+
+    integer :: ip3
+    ip3 = 0
+    if (present(ip3_offset)) ip3 = ip3_offset
 
     ! Remove file so that we have a fresh start
     write(cmd, '(A, 2(1X, A))') 'rm -fv ', filename
@@ -66,7 +71,7 @@ subroutine generate_file(filename, is_rsf)
     record % nk  = 1
     record % ip1 = 1
     record % ip2 = 1
-    record % ip3 = 0
+    record % ip3 = ip3
     record % typvar = 'XX'
     record % nomvar = 'YYYY'
     record % grtyp  = 'X'
@@ -79,12 +84,14 @@ subroutine generate_file(filename, is_rsf)
     record % npak  = -32
     record % dasiz = 32
     record % datyp = FST_TYPE_SIGNED
+    record % nomvar = 'A'
     record % etiket = 'INT32'
     success = the_file % write(record)
 
     record % data = c_loc(array_real32)
     record % ip1 = 2
-    record % datyp = FST_TYPE_REAL
+    record % datyp = FST_TYPE_REAL_IEEE
+    record % nomvar = 'B'
     record % etiket = 'REAL32'
     success = the_file % write(record)
 
@@ -92,6 +99,7 @@ subroutine generate_file(filename, is_rsf)
     record % ip1 = 1
     record % ip2 = 2
     record % datyp = FST_TYPE_UNSIGNED
+    record % nomvar = 'C'
     record % etiket = 'UINT32'
     success = the_file % write(record)
 
@@ -99,8 +107,9 @@ subroutine generate_file(filename, is_rsf)
     record % dasiz = 64
     record % ip1 = 3
     record % ip2 = 1
+    record % nomvar = 'D'
     record % etiket = 'REAL64'
-    record % datyp = FST_TYPE_REAL
+    record % datyp = FST_TYPE_REAL_IEEE
     success = the_file % write(record)
 
     record % data = c_loc(array_uint16)
@@ -108,6 +117,7 @@ subroutine generate_file(filename, is_rsf)
     record % dasiz = 16
     record % ip1 = 1
     record % ip2 = 3
+    record % nomvar = 'E'
     record % etiket = 'UINT16'
     record % datyp = FST_TYPE_UNSIGNED
     success = the_file % write(record)
@@ -116,6 +126,7 @@ subroutine generate_file(filename, is_rsf)
     record % ip1 = 1
     record % ip2 = 4
     record % datyp = FST_TYPE_SIGNED
+    record % nomvar = 'F'
     record % etiket = 'INT16'
     success = the_file % write(record)
 
@@ -125,6 +136,7 @@ subroutine generate_file(filename, is_rsf)
     record % datyp = FST_TYPE_SIGNED
     record % ip1 = 1
     record % ip2 = 5
+    record % nomvar = 'G'
     record % etiket = 'INT8'
     success = the_file % write(record)
 
@@ -132,6 +144,7 @@ subroutine generate_file(filename, is_rsf)
     record % datyp = FST_TYPE_UNSIGNED
     record % ip1 = 1
     record % ip2 = 6
+    record % nomvar = 'H'
     record % etiket = 'UINT8'
     success = the_file % write(record)
 

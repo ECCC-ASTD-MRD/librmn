@@ -21,14 +21,11 @@ module rmn_fst24
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
 
-        procedure, pass :: set_search_criteria => fst24_file_set_search_criteria !< \copydoc fst24_file_set_search_criteria
-        procedure, pass :: find_next => fst24_file_find_next    !< \copydoc fst24_file_find_next
-        procedure, pass :: find_all  => fst24_file_find_all     !< \copydoc fst24_file_find_all
-        procedure, pass :: read_next => fst24_file_read_next    !< \copydoc fst24_file_read_next
+        procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
-        procedure, pass :: checkpoint => fst24_file_checkpoint !< \copydoc fst24_file_checkpoint
+        procedure, pass :: flush => fst24_file_flush !< \copydoc fst24_file_flush
         procedure, pass :: print_summary => fst24_file_print_summary !< \copydoc fst24_file_print_summary
         procedure, pass :: unlink => fst24_file_unlink  !< \copydoc fst24_file_unlink  
 
@@ -37,6 +34,18 @@ module rmn_fst24
         procedure, pass :: weo    => fst24_file_weo !< \copydoc fst24_file_weo
         procedure, pass :: rewind => fst24_file_rwd !< \copydoc fst24_file_rwd
     end type fst_file
+
+    type :: fst_query
+        private
+        type(C_PTR) :: query_ptr = c_null_ptr ! Pointer to C fst_query structure
+    contains
+        procedure, pass :: is_valid  => fst_query_is_valid     !< \copydoc fst_query_is_valid
+        procedure, pass :: find_next => fst_query_find_next    !< \copydoc fst_query_find_next
+        procedure, pass :: find_all  => fst_query_find_all     !< \copydoc fst_query_find_all
+        procedure, pass :: read_next => fst_query_read_next    !< \copydoc fst_query_read_next
+        procedure, pass :: rewind    => fst_query_rewind       !< \copydoc fst_query_rewind
+        procedure, pass :: free      => fst_query_free         !< \copydoc fst_query_free
+    end type fst_query
 
     interface
         subroutine libc_free(ptr) BIND(C, name='free')
@@ -92,8 +101,9 @@ contains
             return
         end if
 
-        c_options=options
-        if (.not. present(options)) then
+        if (present(options)) then
+            c_options = options // achar(0)
+        else
             c_options = 'RND+RSF+R/O' // achar(0)    ! Open a read-only RSF file by default
         end if
         this % file_ptr = fst24_open(trim(filename)//achar(0), c_options)
@@ -135,11 +145,11 @@ contains
         status = fst24_get_unit(this % file_ptr)
     end function fst24_file_get_unit
 
-    !> \copybrief fst24_set_search_criteria
-    !> \return .true. if we were able to set the criteria, .false. if file was not open (or other error)
-    function fst24_file_set_search_criteria(this,                                                                   &
+    !> \copybrief fst24_new_query
+    !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
+    function fst24_file_new_query(this,                                                                             & 
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
-            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(success)
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
         integer(C_INT64_T), intent(in), optional :: dateo, datev
@@ -150,12 +160,9 @@ contains
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
         type(meta), intent(in), optional :: metadata
-        logical :: success
+        type(fst_query) :: query
 
         type(fst_record_c), target :: criteria
-        integer(C_INT32_T) :: c_status
-
-        success = .false.
 
         if (present(dateo)) criteria % dateo = dateo
         if (present(datev)) criteria % datev = datev
@@ -174,23 +181,21 @@ contains
         if (present(ig2)) criteria % ig2 = ig2
         if (present(ig3)) criteria % ig3 = ig3
         if (present(ig4)) criteria % ig4 = ig4
-        if (present(typvar)) call strncpy_f2c(typvar, criteria % typvar, 2)
-        if (present(grtyp)) call strncpy_f2c(grtyp, criteria % grtyp, 1)
-        if (present(nomvar)) call strncpy_f2c(nomvar, criteria % nomvar, 4)
-        if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 12)
+        if (present(typvar)) call strncpy_f2c(typvar, criteria % typvar, 3)
+        if (present(grtyp)) call strncpy_f2c(grtyp, criteria % grtyp, 2)
+        if (present(nomvar)) call strncpy_f2c(nomvar, criteria % nomvar, 5)
+        if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 13)
         if (present(metadata)) criteria % metadata = metadata % json_obj
 
-        c_status = fst24_set_search_criteria(this % file_ptr, c_loc(criteria))
+        query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria))
 
-        if (c_status > 0) success = .true.
-
-    end function fst24_file_set_search_criteria
+    end function fst24_file_new_query
 
     !> \copybrief fst24_find_next
     !> \return .true. if we found a record, .false. if not or if error
-    function fst24_file_find_next(this, record) result(found)
+    function fst_query_find_next(this, record) result(found)
         implicit none
-        class(fst_file), intent(in) :: this                 !< File we are searching
+        class(fst_query), intent(in) :: this                !< Query we are using for the search
         type(fst_record), intent(inout), optional :: record !< Information of the record found. Left unchanged if nothing found
         type(C_PTR) :: c_record
         logical :: found
@@ -202,21 +207,21 @@ contains
             c_record = record % get_c_ptr()
         end if
 
-       found = .false.
-        c_result = fst24_find_next(this % file_ptr, c_record)
+        found = .false.
+        c_result = fst24_find_next(this % query_ptr, c_record)
 
         if (c_result > 0) then
             call record % from_c_self()
             ! call record % print()
             found = .true.
         end if
-    end function fst24_file_find_next
+    end function fst_query_find_next
 
     !> \copybrief fst24_find_all
     !> \return Number of records found, up to size(records)
-    function fst24_file_find_all(this, records) result(num_found)
+    function fst_query_find_all(this, records) result(num_found)
         implicit none
-        class(fst_file), intent(in) :: this     !< File we are searching. Must be open
+        class(fst_query), intent(inout) :: this     !< Query used for the search
         !> [in,out] Array where the records found will be put.
         !> We stop searching after we found enough records to fill it.
         type(fst_record), dimension(:), intent(inout) :: records
@@ -227,34 +232,33 @@ contains
 
         num_found = 0
 
-        c_status = fst24_rewind_search(this % file_ptr)
-        if (c_status /= 1) return
+        call this % rewind()
 
         max_num_records = size(records)
         do i = 1, max_num_records
             if (.not. this % find_next(records(i))) return
             num_found = num_found + 1
         end do
-    end function fst24_file_find_all
+    end function fst_query_find_all
 
     !> \copybrief fst24_read_next
     !> \return .true. if we read a record, .false. if none found or if error
-    function fst24_file_read_next(this, record) result(found)
+    function fst_query_read_next(this, record) result(found)
         implicit none
-        class(fst_file), intent(in) :: this         !< File to search
+        class(fst_query), intent(in)    :: this     !< Query used for the search
         type(fst_record), intent(inout) :: record   !< Record that was read (left unchanged if nothing was found)
         logical :: found
 
         integer(C_INT32_T) :: c_result
 
         found = .false.
-        c_result = fst24_read_next(this % file_ptr, record % get_c_ptr())
+        c_result = fst24_read_next(this % query_ptr, record % get_c_ptr())
 
         if (c_result > 0) then
             call record % from_c_self()
             found = .true.
         end if
-    end function fst24_file_read_next
+    end function fst_query_read_next
 
     !> \copybrief fst24_write
     !> \return Whether the write was successful
@@ -280,9 +284,9 @@ contains
         if (c_status > 0) success = .true.
     end function fst24_file_write
 
-    !> \copybrief fst24_checkpoint
+    !> \copybrief fst24_flush
     !> \return Whether the underlying call was successful
-    function fst24_file_checkpoint(this) result(success)
+    function fst24_file_flush(this) result(success)
         implicit none
         class(fst_file), intent(inout) :: this
         logical :: success
@@ -290,9 +294,9 @@ contains
         integer(C_INT32_T) :: c_status
 
         success = .false.
-        c_status = fst24_checkpoint(this % file_ptr)
+        c_status = fst24_flush(this % file_ptr)
         if (c_status >= 0) success = .true.
-    end function fst24_file_checkpoint
+    end function fst24_file_flush
 
     !> \copybrief fst24_print_summary
     !> All optional parameters are booleans determining whether we print the corresponding field.
@@ -390,4 +394,34 @@ contains
 
         status = c_fstrwd(fst24_get_unit(this % file_ptr))
     end function fst24_file_rwd
+
+    pure function fst_query_is_valid(this) result(is_valid)
+        implicit none
+        class(fst_query), intent(in) :: this
+        logical :: is_valid
+        integer(C_INT32_T) :: is_valid_c
+        is_valid = .false.
+        if (c_associated(this % query_ptr)) then
+            is_valid_c = fst24_query_is_valid(this % query_ptr)
+            if (is_valid_c == 1) is_valid = .true.
+        end if
+    end function fst_query_is_valid
+
+    !> \copydoc fst24_rewind_search
+    subroutine fst_query_rewind(this)
+        implicit none
+        class(fst_query), intent(inout) :: this
+        integer(C_INT32_T) :: c_status 
+        if (this % is_valid()) c_status = fst24_rewind_search(this % query_ptr)
+    end subroutine fst_query_rewind
+
+    !> \copydoc fst24_query_free
+    subroutine fst_query_free(this)
+        implicit none
+        class(fst_query), intent(inout) :: this
+        if (this % is_valid()) then
+            call fst24_query_free(this % query_ptr)
+            this % query_ptr = c_null_ptr
+        end if
+    end subroutine fst_query_free
 end module rmn_fst24

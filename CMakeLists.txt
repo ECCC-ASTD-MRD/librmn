@@ -17,7 +17,7 @@ message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 include(GNUInstallDirs)
-set (CMAKE_INSTALL_LIBDIR lib)
+set (CMAKE_INSTALL_LIBDIR lib)  # Avoid using lib64
 
 ec_build_info()            # Generate build information
 include(ec_compiler_presets)
@@ -243,8 +243,8 @@ endforeach()
 # Compilation options for specific files
 set_source_files_properties(src/fst/xdf98.c          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
 set_source_files_properties(src/primitives/wkoffit.c PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
-set_source_files_properties(src/base/fft_m4.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable=6477,7342>")
-set_source_files_properties(src/base/fft_m8.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-disable=7342>")
+set_source_files_properties(src/base/fft_m4.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
+set_source_files_properties(src/base/fft_m8.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
 
 install(TARGETS ${shared_targets}
     EXPORT rmn-shared-targets
@@ -338,15 +338,17 @@ ec_build_config()                 # Create build configuration script
 ec_prepare_ssm()                  # Prepare ssm packaging files
 
 set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_VENDOR "ECCC")
+set(CPACK_PACKAGE_VENDOR "ECCC-ASTD-MRD")
 set(CPACK_PACKAGE_CONTACT "${MAINTAINER}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/package")
 set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+#set(CPACK_PACKAGE_VERSION     "${PROJECT_VERSION}")
+#set(CPACK_PACKAGE_VERSION_MAJOR     "${PROJECT_VERSION_MAJOR}")
+#set(CPACK_PACKAGE_VERSION_MINOR     "${PROJECT_VERSION_MINOR}")
+#set(CPACK_PACKAGE_VERSION_PATCH     "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
-
-
 

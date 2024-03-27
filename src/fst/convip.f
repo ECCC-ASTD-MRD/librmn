@@ -485,3 +485,39 @@ c     %         goto 101
       endif
       return
       end
+
+      !> BIND(C) wrapper on igapg
+      subroutine igapg_c(grtyp,pg1,pg2,pg3,pg4,ig1,ig2,ig3,ig4)
+     %bind(C, name='igapg_c')
+      use ISO_C_BINDING
+      implicit none
+      interface
+         subroutine igapg(grtyp,pg1,pg2,pg3,pg4,ig1,ig2,ig3,ig4)
+            implicit none
+            character(len=1), intent(IN)  :: grtyp
+            character(len=*), intent(OUT) :: pg1,pg2,pg3,pg4
+            integer, intent(IN) :: ig1,ig2,ig3,ig4
+         end subroutine
+      end interface
+      character(len=1), intent(IN) :: grtyp
+      integer, intent(IN) :: ig1,ig2,ig3,ig4
+      character(len=1), dimension(*), intent(OUT) :: pg1,pg2,pg3,pg4
+      character(len=128) :: pg1_, pg2_, pg3_, pg4_
+      character(len=1) :: grtyp_
+      integer :: l1, l2, l3, l4
+      call igapg(grtyp_,pg1_,pg2_,pg3_,pg4_,ig1,ig2,ig3,ig4)
+      l1 = len(trim(pg1_)) + 1
+      l2 = len(trim(pg2_)) + 1
+      l3 = len(trim(pg3_)) + 1
+      l4 = len(trim(pg4_)) + 1
+      pg1(1:l1) = transfer( trim(pg1_)//C_NULL_CHAR, pg1(1:l1))
+      pg2(1:l2) = transfer( trim(pg2_)//C_NULL_CHAR, pg2(1:l2))
+      pg3(1:l3) = transfer( trim(pg3_)//C_NULL_CHAR, pg3(1:l3))
+      pg4(1:l4) = transfer( trim(pg4_)//C_NULL_CHAR, pg4(1:l4))
+      end subroutine
+
+
+
+
+
+

@@ -382,7 +382,7 @@ int32_t c_wkoffit(
         /* RSF backend */
         if (*(ptbuf + 4) == 'RSF0') {
             // STANDARD
-            if (*(ptbuf + 5) == 'STDR') return retour(pf, WKF_STDRSF);
+            if (*(ptbuf + 5) == 'STDF') return retour(pf, WKF_STDRSF);
 
             // Generic RSF
             return retour(pf, WKF_RSF);

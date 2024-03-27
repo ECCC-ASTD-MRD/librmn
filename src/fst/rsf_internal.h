@@ -3,6 +3,10 @@
 #include <App.h>
 #include "qstdir.h"
 
+static uint8_t RSF_VERSION_COUNT = 0; //!< Version number that increments at every new version
+#define RSF_VERSION_STRING "1.0.0"
+#define RSF_VERSION 10000
+
 int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size) ;
 
 // Random Segmented Files (RSF) internal (private) definitions and structures
@@ -463,7 +467,7 @@ static inline void RSF_File_init(RSF_File *fp){  // initialize a new RSF_File st
 //   fp->size       =  0 ;
   fp->next_write  = -1 ;
   fp->current_pos = -1 ;
-  fp->rec_class   =  RT_DATA_CLASS ;
+  fp->rec_class   =  RC_DATA ;
   fp->class_mask  =  0xFFFFFFFFu ;
 //   fp->dir_read  =  0 ;
 //   fp->dir_slots  =  0 ;
@@ -539,6 +543,46 @@ static inline const char* open_mode_to_str(const int mode) {
     default:       return "<weird mix>";
   }
 }
+
+//! \{
+//! \name Meta0 content
+
+//! Extract items from the Meta0 32-bit element. See \ref make_meta0 for structure
+static inline void extract_meta0(
+  const uint32_t meta0,     //!< [in]  Encoded Meta0
+  uint8_t* version,         //!< [out] RSF version
+  uint8_t* record_class,    //!< [out]
+  uint8_t* record_type      //!< [out]
+) {
+  *version      = (meta0 & 0x00ff0000) >> 16;
+  *record_class = (meta0 & 0x0000ff00) >> 8;
+  *record_type  = (meta0 & 0x000000ff);
+}
+
+//! Assemble the Meta0 32-bit element:
+//! | ---- 31-24 ---- | ---- 23-16 ---- | ---- 15-08 ---- | ---- 07-00 ---- |
+//! | - nothing yet - | --- version --- |  record class - | - record type - |
+//! \return The encoded element
+static inline uint32_t make_meta0(
+  const uint32_t initial_meta,
+  const uint8_t record_class,
+  const uint8_t record_type
+) {
+  uint8_t init_version, init_class, init_type;
+  extract_meta0(initial_meta, &init_version, &init_class, &init_type);
+  if(init_type != RT_XDAT) {
+    if(init_type < RT_CUSTOM || init_type >= RT_DEL)
+      init_type = record_type ;
+  }
+
+  if (record_type != 0) init_type = record_type;
+  if (init_class == 0) init_class = record_class;
+  
+  const uint32_t meta0 = (RSF_VERSION_COUNT << 16) | (init_class << 8) | (init_type);
+  return meta0;
+}
+
+//! \}
 
 static int32_t RSF_File_lock(RSF_File *fp, int lock);
 static int32_t RSF_Ensure_new_segment(RSF_File *fp);
