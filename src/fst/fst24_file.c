@@ -372,6 +372,12 @@ int32_t fst24_write_rsf(
         datyp &= ~FST_TYPE_TURBOPACK;
     }
 
+    if ((is_type_integer(datyp) && record->dasiz == 64) && (is_type_turbopack(datyp) || nbits != 64)) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Compression not supported for 64-bit integer types\n", __func__);
+        datyp &= ~FST_TYPE_TURBOPACK;
+        nbits = 64;
+    }
+
     if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
         datyp = FST_TYPE_REAL_IEEE;
@@ -736,6 +742,8 @@ int32_t fst24_write_rsf(
                                 num_elements, Min(8, nbits), 0, stride, 9);
                             stdf_entry->nbits = Min(8, nbits);
                             nbits = stdf_entry->nbits;
+                        } else if (record->dasiz == 64) {
+                            memcpy(new_record->data, field, num_elements * sizeof(uint64_t));
                         } else {
                             compact_integer((void *)field, (void *) NULL, &((uint32_t *)new_record->data)[offset],
                                 num_elements, nbits, 0, stride, 1);
@@ -772,22 +780,29 @@ int32_t fst24_write_rsf(
                 }
                 // turbo compression not supported for this type, revert to normal mode
                 stdf_entry->datyp = has_missing | FST_TYPE_SIGNED;
-
+                record->datyp = stdf_entry->datyp;
 
                 uint32_t * field3 = field;
                 const int64_t num_elem = fst24_record_num_elem(record);
-                if (record->dasiz == 16 || record->dasiz == 8) {
-                    if (num_elem > (1 << 30)) {
-                        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Number of elements in record (%ld) is too large for what we can handle (%d) for now\n",
-                                __func__, num_elem, (1<<30));
-                    }
-                    field3 = (int *)alloca(num_elem * sizeof(int));
-                    short * s_field = (short *)field;
-                    signed char * b_field = (signed char *)field;
-                    if (record->dasiz == 16) for (int i = 0; i < num_elem;i++) { field3[i] = s_field[i]; };
-                    if (record->dasiz == 8)  for (int i = 0; i < num_elem;i++) { field3[i] = b_field[i]; };
+
+                if (record->dasiz == 64) {
+                    memcpy(new_record->data, field, num_elem * sizeof(int64_t));
                 }
-                compact_integer(field3, (void *) NULL, new_record->data, num_elem, nbits, 0, stride, 3);
+                else {
+                    if (record->dasiz == 16 || record->dasiz == 8) {
+                        if (num_elem > (1 << 30)) {
+                            Lib_Log(APP_LIBFST, APP_ERROR,
+                                "%s: Number of elements in record (%ld) is too large for what we can handle (%d) for now\n",
+                                __func__, num_elem, (1<<30));
+                        }
+                        field3 = (int *)alloca(num_elem * sizeof(int));
+                        short * s_field = (short *)field;
+                        signed char * b_field = (signed char *)field;
+                        if (record->dasiz == 16) for (int i = 0; i < num_elem;i++) { field3[i] = s_field[i]; };
+                        if (record->dasiz == 8)  for (int i = 0; i < num_elem;i++) { field3[i] = b_field[i]; };
+                    }
+                    compact_integer(field3, (void *) NULL, new_record->data, num_elem, nbits, 0, stride, 3);
+                }
 
                 break;
             }
@@ -1379,6 +1394,8 @@ int32_t fst24_unpack_data(
                     } else {
                         ier = compact_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride, 10);
                     }
+                } else if (record->dasiz == 64) {
+                    memcpy(dest, source, nelm * sizeof(uint64_t));
                 } else {
                     if (is_type_turbopack(record->datyp)) {
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, nbits, 2, 0);
@@ -1399,19 +1416,25 @@ int32_t fst24_unpack_data(
             }
 
             case FST_TYPE_SIGNED: {
-                const int use32 = !(record->dasiz == 16 || record->dasiz == 8);
-                int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
-                short*       s_field_out = (short*)dest;
-                signed char* b_field_out = (signed char*)dest;
-                ier = compact_integer(field_out, (void *) NULL, source, nelm, nbits, 0, stride, 4);
-                if (record->dasiz == 16) {
-                    for (int i = 0; i < nelm; i++) {
-                        s_field_out[i] = field_out[i];
-                    }
+                if (record->dasiz == 64) {
+                    memcpy(dest, source, nelm * sizeof(int64_t));
                 }
-                else if (record->dasiz == 8) {
-                    for (int i = 0; i < nelm; i++) {
-                        b_field_out[i] = field_out[i];
+                else {
+                    const int use32 = !(record->dasiz == 64 || record->dasiz == 16 || record->dasiz == 8);
+                    int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
+                    int16_t*     field_out_16 = (int16_t*)dest;
+                    int8_t*      field_out_8  = (int8_t*)dest;
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Uncompacting with nelm = %d, nbits = %d\n", __func__, nelm, nbits);
+                    ier = compact_integer(field_out, (void *) NULL, source, nelm, nbits, 0, stride, 4);
+                    if (record->dasiz == 16) {
+                        for (int i = 0; i < nelm; i++) {
+                            field_out_16[i] = field_out[i];
+                        }
+                    }
+                    else if (record->dasiz == 8) {
+                        for (int i = 0; i < nelm; i++) {
+                            field_out_8[i] = field_out[i];
+                        }
                     }
                 }
                 break;

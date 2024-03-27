@@ -25,9 +25,6 @@
         return(ERR_OUT_RANGE);\
     }
 
-static inline int32_t base_fst_type(const int32_t type_flag) {
-    return type_flag & 0x3f;
-}
 static inline int32_t is_type_real(const int32_t type_flag) {
     return ((base_fst_type(type_flag) == FST_TYPE_REAL_IEEE) ||
             (base_fst_type(type_flag) == FST_TYPE_REAL_OLD_QUANT) ||
