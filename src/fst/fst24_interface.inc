@@ -1,3 +1,4 @@
+
 interface
     ! FST record functions
 
@@ -141,12 +142,12 @@ interface
         integer(C_INT32_T) :: status
     end function fst24_write
 
-    function fst24_checkpoint(file) result(status) bind(C, name = 'fst24_checkpoint')
+    function fst24_flush(file) result(status) bind(C, name = 'fst24_flush')
         import :: C_PTR, C_INT32_T
         implicit none
         type(C_PTR), intent(in), value :: file
         integer(C_INT32_T) :: status
-    end function fst24_checkpoint
+    end function fst24_flush
 
     function fst24_print_summary(file, fields) result(status) bind(C, name = 'fst24_print_summary')
         import :: C_PTR, C_INT32_T
