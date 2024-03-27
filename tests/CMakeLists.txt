@@ -118,6 +118,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst98_interface COMMAND $<TARGET_FILE:fst98_interface>)
         add_dependencies(check fst98_interface)
 
+        add_executable(fstlnk fst/fstlnk.F90)
+        target_link_libraries(fstlnk rmn::rmn test_helper)
+        add_test(NAME fstlnk COMMAND $<TARGET_FILE:fstlnk>)
+        add_dependencies(check fstlnk)
+
         add_executable(fst24_meta_c fst/fst24_meta.c)
         target_link_libraries(fst24_meta_c rmn::rmn)
         add_test(NAME fst24_meta_c COMMAND $<TARGET_FILE:fst24_meta_c>)

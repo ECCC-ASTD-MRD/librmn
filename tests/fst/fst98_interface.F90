@@ -1,305 +1,293 @@
-module fst_thorough_mod
-    use generate_fstd_mod
-    use rmn_test_helper
+
+#ifndef FST_TEST_IS_RSF
+#define FST_TEST_IS_RSF .true.
+#endif
+
+module test_fst98_interface_module
+    use app
+    use iso_c_binding
     use rmn_fst98
+    use rmn_test_helper
     implicit none
 
-    character(len=*), parameter :: rsf_name_1 = 'rsf1.fst'
-    character(len=*), parameter :: rsf_name_2 = 'rsf2.fst'
-    character(len=*), parameter :: xdf_name_1 = 'xdf1.fst'
-    character(len=*), parameter :: xdf_name_2 = 'xdf2.fst'
-
+    integer, external :: fnom
 contains
 
-    subroutine test_fst_link()
-        implicit none
-        ! integer :: iun_rsf1, iun_rsf2, iun_xdf1, iun_xdf2
-        integer :: status
-        integer :: single_num_records, current_num_records
-        integer(C_INT32_T), dimension(4) :: unit_list, unit_list_tmp
-        integer      :: record_key
-        integer, dimension(2000) :: work_array
-
-        unit_list(:) = 0
-
-        ! status = fnom(unit_list(1), rsf_name_1, 'STD+RND', 0)
-        ! call check_status(status, expected = 0, fail_message = 'fnom')
-        status = (fstouv(rsf_name_1, unit_list(1),'STD+RND'))
-        call check_status(status, expected_min = 0, fail_message = 'fstouv (1)')
-
-        status = (fstouv(xdf_name_1, unit_list(2),'RND'))
-        call check_status(status, expected_min = 0, fail_message = 'fstouv (2)')
-
-        status = (fstouv(xdf_name_2, unit_list(3),'RND'))
-        call check_status(status, expected_min = 0, fail_message = 'fstouv (3)')
-
-        status = (fstouv(rsf_name_2, unit_list(4),'RND'))
-        call check_status(status, expected_min = 0, fail_message = 'fstouv (4)')
-
-        single_num_records = fstnbr(unit_list(1))
-
-        ! --------------------------------------------
-        ! The link operation itself
-        unit_list_tmp(:) = unit_list
-        unit_list_tmp(3) = unit_list_tmp(2) ! We want the wrong one, xdf1, to check for fstlnk failure
-
-        write(app_msg, '(A, 1X, 4I4, 1X, A)') 'fstlnk with ', unit_list, '(should fail)'
-        call app_log(APP_INFO, app_msg)
-        status = fstlnk(unit_list_tmp, 4) ! Should fail
-        call check_status(status, expected_max = -1, fail_message = 'fstlnk with twice the same file')
-
-        write(app_msg, '(A, 1X, 4I4, 1X, A)') 'fstlnk with ', unit_list, '(should succeed)'
-        call app_log(APP_INFO, app_msg)
-        status = fstlnk(unit_list, 4)
-        call check_status(status, expected = 0, fail_message = 'fstlnk with correct input (first)')
-
-        status = fstunl()
-        call check_status(status, expected = 0, fail_message = 'fstunl (first)')
-
-        status = fstlnk(unit_list, 4)
-        call check_status(status, expected = 0, fail_message = 'fstlnk with correct input (second)')
-
-        ! ---------------------------------------------
-        ! fstnbr
-        current_num_records = fstnbr(unit_list(1))
-        call check_status(current_num_records, expected = single_num_records * 4, fail_message = 'nbr from first file in lnk')
-
-        current_num_records = fstnbr(unit_list(2))
-        call check_status(current_num_records, expected = single_num_records * 3, fail_message = 'nbr from second file in lnk')
-
-        current_num_records = fstnbr(unit_list(3))
-        call check_status(current_num_records, expected = single_num_records * 2, fail_message = 'nbr from third file in lnk')
-
-        current_num_records = fstnbr(unit_list(4))
-        call check_status(current_num_records, expected = single_num_records * 1, fail_message = 'nbr from fourth file in lnk')
-
-        status = fstunl()
-        current_num_records = fstnbr(unit_list(1))
-        call check_status(current_num_records, expected = single_num_records * 1, fail_message = 'nbr from first file in lnk after unlink')
-        current_num_records = fstnbr(unit_list(2))
-        call check_status(current_num_records, expected = single_num_records * 1, fail_message = 'nbr from second file in lnk after unlink')
-        current_num_records = fstnbr(unit_list(3))
-        call check_status(current_num_records, expected = single_num_records * 1, fail_message = 'nbr from third file in lnk after unlink')
-        current_num_records = fstnbr(unit_list(4))
-        call check_status(current_num_records, expected = single_num_records * 1, fail_message = 'nbr from fourth file in lnk after unlink')
-        
-        status = fstlnk(unit_list, 4)
-        call check_status(status, expected = 0, fail_message = 'fstlnk with correct input (after nbr with unlink)')
-
-        ! ---------------------------------------------
-        ! fstlir
-        block
-            integer :: ni, nj, nk
-            call App_Log(APP_INFO, 'Testing fstlir')
-
-            record_key = fstlir(work_array, unit_list(1), ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
-            call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
-
-            work_array(:) = 0
-            record_key = fstlir(work_array, unit_list(1), ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
-
-            work_array(:) = 0
-            record_key = fstlir(work_array, unit_list(2), ni, nj, nk, -1, ' ', -1, -1, 1234, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'lir (second file in link, record in third file)')
-
-            work_array(:) = 0
-            record_key = fstlir(work_array, unit_list(2), ni, nj, nk, -1, ' ', -1, -1, 30, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'lir (second file in link, record in fourth file)')
-        end block
-
-        ! ---------------------------------------------
-        ! fstinl
-        block
-            integer, dimension(single_num_records * 4) :: record_keys
-            integer :: num_record_found
-            integer :: ni, nj, nk
-            
-            call App_Log(APP_INFO, 'Testing fstinl')
-
-            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
-                                record_keys, num_record_found, single_num_records * 4)
-            call check_status(status, expected = 0, fail_message = 'fstinl status')
-            ! call check_status(num_record_found, expected = single_num_records * 4, fail_message = 'fstinl count (1st file)')
-            call check_status(num_record_found, expected = 4, fail_message = 'fstinl count (1st file)')
-
-
-            status = fstinl(unit_list(2), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
-                                record_keys, num_record_found, single_num_records * 3)
-            call check_status(status, expected = 0, fail_message = 'fstinl status')
-            ! call check_status(num_record_found, expected = single_num_records * 3, fail_message = 'fstinl count (2nd file)')
-            call check_status(num_record_found, expected = 3, fail_message = 'fstinl count (2nd file)')
-
-            status = fstinl(unit_list(3), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
-                                record_keys, num_record_found, single_num_records * 3)
-            call check_status(status, expected = 0, fail_message = 'fstinl status')
-            ! call check_status(num_record_found, expected = single_num_records * 2, fail_message = 'fstinl count (3rd file)')
-            call check_status(num_record_found, expected = 2, fail_message = 'fstinl count (3rd file)')
-
-            status = fstinl(unit_list(4), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', 'C',          &
-                                record_keys, num_record_found, single_num_records * 3)
-            call check_status(status, expected = 0, fail_message = 'fstinl status')
-            ! call check_status(num_record_found, expected = single_num_records * 1, fail_message = 'fstinl count (4th file)')
-            call check_status(num_record_found, expected = 1, fail_message = 'fstinl count (4th file)')
-
-            call App_Log(APP_INFO, 'Testing fstinl (second batch)')
-
-            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 2, ' ', ' ',          &
-                                record_keys, num_record_found, single_num_records * 4)
-            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 1st file)')
-            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 30, ' ', ' ',          &
-                                record_keys, num_record_found, single_num_records * 4)
-            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 2nd file)')
-            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 100, ' ', ' ',          &
-                                record_keys, num_record_found, single_num_records * 4)
-            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 3rd file)')
-            status = fstinl(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 1234, ' ', ' ',          &
-                                record_keys, num_record_found, single_num_records * 4)
-            call check_status(num_record_found, expected = single_num_records, fail_message = 'fstinl count (in 4th file)')
-        end block
-
-        ! ---------------------------------------------
-        ! fstinf + fstluk
-        block
-            integer :: ni, nj, nk
-            integer :: record_key2
-
-            call App_Log(APP_INFO, 'Testing fstinf, fstluk, fstlis and fstsui')
-
-            record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 1, ' ', ' ')
-            call check_status(record_key, expected_max = 0, fail_message = 'fstinf (not found)')
-
-            record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 2, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 2)')
-            work_array(:) = 0
-            status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
-            work_array(:) = 0
-            record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
-            status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
-
-            record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 30, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 30)')
-            work_array(:) = 0
-            status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
-            work_array(:) = 0
-            record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
-            status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
-
-            record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 100, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 100)')
-            work_array(:) = 0
-            status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
-            work_array(:) = 0
-            record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
-            status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
-
-            record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 1234, ' ', ' ')
-            call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 1234)')
-            work_array(:) = 0
-            status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
-            work_array(:) = 0
-            record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
-            status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
-
-        end block
-
-        ! ---------------------------------------------
-        ! fstnbrv
-        current_num_records = fstnbrv(unit_list(1))
-        call check_status(current_num_records, expected = single_num_records * 4, fail_message = 'nbrv from first file in lnk')
-
-        current_num_records = fstnbrv(unit_list(2))
-        call check_status(current_num_records, expected = single_num_records * 3, fail_message = 'nbrv from second file in lnk')
-
-        current_num_records = fstnbrv(unit_list(3))
-        call check_status(current_num_records, expected = single_num_records * 2, fail_message = 'nbrv from third file in lnk')
-
-        current_num_records = fstnbrv(unit_list(4))
-        call check_status(current_num_records, expected = single_num_records * 1, fail_message = 'nbrv from fourth file in lnk')
-
-        ! ---------------------------------------------
-        ! fstvoi
-        call app_log(APP_INFO, 'testing fstvoi')
-        status = fstvoi(unit_list(1), ' ')
-        call check_status(status, expected = 0, fail_message = 'fstvoi')
-
-        status = fstfrm(unit_list(1))
-        status = fstfrm(unit_list(2))
-        status = fstfrm(unit_list(3))
-        status = fstfrm(unit_list(4))
-
-    end subroutine test_fst_link
-
-    subroutine test_fst_prm()
-        implicit none
-        integer      :: status, num_records, handle
-
-        integer :: iun
-        integer(C_INT) :: ni, nj, nk, ni_prm, nj_prm, nk_prm
-        integer(C_INT) :: date, deet, npas, nbits, datyp, ip1, ip2, ip3
-        integer(C_INT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
-        character(len=:), allocatable :: typvar, nomvar, etiket, grtyp
-
-        call App_Log(APP_INFO, 'test_fst_prm')
-
-        num_records = fstouv(rsf_name_1, iun, 'STD+RND+RSF+R/O')
-        call check_status(num_records, expected_min = 1, fail_message = 'fstouv num records')
-
-        handle = fstinf(iun, ni, nj, nk, -1, ' ', 1, -1, -1, ' ', ' ')
-        call check_status(handle, expected_min = 0, fail_message = 'fstinf handle')
-
-        status = fstprm(handle, date, deet, npas, ni_prm, nj_prm, nk_prm, nbits, datyp,     &
-                        ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4,   &
-                        swa, lng, dlft, ubc, extra1, extra2, extra3)
-
-        ! write(app_msg, '(A, 5I6)') 'ni, nj, nk, nbits, lng = ', ni, nj, nk, nbits, lng
-        ! call app_log(APP_INFO, app_msg)
-
-        if (ni * nj * nk * nbits / 32 < 50) then
-            call app_log(APP_WARNING, 'Size of record is too small for test to work, it should be at least 50 32-bit words')
-        end if
-
-        call check_status(ni_prm, expected = ni, fail_message = 'fstprm ni')
-        call check_status(nj_prm, expected = nj, fail_message = 'fstprm nj')
-        call check_status(nk_prm, expected = nk, fail_message = 'fstprm nk')
-        call check_status(lng, expected_min = ni * nj * nk * nbits / 32, fail_message = 'fstprm lng')
-
-        status = fstfrm(iun)
-    end subroutine test_fst_prm
-
-end module fst_thorough_mod
-
-program fst98_interface
-    use fst_thorough_mod
+subroutine test_fst98_interface(is_rsf)
     implicit none
+    logical, intent(in) :: is_rsf
 
-    integer :: status
+    integer :: status, i, j
+    character(len=*), parameter :: test_file_name = 'fst_interface.fst'
+    character(len=*), parameter :: test_file_name_2 = 'fst_interface_2.fst'
+    character(len=2000) :: cmd
+
+    integer, parameter :: NUM_DATA = 8
+    integer, dimension(NUM_DATA, 3) :: data_array
+    integer, dimension(NUM_DATA)    :: work_array
+
+    integer, parameter :: DATE = 0, TIMESTEP_SIZE = 0, TIMESTEP_NUM = 0
+    integer, parameter :: DATATYPE = 4 ! 4 = integer
+    integer, parameter :: REWRITE = 0
+
+    integer :: old_num_records, new_num_records, expected_num_records, num_records
+    integer :: record_key
+    integer :: expected
     integer :: iun
 
-    call generate_file(rsf_name_1, .true., ip3_offset = 2)
-    call generate_file(rsf_name_2, .true., ip3_offset = 30)
-    call generate_file(xdf_name_1, .false., ip3_offset = 100)
-    call generate_file(xdf_name_2, .false., ip3_offset = 1234)
+    if (is_rsf) then
+        call App_Log(APP_INFO, 'Testing RSF')
+    else
+        call App_Log(APP_INFO, 'Testing XDF')
+    end if
 
-    call test_fst_link()
-    call test_fst_prm()
+    ! Remove file(s) so that we have a fresh start
+    write(cmd, '(A, 2(1X, A))') 'rm -fv ', test_file_name, test_file_name_2
+    call execute_command_line(trim(cmd))
 
-    ! These files should diseapear at test end
-    status = fstouv('rsf_volatile', iun, 'STD+RND+RSF+VOLATILE')
-    call check_status(status, expected = 0, fail_message = 'fstouv rsf VOLATILE')
-    status = fstouv('xdf_volatile', iun, 'STD+RND+VOLATILE')
-    call check_status(status, expected = 0, fail_message = 'fstouv xdf VOLATILE')
+    ! Initialize data
+    do j = 1, 3
+        do i = 1, NUM_DATA
+            data_array(i, j) = i + j * 100
+        end do
+    end do
 
-end program fst98_interface
+    ! --- fstouv ---
+    iun = 0
+    if (is_rsf) then
+        status = fstouv(test_file_name, iun, 'STD+RND+RSF')
+    else
+        status = fstouv(test_file_name, iun, 'STD+RND+XDF')
+    end if
+    call check_status(status, expected_min = 0, fail_message = 'ouv')
+
+    old_num_records = status
+    new_num_records = old_num_records + 6
+
+    ! --- fstecr ---
+    do j = 1, 2
+        do i = 1, 3
+            status = fstecr_fn(data_array(:, i), work_array, -32, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
+                                    NUM_DATA, 1, 1,                                                            &
+                                    i, j, 0,                                                                   &
+                                    'XX', 'YYYY', 'ETIKET', 'X',                                               &
+                                    0, 0, 0, 0,                                                                &
+                                    DATATYPE,  REWRITE)
+            call check_status(status, expected = 0, fail_message = 'ecr')
+        end do
+    end do
+
+    ! ----- fstnbr -----
+    num_records = fstnbr(iun)
+    call check_status(num_records, expected = old_num_records, fail_message = 'nbr')
+
+    ! ----- fstnbrv -----
+    num_records = fstnbrv(iun)
+    call check_status(num_records, expected = new_num_records, fail_message = 'nbrv')
+
+    ! ----- fstfrm -----
+    status = fstfrm(iun)
+    call check_status(status,expected = 0, fail_message = 'frm')
+
+    ! Copy file to have multiple ones to link together
+    write(cmd, '(A, 2(1X,A))') 'cp -v ', test_file_name, test_file_name_2
+    call execute_command_line(trim(cmd))
+
+    ! ----- fstouv -----
+    iun = 0
+    status = fstouv(test_file_name, iun, 'STD+RND')
+    call check_status(status, expected = new_num_records, fail_message = 'ouv (second one)')
+
+    ! ----- fstnbr -----
+    num_records = fstnbr(iun)
+    call check_status(num_records, expected = new_num_records, fail_message = 'nbr (second one)')
+
+    ! ----- fstlir ----- (includes fstinf and fstluk)
+    ! Not found
+    block
+        integer :: ni, nj, nk
+        record_key = fstlir(work_array, iun, ni, nj, nk, -1, ' ', 1, -1, -1, 'nooooooo', ' ')
+        call check_status(record_key, expected_max = -1, fail_message = 'lir (not found)')
+
+        ! Found
+        work_array(:) = 0
+        record_key = fstlir(work_array, iun, ni, nj, nk, -1, ' ', 2, -1, -1, ' ', ' ')
+        call check_status(record_key, expected_min = 1, fail_message = 'lir (found)')
+        if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+            write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
+            call App_Log(APP_ERROR, app_msg)
+            write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
+                'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+    end block
+
+    ! ----- fstprm -----
+    block
+        integer :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
+        character(len=20) :: typvar, nomvar, etiket, grtyp
+        integer :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+        status = fstprm(record_key, date, deet, npas, ni, nj, nk, nbits, datyp,                     &
+                        ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,                               &
+                        ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
+
+        call check_status(status, expected = 0, fail_message = 'prm')
+
+        ! print *, record_key
+        ! print *, date, deet, npas
+        ! print *, ni, nj, nk
+        ! print *, nbits, datyp
+        ! print *, ip1, ip2, ip3
+        ! print '(4(A, ", "))', trim(typvar), trim(nomvar), trim(etiket), trim(grtyp)
+        ! print *, ig1, ig2, ig3, ig4
+        ! print *, swa, lng, dlft, ubc
+        ! print *, extra1, extra2, extra3
+
+        call check_status(ni, expected = NUM_DATA, fail_message = 'prm (ni)')
+        call check_status(nj, expected = 1, fail_message = 'prm (nj)')
+        call check_status(nk, expected = 1, fail_message = 'prm (nk)')
+        call check_status(nbits, expected = 32, fail_message = 'prm (nbits)')
+        call check_status(datyp, expected = DATATYPE, fail_message = 'prm (datyp)')
+        call check_status(ip1, expected = 2, fail_message = 'prm (ip1)')
+        call check_status(ig1, expected = 0, fail_message = 'prm (ig1)')
+        call check_status(ig2, expected = 0, fail_message = 'prm (ig2)')
+        call check_status(ig3, expected = 0, fail_message = 'prm (ig3)')
+        call check_status(ig4, expected = 0, fail_message = 'prm (ig4)')
+
+        call check_status(dlft, expected = 0, fail_message = 'prm (dlft)')
+        call check_status(ubc, expected = 0, fail_message = 'prm (ubc)')
+        call check_status(extra1, expected = 0, fail_message = 'prm (extra1)')
+        call check_status(extra2, expected = 0, fail_message = 'prm (extra2)')
+        call check_status(extra3, expected = 0, fail_message = 'prm (extra3)')
+
+        if (typvar(1:2) /= 'XX' .or. nomvar(1:4) /= 'YYYY' .or. etiket(1:6) /= 'ETIKET' .or. grtyp(1:1) /= 'X') then
+            write(app_msg, '(6A)') 'Unexpected names for typvar, nomvar, etiket, grtyp: ',          &
+                               trim(typvar), trim(nomvar), trim(etiket), trim(grtyp),               &
+                               '. Should be XX, YYYY, ETIKET and X'
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+
+    end block
+
+    ! ----- fstmsq -----
+    block
+        integer :: ip1, ip2, ip3
+        character(len=20) :: etiket
+        etiket(1:20) = 'abcdefghijklmnopqrst'
+        status = fstmsq(iun, ip1, ip2, ip3, etiket, 1)
+        ! status = fstmsq(test_file % iun, ip1, ip2, ip3, etiket, 1)
+        call check_status(status, expected = 0, fail_message = 'msq (status)')
+        ! write(app_msg, '(A, 3I11)') 'Got IPs ', ip1, ip2, ip3
+        ! call App_Log(APP_WARNING, app_msg)
+        call check_status(ip1, expected = 0, fail_message = 'msq (ip1)')
+        call check_status(ip2, expected = 0, fail_message = 'msq (ip2)')
+        call check_status(ip3, expected = 0, fail_message = 'msq (ip3)')
+        if (etiket(1:12) /= '            ') then
+            write(app_msg, '(A, A, A, A)') 'Wrong etiket, got ', '"' // etiket(1:12) // '"'
+            call App_Log(APP_ERROR, app_msg)
+            write(app_msg, '(A, A)') 'but expected      ', '"' // '            ' // '"'
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+    end block
+
+    ! ----- fstlis -----
+    block
+        integer :: ni, nj, nk
+        work_array(:) = 0
+        record_key = fstlis(work_array, iun, ni, nj, nk)
+        call check_status(record_key, expected_min = 1, fail_message = 'lis')
+        if (.not. all(work_array == data_array(:, 2)) .or. ni /= NUM_DATA .or. nj /= 1 .or. nk /= 1) then
+            write(app_msg, '(A, 2(5X, 8I4))') 'Got data', work_array, data_array(:, 2)
+            call App_Log(APP_ERROR, app_msg)
+            write(app_msg, '(A, 1X, 3I4, A, 1X, 3I4)')                                                                  &
+                'Got dimensions', ni, nj, nk, ' Should have been', NUM_DATA, 1, 1
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+    end block
+
+    ! ----- fstinl ----- (includes fstsui)
+    block
+        integer, dimension(new_num_records) :: record_keys
+        integer :: num_record_found
+        integer :: ni, nj, nk
+        status = fstinl(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                 record_keys, num_record_found, new_num_records)
+        call check_status(status, expected = 0, fail_message = 'fstinl status')
+        call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count')
+    end block
+
+    ! ----- fstlnk -----
+    block
+        integer(C_INT32_T), dimension(2) :: unit_list
+        integer, dimension(new_num_records * 2) :: record_keys
+        integer :: num_record_found
+        integer :: ni, nj, nk
+
+        unit_list(1) = iun
+        status = fstouv(test_file_name_2, unit_list(2), 'STD+RND')
+        call check_status(status, expected = new_num_records, fail_message = 'ouv (second file)')
+
+        status = fstlnk(unit_list, 2)
+        call check_status(status, expected = 0, fail_message = 'fstlnk')
+
+        ! num_records = test_file % nbr()
+        ! call check_status(num_records, expected = new_num_records * 2, fail_message = 'nbr (linked)')
+
+        status = fstinl(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                 record_keys, num_record_found, new_num_records * 2)
+        call check_status(status, expected = 0, fail_message = 'fstinl status (linked)')
+        call check_status(num_record_found, expected = new_num_records * 2, fail_message = 'fstinl count (linked)')
+
+        status = fstunl()
+        call check_status(status, expected = 0, fail_message = 'fstunl')
+
+        status = fstinl(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                 record_keys, num_record_found, new_num_records * 2)
+        call check_status(status, expected = 0, fail_message = 'fstinl status (unlinked)')
+        call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count (unlinked)')
+
+        status = fstinl(unit_list(2), ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ',          &
+                                   record_keys, num_record_found, new_num_records * 2)
+        call check_status(status, expected = 0, fail_message = 'fstinl status (unlinked, file 2)')
+        call check_status(num_record_found, expected = new_num_records, fail_message = 'fstinl count (unlinked, file 2)')
+
+    end block
+
+    ! ----- fstvoi -----
+    status = fstvoi(iun, ' ')
+    call check_status(status, expected = 0, fail_message = 'fstvoi')
+
+    ! ----- fsteff -----
+    ! Better put this test (second-to-)last, because after it the state will be different depending on type of
+    ! standard file (RSF or XDF)
+    status = fsteff(record_key)
+    if (is_rsf) then
+        call check_status(status, expected_max = -1, fail_message = 'eff')
+    else
+        call check_status(status, expected = 0, fail_message = 'eff')
+    end if
+
+    ! ----- fstfrm -----
+    status = fstfrm(iun)
+    call check_status(status,expected = 0, fail_message = 'frm (second one)')
+
+    call App_Log(APP_INFO, 'done')
+
+end subroutine test_fst98_interface
+
+end module test_fst98_interface_module
+
+program fst_interface
+    use test_fst98_interface_module
+    implicit none
+
+    call test_fst98_interface(.false.)
+    call test_fst98_interface(.true.)
+
+    call App_Log(APP_INFO, 'Test successful')
+
+end program fst_interface
