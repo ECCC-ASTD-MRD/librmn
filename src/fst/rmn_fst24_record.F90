@@ -84,6 +84,7 @@ module rmn_fst24_record
         procedure, pass :: get_c_ptr => fst24_record_get_c_ptr     !< \private \copydoc fst24_record_get_c_ptr
 
         procedure, pass :: new => fst24_record_new                      !< \copydoc fst24_record_new
+        procedure, pass :: free => fst24_record_free                    !< \copydoc fst24_record_free
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
@@ -249,6 +250,17 @@ contains
             success = .true.
         end if
     end function
+
+    function fst24_record_free(this) result(success)
+        implicit none
+        class(fst_record), intent(inout), target :: this
+        integer(C_INT32_T) :: c_status
+        logical :: success
+
+        c_status = fst24_record_free_c(c_loc(this%c_self))
+        success = .false.
+        if (c_status > 0) success = .true.
+     end function
 
     !> Check whether two records have identical information (except data). This will sync the underlying C struct
     !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise

@@ -50,7 +50,7 @@ int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
 
-   if (record->data) {
+   if (record->data && record->alloc) {
       record->alloc=0;
       if (!(record->flags&FST_REC_ASSIGNED))
          free(record->data);
