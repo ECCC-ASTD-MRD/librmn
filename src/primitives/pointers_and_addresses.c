@@ -63,21 +63,17 @@ typedef union {
 //! similar to the FORTRAN LOC() intrinsic
 long long f77name(get_address_from)(void *addr)
 {
-    fakeptr myptr;
+    const fakeptr myptr = { .ptr = addr };
 
-    myptr.address_in_64bit = 0;
-    // Put address into union
-    myptr.ptr = addr;
     // return 64 bit long long to caller
-    return(myptr.address_in_64bit);
+    return myptr.address_in_64bit;
 }
 
 
 void f77name(make_cray_pointer)(void **addr, long long *c)
 {
-    fakeptr myptr;
-    // Get 64 bit long long containing address from caller and store it into union
-    myptr.address_in_64bit = *c;
+    const fakeptr myptr = { .address_in_64bit = *c };
+
     // Return address to caller (addr is a Cray style pointer)
     *addr = myptr.ptr;
 }
@@ -85,10 +81,8 @@ void f77name(make_cray_pointer)(void **addr, long long *c)
 
 void f77name(pass_address_to)(long long *c, int *funct())
 {
-    fakeptr myptr;
+    const fakeptr myptr = { .address_in_64bit = *c };
 
-    // get long long containing address in union from caller
-    myptr.address_in_64bit = *c;
     // Call call_back specified by user with address as only argument
     (void) *funct(myptr.ptr);
 }
@@ -105,11 +99,8 @@ void f77name(set_content_of_location)(
         int32_t *ptr;
     } U_ptr;
 
-    U_ptr myptr;
+    const U_ptr myptr = { .address_in_64bit = *location };
 
-    myptr.address_in_64bit = 0;
-    // Put long long contaning address into union
-    myptr.address_in_64bit = *location;
     // set content of index address to value
     myptr.ptr[(*indx)-1] = *value;
 }
@@ -119,15 +110,12 @@ void f77name(get_content_of_location)(long long *location, int32_t *indx, int32_
 // Indexing of location is done in base 1 (Fortran like)
 {
     typedef union {
-    long long address_in_64bit;
-    int32_t *ptr;
+        long long address_in_64bit;
+        int32_t *ptr;
     } U_ptr;
 
-    U_ptr myptr;
+    const U_ptr myptr = { .address_in_64bit = *location };
 
-    myptr.address_in_64bit = 0;
-    // Put long long contaning address into union
-    myptr.address_in_64bit = *location;
     // get content of index address into value
     *value = myptr.ptr[(*indx)-1];
 }
