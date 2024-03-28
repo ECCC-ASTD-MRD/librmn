@@ -152,7 +152,7 @@ contains
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar

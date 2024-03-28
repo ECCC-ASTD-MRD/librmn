@@ -3269,7 +3269,7 @@ int c_fstopc(
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
         } else {
-            val = Lib_LogLevel(APP_LIBFST, value);
+            val = Lib_LogLevel(APP_LIBFST, (char*)value);
         }
         if (getmode == 1) {
             Lib_Log(APP_LIBFST, APP_INFO, "%s: option 'MSGLVL' , %d\n", __func__, App->LogLevel[APP_LIBFST]);
