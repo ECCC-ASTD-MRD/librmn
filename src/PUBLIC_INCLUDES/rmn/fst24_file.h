@@ -28,6 +28,21 @@ static fst_file default_fst_file = (fst_file) {
 
 typedef struct fst_query_ fst_query; // Forward declare
 
+typedef struct {
+    //!> Several encodings can represent the same floating point value stored in an IP. When setting ip1_all
+    //!> (and ip2_all, and ip3_all), we indicate that we want to match with any encoding that result in the same
+    //!> encoded value in the given criterion. If not set, we will only match with the specific encoding given.
+    int32_t ip1_all;
+    int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
+    int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+} fst_query_options;
+
+static fst_query_options default_query_options = (fst_query_options) {
+    .ip1_all = 0,
+    .ip2_all = 0,
+    .ip3_all = 0,
+};
+
 //! @defgroup public_fst Public FST C API
 //! @{
 int32_t   fst24_is_valid(const char* const filePath);
@@ -41,7 +56,7 @@ int32_t    fst24_read(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);
 int32_t    fst24_read_next(fst_query* const query, fst_record* const record);
 int32_t    fst24_write(fst_file* const file, fst_record* const record, int rewrit);
-fst_query* fst24_new_query(const fst_file* const file, const fst_record* criteria);
+fst_query* fst24_new_query(const fst_file* const file, const fst_record* criteria, const fst_query_options* options);
 int32_t    fst24_rewind_search(fst_query* query);
 // int32_t    fst24_find(fst_file* file,const fst_record* criteria, fst_record* result);
 int32_t    fst24_find_next(fst_query* const query, fst_record* const result);

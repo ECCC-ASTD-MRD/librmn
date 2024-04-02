@@ -1018,7 +1018,8 @@ int32_t fst24_get_record_from_key(
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
-    const fst_record* criteria  //!< Criteria to be used for the search. If NULL, will look for any record
+    const fst_record* criteria, //!< [Optional] Criteria to be used for the search. If NULL, will look for any record
+    const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 ) {
     if (!fst24_is_open(file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
@@ -1042,7 +1043,7 @@ fst_query* fst24_new_query(
         return NULL;
     }
 
-    *query = new_fst_query();
+    *query = new_fst_query(options);
     make_search_criteria(criteria, &(query->criteria), &(query->mask));
     query->num_criteria = sizeof(query->criteria) / sizeof(uint32_t);
     query->search_index = criteria->handle > 0 ? criteria->handle : 0;
@@ -1779,4 +1780,36 @@ void fst24_query_free(fst_query* const query) {
         query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
         free(query);
     }
+}
+
+//! To be called from fortran. Determine whether the given FST query options pointer matches the default
+//! fst_query_options struct.
+//! \return 0 if they match, -1 if not
+int32_t fst24_validate_default_query_options(
+    const fst_query_options* fortran_options, //!< Pointer to a default-initialized fst_query_options[_c] struct
+    const size_t fortran_size         //!< Size of the fst_query_options_c struct in Fortran
+) {
+    if (fortran_options == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Called with NULL pointer\n", __func__);
+        return -1;
+    }
+
+    if (sizeof(fst_query_options) != fortran_size) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Size C != size Fortran (%d != %d)\n",
+                __func__, sizeof(fst_query_options), fortran_size);
+        return -1;
+    }
+
+    if (memcmp(&default_query_options, fortran_options, sizeof(fst_query_options)) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Not the same!\n", __func__);
+        for (int i = 0; i < sizeof(fst_query_options) / 4; i += 4) {
+            const uint32_t* c = (const uint32_t*)&default_query_options;
+            const uint32_t* f = (const uint32_t*)fortran_options;
+            fprintf(stderr, "c 0x %.8x %.8x %.8x %.8x\n", c[i], c[i+1], c[i+2], c[i+3]);
+            fprintf(stderr, "f 0x %.8x %.8x %.8x %.8x\n", f[i], f[i+1], f[i+2], f[i+3]);
+        }
+        return -1;
+    }
+
+    return 0;
 }

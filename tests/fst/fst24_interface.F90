@@ -620,6 +620,7 @@ program fst24_interface
     use test_fst24_interface_module
 
     if (.not. fst24_is_default_record_valid()) error stop 1
+    if (.not. fst24_is_default_query_options_valid()) error stop 1
     call make_test_record()
 
     call App_Log(APP_INFO, 'Doing RSF tests')

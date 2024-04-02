@@ -128,7 +128,7 @@ int test_parallel_write(const int rank) {
         }
 
         fst_record read_rec = default_fst_record;
-        fst_query* query = fst24_new_query(test_file, NULL);
+        fst_query* query = fst24_new_query(test_file, NULL, NULL);
         while (fst24_read_next(query, &read_rec)) {
             num_read++;
 

@@ -100,11 +100,12 @@ interface
         integer(C_INT64_T) :: num_records
     end function fst24_get_num_records
 
-    function fst24_new_query(file, criteria) result(query) bind(C, name = 'fst24_new_query')
+    function fst24_new_query(file, criteria, options) result(query) bind(C, name = 'fst24_new_query')
         import :: C_PTR
         implicit none
         type(C_PTR), intent(in), value :: file
         type(C_PTR), intent(in), value :: criteria
+        type(C_PTR), intent(in), value :: options
         type(C_PTR) :: query
     end function fst24_new_query
 
@@ -198,4 +199,12 @@ interface
         type(C_PTR), intent(in), value :: query
         integer(C_INT32_T) :: is_valid
     end function fst24_query_is_valid
+
+    function fst24_validate_default_query_options(fortran_options, fortran_size) result(status) bind(C, name = 'fst24_validate_default_query_options')
+        import :: C_PTR, C_SIZE_T, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: fortran_options
+        integer(C_SIZE_T), intent(in), value :: fortran_size
+        integer(C_INT32_T) :: status
+    end function fst24_validate_default_query_options
 end interface

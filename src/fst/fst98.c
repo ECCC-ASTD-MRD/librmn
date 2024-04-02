@@ -146,7 +146,7 @@ void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
 }
 
 static void init_open_file(fstd_usage_info* info) {
-    info->query = new_fst_query();
+    info->query = new_fst_query(NULL);
     info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     info->next_file = -1;
 }

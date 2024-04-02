@@ -345,8 +345,8 @@ fst_file * my_file = fst24_open("my_file.fst", NULL);
 
 //----------------------------
 // Looking for a single record and reading its data
-fst_query * my_query = 
-    fst24_new_query(my_file, NULL); // Match everything
+fst_query * my_query = fst24_new_query(
+        my_file, NULL, NULL); // Match everything
 if (fst24_find_next(my_query, &result)) {
     fst24_read(&result); // Read data from disk
 
@@ -365,7 +365,7 @@ fst24_query_free(my_query);
 criteria = default_fst_record; // Wildcard everywhere
 strcpy(criteria.nomvar, "ABC");
 criteria.ip3 = 25;
-my_query = fst24_new_query(my_file, &criteria);
+my_query = fst24_new_query(my_file, &criteria, NULL);
 while (fst24_find_next(my_file, &result)) {
     // Do stuff with the record
 }
@@ -376,7 +376,7 @@ fst24_query_free(my_query);
 criteria = default_fst_record; // Wildcard everywhere
 criteria.ip1 = 200;
 criteria.ig2 = 2;
-my_query = fst24_new_query(my_file, &criteria);
+my_query = fst24_new_query(my_file, &criteria, NULL);
 while (fst24_read_next(my_file, &result)) {
     // Do stuff with the data
 }
@@ -385,7 +385,7 @@ fst24_query_free(my_query);
 //----------------------------
 // Find several records at once
 strcpy(criteria.typvar, "P"); // Add 1 criteria
-my_query = fst24_new_query(my_file, &criteria);
+my_query = fst24_new_query(my_file, &criteria, NULL);
 fst_record many_records[100];
 // Find up to 100 records
 const int num_records =
@@ -469,8 +469,8 @@ fst_record crit_b = default_fst_record;
 strcpy(crit_a.etiket, "LABEL A");
 strcpy(crit_b.etiket, "LABEL B");
 
-fst_query * q_a = fst24_new_query(my_file, &crit_a);
-fst_query * q_b = fst24_new_query(my_file, &crit_b);
+fst_query* q_a = fst24_new_query(my_file, &crit_a, NULL);
+fst_query* q_b = fst24_new_query(my_file, &crit_b, NULL);
 
 // For each record found with query A, process 
 // 3 records from query B
@@ -539,12 +539,12 @@ strcpy(crit_a.grtyp, "X");
 
 strcpy(crit_b.nomvar, "VARB");
 
-q_a = fst24_new_query(my_file, &crit_a);
+q_a = fst24_new_query(my_file, &crit_a, NULL);
 while (fst24_find_next(q_a, &rec_a)) {
     // Look for every record with nomvar "VARB" tha
     // has the same ip1 as record A
     crit_b.ip1 = rec_a.ip1;
-    q_b = fst24_new_query(my_file, &crit_b);
+    q_b = fst24_new_query(my_file, &crit_b, NULL);
     n_rec = fst24_find_all(q_b, many_records, 10000);
 
     [...]
@@ -681,8 +681,6 @@ fst24_write(my_file, &my_record, 0);
 
 ## C
 
-<a id="c-struct"></a>
-
 ### Structs
 
 ```c
@@ -735,6 +733,15 @@ typedef struct {
 } fst_record;
 
 typedef struct {
+    //!> Several encodings can represent the same floating point value stored in an IP. When setting ip1_all
+    //!> (and ip2_all, and ip3_all), we indicate that we want to match with any encoding that result in the same
+    //!> encoded value in the given criterion. If not set, we will only match with the specific encoding given.
+    int32_t ip1_all;
+    int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
+    int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+} fst_query_options;
+
+typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
     int32_t datyp, npak, ni, nj, nk;
@@ -745,7 +752,6 @@ typedef struct {
 } fst_record_fields;
 ```
 
-<a id="c-file-functions"></a>
 ### File Functions
 
 ```c
@@ -799,7 +805,8 @@ int32_t fst24_write(fst_file* file, fst_record* record, int rewrit);
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
-    const fst_record* criteria  //!< Criteria to be used for the search. If NULL, will look for any record
+    const fst_record* criteria, //!< [Optional] Criteria to be used for the search. If NULL, will look for any record
+    const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 );
 
 //! Link the given list of files together, so that they are treated as one for the purpose
@@ -1058,6 +1065,7 @@ function new_query(this,                                                        
     character(len=4),  intent(in), optional :: nomvar
     character(len=12), intent(in), optional :: etiket
     type(meta), intent(in), optional :: metadata
+    logical,    intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     type(fst_query) :: query
 end function new_query
 

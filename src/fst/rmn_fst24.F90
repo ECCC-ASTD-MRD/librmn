@@ -47,6 +47,15 @@ module rmn_fst24
         procedure, pass :: free      => fst_query_free         !< \copydoc fst_query_free
     end type fst_query
 
+    !> Must match exactly the fst_query_options struct from C code
+    type, bind(c), private :: fst_query_options_c
+        private
+        integer(C_INT32_T) :: ip1_all = 0
+        integer(C_INT32_T) :: ip2_all = 0
+        integer(C_INT32_T) :: ip3_all = 0
+    end type fst_query_options_c
+
+
     interface
         subroutine libc_free(ptr) BIND(C, name='free')
             import :: C_PTR
@@ -149,7 +158,8 @@ contains
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
     function fst24_file_new_query(this,                                                                             & 
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
-            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+            ip1_all, ip2_all, ip3_all) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
         integer(C_INT32_T), intent(in), optional :: dateo, datev
@@ -159,11 +169,14 @@ contains
         character(len=1),  intent(in), optional :: grtyp
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
+        logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         type(meta), intent(in), optional :: metadata
         type(fst_query) :: query
 
         type(fst_record_c), target :: criteria
+        type(fst_query_options_c), target :: options
 
+        ! Criteria
         if (present(dateo)) criteria % dateo = dateo
         if (present(datev)) criteria % datev = datev
         if (present(datyp)) criteria % datyp = datyp
@@ -187,7 +200,18 @@ contains
         if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 13)
         if (present(metadata)) criteria % metadata = metadata % json_obj
 
-        query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria))
+        ! Options
+        if (present(ip1_all)) then
+            if (ip1_all) options % ip1_all = 1
+        end if
+        if (present(ip2_all)) then
+            if (ip2_all) options % ip2_all = 1
+        end if
+        if (present(ip3_all)) then
+            if (ip3_all) options % ip3_all = 1
+        end if
+
+        query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria), c_loc(options))
 
     end function fst24_file_new_query
 
@@ -424,4 +448,21 @@ contains
             this % query_ptr = c_null_ptr
         end if
     end subroutine fst_query_free
+
+    function fst24_is_default_query_options_valid() result(is_valid)
+        implicit none
+        logical :: is_valid
+
+        integer(C_INT32_T) :: c_status
+        type(fst_query_options_c), target :: to_compare
+
+        is_valid = .false.
+
+        c_status = fst24_validate_default_query_options(c_loc(to_compare), storage_size(to_compare, kind = int64) / 8_int64)
+        if (c_status == 0) is_valid = .true.
+
+        if (.not. is_valid) then
+            call Lib_Log(APP_LIBFST, APP_ERROR, 'Default FST query options struct is not valid, check your library versions!')
+        end if
+    end function fst24_is_default_query_options_valid
 end module rmn_fst24
