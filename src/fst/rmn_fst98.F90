@@ -10,7 +10,6 @@
 !
 ! use rmn_fst98 will cause the direct fstxxx entry points from librmn to be ignored
 ! and use instead the equivalent procedures from the module and associated sub modules
-!
 module rmn_fst98
   use rmn_common
   implicit none
@@ -641,9 +640,9 @@ module rmn_fst98
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  module subroutine fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+  module function fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                     ip1, ip2, ip3, typvar, nomvar, etiket, &
-                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
@@ -652,7 +651,8 @@ module rmn_fst98
     integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-  end subroutine fstecr
+    integer(C_INT) :: status
+  end function fstecr
 
   module function fstecr_fn(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &

@@ -17,93 +17,87 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      module mzonxst_mod
-! Section DECLARATIONS
+module mzonxst_mod
+    ! Section DECLARATIONS
+    Integer       MaxTask,      MaxVar
+    Parameter   ( MaxTask = 32, MaxVar = 1024 )
 
-      Integer       MaxTask,      MaxVar
-      Parameter   ( MaxTask = 32, MaxVar = 1024 )
+    Integer       MaxVarP3
+    Parameter   ( MaxVarP3 = MaxVar +3 )
 
-      Integer       MaxVarP3
-      Parameter   ( MaxVarP3 = MaxVar +3 )
+    Real          GrosNb
+    Parameter   ( GrosNb = 1.E+18 )
 
-      Real          GrosNb
-      Parameter   ( GrosNb = 1.E+18 )
+    ! Declarations des variables statiques.
+    Integer       NombreC
+    Parameter   ( NombreC = 14)
 
-! Declarations des variables statiques.
+    Logical       IOPrint
+    Save          IOPrint
+    Character(len=256) NOUTZON
+    Save          NOUTZON
+    Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
+    Save          IUN,KA,NCPU,StartI,StartJ,NDIMS
+    Integer       KAJ(MaxTask),listej(MaxTask),tabctl(NombreC)
+    Save          KAJ,         listej,         tabctl
 
-      Integer       NombreC
-      Parameter   ( NombreC = 14)
+    Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK, NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
 
-      Logical       IOPrint
-      Save          IOPrint
-      Character(len=256) NOUTZON
-      Save          NOUTZON
-      Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
-      Save          IUN,KA,NCPU,StartI,StartJ,NDIMS
-      Integer       KAJ(MaxTask),listej(MaxTask),tabctl(NombreC)
-      Save          KAJ,         listej,         tabctl
+    ! Equivalence
+    ! +( NDELTAT, tabctl(1) ),( DELTAT, tabctl(2) ),
+    ! +( MODE,    tabctl(3) ),( NI,     tabctl(4) ),
+    ! +( NJ,      tabctl(5) ),( NK,     tabctl(6) ),
+    ! +( NBIN,    tabctl(7) ),( SOMNK,  tabctl(8) ),
+    ! +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
+    ! +( ROT,     tabctl(11))
 
-      Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK, NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
+    Common /zontab/ NDELTAT,DELTAT,MODE,NI,NIP,NJ,NK, NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
 
-! Equivalence
-! +( NDELTAT, tabctl(1) ),( DELTAT, tabctl(2) ),
-! +( MODE,    tabctl(3) ),( NI,     tabctl(4) ),
-! +( NJ,      tabctl(5) ),( NK,     tabctl(6) ),
-! +( NBIN,    tabctl(7) ),( SOMNK,  tabctl(8) ),
-! +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
-! +( ROT,     tabctl(11))
+    ! Declaration de la variable d'etat.
+    Integer       ETAT, transit(6,0:3)
+    Save          ETAT, transit
 
-      Common /zontab/ NDELTAT,DELTAT,MODE,NI,NIP,NJ,NK, NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
+    ! Parametres servant a l'allocation de memoire dynamique.
+    Integer       sizWK
+    save          sizWK
 
-! Declaration de la variable d'etat.
+    real, dimension(:,:), save, pointer :: sint, cost, pds
+    integer, dimension(:,:), save, pointer :: bin
+    real, dimension(:,:), save, pointer :: somx, somx2
 
-      Integer       ETAT, transit(6,0:3)
-      Save          ETAT, transit
+    real, dimension(:,:,:), save, pointer :: temp
+    integer, dimension(:,:), save, pointer :: util
+    real, dimension(:), save, pointer :: WK
 
-! Parametres servant a l'allocation de memoire dynamique.
+    ! Drapeaux logiques.
+    Logical       Vrai,Faux, NOTOK, SavPas, Hard, Debug
+    Save          Vrai,Faux,        SavPas, Hard, Debug
 
-      Integer       sizWK
-      save          sizWK
+    Character(len=8)   listvar(MaxVarP3)
+    Integer       propvar(MaxVar), posvar(0:MaxVar),NVAR
 
-      real, dimension(:,:), save, pointer :: sint, cost, pds
-      integer, dimension(:,:), save, pointer :: bin
-      real, dimension(:,:), save, pointer :: somx, somx2
+    Save          listvar,propvar,posvar,NVAR
 
-      real, dimension(:,:,:), save, pointer :: temp
-      integer, dimension(:,:), save, pointer :: util
-      real, dimension(:), save, pointer :: WK
+    Character     typvar*1, etiket*12,               grtyp*1
 
-! Drapeaux logiques.
+    Integer       dateo,deet,npas, ip1,ip2,ip20,ip3,        datyp,nbits, ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
 
-      Logical       Vrai,Faux, NOTOK, SavPas, Hard, Debug
-      Save          Vrai,Faux,        SavPas, Hard, Debug
+    Save          dateo,deet,npas,         typvar,etiket,grtyp, ip1,ip2,ip20,ip3,        datyp,nbits, ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
 
-      Character(len=8)   listvar(MaxVarP3)
-      Integer       propvar(MaxVar), posvar(0:MaxVar),NVAR
+    ! Declaration des valeurs initiales
+    Data          Vrai     /     .true.     /, Faux     /     .false.    /, Hard     /     .false.    /, Debug    /     .false.    /
+    Data          IOPrint  /     .true.     /
+    Data          listej   /  MaxTask * -1  /
+    Data          IUN,ETAT / -1  ,  0  /
+    Data          NCPU     /  1  /
+    Data          NDIMS    /  0  /
+    Data          StartI   /  0  /
+    Data          StartJ   /  0  /
+    Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  , 3  ,  2  , -1  ,  6  , 999 , 999 , 3  ,  3  , -2  ,  4  , 999 , 999 , 2  ,  3  , -3  , 999 , 999 , 999 /
+    Data          NOUTZON  / 'noutzon' /
+end module mzonxst_mod
 
-      Save          listvar,propvar,posvar,NVAR
 
-      Character     typvar*1, etiket*12,               grtyp*1
-
-      Integer       dateo,deet,npas, ip1,ip2,ip20,ip3,        datyp,nbits, ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
-
-      Save          dateo,deet,npas,         typvar,etiket,grtyp, ip1,ip2,ip20,ip3,        datyp,nbits, ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
-
-! Declaration des valeurs initiales
-
-      Data          Vrai     /     .true.     /, Faux     /     .false.    /, Hard     /     .false.    /, Debug    /     .false.    /
-      Data          IOPrint  /     .true.     /
-      Data          listej   /  MaxTask * -1  /
-      Data          IUN,ETAT / -1  ,  0  /
-      Data          NCPU     /  1  /
-      Data          NDIMS    /  0  /
-      Data          StartI   /  0  /
-      Data          StartJ   /  0  /
-      Data          transit  /  5  ,  1  ,  5  ,  7  ,  8  ,  9  , 3  ,  2  , -1  ,  6  , 999 , 999 , 3  ,  3  , -2  ,  4  , 999 , 999 , 2  ,  3  , -3  , 999 , 999 , 999 /
-      Data          NOUTZON  / 'noutzon' /
-      end
-
-!**S/P  MZONXST
 #if defined(AUTO_DOC)
 !
 !     Routine names  -  MZONOPR (1), MVZNXST (3), MZONFIL (5)
@@ -267,32 +261,34 @@
 !                                          calculations of SOMX and SOMX2
 !
 #endif
+
+
 #if !defined(NO_SOURCE)
-Subroutine mzonopr ( OPR,VAL )
+Subroutine mzonopr ( OPR, VAL )
     use mzonxst_mod
+    use rmn_fst98
     IMPLICIT NONE
 
-    ! Declaration des parametres d'appel de mzonopr.
-    Integer       OPR,VAL,NIV
+    Integer :: OPR
+    Integer :: VAL
+    Integer :: NIV
 
     ! Nom/propiete/position des variables a traiter.
-    Integer       var(MaxVarP3)
+    Integer, dimension(MaxVarP3) :: var
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    Integer       ifrm,fstfrm, iecr,fstecr, iprm,fstprm, inbr,fstnbr, inf, fstinf, iluk,fstluk, ierr,fstouv, nil, exfin,  wkoffit
-    External      fstnbr, fstouv, fstfrm, fstecr,  exfin, fstprm, fstluk, fstinf, qqexit, wkoffit, r4astrg
+    Integer ifrm, iecr, iprm, inbr, inf,  iluk, ierr, nil, exfin,  wkoffit
+    External exfin, qqexit, wkoffit, r4astrg
 
 #include <rmn/fnom.hf>
 
-    Integer       extra1,extra2,extra3,npak,kount
-    Character     nomvar*4
-
-    Logical       rewrit
-
+    Integer :: extra1, extra2, extra3, npak, kount
+    Character(len = 4) :: nomvar
+    Integer :: rewrit
 
     ! Variables de travail non statiques.
     Integer :: bini, deb, fin, ii, jj, kk, lo, LocVAL
-    Integer :: NIC,NJC,NKC, place,placeX,placeY
+    Integer :: NIC, NJC, NKC, place, placeX, placeY
     Real :: poids
 
     If (OPR.ge.100) then
@@ -624,7 +620,7 @@ Subroutine mzonopr ( OPR,VAL )
             If (COMPLET.ne.0) then
                 ! Sauver le contenu des SOMX/SOMX2.
                 datyp  =   5
-                rewrit = Vrai
+                rewrit = 1
                 npak   = -32
                 etiket = 'MZONXST'
 
@@ -639,8 +635,7 @@ Subroutine mzonopr ( OPR,VAL )
                     End Do
 
                     nomvar = '1/'
-                    iecr   = fstecr( WK, somx, npak,IUN,dateo,deet,npas, NBIN,SOMNK,1, ip1,ip2,ip3, typvar,nomvar,etiket,grtyp, ig1,ig2,ig3,ig4,datyp, rewrit )
-
+                    iecr = fstecr( WK, somx, npak,IUN,dateo,deet,npas, NBIN,SOMNK,1, ip1,ip2,ip3, typvar,nomvar,etiket,grtyp, ig1,ig2,ig3,ig4,datyp, rewrit )
                     If (iecr.lt.0) then
                         If (IOPrint) then
                             Write(6,6003)
@@ -661,7 +656,7 @@ Subroutine mzonopr ( OPR,VAL )
                     End Do
 
                     nomvar = '2/'
-                    iecr   = fstecr( WK, somx2, npak,IUN,dateo,deet,npas, NBIN,SOMNK,1, ip1,ip2,ip3, typvar,nomvar,etiket,grtyp, ig1,ig2,ig3,ig4,datyp, rewrit )
+                    iecr = fstecr( WK, somx2, npak,IUN,dateo,deet,npas, NBIN,SOMNK,1, ip1,ip2,ip3, typvar,nomvar,etiket,grtyp, ig1,ig2,ig3,ig4,datyp, rewrit )
                     If (iecr.lt.0) then
                         If (IOPrint) then
                             Write(6,6004)
@@ -815,7 +810,7 @@ Subroutine mzonopr ( OPR,VAL )
             If (SavPas) then
                 ! Sauver ce que l'on a sur somx/somx2.
                 datyp  =   5
-                rewrit =  Faux
+                rewrit =  0
                 nkc    =   1
                 npak   =  -32
                 etiket = 'MZONXST'
@@ -865,7 +860,7 @@ Subroutine mzonopr ( OPR,VAL )
                 ! Mettre a jour le tableau 'T/'
                 COMPLET  = 0
                 datyp  =   2
-                rewrit = Vrai
+                rewrit = 1
                 npak   = -32
                 etiket = 'CONTROLE'
                 nomvar = 'T/'

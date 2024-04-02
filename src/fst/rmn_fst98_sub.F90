@@ -652,7 +652,6 @@ contains
 !  *****************************************************************************/
   module procedure fstecr
     implicit none
-    integer(C_INT) :: status
     status = fstecr_fn(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
@@ -677,7 +676,7 @@ contains
     implicit none
     integer :: status
     status = fst_data_length(8)
-    call fstecr(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+    status = fstecr(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
     status = fst_data_length(4)
@@ -687,7 +686,7 @@ contains
     implicit none
     integer :: status
     status = fst_data_length(2)
-    call fstecr(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+    status = fstecr(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
     status = fst_data_length(4)
@@ -697,7 +696,7 @@ contains
     implicit none
     integer :: status
     status = fst_data_length(1)
-    call fstecr(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
+    status = fstecr(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
     status = fst_data_length(4)
@@ -745,16 +744,14 @@ contains
     character(len=12) :: eti
     status = 1
     ninjnk = max(1,ni) * max(1,nj) * max(1,nk)
-!     if (ninjnk > lngstr * nj) return
     if (ninjnk > lngstr) return
     nom = nomvar
     typ = typvar
     gty = grtyp
     eti = etiket
-    call fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+    status = fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, f_c_string(typ), f_c_string(nom), f_c_string(eti), f_c_string(gty),  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
-    status = 0
   end procedure
 
   module procedure fstecr_str
