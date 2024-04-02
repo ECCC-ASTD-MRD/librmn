@@ -251,16 +251,14 @@ contains
         end if
     end function
 
-    function fst24_record_free(this) result(success)
+    subroutine fst24_record_free(this)
         implicit none
         class(fst_record), intent(inout), target :: this
         integer(C_INT32_T) :: c_status
         logical :: success
 
         c_status = fst24_record_free_c(c_loc(this%c_self))
-        success = .false.
-        if (c_status > 0) success = .true.
-     end function
+     end subroutine
 
     !> Check whether two records have identical information (except data). This will sync the underlying C struct
     !> \return .true. if the two records have the same information (not data/metadata), .false. otherwise
