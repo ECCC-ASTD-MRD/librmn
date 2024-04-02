@@ -1,7 +1,10 @@
 #ifdef INTERFACEONLY
 interface wb_reset
   function wb_reset() result(status)
-    import :: int32
+    use, intrinsic :: iso_fortran_env
+#ifdef INTERFACEONLY
+    import :: whiteboard
+#endif
     implicit none
     integer(kind = int32) :: status
   end function
