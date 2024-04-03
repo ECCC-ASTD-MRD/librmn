@@ -66,8 +66,8 @@ fst_file* fst24_open(
     const int MAX_LENGTH = 1024;
     char local_options[MAX_LENGTH];
     snprintf(local_options, MAX_LENGTH, "RND+%s%s",
-             !(strcasestr(options, "R/W") || strcasestr(options, "R/O")) ? "R/O+" : "",
-             options);
+             (!options || !(strcasestr(options, "R/W") || strcasestr(options, "R/O"))) ? "R/O+" : "",
+             options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
 
     if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) return NULL;

@@ -217,33 +217,33 @@ int ip_is_equal(
         target = ips_tab[ind][j];
         if (ip == target) return 1;
         if (ip < 10)
-        if (ipold_0_9[ip] == target) return 1;
+            if (ipold_0_9[ip] == target) return 1;
         if ((ip > 32767) && (target > 32767)) {
-        kind1 = (ip >> 24) & 0xF;
-        kind2 = (target >> 24) & 0xF;
-        if (kind1 != kind2) continue;
-        exp1 = (ip >> 20) & 0xF;
-        exp2 = (target >> 20) & 0xF;
-        mantis1 = ip & 0xFFFFF;
-        if (mantis1 > 1000000) mantis1 = -(mantis1 - 1000000);
-        mantis2 = target & 0xFFFFF;
-        if (mantis2 > 1000000) mantis2 = -(mantis2 - 1000000);
-        /* mantis1 and mantis2 must be same sign */
-        if ((mantis1 ^ mantis2) < 0) continue;
+            kind1 = (ip >> 24) & 0xF;
+            kind2 = (target >> 24) & 0xF;
+            if (kind1 != kind2) continue;
+            exp1 = (ip >> 20) & 0xF;
+            exp2 = (target >> 20) & 0xF;
+            mantis1 = ip & 0xFFFFF;
+            if (mantis1 > 1000000) mantis1 = -(mantis1 - 1000000);
+            mantis2 = target & 0xFFFFF;
+            if (mantis2 > 1000000) mantis2 = -(mantis2 - 1000000);
+            /* mantis1 and mantis2 must be same sign */
+            if ((mantis1 ^ mantis2) < 0) continue;
 
-        if (exp1 > exp2) {
-            while (exp1 > exp2) {
-                exp2++;
-                mantis2 *= 10;
+            if (exp1 > exp2) {
+                while (exp1 > exp2) {
+                    exp2++;
+                    mantis2 *= 10;
+                }
+            } else {
+                while (exp2 > exp1) {
+                    exp1++;
+                    mantis1 *= 10;
+                }
             }
-        } else {
-            while (exp2 > exp1) {
-                exp1++;
-                mantis1 *= 10;
-            }
-        }
 
-        if (labs(mantis1-mantis2) <= 1) return 1;
+            if (labs(mantis1-mantis2) <= 1) return 1;
         }
     }
     return 0;
@@ -1987,8 +1987,8 @@ int c_fstinfx_xdf(
     copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
     copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
     copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d)\n",
-            __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar, handle);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d, IP flags = %d%d%d)\n",
+            __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar, handle, ip1s_flag, ip2s_flag, ip3s_flag);
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -2109,7 +2109,6 @@ int c_fstinfx_xdf(
 
     if (lhandle < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) record not found, errcode=%d\n", __func__, iun, lhandle);
-        if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
         return lhandle;
@@ -2192,8 +2191,9 @@ int c_fstinfx(
 
     int status = -1;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d, IP all flags %d %d %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file,
+                ip1s_flag, ip2s_flag, ip3s_flag);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinfx_rsf(handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar,
@@ -2210,6 +2210,8 @@ int c_fstinfx(
 
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     return status;
 }

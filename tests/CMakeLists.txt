@@ -150,5 +150,16 @@ if (EC_INIT_DONE LESS 2)
         target_link_libraries(moduledate rmn::rmn)
         add_test(NAME moduledate COMMAND $<TARGET_FILE:moduledate>)
         add_dependencies(check moduledate)
+
+        add_executable(fst_ipall fst/fst_ipall.F90)
+        target_link_libraries(fst_ipall rmn::rmn)
+        add_test(NAME fst_ipall COMMAND $<TARGET_FILE:fst_ipall>)
+        add_dependencies(check fst_ipall)
+
+        add_executable(rsf_empty_file rsf_empty_file.c)
+        target_link_libraries(rsf_empty_file rmn::rmn)
+        add_test(NAME rsf_empty_file COMMAND $<TARGET_FILE:rsf_empty_file>)
+        add_dependencies(check rsf_empty_file)
+
     endif()
 endif()
