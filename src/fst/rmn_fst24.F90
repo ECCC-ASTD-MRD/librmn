@@ -40,12 +40,13 @@ module rmn_fst24
         private
         type(C_PTR) :: query_ptr = c_null_ptr ! Pointer to C fst_query structure
     contains
-        procedure, pass :: is_valid  => fst_query_is_valid     !< \copydoc fst_query_is_valid
-        procedure, pass :: find_next => fst_query_find_next    !< \copydoc fst_query_find_next
-        procedure, pass :: find_all  => fst_query_find_all     !< \copydoc fst_query_find_all
-        procedure, pass :: read_next => fst_query_read_next    !< \copydoc fst_query_read_next
-        procedure, pass :: rewind    => fst_query_rewind       !< \copydoc fst_query_rewind
-        procedure, pass :: free      => fst_query_free         !< \copydoc fst_query_free
+        procedure, pass :: is_valid   => fst_query_is_valid     !< \copydoc fst_query_is_valid
+        procedure, pass :: find_next  => fst_query_find_next    !< \copydoc fst_query_find_next
+        procedure, pass :: find_all   => fst_query_find_all     !< \copydoc fst_query_find_all
+        procedure, pass :: find_count => fst_query_find_count   !< \copydoc fst_query_find_count
+        procedure, pass :: read_next  => fst_query_read_next    !< \copydoc fst_query_read_next
+        procedure, pass :: rewind     => fst_query_rewind       !< \copydoc fst_query_rewind
+        procedure, pass :: free       => fst_query_free         !< \copydoc fst_query_free
     end type fst_query
 
     !> Must match exactly the fst_query_options struct from C code
@@ -86,7 +87,7 @@ contains
         implicit none
         class(fst_file), intent(in) :: this !< fst24_file instance
         logical :: is_open !< Whether this file is open
-        
+
         integer(C_INT32_T) :: c_is_open
 
         is_open = .false.
@@ -304,6 +305,16 @@ contains
             num_found = num_found + 1
         end do
     end function fst_query_find_all
+
+    !> \copybrief fst24_find_count
+    !> \return Number of records found
+    function fst_query_find_count(this) result(num_found)
+        implicit none
+        class(fst_query), intent(inout) :: this     !< Query used for the search
+        integer(C_INT32_T) :: num_found
+
+        num_found = fst24_find_count(this % query_ptr)
+    end function fst_query_find_count
 
     !> \copybrief fst24_read_next
     !> \return .true. if we read a record, .false. if none found or if error

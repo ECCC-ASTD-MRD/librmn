@@ -258,7 +258,7 @@ int test_fst24_interface(const int is_rsf) {
 
         if (check_content(record.data, test_data, DATA_SIZE) < 0) return -1;
     }
-    
+
     if (num_found != 3) {
         App_Log(APP_ERROR, "Should have read 3 records (not %d)\n", num_found);
         return -1;
@@ -307,6 +307,14 @@ int test_fst24_interface(const int is_rsf) {
             fst24_record_diff(&all_records[i], &expected);
             return -1;
         }
+    }
+
+    /////////////////////////////////////////
+    // Find count
+    num_found = fst24_find_count(query);
+    if (num_found != 3) {
+        App_Log(APP_ERROR, "Find count expected 3, but found found %d record(s)!\n", num_found);
+        return -1;
     }
 
     /////////////////////////////////////////

@@ -63,6 +63,7 @@ int32_t    fst24_rewind_search(fst_query* query);
 // int32_t    fst24_find(fst_file* file,const fst_record* criteria, fst_record* result);
 int32_t    fst24_find_next(fst_query* const query, fst_record* const result);
 int32_t    fst24_find_all(fst_query* const query, fst_record* const results, const int32_t max_num_results);
+int32_t    fst24_find_count(fst_query * const query);
 int32_t    fst24_query_is_valid(const fst_query* const q);
 void       fst24_query_free(fst_query* const query);
 

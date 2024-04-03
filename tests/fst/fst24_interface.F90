@@ -399,6 +399,18 @@ function test_fst24_interface(is_rsf) result(success)
         end do
     end block
 
+    ! /////////////////////////////////////////
+    ! // Find count
+    block
+        num_found = query % find_count()
+        success = (num_found == 3)
+        if (.not. success) then
+            write(app_msg, '(A, I4, A)') 'Found only ', num_found, ' of the 3 records we wrote!'
+            call app_log(APP_ERROR, app_msg)
+            return
+        end if
+    end block
+
     call query % free()
 
     ! /////////////////////////////////////////

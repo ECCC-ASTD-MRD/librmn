@@ -133,6 +133,13 @@ interface
         integer(C_INT32_T) :: num_found
     end function fst24_find_all
 
+    function fst24_find_count(query) result(num_found) bind(C, name = 'fst24_find_count')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: query
+        integer(C_INT32_T) :: num_found
+    end function fst24_find_count
+
     function fst24_read_next(query, record) result(status) bind(C, name = 'fst24_read_next')
         import :: C_PTR, C_INT32_T
         implicit none

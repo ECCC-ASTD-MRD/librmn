@@ -1303,6 +1303,21 @@ int32_t fst24_find_all(
     return max_num_results;
 }
 
+//! Get the number of records matching to query
+//! \return Number of records found by the query
+int32_t fst24_find_count(
+    fst_query * const query //!< [in] Query used for the search (the state of the query object is modified)
+) {
+    int32_t count = 0;
+    fst_record record;
+
+    while (fst24_find_next(query, &record)) {
+        count++;
+    }
+    return count;
+}
+
+
 //! Unpack the given data array, according to the given record information
 int32_t fst24_unpack_data(
     void* dest,
