@@ -221,7 +221,7 @@ int test_fst24_interface(const int is_rsf) {
             }
         }
 
-        if (fst24_read(&record) <= 0) {
+        if (fst24_read_record(&record) <= 0) {
             App_Log(APP_ERROR, "Could not read data from record!\n");
             fst24_record_print(&record);
             return -1;
@@ -350,6 +350,7 @@ int test_fst24_interface(const int is_rsf) {
         fst_record criteria = default_fst_record;
         fst_record result = default_fst_record;
         fst_record results[10];
+        fst_record result2 = default_fst_record;
 
         // Should find the 3 records in the second file only
         criteria.ip2 = test_record.ip2 + 1;
@@ -368,6 +369,16 @@ int test_fst24_interface(const int is_rsf) {
                 fst24_record_print(&result);
                 fst24_record_diff(&result, &expected);
                 return -1;
+            }
+
+            if (num_found == 1) {
+                fst24_read(test_file, &criteria, NULL, &result2);
+                if (!fst24_record_has_same_info(&result, &result2)) {
+                    App_Log(APP_ERROR, "Record read with fst24_read is not identical to the one from find_next! (num_found = %d)\n", num_found);
+                    fst24_record_print(&result);
+                    fst24_record_diff(&result, &result2);
+                    return -1;
+                }
             }
         }
 
@@ -390,7 +401,7 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
         while (fst24_find_next(query, &result)) {
             num_found++;
-            if (fst24_read(&result) <= 0) {
+            if (fst24_read_record(&result) <= 0) {
                 App_Log(APP_ERROR, "Unable to read record from linked files\n");
                 fst24_record_print(&result);
                 return -1;
@@ -434,7 +445,7 @@ int test_fst24_interface(const int is_rsf) {
     }
 
     App_Log(APP_INFO, "A few calls that should fail\n");
-    if (fst24_read(&record) > 0) {
+    if (fst24_read_record(&record) > 0) {
         App_Log(APP_ERROR, "Should not be able to read record data when file is closed\n");
         return -1;
     }

@@ -398,6 +398,7 @@ function test_fst24_interface(is_rsf) result(success)
         type(fst_file), dimension(3) :: file_list
         type(fst_record), dimension(10) :: results
         integer(C_INT64_T) :: num_records
+        type(fst_record) :: result2
 
         file_list(1) = test_file
 
@@ -470,6 +471,24 @@ function test_fst24_interface(is_rsf) result(success)
                 call record % print()
                 call expected % print()
                 return
+            end if
+
+            if (num_found == 1) then
+                success = test_file % read(result2, ip2 = test_record % ip2 + 1)
+                if (.not. success) then
+                    call App_Log(APP_ERROR, 'Could not read record with file % read')
+                    return
+                end if
+
+                success = result2 % has_same_info(record)
+                if (.not. success) then
+                    write(app_msg, '(A, I3, A)') 'Record from file % read is not identical to the one from find next! (num_found = ',    &
+                        num_found, ')'
+                    call app_log(APP_ERROR, app_msg)
+                    call record % print()
+                    call result2 % print()
+                    return
+                end if
             end if
         end do
 

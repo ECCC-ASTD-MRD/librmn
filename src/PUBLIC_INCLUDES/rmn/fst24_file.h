@@ -52,10 +52,12 @@ int32_t   fst24_close(fst_file* const file);
 int64_t   fst24_get_num_records(const fst_file* const file);
 int32_t   fst24_eof(const fst_file* const file);
 
-int32_t    fst24_read(fst_record* const record);
+int32_t    fst24_read_record(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);
 int32_t    fst24_read_next(fst_query* const query, fst_record* const record);
 int32_t    fst24_write(fst_file* const file, fst_record* const record, int rewrit);
+int32_t    fst24_read(const fst_file* const file, const fst_record* criteria, const fst_query_options* options,
+                      fst_record* const record);
 fst_query* fst24_new_query(const fst_file* const file, const fst_record* criteria, const fst_query_options* options);
 int32_t    fst24_rewind_search(fst_query* query);
 // int32_t    fst24_find(fst_file* file,const fst_record* criteria, fst_record* result);

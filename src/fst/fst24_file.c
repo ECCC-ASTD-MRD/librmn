@@ -1519,7 +1519,7 @@ int32_t fst24_unpack_data(
 
 //! Read a record from an RSF file
 //! \return 0 for success, negative for error
-int32_t fst24_read_rsf(
+int32_t fst24_read_record_rsf(
     const RSF_handle rsf_file,  //!< Handle to the file where the record is stored
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
@@ -1573,7 +1573,7 @@ int32_t fst24_read_rsf(
 
 //! Read a record from an XDF file
 //! \return 0 for success, negative for error
-int32_t fst24_read_xdf(
+int32_t fst24_read_record_xdf(
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
     //!> Must have already allocated its data buffer
@@ -1616,7 +1616,7 @@ void* fst24_read_metadata(
     }
 
     if (record->file->type == FST_RSF) {
-        if (fst24_read_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
+        if (fst24_read_record_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file\n", __func__);
             return NULL;
         }
@@ -1633,7 +1633,7 @@ void* fst24_read_metadata(
 
 //! Read the data and metadata of a given record from its corresponding file
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
-int32_t fst24_read(
+int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
     if (!fst24_is_open(record->file)) {
@@ -1668,10 +1668,10 @@ int32_t fst24_read(
 
     int32_t ret = -1;
     if (record->file->type == FST_RSF) {
-        ret = fst24_read_rsf(record->file->rsf_handle, record, image_mode_copy, 0);
+        ret = fst24_read_record_rsf(record->file->rsf_handle, record, image_mode_copy, 0);
     }
     else if (record->file->type == FST_XDF) {
-        ret = fst24_read_xdf(record);
+        ret = fst24_read_record_xdf(record);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
@@ -1699,7 +1699,20 @@ int32_t fst24_read_next(
         return FALSE;
     }
 
-    return fst24_read(record);
+    return fst24_read_record(record);
+}
+
+//! Search a file with given criteria and read the first record that matches these criteria.
+//! Search through linked files, if any.
+//! \return TRUE (1) if able to find and read a record, FALSE (0) or a negative number otherwise (not found or error)
+int32_t fst24_read(
+    const fst_file* const file,         //!< File we want to search
+    const fst_record* criteria,         //!< [Optional] Criteria to be used for the search
+    const fst_query_options* options,   //!< [Optional] Options to modify how the search will be performed
+    fst_record* const record            //!< [out] Record content and info, if found
+) {
+    fst_query* q = fst24_new_query(file, criteria, options);
+    return fst24_read_next(q, record);
 }
 
 //! Link the given list of files together, so that they are treated as one for the purpose

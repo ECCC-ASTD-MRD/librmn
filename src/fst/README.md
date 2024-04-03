@@ -801,6 +801,16 @@ int32_t fst24_print_summary(
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
 int32_t fst24_write(fst_file* file, fst_record* record, int rewrit);
 
+//! Search a file with given criteria and read the first record that matches these criteria.
+//! Search through linked files, if any.
+//! \return TRUE (1) if able to find and read a record, FALSE (0) or a negative number otherwise (not found or error)
+int32_t fst24_read(
+    const fst_file* const file,         //!< File we want to search
+    const fst_record* criteria,         //!< [Optional] Criteria to be used for the search
+    const fst_query_options* options,   //!< [Optional] Options to modify how the search will be performed
+    fst_record* const record            //!< [out] Record content and info, if found
+);
+
 //! Create a search query that will apply the given criteria during a search in a file.
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
@@ -844,7 +854,7 @@ int32_t fst24_find_next(
     fst_record* record
 );
 
-//! Read the next record (data and all) that corresponds to the previously-set search criteria
+//! Read the next record (data and all) that corresponds to the search criteria
 //! Search through linked files, if any
 //! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
@@ -931,6 +941,7 @@ contains
     procedure, pass   :: get_unit
 
     procedure, pass :: new_query
+    procedure, pass :: read
     procedure, pass :: write
 
     procedure, pass :: flush
@@ -1068,6 +1079,29 @@ function new_query(this,                                                        
     logical,    intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     type(fst_query) :: query
 end function new_query
+
+!> Search a file with given criteria and read the first record that matches these criteria.
+!> Search through linked files, if any.
+!> Return .true. if we found a record, .false. if not or if error
+function read(this, record,                                                                                     &
+        dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+        ip1_all, ip2_all, ip3_all) result(found)
+    implicit none
+    class(fst_file), intent(inout) :: this
+    type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+    integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=2),  intent(in), optional :: typvar
+    character(len=1),  intent(in), optional :: grtyp
+    character(len=4),  intent(in), optional :: nomvar
+    character(len=12), intent(in), optional :: etiket
+    logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    type(meta), intent(in), optional :: metadata
+    logical :: found
+end function read
 
 !> Write the given record into the given standard file
 !> Return Whether the write was successful

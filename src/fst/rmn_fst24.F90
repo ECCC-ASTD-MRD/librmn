@@ -22,6 +22,7 @@ module rmn_fst24
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
+        procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
@@ -154,6 +155,37 @@ contains
         status = fst24_get_unit(this % file_ptr)
     end function fst24_file_get_unit
 
+    !> \copybrief fst24_read
+    !> \return .true. if we found a record, .false. if not or if error
+    function fst24_file_read(this, record,                                                                          &
+            dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+            ip1_all, ip2_all, ip3_all) result(found)
+        implicit none
+        class(fst_file), intent(inout) :: this
+        type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+        integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+        character(len=2),  intent(in), optional :: typvar
+        character(len=1),  intent(in), optional :: grtyp
+        character(len=4),  intent(in), optional :: nomvar
+        character(len=12), intent(in), optional :: etiket
+        logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        type(meta), intent(in), optional :: metadata
+        logical :: found
+
+        type(fst_query) :: query
+
+        found = .false.
+
+        query = this % new_query(dateo, datev, datyp, dasiz, npak, ni, nj, nk, deet, npas,                          &
+                                 ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
+                                 metadata, ip1_all, ip2_all, ip3_all)
+        found = query % find_next(record)
+    end function fst24_file_read
+
     !> \copybrief fst24_new_query
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
     function fst24_file_new_query(this,                                                                             & 
@@ -235,7 +267,7 @@ contains
         c_result = fst24_find_next(this % query_ptr, c_record)
 
         if (c_result > 0) then
-            call record % from_c_self()
+            if (present(record)) call record % from_c_self()
             ! call record % print()
             found = .true.
         end if

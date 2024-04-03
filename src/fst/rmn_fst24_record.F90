@@ -287,7 +287,7 @@ contains
         integer(C_INT32_T) :: c_status
 
         success = .false.
-        c_status = fst24_read(this % get_c_ptr())
+        c_status = fst24_read_record(this % get_c_ptr())
         if (c_status > 0) then
             call this % from_c_self()
             success = .true.

@@ -48,12 +48,12 @@ interface
         integer(C_INT32_T) :: status
     end function fst24_record_has_same_info_c
 
-    function fst24_read(record) result(status) bind(C, name = 'fst24_read')
+    function fst24_read_record(record) result(status) bind(C, name = 'fst24_read_record')
         import :: C_PTR, C_INT32_T
         implicit none
         type(C_PTR), intent(in), value :: record
         integer(C_INT32_T) :: status
-    end function fst24_read
+    end function fst24_read_record
 
     function fst24_read_metadata(record) result(metadata) bind(C, name = 'fst24_read_metadata')
         import :: C_PTR
