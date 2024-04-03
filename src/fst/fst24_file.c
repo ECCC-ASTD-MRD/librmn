@@ -1308,9 +1308,11 @@ int32_t fst24_find_all(
 int32_t fst24_find_count(
     fst_query * const query //!< [in] Query used for the search (the state of the query object is modified)
 ) {
-    int32_t count = 0;
     fst_record record = default_fst_record;
 
+    fst24_rewind_search(query);
+
+    int32_t count = 0;
     while (fst24_find_next(query, &record)) {
         count++;
     }
