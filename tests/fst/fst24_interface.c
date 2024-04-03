@@ -268,6 +268,15 @@ int test_fst24_interface(const int is_rsf) {
     // Find all
     App_Log(APP_INFO, "Testing find_all\n");
     fst_record all_records[5];
+
+
+    num_found = fst24_find_all(query, NULL, 0);
+
+    if (num_found != 3) {
+        App_Log(APP_ERROR, "Found %d records out of 3\n", num_found);
+        return -1;
+    }
+
     num_found = fst24_find_all(query, all_records, 1);
 
     if (num_found != 1) {

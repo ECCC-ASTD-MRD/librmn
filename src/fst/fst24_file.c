@@ -1186,7 +1186,7 @@ int32_t fst24_find_next(
         return FALSE;
     }
 
-    if (!fst24_record_is_valid(record)) {
+    if (record && !fst24_record_is_valid(record)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must give a valid record into which information will be put\n", __func__);
         return FALSE;
     }
@@ -1212,20 +1212,22 @@ int32_t fst24_find_next(
             key = find_next_rsf(file_handle, query);
             if (key < 0) break; // Not in this file
 
-            // Check on excdes desire/exclure clauses
-            record->metadata = NULL;
-            rkey = fst24_get_record_from_key(query->file, key, record); 
-            if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-                    record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
-                key = -1; // Continue looking
-            }
-            // If metadata search is specified, look for a match or carry on looking
-            else if (query->search_meta != NULL) {
-                if (fst24_read_metadata(record) &&
-                    Meta_Match(query->search_meta, record->metadata, FALSE)) {
-                    break; // Found it
-                } else {
+            if (record) {
+                // Check on excdes desire/exclure clauses
+                record->metadata = NULL;
+                rkey = fst24_get_record_from_key(query->file, key, record); 
+                if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+                        record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
                     key = -1; // Continue looking
+                }
+                // If metadata search is specified, look for a match or carry on looking
+                else if (query->search_meta != NULL) {
+                    if (fst24_read_metadata(record) &&
+                        Meta_Match(query->search_meta, record->metadata, FALSE)) {
+                        break; // Found it
+                    } else {
+                        key = -1; // Continue looking
+                    }
                 }
             }
         }
@@ -1257,7 +1259,7 @@ int32_t fst24_find_next(
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, query->file->iun, key, query->file);
         // If search included extended metadata, the key will already be extracted
-        if (rkey == 0) {
+        if (rkey == 0 && record) {
             return fst24_get_record_from_key(query->file, key, record);
         } else {
             return TRUE;
@@ -1284,11 +1286,19 @@ int32_t fst24_find_all(
     fst_record* results,          //!< [in,out] List of records found. Must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
+    int32_t max;
+
     if (fst24_rewind_search(query) != TRUE) return 0;
 
-    for (int i = 0; i < max_num_results; i++) {
-        results[i] = default_fst_record;
-        if (!fst24_find_next(query, &(results[i]))) return i;
+    max=results?max_num_results:INT_MAX;
+
+    for (int i = 0; i < max; i++) {
+        if (results) {
+           results[i] = default_fst_record;
+           if (!fst24_find_next(query, &(results[i]))) return i;
+        } else {
+           if (!fst24_find_next(query, NULL)) return i;
+        }
     }
     return max_num_results;
 }

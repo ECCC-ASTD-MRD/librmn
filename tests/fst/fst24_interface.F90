@@ -348,6 +348,15 @@ function test_fst24_interface(is_rsf) result(success)
         type(fst_record), dimension(5) :: all_records
         integer :: i
 
+        num_found = query % find_all()
+             write(app_msg, '(A, I4, A)') 'Did not find all ', num_found, ' records'
+        success = (num_found == 3)
+        if (.not. success) then
+            write(app_msg, '(A, I4, A)') 'Did not find all ', num_found, ' records'
+            call app_log(APP_ERROR, app_msg)
+            return
+        end if
+
         num_found = query % find_all(all_records(1:1))
 
         success = (num_found == 1)

@@ -278,9 +278,9 @@ contains
     function fst_query_find_all(this, records) result(num_found)
         implicit none
         class(fst_query), intent(inout) :: this     !< Query used for the search
-        !> [in,out] Array where the records found will be put.
+        !> [in,out] Array where the records found will be put. On ly number of matches returned if not present.
         !> We stop searching after we found enough records to fill it.
-        type(fst_record), dimension(:), intent(inout) :: records
+        type(fst_record), dimension(:), intent(inout), optional :: records
         integer(C_INT32_T) :: num_found
 
         integer(C_INT32_T) :: max_num_records, c_status
@@ -290,9 +290,17 @@ contains
 
         call this % rewind()
 
-        max_num_records = size(records)
+        max_num_records = 2147483647
+        if (present(records)) then
+           max_num_records = size(records)
+        endif
+
         do i = 1, max_num_records
-            if (.not. this % find_next(records(i))) return
+            if (present(records)) then
+               if (.not. this % find_next(records(i))) return
+            else 
+               if (.not. this % find_next()) return
+            endif
             num_found = num_found + 1
         end do
     end function fst_query_find_all
