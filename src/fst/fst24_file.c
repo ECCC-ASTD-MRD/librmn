@@ -1290,7 +1290,7 @@ int32_t fst24_find_all(
 
     if (fst24_rewind_search(query) != TRUE) return 0;
 
-    max=results?max_num_results:INT_MAX;
+    max = results ? max_num_results : INT_MAX;
 
     for (int i = 0; i < max; i++) {
         if (results) {
@@ -1309,7 +1309,7 @@ int32_t fst24_find_count(
     fst_query * const query //!< [in] Query used for the search (the state of the query object is modified)
 ) {
     int32_t count = 0;
-    fst_record record;
+    fst_record record = default_fst_record;
 
     while (fst24_find_next(query, &record)) {
         count++;
