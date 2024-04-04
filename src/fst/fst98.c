@@ -2352,6 +2352,8 @@ int c_fstinl(
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
+
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Found %d records in %d files\n", __func__, total_found, num_files);
 
     *infon = total_found;
@@ -2569,6 +2571,8 @@ int c_fstlirx(
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
+
     return status;
 }
 
@@ -2651,6 +2655,8 @@ int c_fstlis(
 
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     return status;
 }
