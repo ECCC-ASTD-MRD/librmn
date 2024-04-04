@@ -1022,7 +1022,7 @@ fst_query* fst24_new_query(
     const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%p)\n", __func__, file);
        return FALSE;
     }
 
@@ -1355,6 +1355,9 @@ int32_t fst24_unpack_data(
     const int multiplier = (simple_datyp == FST_TYPE_COMPLEX) ? 2 : 1;
     const int nelm = fst24_record_num_elem(record) * multiplier;
 
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Unpacking %d %d-bit %s elements from %p into %p\n",
+            __func__, nelm, record->dasiz, FST_TYPE_NAMES[base_fst_type(record->datyp)], source, dest);
+
     double dmin = 0.0;
     double dmax = 0.0;
 
@@ -1452,7 +1455,6 @@ int32_t fst24_unpack_data(
                     int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
                     int16_t*     field_out_16 = (int16_t*)dest;
                     int8_t*      field_out_8  = (int8_t*)dest;
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Uncompacting with nelm = %d, nbits = %d\n", __func__, nelm, nbits);
                     ier = compact_integer(field_out, (void *) NULL, source, nelm, nbits, 0, stride, 4);
                     if (record->dasiz == 16) {
                         for (int i = 0; i < nelm; i++) {
@@ -1685,12 +1687,12 @@ int32_t fst24_read_record(
        return -1;
     }
 
-    if (!record->data || size > record->alloc) {
+    if ((record->data == NULL) || (record->alloc > 0 && size * 2 > record->alloc)) {
         record->data = realloc(record->data, size * 2);
         if (!record->data) {
             return ERR_MEM_FULL;
         }
-        record->alloc = size;
+        record->alloc = size * 2;
     }
 
     int32_t ret = -1;
@@ -1739,7 +1741,9 @@ int32_t fst24_read(
     fst_record* const record            //!< [out] Record content and info, if found
 ) {
     fst_query* q = fst24_new_query(file, criteria, options);
-    return fst24_read_next(q, record);
+    int32_t status = fst24_read_next(q, record);
+    fst24_query_free(q);
+    return status;
 }
 
 //! Link the given list of files together, so that they are treated as one for the purpose
