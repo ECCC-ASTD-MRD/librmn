@@ -58,6 +58,35 @@ depending on whether you are using the Fortran or the C interface:
 
 [Examples are available below](#finding-and-reading-a-record).
 
+### Correspondance with old interface functions
+
+There is not a 1-on-1 correspondance between the functions of the two interfaces but the following table shows a rough equivalence:
+
+| fst98 function         | fst24 (Fortran)             | fst24 (C)                        |
+| -----------------      | -------------------         | ---------------------------      |
+| `fnom` + `fstouv`      | `file % open`               | `fst24_open`                     |
+| `fstecr`               | `file % write(record)`      | `fst24_write(file, record)`      |
+| `fstinf` <br> `fstsui` | `query % find_next(record)` | `fst24_find_next(query, record)` |
+| `fstinl`               | `query % find_all(records)` | `fst24_find_all(query, records)` |
+| `fstlir` <br> `fstlic` <br> `fstlis` | `query % read_next(record)` | `fst24_read_next(query, record)` |
+| `fstluk`               | `record % read`             | `fst24_read_record(record)`      |
+| `fstvoi`               | `file % print_summary`      | `fst24_print_summary(file)`      |
+| `fstfrm`               | `file % close`              | `fst24_close(file)`              |
+| `fstnbr`               | `file % get_num_records`    | `fst24_get_num_records(file)`    |
+| `fstnbrv`              | [N/A]                       | [N/A]                            |
+| `fstcheck`             | `fst_file % is_valid(path)` | `fst24_is_valid(path)`           |
+| `fstckp`               | `file % flush`              | `fst24_flush(file)`              |
+| `fsteff`               | [Not yet implemented]       | [Not yet implemented]            |
+| `fstprm`               | Params are available in derived type | Params are available in struct |
+| `fstlnk`               | `fst24_link`                | `fst24_link`                     |
+| `fstmsq`               | [N/A]                       | [N/A]                            |
+| `fstweo`               | `file % weo`                | [N/A]                            |
+| `fsteof`               | `file % eof`                | `fst24_eof(file)`                |
+| `fstrwd`               | `file % rwd`                | [N/A]                            |
+| `fstskp`               | [N/A]                       | [N/A]                            |
+| `fstapp`               | [N/A]                       | [N/A]                            |
+| `fstcvt`               | [N/A]                       | [N/A]                            |
+
 ## Parallel write
 
 Several processes can open the same RSF file and write to it simultaneously. This can be done with either the `fst24` or the `fst98` interface,
