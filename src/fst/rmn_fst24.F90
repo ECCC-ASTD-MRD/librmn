@@ -158,13 +158,17 @@ contains
 
     !> \copybrief fst24_read
     !> \return .true. if we found a record, .false. if not or if error
-    function fst24_file_read(this, record,                                                                          &
+    function fst24_file_read(this, record, data,                                                                    &
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
             ip1_all, ip2_all, ip3_all) result(found)
         implicit none
         class(fst_file), intent(inout) :: this
         type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+        !> Where to put the data being read. Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
 
         integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
@@ -181,10 +185,15 @@ contains
 
         found = .false.
 
+        if (present(data)) record % data = data
+
         query = this % new_query(dateo, datev, datyp, dasiz, npak, ni, nj, nk, deet, npas,                          &
                                  ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
                                  metadata, ip1_all, ip2_all, ip3_all)
-        found = query % find_next(record)
+        if (.not. query % is_valid()) return
+        found = query % read_next(record)
+        call query % free()
+
     end function fst24_file_read
 
     !> \copybrief fst24_new_query
@@ -327,6 +336,8 @@ contains
         integer(C_INT32_T) :: c_result
 
         found = .false.
+
+        call record % make_c_self()
         c_result = fst24_read_next(this % query_ptr, record % get_c_ptr())
 
         if (c_result > 0) then

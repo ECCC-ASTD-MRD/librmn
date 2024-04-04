@@ -161,5 +161,15 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME rsf_empty_file COMMAND $<TARGET_FILE:rsf_empty_file>)
         add_dependencies(check rsf_empty_file)
 
+        add_executable(fst24_read_cube_c fst/fst24_read_cube.c)
+        target_link_libraries(fst24_read_cube_c rmn::rmn)
+        add_test(NAME fst24_read_cube_c COMMAND $<TARGET_FILE:fst24_read_cube_c>)
+        add_dependencies(check fst24_read_cube_c)
+
+        add_executable(fst24_read_cube_f fst/fst24_read_cube.F90)
+        target_link_libraries(fst24_read_cube_f rmn::rmn)
+        add_test(NAME fst24_read_cube_f COMMAND $<TARGET_FILE:fst24_read_cube_f>)
+        add_dependencies(check fst24_read_cube_f)
+
     endif()
 endif()
