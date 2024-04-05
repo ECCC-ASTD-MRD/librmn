@@ -90,6 +90,7 @@ module rmn_fst24_record
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
 !        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
 !        procedure, pass :: set_metadata => fst24_record_set_metadata    !< \copydoc fst24_record_set_metadata
+        procedure, pass :: copy_meta => fst24_record_copy_metadata    !< \copydoc fst24_record_copy_metadata
 
         procedure, pass :: print        => rmn_fst24_record_print           !< \copydoc rmn_fst24_record_print
         procedure, pass :: print_short  => rmn_fst24_record_print_short     !< \copydoc rmn_fst24_record_print_short
@@ -311,6 +312,24 @@ contains
             success = .true.
         end if
     end function fst24_record_read_metadata
+
+    !> \copybrief fst24_record_copy_metadata
+    !> \return .true. If we were able to copy the metadata, .false. otherwise
+    function fst24_record_copy_metadata(this,record) result(success)
+        implicit none
+        class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
+        type(fst_record), target :: record
+        logical :: success
+
+        integer(C_INT32_T) :: c_result
+
+        success = .false.
+        c_result = fst24_record_copy_metadata_c(this % get_c_ptr(),record % get_c_ptr())
+        if (c_result == 1) then
+            call this % from_c_self()
+            success = .true.
+        end if
+    end function fst24_record_copy_metadata
 
     !> Verify that the C and Fortran definitions of the default fst_record match.
     !> \return Whether the fst_record_c type matches exactly the C-defined fst_record

@@ -190,6 +190,7 @@ fst_record* fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni
 int32_t     fst24_record_free(fst_record* record);
 int32_t     fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 void        fst24_record_diff(const fst_record* a, const fst_record* b);
+int32_t     fst24_record_copy_metadata(fst_record* a, const fst_record* b);
 //! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);

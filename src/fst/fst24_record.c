@@ -650,6 +650,45 @@ fst_record record_from_search_meta(
 
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
+int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {
+
+    if (a == NULL || b == NULL) return 0;
+    if (a->version != b->version) return 0;
+
+    a->dateo = b->dateo;
+    a->datev = b->datev;
+    a->datyp = b->datyp;
+    a->dasiz = b->dasiz;
+    a->npak = b->npak;
+    a->ni = b->ni;
+    a->nj = b->nj;
+    a->nk = b->nk;
+    a->deet = b->deet;
+    a->npas = b->npas;
+    a->ip1 = b->ip1;
+    a->ip2 = b->ip2;
+    a->ip3 = b->ip3;
+    a->ig1 = b->ig1;
+    a->ig2 = b->ig2;
+    a->ig3 = b->ig3;
+    a->ig4 = b->ig4;
+    strncpy(a->typvar, b->typvar, FST_TYPVAR_LEN);
+    strncpy(a->grtyp, b->grtyp, FST_GTYP_LEN);
+    strncpy(a->nomvar, b->nomvar, FST_NOMVAR_LEN);
+    strncpy(a->etiket, b->etiket, FST_ETIKET_LEN);
+
+    if (b->metadata) {
+        if (a->metadata) {
+            Meta_Free(a->metadata);
+        }
+        a->metadata=Meta_Copy(b->metadata);
+    }
+
+    return 1;
+}
+
+//! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
+//!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
     if (a->version != b->version) return 0;
