@@ -119,6 +119,23 @@ int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_
     return 1;
 }
 
+//! Get record valid date from origin date, timestep size and count
+uint32_t get_valid_date(
+    const int32_t origin_date,      //!< Start date of the run
+    const int32_t timestep_size,    //!< Size of the timestep in seconds
+    const int32_t timestep_num      //!< Timestep number
+) {
+    const int64_t delta_seconds = (int64_t) timestep_size * timestep_num;
+    if (delta_seconds > 0) {
+        int32_t f_datev = origin_date;
+        double nhours = ((double) delta_seconds) / 3600.0;
+        f77name(incdatr)(&f_datev, &f_datev, &nhours);
+        return f_datev;
+    }
+
+    return origin_date;
+}
+
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
@@ -989,15 +1006,7 @@ int c_fstecr_xdf(
     VALID(ip3, 0, IP3_MAX, "ip3")
     VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
-    unsigned int datev = date;
-    int32_t f_datev = (int32_t) datev;
-    if (( (long long) deet * npas) > 0) {
-        long long deltat = (long long) deet * npas;
-        double nhours = (double) deltat;
-        nhours = nhours / 3600.;
-        f77name(incdatr)(&f_datev, &f_datev, &nhours);
-        datev = (unsigned int) f_datev;
-    }
+    const uint32_t datev = get_valid_date(date, deet, npas);
 
     if ((npak == 0) || (npak == 1)) {
         // no compaction
@@ -1177,7 +1186,7 @@ int c_fstecr_xdf(
     stdf_entry->pad5 = 0;
     stdf_entry->ip3 = ip3;
     stdf_entry->pad6 = 0;
-    stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+    stdf_entry->date_stamp = stamp_from_date(datev);
 
     int handle = 0;
     if ((rewrit) && (!fte->xdf_seq)) {

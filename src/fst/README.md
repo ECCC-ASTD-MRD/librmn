@@ -1179,7 +1179,7 @@ function read(this, record, data,                                               
     !> `data` attribute of the record being read.
     type(C_PTR), intent(in), optional :: data
 
-    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    integer(C_INT64_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar

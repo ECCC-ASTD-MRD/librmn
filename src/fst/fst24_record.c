@@ -463,8 +463,6 @@ void make_search_criteria(
         return;
     }
 
-    const unsigned int u_datev = (unsigned int) record->dateo;
-
     // Reset search mask
     {
         uint32_t *pmask = (uint32_t *) mask;
@@ -494,10 +492,9 @@ void make_search_criteria(
         fst98_mask->ubc = 0;
         fst98_mask->levtyp = 0;
 
-
-        fst98_meta->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
+        fst98_meta->date_stamp = stamp_from_date(record->datev);
         fst98_mask->date_stamp &= ~(0x7);
-        if (record->dateo == -1) fst98_mask->date_stamp = 0;
+        if (record->datev == -1) fst98_mask->date_stamp = 0;
 
         fst98_meta->ni = record->ni;
         if ((record->ni == -1)) fst98_mask->ni = 0;

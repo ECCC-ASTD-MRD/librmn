@@ -176,5 +176,10 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME rsf_cat COMMAND $<TARGET_FILE:rsf_cat>)
         add_dependencies(check rsf_cat)
 
+        add_executable(fst24_search_params_f fst/fst24_search_params.F90)
+        target_link_libraries(fst24_search_params_f rmn::rmn)
+        add_test(NAME fst24_search_params_f COMMAND $<TARGET_FILE:fst24_search_params_f>)
+        add_dependencies(check fst24_search_params_f)
+
     endif()
 endif()

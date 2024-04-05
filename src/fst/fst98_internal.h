@@ -70,6 +70,12 @@ extern int ip3s_flag;
 extern int downgrade_32;
 extern fstd_usage_info fstd_open_files[MAXFILES];
 
+static inline uint32_t stamp_from_date(const uint32_t origin_date) {
+    return 8 * (origin_date/10) + (origin_date % 10);
+}
+
+uint32_t get_valid_date(const int32_t origin_date, const int32_t timestep_size, const int32_t timestep_num);
+
 // Signatures from fstd98.c
 void copy_record_string(char* const dest, const char* const src, const int32_t max_length);
 int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length);

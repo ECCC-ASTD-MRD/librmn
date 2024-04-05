@@ -482,7 +482,7 @@ contains
         character(len=*)        :: string
 
         if (len_trim(string)>0) then
-           fields % dateo=0
+            fields % dateo = 0
             fields % datev = 0
             fields % datestamps = 0
             fields % level = 0

@@ -396,15 +396,7 @@ int32_t fst24_write_rsf(
     }
 
     // Increment date by timestep size
-    unsigned int datev = record->dateo;
-    int32_t f_datev = (int32_t) datev;
-    if (( (long long) record->deet * record->npas) > 0) {
-        long long deltat = (long long) record->deet * record->npas;
-        double nhours = (double) deltat;
-        nhours = nhours / 3600.;
-        f77name(incdatr)(&f_datev, &f_datev, &nhours);
-        datev = (unsigned int) f_datev;
-    }
+    const uint32_t valid_date = get_valid_date(record->dateo, record->deet, record->npas);
 
     if ((record->npak == 0) || (record->npak == 1)) {
         // no compaction
@@ -611,7 +603,7 @@ int32_t fst24_write_rsf(
         stdf_entry->pad5 = 0;
         stdf_entry->ip3 = record->ip3;
         stdf_entry->pad6 = 0;
-        stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+        stdf_entry->date_stamp = stamp_from_date(valid_date);
         stdf_entry->dasiz = elem_size;
     }
 
