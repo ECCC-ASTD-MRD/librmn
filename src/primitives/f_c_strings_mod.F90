@@ -43,12 +43,15 @@ module f_c_strings_mod
             type(C_PTR) :: p
         end function memset
     end interface
-
+#if __INTEL_COMPILER > 20211100 || __INTEL_LLVM_COMPILER__INTEL_LLVM_COMPILER > 20240000
+#define FORTRAN_202X_SUPPORTED
+#endif
+#if ! defined FORTRAN_202X_SUPPORTED
     interface c_f_strpointer
         module procedure c_f_strpointer1
         module procedure c_f_strpointer2
     end interface
-
+#endif
     public  :: strncpy_c2f, strncpy_f2c
 
     private :: allocate_string, clone_string, duplicate_from_fstring
