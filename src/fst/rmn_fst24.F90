@@ -5,10 +5,10 @@ module rmn_fst24
     use rmn_common
     use rmn_meta
     use rmn_fst24_record
+    use rmn_fst98
     implicit none
 
     include 'fst24_interface.inc'
-#include "c_fst98_interface.hf"
 
     type :: fst_file
         private

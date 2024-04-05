@@ -171,5 +171,10 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_read_cube_f COMMAND $<TARGET_FILE:fst24_read_cube_f>)
         add_dependencies(check fst24_read_cube_f)
 
+        add_executable(rsf_cat fst/rsf_cat.c)
+        target_link_libraries(rsf_cat rmn::rmn)
+        add_test(NAME rsf_cat COMMAND $<TARGET_FILE:rsf_cat>)
+        add_dependencies(check rsf_cat)
+
     endif()
 endif()
