@@ -426,11 +426,11 @@ int c_fstluk_rsf(
     uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
     memset(work_space, 0, sizeof(work_space));
 
-    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.handle, 0, (void*)work_space);
+    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.do_not_touch.handle, 0, (void*)work_space);
 
     if ((uint64_t*)record_rsf != work_space) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%lx\n",
-                __func__, rec.handle);
+                __func__, rec.do_not_touch.handle);
         return ERR_BAD_HNDL;
     }
 

@@ -396,15 +396,7 @@ int32_t fst24_write_rsf(
     }
 
     // Increment date by timestep size
-    unsigned int datev = record->dateo;
-    int32_t f_datev = (int32_t) datev;
-    if (( (long long) record->deet * record->npas) > 0) {
-        long long deltat = (long long) record->deet * record->npas;
-        double nhours = (double) deltat;
-        nhours = nhours / 3600.;
-        f77name(incdatr)(&f_datev, &f_datev, &nhours);
-        datev = (unsigned int) f_datev;
-    }
+    const uint32_t valid_date = get_valid_date(record->dateo, record->deet, record->npas);
 
     if ((record->npak == 0) || (record->npak == 1)) {
         // no compaction
@@ -428,8 +420,8 @@ int32_t fst24_write_rsf(
     // no extra compression if nbits > 16
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
     if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
-        if (! dejafait_rsf_1) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
+        if (!dejafait_rsf_1) {
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
             dejafait_rsf_1 = 1;
         }
         datyp = FST_TYPE_REAL_IEEE;
@@ -611,7 +603,7 @@ int32_t fst24_write_rsf(
         stdf_entry->pad5 = 0;
         stdf_entry->ip3 = record->ip3;
         stdf_entry->pad6 = 0;
-        stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+        stdf_entry->date_stamp = stamp_from_date(valid_date);
         stdf_entry->dasiz = elem_size;
     }
 
@@ -964,7 +956,7 @@ int32_t get_record_from_key_rsf(
 
     fill_with_search_meta(record, (search_metadata*)record_info.meta, FST_RSF);
     record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
-    record->handle = key;
+    record->do_not_touch.handle = key;
 
     return TRUE;
 }
@@ -987,7 +979,7 @@ int32_t fst24_get_record_from_key(
     }
 
     fst_record_set_to_default(record);
-    record->handle = key;
+    record->do_not_touch.handle = key;
 
     if (file->type == FST_RSF) {
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
@@ -1046,7 +1038,7 @@ fst_query* fst24_new_query(
     *query = new_fst_query(options);
     make_search_criteria(criteria, &(query->criteria), &(query->mask));
     query->num_criteria = sizeof(query->criteria) / sizeof(uint32_t);
-    query->search_index = criteria->handle > 0 ? criteria->handle : 0;
+    query->search_index = criteria->do_not_touch.handle > 0 ? criteria->do_not_touch.handle : 0;
     query->search_meta  = criteria->metadata;
     query->file         = file;
 
@@ -1098,7 +1090,7 @@ int32_t fst24_get_record_by_index(
         RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
         const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
         fill_with_search_meta(record, (search_metadata*)record_info.meta, file->type);
-        record->handle = RSF_Make_key(file->file_index_backend, index);
+        record->do_not_touch.handle = RSF_Make_key(file->file_index_backend, index);
         record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
         return TRUE;
     }
@@ -1115,7 +1107,7 @@ int32_t fst24_get_record_by_index(
         c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
 
         fill_with_search_meta(record, &record_meta, file->type);
-        record->handle = key;
+        record->do_not_touch.handle = key;
         return TRUE;
     }
 
@@ -1529,10 +1521,8 @@ int32_t fst24_unpack_data(
         } // end switch
     }
 
-    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_TRIVIAL) {
-        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Read record with key 0x%x\n", __func__, record->handle);
-        if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print(record);
-    }
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Read record with key 0x%x\n", __func__, record->do_not_touch.handle);
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print_short(record, NULL, 1, NULL);
 
     if (has_missing) {
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
@@ -1558,7 +1548,7 @@ int32_t fst24_read_record_rsf(
     const int32_t metadata_only //!< Whether we want to only read metadata, rather than including everything
 ) {
     RSF_handle file_handle = FGFDT[record_fst->file->file_index].rsf_fh;
-    if (!RSF_Is_record_in_file(file_handle, record_fst->handle)) return ERR_BAD_HNDL;
+    if (!RSF_Is_record_in_file(file_handle, record_fst->do_not_touch.handle)) return ERR_BAD_HNDL;
 
     const size_t work_size_bytes = fst24_record_data_size(record_fst) +     // The data itself
                                    record_fst->num_meta_bytes +             // The metadata
@@ -1568,11 +1558,11 @@ int32_t fst24_read_record_rsf(
     uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
     memset(work_space, 0, sizeof(work_space));
 
-    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->handle, metadata_only, (void*)work_space);
+    RSF_record* record_rsf = RSF_Get_record(file_handle, record_fst->do_not_touch.handle, metadata_only, (void*)work_space);
 
     if ((uint64_t*)record_rsf != work_space) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%x\n",
-                __func__, record_fst->handle);
+                __func__, record_fst->do_not_touch.handle);
         return ERR_BAD_HNDL;
     }
 
@@ -1608,7 +1598,7 @@ int32_t fst24_read_record_xdf(
     //!> Must have already allocated its data buffer
     fst_record* record
 ) {
-    const int32_t key32 = record->handle & 0xffffffff;
+    const int32_t key32 = record->do_not_touch.handle & 0xffffffff;
 
     if (!c_xdf_handle_in_file(key32)) return ERR_BAD_HNDL;
 
@@ -1634,7 +1624,7 @@ int32_t fst24_read_record_xdf(
 void* fst24_read_metadata(
     fst_record* record //!< [in,out] Record for which we want to read metadata. Must have a valid handle!
 ) {
-    if (!fst24_record_is_valid(record) || record->handle < 0) {
+    if (!fst24_record_is_valid(record) || record->do_not_touch.handle < 0) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);
        return NULL;
     }
@@ -1670,12 +1660,12 @@ int32_t fst24_read_record(
        return ERR_NO_FILE;
     }
 
-    if (!fst24_record_is_valid(record) || record->handle < 0) {
+    if (!fst24_record_is_valid(record) || record->do_not_touch.handle < 0) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);
        return -1;
     }
 
-    if (record->flags & FST_REC_ASSIGNED) {
+    if (record->do_not_touch.flags & FST_REC_ASSIGNED) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot reallocate data due to pointer ownership\n", __func__);
        return -1;
     }
@@ -1687,12 +1677,12 @@ int32_t fst24_read_record(
        return -1;
     }
 
-    if ((record->data == NULL) || (record->alloc > 0 && size * 2 > record->alloc)) {
+    if ((record->data == NULL) || (record->do_not_touch.alloc > 0 && size * 2 > record->do_not_touch.alloc)) {
         record->data = realloc(record->data, size * 2);
         if (!record->data) {
             return ERR_MEM_FULL;
         }
-        record->alloc = size * 2;
+        record->do_not_touch.alloc = size * 2;
     }
 
     int32_t ret = -1;
