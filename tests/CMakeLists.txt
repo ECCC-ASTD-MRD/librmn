@@ -156,7 +156,7 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_ipall COMMAND $<TARGET_FILE:fst_ipall>)
         add_dependencies(check fst_ipall)
 
-        add_executable(rsf_empty_file rsf_empty_file.c)
+        add_executable(rsf_empty_file fst/rsf_empty_file.c)
         target_link_libraries(rsf_empty_file rmn::rmn)
         add_test(NAME rsf_empty_file COMMAND $<TARGET_FILE:rsf_empty_file>)
         add_dependencies(check rsf_empty_file)
