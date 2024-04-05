@@ -486,9 +486,6 @@ void make_search_criteria(
         fst98_mask->select = 0;
         fst98_mask->lng = 0;
         fst98_mask->addr = 0;
-        fst98_mask->dasiz = 0;
-        fst98_mask->datyp = 0;
-        fst98_mask->nbits = 0;
         fst98_mask->ubc = 0;
         fst98_mask->levtyp = 0;
 
@@ -498,12 +495,22 @@ void make_search_criteria(
 
         fst98_meta->ni = record->ni;
         if ((record->ni == -1)) fst98_mask->ni = 0;
+        else Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Searching by ni (%d)\n", __func__, record->ni);
 
         fst98_meta->nj = record->nj;
         if ((record->nj == -1)) fst98_mask->nj = 0;
 
         fst98_meta->nk = record->nk;
         if ((record->nk == -1)) fst98_mask->nk = 0;
+
+        fst98_meta->datyp = record->datyp;
+        if (record->datyp == -1) fst98_mask->datyp = 0;
+
+        fst98_meta->dasiz = record->dasiz;
+        if (record->dasiz == -1) fst98_mask->dasiz = 0;
+
+        fst98_meta->nbits = abs(record->npak);
+        if (record->npak >= -1) fst98_mask->nbits = 0;
 
         fst98_meta->ip1 = record->ip1;
         if ((record->ip1 == -1)) fst98_mask->ip1 = 0;

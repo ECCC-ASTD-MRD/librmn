@@ -1522,7 +1522,7 @@ int32_t fst24_unpack_data(
     }
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Read record with key 0x%x\n", __func__, record->do_not_touch.handle);
-    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print(record);
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print_short(record, NULL, 1, NULL);
 
     if (has_missing) {
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
