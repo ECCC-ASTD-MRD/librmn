@@ -20,23 +20,23 @@ fst_record* fst24_record_new(
     fst_record* result = (fst_record*)malloc(sizeof(fst_record));
 
     if (result) {
-        memcpy(result,&default_fst_record,sizeof(fst_record));
+        memcpy(result, &default_fst_record, sizeof(fst_record));
 
-        result->ni=ni;
-        result->nj=nj;
-        result->nk=nk;
-        result->dasiz=nbits;
-        result->datyp=type;
-        result->alloc=fst24_record_data_size(result);
-
-        if (!(result->data=data)) {
+        result->ni = ni;
+        result->nj = nj;
+        result->nk = nk;
+        result->dasiz = nbits;
+        result->datyp = type;
+        result->do_not_touch.alloc = fst24_record_data_size(result);
+        result->data = data;
+        if (data == NULL) {
             // No data pointer passed, allocate data array
-            if (!(result->data=(void*)malloc(result->alloc))) {
+            if (!(result->data = (void*)malloc(result->do_not_touch.alloc))) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
             }
         } else {
           // Using an assigned pointer
-         result->flags = FST_REC_ASSIGNED;
+         result->do_not_touch.flags = FST_REC_ASSIGNED;
         }
     } else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate record\n",__func__);
@@ -50,11 +50,11 @@ int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
 
-   if (record->data && record->alloc) {
-      record->alloc=0;
-      if (!(record->flags&FST_REC_ASSIGNED))
+   if ((record->data != NULL) && (record->do_not_touch.alloc > 0)) {
+      record->do_not_touch.alloc = 0;
+      if (!(record->do_not_touch.flags & FST_REC_ASSIGNED))
          free(record->data);
-      record->data=NULL; 
+      record->data = NULL; 
    }
    return(TRUE);
 }
@@ -84,8 +84,8 @@ void fst24_record_print(const fst_record* record) {
         "  grtyp:  \"%s\"\n"
         "  nomvar: \"%s\"\n"
         "  etiket: \"%s\"\n",
-        record->version, record->file, record->data, record->metadata, record->flags,
-        record->alloc, record->handle, 
+        record->do_not_touch.version, record->file, record->data, record->metadata, record->do_not_touch.flags,
+        record->do_not_touch.alloc, record->do_not_touch.handle, 
         record->dateo, record->datev, record->datyp, record->dasiz, record->npak,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->num_meta_bytes,
@@ -419,11 +419,11 @@ int32_t fst24_record_is_valid(const fst_record* record) {
         return 0;
     }
     
-    if (record->version != default_fst_record.version) {
+    if (record->do_not_touch.version != default_fst_record.do_not_touch.version) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Version number (%ld) is wrong (should be %ld)! This means that either:\n"
                 "  - The given address does not point to an initialized fst_record struct\n"
                 "  - Your program was not compiled with the same version it is linked to\n",
-                __func__, record->version, default_fst_record.version);
+                __func__, record->do_not_touch.version, default_fst_record.do_not_touch.version);
         return 0;
     }
 
@@ -652,9 +652,9 @@ fst_record record_from_search_meta(
 //!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
-    if (a->version != b->version) return 0;
-    // if (a->flags != b->flags) return 0;
-    // if (a->alloc != b->alloc) return 0;
+    if (a->do_not_touch.version != b->do_not_touch.version) return 0;
+    // if (a->do_not_touch.flags != b->do_not_touch.flags) return 0;
+    // if (a->do_not_touch.alloc != b->do_not_touch.alloc) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
     if (a->datyp != b->datyp) return 0;
@@ -687,22 +687,22 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: One of the records is NULL! (a = 0x%x, b = 0x%x)\n", __func__, a, b);
     }
 
-    if (a->version != b->version)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Version: a = %d, b = %d)\n", __func__, a->version, b->version);
+    if (a->do_not_touch.version != b->do_not_touch.version)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Version: a = %d, b = %d)\n", __func__, a->do_not_touch.version, b->do_not_touch.version);
     if (a->data != b->data)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data:    a = 0x%x, b = 0x%x)\n", __func__, a->data, b->data);
     if (a->metadata != b->metadata)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Metadata:a = 0x%x, b = 0x%x)\n", __func__, a->metadata, b->metadata);
-    if (a->flags != b->flags)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->flags, b->flags);
-    if (a->alloc != b->alloc)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->alloc, b->alloc);
+    if (a->do_not_touch.flags != b->do_not_touch.flags)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->do_not_touch.flags, b->do_not_touch.flags);
+    if (a->do_not_touch.alloc != b->do_not_touch.alloc)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->do_not_touch.alloc, b->do_not_touch.alloc);
     if (a->dateo != b->dateo)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dateo:   a = %d, b = %d)\n", __func__, a->dateo, b->dateo);
     if (a->datev != b->datev)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datev:   a = %d, b = %d)\n", __func__, a->datev, b->datev);
-    if (a->handle != b->handle)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = %d, b = %d)\n", __func__, a->handle, b->handle);
+    if (a->do_not_touch.handle != b->do_not_touch.handle)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = %d, b = %d)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
     if (a->datyp != b->datyp)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datyp:   a = %d, b = %d)\n", __func__, a->datyp, b->datyp);
     if (a->dasiz != b->dasiz)
