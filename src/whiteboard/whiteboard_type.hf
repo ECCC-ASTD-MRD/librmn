@@ -1,4 +1,4 @@
 type :: whiteboard
     sequence
-    integer(int64) :: wb = 0 ! initialize to default whiteboard
+    integer(kind = 8) :: wb = 0 ! initialize to default whiteboard
 end type whiteboard

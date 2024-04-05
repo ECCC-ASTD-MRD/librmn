@@ -380,7 +380,7 @@ int test_compression(const int is_rsf) {
     }
 
     fst_record rec_read = default_fst_record;
-    fst_query* query = fst24_new_query(test_file, NULL);
+    fst_query* query = fst24_new_query(test_file, NULL, NULL);
     for (int i = 0; i < NUM_CASES_REAL; i++) {
         if (fst24_read_next(query, &rec_read) <= 0) {
             App_Log(APP_ERROR, "Unable to read record from file\n");

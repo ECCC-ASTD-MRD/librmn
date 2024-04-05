@@ -5,6 +5,7 @@
 //! Functionality used by both FST interfaces (98 and 24)
 
 #include "qstdir.h"
+#include "rmn/fst24_file.h"
 #include "rmn/fst24_record.h"
 
 typedef struct fst24_file_ fst_file;  // Forward declare the fst_file type
@@ -59,11 +60,14 @@ typedef struct fst_query_ {
     int64_t search_index;     //!< Index to keep our position within the file when searching
     int32_t num_criteria;     //!< How many criteria (32-bit elements) will be evaluated (size of stdf_dir_keys for now)
     int32_t search_done;      //!< Whether we are done searching the whole file (with a certain criteria)
+    fst_query_options options;//!< Options to modulate how the search is performed
     struct fst_query_* next;  //!< A link to the query that will search into the next linked file (fst24 only)
 } fst_query;
 
+//! Initialize a query to neutral values everywhere
+static inline fst_query new_fst_query(const fst_query_options* options) {
+    if (options == NULL) options = &default_query_options;
 
-static inline fst_query new_fst_query() {
     fst_query q;
     q.file         = NULL;
     q.search_meta  = NULL;
@@ -73,6 +77,7 @@ static inline fst_query new_fst_query() {
     q.search_index = 0;
     q.num_criteria = 0;
     q.search_done  = 0;
+    q.options      = *options;
     q.next         = NULL;
 
     return q;
@@ -80,7 +85,7 @@ static inline fst_query new_fst_query() {
 
 //! Copy a query's criteria, but with a reset start index, without file, without "next"
 static inline fst_query fst_query_copy(const fst_query* const query) {
-    fst_query result = new_fst_query();
+    fst_query result = new_fst_query(&query->options);
     result.search_meta  = query->search_meta;
     result.criteria     = query->criteria;
     result.mask         = query->mask;

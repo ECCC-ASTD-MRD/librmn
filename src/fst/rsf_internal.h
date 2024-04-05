@@ -439,7 +439,7 @@ struct RSF_File {
   uint16_t rec_meta ;            //!< record metadata size (uint32_t units)
   uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
   uint16_t mode ;                //!< file mode (RO/RW/AP/...)
-  uint8_t isnew ;                //!< new segment indicator
+  uint8_t is_new ;               //!< whether we created the file upon opening
   uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
   uint8_t exclusive ;            //!< RW in exclusive mode if 1
 } ;

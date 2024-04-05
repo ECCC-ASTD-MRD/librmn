@@ -34,7 +34,6 @@ static int dejafait_xdf_2 = 0;
 static int ips_tab[3][Max_Ipvals];
 
 static uint32_t link_list[1024];
-static int link_n;
 static int stdf_version = 200001;
 static int first_linked_file = -1;
 
@@ -54,8 +53,11 @@ int nb_remap = 0;
 static char *fst_backend = NULL;
 //! Segment size for RSF, when writing in parallel (in MB)
 static int32_t segment_size_mb = 1;
+
+#define PRNT_OPTIONS_LEN 128
+
 //! What is printed with fstecr
-char prnt_options[128] = "NINJNK+DATESTAMPO+IP1+IG1234";
+char prnt_options[PRNT_OPTIONS_LEN] = "NINJNK+DATESTAMPO+IP1+IG1234";
 
 static int kinds_table_init = 1;
 static char kind_chars[96];
@@ -146,7 +148,7 @@ void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
 }
 
 static void init_open_file(fstd_usage_info* info) {
-    info->query = new_fst_query();
+    info->query = new_fst_query(NULL);
     info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     info->next_file = -1;
 }
@@ -201,10 +203,10 @@ int ip_is_equal(
     int kind1, kind2, exp1, exp2;
     long long mantis1, mantis2;
 
-    /* ipold_0_9: table of old ip1 0-9 (mb) values encoded oldstyle with convip */
+    // ipold_0_9: table of old ip1 0-9 (mb) values encoded oldstyle with convip
     int ipold_0_9[10] = {0, 1820, 1840, 1860, 1880, 1900, 1920, 1940, 1960, 1980};
 
-    /* ind is passed in base 1, for ip1 ip2 or ip3 */
+    // ind is passed in base 1, for ip1 ip2 or ip3
     ind--;
 
     if (target != ips_tab[ind][0]) {
@@ -212,38 +214,38 @@ int ip_is_equal(
         return 0;
     }
 
-    /* number of elements in ip[1-2-3] table */
+    // number of elements in ip[1-2-3] table
     for (int j = 0; j < ip_nb[ind]; j++) {
         target = ips_tab[ind][j];
         if (ip == target) return 1;
         if (ip < 10)
-        if (ipold_0_9[ip] == target) return 1;
+            if (ipold_0_9[ip] == target) return 1;
         if ((ip > 32767) && (target > 32767)) {
-        kind1 = (ip >> 24) & 0xF;
-        kind2 = (target >> 24) & 0xF;
-        if (kind1 != kind2) continue;
-        exp1 = (ip >> 20) & 0xF;
-        exp2 = (target >> 20) & 0xF;
-        mantis1 = ip & 0xFFFFF;
-        if (mantis1 > 1000000) mantis1 = -(mantis1 - 1000000);
-        mantis2 = target & 0xFFFFF;
-        if (mantis2 > 1000000) mantis2 = -(mantis2 - 1000000);
-        /* mantis1 and mantis2 must be same sign */
-        if ((mantis1 ^ mantis2) < 0) continue;
+            kind1 = (ip >> 24) & 0xF;
+            kind2 = (target >> 24) & 0xF;
+            if (kind1 != kind2) continue;
+            exp1 = (ip >> 20) & 0xF;
+            exp2 = (target >> 20) & 0xF;
+            mantis1 = ip & 0xFFFFF;
+            if (mantis1 > 1000000) mantis1 = -(mantis1 - 1000000);
+            mantis2 = target & 0xFFFFF;
+            if (mantis2 > 1000000) mantis2 = -(mantis2 - 1000000);
+            // mantis1 and mantis2 must be same sign
+            if ((mantis1 ^ mantis2) < 0) continue;
 
-        if (exp1 > exp2) {
-            while (exp1 > exp2) {
-                exp2++;
-                mantis2 *= 10;
+            if (exp1 > exp2) {
+                while (exp1 > exp2) {
+                    exp2++;
+                    mantis2 *= 10;
+                }
+            } else {
+                while (exp2 > exp1) {
+                    exp1++;
+                    mantis1 *= 10;
+                }
             }
-        } else {
-            while (exp2 > exp1) {
-                exp1++;
-                mantis1 *= 10;
-            }
-        }
 
-        if (labs(mantis1-mantis2) <= 1) return 1;
+            if (labs(mantis1-mantis2) <= 1) return 1;
         }
     }
     return 0;
@@ -292,7 +294,7 @@ void crack_std_parms(
     cracked_parms->date_stamp = datexx;
     int32_t ftn_date = (int32_t) datexx;
     if ((stdf_entry->deet * stdf_entry->npas) != 0) {
-        /* compute origin date */
+        // compute origin date
         f77name(incdatr)(&ftn_date, &ftn_date, &r8_diff);
         cracked_parms->date_stamp = (int) ftn_date;
     }
@@ -331,9 +333,7 @@ void print_std_parms(
     //! [in] Print header if true (!= 0)
     const int header
 ) {
-    stdf_special_parms cracked;
-    char cdt[9] = {'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
-    char cmsgp = ' '; /* initialize for case where there are no missing value(s) in record */
+    char cmsgp = ' '; // initialize for case where there are no missing value(s) in record
     int dat2, dat3;
     int minus3 = -3;
     int iip1, kind;
@@ -347,10 +347,11 @@ void print_std_parms(
     int posc, posv;
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option=%s\n", __func__, option);
+    stdf_special_parms cracked;
     crack_std_parms(stdf_entry, &cracked);
 
-    if (header>0) {
-        /* build and print header line */
+    if (header > 0) {
+        // build and print header line
 
         if (strstr(option, "NONOMV")) {
             h_nomv[0] = '\0';
@@ -377,7 +378,7 @@ void print_std_parms(
         }
 
         if (strstr(option, "DATEO")) {
-            /*      snprintf(h_dateo, "%s", "YYYYMMDD HHMMSS"); */
+            // snprintf(h_dateo, "%s", "YYYYMMDD HHMMSS");
             snprintf(h_dateo, sizeof(h_dateo), "%s", "(DATE-O  h m s)");
         } else {
             h_dateo[0] = '\0';
@@ -390,7 +391,7 @@ void print_std_parms(
         }
 
         if (strstr(option, "DATEV")) {
-            /*      snprintf(h_datev, "%s", "YYYYMMDD HHMMSS     DATEV"); */
+            // snprintf(h_datev, "%s", "YYYYMMDD HHMMSS     DATEV");
             snprintf(h_datev, sizeof(h_datev), "%s", "(DATE-V  h m s)   STAMP-V");
         } else {
             h_datev[0] = '\0';
@@ -451,7 +452,7 @@ void print_std_parms(
         fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n",
                 h_nomv, h_typv, h_etiq, h_dims, h_dateo, h_stampo, h_datev, h_level, h_decoded,
                 h_ip1, h_ip23, h_deet, h_npas, h_dty, h_grid);
-        /*    fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid); */
+        // fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid);
     } // if (header)
 
 
@@ -513,19 +514,19 @@ void print_std_parms(
             if (strstr(option, "LEVEL")) snprintf(v_level, sizeof(v_level), "%15s", "     -----     ");
             if (strstr(option, "IPALL")) snprintf(v_decoded, sizeof(v_decoded), "[%10d] [%10d] [%10d]", stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
         } else {
-            /* not a special variable  */
+            // not a special variable
             if (strstr(option, "LEVEL")) {
-                /* good old level option */
+                // good old level option
                 int mode = -1;
                 int flag = 1;
                 float level;
                 f77name(convip_plus)(&iip1, &level, &kind, &mode, c_level, &flag, (F2Cl) 15);
                 c_level[15] = '\0';
-                /* blank initialisation */
+                // blank initialisation
                 snprintf(v_level, sizeof(v_level), "%s", "               ");
                 posc = 14;
                 posv = 14;
-                /* skip blanks and right justify string */
+                // skip blanks and right justify string
                 while ((posc >= 0) && (isspace(c_level[posc]))) {
                     posc--;
                 }
@@ -539,19 +540,19 @@ void print_std_parms(
                 }
             }
             if (strstr(option, "IPALL")) {
-                /* full IP1/IP2/IP3 triplet decoding */
+                // full IP1/IP2/IP3 triplet decoding
                 float p1, p2, p3;
                 int kind1, kind2, kind3;
                 int StatusIP = ConvertIPtoPK(&p1, &kind1, &p2, &kind2, &p3, &kind3, stdf_entry->ip1, stdf_entry->ip2, stdf_entry->ip3);
                 if (kind1 < 0 || kind2 < 0 || kind3 < 0 || (StatusIP & CONVERT_ERROR) ) {
-                    /* decode error somewhere */
-                    kind1 = 15; kind2 = 15; kind3 = 15;  /* integer code P = IP */
+                    // decode error somewhere
+                    kind1 = 15; kind2 = 15; kind3 = 15;  // integer code P = IP
                     p1 = stdf_entry->ip1; p2 = stdf_entry->ip2; p3 = stdf_entry->ip3;
                 }
-                kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;   /* force modulo 32 */
+                kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;   // force modulo 32
                 snprintf(v_decoded, sizeof(v_decoded), "%10g%s %10g%s %10g%s", p1, kinds(kind1), p2, kinds(kind2), p3, kinds(kind3));
             }
-        } /* special variable, no decoding */
+        } // special variable, no decoding
     }
 
     if (strstr(option, "IP1")) {
@@ -578,17 +579,18 @@ void print_std_parms(
         snprintf(v_npas, sizeof(v_npas), "%8d", stdf_entry->npas);
     }
 
-    /* m will be added to data type if there are missing values in record */
+    // m will be added to data type if there are missing values in record
     if (stdf_entry->datyp & FSTD_MISSING_FLAG) cmsgp = 'm';
     if (strstr(option, "NODTY")) {
         v_dty[0] = '\0';
     } else {
-        /* force lower case data type code if compressed */
+        // force lower case data type code if compressed
+        const char cdt[9] = {'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
         if (stdf_entry->datyp > 128) {
-            /* suppress bits for 64 and 128 */
+            // suppress bits for 64 and 128
             snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d %3d", tolower(cdt[stdf_entry->datyp&0x3F]), cmsgp, stdf_entry->nbits, stdf_entry->dasiz);
         } else {
-            /* suppress bits for 64 and 128 */
+            // suppress bits for 64 and 128
             snprintf(v_dty, sizeof(v_dty), "%1c%1c%2d %3d", cdt[stdf_entry->datyp&0x3F], cmsgp, stdf_entry->nbits, stdf_entry->dasiz);
         }
     }
@@ -640,43 +642,39 @@ int c_fstapp_xdf(
     //! [in] Kept for backward compatibility, but unused
     char *option
 ) {
-    int index_fnom, index, width, nw, end_of_file;
-    file_table_entry *f;
-    xdf_record_header *header;
-    seq_dir_keys * seq_entry;
-
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index  == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
         return ERR_NO_FILE;
     }
 
-    f = file_table[index];
+    file_table_entry * fte = file_table[index];
 
-    if (!f->xdf_seq) {
+    if (!fte->xdf_seq) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: ile (unit=%d) is not sequential\n", __func__, iun);
         return ERR_BAD_FTYPE;
     }
 
-    end_of_file = 0;
-    width = W64TOWD(f->primary_len);
+    int end_of_file = 0;
+    int width = W64TOWD(fte->primary_len);
 
-    if (f->fstd_vintage_89) {
+    if (fte->fstd_vintage_89) {
         while (!end_of_file) {
-            nw = c_waread2(iun, f->head_keys, f->cur_addr, width);
-            header = (xdf_record_header *) f->head_keys;
+            int nw = c_waread2(iun, fte->head_keys, fte->cur_addr, width);
+            xdf_record_header * header = (xdf_record_header *) fte->head_keys;
             if (nw < width) {
                 end_of_file = 1;
                 header->idtyp = 127;
                 header->lng = 1;
                 break;
             }
-            seq_entry = (seq_dir_keys *) f->head_keys;
+            seq_dir_keys * seq_entry = (seq_dir_keys *) fte->head_keys;
             if (seq_entry->eof > 0) {
                 header->idtyp = 112 + seq_entry->eof;
                 header->lng = 1;
@@ -684,12 +682,12 @@ int c_fstapp_xdf(
                 break;
             }
             header->lng = ((seq_entry->lng +3) >> 2) + 15;
-            f->cur_addr += W64TOWD(header->lng);
+            fte->cur_addr += W64TOWD(header->lng);
         }
     } else {
         while (!end_of_file) {
-            nw = c_waread2(iun, f->head_keys, f->cur_addr, width);
-            header = (xdf_record_header *) f->head_keys;
+            int nw = c_waread2(iun, fte->head_keys, fte->cur_addr, width);
+            xdf_record_header * header = (xdf_record_header *) fte->head_keys;
             if (nw < W64TOWD(1)) {
                 end_of_file = 1;
                 header->idtyp = 127;
@@ -700,10 +698,10 @@ int c_fstapp_xdf(
                 end_of_file = 1;
                 break;
             }
-            f->cur_addr += W64TOWD(header->lng);
+            fte->cur_addr += W64TOWD(header->lng);
         }
     }
-    f->nxtadr = f->cur_addr;
+    fte->nxtadr = fte->cur_addr;
     return 0;
 }
 
@@ -754,7 +752,7 @@ int c_fstckp_xdf(
         return ERR_NO_FILE;
     }
 
-    /* checkpoint mode, not a complete close */
+    // checkpoint mode, not a complete close
     xdf_checkpoint = 1;
     ier = c_xdfcls(iun);
     return ier;
@@ -891,13 +889,13 @@ int c_fstecr_xdf(
         if (in_datyp_ori != FST_TYPE_COMPLEX) {
            Lib_Log(APP_LIBFST,APP_WARNING,"%s: compression and/or missing values not supported, data type %d reset to %d (complex)\n",__func__,in_datyp_ori,8);
         }
-        /* missing values not supported for complex type */
+        // missing values not supported for complex type
         is_missing = 0;
-        /* extra compression not supported for complex type */
+        // extra compression not supported for complex type
         in_datyp = FST_TYPE_COMPLEX;
     }
 
-    /* 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags */
+    // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
     int datyp = in_datyp == FST_TYPE_MAGIC ? 1 : in_datyp;
 
     PackFunctionPointer packfunc;
@@ -962,20 +960,20 @@ int c_fstecr_xdf(
     }
 
     if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
-        /* R32 to E32 automatic conversion */
+        // R32 to E32 automatic conversion
         datyp = FST_TYPE_REAL_IEEE;
         nbits = 32;
         minus_nbits = -32;
     }
 
-    /* flag 64 bit IEEE (type 5 or 8) */
+    // flag 64 bit IEEE (type 5 or 8)
     int IEEE_64 = 0;
-    /* 64 bits real IEEE */
+    // 64 bits real IEEE
     if ( (base_fst_type(in_datyp) == FST_TYPE_REAL_IEEE) && (nbits == 64) ) IEEE_64 = 1;
-    /* 64 bits complex IEEE */
+    // 64 bits complex IEEE
     if ( is_type_complex(in_datyp) && (nbits == 64) ) IEEE_64 = 1;
 
-    /* validate range of arguments */
+    // validate range of arguments
     VALID(ni, 1, NI_MAX, "ni")
     VALID(nj, 1, NJ_MAX, "nj")
     VALID(nk, 1, NK_MAX, "nk")
@@ -1002,12 +1000,12 @@ int c_fstecr_xdf(
     }
 
     if ((npak == 0) || (npak == 1)) {
-        /* no compaction */
+        // no compaction
         datyp = FST_TYPE_BINARY;
     }
 
-    /* allocate and initialize a buffer interface for xdfput */
-    /* an extra 512 bytes are allocated for cluster alignment purpose (seq) */
+    // allocate and initialize a buffer interface for xdfput
+    // an extra 512 bytes are allocated for cluster alignment purpose (seq)
 
     if (! image_mode_copy) {
         for (int i = 0; i < nb_remap; i++) {
@@ -1018,9 +1016,9 @@ int c_fstecr_xdf(
         }
     }
 
-    /* no extra compression if nbits > 16 */
+    // no extra compression if nbits > 16
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
-    /*  if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression; */
+    // if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression;
     if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
         if (! dejafait_xdf_1) {
             Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
@@ -1069,12 +1067,12 @@ int c_fstecr_xdf(
             break;
 
         case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
-            /* 120 bits (floatpack header)+8, 32 bits (extra header) */
+            // 120 bits (floatpack header)+8, 32 bits (extra header)
             nw = (ni * nj * nk * Max(nbits, 16) + 128 + 32 + 63) / 64;
             break;
 
         case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
-            /* 32 bits (extra header) */
+            // 32 bits (extra header)
             nw = (ni * nj * nk * Max(nbits, 16) + 32 + 63) / 64;
             break;
 
@@ -1122,7 +1120,7 @@ int c_fstecr_xdf(
     char grtyp[FST_GTYP_LEN];
     copy_record_string(grtyp, in_grtyp, FST_GTYP_LEN);
 
-    /* set stdf_entry to address of buffer->data for building keys */
+    // set stdf_entry to address of buffer->data for building keys
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) &(buffer->data);
     stdf_entry->deleted = 0;
     stdf_entry->select = 1;
@@ -1133,9 +1131,9 @@ int c_fstecr_xdf(
     stdf_entry->ni = ni;
     stdf_entry->gtyp = grtyp[0];
     stdf_entry->nj = nj;
-    /* propagate missing values flag */
+    // propagate missing values flag
     stdf_entry->datyp = datyp | is_missing;
-    /* this value may be changed later in the code to eliminate improper flags */
+    // this value may be changed later in the code to eliminate improper flags
     stdf_entry->nk = nk;
     stdf_entry->ubc = 0;
     stdf_entry->npas = npas;
@@ -1187,16 +1185,16 @@ int c_fstecr_xdf(
         int niout, njout, nkout;
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
         if (handle < 0) {
-            /* append mode for xdfput */
+            // append mode for xdfput
             handle = 0;
         }
     }
 
     uint32_t * field = field_in;
     if (image_mode_copy) {
-        /* no pack/unpack, used by editfst */
+        // no pack/unpack, used by editfst
         if (is_type_turbopack(datyp)) {
-            /* first element is length */
+            // first element is length
             int lngw = field[0];
             // fprintf(stderr, "Debug+ datyp=%d ecriture mode image lngw=%d\n", datyp, lngw);
             buffer->nbits = (keys_len + lngw) * bitmot;
@@ -1229,14 +1227,14 @@ int c_fstecr_xdf(
         if (xdf_byte)  sizefactor = 1;
         if (xdf_short) sizefactor = 2;
         if (xdf_double | IEEE_64) sizefactor = 8;
-        /* put appropriate values into field after allocating it */
+        // put appropriate values into field after allocating it
         if (is_missing) {
             // allocate self deallocating scratch field
             field = (uint32_t *)alloca(ni * nj * nk * sizefactor);
             if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, sizefactor*8, nbits) ) {
                 field = field_in;
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
-                /* cancel missing data flag in data type */
+                // cancel missing data flag in data type
                 stdf_entry->datyp = datyp;
                 is_missing = 0;
             }
@@ -1246,7 +1244,7 @@ int c_fstecr_xdf(
 
             case FST_TYPE_BINARY:
             case FST_TYPE_BINARY | FST_TYPE_TURBOPACK:
-                /* transparent mode */
+                // transparent mode
                 if (is_type_turbopack(datyp)) {
                     Lib_Log(APP_LIBFST,APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_BINARY (%d)\n", __func__, stdf_entry->datyp, FST_TYPE_BINARY);
                     datyp = FST_TYPE_BINARY;
@@ -1260,11 +1258,11 @@ int c_fstecr_xdf(
 
             case FST_TYPE_REAL_OLD_QUANT:
             case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK: {
-                /* floating point */
+                // floating point
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
-                    /* use an additional compression scheme */
-                    /* nbits>64 flags a different packing */
+                    // use an additional compression scheme
+                    // nbits>64 flags a different packing
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 0);
@@ -1290,7 +1288,7 @@ int c_fstecr_xdf(
 
             case FST_TYPE_UNSIGNED:
             case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
-                /* integer, short integer or byte stream */
+                // integer, short integer or byte stream
                 {
                     int offset = is_type_turbopack(datyp) ? 1 :0;
                     if (is_type_turbopack(datyp)) {
@@ -1340,7 +1338,7 @@ int c_fstecr_xdf(
 
             case FST_TYPE_CHAR:
             case FST_TYPE_CHAR | FST_TYPE_TURBOPACK:
-                /* character */
+                // character
                 {
                     int nc = (ni * nj + 3) / 4;
                     if (is_type_turbopack(datyp)) {
@@ -1357,12 +1355,12 @@ int c_fstecr_xdf(
 
             case FST_TYPE_SIGNED:
             case FST_TYPE_SIGNED | FST_TYPE_TURBOPACK:
-                /* signed integer */
+                // signed integer
                 if (is_type_turbopack(datyp)) {
                     Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported, data type %d reset to FST_TYPE_SIGNED (%d)\n", __func__, stdf_entry->datyp, is_missing | FST_TYPE_SIGNED);
                     datyp = FST_TYPE_SIGNED;
                 }
-                /* turbo compression not supported for this type, revert to normal mode */
+                // turbo compression not supported for this type, revert to normal mode
                 stdf_entry->datyp = is_missing | FST_TYPE_SIGNED;
 #ifdef use_old_signed_pack_unpack_code
                 // fprintf(stderr, "OLD PACK CODE======================================\n");
@@ -1395,7 +1393,7 @@ int c_fstecr_xdf(
             case FST_TYPE_COMPLEX:
             case FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK:
             case FST_TYPE_COMPLEX | FST_TYPE_TURBOPACK:
-                /* IEEE and IEEE complex representation */
+                // IEEE and IEEE complex representation
                 {
                     int32_t f_ni = (int32_t) ni;
                     int32_t f_njnk = nj * nk;
@@ -1409,7 +1407,7 @@ int c_fstecr_xdf(
                         stdf_entry->datyp = datyp;
                     }
                     if (datyp == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) {
-                        /* use an additionnal compression scheme */
+                        // use an additionnal compression scheme
                         int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field, ni, nj, nk, nbits);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_REAL_IEEE;
@@ -1432,10 +1430,10 @@ int c_fstecr_xdf(
 
             case FST_TYPE_REAL:
             case FST_TYPE_REAL | FST_TYPE_TURBOPACK:
-                /* floating point, new packers */
+                // floating point, new packers
 
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
-                    /* use an additional compression scheme */
+                    // use an additional compression scheme
                     c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 0);
                     if (compressed_lng < 0) {
@@ -1459,7 +1457,7 @@ int c_fstecr_xdf(
 
             case FST_TYPE_STRING:
             case FST_TYPE_STRING | FST_TYPE_TURBOPACK:
-                /* character string */
+                // character string
                 if (is_type_turbopack(datyp)) {
                     Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_STRING (%d)\n",
                             __func__, stdf_entry->datyp, FST_TYPE_STRING);
@@ -1472,15 +1470,16 @@ int c_fstecr_xdf(
             default:
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: (unit=%d) invalid datyp=%d\n", __func__, iun, datyp);
                 return ERR_BAD_DATYP;
-        } /* end switch */
-    } /* end if image mode copy */
+        } // end switch
+    } // end if image mode copy
 
 
-    /* write record to file and add entry to directory */
+    // write record to file and add entry to directory
     int ier = c_xdfput(iun, handle, buffer);
-    if (Lib_LogLevel(APP_LIBFST, NULL)>=APP_INFO) {
-        char string[12];
-        sprintf(string, "Write(%d)", iun);
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
+        const int strlng = 12;
+        char string[strlng];
+        snprintf(string, strlng, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
 
@@ -1600,29 +1599,21 @@ int c_fst_edit_dir_plus_xdf(
     int ig4,
     int datyp
 ) {
-    int index, width, pageno, recno;
-    file_table_entry *f;
-    uint32_t *entry;
-    stdf_dir_keys *stdf_entry;
-    stdf_special_parms cracked;
-    char string[20];
-
-    index = INDEX_FROM_HANDLE(handle);
-
+    int index = INDEX_FROM_HANDLE(handle);
     if ((index < 0) || (index >= MAX_XDF_FILES)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d\n", __func__, handle);
         return ERR_BAD_HNDL;
     }
 
-    f = file_table[index];
+    file_table_entry * fte = file_table[index];
 
-    if (! f->cur_info->attr.std) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, f->iun);
+    if (! fte->cur_info->attr.std) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, fte->iun);
         return ERR_NO_FILE;
     }
 
-    if (f->xdf_seq) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, f->iun);
+    if (fte->xdf_seq) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, fte->iun);
         return ERR_NO_FILE;
     }
 
@@ -1635,18 +1626,18 @@ int c_fst_edit_dir_plus_xdf(
     copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
     copy_record_string(grtyp, in_grtyp, FST_GTYP_LEN);
 
-    pageno = PAGENO_FROM_HANDLE(handle);
-    if (pageno > f->npages) {
-        /* page is not in current file */
+    int pageno = PAGENO_FROM_HANDLE(handle);
+    if (pageno > fte->npages) {
+        // page is not in current file
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle, invalid page number\n", __func__);
         return ERR_BAD_PAGENO;
     }
 
-    recno = RECORD_FROM_HANDLE(handle);
-    /*  printf("Debug+ c_fst_edit_dir pageno=%d recno=%d\n", pageno, recno); */
-    width = W64TOWD(f->primary_len);
-    entry = (f->dir_page[pageno])->dir.entry + recno * width;
-    stdf_entry = (stdf_dir_keys *) entry;
+    int recno = RECORD_FROM_HANDLE(handle);
+    // printf("Debug+ c_fst_edit_dir pageno=%d recno=%d\n", pageno, recno);
+    int width = W64TOWD(fte->primary_len);
+    uint32_t * entry = (fte->dir_page[pageno])->dir.entry + recno * width;
+    stdf_dir_keys * stdf_entry = (stdf_dir_keys *) entry;
 
     if (grtyp[0] != ' ') stdf_entry->gtyp = grtyp[0];
 
@@ -1695,13 +1686,16 @@ int c_fst_edit_dir_plus_xdf(
     if (ip3 != -1) stdf_entry->ip3 = ip3;
     if (date != -1) stdf_entry->date_stamp = 8 * (date/10) + (date % 10);
 
+    stdf_special_parms cracked;
     crack_std_parms(stdf_entry, &cracked);
-    sprintf(string, "%5d-", recno);
+    const int strlng = 20;
+    char string[strlng];
+    snprintf(string, strlng, "%5d-", recno);
     if (Lib_LogLevel(APP_LIBFST, NULL)>=APP_INFO) {
         print_std_parms(stdf_entry, string, "NINJNK+DATEO+IP1+IG1234", 1);
     }
-    f->dir_page[pageno]->modified = 1;
-    f->modified = 1;
+    fte->dir_page[pageno]->modified = 1;
+    fte->modified = 1;
     return 0;
 }
 
@@ -1731,7 +1725,6 @@ int c_fst_edit_dir_plus(
     const int32_t key_type = RSF_Key32_type(handle);
 
     if (key_type == 1) {
-        RSF_handle file_handle = RSF_Key32_to_handle(handle);
         Lib_Log(APP_LIBFST, APP_WARNING,
                 "%s: You can't just edit a directory entry once a record has been written to an RSF file\n",
                 __func__);
@@ -1973,13 +1966,6 @@ int c_fstinfx_xdf(
     //! [in] Variable name
     const char * const in_nomvar
 ) {
-    stdf_dir_keys *stdf_entry, *search_mask;
-    uint32_t * pkeys, *pmask;
-    file_table_entry *f;
-    int i, index_fnom, index, index_h;
-    int addr, lng, idtyp, l1, l2, l3;
-    unsigned int u_datev = datev;
-
     char etiket[FST_ETIKET_LEN];
     char typvar[FST_TYPVAR_LEN];
     char nomvar[FST_NOMVAR_LEN];
@@ -1987,29 +1973,28 @@ int c_fstinfx_xdf(
     copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
     copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
     copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d)\n",
-            __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar, handle);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d, IP flags = %d%d%d)\n",
+            __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar, handle, ip1s_flag, ip2s_flag, ip3s_flag);
 
-    index_fnom = fnom_index(iun);
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
+    int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
         return ERR_NO_FILE;
     }
 
-    f = file_table[index];
+    stdf_dir_keys *stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    stdf_dir_keys *search_mask = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
 
-    stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-    search_mask = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
+    uint32_t * pkeys = (uint32_t *) stdf_entry;
+    uint32_t * pmask = (uint32_t *) search_mask;
 
-    pkeys = (uint32_t *) stdf_entry;
-    pmask = (uint32_t *) search_mask;
-
-    for (i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
+    for (int i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
         pmask[i] = -1;
     }
 
@@ -2041,6 +2026,7 @@ int c_fstinfx_xdf(
     search_mask->ig2c = 0;
     search_mask->levtyp = 0;
 
+    const unsigned int u_datev = datev;
     stdf_entry->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
     search_mask->date_stamp &= ~(0x7);
     if (datev == -1) search_mask->date_stamp = 0;
@@ -2087,16 +2073,17 @@ int c_fstinfx_xdf(
     pkeys += W64TOWD(1);
     pmask += W64TOWD(1);
     int lhandle = handle;
+    file_table_entry *fte = file_table[index];
     if (lhandle == -2) {
-        /* means handle not specified */
-        if (f->xdf_seq) {
+        // means handle not specified
+        if (fte->xdf_seq) {
             lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
         } else {
             lhandle = c_xdfloc2(iun, 0, pkeys, 16, pmask);
         }
     } else {
         if (lhandle > 0) {
-            index_h = INDEX_FROM_HANDLE(lhandle);
+            int index_h = INDEX_FROM_HANDLE(lhandle);
             if (index_h != index) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d, or iun=%d\n", __func__, lhandle, iun);
                 free(stdf_entry);
@@ -2109,11 +2096,11 @@ int c_fstinfx_xdf(
 
     if (lhandle < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) record not found, errcode=%d\n", __func__, iun, lhandle);
-        if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         free(stdf_entry);
         free(search_mask);
         return lhandle;
     }
+    int addr, lng, idtyp;
     c_xdfprm(lhandle, &addr, &lng, &idtyp, pkeys, 16);
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
@@ -2144,7 +2131,7 @@ int c_fstinfx_xdf(
         if (ip1s_flag) search_mask->ip1 = 0xFFFFFFF;
         if (ip2s_flag) search_mask->ip2 = 0xFFFFFFF;
         if (ip3s_flag) search_mask->ip3 = 0xFFFFFFF;
-        f->build_primary(f->target, pkeys, f->cur_mask, pmask, index, 1);
+        fte->build_primary(fte->target, pkeys, fte->cur_mask, pmask, index, 1);
         init_ip_vals();
     }
     *ni = stdf_entry->ni;
@@ -2183,7 +2170,7 @@ int c_fstinfx(
     const char * const in_nomvar
 ) {
     int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
+    is_rsf(iun, &index_fnom);
 
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
@@ -2192,8 +2179,9 @@ int c_fstinfx(
 
     int status = -1;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d, IP all flags %d %d %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file,
+                ip1s_flag, ip2s_flag, ip3s_flag);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinfx_rsf(handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar,
@@ -2210,6 +2198,8 @@ int c_fstinfx(
 
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     return status;
 }
@@ -2349,6 +2339,8 @@ int c_fstinl(
         total_found += *infon;
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Found %d records in %d files\n", __func__, total_found, num_files);
 
@@ -2540,7 +2532,7 @@ int c_fstlirx(
     char *nomvar
 ) {
     int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
+    is_rsf(iun, &index_fnom);
 
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
@@ -2566,6 +2558,8 @@ int c_fstlirx(
 
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     return status;
 }
@@ -2623,7 +2617,7 @@ int c_fstlis(
     int *nk
 ) {
     int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
+    is_rsf(iun, &index_fnom);
 
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
@@ -2649,6 +2643,8 @@ int c_fstlis(
 
         index_fnom = fstd_open_files[index_fnom].next_file;
     }
+
+    if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     return status;
 }
@@ -2810,7 +2806,7 @@ int c_fstluk_xdf(
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(stdf_entry.datyp)) {
                     // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
-                    int nbytes = armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
@@ -2836,7 +2832,7 @@ int c_fstluk_xdf(
                         }
                     }  else if (xdf_byte) {
                         if (is_type_turbopack(stdf_entry.datyp)) {
-                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                            armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                             // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n", nbytes, nelm);
                             memcpy_16_8((int8_t *)field, (int16_t *)(buf->data + offset), nelm);
                         } else {
@@ -2844,7 +2840,7 @@ int c_fstluk_xdf(
                         }
                     } else {
                         if (is_type_turbopack(stdf_entry.datyp)) {
-                            int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                            armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                             // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
                             memcpy_16_32(field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
                         } else {
@@ -2938,7 +2934,7 @@ int c_fstluk_xdf(
                 // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (is_type_turbopack(stdf_entry.datyp)) {
-                    int nbytes = armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
@@ -2952,7 +2948,7 @@ int c_fstluk_xdf(
             case FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK: {
                 // Floating point, new packers
                 // printf("Debug+ fstluk - Floating point, new packers (133)\n");
-                int nbytes = c_armn_uncompress32((float *)field, (unsigned char *)(buf->data + 1), *ni, *nj, *nk, stdf_entry.nbits);
+                c_armn_uncompress32((float *)field, (unsigned char *)(buf->data + 1), *ni, *nj, *nk, stdf_entry.nbits);
                 break;
             }
 
@@ -2970,8 +2966,9 @@ int c_fstluk_xdf(
     }
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        char string[11];
-        sprintf(string, "Read(%d)", buf->iun);
+        const int strlng = 11;
+        char string[strlng];
+        snprintf(string, strlng, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
         print_std_parms(&stdf_entry, string, prnt_options, -1);
     }
@@ -3200,7 +3197,7 @@ int c_fstnbrv_xdf(
     int iun
 ) {
     int index, index_fnom, nrec;
-    file_table_entry *f;
+    file_table_entry *fte;
 
     index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -3211,14 +3208,14 @@ int c_fstnbrv_xdf(
     if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
         c_fstouv(iun, "RND");
         index = file_index_xdf(iun);
-        f = file_table[index];
-        nrec = f->header->nrec;
+        fte = file_table[index];
+        nrec = fte->header->nrec;
         c_fstfrm(iun);
         return nrec;
     }
 
-    f = file_table[index];
-    return f->header->nrec;
+    fte = file_table[index];
+    return fte->header->nrec;
 }
 
 //! Get the number of valid records (excluding deleted records, including ones that were added since opening) in a file
@@ -3286,7 +3283,7 @@ int c_fstopc(
         if (getmode){
             if (getmode == 2) val = 0;
         } else {
-            sprintf(prnt_options, "%s", value);
+            snprintf(prnt_options, PRNT_OPTIONS_LEN, "%s", value);
         }
         if (getmode == 1) {
             Lib_Log(APP_LIBFST, APP_INFO, "%s: option PRINTOPT='%s'\n", __func__, prnt_options);
@@ -3479,13 +3476,14 @@ int c_fstouv(
         return ERR_NO_FNOM;
     }
 
-    char appl[5];
+    const int strlng = 5;
+    char appl[strlng];
     if (strcasestr(options, "RND")) {
         // standard random
-        sprintf(appl, "%s", "STDR");
+        snprintf(appl, strlng, "%s", "STDR");
     } else {
         // standard sequential
-        sprintf(appl, "%s", "STDS");
+        snprintf(appl, strlng, "%s", "STDS");
     }
 
     // Determine if we're opening in read or write mode
@@ -3498,7 +3496,7 @@ int c_fstouv(
     }
     // Look for attribute volatile (file will be erased on process end)
     if (strcasestr(options, "VOLATILE")) {
-        FGFDT[i].attr.volatil = 1; 
+        FGFDT[i].attr.volatil = 1;
     }
 
     // Check for backend type
@@ -3666,7 +3664,7 @@ int c_fstprm_xdf(
     *lng = W64TOWD(xdflng);
     *dltf = stdf_entry->deleted;
     *ubc = stdf_entry->ubc;
-    /* new, use to be undefined */
+    // new, use to be undefined
     *extra1 = cracked.date_valid;
     *extra2 = 0;
     *extra3 = 0;
@@ -3833,7 +3831,7 @@ int c_fstskp_xdf(
     //! \return 0 on success, error code otherwise
 
     int index_fnom, index, i, nw, cur_pos, dim;
-    file_table_entry *f;
+    file_table_entry *fte;
     xdf_record_header header64;
     postfix_seq postfix;
     seq_dir_keys seq_entry;
@@ -3849,28 +3847,28 @@ int c_fstskp_xdf(
         return ERR_NO_FILE;
     }
 
-    f = file_table[index];
+    fte = file_table[index];
 
-    if (!f->xdf_seq) {
+    if (!fte->xdf_seq) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: file (unit=%d) is not sequential\n", __func__, iun);
         return ERR_BAD_FTYPE;
     }
 
-    if (! f->fstd_vintage_89) {
+    if (! fte->fstd_vintage_89) {
         if (nrec > 0) {
-            /* skip forward */
+            // skip forward
             for (i = 0; i < nrec; i++) {
-                nw = c_waread2(iun, &header64, f->cur_addr, W64TOWD(1));
+                nw = c_waread2(iun, &header64, fte->cur_addr, W64TOWD(1));
                 if ((nw != W64TOWD(1)) || ((header64.idtyp >= 112) && (header64.idtyp <= 127))) {
                     Lib_Log(APP_LIBFST, APP_INFO, "%s: (unit %d) skip to end of file\n", __func__, iun);
                     break;
                 }
-                cur_pos = f->cur_addr;
-                f->cur_addr += W64TOWD(header64.lng);
-                c_waread(iun, &postfix, f->cur_addr, W64TOWD(2));
+                cur_pos = fte->cur_addr;
+                fte->cur_addr += W64TOWD(header64.lng);
+                c_waread(iun, &postfix, fte->cur_addr, W64TOWD(2));
                 if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
-                    /* skip postfix also */
-                    f->cur_addr += W64TOWD(2);
+                    // skip postfix also
+                    fte->cur_addr += W64TOWD(2);
                 } else {
                     Lib_Log(APP_LIBFST, APP_FATAL, "%s: file (unit=%d) has invalid or no record postfix\n", __func__, iun);
                     return ERR_NO_POSTFIX;
@@ -3879,49 +3877,49 @@ int c_fstskp_xdf(
         } else {
             nrec = -nrec;
             for (i = 0; i < nrec; i++) {
-                if ((f->cur_addr - W64TOWD(2)) > f->seq_bof) {
-                    c_waread(iun, &postfix, (f->cur_addr - W64TOWD(2)), W64TOWD(2));
+                if ((fte->cur_addr - W64TOWD(2)) > fte->seq_bof) {
+                    c_waread(iun, &postfix, (fte->cur_addr - W64TOWD(2)), W64TOWD(2));
                     if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
-                        f->cur_addr = W64TOWD( (postfix.prev_addr - 1) )+1;
+                        fte->cur_addr = W64TOWD( (postfix.prev_addr - 1) )+1;
                     } else {
                         Lib_Log(APP_LIBFST, APP_FATAL, "%s: file (unit=%d) has no record postfix\n", __func__, iun);
                         return ERR_NO_POSTFIX;
                     }
-                    c_waread(iun, &header64, f->cur_addr, W64TOWD(1));
-                    if (header64.addr != (WDTO64( (f->cur_addr -1) )+1)) {
-                        Lib_Log(APP_LIBFST, APP_FATAL, "%s: file (unit=%d), postfix address (%d) not equal to record address (%d)\n", __func__, iun, (WDTO64((f->cur_addr -1))+1), header64.addr);
+                    c_waread(iun, &header64, fte->cur_addr, W64TOWD(1));
+                    if (header64.addr != (WDTO64( (fte->cur_addr -1) )+1)) {
+                        Lib_Log(APP_LIBFST, APP_FATAL, "%s: file (unit=%d), postfix address (%d) not equal to record address (%d)\n", __func__, iun, (WDTO64((fte->cur_addr -1))+1), header64.addr);
                         return ERR_NO_POSTFIX;
                     }
                 }
             }
         }
     } else {
-        /* old sequential standard file */
+        // old sequential standard file
         dim = sizeof(seq_entry) / sizeof(int32_t);
         if (nrec < 0) {
-            /* skip forward */
+            // skip forward
             for (i = 0; i < nrec; i++) {
-                nw = c_waread2(iun, &seq_entry, f->cur_addr, dim);
+                nw = c_waread2(iun, &seq_entry, fte->cur_addr, dim);
                 if ((nw != dim) || (seq_entry.eof > 0)) {
                     Lib_Log(APP_LIBFST, APP_INFO, "%s: (unit %d) skip to end of file\n", __func__, iun);
                     break;
                 }
-                f->cur_addr += W64TOWD( (((seq_entry.lng + 3) >> 2) + 15) );
+                fte->cur_addr += W64TOWD( (((seq_entry.lng + 3) >> 2) + 15) );
             }
         } else {
-            /* skip backward */
+            // skip backward
             nrec = -nrec;
             for (i = 0; i < nrec; i++) {
-                if (f->cur_addr <= 1) {
-                    f->cur_addr = 1;
+                if (fte->cur_addr <= 1) {
+                    fte->cur_addr = 1;
                     break;
                 }
-                c_waread(iun, &seq_entry, f->cur_addr, dim);
-                cur_pos = f->cur_addr;
-                f->cur_addr = seq_entry.swa_last * W64TOWD(15) + 1;
-                if (f->cur_addr >= cur_pos) {
-                    /* not moving backward anymore */
-                    f->cur_addr = 1;
+                c_waread(iun, &seq_entry, fte->cur_addr, dim);
+                cur_pos = fte->cur_addr;
+                fte->cur_addr = seq_entry.swa_last * W64TOWD(15) + 1;
+                if (fte->cur_addr >= cur_pos) {
+                    // not moving backward anymore
+                    fte->cur_addr = 1;
                     break;
                 }
             }
@@ -3971,8 +3969,8 @@ int c_fstsui_xdf(
 ) {
     uint32_t *primk = NULL;
 
-    /* position to the next record that matches the last search criterias */
-    int handle = c_xdfloc(iun, -1, primk, 0); /* find next with handle = -1 and nprim = 0 */
+    // position to the next record that matches the last search criterias
+    int handle = c_xdfloc(iun, -1, primk, 0); // find next with handle = -1 and nprim = 0
     if (handle < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%d\n", __func__, handle);
         return handle;
@@ -4003,7 +4001,7 @@ int c_fstsui(
     int *nk
 ) {
     int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
+    is_rsf(iun, &index_fnom);
 
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
@@ -4071,7 +4069,8 @@ int c_fstvoi_xdf(
     int width = W64TOWD(fte->primary_len);
     stdf_dir_keys* stdf_entry;
     xdf_record_header* header;
-    char string[20];
+    const int strlng = 20;
+    char string[strlng];
     if (! fte->xdf_seq) {
         for (int i = 0; i < fte->npages; i++) {
             uint32_t* entry = (fte->dir_page[i])->dir.entry;
@@ -4079,7 +4078,7 @@ int c_fstvoi_xdf(
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
-                    sprintf(string, "%5d-", nrec);
+                    snprintf(string, strlng, "%5d-", nrec);
                     print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
                     nrec++;
                 }
@@ -4182,10 +4181,10 @@ int c_fstvoi_xdf(
                     nhours = (nhours / 3600.0);
                     f77name(incdatr)(&f_datev, &f_datev, &nhours);
                     datexx = (unsigned int) f_datev;
-                    /* re-octalise the date_stamp */
+                    // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
-                sprintf(string, "%5d-", nrec);
+                snprintf(string, strlng, "%5d-", nrec);
                 print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
@@ -4196,19 +4195,19 @@ int c_fstvoi_xdf(
                     continue;
                 }
                 stdf_entry = (stdf_dir_keys *) fte->head_keys;
-                sprintf(string, "%5d-", nrec);
+                snprintf(string, strlng, "%5d-", nrec);
                 print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD(header->lng);
             }
-        } /* end while */
+        } // end while
     }
 
     fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
     if (fte->fstd_vintage_89) {
-        sprintf(string, "Version 1989");
+        snprintf(string, strlng, "Version 1989");
     } else {
-        sprintf(string, "Version 1998");
+        snprintf(string, strlng, "Version 1998");
     }
     if (fte->xdf_seq) {
         fprintf(stdout, "%d records in sequential RPN standard file (%s)\n", nrec, string);
@@ -4261,7 +4260,7 @@ int c_fstweo_xdf(
     int level
 ) {
     int index_fnom, index;
-    file_table_entry *f;
+    file_table_entry *fte;
     xdf_record_header header64;
 
     index_fnom = fnom_index(iun);
@@ -4275,9 +4274,9 @@ int c_fstweo_xdf(
         return ERR_NO_FILE;
     }
 
-    f = file_table[index];
+    fte = file_table[index];
 
-    if (!f->xdf_seq) {
+    if (!fte->xdf_seq) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: file (unit=%d) is not sequential\n", __func__, iun);
         return ERR_BAD_FTYPE;
     }
@@ -4286,16 +4285,16 @@ int c_fstweo_xdf(
     if (level < 15) {
         header64.idtyp = 112 + level;
         header64.lng = 1;
-        header64.addr = f->cur_addr;
-        f->nxtadr = f->cur_addr;
-        c_wawrit(iun, &header64, f->nxtadr, W64TOWD(1));
-        f->nxtadr += W64TOWD(1);
-        f->cur_addr += W64TOWD(1);
+        header64.addr = fte->cur_addr;
+        fte->nxtadr = fte->cur_addr;
+        c_wawrit(iun, &header64, fte->nxtadr, W64TOWD(1));
+        fte->nxtadr += W64TOWD(1);
+        fte->cur_addr += W64TOWD(1);
     }
     header64.idtyp = 127;
-    header64.addr = f->cur_addr;
-    c_wawrit(iun, &header64, f->cur_addr, W64TOWD(1));
-    f->nxtadr = f->cur_addr;
+    header64.addr = fte->cur_addr;
+    c_wawrit(iun, &header64, fte->cur_addr, W64TOWD(1));
+    fte->nxtadr = fte->cur_addr;
     return 0;
 }
 
@@ -4409,7 +4408,7 @@ int c_ip1_all(
     if (lkind < 4) {
         ConvertIp(&ip_old, &llevel, &lkind, 3);
     } else {
-        /* no valid value for oldtype */
+        // no valid value for oldtype
         ip_old = -9999;
     }
     ips_tab[0][ip_nb[0]] = ip_old;
@@ -4419,7 +4418,7 @@ int c_ip1_all(
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: ip1 table full (i1_ind=%d)\n", __func__, ip_nb[0]);
         return -1;
     }
-    // printf("Debug+ c_ip1_all llevel=%f lkind=%d ip_new=%d ip_old=%d\n", llevel, lkind, ip_new, ip_old);
+    // printf("Debug+ c_ip1_all llevel=%fte lkind=%d ip_new=%d ip_old=%d\n", llevel, lkind, ip_new, ip_old);
     return ip_new;
 }
 
@@ -4453,7 +4452,7 @@ int c_ip2_all(
     if (lkind < 4) {
         ConvertIp(&ip_old, &llevel, &lkind, 3);
     } else {
-        /* no valid value for oldtype */
+        // no valid value for oldtype
         ip_old = -9999;
     }
     ips_tab[1][ip_nb[1]] = ip_old;
@@ -4496,7 +4495,7 @@ int c_ip3_all(
     if (lkind < 4) {
         ConvertIp(&ip_old, &llevel, &lkind, 3);
     } else {
-        /* no valid value for oldtype */
+        // no valid value for oldtype
         ip_old = -9999;
     }
     ips_tab[2][ip_nb[2]] = ip_old;
@@ -4608,7 +4607,7 @@ int32_t f77name(fstapp)(
 ) {
     int ier, iun = *f_iun;
 
-    /* option not used anymore by c_fstapp */
+    // option not used anymore by c_fstapp
     ier = c_fstapp(iun, option);
     return (int32_t) ier;
 }
@@ -5901,10 +5900,10 @@ int32_t f77name(fstprm)(int32_t *f_handle,
   char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
   char grtyp[2] = {' ', '\0'};
 
-  l1 = (l1 < 2) ? l1 : 2;            /* typvar length */
-  l2 = (l2 < 4) ? l2 : 4;            /* nomvar length */
-  l3 = (l3 < 12) ? l3 :12;           /* etiket length */
-  l4 = (l4 < 1) ? l4 : 1;            /* grtyp length */
+  l1 = (l1 < 2) ? l1 : 2;            // typvar length
+  l2 = (l2 < 4) ? l2 : 4;            // nomvar length
+  l3 = (l3 < 12) ? l3 :12;           // etiket length
+  l4 = (l4 < 1) ? l4 : 1;            // grtyp length
 
   ier = c_fstprm(handle, &dateo, &deet, &npas, &ni, &nj, &nk,
                      &nbits, &datyp, &ip1, &ip2, &ip3, typvar,
@@ -6215,11 +6214,11 @@ void c_ip_string(
     int StatusIP = ConvertIPtoPK(&lip1, &kind1, &lip2, &kind2, &lip3, &kind3, ip1, ip2, ip3);
     if (kind1 < 0 || kind2 < 0 || kind3 < 0 || (StatusIP & CONVERT_ERROR) ) {
         // decode error somewhere
-        /* integer code P = IP */
+        // integer code P = IP
         kind1 = 15; kind2 = 15; kind3 = 15;
         lip1 = ip1; lip2 = ip2; lip3 = ip3;
     }
-    /* force modulo 32 */
+    // force modulo 32
     kind1 &= 0x1F; kind2 &= 0x1F; kind3 &= 0x1F;
     snprintf(buffer, size, "IP1 %g (%s), IP2 %g (%s), IP3 %g (%s)", lip1, kinds(kind1), lip2, kinds(kind2), lip3, kinds(kind3));
 }

@@ -348,6 +348,15 @@ function test_fst24_interface(is_rsf) result(success)
         type(fst_record), dimension(5) :: all_records
         integer :: i
 
+        num_found = query % find_all()
+             write(app_msg, '(A, I4, A)') 'Did not find all ', num_found, ' records'
+        success = (num_found == 3)
+        if (.not. success) then
+            write(app_msg, '(A, I4, A)') 'Did not find all ', num_found, ' records'
+            call app_log(APP_ERROR, app_msg)
+            return
+        end if
+
         num_found = query % find_all(all_records(1:1))
 
         success = (num_found == 1)
@@ -390,6 +399,18 @@ function test_fst24_interface(is_rsf) result(success)
         end do
     end block
 
+    ! /////////////////////////////////////////
+    ! // Find count
+    block
+        num_found = query % find_count()
+        success = (num_found == 3)
+        if (.not. success) then
+            write(app_msg, '(A, I4, A)') 'Found only ', num_found, ' of the 3 records we wrote!'
+            call app_log(APP_ERROR, app_msg)
+            return
+        end if
+    end block
+
     call query % free()
 
     ! /////////////////////////////////////////
@@ -398,6 +419,7 @@ function test_fst24_interface(is_rsf) result(success)
         type(fst_file), dimension(3) :: file_list
         type(fst_record), dimension(10) :: results
         integer(C_INT64_T) :: num_records
+        type(fst_record) :: result2
 
         file_list(1) = test_file
 
@@ -470,6 +492,24 @@ function test_fst24_interface(is_rsf) result(success)
                 call record % print()
                 call expected % print()
                 return
+            end if
+
+            if (num_found == 1) then
+                success = test_file % read(result2, ip2 = test_record % ip2 + 1)
+                if (.not. success) then
+                    call App_Log(APP_ERROR, 'Could not read record with file % read')
+                    return
+                end if
+
+                success = result2 % has_same_info(record)
+                if (.not. success) then
+                    write(app_msg, '(A, I3, A)') 'Record from file % read is not identical to the one from find next! (num_found = ',    &
+                        num_found, ')'
+                    call app_log(APP_ERROR, app_msg)
+                    call record % print()
+                    call result2 % print()
+                    return
+                end if
             end if
         end do
 
@@ -620,6 +660,7 @@ program fst24_interface
     use test_fst24_interface_module
 
     if (.not. fst24_is_default_record_valid()) error stop 1
+    if (.not. fst24_is_default_query_options_valid()) error stop 1
     call make_test_record()
 
     call App_Log(APP_INFO, 'Doing RSF tests')

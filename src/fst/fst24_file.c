@@ -66,8 +66,8 @@ fst_file* fst24_open(
     const int MAX_LENGTH = 1024;
     char local_options[MAX_LENGTH];
     snprintf(local_options, MAX_LENGTH, "RND+%s%s",
-             !(strcasestr(options, "R/W") || strcasestr(options, "R/O")) ? "R/O+" : "",
-             options);
+             (!options || !(strcasestr(options, "R/W") || strcasestr(options, "R/O"))) ? "R/O+" : "",
+             options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
 
     if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) return NULL;
@@ -1018,10 +1018,11 @@ int32_t fst24_get_record_from_key(
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
-    const fst_record* criteria  //!< Criteria to be used for the search. If NULL, will look for any record
+    const fst_record* criteria, //!< [Optional] Criteria to be used for the search. If NULL, will look for any record
+    const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%p)\n", __func__, file);
        return FALSE;
     }
 
@@ -1042,7 +1043,7 @@ fst_query* fst24_new_query(
         return NULL;
     }
 
-    *query = new_fst_query();
+    *query = new_fst_query(options);
     make_search_criteria(criteria, &(query->criteria), &(query->mask));
     query->num_criteria = sizeof(query->criteria) / sizeof(uint32_t);
     query->search_index = criteria->handle > 0 ? criteria->handle : 0;
@@ -1185,7 +1186,7 @@ int32_t fst24_find_next(
         return FALSE;
     }
 
-    if (!fst24_record_is_valid(record)) {
+    if (record && !fst24_record_is_valid(record)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must give a valid record into which information will be put\n", __func__);
         return FALSE;
     }
@@ -1211,20 +1212,22 @@ int32_t fst24_find_next(
             key = find_next_rsf(file_handle, query);
             if (key < 0) break; // Not in this file
 
-            // Check on excdes desire/exclure clauses
-            record->metadata = NULL;
-            rkey = fst24_get_record_from_key(query->file, key, record); 
-            if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-                    record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
-                key = -1; // Continue looking
-            }
-            // If metadata search is specified, look for a match or carry on looking
-            else if (query->search_meta != NULL) {
-                if (fst24_read_metadata(record) &&
-                    Meta_Match(query->search_meta, record->metadata, FALSE)) {
-                    break; // Found it
-                } else {
+            if (record) {
+                // Check on excdes desire/exclure clauses
+                record->metadata = NULL;
+                rkey = fst24_get_record_from_key(query->file, key, record); 
+                if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+                        record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
                     key = -1; // Continue looking
+                }
+                // If metadata search is specified, look for a match or carry on looking
+                else if (query->search_meta != NULL) {
+                    if (fst24_read_metadata(record) &&
+                        Meta_Match(query->search_meta, record->metadata, FALSE)) {
+                        break; // Found it
+                    } else {
+                        key = -1; // Continue looking
+                    }
                 }
             }
         }
@@ -1256,7 +1259,7 @@ int32_t fst24_find_next(
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, query->file->iun, key, query->file);
         // If search included extended metadata, the key will already be extracted
-        if (rkey == 0) {
+        if (rkey == 0 && record) {
             return fst24_get_record_from_key(query->file, key, record);
         } else {
             return TRUE;
@@ -1283,14 +1286,39 @@ int32_t fst24_find_all(
     fst_record* results,          //!< [in,out] List of records found. Must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
+    int32_t max;
+
     if (fst24_rewind_search(query) != TRUE) return 0;
 
-    for (int i = 0; i < max_num_results; i++) {
-        results[i] = default_fst_record;
-        if (!fst24_find_next(query, &(results[i]))) return i;
+    max = results ? max_num_results : INT_MAX;
+
+    for (int i = 0; i < max; i++) {
+        if (results) {
+           results[i] = default_fst_record;
+           if (!fst24_find_next(query, &(results[i]))) return i;
+        } else {
+           if (!fst24_find_next(query, NULL)) return i;
+        }
     }
     return max_num_results;
 }
+
+//! Get the number of records matching to query
+//! \return Number of records found by the query
+int32_t fst24_find_count(
+    fst_query * const query //!< [in] Query used for the search (the state of the query object is modified)
+) {
+    fst_record record = default_fst_record;
+
+    fst24_rewind_search(query);
+
+    int32_t count = 0;
+    while (fst24_find_next(query, &record)) {
+        count++;
+    }
+    return count;
+}
+
 
 //! Unpack the given data array, according to the given record information
 int32_t fst24_unpack_data(
@@ -1326,6 +1354,9 @@ int32_t fst24_unpack_data(
 
     const int multiplier = (simple_datyp == FST_TYPE_COMPLEX) ? 2 : 1;
     const int nelm = fst24_record_num_elem(record) * multiplier;
+
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Unpacking %d %d-bit %s elements from %p into %p\n",
+            __func__, nelm, record->dasiz, FST_TYPE_NAMES[base_fst_type(record->datyp)], source, dest);
 
     double dmin = 0.0;
     double dmax = 0.0;
@@ -1424,7 +1455,6 @@ int32_t fst24_unpack_data(
                     int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
                     int16_t*     field_out_16 = (int16_t*)dest;
                     int8_t*      field_out_8  = (int8_t*)dest;
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Uncompacting with nelm = %d, nbits = %d\n", __func__, nelm, nbits);
                     ier = compact_integer(field_out, (void *) NULL, source, nelm, nbits, 0, stride, 4);
                     if (record->dasiz == 16) {
                         for (int i = 0; i < nelm; i++) {
@@ -1518,7 +1548,7 @@ int32_t fst24_unpack_data(
 
 //! Read a record from an RSF file
 //! \return 0 for success, negative for error
-int32_t fst24_read_rsf(
+int32_t fst24_read_record_rsf(
     const RSF_handle rsf_file,  //!< Handle to the file where the record is stored
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
@@ -1572,7 +1602,7 @@ int32_t fst24_read_rsf(
 
 //! Read a record from an XDF file
 //! \return 0 for success, negative for error
-int32_t fst24_read_xdf(
+int32_t fst24_read_record_xdf(
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
     //!> Must have already allocated its data buffer
@@ -1615,7 +1645,7 @@ void* fst24_read_metadata(
     }
 
     if (record->file->type == FST_RSF) {
-        if (fst24_read_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
+        if (fst24_read_record_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file\n", __func__);
             return NULL;
         }
@@ -1632,7 +1662,7 @@ void* fst24_read_metadata(
 
 //! Read the data and metadata of a given record from its corresponding file
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
-int32_t fst24_read(
+int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
     if (!fst24_is_open(record->file)) {
@@ -1657,20 +1687,20 @@ int32_t fst24_read(
        return -1;
     }
 
-    if (!record->data || size > record->alloc) {
+    if ((record->data == NULL) || (record->alloc > 0 && size * 2 > record->alloc)) {
         record->data = realloc(record->data, size * 2);
         if (!record->data) {
             return ERR_MEM_FULL;
         }
-        record->alloc = size;
+        record->alloc = size * 2;
     }
 
     int32_t ret = -1;
     if (record->file->type == FST_RSF) {
-        ret = fst24_read_rsf(record->file->rsf_handle, record, image_mode_copy, 0);
+        ret = fst24_read_record_rsf(record->file->rsf_handle, record, image_mode_copy, 0);
     }
     else if (record->file->type == FST_XDF) {
-        ret = fst24_read_xdf(record);
+        ret = fst24_read_record_xdf(record);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
@@ -1698,7 +1728,22 @@ int32_t fst24_read_next(
         return FALSE;
     }
 
-    return fst24_read(record);
+    return fst24_read_record(record);
+}
+
+//! Search a file with given criteria and read the first record that matches these criteria.
+//! Search through linked files, if any.
+//! \return TRUE (1) if able to find and read a record, FALSE (0) or a negative number otherwise (not found or error)
+int32_t fst24_read(
+    const fst_file* const file,         //!< File we want to search
+    const fst_record* criteria,         //!< [Optional] Criteria to be used for the search
+    const fst_query_options* options,   //!< [Optional] Options to modify how the search will be performed
+    fst_record* const record            //!< [out] Record content and info, if found
+) {
+    fst_query* q = fst24_new_query(file, criteria, options);
+    int32_t status = fst24_read_next(q, record);
+    fst24_query_free(q);
+    return status;
 }
 
 //! Link the given list of files together, so that they are treated as one for the purpose
@@ -1779,4 +1824,36 @@ void fst24_query_free(fst_query* const query) {
         query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
         free(query);
     }
+}
+
+//! To be called from fortran. Determine whether the given FST query options pointer matches the default
+//! fst_query_options struct.
+//! \return 0 if they match, -1 if not
+int32_t fst24_validate_default_query_options(
+    const fst_query_options* fortran_options, //!< Pointer to a default-initialized fst_query_options[_c] struct
+    const size_t fortran_size         //!< Size of the fst_query_options_c struct in Fortran
+) {
+    if (fortran_options == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Called with NULL pointer\n", __func__);
+        return -1;
+    }
+
+    if (sizeof(fst_query_options) != fortran_size) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Size C != size Fortran (%d != %d)\n",
+                __func__, sizeof(fst_query_options), fortran_size);
+        return -1;
+    }
+
+    if (memcmp(&default_query_options, fortran_options, sizeof(fst_query_options)) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Not the same!\n", __func__);
+        for (int i = 0; i < sizeof(fst_query_options) / 4; i += 4) {
+            const uint32_t* c = (const uint32_t*)&default_query_options;
+            const uint32_t* f = (const uint32_t*)fortran_options;
+            fprintf(stderr, "c 0x %.8x %.8x %.8x %.8x\n", c[i], c[i+1], c[i+2], c[i+3]);
+            fprintf(stderr, "f 0x %.8x %.8x %.8x %.8x\n", f[i], f[i+1], f[i+2], f[i+3]);
+        }
+        return -1;
+    }
+
+    return 0;
 }
