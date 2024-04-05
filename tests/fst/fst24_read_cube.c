@@ -108,7 +108,7 @@ int main(void) {
     fst_record rec = default_fst_record;
     fst_record criteria = default_fst_record;
     for (int i_level = 0; i_level < NUM_Z; i_level++) {
-        rec.data = &(read_data[i_level][0][0]);
+        rec.data = &read_data[i_level];
         criteria.ig1 = i_level + 1;
         if (fst24_read(test_file, &criteria, NULL, &rec) <= 0) {
             App_Log(APP_ERROR, "Unable to read slice %d\n", i_level);
