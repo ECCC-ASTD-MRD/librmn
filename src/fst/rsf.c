@@ -2022,6 +2022,7 @@ static int RSF_Lock_for_write(
   const ssize_t num_bytes_read = read(fp->fd, &first_sos, sizeof(start_of_segment));
 
   if (num_bytes_read == 0) { // File does not exist yet
+    fp->is_new = 1;
     // Create an empty first segment
     Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Creating a new, empty segment\n", __func__);
 
@@ -2650,6 +2651,8 @@ int32_t RSF_Close_file(RSF_handle h){
   uint64_t sparse_start, sparse_top ;
   directory_block *purge ;
 
+  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Closing file %s, open in mode %s\n", __func__, fp->name, open_mode_to_str(fp->mode));
+
   if( ! (slot = RSF_Valid_file(fp)) ) return 0 ;   // something not O.K. with fp
 
   if( (fp->mode & RSF_RO) == RSF_RO) goto CLOSE ;  // file open in read only mode, nothing to rewrite
@@ -2657,7 +2660,8 @@ int32_t RSF_Close_file(RSF_handle h){
   // fprintf(stderr,"RSF_Close_file DEBUG : beginning of close ");
 
   if ((fp->mode & RSF_RW) == RSF_RW && fp->next_write < 0) {
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Closing a file that was opened in write mode, but nothing was written!\n", __func__);
+    if (!fp->is_new)
+      Lib_Log(APP_LIBFST, APP_WARNING, "%s: Closing a file that was opened in write mode, but nothing was written!\n", __func__);
     goto RESET_WRITE_FLAG;
   }
 
@@ -2762,9 +2766,10 @@ RESET_WRITE_FLAG:
   }
 
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %d\n", __func__, fp->sos0.head.rlm);
+  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) print_start_of_segment(&fp->sos0);
+
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = write(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;  // rewrite start of segment 0
-  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) print_start_of_segment(&fp->sos0);
   usleep(10000) ;
   RSF_File_lock(fp, 0) ;
   // --------- Unlock file --------- //

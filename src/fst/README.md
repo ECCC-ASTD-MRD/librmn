@@ -58,6 +58,35 @@ depending on whether you are using the Fortran or the C interface:
 
 [Examples are available below](#finding-and-reading-a-record).
 
+### Correspondance with old interface functions
+
+There is not a 1-on-1 correspondance between the functions of the two interfaces but the following table shows a rough equivalence:
+
+| fst98 function         | fst24 (Fortran)             | fst24 (C)                        |
+| -----------------      | -------------------         | ---------------------------      |
+| `fnom` + `fstouv`      | `file % open`               | `fst24_open`                     |
+| `fstecr`               | `file % write(record)`      | `fst24_write(file, record)`      |
+| `fstinf` <br> `fstsui` | `query % find_next(record)` | `fst24_find_next(query, record)` |
+| `fstinl`               | `query % find_all(records)` | `fst24_find_all(query, records)` |
+| `fstlir` <br> `fstlic` <br> `fstlis` | `query % read_next(record)` | `fst24_read_next(query, record)` |
+| `fstluk`               | `record % read`             | `fst24_read_record(record)`      |
+| `fstvoi`               | `file % print_summary`      | `fst24_print_summary(file)`      |
+| `fstfrm`               | `file % close`              | `fst24_close(file)`              |
+| `fstnbr`               | `file % get_num_records`    | `fst24_get_num_records(file)`    |
+| `fstnbrv`              | [N/A]                       | [N/A]                            |
+| `fstcheck`             | `fst_file % is_valid(path)` | `fst24_is_valid(path)`           |
+| `fstckp`               | `file % flush`              | `fst24_flush(file)`              |
+| `fsteff`               | [Not yet implemented]       | [Not yet implemented]            |
+| `fstprm`               | Params are available in derived type | Params are available in struct |
+| `fstlnk`               | `fst24_link`                | `fst24_link`                     |
+| `fstmsq`               | [N/A]                       | [N/A]                            |
+| `fstweo`               | `file % weo`                | [N/A]                            |
+| `fsteof`               | `file % eof`                | `fst24_eof(file)`                |
+| `fstrwd`               | `file % rwd`                | [N/A]                            |
+| `fstskp`               | [N/A]                       | [N/A]                            |
+| `fstapp`               | [N/A]                       | [N/A]                            |
+| `fstcvt`               | [N/A]                       | [N/A]                            |
+
 ## Parallel write
 
 Several processes can open the same RSF file and write to it simultaneously. This can be done with either the `fst24` or the `fst98` interface,
@@ -345,8 +374,8 @@ fst_file * my_file = fst24_open("my_file.fst", NULL);
 
 //----------------------------
 // Looking for a single record and reading its data
-fst_query * my_query = 
-    fst24_new_query(my_file, NULL); // Match everything
+fst_query * my_query = fst24_new_query(
+        my_file, NULL, NULL); // Match everything
 if (fst24_find_next(my_query, &result)) {
     fst24_read(&result); // Read data from disk
 
@@ -365,7 +394,7 @@ fst24_query_free(my_query);
 criteria = default_fst_record; // Wildcard everywhere
 strcpy(criteria.nomvar, "ABC");
 criteria.ip3 = 25;
-my_query = fst24_new_query(my_file, &criteria);
+my_query = fst24_new_query(my_file, &criteria, NULL);
 while (fst24_find_next(my_file, &result)) {
     // Do stuff with the record
 }
@@ -376,7 +405,7 @@ fst24_query_free(my_query);
 criteria = default_fst_record; // Wildcard everywhere
 criteria.ip1 = 200;
 criteria.ig2 = 2;
-my_query = fst24_new_query(my_file, &criteria);
+my_query = fst24_new_query(my_file, &criteria, NULL);
 while (fst24_read_next(my_file, &result)) {
     // Do stuff with the data
 }
@@ -385,7 +414,7 @@ fst24_query_free(my_query);
 //----------------------------
 // Find several records at once
 strcpy(criteria.typvar, "P"); // Add 1 criteria
-my_query = fst24_new_query(my_file, &criteria);
+my_query = fst24_new_query(my_file, &criteria, NULL);
 fst_record many_records[100];
 // Find up to 100 records
 const int num_records =
@@ -469,8 +498,8 @@ fst_record crit_b = default_fst_record;
 strcpy(crit_a.etiket, "LABEL A");
 strcpy(crit_b.etiket, "LABEL B");
 
-fst_query * q_a = fst24_new_query(my_file, &crit_a);
-fst_query * q_b = fst24_new_query(my_file, &crit_b);
+fst_query* q_a = fst24_new_query(my_file, &crit_a, NULL);
+fst_query* q_b = fst24_new_query(my_file, &crit_b, NULL);
 
 // For each record found with query A, process 
 // 3 records from query B
@@ -539,12 +568,12 @@ strcpy(crit_a.grtyp, "X");
 
 strcpy(crit_b.nomvar, "VARB");
 
-q_a = fst24_new_query(my_file, &crit_a);
+q_a = fst24_new_query(my_file, &crit_a, NULL);
 while (fst24_find_next(q_a, &rec_a)) {
     // Look for every record with nomvar "VARB" tha
     // has the same ip1 as record A
     crit_b.ip1 = rec_a.ip1;
-    q_b = fst24_new_query(my_file, &crit_b);
+    q_b = fst24_new_query(my_file, &crit_b, NULL);
     n_rec = fst24_find_all(q_b, many_records, 10000);
 
     [...]
@@ -681,8 +710,6 @@ fst24_write(my_file, &my_record, 0);
 
 ## C
 
-<a id="c-struct"></a>
-
 ### Structs
 
 ```c
@@ -735,6 +762,15 @@ typedef struct {
 } fst_record;
 
 typedef struct {
+    //!> Several encodings can represent the same floating point value stored in an IP. When setting ip1_all
+    //!> (and ip2_all, and ip3_all), we indicate that we want to match with any encoding that result in the same
+    //!> encoded value in the given criterion. If not set, we will only match with the specific encoding given.
+    int32_t ip1_all;
+    int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
+    int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+} fst_query_options;
+
+typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
     int32_t datyp, npak, ni, nj, nk;
@@ -745,7 +781,6 @@ typedef struct {
 } fst_record_fields;
 ```
 
-<a id="c-file-functions"></a>
 ### File Functions
 
 ```c
@@ -795,11 +830,22 @@ int32_t fst24_print_summary(
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
 int32_t fst24_write(fst_file* file, fst_record* record, int rewrit);
 
+//! Search a file with given criteria and read the first record that matches these criteria.
+//! Search through linked files, if any.
+//! \return TRUE (1) if able to find and read a record, FALSE (0) or a negative number otherwise (not found or error)
+int32_t fst24_read(
+    const fst_file* const file,         //!< File we want to search
+    const fst_record* criteria,         //!< [Optional] Criteria to be used for the search
+    const fst_query_options* options,   //!< [Optional] Options to modify how the search will be performed
+    fst_record* const record            //!< [out] Record content and info, if found
+);
+
 //! Create a search query that will apply the given criteria during a search in a file.
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
-    const fst_record* criteria  //!< Criteria to be used for the search. If NULL, will look for any record
+    const fst_record* criteria, //!< [Optional] Criteria to be used for the search. If NULL, will look for any record
+    const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 );
 
 //! Link the given list of files together, so that they are treated as one for the purpose
@@ -837,7 +883,7 @@ int32_t fst24_find_next(
     fst_record* record
 );
 
-//! Read the next record (data and all) that corresponds to the previously-set search criteria
+//! Read the next record (data and all) that corresponds to the search criteria
 //! Search through linked files, if any
 //! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
@@ -924,6 +970,7 @@ contains
     procedure, pass   :: get_unit
 
     procedure, pass :: new_query
+    procedure, pass :: read
     procedure, pass :: write
 
     procedure, pass :: flush
@@ -1058,8 +1105,32 @@ function new_query(this,                                                        
     character(len=4),  intent(in), optional :: nomvar
     character(len=12), intent(in), optional :: etiket
     type(meta), intent(in), optional :: metadata
+    logical,    intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     type(fst_query) :: query
 end function new_query
+
+!> Search a file with given criteria and read the first record that matches these criteria.
+!> Search through linked files, if any.
+!> Return .true. if we found a record, .false. if not or if error
+function read(this, record,                                                                                     &
+        dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+        ip1_all, ip2_all, ip3_all) result(found)
+    implicit none
+    class(fst_file), intent(inout) :: this
+    type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+    integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=2),  intent(in), optional :: typvar
+    character(len=1),  intent(in), optional :: grtyp
+    character(len=4),  intent(in), optional :: nomvar
+    character(len=12), intent(in), optional :: etiket
+    logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    type(meta), intent(in), optional :: metadata
+    logical :: found
+end function read
 
 !> Write the given record into the given standard file
 !> Return Whether the write was successful

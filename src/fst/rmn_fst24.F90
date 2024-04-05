@@ -22,6 +22,7 @@ module rmn_fst24
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
+        procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
@@ -39,13 +40,23 @@ module rmn_fst24
         private
         type(C_PTR) :: query_ptr = c_null_ptr ! Pointer to C fst_query structure
     contains
-        procedure, pass :: is_valid  => fst_query_is_valid     !< \copydoc fst_query_is_valid
-        procedure, pass :: find_next => fst_query_find_next    !< \copydoc fst_query_find_next
-        procedure, pass :: find_all  => fst_query_find_all     !< \copydoc fst_query_find_all
-        procedure, pass :: read_next => fst_query_read_next    !< \copydoc fst_query_read_next
-        procedure, pass :: rewind    => fst_query_rewind       !< \copydoc fst_query_rewind
-        procedure, pass :: free      => fst_query_free         !< \copydoc fst_query_free
+        procedure, pass :: is_valid   => fst_query_is_valid     !< \copydoc fst_query_is_valid
+        procedure, pass :: find_next  => fst_query_find_next    !< \copydoc fst_query_find_next
+        procedure, pass :: find_all   => fst_query_find_all     !< \copydoc fst_query_find_all
+        procedure, pass :: find_count => fst_query_find_count   !< \copydoc fst_query_find_count
+        procedure, pass :: read_next  => fst_query_read_next    !< \copydoc fst_query_read_next
+        procedure, pass :: rewind     => fst_query_rewind       !< \copydoc fst_query_rewind
+        procedure, pass :: free       => fst_query_free         !< \copydoc fst_query_free
     end type fst_query
+
+    !> Must match exactly the fst_query_options struct from C code
+    type, bind(c), private :: fst_query_options_c
+        private
+        integer(C_INT32_T) :: ip1_all = 0
+        integer(C_INT32_T) :: ip2_all = 0
+        integer(C_INT32_T) :: ip3_all = 0
+    end type fst_query_options_c
+
 
     interface
         subroutine libc_free(ptr) BIND(C, name='free')
@@ -76,7 +87,7 @@ contains
         implicit none
         class(fst_file), intent(in) :: this !< fst24_file instance
         logical :: is_open !< Whether this file is open
-        
+
         integer(C_INT32_T) :: c_is_open
 
         is_open = .false.
@@ -145,11 +156,52 @@ contains
         status = fst24_get_unit(this % file_ptr)
     end function fst24_file_get_unit
 
+    !> \copybrief fst24_read
+    !> \return .true. if we found a record, .false. if not or if error
+    function fst24_file_read(this, record, data,                                                                    &
+            dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+            ip1_all, ip2_all, ip3_all) result(found)
+        implicit none
+        class(fst_file), intent(inout) :: this
+        type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+        !> Where to put the data being read. Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
+
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+        integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+        character(len=2),  intent(in), optional :: typvar
+        character(len=1),  intent(in), optional :: grtyp
+        character(len=4),  intent(in), optional :: nomvar
+        character(len=12), intent(in), optional :: etiket
+        logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        type(meta), intent(in), optional :: metadata
+        logical :: found
+
+        type(fst_query) :: query
+
+        found = .false.
+
+        if (present(data)) record % data = data
+
+        query = this % new_query(dateo, datev, datyp, dasiz, npak, ni, nj, nk, deet, npas,                          &
+                                 ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
+                                 metadata, ip1_all, ip2_all, ip3_all)
+        if (.not. query % is_valid()) return
+        found = query % read_next(record)
+        call query % free()
+
+    end function fst24_file_read
+
     !> \copybrief fst24_new_query
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
     function fst24_file_new_query(this,                                                                             & 
             dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
-            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+            ip1_all, ip2_all, ip3_all) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
         integer(C_INT32_T), intent(in), optional :: dateo, datev
@@ -159,11 +211,14 @@ contains
         character(len=1),  intent(in), optional :: grtyp
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
+        logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         type(meta), intent(in), optional :: metadata
         type(fst_query) :: query
 
         type(fst_record_c), target :: criteria
+        type(fst_query_options_c), target :: options
 
+        ! Criteria
         if (present(dateo)) criteria % dateo = dateo
         if (present(datev)) criteria % datev = datev
         if (present(datyp)) criteria % datyp = datyp
@@ -187,7 +242,18 @@ contains
         if (present(etiket)) call strncpy_f2c(etiket, criteria % etiket, 13)
         if (present(metadata)) criteria % metadata = metadata % json_obj
 
-        query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria))
+        ! Options
+        if (present(ip1_all)) then
+            if (ip1_all) options % ip1_all = 1
+        end if
+        if (present(ip2_all)) then
+            if (ip2_all) options % ip2_all = 1
+        end if
+        if (present(ip3_all)) then
+            if (ip3_all) options % ip3_all = 1
+        end if
+
+        query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria), c_loc(options))
 
     end function fst24_file_new_query
 
@@ -211,7 +277,7 @@ contains
         c_result = fst24_find_next(this % query_ptr, c_record)
 
         if (c_result > 0) then
-            call record % from_c_self()
+            if (present(record)) call record % from_c_self()
             ! call record % print()
             found = .true.
         end if
@@ -222,9 +288,9 @@ contains
     function fst_query_find_all(this, records) result(num_found)
         implicit none
         class(fst_query), intent(inout) :: this     !< Query used for the search
-        !> [in,out] Array where the records found will be put.
+        !> [in,out] Array where the records found will be put. On ly number of matches returned if not present.
         !> We stop searching after we found enough records to fill it.
-        type(fst_record), dimension(:), intent(inout) :: records
+        type(fst_record), dimension(:), intent(inout), optional :: records
         integer(C_INT32_T) :: num_found
 
         integer(C_INT32_T) :: max_num_records, c_status
@@ -234,12 +300,30 @@ contains
 
         call this % rewind()
 
-        max_num_records = size(records)
+        max_num_records = 2147483647
+        if (present(records)) then
+           max_num_records = size(records)
+        endif
+
         do i = 1, max_num_records
-            if (.not. this % find_next(records(i))) return
+            if (present(records)) then
+               if (.not. this % find_next(records(i))) return
+            else 
+               if (.not. this % find_next()) return
+            endif
             num_found = num_found + 1
         end do
     end function fst_query_find_all
+
+    !> \copybrief fst24_find_count
+    !> \return Number of records found
+    function fst_query_find_count(this) result(num_found)
+        implicit none
+        class(fst_query), intent(inout) :: this     !< Query used for the search
+        integer(C_INT32_T) :: num_found
+
+        num_found = fst24_find_count(this % query_ptr)
+    end function fst_query_find_count
 
     !> \copybrief fst24_read_next
     !> \return .true. if we read a record, .false. if none found or if error
@@ -252,6 +336,8 @@ contains
         integer(C_INT32_T) :: c_result
 
         found = .false.
+
+        call record % make_c_self()
         c_result = fst24_read_next(this % query_ptr, record % get_c_ptr())
 
         if (c_result > 0) then
@@ -424,4 +510,21 @@ contains
             this % query_ptr = c_null_ptr
         end if
     end subroutine fst_query_free
+
+    function fst24_is_default_query_options_valid() result(is_valid)
+        implicit none
+        logical :: is_valid
+
+        integer(C_INT32_T) :: c_status
+        type(fst_query_options_c), target :: to_compare
+
+        is_valid = .false.
+
+        c_status = fst24_validate_default_query_options(c_loc(to_compare), storage_size(to_compare, kind = int64) / 8_int64)
+        if (c_status == 0) is_valid = .true.
+
+        if (.not. is_valid) then
+            call Lib_Log(APP_LIBFST, APP_ERROR, 'Default FST query options struct is not valid, check your library versions!')
+        end if
+    end function fst24_is_default_query_options_valid
 end module rmn_fst24
