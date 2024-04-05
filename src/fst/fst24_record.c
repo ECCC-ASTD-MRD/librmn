@@ -657,16 +657,16 @@ fst_record record_from_search_meta(
 int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {
 
     if (a == NULL || b == NULL) return 0;
-    if (a->version != b->version) return 0;
+    if (a->do_not_touch.version != b->do_not_touch.version) return 0;
 
     a->dateo = b->dateo;
     a->datev = b->datev;
-    a->datyp = b->datyp;
-    a->dasiz = b->dasiz;
-    a->npak = b->npak;
-    a->ni = b->ni;
-    a->nj = b->nj;
-    a->nk = b->nk;
+//    a->datyp = b->datyp;
+//    a->dasiz = b->dasiz;
+//    a->npak = b->npak;
+//    a->ni = b->ni;
+//    a->nj = b->nj;
+//    a->nk = b->nk;
     a->deet = b->deet;
     a->npas = b->npas;
     a->ip1 = b->ip1;
