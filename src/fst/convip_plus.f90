@@ -148,7 +148,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
       endif
       if (kind .eq. 2 .and. p .eq. 0.) then  ! ou ajouter .and. .not. NEWENCODING
          ip = 0
-!          if(NEWENCODING) ip =  ishft(2,24) +  ishft(1,20) ! si  newstyle (kind=2, mantissa=0, exponent=1)
+        !  if(NEWENCODING) ip =  ishft(2,24) +  ishft(1,20) ! si  newstyle (kind=2, mantissa=0, exponent=1)
          return
       endif
 
@@ -177,7 +177,7 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
               limit2 = 4800
               offset = 1000000
           endif
-!          temp=temp*1.00000005D0
+        !  temp=temp*1.00000005D0
           do while ( iexp .gt. 0 .and. iexp .lt. 15 )  ! must keep pseudo exponent in range
               if (temp .ge. limit1 ) then        ! too big, divide by 10 and adjust pseudo exponent
                 temp = temp / 10d0

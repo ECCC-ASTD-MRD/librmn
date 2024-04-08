@@ -1036,7 +1036,7 @@ fst_query* fst24_new_query(
     }
 
     *query = new_fst_query(options);
-    make_search_criteria(criteria, &(query->criteria), &(query->mask));
+    make_search_criteria(criteria, query);
     query->num_criteria = sizeof(query->criteria) / sizeof(uint32_t);
     query->search_index = criteria->do_not_touch.handle > 0 ? criteria->do_not_touch.handle : 0;
     query->search_meta  = criteria->metadata;

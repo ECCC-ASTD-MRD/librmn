@@ -461,7 +461,7 @@ static int64_t RSF_Scan_vdir(
   index = key0 & 0x7FFFFFFF ;               // starting ordinal for search (one more than what key0 points to)
   if(index >= fp->vdir_used) {
     Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: key = %16.16lx, beyond last record\n", __func__, key0);
-    return badkey;
+    return ERR_NOT_FOUND;
   }
 
   if(criteria == NULL){                     // no criteria specified, anything matches
@@ -506,6 +506,7 @@ static int64_t RSF_Scan_vdir(
   }
 
   for( ; index < fp->vdir_used ; index++ ){ // loop over records in directory starting from requested position
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Looking at record with key 0x%x\n", __func__, key + index + 1);
     ventry = fp->vdir[index] ;              // get entry
     if(lcrit == 0) goto MATCH ;             // no criteria specified, everything matches
     meta = ventry->meta ;                   // entry metadata from directory
