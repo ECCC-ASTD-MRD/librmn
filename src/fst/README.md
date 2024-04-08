@@ -58,6 +58,35 @@ depending on whether you are using the Fortran or the C interface:
 
 [Examples are available below](#finding-and-reading-a-record).
 
+### Correspondance with old interface functions
+
+There is not a 1-on-1 correspondance between the functions of the two interfaces but the following table shows a rough equivalence:
+
+| fst98 function         | fst24 (Fortran)             | fst24 (C)                        |
+| -----------------      | -------------------         | ---------------------------      |
+| `fnom` + `fstouv`      | `file % open`               | `fst24_open`                     |
+| `fstecr`               | `file % write(record)`      | `fst24_write(file, record)`      |
+| `fstinf` <br> `fstsui` | `query % find_next(record)` | `fst24_find_next(query, record)` |
+| `fstinl`               | `query % find_all(records)` | `fst24_find_all(query, records)` |
+| `fstlir` <br> `fstlic` <br> `fstlis` | `query % read_next(record)` | `fst24_read_next(query, record)` |
+| `fstluk`               | `record % read`             | `fst24_read_record(record)`      |
+| `fstvoi`               | `file % print_summary`      | `fst24_print_summary(file)`      |
+| `fstfrm`               | `file % close`              | `fst24_close(file)`              |
+| `fstnbr`               | `file % get_num_records`    | `fst24_get_num_records(file)`    |
+| `fstnbrv`              | [N/A]                       | [N/A]                            |
+| `fstcheck`             | `fst_file % is_valid(path)` | `fst24_is_valid(path)`           |
+| `fstckp`               | `file % flush`              | `fst24_flush(file)`              |
+| `fsteff`               | [Not yet implemented]       | [Not yet implemented]            |
+| `fstprm`               | Params are available in derived type | Params are available in struct |
+| `fstlnk`               | `fst24_link`                | `fst24_link`                     |
+| `fstmsq`               | [N/A]                       | [N/A]                            |
+| `fstweo`               | `file % weo`                | [N/A]                            |
+| `fsteof`               | `file % eof`                | `fst24_eof(file)`                |
+| `fstrwd`               | `file % rwd`                | [N/A]                            |
+| `fstskp`               | [N/A]                       | [N/A]                            |
+| `fstapp`               | [N/A]                       | [N/A]                            |
+| `fstcvt`               | [N/A]                       | [N/A]                            |
+
 ## Parallel write
 
 Several processes can open the same RSF file and write to it simultaneously. This can be done with either the `fst24` or the `fst98` interface,
@@ -247,7 +276,6 @@ my_file = fst24_open("my_file.fst", "RSF+PARALLEL");
 </td></tr>
 </table>
 
-<a id="ex-search-read"></a>
 ## Finding and Reading a Record
 
 <table><tr><td style="width:50%">
@@ -553,6 +581,62 @@ while (fst24_find_next(q_a, &rec_a)) {
 }
 
 fst24_query_free(q_a);
+```
+
+</td></tr>
+</table>
+
+### Reading 2D slices into a pre-allocated 3D array
+
+<table><tr><td style="width:50%">
+
+**Fortran**
+
+</td><td style="width:50%">
+
+**C**
+
+</td></tr>
+<tr><td>
+
+```fortran
+type(fst_file) :: test_file
+type(fst_record) :: record
+logical :: success
+
+real, dimension(NUM_X, NUM_Y, NUM_LEVEL), target :: data
+
+do k = 1, NUM_LEVEL
+    record % data = c_loc(data(1, 1, k))
+
+    success = test_file % read(record, ig1 = k)
+end do
+```
+
+</td><td>
+
+```c
+
+fst_record rec = default_fst_record;
+fst_record criteria = default_fst_record;
+
+float data[NUM_LEVEL][NUM_X][NUM_Y];
+
+for (int i_level = 0; i_level < NUM_LEVEL; i_level++) {
+    rec.data = &data[i_level];
+    criteria.ig1 = i_level + 1;
+    fst24_read(test_file, &criteria, NULL, &rec);
+}
+```
+
+</td></tr>
+<tr><td>
+
+```fortran
+! In Fortran, the reading can also be done with a single line
+do k = 1, NUM_LEVEL
+    success = file % read(record, data = c_loc(data(1, 1, k)), ig1 = k)
+end do
 ```
 
 </td></tr>
@@ -1083,7 +1167,7 @@ end function new_query
 !> Search a file with given criteria and read the first record that matches these criteria.
 !> Search through linked files, if any.
 !> Return .true. if we found a record, .false. if not or if error
-function read(this, record,                                                                                     &
+function read(this, record, data,                                                                               &
         dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
         ip1_all, ip2_all, ip3_all) result(found)
@@ -1091,7 +1175,11 @@ function read(this, record,                                                     
     class(fst_file), intent(inout) :: this
     type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
 
-    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    !> Where to put the data being read. Can also be specified by setting the
+    !> `data` attribute of the record being read.
+    type(C_PTR), intent(in), optional :: data
+
+    integer(C_INT64_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar

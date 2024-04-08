@@ -489,18 +489,20 @@ static int64_t RSF_Scan_vdir(
 //     scan_match = &RSF_Default_match ;       // no function associated, use default function
 
   if (App_LogLevel(NULL) >= APP_EXTRA) {
-    int i ;
-    fprintf(stderr,"DEBUG2: RSF_Scan_vdir\n") ;
-    fprintf(stderr,"criteria ") ;
-    for(i = 0 ; i < lcrit ; i++)
-      fprintf(stderr," %8.8x", criteria[i]) ;
-    fprintf(stderr,"\n") ;
-    if(mask) {
-      fprintf(stderr,"mask     ") ;
-      for(i = 0 ; i < lcrit ; i++)
-        fprintf(stderr," %8.8x", mask[i]) ;
-      fprintf(stderr,"\n") ;
+    char buffer[lcrit * 10 + 1024];
+    char* ptr = buffer;
+    for (int i = 0; i < lcrit; i++) {
+      ptr += snprintf(ptr, 10, "%.8x ", criteria[i]);
+      if (i % 8 == 7) ptr += snprintf(ptr, 2, "\n");
     }
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Criteria = \n%s\n", __func__, buffer);
+
+    ptr = buffer;
+    for (int i = 0; i < lcrit; i++) {
+      ptr += snprintf(ptr, 10, "%.8x ", mask[i]);
+      if (i % 8 == 7) ptr += snprintf(ptr, 2, "\n");
+    }
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Mask = \n%s\n", __func__, buffer);
   }
 
   for( ; index < fp->vdir_used ; index++ ){ // loop over records in directory starting from requested position
@@ -779,8 +781,20 @@ int32_t RSF_Default_match(uint32_t *criteria, uint32_t *meta, uint32_t *mask, in
 
   if(mask != NULL) {           // caller supplied a mask
     if (App_LogLevel(NULL) >= APP_EXTRA) {
-      int j ;
-      fprintf(stderr,"criteria, meta = ["); for(j=0 ; j<ncrit ; j++) fprintf(stderr,", %8.8x %8.8x", criteria[j], meta[j]); fprintf(stderr,"]\n");
+      char buffer[1024 + ncrit * 35];
+      char* ptr = buffer;
+
+      int count = 0;
+      for (int i = 0; i < ncrit; i++) {
+        if (mask[i] != 0) {
+          ptr += snprintf(ptr, 34, "%3d: %.8x|%.8x|%.8x  ", i, meta[i], criteria[i], mask[i]);
+          count++;
+        }
+        if ((count-1) % 4 == 3) {
+          ptr += snprintf(ptr, 2, "\n");
+        }
+      }
+      Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Record | Criterion | Mask \n%s\n", __func__, buffer);
     }
     for(i = 0 ; i < ncrit ; i++){
       if( (criteria[i] & mask[i]) != (meta[i] & mask[i]) ) {

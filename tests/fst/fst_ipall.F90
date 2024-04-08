@@ -225,45 +225,6 @@ program fst98_ipall
     use fst98_ipall_module
     implicit none
 
-    character(len=*), parameter :: name1 = '/fs/site5/eccc/mrd/rpnsi/viv001/gem512_lenovo_dbase/data_GDPS/climato_ic3_ozone/clim_gemdm320_1080x540_v2_de_francois_withiceline_i8_glorys1v1.0_corr_EMIB'
-    character(len=*), parameter :: name2 = '/fs/site5/eccc/mrd/rpnsi/viv001/gem512_lenovo_dbase/data_GDPS/climato_ic3_ozone/clim_3DGHG_LINOZ_PML_O3MMR_HALOE-ERA5_TTERA5'
-
-    integer, dimension(2) :: units
-    integer :: status
-    integer :: num_recs
-    integer :: ni, nj, nk
-    integer :: ip1, kind1, mode1
-
-    integer, dimension(10000) :: records
-
-    status = fstouv(name1, units(1), 'STD+RND')
-    if (status < 1) error stop 1
-    status = fstouv(name2, units(2), 'STD+RND')
-    if (status < 1) error stop 1
-
-
-    ! status = fstvoi(units(1), 'IP1+IPALL')
-    
-    ip1 = 44140192
-    mode1 = 1
-    call CONVIP_plus(ip1, p(1), ip_kind, mode1, dummy, .false.)
-    print *, 'ip1 = ', ip1
-
-    ip1 = ip1_all(p(1), ip_kind)
-    print *, 'ip1 = ', ip1
-
-    ! iun 997 recherche: datev=-1 etiket=[            ] ip1=39945888 ip2=1 ip3=-1 typvar=[  ] nomvar=[cf1c]
-    ! status = fstinl(units(1), ni, nj, nk, -1, ' ', 44140192, 1, -1, ' ', 'cf1c', records, num_recs, 10000)
-    ! print *, 'Got ', num_recs, ' records'
-
-    ! status = fstinl(units(2), ni, nj, nk, -1, ' ', 44140192, 1, -1, ' ', 'cf1c', records, num_recs, 10000)
-    status = fstinl(units(2), ni, nj, nk, -1, ' ', ip1, 1, -1, ' ', 'cf1c', records, num_recs, 10000)
-    print *, 'Got ', num_recs, ' records'
-    status = fstinl(units(2), ni, nj, nk, -1, ' ', ip1, 1, -1, ' ', 'cf1c', records, num_recs, 10000)
-    print *, 'Got ', num_recs, ' records'
-
-    ! status = fstvoi(units(2), 'IP1+IPALL')
-
     call test_ip_all([ .false., .false. ])
     ! call test_ip_all([ .false., .true.  ])
     ! call test_ip_all([ .true.,  .false. ])

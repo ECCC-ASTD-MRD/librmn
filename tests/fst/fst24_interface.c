@@ -119,12 +119,6 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         }
     }
 
-    if ((new_file->type == FST_RSF) != is_rsf) {
-        App_Log(APP_ERROR, "File has wrong type! %s, but should be %s\n",
-                fst_file_type_name[new_file->type], is_rsf ? fst_file_type_name[FST_RSF] : fst_file_type_name[FST_XDF]);
-        return -1;
-    }
-
     ///////////////////////////
     // Close the new file
     if (fst24_close(new_file) <= 0) {
@@ -193,10 +187,8 @@ int test_fst24_interface(const int is_rsf) {
     // Find next + read
     int num_found = 0;
     fst_query* query = fst24_new_query(test_file, NULL, NULL); // Match with everything, with default options
-    int64_t keys[3];
     while (fst24_find_next(query, &record)) {
         // fst24_record_print(&record);
-        keys[num_found] = record.handle;
         num_found++;
 
         expected.ip1 = num_found;

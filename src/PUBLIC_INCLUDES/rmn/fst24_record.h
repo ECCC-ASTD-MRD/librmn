@@ -21,31 +21,20 @@
 //! Smallest amount of bytes in multiples of 4 that can contain the given number of bytes
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 
-static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by 
+static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by the user
 
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
 
-typedef enum {
-    FST_NONE = 0,
-    FST_XDF  = 1,
-    FST_RSF  = 2
-} fst_file_type;
-
-static const char* fst_file_type_name[] = {
-    [FST_NONE] = "FST_NONE",
-    [FST_XDF]  = "FST_XDF",
-    [FST_RSF]  = "FST_RSF"
-};
-
-
 // This struct should only be modified by ADDING member at the end (once we're stable)
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
-    int64_t version;  //!< Version marker
-    int64_t handle;   //!< Handle to specific record (if stored in a file)
-    int64_t flags;    //!< Record status flags
-    int64_t alloc;    //!< Size of allocated memody for data
+    struct {
+        int64_t version;  //!< Version marker
+        int64_t handle;   //!< Handle to specific record (if stored in a file)
+        int64_t flags;    //!< Record status flags
+        int64_t alloc;    //!< Size of allocated memody for data
+    } do_not_touch;
 
     // 64-bit elements first
     const fst_file* file;   //!< FST file where the record is stored
@@ -87,10 +76,10 @@ typedef struct {
 //! Default values for all members of an fst_record.
 //! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
-        .version = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
-        .handle   = -1,
-        .flags = 0x0,
-        .alloc    = 0,
+        .do_not_touch.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
+        .do_not_touch.handle   = -1,
+        .do_not_touch.flags    = 0x0,
+        .do_not_touch.alloc    = 0,
 
         .file     = NULL,
         .data     = NULL,
@@ -190,6 +179,7 @@ fst_record* fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni
 int32_t     fst24_record_free(fst_record* record);
 int32_t     fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 void        fst24_record_diff(const fst_record* a, const fst_record* b);
+int32_t     fst24_record_copy_metadata(fst_record* a, const fst_record* b);
 //! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
