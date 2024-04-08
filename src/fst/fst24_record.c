@@ -489,43 +489,47 @@ void make_search_criteria(
         fst98_mask->ubc = 0;
         fst98_mask->levtyp = 0;
 
+        if (record->dateo != default_fst_record.dateo) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Searching by origin date (dateo) has not been implemented yet\n", __func__);
+        }
+
         fst98_meta->date_stamp = stamp_from_date(record->datev);
         fst98_mask->date_stamp &= ~(0x7);
-        if (record->datev == -1) fst98_mask->date_stamp = 0;
+        if (record->datev == default_fst_record.datev) fst98_mask->date_stamp = 0;
 
         fst98_meta->ni = record->ni;
-        if ((record->ni == -1)) fst98_mask->ni = 0;
+        if ((record->ni == default_fst_record.ni)) fst98_mask->ni = 0;
         else Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Searching by ni (%d)\n", __func__, record->ni);
 
         fst98_meta->nj = record->nj;
-        if ((record->nj == -1)) fst98_mask->nj = 0;
+        if ((record->nj == default_fst_record.nj)) fst98_mask->nj = 0;
 
         fst98_meta->nk = record->nk;
-        if ((record->nk == -1)) fst98_mask->nk = 0;
+        if ((record->nk == default_fst_record.nk)) fst98_mask->nk = 0;
 
         fst98_meta->datyp = record->datyp;
-        if (record->datyp == -1) fst98_mask->datyp = 0;
+        if (record->datyp == default_fst_record.datyp) fst98_mask->datyp = 0;
 
         fst98_meta->dasiz = record->dasiz;
-        if (record->dasiz == -1) fst98_mask->dasiz = 0;
+        if (record->dasiz == default_fst_record.dasiz) fst98_mask->dasiz = 0;
 
         fst98_meta->nbits = abs(record->npak);
-        if (record->npak >= -1) fst98_mask->nbits = 0;
+        if (record->npak >= default_fst_record.npak) fst98_mask->nbits = 0;
 
         fst98_meta->ip1 = record->ip1;
-        if ((record->ip1 == -1)) fst98_mask->ip1 = 0;
+        if ((record->ip1 == default_fst_record.ip1)) fst98_mask->ip1 = 0;
 
         fst98_meta->ip2 = record->ip2;
-        if ((record->ip2 == -1)) fst98_mask->ip2 = 0;
+        if ((record->ip2 == default_fst_record.ip2)) fst98_mask->ip2 = 0;
 
         fst98_meta->ip3 = record->ip3;
-        if ((record->ip3 == -1)) fst98_mask->ip3 = 0;
+        if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
 
         fst98_meta->npas = record->npas;
-        if ((record->npas == -1)) fst98_mask->npas = 0;
+        if ((record->npas == default_fst_record.npas)) fst98_mask->npas = 0;
 
         fst98_meta->deet = record->deet;
-        if ((record->deet == -1)) fst98_mask->deet = 0;
+        if ((record->deet == default_fst_record.deet)) fst98_mask->deet = 0;
 
         char nomvar[FST_NOMVAR_LEN];
         copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
@@ -575,10 +579,10 @@ void make_search_criteria(
         fst98_meta->ig2b = record->ig2 >> 8;
         fst98_meta->ig3  = record->ig3;
         fst98_meta->ig2c = record->ig2 & 0xff;
-        if (record->ig1 == -1) fst98_mask->ig1 = 0;
-        if (record->ig2 == -1) fst98_mask->ig2a =  fst98_mask->ig2b =  fst98_mask->ig2c = 0;
-        if (record->ig3 == -1) fst98_mask->ig3 = 0;
-        if (record->ig4 == -1) fst98_mask->ig4 = 0;
+        if (record->ig1 == default_fst_record.ig1) fst98_mask->ig1 = 0;
+        if (record->ig2 == default_fst_record.ig2) fst98_mask->ig2a =  fst98_mask->ig2b =  fst98_mask->ig2c = 0;
+        if (record->ig3 == default_fst_record.ig3) fst98_mask->ig3 = 0;
+        if (record->ig4 == default_fst_record.ig4) fst98_mask->ig4 = 0;
 
         char grtyp[FST_GTYP_LEN];
         copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
