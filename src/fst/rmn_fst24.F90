@@ -5,7 +5,7 @@ module rmn_fst24
     use rmn_common
     use rmn_meta
     use rmn_fst24_record
-    use rmn_fst98
+    use rmn_fst98,      only: c_fstrwd, c_fstweo, c_fsteof
     implicit none
 
     include 'fst24_interface.inc'
@@ -170,7 +170,7 @@ contains
         !> `data` attribute of the record being read.
         type(C_PTR), intent(in), optional :: data
 
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
@@ -204,7 +204,7 @@ contains
             ip1_all, ip2_all, ip3_all) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
@@ -414,7 +414,7 @@ contains
     !> \return Whether the linking was successful
     function fst24_link(files) result(success)
         implicit none
-        type(fst_file), dimension(:), intent(inout) :: files
+        type(fst_file), dimension(:), intent(in) :: files
         logical :: success
 
         type(C_PTR), dimension(size(files)), target :: c_files
