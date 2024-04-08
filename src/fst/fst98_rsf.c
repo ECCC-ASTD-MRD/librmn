@@ -864,7 +864,14 @@ int c_fstvoi_rsf(
     //! [in] Index of the file given by fnom
     const int index_fnom,
     //! [in] List of fields to print
-    const char * const options
+    const char * const options,
+    const int print_stats,              //!< Whether to print stats after record info
+    int64_t* const total_num_entries,         //!< [in,out] Accumulate number of entries (for linked files)
+    int64_t* const total_num_valid_records,   //!< [in,out] Accumulate number of valid record  (for linked files)
+    int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
+    int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
+    int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
+    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
 ) {
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -874,18 +881,25 @@ int c_fstvoi_rsf(
     }
 
     const uint32_t num_records = RSF_Get_num_records(file_handle);
-    size_t total_file_size = 0;
+    size_t single_file_size = 0;
     
     for (unsigned int i = 0; i < num_records; i++) {
         const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
         const stdf_dir_keys* metadata = (const stdf_dir_keys *) info.meta;
-        total_file_size += info.rl;
+        single_file_size += info.rl;
         char string[20];
-        sprintf(string, "%5d-", i);
-        print_std_parms(metadata, string, options, ((i % 70) == 0));
+        sprintf(string, "%5d-", *total_num_valid_records + i);
+        print_std_parms(metadata, string, options, (((*total_num_valid_records + i) % 70) == 0));
     }
 
-    fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, total_file_size);
+    *total_num_entries += num_records;
+    *total_num_valid_records += num_records;
+    *total_file_size += single_file_size;
+    *total_num_writes += num_records;
+
+    if (print_stats) {
+        fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, single_file_size);
+    }
 
     return 0;
 }

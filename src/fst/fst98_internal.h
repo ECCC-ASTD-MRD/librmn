@@ -133,7 +133,9 @@ int c_fstprm_rsf(RSF_handle file_handle, int handle, int *dateo, int *deet, int 
                  char *grtyp, int *ig1, int *ig2, int *ig3, int *ig4,  int *swa, int *lng, int *dltf, int *ubc,
                  int *extra1, int *extra2, int *extra3);
 int c_fstsui_rsf(int iun, const int index_fnom, int *ni, int *nj, int *nk);
-int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options);
+int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options, const int print_stats,
+                 int64_t* const total_num_entries, int64_t* const total_num_valid_records, int64_t* const total_file_size,
+                 int64_t* const total_num_writes, int64_t* const total_num_rewrites, int64_t* const total_num_erasures);
 int32_t c_fstckp_rsf(const int iun, const int index_fnom);
 
 #endif // fst98_internaL_H__

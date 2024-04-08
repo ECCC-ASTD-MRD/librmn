@@ -4053,7 +4053,14 @@ int c_fstvoi_xdf(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in] List of fields to print
-    const char * const options
+    const char * const options,
+    const int print_stats,              //!< Whether to print stats after record info
+    int64_t* const total_num_entries,         //!< [in,out] Accumulate number of entries (for linked files)
+    int64_t* const total_num_valid_records,   //!< [in,out] Accumulate number of valid record  (for linked files)
+    int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
+    int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
+    int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
+    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
 ) {
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -4087,8 +4094,8 @@ int c_fstvoi_xdf(
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
-                    snprintf(string, strlng, "%5d-", nrec);
-                    print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
+                    snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                    print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                     nrec++;
                 }
                 entry += width;
@@ -4193,8 +4200,8 @@ int c_fstvoi_xdf(
                     // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
-                snprintf(string, strlng, "%5d-", nrec);
-                print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
+                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
                 free(stdf_entry);
@@ -4204,32 +4211,43 @@ int c_fstvoi_xdf(
                     continue;
                 }
                 stdf_entry = (stdf_dir_keys *) fte->head_keys;
-                snprintf(string, strlng, "%5d-", nrec);
-                print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
+                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD(header->lng);
             }
         } // end while
     }
 
-    fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
-    if (fte->fstd_vintage_89) {
-        snprintf(string, strlng, "Version 1989");
-    } else {
-        snprintf(string, strlng, "Version 1998");
+    *total_num_valid_records += nrec;
+    if (!fte->xdf_seq && !fte->fstd_vintage_89) {
+        *total_num_entries += fte->header->nrec;
+        *total_file_size += fte->header->fsiz * 8;
+        *total_num_writes += fte->header->nxtn;
+        *total_num_rewrites += fte->header->nrwr;
+        *total_num_erasures += fte->header->neff - fte->header->nrwr;
     }
-    if (fte->xdf_seq) {
-        fprintf(stdout, "%d records in sequential RPN standard file (%s)\n", nrec, string);
-    } else {
-        if (! fte->fstd_vintage_89) {
-            fprintf(stdout, "Number of directory entries \t %d\n", fte->header->nrec);
-            fprintf(stdout, "Number of valid records     \t %d\n", nrec);
-            fprintf(stdout, "File size                   \t %d Words\n", W64TOWD(fte->header->fsiz));
-            fprintf(stdout, "Number of writes            \t %d\n", fte->header->nxtn);
-            fprintf(stdout, "Number of rewrites          \t %d\n", fte->header->nrwr);
-            fprintf(stdout, "Number of erasures          \t %d\n", fte->header->neff - fte->header->nrwr);
+
+    if (print_stats) {
+        fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
+        if (fte->fstd_vintage_89) {
+            snprintf(string, strlng, "Version 1989");
+        } else {
+            snprintf(string, strlng, "Version 1998");
         }
-        fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
+        if (fte->xdf_seq) {
+            fprintf(stdout, "%d records in sequential RPN standard file (%s)\n", nrec, string);
+        } else {
+            if (! fte->fstd_vintage_89) {
+                fprintf(stdout, "Number of directory entries \t %d\n", fte->header->nrec);
+                fprintf(stdout, "Number of valid records     \t %d\n", nrec);
+                fprintf(stdout, "File size                   \t %d Words\n", W64TOWD(fte->header->fsiz));
+                fprintf(stdout, "Number of writes            \t %d\n", fte->header->nxtn);
+                fprintf(stdout, "Number of rewrites          \t %d\n", fte->header->nrwr);
+                fprintf(stdout, "Number of erasures          \t %d\n", fte->header->neff - fte->header->nrwr);
+            }
+            fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
+        }
     }
 
     return 0;
@@ -4242,22 +4260,55 @@ int c_fstvoi(
     //! [in] List of fields to print
     const char * const options
 ) {
-    int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
-
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    if (rsf_status == 1) {
-        return c_fstvoi_rsf(iun, index_fnom, options);
-    }
-    else if (rsf_status == 0) {
-        return c_fstvoi_xdf(iun, options);
+    const int print_single_stats = (fstd_open_files[index_fnom].next_file < 0);
+    int status = -1;
+    int num_files = 0;
+
+    int64_t total_num_entries       = 0;
+    int64_t total_num_valid_records = 0;
+    int64_t total_file_size         = 0;
+    int64_t total_num_writes        = 0;
+    int64_t total_num_rewrites      = 0;
+    int64_t total_num_erasures      = 0;
+
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+        num_files++;
+
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstvoi_rsf(FGFDT[index_fnom].iun, index_fnom, options, print_single_stats, &total_num_entries,
+                                  &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
+                                  &total_num_erasures);
+        }
+        else {
+            status = c_fstvoi_xdf(FGFDT[index_fnom].iun, options, print_single_stats, &total_num_entries,
+                                  &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
+                                  &total_num_erasures);
+        }
+
+        if (status < 0) return status;
+
+        index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
-    return rsf_status;
+    if (!print_single_stats) {
+        fprintf(stdout, "Statistics for %d linked files: \n", num_files);
+        fprintf(stdout, "Number of directory entries   \t %d\n", total_num_entries);
+        fprintf(stdout, "Number of valid records       \t %d\n", total_num_valid_records);
+        fprintf(stdout, "File size                     \t %d bytes\n", total_file_size);
+        fprintf(stdout, "Number of writes              \t %d\n", total_num_writes);
+        fprintf(stdout, "Number of rewrites (XDF only) \t %d\n", total_num_rewrites);
+        fprintf(stdout, "Number of erasures (XDF only) \t %d\n", total_num_erasures);
+    }
+
+    return status;
 }
 
 
