@@ -1,3 +1,5 @@
+//! \file fst98.c Low level implementation of fst functions
+
 #include <stdio.h>
 #include <unistd.h>
 #include <alloca.h>
