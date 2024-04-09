@@ -2,6 +2,8 @@
 #define RMN_FST_RECORD_H__
 
 #ifndef IN_FORTRAN_CODE
+//! \file fst24_record.h Public definitions for fst_record
+
 //! Version identifier that needs to be incremented when we make
 //! changes in the way records are stored and interpreted, so that it
 //! can be recognized when read by a different version of the library

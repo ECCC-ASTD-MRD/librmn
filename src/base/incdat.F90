@@ -23,6 +23,8 @@ subroutine incdat(id1, id2, nh)
 
     integer :: id1
     integer :: id2
+    integer :: nh
+
     real(kind = real64) :: rnh
 
     rnh = nh
@@ -36,7 +38,9 @@ subroutine difdat(id1, id2, nh)
 
     integer, intent(in) :: id1
     integer, intent(in) :: id2
-    real(kind = real64), intent(out) :: rnh
+    integer, intent(out) :: nh
+
+    real(kind = real64) :: rnh
 
     call difdatr(id1, id2, rnh)
     nh = nint(rnh)
