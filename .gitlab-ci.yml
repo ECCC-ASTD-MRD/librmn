@@ -24,6 +24,67 @@ before_script:
 #    script:
 #       - find ${ECCI_BUILD_DIR}/precaution -type d -mtime +7 -exec rm -rfv {} \; || true
 
+#----- rhel-8-icelake-64_inteloneapi-2024.0.1
+
+build:rhel-8-icelake-64_inteloneapi-2024.0.1:
+   stage: build
+   tags:
+      - concurrent
+   only:
+      - master
+      - alpha
+      - /^dev.*$/
+      - tags
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.0.1.sh
+      - set -e
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - SRC_DIR=$(pwd)
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - cmake ${SRC_DIR}
+      - time make -j $NCPUS
+
+test:rhel-8-icelake-64_inteloneapi-2024.0.1:
+   stage: test
+   tags:
+      - concurrent
+   only:
+     - master
+     - alpha
+     - /^dev.*$/
+     - tags
+   dependencies:
+     - build:rhel-8-icelake-64_inteloneapi-2024.0.1
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.0.1.sh
+      - set -e
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - make check
+
+package:rhel-8-icelake-64_inteloneapi-2024.0.1:
+   stage: package
+   tags:
+      - concurrent
+   only:
+      - master
+      - alpha
+      - /^dev.*$/
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-icelake-64_inteloneapi-2024.0.1
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.0.1.sh
+      - set -e
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
 #----- rhel-8-icelake-64_inteloneapi-2022.1.2
 
 build:rhel-8-icelake-64_inteloneapi-2022.1.2:
