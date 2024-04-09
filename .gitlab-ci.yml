@@ -26,7 +26,7 @@ before_script:
 
 #----- rhel-8-icelake-64_inteloneapi-2024.0.1
 
-build:rhel-8-icelake-64_inteloneapi-2024.0.1
+build:rhel-8-icelake-64_inteloneapi-2024.0.1:
    stage: build
    tags:
       - concurrent
