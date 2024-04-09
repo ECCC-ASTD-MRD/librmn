@@ -1,3 +1,5 @@
+!> \file fst98_interface.hf Interface declaration of FST functions for Fortran
+
 #include "c_fst98_interface.hf"
 !
 ! do not include the interface to the Fortran functions if C_INTERFACE_ONLY is defined
