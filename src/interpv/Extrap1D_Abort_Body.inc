@@ -33,6 +33,7 @@
 !ARGUMENTS
   use Interp1D_Constants
   use app
+  use rmn_libc, only: exit
   implicit none
 #include "Interp1D_Arguments_X.inc"
 !

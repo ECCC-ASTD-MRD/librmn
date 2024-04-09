@@ -40,6 +40,7 @@
 !     structure identique pour cy(j,1..6)
 
 !*******
+   use rmn_libc, only: exit
    implicit none
 
    integer  :: ni,nj,i1,i2,j1,j2,extension
