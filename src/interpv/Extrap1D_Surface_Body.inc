@@ -73,6 +73,9 @@
   real(real48), dimension(src_ijDim) :: f
   real(real48), dimension(ubound(ExtArraysIn,1)) :: z0, ilmo, hBound, ft
 
+  stateDerivDestn(:, :) = 0.0
+  ExtArraysOut(:, :)    = 0.0
+
   ! Verify the number of extension arguments that were supplied
   if(     numExtArraysIn  > MAX_EXT_ARRAYS_IN &
      .or. numExtArraysOut > MAX_EXT_ARRAYS_OUT) then
