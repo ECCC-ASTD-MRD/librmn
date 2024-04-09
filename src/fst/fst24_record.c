@@ -454,20 +454,22 @@ int32_t fst24_record_validate_params(const fst_record* record) {
 //! will directly be used for searching in a file
 void make_search_criteria(
     const fst_record* record,   //!< [in] The information we are looking for
-    search_metadata* criteria,  //!< [out] The encoded information keys
-    search_metadata* mask       //!< [out] The corresponding search mask
+    fst_query* const query      //!< [in,out] Query for which we are making the criteria
 ) {
     // Check for error
-    if (!fst24_record_is_valid(record) || criteria == NULL || mask == NULL) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or criteria/mask pointers\n", __func__);
+    if (!fst24_record_is_valid(record) || (query == NULL)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or query\n", __func__);
         return;
     }
+
+    search_metadata* criteria = &(query->criteria);
+    search_metadata* mask     = &(query->mask);
 
     // Reset search mask
     {
         uint32_t *pmask = (uint32_t *) mask;
         for (uint32_t i = 0; i < (sizeof(search_metadata) / sizeof(uint32_t)); i++) {
-            pmask[i] = -1;
+            pmask[i] = 0xffffffff;
         }
     }
 
@@ -516,20 +518,51 @@ void make_search_criteria(
         fst98_meta->nbits = abs(record->npak);
         if (record->npak >= default_fst_record.npak) fst98_mask->nbits = 0;
 
-        fst98_meta->ip1 = record->ip1;
-        if ((record->ip1 == default_fst_record.ip1)) fst98_mask->ip1 = 0;
-
-        fst98_meta->ip2 = record->ip2;
-        if ((record->ip2 == default_fst_record.ip2)) fst98_mask->ip2 = 0;
-
-        fst98_meta->ip3 = record->ip3;
-        if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
-
         fst98_meta->npas = record->npas;
         if ((record->npas == default_fst_record.npas)) fst98_mask->npas = 0;
 
         fst98_meta->deet = record->deet;
         if ((record->deet == default_fst_record.deet)) fst98_mask->deet = 0;
+
+        // IPs
+        {
+            fst98_meta->ip1 = record->ip1;
+            if ((record->ip1 == default_fst_record.ip1)) fst98_mask->ip1 = 0;
+
+            fst98_meta->ip2 = record->ip2;
+            if ((record->ip2 == default_fst_record.ip2)) fst98_mask->ip2 = 0;
+
+            fst98_meta->ip3 = record->ip3;
+            if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
+
+            if (query->options.ip1_all > 0) {
+                int ip1 = record->ip1;
+                float val;
+                int kind;
+                ConvertIp(&ip1, &val, &kind, -1); // Retrieve value
+                ConvertIp(&query->ip1s[0], &val, &kind, 2); // Encode with new encoding
+                ConvertIp(&query->ip1s[1], &val, &kind, 3); // Encode with old encoding
+                fst98_mask->ip1 = 0;
+            }
+            if (query->options.ip2_all > 0) {
+                float val;
+                int kind;
+                int ip2 = record->ip2;
+                ConvertIp(&ip2, &val, &kind, -1); // Retrieve value
+                ConvertIp(&query->ip2s[0], &val, &kind, 2); // Encode with new encoding
+                ConvertIp(&query->ip2s[1], &val, &kind, 3); // Encode with old encoding
+                fst98_mask->ip2 = 0;
+            }
+            if (query->options.ip3_all > 0) {
+                float val;
+                int kind;
+                int ip3 = record->ip3;
+                ConvertIp(&ip3, &val, &kind, -1); // Retrieve value
+                ConvertIp(&query->ip3s[0], &val, &kind, 2); // Encode with new encoding
+                ConvertIp(&query->ip3s[1], &val, &kind, 3); // Encode with old encoding
+                fst98_mask->ip3 = 0;
+            }
+        }
 
         char nomvar[FST_NOMVAR_LEN];
         copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);

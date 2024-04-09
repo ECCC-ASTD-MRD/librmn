@@ -934,7 +934,8 @@ int32_t fst24_eof(const fst_file* const file);
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
     //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
-    //!> Must point to a valid record struct (i.e. initialized)
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
+    //!> match. If not NULL, must be a valid, initialized record.
     fst_record* record
 );
 
@@ -1152,7 +1153,7 @@ function new_query(this,                                                        
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
-    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
@@ -1179,7 +1180,7 @@ function read(this, record, data,                                               
     !> `data` attribute of the record being read.
     type(C_PTR), intent(in), optional :: data
 
-    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar

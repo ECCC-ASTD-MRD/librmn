@@ -227,7 +227,9 @@ int c_fstinfx_rsf(
     criteria.datev = datev;
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] "
-            "nomvar=[%s]\n", __func__, iun, datev, criteria.etiket, ip1, ip2, ip3, criteria.typvar, criteria.nomvar);
+            "nomvar=[%s] (handle = %d, ipflags = %d%d%d)\n",
+            __func__, iun, datev, criteria.etiket, ip1, ip2, ip3, criteria.typvar, criteria.nomvar, handle,
+            ip1s_flag, ip2s_flag, ip3s_flag);
 
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -237,11 +239,19 @@ int c_fstinfx_rsf(
     }
 
     // Initialize search parameters
-    fstd_open_files[index_fnom].query.search_index = 0;
-    fstd_open_files[index_fnom].query.search_done = 0;
-    stdf_dir_keys *search_criteria = &fstd_open_files[index_fnom].query.criteria.fst98_meta;
-    stdf_dir_keys *search_mask     = &fstd_open_files[index_fnom].query.mask.fst98_meta;
-    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query.criteria, &fstd_open_files[index_fnom].query.mask);
+    fst_query* query = &fstd_open_files[index_fnom].query;
+    query->search_index = 0;
+    query->search_done = 0;
+    stdf_dir_keys *search_criteria = &(query->criteria.fst98_meta);
+    stdf_dir_keys *search_mask     = &(query->mask.fst98_meta);
+
+    query->options = default_query_options;
+
+    if (ip1s_flag) query->options.ip1_all = 1;
+    if (ip2s_flag) query->options.ip2_all = 1;
+    if (ip3s_flag) query->options.ip3_all = 1;
+
+    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query);
 
     // Perform the search itself
     int64_t rsf_key = -1;
@@ -264,13 +274,14 @@ int c_fstinfx_rsf(
 
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
-        if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
+        // if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         return (int32_t)rsf_key;
     }
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+    const stdf_dir_keys* record_meta = (const stdf_dir_keys*)record_info.meta;
 
     // Continue looking until we have a match. Why is this not part of the RSF lookup function????
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
@@ -278,13 +289,13 @@ int c_fstinfx_rsf(
         while ((lhandle >=  0) && (nomatch)) {
             nomatch = 0;
             if ((ip1s_flag) && (ip1 >= 0)) {
-                if (ip_is_equal(ip1, search_criteria->ip1, 1) == 0) {
+                if (ip_is_equal(ip1, record_meta->ip1, 1) == 0) {
                     nomatch = 1;
                 } else if ((ip2s_flag) && (ip2 >= 0)) {
-                    if (ip_is_equal(ip2, search_criteria->ip2, 2) == 0) {
+                    if (ip_is_equal(ip2, record_meta->ip2, 2) == 0) {
                         nomatch = 1;
                     } else if ((ip3s_flag) && (ip3 >= 0)) {
-                        if (ip_is_equal(ip3, search_criteria->ip3, 3) == 0) {
+                        if (ip_is_equal(ip3, record_meta->ip3, 3) == 0) {
                             nomatch = 1;
                         }
                     }
@@ -300,16 +311,22 @@ int c_fstinfx_rsf(
         }
     }
     
-    // Not sure what this does, or if it is useful for RSF...
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
         /* arranger les masques de recherches pour un fstsui */
-        if (ip1s_flag) search_mask->ip1 = 0xFFFFFFF;
-        if (ip2s_flag) search_mask->ip2 = 0xFFFFFFF;
-        if (ip3s_flag) search_mask->ip3 = 0xFFFFFFF;
+        if (ip1s_flag) {
+            search_criteria->ip1 = record_meta->ip1;
+            search_mask->ip1 = 0xFFFFFFF;
+        }
+        if (ip2s_flag) {
+            search_criteria->ip2 = record_meta->ip2;
+            search_mask->ip2 = 0xFFFFFFF;
+        }
+        if (ip3s_flag) {
+            search_criteria->ip3 = record_meta->ip3;
+            search_mask->ip3 = 0xFFFFFFF;
+        }
         init_ip_vals();
     }
-
-    const stdf_dir_keys* record_meta = (const stdf_dir_keys*)record_info.meta;
 
     *ni = record_meta->ni;
     *nj = record_meta->nj;

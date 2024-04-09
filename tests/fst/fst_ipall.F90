@@ -97,9 +97,10 @@ subroutine create_files(is_rsf)
     record % ip1 = 10
     record % ip3 = 10
     do i = 1, 3
-        call CONVIP_plus(record % ip2, p(i), ip_kind, 2, dummy, .false.)
-        success = files(2) % write(record)
         call CONVIP_plus(record % ip2, p(i), ip_kind, 3, dummy, .false.)
+        success = files(2) % write(record)
+        success = files(2) % write(record)
+        call CONVIP_plus(record % ip2, p(i), ip_kind, 2, dummy, .false.)
         success = files(2) % write(record) .and. success
 
         if (.not. success) then
@@ -109,11 +110,14 @@ subroutine create_files(is_rsf)
     end do
 
     record % ip1 = 100
-    record % ip2 = 100
+    ! record % ip2 = 100
     do i = 1, 3
-        call CONVIP_plus(record % ip3, p(i), ip_kind, 2, dummy, .false.)
-        success = files(2) % write(record)
         call CONVIP_plus(record % ip3, p(i), ip_kind, 3, dummy, .false.)
+        call CONVIP_plus(record % ip2, p(4-i), ip_kind, 3, dummy, .false.)
+        success = files(2) % write(record)
+        success = files(2) % write(record)
+        call CONVIP_plus(record % ip3, p(i), ip_kind, 2, dummy, .false.)
+        call CONVIP_plus(record % ip2, p(4-i), ip_kind, 2, dummy, .false.)
         success = files(2) % write(record) .and. success
 
         if (.not. success) then
@@ -153,9 +157,9 @@ subroutine look_fst98()
         error stop 1
     end if
 
-    status = fstouv(filenames(2), units(2), 'RND')
-    if (status /= 27) then
-        write(app_msg, '(A, I12, A)') 'Wrong number of records in file (', status, ') expected 18'
+    status = fstouv(filenames(2), units(2), 'RND+R/O')
+    if (status /= 33) then
+        write(app_msg, '(A, I12, A, I3)') 'Wrong number of records in file (', status, ') expected ', 33
         call App_Log(APP_ERROR, app_msg)
         error stop 1
     end if
@@ -166,6 +170,7 @@ subroutine look_fst98()
         error stop 1
     end if
 
+    call App_Log(APP_INFO, 'IP1')
     ! IP1 not all
     call CONVIP_plus(ip, p(1), ip_kind, 2, dummy, .false.)
     status = fstinl(units(1), ni, nj, nk, -1, ' ', ip, -1, 1, ' ', ' ',          &
@@ -195,6 +200,76 @@ subroutine look_fst98()
         status = fstluk(work, records(i), ni, nj, nk)
     end do
 
+    call App_Log(APP_INFO, 'IP2')
+    ! IP2 not all
+    call CONVIP_plus(ip, p(2), ip_kind, 2, dummy, .false.)
+    status = fstlir(work, units(1), ni, nj, nk, -1, ' ', 10, ip, -1, ' ', ' ')
+    if (status <= 0) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 not all)')
+        error stop 1
+    end if
+
+    status = fstlis(work, units(1), ni, nj, nk)
+    if (status > 0) then
+        call App_Log(APP_ERROR, 'There is only one record that matches, should not have been able to find a second one (IP2 not all)')
+        error stop 1
+    end if
+
+    ! IP2 all
+    ip = ip2_all(p(2), ip_kind)
+    status = fstlir(work, units(1), ni, nj, nk, -1, ' ', 10, ip, -1, ' ', ' ')
+    if (status <= 0) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 all)')
+        error stop 1
+    end if
+
+    status = fstlis(work, units(1), ni, nj, nk)
+    if (status <= 0) then
+        call App_Log(APP_ERROR, 'There are 2 records that match, should have been able to find the second one (IP2 all)')
+        error stop 1
+    end if
+
+    status = fstlis(work, units(1), ni, nj, nk)
+    if (status > 0) then
+        call App_Log(APP_ERROR, 'There are only two records that match, should not have been able to find a third one (IP2 all)')
+        error stop 1
+    end if
+
+    call App_Log(APP_INFO, 'IP3')
+    ! IP3 not all
+    call CONVIP_plus(ip, p(3), ip_kind, 2, dummy, .false.)
+    status = fstlir(work, units(1), ni, nj, nk, -1, ' ', 100, -1, ip, ' ', ' ')
+    if (status <= 0) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 not all)')
+        error stop 1
+    end if
+
+    status = fstlis(work, units(1), ni, nj, nk)
+    if (status > 0) then
+        call App_Log(APP_ERROR, 'There is only one record that matches, should not have been able to find a second one (IP3 not all)')
+        error stop 1
+    end if
+
+    ! IP3 all
+    ip = ip3_all(p(3), ip_kind)
+    status = fstlir(work, units(1), ni, nj, nk, -1, ' ', 100, -1, ip, ' ', ' ')
+    if (status <= 0) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 all)')
+        error stop 1
+    end if
+
+    status = fstlis(work, units(1), ni, nj, nk)
+    if (status <= 0) then
+        call App_Log(APP_ERROR, 'There are 2 records that match, should have been able to find the second one (IP3 all)')
+        error stop 1
+    end if
+
+    status = fstlis(work, units(1), ni, nj, nk)
+    if (status > 0) then
+        call App_Log(APP_ERROR, 'There are only two records that match, should not have been able to find a third one (IP3 all)')
+        error stop 1
+    end if
+
     status  = fstfrm(units(1))
     status2 = fstfrm(units(2))
     if (status < 0 .or. status2 < 0) then
@@ -205,8 +280,150 @@ end subroutine look_fst98
 
 subroutine look_fst24()
     implicit none
+    type(fst_file) :: file1, file2
+    type(fst_query):: query
+    logical :: success
+
+    integer(C_INT32_T) :: ip
+    integer :: num_record_found, expected
+    type(fst_record), dimension(100) :: records
+    type(fst_record) :: record
 
     call App_Log(APP_INFO, 'Testing fst24 interface')
+
+    success = file1 % open(filenames(1))
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Unable to open file 1')
+        error stop 1
+    end if
+    success = file2 % open(filenames(2))
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Unable to open file 2')
+        error stop 1
+    end if
+
+    success = fst24_link([file1, file2])
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Unable to link files')
+        error stop 1
+    end if
+
+    call App_Log(APP_INFO, 'IP1')
+    ! IP1 not all
+    call CONVIP_plus(ip, p(1), ip_kind, 2, dummy, .false.)
+
+    query = file1 % new_query(ip1 = ip)
+    num_record_found = query % find_all(records)
+    if (num_record_found /= 3) then
+        write(app_msg, '(A, I12)') 'Should have found exactly 3 records (ip1) rather than ', num_record_found
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+
+    call query % free()
+
+    ! IP1 all
+    query = file1 % new_query(ip1 = ip, ip1_all = .true.)
+    num_record_found = query % find_all(records)
+
+    expected = 5
+    if (num_record_found /= expected) then
+        write(app_msg, '(A, I2, A, I12)') 'Should have found exactly ', expected, ' records (ip1) rather than ', num_record_found
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+
+    call query % free()
+
+    call App_Log(APP_INFO, 'IP2')
+    ! IP2 not all
+    call CONVIP_plus(ip, p(2), ip_kind, 2, dummy, .false.)
+    query = file1 % new_query(ip2 = ip, ip1 = 10)
+    success = query % read_next(record)
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 not all)')
+        error stop 1
+    end if
+
+    success = .not. (query % read_next(record))
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'There is only one record that matches, should not have been able to find a second one (IP2 not all)')
+        error stop 1
+    end if
+
+    call query % free()
+
+    ! IP2 all
+    query = file1 % new_query(ip2 = ip, ip1 = 10, ip2_all = .true.)
+    success = query % read_next(record)
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 all)')
+        error stop 1
+    end if
+
+    success = query % read_next(record)
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'There are 3 records that match, should have been able to find the second one (IP2 all)')
+        error stop 1
+    end if
+
+    success = query % read_next(record)
+    success = .not. (query % read_next(record))
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'There are only three records that match, should not have been able to find a fourth one (IP2 all)')
+        error stop 1
+    end if
+
+    call query % free()
+
+    call App_Log(APP_INFO, 'IP3')
+    ! IP3 not all
+    call CONVIP_plus(ip, p(3), ip_kind, 2, dummy, .false.)
+    query = file1 % new_query(ip3 = ip, ip1 = 100)
+    success = query % read_next(record)
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 not all)')
+        error stop 1
+    end if
+
+    success = .not. (query % read_next(record))
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'There is only one record that matches, should not have been able to find a second one (IP3 not all)')
+        error stop 1
+    end if
+
+    call query % free()
+
+    ! IP3 all
+    query = file1 % new_query(ip3 = ip, ip1 = 100, ip3_all = .true.)
+    success = query % read_next(record)
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 all)')
+        error stop 1
+    end if
+
+    success = query % read_next(record)
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'There are 3 records that match, should have been able to find the second one (IP3 all)')
+        error stop 1
+    end if
+
+    success = query % read_next(record)
+    success = .not. (query % read_next(record))
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'There are only three records that match, should not have been able to find a fourth one (IP3 all)')
+        error stop 1
+    end if
+
+    call query % free()
+
+    success = file1 % close()
+    success = file2 % close() .and. success
+
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Unable to close test files')
+        error stop 1
+    end if
 end subroutine look_fst24
 
 subroutine test_ip_all(is_rsf)
@@ -226,8 +443,8 @@ program fst98_ipall
     implicit none
 
     call test_ip_all([ .false., .false. ])
-    ! call test_ip_all([ .false., .true.  ])
-    ! call test_ip_all([ .true.,  .false. ])
-    ! call test_ip_all([ .true.,  .true.  ])
+    call test_ip_all([ .false., .true.  ])
+    call test_ip_all([ .true.,  .false. ])
+    call test_ip_all([ .true.,  .true.  ])
 
 end program fst98_ipall
