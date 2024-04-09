@@ -39,6 +39,9 @@ int32_t get_record_from_key_rsf(const RSF_handle rsf_file, const int64_t key, fs
 int32_t fst24_unpack_data(void* dest, void* source, const fst_record* record, const int32_t skip_unpack,
                           const int32_t stride);
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query); // RSF only
+int C_fst_rsf_match_req(int datev, int ni, int nj, int nk, int ip1, int ip2, int ip3,
+                        const char* typvar, const char* nomvar, const char* etiket, const char* grtyp,
+                        int ig1, int ig2, int ig3, int ig4);
 
 
 #endif // RMN_FST24_FILE_INTERNAL_H__

@@ -1039,8 +1039,17 @@ fst_query* fst24_new_query(
     make_search_criteria(criteria, query);
     query->num_criteria = sizeof(query->criteria) / sizeof(uint32_t);
     query->search_index = criteria->do_not_touch.handle > 0 ? criteria->do_not_touch.handle : 0;
-    query->search_meta  = criteria->metadata;
     query->file         = file;
+
+    if (criteria->metadata != NULL) {
+        if (file->type == FST_RSF) {
+            query->search_meta  = criteria->metadata;
+        }
+        else {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extended metadata criterion is non-NULL, but we can only search"
+                    " extended metadata in RSF files\n", __func__);
+        }
+    }
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Setting search criteria\n", __func__);
@@ -1125,20 +1134,41 @@ int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
     for (int i = 0; i < query->num_criteria; i++) {
         actual_mask_u32[i] = mask_u32[i] & background_mask_u32[i];
     }
-    const int64_t rsf_key = RSF_Lookup(file_handle,
+    const int64_t key = RSF_Lookup(file_handle,
                                        query->search_index,
                           (uint32_t *)&query->criteria,
                                        actual_mask_u32,
                                        query->num_criteria);
-    if (rsf_key > 0) {
+    if (key > 0) {
         // Found it. Next search will start here
-        query->search_index = rsf_key;
+        query->search_index = key;
     }
     else {
         // Did not find it. Mark this search as finished
         query->search_done = 1;
     }
-    return rsf_key;
+    return key;
+}
+
+int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
+    uint32_t* pkeys = (uint32_t *) &query->criteria;
+    uint32_t* pmask = (uint32_t *) &query->mask;
+
+    pkeys += W64TOWD(1);
+    pmask += W64TOWD(1);
+
+    const int32_t start_key = query->search_index & 0xffffffff;
+
+    const int64_t key = (int64_t) c_xdfloc2(iun, start_key, pkeys, 16, pmask);
+    if (key > 0) {
+        // Found it. Next search will start here
+        query->search_index = key;
+    }
+    else {
+        // Did not find it. Mark this search as finished
+        query->search_done = 1;
+    }
+    return key;
 }
 
 //! Make sure that the (next) query linked to this given query will
@@ -1160,8 +1190,42 @@ static void ensure_next_query(fst_query* query) {
     query->next->file = query->file->next;
 }
 
-int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,
-                        char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4);
+//! For some searches, we are not looking for an exact match at certain attributes, so we need to
+//! check those manually, outside the backend search functions
+int32_t is_actual_match(fst_record* const record, const fst_query* const query) {
+
+    // Check on excdes desire/exclure clauses
+    if (query->file->type == FST_RSF &&
+        !C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
+        record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
+        return FALSE;
+    }
+
+    // If search on all IP encodings is requested
+    if (query->options.ip1_all > 0) {
+        if (record->ip1 != query->ip1s[0] && record->ip1 != query->ip1s[1]) return FALSE;
+    }
+
+    if (query->options.ip2_all > 0) {
+        if (record->ip2 != query->ip2s[0] && record->ip2 != query->ip2s[1]) return FALSE;
+    }
+
+    if (query->options.ip3_all > 0) {
+        if (record->ip3 != query->ip3s[0] && record->ip3 != query->ip3s[1]) return FALSE;
+    }
+
+    // If metadata search is specified, look for a match or carry on looking
+    if (query->search_meta != NULL) {
+        if (!fst24_read_metadata(record)) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read metadata while doing search\n", __func__);
+            return FALSE;
+        }
+
+        if (!Meta_Match(query->search_meta, record->metadata, FALSE)) return FALSE;
+    }
+
+    return TRUE;
+}
 
 //! Find the next record in the given file that matches the given query criteria.
 //!
@@ -1170,7 +1234,8 @@ int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
     //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
-    //!> Must point to a valid record struct (i.e. initialized)
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
+    //!> match. If not NULL, must be a valid, initialized record.
     fst_record* record
 ) {
     if (!fst24_query_is_valid(query)) {
@@ -1178,7 +1243,7 @@ int32_t fst24_find_next(
         return FALSE;
     }
 
-    if (record && !fst24_record_is_valid(record)) {
+    if ((record != NULL) && !fst24_record_is_valid(record)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must give a valid record into which information will be put\n", __func__);
         return FALSE;
     }
@@ -1192,71 +1257,30 @@ int32_t fst24_find_next(
         return FALSE;
     }
 
-    int64_t key = -1;
-    int rkey = 0;
+    fst_record tmp_record = default_fst_record;
+    while (TRUE) { // Search forever (until found or end-of-file)
+        const int64_t key = 
+            query->file->type == FST_RSF ? find_next_rsf(query->file->rsf_handle, query) :
+            query->file->type == FST_XDF ? find_next_xdf(query->file->iun, query) :
+                                           -1;
 
-    // Depending on backend
-    if (query->file->type == FST_RSF) {
-        RSF_handle file_handle = query->file->rsf_handle;
+        if (key < 0) break; // Not in this file
 
-        while (key == -1) {
-            // Look for the record in the file
-            key = find_next_rsf(file_handle, query);
-            if (key < 0) break; // Not in this file
+        const int status = fst24_get_record_from_key(query->file, key, &tmp_record); 
 
-            if (record) {
-                // Check on excdes desire/exclure clauses
-                record->metadata = NULL;
-                rkey = fst24_get_record_from_key(query->file, key, record); 
-                if (!C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-                        record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
-                    key = -1; // Continue looking
-                }
-                // If metadata search is specified, look for a match or carry on looking
-                else if (query->search_meta != NULL) {
-                    if (fst24_read_metadata(record) &&
-                        Meta_Match(query->search_meta, record->metadata, FALSE)) {
-                        break; // Found it
-                    } else {
-                        key = -1; // Continue looking
-                    }
-                }
-            }
-        }
-    }
-    else if (query->file->type == FST_XDF) {
-        uint32_t* pkeys = (uint32_t *) &query->criteria;
-        uint32_t* pmask = (uint32_t *) &query->mask;
+        if (!is_actual_match(&tmp_record, query)) continue; // Keep looking
 
-        pkeys += W64TOWD(1);
-        pmask += W64TOWD(1);
-
-        const int32_t start_key = query->search_index & 0xffffffff;
-
-        key = c_xdfloc2(query->file->iun, start_key, pkeys, 16, pmask);
-
-        if (key >= 0) {
-            query->search_index = key;
-        } else {
-            // Mark search as finished in this file if no record is found
-            query->search_done = 1;
-        }
-    }
-    else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, query->file->type);
-        return FALSE;
-    }
-
-    if (key >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
                 __func__, query->file->iun, key, query->file);
-        // If search included extended metadata, the key will already be extracted
-        if (rkey == 0 && record) {
-            return fst24_get_record_from_key(query->file, key, record);
-        } else {
-            return TRUE;
-        }
+
+        if (record != NULL) fst_record_copy_info(record, &tmp_record);
+        query->search_index = key;
+
+        return (status > 0);
     }
+
+    // We haven't found anything in this file
+    query->search_done = 1;
 
     if (query->file->next != NULL) {
         // We're done searching this file, but there's another one in the linked list, so 

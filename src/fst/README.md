@@ -934,7 +934,8 @@ int32_t fst24_eof(const fst_file* const file);
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
     //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
-    //!> Must point to a valid record struct (i.e. initialized)
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
+    //!> match. If not NULL, must be a valid, initialized record.
     fst_record* record
 );
 

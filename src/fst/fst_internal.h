@@ -64,7 +64,6 @@ typedef struct fst_query_ {
     int32_t ip1s[2];
     int32_t ip2s[2];
     int32_t ip3s[2];
-    int32_t multistep_match;
     struct fst_query_* next;  //!< A link to the query that will search into the next linked file (fst24 only)
 } fst_query;
 
@@ -85,7 +84,6 @@ static inline fst_query new_fst_query(const fst_query_options* options) {
     q.ip1s[0] = 0; q.ip1s[1] = 0;
     q.ip2s[0] = 0; q.ip2s[1] = 0;
     q.ip3s[0] = 0; q.ip3s[1] = 0;
-    q.multistep_match = 0;
 
     q.next = NULL;
 
@@ -94,12 +92,11 @@ static inline fst_query new_fst_query(const fst_query_options* options) {
 
 //! Copy a query's criteria, but with a reset start index, without file, without "next"
 static inline fst_query fst_query_copy(const fst_query* const query) {
-    fst_query result = new_fst_query(&query->options);
-    result.search_meta  = query->search_meta;
-    result.criteria     = query->criteria;
-    result.mask         = query->mask;
-    result.background_mask = query->background_mask;
-    result.num_criteria = query->num_criteria;
+    fst_query result = *query;
+    result.file = NULL;
+    result.search_index = 0;
+    result.search_done = 0;
+    result.next = NULL;
 
     return result;
 }

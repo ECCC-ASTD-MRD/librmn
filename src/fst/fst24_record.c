@@ -462,7 +462,6 @@ void make_search_criteria(
         return;
     }
 
-    query->multistep_match = 0;
     search_metadata* criteria = &(query->criteria);
     search_metadata* mask     = &(query->mask);
 
@@ -536,7 +535,6 @@ void make_search_criteria(
             fst98_meta->ip3 = record->ip3;
             if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
 
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Query options: %d %d %d\n", __func__, query->options.ip1_all, query->options.ip2_all, query->options.ip3_all);
             if (query->options.ip1_all > 0) {
                 int ip1 = record->ip1;
                 float val;
@@ -545,7 +543,6 @@ void make_search_criteria(
                 ConvertIp(&query->ip1s[0], &val, &kind, 2); // Encode with new encoding
                 ConvertIp(&query->ip1s[1], &val, &kind, 3); // Encode with old encoding
                 fst98_mask->ip1 = 0;
-                query->multistep_match = 1;
             }
             if (query->options.ip2_all > 0) {
                 float val;
@@ -555,7 +552,6 @@ void make_search_criteria(
                 ConvertIp(&query->ip2s[0], &val, &kind, 2); // Encode with new encoding
                 ConvertIp(&query->ip2s[1], &val, &kind, 3); // Encode with old encoding
                 fst98_mask->ip2 = 0;
-                query->multistep_match = 1;
             }
             if (query->options.ip3_all > 0) {
                 float val;
@@ -565,7 +561,6 @@ void make_search_criteria(
                 ConvertIp(&query->ip3s[0], &val, &kind, 2); // Encode with new encoding
                 ConvertIp(&query->ip3s[1], &val, &kind, 3); // Encode with old encoding
                 fst98_mask->ip3 = 0;
-                query->multistep_match = 1;
             }
         }
 
