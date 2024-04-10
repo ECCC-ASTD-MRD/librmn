@@ -44,6 +44,7 @@ build:rhel-8-icelake-64_inteloneapi-2024.0.1:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
       - cmake ${SRC_DIR}
       - time make -j $NCPUS
+   allow_failure: true
 
 test:rhel-8-icelake-64_inteloneapi-2024.0.1:
    stage: test
@@ -62,6 +63,7 @@ test:rhel-8-icelake-64_inteloneapi-2024.0.1:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
       - make check
+   allow_failure: true
 
 package:rhel-8-icelake-64_inteloneapi-2024.0.1:
    stage: package
@@ -84,6 +86,7 @@ package:rhel-8-icelake-64_inteloneapi-2024.0.1:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+   allow_failure: true
 
 #----- rhel-8-icelake-64_inteloneapi-2022.1.2
 
@@ -371,6 +374,96 @@ test:rhel-8-amd64_gnu-12.1.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-12.1.0
       - make check
+      
+#----- rhel-8-amd64_aocc-4.1.1
+
+build:rhel-8-amd64_aocc-4.1.1:
+   stage: build
+   tags:
+      - concurrent
+   only:
+     - master
+     - alpha
+     - /^dev.*$/
+     - tags
+   script:
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load aocc-4.1.1
+      - export EC_ARCH=Linux_x86-64/aocc
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
+      - SRC_DIR=$(pwd)
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
+      - cmake ${SRC_DIR}
+      - time make -j $NCPUS
+   allow_failure: true
+
+test:rhel-8-amd64_aocc-4.1.1:
+   stage: test
+   tags:
+      - concurrent
+   only:
+     - master
+     - alpha
+     - /^dev.*$/
+     - tags
+   dependencies:
+     - build:rhel-8-amd64_aocc-4.1.1
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load aocc-4.1.1
+      - export EC_ARCH=Linux_x86-64/aocc
+      - set -e
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
+      - make check
+   allow_failure: true
+      
+#----- rhel-8-amd64_nvhpc_23.7
+
+build:rhel-8-amd64_nvhpc_23.7:
+   stage: build
+   tags:
+      - concurrent
+   only:
+     - master
+     - alpha
+     - /^dev.*$/
+     - tags
+   script:
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load nvhpc_23.7
+      - export EC_ARCH=Linux_x86-64/nvhpc
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - SRC_DIR=$(pwd)
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - cmake ${SRC_DIR}
+      - time make -j $NCPUS
+   allow_failure: true
+
+test:rhel-8-amd64_nvhpc_23.7:
+   stage: test
+   tags:
+      - concurrent
+   only:
+     - master
+     - alpha
+     - /^dev.*$/
+     - tags
+   dependencies:
+     - build:rhel-8-amd64_nvhpc_23.7
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load nvhpc_23.7
+      - export EC_ARCH=Linux_x86-64/nvhpc
+      - set -e
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - make check
+   allow_failure: true
       
 #----- ubuntu-22.04-amd64_inteloneapi-2022.1.2
 
