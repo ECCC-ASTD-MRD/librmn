@@ -52,9 +52,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
-#set(CMAKE_VERBOSE_MAKEFILE TRUE)
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_EXTENSIONS OFF)
+# set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 add_compile_definitions(_${CMAKE_SYSTEM_NAME}_ _GNU_SOURCE)
 
@@ -162,7 +160,9 @@ set_target_properties(rmn-static rmn-shared PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}>
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
-    SOVERSION ${SOVERSION})
+    SOVERSION ${SOVERSION}
+    C_STANDARD 11
+    C_EXTENSIONS OFF)
 
 set(TARGETS rmn-static rmn-shared)
 set(shared_targets rmn-shared)
