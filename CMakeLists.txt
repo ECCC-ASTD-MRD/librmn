@@ -232,6 +232,8 @@ foreach(TARGET IN ITEMS ${TARGETS})
             #   $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
             #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
                $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
+    target_compile_definitions(${TARGET}
+      PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
