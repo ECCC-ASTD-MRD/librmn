@@ -394,7 +394,7 @@ build:rhel-8-amd64_aocc-4.1.1:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
-      - cmake ${SRC_DIR}
+      - cmake -DCOMPILER_SUITE=aocc ${SRC_DIR}
       - time make -j $NCPUS
    allow_failure: true
 
@@ -439,7 +439,7 @@ build:rhel-8-amd64_nvhpc_23.7:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
-      - cmake ${SRC_DIR}
+      - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR}
       - time make -j $NCPUS
    allow_failure: true
 
