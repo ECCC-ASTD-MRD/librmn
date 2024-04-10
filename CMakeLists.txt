@@ -236,7 +236,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
     # for IntelLLVM > 2024.0 - TODO: move in source code
-    if (("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 2024.1))
+    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM") AND (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER 2024.1))
       target_compile_definitions(${TARGET} PUBLIC FORTRAN_202X_SUPPORTED)
     endif()
     add_dependencies(${TARGET}
