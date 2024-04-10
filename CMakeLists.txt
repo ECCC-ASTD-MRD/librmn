@@ -232,8 +232,13 @@ foreach(TARGET IN ITEMS ${TARGETS})
             #   $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
             #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
                $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
+    # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
-      PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
+        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
+    # for IntelLLVM > 2024.0 - TODO: move in source code
+    if (("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 2024.1))
+      target_compile_definitions(${TARGET} PUBLIC FORTRAN_202X_SUPPORTED)
+    endif()
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
@@ -243,6 +248,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
     )
     target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endforeach()
+
 
 # Compilation options for specific files
 set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
