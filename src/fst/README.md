@@ -768,33 +768,28 @@ fst24_write(my_file, &my_record, 0);
 ### Structs
 
 ```c
-typedef struct {
-    int32_t       iun;          //!< File unit, used by fnom
-    int32_t       file_index;   //!< File index in list of open files (the list is different for RSF vs XDF)
-    fst_file_type type;         //!< Type of file (RSF, XDF, etc.)
-    struct fst24_file_* next;   //!< Next file in linked list of files (if any)
-} fst_file;
+
+typedef struct fst24_file_ fst_file; // Forward declare
+typedef struct fst_query_ fst_query; // Forward declare
 
 typedef struct {
-    int64_t version;
 
     // 64-bit elements first
-    fst_file* file;   //!< FST file where the record is stored
+    const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
-    int64_t flags;    //!< Record status flags
+
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp
-    int64_t handle;   //!< Handle to specific record (if stored in a file)
 
     // 32-bit elements
-    int32_t datyp; //!< Data type of elements
-    int32_t dasiz; //!< Number of bits per elements
-    int32_t npak;  //!< Compression factor (none if 0 or 1). Number of bit if negative
-    int32_t ni;    //!< First dimension of the data field (number of elements)
-    int32_t nj;    //!< Second dimension of the data field (number of elements)
-    int32_t nk;    //!< Thierd dimension of the data field (number of elements)
-    int64_t alloc; //!< Size of allocated memory for data
+    int32_t datyp;  //!< Data type of elements. See FST_TYPE_* constants.
+    int32_t dasiz;  //!< Number of bits per input elements
+    int32_t npak;   //!< Requested compression factor (none if 0 or 1). Number of stored bits if negative
+    int32_t ni;     //!< First dimension of the data field (number of elements)
+    int32_t nj;     //!< Second dimension of the data field (number of elements)
+    int32_t nk;     //!< Third dimension of the data field (number of elements)
+    int32_t num_meta_bytes; //!< Size of the metadata in bytes
 
     int32_t deet; //!< Length of the time steps in seconds (deet)
     int32_t npas; //!< Time step number
@@ -808,12 +803,11 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
-    int32_t dummy; // To make explicit the fact that the strings start at a 64-bit boundary
-
     char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
     char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
     char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
     char etiket[ALIGN_TO_4(FST_ETIKET_LEN + 1)]; //!< Label
+
 } fst_record;
 
 typedef struct {
@@ -828,11 +822,12 @@ typedef struct {
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, npak, ni, nj, nk;
+    int32_t datyp, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
     int32_t typvar, nomvar, etiket;
+    int32_t metadata;
 } fst_record_fields;
 ```
 
@@ -922,7 +917,6 @@ int32_t fst24_unlink(fst_file* const file);
 int32_t fst24_eof(const fst_file* const file);
 ```
 
-<a id="c-query-functions"></a>
 ### Query Functions
 
 ```c
@@ -968,7 +962,6 @@ int32_t fst24_query_is_valid(const fst_query* const q);
 void fst24_query_free(fst_query* const query);
 ```
 
-<a id="c-record-functions"></a>
 ### Record Functions
 
 ```c
@@ -1010,8 +1003,6 @@ int32_t fst24_record_free(
 ```
 
 ## Fortran
-
-<a id="fortran-structs"></a>
 
 ### Structs
 
@@ -1096,8 +1087,6 @@ contains
 end type fst_record
 ```
 
-<a id="fortran-file-functions"></a>
-
 ### File Functions
 
 ```fortran
@@ -1153,7 +1142,7 @@ function new_query(this,                                                        
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
-    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    integer(C_INT64_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
@@ -1180,7 +1169,7 @@ function read(this, record, data,                                               
     !> `data` attribute of the record being read.
     type(C_PTR), intent(in), optional :: data
 
-    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    integer(C_INT64_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
@@ -1264,8 +1253,6 @@ function rwd(this) result(status)
     integer(C_INT32_T) :: status
 end function rwd
 ```
-
-<a id="fortran-query-functions"></a>
 
 ### Query Functions
 

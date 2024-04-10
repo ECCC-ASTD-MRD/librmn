@@ -28,9 +28,9 @@ static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data h
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
 
-// This struct should only be modified by ADDING member at the end (once we're stable)
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
+    //!> Internal implementation details
     struct {
         int64_t version;  //!< Version marker
         int64_t handle;   //!< Handle to specific record (if stored in a file)
@@ -43,8 +43,8 @@ typedef struct {
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
-    int32_t dateo;    //!< Origin Date timestamp
-    int32_t datev;    //!< Valid Date timestamp
+    int64_t dateo;    //!< Origin Date timestamp
+    int64_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
     int32_t datyp;  //!< Data type of elements. See FST_TYPE_* constants.
@@ -197,8 +197,8 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
-        integer(C_INT32_T) :: dateo    = -1
-        integer(C_INT32_T) :: datev    = -1
+        integer(C_INT64_T) :: dateo    = -1
+        integer(C_INT64_T) :: datev    = -1
 
         integer(C_INT32_T) :: datyp = -1
         integer(C_INT32_T) :: dasiz = -1

@@ -122,8 +122,8 @@ int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_
 }
 
 //! Get record valid date from origin date, timestep size and count
-uint32_t get_valid_date(
-    const int32_t origin_date,      //!< Start date of the run
+uint32_t get_valid_date32(
+    const int64_t origin_date,      //!< Start date of the run
     const int32_t timestep_size,    //!< Size of the timestep in seconds
     const int32_t timestep_num      //!< Timestep number
 ) {
@@ -135,7 +135,7 @@ uint32_t get_valid_date(
         return f_datev;
     }
 
-    return origin_date;
+    return (uint32_t)origin_date;
 }
 
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
@@ -1008,7 +1008,7 @@ int c_fstecr_xdf(
     VALID(ip3, 0, IP3_MAX, "ip3")
     VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
-    const uint32_t datev = get_valid_date(date, deet, npas);
+    const uint32_t datev = get_valid_date32(date, deet, npas);
 
     if ((npak == 0) || (npak == 1)) {
         // no compaction

@@ -396,7 +396,7 @@ int32_t fst24_write_rsf(
     }
 
     // Increment date by timestep size
-    const uint32_t valid_date = get_valid_date(record->dateo, record->deet, record->npas);
+    const uint32_t valid_date = get_valid_date32(record->dateo, record->deet, record->npas);
 
     if ((record->npak == 0) || (record->npak == 1)) {
         // no compaction
