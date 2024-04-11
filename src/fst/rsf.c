@@ -1919,7 +1919,6 @@ RSF_record *RSF_Get_record(
   // --- START CRITICAL REGION --- //
   RSF_Multithread_lock(fp);
 
-  total++;
   RSF_record* record = (RSF_record *) p ;
   const off_t offset = lseek(fp->fd, wa, SEEK_SET) ;    // start of record in file
   const ssize_t nc = read(fp->fd, record->d, recsize);  // read record from file
