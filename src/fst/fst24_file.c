@@ -306,7 +306,6 @@ int32_t fst24_write_rsf(
     fst_record* record,
     const int32_t stride    //!< Compaction parameter. When in doubt, leave at 1
 ) {
-
     if (rsf_file.p == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file is not open\n", __func__);
         return ERR_NO_FILE;
@@ -414,25 +413,16 @@ int32_t fst24_write_rsf(
         }
     }
 
-    static int dejafait_rsf_1 = 0;
-    static int dejafait_rsf_2 = 0;
-
     // no extra compression if nbits > 16
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
     if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
-        if (!dejafait_rsf_1) {
-            Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
-            dejafait_rsf_1 = 1;
-        }
+        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
         datyp = FST_TYPE_REAL_IEEE;
         nbits = 32;
         minus_nbits = -32;
     }
     if ((datyp == FST_TYPE_REAL) && (nbits > 16)) {
-        if (! dejafait_rsf_2) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
-            dejafait_rsf_2 = 1;
-        }
+        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
         datyp = FST_TYPE_REAL_OLD_QUANT;
     }
 

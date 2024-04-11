@@ -1,5 +1,7 @@
 #include "rmn/rsf.h"
 
+#include <unistd.h>
+
 #include <App.h>
 #include "qstdir.h"
 
@@ -488,22 +490,27 @@ static inline void RSF_File_init(RSF_File *fp){  // initialize a new RSF_File st
 //   fp->exclusive    =  0 ;
 }
 
-// timeout is in microseconds
-static inline uint32_t RSF_Lock(RSF_File *fp, uint32_t id, uint32_t timeout){
-  useconds_t usec = 100 ;                                        // 100 microseconds
-  if(fp->lock == id) return 1 ;                                  // we already own the lock
-  while(__sync_val_compare_and_swap(&(fp->lock), 0, id) != 0){   // wait until lock is free
-    timeout = timeout - usec ;
-    if(timeout <= 0) return 0 ;                                  // timeout
+//! Lock the file for manipulation by 1 thread of this process
+static inline uint32_t RSF_Multithread_lock(RSF_File *fp) {
+  const uint32_t usec = 100 ;                                        // 100 microseconds
+  uint32_t remaining = 1 << 30; // ~1000 second timeout
+
+  // wait until lock is free
+  while(__sync_val_compare_and_swap(&(fp->lock), 0, 1) != 0) {
+    remaining -= usec ;
+    if(remaining <= 0) return 0 ;                                  // timeout
     usleep(usec) ;                                               // microsleep for usec microseconds
   }
   return 1 ;
 }
 
-static inline uint32_t RSF_Unlock(RSF_File *fp, uint32_t id){
+//! Unlock the file (from manipulation by 1 thread of this process)
+static inline uint32_t RSF_Multithread_unlock(RSF_File *fp){
   uint32_t old_id = fp->lock ;
-  if(old_id == id) fp->lock = 0 ;
-  return old_id == id ;            // 1 if successful, 0 if locked by some other code
+  while(__sync_val_compare_and_swap(&(fp->lock), 1, 0) != 1){   // wait until lock is free
+    usleep(100);
+  }
+  return old_id == 1 ;            // 1 if successful, 0 if locked by some other code
 }
 
 // round sizes up to a multiple of 4

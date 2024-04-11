@@ -433,6 +433,11 @@ int32_t fst24_record_is_valid(const fst_record* record) {
 //! Validate the parameters of the given record.
 //! Will exit with an error if they are not valid.
 int32_t fst24_record_validate_params(const fst_record* record) {
+    if (record->data == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record has no data\n", __func__);
+        return -1;
+    }
+
     VALID(record->ni, 1, NI_MAX, "ni")
     VALID(record->nj, 1, NJ_MAX, "nj")
     VALID(record->nk, 1, NK_MAX, "nk")

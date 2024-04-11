@@ -1350,26 +1350,26 @@ int64_t RSF_Put_bytes(
 ) {
   RSF_File *fp = (RSF_File *) h.p ;
   uint64_t extra ;
-  int64_t slot, available, desired ;
+  int64_t available, desired ;
   start_of_record sor = SOR ;      // start of data record
   end_of_record   eor = EOR ;      // end of data record
   ssize_t nc ;
   off_t gap ;
 
-  if( ! RSF_Valid_file(fp) ) goto ERROR ;          // something not O.K. with fp
-  if( RSF_Ensure_new_segment(fp) < 0 ) goto ERROR; // Don't have write permission
-  if( fp->next_write <= 0) goto ERROR ;            // next_write address is not set
+  if( ! RSF_Valid_file(fp) ) return 0 ;          // something not O.K. with fp
+  if( RSF_Ensure_new_segment(fp) < 0 ) return 0; // Don't have write permission
+  if( fp->next_write <= 0) return 0 ;            // next_write address is not set
 
   // metadata stored in directory may be shorter than record metadata
   if( record != NULL ){                            // using a pre allocated record ?
-    if( RSF_Valid_record(record) != 0 ) goto ERROR ;    // make sure record is valid
+    if( RSF_Valid_record(record) != 0 ) return 0 ;    // make sure record is valid
     // get dir_meta and rec_meta from record to compute record size
     dir_meta = record->dir_meta ;                  // should never be 0
     rec_meta = record->rec_meta ;                  // should never be 0
   }
 
   if(rec_meta == 0) rec_meta = fp->rec_meta ;      // get default metadata length from file structure
-  if(rec_meta < fp->rec_meta) goto ERROR ;         // metadata too small, must be at least fp->rec_meta
+  if(rec_meta < fp->rec_meta) return 0 ;           // metadata too small, must be at least fp->rec_meta
   if(dir_meta == 0) dir_meta = rec_meta ;          // default size of directory metadata (record metadata size)
   if(dir_meta > rec_meta) dir_meta = rec_meta ;    // directory metadata size vannot be larger than record metadata size
 
@@ -1390,21 +1390,24 @@ int64_t RSF_Put_bytes(
       RSF_Switch_sparse_segment(h, extra) ;      // switch to a new segment (minimum size = extra)
     }
   }
-  lseek(fp->fd , fp->next_write , SEEK_SET) ; // position file at fp->next_write
-  // fprintf(stderr,"RSF_Put_bytes DEBUG : write at %lx\n", fp->next_write) ;
 
   uint8_t rt0, class0, version0 ;
   if (record != NULL) meta = record->meta;
   meta[0] = make_meta0(meta[0], fp->rec_class, RT_DATA);
   extract_meta0(meta[0], &version0, &class0, &rt0);
 
+  if(record != NULL && ((start_of_record *) record->sor)->dul == 0) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Uninitialized data element size\n");
+    return 0;
+  }
+
+  // --- START CRITICAL REGION --- //
+  RSF_Multithread_lock(fp);
+
+  lseek(fp->fd , fp->next_write , SEEK_SET) ; // position file at fp->next_write
+
   // write record 
   if( record != NULL){                                              // using a pre allocated, pre filled record structure
-
-    if(((start_of_record *) record->sor)->dul == 0) {
-      Lib_Log(APP_LIBFST, APP_ERROR, "%s: Uninitialized data element size\n");
-      return 0;
-    }
 
     dir_meta = record->dir_meta ;                                   // get metadata sizes from record
     rec_meta = record->rec_meta ;
@@ -1437,16 +1440,18 @@ int64_t RSF_Put_bytes(
   }
 
   // update directory in memory
-  slot = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size ) ;
-
+  const int64_t slot = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size ) ;
+  
   fp->next_write += record_size ;         // update fp->next_write and fp->current_pos
   fp->current_pos = fp->next_write ;
   fp->last_op = OP_WRITE ;                // last operation was write
   fp->nwritten += 1 ;                     // update unmber of writes
+
+  RSF_Multithread_unlock(fp);
+  // --- END CRITICAL REGION --- //
+
   // return slot/index for record (0 in case of error)
   return slot ;
-ERROR :
-  return 0 ;
 }
 
 // similar to RSF_Put_bytes, write data elements of a specified size into the file
@@ -1880,6 +1885,7 @@ RSF_record *RSF_Get_record(
   const int32_t slot = key64_to_file_slot(key);
   if(slot != fslot) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: Inconsistent file slot\n", __func__);
+    return NULL;
   }
 
   // get wa and rl from vdir, using key
@@ -1910,11 +1916,18 @@ RSF_record *RSF_Get_record(
     return NULL;
   }
 
+  // --- START CRITICAL REGION --- //
+  RSF_Multithread_lock(fp);
+
+  total++;
   RSF_record* record = (RSF_record *) p ;
   const off_t offset = lseek(fp->fd, wa, SEEK_SET) ;    // start of record in file
   const ssize_t nc = read(fp->fd, record->d, recsize);  // read record from file
   fp->current_pos = offset + nc ;                       // current position set after data read
   fp->last_op = OP_READ ;                               // last operation was a read operation
+
+  RSF_Multithread_unlock(fp);
+  // --- END CRITICAL REGION --- //
 
   if (nc != recsize) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error while reading record from disk. Read %d of %d bytes\n",
@@ -2118,7 +2131,13 @@ static int32_t RSF_Ensure_new_segment(
     return -1;
   }
 
-  if (fp->next_write > 0) return 0; // Segment is already created
+  RSF_Multithread_lock(fp);
+
+  if (fp->next_write > 0) {
+    // Segment is already created
+    status = 0;
+    goto RETURN_OMP;
+  }
 
   // --------- Lock file --------- //
   RSF_File_lock(fp, 1) ;
@@ -2203,9 +2222,12 @@ static int32_t RSF_Ensure_new_segment(
   status = 0 ;
   // fprintf(stderr,"after segment create %ld\n", lseek(fp->fd, 0L , SEEK_CUR));
   // system("ls -l demo0.rsf") ;
+
 RETURN :
   RSF_File_lock(fp, 0) ;
   // -------- Unlock file -------- //
+RETURN_OMP :
+  RSF_Multithread_unlock(fp);
 
   return status ;
 }

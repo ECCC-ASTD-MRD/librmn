@@ -183,5 +183,12 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_search_params_f COMMAND $<TARGET_FILE:fst24_search_params_f>)
         add_dependencies(check fst24_search_params_f)
 
+        if (TARGET rmn::rmn-ompi)
+            add_executable(fst_multithread fst/fst_multithread.c)
+            target_link_libraries(fst_multithread rmn::rmn-ompi)
+            add_test(NAME fst_multithread COMMAND $<TARGET_FILE:fst_multithread>)
+            add_dependencies(check fst_multithread)
+        endif()
+
     endif()
 endif()

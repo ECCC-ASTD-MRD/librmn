@@ -32,7 +32,7 @@ void print_data(const float* array, const int size_x) {
         for (int j = 0; j < num_cols; j++) {
             sprintf(buffer + j * col_size, format, array[i * size_x + j]);
         }
-        if (num_cols < size_x) sprintf(buffer + num_cols * col_size, " ...\0");
+        if (num_cols < size_x) sprintf(buffer + num_cols * col_size, " ...");
         fprintf(stderr, "%s\n", buffer);
     }
 }

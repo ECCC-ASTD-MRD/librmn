@@ -6211,40 +6211,45 @@ int FstCanTranslateName(const char *varname) {
     static char filename[256];
     int result;
 
-    if (! read_done) {
-        // First call, get do not translate table
-        read_done = 1;
-        char * fst_noip_name = getenv("FST_NOIP_NAME");
-        ARMNLIB = getenv("ARMNLIB");
-        char * basename = ARMNLIB;
-        if (fst_noip_name) {
-            // Environment variable contains the table
-            strncpy( exception_vars , fst_noip_name , sizeof(exception_vars) );
-            basename = NULL;
-            // fst_noip_name contains a file name
-            if (exception_vars[0] == '|') basename = exception_vars + 1;
-        }
-        if (basename) {
-            // Get table from $ARMNLIB/data/exception_vars file if it exists
-            if (basename == ARMNLIB) {
-                snprintf(filename, sizeof(filename), "%s/data/exception_regex_var", ARMNLIB);
-            } else {
-                snprintf(filename, sizeof(filename), "%s", basename);
+    #pragma omp critical (fst_can_translate_name)
+    {
+        if (! read_done) {
+            // First call, get do not translate table
+            read_done = 1;
+            char * fst_noip_name = getenv("FST_NOIP_NAME");
+            ARMNLIB = getenv("ARMNLIB");
+            char * basename = ARMNLIB;
+            if (fst_noip_name) {
+                // Environment variable contains the table
+                strncpy( exception_vars , fst_noip_name , sizeof(exception_vars) );
+                basename = NULL;
+                // fst_noip_name contains a file name
+                if (exception_vars[0] == '|') basename = exception_vars + 1;
             }
-            if ((fileref = fopen(filename, "r")) != NULL) {
-                if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPENING exception file: %s\n", __func__, filename);
-                fclose(fileref);
+            if (basename) {
+                // Get table from $ARMNLIB/data/exception_vars file if it exists
+                if (basename == ARMNLIB) {
+                    snprintf(filename, sizeof(filename), "%s/data/exception_regex_var", ARMNLIB);
+                } else {
+                    snprintf(filename, sizeof(filename), "%s", basename);
+                }
+                if ((fileref = fopen(filename, "r")) != NULL) {
+                    if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPENING exception file: %s\n", __func__, filename);
+                    fclose(fileref);
+                }
             }
-        }
-        if (exception_vars[0] == '~') {
-            int i;
-            for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
-            exception_vars[i] = '\0';
-            result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: exception pattern: '%s'\n", __func__, exception_vars + 1);
+            if (exception_vars[0] == '~') {
+                int i;
+                for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
+                exception_vars[i] = '\0';
+                // result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
+                regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: exception pattern: '%s'\n", __func__, exception_vars + 1);
+            }
         }
     }
+
     if (exception_vars[0] == '~') {
         // This is a regex pattern
         // Name not in pattern, it can be translated

@@ -249,6 +249,12 @@ foreach(TARGET IN ITEMS ${TARGETS})
     target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endforeach()
 
+foreach(RMN_TARGET rmn-static rmn-shared)
+   target_compile_options(${RMN_TARGET} PRIVATE
+      $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=3180>
+   )
+endforeach()
+
 
 # Compilation options for specific files
 set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
