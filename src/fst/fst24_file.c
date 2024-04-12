@@ -501,7 +501,7 @@ int32_t fst24_write_rsf(
     }
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
-    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, num_data_bytes, NULL, 0);
+    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, RT_DATA, RC_NULL, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
         return(ERR_MEM_FULL);
@@ -1860,4 +1860,19 @@ int32_t fst24_validate_default_query_options(
     }
 
     return 0;
+}
+
+int32_t fst24_delete(const fst_record* const record) {
+    if (!fst24_record_is_valid(record) || record->do_not_touch.handle <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record is not valid\n", __func__);
+        return FALSE;
+    }
+
+    if (!fst24_is_open(record->file)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is not open\n", __func__);
+        return FALSE;
+    }
+
+    // return TRUE;
+    return FALSE;
 }

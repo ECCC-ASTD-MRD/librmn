@@ -618,15 +618,16 @@ static int32_t RSF_Read_directory(
       l_entries = 0 ;
       num_directories++ ;
       vdir = (disk_vdir *) malloc(vdir_size) ;              // allocate space to read segment directory
-      lseek(fp->fd, segment_offset + vdir_offset, SEEK_SET) ;
-      nc = read(fp->fd, vdir, vdir_size) ;                  // read segment directory
-      if (nc != vdir_size) {
+
+      const int32_t read_status = RSF_Read_record(fp, segment_offset + vdir_offset, vdir, vdir_size);
+
+      if (read_status <= 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read entire directory, only %lu / %lu bytes\n",
                 __func__, nc, vdir_size);
         return -1;
       }
 
-      if (RSF_Rl_sor(vdir->sor, RT_VDIR) == 0) {
+      if ((uint8_t)read_status != RT_VDIR) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record type for directory. Looks like this file is corrupted.\n", __func__);
         if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG)
           print_start_of_record(&vdir->sor);
@@ -867,10 +868,14 @@ RSF_record *RSF_New_record(
     //!> Max size (in 32-bit units) of record metadata. Will be bounded by [rec_meta].
     //!> Use dir_meta from file if too small.
     int32_t dir_meta,
+    //!> Type of record (RT_NULL or 0 for default -> data)
+    const uint8_t rec_type,
+    //!> Class of record (RC_NULL or 0 for default -> data)
+    const uint8_t rec_class,
     //!> Max size (in bytes) of data that the record can hold.
-    size_t max_data,
+    const size_t max_data,
     //!> [optional] Array that will hold the record.
-    void *t,
+    void * const t,
     //!> [optional] Size of the [t] array. If 0, [t] must be a previously created record.
     int64_t szt
 ) {
@@ -912,15 +917,12 @@ RSF_record *RSF_New_record(
 
   p += sizeof(RSF_record) ;   // skip overhead. p now points to data record part (SOR)
 
-  sor = (start_of_record *) p ;
-  r->sor  = sor ;
-  sor->zr = ZR_SOR ; sor->rt = RT_DATA ; sor->rlm = rec_meta ; sor->rlmd = dir_meta ; sor->dul = 0 ;
-  RSF_64_to_32(sor->rl, record_size) ; // provisional sor, assuming full record
-
-  eor = (end_of_record *) (p + record_size - sizeof(end_of_record)) ;
-  r->eor  = eor ;
-  eor->zr = ZR_EOR ; eor->rt = RT_DATA ; eor->rlm = rec_meta ;
-  RSF_64_to_32(eor->rl, record_size) ; // provisional eor, assuming full record
+  r->rec_class = (rec_class != RC_NULL) ? rec_class : fp->rec_class;
+  r->rec_type = (rec_type != RT_NULL ) ? rec_type : DEFAULT_RECORD_TYPE;
+  if (r->rec_type > RT_DEL) {
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Record type (%d) does not seem valid, defaulting to %s (%d)\n",
+            __func__, r->rec_type, rt_to_str(DEFAULT_RECORD_TYPE), DEFAULT_RECORD_TYPE);
+  }
 
   r->rec_meta = rec_meta ;       // metadata sizes in 32 bit units (metadata filling is not tracked)
   r->dir_meta = dir_meta ;
@@ -930,6 +932,16 @@ RSF_record *RSF_New_record(
   r->max_data  = max_data ;                          // max data payload for this record
   r->data_size = 0 ;                                 // no data in record yet
   r->data = (void *)  (p + sizeof(start_of_record) + sizeof(uint32_t) *  rec_meta) ;                    // points to data payload
+  sor = (start_of_record *) p ;
+  r->sor  = sor ;
+  sor->zr = ZR_SOR ; sor->rt = r->rec_type ; sor->rlm = rec_meta ; sor->rlmd = dir_meta ; sor->dul = 0 ;
+  RSF_64_to_32(sor->rl, record_size) ; // provisional sor, assuming full record
+
+  eor = (end_of_record *) (p + record_size - sizeof(end_of_record)) ;
+  r->eor  = eor ;
+  eor->zr = ZR_EOR ; eor->rt = sor->rt ; eor->rlm = rec_meta ;
+  RSF_64_to_32(eor->rl, record_size) ; // provisional eor, assuming full record
+
   // r-> rsz already set, > 0 if allocated by RSF_New_record, < 0 otherwise
 
   return r ; // return address of record
@@ -1391,10 +1403,8 @@ int64_t RSF_Put_bytes(
     }
   }
 
-  uint8_t rt0, class0, version0 ;
   if (record != NULL) meta = record->meta;
-  meta[0] = make_meta0(meta[0], fp->rec_class, RT_DATA);
-  extract_meta0(meta[0], &version0, &class0, &rt0);
+  meta[0] = make_meta0(record->rec_class, record->rec_type);
 
   if(record != NULL && ((start_of_record *) record->sor)->dul == 0) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: Uninitialized data element size\n");
@@ -1413,14 +1423,14 @@ int64_t RSF_Put_bytes(
     rec_meta = record->rec_meta ;
     if(dir_meta == 0) dir_meta = rec_meta ;
     if(dir_meta > rec_meta) dir_meta = rec_meta ;
-    ((start_of_record *) record->sor)->rt = rt0 ;                   // alter record type in start_of_record
-    ((end_of_record *)   record->eor)->rt = rt0 ;                   // alter record type in end_of_record
+    ((start_of_record *) record->sor)->rt = record->rec_type ;                   // alter record type in start_of_record
+    ((end_of_record *)   record->eor)->rt = record->rec_type ;                   // alter record type in end_of_record
     // data element size taken from record, element_size ignored
     nc = write(fp->fd, record->sor, record_size) ;                  // write record structure to disk
 
   } else {                                                          // using meta and data
     sor.rlm = DIR_ML(rec_meta) ;
-    sor.rt = rt0 ;                                                  // alter record type in start_of_record
+    sor.rt = record->rec_type ;                                                  // alter record type in start_of_record
     sor.rlmd = dir_meta ;
     sor.dul = element_size ;
     sor.ubc = 0 ;
@@ -1434,7 +1444,7 @@ int64_t RSF_Put_bytes(
       lseek(fp->fd, gap, SEEK_CUR) ;                                // create a gap where data would have been written
     }
     eor.rlm = DIR_ML(rec_meta) ;
-    eor.rt = rt0 ;                                                  // alter record type in end_of_record
+    eor.rt = record->rec_type ;                                                  // alter record type in end_of_record
     RSF_64_to_32(eor.rl, record_size) ;
     nc = write(fp->fd, &eor, sizeof(end_of_record)) ;               // write end_of_record
   }
@@ -1476,6 +1486,55 @@ int64_t RSF_Put_record(
     size_t data_bytes     //!< [in]     Size of the record data (bytes)
 ) {
   return RSF_Put_bytes(h, record, NULL, 0, 0, NULL, data_bytes, 0) ;
+}
+
+//! \return 1 if success, 0 if not
+int32_t RSF_Delete_record(
+  RSF_handle h,
+  const int64_t key
+) {
+  const RSF_record_info info = RSF_Get_record_info(h, key);
+  if (info.wa == 0) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record info from directory\n", __func__);
+    return 0;
+  }
+
+  RSF_File *fp = (RSF_File *) h.p ;
+  int32_t status = 0;
+
+  // --- START CRITICAL REGION --- //
+  RSF_Multithread_lock(fp);
+
+  // Group start-of-record + reserved metadata to read in 1 go
+  struct {
+    start_of_record sor;
+    uint32_t meta[RSF_META_RESERVED];
+  } r;
+
+  const int32_t read_status = RSF_Read_record(fp, info.wa, &r, sizeof(r));
+
+  if (read_status <= 0) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Reading start-of-record\n", __func__);
+    goto RETURN;
+  }
+
+  if (r.sor.rt == RT_DEL) {
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: Record at key 0x%x is already deleted\n", __func__, key);
+    status = 1;
+    goto RETURN;
+  }
+
+  uint8_t version, record_class, record_type;
+  extract_meta0(r.meta[0], &version, &record_class, &record_type);
+  record_type = RT_DEL;
+  // meta[0] = make_meta0(meta[0], fp->rec_class, RT_DATA);
+
+
+RETURN:
+  RSF_Multithread_unlock(fp);
+  // --- END CRITICAL REGION --- //
+
+  return status;
 }
 
 // retrieve file contained in RSF file ans restore it under the name alias
@@ -1808,7 +1867,7 @@ RSF_record_info RSF_Get_record_info(
 
   const int32_t fslot = RSF_Valid_file(fp);
   const int32_t slot  = key >> 32 ;
-  if (slot != fslot) {
+  if (fslot == 0 || slot != fslot) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot\n", __func__);
     return info0;
   }
@@ -1859,6 +1918,35 @@ ssize_t RSF_Read(RSF_handle h, void *buf, int64_t address, int64_t nelem, int it
 //   return nbytes / itemsize ;
 // }
 
+//! Read file at given address and perform sanity check the start-of-record
+//! *This function is not threadsafe*
+//! \return Record type (> 0) if everything went fine, negative otherwise
+static int32_t RSF_Read_record(
+  RSF_File* fp,           //!< File from which we are reading
+  const uint64_t address, //!< Offset within the file where to start reading
+  void* dest,             //!< Where the put the content read
+  const size_t num_bytes  //!< How many bytes to read
+) {
+  const off_t offset = lseek(fp->fd, address, SEEK_SET);
+  const ssize_t nc = read(fp->fd, dest, num_bytes);
+
+  if (nc != num_bytes) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not read record with the specified size %d\n", __func__, num_bytes);
+    return -1;
+  }
+
+  const uint8_t record_type = RSF_Check_record_type(*(start_of_record*)dest, RT_NULL);
+  if (record_type == 0) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record does not seem valid\n", __func__);
+    return -1;
+  }
+
+  fp->current_pos = offset + nc ; // current position set after data read
+  fp->last_op = OP_READ ;         // last operation was a read operation
+
+  return (int32_t)record_type;
+}
+
 //! Read the content of the specified record from the file. Option to only read metadata
 //! The caller is responsible for freeing the allocated space. If providing a preallocated space,
 //! the caller is responsible for making sure it is large enough to read the entire record.
@@ -1869,81 +1957,49 @@ RSF_record *RSF_Get_record(
     const int32_t metadata_only,//!< [in] 1 if we only want to read the metadata, 0 otherwise
     void* prealloc_space        //!< [in] [optional] If non-NULL, space in which the record will be read. *Must be large enough*
 ){
-  RSF_File *fp = (RSF_File *) h.p ;
-  uint32_t rlm, rlmd, rlmd0, rlm0 ;
-  uint64_t recsize, wa ;
-
   RSF_record_info info = RSF_Get_record_info(h, key) ;
   if (info.wa == 0) return NULL; // error detected by RSF_Get_record_info (should be printed already)
 
-  const int32_t fslot = RSF_Valid_file(fp);
-  if (fslot == 0) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid RSF_File pointer\n", __func__);
-    return NULL;
-  }
-
-  const int32_t slot = key64_to_file_slot(key);
-  if(slot != fslot) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Inconsistent file slot\n", __func__);
-    return NULL;
-  }
-
-  // get wa and rl from vdir, using key
-  const uint32_t record_id = key64_to_index(key);
-  wa = RSF_32_to_64( fp->vdir[record_id]->wa ) ;            // record position in file
-  rlm0 = REC_ML(fp->vdir[record_id]->ml) ;                  // record metadata length from directory
-  rlmd0 = DIR_ML(fp->vdir[record_id]->ml) ;                 // directory metadata length from directory
-  
   // Determine size to read
-  if (metadata_only == 1) {
-    recsize = sizeof(start_of_record) + rlm0 *sizeof(uint32_t);
-  }
-  else {
-    recsize = RSF_32_to_64( fp->vdir[record_id]->rl ) ;
-  }
-
-  recsize = info.rl ;
-  wa = info.wa ;
-  rlm0 = info.rec_meta ;
-  rlmd0 = info.dir_meta ;
+  const uint64_t read_size = (metadata_only == 1) ?
+      sizeof(start_of_record) + info.rec_meta *sizeof(uint32_t) :
+      info.rl;
 
   void* p = prealloc_space;
-  if (p == NULL) p = malloc(recsize + sizeof(RSF_record));
+  if (p == NULL) p = malloc(read_size + sizeof(RSF_record));
 
   if (p == NULL) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate memory for record (%d bytes)\n",
-            __func__, recsize + sizeof(RSF_record));
+            __func__, read_size + sizeof(RSF_record));
     return NULL;
   }
+
+  RSF_File *fp = (RSF_File *) h.p ;
 
   // --- START CRITICAL REGION --- //
   RSF_Multithread_lock(fp);
 
   RSF_record* record = (RSF_record *) p ;
-  const off_t offset = lseek(fp->fd, wa, SEEK_SET) ;    // start of record in file
-  const ssize_t nc = read(fp->fd, record->d, recsize);  // read record from file
-  fp->current_pos = offset + nc ;                       // current position set after data read
-  fp->last_op = OP_READ ;                               // last operation was a read operation
+  const int32_t read_status = RSF_Read_record(fp, info.wa, record->d, read_size);
 
   RSF_Multithread_unlock(fp);
   // --- END CRITICAL REGION --- //
 
-  if (nc != recsize) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error while reading record from disk. Read %d of %d bytes\n",
-            __func__, nc, recsize);
+  if (read_status <= 0) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error while reading record from disk.\n", __func__);
     return NULL;
   }
 
   // TODO : adjust the record struct using data from record (especially meta_size)
-  record->rsz = recsize ;
+  record->rsz = read_size ;
   record->sor = p + sizeof(RSF_record) ;
 
   // Verify that metadata size matches what's in the directory
-  rlm = ((start_of_record *)record->sor)->rlm ;     // record metadata length from record
-  rlmd = ((start_of_record *)record->sor)->rlmd ;   // directory metadata length from record
-  if(rlm != rlm0 || rlmd != rlmd0) {
+  const uint32_t rlm = ((start_of_record *)record->sor)->rlm ;     // record metadata length from record
+  const uint32_t rlmd = ((start_of_record *)record->sor)->rlmd ;   // directory metadata length from record
+  if(rlm != info.rec_meta || rlmd != info.dir_meta) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: Inconsistent metadata length between directory (%d/%d) and record (%d/%d)\n",
-            __func__, rlm0, rlmd0, rlm, rlmd);
+            __func__, info.rec_meta, info.dir_meta, rlm, rlmd);
     return NULL;
   }
 
@@ -1958,7 +2014,7 @@ RSF_record *RSF_Get_record(
     record->max_data = 0;
   }
   else {
-    record->eor = p + sizeof(RSF_record) + recsize - sizeof(end_of_record) ;
+    record->eor = p + sizeof(RSF_record) + read_size - sizeof(end_of_record) ;
     record->data = record->sor + sizeof(start_of_record) + sizeof(uint32_t) * rlm ;
     record->data_size = (char *)(record->eor) - (char *)(record->data) ;
     record->max_data = record->data_size ;

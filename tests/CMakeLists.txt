@@ -190,5 +190,10 @@ if (EC_INIT_DONE LESS 2)
             add_dependencies(check fst_multithread)
         endif()
 
+        add_executable(fst24_delete fst/fst24_delete.c)
+        target_link_libraries(fst24_delete rmn::rmn)
+        add_test(NAME fst24_delete COMMAND $<TARGET_FILE:fst24_delete>)
+        add_dependencies(check fst24_delete)
+
     endif()
 endif()

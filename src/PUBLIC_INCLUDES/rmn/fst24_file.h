@@ -48,6 +48,7 @@ int32_t    fst24_find_all(fst_query* const query, fst_record* const results, con
 int32_t    fst24_find_count(fst_query * const query);
 int32_t    fst24_query_is_valid(const fst_query* const q);
 void       fst24_query_free(fst_query* const query);
+int32_t    fst24_delete(const fst_record* const record);
 
 int32_t   fst24_link(fst_file** files, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* const file);

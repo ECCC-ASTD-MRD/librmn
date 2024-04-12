@@ -87,6 +87,7 @@ static const uint8_t RT_DEL    = 0x80;  //!< Deleted record
 
 //! \{
 //! \name Record classes
+static const uint8_t RC_NULL = 0;
 static const uint8_t RC_DATA = 1;    //!< Indicate a record that contains data
 static const uint8_t RC_FILE = 0x80; //!< Indicate a record that contains a file
 //! \}
@@ -126,7 +127,8 @@ typedef struct{
   uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
   uint16_t rec_meta ;  //!< record metadata size in uint32_t units
   uint16_t elem_size ; //!< length of data elements in d[] (1/2/4/8 bytes) (endianness management)
-  uint16_t reserved ;  //!< alignment (maybe use for data map length ?)
+  uint8_t  rec_type ;  //!< Type of record (data, directory, etc)
+  uint8_t  rec_class ; //!< Class of record (data vs file?) TODO clarify
   uint8_t  d[] ;       //!< dynamic data array (bytes)
 } RSF_record ;
 
@@ -193,7 +195,8 @@ void RSF_Dump_vdir(RSF_handle h) ;
 int32_t RSF_Valid_handle(RSF_handle h) ;
 
 //! create pointer to a new allocated record (C)
-RSF_record *RSF_New_record(RSF_handle h, int32_t rec_meta, int32_t dir_meta, size_t max_data, void *t, int64_t szt) ;
+RSF_record *RSF_New_record(RSF_handle h, int32_t rec_meta, int32_t dir_meta, const uint8_t rec_type,
+                           const uint8_t rec_class, const size_t max_data, void * const t, int64_t szt) ;
 int32_t RSF_Record_add_meta(RSF_record *r, uint32_t *meta, int32_t rec_meta, int32_t dir_meta, uint32_t data_elem) ;  // add metadata
 int64_t RSF_Record_add_bytes(RSF_record *r, void *data, size_t data_size) ;  // add data bytes
 int64_t RSF_Record_add_elements(RSF_record *r, void *data, size_t num_data_elements, int data_element_size) ; //!< \copydoc RSF_Record_add_elements
