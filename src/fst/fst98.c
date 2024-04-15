@@ -1920,7 +1920,7 @@ int c_fstfrm(
     return rsf_status;
 }
 
-//! Locate the next record that matches the search keys
+//! Locate the first record that matches the search keys
 int c_fstinf(
     //! [in] Unit number associated to the file
     const int iun,
@@ -2248,21 +2248,15 @@ int c_fstinl_xdf(
     //! [in] List size (maximum number of matches)
     int nmax
 ) {
-    int handle;
-    int nfound = 0;
-    int nimax;
-    int njmax;
-    int nkmax;
-    int nijkmax;
-
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n", __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
-    handle = c_fstinfx_xdf(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
-    nijkmax = (*ni) * (*nj) * (*nk);
-    nimax = *ni;
-    njmax = *nj;
-    nkmax = *nk;
+    int handle = c_fstinfx_xdf(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    int nijkmax = (*ni) * (*nj) * (*nk);
+    int nimax = *ni;
+    int njmax = *nj;
+    int nkmax = *nk;
 
+    int nfound = 0;
     while ((handle >= 0) && (nfound < nmax)) {
         liste[nfound] = handle;
         nfound++;
@@ -2284,7 +2278,7 @@ int c_fstinl_xdf(
     while ( (handle = c_fstsui_xdf(iun, ni, nj, nk)) >= 0 ) nfound++;
     if (nfound > nmax) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: number of records found (%d) > nmax specified (%d)\n", __func__, nfound, nmax);
-        return(-nfound);
+        return -nfound;
     } else {
         return 0;
     }
