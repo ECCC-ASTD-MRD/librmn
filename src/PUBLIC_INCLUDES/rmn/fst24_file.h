@@ -37,7 +37,7 @@ int32_t   fst24_eof(const fst_file* const file);
 int32_t    fst24_read_record(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);
 int32_t    fst24_read_next(fst_query* const query, fst_record* const record);
-int32_t    fst24_write(fst_file* const file, fst_record* const record, int rewrit);
+int32_t    fst24_write(fst_file* const file, fst_record* const record, const int rewrite);
 int32_t    fst24_read(const fst_file* const file, const fst_record* criteria, const fst_query_options* options,
                       fst_record* const record);
 fst_query* fst24_new_query(const fst_file* const file, const fst_record* criteria, const fst_query_options* options);
@@ -48,7 +48,7 @@ int32_t    fst24_find_all(fst_query* const query, fst_record* const results, con
 int32_t    fst24_find_count(fst_query * const query);
 int32_t    fst24_query_is_valid(const fst_query* const q);
 void       fst24_query_free(fst_query* const query);
-int32_t    fst24_delete(const fst_record* const record);
+int32_t    fst24_delete(fst_record* const record);
 
 int32_t   fst24_link(fst_file** files, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* const file);

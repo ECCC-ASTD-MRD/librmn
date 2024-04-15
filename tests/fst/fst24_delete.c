@@ -83,8 +83,6 @@ int test_fst24_delete(const int is_rsf) {
     fst24_close(test_file);
     free(test_file);
 
-    test_file = fst24_open(test_filename, NULL);
-
     return 0;
 }
 

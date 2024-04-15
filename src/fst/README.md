@@ -878,7 +878,11 @@ int32_t fst24_print_summary(
 
 //! Write the given record into the given standard file
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
-int32_t fst24_write(fst_file* file, fst_record* record, int rewrit);
+int32_t fst24_write(
+    fst_file* file,     //!< The file where we want to write
+    fst_record* record, //!< The record we want to write
+    const int rewrite   //!< Whether we want to overwrite the existing record
+);
 
 //! Search a file with given criteria and read the first record that matches these criteria.
 //! Search through linked files, if any.
@@ -984,7 +988,7 @@ void* fst24_read_metadata(
 
 //! Read the data and metadata of a given record from its corresponding file
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
-int32_t fst24_read(
+int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 );
 
@@ -999,6 +1003,12 @@ void fst24_bounds(
 //! \return TRUE (1) if no error, FALSE (0) if an error is detected
 int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
+);
+
+//! Delete a record from its file on disk
+//! \return TRUE if we were able to delete the record, FALSE otherwise
+int32_t fst24_delete(
+    fst_record* const record //!< The record we want to delete
 );
 ```
 
@@ -1081,6 +1091,7 @@ contains
     procedure, pass :: has_same_info
     procedure, pass :: read
     procedure, pass :: read_metadata
+    procedure, pass :: delete
 
     procedure, pass :: print
     procedure, pass :: print_short
@@ -1361,6 +1372,14 @@ function read_metadata(this) result(success)
     class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
     logical :: success
 end function read_metadata
+
+!> Delete a record from its file on disk
+!> Return .true. if we were able to delete the record, .false. otherwise
+function delete(this) result(success)
+    implicit none
+    class(fst_record), intent(inout) :: this !< fst_record instance, must be a valid record previously found in a file
+    logical :: success
+end function delete
 
 !> Print all members of the given record struct
 !> Causes an update of the underlying C struct

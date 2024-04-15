@@ -883,6 +883,8 @@ int32_t fst24_write_rsf(
 
     // write new_record to file and add entry to directory
     const int64_t record_handle = RSF_Put_record(rsf_file, new_record, num_data_bytes);
+    record->do_not_touch.handle = record_handle;
+
     if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
         // f.grid_info = 1;
@@ -898,7 +900,11 @@ int32_t fst24_write_rsf(
 
 //! Write the given record into the given standard file
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
-int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
+int32_t fst24_write(
+    fst_file* file,     //!< The file where we want to write
+    fst_record* record, //!< The record we want to write
+    const int rewrite   //!< Whether we want to overwrite the existing record
+) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
@@ -908,6 +914,10 @@ int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
     char grtyp[FST_GTYP_LEN];
 
     if  (file->type == FST_RSF) {
+        if (rewrite && !fst24_delete(record)) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested to rewrite a record, but we were unable to "
+                    "delete the existing one\n", __func__);
+        }
         return fst24_write_rsf(file->rsf_handle, record, 1);
     }
     else {
@@ -922,7 +932,7 @@ int32_t fst24_write(fst_file* file, fst_record* record, int rewrit) {
         const int ier = c_fstecr_xdf(
             record->data, NULL, record->npak, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, rewrit);
+            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->datyp, rewrite);
 
         if (ier < 0) return ier;
         return TRUE;
@@ -1824,7 +1834,11 @@ int32_t fst24_validate_default_query_options(
     return 0;
 }
 
-int32_t fst24_delete(const fst_record* const record) {
+//! Delete a record from its file on disk
+//! \return TRUE if we were able to delete the record, FALSE otherwise
+int32_t fst24_delete(
+    fst_record* const record //!< The record we want to delete
+) {
     if (!fst24_record_is_valid(record) || record->do_not_touch.handle <= 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record is not valid\n", __func__);
         return FALSE;
@@ -1836,15 +1850,17 @@ int32_t fst24_delete(const fst_record* const record) {
     }
 
     if (record->file->type == FST_RSF) {
-        if (RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) == 1) return TRUE;
+        if (RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) != 1) return FALSE;
     }
     else if (record->file->type == FST_XDF) {
-        if (c_fsteff_xdf(record->do_not_touch.handle) == 0) return TRUE;
+        if (c_fsteff_xdf(record->do_not_touch.handle) != 0) return FALSE;
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
         return FALSE;
     }
 
-    return FALSE;
+    record->do_not_touch.deleted = 1;
+
+    return TRUE;
 }

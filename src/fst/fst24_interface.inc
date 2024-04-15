@@ -69,6 +69,13 @@ interface
         integer(C_INT32_T) :: status
     end function fst24_record_copy_metadata_c
 
+    function fst24_delete(record) result(status) bind(C, name = 'fst24_delete')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: record
+        integer(C_INT32_T) :: status
+    end function fst24_delete
+
     ! FST file functions
 
     function fst24_is_valid(file_name) result(is_valid) bind(C, name = 'fst24_is_valid')
