@@ -15,7 +15,7 @@ contains
         logical, intent(in) :: is_rsf
 
         integer, parameter :: NUM_DATA = 150
-        real, dimension(NUM_DATA) :: dummy_data
+        real, dimension(NUM_DATA), target :: dummy_data
 
         character(len=:), allocatable :: name
         character(len=:), allocatable :: options
@@ -127,7 +127,7 @@ contains
 end module fst24_delete_module
 
 
-program fst24_delete
+program test_fst24_delete
     use fst24_delete_module
     implicit none
 
@@ -138,4 +138,4 @@ program fst24_delete
     
     call App_Log(APP_INFO, 'Test successful');
     
-end program fst24_delete
+end program test_fst24_delete
