@@ -54,9 +54,9 @@ module rmn_fst24_record
         integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
         integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
 
-        integer(C_INT32_T) :: datyp = -1    !< Data type of elements
-        integer(C_INT32_T) :: dasiz = -1    !< Number of bits per elements
-        integer(C_INT32_T) :: npak  = -1    !< Compression factor (none if 0 or 1). Number of bit if negative
+        integer(C_INT32_T) :: data_type = -1    !< Data type of elements
+        integer(C_INT32_T) :: data_bits = -1    !< Number of bits per element (uncompressed)
+        integer(C_INT32_T) :: pack_bits = -1    !< Number of bits per element (compressed)
         integer(C_INT32_T) :: ni    = -1    !< First dimension of the data field (number of elements)
         integer(C_INT32_T) :: nj    = -1    !< Second dimension of the data field (number of elements)
         integer(C_INT32_T) :: nk    = -1    !< Thierd dimension of the data field (number of elements)
@@ -168,9 +168,9 @@ contains
         this % c_self % dateo = this % dateo
         this % c_self % datev = this % datev
 
-        this % c_self % datyp = this % datyp
-        this % c_self % dasiz = this % dasiz
-        this % c_self % npak  = this % npak
+        this % c_self % data_type = this % data_type
+        this % c_self % data_bits = this % data_bits
+        this % c_self % pack_bits = this % pack_bits
         this % c_self % ni    = this % ni
         this % c_self % nj    = this % nj
         this % c_self % nk    = this % nk
@@ -204,9 +204,9 @@ contains
         this % dateo = this % c_self % dateo
         this % datev = this % c_self % datev
                             
-        this % datyp = this % c_self % datyp
-        this % dasiz = this % c_self % dasiz
-        this % npak  = this % c_self % npak
+        this % data_type = this % c_self % data_type
+        this % data_bits = this % c_self % data_bits
+        this % pack_bits = this % c_self % pack_bits
         this % ni    = this % c_self % ni
         this % nj    = this % c_self % nj
         this % nk    = this % c_self % nk
@@ -379,14 +379,14 @@ contains
     !> \copybrief fst24_record_print_short
     !> Causes an update of the underlying C struct
     !> Refer to fst_record_fields for the meaning of undocumented parameters
-    subroutine rmn_fst24_record_print_short(                                                                        &
-            this, prefix, print_header, dateo, datev, datestamps, level, datyp, nijk,                         &
+    subroutine rmn_fst24_record_print_short(                                                                      &
+            this, prefix, print_header, dateo, datev, datestamps, level, data_type, nijk,                         &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata)
         implicit none
         class(fst_record), intent(inout) :: this !< fst_record instance whose information we want to print
         character(len=*), intent(in), optional :: prefix !< [optional] Text we want to add at the start of the line
         logical, intent(in), optional :: print_header !< [optional] Whether we want to print a header above the line to name the fields
-        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, nijk
+        logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket, metadata
 
@@ -406,7 +406,7 @@ contains
             if (print_header) print_header_c = 1
         end if
 
-        fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, datyp=datyp, nijk=nijk, &
+        fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, data_type=data_type, nijk=nijk, &
                                    deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3, decoded_ip=decoded_ip,&
                                    grid_info=grid_info, ig1234=ig1234, typvar=typvar, nomvar=nomvar, etiket=etiket, metadata=metadata)
 
@@ -414,10 +414,10 @@ contains
     end subroutine rmn_fst24_record_print_short
 
     !> Create a fst_record_fields struct from optional parameters
-    function fst24_make_fields(dateo, datev, datestamps, level, datyp, nijk,                         &
+    function fst24_make_fields(dateo, datev, datestamps, level, data_type, nijk,                         &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata) result(fields)
         implicit none
-        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, nijk
+        logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket, metadata
         type(fst_record_fields) :: fields
@@ -442,9 +442,9 @@ contains
             if (level) fields % level = 1
         end if
 
-        if (present(datyp)) then
-            fields % datyp = 0
-            if (datyp) fields % datyp = 1
+        if (present(data_type)) then
+            fields % data_type = 0
+            if (data_type) fields % data_type = 1
         end if
 
         if (present(nijk)) then
@@ -523,7 +523,7 @@ contains
             fields % datev = 0
             fields % datestamps = 0
             fields % level = 0
-            fields % datyp = 0
+            fields % data_type = 0
             fields % nijk = 0
             fields % deet = 0
             fields % npas = 0
@@ -555,8 +555,8 @@ contains
            fields % level = 1
         end if
 
-        if (index(string,'DATYP')>0) then
-           fields % datyp = 1
+        if (index(string,'DATYP')>0 .or. index(string, 'DATA_TYPE')>0) then
+           fields % data_type = 1
         end if
 
         if (index(string,'NIJK')>0) then

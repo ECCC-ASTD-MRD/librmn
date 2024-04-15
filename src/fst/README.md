@@ -695,9 +695,9 @@ my_record % data => c_loc(my_data)
 my_record % ni = 100
 my_record % nj = 200
 my_record % nk = 1
-my_record % datyp = FST_TYPE_REAL
-my_record % dasiz = 32
-my_record % npak  = -32
+my_record % data_type = FST_TYPE_REAL
+my_record % data_bits = 32
+my_record % pack_bits = 32
 [...]
 
 success = my_file % write(my_record)
@@ -724,9 +724,9 @@ my_record.data = my_data;
 my_record.ni = 100;
 my_record.nj = 200;
 my_record.nk = 1;
-my_record.datyp = FST_TYPE_REAL;
-my_record.dasiz = 32;
-my_record.npak  = -32;
+my_record.data_type = FST_TYPE_REAL;
+my_record.data_bits = 32;
+my_record.pack_bits = 32;
 [...]
 
 fst24_write(my_file, &my_record, 0);
@@ -739,9 +739,9 @@ free(my_file);
 ```fortran
 ! With turbocompression
 
-my_record % datyp = FST_TYPE_REAL + FST_TYPE_TURBOPACK
-my_record % dasiz = 32
-my_record % npak  = -16
+my_record % data_type = FST_TYPE_REAL + FST_TYPE_TURBOPACK
+my_record % data_bits = 32
+my_record % pack_bits = 16
 
 success = my_file % write(my_record)
 ```
@@ -751,9 +751,9 @@ success = my_file % write(my_record)
 ```c
 // With turbocompression
 
-my_record.datyp = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
-my_record.dasiz = 32;
-my_record.npak  = -16;
+my_record.data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
+my_record.data_bits = 32;
+my_record.pack_bits = 16;
 
 fst24_write(my_file, &my_record, 0);
 ```
@@ -783,9 +783,9 @@ typedef struct {
     int64_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
-    int32_t datyp;  //!< Data type of elements. See FST_TYPE_* constants.
-    int32_t dasiz;  //!< Number of bits per input elements
-    int32_t npak;   //!< Requested compression factor (none if 0 or 1). Number of stored bits if negative
+    int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
+    int32_t data_bits; //!< Number of bits per input element
+    int32_t pack_bits; //!< Number of stored (compressed) bits per element
     int32_t ni;     //!< First dimension of the data field (number of elements)
     int32_t nj;     //!< Second dimension of the data field (number of elements)
     int32_t nk;     //!< Third dimension of the data field (number of elements)
@@ -822,7 +822,7 @@ typedef struct {
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, nijk;
+    int32_t data_type, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
@@ -1064,9 +1064,9 @@ type, public :: fst_record
     integer(C_INT64_T) :: dateo    = -1 !< Origin Date timestamp
     integer(C_INT64_T) :: datev    = -1 !< Valid Date timestamp
 
-    integer(C_INT32_T) :: datyp = -1    !< Data type of elements
-    integer(C_INT32_T) :: dasiz = -1    !< Number of bits per elements
-    integer(C_INT32_T) :: npak  = -1    !< Compression factor (none if 0 or 1). Number of bit if negative
+    integer(C_INT32_T) :: data_type = -1    !< Data type of elements
+    integer(C_INT32_T) :: data_bits = -1    !< Number of bits per elements
+    integer(C_INT32_T) :: pack_bits = -1    !< Compression factor (none if 0 or 1). Number of bit if negative
     integer(C_INT32_T) :: ni    = -1    !< First dimension of the data field (number of elements)
     integer(C_INT32_T) :: nj    = -1    !< Second dimension of the data field (number of elements)
     integer(C_INT32_T) :: nk    = -1    !< Thierd dimension of the data field (number of elements)
@@ -1149,12 +1149,12 @@ end function get_unit
 !> Create a search query that will apply the given criteria during a search in a file.
 !> Return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
 function new_query(this,                                                                                        & 
-        dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+        dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
     integer(C_INT64_T), intent(in), optional :: dateo, datev
-    integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+    integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
     character(len=1),  intent(in), optional :: grtyp
@@ -1169,7 +1169,7 @@ end function new_query
 !> Search through linked files, if any.
 !> Return .true. if we found a record, .false. if not or if error
 function read(this, record, data,                                                                               &
-        dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+        dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
         ip1_all, ip2_all, ip3_all) result(found)
     implicit none
@@ -1181,7 +1181,7 @@ function read(this, record, data,                                               
     type(C_PTR), intent(in), optional :: data
 
     integer(C_INT64_T), intent(in), optional :: dateo, datev
-    integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+    integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
     character(len=1),  intent(in), optional :: grtyp
@@ -1214,11 +1214,11 @@ end function flush
 !> Print a summary of the records found in the given file (including any linked files)
 !> All optional parameters are booleans determining whether we print the corresponding field.
 subroutine print_summary(this,                                                                       &
-        dateo, datev, datestamps, level, datyp, ni, nj, nk,                                          &
+        dateo, datev, datestamps, level, data_type, ni, nj, nk,                                      &
         deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
     implicit none
     class(fst_file), intent(in) :: this
-    logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+    logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, ni, nj, nk
     logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
     logical, intent(in), optional :: typvar, nomvar, etiket
 end subroutine print_summary
@@ -1392,13 +1392,13 @@ end subroutine print
 !> Causes an update of the underlying C struct
 !> Refer to fst_record_fields for the meaning of undocumented parameters
 subroutine print_short(                                                                        &
-        this, prefix, print_header, dateo, datev, datestamps, level, datyp, ni, nj, nk,        &
+        this, prefix, print_header, dateo, datev, datestamps, level, data_type, ni, nj, nk,    &
         deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
     implicit none
     class(fst_record), intent(inout) :: this !< fst_record instance whose information we want to print
     character(len=*), intent(in), optional :: prefix !< [optional] Text we want to add at the start of the line
     logical, intent(in), optional :: print_header !< [optional] Whether we want to print a header above the line to name the fields
-    logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+    logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, ni, nj, nk
     logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
     logical, intent(in), optional :: typvar, nomvar, etiket
 end subroutine short

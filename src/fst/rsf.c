@@ -1378,7 +1378,6 @@ int64_t RSF_Put_bytes(
 
   if( ! RSF_Valid_file(fp) ) return 0 ;          // something not O.K. with fp
   if( RSF_Ensure_new_segment(fp) < 0 ) return 0; // Don't have write permission
-  if( fp->next_write <= 0) return 0 ;            // next_write address is not set
 
   // metadata stored in directory may be shorter than record metadata
   if( record != NULL ){                            // using a pre allocated record ?

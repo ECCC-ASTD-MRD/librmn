@@ -44,7 +44,7 @@ void make_test_record() {
     make_test_data();
     test_record = default_fst_record;
     test_record.data = test_data;
-    test_record.npak = -32;
+    test_record.pack_bits = 32;
     test_record.ni   = DATA_SIZE;
     test_record.nj   = DATA_SIZE;
     test_record.nk   = 1;
@@ -62,8 +62,8 @@ void make_test_record() {
     test_record.ig2   = 0;
     test_record.ig3   = 0;
     test_record.ig4   = 0;
-    test_record.datyp = FST_TYPE_REAL_IEEE;
-    test_record.dasiz = 32;
+    test_record.data_type = FST_TYPE_REAL_IEEE;
+    test_record.data_bits = 32;
     test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
 }
 
@@ -176,7 +176,7 @@ int test_fst24_interface(const int is_rsf) {
     // fields.deet = TRUE;
     // fields.npas = TRUE;
     // fields.decoded_ip = TRUE;
-    // fields.datyp = FALSE;
+    // fields.data_type = FALSE;
     fields.grid_info = TRUE;
     fst24_print_summary(test_file, &fields);
 

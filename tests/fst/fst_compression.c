@@ -341,9 +341,9 @@ int test_compression(const int is_rsf) {
     for (int i = 0; i < NUM_CASES_REAL; i++) {
         rec.ip1++;
         rec.data  = *(params_real[i].data);
-        rec.datyp = params_real[i].data_type;
-        rec.dasiz = params_real[i].data_size;
-        rec.npak  = -params_real[i].pack_size;
+        rec.data_type = params_real[i].data_type;
+        rec.data_bits = params_real[i].data_size;
+        rec.pack_bits = params_real[i].pack_size;
         rec.nk    = params_real[i].nk;
         if (fst24_write(test_file, &rec, 0) <= 0) {
             App_Log(APP_ERROR, "%s: Could not write record to test file\n");
@@ -355,9 +355,9 @@ int test_compression(const int is_rsf) {
     for (int i = 0; i < NUM_CASES_INTEGER; i++) {
         rec.ip1++;
         rec.data  = *(params_integer[i].data);
-        rec.datyp = params_integer[i].data_type;
-        rec.dasiz = params_integer[i].data_size;
-        rec.npak  = -params_integer[i].pack_size;
+        rec.data_type = params_integer[i].data_type;
+        rec.data_bits = params_integer[i].data_size;
+        rec.pack_bits = params_integer[i].pack_size;
         rec.nk    = params_integer[i].nk;
         if (fst24_write(test_file, &rec, 0) <= 0) {
             App_Log(APP_ERROR, "%s: Could not write record to test file\n");
@@ -387,13 +387,13 @@ int test_compression(const int is_rsf) {
             return -1;
         }
 
-        if (rec_read.dasiz == 64) {
+        if (rec_read.data_bits == 64) {
             if (compare_data_d(data_d, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_real[i].nk,
                             params_real[i].tol, params_real[i].max_tol)
                 != 0)
             {
                 App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                        __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                        __func__, rec_read.data_type, rec_read.pack_bits, rec_read.data_bits);
                 return -1;
             }
         }
@@ -403,7 +403,7 @@ int test_compression(const int is_rsf) {
                 != 0)
             {
                 App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                        __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                        __func__, rec_read.data_type, rec_read.pack_bits, rec_read.data_bits);
                 return -1;
             }
         }
@@ -414,15 +414,15 @@ int test_compression(const int is_rsf) {
             return -1;
         }
 
-        // App_Log(APP_INFO, "dasiz = %d, npak = %d\n", rec_read.dasiz, rec_read.npak);
-        if (!is_rsf && rec_read.npak == -64) {
+        // App_Log(APP_INFO, "data_bits = %d, pack_bits = %d\n", rec_read.data_bits, rec_read.pack_bits);
+        if (!is_rsf && rec_read.pack_bits == 64) {
             App_Log(APP_INFO, "%s: Skipping data check for 64-bit integer in XDF files\n", __func__);
             continue;
         }
 
-        if (compare_data_bytes(*(params_integer[i].compare_data), rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_integer[i].nk, rec_read.dasiz) != 0) {
+        if (compare_data_bytes(*(params_integer[i].compare_data), rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_integer[i].nk, rec_read.data_bits) != 0) {
             App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                    __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                    __func__, rec_read.data_type, rec_read.pack_bits, rec_read.data_bits);
             return -1;
         }
     }

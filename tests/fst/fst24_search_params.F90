@@ -33,9 +33,9 @@ subroutine create_file(is_rsf)
         error stop 1
     end if
 
-    dummy_record % datyp = FST_TYPE_BINARY
-    dummy_record % dasiz = 8
-    dummy_record % npak = -8
+    dummy_record % data_type = FST_TYPE_BINARY
+    dummy_record % data_bits = 8
+    dummy_record % pack_bits = 8
     dummy_record % ni = 3
     dummy_record % nj = 3
     dummy_record % nk = 3
@@ -65,9 +65,9 @@ subroutine create_file(is_rsf)
         error stop 1
     end if
 
-    record1 % datyp = FST_TYPE_SIGNED
-    record1 % dasiz = 32
-    record1 % npak = -32
+    record1 % data_type = FST_TYPE_SIGNED
+    record1 % data_bits = 32
+    record1 % pack_bits = 32
     record1 % ni = 1
     record1 % nj = 1
     record1 % nk = 1
@@ -97,9 +97,9 @@ subroutine create_file(is_rsf)
         error stop 1
     end if
 
-    record2 % datyp = FST_TYPE_UNSIGNED
-    record2 % dasiz = 16
-    record2 % npak = -16
+    record2 % data_type = FST_TYPE_UNSIGNED
+    record2 % data_bits = 16
+    record2 % pack_bits = 16
     record2 % ni = 2
     record2 % nj = 2
     record2 % nk = 2
@@ -196,27 +196,27 @@ subroutine run_test(is_rsf)
     end if
 
     ! Search by datatype
-    success = test_file % read(rec, datyp = record2 % datyp)
+    success = test_file % read(rec, data_type = record2 % data_type)
     if (.not. success .or. .not. rec % has_same_info(record2)) then
-        call App_Log(APP_ERROR, 'datyp search failed')
+        call App_Log(APP_ERROR, 'data_type search failed')
         call rec % print_short(print_header = .true.)
         call record2 % print_short()
         error stop 1
     end if
 
     ! Search by data size
-    success = test_file % read(rec, dasiz = record1 % dasiz)
+    success = test_file % read(rec, data_bits = record1 % data_bits)
     if (.not. success .or. .not. rec % has_same_info(record1)) then
-        call App_Log(APP_ERROR, 'dasiz search failed')
+        call App_Log(APP_ERROR, 'data_bits search failed')
         call rec % print_short(print_header = .true.)
         call record1 % print_short()
         error stop 1
     end if
 
     ! Search by packed size
-    success = test_file % read(rec, npak = record2 % npak)
+    success = test_file % read(rec, pack_bits = record2 % pack_bits)
     if (.not. success .or. .not. rec % has_same_info(record2)) then
-        call App_Log(APP_ERROR, 'npak search failed')
+        call App_Log(APP_ERROR, 'pack_bits search failed')
         call rec % print_short(print_header = .true.)
         call record2 % print_short()
         error stop 1

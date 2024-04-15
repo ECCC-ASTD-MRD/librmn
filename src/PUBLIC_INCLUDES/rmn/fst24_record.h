@@ -48,9 +48,9 @@ typedef struct {
     int64_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
-    int32_t datyp;  //!< Data type of elements. See FST_TYPE_* constants.
-    int32_t dasiz;  //!< Number of bits per input elements
-    int32_t npak;   //!< Requested compression factor (none if 0 or 1). Number of stored bits if negative
+    int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
+    int32_t data_bits; //!< Number of bits per input elements
+    int32_t pack_bits; //!< Number of stored bits
     int32_t ni;     //!< First dimension of the data field (number of elements)
     int32_t nj;     //!< Second dimension of the data field (number of elements)
     int32_t nk;     //!< Third dimension of the data field (number of elements)
@@ -91,9 +91,9 @@ static const fst_record default_fst_record = (fst_record){
         .dateo     = -1,
         .datev     = -1,
 
-        .datyp = -1,
-        .dasiz = -1,
-        .npak = -1,
+        .data_type = -1,
+        .data_bits = -1,
+        .pack_bits = -1,
         .ni = -1,
         .nj = -1,
         .nk = -1,
@@ -127,7 +127,7 @@ static const fst_record default_fst_record = (fst_record){
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, nijk;
+    int32_t data_type, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
@@ -142,7 +142,7 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .datestamps = 1,
 
     .level = 0,
-    .datyp = 1,
+    .data_type = 1,
     .nijk = 1,
 
     .deet = 0,
@@ -172,7 +172,7 @@ static inline int64_t fst24_record_num_elem(const fst_record* record) {
 
 //! Number of data bytes in record
 static inline int64_t fst24_record_data_size(const fst_record* record) {
-    return (fst24_record_num_elem(record) * record->dasiz) / 8;
+    return (fst24_record_num_elem(record) * record->data_bits) / 8;
 }
 
 int32_t     fst24_record_is_valid(const fst_record* record);
@@ -203,9 +203,9 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT64_T) :: dateo    = -1
         integer(C_INT64_T) :: datev    = -1
 
-        integer(C_INT32_T) :: datyp = -1
-        integer(C_INT32_T) :: dasiz = -1
-        integer(C_INT32_T) :: npak  = -1
+        integer(C_INT32_T) :: data_type = -1
+        integer(C_INT32_T) :: data_bits = -1
+        integer(C_INT32_T) :: pack_bits = -1
         integer(C_INT32_T) :: ni    = -1
         integer(C_INT32_T) :: nj    = -1
         integer(C_INT32_T) :: nk    = -1
@@ -236,7 +236,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
     type, bind(C) :: fst_record_fields
         integer(C_INT32_T) :: dateo = 1, datev = 0, datestamps = 1
         integer(C_INT32_T) :: level = 0
-        integer(C_INT32_T) :: datyp = 1, nijk = 1
+        integer(C_INT32_T) :: data_type = 1, nijk = 1
         integer(C_INT32_T) :: deet = 0, npas = 0
         integer(C_INT32_T) :: ip1 = 1, ip2 = 1, ip3 = 1, decoded_ip = 0
         integer(C_INT32_T) :: grid_info = 0, ig1234 = 1

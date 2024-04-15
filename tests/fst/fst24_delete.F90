@@ -39,9 +39,9 @@ contains
         if (.not. success) error stop 1
 
         record % data = c_loc(dummy_data)
-        record % datyp = FST_TYPE_REAL
-        record % dasiz = 32
-        record % npak = -32
+        record % data_type = FST_TYPE_REAL
+        record % data_bits = 32
+        record % pack_bits = 32
         record % ni = NUM_DATA
         record % nj = 1
         record % nk = 1

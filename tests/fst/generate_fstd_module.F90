@@ -81,16 +81,16 @@ subroutine generate_file(filename, is_rsf, ip3_offset)
     record % ig4 = 0
 
     record % data = c_loc(array_int32)
-    record % npak  = -32
-    record % dasiz = 32
-    record % datyp = FST_TYPE_SIGNED
+    record % pack_bits = 32
+    record % data_bits = 32
+    record % data_type = FST_TYPE_SIGNED
     record % nomvar = 'A'
     record % etiket = 'INT32'
     success = the_file % write(record)
 
     record % data = c_loc(array_real32)
     record % ip1 = 2
-    record % datyp = FST_TYPE_REAL_IEEE
+    record % data_type = FST_TYPE_REAL_IEEE
     record % nomvar = 'B'
     record % etiket = 'REAL32'
     success = the_file % write(record)
@@ -98,42 +98,42 @@ subroutine generate_file(filename, is_rsf, ip3_offset)
     record % data = c_loc(array_uint32)
     record % ip1 = 1
     record % ip2 = 2
-    record % datyp = FST_TYPE_UNSIGNED
+    record % data_type = FST_TYPE_UNSIGNED
     record % nomvar = 'C'
     record % etiket = 'UINT32'
     success = the_file % write(record)
 
     record % data = c_loc(array_real64)
-    record % dasiz = 64
+    record % data_bits = 64
     record % ip1 = 3
     record % ip2 = 1
     record % nomvar = 'D'
     record % etiket = 'REAL64'
-    record % datyp = FST_TYPE_REAL_IEEE
+    record % data_type = FST_TYPE_REAL_IEEE
     success = the_file % write(record)
 
     record % data = c_loc(array_uint16)
-    record % npak = -16
-    record % dasiz = 16
+    record % pack_bits = 16
+    record % data_bits = 16
     record % ip1 = 1
     record % ip2 = 3
     record % nomvar = 'E'
     record % etiket = 'UINT16'
-    record % datyp = FST_TYPE_UNSIGNED
+    record % data_type = FST_TYPE_UNSIGNED
     success = the_file % write(record)
 
     record % data = c_loc(array_int16)
     record % ip1 = 1
     record % ip2 = 4
-    record % datyp = FST_TYPE_SIGNED
+    record % data_type = FST_TYPE_SIGNED
     record % nomvar = 'F'
     record % etiket = 'INT16'
     success = the_file % write(record)
 
     record % data = c_loc(array_int8)
-    record % npak = -8
-    record % dasiz = 8
-    record % datyp = FST_TYPE_SIGNED
+    record % pack_bits = 8
+    record % data_bits = 8
+    record % data_type = FST_TYPE_SIGNED
     record % ip1 = 1
     record % ip2 = 5
     record % nomvar = 'G'
@@ -141,7 +141,7 @@ subroutine generate_file(filename, is_rsf, ip3_offset)
     success = the_file % write(record)
 
     record % data = c_loc(array_uint8)
-    record % datyp = FST_TYPE_UNSIGNED
+    record % data_type = FST_TYPE_UNSIGNED
     record % ip1 = 1
     record % ip2 = 6
     record % nomvar = 'H'

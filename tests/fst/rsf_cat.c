@@ -14,9 +14,9 @@ int main(void) {
     float data2[1] = { 222.222 };
     fst_record rec = default_fst_record;
 
-    rec.datyp = FST_TYPE_REAL;
-    rec.dasiz = 32;
-    rec.npak  = -32;
+    rec.data_type = FST_TYPE_REAL;
+    rec.data_bits = 32;
+    rec.pack_bits = 32;
     rec.ni = 1;
     rec.nj = 1;
     rec.nk = 1;

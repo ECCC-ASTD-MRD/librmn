@@ -90,9 +90,14 @@ int c_fstecr_rsf(
 
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
+    if (npak >= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must specify number of bits (npak < 0) for RSF files\n", __func__);
+        return ERR_OUT_RANGE;
+    }
+
     fst_record rec = default_fst_record;
     rec.data  = field_in;
-    rec.npak  = npak;
+    rec.pack_bits = -npak;
     rec.dateo = date;
     rec.deet  = deet;
     rec.npas  = npas;
@@ -106,16 +111,16 @@ int c_fstecr_rsf(
     rec.ig2 = ig2;
     rec.ig3 = ig3;
     rec.ig4 = ig4;
-    rec.datyp = in_datyp_ori;
+    rec.data_type = in_datyp_ori;
     strncpy(rec.typvar, in_typvar, FST_TYPVAR_LEN);
     strncpy(rec.nomvar, in_nomvar, FST_NOMVAR_LEN);
     strncpy(rec.etiket, in_etiket, FST_ETIKET_LEN);
     strncpy(rec.grtyp,  in_grtyp,  FST_GTYP_LEN);
 
-    rec.dasiz = 32;
-    if (xdf_double) rec.dasiz = 64;
-    else if (xdf_short) rec.dasiz = 16;
-    else if (xdf_byte) rec.dasiz = 8;
+    rec.data_bits = 32;
+    if (xdf_double) rec.data_bits = 64;
+    else if (xdf_short) rec.data_bits = 16;
+    else if (xdf_byte) rec.data_bits = 8;
 
     xdf_double = 0;
     xdf_short = 0;
@@ -457,11 +462,11 @@ int c_fstluk_rsf(
     *nj = rec.nj;
     *nk = rec.nk;
 
-    xdf_datatyp = rec.datyp & ~FSTD_MISSING_FLAG;
+    xdf_datatyp = rec.data_type & ~FSTD_MISSING_FLAG;
 
-    if (xdf_double) rec.dasiz = 64;
-    else if (xdf_short) rec.dasiz = 16;
-    else if (xdf_byte) rec.dasiz = 8;
+    if (xdf_double) rec.data_bits = 64;
+    else if (xdf_short) rec.data_bits = 16;
+    else if (xdf_byte) rec.data_bits = 8;
 
     xdf_double = 0;
     xdf_short = 0;

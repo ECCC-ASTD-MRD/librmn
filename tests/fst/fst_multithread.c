@@ -38,9 +38,9 @@ int main(void) {
         rec.ni = NUM_ELEM;
         rec.nj = 1;
         rec.nk = 1;
-        rec.datyp = FST_TYPE_REAL;
-        rec.dasiz = 32;
-        rec.npak = -32;
+        rec.data_type = FST_TYPE_REAL;
+        rec.data_bits = 32;
+        rec.pack_bits = 32;
 
         rec.dateo = 0;
         rec.deet = 0;

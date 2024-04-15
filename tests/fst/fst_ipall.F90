@@ -65,9 +65,9 @@ subroutine create_files(is_rsf)
     record % ig4 = 0
 
     record % data = c_loc(work)
-    record % npak  = -32
-    record % dasiz = 32
-    record % datyp = FST_TYPE_SIGNED
+    record % pack_bits = 32
+    record % data_bits = 32
+    record % data_type = FST_TYPE_SIGNED
     record % nomvar = 'A'
     record % etiket = 'INT32'
 

@@ -25,8 +25,8 @@ fst_record* fst24_record_new(
         result->ni = ni;
         result->nj = nj;
         result->nk = nk;
-        result->dasiz = nbits;
-        result->datyp = type;
+        result->data_bits = nbits;
+        result->data_type = type;
         result->do_not_touch.alloc = fst24_record_data_size(result);
         result->data = data;
         if (data == NULL) {
@@ -72,9 +72,9 @@ void fst24_record_print(const fst_record* record) {
         "  Handle: 0x%x\n"
         "  dateo: %ld\n"
         "  datev: %ld\n"
-        "  datyp: %d\n"
-        "  dasiz: %d\n"
-        "  npak: %d\n"
+        "  data_type: %d\n"
+        "  data_bits: %d\n"
+        "  pack_bits: %d\n"
         "  ni x nj x nk: %d x %d x %d (%d) elements\n"
         "  metadata size: %d bytes\n"
         "  deet: %d, npas: %d\n"
@@ -86,7 +86,7 @@ void fst24_record_print(const fst_record* record) {
         "  etiket: \"%s\"\n",
         record->do_not_touch.version, record->file, record->data, record->metadata, record->do_not_touch.flags,
         record->do_not_touch.alloc, record->do_not_touch.handle, 
-        record->dateo, record->datev, record->datyp, record->dasiz, record->npak,
+        record->dateo, record->datev, record->data_type, record->data_bits, record->pack_bits,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->num_meta_bytes,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,
@@ -326,7 +326,7 @@ void fst24_record_print_short(
         .datestamps = 9,
         .level = 15,
 
-        .datyp = 8,
+        .data_type = 8,
         .grid_info = 31,
         .ig1234 = 25
     };
@@ -363,7 +363,7 @@ void fst24_record_print_short(
         if (to_print.deet) current = add_str(current, "DEET", width.deet);
         if (to_print.npas) current = add_str(current, "NPAS", width.npas);
 
-        if (to_print.datyp) current = add_str(current, "DTYP SIZ", width.datyp);
+        if (to_print.data_type) current = add_str(current, "DTYP SIZ", width.data_type);
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
@@ -396,7 +396,7 @@ void fst24_record_print_short(
     if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
     if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
 
-    if (to_print.datyp) current = add_datatype(current, record->datyp, -record->npak, record->dasiz, width.datyp);
+    if (to_print.data_type) current = add_datatype(current, record->data_type, record->pack_bits, record->data_bits, width.data_type);
 
     if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
                                                     record->ig3, record->ig4, width.grid_info);
@@ -514,14 +514,14 @@ void make_search_criteria(
         fst98_meta->nk = record->nk;
         if ((record->nk == default_fst_record.nk)) fst98_mask->nk = 0;
 
-        fst98_meta->datyp = record->datyp;
-        if (record->datyp == default_fst_record.datyp) fst98_mask->datyp = 0;
+        fst98_meta->datyp = record->data_type;
+        if (record->data_type == default_fst_record.data_type) fst98_mask->datyp = 0;
 
-        fst98_meta->dasiz = record->dasiz;
-        if (record->dasiz == default_fst_record.dasiz) fst98_mask->dasiz = 0;
+        fst98_meta->dasiz = record->data_bits;
+        if (record->data_bits == default_fst_record.data_bits) fst98_mask->dasiz = 0;
 
-        fst98_meta->nbits = abs(record->npak);
-        if (record->npak >= default_fst_record.npak) fst98_mask->nbits = 0;
+        fst98_meta->nbits = abs(record->pack_bits);
+        if (record->pack_bits == default_fst_record.pack_bits) fst98_mask->nbits = 0;
 
         fst98_meta->npas = record->npas;
         if ((record->npas == default_fst_record.npas)) fst98_mask->npas = 0;
@@ -657,10 +657,10 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
         record->ni = fst98_meta->ni;
         record->nj = fst98_meta->nj;
         record->nk = fst98_meta->nk;
-        record->datyp = fst98_meta->datyp;
-        record->dasiz = fst98_meta->dasiz;
-        if (record->dasiz == 0) record->dasiz = 32;
-        record->npak = -fst98_meta->nbits;
+        record->data_type = fst98_meta->datyp;
+        record->data_bits = fst98_meta->dasiz;
+        if (record->data_bits == 0) record->data_bits = 32;
+        record->pack_bits = fst98_meta->nbits;
 
         record->deet = fst98_meta->deet;
         record->npas = fst98_meta->npas;
@@ -703,9 +703,9 @@ int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {
 
     a->dateo = b->dateo;
     a->datev = b->datev;
-//    a->datyp = b->datyp;
-//    a->dasiz = b->dasiz;
-//    a->npak = b->npak;
+//    a->data_type = b->data_type;
+//    a->data_bits = b->data_bits;
+//    a->pack_bits = b->pack_bits;
 //    a->ni = b->ni;
 //    a->nj = b->nj;
 //    a->nk = b->nk;
@@ -742,9 +742,9 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     // if (a->do_not_touch.alloc != b->do_not_touch.alloc) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
-    if (a->datyp != b->datyp) return 0;
-    if (a->dasiz != b->dasiz) return 0;
-    if (a->npak != b->npak) return 0;
+    if (a->data_type != b->data_type) return 0;
+    if (a->data_bits != b->data_bits) return 0;
+    if (a->pack_bits != b->pack_bits) return 0;
     if (a->ni != b->ni) return 0;
     if (a->nj != b->nj) return 0;
     if (a->nk != b->nk) return 0;
@@ -788,12 +788,12 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datev:   a = %d, b = %d)\n", __func__, a->datev, b->datev);
     if (a->do_not_touch.handle != b->do_not_touch.handle)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = %d, b = %d)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
-    if (a->datyp != b->datyp)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datyp:   a = %d, b = %d)\n", __func__, a->datyp, b->datyp);
-    if (a->dasiz != b->dasiz)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dasiz:   a = %d, b = %d)\n", __func__, a->dasiz, b->dasiz);
-    if (a->npak != b->npak)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Npak:    a = %d, b = %d)\n", __func__, a->npak, b->npak);
+    if (a->data_type != b->data_type)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_type:   a = %d, b = %d)\n", __func__, a->data_type, b->data_type);
+    if (a->data_bits != b->data_bits)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_bits:   a = %d, b = %d)\n", __func__, a->data_bits, b->data_bits);
+    if (a->pack_bits != b->pack_bits)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: pack_bits:    a = %d, b = %d)\n", __func__, a->pack_bits, b->pack_bits);
     if (a->ni != b->ni)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: ni:      a = %d, b = %d)\n", __func__, a->ni, b->ni);
     if (a->nj != b->nj)
@@ -874,9 +874,9 @@ void print_non_wildcards(const fst_record* const record) {
 
     if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%ld ", record->dateo);
     if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%ld ", record->datev);
-    if (record->datyp != default_fst_record.datyp) ptr += snprintf(ptr, 20, "datyp=%d ", record->datyp);
-    if (record->dasiz != default_fst_record.dasiz) ptr += snprintf(ptr, 20, "dasiz=%d ", record->dasiz);
-    if (record->npak != default_fst_record.npak)   ptr += snprintf(ptr, 20, "npak=%d ", record->npak);
+    if (record->data_type != default_fst_record.data_type) ptr += snprintf(ptr, 20, "data_type=%d ", record->data_type);
+    if (record->data_bits != default_fst_record.data_bits) ptr += snprintf(ptr, 20, "data_bits=%d ", record->data_bits);
+    if (record->pack_bits != default_fst_record.pack_bits) ptr += snprintf(ptr, 20, "pack_bits=%d ", record->pack_bits);
     if (record->ni != default_fst_record.ni)       ptr += snprintf(ptr, 20, "ni=%d ", record->ni);
     if (record->nj != default_fst_record.nj)       ptr += snprintf(ptr, 20, "nj=%d ", record->nj);
     if (record->nk != default_fst_record.nk)       ptr += snprintf(ptr, 20, "nk=%d ", record->nk);

@@ -159,7 +159,7 @@ contains
     !> \copybrief fst24_read
     !> \return .true. if we found a record, .false. if not or if error
     function fst24_file_read(this, record, data,                                                                    &
-            dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+            dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
             ip1_all, ip2_all, ip3_all) result(found)
         implicit none
@@ -171,7 +171,7 @@ contains
         type(C_PTR), intent(in), optional :: data
 
         integer(C_INT64_T), intent(in), optional :: dateo, datev
-        integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+        integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
         character(len=1),  intent(in), optional :: grtyp
@@ -187,7 +187,7 @@ contains
 
         if (present(data)) record % data = data
 
-        query = this % new_query(dateo, datev, datyp, dasiz, npak, ni, nj, nk, deet, npas,                          &
+        query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
                                  ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
                                  metadata, ip1_all, ip2_all, ip3_all)
         if (.not. query % is_valid()) return
@@ -199,13 +199,13 @@ contains
     !> \copybrief fst24_new_query
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
     function fst24_file_new_query(this,                                                                             & 
-            dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+            dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
             ip1_all, ip2_all, ip3_all) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
         integer(C_INT64_T), intent(in), optional :: dateo, datev
-        integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+        integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
         character(len=1),  intent(in), optional :: grtyp
@@ -221,9 +221,9 @@ contains
         ! Criteria
         if (present(dateo)) criteria % dateo = dateo
         if (present(datev)) criteria % datev = datev
-        if (present(datyp)) criteria % datyp = datyp
-        if (present(dasiz)) criteria % dasiz = dasiz
-        if (present(npak)) criteria % npak = npak
+        if (present(data_type)) criteria % data_type = data_type
+        if (present(data_bits)) criteria % data_bits = data_bits
+        if (present(pack_bits)) criteria % pack_bits = pack_bits
         if (present(ni)) criteria % ni = ni
         if (present(nj)) criteria % nj = nj
         if (present(nk)) criteria % nk = nk
@@ -387,11 +387,11 @@ contains
     !> \copybrief fst24_print_summary
     !> All optional parameters are booleans determining whether we print the corresponding field.
     subroutine fst24_file_print_summary(this,                                                                       &
-            dateo, datev, datestamps, level, datyp, nijk,                                                     &
+            dateo, datev, datestamps, level, data_type, nijk,                                                       &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata, string)
         implicit none
         class(fst_file), intent(in) :: this
-        logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, nijk
+        logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket, metadata
         character(len=*), intent(in), optional :: string
@@ -402,8 +402,8 @@ contains
         if (present(string)) then
             fields = fst24_make_fields_from_string(string)
         else 
-            fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, datyp=datyp,           &
-                                   nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3,                &
+            fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level,                    &
+                                   data_type=data_type, nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3,     &
                                    decoded_ip=decoded_ip, grid_info=grid_info, ig1234=ig1234, typvar=typvar,            &
                                    nomvar=nomvar, etiket=etiket, metadata=metadata)
         end if

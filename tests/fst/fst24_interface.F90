@@ -52,7 +52,7 @@ subroutine make_test_record()
     call make_test_data()
 
     test_record % data = c_loc(test_data)
-    test_record % npak = -32
+    test_record % pack_bits = 32
     test_record % ni   = DATA_SIZE
     test_record % nj   = DATA_SIZE
     test_record % nk   = 1
@@ -70,8 +70,8 @@ subroutine make_test_record()
     test_record % ig2   = 0
     test_record % ig3   = 0
     test_record % ig4   = 0
-    test_record % datyp = FST_TYPE_REAL_IEEE
-    test_record % dasiz = 32
+    test_record % data_type = FST_TYPE_REAL_IEEE
+    test_record % data_bits = 32
 
     status = test_record % metadata % init(META_TYPE_RECORD,"")
     write(6,*) test_record % metadata % stringify()
