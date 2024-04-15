@@ -76,11 +76,11 @@ DT_08 ... DT_64  : length of data elements in record (for endianness management)
 //! \name Record types
 static const uint8_t RT_NULL   = 0;     //!< No type (can match any record)
 static const uint8_t RT_DATA   = 1;     //!< Data record
-static const uint8_t RT_XDAT   = 2;     //!<
+static const uint8_t RT_XDAT   = 2;     //!< Extension record
 static const uint8_t RT_SOS    = 3;     //!< Start-of-segment record
 static const uint8_t RT_EOS    = 4;     //!< End-of-segment record
 static const uint8_t RT_VDIR   = 6;     //!< Directory record
-static const uint8_t RT_FILE   = 7;     //!< File record
+static const uint8_t RT_FILE   = 7;     //!< Record is a file
 static const uint8_t RT_CUSTOM = 8;
 static const uint8_t RT_DEL    = 0x80;  //!< Deleted record
 //! \}
@@ -134,18 +134,19 @@ typedef struct{
 
 //! Record information. This struct MUST BE TREATED AS READ-ONLY.
 typedef struct{
-  uint64_t wa ;        //! address of record in file
-  uint64_t rl ;        //! record length in bytes (including SOR, metadata, data and EOR)
-  uint64_t wa_data ;   //! address of data in file
-  uint64_t data_size ; //! actual data size in bytes (may remain 0 in unmanaged records)
-  uint64_t wa_meta ;   //! address of metadata in file
-  const uint32_t *meta ;  //! pointer to directory metadata (DO NOT STORE INTO)
-  const char     *fname ; //! pointer to filename if file container (DO NOT STORE INTO)
-  uint64_t file_size ; //! true file size (from metadata) if file container
-  uint16_t dir_meta ;  //! directory metadata size in uint32_t units
-  uint16_t dir_meta0 ; //! size excluding file name and file length in file containers
-  uint16_t rec_meta ;  //! record metadata size in uint32_t units
-  uint16_t elem_size ; //! length of data elements (1/2/4/8 bytes) (endianness management)
+  uint64_t wa ;        //!< address of record in file
+  uint64_t rl ;        //!< record length in bytes (including SOR, metadata, data and EOR)
+  uint64_t wa_data ;   //!< address of data in file
+  uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
+  uint64_t wa_meta ;   //!< address of metadata in file
+  const uint32_t *meta ;  //!< pointer to directory metadata (DO NOT STORE INTO)
+  const char     *fname ; //!< pointer to filename if file container (DO NOT STORE INTO)
+  uint64_t file_size ; //!< true file size (from metadata) if file container
+  uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
+  uint16_t dir_meta0 ; //!< size excluding file name and file length in file containers
+  uint16_t rec_meta ;  //!< record metadata size in uint32_t units
+  uint16_t elem_size ; //!< length of data elements (1/2/4/8 bytes) (endianness management)
+  uint8_t rec_type ; //!< Type of the record
 // NOTE: add something for data map length ?
 } RSF_record_info ;
 
@@ -176,6 +177,7 @@ int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) ;
 int64_t RSF_Put_bytes(RSF_handle h, RSF_record *record, uint32_t *meta, uint32_t rec_meta, uint32_t dir_meta, void *data, size_t data_size, int data_element) ;
 int64_t RSF_Put_data(RSF_handle h, void *data_record, uint32_t *meta, uint32_t rec_meta, uint32_t dir_meta, void *data, size_t data_elements, int element_size) ;
 int64_t RSF_Put_record(RSF_handle h, RSF_record *record, size_t data_size) ;
+int32_t RSF_Delete_record(RSF_handle h, const int64_t key) ;
 
 int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta_size) ;
 int64_t RSF_Get_file(RSF_handle h, int64_t key, char *alias, uint32_t **meta, uint32_t *meta_size) ;
@@ -196,7 +198,7 @@ int32_t RSF_Valid_handle(RSF_handle h) ;
 
 //! create pointer to a new allocated record (C)
 RSF_record *RSF_New_record(RSF_handle h, int32_t rec_meta, int32_t dir_meta, const uint8_t rec_type,
-                           const uint8_t rec_class, const size_t max_data, void * const t, int64_t szt) ;
+                           const size_t max_data, void * const t, int64_t szt) ;
 int32_t RSF_Record_add_meta(RSF_record *r, uint32_t *meta, int32_t rec_meta, int32_t dir_meta, uint32_t data_elem) ;  // add metadata
 int64_t RSF_Record_add_bytes(RSF_record *r, void *data, size_t data_size) ;  // add data bytes
 int64_t RSF_Record_add_elements(RSF_record *r, void *data, size_t num_data_elements, int data_element_size) ; //!< \copydoc RSF_Record_add_elements

@@ -394,12 +394,14 @@ struct directory_block{
 // propagate lower 16 bits into upper 16 bits if upper 16 are zero
 // #define DRML_FIX(ML) ( ((ML) >> 16) == 0 ? ((ML) <<16) | (ML) : (ML) )
 
-typedef struct{           // directory entry (both file and memory)
-  uint32_t wa[2] ;        // upper[0], lower[1] 32 bits of offset in segment (or file)
-  uint32_t rl[2] ;        // upper[0], lower[1] 32 bits of record length (bytes)
-  uint32_t ml ;           // upper 16 bits directory metadata length (in 32-bit elements), lower 16 record metadata length (in 32-bit elements)
-  uint32_t dul:8, reserved:24 ;  // data element length (use part of "reserved" for data map length ?)
-  uint32_t meta[] ;       // open array for metadata    (put data map length in meta[1] ?)
+//! Directory entry (both file and memory)
+typedef struct{
+  uint32_t wa[2] ;            //!< upper[0], lower[1] 32 bits of record offset in segment (or file)
+  uint32_t rl[2] ;            //!< upper[0], lower[1] 32 bits of record length (bytes)
+  uint32_t entry_offset[2] ;  //!< upper[0], lower[1] 32 bits of entry offset in file
+  uint32_t ml ;               //!< directory metadata length (upper 16 bits), record metadata length (lower 16) (in 32-bit elements)
+  uint32_t dul:8, reserved:24 ; //!< data element length (use part of "reserved" for data map length ?)
+  uint32_t meta[] ;           //!< open array for metadata
 } vdir_entry ;
 
 typedef struct{              // directory record to be written to file
@@ -445,10 +447,10 @@ struct RSF_File {
   uint64_t seg_max_hint ;        //!< Desired maximum address allowable in segment (sparse only)
   // off_t    size ;                //!< file size
   off_t    next_write ;          //!< file offset from beginning of file for next write operation ( -1 if not defined)
-  off_t    current_pos ;         //!< current file position (for writing) from beginning of file ( -1 if not defined)
   uint32_t rec_class ;           //!< record class being writen (default : data class 1) (rightmost 24 bits only)
   uint32_t class_mask ;          //!< record class mask (for scan/read/...) (by default all ones)
   uint32_t dir_read ;            //!< Total number of records found in all the directories of a file upon opening
+  uint32_t num_deleted_records ; //!< Number of records that have the RT_DEL type (included in the total)
   uint32_t vdir_slots ;          //!< current size of vdir[] table of pointers to directory entries
   uint32_t vdir_used ;           //!< number of used pointers in vdir[] table
   uint32_t sparse_table_used ;   //!< number of used entries in sparse_segments table
@@ -461,6 +463,7 @@ struct RSF_File {
   uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
   uint16_t mode ;                //!< file mode (RO/RW/AP/...)
   uint8_t is_new ;               //!< whether we created the file upon opening
+  uint8_t has_deleted ;          //!< Whether we have deleted record since opening the file
   uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
   uint8_t exclusive ;            //!< RW in exclusive mode if 1
 } ;
@@ -487,7 +490,6 @@ static inline void RSF_File_init(RSF_File *fp){  // initialize a new RSF_File st
 //   fp->seg_max_hint =  0 ;  // redundant if sos is stored
 //   fp->size       =  0 ;
   fp->next_write  = -1 ;
-  fp->current_pos = -1 ;
   fp->rec_class   =  DEFAULT_RECORD_CLASS ;
   fp->class_mask  =  0xFFFFFFFFu ;
 //   fp->dir_read  =  0 ;

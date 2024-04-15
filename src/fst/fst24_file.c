@@ -15,7 +15,6 @@
 int32_t fst24_get_unit(const fst_file* const file);
 static int64_t fst24_get_num_records_single(const fst_file* file);
 int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
-int32_t fst24_get_record_by_index(const fst_file* const file, const int64_t index, fst_record* const record);
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
@@ -182,16 +181,18 @@ int32_t fst24_print_summary(
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
-    const int64_t num_records = fst24_get_num_records(file);
+    fst_query* query = fst24_new_query(file, NULL, NULL); // Look for every (non-deleted) record
+    fst_record rec = default_fst_record;
+    int64_t num_records = 0;
     size_t total_data_size = 0;
-    fst_record rec;
-    for (int64_t i = 0; i < num_records; i++) {
-        fst24_get_record_by_index(file, i, &rec);
+    while (fst24_find_next(query, &rec)) {
+        num_records++;
         total_data_size += fst24_record_data_size(&rec);
-        fst24_record_print_short(&rec, fields, ((i % 70) == 0), NULL);
+        fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), NULL);
     }
 
-    Lib_Log(APP_LIBFST, APP_ALWAYS, "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
+    Lib_Log(APP_LIBFST, APP_VERBATIM,
+            "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
             num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
     return TRUE;
@@ -501,7 +502,7 @@ int32_t fst24_write_rsf(
     }
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
-    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, RT_DATA, RC_NULL, num_data_bytes, NULL, 0);
+    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
         return(ERR_MEM_FULL);
@@ -947,6 +948,7 @@ int32_t get_record_from_key_rsf(
     fill_with_search_meta(record, (search_metadata*)record_info.meta, FST_RSF);
     record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
     record->do_not_touch.handle = key;
+    if (record_info.rec_type == RT_DEL) record->do_not_touch.deleted = 1;
 
     return TRUE;
 }
@@ -1067,51 +1069,6 @@ int32_t fst24_rewind_search(fst_query* const query) {
     return TRUE;
 }
 
-//! Retrieve record information at a given index
-//! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
-int32_t fst24_get_record_by_index(
-    const fst_file* const file, //!< [in] File handle
-    const int64_t index,        //!< [in] Record index. Continuous among a list of linked files.
-    fst_record* const record    //!< [in,out] Record information
-) {
-    if (!fst24_is_open(file)) return ERR_NO_FILE;
-
-    fst_record_set_to_default(record);
-
-    const int64_t num_records = fst24_get_num_records_single(file);
-    if (index >= num_records) {
-        if (file->next != NULL) return fst24_get_record_by_index(file->next, index - num_records, record);
-        return ERR_OUT_RANGE;
-    }
-    record->file = file;
-
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
-        fill_with_search_meta(record, (search_metadata*)record_info.meta, file->type);
-        record->do_not_touch.handle = RSF_Make_key(file->file_index_backend, index);
-        record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
-        return TRUE;
-    }
-    else if (file->type == FST_XDF) {
-        const int page_id = index / ENTRIES_PER_PAGE;
-        const int record_id = index - (page_id * ENTRIES_PER_PAGE);
-        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
-
-        int addr, lng, idtyp;
-        search_metadata record_meta;
-        stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
-        uint32_t* pkeys = (uint32_t *) record_meta_xdf;
-        pkeys += W64TOWD(1);
-        c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
-
-        fill_with_search_meta(record, &record_meta, file->type);
-        record->do_not_touch.handle = key;
-        return TRUE;
-    }
-
-    return FALSE;
-}
 
 //! Find the next record in a given file, according to the given parameters
 //! \return Key of the record found (negative if error or nothing found)
@@ -1564,6 +1521,11 @@ int32_t fst24_read_record_rsf(
     RSF_handle file_handle = FGFDT[record_fst->file->file_index].rsf_fh;
     if (!RSF_Is_record_in_file(file_handle, record_fst->do_not_touch.handle)) return ERR_BAD_HNDL;
 
+    if (record_fst->do_not_touch.deleted == 1) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read data from a deleted record\n", __func__);
+        return ERR_BAD_HNDL;
+    }
+
     const size_t work_size_bytes = fst24_record_data_size(record_fst) +     // The data itself
                                    record_fst->num_meta_bytes +             // The metadata
                                    sizeof(RSF_record) +                     // Space for the RSF struct itself
@@ -1873,6 +1835,16 @@ int32_t fst24_delete(const fst_record* const record) {
         return FALSE;
     }
 
-    // return TRUE;
+    if (record->file->type == FST_RSF) {
+        if (RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) == 1) return TRUE;
+    }
+    else if (record->file->type == FST_XDF) {
+        if (c_fsteff_xdf(record->do_not_touch.handle) == 0) return TRUE;
+    }
+    else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        return FALSE;
+    }
+
     return FALSE;
 }

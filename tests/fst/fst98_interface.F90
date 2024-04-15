@@ -262,14 +262,10 @@ subroutine test_fst98_interface(is_rsf)
     call check_status(status, expected = 0, fail_message = 'fstvoi')
 
     ! ----- fsteff -----
-    ! Better put this test (second-to-)last, because after it the state will be different depending on type of
-    ! standard file (RSF or XDF)
     status = fsteff(record_key)
-    if (is_rsf) then
-        call check_status(status, expected_max = -1, fail_message = 'eff')
-    else
-        call check_status(status, expected = 0, fail_message = 'eff')
-    end if
+    call check_status(status, expected = 0, fail_message = 'eff')
+
+    ! status = fstvoi(iun, ' ')
 
     ! ----- fstfrm -----
     status = fstfrm(iun)

@@ -10,8 +10,8 @@
 #endif
 #define FST24_VERSION_COUNT  0
 
-#define FST24_VERSION_OFFSET_C 1010101010101000ull
-#define FST24_VERSION_OFFSET_F 1010101010101000_int64
+#define FST24_VERSION_OFFSET_C 1010101000u
+#define FST24_VERSION_OFFSET_F 1010101000_int32
 
 #ifndef IN_FORTRAN_CODE
 
@@ -32,7 +32,8 @@ typedef struct fst24_file_ fst_file;
 typedef struct {
     //!> Internal implementation details
     struct {
-        int64_t version;  //!< Version marker
+        int32_t version;  //!< Version marker
+        int32_t deleted;  //!< Whether the record is deleted
         int64_t handle;   //!< Handle to specific record (if stored in a file)
         int64_t flags;    //!< Record status flags
         int64_t alloc;    //!< Size of allocated memody for data
@@ -79,6 +80,7 @@ typedef struct {
 //! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
         .do_not_touch.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
+        .do_not_touch.deleted  = 0,
         .do_not_touch.handle   = -1,
         .do_not_touch.flags    = 0x0,
         .do_not_touch.alloc    = 0,
@@ -189,7 +191,8 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
 #else
 
     type, bind(C) :: fst_record_c
-        integer(C_INT64_T) :: version  = FST24_VERSION_OFFSET_F + FST24_VERSION_COUNT
+        integer(C_INT32_T) :: version  = FST24_VERSION_OFFSET_F + FST24_VERSION_COUNT
+        integer(C_INT32_T) :: deleted  = 0
         integer(C_INT64_T) :: handle   = -1
         integer(C_INT64_T) :: flags    = 0
         integer(C_INT64_T) :: alloc    = 0

@@ -104,6 +104,7 @@ int c_fstsui_xdf(int iun, int *ni, int *nj, int *nk);
 int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);
+int c_fsteff_xdf(int handle);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);

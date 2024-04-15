@@ -497,11 +497,7 @@ int c_fsteff_rsf(
     //! Handle of the record to delete
     int handle
 ) {
-    // Suppress compilation warnings
-    (void)file_handle;
-    (void)handle;
-
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot delete a record from a RSF-type file\n", __func__);
+    if (RSF_Delete_record(file_handle, RSF_Key64(handle)) == 1) return 0;
     return ERR_BAD_FTYPE;
 }
 
