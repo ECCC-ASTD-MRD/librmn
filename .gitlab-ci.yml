@@ -462,7 +462,7 @@ test:rhel-8-amd64_nvhpc_23.7:
       - export EC_ARCH=Linux_x86-64/nvhpc
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
-      - make check
+      - LD_LIBRARY_PATH=/fs/ssm/main/opt/gcc/gcc-9.3.0/gcc_9.3.0_rhel-8-amd64-64/lib64:$LD_LIBRARY_PATH && make check
    allow_failure: true
       
 #----- ubuntu-22.04-amd64_inteloneapi-2022.1.2
