@@ -144,7 +144,7 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
-target_link_libraries(rmn-static PUBLIC App-static json-c libudunits2 LibXml2::LibXml2)
+target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2 LibXml2::LibXml2)
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}> ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2)
 
@@ -186,7 +186,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c libudunits2 LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c-static libudunits2 LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2)
 
