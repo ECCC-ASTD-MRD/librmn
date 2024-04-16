@@ -81,6 +81,9 @@ if (EC_INIT_DONE LESS 2)
         target_link_libraries(rsf_dump rmn::rmn)
         target_compile_definitions(rsf_dump PRIVATE RSF_DUMP)
 
+        add_executable(rsf_fuse fst/rsf_fuse.c)
+        target_link_libraries(rsf_fuse rmn::rmn)
+
         add_executable(burp_f EXCLUDE_FROM_ALL burp_f.f)
         target_link_libraries(burp_f rmn::rmn)
         add_test(NAME burp_f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/burp_f)

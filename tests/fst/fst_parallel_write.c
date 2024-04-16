@@ -111,7 +111,7 @@ int test_parallel_write(const int rank) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 1) {
-        test_file = fst24_open(test_filename, "R/W");
+        test_file = fst24_open(test_filename, NULL);
         if (test_file == NULL) {
             App_Log(APP_ERROR, "Unable to open file after it was closed\n");
             return -1;
