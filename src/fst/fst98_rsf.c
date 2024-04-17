@@ -1,4 +1,4 @@
-//! \file fstd98_rsf.c
+//! \file
 //! Implementation of the FSTD98 interface to RSF files
 
 #include <App.h>
