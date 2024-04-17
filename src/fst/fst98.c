@@ -1,4 +1,5 @@
-//! \file fst98.c Low level implementation of fst functions
+//! \file
+//! Low level implementation of fst functions
 
 #include <stdio.h>
 #include <unistd.h>
@@ -1933,7 +1934,7 @@ int c_fstinf(
     //! [in] Validity date
     const int datev,
     //! [in] Label
-    const char * const in_etiket,
+    const char * const etiket,
     //! [in] Vertical level
     const int ip1,
     //! [in] Forecast hour
@@ -1941,11 +1942,11 @@ int c_fstinf(
     //! [in] User defined identifier
     const int ip3,
     //! [in] Type of field
-    const char * const in_typvar,
+    const char * const typvar,
     //! [in] Variable name
-    const char * const in_nomvar
+    const char * const nomvar
 ) {
-    return c_fstinfx(-2, iun, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar, in_nomvar);
+    return c_fstinfx(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 }
 
 
