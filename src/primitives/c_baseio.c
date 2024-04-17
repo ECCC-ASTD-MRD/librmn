@@ -18,6 +18,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+//! Basic IO functions
+
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
