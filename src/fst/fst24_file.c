@@ -475,17 +475,20 @@ int32_t fst24_write_rsf(
     char *metastr = NULL;
     int  metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
+    uint16_t ext_metadata_size = 0;
     if (record->metadata) {
        if (!image_mode_copy) {
           fst24_bounds(record,&dmin,&dmax);
-          if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[data_type],"lorenzo",record->pack_bits,record->data_bits,dmin,dmax)) {
+          if (!Meta_DefData(record->metadata, record->ni, record->nj, record->nk, FST_TYPE_NAMES[data_type],
+                            "lorenzo", record->pack_bits, record->data_bits, dmin, dmax)) {
              Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
              return(ERR_METADATA);
           }
        }
        if ((metastr = Meta_Stringify(record->metadata)) != NULL) {
           metalen = strlen(metastr) + 1;
-          rec_metadata_size += (metalen + 3) / 4;
+          ext_metadata_size = (metalen + 3) / 4;
+          rec_metadata_size += ext_metadata_size;
        }
     }
 
@@ -519,18 +522,18 @@ int32_t fst24_write_rsf(
         memcpy((char *)(meta + 1), metastr, metalen + 1);
     }
 
-    // Reserved metadata
+    // RSF reserved metadata
     for (int i = 0; i < RSF_META_RESERVED; i++) {
         meta->rsf_reserved[i] = 0;
     }
-    meta->fst24_reserved[0] = FST24_META_RESERVED_0;
+    meta->fst24_reserved[0] = fst24_reserved_0(ext_metadata_size);
 
     // fst98 metadata 
     {
-        stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
-        stdf_entry->select;  // Reserved by RSF. Don't write anything here!
-        stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
-        stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->select;  // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
 
         stdf_entry->deet = record->deet;
         stdf_entry->nbits = record->pack_bits;

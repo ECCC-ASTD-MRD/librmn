@@ -38,15 +38,27 @@ typedef struct {
     // Every time criteria are added to the search_metadata struct, FST24_ME
 } search_metadata;
 
-static const uint32_t FST24_META_RESERVED_0 = (FST24_VERSION_COUNT << 8) | (sizeof(search_metadata) / sizeof(uint32_t));
+//! The first reserved 32-bit word contains the version, number of search keys (32-bit elements)
+//! and size of extended metadata in 32-bit elements
+//! |    31 - 24     |    23 - 16     |            15 - 0              |
+//! | -- version --- | -- num keys -- | --- num ext meta elements ---- |
+static inline uint32_t fst24_reserved_0(const uint16_t extended_meta_size) {
+    const uint8_t version = FST24_VERSION_COUNT;
+    return version << 24 |
+           ((sizeof(search_metadata) / sizeof(uint32_t)) << 16) |
+           extended_meta_size;
+}
 
+//! See \ref fst24_reserved_0 for description of reserved entry 0
 static inline void decode_fst24_reserved_0(
     const uint32_t reserved_0,
-    uint8_t* fst24_version_count,
-    uint8_t* num_criteria
+    uint8_t* fst24_version_count,   //!< [out] Version count of the library that stored the record
+    uint8_t* num_criteria,          //!< [out] Number of search criteria (32-bit keys)
+    uint16_t* ext_meta_size         //!< [out] Size of extended metadata in 32-bit units
 ) {
-    *num_criteria = (reserved_0 & 0xff);                // First byte
-    *fst24_version_count = (reserved_0 & 0xff00) >> 8;  // Second byte
+    *fst24_version_count = (reserved_0 & 0xff000000) >> 24;  // Left-most byte
+    *num_criteria = (reserved_0 & 0x00ff0000) >> 16;         // Second byte
+    *ext_meta_size = (reserved_0 & 0x0000ffff);              // Third + fourth bytes
 }
 
 //! Object used to describe a search query into a standard file.

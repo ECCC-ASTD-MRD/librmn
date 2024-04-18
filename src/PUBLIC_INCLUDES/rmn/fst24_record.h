@@ -7,6 +7,7 @@
 //! Version identifier that needs to be incremented when we make
 //! changes in the way records are stored and interpreted, so that it
 //! can be recognized when read by a different version of the library
+//! It has to take at most 8 bits, so its maximum value is 255
 #endif
 #define FST24_VERSION_COUNT  0
 
@@ -166,7 +167,7 @@ static const fst_record_fields default_fields = (fst_record_fields) {
 //! \addtogroup public_fst
 //! \{
 //! Number of elements contained in the given record
-static inline int64_t fst24_record_num_elem(const fst_record* record) {
+static inline int64_t fst24_record_num_elem(const fst_record* const record) {
     return record->ni * record->nj * record->nk;
 }
 
