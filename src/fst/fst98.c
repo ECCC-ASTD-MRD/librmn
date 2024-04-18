@@ -808,8 +808,8 @@ int c_fst_data_length(
     //! | ----------: | :---------------- |
     //! |           1 | Byte              |
     //! |           2 | Short (16 bits)   |
-    //! |           3 | Regular (32 bits) |
-    //! |           4 | Double (64 bits)  |
+    //! |           4 | Regular (32 bits) |
+    //! |           8 | Double (64 bits)  |
     const int length_type
 ) {
     switch (length_type) {
@@ -964,6 +964,12 @@ int c_fstecr_xdf(
     nk = Max(1, nk);
     int minus_nbits = -nbits;
 
+    if (base_fst_type(datyp) == FST_TYPE_REAL_IEEE && nbits < 16) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Writing a truncated IEEE float with less than 16 bits is not allowed\n",
+                __func__);
+        return ERR_BAD_DATYP;
+    }
+
     if ( (in_datyp_ori == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) && (nbits > 32) ) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
                 "data type FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK (%d) reset to FST_TYPE_REAL_IEEE (%d) (IEEE)\n", __func__,
@@ -1047,16 +1053,27 @@ int c_fstecr_xdf(
         datyp = FST_TYPE_REAL_OLD_QUANT;
     }
 
+    float* field_f = field_in; // Hold real datatypes, in case we need to convert from float to double
+
     // Determine data_nbits (uncompressed datatype size)
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
         data_nbits = (xdf_double || IEEE_64) ? 64 : 32;
+        if (data_nbits == 64 && nbits <= 32) {
+            // We convert now from double to float
+            data_nbits = 32;
+            field_f = alloca(ni * nj * nk * sizeof(float));
+            double* field_d = field_in;
+            for (int i = 0; i < ni * nj * nk; i++) {
+                field_f[i] = (float)field_d[i];
+            }
+        }
     }
     else if (is_type_integer(datyp)) {
         data_nbits = xdf_byte   ?  8 :
-                        xdf_short  ? 16 :
-                        xdf_double ? 64 :
-                                    32;
+                     xdf_short  ? 16 :
+                     xdf_double ? 64 :
+                                  32;
     }
 
     int header_size;
@@ -1412,7 +1429,7 @@ int c_fstecr_xdf(
                     int32_t f_one = 1;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
                     if (datyp == (FST_TYPE_COMPLEX | FST_TYPE_TURBOPACK)) {
-                        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_COMPLEXT (%d)\n",
+                        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available for complex data, data type %d reset to FST_TYPE_COMPLEX (%d)\n",
                                 __func__, stdf_entry->datyp, FST_TYPE_COMPLEX);
                         datyp = FST_TYPE_COMPLEX;
                         stdf_entry->datyp = datyp;
@@ -1433,7 +1450,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field_f, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -2737,15 +2754,6 @@ int c_fstluk_xdf(
     int workField[workFieldSz/4];
     // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
     bzero(workField, workFieldSz);
-
-    // if ((workField = alloca(workFieldSz)) == NULL) {
-    //     Lib_Log(APP_LIBFST, APP_FATAL, "%s: "memory is full, was trying to allocate %ld bytes\n", __func__, lng*sizeof(int));
-    //     return ERR_MEM_FULL;
-    // } else {
-    //     printf("Debug+ fstluk - &\n");
-    //     printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
-    //     memset(workField, 0, workFieldSz);
-    // }
 
     // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
     buffer_interface_ptr buf = (buffer_interface_ptr) workField;
@@ -4304,12 +4312,12 @@ int c_fstvoi(
 
     if (!print_single_stats) {
         fprintf(stdout, "Statistics for %d linked files: \n", num_files);
-        fprintf(stdout, "Number of directory entries   \t %d\n", total_num_entries);
-        fprintf(stdout, "Number of valid records       \t %d\n", total_num_valid_records);
-        fprintf(stdout, "File size                     \t %d bytes\n", total_file_size);
-        fprintf(stdout, "Number of writes              \t %d\n", total_num_writes);
-        fprintf(stdout, "Number of rewrites (XDF only) \t %d\n", total_num_rewrites);
-        fprintf(stdout, "Number of erasures (XDF only) \t %d\n", total_num_erasures);
+        fprintf(stdout, "Number of directory entries   \t %ld\n", total_num_entries);
+        fprintf(stdout, "Number of valid records       \t %ld\n", total_num_valid_records);
+        fprintf(stdout, "File size                     \t %ld bytes\n", total_file_size);
+        fprintf(stdout, "Number of writes              \t %ld\n", total_num_writes);
+        fprintf(stdout, "Number of rewrites (XDF only) \t %ld\n", total_num_rewrites);
+        fprintf(stdout, "Number of erasures (XDF only) \t %ld\n", total_num_erasures);
     }
 
     return status;
