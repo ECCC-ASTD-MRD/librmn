@@ -520,14 +520,17 @@ int32_t fst24_write_rsf(
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
-        memcpy((char *)(meta + 1), metastr, metalen + 1);
+        memcpy((char *)(meta + 1), metastr, metalen);
     }
 
     // RSF reserved metadata
     for (int i = 0; i < RSF_META_RESERVED; i++) {
         meta->rsf_reserved[i] = 0;
     }
+    
+    // FST reserved metadata
     meta->fst24_reserved[0] = fst24_reserved_0(ext_metadata_size);
+    meta->fst24_reserved[1] = 0; // Datamap size
 
     // fst98 metadata 
     {
@@ -1544,8 +1547,9 @@ int32_t fst24_read_record_rsf(
 
     // Extract metadata from record if present
     record_fst->metadata = NULL;
-    if (record_rsf->rec_meta > record_rsf->dir_meta) {
-        record_fst->metadata = Meta_Parse((char*)((search_metadata*)record_rsf->meta+1));
+    if (record_fst->do_not_touch.extended_meta_size > 0) {
+        // Located after the search keys
+        record_fst->metadata = Meta_Parse((char*)((uint32_t*)record_rsf->meta + record_fst->do_not_touch.num_search_keys));
     }
 
     // Extract data

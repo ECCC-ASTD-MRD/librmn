@@ -36,8 +36,10 @@ typedef struct {
         int32_t version;  //!< Version marker
         int32_t deleted;  //!< Whether the record is deleted
         int64_t handle;   //!< Handle to specific record (if stored in a file)
-        int64_t flags;    //!< Record status flags
         int64_t alloc;    //!< Size of allocated memody for data
+        int32_t flags;    //!< Record status flags
+        uint16_t num_search_keys;    //!< Number of directory search keys (32 bits)
+        uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units)
     } do_not_touch;
 
     // 64-bit elements first
@@ -80,11 +82,13 @@ typedef struct {
 //! Default values for all members of an fst_record.
 //! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
-        .do_not_touch.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
-        .do_not_touch.deleted  = 0,
-        .do_not_touch.handle   = -1,
-        .do_not_touch.flags    = 0x0,
-        .do_not_touch.alloc    = 0,
+        .do_not_touch = {.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
+                         .deleted  = 0,
+                         .handle   = -1,
+                         .alloc    = 0,
+                         .flags    = 0x0,
+                         .num_search_keys = 0,
+                         .extended_meta_size = 0,},
 
         .file     = NULL,
         .data     = NULL,
@@ -195,8 +199,10 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT32_T) :: version  = FST24_VERSION_OFFSET_F + FST24_VERSION_COUNT
         integer(C_INT32_T) :: deleted  = 0
         integer(C_INT64_T) :: handle   = -1
-        integer(C_INT64_T) :: flags    = 0
         integer(C_INT64_T) :: alloc    = 0
+        integer(C_INT32_T) :: flags    = 0
+        integer(C_INT16_T) :: num_search_keys = 0
+        integer(C_INT16_T) :: extended_meta_size = 0
 
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR

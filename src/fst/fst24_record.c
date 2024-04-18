@@ -634,10 +634,10 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
     // Check version first
     uint8_t version = 0;
     uint8_t num_criteria = sizeof(stdf_dir_keys) / sizeof(uint32_t);
-    uint16_t ext_metadata_size = 0; // 32-bit units
+    uint16_t extended_meta_size = 0; // 32-bit units
 
     if (type != FST_XDF) {
-        decode_fst24_reserved_0(meta->fst24_reserved[0], &version, &num_criteria, &ext_metadata_size);
+        decode_fst24_reserved_0(meta->fst24_reserved[0], &version, &num_criteria, &extended_meta_size);
     }
 
     if (version > FST24_VERSION_COUNT) {
@@ -645,6 +645,9 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
                 " than the one used to write the record (%d). We might run into issues (or not).\n",
                 __func__, FST24_VERSION_COUNT, version);
     }
+
+    record->do_not_touch.num_search_keys = num_criteria;
+    record->do_not_touch.extended_meta_size = extended_meta_size;
 
     // fst98 metadata
     {
