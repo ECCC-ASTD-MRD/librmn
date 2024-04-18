@@ -182,10 +182,11 @@ int32_t fst24_print_summary(
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     fst_query* query = fst24_new_query(file, NULL, NULL); // Look for every (non-deleted) record
+
     fst_record rec = default_fst_record;
     int64_t num_records = 0;
     size_t total_data_size = 0;
-    while (fst24_find_next(query, &rec)) {
+    while (fst24_find_next(query, &rec) == TRUE) {
         num_records++;
         total_data_size += fst24_record_data_size(&rec);
         fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), NULL);
@@ -514,7 +515,7 @@ int32_t fst24_write_rsf(
 
     // set stdf_entry to address of buffer->data for building keys
     search_metadata* meta = (search_metadata *) new_record->meta;
-    stdf_dir_keys* stdf_entry = (stdf_dir_keys *) &meta->fst98_meta;
+    stdf_dir_keys* stdf_entry = &meta->fst98_meta;
 
     // Insert json metadata
     if (metastr) {
@@ -1070,7 +1071,7 @@ int32_t fst24_rewind_search(fst_query* const query) {
 //! \return Key of the record found (negative if error or nothing found)
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
 
-    stdf_dir_keys actual_mask;
+    search_metadata actual_mask;
     uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;
     uint32_t* mask_u32            = (uint32_t *)&query->mask;
     uint32_t* background_mask_u32 = (uint32_t *)&query->background_mask;
@@ -1078,10 +1079,10 @@ int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
         actual_mask_u32[i] = mask_u32[i] & background_mask_u32[i];
     }
     const int64_t key = RSF_Lookup(file_handle,
-                                       query->search_index,
-                          (uint32_t *)&query->criteria,
-                                       actual_mask_u32,
-                                       query->num_criteria);
+                                   query->search_index,
+                      (uint32_t *)&query->criteria,
+                                   actual_mask_u32,
+                                   query->num_criteria);
     if (key > 0) {
         // Found it. Next search will start here
         query->search_index = key;
@@ -1094,8 +1095,8 @@ int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
 }
 
 int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
-    uint32_t* pkeys = (uint32_t *) &query->criteria;
-    uint32_t* pmask = (uint32_t *) &query->mask;
+    uint32_t* pkeys = (uint32_t *) &query->criteria.fst98_meta;
+    uint32_t* pmask = (uint32_t *) &query->mask.fst98_meta;
 
     pkeys += W64TOWD(1);
     pmask += W64TOWD(1);
@@ -1199,6 +1200,8 @@ int32_t fst24_find_next(
         }
         return FALSE;
     }
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching in file at %p (next %p)\n", __func__, query->file, query->file->next);
 
     fst_record tmp_record = default_fst_record;
     while (TRUE) { // Search forever (until found or end-of-file)
@@ -1542,7 +1545,7 @@ int32_t fst24_read_record_rsf(
     // Extract metadata from record if present
     record_fst->metadata = NULL;
     if (record_rsf->rec_meta > record_rsf->dir_meta) {
-        record_fst->metadata = Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+        record_fst->metadata = Meta_Parse((char*)((search_metadata*)record_rsf->meta+1));
     }
 
     // Extract data
