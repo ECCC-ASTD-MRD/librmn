@@ -25,10 +25,10 @@ contains
 
         if (is_rsf) then
             name = filename_rsf
-            options = 'RSF'
+            options = 'RSF+R/W'
         else
             name = filename_xdf
-            options = 'XDF'
+            options = 'XDF+R/W'
         end if
 
         write(cmd, '(A, (1X, A))') 'rm -fv ', name

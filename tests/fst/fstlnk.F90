@@ -24,16 +24,16 @@ contains
 
         ! status = fnom(unit_list(1), rsf_name_1, 'STD+RND', 0)
         ! call check_status(status, expected = 0, fail_message = 'fnom')
-        status = (fstouv(rsf_name_1, unit_list(1),'STD+RND'))
+        status = (fstouv(rsf_name_1, unit_list(1),'STD+RND+R/O'))
         call check_status(status, expected_min = 0, fail_message = 'fstouv (1)')
 
-        status = (fstouv(xdf_name_1, unit_list(2),'RND'))
+        status = (fstouv(xdf_name_1, unit_list(2),'RND+R/O'))
         call check_status(status, expected_min = 0, fail_message = 'fstouv (2)')
 
-        status = (fstouv(xdf_name_2, unit_list(3),'RND'))
+        status = (fstouv(xdf_name_2, unit_list(3),'RND+R/O'))
         call check_status(status, expected_min = 0, fail_message = 'fstouv (3)')
 
-        status = (fstouv(rsf_name_2, unit_list(4),'RND'))
+        status = (fstouv(rsf_name_2, unit_list(4),'RND+R/O'))
         call check_status(status, expected_min = 0, fail_message = 'fstouv (4)')
 
         single_num_records = fstnbr(unit_list(1))

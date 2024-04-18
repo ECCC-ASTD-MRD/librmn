@@ -34,7 +34,7 @@ int main(void) {
 
     // Create 1st file with 1 record
     {
-        fst_file* f = fst24_open(f1_name, "RSF");
+        fst_file* f = fst24_open(f1_name, "RSF+R/W");
         rec.data = data1;
         fst24_write(f, &rec, 0);
         fst24_close(f);
@@ -44,7 +44,7 @@ int main(void) {
 
     // Create 2nd file with 1 record
     {
-        fst_file* f = fst24_open(f2_name, "RSF");
+        fst_file* f = fst24_open(f2_name, "RSF+R/W");
         rec.data = data2;
         fst24_write(f, &rec, 0);
         fst24_close(f);

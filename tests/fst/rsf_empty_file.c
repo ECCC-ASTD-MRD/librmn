@@ -7,7 +7,7 @@ int main(void) {
 
     remove(filename);
 
-    fst_file* f = fst24_open(filename, "RSF");
+    fst_file* f = fst24_open(filename, "RSF+R/W");
     fst24_close(f);
     free(f);
 

@@ -21,7 +21,7 @@ int create_file() {
 
     remove(test_filename);
 
-    fst_file* test_file = fst24_open(test_filename, "RSF");
+    fst_file* test_file = fst24_open(test_filename, "RSF+R/W");
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open test file for creation\n");
         return -1;

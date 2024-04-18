@@ -9,7 +9,7 @@ int create_file(const int is_rsf) {
     const char* test_filename = is_rsf ? filename_rsf : filename_xdf;
     remove(test_filename);
 
-    fst_file* test_file = fst24_open(test_filename, is_rsf ? "RSF" : "XDF");
+    fst_file* test_file = fst24_open(test_filename, is_rsf ? "RSF+R/W" : "XDF+R/W");
 
     const int NUM_DATA = 150;
     float dummy_data[NUM_DATA];

@@ -309,7 +309,7 @@ int compare_data_bytes(const uint8_t* a, const uint8_t* b, const int num_x, cons
 int test_compression(const int is_rsf) {
     remove(test_filename);
 
-    const char* options = is_rsf ? "RSF" : "XDF";
+    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
     fst_file* test_file = fst24_open(test_filename, options);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_filename, options);

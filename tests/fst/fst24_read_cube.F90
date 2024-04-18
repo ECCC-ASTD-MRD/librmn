@@ -34,7 +34,7 @@ subroutine create_file()
     write(cmd, '(A, (1X, A))') 'rm -fv ', test_filename
     call execute_command_line(trim(cmd))
 
-    success = test_file % open(test_filename, 'RSF')
+    success = test_file % open(test_filename, 'RSF+R/W')
     if (.not. success) then
         call App_Log(APP_ERROR, 'Unable to open test file for creation')
         error stop 1

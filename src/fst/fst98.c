@@ -3526,13 +3526,17 @@ int c_fstouv(
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
-            if (is_rsf) {
+            if (read_only) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to open in read-only mode a file that does not exist: %s\n",
+                        __func__, FGFDT[i].file_name);
+                ier = ERR_NO_FILE;
+            }
+            else if (is_rsf) {
                 ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: Should open as RSF, but this branch is not implemented.......\n", __func__);
@@ -3544,13 +3548,17 @@ int c_fstouv(
         }
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
-            if (is_rsf) {
+            if (read_only) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to open in read-only mode a file that does not exist: %s\n",
+                        __func__, FGFDT[i].file_name);
+                ier = ERR_NO_FILE;
+            }
+            else if (is_rsf) {
                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 ier = c_fstouv_rsf(i, open_mode, seg_size);
