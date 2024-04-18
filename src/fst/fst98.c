@@ -1276,7 +1276,7 @@ int c_fstecr_xdf(
                     // nbits>64 flags a different packing
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
                         packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
@@ -1446,7 +1446,7 @@ int c_fstecr_xdf(
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
@@ -2811,7 +2811,7 @@ int c_fstluk_xdf(
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(stdf_entry.datyp)) {
                     // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
-                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
@@ -2939,7 +2939,7 @@ int c_fstluk_xdf(
                 // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (is_type_turbopack(stdf_entry.datyp)) {
-                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 

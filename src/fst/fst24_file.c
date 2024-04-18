@@ -653,7 +653,7 @@ int32_t fst24_write_rsf(
                     packfunc(field, (void *)&((uint32_t *)new_record->data)[1], (void *)&((uint32_t *)new_record->data)[5],
                         num_elements, record->pack_bits + 64 * Max(16, record->pack_bits), 0, stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                     const int compressed_lng = armn_compress((unsigned char *)((uint32_t *)new_record->data + 5),
-                                                             record->ni, record->nj, record->nk, record->pack_bits, 1, 0);
+                                                             record->ni, record->nj, record->nk, record->pack_bits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
@@ -824,7 +824,7 @@ int32_t fst24_write_rsf(
                                    &((int32_t *)new_record->data)[1+header_size], num_elements);
                     const int compressed_lng = armn_compress(
                         (unsigned char *)&((uint32_t *)new_record->data)[1+header_size], record->ni, record->nj,
-                        record->nk, record->pack_bits, 1, 0);
+                        record->nk, record->pack_bits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((void *)field, record->pack_bits, new_record->data, &((int32_t *)new_record->data)[header_size],
@@ -1350,7 +1350,7 @@ int32_t fst24_unpack_data(
                 // Floating Point
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(record->data_type)) {
-                    armn_compress((unsigned char *)(source_u32+ 5), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
+                    armn_compress((unsigned char *)(source_u32+ 5), record->ni, record->nj, record->nk, record->pack_bits, 2, 1);
                     packfunc(dest_u32, source_u32 + 1, source_u32 + 5, nelm, record->pack_bits + 64 * Max(16, record->pack_bits),
                              0, stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
                 } else {
@@ -1458,7 +1458,7 @@ int32_t fst24_unpack_data(
                 c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
                 header_size /= 4;
                 if (is_type_turbopack(record->data_type)) {
-                    armn_compress((unsigned char *)(source_u32 + 1 + header_size), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
+                    armn_compress((unsigned char *)(source_u32 + 1 + header_size), record->ni, record->nj, record->nk, record->pack_bits, 2, 1);
                     c_float_unpacker((float *)dest, (int32_t *)(source_u32 + 1), (int32_t *)(source_u32 + 1 + header_size), nelm, &bits);
                 } else {
                     c_float_unpacker((float *)dest, (int32_t *)source, (int32_t *)(source_u32 + header_size), nelm, &bits);
