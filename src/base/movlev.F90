@@ -31,21 +31,17 @@ subroutine move3216(src, dst, nb)
     integer, dimension(nb), intent(in) :: src
     integer, dimension(nb), intent(out) :: dst
 
+#if defined(Little_Endian)
+    ! Little endian
     integer :: i
 
-    integer(kind = int32) :: litend = 1
-    integer(kind = int16), dimension(2) :: little
-    equivalence (little(1), litend)
-
-    if (little(1) == 1) then
-        ! Little endian
-        do i = 1, nb
-            dst(i) = ior( ishft(src(i), 16), iand( ishft(src(i), -16), 65535 ) )
-        end do
-    else
-        ! Big endian
-        call movlev(src, dst, nb)
-    end if
+    do i = 1, nb
+        dst(i) = ior( ishft(src(i), 16), iand( ishft(src(i), -16), 65535 ) )
+    end do
+#else
+    ! Big endian
+    call movlev(src, dst, nb)
+#endif
 end subroutine
 
 
@@ -62,22 +58,17 @@ subroutine move832(src, dst, nb)
     integer, dimension(nb), intent(in) :: src
     integer, dimension(nb), intent(out) :: dst
 
+#if defined(Little_Endian)
     integer :: i
-
-    integer(kind = int32) :: litend = 1
-    integer(kind = int16), dimension(2) :: little
-    equivalence (little(1), litend)
-
-    if (little(1) == 1) then
-        ! Little endian
-        do i = 1, nb
-            dst(i) = ior(ior(ior(ishft(iand(src(i), 255), 24), &
-                                 iand(ishft(src(i),   8), 16711680)), &
-                                 iand(ishft(src(i),  -8), 65280)), &
-                                 iand(ishft(src(i), -24), 255))
-        end do
-    else
-        ! Big endian
-        call movlev(src, dst, nb)
-    end if
+    ! Little endian
+    do i = 1, nb
+        dst(i) = ior(ior(ior(ishft(iand(src(i), 255), 24), &
+                                iand(ishft(src(i),   8), 16711680)), &
+                                iand(ishft(src(i),  -8), 65280)), &
+                                iand(ishft(src(i), -24), 255))
+    end do
+#else
+    ! Big endian
+    call movlev(src, dst, nb)
+#endif
 end subroutine

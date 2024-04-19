@@ -13,13 +13,13 @@ for RI in I R ; do
                 [[ $L == 2 ]] && KIND='C_INT16_T'
                 [[ $L == 4 ]] && KIND='C_INT32_T'
                 [[ $L == 8 ]] && KIND='C_INT64_T'
-                TYPE_CONDITION='is_type_integer(this % datyp) == 1'
+                TYPE_CONDITION='is_type_integer(this % data_type) == 1'
                 ACCEPTED_TYPES='FST_TYPE_SIGNED or FST_TYPE_UNSIGNED'
             else
                 TYPE=real
                 [[ $L == 4 ]] && KIND='C_FLOAT'
                 [[ $L == 8 ]] && KIND='C_DOUBLE'
-                TYPE_CONDITION='is_type_real(this % datyp) == 1'
+                TYPE_CONDITION='is_type_real(this % data_type) == 1'
                 ACCEPTED_TYPES='FST_TYPE_REAL, FST_TYPE_REAL_IEEE or FST_TYPE_REAL_OLD_QUANT'
             fi
             [[ $D == 3 ]] && DIMENSION=':,:,:'
@@ -46,22 +46,19 @@ for RI in I R ; do
 
         if (${D}>1 .and. ${D} < num_dims) then
             write(app_msg, '(A, I2, A)') 'Record data has ', num_dims, ' dimensions, so your pointer (${D}-D) needs at least that to work'
-            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
-            return
+            call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
         if (.not. (${TYPE_CONDITION})) then
-            write(app_msg, '(A, A, A, A)') 'Record has type ', trim(FST_TYPE_NAMES(base_fst_type(this % datyp))),       &
+            write(app_msg, '(A, A, A, A)') 'Record has type ', trim(FST_TYPE_NAMES(base_fst_type(this % data_type))),       &
                     ' but this pointer can only take ', '${ACCEPTED_TYPES}'
-            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
-            return
+            call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
-        if (storage_size(array) /= this % dasiz) then
-            write(app_msg, '(A, I3, A, I3, A)') 'Record contains ', this % dasiz / 8,                                   &
+        if (storage_size(array) /= this % data_bits) then
+            write(app_msg, '(A, I3, A, I3, A)') 'Record contains ', this % data_bits / 8,                               &
                     '-byte elements, but you passed a pointer with ', ${L}, '-byte elements.'
-            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
-            return
+            call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
         call c_f_pointer(this % data, array, [$SHAPE])

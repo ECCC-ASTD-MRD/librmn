@@ -901,6 +901,7 @@ int c_xdfcut(
 //
 //! Deleted record are marked as idtyp = X111111X (X = don't care bits)
 //! and will be marked as idtyp=255 upon closing of the file.
+//! \return 0 on success, a negative number if there's an error
 int c_xdfdel(
     //! [in] File index, page number and record number to record
     const int handle

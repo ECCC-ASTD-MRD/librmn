@@ -1,58 +1,57 @@
-rmnlib est une bibliothèque de fonctions pour la prévision numérique du temps
-utilisée principalement par Environnement et Changement climatique Canada.
+rmnlib is a library of functions for numerical weather prediction used
+primarily by Environment and and Climate Change Canada.
 
-Ses principaux composants sont les fichiers Standard RPN et
-l'interpolateur EZ.
+Its main components are Standard RPN files and the EZ interpolator.
 
 
 ## Documentation
-  * [Référence des fonctions accessible à partir d'Internet (Anglais)](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
-  * [Documentation plus complète sur le Wiki du CMC](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
+  * [Functions reference accessible from the Internet](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
+  * [More complete documentation on CMC Wiki](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
 
-### Composantes
+### Components
   * [Standard files](src/fst/README.md)
   * [Extended metadata](src/Meta/README.md)
 
-## Obtenir le code
+## Getting the code
 
-Le projet est hébergé à l'adresse https://gitlab.science.gc.ca/RPN-SI/librmn
-Le code est disponible via Git aux adresse suivates:
-  * Sur le réseau ECCC: git@gitlab.science.gc.ca:RPN-SI/librmn.git
-  * Pour les utilisateurs à l'extérieur d'ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
+The project is hosted at https://gitlab.science.gc.ca/RPN-SI/librmn
+The code is available via Git at the following locations:
+  * On ECCC network: git@gitlab.science.gc.ca:RPN-SI/librmn.git
+  * For users outside ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
 
-`cmake_rpn` est inclus via des sous-modules de Git, alors veuillez exécuter la commande suivante après avoir cloné le dépôt:
-`git submodule update --init --recursive`
-pour récupérer les sous-modules.
+`cmake_rpn` is included as a git submodule, as well as the `json-c` and `udunits2` dependencies.  Please clone with the
+`--recursive` option or run `git submodule update --init --recursive` in the
+git repo after having cloned.
 
 
-## Instructions d'installation
+## Installation instructions
 
-### Créer un répertoire pour la compilation
+### Create a directory for compilation
 ```
 mkdir $build_dir_path
 cd $build_dir_path
 ```
 
-### Configuration de la compilation
+### Build setup
 
-Les options pour configurer la compilation doivent être ajoutées lors de
-l'appel de la commande `cmake` avec le préfix `-D`.
+Options to configure compilation must be added with the `-D` prefix when
+calling the `cmake` command.
 
 `CMAKE_BUILD_TYPE`
-: `(Release|RelWithDebInfo|Debug)` Mode de compilation. Défaut: `RelWithDebInfo`
+: `(Release|RelWithDebInfo|Debug)` Compilation mode. Default: `RelWithDebInfo`
 
 `CMAKE_INSTALL_PREFIX`
-: Chemin d'accès du répertoire pour l'installation (`make install`)
+: Directory path for installation (`make install`)
 
 `COMPILER_SUITE`
-: `(GNU|Intel|XL|...)` Suite de compilateurs à utiliser. Sur les systèmes d'ECCC,
-le compilateur chargé sera utilisé. Si les variables d'environnement propres à
-ECCC ne sont pas trouvées, la valeur par défaut est `GNU`.
+: `(gnu|intel|xl|nvhpc|...)` Compiler suite to be used. On ECCC systems,
+the compiler loaded will be used.  If the ECCC-specific environment variables are not
+not found, the default is `gnu`.
 
 `WITH_OMPI`
-: `(yes|no)` Indique si le support OpenMP/MPI est activé. Défaut: `yes`
+: `(yes|no)` Indicates whether OpenMP/MPI support is enabled.  Default: `yes`
 
-### Exemple de compilation
+### Compilation example
 ```
 cmake \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
@@ -62,20 +61,37 @@ make -j $a_resonable_number
 make install
 ```
 
-### Compilation dans l'environnement d'ECCC
+### Compilation in ECCC environment
 
-Les scripts CMake de __cmake_rpn__ vont automatiquement détecter le compilateur
-chargé via la variable d'environnement __EC_ARCH__. Il n'est donc pas nécessaire
-de spécifier explicitement la suite de compilateurs à utiliser
-(`-DCOMPILER_SUITE=...`). Vous devez toutefois charger le compilateur désiré
-avant d'effectuer la configuration de la compilation.
+CMake scripts from `cmake_rpn` will automatically detect the compiler loaded
+via the `EC_ARCH` environment variable.  It is therefore not necessary to
+explicitly specify the compiler suite to use (`-DCOMPILER_SUITE=...`).  
+However, you must load the desired compiler before performing the build
+configuration.
 
-Puisque la version par défaut de CMake disponible sur les systèmes
-d'ECCC est probablement trop vieille, vous devez charger une version
-plus récente que 3.20. Par exemple: `. ssmuse-sh -d main/opt/cmake/cmake-3.21.1`.
+Source the right file from the `ECCI_ENV` variable, depending on the desired
+architecture.  This will load the specified compiler, set the
+`ECCI_DATA_DIR` variable for the test datasets, and set the
+`EC_CMAKE_MODULE_PATH` variable for the cmake_rpn modules.
+
+- Example for PPP5:
+
+```
+. $ECCI_ENV/latest/ppp5/inteloneapi-2022.1.2.sh
+```
+
+- Example for CMC network and gnu 11.4.0:
+
+```
+. $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
+```
+
+Since the default version of CMake available on ECCC systems is probably too
+old, you need to load a version newer than 3.20.  For example: `. ssmuse-sh
+-d main/opt/cmake/cmake-3.21.1`.
 
 
-### Exemple de compilation de la branche dev sur un système non-ECCC
+### Example of compiling the dev branch on a system outside ECCC:
 ```bash
 git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git
 cd librmn
@@ -89,29 +105,35 @@ make -j4 install
 
 ### Documentation
 
-Une cible `doc` est créée par cmake pour générer la documentation. Ceci nécessite cependant
-Doxygen et graphviz.
+A `doc` target is created by cmake to generate documentation. This, however, requires
+Doxygen and graphviz.
 ```
 make doc
 ```
 
-### Changement de compilateur
+### Change of compiler
 
-Étant donné que la bibliothèque de fonctions contient un module Fortran, il
-faut utiliser le même compilateur qui a produit la biliothèque pour les
-applications clientes.
+Since the library of functions contains a Fortran module, it must use the
+same compiler that produced the library for the client applications.
 
-Ainsi, il faut nettoyer le répertoire de compilation et ré-exécuter les
-instructions de compilation en spécifiant un répertoire d'installation
-(`-DCMAKE_INSTALL_PREFIX=$install_dir_path`) différent.
+So, you have to clean the compilation directory and re-execute the
+compilation instructions specifying a different installation directory
+(`-DCMAKE_INSTALL_PREFIX=$install_dir_path`).
 
 
-## Exemple d'utilisation dans une application cliente
+## Example of use in a client application
 
-Nous avons développé un exemple très simple d'application qui utilise librmn.
-Il peut être utilisé comme référence pour construire un projet CMake qui utilise
-la librmn.
+We have developed a very simple example of an application using librmn.  It
+can be used as a reference to build a CMake project that uses librmn.
 
-Il peut être consulté aux adresses suivantes:
-- [https://gitlab.science.gc.ca/RPN-SI/librmn-client-example](https://gitlab.science.gc.ca/RPN-SI/librmn-client-example) (Sur le réseau d'ECCC)
+It can be consulted at the following addresses:
+- [https://gitlab.science.gc.ca/RPN-SI/librmn-client-example](https://gitlab.science.gc.ca/RPN-SI/librmn-client-example) (On ECCC network)
 - [https://github.com/ECCC-ASTD-MRD/librmn-client-example](https://github.com/ECCC-ASTD-MRD/librmn-client-example) (Public)
+
+The static version of the library will be the one used by default when
+searching for the rmn package, unless specified. Examples:
+
+```
+find_package(rmn [version] REQUIRED)
+find_package(rmn [version] REQUIRED COMPONENTS shared)
+```

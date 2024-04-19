@@ -1,3 +1,5 @@
+//! \file fst98.c Low level implementation of fst functions
+
 #include <stdio.h>
 #include <unistd.h>
 #include <alloca.h>
@@ -117,6 +119,23 @@ int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_
     }
 
     return 1;
+}
+
+//! Get record valid date from origin date, timestep size and count
+uint32_t get_valid_date32(
+    const int64_t origin_date,      //!< Start date of the run
+    const int32_t timestep_size,    //!< Size of the timestep in seconds
+    const int32_t timestep_num      //!< Timestep number
+) {
+    const int64_t delta_seconds = (int64_t) timestep_size * timestep_num;
+    if (delta_seconds > 0) {
+        int32_t f_datev = origin_date;
+        double nhours = ((double) delta_seconds) / 3600.0;
+        f77name(incdatr)(&f_datev, &f_datev, &nhours);
+        return f_datev;
+    }
+
+    return (uint32_t)origin_date;
 }
 
 void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
@@ -789,8 +808,8 @@ int c_fst_data_length(
     //! | ----------: | :---------------- |
     //! |           1 | Byte              |
     //! |           2 | Short (16 bits)   |
-    //! |           3 | Regular (32 bits) |
-    //! |           4 | Double (64 bits)  |
+    //! |           4 | Regular (32 bits) |
+    //! |           8 | Double (64 bits)  |
     const int length_type
 ) {
     switch (length_type) {
@@ -945,6 +964,12 @@ int c_fstecr_xdf(
     nk = Max(1, nk);
     int minus_nbits = -nbits;
 
+    if (base_fst_type(datyp) == FST_TYPE_REAL_IEEE && nbits < 16) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Writing a truncated IEEE float with less than 16 bits is not allowed\n",
+                __func__);
+        return ERR_BAD_DATYP;
+    }
+
     if ( (in_datyp_ori == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) && (nbits > 32) ) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
                 "data type FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK (%d) reset to FST_TYPE_REAL_IEEE (%d) (IEEE)\n", __func__,
@@ -989,15 +1014,7 @@ int c_fstecr_xdf(
     VALID(ip3, 0, IP3_MAX, "ip3")
     VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
-    unsigned int datev = date;
-    int32_t f_datev = (int32_t) datev;
-    if (( (long long) deet * npas) > 0) {
-        long long deltat = (long long) deet * npas;
-        double nhours = (double) deltat;
-        nhours = nhours / 3600.;
-        f77name(incdatr)(&f_datev, &f_datev, &nhours);
-        datev = (unsigned int) f_datev;
-    }
+    const uint32_t datev = get_valid_date32(date, deet, npas);
 
     if ((npak == 0) || (npak == 1)) {
         // no compaction
@@ -1036,16 +1053,27 @@ int c_fstecr_xdf(
         datyp = FST_TYPE_REAL_OLD_QUANT;
     }
 
+    float* field_f = field_in; // Hold real datatypes, in case we need to convert from float to double
+
     // Determine data_nbits (uncompressed datatype size)
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
         data_nbits = (xdf_double || IEEE_64) ? 64 : 32;
+        if (data_nbits == 64 && nbits <= 32) {
+            // We convert now from double to float
+            data_nbits = 32;
+            field_f = alloca(ni * nj * nk * sizeof(float));
+            double* field_d = field_in;
+            for (int i = 0; i < ni * nj * nk; i++) {
+                field_f[i] = (float)field_d[i];
+            }
+        }
     }
     else if (is_type_integer(datyp)) {
         data_nbits = xdf_byte   ?  8 :
-                        xdf_short  ? 16 :
-                        xdf_double ? 64 :
-                                    32;
+                     xdf_short  ? 16 :
+                     xdf_double ? 64 :
+                                  32;
     }
 
     int header_size;
@@ -1177,7 +1205,7 @@ int c_fstecr_xdf(
     stdf_entry->pad5 = 0;
     stdf_entry->ip3 = ip3;
     stdf_entry->pad6 = 0;
-    stdf_entry->date_stamp = 8 * (datev/10) + (datev % 10);
+    stdf_entry->date_stamp = stamp_from_date(datev);
 
     int handle = 0;
     if ((rewrit) && (!fte->xdf_seq)) {
@@ -1265,7 +1293,7 @@ int c_fstecr_xdf(
                     // nbits>64 flags a different packing
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
                         packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
@@ -1401,7 +1429,7 @@ int c_fstecr_xdf(
                     int32_t f_one = 1;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
                     if (datyp == (FST_TYPE_COMPLEX | FST_TYPE_TURBOPACK)) {
-                        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_COMPLEXT (%d)\n",
+                        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available for complex data, data type %d reset to FST_TYPE_COMPLEX (%d)\n",
                                 __func__, stdf_entry->datyp, FST_TYPE_COMPLEX);
                         datyp = FST_TYPE_COMPLEX;
                         stdf_entry->datyp = datyp;
@@ -1422,7 +1450,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field_f, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -1435,7 +1463,7 @@ int c_fstecr_xdf(
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
@@ -1909,7 +1937,7 @@ int c_fstfrm(
     return rsf_status;
 }
 
-//! Locate the next record that matches the search keys
+//! Locate the first record that matches the search keys
 int c_fstinf(
     //! [in] Unit number associated to the file
     const int iun,
@@ -2237,21 +2265,15 @@ int c_fstinl_xdf(
     //! [in] List size (maximum number of matches)
     int nmax
 ) {
-    int handle;
-    int nfound = 0;
-    int nimax;
-    int njmax;
-    int nkmax;
-    int nijkmax;
-
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n", __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
-    handle = c_fstinfx_xdf(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
-    nijkmax = (*ni) * (*nj) * (*nk);
-    nimax = *ni;
-    njmax = *nj;
-    nkmax = *nk;
+    int handle = c_fstinfx_xdf(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    int nijkmax = (*ni) * (*nj) * (*nk);
+    int nimax = *ni;
+    int njmax = *nj;
+    int nkmax = *nk;
 
+    int nfound = 0;
     while ((handle >= 0) && (nfound < nmax)) {
         liste[nfound] = handle;
         nfound++;
@@ -2273,7 +2295,7 @@ int c_fstinl_xdf(
     while ( (handle = c_fstsui_xdf(iun, ni, nj, nk)) >= 0 ) nfound++;
     if (nfound > nmax) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: number of records found (%d) > nmax specified (%d)\n", __func__, nfound, nmax);
-        return(-nfound);
+        return -nfound;
     } else {
         return 0;
     }
@@ -2733,15 +2755,6 @@ int c_fstluk_xdf(
     // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
     bzero(workField, workFieldSz);
 
-    // if ((workField = alloca(workFieldSz)) == NULL) {
-    //     Lib_Log(APP_LIBFST, APP_FATAL, "%s: "memory is full, was trying to allocate %ld bytes\n", __func__, lng*sizeof(int));
-    //     return ERR_MEM_FULL;
-    // } else {
-    //     printf("Debug+ fstluk - &\n");
-    //     printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
-    //     memset(workField, 0, workFieldSz);
-    // }
-
     // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
     buffer_interface_ptr buf = (buffer_interface_ptr) workField;
     if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7) != 0 ) {
@@ -2806,7 +2819,7 @@ int c_fstluk_xdf(
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(stdf_entry.datyp)) {
                     // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
-                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
@@ -2934,7 +2947,7 @@ int c_fstluk_xdf(
                 // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (is_type_turbopack(stdf_entry.datyp)) {
-                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
@@ -3521,13 +3534,17 @@ int c_fstouv(
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
-            if (is_rsf) {
+            if (read_only) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to open in read-only mode a file that does not exist: %s\n",
+                        __func__, FGFDT[i].file_name);
+                ier = ERR_NO_FILE;
+            }
+            else if (is_rsf) {
                 ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: Should open as RSF, but this branch is not implemented.......\n", __func__);
@@ -3539,13 +3556,17 @@ int c_fstouv(
         }
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
-            if (is_rsf) {
+            if (read_only) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to open in read-only mode a file that does not exist: %s\n",
+                        __func__, FGFDT[i].file_name);
+                ier = ERR_NO_FILE;
+            }
+            else if (is_rsf) {
                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 ier = c_fstouv_rsf(i, open_mode, seg_size);
@@ -4044,7 +4065,14 @@ int c_fstvoi_xdf(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in] List of fields to print
-    const char * const options
+    const char * const options,
+    const int print_stats,              //!< Whether to print stats after record info
+    int64_t* const total_num_entries,         //!< [in,out] Accumulate number of entries (for linked files)
+    int64_t* const total_num_valid_records,   //!< [in,out] Accumulate number of valid record  (for linked files)
+    int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
+    int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
+    int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
+    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
 ) {
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -4078,8 +4106,8 @@ int c_fstvoi_xdf(
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
-                    snprintf(string, strlng, "%5d-", nrec);
-                    print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
+                    snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                    print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                     nrec++;
                 }
                 entry += width;
@@ -4184,8 +4212,8 @@ int c_fstvoi_xdf(
                     // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
-                snprintf(string, strlng, "%5d-", nrec);
-                print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
+                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
                 free(stdf_entry);
@@ -4195,32 +4223,43 @@ int c_fstvoi_xdf(
                     continue;
                 }
                 stdf_entry = (stdf_dir_keys *) fte->head_keys;
-                snprintf(string, strlng, "%5d-", nrec);
-                print_std_parms(stdf_entry, string, options, ((nrec % 70) == 0));
+                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD(header->lng);
             }
         } // end while
     }
 
-    fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
-    if (fte->fstd_vintage_89) {
-        snprintf(string, strlng, "Version 1989");
-    } else {
-        snprintf(string, strlng, "Version 1998");
+    *total_num_valid_records += nrec;
+    if (!fte->xdf_seq && !fte->fstd_vintage_89) {
+        *total_num_entries += fte->header->nrec;
+        *total_file_size += fte->header->fsiz * 8;
+        *total_num_writes += fte->header->nxtn;
+        *total_num_rewrites += fte->header->nrwr;
+        *total_num_erasures += fte->header->neff - fte->header->nrwr;
     }
-    if (fte->xdf_seq) {
-        fprintf(stdout, "%d records in sequential RPN standard file (%s)\n", nrec, string);
-    } else {
-        if (! fte->fstd_vintage_89) {
-            fprintf(stdout, "Number of directory entries \t %d\n", fte->header->nrec);
-            fprintf(stdout, "Number of valid records     \t %d\n", nrec);
-            fprintf(stdout, "File size                   \t %d Words\n", W64TOWD(fte->header->fsiz));
-            fprintf(stdout, "Number of writes            \t %d\n", fte->header->nxtn);
-            fprintf(stdout, "Number of rewrites          \t %d\n", fte->header->nrwr);
-            fprintf(stdout, "Number of erasures          \t %d\n", fte->header->neff - fte->header->nrwr);
+
+    if (print_stats) {
+        fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
+        if (fte->fstd_vintage_89) {
+            snprintf(string, strlng, "Version 1989");
+        } else {
+            snprintf(string, strlng, "Version 1998");
         }
-        fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
+        if (fte->xdf_seq) {
+            fprintf(stdout, "%d records in sequential RPN standard file (%s)\n", nrec, string);
+        } else {
+            if (! fte->fstd_vintage_89) {
+                fprintf(stdout, "Number of directory entries \t %d\n", fte->header->nrec);
+                fprintf(stdout, "Number of valid records     \t %d\n", nrec);
+                fprintf(stdout, "File size                   \t %d Words\n", W64TOWD(fte->header->fsiz));
+                fprintf(stdout, "Number of writes            \t %d\n", fte->header->nxtn);
+                fprintf(stdout, "Number of rewrites          \t %d\n", fte->header->nrwr);
+                fprintf(stdout, "Number of erasures          \t %d\n", fte->header->neff - fte->header->nrwr);
+            }
+            fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
+        }
     }
 
     return 0;
@@ -4233,22 +4272,55 @@ int c_fstvoi(
     //! [in] List of fields to print
     const char * const options
 ) {
-    int index_fnom;
-    const int rsf_status = is_rsf(iun, &index_fnom);
-
+    int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    if (rsf_status == 1) {
-        return c_fstvoi_rsf(iun, index_fnom, options);
-    }
-    else if (rsf_status == 0) {
-        return c_fstvoi_xdf(iun, options);
+    const int print_single_stats = (fstd_open_files[index_fnom].next_file < 0);
+    int status = -1;
+    int num_files = 0;
+
+    int64_t total_num_entries       = 0;
+    int64_t total_num_valid_records = 0;
+    int64_t total_file_size         = 0;
+    int64_t total_num_writes        = 0;
+    int64_t total_num_rewrites      = 0;
+    int64_t total_num_erasures      = 0;
+
+    while (index_fnom >= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+        num_files++;
+
+        if (FGFDT[index_fnom].attr.rsf == 1) {
+            status = c_fstvoi_rsf(FGFDT[index_fnom].iun, index_fnom, options, print_single_stats, &total_num_entries,
+                                  &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
+                                  &total_num_erasures);
+        }
+        else {
+            status = c_fstvoi_xdf(FGFDT[index_fnom].iun, options, print_single_stats, &total_num_entries,
+                                  &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
+                                  &total_num_erasures);
+        }
+
+        if (status < 0) return status;
+
+        index_fnom = fstd_open_files[index_fnom].next_file;
     }
 
-    return rsf_status;
+    if (!print_single_stats) {
+        fprintf(stdout, "Statistics for %d linked files: \n", num_files);
+        fprintf(stdout, "Number of directory entries   \t %ld\n", total_num_entries);
+        fprintf(stdout, "Number of valid records       \t %ld\n", total_num_valid_records);
+        fprintf(stdout, "File size                     \t %ld bytes\n", total_file_size);
+        fprintf(stdout, "Number of writes              \t %ld\n", total_num_writes);
+        fprintf(stdout, "Number of rewrites (XDF only) \t %ld\n", total_num_rewrites);
+        fprintf(stdout, "Number of erasures (XDF only) \t %ld\n", total_num_erasures);
+    }
+
+    return status;
 }
 
 
@@ -6149,40 +6221,45 @@ int FstCanTranslateName(const char *varname) {
     static char filename[256];
     int result;
 
-    if (! read_done) {
-        // First call, get do not translate table
-        read_done = 1;
-        char * fst_noip_name = getenv("FST_NOIP_NAME");
-        ARMNLIB = getenv("ARMNLIB");
-        char * basename = ARMNLIB;
-        if (fst_noip_name) {
-            // Environment variable contains the table
-            strncpy( exception_vars , fst_noip_name , sizeof(exception_vars) );
-            basename = NULL;
-            // fst_noip_name contains a file name
-            if (exception_vars[0] == '|') basename = exception_vars + 1;
-        }
-        if (basename) {
-            // Get table from $ARMNLIB/data/exception_vars file if it exists
-            if (basename == ARMNLIB) {
-                snprintf(filename, sizeof(filename), "%s/data/exception_regex_var", ARMNLIB);
-            } else {
-                snprintf(filename, sizeof(filename), "%s", basename);
+    #pragma omp critical (fst_can_translate_name)
+    {
+        if (! read_done) {
+            // First call, get do not translate table
+            read_done = 1;
+            char * fst_noip_name = getenv("FST_NOIP_NAME");
+            ARMNLIB = getenv("ARMNLIB");
+            char * basename = ARMNLIB;
+            if (fst_noip_name) {
+                // Environment variable contains the table
+                strncpy( exception_vars , fst_noip_name , sizeof(exception_vars) );
+                basename = NULL;
+                // fst_noip_name contains a file name
+                if (exception_vars[0] == '|') basename = exception_vars + 1;
             }
-            if ((fileref = fopen(filename, "r")) != NULL) {
-                if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPENING exception file: %s\n", __func__, filename);
-                fclose(fileref);
+            if (basename) {
+                // Get table from $ARMNLIB/data/exception_vars file if it exists
+                if (basename == ARMNLIB) {
+                    snprintf(filename, sizeof(filename), "%s/data/exception_regex_var", ARMNLIB);
+                } else {
+                    snprintf(filename, sizeof(filename), "%s", basename);
+                }
+                if ((fileref = fopen(filename, "r")) != NULL) {
+                    if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPENING exception file: %s\n", __func__, filename);
+                    fclose(fileref);
+                }
             }
-        }
-        if (exception_vars[0] == '~') {
-            int i;
-            for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
-            exception_vars[i] = '\0';
-            result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: exception pattern: '%s'\n", __func__, exception_vars + 1);
+            if (exception_vars[0] == '~') {
+                int i;
+                for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
+                exception_vars[i] = '\0';
+                // result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
+                regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: exception pattern: '%s'\n", __func__, exception_vars + 1);
+            }
         }
     }
+
     if (exception_vars[0] == '~') {
         // This is a regex pattern
         // Name not in pattern, it can be translated

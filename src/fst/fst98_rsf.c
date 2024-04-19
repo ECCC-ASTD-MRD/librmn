@@ -90,9 +90,14 @@ int c_fstecr_rsf(
 
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
+    if (npak >= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must specify number of bits (npak < 0) for RSF files\n", __func__);
+        return ERR_OUT_RANGE;
+    }
+
     fst_record rec = default_fst_record;
     rec.data  = field_in;
-    rec.npak  = npak;
+    rec.pack_bits = -npak;
     rec.dateo = date;
     rec.deet  = deet;
     rec.npas  = npas;
@@ -106,16 +111,16 @@ int c_fstecr_rsf(
     rec.ig2 = ig2;
     rec.ig3 = ig3;
     rec.ig4 = ig4;
-    rec.datyp = in_datyp_ori;
+    rec.data_type = in_datyp_ori;
     strncpy(rec.typvar, in_typvar, FST_TYPVAR_LEN);
     strncpy(rec.nomvar, in_nomvar, FST_NOMVAR_LEN);
     strncpy(rec.etiket, in_etiket, FST_ETIKET_LEN);
     strncpy(rec.grtyp,  in_grtyp,  FST_GTYP_LEN);
 
-    rec.dasiz = 32;
-    if (xdf_double) rec.dasiz = 64;
-    else if (xdf_short) rec.dasiz = 16;
-    else if (xdf_byte) rec.dasiz = 8;
+    rec.data_bits = 32;
+    if (xdf_double) rec.data_bits = 64;
+    else if (xdf_short) rec.data_bits = 16;
+    else if (xdf_byte) rec.data_bits = 8;
 
     xdf_double = 0;
     xdf_short = 0;
@@ -150,7 +155,7 @@ int c_fstouv_rsf(
     const int32_t parallel_segment_size_mb
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
-    const int32_t meta_dim = (sizeof(stdf_dir_keys) + 3)/ sizeof(int32_t); // In 32-bit units
+    const int32_t meta_dim = (sizeof(search_metadata) + 3)/ sizeof(int32_t); // In 32-bit units
     int64_t segment_size = 0;
     if (parallel_segment_size_mb > 0) {
         segment_size = ((int64_t)parallel_segment_size_mb) << 20;
@@ -227,7 +232,9 @@ int c_fstinfx_rsf(
     criteria.datev = datev;
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] "
-            "nomvar=[%s]\n", __func__, iun, datev, criteria.etiket, ip1, ip2, ip3, criteria.typvar, criteria.nomvar);
+            "nomvar=[%s] (handle = %d, ipflags = %d%d%d)\n",
+            __func__, iun, datev, criteria.etiket, ip1, ip2, ip3, criteria.typvar, criteria.nomvar, handle,
+            ip1s_flag, ip2s_flag, ip3s_flag);
 
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -237,11 +244,19 @@ int c_fstinfx_rsf(
     }
 
     // Initialize search parameters
-    fstd_open_files[index_fnom].query.search_index = 0;
-    fstd_open_files[index_fnom].query.search_done = 0;
-    stdf_dir_keys *search_criteria = &fstd_open_files[index_fnom].query.criteria.fst98_meta;
-    stdf_dir_keys *search_mask     = &fstd_open_files[index_fnom].query.mask.fst98_meta;
-    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query.criteria, &fstd_open_files[index_fnom].query.mask);
+    fst_query* query = &fstd_open_files[index_fnom].query;
+    query->search_index = 0;
+    query->search_done = 0;
+    stdf_dir_keys *search_criteria = &(query->criteria.fst98_meta);
+    stdf_dir_keys *search_mask     = &(query->mask.fst98_meta);
+
+    query->options = default_query_options;
+
+    if (ip1s_flag) query->options.ip1_all = 1;
+    if (ip2s_flag) query->options.ip2_all = 1;
+    if (ip3s_flag) query->options.ip3_all = 1;
+
+    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query);
 
     // Perform the search itself
     int64_t rsf_key = -1;
@@ -264,13 +279,14 @@ int c_fstinfx_rsf(
 
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
-        if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
+        // if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
         return (int32_t)rsf_key;
     }
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+    const stdf_dir_keys* record_meta = &((const search_metadata*)record_info.meta)->fst98_meta;
 
     // Continue looking until we have a match. Why is this not part of the RSF lookup function????
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
@@ -278,13 +294,13 @@ int c_fstinfx_rsf(
         while ((lhandle >=  0) && (nomatch)) {
             nomatch = 0;
             if ((ip1s_flag) && (ip1 >= 0)) {
-                if (ip_is_equal(ip1, search_criteria->ip1, 1) == 0) {
+                if (ip_is_equal(ip1, record_meta->ip1, 1) == 0) {
                     nomatch = 1;
                 } else if ((ip2s_flag) && (ip2 >= 0)) {
-                    if (ip_is_equal(ip2, search_criteria->ip2, 2) == 0) {
+                    if (ip_is_equal(ip2, record_meta->ip2, 2) == 0) {
                         nomatch = 1;
                     } else if ((ip3s_flag) && (ip3 >= 0)) {
-                        if (ip_is_equal(ip3, search_criteria->ip3, 3) == 0) {
+                        if (ip_is_equal(ip3, record_meta->ip3, 3) == 0) {
                             nomatch = 1;
                         }
                     }
@@ -300,16 +316,22 @@ int c_fstinfx_rsf(
         }
     }
     
-    // Not sure what this does, or if it is useful for RSF...
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
         /* arranger les masques de recherches pour un fstsui */
-        if (ip1s_flag) search_mask->ip1 = 0xFFFFFFF;
-        if (ip2s_flag) search_mask->ip2 = 0xFFFFFFF;
-        if (ip3s_flag) search_mask->ip3 = 0xFFFFFFF;
+        if (ip1s_flag) {
+            search_criteria->ip1 = record_meta->ip1;
+            search_mask->ip1 = 0xFFFFFFF;
+        }
+        if (ip2s_flag) {
+            search_criteria->ip2 = record_meta->ip2;
+            search_mask->ip2 = 0xFFFFFFF;
+        }
+        if (ip3s_flag) {
+            search_criteria->ip3 = record_meta->ip3;
+            search_mask->ip3 = 0xFFFFFFF;
+        }
         init_ip_vals();
     }
-
-    const stdf_dir_keys* record_meta = (const stdf_dir_keys*)record_info.meta;
 
     *ni = record_meta->ni;
     *nj = record_meta->nj;
@@ -426,11 +448,11 @@ int c_fstluk_rsf(
     uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
     memset(work_space, 0, sizeof(work_space));
 
-    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.handle, 0, (void*)work_space);
+    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.do_not_touch.handle, 0, (void*)work_space);
 
     if ((uint64_t*)record_rsf != work_space) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%lx\n",
-                __func__, rec.handle);
+                __func__, rec.do_not_touch.handle);
         return ERR_BAD_HNDL;
     }
 
@@ -440,11 +462,11 @@ int c_fstluk_rsf(
     *nj = rec.nj;
     *nk = rec.nk;
 
-    xdf_datatyp = rec.datyp & ~FSTD_MISSING_FLAG;
+    xdf_datatyp = rec.data_type & ~FSTD_MISSING_FLAG;
 
-    if (xdf_double) rec.dasiz = 64;
-    else if (xdf_short) rec.dasiz = 16;
-    else if (xdf_byte) rec.dasiz = 8;
+    if (xdf_double) rec.data_bits = 64;
+    else if (xdf_short) rec.data_bits = 16;
+    else if (xdf_byte) rec.data_bits = 8;
 
     xdf_double = 0;
     xdf_short = 0;
@@ -453,7 +475,7 @@ int c_fstluk_rsf(
     // // Extract metadata from record if present
     // rec.metadata = NULL;
     // if (record_rsf->rec_meta > record_rsf->dir_meta) {
-    //     rec.metadata = Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+    //     rec.metadata = Meta_Parse((char*)((search_metadata*)record_rsf->meta+1));
     // }
 
     // Extract data
@@ -480,11 +502,7 @@ int c_fsteff_rsf(
     //! Handle of the record to delete
     int handle
 ) {
-    // Suppress compilation warnings
-    (void)file_handle;
-    (void)handle;
-
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot delete a record from a RSF-type file\n", __func__);
+    if (RSF_Delete_record(file_handle, RSF_Key64(handle)) == 1) return 0;
     return ERR_BAD_FTYPE;
 }
 
@@ -766,7 +784,7 @@ int c_fstprm_rsf(
         return -1;
     }
 
-    stdf_dir_keys *stdf_entry = (stdf_dir_keys *)record_info.meta;
+    stdf_dir_keys *stdf_entry = &((search_metadata *)record_info.meta)->fst98_meta;
     stdf_special_parms cracked;
     crack_std_parms(stdf_entry, &cracked);
 
@@ -847,7 +865,7 @@ int c_fstsui_rsf(
     }
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record_info.meta;
+    stdf_dir_keys* stdf_entry = &((search_metadata*)record_info.meta)->fst98_meta;
     *ni = stdf_entry->ni;
     *nj = stdf_entry->nj;
     *nk = stdf_entry->nk;
@@ -864,7 +882,14 @@ int c_fstvoi_rsf(
     //! [in] Index of the file given by fnom
     const int index_fnom,
     //! [in] List of fields to print
-    const char * const options
+    const char * const options,
+    const int print_stats,              //!< Whether to print stats after record info
+    int64_t* const total_num_entries,         //!< [in,out] Accumulate number of entries (for linked files)
+    int64_t* const total_num_valid_records,   //!< [in,out] Accumulate number of valid record  (for linked files)
+    int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
+    int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
+    int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
+    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
 ) {
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -874,18 +899,25 @@ int c_fstvoi_rsf(
     }
 
     const uint32_t num_records = RSF_Get_num_records(file_handle);
-    size_t total_file_size = 0;
+    size_t single_file_size = 0;
     
     for (unsigned int i = 0; i < num_records; i++) {
         const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
-        const stdf_dir_keys* metadata = (const stdf_dir_keys *) info.meta;
-        total_file_size += info.rl;
+        const stdf_dir_keys* metadata = &((const search_metadata *) info.meta)->fst98_meta;
+        single_file_size += info.rl;
         char string[20];
-        sprintf(string, "%5d-", i);
-        print_std_parms(metadata, string, options, ((i % 70) == 0));
+        sprintf(string, "%5d-", *total_num_valid_records + i);
+        print_std_parms(metadata, string, options, (((*total_num_valid_records + i) % 70) == 0));
     }
 
-    fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, total_file_size);
+    *total_num_entries += num_records;
+    *total_num_valid_records += num_records;
+    *total_file_size += single_file_size;
+    *total_num_writes += num_records;
+
+    if (print_stats) {
+        fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, single_file_size);
+    }
 
     return 0;
 }

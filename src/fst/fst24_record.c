@@ -20,23 +20,23 @@ fst_record* fst24_record_new(
     fst_record* result = (fst_record*)malloc(sizeof(fst_record));
 
     if (result) {
-        memcpy(result,&default_fst_record,sizeof(fst_record));
+        memcpy(result, &default_fst_record, sizeof(fst_record));
 
-        result->ni=ni;
-        result->nj=nj;
-        result->nk=nk;
-        result->dasiz=nbits;
-        result->datyp=type;
-        result->alloc=fst24_record_data_size(result);
-
-        if (!(result->data=data)) {
+        result->ni = ni;
+        result->nj = nj;
+        result->nk = nk;
+        result->data_bits = nbits;
+        result->data_type = type;
+        result->do_not_touch.alloc = fst24_record_data_size(result);
+        result->data = data;
+        if (data == NULL) {
             // No data pointer passed, allocate data array
-            if (!(result->data=(void*)malloc(result->alloc))) {
+            if (!(result->data = (void*)malloc(result->do_not_touch.alloc))) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate record data (%ix%ix%i)\n", __func__,ni,nj,nk);
             }
         } else {
           // Using an assigned pointer
-         result->flags = FST_REC_ASSIGNED;
+         result->do_not_touch.flags = FST_REC_ASSIGNED;
         }
     } else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate record\n",__func__);
@@ -50,11 +50,11 @@ int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
 
-   if (record->data && record->alloc) {
-      record->alloc=0;
-      if (!(record->flags&FST_REC_ASSIGNED))
+   if ((record->data != NULL) && (record->do_not_touch.alloc > 0)) {
+      record->do_not_touch.alloc = 0;
+      if (!(record->do_not_touch.flags & FST_REC_ASSIGNED))
          free(record->data);
-      record->data=NULL; 
+      record->data = NULL; 
    }
    return(TRUE);
 }
@@ -72,9 +72,9 @@ void fst24_record_print(const fst_record* record) {
         "  Handle: 0x%x\n"
         "  dateo: %ld\n"
         "  datev: %ld\n"
-        "  datyp: %d\n"
-        "  dasiz: %d\n"
-        "  npak: %d\n"
+        "  data_type: %d\n"
+        "  data_bits: %d\n"
+        "  pack_bits: %d\n"
         "  ni x nj x nk: %d x %d x %d (%d) elements\n"
         "  metadata size: %d bytes\n"
         "  deet: %d, npas: %d\n"
@@ -84,9 +84,9 @@ void fst24_record_print(const fst_record* record) {
         "  grtyp:  \"%s\"\n"
         "  nomvar: \"%s\"\n"
         "  etiket: \"%s\"\n",
-        record->version, record->file, record->data, record->metadata, record->flags,
-        record->alloc, record->handle, 
-        record->dateo, record->datev, record->datyp, record->dasiz, record->npak,
+        record->do_not_touch.version, record->file, record->data, record->metadata, record->do_not_touch.flags,
+        record->do_not_touch.alloc, record->do_not_touch.handle, 
+        record->dateo, record->datev, record->data_type, record->data_bits, record->pack_bits,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->num_meta_bytes,
         record->deet, record->npas, record->ip1, record->ip2, record->ip3,
@@ -326,7 +326,7 @@ void fst24_record_print_short(
         .datestamps = 9,
         .level = 15,
 
-        .datyp = 8,
+        .data_type = 8,
         .grid_info = 31,
         .ig1234 = 25
     };
@@ -363,7 +363,7 @@ void fst24_record_print_short(
         if (to_print.deet) current = add_str(current, "DEET", width.deet);
         if (to_print.npas) current = add_str(current, "NPAS", width.npas);
 
-        if (to_print.datyp) current = add_str(current, "DTYP SIZ", width.datyp);
+        if (to_print.data_type) current = add_str(current, "DTYP SIZ", width.data_type);
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
@@ -396,7 +396,7 @@ void fst24_record_print_short(
     if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
     if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
 
-    if (to_print.datyp) current = add_datatype(current, record->datyp, -record->npak, record->dasiz, width.datyp);
+    if (to_print.data_type) current = add_datatype(current, record->data_type, record->pack_bits, record->data_bits, width.data_type);
 
     if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
                                                     record->ig3, record->ig4, width.grid_info);
@@ -419,11 +419,11 @@ int32_t fst24_record_is_valid(const fst_record* record) {
         return 0;
     }
     
-    if (record->version != default_fst_record.version) {
+    if (record->do_not_touch.version != default_fst_record.do_not_touch.version) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Version number (%ld) is wrong (should be %ld)! This means that either:\n"
                 "  - The given address does not point to an initialized fst_record struct\n"
                 "  - Your program was not compiled with the same version it is linked to\n",
-                __func__, record->version, default_fst_record.version);
+                __func__, record->do_not_touch.version, default_fst_record.do_not_touch.version);
         return 0;
     }
 
@@ -433,6 +433,11 @@ int32_t fst24_record_is_valid(const fst_record* record) {
 //! Validate the parameters of the given record.
 //! Will exit with an error if they are not valid.
 int32_t fst24_record_validate_params(const fst_record* record) {
+    if (record->data == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record has no data\n", __func__);
+        return -1;
+    }
+
     VALID(record->ni, 1, NI_MAX, "ni")
     VALID(record->nj, 1, NJ_MAX, "nj")
     VALID(record->nk, 1, NK_MAX, "nk")
@@ -454,22 +459,22 @@ int32_t fst24_record_validate_params(const fst_record* record) {
 //! will directly be used for searching in a file
 void make_search_criteria(
     const fst_record* record,   //!< [in] The information we are looking for
-    search_metadata* criteria,  //!< [out] The encoded information keys
-    search_metadata* mask       //!< [out] The corresponding search mask
+    fst_query* const query      //!< [in,out] Query for which we are making the criteria
 ) {
     // Check for error
-    if (!fst24_record_is_valid(record) || criteria == NULL || mask == NULL) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or criteria/mask pointers\n", __func__);
+    if (!fst24_record_is_valid(record) || (query == NULL)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record or query\n", __func__);
         return;
     }
 
-    const unsigned int u_datev = (unsigned int) record->dateo;
+    search_metadata* criteria = &(query->criteria);
+    search_metadata* mask     = &(query->mask);
 
     // Reset search mask
     {
         uint32_t *pmask = (uint32_t *) mask;
         for (uint32_t i = 0; i < (sizeof(search_metadata) / sizeof(uint32_t)); i++) {
-            pmask[i] = -1;
+            pmask[i] = 0xffffffff;
         }
     }
 
@@ -488,40 +493,81 @@ void make_search_criteria(
         fst98_mask->select = 0;
         fst98_mask->lng = 0;
         fst98_mask->addr = 0;
-        fst98_mask->dasiz = 0;
-        fst98_mask->datyp = 0;
-        fst98_mask->nbits = 0;
         fst98_mask->ubc = 0;
         fst98_mask->levtyp = 0;
 
+        if (record->dateo != default_fst_record.dateo) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Searching by origin date (dateo) has not been implemented yet\n", __func__);
+        }
 
-        fst98_meta->date_stamp = 8 * (u_datev/10) + (u_datev % 10);
+        fst98_meta->date_stamp = stamp_from_date(record->datev);
         fst98_mask->date_stamp &= ~(0x7);
-        if (record->dateo == -1) fst98_mask->date_stamp = 0;
+        if (record->datev == default_fst_record.datev) fst98_mask->date_stamp = 0;
 
         fst98_meta->ni = record->ni;
-        if ((record->ni == -1)) fst98_mask->ni = 0;
+        if ((record->ni == default_fst_record.ni)) fst98_mask->ni = 0;
+        else Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Searching by ni (%d)\n", __func__, record->ni);
 
         fst98_meta->nj = record->nj;
-        if ((record->nj == -1)) fst98_mask->nj = 0;
+        if ((record->nj == default_fst_record.nj)) fst98_mask->nj = 0;
 
         fst98_meta->nk = record->nk;
-        if ((record->nk == -1)) fst98_mask->nk = 0;
+        if ((record->nk == default_fst_record.nk)) fst98_mask->nk = 0;
 
-        fst98_meta->ip1 = record->ip1;
-        if ((record->ip1 == -1)) fst98_mask->ip1 = 0;
+        fst98_meta->datyp = record->data_type;
+        if (record->data_type == default_fst_record.data_type) fst98_mask->datyp = 0;
 
-        fst98_meta->ip2 = record->ip2;
-        if ((record->ip2 == -1)) fst98_mask->ip2 = 0;
+        fst98_meta->dasiz = record->data_bits;
+        if (record->data_bits == default_fst_record.data_bits) fst98_mask->dasiz = 0;
 
-        fst98_meta->ip3 = record->ip3;
-        if ((record->ip3 == -1)) fst98_mask->ip3 = 0;
+        fst98_meta->nbits = abs(record->pack_bits);
+        if (record->pack_bits == default_fst_record.pack_bits) fst98_mask->nbits = 0;
 
         fst98_meta->npas = record->npas;
-        if ((record->npas == -1)) fst98_mask->npas = 0;
+        if ((record->npas == default_fst_record.npas)) fst98_mask->npas = 0;
 
         fst98_meta->deet = record->deet;
-        if ((record->deet == -1)) fst98_mask->deet = 0;
+        if ((record->deet == default_fst_record.deet)) fst98_mask->deet = 0;
+
+        // IPs
+        {
+            fst98_meta->ip1 = record->ip1;
+            if ((record->ip1 == default_fst_record.ip1)) fst98_mask->ip1 = 0;
+
+            fst98_meta->ip2 = record->ip2;
+            if ((record->ip2 == default_fst_record.ip2)) fst98_mask->ip2 = 0;
+
+            fst98_meta->ip3 = record->ip3;
+            if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
+
+            if (query->options.ip1_all > 0) {
+                int ip1 = record->ip1;
+                float val;
+                int kind;
+                ConvertIp(&ip1, &val, &kind, -1); // Retrieve value
+                ConvertIp(&query->ip1s[0], &val, &kind, 2); // Encode with new encoding
+                ConvertIp(&query->ip1s[1], &val, &kind, 3); // Encode with old encoding
+                fst98_mask->ip1 = 0;
+            }
+            if (query->options.ip2_all > 0) {
+                float val;
+                int kind;
+                int ip2 = record->ip2;
+                ConvertIp(&ip2, &val, &kind, -1); // Retrieve value
+                ConvertIp(&query->ip2s[0], &val, &kind, 2); // Encode with new encoding
+                ConvertIp(&query->ip2s[1], &val, &kind, 3); // Encode with old encoding
+                fst98_mask->ip2 = 0;
+            }
+            if (query->options.ip3_all > 0) {
+                float val;
+                int kind;
+                int ip3 = record->ip3;
+                ConvertIp(&ip3, &val, &kind, -1); // Retrieve value
+                ConvertIp(&query->ip3s[0], &val, &kind, 2); // Encode with new encoding
+                ConvertIp(&query->ip3s[1], &val, &kind, 3); // Encode with old encoding
+                fst98_mask->ip3 = 0;
+            }
+        }
 
         char nomvar[FST_NOMVAR_LEN];
         copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
@@ -571,10 +617,10 @@ void make_search_criteria(
         fst98_meta->ig2b = record->ig2 >> 8;
         fst98_meta->ig3  = record->ig3;
         fst98_meta->ig2c = record->ig2 & 0xff;
-        if (record->ig1 == -1) fst98_mask->ig1 = 0;
-        if (record->ig2 == -1) fst98_mask->ig2a =  fst98_mask->ig2b =  fst98_mask->ig2c = 0;
-        if (record->ig3 == -1) fst98_mask->ig3 = 0;
-        if (record->ig4 == -1) fst98_mask->ig4 = 0;
+        if (record->ig1 == default_fst_record.ig1) fst98_mask->ig1 = 0;
+        if (record->ig2 == default_fst_record.ig2) fst98_mask->ig2a =  fst98_mask->ig2b =  fst98_mask->ig2c = 0;
+        if (record->ig3 == default_fst_record.ig3) fst98_mask->ig3 = 0;
+        if (record->ig4 == default_fst_record.ig4) fst98_mask->ig4 = 0;
 
         char grtyp[FST_GTYP_LEN];
         copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
@@ -588,16 +634,20 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
     // Check version first
     uint8_t version = 0;
     uint8_t num_criteria = sizeof(stdf_dir_keys) / sizeof(uint32_t);
+    uint16_t extended_meta_size = 0; // 32-bit units
 
     if (type != FST_XDF) {
-        decode_fst24_reserved_0(meta->fst24_reserved[0], &version, &num_criteria);
+        decode_fst24_reserved_0(meta->fst24_reserved[0], &version, &num_criteria, &extended_meta_size);
     }
 
     if (version > FST24_VERSION_COUNT) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Interpreting search metadata with a library from an earlier version (%d)"
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Interpreting search metadata with a library from an earlier FST version (%d)"
                 " than the one used to write the record (%d). We might run into issues (or not).\n",
                 __func__, FST24_VERSION_COUNT, version);
     }
+
+    record->do_not_touch.num_search_keys = num_criteria;
+    record->do_not_touch.extended_meta_size = extended_meta_size;
 
     // fst98 metadata
     {
@@ -611,10 +661,10 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
         record->ni = fst98_meta->ni;
         record->nj = fst98_meta->nj;
         record->nk = fst98_meta->nk;
-        record->datyp = fst98_meta->datyp;
-        record->dasiz = fst98_meta->dasiz;
-        if (record->dasiz == 0) record->dasiz = 32;
-        record->npak = -fst98_meta->nbits;
+        record->data_type = fst98_meta->datyp;
+        record->data_bits = fst98_meta->dasiz;
+        if (record->data_bits == 0) record->data_bits = 32;
+        record->pack_bits = fst98_meta->nbits;
 
         record->deet = fst98_meta->deet;
         record->npas = fst98_meta->npas;
@@ -650,16 +700,55 @@ fst_record record_from_search_meta(
 
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
+int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {
+
+    if (a == NULL || b == NULL) return 0;
+    if (a->do_not_touch.version != b->do_not_touch.version) return 0;
+
+    a->dateo = b->dateo;
+    a->datev = b->datev;
+//    a->data_type = b->data_type;
+//    a->data_bits = b->data_bits;
+//    a->pack_bits = b->pack_bits;
+//    a->ni = b->ni;
+//    a->nj = b->nj;
+//    a->nk = b->nk;
+    a->deet = b->deet;
+    a->npas = b->npas;
+    a->ip1 = b->ip1;
+    a->ip2 = b->ip2;
+    a->ip3 = b->ip3;
+    a->ig1 = b->ig1;
+    a->ig2 = b->ig2;
+    a->ig3 = b->ig3;
+    a->ig4 = b->ig4;
+    strncpy(a->typvar, b->typvar, FST_TYPVAR_LEN);
+    strncpy(a->grtyp, b->grtyp, FST_GTYP_LEN);
+    strncpy(a->nomvar, b->nomvar, FST_NOMVAR_LEN);
+    strncpy(a->etiket, b->etiket, FST_ETIKET_LEN);
+
+    if (b->metadata) {
+        if (a->metadata) {
+            Meta_Free(a->metadata);
+        }
+        a->metadata=Meta_Copy(b->metadata);
+    }
+
+    return 1;
+}
+
+//! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
+//!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
-    if (a->version != b->version) return 0;
-    // if (a->flags != b->flags) return 0;
-    // if (a->alloc != b->alloc) return 0;
+    if (a->do_not_touch.version != b->do_not_touch.version) return 0;
+    // if (a->do_not_touch.flags != b->do_not_touch.flags) return 0;
+    // if (a->do_not_touch.alloc != b->do_not_touch.alloc) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
-    if (a->datyp != b->datyp) return 0;
-    if (a->dasiz != b->dasiz) return 0;
-    if (a->npak != b->npak) return 0;
+    if (a->data_type != b->data_type) return 0;
+    if (a->data_bits != b->data_bits) return 0;
+    if (a->pack_bits != b->pack_bits) return 0;
     if (a->ni != b->ni) return 0;
     if (a->nj != b->nj) return 0;
     if (a->nk != b->nk) return 0;
@@ -687,28 +776,28 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: One of the records is NULL! (a = 0x%x, b = 0x%x)\n", __func__, a, b);
     }
 
-    if (a->version != b->version)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Version: a = %d, b = %d)\n", __func__, a->version, b->version);
+    if (a->do_not_touch.version != b->do_not_touch.version)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Version: a = %d, b = %d)\n", __func__, a->do_not_touch.version, b->do_not_touch.version);
     if (a->data != b->data)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data:    a = 0x%x, b = 0x%x)\n", __func__, a->data, b->data);
     if (a->metadata != b->metadata)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Metadata:a = 0x%x, b = 0x%x)\n", __func__, a->metadata, b->metadata);
-    if (a->flags != b->flags)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->flags, b->flags);
-    if (a->alloc != b->alloc)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->alloc, b->alloc);
+    if (a->do_not_touch.flags != b->do_not_touch.flags)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->do_not_touch.flags, b->do_not_touch.flags);
+    if (a->do_not_touch.alloc != b->do_not_touch.alloc)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->do_not_touch.alloc, b->do_not_touch.alloc);
     if (a->dateo != b->dateo)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dateo:   a = %d, b = %d)\n", __func__, a->dateo, b->dateo);
     if (a->datev != b->datev)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datev:   a = %d, b = %d)\n", __func__, a->datev, b->datev);
-    if (a->handle != b->handle)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = %d, b = %d)\n", __func__, a->handle, b->handle);
-    if (a->datyp != b->datyp)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datyp:   a = %d, b = %d)\n", __func__, a->datyp, b->datyp);
-    if (a->dasiz != b->dasiz)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dasiz:   a = %d, b = %d)\n", __func__, a->dasiz, b->dasiz);
-    if (a->npak != b->npak)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Npak:    a = %d, b = %d)\n", __func__, a->npak, b->npak);
+    if (a->do_not_touch.handle != b->do_not_touch.handle)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = %d, b = %d)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
+    if (a->data_type != b->data_type)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_type:   a = %d, b = %d)\n", __func__, a->data_type, b->data_type);
+    if (a->data_bits != b->data_bits)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_bits:   a = %d, b = %d)\n", __func__, a->data_bits, b->data_bits);
+    if (a->pack_bits != b->pack_bits)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: pack_bits:    a = %d, b = %d)\n", __func__, a->pack_bits, b->pack_bits);
     if (a->ni != b->ni)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: ni:      a = %d, b = %d)\n", __func__, a->ni, b->ni);
     if (a->nj != b->nj)
@@ -789,9 +878,9 @@ void print_non_wildcards(const fst_record* const record) {
 
     if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%ld ", record->dateo);
     if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%ld ", record->datev);
-    if (record->datyp != default_fst_record.datyp) ptr += snprintf(ptr, 20, "datyp=%d ", record->datyp);
-    if (record->dasiz != default_fst_record.dasiz) ptr += snprintf(ptr, 20, "dasiz=%d ", record->dasiz);
-    if (record->npak != default_fst_record.npak)   ptr += snprintf(ptr, 20, "npak=%d ", record->npak);
+    if (record->data_type != default_fst_record.data_type) ptr += snprintf(ptr, 20, "data_type=%d ", record->data_type);
+    if (record->data_bits != default_fst_record.data_bits) ptr += snprintf(ptr, 20, "data_bits=%d ", record->data_bits);
+    if (record->pack_bits != default_fst_record.pack_bits) ptr += snprintf(ptr, 20, "pack_bits=%d ", record->pack_bits);
     if (record->ni != default_fst_record.ni)       ptr += snprintf(ptr, 20, "ni=%d ", record->ni);
     if (record->nj != default_fst_record.nj)       ptr += snprintf(ptr, 20, "nj=%d ", record->nj);
     if (record->nk != default_fst_record.nk)       ptr += snprintf(ptr, 20, "nk=%d ", record->nk);

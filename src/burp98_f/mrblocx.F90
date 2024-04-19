@@ -52,8 +52,8 @@ integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
     ! Build key
     inbtyp = 0
     inbtyp = iand(bkstp, ior(sgbkstp, bkstpmsk))
-    inbtyp = ior(inbtyp, ior(iand(sgbktyp, bktyp), LSHIFT(iand(bktyp, bktypmsk), bpbktyp)))
-    inbtyp = ior(inbtyp, ior(iand(sgbknat, bknat), LSHIFT(iand(bknat, bknatmsk), bpbknat)))
+    inbtyp = ior(inbtyp, ior(iand(sgbktyp, bktyp), SHIFTL(iand(bktyp, bktypmsk), bpbktyp)))
+    inbtyp = ior(inbtyp, ior(iand(sgbknat, bknat), SHIFTL(iand(bknat, bknatmsk), bpbknat)))
 
     mrblocx = mrbloc(buf, bfam, bdesc, inbtyp, blkno)
 end

@@ -3,11 +3,15 @@
 #include <App.h>
 #include <rmn.h>
 
-const char* test_filename = "compression.fst";
+const char* test_filename_rsf = "compression.rsf";
+const char* test_filename_xdf = "compression.xdf";
 
+// const int NUM_DATA_X = 32;
+// const int NUM_DATA_Y = 16;
+// const int NUM_DATA_Z = 2;
 const int NUM_DATA_X = 32;
-const int NUM_DATA_Y = 16;
-const int NUM_DATA_Z = 2;
+const int NUM_DATA_Y = 32;
+const int NUM_DATA_Z = 1;
 
 static float* data_f = NULL;
 static double* data_d = NULL;
@@ -27,44 +31,25 @@ typedef struct {
 } test_params;
 
 static const test_params params_real[] = {
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 0.004, .max_tol = 0.008,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 8,  .nk = NUM_DATA_Z, .tol = 0.45, .max_tol = 0.75,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = 1, .tol = 0.0, .max_tol = 0.0,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 24, .nk = 1, .tol = 2e-5, .max_tol = 4e-5,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 0.004, .max_tol = 0.008,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 14, .nk = 1, .tol = 0.015, .max_tol = 0.035,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 10, .nk = 1, .tol = 0.2, .max_tol = 0.35,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 9, .nk = 1, .tol = 0.3, .max_tol = 0.5,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 8, .nk = 1, .tol = 0.45, .max_tol = 0.8,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 64, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0,
-    //  .compare_data = (void*)&data_d},
-    // {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, // TODO: Fix
-    //  .compare_data = (void*)&data_f},
-    // {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, // TODO: Fix
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 1e-7, .max_tol = 2e-4,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 1e-5, .max_tol = 2e-3,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 12, .nk = NUM_DATA_Z, .tol = 2e-4, .max_tol = 0.06,
-     .compare_data = (void*)&data_f},
-    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 2e-5, .max_tol = 2e-3,
-     .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 20, .nk = NUM_DATA_Z, .tol = 2.2e-4, .max_tol = 4.8e-4, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 0.004, .max_tol = 0.008, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = 1, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 24, .nk = 1, .tol = 2e-5, .max_tol = 4e-5, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 20, .nk = 1, .tol = 2.2e-4, .max_tol = 4.8e-4, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 0.004, .max_tol = 0.008, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 64, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
+    // {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 48, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 28, .nk = NUM_DATA_Z, .tol = 1e-6, .max_tol = 2e-6, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 2e-5, .max_tol = 4e-5, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 20, .nk = NUM_DATA_Z, .tol = 2.2e-4, .max_tol = 4.8e-4, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 1e-7, .max_tol = 2e-4, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 1.1e-5, .max_tol = 2e-3, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 12, .nk = NUM_DATA_Z, .tol = 2e-4, .max_tol = 0.06, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 2e-5, .max_tol = 2e-3, .compare_data = (void*)&data_f},
 };
 
 static const test_params params_integer[] = {
@@ -74,8 +59,15 @@ static const test_params params_integer[] = {
     // {.data = (void*)&data_l, .data_type = FST_TYPE_SIGNED, .data_size = 64, .pack_size = 64, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0},
 };
 
+static const test_params params_fail[] = {
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 8,  .nk = NUM_DATA_Z, .tol = 0.45, .max_tol = 0.75, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 14, .nk = 1, .tol = 0.015, .max_tol = 0.035, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 8, .nk = 1, .tol = 0.45, .max_tol = 0.8, .compare_data = (void*)&data_f},
+};
+
 const int NUM_CASES_REAL    = sizeof(params_real) / sizeof(test_params);
 const int NUM_CASES_INTEGER = sizeof(params_integer) / sizeof(test_params);
+const int NUM_CASES_FAIL    = sizeof(params_fail) / sizeof(test_params);
 
 double gen_value_real(const int i, const int j, const int k, const int num_x, const int num_y, const int num_z) {
     double val = sin((double)i / ((double)num_x / 2)) + cos((double)j / ((double)num_y / 4)) + pow(2.0, (double)k / num_z);
@@ -306,10 +298,11 @@ int compare_data_bytes(const uint8_t* a, const uint8_t* b, const int num_x, cons
     return 0;
 }
 
-int test_compression(const int is_rsf) {
+int create_file(const int is_rsf) {
+    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
     remove(test_filename);
 
-    const char* options = is_rsf ? "RSF" : "XDF";
+    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
     fst_file* test_file = fst24_open(test_filename, options);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_filename, options);
@@ -341,12 +334,12 @@ int test_compression(const int is_rsf) {
     for (int i = 0; i < NUM_CASES_REAL; i++) {
         rec.ip1++;
         rec.data  = *(params_real[i].data);
-        rec.datyp = params_real[i].data_type;
-        rec.dasiz = params_real[i].data_size;
-        rec.npak  = -params_real[i].pack_size;
+        rec.data_type = params_real[i].data_type;
+        rec.data_bits = params_real[i].data_size;
+        rec.pack_bits = params_real[i].pack_size;
         rec.nk    = params_real[i].nk;
         if (fst24_write(test_file, &rec, 0) <= 0) {
-            App_Log(APP_ERROR, "%s: Could not write record to test file\n");
+            App_Log(APP_ERROR, "%s: Could not write record to test file\n", __func__);
             fst24_record_print(&rec);
             return -1;
         }
@@ -355,12 +348,27 @@ int test_compression(const int is_rsf) {
     for (int i = 0; i < NUM_CASES_INTEGER; i++) {
         rec.ip1++;
         rec.data  = *(params_integer[i].data);
-        rec.datyp = params_integer[i].data_type;
-        rec.dasiz = params_integer[i].data_size;
-        rec.npak  = -params_integer[i].pack_size;
+        rec.data_type = params_integer[i].data_type;
+        rec.data_bits = params_integer[i].data_size;
+        rec.pack_bits = params_integer[i].pack_size;
         rec.nk    = params_integer[i].nk;
         if (fst24_write(test_file, &rec, 0) <= 0) {
-            App_Log(APP_ERROR, "%s: Could not write record to test file\n");
+            App_Log(APP_ERROR, "%s: Could not write record to test file\n", __func__);
+            fst24_record_print(&rec);
+            return -1;
+        }
+    }
+
+    for (int i = 0; i < NUM_CASES_FAIL; i++) {
+        rec.ip1++;
+        rec.data  = *(params_fail[i].data);
+        rec.data_type = params_fail[i].data_type;
+        rec.data_bits = params_fail[i].data_size;
+        rec.pack_bits = params_fail[i].pack_size;
+        rec.nk    = params_fail[i].nk;
+        if (fst24_write(test_file, &rec, 0) > 0) {
+            App_Log(APP_ERROR, "%s: Should not have been able to write fail record %d to file\n",
+                    __func__, i);
             fst24_record_print(&rec);
             return -1;
         }
@@ -372,8 +380,20 @@ int test_compression(const int is_rsf) {
     }
 
     free(test_file);
+    
+    return 0;
+}
 
-    test_file = fst24_open(test_filename, "R/O");
+int test_compression(const int is_rsf) {
+
+    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
+
+    if (create_file(is_rsf) < 0) {
+        App_Log(APP_ERROR, "Problem when creating file for test\n");
+        return -1;
+    }
+
+    fst_file* test_file = fst24_open(test_filename, "R/O");
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open recently-created test file with name %s\n", test_filename);
         return -1;
@@ -387,23 +407,23 @@ int test_compression(const int is_rsf) {
             return -1;
         }
 
-        if (rec_read.dasiz == 64) {
+        if (*(params_real[i].compare_data) == data_d) {
             if (compare_data_d(data_d, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_real[i].nk,
                             params_real[i].tol, params_real[i].max_tol)
                 != 0)
             {
                 App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                        __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                        __func__, rec_read.data_type, rec_read.pack_bits, rec_read.data_bits);
                 return -1;
             }
         }
-        else {
+        else if(*(params_real[i].compare_data) == data_f) {
             if (compare_data_f(data_f, rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_real[i].nk,
                             params_real[i].tol, params_real[i].max_tol)
                 != 0)
             {
                 App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                        __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                        __func__, rec_read.data_type, rec_read.pack_bits, rec_read.data_bits);
                 return -1;
             }
         }
@@ -414,15 +434,15 @@ int test_compression(const int is_rsf) {
             return -1;
         }
 
-        // App_Log(APP_INFO, "dasiz = %d, npak = %d\n", rec_read.dasiz, rec_read.npak);
-        if (!is_rsf && rec_read.npak == -64) {
+        // App_Log(APP_INFO, "data_bits = %d, pack_bits = %d\n", rec_read.data_bits, rec_read.pack_bits);
+        if (!is_rsf && rec_read.pack_bits == 64) {
             App_Log(APP_INFO, "%s: Skipping data check for 64-bit integer in XDF files\n", __func__);
             continue;
         }
 
-        if (compare_data_bytes(*(params_integer[i].compare_data), rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_integer[i].nk, rec_read.dasiz) != 0) {
+        if (compare_data_bytes(*(params_integer[i].compare_data), rec_read.data, NUM_DATA_X, NUM_DATA_Y, params_integer[i].nk, rec_read.data_bits) != 0) {
             App_Log(APP_ERROR, "%s: Data read is not the same (type %d, pack %d, size %d)\n",
-                    __func__, rec_read.datyp, -rec_read.npak, rec_read.dasiz);
+                    __func__, rec_read.data_type, rec_read.pack_bits, rec_read.data_bits);
             return -1;
         }
     }

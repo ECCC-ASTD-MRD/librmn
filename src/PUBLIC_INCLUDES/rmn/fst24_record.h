@@ -2,14 +2,17 @@
 #define RMN_FST_RECORD_H__
 
 #ifndef IN_FORTRAN_CODE
+//! \file fst24_record.h Public definitions for fst_record
+
 //! Version identifier that needs to be incremented when we make
 //! changes in the way records are stored and interpreted, so that it
 //! can be recognized when read by a different version of the library
+//! It has to take at most 8 bits, so its maximum value is 255
 #endif
 #define FST24_VERSION_COUNT  0
 
-#define FST24_VERSION_OFFSET_C 1010101010101000ull
-#define FST24_VERSION_OFFSET_F 1010101010101000_int64
+#define FST24_VERSION_OFFSET_C 1010101000u
+#define FST24_VERSION_OFFSET_F 1010101000_int32
 
 #ifndef IN_FORTRAN_CODE
 
@@ -21,44 +24,36 @@
 //! Smallest amount of bytes in multiples of 4 that can contain the given number of bytes
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 
-static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by 
+static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by the user
 
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
 
-typedef enum {
-    FST_NONE = 0,
-    FST_XDF  = 1,
-    FST_RSF  = 2
-} fst_file_type;
-
-static const char* fst_file_type_name[] = {
-    [FST_NONE] = "FST_NONE",
-    [FST_XDF]  = "FST_XDF",
-    [FST_RSF]  = "FST_RSF"
-};
-
-
-// This struct should only be modified by ADDING member at the end (once we're stable)
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
-    int64_t version;  //!< Version marker
-    int64_t handle;   //!< Handle to specific record (if stored in a file)
-    int64_t flags;    //!< Record status flags
-    int64_t alloc;    //!< Size of allocated memody for data
+    //!> Internal implementation details
+    struct {
+        int32_t version;  //!< Version marker
+        int32_t deleted;  //!< Whether the record is deleted
+        int64_t handle;   //!< Handle to specific record (if stored in a file)
+        int64_t alloc;    //!< Size of allocated memody for data
+        int32_t flags;    //!< Record status flags
+        uint16_t num_search_keys;    //!< Number of directory search keys (32 bits)
+        uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units)
+    } do_not_touch;
 
     // 64-bit elements first
     const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
-    int32_t dateo;    //!< Origin Date timestamp
-    int32_t datev;    //!< Valid Date timestamp
+    int64_t dateo;    //!< Origin Date timestamp
+    int64_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
-    int32_t datyp;  //!< Data type of elements. See FST_TYPE_* constants.
-    int32_t dasiz;  //!< Number of bits per input elements
-    int32_t npak;   //!< Requested compression factor (none if 0 or 1). Number of stored bits if negative
+    int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
+    int32_t data_bits; //!< Number of bits per input elements
+    int32_t pack_bits; //!< Number of stored bits
     int32_t ni;     //!< First dimension of the data field (number of elements)
     int32_t nj;     //!< Second dimension of the data field (number of elements)
     int32_t nk;     //!< Third dimension of the data field (number of elements)
@@ -87,10 +82,13 @@ typedef struct {
 //! Default values for all members of an fst_record.
 //! Values for searchable parameters correspond to their wildcard.
 static const fst_record default_fst_record = (fst_record){
-        .version = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
-        .handle   = -1,
-        .flags = 0x0,
-        .alloc    = 0,
+        .do_not_touch = {.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
+                         .deleted  = 0,
+                         .handle   = -1,
+                         .alloc    = 0,
+                         .flags    = 0x0,
+                         .num_search_keys = 0,
+                         .extended_meta_size = 0,},
 
         .file     = NULL,
         .data     = NULL,
@@ -98,9 +96,9 @@ static const fst_record default_fst_record = (fst_record){
         .dateo     = -1,
         .datev     = -1,
 
-        .datyp = -1,
-        .dasiz = -1,
-        .npak = -1,
+        .data_type = -1,
+        .data_bits = -1,
+        .pack_bits = -1,
         .ni = -1,
         .nj = -1,
         .nk = -1,
@@ -134,7 +132,7 @@ static const fst_record default_fst_record = (fst_record){
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, nijk;
+    int32_t data_type, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
@@ -149,7 +147,7 @@ static const fst_record_fields default_fields = (fst_record_fields) {
     .datestamps = 1,
 
     .level = 0,
-    .datyp = 1,
+    .data_type = 1,
     .nijk = 1,
 
     .deet = 0,
@@ -173,13 +171,13 @@ static const fst_record_fields default_fields = (fst_record_fields) {
 //! \addtogroup public_fst
 //! \{
 //! Number of elements contained in the given record
-static inline int64_t fst24_record_num_elem(const fst_record* record) {
+static inline int64_t fst24_record_num_elem(const fst_record* const record) {
     return record->ni * record->nj * record->nk;
 }
 
 //! Number of data bytes in record
 static inline int64_t fst24_record_data_size(const fst_record* record) {
-    return (fst24_record_num_elem(record) * record->dasiz) / 8;
+    return (fst24_record_num_elem(record) * record->data_bits) / 8;
 }
 
 int32_t     fst24_record_is_valid(const fst_record* record);
@@ -190,6 +188,7 @@ fst_record* fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni
 int32_t     fst24_record_free(fst_record* record);
 int32_t     fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 void        fst24_record_diff(const fst_record* a, const fst_record* b);
+int32_t     fst24_record_copy_metadata(fst_record* a, const fst_record* b);
 //! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
@@ -197,20 +196,23 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
 #else
 
     type, bind(C) :: fst_record_c
-        integer(C_INT64_T) :: version  = FST24_VERSION_OFFSET_F + FST24_VERSION_COUNT
+        integer(C_INT32_T) :: version  = FST24_VERSION_OFFSET_F + FST24_VERSION_COUNT
+        integer(C_INT32_T) :: deleted  = 0
         integer(C_INT64_T) :: handle   = -1
-        integer(C_INT64_T) :: flags    = 0
         integer(C_INT64_T) :: alloc    = 0
+        integer(C_INT32_T) :: flags    = 0
+        integer(C_INT16_T) :: num_search_keys = 0
+        integer(C_INT16_T) :: extended_meta_size = 0
 
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
-        integer(C_INT32_T) :: dateo    = -1
-        integer(C_INT32_T) :: datev    = -1
+        integer(C_INT64_T) :: dateo    = -1
+        integer(C_INT64_T) :: datev    = -1
 
-        integer(C_INT32_T) :: datyp = -1
-        integer(C_INT32_T) :: dasiz = -1
-        integer(C_INT32_T) :: npak  = -1
+        integer(C_INT32_T) :: data_type = -1
+        integer(C_INT32_T) :: data_bits = -1
+        integer(C_INT32_T) :: pack_bits = -1
         integer(C_INT32_T) :: ni    = -1
         integer(C_INT32_T) :: nj    = -1
         integer(C_INT32_T) :: nk    = -1
@@ -241,7 +243,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
     type, bind(C) :: fst_record_fields
         integer(C_INT32_T) :: dateo = 1, datev = 0, datestamps = 1
         integer(C_INT32_T) :: level = 0
-        integer(C_INT32_T) :: datyp = 1, nijk = 1
+        integer(C_INT32_T) :: data_type = 1, nijk = 1
         integer(C_INT32_T) :: deet = 0, npas = 0
         integer(C_INT32_T) :: ip1 = 1, ip2 = 1, ip3 = 1, decoded_ip = 0
         integer(C_INT32_T) :: grid_info = 0, ig1234 = 1

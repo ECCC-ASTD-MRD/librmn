@@ -21,7 +21,7 @@ int create_file() {
 
     remove(test_filename);
 
-    fst_file* test_file = fst24_open(test_filename, "RSF");
+    fst_file* test_file = fst24_open(test_filename, "RSF+R/W");
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open test file for creation\n");
         return -1;
@@ -32,9 +32,9 @@ int create_file() {
     rec.ni = NUM_X;
     rec.nj = NUM_Y;
     rec.nk = 1;
-    rec.datyp = FST_TYPE_SIGNED;
-    rec.dasiz = 32;
-    rec.npak = -32;
+    rec.data_type = FST_TYPE_SIGNED;
+    rec.data_bits = 32;
+    rec.pack_bits = 32;
 
     rec.dateo = 0;
     rec.ip1 = 1;
@@ -108,7 +108,7 @@ int main(void) {
     fst_record rec = default_fst_record;
     fst_record criteria = default_fst_record;
     for (int i_level = 0; i_level < NUM_Z; i_level++) {
-        rec.data = &(read_data[i_level][0][0]);
+        rec.data = &read_data[i_level];
         criteria.ig1 = i_level + 1;
         if (fst24_read(test_file, &criteria, NULL, &rec) <= 0) {
             App_Log(APP_ERROR, "Unable to read slice %d\n", i_level);

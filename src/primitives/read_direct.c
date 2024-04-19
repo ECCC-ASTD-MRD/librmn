@@ -381,7 +381,7 @@ while(Verb(token)>0){ /* collect "verb" (command name) */
      char term;
      char pad[1024];
      int nargs;
-     nargs=sscanf(ARGV[ARGC]," > %lf , %lf , %lf%[%> ]%c",&dble0,&dble1,&dble2,pad);
+     nargs=sscanf(ARGV[ARGC]," > %lf , %lf , %lf%1023[%> ]%c",&dble0,&dble1,&dble2,pad,&term);
      /* printf("Range detected, nargs=%d,pad=:%s:,from %f to %f by %f\n",nargs,pad,dble0,dble1,dble2);  */
      if(nargs!=4 || pad[strlen(pad)-1]!='>') { fprintf(stderr,"bad range\n"); goto error;}
 

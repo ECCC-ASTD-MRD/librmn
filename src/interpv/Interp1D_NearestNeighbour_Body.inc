@@ -63,6 +63,9 @@
   real(real48) :: stateSourceBelow, stateSourceAbove, &
                   levelBelow, levelAbove
 
+  stateDerivDestn(:, :) = 0.0
+  ExtArraysOut(:, :)    = 0.0
+
   ! Use the interpolation algorithm to estimate values for all points, even if
   ! it is actually EXTRApolation.  Doing so is faster than avoiding the
   ! duplication of calculation.  Such extrapolated estimates can be overwritten

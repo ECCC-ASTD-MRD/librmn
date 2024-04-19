@@ -32,7 +32,7 @@ void print_data(const float* array, const int size_x) {
         for (int j = 0; j < num_cols; j++) {
             sprintf(buffer + j * col_size, format, array[i * size_x + j]);
         }
-        if (num_cols < size_x) sprintf(buffer + num_cols * col_size, " ...\0");
+        if (num_cols < size_x) sprintf(buffer + num_cols * col_size, " ...");
         fprintf(stderr, "%s\n", buffer);
     }
 }
@@ -68,9 +68,9 @@ int test_parallel_write(const int rank) {
 
     fst_record rec = default_fst_record;
     rec.data = data;
-    rec.datyp = FST_TYPE_REAL_IEEE;
-    rec.dasiz = 32;
-    rec.npak = -32;
+    rec.data_type = FST_TYPE_REAL_IEEE;
+    rec.data_bits = 32;
+    rec.pack_bits = 32;
     rec.ni = NUM_ELEM;
     rec.nj = NUM_ELEM;
     rec.nk = 1;
@@ -111,7 +111,7 @@ int test_parallel_write(const int rank) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 1) {
-        test_file = fst24_open(test_filename, "R/W");
+        test_file = fst24_open(test_filename, NULL);
         if (test_file == NULL) {
             App_Log(APP_ERROR, "Unable to open file after it was closed\n");
             return -1;
