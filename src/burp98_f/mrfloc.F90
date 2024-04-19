@@ -124,14 +124,6 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     END IF
     pri(18) = -1
 
-    ! Inclure les clefs supplementaires
-    IF (nsup > 0) THEN
-        DO i = 1, nsup
-            pri(npridef + i) = sup(i)
-        END DO
-        npri = npri + nsup
-    END IF
-
     ! Trouver l'enregistrement
     mrfloc = xdfloc(iun, handle, pri, npri)
     IF (lib_loglevel(APP_LIBFST,' ') >= APP_INFO) THEN
