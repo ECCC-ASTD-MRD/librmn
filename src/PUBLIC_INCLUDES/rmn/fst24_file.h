@@ -7,25 +7,7 @@
 #include "rmn/fst98.h"
 #include "rmn/rsf.h"
 
-//! Base type to reference a FST file
-typedef struct fst24_file_ {
-    int32_t       iun;                  //!< File unit, used by fnom
-    int32_t       file_index;           //!< File index in list of open FST files (the list is different for RSF and XDF)
-    int32_t       file_index_backend;   //!< File index in one of the lists of either RSF or XDF open files
-    fst_file_type type;                 //!< Type of file (RSF, XDF, etc.)
-    RSF_handle    rsf_handle;           //!< If type is RSF, handle to the file
-    struct fst24_file_ *next;           //!< Next file in linked list of files (if any)
-} fst_file;
-
-static fst_file default_fst_file = (fst_file) {
-    .iun                =  0,
-    .file_index         = -1,
-    .file_index_backend = -1,
-    .rsf_handle.p       = NULL,
-    .type               = FST_NONE,
-    .next               = NULL
-};
-
+typedef struct fst24_file_ fst_file; // Forward declare
 typedef struct fst_query_ fst_query; // Forward declare
 
 typedef struct {
@@ -55,7 +37,7 @@ int32_t   fst24_eof(const fst_file* const file);
 int32_t    fst24_read_record(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);
 int32_t    fst24_read_next(fst_query* const query, fst_record* const record);
-int32_t    fst24_write(fst_file* const file, fst_record* const record, int rewrit);
+int32_t    fst24_write(fst_file* const file, fst_record* const record, const int rewrite);
 int32_t    fst24_read(const fst_file* const file, const fst_record* criteria, const fst_query_options* options,
                       fst_record* const record);
 fst_query* fst24_new_query(const fst_file* const file, const fst_record* criteria, const fst_query_options* options);
@@ -66,6 +48,7 @@ int32_t    fst24_find_all(fst_query* const query, fst_record* const results, con
 int32_t    fst24_find_count(fst_query * const query);
 int32_t    fst24_query_is_valid(const fst_query* const q);
 void       fst24_query_free(fst_query* const query);
+int32_t    fst24_delete(fst_record* const record);
 
 int32_t   fst24_link(fst_file** files, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* const file);

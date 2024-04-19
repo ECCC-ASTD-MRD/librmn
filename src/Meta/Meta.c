@@ -1971,7 +1971,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    Meta_DefFromEtiket(Obj,Rec->etiket);
 
   // NPACK,DATYP,DASIZ will be done internally at write
-//   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->datyp],"",Rec->npak,Rec->dasiz,0,0);
+//   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->data_type],"",Rec->pack_bits,Rec->data_bits,0,0);
  
 //TODO:
    // IP1,IP2,IP3
@@ -2065,16 +2065,15 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    }
 
    //  NI,NJ,NK,NPACK,DATYP,DASIZ 
-   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->npak,&Rec->dasiz,NULL,NULL);
+   Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->pack_bits,&Rec->data_bits,NULL,NULL);
 
-   // TODO: define datyp
-   Rec->npak=-Rec->npak;
+   // TODO: define data_type
    switch(c1[0]) {
-      case 'b': Rec->datyp=FST_TYPE_BINARY; break;
-      case 's': Rec->datyp=FST_TYPE_SIGNED; break;
-      case 'u': Rec->datyp=FST_TYPE_UNSIGNED; break;
-      case 'r': Rec->datyp=FST_TYPE_REAL; break;
-      case 'c': Rec->datyp=FST_TYPE_COMPLEX; break;
+      case 'b': Rec->data_type=FST_TYPE_BINARY; break;
+      case 's': Rec->data_type=FST_TYPE_SIGNED; break;
+      case 'u': Rec->data_type=FST_TYPE_UNSIGNED; break;
+      case 'r': Rec->data_type=FST_TYPE_REAL; break;
+      case 'c': Rec->data_type=FST_TYPE_COMPLEX; break;
    }
 
    // IP1
@@ -2131,7 +2130,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
    }
 
    if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
-      rec->npak  = -1; // 1 bit
+      rec->pack_bits = 1;
       rec->dateo = 0;
       rec->deet  = 0;
       rec->npas  = 0;

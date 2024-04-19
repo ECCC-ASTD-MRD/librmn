@@ -1179,7 +1179,7 @@
       WRITE(6,333) 50.2,' MRBADD datyp = 9'
 
       do i = 1,10
-         ctablo8(i) = dcmplx(float(i),float(i))
+         ctablo8(i) = cmplx(float(i),float(i), kind = real64)
       enddo
 
       do i = 1,40,4
@@ -1396,7 +1396,7 @@
       WRITE(6,333) 50.8,' MRBXTR datyp = 9'
 
       do i = 1,10
-         ctablo8(i) = dcmplx(float(i),float(i))
+         ctablo8(i) = cmplx(float(i),float(i), kind = real64)
       enddo
 
       do i = 1,40,4
@@ -1562,7 +1562,7 @@
       WRITE(6,333) 51.3,' MRBREP datyp = 9'
 
       do i = 1,10
-         ctablo8(i) = dcmplx(float(i) * 2.0,float(i) *3.0)
+         ctablo8(i) = cmplx(float(i) * 2.0,float(i) *3.0, kind = real64)
       enddo
 
       do i = 1,40,4

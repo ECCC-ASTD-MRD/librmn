@@ -28,16 +28,13 @@
 
 #include "base/base.h"
 #include "FC_string.h"
-
+#include "fst/fst98_internal.h"
 
 #if defined (DEBUG)
   #define dbprint fprintf
 #else
   #define dbprint ;
 #endif
-
-// Defined in fstd98.c, but isn't public so it can't go in fst98.h
-int FstCanTranslateName(char *varname);
 
 void RequetesInit() {
     C_requetes_init(NULL, NULL);
@@ -131,11 +128,6 @@ int fst_reactivate_filters(){
   int old=DeactivateAllFilters;
   DeactivateAllFilters = 0;
   return old;
-}
-
-
-static inline int Min(int x, int y) {
-    return (x < y) ? x : y;
 }
 
 
@@ -1028,8 +1020,8 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
  *                                                                           *
  *****************************************************************************/
 int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
-                     int ip1, int ip2, int ip3, char *typvar, char *nomvar, char *etiket,
-                     char *grtyp, int ig1, int ig2, int ig3, int ig4)
+                     int ip1, int ip2, int ip3, const char *typvar, const char *nomvar, const char *etiket,
+                     const char *grtyp, int ig1, int ig2, int ig3, int ig4)
 {
   int i, set_nb, last_in_use;
   int amatch = 0;
@@ -1257,7 +1249,8 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
  *  IN  handle     handle de l'enregistrement a valider                      *
  *                                                                           *
  *****************************************************************************/
-int C_fst_rsf_match_req(int datev,int ni,int nj,int nk,int ip1,int ip2,int ip3,char* typvar,char* nomvar,char* etiket,char* grtyp,int ig1,int ig2,int ig3,int ig4)
+int C_fst_rsf_match_req(int datev, int ni, int nj, int nk, int ip1, int ip2, int ip3, const char* typvar,
+                        const char* nomvar, const char* etiket, const char* grtyp, int ig1, int ig2, int ig3, int ig4)
 {
   int status;
 

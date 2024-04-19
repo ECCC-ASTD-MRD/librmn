@@ -33,6 +33,7 @@
 !ARGUMENTS
   use Interp1D_Constants
   use app
+  use rmn_libc, only: exit
   implicit none
 #include "Interp1D_Arguments_X.inc"
 !
@@ -46,6 +47,10 @@
              highestPossiblePosn, &     ! Highest value for posnDestInSrc
              lowestPossiblePosn         ! Lowest value for posnDestInSrc
 
+
+  stateDestn(:, :)      = 0.0
+  stateDerivDestn(:, :) = 0.0
+  ExtArraysOut(:, :)    = 0.0
 
   ! Determine which index represents the highest and lowest vertical levels
   !

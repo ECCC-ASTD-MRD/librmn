@@ -34,7 +34,7 @@ subroutine create_file()
     write(cmd, '(A, (1X, A))') 'rm -fv ', test_filename
     call execute_command_line(trim(cmd))
 
-    success = test_file % open(test_filename, 'RSF')
+    success = test_file % open(test_filename, 'RSF+R/W')
     if (.not. success) then
         call App_Log(APP_ERROR, 'Unable to open test file for creation')
         error stop 1
@@ -43,9 +43,9 @@ subroutine create_file()
     rec % ni = NUM_X
     rec % nj = NUM_Y
     rec % nk = 1
-    rec % datyp = FST_TYPE_SIGNED
-    rec % dasiz = 32
-    rec % npak = -32
+    rec % data_type = FST_TYPE_SIGNED
+    rec % data_bits = 32
+    rec % pack_bits = 32
 
     rec % dateo = 0
     rec % ip1 = 1

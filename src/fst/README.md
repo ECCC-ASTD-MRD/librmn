@@ -276,7 +276,6 @@ my_file = fst24_open("my_file.fst", "RSF+PARALLEL");
 </td></tr>
 </table>
 
-<a id="ex-search-read"></a>
 ## Finding and Reading a Record
 
 <table><tr><td style="width:50%">
@@ -587,6 +586,62 @@ fst24_query_free(q_a);
 </td></tr>
 </table>
 
+### Reading 2D slices into a pre-allocated 3D array
+
+<table><tr><td style="width:50%">
+
+**Fortran**
+
+</td><td style="width:50%">
+
+**C**
+
+</td></tr>
+<tr><td>
+
+```fortran
+type(fst_file) :: test_file
+type(fst_record) :: record
+logical :: success
+
+real, dimension(NUM_X, NUM_Y, NUM_LEVEL), target :: data
+
+do k = 1, NUM_LEVEL
+    record % data = c_loc(data(1, 1, k))
+
+    success = test_file % read(record, ig1 = k)
+end do
+```
+
+</td><td>
+
+```c
+
+fst_record rec = default_fst_record;
+fst_record criteria = default_fst_record;
+
+float data[NUM_LEVEL][NUM_X][NUM_Y];
+
+for (int i_level = 0; i_level < NUM_LEVEL; i_level++) {
+    rec.data = &data[i_level];
+    criteria.ig1 = i_level + 1;
+    fst24_read(test_file, &criteria, NULL, &rec);
+}
+```
+
+</td></tr>
+<tr><td>
+
+```fortran
+! In Fortran, the reading can also be done with a single line
+do k = 1, NUM_LEVEL
+    success = file % read(record, data = c_loc(data(1, 1, k)), ig1 = k)
+end do
+```
+
+</td></tr>
+</table>
+
 ### Obtaining a Fortran pointer to the data
 
 In Fortran, it is possible to obtain a pointer to the record data for easier manipulation
@@ -640,9 +695,9 @@ my_record % data => c_loc(my_data)
 my_record % ni = 100
 my_record % nj = 200
 my_record % nk = 1
-my_record % datyp = FST_TYPE_REAL
-my_record % dasiz = 32
-my_record % npak  = -32
+my_record % data_type = FST_TYPE_REAL
+my_record % data_bits = 32
+my_record % pack_bits = 32
 [...]
 
 success = my_file % write(my_record)
@@ -669,9 +724,9 @@ my_record.data = my_data;
 my_record.ni = 100;
 my_record.nj = 200;
 my_record.nk = 1;
-my_record.datyp = FST_TYPE_REAL;
-my_record.dasiz = 32;
-my_record.npak  = -32;
+my_record.data_type = FST_TYPE_REAL;
+my_record.data_bits = 32;
+my_record.pack_bits = 32;
 [...]
 
 fst24_write(my_file, &my_record, 0);
@@ -684,9 +739,9 @@ free(my_file);
 ```fortran
 ! With turbocompression
 
-my_record % datyp = FST_TYPE_REAL + FST_TYPE_TURBOPACK
-my_record % dasiz = 32
-my_record % npak  = -16
+my_record % data_type = FST_TYPE_REAL + FST_TYPE_TURBOPACK
+my_record % data_bits = 32
+my_record % pack_bits = 16
 
 success = my_file % write(my_record)
 ```
@@ -696,9 +751,9 @@ success = my_file % write(my_record)
 ```c
 // With turbocompression
 
-my_record.datyp = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
-my_record.dasiz = 32;
-my_record.npak  = -16;
+my_record.data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
+my_record.data_bits = 32;
+my_record.pack_bits = 16;
 
 fst24_write(my_file, &my_record, 0);
 ```
@@ -713,33 +768,28 @@ fst24_write(my_file, &my_record, 0);
 ### Structs
 
 ```c
-typedef struct {
-    int32_t       iun;          //!< File unit, used by fnom
-    int32_t       file_index;   //!< File index in list of open files (the list is different for RSF vs XDF)
-    fst_file_type type;         //!< Type of file (RSF, XDF, etc.)
-    struct fst24_file_* next;   //!< Next file in linked list of files (if any)
-} fst_file;
+
+typedef struct fst24_file_ fst_file; // Forward declare
+typedef struct fst_query_ fst_query; // Forward declare
 
 typedef struct {
-    int64_t version;
 
     // 64-bit elements first
-    fst_file* file;   //!< FST file where the record is stored
+    const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
-    int64_t flags;    //!< Record status flags
+
     int64_t dateo;    //!< Origin Date timestamp
     int64_t datev;    //!< Valid Date timestamp
-    int64_t handle;   //!< Handle to specific record (if stored in a file)
 
     // 32-bit elements
-    int32_t datyp; //!< Data type of elements
-    int32_t dasiz; //!< Number of bits per elements
-    int32_t npak;  //!< Compression factor (none if 0 or 1). Number of bit if negative
-    int32_t ni;    //!< First dimension of the data field (number of elements)
-    int32_t nj;    //!< Second dimension of the data field (number of elements)
-    int32_t nk;    //!< Thierd dimension of the data field (number of elements)
-    int64_t alloc; //!< Size of allocated memory for data
+    int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
+    int32_t data_bits; //!< Number of bits per input element
+    int32_t pack_bits; //!< Number of stored (compressed) bits per element
+    int32_t ni;     //!< First dimension of the data field (number of elements)
+    int32_t nj;     //!< Second dimension of the data field (number of elements)
+    int32_t nk;     //!< Third dimension of the data field (number of elements)
+    int32_t num_meta_bytes; //!< Size of the metadata in bytes
 
     int32_t deet; //!< Length of the time steps in seconds (deet)
     int32_t npas; //!< Time step number
@@ -753,12 +803,11 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
-    int32_t dummy; // To make explicit the fact that the strings start at a 64-bit boundary
-
     char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
     char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
     char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
     char etiket[ALIGN_TO_4(FST_ETIKET_LEN + 1)]; //!< Label
+
 } fst_record;
 
 typedef struct {
@@ -773,11 +822,12 @@ typedef struct {
 typedef struct {
     int32_t dateo, datev, datestamps;
     int32_t level;
-    int32_t datyp, npak, ni, nj, nk;
+    int32_t data_type, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
     int32_t typvar, nomvar, etiket;
+    int32_t metadata;
 } fst_record_fields;
 ```
 
@@ -828,7 +878,11 @@ int32_t fst24_print_summary(
 
 //! Write the given record into the given standard file
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
-int32_t fst24_write(fst_file* file, fst_record* record, int rewrit);
+int32_t fst24_write(
+    fst_file* file,     //!< The file where we want to write
+    fst_record* record, //!< The record we want to write
+    const int rewrite   //!< Whether we want to overwrite the existing record
+);
 
 //! Search a file with given criteria and read the first record that matches these criteria.
 //! Search through linked files, if any.
@@ -867,7 +921,6 @@ int32_t fst24_unlink(fst_file* const file);
 int32_t fst24_eof(const fst_file* const file);
 ```
 
-<a id="c-query-functions"></a>
 ### Query Functions
 
 ```c
@@ -879,7 +932,8 @@ int32_t fst24_eof(const fst_file* const file);
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
     //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
-    //!> Must point to a valid record struct (i.e. initialized)
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
+    //!> match. If not NULL, must be a valid, initialized record.
     fst_record* record
 );
 
@@ -912,7 +966,6 @@ int32_t fst24_query_is_valid(const fst_query* const q);
 void fst24_query_free(fst_query* const query);
 ```
 
-<a id="c-record-functions"></a>
 ### Record Functions
 
 ```c
@@ -935,7 +988,7 @@ void* fst24_read_metadata(
 
 //! Read the data and metadata of a given record from its corresponding file
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
-int32_t fst24_read(
+int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 );
 
@@ -951,11 +1004,15 @@ void fst24_bounds(
 int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 );
+
+//! Delete a record from its file on disk
+//! \return TRUE if we were able to delete the record, FALSE otherwise
+int32_t fst24_delete(
+    fst_record* const record //!< The record we want to delete
+);
 ```
 
 ## Fortran
-
-<a id="fortran-structs"></a>
 
 ### Structs
 
@@ -1007,9 +1064,9 @@ type, public :: fst_record
     integer(C_INT64_T) :: dateo    = -1 !< Origin Date timestamp
     integer(C_INT64_T) :: datev    = -1 !< Valid Date timestamp
 
-    integer(C_INT32_T) :: datyp = -1    !< Data type of elements
-    integer(C_INT32_T) :: dasiz = -1    !< Number of bits per elements
-    integer(C_INT32_T) :: npak  = -1    !< Compression factor (none if 0 or 1). Number of bit if negative
+    integer(C_INT32_T) :: data_type = -1    !< Data type of elements
+    integer(C_INT32_T) :: data_bits = -1    !< Number of bits per elements
+    integer(C_INT32_T) :: pack_bits = -1    !< Compression factor (none if 0 or 1). Number of bit if negative
     integer(C_INT32_T) :: ni    = -1    !< First dimension of the data field (number of elements)
     integer(C_INT32_T) :: nj    = -1    !< Second dimension of the data field (number of elements)
     integer(C_INT32_T) :: nk    = -1    !< Thierd dimension of the data field (number of elements)
@@ -1034,13 +1091,12 @@ contains
     procedure, pass :: has_same_info
     procedure, pass :: read
     procedure, pass :: read_metadata
+    procedure, pass :: delete
 
     procedure, pass :: print
     procedure, pass :: print_short
 end type fst_record
 ```
-
-<a id="fortran-file-functions"></a>
 
 ### File Functions
 
@@ -1093,12 +1149,12 @@ end function get_unit
 !> Create a search query that will apply the given criteria during a search in a file.
 !> Return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
 function new_query(this,                                                                                        & 
-        dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+        dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
     integer(C_INT64_T), intent(in), optional :: dateo, datev
-    integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+    integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
     character(len=1),  intent(in), optional :: grtyp
@@ -1112,16 +1168,20 @@ end function new_query
 !> Search a file with given criteria and read the first record that matches these criteria.
 !> Search through linked files, if any.
 !> Return .true. if we found a record, .false. if not or if error
-function read(this, record,                                                                                     &
-        dateo, datev, datyp, dasiz, npak, ni, nj, nk,                                                           &
+function read(this, record, data,                                                                               &
+        dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
         ip1_all, ip2_all, ip3_all) result(found)
     implicit none
     class(fst_file), intent(inout) :: this
     type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
 
-    integer(C_INT32_T), intent(in), optional :: dateo, datev
-    integer(C_INT32_T), intent(in), optional :: datyp, dasiz, npak, ni, nj, nk
+    !> Where to put the data being read. Can also be specified by setting the
+    !> `data` attribute of the record being read.
+    type(C_PTR), intent(in), optional :: data
+
+    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
     character(len=1),  intent(in), optional :: grtyp
@@ -1154,11 +1214,11 @@ end function flush
 !> Print a summary of the records found in the given file (including any linked files)
 !> All optional parameters are booleans determining whether we print the corresponding field.
 subroutine print_summary(this,                                                                       &
-        dateo, datev, datestamps, level, datyp, ni, nj, nk,                                          &
+        dateo, datev, datestamps, level, data_type, ni, nj, nk,                                      &
         deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
     implicit none
     class(fst_file), intent(in) :: this
-    logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+    logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, ni, nj, nk
     logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
     logical, intent(in), optional :: typvar, nomvar, etiket
 end subroutine print_summary
@@ -1204,8 +1264,6 @@ function rwd(this) result(status)
     integer(C_INT32_T) :: status
 end function rwd
 ```
-
-<a id="fortran-query-functions"></a>
 
 ### Query Functions
 
@@ -1315,6 +1373,14 @@ function read_metadata(this) result(success)
     logical :: success
 end function read_metadata
 
+!> Delete a record from its file on disk
+!> Return .true. if we were able to delete the record, .false. otherwise
+function delete(this) result(success)
+    implicit none
+    class(fst_record), intent(inout) :: this !< fst_record instance, must be a valid record previously found in a file
+    logical :: success
+end function delete
+
 !> Print all members of the given record struct
 !> Causes an update of the underlying C struct
 subroutine print(this)
@@ -1326,13 +1392,13 @@ end subroutine print
 !> Causes an update of the underlying C struct
 !> Refer to fst_record_fields for the meaning of undocumented parameters
 subroutine print_short(                                                                        &
-        this, prefix, print_header, dateo, datev, datestamps, level, datyp, ni, nj, nk,        &
+        this, prefix, print_header, dateo, datev, datestamps, level, data_type, ni, nj, nk,    &
         deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket)
     implicit none
     class(fst_record), intent(inout) :: this !< fst_record instance whose information we want to print
     character(len=*), intent(in), optional :: prefix !< [optional] Text we want to add at the start of the line
     logical, intent(in), optional :: print_header !< [optional] Whether we want to print a header above the line to name the fields
-    logical, intent(in), optional :: dateo, datev, datestamps, level, datyp, ni, nj, nk
+    logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, ni, nj, nk
     logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
     logical, intent(in), optional :: typvar, nomvar, etiket
 end subroutine short

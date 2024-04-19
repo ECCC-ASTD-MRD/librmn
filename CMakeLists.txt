@@ -52,9 +52,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
-#set(CMAKE_VERBOSE_MAKEFILE TRUE)
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_EXTENSIONS OFF)
+# set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 add_compile_definitions(_${CMAKE_SYSTEM_NAME}_ _GNU_SOURCE)
 
@@ -146,7 +144,7 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
-target_link_libraries(rmn-static PUBLIC App-static json-c libudunits2 LibXml2::LibXml2)
+target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2-static LibXml2::LibXml2)
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}> ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2)
 
@@ -162,7 +160,9 @@ set_target_properties(rmn-static rmn-shared PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}>
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
-    SOVERSION ${SOVERSION})
+    SOVERSION ${SOVERSION}
+    C_STANDARD 11
+    C_EXTENSIONS OFF)
 
 set(TARGETS rmn-static rmn-shared)
 set(shared_targets rmn-shared)
@@ -186,7 +186,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
        POSITION_INDEPENDENT_CODE ON
        Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
    )
-   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c libudunits2 LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2)
 
@@ -201,7 +201,9 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
       INTERFACE_COMPILE_DEFINITIONS HAVE_RMN="${PROJECT_VERSION}"
       INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}/ompi>
       OUTPUT_NAME rmn-ompi
-      SOVERSION ${SOVERSION})
+      SOVERSION ${SOVERSION}
+      C_STANDARD 11
+      C_EXTENSIONS OFF)
 
    # Symbolic link for archive numbered version
    add_custom_command(TARGET rmn-static POST_BUILD
@@ -230,6 +232,13 @@ foreach(TARGET IN ITEMS ${TARGETS})
             #   $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
             #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
                $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
+    # nvhpc doesn't recognize shiftl	  
+    target_compile_definitions(${TARGET}
+        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
+    # for IntelLLVM > 2024.0 - TODO: move in source code
+    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM") AND (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER_EQUAL 2024.1))
+      target_compile_definitions(${TARGET} PUBLIC FORTRAN_202X_SUPPORTED)
+    endif()
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)
@@ -240,11 +249,20 @@ foreach(TARGET IN ITEMS ${TARGETS})
     target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endforeach()
 
+foreach(RMN_TARGET rmn-static rmn-shared)
+   target_compile_options(${RMN_TARGET} PRIVATE
+      $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=3180>
+   )
+endforeach()
+
+
 # Compilation options for specific files
-set_source_files_properties(src/fst/xdf98.c          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
-set_source_files_properties(src/primitives/wkoffit.c PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
-set_source_files_properties(src/base/fft_m4.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
-set_source_files_properties(src/base/fft_m8.f        PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
+set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
+set_source_files_properties(src/primitives/wkoffit.c   PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
+set_source_files_properties(src/primitives/constnt.F90 PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
+set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
+set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
+set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028>")
 
 install(TARGETS ${shared_targets}
     EXPORT rmn-shared-targets

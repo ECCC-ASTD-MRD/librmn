@@ -88,6 +88,8 @@
 
   real(real48) :: vLevelFraction, angle ! temporary variables
 
+  stateDerivDestn(:, :) = 0.0
+
   ! Verify the number of extension arguments that were supplied
   if(     numExtArraysIn  > MAX_EXT_ARRAYS_IN &
      .or. numExtArraysOut > MAX_EXT_ARRAYS_OUT) then

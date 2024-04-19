@@ -96,7 +96,13 @@
    60 ASAVE = A(II)
       I = II
    70 J = I+I
-      IF (J-NN) 80,90,100
+      IF (J-NN < 0) then
+          GO TO 80
+      else if (J - NN == 0) then
+          GO TO 90
+      else
+          GO TO 100
+      end if
    80 IF (A(J+1).GT.A(J)) J=J+1
    90 IF (A(J).LE.ASAVE)  GO TO 100
       A(I) = A(J)

@@ -175,8 +175,8 @@
       SUM1 = SUM1 + F(I,J1)
       SUM2 = SUM2 + F(I,J2)
 65    continue
-      SGLO = (SUM1*1.125 - SUM2*.125)/LI
-       IF(KASE.EQ.NORTH.AND.PHI.GT.90.0)  SGLO = SIGN * SGLO
+      SGLO_SSNH_SANH = (SUM1*1.125 - SUM2*.125)/LI
+       IF(KASE.EQ.NORTH.AND.PHI.GT.90.0)  SGLO_SSNH_SANH = SIGN * SGLO_SSNH_SANH
       RETURN
 *
 *----------------------------------------------------------------------
@@ -210,8 +210,8 @@
       IF(ORDINT.EQ.0) THEN
          II = NINT(DX+2.0)
          JJ = NINT(DY+2.0)
-         SGLO = F(IDX(II,JJ),ABS(JDX(JJ)))
-         IF(JDX(JJ).LT.0) SGLO = SGLO*SIGN
+         SGLO_SSNH_SANH = F(IDX(II,JJ),ABS(JDX(JJ)))
+         IF(JDX(JJ).LT.0) SGLO_SSNH_SANH = SGLO_SSNH_SANH*SIGN
       ELSE IF(ORDINT.EQ.1) THEN
          DO 90 JJ = 2 , 3
             DO 80 II = 2 , 3
@@ -223,7 +223,7 @@
                Z(JJ) = ZLIN(P(2),P(3),DX)
             ENDIF
 90       CONTINUE
-         SGLO = ZLIN(Z(2),Z(3),DY)
+         SGLO_SSNH_SANH = ZLIN(Z(2),Z(3),DY)
       ELSE
 *
 * INTERPOLATE 4 POINTS ON THE FINAL LATITUDE CIRCLE, STORE IN Z.
@@ -240,7 +240,7 @@
 *
 * FINAL INTERPOLATION.
 *
-       SGLO=CUBIC(Z(1),Z(2),Z(3),Z(4),DX)
+       SGLO_SSNH_SANH=CUBIC(Z(1),Z(2),Z(3),Z(4),DX)
       ENDIF
       RETURN
 *    -------------------------------------------------------------------

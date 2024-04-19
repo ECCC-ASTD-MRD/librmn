@@ -1,5 +1,7 @@
 #include "rmn/rsf.h"
 
+#include <unistd.h>
+
 #include <App.h>
 #include "qstdir.h"
 
@@ -159,14 +161,17 @@ const uint32_t RSF_SOS_SIGNATURE    = 0xDEADBEEF; //!< Marker to indicate a star
 const uint32_t RSF_EOS_HI_SIGNATURE = 0xCAFEFADE; //!< Marker to indicate the high part of an end of segment 
 const uint32_t RSF_EOS_LO_SIGNATURE = 0xBEBEFADA; //!< Marker to indicate the low part of an end of segment
 
+const uint8_t DEFAULT_RECORD_TYPE = RT_DATA;  //!< Type assigned to a record if none is specified
+const uint8_t DEFAULT_RECORD_CLASS = RC_DATA; //!< Class assigned to a record if none is specified
+
 // convert a pair of unsigned 32 bit elements into an unsigned 64 bit element
-static inline uint64_t RSF_32_to_64(uint32_t u32[2]){
+static inline uint64_t RSF_32_to_64(const uint32_t u32[2]){
   uint64_t u64;
   u64 = u32[0] ; u64 <<=32 ; u64 += u32[1] ;
   return u64 ;
 }
 
-static inline void RSF_64_to_32(uint32_t u32[2], uint64_t u64){
+static inline void RSF_64_to_32(uint32_t u32[2], const uint64_t u64){
   u32[0] = (u64 >> 32) ;
   u32[1] = (u64 & 0xFFFFFFFFu) ;
 }
@@ -199,25 +204,41 @@ typedef struct {
 
 #define SOR {RT_DATA, 0, ZR_SOR, {0, 0}, 0, 0, 0}
 
+//! Check whether the given start-of-record is valid and is of the specified record type
+//! \return The type stored in the start-of-record if valid, 0 otherwise
+static inline uint8_t RSF_Check_record_type(
+  const start_of_record sor,  //!< The start-of-record we want to examine
+  const uint8_t record_type   //!< The record type we are looking for (if RT_NULL, can be anything)
+) {
+  if (sor.zr != ZR_SOR) {
+    if (sor.rt == ZR_SOR) {
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: It looks like this start-of-record was read from a file written"
+              " in a different endianness than the machine on which we're currently running\n", __func__);
+    }
+    else {
+      Lib_Log(APP_LIBFST, APP_INFO, "%s: Invalid start-of-record, bad record_start marker, expected %4.4x, got %4.4x\n",
+              __func__, ZR_SOR, sor.zr);
+    }
+    return 0;
+  }
+
+  if (record_type != RT_NULL && sor.rt != record_type) {
+    Lib_Log(APP_LIBFST, APP_INFO,"%s: Invalid start-of-record, bad record types, expected %s, got %s\n",
+            __func__, rt_to_str(record_type), rt_to_str(sor.rt)) ;
+    return 0;
+  }
+
+  return sor.rt;
+}
+
 //! Retrieve record length from start_of_record and verify whether the type matches what's expected.
 //! \return Record length, 0 if invalid
 static inline uint64_t RSF_Rl_sor(
-    start_of_record sor,    //!< SOR we want to query
-    int rt                  //!< Expected type of the record (0 means any type is O.K.)
+    const start_of_record sor,    //!< SOR we want to query
+    const int rt                  //!< Expected type of the record (RT_NULL means any type is O.K.)
 ) {
-  uint64_t rl ;
-  if(sor.zr != ZR_SOR ) {
-    Lib_Log(APP_LIBFST, APP_INFO, "%s: Invalid start-of-record, bad record_start marker, expected %4.4x, got %4.4x\n",
-            __func__, ZR_SOR, sor.zr);
-    return 0 ;               // invalid sor, bad ZR marker
-  }
-  if(sor.rt != rt && rt != 0 ) {
-    Lib_Log(APP_LIBFST, APP_INFO,"%s: Invalid start-of-record, bad record types, expected %s, got %s\n",
-            __func__, rt_to_str(rt), rt_to_str(sor.rt)) ;
-    return 0 ;        // invalid sor, not expected RT
-  }
-  rl = RSF_32_to_64(sor.rl) ;                    // record length
-  return rl ;
+  if (RSF_Check_record_type(sor, rt) == 0) return 0;
+  return RSF_32_to_64(sor.rl);
 }
 
 //! Record trailer. Describes the type and size of a record and is located at the end of it.
@@ -373,12 +394,14 @@ struct directory_block{
 // propagate lower 16 bits into upper 16 bits if upper 16 are zero
 // #define DRML_FIX(ML) ( ((ML) >> 16) == 0 ? ((ML) <<16) | (ML) : (ML) )
 
-typedef struct{           // directory entry (both file and memory)
-  uint32_t wa[2] ;        // upper[0], lower[1] 32 bits of offset in segment (or file)
-  uint32_t rl[2] ;        // upper[0], lower[1] 32 bits of record length (bytes)
-  uint32_t ml ;           // upper 16 bits directory metadata length (in 32-bit elements), lower 16 record metadata length (in 32-bit elements)
-  uint32_t dul:8, reserved:24 ;  // data element length (use part of "reserved" for data map length ?)
-  uint32_t meta[] ;       // open array for metadata    (put data map length in meta[1] ?)
+//! Directory entry (both file and memory)
+typedef struct{
+  uint32_t wa[2] ;            //!< upper[0], lower[1] 32 bits of record offset in segment (or file)
+  uint32_t rl[2] ;            //!< upper[0], lower[1] 32 bits of record length (bytes)
+  uint32_t entry_offset[2] ;  //!< upper[0], lower[1] 32 bits of entry offset in file
+  uint32_t ml ;               //!< directory metadata length (upper 16 bits), record metadata length (lower 16) (in 32-bit elements)
+  uint32_t dul:8, reserved:24 ; //!< data element length (use part of "reserved" for data map length ?)
+  uint32_t meta[] ;           //!< open array for metadata
 } vdir_entry ;
 
 typedef struct{              // directory record to be written to file
@@ -424,10 +447,10 @@ struct RSF_File {
   uint64_t seg_max_hint ;        //!< Desired maximum address allowable in segment (sparse only)
   // off_t    size ;                //!< file size
   off_t    next_write ;          //!< file offset from beginning of file for next write operation ( -1 if not defined)
-  off_t    current_pos ;         //!< current file position (for writing) from beginning of file ( -1 if not defined)
   uint32_t rec_class ;           //!< record class being writen (default : data class 1) (rightmost 24 bits only)
   uint32_t class_mask ;          //!< record class mask (for scan/read/...) (by default all ones)
   uint32_t dir_read ;            //!< Total number of records found in all the directories of a file upon opening
+  uint32_t num_deleted_records ; //!< Number of records that have the RT_DEL type (included in the total)
   uint32_t vdir_slots ;          //!< current size of vdir[] table of pointers to directory entries
   uint32_t vdir_used ;           //!< number of used pointers in vdir[] table
   uint32_t sparse_table_used ;   //!< number of used entries in sparse_segments table
@@ -440,6 +463,7 @@ struct RSF_File {
   uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
   uint16_t mode ;                //!< file mode (RO/RW/AP/...)
   uint8_t is_new ;               //!< whether we created the file upon opening
+  uint8_t has_deleted ;          //!< Whether we have deleted record since opening the file
   uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
   uint8_t exclusive ;            //!< RW in exclusive mode if 1
 } ;
@@ -466,8 +490,7 @@ static inline void RSF_File_init(RSF_File *fp){  // initialize a new RSF_File st
 //   fp->seg_max_hint =  0 ;  // redundant if sos is stored
 //   fp->size       =  0 ;
   fp->next_write  = -1 ;
-  fp->current_pos = -1 ;
-  fp->rec_class   =  RC_DATA ;
+  fp->rec_class   =  DEFAULT_RECORD_CLASS ;
   fp->class_mask  =  0xFFFFFFFFu ;
 //   fp->dir_read  =  0 ;
 //   fp->dir_slots  =  0 ;
@@ -488,22 +511,27 @@ static inline void RSF_File_init(RSF_File *fp){  // initialize a new RSF_File st
 //   fp->exclusive    =  0 ;
 }
 
-// timeout is in microseconds
-static inline uint32_t RSF_Lock(RSF_File *fp, uint32_t id, uint32_t timeout){
-  useconds_t usec = 100 ;                                        // 100 microseconds
-  if(fp->lock == id) return 1 ;                                  // we already own the lock
-  while(__sync_val_compare_and_swap(&(fp->lock), 0, id) != 0){   // wait until lock is free
-    timeout = timeout - usec ;
-    if(timeout <= 0) return 0 ;                                  // timeout
+//! Lock the file for manipulation by 1 thread of this process
+static inline uint32_t RSF_Multithread_lock(RSF_File *fp) {
+  const uint32_t usec = 100 ;                                        // 100 microseconds
+  uint32_t remaining = 1 << 30; // ~1000 second timeout
+
+  // wait until lock is free
+  while(__sync_val_compare_and_swap(&(fp->lock), 0, 1) != 0) {
+    remaining -= usec ;
+    if(remaining <= 0) return 0 ;                                  // timeout
     usleep(usec) ;                                               // microsleep for usec microseconds
   }
   return 1 ;
 }
 
-static inline uint32_t RSF_Unlock(RSF_File *fp, uint32_t id){
+//! Unlock the file (from manipulation by 1 thread of this process)
+static inline uint32_t RSF_Multithread_unlock(RSF_File *fp){
   uint32_t old_id = fp->lock ;
-  if(old_id == id) fp->lock = 0 ;
-  return old_id == id ;            // 1 if successful, 0 if locked by some other code
+  while(__sync_val_compare_and_swap(&(fp->lock), 1, 0) != 1){   // wait until lock is free
+    usleep(100);
+  }
+  return old_id == 1 ;            // 1 if successful, 0 if locked by some other code
 }
 
 // round sizes up to a multiple of 4
@@ -547,6 +575,18 @@ static inline const char* open_mode_to_str(const int mode) {
 //! \{
 //! \name Meta0 content
 
+//! Assemble the Meta0 32-bit element:
+//! | ---- 31-24 ---- | ---- 23-16 ---- | ---- 15-08 ---- | ---- 07-00 ---- |
+//! | - nothing yet - | --- version --- |  record class - | - record type - |
+//! \return The encoded element
+static inline uint32_t make_meta0(
+  const uint8_t record_class,
+  const uint8_t record_type
+) {
+  const uint32_t meta0 = (RSF_VERSION_COUNT << 16) | (record_class << 8) | (record_type);
+  return meta0;
+}
+
 //! Extract items from the Meta0 32-bit element. See \ref make_meta0 for structure
 static inline void extract_meta0(
   const uint32_t meta0,     //!< [in]  Encoded Meta0
@@ -559,32 +599,11 @@ static inline void extract_meta0(
   *record_type  = (meta0 & 0x000000ff);
 }
 
-//! Assemble the Meta0 32-bit element:
-//! | ---- 31-24 ---- | ---- 23-16 ---- | ---- 15-08 ---- | ---- 07-00 ---- |
-//! | - nothing yet - | --- version --- |  record class - | - record type - |
-//! \return The encoded element
-static inline uint32_t make_meta0(
-  const uint32_t initial_meta,
-  const uint8_t record_class,
-  const uint8_t record_type
-) {
-  uint8_t init_version, init_class, init_type;
-  extract_meta0(initial_meta, &init_version, &init_class, &init_type);
-  if(init_type != RT_XDAT) {
-    if(init_type < RT_CUSTOM || init_type >= RT_DEL)
-      init_type = record_type ;
-  }
-
-  if (record_type != 0) init_type = record_type;
-  if (init_class == 0) init_class = record_class;
-  
-  const uint32_t meta0 = (RSF_VERSION_COUNT << 16) | (init_class << 8) | (init_type);
-  return meta0;
-}
-
 //! \}
 
 static int32_t RSF_File_lock(RSF_File *fp, int lock);
 static int32_t RSF_Ensure_new_segment(RSF_File *fp);
 void print_start_of_segment(start_of_segment* sos);
 void print_start_of_record(start_of_record* sor);
+
+static int32_t RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);
