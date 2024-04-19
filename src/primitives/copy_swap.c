@@ -132,7 +132,7 @@ void Swap_16_64(void *src, void *dst, int n64){           // 16<->64 bit endian 
   for(i=0 ; i < n64 ; i++){
     uint64_t t64 = s64[i];
     t64 = (t64 >> 32) | (t64 << 32);                                               // swap words in doubleword
-    t64 = ((t64 & 0x00FF00FF00FF00FF) << 16) | ((t64 >> 16) & 0x00FF00FF00FF00FF); // swap halfwords in words
+    t64 = ((t64 & 0x0000FFFF0000FFFF) << 16) | ((t64 >> 16) & 0x0000FFFF0000FFFF); // swap halfwords in words
     d64[i] = t64;
   }
 #endif
