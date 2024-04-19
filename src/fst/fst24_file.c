@@ -343,10 +343,25 @@ int32_t fst24_write_rsf(
     // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
     int data_type = in_data_type == FST_TYPE_MAGIC ? 1 : in_data_type;
 
+    // flag 64 bit IEEE
+    const int force_64 = (record->pack_bits == 64 && (is_type_real(in_data_type) || is_type_complex(in_data_type)));
+    int8_t elem_size = force_64 ? 64 : record->data_bits;
+
+    float* data_f = record->data;
+    if (is_type_real(in_data_type) && elem_size == 64 && record->pack_bits <= 32) {
+        // We convert now from double to float
+        elem_size = 32;
+        data_f = alloca(fst24_record_num_elem(record) * sizeof(float));
+        double* data_d = record->data;
+        for (int i = 0; i < fst24_record_num_elem(record); i++) {
+            data_f[i] = (float)data_d[i];
+        }
+    }
+
     PackFunctionPointer packfunc;
     double dmin = 0.0;
     double dmax = 0.0;
-    if (record->data_bits == 64 || in_data_type == FST_TYPE_MAGIC) {
+    if (elem_size == 64 || in_data_type == FST_TYPE_MAGIC) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
         packfunc = (PackFunctionPointer) &compact_float;
@@ -381,10 +396,6 @@ int32_t fst24_write_rsf(
         record->pack_bits = 32;
     }
 
-    // flag 64 bit IEEE
-    const int force_64 = (record->pack_bits == 64 && (is_type_real(in_data_type) || is_type_complex(in_data_type)));
-    const int8_t elem_size = force_64 ? 64 : record->data_bits;
-
     // validate range of arguments
     if (fst24_record_validate_params(record) != 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid value for certain parameters\n", __func__);
@@ -417,10 +428,10 @@ int32_t fst24_write_rsf(
         data_type = FST_TYPE_REAL_OLD_QUANT;
     }
 
-    if (base_fst_type(data_type) == FST_TYPE_REAL_IEEE && record->data_bits == 32 && (record->pack_bits < 10)) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits = %d, but anything less than 10 is not available for IEEE 32-bit float\n",
+    if (base_fst_type(data_type) == FST_TYPE_REAL_IEEE && (record->pack_bits < 16)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: nbits = %d, but anything less than 16 is not available for IEEE 32-bit float\n",
                 __func__, record->pack_bits);
-        record->pack_bits = 10;
+        return -1;
     }
 
     // Determine size of data to be stored
@@ -755,7 +766,7 @@ int32_t fst24_write_rsf(
                 // turbo compression not supported for this type, revert to normal mode
                 stdf_entry->datyp = has_missing | FST_TYPE_SIGNED;
 
-                uint32_t * field3 = field;
+                int32_t * field3 = (int32_t*)field;
                 const int64_t num_elem = fst24_record_num_elem(record);
 
                 if (record->data_bits == 64) {
@@ -816,7 +827,7 @@ int32_t fst24_write_rsf(
                         }
                     } else {
                         if (data_type == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t *)field, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
+                        f77name(ieeepak)((int32_t *)data_f, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                     }
                 }
                 break;
@@ -870,6 +881,7 @@ int32_t fst24_write_rsf(
 
     record->data_type = stdf_entry->datyp;
     record->pack_bits = stdf_entry->nbits;
+    record->data_bits = stdf_entry->dasiz;
 
     // write new_record to file and add entry to directory
     const int64_t record_handle = RSF_Put_record(rsf_file, new_record, num_data_bytes);
@@ -919,6 +931,15 @@ int32_t fst24_write(
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
         strncpy(etiket, record->etiket, FST_ETIKET_LEN);
         strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
+        if (record->data_bits == 8) {
+            c_fst_data_length(1);
+        }
+        else if (record->data_bits == 16) {
+            c_fst_data_length(2);
+        }
+        else if (record->data_bits == 64) {
+            c_fst_data_length(8);
+        }
         const int ier = c_fstecr_xdf(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
