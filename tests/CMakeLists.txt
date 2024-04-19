@@ -10,6 +10,11 @@ if (EC_INIT_DONE LESS 2)
         add_library(test_helper EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
         target_link_libraries(test_helper rmn::rmn)
 
+        add_executable(test_copy_swap EXCLUDE_FROM_ALL test_copy_swap.c)
+        target_link_libraries(test_copy_swap rmn::rmn)
+        add_test(NAME test_copy_swap COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_copy_swap)
+        add_dependencies(check test_copy_swap)
+
         add_executable(clib_isalpha EXCLUDE_FROM_ALL ${CMAKE_CURRENT_SOURCE_DIR}/clib_isalpha.F90)
         target_link_libraries(clib_isalpha rmn::rmn)
         add_test(NAME clib_isalpha COMMAND ${CMAKE_CURRENT_BINARY_DIR}/clib_isalpha ${CMAKE_CURRENT_SOURCE_DIR}/spp.dict)
@@ -202,6 +207,11 @@ if (EC_INIT_DONE LESS 2)
         target_link_libraries(fst24_delete_f rmn::rmn)
         add_test(NAME fst24_delete_f COMMAND $<TARGET_FILE:fst24_delete_f>)
         add_dependencies(check fst24_delete_f)
+
+        add_executable(fst_write_in_read_only fst/fst_write_in_read_only.c)
+        target_link_libraries(fst_write_in_read_only rmn::rmn)
+        add_test(NAME fst_write_in_read_only COMMAND $<TARGET_FILE:fst_write_in_read_only>)
+        add_dependencies(check fst_write_in_read_only)
 
     endif()
 endif()

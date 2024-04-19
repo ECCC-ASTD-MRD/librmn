@@ -46,22 +46,19 @@ for RI in I R ; do
 
         if (${D}>1 .and. ${D} < num_dims) then
             write(app_msg, '(A, I2, A)') 'Record data has ', num_dims, ' dimensions, so your pointer (${D}-D) needs at least that to work'
-            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
-            return
+            call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
         if (.not. (${TYPE_CONDITION})) then
             write(app_msg, '(A, A, A, A)') 'Record has type ', trim(FST_TYPE_NAMES(base_fst_type(this % data_type))),       &
                     ' but this pointer can only take ', '${ACCEPTED_TYPES}'
-            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
-            return
+            call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
         if (storage_size(array) /= this % data_bits) then
             write(app_msg, '(A, I3, A, I3, A)') 'Record contains ', this % data_bits / 8,                               &
                     '-byte elements, but you passed a pointer with ', ${L}, '-byte elements.'
-            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
-            return
+            call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
         call c_f_pointer(this % data, array, [$SHAPE])

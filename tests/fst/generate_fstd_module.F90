@@ -55,12 +55,17 @@ subroutine generate_file(filename, is_rsf, ip3_offset)
 
     if (is_rsf) then
         filetype = 'RSF'
-        success = the_file % open(filename, 'STD+RND+RSF')
+        success = the_file % open(filename, 'RND+RSF+R/W')
     else
         filetype = 'XDF'
-        success = the_file % open(filename, 'STD+RND+XDF')
+        success = the_file % open(filename, 'RND+XDF+R/W')
     end if
 
+    if (.not. success) then
+        write (app_msg, '(A, A)') 'Error when opening (creating) file ', filename
+        call App_Log(APP_ERROR, app_msg)
+        return
+    end if
 
     record % dateo = 0
     record % datev = 0

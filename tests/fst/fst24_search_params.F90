@@ -24,8 +24,8 @@ subroutine create_file(is_rsf)
     write(cmd, '(A, (1X, A))') 'rm -fv ', test_filename
     call execute_command_line(trim(cmd))
 
-    options = 'RSF'
-    if (.not. is_rsf) options = 'XDF'
+    options = 'RSF+R/W'
+    if (.not. is_rsf) options = 'XDF+R/W'
 
     success = test_file % open(test_filename, options = options)
     if (.not. success) then

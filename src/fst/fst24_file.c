@@ -182,10 +182,11 @@ int32_t fst24_print_summary(
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
     fst_query* query = fst24_new_query(file, NULL, NULL); // Look for every (non-deleted) record
+
     fst_record rec = default_fst_record;
     int64_t num_records = 0;
     size_t total_data_size = 0;
-    while (fst24_find_next(query, &rec)) {
+    while (fst24_find_next(query, &rec) == TRUE) {
         num_records++;
         total_data_size += fst24_record_data_size(&rec);
         fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), NULL);
@@ -342,10 +343,32 @@ int32_t fst24_write_rsf(
     // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
     int data_type = in_data_type == FST_TYPE_MAGIC ? 1 : in_data_type;
 
+    // flag 64 bit IEEE
+    const int force_64 = (record->pack_bits == 64 && (is_type_real(in_data_type) || is_type_complex(in_data_type)));
+    int8_t elem_size = force_64 ? 64 : record->data_bits;
+
+    float* data_f = record->data;
+    if (is_type_real(in_data_type) && elem_size == 64) {
+        if (record->pack_bits <= 32) {
+            // We convert now from double to float
+            elem_size = 32;
+            data_f = alloca(fst24_record_num_elem(record) * sizeof(float));
+            double* data_d = record->data;
+            for (int i = 0; i < fst24_record_num_elem(record); i++) {
+                data_f[i] = (float)data_d[i];
+            }
+        }
+        else if (record->pack_bits != 64) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
+                    " 64 or less than 32. Will store 64 bits.\n", __func__, record->pack_bits);
+            record->pack_bits = 64;
+        }
+    }
+
     PackFunctionPointer packfunc;
     double dmin = 0.0;
     double dmax = 0.0;
-    if (record->data_bits == 64 || in_data_type == FST_TYPE_MAGIC) {
+    if (elem_size == 64 || in_data_type == FST_TYPE_MAGIC) {
         packfunc = (PackFunctionPointer) &compact_double;
     } else {
         packfunc = (PackFunctionPointer) &compact_float;
@@ -360,6 +383,7 @@ int32_t fst24_write_rsf(
     }
 
     if (is_type_real(data_type) && record->pack_bits <= 32 && record->data_bits == 64) {
+        // Will convert the double to float before doing anything else
         record->data_bits = 32;
     }
 
@@ -374,15 +398,12 @@ int32_t fst24_write_rsf(
         record->pack_bits = 64;
     }
 
-    if ((in_data_type == FST_TYPE_REAL_OLD_QUANT) && ((record->pack_bits == 31) || (record->pack_bits == 32)) && !image_mode_copy) {
+    if ((base_fst_type(in_data_type) == FST_TYPE_REAL_OLD_QUANT) && ((record->pack_bits == 31) || (record->pack_bits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
         data_type = FST_TYPE_REAL_IEEE;
+        if (is_type_turbopack(in_data_type)) data_type |= FST_TYPE_TURBOPACK;
         record->pack_bits = 32;
     }
-
-    // flag 64 bit IEEE
-    const int force_64 = (record->pack_bits == 64 && (is_type_real(in_data_type) || is_type_complex(in_data_type)));
-    const int8_t elem_size = force_64 ? 64 : record->data_bits;
 
     // validate range of arguments
     if (fst24_record_validate_params(record) != 0) {
@@ -416,10 +437,10 @@ int32_t fst24_write_rsf(
         data_type = FST_TYPE_REAL_OLD_QUANT;
     }
 
-    if (base_fst_type(data_type) == FST_TYPE_REAL_IEEE && record->data_bits == 32 && (record->pack_bits < 10)) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits = %d, but anything less than 10 is not available for IEEE 32-bit float\n",
+    if (base_fst_type(data_type) == FST_TYPE_REAL_IEEE && (record->pack_bits < 16)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: nbits = %d, but anything less than 16 is not available for IEEE 32-bit float\n",
                 __func__, record->pack_bits);
-        record->pack_bits = 10;
+        return -1;
     }
 
     // Determine size of data to be stored
@@ -475,17 +496,20 @@ int32_t fst24_write_rsf(
     char *metastr = NULL;
     int  metalen = 0;
     size_t rec_metadata_size = dir_metadata_size;
+    uint16_t ext_metadata_size = 0;
     if (record->metadata) {
        if (!image_mode_copy) {
           fst24_bounds(record,&dmin,&dmax);
-          if (!Meta_DefData(record->metadata,record->ni,record->nj,record->nk,FST_TYPE_NAMES[data_type],"lorenzo",record->pack_bits,record->data_bits,dmin,dmax)) {
+          if (!Meta_DefData(record->metadata, record->ni, record->nj, record->nk, FST_TYPE_NAMES[data_type],
+                            "lorenzo", record->pack_bits, record->data_bits, dmin, dmax)) {
              Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid metadata profile\n", __func__);
              return(ERR_METADATA);
           }
        }
        if ((metastr = Meta_Stringify(record->metadata)) != NULL) {
           metalen = strlen(metastr) + 1;
-          rec_metadata_size += (metalen + 3) / 4;
+          ext_metadata_size = (metalen + 3) / 4;
+          rec_metadata_size += ext_metadata_size;
        }
     }
 
@@ -511,26 +535,29 @@ int32_t fst24_write_rsf(
 
     // set stdf_entry to address of buffer->data for building keys
     search_metadata* meta = (search_metadata *) new_record->meta;
-    stdf_dir_keys* stdf_entry = (stdf_dir_keys *) &meta->fst98_meta;
+    stdf_dir_keys* stdf_entry = &meta->fst98_meta;
 
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
-        memcpy((char *)(meta + 1), metastr, metalen + 1);
+        memcpy((char *)(meta + 1), metastr, metalen);
     }
 
-    // Reserved metadata
+    // RSF reserved metadata
     for (int i = 0; i < RSF_META_RESERVED; i++) {
         meta->rsf_reserved[i] = 0;
     }
-    meta->fst24_reserved[0] = FST24_META_RESERVED_0;
+    
+    // FST reserved metadata
+    meta->fst24_reserved[0] = fst24_reserved_0(ext_metadata_size);
+    meta->fst24_reserved[1] = 0; // Datamap size
 
     // fst98 metadata 
     {
-        stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
-        stdf_entry->select;  // Reserved by RSF. Don't write anything here!
-        stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
-        stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->select;  // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
 
         stdf_entry->deet = record->deet;
         stdf_entry->nbits = record->pack_bits;
@@ -653,7 +680,7 @@ int32_t fst24_write_rsf(
                     packfunc(field, (void *)&((uint32_t *)new_record->data)[1], (void *)&((uint32_t *)new_record->data)[5],
                         num_elements, record->pack_bits + 64 * Max(16, record->pack_bits), 0, stride, 1, 0, &tempfloat ,&dmin ,&dmax);
                     const int compressed_lng = armn_compress((unsigned char *)((uint32_t *)new_record->data + 5),
-                                                             record->ni, record->nj, record->nk, record->pack_bits, 1, 0);
+                                                             record->ni, record->nj, record->nk, record->pack_bits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
@@ -748,7 +775,7 @@ int32_t fst24_write_rsf(
                 // turbo compression not supported for this type, revert to normal mode
                 stdf_entry->datyp = has_missing | FST_TYPE_SIGNED;
 
-                uint32_t * field3 = field;
+                int32_t * field3 = (int32_t*)field;
                 const int64_t num_elem = fst24_record_num_elem(record);
 
                 if (record->data_bits == 64) {
@@ -809,7 +836,7 @@ int32_t fst24_write_rsf(
                         }
                     } else {
                         if (data_type == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t *)field, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
+                        f77name(ieeepak)((int32_t *)data_f, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                     }
                 }
                 break;
@@ -824,7 +851,7 @@ int32_t fst24_write_rsf(
                                    &((int32_t *)new_record->data)[1+header_size], num_elements);
                     const int compressed_lng = armn_compress(
                         (unsigned char *)&((uint32_t *)new_record->data)[1+header_size], record->ni, record->nj,
-                        record->nk, record->pack_bits, 1, 0);
+                        record->nk, record->pack_bits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((void *)field, record->pack_bits, new_record->data, &((int32_t *)new_record->data)[header_size],
@@ -863,6 +890,7 @@ int32_t fst24_write_rsf(
 
     record->data_type = stdf_entry->datyp;
     record->pack_bits = stdf_entry->nbits;
+    record->data_bits = stdf_entry->dasiz;
 
     // write new_record to file and add entry to directory
     const int64_t record_handle = RSF_Put_record(rsf_file, new_record, num_data_bytes);
@@ -912,6 +940,15 @@ int32_t fst24_write(
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
         strncpy(etiket, record->etiket, FST_ETIKET_LEN);
         strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
+        if (record->data_bits == 8) {
+            c_fst_data_length(1);
+        }
+        else if (record->data_bits == 16) {
+            c_fst_data_length(2);
+        }
+        else if (record->data_bits == 64) {
+            c_fst_data_length(8);
+        }
         const int ier = c_fstecr_xdf(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
@@ -1067,7 +1104,7 @@ int32_t fst24_rewind_search(fst_query* const query) {
 //! \return Key of the record found (negative if error or nothing found)
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
 
-    stdf_dir_keys actual_mask;
+    search_metadata actual_mask;
     uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;
     uint32_t* mask_u32            = (uint32_t *)&query->mask;
     uint32_t* background_mask_u32 = (uint32_t *)&query->background_mask;
@@ -1075,10 +1112,10 @@ int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
         actual_mask_u32[i] = mask_u32[i] & background_mask_u32[i];
     }
     const int64_t key = RSF_Lookup(file_handle,
-                                       query->search_index,
-                          (uint32_t *)&query->criteria,
-                                       actual_mask_u32,
-                                       query->num_criteria);
+                                   query->search_index,
+                      (uint32_t *)&query->criteria,
+                                   actual_mask_u32,
+                                   query->num_criteria);
     if (key > 0) {
         // Found it. Next search will start here
         query->search_index = key;
@@ -1091,8 +1128,8 @@ int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
 }
 
 int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
-    uint32_t* pkeys = (uint32_t *) &query->criteria;
-    uint32_t* pmask = (uint32_t *) &query->mask;
+    uint32_t* pkeys = (uint32_t *) &query->criteria.fst98_meta;
+    uint32_t* pmask = (uint32_t *) &query->mask.fst98_meta;
 
     pkeys += W64TOWD(1);
     pmask += W64TOWD(1);
@@ -1196,6 +1233,8 @@ int32_t fst24_find_next(
         }
         return FALSE;
     }
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching in file at %p (next %p)\n", __func__, query->file, query->file->next);
 
     fst_record tmp_record = default_fst_record;
     while (TRUE) { // Search forever (until found or end-of-file)
@@ -1350,7 +1389,7 @@ int32_t fst24_unpack_data(
                 // Floating Point
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(record->data_type)) {
-                    armn_compress((unsigned char *)(source_u32+ 5), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
+                    armn_compress((unsigned char *)(source_u32+ 5), record->ni, record->nj, record->nk, record->pack_bits, 2, 1);
                     packfunc(dest_u32, source_u32 + 1, source_u32 + 5, nelm, record->pack_bits + 64 * Max(16, record->pack_bits),
                              0, stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
                 } else {
@@ -1458,7 +1497,7 @@ int32_t fst24_unpack_data(
                 c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, nelm);
                 header_size /= 4;
                 if (is_type_turbopack(record->data_type)) {
-                    armn_compress((unsigned char *)(source_u32 + 1 + header_size), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
+                    armn_compress((unsigned char *)(source_u32 + 1 + header_size), record->ni, record->nj, record->nk, record->pack_bits, 2, 1);
                     c_float_unpacker((float *)dest, (int32_t *)(source_u32 + 1), (int32_t *)(source_u32 + 1 + header_size), nelm, &bits);
                 } else {
                     c_float_unpacker((float *)dest, (int32_t *)source, (int32_t *)(source_u32 + header_size), nelm, &bits);
@@ -1538,8 +1577,9 @@ int32_t fst24_read_record_rsf(
 
     // Extract metadata from record if present
     record_fst->metadata = NULL;
-    if (record_rsf->rec_meta > record_rsf->dir_meta) {
-        record_fst->metadata = Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+    if (record_fst->do_not_touch.extended_meta_size > 0) {
+        // Located after the search keys
+        record_fst->metadata = Meta_Parse((char*)((uint32_t*)record_rsf->meta + record_fst->do_not_touch.num_search_keys));
     }
 
     // Extract data
@@ -1581,6 +1621,15 @@ int32_t fst24_read_record_xdf(
         if (ier < 0) return ier;
     }
 
+    if (record->data_bits == 8) {
+        c_fst_data_length(1);
+    }
+    else if (record->data_bits == 16) {
+        c_fst_data_length(2);
+    }
+    else if (record->data_bits == 64) {
+        c_fst_data_length(8);
+    }
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
     if (handle != key32) return ERR_NOT_FOUND;
     fill_with_search_meta(record, &meta, FST_XDF);

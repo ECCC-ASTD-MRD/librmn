@@ -809,8 +809,8 @@ int c_fst_data_length(
     //! | ----------: | :---------------- |
     //! |           1 | Byte              |
     //! |           2 | Short (16 bits)   |
-    //! |           3 | Regular (32 bits) |
-    //! |           4 | Double (64 bits)  |
+    //! |           4 | Regular (32 bits) |
+    //! |           8 | Double (64 bits)  |
     const int length_type
 ) {
     switch (length_type) {
@@ -963,7 +963,12 @@ int c_fstecr_xdf(
         nbits = (npak < 0) ? -npak : Max(1, FTN_Bitmot / Max(1, npak));
     }
     nk = Max(1, nk);
-    int minus_nbits = -nbits;
+
+    if (base_fst_type(datyp) == FST_TYPE_REAL_IEEE && nbits < 16) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Writing a truncated IEEE float with less than 16 bits is not allowed\n",
+                __func__);
+        return ERR_BAD_DATYP;
+    }
 
     if ( (in_datyp_ori == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) && (nbits > 32) ) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
@@ -975,15 +980,15 @@ int c_fstecr_xdf(
     }
 
     if (is_type_turbopack(datyp) && nk > 1) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.\n", __func__);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data. We will disable it.\n", __func__);
         datyp &= FST_TYPE_TURBOPACK;
     }
 
-    if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    if ((base_fst_type(in_datyp) == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
         datyp = FST_TYPE_REAL_IEEE;
+        if (is_type_turbopack(in_datyp)) datyp |= FST_TYPE_TURBOPACK;
         nbits = 32;
-        minus_nbits = -32;
     }
 
     // flag 64 bit IEEE (type 5 or 8)
@@ -1028,38 +1033,58 @@ int c_fstecr_xdf(
         }
     }
 
-    // no extra compression if nbits > 16
+    if ((base_fst_type(datyp) == FST_TYPE_REAL)) { 
+        if (nbits > 24) {
+            if (! dejafait_xdf_1) {
+                Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
+                dejafait_xdf_1 = 1;
+            }
+            datyp = FST_TYPE_REAL_IEEE | (is_type_turbopack(datyp) ? FST_TYPE_TURBOPACK : 0);
+            nbits = 32;
+        }
+        else if (nbits > 16) {
+            if (! dejafait_xdf_2) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
+                dejafait_xdf_2 = 1;
+            }
+            datyp = FST_TYPE_REAL_OLD_QUANT; // No turbopack for R with >16 bits
+        }
+    }
+
+    // no extra compression if nbits > 16 (except for IEEE reals)
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
-    // if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression;
-    if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
-        if (! dejafait_xdf_1) {
-            Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
-            dejafait_xdf_1 = 1;
-        }
-        datyp = FST_TYPE_REAL_IEEE;
-        nbits = 32;
-        minus_nbits = -32;
-    }
-    if ((datyp == FST_TYPE_REAL) && (nbits > 16)) {
-        if (! dejafait_xdf_2) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
-            dejafait_xdf_2 = 1;
-        }
-        datyp = FST_TYPE_REAL_OLD_QUANT;
-    }
+
+    float* field_f = field_in; // Hold real datatypes, in case we need to convert from float to double
 
     // Determine data_nbits (uncompressed datatype size)
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
         data_nbits = (xdf_double || IEEE_64) ? 64 : 32;
+        if (data_nbits == 64) {
+            if (nbits <= 32) {
+                // We convert now from double to float
+                data_nbits = 32;
+                field_f = alloca(ni * nj * nk * sizeof(float));
+                double* field_d = field_in;
+                for (int i = 0; i < ni * nj * nk; i++) {
+                    field_f[i] = (float)field_d[i];
+                }
+            }
+            else if (nbits != 64) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
+                        " 64 or less than 32. Will store 64 bits.\n", __func__, nbits);
+                nbits = 64;
+            }
+        }
     }
     else if (is_type_integer(datyp)) {
         data_nbits = xdf_byte   ?  8 :
-                        xdf_short  ? 16 :
-                        xdf_double ? 64 :
-                                    32;
+                     xdf_short  ? 16 :
+                     xdf_double ? 64 :
+                                  32;
     }
 
+    int minus_nbits = -nbits;
     int header_size;
     int stream_size;
     int nw;
@@ -1277,7 +1302,7 @@ int c_fstecr_xdf(
                     // nbits>64 flags a different packing
                     packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
                         packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
@@ -1413,7 +1438,7 @@ int c_fstecr_xdf(
                     int32_t f_one = 1;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
                     if (datyp == (FST_TYPE_COMPLEX | FST_TYPE_TURBOPACK)) {
-                        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_COMPLEXT (%d)\n",
+                        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available for complex data, data type %d reset to FST_TYPE_COMPLEX (%d)\n",
                                 __func__, stdf_entry->datyp, FST_TYPE_COMPLEX);
                         datyp = FST_TYPE_COMPLEX;
                         stdf_entry->datyp = datyp;
@@ -1434,7 +1459,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field_f, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -1447,7 +1472,7 @@ int c_fstecr_xdf(
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
@@ -2739,15 +2764,6 @@ int c_fstluk_xdf(
     // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
     bzero(workField, workFieldSz);
 
-    // if ((workField = alloca(workFieldSz)) == NULL) {
-    //     Lib_Log(APP_LIBFST, APP_FATAL, "%s: "memory is full, was trying to allocate %ld bytes\n", __func__, lng*sizeof(int));
-    //     return ERR_MEM_FULL;
-    // } else {
-    //     printf("Debug+ fstluk - &\n");
-    //     printf("Debug+ fstluk - memset(workField, 0, workFieldSz)\n");
-    //     memset(workField, 0, workFieldSz);
-    // }
-
     // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
     buffer_interface_ptr buf = (buffer_interface_ptr) workField;
     if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7) != 0 ) {
@@ -2812,7 +2828,7 @@ int c_fstluk_xdf(
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(stdf_entry.datyp)) {
                     // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
-                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
@@ -2940,7 +2956,7 @@ int c_fstluk_xdf(
                 // printf("Debug+ fstluk - Floating point, new packers (6, 134)\n");
                 int nbits;
                 if (is_type_turbopack(stdf_entry.datyp)) {
-                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
+                    armn_compress((unsigned char *)(buf->data + 1 + header_size), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
@@ -3527,13 +3543,17 @@ int c_fstouv(
     const int iwko = c_wkoffit(FGFDT[i].file_name, strlen(FGFDT[i].file_name));
     if (FGFDT[i].attr.remote) {
         if ((FGFDT[i].eff_file_size == 0) && (! FGFDT[i].attr.old)) {
-            if (is_rsf) {
+            if (read_only) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to open in read-only mode a file that does not exist: %s\n",
+                        __func__, FGFDT[i].file_name);
+                ier = ERR_NO_FILE;
+            }
+            else if (is_rsf) {
                 ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: Should open as RSF, but this branch is not implemented.......\n", __func__);
@@ -3545,13 +3565,17 @@ int c_fstouv(
         }
     } else {
         if ((iwko <= -2) && (! FGFDT[i].attr.old)) {
-            if (is_rsf) {
+            if (read_only) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to open in read-only mode a file that does not exist: %s\n",
+                        __func__, FGFDT[i].file_name);
+                ier = ERR_NO_FILE;
+            }
+            else if (is_rsf) {
                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
-            read_only = 0;
         } else {
             if (iwko == WKF_STDRSF) {
                 ier = c_fstouv_rsf(i, open_mode, seg_size);
@@ -4297,12 +4321,12 @@ int c_fstvoi(
 
     if (!print_single_stats) {
         fprintf(stdout, "Statistics for %d linked files: \n", num_files);
-        fprintf(stdout, "Number of directory entries   \t %d\n", total_num_entries);
-        fprintf(stdout, "Number of valid records       \t %d\n", total_num_valid_records);
-        fprintf(stdout, "File size                     \t %d bytes\n", total_file_size);
-        fprintf(stdout, "Number of writes              \t %d\n", total_num_writes);
-        fprintf(stdout, "Number of rewrites (XDF only) \t %d\n", total_num_rewrites);
-        fprintf(stdout, "Number of erasures (XDF only) \t %d\n", total_num_erasures);
+        fprintf(stdout, "Number of directory entries   \t %ld\n", total_num_entries);
+        fprintf(stdout, "Number of valid records       \t %ld\n", total_num_valid_records);
+        fprintf(stdout, "File size                     \t %ld bytes\n", total_file_size);
+        fprintf(stdout, "Number of writes              \t %ld\n", total_num_writes);
+        fprintf(stdout, "Number of rewrites (XDF only) \t %ld\n", total_num_rewrites);
+        fprintf(stdout, "Number of erasures (XDF only) \t %ld\n", total_num_erasures);
     }
 
     return status;

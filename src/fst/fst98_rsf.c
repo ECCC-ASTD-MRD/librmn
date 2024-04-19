@@ -155,7 +155,7 @@ int c_fstouv_rsf(
     const int32_t parallel_segment_size_mb
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
-    const int32_t meta_dim = (sizeof(stdf_dir_keys) + 3)/ sizeof(int32_t); // In 32-bit units
+    const int32_t meta_dim = (sizeof(search_metadata) + 3)/ sizeof(int32_t); // In 32-bit units
     int64_t segment_size = 0;
     if (parallel_segment_size_mb > 0) {
         segment_size = ((int64_t)parallel_segment_size_mb) << 20;
@@ -286,7 +286,7 @@ int c_fstinfx_rsf(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    const stdf_dir_keys* record_meta = (const stdf_dir_keys*)record_info.meta;
+    const stdf_dir_keys* record_meta = &((const search_metadata*)record_info.meta)->fst98_meta;
 
     // Continue looking until we have a match. Why is this not part of the RSF lookup function????
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
@@ -475,7 +475,7 @@ int c_fstluk_rsf(
     // // Extract metadata from record if present
     // rec.metadata = NULL;
     // if (record_rsf->rec_meta > record_rsf->dir_meta) {
-    //     rec.metadata = Meta_Parse((char*)((stdf_dir_keys*)record_rsf->meta+1));
+    //     rec.metadata = Meta_Parse((char*)((search_metadata*)record_rsf->meta+1));
     // }
 
     // Extract data
@@ -784,7 +784,7 @@ int c_fstprm_rsf(
         return -1;
     }
 
-    stdf_dir_keys *stdf_entry = (stdf_dir_keys *)record_info.meta;
+    stdf_dir_keys *stdf_entry = &((search_metadata *)record_info.meta)->fst98_meta;
     stdf_special_parms cracked;
     crack_std_parms(stdf_entry, &cracked);
 
@@ -865,7 +865,7 @@ int c_fstsui_rsf(
     }
 
     RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    stdf_dir_keys* stdf_entry = (stdf_dir_keys*)record_info.meta;
+    stdf_dir_keys* stdf_entry = &((search_metadata*)record_info.meta)->fst98_meta;
     *ni = stdf_entry->ni;
     *nj = stdf_entry->nj;
     *nk = stdf_entry->nk;
@@ -903,7 +903,7 @@ int c_fstvoi_rsf(
     
     for (unsigned int i = 0; i < num_records; i++) {
         const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
-        const stdf_dir_keys* metadata = (const stdf_dir_keys *) info.meta;
+        const stdf_dir_keys* metadata = &((const search_metadata *) info.meta)->fst98_meta;
         single_file_size += info.rl;
         char string[20];
         sprintf(string, "%5d-", *total_num_valid_records + i);

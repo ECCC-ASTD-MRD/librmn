@@ -35,9 +35,9 @@ subroutine create_files(is_rsf)
         call execute_command_line(trim(cmd))
 
         if (is_rsf(i)) then
-            success = files(i) % open(filenames(i), 'RSF')
+            success = files(i) % open(filenames(i), 'RSF+R/W')
         else
-            success = files(i) % open(filenames(i), 'XDF')
+            success = files(i) % open(filenames(i), 'XDF+R/W')
         end if
 
         if (.not. success) then
