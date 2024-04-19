@@ -23,9 +23,9 @@
       subroutine ez_lac_8( xyz,lon,lat,n)
           use rmn_common
       implicit none
-      integer        :: n
-      real(kind = real64) :: xyz(3,n)
-      real(kind = real32) :: lon(n),lat(n) 
+      integer, intent(in) :: n
+      real(kind = real64), intent(out) :: xyz(3,n)
+      real(kind = real32), intent(in)  :: lon(n),lat(n) 
 !
 !author michel roch - april 90
 !

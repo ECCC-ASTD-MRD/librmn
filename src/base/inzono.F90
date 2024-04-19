@@ -45,6 +45,7 @@
 !> @date 1992-09-01
 subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
                   dznprf, zprofil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk)
+    use rmn_fst98
     implicit none
     integer, intent(inout) :: iun
     integer, intent(in) :: ni, nj, nk, latmin, rot
@@ -88,8 +89,8 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     logical, save :: tourne = .true.
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin
-    external fstnbr, fstouv, fstfrm, fstecr, exfin, qqexit, strgr4a
+    integer :: ifrm, iecr, inbr, ierr, nil, exfin
+    external exfin, qqexit, strgr4a
 
 #include <rmn/fnom.hf>
 
@@ -114,7 +115,7 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     integer, save :: nbits = 24
     integer, save :: npas = 0
 
-    logical :: rewrit
+    integer :: rewrit
 
     ! Variables de travail non statiques.
     integer :: nic, njc, nkc, ii, jj, kk
@@ -205,7 +206,7 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
 
     ! Definir les parametres de stockage du fichier standard
     datyp  = 2
-    rewrit = .false.
+    rewrit = 0
     typvar = '+'
     etiket = 'CONTROLE'
     grtyp  = 'X'
@@ -417,6 +418,7 @@ end subroutine
 subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
                   dznprf, zprofil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk, &
                   lun_out, noutzon)
+    use rmn_fst98
     implicit none
     integer, intent(in) :: ni, nj, nk, latmin, rot
     integer, intent(out) :: iun
@@ -460,8 +462,8 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     logical, save :: tourne = .true.
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    integer :: ifrm, fstfrm, iecr, fstecr, inbr, fstnbr, ierr, fstouv, nil, exfin
-    external fstnbr, fstouv, fstfrm, fstecr, exfin, qqexit, strgr4a
+    integer :: ifrm, iecr, inbr, ierr, nil, exfin
+    external exfin, qqexit, strgr4a
 
 #include <rmn/fnom.hf>
 
@@ -486,7 +488,7 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     integer, save :: nbits = 24
     integer, save :: npas = 0
 
-    logical :: rewrit
+    integer :: rewrit
 
     ! Variables de travail non statiques.
     integer :: nic, njc, nkc, ii, jj, kk
@@ -586,7 +588,7 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
 
     ! Definir les parametres de stockage du fichier standard
     datyp  = 2
-    rewrit = .false.
+    rewrit = 0
     typvar = '+'
     etiket = 'CONTROLE'
     grtyp  = 'X'
@@ -801,6 +803,7 @@ end subroutine
 subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
                   dznprf, profil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk, &
                   nbin, lun_out, noutzon)
+    use rmn_fst98
     implicit none
     integer, intent(in) :: ni, nj, nk, nbin, latmin, rot
     integer, intent(out) :: iun
@@ -842,8 +845,8 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     logical, save :: tourne = .true.
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    integer :: ifrm, fstfrm, iecr, fstecr, fstecr_s, inbr, fstnbr, ierr, fstouv, nil, exfin
-    external fstnbr, fstouv, fstfrm, fstecr, fstecr_s, exfin, qqexit
+    integer :: ifrm, iecr, inbr, ierr, nil, exfin
+    external exfin, qqexit
 
 #include <rmn/fnom.hf>
 
@@ -867,7 +870,7 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     integer, save :: nbits = 24
     integer, save :: npas = 0
 
-    logical :: rewrit
+    integer :: rewrit
 
     ! Variables de travail non statiques.
     integer :: nic, njc, nkc, ii, jj, kk, i0, i1
@@ -965,7 +968,7 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
 
     ! Definir les parametres de stockage du fichier standard
     datyp  = 2
-    rewrit = .false.
+    rewrit = 0
     typvar = '+'
     etiket = 'CONTROLE'
     grtyp  = 'X'
@@ -999,8 +1002,8 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
         i1 = i0 + 7
     end do
 
-    iecr = fstecr_s( trim( chaine ), wk, -8 , iun, dateo, deet, npas, nic, njc, nkc, ip1, ip2, ip3, &
-        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrit)
+    iecr = fstecr_s(trim( chaine ), wk, -8 , iun, dateo, deet, npas, nic, njc, nkc, ip1, ip2, ip3, &
+        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrit, len_trim(chaine))
     if (iecr .lt. 0) then
         if (lun_out .gt. 0) write(lun_out, 6004) iecr
         nil = exfin('InZono3', 'Erreur 4', 'NON')
