@@ -1621,6 +1621,15 @@ int32_t fst24_read_record_xdf(
         if (ier < 0) return ier;
     }
 
+    if (record->data_bits == 8) {
+        c_fst_data_length(1);
+    }
+    else if (record->data_bits == 16) {
+        c_fst_data_length(2);
+    }
+    else if (record->data_bits == 64) {
+        c_fst_data_length(8);
+    }
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
     if (handle != key32) return ERR_NOT_FOUND;
     fill_with_search_meta(record, &meta, FST_XDF);
