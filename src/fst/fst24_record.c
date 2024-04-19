@@ -430,7 +430,7 @@ int32_t fst24_record_is_valid(const fst_record* record) {
     return 1;
 }
 
-//! Validate the parameters of the given record.
+//! Validate the parameters of the given record (RSF only).
 //! Will exit with an error if they are not valid.
 int32_t fst24_record_validate_params(const fst_record* record) {
     if (record->data == NULL) {

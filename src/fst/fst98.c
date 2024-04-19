@@ -962,7 +962,6 @@ int c_fstecr_xdf(
         nbits = (npak < 0) ? -npak : Max(1, FTN_Bitmot / Max(1, npak));
     }
     nk = Max(1, nk);
-    int minus_nbits = -nbits;
 
     if (base_fst_type(datyp) == FST_TYPE_REAL_IEEE && nbits < 16) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Writing a truncated IEEE float with less than 16 bits is not allowed\n",
@@ -980,15 +979,15 @@ int c_fstecr_xdf(
     }
 
     if (is_type_turbopack(datyp) && nk > 1) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.\n", __func__);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data. We will disable it.\n", __func__);
         datyp &= FST_TYPE_TURBOPACK;
     }
 
-    if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    if ((base_fst_type(in_datyp) == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
         datyp = FST_TYPE_REAL_IEEE;
+        if (is_type_turbopack(in_datyp)) datyp |= FST_TYPE_TURBOPACK;
         nbits = 32;
-        minus_nbits = -32;
     }
 
     // flag 64 bit IEEE (type 5 or 8)
@@ -1033,25 +1032,26 @@ int c_fstecr_xdf(
         }
     }
 
-    // no extra compression if nbits > 16
+    if ((base_fst_type(datyp) == FST_TYPE_REAL)) { 
+        if (nbits > 24) {
+            if (! dejafait_xdf_1) {
+                Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
+                dejafait_xdf_1 = 1;
+            }
+            datyp = FST_TYPE_REAL_IEEE | (is_type_turbopack(datyp) ? FST_TYPE_TURBOPACK : 0);
+            nbits = 32;
+        }
+        else if (nbits > 16) {
+            if (! dejafait_xdf_2) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
+                dejafait_xdf_2 = 1;
+            }
+            datyp = FST_TYPE_REAL_OLD_QUANT; // No turbopack for R with >16 bits
+        }
+    }
+
+    // no extra compression if nbits > 16 (except for IEEE reals)
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
-    // if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression;
-    if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
-        if (! dejafait_xdf_1) {
-            Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
-            dejafait_xdf_1 = 1;
-        }
-        datyp = FST_TYPE_REAL_IEEE;
-        nbits = 32;
-        minus_nbits = -32;
-    }
-    if ((datyp == FST_TYPE_REAL) && (nbits > 16)) {
-        if (! dejafait_xdf_2) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
-            dejafait_xdf_2 = 1;
-        }
-        datyp = FST_TYPE_REAL_OLD_QUANT;
-    }
 
     float* field_f = field_in; // Hold real datatypes, in case we need to convert from float to double
 
@@ -1059,13 +1059,20 @@ int c_fstecr_xdf(
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
         data_nbits = (xdf_double || IEEE_64) ? 64 : 32;
-        if (data_nbits == 64 && nbits <= 32) {
-            // We convert now from double to float
-            data_nbits = 32;
-            field_f = alloca(ni * nj * nk * sizeof(float));
-            double* field_d = field_in;
-            for (int i = 0; i < ni * nj * nk; i++) {
-                field_f[i] = (float)field_d[i];
+        if (data_nbits == 64) {
+            if (nbits <= 32) {
+                // We convert now from double to float
+                data_nbits = 32;
+                field_f = alloca(ni * nj * nk * sizeof(float));
+                double* field_d = field_in;
+                for (int i = 0; i < ni * nj * nk; i++) {
+                    field_f[i] = (float)field_d[i];
+                }
+            }
+            else if (nbits != 64) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
+                        " 64 or less than 32. Will store 64 bits.\n", __func__, nbits);
+                nbits = 64;
             }
         }
     }
@@ -1076,6 +1083,7 @@ int c_fstecr_xdf(
                                   32;
     }
 
+    int minus_nbits = -nbits;
     int header_size;
     int stream_size;
     int nw;

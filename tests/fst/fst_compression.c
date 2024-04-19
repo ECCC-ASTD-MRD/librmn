@@ -11,7 +11,7 @@ const char* test_filename_xdf = "compression.xdf";
 // const int NUM_DATA_Z = 2;
 const int NUM_DATA_X = 32;
 const int NUM_DATA_Y = 32;
-const int NUM_DATA_Z = 1;
+const int NUM_DATA_Z = 2;
 
 static float* data_f = NULL;
 static double* data_d = NULL;
@@ -32,24 +32,42 @@ typedef struct {
 
 static const test_params params_real[] = {
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 28, .nk = NUM_DATA_Z, .tol = 1e-6, .max_tol = 5e-5, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 1.5e-5, .max_tol = 4e-5, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 20, .nk = NUM_DATA_Z, .tol = 2.2e-4, .max_tol = 4.8e-4, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 0.004, .max_tol = 0.008, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = 1, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 28, .nk = 1, .tol = 1e-6, .max_tol = 5e-5, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 24, .nk = 1, .tol = 2e-5, .max_tol = 4e-5, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 20, .nk = 1, .tol = 2.2e-4, .max_tol = 4.8e-4, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 0.004, .max_tol = 0.008, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 64, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
-    // {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 48, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 48, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 28, .nk = NUM_DATA_Z, .tol = 1e-6, .max_tol = 2e-6, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 2e-5, .max_tol = 4e-5, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_IEEE, .data_size = 64, .pack_size = 20, .nk = NUM_DATA_Z, .tol = 2.2e-4, .max_tol = 4.8e-4, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 28, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 1e-7, .max_tol = 2e-4, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 1.1e-5, .max_tol = 2e-3, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL, .data_size = 32, .pack_size = 12, .nk = NUM_DATA_Z, .tol = 2e-4, .max_tol = 0.06, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = 1, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 28, .nk = 1, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 24, .nk = 1, .tol = 1e-7, .max_tol = 2.3e-5, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 2e-5, .max_tol = 2e-3, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 12, .nk = 1, .tol = 2e-4, .max_tol = 0.06, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .data_size = 32, .pack_size = 32, .nk = NUM_DATA_Z, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .data_size = 32, .pack_size = 28, .nk = NUM_DATA_Z, .tol = 1e-8, .max_tol = 3e-6, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .data_size = 32, .pack_size = 24, .nk = NUM_DATA_Z, .tol = 1e-7, .max_tol = 2e-4, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .data_size = 32, .pack_size = 16, .nk = NUM_DATA_Z, .tol = 2e-5, .max_tol = 0.01, .compare_data = (void*)&data_f},
+    // {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .data_size = 32, .pack_size = 12, .nk = NUM_DATA_Z, .tol = 3e-4, .max_tol = 0.2, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 32, .nk = 1, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 28, .nk = 1, .tol = 1e-8, .max_tol = 3e-6, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 24, .nk = 1, .tol = 1e-7, .max_tol = 2.3e-5, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 16, .nk = 1, .tol = 2.1e-5, .max_tol = 0.01, .compare_data = (void*)&data_f},
+    // {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .data_size = 32, .pack_size = 12, .nk = 1, .tol = 3e-4, .max_tol = 0.2, .compare_data = (void*)&data_f},
 };
 
 static const test_params params_integer[] = {

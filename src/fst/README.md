@@ -41,9 +41,10 @@
 
 ## New interface: fst24
 
-* In the `fst24` interface, Standard Files are manipulated trough two derived types (or structs, in C)
+* In the `fst24` interface, Standard Files are manipulated trough three derived types (or structs, in C)
    * `fst_file` is an opaque handle to a file, and allows for file operations like opening, searching, reading and writing.
    * `fst_record` encapsulates all attributes of a record, as well as its data. It represents an item that is written to or read from a file.
+   * `fst_query` represents a search through a file. It contains the search criteria as well as the current position of the search within the file.
 * Datatypes are specified through 2 parameters: type (real, integer, etc.) and size (in number of bits). This avoids the need to specify size separately before a read/write operation.
 
 ### Searching and Reading

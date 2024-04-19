@@ -348,13 +348,20 @@ int32_t fst24_write_rsf(
     int8_t elem_size = force_64 ? 64 : record->data_bits;
 
     float* data_f = record->data;
-    if (is_type_real(in_data_type) && elem_size == 64 && record->pack_bits <= 32) {
-        // We convert now from double to float
-        elem_size = 32;
-        data_f = alloca(fst24_record_num_elem(record) * sizeof(float));
-        double* data_d = record->data;
-        for (int i = 0; i < fst24_record_num_elem(record); i++) {
-            data_f[i] = (float)data_d[i];
+    if (is_type_real(in_data_type) && elem_size == 64) {
+        if (record->pack_bits <= 32) {
+            // We convert now from double to float
+            elem_size = 32;
+            data_f = alloca(fst24_record_num_elem(record) * sizeof(float));
+            double* data_d = record->data;
+            for (int i = 0; i < fst24_record_num_elem(record); i++) {
+                data_f[i] = (float)data_d[i];
+            }
+        }
+        else if (record->pack_bits != 64) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
+                    " 64 or less than 32. Will store 64 bits.\n", __func__, record->pack_bits);
+            record->pack_bits = 64;
         }
     }
 
@@ -376,6 +383,7 @@ int32_t fst24_write_rsf(
     }
 
     if (is_type_real(data_type) && record->pack_bits <= 32 && record->data_bits == 64) {
+        // Will convert the double to float before doing anything else
         record->data_bits = 32;
     }
 
@@ -390,9 +398,10 @@ int32_t fst24_write_rsf(
         record->pack_bits = 64;
     }
 
-    if ((in_data_type == FST_TYPE_REAL_OLD_QUANT) && ((record->pack_bits == 31) || (record->pack_bits == 32)) && !image_mode_copy) {
+    if ((base_fst_type(in_data_type) == FST_TYPE_REAL_OLD_QUANT) && ((record->pack_bits == 31) || (record->pack_bits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
         data_type = FST_TYPE_REAL_IEEE;
+        if (is_type_turbopack(in_data_type)) data_type |= FST_TYPE_TURBOPACK;
         record->pack_bits = 32;
     }
 
