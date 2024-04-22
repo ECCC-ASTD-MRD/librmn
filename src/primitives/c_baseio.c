@@ -426,6 +426,7 @@ int c_fnom(
     }
     if (strstr(type, "R/O") || strstr(type, "r/o")) {
         FGFDT[entry].attr.read_only = 1;
+        FGFDT[entry].attr.old = 1;
     }
     if (strstr(type, "R/W") || strstr(type, "r/w")) {
         FGFDT[entry].attr.read_only = 0;
@@ -560,7 +561,7 @@ int c_fnom(
         lng = strlen(filename);
      }
 
-    if (FGFDT[entry].attr.old && ! FGFDT[entry].attr.remote) {
+    if ((FGFDT[entry].attr.old || FGFDT[entry].attr.read_only) && ! FGFDT[entry].attr.remote) {
         if (!f77name(existe)(FGFDT[entry].file_name, (F2Cl) strlen(FGFDT[entry].file_name))) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file %s should exist and does not\n",__func__,FGFDT[entry].file_name);
             c_fclos(liun);
