@@ -290,6 +290,7 @@ install(FILES
     ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
+    ${MODULE_DIR}/rmn_libc.mod
     ${MODULE_DIR}/rmn_meta.mod
     ${MODULE_DIR}/rmn_fst24.mod
     ${MODULE_DIR}/rmn_fst24_record.mod
