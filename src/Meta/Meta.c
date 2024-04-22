@@ -1,7 +1,7 @@
 #include <App.h>
 #include "rmn.h"
-#include "Meta.h"
-#include "Dict.h"
+#include "rmn/Meta.h"
+#include "rmn/Dict.h"
 #include "fst/fst98_internal.h"
 #include <str.h>
 

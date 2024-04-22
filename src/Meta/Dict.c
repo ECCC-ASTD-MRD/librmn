@@ -37,10 +37,9 @@
 #include <libxml/encoding.h>
 #include <libxml/parser.h>
 
-#include "rmn.h"
 #include "str.h"
-#include "Dict.h"
-#include "Meta.h"
+#include "rmn/Dict.h"
+#include "rmn/Meta.h"
 #include <float.h>
 
 char *TSHORT[]      = { "Description courte ","Short Description  " };

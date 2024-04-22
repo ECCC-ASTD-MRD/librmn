@@ -40,18 +40,6 @@ find_package(LibXml2 REQUIRED)
 
 include(ec_doxygen)         # Doxygen target doc
 
-# Fortran compiler options required to build this project
-set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
-set(GNU_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
-set(Flang_FFLAGS -Mbyteswapio)
-set(PGI_FFLAGS -byteswapio)
-
-# This is required when using GNU compilers without OpenMP.
-# It has no adverse effect with other compilers and/or when OpenMP is enabled.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
-set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
-
 # set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 add_compile_definitions(_${CMAKE_SYSTEM_NAME}_ _GNU_SOURCE)
@@ -67,14 +55,6 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
-
-include_directories(
-   include
-   ${CMAKE_CURRENT_BINARY_DIR}/dep
-   src/PUBLIC_INCLUDES
-   src/Struct
-   src/Meta
-)
 
 file(GLOB PROJECT_C_FILES
    src/*/*.c
@@ -95,14 +75,10 @@ file(GLOB PROJECT_H_FILES
 
 set(PROJECT_PUBLIC_INCLUDE_FILES
     src/Struct/Vector.h
-    src/Struct/List.h
     src/Struct/QTree.h
-    src/Meta/Dict.h
-    src/Meta/Meta.h
 )
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # A bunch of fst_record functions (generated)
@@ -177,7 +153,10 @@ else()
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
-   set(TARGETS rmn-static rmn-shared rmn-ompi-static rmn-ompi-shared)
+   set(TARGETS rmn-static rmn-ompi-static)
+   if (BUILD_SHARED_LIBS)
+    set(TARGETS ${TARGETS} rmn-shared rmn-ompi-shared)
+   endif()
 
    # Build static library from source files
    add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -223,14 +202,21 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 endif()
 
 foreach(TARGET IN ITEMS ${TARGETS})
-    target_compile_options(${TARGET}
-        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
-            #   $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
-            #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
-               $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
+
+    target_compile_options(${TARGET} PUBLIC
+        $<$<COMPILE_LANG_AND_ID:Fortran,GNU>: -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore -pthread>
+        $<$<COMPILE_LANG_AND_ID:C,GNU>: -pthread>
+        $<$<COMPILE_LANG_AND_ID:Fortran,Intel>: -convert big_endian -align array32byte -assume byterecl>
+        $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
+        $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
+        # $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
+        # $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
+        $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
+    )
+    target_link_options(${TARGET} PUBLIC
+               $<$<COMPILE_LANG_AND_ID:C,GNU>:-ldl -pthread>
+               $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ldl -pthread>
+    )
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
@@ -245,7 +231,15 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
     )
-    target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_include_directories(${TARGET} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Meta
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct
+        ${CMAKE_CURRENT_BINARY_DIR}/include
+    )
+
 endforeach()
 
 foreach(RMN_TARGET rmn-static rmn-shared)
