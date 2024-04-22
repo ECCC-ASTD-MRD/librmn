@@ -124,13 +124,12 @@ add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
-    COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard_2.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h   ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants_2.h ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/whiteboard_type.hf >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/whiteboard_type.hf >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES -I${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_
-    COMMAND grep -Ev "'^#|^[ ]*$|^[ ]*!'" ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
+    COMMAND grep -Ev "'^#|^[ ]*$|^[ ]*!'" ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >>${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >>${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMENT "Generating WhiteBoard.hf and WhiteBoard_2.hf"
