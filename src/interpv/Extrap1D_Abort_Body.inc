@@ -48,10 +48,6 @@
              lowestPossiblePosn         ! Lowest value for posnDestInSrc
 
 
-  stateDestn(:, :)      = 0.0
-  stateDerivDestn(:, :) = 0.0
-  ExtArraysOut(:, :)    = 0.0
-
   ! Determine which index represents the highest and lowest vertical levels
   !
   if( vLevelSource(1,2) > vLevelSource(1,1) ) then

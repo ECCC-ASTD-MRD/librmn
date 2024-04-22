@@ -57,8 +57,6 @@
              highestPossiblePosn, &     ! Highest value for posnDestInSrc
              lowestPossiblePosn         ! Lowest value for posnDestInSrc
 
-  stateDerivDestn(:, :) = 0.0
-  ExtArraysOut(:, :)    = 0.0
 
   ! Determine which index represents the highest and lowest vertical levels
   !

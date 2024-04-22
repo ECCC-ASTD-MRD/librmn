@@ -63,9 +63,6 @@
   integer smallestLevel                 ! index of smallest source vertical level
   integer largestLevel                  ! index of largest source vertical level
 
-  stateDerivDestn(:, :) = 0.0
-  ExtArraysOut(:, :)    = 0.0
-
   ! Verify that enough source levels are supplied; the algorithm requires 2
   if(srcNumlevels < 2) then
     call lib_log(APP_LIBINTERPV,APP_ERROR,'Interp1D_Linear: The linear algorithm requires 2 source points')
