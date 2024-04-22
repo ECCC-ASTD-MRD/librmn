@@ -48,11 +48,11 @@
 
                                         ! destination state values (e.g. temp))
                                         !   at the source co-ordinates
-  real(real48), dimension(dst_ijDim, destNumLevels), intent(out) :: stateDestn
+  real(real48), dimension(dst_ijDim, destNumLevels), intent(inout) :: stateDestn
 
                                         ! destination derivative state values at
                                         !   the source co-ordinates
-  real(real48), dimension(dst_ijDim, destNumLevels), intent(out)::stateDerivDestn
+  real(real48), dimension(dst_ijDim, destNumLevels), intent(inout)::stateDerivDestn
 
 
                                         ! data controlling extrapolation
