@@ -21,8 +21,8 @@
   external flux                         ! s/r to calculate flux at one vert level
   integer, intent(in) :: numExtArraysIn ! size of the array, ExtArraysIn
   integer, intent(in) :: numExtArraysOut! size of the array, ExtArraysOut
-  real(real48), dimension(src_ijDim, numExtArraysIn), intent(in)  :: ExtArraysIn
-  real(real48), dimension(dst_ijDim, numExtArraysOut),intent(out) :: ExtArraysOut
+  real(real48), dimension(src_ijDim, numExtArraysIn), intent(in)    :: ExtArraysIn
+  real(real48), dimension(dst_ijDim, numExtArraysOut),intent(inout) :: ExtArraysOut
 
 !WHERE:
                                         ! These are indices into the ExtArraysIn

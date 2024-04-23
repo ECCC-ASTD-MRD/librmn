@@ -53,14 +53,14 @@ contains
   end subroutine print_values
 
   subroutine test_missing_values(is_rsf)
+    use rmn_fst98
     implicit none
     logical, intent(in) :: is_rsf
 
 #define CHECK_STATUS(cmd) s=cmd;s=vs(s,__LINE__)
 #define CHK(cmd) st=cmd;s=vs(st,__LINE__)
 
-    integer, external :: fnom, fstluk, fstinf, get_missing_value_flags, encode_missing_value
-    integer, external :: fstouv, fstecr, fst_data_length, fstfrm, fstlir
+    integer, external :: fnom, get_missing_value_flags, encode_missing_value
     external :: set_missing_value_flags
 
     integer :: junk, status, st, i, s
@@ -172,25 +172,25 @@ contains
     end if
     
     ! Line limit is 127 columns (for gfortran)
-    CHECK_STATUS(fstecr(ia, work, -8,  iun, 0, 0, 0, ASIZE,   1, 1, 1,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 4,  .false.))  ! signed integer
-    CHECK_STATUS(fstecr(ia, work, -8,  iun, 0, 0, 0, ASIZE,   1, 1, 2,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 68, .false.))  ! signed integer with missing
+    CHECK_STATUS(fstecr(ia, work, -8,  iun, 0, 0, 0, ASIZE,   1, 1, 1,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 4,  0))  ! signed integer
+    CHECK_STATUS(fstecr(ia, work, -8,  iun, 0, 0, 0, ASIZE,   1, 1, 2,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 68, 0))  ! signed integer with missing
 
-    CHECK_STATUS(fstecr(fa, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 3,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 1,  .false.))  ! float
-    CHECK_STATUS(fstecr(fa, work, -32, iun, 0, 0, 0, ASIZE,   1, 1, 19,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 5,  .false.))  ! IEEE 32
-    CHECK_STATUS(fstecr(ca, work, -32, iun, 0, 0, 0, ASIZE/2, 1, 1, 119, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0,0,0,0,8+64+128,.false.)) ! complex IEEE 32 with missing and compression
-    CHECK_STATUS(fstecr(fa, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 4,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 65, .false.))  ! float with missing
-    CHECK_STATUS(fstecr(fa, work, -32, iun, 0, 0, 0, ASIZE,   1, 1, 20,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 69, .false.))  ! IEEE 32 with missing
+    CHECK_STATUS(fstecr(fa, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 3,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 1,  0))  ! float
+    CHECK_STATUS(fstecr(fa, work, -32, iun, 0, 0, 0, ASIZE,   1, 1, 19,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 5,  0))  ! IEEE 32
+    CHECK_STATUS(fstecr(ca, work, -32, iun, 0, 0, 0, ASIZE/2, 1, 1, 119, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0,0,0,0,8+64+128,0)) ! complex IEEE 32 with missing and compression
+    CHECK_STATUS(fstecr(fa, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 4,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 65, 0))  ! float with missing
+    CHECK_STATUS(fstecr(fa, work, -32, iun, 0, 0, 0, ASIZE,   1, 1, 20,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 69, 0))  ! IEEE 32 with missing
 
-    CHECK_STATUS(fstecr(uia, work, -8, iun, 0, 0, 0, ASIZE,   1, 1, 5,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 2,  .false.))  ! unsigned integer
-    CHECK_STATUS(fstecr(uia, work, -8, iun, 0, 0, 0, ASIZE,   1, 1, 6,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 66, .false.))  ! unsigned integer with missing
+    CHECK_STATUS(fstecr(uia, work, -8, iun, 0, 0, 0, ASIZE,   1, 1, 5,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 2,  0))  ! unsigned integer
+    CHECK_STATUS(fstecr(uia, work, -8, iun, 0, 0, 0, ASIZE,   1, 1, 6,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 66, 0))  ! unsigned integer with missing
 
     CHECK_STATUS(fst_data_length(8))
-    CHECK_STATUS(fstecr(da, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 7,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 1,  .false.))  ! double
-    CHECK_STATUS(fstecr(da, work, -64, iun, 0, 0, 0, ASIZE,   1, 1, 17,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 5,  .false.))  ! IEEE64
-    CHECK_STATUS(fstecr(za, work, -64, iun, 0, 0, 0, ASIZE/2, 1, 1, 117, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X',0,0,0,0,8+64+128,.false.))  ! complex IEEE64 with missing and compression
+    CHECK_STATUS(fstecr(da, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 7,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 1,  0))  ! double
+    CHECK_STATUS(fstecr(da, work, -64, iun, 0, 0, 0, ASIZE,   1, 1, 17,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 5,  0))  ! IEEE64
+    CHECK_STATUS(fstecr(za, work, -64, iun, 0, 0, 0, ASIZE/2, 1, 1, 117, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X',0,0,0,0,8+64+128,0))  ! complex IEEE64 with missing and compression
     CHECK_STATUS(fst_data_length(8))
-    CHECK_STATUS(fstecr(da, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 8,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 65, .false.)) ! double with missing
-    CHECK_STATUS(fstecr(da, work, -64, iun, 0, 0, 0, ASIZE,   1, 1, 18,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 69, .false.)) ! IEEE64 with missing
+    CHECK_STATUS(fstecr(da, work, -16, iun, 0, 0, 0, ASIZE,   1, 1, 8,   0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 65, 0)) ! double with missing
+    CHECK_STATUS(fstecr(da, work, -64, iun, 0, 0, 0, ASIZE,   1, 1, 18,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 69, 0)) ! IEEE64 with missing
 
     ! if (is_rsf) then
     !   CHECK_STATUS(fstapp(iun, ''))
@@ -198,24 +198,24 @@ contains
     ! end if
 
     CHECK_STATUS(fst_data_length(2))
-    CHECK_STATUS(fstecr(usa, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 9,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 2,  .false.))  ! unsigned short
+    CHECK_STATUS(fstecr(usa, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 9,  0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 2,  0))  ! unsigned short
     CHECK_STATUS(fst_data_length(2))
-    CHECK_STATUS(fstecr(usa, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 10, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 66, .false.))  ! unsigned short with missing
+    CHECK_STATUS(fstecr(usa, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 10, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 66, 0))  ! unsigned short with missing
 
     CHECK_STATUS(fst_data_length(2))
-    CHECK_STATUS(fstecr(sa,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 11, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 4,  .false.))  ! signed short
+    CHECK_STATUS(fstecr(sa,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 11, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 4,  0))  ! signed short
     CHECK_STATUS(fst_data_length(2))
-    CHECK_STATUS(fstecr(sa,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 12, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 68, .false.))  ! signed short with missing
+    CHECK_STATUS(fstecr(sa,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 12, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 68, 0))  ! signed short with missing
 
     CHECK_STATUS(fst_data_length(1))
-    CHECK_STATUS(fstecr(ba,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 13, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 4,  .false.))  ! signed byte
+    CHECK_STATUS(fstecr(ba,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 13, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 4,  0))  ! signed byte
     CHECK_STATUS(fst_data_length(1))
-    CHECK_STATUS(fstecr(ba,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 14, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 68, .false.))  ! signed byte with missing
+    CHECK_STATUS(fstecr(ba,  work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 14, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 68, 0))  ! signed byte with missing
 
     CHECK_STATUS(fst_data_length(1))
-    CHECK_STATUS(fstecr(uba, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 15, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 2,  .false.))  ! unsigned byte
+    CHECK_STATUS(fstecr(uba, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 15, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 2,  0))  ! unsigned byte
     CHECK_STATUS(fst_data_length(1))
-    CHECK_STATUS(fstecr(uba, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 16, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 66, .false.))  ! unsigned byte with missing
+    CHECK_STATUS(fstecr(uba, work, -8, iun, 0, 0, 0, ASIZE, 1, 1, 16, 0, 0, 'XX', 'YYYY', 'ETIKET', 'X', 0, 0, 0, 0, 66, 0))  ! unsigned byte with missing
 
     ! Close the file
     CHECK_STATUS(fstfrm(iun))

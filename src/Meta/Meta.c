@@ -1,7 +1,7 @@
 #include <App.h>
 #include "rmn.h"
-#include "Meta.h"
-#include "Dict.h"
+#include "rmn/Meta.h"
+#include "rmn/Dict.h"
 #include "fst/fst98_internal.h"
 #include <str.h>
 
@@ -228,19 +228,19 @@ int32_t Meta_LoadProfile(char *Version) {
 
       prof=&MetaProfiles[MetaProfileNb];
 
-      snprintf(path,APP_BUFMAX,"%s/json/%s/field.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/field.json",MetaPaths[i],Version);
       if (!(prof->Field=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load field profile %s\n",__func__,path);
          continue;
       }
-      snprintf(path,APP_BUFMAX,"%s/json/%s/file.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/file.json",MetaPaths[i],Version);
       if (!(prof->File=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load file profile %s\n",__func__,path);
          continue;
       } 
 
       // Load vertical reference definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/vertical/*.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/vertical/*.json",MetaPaths[i],Version);
       glob(path,0x0,NULL,&globs);
       if (globs.gl_pathc) {
          prof->Z=json_object_new_object();
@@ -258,7 +258,7 @@ int32_t Meta_LoadProfile(char *Version) {
       globfree(&globs);
 
       // Load horizontal definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/horizontal/*.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/horizontal/*.json",MetaPaths[i],Version);
       glob(path,0x0,NULL,&globs);
       if (globs.gl_pathc) {
          prof->XY=json_object_new_object();
@@ -276,7 +276,7 @@ int32_t Meta_LoadProfile(char *Version) {
       globfree(&globs);
 
       // Load token definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/definitions.json",MetaPaths[i],MetaVersion);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/definitions.json",MetaPaths[i],MetaVersion);
       if (!(obja=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load token definitions: %s\n",__func__,path);
       }

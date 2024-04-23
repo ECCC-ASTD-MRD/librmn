@@ -4,13 +4,14 @@
 
 #include <App.h>
 #include <str.h>
+
 #include "fst_internal.h"
 #include "fst24_file_internal.h"
 #include "fst24_record_internal.h"
 #include "fst98_internal.h"
-#include <rmn/fnom.h>
+#include "rmn/fnom.h"
+#include "rmn/Meta.h"
 #include "xdf98.h"
-#include "Meta.h"
 
 int32_t fst24_get_unit(const fst_file* const file);
 static int64_t fst24_get_num_records_single(const fst_file* file);

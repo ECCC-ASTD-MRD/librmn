@@ -5,7 +5,6 @@
 
 #include <rmn.h>
 #include <App.h>
-#include <Meta.h>
 
 const char* test_file_names[3] = {
     "fst24_interface1.fst",

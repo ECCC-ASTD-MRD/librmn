@@ -8,6 +8,7 @@
      
   real(kind = real64) :: Grd_rot_8(3,3),xyz1_8(3),xyz2_8(3),xyz3_8(3),b_8
 
+  real, dimension(1) :: xlon1, xlat1, xlon2, xlat2
 !   Grd_xlat1 = 45.
 !   Grd_xlon1 = 0.
 !   Grd_xlat2 = 0.5
@@ -16,7 +17,11 @@
 !  Grd_xlon1 = Grd_xlon1 + 180.0
 !  Grd_xlon2 = Grd_xlon2 + 180.0
 
-  call ez_crot(r, ri, Grd_xlon1, Grd_xlat1, Grd_xlon2, Grd_xlat2)
+  xlon1(1) = Grd_xlon1
+  xlat1(1) = Grd_xlat1
+  xlon2(1) = Grd_xlon2
+  xlat2(1) = Grd_xlat2
+  call ez_crot(r, ri, xlon1(1), xlat1(1), xlon2(1), xlat2(1))
 
   print *, 'r et ri original'
   print *, '-- r  ----------'
@@ -25,8 +30,8 @@
   print *, ri
   print *, '################'
 
-  call ez_lac_8 ( xyz1_8, Grd_xlon1, Grd_xlat1, 1 )
-  call ez_lac_8 ( xyz2_8, Grd_xlon2, Grd_xlat2, 1 )           
+  call ez_lac_8 ( xyz1_8, xlon1, xlat1, 1 )
+  call ez_lac_8 ( xyz2_8, xlon2, xlat2, 1 )           
 
   xyz3_8=xyz2_8
 

@@ -26,9 +26,10 @@
       real xg(15)
       character(len = 1) :: gtypout
 
-      real xlat11,xlon11,xlatninj,xlonninj,dx,dy,latin1,latin2
+      real, dimension(1) :: xlat11,xlon11
+      real xlatninj,xlonninj,dx,dy,latin1,latin2
       real yaxislat,yaxislon
-      real x11,y11
+      real, dimension(1) :: x11,y11
 
       integer i,nxg
       
@@ -43,11 +44,11 @@
       if (grtyp.eq.'!') then
          call igaxg95(gtypout,xg,15,grtyp,lclig1,lclig2,lclig3,lclig4)
          if (gtypout.eq.'H') then
-            xlat11 =   xg( 1)
-            xlon11 =   xg( 2)
+            xlat11(1)= xg( 1)
+            xlon11(1)= xg( 2)
             xlatninj = xg(10)
             xlonninj = xg(11)
-            yaxislat = 0.5 * (xlat11 + xlatninj)
+            yaxislat = 0.5 * (xlat11(1) + xlatninj)
             yaxislon = xg(5)
             latin1   = xg(6)
             latin2   = xg(7)
@@ -58,8 +59,8 @@
 
             call ez_lambxyfll99(x,y,xlat,xlon,npts,            latin1,latin2,yaxislat,yaxislon)
             do i=1,npts
-               x(i) = 1.0 + (x(i) - x11)/dx
-               y(i) = 1.0 + (y(i) - y11)/dy
+               x(i) = 1.0 + (x(i) - x11(1))/dx
+               y(i) = 1.0 + (y(i) - y11(1))/dy
             enddo
             
          endif

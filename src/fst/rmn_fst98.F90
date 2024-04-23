@@ -12,20 +12,10 @@
 ! and use instead the equivalent procedures from the module and associated sub modules
 module rmn_fst98
   use rmn_common
+  use rmn_libc, only: memset
   implicit none
 #define C_INTERFACE_ONLY
 #include "fst98_interface.hf"
-
-  interface
-    function memset(s, byte, n) result(p) bind(C, name='memset')
-      import :: C_PTR, C_SIZE_T, C_INT
-      implicit none
-      type(C_PTR), intent(IN), VALUE :: s
-      integer(C_INT), intent(IN), VALUE :: byte
-      integer(C_SIZE_T), intent(IN), VALUE :: n
-      type(C_PTR) :: p
-    end function memset
-  end interface
 
   interface fstouv
 ! /*****************************************************************************
