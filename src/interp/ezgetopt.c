@@ -27,21 +27,19 @@
 
 int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue)
 {
-    int32_t icode, len;
-    int32_t longueur_option, longueur_value;
-    char local_opt[32], local_val[32];
-
-    longueur_option = ftnStrLen(option, lenoption);
+    int32_t longueur_option = ftnStrLen(option, lenoption);
     longueur_option = longueur_option < 32 ? longueur_option : 31;
 
+    char local_opt[32];
     for (int i = 0; i < longueur_option; i++) {
         local_opt[i] = option[i];
     }
 
     local_opt[longueur_option] = '\0';
 
-    icode = c_ezgetopt(local_opt, local_val);
-    len = strlen(local_val);
+    char local_val[32];
+    int32_t icode = c_ezgetopt(local_opt, local_val);
+    int32_t len = strlen(local_val);
     len = len > lenvalue ? lenvalue : len;
     strncpy(value, local_val, len);
     value[len] = '\0';

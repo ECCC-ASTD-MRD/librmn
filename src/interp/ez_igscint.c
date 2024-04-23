@@ -27,8 +27,6 @@
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
-static float *eziglat = NULL;
-static float *eziglon = NULL;
 
 int32_t f77name(ez_igscint)(float *zo, int32_t *li, int32_t *lj, float *xlat, float *xlon,
                     float *zi, int32_t *ni, int32_t *nj,
@@ -85,6 +83,7 @@ int32_t f77name(ez_iguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, 
     int32_t gdin = c_ezgdef_fmem(*ni,*nj, grtyp, grref,  *ig1,  *ig2,  *ig3,  *ig4, ax, ay);
     c_gdllwdval(gdin, spdo, psio, ui, vi, xlat, tmplon, npts);
     free(tmplon);
+    return 0;
 }
 
 
@@ -102,5 +101,6 @@ int32_t f77name(ez_rguvint)(float *spdo, float *psio, int32_t *li, int32_t *lj, 
     int32_t gdin  = c_ezgdef(*ni,*nj, grtyp, NULL,  *ig1,  *ig2,  *ig3,  *ig4, NULL, NULL);
     c_gdllwdval(gdin, spdo, psio, ui, vi, xlat, tmplon, npts);
     free(tmplon);
+    return 0;
 }
 
