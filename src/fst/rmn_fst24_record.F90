@@ -1,6 +1,7 @@
 !> \file rmn_fst24_record.F90
 !> Encapsulation of FST record information into a derived type 
 
+!> Object oriented interface and functions for the fst24 API
 module rmn_fst24_record
     use App
     use f_c_strings_mod
@@ -50,7 +51,7 @@ module rmn_fst24_record
 
         type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
         type(meta)  :: metadata               !< Metadata object
-    
+
         integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
         integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
 
@@ -314,7 +315,7 @@ contains
         end if
     end function fst24_record_read_metadata
 
-    !> \copybrief fst24_record_copy_metadata
+    !> \copybrief fst24_record_copy_metadata_c
     !> \return .true. if we were able to copy the metadata, .false. otherwise
     function fst24_record_copy_metadata(this,record) result(success)
         implicit none
