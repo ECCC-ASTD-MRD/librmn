@@ -1,3 +1,5 @@
+!> \file IgnoreTypeKindRank.hf Macros to get Fortran compilers to behave with the equivalent of void*
+
 !> \brief Inform the Fortran compiler that type, kind, and rank checking should not be performed for
 !> one or more formal arguments
 !>
