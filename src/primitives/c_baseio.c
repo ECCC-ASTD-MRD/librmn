@@ -141,7 +141,7 @@ int c_fretour(
 //! \copydoc c_fretour
 int32_t f77name(fretour)(
     //! [in] Unit number, ignored
-    const int32_t * const fiun
+    const int32_t * const iun
 ){
     return 0;
 }
@@ -677,9 +677,9 @@ int c_fclos(
 
 //! \copydoc c_fclos
 int32_t f77name(fclos)(
-    const int32_t * const fiun
+    const int32_t * const iun
 ) {
-    return c_fclos(*fiun);
+    return c_fclos(*iun);
 }
 
 
