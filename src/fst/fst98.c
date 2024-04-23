@@ -2385,11 +2385,11 @@ int c_fstlic(
     void *field,
     //! [in] Unit number associated to the file
     int iun,
-    //! [in] First of the data field
+    //! [in] First dimension of the data field. Only used to check that the matches with the field found.
     int niin,
-    //! [in] Second of the data field
+    //! [in] Second dimension of the data field. Only used to check that the matches with the field found.
     int njin,
-    //! [in] Third of the data field
+    //! [in] Third dimension of the data field. Only used to check that the matches with the field found.
     int nkin,
     //! [in] Valid date
     int datein,
