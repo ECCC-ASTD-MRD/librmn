@@ -28,18 +28,12 @@
 #include "base/base.h"
 
 
-void c_ezdefaxes(int32_t gdid, float *ax, float *ay)
+void c_ezdefaxes(const int32_t gdid, const float * const ax, const float * const ay)
 {
-    float *temp, dlon;
-    int32_t zero, deuxnj;
-
-    _Grille *gr;
-
     int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid, &gdrow_id, &gdcol_id);
 
-    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-
-    gr = &Grille[gdrow_id][gdcol_id];
+    _Grille *gr = &Grille[gdrow_id][gdcol_id];
     switch (gr->grtyp[0]) {
         case '#':
         case 'Z':
@@ -74,32 +68,32 @@ void c_ezdefaxes(int32_t gdid, float *ax, float *ay)
                 &gr->fst.xgref[SWLAT], &gr->fst.xgref[SWLON], &gr->fst.xgref[DLAT], &gr->fst.xgref[DLON],1);
 
             Grille[gdrow_id][gdcol_id].ax = (float *) malloc(gr->ni*sizeof(float));
-            dlon = 360. / (float) gr->ni;
+            float dlon = 360. / (float) gr->ni;
             for (int32_t i = 0; i < gr->ni; i++) {
                 Grille[gdrow_id][gdcol_id].ax[i] = (float)i * dlon;
             }
 
-            zero = 0;
+            int32_t zero = 0;
             ez_calcxpncof(gdid);
 
             switch (Grille[gdrow_id][gdcol_id].fst.ig[IG1]) {
                 case GLOBAL:
                     Grille[gdrow_id][gdcol_id].ay = (float *) malloc(gr->nj*sizeof(float));
-                    temp    = (float *) malloc(gr->nj*sizeof(float));
+                    float * temp = (float *) malloc(gr->nj*sizeof(float));
                     f77name(ez_glat)(Grille[gdrow_id][gdcol_id].ay,temp,&gr->nj,&zero);
                     free(temp);
                     break;
 
                 case NORD:
-                case SUD:
-                    deuxnj = 2 * gr->nj;
+                case SUD: {
+                    int32_t deuxnj = 2 * gr->nj;
                     Grille[gdrow_id][gdcol_id].ay = (float *) malloc(deuxnj*sizeof(float));
-                    temp    = (float *) malloc(deuxnj*sizeof(float));
+                    float * temp = (float *) malloc(deuxnj*sizeof(float));
                     f77name(ez_glat)(Grille[gdrow_id][gdcol_id].ay,temp,&deuxnj,&zero);
                     free(temp);
                     break;
                 }
-
+            }
 
             ez_calcntncof(gdid);
             Grille[gdrow_id][gdcol_id].flags |= AX;

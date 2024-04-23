@@ -10,23 +10,63 @@ extern "C" {
 int32_t f77name(ezdefset)(int32_t *gdout, int32_t *gdin);
 int32_t c_ezdefset(int32_t gdout, int32_t gdin);
 
-int32_t f77name(ezgdef)(int32_t *ni, int32_t *nj, char *grtyp, char *grref,
-           int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref);
-int32_t c_ezgdef(int32_t ni, int32_t nj, char *grtyp, char *grref,
-           int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, float *ax, float *ay);
+int32_t f77name(ezgdef)(
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4,
+    const float * const ax,
+    const float * const ay,
+    const F2Cl lengrtyp,
+    const F2Cl lengrref
+);
+int32_t c_ezgdef(
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const float * const ax,
+    const float * const ay
+);
 
 int32_t f77name(ezgdef_ffile)(int32_t *ni, int32_t *nj, char *grtyp,
            int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *iunit, F2Cl lengrtyp);
-int32_t c_ezgdef_ffile(int32_t ni, int32_t nj, char *grtyp,
-           int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, int32_t iunit);
+int32_t c_ezgdef_ffile(
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const int32_t iunit
+);
 
 int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon);
 int32_t c_ezgdef_fll(int32_t ni, int32_t nj,float *lat, float *lon);
 
 int32_t f77name(ezgdef_fmem)(int32_t *ni, int32_t *nj, char *grtyp, char *grref,
            int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref);
-int32_t c_ezgdef_fmem(int32_t ni, int32_t nj, char *grtyp, char *grref,
-           int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, float *ax, float *ay);
+int32_t c_ezgdef_fmem(
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const float * const ax,
+    const float * const ay
+);
 
 int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref);
 int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int32_t vercode, int32_t nsubgrids, int32_t *subgrid);
@@ -54,17 +94,37 @@ int32_t f77name(ezgxprm)(int32_t *gdid, int32_t *ni, int32_t *nj, char *grtyp,
            int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
            char *grref, int32_t *ig1ref, int32_t *ig2ref, int32_t *ig3ref, int32_t *ig4ref,
            F2Cl lengrtyp, F2Cl lengrref);
-int32_t c_ezgxprm(int32_t gdid, int32_t *ni, int32_t *nj,
-           char *grtyp, int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
-           char *grref, int32_t *ig1ref, int32_t *ig2ref, int32_t *ig3ref, int32_t *ig4ref);
+int32_t c_ezgxprm(
+    int32_t gdid,
+    int32_t * const ni,
+    int32_t * const nj,
+    char * const grtyp,
+    int32_t * const ig1,
+    int32_t * const ig2,
+    int32_t * const ig3,
+    int32_t * const ig4,
+    char * const grref,
+    int32_t * const ig1ref,
+    int32_t * const ig2ref,
+    int32_t * const ig3ref,
+    int32_t * const ig4ref
+);
 
 int32_t f77name(gdll)(int32_t *gdid, float *lat, float *lon);
 int32_t c_gdll(int32_t gdid, float *lat, float *lon);
 
 int32_t f77name(ezqkdef)(int32_t *ni, int32_t *nj, char *grtyp,
            int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *iunit, F2Cl lengrtyp);
-int32_t c_ezqkdef(int32_t ni, int32_t nj, char *grtyp,
-           int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, int32_t iunit);
+int32_t c_ezqkdef(
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const int32_t iunit
+);
 
 int32_t f77name(ezquickdef)(int32_t *ni, int32_t *nj, char *grtyp,
            int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4, int32_t *iunit, F2Cl lengrtyp);
