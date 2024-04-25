@@ -187,10 +187,16 @@ int32_t fst24_print_summary(
     fst_record rec = default_fst_record;
     int64_t num_records = 0;
     size_t total_data_size = 0;
+    char prefix[16];
+
+    int num_digits = 0;
+    for (int64_t tmp_num_records = fst24_get_num_records(file); tmp_num_records > 0; tmp_num_records /= 10) num_digits++;
+
     while (fst24_find_next(query, &rec) == TRUE) {
+        snprintf(prefix, num_digits + 2, "%*d-", num_digits, num_records);
+        fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), prefix);
         num_records++;
         total_data_size += fst24_record_data_size(&rec);
-        fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), NULL);
     }
 
     Lib_Log(APP_LIBFST, APP_VERBATIM,
@@ -902,7 +908,7 @@ int32_t fst24_write_rsf(
         // f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
-        fst24_record_print_short(record, &f, 0, "Write: ");
+        fst24_record_print_short(record, &f, 0, "(fst) Write: ");
     }
 
     RSF_Free_record(new_record);
@@ -1077,6 +1083,7 @@ fst_query* fst24_new_query(
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Setting search criteria\n", __func__);
         print_non_wildcards(criteria);
+        print_non_default_options(&query->options);
     }
 
     return query;
@@ -1593,7 +1600,7 @@ int32_t fst24_read_record_rsf(
         // f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
-        fst24_record_print_short(record_fst, &f, 0, "Read : ");
+        fst24_record_print_short(record_fst, &f, 0, "(fst) Read : ");
     }
 
     return ier;
@@ -1895,4 +1902,16 @@ int32_t fst24_delete(
     record->do_not_touch.deleted = 1;
 
     return TRUE;
+}
+
+void print_non_default_options(const fst_query_options* const options) {
+    char buffer[1024];
+    char* ptr = buffer;
+
+    if (options->ip1_all != default_query_options.ip1_all) ptr += snprintf(ptr, 30, "ip1all=%d ", options->ip1_all);
+    if (options->ip2_all != default_query_options.ip2_all) ptr += snprintf(ptr, 30, "ip2all=%d ", options->ip2_all);
+    if (options->ip3_all != default_query_options.ip3_all) ptr += snprintf(ptr, 30, "ip3all=%d ", options->ip3_all);
+    if (ptr == buffer) sprintf(ptr, "[none]");
+
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "options: %s\n", buffer);
 }

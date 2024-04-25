@@ -362,8 +362,8 @@ void print_std_parms(
     char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
     char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
     char h_decoded[39], v_decoded[39];
-    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[9];
-    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[9];
+    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5], h_siz[4];
+    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5], v_siz[4];
     int posc, posv;
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option=%s\n", __func__, option);
@@ -456,7 +456,13 @@ void print_std_parms(
         if (strstr(option, "NODTY")) {
             h_dty[0] = '\0';
         } else {
-            snprintf(h_dty, sizeof(h_dty), "%s", "DTY SIZ");
+            snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
+        }
+
+        if (strstr(option, "NOSIZ")) {
+            h_siz[0] = '\0';
+        } else {
+            snprintf(h_siz, sizeof(h_siz), "%s", "SIZ");
         }
 
         if (strstr(option, "GRIDINFO")) {
@@ -469,9 +475,9 @@ void print_std_parms(
             }
         }
 
-        fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n",
+        fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s %s  %s\n\n",
                 h_nomv, h_typv, h_etiq, h_dims, h_dateo, h_stampo, h_datev, h_level, h_decoded,
-                h_ip1, h_ip23, h_deet, h_npas, h_dty, h_grid);
+                h_ip1, h_ip23, h_deet, h_npas, h_dty, h_siz, h_grid);
         // fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid);
     } // if (header)
 
@@ -615,6 +621,12 @@ void print_std_parms(
         }
     }
 
+    if (strstr(option, "NOSIZ")) {
+        v_siz[0] = '\0';
+    } else {
+        snprintf(v_siz, sizeof(v_siz), "%3d", stdf_entry->dasiz);
+    }
+
     if (strstr(option, "GRIDINFO")) {
         F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
         ig1 = stdf_entry->ig1; ig2 = cracked.ig2;
@@ -631,11 +643,11 @@ void print_std_parms(
     }
 
     if (header==-1) {
-       Lib_Log(APP_LIBFST, APP_ALWAYS, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
-           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_grid);
+       Lib_Log(APP_LIBFST, APP_ALWAYS, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s %s  %s\n",
+           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_siz, v_grid);
     } else {
-       fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
-           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_grid);
+       fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s %s  %s\n",
+           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_siz, v_grid);
     }
 }
 

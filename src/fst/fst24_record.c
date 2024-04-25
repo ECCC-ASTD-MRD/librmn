@@ -368,7 +368,7 @@ void fst24_record_print_short(
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
 
-        Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", buffer);
     }
 
     char* current = buffer;
@@ -403,7 +403,7 @@ void fst24_record_print_short(
     else if (to_print.ig1234) current = add_ig1234(current, record->grtyp, record->ig1, record->ig2,
                                                     record->ig3, record->ig4, width.ig1234);
 
-    Lib_Log(APP_LIBFST, prefix?APP_INFO:APP_VERBATIM, "%s\n", buffer);
+    Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", buffer);
 
     if (to_print.metadata > 0) {
         fst24_read_metadata((fst_record*)record);
@@ -738,7 +738,7 @@ int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {
     return 1;
 }
 
-//! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
+//! \return 1 if the given two records have the same metadata
 //!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
