@@ -674,7 +674,7 @@ contains
             endif
             if (file_unit == 0) then
                 ! Open checkpoint file
-                istat = fnom(file_unit, 'gmm_restart', 'SEQ+UNF+FTN+OLD', 0)
+                istat = fnom(file_unit, 'gmm_restart', 'SEQ+UNF+FTN+OLD+R/O', 0)
                 write(app_msg,*) 'gmm_checkpoint_all: Open restart file, status=', istat
                 call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
                 if (istat < 0) then
