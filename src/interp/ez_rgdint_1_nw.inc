@@ -26,6 +26,8 @@
       real                :: z(ni,j1:j2)
       real(kind = real64) :: dx,dy,y2,y3
 
+#include "zlin8.cdk"
+
       do n=1,npts
          i = min(ni-1,max(1,ifix(px(n))))
          j = min(j2-1,max(j1,ifix(py(n))))
@@ -40,6 +42,4 @@
       enddo
 
       return 
-      contains
-#include "zlin8.cdk"
       end

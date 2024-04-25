@@ -25,6 +25,8 @@
       real                :: zo(npts),px(npts),py(npts)
       real                :: z(ni,j1:j2)
       real(kind = real64) :: dx, dy, y2, y3
+
+#include "zlin8.cdk"
       
       limite = ni +2 - wrap
       do n=1,npts
@@ -46,6 +48,4 @@
       enddo
 
       return 
-      contains
-#include "zlin8.cdk"
       end
