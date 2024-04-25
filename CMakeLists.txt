@@ -238,7 +238,9 @@ foreach(TARGET IN ITEMS ${TARGETS})
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Meta
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct
         ${CMAKE_CURRENT_BINARY_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}/dep
+    )
+    target_include_directories(${TARGET} PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/dep>
     )
 
 endforeach()
