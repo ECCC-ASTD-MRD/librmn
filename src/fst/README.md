@@ -1011,6 +1011,12 @@ int32_t fst24_record_free(
 int32_t fst24_delete(
     fst_record* const record //!< The record we want to delete
 );
+
+//! Check whether the given record struct is valid (does not check its content, just its version token)
+//! \return TRUE (1) if record is valid, FALSE (0) otherwise
+int32_t fst24_record_is_valid(
+    const fst_record* record  //!< The record we want to check
+);
 ```
 
 ## Fortran
@@ -1089,14 +1095,18 @@ type, public :: fst_record
     character(len=4)  :: nomvar = ''    !< Variable name
     character(len=12) :: etiket = ''    !< Label
 contains
+    procedure, pass :: allocate 
+    procedure, pass :: free
     procedure, pass :: has_same_info
     procedure, pass :: read
     procedure, pass :: read_metadata
     procedure, pass :: delete
     procedure, pass :: copy_meta
+    procedure, pass :: get_data_array
 
     procedure, pass :: print
     procedure, pass :: print_short
+
 end type fst_record
 ```
 
@@ -1342,6 +1352,24 @@ end subroutine free
 ### Record Functions
 
 ```fortran
+!> Allocates internal data
+function allocate(this,data,type,size,ni,nj,nk) result(success)
+    implicit none
+    class(fst_record), intent(inout), target :: this
+    integer(C_INT32_T), intent(in) :: type, size, ni, nj, nk
+    type(C_PTR), intent(in) :: data
+    type(C_PTR) :: c_record
+    logical :: success
+end function
+
+!> Free a record's internal memory. Its data will only be freed if it is *not* managed by the user.
+subroutine free(this)
+    implicit none
+    class(fst_record), intent(inout), target :: this
+    integer(C_INT32_T) :: c_status
+    logical :: success
+end subroutine
+
 !> Obtain a fortran array pointer to the data. If the pointer does not match the type, size and rank of the
 !> data stored in the record, it will be nullified
 subroutine get_data_array(this, array_pointer)

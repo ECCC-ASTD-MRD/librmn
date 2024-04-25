@@ -17,7 +17,7 @@ interface
         type(C_PTR), intent(in), value :: record_c
         integer(C_INT32_T) :: status
     end function fst24_record_free_c
-
+    
     function fst24_validate_default_record(fortran_record, fortran_size) result(status) bind(C, name = 'fst24_validate_default_record')
         import :: C_PTR, C_INT32_T, C_SIZE_T
         implicit none

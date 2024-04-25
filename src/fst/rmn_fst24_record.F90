@@ -84,7 +84,7 @@ module rmn_fst24_record
         procedure, pass :: from_c_self => fst24_record_from_c_self !< \private \copydoc fst24_record_from_c_self
         procedure, pass :: get_c_ptr => fst24_record_get_c_ptr     !< \private \copydoc fst24_record_get_c_ptr
 
-        procedure, pass :: new => fst24_record_new                      !< \copydoc fst24_record_new
+        procedure, pass :: allocate => fst24_record_allocate                 !< \copydoc fst24_record_new
         procedure, pass :: free => fst24_record_free                    !< \copydoc fst24_record_free
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
@@ -238,7 +238,7 @@ contains
         ptr = c_loc(this % c_self)
     end function fst24_record_get_c_ptr
 
-    function fst24_record_new(this,data,type,size,ni,nj,nk) result(success)
+    function fst24_record_allocate(this,data,type,size,ni,nj,nk) result(success)
         implicit none
         class(fst_record), intent(inout), target :: this
         integer(C_INT32_T), intent(in) :: type, size, ni, nj, nk
