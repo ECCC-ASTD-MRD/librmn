@@ -698,6 +698,7 @@ fst_record record_from_search_meta(
     return result;
 }
 
+//! Copy the legacy metadata and extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
 int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {

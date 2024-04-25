@@ -1093,6 +1093,7 @@ contains
     procedure, pass :: read
     procedure, pass :: read_metadata
     procedure, pass :: delete
+    procedure, pass :: copy_meta
 
     procedure, pass :: print
     procedure, pass :: print_short
@@ -1373,6 +1374,15 @@ function read_metadata(this) result(success)
     class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
     logical :: success
 end function read_metadata
+
+!> Copy the legacy metadata and extended metadata
+!> Return .true. if we were able to copy the metadata, .false. otherwise
+function copy_meta(this,record) result(success)
+    implicit none
+    class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
+    type(fst_record), target :: record
+    logical :: success
+end function fst24_record_copy_meta
 
 !> Delete a record from its file on disk
 !> Return .true. if we were able to delete the record, .false. otherwise
