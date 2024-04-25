@@ -91,7 +91,7 @@ module rmn_fst24_record
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
 !        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
 !        procedure, pass :: set_metadata => fst24_record_set_metadata    !< \copydoc fst24_record_set_metadata
-        procedure, pass :: copy_meta => fst24_record_copy_metadata    !< \copydoc fst24_record_copy_metadata
+        procedure, pass :: copy_metadata => fst24_record_copy_metadata    !< \copydoc fst24_record_copy_metadata
         procedure, pass :: delete        => fst24_record_delete         !< \copydoc fst24_record_delete
 
         procedure, pass :: print        => rmn_fst24_record_print           !< \copydoc rmn_fst24_record_print

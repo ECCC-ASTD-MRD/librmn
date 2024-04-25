@@ -1012,6 +1012,11 @@ int32_t fst24_delete(
     fst_record* const record //!< The record we want to delete
 );
 
+//! Copy the legacy metadata and extended metadata
+//! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
+//!         0 otherwise
+int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b);
+
 //! \return 1 if the given two records have the same metadata
 //!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b);
@@ -1100,7 +1105,7 @@ contains
     procedure, pass :: read
     procedure, pass :: read_metadata
     procedure, pass :: delete
-    procedure, pass :: copy_meta
+    procedure, pass :: copy_metadata
 
     procedure, pass :: print
     procedure, pass :: print_short
@@ -1384,12 +1389,12 @@ end function read_metadata
 
 !> Copy the legacy metadata and extended metadata
 !> Return .true. if we were able to copy the metadata, .false. otherwise
-function copy_meta(this,record) result(success)
+function copy_metadata(this,record) result(success)
     implicit none
     class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
     type(fst_record), target :: record
     logical :: success
-end function fst24_record_copy_meta
+end function fst24_record_copy_metadata
 
 !> Delete a record from its file on disk
 !> Return .true. if we were able to delete the record, .false. otherwise
