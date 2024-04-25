@@ -1011,6 +1011,13 @@ int32_t fst24_record_free(
 int32_t fst24_delete(
     fst_record* const record //!< The record we want to delete
 );
+
+//! \return 1 if the given two records have the same metadata
+//!         0 otherwise
+int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b);
+
+//! Print every difference between the attributes of the given 2 fst_struct
+void fst24_record_diff(const fst_record* a, const fst_record* b);
 ```
 
 ## Fortran
