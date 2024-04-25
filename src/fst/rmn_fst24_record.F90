@@ -282,14 +282,20 @@ contains
 
     !> \copybrief fst24_read
     !> \return Whether we were able to do the reading
-    function fst24_record_read(this) result(success)
+    function fst24_record_read(this,data) result(success)
         implicit none
         class(fst_record), intent(inout) :: this  !< fst_record instance. If must be a valid record already found in a file
         logical :: success
 
+        !> Where to put the data being read (optional). Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
+
         integer(C_INT32_T) :: c_status
 
         success = .false.
+        if (present(data)) this % data = data
+        
         call this % make_c_self()
         c_status = fst24_read_record(this % get_c_ptr())
         if (c_status > 0) then

@@ -1395,9 +1395,14 @@ end function has_same_info
 
 !> Read the data and metadata of a given record from its corresponding file
 !> Return Whether we were able to do the reading
-function read(this) result(success)
+function read(this,data) result(success)
     implicit none
     class(fst_record), intent(inout) :: this  !< fst_record instance. If must be a valid record already found in a file
+
+    !> Where to put the data being read (optional). Can also be specified by setting the
+    !> `data` attribute of the record being read.
+    type(C_PTR), intent(in), optional :: data
+
     logical :: success
 end function read
 
