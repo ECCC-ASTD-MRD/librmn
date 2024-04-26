@@ -1414,11 +1414,17 @@ function read_metadata(this) result(success)
     logical :: success
 end function read_metadata
 
-!> Copy the legacy metadata and extended metadata
+!> Copy the legacy metadata and extended metadata. The what parameter allows to select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+!>   FST24_META_ALL  : All meta data
+!>   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
+!>   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
+!>   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+!>   FST24_META_EXT  : Extended metadata
 !> Return .true. if we were able to copy the metadata, .false. otherwise
-function copy_metadata(this,record) result(success)
+function copy_metadata(this,record,what) result(success)
     implicit none
     class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
+    integer(C_INT32_T), intent(in), optional :: what
     type(fst_record), target :: record
     logical :: success
 end function fst24_record_copy_metadata

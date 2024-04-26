@@ -323,16 +323,23 @@ contains
 
     !> \copybrief fst24_record_copy_metadata_c
     !> \return .true. if we were able to copy the metadata, .false. otherwise
-    function fst24_record_copy_metadata(this,record) result(success)
+    function fst24_record_copy_metadata(this,record,what) result(success)
         implicit none
         class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
         type(fst_record), target :: record
+        integer(C_INT32_T), intent(in), optional :: what
+
         logical :: success
 
-        integer(C_INT32_T) :: c_result
+        integer(C_INT32_T) :: c_result, what_c
+
+        what_c=FST24_META_ALL
+        if (present(what)) then
+            what_c=what
+        end if
 
         success = .false.
-        c_result = fst24_record_copy_metadata_c(this % get_c_ptr(),record % get_c_ptr())
+        c_result = fst24_record_copy_metadata_c(this % get_c_ptr(),record % get_c_ptr(), what_c)
         if (c_result == 1) then
             call this % from_c_self()
             success = .true.

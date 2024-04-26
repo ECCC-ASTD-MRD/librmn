@@ -699,40 +699,59 @@ fst_record record_from_search_meta(
 }
 
 //! Copy the legacy metadata and extended metadata
+//!   FST24_META_ALL  : All meta data
+//!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
+//!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
+//!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST24_META_EXT  : Extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
-int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b) {
+int32_t fst24_record_copy_metadata(
+     fst_record* a,            //!< Destination record
+     const fst_record* b,      //!< Source record
+     int what                  //!< select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+) {
 
     if (a == NULL || b == NULL) return 0;
     if (a->do_not_touch.version != b->do_not_touch.version) return 0;
 
-    a->dateo = b->dateo;
-    a->datev = b->datev;
+    if (what&FST24_META_TIME) {
+       a->dateo = b->dateo;
+       a->datev = b->datev;
+       a->deet = b->deet;
+       a->npas = b->npas;
+    }
 //    a->data_type = b->data_type;
 //    a->data_bits = b->data_bits;
 //    a->pack_bits = b->pack_bits;
 //    a->ni = b->ni;
 //    a->nj = b->nj;
 //    a->nk = b->nk;
-    a->deet = b->deet;
-    a->npas = b->npas;
-    a->ip1 = b->ip1;
-    a->ip2 = b->ip2;
-    a->ip3 = b->ip3;
-    a->ig1 = b->ig1;
-    a->ig2 = b->ig2;
-    a->ig3 = b->ig3;
-    a->ig4 = b->ig4;
-    strncpy(a->typvar, b->typvar, FST_TYPVAR_LEN);
-    strncpy(a->grtyp, b->grtyp, FST_GTYP_LEN);
-    strncpy(a->nomvar, b->nomvar, FST_NOMVAR_LEN);
-    strncpy(a->etiket, b->etiket, FST_ETIKET_LEN);
+    if (what&FST24_META_INFO) {
+       a->ip1 = b->ip1;
+       a->ip2 = b->ip2;
+       a->ip3 = b->ip3;
 
-    if (b->metadata) {
-        if (a->metadata) {
-            Meta_Free(a->metadata);
+       strncpy(a->typvar, b->typvar, FST_TYPVAR_LEN);
+       strncpy(a->nomvar, b->nomvar, FST_NOMVAR_LEN);
+       strncpy(a->etiket, b->etiket, FST_ETIKET_LEN);
+    }
+
+    if (what&FST24_META_GRID) {
+       strncpy(a->grtyp, b->grtyp, FST_GTYP_LEN);
+       a->ig1 = b->ig1;
+       a->ig2 = b->ig2;
+       a->ig3 = b->ig3;
+       a->ig4 = b->ig4;
+    }
+
+    if (what&FST24_META_EXT) {
+        if (b->metadata) {
+            if (a->metadata) {
+                Meta_Free(a->metadata);
+            }
+            a->metadata=Meta_Copy(b->metadata);
         }
-        a->metadata=Meta_Copy(b->metadata);
     }
 
     return 1;

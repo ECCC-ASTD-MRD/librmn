@@ -9,10 +9,17 @@
 //! can be recognized when read by a different version of the library
 //! It has to take at most 8 bits, so its maximum value is 255
 #endif
+
 #define FST24_VERSION_COUNT  0
 
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
+
+#define FST24_META_ALL  15 
+#define FST24_META_TIME 1
+#define FST24_META_GRID 2
+#define FST24_META_INFO 4
+#define FST24_META_EXT  8
 
 #ifndef IN_FORTRAN_CODE
 
@@ -188,7 +195,7 @@ fst_record* fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni
 int32_t     fst24_record_free(fst_record* record);
 int32_t     fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 void        fst24_record_diff(const fst_record* a, const fst_record* b);
-int32_t     fst24_record_copy_metadata(fst_record* a, const fst_record* b);
+int32_t     fst24_record_copy_metadata(fst_record* a, const fst_record* b,int What);
 //! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
