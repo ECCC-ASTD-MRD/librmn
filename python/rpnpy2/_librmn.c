@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <Python.h>
 #include <rmn/fst24_file.h>
+#include <stddef.h> // for offsetof
+#include <structmember.h> // From Python
 
 /*
  * Invent this indirection struct because I want to be able to do
@@ -21,8 +23,26 @@
 struct fst24_file_container {
     PyObject_HEAD
     struct fst24_file_ *ref;
-    char *filename; // for debugging
-    char *options; // for debugging
+    PyObject *filename; // for debugging
+    PyObject *options; // for debugging
+};
+
+static PyMemberDef py_fst24_file_member_def[] = {
+    {
+        .name = "filename",
+        .type = T_OBJECT_EX,
+        .offset = offsetof(struct fst24_file_container, filename),
+        .flags = 0,
+        .doc = "filename of the file"
+    },
+    {
+        .name = "options",
+        .type = T_OBJECT_EX,
+        .offset = offsetof(struct fst24_file_container, options),
+        .flags = 0,
+        .doc = "Options"
+    },
+    {NULL},
 };
 
 static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
@@ -30,6 +50,9 @@ static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject 
     if(self == NULL) {
         return NULL;
     }
+
+    self->filename = NULL;
+    self->options = NULL;
 
     return (PyObject *) self;
 }
@@ -39,6 +62,7 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     static char *kwlist[] = {"filename", "options", NULL};
     char *options;
     char *filename;
+    // TODO: I think I have to free options and filename
     if(!PyArg_ParseTupleAndKeywords(args, kwds, "ss", kwlist, &filename, &options)){
         // Current exception already set by function
         return -1;
@@ -52,17 +76,35 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
         return -1;
     }
 
-    self->filename = filename;
-    self->options = options;
+    PyObject *py_filename = PyUnicode_FromString(filename);
+    if(py_filename == NULL){
+        // Exception already set?
+        return -1;
+    }
+
+    PyObject *py_options = PyUnicode_FromString(filename);
+    if(py_options == NULL){
+        // Exception already set?
+        return -1;
+    }
+
+    Py_INCREF(py_filename);
+    self->filename = py_filename;
+
+
+    Py_INCREF(py_options);
+    self->options = py_options;
+
     self->ref = ref;
-    fprintf(stderr, "%s(): self=%p, self->ref=%p, self->filename=%s, self->options=%s\n", __func__, self, self->ref, self->filename, self->options);
+    PySys_WriteStderr("%s(): self=%p, self->ref=%p, self->filename=%S, self->options=%S\n",
+            __func__, self, self->ref, self->filename, self->options);
 
     return 0;
 }
 
 static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
     fprintf(stderr, "%s(): self = %p\n", __func__, self);
-    return PyUnicode_FromFormat("fst24_file(filename=%s, options=%s)", self->filename, self->options);
+    return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
 }
 
 static PyTypeObject py_fst24_file_type = {
@@ -76,6 +118,7 @@ static PyTypeObject py_fst24_file_type = {
     .tp_init = (initproc) py_fst24_file_init,
     .tp_str = (reprfunc) py_fst24_file_str,
     .tp_repr = (reprfunc) py_fst24_file_str,
+    .tp_members = py_fst24_file_member_def,
 };
 
 static PyModuleDef mymodulemodule = {

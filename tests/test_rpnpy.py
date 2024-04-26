@@ -15,4 +15,6 @@ filename = "/fs/site5/eccc/cmd/w/spst900/spooki/spooki_dir/pluginsRelatedStuff/A
 
 f = rpnpy2.fst24_file(filename=filename, options="")
 
+print(f.filename)
+
 print(str(f))
