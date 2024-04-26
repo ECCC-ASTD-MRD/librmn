@@ -107,6 +107,18 @@ static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *
     return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
 }
 
+static void py_fst24_file_dealloc(struct fst24_file_container *self){
+    PySys_FormatStderr("Deallocating object %S\n", self);
+    Py_XDECREF(self->filename);
+    Py_XDECREF(self->options);
+    if(self->ref != NULL){
+        // TODO Error handling for this
+        fst24_close(self->ref);
+    }
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+
 static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_librmn.fst24_file",
@@ -115,6 +127,7 @@ static PyTypeObject py_fst24_file_type = {
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst24_file_new,
+    .tp_dealloc = (destructor) py_fst24_file_dealloc,
     .tp_init = (initproc) py_fst24_file_init,
     .tp_str = (reprfunc) py_fst24_file_str,
     .tp_repr = (reprfunc) py_fst24_file_str,
