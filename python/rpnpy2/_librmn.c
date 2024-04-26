@@ -60,6 +60,11 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     return 0;
 }
 
+static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
+    fprintf(stderr, "%s(): self = %p\n", __func__, self);
+    return PyUnicode_FromFormat("fst24_file(filename=%s, options=%s)", self->filename, self->options);
+}
+
 static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_librmn.fst24_file",
@@ -69,6 +74,8 @@ static PyTypeObject py_fst24_file_type = {
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst24_file_new,
     .tp_init = (initproc) py_fst24_file_init,
+    .tp_str = (reprfunc) py_fst24_file_str,
+    .tp_repr = (reprfunc) py_fst24_file_str,
 };
 
 static PyModuleDef mymodulemodule = {
