@@ -1013,9 +1013,19 @@ int32_t fst24_delete(
 );
 
 //! Copy the legacy metadata and extended metadata
+//!   FST24_META_ALL  : All meta data
+//!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
+//!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
+//!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+//!   FST24_META_EXT  : Extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
-int32_t fst24_record_copy_metadata(fst_record* a, const fst_record* b);
+int32_t fst24_record_copy_metadata(
+     fst_record* a,            //!< Destination record
+     const fst_record* b,      //!< Source record
+     int what                  //!< select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+);
 
 //! \return 1 if the given two records have the same metadata
 //!         0 otherwise
@@ -1419,6 +1429,7 @@ end function read_metadata
 !>   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
 !>   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
 !>   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+!>   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
 !>   FST24_META_EXT  : Extended metadata
 !> Return .true. if we were able to copy the metadata, .false. otherwise
 function copy_metadata(this,record,what) result(success)

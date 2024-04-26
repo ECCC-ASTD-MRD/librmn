@@ -703,6 +703,7 @@ fst_record record_from_search_meta(
 //!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
 //!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
 //!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
 //!   FST24_META_EXT  : Extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
@@ -721,12 +722,14 @@ int32_t fst24_record_copy_metadata(
        a->deet = b->deet;
        a->npas = b->npas;
     }
-//    a->data_type = b->data_type;
-//    a->data_bits = b->data_bits;
-//    a->pack_bits = b->pack_bits;
-//    a->ni = b->ni;
-//    a->nj = b->nj;
-//    a->nk = b->nk;
+    if (what&FST24_META_SIZE) {
+       a->data_type = b->data_type;
+       a->data_bits = b->data_bits;
+       a->pack_bits = b->pack_bits;
+       a->ni = b->ni;
+       a->nj = b->nj;
+       a->nk = b->nk;
+    }
     if (what&FST24_META_INFO) {
        a->ip1 = b->ip1;
        a->ip2 = b->ip2;
