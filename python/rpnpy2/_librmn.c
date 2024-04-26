@@ -145,6 +145,25 @@ static PyTypeObject py_fst_query_type = {
     .tp_new = py_fst_query_new,
 };
 
+static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
+    fst_query *q = fst24_new_query(self->ref, NULL, NULL);
+    struct fst_query_container *py_q = (struct fst_query_container *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
+    py_q->ref = q;
+
+    Py_INCREF((PyObject*)py_q);
+    return (PyObject *)py_q;
+}
+
+static PyMethodDef py_fst24_file_method_defs[] = {
+    {
+        .ml_name = "new_query",
+        .ml_flags = METH_NOARGS,
+        .ml_meth = (PyCFunction) py_fst24_file_new_query,
+        .ml_doc  = "Return a query object for file",
+    },
+    {NULL, NULL, 0, NULL},
+};
+
 static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_librmn.fst24_file",
@@ -158,6 +177,7 @@ static PyTypeObject py_fst24_file_type = {
     .tp_str = (reprfunc) py_fst24_file_str,
     .tp_repr = (reprfunc) py_fst24_file_str,
     .tp_members = py_fst24_file_member_def,
+    .tp_methods = py_fst24_file_method_defs,
 };
 
 

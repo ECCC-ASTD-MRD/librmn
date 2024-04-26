@@ -19,6 +19,6 @@ print(f.filename)
 
 print(str(f))
 
-q = rpnpy2.fst_query()
+q = f.new_query()
 
 print(q)
