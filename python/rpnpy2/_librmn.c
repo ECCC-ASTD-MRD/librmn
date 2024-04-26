@@ -27,6 +27,11 @@ struct fst24_file_container {
     PyObject *options; // for debugging
 };
 
+struct fst_query_container {
+    PyObject_HEAD
+    fst_query *ref;
+};
+
 static PyMemberDef py_fst24_file_member_def[] = {
     {
         .name = "filename",
@@ -118,6 +123,27 @@ static void py_fst24_file_dealloc(struct fst24_file_container *self){
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
+static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
+    struct fst_query_container *self = (struct fst_query_container *) type->tp_alloc(type, 0);
+    if(self == NULL){
+        return NULL;
+    }
+
+    self->ref = NULL;
+
+    return (PyObject *)self;
+}
+
+
+static PyTypeObject py_fst_query_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "_librmn.fst_query",
+    .tp_doc = "Python fst query object",
+    .tp_basicsize = sizeof(struct fst_query_container),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = py_fst_query_new,
+};
 
 static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -133,6 +159,8 @@ static PyTypeObject py_fst24_file_type = {
     .tp_repr = (reprfunc) py_fst24_file_str,
     .tp_members = py_fst24_file_member_def,
 };
+
+
 
 static PyModuleDef mymodulemodule = {
     PyModuleDef_HEAD_INIT,
@@ -156,6 +184,17 @@ PyMODINIT_FUNC PyInit__librmn(void)
     Py_INCREF(&py_fst24_file_type);
     if(PyModule_AddObject(m, "fst24_file", (PyObject *)&py_fst24_file_type) < 0){
         Py_DECREF(&py_fst24_file_type);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    if(PyType_Ready(&py_fst_query_type) < 0){
+        return NULL;
+    }
+
+    Py_INCREF(&py_fst_query_type);
+    if(PyModule_AddObject(m, "fst_query", (PyObject *)&py_fst_query_type) < 0){
+        Py_DECREF(&py_fst_query_type);
         Py_DECREF(m);
         return NULL;
     }

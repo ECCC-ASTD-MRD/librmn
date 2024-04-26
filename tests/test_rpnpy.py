@@ -18,3 +18,7 @@ f = rpnpy2.fst24_file(filename=filename, options="")
 print(f.filename)
 
 print(str(f))
+
+q = rpnpy2.fst_query()
+
+print(q)
