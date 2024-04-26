@@ -213,5 +213,10 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_write_in_read_only COMMAND $<TARGET_FILE:fst_write_in_read_only>)
         add_dependencies(check fst_write_in_read_only)
 
+        add_executable(excdes fst/excdes.c)
+        target_link_libraries(excdes rmn::rmn)
+        add_test(NAME excdes COMMAND $<TARGET_FILE:excdes>)
+        add_dependencies(check excdes)
+
     endif()
 endif()

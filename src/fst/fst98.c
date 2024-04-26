@@ -1048,7 +1048,7 @@ int c_fstecr_xdf(
     if ((base_fst_type(datyp) == FST_TYPE_REAL)) { 
         if (nbits > 24) {
             if (! dejafait_xdf_1) {
-                Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
                 dejafait_xdf_1 = 1;
             }
             datyp = FST_TYPE_REAL_IEEE | (is_type_turbopack(datyp) ? FST_TYPE_TURBOPACK : 0);
@@ -1056,7 +1056,7 @@ int c_fstecr_xdf(
         }
         else if (nbits > 16) {
             if (! dejafait_xdf_2) {
-                Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
                 dejafait_xdf_2 = 1;
             }
             datyp = FST_TYPE_REAL_OLD_QUANT; // No turbopack for R with >16 bits

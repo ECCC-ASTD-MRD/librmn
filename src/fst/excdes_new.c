@@ -36,9 +36,10 @@
   #define dbprint ;
 #endif
 
-void RequetesInit() {
+void RequetesInit(void) {
     C_requetes_init(NULL, NULL);
 }
+
 #pragma weak f_requetes_init__ = f_requetes_init
 void f_requetes_init__();
 #pragma weak f_requetes_init_ = f_requetes_init
@@ -55,9 +56,6 @@ enum cquoica {unused, entier, reel, deb_fin_entier, deb_fin_reel, deb_fin_entier
 
 #define DESIRE 1
 #define EXCLURE -1
-
-#define READLX_DELTA -3
-#define READLX_RANGE -2
 
 #define UNUSED 0
 #define VALUE 1
@@ -366,10 +364,10 @@ int Xc_Select_ip1(
  *  IN  nelm    nombre d'elements de la liste                                *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_ip2(int set_nb, int des_exc, void *iplist, int nelm)
+int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int nelm)
 {
     int i;
-    int *ip_entier=(int *)iplist;
+    const int *ip_entier=(const int *)iplist;
     int valid;
 
     valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "ip2");
@@ -424,10 +422,10 @@ int Xc_Select_ip2(int set_nb, int des_exc, void *iplist, int nelm)
  *  IN  nelm    nombre d'elements de la liste                                *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_ip3(int set_nb, int des_exc, void *iplist, int nelm)
+int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int nelm)
 {
     int i;
-    int *ip_entier=(int *)iplist;
+    const int *ip_entier=(const int *)iplist;
     int valid;
 
     valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "ip3");
@@ -932,7 +930,7 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
 {
   int mode = -1;   /* IP to P, KIND conversion */
   int i, ip, kind1, kind2, kind3;
-  float p0, p1, p2, p3, delta, modulo, error;
+  float p0, p1, p2, p3, delta;
   float *fdata = (float *)data;
 
   if( ! in_use ) return 0;
@@ -941,6 +939,8 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
     if(! translatable) return 0;      /* name is not translatable we are done */
     ip = ip1;
     ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
+    int32_t bottom_val = data[0] >= 0 ? data[0] : ip1;
+    int32_t top_val    = data[1] >= 0 ? data[1] : bottom_val;
     ip = data[0];
     if(ip >= 0) {
       ConvertIp(&ip, &p2, &kind2, mode);  /* convert bottom value   */
@@ -956,38 +956,52 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
       kind3 = kind1;
     }
     if(p2 > p3){                          // make sure that p2 < p3
-      p0 = p3 ; p3 = p2 ; p2 = p0 ;       // swap p2 and p3 (no pint in swapping kinds as they MUST match
+      p0 = p3 ; p3 = p2 ; p2 = p0 ;       // swap p2 and p3 (no point in swapping kinds as they MUST match
+      const int32_t tmp = bottom_val;
+      bottom_val = top_val;
+      top_val = tmp;
     }
     if(kind1 != kind2 || kind1 != kind3) return 0 ;  /* not same kind, no match */
-    if(p1 < p2 || p1 > p3) return 0;       /* out of value range, no match */
+    if (kind1 < 0) {
+      // Does not correspond to a valid encoding, so we can only match the IP itself
+      if (ip1 < bottom_val || ip1 > top_val) return 0;
+    }
+    else if (p1 < p2 || p1 > p3) {
+      return 0;  /* out of value range, no match */
+    }
+
     if(in_use == RANGE) return 1 ;         /* we have a match if RANGE */
     if(in_use == DELTA) {                  /* we are in range, check delta if there is one */
       if(data[2] <= 0) return 0 ;          /* delta <= 0 not acceptable */
-      if(p1 == p2) return 1 ;              /* we have a match, modulo will be zero */
+      if(kind1 >= 0 && p1 == p2) return 1 ;/* we have a match, modulo will be zero */
       if(data[2] < 0xFFFFF){               /* max 18 bits for integer values */
-        delta = data[2];                   /* integer interval */
+        delta = (float)data[2];            /* integer interval */
       }else{
         delta = fdata[2];                  /* float interval */
       }
       if(delta <= 0) return 0 ; /* delta <= 0 not acceptable */
-      modulo = fmodf( (p1 -p2) , delta ) ;
+      float modulo = kind1 >= 0 ? fmodf((p1 - p2) , delta) :
+                                  fmodf((float)(ip1 - bottom_val), delta);
       if(modulo < 0) modulo = -modulo;    /* abs(modulo)  */
-// printf("p1=%f p2=%f p3=%f delta=%f modulo=%f ratio=%f\n", p1, p2, p3, delta, modulo, modulo/delta);
-      error = modulo/delta;
+      const float error = modulo/delta;
       if( error < 0.00001 || error > 0.99999 ) return 1 ; /* we have a match */
     }
     return 0;   /* we fell through, we have no match */
   }
-
-//fprintf(stderr, "value matching %d, list of %d elements\n", ip1, nelm);
-  if(in_use == VALUE){
+  else if(in_use == VALUE){
     for (i=0 ; i<nelm ; i++) {
-//fprintf(stderr, "list[%d]=%d\n", i, data[i]);
       if(ip1 == data[i] || data[i] == -1) return 1;  /* we have a match with raw ip values */
     }
     if(! translatable) return 0;/* name is not translatable we are done */
     ip = ip1;
     ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
+
+    if (kind1 < 0) {
+      // IP does not correspond to a valid encoding, so we can only do an exact match.
+      // If we got here, this means we have no match.
+      return 0;
+    }
+
     for (i=0 ; i<nelm ; i++) {
       ip = data[i];
       ConvertIp(&ip, &p2, &kind2, mode); /* convert match reference */
@@ -997,6 +1011,7 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
       if(delta < 0) delta = -delta;    /* abs(relative error)  */
       if( delta < 0.000001) return 1 ; /* we have a match */
     }
+
     return 0 ;   /* if we fell through, we have no match */
   }else{
     return 0 ;   /* not a value, no match */
