@@ -102,7 +102,7 @@ int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1);
 int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn);
 int32_t f77name(secateur)(char *filename, int32_t *f_where, F2Cl l1);
 
-void build_fstd_info_keys(uint32_t *buf, uint32_t *keys, int index, int mode);
+void build_fstd_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
 void build_fstd_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask, uint32_t *mskkeys,
                 int index, int mode);
 

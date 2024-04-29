@@ -17,16 +17,16 @@
 #include <pthread.h>
 
 #define XDF_OWNER
-#include <App.h>
 #include "xdf98.h"
-#include "fst98_internal.h"
 
+#include <App.h>
 #include <armn_compress.h>
 #include "base/base.h"
-#include "primitives/fnom_internal.h"
-
-#include "qstdir.h"
 #include "burp98.h"
+#include "fst98_internal.h"
+#include "primitives/fnom_internal.h"
+#include "qstdir.h"
+#include "rmn/excdes_new.h"
 
 static pthread_mutex_t xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -47,9 +47,7 @@ static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
 static uint32_t next_match(int file_index);
 static void build_gen_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask,
                                 uint32_t *mskkeys, int index, int mode);
-static void build_gen_info_keys(uint32_t *buf, uint32_t *keys, int index,
-                                int mode);
-int C_fst_match_req(int set_nb, int handle);
+static void build_gen_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
 
 file_table_entry_ptr* file_table = NULL;
 int MAX_XDF_FILES = 0;
@@ -1765,15 +1763,15 @@ int c_xdfopn(
 
     if (fte->cur_info->attr.burp) {
         fte->build_primary = (fn_b_p *) build_burp_prim_keys;
-        fte->build_info = (fn_ptr *) build_burp_info_keys;
+        fte->build_info = build_burp_info_keys;
     } else {
         if (fte->cur_info->attr.std) {
             fte->build_primary = (fn_b_p *) build_fstd_prim_keys;
-            fte->build_info = (fn_ptr *) build_fstd_info_keys;
-            fte->file_filter = (fn_ptr *) C_fst_match_req;
+            fte->build_info = build_fstd_info_keys;
+            fte->file_filter = C_fst_match_req;
         } else {
             fte->build_primary = (fn_b_p *) build_gen_prim_keys;
-            fte->build_info = (fn_ptr *) build_gen_info_keys;
+            fte->build_info = build_gen_info_keys;
         }
     }
 

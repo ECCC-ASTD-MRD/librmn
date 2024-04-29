@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 void RequetesInit(void);
+int C_fst_match_req(const int handle);
 
 int Xc_Select_ip1(const int set_nb, const int des_exc, const void * const iplist, const int nelm);
 int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int nelm);
