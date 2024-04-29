@@ -32,6 +32,11 @@ struct fst_query_container {
     fst_query *ref;
 };
 
+struct py_fst_record {
+    PyObject_HEAD
+    fst_record *rec;
+};
+
 static PyMemberDef py_fst24_file_member_def[] = {
     {
         .name = "filename",
@@ -93,6 +98,22 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
         return -1;
     }
 
+    // NOTE: we are in the __init__ function, so we know that there is no
+    // self->filename object prior to this assignment, otherwise, we would
+    // need to decrease its refcount.
+    //
+    //      PyObject *tmp = self->filename;
+    //      Py_INCREF(py_filename);
+    //      self->filename = py_filename;
+    //      Py_XDECREF(tmp);
+    //
+    // and there is probably a good reason why the tutorial says to do the
+    // above instead of what I would have done:
+    //
+    //      Py_INCREF(py_filename);
+    //      Py_XDECREF(self->filename);
+    //      self->filename = py_filename;
+    //
     Py_INCREF(py_filename);
     self->filename = py_filename;
 
@@ -134,6 +155,43 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
     return (PyObject *)self;
 }
 
+static PyObject *py_fst_query_print(struct fst_query_container *self, PyObject *Py_UNUSED(args))
+{
+    Py_RETURN_NONE;
+}
+
+
+static PyMethodDef py_fst_query_method_defs[] = {
+    {
+        .ml_name = "print",
+        .ml_flags = METH_NOARGS,
+        .ml_meth = (PyCFunction) py_fst_query_print,
+        .ml_doc = "Print info on an FST query",
+    },
+    {NULL, NULL, 0, NULL},
+};
+
+static PyObject *py_fst_query_get_iter(struct fst_query_container *self){
+    // This is more for when a container type wants to provide an iterator
+    // but I think the query *is* the iterator.  If the thing already is
+    // an iterator, this method should return the object instance itself.
+    return (PyObject *)self;
+}
+
+static PyObject *py_fst_query_iternext(struct fst_query_container *self)
+{
+    fst_record result = default_fst_record;
+    fst_query *query = self->ref;
+
+    if(!fst24_find_next(query, &result)){
+        // Iterators signal the end of iteration by raising this
+        // exception type, this is not an error
+        PyErr_SetString(PyExc_StopIteration, "No more results in query");
+        return NULL;
+    }
+
+    return PyUnicode_FromFormat("Nomvar = %s, ip3 = %d", result.nomvar, result.ip3);
+}
 
 static PyTypeObject py_fst_query_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -143,10 +201,33 @@ static PyTypeObject py_fst_query_type = {
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst_query_new,
+    .tp_iternext = (iternextfunc) py_fst_query_iternext,
+    .tp_iter = (getiterfunc) py_fst_query_get_iter,
+    // TODO dealloc
 };
 
-static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
-    fst_query *q = fst24_new_query(self->ref, NULL, NULL);
+static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
+
+    static char *kwlist[] = {"ip3", "nomvar", NULL};
+    // Values must be initialized because if the keyword argumetn is not
+    // specified the PyArg_ParseTupleAndKeywords will not change them
+    int32_t ip3 = -1;
+    char *nomvar = NULL;
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$is", kwlist, &ip3, &nomvar)){
+        fprintf(stderr, "%s(): Only ip3 and nomvar criteria are supported for now as I implement the rest of the chain\n", __func__);
+        return NULL;
+    }
+
+    fst_record criteria = default_fst_record;
+    if(nomvar != NULL){
+        strncpy(criteria.nomvar, nomvar, sizeof(criteria.nomvar));
+    }
+
+    if(ip3 != -1){
+        criteria.ip3 = ip3;
+    }
+
+    fst_query *q = fst24_new_query(self->ref, &criteria, NULL);
     struct fst_query_container *py_q = (struct fst_query_container *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
     py_q->ref = q;
 
@@ -157,7 +238,7 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
 static PyMethodDef py_fst24_file_method_defs[] = {
     {
         .ml_name = "new_query",
-        .ml_flags = METH_NOARGS,
+        .ml_flags = METH_VARARGS|METH_KEYWORDS,
         .ml_meth = (PyCFunction) py_fst24_file_new_query,
         .ml_doc  = "Return a query object for file",
     },
@@ -180,7 +261,25 @@ static PyTypeObject py_fst24_file_type = {
     .tp_methods = py_fst24_file_method_defs,
 };
 
+static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    struct py_fst_record *self = (struct py_fst_record *) type->tp_alloc(type, 0);
+    if(self == NULL){
+        return NULL;
+    }
 
+    return (PyObject *)self;
+}
+
+static PyTypeObject py_fst_record_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "_librmn.fst_record",
+    .tp_doc = "Python fst_record object",
+    .tp_basicsize = sizeof(struct py_fst_record),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = py_fst_record_new,
+};
 
 static PyModuleDef mymodulemodule = {
     PyModuleDef_HEAD_INIT,
@@ -197,6 +296,9 @@ PyMODINIT_FUNC PyInit__librmn(void)
         return NULL;
     }
 
+    /*
+     * Initialize type object and add to module for fst24_file
+     */
     if(PyType_Ready(&py_fst24_file_type) < 0){
         return NULL;
     }
@@ -208,6 +310,9 @@ PyMODINIT_FUNC PyInit__librmn(void)
         return NULL;
     }
 
+    /*
+     * Initialize type object and add to module for fst_query
+     */
     if(PyType_Ready(&py_fst_query_type) < 0){
         return NULL;
     }
@@ -215,6 +320,20 @@ PyMODINIT_FUNC PyInit__librmn(void)
     Py_INCREF(&py_fst_query_type);
     if(PyModule_AddObject(m, "fst_query", (PyObject *)&py_fst_query_type) < 0){
         Py_DECREF(&py_fst_query_type);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    /*
+     * Initialize type object and add to module for fst_record
+     */
+    if(PyType_Ready(&py_fst_record_type) < 0){
+        return NULL;
+    }
+
+    Py_INCREF(&py_fst_record_type);
+    if(PyModule_AddObject(m, "fst_record", (PyObject *)&py_fst_record_type) < 0){
+        Py_DECREF(&py_fst_record_type);
         Py_DECREF(m);
         return NULL;
     }

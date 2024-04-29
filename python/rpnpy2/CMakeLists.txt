@@ -18,7 +18,9 @@ install(TARGETS _librmn LIBRARY DESTINATION lib/python/rpnpy)
 # Temporary convenience test
 add_custom_target(test_py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests
-    COMMAND bash -c "PYTHONPATH=${CMAKE_BINARY_DIR}/python python3 test_rpnpy.py"
+    # The -u is for Python to operate without buffering stderr
+    # which is helpful for printf debugging
+    COMMAND bash -c "PYTHONPATH=${CMAKE_BINARY_DIR}/python python3 -u test_rpnpy.py"
 )
 add_dependencies(test_py _librmn)
 
