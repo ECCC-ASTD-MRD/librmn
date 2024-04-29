@@ -363,8 +363,8 @@ success = my_file % close()
 ```c
 #include <rmn.h>
 
-fst_record result;
-fst_record criteria;
+fst_record result = default_fst_record;
+fst_record criteria = default_fst_record;
 
 
 
@@ -487,8 +487,8 @@ call q_label_b % free()
 </td><td>
 
 ```c
-fst_record rec_a;
-fst_record rec_b;
+fst_record rec_a = default_fst_record;
+fst_record rec_b = default_fst_record;
 
 [...]
 
@@ -710,7 +710,7 @@ success = my_file % close()
 ```c
 #include <rmn.h>
 
-fst_record my_record;
+fst_record my_record = default_fst_record;
 
 
 
