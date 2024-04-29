@@ -5,21 +5,12 @@
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
 
-/*
- * Invent this indirection struct because I want to be able to do
- * >>> import rpnpy2
- * >>> filename = "..."
- * >>> options = ""
- * >>> f = rpnpy2.fst24_file(filename, options)
- * but after the new function has been called we already have memory allocated
- * and we can't modify that in the __init__ function which is the function
- * that gets the filename.
- *
- * It's always possible that the new function can receive argumetns but there
- * is also something with the tp_alloc thing that I'm not sure about.
- *
- * Plust it allows me to add some fields that would just be relevant to Python.
- */
+static PyModuleDef mymodulemodule = {
+    PyModuleDef_HEAD_INIT,
+    .m_name = "_librmn",
+    .m_doc = "Example module that creates a Person type",
+    .m_size = -1,
+};
 
 /*******************************************************************************
  * fst24_file declarations
@@ -111,8 +102,39 @@ struct py_fst_record {
     fst_record rec;
 };
 
+// For all the fields that are of basic type we can do it this way, but for the
+// string types we have to implement properties
+static PyMemberDef py_fst_record_members[] = {
+    {
+        .name = "ip3",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ip3),
+        .flags = 0,
+        .doc = "IP3 of this fst_record"
+    },
+    {.name = NULL},
+};
+
+static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self);
+static PyObject *py_fst_record_get_etiket(struct py_fst_record *self);
+static PyGetSetDef py_fst_record_properties[] = {
+    {
+        .name = "nomvar",
+        .get = (getter) py_fst_record_get_nomvar,
+        .doc = "Name of the variable for this record",
+        .closure = NULL,
+    },
+    {
+        .name = "etiket",
+        .get = (getter) py_fst_record_get_etiket,
+        .doc = "Label of the variable for this record",
+        .closure = NULL,
+    },
+    {NULL},
+};
 
 static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static PyObject * py_fst_record_str(struct py_fst_record *self);
 static PyTypeObject py_fst_record_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_librmn.fst_record",
@@ -121,30 +143,15 @@ static PyTypeObject py_fst_record_type = {
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst_record_new,
+    .tp_str = (reprfunc) py_fst_record_str,
+    .tp_members = py_fst_record_members,
+    .tp_getset = py_fst_record_properties,
+    // .tp_dict = ...
 };
 
-
-
-static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    struct py_fst_record *self = (struct py_fst_record *) type->tp_alloc(type, 0);
-    self->rec = default_fst_record;
-
-    if(self == NULL){
-        return NULL;
-    }
-
-    return (PyObject *)self;
-}
-
-static int *py_fst_record_init(PyObject *self, PyObject *args, PyObject *kwds)
-{
-    // TODO: Take reuse the keyword args from the init of the query
-
-    return 0;
-}
-
-
+/*******************************************************************************
+ * fst_file implementations
+*******************************************************************************/
 
 static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
     struct fst24_file_container *self = (struct fst24_file_container *) type->tp_alloc(type, 0);
@@ -219,58 +226,6 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     return 0;
 }
 
-static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
-    fprintf(stderr, "%s(): self = %p\n", __func__, self);
-    return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
-}
-
-static void py_fst24_file_dealloc(struct fst24_file_container *self){
-    PySys_FormatStderr("Deallocating object %S\n", self);
-    Py_XDECREF(self->filename);
-    Py_XDECREF(self->options);
-    if(self->ref != NULL){
-        // TODO Error handling for this
-        fst24_close(self->ref);
-    }
-    Py_TYPE(self)->tp_free((PyObject *)self);
-}
-
-static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
-    struct fst_query_container *self = (struct fst_query_container *) type->tp_alloc(type, 0);
-    if(self == NULL){
-        return NULL;
-    }
-
-    self->ref = NULL;
-
-    return (PyObject *)self;
-}
-
-static PyObject *py_fst_query_print(struct fst_query_container *self, PyObject *Py_UNUSED(args))
-{
-    Py_RETURN_NONE;
-}
-
-
-static PyMethodDef py_fst_query_method_defs[] = {
-    {
-        .ml_name = "print",
-        .ml_flags = METH_NOARGS,
-        .ml_meth = (PyCFunction) py_fst_query_print,
-        .ml_doc = "Print info on an FST query",
-    },
-    {NULL, NULL, 0, NULL},
-};
-
-static PyObject *py_fst_query_get_iter(struct fst_query_container *self){
-    // This is more for when a container type wants to provide an iterator
-    // but I think the query *is* the iterator.  If the thing already is
-    // an iterator, this method should return the object instance itself.
-    return (PyObject *)self;
-}
-
-
-
 static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
 
     static char *kwlist[] = {"ip3", "nomvar", NULL};
@@ -300,6 +255,43 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
     return (PyObject *)py_q;
 }
 
+static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
+    fprintf(stderr, "%s(): self = %p\n", __func__, self);
+    return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
+}
+
+static void py_fst24_file_dealloc(struct fst24_file_container *self){
+    PySys_FormatStderr("Deallocating object %S\n", self);
+    Py_XDECREF(self->filename);
+    Py_XDECREF(self->options);
+    if(self->ref != NULL){
+        // TODO Error handling for this
+        fst24_close(self->ref);
+    }
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+/*******************************************************************************
+ * fst_query implementations
+ ******************************************************************************/
+static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
+    struct fst_query_container *self = (struct fst_query_container *) type->tp_alloc(type, 0);
+    if(self == NULL){
+        return NULL;
+    }
+
+    self->ref = NULL;
+
+    return (PyObject *)self;
+}
+
+static PyObject *py_fst_query_get_iter(struct fst_query_container *self){
+    // This is more for when a container type wants to provide an iterator
+    // but I think the query *is* the iterator.  If the thing already is
+    // an iterator, this method should return the object instance itself.
+    return (PyObject *)self;
+}
+
 static PyObject *py_fst_query_iternext(struct fst_query_container *self)
 {
     fst_record result = default_fst_record;
@@ -318,12 +310,69 @@ static PyObject *py_fst_query_iternext(struct fst_query_container *self)
     return (PyObject *)py_rec;
 }
 
-static PyModuleDef mymodulemodule = {
-    PyModuleDef_HEAD_INIT,
-    .m_name = "_librmn",
-    .m_doc = "Example module that creates a Person type",
-    .m_size = -1,
-};
+static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    struct py_fst_record *self = (struct py_fst_record *) type->tp_alloc(type, 0);
+    self->rec = default_fst_record;
+
+    if(self == NULL){
+        return NULL;
+    }
+
+    return (PyObject *)self;
+}
+
+static int *py_fst_record_init(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    // TODO: Take reuse the keyword args from the init of the query
+
+    return 0;
+}
+
+static PyObject * py_fst_record_str(struct py_fst_record *self)
+{
+    return PyUnicode_FromFormat("fst_record(nomvar='%s', ETIKET='%s', ni=%d, nj=%d, nk=%d dateo=%d, ip1=%d, ip2=%d, ip3=%d, deet=%d, npas=%d, dty=%d, grtyp=%s, ig1=%d, ig2=%d, ig3=%d, ig4=%d)",
+            self->rec.nomvar, self->rec.etiket,
+            self->rec.ni, self->rec.nj, self->rec.nk,
+            self->rec.dateo,
+            self->rec.ip1, self->rec.ip2, self->rec.ip3,
+            self->rec.deet, self->rec.npas, self->rec.data_type, self->rec.grtyp,
+            self->rec.ig1, self->rec.ig2, self->rec.ig3, self->rec.ig4
+    );
+}
+
+static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self)
+{
+    // TODO : Get rid of magic number
+    char buf[8];
+    strncpy(buf, self->rec.nomvar, 8);
+    char *p = buf+7;
+    for(; p != buf; p--){
+        if(*p != ' ' && *p != '\0'){
+            break;
+        }
+    }
+    *(p+1) = '\0';
+
+    return PyUnicode_FromString(buf);
+}
+
+static PyObject *py_fst_record_get_etiket(struct py_fst_record *self)
+{
+    // TODO : Get rid of magic number
+    char buf[16];
+    strncpy(buf, self->rec.etiket, 16);
+    char *p = buf+15;
+    for(; p != buf; p--){
+        if(*p != ' ' && *p != '\0'){
+            break;
+        }
+    }
+    *(p+1) = '\0';
+
+    return PyUnicode_FromString(buf);
+}
+
 
 PyMODINIT_FUNC PyInit__librmn(void)
 {
