@@ -20,22 +20,21 @@
  *
  * Plust it allows me to add some fields that would just be relevant to Python.
  */
+
+/*******************************************************************************
+ * fst24_file declarations
+*******************************************************************************/
 struct fst24_file_container {
     PyObject_HEAD
     struct fst24_file_ *ref;
     PyObject *filename; // for debugging
     PyObject *options; // for debugging
 };
-
-struct fst_query_container {
-    PyObject_HEAD
-    fst_query *ref;
-};
-
-struct py_fst_record {
-    PyObject_HEAD
-    fst_record *rec;
-};
+static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static void py_fst24_file_dealloc(struct fst24_file_container *self);
+static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
+static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args));
+static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
 
 static PyMemberDef py_fst24_file_member_def[] = {
     {
@@ -54,6 +53,98 @@ static PyMemberDef py_fst24_file_member_def[] = {
     },
     {NULL},
 };
+
+static PyMethodDef py_fst24_file_method_defs[] = {
+    {
+        .ml_name = "new_query",
+        .ml_flags = METH_VARARGS|METH_KEYWORDS,
+        .ml_meth = (PyCFunction) py_fst24_file_new_query,
+        .ml_doc  = "Return a query object for file",
+    },
+    {NULL, NULL, 0, NULL},
+};
+
+static PyTypeObject py_fst24_file_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "_librmn.fst24_file",
+    .tp_doc = "Python fst24_file object",
+    .tp_basicsize = sizeof(struct fst24_file_container),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = py_fst24_file_new,
+    .tp_dealloc = (destructor) py_fst24_file_dealloc,
+    .tp_init = (initproc) py_fst24_file_init,
+    .tp_str = (reprfunc) py_fst24_file_str,
+    .tp_repr = (reprfunc) py_fst24_file_str,
+    .tp_members = py_fst24_file_member_def,
+    .tp_methods = py_fst24_file_method_defs,
+};
+/*******************************************************************************
+ * fst_query declarations
+*******************************************************************************/
+struct fst_query_container {
+    PyObject_HEAD
+    fst_query *ref;
+};
+
+static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static PyObject *py_fst_query_iternext(struct fst_query_container *self);
+static PyObject *py_fst_query_get_iter(struct fst_query_container *self);
+static PyTypeObject py_fst_query_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "_librmn.fst_query",
+    .tp_doc = "Python fst query object",
+    .tp_basicsize = sizeof(struct fst_query_container),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = py_fst_query_new,
+    .tp_iternext = (iternextfunc) py_fst_query_iternext,
+    .tp_iter = (getiterfunc) py_fst_query_get_iter,
+    // TODO dealloc
+};
+
+/*******************************************************************************
+ * fst_record declarations
+*******************************************************************************/
+struct py_fst_record {
+    PyObject_HEAD
+    fst_record rec;
+};
+
+
+static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static PyTypeObject py_fst_record_type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "_librmn.fst_record",
+    .tp_doc = "Python fst_record object",
+    .tp_basicsize = sizeof(struct py_fst_record),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = py_fst_record_new,
+};
+
+
+
+static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    struct py_fst_record *self = (struct py_fst_record *) type->tp_alloc(type, 0);
+    self->rec = default_fst_record;
+
+    if(self == NULL){
+        return NULL;
+    }
+
+    return (PyObject *)self;
+}
+
+static int *py_fst_record_init(PyObject *self, PyObject *args, PyObject *kwds)
+{
+    // TODO: Take reuse the keyword args from the init of the query
+
+    return 0;
+}
+
+
 
 static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
     struct fst24_file_container *self = (struct fst24_file_container *) type->tp_alloc(type, 0);
@@ -178,33 +269,7 @@ static PyObject *py_fst_query_get_iter(struct fst_query_container *self){
     return (PyObject *)self;
 }
 
-static PyObject *py_fst_query_iternext(struct fst_query_container *self)
-{
-    fst_record result = default_fst_record;
-    fst_query *query = self->ref;
 
-    if(!fst24_find_next(query, &result)){
-        // Iterators signal the end of iteration by raising this
-        // exception type, this is not an error
-        PyErr_SetString(PyExc_StopIteration, "No more results in query");
-        return NULL;
-    }
-
-    return PyUnicode_FromFormat("Nomvar = %s, ip3 = %d", result.nomvar, result.ip3);
-}
-
-static PyTypeObject py_fst_query_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_librmn.fst_query",
-    .tp_doc = "Python fst query object",
-    .tp_basicsize = sizeof(struct fst_query_container),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = py_fst_query_new,
-    .tp_iternext = (iternextfunc) py_fst_query_iternext,
-    .tp_iter = (getiterfunc) py_fst_query_get_iter,
-    // TODO dealloc
-};
 
 static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
 
@@ -235,51 +300,23 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
     return (PyObject *)py_q;
 }
 
-static PyMethodDef py_fst24_file_method_defs[] = {
-    {
-        .ml_name = "new_query",
-        .ml_flags = METH_VARARGS|METH_KEYWORDS,
-        .ml_meth = (PyCFunction) py_fst24_file_new_query,
-        .ml_doc  = "Return a query object for file",
-    },
-    {NULL, NULL, 0, NULL},
-};
-
-static PyTypeObject py_fst24_file_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_librmn.fst24_file",
-    .tp_doc = "Python fst24_file object",
-    .tp_basicsize = sizeof(struct fst24_file_container),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = py_fst24_file_new,
-    .tp_dealloc = (destructor) py_fst24_file_dealloc,
-    .tp_init = (initproc) py_fst24_file_init,
-    .tp_str = (reprfunc) py_fst24_file_str,
-    .tp_repr = (reprfunc) py_fst24_file_str,
-    .tp_members = py_fst24_file_member_def,
-    .tp_methods = py_fst24_file_method_defs,
-};
-
-static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *py_fst_query_iternext(struct fst_query_container *self)
 {
-    struct py_fst_record *self = (struct py_fst_record *) type->tp_alloc(type, 0);
-    if(self == NULL){
+    fst_record result = default_fst_record;
+    fst_query *query = self->ref;
+
+    if(!fst24_find_next(query, &result)){
+        // Iterators signal the end of iteration by raising this
+        // exception type, this is not an error
+        PyErr_SetString(PyExc_StopIteration, "No more results in query");
         return NULL;
     }
 
-    return (PyObject *)self;
-}
+    struct py_fst_record *py_rec = (struct py_fst_record *) py_fst_record_new(&py_fst_record_type, NULL, NULL);
+    py_rec->rec = result;
 
-static PyTypeObject py_fst_record_type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_librmn.fst_record",
-    .tp_doc = "Python fst_record object",
-    .tp_basicsize = sizeof(struct py_fst_record),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = py_fst_record_new,
-};
+    return (PyObject *)py_rec;
+}
 
 static PyModuleDef mymodulemodule = {
     PyModuleDef_HEAD_INIT,
