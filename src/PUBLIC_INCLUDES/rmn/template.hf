@@ -1,9 +1,8 @@
+!> \file template.hf Macros used for generic programming in Fortran.  It deals with the secifics of concatenation for different compilers.
+!> \note This file is meant to be included only from Fortran source code.
+
 #ifndef TEMPLATE_HF
 #define TEMPLATE_HF
-
-!> @file This file is meant to be included only from Fortran source code.
-!> It defines macros used for generic programming in Fortran.  It deal with the
-!> secifics of concatenation for different compilers
 
 ! gfortran does not understand the ## concatenation operator
 #ifdef __GFORTRAN__

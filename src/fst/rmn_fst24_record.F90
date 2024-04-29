@@ -1,6 +1,7 @@
 !> \file rmn_fst24_record.F90
 !> Encapsulation of FST record information into a derived type 
 
+!> Object oriented interface and functions for the fst24 API
 module rmn_fst24_record
     use App
     use f_c_strings_mod
@@ -50,7 +51,7 @@ module rmn_fst24_record
 
         type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
         type(meta)  :: metadata               !< Metadata object
-    
+
         integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
         integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
 
@@ -83,14 +84,14 @@ module rmn_fst24_record
         procedure, pass :: from_c_self => fst24_record_from_c_self !< \private \copydoc fst24_record_from_c_self
         procedure, pass :: get_c_ptr => fst24_record_get_c_ptr     !< \private \copydoc fst24_record_get_c_ptr
 
-        procedure, pass :: new => fst24_record_new                      !< \copydoc fst24_record_new
+        procedure, pass :: allocate => fst24_record_allocate                 !< \copydoc fst24_record_new
         procedure, pass :: free => fst24_record_free                    !< \copydoc fst24_record_free
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
 !        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
 !        procedure, pass :: set_metadata => fst24_record_set_metadata    !< \copydoc fst24_record_set_metadata
-        procedure, pass :: copy_meta => fst24_record_copy_metadata    !< \copydoc fst24_record_copy_metadata
+        procedure, pass :: copy_metadata => fst24_record_copy_metadata    !< \copydoc fst24_record_copy_metadata
         procedure, pass :: delete        => fst24_record_delete         !< \copydoc fst24_record_delete
 
         procedure, pass :: print        => rmn_fst24_record_print           !< \copydoc rmn_fst24_record_print
@@ -237,7 +238,7 @@ contains
         ptr = c_loc(this % c_self)
     end function fst24_record_get_c_ptr
 
-    function fst24_record_new(this,data,type,size,ni,nj,nk) result(success)
+    function fst24_record_allocate(this,data,type,size,ni,nj,nk) result(success)
         implicit none
         class(fst_record), intent(inout), target :: this
         integer(C_INT32_T), intent(in) :: type, size, ni, nj, nk
@@ -281,14 +282,20 @@ contains
 
     !> \copybrief fst24_read
     !> \return Whether we were able to do the reading
-    function fst24_record_read(this) result(success)
+    function fst24_record_read(this,data) result(success)
         implicit none
         class(fst_record), intent(inout) :: this  !< fst_record instance. If must be a valid record already found in a file
         logical :: success
 
+        !> Where to put the data being read (optional). Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
+
         integer(C_INT32_T) :: c_status
 
         success = .false.
+        if (present(data)) this % data = data
+        
         call this % make_c_self()
         c_status = fst24_read_record(this % get_c_ptr())
         if (c_status > 0) then
@@ -314,18 +321,25 @@ contains
         end if
     end function fst24_record_read_metadata
 
-    !> \copybrief fst24_record_copy_metadata
+    !> \copybrief fst24_record_copy_metadata_c
     !> \return .true. if we were able to copy the metadata, .false. otherwise
-    function fst24_record_copy_metadata(this,record) result(success)
+    function fst24_record_copy_metadata(this,record,what) result(success)
         implicit none
         class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
         type(fst_record), target :: record
+        integer(C_INT32_T), intent(in), optional :: what
+
         logical :: success
 
-        integer(C_INT32_T) :: c_result
+        integer(C_INT32_T) :: c_result, what_c
+
+        what_c=FST24_META_ALL
+        if (present(what)) then
+            what_c=what
+        end if
 
         success = .false.
-        c_result = fst24_record_copy_metadata_c(this % get_c_ptr(),record % get_c_ptr())
+        c_result = fst24_record_copy_metadata_c(this % get_c_ptr(),record % get_c_ptr(), what_c)
         if (c_result == 1) then
             call this % from_c_self()
             success = .true.

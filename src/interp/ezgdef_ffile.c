@@ -27,14 +27,14 @@
 
 
 int32_t c_ezgdef_ffile(
-    int32_t ni,
-    int32_t nj,
-    char *grtyp,
-    int32_t ig1,
-    int32_t ig2,
-    int32_t ig3,
-    int32_t ig4,
-    int32_t iunit
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const int32_t iunit
 ) {
     _Grille *gr, newgr;
     int32_t read;

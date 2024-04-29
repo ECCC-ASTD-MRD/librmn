@@ -2,7 +2,7 @@
       INTEGER FUNCTION Fstcvt2( NOM, TYP, ETIK, GRTP, CNOM, CTYP,CETIK,
      % CGRTP, HOLACAR)
       IMPLICIT NONE
-      INTEGER NOM, TYP, ETIK(2), GRTP
+      INTEGER NOM, TYP, ETIK(3), GRTP
       CHARACTER(len = *) :: CNOM
       CHARACTER(len = *) :: CTYP, CGRTP
       CHARACTER(len = *) :: CETIK

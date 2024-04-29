@@ -36,37 +36,31 @@ void f77name(ez_llwfgff)(float *uullout, float *vvllout, float *latin, float *lo
 }
 
 
+
+//! LatLon Winds From GeF Winds
 void c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
                   float *xlatingf, float *xloningf, int32_t *ni,int32_t *nj,
                   char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4)
 {
-  /*
-    llwfgff -> LatLon Winds From GeF Winds
-    Ce sous-programme effectue la rotation des vents d'un systeme de coordonne
-    tourne a un systeme de coordonnee non tourne.
-    latin, lonin sont les latlons vraies
-    xlatingf, xloningf sont les latlons sur la grille tournee
-  */
+    //! Ce sous-programme effectue la rotation des vents d'un systeme de coordonne
+    //! tourne a un systeme de coordonnee non tourne.
+    //! latin, lonin sont les latlons vraies
+    //! xlatingf, xloningf sont les latlons sur la grille tournee
 
-  int32_t zero = 0;
-  int32_t npts = *ni * *nj;
-  int32_t trois = 3;
-  float r[9], ri[9], xlon1, xlat1, xlon2, xlat2;
-  float *uvcart, *xyz;
-  char grtypl[2];
+    int32_t npts = *ni * *nj;
+    int32_t trois = 3;
+    float r[9], ri[9], xlon1, xlat1, xlon2, xlat2;
 
+    float * uvcart = (float *) malloc(3*npts*sizeof(float));
+    float * xyz    = (float *) malloc(3*npts*sizeof(float));
 
-  uvcart = (float *) malloc(3*npts*sizeof(float));
-  xyz    = (float *) malloc(3*npts*sizeof(float));
+    f77name(cigaxg)(grtyp, &xlat1, &xlon1, &xlat2, &xlon2, ig1, ig2, ig3, ig4, 1);
+    f77name(ez_crot)(r, ri, &xlon1, &xlat1, &xlon2, &xlat2);
 
+    f77name(ez_uvacart)(xyz, uullout, vvllout, xloningf, xlatingf, ni, nj);
+    f77name(mxm)(ri, &trois, xyz, &trois, uvcart, &npts);
+    f77name(ez_cartauv)(uullout, vvllout, uvcart, lonin, latin, ni, nj);
 
-  f77name(cigaxg)(grtyp, &xlat1, &xlon1, &xlat2, &xlon2, ig1, ig2, ig3, ig4, 1);
-  f77name(ez_crot)(r, ri, &xlon1, &xlat1, &xlon2, &xlat2);
-
-  f77name(ez_uvacart)(xyz, uullout, vvllout, xloningf, xlatingf, ni, nj);
-  f77name(mxm)(ri, &trois, xyz, &trois, uvcart, &npts);
-  f77name(ez_cartauv)(uullout, vvllout, uvcart, lonin, latin, ni, nj);
-
-  free(uvcart);
-  free(xyz);
+    free(uvcart);
+    free(xyz);
 }

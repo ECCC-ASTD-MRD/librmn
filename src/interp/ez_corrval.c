@@ -31,7 +31,7 @@ int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout) {
     float valmax, valmin,fudgeval;
     int32_t fudgeval_set;
     int32_t degIntCourant;
-    int32_t npts,nj;
+    int32_t nj;
     float vpolnor, vpolsud;
     float *temp;
     int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
@@ -129,7 +129,6 @@ int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout) {
 
     if (lgdout->gset[idx_gdin].zones[POLE_NORD].npts > 0 || lgdout->gset[idx_gdin].zones[POLE_SUD].npts > 0) {
         if (lgdin->grtyp[0] != 'w') {
-            npts = lgdin->ni * lgdin->j2;
             f77name(ez_calcpoleval)(&vpolnor, &(zin[(nj-1)*lgdin->ni]), &(lgdin->ni),
                 lgdin->ax, lgdin->grtyp, lgdin->grref,1,1);
             for (i=0; i < lgdout->gset[idx_gdin].zones[POLE_NORD].npts; i++) {

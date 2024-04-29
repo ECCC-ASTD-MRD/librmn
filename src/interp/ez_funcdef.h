@@ -38,7 +38,7 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
 void c_llfgr(float *lat, float *lon, float *x, float *y, int32_t npts,
         float latOrigine, float lonOrigine, float deltaLat, float deltaLon);
 
-unsigned int ez_calc_crc(int *p, int *flen,  float *ax, float *ay, int ni, int nj);
+unsigned int ez_calc_crc(const int * const ptr, const int * const flen, const float * const ax, const float * const ay, const int ni, const int nj);
 int32_t ez_calclatlon(int32_t gdid);
 
 void ez_calcntncof(int32_t gdid);
@@ -118,7 +118,7 @@ void  c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
 void c_ez_manageGrillesMemory();
 
 void c_ezdefxg(int32_t gdid);
-void c_ezdefaxes(int32_t gdid, float *ax, float *ay);
+void c_ezdefaxes(const int32_t gdid, const float * const ax, const float * const ay);
 int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts);
 
 int c_find_gdin(int gdin, int gdout);
@@ -155,26 +155,26 @@ int c_ez_findgrid(int grid_index, _Grille *gr);
 int c_ezget_mask_zones(int *mask_out, int *mask_in);
 
 int32_t c_ezidentify_irreg_grid(
-    int32_t ni,
-    int32_t nj,
-    char* grtyp,
-    char* grref,
-    int32_t ig1,
-    int32_t ig2,
-    int32_t ig3,
-    int32_t ig4,
-    float* ax,
-    float* ay
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const float * const ax,
+    const float * const ay
 );
 
 int32_t c_ezidentify_reg_grid(
-    int32_t ni,
-    int32_t nj,
-    char* grtyp,
-    int32_t ig1,
-    int32_t ig2,
-    int32_t ig3,
-    int32_t ig4
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4
 );
 
 void RemplirDeBlancs(char str[], int32_t longueur);

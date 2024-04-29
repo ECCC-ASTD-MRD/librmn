@@ -2525,7 +2525,7 @@ RSF_handle RSF_Open_file(
   fp->seg_max = 0 ;
   if (segsizep) *segsizep = segsize ;
 
-  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) print_start_of_segment(&fp->sos0);
+  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) print_start_of_segment(&fp->sos0);
   // fprintf(stderr,"RSF_Open_file: 4, fp = %p\n", fp);
   // fprintf(stderr,"after open %ld, next write = %ld\n", lseek(fp->fd, 0L , SEEK_CUR), fp->next_write);
   handle.p = fp ;
@@ -2885,7 +2885,7 @@ RESET_WRITE_FLAG:
   }
 
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %d\n", __func__, fp->sos0.head.rlm);
-  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) print_start_of_segment(&fp->sos0);
+  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) print_start_of_segment(&fp->sos0);
 
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = write(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;  // rewrite start of segment 0

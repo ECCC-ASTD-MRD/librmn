@@ -1,5 +1,5 @@
-#ifndef _Meta
-#define _Meta
+#ifndef RMN_Meta
+#define RMN_Meta
 
 #include <time.h>
 #include <json-c/json.h>

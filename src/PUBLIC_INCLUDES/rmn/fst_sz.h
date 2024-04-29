@@ -1,4 +1,4 @@
-//! \file fstdsz.h Definitions of FSTD attributes string sizes
+//! \file fst_sz.h Definitions of FSTD attributes string sizes
 
 #ifndef FSTDSZ_H
 #define FSTDSZ_H

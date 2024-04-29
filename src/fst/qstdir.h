@@ -13,20 +13,20 @@
 #ifdef MODE3232
 
 //! ftnword to 64 bit word conversion
-#define WDINT64(nwds) (nwds>>1)
+#define WDINT64(nwds) ((nwds)>>1)
 //! 64 bit word to ftnword conversion
-#define WD64INT(nw64) (nw64<<1)
+#define WD64INT(nw64) ((nw64)<<1)
 //! maximum length of primary keys
 #define MAX_PRIMARY_LNG 32
 //! Maximum length of info keys
 #define MAX_SECONDARY_LNG 16
 
 //! Word to 64 bit word conversion
-#define WDTO64(nwds) (nwds>>1)
+#define WDTO64(nwds) ((nwds)>>1)
 //! 64 bit word to word conversion
-#define W64TOWD(nw64) (nw64<<1)
+#define W64TOWD(nw64) ((nw64)<<1)
 //! 64 bit word to 32 bit word conversion
-#define W64TOwd(nw64) (nw64<<1)
+#define W64TOwd(nw64) ((nw64)<<1)
 //! Fortran word to 32 bit word conversion
 #define FWTOwd(nwds) (nwds)
 
@@ -46,11 +46,11 @@
 //! Word to 64 bit word conversion
 #define WDTO64(nwds) (nwds)
 //! 64 bit word to word conversion
-#define W64TOWD(nw64) (nw64<<1)
+#define W64TOWD(nw64) ((nw64)<<1)
 //! 64 bit word to 32 bit word conversion
-#define W64TOwd(nw64) (nw64<<1)
+#define W64TOwd(nw64) ((nw64)<<1)
 //! Fortran word to 32 bit word conversion
-#define FWTOwd(nwds) (nwds<<1)
+#define FWTOwd(nwds) ((nwds)<<1)
 
 #endif
 
@@ -220,7 +220,7 @@
 //! Number of bits for burp block header
 #define NBENTB 128
 //! Maximum number for nele with 7 bits
-#define GROSNELE 128
+#define GROSNELE 127
 //! Maximum number for nval and nt (8 bits)
 #define GROSDIM 256
 //! Maximum number of primary keys

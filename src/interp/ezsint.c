@@ -27,52 +27,45 @@
 #include "base/base.h"
 
 
-int32_t f77name(ezsint)(float *zout, float *zin)
-{
-   int32_t icode;
+int32_t f77name(ezsint)(float *zout, float *zin) {
+    int32_t icode;
 
-   icode = c_ezsint(zout, zin);
-   return icode;
+    icode = c_ezsint(zout, zin);
+    return icode;
 }
-int32_t c_ezsint(float *zout, float *zin)
-{
-  int32_t icode,gdin,gdout;
-  int32_t gdrow_in,gdcol_in, gdrow_out,gdcol_out;
 
-  if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED)
-    {
-    fprintf(stderr,"<c_ezsint> Source or target grid undefined! Aborting...\n");
-    return -1;
+
+int32_t c_ezsint(float *zout, float *zin) {
+    if (iset_gdin == UNDEFINED || iset_gdout == UNDEFINED) {
+        fprintf(stderr,"<c_ezsint> Source or target grid undefined! Aborting...\n");
+        return -1;
+    }
+
+    int32_t gdin = iset_gdin;
+    int32_t gdrow_in, gdcol_in;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+
+    int32_t gdout = iset_gdout;
+    int32_t gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+
+    if (iset_gdin == iset_gdout) {
+        memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
+        return 1;
     }
 
 
-  gdin = iset_gdin;
-  gdout= iset_gdout;
-
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-
-  if (iset_gdin == iset_gdout)
-    {
-    memcpy(zout, zin, Grille[gdrow_in][gdcol_in].ni*Grille[gdrow_in][gdcol_in].nj*sizeof(float));
-    return 1;
+    if (Grille[gdrow_in][gdcol_in].nsubgrids > 0 || Grille[gdrow_out][gdcol_out].nsubgrids > 0) {
+        // get the subgrids and interpolate accordingly
+        int32_t icode = c_ezyysint(zout,zin,gdout,gdin);
+        iset_gdin = gdin;
+        iset_gdout = gdout;
+        return icode;
     }
-
-
-  if (Grille[gdrow_in][gdcol_in].nsubgrids > 0 || Grille[gdrow_out][gdcol_out].nsubgrids > 0)
-      {
-/* get the subgrids and interpolate accordingly */
-      icode = c_ezyysint(zout,zin,gdout,gdin);
-      iset_gdin=gdin;
-      iset_gdout=gdout;
-      return icode;
-      }
-  icode = c_ezsint_orig(zout, zin);
-  return icode;
+    return c_ezsint_orig(zout, zin);
 }
 
-int32_t c_ezsint_orig(float *zout, float *zin)
-{
+int32_t c_ezsint_orig(float *zout, float *zin) {
 
     float * lzin  = NULL;
     float * lxzin = NULL;
@@ -113,13 +106,12 @@ int32_t c_ezsint_orig(float *zout, float *zin)
 
     ez_calclatlon(gdout);
     ez_calcxy(gdin, gdout);
-    Grille[gdrow_out][gdcol_out].ni*Grille[gdrow_out][gdcol_out].nj;
 
     ez_interp(zout, lxzin, gdin, gdout);
 
     if (groptions.polar_correction == 1) {
         ez_defzones(gdin, gdout);
-        ierc= ez_corrval(zout, lxzin, gdin, gdout);
+        ierc = ez_corrval(zout, lxzin, gdin, gdout);
     }
 
     if (lzin != zin && lzin != NULL) {

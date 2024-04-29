@@ -3,6 +3,7 @@ module rmn_fst24
     use App
     use f_c_strings_mod
     use rmn_common
+    use rmn_libc,       only: libc_free
     use rmn_meta
     use rmn_fst24_record
     use rmn_fst98,      only: c_fstrwd, c_fstweo, c_fsteof
@@ -57,14 +58,6 @@ module rmn_fst24
         integer(C_INT32_T) :: ip3_all = 0
     end type fst_query_options_c
 
-
-    interface
-        subroutine libc_free(ptr) BIND(C, name='free')
-            import :: C_PTR
-            implicit none
-            type(C_PTR), intent(IN), value :: ptr
-        end subroutine libc_free
-    end interface
 
 contains
 
@@ -352,7 +345,7 @@ contains
         implicit none
         class(fst_file),  intent(inout) :: this     !< File where we want to write
         type(fst_record), intent(inout) :: record   !< Record we want to write
-        logical, intent(in), optional     :: rewrite!< Whether we want to rewrite an existing record (default .false.)
+        logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
         logical :: success
 
         integer(C_INT32_T) :: c_rewrite, c_status

@@ -37,7 +37,6 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
   float *yin2yan_uuout,*yan2yan_uuout, *yin2yan_vvout,*yan2yan_vvout;
   float *yin2yin_spdout,*yan2yin_spdout, *yin2yin_wdout,*yan2yin_wdout;
   float *yin2yan_spdout,*yan2yan_spdout, *yin2yan_wdout,*yan2yan_wdout;
-  float *spdout,*wdout;
 
   _Grille *lgdin, *lgdout;
  /*  need only access to either yin or Yang info for the lat and lon val */

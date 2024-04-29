@@ -24,37 +24,47 @@
 #include "ez_funcdef.h"
 
 
-int32_t f77name(ezgdef)(int32_t *ni, int32_t *nj, char *grtyp, char *grref,
-         int32_t *ig1, int32_t *ig2, int32_t *ig3, int32_t *ig4,
-         float *ax, float *ay, F2Cl lengrtyp, F2Cl lengrref)
-{
-    int32_t icode;
-    char lgrtyp[2],lgrref[2];
+int32_t f77name(ezgdef)(
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4,
+    const float * const ax,
+    const float * const ay,
+    const F2Cl lengrtyp,
+    const F2Cl lengrref
+) {
+    const char lgrtyp[2] = {grtyp[0], '\0'};
+    const char lgrref[2] = {grref[0], '\0'};
 
-    lgrtyp[0] = grtyp[0];
-    lgrtyp[1] = '\0';
-
-    lgrref[0] = grref[0];
-    lgrref[1] = '\0';
-
-    icode = c_ezgdef(*ni, *nj, lgrtyp, lgrref, *ig1, *ig2, *ig3, *ig4, ax, ay);
-    return icode;
+    return c_ezgdef(*ni, *nj, lgrtyp, lgrref, *ig1, *ig2, *ig3, *ig4, ax, ay);
 }
 
 
-int32_t c_ezgdef(int32_t ni, int32_t nj, char *grtyp, char *grref,
-       int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, float *ax, float *ay) {
-    int32_t found,source;
-    char typeGrille;
-
-    found = -1;
-    typeGrille = grtyp[0];
+int32_t c_ezgdef(
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t ig1,
+    const int32_t ig2,
+    const int32_t ig3,
+    const int32_t ig4,
+    const float * const ax,
+    const float * const ay
+) {
+    char typeGrille = grtyp[0];
 
     if (grtyp[0] == '#') {
         fprintf(stderr, "The '#' grid type is not supported with ezgdef.\nPlease use ezgdef_ffile or ezgdef_fmem\n");
         return -1;
     }
 
+    int32_t source;
     switch(typeGrille) {
         case 'Y':
         case 'Z':
@@ -71,6 +81,7 @@ int32_t c_ezgdef(int32_t ni, int32_t nj, char *grtyp, char *grref,
             break;
     }
 
+    int32_t found = -1;
     switch (source) {
         case MEMOIRE:
             found = c_ezgdef_fmem(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, ax, ay);

@@ -22,35 +22,43 @@
 #include <stddef.h>
 
 
+//! Computer a CRC of an int array and optionally 2 float arrays
 unsigned int ez_calc_crc(
-    int *p,
-    int *flen,
-    float *ax,
-    float *ay,
-    int ni,
-    int nj
+    //! [in] Pointer of the array
+    const int * const ptr,
+    //! [in] Length of the array in multiples of 4
+    const int * const flen,
+    //! [in] Pointer to a array of floats. Ignored if NULL
+    const float * const ax,
+    //! [in] Pointer to a array of floats. Ignored if NULL
+    const float * const ay,
+    //! [in] Size of the ax array
+    const int ni,
+    //! [in] Size of the ay array
+    const int nj
 ) {
-    // crc computed so far
     register unsigned int hold = 0;
 
+    const int * lptr = ptr;
     int len = *flen / 4;
-    for (int i = 0; i < len; i++, p++) {
-        hold ^= *p;
+    for (int i = 0; i < len; i++, lptr++) {
+        hold ^= *lptr;
     }
 
-    unsigned int *p2 = (unsigned int *) ax;;
+    const unsigned int *p2 = (unsigned int *) ax;
     if (p2 != NULL) {
         for (int i = 0; i < ni; i++, p2++) {
             hold ^= *p2;
         }
     }
 
-    p2 = (unsigned int *) ay;
-    if (p2 != NULL) {
-        for (int i = 0; i < nj; i++, p2++) {
-            hold ^= *p2;
+    const unsigned int *p3 = (unsigned int *) ay;
+    if (p3 != NULL) {
+        for (int i = 0; i < nj; i++, p3++) {
+            hold ^= *p3;
         }
     }
+    //! \return Computed CRC
     return hold;
 }
 

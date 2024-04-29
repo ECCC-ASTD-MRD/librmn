@@ -133,28 +133,12 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
         klprim(18) = mod(temps, 100)
     end if
 
-    ! Ajouter les clefs primaires supplementaires
-    if (nsup > 0) then
-        do i = 1, nsup
-            klprim(npridef + i) = sup(i)
-        end do
-        nklprim = nklprim + nsup
-    end if
-
     ! Composer les clefs auxiliaires
     klaux(1) = 0
     klaux(2) = oars
     klaux(3) = elev
     klaux(4) = idrcv
     klaux(5) = run
-
-    ! Ajouter les clefs auxiliaires supplementaires
-    if (nxaux > 0) then
-        do i = 1, nxaux
-            klaux(nauxdef + i) = xaux(i)
-        end do
-        nklaux = nklaux + nxaux
-    end if
 
     ! Initialiser le tout
     retval = xdfini(iun, buf, typrec, klprim, nklprim, klaux, nklaux)

@@ -186,8 +186,8 @@ int c_ezsint_mask(int *mask_out, int *mask_in) {
    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
    int idx_gdin, gdrow_out, gdcol_out;
-   int32_t              gdrow_in,  gdcol_in;
-   float *fmask_in, *x, *y;
+   int32_t gdrow_in,  gdcol_in;
+   float *x, *y;
    _ygrid *ygrid;
 
    int32_t gdin, gdout;

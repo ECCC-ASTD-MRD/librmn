@@ -17,7 +17,7 @@ interface
         type(C_PTR), intent(in), value :: record_c
         integer(C_INT32_T) :: status
     end function fst24_record_free_c
-
+    
     function fst24_validate_default_record(fortran_record, fortran_size) result(status) bind(C, name = 'fst24_validate_default_record')
         import :: C_PTR, C_INT32_T, C_SIZE_T
         implicit none
@@ -62,10 +62,11 @@ interface
         type(C_PTR) :: metadata
     end function fst24_read_metadata
 
-    function fst24_record_copy_metadata_c(recorda,recordb) result(status) bind(C, name = 'fst24_record_copy_metadata')
+    function fst24_record_copy_metadata_c(recorda,recordb,what) result(status) bind(C, name = 'fst24_record_copy_metadata')
         import :: C_PTR, C_INT32_T
         implicit none
         type(C_PTR), intent(in), value :: recorda, recordb
+        integer(C_INT32_T), intent(in) :: what
         integer(C_INT32_T) :: status
     end function fst24_record_copy_metadata_c
 

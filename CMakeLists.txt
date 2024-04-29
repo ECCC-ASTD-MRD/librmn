@@ -40,18 +40,6 @@ find_package(LibXml2 REQUIRED)
 
 include(ec_doxygen)         # Doxygen target doc
 
-# Fortran compiler options required to build this project
-set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
-set(GNU_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
-set(Flang_FFLAGS -Mbyteswapio)
-set(PGI_FFLAGS -byteswapio)
-
-# This is required when using GNU compilers without OpenMP.
-# It has no adverse effect with other compilers and/or when OpenMP is enabled.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
-set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
-
 # set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 add_compile_definitions(_${CMAKE_SYSTEM_NAME}_ _GNU_SOURCE)
@@ -67,14 +55,6 @@ message(STATUS "Build architecture: ${BUILD_ARCH}")
 
 # TODO Adapt Config.cmake.in to be ready for this
 #set(CMAKE_DEBUG_POSTFIX "d")
-
-include_directories(
-   include
-   ${CMAKE_CURRENT_BINARY_DIR}/dep
-   src/PUBLIC_INCLUDES
-   src/Struct
-   src/Meta
-)
 
 file(GLOB PROJECT_C_FILES
    src/*/*.c
@@ -95,14 +75,10 @@ file(GLOB PROJECT_H_FILES
 
 set(PROJECT_PUBLIC_INCLUDE_FILES
     src/Struct/Vector.h
-    src/Struct/List.h
     src/Struct/QTree.h
-    src/Meta/Dict.h
-    src/Meta/Meta.h
 )
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # A bunch of fst_record functions (generated)
@@ -122,15 +98,15 @@ file(GLOB WHITEBOARD_HEADER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/*.tm
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
+    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
     PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
-    COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard.hf ${CMAKE_CURRENT_BINARY_DIR}/WhiteBoard_2.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h   ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants_2.h ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/whiteboard_type.hf >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/whiteboard_type.hf >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES -I${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_
-    COMMAND grep -Ev "'^#|^[ ]*$|^[ ]*!'" ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
+    COMMAND grep -Ev "'^#|^[ ]*$|^[ ]*!'" ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >>${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >>${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMENT "Generating WhiteBoard.hf and WhiteBoard_2.hf"
@@ -178,7 +154,10 @@ else()
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
-   set(TARGETS rmn-static rmn-shared rmn-ompi-static rmn-ompi-shared)
+   set(TARGETS rmn-static rmn-ompi-static)
+   if (BUILD_SHARED_LIBS)
+    set(TARGETS ${TARGETS} rmn-shared rmn-ompi-shared)
+   endif()
 
    # Build static library from source files
    add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
@@ -207,7 +186,8 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
    # Symbolic link for archive numbered version
    add_custom_command(TARGET rmn-static POST_BUILD
-       COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
+       COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
+       BYPRODUCTS lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
 
    list(APPEND shared_targets rmn-ompi-shared)
@@ -224,14 +204,21 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 endif()
 
 foreach(TARGET IN ITEMS ${TARGETS})
-    target_compile_options(${TARGET}
-        PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:${GNU_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
-            #   $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
-            #    $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
-               $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
+
+    target_compile_options(${TARGET} PUBLIC
+        $<$<COMPILE_LANG_AND_ID:Fortran,GNU>: -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore -pthread>
+        $<$<COMPILE_LANG_AND_ID:C,GNU>: -pthread>
+        $<$<COMPILE_LANG_AND_ID:Fortran,Intel>: -convert big_endian -align array32byte -assume byterecl>
+        $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
+        $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
+        # $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
+        # $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
+        $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
+    )
+    target_link_options(${TARGET} PUBLIC
+               $<$<COMPILE_LANG_AND_ID:C,GNU>:-ldl -pthread>
+               $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ldl -pthread>
+    )
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
@@ -246,7 +233,18 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
     )
-    target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_include_directories(${TARGET} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Meta
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct
+        ${CMAKE_CURRENT_BINARY_DIR}/include
+    )
+    target_include_directories(${TARGET} PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/dep>
+    )
+
 endforeach()
 
 foreach(RMN_TARGET rmn-static rmn-shared)
@@ -282,7 +280,8 @@ install(TARGETS ${static_targets}
  
 # Symbolic link for archive numbered version
 add_custom_command(TARGET rmn-static POST_BUILD
-    COMMAND ln -sfv lib${PROJECT_NAME}.a lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
+    COMMAND ln -sfv lib${PROJECT_NAME}.a lib${PROJECT_NAME}_${PROJECT_VERSION}.a
+    BYPRODUCTS lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.a DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Fortran modules are installed in the include directory for now
@@ -291,6 +290,7 @@ install(FILES
     ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_jar.mod
     ${MODULE_DIR}/rmn_gmm.mod
+    ${MODULE_DIR}/rmn_libc.mod
     ${MODULE_DIR}/rmn_meta.mod
     ${MODULE_DIR}/rmn_fst24.mod
     ${MODULE_DIR}/rmn_fst24_record.mod
@@ -304,7 +304,7 @@ file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
 # WhiteBoard_2.hf is generated by make and doesn't exist when cmake is executed
 # they must therefore be added explicitly
 list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
-list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
+list(APPEND PROJECT_INCLUDE_FILES ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf)
 list(APPEND PROJECT_INCLUDE_FILES ${PROJECT_PUBLIC_INCLUDE_FILES})
 install(FILES ${PROJECT_INCLUDE_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rmn)
 add_custom_target(

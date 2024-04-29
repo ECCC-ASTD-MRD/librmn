@@ -9,9 +9,18 @@
 #define MAX_requetes 50
 #endif
 
+#define READLX_DELTA -3
+#define READLX_RANGE -2
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void RequetesInit(void);
+
+int Xc_Select_ip1(const int set_nb, const int des_exc, const void * const iplist, const int nelm);
+int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int nelm);
+int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int nelm);
 
 int XC_get_MAX_Nlist();
 int XC_get_MAX_requetes();

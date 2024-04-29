@@ -363,8 +363,8 @@ success = my_file % close()
 ```c
 #include <rmn.h>
 
-fst_record result;
-fst_record criteria;
+fst_record result = default_fst_record;
+fst_record criteria = default_fst_record;
 
 
 
@@ -487,8 +487,8 @@ call q_label_b % free()
 </td><td>
 
 ```c
-fst_record rec_a;
-fst_record rec_b;
+fst_record rec_a = default_fst_record;
+fst_record rec_b = default_fst_record;
 
 [...]
 
@@ -710,7 +710,7 @@ success = my_file % close()
 ```c
 #include <rmn.h>
 
-fst_record my_record;
+fst_record my_record = default_fst_record;
 
 
 
@@ -1011,6 +1011,28 @@ int32_t fst24_record_free(
 int32_t fst24_delete(
     fst_record* const record //!< The record we want to delete
 );
+
+//! Copy the legacy metadata and extended metadata
+//!   FST24_META_ALL  : All meta data
+//!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
+//!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
+//!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+//!   FST24_META_EXT  : Extended metadata
+//! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
+//!         0 otherwise
+int32_t fst24_record_copy_metadata(
+     fst_record* a,            //!< Destination record
+     const fst_record* b,      //!< Source record
+     int what                  //!< select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+);
+
+//! \return 1 if the given two records have the same metadata
+//!         0 otherwise
+int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b);
+
+//! Print every difference between the attributes of the given 2 fst_struct
+void fst24_record_diff(const fst_record* a, const fst_record* b);
 ```
 
 ## Fortran
@@ -1089,13 +1111,18 @@ type, public :: fst_record
     character(len=4)  :: nomvar = ''    !< Variable name
     character(len=12) :: etiket = ''    !< Label
 contains
+    procedure, pass :: allocate 
+    procedure, pass :: free
     procedure, pass :: has_same_info
     procedure, pass :: read
     procedure, pass :: read_metadata
     procedure, pass :: delete
+    procedure, pass :: copy_metadata
+    procedure, pass :: get_data_array
 
     procedure, pass :: print
     procedure, pass :: print_short
+
 end type fst_record
 ```
 
@@ -1341,6 +1368,24 @@ end subroutine free
 ### Record Functions
 
 ```fortran
+!> Allocates internal data
+function allocate(this,data,type,size,ni,nj,nk) result(success)
+    implicit none
+    class(fst_record), intent(inout), target :: this
+    integer(C_INT32_T), intent(in) :: type, size, ni, nj, nk
+    type(C_PTR), intent(in) :: data
+    type(C_PTR) :: c_record
+    logical :: success
+end function
+
+!> Free a record's internal memory. Its data will only be freed if it is *not* managed by the user.
+subroutine free(this)
+    implicit none
+    class(fst_record), intent(inout), target :: this
+    integer(C_INT32_T) :: c_status
+    logical :: success
+end subroutine
+
 !> Obtain a fortran array pointer to the data. If the pointer does not match the type, size and rank of the
 !> data stored in the record, it will be nullified
 subroutine get_data_array(this, array_pointer)
@@ -1360,9 +1405,14 @@ end function has_same_info
 
 !> Read the data and metadata of a given record from its corresponding file
 !> Return Whether we were able to do the reading
-function read(this) result(success)
+function read(this,data) result(success)
     implicit none
     class(fst_record), intent(inout) :: this  !< fst_record instance. If must be a valid record already found in a file
+
+    !> Where to put the data being read (optional). Can also be specified by setting the
+    !> `data` attribute of the record being read.
+    type(C_PTR), intent(in), optional :: data
+
     logical :: success
 end function read
 
@@ -1373,6 +1423,22 @@ function read_metadata(this) result(success)
     class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
     logical :: success
 end function read_metadata
+
+!> Copy the legacy metadata and extended metadata. The what parameter allows to select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+!>   FST24_META_ALL  : All meta data
+!>   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
+!>   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
+!>   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+!>   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+!>   FST24_META_EXT  : Extended metadata
+!> Return .true. if we were able to copy the metadata, .false. otherwise
+function copy_metadata(this,record,what) result(success)
+    implicit none
+    class(fst_record), intent(inout) :: this !< fst_record instance. If must be a valid record already found in a file
+    integer(C_INT32_T), intent(in), optional :: what
+    type(fst_record), target :: record
+    logical :: success
+end function fst24_record_copy_metadata
 
 !> Delete a record from its file on disk
 !> Return .true. if we were able to delete the record, .false. otherwise
