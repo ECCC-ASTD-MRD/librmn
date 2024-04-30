@@ -478,6 +478,12 @@ static PyObject *py_fst_record_get_etiket(struct py_fst_record *self)
     return PyUnicode_FromString(buf);
 }
 
+static void free_capsule_ptr(void *capsule) {
+    void * ptr = PyCapsule_GetPointer(capsule, PyCapsule_GetName(capsule));
+    fprintf(stderr, "%s(): Freeing memory at %p from numpy array\n", __func__, ptr);
+    free(ptr);
+};
+
 static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 {
     if(self->data_array == NULL){
@@ -493,22 +499,28 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
         // npy_intp dims[3] = {self->rec.ni, self->rec.nj, self->rec.nk};
         npy_intp dims[3] = {self->rec.nk, self->rec.nj, self->rec.ni};
 
-
-        // TODO: Verify that NPY_OWNDATA is set so that the data of the
-        // ndarray is freed when the array's refcount drops to 0.
-        self->data_array = PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
-        // See numpy source code '/numpy/_core/tests/test_mem_policy.py (line 73)
-        // the documentation says to not set NPY_ARRAY_OWNDATA manually but
-        // to do a PyCapsule thing.  The test above seems to say that it's OK
-        // but below there is a test demonstrating how to do it with the capsule thing
-        PyArray_ENABLEFLAGS((PyArrayObject*) self->data_array, NPY_ARRAY_OWNDATA);
-        if(PyArray_CHKFLAGS(self->data_array, NPY_ARRAY_OWNDATA)){
-            fprintf(stderr, "%s(): Created new numpy ndarray that DOES own its data\n", __func__);
-        } else {
-            fprintf(stderr, "%s(): Created new numpy ndarray that DOES NOT own its data\n", __func__);
+        PyObject * array = PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
+        if(array == NULL){
+            return NULL;
         }
 
-        
+        // Documentation says that we should not set NPY_ARRAY_OWNDATA manually:
+        // https://numpy.org/doc/stable/reference/c-api/array.html#c.NPY_ARRAY_OWNDATA
+        // it says to use a certain test as an example, this test can be found
+        // in the source code of numpy: numpy/_core/tests/test_mem_policy.py:78-100
+        PyObject *capsule = PyCapsule_New(self->rec.data, "numpy array data capsule", (PyCapsule_Destructor)&free_capsule_ptr);
+        if(capsule == NULL){
+            Py_DECREF(array);
+            return NULL;
+        }
+
+        if(PyArray_SetBaseObject((PyArrayObject *)array, capsule) < 0){
+            Py_DECREF(array);
+            Py_DECREF(capsule);
+            return NULL;
+        }
+
+        self->data_array = array;
     }
 
     Py_INCREF(self->data_array);
