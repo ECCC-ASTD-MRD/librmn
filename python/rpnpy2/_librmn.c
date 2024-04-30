@@ -5,6 +5,51 @@
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
 
+/*
+ * Documentation links
+ * - This uses the concepts of section 2.3:
+ *   https://docs.python.org/3/extending/newtypes_tutorial.html#providing-finer-control-over-data-attributes
+ * - If we expect people to subclass our types, we should add support for
+ *   cyclic garbage collection https://docs.python.org/3/extending/newtypes_tutorial.html#supporting-cyclic-garbage-collection
+ * - https://docs.python.org/3/extending/newtypes_tutorial.html#supporting-cyclic-garbage-collection
+ * Iterators:
+ * - getiterfunc: https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter
+ * - iternextfunc: https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iternext
+ *
+ * PyTypeObject objects in detail: https://docs.python.org/3/c-api/typeobj.html
+ *
+ * Important structures: https://docs.python.org/3/c-api/structures.html
+ * - PyGetSetDef https://docs.python.org/3/c-api/structures.html#c.PyGetSetDef
+ *
+ * Implementing functions and methods: https://docs.python.org/3/c-api/structures.html#implementing-functions-and-methods
+ * - Converting args to C types and building values to return:
+ *   https://docs.python.org/3/c-api/arg.html#strings-and-buffers
+ * - Creating Python strings in general: https://docs.python.org/3/c-api/unicode.html#creating-and-accessing-unicode-strings
+ *   - PyUnicode_FromString, PyUnicode_FromFormat
+ * - Converting between Python and C integers: https://docs.python.org/3/c-api/long.html
+ *   - PyLong_FromLong, PyLong_AsLong
+ *
+ * Exceptions: https://docs.python.org/3/c-api/exceptions.html
+ * - Raising exceptions: https://docs.python.org/3/c-api/exceptions.html#raising-exceptions
+ * - Exception classes: https://docs.python.org/3/c-api/exceptions.html#standard-exceptions
+ *
+ * Utilities:
+ * - Sys module: https://docs.python.org/3/c-api/sys.html
+ *   - PySys_WriteStderr, PySys_FormatStderr
+ */
+
+/*
+ * TODO: While going through the documentation, I found that functions, when
+ * they return things, should Py_INCREF() the thing before they return it.
+ * Not all the time: for example, in the tutorial, Custom_new doesn't Py_INCREF()
+ * the self object before returning it.  However, in section 2.3 of the tutorial,
+ * the getters return `Py_NEW_REF()` of the thing they are returning.  In the
+ * case of the py_fst_record_get_nomvar(), we are doing 'return PyUnicode_FromString()'
+ * and the document for PyUnicode_FromString() says it returns a "new reference"
+ * which I think means the refcount of the object it returns has already been
+ * incremented.
+ */
+
 static PyModuleDef mymodulemodule = {
     PyModuleDef_HEAD_INIT,
     .m_name = "_librmn",
