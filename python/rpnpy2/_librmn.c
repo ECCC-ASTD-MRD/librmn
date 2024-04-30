@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <Python.h>
+#include <numpy/arrayobject.h>
 #include <rmn/fst24_file.h>
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
@@ -180,6 +181,17 @@ static PyGetSetDef py_fst_record_properties[] = {
 
 static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
+static PyObject * py_fst_record_get_data(struct py_fst_record *self);
+static PyMethodDef py_fst_record_method_defs[] = {
+    {
+        .ml_name = "get_data",
+        .ml_doc = "Read and return the data of this record",
+        .ml_flags = METH_NOARGS,
+        .ml_meth = (PyCFunction) py_fst_record_get_data,
+    },
+    {NULL, NULL, 0, NULL},
+};
+
 static PyTypeObject py_fst_record_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_librmn.fst_record",
@@ -191,6 +203,7 @@ static PyTypeObject py_fst_record_type = {
     .tp_str = (reprfunc) py_fst_record_str,
     .tp_members = py_fst_record_members,
     .tp_getset = py_fst_record_properties,
+    .tp_methods = py_fst_record_method_defs,
     // .tp_dict = ...
 };
 
@@ -276,7 +289,8 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
     static char *kwlist[] = {"ip3", "nomvar", NULL};
     // Values must be initialized because if the keyword argumetn is not
     // specified the PyArg_ParseTupleAndKeywords will not change them
-    int32_t ip3 = -1;
+    // TODO : Look at default_fst_record to see what values represent "no value".
+    int32_t ip3 = default_fst_record.ip3;
     char *nomvar = NULL;
     if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$is", kwlist, &ip3, &nomvar)){
         fprintf(stderr, "%s(): Only ip3 and nomvar criteria are supported for now as I implement the rest of the chain\n", __func__);
@@ -288,7 +302,7 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
         strncpy(criteria.nomvar, nomvar, sizeof(criteria.nomvar));
     }
 
-    if(ip3 != -1){
+    if(ip3 != default_fst_record.ip3){
         criteria.ip3 = ip3;
     }
 
@@ -418,9 +432,38 @@ static PyObject *py_fst_record_get_etiket(struct py_fst_record *self)
     return PyUnicode_FromString(buf);
 }
 
+static PyObject * py_fst_record_get_data(struct py_fst_record *self)
+{
+    // TODO: Look at the record to find out what the actual data_type is
+    // right now so I'm just assuming it's float
+    size_t thing_size = sizeof(float);
+    fst24_read_record(&self->rec);
+
+    // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
+    // otherwise we can just always return arrays of shape (ni, nj, nk).
+    // TODO: Ensure data ordering is OK (C vs Fortran)
+    int ndims = 3;
+    // npy_intp dims[3] = {self->rec.ni, self->rec.nj, self->rec.nk};
+    npy_intp dims[3] = {self->rec.nk, self->rec.nj, self->rec.ni};
+
+
+    // TODO: Verify that NPY_OWNDATA is set so that the data of the
+    // ndarray is freed when the array's refcount drops to 0.
+    return PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
+}
+
 
 PyMODINIT_FUNC PyInit__librmn(void)
 {
+    /*
+     * Important!  This macro must be called before any function of the
+     * Numpy C API is called.  Otherwise, a segfault will occur when the first
+     * of these functions is called.
+     *
+     * This macro does `return NULL;` if the import of numpy fails so we
+     * put it at the start so there is nothing to Py_DECREF().
+     */
+    import_array();
 
     PyObject *m = PyModule_Create(&mymodulemodule);
     if(m == NULL){

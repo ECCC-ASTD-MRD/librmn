@@ -1,4 +1,3 @@
-
 #
 # SUPER IMPORTANT NOTE!!!!!!
 #
@@ -28,12 +27,14 @@ f = rpnpy2.fst24_file(filename=filename, options="")
 #     print(f"Result from q3: {result}", file=sys.stderr)
 print("=============================================", file=sys.stderr)
 q4 = f.new_query(ip3=0)
-for result in q4:
-    ip3 = result.ip3
-    nomvar = result.nomvar
-    etiket = result.etiket
-    print(f"PYTHON: Result from q3: {result}", file=sys.stderr) # .tp_str
+for record in q4:
+    ip3 = record.ip3
+    nomvar = record.nomvar
+    etiket = record.etiket
+    print(f"PYTHON: Result from q3: {record}", file=sys.stderr) # .tp_str
     print(f"PYTHON: Record has ip3={ip3}, nomvar='{nomvar}', etiket='{etiket}'", file=sys.stderr); #.tp_getset
+    data = record.get_data()
+    print(data)
 
 
 
