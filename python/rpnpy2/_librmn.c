@@ -146,6 +146,7 @@ static PyTypeObject py_fst_query_type = {
 struct py_fst_record {
     PyObject_HEAD
     fst_record rec;
+    PyObject *data_array;
 };
 
 // For all the fields that are of basic type we can do it this way, but for the
@@ -163,6 +164,7 @@ static PyMemberDef py_fst_record_members[] = {
 
 static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self);
 static PyObject *py_fst_record_get_etiket(struct py_fst_record *self);
+static PyObject * py_fst_record_get_data(struct py_fst_record *self);
 static PyGetSetDef py_fst_record_properties[] = {
     {
         .name = "nomvar",
@@ -176,19 +178,18 @@ static PyGetSetDef py_fst_record_properties[] = {
         .doc = "Label of the variable for this record",
         .closure = NULL,
     },
+    {
+        .name = "data",
+        .get = (getter) py_fst_record_get_data,
+        .doc = "The data of the record.  Read only as needed",
+        .closure = NULL,
+    },
     {NULL},
 };
 
 static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
-static PyObject * py_fst_record_get_data(struct py_fst_record *self);
 static PyMethodDef py_fst_record_method_defs[] = {
-    {
-        .ml_name = "get_data",
-        .ml_doc = "Read and return the data of this record",
-        .ml_flags = METH_NOARGS,
-        .ml_meth = (PyCFunction) py_fst_record_get_data,
-    },
     {NULL, NULL, 0, NULL},
 };
 
@@ -434,22 +435,27 @@ static PyObject *py_fst_record_get_etiket(struct py_fst_record *self)
 
 static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 {
-    // TODO: Look at the record to find out what the actual data_type is
-    // right now so I'm just assuming it's float
-    size_t thing_size = sizeof(float);
-    fst24_read_record(&self->rec);
+    if(self->data_array == NULL){
+        // TODO: Look at the record to find out what the actual data_type is
+        // right now so I'm just assuming it's float
+        size_t thing_size = sizeof(float);
+        fst24_read_record(&self->rec);
 
-    // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
-    // otherwise we can just always return arrays of shape (ni, nj, nk).
-    // TODO: Ensure data ordering is OK (C vs Fortran)
-    int ndims = 3;
-    // npy_intp dims[3] = {self->rec.ni, self->rec.nj, self->rec.nk};
-    npy_intp dims[3] = {self->rec.nk, self->rec.nj, self->rec.ni};
+        // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
+        // otherwise we can just always return arrays of shape (ni, nj, nk).
+        // TODO: Ensure data ordering is OK (C vs Fortran)
+        int ndims = 3;
+        // npy_intp dims[3] = {self->rec.ni, self->rec.nj, self->rec.nk};
+        npy_intp dims[3] = {self->rec.nk, self->rec.nj, self->rec.ni};
 
 
-    // TODO: Verify that NPY_OWNDATA is set so that the data of the
-    // ndarray is freed when the array's refcount drops to 0.
-    return PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
+        // TODO: Verify that NPY_OWNDATA is set so that the data of the
+        // ndarray is freed when the array's refcount drops to 0.
+        self->data_array = PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
+    }
+
+    Py_INCREF(self->data_array);
+    return self->data_array;
 }
 
 

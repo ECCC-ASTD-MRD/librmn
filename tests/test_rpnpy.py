@@ -33,8 +33,7 @@ for record in q4:
     etiket = record.etiket
     print(f"PYTHON: Result from q3: {record}", file=sys.stderr) # .tp_str
     print(f"PYTHON: Record has ip3={ip3}, nomvar='{nomvar}', etiket='{etiket}'", file=sys.stderr); #.tp_getset
-    data = record.get_data()
-    print(data)
+    print(record.data)
 
 
 
