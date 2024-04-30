@@ -209,6 +209,8 @@ export FST_OPTIONS="BACKEND=RSF"
 
 ## Opening and Closing a File
 
+The new default when opening a file is *read-only* rather than *read-write*. Therefore, to open a file that does not exist yet, the `R/W` option must be present.
+
 <table><tr><td style="width:50%">
 
  **Fortran** </td><td style="width:50%">
@@ -224,7 +226,7 @@ program fst24_interface
     type(fst_file) :: my_file
     logical :: success
   
-    success = my_file % open('my_file.fst')
+    success = my_file % open('my_file.fst', options = 'R/W')
   
     if (.not. success) then
         ! Deal with error
@@ -667,6 +669,8 @@ print *, data_r8(3, 2:5, 1)
 
 ## Creating and writing a record
 
+The new default when opening a file is *read-only* rather than *read-write*. Therefore, to create a file, the `R/W` option must be present.
+
 <table><tr><td style="width:50%">
 
 **Fortran**
@@ -679,60 +683,102 @@ print *, data_r8(3, 2:5, 1)
 <tr><td>
 
 ```fortran
-use fst24
+program create_and_write
+  use rmn_fst24
+  implicit none
 
-type(fst_file)   :: my_file
-type(fst_record) :: my_record
-logical :: success
+  
+  type(fst_file)   :: my_file
+  type(fst_record) :: my_record
+  logical :: success
+  
+  real, dimension(100, 200), target :: my_data
+  
+  ! Initialize data
+  my_data=100.
 
-real, dimension(100, 200), target :: my_data
 
-! Initialize data
-[...]
+  success = my_file % open('my_file.fst', 'R/W+RSF')
+  ! if (.not. success) error stop 1
+  
+  my_record % data = c_loc(my_data)
+  my_record % ni = 100
+  my_record % nj = 200
+  my_record % nk = 1
+  my_record % data_type = FST_TYPE_REAL
+  my_record % data_bits = 32
+  my_record % pack_bits = 32
 
-success = my_file % open('my_file.fst', 'RSF')
+  my_record % deet = 0
+  my_record % npas = 0
+  my_record % ip1 = 0
+  my_record % ip2 = 0
+  my_record % ip3 = 0
+  my_record % ig1 = 0
+  my_record % ig2 = 0
+  my_record % ig3 = 0
+  my_record % ig4 = 0
+  
+  success = my_file % write(my_record)
+  ! if (.not. success) error stop 1
 
-my_record % data => c_loc(my_data)
-my_record % ni = 100
-my_record % nj = 200
-my_record % nk = 1
-my_record % data_type = FST_TYPE_REAL
-my_record % data_bits = 32
-my_record % pack_bits = 32
-[...]
+  success = my_file % close()
+  ! if (.not. success) error stop 1
+  
 
-success = my_file % write(my_record)
 
-success = my_file % close()
+
+end program create_and_write
 ```
 </td><td>
 
 ```c
 #include <rmn.h>
 
-fst_record my_record = default_fst_record;
+int main(void) {
+  
+  float my_data[100][200];
+  
+  // Initialize data
+  for (int i = 0; i < 100; i++)
+    for (int j = 0; j < 200; j++)
+      my_data[i][j] = 100.0;
+  
+  fst_file* my_file = 
+        fst24_open("my_file.fst", "R/W+RSF");
+  if (my_file == NULL)
+    return -1;
+  
+  fst_record my_record = default_fst_record;
 
+  my_record.data = my_data;
+  my_record.ni = 100;
+  my_record.nj = 200;
+  my_record.nk = 1;
+  my_record.data_type = FST_TYPE_REAL;
+  my_record.data_bits = 32;
+  my_record.pack_bits = 32;
 
+  my_record.deet = 0;
+  my_record.npas = 0;
+  my_record.ip1 = 0;
+  my_record.ip2 = 0;
+  my_record.ip3 = 0;
+  my_record.ig1 = 0;
+  my_record.ig2 = 0;
+  my_record.ig3 = 0;
+  my_record.ig4 = 0;
+  
+  if (fst24_write(my_file, &my_record, 0) <= 0)
+    return -1;
+  
+  if (fst24_close(my_file) <= 0)
+    return -1;
+  
+  free(my_file);
 
-float my_data[100][200];
-
-// Initialize data
-[...]
-
-fst_file* my_file = fst24_open("my_file.fst", "RSF");
-
-my_record.data = my_data;
-my_record.ni = 100;
-my_record.nj = 200;
-my_record.nk = 1;
-my_record.data_type = FST_TYPE_REAL;
-my_record.data_bits = 32;
-my_record.pack_bits = 32;
-[...]
-
-fst24_write(my_file, &my_record, 0);
-fst24_close(my_file);
-free(my_file);
+  return 0;
+}
 ```
 </td></tr>
 <tr><td>

@@ -218,5 +218,27 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME excdes COMMAND $<TARGET_FILE:excdes>)
         add_dependencies(check excdes)
 
+
+        # FST samples
+        add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)
+        target_link_libraries(fst24_open_close_f rmn::rmn)
+        add_test(NAME fst24_open_close_f COMMAND $<TARGET_FILE:fst24_open_close_f>)
+        add_dependencies(check fst24_open_close_f)
+
+        add_executable(fst24_open_close_c fst/samples/fst24_open_close.c)
+        target_link_libraries(fst24_open_close_c rmn::rmn)
+        add_test(NAME fst24_open_close_c COMMAND $<TARGET_FILE:fst24_open_close_c>)
+        add_dependencies(check fst24_open_close_c)
+
+        add_executable(fst24_create_and_write_f fst/samples/fst24_create_and_write.F90)
+        target_link_libraries(fst24_create_and_write_f rmn::rmn)
+        add_test(NAME fst24_create_and_write_f COMMAND $<TARGET_FILE:fst24_create_and_write_f>)
+        add_dependencies(check fst24_create_and_write_f)
+
+        add_executable(fst24_create_and_write_c fst/samples/fst24_create_and_write.c)
+        target_link_libraries(fst24_create_and_write_c rmn::rmn)
+        add_test(NAME fst24_create_and_write_c COMMAND $<TARGET_FILE:fst24_create_and_write_c>)
+        add_dependencies(check fst24_create_and_write_c)
+
     endif()
 endif()
