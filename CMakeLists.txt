@@ -33,7 +33,7 @@ if (WITH_OMPI)
    find_package(OpenMP REQUIRED)
 endif()
 
-find_package(Python 3 REQUIRED Development NumPy)
+find_package(Python 3 REQUIRED Development NumPy Interpreter)
 
 #set(FIND_LIBRARY_USE_LIB64_PATHS TRUE)
 #find_package(json-c CONFIG REQUIRED)

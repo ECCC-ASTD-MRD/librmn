@@ -20,7 +20,7 @@ add_custom_target(test_py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests
     # The -u is for Python to operate without buffering stderr
     # which is helpful for printf debugging
-    COMMAND bash -c "PYTHONPATH=${CMAKE_BINARY_DIR}/python python3 -u test_rpnpy.py"
+    COMMAND bash -c "PYTHONPATH=${CMAKE_BINARY_DIR}/python ${Python_EXECUTABLE} -u test_rpnpy.py"
 )
 add_dependencies(test_py _librmn)
 
