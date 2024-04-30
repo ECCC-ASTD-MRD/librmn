@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <Python.h>
-#include <numpy/arrayobject.h>
+#include <numpy/ndarrayobject.h>
 #include <rmn/fst24_file.h>
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
@@ -188,6 +188,7 @@ static PyGetSetDef py_fst_record_properties[] = {
 };
 
 static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static void py_fst_record_dealloc(struct py_fst_record *self);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
 static PyMethodDef py_fst_record_method_defs[] = {
     {NULL, NULL, 0, NULL},
@@ -205,6 +206,7 @@ static PyTypeObject py_fst_record_type = {
     .tp_members = py_fst_record_members,
     .tp_getset = py_fst_record_properties,
     .tp_methods = py_fst_record_method_defs,
+    .tp_dealloc = (destructor) py_fst_record_dealloc,
     // .tp_dict = ...
 };
 
@@ -382,6 +384,49 @@ static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject
     return (PyObject *)self;
 }
 
+static void py_fst_record_dealloc(struct py_fst_record *self)
+{
+    // TODO: Need to be careful when freeing the memory:
+    // suppose the user has a record:
+    // >>> my_record = <a record>  # refcount(my_record)=1
+    // >>> data = my_record.data # refcount(my_record)=1, refcount(data)=2 (record has a reference, data is another)
+    // >>> my_record = None # refcount(my_record)=0, refcount(data)=1
+    // The user still has a reference to the numpy array whose data is rec.data
+    // so rec.data should not be freed.
+
+    if(self->rec.data != NULL){
+        // If rec.data != NULL, that means we created a numpy array holding the
+        // data, that data should belong to the numpy array
+        self->rec.data = NULL;
+    }
+
+    fst24_record_free(&self->rec);
+
+    // Decrease the refcount of the numpy array, this stuff with tmp is because
+    // of the possibility of reference cycles.
+    //
+    //      Py_DECREF(self->data_array);
+    //
+    // could lead to
+    // - destructor of self
+    //   - decref self->attrib
+    //     - call destructor of self->attrib
+    //       - Reference cycle leads to destructor of self with self->data_array
+    //         having not yet been set to NULL,
+    //
+    // so we want to set the attribute to NULL before we decref the object the
+    // attribute points to.
+    //
+    // py_fst_record cannot have a reference to itself but it can be subclassed
+    // and we want to do it the way the documentation says we should.
+    PyObject *tmp;
+    tmp = self->data_array;
+    self->data_array = NULL;
+    Py_XDECREF(tmp);
+
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
 static int *py_fst_record_init(PyObject *self, PyObject *args, PyObject *kwds)
 {
     // TODO: Take reuse the keyword args from the init of the query
@@ -452,6 +497,18 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
         // TODO: Verify that NPY_OWNDATA is set so that the data of the
         // ndarray is freed when the array's refcount drops to 0.
         self->data_array = PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
+        // See numpy source code '/numpy/_core/tests/test_mem_policy.py (line 73)
+        // the documentation says to not set NPY_ARRAY_OWNDATA manually but
+        // to do a PyCapsule thing.  The test above seems to say that it's OK
+        // but below there is a test demonstrating how to do it with the capsule thing
+        PyArray_ENABLEFLAGS((PyArrayObject*) self->data_array, NPY_ARRAY_OWNDATA);
+        if(PyArray_CHKFLAGS(self->data_array, NPY_ARRAY_OWNDATA)){
+            fprintf(stderr, "%s(): Created new numpy ndarray that DOES own its data\n", __func__);
+        } else {
+            fprintf(stderr, "%s(): Created new numpy ndarray that DOES NOT own its data\n", __func__);
+        }
+
+        
     }
 
     Py_INCREF(self->data_array);
