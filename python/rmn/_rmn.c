@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <Python.h>
-#include <numpy/ndarrayobject.h>
+// Protect ourselves against using deprecated API functions from earlier versions
+#define NPY_NO_DEPRECATED_API NPY_1_9_API_VERSION
+#include <numpy/arrayobject.h>
 #include <rmn/fst24_file.h>
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
