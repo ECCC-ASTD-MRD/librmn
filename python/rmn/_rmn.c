@@ -217,15 +217,15 @@ static PyTypeObject py_fst_record_type = {
 
 static PyObject * RpnExc_InvalidFstFileError;
 static PyObject * RpnExc_InvalidFstDataTypeError;
-static int rpnpy_create_exceptions()
+static int py_rmn_create_exceptions()
 {
-    RpnExc_InvalidFstFileError = PyErr_NewExceptionWithDoc("rpnpy2.InvalidFstFileError",
+    RpnExc_InvalidFstFileError = PyErr_NewExceptionWithDoc("rmn.InvalidFstFileError",
             "Invalid fst file", NULL, NULL);
     if(RpnExc_InvalidFstFileError == NULL){
         return -1;
     }
 
-    RpnExc_InvalidFstDataTypeError = PyErr_NewExceptionWithDoc("rpnpy2.InvalidFstDataTypeError",
+    RpnExc_InvalidFstDataTypeError = PyErr_NewExceptionWithDoc("rmn.InvalidFstDataTypeError",
             "Invalid data type for fst record", NULL, NULL);
     if(RpnExc_InvalidFstDataTypeError == NULL){
         return -1;
@@ -567,7 +567,7 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 }
 
 
-PyMODINIT_FUNC PyInit__librmn(void)
+PyMODINIT_FUNC PyInit__rmn(void)
 {
     /*
      * Important!  This macro must be called before any function of the
@@ -579,9 +579,9 @@ PyMODINIT_FUNC PyInit__librmn(void)
      */
     import_array();
 
-    int err = rpnpy_create_exceptions();
+    int err = py_rmn_create_exceptions();
     if(err){
-        PyErr_SetString(PyExc_ImportError, "Error initializing exceptions types for rpnpy2");
+        PyErr_SetString(PyExc_ImportError, "Error initializing exceptions types for rmn");
         return NULL;
     }
 
