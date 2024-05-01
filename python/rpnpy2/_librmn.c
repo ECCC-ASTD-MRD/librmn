@@ -253,21 +253,30 @@ static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject 
 // 
 static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
     static char *kwlist[] = {"filename", "options", NULL};
-    char *options;
-    char *filename;
-    // TODO: I think I have to free options and filename
-    if(!PyArg_ParseTupleAndKeywords(args, kwds, "ss", kwlist, &filename, &options)){
+    char *options = NULL;
+    char *filename = NULL;
+    // NOTE: I do not have to free the string buffers.  Documentation says
+    // it creates a Python object and provides a const char * pointing into
+    // its buffer and states: "You won’t have to release any memory yourself."
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$ss", kwlist, &filename, &options)){
         // Current exception already set by function
         return -1;
     }
 
+    if(filename == NULL){
+        PyErr_SetString(PyExc_TypeError, "__init__(): missing required keyword-only argument 'filename'");
+        return -1;
+    }
+
+    // We might want to remove this to allow the constructor to create a new
+    // empty fst file if the file doesn't exist
     struct stat statbuf;
     if(stat(filename, &statbuf) != 0){
         PyErr_Format(PyExc_FileNotFoundError, "[Errno %d] %s: '%s'", errno, strerror(errno), filename);
         return -1;
     }
 
-    struct fst24_file_ *ref = fst24_open(filename, options[0] == '\0' ? NULL : options);
+    struct fst24_file_ *ref = fst24_open(filename, options);
     fprintf(stderr, "%s(): Pointer returned by fst24_open(): %p\n", __func__, ref);
 
     if(ref == NULL){

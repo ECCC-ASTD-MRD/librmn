@@ -45,6 +45,15 @@ try:
 except FileNotFoundError as e:
     print(f"Got exception as expected: {type(e)}:{e}")
 
+try:
+    f2 = rpnpy2.fst24_file(filename)
+except TypeError as e:
+    print(f"Got exception as expected: {repr(e)}")
+
+print("===================== without options =========================")
+f2 = rpnpy2.fst24_file(filename=filename)
+
+
 
 
 
