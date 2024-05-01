@@ -5,6 +5,7 @@
 #include <rmn/fst24_file.h>
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
+#include <sys/stat.h>
 
 /*
  * Documentation links
@@ -257,6 +258,12 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     // TODO: I think I have to free options and filename
     if(!PyArg_ParseTupleAndKeywords(args, kwds, "ss", kwlist, &filename, &options)){
         // Current exception already set by function
+        return -1;
+    }
+
+    struct stat statbuf;
+    if(stat(filename, &statbuf) != 0){
+        PyErr_Format(PyExc_FileNotFoundError, "[Errno %d] %s: '%s'", errno, strerror(errno), filename);
         return -1;
     }
 
