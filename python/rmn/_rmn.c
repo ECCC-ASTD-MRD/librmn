@@ -326,26 +326,37 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     return 0;
 }
 
-static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
+int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyObject *kwds){
+
+    *rec = default_fst_record;
 
     static char *kwlist[] = {"ip3", "nomvar", NULL};
     // Values must be initialized because if the keyword argumetn is not
     // specified the PyArg_ParseTupleAndKeywords will not change them
     // TODO : Look at default_fst_record to see what values represent "no value".
-    int32_t ip3 = default_fst_record.ip3;
     char *nomvar = NULL;
-    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$is", kwlist, &ip3, &nomvar)){
+    // PyArg_ParseTupleAndKeywords will set nomvar to point to the buffer of a
+    // of some python object, which means it is tied to the lifetime of that
+    // object.  Therefore we can't do what what we do with ip3.  Same for all
+    // types where we pass the address of a pointer.
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$is", kwlist, &rec->ip3, &nomvar)){
         fprintf(stderr, "%s(): Only ip3 and nomvar criteria are supported for now as I implement the rest of the chain\n", __func__);
-        return NULL;
+        return 1;
     }
 
-    fst_record criteria = default_fst_record;
     if(nomvar != NULL){
-        strncpy(criteria.nomvar, nomvar, sizeof(criteria.nomvar));
+        strncpy(rec->nomvar, nomvar, sizeof(rec->nomvar));
     }
 
-    if(ip3 != default_fst_record.ip3){
-        criteria.ip3 = ip3;
+    return 0;
+}
+
+static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
+
+    fst_record criteria;
+    int err = init_fst_record_from_args_and_keywords(&criteria, args, kwds);
+    if(err){
+        return NULL;
     }
 
     fst_query *q = fst24_new_query(self->ref, &criteria, NULL);
@@ -466,9 +477,12 @@ static void py_fst_record_dealloc(struct py_fst_record *self)
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static int *py_fst_record_init(PyObject *self, PyObject *args, PyObject *kwds)
+static int py_fst_record_init(struct py_fst_record *self, PyObject *args, PyObject *kwds)
 {
-    // TODO: Take reuse the keyword args from the init of the query
+    int err = init_fst_record_from_args_and_keywords(&self->rec, args, kwds);
+    if(err){
+        return -1;
+    }
 
     return 0;
 }
