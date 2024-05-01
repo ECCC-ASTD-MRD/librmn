@@ -585,6 +585,9 @@ PyMODINIT_FUNC PyInit__librmn(void)
         return NULL;
     }
 
+    /*
+     * Create the actual python module object from the PyModuleDef
+     */
     PyObject *m = PyModule_Create(&mymodulemodule);
     if(m == NULL){
         return NULL;
@@ -606,6 +609,9 @@ PyMODINIT_FUNC PyInit__librmn(void)
 
     /*
      * Initialize type object and add to module for fst_query
+     * The name given here is the one that this class is accessed with.  The
+     * .tp_name in the PyTypeObject is the name you access the class with the
+     * name below and ask it for what its name is.
      */
     if(PyType_Ready(&py_fst_query_type) < 0){
         return NULL;
@@ -632,6 +638,9 @@ PyMODINIT_FUNC PyInit__librmn(void)
         return NULL;
     }
 
+    /*
+     * Add the exception objects to the module
+     */
     if(PyModule_AddObject(m, "InvalidFstFileError", (PyObject *)RpnExc_InvalidFstFileError) < 0){
         Py_DECREF(RpnExc_InvalidFstFileError);
         Py_DECREF(m);
