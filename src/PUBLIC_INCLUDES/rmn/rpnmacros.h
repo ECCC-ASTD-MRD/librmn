@@ -65,6 +65,6 @@ according to the compiler
 #endif
 
 
-static F2Cl unknown_arch_compiler_combo; // Will fail if F2Cl has not been defined
+static F2Cl unknown_arch_compiler_combo = 0; // Will fail if F2Cl has not been defined
 
 #endif
