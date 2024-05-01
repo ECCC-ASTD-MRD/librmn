@@ -14,23 +14,11 @@ import sys
 filename = "/fs/site5/eccc/cmd/w/spst900/spooki/spooki_dir/pluginsRelatedStuff/AbsoluteValue/testsFiles/AbsoluteValue_file2cmp.std"
 
 f = rpnpy2.fst24_file(filename=filename, options="")
-
-# print(f.filename)
-# 
-# print(str(f))
-# 
-# q1 = f.new_query(nomvar="TT", ip3=0)
-# q2 = f.new_query(ip3=0)
-# print("=============================================", file=sys.stderr)
-# q3 = f.new_query(nomvar="VV")
-# for restult in q3:
-#     print(f"Result from q3: {result}", file=sys.stderr)
-print("=============================================", file=sys.stderr)
 q4 = f.new_query(ip3=0)
 for record in q4:
-    ip3 = record.ip3
-    nomvar = record.nomvar
-    etiket = record.etiket
+    ip3 = record.ip3 # PyMemberDef
+    nomvar = record.nomvar # PyGetSetDef
+    etiket = record.etiket # PyGetSetDef
     print(f"PYTHON: Result from q3: {record}", file=sys.stderr) # .tp_str
     print(f"PYTHON: Record has ip3={ip3}, nomvar='{nomvar}', etiket='{etiket}'", file=sys.stderr); #.tp_getset
     print(record.data)
