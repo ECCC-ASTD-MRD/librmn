@@ -8,6 +8,8 @@
 #
 # This is because it changes how the relative imports work.
 #
+
+import numpy as np
 import rmn
 import sys
 
@@ -41,6 +43,23 @@ except TypeError as e:
 print("===================== without options =========================")
 f2 = rmn.fst24_file(filename=filename)
 
+rec = rmn.fst_record(nomvar="<<", ip3=42)
+rec.ip3 = 99
+rec.ni = 4
+rec.nj = 7
+rec.nk = 1
+print(rec)
+
+try:
+    rec.data = "not a numpy array"
+except TypeError as e:
+    print(f"Got an exception as expected: {repr(e)}")
+
+# No idea if the NI, NJ, NK are in the right order
+x = np.random.random(rec.nk * rec.nj * rec.ni).reshape((rec.nk, rec.nj, rec.ni))
+rec.data = x
+
+print(rec.data)
 
 
 

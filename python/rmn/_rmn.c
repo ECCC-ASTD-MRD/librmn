@@ -162,12 +162,34 @@ static PyMemberDef py_fst_record_members[] = {
         .flags = 0,
         .doc = "IP3 of this fst_record"
     },
+    {
+        .name = "ni",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ni),
+        .flags = 0,
+        .doc = "NI of this fst_record"
+    },
+    {
+        .name = "nj",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.nj),
+        .flags = 0,
+        .doc = "NJ of this fst_record"
+    },
+    {
+        .name = "nk",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.nk),
+        .flags = 0,
+        .doc = "NK of this fst_record"
+    },
     {.name = NULL},
 };
 
 static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self);
 static PyObject *py_fst_record_get_etiket(struct py_fst_record *self);
 static PyObject * py_fst_record_get_data(struct py_fst_record *self);
+static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure);
 static PyGetSetDef py_fst_record_properties[] = {
     {
         .name = "nomvar",
@@ -184,6 +206,7 @@ static PyGetSetDef py_fst_record_properties[] = {
     {
         .name = "data",
         .get = (getter) py_fst_record_get_data,
+        .set = (setter) py_fst_record_set_data,
         .doc = "The data of the record.  Read only as needed",
         .closure = NULL,
     },
@@ -191,6 +214,7 @@ static PyGetSetDef py_fst_record_properties[] = {
 };
 
 static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static int py_fst_record_init(struct py_fst_record *self, PyObject *args, PyObject *kwds);
 static void py_fst_record_dealloc(struct py_fst_record *self);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
 static PyMethodDef py_fst_record_method_defs[] = {
@@ -205,6 +229,7 @@ static PyTypeObject py_fst_record_type = {
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst_record_new,
+    .tp_init = (initproc) py_fst_record_init,
     .tp_str = (reprfunc) py_fst_record_str,
     .tp_members = py_fst_record_members,
     .tp_getset = py_fst_record_properties,
@@ -580,6 +605,35 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 
     Py_INCREF(self->data_array);
     return self->data_array;
+}
+
+static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure)
+{
+    if(self->data_array != NULL){
+        PyObject *tmp = self->data_array;
+        self->data_array = NULL;
+        Py_XDECREF(self->data_array);
+    }
+
+    if(to_assign == NULL){
+        // When the object to assign is NULL, that means the python code wants
+        // us to simply delete the attribute.
+        return 0;
+    }
+
+    // Check the type of the passed object.  Here we just refust anything that
+    // is not a numpy array but we could check for other acceptable types
+    // and when we go to write the record in a file, we could do something
+    // different based on the type.
+    if(Py_TYPE(to_assign) !=  &PyArray_Type){
+        PyErr_SetString(PyExc_TypeError, "The data of a record must be a numpy array");
+        return -1;
+    }
+
+    Py_INCREF(to_assign);
+    self->data_array = to_assign;
+
+    return 0;
 }
 
 
