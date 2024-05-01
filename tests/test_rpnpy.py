@@ -35,6 +35,11 @@ for record in q4:
     print(f"PYTHON: Record has ip3={ip3}, nomvar='{nomvar}', etiket='{etiket}'", file=sys.stderr); #.tp_getset
     print(record.data)
 
+try:
+    f2 = rpnpy2.fst24_file(filename="/home/phc001/.profile", options="");
+except rpnpy2.InvalidFstFileError as e:
+    print(f"Got exception as expected: {repr(e)}")
+
 
 
 

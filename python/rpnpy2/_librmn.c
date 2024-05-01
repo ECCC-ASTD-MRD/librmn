@@ -211,6 +211,29 @@ static PyTypeObject py_fst_record_type = {
 };
 
 /*******************************************************************************
+ * Type object for custom exception
+*******************************************************************************/
+
+static PyObject * RpnExc_InvalidFstFileError;
+static PyObject * RpnExc_InvalidFstDataTypeError;
+static int rpnpy_create_exceptions()
+{
+    RpnExc_InvalidFstFileError = PyErr_NewExceptionWithDoc("rpnpy2.InvalidFstFileError",
+            "Invalid fst file", NULL, NULL);
+    if(RpnExc_InvalidFstFileError == NULL){
+        return -1;
+    }
+
+    RpnExc_InvalidFstDataTypeError = PyErr_NewExceptionWithDoc("rpnpy2.InvalidFstDataTypeError",
+            "Invalid data type for fst record", NULL, NULL);
+    if(RpnExc_InvalidFstDataTypeError == NULL){
+        return -1;
+    }
+
+    return 0;
+}
+
+/*******************************************************************************
  * fst_file implementations
 *******************************************************************************/
 
@@ -241,7 +264,7 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     fprintf(stderr, "%s(): Pointer returned by fst24_open(): %p\n", __func__, ref);
 
     if(ref == NULL){
-        PyErr_SetString(PyExc_RuntimeError, "Underlying fst24_open() call failed");
+        PyErr_Format(RpnExc_InvalidFstFileError, "file '%s' could not be opened as fst24_file", filename);
         return -1;
     }
 
@@ -540,6 +563,12 @@ PyMODINIT_FUNC PyInit__librmn(void)
      */
     import_array();
 
+    int err = rpnpy_create_exceptions();
+    if(err){
+        PyErr_SetString(PyExc_ImportError, "Error initializing exceptions types for rpnpy2");
+        return NULL;
+    }
+
     PyObject *m = PyModule_Create(&mymodulemodule);
     if(m == NULL){
         return NULL;
@@ -583,6 +612,18 @@ PyMODINIT_FUNC PyInit__librmn(void)
     Py_INCREF(&py_fst_record_type);
     if(PyModule_AddObject(m, "fst_record", (PyObject *)&py_fst_record_type) < 0){
         Py_DECREF(&py_fst_record_type);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    if(PyModule_AddObject(m, "InvalidFstFileError", (PyObject *)RpnExc_InvalidFstFileError) < 0){
+        Py_DECREF(RpnExc_InvalidFstFileError);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    if(PyModule_AddObject(m, "InvalidFstDataTypeError", (PyObject *)RpnExc_InvalidFstDataTypeError) < 0){
+        Py_DECREF(RpnExc_InvalidFstDataTypeError);
         Py_DECREF(m);
         return NULL;
     }
