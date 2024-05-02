@@ -341,24 +341,40 @@ contains
 
     !> \copybrief fst24_write
     !> \return Whether the write was successful
-    function fst24_file_write(this, record, rewrite) result(success)
+    function fst24_file_write(this, record, data, rewrite) result(success)
         implicit none
         class(fst_file),  intent(inout) :: this     !< File where we want to write
         type(fst_record), intent(inout) :: record   !< Record we want to write
         logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
         logical :: success
 
+        !> Where to get the data being written (optional). Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
+     
+        type(C_PTR) :: prev_data
         integer(C_INT32_T) :: c_rewrite, c_status
 
         success = .false.
 
+        if (present(data)) then
+           prev_data = record % data
+           record % data = data
+        endif
+
         call record % make_c_self()
+
         c_rewrite = 0
         if (present(rewrite)) then
             if (rewrite) c_rewrite = 1
         end if
 
         c_status = fst24_write(this % file_ptr, record % get_c_ptr(), c_rewrite)
+
+        if (present(data)) then
+           record % data = prev_data
+           call record % make_c_self()
+        endif
 
         if (c_status > 0) success = .true.
     end function fst24_file_write
