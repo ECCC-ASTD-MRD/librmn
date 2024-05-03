@@ -1895,7 +1895,7 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
     IF (KERR < 0 ) THEN
         KERRMAX = MIN(ABS(KERR), KERRMAX)
     ENDIF
-print *,"==========================READLX NEW=========================="
+
     NC = 1
     LAST = 0
     INPFILE = UNIT
