@@ -116,6 +116,13 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
             App_Log(APP_ERROR, "Unable to write record (3) to new file %s\n", name);
             return -1;
         }
+
+        // Try something that should fail
+        record.data = NULL;
+        if (fst24_write(new_file, &record, FALSE) == TRUE) {
+            App_Log(APP_ERROR, "Should not be able to write a record when there's no data in it\n");
+            return -1;
+        }
     }
 
     ///////////////////////////

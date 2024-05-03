@@ -943,6 +943,12 @@ int32_t fst24_write(
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
                     " This is not supported, we will ignore that metadata.\n", __func__);
         }
+
+        if (record->data == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: No data associated with this record!\n", __func__);
+            return -1;
+        }
+
         strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
         strncpy(etiket, record->etiket, FST_ETIKET_LEN);
