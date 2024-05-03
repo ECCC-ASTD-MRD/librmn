@@ -123,7 +123,11 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
     call execute_command_line(trim(cmd))
 
     options = 'RND+R/W'
-    if (is_rsf) options = options // '+RSF'
+    if (is_rsf) then
+        options = options // '+RSF'
+    else
+        options = options // '+XDF'
+    endif
 
     success = new_file % open(trim(name), options)
     if (.not. success) then
