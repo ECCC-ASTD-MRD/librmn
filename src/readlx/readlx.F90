@@ -45,6 +45,72 @@ module readlx_nrdlx
    integer(kind = int64), dimension(2, 256) :: IPTADR = 0
 end module readlx_nrdlx
 
+module readlx_remote
+   use rmn_common
+   implicit none
+contains
+  integer(C_INT32_t) function remote_call(fn, args) BIND(C)
+    abstract interface
+      integer(C_INT32_t) function machin( &
+                              a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
+                              a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
+                              a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
+                              a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
+                              a40) BIND(C)
+      use ISO_C_BINDING
+      type(C_PTR), intent(IN), value :: &
+                                 a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
+                                 a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
+                                 a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
+                                 a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
+                                 a40
+      end function machin
+    end interface
+    integer(C_INT64_T), intent(IN) :: fn
+    integer(C_INT64_T), dimension(0:40), intent(IN) :: args
+    procedure(machin), pointer :: fptr
+    type(C_FUNPTR) :: cptr
+    type(C_PTR), dimension(0:40) :: v
+    integer :: i
+    do i = 0, 40
+      v(i) = transfer(args(i), v(i))
+    enddo
+    cptr = transfer(fn, cptr)
+    call c_f_procpointer(cptr, fptr)
+    remote_call = fptr(v(00), v(01), v(02), v(03), v(04), v(05), v(06), v(07), v(08), v(09), &
+                       v(10), v(11), v(12), v(13), v(14), v(15), v(16), v(17), v(18), v(19), &
+                       v(20), v(21), v(22), v(23), v(24), v(25), v(26), v(27), v(28), v(29), &
+                       v(30), v(31), v(32), v(33), v(34), v(35), v(36), v(37), v(38), v(39), &
+                       v(40))
+  end function
+end module readlx_remote
+
+! get contents at address(subscript) (assuming a 32 bit item)
+subroutine get_content_of_address(address, subscript, content)
+  use rmn_common
+  integer(kind = int64), intent(IN) :: address   ! memory address
+  integer, intent(IN) :: subscript               ! subscript
+  integer, intent(OUT) :: content                ! output from memory
+  integer :: val
+  pointer(pval, val(*))
+
+  pval = address
+  content = val(subscript)
+end subroutine
+
+! set contents at address(subscript) (assuming a 32 bit item)
+subroutine set_content_of_address(address, subscript, content)
+  use rmn_common
+  integer(kind = int64), intent(IN) :: address   ! memory address
+  integer, intent(IN) :: subscript               ! subscript
+  integer, intent(IN) :: content                 ! value to set to
+  integer :: val
+  pointer(pval, val(*))
+
+  pval = address
+  val(subscript) = content
+end subroutine
+
 !> LONGUEUR D'ARGUMENTS (APPEL VIA READLX)
 FUNCTION ARGDIMS(N)
       use rmn_common
@@ -97,13 +163,15 @@ SUBROUTINE LEXINS(IVAR, ICLE, NB, LIMIT, TYP)
     character(len=8) :: KLE
 
     WRITE(KLE, '(A8)') ICLE
-    CALL QLXINS(IVAR, KLE, NB, LIMIT, TYP)
+    CALL qlxins(IVAR, KLE, NB, LIMIT, TYP)
 END
 
 !> Get value of indexed array component
-SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
+! SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
+SUBROUTINE QLXADI2(KLE, IND, VALEUR, ERR)
     use rmn_common
-    INTEGER IND, VALEUR, TYPE
+!     INTEGER IND, VALEUR, TYPE
+    INTEGER IND, VALEUR
     LOGICAL ERR
     character(len=*) KLE
 
@@ -111,13 +179,15 @@ SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
     EXTERNAL QLXDTYP
     integer(kind = int64) LOCVAR, LOCCNT
     INTEGER LIMITE, ITYP, IZ, INDX
+    integer, dimension(1024) :: mem
+    pointer(pmem, mem)
     REAL Z
-    EQUIVALENCE(Z, IZ)
 
     IZ = IND
     IF (QLXDTYP(IZ) == 1) THEN
         INDX = IZ
     ELSE
+        z = transfer(iz, z)
         INDX = NINT(Z)
     ENDIF
     CALL QLXFND(KLE, LOCVAR, LOCCNT, LIMITE, ITYP)
@@ -128,11 +198,13 @@ SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
         ERR = .TRUE.
     ENDIF
     IF (.NOT.ERR) THEN
-        CALL PEEK(LOCVAR, INDX, VALEUR)
+        pmem = LOCVAR
+        VALEUR = mem(INDX)
+!         CALL PEEK(LOCVAR, INDX, VALEUR)
     ENDIF
 END
 
-!> Get subscript then build machine address
+!> Get subscript then build memory address
 integer(kind = int64) FUNCTION QLXADR(KLE, ERR)
     use rmn_common
 
@@ -140,17 +212,16 @@ integer(kind = int64) FUNCTION QLXADR(KLE, ERR)
     LOGICAL ERR
     INTEGER LIMITS, ITYP
     integer(kind = int64) :: LOCCNT, locvar8
-    integer(kind = int64) :: get_address_from
-    EXTERNAL get_address_from
     POINTER (LOCVAR, VARI(*))
 
     CALL QLXIND(IND, ERR)
 
     IF (.NOT. ERR) THEN
         CALL QLXFND(KLE, LOCVAR8, LOCCNT, LIMITS, ITYP)
-        call make_cray_pointer(LOCVAR, locvar8)
+!         call make_cray_pointer(LOCVAR, locvar8)
+        LOCVAR = transfer(locvar8, LOCVAR)
         IF (IND <= LIMITS .AND. ITYP >= 0 .AND. ITYP <= 1) THEN
-            QLXADR = get_address_from(VARI(IND))
+            QLXADR = LOC(VARI(IND))
         ELSE
             ERR = .TRUE.
             CALL QLXERR(21017, 'QLXADR')
@@ -178,17 +249,17 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,jval)
+    integer(kind = int64) :: jval64
 
     COMMON/QLXTOK2/TOKEN
     character(len=80) TOKEN
 
     INTEGER IND, JLEN, QLXVAL
     INTEGER OLDTYP, ITEMP(80), IREPCN
-    REAL TEMP(80)
-    EQUIVALENCE (TEMP, ITEMP)
     LOGICAL IAREP, FIN
 
+    pjval = LOC(ZVAL)
     IND = 1
     OLDTYP = 4
     FIN = .FALSE.
@@ -211,14 +282,17 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
                 ENDIF
             ENDIF
             IF (TYPE == 8) THEN
-                call get_content_of_location(JVAL, 1, JVAL)
+!                 call get_content_of_address(JVAL, 1, JVAL)
+                jval64 = jval
+                call get_content_of_address(jval64, 1, JVAL)
             ELSE
                 IF (TYPE == 1 .AND. OLDTYP == 4) THEN
                     ITEMP(1) = JVAL
                     JLEN = 1
                 ELSE
                     IF (TYPE == 2 .AND. OLDTYP == 4) THEN
-                        TEMP(1) = ZVAL
+!                         TEMP(1) = ZVAL
+                        itemp(1) = transfer(zval, itemp(1))
                         JLEN = 1
                     ELSE
                         IF (TYPE == 3 .AND. OLDTYP == 4) THEN
@@ -248,7 +322,7 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
                                         ELSE
                                             DO I = 1, IREPCN
                                                 DO J = 1, JLEN
-                                                    call set_content_of_location(VAL, IND + J - 1, ITEMP(J))
+                                                    call set_content_of_address(VAL, IND + J - 1, ITEMP(J))
                                                 END DO
                                                 IND = IND + MAX(JLEN, 1)
                                             END DO
@@ -302,32 +376,33 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
     use rmn_common
     use readlx_parmadr
     use readlx_qlxfmt
+    use readlx_remote
 
     integer(kind = int64) :: SUB, ICOUNT
-    integer(kind = int64) :: get_address_from
-    EXTERNAL get_address_from
-
 
     COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,jval)
 
     COMMON/QLXTOK2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL RMTCALL, QLXADR, QLXVAL
-    INTEGER  RMTCALL, QLXVAL
+    integer, external :: rmtcall
+    EXTERNAL QLXADR, QLXVAL
+    INTEGER  QLXVAL
     INTEGER LIM1, LIM2, JLEN, PREVI
     integer(kind = int64) LOCDUM, QLXADR
     character(len=8) KLE
+    integer(kind = int64) icount64
 
     LOGICAL ERR, FIN, INLIST
 
+    pjval = LOC(ZVAL)
     FIN  = .FALSE.
     INLIST = .FALSE.
-    LOCDUM = get_address_from(PARM(1))
+    LOCDUM = LOC(PARM(1))
     NDOPES = 0
     DO I = 1, 41
         DOPE(I) = 0
@@ -370,7 +445,7 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                     PREVI =7
                     IF (.NOT. INLIST) THEN
                         NARG = MIN(NARG+1, 41)
-                        ADR(NARG) =get_address_from(PARM(NPRM))
+                        ADR(NARG) = LOC(PARM(NPRM))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM - 1
                     ENDIF
@@ -382,7 +457,7 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                         JLEN = MIN((LEN+KARMOT-1) / KARMOT , 101 - NPRM)
                         IF (.NOT. INLIST) THEN
                             NARG = MIN(NARG+1, 41)
-                            ADR(NARG) =get_address_from(PARM(NPRM+1))
+                            ADR(NARG) = LOC(PARM(NPRM+1))
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ENDIF
@@ -398,7 +473,7 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                             INLIST = .TRUE.
                             PREVI =4
                             NARG = MIN(NARG+1, 41)
-                            ADR(NARG) =get_address_from(PARM(NPRM+1))
+                            ADR(NARG) = LOC(PARM(NPRM+1))
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ELSE
@@ -438,9 +513,11 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                 CALL QLXERR(81022, 'QLXCALL')
                 ERR = .TRUE.
             ELSE
-                call set_content_of_location(ICOUNT, 1, NARG)
-                JUNK=RMTCALL(SUB, ADR)
-                call set_content_of_location(ICOUNT, 1, 0)
+                icount64 = ICOUNT
+                call set_content_of_address(icount64, 1, NARG)
+!                 junk = rmtcall(SUB, ADR)
+                junk = remote_call(SUB, ADR)
+                call set_content_of_address(icount64, 1, 0)
                 CALL QLXFLSH('$')
             ENDIF
         ENDIF
@@ -452,7 +529,6 @@ function QLXCHR()
     use App
     use readlx_qlxbuff
     character(len=1) QLXCHR
-
 
     character(len=8) SKIPMSG(0:3)
     LOGICAL COMMENT
@@ -576,6 +652,7 @@ SUBROUTINE QLXERR(CODE, MODULE)
     DATA MSG( 20) /', OU ) ATTENDU'/
     DATA MSG( 21) /'LA PILE D ARGUMENTS DEBORDE'/
     DATA MSG( 22) /'TROP OU PAS ASSEZ D''ARGUMENTS'/
+    DATA MSG( 23) /'ADRESSE INVALIDE'/
 
     DATA TYPE( 1) /APP_INFO/
     DATA TYPE( 2) /APP_ALWAYS/
@@ -624,8 +701,6 @@ subroutine qlxfnd(key, locvar, loccnt, limits, ityp)
     integer, intent(out) :: limits
     integer, intent(out) :: ityp
 
-    integer(kind = int64), external ::  get_address_from
-
     ! retrouve, a partir de la cle ikey, l'adresse de ivar, icount.
 
     integer, external :: qlxnvar, qlxundf, qlxprnt
@@ -672,18 +747,18 @@ subroutine qlxfnd(key, locvar, loccnt, limits, ityp)
         ITYP = 13
     case(10)
         ITYP = 2
-        LOCVAR = get_address_from(QLXPRNT)
-        LOCCNT = get_address_from(DUMMY)
+        LOCVAR = LOC(QLXPRNT)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 202
     case(11)
         ITYP = 2
-        LOCVAR = get_address_from(QLXNVAR)
-        LOCCNT = get_address_from(DUMMY)
+        LOCVAR = LOC(QLXNVAR)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 202
     case(12)
         ITYP = 2
-        LOCVAR = get_address_from(QLXUNDF)
-        LOCCNT = get_address_from(DUMMY)
+        LOCVAR = LOC(QLXUNDF)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 101
     end select
 END
@@ -698,7 +773,7 @@ SUBROUTINE QLXIND(IND, ERR)
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
     COMMON/QLXTOK2/TOKEN
     character(len=80) TOKEN
@@ -706,6 +781,8 @@ SUBROUTINE QLXIND(IND, ERR)
     EXTERNAL QLXSKP
     character(len=1) QLXSKP
     character(len=1) IC
+
+    pjval = LOC(ZVAL)
     IND=1
     IC=QLXSKP(' ')
 
@@ -730,7 +807,7 @@ SUBROUTINE QLXIND(IND, ERR)
 END
 
 !> Déclaration des routines
-SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
+SUBROUTINE QLXINX(xtern, key, icount, limits, ityp)
     use app
 
     !> Nom de la fonction à appeler
@@ -767,14 +844,14 @@ SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
     INTEGER :: limits
     INTEGER :: ityp
 
-    EXTERNAL readlx
+    integer, EXTERNAL :: READLX
 
     IF (ityp == 2) THEN
         CALL lib_log(APP_LIBRMN, APP_ERROR, 'QLXINX doit etre utilise quand ityp = 2, au lieu de QLXINS')
         CALL QLXERR(81013, 'QLXINS')
         STOP
     ELSE
-        CALL qqlxins(ivar, key, icount, limits, ityp, readlx)
+        CALL qqlxins(ivar, key, icount, limits, ityp, READLX)
     ENDIF
 END
 
@@ -789,7 +866,7 @@ SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
     INTEGER, INTENT(IN) :: limits
     INTEGER, INTENT(IN) :: ityp
 
-    EXTERNAL xtern
+    integer, EXTERNAL :: xtern
 
     ! CONSTRUIT UNE TABLE CONTENANT LA CLE(IKEY), L'ADRESSE DES
     ! VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
@@ -797,7 +874,6 @@ SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
 
     CHARACTER(len = 8) :: ikey
     INTEGER :: ipnt
-    INTEGER(KIND = int64), EXTERNAL :: get_address_from
 
     ! TROUVER LA CLE
     CALL low2up(key, ikey)
@@ -828,12 +904,12 @@ SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
     icount = 0
     NAMES(ipnt) = ikey
     IF (ityp ==  2) THEN
-        IPTADR(1, ipnt) = get_address_from(xtern)
+        IPTADR(1, ipnt) = LOC(xtern)
     ELSE
-        IPTADR(1, ipnt) = get_address_from(ivar)
+        IPTADR(1, ipnt) = LOC(ivar)
     ENDIF
     ITAB(3, ipnt) = IOR(limits, ishft(ityp, 24))
-    IPTADR(2, ipnt) = get_address_from(icount)
+    IPTADR(2, ipnt) = LOC(icount)
 END SUBROUTINE qqlxins
 
 
@@ -844,12 +920,8 @@ SUBROUTINE QLXLOOK(IVAR, KEY, ICOUNT, LIMITS, ITYP)
     INTEGER               :: ITYP, LIMITS
     character(len=*)      :: KEY
 
-    integer(kind=8), external :: get_address_from
-
     INTEGER               :: IPNT
-
     character(len=8) ikey
-    integer :: i
 
     ! TROUVER LA CLE
     CALL LOW2UP(KEY, IKEY)
@@ -873,11 +945,12 @@ SUBROUTINE QLXLOOK(IVAR, KEY, ICOUNT, LIMITS, ITYP)
 end
 
 
-subroutine QLXUDF(IVAR, KEY)
+! subroutine QLXUDF(IVAR, KEY)
+subroutine QLXUDF2(KEY)
     use rmn_common
     use readlx_nrdlx
     implicit none
-    integer(kind = int64) :: ivar
+!     integer(kind = int64) :: ivar
     character(len=*) KEY
 
     INTEGER IPNT
@@ -918,18 +991,18 @@ END
 
 
 !> Reconstituer un nombre entier, reel ou octal
-FUNCTION QLXNUM(IB, LENG)
-    INTEGER QLXNUM
-    character(len=*) IB
-    INTEGER LENG
+INTEGER FUNCTION QLXNUM(IB, LENG)
+    character(len=*), intent(INOUT) :: IB
+    INTEGER, intent(INOUT) :: LENG
 
     !ARGUMENT
-    !        QLXNUM    RETOURNE   -10   POUR UN NOMBRE REEL
-    !        (S)                   -9   POUR UN NOMBRE ENTIER
-    !                               -3   ERREUR
+    !        QLXNUM    RETOURNE   2   reel
+    !        (S)                  1   entier
+    !                             6   entier octal
+    !                             5   ERREUR
     !
     !        IB(*)     IB(1) EST LE PREMIER CHIFFRE DU NOMBRE.
-    !       (E)        LA TABLE IB CONTIENT LE NOMBRE.
+    !        (E)       LA TABLE IB CONTIENT LE NOMBRE.
     !
     !        LENG      NOMBRE DE CARACTERES DANS LE NOMBRE(ENTIER OU REEL)
     !        (S)
@@ -939,35 +1012,35 @@ FUNCTION QLXNUM(IB, LENG)
     character(len=1) I, CTMP, QLXCHR
 
     IF (IB(1:1) == '.') THEN
-        ILX = 1
+        ILX = 1                                ! real number
     ELSE
-        ILX = 0
+        ILX = 0                                ! potentially an integer
     ENDIF
     I = QLXCHR()
 
-    DO WHILE (I >= '0' .AND. I <= '9' )
+    DO WHILE (I >= '0' .AND. I <= '9' )        ! collect a digit stream
         LENG = MIN(21, LENG+1)
         IB(LENG:LENG) = I
         I = QLXCHR()
     END DO
-    IF (I == '.' .AND. IB(1:1).NE.'.') THEN
+    IF (I == '.' .AND. IB(1:1).NE.'.') THEN    ! decimal period, not in column 1
         ILX = 1
         LENG = MIN(21, LENG+1)
         IB(LENG:LENG) = I
         I = QLXCHR()
-        DO WHILE (I >= '0' .AND. I <= '9')
+        DO WHILE (I >= '0' .AND. I <= '9')     ! digit stream after the period
             LENG = MIN(21, LENG+1)
             IB(LENG:LENG) = I
             I = QLXCHR()
         END DO
     END IF
 
-      IF (I == 'E' ) THEN
+      IF (I == 'E' ) THEN                      ! E after number
          IF (ILX == 0) THEN
             LENG=MIN(21, LENG+1)
             IB(LENG:LENG)='.'
          ENDIF
-         ILX = 1
+         ILX = 1                               ! definitely a real number
          LENG = MIN(21, LENG+1)
          IB(LENG:LENG) = I
          I = QLXCHR()
@@ -975,24 +1048,24 @@ FUNCTION QLXNUM(IB, LENG)
 6           LENG = MIN(21, LENG + 1)
             IB(LENG:LENG) = I
             I = QLXCHR()
-            IF (I >= '0' .AND. I <= '9') THEN
+            IF (I >= '0' .AND. I <= '9') THEN  ! more digits
                GOTO 6
             ENDIF
          ENDIF
       ENDIF
 
       IF (LENG >= 21) THEN
-         QLXNUM=5
+         QLXNUM=5                              ! bad number
       ELSE
          IF (ILX == 0) THEN
             IF (I.NE.'B') THEN
-               QLXNUM=1
+               QLXNUM=1                        ! integer
             ELSE
-               QLXNUM=6
+               QLXNUM=6                        ! octal
                I=QLXCHR()
                DO J = LENG, 1, -1
                   IF (IB(J:J) > '7') THEN
-                     QLXNUM=5
+                     QLXNUM=5                  ! bad number
                   ENDIF
                   CTMP = IB(J:J)
                   IB(20-LENG+J:20-LENG+J)=CTMP
@@ -1005,12 +1078,12 @@ FUNCTION QLXNUM(IB, LENG)
          ELSE
             IF (LENG > 1) THEN
                IF (IB(LENG:LENG) == '.') THEN
-                  QLXNUM=2
+                  QLXNUM=2                     ! real number
                ELSE
                   IF (IB(LENG:LENG) >= '0' .AND. IB(LENG:LENG) <= '9') THEN
-                     QLXNUM=2
+                     QLXNUM=2                  ! real number
                   ELSE
-                     QLXNUM=5
+                     QLXNUM=5                  ! bad number
                   ENDIF
                ENDIF
             ELSE
@@ -1039,6 +1112,7 @@ SUBROUTINE QLXNVAR(KEY, NW)
     SAVE DUMMY
     DATA NSC /1/
     DATA DUMMY /0/
+
     WRITE(IKEY, LINEFMT) (KEY(J), J=1, ARGDIMS(1))
     CALL QLXLOOK(IVAR, IKEY, ICOUNT, LIMITS, ITYP)
     IF (ITYP /= -1) THEN
@@ -1048,7 +1122,7 @@ SUBROUTINE QLXNVAR(KEY, NW)
         CALL QLXERR(21011, 'QLXNVAR')
         RETURN
     ENDIF
-    CALL QLXINS(SC(NSC), IKEY, DUMMY, NW, 1)
+    CALL qlxins(SC(NSC), IKEY, DUMMY, NW, 1)
     NSC = NSC + NW
 END
 
@@ -1057,15 +1131,23 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
       use rmn_common
       INTEGER NTOKEN, OPRTR, TOKENS(NTOKEN), TOKTYPE(NTOKEN)
       LOGICAL ERR
-      integer(kind = int64) :: get_address_from
-      EXTERNAL get_address_from
-
+      integer (kind = int64) :: token64
 
       INTEGER IZ1, IZ2, IR1
       REAL   Z1,  Z2,  R1
-      EQUIVALENCE (IZ1, Z1), (IZ2, Z2), (IR1, R1)
+      pointer(pz1,Z1)
+      pointer(pz2,Z2)
+      pointer(pr1,R1)
       LOGICAL REALOP
+      integer :: TOK
       POINTER (PTOK, TOK(*))
+
+      pz1 = LOC(IZ1)
+      IZ1 = 0
+      pz2 = LOC(IZ2)
+      IZ2 = 0
+      pr1 = LOC(IR1)
+
       IF (ERR) THEN
          RETURN
       ENDIF
@@ -1079,12 +1161,14 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
          RETURN
       ENDIF
       IF (TOKTYPE(NTOKEN) > 0) THEN
-         call get_content_of_location(TOKENS(NTOKEN), 1, TOKENS(NTOKEN))
+         token64 = TOKENS(NTOKEN)
+         call get_content_of_address(token64, 1, TOKENS(NTOKEN))
          TOKTYPE(NTOKEN) = 0
       ENDIF
       IF (OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND. OPRTR.NE.4) THEN
          IF (TOKTYPE(NTOKEN-1) > 0) THEN
-            call get_content_of_location(TOKENS(NTOKEN-1), 1, TOKENS(NTOKEN-1))
+            token64 = TOKENS(NTOKEN-1)
+            call get_content_of_address(token64, 1, TOKENS(NTOKEN-1))
             TOKTYPE(NTOKEN-1) = 0
          ENDIF
       ENDIF
@@ -1117,7 +1201,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
             RETURN
 
          ENDIF
-         PTOK = get_address_from(TOKENS(NTOKEN-1))
+         PTOK = LOC(TOKENS(NTOKEN-1))
          TOKENS(NTOKEN-1) = TOK(TOKENS(NTOKEN))
          NTOKEN = NTOKEN - 1
          TOKTYPE(NTOKEN) = 1
@@ -1259,7 +1343,8 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
             ERR = .TRUE.
             RETURN
          ENDIF
-         call set_content_of_location(TOKENS(NTOKEN-1), 1, TOKENS(NTOKEN))
+         token64 = TOKENS(NTOKEN-1)
+         call set_content_of_address(token64, 1, TOKENS(NTOKEN))
          NTOKEN = NTOKEN - 1
          RETURN
       end select
@@ -1290,7 +1375,7 @@ END
 INTEGER FUNCTION QLXPRI_L(OPR, LEFTPRI)
     character(len=*) OPR
     LOGICAL LEFTPRI
-    INTEGER QLXPRIL
+!     INTEGER QLXPRIL
     PARAMETER (MAXOPER=23)
     INTEGER PRI(MAXOPER)
     character(len=4) LISTE(MAXOPER), OPRTR
@@ -1449,12 +1534,13 @@ SUBROUTINE QLXTOK
     ! JVAL, ZVAL LES VALEURS D'UN NOMBRE ENTIER OU REEL,
     ! (S)       CONTENU DANS UN TOKEN.
 
-    INTEGER ISIGN, ITYP
+    INTEGER JSIGN, ITYP
     COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+!     EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
     COMMON /QLXTOK2/ TOKEN
     character(len=80) TOKEN
@@ -1463,7 +1549,10 @@ SUBROUTINE QLXTOK
     EXTERNAL QLXCHR, QLXNUM
     character(len=1) IC, QLXCHR
     INTEGER  QLXNUM
+
+    pjval = LOC(ZVAL)
     IVAL = -1
+    JSIGN = 0
     TOKEN = ' '
 
     IC = QLXCHR()
@@ -1504,13 +1593,13 @@ SUBROUTINE QLXTOK
         ELSE
             IF ( (IC >= '0' .AND. IC <= '9') .OR. (IC == '.') ) THEN
                 TYPE = QLXNUM(TOKEN, LENG)
-                ISIGN = 1
+                JSIGN = 1
             ELSE
                 IF ( (IC == '+' .OR. IC == '-') .AND. (.NOT.INEXPR) ) THEN
                     IF (IC == '+') THEN
-                        ISIGN = 1
+                        JSIGN = 1
                     ELSE
-                        ISIGN = -1
+                        JSIGN = -1
                     ENDIF
                     IC = QLXCHR()
                     IF ((IC >= '0' .AND. IC <= '9').OR. IC == '.') THEN
@@ -1556,16 +1645,16 @@ SUBROUTINE QLXTOK
     ENDIF
     IF (TYPE == 1) THEN
         READ(TOKEN, '(I20)')JVAL
-        JVAL = SIGN(JVAL, ISIGN)
+        JVAL = SIGN(JVAL, JSIGN)
     ELSE
         IF (TYPE == 2) THEN
             READ(TOKEN, '(G20.3)')ZVAL
-            ZVAL = SIGN(ZVAL, FLOAT(ISIGN))
+            ZVAL = SIGN(ZVAL, FLOAT(JSIGN))
         ELSE
             IF (TYPE == 6) THEN
                 READ(TOKEN, '(O20)')JVAL
                 TYPE = 1
-                JVAL = SIGN(JVAL, ISIGN)
+                JVAL = SIGN(JVAL, JSIGN)
             ENDIF
         ENDIF
     ENDIF
@@ -1576,7 +1665,7 @@ SUBROUTINE QLXTOK
             LENG = MIN(LENG, KARMOT)
         ELSE
             IF ( (ITYP  ==  0) .OR. (ITYP  ==  1) ) THEN
-                call get_content_of_location(LOCVAR, 1, JVAL)
+                call get_content_of_address(LOCVAR, 1, JVAL)
             ELSE
                 JVAL = -1
             ENDIF
@@ -1593,11 +1682,11 @@ SUBROUTINE QLXUNDF(IKEY)
     INTEGER IKEY(*)
     character(len=8) CKEY
     INTEGER ARGDIMS
-    integer(kind = int64) :: SCRAP
+!     integer(kind = int64) :: SCRAP
 
     WRITE(CKEY, 101) (IKEY(I), I=1, ARGDIMS(1))
 101   FORMAT(2 A4)
-    CALL QLXUDF(SCRAP, CKEY)
+    CALL QLXUDF2(CKEY)
 END
 
 
@@ -1606,13 +1695,14 @@ FUNCTION QLXVAL(KLE, ERR)
 
     character(len=*) KLE
     LOGICAL ERR
-    INTEGER IND, VAL, DUM
+!     INTEGER IND, VAL, DUM
+    INTEGER IND, VAL
 
     CALL QLXIND(IND, ERR)
 
     VAL = 0
     IF (.NOT. ERR) THEN
-        CALL QLXADI(KLE, IND, VAL, DUM, ERR)
+        CALL QLXADI2(KLE, IND, VAL, ERR)
     ENDIF
     QLXVAL = VAL
 END
@@ -1628,7 +1718,7 @@ SUBROUTINE QLXXPR(ERR)
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
     COMMON /QLXTOK2/ TOKEN
     character(len=80) TOKEN
@@ -1642,6 +1732,7 @@ SUBROUTINE QLXXPR(ERR)
     INTEGER PLEV, QLXPRI
     EXTERNAL QLXPRI
 
+    pjval = LOC(ZVAL)
     INEXPR = .TRUE.
     NTOKEN = 0
     PLEV = 0
@@ -1664,7 +1755,11 @@ SUBROUTINE QLXXPR(ERR)
             IF (ITYP.NE.0 .AND. ITYP.NE.1) THEN
                 ERR = .TRUE.
             ENDIF
-            TOKENS(NTOKEN) = LOCVAR
+!             TOKENS(NTOKEN) = LOCVAR
+            TOKENS(NTOKEN) = 0              ! FATAL ERROR, no way to store an address in 32 bits
+            call lib_log(APP_LIBRMN, APP_ERROR, 'impossible de stocker 64 bits dans 32 bits')
+            ERR = .TRUE.
+            CALL QLXERR(81023, 'QLXEXPR')
             TOKTYPE(NTOKEN) = LIMITES + 1
             IF (.NOT. UNARY) THEN
                 ERR = .TRUE.
@@ -1771,7 +1866,7 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
     COMMON/QLXTOK2/TOKEN
     character(len=80) TOKEN
@@ -1788,17 +1883,19 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
     INTEGER READBSE(MAXSTRU)
     INTEGER NSTRUC, ier
     character(len=128) nomscra
+    integer(kind = int64) :: jval64
 
     DATA NXTELSE / 1, 0, 2/
     DATA NEXTIF  / 0, 2, 2/
 
+    pjval = LOC(ZVAL)
     WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
     KERRMAX = 999999
 
     IF (KERR < 0 ) THEN
         KERRMAX = MIN(ABS(KERR), KERRMAX)
     ENDIF
-
+print *,"==========================READLX NEW=========================="
     NC = 1
     LAST = 0
     INPFILE = UNIT
@@ -1826,9 +1923,9 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
         IF (TYPE == 0) THEN
             CALL QLXFND(TOKEN, LOCVAR, LOCCNT, LIMITS, ITYP)
             IF (ITYP == 1 .AND. SKIPF(NSTRUC) == 0) THEN
-                call get_content_of_location(LOCCNT, 1, IICNT)
+                call get_content_of_address(LOCCNT, 1, IICNT)
                 CALL QLXASG(LOCVAR, IICNT, LIMITS, ERR)
-                call set_content_of_location(LOCCNT, 1, IICNT)
+                call set_content_of_address(LOCCNT, 1, IICNT)
             ELSE
                 IF (ITYP == 2 .AND. SKIPF(NSTRUC) == 0) THEN
                     CALL QLXCALL(LOCVAR, LOCCNT, LIMITS, ERR)
@@ -1845,7 +1942,8 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                                     EXIT
                                 ENDIF
                                 IF (TYPE == 8) THEN
-                                    call get_content_of_location(JVAL, 1, JVAL)
+                                    jval64 = JVAL
+                                    call get_content_of_address(jval64, 1, JVAL)
                                 ENDIF
                                 IF (IAND(JVAL, ishft(-1, 32-(16))) == 0) THEN
                                     SKIPF(NSTRUC) = 1
@@ -1889,7 +1987,8 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                                                 EXIT
                                             ENDIF
                                             IF (TYPE == 8) THEN
-                                                call get_content_of_location(JVAL, 1, JVAL)
+                                                jval64 = JVAL
+                                                call get_content_of_address(jval64, 1, JVAL)
                                             ENDIF
                                             IF (IAND(JVAL, ishft(-1, 32-(16))) == 0) THEN
                                                 SKIPF(NSTRUC) = 1
