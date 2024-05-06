@@ -703,11 +703,21 @@ static void free_capsule_ptr(void *capsule) {
 static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 {
     if(self->data_array == NULL){
-        // TODO: Look at the record to find out what the actual data_type is
-        // right now so I'm just assuming it's float
-        size_t thing_size = sizeof(float);
-        fst24_read_record(&self->rec);
 
+        // If no data has been set on the record and there is no file to read
+        // the data from, return None.  This access is not an error.
+        if(self->rec.do_not_touch.handle < 0){
+            Py_RETURN_NONE;
+        }
+
+        if(fst24_read_record(&self->rec) < 0) {
+            PyErr_Format(RpnExc_FstFileError, "Accessing record data: %s", App_ErrorGet());
+            return NULL;
+        }
+
+        // TODO: Look at the record to find out what the actual data_type is
+        // so that we set the type for the numpy array appropriately.
+        size_t thing_size = sizeof(float);
         // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
         // otherwise we can just always return arrays of shape (ni, nj, nk).
         // TODO: Ensure data ordering is OK (C vs Fortran)
