@@ -459,10 +459,10 @@ void print_std_parms(
             snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
         }
 
-        if (strstr(option, "NOSIZ")) {
-            h_siz[0] = '\0';
-        } else {
+        if (strstr(option, "DASIZ")) {
             snprintf(h_siz, sizeof(h_siz), "%s", "SIZ");
+        } else {
+            h_siz[0] = '\0';
         }
 
         if (strstr(option, "GRIDINFO")) {
@@ -621,10 +621,10 @@ void print_std_parms(
         }
     }
 
-    if (strstr(option, "NOSIZ")) {
-        v_siz[0] = '\0';
-    } else {
+    if (strstr(option, "DASIZ")) {
         snprintf(v_siz, sizeof(v_siz), "%3d", stdf_entry->dasiz);
+    } else {
+        v_siz[0] = '\0';
     }
 
     if (strstr(option, "GRIDINFO")) {
