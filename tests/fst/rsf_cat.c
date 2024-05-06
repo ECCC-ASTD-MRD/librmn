@@ -42,8 +42,6 @@ int main(void) {
         rec.data = data1;
         if (fst24_write(f, &rec, 0) <= 0) return -1;
         if (fst24_close(f) <= 0) return -1;
-
-        free(f);
     }
 
     // Create 2nd file with 1 record
@@ -54,8 +52,6 @@ int main(void) {
         rec.data = data2;
         if (fst24_write(f, &rec, 0) <= 0) return -1;
         if (fst24_close(f) <= 0) return -1;
-
-        free(f);
     }
 
     App_Log(APP_INFO, "Concatenating the files\n");

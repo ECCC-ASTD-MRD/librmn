@@ -97,9 +97,8 @@ fst_file* fst24_open(
     return the_file;
 }
 
-//! Close the given standard file
+//! Close the given standard file and free the memory associated with the struct
 //! \todo What happens if closing a linked file?
-//! \todo Shouldn't this function take a fst_file** as argument to be able to set it to null?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
@@ -112,6 +111,8 @@ int32_t fst24_close(fst_file* const file) {
     if (status < 0) return status;
 
     *file = default_fst_file;
+
+    free(file);
 
     return TRUE;
 }

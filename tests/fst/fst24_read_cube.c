@@ -57,7 +57,6 @@ int create_file() {
     }
 
     fst24_close(test_file);
-    free(test_file);
 
     return 0;
 }
@@ -119,7 +118,6 @@ int main(void) {
     if (check_result(read_data) < 0) return -1;
 
     fst24_close(test_file);
-    free(test_file);
 
     App_Log(APP_INFO, "Test successful\n");
 

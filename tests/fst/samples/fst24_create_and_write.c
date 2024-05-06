@@ -36,7 +36,5 @@ int main(void) {
   
   if (fst24_close(my_file) <= 0) return -1;
   
-  free(my_file);
-
   return 0;
 }

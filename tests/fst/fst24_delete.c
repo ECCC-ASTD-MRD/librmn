@@ -50,7 +50,6 @@ int create_file(const int is_rsf) {
     fst24_write(test_file, &rec, 0);
 
     fst24_close(test_file);
-    free(test_file);
 
     return 0;
 }
@@ -73,7 +72,6 @@ int test_fst24_delete(const int is_rsf) {
         if (fst24_delete(&rec) <= 0) {
             App_Log(APP_ERROR, "Unable to delete the record!\n");
             fst24_close(test_file);
-            free(test_file);
             return -1;
         }
     }
@@ -81,7 +79,6 @@ int test_fst24_delete(const int is_rsf) {
     fst24_print_summary(test_file, NULL);
 
     fst24_close(test_file);
-    free(test_file);
 
     return 0;
 }

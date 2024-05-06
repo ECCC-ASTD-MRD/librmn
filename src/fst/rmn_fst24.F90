@@ -140,7 +140,6 @@ contains
         integer(C_INT32_T) :: c_could_close
         could_close = .false.
         c_could_close = fst24_close(this % file_ptr)
-        call libc_free(this % file_ptr)
 
         this % file_ptr = c_null_ptr
         if (c_could_close == 1) could_close = .true.

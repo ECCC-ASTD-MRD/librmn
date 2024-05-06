@@ -132,8 +132,6 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         return -1;
     }
 
-    free(new_file);
-
     const int32_t type = c_wkoffit(name, strlen(name));
     if ((type == WKF_STDRSF && is_rsf) || (type == WKF_RANDOM98 && !is_rsf)) {
         // we're good
@@ -504,10 +502,6 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Should not be able to get num records of closed file\n");
         return -1;
     }
-
-    free(test_file); test_file = NULL;
-    free(file_list[1]); file_list[1] = NULL;
-    free(file_list[2]); file_list[2] = NULL;
 
     fst24_record_free(&record);
     fst24_query_free(query);

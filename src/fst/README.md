@@ -253,7 +253,6 @@ int main(void)
     }
   
     fst24_close(my_file);
-    free(my_file);
 }
 ```
 </td>
@@ -428,7 +427,6 @@ for (int i = 0; i < num_records; i++) {
 fst24_query_free(my_query);
 
 fst24_close(my_file);
-free(my_file);
 ```
 </td>
 </tr>
@@ -775,8 +773,6 @@ int main(void) {
   if (fst24_close(my_file) <= 0)
     return -1;
   
-  free(my_file);
-
   return 0;
 }
 ```
@@ -901,9 +897,8 @@ fst_file* fst24_open(
     const char* const options     //!< A list of options, as a string, with each pair of options separated by a comma or a '+'
 );
 
-//! Close the given standard file
+//! Close the given standard file and free the memory associated with the struct
 //! \todo What happens if closing a linked file?
-//! \todo Shouldn't this function take a fst_file** as argument to be able to set it to null?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file);
 

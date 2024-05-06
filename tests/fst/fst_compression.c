@@ -403,8 +403,6 @@ int create_file(const int is_rsf) {
         return -1;
     }
 
-    free(test_file);
-    
     return 0;
 }
 
@@ -480,7 +478,6 @@ int test_compression(const int is_rsf) {
         App_Log(APP_ERROR, "Unable to close new file %s\n", test_filename);
         return -1;
     }
-    free(test_file);
 
     return 0;
 }
