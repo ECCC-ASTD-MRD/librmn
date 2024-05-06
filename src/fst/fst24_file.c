@@ -1724,8 +1724,11 @@ int32_t fst24_read_record(
 
     if (ret < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not read record, ier = %d\n", __func__, ret);
-        free(record->data);
-        record->data = NULL;
+        if (record->do_not_touch.alloc>0) {
+           free(record->data);
+           record->data = NULL;
+           record->do_not_touch.alloc = 0;
+        }
         return ret;
     }
 
