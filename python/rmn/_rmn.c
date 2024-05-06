@@ -160,11 +160,31 @@ static PyTypeObject py_fst24_file_type = {
 struct py_fst_query {
     PyObject_HEAD
     fst_query *ref;
+    // Because internally the query's find_next method needs to refer to the
+    // underlying file, the python object will need to hold a reference to the
+    // python fst24_file object so that said python file object doesn't get
+    // closed.
+    //
+    // For example, a quick oneliner like
+    //
+    //      my_query = rmn.fst24_file(filename=...).new_query(nomvar='<<')
+    //
+    // after this line, the refcount of the rmn.fst24_file object goes to zero
+    // and the file gets closed (fst24_close()) by py_fst24_file_dealloc().
+    // then, doing
+    //
+    //      for record in my_query:
+    //          ...
+    //
+    // fails because the query's associated file is closed.  This is why this
+    // reference is necessary.
+    struct py_fst24_file *file_ref;
 };
 
 static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static PyObject *py_fst_query_iternext(struct py_fst_query *self);
 static PyObject *py_fst_query_get_iter(struct py_fst_query *self);
+static void py_fst_query_dealloc(struct py_fst_query *self);
 static PyTypeObject py_fst_query_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_rmn.fst_query",
@@ -172,10 +192,10 @@ static PyTypeObject py_fst_query_type = {
     .tp_basicsize = sizeof(struct py_fst_query),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_dealloc = (destructor) py_fst_query_dealloc,
     .tp_new = py_fst_query_new,
     .tp_iternext = (iternextfunc) py_fst_query_iternext,
-    .tp_iter = (getiterfunc) py_fst_query_get_iter,
-    // TODO dealloc
+    .tp_iter = (getiterfunc) PyObject_SelfIter,
 };
 
 /*******************************************************************************
@@ -435,15 +455,20 @@ static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *a
         return NULL;
     }
 
-    fst_query *q = fst24_new_query(self->ref, &criteria, NULL);
-    if(q == NULL){
+    fst_query *new_query = fst24_new_query(self->ref, &criteria, NULL);
+    if(new_query == NULL){
         PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
+        return NULL;
     }
-    struct py_fst_query *py_q = (struct py_fst_query *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
-    py_q->ref = q;
 
-    Py_INCREF((PyObject*)py_q);
-    return (PyObject *)py_q;
+    struct py_fst_query *py_new_query = (struct py_fst_query *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
+    py_new_query->ref = new_query;
+
+    Py_INCREF(self);
+    py_new_query->file_ref = self;
+
+    Py_INCREF((PyObject*)py_new_query);
+    return (PyObject *)py_new_query;
 }
 
 static PyObject *py_fst24_file_write(struct py_fst24_file *self, PyObject *args, PyObject *kwds)
@@ -511,7 +536,29 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
 
     self->ref = NULL;
 
+    // I wonder if we can prevent users from creating query objects and
+    // somehow ensure that they are only created using the `fst24_file.new_query`
+    // method.
+    self->file_ref = NULL;
+
     return (PyObject *)self;
+}
+
+static void py_fst_query_dealloc(struct py_fst_query *self)
+{
+    // self->ref could be NULL because we are not enforcing creation only by
+    // .new_query method on fst24_file.
+    if(self->ref != NULL){
+        fst24_query_free(self->ref);
+    }
+
+    // Py_XDECREF() instead of Py_DECREF() because the file may be null since
+    // we are not enforcing that users only create queries using the `.new_query()`
+    // method of the `py_fst24_file`.
+    struct py_fst24_file *tmp;
+    tmp = self->file_ref;
+    self->file_ref = NULL;
+    Py_XDECREF(tmp);
 }
 
 static PyObject *py_fst_query_get_iter(struct py_fst_query *self){

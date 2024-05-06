@@ -145,17 +145,17 @@ def attempt_to_write_non_record_to_file():
         print(f"Got exception as expected: {repr(e)}")
 
 if __name__ == "__main__":
-    # create_query_and_iterate_on_records()
+    create_query_and_iterate_on_records()
     # open_empty_filename()
     # open_non_existant_file_without_W_option()
-    create_file_with_data()
+    # create_file_with_data()
 
     # The created file with rsf must be inspected with a sufficiently recent
     # version of voir.  Also, there are error messages that are printed
     # (ERROR) META|Meta_Init: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined
     # (ERROR) META|Dict_Load: Environment variable CMCCONST not defined, source the CMOI base domain
     # but the file was created successfully so these are not actually errors.
-    create_file_with_data(rsf=True)
+    # create_file_with_data(rsf=True)
 
     # attempt_to_write_non_record_to_file()
     # invalid_access_of_record_data()
