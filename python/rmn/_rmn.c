@@ -5,6 +5,8 @@
 #define NPY_NO_DEPRECATED_API NPY_1_9_API_VERSION
 #include <numpy/arrayobject.h>
 #include <rmn/fst24_file.h>
+#include <rmn.h>
+#include <App.h>
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
 #include <sys/stat.h>
@@ -54,11 +56,23 @@
  * incremented.
  */
 
+static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args));
+static PyMethodDef mymodule_method_defs[] = {
+    {
+        .ml_name = "get_test_record",
+        .ml_doc = "Get a test record",
+        .ml_flags = METH_NOARGS,
+        .ml_meth = rmn_get_test_record,
+    },
+    {NULL, NULL, 0, NULL},
+};
+
 static PyModuleDef mymodulemodule = {
     PyModuleDef_HEAD_INIT,
-    .m_name = "_librmn",
+    .m_name = "_rmn",
     .m_doc = "Example module that creates a Person type",
     .m_size = -1,
+    .m_methods = mymodule_method_defs,
 };
 
 /*******************************************************************************
@@ -75,6 +89,7 @@ static void py_fst24_file_dealloc(struct fst24_file_container *self);
 static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
 static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args));
 static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
+static PyObject *py_fst24_file_write(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
 
 static PyMemberDef py_fst24_file_member_def[] = {
     {
@@ -94,6 +109,8 @@ static PyMemberDef py_fst24_file_member_def[] = {
     {NULL},
 };
 
+static PyObject *py_fst24_file_close(struct fst24_file_container *self, PyObject *Py_UNUSED(args));
+static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args);
 static PyMethodDef py_fst24_file_method_defs[] = {
     {
         .ml_name = "new_query",
@@ -101,12 +118,30 @@ static PyMethodDef py_fst24_file_method_defs[] = {
         .ml_meth = (PyCFunction) py_fst24_file_new_query,
         .ml_doc  = "Return a query object for file",
     },
+    {
+        .ml_name = "write",
+        .ml_flags = METH_VARARGS|METH_KEYWORDS,
+        .ml_meth = (PyCFunction) py_fst24_file_write,
+        .ml_doc = "Write a record into a file",
+    },
+    {
+        .ml_name = "__enter__",
+        .ml_flags = METH_VARARGS,
+        .ml_meth = (PyCFunction) py_fst24_file_retself,
+        .ml_doc = "Write a record into a file",
+    },
+    {
+        .ml_name = "__exit__",
+        .ml_flags = METH_VARARGS,
+        .ml_meth = (PyCFunction) py_fst24_file_close,
+        .ml_doc = "Write a record into a file",
+    },
     {NULL, NULL, 0, NULL},
 };
 
 static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_librmn.fst24_file",
+    .tp_name = "_rmn.fst24_file",
     .tp_doc = "Python fst24_file object",
     .tp_basicsize = sizeof(struct fst24_file_container),
     .tp_itemsize = 0,
@@ -132,7 +167,7 @@ static PyObject *py_fst_query_iternext(struct fst_query_container *self);
 static PyObject *py_fst_query_get_iter(struct fst_query_container *self);
 static PyTypeObject py_fst_query_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_librmn.fst_query",
+    .tp_name = "_rmn.fst_query",
     .tp_doc = "Python fst query object",
     .tp_basicsize = sizeof(struct fst_query_container),
     .tp_itemsize = 0,
@@ -190,6 +225,7 @@ static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self);
 static PyObject *py_fst_record_get_etiket(struct py_fst_record *self);
 static PyObject * py_fst_record_get_data(struct py_fst_record *self);
 static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure);
+static int py_fst_record_set_etiket(struct py_fst_record *self, PyObject *to_assign, void *closure);
 static PyGetSetDef py_fst_record_properties[] = {
     {
         .name = "nomvar",
@@ -200,6 +236,7 @@ static PyGetSetDef py_fst_record_properties[] = {
     {
         .name = "etiket",
         .get = (getter) py_fst_record_get_etiket,
+        .set = (setter) py_fst_record_set_etiket,
         .doc = "Label of the variable for this record",
         .closure = NULL,
     },
@@ -223,7 +260,7 @@ static PyMethodDef py_fst_record_method_defs[] = {
 
 static PyTypeObject py_fst_record_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "_librmn.fst_record",
+    .tp_name = "_rmn.fst_record",
     .tp_doc = "Python fst_record object",
     .tp_basicsize = sizeof(struct py_fst_record),
     .tp_itemsize = 0,
@@ -242,13 +279,13 @@ static PyTypeObject py_fst_record_type = {
  * Type object for custom exception
 *******************************************************************************/
 
-static PyObject * RpnExc_InvalidFstFileError;
+static PyObject * RpnExc_FstFileError;
 static PyObject * RpnExc_InvalidFstDataTypeError;
 static int py_rmn_create_exceptions()
 {
-    RpnExc_InvalidFstFileError = PyErr_NewExceptionWithDoc("rmn.InvalidFstFileError",
+    RpnExc_FstFileError = PyErr_NewExceptionWithDoc("rmn.FstFileError",
             "Invalid fst file", NULL, NULL);
-    if(RpnExc_InvalidFstFileError == NULL){
+    if(RpnExc_FstFileError == NULL){
         return -1;
     }
 
@@ -297,17 +334,17 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
 
     // We might want to remove this to allow the constructor to create a new
     // empty fst file if the file doesn't exist
-    struct stat statbuf;
-    if(stat(filename, &statbuf) != 0){
-        PyErr_Format(PyExc_FileNotFoundError, "[Errno %d] %s: '%s'", errno, strerror(errno), filename);
-        return -1;
-    }
+    // struct stat statbuf;
+    // if(stat(filename, &statbuf) != 0){
+    //     PyErr_Format(PyExc_FileNotFoundError, "[Errno %d] %s: '%s'", errno, strerror(errno), filename);
+    //     return -1;
+    // }
 
     struct fst24_file_ *ref = fst24_open(filename, options);
-    fprintf(stderr, "%s(): Pointer returned by fst24_open(): %p\n", __func__, ref);
 
     if(ref == NULL){
-        PyErr_Format(RpnExc_InvalidFstFileError, "file '%s' could not be opened as fst24_file", filename);
+        char * app_error = App_ErrorGet();
+        PyErr_Format(RpnExc_FstFileError, "%s: '%s'", app_error, filename);
         return -1;
     }
 
@@ -347,11 +384,23 @@ static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args,
     self->options = py_options;
 
     self->ref = ref;
-    PySys_WriteStderr("%s(): self=%p, self->ref=%p, self->filename=%S, self->options=%S\n",
-            __func__, self, self->ref, self->filename, self->options);
 
     return 0;
 }
+
+static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args){
+    Py_INCREF(self);
+    return self;
+}
+
+static PyObject *py_fst24_file_close(struct fst24_file_container *self, PyObject *Py_UNUSED(args))
+{
+    if(!fst24_close(self->ref)){
+        PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
+    }
+    Py_RETURN_NONE;
+}
+
 
 int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyObject *kwds){
 
@@ -387,6 +436,9 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
     }
 
     fst_query *q = fst24_new_query(self->ref, &criteria, NULL);
+    if(q == NULL){
+        PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
+    }
     struct fst_query_container *py_q = (struct fst_query_container *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
     py_q->ref = q;
 
@@ -394,13 +446,51 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
     return (PyObject *)py_q;
 }
 
+static PyObject *py_fst24_file_write(struct fst24_file_container *self, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"record", "rewrite", NULL};
+    struct py_fst_record *py_rec;
+    int rewrite = 0;
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "Op", kwlist, &py_rec, &rewrite)){
+        return NULL;
+    }
+
+    /*
+     * Ensure argument is of type py_fst_record
+     */
+    PyTypeObject *arg_t = Py_TYPE(py_rec);
+    if(arg_t != &py_fst_record_type){
+        PyErr_Format(PyExc_TypeError, "Argument must be '%s' not '%s'", py_fst_record_type.tp_name, arg_t->tp_name);
+    }
+
+    /*
+     * Probably should be handled by fst24_write
+     */
+    if(py_rec->rec.data == NULL){
+        PyErr_Format(PyExc_ValueError, "Attempting to write record with NULL data would cause segfault!!!");
+        return NULL;
+    }
+
+    /*
+     * Make the underlying C call with error checking
+     */
+    if(fst24_write(self->ref, &py_rec->rec, rewrite) != 1){
+        PyErr_Format(RpnExc_FstFileError, "%s", App_ErrorGet());
+        return NULL;
+    }
+
+    /*
+     * Nothing to return, exception would have been raised if error
+     * happened.
+     */
+    Py_RETURN_NONE;
+}
+
 static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
-    fprintf(stderr, "%s(): self = %p\n", __func__, self);
     return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
 }
 
 static void py_fst24_file_dealloc(struct fst24_file_container *self){
-    PySys_FormatStderr("Deallocating object %S\n", self);
     Py_XDECREF(self->filename);
     Py_XDECREF(self->options);
     if(self->ref != NULL){
@@ -560,7 +650,6 @@ static PyObject *py_fst_record_get_etiket(struct py_fst_record *self)
 
 static void free_capsule_ptr(void *capsule) {
     void * ptr = PyCapsule_GetPointer(capsule, PyCapsule_GetName(capsule));
-    fprintf(stderr, "%s(): Freeing memory at %p from numpy array\n", __func__, ptr);
     free(ptr);
 };
 
@@ -606,6 +695,21 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
     Py_INCREF(self->data_array);
     return self->data_array;
 }
+static int py_fst_record_set_etiket(struct py_fst_record *self, PyObject *to_assign, void *closure)
+{
+    Py_ssize_t size;
+    const char *etiket_buf = PyUnicode_AsUTF8AndSize(to_assign, &size);
+    fprintf(stderr, "%s(): size = %lu\n", __func__, size);
+    if(size > FST_ETIKET_LEN + 1){
+        PyErr_Format(PyExc_ValueError, "Cannot assign string longer than '%d' to etiket of record: %lu", FST_ETIKET_LEN, size);
+        return -1;
+    }
+
+    strncpy(self->rec.etiket, etiket_buf, size);
+
+    return 0;
+}
+
 
 static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure)
 {
@@ -633,7 +737,37 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     Py_INCREF(to_assign);
     self->data_array = to_assign;
 
+    self->rec.data = PyArray_DATA((PyArrayObject *)self->data_array);
+
     return 0;
+}
+
+static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
+{
+    struct py_fst_record *obj = (struct py_fst_record*)py_fst_record_type.tp_alloc(&py_fst_record_type, 0);
+    fst_record test_record;
+    test_record = default_fst_record;
+    test_record.data = NULL;
+    test_record.pack_bits = 32;
+    test_record.dateo= 458021600;
+    test_record.deet = 300;
+    test_record.npas = 0;
+    test_record.ip1  = 1;
+    test_record.ip2  = 10;
+    test_record.ip3  = 100;
+    strcpy(test_record.typvar, "P");
+    strcpy(test_record.nomvar, "WAVE");
+    strcpy(test_record.etiket, "float");
+    strcpy(test_record.grtyp, "X");
+    test_record.ig1   = 0;
+    test_record.ig2   = 0;
+    test_record.ig3   = 0;
+    test_record.ig4   = 0;
+    test_record.data_type = FST_TYPE_REAL_IEEE;
+    test_record.data_bits = 32;
+    test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
+    obj->rec = test_record;
+    return (PyObject *)obj;
 }
 
 
@@ -711,8 +845,8 @@ PyMODINIT_FUNC PyInit__rmn(void)
     /*
      * Add the exception objects to the module
      */
-    if(PyModule_AddObject(m, "InvalidFstFileError", (PyObject *)RpnExc_InvalidFstFileError) < 0){
-        Py_DECREF(RpnExc_InvalidFstFileError);
+    if(PyModule_AddObject(m, "FstFileError", (PyObject *)RpnExc_FstFileError) < 0){
+        Py_DECREF(RpnExc_FstFileError);
         Py_DECREF(m);
         return NULL;
     }
