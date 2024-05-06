@@ -227,6 +227,8 @@ function test_fst24_interface(is_rsf) result(success)
         return
     end if
 
+    call App_Log(APP_INFO, 'Opened file ' // test_file % get_name())
+
     block
         integer(C_INT64_T) :: num_rec
         num_rec = test_file % get_num_records()
@@ -442,6 +444,9 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, 'Unable to open other files for link tests')
             return
         end if
+
+        call App_Log(APP_INFO, 'Opened file ' // file_list(2) % get_name())
+        call App_Log(APP_INFO, 'Opened file ' // file_list(3) % get_name())
 
         success = fst24_link(file_list(1:1)) ! Link only 1 (should work)
         if (.not. success) then 

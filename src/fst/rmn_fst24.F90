@@ -17,6 +17,7 @@ module rmn_fst24
     contains
         procedure, nopass :: is_valid => fst24_file_is_valid    !< \copydoc fst24_file_is_valid
         procedure, pass   :: is_open  => fst24_file_is_open     !< \copydoc fst24_file_is_open
+        procedure, pass   :: get_name => fst24_file_get_name    !< \copydoc fst24_file_get_name
         procedure, pass   :: open     => fst24_file_open        !< \copydoc fst24_file_open
         procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
@@ -88,6 +89,22 @@ contains
         c_is_open = fst24_is_open(this % file_ptr)
         if (c_is_open == 1) is_open = .true.
     end function fst24_file_is_open
+
+    !> \return Name of the file if open, an empty string otherwise
+    function fst24_file_get_name(this) result(name)
+        implicit none
+        class(fst_file), intent(in) :: this
+        character(len=:), pointer :: name
+
+        type(C_PTR) :: c_name
+
+        if (this % is_open()) then
+            c_name = fst24_file_name(this % file_ptr)
+            call c_f_strpointer(c_name, name, 4096)
+        else
+            name = ''
+        end if
+    end function fst24_file_get_name
 
 
     !> \copybrief fst24_open

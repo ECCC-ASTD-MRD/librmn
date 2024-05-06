@@ -885,6 +885,9 @@ typedef struct {
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file);
 
+//! \return Pointer to the name of the file, if open. NULL otherwise
+const char* fst24_file_name(const fst_file* const file);
+
 //! Test if the given path is a readable FST file
 //! \return TRUE (1) if the file makes sense, FALSE (0) if an error is detected
 int32_t fst24_is_valid(const char* const filePath);
@@ -1094,6 +1097,7 @@ contains
     procedure, pass   :: close
     procedure, pass   :: get_num_records
     procedure, pass   :: get_unit
+    procedure, pass   :: get_name
 
     procedure, pass :: new_query
     procedure, pass :: read
@@ -1189,6 +1193,13 @@ function is_open(this) result(is_open)
     class(fst_file), intent(in) :: this !< fst24_file instance
     logical :: is_open !< Whether this file is open
 end function is_open
+
+!> Return Name of the file if open, an empty string otherwise
+function fst24_file_get_name(this) result(name)
+    implicit none
+    class(fst_file), intent(in) :: this
+    character(len=:), pointer :: name
+end function get_name
 
 !> Open a standard file (FST). Will create it if it does not already exist
 function open(this, filename, options) result(could_open)

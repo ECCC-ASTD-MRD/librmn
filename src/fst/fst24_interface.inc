@@ -93,6 +93,13 @@ interface
         integer(C_INT32_T) :: is_open
     end function fst24_is_open
 
+    function fst24_file_name(file) result(name) bind(C, name = 'fst24_file_name')
+        import :: C_PTR
+        implicit none
+        type(C_PTR), intent(in), value :: file
+        type(C_PTR) :: name
+    end function fst24_file_name
+
     function fst24_open(file_name, options) result(file_ptr) bind(C, name = 'fst24_open')
         import :: C_PTR, C_CHAR
         implicit none

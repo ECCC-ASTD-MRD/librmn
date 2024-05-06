@@ -165,6 +165,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(test_file));
+
     {
         const int64_t num_rec = fst24_get_num_records(test_file);
         if (num_rec != 3) {
@@ -335,6 +337,9 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Unable to open other files for link tests\n");
         return -1;
     }
+
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(file_list[1]));
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(file_list[2]));
 
     if (!fst24_link(file_list, 1)) {
         App_Log(APP_ERROR, "Should succeed linking only 1 file\n");
