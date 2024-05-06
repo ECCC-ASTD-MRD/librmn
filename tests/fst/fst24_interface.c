@@ -63,7 +63,7 @@ void make_test_record() {
     test_record.ig4   = 0;
     test_record.data_type = FST_TYPE_REAL_IEEE;
     test_record.data_bits = 32;
-    test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
+    test_record.metadata = Meta_NewObject();
 }
 
 int check_content(const float* content, const float* expected, const int num_elem) {
@@ -193,7 +193,7 @@ int test_fst24_interface(const int is_rsf) {
     // Find next + read
     int num_found = 0;
     fst_query* query = fst24_new_query(test_file, NULL, NULL); // Match with everything, with default options
-    while (fst24_find_next(query, &record)) {
+    while (fst24_find_next(query, &record) > 0) {
         // fst24_record_print(&record);
         num_found++;
 
@@ -376,7 +376,7 @@ int test_fst24_interface(const int is_rsf) {
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 3 records (should be in second file)\n");
-        while (fst24_find_next(query, &result)) {
+        while (fst24_find_next(query, &result) > 0) {
             num_found++;
 
             expected.ip1 = num_found;
@@ -417,7 +417,7 @@ int test_fst24_interface(const int is_rsf) {
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
-        while (fst24_find_next(query, &result)) {
+        while (fst24_find_next(query, &result) > 0) {
             num_found++;
             if (fst24_read_record(&result) <= 0) {
                 App_Log(APP_ERROR, "Unable to read record from linked files\n");
@@ -478,7 +478,7 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_find_next(query, &record)) {
+    if (fst24_find_next(query, &record) > 0) {
         App_Log(APP_ERROR, "Should not be able to search a closed file\n");
         return -1;
     }

@@ -21,10 +21,11 @@ int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key,
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file) {
     return file != NULL &&
-           file->type != FST_NONE &&
+           (file->type == FST_RSF || file->type == FST_XDF) &&
            file->file_index >= 0 &&
            file->file_index_backend >= 0 &&
-           file->iun != 0;
+           file->iun != 0 &&
+           file->path != NULL;
 }
 
 //! \return The name of the file, if open. NULL otherwise
@@ -1267,7 +1268,11 @@ int32_t fst24_find_next(
 
         if (key < 0) break; // Not in this file
 
-        const int status = fst24_get_record_from_key(query->file, key, &tmp_record); 
+        if (fst24_get_record_from_key(query->file, key, &tmp_record) != TRUE) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to retrieve record info after having found it in %s.\n",
+                    __func__, query->file->path);
+            return -1;
+        }
 
         if (!is_actual_match(&tmp_record, query)) continue; // Keep looking
 
@@ -1277,7 +1282,7 @@ int32_t fst24_find_next(
         if (record != NULL) fst_record_copy_info(record, &tmp_record);
         query->search_index = key;
 
-        return (status > 0);
+        return TRUE;
     }
 
     // We haven't found anything in this file
@@ -1694,7 +1699,7 @@ void* fst24_read_metadata(
 int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
-    if (!fst24_is_open(record->file)) {
+    if (record != NULL && !fst24_is_open(record->file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
        return ERR_NO_FILE;
     }
