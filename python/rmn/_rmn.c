@@ -78,38 +78,38 @@ static PyModuleDef mymodulemodule = {
 /*******************************************************************************
  * fst24_file declarations
 *******************************************************************************/
-struct fst24_file_container {
+struct py_fst24_file {
     PyObject_HEAD
     struct fst24_file_ *ref;
     PyObject *filename; // for debugging
     PyObject *options; // for debugging
 };
 static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
-static void py_fst24_file_dealloc(struct fst24_file_container *self);
-static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
-static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args));
-static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
-static PyObject *py_fst24_file_write(struct fst24_file_container *self, PyObject *args, PyObject *kwds);
+static void py_fst24_file_dealloc(struct py_fst24_file *self);
+static int py_fst24_file_init(struct py_fst24_file *self, PyObject *args, PyObject *kwds);
+static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUSED(args));
+static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *args, PyObject *kwds);
+static PyObject *py_fst24_file_write(struct py_fst24_file *self, PyObject *args, PyObject *kwds);
 
 static PyMemberDef py_fst24_file_member_def[] = {
     {
         .name = "filename",
         .type = T_OBJECT_EX,
-        .offset = offsetof(struct fst24_file_container, filename),
+        .offset = offsetof(struct py_fst24_file, filename),
         .flags = 0,
         .doc = "filename of the file"
     },
     {
         .name = "options",
         .type = T_OBJECT_EX,
-        .offset = offsetof(struct fst24_file_container, options),
+        .offset = offsetof(struct py_fst24_file, options),
         .flags = 0,
         .doc = "Options"
     },
     {NULL},
 };
 
-static PyObject *py_fst24_file_close(struct fst24_file_container *self, PyObject *Py_UNUSED(args));
+static PyObject *py_fst24_file_close(struct py_fst24_file *self, PyObject *Py_UNUSED(args));
 static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args);
 static PyMethodDef py_fst24_file_method_defs[] = {
     {
@@ -143,7 +143,7 @@ static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_rmn.fst24_file",
     .tp_doc = "Python fst24_file object",
-    .tp_basicsize = sizeof(struct fst24_file_container),
+    .tp_basicsize = sizeof(struct py_fst24_file),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst24_file_new,
@@ -157,19 +157,19 @@ static PyTypeObject py_fst24_file_type = {
 /*******************************************************************************
  * fst_query declarations
 *******************************************************************************/
-struct fst_query_container {
+struct py_fst_query {
     PyObject_HEAD
     fst_query *ref;
 };
 
 static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
-static PyObject *py_fst_query_iternext(struct fst_query_container *self);
-static PyObject *py_fst_query_get_iter(struct fst_query_container *self);
+static PyObject *py_fst_query_iternext(struct py_fst_query *self);
+static PyObject *py_fst_query_get_iter(struct py_fst_query *self);
 static PyTypeObject py_fst_query_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_rmn.fst_query",
     .tp_doc = "Python fst query object",
-    .tp_basicsize = sizeof(struct fst_query_container),
+    .tp_basicsize = sizeof(struct py_fst_query),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = py_fst_query_new,
@@ -303,7 +303,7 @@ static int py_rmn_create_exceptions()
 *******************************************************************************/
 
 static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
-    struct fst24_file_container *self = (struct fst24_file_container *) type->tp_alloc(type, 0);
+    struct py_fst24_file *self = (struct py_fst24_file *) type->tp_alloc(type, 0);
     if(self == NULL) {
         return NULL;
     }
@@ -315,7 +315,7 @@ static PyObject *py_fst24_file_new(PyTypeObject *type, PyObject *args, PyObject 
 }
 
 // 
-static int py_fst24_file_init(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
+static int py_fst24_file_init(struct py_fst24_file *self, PyObject *args, PyObject *kwds){
     static char *kwlist[] = {"filename", "options", NULL};
     char *options = NULL;
     char *filename = NULL;
@@ -393,7 +393,7 @@ static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args){
     return self;
 }
 
-static PyObject *py_fst24_file_close(struct fst24_file_container *self, PyObject *Py_UNUSED(args))
+static PyObject *py_fst24_file_close(struct py_fst24_file *self, PyObject *Py_UNUSED(args))
 {
     if(!fst24_close(self->ref)){
         PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
@@ -427,7 +427,7 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
     return 0;
 }
 
-static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyObject *args, PyObject *kwds){
+static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *args, PyObject *kwds){
 
     fst_record criteria;
     int err = init_fst_record_from_args_and_keywords(&criteria, args, kwds);
@@ -439,14 +439,14 @@ static PyObject *py_fst24_file_new_query(struct fst24_file_container *self, PyOb
     if(q == NULL){
         PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
     }
-    struct fst_query_container *py_q = (struct fst_query_container *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
+    struct py_fst_query *py_q = (struct py_fst_query *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
     py_q->ref = q;
 
     Py_INCREF((PyObject*)py_q);
     return (PyObject *)py_q;
 }
 
-static PyObject *py_fst24_file_write(struct fst24_file_container *self, PyObject *args, PyObject *kwds)
+static PyObject *py_fst24_file_write(struct py_fst24_file *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"record", "rewrite", NULL};
     struct py_fst_record *py_rec;
@@ -486,11 +486,11 @@ static PyObject *py_fst24_file_write(struct fst24_file_container *self, PyObject
     Py_RETURN_NONE;
 }
 
-static PyObject *py_fst24_file_str(struct fst24_file_container *self, PyObject *Py_UNUSED(args)){
+static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUSED(args)){
     return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
 }
 
-static void py_fst24_file_dealloc(struct fst24_file_container *self){
+static void py_fst24_file_dealloc(struct py_fst24_file *self){
     Py_XDECREF(self->filename);
     Py_XDECREF(self->options);
     if(self->ref != NULL){
@@ -504,7 +504,7 @@ static void py_fst24_file_dealloc(struct fst24_file_container *self){
  * fst_query implementations
  ******************************************************************************/
 static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
-    struct fst_query_container *self = (struct fst_query_container *) type->tp_alloc(type, 0);
+    struct py_fst_query *self = (struct py_fst_query *) type->tp_alloc(type, 0);
     if(self == NULL){
         return NULL;
     }
@@ -514,14 +514,14 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
     return (PyObject *)self;
 }
 
-static PyObject *py_fst_query_get_iter(struct fst_query_container *self){
+static PyObject *py_fst_query_get_iter(struct py_fst_query *self){
     // This is more for when a container type wants to provide an iterator
     // but I think the query *is* the iterator.  If the thing already is
     // an iterator, this method should return the object instance itself.
     return (PyObject *)self;
 }
 
-static PyObject *py_fst_query_iternext(struct fst_query_container *self)
+static PyObject *py_fst_query_iternext(struct py_fst_query *self)
 {
     fst_record result = default_fst_record;
     fst_query *query = self->ref;
