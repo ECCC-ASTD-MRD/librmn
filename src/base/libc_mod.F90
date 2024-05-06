@@ -7,16 +7,24 @@ module rmn_libc
             import :: C_CHAR, C_SIZE_T
             implicit none
             character(C_CHAR), dimension(*), intent(IN) :: str
-            integer(C_SIZE_T), intent(IN) :: maxlen
+            integer(C_SIZE_T), intent(IN), value :: maxlen
             integer(C_SIZE_T) :: strlen
         end function c_strnlen
 
         function c_strlen(str) result(strlen) bind(C, name='strlen')
             import :: C_PTR, C_SIZE_T
             implicit none
-            type(C_PTR), intent(IN) :: str
+            type(C_PTR), intent(IN), value :: str
             integer(C_SIZE_T) :: strlen
         end function c_strlen
+
+        function c_strncpy(dest, src, count) result(dest_copy) bind(C, name = 'strncpy')
+            import :: C_PTR, C_SIZE_T
+            implicit none
+            type(C_PTR), intent(in), value :: dest, src
+            integer(C_SIZE_T), value :: count
+            type(C_PTR) :: dest_copy
+        end function c_strncpy
 
         function memset(s, byte, n) result(p) bind(C, name='memset')
             import :: C_PTR, C_SIZE_T, C_INT
