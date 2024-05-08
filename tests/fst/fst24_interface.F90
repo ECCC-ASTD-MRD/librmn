@@ -123,7 +123,11 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
     call execute_command_line(trim(cmd))
 
     options = 'RND+R/W'
-    if (is_rsf) options = options // '+RSF'
+    if (is_rsf) then
+        options = options // '+RSF'
+    else
+        options = options // '+XDF'
+    endif
 
     success = new_file % open(trim(name), options)
     if (.not. success) then
@@ -222,6 +226,8 @@ function test_fst24_interface(is_rsf) result(success)
         call App_log(APP_ERROR, 'Unable to open test FST file')
         return
     end if
+
+    call App_Log(APP_INFO, 'Opened file ' // test_file % get_name())
 
     block
         integer(C_INT64_T) :: num_rec
@@ -438,6 +444,9 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, 'Unable to open other files for link tests')
             return
         end if
+
+        call App_Log(APP_INFO, 'Opened file ' // file_list(2) % get_name())
+        call App_Log(APP_INFO, 'Opened file ' // file_list(3) % get_name())
 
         success = fst24_link(file_list(1:1)) ! Link only 1 (should work)
         if (.not. success) then 

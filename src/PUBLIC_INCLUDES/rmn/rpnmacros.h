@@ -36,14 +36,14 @@ according to the compiler
 #   endif
 
 #   ifdef __INTEL_COMPILER
-#       define F2Cl const int64_t
+        typedef const int64_t F2Cl;
 #   elif __clang__
-#       define F2Cl const int32_t
+        typedef const int32_t F2Cl;
 #   elif __PGI
-#       define F2Cl const int32_t
+        typedef const int32_t F2Cl;
 #   elif __GNUC__
         /* Since we tested for the other compilers first, this is probably really GCC */
-#       define F2Cl const int32_t
+        typedef const int32_t F2Cl;
 #   else
 #       error "Unknown arch/compiler combo!"
 #   endif
@@ -57,7 +57,7 @@ according to the compiler
 
 #ifdef __PPC64__
 #   ifdef __GNUC__
-#       define F2Cl const int32_t
+        typedef const int32_t F2Cl;
 #       ifdef __LITTLE_ENDIAN__
 #           define Little_Endian
 #       endif
@@ -65,8 +65,6 @@ according to the compiler
 #endif
 
 
-#ifndef F2Cl
-#   error "Unknown arch/compiler combo!  Please edit rpnmacros.h to add the appropriate definitions!"
-#endif
+static F2Cl unknown_arch_compiler_combo = 0; // Will fail if F2Cl has not been defined
 
 #endif

@@ -459,10 +459,10 @@ void print_std_parms(
             snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
         }
 
-        if (strstr(option, "NOSIZ")) {
-            h_siz[0] = '\0';
-        } else {
+        if (strstr(option, "DASIZ")) {
             snprintf(h_siz, sizeof(h_siz), "%s", "SIZ");
+        } else {
+            h_siz[0] = '\0';
         }
 
         if (strstr(option, "GRIDINFO")) {
@@ -621,10 +621,10 @@ void print_std_parms(
         }
     }
 
-    if (strstr(option, "NOSIZ")) {
-        v_siz[0] = '\0';
-    } else {
+    if (strstr(option, "DASIZ")) {
         snprintf(v_siz, sizeof(v_siz), "%3d", stdf_entry->dasiz);
+    } else {
+        v_siz[0] = '\0';
     }
 
     if (strstr(option, "GRIDINFO")) {
@@ -871,8 +871,8 @@ int c_fstecr_xdf(
     int npak,
     //! [in] Unit number associated to the file in which to write the field
     int iun,
-    //! [in] Date timestamp
-    int date,
+    //! [in] Origin date timestamp
+    int dateo,
     //! [in] Length of the time steps in seconds
     int deet,
     //! [in] Time step number
@@ -1026,7 +1026,7 @@ int c_fstecr_xdf(
     VALID(ip3, 0, IP3_MAX, "ip3")
     VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
-    const uint32_t datev = get_valid_date32(date, deet, npas);
+    const uint32_t datev = get_valid_date32(dateo, deet, npas);
 
     if ((npak == 0) || (npak == 1)) {
         // no compaction
@@ -1549,8 +1549,8 @@ int c_fstecr(
     int npak,
     //! [in] Unit number associated to the file in which to write the field
     int iun,
-    //! [in] Date timestamp
-    int date,
+    //! [in] Origin date timestamp
+    int dateo,
     //! [in] Length of the time steps in seconds
     int deet,
     //! [in] Time step number
@@ -1613,11 +1613,11 @@ int c_fstecr(
     }
 
     if (rsf_status == 1) {
-        return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+        return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
     else if (rsf_status == 0) {
-        return c_fstecr_xdf(field_in, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+        return c_fstecr_xdf(field_in, work, npak, iun, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
 
@@ -5298,36 +5298,7 @@ int32_t f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
 }
 
 
-
-/*****************************************************************************
- *                             F S T L I C                                   *
- *                                                                           *
- *Object                                                                     *
- *   Search for a record that matches the research keys and check that the   *
- *   remaining parmeters match the record descriptors                        *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field    data field to be read                                       *
- *  IN  iun      unit number associated to the file                          *
- *  IN  niin     dimension 1 of the data field                               *
- *  IN  njin     dimension 2 of the data field                               *
- *  IN  nkin     dimension 3 of the data field                               *
- *  IN  datein   valid date                                                  *
- *  IN  etiketin label                                                       *
- *  IN  ip1in    vertical level                                              *
- *  IN  ip2in    forecast hour                                               *
- *  IN  ip3in    user defined identifier                                     *
- *  IN  typvarin type of field                                               *
- *  IN  nomvarin variable name                                               *
- *  IN  ig1      first grid descriptor                                       *
- *  IN  ig2      second grid descriptor                                      *
- *  IN  ig3      third grid descriptor                                       *
- *  IN  ig4      fourth grid descriptor                                      *
- *  IN  grtypin  type of geographical projection                             *
- *                                                                           *
- *****************************************************************************/
-
+//! \copydoc c_fstlic
 int32_t f77name(fstlic)(uint32_t *field, int32_t *f_iun,
                          int32_t *f_ni, int32_t *f_nj,
                          int32_t *f_nk, int32_t *f_date, char *f_etiket,
@@ -5337,26 +5308,25 @@ int32_t f77name(fstlic)(uint32_t *field, int32_t *f_iun,
                          int32_t *f_ig4, char *f_grtyp,
                          F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
+    int iun = *f_iun, ni = *f_ni, nj = *f_nj, nk = *f_nk;
+    int date = *f_date, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
+    int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
+    int ier;
+    int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
 
-  int iun = *f_iun, ni = *f_ni, nj = *f_nj, nk = *f_nk;
-  int date = *f_date, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
-  int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
-  int ier;
-  int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
+    char etiket[13];
+    char typvar[3];
+    char nomvar[5];
+    char grtyp[2];
 
-  char etiket[13];
-  char typvar[3];
-  char nomvar[5];
-  char grtyp[2];
+    str_cp_init(etiket, 13, f_etiket, l1);
+    str_cp_init(typvar, 3, f_typvar, l2);
+    str_cp_init(nomvar, 5, f_nomvar, l3);
+    str_cp_init(grtyp, 2, f_grtyp, l4);
 
-  str_cp_init(etiket, 13, f_etiket, l1);
-  str_cp_init(typvar, 3, f_typvar, l2);
-  str_cp_init(nomvar, 5, f_nomvar, l3);
-  str_cp_init(grtyp, 2, f_grtyp, l4);
-
-  ier = c_fstlic(field, iun, ni, nj, nk, date, etiket, ip1, ip2, ip3,
-                     typvar, nomvar, ig1, ig2, ig3, ig4, grtyp);
-  return (int32_t) ier;
+    ier = c_fstlic(field, iun, ni, nj, nk, date, etiket, ip1, ip2, ip3,
+                        typvar, nomvar, ig1, ig2, ig3, ig4, grtyp);
+    return (int32_t) ier;
 }
 
 

@@ -134,9 +134,6 @@ int test_fst24_meta(void) {
       return -1;
    }
 
-   free(test_file);
-   test_file = NULL;
-
    // Open existing file
    const char* options2 = "RND+R/O";
    test_file = fst24_open(test_file_name, options2);
@@ -209,9 +206,6 @@ int test_fst24_meta(void) {
       App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
       return -1;
    }
-
-   free(test_file);
-   test_file = NULL;
 
    return 0;
 }

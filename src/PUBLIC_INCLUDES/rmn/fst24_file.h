@@ -29,6 +29,7 @@ static fst_query_options default_query_options = (fst_query_options) {
 //! @{
 int32_t   fst24_is_valid(const char* const filePath);
 int32_t   fst24_is_open(const fst_file* const file);
+const char* fst24_file_name(const fst_file* const file);
 fst_file* fst24_open(const char* const filePath, const char* const options);
 int32_t   fst24_close(fst_file* const file);
 int64_t   fst24_get_num_records(const fst_file* const file);

@@ -63,7 +63,7 @@ void make_test_record() {
     test_record.ig4   = 0;
     test_record.data_type = FST_TYPE_REAL_IEEE;
     test_record.data_bits = 32;
-    test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
+    test_record.metadata = Meta_NewObject();
 }
 
 int check_content(const float* content, const float* expected, const int num_elem) {
@@ -116,6 +116,13 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
             App_Log(APP_ERROR, "Unable to write record (3) to new file %s\n", name);
             return -1;
         }
+
+        // Try something that should fail
+        record.data = NULL;
+        if (fst24_write(new_file, &record, FALSE) == TRUE) {
+            App_Log(APP_ERROR, "Should not be able to write a record when there's no data in it\n");
+            return -1;
+        }
     }
 
     ///////////////////////////
@@ -124,8 +131,6 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         App_Log(APP_ERROR, "Unable to close new file %s\n", name);
         return -1;
     }
-
-    free(new_file);
 
     const int32_t type = c_wkoffit(name, strlen(name));
     if ((type == WKF_STDRSF && is_rsf) || (type == WKF_RANDOM98 && !is_rsf)) {
@@ -158,6 +163,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(test_file));
+
     {
         const int64_t num_rec = fst24_get_num_records(test_file);
         if (num_rec != 3) {
@@ -186,7 +193,7 @@ int test_fst24_interface(const int is_rsf) {
     // Find next + read
     int num_found = 0;
     fst_query* query = fst24_new_query(test_file, NULL, NULL); // Match with everything, with default options
-    while (fst24_find_next(query, &record)) {
+    while (fst24_find_next(query, &record) > 0) {
         // fst24_record_print(&record);
         num_found++;
 
@@ -329,6 +336,9 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(file_list[1]));
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(file_list[2]));
+
     if (!fst24_link(file_list, 1)) {
         App_Log(APP_ERROR, "Should succeed linking only 1 file\n");
         return -1;
@@ -366,7 +376,7 @@ int test_fst24_interface(const int is_rsf) {
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 3 records (should be in second file)\n");
-        while (fst24_find_next(query, &result)) {
+        while (fst24_find_next(query, &result) > 0) {
             num_found++;
 
             expected.ip1 = num_found;
@@ -407,7 +417,7 @@ int test_fst24_interface(const int is_rsf) {
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
-        while (fst24_find_next(query, &result)) {
+        while (fst24_find_next(query, &result) > 0) {
             num_found++;
             if (fst24_read_record(&result) <= 0) {
                 App_Log(APP_ERROR, "Unable to read record from linked files\n");
@@ -468,7 +478,7 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_find_next(query, &record)) {
+    if (fst24_find_next(query, &record) > 0) {
         App_Log(APP_ERROR, "Should not be able to search a closed file\n");
         return -1;
     }
@@ -492,10 +502,6 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Should not be able to get num records of closed file\n");
         return -1;
     }
-
-    free(test_file); test_file = NULL;
-    free(file_list[1]); file_list[1] = NULL;
-    free(file_list[2]); file_list[2] = NULL;
 
     fst24_record_free(&record);
     fst24_query_free(query);

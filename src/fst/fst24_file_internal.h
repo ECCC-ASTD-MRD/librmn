@@ -24,6 +24,7 @@ typedef struct fst24_file_ {
     fst_file_type type;                 //!< Type of file (RSF, XDF, etc.)
     RSF_handle    rsf_handle;           //!< If type is RSF, handle to the file
     struct fst24_file_ *next;           //!< Next file in linked list of files (if any)
+    const char* path;                   //!< Given when opening this file
 } fst_file;
 
 static fst_file default_fst_file = (fst_file) {

@@ -76,7 +76,6 @@ int main(void) {
     }
 
     fst24_close(test_file);
-    free(test_file);
 
     test_file = fst24_open(test_filename, NULL);
 
@@ -117,7 +116,6 @@ int main(void) {
     }
 
     fst24_close(test_file);
-    free(test_file);
 
     App_Log(APP_INFO, "Test successful.\n");
 

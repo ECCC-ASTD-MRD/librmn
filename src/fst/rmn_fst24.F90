@@ -17,6 +17,7 @@ module rmn_fst24
     contains
         procedure, nopass :: is_valid => fst24_file_is_valid    !< \copydoc fst24_file_is_valid
         procedure, pass   :: is_open  => fst24_file_is_open     !< \copydoc fst24_file_is_open
+        procedure, pass   :: get_name => fst24_file_get_name    !< \copydoc fst24_file_get_name
         procedure, pass   :: open     => fst24_file_open        !< \copydoc fst24_file_open
         procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
@@ -89,6 +90,22 @@ contains
         if (c_is_open == 1) is_open = .true.
     end function fst24_file_is_open
 
+    !> \return Name of the file if open, an empty string otherwise
+    function fst24_file_get_name(this) result(name)
+        implicit none
+        class(fst_file), intent(in) :: this
+        character(len=:), pointer :: name
+
+        type(C_PTR) :: c_name
+
+        if (this % is_open()) then
+            c_name = fst24_file_name(this % file_ptr)
+            call c_f_strpointer(c_name, name, 4096)
+        else
+            name = ''
+        end if
+    end function fst24_file_get_name
+
 
     !> \copybrief fst24_open
     function fst24_file_open(this, filename, options) result(could_open)
@@ -123,7 +140,6 @@ contains
         integer(C_INT32_T) :: c_could_close
         could_close = .false.
         c_could_close = fst24_close(this % file_ptr)
-        call libc_free(this % file_ptr)
 
         this % file_ptr = c_null_ptr
         if (c_could_close == 1) could_close = .true.
@@ -341,24 +357,40 @@ contains
 
     !> \copybrief fst24_write
     !> \return Whether the write was successful
-    function fst24_file_write(this, record, rewrite) result(success)
+    function fst24_file_write(this, record, data, rewrite) result(success)
         implicit none
         class(fst_file),  intent(inout) :: this     !< File where we want to write
         type(fst_record), intent(inout) :: record   !< Record we want to write
         logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
         logical :: success
 
+        !> Where to get the data being written (optional). Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
+     
+        type(C_PTR) :: prev_data
         integer(C_INT32_T) :: c_rewrite, c_status
 
         success = .false.
 
+        if (present(data)) then
+           prev_data = record % data
+           record % data = data
+        endif
+
         call record % make_c_self()
+
         c_rewrite = 0
         if (present(rewrite)) then
             if (rewrite) c_rewrite = 1
         end if
 
         c_status = fst24_write(this % file_ptr, record % get_c_ptr(), c_rewrite)
+
+        if (present(data)) then
+           record % data = prev_data
+           call record % make_c_self()
+        endif
 
         if (c_status > 0) success = .true.
     end function fst24_file_write

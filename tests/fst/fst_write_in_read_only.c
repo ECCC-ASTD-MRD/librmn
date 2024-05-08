@@ -10,7 +10,6 @@ int test_write_in_ro(const int is_rsf) {
     remove(test_filename);
     fst_file* f = fst24_open(test_filename, is_rsf ? "RSF+R/W" : "XDF+R/W");
     if (!f || fst24_close(f) <= 0) return -1;
-    free(f);
 
     f = fst24_open(test_filename, "R/O");
     if (!f) return -1;
@@ -21,7 +20,6 @@ int test_write_in_ro(const int is_rsf) {
         return -1;
     }
     fst24_close(f);
-    free(f);
 
     int32_t iun = 0;
     if (c_fnom(&iun, test_filename, "STD+RND+OLD+R/O", 0) != 0 ||

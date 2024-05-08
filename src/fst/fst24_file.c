@@ -21,10 +21,17 @@ int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key,
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file) {
     return file != NULL &&
-           file->type != FST_NONE &&
+           (file->type == FST_RSF || file->type == FST_XDF) &&
            file->file_index >= 0 &&
            file->file_index_backend >= 0 &&
-           file->iun != 0;
+           file->iun != 0 &&
+           file->path != NULL;
+}
+
+//! \return The name of the file, if open. NULL otherwise
+const char* fst24_file_name(const fst_file* const file) {
+    if (fst24_is_open(file)) return file->path;
+    return NULL;
 }
 
 //! Get unit number for fortran
@@ -77,6 +84,7 @@ fst_file* fst24_open(
     int index_fnom;
     const int rsf_status = is_rsf(the_file->iun, &index_fnom);
     the_file->file_index = index_fnom;
+    the_file->path = FGFDT[index_fnom].file_name;
     if (rsf_status == 1) {
         the_file->type = FST_RSF;
         the_file->rsf_handle = FGFDT[the_file->file_index].rsf_fh;
@@ -90,9 +98,8 @@ fst_file* fst24_open(
     return the_file;
 }
 
-//! Close the given standard file
+//! Close the given standard file and free the memory associated with the struct
 //! \todo What happens if closing a linked file?
-//! \todo Shouldn't this function take a fst_file** as argument to be able to set it to null?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
@@ -105,6 +112,8 @@ int32_t fst24_close(fst_file* const file) {
     if (status < 0) return status;
 
     *file = default_fst_file;
+
+    free(file);
 
     return TRUE;
 }
@@ -124,7 +133,7 @@ int32_t fst24_flush(
         return c_fstckp_xdf(file->iun);
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, file->type);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d (%s)\n", __func__, file->type, file->path);
     return -1;
 }
 
@@ -147,7 +156,7 @@ int64_t fst24_get_num_records(
         total_num_records = status;
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, file->path);
         return 0;
     }
 
@@ -934,15 +943,21 @@ int32_t fst24_write(
     if  (file->type == FST_RSF) {
         if (rewrite && !fst24_delete(record)) {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested to rewrite a record, but we were unable to "
-                    "delete the existing one\n", __func__);
+                    "delete the existing one (file %s)\n", __func__, file->path);
         }
         return fst24_write_rsf(file->rsf_handle, record, 1);
     }
     else {
         if (record->metadata != NULL) {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
-                    " This is not supported, we will ignore that metadata.\n", __func__);
+                    " This is not supported, we will ignore that metadata. (file %s)\n", __func__, file->path);
         }
+
+        if (record->data == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: No data associated with this record!\n", __func__);
+            return -1;
+        }
+
         strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
         strncpy(etiket, record->etiket, FST_ETIKET_LEN);
@@ -965,7 +980,7 @@ int32_t fst24_write(
         return TRUE;
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
     return -1;
 }
 
@@ -998,7 +1013,7 @@ int32_t fst24_get_record_from_key(
     fst_record* const record    //!< [in,out] Record information (no data or advanced metadata)
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
 
@@ -1027,7 +1042,7 @@ int32_t fst24_get_record_from_key(
         fill_with_search_meta(record, &record_meta, file->type);
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
         return FALSE;
     }
 
@@ -1043,7 +1058,7 @@ fst_query* fst24_new_query(
     const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%p)\n", __func__, file);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
 
@@ -1076,7 +1091,7 @@ fst_query* fst24_new_query(
         }
         else {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extended metadata criterion is non-NULL, but we can only search"
-                    " extended metadata in RSF files\n", __func__);
+                    " extended metadata in RSF files (%s)\n", __func__, file->path);
         }
     }
 
@@ -1202,7 +1217,7 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
     // If metadata search is specified, look for a match or carry on looking
     if (query->search_meta != NULL) {
         if (!fst24_read_metadata(record)) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read metadata while doing search\n", __func__);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read metadata while doing search (%s)\n", __func__, query->file->path);
             return FALSE;
         }
 
@@ -1242,7 +1257,7 @@ int32_t fst24_find_next(
         return FALSE;
     }
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching in file at %p (next %p)\n", __func__, query->file, query->file->next);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching in file %s at %p (next %p)\n", __func__, query->file->path, query->file, query->file->next);
 
     fst_record tmp_record = default_fst_record;
     while (TRUE) { // Search forever (until found or end-of-file)
@@ -1253,17 +1268,21 @@ int32_t fst24_find_next(
 
         if (key < 0) break; // Not in this file
 
-        const int status = fst24_get_record_from_key(query->file, key, &tmp_record); 
+        if (fst24_get_record_from_key(query->file, key, &tmp_record) != TRUE) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to retrieve record info after having found it in %s.\n",
+                    __func__, query->file->path);
+            return -1;
+        }
 
         if (!is_actual_match(&tmp_record, query)) continue; // Keep looking
 
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
-                __func__, query->file->iun, key, query->file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %s\n",
+                __func__, query->file->iun, key, query->file->path);
 
         if (record != NULL) fst_record_copy_info(record, &tmp_record);
         query->search_index = key;
 
-        return (status > 0);
+        return TRUE;
     }
 
     // We haven't found anything in this file
@@ -1655,23 +1674,23 @@ void* fst24_read_metadata(
     }
 
     if (!fst24_is_open(record->file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
        return NULL;
     }
 
     if (record->file->type == FST_RSF) {
         if (fst24_read_record_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file\n", __func__);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file %s\n", __func__, record->file->path);
             return NULL;
         }
         return record->metadata;
     }
     else if (record->file->type == FST_XDF) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files\n", __func__);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files (%s)\n", __func__, record->file->path);
         return NULL;
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, record->file->type);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d (%s)\n", __func__, record->file->type, record->file->path);
     return NULL;
 }
 
@@ -1680,8 +1699,8 @@ void* fst24_read_metadata(
 int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
-    if (!fst24_is_open(record->file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+    if (record != NULL && !fst24_is_open(record->file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
        return ERR_NO_FILE;
     }
 
@@ -1718,14 +1737,17 @@ int32_t fst24_read_record(
         ret = fst24_read_record_xdf(record);
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, record->file->path);
         ret = -1;
     }
 
     if (ret < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not read record, ier = %d\n", __func__, ret);
-        free(record->data);
-        record->data = NULL;
+        if (record->do_not_touch.alloc>0) {
+           free(record->data);
+           record->data = NULL;
+           record->do_not_touch.alloc = 0;
+        }
         return ret;
     }
 
@@ -1777,13 +1799,13 @@ int32_t fst24_link(
     // Perform checks on all files before doing anything
     for (int i = 0; i < num_files; i++) {
         if (!fst24_is_open(files[i])) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: File %d not open. We won't link anything.\n", __func__, i);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: File %d (%s) not open. We won't link anything.\n", __func__, i, files[i] ? files[i]->path : "(nil)");
             return FALSE;
         }
 
         if (files[i]->next != NULL) {
             Lib_Log(APP_LIBFST, APP_ERROR,
-                    "%s: File %d is already linked to another one. We won't link anything (else).\n", __func__, i);
+                    "%s: File %d (%s) is already linked to another one. We won't link anything (else).\n", __func__, i, files[i]->path);
             return FALSE;
         }
     }
@@ -1800,10 +1822,9 @@ int32_t fst24_link(
 //! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(fst_file* const file) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
-
 
     while (file->next != NULL) {
         fst_file* current = file;
@@ -1819,7 +1840,7 @@ int32_t fst24_unlink(fst_file* const file) {
 //! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(const fst_file* const file) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
 
@@ -1884,7 +1905,7 @@ int32_t fst24_delete(
     }
 
     if (!fst24_is_open(record->file)) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is not open\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is not open (%s)\n", __func__, record->file ? record->file->path : "(nil)");
         return FALSE;
     }
 
@@ -1895,7 +1916,7 @@ int32_t fst24_delete(
         if (c_fsteff_xdf(record->do_not_touch.handle) != 0) return FALSE;
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, record->file->path);
         return FALSE;
     }
 
