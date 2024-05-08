@@ -108,7 +108,7 @@ def open_non_existant_file_without_W_option():
 
     f3 = rmn.fst24_file(filename="my_fst_file.fst", options="R/W")
 
-def create_file_with_data(rsf=False):
+def create_file_with_data(rsf=True):
     backend_type = 'rsf' if rsf else 'xdf'
     print_py(f"Create new {backend_type} file with data")
     filename = f"new_{backend_type}_file.fst"
@@ -122,7 +122,7 @@ def create_file_with_data(rsf=False):
 
     rec.data = np.random.random(rec.nk * rec.nj * rec.ni).reshape((rec.nk, rec.nj, rec.ni))
 
-    with rmn.fst24_file(filename=filename, options="R/W+RSF" if rsf else "R/W") as f:
+    with rmn.fst24_file(filename=filename, options="R/W+RSF" if rsf else "R/W+XDF") as f:
         f.write(rec, rewrite=False)
 
     print("Successfully wrote record to file")
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     create_query_and_iterate_on_records()
     open_empty_filename()
     open_non_existant_file_without_W_option()
-    create_file_with_data()
+    create_file_with_data(rsf=False)
 
     # The created file with rsf must be inspected with a sufficiently recent
     # version of voir.  Also, there are error messages that are printed
