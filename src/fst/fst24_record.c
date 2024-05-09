@@ -407,7 +407,7 @@ void fst24_record_print_short(
 
     if (to_print.metadata > 0) {
         fst24_read_metadata((fst_record*)record);
-        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", Meta_Stringify(record->metadata));
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", Meta_Stringify(record->metadata,JSON_C_TO_STRING_SPACED));
     }
 
 }

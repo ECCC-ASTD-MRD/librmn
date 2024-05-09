@@ -43,7 +43,7 @@ int test_fst24_meta(void) {
 //   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
    Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
 //   search_meta=Meta_Parse("{ \"rpn_name\" : \"TT\" }");
-   fprintf(stderr,"Search JSON: %s\n",Meta_Stringify(search_meta));
+   fprintf(stderr,"Search JSON: %s\n",Meta_Stringify(search_meta,JSON_C_TO_STRING_PRETTY));
 
    fprintf(stderr,"Valid json:   %i\n", Meta_Is(prof_fld));
    fprintf(stderr,"Invalid json: %i\n", Meta_Is((json_object*)test_file));
@@ -53,7 +53,7 @@ int test_fst24_meta(void) {
    Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
    Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
 
-   fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file));
+   fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file,JSON_C_TO_STRING_PRETTY));
 
    // Define field metadata
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
@@ -150,7 +150,7 @@ int test_fst24_meta(void) {
 
       // Read file level metadata
       if (Meta_ReadFile(test_file,&meta)) {
-         fprintf(stderr,"File JSON: %s\n",Meta_Stringify(meta));    
+         fprintf(stderr,"File JSON: %s\n",Meta_Stringify(meta,JSON_C_TO_STRING_PRETTY));    
       } else {
          App_Log(APP_ERROR, "Failed reading file metadata\n");
          return -1;    
@@ -165,7 +165,7 @@ int test_fst24_meta(void) {
          fprintf(stderr,"Found search extra\n");    
          fst24_read_metadata(&record);
          Meta_Resolve(record.metadata,prof_file);
-         fprintf(stderr,"Extra JSON: %s\n",Meta_Stringify(record.metadata));    
+         fprintf(stderr,"Extra JSON: %s\n",Meta_Stringify(record.metadata,JSON_C_TO_STRING_PRETTY));    
       } else {
          App_Log(APP_ERROR, "Failed search extra test\n");
          return -1;    
@@ -186,7 +186,7 @@ int test_fst24_meta(void) {
             return -1; 
          }
          if (TRUE || Meta_Match(search_meta,record_find.metadata,FALSE)) {
-            fprintf(stderr,"Matched JSON: %i %s\n",num_found,Meta_Stringify(record_find.metadata));
+            fprintf(stderr,"Matched JSON: %i %s\n",num_found,Meta_Stringify(record_find.metadata,JSON_C_TO_STRING_PRETTY));
             num_found++;
          }
       }
@@ -198,10 +198,10 @@ int test_fst24_meta(void) {
 
       meta=Meta_New(META_TYPE_RECORD,NULL);
       Meta_From89(meta,&record_find);
-      fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta));
+      fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta,JSON_C_TO_STRING_PRETTY));
       fst24_query_free(query);
    }
-
+ 
    if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
       return -1;

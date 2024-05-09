@@ -522,7 +522,7 @@ int32_t fst24_write_rsf(
              return(ERR_METADATA);
           }
        }
-       if ((metastr = Meta_Stringify(record->metadata)) != NULL) {
+       if ((metastr = Meta_Stringify(record->metadata,JSON_C_TO_STRING_PLAIN)) != NULL) {
           metalen = strlen(metastr) + 1;
           ext_metadata_size = (metalen + 3) / 4;
           rec_metadata_size += ext_metadata_size;

@@ -7,7 +7,10 @@ module rmn_meta
 
     integer, parameter :: META_TYPE_RECORD=1
     integer, parameter :: META_TYPE_FILE=2
-
+    integer, parameter :: JSON_C_TO_STRING_PLAIN=0
+    integer, parameter :: JSON_C_TO_STRING_SPACED=1
+    integer, parameter :: JSON_C_TO_STRING_PRETTY=2
+    
 interface
 
 !  void Meta_Init();
@@ -15,11 +18,12 @@ interface
    end SUBROUTINE
     
 !  char *Meta_Stringify(json_object *Obj);
-   type(C_PTR) FUNCTION meta_stringify(obj) BIND(C, name="Meta_Stringify")
-      import :: C_PTR
+   type(C_PTR) FUNCTION meta_stringify(obj,format) BIND(C, name="Meta_Stringify")
+      import :: C_PTR, C_INT32_T
 
       type(C_PTR), intent(in), value  :: obj
-   end FUNCTION
+      integer(kind=C_INT32_T), intent(in), value  :: format
+    end FUNCTION
 
 !  int32_t Meta_Is(json_object *Obj) {
    integer(C_INT32_T) FUNCTION meta_is(obj) BIND(C, name="Meta_Is")
@@ -506,11 +510,17 @@ contains
       status = meta_clearqualifiers(this%json_obj)
    end FUNCTION tmeta_clearqualifiers
 
-   FUNCTION tmeta_stringify(this) result(fstring)
+   FUNCTION tmeta_stringify(this,format) result(fstring)
       class(meta), intent(in) :: this
+      integer(kind=C_INT32_T), intent(in), optional :: format
       character(kind=C_CHAR), dimension(:), allocatable :: fstring
+      integer(kind=C_INT32_T) :: f
 
-      fstring = C_F_STRING_CONVERT(meta_stringify(this%json_obj))
+      f=JSON_C_TO_STRING_PRETTY
+      if (present(format)) then
+         f=format
+      endif
+   fstring = C_F_STRING_CONVERT(meta_stringify(this%json_obj,f))
    end FUNCTION tmeta_stringify
 
    FUNCTION tmeta_deffile(this,institution,discipline,title,source,description,state) result(status)
