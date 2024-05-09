@@ -1796,6 +1796,8 @@ int32_t fst24_link(
         return TRUE;
     }
 
+    int iun_list[num_files];
+
     // Perform checks on all files before doing anything
     for (int i = 0; i < num_files; i++) {
         if (!fst24_is_open(files[i])) {
@@ -1808,10 +1810,19 @@ int32_t fst24_link(
                     "%s: File %d (%s) is already linked to another one. We won't link anything (else).\n", __func__, i, files[i]->path);
             return FALSE;
         }
+
+        iun_list[i] = files[i]->iun;
     }
 
     for (int i = 0; i < num_files - 1; i++) {
         files[i]->next = files[i + 1];
+    }
+    
+    // Link with old interface too, for compatibility with old libraries
+    if (c_fstlnk(iun_list, num_files) < 0) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Old interface linking failed. Old-style functions that require"
+                " iun as input will not consider this list of files as linked.\n",
+                __func__);
     }
 
     return TRUE;
@@ -1832,6 +1843,10 @@ int32_t fst24_unlink(fst_file* const file) {
         current->next = NULL;
         current = tmp;
     }
+
+    // Unlink with old interface too. This is not completely equivalent, since the old interface cannot
+    // have more than one linked list of files.
+    c_fstunl();
 
     return TRUE;
 }

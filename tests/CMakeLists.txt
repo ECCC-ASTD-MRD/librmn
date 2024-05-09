@@ -218,6 +218,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME excdes COMMAND $<TARGET_FILE:excdes>)
         add_dependencies(check excdes)
 
+        add_executable(fst_cross_link fst/fst_cross_link.F90)
+        target_link_libraries(fst_cross_link rmn::rmn)
+        add_test(NAME fst_cross_link COMMAND $<TARGET_FILE:fst_cross_link>)
+        add_dependencies(check fst_cross_link)
+
 
         # FST samples
         add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)

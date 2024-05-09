@@ -105,6 +105,7 @@ int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);
 int c_fsteff_xdf(int handle);
+int32_t c_fstlnk(const int32_t *liste, const int32_t n);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
