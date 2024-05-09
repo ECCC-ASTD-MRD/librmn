@@ -7,6 +7,15 @@
 #include "rmn/Meta.h"
 #include "rmn/convert_ip.h"
 
+//! Check if two fst_record structs point to the exact same record, in the same file
+//! \return TRUE (1) if they are the same, FALSE (0) if not or if they do not point to any specific record in a file
+int32_t fst24_record_is_same(const fst_record* const a, const fst_record* const b) {
+    if (!fst24_record_is_valid(a) || a->do_not_touch.handle < 0 ||
+        !fst24_record_is_valid(b) || b->do_not_touch.handle < 0)
+        return 0;
+    return (a->do_not_touch.handle == b->do_not_touch.handle);
+}
+
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
 fst_record* fst24_record_new(

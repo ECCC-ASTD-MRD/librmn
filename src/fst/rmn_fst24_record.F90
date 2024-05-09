@@ -87,6 +87,7 @@ module rmn_fst24_record
         procedure, pass :: allocate => fst24_record_allocate                 !< \copydoc fst24_record_new
         procedure, pass :: free => fst24_record_free                    !< \copydoc fst24_record_free
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
+        procedure, pass :: is_same       => fst24_record_is_same        !< \copydoc fst24_record_is_same
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
 !        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
@@ -157,6 +158,21 @@ module rmn_fst24_record
 
 contains
 #include "rmn/rmn_fst24_record_get_data_array.hf"
+
+    !> Determine whether another record points to the same as this one (same record in same file)
+    !> \return Whether the two instances point to the exact same record. .false. if one (or both) of them
+    !> does not point to a particular record
+    pure function fst24_record_is_same(this, other) result(is_same)
+        implicit none
+        class(fst_record), intent(in) :: this   !< fst_record instance
+        type(fst_record), intent(in) :: other   !< fst_record to which we are comparing this
+        logical :: is_same
+
+        integer(C_INT32_T) :: c_status
+
+        c_status = fst24_record_is_same_c(this % get_c_ptr(), other % get_c_ptr())
+        is_same = (c_status == 1)
+    end function fst24_record_is_same
 
     !> Update c_self with current values from this
     subroutine fst24_record_make_c_self(this)
@@ -231,7 +247,7 @@ contains
     end subroutine fst24_record_from_c_self
 
     !> Retrieve the C_PTR to c_self
-    function fst24_record_get_c_ptr(this) result(ptr)
+    pure function fst24_record_get_c_ptr(this) result(ptr)
         implicit none
         class(fst_record), intent(in), target :: this
         type(C_PTR) :: ptr

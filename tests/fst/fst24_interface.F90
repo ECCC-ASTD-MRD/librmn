@@ -417,6 +417,28 @@ function test_fst24_interface(is_rsf) result(success)
         end if
     end block
 
+    ! //////////////////////////////
+    ! // is_same
+    block
+        type(fst_record) :: a, b
+        call query % rewind()
+        success = query % find_next(a)
+
+        success = .not. a % is_same(b)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Records should not be the same!')
+            return
+        end if
+
+        call query % rewind()
+        success = query % find_next(b)
+        success = a % is_same(b)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Records should be the same!')
+            return
+        end if
+    end block
+
     call query % free()
 
     ! /////////////////////////////////////////
