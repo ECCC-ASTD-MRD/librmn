@@ -56,7 +56,8 @@
 
       real(kind = real64) :: y1, y2, y3, y4
       integer             :: n, i, j
-      real(kind = real64) :: dx, dy
+
+#include "cubic8.cdk"
 
       do n=1,npts
          i = min(ni-2,max(2,ifix(px(n))))
@@ -74,7 +75,5 @@
       enddo
 
       return
-      contains
-#include "cubic8.cdk"
       end
 

@@ -72,10 +72,19 @@
       real(kind = real64) :: y,y1,y2,y3,y4
       real(kind = real64) :: y11, y12, y13, y14
       real(kind = real64) :: ay1, ay2, ay3, ay4
-      real(kind = real64) :: dx
+      real(kind = real64) :: fa, fa2, fa3, fa4
+      real(kind = real64) :: a1,a2,a3,a4,c1,c2,c3,c4,c5,c6
       
 #include "ez_qqqxtrp.cdk"
+!  definition des fonctions in-line
 
+#include "cubic8.cdk"
+
+      fa(a1,a2,a3,a4,x,x1,x2,x3)=a1+(x-x1)*(a2+(x-x2)*(a3+a4*(x-x3)))
+      fa2(c1,a1,a2)=c1*(a2-a1)
+      fa3(c1,c2,c3,a1,a2,a3)=c2*(c3*(a3-a2)-c1*(a2-a1))
+      fa4(c1,c2,c3,c4,c5,c6,a1,a2,a3,a4)=c4*(c5*(c6*(a4-a3)-c3*      (a3-a2)) - c2*(c3*(a3-a2)-c1*(a2-a1)))
+      
          do n=1,npts
             limite = ni +2 -wrap
             i = min(ni-2+wrap,max(1,max(2-wrap,ifix(px(n)))))
@@ -131,8 +140,5 @@
             zo(n) = fa(y11,y12,y13,y14,y,ay1,ay2,ay3)
          enddo
       return
-      contains
-#include "cubic8.cdk"
-#include "fa8.cdk"
       end
       

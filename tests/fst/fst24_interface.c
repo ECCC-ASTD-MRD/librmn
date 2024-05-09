@@ -315,6 +315,29 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    //////////////////
+    // is_same
+    {
+        query = fst24_new_query(test_file, NULL, NULL);
+        fst24_find_next(query, &record);
+        fst_record other = default_fst_record;
+
+        if (fst24_record_is_same(&record, &other)) {
+            App_Log(APP_ERROR, "Records should not be the same (1)!\n");
+            fst24_record_diff(&record, &other);
+            return -1;
+        }
+
+        fst24_rewind_search(query);
+        fst24_find_next(query, &other);
+        if (!fst24_record_is_same(&record, &other)) {
+            App_Log(APP_ERROR, "Records should be the same!\n");
+            return -1;
+        }
+
+        fst24_query_free(query);
+    }
+
     /////////////////////////////////////////
     // Everything again, with linked files
     fst_file* file_list[3];

@@ -80,6 +80,9 @@
 *
       REAL LAMBDA
       INTEGER HEM
+*      DATA ORDINT /3/
+#include "lagrange.cdk"
+#include "cubic.cdk"
 
       if(mode .eq. 111) goto 111
 *
@@ -164,7 +167,4 @@
 111   continue
       CALL XYFLCC(X,Y,90.-PHI,LAMBDA,D60,DGRW,1.,PHI1,PHI2)
       GOTO 1
-      CONTAINS
-#include "cubic.cdk"
-#include "lagrange.cdk"
       END

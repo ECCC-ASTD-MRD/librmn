@@ -7,6 +7,15 @@
 #include "rmn/Meta.h"
 #include "rmn/convert_ip.h"
 
+//! Check if two fst_record structs point to the exact same record, in the same file
+//! \return TRUE (1) if they are the same, FALSE (0) if not or if they do not point to any specific record in a file
+int32_t fst24_record_is_same(const fst_record* const a, const fst_record* const b) {
+    if (!fst24_record_is_valid(a) || a->do_not_touch.handle < 0 ||
+        !fst24_record_is_valid(b) || b->do_not_touch.handle < 0)
+        return 0;
+    return (a->do_not_touch.handle == b->do_not_touch.handle);
+}
+
 //! Creates a new record and assign the data pointer or allocate data memory
 //! \return new record
 fst_record* fst24_record_new(
@@ -430,27 +439,63 @@ int32_t fst24_record_is_valid(const fst_record* record) {
     return 1;
 }
 
+int32_t is_valid_int_param(const int32_t val, const int32_t min, const int32_t max, const char* name) {
+    if (val < min || val  > max) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: %s = %d, but must be between %d and %d\n",
+                __func__, name, val, min, max);
+        return 0;
+    }
+
+    return 1;
+}
+
 //! Validate the parameters of the given record (RSF only).
 //! Will exit with an error if they are not valid.
 int32_t fst24_record_validate_params(const fst_record* record) {
+    int32_t all_good = 1;
+
     if (record->data == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record has no data\n", __func__);
-        return -1;
+        all_good = 0;
     }
 
-    VALID(record->ni, 1, NI_MAX, "ni")
-    VALID(record->nj, 1, NJ_MAX, "nj")
-    VALID(record->nk, 1, NK_MAX, "nk")
-    VALID(record->deet, 0, DEET_MAX, "deet")
-    VALID(record->npas, 0, NPAS_MAX, "npas")
-    // VALID(record->nbits, 1, NBITS_MAX, "nbits")
-    VALID(record->ig1, 0, IG1_MAX, "ig1")
-    VALID(record->ig2, 0, IG2_MAX, "ig2")
-    VALID(record->ig3, 0, IG3_MAX, "ig3")
-    VALID(record->ig4, 0, IG4_MAX, "ig4")
-    VALID(record->ip1, 0, IP1_MAX, "ip1")
-    VALID(record->ip2, 0, IP2_MAX, "ip2")
-    VALID(record->ip3, 0, IP3_MAX, "ip3")
+    if (!is_valid_int_param(record->ni, 1, NI_MAX, "ni")) all_good = 0;
+    if (!is_valid_int_param(record->nj, 1, NJ_MAX, "nj")) all_good = 0;
+    if (!is_valid_int_param(record->nk, 1, NK_MAX, "nk")) all_good = 0;
+    if (!is_valid_int_param(record->deet, 0, DEET_MAX, "deet")) all_good = 0;
+    if (!is_valid_int_param(record->npas, 0, NPAS_MAX, "npas")) all_good = 0;
+    if (!is_valid_int_param(record->ig1, 0, IG1_MAX, "ig1")) all_good = 0;
+    if (!is_valid_int_param(record->ig2, 0, IG2_MAX, "ig2")) all_good = 0;
+    if (!is_valid_int_param(record->ig3, 0, IG3_MAX, "ig3")) all_good = 0;
+    if (!is_valid_int_param(record->ig4, 0, IG4_MAX, "ig4")) all_good = 0;
+    if (!is_valid_int_param(record->ip1, 0, IP1_MAX, "ip1")) all_good = 0;
+    if (!is_valid_int_param(record->ip2, 0, IP2_MAX, "ip2")) all_good = 0;
+    if (!is_valid_int_param(record->ip3, 0, IP3_MAX, "ip3")) all_good = 0;
+    if (!is_valid_int_param(record->data_bits, 1, 64, "data_bits")) all_good = 0;
+    if (!is_valid_int_param(record->pack_bits, 1, 64, "pack_bits")) all_good = 0;
+
+    const int32_t valid_types[] = { FST_TYPE_BINARY,
+                                    FST_TYPE_CHAR,
+                                    FST_TYPE_STRING,
+                                    FST_TYPE_SIGNED,
+                                    FST_TYPE_UNSIGNED,
+                                    FST_TYPE_REAL,
+                                    FST_TYPE_REAL_IEEE,
+                                    FST_TYPE_REAL_OLD_QUANT,
+                                    FST_TYPE_COMPLEX };
+    const int32_t base_type = base_fst_type(record->data_type);
+    int32_t ok_type = 0;
+    for (int i = 0; i < sizeof(valid_types) / sizeof(int32_t); i++) {
+        if (base_type == valid_types[i]) {
+            ok_type = 1; break;
+        }
+    }
+    if (!ok_type) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized data type in record\n", __func__);
+        all_good = 0;
+    }
+
+    if (!all_good) return -1;
 
     return 0;
 }

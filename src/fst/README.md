@@ -1075,6 +1075,10 @@ int32_t fst24_record_copy_metadata(
 //!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 
+//! Check if two fst_record structs point to the exact same record, in the same file
+//! \return TRUE (1) if they are the same, FALSE (0) if not or if they do not point to any specific record in a file
+static inline int32_t fst24_record_is_same(const fst_record* const a, const fst_record* const b);
+
 //! Print every difference between the attributes of the given 2 fst_struct
 void fst24_record_diff(const fst_record* a, const fst_record* b);
 ```
@@ -1159,6 +1163,7 @@ contains
     procedure, pass :: allocate 
     procedure, pass :: free
     procedure, pass :: has_same_info
+    procedure, pass :: is_same
     procedure, pass :: read
     procedure, pass :: read_metadata
     procedure, pass :: delete
@@ -1454,6 +1459,16 @@ function has_same_info(this, other) result(has_same_info)
     type(fst_record),  intent(inout) :: other
     logical :: has_same_info
 end function has_same_info
+
+!> Determine whether another record points to the same as this one (same record in same file)
+!> \return Whether the two instances point to the exact same record. .false. if one (or both) of them
+!> does not point to a particular record
+pure function fst24_record_is_same(this, other) result(is_same)
+    implicit none
+    class(fst_record), intent(in) :: this   !< fst_record instance
+    type(fst_record), intent(in) :: other   !< fst_record to which we are comparing this
+    logical :: is_same
+end function is_same
 
 !> Read the data and metadata of a given record from its corresponding file
 !> Return Whether we were able to do the reading

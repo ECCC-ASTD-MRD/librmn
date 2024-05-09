@@ -48,6 +48,13 @@ interface
         integer(C_INT32_T) :: status
     end function fst24_record_has_same_info_c
 
+    pure function fst24_record_is_same_c(a, b) result(status) bind(C, name = 'fst24_record_is_same')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: a, b
+        integer(C_INT32_T) :: status
+    end function fst24_record_is_same_c
+    
     function fst24_read_record(record) result(status) bind(C, name = 'fst24_read_record')
         import :: C_PTR, C_INT32_T
         implicit none
