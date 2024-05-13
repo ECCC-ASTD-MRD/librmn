@@ -1,69 +1,47 @@
 #include "rsf_internal.h"
 
-static int32_t verbose = RSF_DIAG_WARN ;
-static char *diag_text[RSF_DIAG_DEBUG2+1] ;
-static int diag_init = 1 ;
+#include <pthread.h>
 
-char *RSF_diag_level_text(int32_t level){
-  int i ;
-  if(diag_init){
-    for(i = 0 ; i <= RSF_DIAG_DEBUG2 ; i++) diag_text[i] = "INVALID" ;
-    diag_text[RSF_DIAG_NONE]  = "NONE" ;
-    diag_text[RSF_DIAG_ERROR] = "ERROR" ;
-    diag_text[RSF_DIAG_WARN]  = "WARN" ;
-    diag_text[RSF_DIAG_INFO]  = "INFO" ;
-    diag_text[RSF_DIAG_NOTE]  = "NOTE" ;
-    diag_text[RSF_DIAG_DEBUG0] = "LOW DEBUG" ;
-    diag_text[RSF_DIAG_DEBUG1] = "MID DEBUG" ;
-    diag_text[RSF_DIAG_DEBUG2] = "MAX DEBUG" ;
-    diag_init = 0 ;
-  }
-  if(level >= 0 && level <= RSF_DIAG_DEBUG2) {
-    return diag_text[level] ;
-  }else{
-    return "INVALID" ;
-  }
-}
-
-int32_t RSF_set_diag_level(int32_t level){
-  int32_t old_level = verbose ;
-  if(level == RSF_DIAG_NONE || level == RSF_DIAG_ERROR || level == RSF_DIAG_WARN || 
-     level == RSF_DIAG_INFO || level == RSF_DIAG_NOTE  || level == RSF_DIAG_DEBUG0 ||
-     level == RSF_DIAG_DEBUG1 || level == RSF_DIAG_DEBUG2 ) {
-    verbose = level ;
-  }
-  return old_level ;
-}
+static pthread_mutex_t rsf_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // =================================  table of pointers to rsf files (slots) =================================
 static pointer *rsf_files = NULL ;         // global table of pointers to rsf files (slot table)
 static int rsf_files_open = 0 ;            // number of rsf files currently open
 static size_t max_rsf_files_open = 1024 ;  // by default no more than 1024 files can be open simultaneously
 
-// allocate global table of pointers (slot table) to rsf files if not already done
-// return table address if successful, NULL if table cannot be allocated
+//! Allocate global table of pointers (slot table) to rsf files if not already done
+//! \return table address if successful, NULL if table cannot be allocated
 static void *RSF_Slot_table_allocate()
 {
-  struct rlimit rlim ;
+  if (rsf_files != NULL) return rsf_files ;                    // slot table already allocated
 
-  if(rsf_files != NULL) return rsf_files ;                    // slot table already allocated
-  getrlimit(RLIMIT_NOFILE, &rlim) ;                           // get open files number limit for process
-  if(rlim.rlim_cur > max_rsf_files_open) max_rsf_files_open = rlim.rlim_cur ;
-  max_rsf_files_open = (max_rsf_files_open <= 131072) ? max_rsf_files_open : 131072 ; // never more than 128K files
-  return  calloc(sizeof(pointer), max_rsf_files_open) ;       // allocate zro filled table for max number of allowed files
+  // --- START critical region ---
+  pthread_mutex_lock(&rsf_global_mutex);
+
+  if (rsf_files == NULL) { // Check again after locking
+    struct rlimit rlim ;
+    getrlimit(RLIMIT_NOFILE, &rlim) ;                           // get open files number limit for process
+    if(rlim.rlim_cur > max_rsf_files_open) max_rsf_files_open = rlim.rlim_cur ;
+    max_rsf_files_open = (max_rsf_files_open <= 131072) ? max_rsf_files_open : 131072 ; // never more than 128K files
+    rsf_files = calloc(sizeof(pointer), max_rsf_files_open);       // allocate zro filled table for max number of allowed files
+  }
+
+  pthread_mutex_unlock(&rsf_global_mutex);
+  // --- END critical region ---
+
+  return rsf_files;
 }
 
-// find slot matching p in global slot table
-// p      pointer to RSF_file structure
-// return slot number if successful, -1 in case of error
-static int32_t RSF_Find_file_slot(void *p)
-{
-  int i ;
+//! Find slot matching p in global slot table
+//! \return slot number if successful, -1 in case of error
+static int32_t RSF_Find_file_slot(
+  void *p //!< pointer to RSF_file structure
+) {
   if(rsf_files == NULL) rsf_files = RSF_Slot_table_allocate() ;  // first time around, allocate table
   if(rsf_files == NULL) return -1 ;
 
   if(p == NULL) return -1 ;
-  for(i = 0 ; i < max_rsf_files_open ; i++) {
+  for(int i = 0 ; i < max_rsf_files_open ; i++) {
     if(rsf_files[i] == p) return i ;  // slot number
   }
   return -1 ;   // not found
@@ -79,18 +57,20 @@ static int32_t RSF_Set_file_slot(
 
   for(int i = 0 ; i < max_rsf_files_open ; i++) {
     if(rsf_files[i] == NULL) {
-      rsf_files[i] = p ;
-      rsf_files_open ++ ;     // one more open file
-      Lib_Log(APP_LIBFST, APP_EXTRA, "%s: RSF file table slot %d assigned, p = %p\n", __func__, i, p);
-      return i ;              // slot number
+      // Assign number atomically
+      if (__sync_val_compare_and_swap(&(rsf_files[i]), NULL, p) == NULL) {
+        rsf_files_open ++ ;     // one more open file
+        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: RSF file table slot %d assigned, p = %p\n", __func__, i, p);
+        return i ;              // slot number
+      }
     }
   }
   return -1 ;     // pointer not found or table full
 }
 
-// remove existing pointer p from global slot table
-// p      pointer to RSF_file structure
-// return former slot number if successful , -1 if error
+//! remove existing pointer p from global slot table
+//! p      pointer to RSF_file structure
+//! return former slot number if successful , -1 if error
 static int32_t RSF_Purge_file_slot(void *p)
 {
   int i ;
@@ -99,10 +79,16 @@ static int32_t RSF_Purge_file_slot(void *p)
 
   for(i = 0 ; i < max_rsf_files_open ; i++) {
     if(rsf_files[i] == p) {
-      rsf_files[i] = (void *) NULL ;
-      rsf_files_open-- ;     // one less open file
-      Lib_Log(APP_LIBFST, APP_EXTRA,"%s: RSF file table slot %d freed, p = %p\n", __func__, i, p);
-      return i ;             // slot number
+      // --- START critical region ---
+      pthread_mutex_lock(&rsf_global_mutex);
+      if(rsf_files[i] == p) { // Check again
+        rsf_files[i] = (void *) NULL ;
+        rsf_files_open-- ;     // one less open file
+        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: RSF file table slot %d freed, p = %p\n", __func__, i, p);
+      }
+      pthread_mutex_unlock(&rsf_global_mutex);
+      // --- END critical region ---
+      return i ; // slot number
     }
   }
   return -1 ;   // not found
