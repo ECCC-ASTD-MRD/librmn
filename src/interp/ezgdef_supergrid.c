@@ -18,6 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,20 +27,26 @@
 #include "ez_funcdef.h"
 
 
-int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref)
-{
-  char lgrtyp[2],lgrref[2];
+//! Define a 'U' (aka Universal) grid
+int32_t c_ezgdef_supergrid(
+    //! [in] Horizontal dimension of the grid along the x-axis
+    const int32_t ni,
+    //! [in] Horizontal dimension of the grid along the y-axis
+    const int32_t nj,
+    //! [in] Grid type ('U')
+    const char * const grtyp,
+    //! [in] Reference grid type ('F')
+    const char * const grref,
+    //! [in] Version code. Must be 1 
+    const int32_t vercode,
+    //! [in] Number of subgrids. Must be greater than 1.
+    const int32_t nsubgrids,
+    //! [in] Array of subgrid ids
+    const int32_t * const subgrid
+) {
+    //! This 'U' grid contains information for the concatenated 'Z' grids such as the Yin-Yang grid.
+    //! The information can be obtained from a function or from the record '^>' that exists in some FST files.
 
-  lgrtyp[0] = grtyp[0];
-  lgrtyp[1] = '\0';
-
-  lgrref[0] = grref[0];
-  lgrref[1] = '\0';
-  return c_ezgdef_supergrid(*ni, *nj, lgrtyp, lgrref, *vercode, *nsubgrids,subgrid);
-}
-
-int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int32_t vercode,int32_t nsubgrids, int32_t *subgrid)
-{
     if (nsubgrids <= 1)         {
         fprintf(stderr,"<c_ezgdef_supergrid> nsubgrids given is less than 2! Aborting...\n");
         return -1;
@@ -64,8 +72,8 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
         int32_t sub_gdid = subgrid[0];
         c_gdkey2rowcol(sub_gdid,  &sub_gdrow_id,  &sub_gdcol_id);
 
-        newgr.grtyp[0]=grtyp[0];
-        newgr.grref[0]=grref[0];
+        newgr.grtyp[0] = grtyp[0];
+        newgr.grref[0] = grref[0];
         RemplirDeBlancs(newgr.fst.nomvarx, 5);
         RemplirDeBlancs(newgr.fst.typvarx, 3);
         RemplirDeBlancs(newgr.fst.etiketx, 13);
@@ -75,11 +83,11 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
         newgr.ni = ni;
         newgr.nj = nj;
         newgr.idx_last_gdin = -1;
-        /* create tictac arrays to add uniqueness in supergrid*/
-        ax = (float *) malloc(newgr.ni*sizeof(float));
-        ay = (float *) malloc(newgr.nj*sizeof(float));
-        memcpy(ax,Grille[sub_gdrow_id][sub_gdcol_id].ax,newgr.ni*sizeof(float));
-        memcpy(ay,Grille[sub_gdrow_id][sub_gdcol_id].ay,newgr.nj*sizeof(float));
+        // create tictac arrays to add uniqueness in supergrid
+        ax = (float *) malloc(newgr.ni * sizeof(float));
+        ay = (float *) malloc(newgr.nj * sizeof(float));
+        memcpy(ax,Grille[sub_gdrow_id][sub_gdcol_id].ax,newgr.ni * sizeof(float));
+        memcpy(ay,Grille[sub_gdrow_id][sub_gdcol_id].ay,newgr.nj * sizeof(float));
         newgr.fst.ip1 = Grille[sub_gdrow_id][sub_gdcol_id].fst.ip1;
         newgr.fst.ip2 = Grille[sub_gdrow_id][sub_gdcol_id].fst.ip2;
         newgr.fst.ip3 = Grille[sub_gdrow_id][sub_gdcol_id].fst.ip3;
@@ -97,7 +105,7 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
         newgr.fst.igref[IG3] = 0;
         newgr.fst.igref[IG4] = 0;
         newgr.nsubgrids = nsubgrids;
-     }
+    }
     int32_t newgrsize = sizeof(_Grille);
     unsigned int grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, ax, ay, newgr.ni, newgr.nj);
 
@@ -105,6 +113,7 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
     ax = NULL;
     free(ay);
     ay = NULL;
+
     int32_t grid_index = grid_crc % primes_sq[cur_log_chunk];
     int32_t gdid;
     if (gr_list[grid_index] == NULL) {
@@ -141,7 +150,7 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
     Grille[gdrow_in][gdcol_in].fst.igref[IG3] = newgr.fst.igref[IG3];
     Grille[gdrow_in][gdcol_in].fst.igref[IG4] = newgr.fst.igref[IG4];
     Grille[gdrow_in][gdcol_in].nsubgrids = nsubgrids;
-    Grille[gdrow_in][gdcol_in].subgrid = (int32_t *) malloc(nsubgrids*sizeof(int32_t));
+    Grille[gdrow_in][gdcol_in].subgrid = (int32_t *) malloc(nsubgrids * sizeof(int32_t));
 
     for (int32_t ii = 0; ii < nsubgrids; ii++) {
         Grille[gdrow_in][gdcol_in].subgrid[ii] = subgrid[ii];
@@ -187,6 +196,25 @@ int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int
     strcpy(Grille[gdrow_in][gdcol_in].fst.nomvary, newgr.fst.nomvary);
     strcpy(Grille[gdrow_in][gdcol_in].fst.typvary, newgr.fst.typvary);
     strcpy(Grille[gdrow_in][gdcol_in].fst.etikety, newgr.fst.etikety);
+
     return gdid;
 }
 
+
+//! \copydoc c_ezgdef_supergrid
+int32_t f77name(ezgdef_supergrid)(
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t * const vercode,
+    const int32_t * const nsubgrids,
+    const int32_t * const subgrid,
+    F2Cl lengrtyp,
+    F2Cl lengrref
+) {
+    const char lgrtyp[2] = {grtyp[0], '\0'};
+    const char lgrref[2] = {grref[0], '\0'};
+
+    return c_ezgdef_supergrid(*ni, *nj, lgrtyp, lgrref, *vercode, *nsubgrids, subgrid);
+}

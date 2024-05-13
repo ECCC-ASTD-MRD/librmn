@@ -68,8 +68,26 @@ int32_t c_ezgdef_fmem(
     const float * const ay
 );
 
-int32_t f77name(ezgdef_supergrid)(int32_t *ni, int32_t *nj, char *grtyp, char *grref, int32_t *vercode, int32_t *nsubgrids, int32_t *subgrid, F2Cl lengrtyp, F2Cl lengrref);
-int32_t c_ezgdef_supergrid(int32_t ni, int32_t nj, char *grtyp, char *grref, int32_t vercode, int32_t nsubgrids, int32_t *subgrid);
+int32_t f77name(ezgdef_supergrid)(
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t * const vercode,
+    const int32_t * const nsubgrids,
+    const int32_t * const subgrid,
+    F2Cl lengrtyp,
+    F2Cl lengrref
+);
+int32_t c_ezgdef_supergrid(
+    const int32_t ni,
+    const int32_t nj,
+    const char * const grtyp,
+    const char * const grref,
+    const int32_t vercode,
+    const int32_t nsubgrids,
+    const int32_t * const subgrid
+);
 
 int32_t f77name(ezgetopt)(char *option, char *value, F2Cl lenoption, F2Cl lenvalue);
 int32_t c_ezgetopt(char *option, char *value);

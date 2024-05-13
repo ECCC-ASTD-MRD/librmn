@@ -18,15 +18,33 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
 #include <rmn/ezscint.h>
 
 
-static inline void c_gdkey2rowcol(int32_t key, int32_t *row, int32_t *col) {
+//! Get the row and column of a grid
+static inline void c_gdkey2rowcol(
+    //! [in] Grid id
+    const int32_t key,
+    //! [out] Row
+    int32_t * const row,
+    //! [out] Column
+    int32_t * const col
+) {
     *row = key >> LOG2_CHUNK;
     *col = key % CHUNK;
 }
 
 
-static inline void c_gdrowcol2key(int32_t *key, int32_t row, int32_t col) {
+//! Get the grid id of a grid
+static inline void c_gdrowcol2key(
+    //! [out] Grid id
+    int32_t * const key,
+    //! [in] Row
+    const int32_t row,
+    //! [in] Column
+    const int32_t col
+) {
     *key = row * CHUNK + col;
 }
