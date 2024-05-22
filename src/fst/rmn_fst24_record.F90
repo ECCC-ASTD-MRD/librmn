@@ -88,6 +88,7 @@ module rmn_fst24_record
         procedure, pass :: free => fst24_record_free                    !< \copydoc fst24_record_free
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
         procedure, pass :: is_same       => fst24_record_is_same        !< \copydoc fst24_record_is_same
+        procedure, pass :: is_descriptor => fst24_record_is_descriptor  !< \copydoc fst24_file_is_descriptor
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
 !        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
@@ -173,6 +174,19 @@ contains
         c_status = fst24_record_is_same_c(this % get_c_ptr(), other % get_c_ptr())
         is_same = (c_status == 1)
     end function fst24_record_is_same
+
+    !> Check if an fst_record is a field/reference descriptor
+    !> \return TRUE (1) if it is, FALSE (0) otherwise
+    pure function fst24_record_is_descriptor(this) result(is_same)
+        implicit none
+        class(fst_record), intent(in) :: this   !< fst_record instance
+        logical :: is_same
+
+        integer(C_INT32_T) :: c_status
+
+        c_status = fst24_record_is_descriptor_c(this % get_c_ptr())
+        is_same = (c_status == 1)
+    end function fst24_record_is_descriptor
 
     !> Update c_self with current values from this
     subroutine fst24_record_make_c_self(this)

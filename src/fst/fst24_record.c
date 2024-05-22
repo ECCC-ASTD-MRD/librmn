@@ -7,6 +7,22 @@
 #include "rmn/Meta.h"
 #include "rmn/convert_ip.h"
 
+//! Check if an fst_record is a field/reference descriptor
+//! \return TRUE (1) if it is, FALSE (0) otherwise
+int32_t fst24_record_is_descriptor(const fst_record* const record) {
+
+   const char *desc;
+   int         d=0;
+
+   while((desc=FST_DESCRIPTOR[d++])) {
+      if (!strncmp(record->nomvar,desc,FST_NOMVAR_LEN)) {
+         return(1);
+      }
+   }
+
+   return(0);
+}
+
 //! Check if two fst_record structs point to the exact same record, in the same file
 //! \return TRUE (1) if they are the same, FALSE (0) if not or if they do not point to any specific record in a file
 int32_t fst24_record_is_same(const fst_record* const a, const fst_record* const b) {
@@ -767,10 +783,12 @@ int32_t fst24_record_copy_metadata(
        a->deet = b->deet;
        a->npas = b->npas;
     }
-    if (what&FST24_META_SIZE) {
+    if (what&FST24_META_TYPE) {
        a->data_type = b->data_type;
        a->data_bits = b->data_bits;
        a->pack_bits = b->pack_bits;
+    }
+    if (what&FST24_META_SIZE) {
        a->ni = b->ni;
        a->nj = b->nj;
        a->nk = b->nk;

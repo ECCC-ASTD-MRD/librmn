@@ -15,12 +15,13 @@
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
 
-#define FST24_META_ALL  31 
+#define FST24_META_ALL  256 
 #define FST24_META_TIME 1
 #define FST24_META_GRID 2
 #define FST24_META_INFO 4
 #define FST24_META_SIZE 8
-#define FST24_META_EXT  16
+#define FST24_META_TYPE 16
+#define FST24_META_EXT  32
 
 #ifndef IN_FORTRAN_CODE
 
@@ -33,6 +34,9 @@
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
 
 static const int64_t FST_REC_ASSIGNED = 0x1; //!< Indicate a record whose data has been assigned by the user
+
+//! List of field/grid descriptor records
+static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","HY","PROJ","MTRX",NULL };
 
 // Forward declare, to be able to point to it
 typedef struct fst24_file_ fst_file;
@@ -189,6 +193,7 @@ static inline int64_t fst24_record_data_size(const fst_record* record) {
 }
 
 int32_t     fst24_record_is_valid(const fst_record* record);
+int32_t     fst24_record_is_descriptor(const fst_record* const record);
 int32_t     fst24_record_validate_params(const fst_record* record);
 void        fst24_record_print(const fst_record* record);
 void        fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header, const char* prefix);

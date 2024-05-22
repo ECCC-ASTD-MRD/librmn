@@ -55,6 +55,13 @@ interface
         integer(C_INT32_T) :: status
     end function fst24_record_is_same_c
     
+    pure function fst24_record_is_descriptor_c(a) result(status) bind(C, name = 'fst24_record_is_descriptor')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: a
+        integer(C_INT32_T) :: status
+    end function fst24_record_is_descriptor_c
+
     function fst24_read_record(record) result(status) bind(C, name = 'fst24_read_record')
         import :: C_PTR, C_INT32_T
         implicit none
