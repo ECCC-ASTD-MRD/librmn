@@ -23,6 +23,8 @@ subroutine cigaxg(cgtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
     !     CGTYP = '+', LAT, LON, dummy, dummy
 
     real(kind = real64) :: XG18, XG28
+    real :: DLAT, DLON
+    integer :: I2B, IHEM, JG3, JG4, LG1, LG2, LG3, LG4
 
     IF ((CGTYP .EQ. 'N') .OR. (CGTYP .EQ.'S')) THEN
         IF(IG4 .LT. 32768) THEN

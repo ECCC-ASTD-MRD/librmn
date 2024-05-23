@@ -55,8 +55,8 @@ subroutine dgauss(n, roots, kase)
 #endif
 #include "pi.cdk"
 
-    integer :: i, j, l, irt, t
-    real :: delta, g, gm, pn, pnm, rdpdx
+    integer :: i, j, l, irt
+    real :: delta, g, gm, pn, pnm, rdpdx, t
     real :: normn, normnm
 
     ! ordleg returns polynomials normalized to unit integral.
