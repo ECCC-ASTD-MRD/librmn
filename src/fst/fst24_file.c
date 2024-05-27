@@ -13,7 +13,6 @@
 #include "rmn/Meta.h"
 #include "xdf98.h"
 
-int32_t fst24_get_unit(const fst_file* const file);
 static int64_t fst24_get_num_records_single(const fst_file* file);
 int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
 

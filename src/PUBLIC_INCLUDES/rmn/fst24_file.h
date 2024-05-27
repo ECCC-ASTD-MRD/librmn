@@ -33,6 +33,7 @@ const char* fst24_file_name(const fst_file* const file);
 fst_file* fst24_open(const char* const filePath, const char* const options);
 int32_t   fst24_close(fst_file* const file);
 int64_t   fst24_get_num_records(const fst_file* const file);
+int32_t   fst24_get_unit(const fst_file* const file);
 int32_t   fst24_eof(const fst_file* const file);
 
 int32_t    fst24_read_record(fst_record* const record);

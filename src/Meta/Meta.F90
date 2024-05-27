@@ -1,5 +1,6 @@
 module rmn_meta
    use App
+   use f_c_strings_mod
    use rmn_common
    implicit none
 
@@ -7,6 +8,7 @@ module rmn_meta
 
     integer, parameter :: META_TYPE_RECORD=1
     integer, parameter :: META_TYPE_FILE=2
+    integer, parameter :: META_BUF_MAX=32768
     integer, parameter :: JSON_C_TO_STRING_PLAIN=0
     integer, parameter :: JSON_C_TO_STRING_SPACED=1
     integer, parameter :: JSON_C_TO_STRING_PRETTY=2
@@ -513,14 +515,17 @@ contains
    FUNCTION tmeta_stringify(this,format) result(fstring)
       class(meta), intent(in) :: this
       integer(kind=C_INT32_T), intent(in), optional :: format
-      character(kind=C_CHAR), dimension(:), allocatable :: fstring
+      type(C_PTR) :: cstring
+      character(len=:), pointer :: fstring
       integer(kind=C_INT32_T) :: f
 
       f=JSON_C_TO_STRING_PRETTY
       if (present(format)) then
          f=format
       endif
-   fstring = C_F_STRING_CONVERT(meta_stringify(this%json_obj,f))
+
+      cstring = meta_stringify(this%json_obj,f)
+      call c_f_strpointer(cstring,fstring,META_BUF_MAX)
    end FUNCTION tmeta_stringify
 
    FUNCTION tmeta_deffile(this,institution,discipline,title,source,description,state) result(status)

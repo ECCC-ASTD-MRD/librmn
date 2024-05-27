@@ -6,7 +6,7 @@
 #include "rpnmacros.h"
 #include <rmn/rsf.h>
 
-#define MAXFILES 1024
+#define MAXFILES 4096
 
 //! \todo Rename this type to something more specific.  Is it used by client apps?
 typedef struct {
