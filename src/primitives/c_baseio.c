@@ -351,12 +351,18 @@ int c_fnom(
 
     if (liun == 6) {
         fclose(stdout);
-        freopen(nom, "a" , stdout);
+        if(freopen(nom, "a", stdout) == NULL){
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: (liun=%d) freopen: %s: %s\n", __func__, liun, nom, strerror(errno));
+            return -1;
+        }
         stdoutflag = 1;
         return 0;
     } else if (liun == -2) {
         fclose(stderr);
-        freopen(nom, "a", stderr);
+        if(freopen(nom, "a", stderr) == NULL){
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: (liun=%d) freopen: %s: %s\n", __func__, liun, nom, strerror(errno));
+            return -1;
+        }
         return 0;
     }
     for (int i = 0; i < MAXFILES; i++) {

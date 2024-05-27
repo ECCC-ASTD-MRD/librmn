@@ -22,9 +22,9 @@
 ! LIBRARY manual, implemented in VAX single precision.
 subroutine mxm(a, nar, b, nac, c, nbc)
     integer, intent(in) :: nar, nac, nbc
-    real, dimension(nar,nac) :: a
-    real, dimension(nac,nbc), intent(in) :: b
-    real, dimension(nar,nbc), intent(out) :: c
+    real, dimension(nar, nac), intent(in) :: a
+    real, dimension(nac, nbc), intent(in) :: b
+    real, dimension(nar, nbc), intent(out) :: c
 
     integer :: i, j, k
 
