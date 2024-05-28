@@ -1,4 +1,4 @@
-Python_add_library(_rmn MODULE _rmn.c)
+Python_add_library(_rmn MODULE _rmn.c indexing.c)
 
 file(GLOB python_files *.py)
 set(python_files

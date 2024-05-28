@@ -10,6 +10,7 @@
 #include <stddef.h> // for offsetof
 #include <structmember.h> // From Python
 #include <sys/stat.h>
+#include "indexing.h"
 
 /*
  * Documentation links
@@ -57,12 +58,19 @@
  */
 
 static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args));
+static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args);
 static PyMethodDef mymodule_method_defs[] = {
     {
         .ml_name = "get_test_record",
         .ml_doc = "Get a test record",
         .ml_flags = METH_NOARGS,
         .ml_meth = rmn_get_test_record,
+    },
+    {
+        .ml_name = "get_index_columns",
+        .ml_doc = "Get index as a tuple of columns to put in a Pandas DataFrame",
+        .ml_flags = METH_VARARGS,
+        .ml_meth = rmn_get_index_columns,
     },
     {NULL, NULL, 0, NULL},
 };
@@ -274,6 +282,7 @@ static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject
 static int py_fst_record_init(struct py_fst_record *self, PyObject *args, PyObject *kwds);
 static void py_fst_record_dealloc(struct py_fst_record *self);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
+static PyObject *py_fst_record_richcompare(struct py_fst_record *self, PyObject *other, int op);
 static PyMethodDef py_fst_record_method_defs[] = {
     {NULL, NULL, 0, NULL},
 };
@@ -292,6 +301,7 @@ static PyTypeObject py_fst_record_type = {
     .tp_getset = py_fst_record_properties,
     .tp_methods = py_fst_record_method_defs,
     .tp_dealloc = (destructor) py_fst_record_dealloc,
+    .tp_richcompare = (richcmpfunc) py_fst_record_richcompare,
     // .tp_dict = ...
 };
 
@@ -798,7 +808,35 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
 
     return 0;
 }
+static PyObject *py_fst_record_richcompare(struct py_fst_record *self, PyObject *other, int op)
+{
+    if(Py_TYPE(other) != Py_TYPE(self)){
+        PyErr_Format(PyExc_TypeError, "TypeError: can't compare %S with %S", Py_TYPE(self), Py_TYPE(other));
+        return NULL;
+    }
 
+    switch(op){
+        case Py_NE:
+        case Py_EQ:
+            break;
+        case Py_LT:
+        case Py_GT:
+        case Py_LE:
+        case Py_GE:
+            Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    int result = fst24_record_has_same_info(&self->rec, &((struct py_fst_record*)other)->rec);
+    if(op == Py_NE){
+        result = ! result;
+    }
+
+    if(result){
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
 static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
 {
     struct py_fst_record *obj = (struct py_fst_record*)py_fst_record_type.tp_alloc(&py_fst_record_type, 0);
@@ -822,9 +860,72 @@ static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
     test_record.ig4   = 0;
     test_record.data_type = FST_TYPE_REAL_IEEE;
     test_record.data_bits = 32;
-    test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
+    // test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
     obj->rec = test_record;
     return (PyObject *)obj;
+}
+
+static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
+{
+    char *file_path = NULL;
+    int ok = PyArg_ParseTuple(args, "s", &file_path);
+    if(!ok){
+        // Exception already set by PyArg_ParseTuple
+        return NULL;
+    }
+    fst_file *f = fst24_open(file_path, NULL);
+    fst_query *q = fst24_new_query(f, &default_fst_record,  NULL);
+    fst_record result = default_fst_record;
+    RecordVector *records = RecordVector_new(100);
+    while(fst24_find_next(q, &result)){
+        RecordVector_push(records, &result);
+    }
+
+
+    RecordData *columns = NewRecordData(records->size);
+    if(columns == NULL){
+        PyErr_SetString(PyExc_RuntimeError, "OOPSIE");
+        return NULL;
+    }
+
+    for(size_t i = 0; i < records->size; i++){
+        fst_record *r = &records->records[i];
+        columns->ni[i] = r->ni;
+        columns->nj[i] = r->nj;
+        columns->nk[i] = r->nk;
+        columns->dateo[i] = r->dateo;
+        columns->deet[i] = r->deet;
+        columns->npas[i] = r->npas;
+        columns->pack_bits[i] = r->pack_bits;
+        columns->data_type[i] = r->data_type;
+
+        columns->ip1[i] = r->ip1;
+        columns->ip2[i] = r->ip2;
+        columns->ip3[i] = r->ip3;
+
+        strcpy(columns->typvar[i], r->typvar);
+        strcpy(columns->nomvar[i], r->nomvar);
+        strcpy(columns->etiket[i], r->etiket);
+        strcpy(columns->grtyp[i], r->grtyp);
+        strcpy(columns->path[i], file_path);
+
+        columns->ig1[i] = r->ig1;
+        columns->ig2[i] = r->ig2;
+        columns->ig3[i] = r->ig3;
+        columns->ig4[i] = r->ig4;
+
+        //
+
+        // columns->extra1[i] = r->extra1;
+        // columns->extra2[i] = r->extra2;
+        // columns->extra3[i] = r->extra3;
+
+    }
+
+    fprintf(stderr, "Number of records: %lu\n", records->size);
+
+    Py_RETURN_NONE;
+
 }
 
 
