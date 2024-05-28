@@ -865,6 +865,26 @@ static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
     return (PyObject *)obj;
 }
 
+static PyObject * make_array_owning_data(int ndims, npy_intp *dims, int type, void *data){
+    PyObject *array = PyArray_SimpleNewFromData(ndims, dims,NPY_INT32, data);
+    if(array == NULL){
+        return NULL;
+    }
+    PyObject *capsule = PyCapsule_New(data, "raw_columns ni", (PyCapsule_Destructor)free_capsule_ptr);
+    if(capsule == NULL){
+        Py_DECREF(array);
+        return NULL;
+    }
+    if(PyArray_SetBaseObject((PyArrayObject*)array, capsule) < 0){
+        Py_DECREF(array);
+        Py_DECREF(capsule);
+        return NULL;
+    }
+
+    return array;
+}
+
+
 static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
 {
     char *file_path = NULL;
@@ -882,50 +902,83 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
     }
 
 
-    RecordData *columns = NewRecordData(records->size);
-    if(columns == NULL){
+    RecordData *raw_columns = NewRecordData(records->size);
+    if(raw_columns == NULL){
         PyErr_SetString(PyExc_RuntimeError, "OOPSIE");
         return NULL;
     }
 
+    raw_columns->nb_records = records->size;
     for(size_t i = 0; i < records->size; i++){
         fst_record *r = &records->records[i];
-        columns->ni[i] = r->ni;
-        columns->nj[i] = r->nj;
-        columns->nk[i] = r->nk;
-        columns->dateo[i] = r->dateo;
-        columns->deet[i] = r->deet;
-        columns->npas[i] = r->npas;
-        columns->pack_bits[i] = r->pack_bits;
-        columns->data_type[i] = r->data_type;
+        raw_columns->ni[i] = r->ni;
+        raw_columns->nj[i] = r->nj;
+        raw_columns->nk[i] = r->nk;
+        raw_columns->dateo[i] = r->dateo;
+        raw_columns->deet[i] = r->deet;
+        raw_columns->npas[i] = r->npas;
+        raw_columns->pack_bits[i] = r->pack_bits;
+        raw_columns->data_type[i] = r->data_type;
 
-        columns->ip1[i] = r->ip1;
-        columns->ip2[i] = r->ip2;
-        columns->ip3[i] = r->ip3;
+        raw_columns->ip1[i] = r->ip1;
+        raw_columns->ip2[i] = r->ip2;
+        raw_columns->ip3[i] = r->ip3;
 
-        strcpy(columns->typvar[i], r->typvar);
-        strcpy(columns->nomvar[i], r->nomvar);
-        strcpy(columns->etiket[i], r->etiket);
-        strcpy(columns->grtyp[i], r->grtyp);
-        strcpy(columns->path[i], file_path);
+        strcpy(raw_columns->typvar[i], r->typvar);
+        strcpy(raw_columns->nomvar[i], r->nomvar);
+        strcpy(raw_columns->etiket[i], r->etiket);
+        strcpy(raw_columns->grtyp[i], r->grtyp);
+        strcpy(raw_columns->path[i], file_path);
 
-        columns->ig1[i] = r->ig1;
-        columns->ig2[i] = r->ig2;
-        columns->ig3[i] = r->ig3;
-        columns->ig4[i] = r->ig4;
+        raw_columns->ig1[i] = r->ig1;
+        raw_columns->ig2[i] = r->ig2;
+        raw_columns->ig3[i] = r->ig3;
+        raw_columns->ig4[i] = r->ig4;
 
         //
 
-        // columns->extra1[i] = r->extra1;
-        // columns->extra2[i] = r->extra2;
-        // columns->extra3[i] = r->extra3;
+        // raw_columns->extra1[i] = r->extra1;
+        // raw_columns->extra2[i] = r->extra2;
+        // raw_columns->extra3[i] = r->extra3;
 
+    }
+
+	PyObject *columns = PyDict_New();
+    npy_intp dims[] = {raw_columns->nb_records};
+
+
+    PyObject *np_ni = make_array_owning_data(1, dims, NPY_INT32, raw_columns->ni);
+    fprintf(stderr, "marker 1, dims[0] = %lu\n", dims[0]);
+    if(np_ni == NULL){
+        //TODO set exception
+        return NULL;
+    }
+    fprintf(stderr, "marker 2\n");
+    if(PyDict_SetItemString(columns, "ni", np_ni)){
+        return NULL;
+    }
+
+    PyObject *np_nj = make_array_owning_data(1, dims, NPY_INT32, raw_columns->nj);
+    if(np_nj == NULL){
+        //TODO exception
+        return NULL;
+    }
+    if(PyDict_SetItemString(columns, "nj", np_nj)){
+        return NULL;
+    }
+
+    PyObject *np_nk = make_array_owning_data(1, dims, NPY_INT32, raw_columns->nk);
+    if(np_nk == NULL){
+        //TODO exception
+        return NULL;
+    }
+    if(PyDict_SetItemString(columns, "nk", np_nk)){
+        return NULL;
     }
 
     fprintf(stderr, "Number of records: %lu\n", records->size);
 
-    Py_RETURN_NONE;
-
+    return columns;
 }
 
 
