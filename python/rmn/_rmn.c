@@ -865,6 +865,100 @@ static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
     return (PyObject *)obj;
 }
 
+/*******************************************************************************
+ * Indexing functions.  These functions, along with the functions in indexing.c
+ * serve to create a Pandas DataFrame whose rows are the information about a
+ * record.
+ *
+ * To achieve this, we create a Python dictionnary whose keys are column names
+ * and whose values are columns in the form of a numpy array.
+ *
+ * Improvements
+ * - There are some inefficiencies with how the data is gathered then processed
+ *   into a format for the string columns.  This could be improved by changing
+ *   the RecordData struct and gathering code so that the is already in the
+ *   memory layout required for the numpy array.
+ * - There are two ways of getting numpy arrays of strings, one is the method
+ *   currently used where all the strings are in a single block of memory and
+ *   the other is to have the numpy array be an array of arbitrary objects
+ *   (NPY_OBJECT) but then we would need to create individual python string
+ *   objects each with their own memeory (the numpy array would be an array of
+ *   pointers).  This is a choice to make.
+ * - The python function takes only a single filename.  It could be made to
+ *   take a Python list and we could do a link of all the files in that list.
+ * - Since we don't know the number of records ahead of time, we can't allocate
+ *   the RecordData struct without getting all the records.  I made a simple
+ *   vector<fst_record> (in C++ parlance) to get an array of all the records
+ *   Maybe there is a better way to use this vector to create the numpy arrays.
+*******************************************************************************/
+static RecordData *rmn_get_index_columns_raw(const char *file_path);
+int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int type, void *data);
+int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char **data);
+static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
+
+    char *file_path = NULL;
+    int ok = PyArg_ParseTuple(args, "s", &file_path);
+    if(!ok){
+        // Exception already set by PyArg_ParseTuple
+        return NULL;
+    }
+
+    RecordData *raw_columns = rmn_get_index_columns_raw(file_path);
+
+	PyObject *columns = PyDict_New();
+    npy_intp dims[] = {raw_columns->nb_records};
+
+    if(make_1d_array_and_add_to_dict(columns, "ni", raw_columns->nb_records, NPY_INT32, raw_columns->ni)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "nj", raw_columns->nb_records, NPY_INT32, raw_columns->nj)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "nk", raw_columns->nb_records, NPY_INT32, raw_columns->nk)){ goto error; }
+
+    if(make_1d_array_and_add_to_dict(columns, "dateo", raw_columns->nb_records, NPY_INT32, raw_columns->dateo)){ goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "deet", raw_columns->nb_records, NPY_INT32, raw_columns->deet)){ goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "npas", raw_columns->nb_records, NPY_INT32, raw_columns->npas)){ goto error;}
+
+    if(make_1d_array_and_add_to_dict(columns, "pack_bits", raw_columns->nb_records, NPY_INT32, raw_columns->pack_bits)){ goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "data_type", raw_columns->nb_records, NPY_INT32, raw_columns->data_type)){ goto error;}
+
+    if(make_1d_array_and_add_to_dict(columns, "ip1", raw_columns->nb_records, NPY_INT32, raw_columns->ip1)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "ip2", raw_columns->nb_records, NPY_INT32, raw_columns->ip2)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "ip3", raw_columns->nb_records, NPY_INT32, raw_columns->ip3)){ goto error; }
+
+    if(make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->typvar)){goto error;}
+    if(make_1d_string_array_and_add_to_dict(columns, "nomvar", raw_columns->nb_records, FST_NOMVAR_LEN, raw_columns->nomvar)){goto error;}
+    if(make_1d_string_array_and_add_to_dict(columns, "etiket", raw_columns->nb_records, FST_ETIKET_LEN, raw_columns->etiket)){goto error;}
+    if(make_1d_string_array_and_add_to_dict(columns, "grtyp", raw_columns->nb_records, FST_GTYP_LEN, raw_columns->grtyp)){goto error;}
+
+    if(make_1d_array_and_add_to_dict(columns, "ig1", raw_columns->nb_records, NPY_INT32, raw_columns->ig1)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "ig2", raw_columns->nb_records, NPY_INT32, raw_columns->ig2)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "ig3", raw_columns->nb_records, NPY_INT32, raw_columns->ig3)){ goto error; }
+    if(make_1d_array_and_add_to_dict(columns, "ig4", raw_columns->nb_records, NPY_INT32, raw_columns->ig4)){ goto error; }
+
+    // if(make_1d_array_and_add_to_dict(columns, "swa", raw_columns->nb_records, NPY_INT32, raw_columns->swa)){ goto error; }
+    // if(make_1d_array_and_add_to_dict(columns, "lng", raw_columns->nb_records, NPY_INT32, raw_columns->lng)){ goto error; }
+    // if(make_1d_array_and_add_to_dict(columns, "dltf", raw_columns->nb_records, NPY_INT32, raw_columns->dltf)){ goto error; }
+    // if(make_1d_array_and_add_to_dict(columns, "dltc", raw_columns->nb_records, NPY_INT32, raw_columns->dltc)){ goto error; }
+
+    // if(make_1d_array_and_add_to_dict(columns, "extra1", raw_columns->nb_records, NPY_INT32, raw_columns->extra1)){ goto error; }
+    // if(make_1d_array_and_add_to_dict(columns, "extra2", raw_columns->nb_records, NPY_INT32, raw_columns->extra2)){ goto error; }
+    // if(make_1d_array_and_add_to_dict(columns, "extra3", raw_columns->nb_records, NPY_INT32, raw_columns->extra3)){ goto error; }
+
+    free(raw_columns); // The struct contains a bunch of arrays but we don't want
+                       // to free them since we gave them away to some numpy arrays
+    return columns;
+error:
+    free(raw_columns);
+    // TODO: Error handling for all the numpy arrays we created.
+    // Doing DECREF(columns) will destroy the dictionnary, and every array
+    // we added to the dictionnary will get DECREF'd by the destruction of the
+    // dictionnary, and all the make_1d... destroy the array if they can't
+    // add it to the dictionnary so I think we're good here.
+    // What about the ones that we didn't get to yet, we need to free those
+    // but not the ones that we gave to the dictionnary.
+    // We'll have to think about that one.
+    Py_XDECREF(columns);
+    // All functions called here that could fail will set the exception.
+    return NULL;
+}
 static PyObject * make_array_owning_data(int ndims, npy_intp *dims, int type, void *data){
     PyObject *array = PyArray_SimpleNewFromData(ndims, dims,NPY_INT32, data);
     if(array == NULL){
@@ -884,15 +978,66 @@ static PyObject * make_array_owning_data(int ndims, npy_intp *dims, int type, vo
     return array;
 }
 
+static PyObject *make_string_array_owning_data(int ndims, npy_intp *dims, int max_str_length, char **data){
 
-static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
-{
-    char *file_path = NULL;
-    int ok = PyArg_ParseTuple(args, "s", &file_path);
-    if(!ok){
-        // Exception already set by PyArg_ParseTuple
-        return NULL;
+    /*
+     * Put all the strings in one contiguous block of memory for a numpy
+     * NOTE: This should be done by changing RecordData struct and the
+     * gathering of information so that this can be done right away.  Then
+     * this for loop would not be necessary.
+     */
+    size_t stride = (max_str_length + 1)*sizeof(char);
+    char *all_blocks = malloc( dims[0] * stride);
+    char *one_block = all_blocks;
+    for(int i = 0; i < dims[0] ; i++, one_block+=stride){
+        char *input = data[i];
+        strncpy(one_block, data[i], stride);
     }
+
+    /*
+     * Create the numpy array.
+     * Apparently we can use NPY_ARRAY_OWNDATA here.  They say not to set it
+     * manually in the documentation of PyArray_SimpleNewFromData but I've seen
+     * they don't say not to do it when creating an array using this function.
+     */
+    npy_intp strides[] = {stride};
+    PyObject *array = PyArray_New(&PyArray_Type, ndims, dims, NPY_STRING, NULL, all_blocks, stride, NPY_ARRAY_OWNDATA, NULL);
+    return array;
+}
+
+    //if(make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->etiket)){goto error;}
+int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char **data)
+{
+    npy_intp dims[] = {nb_items};
+    PyObject *array_1d = make_string_array_owning_data(1, dims, max_str_length, data);
+    if(array_1d == NULL){
+        PyErr_Format(PyExc_RuntimeError, "Could not create numpy array for column '%s'", key);
+        return 1;
+    }
+    if(PyDict_SetItemString(dict, key, array_1d)){
+        Py_DECREF(array_1d);
+        return 1;
+    }
+    return 0;
+}
+
+int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int type, void *data)
+{
+    npy_intp dims[] = {nb_items};
+    PyObject *array_1d = make_array_owning_data(1, dims, NPY_INT32, data);
+    if(array_1d == NULL){
+        PyErr_Format(PyExc_RuntimeError, "Could not create numpy array for column '%s'", key);
+        return 1;
+    }
+    if(PyDict_SetItemString(dict, key, array_1d)){
+        Py_DECREF(array_1d);
+        return 1;
+    }
+    return 0;
+}
+
+static RecordData *rmn_get_index_columns_raw(const char *file_path)
+{
     fst_file *f = fst24_open(file_path, NULL);
     fst_query *q = fst24_new_query(f, &default_fst_record,  NULL);
     fst_record result = default_fst_record;
@@ -900,7 +1045,6 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
     while(fst24_find_next(q, &result)){
         RecordVector_push(records, &result);
     }
-
 
     RecordData *raw_columns = NewRecordData(records->size);
     if(raw_columns == NULL){
@@ -935,51 +1079,15 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
         raw_columns->ig3[i] = r->ig3;
         raw_columns->ig4[i] = r->ig4;
 
-        //
-
         // raw_columns->extra1[i] = r->extra1;
         // raw_columns->extra2[i] = r->extra2;
         // raw_columns->extra3[i] = r->extra3;
-
     }
 
-	PyObject *columns = PyDict_New();
-    npy_intp dims[] = {raw_columns->nb_records};
-
-
-    PyObject *np_ni = make_array_owning_data(1, dims, NPY_INT32, raw_columns->ni);
-    fprintf(stderr, "marker 1, dims[0] = %lu\n", dims[0]);
-    if(np_ni == NULL){
-        //TODO set exception
-        return NULL;
-    }
-    fprintf(stderr, "marker 2\n");
-    if(PyDict_SetItemString(columns, "ni", np_ni)){
-        return NULL;
-    }
-
-    PyObject *np_nj = make_array_owning_data(1, dims, NPY_INT32, raw_columns->nj);
-    if(np_nj == NULL){
-        //TODO exception
-        return NULL;
-    }
-    if(PyDict_SetItemString(columns, "nj", np_nj)){
-        return NULL;
-    }
-
-    PyObject *np_nk = make_array_owning_data(1, dims, NPY_INT32, raw_columns->nk);
-    if(np_nk == NULL){
-        //TODO exception
-        return NULL;
-    }
-    if(PyDict_SetItemString(columns, "nk", np_nk)){
-        return NULL;
-    }
-
-    fprintf(stderr, "Number of records: %lu\n", records->size);
-
-    return columns;
+    RecordVector_free(records);
+    return raw_columns;
 }
+
 
 
 PyMODINIT_FUNC PyInit__rmn(void)

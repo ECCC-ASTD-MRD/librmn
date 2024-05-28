@@ -35,6 +35,16 @@ RecordData *NewRecordData(size_t nb_records)
     data->grtyp = calloc(nb_records, sizeof(*(data->grtyp)));
     data->path = calloc(nb_records, sizeof(*(data->path)));
 
+    /*
+     * TODO: Maybe RecordData can be changed so that we would be able to do
+     *
+     *     data->typvar = calloc(nb_records, FST_TYPVAR_LEN * sizeof(char))
+     *
+     * then the data would already be in the layout to put it in a numpy array
+     * and same for all the others.  Except maybe path since PATH_MAX is
+     * considerably larger than the others, that column could be NPY_OBJECT
+     * at the cost of having each element be an individual string object.
+     */
     for (int i = 0; i < nb_records; ++i)
     {
         (data->typvar)[i] = (char *)calloc(3, sizeof(char));
@@ -133,7 +143,6 @@ RecordVector *RecordVector_new(size_t initial_capacity)
 }
 
 int RecordVector_grow(RecordVector *rv){
-    fprintf(stderr, "%s(): growing to %lu\n", __func__, 2*rv->capacity);
     fst_record *new = reallocarray(rv->records, 2*rv->capacity, sizeof(*rv->records));
     if(new == NULL){
         perror("reallocarray");
