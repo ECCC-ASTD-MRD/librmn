@@ -13,6 +13,7 @@ static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","HY","PROJ","MTRX
 const char** fst24_record_get_descriptors(void) {
    return(FST_DESCRIPTOR);
 }
+
 //! Check if an fst_record is a field/reference descriptor
 //! \return TRUE (1) if it is, FALSE (0) otherwise
 int32_t fst24_record_is_descriptor(const fst_record* const record) {
