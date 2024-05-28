@@ -891,19 +891,34 @@ static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
  *   vector<fst_record> (in C++ parlance) to get an array of all the records
  *   Maybe there is a better way to use this vector to create the numpy arrays.
 *******************************************************************************/
-static RecordData *rmn_get_index_columns_raw(const char *file_path);
+static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files);
 int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int type, void *data);
 int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char **data);
 static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
 
-    char *file_path = NULL;
-    int ok = PyArg_ParseTuple(args, "s", &file_path);
+    PyObject *file_list = NULL;
+    int ok = PyArg_ParseTuple(args, "O", &file_list);
     if(!ok){
         // Exception already set by PyArg_ParseTuple
         return NULL;
     }
+    // TODO: Verify that the object is a list and throw exception otherwise
+    Py_ssize_t nb_files = PyList_Size(file_list);
+    const char *filenames[nb_files]; // TODO: Automatic arrays, some people don't like them and if they're too big they can blow the stack
+    for(int i = 0; i < nb_files ; i++){
+        PyObject *item = PyList_GetItem(file_list, i);
+        if(item == NULL){
+            fprintf(stderr, "%s(): ERROR: OOPSIE: Better error handling is required to not leak memory (Phil)\n", __func__);
+            return NULL;
+        }
+        const char *filename = PyUnicode_AsUTF8AndSize(item, NULL);
+        if(filename == NULL){
+            return NULL;
+        }
+        filenames[i] = filename;
+    }
 
-    RecordData *raw_columns = rmn_get_index_columns_raw(file_path);
+    RecordData *raw_columns = rmn_get_index_columns_raw(filenames, nb_files);
 
 	PyObject *columns = PyDict_New();
     npy_intp dims[] = {raw_columns->nb_records};
@@ -1036,10 +1051,15 @@ int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items,
     return 0;
 }
 
-static RecordData *rmn_get_index_columns_raw(const char *file_path)
+static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
 {
-    fst_file *f = fst24_open(file_path, NULL);
-    fst_query *q = fst24_new_query(f, &default_fst_record,  NULL);
+    fst_file *files[nb_files];
+    for(int i = 0; i < nb_files; i++){
+        files[i] = fst24_open(filenames[i], NULL);
+    }
+    fst24_link(files, nb_files);
+
+    fst_query *q = fst24_new_query(files[0], &default_fst_record,  NULL);
     fst_record result = default_fst_record;
     RecordVector *records = RecordVector_new(100);
     while(fst24_find_next(q, &result)){
@@ -1072,7 +1092,9 @@ static RecordData *rmn_get_index_columns_raw(const char *file_path)
         strcpy(raw_columns->nomvar[i], r->nomvar);
         strcpy(raw_columns->etiket[i], r->etiket);
         strcpy(raw_columns->grtyp[i], r->grtyp);
-        strcpy(raw_columns->path[i], file_path);
+        // Discuss with JP how we can maintain the filepath association with
+        // the records.
+        // strcpy(raw_columns->path[i], file_path);
 
         raw_columns->ig1[i] = r->ig1;
         raw_columns->ig2[i] = r->ig2;
