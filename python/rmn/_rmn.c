@@ -956,6 +956,7 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
     // if(make_1d_array_and_add_to_dict(columns, "extra1", raw_columns->nb_records, NPY_INT32, raw_columns->extra1)){ goto error; }
     // if(make_1d_array_and_add_to_dict(columns, "extra2", raw_columns->nb_records, NPY_INT32, raw_columns->extra2)){ goto error; }
     // if(make_1d_array_and_add_to_dict(columns, "extra3", raw_columns->nb_records, NPY_INT32, raw_columns->extra3)){ goto error; }
+    if(make_1d_string_array_and_add_to_dict(columns, "path", raw_columns->nb_records, PATH_MAX+1, raw_columns->path)){ goto error; }
 
     free(raw_columns); // The struct contains a bunch of arrays but we don't want
                        // to free them since we gave them away to some numpy arrays
@@ -1051,6 +1052,26 @@ int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items,
     return 0;
 }
 
+void strncpytrm(char *dest, const char *src, size_t size){
+    const char *p = src;
+    char *q = dest;
+    for(int i = 0; i < size; i++,q++,p++){
+        char c = *p;
+        switch(c){
+            case '\0':
+            case ' ':
+                *q = '\0';
+                return;
+            default:
+                *q = c;
+                break;
+        }
+    }
+    // Since RMN says that thinks like `FST_TYPVAR_LEN` *includes* space for the
+    // terminating NUL byte, we can be pretty sure that this is not needed
+    *--q = '\0'; // Unlikely
+}
+
 static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
 {
     RecordVector *record_vectors[nb_files];
@@ -1098,13 +1119,14 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
             raw_columns->ip2[i] = r->ip2;
             raw_columns->ip3[i] = r->ip3;
 
-            strcpy(raw_columns->typvar[i], r->typvar);
-            strcpy(raw_columns->nomvar[i], r->nomvar);
-            strcpy(raw_columns->etiket[i], r->etiket);
-            strcpy(raw_columns->grtyp[i], r->grtyp);
+            // Remove 'trm' if we want to keep the trailing spaces
+            strncpytrm(raw_columns->typvar[i], r->typvar, FST_TYPVAR_LEN);
+            strncpytrm(raw_columns->nomvar[i], r->nomvar, FST_NOMVAR_LEN);
+            strncpytrm(raw_columns->etiket[i], r->etiket, FST_ETIKET_LEN);
+            strncpytrm(raw_columns->grtyp[i], r->grtyp, FST_GTYP_LEN);
             // Discuss with JP how we can maintain the filepath association with
             // the records.
-            strcpy(raw_columns->path[i], filename);
+            strncpy(raw_columns->path[i], filename, PATH_MAX);
 
             raw_columns->ig1[i] = r->ig1;
             raw_columns->ig2[i] = r->ig2;

@@ -52,11 +52,6 @@ RecordData *NewRecordData(size_t nb_records)
         (data->etiket)[i] = (char *)calloc(13, sizeof(char));
         (data->grtyp)[i] = (char *)calloc(2, sizeof(char));
         (data->path)[i] = (char *)calloc(PATH_MAX, sizeof(char));
-        strcpy((data->typvar[i]), "  \0");
-        strcpy((data->nomvar[i]), "    \0");
-        strcpy((data->etiket[i]), "            \0");
-        strcpy((data->grtyp[i]), " \0");
-        strcpy((data->path[i]), "\0");
     }
 
     data->ig1 = calloc(nb_records, sizeof(*(data->ig1)));
