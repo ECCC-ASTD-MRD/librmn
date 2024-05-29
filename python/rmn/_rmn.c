@@ -1054,6 +1054,15 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
     RecordVector *record_vectors[nb_files];
     int total_nb_records = 0;
     for(int i = 0; i < nb_files; i++){
+        if(i % 20 == 0){
+            if(PyErr_CheckSignals()){
+                // Python catches SIGINT and will only deal with it when it
+                // gets back control.  We can use this function to see if it
+                // got a sigint.
+                return NULL;
+            }
+        }
+
         fst_file *f = fst24_open(filenames[i], NULL);
         if(f == NULL){
             PyErr_Format(PyExc_RuntimeError, "Could not open file '%s'", filenames[i]);
@@ -1067,6 +1076,8 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
         }
         record_vectors[i] = rv;
         total_nb_records += rv->size;
+
+        fst24_query_free(q);
         fst24_close(f);
     }
 
@@ -1074,6 +1085,7 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
     if(raw_columns == NULL){
         PyErr_SetString(PyExc_RuntimeError, "OOPSIE");
         return NULL;
+
     }
     raw_columns->nb_records = total_nb_records; // TODO SHould be set in RecordDataNew obviously
 
@@ -1098,10 +1110,10 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
             raw_columns->ip3[i] = r->ip3;
 
             // Remove 'trm' if we want to keep the trailing spaces
-            strncpytrm(raw_columns->typvar + i*FST_TYPVAR_LEN, r->typvar, FST_TYPVAR_LEN);
-            strncpytrm(raw_columns->nomvar + i*FST_NOMVAR_LEN, r->nomvar, FST_NOMVAR_LEN);
-            strncpytrm(raw_columns->etiket + i*FST_ETIKET_LEN, r->etiket, FST_ETIKET_LEN);
-            strncpytrm(raw_columns->grtyp  + i*FST_GTYP_LEN, r->grtyp, FST_GTYP_LEN);
+            strncpy(raw_columns->typvar + i*FST_TYPVAR_LEN, r->typvar, FST_TYPVAR_LEN);
+            strncpy(raw_columns->nomvar + i*FST_NOMVAR_LEN, r->nomvar, FST_NOMVAR_LEN);
+            strncpy(raw_columns->etiket + i*FST_ETIKET_LEN, r->etiket, FST_ETIKET_LEN);
+            strncpy(raw_columns->grtyp  + i*FST_GTYP_LEN, r->grtyp, FST_GTYP_LEN);
             // Discuss with JP how we can maintain the filepath association with
             // the records.
             strncpy(raw_columns->path + i*(PATH_MAX+1), filename, PATH_MAX);

@@ -16,43 +16,43 @@ RecordData *NewRecordData(size_t nb_records)
 {
     RecordData *data = malloc(sizeof(*data));
     // Reallocate memory for each array
-    data->ni = calloc(nb_records, sizeof(*(data->ni)));
-    data->nj = calloc(nb_records, sizeof(*(data->nj)));
-    data->nk = calloc(nb_records, sizeof(*(data->nk)));
-    data->dateo = calloc(nb_records, sizeof(*(data->dateo)));
-    data->deet = calloc(nb_records, sizeof(*(data->deet)));
-    data->npas = calloc(nb_records, sizeof(*(data->npas)));
-    data->pack_bits = calloc(nb_records, sizeof(*(data->pack_bits)));
-    data->data_type = calloc(nb_records, sizeof(*(data->data_type
+    data->ni = malloc(nb_records*sizeof(*(data->ni)));
+    data->nj = malloc(nb_records*sizeof(*(data->nj)));
+    data->nk = malloc(nb_records*sizeof(*(data->nk)));
+    data->dateo = malloc(nb_records*sizeof(*(data->dateo)));
+    data->deet = malloc(nb_records*sizeof(*(data->deet)));
+    data->npas = malloc(nb_records*sizeof(*(data->npas)));
+    data->pack_bits = malloc(nb_records*sizeof(*(data->pack_bits)));
+    data->data_type = malloc(nb_records*sizeof(*(data->data_type
     )));
-    data->ip1 = calloc(nb_records, sizeof(*(data->ip1)));
-    data->ip2 = calloc(nb_records, sizeof(*(data->ip2)));
-    data->ip3 = calloc(nb_records, sizeof(*(data->ip3)));
+    data->ip1 = malloc(nb_records*sizeof(*(data->ip1)));
+    data->ip2 = malloc(nb_records*sizeof(*(data->ip2)));
+    data->ip3 = malloc(nb_records*sizeof(*(data->ip3)));
 
-    data->typvar = calloc(nb_records, sizeof(*(data->typvar)));
-    data->nomvar = calloc(nb_records, sizeof(*(data->nomvar)));
-    data->etiket = calloc(nb_records, sizeof(*(data->etiket)));
-    data->grtyp = calloc(nb_records, sizeof(*(data->grtyp)));
-    data->path = calloc(nb_records, sizeof(*(data->path)));
+    data->typvar = malloc(nb_records*sizeof(*(data->typvar)));
+    data->nomvar = malloc(nb_records*sizeof(*(data->nomvar)));
+    data->etiket = malloc(nb_records*sizeof(*(data->etiket)));
+    data->grtyp = malloc(nb_records*sizeof(*(data->grtyp)));
+    data->path = malloc(nb_records*sizeof(*(data->path)));
 
-    data->typvar = calloc(nb_records, FST_TYPVAR_LEN * sizeof(char));
-    data->nomvar = calloc(nb_records, FST_NOMVAR_LEN * sizeof(char));
-    data->etiket = calloc(nb_records, FST_ETIKET_LEN * sizeof(char));
-    data->grtyp = calloc(nb_records, FST_GTYP_LEN * sizeof(char));
-    data->path = calloc(nb_records, PATH_MAX * sizeof(char));
+    data->typvar = malloc(nb_records*FST_TYPVAR_LEN * sizeof(char));
+    data->nomvar = malloc(nb_records*FST_NOMVAR_LEN * sizeof(char));
+    data->etiket = malloc(nb_records*FST_ETIKET_LEN * sizeof(char));
+    data->grtyp = malloc(nb_records*FST_GTYP_LEN * sizeof(char));
+    data->path = malloc(nb_records*(PATH_MAX+1) * sizeof(char));
 
-    data->ig1 = calloc(nb_records, sizeof(*(data->ig1)));
-    data->ig2 = calloc(nb_records, sizeof(*(data->ig2)));
-    data->ig3 = calloc(nb_records, sizeof(*(data->ig3)));
-    data->ig4 = calloc(nb_records, sizeof(*(data->ig4)));
+    data->ig1 = malloc(nb_records*sizeof(*(data->ig1)));
+    data->ig2 = malloc(nb_records*sizeof(*(data->ig2)));
+    data->ig3 = malloc(nb_records*sizeof(*(data->ig3)));
+    data->ig4 = malloc(nb_records*sizeof(*(data->ig4)));
 
-    data->swa = calloc(nb_records, sizeof(*(data->swa)));
-    data->lng = calloc(nb_records, sizeof(*(data->lng)));
-    data->dltf = calloc(nb_records, sizeof(*(data->dltf)));
-    data->ubc = calloc(nb_records, sizeof(*(data->ubc)));
-    data->extra1 = calloc(nb_records, sizeof(*(data->extra1)));
-    data->extra2 = calloc(nb_records, sizeof(*(data->extra2)));
-    data->extra3 = calloc(nb_records, sizeof(*(data->extra3)));
+    data->swa = malloc(nb_records*sizeof(*(data->swa)));
+    data->lng = malloc(nb_records*sizeof(*(data->lng)));
+    data->dltf = malloc(nb_records*sizeof(*(data->dltf)));
+    data->ubc = malloc(nb_records*sizeof(*(data->ubc)));
+    data->extra1 = malloc(nb_records*sizeof(*(data->extra1)));
+    data->extra2 = malloc(nb_records*sizeof(*(data->extra2)));
+    data->extra3 = malloc(nb_records*sizeof(*(data->extra3)));
 
     // Check if realloc was successful
     if (data->ni == NULL || data->nj == NULL || data->nk == NULL ||
