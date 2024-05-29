@@ -822,8 +822,8 @@ typedef struct {
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
-    int64_t dateo;    //!< Origin Date timestamp
-    int64_t datev;    //!< Valid Date timestamp
+    int32_t dateo;    //!< Origin Date timestamp
+    int32_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
     int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
@@ -1133,8 +1133,8 @@ type, public :: fst_record
     type(C_PTR) :: data     = C_NULL_PTR    !< Pointer to the data
     type(C_PTR) :: metadata = C_NULL_PTR    !< Pointer to the metadata
 
-    integer(C_INT64_T) :: dateo    = -1 !< Origin Date timestamp
-    integer(C_INT64_T) :: datev    = -1 !< Valid Date timestamp
+    integer(C_INT32_T) :: dateo    = -1 !< Origin Date timestamp
+    integer(C_INT32_T) :: datev    = -1 !< Valid Date timestamp
 
     integer(C_INT32_T) :: data_type = -1    !< Data type of elements
     integer(C_INT32_T) :: data_bits = -1    !< Number of bits per elements
@@ -1238,7 +1238,7 @@ function new_query(this,                                                        
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
-    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
@@ -1265,7 +1265,7 @@ function read(this, record, data,                                               
     !> `data` attribute of the record being read.
     type(C_PTR), intent(in), optional :: data
 
-    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar

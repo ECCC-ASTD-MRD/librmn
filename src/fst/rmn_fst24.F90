@@ -179,7 +179,7 @@ contains
         !> `data` attribute of the record being read.
         type(C_PTR), intent(in), optional :: data
 
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
@@ -213,7 +213,7 @@ contains
             ip1_all, ip2_all, ip3_all) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar

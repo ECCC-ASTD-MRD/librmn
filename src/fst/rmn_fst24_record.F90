@@ -52,8 +52,8 @@ module rmn_fst24_record
         type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
         type(meta)  :: metadata               !< Metadata object
 
-        integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
-        integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
+        integer(C_INT32_T) :: dateo    = -1   !< Origin Date timestamp
+        integer(C_INT32_T) :: datev    = -1   !< Valid Date timestamp
 
         integer(C_INT32_T) :: data_type = -1    !< Data type of elements
         integer(C_INT32_T) :: data_bits = -1    !< Number of bits per element (uncompressed)

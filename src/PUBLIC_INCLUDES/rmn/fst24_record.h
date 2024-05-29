@@ -56,8 +56,8 @@ typedef struct {
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
-    int64_t dateo;    //!< Origin Date timestamp
-    int64_t datev;    //!< Valid Date timestamp
+    int32_t dateo;    //!< Origin Date timestamp
+    int32_t datev;    //!< Valid Date timestamp
 
     // 32-bit elements
     int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
@@ -219,8 +219,8 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
-        integer(C_INT64_T) :: dateo    = -1
-        integer(C_INT64_T) :: datev    = -1
+        integer(C_INT32_T) :: dateo    = -1
+        integer(C_INT32_T) :: datev    = -1
 
         integer(C_INT32_T) :: data_type = -1
         integer(C_INT32_T) :: data_bits = -1
