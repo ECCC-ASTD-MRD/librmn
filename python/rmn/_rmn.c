@@ -1053,60 +1053,73 @@ int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items,
 
 static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
 {
-    fst_file *files[nb_files];
+    RecordVector *record_vectors[nb_files];
+    int total_nb_records = 0;
     for(int i = 0; i < nb_files; i++){
-        files[i] = fst24_open(filenames[i], NULL);
+        fst_file *f = fst24_open(filenames[i], NULL);
+        if(f == NULL){
+            PyErr_SetString(PyExc_RuntimeError, "COuld not open file");
+            return NULL;
+        }
+        RecordVector *rv = RecordVector_new(100);
+        fst_query *q = fst24_new_query(f, &default_fst_record, NULL);
+        fst_record result = default_fst_record;
+        while(fst24_find_next(q, &result)){
+            RecordVector_push(rv, &result);
+        }
+        record_vectors[i] = rv;
+        total_nb_records += rv->size;
     }
-    fst24_link(files, nb_files);
 
-    fst_query *q = fst24_new_query(files[0], &default_fst_record,  NULL);
-    fst_record result = default_fst_record;
-    RecordVector *records = RecordVector_new(100);
-    while(fst24_find_next(q, &result)){
-        RecordVector_push(records, &result);
-    }
-
-    RecordData *raw_columns = NewRecordData(records->size);
+    RecordData *raw_columns = NewRecordData(total_nb_records);
     if(raw_columns == NULL){
         PyErr_SetString(PyExc_RuntimeError, "OOPSIE");
         return NULL;
     }
+    raw_columns->nb_records = total_nb_records; // TODO SHould be set in RecordDataNew obviously
 
-    raw_columns->nb_records = records->size;
-    for(size_t i = 0; i < records->size; i++){
-        fst_record *r = &records->records[i];
-        raw_columns->ni[i] = r->ni;
-        raw_columns->nj[i] = r->nj;
-        raw_columns->nk[i] = r->nk;
-        raw_columns->dateo[i] = r->dateo;
-        raw_columns->deet[i] = r->deet;
-        raw_columns->npas[i] = r->npas;
-        raw_columns->pack_bits[i] = r->pack_bits;
-        raw_columns->data_type[i] = r->data_type;
+    int i = 0;
+    for(int f = 0; f < nb_files; f++){
+        RecordVector *rv = record_vectors[f];
+        const char *filename = filenames[f];
+        for(size_t j = 0; j < rv->size; j++,i++){
+            fst_record *r = &rv->records[j];
 
-        raw_columns->ip1[i] = r->ip1;
-        raw_columns->ip2[i] = r->ip2;
-        raw_columns->ip3[i] = r->ip3;
+            raw_columns->ni[i] = r->ni;
+            raw_columns->nj[i] = r->nj;
+            raw_columns->nk[i] = r->nk;
+            raw_columns->dateo[i] = r->dateo;
+            raw_columns->deet[i] = r->deet;
+            raw_columns->npas[i] = r->npas;
+            raw_columns->pack_bits[i] = r->pack_bits;
+            raw_columns->data_type[i] = r->data_type;
 
-        strcpy(raw_columns->typvar[i], r->typvar);
-        strcpy(raw_columns->nomvar[i], r->nomvar);
-        strcpy(raw_columns->etiket[i], r->etiket);
-        strcpy(raw_columns->grtyp[i], r->grtyp);
-        // Discuss with JP how we can maintain the filepath association with
-        // the records.
-        // strcpy(raw_columns->path[i], file_path);
+            raw_columns->ip1[i] = r->ip1;
+            raw_columns->ip2[i] = r->ip2;
+            raw_columns->ip3[i] = r->ip3;
 
-        raw_columns->ig1[i] = r->ig1;
-        raw_columns->ig2[i] = r->ig2;
-        raw_columns->ig3[i] = r->ig3;
-        raw_columns->ig4[i] = r->ig4;
+            strcpy(raw_columns->typvar[i], r->typvar);
+            strcpy(raw_columns->nomvar[i], r->nomvar);
+            strcpy(raw_columns->etiket[i], r->etiket);
+            strcpy(raw_columns->grtyp[i], r->grtyp);
+            // Discuss with JP how we can maintain the filepath association with
+            // the records.
+            strcpy(raw_columns->path[i], filename);
 
-        // raw_columns->extra1[i] = r->extra1;
-        // raw_columns->extra2[i] = r->extra2;
-        // raw_columns->extra3[i] = r->extra3;
+            raw_columns->ig1[i] = r->ig1;
+            raw_columns->ig2[i] = r->ig2;
+            raw_columns->ig3[i] = r->ig3;
+            raw_columns->ig4[i] = r->ig4;
+
+            // raw_columns->extra1[i] = r->extra1;
+            // raw_columns->extra2[i] = r->extra2;
+            // raw_columns->extra3[i] = r->extra3;
+        }
     }
 
-    RecordVector_free(records);
+    for(int f = 0; f< nb_files ; f++){
+        RecordVector_free(record_vectors[f]);
+    }
     return raw_columns;
 }
 
