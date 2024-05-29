@@ -20,10 +20,10 @@ typedef struct
     uint32_t *ip1;
     uint32_t *ip2;
     uint32_t *ip3;
-    char **typvar;
-    char **nomvar;
-    char **etiket;
-    char **grtyp;
+    char *typvar;
+    char *nomvar;
+    char *etiket;
+    char *grtyp;
     uint32_t *ig1;
     uint32_t *ig2;
     uint32_t *ig3;
@@ -35,7 +35,7 @@ typedef struct
     uint32_t *extra1;
     uint32_t *extra2;
     uint32_t *extra3;
-    char **path;
+    char *path;
 } RecordData;
 
 typedef struct {

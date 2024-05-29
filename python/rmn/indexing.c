@@ -35,24 +35,11 @@ RecordData *NewRecordData(size_t nb_records)
     data->grtyp = calloc(nb_records, sizeof(*(data->grtyp)));
     data->path = calloc(nb_records, sizeof(*(data->path)));
 
-    /*
-     * TODO: Maybe RecordData can be changed so that we would be able to do
-     *
-     *     data->typvar = calloc(nb_records, FST_TYPVAR_LEN * sizeof(char))
-     *
-     * then the data would already be in the layout to put it in a numpy array
-     * and same for all the others.  Except maybe path since PATH_MAX is
-     * considerably larger than the others, that column could be NPY_OBJECT
-     * at the cost of having each element be an individual string object.
-     */
-    for (int i = 0; i < nb_records; ++i)
-    {
-        (data->typvar)[i] = (char *)calloc(3, sizeof(char));
-        (data->nomvar)[i] = (char *)calloc(5, sizeof(char));
-        (data->etiket)[i] = (char *)calloc(13, sizeof(char));
-        (data->grtyp)[i] = (char *)calloc(2, sizeof(char));
-        (data->path)[i] = (char *)calloc(PATH_MAX, sizeof(char));
-    }
+    data->typvar = calloc(nb_records, FST_TYPVAR_LEN * sizeof(char));
+    data->nomvar = calloc(nb_records, FST_NOMVAR_LEN * sizeof(char));
+    data->etiket = calloc(nb_records, FST_ETIKET_LEN * sizeof(char));
+    data->grtyp = calloc(nb_records, FST_GTYP_LEN * sizeof(char));
+    data->path = calloc(nb_records, PATH_MAX * sizeof(char));
 
     data->ig1 = calloc(nb_records, sizeof(*(data->ig1)));
     data->ig2 = calloc(nb_records, sizeof(*(data->ig2)));
@@ -98,14 +85,11 @@ void free_record_data(RecordData *data)
     free(data->ip2);
     free(data->ip3);
 
-    for (int i = 0; i < data->nb_records; i++)
-    {
-        free((data->typvar)[i]);
-        free((data->nomvar)[i]);
-        free((data->etiket)[i]);
-        free((data->grtyp)[i]);
-        free((data->path)[i]);
-    }
+    free(data->typvar);
+    free(data->nomvar);
+    free(data->etiket);
+    free(data->grtyp);
+    free(data->path);
 
     free(data->typvar);
     free(data->nomvar);

@@ -893,7 +893,7 @@ static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
 *******************************************************************************/
 static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files);
 int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int type, void *data);
-int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char **data);
+int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char *data);
 static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
 
     PyObject *file_list = NULL;
@@ -919,8 +919,12 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
     }
 
     RecordData *raw_columns = rmn_get_index_columns_raw(filenames, nb_files);
+    if(raw_columns == NULL){
+        // PyErr_SetString(PyExc_RuntimeError, "Could not get data");
+        return NULL;
+    }
 
-	PyObject *columns = PyDict_New();
+    PyObject *columns = PyDict_New();
     npy_intp dims[] = {raw_columns->nb_records};
 
     if(make_1d_array_and_add_to_dict(columns, "ni", raw_columns->nb_records, NPY_INT32, raw_columns->ni)){ goto error; }
@@ -975,6 +979,7 @@ error:
     // All functions called here that could fail will set the exception.
     return NULL;
 }
+
 static PyObject * make_array_owning_data(int ndims, npy_intp *dims, int type, void *data){
     PyObject *array = PyArray_SimpleNewFromData(ndims, dims,NPY_INT32, data);
     if(array == NULL){
@@ -994,38 +999,10 @@ static PyObject * make_array_owning_data(int ndims, npy_intp *dims, int type, vo
     return array;
 }
 
-static PyObject *make_string_array_owning_data(int ndims, npy_intp *dims, int max_str_length, char **data){
-
-    /*
-     * Put all the strings in one contiguous block of memory for a numpy
-     * NOTE: This should be done by changing RecordData struct and the
-     * gathering of information so that this can be done right away.  Then
-     * this for loop would not be necessary.
-     */
-    size_t stride = (max_str_length + 1)*sizeof(char);
-    char *all_blocks = malloc( dims[0] * stride);
-    char *one_block = all_blocks;
-    for(int i = 0; i < dims[0] ; i++, one_block+=stride){
-        char *input = data[i];
-        strncpy(one_block, data[i], stride);
-    }
-
-    /*
-     * Create the numpy array.
-     * Apparently we can use NPY_ARRAY_OWNDATA here.  They say not to set it
-     * manually in the documentation of PyArray_SimpleNewFromData but I've seen
-     * they don't say not to do it when creating an array using this function.
-     */
-    npy_intp strides[] = {stride};
-    PyObject *array = PyArray_New(&PyArray_Type, ndims, dims, NPY_STRING, NULL, all_blocks, stride, NPY_ARRAY_OWNDATA, NULL);
-    return array;
-}
-
-    //if(make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->etiket)){goto error;}
-int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char **data)
+int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char *data)
 {
     npy_intp dims[] = {nb_items};
-    PyObject *array_1d = make_string_array_owning_data(1, dims, max_str_length, data);
+    PyObject *array_1d = PyArray_New(&PyArray_Type, 1, dims, NPY_STRING, NULL, data, max_str_length, NPY_ARRAY_OWNDATA, NULL);
     if(array_1d == NULL){
         PyErr_Format(PyExc_RuntimeError, "Could not create numpy array for column '%s'", key);
         return 1;
@@ -1079,7 +1056,7 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
     for(int i = 0; i < nb_files; i++){
         fst_file *f = fst24_open(filenames[i], NULL);
         if(f == NULL){
-            PyErr_SetString(PyExc_RuntimeError, "COuld not open file");
+            PyErr_Format(PyExc_RuntimeError, "Could not open file '%s'", filenames[i]);
             return NULL;
         }
         RecordVector *rv = RecordVector_new(100);
@@ -1090,6 +1067,7 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
         }
         record_vectors[i] = rv;
         total_nb_records += rv->size;
+        fst24_close(f);
     }
 
     RecordData *raw_columns = NewRecordData(total_nb_records);
@@ -1120,13 +1098,13 @@ static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_file
             raw_columns->ip3[i] = r->ip3;
 
             // Remove 'trm' if we want to keep the trailing spaces
-            strncpytrm(raw_columns->typvar[i], r->typvar, FST_TYPVAR_LEN);
-            strncpytrm(raw_columns->nomvar[i], r->nomvar, FST_NOMVAR_LEN);
-            strncpytrm(raw_columns->etiket[i], r->etiket, FST_ETIKET_LEN);
-            strncpytrm(raw_columns->grtyp[i], r->grtyp, FST_GTYP_LEN);
+            strncpytrm(raw_columns->typvar + i*FST_TYPVAR_LEN, r->typvar, FST_TYPVAR_LEN);
+            strncpytrm(raw_columns->nomvar + i*FST_NOMVAR_LEN, r->nomvar, FST_NOMVAR_LEN);
+            strncpytrm(raw_columns->etiket + i*FST_ETIKET_LEN, r->etiket, FST_ETIKET_LEN);
+            strncpytrm(raw_columns->grtyp  + i*FST_GTYP_LEN, r->grtyp, FST_GTYP_LEN);
             // Discuss with JP how we can maintain the filepath association with
             // the records.
-            strncpy(raw_columns->path[i], filename, PATH_MAX);
+            strncpy(raw_columns->path + i*(PATH_MAX+1), filename, PATH_MAX);
 
             raw_columns->ig1[i] = r->ig1;
             raw_columns->ig2[i] = r->ig2;
