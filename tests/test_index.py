@@ -19,6 +19,7 @@ filenames = [f"{d}/{f}" for f in os.listdir(d) if f.startswith('2024')]
 # "/fs/site5/eccc/prod/ops/suites/gdps_20220621/g1/gridpt.usr/prog/pres/2024052800_080"
 # ]
 print(f"PID={os.getpid()}")
+filenames = filenames[:]
 print(f"Number of files: {len(filenames)}")
 index = get_index(filenames)
 print(index)

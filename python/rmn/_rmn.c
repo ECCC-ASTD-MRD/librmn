@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <Python.h>
 // Protect ourselves against using deprecated API functions from earlier versions
@@ -891,7 +892,6 @@ static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
  *   vector<fst_record> (in C++ parlance) to get an array of all the records
  *   Maybe there is a better way to use this vector to create the numpy arrays.
 *******************************************************************************/
-static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files);
 int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int type, void *data);
 int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char *data);
 static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
@@ -902,6 +902,10 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
         // Exception already set by PyArg_ParseTuple
         return NULL;
     }
+
+    /*
+     * Convert list of Python unicode strings into an array of char *
+     */
     // TODO: Verify that the object is a list and throw exception otherwise
     Py_ssize_t nb_files = PyList_Size(file_list);
     const char *filenames[nb_files]; // TODO: Automatic arrays, some people don't like them and if they're too big they can blow the stack
@@ -918,12 +922,20 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
         filenames[i] = filename;
     }
 
+    /*
+     * Get raw column data
+     */
     RecordData *raw_columns = rmn_get_index_columns_raw(filenames, nb_files);
     if(raw_columns == NULL){
-        // PyErr_SetString(PyExc_RuntimeError, "Could not get data");
+        PyErr_SetString(PyExc_RuntimeError, "Could not get column data");
         return NULL;
     }
 
+    /*
+     * Create a dictionnary where the keys are column names and the values
+     * are numpy arrays created from the raw column data
+     */
+    fprintf(stderr, "Creating numpy arrays and assigning them as keys in a dictionnary\n");
     PyObject *columns = PyDict_New();
     npy_intp dims[] = {raw_columns->nb_records};
 
@@ -964,6 +976,7 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
 
     free(raw_columns); // The struct contains a bunch of arrays but we don't want
                        // to free them since we gave them away to some numpy arrays
+    fprintf(stderr, "Handing control back to Python\n");
     return columns;
 error:
     free(raw_columns);
@@ -1029,111 +1042,6 @@ int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items,
     return 0;
 }
 
-void strncpytrm(char *dest, const char *src, size_t size){
-    const char *p = src;
-    char *q = dest;
-    for(int i = 0; i < size; i++,q++,p++){
-        char c = *p;
-        switch(c){
-            case '\0':
-            case ' ':
-                *q = '\0';
-                return;
-            default:
-                *q = c;
-                break;
-        }
-    }
-    // Since RMN says that thinks like `FST_TYPVAR_LEN` *includes* space for the
-    // terminating NUL byte, we can be pretty sure that this is not needed
-    *--q = '\0'; // Unlikely
-}
-
-static RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
-{
-    RecordVector *record_vectors[nb_files];
-    int total_nb_records = 0;
-    for(int i = 0; i < nb_files; i++){
-        if(i % 20 == 0){
-            if(PyErr_CheckSignals()){
-                // Python catches SIGINT and will only deal with it when it
-                // gets back control.  We can use this function to see if it
-                // got a sigint.
-                return NULL;
-            }
-        }
-
-        fst_file *f = fst24_open(filenames[i], NULL);
-        if(f == NULL){
-            PyErr_Format(PyExc_RuntimeError, "Could not open file '%s'", filenames[i]);
-            return NULL;
-        }
-        RecordVector *rv = RecordVector_new(100);
-        fst_query *q = fst24_new_query(f, &default_fst_record, NULL);
-        fst_record result = default_fst_record;
-        while(fst24_find_next(q, &result)){
-            RecordVector_push(rv, &result);
-        }
-        record_vectors[i] = rv;
-        total_nb_records += rv->size;
-
-        fst24_query_free(q);
-        fst24_close(f);
-    }
-
-    RecordData *raw_columns = NewRecordData(total_nb_records);
-    if(raw_columns == NULL){
-        PyErr_SetString(PyExc_RuntimeError, "OOPSIE");
-        return NULL;
-
-    }
-    raw_columns->nb_records = total_nb_records; // TODO SHould be set in RecordDataNew obviously
-
-    int i = 0;
-    for(int f = 0; f < nb_files; f++){
-        RecordVector *rv = record_vectors[f];
-        const char *filename = filenames[f];
-        for(size_t j = 0; j < rv->size; j++,i++){
-            fst_record *r = &rv->records[j];
-
-            raw_columns->ni[i] = r->ni;
-            raw_columns->nj[i] = r->nj;
-            raw_columns->nk[i] = r->nk;
-            raw_columns->dateo[i] = r->dateo;
-            raw_columns->deet[i] = r->deet;
-            raw_columns->npas[i] = r->npas;
-            raw_columns->pack_bits[i] = r->pack_bits;
-            raw_columns->data_type[i] = r->data_type;
-
-            raw_columns->ip1[i] = r->ip1;
-            raw_columns->ip2[i] = r->ip2;
-            raw_columns->ip3[i] = r->ip3;
-
-            // Remove 'trm' if we want to keep the trailing spaces
-            strncpy(raw_columns->typvar + i*FST_TYPVAR_LEN, r->typvar, FST_TYPVAR_LEN);
-            strncpy(raw_columns->nomvar + i*FST_NOMVAR_LEN, r->nomvar, FST_NOMVAR_LEN);
-            strncpy(raw_columns->etiket + i*FST_ETIKET_LEN, r->etiket, FST_ETIKET_LEN);
-            strncpy(raw_columns->grtyp  + i*FST_GTYP_LEN, r->grtyp, FST_GTYP_LEN);
-            // Discuss with JP how we can maintain the filepath association with
-            // the records.
-            strncpy(raw_columns->path + i*(PATH_MAX+1), filename, PATH_MAX);
-
-            raw_columns->ig1[i] = r->ig1;
-            raw_columns->ig2[i] = r->ig2;
-            raw_columns->ig3[i] = r->ig3;
-            raw_columns->ig4[i] = r->ig4;
-
-            // raw_columns->extra1[i] = r->extra1;
-            // raw_columns->extra2[i] = r->extra2;
-            // raw_columns->extra3[i] = r->extra3;
-        }
-    }
-
-    for(int f = 0; f< nb_files ; f++){
-        RecordVector_free(record_vectors[f]);
-    }
-    return raw_columns;
-}
 
 
 

@@ -1,5 +1,8 @@
 #include "indexing.h"
+#include <pthread.h>
 #include <rmn.h>
+#include <sys/types.h> // gettid
+static pthread_mutex_t grow_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 RecordData *index_rmn_file(const char *filename, const char *mode){
 
@@ -28,12 +31,6 @@ RecordData *NewRecordData(size_t nb_records)
     data->ip1 = malloc(nb_records*sizeof(*(data->ip1)));
     data->ip2 = malloc(nb_records*sizeof(*(data->ip2)));
     data->ip3 = malloc(nb_records*sizeof(*(data->ip3)));
-
-    data->typvar = malloc(nb_records*sizeof(*(data->typvar)));
-    data->nomvar = malloc(nb_records*sizeof(*(data->nomvar)));
-    data->etiket = malloc(nb_records*sizeof(*(data->etiket)));
-    data->grtyp = malloc(nb_records*sizeof(*(data->grtyp)));
-    data->path = malloc(nb_records*sizeof(*(data->path)));
 
     data->typvar = malloc(nb_records*FST_TYPVAR_LEN * sizeof(char));
     data->nomvar = malloc(nb_records*FST_NOMVAR_LEN * sizeof(char));
@@ -91,15 +88,11 @@ void free_record_data(RecordData *data)
     free(data->grtyp);
     free(data->path);
 
-    free(data->typvar);
-    free(data->nomvar);
-    free(data->etiket);
-    free(data->grtyp);
-    free(data->path);
     free(data->ig1);
     free(data->ig2);
     free(data->ig3);
     free(data->ig4);
+
     free(data->swa);
     free(data->lng);
     free(data->dltf);
@@ -122,7 +115,9 @@ RecordVector *RecordVector_new(size_t initial_capacity)
 }
 
 int RecordVector_grow(RecordVector *rv){
+    pthread_mutex_lock(&grow_mutex);
     fst_record *new = reallocarray(rv->records, 2*rv->capacity, sizeof(*rv->records));
+    pthread_mutex_unlock(&grow_mutex);
     if(new == NULL){
         perror("reallocarray");
         exit(1);
@@ -148,6 +143,264 @@ int RecordVector_push(RecordVector *rv, fst_record *rec)
 void RecordVector_free(RecordVector *rv)
 {
     free(rv->records);
+    free(rv);
 }
 
-void free_record_data(RecordData *data);
+void strncpytrm(char *dest, const char *src, size_t size){
+    const char *p = src;
+    char *q = dest;
+    for(int i = 0; i < size; i++,q++,p++){
+        char c = *p;
+        switch(c){
+            case '\0':
+            case ' ':
+                *q = '\0';
+                return;
+            default:
+                *q = c;
+                break;
+        }
+    }
+    // Since RMN says that thinks like `FST_TYPVAR_LEN` *includes* space for the
+    // terminating NUL byte, we can be pretty sure that this is not needed
+    *--q = '\0'; // Unlikely
+}
+/*
+ * Vulgar threading solution: a "queue" protected by a mutex queue_lock
+ * and a function file_queue_get() that returns a work_unit consisting of
+ * a filename and an initialized record vector to fill with record headers.
+ *
+ * Pthread creates a fixed amount of thread that work constantly: getting
+ * a work unit from the queue, processing it, and looping.
+ *
+ * When the queue is finished, file_queue_get() returns a work_unit with
+ * NULL filename.  This is how threads know to end.
+ *
+ * The main thread creates the initializes nb_files RecordVector's,
+ * creates the file_queue, spawns thread_pool_size threads, waits for them
+ * to finish, then reorganizes all the data from the RecordVector's
+ * and creates the numpy arrays.
+ *
+ * I also needed to add a lock for fst24_open because of that global table
+ * to make sure we don't clash there.  Otherwise I was getting 'iun X already
+ * in use'.
+ *
+ * The results are not great.  Without profiling we can't say where the
+ * bottleneck is.  I wonder if the traversal with `query` isn't doing some
+ * unnecessary work that could be done much faster by a function that really
+ * just 
+ */
+struct file_queue {
+    const char **filenames;
+    RecordVector **rvs;
+    int nb_files;
+    int next;
+    int total_nb_records;
+};
+static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t iun_lock = PTHREAD_MUTEX_INITIALIZER;
+struct work_unit {
+    const char *filename;
+    RecordVector *rv;
+};
+
+struct worker_args {
+    struct file_queue *q;
+    int status;
+    char message[512];
+};
+
+struct work_unit file_queue_get(struct file_queue *q){
+    pthread_mutex_lock(&queue_lock);
+    struct work_unit ret;
+    if(q->next == q->nb_files){
+        // Signal thread to stop
+        ret.filename = NULL;
+        ret.rv = NULL;
+    } else {
+        ret.filename = q->filenames[q->next];
+        ret.rv = q->rvs[q->next];
+        q->next++;
+    }
+    // fprintf(stderr, "%s(): giving file #%d '%s'\n", __func__, q->next, ret.filename);
+    pthread_mutex_unlock(&queue_lock);
+    return ret;
+}
+
+void file_queue_worker(struct worker_args *args){
+    while(1){
+        struct work_unit u = file_queue_get(args->q);
+        if(u.filename == NULL){
+            break;
+        }
+
+        // fprintf(stderr, "HELLO\n");
+        pthread_mutex_lock(&iun_lock);
+        fst_file *f = fst24_open(u.filename, NULL);
+        pthread_mutex_unlock(&iun_lock);
+        if(f == NULL){
+            args->status = 1;
+            snprintf(args->message, 512, "'%s': %s", u.filename, App_ErrorGet());
+            pthread_exit((void*)1);
+        }
+        fst_query *q = fst24_new_query(f, &default_fst_record, NULL);
+        fst_record result = default_fst_record;
+        while(fst24_find_next(q, &result)){
+            RecordVector_push(u.rv, &result);
+        }
+
+        fst24_query_free(q);
+        fst24_close(f);
+    }
+    pthread_exit(NULL);
+}
+
+RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
+{
+    TApp_Timer t; App_TimerInit(&t);
+    RecordData *raw_columns = NULL;
+    int total_nb_records = 0;
+
+    RecordVector *record_vectors[nb_files];
+    for(int i = 0; i < nb_files; i++){
+        record_vectors[i] = RecordVector_new(400);
+    }
+
+    struct file_queue q = {
+        .filenames = filenames,
+        .rvs = record_vectors,
+        .next = 0,
+        .nb_files = nb_files,
+    };
+
+    fprintf(stderr, "===> Collecting all records ...\n");
+    App_TimerStart(&t);
+
+#define MULTITHREAD_INDEXING
+#ifdef MULTITHREAD_INDEXING
+    /* OTHER IDEA: Another way would be to divide the work manually rather than
+     * having each thread grab items from the queue.*/
+    int thread_pool_size = 10;
+    pthread_t thread_pool[thread_pool_size];
+    struct worker_args thread_args[thread_pool_size];
+    fprintf(stderr, "Creating %d worker threads\n", thread_pool_size);
+    for(int i = 0; i < thread_pool_size; i++){
+        thread_args[i] = (struct worker_args){
+            .q = &q,
+            .status = 0,
+            .message = "",
+            // Divide queue into thread_pool_size parts of with
+            // chunk_size = nb_files/thread_pool_size
+            // Each thread does i * chunk_size with the last thread doing
+            // a little bit less possibly
+            // .begin_index = i*chunk_size,
+            // .end_index = min((i+1)*chunk_size, nb_files),
+            // and we would not need synchronization with queue_lock.
+            // iun_lock would still be necessary.
+        };
+        pthread_create(&thread_pool[i], NULL, (void *(*)(void*))file_queue_worker, (void*)&thread_args[i]);
+    }
+
+    fprintf(stderr, "Waiting for the threads\n");
+    int any_thread_error = 0;
+    for(int i = 0; i < thread_pool_size; i++){
+        pthread_join(thread_pool[i], NULL);
+    }
+    for(int i = 0; i < thread_pool_size; i++){
+        if(thread_args[i].status != 0){
+            fprintf(stderr, "Worker %d ERROR: %s", i, thread_args[i].message);
+            any_thread_error = 1;
+        }
+    }
+    if(any_thread_error){
+        goto error;
+    }
+#else
+    for(int i = 0; i < nb_files; i++){
+        fst_file *f = fst24_open(filenames[i], NULL);
+        if(f == NULL){
+            fprintf(stderr, "%s(): ERROR: '%s': %s", __func__, filenames[i], App_ErrorGet());
+            goto error;
+        }
+        RecordVector *rv = record_vectors[i];
+        fst_query *q = fst24_new_query(f, &default_fst_record, NULL);
+        fst_record result = default_fst_record;
+        while(fst24_find_next(q, &result)){
+            RecordVector_push(rv, &result);
+        }
+
+        fst24_query_free(q);
+        fst24_close(f);
+    }
+
+#endif
+    App_TimerStop(&t);
+    fprintf(stderr, ".... Collecting all records took %f ms\n", App_TimerTime_ms(&t));
+
+    fprintf(stderr, "===> Reorganizing record data into columns for DataFrame\n");
+    App_TimerInit(&t);
+    App_TimerStart(&t);
+    fprintf(stderr, "Summing number of records from each field: ");
+    for(int f = 0; f < nb_files; f++){
+        total_nb_records += record_vectors[f]->size;
+    }
+    fprintf(stderr, "%d\n", total_nb_records);
+
+
+    fprintf(stderr, "Reorganizing data into column arrays\n");
+    raw_columns = NewRecordData(total_nb_records);
+    if(raw_columns == NULL){
+        return NULL;
+
+    }
+    raw_columns->nb_records = total_nb_records; // TODO SHould be set in RecordDataNew obviously
+
+    int i = 0;
+    for(int f = 0; f < nb_files; f++){
+        RecordVector *rv = record_vectors[f];
+        const char *filename = filenames[f];
+        for(size_t j = 0; j < rv->size; j++,i++){
+            fst_record *r = &rv->records[j];
+
+            raw_columns->ni[i] = r->ni;
+            raw_columns->nj[i] = r->nj;
+            raw_columns->nk[i] = r->nk;
+            raw_columns->dateo[i] = r->dateo;
+            raw_columns->deet[i] = r->deet;
+            raw_columns->npas[i] = r->npas;
+            raw_columns->pack_bits[i] = r->pack_bits;
+            raw_columns->data_type[i] = r->data_type;
+
+            raw_columns->ip1[i] = r->ip1;
+            raw_columns->ip2[i] = r->ip2;
+            raw_columns->ip3[i] = r->ip3;
+
+            // Remove 'trm' if we want to keep the trailing spaces
+            strncpy(raw_columns->typvar + i*FST_TYPVAR_LEN, r->typvar, FST_TYPVAR_LEN);
+            strncpy(raw_columns->nomvar + i*FST_NOMVAR_LEN, r->nomvar, FST_NOMVAR_LEN);
+            strncpy(raw_columns->etiket + i*FST_ETIKET_LEN, r->etiket, FST_ETIKET_LEN);
+            strncpy(raw_columns->grtyp  + i*FST_GTYP_LEN, r->grtyp, FST_GTYP_LEN);
+            // Discuss with JP how we can maintain the filepath association with
+            // the records.
+            strncpy(raw_columns->path + i*(PATH_MAX+1), filename, PATH_MAX);
+
+            raw_columns->ig1[i] = r->ig1;
+            raw_columns->ig2[i] = r->ig2;
+            raw_columns->ig3[i] = r->ig3;
+            raw_columns->ig4[i] = r->ig4;
+
+            // raw_columns->extra1[i] = r->extra1;
+            // raw_columns->extra2[i] = r->extra2;
+            // raw_columns->extra3[i] = r->extra3;
+        }
+    }
+    App_TimerStop(&t);
+    fprintf(stderr, ".... Reorganizing data into columns for DataFrame took %f ms\n", App_TimerTime_ms(&t));
+
+error:
+    fprintf(stderr, "Freeing record vectors\n");
+    for(int f = 0; f< nb_files ; f++){
+        RecordVector_FREE(record_vectors[f]);
+    }
+    return raw_columns;
+}

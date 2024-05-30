@@ -25,3 +25,6 @@ add_custom_target(test_py
 add_dependencies(test_py _rmn)
 
 configure_file(setup.in.sh setup.sh @ONLY)
+
+add_executable(test_indexing indexing.c test_indexing.c)
+target_link_libraries(test_indexing PRIVATE rmn-ompi-static)

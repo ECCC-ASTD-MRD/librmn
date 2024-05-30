@@ -78,7 +78,7 @@ static int fnom_rem_connect( const int ind, const char * const remote_host);
 static void wa_pages_flush(const int fileIdx);
 static int qqcopen(const int indf);
 static void qqcwawr(const uint32_t * const buf, const unsigned int wadr, const int nwords, const int indf);
-static void qqcward(uint32_t * const buf, const unsigned int woffset, const int lnmots, const int indf);
+static int qqcward(uint32_t * const buf, const unsigned int woffset, const int lnmots, const int indf);
 static void arrayZero(uint32_t * const dest, const int nwords);
 static void arrayCopy(const uint32_t * const src, uint32_t * const dest, const int nwords);
 
@@ -1050,7 +1050,9 @@ int c_waread2(
         lnwords -= (offset + lnwords - 1 - FGFDT[entry].eff_file_size);
     }
     if ( lnwords == 0 ) return 0;
-    qqcward((uint32_t *)buf, offset, lnwords, entry);
+    if(qqcward((uint32_t *)buf, offset, lnwords, entry) < 0){
+        return -1;
+    }
     if (*little_endian) swap_buffer_endianness(bufswap, lnwords);
     return lnwords;
 }
@@ -2367,7 +2369,7 @@ static void qqcwawr(
 
 
 //! Read from a word adressable file. (Active part of c_waread2)
-static void qqcward(
+static int qqcward(
     //! [out]
     uint32_t * const buf,
     //! [in] Offset in file in words
@@ -2421,8 +2423,7 @@ static void qqcward(
             int reste = read(lfd, buf, sizeof(uint32_t) * lnmots);
             if (reste != sizeof(uint32_t) * lnmots) {
                 Lib_Log(APP_LIBRMN,APP_ERROR,"%s: tried to read %d words, only read %d, wafile[ind].offset=%d ladr=%Ld\n",__func__,sizeof(uint32_t)*lnmots,reste,wafile[ind].offset,ladr);
-                f77name(tracebck)();
-                exit(1);
+                return -1;
             }
         } else {
             int lng = lnmots;

@@ -48,7 +48,8 @@ RecordData *NewRecordData(size_t nb_records);
 void free_record_data(RecordData *data);
 
 void RecordVector_free(RecordVector *rv);
+#define RecordVector_FREE(rv) do{RecordVector_free((rv)); (rv) = NULL;}while(0)
 int RecordVector_push(RecordVector *rv, fst_record *rec);
 int RecordVector_grow(RecordVector *rv);
 RecordVector *RecordVector_new(size_t initial_capacity);
-
+RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files);
