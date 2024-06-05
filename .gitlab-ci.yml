@@ -463,9 +463,9 @@ test:rhel-8-amd64_aocc-4.1.1:
       - make check
    allow_failure: true
       
-#----- rhel-8-amd64_nvhpc_23.7
+#----- rhel-8-amd64_nvhpc_23.7.0
 
-build:rhel-8-amd64_nvhpc_23.7:
+build:rhel-8-amd64_nvhpc_23.7.0:
    stage: build
    tags:
       - concurrent
@@ -479,14 +479,16 @@ build:rhel-8-amd64_nvhpc_23.7:
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - export EC_ARCH=Linux_x86-64/nvhpc
-      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - export COMP_ARCH=nvhpc-23.7.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - SRC_DIR=$(pwd)
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR}
       - time make -j $NCPUS
    allow_failure: true
 
-test:rhel-8-amd64_nvhpc_23.7:
+test:rhel-8-amd64_nvhpc_23.7.0:
    stage: test
    tags:
       - concurrent
@@ -496,18 +498,43 @@ test:rhel-8-amd64_nvhpc_23.7:
      - /^dev.*$/
      - tags
    dependencies:
-     - build:rhel-8-amd64_nvhpc_23.7
+     - build:rhel-8-amd64_nvhpc_23.7.0
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
-      - export EC_ARCH=Linux_x86-64/nvhpc
       - set -e
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - make check
    allow_failure: true
       
+package:rhel-8-amd64_nvhpc_23.7.0:
+   stage: package
+   tags:
+      - concurrent
+   only:
+      - master
+      - alpha
+      - /^dev.*$/
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-amd64_nvhpc_23.7.0
+   environment:
+      name: testing
+   script:
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load nvhpc_23.7
+      - export EC_ARCH=Linux_x86-64/nvhpc
+      - export COMP_ARCH=nvhpc-23.7.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+   allow_failure: true
+
 #----- ubuntu-22.04-amd64_inteloneapi-2022.1.2
 
 build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
