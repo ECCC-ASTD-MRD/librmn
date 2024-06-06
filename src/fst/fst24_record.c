@@ -754,17 +754,6 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
     // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
 }
 
-//! Decode the given directory metadata into an fst_record struct
-//! \return The decoded directory metadata
-fst_record record_from_search_meta(
-    const search_metadata* meta,  //!< Encoded search (directory) metadata (as read from file)
-    const fst_file_type type
-) {
-    fst_record result = default_fst_record;
-    fill_with_search_meta(&result, meta, type);
-    return result;
-}
-
 //! Copy the legacy metadata and extended metadata
 //!   FST24_META_ALL  : All meta data
 //!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
