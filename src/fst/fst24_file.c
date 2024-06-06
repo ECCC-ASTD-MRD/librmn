@@ -338,6 +338,7 @@ int32_t fst24_write_rsf(
     }
 
     const int num_elements = record->ni * record->nj * record->nk;
+    const int num_bits_per_word = 32;
 
     // will be cancelled later if not supported or no missing values detected
     // missing value feature used flag
@@ -461,49 +462,72 @@ int32_t fst24_write_rsf(
     // Determine size of data to be stored
     int header_size;
     int stream_size;
-    size_t num_word64;
-    switch (data_type) {
-        case FST_TYPE_REAL: {
-            int p1out;
-            int p2out;
-            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
-            num_word64 = ((header_size+stream_size) * 8 + 63) / 64;
-            header_size /= sizeof(int32_t);
-            stream_size /= sizeof(int32_t);
-            break;
+    size_t num_word32;
+    if (image_mode_copy) {
+        if (is_type_turbopack(data_type)) {
+            // first element is length
+            const int num_field_words32 = ((uint32_t*)record->data)[0] + 1;
+            num_word32 = num_field_words32;
         }
-
-        case FST_TYPE_COMPLEX:
-            num_word64 = 2 * ((num_elements * record->pack_bits + 63) / 64);
-            break;
-
-        case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
-            // 120 bits (floatpack header)+8, 32 bits (extra header)
-            num_word64 = (num_elements * Max(record->pack_bits, 16) + 128 + 32 + 63) / 64;
-            break;
-
-        case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
-            // 32 bits (extra header)
-            num_word64 = (num_elements * Max(record->pack_bits, 16) + 32 + 63) / 64;
-            break;
-
-        case FST_TYPE_REAL | FST_TYPE_TURBOPACK: {
-            int p1out;
-            int p2out;
-            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
-            num_word64 = ((header_size+stream_size) * 8 + 32 + 63) / 64;
-            stream_size /= sizeof(int32_t);
-            header_size /= sizeof(int32_t);
-            break;
+        else {
+            int num_field_bits;
+            if (data_type == FST_TYPE_REAL) {
+                int p1out;
+                int p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
+                num_field_bits = (header_size + stream_size) * 8;
+            } else {
+                num_field_bits = num_elements * record->pack_bits;
+            }
+            if (data_type == FST_TYPE_REAL_OLD_QUANT) num_field_bits += 120;
+            if (data_type == FST_TYPE_CHAR) num_field_bits = record->ni * record->nj * 8;
+            const int num_field_words32 = (num_field_bits + num_bits_per_word - 1) / num_bits_per_word;
+            num_word32 = num_field_words32;
         }
+    }
+    else {
+        switch (data_type) {
+            case FST_TYPE_REAL: {
+                int p1out;
+                int p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
+                num_word32 = W64TOWD(((header_size+stream_size) * 8 + 63) / 64);
+                header_size /= sizeof(int32_t);
+                stream_size /= sizeof(int32_t);
+                break;
+            }
 
-        default:
-            num_word64 = (num_elements * record->pack_bits + 120 + 63) / 64;
-            break;
+            case FST_TYPE_COMPLEX:
+                num_word32 = W64TOWD(2 * ((num_elements * record->pack_bits + 63) / 64));
+                break;
+
+            case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
+                // 120 bits (floatpack header)+8, 32 bits (extra header)
+                num_word32 = W64TOWD((num_elements * Max(record->pack_bits, 16) + 128 + 32 + 63) / 64);
+                break;
+
+            case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
+                // 32 bits (extra header)
+                num_word32 = W64TOWD((num_elements * Max(record->pack_bits, 16) + 32 + 63) / 64);
+                break;
+
+            case FST_TYPE_REAL | FST_TYPE_TURBOPACK: {
+                int p1out;
+                int p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
+                num_word32 = W64TOWD(((header_size+stream_size) * 8 + 32 + 63) / 64);
+                stream_size /= sizeof(int32_t);
+                header_size /= sizeof(int32_t);
+                break;
+            }
+
+            default:
+                num_word32 = W64TOWD((num_elements * record->pack_bits + 120 + 63) / 64);
+                break;
+        }
     }
 
     // Allocate new record
-    const size_t num_word32 = W64TOWD(num_word64);
     const size_t num_data_bytes = num_word32 * 4;
     const size_t dir_metadata_size = (sizeof(search_metadata) + 3) / 4; // In 32-bit units
 
@@ -536,7 +560,6 @@ int32_t fst24_write_rsf(
     }
     uint32_t* record_data = new_record->data;
 
-    const int num_bits_per_word = 32;
     RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     char typvar[FST_TYPVAR_LEN];
@@ -630,27 +653,7 @@ int32_t fst24_write_rsf(
 
     uint32_t * field = record->data;
     if (image_mode_copy) {
-        // no pack/unpack, used by editfst
-        if (is_type_turbopack(data_type)) {
-            // first element is length
-            const int num_field_words32 = field[0];
-            memcpy(new_record->data, field, (num_field_words32 + 1) * sizeof(uint32_t));
-        } else {
-            int num_field_bits;
-            if (data_type == FST_TYPE_REAL) {
-                int p1out;
-                int p2out;
-                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
-                num_field_bits = (header_size + stream_size) * 8;
-            } else {
-                num_field_bits = num_elements * record->pack_bits;
-            }
-            if (data_type == FST_TYPE_REAL_OLD_QUANT) num_field_bits += 120;
-            if (data_type == FST_TYPE_CHAR) num_field_bits = record->ni * record->nj * 8;
-            const int num_field_words32 = (num_field_bits + num_bits_per_word - 1) / num_bits_per_word;
-
-            memcpy(new_record->data, field, num_field_words32 * sizeof(uint32_t));
-        }
+        memcpy(new_record->data, field, num_data_bytes);
     } else {
         // not image mode copy
         // time to fudge field if missing value feature is used
