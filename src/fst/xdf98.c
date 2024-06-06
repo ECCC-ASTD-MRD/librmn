@@ -236,7 +236,7 @@ void build_fstd_prim_keys(
     fh = file_table[index]->header;
 
     if (mode == WMODE) {
-        // Erite keys to buffer
+        // Write keys to buffer
         for (i = 0; i < W64TOWD(fh->lprm -1); i++) {
             buf[i] = keys[i];
             mask[i] = mskkeys[i];

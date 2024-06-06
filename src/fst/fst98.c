@@ -4093,7 +4093,8 @@ int c_fstvoi_xdf(
     int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
     int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
     int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
-    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_num_erasures,        //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_erased_size          //!< [in,out] Accumulate size of erased records (for linked files)
 ) {
     int index_fnom = fnom_index(iun);
     if (index_fnom == -1) {
@@ -4114,6 +4115,7 @@ int c_fstvoi_xdf(
         return ERR_NO_FILE;
     }
 
+    int64_t erased_size = 0;
     int nrec = 0;
     int width = W64TOWD(fte->primary_len);
     stdf_dir_keys* stdf_entry;
@@ -4130,6 +4132,9 @@ int c_fstvoi_xdf(
                     snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
                     print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                     nrec++;
+                }
+                else if ((header->idtyp & 0x7E) == 0x7E) { // A deleted record
+                    erased_size += header->lng;
                 }
                 entry += width;
             }
@@ -4259,6 +4264,7 @@ int c_fstvoi_xdf(
         *total_num_writes += fte->header->nxtn;
         *total_num_rewrites += fte->header->nrwr;
         *total_num_erasures += fte->header->neff - fte->header->nrwr;
+        *total_erased_size += erased_size * sizeof(uint64_t);
     }
 
     if (print_stats) {
@@ -4274,10 +4280,13 @@ int c_fstvoi_xdf(
             if (! fte->fstd_vintage_89) {
                 fprintf(stdout, "Number of directory entries \t %d\n", fte->header->nrec);
                 fprintf(stdout, "Number of valid records     \t %d\n", nrec);
-                fprintf(stdout, "File size                   \t %d Words\n", W64TOWD(fte->header->fsiz));
+                fprintf(stdout, "File size                   \t %d Words (%.3f MB)\n",
+                        W64TOWD(fte->header->fsiz), (fte->header->fsiz * sizeof(uint64_t)) / (1024.f * 1024.f));
                 fprintf(stdout, "Number of writes            \t %d\n", fte->header->nxtn);
                 fprintf(stdout, "Number of rewrites          \t %d\n", fte->header->nrwr);
-                fprintf(stdout, "Number of erasures          \t %d\n", fte->header->neff - fte->header->nrwr);
+                fprintf(stdout, "Number of erasures          \t %d (%ld words, %.3f MB)\n",
+                        fte->header->neff - fte->header->nrwr, W64TOWD(erased_size),
+                        (erased_size * sizeof(uint64_t)) / (1024.f * 1024.f));
             }
             fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
         }
@@ -4309,6 +4318,7 @@ int c_fstvoi(
     int64_t total_num_writes        = 0;
     int64_t total_num_rewrites      = 0;
     int64_t total_num_erasures      = 0;
+    int64_t total_erased_size       = 0;
 
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
@@ -4318,12 +4328,12 @@ int c_fstvoi(
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstvoi_rsf(FGFDT[index_fnom].iun, index_fnom, options, print_single_stats, &total_num_entries,
                                   &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
-                                  &total_num_erasures);
+                                  &total_num_erasures, &total_erased_size);
         }
         else {
             status = c_fstvoi_xdf(FGFDT[index_fnom].iun, options, print_single_stats, &total_num_entries,
                                   &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
-                                  &total_num_erasures);
+                                  &total_num_erasures, &total_erased_size);
         }
 
         if (status < 0) return status;
@@ -4335,10 +4345,12 @@ int c_fstvoi(
         fprintf(stdout, "Statistics for %d linked files: \n", num_files);
         fprintf(stdout, "Number of directory entries   \t %ld\n", total_num_entries);
         fprintf(stdout, "Number of valid records       \t %ld\n", total_num_valid_records);
-        fprintf(stdout, "File size                     \t %ld bytes\n", total_file_size);
+        fprintf(stdout, "File size                     \t %ld bytes (%.3f MB)\n",
+                total_file_size, total_file_size / (1024.f * 1024.f));
         fprintf(stdout, "Number of writes              \t %ld\n", total_num_writes);
         fprintf(stdout, "Number of rewrites (XDF only) \t %ld\n", total_num_rewrites);
-        fprintf(stdout, "Number of erasures (XDF only) \t %ld\n", total_num_erasures);
+        fprintf(stdout, "Number of erasures (XDF only) \t %ld (%ld bytes, %.3f MB)\n",
+                total_num_erasures, total_erased_size, total_erased_size  / (1024.f * 1024.f));
     }
 
     return status;

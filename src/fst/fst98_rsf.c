@@ -889,7 +889,8 @@ int c_fstvoi_rsf(
     int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
     int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
     int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
-    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_num_erasures,        //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_erased_size          //!< [in,out] Accumulate size of erased records (for linked files)
 ) {
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -898,16 +899,31 @@ int c_fstvoi_rsf(
         return ERR_NO_FILE;
     }
 
-    const uint32_t num_records = RSF_Get_num_records(file_handle);
     size_t single_file_size = 0;
+    int64_t num_records = 0;
     
-    for (unsigned int i = 0; i < num_records; i++) {
-        const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
+    // Initialize search parameters
+    fst_record criteria = default_fst_record;
+    fst_query* query = &fstd_open_files[index_fnom].query;
+    query->search_index = 0;
+    query->search_done = 0;
+    stdf_dir_keys *search_criteria = &(query->criteria.fst98_meta);
+    stdf_dir_keys *search_mask     = &(query->mask.fst98_meta);
+
+    query->options = default_query_options;
+
+    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query);
+
+    // Perform the search itself
+    int64_t rsf_key = -1;
+    while ((rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query)) >= 0) {
+        const RSF_record_info info = RSF_Get_record_info(file_handle, rsf_key);
         const stdf_dir_keys* metadata = &((const search_metadata *) info.meta)->fst98_meta;
         single_file_size += info.rl;
         char string[20];
-        sprintf(string, "%5d-", *total_num_valid_records + i);
-        print_std_parms(metadata, string, options, (((*total_num_valid_records + i) % 70) == 0));
+        sprintf(string, "%5d-", *total_num_valid_records + num_records);
+        print_std_parms(metadata, string, options, (((*total_num_valid_records + num_records) % 70) == 0));
+        num_records++;
     }
 
     *total_num_entries += num_records;
@@ -916,7 +932,8 @@ int c_fstvoi_rsf(
     *total_num_writes += num_records;
 
     if (print_stats) {
-        fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, single_file_size);
+        fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes (%.3f MB).\n",
+                num_records, single_file_size, single_file_size / (1024.f * 1024.f));
     }
 
     return 0;
