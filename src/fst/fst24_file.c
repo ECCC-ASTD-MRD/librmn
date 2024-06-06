@@ -74,7 +74,7 @@ fst_file* fst24_open(
     snprintf(local_options, MAX_LENGTH, "RND+%s%s",
              (!options || !(strcasestr(options, "R/W") || strcasestr(options, "R/O"))) ? "R/O+" : "",
              options ? options : "");
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
 
     if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) return NULL;
     if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
@@ -552,6 +552,10 @@ int32_t fst24_write_rsf(
        }
     }
 
+    record->do_not_touch.num_search_keys = dir_metadata_size;
+    record->do_not_touch.extended_meta_size = ext_metadata_size;
+    record->do_not_touch.stored_data_size = num_word32;
+
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
     RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
@@ -937,15 +941,23 @@ int32_t fst24_write(
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
-    char typvar[FST_TYPVAR_LEN];
-    char nomvar[FST_NOMVAR_LEN];
-    char etiket[FST_ETIKET_LEN];
-    char grtyp[FST_GTYP_LEN];
+    record->file = file;
 
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
+            __func__, file->path, fst_file_type_name[file->type], rewrite);
     if  (file->type == FST_RSF) {
-        if (rewrite && !fst24_delete(record)) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested to rewrite a record, but we were unable to "
-                    "delete the existing one (file %s)\n", __func__, file->path);
+        if (rewrite) { 
+            fst_record crit = default_fst_record;
+            crit.ip1 = record->ip1;
+            crit.ip2 = record->ip2;
+            crit.ip3 = record->ip3;
+            strncpy(crit.typvar, record->typvar, FST_TYPVAR_LEN);
+            strncpy(crit.nomvar, record->nomvar, FST_NOMVAR_LEN);
+            strncpy(crit.etiket, record->etiket, FST_ETIKET_LEN);
+            if (!fst24_search_and_delete(file, &crit, NULL)) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested to rewrite a record, but we were unable to "
+                        "delete the existing one(s) (file %s)\n", __func__, file->path);
+            }
         }
         return fst24_write_rsf(file->rsf_handle, record, 1);
     }
@@ -959,6 +971,11 @@ int32_t fst24_write(
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: No data associated with this record!\n", __func__);
             return -1;
         }
+
+        char typvar[FST_TYPVAR_LEN];
+        char nomvar[FST_NOMVAR_LEN];
+        char etiket[FST_ETIKET_LEN];
+        char grtyp[FST_GTYP_LEN];
 
         strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
@@ -977,6 +994,10 @@ int32_t fst24_write(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
             typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite);
+
+        record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
+        record->do_not_touch.extended_meta_size = 0;
+        record->do_not_touch.stored_data_size = 0; // We don't have a good way of knowing that number, so it stays at 0 for now. Maybe xdfprm?
 
         if (ier < 0) return ier;
         return TRUE;
@@ -1002,6 +1023,7 @@ int32_t get_record_from_key_rsf(
     fill_with_search_meta(record, (search_metadata*)record_info.meta, FST_RSF);
     record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
     record->do_not_touch.handle = key;
+    record->do_not_touch.stored_data_size = (record_info.data_size + 3) / 4;
     if (record_info.rec_type == RT_DEL) record->do_not_touch.deleted = 1;
 
     return TRUE;
@@ -1042,6 +1064,8 @@ int32_t fst24_get_record_from_key(
         pkeys += W64TOWD(1);
         c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
         fill_with_search_meta(record, &record_meta, file->type);
+        record->do_not_touch.num_search_keys = 16;
+        record->do_not_touch.stored_data_size = W64TOWD(lng);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
@@ -1603,6 +1627,7 @@ int32_t fst24_read_record_rsf(
     }
 
     fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF);
+    record_fst->do_not_touch.stored_data_size = (record_rsf->data_size + 3) / 4;
 
     // Extract metadata from record if present
     record_fst->metadata = NULL;
@@ -1644,8 +1669,9 @@ int32_t fst24_read_record_xdf(
     uint32_t * pkeys = (uint32_t *) stdf_entry;
     pkeys += W64TOWD(1);
 
+    int lng = 0;
     {
-        int addr, lng, idtyp;
+        int addr, idtyp;
         int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
         if (ier < 0) return ier;
     }
@@ -1662,6 +1688,8 @@ int32_t fst24_read_record_xdf(
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
     if (handle != key32) return ERR_NOT_FOUND;
     fill_with_search_meta(record, &meta, FST_XDF);
+    record->do_not_touch.num_search_keys = 16;
+    record->do_not_touch.stored_data_size = W64TOWD(lng);
     return handle;
 }
 
@@ -1926,6 +1954,9 @@ int32_t fst24_delete(
         return FALSE;
     }
 
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Deleting record %d from file %s, type %s\n",
+            __func__, record->do_not_touch.handle, record->file->path, fst_file_type_name[record->file->type]);
+
     if (record->file->type == FST_RSF) {
         if (RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) != 1) return FALSE;
     }
@@ -1940,6 +1971,25 @@ int32_t fst24_delete(
     record->do_not_touch.deleted = 1;
 
     return TRUE;
+}
+
+int32_t fst24_search_and_delete(
+    fst_file* const file,
+    const fst_record* criteria,
+    const fst_query_options* options
+) {
+    fst_query* q = fst24_new_query(file, criteria, options);
+    fst_record r = default_fst_record;
+
+    int status = TRUE;
+    while (fst24_find_next(q, &r) > 0) {
+        status = fst24_delete(&r);
+        if (!status) break;
+    }
+
+    fst24_query_free(q);
+
+    return status;
 }
 
 void print_non_default_options(const fst_query_options* const options) {
