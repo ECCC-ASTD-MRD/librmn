@@ -14,7 +14,6 @@
 #include "xdf98.h"
 
 static int64_t fst24_get_num_records_single(const fst_file* file);
-int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
@@ -38,6 +37,16 @@ const char* fst24_file_name(const fst_file* const file) {
 int32_t fst24_get_unit(const fst_file* const file) {
     if (fst24_is_open(file)) return file->iun;
     return 0;
+}
+
+//! Get unit number for fortran
+//! \return Unit number. 0 if file is not open or struct is not valid.
+char* fst24_get_tag(const fst_file* const file) {
+    return file->tag;
+}
+char* fst24_set_tag(fst_file* file,const char* const tag) {
+    if (file->tag) free(file->tag);
+    return file->tag=strdup(tag);
 }
 
 //! Test if the given path is a readable FST file
@@ -923,7 +932,7 @@ int32_t fst24_write_rsf(
         // f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
-        fst24_record_print_short(record, &f, 0, "(fst) Write: ");
+        fst24_record_print_short(record, &f, 0, "(INFO) FST|Write:");
     }
 
     RSF_Free_record(new_record);

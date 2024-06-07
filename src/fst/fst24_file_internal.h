@@ -25,7 +25,7 @@ typedef struct fst24_file_ {
     RSF_handle    rsf_handle;           //!< If type is RSF, handle to the file
     struct fst24_file_ *next;           //!< Next file in linked list of files (if any)
     const char* path;                   //!< Given when opening this file
-    const char* cid;                    //!< Optional object id (used in interpreted wrappers)
+    char*       tag;                    //!< Optional object tag (used in interpreted wrappers)
 } fst_file;
 
 static fst_file default_fst_file = (fst_file) {
@@ -34,7 +34,9 @@ static fst_file default_fst_file = (fst_file) {
     .file_index_backend = -1,
     .rsf_handle.p       = NULL,
     .type               = FST_NONE,
-    .next               = NULL
+    .next               = NULL,
+    .path               = NULL,
+    .tag                = NULL
 };
 
 int32_t fst24_write_rsf(RSF_handle rsf_file, fst_record* record, const int32_t stride);
