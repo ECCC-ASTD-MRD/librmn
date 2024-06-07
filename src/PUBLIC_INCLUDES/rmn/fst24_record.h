@@ -15,13 +15,17 @@
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
 
-#define FST24_META_ALL  256 
-#define FST24_META_TIME 1
-#define FST24_META_GRID 2
-#define FST24_META_INFO 4
-#define FST24_META_SIZE 8
-#define FST24_META_TYPE 16
-#define FST24_META_EXT  32
+#define FST_META_ALL  256 
+#define FST_META_TIME 1
+#define FST_META_GRID 2
+#define FST_META_INFO 4
+#define FST_META_SIZE 8
+#define FST_META_TYPE 16
+#define FST_META_EXT  32
+
+#define YES   1
+#define NO    0
+#define SKIP -1
 
 #ifndef IN_FORTRAN_CODE
 

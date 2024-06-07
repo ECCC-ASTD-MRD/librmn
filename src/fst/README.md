@@ -926,7 +926,7 @@ int32_t fst24_print_summary(
 int32_t fst24_write(
     fst_file* file,     //!< The file where we want to write
     fst_record* record, //!< The record we want to write
-    const int rewrite   //!< Whether we want to overwrite the existing record
+    const int rewrite   //!< Whether we want to overwrite YES, skip SKIP or write again NO an existing record
 );
 
 //! Search a file with given criteria and read the first record that matches these criteria.
@@ -1057,18 +1057,18 @@ int32_t fst24_delete(
 );
 
 //! Copy the legacy metadata and extended metadata
-//!   FST24_META_ALL  : All meta data
-//!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
-//!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
-//!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
-//!   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
-//!   FST24_META_EXT  : Extended metadata
+//!   FST_META_ALL  : All meta data
+//!   FST_META_TIME : Time related metadata (dateo,datev,deet,npas)
+//!   FST_META_GRID : Grid related metadata (grtyp,ig1-4)
+//!   FST_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+//!   FST_META_EXT  : Extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
 int32_t fst24_record_copy_metadata(
      fst_record* a,            //!< Destination record
      const fst_record* b,      //!< Source record
-     int what                  //!< select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+     int what                  //!< select which part of the metadata to copy (default: FST_META_ALL) thay can be combined with + (ie: FST_META_TIME+FST_META_INFO)
 );
 
 //! \return 1 if the given two records have the same metadata
@@ -1283,7 +1283,7 @@ function write(this, record, rewrite) result(success)
     implicit none
     class(fst_file),  intent(inout) :: this     !< File where we want to write
     type(fst_record), intent(inout) :: record   !< Record we want to write
-    logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
+    integer, intent(in), optional   :: rewrite  !< Whether we want to overwrite YES, skip SKIP or write again NO an existing record (default NO)
     logical :: success
 end function write
 
@@ -1491,13 +1491,13 @@ function read_metadata(this) result(success)
     logical :: success
 end function read_metadata
 
-!> Copy the legacy metadata and extended metadata. The what parameter allows to select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
-!>   FST24_META_ALL  : All meta data
-!>   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
-!>   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
-!>   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
-!>   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
-!>   FST24_META_EXT  : Extended metadata
+!> Copy the legacy metadata and extended metadata. The what parameter allows to select which part of the metadata to copy (default: FST_META_ALL) thay can be combined with + (ie: FST_META_TIME+FST_META_INFO)
+!>   FST_META_ALL  : All meta data
+!>   FST_META_TIME : Time related metadata (dateo,datev,deet,npas)
+!>   FST_META_GRID : Grid related metadata (grtyp,ig1-4)
+!>   FST_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+!>   FST_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+!>   FST_META_EXT  : Extended metadata
 !> Return .true. if we were able to copy the metadata, .false. otherwise
 function copy_metadata(this,record,what) result(success)
     implicit none

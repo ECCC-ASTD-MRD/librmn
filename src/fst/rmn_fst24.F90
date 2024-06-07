@@ -361,7 +361,7 @@ contains
         implicit none
         class(fst_file),  intent(inout) :: this     !< File where we want to write
         type(fst_record), intent(inout) :: record   !< Record we want to write
-        logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
+        integer, intent(in), optional   :: rewrite  !< Whether we want to overwrite YES, skip SKIP or write again NO an existing record (default NO)
         logical :: success
 
         !> Where to get the data being written (optional). Can also be specified by setting the
@@ -382,7 +382,7 @@ contains
 
         c_rewrite = 0
         if (present(rewrite)) then
-            if (rewrite) c_rewrite = 1
+            c_rewrite = rewrite
         end if
 
         c_status = fst24_write(this % file_ptr, record % get_c_ptr(), c_rewrite)

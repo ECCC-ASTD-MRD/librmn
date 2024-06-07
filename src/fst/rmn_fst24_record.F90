@@ -363,7 +363,7 @@ contains
 
         integer(C_INT32_T) :: c_result, what_c
 
-        what_c=FST24_META_ALL
+        what_c=FST_META_ALL
         if (present(what)) then
             what_c=what
         end if

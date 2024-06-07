@@ -756,40 +756,40 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
 }
 
 //! Copy the legacy metadata and extended metadata
-//!   FST24_META_ALL  : All meta data
-//!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
-//!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
-//!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
-//!   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
-//!   FST24_META_EXT  : Extended metadata
+//!   FST_META_ALL  : All meta data
+//!   FST_META_TIME : Time related metadata (dateo,datev,deet,npas)
+//!   FST_META_GRID : Grid related metadata (grtyp,ig1-4)
+//!   FST_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+//!   FST_META_EXT  : Extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
 int32_t fst24_record_copy_metadata(
      fst_record* a,            //!< Destination record
      const fst_record* b,      //!< Source record
-     int what                  //!< select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+     int what                  //!< select which part of the metadata to copy (default: FST_META_ALL) thay can be combined with + (ie: FST_META_TIME+FST_META_INFO)
 ) {
 
     if (a == NULL || b == NULL) return 0;
     if (a->do_not_touch.version != b->do_not_touch.version) return 0;
 
-    if (what&FST24_META_TIME) {
+    if (what&FST_META_TIME) {
        a->dateo = b->dateo;
        a->datev = b->datev;
        a->deet = b->deet;
        a->npas = b->npas;
     }
-    if (what&FST24_META_TYPE) {
+    if (what&FST_META_TYPE) {
        a->data_type = b->data_type;
        a->data_bits = b->data_bits;
        a->pack_bits = b->pack_bits;
     }
-    if (what&FST24_META_SIZE) {
+    if (what&FST_META_SIZE) {
        a->ni = b->ni;
        a->nj = b->nj;
        a->nk = b->nk;
     }
-    if (what&FST24_META_INFO) {
+    if (what&FST_META_INFO) {
        a->ip1 = b->ip1;
        a->ip2 = b->ip2;
        a->ip3 = b->ip3;
@@ -799,7 +799,7 @@ int32_t fst24_record_copy_metadata(
        strncpy(a->etiket, b->etiket, FST_ETIKET_LEN);
     }
 
-    if (what&FST24_META_GRID) {
+    if (what&FST_META_GRID) {
        strncpy(a->grtyp, b->grtyp, FST_GTYP_LEN);
        a->ig1 = b->ig1;
        a->ig2 = b->ig2;
@@ -807,7 +807,7 @@ int32_t fst24_record_copy_metadata(
        a->ig4 = b->ig4;
     }
 
-    if (what&FST24_META_EXT) {
+    if (what&FST_META_EXT) {
         if (b->metadata) {
             if (a->metadata) {
                 Meta_Free(a->metadata);

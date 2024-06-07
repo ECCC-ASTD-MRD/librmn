@@ -945,7 +945,7 @@ int32_t fst24_write_rsf(
 int32_t fst24_write(
     fst_file* file,     //!< The file where we want to write
     fst_record* record, //!< The record we want to write
-    const int rewrite   //!< Whether we want to overwrite the existing record
+    const int rewrite   //!< Whether we want to overwrite TRUE, skip SKIP or write again FALSE an existing record
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
@@ -957,16 +957,22 @@ int32_t fst24_write(
     if  (file->type == FST_RSF) {
         if (rewrite) { 
             fst_record crit = default_fst_record;
-            crit.ip1 = record->ip1;
-            crit.ip2 = record->ip2;
-            crit.ip3 = record->ip3;
-            strncpy(crit.typvar, record->typvar, FST_TYPVAR_LEN);
-            strncpy(crit.nomvar, record->nomvar, FST_NOMVAR_LEN);
-            strncpy(crit.etiket, record->etiket, FST_ETIKET_LEN);
-            if (!fst24_search_and_delete(file, &crit, NULL)) {
-                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested to rewrite a record, but we were unable to "
-                        "delete the existing one(s) (file %s)\n", __func__, file->path);
-            }
+            fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME);
+            crit.dateo=-1;
+            
+            if (rewrite==SKIP) {
+                fst_query* q = fst24_new_query(file, &crit, NULL);
+                if (fst24_find_next(q,NULL)) {
+                    Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
+                    return(TRUE);
+                }
+               fst24_query_free(q);
+            } else {
+                int nb;
+                if ((nb=fst24_search_and_delete(file, &crit, NULL))) {
+                    Lib_Log(APP_LIBFST, APP_INFO, "%s: Deleted %i matching records\n", __func__,nb);
+                }
+           }
         }
         return fst24_write_rsf(file->rsf_handle, record, 1);
     }
@@ -1990,15 +1996,14 @@ int32_t fst24_search_and_delete(
     fst_query* q = fst24_new_query(file, criteria, options);
     fst_record r = default_fst_record;
 
-    int status = TRUE;
+    int nb=0;
     while (fst24_find_next(q, &r) > 0) {
-        status = fst24_delete(&r);
-        if (!status) break;
+        nb+= fst24_delete(&r);
     }
 
     fst24_query_free(q);
 
-    return status;
+    return nb;
 }
 
 void print_non_default_options(const fst_query_options* const options) {

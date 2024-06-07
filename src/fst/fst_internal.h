@@ -12,7 +12,7 @@ typedef struct fst24_file_ fst_file;  // Forward declare the fst_file type
 
 //! Number of 32-bit elements in the search metadata that are reserved for
 //! the fst24 implementation. See \ref search_metadata
-#define FST24_META_RESERVED 2
+#define FST_META_RESERVED 2
 
 //! Object that encodes the criteria for a search into an FST file
 //! It is meant to be compatible with both RSF and XDF files, and to remain backward-compatible
@@ -27,13 +27,13 @@ typedef struct {
     union {
         struct {
             uint32_t rsf_reserved[RSF_META_RESERVED];       //!< Reserved for RSF backend usage
-            uint32_t fst24_reserved[FST24_META_RESERVED];   //!< Reserved RSF fst24 interface
+            uint32_t fst24_reserved[FST_META_RESERVED];   //!< Reserved RSF fst24 interface
         };
 
         // Elements that are inherited from the fst98 interface
         struct {
             //!> Additional space reserved for RSF backend or fst24 interface
-            uint32_t fst98_reserved[RSF_META_RESERVED + FST24_META_RESERVED - 2];
+            uint32_t fst98_reserved[RSF_META_RESERVED + FST_META_RESERVED - 2];
             //!> Elements inherited from the fst98 interface. The first two 32-bit elements
             //!> were not used as search criteria, so we will be using them as reserved space in
             //!> RSF files
