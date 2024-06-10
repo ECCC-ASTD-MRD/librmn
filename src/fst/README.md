@@ -767,7 +767,7 @@ int main(void) {
   my_record.ig3 = 0;
   my_record.ig4 = 0;
   
-  if (fst24_write(my_file, &my_record, 0) <= 0)
+  if (fst24_write(my_file, &my_record, FST_NO) <= 0)
     return -1;
   
   if (fst24_close(my_file) <= 0)
@@ -798,7 +798,7 @@ my_record.data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
 my_record.data_bits = 32;
 my_record.pack_bits = 16;
 
-fst24_write(my_file, &my_record, 0);
+fst24_write(my_file, &my_record, FST_NO);
 ```
 
 </td></tr>
@@ -860,6 +860,7 @@ typedef struct {
     int32_t ip1_all;
     int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
     int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+    int32_t daterun; //!< Date contains a run in the first 3 bits that must not be checked (used in older files)
 } fst_query_options;
 
 typedef struct {
@@ -926,7 +927,7 @@ int32_t fst24_print_summary(
 int32_t fst24_write(
     fst_file* file,     //!< The file where we want to write
     fst_record* record, //!< The record we want to write
-    const int rewrite   //!< Whether we want to overwrite YES, skip SKIP or write again NO an existing record
+    const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
 );
 
 //! Search a file with given criteria and read the first record that matches these criteria.
@@ -1283,7 +1284,7 @@ function write(this, record, rewrite) result(success)
     implicit none
     class(fst_file),  intent(inout) :: this     !< File where we want to write
     type(fst_record), intent(inout) :: record   !< Record we want to write
-    integer, intent(in), optional   :: rewrite  !< Whether we want to overwrite YES, skip SKIP or write again NO an existing record (default NO)
+    integer, intent(in), optional   :: rewrite  !< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record (default NO)
     logical :: success
 end function write
 

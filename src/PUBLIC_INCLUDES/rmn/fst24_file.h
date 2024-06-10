@@ -17,12 +17,14 @@ typedef struct {
     int32_t ip1_all;
     int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
     int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+    int32_t daterun; //!< Date contains a run in the first 3 bits that must not be checked (used in older files)
 } fst_query_options;
 
 static fst_query_options default_query_options = (fst_query_options) {
     .ip1_all = 0,
     .ip2_all = 0,
     .ip3_all = 0,
+    .daterun = 0,
 };
 
 //! @defgroup public_fst Public FST C API
