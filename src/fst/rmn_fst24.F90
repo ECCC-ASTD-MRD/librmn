@@ -11,6 +11,10 @@ module rmn_fst24
 
     include 'fst24_interface.inc'
 
+    integer(C_INT32_T), parameter, public :: FST_YES   = 1
+    integer(C_INT32_T), parameter, public :: FST_NO    = 0
+    integer(C_INT32_T), parameter, public :: FST_SKIP  = -1
+
     type :: fst_file
         private
         type(C_PTR) :: file_ptr = c_null_ptr ! Pointer to C file control structure

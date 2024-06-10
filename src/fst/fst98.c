@@ -907,7 +907,7 @@ int c_fstecr_xdf(
     int ig4,
     //! [in] Data type of elements
     int in_datyp_ori,
-    //! [in] Rewrite existing record, append otherwise
+    //! [in] Rewrite existing record, skip or append otherwise
     int rewrit
 ) {
     (void)work; // unused
@@ -1236,6 +1236,8 @@ int c_fstecr_xdf(
         if (handle < 0) {
             // append mode for xdfput
             handle = 0;
+        } else if (rewrit==FST_SKIP) {
+            return handle;
         }
     }
 

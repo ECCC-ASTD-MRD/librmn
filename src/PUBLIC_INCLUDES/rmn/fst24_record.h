@@ -15,6 +15,8 @@
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
 
+#ifndef IN_FORTRAN_CODE
+
 #define FST_META_ALL  256 
 #define FST_META_TIME 1
 #define FST_META_GRID 2
@@ -23,11 +25,9 @@
 #define FST_META_TYPE 16
 #define FST_META_EXT  32
 
-#define YES   1
-#define NO    0
-#define SKIP -1
-
-#ifndef IN_FORTRAN_CODE
+#define FST_YES   1
+#define FST_NO    0
+#define FST_SKIP -1
 
 #include <stdint.h>
 #include <stdlib.h>

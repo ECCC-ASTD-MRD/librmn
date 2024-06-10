@@ -16,6 +16,14 @@ module rmn_fst24_record
     public :: fst_record_fields, fst_record_c
     public :: fst24_is_default_record_valid, fst24_make_fields, fst24_make_fields_from_string
 
+    integer(C_INT32_T), parameter, public :: FST_META_ALL            = 256
+    integer(C_INT32_T), parameter, public :: FST_META_TIME           = 1
+    integer(C_INT32_T), parameter, public :: FST_META_GRID           = 2
+    integer(C_INT32_T), parameter, public :: FST_META_INFO           = 4
+    integer(C_INT32_T), parameter, public :: FST_META_SIZE           = 8
+    integer(C_INT32_T), parameter, public :: FST_META_TYPE           = 16
+    integer(C_INT32_T), parameter, public :: FST_META_EXT            = 32
+
     integer(C_INT32_T), parameter, public :: FST_TYPE_BINARY         = 0
     integer(C_INT32_T), parameter, public :: FST_TYPE_REAL_OLD_QUANT = 1
     integer(C_INT32_T), parameter, public :: FST_TYPE_UNSIGNED       = 2
