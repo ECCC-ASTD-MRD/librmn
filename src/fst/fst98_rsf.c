@@ -355,6 +355,7 @@ int c_fstfrm_rsf(
         return ERR_NO_FILE;
     }
 
+    c_waclos(iun);
     const int32_t status = RSF_Close_file(file_handle);
 
     return status == 1 ? 0 : -1;

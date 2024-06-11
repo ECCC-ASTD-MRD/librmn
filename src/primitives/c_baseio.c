@@ -402,56 +402,56 @@ int c_fnom(
     FGFDT[entry].attr.remote = 0;
     FGFDT[entry].attr.volatil = 0;
 
-    if (strstr(type, "STREAM") || strstr(type, "stream")) {
+    if (strcasestr(type, "STREAM")) {
         FGFDT[entry].attr.stream = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "STD") || strstr(type, "std")) {
+    if (strcasestr(type, "STD")) {
         FGFDT[entry].attr.std = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "BURP") || strstr(type, "burp")) {
+    if (strcasestr(type, "BURP")) {
         FGFDT[entry].attr.burp = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "RND") || strstr(type, "rnd")) {
+    if (strcasestr(type, "RND")) {
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "WA") || strstr(type, "wa")) {
+    if (strcasestr(type, "WA")) {
         // wa attribute will be set by waopen
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "FTN") || strstr(type, "ftn")) {
+    if (strcasestr(type, "FTN")) {
         FGFDT[entry].attr.ftn = 1;
         FGFDT[entry].attr.rnd = 0;
     }
-    if (strstr(type, "UNF") || strstr(type, "unf")) {
+    if (strcasestr(type, "UNF")) {
         FGFDT[entry].attr.unf = 1;
         FGFDT[entry].attr.ftn = 1;
         FGFDT[entry].attr.rnd = 0;
     }
-    if (strstr(type, "OLD") || strstr(type, "old")) {
+    if (strcasestr(type, "OLD")) {
         FGFDT[entry].attr.old = 1;
     }
-    if (strstr(type, "R/O") || strstr(type, "r/o")) {
+    if (strcasestr(type, "R/O")) {
         FGFDT[entry].attr.read_only = 1;
         FGFDT[entry].attr.old = 1;
     }
-    if (strstr(type, "R/W") || strstr(type, "r/w")) {
+    if (strcasestr(type, "R/W")) {
         FGFDT[entry].attr.read_only = 0;
         FGFDT[entry].attr.write_mode = 1;
     }
-    if (strstr(type, "D77") || strstr(type, "d77")) {
+    if (strcasestr(type, "D77")) {
         FGFDT[entry].attr.ftn = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "SCRATCH") || strstr(type, "scratch")) {
+    if (strcasestr(type, "SCRATCH")) {
         FGFDT[entry].attr.scratch = 1;
     }
-    if (strstr(type, "REMOTE") || strstr(type, "remote")) {
+    if (strcasestr(type, "REMOTE")) {
         FGFDT[entry].attr.remote = 1;
     }
-    if (strstr(type, "VOLATILE") || strstr(type, "volatile")) {
+    if (strcasestr(type, "VOLATILE")) {
         FGFDT[entry].attr.volatil = 1;
     }
 
@@ -599,7 +599,7 @@ int c_fnom(
         }
         ier = f77name(qqqf7op)(&iun77, FGFDT[entry].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
     } else if (FGFDT[entry].attr.stream || FGFDT[entry].attr.std || FGFDT[entry].attr.burp || FGFDT[entry].attr.wa ||
-               (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn) ) {
+               (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn)) {
         ier = c_waopen2(liun);
         /* will be set by waopen */
         FGFDT[entry].attr.wa = 0;
@@ -903,7 +903,7 @@ int c_waclos2(
     if (! FGFDT[entry].open_flag) {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not open\n",__func__,iun);
         return -1;
-        }
+    }
 
     int ier = qqcclos(entry);
     FGFDT[entry].open_flag = 0;
@@ -1930,6 +1930,7 @@ static int qqcopen(
     while ((wafile[ind].file_desc != -1) && (ind < MAXWAFILES)) {
         ind++;
     }
+
     if (ind == MAXWAFILES) {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: too many open files\n",__func__);
         return -1;
