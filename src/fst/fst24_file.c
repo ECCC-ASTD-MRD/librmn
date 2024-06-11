@@ -217,7 +217,7 @@ int32_t fst24_print_summary(
     }
 
     Lib_Log(APP_LIBFST, APP_VERBATIM,
-            "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
+            "\n%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
             num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
     return TRUE;

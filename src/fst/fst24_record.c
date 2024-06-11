@@ -400,7 +400,7 @@ void fst24_record_print_short(
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
 
-        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n", buffer);
+        Lib_Log(APP_LIBFST, APP_VERBATIM, "%s\n\n", buffer);
     }
 
     char* current = buffer;
