@@ -175,7 +175,7 @@ contains
     function fst24_file_read(this, record, data,                                                                    &
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-            ip1_all, ip2_all, ip3_all) result(found)
+            ip1_all, ip2_all, ip3_all,daterun) result(found)
         implicit none
         class(fst_file), intent(inout) :: this
         type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -192,6 +192,7 @@ contains
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        logical, intent(in), optional :: daterun !< Whether validitydate contians run number in last 3 bit
         type(meta), intent(in), optional :: metadata
         logical :: found
 
@@ -203,7 +204,7 @@ contains
 
         query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
                                  ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
-                                 metadata, ip1_all, ip2_all, ip3_all)
+                                 metadata, ip1_all, ip2_all, ip3_all,daterun)
         if (.not. query % is_valid()) return
         found = query % read_next(record)
         call query % free()

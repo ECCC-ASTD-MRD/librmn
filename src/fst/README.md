@@ -1234,9 +1234,10 @@ end function get_unit
 
 !> Create a search query that will apply the given criteria during a search in a file.
 !> Return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
-function new_query(this,                                                                                        & 
+function new_query(this,                                                                             & 
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
-        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
+        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+        ip1_all, ip2_all, ip3_all,daterun) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
     integer(C_INT32_T), intent(in), optional :: dateo, datev
@@ -1246,8 +1247,9 @@ function new_query(this,                                                        
     character(len=1),  intent(in), optional :: grtyp
     character(len=4),  intent(in), optional :: nomvar
     character(len=12), intent(in), optional :: etiket
+    logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    logical, intent(in), optional :: daterun !< Whether validitydate contians run number in last 3 bit
     type(meta), intent(in), optional :: metadata
-    logical,    intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     type(fst_query) :: query
 end function new_query
 
@@ -1257,7 +1259,7 @@ end function new_query
 function read(this, record, data,                                                                               &
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-        ip1_all, ip2_all, ip3_all) result(found)
+        ip1_all, ip2_all, ip3_all,daterun) result(found)
     implicit none
     class(fst_file), intent(inout) :: this
     type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -1274,6 +1276,7 @@ function read(this, record, data,                                               
     character(len=4),  intent(in), optional :: nomvar
     character(len=12), intent(in), optional :: etiket
     logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    logical, intent(in), optional :: daterun !< Whether validitydate contians run number in last 3 bit
     type(meta), intent(in), optional :: metadata
     logical :: found
 end function read
