@@ -569,7 +569,7 @@ void make_search_criteria(
         }
 
         fst98_meta->date_stamp = stamp_from_date(record->datev);
-        if (query->options.daterun) fst98_mask->date_stamp &= ~(0x7);
+        if (!query->options.stamp_norun) fst98_mask->date_stamp &= ~(0x7);
         if (record->datev == default_fst_record.datev) fst98_mask->date_stamp = 0;
 
         fst98_meta->ni = record->ni;
