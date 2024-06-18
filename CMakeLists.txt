@@ -17,7 +17,7 @@ message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
 include(GNUInstallDirs)
-set (CMAKE_INSTALL_LIBDIR lib)  # Avoid using lib64
+set(CMAKE_INSTALL_LIBDIR lib CACHE INTERNAL "Install dir for libs" FORCE)  # Avoid using lib64, cache when in super-project
 
 ec_build_info()            # Generate build information
 include(ec_compiler_presets)
