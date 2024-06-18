@@ -165,88 +165,47 @@ void strncpytrm(char *dest, const char *src, size_t size){
     // terminating NUL byte, we can be pretty sure that this is not needed
     *--q = '\0'; // Unlikely
 }
+
 /*
- * Vulgar threading solution: a "queue" protected by a mutex queue_lock
- * and a function file_queue_get() that returns a work_unit consisting of
- * a filename and an initialized record vector to fill with record headers.
- *
- * Pthread creates a fixed amount of thread that work constantly: getting
- * a work unit from the queue, processing it, and looping.
- *
- * When the queue is finished, file_queue_get() returns a work_unit with
- * NULL filename.  This is how threads know to end.
- *
- * The main thread creates the initializes nb_files RecordVector's,
- * creates the file_queue, spawns thread_pool_size threads, waits for them
- * to finish, then reorganizes all the data from the RecordVector's
- * and creates the numpy arrays.
- *
- * I also needed to add a lock for fst24_open because of that global table
- * to make sure we don't clash there.  Otherwise I was getting 'iun X already
- * in use'.
- *
- * The results are not great.  Without profiling we can't say where the
- * bottleneck is.  I wonder if the traversal with `query` isn't doing some
- * unnecessary work that could be done much faster by a function that really
- * just 
+ * Simple threading solution:  The global work is in file_queue which has
+ * an array of filenames and an array of RecordVector's.  Each thread gets
+ * a worker args which contains the address of the files_to_index struct and
+ * a range of indices to work on.  For i in its given range, it fills rvs[i]
+ * with the records of filenames[i].
  */
-struct file_queue {
+struct file_to_index {
     const char **filenames;
     RecordVector **rvs;
-    int nb_files;
-    int next;
-    int total_nb_records;
 };
-static pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t iun_lock = PTHREAD_MUTEX_INITIALIZER;
-struct work_unit {
-    const char *filename;
-    RecordVector *rv;
-};
 
 struct worker_args {
-    struct file_queue *q;
+    struct file_to_index *q;
     int status;
     char message[512];
+    int begin_index;
+    int end_index;
 };
 
-struct work_unit file_queue_get(struct file_queue *q){
-    pthread_mutex_lock(&queue_lock);
-    struct work_unit ret;
-    if(q->next == q->nb_files){
-        // Signal thread to stop
-        ret.filename = NULL;
-        ret.rv = NULL;
-    } else {
-        ret.filename = q->filenames[q->next];
-        ret.rv = q->rvs[q->next];
-        q->next++;
-    }
-    // fprintf(stderr, "%s(): giving file #%d '%s'\n", __func__, q->next, ret.filename);
-    pthread_mutex_unlock(&queue_lock);
-    return ret;
-}
-
 void file_queue_worker(struct worker_args *args){
-    while(1){
-        struct work_unit u = file_queue_get(args->q);
-        if(u.filename == NULL){
-            break;
-        }
+    for(int i = args->begin_index; i < args->end_index; i++){
 
         // fprintf(stderr, "HELLO\n");
+        const char * filename = args->q->filenames[i];
+        RecordVector *rv = args->q->rvs[i];
+
         pthread_mutex_lock(&iun_lock);
-        fst_file *f = fst24_open(u.filename, NULL);
+        fst_file *f = fst24_open(filename, NULL);
         pthread_mutex_unlock(&iun_lock);
         if(f == NULL){
             args->status = 1;
-            snprintf(args->message, 512, "'%s': %s", u.filename, App_ErrorGet());
+            snprintf(args->message, 512, "'%s': %s", filename, App_ErrorGet());
             pthread_exit((void*)1);
         }
         fst_query *q = fst24_new_query(f, &default_fst_record, NULL);
         fst_record result = default_fst_record;
         while(fst24_find_next(q, &result)){
-            RecordVector_push(u.rv, &result);
+            RecordVector_push(rv, &result);
         }
 
         fst24_query_free(q);
@@ -266,47 +225,45 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
         record_vectors[i] = RecordVector_new(400);
     }
 
-    struct file_queue q = {
+    struct file_to_index q = {
         .filenames = filenames,
         .rvs = record_vectors,
-        .next = 0,
-        .nb_files = nb_files,
     };
 
     fprintf(stderr, "===> Collecting all records ...\n");
     App_TimerStart(&t);
 
+#define min(a,b) ( ((a)<(b))?(a):(b) )
 #define MULTITHREAD_INDEXING
 #ifdef MULTITHREAD_INDEXING
-    /* OTHER IDEA: Another way would be to divide the work manually rather than
-     * having each thread grab items from the queue.*/
-    int thread_pool_size = 10;
-    pthread_t thread_pool[thread_pool_size];
-    struct worker_args thread_args[thread_pool_size];
-    fprintf(stderr, "Creating %d worker threads\n", thread_pool_size);
-    for(int i = 0; i < thread_pool_size; i++){
+    int nb_threads = 10;
+    pthread_t thread_pool[nb_threads];
+    struct worker_args thread_args[nb_threads];
+    fprintf(stderr, "Creating %d worker threads\n", nb_threads);
+    for(int i = 0; i < nb_threads; i++){
         thread_args[i] = (struct worker_args){
             .q = &q,
             .status = 0,
             .message = "",
-            // Divide queue into thread_pool_size parts of with
-            // chunk_size = nb_files/thread_pool_size
-            // Each thread does i * chunk_size with the last thread doing
-            // a little bit less possibly
-            // .begin_index = i*chunk_size,
-            // .end_index = min((i+1)*chunk_size, nb_files),
-            // and we would not need synchronization with queue_lock.
-            // iun_lock would still be necessary.
+            /*
+             * Note: with cases like nb_files=322, nb_threads=20,
+             * we can't pre-calculate (nb_files/nb_threads) outside
+             * the loop because
+             * (i+1)*(nb_files/nb_threads) < ((i+1)*nb_files)/nb_threads
+             */
+            .begin_index = i * nb_files / nb_threads,
+            .end_index = (i+1) * nb_files / nb_threads,
         };
+        fprintf(stderr, "Starting thread %d with index range [%d,%d)\n", i, thread_args[i].begin_index, thread_args[i].end_index);
         pthread_create(&thread_pool[i], NULL, (void *(*)(void*))file_queue_worker, (void*)&thread_args[i]);
     }
 
     fprintf(stderr, "Waiting for the threads\n");
     int any_thread_error = 0;
-    for(int i = 0; i < thread_pool_size; i++){
+    for(int i = 0; i < nb_threads; i++){
         pthread_join(thread_pool[i], NULL);
     }
-    for(int i = 0; i < thread_pool_size; i++){
+    for(int i = 0; i < nb_threads; i++){
         if(thread_args[i].status != 0){
             fprintf(stderr, "Worker %d ERROR: %s", i, thread_args[i].message);
             any_thread_error = 1;
