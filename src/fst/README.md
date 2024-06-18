@@ -57,6 +57,13 @@ depending on whether you are using the Fortran or the C interface:
 * In **Fortran**: Search parameters are specified directly (and individually) as function parameters. Any unspecified parameter will be ignored during the search.
 * In **C**: Search parameters are specified as a set, represented by an `fst_record` instance. Any attribute of `fst_record` that is left at its default value will be ignored during the search.
 
+### Writing
+With the new `rsf` backend, a record cannot be re-written as it coule be in `xdf`. The rewite parameter of the fstecr function will mark the record as deleted and write a copy of it, which will increase the file size. In the new fst24 interface, the rewrite parameter that used to be boolean/logical in fst98 is now an integer which take the following values:
+   * `FST_YES` to check if the record already exists and marks it as deleted before writing it again
+   * `FST_NO` to just write the record without checking if it already exists
+   * `FST_SKIP` to check if the record already exists and not write anything if it does
+It is highly recommended to use FST_SKIP to minimize useless IO, or even better, to try just not rewriting records.
+
 [Examples are available below](#finding-and-reading-a-record).
 
 ### Correspondance with old interface functions
