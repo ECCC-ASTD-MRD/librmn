@@ -958,7 +958,8 @@ int32_t fst24_write(
             __func__, file->path, fst_file_type_name[file->type], rewrite);
 
     if (rewrite) { 
-        fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME);
+        fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME|FST_META_SIZE);
+        crit.datev = get_valid_date32(crit.dateo,crit.deet,crit.npas);
         crit.dateo=-1;
     }
     if (rewrite==FST_SKIP) {

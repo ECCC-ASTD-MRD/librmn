@@ -63,6 +63,7 @@ With the new `rsf` backend, a record cannot be re-written as it coule be in `xdf
    * `FST_NO` to just write the record without checking if it already exists
    * `FST_SKIP` to check if the record already exists and not write anything if it does
 It is highly recommended to use FST_SKIP to minimize useless IO, or even better, to try just not rewriting records.
+Note also that in `fst24` API, the rewrite option will check **ALL** search metadata, including DATEV,DEET,NPAS and IGs
 
 [Examples are available below](#finding-and-reading-a-record).
 
