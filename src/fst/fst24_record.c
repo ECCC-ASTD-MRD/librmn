@@ -574,7 +574,6 @@ void make_search_criteria(
 
         fst98_meta->ni = record->ni;
         if ((record->ni == default_fst_record.ni)) fst98_mask->ni = 0;
-        else Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Searching by ni (%d)\n", __func__, record->ni);
 
         fst98_meta->nj = record->nj;
         if ((record->nj == default_fst_record.nj)) fst98_mask->nj = 0;
