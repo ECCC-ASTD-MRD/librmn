@@ -1229,8 +1229,9 @@ int c_fstecr_xdf(
     stdf_entry->date_stamp = stamp_from_date(datev);
 
     int handle = 0;
+
     if ((rewrit) && (!fte->xdf_seq)) {
-        // find handle for rewrite operation
+       // find handle for rewrite operation
         int niout, njout, nkout;
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
         if (handle < 0) {
@@ -1523,7 +1524,6 @@ int c_fstecr_xdf(
                 return ERR_BAD_DATYP;
         } // end switch
     } // end if image mode copy
-
 
     // write record to file and add entry to directory
     int ier = c_xdfput(iun, handle, buffer);

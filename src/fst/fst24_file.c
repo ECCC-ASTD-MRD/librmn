@@ -1013,7 +1013,7 @@ int32_t fst24_write(
         const int ier = c_fstecr_xdf(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite);
+            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite==FST_YES);
 
         record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
         record->do_not_touch.extended_meta_size = 0;
