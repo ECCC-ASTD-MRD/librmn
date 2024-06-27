@@ -18,494 +18,385 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
 
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#define NCARMAX 256
-#define NKLEMAX 100
+#include <rmn/c_ccard.h>
+
 #define MAJUS 0
 #define MINUS 1
 #define PAREIL 2
-#define FAUX 0
-#define VRAI 1
-/*************************************************
- * definition de la structure des clefs          *
- *************************************************/
-struct c_jfc_definition
+
+
+//! \private
+typedef struct
 {
-    char *clenom;
-    char *cledef;
-    char *cleval;
-    char *clefin;
-    int cletype;
-};
+    char *name;
+    char *def;
+    char *val;
+    char *final;
+    int type;
+} key;
 
-/*******************************************************************
- *    recuperation des parametres d'appel a un programme           *
- *******************************************************************/
-void c_ccard(char **argv, int argc, char **cle, char val[][NCARMAX],
-             char **def, int n, int *npos)
 
-/*
- *   James Caveen - RPN
- *
- *   Revision: J. Caveen - fevrier 1993 : modification permettant
- *                         de passer des parametres positionels
- *                         avant les clefs ainsi qu'apres les signes --
- *
- *   pour chacune des clefs, on reserve une structure dans laquelle
- *   on conserve son nom et son type (i.e., convertir a MAJUScule,
- *   MINUScule ou pas-touche), les valeurs de defauts val et def
- *   ainsi que la valeur finale attribuee a la clef.  C'est le
- *   contenu de clefin qui est retourne.
- *
- *   Si a l'entree, npos est plus grand que 0, a la sortie, il
- *   contiendra le nombre de parametres positionels.
- *   Si a l'entree, npos = -111, la premiere erreur rencontree
- *   provoquera la fin prematuree du programme appelant.
- */
-{
-  void free(), exit();
+//! \private
+//! Get the position of a key in the list
+static int getKeyIdx(
+    const char * const name,
+    key keys[],
+    const int nbKeys
+) {
+    int i = 0;
+    char tmpstr[CCARD_NCARMAX];
 
-  int c_jfc_cherche_la_clef();
-  void c_jfc_tradup(), c_jfc_traduire(),  c_jfc_les_valeurs();
-  void sequence_appel();
-  char **c_jfc_positionel();
-
-  int c_jfc_majmin();
-  struct c_jfc_definition les_clefs[NKLEMAX];
-  int plante = FAUX;
-  int retourne_npos =  FAUX;
-  char *keyname, *pointeur,*prognom;
-
-  int   pos, posc, ii, i, posmoin, npos_interne;
-  int erreur = 0;
-
-  /*  reserver la memoire et initialiser les n structures de clefs  */
-
-  for (i=0; i<n; i++)
-  {
-    les_clefs[i].clenom = calloc(strlen(cle[i])+1,sizeof(char));
-    les_clefs[i].cledef = calloc(strlen(def[i])+1,sizeof(char));
-    les_clefs[i].cleval = calloc(NCARMAX+1,sizeof(char));
-    les_clefs[i].clefin = calloc(NCARMAX+1,sizeof(char));
-  }
-
-  if (*npos == -111) {
-    plante = VRAI;
-  }
-
-  if (*npos > 0)
-  {
-    *npos = 0;
-    retourne_npos = VRAI;
-  }
-
-  for (i=0; i<n; i++)
-  {
-    c_jfc_tradup (cle[i],les_clefs[i].clenom);
-    les_clefs[i].cletype = c_jfc_majmin(les_clefs[i].clenom);
-    strcpy(les_clefs[i].cledef, def[i]);
-    strcpy(les_clefs[i].cleval, val[i]);
-    strcpy(les_clefs[i].clefin, val[i]);
-  }
-
-  pos = posc = -1;
-
-  /*  obtenir le nom du programme */
-  prognom = *argv;
-  argv++;
-
-  if (argc == 2)
-  {
-    if ((strcmp(*argv,"-h") == 0) || (strcmp(*argv,"-H")==0))
+    strcpy(tmpstr, name);
+    while (*(tmpstr + i))
     {
-      sequence_appel(les_clefs,prognom,n);
-      exit(0);
+        *(tmpstr + i) = toupper(*(tmpstr + i));
+        i++;
     }
-  }
 
-  /*
-   *  verifier si on peut recuperer en mode positionel
-   *  on cherche la premiere clef '-' dans la liste
-   */
-  posmoin = c_jfc_cherche_la_clef("-",les_clefs,n);
-
-  /*
-   *  recuperer les premiers arguments positionels
-   */
-  if (posmoin > -1)
-  {
-    argv = c_jfc_positionel(argv,les_clefs,n,posmoin,&npos_interne,1,
-                            &erreur);
-    if (erreur)
-    {
-      fprintf(stderr,"\n ***ERREUR - TROP D'ARGUMENTS POSITIONELS \n");
-      sequence_appel(les_clefs,prognom,n);
-      if (plante)
-        exit (-1);
-    }
-  }
-
-  while (*argv)
-  {
-    if (**argv == '-')            /* un nom de clef */
-    {
-      if (*((*argv)+1) == '-')/* fin des clefs  */
-      {
-        /*on recupere le reste des arguments positionels */
-        argv++;
-        argv = c_jfc_positionel(argv,les_clefs,n,posmoin,
-                                &npos_interne,0,&erreur);
-        if(erreur)
-        {
-          fprintf(stderr,"\n ***ERREUR - TROP D'ARGUMENTS POSITIONELS \n");
-          sequence_appel(les_clefs,prognom,n);
-          if( plante)
-            exit (-1);
+    for (int i = 0; i < nbKeys; i++) {
+        if (strcmp(tmpstr, keys[i].name) == 0) {
+            return i;
         }
-        break;
-      }
+    }
+    return -1;
+}
 
-      pointeur = (strchr(*argv,'='));
-      if(pointeur != (char *) NULL)
-      {
-        *pointeur = '\0';
-      }
-      keyname = (*argv)+1;
-      pos = c_jfc_cherche_la_clef(keyname,les_clefs,n);
-      if (pos > -1)
-      {
+
+//! \private
+static void extractValues(
+    key keys[],
+    char **argv,
+    int pos,
+    int *posc
+) {
+    // pour l'element contenu dans argv, on fait les operations suivantes:
+    //  Éliminer '=' si present,
+    //  Éliminer ':' si presents
+    //  Attribuer les valeurs ainsi obtenues à la clef a traiter.
+    // exemple:   *argv =  =-12:34          donnera
+    // -12 34     qui seront associes a deux keys contigues ayant le meme nom dans la liste des keys.
+
+    char *deux_pt;
+
+    while (1) {
+        if ((*posc > -1) && (strcmp(keys[*posc].name, keys[pos].name)) == 0) {
+            deux_pt = strchr(*argv, ':');
+            if (deux_pt != (char *) NULL) {
+                *deux_pt = '\0';
+                if (**argv == '=') {
+                    strcpy(keys[*posc].final, (*argv) + 1);
+                } else {
+                    strcpy(keys[*posc].final, *argv);
+                }
+                *argv = deux_pt + 1;
+                (*posc)++;
+            } else {
+                if (**argv == '=') {
+                    strcpy(keys[*posc].final, (*argv) + 1);
+                } else {
+                    strcpy(keys[*posc].final, *argv);
+                }
+                (*posc)++;
+                break;
+            }
+        } else {
+            fprintf(stderr, "\n***ERREUR DEBORDEMENT DE LISTE OU MODE POSITIONNEL\n");
+        }
+    }
+}
+
+
+//! \private
+//! Convert to uppercase
+static void convert2Upper(
+    //! [in] Input String
+    const char * const inStr,
+    //! [out] Output string (Uppercase)
+    char * const outStr
+) {
+    // Nullify output string
+    char * outC = outStr;
+    while(*outC) {
+        *outC = '\0';
+        outC++;
+    }
+
+    // Reset output char pointer to the begining of the string
+    outC = outStr;
+
+    const char * inC = inStr;
+    while(*inC) {
+        *outC = toupper(*inC);
+        outC++;
+        inC++;
+    }
+}
+
+
+//! \private
+//! Get key case
+static int getKeyCase(
+    //! Key definition string
+    char *keyDefStr
+) {
+    const int lng = strlen(keyDefStr) - 1;
+
+    if (*(keyDefStr + lng) == '.') {
+        *(keyDefStr + lng) = '\0';
+        return PAREIL;
+    }
+    if (*(keyDefStr + lng) == '_') {
+        *(keyDefStr + lng) = '\0';
+        return MINUS;
+    }
+    return MAJUS;
+}
+
+
+//! \private
+//! Convert key case
+static void convertKeyCase(
+    char * const key,
+    //! Key case (MAJUS|MINUS)
+    const int keyCase
+) {
+    char * cchar = key;
+    if (keyCase == MAJUS) {
+        while(*cchar) {
+            *cchar = toupper(*cchar);
+            cchar++;
+        }
+    } else if (keyCase == MINUS) {
+        while(*cchar) {
+            *cchar = tolower(*cchar);
+            cchar++;
+        }
+    }
+}
+
+
+//! \private
+// Print command help on stderr
+static void printCmdlineRef(
+    //! Key definitions
+    const key keys[],
+    const char * const progName,
+    const int nbKeys
+) {
+    fprintf(stderr, "\n *** SEQUENCE D'APPEL ***\n\n");
+    fprintf(stderr, "%s \n", progName);
+
+    for (int i = 0; i < nbKeys; i++) {
+        fprintf(stderr, "          -%s [%s:%s]\n", keys[i].name, keys[i].def, keys[i].val);
+    }
+    fprintf(stderr, "\n");
+}
+
+
+//! \private
+//! Get positional parameters
+static char **extractPositional(
+    char **argv,
+    key keys[],
+    const int nbKeys,
+    int pos,
+    int *npos,
+    int debut,
+    int *erreur
+) {
+    // cette fonction recupere les parametres positionels (c.a.d. ceux qui sont associes a une clef ayant pour nom '-'.
+
+    // Lorsque debut est 1, on recupere les parametres jusqu'a la rencontre d'un nom de clef et on retourne
+    // la position du prochain argument contenu dans argv.
+
+    // Lorsque debut est 0, on recupere les parametres positionels qui suivent la sequence '--'.
+    // On recupere alors jusqu'a epuisement de argv.
+
+    // La fonction retourne dans npos le total cumulatif des arguments positionels traites
+    // et retourne dans erreur le cumul des erreurs rencontrees
+
+    static int posc;
+
+    if (debut) {
         posc = pos;
-        if (pointeur != (char *) NULL)
-        {
-          *argv = pointeur+1;
-          c_jfc_les_valeurs(les_clefs,argv, pos, &posc);
-        }
-        else
-        {
-          strcpy( les_clefs[posc].clefin , les_clefs[posc].cledef);
-        }
-      }
-      else
-      {
-        fprintf(stderr," ***ERREUR CLEF=%s INVALIDE***\n",keyname);
-        sequence_appel(les_clefs,prognom,n);
-        if (plante)
-          exit (-1);
-      }
-    }
-    else
-    {
-      if ((posc != -1) && (strcmp(*(cle+posc),*(cle+pos)) == 0))
-      {
-        c_jfc_les_valeurs(les_clefs, argv, pos, &posc);
-      }
-      else
-      {
-        fprintf(stderr,"\n ***DEBORDEMENT DE LISTE \n");
-        sequence_appel(les_clefs,prognom,n);
-        if( plante)
-          exit (-1);
-      }
     }
 
+    while (*argv) {
+        if ((**argv == '-') && (debut)) {
+            return argv;
+        }
+        if (posc >= nbKeys) {
+            argv++;
+            (*erreur)++;
+            return argv;
+        }
+        if (strcmp(keys[posc].name, keys[pos].name) == 0) {
+            strcpy(keys[posc].final, *argv);
+        } else {
+            (*erreur)++;
+        }
+        posc++;
+        (*npos)++;
+        argv++;
+    }
+    return argv;
+}
+
+
+//! Retrieve command line parameters
+void c_ccard(
+    //! [in] Array of command line arguments
+    char **argv,
+    //! [in] Number of command line arguments
+    const int argc,
+    //! [in] key names
+    char **names,
+    //! [in, out] Key values
+    char vals[][CCARD_NCARMAX],
+    //! [in] Default values
+    char ** const defs,
+    //! [in] Number of keys
+    const int nbKeys,
+    //! [in, out]
+    //! If greater than 0, it will contain the number of positional arguments after to function call.
+    //! If it's -111, the program will be terminated when an error is encountered
+    int * const npos
+) {
+    // pour chacune des clefs, on reserve une structure dans laquelle
+    // on conserve son nom et son type (i.e., convertir a MAJUScule, MINUScule ou pas-touche),
+    // les valeurs de defauts vals et defs ainsi que la valeur finale attribuee a la clef.
+    // C'est le contenu de final qui est retourne.
+
+    if (nbKeys > CCARD_NKLEMAX) {
+        fprintf(stderr, "\n ***ERREUR - MAXIMUM DE CLES DEPASSE! \n");
+        exit(-1);
+    }
+
+    key keys[CCARD_NKLEMAX];
+    for (int i = 0; i < nbKeys; i++) {
+        keys[i].name = calloc(strlen(names[i]) + 1, sizeof(char));
+        keys[i].def = calloc(strlen(defs[i]) + 1, sizeof(char));
+        keys[i].val = calloc(CCARD_NCARMAX + 1, sizeof(char));
+        keys[i].final = calloc(CCARD_NCARMAX + 1, sizeof(char));
+    }
+
+    int exitOnError = 0;
+    if (*npos == -111) {
+        exitOnError = 1;
+    }
+
+    int returnNpos = 0;
+    if (*npos > 0) {
+        *npos = 0;
+        returnNpos = 1;
+    }
+
+    for (int i = 0; i < nbKeys; i++) {
+        convert2Upper(names[i], keys[i].name);
+        keys[i].type = getKeyCase(keys[i].name);
+        strcpy(keys[i].def, defs[i]);
+        strcpy(keys[i].val, vals[i]);
+        strcpy(keys[i].final, vals[i]);
+        printf("names[%d] = '%s', keys[%d].name = '%s'\n", i, names[i], i, keys[i].name);
+    }
+
+    // obtenir le nom du programme
+    const char * const progName = *argv;
     argv++;
-  } /* while (*argv) */
 
-  /*    recopier les valeurs finales des clefs dans val
-        et liberer la memoire                           */
-
-  for (i=0;i<n;i++)
-  {
-    c_jfc_traduire(les_clefs[i].clefin,les_clefs[i].cletype);
-    strcpy(val[i],les_clefs[i].clefin);
-    free(les_clefs[i].clenom);
-    free(les_clefs[i].cledef);
-    free(les_clefs[i].cleval);
-    free(les_clefs[i].clefin);
-  }
-
-  /*
-   *    on retourne le nombre d'arguments positionels si
-   *    a l'entree, npos > 0
-   */
-  if (retourne_npos)
-  {
-    (*npos) = npos_interne;
-  }
-}
-
-/********************************************************
- *  chercher une clefs dans la liste de noms de clefs   *
- *  et retourner sa position dans la liste.             *
- ********************************************************/
-
-int c_jfc_cherche_la_clef(char *nom,struct c_jfc_definition cle[],int n)
-{
-  int i=0;
-
-  char tmpstr[256];
-
-  strcpy(tmpstr, nom);
-  while (*(tmpstr+i))
-  {
-    *(tmpstr+i) = toupper(*(tmpstr+i));
-    i++;
-  }
-
-  for (i=0; i<n; i++)
-  {
-    if (strcmp(tmpstr,cle[i].clenom) == 0)
-    {
-      return(i);
-    }
-  }
-  return(-1);
-}
-
-
-/****************************************************************
- *  extraire les elements d'une liste                           *
- ****************************************************************/
-
-void c_jfc_les_valeurs(struct c_jfc_definition clefs[], char **argv,
-                       int pos, int *posc)
-
-     /*
-      *   pour l'element contenu dans argv, on fait les operations
-      *   suivantes:
-      *              on elimine le signe = si present,
-      *              on elimine les delimiteurs ':' si presents
-      *              et on attribue les valeurs ainsi obtenues
-      *              a la clef a traiter.
-      *
-      *          exemple:   *argv =  =-12:34          donnera
-      *                               -12 34     qui seront associes
-      *                      a deux clefs contigues ayant le meme nom dans la liste des clefs.
-      */
-{
-
-  char *deux_pt;
-  int nombre;
-
-  for (nombre = 0; ;)
-  {
-    if ((*posc > -1) && (strcmp(clefs[*posc].clenom,clefs[pos].clenom)) == 0)
-    {
-      deux_pt = strchr(*argv,':');
-      if (deux_pt != (char *) NULL)
-      {
-        *deux_pt = '\0';
-        nombre = strlen(*argv);
-        if (**argv == '=')
-        {
-          strcpy( clefs[*posc].clefin, (*argv)+1);
+    if (argc == 2) {
+        if ((strcmp(*argv, "-h") == 0) || (strcmp(*argv, "-H") == 0)) {
+            printCmdlineRef(keys, progName, nbKeys);
+            exit(0);
         }
-        else
-        {
-          strcpy( clefs[*posc].clefin, *argv);
+    }
+
+    // verifier si on peut recuperer en mode positionel
+    // chercher la premiere clef '-' dans la liste
+    int posmoin = getKeyIdx("-", keys, nbKeys);
+
+    int npos_interne = -1;
+    int erreur = 0;
+
+    // recuperer les premiers arguments positionels
+    if (posmoin > -1) {
+        argv = extractPositional(argv, keys, nbKeys, posmoin, &npos_interne, 1, &erreur);
+        if (erreur) {
+            fprintf(stderr, "\n ***ERREUR - TROP D'ARGUMENTS POSITIONELS \n");
+            printCmdlineRef(keys, progName, nbKeys);
+            if (exitOnError) exit(-1);
         }
-        *argv =deux_pt + 1;
-        (*posc)++;
-      }
-      else
-      {
-        if (**argv == '=')
-        {
-          strcpy( clefs[*posc].clefin,(*argv)+1);
+    }
+
+    int pos = -1;
+    int posc = -1;
+    while (*argv) {
+        if (**argv == '-') {
+            // un nom de clef
+            if (*((*argv) + 1) == '-') {
+                // fin des clefs
+                // on recupere le reste des arguments positionels
+                argv++;
+                argv = extractPositional(argv, keys, nbKeys, posmoin, &npos_interne, 0, &erreur);
+                if (erreur) {
+                    fprintf(stderr, "\n ***ERREUR - TROP D'ARGUMENTS POSITIONELS \n");
+                    printCmdlineRef(keys, progName, nbKeys);
+                    if (exitOnError) exit(-1);
+                }
+                break;
+            }
+
+            char * const pointeur = (strchr(*argv, '='));
+            if (pointeur != (char *) NULL) {
+                *pointeur = '\0';
+            }
+            char * keyname = (*argv) + 1;
+            pos = getKeyIdx(keyname, keys, nbKeys);
+            if (pos > -1) {
+                posc = pos;
+                if (pointeur != (char *) NULL) {
+                    *argv = pointeur + 1;
+                    extractValues(keys, argv, pos, &posc);
+                } else {
+                    strcpy(keys[posc].final , keys[posc].def);
+                }
+            } else {
+                fprintf(stderr, " ***ERREUR CLEF=%s INVALIDE***\n", keyname);
+                printCmdlineRef(keys, progName, nbKeys);
+                if (exitOnError) exit(-1);
+            }
+        } else {
+            if ((posc != -1) && (strcmp(*(names + posc), *(names + pos)) == 0)) {
+                extractValues(keys, argv, pos, &posc);
+            } else {
+                fprintf(stderr, "\n ***DEBORDEMENT DE LISTE \n");
+                printCmdlineRef(keys, progName, nbKeys);
+                if (exitOnError) exit(-1);
+            }
         }
-        else
-        {
-          strcpy( clefs[*posc].clefin,*argv);
-        }
-        (*posc)++;
-        break;
-      }
+
+        argv++;
+    } // while (*argv)
+
+    // recopier les valeurs finales des clefs dans vals et liberer la memoire
+    for (int i = 0; i < nbKeys; i++) {
+        convertKeyCase(keys[i].final, keys[i].type);
+        strcpy(vals[i], keys[i].final);
+        free(keys[i].name);
+        free(keys[i].def);
+        free(keys[i].val);
+        free(keys[i].final);
     }
-    else
-    {
-      fprintf(stderr,"\n***ERREUR DEBORDEMENT DE LISTE  OU MODE POSITIONNEL\n");
+
+    if (returnNpos) {
+        (*npos) = npos_interne;
     }
-
-  }
-}
-
-/******************************************************
- *  traduire un nom a des MAJUScules                  *
- ******************************************************/
-
-void c_jfc_tradup(char *nom, char *nommaj)
-
-{
-  /*   nettoyer nommaj  */
-  while(*nommaj)
-  {
-    *nommaj = '\0';
-    nommaj++;
-  }
-
-  while(*nom)
-  {
-    *nommaj = toupper(*nom);
-    nommaj++;  nom++;
-  }
-}
-
-/**************************************************************
- *    determiner le type de clef MAJUScule/MINUScule/tel quel *
- **************************************************************/
-
-
-int c_jfc_majmin(char *arg)
-
-     /*     fonction servant a determiner si la valeur a donner a une
-      *      clef est de type MAJUScule, MINUScule ou si elle reste telle
-      *      que decrite lors de l'appel.  la fonction retourne le valeur
-      *      du type de clef (MAJUS MINUS ou PAREIL) et met le dernier
-      *      element de arg egal a nul si necessaire.
-      */
-{
-
-  int lng;
-  lng = strlen(arg) - 1;
-
-  if (*(arg+lng) == '.')
-  {
-    *(arg+lng) = '\0';
-    return(PAREIL);
-  }
-  if (*(arg+lng) == '_')
-  {
-    *(arg+lng) = '\0';
-    return(MINUS);
-  }
-  return(MAJUS);
-
-}
-
-/*******************************************************************
- * traduire une valeur a MAJUScule/MINUScule selon le type de clef *
- *******************************************************************/
-void c_jfc_traduire(char *cle,int cletype)
-
-     /* pour chaque valeur de clef, on verifie si on doit faire une conversion
-      * a des MAJUScules, MINUScules ou si elle doit rester telle quelle
-      */
-{
-
-  if (cletype == MAJUS)
-  {
-    while(*cle)
-    {
-      *cle = toupper(*cle);
-      cle++;
-    }
-  }
-  else if (cletype == MINUS)
-  {
-    while(*cle)
-    {
-      *cle = tolower(*cle);
-      cle++;
-    }
-  }
-}
-
-
-/******************************************************
- *       imprimer sur stderr la sequence d'appel      *
- ******************************************************/
-
-void sequence_appel(struct c_jfc_definition defo[],char *scriptnom,int n)
-
-     /*   fonction servant a imprimer sur le fichier stderr la liste des
-      *    noms de clefs et leurs valeurs de defaut
-      *
-      *  argument
-      *
-      *         defo    -    structure contenant les noms de clefs ainsi que leurs
-      *                      valeurs de defaut et le type.
-      *
-      *  cette fonction est appelle en cas d'erreur ou lorsque l'usager invoque
-      *  le programme appelant avec la clef -h.
-      *               prognom -h
-      *
-      */
-
-{
-
-  int i = 0;
-
-  fprintf(stderr,"\n *** SEQUENCE D'APPEL ***\n\n");
-
-  fprintf(stderr,"%s \n",scriptnom);
-
-  for (i=0; i<n; i++)
-  {
-    fprintf(stderr,"          -%s [%s:%s]\n",defo[i].clenom,defo[i].cledef,defo[i].cleval);
-  }
-  fprintf(stderr,"\n");
-}
-
-
-/*****************************************************
- *   recuperation des parametres positionels         *
- *   lors de l'appel a un programme.                 *
- *   Chaque parametre est copie tel quel dans        *
- *   l'element clefin de la structure de clefs       *
- *****************************************************/
-
-char **c_jfc_positionel(char **argv, struct c_jfc_definition les_clefs[],
-                        int n, int pos, int *npos, int debut, int *erreur)
-
-     /*
-      * cette fonction recupere les parametres positionels (c.a.d. ceux
-      * qui sont associes a une clef ayant pour nom '-'.
-      *
-      * Lorsque debut est VRAI, on recupere les parametres jusqu'a la rencontre
-      * d'un nom de clef et on retourne la position du prochain argument contenu dans argv.
-      *
-      * Lorsque debut est FAUX, on recupere les parametres positionels qui
-      * suivent la sequence '--'. On recupere alors jusqu'a epuisement de argv.
-      *
-      * La fonction retourne dans npos le total cumulatif des arguments positionels traites
-      * et retourne dans erreur le cumul des erreurs rencontrees
-      */
-{
-
-  static int posc;
-
-  if (debut) {
-    posc = pos;
-  }
-
-  while(*argv)
-  {
-    if((**argv == '-') && (debut))
-    {
-      return(argv);
-    }
-    if(posc >= n)
-    {
-      argv++;
-      (*erreur)++;
-      return(argv);
-    }
-    if(strcmp(les_clefs[posc].clenom,les_clefs[pos].clenom) == 0)
-    {
-      strcpy(les_clefs[posc].clefin,*argv);
-    }
-    else
-    {
-      (*erreur)++;
-    }
-    posc++;
-    (*npos)++;
-    argv++;
-  }
-  return(argv);
 }
