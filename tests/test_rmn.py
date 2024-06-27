@@ -140,18 +140,48 @@ def attempt_to_write_non_record_to_file():
     except TypeError as e:
         print(f"Got exception as expected: {repr(e)}")
 
+def test_record_attributes():
+    print_py("Iterate over records of fst24_file")
+    q4 = rmn.fst24_file(filename=filename).new_query(ip3=0)
+    print(q4)
+    for record in q4:
+        print(f"PYTHON: dateo={repr(record.dateo)}")
+        print(f"PYTHON: datev={repr(record.datev)}")
+        print(f"PYTHON: data_type={repr(record.data_type)}")
+        print(f"PYTHON: data_bits={repr(record.data_bits)}")
+        print(f"PYTHON: pack_bits={repr(record.pack_bits)}")
+        print(f"PYTHON: ni={repr(record.ni)}")
+        print(f"PYTHON: nj={repr(record.nj)}")
+        print(f"PYTHON: nk={repr(record.nk)}")
+        print(f"PYTHON: deet={repr(record.deet)}")
+        print(f"PYTHON: npas={repr(record.npas)}")
+        print(f"PYTHON: ip1={repr(record.ip1)}")
+        print(f"PYTHON: ip2={repr(record.ip2)}")
+        print(f"PYTHON: ip3={repr(record.ip3)}")
+        print(f"PYTHON: ig1={repr(record.ig1)}")
+        print(f"PYTHON: ig2={repr(record.ig2)}")
+        print(f"PYTHON: ig3={repr(record.ig3)}")
+        print(f"PYTHON: ig4={repr(record.ig4)}")
+        print(f"PYTHON: typvar={repr(record.typvar)}")
+        print(f"PYTHON: grtyp={repr(record.grtyp)}")
+        print(f"PYTHON: nomvar={repr(record.nomvar)}")
+        print(f"PYTHON: etiket={repr(record.etiket)}")
+        break
+
+
 if __name__ == "__main__":
-    create_query_and_iterate_on_records()
-    open_empty_filename()
-    open_non_existant_file_without_W_option()
-    create_file_with_data(rsf=False)
+    # create_query_and_iterate_on_records()
+    # open_empty_filename()
+    # open_non_existant_file_without_W_option()
+    # create_file_with_data(rsf=False)
 
     # The created file with rsf must be inspected with a sufficiently recent
     # version of voir.  Also, there are error messages that are printed
     # (ERROR) META|Meta_Init: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined
     # (ERROR) META|Dict_Load: Environment variable CMCCONST not defined, source the CMOI base domain
     # but the file was created successfully so these are not actually errors.
-    create_file_with_data(rsf=True)
+    # create_file_with_data(rsf=True)
 
-    attempt_to_write_non_record_to_file()
-    invalid_access_of_record_data()
+    # attempt_to_write_non_record_to_file()
+    # invalid_access_of_record_data()
+    test_record_attributes()

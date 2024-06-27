@@ -219,13 +219,50 @@ struct py_fst_record {
 // For all the fields that are of basic type we can do it this way, but for the
 // string types we have to implement properties
 static PyMemberDef py_fst_record_members[] = {
+#if __WORDSIZE != 64
+# error "Expecting __WORDSIZE to be 64 so that type 'T_LONG' from Python's defines (structmember.h) works with the attributes from the record struct that are int64_t"
+#endif
+
+    // Dates
     {
-        .name = "ip3",
-        .type = T_INT,
-        .offset = offsetof(struct py_fst_record, rec.ip3),
+        .name = "dateo",
+        .type = T_LONG,
+        .offset = offsetof(struct py_fst_record, rec.dateo),
         .flags = 0,
-        .doc = "IP3 of this fst_record"
+        .doc = "Raw dateo of record",
     },
+    {
+        .name = "datev",
+        .type = T_LONG,
+        .offset = offsetof(struct py_fst_record, rec.datev),
+        .flags = 0,
+        .doc = "Raw datev of record",
+    },
+
+    // Type information
+    {
+        .name = "data_type",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.data_type),
+        .flags = 0,
+        .doc = "Data type of elements (see FST_TYPE* constants of librmn)"
+    },
+    {
+        .name = "data_bits",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.data_bits),
+        .flags = 0,
+        .doc = "Data bits per elements in memory"
+    },
+    {
+        .name = "pack_bits",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.pack_bits),
+        .flags = 0,
+        .doc = "Bits per element stored in the file"
+    },
+
+    // Dimensions of data
     {
         .name = "ni",
         .type = T_INT,
@@ -247,18 +284,106 @@ static PyMemberDef py_fst_record_members[] = {
         .flags = 0,
         .doc = "NK of this fst_record"
     },
+
+    // DEET,NPAS
+    {
+        .name = "deet",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.deet),
+        .flags = 0,
+        .doc = "Length of time steps in seconds"
+    },
+    {
+        .name = "npas",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.npas),
+        .flags = 0,
+        .doc = "Time step number"
+    },
+
+    // IP
+    {
+        .name = "ip1",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ip1),
+        .flags = 0,
+        .doc = "IP1 of this fst_record"
+    },
+    {
+        .name = "ip2",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ip2),
+        .flags = 0,
+        .doc = "IP2 of this fst_record"
+    },
+    {
+        .name = "ip3",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ip3),
+        .flags = 0,
+        .doc = "IP3 of this fst_record"
+    },
+
+    {
+        .name = "ig1",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ig1),
+        .flags = 0,
+        .doc = "IG1 of this fst_record"
+    },
+    {
+        .name = "ig2",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ig2),
+        .flags = 0,
+        .doc = "IG2 of this fst_record"
+    },
+    {
+        .name = "ig3",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ig3),
+        .flags = 0,
+        .doc = "IG3 of this fst_record"
+    },
+    {
+        .name = "ig4",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.ig4),
+        .flags = 0,
+        .doc = "IG4 of this fst_record"
+    },
     {.name = NULL},
 };
 
+static PyObject *py_fst_record_get_typvar(struct py_fst_record *self);
+static int py_fst_record_set_typvar(struct py_fst_record *self, PyObject *to_assign, void *closure);
+static PyObject *py_fst_record_get_grtyp(struct py_fst_record *self);
+static int py_fst_record_set_grtyp(struct py_fst_record *self, PyObject *to_assign, void *closure);
 static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self);
+static int py_fst_record_set_nomvar(struct py_fst_record *self, PyObject *to_assign, void *closure);
 static PyObject *py_fst_record_get_etiket(struct py_fst_record *self);
 static PyObject * py_fst_record_get_data(struct py_fst_record *self);
 static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure);
 static int py_fst_record_set_etiket(struct py_fst_record *self, PyObject *to_assign, void *closure);
 static PyGetSetDef py_fst_record_properties[] = {
     {
+        .name = "typvar",
+        .get = (getter) py_fst_record_get_typvar,
+        .set = (setter) py_fst_record_set_typvar,
+        .doc = "Type of field (forecast, analysis, climatology)",
+        .closure = NULL,
+    },
+    {
+        .name = "grtyp",
+        .get = (getter) py_fst_record_get_grtyp,
+        .set = (setter) py_fst_record_set_grtyp,
+        .doc = "Type of geographical projection",
+        .closure = NULL,
+    },
+    {
         .name = "nomvar",
         .get = (getter) py_fst_record_get_nomvar,
+        .set = (setter) py_fst_record_set_nomvar,
         .doc = "Name of the variable for this record",
         .closure = NULL,
     },
@@ -673,13 +798,11 @@ static PyObject * py_fst_record_str(struct py_fst_record *self)
             self->rec.ig1, self->rec.ig2, self->rec.ig3, self->rec.ig4
     );
 }
-
-static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self)
+static PyObject *get_string_attr_trim(PyObject *self, size_t offset, int len)
 {
-    // TODO : Get rid of magic number
-    char buf[8];
-    strncpy(buf, self->rec.nomvar, 8);
-    char *p = buf+7;
+    char buf[len+1];
+    strncpy(buf, (void*)self + offset, len+1);
+    char *p = buf+len;
     for(; p != buf; p--){
         if(*p != ' ' && *p != '\0'){
             break;
@@ -690,26 +813,88 @@ static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self)
     return PyUnicode_FromString(buf);
 }
 
+
+static PyObject *py_fst_record_get_nomvar(struct py_fst_record *self)
+{
+    return get_string_attr_trim((PyObject *)self, offsetof(struct py_fst_record, rec.nomvar), FST_NOMVAR_LEN);
+}
+
+static PyObject *py_fst_record_get_typvar(struct py_fst_record *self)
+{
+    return get_string_attr_trim((PyObject *)self, offsetof(struct py_fst_record, rec.typvar), FST_TYPVAR_LEN);
+}
+
+static PyObject *py_fst_record_get_grtyp(struct py_fst_record *self)
+{
+    return get_string_attr_trim((PyObject *)self, offsetof(struct py_fst_record, rec.grtyp), FST_GTYP_LEN);
+}
+
 static PyObject *py_fst_record_get_etiket(struct py_fst_record *self)
 {
-    // TODO : Get rid of magic number
-    char buf[16];
-    strncpy(buf, self->rec.etiket, 16);
-    char *p = buf+15;
-    for(; p != buf; p--){
-        if(*p != ' ' && *p != '\0'){
+    return get_string_attr_trim((PyObject *)self, offsetof(struct py_fst_record, rec.etiket), FST_ETIKET_LEN);
+}
+
+
+static int set_attr_string_pad_space(PyObject* self, PyObject *to_assign, size_t offset, size_t len, char *name){
+    /*
+     * I don't know if some things expect the spaces at the end so just to
+     * be sure, when setting, I will add them.
+     */
+    Py_ssize_t size;
+    const char *typvar_buf = PyUnicode_AsUTF8AndSize(to_assign, &size);
+    fprintf(stderr, "%s(): size = %lu\n", __func__, size);
+    if(size > len + 1){
+        PyErr_Format(PyExc_ValueError, "Cannot assign string longer than '%d' to %s of record: %lu", len, name, size);
+        return -1;
+    }
+    const char *p = typvar_buf;
+    char *q = (void*)self + offset;
+    int i = 0;
+    for(; i < len ; i++){
+        if( *p == '\0' ){
             break;
         }
+        q[i] = p[i];
     }
-    *(p+1) = '\0';
+    for(; i < len ; i++){
+        q[i] = ' ';
+    }
+    q[len] = '\0';
+    return 0;
+}
 
-    return PyUnicode_FromString(buf);
+static int py_fst_record_set_grtyp(struct py_fst_record *self, PyObject *to_assign, void *closure)
+{
+    return set_attr_string_pad_space((PyObject *)self, to_assign, offsetof(struct py_fst_record, rec.grtyp), FST_GTYP_LEN, "grtyp");
+}
+
+static int py_fst_record_set_typvar(struct py_fst_record *self, PyObject *to_assign, void *closure)
+{
+    return set_attr_string_pad_space((PyObject *)self, to_assign, offsetof(struct py_fst_record, rec.typvar), FST_TYPVAR_LEN, "typvar");
+}
+
+static int py_fst_record_set_nomvar(struct py_fst_record *self, PyObject *to_assign, void *closure)
+{
+    return set_attr_string_pad_space((PyObject *)self, to_assign, offsetof(struct py_fst_record, rec.nomvar), FST_NOMVAR_LEN, "nomvar");
+}
+
+static int py_fst_record_set_etiket(struct py_fst_record *self, PyObject *to_assign, void *closure)
+{
+    return set_attr_string_pad_space((PyObject *)self, to_assign, offsetof(struct py_fst_record, rec.etiket), FST_ETIKET_LEN, "etiket");
 }
 
 static void free_capsule_ptr(void *capsule) {
     void * ptr = PyCapsule_GetPointer(capsule, PyCapsule_GetName(capsule));
     free(ptr);
 };
+
+static int librmn_type_to_numpy_type(int librmn_type){
+    switch(librmn_type){
+        case 5: return NPY_FLOAT32;
+        case 123: /*TODO*/ return NPY_FLOAT64;
+        default: return -1;
+    }
+}
 
 static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 {
@@ -728,7 +913,7 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 
         // TODO: Look at the record to find out what the actual data_type is
         // so that we set the type for the numpy array appropriately.
-        size_t thing_size = sizeof(float);
+        size_t thing_size = self->rec.data_bits / 8;
         // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
         // otherwise we can just always return arrays of shape (ni, nj, nk).
         // TODO: Ensure data ordering is OK (C vs Fortran)
@@ -763,21 +948,6 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
     Py_INCREF(self->data_array);
     return self->data_array;
 }
-static int py_fst_record_set_etiket(struct py_fst_record *self, PyObject *to_assign, void *closure)
-{
-    Py_ssize_t size;
-    const char *etiket_buf = PyUnicode_AsUTF8AndSize(to_assign, &size);
-    fprintf(stderr, "%s(): size = %lu\n", __func__, size);
-    if(size > FST_ETIKET_LEN + 1){
-        PyErr_Format(PyExc_ValueError, "Cannot assign string longer than '%d' to etiket of record: %lu", FST_ETIKET_LEN, size);
-        return -1;
-    }
-
-    strncpy(self->rec.etiket, etiket_buf, size);
-
-    return 0;
-}
-
 
 static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure)
 {
