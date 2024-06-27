@@ -18,7 +18,6 @@ RecordData *index_rmn_file(const char *filename, const char *mode){
 RecordData *NewRecordData(size_t nb_records)
 {
     RecordData *data = malloc(sizeof(*data));
-    // Reallocate memory for each array
     data->ni = malloc(nb_records*sizeof(*(data->ni)));
     data->nj = malloc(nb_records*sizeof(*(data->nj)));
     data->nk = malloc(nb_records*sizeof(*(data->nk)));
@@ -50,6 +49,8 @@ RecordData *NewRecordData(size_t nb_records)
     data->extra1 = malloc(nb_records*sizeof(*(data->extra1)));
     data->extra2 = malloc(nb_records*sizeof(*(data->extra2)));
     data->extra3 = malloc(nb_records*sizeof(*(data->extra3)));
+
+    data->key = malloc(nb_records*sizeof(*(data->key)));
 
     // Check if realloc was successful
     if (data->ni == NULL || data->nj == NULL || data->nk == NULL ||
@@ -100,6 +101,8 @@ void free_record_data(RecordData *data)
     free(data->extra1);
     free(data->extra2);
     free(data->extra3);
+
+    free(data->key);
 }
 
 
