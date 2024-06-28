@@ -1045,6 +1045,7 @@ int32_t get_record_from_key_rsf(
     record->do_not_touch.handle = key;
     record->do_not_touch.stored_data_size = (record_info.data_size + 3) / 4;
     if (record_info.rec_type == RT_DEL) record->do_not_touch.deleted = 1;
+    record->file_index = RSF_Key64_to_index(key);
 
     return TRUE;
 }
@@ -1082,10 +1083,14 @@ int32_t fst24_get_record_from_key(
         stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
         uint32_t* pkeys = (uint32_t *) record_meta_xdf;
         pkeys += W64TOWD(1);
-        c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
+        if (c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16) < 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to get record with key %x\n", __func__, key & 0xffffffff);
+            return FALSE;
+        }
         fill_with_search_meta(record, &record_meta, file->type);
         record->do_not_touch.num_search_keys = 16;
         record->do_not_touch.stored_data_size = W64TOWD(lng);
+        record->file_index = RECORD_FROM_HANDLE((key & 0xffffffff));
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
@@ -1094,6 +1099,59 @@ int32_t fst24_get_record_from_key(
 
     record->file = file;
     return TRUE;
+}
+
+//! Retrieve record information at a given index
+//! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
+int32_t fst24_get_record_by_index(
+    const fst_file* const file, //!< [in] File handle
+    const int32_t index,        //!< [in] Record key within its file
+    fst_record* const record    //!< [in,out] Record information
+) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
+
+    fst_record_set_to_default(record);
+
+    // const int64_t num_records = fst24_get_num_records_single(file);
+    // if (index >= num_records) {
+    //     Lib_Log(APP_LIBFST, APP_ERROR, "%s: requested file key %d is beyond the number of records (%d)\n",
+    //             __func__, index, num_records);
+    //     return ERR_OUT_RANGE;
+    // }
+    record->file = file;
+
+    if (file->type == FST_RSF) {
+        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+        const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
+
+        if (record_info.rec_type == RT_NULL) return FALSE; // Error retrieving the record
+
+        fill_with_search_meta(record, (search_metadata*)record_info.meta, file->type);
+        record->do_not_touch.handle = RSF_Make_key(file->file_index_backend, index);
+        record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
+        record->file_index = index;
+        return TRUE;
+    }
+    else if (file->type == FST_XDF) {
+        const int page_id = index / ENTRIES_PER_PAGE;
+        const int record_id = index - (page_id * ENTRIES_PER_PAGE);
+        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
+
+        int addr, lng, idtyp;
+        search_metadata record_meta;
+        stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
+        uint32_t* pkeys = (uint32_t *) record_meta_xdf;
+        pkeys += W64TOWD(1);
+        if (c_xdfprm(key, &addr, &lng, &idtyp, pkeys, 16) < 0) return FALSE;
+        if ((idtyp | 0x80) == 255 || (idtyp | 0x80) == 254) return FALSE; // Record is deleted
+
+        fill_with_search_meta(record, &record_meta, file->type);
+        record->do_not_touch.handle = key;
+        record->file_index = index;
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 //! Create a search query that will apply the given criteria during a search in a file.

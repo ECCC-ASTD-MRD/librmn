@@ -136,6 +136,15 @@ interface
         integer(C_INT64_T) :: num_records
     end function fst24_get_num_records
 
+    function fst24_get_record_by_index(file, index, record) result(status) bind(C, name = 'fst24_get_record_by_index')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: file
+        integer(C_INT32_T), intent(in), value :: index
+        type(C_PTR), intent(in), value :: record
+        integer(C_INT32_T) :: status
+    end function fst24_get_record_by_index
+
     function fst24_new_query(file, criteria, options) result(query) bind(C, name = 'fst24_new_query')
         import :: C_PTR
         implicit none

@@ -122,8 +122,12 @@ static inline uint32_t key64_to_file_slot(int64_t key64) {
 }
 
 //! Extract record index from a 64-bit record key (it's in the lower 32 bits).
-static inline uint32_t key64_to_index(int64_t key64) {
-  return (key64 & 0xFFFFFFFFl) - 1 ;
+static inline int32_t key64_to_index(const int64_t key64) {
+  return ((int32_t)(key64 & 0xFFFFFFFFl)) - 1;
+}
+
+int32_t RSF_Key64_to_index(const int64_t key64) {
+  return key64_to_index(key64);
 }
 
 static inline int64_t make_key(
@@ -1805,7 +1809,21 @@ int64_t RSF_Lookup(
   return record_key;
 }
 
-static RSF_record_info info0 = { 0, 0, 0, 0, 0, 0, 0, 0 } ;
+static const RSF_record_info info0 = (RSF_record_info){
+    .wa = 0,
+    .rl = 0,
+    .wa_data = 0,
+    .data_size = 0,
+    .wa_meta = 0,
+    .meta = NULL,
+    .fname = NULL,
+    .file_size = 0,
+    .dir_meta = 0,
+    .dir_meta0 = 0,
+    .rec_meta = 0,
+    .elem_size = 0,
+    .rec_type = 0,
+  } ;
 
 //! Get information about a record at a specific index within the given file
 //! \return a RSF_record_info structure
@@ -1830,6 +1848,11 @@ RSF_record_info RSF_Get_record_info_by_index(
 
   uint8_t version, record_class, record_type;
   extract_meta0(fp->vdir[index]->meta[0], &version, &record_class, &record_type);
+
+  if (record_type == RT_DEL) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to get a deleted record (index %d)\n", __func__, index);
+    return info0;
+  }
 
   if (version > RSF_VERSION_COUNT) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to get record information for a record "

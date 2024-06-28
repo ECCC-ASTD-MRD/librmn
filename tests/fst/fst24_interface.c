@@ -16,6 +16,8 @@ const int DATA_SIZE = 1024;
 float* test_data = NULL;
 fst_record test_record;
 
+const int NUM_RECORDS_PER_FILE = 3;
+
 void make_test_data() {
     if (test_data == NULL) {
         test_data = malloc(DATA_SIZE * DATA_SIZE * sizeof(float));
@@ -95,26 +97,18 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         record.ip2 = ip2;
         record.ip3 = ip3;
 
-        if (fst24_write(new_file, &record, FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record (1) to new file %s\n", name);
-            return -1;
-        }
+        for (int i = 0; i < NUM_RECORDS_PER_FILE; i++) {
+            if (fst24_write(new_file, &record, FALSE) < 0) {
+                App_Log(APP_ERROR, "Unable to write record (1) to new file %s\n", name);
+                return -1;
+            }
 
-        if (fst24_flush(new_file) < 0) {
-            App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
-            return -1;
-        }
+            if (fst24_flush(new_file) < 0) {
+                App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
+                return -1;
+            }
 
-        record.ip1++;
-        if (fst24_write(new_file, &record, FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record (2) to new file %s\n", name);
-            return -1;
-        }
-
-        record.ip1++;
-        if (fst24_write(new_file, &record, FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record (3) to new file %s\n", name);
-            return -1;
+            record.ip1++;
         }
 
         // Try something that should fail
@@ -188,6 +182,7 @@ int test_fst24_interface(const int is_rsf) {
 
     fst_record record = default_fst_record;
     fst_record expected = test_record;
+    fst_record record_by_index = default_fst_record;
 
     ///////////////////////////////////////////////
     // Find next + read
@@ -195,6 +190,26 @@ int test_fst24_interface(const int is_rsf) {
     fst_query* query = fst24_new_query(test_file, NULL, NULL); // Match with everything, with default options
     while (fst24_find_next(query, &record) > 0) {
         // fst24_record_print(&record);
+
+        if (record.file_index != num_found) {
+            App_Log(APP_ERROR, "Index (%d) seems to be wrong (should be %d)\n", record.file_index, num_found);
+            return -1;
+        }
+
+        // Check if we can retrieve the same record using its index
+        if (!fst24_get_record_by_index(test_file, num_found, &record_by_index)) {
+            App_Log(APP_ERROR, "Unable to retrieve record %d by index\n", num_found);
+            return -1;
+        }
+
+        if (!fst24_record_has_same_info(&record, &record_by_index)) {
+            App_Log(APP_ERROR, "Record retrieved by file key (%d) is not the same!\n", num_found);
+                fst24_record_print(&record);
+                fst24_record_print(&record_by_index);
+                fst24_record_diff(&record, &record_by_index);
+            return -1;
+        }
+
         num_found++;
 
         expected.ip1 = num_found;

@@ -203,7 +203,7 @@ function test_fst24_interface(is_rsf) result(success)
 
     type(fst_file) :: test_file
     type(fst_record_fields) :: fields
-    type(fst_record) :: expected, record
+    type(fst_record) :: expected, record, record_by_index
     type(fst_query) :: query
     integer :: num_found
     real(kind = real32), dimension(:, :), pointer :: data_array
@@ -250,6 +250,27 @@ function test_fst24_interface(is_rsf) result(success)
     success = query % is_valid()
     do while (query % find_next(record))
         ! call record % print_short(print_header = (num_found == 0))
+
+        success = (num_found == record % file_index)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Seems like the record index is wrong')
+            return
+        end if
+
+        success = test_file % get_record_by_index(num_found, record_by_index)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Unable to retrieve record by file index')
+            return
+        end if
+
+        success = record % has_same_info(record_by_index)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Record retrieved by key does not have the same info as the one from the query')
+            call record % print()
+            call expected % print()
+            return
+        end if
+
         num_found = num_found + 1
 
         expected % ip1 = num_found

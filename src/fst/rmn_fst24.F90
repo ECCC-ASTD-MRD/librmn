@@ -29,6 +29,7 @@ module rmn_fst24
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
         procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
+        procedure, pass :: get_record_by_index => fst24_file_get_record_by_index !< \copydoc fst24_file_get_record_by_index
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
@@ -210,6 +211,26 @@ contains
         call query % free()
 
     end function fst24_file_read
+
+    !> \copybrief fst24_get_record_by_index
+    !> \return .true. if we got the record, .false. if error
+    function fst24_file_get_record_by_index(this, index, record) result(success)
+        implicit none
+        class(fst_file), intent(in) :: this
+        integer(C_INT32_T) :: index
+        type(fst_record), intent(inout) :: record
+        logical :: success
+
+        integer(C_INT32_T) :: c_status
+
+        success = .false.
+
+        c_status = fst24_get_record_by_index(this % file_ptr, index, record % get_c_ptr())
+        if (c_status <= 0) return
+
+        call record % from_c_self()
+        success = .true.
+    end function fst24_file_get_record_by_index
 
     !> \copybrief fst24_new_query
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise

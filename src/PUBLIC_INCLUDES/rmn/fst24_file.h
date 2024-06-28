@@ -36,7 +36,7 @@ fst_file*   fst24_open(const char* const filePath, const char* const options);
 int32_t     fst24_close(fst_file* const file);
 int64_t     fst24_get_num_records(const fst_file* const file);
 int32_t     fst24_get_unit(const fst_file* const file);
-int32_t     fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
+int32_t     fst24_get_record_by_index(const fst_file* const file, const int32_t index, fst_record* const record);
 int32_t     fst24_eof(const fst_file* const file);
 char*       fst24_get_tag(const fst_file* const file);
 char*       fst24_set_tag(fst_file* file,const char* const tag);

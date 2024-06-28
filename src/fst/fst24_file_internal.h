@@ -40,6 +40,7 @@ static fst_file default_fst_file = (fst_file) {
 };
 
 int32_t fst24_write_rsf(RSF_handle rsf_file, fst_record* record, const int32_t stride);
+int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
 int32_t get_record_from_key_rsf(const RSF_handle rsf_file, const int64_t key, fst_record* const record);
 int32_t fst24_unpack_data(void* dest, void* source, const fst_record* record, const int32_t skip_unpack,
                           const int32_t stride);

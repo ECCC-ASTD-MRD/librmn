@@ -923,6 +923,14 @@ int64_t fst24_get_num_records(
     const fst_file* const file    //!< [in] Handle to an open file
 );
 
+//! Retrieve record information at a given index
+//! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
+int32_t fst24_get_record_by_index(
+    const fst_file* const file, //!< [in] File handle
+    const int32_t index,        //!< [in] Record key within its file
+    fst_record* const record    //!< [in,out] Record information
+);
+
 //! Print a summary of the records found in the given file (including any linked files)
 //! \return a negative number if there was an error, TRUE (1) if all was OK
 int32_t fst24_print_summary(
@@ -1232,6 +1240,16 @@ function get_num_records(this) result(num_records)
     class(fst_file), intent(in) :: this
     integer(C_INT64_T) :: num_records
 end function get_num_records
+
+!> Retrieve record information at a given index
+!> Return .true. if we got the record, .false. if error
+function get_record_by_index(this, index, record) result(success)
+    implicit none
+    class(fst_file), intent(in) :: this
+    integer(C_INT32_T) :: index
+    type(fst_record), intent(inout) :: record
+    logical :: success
+end function get_record_by_index
 
 !> Get unit of the file if open, 0 otherwise
 function get_unit(this) result(status)

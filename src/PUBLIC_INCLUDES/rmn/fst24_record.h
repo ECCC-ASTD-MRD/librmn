@@ -57,14 +57,20 @@ typedef struct {
     } do_not_touch;
 
     // 64-bit elements first
+
     const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
+    // 32-bit elements
+
+    //!> Index of this record within its file. This index is permanent, but record data may change if
+    //!> a rewrite occurs. Some of the attributes too. You should not rewrite records.
+    int32_t file_index;
+
     int32_t dateo;    //!< Origin Date timestamp
     int32_t datev;    //!< Valid Date timestamp
 
-    // 32-bit elements
     int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
     int32_t data_bits; //!< Number of bits per input elements
     int32_t pack_bits; //!< Number of stored bits
@@ -84,6 +90,8 @@ typedef struct {
     int32_t ig2;  //!< Second grid descriptor
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
+
+    int32_t dummy; //!< Make the total size (up to here) a multiple of 64 bits
 
     char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
     char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
@@ -109,6 +117,9 @@ static const fst_record default_fst_record = (fst_record){
         .file     = NULL,
         .data     = NULL,
         .metadata = NULL,
+
+        .file_index = -1,
+
         .dateo     = -1,
         .datev     = -1,
 
@@ -131,6 +142,8 @@ static const fst_record default_fst_record = (fst_record){
         .ig2 = -1,
         .ig3 = -1,
         .ig4 = -1,
+
+        .dummy = 0,
 
         .typvar = {' ' , ' ' , '\0', '\0'},
         .grtyp  = {' ' , '\0', '\0', '\0'},
@@ -227,6 +240,9 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
+        
+        integer(C_INT32_T) :: file_index = -1
+
         integer(C_INT32_T) :: dateo    = -1
         integer(C_INT32_T) :: datev    = -1
 
@@ -249,6 +265,8 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT32_T) :: ig2   = -1
         integer(C_INT32_T) :: ig3   = -1
         integer(C_INT32_T) :: ig4   = -1
+
+        integer(C_INT32_T) :: dummy = 0
 
         character(len=1), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
         character(len=1), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]

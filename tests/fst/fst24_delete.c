@@ -76,6 +76,11 @@ int test_fst24_delete(const int is_rsf) {
             fst24_close(test_file);
             return -1;
         }
+
+        if (fst24_get_record_by_index(test_file, rec.file_index, &rec)) {
+            App_Log(APP_ERROR, "Should not be able to retrieve a deleted record\n");
+            return -1;
+        }
     }
 
     fst24_print_summary(test_file, NULL);
