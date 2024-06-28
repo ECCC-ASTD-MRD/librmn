@@ -305,7 +305,9 @@ void c_ccard(
         strcpy(keys[i].def, defs[i]);
         strcpy(keys[i].val, vals[i]);
         strcpy(keys[i].final, vals[i]);
+#ifndef NDEBUG
         printf("names[%d] = '%s', keys[%d].name = '%s'\n", i, names[i], i, keys[i].name);
+#endif
     }
 
     // obtenir le nom du programme
