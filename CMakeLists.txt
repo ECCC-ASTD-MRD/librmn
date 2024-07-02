@@ -228,7 +228,8 @@ foreach(TARGET IN ITEMS ${TARGETS})
     endif()
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
-        WhiteBoardFortranHeader)
+        WhiteBoardFortranHeader
+	ArrayGetter)
     target_include_directories(${TARGET} INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
