@@ -1,84 +1,54 @@
-!> Encode/Decode IP pour IP1, IP2, IP3
-!> This is required before reading or writting to a FST file
-!> \date 1996
-!> \author Nils Ek
-!> \author Bernard Dugas
-!> \author Mario Lepine
-!> \author Michel Valin
+!> \file
 
+!> Encode/Decode IP
 SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
     use app
     use convert_ip123_int
     use rmn_common
     implicit none
+
     include 'convip_plus.inc'
 
     !> Coded value
     integer, intent(INOUT) :: ip
-    !> Real value
+    !> Actual value
     real, intent(INOUT) :: p
     !> Coordinate type
+    !> | Kind | Range            | Actual value (p)                                                                     |
+    !> | ---: | ---------------: | :----------------------------------------------------------------------------------- |
+    !> |    0 | [-20000; 100000] | Height above sea level (m)                                                           |
+    !> |    1 |       [0.0; 1.0] | Sigma                                                                                |
+    !> |    2 |        [0; 1100] | Pressure (mb)                                                                        |
+    !> |    3 | [-4.8e8; 1.0e10] | Arbitrary code                                                                       |
+    !> |    4 | [-20000; 100000] | Height above ground level (m)                                                        |
+    !> |    5 |       [0.0; 1.0] | Hybrid coordinates                                                                   |
+    !> |    6 |      [1; 200000] | Theta coordinates                                                                    |
+    !> |    7 |       [0; 20000] | Depth under water surface (m)                                                        |
+    !> |   10 |    [0.0; 1.0e10] | Time (hours)                                                                         |
+    !> |   15 |                  | Reserved                                                                             |
+    !> |   17 |    [1.0; 1.0e10] | X index of the conversion matrix (shared with kind=1 because of the exclusive range) |
+    !> |   21 |     [0; 1000000] | Pressure-metres (shared with kind=5 because of the exclusive range)                  |
+    !> |   23 |                  | Reserved                                                                             |
     integer, intent(INOUT) :: kind
-    !> When -1, IP -> P; When 0, force 31 bit conversion; When 1, P -> IP; When 2, P -> IP Force NEWSTYLE, When 3, P -> IP Force OLD STYLE
+    !> Operation mode
+    !> | Mode | Description                                                                          |
+    !> | ---: | :----------------------------------------------------------------------------------- |
+    !> |   -1 | IP -> P                                                                              |
+    !> |    0 | Force 31 bit conversion (default = 15 bits) for subsequent calls; no conversion done |
+    !> |    1 | P -> IP                                                                              |
+    !> |    2 | P -> IP Force NEWSTYLE                                                               |
+    !> |    3 | P -> IP Force OLD STYLE                                                              |
     integer, intent(IN) :: mode
     !> String representation of ip or p
     character(len = *), intent(OUT) :: string
     !> If true, print P with the format in string
     logical, intent(IN) :: flagv
 
-!  Etendue des valeurs reelles encodees: 10e-5 -> 10e10
-!  pseudo mantisses :
-!  1024x1024-1 = 1048575
-!  1048001 -> 1048575 non utilise
-!  1000001 -> 1048000 utilise pour valeurs negatives
+    !> Range of the encoded real values: [10e-5; 10e10]
 
-!     Revision 001  M. Lepine - juin 1997 convpr devient convip
-!     Revision 002  M. Valin  - mai  1998 fichiers std 98
-!     Revision 003  B. Dugas  - juillet 2000 code arbitraire
-!     Revision 004  M. Lepine - fevrier 2002 kind = 4, hauteur au sol +
-!                               possibilite de forcer newstyle ou non avec mode=2 et mode=3
-!     Revision 005  M. Lepine - avril 2002 kind = 5 (hybride), kind = 21 (GalChen)
-!                               valeur min, max, zero et facteur multiplicatif
-!     Revision 006  M. Lepine - Juin 2002 kind = 6 (Theta)
-!     Revision 007  M. Lepine - Oct 2003 kind = 10 (temps en heure)
-!     Revision 008  M. Lepine - Dec 2005 kind = 17 (indice de matrice de niveaux)
-!     Revision 009  M. Valin  - Mars 2008 kind = 21 (metres pression remplacant GalChen)
-!                               introduction de zero_val2 pour la conversion ip->p
-!     Revision 010  M. Lepine - Mai 2010 traitement des valeurs en dehors des intervalles connus
-!                               comme valeurs arbitraires
-!     Revision 011  M. Valin  - Mai/Juin 2013 activation du code 15, ajout de la conversion groupee,
-!                               menage dans le code, changement de nom, refactoring
-!     Revision 012  M. Valin  - Oct/Nov 2013 bug de conversion corrige pour certains cas limites
-!                               enleve une amelioration qui entrainait une non compatibilite avec convip
-!     Revision 013  M. Valin  - Dec 2020 ajout de la coordonnee de type 7 (metres sous l'eau) (profondeur)
-
-! INPUTS
-!    MODE = -1, de IP -->  P
-!    MODE =  0, forcer conversion pour ip a 31 bits
-!                          (default = ip a 15 bits)
-!                          (appel d'initialisation)
-!    MODE = +1, de P  --> IP
-!    MODE = +2, de P  --> IP en mode NEWSTYLE force a true
-!    MODE = +3, de P  --> IP en mode NEWSTYLE force a false
-!    FLAGV = .true. , ecriture de P avec format dans string
-! INOUTS
-!    IP  =   Valeur codee
-!    P    =   Valeur reelle
-!    KIND =0, p est en hauteur (m) par rapport au niveau de la mer (-20,000 -> 100,000)
-!    KIND =1, p est en sigma                                       (0.0 -> 1.0)
-!    KIND =2, p est en pression (mb)                               (0 -> 1100)
-!    KIND =3, p est un code arbitraire                             (-4.8e8 -> 1.0e10)
-!    KIND =4, p est en hauteur (M) par rapport au niveau du sol    (-20,000 -> 100,000)
-!    KIND =5, p est en coordonnee hybride                          (0.0 -> 1.0)
-!    KIND =6, p est en coordonnee theta                            (1 -> 200,000)
-!    KIND =7, p est en metres (profondeur sous l'eau)              (0 -> 20,000)
-!    KIND =10, p represente le temps en heure                      (0.0 -> 1.0e10)
-!    KIND =15, reserve (entiers)
-!    KIND =17, p represente l'indice x de la matrice de conversion (1.0 -> 1.0e10)
-!              (partage avec kind=1 a cause du range exclusif
-!    KIND =21, p est en metres-pression                            (0 -> 1,000,000) fact=1e4
-!              (partage avec kind=5 a cause du range exclusif)
-!    KIND =23, reserve pour usage futur (partage avec kind=7)
+    !> Pseudo mantissa: 1024x1024-1 = 1048575.
+    !> 1048001 -> 1048575 Unused.
+    !> 1000001 -> 1048000 Used for negative values.
 
   real(kind = real64) :: limit1, limit2, temp
   real abs_p
@@ -346,68 +316,62 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
   6006 format(' Error in convip: p is out of bounds =',e12.5,' min=',e12.5,' max=',e12.5,' returned ip is -999999')
 ! 6007 format(' Warning in convip: undetermined kind used =',I10)
 
-  contains
+contains
+    ! convert kind = 15 and subkinds
+    function conv_kind_15(p,mykind,ip,mode) result(status)
+        implicit none
 
-function conv_kind_15(p,mykind,ip,mode) result(status) ! convert kind = 15 and subkinds
-  implicit none
-  integer :: status
-  integer, intent(INOUT) :: mykind,ip
-  integer, intent(IN) :: mode ! -1, 1, 2, 3 (see convip code for meaning of mode)
-  real, intent(INOUT) :: p
+        integer :: status
+        integer, intent(INOUT) :: mykind,ip
+        integer, intent(IN) :: mode ! -1, 1, 2, 3 (see convip code for meaning of mode)
+        real, intent(INOUT) :: p
 
-  type e15
-    integer :: lo      ! lowest value of ipv for this sub kind
-    integer :: hi      ! lhighest value of ipv for this sub kind
-    integer :: base    ! offset for this sub kind
-  end type
-  type(e15), dimension(2), save :: t15 = &
-         (/ &
-         e15(       0,  2000000,      0), &     ! values between 0 and 1 999 999    (kind 15)
-         e15(16000000, 15000001,  -1000)  &     ! values between -1000 and 998 999 (kind 31) ! entries swapped to deactivate
-         /)
-  integer :: i, subt, ipv
+        type e15
+            integer :: lo      ! lowest value of ipv for this sub kind
+            integer :: hi      ! lhighest value of ipv for this sub kind
+            integer :: base    ! offset for this sub kind
+        end type
+        type(e15), dimension(2), save :: t15 = &
+                (/ &
+                e15(       0,  2000000,      0), &     ! values between 0 and 1 999 999    (kind 15)
+                e15(16000000, 15000001,  -1000)  &     ! values between -1000 and 998 999 (kind 31) ! entries swapped to deactivate
+                /)
+        integer :: i, subt, ipv
 
-  status = -1               ! precondition for failure
+        status = -1               ! precondition for failure
 
-  if(ip > 0 .and. ishft(ip,-24) == 15 .and. mode == -1) then  ! kind 15 and sub kinds ip to p conversion
-    mykind = -1
-    ipv = iand(ip, Z'FFFFFF')  ! get rid of kind 15 indicator
-    subt = -1
-    do i=1,size(t15)   ! lookup in bounds table
-      if(ipv >= t15(i)%lo .and. ipv <= t15(i)%hi ) then ! is ipv in the range of this sub kind ?
-        subt = i    ! yes
-        exit
-      endif
-    enddo
-    if(subt == -1) return  ! invalid ip value for kind = 15 and associated sub kinds
-    p = ipv - t15(subt)%lo + t15(subt)%base   ! convert ipv to actual value
-    mykind = 15 + 16*(subt-1)    ! return proper kind type
-    status = 0
-  endif
+        if(ip > 0 .and. ishft(ip,-24) == 15 .and. mode == -1) then  ! kind 15 and sub kinds ip to p conversion
+            mykind = -1
+            ipv = iand(ip, Z'FFFFFF')  ! get rid of kind 15 indicator
+            subt = -1
+            do i=1,size(t15)   ! lookup in bounds table
+            if(ipv >= t15(i)%lo .and. ipv <= t15(i)%hi ) then ! is ipv in the range of this sub kind ?
+                subt = i    ! yes
+                exit
+            endif
+            enddo
+            if(subt == -1) return  ! invalid ip value for kind = 15 and associated sub kinds
+            p = ipv - t15(subt)%lo + t15(subt)%base   ! convert ipv to actual value
+            mykind = 15 + 16*(subt-1)    ! return proper kind type
+            status = 0
+        endif
 
-  if(15 == iand(mykind,15) .and. mode > 0 .and. mode <3) then  ! newstyle p to ip conversion
-    ip = -1                      ! precondition for fail
-    subt = 1 + ishft(mykind,-4)
-    if(subt <= 0 .or. subt > size(t15)) return   ! sub kind out of range
-    ipv = nint(p) - t15(subt)%base + t15(subt)%lo
-    if(ipv < t15(subt)%lo .or. ipv > t15(subt)%hi) return  ! p is out of range
-    ip = ior(ipv,ishft(15,24))  ! add type 15 flag
-    status = 0
-  endif
-! total failure if we get here
-  return
-end function conv_kind_15
+        if(15 == iand(mykind,15) .and. mode > 0 .and. mode <3) then  ! newstyle p to ip conversion
+            ip = -1                      ! precondition for fail
+            subt = 1 + ishft(mykind,-4)
+            if(subt <= 0 .or. subt > size(t15)) return   ! sub kind out of range
+            ipv = nint(p) - t15(subt)%base + t15(subt)%lo
+            if(ipv < t15(subt)%lo .or. ipv > t15(subt)%hi) return  ! p is out of range
+            ip = ior(ipv,ishft(15,24))  ! add type 15 flag
+            status = 0
+        endif
+        ! total failure if we get here
+    end function conv_kind_15
 
 end SUBROUTINE CONVIP_plus
 
 
 !> Write value val into string using at most maxlen characters
-!> \author M. Valin
-!> \date 2013
-!> \return If something went wrong, the return value will be <= 0
-!>  if an integer format (I) is used, the return value is the number of characters used
-!>  if a floating format (F/G) is used, return value =- 100*field_width + nb_of_significant_digits
-!>  ex: if F8.3 is used, the result will be 803, if I6 is used, the result will be 6
 integer function value_to_string(val, string, maxlen)
     use rmn_common
     implicit none
@@ -418,6 +382,13 @@ integer function value_to_string(val, string, maxlen)
     character (len=*), intent(OUT) :: string
     !> Maximum number of characters to use to represent the value
     integer, intent(IN) :: maxlen
+
+    !> \author M. Valin
+    !> \date 2013
+    !> \return If something went wrong, the return value will be <= 0
+    !>  if an integer format (I) is used, the return value is the number of characters used
+    !>  if a floating format (F/G) is used, return value =- 100*field_width + nb_of_significant_digits
+    !>  ex: if F8.3 is used, the result will be 803, if I6 is used, the result will be 6
 
     character (len=32)  :: fstring
     character (len=128) :: tempstring
@@ -442,8 +413,8 @@ integer function value_to_string(val, string, maxlen)
         grosint=1
         intdig=2
         do i = 1, min(9, maxc - 1)
-        if(nint(value) > grosint) intdig=intdig+1
-        grosint=grosint*10  ! largest integer value that will fit in maxc characters
+            if(nint(value) > grosint) intdig=intdig+1
+            grosint=grosint*10  ! largest integer value that will fit in maxc characters
         enddo
         if(value >= grosint) goto 444   ! try something else
         if(val>0) intdig = intdig - 1   ! one less character if number is positive
@@ -461,8 +432,8 @@ integer function value_to_string(val, string, maxlen)
         value = value * .1
         enddo
         if(before<6) after=min(6-before,maxc-before-2) ! we have at best 6 significant digits
-    !    if(before<8) after=max(0,maxc-before-2)
-    else   ! value < 1.0
+    else
+        ! value < 1.0
         after = 5
         before = 0
         do while(value<1.0)
@@ -480,7 +451,6 @@ integer function value_to_string(val, string, maxlen)
     value_to_string=100*before+after*10
 
     write(fstring,10)before,after       ! use F format
-    !print *,'=',trim(fstring)
     write(string,fstring)val            ! F format
     i=len(trim(string))
     do while(i>4 .and. string(i:i)=='0')
@@ -495,7 +465,6 @@ integer function value_to_string(val, string, maxlen)
 
     666 continue
     if(maxc-6<=0) goto 888
-    !print *,'=',trim(fstring)
     write(string,fstring)val            ! G format
     if(string(1:1)==' ') then
         tempstring=string(2:len(string))
@@ -504,7 +473,6 @@ integer function value_to_string(val, string, maxlen)
     return
 
     777 continue
-    !print *,'=',trim(fstring)
     write(string,fstring)nint(val)      ! I format
     if(string(1:1)==' ') then
         tempstring=string(2:len(string))
@@ -523,107 +491,107 @@ end function value_to_string
 
 
 subroutine test_value_to_string
-  use rmn_common
-  implicit none
-  include 'convip_plus.inc'
-  character (len=8) :: stringa
-  character (len=12) :: stringb
-  character (len=15) :: stringc
-  integer :: i
-  integer :: status
-  real(kind = real32) :: value
+    use rmn_common
+    implicit none
 
-  value=1.000001
-  do i=1,9
-    status=value_to_string(real(nint(value)),stringa,15)
-    stringc = stringa
-    print 101,stringc,trim(stringa),'',status*.01
-    value=value*10.0
-  enddo
+    include 'convip_plus.inc'
 
-  value=1.000001
-  do i=1,9
-    status=value_to_string(real(nint(-value)),stringa,15)
-    stringc = stringa
-    print 101,stringc,trim(stringa),'mb',status*.01
-    value=value*10.0
-  enddo
+    character (len=8) :: stringa
+    character (len=12) :: stringb
+    character (len=15) :: stringc
+    integer :: i
+    integer :: status
+    real(kind = real32) :: value
 
-  value=1.234567
-  do i=1,12
-    status=value_to_string(-value,stringb,15)
-    stringc = stringb
-    print 101,stringc,trim(stringb),'mb',status*.01
-    value=value*10.0
-  enddo
+    character(*), parameter :: fmt = "('|', A15, '|', A15, '|', 1X, A2, 3X, f6.2)"
 
-  value=1.23456789
-  do i=1,12
-    status=value_to_string(-value,stringc,12)
-    print 101,stringc,trim(stringc),'mb',status*.01
-    value=value*0.1
-  enddo
+    value=1.000001
+    do i=1,9
+        status=value_to_string(real(nint(value)),stringa,15)
+        stringc = stringa
+        print fmt,stringc,trim(stringa),'',status*.01
+        value=value*10.0
+    enddo
 
-101 format('|', A15, '|', A15, '|', 1X, A2, 3X, f6.2)
-return
+    value=1.000001
+    do i=1,9
+        status=value_to_string(real(nint(-value)),stringa,15)
+        stringc = stringa
+        print fmt,stringc,trim(stringa),'mb',status*.01
+        value=value*10.0
+    enddo
+
+    value=1.234567
+    do i=1,12
+        status=value_to_string(-value,stringb,15)
+        stringc = stringb
+        print fmt,stringc,trim(stringb),'mb',status*.01
+        value=value*10.0
+    enddo
+
+    value=1.23456789
+    do i=1,12
+        status=value_to_string(-value,stringc,12)
+        print fmt,stringc,trim(stringc),'mb',status*.01
+        value=value*0.1
+    enddo
 end subroutine test_value_to_string
 
 
-subroutine test_convip_plus() ! test routine for convip_plus
-  use rmn_common
-  implicit none
-  include 'rmn/convert_ip123.inc'
-  integer :: ip1, ip2, i, j, nip, nip2, k2, nip3
-  real :: p,p2
-  character(len=15) :: string
-  integer :: kind
-!     test #1, ip1 -> p,kind -> ip2 (ip2 must be = ip1)
-  nip = 0
-  nip2 = 0
-  nip3 = 0
-  do j=0,15
-  do i=0,1047999
-    ip1 = i
-    ip1=ior(ip1, ishft(j,20))  ! add exponent
-    ip1=ior(ip1, ishft(3,24))  ! kind =3 to test full range
-    call CONVIP_plus( ip1, p, kind, -1, string, .false. )  ! ip1 -> p,kind
-    call CONVIP_plus( ip2, p, kind, +2, string, .false. )  ! p,kind -> ip2
-    call CONVIP_plus( ip2, p2, k2, -1, string, .false. )
-    if(ip1/=ip2) nip=nip+1
-    if(p/=p2 .and. abs(p2/p-1.0) < .0000002) nip2=nip2+1
-    if(ip1/=ip2 .and. p /= p2) then
-      if(abs(p2/p-1.0) >= .0000002) then ! not within tolerance
-        print 111, j,i,ip1,ip2,iand(ip1,1048575),iand(ip2,1048575),p,p2,abs(p2/p-1.0)
-        nip3 = nip3+1
-!           stop
-      endif
-    endif
-  enddo
-  enddo
-  print 112,'ip1<>ip2 (normalization aliases)=',nip,' p1 ~= p2 (within 2.0E-7 relative error)',nip2,' errors=',nip3
-  do i=5,1005,100
-     ip1 = i       ! old style presure in mb
-     call CONVIP_plus( ip1, p, kind, -1, string, .false.)
-     p =p + .751
-     call CONVIP_plus( ip1, p, kind, +2, string, .false. )
-     call CONVIP_plus( ip1, p, kind, -1, string, .true.)
-     print 113,i,p,kind,':'//trim(string)//':'
-  enddo
-  do i=0,20000,2000
-     p = i + .1
-     kind = 7  ! force to type 7
-     call CONVIP_plus( ip1, p, kind, +2, string, .false. )
-     call CONVIP_plus( ip1, p, kind, -1, string, .true.)
-     print 113,i,p,kind,':'//trim(string)//':'
-  enddo
-111 format(2I9,2Z8,2I9,3G16.8)
-112 format(A,I9,A,I9,A,I9)
-113 format(I9,F11.5,I3,A)
-  return
+! test routine for convip_plus
+subroutine test_convip_plus()
+    use rmn_common
+    implicit none
+
+    include 'rmn/convert_ip123.inc'
+
+    integer :: ip1, ip2, i, j, nip, nip2, k2, nip3
+    real :: p,p2
+    character(len=15) :: string
+    integer :: kind
+    !     test #1, ip1 -> p,kind -> ip2 (ip2 must be = ip1)
+    nip = 0
+    nip2 = 0
+    nip3 = 0
+    do j=0,15
+        do i=0,1047999
+            ip1 = i
+            ip1=ior(ip1, ishft(j,20))  ! add exponent
+            ip1=ior(ip1, ishft(3,24))  ! kind =3 to test full range
+            call CONVIP_plus( ip1, p, kind, -1, string, .false. )  ! ip1 -> p,kind
+            call CONVIP_plus( ip2, p, kind, +2, string, .false. )  ! p,kind -> ip2
+            call CONVIP_plus( ip2, p2, k2, -1, string, .false. )
+            if(ip1/=ip2) nip=nip+1
+            if(p/=p2 .and. abs(p2/p-1.0) < .0000002) nip2=nip2+1
+            if(ip1/=ip2 .and. p /= p2) then
+                if(abs(p2/p-1.0) >= .0000002) then ! not within tolerance
+                    print "(2I9,2Z8,2I9,3G16.8)", j,i,ip1,ip2,iand(ip1,1048575),iand(ip2,1048575),p,p2,abs(p2/p-1.0)
+                    nip3 = nip3+1
+                endif
+            endif
+        enddo
+    enddo
+    print "(A,I9,A,I9,A,I9)",'ip1<>ip2 (normalization aliases)=',nip,' p1 ~= p2 (within 2.0E-7 relative error)',nip2,' errors=',nip3
+    do i=5,1005,100
+        ip1 = i       ! old style presure in mb
+        call CONVIP_plus( ip1, p, kind, -1, string, .false.)
+        p =p + .751
+        call CONVIP_plus( ip1, p, kind, +2, string, .false. )
+        call CONVIP_plus( ip1, p, kind, -1, string, .true.)
+        print "(I9,F11.5,I3,A)", i, p, kind, ':' // trim(string) // ':'
+    enddo
+    do i=0,20000,2000
+        p = i + .1
+        kind = 7  ! force to type 7
+        call CONVIP_plus( ip1, p, kind, +2, string, .false. )
+        call CONVIP_plus( ip1, p, kind, -1, string, .true.)
+        print "(I9,F11.5,I3,A)", i, p, kind, ':' // trim(string) // ':'
+    enddo
 end subroutine test_convip_plus
 
 
-subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')  ! interface for C routines
+! interface for C routines
+subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')
     ! translate kind integer code to 2 character string, gateway to Fortran kind_to_string
     use rmn_common
     implicit none
@@ -636,11 +604,11 @@ subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')  ! interface
     temp = kind_to_string(code)
     s1 = transfer(temp(1:1),s1)
     s2 = transfer(temp(2:2),s2)
-    return
-end subroutine c_kind_to_string
+ end subroutine c_kind_to_string
 
 
-function kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 character string code
+!> Translate ip kind into a 2 character string code
+function kind_to_string(code) RESULT(string)
     implicit none
     integer, intent(IN) :: code
     character(len=2) :: string
@@ -666,8 +634,6 @@ function kind_to_string(code) RESULT(string)  ! translate ip kind into a 2 chara
     if(code/16>9)  return  ! not a potentially valid subkind of kind 15
 
     write(1,string)'I',code/16   ! 'In' code where n=code/16 (n=0,1..,9)
-
-    return
 end function kind_to_string
 
 

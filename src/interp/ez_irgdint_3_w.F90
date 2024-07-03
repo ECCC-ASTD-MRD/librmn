@@ -17,7 +17,7 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_irgdint_3_wnnc(zo,px,py,npts,ax,ay,z,ni,j1,j2,wrap)
+      subroutine ez_irgdint_3_w(zo,px,py,npts,ax,ay,cx,cy,z,ni,j1,j2,wrap)
           use rmn_common
       implicit none
 !*******
@@ -28,10 +28,10 @@
 !     d'une grille source irreguliere.
 !*******
       
-      integer npts, ni, j1, j2, wrap, limite
+      integer npts, ni, j1, j2, wrap
       integer imoins1, iplus1, iplus2
       real zo(npts),px(npts),py(npts)
-      real ax(ni),ay(j1:j2)
+      real ax(ni),ay(j1:j2),cx(ni,6),cy(j1:j2,6)
       real z(ni,j1:j2)
 !     
 !     npts   : nombre de points a interpoler
@@ -69,18 +69,28 @@
 !     
 !  structure identique pour cy(j,1..6)
 
-      integer        :: i, j, n
+      integer             :: i, j, n
       real(kind = real64) :: a11,a12,a13,a14,a21,a22,a23,a24
       real(kind = real64) :: a31,a32,a33,a34,a41,a42,a43,a44
       real(kind = real64) :: b1,b2,b3,b4,b11,b12,b13,b14
-      real(kind = real64) :: x1,x2,x3,x4,y1,y2,y3,y4
-      real(kind = real64) :: x,y
-      real(kind = real64) :: cx(6),cy(6)
+      real(kind = real32) :: x1,x2,x3,x4,y1,y2,y3,y4
       real(kind = real64) :: z1,z2,z3,z4
+      
+      real(kind = real64) :: fa, fa2, fa3, fa4
+      real(kind = real64) :: a1,a2,a3,a4,x,y,c1,c2,c3,c4,c5,c6
       
 #include "ez_qqqxtrp.cdk"
 
-      limite = ni+2-wrap
+!     definition des fonctions in-line
+
+
+      fa(a1,a2,a3,a4,x,x1,x2,x3)=a1+(x-x1)*(a2+(x-x2)*(a3+a4*(x-x3)))
+      fa2(c1,a1,a2)=c1*(a2-a1)
+      fa3(c1,c2,c3,a1,a2,a3)=c2*(c3*(a3-a2)-c1*(a2-a1))
+      fa4(c1,c2,c3,c4,c5,c6,a1,a2,a3,a4)=c4*(c5*(c6*(a4-a3)-      c3*(a3-a2)) - c2*(c3*(a3-a2)-c1*(a2-a1)))
+      
+!zzzzzz$OMP PARALLEL
+!zzzzzz$OMP DO PRIVATE(n)
       do n=1,npts
          i = min(ni-2+wrap,max(1,max(2-wrap,ifix(px(n)))))
          j = min(j2-2,max(j1+1,ifix(py(n))))
@@ -102,7 +112,7 @@
             if (i.eq.(ni-1)) then
                imoins1 = ni-2
                iplus1  = ni
-               iplus2  = 1
+               iplus2  = 2
                x1 = ax(ni-2)
                x2 = ax(ni-1)
                x3 = ax(ni)
@@ -153,13 +163,6 @@
          x = x2 + (x3-x2)*(px(n)-i)
          y = ay(j) + (ay(j+1)-ay(j))*(py(n)-j)
          
-         cx(1) = 1.0/(x2-x1)
-         cx(2) = 1.0/(x3-x1)
-         cx(3) = 1.0/(x3-x2)
-         cx(4) = 1.0/(x4-x1)
-         cx(5) = 1.0/(x4-x2)
-         cx(6) = 1.0/(x4-x3)
-         
          y1=ay(j-1)
          y2=ay(j)
          y3=ay(j+1)
@@ -173,9 +176,9 @@
          z4=z(iplus2,j-1)
          
          a11 = z1
-         a12 = fa2(cx(1),z1,z2)
-         a13 = fa3(cx(1),cx(2),cx(3),z1,z2,z3)
-         a14 = fa4(cx(1),cx(2),cx(3),cx(4),cx(5),cx(6),         z1,z2,z3,z4)
+         a12 = fa2(dble(cx(i,1)),z1,z2)
+         a13 = fa3(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),z1,z2,z3)
+         a14 = fa4(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),         dble(cx(i,4)),dble(cx(i,5)),dble(cx(i,6)),         dble(z1),dble(z2),dble(z3),dble(z4))
          b1  = fa(a11,a12,a13,a14,x,x1,x2,x3)
          
 !     interpolation 2eme rangee selon x
@@ -186,9 +189,9 @@
          z4=z(iplus2,j)
          
          a21 = z1
-         a22 = fa2(cx(1),z1,z2)
-         a23 = fa3(cx(1),cx(2),cx(3),z1,z2,z3)
-         a24 = fa4(cx(1),cx(2),cx(3),cx(4),         cx(5),cx(6),z1,z2,z3,z4)
+         a22 = fa2(dble(cx(i,1)),z1,z2)
+         a23 = fa3(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),z1,z2,z3)
+         a24 = fa4(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),         dble(cx(i,4)),dble(cx(i,5)),dble(cx(i,6)),dble(z1),dble(z2),dble(z3),dble(z4))
          b2  = fa(a21,a22,a23,a24,x,x1,x2,x3)
          
 !     interpolation 3eme rangee selon x
@@ -199,9 +202,9 @@
          z4=z(iplus2,j+1)
          
          a31 = z1
-         a32 = fa2(cx(1),z1,z2)
-         a33 = fa3(cx(1),cx(2),cx(3),z1,z2,z3)
-         a34 = fa4(cx(1),cx(2),cx(3),cx(4),         cx(5),cx(6),z1,z2,z3,z4)
+         a32 = fa2(dble(cx(i,1)),z1,z2)
+         a33 = fa3(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),z1,z2,z3)
+         a34 = fa4(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),dble(cx(i,4)),         dble(cx(i,5)),dble(cx(i,6)),dble(z1),dble(z2),dble(z3),dble(z4))
          b3  = fa(a31,a32,a33,a34,x,x1,x2,x3)
          
 !     interpolation 4eme rangee selon x
@@ -212,28 +215,22 @@
          z4=z(iplus2,j+2)
          
          a41 = z1
-         a42 = fa2(cx(1),z1,z2)
-         a43 = fa3(cx(1),cx(2),cx(3),z1,z2,z3)
-         a44 = fa4(cx(1),cx(2),cx(3),cx(4),         cx(5),cx(6),z1,z2,z3,z4)
+         a42 = fa2(dble(cx(i,1)),z1,z2)
+         a43 = fa3(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),z1,z2,z3)
+         a44 = fa4(dble(cx(i,1)),dble(cx(i,2)),dble(cx(i,3)),dble(cx(i,4)),         dble(cx(i,5)),dble(cx(i,6)),dble(z1),dble(z2),dble(z3),dble(z4))
          b4  = fa(a41,a42,a43,a44,x,x1,x2,x3)
          
 !     interpolation finale selon y
          
-         cy(1) = 1.0 / (y2-y1)
-         cy(2) = 1.0 / (y3-y1)
-         cy(3) = 1.0 / (y3-y2)
-         cy(4) = 1.0 / (y4-y1)
-         cy(5) = 1.0 / (y4-y2)
-         cy(6) = 1.0 / (y4-y3)
-         
          b11 = b1
-         b12 = fa2(cy(1),b1,b2)
-         b13 = fa3(cy(1),cy(2),cy(3),b1,b2,b3)
-         b14 = fa4(cy(1),cy(2),cy(3),cy(4),         cy(5),cy(6),b1,b2,b3,b4)
+         b12 = fa2(dble(cy(j,1)),b1,b2)
+         b13 = fa3(dble(cy(j,1)),dble(cy(j,2)),dble(cy(j,3)),b1,b2,b3)
+         b14 = fa4(dble(cy(j,1)),dble(cy(j,2)),dble(cy(j,3)),         dble(cy(j,4)),dble(cy(j,5)),dble(cy(j,6)),b1,b2,b3,b4)
          zo(n) = fa(b11,b12,b13,b14,y,y1,y2,y3)
       enddo
+!zzzzzz$OMP END DO
+!zzzzzz$OMP END PARALLEL
+      
       
       return
-      contains
-#include "fa8.cdk"
       end

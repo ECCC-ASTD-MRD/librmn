@@ -2,6 +2,8 @@
 #include <float.h>
 #include <math.h>
 
+#include <pthread.h>
+
 #include <App.h>
 #include <str.h>
 
@@ -13,18 +15,25 @@
 #include "rmn/Meta.h"
 #include "xdf98.h"
 
-int32_t fst24_get_unit(const fst_file* const file);
+static pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static int64_t fst24_get_num_records_single(const fst_file* file);
-int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
 
 //! Verify that the file pointer is valid and the file is open
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file) {
     return file != NULL &&
-           file->type != FST_NONE &&
+           (file->type == FST_RSF || file->type == FST_XDF) &&
            file->file_index >= 0 &&
            file->file_index_backend >= 0 &&
-           file->iun != 0;
+           file->iun != 0 &&
+           file->path != NULL;
+}
+
+//! \return The name of the file, if open. NULL otherwise
+const char* fst24_file_name(const fst_file* const file) {
+    if (fst24_is_open(file)) return file->path;
+    return NULL;
 }
 
 //! Get unit number for fortran
@@ -32,6 +41,16 @@ int32_t fst24_is_open(const fst_file* const file) {
 int32_t fst24_get_unit(const fst_file* const file) {
     if (fst24_is_open(file)) return file->iun;
     return 0;
+}
+
+//! Get unit number for fortran
+//! \return Unit number. 0 if file is not open or struct is not valid.
+char* fst24_get_tag(const fst_file* const file) {
+    return file->tag;
+}
+char* fst24_set_tag(fst_file* file,const char* const tag) {
+    if (file->tag) free(file->tag);
+    return file->tag=strdup(tag);
 }
 
 //! Test if the given path is a readable FST file
@@ -68,15 +87,24 @@ fst_file* fst24_open(
     snprintf(local_options, MAX_LENGTH, "RND+%s%s",
              (!options || !(strcasestr(options, "R/W") || strcasestr(options, "R/O"))) ? "R/O+" : "",
              options ? options : "");
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: options = %s\n", __func__, local_options);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
 
-    if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) return NULL;
-    if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
+    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fnom\n", __func__);
+    if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) {
+        free(the_file);
+        return NULL;
+    }
+    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fstouv\n", __func__);
+    if (c_fstouv(the_file->iun, local_options) < 0) {
+        free(the_file);
+        return NULL;
+    }
 
     // Find type of newly-opened file (RSF or XDF)
     int index_fnom;
     const int rsf_status = is_rsf(the_file->iun, &index_fnom);
     the_file->file_index = index_fnom;
+    the_file->path = FGFDT[index_fnom].file_name;
     if (rsf_status == 1) {
         the_file->type = FST_RSF;
         the_file->rsf_handle = FGFDT[the_file->file_index].rsf_fh;
@@ -84,15 +112,15 @@ fst_file* fst24_open(
     }
     else {
         the_file->type = FST_XDF;
+        // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling file_index_xdf\n", __func__);
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
     return the_file;
 }
 
-//! Close the given standard file
+//! Close the given standard file and free the memory associated with the struct
 //! \todo What happens if closing a linked file?
-//! \todo Shouldn't this function take a fst_file** as argument to be able to set it to null?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
@@ -105,6 +133,8 @@ int32_t fst24_close(fst_file* const file) {
     if (status < 0) return status;
 
     *file = default_fst_file;
+
+    free(file);
 
     return TRUE;
 }
@@ -124,7 +154,7 @@ int32_t fst24_flush(
         return c_fstckp_xdf(file->iun);
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, file->type);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d (%s)\n", __func__, file->type, file->path);
     return -1;
 }
 
@@ -147,7 +177,7 @@ int64_t fst24_get_num_records(
         total_num_records = status;
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, file->path);
         return 0;
     }
 
@@ -193,14 +223,14 @@ int32_t fst24_print_summary(
     for (int64_t tmp_num_records = fst24_get_num_records(file); tmp_num_records > 0; tmp_num_records /= 10) num_digits++;
 
     while (fst24_find_next(query, &rec) == TRUE) {
-        snprintf(prefix, num_digits + 2, "%*d-", num_digits, num_records);
+        snprintf(prefix, num_digits + 2, "%*ld-", num_digits, num_records);
         fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), prefix);
         num_records++;
         total_data_size += fst24_record_data_size(&rec);
     }
 
     Lib_Log(APP_LIBFST, APP_VERBATIM,
-            "%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
+            "\n%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
             num_records, total_data_size, total_data_size / (1024.0f * 1024.0f));
 
     return TRUE;
@@ -330,6 +360,7 @@ int32_t fst24_write_rsf(
     }
 
     const int num_elements = record->ni * record->nj * record->nk;
+    const int num_bits_per_word = 32;
 
     // will be cancelled later if not supported or no missing values detected
     // missing value feature used flag
@@ -453,49 +484,72 @@ int32_t fst24_write_rsf(
     // Determine size of data to be stored
     int header_size;
     int stream_size;
-    size_t num_word64;
-    switch (data_type) {
-        case FST_TYPE_REAL: {
-            int p1out;
-            int p2out;
-            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
-            num_word64 = ((header_size+stream_size) * 8 + 63) / 64;
-            header_size /= sizeof(int32_t);
-            stream_size /= sizeof(int32_t);
-            break;
+    size_t num_word32;
+    if (image_mode_copy) {
+        if (is_type_turbopack(data_type)) {
+            // first element is length
+            const int num_field_words32 = ((uint32_t*)record->data)[0] + 1;
+            num_word32 = num_field_words32;
         }
-
-        case FST_TYPE_COMPLEX:
-            num_word64 = 2 * ((num_elements * record->pack_bits + 63) / 64);
-            break;
-
-        case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
-            // 120 bits (floatpack header)+8, 32 bits (extra header)
-            num_word64 = (num_elements * Max(record->pack_bits, 16) + 128 + 32 + 63) / 64;
-            break;
-
-        case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
-            // 32 bits (extra header)
-            num_word64 = (num_elements * Max(record->pack_bits, 16) + 32 + 63) / 64;
-            break;
-
-        case FST_TYPE_REAL | FST_TYPE_TURBOPACK: {
-            int p1out;
-            int p2out;
-            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
-            num_word64 = ((header_size+stream_size) * 8 + 32 + 63) / 64;
-            stream_size /= sizeof(int32_t);
-            header_size /= sizeof(int32_t);
-            break;
+        else {
+            int num_field_bits;
+            if (data_type == FST_TYPE_REAL) {
+                int p1out;
+                int p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
+                num_field_bits = (header_size + stream_size) * 8;
+            } else {
+                num_field_bits = num_elements * record->pack_bits;
+            }
+            if (data_type == FST_TYPE_REAL_OLD_QUANT) num_field_bits += 120;
+            if (data_type == FST_TYPE_CHAR) num_field_bits = record->ni * record->nj * 8;
+            const int num_field_words32 = (num_field_bits + num_bits_per_word - 1) / num_bits_per_word;
+            num_word32 = num_field_words32;
         }
+    }
+    else {
+        switch (data_type) {
+            case FST_TYPE_REAL: {
+                int p1out;
+                int p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
+                num_word32 = W64TOWD(((header_size+stream_size) * 8 + 63) / 64);
+                header_size /= sizeof(int32_t);
+                stream_size /= sizeof(int32_t);
+                break;
+            }
 
-        default:
-            num_word64 = (num_elements * record->pack_bits + 120 + 63) / 64;
-            break;
+            case FST_TYPE_COMPLEX:
+                num_word32 = W64TOWD(2 * ((num_elements * record->pack_bits + 63) / 64));
+                break;
+
+            case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
+                // 120 bits (floatpack header)+8, 32 bits (extra header)
+                num_word32 = W64TOWD((num_elements * Max(record->pack_bits, 16) + 128 + 32 + 63) / 64);
+                break;
+
+            case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
+                // 32 bits (extra header)
+                num_word32 = W64TOWD((num_elements * Max(record->pack_bits, 16) + 32 + 63) / 64);
+                break;
+
+            case FST_TYPE_REAL | FST_TYPE_TURBOPACK: {
+                int p1out;
+                int p2out;
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
+                num_word32 = W64TOWD(((header_size+stream_size) * 8 + 32 + 63) / 64);
+                stream_size /= sizeof(int32_t);
+                header_size /= sizeof(int32_t);
+                break;
+            }
+
+            default:
+                num_word32 = W64TOWD((num_elements * record->pack_bits + 120 + 63) / 64);
+                break;
+        }
     }
 
     // Allocate new record
-    const size_t num_word32 = W64TOWD(num_word64);
     const size_t num_data_bytes = num_word32 * 4;
     const size_t dir_metadata_size = (sizeof(search_metadata) + 3) / 4; // In 32-bit units
 
@@ -513,12 +567,16 @@ int32_t fst24_write_rsf(
              return(ERR_METADATA);
           }
        }
-       if ((metastr = Meta_Stringify(record->metadata)) != NULL) {
+       if ((metastr = Meta_Stringify(record->metadata,JSON_C_TO_STRING_PLAIN)) != NULL) {
           metalen = strlen(metastr) + 1;
           ext_metadata_size = (metalen + 3) / 4;
           rec_metadata_size += ext_metadata_size;
        }
     }
+
+    record->do_not_touch.num_search_keys = dir_metadata_size;
+    record->do_not_touch.extended_meta_size = ext_metadata_size;
+    record->do_not_touch.stored_data_size = num_word32;
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
     RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
@@ -528,7 +586,6 @@ int32_t fst24_write_rsf(
     }
     uint32_t* record_data = new_record->data;
 
-    const int num_bits_per_word = 32;
     RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     char typvar[FST_TYPVAR_LEN];
@@ -622,27 +679,7 @@ int32_t fst24_write_rsf(
 
     uint32_t * field = record->data;
     if (image_mode_copy) {
-        // no pack/unpack, used by editfst
-        if (is_type_turbopack(data_type)) {
-            // first element is length
-            const int num_field_words32 = field[0];
-            memcpy(new_record->data, field, (num_field_words32 + 1) * sizeof(uint32_t));
-        } else {
-            int num_field_bits;
-            if (data_type == FST_TYPE_REAL) {
-                int p1out;
-                int p2out;
-                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, num_elements);
-                num_field_bits = (header_size + stream_size) * 8;
-            } else {
-                num_field_bits = num_elements * record->pack_bits;
-            }
-            if (data_type == FST_TYPE_REAL_OLD_QUANT) num_field_bits += 120;
-            if (data_type == FST_TYPE_CHAR) num_field_bits = record->ni * record->nj * 8;
-            const int num_field_words32 = (num_field_bits + num_bits_per_word - 1) / num_bits_per_word;
-
-            memcpy(new_record->data, field, num_field_words32 * sizeof(uint32_t));
-        }
+        memcpy(new_record->data, field, num_data_bytes);
     } else {
         // not image mode copy
         // time to fudge field if missing value feature is used
@@ -908,7 +945,7 @@ int32_t fst24_write_rsf(
         // f.grid_info = 1;
         f.deet = 1;
         f.npas = 1;
-        fst24_record_print_short(record, &f, 0, "(fst) Write: ");
+        fst24_record_print_short(record, &f, 0, "(INFO) FST|Write:");
     }
 
     RSF_Free_record(new_record);
@@ -921,32 +958,65 @@ int32_t fst24_write_rsf(
 int32_t fst24_write(
     fst_file* file,     //!< The file where we want to write
     fst_record* record, //!< The record we want to write
-    const int rewrite   //!< Whether we want to overwrite the existing record
+    const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
 ) {
+    fst_record crit = default_fst_record;
+
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
-    char typvar[FST_TYPVAR_LEN];
-    char nomvar[FST_NOMVAR_LEN];
-    char etiket[FST_ETIKET_LEN];
-    char grtyp[FST_GTYP_LEN];
+    record->file = file;
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
+            __func__, file->path, fst_file_type_name[file->type], rewrite);
+
+    if (rewrite) { 
+        fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME|FST_META_SIZE);
+        crit.datev = get_valid_date32(crit.dateo,crit.deet,crit.npas);
+        crit.dateo=-1;
+    }
+    if (rewrite==FST_SKIP) {
+        fst_query* q = fst24_new_query(file, &crit, NULL);
+        if (fst24_find_next(q,NULL)) {
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
+            return(TRUE);
+        }
+        fst24_query_free(q);
+    } 
 
     if  (file->type == FST_RSF) {
-        if (rewrite && !fst24_delete(record)) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested to rewrite a record, but we were unable to "
-                    "delete the existing one\n", __func__);
+        if (rewrite==FST_YES) {
+            int nb;
+            if ((nb=fst24_search_and_delete(file, &crit, NULL))) {
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: Deleted %i matching records\n", __func__,nb);
+            }
         }
         return fst24_write_rsf(file->rsf_handle, record, 1);
     }
     else {
         if (record->metadata != NULL) {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
-                    " This is not supported, we will ignore that metadata.\n", __func__);
+                    " This is not supported, we will ignore that metadata. (file %s)\n", __func__, file->path);
         }
+
+        if (record->data == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: No data associated with this record!\n", __func__);
+            return -1;
+        }
+
+        char typvar[FST_TYPVAR_LEN];
+        char nomvar[FST_NOMVAR_LEN];
+        char etiket[FST_ETIKET_LEN];
+        char grtyp[FST_GTYP_LEN];
+
         strncpy(typvar, record->typvar, FST_TYPVAR_LEN);
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
         strncpy(etiket, record->etiket, FST_ETIKET_LEN);
         strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
+
+        // --- START critical region ---
+        pthread_mutex_lock(&fst24_xdf_mutex);
+
         if (record->data_bits == 8) {
             c_fst_data_length(1);
         }
@@ -956,16 +1026,24 @@ int32_t fst24_write(
         else if (record->data_bits == 64) {
             c_fst_data_length(8);
         }
+
         const int ier = c_fstecr_xdf(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite);
+            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite==FST_YES);
+
+        pthread_mutex_unlock(&fst24_xdf_mutex);
+        // --- END critical region ---
+
+        record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
+        record->do_not_touch.extended_meta_size = 0;
+        record->do_not_touch.stored_data_size = 0; // We don't have a good way of knowing that number, so it stays at 0 for now. Maybe xdfprm?
 
         if (ier < 0) return ier;
         return TRUE;
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
     return -1;
 }
 
@@ -985,7 +1063,9 @@ int32_t get_record_from_key_rsf(
     fill_with_search_meta(record, (search_metadata*)record_info.meta, FST_RSF);
     record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
     record->do_not_touch.handle = key;
+    record->do_not_touch.stored_data_size = (record_info.data_size + 3) / 4;
     if (record_info.rec_type == RT_DEL) record->do_not_touch.deleted = 1;
+    record->file_index = RSF_Key64_to_index(key);
 
     return TRUE;
 }
@@ -998,7 +1078,7 @@ int32_t fst24_get_record_from_key(
     fst_record* const record    //!< [in,out] Record information (no data or advanced metadata)
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
 
@@ -1023,16 +1103,75 @@ int32_t fst24_get_record_from_key(
         stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
         uint32_t* pkeys = (uint32_t *) record_meta_xdf;
         pkeys += W64TOWD(1);
-        c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16);
+        if (c_xdfprm(key & 0xffffffff, &addr, &lng, &idtyp, pkeys, 16) < 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to get record with key %x\n", __func__, key & 0xffffffff);
+            return FALSE;
+        }
         fill_with_search_meta(record, &record_meta, file->type);
+        record->do_not_touch.num_search_keys = 16;
+        record->do_not_touch.stored_data_size = W64TOWD(lng);
+        record->file_index = RECORD_FROM_HANDLE((key & 0xffffffff));
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d\n", __func__, file->type);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
         return FALSE;
     }
 
     record->file = file;
     return TRUE;
+}
+
+//! Retrieve record information at a given index
+//! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
+int32_t fst24_get_record_by_index(
+    const fst_file* const file, //!< [in] File handle
+    const int32_t index,        //!< [in] Record key within its file
+    fst_record* const record    //!< [in,out] Record information
+) {
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
+
+    fst_record_set_to_default(record);
+
+    // const int64_t num_records = fst24_get_num_records_single(file);
+    // if (index >= num_records) {
+    //     Lib_Log(APP_LIBFST, APP_ERROR, "%s: requested file key %d is beyond the number of records (%d)\n",
+    //             __func__, index, num_records);
+    //     return ERR_OUT_RANGE;
+    // }
+    record->file = file;
+
+    if (file->type == FST_RSF) {
+        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
+        const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
+
+        if (record_info.rec_type == RT_NULL) return FALSE; // Error retrieving the record
+
+        fill_with_search_meta(record, (search_metadata*)record_info.meta, file->type);
+        record->do_not_touch.handle = RSF_Make_key(file->file_index_backend, index);
+        record->num_meta_bytes = record_info.rec_meta * sizeof(uint32_t);
+        record->file_index = index;
+        return TRUE;
+    }
+    else if (file->type == FST_XDF) {
+        const int page_id = index / ENTRIES_PER_PAGE;
+        const int record_id = index - (page_id * ENTRIES_PER_PAGE);
+        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
+
+        int addr, lng, idtyp;
+        search_metadata record_meta;
+        stdf_dir_keys* record_meta_xdf = &record_meta.fst98_meta;
+        uint32_t* pkeys = (uint32_t *) record_meta_xdf;
+        pkeys += W64TOWD(1);
+        if (c_xdfprm(key, &addr, &lng, &idtyp, pkeys, 16) < 0) return FALSE;
+        if ((idtyp | 0x80) == 255 || (idtyp | 0x80) == 254) return FALSE; // Record is deleted
+
+        fill_with_search_meta(record, &record_meta, file->type);
+        record->do_not_touch.handle = key;
+        record->file_index = index;
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 //! Create a search query that will apply the given criteria during a search in a file.
@@ -1043,7 +1182,7 @@ fst_query* fst24_new_query(
     const fst_query_options* options //!< [Optional] Options to modify how the search will be performed
 ) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%p)\n", __func__, file);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
 
@@ -1076,7 +1215,7 @@ fst_query* fst24_new_query(
         }
         else {
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Extended metadata criterion is non-NULL, but we can only search"
-                    " extended metadata in RSF files\n", __func__);
+                    " extended metadata in RSF files (%s)\n", __func__, file->path);
         }
     }
 
@@ -1202,7 +1341,7 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
     // If metadata search is specified, look for a match or carry on looking
     if (query->search_meta != NULL) {
         if (!fst24_read_metadata(record)) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read metadata while doing search\n", __func__);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to read metadata while doing search (%s)\n", __func__, query->file->path);
             return FALSE;
         }
 
@@ -1242,7 +1381,7 @@ int32_t fst24_find_next(
         return FALSE;
     }
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching in file at %p (next %p)\n", __func__, query->file, query->file->next);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching in file %s at %p (next %p)\n", __func__, query->file->path, query->file, query->file->next);
 
     fst_record tmp_record = default_fst_record;
     while (TRUE) { // Search forever (until found or end-of-file)
@@ -1253,17 +1392,21 @@ int32_t fst24_find_next(
 
         if (key < 0) break; // Not in this file
 
-        const int status = fst24_get_record_from_key(query->file, key, &tmp_record); 
+        if (fst24_get_record_from_key(query->file, key, &tmp_record) != TRUE) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to retrieve record info after having found it in %s.\n",
+                    __func__, query->file->path);
+            return -1;
+        }
 
         if (!is_actual_match(&tmp_record, query)) continue; // Keep looking
 
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %p\n",
-                __func__, query->file->iun, key, query->file);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %s\n",
+                __func__, query->file->iun, key, query->file->path);
 
         if (record != NULL) fst_record_copy_info(record, &tmp_record);
         query->search_index = key;
 
-        return (status > 0);
+        return TRUE;
     }
 
     // We haven't found anything in this file
@@ -1582,6 +1725,7 @@ int32_t fst24_read_record_rsf(
     }
 
     fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF);
+    record_fst->do_not_touch.stored_data_size = (record_rsf->data_size + 3) / 4;
 
     // Extract metadata from record if present
     record_fst->metadata = NULL;
@@ -1623,11 +1767,15 @@ int32_t fst24_read_record_xdf(
     uint32_t * pkeys = (uint32_t *) stdf_entry;
     pkeys += W64TOWD(1);
 
+    int lng = 0;
     {
-        int addr, lng, idtyp;
+        int addr, idtyp;
         int ier = c_xdfprm(key32, &addr, &lng, &idtyp, pkeys, 16);
         if (ier < 0) return ier;
     }
+
+    // --- START critical region ---
+    pthread_mutex_lock(&fst24_xdf_mutex);
 
     if (record->data_bits == 8) {
         c_fst_data_length(1);
@@ -1639,8 +1787,14 @@ int32_t fst24_read_record_xdf(
         c_fst_data_length(8);
     }
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
+
+    pthread_mutex_unlock(&fst24_xdf_mutex);
+    // --- END critical region ---
+
     if (handle != key32) return ERR_NOT_FOUND;
     fill_with_search_meta(record, &meta, FST_XDF);
+    record->do_not_touch.num_search_keys = 16;
+    record->do_not_touch.stored_data_size = W64TOWD(lng);
     return handle;
 }
 
@@ -1655,23 +1809,23 @@ void* fst24_read_metadata(
     }
 
     if (!fst24_is_open(record->file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
        return NULL;
     }
 
     if (record->file->type == FST_RSF) {
         if (fst24_read_record_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file\n", __func__);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file %s\n", __func__, record->file->path);
             return NULL;
         }
         return record->metadata;
     }
     else if (record->file->type == FST_XDF) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files\n", __func__);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files (%s)\n", __func__, record->file->path);
         return NULL;
     }
 
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, record->file->type);
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d (%s)\n", __func__, record->file->type, record->file->path);
     return NULL;
 }
 
@@ -1680,8 +1834,8 @@ void* fst24_read_metadata(
 int32_t fst24_read_record(
     fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
 ) {
-    if (!fst24_is_open(record->file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+    if (record != NULL && !fst24_is_open(record->file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
        return ERR_NO_FILE;
     }
 
@@ -1718,14 +1872,17 @@ int32_t fst24_read_record(
         ret = fst24_read_record_xdf(record);
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, record->file->path);
         ret = -1;
     }
 
     if (ret < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not read record, ier = %d\n", __func__, ret);
-        free(record->data);
-        record->data = NULL;
+        if (record->do_not_touch.alloc>0) {
+           free(record->data);
+           record->data = NULL;
+           record->do_not_touch.alloc = 0;
+        }
         return ret;
     }
 
@@ -1774,22 +1931,33 @@ int32_t fst24_link(
         return TRUE;
     }
 
+    int iun_list[num_files];
+
     // Perform checks on all files before doing anything
     for (int i = 0; i < num_files; i++) {
         if (!fst24_is_open(files[i])) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: File %d not open. We won't link anything.\n", __func__, i);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: File %d (%s) not open. We won't link anything.\n", __func__, i, files[i] ? files[i]->path : "(nil)");
             return FALSE;
         }
 
         if (files[i]->next != NULL) {
             Lib_Log(APP_LIBFST, APP_ERROR,
-                    "%s: File %d is already linked to another one. We won't link anything (else).\n", __func__, i);
+                    "%s: File %d (%s) is already linked to another one. We won't link anything (else).\n", __func__, i, files[i]->path);
             return FALSE;
         }
+
+        iun_list[i] = files[i]->iun;
     }
 
     for (int i = 0; i < num_files - 1; i++) {
         files[i]->next = files[i + 1];
+    }
+    
+    // Link with old interface too, for compatibility with old libraries
+    if (c_fstlnk(iun_list, num_files) < 0) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Old interface linking failed. Old-style functions that require"
+                " iun as input will not consider this list of files as linked.\n",
+                __func__);
     }
 
     return TRUE;
@@ -1800,10 +1968,9 @@ int32_t fst24_link(
 //! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(fst_file* const file) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
-
 
     while (file->next != NULL) {
         fst_file* current = file;
@@ -1812,6 +1979,10 @@ int32_t fst24_unlink(fst_file* const file) {
         current = tmp;
     }
 
+    // Unlink with old interface too. This is not completely equivalent, since the old interface cannot
+    // have more than one linked list of files.
+    c_fstunl();
+
     return TRUE;
 }
 
@@ -1819,7 +1990,7 @@ int32_t fst24_unlink(fst_file* const file) {
 //! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(const fst_file* const file) {
     if (!fst24_is_open(file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
        return FALSE;
     }
 
@@ -1884,9 +2055,12 @@ int32_t fst24_delete(
     }
 
     if (!fst24_is_open(record->file)) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is not open\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is not open (%s)\n", __func__, record->file ? record->file->path : "(nil)");
         return FALSE;
     }
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Deleting record %d from file %s, type %s\n",
+            __func__, record->do_not_touch.handle, record->file->path, fst_file_type_name[record->file->type]);
 
     if (record->file->type == FST_RSF) {
         if (RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) != 1) return FALSE;
@@ -1895,13 +2069,31 @@ int32_t fst24_delete(
         if (c_fsteff_xdf(record->do_not_touch.handle) != 0) return FALSE;
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, record->file->path);
         return FALSE;
     }
 
     record->do_not_touch.deleted = 1;
 
     return TRUE;
+}
+
+int32_t fst24_search_and_delete(
+    fst_file* const file,
+    const fst_record* criteria,
+    const fst_query_options* options
+) {
+    fst_query* q = fst24_new_query(file, criteria, options);
+    fst_record r = default_fst_record;
+
+    int nb=0;
+    while (fst24_find_next(q, &r) > 0) {
+        nb+= fst24_delete(&r);
+    }
+
+    fst24_query_free(q);
+
+    return nb;
 }
 
 void print_non_default_options(const fst_query_options* const options) {

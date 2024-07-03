@@ -3,6 +3,7 @@
     1. [RSF Features](#new-features-of-rsf)
     1. [New Interface: `fst24`](#new-interface-fst24)
     1. [Parallel Write](#parallel-write)
+    1. [Thread Safety](#thread-safety)
     1. [Data Types](#data-types)
     1. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
@@ -57,6 +58,14 @@ depending on whether you are using the Fortran or the C interface:
 * In **Fortran**: Search parameters are specified directly (and individually) as function parameters. Any unspecified parameter will be ignored during the search.
 * In **C**: Search parameters are specified as a set, represented by an `fst_record` instance. Any attribute of `fst_record` that is left at its default value will be ignored during the search.
 
+### Writing
+With the new `rsf` backend, a record cannot be re-written as it coule be in `xdf`. The rewite parameter of the fstecr function will mark the record as deleted and write a copy of it, which will increase the file size. In the new fst24 interface, the rewrite parameter that used to be boolean/logical in fst98 is now an integer which take the following values:
+   * `FST_YES` to check if the record already exists and marks it as deleted before writing it again
+   * `FST_NO` to just write the record without checking if it already exists
+   * `FST_SKIP` to check if the record already exists and not write anything if it does
+It is highly recommended to use FST_SKIP to minimize useless IO, or even better, to try just not rewriting records.
+Note also that in `fst24` API, the rewrite option will check **ALL** search metadata, including DATEV,DEET,NPAS and IGs
+
 [Examples are available below](#finding-and-reading-a-record).
 
 ### Correspondance with old interface functions
@@ -77,7 +86,7 @@ There is not a 1-on-1 correspondance between the functions of the two interfaces
 | `fstnbrv`              | [N/A]                       | [N/A]                            |
 | `fstcheck`             | `fst_file % is_valid(path)` | `fst24_is_valid(path)`           |
 | `fstckp`               | `file % flush`              | `fst24_flush(file)`              |
-| `fsteff`               | [Not yet implemented]       | [Not yet implemented]            |
+| `fsteff`               | `record % delete`           | `fst24_delete(record)`           |
 | `fstprm`               | Params are available in derived type | Params are available in struct |
 | `fstlnk`               | `fst24_link`                | `fst24_link`                     |
 | `fstmsq`               | [N/A]                       | [N/A]                            |
@@ -110,6 +119,24 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
     * If a segment is full or too small to hold a record, the segment is closed and committed to disk, and a new one is opened
     * New segments have the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
     * When a segment is committed to the file, any unfilled space in it will also be written to disk. This means the file will take more space on disk than just its data content.
+
+## Thread Safety
+
+The `fst24` interface is entirely threadsafe when accessing RSF files, but has some threading limitations when XDF files are involved.
+
+### What is safe
+
+- Opening several files concurrently
+- Any concurrent access to different files
+- **RSF only**: Any concurrent access to the same file
+    - *Note*: When opening the same file with multiple threads, the same rules as for parallel write must be followed. If the file is
+      open in read-only mode, it will simply be considered as several different files by the API.
+
+### Limitations for XDF files
+
+- When opening the same file concurrently, *it has to be in read-only mode*.
+- Searching a single file cannot be done by multiple threads simultaneously
+
 
 ## Data Types
 
@@ -253,7 +280,6 @@ int main(void)
     }
   
     fst24_close(my_file);
-    free(my_file);
 }
 ```
 </td>
@@ -428,7 +454,6 @@ for (int i = 0; i < num_records; i++) {
 fst24_query_free(my_query);
 
 fst24_close(my_file);
-free(my_file);
 ```
 </td>
 </tr>
@@ -769,14 +794,12 @@ int main(void) {
   my_record.ig3 = 0;
   my_record.ig4 = 0;
   
-  if (fst24_write(my_file, &my_record, 0) <= 0)
+  if (fst24_write(my_file, &my_record, FST_NO) <= 0)
     return -1;
   
   if (fst24_close(my_file) <= 0)
     return -1;
   
-  free(my_file);
-
   return 0;
 }
 ```
@@ -802,7 +825,7 @@ my_record.data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
 my_record.data_bits = 32;
 my_record.pack_bits = 16;
 
-fst24_write(my_file, &my_record, 0);
+fst24_write(my_file, &my_record, FST_NO);
 ```
 
 </td></tr>
@@ -822,14 +845,20 @@ typedef struct fst_query_ fst_query; // Forward declare
 typedef struct {
 
     // 64-bit elements first
+
     const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
-    int64_t dateo;    //!< Origin Date timestamp
-    int64_t datev;    //!< Valid Date timestamp
-
     // 32-bit elements
+
+    //!> Index of this record within its file. This index is permanent, but record data may change if
+    //!> a rewrite occurs. Some of the attributes too. It is not recommended to rewrite records.
+    int32_t file_index;
+
+    int32_t dateo;    //!< Origin Date timestamp
+    int32_t datev;    //!< Valid Date timestamp
+
     int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
     int32_t data_bits; //!< Number of bits per input element
     int32_t pack_bits; //!< Number of stored (compressed) bits per element
@@ -864,6 +893,7 @@ typedef struct {
     int32_t ip1_all;
     int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
     int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+    int32_t stamp_norun; //!< Date contains a run in the first 3 bits that must not be checked (used in older files)
 } fst_query_options;
 
 typedef struct {
@@ -885,6 +915,9 @@ typedef struct {
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file);
 
+//! \return Pointer to the name of the file, if open. NULL otherwise
+const char* fst24_file_name(const fst_file* const file);
+
 //! Test if the given path is a readable FST file
 //! \return TRUE (1) if the file makes sense, FALSE (0) if an error is detected
 int32_t fst24_is_valid(const char* const filePath);
@@ -898,9 +931,8 @@ fst_file* fst24_open(
     const char* const options     //!< A list of options, as a string, with each pair of options separated by a comma or a '+'
 );
 
-//! Close the given standard file
+//! Close the given standard file and free the memory associated with the struct
 //! \todo What happens if closing a linked file?
-//! \todo Shouldn't this function take a fst_file** as argument to be able to set it to null?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file);
 
@@ -916,6 +948,14 @@ int64_t fst24_get_num_records(
     const fst_file* const file    //!< [in] Handle to an open file
 );
 
+//! Retrieve record information at a given index
+//! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
+int32_t fst24_get_record_by_index(
+    const fst_file* const file, //!< [in] File handle
+    const int32_t index,        //!< [in] Record key within its file
+    fst_record* const record    //!< [in,out] Record information
+);
+
 //! Print a summary of the records found in the given file (including any linked files)
 //! \return a negative number if there was an error, TRUE (1) if all was OK
 int32_t fst24_print_summary(
@@ -928,7 +968,7 @@ int32_t fst24_print_summary(
 int32_t fst24_write(
     fst_file* file,     //!< The file where we want to write
     fst_record* record, //!< The record we want to write
-    const int rewrite   //!< Whether we want to overwrite the existing record
+    const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
 );
 
 //! Search a file with given criteria and read the first record that matches these criteria.
@@ -1059,23 +1099,27 @@ int32_t fst24_delete(
 );
 
 //! Copy the legacy metadata and extended metadata
-//!   FST24_META_ALL  : All meta data
-//!   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
-//!   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
-//!   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
-//!   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
-//!   FST24_META_EXT  : Extended metadata
+//!   FST_META_ALL  : All meta data
+//!   FST_META_TIME : Time related metadata (dateo,datev,deet,npas)
+//!   FST_META_GRID : Grid related metadata (grtyp,ig1-4)
+//!   FST_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+//!   FST_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+//!   FST_META_EXT  : Extended metadata
 //! \return 1 if the given two records have the same parameters (*except their pointers and handles*),
 //!         0 otherwise
 int32_t fst24_record_copy_metadata(
      fst_record* a,            //!< Destination record
      const fst_record* b,      //!< Source record
-     int what                  //!< select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
+     int what                  //!< select which part of the metadata to copy (default: FST_META_ALL) thay can be combined with + (ie: FST_META_TIME+FST_META_INFO)
 );
 
 //! \return 1 if the given two records have the same metadata
 //!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b);
+
+//! Check if two fst_record structs point to the exact same record, in the same file
+//! \return TRUE (1) if they are the same, FALSE (0) if not or if they do not point to any specific record in a file
+static inline int32_t fst24_record_is_same(const fst_record* const a, const fst_record* const b);
 
 //! Print every difference between the attributes of the given 2 fst_struct
 void fst24_record_diff(const fst_record* a, const fst_record* b);
@@ -1094,6 +1138,7 @@ contains
     procedure, pass   :: close
     procedure, pass   :: get_num_records
     procedure, pass   :: get_unit
+    procedure, pass   :: get_name
 
     procedure, pass :: new_query
     procedure, pass :: read
@@ -1130,8 +1175,10 @@ type, public :: fst_record
     type(C_PTR) :: data     = C_NULL_PTR    !< Pointer to the data
     type(C_PTR) :: metadata = C_NULL_PTR    !< Pointer to the metadata
 
-    integer(C_INT64_T) :: dateo    = -1 !< Origin Date timestamp
-    integer(C_INT64_T) :: datev    = -1 !< Valid Date timestamp
+    integer(C_INT32_T) :: file_index = -1   !< Permanent index of record within its file
+
+    integer(C_INT32_T) :: dateo    = -1 !< Origin Date timestamp
+    integer(C_INT32_T) :: datev    = -1 !< Valid Date timestamp
 
     integer(C_INT32_T) :: data_type = -1    !< Data type of elements
     integer(C_INT32_T) :: data_bits = -1    !< Number of bits per elements
@@ -1160,6 +1207,7 @@ contains
     procedure, pass :: allocate 
     procedure, pass :: free
     procedure, pass :: has_same_info
+    procedure, pass :: is_same
     procedure, pass :: read
     procedure, pass :: read_metadata
     procedure, pass :: delete
@@ -1190,6 +1238,13 @@ function is_open(this) result(is_open)
     logical :: is_open !< Whether this file is open
 end function is_open
 
+!> Return Name of the file if open, an empty string otherwise
+function fst24_file_get_name(this) result(name)
+    implicit none
+    class(fst_file), intent(in) :: this
+    character(len=:), pointer :: name
+end function get_name
+
 !> Open a standard file (FST). Will create it if it does not already exist
 function open(this, filename, options) result(could_open)
     class(fst_file),intent(inout)        :: this     !< fst_file instance. Must not be an already-open file
@@ -1213,6 +1268,16 @@ function get_num_records(this) result(num_records)
     integer(C_INT64_T) :: num_records
 end function get_num_records
 
+!> Retrieve record information at a given index
+!> Return .true. if we got the record, .false. if error
+function get_record_by_index(this, index, record) result(success)
+    implicit none
+    class(fst_file), intent(in) :: this
+    integer(C_INT32_T) :: index
+    type(fst_record), intent(inout) :: record
+    logical :: success
+end function get_record_by_index
+
 !> Get unit of the file if open, 0 otherwise
 function get_unit(this) result(status)
     implicit none
@@ -1222,20 +1287,22 @@ end function get_unit
 
 !> Create a search query that will apply the given criteria during a search in a file.
 !> Return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
-function new_query(this,                                                                                        & 
+function new_query(this,                                                                             & 
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
-        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata) result(query)
+        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+        ip1_all, ip2_all, ip3_all,stamp_norun) result(query)
     implicit none
     class(fst_file), intent(inout) :: this
-    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
     character(len=1),  intent(in), optional :: grtyp
     character(len=4),  intent(in), optional :: nomvar
     character(len=12), intent(in), optional :: etiket
+    logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
     type(meta), intent(in), optional :: metadata
-    logical,    intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     type(fst_query) :: query
 end function new_query
 
@@ -1245,7 +1312,7 @@ end function new_query
 function read(this, record, data,                                                                               &
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-        ip1_all, ip2_all, ip3_all) result(found)
+        ip1_all, ip2_all, ip3_all,stamp_norun) result(found)
     implicit none
     class(fst_file), intent(inout) :: this
     type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -1254,7 +1321,7 @@ function read(this, record, data,                                               
     !> `data` attribute of the record being read.
     type(C_PTR), intent(in), optional :: data
 
-    integer(C_INT64_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=2),  intent(in), optional :: typvar
@@ -1262,6 +1329,7 @@ function read(this, record, data,                                               
     character(len=4),  intent(in), optional :: nomvar
     character(len=12), intent(in), optional :: etiket
     logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
     type(meta), intent(in), optional :: metadata
     logical :: found
 end function read
@@ -1272,7 +1340,7 @@ function write(this, record, rewrite) result(success)
     implicit none
     class(fst_file),  intent(inout) :: this     !< File where we want to write
     type(fst_record), intent(inout) :: record   !< Record we want to write
-    logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
+    integer, intent(in), optional   :: rewrite  !< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record (default NO)
     logical :: success
 end function write
 
@@ -1449,6 +1517,16 @@ function has_same_info(this, other) result(has_same_info)
     logical :: has_same_info
 end function has_same_info
 
+!> Determine whether another record points to the same as this one (same record in same file)
+!> \return Whether the two instances point to the exact same record. .false. if one (or both) of them
+!> does not point to a particular record
+pure function fst24_record_is_same(this, other) result(is_same)
+    implicit none
+    class(fst_record), intent(in) :: this   !< fst_record instance
+    type(fst_record), intent(in) :: other   !< fst_record to which we are comparing this
+    logical :: is_same
+end function is_same
+
 !> Read the data and metadata of a given record from its corresponding file
 !> Return Whether we were able to do the reading
 function read(this,data) result(success)
@@ -1470,13 +1548,13 @@ function read_metadata(this) result(success)
     logical :: success
 end function read_metadata
 
-!> Copy the legacy metadata and extended metadata. The what parameter allows to select which part of the metadata to copy (default: FST24_META_ALL) thay can be combined with + (ie: FST24_META_TIME+FST24_META_INFO)
-!>   FST24_META_ALL  : All meta data
-!>   FST24_META_TIME : Time related metadata (dateo,datev,deet,npas)
-!>   FST24_META_GRID : Grid related metadata (grtyp,ig1-4)
-!>   FST24_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
-!>   FST24_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
-!>   FST24_META_EXT  : Extended metadata
+!> Copy the legacy metadata and extended metadata. The what parameter allows to select which part of the metadata to copy (default: FST_META_ALL) thay can be combined with + (ie: FST_META_TIME+FST_META_INFO)
+!>   FST_META_ALL  : All meta data
+!>   FST_META_TIME : Time related metadata (dateo,datev,deet,npas)
+!>   FST_META_GRID : Grid related metadata (grtyp,ig1-4)
+!>   FST_META_INFO : Variable metadata (nomvar,typvar,etiket,ip1-3)
+!>   FST_META_SIZE : Data type and size related metadata (data_type,data_bits,pack_bits,ni,nj,nk)
+!>   FST_META_EXT  : Extended metadata
 !> Return .true. if we were able to copy the metadata, .false. otherwise
 function copy_metadata(this,record,what) result(success)
     implicit none

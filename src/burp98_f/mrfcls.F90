@@ -51,5 +51,5 @@ INTEGER FUNCTION mrfcls( iun )
     END IF
 
     write(app_msg, *) 'MRFCLS: Unite ', iun, ' fichier rapport est ferme'
-    call lib_log(app_libfst, app_info, app_msg)
+    call lib_log(app_libfst, app_trivial, app_msg)
 END

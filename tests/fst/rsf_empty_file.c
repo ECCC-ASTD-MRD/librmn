@@ -9,7 +9,6 @@ int main(void) {
 
     fst_file* f = fst24_open(filename, "RSF+R/W");
     fst24_close(f);
-    free(f);
 
     f = fst24_open(filename, NULL);
     if (f == NULL) {

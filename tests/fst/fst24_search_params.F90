@@ -160,7 +160,7 @@ subroutine run_test(is_rsf)
     ! end if
 
     ! Search by valid date
-    success = test_file % read(rec, datev = 458025201_int64)
+    success = test_file % read(rec, datev = 458025201)
     if (.not. success .or. .not. rec % has_same_info(record2)) then
         call App_Log(APP_ERROR, 'datev search failed')
         call rec % print_short(print_header = .true.)

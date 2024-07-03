@@ -145,11 +145,11 @@
 
       IF(INDEX(MODE,'CREATE') .NE. 0) THEN
          write(app_msg,300) IUN
-         call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
+         call Lib_Log(APP_LIBFST,APP_TRIVIAL,app_msg)       
       ENDIF
  
       write(app_msg,400) IUN
-      call Lib_Log(APP_LIBFST,APP_INFO,app_msg)       
+      call Lib_Log(APP_LIBFST,APP_TRIVIAL,app_msg)       
 
       MRFOPN = NOMBRE
         

@@ -5,6 +5,7 @@
 #include "fst98_internal.h"
 #include "fst24_file_internal.h"
 #include "fst24_record_internal.h"
+#include "primitives/fnom_internal.h"
 
 static inline size_t strlen_up_to(const char* string, const size_t max_length) {
     return Min(strlen(string), Max(max_length, 0));
@@ -18,7 +19,7 @@ int32_t is_rsf(
     //! [out] (Optional) The index given to this file by fnom
     int32_t* out_index_fnom
 ) {
-    const int index_fnom = fnom_index(iun);
+    const int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return(ERR_NO_FNOM);
@@ -155,6 +156,8 @@ int c_fstouv_rsf(
     const int32_t parallel_segment_size_mb
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
+    c_waclos2(FGFDT[index_fnom].iun); // Because fnom always opens a wafile...
+
     const int32_t meta_dim = (sizeof(search_metadata) + 3)/ sizeof(int32_t); // In 32-bit units
     int64_t segment_size = 0;
     if (parallel_segment_size_mb > 0) {
@@ -244,7 +247,7 @@ int c_fstinfx_rsf(
     }
 
     // Initialize search parameters
-    fst_query* query = &fstd_open_files[index_fnom].query;
+    fst_query* query = &fst98_open_files[index_fnom].query;
     query->search_index = 0;
     query->search_done = 0;
     stdf_dir_keys *search_criteria = &(query->criteria.fst98_meta);
@@ -256,13 +259,13 @@ int c_fstinfx_rsf(
     if (ip2s_flag) query->options.ip2_all = 1;
     if (ip3s_flag) query->options.ip3_all = 1;
 
-    make_search_criteria(&criteria, &fstd_open_files[index_fnom].query);
+    make_search_criteria(&criteria, &fst98_open_files[index_fnom].query);
 
     // Perform the search itself
     int64_t rsf_key = -1;
     if (handle == -2) {
         /* means handle not specified */
-        rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
+        rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
     } else {
         // Verify that the given handle (record key) belongs to the given file
         if (handle > 0) {
@@ -273,7 +276,7 @@ int c_fstinfx_rsf(
             }
         }
 
-        rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
+        rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
     }
     int32_t lhandle = RSF_Key32(rsf_key);
 
@@ -307,7 +310,7 @@ int c_fstinfx_rsf(
                 }
             }
             if (nomatch) {
-                rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
+                rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
                 lhandle = RSF_Key32(rsf_key);
                 if (rsf_key >= 0) {
                     record_info = RSF_Get_record_info(file_handle, rsf_key);
@@ -609,7 +612,7 @@ int c_fstlis_rsf(
     }
 
     /* Get the next record that matches the last search criterias */
-    const int64_t rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
+    const int64_t rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
 
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
@@ -655,7 +658,7 @@ int c_fstmsq_rsf(
         return ERR_NO_FILE;
     }
 
-    stdf_dir_keys* search_mask = &fstd_open_files[index_fnom].query.background_mask.fst98_meta;
+    stdf_dir_keys* search_mask = &fst98_open_files[index_fnom].query.background_mask.fst98_meta;
 
     if (getmode == 0) {
         search_mask->ip1 = ~(*mip1) & 0xfffffff;
@@ -858,7 +861,7 @@ int c_fstsui_rsf(
     }
 
     /* position to the next record that matches the last search criterias */
-    const int64_t rsf_key = find_next_rsf(file_handle, &fstd_open_files[index_fnom].query);
+    const int64_t rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
     if (rsf_key < 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
         return (int32_t)rsf_key;
@@ -889,7 +892,8 @@ int c_fstvoi_rsf(
     int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
     int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
     int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
-    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_num_erasures,        //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_erased_size          //!< [in,out] Accumulate size of erased records (for linked files)
 ) {
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
@@ -898,16 +902,31 @@ int c_fstvoi_rsf(
         return ERR_NO_FILE;
     }
 
-    const uint32_t num_records = RSF_Get_num_records(file_handle);
     size_t single_file_size = 0;
+    int64_t num_records = 0;
     
-    for (unsigned int i = 0; i < num_records; i++) {
-        const RSF_record_info info = RSF_Get_record_info_by_index(file_handle, i);
+    // Initialize search parameters
+    fst_record criteria = default_fst_record;
+    fst_query* query = &fst98_open_files[index_fnom].query;
+    query->search_index = 0;
+    query->search_done = 0;
+    stdf_dir_keys *search_criteria = &(query->criteria.fst98_meta);
+    stdf_dir_keys *search_mask     = &(query->mask.fst98_meta);
+
+    query->options = default_query_options;
+
+    make_search_criteria(&criteria, &fst98_open_files[index_fnom].query);
+
+    // Perform the search itself
+    int64_t rsf_key = -1;
+    while ((rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query)) >= 0) {
+        const RSF_record_info info = RSF_Get_record_info(file_handle, rsf_key);
         const stdf_dir_keys* metadata = &((const search_metadata *) info.meta)->fst98_meta;
         single_file_size += info.rl;
         char string[20];
-        sprintf(string, "%5d-", *total_num_valid_records + i);
-        print_std_parms(metadata, string, options, (((*total_num_valid_records + i) % 70) == 0));
+        sprintf(string, "%5ld-", *total_num_valid_records + num_records);
+        print_std_parms(metadata, string, options, (((*total_num_valid_records + num_records) % 70) == 0));
+        num_records++;
     }
 
     *total_num_entries += num_records;
@@ -916,7 +935,8 @@ int c_fstvoi_rsf(
     *total_num_writes += num_records;
 
     if (print_stats) {
-        fprintf(stdout, "\n%d records in RPN standard file (RSF version). Size %ld bytes.\n", num_records, single_file_size);
+        fprintf(stdout, "\n%ld records in RPN standard file (RSF version). Size %ld bytes (%.3f MB).\n",
+                num_records, single_file_size, single_file_size / (1024.f * 1024.f));
     }
 
     return 0;

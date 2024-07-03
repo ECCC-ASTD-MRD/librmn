@@ -68,7 +68,8 @@ extern int ip1s_flag;
 extern int ip2s_flag;
 extern int ip3s_flag;
 extern int downgrade_32;
-extern fstd_usage_info fstd_open_files[MAXFILES];
+extern fstd_usage_info* fst98_open_files;
+extern int MAX_FST98_FILES;
 
 static inline uint32_t stamp_from_date(const int64_t origin_date) {
     uint32_t date32 = origin_date & 0xffffffff;
@@ -86,7 +87,6 @@ void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);
 void memcpy_16_8(int8_t *p8, int16_t *p16, int nb);
 void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb);
 void memcpy_32_16(short *p16, int *p32, int nbits, int nb);
-int fnom_index(const int iun);
 void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const pre, const char * const option,
                      const int header);
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
@@ -105,6 +105,7 @@ int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);
 int c_fsteff_xdf(int handle);
+int32_t c_fstlnk(const int32_t *liste, const int32_t n);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
@@ -137,7 +138,8 @@ int c_fstprm_rsf(RSF_handle file_handle, int handle, int *dateo, int *deet, int 
 int c_fstsui_rsf(int iun, const int index_fnom, int *ni, int *nj, int *nk);
 int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options, const int print_stats,
                  int64_t* const total_num_entries, int64_t* const total_num_valid_records, int64_t* const total_file_size,
-                 int64_t* const total_num_writes, int64_t* const total_num_rewrites, int64_t* const total_num_erasures);
+                 int64_t* const total_num_writes, int64_t* const total_num_rewrites, int64_t* const total_num_erasures,
+                 int64_t* const total_erased_size);
 int32_t c_fstckp_rsf(const int iun, const int index_fnom);
 
 #endif // fst98_internaL_H__

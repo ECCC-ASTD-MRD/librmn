@@ -30,6 +30,7 @@
       
       integer npts, i1, i2, j1, j2
       real zo(npts),px(npts),py(npts)
+      real fa, fa2, fa3, fa4
       real ax(i1:i2),ay(j1:j2),cx(i1:i2,6),cy(j1:j2,6)
       real z(i1:i2,j1:j2)
 !     
@@ -72,12 +73,20 @@
       real(kind = real64) :: a11,a12,a13,a14,a21,a22,a23,a24
       real(kind = real64) :: a31,a32,a33,a34,a41,a42,a43,a44
       real(kind = real64) :: b1,b2,b3,b4,b11,b12,b13,b14
-      real(kind = real64) :: x, y
       real(kind = real64) :: x1,x2,x3,x4,y1,y2,y3,y4
+      real(kind = real64) :: a1,a2,a3,a4,x,y,c1,c2,c3,c4,c5,c6
       real(kind = real64) :: z1,z2,z3,z4
       
 #include "ez_qqqxtrp.cdk"
 
+!     definition des fonctions in-line
+
+
+      fa(a1,a2,a3,a4,x,x1,x2,x3)=a1+(x-x1)*(a2+(x-x2)*(a3+a4*(x-x3)))
+      fa2(c1,a1,a2)=c1*(a2-a1)
+      fa3(c1,c2,c3,a1,a2,a3)=c2*(c3*(a3-a2)-c1*(a2-a1))
+      fa4(c1,c2,c3,c4,c5,c6,a1,a2,a3,a4)=c4*(c5*(c6*(a4-a3)-      c3*(a3-a2)) - c2*(c3*(a3-a2)-c1*(a2-a1)))
+      
       do n=1,npts
          i = min(i2-2,max(i1+1,ifix(px(n))))
          j = min(j2-2,max(j1+1,ifix(py(n))))
@@ -157,6 +166,4 @@
       enddo
       
       return
-      contains
-#include "fa8.cdk"
       end

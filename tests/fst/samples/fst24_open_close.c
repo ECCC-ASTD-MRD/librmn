@@ -14,6 +14,4 @@ int main(void)
     }
   
     if (fst24_close(my_file) != TRUE) return -1;
-
-    free(my_file);
 }

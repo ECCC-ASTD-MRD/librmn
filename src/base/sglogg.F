@@ -90,6 +90,10 @@
       INTEGER IDX(4,4), JDX(4)
 #include "kases.cdk"
 #include "pi.cdk"
+*      DATA ORDINT /3/
+#include "lagrange.cdk"
+*
+#include "cubic.cdk"
 *
       if(mode .eq. 0) then
         ORDINT = 3
@@ -262,7 +266,4 @@
 *
       IF(KASE.EQ.NORTH .AND. SIGN.LT.0) SGLOGG0 = SIGN2*SGLOGG0
       RETURN
-      CONTAINS
-#include "cubic.cdk"
-#include "lagrange.cdk"
       END

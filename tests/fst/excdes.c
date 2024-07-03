@@ -61,7 +61,6 @@ int create_file(const int is_rsf) {
     }
 
     fst24_close(test_file);
-    free(test_file);
 
     return 0;
 }
@@ -153,7 +152,6 @@ int test_excdes(const int is_rsf) {
 
     fst24_query_free(q);
     fst24_close(test_file);
-    free(test_file);
 
     return 0;
 }

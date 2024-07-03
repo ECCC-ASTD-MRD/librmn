@@ -1498,13 +1498,13 @@ json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,
  * @brief  Format an object for output
  * @date   July 2023
  *    @param[in]   Obj           json object
- *
+ *    @param[in]   Format        format (JSON_C_TO_STRING_PLAIN,JSON_C_TO_STRING_PRETTY,JSON_C_TO_STRING_SPACED)
+ * 
  *    @return                    formatted string
 */
-char *Meta_Stringify(json_object *Obj) {
+char *Meta_Stringify(json_object *Obj,int Format) {
 
-   //return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PLAIN));
-   return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PRETTY));
+   return((char*)json_object_to_json_string_ext(Obj,Format));
 }
 
 /**----------------------------------------------------------------------------

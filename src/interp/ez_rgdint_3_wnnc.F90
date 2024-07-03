@@ -17,7 +17,7 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_rgdint_3_w(zo,px,py,npts,z,ni,j1,j2,wrap)
+      subroutine ez_rgdint_3_wnnc(zo,px,py,npts,z,ni,j1,j2,wrap)
 !*******
 !Auteur: Y.Chartier, drpn
 !        Fevrier 1991
@@ -29,9 +29,10 @@
           use rmn_common
       implicit none
 
+
       integer npts, ni, j1, j2, wrap
-      real zo(npts), px(npts), py(npts)
-      real z(ni, j1:j2)
+      real zo(npts),px(npts),py(npts)
+      real z(ni,j1:j2)
 !
 !  npts   : nombre de points a interpoler
 !  i1:i2  : dimension de la grille source selon x
@@ -46,7 +47,7 @@
 !  wrap est est le facteur de "wrap around" dans le cadre d'une grille globale
 !  pour une grille de type 'A' ou 'G', wrap = 2
 !  pour une grille de type 'B', wrap = 1
-!  dans tous les autres cas wrap = 0
+!  dans tous les autres case wrap = 0
 !
 !===========================================
 !
@@ -59,21 +60,21 @@
 !     *   *   *   *
 !
 !===========================================
+
       real(kind = real64) :: y1, y2, y3, y4
       integer             :: n, i, j
       integer             :: imoins1, iplus1, iplus2, limite
-      real(kind = real64) :: dx, dy
 
+#include "ez_qqqxtrp.cdk"
+#include "cubic8.cdk"
 
       limite = ni+2-wrap
 
-!zzzzzz$OMP PARALLEL
-!zzzzzz$OMP DO private(n, i, j, imoins1, iplus1, iplus2, y1, y2, y3, y4)
       do n=1,npts
          i = min(ni-2+wrap,max(1,max(2-wrap,ifix(px(n)))))
          j = min(j2-2,max(j1+1,ifix(py(n))))
 
-         if (wrap.gt.0) then
+         if (wrap.gt.0.and.(i.le.1).or.i.ge.(ni-1)) then
             imoins1 = mod(limite+i-1,limite)
             iplus1  = mod(limite+i+1,limite)
             iplus2  = mod(limite+i+2,limite)
@@ -102,9 +103,7 @@
 
          zo(n)=cubic(y1,y2,y3,y4,dy)
       enddo
-!zzzzzz$OMP END DO
-!zzzzzz$OMP END PARALLEL
+
       return
-      contains
-#include "cubic8.cdk"
       end
+

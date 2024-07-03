@@ -11,12 +11,17 @@ module rmn_fst24
 
     include 'fst24_interface.inc'
 
+    integer(C_INT32_T), parameter, public :: FST_YES   = 1
+    integer(C_INT32_T), parameter, public :: FST_NO    = 0
+    integer(C_INT32_T), parameter, public :: FST_SKIP  = -1
+
     type :: fst_file
         private
         type(C_PTR) :: file_ptr = c_null_ptr ! Pointer to C file control structure
     contains
         procedure, nopass :: is_valid => fst24_file_is_valid    !< \copydoc fst24_file_is_valid
         procedure, pass   :: is_open  => fst24_file_is_open     !< \copydoc fst24_file_is_open
+        procedure, pass   :: get_name => fst24_file_get_name    !< \copydoc fst24_file_get_name
         procedure, pass   :: open     => fst24_file_open        !< \copydoc fst24_file_open
         procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
@@ -24,6 +29,7 @@ module rmn_fst24
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
         procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
+        procedure, pass :: get_record_by_index => fst24_file_get_record_by_index !< \copydoc fst24_file_get_record_by_index
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
 
@@ -56,6 +62,7 @@ module rmn_fst24
         integer(C_INT32_T) :: ip1_all = 0
         integer(C_INT32_T) :: ip2_all = 0
         integer(C_INT32_T) :: ip3_all = 0
+        integer(C_INT32_T) :: stamp_norun = 0
     end type fst_query_options_c
 
 
@@ -88,6 +95,22 @@ contains
         c_is_open = fst24_is_open(this % file_ptr)
         if (c_is_open == 1) is_open = .true.
     end function fst24_file_is_open
+
+    !> \return Name of the file if open, an empty string otherwise
+    function fst24_file_get_name(this) result(name)
+        implicit none
+        class(fst_file), intent(in) :: this
+        character(len=:), pointer :: name
+
+        type(C_PTR) :: c_name
+
+        if (this % is_open()) then
+            c_name = fst24_file_name(this % file_ptr)
+            call c_f_strpointer(c_name, name, 4096)
+        else
+            name = ''
+        end if
+    end function fst24_file_get_name
 
 
     !> \copybrief fst24_open
@@ -123,7 +146,6 @@ contains
         integer(C_INT32_T) :: c_could_close
         could_close = .false.
         c_could_close = fst24_close(this % file_ptr)
-        call libc_free(this % file_ptr)
 
         this % file_ptr = c_null_ptr
         if (c_could_close == 1) could_close = .true.
@@ -154,7 +176,7 @@ contains
     function fst24_file_read(this, record, data,                                                                    &
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-            ip1_all, ip2_all, ip3_all) result(found)
+            ip1_all, ip2_all, ip3_all,stamp_norun) result(found)
         implicit none
         class(fst_file), intent(inout) :: this
         type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -163,7 +185,7 @@ contains
         !> `data` attribute of the record being read.
         type(C_PTR), intent(in), optional :: data
 
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
@@ -171,6 +193,7 @@ contains
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         type(meta), intent(in), optional :: metadata
         logical :: found
 
@@ -182,22 +205,42 @@ contains
 
         query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
                                  ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
-                                 metadata, ip1_all, ip2_all, ip3_all)
+                                 metadata, ip1_all, ip2_all, ip3_all,stamp_norun)
         if (.not. query % is_valid()) return
         found = query % read_next(record)
         call query % free()
 
     end function fst24_file_read
 
+    !> \copybrief fst24_get_record_by_index
+    !> \return .true. if we got the record, .false. if error
+    function fst24_file_get_record_by_index(this, index, record) result(success)
+        implicit none
+        class(fst_file), intent(in) :: this
+        integer(C_INT32_T) :: index
+        type(fst_record), intent(inout) :: record
+        logical :: success
+
+        integer(C_INT32_T) :: c_status
+
+        success = .false.
+
+        c_status = fst24_get_record_by_index(this % file_ptr, index, record % get_c_ptr())
+        if (c_status <= 0) return
+
+        call record % from_c_self()
+        success = .true.
+    end function fst24_file_get_record_by_index
+
     !> \copybrief fst24_new_query
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
     function fst24_file_new_query(this,                                                                             & 
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-            ip1_all, ip2_all, ip3_all) result(query)
+            ip1_all, ip2_all, ip3_all,stamp_norun) result(query)
         implicit none
         class(fst_file), intent(inout) :: this
-        integer(C_INT64_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=2),  intent(in), optional :: typvar
@@ -205,6 +248,7 @@ contains
         character(len=4),  intent(in), optional :: nomvar
         character(len=12), intent(in), optional :: etiket
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         type(meta), intent(in), optional :: metadata
         type(fst_query) :: query
 
@@ -244,6 +288,9 @@ contains
         end if
         if (present(ip3_all)) then
             if (ip3_all) options % ip3_all = 1
+        end if
+        if (present(stamp_norun)) then
+            if (stamp_norun) options % stamp_norun = 1
         end if
 
         query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria), c_loc(options))
@@ -341,24 +388,40 @@ contains
 
     !> \copybrief fst24_write
     !> \return Whether the write was successful
-    function fst24_file_write(this, record, rewrite) result(success)
+    function fst24_file_write(this, record, data, rewrite) result(success)
         implicit none
         class(fst_file),  intent(inout) :: this     !< File where we want to write
         type(fst_record), intent(inout) :: record   !< Record we want to write
-        logical, intent(in), optional   :: rewrite  !< Whether we want to rewrite an existing record (default .false.)
+        integer, intent(in), optional   :: rewrite  !< Whether we want to overwrite YES, skip SKIP or write again NO an existing record (default NO)
         logical :: success
 
+        !> Where to get the data being written (optional). Can also be specified by setting the
+        !> `data` attribute of the record being read.
+        type(C_PTR), intent(in), optional :: data
+     
+        type(C_PTR) :: prev_data
         integer(C_INT32_T) :: c_rewrite, c_status
 
         success = .false.
 
+        if (present(data)) then
+           prev_data = record % data
+           record % data = data
+        endif
+
         call record % make_c_self()
+
         c_rewrite = 0
         if (present(rewrite)) then
-            if (rewrite) c_rewrite = 1
+            c_rewrite = rewrite
         end if
 
         c_status = fst24_write(this % file_ptr, record % get_c_ptr(), c_rewrite)
+
+        if (present(data)) then
+           record % data = prev_data
+           call record % make_c_self()
+        endif
 
         if (c_status > 0) success = .true.
     end function fst24_file_write

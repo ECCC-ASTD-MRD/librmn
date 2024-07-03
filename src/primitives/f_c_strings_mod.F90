@@ -237,10 +237,13 @@ module f_c_strings_mod
         integer, intent(IN) :: nchars
         integer(C_SIZE_T) :: nc
         character(len=:), pointer :: fptr
-
         nc = c_strlen(cstrptr)
         nc = min(nc, int(nchars, kind=C_SIZE_T))
+#if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)
+        call c_f_pointer(cstrptr, fptr, [nc])
+#else
         call c_f_pointer(cstrptr, fptr)
+#endif
         fstrptr => fptr(1:nc)
     end subroutine c_f_strpointer2
 #endif

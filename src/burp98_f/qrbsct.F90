@@ -123,7 +123,7 @@
       IF(LIGNE(51:51) .NE. '*') THEN
          I = I+1
          IF (I .GT. TABDIM) THEN
-           write(app_msg,*) 'QRBSCT: ableau pour la lecture trop petit, consulte un specialiste'
+           write(app_msg,*) 'QRBSCT: Tableau pour la lecture trop petit, consulte un specialiste'
            call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
            QRBSCT = ERBTAB
            RETURN

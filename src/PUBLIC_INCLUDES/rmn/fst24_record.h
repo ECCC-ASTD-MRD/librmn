@@ -15,14 +15,19 @@
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
 
-#define FST24_META_ALL  31 
-#define FST24_META_TIME 1
-#define FST24_META_GRID 2
-#define FST24_META_INFO 4
-#define FST24_META_SIZE 8
-#define FST24_META_EXT  16
-
 #ifndef IN_FORTRAN_CODE
+
+#define FST_META_ALL  256 
+#define FST_META_TIME 1
+#define FST_META_GRID 2
+#define FST_META_INFO 4
+#define FST_META_SIZE 8
+#define FST_META_TYPE 16
+#define FST_META_EXT  32
+
+#define FST_YES   1
+#define FST_NO    0
+#define FST_SKIP -1
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -48,17 +53,24 @@ typedef struct {
         int32_t flags;    //!< Record status flags
         uint16_t num_search_keys;    //!< Number of directory search keys (32 bits)
         uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units)
+        size_t stored_data_size;     //!< Size of the data on disk (32-bit units)
     } do_not_touch;
 
     // 64-bit elements first
+
     const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
-    int64_t dateo;    //!< Origin Date timestamp
-    int64_t datev;    //!< Valid Date timestamp
-
     // 32-bit elements
+
+    //!> Index of this record within its file. This index is permanent, but record data may change if
+    //!> a rewrite occurs. Some of the attributes too. You should not rewrite records.
+    int32_t file_index;
+
+    int32_t dateo;    //!< Origin Date timestamp
+    int32_t datev;    //!< Valid Date timestamp
+
     int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
     int32_t data_bits; //!< Number of bits per input elements
     int32_t pack_bits; //!< Number of stored bits
@@ -79,6 +91,8 @@ typedef struct {
     int32_t ig3;  //!< Third grid descriptor
     int32_t ig4;  //!< Fourth grid descriptor
 
+    int32_t dummy; //!< Make the total size (up to here) a multiple of 64 bits
+
     char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
     char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
     char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
@@ -96,11 +110,16 @@ static const fst_record default_fst_record = (fst_record){
                          .alloc    = 0,
                          .flags    = 0x0,
                          .num_search_keys = 0,
-                         .extended_meta_size = 0,},
+                         .extended_meta_size = 0,
+                         .stored_data_size = 0,
+                        },
 
         .file     = NULL,
         .data     = NULL,
         .metadata = NULL,
+
+        .file_index = -1,
+
         .dateo     = -1,
         .datev     = -1,
 
@@ -123,6 +142,8 @@ static const fst_record default_fst_record = (fst_record){
         .ig2 = -1,
         .ig3 = -1,
         .ig4 = -1,
+
+        .dummy = 0,
 
         .typvar = {' ' , ' ' , '\0', '\0'},
         .grtyp  = {' ' , '\0', '\0', '\0'},
@@ -188,15 +209,18 @@ static inline int64_t fst24_record_data_size(const fst_record* record) {
     return (fst24_record_num_elem(record) * record->data_bits) / 8;
 }
 
-int32_t     fst24_record_is_valid(const fst_record* record);
-int32_t     fst24_record_validate_params(const fst_record* record);
-void        fst24_record_print(const fst_record* record);
-void        fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header, const char* prefix);
-fst_record* fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni, int32_t nj, int32_t nk);
-int32_t     fst24_record_free(fst_record* record);
-int32_t     fst24_record_has_same_info(const fst_record* a, const fst_record* b);
-void        fst24_record_diff(const fst_record* a, const fst_record* b);
-int32_t     fst24_record_copy_metadata(fst_record* a, const fst_record* b,int What);
+int32_t      fst24_record_is_valid(const fst_record* record);
+int32_t      fst24_record_is_descriptor(const fst_record* const record);
+const char** fst24_record_get_descriptors(void);
+int32_t      fst24_record_validate_params(const fst_record* record);
+void         fst24_record_print(const fst_record* record);
+void         fst24_record_print_short(const fst_record* record, const fst_record_fields* fields, const int print_header, const char* prefix);
+fst_record*  fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni, int32_t nj, int32_t nk);
+int32_t      fst24_record_free(fst_record* record);
+int32_t      fst24_record_has_same_info(const fst_record* a, const fst_record* b);
+int32_t      fst24_record_is_same(const fst_record* const a, const fst_record* const b);
+void         fst24_record_diff(const fst_record* a, const fst_record* b);
+int32_t      fst24_record_copy_metadata(fst_record* a, const fst_record* b,int What);
 //! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
@@ -211,12 +235,16 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT32_T) :: flags    = 0
         integer(C_INT16_T) :: num_search_keys = 0
         integer(C_INT16_T) :: extended_meta_size = 0
+        integer(C_SIZE_T)  :: stored_data_size = 0
 
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
-        integer(C_INT64_T) :: dateo    = -1
-        integer(C_INT64_T) :: datev    = -1
+        
+        integer(C_INT32_T) :: file_index = -1
+
+        integer(C_INT32_T) :: dateo    = -1
+        integer(C_INT32_T) :: datev    = -1
 
         integer(C_INT32_T) :: data_type = -1
         integer(C_INT32_T) :: data_bits = -1
@@ -237,6 +265,8 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT32_T) :: ig2   = -1
         integer(C_INT32_T) :: ig3   = -1
         integer(C_INT32_T) :: ig4   = -1
+
+        integer(C_INT32_T) :: dummy = 0
 
         character(len=1), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
         character(len=1), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]

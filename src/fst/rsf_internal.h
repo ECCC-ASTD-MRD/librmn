@@ -5,9 +5,10 @@
 #include <App.h>
 #include "qstdir.h"
 
-static uint8_t RSF_VERSION_COUNT = 0; //!< Version number that increments at every new version
+static const uint8_t RSF_VERSION_COUNT = 0; //!< Version number that increments at every new version
 #define RSF_VERSION_STRING "1.0.0"
-#define RSF_VERSION 10000
+
+static const uint32_t RSF_VERSION = 0x12312300 | RSF_VERSION_COUNT;
 
 int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size) ;
 

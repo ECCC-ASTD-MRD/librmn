@@ -16,6 +16,8 @@ const int DATA_SIZE = 1024;
 float* test_data = NULL;
 fst_record test_record;
 
+const int NUM_RECORDS_PER_FILE = 3;
+
 void make_test_data() {
     if (test_data == NULL) {
         test_data = malloc(DATA_SIZE * DATA_SIZE * sizeof(float));
@@ -63,7 +65,7 @@ void make_test_record() {
     test_record.ig4   = 0;
     test_record.data_type = FST_TYPE_REAL_IEEE;
     test_record.data_bits = 32;
-    test_record.metadata = Meta_NewObject(META_TYPE_FILE, NULL);
+    test_record.metadata = Meta_NewObject();
 }
 
 int check_content(const float* content, const float* expected, const int num_elem) {
@@ -95,25 +97,25 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         record.ip2 = ip2;
         record.ip3 = ip3;
 
-        if (fst24_write(new_file, &record, FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record (1) to new file %s\n", name);
-            return -1;
+        for (int i = 0; i < NUM_RECORDS_PER_FILE; i++) {
+            if (fst24_write(new_file, &record, FALSE) < 0) {
+                App_Log(APP_ERROR, "Unable to write record (1) to new file %s\n", name);
+                return -1;
+            }
+
+            if (fst24_flush(new_file) < 0) {
+                App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
+                return -1;
+            }
+
+            record.ip1++;
         }
 
-        if (fst24_flush(new_file) < 0) {
-            App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
-            return -1;
-        }
-
-        record.ip1++;
-        if (fst24_write(new_file, &record, FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record (2) to new file %s\n", name);
-            return -1;
-        }
-
-        record.ip1++;
-        if (fst24_write(new_file, &record, FALSE) < 0) {
-            App_Log(APP_ERROR, "Unable to write record (3) to new file %s\n", name);
+        // Try something that should fail
+        record.data = NULL;
+        App_Log(APP_INFO, "Expecting next call to fail\n");
+        if (fst24_write(new_file, &record, FALSE) == TRUE) {
+            App_Log(APP_ERROR, "Should not be able to write a record when there's no data in it\n");
             return -1;
         }
     }
@@ -124,8 +126,6 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         App_Log(APP_ERROR, "Unable to close new file %s\n", name);
         return -1;
     }
-
-    free(new_file);
 
     const int32_t type = c_wkoffit(name, strlen(name));
     if ((type == WKF_STDRSF && is_rsf) || (type == WKF_RANDOM98 && !is_rsf)) {
@@ -158,6 +158,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(test_file));
+
     {
         const int64_t num_rec = fst24_get_num_records(test_file);
         if (num_rec != 3) {
@@ -181,13 +183,34 @@ int test_fst24_interface(const int is_rsf) {
 
     fst_record record = default_fst_record;
     fst_record expected = test_record;
+    fst_record record_by_index = default_fst_record;
 
     ///////////////////////////////////////////////
     // Find next + read
     int num_found = 0;
     fst_query* query = fst24_new_query(test_file, NULL, NULL); // Match with everything, with default options
-    while (fst24_find_next(query, &record)) {
+    while (fst24_find_next(query, &record) > 0) {
         // fst24_record_print(&record);
+
+        if (record.file_index != num_found) {
+            App_Log(APP_ERROR, "Index (%d) seems to be wrong (should be %d)\n", record.file_index, num_found);
+            return -1;
+        }
+
+        // Check if we can retrieve the same record using its index
+        if (!fst24_get_record_by_index(test_file, num_found, &record_by_index)) {
+            App_Log(APP_ERROR, "Unable to retrieve record %d by index\n", num_found);
+            return -1;
+        }
+
+        if (!fst24_record_has_same_info(&record, &record_by_index)) {
+            App_Log(APP_ERROR, "Record retrieved by file key (%d) is not the same!\n", num_found);
+                fst24_record_print(&record);
+                fst24_record_print(&record_by_index);
+                fst24_record_diff(&record, &record_by_index);
+            return -1;
+        }
+
         num_found++;
 
         expected.ip1 = num_found;
@@ -308,18 +331,36 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    //////////////////
+    // is_same
+    {
+        query = fst24_new_query(test_file, NULL, NULL);
+        fst24_find_next(query, &record);
+        fst_record other = default_fst_record;
+
+        if (fst24_record_is_same(&record, &other)) {
+            App_Log(APP_ERROR, "Records should not be the same (1)!\n");
+            fst24_record_diff(&record, &other);
+            return -1;
+        }
+
+        fst24_rewind_search(query);
+        fst24_find_next(query, &other);
+        if (!fst24_record_is_same(&record, &other)) {
+            App_Log(APP_ERROR, "Records should be the same!\n");
+            return -1;
+        }
+
+        fst24_query_free(query);
+    }
+
     /////////////////////////////////////////
     // Everything again, with linked files
     fst_file* file_list[3];
     file_list[0] = test_file;
 
-    const int status1 = create_file(test_file_names[1], !is_rsf, test_record.ip2 + 1, test_record.ip3 + 1);
-    const int status2 = create_file(test_file_names[2], is_rsf, test_record.ip2 + 2, test_record.ip3 + 1);
-
-    if (status1 < 0 || status2 < 0) {
-        App_Log(APP_ERROR, "Unable to create other files for link tests\n");
-        return -1;
-    }
+    if (create_file(test_file_names[1], !is_rsf, test_record.ip2 + 1, test_record.ip3 + 1) < 0) return -1;
+    if (create_file(test_file_names[2], is_rsf, test_record.ip2 + 2, test_record.ip3 + 1) < 0) return -1;
 
     file_list[1] = fst24_open(test_file_names[1], options2);
     file_list[2] = fst24_open(test_file_names[2], options2);
@@ -328,6 +369,9 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Unable to open other files for link tests\n");
         return -1;
     }
+
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(file_list[1]));
+    App_Log(APP_INFO, "Opened file %s\n", fst24_file_name(file_list[2]));
 
     if (!fst24_link(file_list, 1)) {
         App_Log(APP_ERROR, "Should succeed linking only 1 file\n");
@@ -366,7 +410,7 @@ int test_fst24_interface(const int is_rsf) {
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 3 records (should be in second file)\n");
-        while (fst24_find_next(query, &result)) {
+        while (fst24_find_next(query, &result) > 0) {
             num_found++;
 
             expected.ip1 = num_found;
@@ -407,7 +451,7 @@ int test_fst24_interface(const int is_rsf) {
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 6 records (should be in second + third files)\n");
-        while (fst24_find_next(query, &result)) {
+        while (fst24_find_next(query, &result) > 0) {
             num_found++;
             if (fst24_read_record(&result) <= 0) {
                 App_Log(APP_ERROR, "Unable to read record from linked files\n");
@@ -468,7 +512,7 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_find_next(query, &record)) {
+    if (fst24_find_next(query, &record) > 0) {
         App_Log(APP_ERROR, "Should not be able to search a closed file\n");
         return -1;
     }
@@ -492,10 +536,6 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Should not be able to get num records of closed file\n");
         return -1;
     }
-
-    free(test_file); test_file = NULL;
-    free(file_list[1]); file_list[1] = NULL;
-    free(file_list[2]); file_list[2] = NULL;
 
     fst24_record_free(&record);
     fst24_query_free(query);

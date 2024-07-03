@@ -16,6 +16,14 @@ module rmn_fst24_record
     public :: fst_record_fields, fst_record_c
     public :: fst24_is_default_record_valid, fst24_make_fields, fst24_make_fields_from_string
 
+    integer(C_INT32_T), parameter, public :: FST_META_ALL            = 256
+    integer(C_INT32_T), parameter, public :: FST_META_TIME           = 1
+    integer(C_INT32_T), parameter, public :: FST_META_GRID           = 2
+    integer(C_INT32_T), parameter, public :: FST_META_INFO           = 4
+    integer(C_INT32_T), parameter, public :: FST_META_SIZE           = 8
+    integer(C_INT32_T), parameter, public :: FST_META_TYPE           = 16
+    integer(C_INT32_T), parameter, public :: FST_META_EXT            = 32
+
     integer(C_INT32_T), parameter, public :: FST_TYPE_BINARY         = 0
     integer(C_INT32_T), parameter, public :: FST_TYPE_REAL_OLD_QUANT = 1
     integer(C_INT32_T), parameter, public :: FST_TYPE_UNSIGNED       = 2
@@ -52,8 +60,10 @@ module rmn_fst24_record
         type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
         type(meta)  :: metadata               !< Metadata object
 
-        integer(C_INT64_T) :: dateo    = -1   !< Origin Date timestamp
-        integer(C_INT64_T) :: datev    = -1   !< Valid Date timestamp
+        integer(C_INT32_T) :: file_index = -1   !< Permanent index of record within its file
+
+        integer(C_INT32_T) :: dateo    = -1   !< Origin Date timestamp
+        integer(C_INT32_T) :: datev    = -1   !< Valid Date timestamp
 
         integer(C_INT32_T) :: data_type = -1    !< Data type of elements
         integer(C_INT32_T) :: data_bits = -1    !< Number of bits per element (uncompressed)
@@ -87,6 +97,8 @@ module rmn_fst24_record
         procedure, pass :: allocate => fst24_record_allocate                 !< \copydoc fst24_record_new
         procedure, pass :: free => fst24_record_free                    !< \copydoc fst24_record_free
         procedure, pass :: has_same_info => fst24_record_has_same_info  !< \copydoc fst24_record_has_same_info
+        procedure, pass :: is_same       => fst24_record_is_same        !< \copydoc fst24_record_is_same
+        procedure, pass :: is_descriptor => fst24_record_is_descriptor  !< \copydoc fst24_file_is_descriptor
         procedure, pass :: read          => fst24_record_read           !< \copydoc fst24_record_read
         procedure, pass :: read_metadata => fst24_record_read_metadata  !< \copydoc fst24_record_read_metadata
 !        procedure, pass :: get_metadata => fst24_record_get_metadata    !< \copydoc fst24_record_get_metadata
@@ -158,6 +170,34 @@ module rmn_fst24_record
 contains
 #include "rmn/rmn_fst24_record_get_data_array.hf"
 
+    !> Determine whether another record points to the same as this one (same record in same file)
+    !> \return Whether the two instances point to the exact same record. .false. if one (or both) of them
+    !> does not point to a particular record
+    pure function fst24_record_is_same(this, other) result(is_same)
+        implicit none
+        class(fst_record), intent(in) :: this   !< fst_record instance
+        type(fst_record), intent(in) :: other   !< fst_record to which we are comparing this
+        logical :: is_same
+
+        integer(C_INT32_T) :: c_status
+
+        c_status = fst24_record_is_same_c(this % get_c_ptr(), other % get_c_ptr())
+        is_same = (c_status == 1)
+    end function fst24_record_is_same
+
+    !> Check if an fst_record is a field/reference descriptor
+    !> \return TRUE (1) if it is, FALSE (0) otherwise
+    pure function fst24_record_is_descriptor(this) result(is_same)
+        implicit none
+        class(fst_record), intent(in) :: this   !< fst_record instance
+        logical :: is_same
+
+        integer(C_INT32_T) :: c_status
+
+        c_status = fst24_record_is_descriptor_c(this % get_c_ptr())
+        is_same = (c_status == 1)
+    end function fst24_record_is_descriptor
+
     !> Update c_self with current values from this
     subroutine fst24_record_make_c_self(this)
         implicit none
@@ -165,6 +205,8 @@ contains
 
         this % c_self % data     = this % data
         this % c_self % metadata = this % metadata % json_obj
+
+        this % c_self % file_index = this % file_index
 
         this % c_self % dateo = this % dateo
         this % c_self % datev = this % datev
@@ -202,6 +244,8 @@ contains
         this % data     = this % c_self % data
         this % metadata % json_obj = this % c_self % metadata
 
+        this % file_index = this % c_self % file_index
+
         this % dateo = this % c_self % dateo
         this % datev = this % c_self % datev
                             
@@ -231,7 +275,7 @@ contains
     end subroutine fst24_record_from_c_self
 
     !> Retrieve the C_PTR to c_self
-    function fst24_record_get_c_ptr(this) result(ptr)
+    pure function fst24_record_get_c_ptr(this) result(ptr)
         implicit none
         class(fst_record), intent(in), target :: this
         type(C_PTR) :: ptr
@@ -333,7 +377,7 @@ contains
 
         integer(C_INT32_T) :: c_result, what_c
 
-        what_c=FST24_META_ALL
+        what_c=FST_META_ALL
         if (present(what)) then
             what_c=what
         end if

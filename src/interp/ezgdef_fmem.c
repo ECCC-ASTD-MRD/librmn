@@ -18,22 +18,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
 #include <stdio.h>
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
 
-//! Insert a grid entry into the list of grids managed by ezscint.  Can be used
-//! with regular and irregular ('Y', 'Z') grids, although it is not very useful
-//! for regular grids.
-//!
-//! If the grid type corresponds to a regular grid type (eg. 'A', 'G', 'N', etc.),
-//! then the parameters IG1 through IG4 are taken from an ordinary data record
-//! and grref, ax and ay are not used.
-//!
-//! If grtyp == 'Z' or '#', the dimensions of ax=ni and ay=nj.
-//! If grtyp == 'Y', the dimensions of ax=ay=ni*nj. 
+//! Insert a grid entry into the list of grids managed by ezscint.
 int32_t c_ezgdef_fmem(
     //! [in] Dimension of the grid along the x axis
     const int32_t ni,
@@ -56,6 +49,15 @@ int32_t c_ezgdef_fmem(
     //! [in] Positional axis mapped to the '^^' record
     const float * const ay
 ) {
+    //! Can be used with regular and irregular ('Y', 'Z') grids, although it is not very useful for regular grids.
+
+    //! If the grid type corresponds to a regular grid type (eg. 'A', 'G', 'N', etc.),
+    //! then the parameters IG1 through IG4 are taken from an ordinary data record
+    //! and grref, ax and ay are not used.
+
+    //! If grtyp == 'Z' or '#', the dimensions of ax=ni and ay=nj.
+    //! If grtyp == 'Y', the dimensions of ax = ay = ni * nj.
+
     int32_t gdid;
     if (grtyp[0] == '#' || grtyp[0] == 'Y' || grtyp[0] == 'Z' || grtyp[0] == 'G') {
         gdid = c_ezidentify_irreg_grid(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, ax, ay);
@@ -87,14 +89,26 @@ int32_t c_ezgdef_fmem(
         printf("Grille[%02d].igref[IG4]= %d\n",   gdid, Grille[gdrow_id][gdcol_id].fst.igref[IG4]);
     }
 
+    //! \return Grid identifier token that can be used in later calls to other ezscint functions
     return gdid;
 }
 
 
-int32_t f77name(ezgdef_fmem)(int32_t* ni, int32_t* nj, char* grtyp, char* grref,
-   int32_t* ig1, int32_t* ig2, int32_t* ig3, int32_t* ig4,
-   float* ax, float* ay, F2Cl lengrtyp, F2Cl lengrref)
-{
+//! \copydoc c_ezgdef_fmem
+int32_t f77name(ezgdef_fmem)(
+    int32_t* ni,
+    int32_t* nj,
+    char* grtyp,
+    char* grref,
+    int32_t* ig1,
+    int32_t* ig2,
+    int32_t* ig3,
+    int32_t* ig4,
+    float* ax,
+    float* ay,
+    F2Cl lengrtyp,
+    F2Cl lengrref
+) {
     char lgrtyp[2];
     char lgrref[2];
 

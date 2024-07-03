@@ -17,29 +17,35 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_rgdint_1_nw(zo,px,py,npts,z,ni,j1,j2)
+      subroutine ez_rgdint_1_w(zo,px,py,npts,z,ni,j1,j2,wrap)
           use rmn_common
       implicit none
-
-      integer             :: npts,ni,j1,j2,i,j,n
+      
+      integer             :: npts,ni,j1,j2,wrap,i,j,n,limite,iplus1
       real                :: zo(npts),px(npts),py(npts)
       real                :: z(ni,j1:j2)
-      real(kind = real64) :: dx,dy,y2,y3
+      real(kind = real64) :: dx, dy, y2, y3
 
+#include "zlin8.cdk"
+      
+      limite = ni +2 - wrap
       do n=1,npts
-         i = min(ni-1,max(1,ifix(px(n))))
+         i = min(ni-2+wrap,max(1,ifix(px(n))))
          j = min(j2-1,max(j1,ifix(py(n))))
          
+         iplus1 = i + 1
+         if (wrap.gt.0.and.(i.eq.(ni-2+wrap))) then
+            iplus1  = mod(limite+i+1,limite)
+         endif
+
          dx = px(n) - i
          dy = py(n) - j
          
-         y2=zlin(dble(z(i,j  )),dble(z(i+1,j  )),dx)
-         y3=zlin(dble(z(i,j+1)),dble(z(i+1,j+1)),dx)
+         y2=zlin(dble(z(i,j  )),dble(z(iplus1,j  )),dx)
+         y3=zlin(dble(z(i,j+1)),dble(z(iplus1,j+1)),dx)
          
          zo(n)=zlin(y2,y3,dy)
       enddo
 
       return 
-      contains
-#include "zlin8.cdk"
       end

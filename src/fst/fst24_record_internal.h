@@ -9,7 +9,6 @@
 
 void make_search_criteria(const fst_record* record, fst_query* const query);
 void fill_with_search_meta(fst_record* record, const search_metadata* meta, const fst_file_type type);
-fst_record record_from_search_meta(const search_metadata* meta, const fst_file_type type);
 void print_non_wildcards(const fst_record* const record);
 void print_search_meta(const search_metadata* const meta, const fst_file_type type);
 
