@@ -957,8 +957,8 @@ void print_non_wildcards(const fst_record* const record) {
     char buffer[1024];
     char* ptr = buffer;
 
-    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%ld ", record->dateo);
-    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%ld ", record->datev);
+    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
+    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%d ", record->datev);
     if (record->data_type != default_fst_record.data_type) ptr += snprintf(ptr, 20, "data_type=%d ", record->data_type);
     if (record->data_bits != default_fst_record.data_bits) ptr += snprintf(ptr, 20, "data_bits=%d ", record->data_bits);
     if (record->pack_bits != default_fst_record.pack_bits) ptr += snprintf(ptr, 20, "pack_bits=%d ", record->pack_bits);
