@@ -14,6 +14,8 @@
 #include <regex.h>
 #include <ctype.h>
 
+#include <pthread.h>
+
 #include <App.h>
 #include <rmn/c_wkoffit.h>
 #include <rmn/excdes_new.h>
@@ -21,6 +23,7 @@
 
 #include "fst98_internal.h"
 #include "fstcvt2.h"
+#include "primitives/fnom_internal.h"
 #include <rmn/convert_ip.h>
 #include "xdf98.h"
 
@@ -73,7 +76,10 @@ static regex_t pattern;
 static int turbocomp_mode = 0;
 static char *comptab[2] = {"FAST", "BEST"};
 
-fstd_usage_info fstd_open_files[MAXFILES];
+static pthread_mutex_t fst98_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+fstd_usage_info* fst98_open_files = NULL; //!< Information about all currently open FST files
+int MAX_FST98_FILES = 0; //!< How many FST98 files can be open simultaneously
 
 // Callable from Fortran
 int32_t is_type_real_f(const int32_t type_flag) { return is_type_real(type_flag); }
@@ -171,22 +177,6 @@ static void init_open_file(fstd_usage_info* info) {
     info->query = new_fst_query(NULL);
     info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     info->next_file = -1;
-}
-
-// //! Find position of file iun in file table.
-// //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
-int file_index_xdf(
-    //! [in] Unit number associated to the file
-    const int iun
-) {
-    for (int i = 0; i < MAX_XDF_FILES; i++) {
-        if (file_table[i] != NULL) {
-            if (file_table[i]->iun == iun) {
-                return i;
-            }
-        }
-    }
-    return ERR_NO_FILE;
 }
 
 
@@ -652,20 +642,6 @@ void print_std_parms(
 }
 
 
-//! Find index position in master file table (fnom file table).
-//! \return Index of the provided unit number in the file table or -1 if not found.
-int fnom_index(
-    //! [in] Unit number associated to the file
-    const int iun
-) {
-    for (int i = 0; i < MAXFILES; i++) {
-        if (FGFDT[i].iun == iun) {
-            return i;
-        }
-    }
-    return -1;
-}
-
 //! \copydoc c_fstapp
 //! XDF version
 int c_fstapp_xdf(
@@ -674,7 +650,7 @@ int c_fstapp_xdf(
     //! [in] Kept for backward compatibility, but unused
     char *option
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -773,7 +749,7 @@ int c_fstckp_xdf(
 ) {
     int index, ier;
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -939,7 +915,7 @@ int c_fstecr_xdf(
         packfunc = (PackFunctionPointer) &compact_float;
     }
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -1873,7 +1849,7 @@ int c_fsteof_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2027,7 +2003,7 @@ int c_fstinfx_xdf(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d, IP flags = %d%d%d)\n",
             __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar, handle, ip1s_flag, ip2s_flag, ip3s_flag);
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2231,7 +2207,7 @@ int c_fstinfx(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d, IP all flags %d %d %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file,
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file,
                 ip1s_flag, ip2s_flag, ip3s_flag);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
@@ -2247,7 +2223,7 @@ int c_fstinfx(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -2356,7 +2332,7 @@ int c_fstinl(
     //! [in] List size (maximum number of matches)
     int nmax
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2367,7 +2343,7 @@ int c_fstinl(
     int num_files = 0;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         num_files++;
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
@@ -2382,7 +2358,7 @@ int c_fstinl(
         if (status < 0) return status;
 
         total_found += *infon;
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -2587,7 +2563,7 @@ int c_fstlirx(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstlirx_rsf(field, handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
@@ -2601,7 +2577,7 @@ int c_fstlirx(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -2625,7 +2601,7 @@ int c_fstlis_xdf(
 ) {
     uint32_t *primk = NULL;
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2672,7 +2648,7 @@ int c_fstlis(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstlis_rsf(field, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk);
@@ -2686,7 +2662,7 @@ int c_fstlis(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -3172,7 +3148,7 @@ int c_fstnbr_xdf(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3198,7 +3174,7 @@ int c_fstnbr(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3208,7 +3184,7 @@ int c_fstnbr(
     int total_num_records = 0;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbr_rsf(index_fnom);
         }
@@ -3219,7 +3195,7 @@ int c_fstnbr(
         if (status < 0) return status;
 
         total_num_records += status;
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     return total_num_records;
@@ -3235,7 +3211,7 @@ int c_fstnbrv_xdf(
     int index, index_fnom, nrec;
     file_table_entry *fte;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3259,7 +3235,7 @@ int c_fstnbrv(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3269,7 +3245,7 @@ int c_fstnbrv(
     int total_num_records = 0;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbrv_rsf(index_fnom);
         }
@@ -3280,7 +3256,7 @@ int c_fstnbrv(
         if (status < 0) return status;
 
         total_num_records += status;
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     return total_num_records;
@@ -3489,6 +3465,42 @@ int c_fstcheck(
     }
 }
 
+//! Initialize global fst98 structures and variables.
+//! Uses the fst98 mutex.
+//! \return The maximum number of FST98 files that can be open simultaneously, or 0 if there is an error
+int initialize_fst98() {
+    if (MAX_FST98_FILES > 0) return MAX_FST98_FILES; // fst98 already initialized
+    if (MAX_FNOM_FILES <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has never been called/initialized\n", __func__);
+        return MAX_FNOM_FILES;
+    }
+
+    // --- START critical region ---
+    pthread_mutex_lock(&fst98_mutex);
+
+    if (MAX_FST98_FILES > 0) goto unlock; // Check again after locking, in case someone else was initializing
+
+    fst98_open_files = (fstd_usage_info*) malloc(MAX_FNOM_FILES * sizeof(fstd_usage_info));
+    if (fst98_open_files == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate fst98 open files table (%d files)\n",
+                __func__, MAX_FNOM_FILES);
+        goto unlock;
+    }
+
+    // Obtain options from environment variable
+    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
+    C_requetes_init(requetes_filename, debug_filename);
+    init_ip_vals();
+
+    MAX_FST98_FILES = MAX_FNOM_FILES; // This signals to other threads that the API is initialized
+
+unlock:
+    pthread_mutex_unlock(&fst98_mutex);
+    // --- END critical region ---
+
+    return MAX_FST98_FILES;
+}
+
 //! Opens a RPN standard file
 int c_fstouv(
     //! [in] Unit number associated to the file
@@ -3496,21 +3508,18 @@ int c_fstouv(
     //! [in] Random or sequential access
     char *options
 ) {
-    int ier;
-    static int premiere_fois = 1;
-    if (premiere_fois) {
-        premiere_fois = 0;
-        // printf("DEBUG++ fstouv appel a c_env_var_cracker\n");
-        // Obtain options from environment variable
-        c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
-        C_requetes_init(requetes_filename, debug_filename);
-        ier = init_ip_vals();
-    }
-    int i = fnom_index(iun);
+    // Check fnom index first, because we can't initialize the fst98 library if fnom is not itself initialized
+    int i = get_fnom_index(iun);
     if (i == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
+
+    if (initialize_fst98() <= 0) return -1; // Error message should already be printed
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening iun %d, fnom index %d, with options %s\n", __func__, iun, i, options);
+
+    int ier;
 
     const int strlng = 5;
     char appl[strlng];
@@ -3610,7 +3619,7 @@ int c_fstouv(
         FGFDT[i].attr.write_mode = 0;
     }
 
-    init_open_file(&fstd_open_files[i]);
+    init_open_file(&fst98_open_files[i]);
 
     if (ier < 0) return ier;
     int nrec = c_fstnbr(iun);
@@ -3811,7 +3820,7 @@ int c_fstrwd_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3880,7 +3889,7 @@ int c_fstskp_xdf(
     postfix_seq postfix;
     seq_dir_keys seq_entry;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -4055,7 +4064,7 @@ int c_fstsui(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstsui_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk);
@@ -4069,7 +4078,7 @@ int c_fstsui(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     return status;
@@ -4098,7 +4107,7 @@ int c_fstvoi_xdf(
     int64_t* const total_num_erasures,        //!< [in,out] Accumulate erasure count (for linked files)
     int64_t* const total_erased_size          //!< [in,out] Accumulate size of erased records (for linked files)
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -4131,7 +4140,7 @@ int c_fstvoi_xdf(
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
-                    snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                    snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
                     print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                     nrec++;
                 }
@@ -4240,7 +4249,7 @@ int c_fstvoi_xdf(
                     // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
-                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
                 print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
@@ -4251,7 +4260,7 @@ int c_fstvoi_xdf(
                     continue;
                 }
                 stdf_entry = (stdf_dir_keys *) fte->head_keys;
-                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
                 print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD(header->lng);
@@ -4304,13 +4313,13 @@ int c_fstvoi(
     //! [in] List of fields to print
     const char * const options
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    const int print_single_stats = (fstd_open_files[index_fnom].next_file < 0);
+    const int print_single_stats = (fst98_open_files[index_fnom].next_file < 0);
     int status = -1;
     int num_files = 0;
 
@@ -4324,7 +4333,7 @@ int c_fstvoi(
 
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         num_files++;
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
@@ -4340,7 +4349,7 @@ int c_fstvoi(
 
         if (status < 0) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (!print_single_stats) {
@@ -4370,7 +4379,7 @@ int c_fstweo_xdf(
     file_table_entry *fte;
     xdf_record_header header64;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -5607,7 +5616,7 @@ int32_t c_fstlnk(
     int previous_index = -1;
     first_linked_file = liste[0];
     for (int i = 0; i < n; i++) {
-        const int index_fnom = fnom_index(liste[i]);
+        const int index_fnom = get_fnom_index(liste[i]);
         if (index_fnom == -1) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, liste[i]);
             c_fstunl();
@@ -5615,13 +5624,13 @@ int32_t c_fstlnk(
         }
 
         if (previous_index >= 0) {
-            if (fstd_open_files[previous_index].next_file >= 0) {
+            if (fst98_open_files[previous_index].next_file >= 0) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: file index %d is already linked with another one\n", __func__, previous_index);
                 c_fstunl();
                 return ERR_BAD_LINK;
             }
             Lib_Log(APP_LIBFST, APP_INFO, "%s: linking file %d to %d\n", __func__, index_fnom, previous_index);
-            fstd_open_files[previous_index].next_file = index_fnom;
+            fst98_open_files[previous_index].next_file = index_fnom;
         }
 
         previous_index = index_fnom;
@@ -6069,7 +6078,7 @@ int32_t c_fstunl() {
         return ERR_BAD_LINK;
     }
 
-    const int start_index = fnom_index(first_linked_file);
+    const int start_index = get_fnom_index(first_linked_file);
     if (start_index < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: File to unlink (iun %d) is not connected with fnom\n", __func__, link_list[0]);
         return ERR_NO_FNOM;
@@ -6077,8 +6086,8 @@ int32_t c_fstunl() {
 
     int index = start_index;
     while (index >= 0) {
-        const int next_index = fstd_open_files[index].next_file;
-        fstd_open_files[index].next_file = -1;
+        const int next_index = fst98_open_files[index].next_file;
+        fst98_open_files[index].next_file = -1;
         index = next_index;
     }
 

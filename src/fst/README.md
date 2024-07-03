@@ -3,6 +3,7 @@
     1. [RSF Features](#new-features-of-rsf)
     1. [New Interface: `fst24`](#new-interface-fst24)
     1. [Parallel Write](#parallel-write)
+    1. [Thread Safety](#thread-safety)
     1. [Data Types](#data-types)
     1. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
@@ -85,7 +86,7 @@ There is not a 1-on-1 correspondance between the functions of the two interfaces
 | `fstnbrv`              | [N/A]                       | [N/A]                            |
 | `fstcheck`             | `fst_file % is_valid(path)` | `fst24_is_valid(path)`           |
 | `fstckp`               | `file % flush`              | `fst24_flush(file)`              |
-| `fsteff`               | [Not yet implemented]       | [Not yet implemented]            |
+| `fsteff`               | `record % delete`           | `fst24_delete(record)`           |
 | `fstprm`               | Params are available in derived type | Params are available in struct |
 | `fstlnk`               | `fst24_link`                | `fst24_link`                     |
 | `fstmsq`               | [N/A]                       | [N/A]                            |
@@ -118,6 +119,24 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
     * If a segment is full or too small to hold a record, the segment is closed and committed to disk, and a new one is opened
     * New segments have the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
     * When a segment is committed to the file, any unfilled space in it will also be written to disk. This means the file will take more space on disk than just its data content.
+
+## Thread Safety
+
+The `fst24` interface is entirely threadsafe when accessing RSF files, but has some threading limitations when XDF files are involved.
+
+### What is safe
+
+- Opening several files concurrently
+- Any concurrent access to different files
+- **RSF only**: Any concurrent access to the same file
+    - *Note*: When opening the same file with multiple threads, the same rules as for parallel write must be followed. If the file is
+      open in read-only mode, it will simply be considered as several different files by the API.
+
+### Limitations for XDF files
+
+- When opening the same file concurrently, *it has to be in read-only mode*.
+- Searching a single file cannot be done by multiple threads simultaneously
+
 
 ## Data Types
 

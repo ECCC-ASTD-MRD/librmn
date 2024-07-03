@@ -2,6 +2,8 @@
 #include <float.h>
 #include <math.h>
 
+#include <pthread.h>
+
 #include <App.h>
 #include <str.h>
 
@@ -12,6 +14,8 @@
 #include "rmn/fnom.h"
 #include "rmn/Meta.h"
 #include "xdf98.h"
+
+static pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int64_t fst24_get_num_records_single(const fst_file* file);
 
@@ -85,8 +89,16 @@ fst_file* fst24_open(
              options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
 
-    if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) return NULL;
-    if (c_fstouv(the_file->iun, local_options) < 0) return NULL;
+    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fnom\n", __func__);
+    if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) {
+        free(the_file);
+        return NULL;
+    }
+    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fstouv\n", __func__);
+    if (c_fstouv(the_file->iun, local_options) < 0) {
+        free(the_file);
+        return NULL;
+    }
 
     // Find type of newly-opened file (RSF or XDF)
     int index_fnom;
@@ -100,6 +112,7 @@ fst_file* fst24_open(
     }
     else {
         the_file->type = FST_XDF;
+        // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling file_index_xdf\n", __func__);
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
@@ -210,7 +223,7 @@ int32_t fst24_print_summary(
     for (int64_t tmp_num_records = fst24_get_num_records(file); tmp_num_records > 0; tmp_num_records /= 10) num_digits++;
 
     while (fst24_find_next(query, &rec) == TRUE) {
-        snprintf(prefix, num_digits + 2, "%*d-", num_digits, num_records);
+        snprintf(prefix, num_digits + 2, "%*ld-", num_digits, num_records);
         fst24_record_print_short(&rec, fields, ((num_records % 70) == 0), prefix);
         num_records++;
         total_data_size += fst24_record_data_size(&rec);
@@ -1000,6 +1013,10 @@ int32_t fst24_write(
         strncpy(nomvar, record->nomvar, FST_NOMVAR_LEN);
         strncpy(etiket, record->etiket, FST_ETIKET_LEN);
         strncpy(grtyp, record->grtyp, FST_GTYP_LEN);
+
+        // --- START critical region ---
+        pthread_mutex_lock(&fst24_xdf_mutex);
+
         if (record->data_bits == 8) {
             c_fst_data_length(1);
         }
@@ -1014,6 +1031,9 @@ int32_t fst24_write(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
             typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite==FST_YES);
+
+        pthread_mutex_unlock(&fst24_xdf_mutex);
+        // --- END critical region ---
 
         record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
         record->do_not_touch.extended_meta_size = 0;
@@ -1754,6 +1774,9 @@ int32_t fst24_read_record_xdf(
         if (ier < 0) return ier;
     }
 
+    // --- START critical region ---
+    pthread_mutex_lock(&fst24_xdf_mutex);
+
     if (record->data_bits == 8) {
         c_fst_data_length(1);
     }
@@ -1764,6 +1787,10 @@ int32_t fst24_read_record_xdf(
         c_fst_data_length(8);
     }
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
+
+    pthread_mutex_unlock(&fst24_xdf_mutex);
+    // --- END critical region ---
+
     if (handle != key32) return ERR_NOT_FOUND;
     fill_with_search_meta(record, &meta, FST_XDF);
     record->do_not_touch.num_search_keys = 16;

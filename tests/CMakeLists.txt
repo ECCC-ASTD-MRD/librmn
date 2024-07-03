@@ -223,6 +223,12 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_cross_link COMMAND $<TARGET_FILE:fst_cross_link>)
         add_dependencies(check fst_cross_link)
 
+        if (TARGET rmn::rmn-ompi)
+            add_executable(fnom fnom.c)
+            target_link_libraries(fnom rmn::rmn-ompi)
+            add_test(NAME fnom COMMAND $<TARGET_FILE:fnom>)
+            add_dependencies(check fnom)
+        endif()
 
         # FST samples
         add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)

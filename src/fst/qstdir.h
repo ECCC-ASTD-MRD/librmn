@@ -62,7 +62,6 @@
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
 
-#define MAX_XDF_FILES 1024
 //! Size of a directory pages in an XDF file
 #define ENTRIES_PER_PAGE 256
 //! Maximum of 256K records in a random access XDF file
@@ -874,10 +873,11 @@ typedef struct {
 } buffer_interface;
 typedef buffer_interface* buffer_interface_ptr;
 
-#if defined(XDF_OWNER)
 //! File table, exported symbol
-file_table_entry_ptr file_table[MAX_XDF_FILES];
+extern file_table_entry_ptr* file_table;
+extern int MAX_XDF_FILES;
 
+#if defined(XDF_OWNER)
 //! Stride
 int xdf_stride = 1;
 //! Data size indicator
@@ -949,8 +949,6 @@ key_descriptor stdf_info_keys[] = {
 #endif
 };
 #else
-//! File table , exported symbol
-extern file_table_entry_ptr file_table[MAX_XDF_FILES];
 
 //! !stride
 extern int xdf_stride;

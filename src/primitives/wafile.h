@@ -1,5 +1,4 @@
 #define MAX_NAME     256
-#define MAXWAFILES  1024
 #define MAXPAGES      10
 
 #define new_age_rd(age) (age + 256)

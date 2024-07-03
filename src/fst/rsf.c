@@ -5,11 +5,11 @@
 static pthread_mutex_t rsf_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // =================================  table of pointers to rsf files (slots) =================================
-static pointer *rsf_files = NULL ;         // global table of pointers to rsf files (slot table)
-static int rsf_files_open = 0 ;            // number of rsf files currently open
-static size_t max_rsf_files_open = 1024 ;  // by default no more than 1024 files can be open simultaneously
+static pointer *rsf_files = NULL ;      //!< Global table of pointers to RSF files (slot table)
+static size_t max_rsf_files_open = 0 ;  //!< Size of the list of open RSF files
 
 //! Allocate global table of pointers (slot table) to rsf files if not already done
+//! Uses the RSF global mutex
 //! \return table address if successful, NULL if table cannot be allocated
 static void *RSF_Slot_table_allocate()
 {
@@ -19,9 +19,7 @@ static void *RSF_Slot_table_allocate()
   pthread_mutex_lock(&rsf_global_mutex);
 
   if (rsf_files == NULL) { // Check again after locking
-    struct rlimit rlim ;
-    getrlimit(RLIMIT_NOFILE, &rlim) ;                           // get open files number limit for process
-    if(rlim.rlim_cur > max_rsf_files_open) max_rsf_files_open = rlim.rlim_cur ;
+    max_rsf_files_open = get_max_open_files();
     max_rsf_files_open = (max_rsf_files_open <= 131072) ? max_rsf_files_open : 131072 ; // never more than 128K files
     rsf_files = calloc(sizeof(pointer), max_rsf_files_open);       // allocate zro filled table for max number of allowed files
   }
@@ -32,7 +30,7 @@ static void *RSF_Slot_table_allocate()
   return rsf_files;
 }
 
-//! Find slot matching p in global slot table
+//! Find slot matching p in global slot table. Assumes p points to a (somewhat) valid RSF_File struct
 //! \return slot number if successful, -1 in case of error
 static int32_t RSF_Find_file_slot(
   void *p //!< pointer to RSF_file structure
@@ -41,9 +39,19 @@ static int32_t RSF_Find_file_slot(
   if(rsf_files == NULL) return -1 ;
 
   if(p == NULL) return -1 ;
-  for(int i = 0 ; i < max_rsf_files_open ; i++) {
-    if(rsf_files[i] == p) return i ;  // slot number
+
+  RSF_File* f = (RSF_File*)p;
+  if (f->slot < max_rsf_files_open) {
+    if (rsf_files[f->slot] == p) return f->slot;
   }
+  else {
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: file->slot (%d) is too large to fit in the table (size %d), so we will "
+            "look at each entry one by one (but there is not much hope)\n", __func__, f->slot, max_rsf_files_open);
+    for(int i = 0 ; i < max_rsf_files_open ; i++) {
+      if(rsf_files[i] == p) return i ;  // slot number
+    }
+  }
+
   return -1 ;   // not found
 }
 
@@ -59,7 +67,6 @@ static int32_t RSF_Set_file_slot(
     if(rsf_files[i] == NULL) {
       // Assign number atomically
       if (__sync_val_compare_and_swap(&(rsf_files[i]), NULL, p) == NULL) {
-        rsf_files_open ++ ;     // one more open file
         Lib_Log(APP_LIBFST, APP_EXTRA, "%s: RSF file table slot %d assigned, p = %p\n", __func__, i, p);
         return i ;              // slot number
       }
@@ -68,11 +75,12 @@ static int32_t RSF_Set_file_slot(
   return -1 ;     // pointer not found or table full
 }
 
-//! remove existing pointer p from global slot table
-//! p      pointer to RSF_file structure
-//! return former slot number if successful , -1 if error
-static int32_t RSF_Purge_file_slot(void *p)
-{
+//! Remove existing pointer p from global slot table
+//! *Uses the global RSF mutex*
+//! \return former slot number if successful , -1 if error
+static int32_t RSF_Purge_file_slot(
+  void *p //!< pointer to RSF_file structure
+) {
   int i ;
 
   if(rsf_files == NULL) return -1 ;  // no file table
@@ -83,7 +91,6 @@ static int32_t RSF_Purge_file_slot(void *p)
       pthread_mutex_lock(&rsf_global_mutex);
       if(rsf_files[i] == p) { // Check again
         rsf_files[i] = (void *) NULL ;
-        rsf_files_open-- ;     // one less open file
         Lib_Log(APP_LIBFST, APP_EXTRA, "%s: RSF file table slot %d freed, p = %p\n", __func__, i, p);
       }
       pthread_mutex_unlock(&rsf_global_mutex);
@@ -215,6 +222,13 @@ static uint32_t RSF_Valid_file(RSF_File *fp){
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: file handle is NULL\n", __func__);
     return 0 ;                   // fp is a NULL pointer
   }
+
+  if(fp->version != RSF_VERSION) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Looks like the version token (%d) is wrong (should be %d)."
+            " This pointer does not point to an actual RSF_File struct.\n", __func__, fp->version, RSF_VERSION);
+    return 0;
+  }
+
   if(fp->fd < 0) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid fd < 0 (%d)\n", __func__, fp->fd);
     return 0 ;                   // file is not open, ERROR
@@ -228,7 +242,7 @@ static uint32_t RSF_Valid_file(RSF_File *fp){
   }
   if(fp != rsf_files[fp->slot] ) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent slot data %p %p, slot = %d\n",
-            fp, __func__, rsf_files[fp->slot], fp->slot);
+            __func__, fp, rsf_files[fp->slot], fp->slot);
     return 0 ;                   // inconsistent slot
   }
   return fp->slot + 1;
@@ -1335,14 +1349,7 @@ int64_t RSF_Put_bytes_new(RSF_handle h, RSF_record *record,
 }
 
 //! Write data/meta or record into a file. data size is specified in bytes
-//! record is a pointer to a RSF_record struct. if record is not NULL, data and meta are ignored
-//! meta is a pointer to record metadata
-//! meta[0] is not really part of the record metadata, it is used to pass optional extra record type information
-//! meta[0] is updated by this function, if necessary
-//! meta_size is the size (in 32 bit elements) of the metadata (must be >= file metadata dimension)
-//! data is a pointer to record data (if NULL, a gap will be inserted in the file)
-//! data_bytes is the size (in bytes) of the data portion
-//! element_size is the length in bytes of the data elements (endianness management)
+//! Uses the file's mutex.
 //! if meta is NULL, data is a pointer to a pre allocated record ( RSF_record ), rec_meta and dir_meta are ignored
 //! RSF_Adjust_data_record may have to be called
 //! lower 16 bits of meta_size : length of metadata written to disk
@@ -1353,11 +1360,11 @@ int64_t RSF_Put_bytes(
     RSF_handle h,       //!< [in,out] Handle to the file where to write
     RSF_record *record, //!< [in,out] [Optional] Record to write. If non-NULL, data and meta are ignored.
     uint32_t *meta,     //!< [in,out] [Optional] Pointer to record metadata to write. Ignored if [record] is non-NULL.
-    uint32_t rec_meta,  //!< [in]     [Optional] Size of record metadata. Ignored if [record] is non-NULL.
+    uint32_t rec_meta,  //!< [in]     [Optional] Size of record metadata. Must be >= dir_meta. Ignored if [record] is non-NULL.
     uint32_t dir_meta,  //!< [in]     [Optional] Size of directory metadata. Ignored if [record] is non-NULL.
-    void *data,         //!< [in]     [Optional] Data to write to the file. Ignored if [record] is non-NULL.
+    void *data,         //!< [in]     [Optional] Data to write to the file. If NULL, a gap is inserted. Ignored if [record] is non-NULL.
     size_t data_bytes,  //!< [in]     [Optional] Size (in bytes) of the data to write. Ignored if [record] is non-NULL.
-    int element_size    //!< [in]     [Optional] Size of data elements (in bytes). Ignored if [record] is non-NULL.
+    int element_size    //!< [in]     [Optional] Size of data elements (in bytes). For endianness management. Ignored if [record] is non-NULL.
 ) {
   RSF_File *fp = (RSF_File *) h.p ;
   uint64_t extra ;
@@ -1485,6 +1492,8 @@ int64_t RSF_Put_record(
   return RSF_Put_bytes(h, record, NULL, 0, 0, NULL, data_bytes, 0) ;
 }
 
+//! Mark the given record as "deleted" in its file
+//! Uses the mutex of the corresponding file
 //! \return 1 if success, 0 if not
 int32_t RSF_Delete_record(
   RSF_handle h,
@@ -1989,6 +1998,7 @@ static int32_t RSF_Read_record(
 }
 
 //! Read the content of the specified record from the file. Option to only read metadata
+//! Uses the file's mutex.
 //! The caller is responsible for freeing the allocated space. If providing a preallocated space,
 //! the caller is responsible for making sure it is large enough to read the entire record.
 //! \return a RSF_record_handle if everyting went fine, NULL in case of error
@@ -2113,7 +2123,7 @@ static int32_t RSF_File_lock(RSF_File *fp, int lock){
     while ( status != 0) {
       status = fcntl(fp->fd, F_GETLK, &file_lock) ;  // find which process holds the lock
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %d owned by pid = %d\n", __func__, getpid(), file_lock.l_pid) ;
-      usleep(5000) ;                             // wait 1 millisecond
+      usleep(2000) ;                             // wait 1 millisecond
       status = fcntl(fp->fd, F_SETLK, &file_lock) ;  // try again
     }
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: locked by pid %d\n", __func__, getpid());
@@ -2138,7 +2148,6 @@ static int RSF_Lock_for_write(
 
   // ---------- Lock file ---------- //
   RSF_File_lock(fp, 1) ;
-  usleep(1000) ;
 
   // Go to beginning of file and try reading the first start_of_segment
   start_of_segment first_sos = SOS;
@@ -2237,7 +2246,6 @@ static int32_t RSF_Ensure_new_segment(
 
   // --------- Lock file --------- //
   RSF_File_lock(fp, 1) ;
-  usleep(1000) ;
 
   // Update first SOS from file, if open in sparse mode (other processes may have modified it)
   if (fp->sos0.head.rlm != RSF_EXCLUSIVE_WRITE) {
@@ -2898,7 +2906,6 @@ RESET_WRITE_FLAG:
 
   lseek(fp->fd, offset = 0 , SEEK_SET) ;
   nc = write(fp->fd, &fp->sos0, sizeof(start_of_segment)) ;  // rewrite start of segment 0
-  usleep(10000) ;
   RSF_File_lock(fp, 0) ;
   // --------- Unlock file --------- //
 

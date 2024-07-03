@@ -5,6 +5,7 @@
 
 #include <App.h>
 #include <rmn/burp.h>
+#include "primitives/fnom_internal.h"
 #include "qstdir.h"
 #include "xdf98.h"
 
@@ -1025,7 +1026,7 @@ int c_mrfapp(
     file_table_entry *fte;
     xdf_record_header *header;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
         return(ERR_NO_FNOM);
@@ -1147,7 +1148,7 @@ int c_mrfrwd(
     int index, index_fnom;
     file_table_entry *fte;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
         return(ERR_NO_FNOM);

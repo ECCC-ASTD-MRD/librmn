@@ -6,8 +6,6 @@
 #include "rpnmacros.h"
 #include <rmn/rsf.h>
 
-#define MAXFILES 4096
-
 //! \todo Rename this type to something more specific.  Is it used by client apps?
 typedef struct {
     unsigned int
@@ -27,7 +25,7 @@ typedef struct {
         write_mode:1,
         remote:1,
         volatil:1,
-        padding:17;
+        padding:16;
 } attributs;
 
 
@@ -53,20 +51,21 @@ typedef struct {
     int32_t lrec;
     //! Open/close flag
     int32_t open_flag;
+    //! Slot in the set of wafile entries
+    int32_t wa_slot;
+
     attributs attr;
 } general_file_info;
 
-#if defined(FNOM_OWNER)
 //! Fnom General File Desc Table
-general_file_info FGFDT[MAXFILES];
-#else
-extern general_file_info FGFDT[MAXFILES];
-#endif
-
+extern general_file_info* FGFDT;
+extern int MAX_FNOM_FILES;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+rlim_t get_max_open_files();
 
 int c_fretour(
     const int iun
