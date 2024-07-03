@@ -766,13 +766,13 @@ int32_t f77name(secateur)(
 //! Pack key descriptors into 2 different 32 bit wide elements.
 int c_xdfcle(
     //! [in] Name of the key (max 4 char)
-    char *keyname,
+    const char *keyname,
     //! [in] Last right bit of key in record
-    int bit1,
+    const int bit1,
     //! [in] Key length in bits
-    int lkey,
+    const int lkey,
     //! [in] Type of key (0 : unsigned int, 1..4 : ascii char)
-    int tkey,
+    const int tkey,
     //! [out] First element to contain the keyname
     int *desc1,
     //! [out] Second element to contain the bit position length and type
@@ -783,8 +783,8 @@ int c_xdfcle(
 
     *desc1 = 0; *desc2 = 0;
 
-    for(i=0; (i < 4 && *keyname); i++, *keyname++) {
-        *desc1 = (*desc1 <<8) | (*keyname & 0xff);
+    for(i=0; (i < 4 && keyname[i]); i++) {
+        *desc1 = (*desc1 <<8) | (keyname[i] & 0xff);
     }
 
     while (i++ < 4) {
@@ -915,7 +915,7 @@ int c_xdfcut(
       return(ERR_BAD_ADDR);
    }
 
-   if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
+   if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
       Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
       return(ERR_BAD_DATYP);
    }
@@ -2386,7 +2386,7 @@ int c_xdfrep(
         return(ERR_BAD_ADDR);
     }
 
-    if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
+    if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
         Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
         return(ERR_BAD_DATYP);
     }
@@ -2623,7 +2623,7 @@ int c_xdfupd(
         return(ERR_NO_FILE);
     }
 
-    if ((idtyp < 1) && (idtyp != -1) || (idtyp > 126)) {
+    if (((idtyp < 1) && (idtyp != -1)) || (idtyp > 126)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid idtyp=%d, must be between 1 and 126 or -1\n",__func__,idtyp);
         return(ERR_BAD_DATYP);
     }

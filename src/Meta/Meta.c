@@ -473,21 +473,19 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
       json_pointer_get(Obj,"/long_name",&objval);
       json_object_set_string(objval,var->Long[1]);
    
-//      json_pointer_get(Obj,"/description",&objval);
-//      json_object_set_string(objval,Description);
+      // json_pointer_get(Obj,"/description",&objval);
+      // json_object_set_string(objval,Description);
 
-      if (var->Units) {
-         json_pointer_get(Obj,"/unit",&objval);
+      json_pointer_get(Obj,"/unit",&objval);
 #ifdef HAVE_UDUNITS2
-         if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,var->Units))) {
-            Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,var->Units);
-            return(NULL);
-         } else {
-            json_object_set_string(objval,var->Units);
-         }
-#else
+      if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,var->Units))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,var->Units);
+         return(NULL);
+      } else {
          json_object_set_string(objval,var->Units);
       }
+#else
+      json_object_set_string(objval,var->Units);
 #endif
    }
 
@@ -1710,7 +1708,7 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
             for(int32_t i1=0;i1<l1;i1++) {
                objval1=json_object_array_get_idx(obj1,i1);
                if (json_object_get_type(objval1)==json_type_string) {
-                   if (str1=json_object_get_string(objval1)) {
+                   if ((str1=json_object_get_string(objval1)) != NULL) {
                      if (str1[0]=='\0') {
                         found++;
                         break;
@@ -1736,7 +1734,7 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
                   objval2=json_object_array_get_idx(obj2,i2);
                    
                   if (json_object_get_type(objval2)==json_type_string) {      
-                     if (str2=json_object_get_string(objval2)) {
+                     if ((str2=json_object_get_string(objval2)) != NULL) {
                         if (RegExp) {
                            if (regexec(&re,str2,(size_t)0,NULL,0)==0) {
                               found++;
@@ -2012,7 +2010,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    Rec->typvar[0]='X';
    Rec->typvar[1]=' ';
    Rec->etiket[0]='\0';
-   if (obj=Meta_GetObject(Obj,"/qualifiers")) {
+   if ((obj=Meta_GetObject(Obj,"/qualifiers")) != NULL) {
       for(i=0;i<Meta_ArrayLength(obj);i++) {
 
          c1=Meta_GetObjectString(Meta_ArrayGetObject(obj,i));
@@ -2129,7 +2127,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
       return(FALSE);
    }
 
-   if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
+   if ((rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) != NULL) {
       rec->pack_bits = 1;
       rec->dateo = 0;
       rec->deet  = 0;
