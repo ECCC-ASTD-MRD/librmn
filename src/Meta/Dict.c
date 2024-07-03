@@ -100,7 +100,7 @@ static __thread TDictSearch DictSearch;               // Per thread search param
 static int Dict_ParseVar(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encoding Encoding);
 static int Dict_ParseType(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encoding Encoding);
 
-char* strncpy0(char *restrict Dest,char *restrict Src,size_t Num) {
+static void strncpy0(char *restrict Dest,char *restrict Src,size_t Num) {
    strncpy(Dest,Src,Num-1);
    Dest[Num-1]='\0';
 }
@@ -126,7 +126,7 @@ int Dict_Load(TDict_Encoding Encoding) {
    return(TRUE);
 }
 
-int Dict_Encoding(char *string,TDict_Encoding Encoding) {
+static void Dict_Encoding(char *string,TDict_Encoding Encoding) {
 
    char tmpString[DICT_MAXLEN];
    int  tmplenout, tmplenin;
