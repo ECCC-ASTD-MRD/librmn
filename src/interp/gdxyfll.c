@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n) {
@@ -63,7 +64,7 @@ int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, 
                 lat, tmplons, &npts,
                 &ni_in, &nj_in, &gr.grtyp,
                 &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],
-                &sym, gr.ay);
+                &sym, gr.ay, 1);
             free(tmplons);
             break;
 
@@ -76,7 +77,7 @@ int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, 
                 &ni_in,&nj_in,&gr.grtyp, &gr.grref,
                 &gr.fst.igref[IG1], &gr.fst.igref[IG2],
                 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
-                gr.ax, gr.ay,&coordonnee);
+                gr.ax, gr.ay,&coordonnee, 1, 1);
             if (gr.grtyp[0] == 'G' && gr.fst.ig[IG1] == 1)
                 {
                 for  (j=0; j < npts; j++)
@@ -132,7 +133,7 @@ int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon,
                 lat, tmplons, &npts,
                 &ni_in, &nj_in, &gr.grtyp,
                 &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],
-                &sym, gr.ay);
+                &sym, gr.ay, 1);
             free(tmplons);
             break;
 
@@ -144,7 +145,7 @@ int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon,
                 &ni_in,&nj_in,&gr.grtyp, &gr.grref,
                 &gr.fst.igref[IG1], &gr.fst.igref[IG2],
                 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
-                gr.ax, gr.ay, &coordonnee);
+                gr.ax, gr.ay, &coordonnee, 1, 1);
             if (gr.grtyp[0] == 'G' && gr.fst.ig[IG1] == 1) {
                 for (int32_t j = 0; j < npts; j++) {
                     y[j] = y[j] - nj_in;

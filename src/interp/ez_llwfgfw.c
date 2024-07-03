@@ -21,7 +21,9 @@
 #include <stdlib.h>
 
 #include <rmn/ezscint.h>
+#include "base/base.h"
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 void f77name(ez_llwfgfw)(float *uullout, float *vvllout, float *latin, float *lonin,

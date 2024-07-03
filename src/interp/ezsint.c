@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "base/base.h"
 #include "ez_funcdef.h"
 
 

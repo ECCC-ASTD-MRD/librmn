@@ -23,7 +23,9 @@
 #include <string.h>
 
 #include <rmn/ezscint.h>
+#include "base/base.h"
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 void c_ezdefaxes(int32_t gdid, float *ax, float *ay)

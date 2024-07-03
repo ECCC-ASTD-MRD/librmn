@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 #define BITPOS(i) (i - ((i >> 5) << 5))
 #define GETMSK(fld,i) ((fld[i >> 5]  & (1 << BITPOS(i))) >> BITPOS(i))

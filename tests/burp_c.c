@@ -31,6 +31,9 @@
 
 static int verbose = 0;
 
+int c_mrbtbl(int tablusr[], int nslots, int neleusr);
+int c_mrbrpt(int elem);
+
 int main (int argc, char* argv[])
 {
     int bufa[8000], bufb[5000], bufc[6000], bufd[8000], bufe[20000];
@@ -69,8 +72,8 @@ int main (int argc, char* argv[])
         if (verbose > 0) printf("verbose = %d\n", verbose);
     }
 
-    ier = c_fnom(10,"brpfil1","RND",0);
-    ier = c_fnom(20,"brpfil2","RND",0);
+    ier = c_fnom((int*)10,"brpfil1","RND",0);
+    ier = c_fnom((int*)20,"brpfil2","RND",0);
 
     ptba = bufa; ptbb = bufb; ptbc = bufc; ptbd = bufd;
     pttval = tblval; pttcmp = tblcomp; ptlcmp = lstcomp;

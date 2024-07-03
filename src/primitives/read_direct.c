@@ -191,7 +191,7 @@ static unsigned int Current_Char(){
 }
 
 /* initialize table containing syntactic character types */
-static init_char_table(){
+static void init_char_table(){
 int i;
 
 char_type[0] = 0xFF;

@@ -55,6 +55,8 @@
 
 #include "md5.h"
 
+#include "primitives.h"
+
 /* used by inet_addr, not defined on all architectures!? */
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long) -1)
@@ -80,15 +82,16 @@ static struct sockaddr_in server;
 static socklen_t sizeserver = sizeof server;
 
 
-int signal_timeout( int channel );
 void set_timeout_signal( int channel, int option );
-int get_timeout_signal( int channel );
 
 int connect_with_timeout(const char * const ipaddress, const int portno, const int timeout);
 
 void check_data(char *record, int size);
 
 char *get_link_address(char *path, const char *filename);
+int read_ft_nonblocking_socket(int fd, char *ptr, int n);
+int write_ft_nonblocking_socket(int fd, char *ptr, int n);
+int get_server_alias(char *path, const char *filename, int maxlen);
 
 
 //! \bug When buiding with -DDEBUG, the time_base() function is called, but it's not defined
@@ -1125,7 +1128,7 @@ void put_int32_to_channel(
 
 
 //! Send special message through a network stream socket
-static send_request(
+static int32_t send_request(
     int channel,
     char *request
 ) {
@@ -1148,7 +1151,7 @@ static send_request(
 
 
 //! Get special message from a network stream socket
-static get_request(
+static int32_t get_request(
     int channel,
     char *request
 ) {
@@ -1274,7 +1277,7 @@ int connect_to_channel_by_name_2(
         fprintf(stderr, "md5_ssh FAILED\n");
         return -1;
     }
-    fprintf(stderr, "SSH Digest: %x\n", buffer);
+    fprintf(stderr, "SSH Digest: %lx\n", (intptr_t)buffer);
 
     char buf[PATH_MAX];
     snprintf(buf, PATH_MAX - 1, "%s %d %d %u:%s:%s", "LOGIN", getuid(), getpid(), Bauth_token, host_name, msg);

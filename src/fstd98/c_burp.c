@@ -26,8 +26,7 @@
 
 #include <rmn/rpnmacros.h>
 
-int32_t f77name(mrblocx)(int32_t * buf, int32_t * bfam, int32_t * bdesc, int32_t * bknat, int32_t * bktyp, int32_t * bkstp, int32_t * blk0);
-int32_t f77name(mrbprml)(int32_t  * buf, int32_t  * bkno, int32_t  * blprm, int32_t  * nprm, int32_t  * inblocs);
+#include "burp98_f/burp98_f.h"
 
 //! Convert a list of of 6 digit decimal BUFR coded element names to 16-bit
 int c_mrbcol(int liste[], int cliste[], int nele)

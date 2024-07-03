@@ -22,6 +22,7 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
 
 int32_t ez_corrval_aunord(float *zout, float *zin, int32_t gdin, int32_t gdout) {

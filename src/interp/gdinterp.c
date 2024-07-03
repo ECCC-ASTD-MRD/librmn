@@ -25,7 +25,9 @@
 #include <math.h>
 
 #include "ez_funcdef.h"
+#include "f_ezscint.h"
 
+int c_gd_isgridrotated(int gdid);
 
 int c_gdcompatible_grids(int gdin, int gdout) {
     int gdrow_in, gdrow_out, gdcol_in, gdcol_out;

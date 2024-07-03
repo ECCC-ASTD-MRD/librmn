@@ -129,7 +129,7 @@ void c_get_my_resident_time(int *wu, int *wh, int *ws) {
 #endif
 }
 
-f_get_my_resident_time(int *wu, int *wh, int *ws) {
+void f_get_my_resident_time(int *wu, int *wh, int *ws) {
     *wu = 0;
     *wh = 1800;
     *ws = 1800;
@@ -139,7 +139,7 @@ f_get_my_resident_time(int *wu, int *wh, int *ws) {
 #endif
 }
 
-f_get_my_resident_time_(int *wu, int *wh, int *ws) {
+void f_get_my_resident_time_(int *wu, int *wh, int *ws) {
     *wu = 0;
     *wh = 1800;
     *ws = 1800;
@@ -149,7 +149,7 @@ f_get_my_resident_time_(int *wu, int *wh, int *ws) {
 #endif
 }
 
-f_get_my_resident_time__(int *wu, int *wh, int *ws) {
+void f_get_my_resident_time__(int *wu, int *wh, int *ws) {
     *wu = 0;
     *wh = 1800;
     *ws = 1800;

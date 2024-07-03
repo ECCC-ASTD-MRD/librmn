@@ -41,10 +41,13 @@
 #include <string.h>
 
 #include <App.h>
+#include <rmn.h>
 #include <rmn/rpnmacros.h>
 #include <rmn/convert_ip.h>
 #include <rmn/fstd98.h>
 #include <rmn/excdes_new.h>
+
+#include "base/base.h"
 
 #include "FC_string.h"
 

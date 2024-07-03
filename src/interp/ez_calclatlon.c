@@ -24,6 +24,8 @@
 
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "base/base.h"
+#include "f_ezscint.h"
 
 int32_t ez_calclatlon(int32_t gdid) {
    float xlat00, xlon00, dlat, dlon;

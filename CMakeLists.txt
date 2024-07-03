@@ -198,6 +198,9 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/> # Fortran modules
     )
+    target_include_directories(${TARGET} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
 endforeach()
 
 install(TARGETS ${shared_targets}

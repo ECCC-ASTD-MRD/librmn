@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include <rmn/ezscint.h>
+#include "base/base.h"
 #include "ez_funcdef.h"
 
 void c_ezdefxg(int32_t gdid) {

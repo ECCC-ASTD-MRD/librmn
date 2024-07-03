@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <rmn/ezscint.h>
+#include "base/base.h"
 #include "ez_funcdef.h"
 
 
