@@ -562,22 +562,47 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
 
     *rec = default_fst_record;
 
-    static char *kwlist[] = {"ip3", "nomvar", NULL};
+    static char *kwlist[] = {"dateo", "datev", "data_type", "data_bits", "pack_bits", // iiiii
+                             "deet", "npas",                                          // ii
+                             "ni", "nj", "nk", // iii
+                             "ip1", "ip2", "ip3", // iii
+                             "ig1", "ig2", "ig3", "ig4", // iiii
+                             "typvar", "grtyp", "nomvar", "etiket" // ssss
+    };
     // Values must be initialized because if the keyword argumetn is not
     // specified the PyArg_ParseTupleAndKeywords will not change them
     // TODO : Look at default_fst_record to see what values represent "no value".
     char *nomvar = NULL;
+    char *grtyp = NULL;
+    char *typvar = NULL;
+    char *etiket = NULL;
     // PyArg_ParseTupleAndKeywords will set nomvar to point to the buffer of a
     // of some python object, which means it is tied to the lifetime of that
     // object.  Therefore we can't do what what we do with ip3.  Same for all
     // types where we pass the address of a pointer.
-    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$is", kwlist, &rec->ip3, &nomvar)){
-        fprintf(stderr, "%s(): Only ip3 and nomvar criteria are supported for now as I implement the rest of the chain\n", __func__);
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$iiiiiiiiiiiiiiiiissss", kwlist, 
+                &rec->dateo, &rec->datev, &rec->data_type, &rec->data_bits, &rec->pack_bits,
+                &rec->deet, &rec->npas,
+                &rec->ni, &rec->nj, &rec->nk,
+                &rec->ip1, &rec->ip2, &rec->ip3,
+                &rec->ig1, &rec->ig2, &rec->ig3, &rec->ig4,
+                &typvar, &grtyp, &nomvar, &etiket
+    )){
+        fprintf(stderr, "%s(): ERROR Parsing arguments", __func__);
         return 1;
     }
 
+    if(typvar != NULL){
+        strncpy(rec->typvar, typvar, sizeof(rec->typvar));
+    }
+    if(grtyp != NULL){
+        strncpy(rec->grtyp, grtyp, sizeof(rec->grtyp));
+    }
     if(nomvar != NULL){
         strncpy(rec->nomvar, nomvar, sizeof(rec->nomvar));
+    }
+    if(etiket != NULL){
+        strncpy(rec->etiket, etiket, sizeof(rec->etiket));
     }
 
     return 0;

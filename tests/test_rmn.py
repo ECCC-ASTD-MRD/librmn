@@ -65,17 +65,15 @@ def open_file_no_options():
 
 def create_record_and_assign_data():
     print_py("Creating a record with data we created in Python")
-    rec = rmn.fst_record(nomvar="<<", ip3=42)
-    rec.ip3 = 99
-    rec.ni = 4
-    rec.nj = 7
-    rec.nk = 1
+    # rec = rmn.fst_record(nomvar="<<", ip3=42)
+    rec = rmn.fst_record(dateo=1, datev=2, data_type=3, data_bits=4, pack_bits=8,
+                         ni=8, nj=9, nk=1, ip1=1,ip2=2,ip3=3, ig1=-1, ig2=-2, ig3=-3, ig4=-4, nomvar="phil", typvar="Y", grtyp="X", etiket="VincentMagnoux")
     print(rec)
 
     # No idea if the NI, NJ, NK are in the right order
     x = np.random.random(rec.nk * rec.nj * rec.ni).reshape((rec.nk, rec.nj, rec.ni))
-    rec.etiket = "VincentMagnoux"
-    rec.data = x
+    # rec.etiket = "VincentMagnoux"
+    # rec.data = x
     print(rec.data)
     return rec
 
@@ -185,3 +183,4 @@ if __name__ == "__main__":
     # attempt_to_write_non_record_to_file()
     # invalid_access_of_record_data()
     test_record_attributes()
+    create_record_and_assign_data()
