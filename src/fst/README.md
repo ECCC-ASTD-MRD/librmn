@@ -845,14 +845,20 @@ typedef struct fst_query_ fst_query; // Forward declare
 typedef struct {
 
     // 64-bit elements first
+
     const fst_file* file;   //!< FST file where the record is stored
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
+    // 32-bit elements
+
+    //!> Index of this record within its file. This index is permanent, but record data may change if
+    //!> a rewrite occurs. Some of the attributes too. It is not recommended to rewrite records.
+    int32_t file_index;
+
     int32_t dateo;    //!< Origin Date timestamp
     int32_t datev;    //!< Valid Date timestamp
 
-    // 32-bit elements
     int32_t data_type; //!< Data type of elements. See FST_TYPE_* constants.
     int32_t data_bits; //!< Number of bits per input element
     int32_t pack_bits; //!< Number of stored (compressed) bits per element
@@ -1168,6 +1174,8 @@ end type fst_query
 type, public :: fst_record
     type(C_PTR) :: data     = C_NULL_PTR    !< Pointer to the data
     type(C_PTR) :: metadata = C_NULL_PTR    !< Pointer to the metadata
+
+    integer(C_INT32_T) :: file_index = -1   !< Permanent index of record within its file
 
     integer(C_INT32_T) :: dateo    = -1 !< Origin Date timestamp
     integer(C_INT32_T) :: datev    = -1 !< Valid Date timestamp
