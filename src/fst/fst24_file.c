@@ -1110,7 +1110,7 @@ int32_t fst24_get_record_from_key(
         fill_with_search_meta(record, &record_meta, file->type);
         record->do_not_touch.num_search_keys = 16;
         record->do_not_touch.stored_data_size = W64TOWD(lng);
-        record->file_index = RECORD_FROM_HANDLE((key & 0xffffffff));
+        record->file_index = RECORD_FROM_HANDLE((key & 0xffffffff)) + (PAGENO_FROM_HANDLE((key & 0xffffffff)) << 9);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
