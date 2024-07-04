@@ -31,7 +31,7 @@
 
 static int verbose = 0;
 
-int testit(int ier);
+static void testit(int ier);
 void rempli(int* tableau, int ni, int nj, int nk);
 
 int main (int argc, char* argv[])
@@ -1153,7 +1153,7 @@ void rempli(int* tableau, int ni, int nj, int nk)
     seed++;
 }
 
-int testit(int ier)
+static void testit(int ier)
 {
     if(ier < 0)
     {
