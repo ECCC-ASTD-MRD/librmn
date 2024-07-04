@@ -1615,6 +1615,6 @@ void C_requetes_init(char *requetes_filename, const char * const debug_filename)
         C_requetes_reset(i, 0, 0, 0, 0, 0, 0, 0);
     }
 
-    Lib_Log(APP_LIBFST, APP_INFO, "%s: request table initialized\n", __func__);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: request table initialized\n", __func__);
     package_not_initialized = 0;
 }
