@@ -2232,7 +2232,7 @@ int c_fstinfx(
 }
 
 
-//! \copydoc c_fstinl
+//! \copydoc c_fstinl()
 //! XDF version
 int c_fstinl_xdf(
     //! [in] Unit number associated to the file in which to search
@@ -3444,23 +3444,23 @@ int c_fstopr(
 //! @return 0 when valid; -1 otherwise
 int c_fstcheck_xdf(
     //! [in]  Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     return c_xdfcheck(filePath);
 }
+
 
 //! Check FSTD file for corruption
 //! @return 0 when valid; -1 otherwise
 int c_fstcheck(
     //! [in]  Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     const int32_t type = c_wkoffit(filePath, strlen(filePath));
     if (type == WKF_STDRSF) {
         if (RSF_Basic_check(filePath)) return 0;
         return 1;
-    }
-    else {
+    } else {
         return c_fstcheck_xdf(filePath);
     }
 }
@@ -5761,151 +5761,99 @@ int32_t f77name(fstnbrv)(int32_t *f_iun)
 }
 
 
-/*****************************************************************************
- *                              F S T O P C                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
-                        F2Cl ll1, F2Cl ll2)
-{
-  int getmode = *f_getmode, ier;
-  char option[17];
-  char value[129];
-  int l1 = ll1, l2 = ll2;
-
-  l1 = (l1 > 16) ? 16 : l1;
-  l2 = (l2 > 128) ? 128 : l2;
-  strncpy(option, f_option, l1);
-  option[l1] = '\0';
-  l1--;
-  while ((l1 > 0) && (option[l1] == ' ')) {
-    option[l1] = '\0';
-    l1--;
-  }
-  strncpy(value, f_value, l2);
-  value[l2] = '\0';
-  l2--;
-  while ((l2 > 0) && (value[l2] == ' ')) {
-    value[l2] = '\0';
-    l2--;
-  }
-
-  ier = c_fstopc(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P I                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
-                        F2Cl ll1)
-{
-  int getmode = *f_getmode, value = *f_value, ier;
-  int l1 = ll1;
-  char option[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-
-  l1 = (l1 > 6) ? 6 : l1;
-  strncpy(option, f_option, l1);
-
-  ier = c_fstopi(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P L                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
-                        F2Cl ll1)
-{
-  int getmode = *f_getmode, value = *f_value, ier;
-  int l1 = ll1;
-  char option[17];
-
-  l1 = (l1 > 16) ? 16 : l1;
-  strncpy(option, f_option, l1);
-  option[l1] = '\0';
-
-  ier = c_fstopl(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P R                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode, F2Cl ll1)
-{
-    int getmode = *f_getmode, ier;
-    float value = *f_value;
+//! \copydoc c_fstopc()
+int32_t f77name(fstopc)(
+    const char * const option,
+    const char * const value,
+    const int32_t * const getmode,
+    F2Cl ll1,
+    F2Cl ll2
+) {
+    char option2[17];
+    char value2[129];
     int l1 = ll1;
-    char option[7];
+    int l2 = ll2;
+
+    l1 = (l1 > 16) ? 16 : l1;
+    l2 = (l2 > 128) ? 128 : l2;
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
+    l1--;
+    while ((l1 > 0) && (option2[l1] == ' ')) {
+        option2[l1] = '\0';
+        l1--;
+    }
+    strncpy(value2, value, l2);
+    value2[l2] = '\0';
+    l2--;
+    while ((l2 > 0) && (value2[l2] == ' ')) {
+        value2[l2] = '\0';
+        l2--;
+    }
+
+    return (int32_t) c_fstopc(option2, value2, *getmode);
+}
+
+
+//! \copydoc c_fstopi()
+int32_t f77name(fstopi)(
+    const char * const option,
+    const int32_t * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    char option2[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+
+    int l1 = ll1;
+    l1 = (l1 > 6) ? 6 : l1;
+    strncpy(option2, option, l1);
+
+    return (int32_t) c_fstopi(option2, *value, *getmode);
+}
+
+
+//! \copydoc c_fstopl()
+int32_t f77name(fstopl)(
+    const char * const option,
+    const int32_t * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    char option2[17];
+
+    int l1 = ll1;
+    l1 = (l1 > 16) ? 16 : l1;
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
+
+    return (int32_t) c_fstopl(option2, *value, *getmode);
+}
+
+
+//! \copydoc c_fstopr()
+int32_t f77name(fstopr)(
+    const char * const option,
+    const float * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    int l1 = ll1;
+    char option2[7];
 
     l1 = (l1 > 6) ? 6 : l1;
-    strncpy(option, f_option, l1);
-    option[l1] = '\0';
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
 
-    ier = c_fstopr(option, value, getmode);
-    return (int32_t) ier;
+    return (int32_t) c_fstopr(option2, *value, *getmode);
 }
 
 
-/*****************************************************************************
- *                              F S T C H E C K                              *
- *                                                                           *
- *Object                                                                     *
- *   Checks if an RPN standard file is valid.                                *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  filename Path of the file to be checked                              *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstcheck)(char *filename, F2Cl lng)
-{
-  int ier;
-  ier = c_fstcheck(filename);
-  return (int32_t) ier;
+//! \copydoc c_fstcheck()
+int32_t f77name(fstcheck)(
+    const char * const filename,
+    F2Cl lng
+) {
+    return (int32_t) c_fstcheck(filename);
 }
 
 
@@ -5923,7 +5871,7 @@ int32_t f77name(fstcheck)(char *filename, F2Cl lng)
  *****************************************************************************/
 int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
 {
-  return c_fstouv(*f_iun, options);
+    return c_fstouv(*f_iun, options);
 }
 
 

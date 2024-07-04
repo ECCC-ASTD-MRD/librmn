@@ -96,7 +96,7 @@ int32_t f77name(xdfcle)(char *fkeyname, int32_t *fbit1, int32_t *flkey,
             int32_t *ftkey, int32_t *fdesc1, int32_t *fdesc2, F2Cl l1);
 int c_xdfcle(char *keyname, int bit1, int lkey, int tkey, int *desc1, int *desc2);
 int c_qdfmsig(const int iun, char* newappl);
-int c_xdfcheck(const char* filename);
+int c_xdfcheck(const char * const filename);
 
 int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1);
 int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn);

@@ -104,7 +104,7 @@ unlock:
 //! @return              Valid(0) or not(-1)
 int c_xdfcheck(
     //! [in] filePath Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     file_header header;
     uint32_t tmp;
