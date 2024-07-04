@@ -533,7 +533,7 @@ static int64_t RSF_Scan_vdir(
     extract_meta0(meta[0], &rec_version, &rec_class, &rec_type);
 
     // the first element of meta, mask, criteria is pre-processed here, and sent to matching function
-    reject_a_priori = (crit_type != 0) && (crit_type != rec_type) || rec_type == RT_DEL;    // record type mismatch ?
+    reject_a_priori = ((crit_type != 0) && (crit_type != rec_type)) || (rec_type == RT_DEL);    // record type mismatch ?
     //     if( reject_a_priori )      continue ;    // record type mismatch
 
     reject_a_priori = reject_a_priori | ( (crit_class != 0) && ( (crit_class & rec_class) == 0 ) ) ;   // class mismatch ?

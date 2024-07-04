@@ -160,8 +160,8 @@ void *compact_FLOAT_TYPE(
             missingToken = ~0;
         }
 
-        if (( &packHeader[3] == arrayOfInt ) && ( offset == 24 ) ||
-            ( &packHeader[0] == arrayOfInt ) && ( offset == 120 ) ) {
+        if ((( &packHeader[3] == arrayOfInt ) && ( offset == 24 )) ||
+            (( &packHeader[0] == arrayOfInt ) && ( offset == 120 )) ) {
             headerStyle = 1;
         } else {
             headerStyle = 2;

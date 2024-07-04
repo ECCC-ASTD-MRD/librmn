@@ -39,9 +39,16 @@ revisions:
 
 /*   structure containing callback entries  */
 #define MAX_CMD_LEN 17
+
+typedef int (*c_callback_fn)(int argc, char** argv, unsigned char, void* data1, void* data2);
+typedef int (*f_callback_fn)(int* argc, char* argv, unsigned char*, void* data1, void* data2, F2Cl, F2Cl);
+
 typedef struct{
 	char command_name[MAX_CMD_LEN];  /* command name */
-	int (*command)();                /* pointer to callback function */
+  union {
+    f_callback_fn command_f;
+    c_callback_fn command_c;
+  };
 	void *private_data;              /* pointer to private data */
 	void *private_data_2;            /* pointer to private data */
 	int max_args;                    /* maximun number of arguments permitted */
@@ -100,12 +107,12 @@ buffer_out++; \
 }
 
 /*  register a C callback function */
-int rpn_c_callback(char *VERB, void *callback, char *OPTIONS,
+int rpn_c_callback(char *VERB, c_callback_fn callback, char *OPTIONS,
 		void *Private_data, void *Private_data_2) {
 
  strncpy(callback_table[callbacks].command_name,VERB,MAX_CMD_LEN-1);
  callback_table[callbacks].command_name[MAX_CMD_LEN-1]='\0';
- callback_table[callbacks].command=callback;
+ callback_table[callbacks].command_c=callback;
  callback_table[callbacks].is_ftn=0;
  callback_table[callbacks].private_data=Private_data;
  callback_table[callbacks].private_data_2=Private_data_2;
@@ -128,12 +135,12 @@ void f77name(rpn_f_callback_setverbose)(int32_t *verbose) {
 }
 
 /*  register a FORTRAN callback function */
-int32_t f77name(rpn_fortran_callback)(char *VERB, void *callback, char *OPTIONS,
+int32_t f77name(rpn_fortran_callback)(char *VERB, f_callback_fn callback, char *OPTIONS,
 		void *Private_data,void *Private_data_2,  F2Cl l_VERB, F2Cl l_OPTIONS) {
 
  strncpy(callback_table[callbacks].command_name,VERB,l_VERB<MAX_CMD_LEN-1?l_VERB:MAX_CMD_LEN-1);
  callback_table[callbacks].command_name[MAX_CMD_LEN-1]='\0';
- callback_table[callbacks].command=callback;
+ callback_table[callbacks].command_f=callback;
  callback_table[callbacks].is_ftn=1;
  callback_table[callbacks].private_data=Private_data;
  callback_table[callbacks].private_data_2=Private_data_2;
@@ -451,7 +458,7 @@ while(Verb(token)>0){ /* collect "verb" (command name) */
       temp++;
      }
     }
-    wstatus=callback_table[oo].command(&ARGC,F_ARGV,&cmd_strt,
+    wstatus=callback_table[oo].command_f(&ARGC,F_ARGV,&cmd_strt,
                               callback_table[oo].private_data,
                               callback_table[oo].private_data_2,max_arg_lng,1);
     status=wstatus;
@@ -459,7 +466,7 @@ while(Verb(token)>0){ /* collect "verb" (command name) */
    }
    else {
  
-    status=callback_table[oo].command(ARGC,ARGV,cmd_strt,
+    status=callback_table[oo].command_c(ARGC,ARGV,cmd_strt,
                               callback_table[oo].private_data,
                               callback_table[oo].private_data_2);
    }

@@ -169,7 +169,7 @@ static   char *enter_pcl = "\033%-12345X@PJL ENTER LANGUAGE=PCL";
 static   char *enter_ps = "\033%-12345X@PJL ENTER LANGUAGE=POSTSCRIPT";
 #define PCL_MAX_LEN 512000
 
-static float Get_Frac();
+static float Get_Frac(FILE *fp);
 
 static int mutant_kmw = FALSE;
 

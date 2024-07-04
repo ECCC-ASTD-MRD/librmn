@@ -94,7 +94,7 @@ int32_t f77name(xdfuse)(int32_t *fsrc_unit, int32_t *fdest_unit);
 int c_xdfuse(int src_unit, int dest_unit);
 int32_t f77name(xdfcle)(char *fkeyname, int32_t *fbit1, int32_t *flkey,
             int32_t *ftkey, int32_t *fdesc1, int32_t *fdesc2, F2Cl l1);
-int c_xdfcle(char *keyname, int bit1, int lkey, int tkey, int *desc1, int *desc2);
+int c_xdfcle(const char *keyname, const int bit1, const int lkey, const int tkey, int *desc1, int *desc2);
 int c_qdfmsig(const int iun, char* newappl);
 int c_xdfcheck(const char * const filename);
 
@@ -102,7 +102,7 @@ int32_t f77name(qdfmsig)(int32_t *fiun, char *appl, F2Cl l1);
 int32_t f77name(xdflnk)(int32_t *liste, int32_t *fn);
 int32_t f77name(secateur)(char *filename, int32_t *f_where, F2Cl l1);
 
-void build_fstd_info_keys(uint32_t *buf, uint32_t *keys, int index, int mode);
+void build_fstd_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
 void build_fstd_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask, uint32_t *mskkeys,
                 int index, int mode);
 

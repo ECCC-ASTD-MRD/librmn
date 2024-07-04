@@ -99,7 +99,7 @@ void exit_from_client_thread(extendedClientSlot *client) {
 
 //! Start a client module, non threaded
 void start_client_module_2(
-    void (*client_address)(),
+    void (*client_address)(extendedClientSlot *),
     int client_uid,
     int client_pid,
     int fclient,

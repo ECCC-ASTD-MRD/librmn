@@ -49,7 +49,14 @@ int32_t f77name(rmtcall)(
 
     union {
         long long ptr_sub;
-        int32_t (* entry)();
+        int32_t (* entry)(
+            W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, 
+            W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, 
+            W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, 
+            W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, 
+            W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, W_ptr, 
+            W_ptr
+        );
     } callee;
     union {
         long long ptr;

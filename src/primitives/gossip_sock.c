@@ -1277,7 +1277,7 @@ int connect_to_channel_by_name_2(
         fprintf(stderr, "md5_ssh FAILED\n");
         return -1;
     }
-    fprintf(stderr, "SSH Digest: %x\n", buffer);
+    fprintf(stderr, "SSH Digest: %lx\n", (intptr_t)buffer);
 
     char buf[PATH_MAX];
     snprintf(buf, PATH_MAX - 1, "%s %d %d %u:%s:%s", "LOGIN", getuid(), getpid(), Bauth_token, host_name, msg);

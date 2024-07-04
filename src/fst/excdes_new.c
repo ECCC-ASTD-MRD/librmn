@@ -1302,7 +1302,7 @@ int C_fstmatch_req(int handle)
   return status ;
 }
 
-int C_fst_match_req(int handle)
+int C_fst_match_req(const int handle)
 {
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
