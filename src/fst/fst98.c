@@ -89,6 +89,7 @@ int32_t has_type_missing_f(const int32_t type_flag) { return has_type_missing(ty
 int32_t is_type_integer_f(const int32_t type_flag) { return is_type_integer(type_flag); }
 int32_t base_fst_type_f(const int32_t type_flag) { return base_fst_type(type_flag); }
 
+
 static void str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
         dst[i] = (i < srcLen) ? src[i] : ' ';
@@ -116,7 +117,7 @@ void copy_record_string(
 }
 
 //! This function is slow and possibly not perfect
-int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length) {
+int32_t is_same_record_string(const char * const str_a, const char * const str_b, const int32_t max_length) {
     char copy_a[max_length];
     char copy_b[max_length];
     copy_record_string(copy_a, str_a, max_length);
@@ -145,28 +146,28 @@ uint32_t get_valid_date32(
     return (uint32_t)origin_date;
 }
 
-void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
+void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
     }
 }
 
 
-void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
+void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb) {
     for (int i = 0; i < nb; i++) {
         *p8++ = *p16++;
     }
 }
 
 
-void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
+void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb) {
     int16_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p32++ = *p16++ & mask;
     }
 }
 
-void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
+void memcpy_32_16(int16_t *p16, const int32_t * p32, int nbits, int nb) {
     int32_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p16++ = *p32++ & mask;
@@ -618,7 +619,6 @@ void print_std_parms(
     }
 
     if (strstr(option, "GRIDINFO")) {
-        F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
         ig1 = stdf_entry->ig1; ig2 = cracked.ig2;
         ig3 = stdf_entry->ig3; ig4 = stdf_entry->ig4;
         igapg_c(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4);

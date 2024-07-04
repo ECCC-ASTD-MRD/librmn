@@ -83,10 +83,10 @@ void copy_record_string(char* const dest, const char* const src, const int32_t m
 int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length);
 int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
-void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);
-void memcpy_16_8(int8_t *p8, int16_t *p16, int nb);
-void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb);
-void memcpy_32_16(short *p16, int *p32, int nbits, int nb);
+void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb);
+void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb);
+void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb);
+void memcpy_32_16(int16_t *p16, const int32_t *p32, int nbits, int nb);
 void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const pre, const char * const option,
                      const int header);
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
