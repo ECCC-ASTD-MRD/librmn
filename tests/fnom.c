@@ -1,6 +1,8 @@
 #include <stdlib.h>
 
 #include <omp.h>
+
+#include <App.h>
 #include <rmn.h>
 
 const char* tmp_dir = NULL;
