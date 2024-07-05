@@ -118,10 +118,7 @@ add_custom_command(
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
-set(TARGETS rmn-static)
-if (BUILD_SHARED_LIBS)
-    set(TARGETS ${TARGETS} rmn-shared)
-endif()
+set(TARGETS rmn-static rmn-shared)
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
@@ -129,11 +126,9 @@ target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2-sta
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}> ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
-if (BUILD_SHARED_LIBS)
-    # Build shared library from object of rmn
-    add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
-    target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
-endif()
+# Build shared library from object of rmn
+add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
+target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
 
 set_target_properties(${TARGETS} PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -152,18 +147,11 @@ set(static_targets rmn-static)
 
 #----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-static ALIAS rmn-static)
-if(BUILD_SHARED_LIBS)
-    add_library(rmn::rmn-shared ALIAS rmn-shared)
-    add_library(rmn::rmn ALIAS rmn-shared)
-else()
-    add_library(rmn::rmn ALIAS rmn-static)
-endif()
+add_library(rmn::rmn-shared ALIAS rmn-shared)
+add_library(rmn::rmn ALIAS rmn-shared)
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
-    set (OMPI_TARGETS rmn-ompi-static)
-    if (BUILD_SHARED_LIBS)
-        set (OMPI_TARGETS ${OMPI_TARGETS} rmn-ompi-shared)
-    endif()
+    set (OMPI_TARGETS rmn-ompi-static rmn-ompi-shared)
     set(TARGETS ${TARGETS} ${OMPI_TARGETS})
 
    # Build static library from source files
@@ -176,12 +164,10 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
 
-    if (BUILD_SHARED_LIBS)
-        # Build shared library from objects of rmn-ompi
-        add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
-        target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-        target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
-    endif()
+    # Build shared library from objects of rmn-ompi
+    add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
+    target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+    target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
 
     set_target_properties(${OMPI_TARGETS} PROPERTIES
         VERSION ${PROJECT_VERSION}
@@ -204,12 +190,8 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
     #----- Needed when used as sbumodule/subtree
     add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
-    if(BUILD_SHARED_LIBS)
-        add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
-        add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
-    else()
-        add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)
-    endif()
+    add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
+    add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
 endif()
 
 foreach(TARGET IN ITEMS ${TARGETS})
@@ -220,8 +202,6 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,Intel>: -convert big_endian -align array32byte -assume byterecl>
         $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
-        # $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
-        # $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
     )
     target_link_options(${TARGET} PUBLIC
@@ -281,15 +261,13 @@ set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS 
 set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
 set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028>")
 
-if (BUILD_SHARED_LIBS)
-    install(TARGETS ${shared_targets}
-        EXPORT rmn-shared-targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-endif()
+install(TARGETS ${shared_targets}
+    EXPORT rmn-shared-targets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(TARGETS ${static_targets}
     EXPORT rmn-static-targets
@@ -338,11 +316,9 @@ add_custom_target(
 # Generate the config file for the project to be usable via cmake's find_package command
 set(CONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
 
-if (BUILD_SHARED_LIBS)
-    install(EXPORT rmn-shared-targets
-        NAMESPACE rmn::
-        DESTINATION ${CONFIG_INSTALL_DIR})
-endif()
+install(EXPORT rmn-shared-targets
+    NAMESPACE rmn::
+    DESTINATION ${CONFIG_INSTALL_DIR})
 
 install(EXPORT rmn-static-targets
     NAMESPACE rmn::
