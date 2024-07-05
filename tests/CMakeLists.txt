@@ -230,6 +230,11 @@ if (EC_INIT_DONE LESS 2)
             add_dependencies(check fnom)
         endif()
 
+        add_executable(fst24_by_index fst/fst24_by_index.c)
+        target_link_libraries(fst24_by_index rmn::rmn)
+        add_test(NAME fst24_by_index COMMAND $<TARGET_FILE:fst24_by_index>)
+        add_dependencies(check fst24_by_index)
+
         # FST samples
         add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)
         target_link_libraries(fst24_open_close_f rmn::rmn)

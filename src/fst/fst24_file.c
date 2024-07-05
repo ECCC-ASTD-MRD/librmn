@@ -939,6 +939,7 @@ int32_t fst24_write_rsf(
     // write new_record to file and add entry to directory
     const int64_t record_handle = RSF_Put_record(rsf_file, new_record, num_data_bytes);
     record->do_not_touch.handle = record_handle;
+    record->file_index = RSF_Key64_to_index(record_handle);
 
     if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
@@ -1038,6 +1039,7 @@ int32_t fst24_write(
         record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
         record->do_not_touch.extended_meta_size = 0;
         record->do_not_touch.stored_data_size = 0; // We don't have a good way of knowing that number, so it stays at 0 for now. Maybe xdfprm?
+        record->file_index = -1;
 
         if (ier < 0) return ier;
         return TRUE;
@@ -1068,6 +1070,14 @@ int32_t get_record_from_key_rsf(
     record->file_index = RSF_Key64_to_index(key);
 
     return TRUE;
+}
+
+static inline int32_t fst24_make_index_from_xdf_handle(const int handle) {
+    return RECORD_FROM_HANDLE((handle & 0xffffffff)) + (PAGENO_FROM_HANDLE((handle & 0xffffffff)) * ENTRIES_PER_PAGE);
+}
+
+static inline int32_t fst24_make_xdf_handle_from_index(const int index, const int file_id) {
+    return MAKE_RND_HANDLE(index / ENTRIES_PER_PAGE, index % ENTRIES_PER_PAGE, file_id);
 }
 
 //! Get basic information about the record with the given key (search or "directory" metadata)
@@ -1110,7 +1120,7 @@ int32_t fst24_get_record_from_key(
         fill_with_search_meta(record, &record_meta, file->type);
         record->do_not_touch.num_search_keys = 16;
         record->do_not_touch.stored_data_size = W64TOWD(lng);
-        record->file_index = RECORD_FROM_HANDLE((key & 0xffffffff)) + (PAGENO_FROM_HANDLE((key & 0xffffffff)) << 9);
+        record->file_index = fst24_make_index_from_xdf_handle(key & 0xffffffff);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
@@ -1153,9 +1163,7 @@ int32_t fst24_get_record_by_index(
         return TRUE;
     }
     else if (file->type == FST_XDF) {
-        const int page_id = index / ENTRIES_PER_PAGE;
-        const int record_id = index - (page_id * ENTRIES_PER_PAGE);
-        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
+        const int32_t key = fst24_make_xdf_handle_from_index(index, file->file_index_backend);
 
         int addr, lng, idtyp;
         search_metadata record_meta;
