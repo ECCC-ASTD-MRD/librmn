@@ -30,6 +30,7 @@
 void GETARG(int * pos, const char * val, F2Cl valLen);
 int iargc();
 
+typedef int (*main_fn)(int argc, char** argv);
 
 #ifdef SELFTEST
 c_main(int argc, char **argv) {
@@ -64,7 +65,7 @@ f77name(true_main)(int argc, **argv) {
 */
 
 
-void f77name(fmain2cmain)(void (*the_main)() ) {
+void f77name(fmain2cmain)(main_fn the_main) {
     // get number of arguments
     int argc = 1 + iargc();
     char *argv[BUFSZ];
@@ -92,6 +93,6 @@ void f77name(fmain2cmain)(void (*the_main)() ) {
     c_main(argc, argv);
 #else
     // call actual C "main" program
-    (*the_main)(argc, argv);
+    the_main(argc, argv);
 #endif
 }

@@ -17,35 +17,42 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_irgdint_1_nw(zo, px, py, npts, ax, ay, z, ni, nj)
+!**s/r ez_lac transformation from a set of points (lat,lon) in the spherical 
+!             coordinate system to cartesian space
+!
+      subroutine ez_lac_8( xyz,lon,lat,n)
           use rmn_common
       implicit none
-      integer             :: npts, ni, nj
-      integer             :: i, j, n
-      real                :: zo(npts), px(npts), py(npts)
-      real                :: ax(ni),ay(nj)
-      real                :: z(ni,nj)
-      real(kind = real64) :: x, y, x1, x2, y1, y2, dx, dy
-
-      do n = 1, npts
-         i = min(ni-1,max(1,ifix(px(n))))
-         j = min(nj-1,max(1,ifix(py(n))))
-
-         x1=ax(i)
-         x2=ax(i+1)
-
-         x = ax(i) + (x2-x1)*(px(n)-i)
-         y = ay(j) + (ay(j+1)-ay(j))*(py(n)-j)
-
-         dx = (x - x1)/(x2-x1)
-         dy = (y - ay(j))/(ay(j+1)-ay(j))
-
-         y1 = zlin(dble(z(i,j)),dble(z(i+1,j)),dx)
-         y2 = zlin(dble(z(i,j+1)),dble(z(i+1,j+1)),dx)
-         zo(n) = zlin(y1,y2,dy)
-      enddo
-
+      integer, intent(in) :: n
+      real(kind = real64), intent(out) :: xyz(3,n)
+      real(kind = real32), intent(in)  :: lon(n),lat(n) 
+!
+!author michel roch - april 90
+!
+!revision
+!       001 - michel roch - feb 94 - repackaging for integration in rmnlib
+!
+!arguments
+!    out    xyz     - coordinates in cartesian space
+!    in     lon     - longitudes in spherical coordinates
+!           lat     - latitudes  in spherical coordinates
+!           n       - dimension of the fields
+!
+!*
+      
+      integer i
+      real dar, cosdar
+      dar = acos(-1.)/180.
+!     
+      do 30 i=1,n
+!!!!JP
+         cosdar=cos(dar*lat(i))
+         xyz(1,i)=cosdar*cos(dar*lon(i))
+         xyz(2,i)=cosdar*sin(dar*lon(i))
+         xyz(3,i)=sin(dar*lat(i))
+ 30   continue
+!     
       return
-      contains
-#include "zlin8.cdk"
-      end
+      end 
+      
+      

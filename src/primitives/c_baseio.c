@@ -18,6 +18,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+//! Basic IO functions
+
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
@@ -34,6 +37,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <pthread.h>
 
 #ifdef __linux__
 # include <linux/limits.h>
@@ -71,9 +76,15 @@
 #endif
 
 static int get_free_unit_number(const char * const type);
+static inline uint32_t release_unit_number(const int iun);
+// static inline int is_unit_number_available(const int iun);
+static inline int reserve_unit_number(const int iun);
+static int get_free_entry(const int iun);
 static int fnom_rem_connect( const int ind, const char * const remote_host);
 static void wa_pages_flush(const int fileIdx);
+static void reset_wafile_slot(const int slot_id);
 static int qqcopen(const int indf);
+static int qqcclos(const int indf);
 static void qqcwawr(const uint32_t * const buf, const unsigned int wadr, const int nwords, const int indf);
 static void qqcward(uint32_t * const buf, const unsigned int woffset, const int lnmots, const int indf);
 static void arrayZero(uint32_t * const dest, const int nwords);
@@ -94,9 +105,16 @@ int32_t f77name(ftnclos)(const int32_t * const iun);
 static ENTETE_CMCARC cmcarc;
 static ENTETE_CMCARC_V5 cmcarc64;
 
-static FILEINFO wafile[MAXWAFILES];
-static uint32_t *free_list[MAXWAFILES * MAXPAGES];
-static int dastat[MAXWAFILES] = {MAXWAFILES * 0};
+
+general_file_info* FGFDT = NULL;            //! Fnom General File Desc Table: list of fnom-associated files
+static int32_t* unit_entries = NULL;        //!< fnom entry that corresponds to each iun
+static uint32_t* used_units_bitmap = NULL;  //!< Compressed map of available/taken iuns
+static int NUM_BITMAP_ENTRIES = 0;          //!< Size of the iun bitmap
+
+static int MAXWAFILES = 0;          //!< Max number of WA files that can be open simultaneously
+static FILEINFO* wafile = NULL;     //!< List of open WA files
+static uint32_t** free_list = NULL;
+static int* dastat = NULL;
 
 static int blkSize = 512;
 
@@ -106,9 +124,6 @@ static int WA_PAGE_LIMIT = 0;
 
 static int global_count = 0;
 static int nfree = -1;
-static int init = 0;
-static int subfile_length = 0;
-static int fnom_initialized = 0;
 static int stdoutflag = 0;
 static int stdinflag = 0;
 
@@ -119,12 +134,41 @@ static char *CMCCONST = NULL;
 static char *ARMNLIB = NULL;
 static char *LOCALDIR = "./";
 
+static pthread_mutex_t fnom_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+int MAX_FNOM_FILES = 0; //!< Max number of concurrent fnom-associated files
+
+static const int FNOM_ENTRY_AVAILABLE = -1; //!< Value that indicates that an entry is available
+static const int FNOM_IUN_AVAILABLE = 0; //!< Value that indicates that a unit number is available
+
+//! \return Number of files that can be opened by the current process
+rlim_t get_max_open_files() {
+    struct rlimit rlim;
+    getrlimit(RLIMIT_NOFILE, &rlim);
+    return rlim.rlim_cur;
+}
 
 //! Seek in a file at a given word
 static off64_t wseek(int fdesc,off64_t offst, int posi) {
     return lseek64(fdesc, offst * sizeof(uint32_t), posi);
 }
 
+//! Print the iun availability bitmap. Debug only
+void print_bitmap() {
+    char buffer[1024 * 80];
+    char* ptr = buffer;
+
+    for (int i = 0; i < (NUM_BITMAP_ENTRIES + 15) / 16; i++) {
+        if (i != 0) ptr += sprintf(ptr, "\n");
+        ptr += sprintf(ptr, "%3d: ", i);
+        for (int j = 0; j < 16 && (i * 16 + j < NUM_BITMAP_ENTRIES); j++) {
+            // ptr += sprintf(ptr, "%16.16lx ", used_units_bitmap[i * 8 + j]);
+            ptr += sprintf(ptr, "%8.8x ", used_units_bitmap[i * 16 + j]);
+        }
+    }
+
+    Lib_Log(APP_LIBRMN, APP_VERBATIM, "%s\n", buffer);
+}
 
 //! Kept only for backward compatibility; only returns 0
 //! \return Always zero
@@ -138,7 +182,7 @@ int c_fretour(
 //! \copydoc c_fretour
 int32_t f77name(fretour)(
     //! [in] Unit number, ignored
-    const int32_t * const fiun
+    const int32_t * const iun
 ){
     return 0;
 }
@@ -176,8 +220,8 @@ static void dump_file_entry(
 //! Print file characteristics and attributes of in use files in the master file table(for debugging use)
 void f77name(d_fgfdt)()
 {
-    Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP of MASTER FILE TABLE\n",__func__);
-    for (int i = 0 ; i < MAXFILES ; i++) {
+    Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP of MASTER FILE TABLE (max %d entries)\n", __func__, MAX_FNOM_FILES);
+    for (int i = 0 ; i < MAX_FNOM_FILES ; i++) {
         if(FGFDT[i].iun != 0) {
             dump_file_entry(i);
         }
@@ -185,10 +229,18 @@ void f77name(d_fgfdt)()
 }
 
 //! Resets a file entry in the master file table to "not in use" values
+//! Accesses common control structures atomically to release the entry and its associated unit number
 static void reset_file_entry(
     //! [in] Index of the file to reset
     int idx
 ) {
+    // Remove entry from list of used units
+    if (FGFDT[idx].iun > 0 && FGFDT[idx].iun < MAX_FNOM_FILES) {
+        const int iun = FGFDT[idx].iun;
+        unit_entries[iun] = FNOM_ENTRY_AVAILABLE;
+        const uint32_t val = release_unit_number(iun);
+    }
+
     if (FGFDT[idx].file_name) free(FGFDT[idx].file_name);
     if (FGFDT[idx].subname)   free(FGFDT[idx].subname);
     if (FGFDT[idx].file_type) free(FGFDT[idx].file_type);
@@ -197,12 +249,12 @@ static void reset_file_entry(
     FGFDT[idx].subname        = (char *) NULL;
     FGFDT[idx].file_type      = (char *) NULL;
     FGFDT[idx].rsf_fh.p       = NULL;
-    FGFDT[idx].iun            = 0;
     FGFDT[idx].fd             = -1;
     FGFDT[idx].file_size      = 0;
     FGFDT[idx].eff_file_size  = 0;
     FGFDT[idx].lrec           = 0;
     FGFDT[idx].open_flag      = 0;
+    FGFDT[idx].wa_slot        = -1;
     FGFDT[idx].attr.stream    = 0;
     FGFDT[idx].attr.std       = 0;
     FGFDT[idx].attr.rsf       = 0;
@@ -219,6 +271,36 @@ static void reset_file_entry(
     FGFDT[idx].attr.volatil   = 0;
     // Remote file, socket wa file
     FGFDT[idx].attr.remote    = 0;
+
+    // Reset iun last, to signal that the entry is now available
+    const int old_iun = FGFDT[idx].iun;
+    if (!__sync_bool_compare_and_swap(&(FGFDT[idx].iun), old_iun, FNOM_IUN_AVAILABLE)) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to release entry %d, iun = %d\n", __func__, idx, old_iun);
+        FGFDT[idx].iun            = FNOM_IUN_AVAILABLE;
+    }
+}
+
+//! Find index position in master file table (fnom file table).
+//! \return Index of the provided unit number in the file table or -1 if not found.
+int get_fnom_index(
+    //! [in] Unit number associated to the file
+    const int iun
+) {
+    if (iun < MAX_FNOM_FILES) {
+        const int entry = unit_entries[iun];
+        if (entry >= 0 && FGFDT[entry].iun == iun) {
+            return unit_entries[iun];
+        }
+    }
+    else {
+        for (int i = 0; i < MAX_FNOM_FILES; i++) {
+            if (FGFDT[i].iun == iun) {
+                return i;
+            }
+        }
+    }
+
+    return -1;
 }
 
 
@@ -230,16 +312,67 @@ static int find_file_entry(
     //! [in] Unit number to search
     const int iun
 ) {
-    for (int i = 0; i < MAXFILES; i++) {
-        if (FGFDT[i].iun == iun) {
-            return i;
-        }
-    }
+    const int index = get_fnom_index(iun);
+    if (index >= 0) return index;
 
-    Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not associated with any file\n",caller,iun);
+    Lib_Log(APP_LIBRMN, APP_ERROR, "%s: (%s) unit %d is not associated with any file\n", __func__, caller, iun);
     return -1;
 }
 
+//! Initialize structures and variables based on environment, if it has not been done yet.
+//! If fnom is already initialized, do nothing.
+//! *Uses the fnom mutex*
+//! \return Max number of files that can be managed by fnom. 0 if there was an error.
+static int initialize_fnom() {
+    if (MAX_FNOM_FILES > 0) return MAX_FNOM_FILES; // Already initialized
+
+    // --- START critical region ---
+    pthread_mutex_lock(&fnom_mutex);
+
+    if (MAX_FNOM_FILES > 0) goto unlock; // check again after locking, in case someone else was already initializing it
+
+    // Retrieve open files number limit for process
+    const uint64_t max_open_files = get_max_open_files();
+
+    // Allocate all tables
+    FGFDT = (general_file_info*) calloc(max_open_files, sizeof(general_file_info));
+    unit_entries = (int32_t*) calloc(max_open_files, sizeof(int32_t));
+    NUM_BITMAP_ENTRIES = (max_open_files + 31) / 32;
+    used_units_bitmap = (uint32_t*) calloc(NUM_BITMAP_ENTRIES, sizeof(int32_t));
+
+    if (FGFDT == NULL || unit_entries == NULL || used_units_bitmap == NULL) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to allocate fnom file table (%d files)\n", __func__, max_open_files);
+        goto unlock;
+    }
+
+    // Retrieve options from environment
+    ARMNLIB = getenv("ARMNLIB");
+    if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
+    CMCCONST = getenv("CMCCONST");
+    if( CMCCONST == NULL ) CMCCONST = LOCALDIR;
+    for (int i = 0; i < max_open_files; i++) {
+        reset_file_entry(i);
+    }
+
+    // Set up bitmap table
+    if (max_open_files % 32 != 0) {
+        uint32_t off = 0;
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: MAX files = %d, remainder = %d, num bitmap entries = %d\n",
+                __func__, max_open_files, max_open_files % 32, NUM_BITMAP_ENTRIES);
+        for (int i = 0; i < max_open_files % 32; i++) {
+            off |= (1 << i);
+        }
+        used_units_bitmap[NUM_BITMAP_ENTRIES - 1] = 0xffffffff & ~off;
+    }
+
+    MAX_FNOM_FILES = max_open_files; // Signal initialization is complete
+
+unlock:
+    pthread_mutex_unlock(&fnom_mutex);
+    // --- END critical region ---
+
+    return MAX_FNOM_FILES;
+}
 
 //! Open a file and make the connection with a unit number and process record file attributes
 int c_fnom(
@@ -305,33 +438,52 @@ int c_fnom(
     //!
     //! \see c_fclos
 
-    if (fnom_initialized == 0) {
-        //  Make sure that file descriptor 0 (stdin) will not be returned by open for use with a regular file
-        // This is a workaround for a particular case on Linux in batch mode with PBS
-        ARMNLIB = getenv("ARMNLIB");
-        if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
-        CMCCONST = getenv("CMCCONST");
-        if( CMCCONST == NULL ) CMCCONST = LOCALDIR;
-        for (int i = 0; i < MAXFILES; i++) {
-            reset_file_entry(i);
-        }
-        fnom_initialized = 1;
-    }
+    if (initialize_fnom() <= 0) return -1; // Error message will be printed
 
+    int ier = 0;
     int liun;
     if (((intptr_t)iun > 0) && ((intptr_t)iun < 1000)) {
         // An integer value has been passed to c_fnom as iun
         intptr_t ptr_as_int = (intptr_t)iun ;
         liun = ptr_as_int;
+
+        if (!reserve_unit_number(liun)) {
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is already in use\n",__func__, liun);
+            return -1;
+        }
+
     } else {
         // a pointer has been passed to c_fnom as iun
         if (*iun == 0) {
             *iun = get_free_unit_number(type);
+
+            if (*iun == -1) {
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: no more units available\n",__func__);
+                if (Lib_LogLevel(APP_LIBRMN, NULL) >= APP_DEBUG) print_bitmap();
+                return -1;
+            }
         }
-        if (*iun == -1) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: no more units available\n",__func__);
-            return -1;
+        else {
+            if (*iun >= MAX_FNOM_FILES) {
+                Lib_Log(APP_LIBRMN, APP_WARNING, "%s: specified iun = %d. Using a value larger than the maximum number"
+                        " of open files (%d) may slow down manipulation of fnom-managed files.",
+                        __func__, *iun, MAX_FNOM_FILES);
+            }
+            else if (*iun < 0) {
+                if (*iun != -2) { // Why -2.....
+                    Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Cannot have a negative iun (%d). If you want to get any "
+                            "available iun, set it to 0.\n", __func__, *iun);
+                    return -1;
+                }
+            }
+            else {
+                if (!reserve_unit_number(*iun)) {
+                    Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Looks like unit number %d is already taken\n", __func__, *iun);
+                    return -1;
+                }
+            }
         }
+
         liun = *iun;
     }
 
@@ -346,32 +498,36 @@ int c_fnom(
         return 0;
     }
 
-    if (liun == 6) {
-        fclose(stdout);
-        freopen(nom, "a" , stdout);
-        stdoutflag = 1;
-        return 0;
-    } else if (liun == -2) {
-        fclose(stderr);
-        freopen(nom, "a", stderr);
-        return 0;
-    }
-    for (int i = 0; i < MAXFILES; i++) {
-        if (FGFDT[i].iun == liun) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is already in use\n",__func__,liun);
-            return -1;
+    if (liun == 6 || liun == -2) {
+        // --- START critical region ---
+        pthread_mutex_lock(&fnom_mutex);
+
+        FILE* status = NULL;
+        if (liun == 6) {
+            fclose(stdout);
+            status = freopen(nom, "a", stdout);
+        } else if (liun == -2) { // How can liun ever be negative at this point?
+            fclose(stderr);
+            status = freopen(nom, "a", stderr);
         }
+
+        if (status == NULL) {
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: (liun=%d) freopen: %s: %s\n", __func__, liun, nom, strerror(errno));
+        }
+        else if (liun == 6) {
+            stdoutflag = 1;
+        }
+        
+        pthread_mutex_unlock(&fnom_mutex);
+        // --- END critical region ---
+
+        if (status == NULL) return -1;
+        return 0;
     }
-    int entry = 0;
-    while (entry < MAXFILES && FGFDT[entry].iun != 0) {
-        entry++;
-    }
-    if (FGFDT[entry].iun == 0) {
-        FGFDT[entry].iun = liun;
-    } else {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: too many files, file table is full\n",__func__);
-        return -1;
-    }
+
+    const int entry = get_free_entry(liun);
+    Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: Assigning unit %d to entry index %d\n", __func__, liun, entry);
+    if (entry < 0) goto fnom_error; // Error message should already be printed
 
     // Record file attributes
     int lngt = strlen(type) + 1;
@@ -393,55 +549,56 @@ int c_fnom(
     FGFDT[entry].attr.remote = 0;
     FGFDT[entry].attr.volatil = 0;
 
-    if (strstr(type, "STREAM") || strstr(type, "stream")) {
+    if (strcasestr(type, "STREAM")) {
         FGFDT[entry].attr.stream = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "STD") || strstr(type, "std")) {
+    if (strcasestr(type, "STD")) {
         FGFDT[entry].attr.std = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "BURP") || strstr(type, "burp")) {
+    if (strcasestr(type, "BURP")) {
         FGFDT[entry].attr.burp = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "RND") || strstr(type, "rnd")) {
+    if (strcasestr(type, "RND")) {
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "WA") || strstr(type, "wa")) {
+    if (strcasestr(type, "WA")) {
         // wa attribute will be set by waopen
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "FTN") || strstr(type, "ftn")) {
+    if (strcasestr(type, "FTN")) {
         FGFDT[entry].attr.ftn = 1;
         FGFDT[entry].attr.rnd = 0;
     }
-    if (strstr(type, "UNF") || strstr(type, "unf")) {
+    if (strcasestr(type, "UNF")) {
         FGFDT[entry].attr.unf = 1;
         FGFDT[entry].attr.ftn = 1;
         FGFDT[entry].attr.rnd = 0;
     }
-    if (strstr(type, "OLD") || strstr(type, "old")) {
+    if (strcasestr(type, "OLD")) {
         FGFDT[entry].attr.old = 1;
     }
-    if (strstr(type, "R/O") || strstr(type, "r/o")) {
+    if (strcasestr(type, "R/O")) {
         FGFDT[entry].attr.read_only = 1;
+        FGFDT[entry].attr.old = 1;
     }
-    if (strstr(type, "R/W") || strstr(type, "r/w")) {
+    if (strcasestr(type, "R/W")) {
         FGFDT[entry].attr.read_only = 0;
         FGFDT[entry].attr.write_mode = 1;
     }
-    if (strstr(type, "D77") || strstr(type, "d77")) {
+    if (strcasestr(type, "D77")) {
         FGFDT[entry].attr.ftn = 1;
         FGFDT[entry].attr.rnd = 1;
     }
-    if (strstr(type, "SCRATCH") || strstr(type, "scratch")) {
+    if (strcasestr(type, "SCRATCH")) {
         FGFDT[entry].attr.scratch = 1;
     }
-    if (strstr(type, "REMOTE") || strstr(type, "remote")) {
+    if (strcasestr(type, "REMOTE")) {
         FGFDT[entry].attr.remote = 1;
     }
-    if (strstr(type, "VOLATILE") || strstr(type, "volatile")) {
+    if (strcasestr(type, "VOLATILE")) {
         FGFDT[entry].attr.volatil = 1;
     }
 
@@ -550,7 +707,7 @@ int c_fnom(
 
                 if (access(filename, F_OK)  == -1) {
                     /* not under ARMNLIB either */
-                    return -1;
+                    goto fnom_error;
                 }
             }
         }
@@ -560,16 +717,15 @@ int c_fnom(
         lng = strlen(filename);
      }
 
-    if (FGFDT[entry].attr.old && ! FGFDT[entry].attr.remote) {
+    if ((FGFDT[entry].attr.old || FGFDT[entry].attr.read_only) && ! FGFDT[entry].attr.remote) {
         if (!f77name(existe)(FGFDT[entry].file_name, (F2Cl) strlen(FGFDT[entry].file_name))) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file %s should exist and does not\n",__func__,FGFDT[entry].file_name);
             c_fclos(liun);
-            return -1;
+            goto fnom_error;
         }
     }
 
     // FORTRAN files must be opened by a FORTRAN module
-    int ier = 0;
     if (FGFDT[entry].attr.ftn) {
         int32_t iun77 = liun;
         int32_t lrec77 = lrec;
@@ -589,7 +745,7 @@ int c_fnom(
         }
         ier = f77name(qqqf7op)(&iun77, FGFDT[entry].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
     } else if (FGFDT[entry].attr.stream || FGFDT[entry].attr.std || FGFDT[entry].attr.burp || FGFDT[entry].attr.wa ||
-               (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn) ) {
+               (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn)) {
         ier = c_waopen2(liun);
         /* will be set by waopen */
         FGFDT[entry].attr.wa = 0;
@@ -597,9 +753,25 @@ int c_fnom(
 
     if (FGFDT[entry].attr.remote) ier = fnom_rem_connect(entry, remote_mach);
 
+    if (Lib_LogLevel(APP_LIBRMN, NULL) >= APP_EXTRA) {
+        dump_file_entry(entry);
+    }
+
+    if (ier < 0) goto fnom_error;
     if (ier == 0) FGFDT[entry].open_flag = 1;
-    if (ier < 0) c_fclos(liun);
-    return ier < 0 ? -1 : 0;
+
+    return 0;
+
+fnom_error:
+    if (ier < 0) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: could not open file %s, iun %d\n", __func__, FGFDT[entry].file_name, liun);
+        c_fclos(liun);
+    }
+    release_unit_number(liun);
+
+    Lib_Log(APP_LIBRMN, APP_ERROR, "%s: returning with error (%d)\n", __func__, ier);
+
+    return -1;
 }
 
 
@@ -655,12 +827,15 @@ int c_fclos(
     if ((iun == 6) && (stdoutflag)) return 0;
     if ((iun == 5) && (stdinflag)) return 0;
 
-    int entry = find_file_entry("c_fclos", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return entry;
 
     int ier = 0;
     if (FGFDT[entry].open_flag) {
-        if (FGFDT[entry].attr.ftn) {
+        if (FGFDT[entry].wa_slot >= 0) {
+            ier = qqcclos(entry);
+        }
+        else if (FGFDT[entry].attr.ftn) {
             int32_t iun77 = iun;
             ier = f77name(ftnclos)(&iun77);
         } else {
@@ -674,39 +849,97 @@ int c_fclos(
 
 //! \copydoc c_fclos
 int32_t f77name(fclos)(
-    const int32_t * const fiun
+    const int32_t * const iun
 ) {
-    return c_fclos(*fiun);
+    return c_fclos(*iun);
 }
 
+//! Get the first zero bit in the given 32-bit value (from the right)
+//! \return Index of the first zero bit, -1 if there are none
+static inline int get_zero_bit(
+    const uint32_t val,     //!< Value from which we want the first zero bit
+    const int32_t start,    //!< Start looking at that bit (included)
+    const int32_t stop      //!< Stop looking at that bit (excluded)
+) {
+    for (int i = start; i < stop; i++) {
+        if ((val & (1 << i)) == 0) return i;
+    }
+    return -1;
+}
 
-//! Get free unit number
+//! Get free unit number. This function is thread-safe using atomic operations (no mutex)
 //! \return Valid unit number if available, -1 otherwise
 static int get_free_unit_number(
     //! File attributes (see FNOM)
     const char * const type
 ) {
     int start;
-    int iun = -1;
     if (strstr(type, "FTN") || strstr(type, "ftn") || strstr(type, "D77") || strstr(type, "d77")) {
         start = 99;
     } else {
-        start = 999;
+        start = MAX_FNOM_FILES - 1;
     }
-    for (int j = start; j > 10; j--) {
-        int inUse = 0;
-        for (int i = 0; i < MAXFILES; i++) {
-            if (FGFDT[i].iun == j) {
-                inUse = 1;
-                break;
+
+    for (int j = start / 32; j >= 0; j--) {
+        uint32_t old_val;
+        volatile uint32_t* loc = &used_units_bitmap[j];
+        const int32_t lowest = (j == 0 ? 11 : 0);
+        old_val = *loc;
+        for (int i = 0; i < (32 - lowest) && old_val != 0xffffffff; i++) { // Only try a limited number of times
+            const int bit = get_zero_bit(old_val, lowest, 32);
+            if (bit >= 0) {
+                // Set the bit atomically
+                if (__sync_bool_compare_and_swap(loc, old_val, old_val | (1 << bit))) {
+                    return j * 32 + bit;
+                }
+            }
+
+            old_val = *loc; // Read the value again
+        }
+    }
+
+    // Didn't find any
+    return -1;
+}
+
+//! Mark the given unit number as "in use". Threadsafe with atomic operations
+//! \return 1 if it worked, 0 if it didn't
+static inline int reserve_unit_number(const int iun) {
+    if (iun / 32 < NUM_BITMAP_ENTRIES) {
+        const uint32_t mask = (1 << (iun % 32));
+        // Set bit atomically
+        const uint32_t old_val = __sync_fetch_and_or(&used_units_bitmap[iun/32], mask);
+        return ((old_val & mask) == 0); // True if the unit was available, false if not
+    }
+    return 0;
+}
+
+//! Mark the given unit number as available for use. Threadsafe with atomic operations
+//! \return 1 if we were able to free it, 0 if not
+static inline uint32_t release_unit_number(const int iun) {
+    if (iun / 32 < NUM_BITMAP_ENTRIES) {
+        return __sync_and_and_fetch(&used_units_bitmap[iun / 32], ~(1 << (iun % 32)));
+    }
+    return 0;
+}
+
+//! Find a free fnom entry and set its iun. Thread-safe using atomics, no mutex.
+//! \return Index of the entry found, -1 if table is full
+static int get_free_entry(
+    const int iun //!< [in] The unit number to assign to the next available entry
+) {
+    for (int i = 0; i < MAX_FNOM_FILES; i++) {
+        if (FGFDT[i].iun == 0) { // Check first, b/c the sync is expensive
+            if (__sync_bool_compare_and_swap(&(FGFDT[i].iun), 0, iun)) {
+                unit_entries[iun] = i;
+                return i;
             }
         }
-        if (! inUse) {
-            iun = j;
-            break;
-        }
     }
-    return iun;
+
+    // Didn't find one
+    Lib_Log(APP_LIBRMN, APP_ERROR, "%s: too many files, file table is full\n", __func__);
+    return -1;
 }
 
 
@@ -726,7 +959,7 @@ int32_t f77name(qqqfnom)(
     //! [in] File type length
     F2Cl l2
 ) {
-    int entry = find_file_entry("qqqfnom", *iun);
+    int entry = find_file_entry(__func__, *iun);
     if (entry < 0) return entry;
 
     strncpy(nom, FGFDT[entry].file_name, l1);
@@ -750,15 +983,14 @@ static int qqcclos(
 ) {
     int lfd = FGFDT[indf].fd;
 
-    int ind = 0;
-    while ((wafile[ind].file_desc != lfd) && (ind < MAXWAFILES)) {
-        ind++;
-    }
-    if (ind == MAXWAFILES) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file is not open, fd=%d, name=%s\n",__func__,lfd,FGFDT[indf].file_name);
+    const int ind = FGFDT[indf].wa_slot;
+    if (ind < 0 || wafile[ind].file_desc != lfd) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: file is not open, fd=%d, name=%s, fnom entry=%d\n",
+                __func__, lfd, FGFDT[indf].file_name, indf);
         return 1;
     }
 
+    // TODO check this block for thread-unsafety
     if (FGFDT[indf].attr.remote) {
         int demande[5];
 
@@ -792,9 +1024,12 @@ static int qqcclos(
             Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: fermeture du fichier ind=%d, fd=%d\n",__func__,ind,lfd);
         }
     }
-    wafile[ind].file_desc = -1;
+
+    reset_wafile_slot(ind); // Release the slot for use by others
     FGFDT[indf].fd = -1;
     FGFDT[indf].open_flag = 0;
+    FGFDT[indf].wa_slot = -1;
+
     close(lfd);
     return 0;
 }
@@ -806,26 +1041,16 @@ int c_waopen2(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = 0;
-    while (entry < MAXFILES && FGFDT[entry].iun != iun) {
-        entry++;
-    }
-    if (entry == MAXFILES) {
+    int entry = find_file_entry(__func__, iun);
+    if (entry < 0) {
         // iun not found; search again for an available entry
-        entry=0;
-        while (entry < MAXFILES && FGFDT[entry].iun != 0) {
-            entry++;
-        }
-        if (entry == MAXFILES) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file table is full\n",__func__);
-            return -1;
-        } else {
-            FGFDT[entry].iun = iun;
-        }
+        entry = get_free_entry(iun);
+        if (entry < 0) return -1;
 
         // file is not associated with fnom, file name is set to Wafileiun
-        FGFDT[entry].file_name = malloc(10);
-        sprintf(FGFDT[entry].file_name, "%s%d", "Wafile", iun);
+        const char* base_wafile_name = "Wafile";
+        FGFDT[entry].file_name = malloc(strlen(base_wafile_name) + 10);
+        sprintf(FGFDT[entry].file_name, "%s%d", base_wafile_name, iun);
         FGFDT[entry].attr.wa = 1;
         FGFDT[entry].attr.rnd = 1;
     } else {
@@ -836,7 +1061,7 @@ int c_waopen2(
         if (FGFDT[entry].open_flag) {
             if (FGFDT[entry].attr.wa == 1){
                 // fnom opened the file but does not set wa flag
-                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d already open as %\n",__func__,iun,FGFDT[entry].file_name);
+                Lib_Log(APP_LIBRMN, APP_ERROR, "%s: unit %d already open as %s\n", __func__, iun, FGFDT[entry].file_name);
             }
             FGFDT[entry].attr.wa = 1;
             return FGFDT[entry].fd;
@@ -887,13 +1112,13 @@ int c_waclos2(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = find_file_entry("c_waclos", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].open_flag) {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: unit %d is not open\n",__func__,iun);
         return -1;
-        }
+    }
 
     int ier = qqcclos(entry);
     FGFDT[entry].open_flag = 0;
@@ -944,7 +1169,7 @@ int c_wawrit2(
     uint32_t scrap[WA_HOLE];
     uint32_t *bufswap = (uint32_t *) buf;
 
-    int entry = find_file_entry("c_wawrit", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].open_flag) {
@@ -1029,7 +1254,7 @@ int c_waread2(
 ) {
     uint32_t *bufswap = (uint32_t *) buf;
 
-    int entry = find_file_entry("c_waread", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].open_flag) {
@@ -1083,7 +1308,7 @@ void c_waread(
     const int nwords
 ) {
     if (c_waread2(iun, buf, offset, nwords) == -2) {
-        int entry = find_file_entry("c_waread", iun);
+        int entry = find_file_entry(__func__, iun);
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: attempt to read beyond EOF, of file %s, addr = %u, EOF = %d\n",__func__,FGFDT[entry].file_name,offset,FGFDT[entry].eff_file_size);
     }
 }
@@ -1106,7 +1331,7 @@ int32_t c_wasize(
     //! [in] Unit number
     const int iun
 ) {
-   int entry = find_file_entry("c_wasize", iun);
+   int entry = find_file_entry(__func__, iun);
    if (entry < 0) return entry;
 
    uint32_t nwords;
@@ -1343,7 +1568,7 @@ int c_getfdsc(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = find_file_entry("c_getfdsc", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return entry;
 
     if (! FGFDT[entry].attr.stream) {
@@ -1378,7 +1603,7 @@ void c_sqopen(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = find_file_entry("c_sqopen", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return;
 
     if (FGFDT[entry].attr.pipe) {
@@ -1411,7 +1636,7 @@ void c_sqclos(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = find_file_entry("c_sqclos", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return;
 
     if (FGFDT[entry].attr.wa == 1) {
@@ -1431,7 +1656,7 @@ void c_sqrew(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = find_file_entry("c_sqrew", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return;
 
     if (FGFDT[entry].attr.pipe) return;
@@ -1455,7 +1680,7 @@ void c_sqeoi(
     //! [in] Unit number
     const int iun
 ) {
-    int entry = find_file_entry("c_sqeoi", iun);
+    int entry = find_file_entry(__func__, iun);
     if (entry < 0) return;
 
     if (FGFDT[entry].attr.pipe) return;
@@ -1745,7 +1970,9 @@ static void wa_pages_flush(
 //! \return Position of the start of the data of a subfile in a CMCARC file
 static long long filepos(
     //! [in] Index of the subfile in the master file table
-    const int indf
+    const int indf,
+    //! [in,out] Used to be a global var (without documentation)
+    int* subfile_length
 ) {
     char sign[25];
 
@@ -1798,8 +2025,7 @@ static long long filepos(
         }
     }
 
-    //! \warning File scope variable!
-    subfile_length = 0;
+    *subfile_length = 0;
 
     int found = 0;
     int tail_offset;
@@ -1857,58 +2083,115 @@ static long long filepos(
         }
     } while(!found);
 
-    subfile_length = (nd * 8) / sizeof(uint32_t);
+    *subfile_length = (nd * 8) / sizeof(uint32_t);
     off64_t pos64 = lseek(FGFDT[indf].fd, 0, SEEK_END);
     return pos64 / sizeof(uint32_t);
 }
 
+//! Release the given wafile slot
+static void reset_wafile_slot(const int slot_id) {
+    wafile[slot_id].nb_page_in_use = 0;
+    wafile[slot_id].offset = 0;
 
-//! Open a non-Fortran file (active part of c_waopen2)
+    // Set last, to indicate slot is available
+    wafile[slot_id].file_desc = -1;
+}
+
+
+//! Find a free slot in the wafile table and reserve it. Thread-safe using atomics, no mutex.
+//! \return Index of the entry found, -1 if table is full
+static int get_free_wafile_slot() {
+    for (int i = 0; i < MAXWAFILES; i++) {
+        if (wafile[i].file_desc == -1) { // Check like this first b/c sync is expensive
+            if (__sync_val_compare_and_swap(&(wafile[i].file_desc), -1, 0) == -1) {
+                return i;
+            }
+        }
+    }
+
+    // Didn't find one
+    Lib_Log(APP_LIBRMN, APP_ERROR,"%s: too many open files\n",__func__);
+    return -1;
+}
+
+//! Initialize the WA API. Thread-safe with fnom_mutex
+//! \return Max number of wafiles that can be open simultaneously, 0 or negative if error
+static int initialize_wa() {
+    if (MAXWAFILES > 0) return MAXWAFILES; // Already initialized
+
+    if (MAX_FNOM_FILES <= 0) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: fnom should be initialized first.\n", __func__);
+        return -1;
+    }
+
+    // --- START critical region ---
+    pthread_mutex_lock(&fnom_mutex);
+
+    if (wafile != NULL) goto unlock;
+
+    wafile = (FILEINFO*)calloc(MAX_FNOM_FILES, sizeof(FILEINFO));
+    free_list = (uint32_t**)calloc(MAX_FNOM_FILES * MAXPAGES, sizeof(uint32_t*));
+    dastat = (int*)calloc(MAX_FNOM_FILES, sizeof(int));
+
+    if (wafile == NULL || free_list == NULL || dastat == NULL) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to allocate memory for %d files\n", __func__, MAX_FNOM_FILES);
+        goto unlock;
+    }
+
+    
+    char * waConfig = getenv("WA_CONFIG");
+    int nset = 0;
+    int n1, n2, n3, n4;
+    if (waConfig != NULL) {
+        nset = sscanf(waConfig, "%d %d %d %d", &n1, &n2, &n3, &n4);
+    }
+
+    switch (nset) {
+        case 4:
+        case 3:
+            WA_PAGE_LIMIT = n3;
+
+        case 2:
+            WA_PAGE_NB = n2;
+
+        case 1:
+            WA_PAGE_SIZE = n1 * 1024 * (sizeof(int32_t) / sizeof(uint32_t));
+            break;
+
+        default:
+            WA_PAGE_SIZE = 0;
+    }
+
+    WA_PAGE_NB = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
+
+    if (WA_PAGE_LIMIT == 0) {
+        WA_PAGE_LIMIT = WA_PAGE_NB * MAX_FNOM_FILES;
+    }
+    if (WA_PAGE_SIZE > 0) {
+        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: WA_PAGE_SZ=%ld Bytes WA_PAGE_NB=%d WA_PAGE_LIMIT=%d\n",__func__,WA_PAGE_SIZE*sizeof(uint32_t),WA_PAGE_NB,WA_PAGE_LIMIT);
+    }
+    for (int ind = 0; ind < MAX_FNOM_FILES; ind++) {
+        reset_wafile_slot(ind);
+    }
+
+    MAXWAFILES = MAX_FNOM_FILES; // Signal initialization is complete
+
+unlock:
+    pthread_mutex_unlock(&fnom_mutex);
+    // --- END critical region ---
+
+    return MAXWAFILES;
+}
+
+
+//! Open a non-Fortran file (active part of c_waopen2). Uses fnom_mutex
 //! \return File descriptor on success, negative number otherwise
 static int qqcopen(
     //! [in] Index of the subfile in the master file table
     const int indf
 ) {
-    if (! init) {
-        char * waConfig = getenv("WA_CONFIG");
-        int nset = 0;
-        int n1, n2, n3, n4;
-        if (waConfig != NULL) {
-            nset = sscanf(waConfig, "%d %d %d %d", &n1, &n2, &n3, &n4);
-        }
 
-        switch (nset) {
-            case 4:
-            case 3:
-                WA_PAGE_LIMIT = n3;
-
-            case 2:
-                WA_PAGE_NB = n2;
-
-            case 1:
-                WA_PAGE_SIZE = n1 * 1024 * (sizeof(int32_t) / sizeof(uint32_t));
-                break;
-
-            default:
-                WA_PAGE_SIZE = 0;
-        }
-
-        WA_PAGE_NB = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
-
-        if (WA_PAGE_LIMIT == 0) {
-            WA_PAGE_LIMIT = WA_PAGE_NB * MAXWAFILES;
-        }
-        if (WA_PAGE_SIZE > 0) {
-            Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: WA_PAGE_SZ=%ld Bytes WA_PAGE_NB=%d WA_PAGE_LIMIT=%d\n",__func__,WA_PAGE_SIZE*sizeof(uint32_t),WA_PAGE_NB,WA_PAGE_LIMIT);
-        }
-        for (int ind = 0; ind < MAXWAFILES; ind++) {
-            wafile[ind].file_desc = -1;
-            wafile[ind].nb_page_in_use = 0;
-            wafile[ind].offset = 0;
-        }
-        //! \warning File scope variable
-        init = 1;
-    }
+    if (initialize_wa() <= 0) return -1;
 
     if (FGFDT[indf].attr.remote) {
         // file will be open by fnom_rem_connect
@@ -1916,16 +2199,11 @@ static int qqcopen(
     }
 
     FGFDT[indf].fd = -1;
-    int ind = 0;
-    while ((wafile[ind].file_desc != -1) && (ind < MAXWAFILES)) {
-        ind++;
-    }
-    if (ind == MAXWAFILES) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: too many open files\n",__func__);
-        return -1;
-    }
+    const int ind = get_free_wafile_slot();
+    if (ind < 0) return -1; // Error message already printed
 
     int fd;
+    int subfile_length = 0;
     if (FGFDT[indf].subname) {
         // cmcarc file
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  opening subfile %s from file %s\n",__func__,FGFDT[indf].subname,FGFDT[indf].file_name);
@@ -1933,12 +2211,14 @@ static int qqcopen(
         fd = open64(FGFDT[indf].file_name, O_RDONLY);
         if (fd == -1) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot open file %s\n",__func__,FGFDT[indf].file_name);
+            reset_wafile_slot(ind);
             return -1;
         }
         wafile[ind].file_desc = fd;
         FGFDT[indf].fd = fd;
-        if ((wafile[ind].offset = filepos(indf)) <= 0) {
+        if ((wafile[ind].offset = filepos(indf, &subfile_length)) <= 0) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: subfile %s not found in %s\n",__func__, FGFDT[indf].subname,FGFDT[indf].file_name);
+            reset_wafile_slot(ind);
             return -1;
         }
         FGFDT[indf].open_flag = 1;
@@ -1961,21 +2241,28 @@ static int qqcopen(
                     if (!FGFDT[indf].attr.write_mode) {
                         FGFDT[indf].attr.read_only = 1;
                         fd = open64(FGFDT[indf].file_name, O_RDONLY);
-                        errmsg = "cannot open file";
+                        errmsg = "cannot open file (read-write)";
                     } else {
                         errmsg = "cannot open in write mode";
                     }
                 }
             } else if (FGFDT[indf].attr.read_only) {
                 fd = open64(FGFDT[indf].file_name, O_RDONLY);
-                errmsg = "cannot open file";
+                errmsg = "cannot open file (read-only)";
             }
         }
         if (fd == -1) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s filename=(%s) !\n",__func__,errmsg,FGFDT[indf].file_name);
+            reset_wafile_slot(ind);
             return -1;
         }
-        wafile[ind].file_desc = fd;
+
+        // Atomically set wafile file descriptor. Atomicity should not be necessary here it think.
+        if (!__sync_bool_compare_and_swap(&(wafile[ind].file_desc), 0, fd)) {
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: looks like someone else is using wafile %d\n", __func__, ind);
+            return -1;
+        }
+
         FGFDT[indf].fd = fd;
         FGFDT[indf].open_flag = 1;
     }
@@ -1983,11 +2270,13 @@ static int qqcopen(
     // VOLATILE mode, unlink the file so it gets erased ate end of process
     if (FGFDT[indf].attr.volatil) {
         if (FGFDT[indf].attr.read_only) {
-           Lib_Log(APP_LIBFST,APP_WARNING,"%s: File %s opened read only, VOLATILE mode not used\n", __func__,FGFDT[indf].file_name);
+           Lib_Log(APP_LIBRMN,APP_WARNING,"%s: File %s opened read only, VOLATILE mode not used\n", __func__,FGFDT[indf].file_name);
         } else {
            unlink(FGFDT[indf].file_name);
         }
     }
+
+    FGFDT[indf].wa_slot = ind;
 
     off64_t dim = lseek64(fd, 0, SEEK_END);
     FGFDT[indf].file_size = dim / sizeof(uint32_t);

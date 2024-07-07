@@ -111,12 +111,6 @@
       DY    = PRI(16)
       TEMPS = (PRI(17)*100) + PRI(18)
       
-!     OBTENIR LES CLEFS PRIMAIRES SUPPLEMENTAIRES
-      IF(NSUP .GT. 0) THEN
-         DO 20 I = 1,NSUP
-            SUP(I) = PRI(NPRIDEF+I)
- 20         CONTINUE
-      ENDIF
 
       MRFPRM = 0
 

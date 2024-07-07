@@ -26,73 +26,57 @@
 
 
 int32_t f77name(gdgxpndaxes)(int32_t *gdid, float *ax, float *ay) {
-   c_gdgxpndaxes(*gdid, ax, ay);
-   return 0;
+    c_gdgxpndaxes(*gdid, ax, ay);
+    return 0;
 }
 
 
 int32_t c_gdgxpndaxes(int32_t gdid, float *ax, float *ay) {
-
-  int32_t nix, njy;
-  int32_t istart, jstart;
-
-  int32_t gdrow_id, gdcol_id;
-
-  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-  if (Grille[gdrow_id][gdcol_id].nsubgrids > 0)
-      {
-       fprintf(stderr, "<gdgxpndaxes> This operation is not supported for 'U' grids.\n");
-       return -1;
-      }
-
-  if (!Grille[gdrow_id][gdcol_id].flags & AX)
-    {
-    fprintf(stderr, "(gdgxpndaxes) Erreur! A l'aide! Descripteurs manquants!\n");
-    return -1;
+    int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    if (Grille[gdrow_id][gdcol_id].nsubgrids > 0) {
+        fprintf(stderr, "<gdgxpndaxes> This operation is not supported for 'U' grids.\n");
+        return -1;
     }
 
-  switch(Grille[gdrow_id][gdcol_id].grtyp[0])
-    {
-    case 'Y':
-      nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
-      memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
-      memcpy(ay, Grille[gdrow_id][gdcol_id].ay, nix*sizeof(float));
-      break;
-
-    default:
-      nix = Grille[gdrow_id][gdcol_id].ni;
-      njy = Grille[gdrow_id][gdcol_id].nj;
-      if (Grille[gdrow_id][gdcol_id].i2 == (nix+1)) istart = 1;
-      if (Grille[gdrow_id][gdcol_id].i2 == (nix+2)) istart = 2;
-      if (Grille[gdrow_id][gdcol_id].i2 == (nix)) istart = 0;
-
-      if (Grille[gdrow_id][gdcol_id].j2 == (njy+1)) jstart = 1;
-      if (Grille[gdrow_id][gdcol_id].j2 == (njy+2)) jstart = 2;
-      if (Grille[gdrow_id][gdcol_id].j2 == (njy))   jstart = 0;
-      memcpy(&ax[istart],Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
-      memcpy(&ay[jstart],Grille[gdrow_id][gdcol_id].ay, njy*sizeof(float));
-
-      if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+1))
-	{
-	ax[0] = Grille[gdrow_id][gdcol_id].ax[nix-2] - 360.0;
-	ax[nix] = ax[2];
-	}
-
-      if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+2))
-	{
-	ax[0] = Grille[gdrow_id][gdcol_id].ax[nix-1] - 360.0;
-	ax[nix] = Grille[gdrow_id][gdcol_id].ax[1]+360.0;
-	ax[nix+1] = Grille[gdrow_id][gdcol_id].ax[2]+360.0;
-	}
-
-      if (Grille[gdrow_id][gdcol_id].j2 == (Grille[gdrow_id][gdcol_id].nj+1))
-	{
-	}
-
-      if (Grille[gdrow_id][gdcol_id].j2 == (Grille[gdrow_id][gdcol_id].nj+2))
-	{
-	}
-
+    if ((!Grille[gdrow_id][gdcol_id].flags) & AX) {
+        fprintf(stderr, "(gdgxpndaxes) Erreur! A l'aide! Descripteurs manquants!\n");
+        return -1;
     }
-  return 0;
+
+    switch(Grille[gdrow_id][gdcol_id].grtyp[0]) {
+        case 'Y': {
+            int32_t nix = Grille[gdrow_id][gdcol_id].ni * Grille[gdrow_id][gdcol_id].nj;
+            memcpy(ax, Grille[gdrow_id][gdcol_id].ax, nix*sizeof(float));
+            memcpy(ay, Grille[gdrow_id][gdcol_id].ay, nix*sizeof(float));
+            break;
+        }
+
+        default: {
+            int32_t nix = Grille[gdrow_id][gdcol_id].ni;
+            int32_t njy = Grille[gdrow_id][gdcol_id].nj;
+
+            int32_t istart = 0;
+            if (Grille[gdrow_id][gdcol_id].i2 == (nix+1)) istart = 1;
+            if (Grille[gdrow_id][gdcol_id].i2 == (nix+2)) istart = 2;
+
+            int32_t jstart = 0;
+            if (Grille[gdrow_id][gdcol_id].j2 == (njy+1)) jstart = 1;
+            if (Grille[gdrow_id][gdcol_id].j2 == (njy+2)) jstart = 2;
+            memcpy(&ax[istart], Grille[gdrow_id][gdcol_id].ax, nix * sizeof(float));
+            memcpy(&ay[jstart], Grille[gdrow_id][gdcol_id].ay, njy * sizeof(float));
+
+            if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+1)) {
+                ax[0] = Grille[gdrow_id][gdcol_id].ax[nix-2] - 360.0;
+                ax[nix] = ax[2];
+            }
+
+            if (Grille[gdrow_id][gdcol_id].i2 == (Grille[gdrow_id][gdcol_id].ni+2)) {
+                ax[0] = Grille[gdrow_id][gdcol_id].ax[nix-1] - 360.0;
+                ax[nix] = Grille[gdrow_id][gdcol_id].ax[1]+360.0;
+                ax[nix+1] = Grille[gdrow_id][gdcol_id].ax[2]+360.0;
+            }
+        }
+    }
+    return 0;
 }

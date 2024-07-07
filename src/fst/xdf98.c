@@ -14,16 +14,21 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#define XDF_OWNER
-#include <App.h>
-#include "xdf98.h"
-#include <rmn/fst98.h>
+#include <pthread.h>
 
+#define XDF_OWNER
+#include "xdf98.h"
+
+#include <App.h>
 #include <armn_compress.h>
 #include "base/base.h"
-
-#include "qstdir.h"
 #include "burp98.h"
+#include "fst98_internal.h"
+#include "primitives/fnom_internal.h"
+#include "qstdir.h"
+#include "rmn/excdes_new.h"
+
+static pthread_mutex_t xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
@@ -32,7 +37,7 @@ static int init_package_done = 0;
 
 // prototypes declarations
 static int get_free_index();
-static void init_file(int i);
+static void init_file(file_table_entry* const entry, const int index);
 static void init_package();
 static int32_t scan_random(int file_index);
 static int32_t add_dir_page(int file_index, int wflag);
@@ -42,10 +47,14 @@ static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
 static uint32_t next_match(int file_index);
 static void build_gen_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask,
                                 uint32_t *mskkeys, int index, int mode);
-static void build_gen_info_keys(uint32_t *buf, uint32_t *keys, int index,
-                                int mode);
-int C_fst_match_req(int set_nb, int handle);
+static void build_gen_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
 
+file_table_entry_ptr* file_table = NULL;
+int MAX_XDF_FILES = 0;
+
+static const intptr_t XDF_RESERVED = 1;
+static const int XDF_IUN_AVAILABLE = -1;
+static const int XDF_IUN_RESERVED = -2;
 
 //! Check whether the given handle belongs to an open XDF file
 int32_t c_xdf_handle_in_file(const int32_t handle) {
@@ -53,11 +62,47 @@ int32_t c_xdf_handle_in_file(const int32_t handle) {
     return ((file_table[index] != NULL) && (file_table[index]->iun >= 0));
 }
 
+//! Initialize the XDF API
+//! Uses the xdf_mutex
+//! \return 
+int initialize_xdf() {
+    
+    if (MAX_XDF_FILES > 0) return MAX_XDF_FILES; // xdf already initialized
+    if (MAX_FNOM_FILES <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize XDF if fnom has never been called/initialized\n", __func__);
+        return MAX_FNOM_FILES;
+    }
+
+    // --- START critical region ---
+    pthread_mutex_lock(&xdf_mutex);
+
+    if (MAX_XDF_FILES > 0) goto unlock; // Check again after locking, in case someone else was initializing
+
+    file_table = (file_table_entry_ptr*) calloc(MAX_FNOM_FILES, sizeof(file_table_entry_ptr));
+    if (file_table == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate space for file table (%d files)\n",
+                __func__, MAX_FNOM_FILES);
+        goto unlock;
+    }
+
+    MAX_XDF_FILES = MAX_FNOM_FILES; // Signal to other threads that the API is initialized
+
+    // Init first entry to start with file index = 1. Is that really useful? We need to have the API initialized to call the get_free_index() function.
+    int ind = get_free_index();
+    file_table[ind]->iun = 123456789;
+
+unlock:
+    pthread_mutex_unlock(&xdf_mutex);
+    // --- END critical region ---
+
+    return MAX_XDF_FILES;
+}
+
 //! Check XDF file for corruption
 //! @return              Valid(0) or not(-1)
 int c_xdfcheck(
     //! [in] filePath Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     file_header header;
     uint32_t tmp;
@@ -236,7 +281,7 @@ void build_fstd_prim_keys(
     fh = file_table[index]->header;
 
     if (mode == WMODE) {
-        // Erite keys to buffer
+        // Write keys to buffer
         for (i = 0; i < W64TOWD(fh->lprm -1); i++) {
             buf[i] = keys[i];
             mask[i] = mskkeys[i];
@@ -370,8 +415,8 @@ int c_qdfdiag(
 #define swap_4(mot) { register uint32_t tmp =(uint32_t)mot; \
    mot = (tmp>>24) | (tmp<<24) | ((tmp>>8)&0xFF00) | ((tmp&0xFF00)<<8); }
 
-    int index_fnom = fnom_index(iun);
-    if (index_fnom == -1) {
+    int index_fnom = get_fnom_index(iun);
+    if (index_fnom < 0) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
@@ -504,7 +549,7 @@ int c_qdfmsig(
     //! [in] new application signature
     char *newappl
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -555,13 +600,13 @@ int c_qdfrstr(
 #define Buflen 8192
     int buffer[Buflen];
 
-    int index_fnom = fnom_index(inp);
+    int index_fnom = get_fnom_index(inp);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,inp);
         return(ERR_NO_FNOM);
     }
 
-    index_fnom = fnom_index(outp);
+    index_fnom = get_fnom_index(outp);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,outp);
         return(ERR_NO_FNOM);
@@ -721,13 +766,13 @@ int32_t f77name(secateur)(
 //! Pack key descriptors into 2 different 32 bit wide elements.
 int c_xdfcle(
     //! [in] Name of the key (max 4 char)
-    char *keyname,
+    const char *keyname,
     //! [in] Last right bit of key in record
-    int bit1,
+    const int bit1,
     //! [in] Key length in bits
-    int lkey,
+    const int lkey,
     //! [in] Type of key (0 : unsigned int, 1..4 : ascii char)
-    int tkey,
+    const int tkey,
     //! [out] First element to contain the keyname
     int *desc1,
     //! [out] Second element to contain the bit position length and type
@@ -738,8 +783,8 @@ int c_xdfcle(
 
     *desc1 = 0; *desc2 = 0;
 
-    for(i=0; (i < 4 && *keyname); i++, *keyname++) {
-        *desc1 = (*desc1 <<8) | (*keyname & 0xff);
+    for(i=0; (i < 4 && keyname[i]); i++) {
+        *desc1 = (*desc1 <<8) | (keyname[i] & 0xff);
     }
 
     while (i++ < 4) {
@@ -770,8 +815,8 @@ int c_xdfcls(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
-    if (index_fnom == -1) {
+    int index_fnom = get_fnom_index(iun);
+    if (index_fnom < 0) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
@@ -841,7 +886,7 @@ int c_xdfcls(
         }
 
         // Reset file informations
-        init_file(index);
+        init_file(fte, index);
     } else {
         xdf_checkpoint = 0;
     }
@@ -870,7 +915,7 @@ int c_xdfcut(
       return(ERR_BAD_ADDR);
    }
 
-   if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
+   if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
       Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
       return(ERR_BAD_DATYP);
    }
@@ -1221,7 +1266,7 @@ int c_xdfimp(
     uint32_t wtemp[2];
     char nomcle[5];
 
-    ind = fnom_index(iun);
+    ind = get_fnom_index(iun);
     if (ind == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -1292,7 +1337,7 @@ int c_xdfini(
     //! [in] Number of info keys
     int ninfo
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -1446,7 +1491,7 @@ int c_xdflnk(
     //! Number of files to be linked
     int nbLinkFiles
 ) {
-    int index_fnom = fnom_index(liste[0]);
+    int index_fnom = get_fnom_index(liste[0]);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -1460,7 +1505,7 @@ int c_xdflnk(
 
     file_table_entry *fte = file_table[index];
     for (int i = 1; i < nbLinkFiles; i++) {
-        if ((index_fnom = fnom_index(liste[i])) == -1) {
+        if ((index_fnom = get_fnom_index(liste[i])) == -1) {
            Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
            return(ERR_NO_FNOM);
         }
@@ -1651,6 +1696,7 @@ int c_xdfloc2(
 
 
 //! Open an XDF file.
+//! \return Number of records in the file, -1 if error.
 int c_xdfopn(
     //! [in] Unit number associated to the file
     int iun,
@@ -1673,12 +1719,11 @@ int c_xdfopn(
     uint32_t STDR_sign = 'S' << 24 | 'T' << 16 | 'D' << 8 | 'R';
     uint32_t STDS_sign = 'S' << 24 | 'T' << 16 | 'D' << 8 | 'S';
 
-    if (!init_package_done) {
-        init_package();
-        init_package_done = 1;
-    }
+    if (initialize_xdf() <= 0) return -1; // Error message will already be printed
 
-    if ((iun <= 0) || (iun > 999)) {
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening file with iun %d\n", __func__, iun);
+
+    if ((iun <= 0) || (iun >= MAX_XDF_FILES)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid unit number=%d\n",__func__,iun);
         return(ERR_BAD_UNIT);
     }
@@ -1689,17 +1734,24 @@ int c_xdfopn(
     }
 
     int index = get_free_index();
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Assigning unit %d to entry index %d\n", __func__, iun, index);
     file_table[index]->iun = iun;
     file_table[index]->file_index = index;
 
-    int index_fnom = fnom_index(iun);
-    if (index_fnom == -1) {
+    int index_fnom = get_fnom_index(iun);
+    if (index_fnom < 0) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
         return(ERR_NO_FNOM);
     }
 
     file_table_entry *fte = file_table[index];
     fte->cur_info = &FGFDT[index_fnom];
+
+    if (fte->cur_info->file_type == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file type is NULL. iun = %d, index_fnom = %d, index = %d\n",
+                __func__, iun, index_fnom, index);
+        return -1;
+    }
 
     if (! fte->cur_info->attr.rnd) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file must be random\n file in error: %s\n",__func__,FGFDT[index_fnom].file_name);
@@ -1711,15 +1763,15 @@ int c_xdfopn(
 
     if (fte->cur_info->attr.burp) {
         fte->build_primary = (fn_b_p *) build_burp_prim_keys;
-        fte->build_info = (fn_ptr *) build_burp_info_keys;
+        fte->build_info = build_burp_info_keys;
     } else {
         if (fte->cur_info->attr.std) {
             fte->build_primary = (fn_b_p *) build_fstd_prim_keys;
-            fte->build_info = (fn_ptr *) build_fstd_info_keys;
-            fte->file_filter = (fn_ptr *) C_fst_match_req;
+            fte->build_info = build_fstd_info_keys;
+            fte->file_filter = C_fst_match_req;
         } else {
             fte->build_primary = (fn_b_p *) build_gen_prim_keys;
-            fte->build_info = (fn_ptr *) build_gen_info_keys;
+            fte->build_info = build_gen_info_keys;
         }
     }
 
@@ -2087,7 +2139,7 @@ int c_xdfput(
     //! [in] Buffer to contain record
     buffer_interface_ptr buf)
 {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     int index_from_buf = file_index_xdf(buf->iun);
     if (index_from_buf == ERR_NO_FILE) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: record not properly initialized\n",__func__);
@@ -2334,7 +2386,7 @@ int c_xdfrep(
         return(ERR_BAD_ADDR);
     }
 
-    if ((datyp == 3) || (datyp == 5) && (nbits != 8)) {
+    if (((datyp == 3) || (datyp == 5)) && (nbits != 8)) {
         Lib_Log(APP_LIBFST,APP_FATAL,"%s: nbits must be 8 for datyp %d\n",__func__,datyp);
         return(ERR_BAD_DATYP);
     }
@@ -2435,7 +2487,7 @@ int c_xdfsta(
     file_header *fh;
     file_record header64;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -2520,7 +2572,7 @@ int c_xdfunl(
     int nbLinkedFiles
 ) {
     for (int i = 0; i < nbLinkedFiles; i++) {
-        int index_fnom = fnom_index(liste[i]);
+        int index_fnom = get_fnom_index(liste[i]);
         if (index_fnom  == -1) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
             return(ERR_NO_FNOM);
@@ -2559,7 +2611,7 @@ int c_xdfupd(
     //! [in] Number of secondary keys
     int ninfo
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -2571,7 +2623,7 @@ int c_xdfupd(
         return(ERR_NO_FILE);
     }
 
-    if ((idtyp < 1) && (idtyp != -1) || (idtyp > 126)) {
+    if (((idtyp < 1) && (idtyp != -1)) || (idtyp > 126)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid idtyp=%d, must be between 1 and 126 or -1\n",__func__,idtyp);
         return(ERR_BAD_DATYP);
     }
@@ -2603,13 +2655,13 @@ int c_xdfuse(
     //! [in] Unit number associated to the destination file
     int dest_unit
 ) {
-    int index_fnom_src = fnom_index(src_unit);
+    int index_fnom_src = get_fnom_index(src_unit);
     if (index_fnom_src == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: source file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
     }
 
-    int index_fnom_dest = fnom_index(dest_unit);
+    int index_fnom_dest = get_fnom_index(dest_unit);
     if (index_fnom_dest == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: destination file is not connected with fnom\n",__func__);
         return(ERR_NO_FNOM);
@@ -2937,6 +2989,22 @@ static int create_new_xdf(
    return 0;
 }
 
+// //! Find position of file iun in file table.
+// //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
+int file_index_xdf(
+    //! [in] Unit number associated to the file
+    const int iun
+) {
+    for (int i = 0; i < MAX_XDF_FILES; i++) {
+        const file_table_entry* entry = file_table[i];
+        if (entry != NULL && entry != (void*)XDF_RESERVED) { // Non-NULL and not reserved
+            if (entry->iun == iun) {
+                return i;
+            }
+        }
+    }
+    return ERR_NO_FILE;
+}
 
 //! Find a free position in file table and initialize file attributes.
 //! \return Free position index or error code
@@ -2949,19 +3017,30 @@ static int get_free_index()
     } else {
         nlimite = MAX_XDF_FILES;
     }
+
+
     for (int i = 0; i < nlimite; i++) {
-        if (file_table[i] == NULL) {
-            if ((file_table[i] = (file_table_entry_ptr) malloc(sizeof(file_table_entry))) == NULL) {
-                 Lib_Log(APP_LIBFST,APP_FATAL,"%s: can't alocate file_table_entry\n",__func__);
-                return(ERR_MEM_FULL);
-            }
-            // assure first time use of index i
-            file_table[i]->file_index = -1;
-            init_file(i);
-            return i;
-        } else {
-            if (file_table[i]->iun == -1) {
+        file_table_entry* entry = file_table[i];
+        if (entry == NULL) {
+            if (__sync_bool_compare_and_swap(&(file_table[i]), NULL, (void*)XDF_RESERVED)) { // Reserve slot
+                entry = (file_table_entry*) malloc(sizeof(file_table_entry));
+                if (entry == NULL) {
+                    Lib_Log(APP_LIBFST, APP_FATAL, "%s: can't allocate file_table_entry\n", __func__);
+                    return(ERR_MEM_FULL);
+                }
+
+                entry->file_index = -1; // assure first time use of index i
+                init_file(entry, i);
+                entry->iun = XDF_IUN_RESERVED; // Set as "reserved" for the purpose of this function
+                file_table[i] = entry;
                 return i;
+            }
+        } else if (entry != (void*)XDF_RESERVED) {
+            // Entry has been initialized, but not reserved
+            if (entry->iun == XDF_IUN_AVAILABLE) {
+                if (__sync_bool_compare_and_swap(&(entry->iun), XDF_IUN_AVAILABLE, XDF_IUN_RESERVED)) {
+                    return i;
+                }
             }
          }
     }
@@ -2972,68 +3051,59 @@ static int get_free_index()
 
 //! Initialize a file table entry.
 static void init_file(
-    //! [in] Index in the file table
-    int index
+    //! [in,out] Entry to initialize
+    file_table_entry* const entry,
+    //! [in] Index of this entry in the file table
+    const int index
 ) {
     int j;
 
     for (j = 1; j < MAX_DIR_PAGES; j++) {
-        file_table[index]->dir_page[j] = NULL;
+        entry->dir_page[j] = NULL;
     }
-    file_table[index]->cur_dir_page = NULL;
-    file_table[index]->build_primary = NULL;
-    file_table[index]->build_info = NULL;
+    entry->cur_dir_page = NULL;
+    entry->build_primary = NULL;
+    entry->build_info = NULL;
 
-    file_table[index]->scan_file = NULL;
-    file_table[index]->file_filter = NULL;
-    file_table[index]->cur_entry = NULL;
-    if ((file_table[index]->file_index == index) && (file_table[index]->header != NULL)) {
+    entry->scan_file = NULL;
+    entry->file_filter = NULL;
+    entry->cur_entry = NULL;
+    if ((entry->file_index == index) && (entry->header != NULL)) {
         // Reuse file
-        free(file_table[index]->header);
+        free(entry->header);
     }
-    file_table[index]->header = NULL;
-    file_table[index]->nxtadr = 1;
-    file_table[index]->primary_len = 0;
-    file_table[index]->info_len = 0;
-    file_table[index]->link = -1;
-    file_table[index]->iun = -1;
-    file_table[index]->file_index = index;
-    file_table[index]->modified = 0;
-    file_table[index]->npages = 0;
-    file_table[index]->nrecords = 0;
-    file_table[index]->cur_pageno = -1;
-    file_table[index]->page_record = 0;
-    file_table[index]->page_nrecords = 0;
-    file_table[index]->file_version = 0;
-    file_table[index]->valid_target = 0;
-    file_table[index]->xdf_seq = 0;
-    file_table[index]->valid_pos = 0;
-    file_table[index]->cur_addr = -1;
-    file_table[index]->seq_bof = 1;
-    file_table[index]->fstd_vintage_89 = 0;
+    entry->header = NULL;
+    entry->nxtadr = 1;
+    entry->primary_len = 0;
+    entry->info_len = 0;
+    entry->link = -1;
+    entry->file_index = index;
+    entry->modified = 0;
+    entry->npages = 0;
+    entry->nrecords = 0;
+    entry->cur_pageno = -1;
+    entry->page_record = 0;
+    entry->page_nrecords = 0;
+    entry->file_version = 0;
+    entry->valid_target = 0;
+    entry->xdf_seq = 0;
+    entry->valid_pos = 0;
+    entry->cur_addr = -1;
+    entry->seq_bof = 1;
+    entry->fstd_vintage_89 = 0;
     for (j = 0; j < MAX_SECONDARY_LNG; j++) {
-        file_table[index]->info_keys[j] = 0;
+        entry->info_keys[j] = 0;
     }
     for (j = 0; j < MAX_PRIMARY_LNG; j++) {
-        file_table[index]->head_keys[j] = 0;
-        file_table[index]->cur_keys[j] = 0;
-        file_table[index]->target[j] = 0;
-        file_table[index]->srch_mask[j] = -1;
-        file_table[index]->cur_mask[j] = -1;
+        entry->head_keys[j] = 0;
+        entry->cur_keys[j] = 0;
+        entry->target[j] = 0;
+        entry->srch_mask[j] = -1;
+        entry->cur_mask[j] = -1;
     }
-}
 
-
-//! Initialize all file table entries
-static void init_package()
-{
-    for (int i = 0; i < MAX_XDF_FILES; i++) {
-        file_table[i] = NULL;
-    }
-    // Init first entry to start with file index = 1
-    int ind = get_free_index();
-    file_table[ind]->iun = 1234567;
-    init_package_done = 1;
+    // Do this one last. It marks the slot as available
+    entry->iun = XDF_IUN_AVAILABLE;
 }
 
 
@@ -3505,7 +3575,7 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
     strncpy(c_appl, appl, lng);
     c_appl[lng] = '\0';
 
-    return (int32_t) c_xdfimp(iun, stat, nstat, (word_2 *)pri, (word_2 *)aux, c_vers, c_appl);
+    return (int32_t) c_xdfimp(iun, (uint32_t*)stat, nstat, (word_2 *)pri, (word_2 *)aux, c_vers, c_appl);
 }
 
 
@@ -3514,7 +3584,7 @@ int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
 {
    int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
 
-   return (int32_t) c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
+   return (int32_t) c_xdfini(iun, (buffer_interface_ptr)buf, idtyp, (uint32_t*)keys, nkeys, (uint32_t*)info, ninfo);
 }
 
 
@@ -3658,7 +3728,7 @@ int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat;
    char c_vers[257], c_appl[257];
 
-   int ier = c_xdfsta(iun, stat, nstat, (word_2 *)pri, npri, (word_2 *)aux, naux, c_vers, c_appl);
+   int ier = c_xdfsta(iun, (uint32_t*)stat, nstat, (word_2 *)pri, npri, (word_2 *)aux, naux, c_vers, c_appl);
 
    int lng = (l1 <= 256) ? l1 : 256;
    c_vers[lng] = '\0';
@@ -3678,7 +3748,7 @@ int32_t f77name(xdfupd)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
 {
     int iun = *fiun, idtyp = *fidtyp, nkeys = *fnkeys, ninfo = *fninfo;
 
-    return (int32_t) c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, keys, nkeys, info, ninfo);
+    return (int32_t) c_xdfupd(iun, (buffer_interface_ptr)buf, idtyp, (uint32_t*)keys, nkeys, (uint32_t*)info, ninfo);
 }
 
 

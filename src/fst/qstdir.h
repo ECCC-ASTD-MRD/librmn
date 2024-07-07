@@ -13,20 +13,20 @@
 #ifdef MODE3232
 
 //! ftnword to 64 bit word conversion
-#define WDINT64(nwds) (nwds>>1)
+#define WDINT64(nwds) ((nwds)>>1)
 //! 64 bit word to ftnword conversion
-#define WD64INT(nw64) (nw64<<1)
+#define WD64INT(nw64) ((nw64)<<1)
 //! maximum length of primary keys
 #define MAX_PRIMARY_LNG 32
 //! Maximum length of info keys
 #define MAX_SECONDARY_LNG 16
 
 //! Word to 64 bit word conversion
-#define WDTO64(nwds) (nwds>>1)
+#define WDTO64(nwds) ((nwds)>>1)
 //! 64 bit word to word conversion
-#define W64TOWD(nw64) (nw64<<1)
+#define W64TOWD(nw64) ((nw64)<<1)
 //! 64 bit word to 32 bit word conversion
-#define W64TOwd(nw64) (nw64<<1)
+#define W64TOwd(nw64) ((nw64)<<1)
 //! Fortran word to 32 bit word conversion
 #define FWTOwd(nwds) (nwds)
 
@@ -46,11 +46,11 @@
 //! Word to 64 bit word conversion
 #define WDTO64(nwds) (nwds)
 //! 64 bit word to word conversion
-#define W64TOWD(nw64) (nw64<<1)
+#define W64TOWD(nw64) ((nw64)<<1)
 //! 64 bit word to 32 bit word conversion
-#define W64TOwd(nw64) (nw64<<1)
+#define W64TOwd(nw64) ((nw64)<<1)
 //! Fortran word to 32 bit word conversion
-#define FWTOwd(nwds) (nwds<<1)
+#define FWTOwd(nwds) ((nwds)<<1)
 
 #endif
 
@@ -62,7 +62,6 @@
 #define Min(x,y) ((x < y) ? x : y)
 #define Max(x,y) ((x > y) ? x : y)
 
-#define MAX_XDF_FILES 1024
 //! Size of a directory pages in an XDF file
 #define ENTRIES_PER_PAGE 256
 //! Maximum of 256K records in a random access XDF file
@@ -220,7 +219,7 @@
 //! Number of bits for burp block header
 #define NBENTB 128
 //! Maximum number for nele with 7 bits
-#define GROSNELE 128
+#define GROSNELE 127
 //! Maximum number for nval and nt (8 bits)
 #define GROSDIM 256
 //! Maximum number of primary keys
@@ -753,11 +752,15 @@ typedef struct {
 /*****************************************************************************/
 //! Pointer to a function returning a uint32_t
 typedef uint32_t* fn_ptr();
+//! Pointer to a "build_info" function
+typedef void (*build_info_fn)(uint32_t * const, uint32_t * const, const int, const int);
 //! Pointer to a primary keys building function
 typedef uint32_t* fn_b_p(uint32_t* buf, uint32_t* keys, uint32_t* mask,
                      uint32_t* mskkeys, int index, int mode);
 //! Pointer to a info keys building function
 typedef uint32_t* fn_b_i(uint32_t* buf, uint32_t* keys, int index, int mode);
+//! Pointer to a match function
+typedef int (*match_fn)(const int handle);
 
 typedef struct {
     //! Pointer to directory pages
@@ -767,11 +770,11 @@ typedef struct {
     //! Pointer to primary key building function
     fn_b_p* build_primary;
     //! Pointer to info building function
-    fn_ptr* build_info;
+    build_info_fn build_info;
     //! Pointer to file scan function
     fn_ptr* scan_file;
     //! Pointer to record filter function
-    fn_ptr* file_filter;
+    match_fn file_filter;
     //! Pointer to current directory entry
     uint32_t* cur_entry;
     //! Pointer to file header
@@ -874,10 +877,11 @@ typedef struct {
 } buffer_interface;
 typedef buffer_interface* buffer_interface_ptr;
 
-#if defined(XDF_OWNER)
 //! File table, exported symbol
-file_table_entry_ptr file_table[MAX_XDF_FILES];
+extern file_table_entry_ptr* file_table;
+extern int MAX_XDF_FILES;
 
+#if defined(XDF_OWNER)
 //! Stride
 int xdf_stride = 1;
 //! Data size indicator
@@ -949,8 +953,6 @@ key_descriptor stdf_info_keys[] = {
 #endif
 };
 #else
-//! File table , exported symbol
-extern file_table_entry_ptr file_table[MAX_XDF_FILES];
 
 //! !stride
 extern int xdf_stride;

@@ -15,34 +15,9 @@
 !
 module f_c_strings_mod
     use ISO_C_BINDING
+    use rmn_libc
+    implicit none
 
-    private :: c_strnlen, c_strlen
-    public  :: memset
-    interface
-        function c_strnlen(str, maxlen) result(strlen) bind(C, name='strnlen')
-            import :: C_CHAR, C_SIZE_T
-            implicit none
-            character(C_CHAR), dimension(*), intent(IN) :: str
-            integer(C_SIZE_T), intent(IN) :: maxlen
-            integer(C_SIZE_T) :: strlen
-        end function c_strnlen
-
-        function c_strlen(str) result(strlen) bind(C, name='strlen')
-            import :: C_PTR, C_SIZE_T
-            implicit none
-            type(C_PTR), intent(IN) :: str
-            integer(C_SIZE_T) :: strlen
-        end function c_strlen
-
-        function memset(s, byte, n) result(p) bind(C, name='memset')
-            import :: C_PTR, C_SIZE_T, C_INT
-            implicit none
-            type(C_PTR), intent(IN), value :: s
-            integer(C_INT), intent(IN), value :: byte
-            integer(C_SIZE_T), intent(IN), value :: n
-            type(C_PTR) :: p
-        end function memset
-    end interface
 ! TODO: doesn't work for now, as __INTEL_LLVM_COMPILER doesn't give the proper version number
 ! Done in CMakeLists.txt for now
 !#if __INTEL_COMPILER > 20211100 || __INTEL_LLVM_COMPILER > 20240000
@@ -262,10 +237,13 @@ module f_c_strings_mod
         integer, intent(IN) :: nchars
         integer(C_SIZE_T) :: nc
         character(len=:), pointer :: fptr
-
         nc = c_strlen(cstrptr)
         nc = min(nc, int(nchars, kind=C_SIZE_T))
+#if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)
+        call c_f_pointer(cstrptr, fptr, [nc])
+#else
         call c_f_pointer(cstrptr, fptr)
+#endif
         fstrptr => fptr(1:nc)
     end subroutine c_f_strpointer2
 #endif

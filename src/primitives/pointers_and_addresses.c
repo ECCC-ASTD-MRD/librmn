@@ -79,7 +79,7 @@ void f77name(make_cray_pointer)(void **addr, long long *c)
 }
 
 
-void f77name(pass_address_to)(long long *c, int *funct())
+void f77name(pass_address_to)(long long *c, int *funct(void*))
 {
     const fakeptr myptr = { .address_in_64bit = *c };
 

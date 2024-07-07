@@ -18,13 +18,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "ez_funcdef.h"
 #include "f_ezscint.h"
-
 
 int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
               float *latin, float *lonin, int32_t npts)
@@ -35,8 +36,8 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
    int32_t ni = npts;
    int32_t nj = 1;
 
-    memcpy(spd_out, uuin, npts*sizeof(float));
-    memcpy(wd_out, vvin, npts*sizeof(float));
+    memcpy(spd_out, uuin, npts * sizeof(float));
+    memcpy(wd_out, vvin, npts * sizeof(float));
 
     float * lat_rot;
     float * lon_rot;
@@ -100,9 +101,27 @@ int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin,
 }
 
 
-int32_t c_gdwdfuv(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
-              float *latin, float *lonin, int32_t npts)
-{
+//! Converts grid winds (uu/vv) to meteorological winds (speed/direction)
+int32_t c_gdwdfuv(
+    //! [in] Grid identifier (returned by ezqkdef or ezgdef)
+    int32_t gdid,
+    //! [out] Output array for the speeds
+    float *spd_out,
+    //! [out] Output array for the directions
+    float *wd_out,
+    //! [in] Input wind x component
+    float *uuin,
+    //! [in] Input wind y component
+    float *vvin,
+    //! [in] Array of latitudes where the winds must be interpolated
+    float *latin,
+    //! [in] Array of longitudes where the winds must be interpolated
+    float *lonin,
+    //! [in] Number of points
+    int32_t npts
+) {
+    //! \note The lat/lon coordinates of each points have to be present.
+
     int32_t gdrow_id, gdcol_id;
     c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
     if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 ) {
@@ -114,6 +133,7 @@ int32_t c_gdwdfuv(int32_t gdid, float *spd_out, float *wd_out, float *uuin, floa
 }
 
 
+//! \copydoc c_gdwdfuv
 int32_t f77name(gdwdfuv)(int32_t *gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
                      float *latin, float *lonin, int32_t *npts)
 {

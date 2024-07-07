@@ -213,5 +213,48 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_write_in_read_only COMMAND $<TARGET_FILE:fst_write_in_read_only>)
         add_dependencies(check fst_write_in_read_only)
 
+        add_executable(excdes fst/excdes.c)
+        target_link_libraries(excdes rmn::rmn)
+        add_test(NAME excdes COMMAND $<TARGET_FILE:excdes>)
+        add_dependencies(check excdes)
+
+        add_executable(fst_cross_link fst/fst_cross_link.F90)
+        target_link_libraries(fst_cross_link rmn::rmn)
+        add_test(NAME fst_cross_link COMMAND $<TARGET_FILE:fst_cross_link>)
+        add_dependencies(check fst_cross_link)
+
+        if (TARGET rmn::rmn-ompi)
+            add_executable(fnom fnom.c)
+            target_link_libraries(fnom rmn::rmn-ompi)
+            add_test(NAME fnom COMMAND $<TARGET_FILE:fnom>)
+            add_dependencies(check fnom)
+        endif()
+
+        add_executable(fst24_by_index fst/fst24_by_index.c)
+        target_link_libraries(fst24_by_index rmn::rmn)
+        add_test(NAME fst24_by_index COMMAND $<TARGET_FILE:fst24_by_index>)
+        add_dependencies(check fst24_by_index)
+
+        # FST samples
+        add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)
+        target_link_libraries(fst24_open_close_f rmn::rmn)
+        add_test(NAME fst24_open_close_f COMMAND $<TARGET_FILE:fst24_open_close_f>)
+        add_dependencies(check fst24_open_close_f)
+
+        add_executable(fst24_open_close_c fst/samples/fst24_open_close.c)
+        target_link_libraries(fst24_open_close_c rmn::rmn)
+        add_test(NAME fst24_open_close_c COMMAND $<TARGET_FILE:fst24_open_close_c>)
+        add_dependencies(check fst24_open_close_c)
+
+        add_executable(fst24_create_and_write_f fst/samples/fst24_create_and_write.F90)
+        target_link_libraries(fst24_create_and_write_f rmn::rmn)
+        add_test(NAME fst24_create_and_write_f COMMAND $<TARGET_FILE:fst24_create_and_write_f>)
+        add_dependencies(check fst24_create_and_write_f)
+
+        add_executable(fst24_create_and_write_c fst/samples/fst24_create_and_write.c)
+        target_link_libraries(fst24_create_and_write_c rmn::rmn)
+        add_test(NAME fst24_create_and_write_c COMMAND $<TARGET_FILE:fst24_create_and_write_c>)
+        add_dependencies(check fst24_create_and_write_c)
+
     endif()
 endif()

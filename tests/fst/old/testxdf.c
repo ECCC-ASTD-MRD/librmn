@@ -61,8 +61,6 @@ static key_descriptor auxkey[] = {
 static int error_msg(char *function_name, int errcode, int errlevel);
 static int file_index_xdf(int iun);
 static int get_free_index();
-static int fnom_index(int iun);
-static void init_file(int i);
 static void init_package();
 static long scan_random(int file_index);
 static long add_dir_page(int file_index,int wflag);

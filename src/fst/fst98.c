@@ -1,4 +1,5 @@
-//! \file fst98.c Low level implementation of fst functions
+//! \file
+//! Low level implementation of fst functions
 
 #include <stdio.h>
 #include <unistd.h>
@@ -13,6 +14,8 @@
 #include <regex.h>
 #include <ctype.h>
 
+#include <pthread.h>
+
 #include <App.h>
 #include <rmn/c_wkoffit.h>
 #include <rmn/excdes_new.h>
@@ -20,6 +23,7 @@
 
 #include "fst98_internal.h"
 #include "fstcvt2.h"
+#include "primitives/fnom_internal.h"
 #include <rmn/convert_ip.h>
 #include "xdf98.h"
 
@@ -72,7 +76,10 @@ static regex_t pattern;
 static int turbocomp_mode = 0;
 static char *comptab[2] = {"FAST", "BEST"};
 
-fstd_usage_info fstd_open_files[MAXFILES];
+static pthread_mutex_t fst98_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+fstd_usage_info* fst98_open_files = NULL; //!< Information about all currently open FST files
+int MAX_FST98_FILES = 0; //!< How many FST98 files can be open simultaneously
 
 // Callable from Fortran
 int32_t is_type_real_f(const int32_t type_flag) { return is_type_real(type_flag); }
@@ -81,6 +88,7 @@ int32_t is_type_turbopack_f(const int32_t type_flag) { return is_type_turbopack(
 int32_t has_type_missing_f(const int32_t type_flag) { return has_type_missing(type_flag); }
 int32_t is_type_integer_f(const int32_t type_flag) { return is_type_integer(type_flag); }
 int32_t base_fst_type_f(const int32_t type_flag) { return base_fst_type(type_flag); }
+
 
 static void str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
@@ -109,7 +117,7 @@ void copy_record_string(
 }
 
 //! This function is slow and possibly not perfect
-int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length) {
+int32_t is_same_record_string(const char * const str_a, const char * const str_b, const int32_t max_length) {
     char copy_a[max_length];
     char copy_b[max_length];
     copy_record_string(copy_a, str_a, max_length);
@@ -138,28 +146,28 @@ uint32_t get_valid_date32(
     return (uint32_t)origin_date;
 }
 
-void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
+void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
     }
 }
 
 
-void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
+void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb) {
     for (int i = 0; i < nb; i++) {
         *p8++ = *p16++;
     }
 }
 
 
-void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
+void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb) {
     int16_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p32++ = *p16++ & mask;
     }
 }
 
-void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
+void memcpy_32_16(int16_t *p16, const int32_t * p32, int nbits, int nb) {
     int32_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p16++ = *p32++ & mask;
@@ -170,22 +178,6 @@ static void init_open_file(fstd_usage_info* info) {
     info->query = new_fst_query(NULL);
     info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     info->next_file = -1;
-}
-
-// //! Find position of file iun in file table.
-// //! \return Index of the unit number in the file table or ERR_NO_FILE if not found
-int file_index_xdf(
-    //! [in] Unit number associated to the file
-    const int iun
-) {
-    for (int i = 0; i < MAX_XDF_FILES; i++) {
-        if (file_table[i] != NULL) {
-            if (file_table[i]->iun == iun) {
-                return i;
-            }
-        }
-    }
-    return ERR_NO_FILE;
 }
 
 
@@ -361,8 +353,8 @@ void print_std_parms(
     char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
     char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
     char h_decoded[39], v_decoded[39];
-    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[9];
-    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[9];
+    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5], h_siz[4];
+    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5], v_siz[4];
     int posc, posv;
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option=%s\n", __func__, option);
@@ -455,7 +447,13 @@ void print_std_parms(
         if (strstr(option, "NODTY")) {
             h_dty[0] = '\0';
         } else {
-            snprintf(h_dty, sizeof(h_dty), "%s", "DTY SIZ");
+            snprintf(h_dty, sizeof(h_dty), "%s", "DTY ");
+        }
+
+        if (strstr(option, "DASIZ")) {
+            snprintf(h_siz, sizeof(h_siz), "%s", "SIZ");
+        } else {
+            h_siz[0] = '\0';
         }
 
         if (strstr(option, "GRIDINFO")) {
@@ -468,9 +466,9 @@ void print_std_parms(
             }
         }
 
-        fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n\n",
+        fprintf(stdout, "\n       %s %s %s %s %s %s %s %s %s %s %s %s %s  %s %s  %s\n\n",
                 h_nomv, h_typv, h_etiq, h_dims, h_dateo, h_stampo, h_datev, h_level, h_decoded,
-                h_ip1, h_ip23, h_deet, h_npas, h_dty, h_grid);
+                h_ip1, h_ip23, h_deet, h_npas, h_dty, h_siz, h_grid);
         // fprintf(stdout, "\n       NOMV TV ETIQUETTE       NI    NJ    NK %s %s %s %s %s   IP2   IP3     DEET     NPAS  DTY  %s\n\n", h_dateo, h_stampo, h_datev, h_level, h_ip1, h_grid);
     } // if (header)
 
@@ -614,8 +612,13 @@ void print_std_parms(
         }
     }
 
+    if (strstr(option, "DASIZ")) {
+        snprintf(v_siz, sizeof(v_siz), "%3d", stdf_entry->dasiz);
+    } else {
+        v_siz[0] = '\0';
+    }
+
     if (strstr(option, "GRIDINFO")) {
-        F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
         ig1 = stdf_entry->ig1; ig2 = cracked.ig2;
         ig3 = stdf_entry->ig3; ig4 = stdf_entry->ig4;
         igapg_c(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4);
@@ -630,28 +633,14 @@ void print_std_parms(
     }
 
     if (header==-1) {
-       Lib_Log(APP_LIBFST, APP_ALWAYS, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
-           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_grid);
+       Lib_Log(APP_LIBFST, APP_ALWAYS, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s %s  %s\n",
+           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_siz, v_grid);
     } else {
-       fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s  %s\n",
-           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_grid);
+       fprintf(stdout, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s  %s %s  %s\n",
+           pre, v_nomv, v_typv, v_etiq, v_dims, v_dateo, v_stampo, v_datev, v_level, v_decoded, v_ip1, v_ip23, v_deet, v_npas, v_dty, v_siz, v_grid);
     }
 }
 
-
-//! Find index position in master file table (fnom file table).
-//! \return Index of the provided unit number in the file table or -1 if not found.
-int fnom_index(
-    //! [in] Unit number associated to the file
-    const int iun
-) {
-    for (int i = 0; i < MAXFILES; i++) {
-        if (FGFDT[i].iun == iun) {
-            return i;
-        }
-    }
-    return -1;
-}
 
 //! \copydoc c_fstapp
 //! XDF version
@@ -661,7 +650,7 @@ int c_fstapp_xdf(
     //! [in] Kept for backward compatibility, but unused
     char *option
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -760,7 +749,7 @@ int c_fstckp_xdf(
 ) {
     int index, ier;
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -858,8 +847,8 @@ int c_fstecr_xdf(
     int npak,
     //! [in] Unit number associated to the file in which to write the field
     int iun,
-    //! [in] Date timestamp
-    int date,
+    //! [in] Origin date timestamp
+    int dateo,
     //! [in] Length of the time steps in seconds
     int deet,
     //! [in] Time step number
@@ -894,7 +883,7 @@ int c_fstecr_xdf(
     int ig4,
     //! [in] Data type of elements
     int in_datyp_ori,
-    //! [in] Rewrite existing record, append otherwise
+    //! [in] Rewrite existing record, skip or append otherwise
     int rewrit
 ) {
     (void)work; // unused
@@ -926,7 +915,7 @@ int c_fstecr_xdf(
         packfunc = (PackFunctionPointer) &compact_float;
     }
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -962,7 +951,6 @@ int c_fstecr_xdf(
         nbits = (npak < 0) ? -npak : Max(1, FTN_Bitmot / Max(1, npak));
     }
     nk = Max(1, nk);
-    int minus_nbits = -nbits;
 
     if (base_fst_type(datyp) == FST_TYPE_REAL_IEEE && nbits < 16) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Writing a truncated IEEE float with less than 16 bits is not allowed\n",
@@ -980,15 +968,15 @@ int c_fstecr_xdf(
     }
 
     if (is_type_turbopack(datyp) && nk > 1) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data.\n", __func__);
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data. We will disable it.\n", __func__);
         datyp &= FST_TYPE_TURBOPACK;
     }
 
-    if ((in_datyp == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
+    if ((base_fst_type(in_datyp) == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
         // R32 to E32 automatic conversion
         datyp = FST_TYPE_REAL_IEEE;
+        if (is_type_turbopack(in_datyp)) datyp |= FST_TYPE_TURBOPACK;
         nbits = 32;
-        minus_nbits = -32;
     }
 
     // flag 64 bit IEEE (type 5 or 8)
@@ -1014,7 +1002,7 @@ int c_fstecr_xdf(
     VALID(ip3, 0, IP3_MAX, "ip3")
     VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
-    const uint32_t datev = get_valid_date32(date, deet, npas);
+    const uint32_t datev = get_valid_date32(dateo, deet, npas);
 
     if ((npak == 0) || (npak == 1)) {
         // no compaction
@@ -1033,25 +1021,26 @@ int c_fstecr_xdf(
         }
     }
 
-    // no extra compression if nbits > 16
+    if ((base_fst_type(datyp) == FST_TYPE_REAL)) { 
+        if (nbits > 24) {
+            if (! dejafait_xdf_1) {
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
+                dejafait_xdf_1 = 1;
+            }
+            datyp = FST_TYPE_REAL_IEEE | (is_type_turbopack(datyp) ? FST_TYPE_TURBOPACK : 0);
+            nbits = 32;
+        }
+        else if (nbits > 16) {
+            if (! dejafait_xdf_2) {
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
+                dejafait_xdf_2 = 1;
+            }
+            datyp = FST_TYPE_REAL_OLD_QUANT; // No turbopack for R with >16 bits
+        }
+    }
+
+    // no extra compression if nbits > 16 (except for IEEE reals)
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
-    // if ((datyp < 128) && (extra_compression > 0) && (nbits <= 16)) datyp += extra_compression;
-    if ((datyp == FST_TYPE_REAL) && (nbits > 24)) {
-        if (! dejafait_xdf_1) {
-            Lib_Log(APP_LIBFST,APP_WARNING, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
-            dejafait_xdf_1 = 1;
-        }
-        datyp = FST_TYPE_REAL_IEEE;
-        nbits = 32;
-        minus_nbits = -32;
-    }
-    if ((datyp == FST_TYPE_REAL) && (nbits > 16)) {
-        if (! dejafait_xdf_2) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: nbits > 16, writing R%2d instead of F%2d\n", __func__, nbits, nbits);
-            dejafait_xdf_2 = 1;
-        }
-        datyp = FST_TYPE_REAL_OLD_QUANT;
-    }
 
     float* field_f = field_in; // Hold real datatypes, in case we need to convert from float to double
 
@@ -1059,13 +1048,20 @@ int c_fstecr_xdf(
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
         data_nbits = (xdf_double || IEEE_64) ? 64 : 32;
-        if (data_nbits == 64 && nbits <= 32) {
-            // We convert now from double to float
-            data_nbits = 32;
-            field_f = alloca(ni * nj * nk * sizeof(float));
-            double* field_d = field_in;
-            for (int i = 0; i < ni * nj * nk; i++) {
-                field_f[i] = (float)field_d[i];
+        if (data_nbits == 64) {
+            if (nbits <= 32) {
+                // We convert now from double to float
+                data_nbits = 32;
+                field_f = alloca(ni * nj * nk * sizeof(float));
+                double* field_d = field_in;
+                for (int i = 0; i < ni * nj * nk; i++) {
+                    field_f[i] = (float)field_d[i];
+                }
+            }
+            else if (nbits != 64) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
+                        " 64 or less than 32. Will store 64 bits.\n", __func__, nbits);
+                nbits = 64;
             }
         }
     }
@@ -1076,6 +1072,7 @@ int c_fstecr_xdf(
                                   32;
     }
 
+    int minus_nbits = -nbits;
     int header_size;
     int stream_size;
     int nw;
@@ -1208,13 +1205,16 @@ int c_fstecr_xdf(
     stdf_entry->date_stamp = stamp_from_date(datev);
 
     int handle = 0;
+
     if ((rewrit) && (!fte->xdf_seq)) {
-        // find handle for rewrite operation
+       // find handle for rewrite operation
         int niout, njout, nkout;
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
         if (handle < 0) {
             // append mode for xdfput
             handle = 0;
+        } else if (rewrit==FST_SKIP) {
+            return handle;
         }
     }
 
@@ -1501,7 +1501,6 @@ int c_fstecr_xdf(
         } // end switch
     } // end if image mode copy
 
-
     // write record to file and add entry to directory
     int ier = c_xdfput(iun, handle, buffer);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
@@ -1528,8 +1527,8 @@ int c_fstecr(
     int npak,
     //! [in] Unit number associated to the file in which to write the field
     int iun,
-    //! [in] Date timestamp
-    int date,
+    //! [in] Origin date timestamp
+    int dateo,
     //! [in] Length of the time steps in seconds
     int deet,
     //! [in] Time step number
@@ -1592,11 +1591,11 @@ int c_fstecr(
     }
 
     if (rsf_status == 1) {
-        return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+        return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
     else if (rsf_status == 0) {
-        return c_fstecr_xdf(field_in, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+        return c_fstecr_xdf(field_in, work, npak, iun, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
 
@@ -1850,7 +1849,7 @@ int c_fsteof_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -1950,7 +1949,7 @@ int c_fstinf(
     //! [in] Validity date
     const int datev,
     //! [in] Label
-    const char * const in_etiket,
+    const char * const etiket,
     //! [in] Vertical level
     const int ip1,
     //! [in] Forecast hour
@@ -1958,11 +1957,11 @@ int c_fstinf(
     //! [in] User defined identifier
     const int ip3,
     //! [in] Type of field
-    const char * const in_typvar,
+    const char * const typvar,
     //! [in] Variable name
-    const char * const in_nomvar
+    const char * const nomvar
 ) {
-    return c_fstinfx(-2, iun, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar, in_nomvar);
+    return c_fstinfx(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 }
 
 
@@ -2004,7 +2003,7 @@ int c_fstinfx_xdf(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s] (handle = %d, IP flags = %d%d%d)\n",
             __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar, handle, ip1s_flag, ip2s_flag, ip3s_flag);
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2208,7 +2207,7 @@ int c_fstinfx(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d, IP all flags %d %d %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file,
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file,
                 ip1s_flag, ip2s_flag, ip3s_flag);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
@@ -2224,7 +2223,7 @@ int c_fstinfx(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -2233,7 +2232,7 @@ int c_fstinfx(
 }
 
 
-//! \copydoc c_fstinl
+//! \copydoc c_fstinl()
 //! XDF version
 int c_fstinl_xdf(
     //! [in] Unit number associated to the file in which to search
@@ -2333,7 +2332,7 @@ int c_fstinl(
     //! [in] List size (maximum number of matches)
     int nmax
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2344,7 +2343,7 @@ int c_fstinl(
     int num_files = 0;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         num_files++;
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
@@ -2359,7 +2358,7 @@ int c_fstinl(
         if (status < 0) return status;
 
         total_found += *infon;
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -2376,11 +2375,11 @@ int c_fstlic(
     void *field,
     //! [in] Unit number associated to the file
     int iun,
-    //! [in] First of the data field
+    //! [in] First dimension of the data field. Only used to check that the matches with the field found.
     int niin,
-    //! [in] Second of the data field
+    //! [in] Second dimension of the data field. Only used to check that the matches with the field found.
     int njin,
-    //! [in] Third of the data field
+    //! [in] Third dimension of the data field. Only used to check that the matches with the field found.
     int nkin,
     //! [in] Valid date
     int datein,
@@ -2564,7 +2563,7 @@ int c_fstlirx(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstlirx_rsf(field, handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
@@ -2578,7 +2577,7 @@ int c_fstlirx(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -2602,7 +2601,7 @@ int c_fstlis_xdf(
 ) {
     uint32_t *primk = NULL;
 
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -2649,7 +2648,7 @@ int c_fstlis(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstlis_rsf(field, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk);
@@ -2663,7 +2662,7 @@ int c_fstlis(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -3149,7 +3148,7 @@ int c_fstnbr_xdf(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3175,7 +3174,7 @@ int c_fstnbr(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3185,7 +3184,7 @@ int c_fstnbr(
     int total_num_records = 0;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbr_rsf(index_fnom);
         }
@@ -3196,7 +3195,7 @@ int c_fstnbr(
         if (status < 0) return status;
 
         total_num_records += status;
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     return total_num_records;
@@ -3212,7 +3211,7 @@ int c_fstnbrv_xdf(
     int index, index_fnom, nrec;
     file_table_entry *fte;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3236,7 +3235,7 @@ int c_fstnbrv(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3246,7 +3245,7 @@ int c_fstnbrv(
     int total_num_records = 0;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbrv_rsf(index_fnom);
         }
@@ -3257,7 +3256,7 @@ int c_fstnbrv(
         if (status < 0) return status;
 
         total_num_records += status;
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     return total_num_records;
@@ -3445,25 +3444,61 @@ int c_fstopr(
 //! @return 0 when valid; -1 otherwise
 int c_fstcheck_xdf(
     //! [in]  Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     return c_xdfcheck(filePath);
 }
+
 
 //! Check FSTD file for corruption
 //! @return 0 when valid; -1 otherwise
 int c_fstcheck(
     //! [in]  Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     const int32_t type = c_wkoffit(filePath, strlen(filePath));
     if (type == WKF_STDRSF) {
         if (RSF_Basic_check(filePath)) return 0;
         return 1;
-    }
-    else {
+    } else {
         return c_fstcheck_xdf(filePath);
     }
+}
+
+//! Initialize global fst98 structures and variables.
+//! Uses the fst98 mutex.
+//! \return The maximum number of FST98 files that can be open simultaneously, or 0 if there is an error
+int initialize_fst98() {
+    if (MAX_FST98_FILES > 0) return MAX_FST98_FILES; // fst98 already initialized
+    if (MAX_FNOM_FILES <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has never been called/initialized\n", __func__);
+        return MAX_FNOM_FILES;
+    }
+
+    // --- START critical region ---
+    pthread_mutex_lock(&fst98_mutex);
+
+    if (MAX_FST98_FILES > 0) goto unlock; // Check again after locking, in case someone else was initializing
+
+    fst98_open_files = (fstd_usage_info*) malloc(MAX_FNOM_FILES * sizeof(fstd_usage_info));
+    if (fst98_open_files == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate fst98 open files table (%d files)\n",
+                __func__, MAX_FNOM_FILES);
+        goto unlock;
+    }
+
+    // Obtain options from environment variable
+    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
+    C_requetes_init(requetes_filename, debug_filename);
+    init_ip_vals();
+
+    MAX_FST98_FILES = MAX_FNOM_FILES; // This signals to other threads that the API is initialized
+
+unlock:
+    pthread_mutex_unlock(&fst98_mutex);
+    // --- END critical region ---
+
+    return MAX_FST98_FILES;
 }
 
 //! Opens a RPN standard file
@@ -3473,21 +3508,18 @@ int c_fstouv(
     //! [in] Random or sequential access
     char *options
 ) {
-    int ier;
-    static int premiere_fois = 1;
-    if (premiere_fois) {
-        premiere_fois = 0;
-        // printf("DEBUG++ fstouv appel a c_env_var_cracker\n");
-        // Obtain options from environment variable
-        c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
-        C_requetes_init(requetes_filename, debug_filename);
-        ier = init_ip_vals();
-    }
-    int i = fnom_index(iun);
+    // Check fnom index first, because we can't initialize the fst98 library if fnom is not itself initialized
+    int i = get_fnom_index(iun);
     if (i == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
+
+    if (initialize_fst98() <= 0) return -1; // Error message should already be printed
+
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening iun %d, fnom index %d, with options %s\n", __func__, iun, i, options);
+
+    int ier;
 
     const int strlng = 5;
     char appl[strlng];
@@ -3587,7 +3619,7 @@ int c_fstouv(
         FGFDT[i].attr.write_mode = 0;
     }
 
-    init_open_file(&fstd_open_files[i]);
+    init_open_file(&fst98_open_files[i]);
 
     if (ier < 0) return ier;
     int nrec = c_fstnbr(iun);
@@ -3788,7 +3820,7 @@ int c_fstrwd_xdf(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -3857,7 +3889,7 @@ int c_fstskp_xdf(
     postfix_seq postfix;
     seq_dir_keys seq_entry;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -4032,7 +4064,7 @@ int c_fstsui(
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstsui_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk);
@@ -4046,7 +4078,7 @@ int c_fstsui(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     return status;
@@ -4072,9 +4104,10 @@ int c_fstvoi_xdf(
     int64_t* const total_file_size,           //!< [in,out] Accumulate total size of linked files
     int64_t* const total_num_writes,          //!< [in,out] Accumulate write count (for linked files)
     int64_t* const total_num_rewrites,        //!< [in,out] Accumulate rewrite count (for linked files)
-    int64_t* const total_num_erasures         //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_num_erasures,        //!< [in,out] Accumulate erasure count (for linked files)
+    int64_t* const total_erased_size          //!< [in,out] Accumulate size of erased records (for linked files)
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -4093,6 +4126,7 @@ int c_fstvoi_xdf(
         return ERR_NO_FILE;
     }
 
+    int64_t erased_size = 0;
     int nrec = 0;
     int width = W64TOWD(fte->primary_len);
     stdf_dir_keys* stdf_entry;
@@ -4106,9 +4140,12 @@ int c_fstvoi_xdf(
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
-                    snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                    snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
                     print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                     nrec++;
+                }
+                else if ((header->idtyp & 0x7E) == 0x7E) { // A deleted record
+                    erased_size += header->lng;
                 }
                 entry += width;
             }
@@ -4212,7 +4249,7 @@ int c_fstvoi_xdf(
                     // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
-                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
                 print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
@@ -4223,7 +4260,7 @@ int c_fstvoi_xdf(
                     continue;
                 }
                 stdf_entry = (stdf_dir_keys *) fte->head_keys;
-                snprintf(string, strlng, "%5d-", *total_num_valid_records + nrec);
+                snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
                 print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD(header->lng);
@@ -4238,6 +4275,7 @@ int c_fstvoi_xdf(
         *total_num_writes += fte->header->nxtn;
         *total_num_rewrites += fte->header->nrwr;
         *total_num_erasures += fte->header->neff - fte->header->nrwr;
+        *total_erased_size += erased_size * sizeof(uint64_t);
     }
 
     if (print_stats) {
@@ -4253,10 +4291,13 @@ int c_fstvoi_xdf(
             if (! fte->fstd_vintage_89) {
                 fprintf(stdout, "Number of directory entries \t %d\n", fte->header->nrec);
                 fprintf(stdout, "Number of valid records     \t %d\n", nrec);
-                fprintf(stdout, "File size                   \t %d Words\n", W64TOWD(fte->header->fsiz));
+                fprintf(stdout, "File size                   \t %d Words (%.3f MB)\n",
+                        W64TOWD(fte->header->fsiz), (fte->header->fsiz * sizeof(uint64_t)) / (1024.f * 1024.f));
                 fprintf(stdout, "Number of writes            \t %d\n", fte->header->nxtn);
                 fprintf(stdout, "Number of rewrites          \t %d\n", fte->header->nrwr);
-                fprintf(stdout, "Number of erasures          \t %d\n", fte->header->neff - fte->header->nrwr);
+                fprintf(stdout, "Number of erasures          \t %d (%ld words, %.3f MB)\n",
+                        fte->header->neff - fte->header->nrwr, W64TOWD(erased_size),
+                        (erased_size * sizeof(uint64_t)) / (1024.f * 1024.f));
             }
             fprintf(stdout, "\n%d records in random RPN standard file (%s)\n\n", nrec, string);
         }
@@ -4272,13 +4313,13 @@ int c_fstvoi(
     //! [in] List of fields to print
     const char * const options
 ) {
-    int index_fnom = fnom_index(iun);
+    int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    const int print_single_stats = (fstd_open_files[index_fnom].next_file < 0);
+    const int print_single_stats = (fst98_open_files[index_fnom].next_file < 0);
     int status = -1;
     int num_files = 0;
 
@@ -4288,36 +4329,39 @@ int c_fstvoi(
     int64_t total_num_writes        = 0;
     int64_t total_num_rewrites      = 0;
     int64_t total_num_erasures      = 0;
+    int64_t total_erased_size       = 0;
 
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fstd_open_files[index_fnom].next_file);
+                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         num_files++;
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstvoi_rsf(FGFDT[index_fnom].iun, index_fnom, options, print_single_stats, &total_num_entries,
                                   &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
-                                  &total_num_erasures);
+                                  &total_num_erasures, &total_erased_size);
         }
         else {
             status = c_fstvoi_xdf(FGFDT[index_fnom].iun, options, print_single_stats, &total_num_entries,
                                   &total_num_valid_records, &total_file_size, &total_num_writes, &total_num_rewrites,
-                                  &total_num_erasures);
+                                  &total_num_erasures, &total_erased_size);
         }
 
         if (status < 0) return status;
 
-        index_fnom = fstd_open_files[index_fnom].next_file;
+        index_fnom = fst98_open_files[index_fnom].next_file;
     }
 
     if (!print_single_stats) {
         fprintf(stdout, "Statistics for %d linked files: \n", num_files);
         fprintf(stdout, "Number of directory entries   \t %ld\n", total_num_entries);
         fprintf(stdout, "Number of valid records       \t %ld\n", total_num_valid_records);
-        fprintf(stdout, "File size                     \t %ld bytes\n", total_file_size);
+        fprintf(stdout, "File size                     \t %ld bytes (%.3f MB)\n",
+                total_file_size, total_file_size / (1024.f * 1024.f));
         fprintf(stdout, "Number of writes              \t %ld\n", total_num_writes);
         fprintf(stdout, "Number of rewrites (XDF only) \t %ld\n", total_num_rewrites);
-        fprintf(stdout, "Number of erasures (XDF only) \t %ld\n", total_num_erasures);
+        fprintf(stdout, "Number of erasures (XDF only) \t %ld (%ld bytes, %.3f MB)\n",
+                total_num_erasures, total_erased_size, total_erased_size  / (1024.f * 1024.f));
     }
 
     return status;
@@ -4335,7 +4379,7 @@ int c_fstweo_xdf(
     file_table_entry *fte;
     xdf_record_header header64;
 
-    index_fnom = fnom_index(iun);
+    index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
@@ -5277,36 +5321,7 @@ int32_t f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
 }
 
 
-
-/*****************************************************************************
- *                             F S T L I C                                   *
- *                                                                           *
- *Object                                                                     *
- *   Search for a record that matches the research keys and check that the   *
- *   remaining parmeters match the record descriptors                        *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  OUT field    data field to be read                                       *
- *  IN  iun      unit number associated to the file                          *
- *  IN  niin     dimension 1 of the data field                               *
- *  IN  njin     dimension 2 of the data field                               *
- *  IN  nkin     dimension 3 of the data field                               *
- *  IN  datein   valid date                                                  *
- *  IN  etiketin label                                                       *
- *  IN  ip1in    vertical level                                              *
- *  IN  ip2in    forecast hour                                               *
- *  IN  ip3in    user defined identifier                                     *
- *  IN  typvarin type of field                                               *
- *  IN  nomvarin variable name                                               *
- *  IN  ig1      first grid descriptor                                       *
- *  IN  ig2      second grid descriptor                                      *
- *  IN  ig3      third grid descriptor                                       *
- *  IN  ig4      fourth grid descriptor                                      *
- *  IN  grtypin  type of geographical projection                             *
- *                                                                           *
- *****************************************************************************/
-
+//! \copydoc c_fstlic
 int32_t f77name(fstlic)(uint32_t *field, int32_t *f_iun,
                          int32_t *f_ni, int32_t *f_nj,
                          int32_t *f_nk, int32_t *f_date, char *f_etiket,
@@ -5316,26 +5331,25 @@ int32_t f77name(fstlic)(uint32_t *field, int32_t *f_iun,
                          int32_t *f_ig4, char *f_grtyp,
                          F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4)
 {
+    int iun = *f_iun, ni = *f_ni, nj = *f_nj, nk = *f_nk;
+    int date = *f_date, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
+    int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
+    int ier;
+    int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
 
-  int iun = *f_iun, ni = *f_ni, nj = *f_nj, nk = *f_nk;
-  int date = *f_date, ip1 = *f_ip1, ip2 = *f_ip2, ip3 = *f_ip3;
-  int ig1 = *f_ig1, ig2 = *f_ig2, ig3 = *f_ig3, ig4 = *f_ig4;
-  int ier;
-  int l1 = ll1, l2 = ll2, l3 = ll3, l4 = ll4;
+    char etiket[13];
+    char typvar[3];
+    char nomvar[5];
+    char grtyp[2];
 
-  char etiket[13];
-  char typvar[3];
-  char nomvar[5];
-  char grtyp[2];
+    str_cp_init(etiket, 13, f_etiket, l1);
+    str_cp_init(typvar, 3, f_typvar, l2);
+    str_cp_init(nomvar, 5, f_nomvar, l3);
+    str_cp_init(grtyp, 2, f_grtyp, l4);
 
-  str_cp_init(etiket, 13, f_etiket, l1);
-  str_cp_init(typvar, 3, f_typvar, l2);
-  str_cp_init(nomvar, 5, f_nomvar, l3);
-  str_cp_init(grtyp, 2, f_grtyp, l4);
-
-  ier = c_fstlic(field, iun, ni, nj, nk, date, etiket, ip1, ip2, ip3,
-                     typvar, nomvar, ig1, ig2, ig3, ig4, grtyp);
-  return (int32_t) ier;
+    ier = c_fstlic(field, iun, ni, nj, nk, date, etiket, ip1, ip2, ip3,
+                        typvar, nomvar, ig1, ig2, ig3, ig4, grtyp);
+    return (int32_t) ier;
 }
 
 
@@ -5602,7 +5616,7 @@ int32_t c_fstlnk(
     int previous_index = -1;
     first_linked_file = liste[0];
     for (int i = 0; i < n; i++) {
-        const int index_fnom = fnom_index(liste[i]);
+        const int index_fnom = get_fnom_index(liste[i]);
         if (index_fnom == -1) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, liste[i]);
             c_fstunl();
@@ -5610,13 +5624,13 @@ int32_t c_fstlnk(
         }
 
         if (previous_index >= 0) {
-            if (fstd_open_files[previous_index].next_file >= 0) {
+            if (fst98_open_files[previous_index].next_file >= 0) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: file index %d is already linked with another one\n", __func__, previous_index);
                 c_fstunl();
                 return ERR_BAD_LINK;
             }
             Lib_Log(APP_LIBFST, APP_INFO, "%s: linking file %d to %d\n", __func__, index_fnom, previous_index);
-            fstd_open_files[previous_index].next_file = index_fnom;
+            fst98_open_files[previous_index].next_file = index_fnom;
         }
 
         previous_index = index_fnom;
@@ -5747,151 +5761,99 @@ int32_t f77name(fstnbrv)(int32_t *f_iun)
 }
 
 
-/*****************************************************************************
- *                              F S T O P C                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
-                        F2Cl ll1, F2Cl ll2)
-{
-  int getmode = *f_getmode, ier;
-  char option[17];
-  char value[129];
-  int l1 = ll1, l2 = ll2;
-
-  l1 = (l1 > 16) ? 16 : l1;
-  l2 = (l2 > 128) ? 128 : l2;
-  strncpy(option, f_option, l1);
-  option[l1] = '\0';
-  l1--;
-  while ((l1 > 0) && (option[l1] == ' ')) {
-    option[l1] = '\0';
-    l1--;
-  }
-  strncpy(value, f_value, l2);
-  value[l2] = '\0';
-  l2--;
-  while ((l2 > 0) && (value[l2] == ' ')) {
-    value[l2] = '\0';
-    l2--;
-  }
-
-  ier = c_fstopc(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P I                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
-                        F2Cl ll1)
-{
-  int getmode = *f_getmode, value = *f_value, ier;
-  int l1 = ll1;
-  char option[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-
-  l1 = (l1 > 6) ? 6 : l1;
-  strncpy(option, f_option, l1);
-
-  ier = c_fstopi(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P L                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
-                        F2Cl ll1)
-{
-  int getmode = *f_getmode, value = *f_value, ier;
-  int l1 = ll1;
-  char option[17];
-
-  l1 = (l1 > 16) ? 16 : l1;
-  strncpy(option, f_option, l1);
-  option[l1] = '\0';
-
-  ier = c_fstopl(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P R                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode, F2Cl ll1)
-{
-    int getmode = *f_getmode, ier;
-    float value = *f_value;
+//! \copydoc c_fstopc()
+int32_t f77name(fstopc)(
+    const char * const option,
+    const char * const value,
+    const int32_t * const getmode,
+    F2Cl ll1,
+    F2Cl ll2
+) {
+    char option2[17];
+    char value2[129];
     int l1 = ll1;
-    char option[7];
+    int l2 = ll2;
+
+    l1 = (l1 > 16) ? 16 : l1;
+    l2 = (l2 > 128) ? 128 : l2;
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
+    l1--;
+    while ((l1 > 0) && (option2[l1] == ' ')) {
+        option2[l1] = '\0';
+        l1--;
+    }
+    strncpy(value2, value, l2);
+    value2[l2] = '\0';
+    l2--;
+    while ((l2 > 0) && (value2[l2] == ' ')) {
+        value2[l2] = '\0';
+        l2--;
+    }
+
+    return (int32_t) c_fstopc(option2, value2, *getmode);
+}
+
+
+//! \copydoc c_fstopi()
+int32_t f77name(fstopi)(
+    const char * const option,
+    const int32_t * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    char option2[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+
+    int l1 = ll1;
+    l1 = (l1 > 6) ? 6 : l1;
+    strncpy(option2, option, l1);
+
+    return (int32_t) c_fstopi(option2, *value, *getmode);
+}
+
+
+//! \copydoc c_fstopl()
+int32_t f77name(fstopl)(
+    const char * const option,
+    const int32_t * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    char option2[17];
+
+    int l1 = ll1;
+    l1 = (l1 > 16) ? 16 : l1;
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
+
+    return (int32_t) c_fstopl(option2, *value, *getmode);
+}
+
+
+//! \copydoc c_fstopr()
+int32_t f77name(fstopr)(
+    const char * const option,
+    const float * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    int l1 = ll1;
+    char option2[7];
 
     l1 = (l1 > 6) ? 6 : l1;
-    strncpy(option, f_option, l1);
-    option[l1] = '\0';
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
 
-    ier = c_fstopr(option, value, getmode);
-    return (int32_t) ier;
+    return (int32_t) c_fstopr(option2, *value, *getmode);
 }
 
 
-/*****************************************************************************
- *                              F S T C H E C K                              *
- *                                                                           *
- *Object                                                                     *
- *   Checks if an RPN standard file is valid.                                *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  filename Path of the file to be checked                              *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstcheck)(char *filename, F2Cl lng)
-{
-  int ier;
-  ier = c_fstcheck(filename);
-  return (int32_t) ier;
+//! \copydoc c_fstcheck()
+int32_t f77name(fstcheck)(
+    const char * const filename,
+    F2Cl lng
+) {
+    return (int32_t) c_fstcheck(filename);
 }
 
 
@@ -5909,7 +5871,7 @@ int32_t f77name(fstcheck)(char *filename, F2Cl lng)
  *****************************************************************************/
 int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
 {
-  return c_fstouv(*f_iun, options);
+    return c_fstouv(*f_iun, options);
 }
 
 
@@ -6064,7 +6026,7 @@ int32_t c_fstunl() {
         return ERR_BAD_LINK;
     }
 
-    const int start_index = fnom_index(first_linked_file);
+    const int start_index = get_fnom_index(first_linked_file);
     if (start_index < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: File to unlink (iun %d) is not connected with fnom\n", __func__, link_list[0]);
         return ERR_NO_FNOM;
@@ -6072,8 +6034,8 @@ int32_t c_fstunl() {
 
     int index = start_index;
     while (index >= 0) {
-        const int next_index = fstd_open_files[index].next_file;
-        fstd_open_files[index].next_file = -1;
+        const int next_index = fst98_open_files[index].next_file;
+        fst98_open_files[index].next_file = -1;
         index = next_index;
     }
 

@@ -8,7 +8,7 @@ char val[8][CCARD_NCARMAX];
 #endif
 int test_with_equal(){
     fprintf(stderr, "%s()\n", __func__);
-    char *argv[] = { "myprog", "-key1","=value1", NULL, };
+    char *argv[] = { "myprog", "-key1", "=value1", NULL, };
     int argc = 3; // sizeof(argv)/sizeof(argv[0]);
 
     char *keyNames[] = { "key1." };

@@ -123,7 +123,6 @@
   integer smallestLevel                 ! index of smallest source vertical level
   integer largestLevel                  ! index of largest source vertical level
 
-  ExtArraysOut(:, :)    = 0.0
 
   ! Verify that enough source levels are supplied; the algorithm requires 2
   if(srcNumlevels < 2) then

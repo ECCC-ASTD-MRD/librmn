@@ -83,9 +83,6 @@
   integer smallestLevel                 ! index of smallest source vertical level
   integer largestLevel                  ! index of largest source vertical level
 
-  stateDerivDestn(:, :) = 0.0
-  ExtArraysOut(:, :)    = 0.0
-
   ! Verify that enough source levels are supplied; the algorithm requires 4
   if(srcNumlevels < 4) then
     call lib_log(APP_LIBINTERPV,APP_ERROR,'Interp1D_CubicLagrange: The cubic Lagrange algorithm requires 4 source points')

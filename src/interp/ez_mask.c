@@ -25,11 +25,6 @@
 #include "ez_funcdef.h"
 #include "f_ezscint.h"
 
-#define BITPOS(i) (i - ((i >> 5) << 5))
-#define GETMSK(fld,i) ((fld[i >> 5]  & (1 << BITPOS(i))) >> BITPOS(i))
-#define SETMSK(fld,i) (fld[i >> 5] | (fld[i] << BITPOS(i)))
-
-
 int f77name(gdsetmask)(int *gdid, int *mask) {
     return c_gdsetmask(*gdid, mask);
 }
@@ -65,50 +60,41 @@ int f77name(ezsint_mask)(int *mask_out, int *mask_in) {
 
 
 int c_gdsetmask(int gdid, int *mask) {
-   int gdrow, gdcol;
-   int ni, nj;
-   c_gdkey2rowcol(gdid, &gdrow, &gdcol);
-   if (Grille[gdrow][gdcol].nsubgrids > 0)
-      {
-       fprintf(stderr, "<gdsetmask> This operation is not supported for 'U' grids.\n");
-       return -1;
-      }
-   ni = Grille[gdrow][gdcol].ni;
-   nj = Grille[gdrow][gdcol].nj;
+    int gdrow, gdcol;
+    c_gdkey2rowcol(gdid, &gdrow, &gdcol);
+    if (Grille[gdrow][gdcol].nsubgrids > 0) {
+        fprintf(stderr, "<gdsetmask> This operation is not supported for 'U' grids.\n");
+        return -1;
+    }
+    int ni = Grille[gdrow][gdcol].ni;
+    int nj = Grille[gdrow][gdcol].nj;
 
-   if (Grille[gdrow][gdcol].mask != NULL)
-      {
-      free(Grille[gdrow][gdcol].mask);
-      }
-   Grille[gdrow][gdcol].mask = (int *)malloc(ni*nj*sizeof(int));
-   memcpy(Grille[gdrow][gdcol].mask, mask, ni*nj*sizeof(int));
-   return 0;
+    if (Grille[gdrow][gdcol].mask != NULL) {
+        free(Grille[gdrow][gdcol].mask);
+    }
+    Grille[gdrow][gdcol].mask = (int *)malloc(ni*nj*sizeof(int));
+    memcpy(Grille[gdrow][gdcol].mask, mask, ni*nj*sizeof(int));
+    return 0;
 }
 
 
 int c_gdgetmask(int gdid, int *mask) {
-   int gdrow, gdcol;
-   int ni, nj;
+    int gdrow, gdcol;
+    c_gdkey2rowcol(gdid, &gdrow, &gdcol);
+    if (Grille[gdrow][gdcol].nsubgrids > 0) {
+        fprintf(stderr, "<gdgetmask> This operation is not supported for 'U' grids.\n");
+        return -1;
+    }
+    int ni = Grille[gdrow][gdcol].ni;
+    int nj = Grille[gdrow][gdcol].nj;
 
-   c_gdkey2rowcol(gdid, &gdrow, &gdcol);
-   if (Grille[gdrow][gdcol].nsubgrids > 0)
-      {
-       fprintf(stderr, "<gdgetmask> This operation is not supported for 'U' grids.\n");
-       return -1;
-      }
-   ni = Grille[gdrow][gdcol].ni;
-   nj = Grille[gdrow][gdcol].nj;
-
-   if (Grille[gdrow][gdcol].mask != NULL)
-      {
-      memcpy(mask, Grille[gdrow][gdcol].mask, ni*nj*sizeof(int));
-      return 0;
-      }
-   else
-      {
-      mask = NULL;
-      return -1;
-      }
+    if (Grille[gdrow][gdcol].mask != NULL) {
+        memcpy(mask, Grille[gdrow][gdcol].mask, ni*nj*sizeof(int));
+        return 0;
+    } else {
+        mask = NULL;
+        return -1;
+    }
 }
 
 
@@ -125,101 +111,85 @@ int c_ezuvint_m(float *uuout, float *vvout, float *uuin, float *vvin) {
 
 
 int c_ezsint_mdm(float *zout, int *mask_out, float *zin, int *mask_in) {
-   int32_t gdin, gdout, gdrow_out, gdcol_out;
-   int32_t              gdrow_in,  gdcol_in;
-   int32_t methode = 2;
-   int32_t ni_out, nj_out;
+    int32_t gdin = c_ezgetgdin();
+    int32_t gdout = c_ezgetgdout();
 
-   gdin = c_ezgetgdin();
-   gdout = c_ezgetgdout();
+    c_ezdefset(gdout, gdin);
 
-   c_ezdefset(gdout, gdin);
-
-   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
-       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
-      {
-       fprintf(stderr, "<ezsint_mdm> This operation is not supported for 'U' grids.\n");
-       return -1;
-      }
-   ni_out = Grille[gdrow_out][gdcol_out].ni;
-   nj_out = Grille[gdrow_out][gdcol_out].nj;
-   c_ezsint(zout, zin);
-   c_ezsint_mask(mask_out, mask_in);
-   f77name(lorenzo_mask_fill)(zout, mask_out, &ni_out, &nj_out, &methode);
-   return 0;
+    int32_t gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    int32_t gdrow_in, gdcol_in;
+    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+    if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || Grille[gdrow_in][gdcol_in].nsubgrids > 0) {
+        fprintf(stderr, "<ezsint_mdm> This operation is not supported for 'U' grids.\n");
+        return -1;
+    }
+    int32_t ni_out = Grille[gdrow_out][gdcol_out].ni;
+    int32_t nj_out = Grille[gdrow_out][gdcol_out].nj;
+    c_ezsint(zout, zin);
+    c_ezsint_mask(mask_out, mask_in);
+    int32_t methode = 2;
+    f77name(lorenzo_mask_fill)(zout, mask_out, &ni_out, &nj_out, &methode);
+    return 0;
 }
 
 
 int c_ezuvint_mdm(float *uuout, float *vvout, int *mask_out, float *uuin, float *vvin, int *mask_in) {
-   int32_t gdin, gdout, gdrow_out, gdcol_out;
-   int32_t              gdrow_in,  gdcol_in;
-   int32_t methode = 2;
-   int32_t ni_out, nj_out;
+    int32_t gdin = c_ezgetgdin();
+    int32_t gdout = c_ezgetgdout();
 
-   gdin = c_ezgetgdin();
-   gdout = c_ezgetgdout();
+    c_ezdefset(gdout, gdin);
 
-   c_ezdefset(gdout, gdin);
-
-   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
-       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
-      {
-       fprintf(stderr, "<ezuvint_mdm> This operation is not supported for 'U' grids.\n");
-       return -1;
-      }
-   ni_out = Grille[gdrow_out][gdcol_out].ni;
-   nj_out = Grille[gdrow_out][gdcol_out].nj;
-   c_ezsint_mask(mask_out, mask_in);
-   c_ezuvint(uuout, vvout, uuin, vvin);
-   f77name(lorenzo_mask_fill)(uuout, mask_out, &ni_out, &nj_out, &methode);
-   f77name(lorenzo_mask_fill)(vvout, mask_out, &ni_out, &nj_out, &methode);
-   return 0;
+    int32_t gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    int32_t gdrow_in, gdcol_in;
+    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+    if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || Grille[gdrow_in][gdcol_in].nsubgrids > 0) {
+        fprintf(stderr, "<ezuvint_mdm> This operation is not supported for 'U' grids.\n");
+        return -1;
+    }
+    int32_t ni_out = Grille[gdrow_out][gdcol_out].ni;
+    int32_t nj_out = Grille[gdrow_out][gdcol_out].nj;
+    c_ezsint_mask(mask_out, mask_in);
+    c_ezuvint(uuout, vvout, uuin, vvin);
+    int32_t methode = 2;
+    f77name(lorenzo_mask_fill)(uuout, mask_out, &ni_out, &nj_out, &methode);
+    f77name(lorenzo_mask_fill)(vvout, mask_out, &ni_out, &nj_out, &methode);
+    return 0;
 }
 
 
 int c_ezsint_mask(int *mask_out, int *mask_in) {
-   char grtyp_in[2], grtyp_out[2];
-   int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
-   int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
-   int idx_gdin, gdrow_out, gdcol_out;
-   int32_t              gdrow_in,  gdcol_in;
-   float *fmask_in, *x, *y;
-   _ygrid *ygrid;
+    int32_t gdin = c_ezgetgdin();
+    int32_t gdout = c_ezgetgdout();
+    int gdrow_out, gdcol_out;
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    int32_t gdrow_in,  gdcol_in;
+    c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
+    if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || Grille[gdrow_in][gdcol_in].nsubgrids > 0) {
+        fprintf(stderr, "<ezsint_mask> This operation is not supported for 'U' grids.\n");
+        return -1;
+    }
 
-   int32_t gdin, gdout;
+    c_ezdefset(gdout, gdin);
+    int idx_gdin = c_find_gdin(gdin, gdout);
 
-   gdin = c_ezgetgdin();
-   gdout = c_ezgetgdout();
-   c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-   c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-   if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
-       Grille[gdrow_in][gdcol_in].nsubgrids > 0)
-      {
-       fprintf(stderr, "<ezsint_mask> This operation is not supported for 'U' grids.\n");
-       return -1;
-      }
+    char grtyp_in[2];
+    int ni_gdin, nj_gdin, ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin;
+    c_ezgprm(gdin, grtyp_in, &ni_gdin, &nj_gdin, &ig1_gdin, &ig2_gdin, &ig3_gdin, &ig4_gdin);
+    char grtyp_out[2];
+    int ni_gdout, nj_gdout, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
+    c_ezgprm(gdout, grtyp_out, &ni_gdout, &nj_gdout, &ig1_gdout, &ig2_gdout, &ig3_gdout, &ig4_gdout);
 
-   c_ezdefset(gdout, gdin);
-   idx_gdin = c_find_gdin(gdin, gdout);
-   c_ezgprm(gdin, grtyp_in, &ni_gdin, &nj_gdin, &ig1_gdin, &ig2_gdin, &ig3_gdin, &ig4_gdin);
-   c_ezgprm(gdout, grtyp_out, &ni_gdout, &nj_gdout, &ig1_gdout, &ig2_gdout, &ig3_gdout, &ig4_gdout);
-
-   if (grtyp_in[0] == 'Y')
-      {
-      ygrid = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin].ygrid);
-      memcpy(mask_out, ygrid->mask, ni_gdout*nj_gdout*sizeof(int));
-      }
-   else
-      {
-      x = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].x;
-      y = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].y;
-      f77name(qqq_ezsint_mask)(mask_out, x, y, &ni_gdout, &nj_gdout, mask_in, &ni_gdin, &nj_gdin);
-      }
-   return 0;
+    if (grtyp_in[0] == 'Y') {
+        _ygrid * ygrid = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin].ygrid);
+        memcpy(mask_out, ygrid->mask, ni_gdout*nj_gdout*sizeof(int));
+    } else {
+        float * x = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].x;
+        float * y = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].y;
+        f77name(qqq_ezsint_mask)(mask_out, x, y, &ni_gdout, &nj_gdout, mask_in, &ni_gdin, &nj_gdin);
+    }
+    return 0;
 }
 
 
@@ -229,35 +199,27 @@ int f77name(ezget_mask_zones)(int *mask_out, int *mask_in) {
 
 
 int c_ezget_mask_zones(int *mask_out, int *mask_in) {
-    char grtyp_in[2], grtyp_out[2];
-    int ni_gdin, ni_gdout, nj_gdin, nj_gdout;
-    int ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
-    int idx_gdin, gdrow_out, gdcol_out;
-    int32_t gdrow_in,  gdcol_in;
-    float *x, *y;
-    char interp_degree[32];
-
-    int32_t gdin, gdout;
-
-    strcpy(interp_degree,"interp_degree");
-    gdin = c_ezgetgdin();
-    gdout = c_ezgetgdout();
+    int32_t gdin = c_ezgetgdin();
+    int32_t gdout = c_ezgetgdout();
+    int gdrow_out, gdcol_out;
     c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    int32_t gdrow_in,  gdcol_in;
     c_gdkey2rowcol(gdin, &gdrow_in, &gdcol_in);
-    if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 ||
-        Grille[gdrow_in][gdcol_in].nsubgrids > 0)
-        {
+    if (Grille[gdrow_out][gdcol_out].nsubgrids > 0 || Grille[gdrow_in][gdcol_in].nsubgrids > 0) {
         fprintf(stderr, "<ezget_mask_zones> This operation is not supported for 'U' grids.\n");
         return -1;
-        }
+    }
 
     c_ezdefset(gdout, gdin);
-    idx_gdin = c_find_gdin(gdin, gdout);
+    int idx_gdin = c_find_gdin(gdin, gdout);
+    char grtyp_in[2], grtyp_out[2];
+    int ni_gdin, nj_gdin, ig1_gdin, ig2_gdin, ig3_gdin, ig4_gdin;
     c_ezgprm(gdin, grtyp_in, &ni_gdin, &nj_gdin, &ig1_gdin, &ig2_gdin, &ig3_gdin, &ig4_gdin);
+    int ni_gdout, nj_gdout, ig1_gdout, ig2_gdout, ig3_gdout, ig4_gdout;
     c_ezgprm(gdout, grtyp_out, &ni_gdout, &nj_gdout, &ig1_gdout, &ig2_gdout, &ig3_gdout, &ig4_gdout);
 
-    x = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].x;
-    y = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].y;
+    float * x = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].x;
+    float * y = (float *) Grille[gdrow_out][gdcol_out].gset[idx_gdin].y;
 
     f77name(qqq_ezget_mask_zones)(mask_out, x, y, &ni_gdout, &nj_gdout, mask_in, &ni_gdin, &nj_gdin);
     return 0;

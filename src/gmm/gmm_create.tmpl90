@@ -215,14 +215,14 @@ integer function FNCNAME(gmm_create)(iname, p, field_meta, flags_arg)
     endif
 
     if (iand(field_meta%a%flags, GMM_FLAG_INAN) /= 0) then
-#if ((DATATYPE == real) & (DATAKIND == 4))
+#if ((DATAKIND == real32))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             write(app_msg,*) 'gmm_create: ',iname, ' Debug DATATYPE=real init to NaN'
             call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)
         endif
         p = ieee_value(1.0, ieee_quiet_nan)
 #else
-#if ((DATATYPE == real) & (DATAKIND == 8))
+#if ((DATAKIND == real64))
         if (gmm_verbose_level == GMM_MSG_DEBUG) then
             write(app_msg,*) 'gmm_create: ',iname, ' Debug DATATYPE=real*8 init to NaN'
             call lib_log(APP_LIBGMM,APP_DEBUG,app_msg)

@@ -68,7 +68,8 @@ extern int ip1s_flag;
 extern int ip2s_flag;
 extern int ip3s_flag;
 extern int downgrade_32;
-extern fstd_usage_info fstd_open_files[MAXFILES];
+extern fstd_usage_info* fst98_open_files;
+extern int MAX_FST98_FILES;
 
 static inline uint32_t stamp_from_date(const int64_t origin_date) {
     uint32_t date32 = origin_date & 0xffffffff;
@@ -82,11 +83,10 @@ void copy_record_string(char* const dest, const char* const src, const int32_t m
 int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length);
 int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
-void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);
-void memcpy_16_8(int8_t *p8, int16_t *p16, int nb);
-void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb);
-void memcpy_32_16(short *p16, int *p32, int nbits, int nb);
-int fnom_index(const int iun);
+void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb);
+void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb);
+void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb);
+void memcpy_32_16(int16_t *p16, const int32_t *p32, int nbits, int nb);
 void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const pre, const char * const option,
                      const int header);
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
@@ -99,12 +99,13 @@ int c_fstluk_xdf(void * const vfield, const int handle, int * const ni, int * co
 int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int *nk, int *nbits, int *datyp,
     int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket, char *grtyp, int *ig1, int *ig2, int *ig3,
     int *ig4, int *swa, int *lng, int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
-int c_fstcheck_xdf(const char *filePath);
+int c_fstcheck_xdf(const char * const filePath);
 int c_fstsui_xdf(int iun, int *ni, int *nj, int *nk);
 int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);
 int c_fsteff_xdf(int handle);
+int32_t c_fstlnk(const int32_t *liste, const int32_t n);
 
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
@@ -137,7 +138,8 @@ int c_fstprm_rsf(RSF_handle file_handle, int handle, int *dateo, int *deet, int 
 int c_fstsui_rsf(int iun, const int index_fnom, int *ni, int *nj, int *nk);
 int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options, const int print_stats,
                  int64_t* const total_num_entries, int64_t* const total_num_valid_records, int64_t* const total_file_size,
-                 int64_t* const total_num_writes, int64_t* const total_num_rewrites, int64_t* const total_num_erasures);
+                 int64_t* const total_num_writes, int64_t* const total_num_rewrites, int64_t* const total_num_erasures,
+                 int64_t* const total_erased_size);
 int32_t c_fstckp_rsf(const int iun, const int index_fnom);
 
 #endif // fst98_internaL_H__

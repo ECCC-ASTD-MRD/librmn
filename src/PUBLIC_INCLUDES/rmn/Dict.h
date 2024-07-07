@@ -1,3 +1,5 @@
+#ifndef RMN_DICT_H__
+#define RMN_DICT_H__
 /*=========================================================
  * Environnement Canada
  * Centre Meteorologique Canadien
@@ -31,8 +33,8 @@
  *
  *=========================================================
  */
-#include "App.h"
-#include "List.h"
+#include <App.h>
+#include "rmn/List.h"
 
 #define DICT_SHORT  0
 #define DICT_LONG   1
@@ -118,3 +120,5 @@ int        Dict_SortType(void *Data0, void *Data1);
 int        Dict_CheckVar(void *Data0, void *Data1);
 int        Dict_CheckType(void *Data0, void *Data1);
 TDictVar*  Dict_ApplyModifier(TDictVar *Var, char *Modifier);
+
+#endif

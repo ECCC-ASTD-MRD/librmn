@@ -332,9 +332,9 @@ package:rhel-8-amd64_gnu-9.3.0:
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
 
-#----- rhel-8-amd64_gnu-12.1.0
+#----- rhel-8-amd64_gnu-14.1.0
 
-build:rhel-8-amd64_gnu-12.1.0:
+build:rhel-8-amd64_gnu-14.1.0:
    stage: build
    tags:
       - concurrent
@@ -346,15 +346,15 @@ build:rhel-8-amd64_gnu-12.1.0:
    script:
       - source ${ECCI_ENV}/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
-      - module load gcc12
-      - export EC_ARCH=Linux_x86-64/gnu-12.1.0
-      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-12.1.0
+      - module load gcc14
+      - export EC_ARCH=Linux_x86-64/gnu-14.1.0
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - SRC_DIR=$(pwd)
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-12.1.0
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - cmake ${SRC_DIR}
       - time make -j $NCPUS
 
-test:rhel-8-amd64_gnu-12.1.0:
+test:rhel-8-amd64_gnu-14.1.0:
    stage: test
    tags:
       - concurrent
@@ -364,15 +364,15 @@ test:rhel-8-amd64_gnu-12.1.0:
      - /^dev.*$/
      - tags
    dependencies:
-     - build:rhel-8-amd64_gnu-12.1.0
+     - build:rhel-8-amd64_gnu-14.1.0
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
-      - module load gcc12
-      - export EC_ARCH=Linux_x86-64/gnu-12.1.0
+      - module load gcc14
+      - export EC_ARCH=Linux_x86-64/gnu-14.1.0
       - set -e
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-12.1.0
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - make check
       
 #----- rhel-8-amd64_aocc-4.1.1
@@ -420,9 +420,9 @@ test:rhel-8-amd64_aocc-4.1.1:
       - make check
    allow_failure: true
       
-#----- rhel-8-amd64_nvhpc_23.7
+#----- rhel-8-amd64_nvhpc_23.7.0
 
-build:rhel-8-amd64_nvhpc_23.7:
+build:rhel-8-amd64_nvhpc_23.7.0:
    stage: build
    tags:
       - concurrent
@@ -436,14 +436,16 @@ build:rhel-8-amd64_nvhpc_23.7:
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - export EC_ARCH=Linux_x86-64/nvhpc
-      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - export COMP_ARCH=nvhpc-23.7.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - SRC_DIR=$(pwd)
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR}
       - time make -j $NCPUS
    allow_failure: true
 
-test:rhel-8-amd64_nvhpc_23.7:
+test:rhel-8-amd64_nvhpc_23.7.0:
    stage: test
    tags:
       - concurrent
@@ -453,18 +455,43 @@ test:rhel-8-amd64_nvhpc_23.7:
      - /^dev.*$/
      - tags
    dependencies:
-     - build:rhel-8-amd64_nvhpc_23.7
+     - build:rhel-8-amd64_nvhpc_23.7.0
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
-      - export EC_ARCH=Linux_x86-64/nvhpc
       - set -e
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7
-      - LD_LIBRARY_PATH=/fs/ssm/main/opt/gcc/gcc-9.3.0/gcc_9.3.0_rhel-8-amd64-64/lib64:$LD_LIBRARY_PATH && make check
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
+      - make check
    allow_failure: true
       
+package:rhel-8-amd64_nvhpc_23.7.0:
+   stage: package
+   tags:
+      - concurrent
+   only:
+      - master
+      - alpha
+      - /^dev.*$/
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-amd64_nvhpc_23.7.0
+   environment:
+      name: testing
+   script:
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load nvhpc_23.7
+      - export EC_ARCH=Linux_x86-64/nvhpc
+      - export COMP_ARCH=nvhpc-23.7.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+   allow_failure: true
+
 #----- ubuntu-22.04-amd64_inteloneapi-2022.1.2
 
 build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
@@ -490,7 +517,6 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - cmake ${SRC_DIR}
       - time make -j $NCPUS
-   allow_failure: true
 
 test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
@@ -514,7 +540,6 @@ test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - make check
-   allow_failure: true
 
 package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    variables:
@@ -541,7 +566,6 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
-   allow_failure: true
 
 #----- ubuntu-22.04-amd64_inteloneapi-2023.2.0
 
@@ -568,7 +592,6 @@ build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2023.2.0
       - cmake ${SRC_DIR}
       - time make -j $NCPUS
-   allow_failure: true
 
 test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    variables:
@@ -592,7 +615,6 @@ test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2023.2.0
       - make check
-   allow_failure: true
 
 package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    variables:
@@ -619,7 +641,6 @@ package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2023.2.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
-   allow_failure: true
 
 #----- ubuntu-22.04-amd64_gnu-11.4.0
 
@@ -646,7 +667,6 @@ build:ubuntu-22.04-amd64_gnu-11.4.0:
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_gnu-11.4.0
       - cmake ${SRC_DIR}
       - time make -j $NCPUS
-   allow_failure: true
 
 test:ubuntu-22.04-amd64_gnu-11.4.0:
    variables:
@@ -670,7 +690,6 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_gnu-11.4.0
       - make check
-   allow_failure: true
 
 package:ubuntu-22.04-amd64_gnu-11.4.0:
    variables:
@@ -697,7 +716,6 @@ package:ubuntu-22.04-amd64_gnu-11.4.0:
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_gnu-11.4.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
-   allow_failure: true
 
 deploy:staging:
    stage: deploy

@@ -17,42 +17,35 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-!**s/r ez_lac transformation from a set of points (lat,lon) in the spherical 
-!             coordinate system to cartesian space
-!
-      subroutine ez_lac_8( xyz,lon,lat,n)
+      subroutine ez_rgdint_1_w(zo,px,py,npts,z,ni,j1,j2,wrap)
           use rmn_common
       implicit none
-      integer        :: n
-      real(kind = real64) :: xyz(3,n)
-      real(kind = real32) :: lon(n),lat(n) 
-!
-!author michel roch - april 90
-!
-!revision
-!       001 - michel roch - feb 94 - repackaging for integration in rmnlib
-!
-!arguments
-!    out    xyz     - coordinates in cartesian space
-!    in     lon     - longitudes in spherical coordinates
-!           lat     - latitudes  in spherical coordinates
-!           n       - dimension of the fields
-!
-!*
       
-      integer i
-      real dar, cosdar
-      dar = acos(-1.)/180.
-!     
-      do 30 i=1,n
-!!!!JP
-         cosdar=cos(dar*lat(i))
-         xyz(1,i)=cosdar*cos(dar*lon(i))
-         xyz(2,i)=cosdar*sin(dar*lon(i))
-         xyz(3,i)=sin(dar*lat(i))
- 30   continue
-!     
-      return
-      end 
+      integer             :: npts,ni,j1,j2,wrap,i,j,n,limite,iplus1
+      real                :: zo(npts),px(npts),py(npts)
+      real                :: z(ni,j1:j2)
+      real(kind = real64) :: dx, dy, y2, y3
+
+#include "zlin8.cdk"
       
-      
+      limite = ni +2 - wrap
+      do n=1,npts
+         i = min(ni-2+wrap,max(1,ifix(px(n))))
+         j = min(j2-1,max(j1,ifix(py(n))))
+         
+         iplus1 = i + 1
+         if (wrap.gt.0.and.(i.eq.(ni-2+wrap))) then
+            iplus1  = mod(limite+i+1,limite)
+         endif
+
+         dx = px(n) - i
+         dy = py(n) - j
+         
+         y2=zlin(dble(z(i,j  )),dble(z(iplus1,j  )),dx)
+         y3=zlin(dble(z(i,j+1)),dble(z(iplus1,j+1)),dx)
+         
+         zo(n)=zlin(y2,y3,dy)
+      enddo
+
+      return 
+      end

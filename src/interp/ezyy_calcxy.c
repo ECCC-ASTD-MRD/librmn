@@ -72,7 +72,6 @@ int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin)
         nj = Grille[gdrow_out][gdcol_out].nj;
     }
 
-    &(Grille[gdrow_in ][gdcol_in ]);
     _Grille * lgdout = &(Grille[gdrow_out][gdcol_out]);
 
     /* Masquer les grilles YY input pour enlever overlap si OUI */
@@ -87,9 +86,8 @@ int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin)
     int32_t yancount_yin = 0;
     int32_t yincount_yin = 0;
     int32_t icode;
-    if (yyout == 0)
+    if (yyout == 0) {
         /* destination grid is one grid */
-        {
         /* create mask with Yin as a priority choice and store x,y,lat,lon pos */
         lgdout->gset[idx_gdin].yin_maskout = (float *) malloc(ni*nj*sizeof(float));
         lgdout->gset[idx_gdin].yinlat = (float *) malloc(ni*nj*sizeof(float));
@@ -115,7 +113,7 @@ int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin)
         lgdout->gset[idx_gdin].yan2yin_y = (float *) malloc(yancount_yin*sizeof(float));
         icode = c_gdxyfll_orig(yin_gdin,lgdout->gset[idx_gdin].yin2yin_x,lgdout->gset[idx_gdin].yin2yin_y,yin2yin_lat,yin2yin_lon,yincount_yin);
         icode = c_gdxyfll_orig(yan_gdin,lgdout->gset[idx_gdin].yan2yin_x,lgdout->gset[idx_gdin].yan2yin_y,yan2yin_lat,yan2yin_lon,yancount_yin);
-        }
+    }
 
     if (yyout == 1) {
         // destination grid is a U grid

@@ -27,22 +27,22 @@ extern "C" {
 
 //!> Raw binary data. Its elements can have any size, and it is not subject to interpretation by the FST layer.
 //!> Identified with X.
-static const int32_t FST_TYPE_BINARY    = 0;
+#define FST_TYPE_BINARY 0
 
 //!> Real-valued data using the old quantification scheme.
 //!> Identified with R.
 //!> This quantification is lossy and not reversible (non-cyclic)
 //!> If trying to store with [31-32] bits, automatically converted to FST_TYPE_REAL_IEEE
-static const int32_t FST_TYPE_REAL_OLD_QUANT = 1;
+#define FST_TYPE_REAL_OLD_QUANT 1
 
 //!> Unsigned integer data
-static const int32_t FST_TYPE_UNSIGNED  = 2;
+#define FST_TYPE_UNSIGNED 2
 
 //!> Characters (not compressed)
-static const int32_t FST_TYPE_CHAR     = 3;
+#define FST_TYPE_CHAR 3
 
 //!> Signed integer data
-static const int32_t FST_TYPE_SIGNED    = 4;
+#define FST_TYPE_SIGNED 4
 
 //!> Real-valued data using IEEE format (no quantification), in 32 or 64 bits. Identified with E.
 //!> When trying to store data with number of bits in the range [33-63], the original data size is
@@ -50,7 +50,7 @@ static const int32_t FST_TYPE_SIGNED    = 4;
 //!> When trying to store 64-bit (double) data with 32 bits or less, it is first converted to 32-bit IEEE (float)
 //!> When trying to store 32-bit (float) data with less than 32 bits, the extra bits are simply truncated from the
 //!> mantissa (so don't go too low).
-static const int32_t FST_TYPE_REAL_IEEE = 5;
+#define FST_TYPE_REAL_IEEE 5
 
 //!> Real-valued data using a new quantification scheme.
 //!> *This is the recommended REAL type to use.*
@@ -59,13 +59,13 @@ static const int32_t FST_TYPE_REAL_IEEE = 5;
 //!>   if > 24 -> use FST_TYPE_REAL_IEEE with 32 bits
 //!>   if [17-23] -> use FST_TYPE_REAL_OLD_QUANT with that number of bits
 //!>   if < 16 -> quantify to 16, then truncate any extra bit from the new mantissa
-static const int32_t FST_TYPE_REAL   = 6;
+#define FST_TYPE_REAL 6
 
 //!> Characters (compressed)
-static const int32_t FST_TYPE_STRING    = 7;
+#define FST_TYPE_STRING 7
 
 //!> Complex number (32 or 64 bits)
-static const int32_t FST_TYPE_COMPLEX   = 8;
+#define FST_TYPE_COMPLEX 8
 
 static char* FST_TYPE_NAMES[] = {
     "FST_TYPE_BINARY",
@@ -84,8 +84,11 @@ static inline int32_t base_fst_type(const int32_t type_flag) {
 }
 
 //!> When added or |'d to a base type, indicate that we want to apply additional lossless compression to the data
-static const int32_t FST_TYPE_TURBOPACK = 128;
-static const int32_t FST_TYPE_MAGIC     = 801; // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
+#define FST_TYPE_TURBOPACK 128
+
+//! Magic to identify FST files
+//! 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
+#define FST_TYPE_MAGIC 801
 
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);
@@ -100,7 +103,7 @@ int c_fstopi(const char * const option, const int value, const int getmode);
 int c_fstopl(const char * const option, const int value, const int getmode);
 int c_fstopr(char *option, float value, int getmode);
 int c_fstopc(const char * const option, const char * const value, const int getmode);
-int c_fstcheck(const char *filePath);
+int c_fstcheck(const char * const filePath);
 int c_fstinf(const int iun, int * const ni, int * const nj, int * const nk, const int datev, const char * const in_etiket,
             const int ip1, const int ip2, const int ip3, const char * const in_typvar, const char * const in_nomvar);
 int c_fstsui(int iun, int *ni, int *nj, int *nk);

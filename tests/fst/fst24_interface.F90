@@ -123,7 +123,11 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
     call execute_command_line(trim(cmd))
 
     options = 'RND+R/W'
-    if (is_rsf) options = options // '+RSF'
+    if (is_rsf) then
+        options = options // '+RSF'
+    else
+        options = options // '+XDF'
+    endif
 
     success = new_file % open(trim(name), options)
     if (.not. success) then
@@ -199,7 +203,7 @@ function test_fst24_interface(is_rsf) result(success)
 
     type(fst_file) :: test_file
     type(fst_record_fields) :: fields
-    type(fst_record) :: expected, record
+    type(fst_record) :: expected, record, record_by_index
     type(fst_query) :: query
     integer :: num_found
     real(kind = real32), dimension(:, :), pointer :: data_array
@@ -223,6 +227,8 @@ function test_fst24_interface(is_rsf) result(success)
         return
     end if
 
+    call App_Log(APP_INFO, 'Opened file ' // test_file % get_name())
+
     block
         integer(C_INT64_T) :: num_rec
         num_rec = test_file % get_num_records()
@@ -244,6 +250,27 @@ function test_fst24_interface(is_rsf) result(success)
     success = query % is_valid()
     do while (query % find_next(record))
         ! call record % print_short(print_header = (num_found == 0))
+
+        success = (num_found == record % file_index)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Seems like the record index is wrong')
+            return
+        end if
+
+        success = test_file % get_record_by_index(num_found, record_by_index)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Unable to retrieve record by file index')
+            return
+        end if
+
+        success = record % has_same_info(record_by_index)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Record retrieved by key does not have the same info as the one from the query')
+            call record % print()
+            call expected % print()
+            return
+        end if
+
         num_found = num_found + 1
 
         expected % ip1 = num_found
@@ -411,6 +438,28 @@ function test_fst24_interface(is_rsf) result(success)
         end if
     end block
 
+    ! //////////////////////////////
+    ! // is_same
+    block
+        type(fst_record) :: a, b
+        call query % rewind()
+        success = query % find_next(a)
+
+        success = .not. a % is_same(b)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Records should not be the same!')
+            return
+        end if
+
+        call query % rewind()
+        success = query % find_next(b)
+        success = a % is_same(b)
+        if (.not. success) then
+            call app_log(APP_ERROR, 'Records should be the same!')
+            return
+        end if
+    end block
+
     call query % free()
 
     ! /////////////////////////////////////////
@@ -438,6 +487,9 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, 'Unable to open other files for link tests')
             return
         end if
+
+        call App_Log(APP_INFO, 'Opened file ' // file_list(2) % get_name())
+        call App_Log(APP_INFO, 'Opened file ' // file_list(3) % get_name())
 
         success = fst24_link(file_list(1:1)) ! Link only 1 (should work)
         if (.not. success) then 

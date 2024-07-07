@@ -1,5 +1,5 @@
-#ifndef _Meta
-#define _Meta
+#ifndef RMN_Meta
+#define RMN_Meta
 
 #include <time.h>
 #include <json-c/json.h>
@@ -12,7 +12,7 @@
 #define META_TYPE_FILE    2
 
 // Generic json manipulation calls
-char*        Meta_Stringify(json_object *Obj);
+char*        Meta_Stringify(json_object *Obj,int Format);
 json_object* Meta_Parse(const char *MetaString);
 int32_t      Meta_ArrayLength(json_object *Obj);
 json_object* Meta_ArrayGetObject(json_object *Obj,int32_t Idx);

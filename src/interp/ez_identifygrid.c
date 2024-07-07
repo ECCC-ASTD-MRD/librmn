@@ -39,14 +39,24 @@ void c_ez_manageGrillesMemory() {
 }
 
 
+//! Create grid entry for this regular grid
+//!
+//! \return Grid id
 int32_t c_ezidentify_reg_grid(
-    int32_t ni,
-    int32_t nj,
-    char* grtyp,
-    int32_t ig1,
-    int32_t ig2,
-    int32_t ig3,
-    int32_t ig4
+    //! [in] First dimension
+    const int32_t ni,
+    //! [in] Second dimension
+    const int32_t nj,
+    //! [in] Grid type
+    const char * const grtyp,
+    //! [in] First grid parameter
+    const int32_t ig1,
+    //! [in] Second grid parameter
+    const int32_t ig2,
+    //! [in] Third grid parameter
+    const int32_t ig3,
+    //! [in] Fourth grid parameter
+    const int32_t ig4
 ) {
     int32_t newgrsize = sizeof(_Grille);
     if (nGrilles == 0) {
@@ -95,17 +105,30 @@ int32_t c_ezidentify_reg_grid(
 }
 
 
+//! Create grid entry for this irregular grid
+//!
+//! \return Grid id
 int32_t c_ezidentify_irreg_grid(
-    int32_t ni,
-    int32_t nj,
-    char* grtyp,
-    char* grref,
-    int32_t ig1,
-    int32_t ig2,
-    int32_t ig3,
-    int32_t ig4,
-    float* ax,
-    float* ay
+    //! [in] First dimension
+    const int32_t ni,
+    //! [in] Second dimension
+    const int32_t nj,
+    //! [in] Grid type
+    const char * const grtyp,
+    //! [in] Reference grid type
+    const char * const grref,
+    //! [in] First grid parameter
+    const int32_t ig1,
+    //! [in] Second grid parameter
+    const int32_t ig2,
+    //! [in] Third grid parameter
+    const int32_t ig3,
+    //! [in] Fourth grid parameter
+    const int32_t ig4,
+    //! [in] 
+    const float * const ax,
+    //! [in] 
+    const float * const ay
 ) {
     if (nGrilles == 0) {
         gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));

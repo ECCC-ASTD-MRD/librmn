@@ -28,24 +28,10 @@
 
 module rmn_jar
     use rmn_common
+    use rmn_libc, only: libc_malloc, libc_free
     implicit none
 
     private
-
-    interface
-        function libc_malloc(sz) result(ptr) BIND(C, name='malloc')
-            import :: C_SIZE_T, C_PTR
-            implicit none
-            integer(C_SIZE_T), intent(IN), value :: sz
-            type(C_PTR) :: ptr
-        end function libc_malloc
-
-        subroutine libc_free(ptr) BIND(C, name='free')
-            import :: C_PTR
-            implicit none
-            type(C_PTR), intent(IN), value :: ptr
-        end subroutine libc_free
-    end interface
 
     logical, save, private :: debug_mode = .false.
 

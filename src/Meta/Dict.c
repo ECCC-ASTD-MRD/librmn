@@ -37,10 +37,9 @@
 #include <libxml/encoding.h>
 #include <libxml/parser.h>
 
-#include "rmn.h"
 #include "str.h"
-#include "Dict.h"
-#include "Meta.h"
+#include "rmn/Dict.h"
+#include "rmn/Meta.h"
 #include <float.h>
 
 char *TSHORT[]      = { "Description courte ","Short Description  " };
@@ -101,7 +100,7 @@ static __thread TDictSearch DictSearch;               // Per thread search param
 static int Dict_ParseVar(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encoding Encoding);
 static int Dict_ParseType(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encoding Encoding);
 
-char* strncpy0(char *restrict Dest,char *restrict Src,size_t Num) {
+static void strncpy0(char *restrict Dest,char *restrict Src,size_t Num) {
    strncpy(Dest,Src,Num-1);
    Dest[Num-1]='\0';
 }
@@ -127,7 +126,7 @@ int Dict_Load(TDict_Encoding Encoding) {
    return(TRUE);
 }
 
-int Dict_Encoding(char *string,TDict_Encoding Encoding) {
+static void Dict_Encoding(char *string,TDict_Encoding Encoding) {
 
    char tmpString[DICT_MAXLEN];
    int  tmplenout, tmplenin;
@@ -550,28 +549,28 @@ static int Dict_ParseVar(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encodin
          }
          strncpy0(metvar->Name,tmpc,5);
          xmlFree(tmpc);
-         if (tmpc=(char*)xmlGetProp(Node,"ip1")) {
+         if ((tmpc=(char*)xmlGetProp(Node,"ip1")) != NULL) {
             metvar->IP1=atoi(tmpc);
             IPDecode(metvar->IP1,&metvar->Level,&metvar->Kind);
             xmlFree(tmpc);
          }
-         if (tmpc=(char*)xmlGetProp(Node,"ip2")) {
+         if ((tmpc=(char*)xmlGetProp(Node,"ip2")) != NULL) {
             metvar->IP2=atoi(tmpc);
             xmlFree(tmpc);
          }
-         if (tmpc=(char*)xmlGetProp(Node,"ip3")) {
+         if ((tmpc=(char*)xmlGetProp(Node,"ip3")) != NULL) {
             metvar->IP3=atoi(tmpc);
             xmlFree(tmpc);
          }
-         if (tmpc=(char*)xmlGetProp(Node,"etiket")) {
+         if ((tmpc=(char*)xmlGetProp(Node,"etiket")) != NULL) {
             strncpy0(metvar->ETIKET,tmpc,13);
             xmlFree(tmpc);
          }
-         if (tmpc=(char*)xmlGetProp(Node,"level")) {
+         if ((tmpc=(char*)xmlGetProp(Node,"level")) != NULL) {
             metvar->Level=atof(tmpc);
             xmlFree(tmpc);
          }
-         if (tmpc=(char*)xmlGetProp(Node,"kind")) {
+         if ((tmpc=(char*)xmlGetProp(Node,"kind")) != NULL) {
             metvar->Kind=atoi(tmpc);
             xmlFree(tmpc);
          }
@@ -717,12 +716,12 @@ static int Dict_ParseType(xmlDocPtr Doc, xmlNsPtr NS, xmlNodePtr Node,TDict_Enco
 
    type=(TDictType*)calloc(1,sizeof(TDictType));
 
-   if (tmpc=(char*)xmlGetProp(Node,"origin")) {
+   if ((tmpc=(char*)xmlGetProp(Node,"origin")) != NULL) {
       strncpy0(type->Origin,tmpc,32);
       xmlFree(tmpc);
    }
 
-   if ((tmpc=(char*)xmlGetProp(Node,"usage"))) {
+   if ((tmpc=(char*)xmlGetProp(Node,"usage")) != NULL) {
       if (!strcmp(tmpc,"obsolete")) {
          type->Nature|=DICT_OBSOLETE;
       } else if (!strcmp(tmpc,"deprecated")) {
@@ -737,7 +736,7 @@ static int Dict_ParseType(xmlDocPtr Doc, xmlNsPtr NS, xmlNodePtr Node,TDict_Enco
       xmlFree(tmpc);
    }
 
-   if ((tmpc=(char*)xmlGetProp(Node,"date"))) {
+   if ((tmpc=(char*)xmlGetProp(Node,"date")) != NULL) {
       sscanf(tmpc,"%u-%u-%u",&y,&m,&d);
       type->Date=Meta_DateTime2Seconds(y,m,d,0,0,0,TRUE);
       xmlFree(tmpc);
@@ -1082,7 +1081,7 @@ void Dict_PrintVars(char *Var,int Format,TApp_Lang Lang) {
 
    list=Dict.Vars;
 
-   while(list=TList_Find(list,Dict_CheckVar,Var)) {
+   while ((list=TList_Find(list,Dict_CheckVar,Var)) != NULL) {
        Dict_PrintVar((TDictVar*)list->Data,Format,Lang);
        list=list->Next;
    }
@@ -1336,7 +1335,7 @@ void Dict_PrintTypes(char *Type,int Format,TApp_Lang Lang) {
 
    list=Dict.Types;
 
-   while(list=TList_Find(list,Dict_CheckType,Type)) {
+   while ((list=TList_Find(list,Dict_CheckType,Type)) != NULL) {
        if (!head) {
           printf("\n12-TYPVAR-----------------------------------------------------------------------\n");
           head++;

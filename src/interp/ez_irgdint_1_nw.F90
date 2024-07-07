@@ -17,35 +17,35 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_rgdint_1_w(zo,px,py,npts,z,ni,j1,j2,wrap)
+      subroutine ez_irgdint_1_nw(zo, px, py, npts, ax, ay, z, ni, nj)
           use rmn_common
       implicit none
-      
-      integer             :: npts,ni,j1,j2,wrap,i,j,n,limite,iplus1
-      real                :: zo(npts),px(npts),py(npts)
-      real                :: z(ni,j1:j2)
-      real(kind = real64) :: dx, dy, y2, y3
-      
-      limite = ni +2 - wrap
-      do n=1,npts
-         i = min(ni-2+wrap,max(1,ifix(px(n))))
-         j = min(j2-1,max(j1,ifix(py(n))))
-         
-         iplus1 = i + 1
-         if (wrap.gt.0.and.(i.eq.(ni-2+wrap))) then
-            iplus1  = mod(limite+i+1,limite)
-         endif
+      integer             :: npts, ni, nj
+      integer             :: i, j, n
+      real                :: zo(npts), px(npts), py(npts)
+      real                :: ax(ni),ay(nj)
+      real                :: z(ni,nj)
+      real(kind = real64) :: x, y, x1, x2, y1, y2, dx, dy
 
-         dx = px(n) - i
-         dy = py(n) - j
-         
-         y2=zlin(dble(z(i,j  )),dble(z(iplus1,j  )),dx)
-         y3=zlin(dble(z(i,j+1)),dble(z(iplus1,j+1)),dx)
-         
-         zo(n)=zlin(y2,y3,dy)
+#include "zlin8.cdk"
+
+      do n = 1, npts
+         i = min(ni-1,max(1,ifix(px(n))))
+         j = min(nj-1,max(1,ifix(py(n))))
+
+         x1=ax(i)
+         x2=ax(i+1)
+
+         x = ax(i) + (x2-x1)*(px(n)-i)
+         y = ay(j) + (ay(j+1)-ay(j))*(py(n)-j)
+
+         dx = (x - x1)/(x2-x1)
+         dy = (y - ay(j))/(ay(j+1)-ay(j))
+
+         y1 = zlin(dble(z(i,j)),dble(z(i+1,j)),dx)
+         y2 = zlin(dble(z(i,j+1)),dble(z(i+1,j+1)),dx)
+         zo(n) = zlin(y1,y2,dy)
       enddo
 
-      return 
-      contains
-#include "zlin8.cdk"
+      return
       end

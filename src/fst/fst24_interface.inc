@@ -17,7 +17,7 @@ interface
         type(C_PTR), intent(in), value :: record_c
         integer(C_INT32_T) :: status
     end function fst24_record_free_c
-
+    
     function fst24_validate_default_record(fortran_record, fortran_size) result(status) bind(C, name = 'fst24_validate_default_record')
         import :: C_PTR, C_INT32_T, C_SIZE_T
         implicit none
@@ -48,6 +48,20 @@ interface
         integer(C_INT32_T) :: status
     end function fst24_record_has_same_info_c
 
+    pure function fst24_record_is_same_c(a, b) result(status) bind(C, name = 'fst24_record_is_same')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: a, b
+        integer(C_INT32_T) :: status
+    end function fst24_record_is_same_c
+    
+    pure function fst24_record_is_descriptor_c(a) result(status) bind(C, name = 'fst24_record_is_descriptor')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: a
+        integer(C_INT32_T) :: status
+    end function fst24_record_is_descriptor_c
+
     function fst24_read_record(record) result(status) bind(C, name = 'fst24_read_record')
         import :: C_PTR, C_INT32_T
         implicit none
@@ -62,10 +76,11 @@ interface
         type(C_PTR) :: metadata
     end function fst24_read_metadata
 
-    function fst24_record_copy_metadata_c(recorda,recordb) result(status) bind(C, name = 'fst24_record_copy_metadata')
+    function fst24_record_copy_metadata_c(recorda,recordb,what) result(status) bind(C, name = 'fst24_record_copy_metadata')
         import :: C_PTR, C_INT32_T
         implicit none
         type(C_PTR), intent(in), value :: recorda, recordb
+        integer(C_INT32_T), intent(in) :: what
         integer(C_INT32_T) :: status
     end function fst24_record_copy_metadata_c
 
@@ -92,6 +107,13 @@ interface
         integer(C_INT32_T) :: is_open
     end function fst24_is_open
 
+    function fst24_file_name(file) result(name) bind(C, name = 'fst24_file_name')
+        import :: C_PTR
+        implicit none
+        type(C_PTR), intent(in), value :: file
+        type(C_PTR) :: name
+    end function fst24_file_name
+
     function fst24_open(file_name, options) result(file_ptr) bind(C, name = 'fst24_open')
         import :: C_PTR, C_CHAR
         implicit none
@@ -113,6 +135,15 @@ interface
         type(C_PTR), intent(in), value :: file
         integer(C_INT64_T) :: num_records
     end function fst24_get_num_records
+
+    function fst24_get_record_by_index(file, index, record) result(status) bind(C, name = 'fst24_get_record_by_index')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: file
+        integer(C_INT32_T), intent(in), value :: index
+        type(C_PTR), intent(in), value :: record
+        integer(C_INT32_T) :: status
+    end function fst24_get_record_by_index
 
     function fst24_new_query(file, criteria, options) result(query) bind(C, name = 'fst24_new_query')
         import :: C_PTR

@@ -22,27 +22,20 @@
 #include "ez_funcdef.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-int32_t ez_interp(float *zout, float *zin, int32_t gdin, int32_t gdout)
-  {
-  int32_t ni_in, nj_in, ni_out, nj_out, ninj_out;
-  
-  int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, npts, cur_gdin, idx_gdin;
-  int lcl_ngdin;
-  
-  c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
-  c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-  idx_gdin = c_find_gdin(gdin, gdout);
-  
-  if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].flags & XXX)
-    {
-    ni_out = Grille[gdrow_out][gdcol_out].ni;
-    nj_out = Grille[gdrow_out][gdcol_out].nj;
-    ninj_out = ni_out * nj_out;
-    
-    c_gdinterp(zout, zin, gdin, Grille[gdrow_out][gdcol_out].gset[idx_gdin].x,
-      Grille[gdrow_out][gdcol_out].gset[idx_gdin].y, ninj_out);
+int32_t ez_interp(float *zout, float *zin, int32_t gdin, int32_t gdout) {
+    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
+    c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
+    c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
+    int32_t idx_gdin = c_find_gdin(gdin, gdout);
+
+    if (Grille[gdrow_out][gdcol_out].gset[idx_gdin].flags & XXX) {
+        int32_t ni_out = Grille[gdrow_out][gdcol_out].ni;
+        int32_t nj_out = Grille[gdrow_out][gdcol_out].nj;
+        int32_t ninj_out = ni_out * nj_out;
+ 
+        c_gdinterp(zout, zin, gdin, Grille[gdrow_out][gdcol_out].gset[idx_gdin].x,
+        Grille[gdrow_out][gdcol_out].gset[idx_gdin].y, ninj_out);
     }
-  return 0;   
-  }
+    return 0;   
+}
 

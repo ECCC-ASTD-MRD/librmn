@@ -1,7 +1,7 @@
 #include <App.h>
 #include "rmn.h"
-#include "Meta.h"
-#include "Dict.h"
+#include "rmn/Meta.h"
+#include "rmn/Dict.h"
 #include "fst/fst98_internal.h"
 #include <str.h>
 
@@ -228,19 +228,19 @@ int32_t Meta_LoadProfile(char *Version) {
 
       prof=&MetaProfiles[MetaProfileNb];
 
-      snprintf(path,APP_BUFMAX,"%s/json/%s/field.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/field.json",MetaPaths[i],Version);
       if (!(prof->Field=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load field profile %s\n",__func__,path);
          continue;
       }
-      snprintf(path,APP_BUFMAX,"%s/json/%s/file.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/file.json",MetaPaths[i],Version);
       if (!(prof->File=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load file profile %s\n",__func__,path);
          continue;
       } 
 
       // Load vertical reference definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/vertical/*.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/vertical/*.json",MetaPaths[i],Version);
       glob(path,0x0,NULL,&globs);
       if (globs.gl_pathc) {
          prof->Z=json_object_new_object();
@@ -258,7 +258,7 @@ int32_t Meta_LoadProfile(char *Version) {
       globfree(&globs);
 
       // Load horizontal definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/horizontal/*.json",MetaPaths[i],Version);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/horizontal/*.json",MetaPaths[i],Version);
       glob(path,0x0,NULL,&globs);
       if (globs.gl_pathc) {
          prof->XY=json_object_new_object();
@@ -276,7 +276,7 @@ int32_t Meta_LoadProfile(char *Version) {
       globfree(&globs);
 
       // Load token definitions
-      snprintf(path,APP_BUFMAX,"%s/json/%s/definitions.json",MetaPaths[i],MetaVersion);
+      snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/definitions.json",MetaPaths[i],MetaVersion);
       if (!(obja=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load token definitions: %s\n",__func__,path);
       }
@@ -473,21 +473,19 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
       json_pointer_get(Obj,"/long_name",&objval);
       json_object_set_string(objval,var->Long[1]);
    
-//      json_pointer_get(Obj,"/description",&objval);
-//      json_object_set_string(objval,Description);
+      // json_pointer_get(Obj,"/description",&objval);
+      // json_object_set_string(objval,Description);
 
-      if (var->Units) {
-         json_pointer_get(Obj,"/unit",&objval);
+      json_pointer_get(Obj,"/unit",&objval);
 #ifdef HAVE_UDUNITS2
-         if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,var->Units))) {
-            Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,var->Units);
-            return(NULL);
-         } else {
-            json_object_set_string(objval,var->Units);
-         }
-#else
+      if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,var->Units))) {
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,var->Units);
+         return(NULL);
+      } else {
          json_object_set_string(objval,var->Units);
       }
+#else
+      json_object_set_string(objval,var->Units);
 #endif
    }
 
@@ -1498,13 +1496,13 @@ json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,
  * @brief  Format an object for output
  * @date   July 2023
  *    @param[in]   Obj           json object
- *
+ *    @param[in]   Format        format (JSON_C_TO_STRING_PLAIN,JSON_C_TO_STRING_PRETTY,JSON_C_TO_STRING_SPACED)
+ * 
  *    @return                    formatted string
 */
-char *Meta_Stringify(json_object *Obj) {
+char *Meta_Stringify(json_object *Obj,int Format) {
 
-   //return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PLAIN));
-   return((char*)json_object_to_json_string_ext(Obj,JSON_C_TO_STRING_PRETTY));
+   return((char*)json_object_to_json_string_ext(Obj,Format));
 }
 
 /**----------------------------------------------------------------------------
@@ -1710,7 +1708,7 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
             for(int32_t i1=0;i1<l1;i1++) {
                objval1=json_object_array_get_idx(obj1,i1);
                if (json_object_get_type(objval1)==json_type_string) {
-                   if (str1=json_object_get_string(objval1)) {
+                   if ((str1=json_object_get_string(objval1)) != NULL) {
                      if (str1[0]=='\0') {
                         found++;
                         break;
@@ -1736,7 +1734,7 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
                   objval2=json_object_array_get_idx(obj2,i2);
                    
                   if (json_object_get_type(objval2)==json_type_string) {      
-                     if (str2=json_object_get_string(objval2)) {
+                     if ((str2=json_object_get_string(objval2)) != NULL) {
                         if (RegExp) {
                            if (regexec(&re,str2,(size_t)0,NULL,0)==0) {
                               found++;
@@ -2012,7 +2010,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
    Rec->typvar[0]='X';
    Rec->typvar[1]=' ';
    Rec->etiket[0]='\0';
-   if (obj=Meta_GetObject(Obj,"/qualifiers")) {
+   if ((obj=Meta_GetObject(Obj,"/qualifiers")) != NULL) {
       for(i=0;i<Meta_ArrayLength(obj);i++) {
 
          c1=Meta_GetObjectString(Meta_ArrayGetObject(obj,i));
@@ -2129,7 +2127,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
       return(FALSE);
    }
 
-   if (rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) {
+   if ((rec = fst24_record_new(META_FLAGBITS,FST_TYPE_BINARY,1,META_FLAGBITS_WIDTH,META_FLAGBITS_HEIGHT,1)) != NULL) {
       rec->pack_bits = 1;
       rec->dateo = 0;
       rec->deet  = 0;

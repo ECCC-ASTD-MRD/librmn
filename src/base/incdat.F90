@@ -21,9 +21,9 @@ subroutine incdat(id1, id2, nh)
     use iso_fortran_env
     implicit none
 
-    integer :: id1
-    integer :: id2
-    integer :: nh
+    integer, intent(out) :: id1
+    integer, intent(in) :: id2
+    integer, intent(in) :: nh
 
     real(kind = real64) :: rnh
 
