@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rmn
 import os
 import pandas

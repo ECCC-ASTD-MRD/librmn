@@ -166,6 +166,17 @@ def test_record_attributes():
         print(f"PYTHON: etiket={repr(record.etiket)}")
         break
 
+def get_record_by_index():
+    file = rmn.fst24_file(filename=filename)
+    query = file.new_query()
+    next(query)
+    rec = next(query)
+    print(rec)
+    file = None
+    query = None
+    dat = rec.data
+    print(dat)
+
 
 if __name__ == "__main__":
     # create_query_and_iterate_on_records()
@@ -182,5 +193,7 @@ if __name__ == "__main__":
 
     # attempt_to_write_non_record_to_file()
     # invalid_access_of_record_data()
-    test_record_attributes()
-    create_record_and_assign_data()
+    # test_record_attributes()
+    # create_record_and_assign_data()
+    get_record_by_index()
+

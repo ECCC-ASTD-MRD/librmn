@@ -50,7 +50,7 @@ RecordData *NewRecordData(size_t nb_records)
     data->extra2 = malloc(nb_records*sizeof(*(data->extra2)));
     data->extra3 = malloc(nb_records*sizeof(*(data->extra3)));
 
-    data->key = malloc(nb_records*sizeof(*(data->key)));
+    data->file_index = malloc(nb_records*sizeof(*(data->file_index)));
 
     // Check if realloc was successful
     if (data->ni == NULL || data->nj == NULL || data->nk == NULL ||
@@ -102,7 +102,7 @@ void free_record_data(RecordData *data)
     free(data->extra2);
     free(data->extra3);
 
-    free(data->key);
+    free(data->file_index);
 }
 
 
@@ -348,6 +348,8 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
             raw_columns->ig2[i] = r->ig2;
             raw_columns->ig3[i] = r->ig3;
             raw_columns->ig4[i] = r->ig4;
+
+            raw_columns->file_index[i] = r->file_index;
 
             // raw_columns->extra1[i] = r->extra1;
             // raw_columns->extra2[i] = r->extra2;

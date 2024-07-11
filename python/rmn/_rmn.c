@@ -99,6 +99,7 @@ static int py_fst24_file_init(struct py_fst24_file *self, PyObject *args, PyObje
 static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUSED(args));
 static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *args, PyObject *kwds);
 static PyObject *py_fst24_file_write(struct py_fst24_file *self, PyObject *args, PyObject *kwds);
+static PyObject *py_fst24_file_get_record_by_index(struct py_fst24_file *self, PyObject *args, PyObject *kwds);
 
 static PyMemberDef py_fst24_file_member_def[] = {
     {
@@ -137,13 +138,19 @@ static PyMethodDef py_fst24_file_method_defs[] = {
         .ml_name = "__enter__",
         .ml_flags = METH_VARARGS,
         .ml_meth = (PyCFunction) py_fst24_file_retself,
-        .ml_doc = "Write a record into a file",
+        .ml_doc = "TODO",
     },
     {
         .ml_name = "__exit__",
         .ml_flags = METH_VARARGS,
         .ml_meth = (PyCFunction) py_fst24_file_close,
-        .ml_doc = "Write a record into a file",
+        .ml_doc = "TODO",
+    },
+    {
+        .ml_name = "get_record_by_index",
+        .ml_flags = METH_VARARGS,
+        .ml_meth = (PyCFunction) py_fst24_file_close,
+        .ml_doc = "Get a record by its file_index",
     },
     {NULL, NULL, 0, NULL},
 };
@@ -351,6 +358,12 @@ static PyMemberDef py_fst_record_members[] = {
         .offset = offsetof(struct py_fst_record, rec.ig4),
         .flags = 0,
         .doc = "IG4 of this fst_record"
+    },
+    {
+        .name = "file_index",
+        .type = T_INT,
+        .offset = offsetof(struct py_fst_record, rec.file_index),
+        .doc = "Persistent index of the record in the file.  Can be used to access the record in the same file at a later time provided the file has not been modified.",
     },
     {.name = NULL},
 };
@@ -567,7 +580,8 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
                              "ni", "nj", "nk", // iii
                              "ip1", "ip2", "ip3", // iii
                              "ig1", "ig2", "ig3", "ig4", // iiii
-                             "typvar", "grtyp", "nomvar", "etiket" // ssss
+                             "typvar", "grtyp", "nomvar", "etiket", // ssss
+                             "record", // O
     };
     // Values must be initialized because if the keyword argumetn is not
     // specified the PyArg_ParseTupleAndKeywords will not change them
@@ -576,21 +590,56 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
     char *grtyp = NULL;
     char *typvar = NULL;
     char *etiket = NULL;
+    struct py_fst_record *py_record_arg = NULL;
     // PyArg_ParseTupleAndKeywords will set nomvar to point to the buffer of a
     // of some python object, which means it is tied to the lifetime of that
     // object.  Therefore we can't do what what we do with ip3.  Same for all
     // types where we pass the address of a pointer.
-    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$iiiiiiiiiiiiiiiiissss", kwlist, 
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "|$iiiiiiiiiiiiiiiiissssO", kwlist, 
                 &rec->dateo, &rec->datev, &rec->data_type, &rec->data_bits, &rec->pack_bits,
                 &rec->deet, &rec->npas,
                 &rec->ni, &rec->nj, &rec->nk,
                 &rec->ip1, &rec->ip2, &rec->ip3,
                 &rec->ig1, &rec->ig2, &rec->ig3, &rec->ig4,
-                &typvar, &grtyp, &nomvar, &etiket
+                &typvar, &grtyp, &nomvar, &etiket,
+                &py_record_arg
     )){
         fprintf(stderr, "%s(): ERROR Parsing arguments", __func__);
         return 1;
     }
+
+    /*
+     * Something seems inelegant about this.  If people use this function with
+     * file.new_query(record=some_rec, ip1=8), the ip1=8 will have no effec and
+     * should either be considered an error or maybe we could modify this to
+     * take everything from the record some_rec, then set ip1=8.
+     *
+     * I think that would be something like 
+     *      return_rec = default_fst_record;
+     *      specific_rec = default_fst_record;
+     *      record_arg = default_fst_record;
+     *      PyArg_ParseTupleAndKeywords(...., &specific_rec->dateo, &specific_rec->datev, ..., &typvar, &grtyp, &nomvar, &etiket)
+     * then
+     *      if(py_record_arg != null){
+     *          // Use everything from the record provided as an argument
+     *          *return_rec = *py_record_arg->rec;
+     *          // For each attribute, if it was provided specifically, use that instead
+     *          if(specific_rec->ip1 != default_fst_record->ip1){ return_rec->ip1 = specific_rec->ip1; }
+     *          if(specific_rec->ip2 != default_fst_record->ip2){ return_rec->ip2 = specific_rec->ip2; }
+     *          ...
+     *          if(nomvar != NULL){strncpy(nomvar, return_rec->nomvar, sizeof(return_rec->nomvar));}
+     *          ...
+     *      } else {
+     *          *return_rec = *specific_rec;
+     *      }
+     *
+     *
+     */
+    if(py_record_arg != NULL){
+        *rec = py_record_arg->rec;
+        return 0;
+    }
+
 
     if(typvar != NULL){
         strncpy(rec->typvar, typvar, sizeof(rec->typvar));
@@ -615,6 +664,11 @@ static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *a
     if(err){
         return NULL;
     }
+
+    // if(criteria.dateo != default_fst_record.dateo){
+    //     fprintf(stderr, "WARNING: Removing dateo from search criteria\n");
+    //     criteria.dateo = default_fst_record.dateo;
+    // }
 
     fst_query *new_query = fst24_new_query(self->ref, &criteria, NULL);
     if(new_query == NULL){
@@ -672,11 +726,31 @@ static PyObject *py_fst24_file_write(struct py_fst24_file *self, PyObject *args,
     Py_RETURN_NONE;
 }
 
+static PyObject *py_fst24_file_get_record_by_index(struct py_fst24_file *self, PyObject *args, PyObject *kwds)
+{
+    int index = -1;
+    int ok = PyArg_ParseTuple(args, "i", &index);
+    if(!ok){
+        return NULL;
+    }
+    fst_record rec;
+    if(fst24_get_record_by_index(self->ref, index, &rec)){
+        PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
+        return NULL;
+    }
+
+    struct py_fst_record *py_rec = (struct py_fst_record *) py_fst_record_new(&py_fst_record_type, NULL, NULL);
+    py_rec->rec = rec;
+
+    return (PyObject *)py_rec;
+}
+
 static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUSED(args)){
     return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
 }
 
 static void py_fst24_file_dealloc(struct py_fst24_file *self){
+    fprintf(stderr, "%s()\n", __func__);
     Py_XDECREF(self->filename);
     Py_XDECREF(self->options);
     if(self->ref != NULL){
@@ -707,6 +781,7 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
 
 static void py_fst_query_dealloc(struct py_fst_query *self)
 {
+    fprintf(stderr, "%s()\n", __func__);
     // self->ref could be NULL because we are not enforcing creation only by
     // .new_query method on fst24_file.
     if(self->ref != NULL){
@@ -867,7 +942,7 @@ static int set_attr_string_pad_space(PyObject* self, PyObject *to_assign, size_t
      */
     Py_ssize_t size;
     const char *typvar_buf = PyUnicode_AsUTF8AndSize(to_assign, &size);
-    fprintf(stderr, "%s(): size = %lu\n", __func__, size);
+    // fprintf(stderr, "%s(): size = %lu\n", __func__, size);
     if(size > len + 1){
         PyErr_Format(PyExc_ValueError, "Cannot assign string longer than '%d' to %s of record: %lu", len, name, size);
         return -1;
@@ -1134,30 +1209,33 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
     PyObject *columns = PyDict_New();
     npy_intp dims[] = {raw_columns->nb_records};
 
+    if(make_1d_string_array_and_add_to_dict(columns, "nomvar", raw_columns->nb_records, FST_NOMVAR_LEN, raw_columns->nomvar)){goto error;}
+    if(make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->typvar)){goto error;}
+    if(make_1d_string_array_and_add_to_dict(columns, "etiket", raw_columns->nb_records, FST_ETIKET_LEN, raw_columns->etiket)){goto error;}
+
     if(make_1d_array_and_add_to_dict(columns, "ni", raw_columns->nb_records, NPY_INT32, raw_columns->ni)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "nj", raw_columns->nb_records, NPY_INT32, raw_columns->nj)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "nk", raw_columns->nb_records, NPY_INT32, raw_columns->nk)){ goto error; }
 
     if(make_1d_array_and_add_to_dict(columns, "dateo", raw_columns->nb_records, NPY_INT32, raw_columns->dateo)){ goto error;}
-    if(make_1d_array_and_add_to_dict(columns, "deet", raw_columns->nb_records, NPY_INT32, raw_columns->deet)){ goto error;}
-    if(make_1d_array_and_add_to_dict(columns, "npas", raw_columns->nb_records, NPY_INT32, raw_columns->npas)){ goto error;}
-
-    if(make_1d_array_and_add_to_dict(columns, "pack_bits", raw_columns->nb_records, NPY_INT32, raw_columns->pack_bits)){ goto error;}
-    if(make_1d_array_and_add_to_dict(columns, "data_type", raw_columns->nb_records, NPY_INT32, raw_columns->data_type)){ goto error;}
 
     if(make_1d_array_and_add_to_dict(columns, "ip1", raw_columns->nb_records, NPY_INT32, raw_columns->ip1)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "ip2", raw_columns->nb_records, NPY_INT32, raw_columns->ip2)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "ip3", raw_columns->nb_records, NPY_INT32, raw_columns->ip3)){ goto error; }
 
-    if(make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->typvar)){goto error;}
-    if(make_1d_string_array_and_add_to_dict(columns, "nomvar", raw_columns->nb_records, FST_NOMVAR_LEN, raw_columns->nomvar)){goto error;}
-    if(make_1d_string_array_and_add_to_dict(columns, "etiket", raw_columns->nb_records, FST_ETIKET_LEN, raw_columns->etiket)){goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "deet", raw_columns->nb_records, NPY_INT32, raw_columns->deet)){ goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "npas", raw_columns->nb_records, NPY_INT32, raw_columns->npas)){ goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "data_type", raw_columns->nb_records, NPY_INT32, raw_columns->data_type)){ goto error;}
+    if(make_1d_array_and_add_to_dict(columns, "pack_bits", raw_columns->nb_records, NPY_INT32, raw_columns->pack_bits)){ goto error;}
+
     if(make_1d_string_array_and_add_to_dict(columns, "grtyp", raw_columns->nb_records, FST_GTYP_LEN, raw_columns->grtyp)){goto error;}
 
     if(make_1d_array_and_add_to_dict(columns, "ig1", raw_columns->nb_records, NPY_INT32, raw_columns->ig1)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "ig2", raw_columns->nb_records, NPY_INT32, raw_columns->ig2)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "ig3", raw_columns->nb_records, NPY_INT32, raw_columns->ig3)){ goto error; }
     if(make_1d_array_and_add_to_dict(columns, "ig4", raw_columns->nb_records, NPY_INT32, raw_columns->ig4)){ goto error; }
+
+    if(make_1d_array_and_add_to_dict(columns, "file_index", raw_columns->nb_records, NPY_INT32, raw_columns->file_index)){ goto error; }
 
     // if(make_1d_array_and_add_to_dict(columns, "swa", raw_columns->nb_records, NPY_INT32, raw_columns->swa)){ goto error; }
     // if(make_1d_array_and_add_to_dict(columns, "lng", raw_columns->nb_records, NPY_INT32, raw_columns->lng)){ goto error; }

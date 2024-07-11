@@ -35,7 +35,7 @@ typedef struct
     uint32_t *extra1;
     uint32_t *extra2;
     uint32_t *extra3;
-    uint32_t *key;
+    uint32_t *file_index;
     char *path;
 } RecordData;
 
