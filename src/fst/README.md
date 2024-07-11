@@ -113,11 +113,11 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
 * Each process that opens a file for parallel write reserves a _segment_ of a given size, *which will take that much space on disk regardless of how much data that process writes to the file*. The size of the segments should be chosen so as to minimize the amount of unused space.
     * Desired segment size is controlled by `SEGMENT_SIZE_MB` within `FST_OPTIONS`. It takes an integer, and the units are megabytes (MB). For example:
         ```bash
-        export FST_OPTIONS="BACKEND=RSF;SEGMENT_SIZE_MB=4"
+        export FST_OPTIONS="BACKEND=RSF;SEGMENT_SIZE_MB=1000"
         ```
     * When a process writes a record, it goes into the segment
     * If a segment is full or too small to hold a record, the segment is closed and committed to disk, and a new one is opened
-    * New segments have the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
+    * When a new segment is created by writing a record, its size is the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
     * When a segment is committed to the file, any unfilled space in it will also be written to disk. This means the file will take more space on disk than just its data content.
 
 ## Thread Safety

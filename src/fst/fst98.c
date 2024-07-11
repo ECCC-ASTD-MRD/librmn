@@ -58,7 +58,7 @@ int nb_remap = 0;
 //! backend type (XDF or RSF)
 static char *fst_backend = NULL;
 //! Segment size for RSF, when writing in parallel (in MB)
-static int32_t segment_size_mb = 1;
+static int32_t segment_size_mb = 1000;
 
 #define PRNT_OPTIONS_LEN 128
 
