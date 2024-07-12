@@ -1,0 +1,45 @@
+ DEFINE(IND2,1) $ IND2 = 2222 $ PRINT(IND2,'("IND2 = ",T15,I6.5)')
+ IND=1111 $ PRINT(IND,'("IND = ",T15,I6.5)')
+ TAB0 = 10, 20, 30, 40, 50
+ IND=(TAB0[3])
+ PRINT(TAB0[1],'("TAB0[1] = ",T15,I6.5)')
+ PRINT(TAB0[2],'("TAB0[2] = ",T15,I6.5)')
+ PRINT(TAB0[3],'("TAB0[3] = ",T15,I6.5)')
+ PRINT(TAB0[4],'("TAB0[4] = ",T15,I6.5)')
+ PRINT(TAB0[5],'("TAB0[5] = ",T15,I6.5)')
+ DEFINE(I,1)
+ DEFINE(TABL,4)
+ TABL = 12,18,24,30
+ I = 1 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+ I = 2 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+ I = 3 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+ I = 4 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+ TABL = -12, -18, -24, -30
+ I = 1 $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+ I = 4 $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+ SUB3()
+ * Voici un commentaire !@##%
+ SUB2(1,CONST22,3,4,CONST55)
+ sub1(1,[2,3,4,5],6,7)
+ sub1(1,[2,3,4,5],6)
+ sub1(1,[2,3,4,5])
+ sub1(1)
+ TAB2="ABCD","EFGH","IJKL","MNOP"
+ I = 1 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+ I = 2 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+ I = 3 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+ I = 4 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+ DEFINE(TAB4,4) $ TAB4 = 111,222,333,444
+ IND=(TAB4[2]+tab4[1]+tab4[3])
+ PRINT(IND,'("IND = ",T15,I6.5)')
+ IND = 123
+ I = 1 $ PRINT(TAB4[I],'("TAB4[I] = ",T15,I6.5)')
+ if(IND == 123)
+ i = 3 $ IND=(TAB4[i-1]+tab4[i]+tab4[I+1]) $ PRINT(IND,'("IND = ",T15,I6.5)')
+ else
+ PRINT(1,'("ceci ne devrait pas etre execute",I5)')
+ endif
+ I = 0
+ while ((I:=I+1) <= 4)
+   print(i,'("I =",I3)')
+ endwhile
