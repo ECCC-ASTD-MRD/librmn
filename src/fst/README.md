@@ -339,7 +339,7 @@ if (my_query % find_next(my_record)) then
 
     ! Do something with the data
     if (my_record % ip1 > 10) then
-        print *, record % data
+        print *, my_record % data
     end if
 
 end if

@@ -348,6 +348,8 @@ build:rhel-8-amd64_gnu-14.1.0:
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc14
       - export EC_ARCH=Linux_x86-64/gnu-14.1.0
+      - export COMP_ARCH=gnu-14.1.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
@@ -375,6 +377,33 @@ test:rhel-8-amd64_gnu-14.1.0:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - make check
       
+package:rhel-8-amd64_gnu-14.1.0:
+   stage: package
+   tags:
+      - concurrent
+   only:
+      - master
+      - alpha
+      - /^dev.*$/
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-amd64_gnu-14.1.0
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/profile.sh
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load gcc14
+      - export EC_ARCH=Linux_x86-64/gnu-14.1.0
+      - export COMP_ARCH=gnu-14.1.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
+      - set -e
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
 #----- rhel-8-amd64_aocc-4.1.1
 
 build:rhel-8-amd64_aocc-4.1.1:
