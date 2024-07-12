@@ -49,10 +49,6 @@ void ez_xpncof(
     int32_t ni, int32_t nj, char grtyp, char grref,
     int32_t ig1, int32_t ig2, int32_t ig3, int32_t ig4, int32_t sym, float *ax, float *ay
 ) {
-    float first_lat, first_lon, last_lat, last_lon, extra_lon, dlat, dlon;
-    int32_t lcl_ig1, lcl_ig2, lcl_ig3, lcl_ig4;
-    char lcl_grtyp;
-
     *i1 = 1;
     *i2 = ni;
     switch (grtyp) {
@@ -65,34 +61,33 @@ void ez_xpncof(
             *extension = 0;
             break;
 
-        case 'L':
+        case 'L': {
             *extension = 0;
             *j1 = 1;
             *j2 = nj;
-            lcl_grtyp = grtyp;
-            lcl_ig1 = ig1, lcl_ig2 = ig2, lcl_ig3 = ig3; lcl_ig4 = ig4;
 
-
-            f77name(cigaxg)(&lcl_grtyp, &first_lat, &first_lon, &dlat, &dlon,
-                            &lcl_ig1, &lcl_ig2, &lcl_ig3, &lcl_ig4, 1);
+            float first_lat, first_lon, dlat, dlon;
+            f77name(cigaxg)(&grtyp, &first_lat, &first_lon, &dlat, &dlon,
+                            &ig1, &ig2, &ig3, &ig4, 1);
 
             if ((first_lat - dlat) > (-90.0+0.01*dlat)) break;
-            last_lat = first_lat + (nj-1)*dlat;
+            float last_lat = first_lat + (nj-1)*dlat;
             if ((last_lat + dlat) < (90.0-0.01*dlat)) break;
             if (first_lon < 0.0) {
                 first_lon += 360.0;
             }
 
-            last_lon = first_lon + (dlon * (ni-1));
+            float last_lon = first_lon + (dlon * (ni-1));
             if ((last_lon - first_lon) > (360-0.01*dlon)) {
                 *extension = 1;
                 break;
             }
-            extra_lon = last_lon + dlon;
+            float extra_lon = last_lon + dlon;
             if ((extra_lon - first_lon) > (360.0 - dlon * 0.01)) {
                 *extension = 2;
             }
             break;
+        }
 
         case 'A':
         case 'G':
@@ -154,13 +149,13 @@ void ez_xpncof(
                     }
                     break;
 
-                case 'L':
+                case 'L': {
                     *extension = 0;
                     *j1 = 1;
                     *j2 = nj;
-                    first_lat = ay[0];
-                    last_lat  = ay[nj-1];
-                    dlat = ay[1] - ay[0];
+                    float first_lat = ay[0];
+                    float last_lat  = ay[nj-1];
+                    float dlat = ay[1] - ay[0];
                     if ((first_lat - dlat) > (-90.0+0.01*dlat)) {
                         break;
                     } else {
@@ -168,19 +163,20 @@ void ez_xpncof(
                         if ((last_lat + dlat) < (90.0-0.01*dlat)) break;
                     }
 
-                    first_lon = ax[0];
-                    last_lon = ax[ni-1];
-                    dlon = ax[ni-1]-ax[ni-2];
+                    float first_lon = ax[0];
+                    float last_lon = ax[ni-1];
+                    float dlon = ax[ni-1]-ax[ni-2];
                     if ((last_lon - first_lon) > (360.0-0.01*dlon)) {
                         // Equivalent a une grille B
                         *extension = 1;
                     } else {
-                        extra_lon = last_lon + dlon; // Equivalent a une grille A
+                        float extra_lon = last_lon + dlon; // Equivalent a une grille A
                         if ((extra_lon - first_lon) > (360.0-0.01*dlon)) {
                             *extension = 2;
                         }
                     }
                     break;
+                }
 
                 default:
                     *j1 = 1;
