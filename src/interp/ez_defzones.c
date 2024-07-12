@@ -42,7 +42,7 @@ int32_t ez_defzones(int32_t gdin, int32_t gdout) {
             break;
 
         case 'L':
-            if (Grille[gdrow_out][gdcol_out].extension != 0) {
+            if (Grille[gdrow_out][gdcol_out].extension == 0) {
                 extrap = EZ_EXTRAP;
             }
             break;
