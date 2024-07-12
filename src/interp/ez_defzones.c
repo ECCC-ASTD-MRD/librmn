@@ -39,14 +39,13 @@ int32_t ez_defzones(int32_t gdin, int32_t gdout) {
         case 'S':
         case '!':
             extrap = EZ_EXTRAP;
-        break;
+            break;
 
         case 'L':
-            if (Grille[gdrow_out][gdcol_out].extension == 0) {
+            if (Grille[gdrow_out][gdcol_out].extension != 0) {
                 extrap = EZ_EXTRAP;
-            } else {
-                extrap = EZ_NO_EXTRAP;
             }
+            break;
 
         case '#':
         case 'Z':
