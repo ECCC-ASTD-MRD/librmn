@@ -172,7 +172,7 @@ integer(kind = int64) FUNCTION qlx_adr(KLE, ERR)
         CALL qlx_fnd(KLE, LOCVAR8, LOCCNT, LIMITS, ITYP)
         LOCVAR = transfer(locvar8, LOCVAR)
         IF (IND <= LIMITS .AND. ITYP >= 0 .AND. ITYP <= 1) THEN
-            qlx_adr = transfer(c_LOC(VARI(IND)), qlx_adr)
+            qlx_adr = LOC(VARI(IND))
         ELSE
             ERR = .TRUE.
             CALL qlx_err(21017, 'qlx_adr')
@@ -212,7 +212,7 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
     INTEGER OLDTYP, ITEMP(80), IREPCN
     LOGICAL IAREP, FIN
 
-    pjval = transfer(c_LOC(ZVAL), pjval)
+    pjval = LOC(ZVAL)
     IND = 1
     OLDTYP = 4
     FIN = .FALSE.
@@ -349,10 +349,10 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
 
     LOGICAL ERR, FIN, INLIST
 
-    pjval = transfer(c_LOC(ZVAL), pjval)
+    pjval = LOC(ZVAL)
     FIN  = .FALSE.
     INLIST = .FALSE.
-    LOCDUM = transfer(c_LOC(PARM(1)), LOCDUM)
+    LOCDUM = LOC(PARM(1))
     NDOPES = 0
     DO I = 1, 41
         DOPE(I) = 0
@@ -395,7 +395,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                     PREVI =7
                     IF (.NOT. INLIST) THEN
                         NARG = MIN(NARG+1, 41)
-                        ADR(NARG) = transfer(c_LOC(PARM(NPRM)), ADR(1))
+                        ADR(NARG) = LOC(PARM(NPRM))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM - 1
                     ENDIF
@@ -407,7 +407,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                         JLEN = MIN((LEN+KARMOT-1) / KARMOT , 101 - NPRM)
                         IF (.NOT. INLIST) THEN
                             NARG = MIN(NARG+1, 41)
-                            ADR(NARG) = transfer(c_LOC(PARM(NPRM+1)), ADR(1))
+                            ADR(NARG) = LOC(PARM(NPRM+1))
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ENDIF
@@ -423,7 +423,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                             INLIST = .TRUE.
                             PREVI =4
                             NARG = MIN(NARG+1, 41)
-                            ADR(NARG) = transfer(c_LOC(PARM(NPRM+1)), ADR(1))
+                            ADR(NARG) = LOC(PARM(NPRM+1))
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ELSE
@@ -697,18 +697,18 @@ subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
         ITYP = 13
     case(10)
         ITYP = 2
-        LOCVAR = transfer(c_LOC(qlx_prnt), LOCVAR)
-        LOCCNT = transfer(c_LOC(DUMMY), LOCCNT)
+        LOCVAR = LOC(qlx_prnt)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 202
     case(11)
         ITYP = 2
-        LOCVAR = transfer(c_LOC(qlx_nvar), LOCVAR)
-        LOCCNT = transfer(c_LOC(DUMMY), LOCCNT)
+        LOCVAR = LOC(qlx_nvar)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 202
     case(12)
         ITYP = 2
-        LOCVAR = transfer(c_LOC(qlx_undf), LOCVAR)
-        LOCCNT = transfer(c_LOC(DUMMY), LOCCNT)
+        LOCVAR = LOC(qlx_undf)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 101
     end select
 END
@@ -732,7 +732,7 @@ SUBROUTINE qlx_ind(IND, ERR)
     character(len=1) qlx_skp
     character(len=1) IC
 
-    pjval = transfer(c_LOC(ZVAL), pjval)
+    pjval = LOC(ZVAL)
     IND=1
     IC=qlx_skp(' ')
 
@@ -761,13 +761,13 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     use rmn_common
     use readlx_nrdlx
 
-    INTEGER, INTENT(IN), target :: ivar
-    CHARACTER(len = *) :: key
-    INTEGER, INTENT(OUT), target :: icount
+    INTEGER, INTENT(IN) :: ivar
+    CHARACTER(len = *)  :: key
+    INTEGER, INTENT(OUT):: icount
     INTEGER, INTENT(IN) :: limits
     INTEGER, INTENT(IN) :: ityp
 
-    EXTERNAL, target :: xtern
+    EXTERNAL :: xtern
 
     ! CONSTRUIT UNE TABLE CONTENANT LA CLE(IKEY), L'ADRESSE DES
     ! VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
@@ -805,12 +805,12 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     icount = 0
     NAMES(ipnt) = ikey
     IF (ityp ==  2) THEN
-        IPTADR(1, ipnt) = transfer(c_LOC(xtern), 0_int64)
+        IPTADR(1, ipnt) = LOC(xtern)
     ELSE
-        IPTADR(1, ipnt) = transfer(c_LOC(ivar), 0_int64)
+        IPTADR(1, ipnt) = LOC(ivar)
     ENDIF
     ITAB(3, ipnt) = IOR(limits, ishft(ityp, 24))
-    IPTADR(2, ipnt) = transfer(c_LOC(icount), 0_int64)
+    IPTADR(2, ipnt) = LOC(icount)
 END SUBROUTINE qqlx_ins
 
 ! variable lookup
@@ -1044,11 +1044,11 @@ SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
       integer(kind = int32) :: TOK
       POINTER (PTOK, TOK(*))
 
-      pz1 = transfer(c_LOC(IZ1), pz1)
+      pz1 = LOC(IZ1)
       IZ1 = 0
-      pz2 = transfer(c_LOC(IZ2), pz2)
+      pz2 = LOC(IZ2)
       IZ2 = 0
-      pr1 = transfer(c_LOC(IR1), pr1)
+      pr1 = LOC(IR1)
 
       IF (ERR) THEN
          RETURN
@@ -1444,7 +1444,7 @@ SUBROUTINE qlx_tok
     character(len=1) IC, qlx_chr
     INTEGER  qlx_num
 
-    pjval = transfer(c_LOC(ZVAL), pjval)
+    pjval = LOC(ZVAL)
     IVAL = -1
     JSIGN = 0
     TOKEN = ' '
@@ -1630,7 +1630,7 @@ SUBROUTINE qlx_xpr(ERR)
     INTEGER PLEV, qlx_pri
     EXTERNAL qlx_pri
 
-    pjval = transfer(c_LOC(ZVAL), pjval)
+    pjval = LOC(ZVAL)
     INEXPR = .TRUE.
     NTOKEN = 0
     PLEV = 0
@@ -1810,7 +1810,7 @@ SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
     implicit none
 
     !> Nom de la fonction à appeler
-    EXTERNAL, target :: xtern
+    EXTERNAL :: xtern
 
     !> Chaine de caractères du jetton
     CHARACTER(LEN = *) :: key
@@ -1826,12 +1826,12 @@ SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
             use rmn_common
             use readlx_nrdlx
 
-            INTEGER, INTENT(IN), target :: ivar
-            CHARACTER(len = *) :: key
-            INTEGER, INTENT(OUT), target :: icount
+            INTEGER, INTENT(IN) :: ivar
+            CHARACTER(len = *)  :: key
+            INTEGER, INTENT(OUT):: icount
             INTEGER, INTENT(IN) :: limits
             INTEGER, INTENT(IN) :: ityp
-            EXTERNAL, target :: xtern
+            EXTERNAL :: xtern
         end subroutine qqlx_ins
     end interface
 
@@ -1866,12 +1866,12 @@ SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
             use rmn_common
             use readlx_nrdlx
 
-            INTEGER, INTENT(IN), target :: ivar
-            CHARACTER(len = *) :: key
-            INTEGER, INTENT(OUT), target :: icount
+            INTEGER, INTENT(IN) :: ivar
+            CHARACTER(len = *)  :: key
+            INTEGER, INTENT(OUT):: icount
             INTEGER, INTENT(IN) :: limits
             INTEGER, INTENT(IN) :: ityp
-            EXTERNAL, target :: xtern
+            EXTERNAL :: xtern
         end subroutine qqlx_ins
     end interface
 
@@ -1909,13 +1909,13 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
-    REAL, target :: ZVAL
+    REAL :: ZVAL
     pointer(pjval,JVAL)
 
     COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL, target :: qlx_nvar
+    EXTERNAL :: qlx_nvar
 
     interface
         subroutine qlx_undf(IKEY)
@@ -1941,7 +1941,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     DATA NXTELSE / 1, 0, 2/
     DATA NEXTIF  / 0, 2, 2/
 
-    pjval = transfer(c_LOC(ZVAL), pjval)
+    pjval = LOC(ZVAL)
     WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
     KERRMAX = 999999
 
