@@ -214,23 +214,27 @@ module f_c_strings_mod
     end function f_c_string
 
     subroutine c_f_strpointer1(cstrarray, fstrptr, nchars)
+        use ISO_C_BINDING
         implicit none
         character(C_CHAR), dimension(*), intent(IN), target :: cstrarray
         character(len=:), pointer, intent(OUT) :: fstrptr
         integer, intent(IN), optional :: nchars
         type(C_PTR) :: cstrptr
         integer(C_SIZE_T) :: nc
-        character(len=:), pointer :: fptr
 
         nc = 2000000000
         if(present(nchars)) nc = nchars
-            nc = c_strnlen(cstrarray, nc)
-            cstrptr = C_LOC(cstrarray(1))
-        call c_f_pointer(cstrptr, fptr)
+        nc = c_strnlen(cstrarray, nc)
+        cstrptr = C_LOC(cstrarray(1))
+        block
+            character(kind=C_CHAR, len=nc), pointer :: fptr
+            call c_f_pointer(cstrptr, fptr)
             fstrptr => fptr(1:nc)
+        end block
     end subroutine c_f_strpointer1
 
     subroutine c_f_strpointer2(cstrptr, fstrptr, nchars)
+        use ISO_C_BINDING
         implicit none
         type(C_PTR), intent(IN), value :: cstrptr
         character(len=:), pointer, intent(OUT) :: fstrptr
@@ -241,10 +245,14 @@ module f_c_strings_mod
         nc = min(nc, int(nchars, kind=C_SIZE_T))
 #if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)
         call c_f_pointer(cstrptr, fptr, [nc])
-#else
-        call c_f_pointer(cstrptr, fptr)
-#endif
         fstrptr => fptr(1:nc)
+#else
+        block
+            character(kind=C_CHAR, len=nc), pointer :: fptr2
+            call c_f_pointer(cstrptr, fptr2)
+            fstrptr => fptr2(1:nc)
+        end block
+#endif
     end subroutine c_f_strpointer2
 #endif
 end module

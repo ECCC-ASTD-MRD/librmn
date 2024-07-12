@@ -1,3 +1,14 @@
+#define NEW_READLX_NAMES_NOT_TRUE
+#if defined(NEW_READLX_NAMES)
+#define qlxopt qlxopt_2
+#define lexins lexins_2
+#define qlxins qlxins_2
+#define readlx readlx_2
+#define qlxinx qlxinx_2
+#define argdope argdope_2
+#define argdims argdims_2
+#endif
+
 ! TODO A lot of global variables in theses modules are not initialized. Is that OK?
 ! (there was no "DATA" statement for them in the common blocks)
 module readlx_parmadr
@@ -45,82 +56,101 @@ module readlx_nrdlx
    integer(kind = int64), dimension(2, 256) :: IPTADR = 0
 end module readlx_nrdlx
 
-!> LONGUEUR D'ARGUMENTS (APPEL VIA READLX)
-FUNCTION ARGDIMS(N)
-      use rmn_common
-      use readlx_parmadr
-      INTEGER ARGDIMS
-      INTEGER N
+module readlx_remote
+   use rmn_common
+   implicit none
+contains
+  integer(C_INT32_t) function remote_call(fn, args) BIND(C,name='RemoteCall')
+    abstract interface
+      integer(C_INT32_t) function machin( &
+                              a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
+                              a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
+                              a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
+                              a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
+                              a40) BIND(C)
+      use ISO_C_BINDING
+      type(C_PTR), intent(IN), value :: &
+                                 a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
+                                 a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
+                                 a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
+                                 a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
+                                 a40
+      end function machin
+    end interface
+    integer(C_INT64_T), intent(IN) :: fn
+    integer(C_INT64_T), dimension(0:40), intent(IN) :: args
+    procedure(machin), pointer :: fptr
+    type(C_FUNPTR) :: cptr
+    type(C_PTR), dimension(0:40) :: v
+    integer :: i
+    do i = 0, 40
+      v(i) = transfer(args(i), v(i))
+    enddo
+    cptr = transfer(fn, cptr)
+    call c_f_procpointer(cptr, fptr)
+    remote_call = fptr(v(00), v(01), v(02), v(03), v(04), v(05), v(06), v(07), v(08), v(09), &
+                       v(10), v(11), v(12), v(13), v(14), v(15), v(16), v(17), v(18), v(19), &
+                       v(20), v(21), v(22), v(23), v(24), v(25), v(26), v(27), v(28), v(29), &
+                       v(30), v(31), v(32), v(33), v(34), v(35), v(36), v(37), v(38), v(39), &
+                       v(40))
+  end function
+end module readlx_remote
 
-!OBJET(ARGDIMS)
-!         RENVOYER LA LONGUEUR EN NOMBRE DE MOTS DE L'ARGUMENT
-!         N DU DERNIER APPEL EFFECTUE VIA READLX
+! get contents at address(subscript) (assuming a 32 bit item)
+subroutine get_value_at_address(address, subscript, content)
+  use rmn_common
+  integer(kind = int64), intent(IN) :: address   ! memory address
+  integer, intent(IN) :: subscript               ! subscript
+  integer, intent(OUT) :: content                ! output from memory
+  integer :: val
+  pointer(pval, val(*))
 
-!ARGUMENTS
-! IN      N     NUMERO D'ORDRE DE L'ARGUMENT DANS LA LISTE
+  pval = transfer(address,pval)
+! print *,'entering get_value_at_address, subscript =',subscript
+  content = val(subscript)
+! print *,'exiting get_value_at_address'
+end subroutine
 
-    IF (N  <=  NARG) THEN
-        ARGDIMS = DOPE(N)
-    ELSE
-        ARGDIMS = 0
-    ENDIF
-END
+! set contents at address(subscript) (assuming a 32 bit item)
+subroutine set_value_at_address(address, subscript, content)
+  use rmn_common
+  integer(kind = int64), intent(IN) :: address   ! memory address
+  integer, intent(IN) :: subscript               ! subscript
+  integer, intent(IN) :: content                 ! value to set to
+  integer :: val
+  pointer(pval, val(*))
 
-
-!> GET DOPE LIST OF ARGUMENT NARG
-FUNCTION ARGDOPE(N, LISTE, ND)
-    use rmn_common
-    use readlx_parmadr
-
-    INTEGER ARGDOPE
-    INTEGER N, ND
-    INTEGER LISTE(ND)
-
-    INTEGER I, BASE
-
-    IF (N >  NARG) THEN
-        ARGDOPE = 0
-    ELSE
-        BASE = DOPEA(N)
-        ARGDOPE = DOPEA(N+1) - DOPEA(N)
-        DO I = 1, MIN(DOPEA(N + 1) - DOPEA(N), ND)
-            LISTE(I) = DOPES(BASE + I - 1)
-        END DO
-    ENDIF
-END
-
-
-!> Interface de qlxins
-SUBROUTINE LEXINS(IVAR, ICLE, NB, LIMIT, TYP)
-    INTEGER :: IVAR, ICLE, NB, LIMIT, TYP
-
-    character(len=8) :: KLE
-
-    WRITE(KLE, '(A8)') ICLE
-    CALL QLXINS(IVAR, KLE, NB, LIMIT, TYP)
-END
+  pval = transfer(address,pval)
+! print *,'entering set_value_at_address, subscript =',subscript
+  val(subscript) = content
+! print *,'exiting set_value_at_address'
+end subroutine
 
 !> Get value of indexed array component
-SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
+! SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
+SUBROUTINE qlx_adi2(KLE, IND, VALEUR, ERR)
     use rmn_common
-    INTEGER IND, VALEUR, TYPE
+!     INTEGER IND, VALEUR, TYPE
+    INTEGER IND, VALEUR
     LOGICAL ERR
     character(len=*) KLE
 
-    INTEGER  QLXDTYP
-    EXTERNAL QLXDTYP
+    INTEGER  qlx_dtyp
+    EXTERNAL qlx_dtyp
     integer(kind = int64) LOCVAR, LOCCNT
     INTEGER LIMITE, ITYP, IZ, INDX
+    integer, dimension(1024) :: mem
+    pointer(pmem, mem)
     REAL Z
-    EQUIVALENCE(Z, IZ)
 
     IZ = IND
-    IF (QLXDTYP(IZ) == 1) THEN
+    IF (qlx_dtyp(IZ) == 1) THEN
         INDX = IZ
     ELSE
+        z = transfer(iz, z)
         INDX = NINT(Z)
     ENDIF
-    CALL QLXFND(KLE, LOCVAR, LOCCNT, LIMITE, ITYP)
+    CALL qlx_fnd(KLE, LOCVAR, LOCCNT, LIMITE, ITYP)
     IF (ITYP.NE.0 .AND. ITYP.NE.1) THEN
         ERR = .TRUE.
     ENDIF
@@ -128,41 +158,40 @@ SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
         ERR = .TRUE.
     ENDIF
     IF (.NOT.ERR) THEN
-        CALL PEEK(LOCVAR, INDX, VALEUR)
+        pmem = LOCVAR
+        VALEUR = mem(INDX)
     ENDIF
+
 END
 
-!> Get subscript then build machine address
-integer(kind = int64) FUNCTION QLXADR(KLE, ERR)
+!> Get subscript then build memory address
+integer(kind = int64) FUNCTION qlx_adr(KLE, ERR)
     use rmn_common
 
     character(len=*) KLE
     LOGICAL ERR
     INTEGER LIMITS, ITYP
     integer(kind = int64) :: LOCCNT, locvar8
-    integer(kind = int64) :: get_address_from
-    EXTERNAL get_address_from
     POINTER (LOCVAR, VARI(*))
 
-    CALL QLXIND(IND, ERR)
-
+    CALL qlx_ind(IND, ERR)
     IF (.NOT. ERR) THEN
-        CALL QLXFND(KLE, LOCVAR8, LOCCNT, LIMITS, ITYP)
-        call make_cray_pointer(LOCVAR, locvar8)
+        CALL qlx_fnd(KLE, LOCVAR8, LOCCNT, LIMITS, ITYP)
+        LOCVAR = transfer(locvar8, LOCVAR)
         IF (IND <= LIMITS .AND. ITYP >= 0 .AND. ITYP <= 1) THEN
-            QLXADR = get_address_from(VARI(IND))
+            qlx_adr = LOC(VARI(IND))
         ELSE
             ERR = .TRUE.
-            CALL QLXERR(21017, 'QLXADR')
-            QLXADR = 0
+            CALL qlx_err(21017, 'qlx_adr')
+            qlx_adr = 0
         ENDIF
     ELSE
-        QLXADR = 0
+        qlx_adr = 0
     ENDIF
 END
 
 !> Prend les tokens qui suivent le signe = et separes par des virgules pour les placer a l'adresse val
-SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
+SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
     use rmn_common
     use readlx_qlxfmt
     !> Adresse de la clé cible
@@ -174,51 +203,53 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
     !> Indicateur d'erreur
     logical, intent(out) :: err
 
-    COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
+    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,jval)
 
-    COMMON/QLXTOK2/TOKEN
+    COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    INTEGER IND, JLEN, QLXVAL
+    COMMON /qlx_tok3/ jval64
+    integer(kind = int64) :: jval64
+
+    INTEGER IND, JLEN, qlx_val
     INTEGER OLDTYP, ITEMP(80), IREPCN
-    REAL TEMP(80)
-    EQUIVALENCE (TEMP, ITEMP)
     LOGICAL IAREP, FIN
 
+    pjval = LOC(ZVAL)
     IND = 1
     OLDTYP = 4
     FIN = .FALSE.
     IAREP = .FALSE.
     IREPCN = 1
     JLEN = 0
-    CALL QLXIND(IND, ERR)
+    CALL qlx_ind(IND, ERR)
 
     IF (.NOT.ERR) THEN
-        CALL QLXTOK
+        CALL qlx_tok
     ENDIF
 
     IF (TOKEN(1:2) == '= ' .AND. TYPE == 4 .AND. .NOT. ERR) THEN
         DO WHILE (.NOT.ERR .AND. .NOT.FIN)
-            CALL QLXTOK
+            CALL qlx_tok
             IF ((TYPE == 4) .AND. (TOKEN(1:1) == '(')) THEN
-                CALL QLXXPR(ERR)
+                CALL qlx_xpr(ERR)
                 IF (ERR) THEN
                     EXIT
                 ENDIF
             ENDIF
             IF (TYPE == 8) THEN
-                call get_content_of_location(JVAL, 1, JVAL)
+                call get_value_at_address(jval64, 1, JVAL)
             ELSE
                 IF (TYPE == 1 .AND. OLDTYP == 4) THEN
                     ITEMP(1) = JVAL
                     JLEN = 1
                 ELSE
                     IF (TYPE == 2 .AND. OLDTYP == 4) THEN
-                        TEMP(1) = ZVAL
+                        itemp(1) = transfer(zval, itemp(1))
                         JLEN = 1
                     ELSE
                         IF (TYPE == 3 .AND. OLDTYP == 4) THEN
@@ -233,22 +264,22 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
                                             IAREP = .TRUE.
                                             JLEN = 0
                                         ELSE
-                                            CALL QLXERR(21001, 'QLXASG')
+                                            CALL qlx_err(21001, 'qlx_asg')
                                             ERR = .TRUE.
                                         ENDIF
                                     ELSE
-                                        CALL QLXERR(21002, 'QLXASG')
+                                        CALL qlx_err(21002, 'qlx_asg')
                                         ERR = .TRUE.
                                     ENDIF
                                 ELSE
                                     IF (TOKEN(1:2) == ', ' .OR.TOKEN(1:2) == '$ ') THEN
                                         IF ((IREPCN * MAX(JLEN, 1) + IND) > LIMIT + 1) THEN
-                                            CALL QLXERR(21003, 'QLXASG')
+                                            CALL qlx_err(21003, 'qlx_asg')
                                             ERR = .TRUE.
                                         ELSE
                                             DO I = 1, IREPCN
                                                 DO J = 1, JLEN
-                                                    call set_content_of_location(VAL, IND + J - 1, ITEMP(J))
+                                                    call set_value_at_address(VAL, IND + J - 1, ITEMP(J))
                                                 END DO
                                                 IND = IND + MAX(JLEN, 1)
                                             END DO
@@ -259,16 +290,16 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
                                         ENDIF
                                         FIN = TOKEN(1:1) == '$'
                                     ELSE
-                                        CALL QLXERR(21004, 'QLXASG')
+                                        CALL qlx_err(21004, 'qlx_asg')
                                         ERR = .TRUE.
                                     ENDIF
                                 ENDIF
                             ELSE
                                 IF (TYPE == 0 .AND. OLDTYP == 4) THEN
                                     JLEN = 1
-                                    ITEMP(1) = QLXVAL(TOKEN(1:8), ERR)
+                                    ITEMP(1) = qlx_val(TOKEN(1:8), ERR)
                                 ELSE
-                                    CALL QLXERR(21005, 'QLXASG')
+                                    CALL qlx_err(21005, 'qlx_asg')
                                     ERR = .TRUE.
                                 ENDIF
                             ENDIF
@@ -279,13 +310,13 @@ SUBROUTINE QLXASG(VAL, ICOUNT, LIMIT, ERR)
             OLDTYP = TYPE
         END DO
     ELSE
-        CALL QLXERR(21006, 'QLXASG')
+        CALL qlx_err(21006, 'qlx_asg')
         ERR = .TRUE.
     ENDIF
 END
 
 ! Remettre un caractère dans une ligne de texte à la position courante et reculer le pointeur du caractère courant
-SUBROUTINE QLXBAK(ICAR)
+SUBROUTINE qlx_bak(ICAR)
     use readlx_qlxbuff
     !> Caractère à remettre dans la ligne de texte
     character(len = 1), intent(in) :: ICAR
@@ -294,40 +325,41 @@ SUBROUTINE QLXBAK(ICAR)
         INLINE(NC-1:NC-1)=ICAR
         NC=NC-1
     ELSE
-        CALL QLXERR(81007, 'QLXBAK')
+        CALL qlx_err(81007, 'qlx_bak')
     ENDIF
 END
 
-SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
+SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     use rmn_common
     use readlx_parmadr
     use readlx_qlxfmt
+    use readlx_remote
 
     integer(kind = int64) :: SUB, ICOUNT
-    integer(kind = int64) :: get_address_from
-    EXTERNAL get_address_from
 
-
-    COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
+    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,jval)
 
-    COMMON/QLXTOK2/TOKEN
+    COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL RMTCALL, QLXADR, QLXVAL
-    INTEGER  RMTCALL, QLXVAL
+    integer, external :: rmtcall
+    EXTERNAL qlx_adr, qlx_val
+    INTEGER  qlx_val
     INTEGER LIM1, LIM2, JLEN, PREVI
-    integer(kind = int64) LOCDUM, QLXADR
+    integer(kind = int64) LOCDUM, qlx_adr
     character(len=8) KLE
+    integer(kind = int64) icount64
 
     LOGICAL ERR, FIN, INLIST
 
+    pjval = LOC(ZVAL)
     FIN  = .FALSE.
     INLIST = .FALSE.
-    LOCDUM = get_address_from(PARM(1))
+    LOCDUM = LOC(PARM(1))
     NDOPES = 0
     DO I = 1, 41
         DOPE(I) = 0
@@ -339,24 +371,24 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
     NPRM0 = 0
     PREVI =4
 
-    CALL QLXTOK
+    CALL qlx_tok
     IF (TYPE.NE.4 .AND. TOKEN(1:1).NE.'(') THEN
-        CALL QLXERR(81018, 'QLXCALL')
+        CALL qlx_err(81018, 'qlx_call')
         ERR = .TRUE.
     ENDIF
 
     DO WHILE (.NOT. ERR .AND. .NOT.FIN)
-        CALL QLXTOK
+        CALL qlx_tok
         IF (PREVI  == 4) THEN
             IF (TYPE  == 0) THEN
                 KLE = TOKEN(1:8)
                 PREVI =7
                 IF (INLIST) THEN
                     NPRM = MIN(NPRM+1, 101)
-                    PARM(NPRM) = QLXVAL(KLE, ERR)
+                    PARM(NPRM) = qlx_val(KLE, ERR)
                 ELSE
                     NARG = MIN(NARG+1, 41)
-                    ADR(NARG) = QLXADR(KLE, ERR)
+                    ADR(NARG) = qlx_adr(KLE, ERR)
                     DOPEA(NARG) = NDOPES + 1
                     NPRM0 = NPRM - 1
                 ENDIF
@@ -370,7 +402,7 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                     PREVI =7
                     IF (.NOT. INLIST) THEN
                         NARG = MIN(NARG+1, 41)
-                        ADR(NARG) =get_address_from(PARM(NPRM))
+                        ADR(NARG) = LOC(PARM(NPRM))
                         DOPEA(NARG) = NDOPES + 1
                         NPRM0 = NPRM - 1
                     ENDIF
@@ -382,7 +414,7 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                         JLEN = MIN((LEN+KARMOT-1) / KARMOT , 101 - NPRM)
                         IF (.NOT. INLIST) THEN
                             NARG = MIN(NARG+1, 41)
-                            ADR(NARG) =get_address_from(PARM(NPRM+1))
+                            ADR(NARG) = LOC(PARM(NPRM+1))
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ENDIF
@@ -398,14 +430,14 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                             INLIST = .TRUE.
                             PREVI =4
                             NARG = MIN(NARG+1, 41)
-                            ADR(NARG) =get_address_from(PARM(NPRM+1))
+                            ADR(NARG) = LOC(PARM(NPRM+1))
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ELSE
                             IF (TYPE == 4 .AND. TOKEN(1:1) == ')' .AND.NARG == 0) THEN
                                 FIN = .TRUE.
                             ELSE
-                                CALL QLXERR(81019, 'QLXCALL')
+                                CALL qlx_err(81019, 'qlx_call')
                                 ERR = .TRUE.
                             ENDIF
                         ENDIF
@@ -420,7 +452,7 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
                 IF (TYPE == 4 .AND. TOKEN(1:1) == ']' .AND. INLIST) THEN
                     INLIST = .FALSE.
                 ELSE
-                    CALL QLXERR(81020, 'QLXCALL')
+                    CALL qlx_err(81020, 'qlx_call')
                     ERR = .TRUE.
                 ENDIF
             ENDIF
@@ -431,28 +463,29 @@ SUBROUTINE QLXCALL(SUB, ICOUNT, LIMITS, ERR)
         LIM1 = LIMITS / 100
         LIM2 = MOD(LIMITS, 100)
         IF (NARG > 40 .OR. NPRM > 100 .OR. NDOPES  >  100) THEN
-            CALL QLXERR(81021, 'QLXCALL')
+            CALL qlx_err(81021, 'qlx_call')
             ERR = .TRUE.
         ELSE
             IF (NARG < LIM1 .OR. NARG > LIM2) THEN
-                CALL QLXERR(81022, 'QLXCALL')
+                CALL qlx_err(81022, 'qlx_call')
                 ERR = .TRUE.
             ELSE
-                call set_content_of_location(ICOUNT, 1, NARG)
-                JUNK=RMTCALL(SUB, ADR)
-                call set_content_of_location(ICOUNT, 1, 0)
-                CALL QLXFLSH('$')
+                icount64 = ICOUNT
+                call set_value_at_address(icount64, 1, NARG)
+!                 junk = rmtcall(SUB, ADR)
+                junk = remote_call(SUB, ADR)
+                call set_value_at_address(icount64, 1, 0)
+                CALL qlx_flsh('$')
             ENDIF
         ENDIF
     ENDIF
 END
 
 !> Retourne un caractere a la fois d'une ligne
-function QLXCHR()
+function qlx_chr()
     use App
     use readlx_qlxbuff
-    character(len=1) QLXCHR
-
+    character(len=1) qlx_chr
 
     character(len=8) SKIPMSG(0:3)
     LOGICAL COMMENT
@@ -460,7 +493,7 @@ function QLXCHR()
     DATA SKIPMSG/'<<    >>', '<<SKIP>>', '<<SKIP>>', '<< ** >>'/
 
     IF (NC <= LAST) THEN
-        QLXCHR = INLINE(NC:NC)
+        qlx_chr = INLINE(NC:NC)
         NC = NC + 1
     ELSE
          IF (.NOT. EOFL) THEN
@@ -504,46 +537,46 @@ function QLXCHR()
                   INLINE(LAST:LAST) ='$'
                ENDIF
             ENDIF
-            QLXCHR=INLINE(21:21)
+            qlx_chr=INLINE(21:21)
             NC = 22
          ELSE
-            CALL QLXERR(81008, 'QLXCHR')
+            CALL qlx_err(81008, 'qlx_chr')
             CALL ABORT
          ENDIF
       ENDIF
       RETURN
 10    INLINE = ' END$'
-      QLXCHR = ' '
+      qlx_chr = ' '
       EOFL = .TRUE.
       LAST = 5
       NC = 2
 END
 
-SUBROUTINE QLXDBG
+SUBROUTINE qlx_dbg
     use app
     use readlx_qlxbuff
 
-    WRITE(app_msg, *) 'qlxdbg: NC=', NC, 'LAST=', LAST, 'INPFILE=', INPFILE
+    WRITE(app_msg, *) 'qlx_dbg: NC=', NC, 'LAST=', LAST, 'INPFILE=', INPFILE
     call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
     WRITE(app_msg, '(1X,A101)')INLINE(1:101)
     call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
 END
 
 !> Type of a data item
-FUNCTION QLXDTYP(ITEM)
-    INTEGER QLXDTYP
+FUNCTION qlx_dtyp(ITEM)
+    INTEGER qlx_dtyp
     INTEGER ITEM
     IF (ABS(ITEM) <= 2147483647) THEN
-        QLXDTYP =1
+        qlx_dtyp =1
     ELSE
-        QLXDTYP =2
+        qlx_dtyp =2
     ENDIF
 END
 
 !> Imprime des messages d'erreur.
 !>
 !> Termine l'excution si l'erreur est fatale
-SUBROUTINE QLXERR(CODE, MODULE)
+SUBROUTINE qlx_err(CODE, MODULE)
     use app
     use readlx_qlxbuff
     !> Code d'erreur
@@ -576,6 +609,7 @@ SUBROUTINE QLXERR(CODE, MODULE)
     DATA MSG( 20) /', OU ) ATTENDU'/
     DATA MSG( 21) /'LA PILE D ARGUMENTS DEBORDE'/
     DATA MSG( 22) /'TROP OU PAS ASSEZ D''ARGUMENTS'/
+    DATA MSG( 23) /'ADRESSE INVALIDE'/
 
     DATA TYPE( 1) /APP_INFO/
     DATA TYPE( 2) /APP_ALWAYS/
@@ -603,19 +637,19 @@ SUBROUTINE QLXERR(CODE, MODULE)
 END
 
 !> Retourne le premier caractère d'une linge de text qui soit égal à l'argument
-subroutine QLXFLSH(ICAR)
+subroutine qlx_flsh(ICAR)
     !> Caratère à chercher
     character(len=1) ICAR
 
-    EXTERNAL QLXCHR
-    character(len=1) QLXCHR
+    EXTERNAL qlx_chr
+    character(len=1) qlx_chr
 
-    do while (QLXCHR() /= ICAR)
+    do while (qlx_chr() /= ICAR)
         continue
     enddo
 END
 
-subroutine qlxfnd(key, locvar, loccnt, limits, ityp)
+subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
     use rmn_common
 
     character(len = *), intent(in) :: key
@@ -624,11 +658,9 @@ subroutine qlxfnd(key, locvar, loccnt, limits, ityp)
     integer, intent(out) :: limits
     integer, intent(out) :: ityp
 
-    integer(kind = int64), external ::  get_address_from
-
     ! retrouve, a partir de la cle ikey, l'adresse de ivar, icount.
 
-    integer, external :: qlxnvar, qlxundf, qlxprnt
+    integer, external :: qlx_nvar, qlx_undf, qlx_prnt
     external low2up
     character(len = 8) :: ikey
     character(len = 8), dimension(12) :: clef
@@ -651,7 +683,7 @@ subroutine qlxfnd(key, locvar, loccnt, limits, ityp)
     END DO
     select case (POS)
     case(0)
-        CALL QLXLOOK(LOCVAR, IKEY, LOCCNT, LIMITS, ITYP)
+        CALL qlx_look(LOCVAR, IKEY, LOCCNT, LIMITS, ITYP)
     case(1)
         ITYP = 10
     case(2)
@@ -672,114 +704,67 @@ subroutine qlxfnd(key, locvar, loccnt, limits, ityp)
         ITYP = 13
     case(10)
         ITYP = 2
-        LOCVAR = get_address_from(QLXPRNT)
-        LOCCNT = get_address_from(DUMMY)
+        LOCVAR = LOC(qlx_prnt)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 202
     case(11)
         ITYP = 2
-        LOCVAR = get_address_from(QLXNVAR)
-        LOCCNT = get_address_from(DUMMY)
+        LOCVAR = LOC(qlx_nvar)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 202
     case(12)
         ITYP = 2
-        LOCVAR = get_address_from(QLXUNDF)
-        LOCCNT = get_address_from(DUMMY)
+        LOCVAR = LOC(qlx_undf)
+        LOCCNT = LOC(DUMMY)
         LIMITS = 101
     end select
 END
 
 
-SUBROUTINE QLXIND(IND, ERR)
+SUBROUTINE qlx_ind(IND, ERR)
     use app
 
     INTEGER IND
     LOGICAL ERR
-    COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
+    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
-    COMMON/QLXTOK2/TOKEN
+    COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL QLXSKP
-    character(len=1) QLXSKP
+    EXTERNAL qlx_skp
+    character(len=1) qlx_skp
     character(len=1) IC
+
+    pjval = LOC(ZVAL)
     IND=1
-    IC=QLXSKP(' ')
+    IC=qlx_skp(' ')
 
     IF (IC == '[') THEN
-        CALL QLXTOK
+        CALL qlx_tok
         IF (((TYPE == 1) .OR.(TYPE == 0)) .AND. JVAL > 0) THEN
             IND=JVAL
         ELSE
-            CALL QLXERR(21009, 'QLXIND')
+            CALL qlx_err(21009, 'qlx_ind')
             ERR = .TRUE.
         ENDIF
         IF (.NOT.ERR) THEN
-            CALL QLXTOK
+            CALL qlx_tok
             IF (TOKEN(1:1).NE.']' .OR. TYPE.NE.4) THEN
-                CALL QLXERR(21010, 'QLXIND')
+                CALL qlx_err(21010, 'qlx_ind')
                 ERR = .TRUE.
             ENDIF
         ENDIF
     ELSE
-        CALL QLXBAK(IC)
-    ENDIF
-END
-
-!> Déclaration des routines
-SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
-    use app
-
-    !> Nom de la fonction à appeler
-    EXTERNAL xtern
-
-    !> Chaine de caractères du jetton
-    CHARACTER(LEN = *) :: key
-    !> Nombre d'occurences
-    INTEGER, INTENT(OUT) :: icount
-    !> Limites? Doit être entre 0 et 99999
-    INTEGER :: limits
-    !> Option mystère devant être entre 0 et 13
-    INTEGER :: ityp
-
-    INTEGER :: idum
-
-    IF (ityp /= 2) THEN
-        CALL lib_log(APP_LIBRMN, APP_ERROR, 'QLXINX ne peut etre utilise pour ityp <> 2')
-        CALL QLXERR(81013, 'QLXINS')
-        STOP
-    ENDIF
-    CALL qqlxins(idum, key, icount, limits, ityp, xtern)
-END
-
-!> DECLARATION DES CLES
-SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
-    use app
-
-    IMPLICIT NONE
-
-    INTEGER :: ivar
-    CHARACTER(LEN = *) :: key
-    INTEGER, INTENT(OUT) :: icount
-    INTEGER :: limits
-    INTEGER :: ityp
-
-    EXTERNAL readlx
-
-    IF (ityp == 2) THEN
-        CALL lib_log(APP_LIBRMN, APP_ERROR, 'QLXINX doit etre utilise quand ityp = 2, au lieu de QLXINS')
-        CALL QLXERR(81013, 'QLXINS')
-        STOP
-    ELSE
-        CALL qqlxins(ivar, key, icount, limits, ityp, readlx)
+        CALL qlx_bak(IC)
     ENDIF
 END
 
 !> DECLARATION DES CLES ET DE LEUR TYPE
-SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
+SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     use rmn_common
     use readlx_nrdlx
 
@@ -789,7 +774,7 @@ SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
     INTEGER, INTENT(IN) :: limits
     INTEGER, INTENT(IN) :: ityp
 
-    EXTERNAL xtern
+    EXTERNAL :: xtern
 
     ! CONSTRUIT UNE TABLE CONTENANT LA CLE(IKEY), L'ADRESSE DES
     ! VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
@@ -797,7 +782,6 @@ SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
 
     CHARACTER(len = 8) :: ikey
     INTEGER :: ipnt
-    INTEGER(KIND = int64), EXTERNAL :: get_address_from
 
     ! TROUVER LA CLE
     CALL low2up(key, ikey)
@@ -812,44 +796,40 @@ SUBROUTINE qqlxins(ivar, key, icount, limits, ityp, xtern)
     ENDIF
 
     IF (ipnt == 256) THEN
-        CALL QLXERR(10011, 'QLXINS')
+        CALL qlx_err(10011, 'QLXINS')
     ENDIF
 
     IF (limits < 0 .OR. limits > 99999) THEN
-        CALL QLXERR(20012, 'QLXINS')
+        CALL qlx_err(20012, 'QLXINS')
         RETURN
     ENDIF
 
     IF (ityp < 0 .OR. ityp > 13)THEN
-        CALL QLXERR(20013, 'QLXINS')
+        CALL qlx_err(20013, 'QLXINS')
         RETURN
     ENDIF
 
     icount = 0
     NAMES(ipnt) = ikey
     IF (ityp ==  2) THEN
-        IPTADR(1, ipnt) = get_address_from(xtern)
+        IPTADR(1, ipnt) = LOC(xtern)
     ELSE
-        IPTADR(1, ipnt) = get_address_from(ivar)
+        IPTADR(1, ipnt) = LOC(ivar)
     ENDIF
     ITAB(3, ipnt) = IOR(limits, ishft(ityp, 24))
-    IPTADR(2, ipnt) = get_address_from(icount)
-END SUBROUTINE qqlxins
+    IPTADR(2, ipnt) = LOC(icount)
+END SUBROUTINE qqlx_ins
 
-
-SUBROUTINE QLXLOOK(IVAR, KEY, ICOUNT, LIMITS, ITYP)
+! variable lookup
+SUBROUTINE qlx_look(IVAR, KEY, ICOUNT, LIMITS, ITYP)
     use rmn_common
     use readlx_nrdlx
     integer(kind = int64) :: ivar, icount
     INTEGER               :: ITYP, LIMITS
     character(len=*)      :: KEY
 
-    integer(kind=8), external :: get_address_from
-
     INTEGER               :: IPNT
-
     character(len=8) ikey
-    integer :: i
 
     ! TROUVER LA CLE
     CALL LOW2UP(KEY, IKEY)
@@ -873,11 +853,12 @@ SUBROUTINE QLXLOOK(IVAR, KEY, ICOUNT, LIMITS, ITYP)
 end
 
 
-subroutine QLXUDF(IVAR, KEY)
+! subroutine QLXUDF(IVAR, KEY) (undefine a variable)
+subroutine qlx_udf2(KEY)
     use rmn_common
     use readlx_nrdlx
     implicit none
-    integer(kind = int64) :: ivar
+!     integer(kind = int64) :: ivar
     character(len=*) KEY
 
     INTEGER IPNT
@@ -903,7 +884,7 @@ subroutine QLXUDF(IVAR, KEY)
     NENTRY = NENTRY - 1
 END
 
-subroutine QLXDTB
+subroutine qlx_dtb
     use rmn_common
     use readlx_nrdlx
     implicit none
@@ -918,81 +899,81 @@ END
 
 
 !> Reconstituer un nombre entier, reel ou octal
-FUNCTION QLXNUM(IB, LENG)
-    INTEGER QLXNUM
-    character(len=*) IB
-    INTEGER LENG
+INTEGER FUNCTION qlx_num(IB, LENG)
+    character(len=*), intent(INOUT) :: IB
+    INTEGER, intent(INOUT) :: LENG
 
     !ARGUMENT
-    !        QLXNUM    RETOURNE   -10   POUR UN NOMBRE REEL
-    !        (S)                   -9   POUR UN NOMBRE ENTIER
-    !                               -3   ERREUR
+    !        qlx_num    RETOURNE   2   reel
+    !        (S)                   1   entier
+    !                              6   entier octal
+    !                              5   ERREUR
     !
     !        IB(*)     IB(1) EST LE PREMIER CHIFFRE DU NOMBRE.
-    !       (E)        LA TABLE IB CONTIENT LE NOMBRE.
+    !        (E)       LA TABLE IB CONTIENT LE NOMBRE.
     !
     !        LENG      NOMBRE DE CARACTERES DANS LE NOMBRE(ENTIER OU REEL)
     !        (S)
 
     INTEGER ILX
-    EXTERNAL QLXCHR
-    character(len=1) I, CTMP, QLXCHR
+    EXTERNAL qlx_chr
+    character(len=1) I, CTMP, qlx_chr
 
     IF (IB(1:1) == '.') THEN
-        ILX = 1
+        ILX = 1                                ! real number
     ELSE
-        ILX = 0
+        ILX = 0                                ! potentially an integer
     ENDIF
-    I = QLXCHR()
+    I = qlx_chr()
 
-    DO WHILE (I >= '0' .AND. I <= '9' )
+    DO WHILE (I >= '0' .AND. I <= '9' )        ! collect a digit stream
         LENG = MIN(21, LENG+1)
         IB(LENG:LENG) = I
-        I = QLXCHR()
+        I = qlx_chr()
     END DO
-    IF (I == '.' .AND. IB(1:1).NE.'.') THEN
+    IF (I == '.' .AND. IB(1:1).NE.'.') THEN    ! decimal period, not in column 1
         ILX = 1
         LENG = MIN(21, LENG+1)
         IB(LENG:LENG) = I
-        I = QLXCHR()
-        DO WHILE (I >= '0' .AND. I <= '9')
+        I = qlx_chr()
+        DO WHILE (I >= '0' .AND. I <= '9')     ! digit stream after the period
             LENG = MIN(21, LENG+1)
             IB(LENG:LENG) = I
-            I = QLXCHR()
+            I = qlx_chr()
         END DO
     END IF
 
-      IF (I == 'E' ) THEN
+      IF (I == 'E' ) THEN                      ! E after number
          IF (ILX == 0) THEN
             LENG=MIN(21, LENG+1)
             IB(LENG:LENG)='.'
          ENDIF
-         ILX = 1
+         ILX = 1                               ! definitely a real number
          LENG = MIN(21, LENG+1)
          IB(LENG:LENG) = I
-         I = QLXCHR()
+         I = qlx_chr()
          IF ( (I >= '0' .AND. I <= '9') .OR. (I == '+') .OR. (I == '-') ) THEN
 6           LENG = MIN(21, LENG + 1)
             IB(LENG:LENG) = I
-            I = QLXCHR()
-            IF (I >= '0' .AND. I <= '9') THEN
+            I = qlx_chr()
+            IF (I >= '0' .AND. I <= '9') THEN  ! more digits
                GOTO 6
             ENDIF
          ENDIF
       ENDIF
 
       IF (LENG >= 21) THEN
-         QLXNUM=5
+         qlx_num=5                              ! bad number
       ELSE
          IF (ILX == 0) THEN
             IF (I.NE.'B') THEN
-               QLXNUM=1
+               qlx_num=1                        ! integer
             ELSE
-               QLXNUM=6
-               I=QLXCHR()
+               qlx_num=6                        ! octal
+               I=qlx_chr()
                DO J = LENG, 1, -1
                   IF (IB(J:J) > '7') THEN
-                     QLXNUM=5
+                     qlx_num=5                  ! bad number
                   ENDIF
                   CTMP = IB(J:J)
                   IB(20-LENG+J:20-LENG+J)=CTMP
@@ -1005,31 +986,31 @@ FUNCTION QLXNUM(IB, LENG)
          ELSE
             IF (LENG > 1) THEN
                IF (IB(LENG:LENG) == '.') THEN
-                  QLXNUM=2
+                  qlx_num=2                     ! real number
                ELSE
                   IF (IB(LENG:LENG) >= '0' .AND. IB(LENG:LENG) <= '9') THEN
-                     QLXNUM=2
+                     qlx_num=2                  ! real number
                   ELSE
-                     QLXNUM=5
+                     qlx_num=5                  ! bad number
                   ENDIF
                ENDIF
             ELSE
-               QLXNUM=5
+               qlx_num=5
             ENDIF
          ENDIF
       ENDIF
-      CALL QLXBAK(I)
+      CALL qlx_bak(I)
 END
 
 
-SUBROUTINE QLXNVAR(KEY, NW)
+SUBROUTINE qlx_nvar(KEY, NW)
     use rmn_common
     use readlx_qlxfmt
 
     INTEGER NW
     INTEGER KEY(*)
-    EXTERNAL ARGDIMS
-    INTEGER  ARGDIMS
+    EXTERNAL argdims
+    INTEGER  argdims
     INTEGER SC(1024), NSC
     SAVE SC, NSC
     INTEGER DUMMY
@@ -1039,33 +1020,43 @@ SUBROUTINE QLXNVAR(KEY, NW)
     SAVE DUMMY
     DATA NSC /1/
     DATA DUMMY /0/
-    WRITE(IKEY, LINEFMT) (KEY(J), J=1, ARGDIMS(1))
-    CALL QLXLOOK(IVAR, IKEY, ICOUNT, LIMITS, ITYP)
+
+    WRITE(IKEY, LINEFMT) (KEY(J), J=1, argdims(1))
+    CALL qlx_look(IVAR, IKEY, ICOUNT, LIMITS, ITYP)
     IF (ITYP /= -1) THEN
         RETURN
     ENDIF
     IF (NSC + NW > 1024 + 1) THEN
-        CALL QLXERR(21011, 'QLXNVAR')
+        CALL qlx_err(21011, 'qlx_nvar')
         RETURN
     ENDIF
-    CALL QLXINS(SC(NSC), IKEY, DUMMY, NW, 1)
+    CALL qlxins(SC(NSC), IKEY, DUMMY, NW, 1)
     NSC = NSC + NW
 END
 
 !> Appliquer un operateur numerique ou logique
-SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
+SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
       use rmn_common
-      INTEGER NTOKEN, OPRTR, TOKENS(NTOKEN), TOKTYPE(NTOKEN)
+!       INTEGER NTOKEN, OPRTR, TOKENS(NTOKEN), TOKTYPE(NTOKEN)
+      INTEGER NTOKEN, OPRTR, TOKTYPE(NTOKEN)
+      integer(kind = int64) :: TOKENS(NTOKEN)
       LOGICAL ERR
-      integer(kind = int64) :: get_address_from
-      EXTERNAL get_address_from
 
-
-      INTEGER IZ1, IZ2, IR1
+      INTEGER IZ1, IZ2, IR1, tok32
       REAL   Z1,  Z2,  R1
-      EQUIVALENCE (IZ1, Z1), (IZ2, Z2), (IR1, R1)
+      pointer(pz1,Z1)
+      pointer(pz2,Z2)
+      pointer(pr1,R1)
       LOGICAL REALOP
+      integer(kind = int32) :: TOK
       POINTER (PTOK, TOK(*))
+
+      pz1 = LOC(IZ1)
+      IZ1 = 0
+      pz2 = LOC(IZ2)
+      IZ2 = 0
+      pr1 = LOC(IR1)
+
       IF (ERR) THEN
          RETURN
       ENDIF
@@ -1079,30 +1070,33 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
          RETURN
       ENDIF
       IF (TOKTYPE(NTOKEN) > 0) THEN
-         call get_content_of_location(TOKENS(NTOKEN), 1, TOKENS(NTOKEN))
+         call get_value_at_address(TOKENS(NTOKEN), 1, tok32)
+         TOKENS(NTOKEN) = tok32
          TOKTYPE(NTOKEN) = 0
       ENDIF
       IF (OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND. OPRTR.NE.4) THEN
          IF (TOKTYPE(NTOKEN-1) > 0) THEN
-            call get_content_of_location(TOKENS(NTOKEN-1), 1, TOKENS(NTOKEN-1))
+            call get_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
+            TOKENS(NTOKEN-1) = tok32
             TOKTYPE(NTOKEN-1) = 0
          ENDIF
       ENDIF
       REALOP = ABS(TOKENS(NTOKEN)) > 2147483647
-      IZ1 = TOKENS(NTOKEN)
+      IZ1 = int(TOKENS(NTOKEN))
       IF (OPRTR.NE.2 .AND. OPRTR.NE.17 .AND. OPRTR.NE.4) THEN
          REALOP = REALOP .OR. ABS(TOKENS(NTOKEN-1)) > 2147483647
-         IZ2 = TOKENS(NTOKEN-1)
+         IZ2 = int(TOKENS(NTOKEN-1))
          IF (REALOP) THEN
             IF (ABS(IZ1) <= 2147483647) THEN
-               Z1 = TOKENS(NTOKEN)
+               Z1 = int(TOKENS(NTOKEN))
             ENDIF
             IF (ABS(IZ2) <= 2147483647) THEN
-               Z2 = TOKENS(NTOKEN-1)
+               Z2 = int(TOKENS(NTOKEN-1))
             ENDIF
          ENDIF
       ENDIF
       IR1 = 0
+
       select case(OPRTR)
       case(1)
          ERR = .TRUE.
@@ -1117,50 +1111,50 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
             RETURN
 
          ENDIF
-         PTOK = get_address_from(TOKENS(NTOKEN-1))
-         TOKENS(NTOKEN-1) = TOK(TOKENS(NTOKEN))
+         PTOK = TOKENS(NTOKEN-1)
+         TOKENS(NTOKEN-1) = tok(TOKENS(NTOKEN))
          NTOKEN = NTOKEN - 1
-         TOKTYPE(NTOKEN) = 1
+         TOKTYPE(NTOKEN) = 0
          RETURN
-      case(3)
+      case(3)               ! unary +
          RETURN
-      case(4)
+      case(4)               ! unary -
          IF (REALOP) THEN
             R1 = -Z1
          ELSE
             IR1 = -IZ1
          ENDIF
-      case(5)
+      case(5)               ! **
          IF (REALOP) THEN
             R1 = Z2**Z1
          ELSE
             IR1 = IZ2**IZ1
          ENDIF
-      case(6)
+      case(6)               ! *
          IF (REALOP) THEN
             R1 = Z2*Z1
          ELSE
             IR1 = IZ2*IZ1
          ENDIF
-      case(7)
+      case(7)               ! /
          IF (REALOP) THEN
             R1 = Z2/Z1
          ELSE
             IR1 = IZ2/IZ1
          ENDIF
-      case(8)
+      case(8)               ! binary +
          IF (REALOP) THEN
             R1 = Z2+Z1
          ELSE
             IR1 = IZ2+IZ1
          ENDIF
-      case(9)
+      case(9)               ! binary -
          IF (REALOP) THEN
             R1 = Z2-Z1
          ELSE
             IR1 = IZ2-IZ1
          ENDIF
-      case(10)
+      case(10)              ! binary <
          IF (REALOP) THEN
             IF (Z2 < Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1170,7 +1164,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(11)
+      case(11)              ! binary >
          IF (REALOP) THEN
             IF (Z2 > Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1180,7 +1174,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(12)
+      case(12)              ! binary ==
          IF (REALOP) THEN
             IF (Z2 == Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1190,7 +1184,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(13)
+      case(13)              ! binary <=
          IF (REALOP) THEN
             IF (Z2 <= Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1200,7 +1194,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(14)
+      case(14)              ! binary >=
          IF (REALOP) THEN
             IF (Z2 >= Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1210,7 +1204,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(15)
+      case(15)              ! binary <>
          IF (REALOP) THEN
             IF (Z2.NE.Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1220,7 +1214,7 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(16)
+      case(16)              ! binary ><
          IF (REALOP) THEN
             IF (Z2.NE.Z1) THEN
                IR1 =ishft(-1, 32-(32))
@@ -1230,36 +1224,38 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
                IR1 =ishft(-1, 32-(32))
             ENDIF
          ENDIF
-      case(17)
+      case(17)              ! unary NOT
          IF (REALOP) THEN
             ERR = .TRUE.
          ELSE
             IR1 =NOT(IZ1)
          ENDIF
-      case(18)
+      case(18)              ! binary AND
          IF (REALOP) THEN
             ERR = .TRUE.
          ELSE
             IR1 = IAND(IZ2, IZ1)
          ENDIF
-      case(19)
+      case(19)              ! binary OR
          IF (REALOP) THEN
             ERR = .TRUE.
          ELSE
             IR1 = IOR(IZ2, IZ1)
          ENDIF
-      case(20)
+      case(20)              ! binary XOR
          IF (REALOP) THEN
             ERR = .TRUE.
          ELSE
             IR1 = IEOR(IZ2, IZ1)
          ENDIF
-      case(21)
+      case(21)              ! :=
          IF (TOKTYPE(NTOKEN-1) <= 0) THEN
             ERR = .TRUE.
             RETURN
          ENDIF
-         call set_content_of_location(TOKENS(NTOKEN-1), 1, TOKENS(NTOKEN))
+         tok32 = int(TOKENS(NTOKEN))
+         call set_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
+!          TOKENS(NTOKEN) = tok32
          NTOKEN = NTOKEN - 1
          RETURN
       end select
@@ -1268,29 +1264,11 @@ SUBROUTINE QLXOPR(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
       TOKTYPE(NTOKEN) = 0
 END
 
-
-!> Passage d'options a readlx
-SUBROUTINE QLXOPT(OPTION, VAL)
-    use app
-    use readlx_qlxfmt
-
-    character(len=*) OPTION
-    INTEGER VAL
-
-    IF (OPTION(1:6) ==  'CARMOT') THEN
-        KARMOT = VAL
-        WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
-    ELSE
-        WRITE(app_msg, *) 'Option (', OPTION, ') unknown'
-        call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
-    ENDIF
-END
-
-!  FONCTION  QLXPRI_L EVALUER LA PRIORITE D'UN OPERATEUR
-INTEGER FUNCTION QLXPRI_L(OPR, LEFTPRI)
+!  FONCTION  qlx_pri_l EVALUER LA PRIORITE D'UN OPERATEUR
+INTEGER FUNCTION qlx_pri_l(OPR, LEFTPRI)
     character(len=*) OPR
     LOGICAL LEFTPRI
-    INTEGER QLXPRIL
+!     INTEGER qlx_pril
     PARAMETER (MAXOPER=23)
     INTEGER PRI(MAXOPER)
     character(len=4) LISTE(MAXOPER), OPRTR
@@ -1307,40 +1285,40 @@ INTEGER FUNCTION QLXPRI_L(OPR, LEFTPRI)
     DO I = 1, MAXOPER
         IF (OPRTR == LISTE(I)) THEN
             IF (LEFTPRI) THEN
-                QLXPRI_L = I + PRI(I)*100
+                qlx_pri_l = I + PRI(I)*100
             ELSE
-                QLXPRI_L = I + (PRI(I)-MOD(PRI(I), 2))*100
+                qlx_pri_l = I + (PRI(I)-MOD(PRI(I), 2))*100
             ENDIF
             RETURN
         ENDIF
     END DO
-    QLXPRI_L = 0
+    qlx_pri_l = 0
 END
 
 !> Evaluer la priorite d'un operateur (right priority)
-integer function qlxpri(opr)
+integer function qlx_pri(opr)
     implicit none
     character(len=*) opr
-    integer, external :: qlxpri_l
-    qlxpri = qlxpri_l(opr, .FALSE.)
+    integer, external :: qlx_pri_l
+    qlx_pri = qlx_pri_l(opr, .FALSE.)
 end
 
 !> Evaluer la priorite d'un operateur (left priority)
-integer function qlxpril(opr)
+integer function qlx_pril(opr)
     implicit none
     character(len=*) opr
-    integer, external :: qlxpri_l
-    qlxpril = qlxpri_l(opr, .TRUE.)
+    integer, external :: qlx_pri_l
+    qlx_pril = qlx_pri_l(opr, .TRUE.)
 end
 
-SUBROUTINE QLXPRNT(QUOI, COMMENT)
+SUBROUTINE qlx_prnt(QUOI, COMMENT)
     use readlx_qlxfmt
 
     INTEGER QUOI(*), COMMENT(*)
     character(len=120) FMT
-    INTEGER ARGDIMS
-    L1 = ARGDIMS(1)
-    L2 = MIN(120/KARMOT, ARGDIMS(2))
+    INTEGER argdims
+    L1 = argdims(1)
+    L2 = MIN(120/KARMOT, argdims(2))
     IF (L1 < 1 .OR. L2 < 1) THEN
         RETURN
     ENDIF
@@ -1348,17 +1326,19 @@ SUBROUTINE QLXPRNT(QUOI, COMMENT)
     WRITE(6, FMT)(QUOI(I), I=1, L1)
 END
 
-!> Conversion a notation postfixe
-SUBROUTINE QLXRPN(TOK, TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
+!> Conversion a notation postfixe (reverse polish notation)
+SUBROUTINE qlx_rpn(TOK, TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
+    use rmn_common
     character(len=*) TOK
     INTEGER MAXTKNS, NTOKEN, MAXOPS, NOPER
-    INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS)
-    EXTERNAL QLXPRI, QLXPRIL
-    INTEGER  QLXPRI, QLXPRIL
+!     INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS)
+    INTEGER TOKTYPE(MAXTKNS)
+    integer(kind  = int64) :: TOKENS(MAXTKNS)
+    EXTERNAL qlx_pri, qlx_pril
+    INTEGER  qlx_pri, qlx_pril
     LOGICAL ERR
     character(len=4) TOKEN
     character(len=4) PILEOP(MAXOPS)
-
     IF (ERR) THEN
         RETURN
     ENDIF
@@ -1368,71 +1348,71 @@ SUBROUTINE QLXRPN(TOK, TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, 
         NOPER = MIN(NOPER+1 , MAXOPS)
         PILEOP(NOPER) = TOKEN
     ELSE
-        IF (TOKEN == ')') THEN
-            DO WHILE (PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE.'[' .AND. PILEOP(NOPER) .NE.'$')
-                CALL QLXOPR(TOKENS, NTOKEN, TOKTYPE, MOD(QLXPRI(PILEOP(NOPER)), 100), ERR)
-                NOPER = NOPER - 1
-            ENDDO
-            IF (PILEOP(NOPER) == '(') THEN
-                NOPER = NOPER-1
-            ELSE
-                ERR = .TRUE.
-            ENDIF
+    IF (TOKEN == ')') THEN
+        DO WHILE (PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE.'[' .AND. PILEOP(NOPER) .NE.'$')
+            CALL qlx_opr(TOKENS, NTOKEN, TOKTYPE, MOD(qlx_pri(PILEOP(NOPER)), 100), ERR)
+            NOPER = NOPER - 1
+        ENDDO
+        IF (PILEOP(NOPER) == '(') THEN
+            NOPER = NOPER-1
         ELSE
-            IF (TOKEN == ']') THEN
-                DO WHILE (PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE. '[' .AND. PILEOP(NOPER) .NE.'$')
-                    CALL QLXOPR(TOKENS, NTOKEN, TOKTYPE, MOD(QLXPRI(PILEOP(NOPER)), 100), ERR)
-                    NOPER = NOPER - 1
-                ENDDO
-                IF (PILEOP(NOPER) == '[') THEN
-                    CALL QLXOPR(TOKENS, NTOKEN, TOKTYPE, MOD(QLXPRI(']'), 100), ERR)
-                    NOPER = NOPER-1
-                ELSE
-                    ERR = .TRUE.
-                ENDIF
-            ELSE
-                IF (TOKEN == '$') THEN
-                    DO WHILE (PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE.'[' .AND. PILEOP(NOPER) .NE.'$')
-                        CALL QLXOPR(TOKENS, NTOKEN, TOKTYPE, MOD(QLXPRI(PILEOP(NOPER)), 100), ERR)
-                        NOPER = NOPER - 1
-                    ENDDO
-                    IF (PILEOP(NOPER) == '$') THEN
-                        NOPER = NOPER-1
-                    ELSE
-                        ERR = .TRUE.
-                    ENDIF
-                ELSE
-                    DO WHILE (QLXPRIL(PILEOP(NOPER)) > QLXPRI(TOKEN))
-                        CALL QLXOPR(TOKENS, NTOKEN, TOKTYPE, MOD(QLXPRI(PILEOP(NOPER)), 100), ERR)
-                        NOPER = NOPER -1
-                    ENDDO
-                    NOPER = MIN(NOPER+1 , MAXOPS)
-                    PILEOP(NOPER) = TOKEN
-                ENDIF
-            ENDIF
+            ERR = .TRUE.
         ENDIF
+    ELSE
+    IF (TOKEN == ']') THEN
+        DO WHILE (PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE. '[' .AND. PILEOP(NOPER) .NE.'$')
+            CALL qlx_opr(TOKENS, NTOKEN, TOKTYPE, MOD(qlx_pri(PILEOP(NOPER)), 100), ERR)
+            NOPER = NOPER - 1
+        ENDDO
+        IF (PILEOP(NOPER) == '[') THEN
+            CALL qlx_opr(TOKENS, NTOKEN, TOKTYPE, MOD(qlx_pri(']'), 100), ERR)
+            NOPER = NOPER-1
+        ELSE
+            ERR = .TRUE.
+        ENDIF
+    ELSE
+    IF (TOKEN == '$') THEN
+        DO WHILE (PILEOP(NOPER) .NE.'(' .AND. PILEOP(NOPER) .NE.'[' .AND. PILEOP(NOPER) .NE.'$')
+            CALL qlx_opr(TOKENS, NTOKEN, TOKTYPE, MOD(qlx_pri(PILEOP(NOPER)), 100), ERR)
+            NOPER = NOPER - 1
+        ENDDO
+        IF (PILEOP(NOPER) == '$') THEN
+            NOPER = NOPER-1
+        ELSE
+            ERR = .TRUE.
+        ENDIF
+    ELSE
+        DO WHILE (qlx_pril(PILEOP(NOPER)) > qlx_pri(TOKEN))
+            CALL qlx_opr(TOKENS, NTOKEN, TOKTYPE, MOD(qlx_pri(PILEOP(NOPER)), 100), ERR)
+            NOPER = NOPER -1
+        ENDDO
+        NOPER = MIN(NOPER+1 , MAXOPS)
+        PILEOP(NOPER) = TOKEN
+    ENDIF
+    ENDIF
+    ENDIF
     ENDIF
 END
 
 !> Retourne le premier caractere d'une ligne de texte, différent de icar
-FUNCTION QLXSKP(ICAR)
-    character(len=1) QLXSKP
+FUNCTION qlx_skp(ICAR)
+    character(len=1) qlx_skp
     !> Caratère à ignorer
     character(len=1), intent(in) :: ICAR
 
-    EXTERNAL QLXCHR
-    character(len=1) :: CTMP, QLXCHR
+    EXTERNAL qlx_chr
+    character(len=1) :: CTMP, qlx_chr
 
-    CTMP = QLXCHR()
+    CTMP = qlx_chr()
     do while (CTMP == ICAR)
-        CTMP = QLXCHR()
+        CTMP = qlx_chr()
     end do
-    QLXSKP = CTMP
+    qlx_skp = CTMP
 END
 
 
 !> Decomposer une ligne de texte en tokens de differents types, identifie la longueur du token et son type.
-SUBROUTINE QLXTOK
+SUBROUTINE qlx_tok
     use rmn_common
     use readlx_qlxfmt
 
@@ -1449,199 +1429,209 @@ SUBROUTINE QLXTOK
     ! JVAL, ZVAL LES VALEURS D'UN NOMBRE ENTIER OU REEL,
     ! (S)       CONTENU DANS UN TOKEN.
 
-    INTEGER ISIGN, ITYP
-    COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
+    INTEGER JSIGN, ITYP
+    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+!     EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
-    COMMON /QLXTOK2/ TOKEN
+    COMMON /qlx_tok2/ TOKEN
     character(len=80) TOKEN
 
     integer(kind = int64) :: LOCVAR, LOCCNT
-    EXTERNAL QLXCHR, QLXNUM
-    character(len=1) IC, QLXCHR
-    INTEGER  QLXNUM
+    EXTERNAL qlx_chr, qlx_num
+    character(len=1) IC, qlx_chr
+    INTEGER  qlx_num
+
+    pjval = LOC(ZVAL)
     IVAL = -1
+    JSIGN = 0
     TOKEN = ' '
 
-    IC = QLXCHR()
+    IC = qlx_chr()
     DO WHILE (.NOT.(IC .NE. ' '))
-        IC = QLXCHR()
+        IC = qlx_chr()
     END DO
 
     LENG = 1
     TOKEN(1:1) = IC
     IF ( (IC >= 'A'.AND.IC <= 'Z') .OR. IC == '@' .OR. IC == '_' .OR. (IC >=  'a' .AND. IC <=  'z') ) THEN
-        IC = QLXCHR()
+        IC = qlx_chr()
         DO WHILE ( (IC >= 'A' .AND.IC  <= 'Z').OR. (IC >= '0' .AND. IC <= '9') .OR. (IC >=  'a' .AND. IC <=  'z') )
             LENG = MIN(81, LENG+1)
             TOKEN(LENG:LENG) = IC
-            IC = QLXCHR()
+            IC = qlx_chr()
         ENDDO
         IF (LENG > 8) THEN
-            TYPE = 3
+            TYPE = 3                 ! string ( non delimited )
         ELSE
-            TYPE = 0
+            TYPE = 0                 ! short string, possibly a key
         ENDIF
-        CALL QLXBAK(IC)
+        CALL qlx_bak(IC)
     ELSE
-        IF (IC == '''' .OR. IC == '"') THEN
-            LENG = 0
+    IF (IC == '''' .OR. IC == '"') THEN
+        LENG = 0
+        LENG = MIN(80, LENG + 1)
+        TOKEN(LENG:LENG) = qlx_chr()
+        DO WHILE (.NOT.(TOKEN(LENG:LENG) ==  IC))
             LENG = MIN(80, LENG + 1)
-            TOKEN(LENG:LENG) = QLXCHR()
-            DO WHILE (.NOT.(TOKEN(LENG:LENG) ==  IC))
-                LENG = MIN(80, LENG + 1)
-                TOKEN(LENG:LENG) = QLXCHR()
-            END DO
-            TOKEN(LENG:LENG) = ' '
-            LENG = LENG -1
-            IF (IC  == '"') THEN
-                LENG = MIN(LENG, KARMOT)
-            ENDIF
-            TYPE = 3
-        ELSE
-            IF ( (IC >= '0' .AND. IC <= '9') .OR. (IC == '.') ) THEN
-                TYPE = QLXNUM(TOKEN, LENG)
-                ISIGN = 1
-            ELSE
-                IF ( (IC == '+' .OR. IC == '-') .AND. (.NOT.INEXPR) ) THEN
-                    IF (IC == '+') THEN
-                        ISIGN = 1
-                    ELSE
-                        ISIGN = -1
-                    ENDIF
-                    IC = QLXCHR()
-                    IF ((IC >= '0' .AND. IC <= '9').OR. IC == '.') THEN
-                        TOKEN(1:1)=IC
-                        TYPE = QLXNUM(TOKEN, LENG)
-                    ELSE
-                        CALL QLXBAK(IC)
-                        TYPE = 4
-                    ENDIF
-                ELSE
-                    IF (IC == '*') THEN
-                        TYPE = 4
-                        IC = QLXCHR()
-                        IF (IC == '*') THEN
-                            LENG = 2
-                            TOKEN = '**'
-                        ELSE
-                            CALL QLXBAK(IC)
-                        ENDIF
-                    ELSE
-                        IF (IC == '<' .OR. IC == '>' .OR. IC == '=' .OR. IC == ':') THEN
-                            TYPE = 4
-                            IC = QLXCHR()
-                            IF (IC == '<' .OR. IC == '>' .OR. IC == '=') THEN
-                                LENG = 2
-                                TOKEN(2:2) = IC
-                            ELSE
-                                CALL QLXBAK(IC)
-                            ENDIF
-                        ELSE
-                            TYPE = 4
-                        ENDIF
-                    ENDIF
-                ENDIF
-            ENDIF
+            TOKEN(LENG:LENG) = qlx_chr()
+        END DO
+        TOKEN(LENG:LENG) = ' '
+        LENG = LENG -1
+        IF (IC  == '"') THEN
+            LENG = MIN(LENG, KARMOT)
         ENDIF
+        TYPE = 3                    ! string ( delimited )
+    ELSE
+    IF ( (IC >= '0' .AND. IC <= '9') .OR. (IC == '.') ) THEN
+        TYPE = qlx_num(TOKEN, LENG)  ! 1/2/5/6
+        JSIGN = 1
+    ELSE
+    IF ( (IC == '+' .OR. IC == '-') .AND. (.NOT.INEXPR) ) THEN
+        IF (IC == '+') THEN
+            JSIGN = 1
+        ELSE
+            JSIGN = -1
+        ENDIF
+        IC = qlx_chr()
+        IF ((IC >= '0' .AND. IC <= '9').OR. IC == '.') THEN
+            TOKEN(1:1)=IC
+            TYPE = qlx_num(TOKEN, LENG)  ! 1/2/5/6
+        ELSE
+            CALL qlx_bak(IC)
+            TYPE = 4              ! special char, possibly operator
+        ENDIF
+    ELSE
+    IF (IC == '*') THEN
+        TYPE = 4                  ! operator (1 or 2 chars)
+        IC = qlx_chr()
+        IF (IC == '*') THEN
+            LENG = 2
+            TOKEN = '**'
+        ELSE
+            CALL qlx_bak(IC)
+        ENDIF
+    ELSE
+    IF (IC == '<' .OR. IC == '>' .OR. IC == '=' .OR. IC == ':') THEN
+        TYPE = 4                  ! operator (1 or 2 chars)
+        IC = qlx_chr()
+        IF (IC == '<' .OR. IC == '>' .OR. IC == '=') THEN
+            LENG = 2
+            TOKEN(2:2) = IC
+        ELSE
+            CALL qlx_bak(IC)
+        ENDIF
+    ELSE
+        TYPE = 4                  ! operator
+    ENDIF
+    ENDIF
+    ENDIF
+    ENDIF
+    ENDIF
     ENDIF
 
     IF ( (LENG > 80) .OR. (TYPE == 5) ) THEN
         TOKEN = 'SCRAP'
         TYPE = 5
-        CALL QLXERR(21014, 'QLXTOK')
+        CALL qlx_err(21014, 'qlx_tok')
     ENDIF
-    IF (TYPE == 1) THEN
+    IF (TYPE == 1) THEN         ! integer
         READ(TOKEN, '(I20)')JVAL
-        JVAL = SIGN(JVAL, ISIGN)
+        JVAL = SIGN(JVAL, JSIGN)
     ELSE
-        IF (TYPE == 2) THEN
-            READ(TOKEN, '(G20.3)')ZVAL
-            ZVAL = SIGN(ZVAL, FLOAT(ISIGN))
-        ELSE
-            IF (TYPE == 6) THEN
-                READ(TOKEN, '(O20)')JVAL
-                TYPE = 1
-                JVAL = SIGN(JVAL, ISIGN)
-            ENDIF
-        ENDIF
+    IF (TYPE == 2) THEN         ! float
+        READ(TOKEN, '(G20.3)')ZVAL
+        ZVAL = SIGN(ZVAL, FLOAT(JSIGN))
+    ELSE
+    IF (TYPE == 6) THEN          ! octal constant
+        READ(TOKEN, '(O20)')JVAL
+        TYPE = 1                 ! integer
+        JVAL = SIGN(JVAL, JSIGN)
+    ENDIF
+    ENDIF
     ENDIF
     IF (TYPE == 0) THEN
-        CALL QLXFND(TOKEN(1:8), LOCVAR, LOCCNT, LIMITS, ITYP)
+        CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITS, ITYP)
         IF (ITYP  ==  -1) THEN
             TYPE = 3
             LENG = MIN(LENG, KARMOT)
         ELSE
-            IF ( (ITYP  ==  0) .OR. (ITYP  ==  1) ) THEN
-                call get_content_of_location(LOCVAR, 1, JVAL)
-            ELSE
-                JVAL = -1
-            ENDIF
+        IF ( (ITYP  ==  0) .OR. (ITYP  ==  1) ) THEN
+            call get_value_at_address(LOCVAR, 1, JVAL)
+        ELSE
+            JVAL = -1
+        ENDIF
         ENDIF
     ENDIF
     LEN = LENG
 END
 
 
-SUBROUTINE QLXUNDF(IKEY)
+SUBROUTINE qlx_undf(IKEY)
     use rmn_common
     use readlx_qlxfmt
 
     INTEGER IKEY(*)
     character(len=8) CKEY
-    INTEGER ARGDIMS
-    integer(kind = int64) :: SCRAP
+    INTEGER argdims
+!     integer(kind = int64) :: SCRAP
 
-    WRITE(CKEY, 101) (IKEY(I), I=1, ARGDIMS(1))
+    WRITE(CKEY, 101) (IKEY(I), I=1, argdims(1))
 101   FORMAT(2 A4)
-    CALL QLXUDF(SCRAP, CKEY)
+    CALL qlx_udf2(CKEY)
 END
 
 
-FUNCTION QLXVAL(KLE, ERR)
-    INTEGER QLXVAL
+FUNCTION qlx_val(KLE, ERR)
+    INTEGER qlx_val
 
     character(len=*) KLE
     LOGICAL ERR
-    INTEGER IND, VAL, DUM
+!     INTEGER IND, VAL, DUM
+    INTEGER IND, VAL
 
-    CALL QLXIND(IND, ERR)
+    CALL qlx_ind(IND, ERR)
 
     VAL = 0
     IF (.NOT. ERR) THEN
-        CALL QLXADI(KLE, IND, VAL, DUM, ERR)
+        CALL qlx_adi2(KLE, IND, VAL, ERR)
     ENDIF
-    QLXVAL = VAL
+    qlx_val = VAL
 END
 
 
 !> Traiter une expression arithmetique ou logique
-SUBROUTINE QLXXPR(ERR)
+SUBROUTINE qlx_xpr(ERR)
     use app
     use rmn_common
 
     LOGICAL ERR
-    COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
+    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
-    COMMON /QLXTOK2/ TOKEN
+    COMMON /qlx_tok2/ TOKEN
     character(len=80) TOKEN
 
+    COMMON /qlx_tok3/ jval64
+    integer(kind = int64) :: jval64
+
     PARAMETER (MAXTKNS=65, MAXOPS=30)
-    INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS), NTOKEN
+    INTEGER TOKTYPE(MAXTKNS), NTOKEN
+    integer(kind = int64) :: TOKENS(MAXTKNS)
     INTEGER NOPER
     integer(kind = int64) :: LOCVAR, LOCCNT
     character(len=4) :: PILEOP(MAXOPS)
     LOGICAL UNARY, FINI, FIRST
-    INTEGER PLEV, QLXPRI
-    EXTERNAL QLXPRI
+    INTEGER PLEV, qlx_pri
+    EXTERNAL qlx_pri
 
+    pjval = LOC(ZVAL)
     INEXPR = .TRUE.
     NTOKEN = 0
     PLEV = 0
@@ -1655,12 +1645,12 @@ SUBROUTINE QLXXPR(ERR)
 
     DO WHILE ( .NOT.FINI .AND. NTOKEN < MAXTKNS .AND. NOPER < MAXOPS .AND. .NOT.ERR)
         IF (.NOT.FIRST) THEN
-            CALL QLXTOK
+            CALL qlx_tok
         ENDIF
         FIRST = .FALSE.
         IF (TYPE == 0) THEN
             NTOKEN = NTOKEN + 1
-            CALL QLXFND(TOKEN(1:8), LOCVAR, LOCCNT, LIMITES, ITYP)
+            CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITES, ITYP)
             IF (ITYP.NE.0 .AND. ITYP.NE.1) THEN
                 ERR = .TRUE.
             ENDIF
@@ -1671,63 +1661,63 @@ SUBROUTINE QLXXPR(ERR)
             ENDIF
             UNARY = .FALSE.
         ELSE
-            IF (TYPE == 1 .OR. TYPE == 2) THEN
-                NTOKEN = NTOKEN + 1
-                TOKENS(NTOKEN) = JVAL
-                TOKTYPE(NTOKEN) = 0
-                IF (.NOT. UNARY) THEN
+        IF (TYPE == 1 .OR. TYPE == 2) THEN
+            NTOKEN = NTOKEN + 1
+            TOKENS(NTOKEN) = JVAL
+            TOKTYPE(NTOKEN) = 0
+            IF (.NOT. UNARY) THEN
+                ERR = .TRUE.
+            ENDIF
+            UNARY = .FALSE.
+        ELSE
+        IF (qlx_pri(TOKEN(1:4)) > 0) THEN
+            IF (TOKEN(1:2) == '( ') THEN
+                PLEV = PLEV + 1
+            ELSE
+            IF (TOKEN(1:2) == ') ') THEN
+                PLEV = PLEV - 1
+            ELSE
+            IF (TOKEN(1:2) == '[ ') THEN
+                BLEV = BLEV + 1
+            ELSE
+            IF (TOKEN(1:2) == '] ') THEN
+                BLEV = BLEV - 1
+            ENDIF
+            ENDIF
+            ENDIF
+            ENDIF
+            IF (PLEV < 0 .OR. BLEV < 0) THEN
+                FINI = .TRUE.
+                CALL qlx_bak(TOKEN(1:1))
+                EXIT
+            ENDIF
+            IF (UNARY) THEN
+                IF (TOKEN(1:2) == '+ ') THEN
+                    TOKEN(1:2) = 'U+'
+                ELSE
+                IF (TOKEN(1:2) == '- ') THEN
+                    TOKEN(1:2) = 'U-'
+                ELSE
+                IF (TOKEN(1:2).NE.'( ' .AND. TOKEN(1:2).NE.'[ ') THEN
                     ERR = .TRUE.
                 ENDIF
-                UNARY = .FALSE.
-            ELSE
-                IF (QLXPRI(TOKEN(1:4)) > 0) THEN
-                    IF (TOKEN(1:2) == '( ') THEN
-                        PLEV = PLEV + 1
-                    ELSE
-                        IF (TOKEN(1:2) == ') ') THEN
-                            PLEV = PLEV - 1
-                        ELSE
-                            IF (TOKEN(1:2) == '[ ') THEN
-                                BLEV = BLEV + 1
-                            ELSE
-                                IF (TOKEN(1:2) == '] ') THEN
-                                    BLEV = BLEV - 1
-                                ENDIF
-                            ENDIF
-                        ENDIF
-                    ENDIF
-                    IF (PLEV < 0 .OR. BLEV < 0) THEN
-                        FINI = .TRUE.
-                        CALL QLXBAK(TOKEN(1:1))
-                        EXIT
-                    ENDIF
-                    IF (UNARY) THEN
-                        IF (TOKEN(1:2) == '+ ') THEN
-                            TOKEN(1:2) = 'U+'
-                        ELSE
-                            IF (TOKEN(1:2) == '- ') THEN
-                                TOKEN(1:2) = 'U-'
-                            ELSE
-                                IF (TOKEN(1:2).NE.'( ' .AND. TOKEN(1:2).NE.'[ ') THEN
-                                    ERR = .TRUE.
-                                ENDIF
-                            ENDIF
-                        ENDIF
-                    ENDIF
-                    UNARY = TOKEN(1:1).NE.')' .AND. TOKEN(1:1).NE.']'
-                    CALL QLXRPN(TOKEN, TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
-                ELSE
-                    IF (TOKEN(1:1) == ',' .OR. TOKEN(1:1) == '$' .OR. TOKEN(1:2) == ':=') THEN
-                        CALL QLXRPN('$', TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
-                        FINI = .TRUE.
-                        CALL QLXBAK(TOKEN(1:1))
-                    ELSE
-                        WRITE(app_msg, '(A8,A)')TOKEN(1:8), ' IS INVALID'
-                        call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
-                        ERR = .TRUE.
-                    ENDIF
+                ENDIF
                 ENDIF
             ENDIF
+            UNARY = TOKEN(1:1).NE.')' .AND. TOKEN(1:1).NE.']'
+            CALL qlx_rpn(TOKEN, TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
+        ELSE
+        IF (TOKEN(1:1) == ',' .OR. TOKEN(1:1) == '$' .OR. TOKEN(1:2) == ':=') THEN
+            CALL qlx_rpn('$', TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
+            FINI = .TRUE.
+            CALL qlx_bak(TOKEN(1:1))
+        ELSE
+            WRITE(app_msg, '(A8,A)')TOKEN(1:8), ' IS INVALID'
+            call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
+            ERR = .TRUE.
+        ENDIF
+        ENDIF
+        ENDIF
         ENDIF
     END DO
 
@@ -1737,24 +1727,145 @@ SUBROUTINE QLXXPR(ERR)
     INEXPR = .FALSE.
     IF (.NOT.ERR) THEN
         TOKEN = ' '
-        JVAL = TOKENS(1)
+        JVAL = int(TOKENS(1))
         IF (TOKTYPE(1) > 0) THEN
-            TYPE =8
+            TYPE = 8      ! adresse
+            jval64 = TOKENS(1)
         ELSE
-            IF (ABS(JVAL) <= 2147483647) THEN
-                TYPE =1
-            ELSE
-                TYPE =2
-            ENDIF
+        IF (ABS(JVAL) <= 2147483647) THEN
+            TYPE =1
+        ELSE
+            TYPE =2
+        ENDIF
         ENDIF
     ENDIF
     IF (ERR) THEN
-        CALL QLXERR(81005, 'QLXEXPR')
+        CALL qlx_err(81005, 'QLXEXPR')
+    ENDIF
+END
+
+!> Passage d'options a readlx
+SUBROUTINE qlxopt(OPTION, VAL)
+    use app
+    use readlx_qlxfmt
+
+    character(len=*) OPTION
+    INTEGER VAL
+
+    IF (OPTION(1:6) ==  'CARMOT') THEN
+        KARMOT = VAL
+        WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
+    ELSE
+        WRITE(app_msg, *) 'Option (', OPTION, ') unknown'
+        call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
+    ENDIF
+END
+
+!> LONGUEUR D'ARGUMENTS (APPEL VIA readlx)
+FUNCTION argdims(N)
+      use rmn_common
+      use readlx_parmadr
+      INTEGER argdims
+      INTEGER N
+
+!OBJET(argdims)
+!         RENVOYER LA LONGUEUR EN NOMBRE DE MOTS DE L'ARGUMENT
+!         N DU DERNIER APPEL EFFECTUE VIA readlx
+
+!ARGUMENTS
+! IN      N     NUMERO D'ORDRE DE L'ARGUMENT DANS LA LISTE
+
+    IF (N  <=  NARG) THEN
+        argdims = DOPE(N)
+    ELSE
+        argdims = 0
+    ENDIF
+END
+
+!> GET DOPE LIST OF ARGUMENT NARG
+FUNCTION argdope(N, LISTE, ND)
+    use rmn_common
+    use readlx_parmadr
+
+    INTEGER argdope
+    INTEGER N, ND
+    INTEGER LISTE(ND)
+
+    INTEGER I, BASE
+
+    IF (N >  NARG) THEN
+        argdope = 0
+    ELSE
+        BASE = DOPEA(N)
+        argdope = DOPEA(N+1) - DOPEA(N)
+        DO I = 1, MIN(DOPEA(N + 1) - DOPEA(N), ND)
+            LISTE(I) = DOPES(BASE + I - 1)
+        END DO
+    ENDIF
+END
+
+
+!> Déclaration des routines
+SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
+    use app
+
+    !> Nom de la fonction à appeler
+    EXTERNAL xtern
+
+    !> Chaine de caractères du jetton
+    CHARACTER(LEN = *) :: key
+    !> Nombre d'occurences
+    INTEGER, INTENT(OUT) :: icount
+    !> Limites? Doit être entre 0 et 99999
+    INTEGER :: limits
+    !> Option mystère devant être entre 0 et 13
+    INTEGER :: ityp
+
+    INTEGER :: idum
+
+    IF (ityp /= 2) THEN
+        CALL lib_log(APP_LIBRMN, APP_ERROR, 'qlxinx ne peut etre utilise pour ityp <> 2')
+        CALL qlx_err(81013, 'QLXINS')
+        STOP
+    ENDIF
+    CALL qqlx_ins(idum, key, icount, limits, ityp, xtern)
+END
+
+!> Interface de qlxins
+SUBROUTINE lexins(IVAR, ICLE, NB, LIMIT, TYP)
+    INTEGER :: IVAR, ICLE, NB, LIMIT, TYP
+
+    character(len=8) :: KLE
+
+    WRITE(KLE, '(A8)') ICLE
+    CALL qlxins(IVAR, KLE, NB, LIMIT, TYP)
+END
+
+!> DECLARATION DES CLES
+SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
+    use app
+
+    IMPLICIT NONE
+
+    INTEGER :: ivar
+    CHARACTER(LEN = *) :: key
+    INTEGER, INTENT(OUT) :: icount
+    INTEGER :: limits
+    INTEGER :: ityp
+
+    integer, EXTERNAL :: readlx
+
+    IF (ityp == 2) THEN
+        CALL lib_log(APP_LIBRMN, APP_ERROR, 'qlxinx doit etre utilise quand ityp = 2, au lieu de QLXINS')
+        CALL qlx_err(81013, 'QLXINS')
+        STOP
+    ELSE
+        CALL qqlx_ins(ivar, key, icount, limits, ityp, readlx)
     ENDIF
 END
 
 !> Interprete de directives
-SUBROUTINE READLX(UNIT, KEND, KERR)
+SUBROUTINE readlx(UNIT, KEND, KERR)
     use app
     use rmn_common
     use readlx_qlxbuff
@@ -1767,16 +1878,16 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
 
     INTEGER, INTENT(inout) :: KERR
 
-    COMMON /QLXTOK1/ LEN, TYPE, ZVAL, INEXPR
+    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-    EQUIVALENCE (ZVAL, JVAL)
+    pointer(pjval,JVAL)
 
-    COMMON/QLXTOK2/TOKEN
+    COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL QLXNVAR, QLXPRNT, QLXUNDF
+    EXTERNAL qlx_nvar, qlx_prnt, qlx_undf
 
 #include <rmn/fnom.hf>
     integer(kind = int64) :: LOCCNT, LOCVAR
@@ -1788,17 +1899,19 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
     INTEGER READBSE(MAXSTRU)
     INTEGER NSTRUC, ier
     character(len=128) nomscra
+    integer(kind = int64) :: jval64
 
     DATA NXTELSE / 1, 0, 2/
     DATA NEXTIF  / 0, 2, 2/
 
+    pjval = LOC(ZVAL)
     WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
     KERRMAX = 999999
 
     IF (KERR < 0 ) THEN
         KERRMAX = MIN(ABS(KERR), KERRMAX)
     ENDIF
-
+! print *,"==========================readlx NEW=========================="
     NC = 1
     LAST = 0
     INPFILE = UNIT
@@ -1815,46 +1928,47 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
     nomscra = 'XXXXQLX'
     tmpfile = 0
     ier = fnom(tmpfile, nomscra, 'D77+SCRATCH+FMT', 20)
-    CALL QLXINX(QLXPRNT, 'PRINT', IDUM, 0202, 2)
-    CALL QLXINX(QLXNVAR, 'DEFINE', IDUM, 0202, 2)
-    CALL QLXINX(QLXUNDF, 'UNDEF', IDUM, 0101, 2)
+    CALL qlxinx(qlx_prnt, 'PRINT', IDUM, 0202, 2)
+    CALL qlxinx(qlx_nvar, 'DEFINE', IDUM, 0202, 2)
+    CALL qlxinx(qlx_undf, 'UNDEF', IDUM, 0101, 2)
 
     DO WHILE (.NOT.FIN .AND. NERR < KERRMAX .AND. NSTRUC < MAXSTRU)
         SKIPFLG = SKIPF(NSTRUC)
         ERR = .FALSE.
-        CALL QLXTOK
+        CALL qlx_tok
         IF (TYPE == 0) THEN
-            CALL QLXFND(TOKEN, LOCVAR, LOCCNT, LIMITS, ITYP)
+            CALL qlx_fnd(TOKEN, LOCVAR, LOCCNT, LIMITS, ITYP)
             IF (ITYP == 1 .AND. SKIPF(NSTRUC) == 0) THEN
-                call get_content_of_location(LOCCNT, 1, IICNT)
-                CALL QLXASG(LOCVAR, IICNT, LIMITS, ERR)
-                call set_content_of_location(LOCCNT, 1, IICNT)
+                call get_value_at_address(LOCCNT, 1, IICNT)
+                CALL qlx_asg(LOCVAR, IICNT, LIMITS, ERR)
+                call set_value_at_address(LOCCNT, 1, IICNT)
             ELSE
                 IF (ITYP == 2 .AND. SKIPF(NSTRUC) == 0) THEN
-                    CALL QLXCALL(LOCVAR, LOCCNT, LIMITS, ERR)
+                    CALL qlx_call(LOCVAR, LOCCNT, LIMITS, ERR)
                 ELSE
                     IF (ITYP == 3) THEN
                         NSTRUC = NSTRUC + 1
                         STYPE(NSTRUC) = ITYP
                         SKIPF(NSTRUC) = NEXTIF(SKIPF(NSTRUC-1))
                         IF (SKIPF(NSTRUC) == 0) THEN
-                            CALL QLXTOK
+                            CALL qlx_tok
                             IF (TOKEN(1:1).NE.'$') THEN
-                                CALL QLXXPR(ERR)
+                                CALL qlx_xpr(ERR)
                                 IF (ERR) THEN
                                     EXIT
                                 ENDIF
                                 IF (TYPE == 8) THEN
-                                    call get_content_of_location(JVAL, 1, JVAL)
+                                    jval64 = JVAL
+                                    call get_value_at_address(jval64, 1, JVAL)
                                 ENDIF
                                 IF (IAND(JVAL, ishft(-1, 32-(16))) == 0) THEN
                                     SKIPF(NSTRUC) = 1
                                 ENDIF
                             ELSE
-                                CALL QLXBAK('$')
+                                CALL qlx_bak('$')
                             ENDIF
                         ENDIF
-                        CALL QLXFLSH('$')
+                        CALL qlx_flsh('$')
                     ELSE
                         IF (ITYP == 4) THEN
                             IF (STYPE(NSTRUC).NE.3) THEN
@@ -1862,7 +1976,7 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                             ENDIF
                             STYPE(NSTRUC) = ITYP
                             SKIPF(NSTRUC) = NXTELSE(SKIPF(NSTRUC))
-                            CALL QLXFLSH('$')
+                            CALL qlx_flsh('$')
                         ELSE
                             IF (ITYP == 5) THEN
                                 IF (STYPE(NSTRUC).NE.3 .AND. STYPE(NSTRUC).NE.4) THEN
@@ -1870,7 +1984,7 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                                 ENDIF
                                 SKIPF(NSTRUC) = 0
                                 NSTRUC = NSTRUC - 1
-                                CALL QLXFLSH('$')
+                                CALL qlx_flsh('$')
                             ELSE
                                 IF (ITYP == 6) THEN
                                     NSTRUC = NSTRUC + 1
@@ -1882,23 +1996,24 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                                         READBSE(NSTRUC) = CURREC
                                     ENDIF
                                     IF (SKIPF(NSTRUC) == 0) THEN
-                                        CALL QLXTOK
+                                        CALL qlx_tok
                                         IF (TOKEN(1:1).NE.'$') THEN
-                                            CALL QLXXPR(ERR)
+                                            CALL qlx_xpr(ERR)
                                             IF (ERR) THEN
                                                 EXIT
                                             ENDIF
                                             IF (TYPE == 8) THEN
-                                                call get_content_of_location(JVAL, 1, JVAL)
+                                                jval64 = JVAL
+                                                call get_value_at_address(jval64, 1, JVAL)
                                             ENDIF
                                             IF (IAND(JVAL, ishft(-1, 32-(16))) == 0) THEN
                                                 SKIPF(NSTRUC) = 1
                                             ENDIF
                                         ELSE
-                                            CALL QLXBAK('$')
+                                            CALL qlx_bak('$')
                                         ENDIF
                                     ENDIF
-                                    CALL QLXFLSH('$')
+                                    CALL qlx_flsh('$')
                                 ELSE
                                     IF (ITYP == 7) THEN
                                         IF (STYPE(NSTRUC).NE.6) THEN
@@ -1909,7 +2024,7 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                                         ENDIF
                                         SKIPF(NSTRUC) = 0
                                         NSTRUC = NSTRUC - 1
-                                        CALL QLXFLSH('$')
+                                        CALL qlx_flsh('$')
                                     ELSE
                                         IF (ITYP >= 10 .AND. ITYP <= 13 .AND. SKIPF(NSTRUC) == 0) THEN
                                             KERR = NERR
@@ -1917,9 +2032,9 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                                             FIN = .TRUE.
                                         ELSE
                                             IF (SKIPF(NSTRUC).NE.0) THEN
-                                                CALL QLXFLSH('$')
+                                                CALL qlx_flsh('$')
                                             ELSE
-                                                CALL QLXERR(21015, 'READLX')
+                                                CALL qlx_err(21015, 'readlx')
                                                 ERR = .TRUE.
                                             ENDIF
                                         ENDIF
@@ -1931,11 +2046,11 @@ SUBROUTINE READLX(UNIT, KEND, KERR)
                 ENDIF
             ENDIF
         ELSE
-            CALL QLXERR(21016, 'READLX')
+            CALL qlx_err(21016, 'readlx')
             ERR = .TRUE.
         ENDIF
         IF (ERR.AND.(TOKEN(1:1).NE.'$'.OR. TYPE.NE.4)) THEN
-            CALL QLXFLSH('$')
+            CALL qlx_flsh('$')
         ENDIF
     ENDDO
 
