@@ -259,7 +259,7 @@ set_source_files_properties(src/primitives/wkoffit.c   PROPERTIES COMPILE_FLAGS 
 set_source_files_properties(src/primitives/constnt.F90 PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
 set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
-set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028>")
+set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 
 install(TARGETS ${shared_targets}
     EXPORT rmn-shared-targets

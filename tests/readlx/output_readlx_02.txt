@@ -1,0 +1,132 @@
+(INFO) RMN| <<    >>  DEFINE(IND2,1) $ IND2 = 2222 $ PRINT(IND2,'("IND2 = ",T15,I6.5)')
+IND2 =         02222
+(INFO) RMN| <<    >>  IND=1111 $ PRINT(IND,'("IND = ",T15,I6.5)')
+IND =          01111
+(INFO) RMN| <<    >>  TAB0 = 10, 20, 30, 40, 50
+(INFO) RMN| <<    >>  IND=(TAB0[3])
+(INFO) RMN| <<    >>  PRINT(TAB0[1],'("TAB0[1] = ",T15,I6.5)')
+TAB0[1] =      00010
+(INFO) RMN| <<    >>  PRINT(TAB0[2],'("TAB0[2] = ",T15,I6.5)')
+TAB0[2] =      00020
+(INFO) RMN| <<    >>  PRINT(TAB0[3],'("TAB0[3] = ",T15,I6.5)')
+TAB0[3] =      00030
+(INFO) RMN| <<    >>  PRINT(TAB0[4],'("TAB0[4] = ",T15,I6.5)')
+TAB0[4] =      00040
+(INFO) RMN| <<    >>  PRINT(TAB0[5],'("TAB0[5] = ",T15,I6.5)')
+TAB0[5] =      00050
+(INFO) RMN| <<    >>  DEFINE(I,1)
+(INFO) RMN| <<    >>  DEFINE(TABL,4)
+(INFO) RMN| <<    >>  TABL = 12,18,24,30
+(INFO) RMN| <<    >>  I = 1 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+I =            00001
+TABL[I] =      00012
+(INFO) RMN| <<    >>  I = 2 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+I =            00002
+TABL[I] =      00018
+(INFO) RMN| <<    >>  I = 3 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+I =            00003
+TABL[I] =      00024
+(INFO) RMN| <<    >>  I = 4 $ PRINT(I,'("I = ",T15,I6.5)') $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+I =            00004
+TABL[I] =      00030
+(INFO) RMN| <<    >>  TABL = -12, -18, -24, -30
+(INFO) RMN| <<    >>  I = 1 $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+TABL[I] =     -00012
+(INFO) RMN| <<    >>  I = 4 $ PRINT(TABL[I],'("TABL[I] = ",T15,I6.5)')
+TABL[I] =     -00030
+(INFO) RMN| <<    >>  SUB3()
+(INFO)  <><><> Y O U P I <><><>
+(INFO) RMN| <<    >>  * Voici un commentaire !@##%
+(INFO) RMN| readlx: RLX016 - PAS TROUVE LA CLE
+  * Voici un commentaire !@##%$
+  ^
+(INFO) RMN| <<    >>  SUB2(1,CONST22,3,4,CONST55)
+(INFO)  PASSE PAR SUB2
+(INFO)  NB D ARGUMENTS =         5
+(INFO)         55  00000000004A57F0
+(INFO)          4  0000154E003B9770
+(INFO)          3  0000154E003B976C
+(INFO)         22  00000000004A57EC
+(INFO)          1  0000154E003B9768
+(INFO) RMN| <<    >>  sub1(1,[2,3,4,5],6,7)
+(INFO)  PASSE PAR SUB1
+(INFO)  NB D ARGUMENTS =    4
+(INFO)      00000001         1    0000154E003B9768  00000001
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)      00000002         2    0000154E003B976C  00000002  00000003  00000004  00000005
+(INFO)   ND= 4 LISTE=    00010101    00020101    00030101    00040101
+(INFO)      00000006         6    0000154E003B977C  00000006
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)      00000007         7    0000154E003B9780  00000007
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)  ==========================
+(INFO) RMN| <<    >>  sub1(1,[2,3,4,5],6)
+(INFO)  PASSE PAR SUB1
+(INFO)  NB D ARGUMENTS =    3
+(INFO)      00000001         1    0000154E003B9768  00000001
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)      00000002         2    0000154E003B976C  00000002  00000003  00000004  00000005
+(INFO)   ND= 4 LISTE=    00010101    00020101    00030101    00040101
+(INFO)      00000006         6    0000154E003B977C  00000006
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)  ==========================
+(INFO) RMN| <<    >>  sub1(1,[2,3,4,5])
+(INFO)  PASSE PAR SUB1
+(INFO)  NB D ARGUMENTS =    2
+(INFO)      00000001         1    0000154E003B9768  00000001
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)      00000002         2    0000154E003B976C  00000002  00000003  00000004  00000005
+(INFO)   ND= 4 LISTE=    00010101    00020101    00030101    00040101
+(INFO)  ==========================
+(INFO) RMN| <<    >>  sub1(1)
+(INFO)  PASSE PAR SUB1
+(INFO)  NB D ARGUMENTS =    1
+(INFO)      00000001         1    0000154E003B9768  00000001
+(INFO)   ND= 1 LISTE=    00010101
+(INFO)  ==========================
+(INFO) RMN| <<    >>  TAB2="ABCD","EFGH","IJKL","MNOP"
+(INFO) RMN| <<    >>  I = 1 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+TAB2[I] =     ABCD
+(INFO) RMN| <<    >>  I = 2 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+TAB2[I] =     EFGH
+(INFO) RMN| <<    >>  I = 3 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+TAB2[I] =     IJKL
+(INFO) RMN| <<    >>  I = 4 $ PRINT(TAB2[I],'("TAB2[I] = ",T15,A4)')
+TAB2[I] =     MNOP
+(INFO) RMN| <<    >>  DEFINE(TAB4,4) $ TAB4 = 111,222,333,444
+(INFO) RMN| <<    >>  IND=(TAB4[2]+tab4[1]+tab4[3])
+(INFO) RMN| <<    >>  PRINT(IND,'("IND = ",T15,I6.5)')
+IND =          00666
+(INFO) RMN| <<    >>  IND = 123
+(INFO) RMN| <<    >>  I = 1 $ PRINT(TAB4[I],'("TAB4[I] = ",T15,I6.5)')
+TAB4[I] =      00111
+(INFO) RMN| <<    >>  if(IND == 123)
+(INFO) RMN| <<    >>  i = 3 $ IND=(TAB4[i-1]+tab4[i]+tab4[I+1]) $ PRINT(IND,'("IND = ",T15,I6.5)')
+IND =          00999
+(INFO) RMN| <<    >>  else
+(INFO) RMN| <<SKIP>>  PRINT(1,'("ceci ne devrait pas etre execute",I5)')
+(INFO) RMN| <<SKIP>>  endif
+(INFO) RMN| <<    >>  I = 0
+(INFO) RMN| <<    >>  while ((I:=I+1) <= 4)
+(INFO) RMN| <<    >>    print(i,'("I =",I3)')
+I =  1
+(INFO) RMN| <<    >>  endwhile
+(INFO) RMN| <<    >>  while ((I:=I+1) <= 4)
+(INFO) RMN| <<    >>    print(i,'("I =",I3)')
+I =  2
+(INFO) RMN| <<    >>  endwhile
+(INFO) RMN| <<    >>  while ((I:=I+1) <= 4)
+(INFO) RMN| <<    >>    print(i,'("I =",I3)')
+I =  3
+(INFO) RMN| <<    >>  endwhile
+(INFO) RMN| <<    >>  while ((I:=I+1) <= 4)
+(INFO) RMN| <<    >>    print(i,'("I =",I3)')
+I =  4
+(INFO) RMN| <<    >>  endwhile
+(INFO) RMN| <<    >>  while ((I:=I+1) <= 4)
+(INFO) RMN| <<SKIP>>    print(i,'("I =",I3)')
+(INFO) RMN| <<SKIP>>  endwhile
+(INFO) NTAB1 =  0 TAB1 =
+(INFO) NTAB2 =  4 TAB2 = ABCDEFGHIJKLMNOP
+(INFO) NTAB3 =  0 TAB3 =
+(INFO)  APRES readlx - KND,KRR    0   1

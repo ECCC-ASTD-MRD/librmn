@@ -1,136 +1,129 @@
-#define NEW_READLX_NAMES_NOT_TRUE
-#if defined(NEW_READLX_NAMES)
-#define qlxopt qlxopt_2
-#define lexins lexins_2
-#define qlxins qlxins_2
-#define readlx readlx_2
-#define qlxinx qlxinx_2
-#define argdope argdope_2
-#define argdims argdims_2
-#endif
 
 ! TODO A lot of global variables in theses modules are not initialized. Is that OK?
 ! (there was no "DATA" statement for them in the common blocks)
 module readlx_parmadr
-   use rmn_common
-   implicit none
-   save
+    use rmn_common
+    implicit none
+    save
 
-   INTEGER :: NARG, NPRM, NDOPES
-   integer, dimension(41)  :: DOPE
-   integer, dimension(42)  :: DOPEA
-   integer, dimension(101) :: DOPES
-   integer, dimension(101) :: PARM = 0
-   integer(kind = int64), dimension(41)  :: ADR = 0
+    INTEGER :: NARG, NPRM, NDOPES
+    integer, dimension(41)  :: DOPE
+    integer, dimension(42)  :: DOPEA
+    integer, dimension(101) :: DOPES
+    integer, dimension(101) :: PARM = 0
+    integer(kind = int64), dimension(41)  :: ADR = 0
 end module readlx_parmadr
 
 module readlx_qlxbuff
-   implicit none
-   save
+    implicit none
+    save
 
-   integer :: NC = 1
-   integer :: LAST = 0
-   integer :: INPFILE = 5
-   integer :: NERR, SKIPFLG, CURREC, READREC, TMPFILE
-   logical :: EOFL = .false.
+    integer :: NC = 1
+    integer :: LAST = 0
+    integer :: INPFILE = 5
+    integer :: NERR, SKIPFLG, CURREC, READREC, TMPFILE
+    logical :: EOFL = .false.
 
-   character(len=101) :: INLINE = ' '
+    character(len=101) :: INLINE = ' '
 end module readlx_qlxbuff
 
 module readlx_qlxfmt
-   implicit none
-   save
+    implicit none
+    save
 
-   character(len=20) :: LINEFMT
-   integer :: KARMOT = 04
+    character(len=20) :: LINEFMT
+    integer :: KARMOT = 04
 end module readlx_qlxfmt
 
 module readlx_nrdlx
-   use rmn_common
-   implicit none
-   save
+    use rmn_common
+    implicit none
+    save
 
-   INTEGER, dimension(3:3, 256) :: ITAB(3:3, 256) = 0
-   integer :: NENTRY = 0
-   character(len=8), dimension(256) :: NAMES = ' '
-   integer(kind = int64), dimension(2, 256) :: IPTADR = 0
+    INTEGER, dimension(3:3, 256) :: ITAB(3:3, 256) = 0
+    integer :: NENTRY = 0
+    character(len=8), dimension(256) :: NAMES = ' '
+    integer(kind = int64), dimension(2, 256) :: IPTADR = 0
 end module readlx_nrdlx
 
 module readlx_remote
-   use rmn_common
-   implicit none
+    use rmn_common
+    implicit none
 contains
-  integer(C_INT32_t) function remote_call(fn, args) BIND(C,name='RemoteCall')
-    abstract interface
-      integer(C_INT32_t) function machin( &
-                              a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
-                              a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
-                              a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
-                              a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
-                              a40) BIND(C)
-      use ISO_C_BINDING
-      type(C_PTR), intent(IN), value :: &
-                                 a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
-                                 a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
-                                 a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
-                                 a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
-                                 a40
-      end function machin
-    end interface
-    integer(C_INT64_T), intent(IN) :: fn
-    integer(C_INT64_T), dimension(0:40), intent(IN) :: args
-    procedure(machin), pointer :: fptr
-    type(C_FUNPTR) :: cptr
-    type(C_PTR), dimension(0:40) :: v
-    integer :: i
-    do i = 0, 40
-      v(i) = transfer(args(i), v(i))
-    enddo
-    cptr = transfer(fn, cptr)
-    call c_f_procpointer(cptr, fptr)
-    remote_call = fptr(v(00), v(01), v(02), v(03), v(04), v(05), v(06), v(07), v(08), v(09), &
-                       v(10), v(11), v(12), v(13), v(14), v(15), v(16), v(17), v(18), v(19), &
-                       v(20), v(21), v(22), v(23), v(24), v(25), v(26), v(27), v(28), v(29), &
-                       v(30), v(31), v(32), v(33), v(34), v(35), v(36), v(37), v(38), v(39), &
-                       v(40))
-  end function
+    integer(C_INT32_t) function remote_call(fn, args) BIND(C,name='RemoteCall')
+        abstract interface
+            integer(C_INT32_t) function machin( &
+                                    a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
+                                    a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
+                                    a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
+                                    a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
+                                    a40) BIND(C)
+            use ISO_C_BINDING
+            type(C_PTR), intent(IN), value :: &
+                                        a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
+                                        a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
+                                        a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
+                                        a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
+                                        a40
+            end function machin
+        end interface
+
+        integer(C_INT64_T), intent(IN) :: fn
+        integer(C_INT64_T), dimension(0:40), intent(IN) :: args
+        procedure(machin), pointer :: fptr
+        type(C_FUNPTR) :: cptr
+        type(C_PTR), dimension(0:40) :: v
+        integer :: i
+
+        do i = 0, 40
+            v(i) = transfer(args(i), v(i))
+        enddo
+        cptr = transfer(fn, cptr)
+        call c_f_procpointer(cptr, fptr)
+        remote_call = fptr(v(00), v(01), v(02), v(03), v(04), v(05), v(06), v(07), v(08), v(09), &
+                        v(10), v(11), v(12), v(13), v(14), v(15), v(16), v(17), v(18), v(19), &
+                        v(20), v(21), v(22), v(23), v(24), v(25), v(26), v(27), v(28), v(29), &
+                        v(30), v(31), v(32), v(33), v(34), v(35), v(36), v(37), v(38), v(39), &
+                        v(40))
+    end function
 end module readlx_remote
 
 ! get contents at address(subscript) (assuming a 32 bit item)
 subroutine get_value_at_address(address, subscript, content)
-  use rmn_common
-  integer(kind = int64), intent(IN) :: address   ! memory address
-  integer, intent(IN) :: subscript               ! subscript
-  integer, intent(OUT) :: content                ! output from memory
-  integer :: val
-  pointer(pval, val(*))
+    use rmn_common
+    integer(kind = int64), intent(IN) :: address   ! memory address
+    integer, intent(IN) :: subscript               ! subscript
+    integer, intent(OUT) :: content                ! output from memory
+    integer :: val
+    pointer(pval, val(*))
 
-  pval = transfer(address,pval)
-! print *,'entering get_value_at_address, subscript =',subscript
-  content = val(subscript)
-! print *,'exiting get_value_at_address'
+    pval = transfer(address,pval)
+    ! print *,'entering get_value_at_address, subscript =',subscript
+    content = val(subscript)
+    ! print *,'exiting get_value_at_address'
 end subroutine
 
 ! set contents at address(subscript) (assuming a 32 bit item)
 subroutine set_value_at_address(address, subscript, content)
-  use rmn_common
-  integer(kind = int64), intent(IN) :: address   ! memory address
-  integer, intent(IN) :: subscript               ! subscript
-  integer, intent(IN) :: content                 ! value to set to
-  integer :: val
-  pointer(pval, val(*))
+    use rmn_common
+    integer(kind = int64), intent(IN) :: address   ! memory address
+    integer, intent(IN) :: subscript               ! subscript
+    integer, intent(IN) :: content                 ! value to set to
+    integer :: val
+    pointer(pval, val(*))
 
-  pval = transfer(address,pval)
-! print *,'entering set_value_at_address, subscript =',subscript
-  val(subscript) = content
-! print *,'exiting set_value_at_address'
+    pval = transfer(address,pval)
+    ! print *,'entering set_value_at_address, subscript =',subscript
+    val(subscript) = content
+    ! print *,'exiting set_value_at_address'
 end subroutine
 
 !> Get value of indexed array component
 ! SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
 SUBROUTINE qlx_adi2(KLE, IND, VALEUR, ERR)
     use rmn_common
-!     INTEGER IND, VALEUR, TYPE
+    implicit none
+    !     INTEGER IND, VALEUR, TYPE
     INTEGER IND, VALEUR
     LOGICAL ERR
     character(len=*) KLE
@@ -167,11 +160,13 @@ END
 !> Get subscript then build memory address
 integer(kind = int64) FUNCTION qlx_adr(KLE, ERR)
     use rmn_common
+    implicit none
 
     character(len=*) KLE
     LOGICAL ERR
-    INTEGER LIMITS, ITYP
+    INTEGER LIMITS, ITYP, IND
     integer(kind = int64) :: LOCCNT, locvar8
+    integer :: VARI
     POINTER (LOCVAR, VARI(*))
 
     CALL qlx_ind(IND, ERR)
@@ -769,8 +764,8 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     use readlx_nrdlx
 
     INTEGER, INTENT(IN) :: ivar
-    CHARACTER(len = *) :: key
-    INTEGER, INTENT(OUT) :: icount
+    CHARACTER(len = *)  :: key
+    INTEGER, INTENT(OUT):: icount
     INTEGER, INTENT(IN) :: limits
     INTEGER, INTENT(IN) :: ityp
 
@@ -1312,18 +1307,24 @@ integer function qlx_pril(opr)
 end
 
 SUBROUTINE qlx_prnt(QUOI, COMMENT)
+    use app
     use readlx_qlxfmt
+    implicit none
 
     INTEGER QUOI(*), COMMENT(*)
     character(len=120) FMT
     INTEGER argdims
+    integer :: I, L1, L2
+
     L1 = argdims(1)
     L2 = MIN(120/KARMOT, argdims(2))
     IF (L1 < 1 .OR. L2 < 1) THEN
         RETURN
     ENDIF
     WRITE(FMT, LINEFMT)(COMMENT(I), I=1, L2)
-    WRITE(6, FMT)(QUOI(I), I=1, L1)
+    ! WRITE(6, FMT)(QUOI(I), I=1, L1)
+    WRITE(app_msg, FMT)(QUOI(I), I=1, L1)
+    call lib_log(APP_LIBFST, APP_VERBATIM, app_msg)
 END
 
 !> Conversion a notation postfixe (reverse polish notation)
@@ -1808,9 +1809,10 @@ END
 !> Déclaration des routines
 SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
     use app
+    implicit none
 
     !> Nom de la fonction à appeler
-    EXTERNAL xtern
+    EXTERNAL :: xtern
 
     !> Chaine de caractères du jetton
     CHARACTER(LEN = *) :: key
@@ -1911,7 +1913,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     IF (KERR < 0 ) THEN
         KERRMAX = MIN(ABS(KERR), KERRMAX)
     ENDIF
-! print *,"==========================readlx NEW=========================="
+    ! print *,"==========================readlx NEW=========================="
     NC = 1
     LAST = 0
     INPFILE = UNIT
