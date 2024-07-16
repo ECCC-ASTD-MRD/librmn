@@ -565,9 +565,11 @@ static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args){
 
 static PyObject *py_fst24_file_close(struct py_fst24_file *self, PyObject *Py_UNUSED(args))
 {
+    PySys_FormatStderr("%s(): filename=%U\n", __func__, self->filename);
     if(!fst24_close(self->ref)){
         PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
     }
+    self->ref = NULL;
     Py_RETURN_NONE;
 }
 
@@ -677,13 +679,14 @@ static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *a
         return NULL;
     }
 
+    // Because py_fst_query_new uses type->tp_alloc, it automatically returns
+    // an object with a refcount of 1.
     struct py_fst_query *py_new_query = (struct py_fst_query *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
     py_new_query->ref = new_query;
 
     Py_INCREF(self);
     py_new_query->file_ref = self;
 
-    Py_INCREF((PyObject*)py_new_query);
     return (PyObject *)py_new_query;
 }
 
@@ -751,12 +754,19 @@ static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUS
 }
 
 static void py_fst24_file_dealloc(struct py_fst24_file *self){
-    fprintf(stderr, "%s()\n", __func__);
+    if(self->filename == NULL){
+        PySys_FormatStderr("%s() file=(null)\n", __func__);
+    } else {
+        PySys_FormatStderr("%s() file=%U\n", __func__, self->filename);
+    }
+
     Py_XDECREF(self->filename);
     Py_XDECREF(self->options);
     if(self->ref != NULL){
         // TODO Error handling for this
         fst24_close(self->ref);
+    } else {
+        fprintf(stderr, "%s(): self->ref is NULL so not calling fst24_close()\n", __func__);
     }
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
@@ -765,6 +775,8 @@ static void py_fst24_file_dealloc(struct py_fst24_file *self){
  * fst_query implementations
  ******************************************************************************/
 static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds){
+    // The python object returned by the type->tp_alloc method has a refcount
+    // of 1 already set on it.
     struct py_fst_query *self = (struct py_fst_query *) type->tp_alloc(type, 0);
     if(self == NULL){
         return NULL;
@@ -782,7 +794,11 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
 
 static void py_fst_query_dealloc(struct py_fst_query *self)
 {
-    fprintf(stderr, "%s()\n", __func__);
+    if(self->file_ref == NULL){
+        PySys_FormatStderr("%s() file=(null)\n", __func__);
+    } else {
+        PySys_FormatStderr("%s() file=%U\n", __func__, self->file_ref->filename);
+    }
     // self->ref could be NULL because we are not enforcing creation only by
     // .new_query method on fst24_file.
     if(self->ref != NULL){
@@ -837,6 +853,7 @@ static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject
 
 static void py_fst_record_dealloc(struct py_fst_record *self)
 {
+    // PySys_FormatStderr("%s()\n", __func__);
     // TODO: Need to be careful when freeing the memory:
     // suppose the user has a record:
     // >>> my_record = <a record>  # refcount(my_record)=1
