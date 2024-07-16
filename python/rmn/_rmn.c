@@ -565,7 +565,7 @@ static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args){
 
 static PyObject *py_fst24_file_close(struct py_fst24_file *self, PyObject *Py_UNUSED(args))
 {
-    PySys_FormatStderr("%s(): filename=%U\n", __func__, self->filename);
+    // PySys_FormatStderr("%s(): filename=%U\n", __func__, self->filename);
     if(!fst24_close(self->ref)){
         PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
     }
@@ -753,12 +753,13 @@ static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUS
     return PyUnicode_FromFormat("fst24_file(filename=%S, options=%S)", self->filename, self->options);
 }
 
-static void py_fst24_file_dealloc(struct py_fst24_file *self){
-    if(self->filename == NULL){
-        PySys_FormatStderr("%s() file=(null)\n", __func__);
-    } else {
-        PySys_FormatStderr("%s() file=%U\n", __func__, self->filename);
-    }
+static void py_fst24_file_dealloc(struct py_fst24_file *self)
+{
+    // if(self->filename == NULL){
+    //     PySys_FormatStderr("%s() file=(null)\n", __func__);
+    // } else {
+    //     PySys_FormatStderr("%s() file=%U\n", __func__, self->filename);
+    // }
 
     Py_XDECREF(self->filename);
     Py_XDECREF(self->options);
@@ -794,11 +795,11 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
 
 static void py_fst_query_dealloc(struct py_fst_query *self)
 {
-    if(self->file_ref == NULL){
-        PySys_FormatStderr("%s() file=(null)\n", __func__);
-    } else {
-        PySys_FormatStderr("%s() file=%U\n", __func__, self->file_ref->filename);
-    }
+    // if(self->file_ref == NULL){
+    //     PySys_FormatStderr("%s() file=(null)\n", __func__);
+    // } else {
+    //     PySys_FormatStderr("%s() file=%U\n", __func__, self->file_ref->filename);
+    // }
     // self->ref could be NULL because we are not enforcing creation only by
     // .new_query method on fst24_file.
     if(self->ref != NULL){
