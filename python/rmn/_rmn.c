@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <Python.h>
+#include <string.h>
 // Protect ourselves against using deprecated API functions from earlier versions
 #define NPY_NO_DEPRECATED_API NPY_1_9_API_VERSION
 #include <numpy/arrayobject.h>
