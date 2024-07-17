@@ -105,7 +105,6 @@ int test_parallel_write(const int rank) {
     }
 
     fst24_close(test_file);
-    free(test_file);
     test_file = NULL;
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -153,7 +152,6 @@ int test_parallel_write(const int rank) {
         fst24_record_free(&read_rec);
         fst24_query_free(query);
         fst24_close(test_file);
-        free(test_file);
         test_file = NULL;
     }
 

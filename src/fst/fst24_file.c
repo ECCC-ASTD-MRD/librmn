@@ -2015,8 +2015,12 @@ int32_t fst24_query_is_valid(const fst_query* const q) {
 void fst24_query_free(fst_query* const query) {
     if (query != NULL) {
         fst24_query_free(query->next);
-        query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
-        free(query);
+        query->next = NULL;
+
+        if (query->file != NULL) {
+            query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
+            free(query);
+        }
     }
 }
 

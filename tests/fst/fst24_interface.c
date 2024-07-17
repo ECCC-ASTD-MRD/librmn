@@ -406,7 +406,6 @@ int test_fst24_interface(const int is_rsf) {
 
         // Should find the 3 records in the second file only
         criteria.ip2 = test_record.ip2 + 1;
-        fst24_query_free(query);
         query = fst24_new_query(test_file, &criteria, NULL); // Match with given criteria, with default options
         num_found = 0;
         App_Log(APP_INFO, "Looking for 3 records (should be in second file)\n");
