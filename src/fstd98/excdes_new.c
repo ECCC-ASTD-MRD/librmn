@@ -48,7 +48,6 @@
 #include <rmn/excdes_new.h>
 
 #include "base/base.h"
-
 #include "FC_string.h"
 
 

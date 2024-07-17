@@ -210,7 +210,7 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
       switch (gr.grref[0])
          {
          case 'E':
-           f77name(cigaxg)(&gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
+           f77name(cigaxg)(gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
                  &gr.fst.igref[IG1],&gr.fst.igref[IG2],&gr.fst.igref[IG3],&gr.fst.igref[IG4],1);
            f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &npts, &gr.fst.xgref[XLAT1], &gr.fst.xgref[XLON1],
                      &gr.fst.xgref[XLAT2], &gr.fst.xgref[XLON2]);
@@ -364,7 +364,7 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
       switch (gr.grref[0])
          {
          case 'E':
-           f77name(cigaxg)(&gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
+           f77name(cigaxg)(gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
                  &gr.fst.igref[IG1],&gr.fst.igref[IG2],&gr.fst.igref[IG3],&gr.fst.igref[IG4],1);
            f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &npts, &gr.fst.xgref[XLAT1], &gr.fst.xgref[XLON1],
                      &gr.fst.xgref[XLAT2], &gr.fst.xgref[XLON2]);

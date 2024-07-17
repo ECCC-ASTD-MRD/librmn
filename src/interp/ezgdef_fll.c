@@ -23,6 +23,7 @@
 #include <rmn/ezscint.h>
 #include "base/base.h"
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)

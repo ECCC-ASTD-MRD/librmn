@@ -21,6 +21,7 @@
 #include <rmn/ezscint.h>
 #include "base/base.h"
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 int32_t ez_calcxpncof(int32_t gdid) {

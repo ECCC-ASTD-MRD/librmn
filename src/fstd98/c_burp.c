@@ -25,7 +25,6 @@
 #include <stdint.h>
 
 #include <rmn/rpnmacros.h>
-
 #include "burp98_f/burp98_f.h"
 
 //! Convert a list of of 6 digit decimal BUFR coded element names to 16-bit

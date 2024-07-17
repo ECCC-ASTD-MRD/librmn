@@ -6,6 +6,7 @@
 #include <rmn/fstd98.h>
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 void Lire_enrUvercode1(_Grille *gr, float *yy, int32_t nix) {
@@ -195,7 +196,7 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
         {
         /* read the ^> grid descriptor */
         yy = (float *)malloc(nix * sizeof(float));
-        ier = f77name(fstluk)(yy, &ier2, &nix, &njx, &nkx);
+        ier = f77name(fstluk)((uint32_t *)yy, &ier2, &nix, &njx, &nkx);
         /* vercode=ig1ref */
         switch (ig1ref)
           {
@@ -262,9 +263,9 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
          gr->ni_ax = nix;
          gr->nj_ay = njy;
          ay = (float *) malloc(niy*njy*sizeof(float));
-         ier = f77name(fstluk)(ay, &ier1, &niy, &njy, &nky);
+         ier = f77name(fstluk)((uint32_t *)ay, &ier1, &niy, &njy, &nky);
          ax = (float *) malloc(nix*njx*sizeof(float));
-         f77name(fstluk)(ax, &ier2, &nix, &njx, &nkx);
+         f77name(fstluk)((uint32_t*)ax, &ier2, &nix, &njx, &nkx);
          Lire_enrTicTac(gr,ax,nix*njx,ay,niy*njy,ip3,ip4);
          free(ax);
          free(ay);
@@ -316,7 +317,7 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
 
   if ( gr->grref[0] != 'O' && gr->grtyp[0] != 'U' )
      {
-     f77name(cigaxg)(&(gr->grref),&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
+     f77name(cigaxg)(gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
          &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
      }
 

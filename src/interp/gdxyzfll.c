@@ -67,7 +67,7 @@ int32_t c_gdxyzfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int
         case 'Z':
             coordonnee = ABSOLU;
             f77name(ez_ll2igd)(x, y, lat, lon, &npts,
-                &ni_in,&nj_in,&grEntree.grtyp, &grEntree.grref,
+                &ni_in,&nj_in,grEntree.grtyp, grEntree.grref,
                 &grEntree.fst.igref[IG1], &grEntree.fst.igref[IG2],
                 &grEntree.fst.igref[IG3], &grEntree.fst.igref[IG4],
                 grEntree.ax, grEntree.ay, &coordonnee, 1, 1);

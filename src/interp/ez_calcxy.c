@@ -68,7 +68,7 @@ int32_t ez_calcxy(int32_t gdin, int32_t gdout)
             f77name(ez_ll2rgd)(Grille[gdrow_out][gdcol_out].gset[idx_gdin].x,
                             Grille[gdrow_out][gdcol_out].gset[idx_gdin].y,
                             Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, &ninj_out,
-                            &ni_in, &nj_in, &Grille[gdrow_in][gdcol_in].grtyp,
+                            &ni_in, &nj_in, Grille[gdrow_in][gdcol_in].grtyp,
                             &Grille[gdrow_in][gdcol_in].fst.ig[IG1], &Grille[gdrow_in][gdcol_in].fst.ig[IG2],
                             &Grille[gdrow_in][gdcol_in].fst.ig[IG3], &Grille[gdrow_in][gdcol_in].fst.ig[IG4],
                             &groptions.symmetrie, Grille[gdrow_in][gdcol_in].ay, 1);
@@ -82,7 +82,7 @@ int32_t ez_calcxy(int32_t gdin, int32_t gdout)
             f77name(ez_ll2igd)(Grille[gdrow_out][gdcol_out].gset[idx_gdin].x,
                                 Grille[gdrow_out][gdcol_out].gset[idx_gdin].y,
                                 Grille[gdrow_out][gdcol_out].lat, Grille[gdrow_out][gdcol_out].lon, &ninj_out,
-                                &ni_in,&nj_in,&Grille[gdrow_in][gdcol_in].grtyp, &Grille[gdrow_in][gdcol_in].grref,
+                                &ni_in,&nj_in,Grille[gdrow_in][gdcol_in].grtyp, Grille[gdrow_in][gdcol_in].grref,
                                 &Grille[gdrow_in][gdcol_in].fst.igref[IG1], &Grille[gdrow_in][gdcol_in].fst.igref[IG2],
                                 &Grille[gdrow_in][gdcol_in].fst.igref[IG3], &Grille[gdrow_in][gdcol_in].fst.igref[IG4],
                                 Grille[gdrow_in][gdcol_in].ax, Grille[gdrow_in][gdcol_in].ay,

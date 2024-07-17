@@ -25,6 +25,7 @@
 
 #include "base/base.h"
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 int32_t f77name(ezsint)(float *zout, float *zin)

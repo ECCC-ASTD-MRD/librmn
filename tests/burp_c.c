@@ -82,7 +82,7 @@ int main (int argc, char* argv[])
     pttval = tblval; pttcmp = tblcomp; ptlcmp = lstcomp;
     ptstnid = stnid;
     ptrval = rval;
-    pttblburp=tblburp;
+    pttblburp=(int*)tblburp;
     *ptba = 8000; *ptbb = 5000; *ptbc = 5000; *ptbd = 8000;
 
 

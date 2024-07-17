@@ -25,7 +25,7 @@
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 #include "base/base.h"
-#include "f_ezscint.h"
+#include "interp/f_ezscint.h"
 
 int32_t ez_calclatlon(int32_t gdid) {
    float xlat00, xlon00, dlat, dlon;
@@ -60,7 +60,7 @@ int32_t ez_calclatlon(int32_t gdid) {
 
          f77name(grll)(Grille[gdrow][gdcol].lat,Grille[gdrow][gdcol].lon,&ni,&nj,&xlat00,&xlon00,&dlat,&dlon);
 
-         f77name(cigaxg)(&Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.xg[XLAT1], &Grille[gdrow][gdcol].fst.xg[XLON1],
+         f77name(cigaxg)(Grille[gdrow][gdcol].grtyp, &Grille[gdrow][gdcol].fst.xg[XLAT1], &Grille[gdrow][gdcol].fst.xg[XLON1],
          &Grille[gdrow][gdcol].fst.xg[XLAT2], &Grille[gdrow][gdcol].fst.xg[XLON2],
          &Grille[gdrow][gdcol].fst.ig[IG1],  &Grille[gdrow][gdcol].fst.ig[IG2], &Grille[gdrow][gdcol].fst.ig[IG3], &Grille[gdrow][gdcol].fst.ig[IG4],1);
          latp = (float *) malloc(ni*nj*sizeof(float));

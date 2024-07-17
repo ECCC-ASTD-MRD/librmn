@@ -24,6 +24,7 @@
 #include <rmn/ezscint.h>
 #include "base/base.h"
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 
 int32_t c_gdxysint(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts) {

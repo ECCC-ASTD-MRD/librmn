@@ -40,6 +40,7 @@
 #include <rmn/fstd98.h>
 
 #include <armn_compress.h>
+#include "base/base.h"
 
 #include "qstdir.h"
 #include "burp98.h"

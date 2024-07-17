@@ -23,6 +23,7 @@
 #include <rmn/ezscint.h>
 #include "base/base.h"
 #include "ez_funcdef.h"
+#include "base/base.h"
 
 void c_ezdefxg(int32_t gdid) {
 
@@ -115,7 +116,7 @@ void c_ezdefxg(int32_t gdid) {
       break;
 
     case 'E':
-      f77name(cigaxg)(&gr->grtyp,&gr->fst.xg[XLAT1],&gr->fst.xg[XLON1],&gr->fst.xg[XLAT2],&gr->fst.xg[XLON2],
+      f77name(cigaxg)(gr->grtyp,&gr->fst.xg[XLAT1],&gr->fst.xg[XLON1],&gr->fst.xg[XLAT2],&gr->fst.xg[XLON2],
             &gr->fst.ig[IG1],&gr->fst.ig[IG2],&gr->fst.ig[IG3],&gr->fst.ig[IG4],1);
       /*      gr->fst.xg[DLAT] = 180./gr->nj;
          gr->fst.xg[DLON] = 360./(gr->ni-1);
@@ -135,31 +136,31 @@ void c_ezdefxg(int32_t gdid) {
       if (gr->grref[0] == 'S') gr->fst.hemisphere = 2;
       if (gr->grref[0] == 'E')
          {
-         f77name(cigaxg)(&gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
+         f77name(cigaxg)(gr->grref,&gr->fst.xgref[XLAT1], &gr->fst.xgref[XLON1], &gr->fst.xgref[XLAT2], &gr->fst.xgref[XLON2],
             &gr->fst.igref[IG1], &gr->fst.igref[IG2], &gr->fst.igref[IG3], &gr->fst.igref[IG4],1);
          }
 
     break;
 
     case 'L':
-      f77name(cigaxg)(&gr->grtyp,&gr->fst.xg[SWLAT], &gr->fst.xg[SWLON], &gr->fst.xg[DLAT], &gr->fst.xg[DLON],
+      f77name(cigaxg)(gr->grtyp,&gr->fst.xg[SWLAT], &gr->fst.xg[SWLON], &gr->fst.xg[DLAT], &gr->fst.xg[DLON],
             &gr->fst.ig[IG1], &gr->fst.ig[IG2], &gr->fst.ig[IG3], &gr->fst.ig[IG4],1);
       break;
 
     case 'N':
-      f77name(cigaxg)(&gr->grtyp,&gr->fst.xg[PI], &gr->fst.xg[PJ], &gr->fst.xg[D60], &gr->fst.xg[DGRW],
+      f77name(cigaxg)(gr->grtyp,&gr->fst.xg[PI], &gr->fst.xg[PJ], &gr->fst.xg[D60], &gr->fst.xg[DGRW],
             &gr->fst.ig[IG1], &gr->fst.ig[IG2], &gr->fst.ig[IG3], &gr->fst.ig[IG4],1);
       gr->fst.hemisphere = 1;
       break;
 
     case 'S':
-      f77name(cigaxg)(&gr->grtyp,&gr->fst.xg[PI], &gr->fst.xg[PJ], &gr->fst.xg[D60], &gr->fst.xg[DGRW],
+      f77name(cigaxg)(gr->grtyp,&gr->fst.xg[PI], &gr->fst.xg[PJ], &gr->fst.xg[D60], &gr->fst.xg[DGRW],
             &gr->fst.ig[IG1], &gr->fst.ig[IG2], &gr->fst.ig[IG3], &gr->fst.ig[IG4],1);
       gr->fst.hemisphere = 2;
       break;
 
     case 'T':
-      f77name(cigaxg)(&gr->grtyp,&gr->fst.xg[TD60], &gr->fst.xg[TDGRW], &gr->fst.xg[CLAT], &gr->fst.xg[CLON],
+      f77name(cigaxg)(gr->grtyp,&gr->fst.xg[TD60], &gr->fst.xg[TDGRW], &gr->fst.xg[CLAT], &gr->fst.xg[CLON],
             &gr->fst.ig[IG1], &gr->fst.ig[IG2], &gr->fst.ig[IG3], &gr->fst.ig[IG4],1);
       break;
 
