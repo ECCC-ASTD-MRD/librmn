@@ -3674,7 +3674,7 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    strncpy(c_appl, appl, lng);
    c_appl[lng] = '\0';
 
-   return (int32_t) c_xdfimp(iun, stat, nstat, pri, aux, c_vers, c_appl);
+   return (int32_t) c_xdfimp(iun, stat, nstat, (word_2 *)pri, (word_2 *)aux, c_vers, c_appl);
 }
 
 
@@ -3853,7 +3853,7 @@ int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
    int iun = *fiun, npri = *fnpri, naux = *fnaux, nstat = *fnstat, lng, ier;
    char c_vers[257], c_appl[257];
 
-   ier = c_xdfsta(iun, stat, nstat, pri, npri, aux, naux, c_vers, c_appl);
+   ier = c_xdfsta(iun, stat, nstat, (word_2 *)pri, npri, (word_2 *)aux, naux, c_vers, c_appl);
 
    lng = (l1 <= 256) ? l1 : 256;
    c_vers[lng] = '\0';

@@ -2485,7 +2485,7 @@ static int fnom_rem_connect(
         }
 
         demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
-        nc = read_stream(fclient, demande, 5 * sizeof(int));
+        nc = read_stream(fclient, (char * const)demande, 5 * sizeof(int));
         if (nc !=  5 * sizeof(int)) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: read only %d bytes from server\n",__func__,nc);
             close(fclient);

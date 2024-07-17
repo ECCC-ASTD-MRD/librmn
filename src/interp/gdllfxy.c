@@ -170,7 +170,7 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
       break;
 
     case '!':
-      f77name(ez_llflamb)(lat,lon,x,y,&npts,&gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
+      f77name(ez_llflamb)(lat,lon,x,y,&npts,gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
       break;
 
 
@@ -330,7 +330,7 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
       break;
 
     case '!':
-      f77name(ez_llflamb)(lat,lon,x,y,&npts,&gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
+      f77name(ez_llflamb)(lat,lon,x,y,&npts,gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
       break;
 
 

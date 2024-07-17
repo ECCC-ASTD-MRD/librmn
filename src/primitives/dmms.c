@@ -410,8 +410,8 @@ void f77name(ca_alloc)(void **addr, int32_t *length, int32_t *errcode, int32_t *
 
 
 void f77name(ca_deallc)(int32_t ** addr, int32_t * errcode, int32_t * abort) {
-   intptr_t **ptr;
-   ptr = (intptr_t**)(*addr - sizeof(addr));
+   int **ptr;
+   ptr = *addr - sizeof(addr);
    *errcode = bloc_dealloc((struct blocmem *)(*ptr),HEAP);
 }
 

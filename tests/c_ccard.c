@@ -8,13 +8,13 @@ char val[8][CCARD_NCARMAX];
 #endif
 int test_with_equal(){
     fprintf(stderr, "%s()\n", __func__);
-    const char *argv[] = { "myprog", "-key1","=value1", NULL, };
+    char *argv[] = { "myprog", "-key1","=value1", NULL, };
     int argc = 3; // sizeof(argv)/sizeof(argv[0]);
 
-    const char *keyNames[] = { "key1." };
+    char *keyNames[] = { "key1." };
     const int nbKeys = 1; //sizeof(keyNames)/sizeof(keyNames[0]);
 
-    const char *def[] = { "key1_default" };
+    char *def[] = { "key1_default" };
 
     int npos = 0;
 
@@ -30,13 +30,13 @@ int test_with_equal(){
 
 int test_with_space(){
     fprintf(stderr, "%s()\n", __func__);
-    const char *argv[] = { "myprog", "-key1", "value1", NULL, };
+    char *argv[] = { "myprog", "-key1", "value1", NULL, };
     int argc = 3; // sizeof(argv)/sizeof(argv[0]);
 
-    const char *keyNames[] = { "key1." };
+    char *keyNames[] = { "key1." };
     const int nbKeys = 1; //sizeof(keyNames)/sizeof(keyNames[0]);
 
-    const char *def[] = { "key1_default" };
+    char *def[] = { "key1_default" };
 
 #ifndef GLOBAL_VAL
     char val[1][CCARD_NCARMAX];

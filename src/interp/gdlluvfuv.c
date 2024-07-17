@@ -80,7 +80,7 @@ int32_t c_gdlluvfuv_orig(int32_t gdid, float *uullout, float *vvllout, float *uu
                 default:
                     f77name(ez_llwfgdw)(uullout,vvllout,lonin,
                                 &ni,&nj,
-                                &Grille[gdrow_id][gdcol_id].grref,
+                                Grille[gdrow_id][gdcol_id].grref,
                                 &Grille[gdrow_id][gdcol_id].fst.igref[IG1],&Grille[gdrow_id][gdcol_id].fst.igref[IG2],
                                 &Grille[gdrow_id][gdcol_id].fst.igref[IG3],&Grille[gdrow_id][gdcol_id].fst.igref[IG4], 1);
                     break;
@@ -90,7 +90,7 @@ int32_t c_gdlluvfuv_orig(int32_t gdid, float *uullout, float *vvllout, float *uu
             default:
                 f77name(ez_llwfgdw)(uullout,vvllout,lonin,
                         &ni,&nj,
-                        &Grille[gdrow_id][gdcol_id].grtyp,
+                        Grille[gdrow_id][gdcol_id].grtyp,
                         &Grille[gdrow_id][gdcol_id].fst.ig[IG1],&Grille[gdrow_id][gdcol_id].fst.ig[IG2],
                         &Grille[gdrow_id][gdcol_id].fst.ig[IG3],&Grille[gdrow_id][gdcol_id].fst.ig[IG4], 1);
                 break;
