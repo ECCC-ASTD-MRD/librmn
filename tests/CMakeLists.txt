@@ -7,7 +7,7 @@ if (EC_INIT_DONE LESS 2)
         message(STATUS "(EC) Generating librmn tests")
         
         # Helper module
-        add_library(test_helper EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
+        add_library(test_helper STATIC EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
         target_link_libraries(test_helper rmn::rmn)
 
         add_executable(test_copy_swap EXCLUDE_FROM_ALL test_copy_swap.c)

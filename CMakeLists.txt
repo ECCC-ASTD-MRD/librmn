@@ -33,6 +33,16 @@ if (WITH_OMPI)
    find_package(OpenMP REQUIRED)
 endif()
 
+option(RMN_LLVM_ADDRESS_SANITIZER "Compile with LLVM address sanitizer (Intel 2024+ only)" OFF)
+if (NOT ("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM"))
+    set(RMN_LLVM_ADDRESS_SANITIZER OFF)
+endif()
+
+set(RMN_BUILD_SHARED ON)
+if (${RMN_LLVM_ADDRESS_SANITIZER})
+    set(RMN_BUILD_SHARED OFF)
+endif()
+
 #set(FIND_LIBRARY_USE_LIB64_PATHS TRUE)
 #find_package(json-c CONFIG REQUIRED)
 #find_package(UDUNITS2)
@@ -118,7 +128,10 @@ add_custom_command(
 # Add a custom target to regenerate WhiteBoard.hf
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
-set(TARGETS rmn-static rmn-shared)
+set(TARGETS rmn-static)
+if (${RMN_BUILD_SHARED})
+    set(TARGETS ${TARGETS} rmn-shared)
+endif()
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
@@ -127,8 +140,10 @@ target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}>
 add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
 # Build shared library from object of rmn
-add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
-target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
+if (${RMN_BUILD_SHARED})
+    add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
+    target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
+endif()
 
 set_target_properties(${TARGETS} PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -147,11 +162,18 @@ set(static_targets rmn-static)
 
 #----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-static ALIAS rmn-static)
-add_library(rmn::rmn-shared ALIAS rmn-shared)
-add_library(rmn::rmn ALIAS rmn-shared)
+if (${RMN_BUILD_SHARED})
+    add_library(rmn::rmn-shared ALIAS rmn-shared)
+    add_library(rmn::rmn ALIAS rmn-shared)
+else()
+    add_library(rmn::rmn ALIAS rmn-static)
+endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
-    set (OMPI_TARGETS rmn-ompi-static rmn-ompi-shared)
+    set (OMPI_TARGETS rmn-ompi-static)
+    if (${RMN_BUILD_SHARED})
+        set (OMPI_TARGETS ${OMPI_TARGETS} rmn-ompi-shared)
+    endif()
     set(TARGETS ${TARGETS} ${OMPI_TARGETS})
 
    # Build static library from source files
@@ -165,9 +187,11 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
 
     # Build shared library from objects of rmn-ompi
-    add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
-    target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-    target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
+    if (${RMN_BUILD_SHARED})
+        add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
+        target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+        target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
+    endif()
 
     set_target_properties(${OMPI_TARGETS} PROPERTIES
         VERSION ${PROJECT_VERSION}
@@ -190,8 +214,12 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
     #----- Needed when used as sbumodule/subtree
     add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
-    add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
-    add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
+    if (${RMN_BUILD_SHARED})
+        add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
+        add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
+    else()
+        add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)
+    endif()
 endif()
 
 foreach(TARGET IN ITEMS ${TARGETS})
@@ -209,13 +237,15 @@ foreach(TARGET IN ITEMS ${TARGETS})
                $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ldl -pthread>
     )
 
-    # target_compile_options(${TARGET} PUBLIC
-    #            $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
-    # )
-    # target_link_options(${TARGET} PUBLIC
-    #            $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
-    #            $<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fsanitize=address>
-    # )
+    if (${RMN_LLVM_ADDRESS_SANITIZER})
+        target_compile_options(${TARGET} PUBLIC
+                $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
+        )
+        target_link_options(${TARGET} PUBLIC
+                $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
+                $<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fsanitize=address>
+        )
+    endif()
 
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
@@ -261,13 +291,15 @@ set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS 
 set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
 set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 
-install(TARGETS ${shared_targets}
-    EXPORT rmn-shared-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if (${RMN_BUILD_SHARED})
+    install(TARGETS ${shared_targets}
+        EXPORT rmn-shared-targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 
 install(TARGETS ${static_targets}
     EXPORT rmn-static-targets
@@ -316,9 +348,11 @@ add_custom_target(
 # Generate the config file for the project to be usable via cmake's find_package command
 set(CONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
 
-install(EXPORT rmn-shared-targets
-    NAMESPACE rmn::
-    DESTINATION ${CONFIG_INSTALL_DIR})
+if (${RMN_BUILD_SHARED})
+    install(EXPORT rmn-shared-targets
+        NAMESPACE rmn::
+        DESTINATION ${CONFIG_INSTALL_DIR})
+endif()
 
 install(EXPORT rmn-static-targets
     NAMESPACE rmn::
