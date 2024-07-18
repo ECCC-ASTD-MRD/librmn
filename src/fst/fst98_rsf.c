@@ -151,7 +151,7 @@ int c_fstouv_rsf(
     //!> [in] Index given to this file by fnom
     const int index_fnom,
     //!> [in] Opening mode (read/write/append)
-    const int mode,
+    const rsf_open_mode mode,
     //!> [in] Size in MB of segments, if open for parallel write (not parallel if <= 0)
     const int32_t parallel_segment_size_mb
 ) {
@@ -163,12 +163,12 @@ int c_fstouv_rsf(
     if (parallel_segment_size_mb > 0) {
         segment_size = ((int64_t)parallel_segment_size_mb) << 20;
     }
-    
+
     const char appl[4] = {'S', 'T', 'D', 'F'};
 
     // Lib_Log(APP_LIBFST, APP_WARNING, "%s: segment size = %ld\n", __func__, segment_size);
     FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, &segment_size);
-    
+
     // VOLATILE mode, unlink the file so it gets erased at end of process
     if (FGFDT[index_fnom].attr.volatil) {
         if (mode == RSF_RW) {
@@ -177,7 +177,7 @@ int c_fstouv_rsf(
            Lib_Log(APP_LIBFST,APP_WARNING,"%s: File %s opened read only, VOLATILE mode not used\n", __func__,FGFDT[index_fnom].file_name);
         }
     }
-    
+
     if (RSF_Valid_handle(FGFDT[index_fnom].rsf_fh)) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opened file %s, mode %d, fnom index %d, meta dim 0x%x\n", __func__,
                 FGFDT[index_fnom].file_name, mode, index_fnom, meta_dim);
@@ -221,8 +221,6 @@ int c_fstinfx_rsf(
     //! [in] Variable name
     const char * const in_nomvar
 ) {
-    unsigned int u_datev = datev;
-
     fst_record criteria = default_fst_record;
 
     copy_record_string(criteria.etiket, in_etiket, FST_ETIKET_LEN);
@@ -318,7 +316,7 @@ int c_fstinfx_rsf(
             }
         }
     }
-    
+
     if (ip1s_flag || ip2s_flag || ip3s_flag) {
         /* arranger les masques de recherches pour un fstsui */
         if (ip1s_flag) {
@@ -432,8 +430,6 @@ int c_fstluk_rsf(
     //! [out] Dimension 3 of the data field
     int * const nk
 ) {
-    uint32_t *field = vfield;
-
     int64_t rsf_key = RSF_Key64(key32);
     fst_record rec = default_fst_record;
     rec.data = vfield;
@@ -904,14 +900,12 @@ int c_fstvoi_rsf(
 
     size_t single_file_size = 0;
     int64_t num_records = 0;
-    
+
     // Initialize search parameters
     fst_record criteria = default_fst_record;
     fst_query* query = &fst98_open_files[index_fnom].query;
     query->search_index = 0;
     query->search_done = 0;
-    stdf_dir_keys *search_criteria = &(query->criteria.fst98_meta);
-    stdf_dir_keys *search_mask     = &(query->mask.fst98_meta);
 
     query->options = default_query_options;
 

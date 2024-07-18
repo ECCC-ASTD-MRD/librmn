@@ -120,7 +120,7 @@ int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * c
 int c_fstlirx_rsf(void *field, int handle, int iun, const int index_fnom, int *ni, int *nj, int *nk, int datev,
                   char *etiket, int ip1, int ip2, int ip3, char *typvar, char *nomvar);
 int c_fstnbr_rsf(const int index_fnom);
-int c_fstouv_rsf(const int index_fnom, const int mode, const int32_t parallel_segment_size_mb);
+int c_fstouv_rsf(const int index_fnom, const rsf_open_mode mode, const int32_t parallel_segment_size_mb);
 int c_fstluk_rsf(void * const vfield, const RSF_handle file_handle,
                  const int key, int * const ni, int * const nj, int * const nk);
 int c_fsteff_rsf(RSF_handle file_handle, int handle);

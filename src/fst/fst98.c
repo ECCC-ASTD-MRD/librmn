@@ -3559,7 +3559,7 @@ int c_fstouv(
     // Determine whether we open for parallel write, if RSF
     const int32_t seg_size = (strcasestr(options, "PARALLEL") != NULL) ? segment_size_mb : 0;
 
-    const int open_mode = read_only ? RSF_RO : RSF_RW;
+    const rsf_open_mode open_mode = read_only ? RSF_RO : RSF_RW;
     //  (strcasestr(options, "FUSE") != NULL) ? RSF_FUSE : RSF_RW;
 
     FGFDT[i].attr.std = 1; // force attribute to standard file

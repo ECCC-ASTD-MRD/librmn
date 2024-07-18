@@ -141,8 +141,8 @@ int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size) ;
 // the zr field is 0xFE for start_of_record and 0xFF for end_of_record
 // max record length is 2**48 - 1 bytes (rl is in bytes) (256 TBytes) (for now)
 
-#define ZR_SOR  0XFE
-#define ZR_EOR  0xFF
+#define ZR_SOR 0XFE
+#define ZR_EOR 0xFF
 
 #define RL_SOR sizeof(start_of_record)
 #define RL_EOR sizeof(end_of_record)
@@ -162,45 +162,46 @@ const uint32_t RSF_SOS_SIGNATURE    = 0xDEADBEEF; //!< Marker to indicate a star
 const uint32_t RSF_EOS_HI_SIGNATURE = 0xCAFEFADE; //!< Marker to indicate the high part of an end of segment 
 const uint32_t RSF_EOS_LO_SIGNATURE = 0xBEBEFADA; //!< Marker to indicate the low part of an end of segment
 
-const uint8_t DEFAULT_RECORD_TYPE = RT_DATA;  //!< Type assigned to a record if none is specified
-const uint8_t DEFAULT_RECORD_CLASS = RC_DATA; //!< Class assigned to a record if none is specified
+const rsf_rec_type DEFAULT_RECORD_TYPE = RT_DATA;  //!< Type assigned to a record if none is specified
+const rsf_rec_class DEFAULT_RECORD_CLASS = RC_DATA; //!< Class assigned to a record if none is specified
 
-// convert a pair of unsigned 32 bit elements into an unsigned 64 bit element
-static inline uint64_t RSF_32_to_64(const uint32_t u32[2]){
-  uint64_t u64;
-  u64 = u32[0] ; u64 <<=32 ; u64 += u32[1] ;
-  return u64 ;
+//! Convert a pair of unsigned 32 bit elements into an unsigned 64 bit element
+static inline uint64_t RSF_32_to_64(const uint32_t u32[2]) {
+    uint64_t u64 = u32[0];
+    u64 <<= 32;
+    u64 += u32[1];
+    return u64;
 }
 
-static inline void RSF_64_to_32(uint32_t u32[2], const uint64_t u64){
-  u32[0] = (u64 >> 32) ;
-  u32[1] = (u64 & 0xFFFFFFFFu) ;
+static inline void RSF_64_to_32(uint32_t u32[2], const uint64_t u64) {
+    u32[0] = (u64 >> 32);
+    u32[1] = (u64 & 0xFFFFFFFFu);
 }
 
 static inline const char* rt_to_str(const int record_type) {
-  switch (record_type) {
-    case RT_NULL:   return "RT_NULL";
-    case RT_DATA:   return "RT_DATA";
-    case RT_XDAT:   return "RT_XDAT";
-    case RT_SOS:    return "RT_SOS";
-    case RT_EOS:    return "RT_EOS";
-    case RT_VDIR:   return "RT_VDIR";
-    case RT_FILE:   return "RT_FILE";
-    case RT_CUSTOM: return "RT_CUSTOM";
-    case RT_DEL:    return "RT_DEL";
-    default:        return "<unknown>";
-  }
+    switch (record_type) {
+        case RT_NULL:   return "RT_NULL";
+        case RT_DATA:   return "RT_DATA";
+        case RT_XDAT:   return "RT_XDAT";
+        case RT_SOS:    return "RT_SOS";
+        case RT_EOS:    return "RT_EOS";
+        case RT_VDIR:   return "RT_VDIR";
+        case RT_FILE:   return "RT_FILE";
+        case RT_CUSTOM: return "RT_CUSTOM";
+        case RT_DEL:    return "RT_DEL";
+        default:        return "<unknown>";
+    }
 }
 
 //! Record header. Describes the type and size of a record and is located at the start of it.
 typedef struct {
-  uint32_t rt:8  ,  //!< Record type
-           rlm:16,  //!< Record metadata length (in 32-bit units)
-           zr:8  ;  //!< Record start marker (ZR_SOR)
-  uint32_t rl[2] ;  //!< upper[0] and lower[1] 32 bits of record length (bytes)
-  uint32_t rlmd:16, //!< Directory metadata length (in 32-bit units) (rlmd <= rlm)
-           ubc:8  , //!< Unused bit count (length is always a multiple of 4 bytes)
-           dul:8  ; //!< Data unit length (0/1/2/4/8) (for endianness management)
+    uint32_t rt:8,    //!< Record type
+            rlm:16,   //!< Record metadata length (in 32-bit units)
+             zr:8;    //!< Record start marker (ZR_SOR)
+    uint32_t rl[2];   //!< upper[0] and lower[1] 32 bits of record length (bytes)
+    uint32_t rlmd:16, //!< Directory metadata length (in 32-bit units) (rlmd <= rlm)
+              ubc:8,  //!< Unused bit count (length is always a multiple of 4 bytes)
+              dul:8;  //!< Data unit length (0/1/2/4/8) (for endianness management)
 } start_of_record ;
 
 #define SOR {RT_DATA, 0, ZR_SOR, {0, 0}, 0, 0, 0}
@@ -208,44 +209,43 @@ typedef struct {
 //! Check whether the given start-of-record is valid and is of the specified record type
 //! \return The type stored in the start-of-record if valid, 0 otherwise
 static inline uint8_t RSF_Check_record_type(
-  const start_of_record sor,  //!< The start-of-record we want to examine
-  const uint8_t record_type   //!< The record type we are looking for (if RT_NULL, can be anything)
+    const start_of_record sor,  //!< The start-of-record we want to examine
+    const rsf_rec_type record_type   //!< The record type we are looking for (if RT_NULL, can be anything)
 ) {
-  if (sor.zr != ZR_SOR) {
-    if (sor.rt == ZR_SOR) {
-      Lib_Log(APP_LIBFST, APP_ERROR, "%s: It looks like this start-of-record was read from a file written"
-              " in a different endianness than the machine on which we're currently running\n", __func__);
+    if (sor.zr != ZR_SOR) {
+        if (sor.rt == ZR_SOR) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: It looks like this start-of-record was read from a file written"
+                    " in a different endianness than the machine on which we're currently running\n", __func__);
+        } else {
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: Invalid start-of-record, bad record_start marker, expected %4.4x, got %4.4x\n",
+                    __func__, ZR_SOR, sor.zr);
+        }
+        return 0;
     }
-    else {
-      Lib_Log(APP_LIBFST, APP_INFO, "%s: Invalid start-of-record, bad record_start marker, expected %4.4x, got %4.4x\n",
-              __func__, ZR_SOR, sor.zr);
+
+    if (record_type != RT_NULL && sor.rt != record_type) {
+        Lib_Log(APP_LIBFST, APP_INFO,"%s: Invalid start-of-record, bad record types, expected %s, got %s\n",
+                __func__, rt_to_str(record_type), rt_to_str(sor.rt)) ;
+        return 0;
     }
-    return 0;
-  }
 
-  if (record_type != RT_NULL && sor.rt != record_type) {
-    Lib_Log(APP_LIBFST, APP_INFO,"%s: Invalid start-of-record, bad record types, expected %s, got %s\n",
-            __func__, rt_to_str(record_type), rt_to_str(sor.rt)) ;
-    return 0;
-  }
-
-  return sor.rt;
+    return sor.rt;
 }
 
 //! Retrieve record length from start_of_record and verify whether the type matches what's expected.
 //! \return Record length, 0 if invalid
 static inline uint64_t RSF_Rl_sor(
     const start_of_record sor,    //!< SOR we want to query
-    const int rt                  //!< Expected type of the record (RT_NULL means any type is O.K.)
+    const rsf_rec_type rt         //!< Expected type of the record (RT_NULL means any type is O.K.)
 ) {
-  if (RSF_Check_record_type(sor, rt) == 0) return 0;
-  return RSF_32_to_64(sor.rl);
+    if (RSF_Check_record_type(sor, rt) == 0) return 0;
+    return RSF_32_to_64(sor.rl);
 }
 
 //! Record trailer. Describes the type and size of a record and is located at the end of it.
 typedef struct {
-  uint32_t rl[2] ;                 //! upper[0], lower[1] 32 bits of record length (bytes)
-  uint32_t rt:8, rlm:16, zr:8 ;    //! Record end marker (ZR_EOR), metadata length (32 bit units), record type
+    uint32_t rl[2] ;                 //! upper[0], lower[1] 32 bits of record length (bytes)
+    uint32_t rt:8, rlm:16, zr:8 ;    //! Record end marker (ZR_EOR), metadata length (32 bit units), record type
 } end_of_record ;
 
 #define EOR {{0, 0}, RT_DATA, 0,ZR_EOR }
@@ -254,15 +254,14 @@ typedef struct {
 //! \return Record length, 0 if invalid
 static inline uint64_t RSF_Rl_eor(
     end_of_record eor,  //!< EOR we want to query
-    int rt              //!< Expected type of the record (0 means any type is O.K.)
+    rsf_rec_type rt     //!< Expected type of the record (0 means any type is O.K.)
 ) {
-  uint64_t rl ;
-  if(eor.zr != ZR_EOR) return 0 ;                // invalid eor, bad ZR marker
-  if(eor.rt != rt && rt != 0 ) return 0 ;        // invalid eor, not expected RT
-  rl = RSF_32_to_64(eor.rl) ;                    // record length
-  return rl ;
+    if (eor.zr != ZR_EOR) return 0 ;                // invalid eor, bad ZR marker
+    if (eor.rt != rt && rt != RT_NULL ) return 0 ;        // invalid eor, not expected RT
+    uint64_t rl = RSF_32_to_64(eor.rl) ;                    // record length
+    return rl ;
 }
-//
+
 //   empty compact segment
 //   +-----+-------+-------+
 //   | SOS | EOSlo | EOShi |
@@ -298,65 +297,70 @@ static inline uint64_t RSF_Rl_eor(
 
 //! "Start of segment" (SOS) record. Matched by a correspoding "end of segment" (EOS) record
 typedef struct {
-  start_of_record head ;  //!< Record type rt = RT_SOS (3)
-  unsigned char sig1[8] ; //!< RSF marker + application marker ('RSF0cccc') where cccc is 4 character application signature
-  uint32_t sign ;         //!< start_of_segment hex signature (#RSF_SOS_SIGNATURE)
-  uint32_t seg[2] ;       //!< Segment size (bytes), excluding EOS record. (upper[0], lower[1] 32 bits)
-                          //!< 0 for a sparse segment, 0 when segment is open for writing
-  uint32_t sseg[2] ;      //!< Segment size (bytes), including EOS record. (upper[0], lower[1] 32 bits)
-  uint32_t vdir[2] ;      //!< Variable directory record offset in segment (bytes). (upper[0], lower[1] 32 bits)
-  uint32_t vdirs[2] ;     //!< Variable directory record size (bytes). (upper[0], lower[1] 32 bits)
-  end_of_record tail ;    //!< Record type rt = RT_SOS (3)
+    start_of_record head ;  //!< Record type rt = RT_SOS (3)
+    unsigned char sig1[8] ; //!< RSF marker + application marker ('RSF0cccc') where cccc is 4 character application signature
+    uint32_t sign ;         //!< start_of_segment hex signature (#RSF_SOS_SIGNATURE)
+    uint32_t seg[2] ;       //!< Segment size (bytes), excluding EOS record. (upper[0], lower[1] 32 bits)
+                            //!< 0 for a sparse segment, 0 when segment is open for writing
+    uint32_t sseg[2] ;      //!< Segment size (bytes), including EOS record. (upper[0], lower[1] 32 bits)
+    uint32_t vdir[2] ;      //!< Variable directory record offset in segment (bytes). (upper[0], lower[1] 32 bits)
+    uint32_t vdirs[2] ;     //!< Variable directory record size (bytes). (upper[0], lower[1] 32 bits)
+    end_of_record tail ;    //!< Record type rt = RT_SOS (3)
 } start_of_segment ;
 
 // record length of start of segment
 static inline uint64_t RSF_Rl_sos(start_of_segment sos){
-  uint64_t rl1 = RSF_Rl_sor(sos.head, RT_SOS) ;
-  uint64_t rl2 = RSF_Rl_eor(sos.tail, RT_SOS) ;
-  if(rl1 != rl2) return 0 ;
-  return rl1 ;
+    uint64_t rl1 = RSF_Rl_sor(sos.head, RT_SOS) ;
+    uint64_t rl2 = RSF_Rl_eor(sos.tail, RT_SOS) ;
+    if (rl1 != rl2) return 0 ;
+    return rl1 ;
 }
 
-#define SOS { {RT_SOS, 0, ZR_SOR, {0, sizeof(start_of_segment)}},  \
-              {'R','S','F','0','<','-','-','>'} , RSF_SOS_SIGNATURE, {0, 0}, {0, 0}, {0, 0}, {0, 0}, \
+#define SOS { {RT_SOS, 0, ZR_SOR, {0, sizeof(start_of_segment)}, 0, 0, 0},  \
+              {'R','S','F','0','<','-','-','>'}, RSF_SOS_SIGNATURE, {0, 0}, {0, 0}, {0, 0}, {0, 0}, \
               {{0, sizeof(start_of_segment)}, RT_SOS, 0, ZR_EOR} }
 
-typedef struct{           // head part of end_of_segment record (low address in file)
-  start_of_record head ;  // rt=4
-  uint32_t sign ;         // hex signature for end_of_segment_lo (#RSF_EOS_LO_SIGNATURE)
+//! Head part of end_of_segment record (low address in file)
+typedef struct {
+    start_of_record head ;  // rt=4
+    uint32_t sign ;         // hex signature for end_of_segment_lo (#RSF_EOS_LO_SIGNATURE)
 } end_of_segment_lo ;
 
 #define EOSLO { {RT_EOS, 0, ZR_SOR, {0, sizeof(end_of_segment_lo)+sizeof(end_of_segment_hi)}}, RSF_EOS_LO_SIGNATURE }
 
-typedef struct{           // tail part of end_of_segment record (high address in file)
-  uint32_t sign ;         // hex signature for end_of_segment_hi (#RSF_EOS_HI_SIGNATURE)
-  uint32_t seg[2] ;       // Compact segment size (bytes) (upper[0], lower[1] 32 bits). 0 for a sparse segment
-  uint32_t sseg[2] ;      // Sparse segment size (bytes) (upper[0], lower[1] 32 bits). 0 for a compact segment
-  uint32_t vdir[2] ;      // upper[0], lower[1] 32 bits of variable directory record offset in segment (bytes)
-  uint32_t vdirs[2] ;     // upper[0], lower[1] 32 bits of variable directory record size (bytes)
-  end_of_record tail ;    // rt=4
+//! Tail part of end_of_segment record (high address in file)
+typedef struct {
+    uint32_t sign ;         // hex signature for end_of_segment_hi (#RSF_EOS_HI_SIGNATURE)
+    uint32_t seg[2] ;       // Compact segment size (bytes) (upper[0], lower[1] 32 bits). 0 for a sparse segment
+    uint32_t sseg[2] ;      // Sparse segment size (bytes) (upper[0], lower[1] 32 bits). 0 for a compact segment
+    uint32_t vdir[2] ;      // upper[0], lower[1] 32 bits of variable directory record offset in segment (bytes)
+    uint32_t vdirs[2] ;     // upper[0], lower[1] 32 bits of variable directory record size (bytes)
+    end_of_record tail ;    // rt=4
 } end_of_segment_hi ;
 
-// record length of end of segment
+//! Record length of end of segment
 static inline uint64_t RSF_Rl_eosl(end_of_segment_lo eosl){
-  return RSF_Rl_sor(eosl.head, RT_EOS) ;
+    return RSF_Rl_sor(eosl.head, RT_EOS) ;
+
 }
 static inline uint64_t RSF_Rl_eosh(end_of_segment_hi eosh){
-  return RSF_Rl_eor(eosh.tail, RT_EOS) ;
+    return RSF_Rl_eor(eosh.tail, RT_EOS) ;
 }
+
 static inline uint64_t RSF_Rl_eos(end_of_segment_lo eosl, end_of_segment_hi eosh){
-  uint64_t rl1 = RSF_Rl_eosl(eosl) ;
-  uint64_t rl2 = RSF_Rl_eosh(eosh) ;
-  if(rl1 != rl2) return 0 ;
-  return rl1 ;
+    uint64_t rl1 = RSF_Rl_eosl(eosl) ;
+    uint64_t rl2 = RSF_Rl_eosh(eosh) ;
+    if (rl1 != rl2) return 0 ;
+    return rl1 ;
 }
 
 #define EOSHI { RSF_EOS_HI_SIGNATURE, {0, 0}, {0, 0}, {0, 0}, {0, 0}, \
               {{0, sizeof(end_of_segment_lo)+sizeof(end_of_segment_hi)}, RT_EOS, 0, ZR_EOR} }
 
-typedef struct{           // compact end of segment (non sparse file)
-  end_of_segment_lo l ;   // head part of end_of_segment record
-  end_of_segment_hi h ;   // tail part of end_of_segment record
+//! Compact end of segment (non sparse file)
+typedef struct {
+    end_of_segment_lo l ;   //! Head part of end_of_segment record
+    end_of_segment_hi h ;   //! Tail part of end_of_segment record
 } end_of_segment ;
 
 #define EOS { EOSLO , EOSHI }
@@ -368,21 +372,19 @@ typedef struct{           // compact end of segment (non sparse file)
 // if array RSF_file->vdir is too small, it is reallocated in increments of DIR_SLOTS_INCREMENT
 typedef struct directory_block directory_block ;
 
-#if defined(DEBUG)
+#ifndef NDEBUG
 #define DIR_BLOCK_SIZE 512
 #define DIR_SLOTS_INCREMENT 8
-static int32_t debug = DEBUG ;
 #else
 #define DIR_BLOCK_SIZE 131072
 #define DIR_SLOTS_INCREMENT 512
-static int32_t debug = 0 ;
 #endif
 
-struct directory_block{
-  directory_block *next ;
-  uint8_t *cur ;
-  uint8_t *top ;
-  uint8_t entries[] ;
+struct directory_block {
+    directory_block *next ;
+    uint8_t *cur ;
+    uint8_t *top ;
+    uint8_t entries[] ;
 } ;
 
 //!> Extract directory metadata length from int32: upper 16 bits if non zero, lower 16 bits if upper 16 are zero
@@ -396,31 +398,27 @@ struct directory_block{
 // #define DRML_FIX(ML) ( ((ML) >> 16) == 0 ? ((ML) <<16) | (ML) : (ML) )
 
 //! Directory entry (both file and memory)
-typedef struct{
-  uint32_t wa[2] ;            //!< upper[0], lower[1] 32 bits of record offset in segment (or file)
-  uint32_t rl[2] ;            //!< upper[0], lower[1] 32 bits of record length (bytes)
-  uint32_t entry_offset[2] ;  //!< upper[0], lower[1] 32 bits of entry offset in file
-  uint32_t ml ;               //!< directory metadata length (upper 16 bits), record metadata length (lower 16) (in 32-bit elements)
-  uint32_t dul:8, reserved:24 ; //!< data element length (use part of "reserved" for data map length ?)
-  uint32_t meta[] ;           //!< open array for metadata
+typedef struct {
+    uint32_t wa[2] ;            //!< upper[0], lower[1] 32 bits of record offset in segment (or file)
+    uint32_t rl[2] ;            //!< upper[0], lower[1] 32 bits of record length (bytes)
+    uint32_t entry_offset[2] ;  //!< upper[0], lower[1] 32 bits of entry offset in file
+    uint32_t ml ;               //!< directory metadata length (upper 16 bits), record metadata length (lower 16) (in 32-bit elements)
+    uint32_t dul:8, reserved:24 ; //!< data element length (use part of "reserved" for data map length ?)
+    uint32_t meta[] ;           //!< open array for metadata
 } vdir_entry ;
 
-typedef struct{              // directory record to be written to file
-  start_of_record sor ;      // start of record
-  uint32_t entries ;         // number of directory entries used
-  vdir_entry entry[] ;       // open array of directory entries
-//end_of_record eor          // end of record, after last entry, at &entry[entries]
+//! Directory record to be written to file
+typedef struct {
+    start_of_record sor ;      //!< Start of record
+    uint32_t entries ;         //!< Number of directory entries used
+    vdir_entry entry[] ;       //!< Open array of directory entries
 } disk_vdir ;
 #define DISK_VDIR_BASE_SIZE  ( sizeof(disk_vdir) + sizeof(end_of_record) )
 
-typedef struct{
-  uint64_t base ;
-  uint64_t size ;
+typedef struct {
+    uint64_t base ;
+    uint64_t size ;
 } sparse_entry ;
-
-typedef void * pointer ;
-
-typedef struct RSF_File RSF_File ;
 
 // for RSF_File.last_op
 #define OP_NONE  0
@@ -428,149 +426,110 @@ typedef struct RSF_File RSF_File ;
 #define OP_WRITE 2
 
 //!> Internal (in memory) structure for access to Random Segmented Files
-struct RSF_File {
-  uint32_t version ;             //!< RSF library version identifier
-  int32_t  fd ;                  //!< OS file descriptor (-1 if invalid)
-  RSF_File *next ;               //!< pointer to next file if "linked" (NULL if not linked)
-  char *name ;                   //!< file name (canonicalized absolute path name)
-  char appl_code[4] ;            //!< Application-specific code
-  RSF_Match_fn *matchfn ;        //!< pointer to metadata matching function
-  directory_block *dirblocks ;   //!< first "block" of directory data (linked list)
-  vdir_entry **vdir ;            //!< pointer to table of vdir_entry pointers (reallocated larger if it gets too small)
-  sparse_entry *sparse_segs ;    //!< pointer to table of sparse segments
-  uint64_t vdir_size ;           //!< worst case of total size of vdir entries (future size of directory record in file)
-  uint64_t seg_base ;            //!< base address in file of the current active segment (0 if only one segment)
-  uint64_t file_wa0 ;            //!< file address origin (normally 0) (used for file within file access)
-  start_of_segment sos0 ;        //!< start of segment of first segment (as it was read from file)
-  // start_of_segment sos1 ;        //!< start of segment of active (new) (compact or sparse) segment
-  end_of_segment eos1 ;          //!< end of segment of active (compact or sparse) segment
-  uint64_t seg_max ;             //!< Maximum address allowable in segment (ssegl if sparse file). 0 for compact segment (or no limit?)
-  uint64_t seg_max_hint ;        //!< Desired maximum address allowable in segment (sparse only)
-  // off_t    size ;                //!< file size
-  off_t    next_write ;          //!< file offset from beginning of file for next write operation ( -1 if not defined)
-  uint32_t rec_class ;           //!< record class being writen (default : data class 1) (rightmost 24 bits only)
-  uint32_t class_mask ;          //!< record class mask (for scan/read/...) (by default all ones)
-  uint32_t dir_read ;            //!< Total number of records found in all the directories of a file upon opening
-  uint32_t num_deleted_records ; //!< Number of records that have the RT_DEL type (included in the total)
-  uint32_t vdir_slots ;          //!< current size of vdir[] table of pointers to directory entries
-  uint32_t vdir_used ;           //!< number of used pointers in vdir[] table
-  uint32_t sparse_table_used ;   //!< number of used entries in sparse_segments table
-  uint32_t sparse_table_size ;   //!< size of sparse_segments table
-  int32_t  slot ;                //!< Slot where this file is located in the list of open files (-1 if invalid)
-  uint32_t nwritten ;            //!< number of records written (useful when closing after write)
-  int32_t  lock ;                //!< used to lock the file for thread safety
-  int32_t iun ;                  //!< eventual Fortran file number
-  uint16_t rec_meta ;            //!< record metadata size (uint32_t units)
-  uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
-  uint16_t mode ;                //!< file mode (RO/RW/AP/...)
-  uint8_t is_new ;               //!< whether we created the file upon opening
-  uint8_t has_deleted ;          //!< Whether we have deleted record since opening the file
-  uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
-  uint8_t exclusive ;            //!< RW in exclusive mode if 1
-} ;
+typedef struct _RSF_File {
+    uint32_t version ;             //!< RSF library version identifier
+    int32_t  fd ;                  //!< OS file descriptor (-1 if invalid)
+    struct _RSF_File *next ;       //!< pointer to next file if "linked" (NULL if not linked)
+    char *name ;                   //!< file name (canonicalized absolute path name)
+    char appl_code[4] ;            //!< Application-specific code
+    RSF_Match_fn *matchfn ;        //!< pointer to metadata matching function
+    directory_block *dirblocks ;   //!< first "block" of directory data (linked list)
+    vdir_entry **vdir ;            //!< pointer to table of vdir_entry pointers (reallocated larger if it gets too small)
+    sparse_entry *sparse_segs ;    //!< pointer to table of sparse segments
+    uint64_t vdir_size ;           //!< worst case of total size of vdir entries (future size of directory record in file)
+    uint64_t seg_base ;            //!< base address in file of the current active segment (0 if only one segment)
+    uint64_t file_wa0 ;            //!< file address origin (normally 0) (used for file within file access)
+    start_of_segment sos0 ;        //!< start of segment of first segment (as it was read from file)
+    end_of_segment eos1 ;          //!< end of segment of active (compact or sparse) segment
+    uint64_t seg_max ;             //!< Maximum address allowable in segment (ssegl if sparse file). 0 for compact segment (or no limit?)
+    uint64_t seg_max_hint ;        //!< Desired maximum address allowable in segment (sparse only)
+    off_t    next_write ;          //!< file offset from beginning of file for next write operation ( -1 if not defined)
+    uint32_t rec_class ;           //!< record class being writen (default : data class 1) (rightmost 24 bits only)
+    uint32_t class_mask ;          //!< record class mask (for scan/read/...) (by default all ones)
+    uint32_t dir_read ;            //!< Total number of records found in all the directories of a file upon opening
+    uint32_t num_deleted_records ; //!< Number of records that have the RT_DEL type (included in the total)
+    uint32_t vdir_slots ;          //!< current size of vdir[] table of pointers to directory entries
+    uint32_t vdir_used ;           //!< number of used pointers in vdir[] table
+    uint32_t sparse_table_used ;   //!< number of used entries in sparse_segments table
+    uint32_t sparse_table_size ;   //!< size of sparse_segments table
+    int32_t  slot ;                //!< Slot where this file is located in the list of open files (-1 if invalid)
+    uint32_t nwritten ;            //!< number of records written (useful when closing after write)
+    int32_t  lock ;                //!< used to lock the file for thread safety
+    int32_t iun ;                  //!< eventual Fortran file number
+    uint16_t rec_meta ;            //!< record metadata size (uint32_t units)
+    uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
+    rsf_open_mode mode ;           //!< file mode (RO/RW/AP/...)
+    uint8_t is_new ;               //!< whether we created the file upon opening
+    uint8_t has_deleted ;          //!< Whether we have deleted record since opening the file
+    uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
+    uint8_t exclusive ;            //!< RW in exclusive mode if 1
+} RSF_File;
 
 // NOTE : explicit_bzero not available everywhere
-static inline void RSF_File_init(RSF_File *fp){  // initialize a new RSF_File structure
-//   explicit_bzero(fp, sizeof(RSF_File)) ;  // this will make a few of the following statements redundant
-  bzero(fp, sizeof(RSF_File)) ;  // this will make a few of the following statements redundant
-  fp->version    = RSF_VERSION ;
-  fp->fd         = -1 ;
-//   fp->next       = NULL ;
-//   fp->name       = NULL ;
-//   fp->matchfn    = RSF_Default_match ;
-//   fp->dirblocks  = NULL ;
-//   fp->vdir  = NULL ;
-//   fp->sparse_segs  = NULL ;
-//   fp->vdir_size  = 0 ;
-//   fp->seg_base   =  0 ;
-//   fp->file_wa0   =  0 ;
-//   initialize sos0 here ( the explicit_bzero should do the job of initializing to invalid values)
-//   initialize sos1 here ( the explicit_bzero should do the job of initializing to invalid values)
-//   initialize eos1 here ( the explicit_bzero should do the job of initializing to invalid values)
-//   fp->seg_max    =  0 ;    // redundant if sos is stored
-//   fp->seg_max_hint =  0 ;  // redundant if sos is stored
-//   fp->size       =  0 ;
-  fp->next_write  = -1 ;
-  fp->rec_class   =  DEFAULT_RECORD_CLASS ;
-  fp->class_mask  =  0xFFFFFFFFu ;
-//   fp->dir_read  =  0 ;
-//   fp->dir_slots  =  0 ;
-//   fp->dir_used   =  0 ;
-//   fp->vdir_slots  =  0 ;
-//   fp->vdir_used   =  0 ;
-//   fp->sparse_used   =  0 ;
-//   fp->sparse_size   =  0 ;
-  fp->slot       = -1 ;
-//   fp->nwritten   =  0 ;
-//   fp->lock       =  0 ;
-//   fp->iun       =  0 ;
-//   fp->rec_meta       =  0 ;
-//   fp->dir_meta       =  0 ;
-//   fp->mode       =  0 ;
-//   fp->isnew      =  0 ;
-//   fp->last_op    =  0 ;
-//   fp->exclusive    =  0 ;
+//! Initialize a new RSF_File structure
+static inline void RSF_File_init(RSF_File *fp) {
+    bzero(fp, sizeof(RSF_File)) ;  // this will make a few of the following statements redundant
+    fp->version    = RSF_VERSION ;
+    fp->fd         = -1 ;
+    fp->next_write  = -1 ;
+    fp->rec_class   =  DEFAULT_RECORD_CLASS ;
+    fp->class_mask  =  0xFFFFFFFFu ;
+    fp->slot       = -1 ;
 }
 
 //! Lock the file for manipulation by 1 thread of this process
 static inline uint32_t RSF_Multithread_lock(RSF_File *fp) {
-  const uint32_t usec = 100 ;                                        // 100 microseconds
-  uint32_t remaining = 1 << 30; // ~1000 second timeout
+    const uint32_t usec = 100 ;                                        // 100 microseconds
+    uint32_t remaining = 1 << 30; // ~1000 second timeout
 
-  // wait until lock is free
-  while(__sync_val_compare_and_swap(&(fp->lock), 0, 1) != 0) {
-    remaining -= usec ;
-    if(remaining <= 0) return 0 ;                                  // timeout
-    usleep(usec) ;                                               // microsleep for usec microseconds
-  }
-  return 1 ;
+    // wait until lock is free
+    while(__sync_val_compare_and_swap(&(fp->lock), 0, 1) != 0) {
+        remaining -= usec ;
+        if(remaining <= 0) return 0 ;                                  // timeout
+        usleep(usec) ;                                               // microsleep for usec microseconds
+    }
+    return 1 ;
 }
 
 //! Unlock the file (from manipulation by 1 thread of this process)
-static inline uint32_t RSF_Multithread_unlock(RSF_File *fp){
-  uint32_t old_id = fp->lock ;
-  while(__sync_val_compare_and_swap(&(fp->lock), 1, 0) != 1){   // wait until lock is free
-    usleep(100);
-  }
-  return old_id == 1 ;            // 1 if successful, 0 if locked by some other code
+static inline uint32_t RSF_Multithread_unlock(RSF_File *fp) {
+    uint32_t old_id = fp->lock ;
+    while(__sync_val_compare_and_swap(&(fp->lock), 1, 0) != 1){   // wait until lock is free
+        usleep(100);
+    }
+    return old_id == 1 ;            // 1 if successful, 0 if locked by some other code
 }
 
-// round sizes up to a multiple of 4
-static inline uint64_t RSF_Round_size(size_t data_size){
-  data_size += 3 ;
-  data_size >>= 2 ;
-  data_size <<= 2 ;
-//   if(data_size & 0x3L) {    // not a multiple of 4
-//     data_size |= 0x3L ;     // round up to a multiple of 4
-//     data_size++ ;
-//   }
-  return data_size ;
+//! Round sizes up to a multiple of 4
+static inline uint64_t RSF_Round_size(size_t data_size) {
+    data_size += 3 ;
+    data_size >>= 2 ;
+    data_size <<= 2 ;
+    return data_size ;
 }
 
 //! Compute size of rsf record in bytes
 static inline uint64_t RSF_Record_size(
     const uint32_t rec_meta, //!< number of 32-bit metadata elements in record (including directory metadata)
     const size_t data_size   //!< data payload in bytes
-){
-  int64_t record_size ;
-
-  record_size = sizeof(start_of_record) +             // sor
-                sizeof(uint32_t) * rec_meta +         // record metadata
-                RSF_Round_size(data_size) +           // data
-                sizeof(end_of_record) ;               // eor
-  record_size = RSF_Round_size(record_size) ;         // rounded up size
-  return record_size ;
+) {
+    int64_t record_size = sizeof(start_of_record) +             // sor
+                    sizeof(uint32_t) * rec_meta +         // record metadata
+                    RSF_Round_size(data_size) +           // data
+                    sizeof(end_of_record) ;               // eor
+    record_size = RSF_Round_size(record_size) ;         // rounded up size
+    return record_size ;
 }
 
 static inline const char* open_mode_to_str(const int mode) {
-  switch (mode) {
-    case RSF_RO:   return "RSF_RO";
-    case RSF_RW:   return "RSF_RW";
-    case RSF_AP:   return "RSF_AP";
-    case RSF_FUSE: return "RSF_FUSE";
-    case 0:        return "<none>";
-    default:       return "<weird mix>";
-  }
+    switch (mode) {
+        case RSF_RO:   return "RSF_RO";
+        case RSF_RW:   return "RSF_RW";
+        case RSF_AP:   return "RSF_AP";
+        case RSF_FUSE: return "RSF_FUSE";
+        case 0:        return "<none>";
+        default:       return "<weird mix>";
+    }
 }
 
 //! \{
@@ -581,25 +540,24 @@ static inline const char* open_mode_to_str(const int mode) {
 //! | - nothing yet - | --- version --- |  record class - | - record type - |
 //! \return The encoded element
 static inline uint32_t make_meta0(
-  const uint8_t record_class,
-  const uint8_t record_type
+    const uint8_t record_class,
+    const uint8_t record_type
 ) {
-  const uint32_t meta0 = (RSF_VERSION_COUNT << 16) | (record_class << 8) | (record_type);
-  return meta0;
+    const uint32_t meta0 = (RSF_VERSION_COUNT << 16) | (record_class << 8) | (record_type);
+    return meta0;
 }
 
 //! Extract items from the Meta0 32-bit element. See \ref make_meta0 for structure
 static inline void extract_meta0(
-  const uint32_t meta0,     //!< [in]  Encoded Meta0
-  uint8_t* version,         //!< [out] RSF version
-  uint8_t* record_class,    //!< [out]
-  uint8_t* record_type      //!< [out]
+    const uint32_t meta0,               //!< [in]  Encoded Meta0
+    uint8_t * const version,            //!< [out] RSF version
+    rsf_rec_class * const record_class, //!< [out]
+    rsf_rec_type * const record_type    //!< [out]
 ) {
-  *version      = (meta0 & 0x00ff0000) >> 16;
-  *record_class = (meta0 & 0x0000ff00) >> 8;
-  *record_type  = (meta0 & 0x000000ff);
+    *version      = (meta0 & 0x00ff0000) >> 16;
+    *record_class = (rsf_rec_class) (meta0 & 0x0000ff00) >> 8;
+    *record_type  = (rsf_rec_type) (meta0 & 0x000000ff);
 }
-
 //! \}
 
 static int32_t RSF_File_lock(RSF_File *fp, int lock);
@@ -607,4 +565,4 @@ static int32_t RSF_Ensure_new_segment(RSF_File *fp);
 void print_start_of_segment(start_of_segment* sos);
 void print_start_of_record(start_of_record* sor);
 
-static int32_t RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);
+static rsf_rec_type RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);

@@ -17,6 +17,23 @@
 
 static pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static const char * fst_file_type_name[] = {
+    [FST_NONE] = "FST_NONE",
+    [FST_XDF]  = "FST_XDF",
+    [FST_RSF]  = "FST_RSF"
+};
+
+static fst_file default_fst_file = (fst_file) {
+    .iun                =  0,
+    .file_index         = -1,
+    .file_index_backend = -1,
+    .rsf_handle.p       = NULL,
+    .type               = FST_NONE,
+    .next               = NULL,
+    .path               = NULL,
+    .tag                = NULL
+};
+
 static int64_t fst24_get_num_records_single(const fst_file* file);
 
 //! Verify that the file pointer is valid and the file is open
@@ -2002,7 +2019,7 @@ int32_t fst24_eof(const fst_file* const file) {
        return FALSE;
     }
 
-    return (c_fsteof(fst24_get_unit(file)));
+    return c_fsteof(fst24_get_unit(file));
 }
 
 //! \return Whether the given query pointer is a valid query. A query's file must be
