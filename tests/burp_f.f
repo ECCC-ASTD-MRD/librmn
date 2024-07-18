@@ -1754,3 +1754,8 @@
       SEED = SEED + 1
       RETURN
       END
+      integer function time()
+      time = 0
+      return
+      end
+

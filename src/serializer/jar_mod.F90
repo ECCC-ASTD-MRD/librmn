@@ -181,8 +181,10 @@ module rmn_jar
         integer(JAR_ELEMENT), intent(IN), value :: max_elem  !> Maximum number of data elements to print
 
         integer, dimension(:), pointer :: jar_data
+        integer, dimension(1) :: size_elem
 
-        call C_F_POINTER(jar_instance%ptr, jar_data, [jar_instance%size_elem])
+        size_elem = jar_instance%size_elem
+        call C_F_POINTER(jar_instance%ptr, jar_data, size_elem)
         print '(3I6,(20Z9.8))', jar_instance%size_elem, jar_instance%bot, jar_instance%top, jar_data(1:min(max_elem, jar_instance%top))
     end subroutine jar_print_data
 
@@ -251,12 +253,14 @@ module rmn_jar
         implicit none
         class(jar), intent(IN) :: jar_instance                !> Data jar instance
         integer(JAR_ELEMENT), dimension(:),  pointer :: f_ptr !> Fortran pointer to jar data
+        integer, dimension(1) :: size_elem
 
         nullify(f_ptr)
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return ! no data pointer, return NULL pointer
         if (jar_instance%top == 0) return                ! empty jar, return NULL pointer
 
-        call C_F_POINTER(jar_instance%ptr, f_ptr, [jar_instance%top])  ! Fortran pointer to array of jar_instance%size_elem JAR_ELEMENTs
+        size_elem = jar_instance%top
+        call C_F_POINTER(jar_instance%ptr, f_ptr, size_elem)  ! Fortran pointer to array of jar_instance%size_elem JAR_ELEMENTs
     end function jar_contents
 
 
@@ -265,11 +269,13 @@ module rmn_jar
         implicit none
         class(jar), intent(IN) :: jar_instance                !> Data jar instance
         integer(JAR_ELEMENT), dimension(:), pointer :: f_ptr  !> Fortran pointer to jar data
+        integer, dimension(1) :: size_elem
 
         nullify(f_ptr)
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
 
-        call C_F_POINTER(jar_instance%ptr, f_ptr, [jar_instance%size_elem])
+        size_elem = jar_instance%size_elem
+        call C_F_POINTER(jar_instance%ptr, f_ptr, size_elem)
     end function jar_contents_full
 
 
@@ -344,11 +350,13 @@ module rmn_jar
         integer(JAR_ELEMENT) :: size_elem, insertion_pos
         type(C_PTR) :: temp
         integer(JAR_ELEMENT), dimension(:), pointer :: object_as_array, jar_content
+        integer, dimension(1) :: size_elems
 
         success = .false.
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
 
-        call C_F_POINTER(jar_instance%ptr, jar_content, [jar_instance%size_elem])   ! pointer to jar data
+        size_elems = jar_instance%size_elem
+        call C_F_POINTER(jar_instance%ptr, jar_content, size_elems)   ! pointer to jar data
         if ( present(position) ) then
             insertion_pos = position - 1                                            ! insert starting at "position"
         else
@@ -361,7 +369,8 @@ module rmn_jar
         if (insertion_pos + size_elem > jar_instance%size_elem) return              ! jar would overflow
 
         temp = C_LOC(object)
-        call C_F_POINTER(temp, object_as_array, [size_elem])                        ! make what into an integer array
+        size_elems = size_elem
+        call C_F_POINTER(temp, object_as_array, size_elems)                        ! make what into an integer array
         jar_content(insertion_pos + 1 : insertion_pos + size_elem) = object_as_array(1 : size_elem)  ! insert into data portion of jar
         jar_instance%top = insertion_pos + size_elem                                ! update top of jar position
         success = .true.
@@ -399,11 +408,13 @@ module rmn_jar
         integer(JAR_ELEMENT) :: extraction_pos
         type(C_PTR) :: temp
         integer(JAR_ELEMENT), dimension(:), pointer :: object_as_array, jar_content
+        integer, dimension(1) :: size_elem
 
         success = .false.
         if (.not. C_ASSOCIATED(jar_instance%ptr)) return
 
-        call C_F_POINTER(jar_instance%ptr, jar_content, [jar_instance%size_elem])   ! pointer to jar data
+        size_elem = jar_instance%size_elem
+        call C_F_POINTER(jar_instance%ptr, jar_content, size_elem)   ! pointer to jar data
         if ( present(position) ) then
             extraction_pos = position - 1                                           ! insert at "position"
         else
@@ -416,7 +427,8 @@ module rmn_jar
         if (extraction_pos + size_elem_up > jar_instance%top) return                ! insufficient data in jar
 
         temp = C_LOC(object)
-        call C_F_POINTER(temp, object_as_array, [size_elem_down])                   ! object as an array of JAR_ELEMENT
+        size_elem = size_elem_down
+        call C_F_POINTER(temp, object_as_array, size_elem)                   ! object as an array of JAR_ELEMENT
         object_as_array(1 : size_elem_down) = jar_content(extraction_pos + 1 : extraction_pos + size_elem_down)        ! copy from data portion of jar
 
         if(size_elem_up > size_elem_down)then
@@ -431,8 +443,9 @@ module rmn_jar
                 size_byte_down = size_elem_down * (storage_size(jar_content(1)) / storage_size(byte)) ! number of bytes already inserted
                 byte_pos = extraction_pos * (storage_size(jar_content(1)) / storage_size(byte)) ! extraction_pos in bytes
                 temp = C_LOC(object)
-                call C_F_POINTER(temp, object_bytes, [size_byte])                   ! object as a byte array
-                call C_F_POINTER(jar_instance%ptr, jar_bytes, [size_byte])          ! jar data as a byte array
+                size_elem = size_byte
+                call C_F_POINTER(temp, object_bytes, size_elem)                   ! object as a byte array
+                call C_F_POINTER(jar_instance%ptr, jar_bytes, size_elem)          ! jar data as a byte array
                 object_bytes(size_byte_down + 1 : size_byte) = jar_bytes(byte_pos + size_byte_down + 1 : byte_pos + size_byte)
             end block
         endif
