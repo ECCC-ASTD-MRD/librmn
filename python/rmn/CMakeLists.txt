@@ -1,3 +1,4 @@
+list( APPEND CMAKE_INSTALL_RPATH "\$ORIGIN/../.." )
 Python_add_library(_rmn MODULE _rmn.c indexing.c)
 
 #
