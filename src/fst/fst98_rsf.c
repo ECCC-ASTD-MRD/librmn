@@ -178,7 +178,7 @@ int c_fstouv_rsf(
         }
     }
 
-    if (RSF_Valid_handle(FGFDT[index_fnom].rsf_fh)) {
+    if (RSF_Is_handle_valid(FGFDT[index_fnom].rsf_fh)) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opened file %s, mode %d, fnom index %d, meta dim 0x%x\n", __func__,
                 FGFDT[index_fnom].file_name, mode, index_fnom, meta_dim);
         return 0;
@@ -268,7 +268,7 @@ int c_fstinfx_rsf(
         // Verify that the given handle (record key) belongs to the given file
         if (handle > 0) {
             const uint32_t file_slot = RSF_Key64_to_file_slot(handle);
-            if ((int32_t)file_slot != RSF_File_slot(file_handle)) {
+            if ((int32_t)file_slot != RSF_Get_file_slot(file_handle)) {
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d, or iun=%d\n", __func__, handle, iun);
                 return(ERR_BAD_HNDL);
             }

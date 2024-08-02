@@ -38,8 +38,8 @@ int64_t     fst24_get_num_records(const fst_file* const file);
 int32_t     fst24_get_unit(const fst_file* const file);
 int32_t     fst24_get_record_by_index(const fst_file* const file, const int32_t index, fst_record* const record);
 int32_t     fst24_eof(const fst_file* const file);
-char*       fst24_get_tag(const fst_file* const file);
-char*       fst24_set_tag(fst_file* file,const char* const tag);
+const char* fst24_get_tag(const fst_file* const file);
+const char* fst24_set_tag(fst_file* file,const char* const tag);
 
 int32_t    fst24_read_record(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);
