@@ -142,111 +142,105 @@ int XC_get_MAX_requetes() {
 
 
 //! Write requet table in text format
-void WriteRequestTable(
+static void WriteRequestTable(
     //! [in] When other than 0, print separators, otherwise produce "csv" type output
-    const int use_header,
-    //! [in] Path of the file into which to write (without separators; ignore use_header). When NULL, write to stdout
-    const char * const filename
+    const int use_header
 ) {
     char *sep = "\n      ";
-    FILE *outfile = NULL;
-    int header = use_header;
 
     if (package_not_initialized) {
         RequetesInit();
     }
-    if (filename) {
-        outfile = fopen(filename, "w");
-        // disregard use_header if filename is not NULL
-        header = 0;
-    }
 
-    if (outfile == NULL) {
-        // filename NULL or error opening file
-        outfile = stdout;
-    }
-    if (header) {
+    if (use_header) {
         sep = ", ";
     }
     for (int i = first_R; i <= last_R; i++) {
         if(Requests[i].in_use) {
-            if (header) fprintf(outfile, "=================== Request no %d ===================\n", i);
+            char buffer[2048];
+            if (use_header) Lib_Log(APP_LIBFST, APP_INFO, "=================== Request no %d ===================\n", i);
             if (Requests[i].ip1s.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'IP1       ', '%6s', %2d%s %d", in_use[Requests[i].ip1s.in_use], Requests[i].ip1s.nelm, sep, Requests[i].ip1s.data[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'IP1       ', '%6s', %2d%s %d", in_use[Requests[i].ip1s.in_use], Requests[i].ip1s.nelm, sep, Requests[i].ip1s.data[0]);
                 for (int j = 1 ; j < Requests[i].ip1s.nelm ; j++) {
-                    fprintf(outfile, ", %d", Requests[i].ip1s.data[j]);
+                    ptr += sprintf(ptr, ", %d", Requests[i].ip1s.data[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].ip2s.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'IP2       ', '%6s', %2d%s %d", in_use[Requests[i].ip2s.in_use], Requests[i].ip2s.nelm, sep, Requests[i].ip2s.data[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'IP2       ', '%6s', %2d%s %d", in_use[Requests[i].ip2s.in_use], Requests[i].ip2s.nelm, sep, Requests[i].ip2s.data[0]);
                 for (int j = 1 ; j < Requests[i].ip2s.nelm ; j++) {
-                    fprintf(outfile, ", %d", Requests[i].ip2s.data[j]);
+                    ptr += sprintf(ptr, ", %d", Requests[i].ip2s.data[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].ip3s.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'IP3       ', '%6s', %2d%s %d", in_use[Requests[i].ip3s.in_use], Requests[i].ip3s.nelm, sep, Requests[i].ip3s.data[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'IP3       ', '%6s', %2d%s %d", in_use[Requests[i].ip3s.in_use], Requests[i].ip3s.nelm, sep, Requests[i].ip3s.data[0]);
                 for (int j = 1 ; j < Requests[i].ip3s.nelm ; j++) {
-                    fprintf(outfile, ", %d", Requests[i].ip3s.data[j]);
+                    ptr += sprintf(ptr, ", %d", Requests[i].ip3s.data[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].dates.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'Dates     ', '%6s', %2d%s %d", in_use[Requests[i].dates.in_use], Requests[i].dates.nelm, sep, Requests[i].dates.data[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'Dates     ', '%6s', %2d%s %d", in_use[Requests[i].dates.in_use], Requests[i].dates.nelm, sep, Requests[i].dates.data[0]);
                 for (int j = 1 ; j < Requests[i].dates.nelm ; j++) {
-                    fprintf(outfile, ", %d", Requests[i].dates.data[j]);
+                    ptr += sprintf(ptr, ", %d", Requests[i].dates.data[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].nomvars.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'Nomvar    ', '%6s', %2d%s '%-4s'", in_use[Requests[i].nomvars.in_use], Requests[i].nomvars.nelm, sep, Requests[i].nomvars.pdata[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'Nomvar    ', '%6s', %2d%s '%-4s'", in_use[Requests[i].nomvars.in_use], Requests[i].nomvars.nelm, sep, Requests[i].nomvars.pdata[0]);
                 for (int j = 1 ; j < Requests[i].nomvars.nelm ; j++) {
-                    fprintf(outfile, ", '%-4s'", Requests[i].nomvars.pdata[j]);
+                    ptr += sprintf(ptr, ", '%-4s'", Requests[i].nomvars.pdata[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].typvars.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'Typvar    ', '%6s', %2d%s '%-2s'", in_use[Requests[i].typvars.in_use], Requests[i].typvars.nelm, sep, Requests[i].typvars.pdata[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'Typvar    ', '%6s', %2d%s '%-2s'", in_use[Requests[i].typvars.in_use], Requests[i].typvars.nelm, sep, Requests[i].typvars.pdata[0]);
                 for (int j = 1 ; j < Requests[i].typvars.nelm ; j++) {
-                    fprintf(outfile, ", '%-2s'", Requests[i].typvars.pdata[j]);
+                    ptr += sprintf(ptr, ", '%-2s'", Requests[i].typvars.pdata[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].etiquettes.in_use) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'Etiket    ', '%6s', %2d%s '%-12s'", in_use[Requests[i].etiquettes.in_use], Requests[i].etiquettes.nelm, sep, Requests[i].etiquettes.pdata[0]);
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'Etiket    ', '%6s', %2d%s '%-12s'", in_use[Requests[i].etiquettes.in_use], Requests[i].etiquettes.nelm, sep, Requests[i].etiquettes.pdata[0]);
                 for (int j = 1 ; j < Requests[i].etiquettes.nelm ; j++) {
-                    fprintf(outfile, ", '%-12s'", Requests[i].etiquettes.pdata[j]);
+                    ptr += sprintf(ptr, ", '%-12s'", Requests[i].etiquettes.pdata[j]);
                 }
-                fprintf(outfile, "\n");
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
             if (Requests[i].in_use_supp) {
-                fprintf(outfile, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
-                fprintf(outfile, "'Xtra      ', 'value ',  8%s %d, %d, %d, %d, %d, %d, %d, '%c'\n", sep,
+                char* ptr = buffer;
+                ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
+                ptr += sprintf(ptr, "'Xtra      ', 'value ',  8%s %d, %d, %d, %d, %d, %d, %d, '%c'\n", sep,
                         Requests[i].nis, Requests[i].njs, Requests[i].nks,
                         Requests[i].ig1s, Requests[i].ig2s, Requests[i].ig3s, Requests[i].ig4s, Requests[i].grdtyps);
+                Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
             }
         }  /* if */
     }  /* for */
-    if (! header) {
-        fprintf(outfile, " 0\n");
-    }
-    if (outfile != stdout) {
-        fclose(outfile);
+    if (! use_header) {
+        Lib_Log(APP_LIBFST, APP_INFO, " 0\n");
     }
 }
 
 
 void DumpRequestTable()
 {
-  WriteRequestTable(1, NULL);
+  WriteRequestTable(1);
 }
 
 
@@ -1039,7 +1033,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
                      int ip1, int ip2, int ip3, const char *typvar, const char *nomvar, const char *etiket,
                      const char *grtyp, int ig1, int ig2, int ig3, int ig4)
 {
-  int i, set_nb, last_in_use;
+  int i, last_in_use;
   int amatch = 0;
   int debut, fin, date;
   double diff_deb, diff_fin, delta8, remainder;
@@ -1048,27 +1042,32 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
   int nb_desire = 0;
 
   if(package_not_initialized) {
-    Lib_Log(APP_LIBFST,APP_INFO,"%s: C_fstmatch_parm, initializing request tables\n",__func__);
+    Lib_Log(APP_LIBFST,APP_INFO,"%s: initializing request tables\n", __func__);
     RequetesInit();
   }
 //  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
 
-#ifdef NOTUSED
-  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar-->%s<-- typvar-->%s<-- etiket-->%s<--\n",
+  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar=\"%s\" typvar=\"%s\" etiket=\"%s\"\n",
           __func__, date, ip1, ip2, ip3, nomvar, typvar, etiket);
-#endif
   translatable = FstCanTranslateName(nomvar) ;
   date = datevalid;
-//  for (set_nb=first_R; set_nb <= last_R ; set_nb++) fprintf(stderr, " %d", Requests[set_nb].in_use) ; fprintf(stderr, "\n");
 
-  for (set_nb=first_R; (set_nb <= last_R) ; set_nb++) {
+  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
+    char buffer[1024];
+    char* ptr = buffer;
+    for (int set_nb=first_R; set_nb <= last_R && (ptr - buffer < 1000) ; set_nb++)
+      ptr += sprintf(ptr, " %d", Requests[set_nb].in_use);
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: %s\n", __func__, buffer);
+  }
+
+  for (int set_nb=first_R; (set_nb <= last_R) ; set_nb++) {
     if(Requests[set_nb].in_use == 0)continue ;
 
     /* process supplementary parameters if any right here */
     amatch = 0;
     if (Requests[set_nb].exdes == DESIRE) nb_desire++;
     desire_exclure = (Requests[set_nb].exdes == DESIRE)  ? "desire" : "exclure";
-//fprintf(stderr, "matching request set %d\n", set_nb);
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: matching request set %d (%s)\n", __func__, set_nb, desire_exclure);
     Supplements:
       if (Requests[set_nb].in_use_supp) {   /* les criteres supplementires sont globaux */
         if( (Requests[set_nb].ig1s != ig1 && Requests[set_nb].ig1s != -1)
@@ -1225,7 +1224,10 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         if( amatch == 0)
           amatch = match_ip(Requests[set_nb].ip3s.in_use, Requests[set_nb].ip3s.nelm, Requests[set_nb].ip3s.data, ip3, translatable);
 //fprintf(stderr, "%s matching ip3=%d, amatch=%d\n", in_use[Requests[set_nb].ip3s.in_use], ip3, amatch);
-        if(amatch == 0) continue ;  /* requete non satisfaite pour ip3 */
+        if (amatch == 0) {
+          Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Request not satisfied for ip3 (we have %d) \n", __func__, ip3);
+          continue ;  /* requete non satisfaite pour ip3 */
+        }
       }
 
     Fin:
