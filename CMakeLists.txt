@@ -162,11 +162,9 @@ set(static_targets rmn-static)
 
 #----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-static ALIAS rmn-static)
+add_library(rmn::rmn ALIAS rmn-static) # Default to static
 if (${RMN_BUILD_SHARED})
     add_library(rmn::rmn-shared ALIAS rmn-shared)
-    add_library(rmn::rmn ALIAS rmn-shared)
-else()
-    add_library(rmn::rmn ALIAS rmn-static)
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
@@ -214,11 +212,9 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
     #----- Needed when used as sbumodule/subtree
     add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
+    add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)    # Default to static
     if (${RMN_BUILD_SHARED})
         add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
-        add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
-    else()
-        add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)
     endif()
 endif()
 
