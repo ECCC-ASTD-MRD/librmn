@@ -1085,7 +1085,11 @@ int c_fstecr(
     if ((rewrit) && (!fte->xdf_seq)) {
         // find handle for rewrite operation
         int niout, njout, nkout;
+
+        void* const old_file_filter = xdf_set_file_filter(iun, NULL); // Remove file filter for this particular search
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
+        xdf_set_file_filter(iun, old_file_filter); // Put file filter back
+
         if (handle < 0) {
             /* append mode for xdfput */
             handle = 0;

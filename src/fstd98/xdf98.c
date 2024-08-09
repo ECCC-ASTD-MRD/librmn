@@ -624,6 +624,26 @@ int c_qdfrstr(
     return 0;
 }
 
+void* xdf_set_file_filter(const int iun, void* const new_filter) {
+    const int index_fnom = fnom_index(iun);
+    if (index_fnom == -1) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
+        return NULL;
+    }
+
+    const int index = file_index(iun);
+    if (index == ERR_NO_FILE) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not open\n",__func__);
+        return NULL;
+    }
+
+    file_table_entry * const f = file_table[index];
+
+    void* old_file_filter = f->file_filter;
+    f->file_filter = new_filter;
+    return old_file_filter;
+}
+
 //! Add to the end of the record contained in buf, nelm*nbits bits from donnees.
 int c_xdfadd(
     //! [inout] Buffer to contain the record

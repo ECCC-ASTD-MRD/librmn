@@ -11,6 +11,7 @@ int c_xdfdel(const int handle);
 
 int fnom_index(int iun);
 int file_index(int iun);
+void* xdf_set_file_filter(const int iun, void* const new_filter);
 int32_t f77name(xdfopn)(int32_t *fiun, char *mode, ftnword_2 *pri, int32_t *fnpri,
              ftnword_2 *aux, int32_t *fnaux, char *appl, F2Cl l1, F2Cl l2);
 int c_xdfopn(int iun, char *mode, word_2 *pri, int npri,
