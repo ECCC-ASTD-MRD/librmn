@@ -281,6 +281,7 @@ build:rhel-8-amd64_gnu-12.1.0:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc12
       - export EC_ARCH=Linux_x86-64/gnu-12.1.0
