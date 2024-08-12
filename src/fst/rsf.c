@@ -180,11 +180,11 @@ uint32_t RSF_Key64_to_file_slot(int64_t key64) {
     return key64_to_file_slot(key64);
 }
 
-// generate a 64 bit record key  (slot:32, index:32)
-// from a 32 bit RSF key (sign:1, one:1 , index : 20, slot:10)
-// code may have to be added to deal properly with negative key32 values
-// code may be added to check that slot and index make sense
-// an error should be returned if bit 30 is 0, i.e. ((key32 >> 30) & 1) == 0
+//! generate a 64 bit record key  (slot:32, index:32)
+//! from a 32 bit RSF key (sign:1, one:1 , index : 20, slot:10)
+//! code may have to be added to deal properly with negative key32 values
+//! code may be added to check that slot and index make sense
+//! an error should be returned if bit 30 is 0, i.e. ((key32 >> 30) & 1) == 0
 int64_t RSF_Key64(int32_t key32){
     uint64_t key64 = (key32 & 0x3FF);          // slot number (10 bits)
     key64 <<= 32;                              // shift to proper position

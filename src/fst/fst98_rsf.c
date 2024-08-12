@@ -156,7 +156,8 @@ int c_fstouv_rsf(
     const int32_t parallel_segment_size_mb
 ) {
     FGFDT[index_fnom].attr.rsf = 1;
-    c_waclos2(FGFDT[index_fnom].iun); // Because fnom always opens a wafile...
+    if (FGFDT[index_fnom].fd >= 0)
+        c_waclos2(FGFDT[index_fnom].iun); // Because fnom (almost) always opens a wafile...
 
     const int32_t meta_dim = (sizeof(search_metadata) + 3)/ sizeof(int32_t); // In 32-bit units
     int64_t segment_size = 0;
@@ -259,86 +260,69 @@ int c_fstinfx_rsf(
 
     make_search_criteria(&criteria, &fst98_open_files[index_fnom].query);
 
+    // Start after [handle], if one is specified
+    if (handle > 0) {
+        const int64_t key64 = RSF_Key64(handle);
+        const uint32_t file_slot = RSF_Key64_to_file_slot(key64);
+        if ((int32_t)file_slot != RSF_Get_file_slot(file_handle)) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d, or iun=%d\n", __func__, handle, iun);
+            return(ERR_BAD_HNDL);
+        }
+
+        query->search_index = RSF_Key64_to_index(key64);
+    }
+
     // Perform the search itself
     int64_t rsf_key = -1;
-    if (handle == -2) {
-        /* means handle not specified */
-        rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
-    } else {
-        // Verify that the given handle (record key) belongs to the given file
-        if (handle > 0) {
-            const uint32_t file_slot = RSF_Key64_to_file_slot(handle);
-            if ((int32_t)file_slot != RSF_Get_file_slot(file_handle)) {
-                Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d, or iun=%d\n", __func__, handle, iun);
-                return(ERR_BAD_HNDL);
-            }
+
+    while ((rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query)) >= 0) {
+
+        const int32_t lhandle = RSF_Key32(rsf_key);
+
+        RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+        fst_record rec = default_fst_record;
+        fill_with_search_meta(&rec, (search_metadata*)record_info.meta, FST_RSF);
+
+
+        // Verify additional criteria
+        if (!C_fst_rsf_match_req(rec.datev, rec.ni, rec.nj, rec.nk, rec.ip1, rec.ip2, rec.ip3,
+                                rec.typvar, rec.nomvar, rec.etiket, rec.grtyp, rec.ig1, rec.ig2, rec.ig3, rec.ig4)) {
+            continue;
         }
+        if (ip1s_flag && ip1 >= 0 && ip_is_equal(ip1, rec.ip1, 1) == 0) continue;
+        if (ip2s_flag && ip2 >= 0 && ip_is_equal(ip2, rec.ip2, 2) == 0) continue;
+        if (ip3s_flag && ip3 >= 0 && ip_is_equal(ip3, rec.ip3, 3) == 0) continue;
 
-        rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
-    }
-    int32_t lhandle = RSF_Key32(rsf_key);
+        // We have a match!
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
 
-    if (rsf_key < 0) {
-        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
-        // if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
-        return (int32_t)rsf_key;
-    }
+        *ni = rec.ni;
+        *nj = rec.nj;
+        *nk = rec.nk;
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
-
-    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    const stdf_dir_keys* record_meta = &((const search_metadata*)record_info.meta)->fst98_meta;
-
-    // Continue looking until we have a match. Why is this not part of the RSF lookup function????
-    if (ip1s_flag || ip2s_flag || ip3s_flag) {
-        int nomatch = 1;
-        while ((lhandle >=  0) && (nomatch)) {
-            nomatch = 0;
-            if ((ip1s_flag) && (ip1 >= 0)) {
-                if (ip_is_equal(ip1, record_meta->ip1, 1) == 0) {
-                    nomatch = 1;
-                } else if ((ip2s_flag) && (ip2 >= 0)) {
-                    if (ip_is_equal(ip2, record_meta->ip2, 2) == 0) {
-                        nomatch = 1;
-                    } else if ((ip3s_flag) && (ip3 >= 0)) {
-                        if (ip_is_equal(ip3, record_meta->ip3, 3) == 0) {
-                            nomatch = 1;
-                        }
-                    }
-                }
-            }
-            if (nomatch) {
-                rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
-                lhandle = RSF_Key32(rsf_key);
-                if (rsf_key >= 0) {
-                    record_info = RSF_Get_record_info(file_handle, rsf_key);
-                }
-            }
-        }
-    }
-
-    if (ip1s_flag || ip2s_flag || ip3s_flag) {
-        /* arranger les masques de recherches pour un fstsui */
+        // arranger les masques de recherches pour un fstsui
         if (ip1s_flag) {
-            search_criteria->ip1 = record_meta->ip1;
+            search_criteria->ip1 = rec.ip1;
             search_mask->ip1 = 0xFFFFFFF;
         }
         if (ip2s_flag) {
-            search_criteria->ip2 = record_meta->ip2;
+            search_criteria->ip2 = rec.ip2;
             search_mask->ip2 = 0xFFFFFFF;
         }
         if (ip3s_flag) {
-            search_criteria->ip3 = record_meta->ip3;
+            search_criteria->ip3 = rec.ip3;
             search_mask->ip3 = 0xFFFFFFF;
         }
-        init_ip_vals();
+        if (ip1s_flag || ip2s_flag || ip3s_flag) {
+            init_ip_vals();
+        }
+
+        return lhandle;
     }
 
-    *ni = record_meta->ni;
-    *nj = record_meta->nj;
-    *nk = record_meta->nk;
-
-    return lhandle;
+    // If we got out, it's because we didn't find anything
+    Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
+    return (int32_t)rsf_key;
 }
 
 //! \copydoc c_fstfrm
@@ -856,21 +840,28 @@ int c_fstsui_rsf(
         return ERR_NO_FILE;
     }
 
-    /* position to the next record that matches the last search criterias */
-    const int64_t rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query);
-    if (rsf_key < 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
-        return (int32_t)rsf_key;
+    int64_t rsf_key = -1;
+    while ((rsf_key = find_next_rsf(file_handle, &fst98_open_files[index_fnom].query)) >= 0) {
+
+        RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+        fst_record rec = default_fst_record;
+        fill_with_search_meta(&rec, (search_metadata*)record_info.meta, FST_RSF);
+
+        // Check if that record passes the global excdes filter
+        if (C_fst_rsf_match_req(rec.datev, rec.ni, rec.nj, rec.nk, rec.ip1, rec.ip2, rec.ip3, rec.typvar, rec.nomvar,
+                                rec.etiket, rec.grtyp, rec.ig1, rec.ig2, rec.ig3, rec.ig4)) {
+            *ni = rec.ni;
+            *nj = rec.nj;
+            *nk = rec.nk;
+
+            const int32_t xdf_handle = RSF_Key32(rsf_key);
+            return xdf_handle;
+        }
+
     }
 
-    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
-    stdf_dir_keys* stdf_entry = &((search_metadata*)record_info.meta)->fst98_meta;
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
-    *nk = stdf_entry->nk;
-
-    const int32_t xdf_handle = RSF_Key32(rsf_key);
-    return xdf_handle;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: record not found, errcode=%ld\n", __func__, rsf_key);
+    return ERR_NOT_FOUND;
 }
 
 //! \copydoc c_fstvoi

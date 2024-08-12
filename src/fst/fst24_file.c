@@ -120,12 +120,10 @@ fst_file* fst24_open(
              options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
 
-    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fnom\n", __func__);
     if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) {
         free(the_file);
         return NULL;
     }
-    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fstouv\n", __func__);
     if (c_fstouv(the_file->iun, local_options) < 0) {
         free(the_file);
         return NULL;
@@ -143,7 +141,6 @@ fst_file* fst24_open(
     }
     else {
         the_file->type = FST_XDF;
-        // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling file_index_xdf\n", __func__);
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
