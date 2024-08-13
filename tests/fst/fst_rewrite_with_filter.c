@@ -28,6 +28,10 @@ int test98(const int is_rsf) {
         return -1;
     }
 
+    RequetesInit();
+    const int ips[] = {TEST_IP};
+    Xc_Select_ip1(1, 1, ips, 1);
+
     status = c_fstecr(dummy_data, NULL, -32, iun, 0, 0, 0, 1, 1, 1, TEST_IP + 1, 1, 1, "  ", "    ", "            ", "  ",
                  1, 1, 1, 1, 1, FST_SKIP);
     if (status <= 0) {
