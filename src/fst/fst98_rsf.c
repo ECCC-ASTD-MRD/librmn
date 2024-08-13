@@ -127,6 +127,23 @@ int c_fstecr_rsf(
     xdf_short = 0;
     xdf_byte = 0;
 
+    if (rewrit != FST_NO) {
+        // Find handle for rewrite operation
+        int niout, njout, nkout;
+        const int handle = c_fstinfx_rsf(
+            -2, iun, index_fnom, &niout, &njout, &nkout, -1, in_etiket, ip1, ip2, ip3, in_typvar, in_nomvar, 1);
+
+        if (handle >= 0) {
+            if (rewrit == FST_SKIP) {
+                // A similar record already exists, so nothing more to do
+                return handle;
+            }
+
+            // Delete the record before writing the new one
+            if (RSF_Delete_record(file_handle, RSF_Key64(handle)) != 1) return -1;
+        }
+    }
+
     const int32_t result = fst24_write_rsf(file_handle, &rec, xdf_stride);
 
     return result > 0 ? 0 : -1;
@@ -220,7 +237,9 @@ int c_fstinfx_rsf(
     //! [in] Type of field
     const char * const in_typvar,
     //! [in] Variable name
-    const char * const in_nomvar
+    const char * const in_nomvar,
+    //! [in] Whether to skip the global file filter
+    const int skip_filter
 ) {
     fst_record criteria = default_fst_record;
 
@@ -285,8 +304,9 @@ int c_fstinfx_rsf(
 
 
         // Verify additional criteria
-        if (!C_fst_rsf_match_req(rec.datev, rec.ni, rec.nj, rec.nk, rec.ip1, rec.ip2, rec.ip3,
-                                rec.typvar, rec.nomvar, rec.etiket, rec.grtyp, rec.ig1, rec.ig2, rec.ig3, rec.ig4)) {
+        if (!skip_filter &&
+            !C_fst_rsf_match_req(rec.datev, rec.ni, rec.nj, rec.nk, rec.ip1, rec.ip2, rec.ip3,
+                                 rec.typvar, rec.nomvar, rec.etiket, rec.grtyp, rec.ig1, rec.ig2, rec.ig3, rec.ig4)) {
             continue;
         }
         if (ip1s_flag && ip1 >= 0 && ip_is_equal(ip1, rec.ip1, 1) == 0) continue;
@@ -384,7 +404,7 @@ int c_fstlirx_rsf(
         return ERR_NO_FILE;
     }
 
-    const int32_t key32 = c_fstinfx_rsf(handle, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    const int32_t key32 = c_fstinfx_rsf(handle, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, 0);
     if (key32 < 0) {
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: (unit=%d) record not found, errcode=%d\n", __func__, iun, key32);
         return key32;
@@ -527,7 +547,7 @@ int c_fstinl_rsf(
             "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",
             __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
-    int handle = c_fstinfx_rsf(-2, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
+    int handle = c_fstinfx_rsf(-2, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, 0);
 
     int nijkmax = (*ni) * (*nj) * (*nk);
     int nimax = *ni;

@@ -1021,13 +1021,18 @@ int32_t fst24_write(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
             __func__, file->path, fst_file_type_name[file->type], rewrite);
 
+    // Use the skip_filter option, to *not* miss the record because of the global filter
+    fst_query_options rewrite_options = default_query_options;
+    rewrite_options.skip_filter = 1;
+
     if (rewrite) { 
         fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME|FST_META_SIZE);
         crit.datev = get_valid_date32(crit.dateo,crit.deet,crit.npas);
         crit.dateo=-1;
     }
-    if (rewrite==FST_SKIP) {
-        fst_query* q = fst24_new_query(file, &crit, NULL);
+
+    if (rewrite == FST_SKIP) {
+        fst_query* q = fst24_new_query(file, &crit, &rewrite_options);
         if (fst24_find_next(q,NULL)) {
             Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
             return(TRUE);
@@ -1035,10 +1040,10 @@ int32_t fst24_write(
         fst24_query_free(q);
     } 
 
-    if  (file->type == FST_RSF) {
-        if (rewrite==FST_YES) {
+    if (file->type == FST_RSF) {
+        if (rewrite == FST_YES) {
             int nb;
-            if ((nb=fst24_search_and_delete(file, &crit, NULL))) {
+            if ((nb=fst24_search_and_delete(file, &crit, &rewrite_options))) {
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: Deleted %i matching records\n", __func__,nb);
             }
         }
@@ -1359,7 +1364,21 @@ int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
 
     const int32_t start_key = query->search_index & 0xffffffff;
 
+    // --- START critical section (maybe) ---
+    void* old_filter = NULL;
+    if (query->options.skip_filter) {
+        pthread_mutex_lock(&fst24_xdf_mutex);
+        old_filter = xdf_set_file_filter(iun, NULL);
+    }
+
     const int64_t key = (int64_t) c_xdfloc2(iun, start_key, pkeys, 16, pmask);
+
+    if (query->options.skip_filter) {
+        xdf_set_file_filter(iun, old_filter);
+        pthread_mutex_unlock(&fst24_xdf_mutex);
+    }
+    // --- END critical section (if necessary) ---
+
     if (key > 0) {
         // Found it. Next search will start here
         query->search_index = key;
@@ -1396,6 +1415,7 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
 
     // Check on excdes desire/exclure clauses
     if (query->file->type == FST_RSF &&
+        !query->options.skip_filter &&
         !C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
         record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
         return FALSE;
